@@ -196,6 +196,50 @@ type
     property List: PWordArray read FList;
   end;
 
+  TBitList = class(TPersistent)
+  private
+    FList: Pointer;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: Boolean;
+    function Get(Index: Integer): Boolean;
+    procedure Put(Index: Integer; Item: Boolean);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    function GetItemString: string;
+    procedure SetItemString(S: string);
+    function GetBitsSet: Integer;
+    function GetBitsCleared: Integer;
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: Boolean): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TBitList;
+    function First: Boolean;
+    function IndexOf(Item: Boolean): Integer;
+    procedure Insert(Index: Integer; Item: Boolean);
+    function Last: Boolean;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: Boolean): Integer;
+    procedure Pack;
+    function Compare(List: TBitList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: Boolean read FDefault write FDefault;
+    property Items[Index: Integer]: Boolean read Get write Put; default;
+    property ItemString: string read GetItemString write SetItemString;
+    property BitsSet: Integer read GetBitsSet;
+    property BitsCleared: Integer read GetBitsCleared;
+  end;
+
 procedure FillInteger(var Buf; Count, Value: Integer);
 procedure FillWord(var Buf; Count: Integer; Value: Word);
 
@@ -1522,6 +1566,289 @@ begin
   end
   else
     Result := -1;
+end;
+
+{ TBitList }
+
+destructor TBitList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TBitList.Assign(Source: TPersistent);
+begin
+  if Source is TBitList then
+    with TBitList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, ((Self.FCount + 31) shr 5) * SizeOf(Integer));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TBitList.Add(Item: Boolean): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  Put(FCount, Item);
+end;
+
+procedure TBitList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TBitList.Delete(Index: Integer);
+var
+  I: Integer;
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    for I := Index to FCount - 1 do Put(I, Get(I + 1));
+end;
+
+class procedure TBitList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TBitList.Exchange(Index1, Index2: Integer);
+var
+  Item: Boolean;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := Get(Index1);
+  Put(Index1, Get(Index2));
+  Put(Index2, Item);
+end;
+
+function TBitList.Expand: TBitList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TBitList.First: Boolean;
+begin
+  Result := Get(0);
+end;
+
+function TBitList.Get(Index: Integer): Boolean; assembler;
+asm
+        CMP     Index,[EAX].FCount
+        JAE     @@Default
+        MOV     EAX,[EAX].FList
+        BT      [EAX],Index
+        SBB     EAX,EAX
+        AND     EAX,1
+        RET
+@@Default:
+        MOV     AL,[EAX].FDefault
+        AND     EAX,1
+end;
+
+procedure TBitList.Put(Index: Integer; Item: Boolean); assembler;
+asm
+        CMP     Index,[EAX].FCount
+        JAE     @@Count
+@@1:    MOV     EAX,[EAX].FList
+        OR      Item,Item
+        JZ      @@2
+        BTS     [EAX],Index
+        RET
+@@2:    BTR     [EAX],Index
+        RET
+@@Count:
+        PUSH    Self
+        PUSH    Index
+        PUSH    ECX {Item}
+        INC     Index
+        CALL    TBitList.SetCount
+        POP     ECX {Item}
+        POP     Index
+        POP     Self
+        JMP     @@1
+end;
+
+procedure TBitList.Grow;
+begin
+  SetCapacity(FCapacity + 32);
+end;
+
+function TBitList.IndexOf(Item: Boolean): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (Item <> Get(Result)) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TBitList.Insert(Index: Integer; Item: Boolean);
+var
+  I: Integer;
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+  begin
+    Inc(FCount);
+    { sic: the original copies the same bit FCount - Index - 1 times instead of moving the tail }
+    for I := FCount - 2 downto Index do Put(Index + 1, Get(Index));
+  end
+  else
+    Inc(FCount);
+  Put(Index, Item);
+end;
+
+function TBitList.Last: Boolean;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TBitList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: Boolean;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+function TBitList.Remove(Item: Boolean): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TBitList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TBitList.SetCapacity(NewCapacity: Integer);
+var
+  I: Integer;
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  NewCapacity := (NewCapacity + 31) and not 31;
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity shr 3);
+    FCapacity := NewCapacity;
+    for I := FCount to NewCapacity - 1 do Put(I, FDefault);
+  end;
+end;
+
+procedure TBitList.SetCount(NewCount: Integer);
+var
+  I, OldCount: Integer;
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+  begin
+    OldCount := FCount;
+    FCount := NewCount;
+    for I := OldCount to FCount - 1 do Put(I, FDefault);
+  end
+  else
+    FCount := NewCount;
+end;
+
+function TBitList.Compare(List: TBitList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, (FCount + 7) shr 3);
+end;
+
+procedure TBitList.LoadFromStream(Stream: TStream);
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(Boolean));
+  Stream.Read(FCount, SizeOf(Integer));
+  SetCapacity(FCount);
+  Stream.Read(FList^, (FCount + 7) shr 3);
+end;
+
+procedure TBitList.SaveToStream(Stream: TStream);
+begin
+  Stream.Write(FDefault, SizeOf(Boolean));
+  Stream.Write(FCount, SizeOf(Integer));
+  Stream.Write(FList^, (FCount + 7) shr 3);
+end;
+
+function TBitList.GetItemString: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to FCount - 1 do
+    if Get(I) <> FDefault then
+      Result := Result + IntToStr(I) + ',';
+  if Result <> '' then
+    Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TBitList.SetItemString(S: string);
+var
+  Item: string;
+  P: Integer;
+begin
+  Clear;
+  P := Pos(',', S);
+  while S <> '' do
+  begin
+    if P <> 0 then
+    begin
+      Item := Copy(S, 1, P - 1);
+      System.Delete(S, 1, P);
+    end
+    else
+    begin
+      Item := S;
+      S := '';
+    end;
+    if Item <> '' then Put(StrToInt(Item), not FDefault);
+    P := Pos(',', S);
+  end;
+end;
+
+function TBitList.GetBitsSet: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FCount - 1 do
+    if Get(I) then Inc(Result);
+end;
+
+function TBitList.GetBitsCleared: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FCount - 1 do
+    if not Get(I) then Inc(Result);
 end;
 
 end.

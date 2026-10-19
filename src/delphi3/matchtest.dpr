@@ -19,6 +19,7 @@ var
   LB: TByteList;
   LS: TShortIntList;
   LW: TWordList;
+  LT: TBitList;
   M: TMemoryStream;
 begin
   T := TPropertyTable.Create;
@@ -99,4 +100,19 @@ begin
   M.Free;
   Writeln(LW.First, LW.Last, LW.Expand.Count, LW.RandomChanceItem(1), LW.Compare(LW));
   LW.Free;
+  LT := TBitList.Create;
+  LT.ItemString := '1,2,3';
+  LT.Insert(0, True);
+  LT.Move(0, 1);
+  LT.Exchange(0, 1);
+  LT.Pack;
+  LT.Remove(True);
+  LT[5] := True;
+  M := TMemoryStream.Create;
+  LT.SaveToStream(M);
+  M.Position := 0;
+  LT.LoadFromStream(M);
+  M.Free;
+  Writeln(LT.ItemString, LT.First, LT.Last, LT.Expand.Count, LT.BitsSet, LT.BitsCleared, LT.Compare(LT));
+  LT.Free;
 end.
