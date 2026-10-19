@@ -181,7 +181,7 @@ begin
   N := TENode.Create(EN);
   O := TEObject.Create(N);
   O.SetArrayOwner(N, 0);
-  O.MsgProc(Msg);
+  O.MsgProc(Msg, nil);
   O.TimerEvent;
   O.Clear;
   O.LastMsg := O.LastMsg;
@@ -198,6 +198,12 @@ begin
   Writeln(EL.FindEditor(1) = nil);
   EL.Free;
   O.Free;
+  N.DestroyEObjects(1);
+  N.QuickClear;
+  N.SendMsg(Msg, nil);
+  Writeln(N.SendToChild(Msg), N.FindChildIndex(O), N.FindChild(1) = nil, N.FindOwnedChild(1) = nil, N.FindChildInTree(1) = nil, N.DestroyChildren(1));
+  N.Assign(N, EN);
   N.Free;
+  with TEWriteStorageStream.Create(nil, EN, False) do begin ShowProgress(nil, '', 0); Free; end;
   EN.Free;
 end.

@@ -23,7 +23,7 @@ type
   PEMsg = ^TEMsg;
   TEMsg = record
     MsgID: Integer;
-    Sender: TObject;
+    Seq: Integer;
     Param: Integer;
     Result: Integer;
   end;
@@ -62,7 +62,7 @@ type
     function Editor: TClass; virtual;
     procedure Assign(Source: TEObject; AEngine: TEngine); virtual;
     procedure TimerEvent; virtual;
-    procedure MsgProc(var Msg: TEMsg); virtual;
+    procedure MsgProc(var Msg: TEMsg; Sender: TEObject); virtual;
     procedure SetArrayOwner(AOwner: TECustomNode; Index: Integer); virtual;
     destructor Destroy; override;
     function Copy(AEngine: TEngine): TEObject;
@@ -71,21 +71,23 @@ type
     property LastMsg: Integer read GetLastMsg write SetLastMsg;
   end;
 
-  { Engine.TECustomNode (instance size 8): children through an abstract list interface. stub }
+  { Engine.TECustomNode (instance size 8): children through an abstract list interface. Message ids
+    carry flags: $10000000 deliver once per Seq, $20000000 owned children only, $40000000 do not
+    forward to children. }
   TECustomNode = class(TEObject)
   public
     procedure MainReadWrite(Stream: TEStorageStream); override;
     procedure Clear; override;
     procedure Assign(Source: TEObject; AEngine: TEngine); override;
-    procedure MsgProc(var Msg: TEMsg); override;
+    procedure MsgProc(var Msg: TEMsg; Sender: TEObject); override;
     function GetChild(Index: Integer): TEObject; virtual; abstract;
     procedure SetChild(Index: Integer; Child: TEObject); virtual; abstract;
     function GetCount: Integer; virtual; abstract;
     procedure ReadWriteChildren(Stream: TEStorageStream); virtual;
-    procedure SendToChild(Child: TEObject; var Msg: TEMsg); virtual;
+    function SendToChild(var Msg: TEMsg): Boolean; virtual;
     procedure DestroyAllChildren; virtual;
     procedure QuickClear; virtual;
-    procedure SendMsg(var Msg: TEMsg); virtual;
+    procedure SendMsg(var Msg: TEMsg; Sender: TEObject); virtual;
     procedure RemoveChild(Child: TEObject); virtual; abstract;
     function AddChild(Child: TEObject): Integer; virtual; abstract;
     function DestroyChildren(AClassID: Integer): Integer; virtual;
@@ -98,10 +100,14 @@ type
     property Children[Index: Integer]: TEObject read GetChild write SetChild;
   end;
 
-  { Engine.TENode (instance size 12): +8 FChildren. stub }
+  { Engine.TEObjectList (instance size 16): the child list of a TENode }
+  TEObjectList = class(TList)
+  end;
+
+  { Engine.TENode (instance size 12): +8 FChildren }
   TENode = class(TECustomNode)
   private
-    FChildren: TList;
+    FChildren: TEObjectList;
   public
     constructor Create(AOwner: TECustomNode); override;
     class function ClassID: Integer; override;
@@ -110,12 +116,13 @@ type
     procedure SetChild(Index: Integer; Child: TEObject); override;
     function GetCount: Integer; override;
     procedure DestroyAllChildren; override;
-    procedure SendMsg(var Msg: TEMsg); override;
+    procedure SendMsg(var Msg: TEMsg; Sender: TEObject); override;
     procedure RemoveChild(Child: TEObject); override;
     function AddChild(Child: TEObject): Integer; override;
     function FindChild(AClassID: Integer): TEObject; override;
     function FindChildIndex(Child: TEObject): Integer; override;
     destructor Destroy; override;
+    procedure DestroyEObjects(AClassID: Integer);
   end;
 
   { Engine.TEObjectEditor (instance size 8): editors are looked up by class. stub }
@@ -184,7 +191,7 @@ type
     procedure rwEObject(Obj: TEObject; ID: Integer); virtual; abstract;
     procedure rwEObjectStream(Obj: TEObject); virtual; abstract;
     procedure rwChildren(Node: TECustomNode; ID: Integer); virtual; abstract;
-    procedure rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc); virtual;
+    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); virtual;
     procedure rwData(var Buffer; Size: Integer; ID: Integer); virtual;
     procedure rwString(var S: string; ID: Integer); virtual;
     procedure rwStrings(Strings: TStrings; ID: Integer); virtual;
@@ -198,7 +205,7 @@ type
     procedure rwByteEx(var B: Byte; Default: Byte; ID: Integer); virtual;
     procedure rwWordEx(var W: Word; Default: Word; ID: Integer); virtual;
     procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); virtual;
-    constructor Create(AStream: TStream; AEngine: TEngine; APartial: Boolean); virtual;
+    constructor Create(AStream: TStream; AEngine: TEngine);
     procedure ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
     property Engine: TEngine read FEngine;
     property Stream: TStream read FStream;
@@ -212,6 +219,7 @@ type
     FUnknown24: Integer;
     FUnknown28: Integer;
   public
+    constructor Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
     function StorageMode: TStorageModes; override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
   end;
@@ -222,6 +230,7 @@ type
     FUnknown24: Integer;
     FUnknown28: Integer;
   public
+    constructor Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
     function StorageMode: TStorageModes; override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
   end;
@@ -385,7 +394,7 @@ begin
   if FOwner <> nil then FOwner.SetChild(Index, Self);
 end;
 
-procedure TEObject.MsgProc(var Msg: TEMsg);
+procedure TEObject.MsgProc(var Msg: TEMsg; Sender: TEObject);
 begin
   if Msg.MsgID = 1 then SetLastMsg(MaxInt);
 end;
@@ -400,134 +409,440 @@ begin
   ReadWrite(Stream);
 end;
 
-{ TECustomNode: stubs }
+{ TECustomNode }
 
-procedure TECustomNode.MainReadWrite(Stream: TEStorageStream);
+destructor TECustomNode.Destroy;
 begin
+  DestroyAllChildren;
+  inherited Destroy;
+end;
+
+procedure TECustomNode.DestroyAllChildren;
+var
+  C: TEObject;
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+  begin
+    C := Children[I];
+    if (C <> nil) and (C.Owner = Self) then C.Destroy;
+  end;
+  if Count <> 0 then
+    for I := Count - 1 downto 0 do
+    begin
+      C := Children[I];
+      if C <> nil then RemoveChild(C);
+    end;
 end;
 
 procedure TECustomNode.Clear;
+var
+  I: Integer;
+  C: TEObject;
 begin
+  if Count <> 0 then
+  begin
+    for I := Count - 1 downto 0 do
+    begin
+      C := Children[I];
+      if (C <> nil) and (C.Owner = Self) then
+        if not (csShared in C.GetControlStyle) then C.Destroy else C.Clear;
+    end;
+    for I := Count - 1 downto 0 do
+    begin
+      C := Children[I];
+      if C <> nil then
+        if not ((C.Owner = Self) and (csShared in C.GetControlStyle)) then RemoveChild(C);
+    end;
+  end;
 end;
 
 procedure TECustomNode.Assign(Source: TEObject; AEngine: TEngine);
 begin
+  Clear;
+  inherited Assign(Source, AEngine);
 end;
 
-procedure TECustomNode.MsgProc(var Msg: TEMsg);
+procedure TECustomNode.QuickClear;
+var
+  I: Integer;
 begin
+  for I := Count - 1 downto 0 do RemoveChild(Children[I]);
 end;
 
 procedure TECustomNode.ReadWriteChildren(Stream: TEStorageStream);
 begin
+  Stream.rwChildren(Self, 1);
 end;
 
-procedure TECustomNode.SendToChild(Child: TEObject; var Msg: TEMsg);
+procedure TECustomNode.MainReadWrite(Stream: TEStorageStream);
 begin
+  if smRead in Stream.StorageMode then
+    if Stream.StorageMode * [smCompare, smTranslate] = [] then Clear;
+  ReadWrite(Stream);
+  ReadWriteChildren(Stream);
 end;
 
-procedure TECustomNode.DestroyAllChildren;
+procedure TECustomNode.SendMsg(var Msg: TEMsg; Sender: TEObject);
+var
+  I: Integer;
+  C: TEObject;
 begin
+  if Msg.MsgID and $10000000 <> 0 then
+    if Msg.MsgID and $20000000 = 0 then
+      for I := Count - 1 downto 0 do
+      begin
+        C := Children[I];
+        if (C <> nil) and (C.GetLastMsg <> Msg.Seq) then
+        begin
+          C.SetLastMsg(Msg.Seq);
+          C.MsgProc(Msg, Self);
+        end;
+      end
+    else
+      for I := Count - 1 downto 0 do
+      begin
+        C := Children[I];
+        if (C <> nil) and (C.GetLastMsg <> Msg.Seq) and (C.Owner = Self) then
+        begin
+          C.SetLastMsg(Msg.Seq);
+          C.MsgProc(Msg, Self);
+        end;
+      end
+  else
+    if Msg.MsgID and $20000000 = 0 then
+      for I := Count - 1 downto 0 do
+      begin
+        C := Children[I];
+        if C <> nil then C.MsgProc(Msg, Self);
+      end
+    else
+      for I := Count - 1 downto 0 do
+      begin
+        C := Children[I];
+        if (C <> nil) and (C.Owner = Self) then C.MsgProc(Msg, Self);
+      end;
 end;
 
-procedure TECustomNode.QuickClear;
+function TECustomNode.SendToChild(var Msg: TEMsg): Boolean;
 begin
+  Result := Msg.MsgID and $40000000 = 0;
 end;
 
-procedure TECustomNode.SendMsg(var Msg: TEMsg);
+procedure TECustomNode.MsgProc(var Msg: TEMsg; Sender: TEObject);
 begin
-end;
-
-function TECustomNode.DestroyChildren(AClassID: Integer): Integer;
-begin
-  Result := 0;
-end;
-
-function TECustomNode.FindChildInTree(AClassID: Integer): TEObject;
-begin
-  Result := nil;
+  inherited MsgProc(Msg, Sender);
+  if SendToChild(Msg) then SendMsg(Msg, Sender);
 end;
 
 function TECustomNode.FindChild(AClassID: Integer): TEObject;
+var
+  I: Integer;
+  Found: Boolean;
+  C: TEObject;
 begin
-  Result := nil;
+  I := 0;
+  Found := False;
+  C := nil;
+  while not Found and (I < Count) do
+  begin
+    C := Children[I];
+    Found := (C <> nil) and (C.ClassID = AClassID);
+    Inc(I);
+  end;
+  if Found then Result := C else Result := nil;
 end;
 
 function TECustomNode.FindOwnedChild(AClassID: Integer): TEObject;
+var
+  I: Integer;
+  Found: Boolean;
+  C: TEObject;
 begin
-  Result := nil;
+  I := 0;
+  Found := False;
+  C := nil;
+  while not Found and (I < Count) do
+  begin
+    C := Children[I];
+    Found := (C <> nil) and (C.Owner = Self) and (AClassID = C.ClassID);
+    Inc(I);
+  end;
+  if Found then Result := C else Result := nil;
 end;
 
 function TECustomNode.FindChildIndex(Child: TEObject): Integer;
 begin
-  Result := -1;
+  Result := Count - 1;
+  while (Result >= 0) and (Child <> Children[Result]) do Dec(Result);
 end;
 
-destructor TECustomNode.Destroy;
+function TECustomNode.FindChildInTree(AClassID: Integer): TEObject;
+var
+  I: Integer;
 begin
-  inherited Destroy;
+  Result := FindChild(AClassID);
+  if Result = nil then
+  begin
+    I := 0;
+    while I < Count do
+    begin
+      if Children[I] is TECustomNode then
+        Result := TECustomNode(Children[I]).FindChildInTree(AClassID);
+      Inc(I);
+      if Result <> nil then Break;
+    end;
+  end;
 end;
 
-{ TENode: stubs }
+function TECustomNode.DestroyChildren(AClassID: Integer): Integer;
+var
+  I: Integer;
+  C: TEObject;
+  N: Integer;
+begin
+  N := 0;
+  for I := Count - 1 downto 0 do
+  begin
+    C := Children[I];
+    if (C <> nil) and (C.ClassID = AClassID) then
+    begin
+      C.Destroy;
+      Inc(N);
+    end;
+  end;
+  Result := N;
+end;
+
+{ TENode }
 
 constructor TENode.Create(AOwner: TECustomNode);
 begin
   inherited Create(AOwner);
-end;
-
-class function TENode.ClassID: Integer;
-begin
-  Result := 0;
-end;
-
-procedure TENode.Clear;
-begin
-end;
-
-function TENode.GetChild(Index: Integer): TEObject;
-begin
-  Result := nil;
-end;
-
-procedure TENode.SetChild(Index: Integer; Child: TEObject);
-begin
-end;
-
-function TENode.GetCount: Integer;
-begin
-  Result := 0;
-end;
-
-procedure TENode.DestroyAllChildren;
-begin
-end;
-
-procedure TENode.SendMsg(var Msg: TEMsg);
-begin
-end;
-
-procedure TENode.RemoveChild(Child: TEObject);
-begin
-end;
-
-function TENode.AddChild(Child: TEObject): Integer;
-begin
-  Result := 0;
-end;
-
-function TENode.FindChild(AClassID: Integer): TEObject;
-begin
-  Result := nil;
-end;
-
-function TENode.FindChildIndex(Child: TEObject): Integer;
-begin
-  Result := -1;
+  FChildren := TEObjectList.Create;
 end;
 
 destructor TENode.Destroy;
 begin
   inherited Destroy;
+  FChildren.Free;
+end;
+
+procedure TENode.DestroyAllChildren;
+var
+  I: Integer;
+  C: TEObject;
+begin
+  Clear;
+  if FChildren.Count <> 0 then
+    for I := FChildren.Count - 1 downto 0 do
+    begin
+      C := TEObject(FChildren.List^[I]);
+      if (C <> nil) and (C.Owner = Self) then C.Destroy;
+    end;
+end;
+
+procedure TENode.Clear;
+var
+  I: Integer;
+  C: TEObject;
+begin
+  for I := Count - 1 downto 0 do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    if (C <> nil) and (C.Owner = Self) then
+      if not (csShared in C.GetControlStyle) then C.Destroy else C.Clear;
+  end;
+  if Count <> 0 then
+  begin
+    for I := Count - 1 downto 0 do
+    begin
+      C := TEObject(FChildren.List^[I]);
+      if C <> nil then
+        if not ((C.Owner = Self) and (csShared in C.GetControlStyle)) then RemoveChild(C);
+    end;
+    I := FChildren.Count - 1;
+    while (I >= 0) and (FChildren.List^[I] = nil) do
+    begin
+      FChildren.Delete(I);
+      Dec(I);
+    end;
+  end;
+end;
+
+class function TENode.ClassID: Integer;
+begin
+  Result := 256;
+end;
+
+function TENode.GetChild(Index: Integer): TEObject;
+begin
+  Result := TEObject(FChildren.List^[Index]);
+end;
+
+procedure TENode.SetChild(Index: Integer; Child: TEObject);
+begin
+  while Index >= Count do FChildren.Add(nil);
+  if (FChildren.List^[Index] <> nil) and (TEObject(FChildren.List^[Index]).Owner = Self) then
+    TEObject(FChildren.List^[Index]).Destroy;
+  FChildren.List^[Index] := Child;
+end;
+
+function TENode.GetCount: Integer;
+begin
+  Result := FChildren.Count;
+end;
+
+procedure TENode.SendMsg(var Msg: TEMsg; Sender: TEObject);
+var
+  I: Integer;
+begin
+  with FChildren do
+    if csKeepIndex in GetControlStyle then
+      if Msg.MsgID and $10000000 <> 0 then
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(List^[I]) do
+              begin
+                if GetLastMsg <> Msg.Seq then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+              end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(Items[I]) do
+              begin
+                if (GetLastMsg <> Msg.Seq) and (Owner = Self) then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+              end;
+        end
+      else
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(List^[I]) do
+              begin
+                MsgProc(Msg, Self);
+              end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(Items[I]) do
+              begin
+                if Owner = Self then MsgProc(Msg, Self);
+              end;
+        end
+    else
+      if Msg.MsgID and $10000000 <> 0 then
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(List^[I]) do
+            begin
+                if GetLastMsg <> Msg.Seq then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+            end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(Items[I]) do
+            begin
+                if (GetLastMsg <> Msg.Seq) and (Owner = Self) then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+            end;
+        end
+      else
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(List^[I]) do
+            begin
+                MsgProc(Msg, Self);
+            end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(Items[I]) do
+            begin
+                if Owner = Self then MsgProc(Msg, Self);
+            end;
+        end;
+end;
+
+procedure TENode.RemoveChild(Child: TEObject);
+var
+  I: Integer;
+begin
+  if csKeepIndex in GetControlStyle then
+  begin
+    I := FChildren.IndexOf(Child);
+    if I <> -1 then FChildren.List^[I] := nil;
+  end
+  else
+    FChildren.Remove(Child);
+end;
+
+function TENode.AddChild(Child: TEObject): Integer;
+begin
+  FChildren.Add(Child);
+  Result := FChildren.Count - 1;
+end;
+
+function TENode.FindChild(AClassID: Integer): TEObject;
+var
+  I: Integer;
+  Found: Boolean;
+  C: TEObject;
+begin
+  I := 0;
+  Found := False;
+  C := nil;
+  while not Found and (I < FChildren.Count) do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    Found := (C <> nil) and (AClassID = C.ClassID);
+    Inc(I);
+  end;
+  if Found then Result := C else Result := nil;
+end;
+
+function TENode.FindChildIndex(Child: TEObject): Integer;
+begin
+  Result := Count - 1;
+  while (Result >= 0) and (Child <> TEObject(FChildren.List^[Result])) do Dec(Result);
+end;
+
+procedure TENode.DestroyEObjects(AClassID: Integer);
+var
+  I: Integer;
+  C: TEObject;
+begin
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    if (C <> nil) and (AClassID = C.ClassID) and (C.Owner = Self) then C.Destroy;
+  end;
 end;
 
 { TEObjectEditor: stubs }
@@ -604,34 +919,44 @@ begin
 end;
 
 procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
 begin
-  with TEReadStorageStream.Create(Stream, Self, False) do
+  S := TEReadStorageStream.Create(Stream, Self, False);
+  S.OnProgress := AProgress;
   try
-    OnProgress := AProgress;
-    rwEObject(Obj, 0);
+    S.rwEObject(Obj, 0);
   finally
-    Free;
+    S.Free;
   end;
 end;
 
 procedure TEngine.WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
 begin
-  with TEWriteStorageStream.Create(Stream, Self, False) do
+  S := TEWriteStorageStream.Create(Stream, Self, False);
+  S.OnProgress := AProgress;
   try
-    OnProgress := AProgress;
-    rwEObject(Obj, 0);
+    S.rwEObject(Obj, 0);
   finally
-    Free;
+    S.Free;
   end;
 end;
 
-{ TEStorageStream: stubs }
 
-constructor TEStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+
+
+
+
+{ TEStorageStream }
+
+constructor TEStorageStream.Create(AStream: TStream; AEngine: TEngine);
 begin
   inherited Create;
-  FStream := AStream;
   FEngine := AEngine;
+  FStream := AStream;
+  FErrorHandled := False;
 end;
 
 function TEStorageStream.OpenPropertyStream(ID: Integer): TStream;
@@ -639,7 +964,7 @@ begin
   Result := nil;
 end;
 
-procedure TEStorageStream.rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc);
+procedure TEStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
 begin
 end;
 
@@ -697,9 +1022,20 @@ end;
 
 procedure TEStorageStream.ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
 begin
+  if Assigned(FOnProgress) then FOnProgress(Sender, Msg, Percent);
 end;
 
 { TEReadStorageStream / TEWriteStorageStream: stubs }
+
+constructor TEReadStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+begin
+  inherited Create(AStream, AEngine);
+end;
+
+constructor TEWriteStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+begin
+  inherited Create(AStream, AEngine);
+end;
 
 function TEReadStorageStream.StorageMode: TStorageModes;
 begin
