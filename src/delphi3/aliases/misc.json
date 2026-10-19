@@ -1,0 +1,9 @@
+{
+ "FUN_55502660": "_memset",
+ "FUN_55502678": "_memcpy",
+ "5550268c:10": "zlibAllocMem",
+ "55502698:8": "zlibFreeMem",
+ "FUN_555026a0": "CCheck",
+ "FUN_555026d0": "DCheck",
+ "FUN_555214b4": "SearchDir<TPlugInManager.ExecutePlugInSearch"
+}
