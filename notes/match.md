@@ -40,9 +40,12 @@ local variable order, loop shape.
 | THashList, TIntegerHashList, TIntegerHashTable256, TStringHashList, TStringHashTable256 (`inc/HashTab.PAS`) | 30 | 26 |
 | FMemStr.TFastMemoryStream | 11 | 11 |
 | unit functions: InitMsg, CRC32, engine and plug-in lookups, string sorting, ReplaceText, HexToInt, clipboard streams, external plug-in loading | 42 | 37 |
+| zlib (Borland's unit from the Delphi 3 CD, with the CD's zlib 1.0.4 object files), EList, PlugInM, DebMDlg | 46 | 46 |
+| ImgLComp (image grids and panels), EResGrid (resource grid) | 112 | 108 |
 
-734 functions, 711 identical (50,949 of 54,811 bytes): every method of every class of the
-original Engine unit is written, plus the FMemStr unit. Five of the 23 that differ are `Assert`
+Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
+identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
+written, plus the FMemStr unit. Five of the 23 that differ are `Assert`
 line numbers (the original counts them from the start of its Engine.pas: THashList.SetCapacity 7127,
 THashList.Delete 7137, TIntegerHashList.Add 7155, TStringHashList.Add 7282, TEChangeNotifyNode.
 EndUpdate 8215). The other 18 differ in one register choice each (below). `src/delphi3/matchpkg.dpk`
@@ -51,8 +54,10 @@ to the program code. The Delphi 3.0 compiler from the original release CD (March
 results (argument evaluation order differs in 20 more functions), and the 3.02 patch does not change
 DCC32.EXE, so the installed compiler is the right one.
 
-The units the Engine unit imports but that are not matched yet are stubs: `zlib.pas` (the stream
-classes TCompressStream calls) and `ImageLib.pas` (the one entry point TEResource.Draw calls).
+Every unit of Enginep.dpl is written. `ImageLib.pas` is a stub of the Ilpack.dpl unit with the
+declarations the Engine, ImgLComp and EResGrid units call. The small units have their own host
+programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); build them from
+`src/delphi3/hosts` with `-U.. -O..`.
 
 ## What the compiler does (learned from the matches)
 
@@ -127,6 +132,33 @@ classes TCompressStream calls) and `ImageLib.pas` (the one entry point TEResourc
   `TEObjectEditor.Edit` calls an editor class constructor.
 - Stack parameters are pushed left to right (`pushtest`): the first stack parameter has the highest
   address.
+
+- Dynamic methods are numbered per class hierarchy, counting down from one below the lowest index
+  of the ancestors; declaration order fixes the numbers, and calls go through `@CallDynaInst` with
+  the index in bx.
+- A `case` on a Word compiles to an ascending `sub ax,n / je` chain, but the branch bodies are laid
+  out in source order.
+- Stack-spilled locals get addresses in declaration order, the first declared at the lowest address.
+- `(FMin <> 0) and (Value < FMin)` gives `cmp ecx,edx / jle`; `FMin > Value` gives `cmp edx,ecx / jge`.
+- A nil test `mov eax,[field] / test eax,eax` comes from a local or a `with`; `if F <> nil`,
+  `Assigned(F)` and casts all give `cmp dword ptr [..],0`.
+- A method pointer passed by value is pushed data first, then code. An empty method with a stack
+  parameter still gets a frame (`push ebp / mov ebp,esp / pop ebp / ret n`).
+- `if not Cancel then <big block> else R.Free` lays the big block out first.
+- A dead store to a parameter is dropped, but its condition is still compiled.
+- A record reached through a typecast of a dereferenced pointer (`TRec(Pointer(P)^).Field`) reloads
+  the pointer for every field and evaluates the fields before the call's object expression; `with
+  PRec(P)^ do` evaluates the object expression first.
+- A field-backed property (`TList.Count`) can be passed to an untyped `const` parameter, giving
+  `lea edx,[Self+8]`.
+- A Boolean loop flag set from `FindFirst(...) = 0` lives in al through the loop.
+- A loop body with its own `try...except` keeps Self, the loop variable and the loop count in memory.
+- Every unit gets the init/fini pair that counts a per-unit counter inside an empty try/finally, with
+  or without an `initialization` section.
+- Delphi 3 ignores a missing `{$L file.obj}` silently: the error is an unsatisfied external.
+- A `case` jump table follows `jmp dword ptr [reg*4 + table]`, with a byte index table in front when
+  the case values are sparse; the table base is entry 0 even if the lowest value is higher.
+  `match.py` compares the tables as lists of offsets into the function.
 
 ## Compiler switches (sweep, 2026-10-19)
 

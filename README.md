@@ -44,9 +44,10 @@ compared with the original code byte for byte.
 ## Byte-matching the Engine unit
 
 `src/delphi3/` is the `Engine` unit written for Delphi 3.02 and compared with `Enginep.dpl` method by
-method: `tools/match.py` disassembles both and reports every instruction that differs. Every class of the
-original Engine unit is written; 711 of 734 functions compile to identical code, the rest differ in one
-register choice or an `Assert` line number (`notes/match.md` lists them). `notes/match.md` has the workflow,
+method: `tools/match.py` disassembles both and reports every instruction that differs. Every unit of
+Enginep.dpl is written; 865 of 892 functions compile to identical code, the rest differ in one register
+choice or an `Assert` line number (`notes/match.md` lists them). `notes/modules.md` gives the order for
+the other packages. `notes/match.md` has the workflow,
 the state table and what the comparisons taught about the compiler. Build and compare:
 
 ```bash
