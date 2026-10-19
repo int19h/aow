@@ -128,6 +128,29 @@ classes TCompressStream calls) and `ImageLib.pas` (the one entry point TEResourc
 - Stack parameters are pushed left to right (`pushtest`): the first stack parameter has the highest
   address.
 
+## Compiler switches (sweep, 2026-10-19)
+
+Every `-$` switch of DCC32 was flipped one at a time against the whole Engine unit (734 functions,
+711 identical with the defaults):
+
+| switch | identical | effect |
+|---|---|---|
+| defaults (`O+ W- B- G+ A+ R- Q- Z1 ...`) | 711 | |
+| `O-` | 8 | no register variables at all |
+| `W+` | 344 | stack frames everywhere |
+| `Q+` / `R+` | 406 / 534 | overflow and range checks |
+| `B+` | 570 | full boolean evaluation |
+| `A-` | 613 | packed records change field offsets |
+| `G-` | 654 | imported data through the import table |
+| `D-`, `L-`, `Y+`, `U+`, `I-`, `C-`, `T+`, `P-`, `V-`, `J-` | 711 | code byte-identical to the default build |
+| `Z2`, `Z4` | build fails | internal error C4436 |
+
+So the game was compiled with the default switches, and no switch explains the 18 register-choice
+leftovers. Delphi 3 has no optimization levels: `$O` is only on or off. `$L-` also drops private
+methods and implementation-only routines from the `-GD` map, so a build with it hides functions
+from `match.py` instead of matching them. Not tested: the IDE's compiler (`BIN\DCC.DLL`, the same
+date and version as `DCC32.EXE`), and Delphi 3 builds other than 3.0 and 3.01.
+
 ## Open items
 
 - 18 functions differ in one register choice: `TEReadStorageStream.rwBool`, the `try` frame
