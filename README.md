@@ -25,4 +25,12 @@ This repository holds no game files. The tools read an installed copy of the gam
    `python tools/field_names.py <outdir> notes/field-names.md notes/classes.json` refresh the field tables;
    add verified names to `notes/field-overrides.md` and go back to step 3.
 
+7. `ghidra.ps1 -Process '*' -Script ExportSignatures.java -ScriptArgs notes/signatures` exports every method's
+   parameters, then `python tools/emit_pascal.py notes/classes.json notes/signatures src/skeleton` writes one
+   Pascal unit per module (`src/skeleton/`): all classes with fields at their offsets, padding for the unknown
+   bytes, virtual methods in VMT order, and stub bodies. Every unit compiles with Free Pascal:
+   `fpc -Mdelphi -Sh -Fu src\skeleton -FU <tmp> src\skeleton\AoWEPACK.pas`.
+8. `python tools/asg_dump.py <save.asg> notes/classes.json notes/decomp/AoWEPACK-typed` walks a save or map
+   file with the recovered schema and reports what it cannot explain.
+
 Decompiler output goes to `notes/decomp/`, which is ignored by git.
