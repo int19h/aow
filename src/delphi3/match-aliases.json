@@ -34,5 +34,13 @@
  "55518190:7": "CompareQuadItemADescending",
  "55518198:9": "CompareQuadItemBDescending",
  "555181a4:9": "CompareQuadItemCDescending",
- "555181b0:9": "CompareQuadItemDDescending"
+ "555181b0:9": "CompareQuadItemDDescending",
+ "FUN_5550f7a8": "SaveStringToStream",
+ "FUN_5550f81c": "LoadStringFromStream",
+ "FUN_5550f9b4": "StringsToStreamEx",
+ "FUN_5550fa70": "StringsFromStreamEx",
+ "Engine.StringToStream": "StringToStream",
+ "Engine.StringFromStream": "StringFromStream",
+ "Engine.StringsToStream": "StringsToStream",
+ "Engine.StringsFromStream": "StringsFromStream"
 }

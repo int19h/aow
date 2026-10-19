@@ -42,6 +42,21 @@ class Image:
         return self.lo <= v < self.hi
 
 
+def find_import_thunk(img, name):
+    """Address of the 'jmp [iat]' thunk for an imported symbol (the name without its @hash suffix)."""
+    img.pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+    iat = None
+    for e in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', []):
+        for imp in e.imports:
+            if imp.name and imp.name.decode().split('@')[:2] == name.split('@')[:2]:
+                iat = imp.address
+    if iat is None:
+        return None
+    pat = bytes([0xFF, 0x25]) + struct.pack('<I', iat)
+    off = bytes(img.data).find(pat)
+    return img.base + off if off >= 0 else None
+
+
 def map_symbols(map_path):
     """Delphi .map: 'Address  Publics by Value' lines like '0001:000099FC  TPropertyTable.Add'."""
     syms = {}
@@ -85,6 +100,37 @@ def normalize(ins, img):
     return ins.mnemonic, op
 
 
+def disasm_skipping_tables(md, img, va, size, on_exception):
+    """Disassemble, but after 'jmp @HandleOnException' skip the table that follows it (a count and
+    count pairs of class pointer and handler address): data that must not be compared as code."""
+    out = []
+    code = img.bytes_at(va, size)
+    pos = 0
+    while pos < size:
+        insns = list(md.disasm(code[pos:], va + pos))
+        if not insns:
+            break
+        for ins in insns:
+            out.append(normalize(ins, img))
+            pos = ins.address - va + ins.size
+            if ins.mnemonic == 'jmp' and on_exception is not None:
+                try:
+                    if int(ins.op_str, 16) == on_exception:
+                        if pos + 4 > size:
+                            return out          # the table is cut off by the function size
+                        n = struct.unpack('<I', code[pos:pos + 4])[0]
+                        if n < 16:
+                            pos += 4 + 8 * n
+                            if pos >= size:
+                                return out
+                            break
+                except ValueError:
+                    pass
+        else:
+            break
+    return out
+
+
 def compare(a, b):
     n = min(len(a), len(b))
     for i in range(n):
@@ -120,6 +166,11 @@ def main():
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     # code segment 0001 starts at the first section's VA
     text_va = new.base + new.pe.sections[0].VirtualAddress
+    # the on-exception handler entry: an import thunk in the original module, a symbol in the map here
+    old_on_exc = find_import_thunk(old, 'System.@HandleOnException')
+    new_on_exc = None
+    if '@HandleOnException' in syms:
+        new_on_exc = text_va + syms['@HandleOnException'][0][1]
     code_syms = sorted((off, name) for name, locs in syms.items() for seg, off in locs if seg == '0001')
 
     # (map name, original name) pairs to compare
@@ -159,8 +210,8 @@ def main():
         # the new function's size: up to the next symbol in the map
         nxt = min((o for (o, n) in code_syms if o > off), default=off + osize + 64)
         nsize = nxt - off
-        a = [normalize(i, old) for i in md.disasm(old.bytes_at(ova, osize), ova)]
-        b = [normalize(i, new) for i in md.disasm(new.bytes_at(nva, min(nsize, osize + 32)), nva)][:len(a)]
+        a = disasm_skipping_tables(md, old, ova, osize, old_on_exc)
+        b = disasm_skipping_tables(md, new, nva, min(nsize, osize + 32), new_on_exc)[:len(a)]
         while b and b[-1][0] in ('int3', 'nop') and len(b) > len(a):
             b.pop()
         d = compare(a, b)

@@ -10,7 +10,7 @@ program matchtest;
 
 uses
   Classes,
-  PropTable in 'PropTable.pas',
+  FMemStr in 'FMemStr.pas',
   EngineLists in 'EngineLists.pas',
   Engine in 'Engine.pas';
 
@@ -27,6 +27,8 @@ var
   DI: TDoubleItem;
   QI: TQuadItem;
   EV: TNotifyEvent;
+  S: string;
+  Flag: Boolean;
   O: TEObject;
   N: TENode;
   EN: TEngine;
@@ -204,6 +206,9 @@ begin
   Writeln(N.SendToChild(Msg), N.FindChildIndex(O), N.FindChild(1) = nil, N.FindOwnedChild(1) = nil, N.FindChildInTree(1) = nil, N.DestroyChildren(1));
   N.Assign(N, EN);
   N.Free;
-  with TEWriteStorageStream.Create(nil, EN, False) do begin ShowProgress(nil, '', 0); Free; end;
+  with TEWriteStorageStream.Create(M, EN, False) do begin ShowProgress(nil, '', 0); HandleException(nil); Free; end;
+  M.Position := 0;
+  with TEReadStorageStream.Create(M, EN, False) do begin HandleException(nil); Free; end;
+  StringToStream('', M); StringFromStream(S, M); StringsToStream(nil, M); StringsFromStream(nil, M);
   EN.Free;
 end.

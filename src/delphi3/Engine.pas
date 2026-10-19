@@ -9,7 +9,7 @@ unit Engine;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, FMemStr;
 
 type
   { TEStorageStream.StorageMode }
@@ -28,6 +28,50 @@ type
     Result: Integer;
   end;
 
+  PPropertyItem = ^TPropertyItem;
+  TPropertyItem = record
+    ID: Integer;
+    Offset: Integer;
+  end;
+  PPropertyItemArray = ^TPropertyItemArray;
+  TPropertyItemArray = array[0..MaxInt div SizeOf(TPropertyItem) - 1] of TPropertyItem;
+
+  PPropertySettings = ^TPropertySettings;
+  TPropertySettings = record
+    First: Integer;
+    NextIndex: Integer;
+    MaxID: Integer;
+  end;
+  PPropertySettingsArray = ^TPropertySettingsArray;
+  TPropertySettingsArray = array[0..MaxInt div SizeOf(TPropertySettings) - 1] of TPropertySettings;
+
+  TPropertyTable = class(TObject)
+  private
+    FItems: PPropertyItemArray;
+    FCapacity: Integer;
+    FCount: Integer;
+    FNextIndex: Integer;
+    FMaxID: Integer;
+    FStack: PPropertySettingsArray;
+    FStackCount: Integer;
+    FStackCapacity: Integer;
+    FFirst: Integer;
+    procedure SetCapacity(NewCapacity: Integer);
+  public
+    destructor Destroy; override;
+    procedure Add(ID, Offset: Integer);
+    procedure Clear;
+    function FindOffset(ID: Integer): Integer;
+    function PropertyExist(ID: Integer): Boolean;
+    procedure BackupSettings;
+    procedure RestoreSettings;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    property Items: PPropertyItemArray read FItems;
+    property Count: Integer read FCount;
+    property First: Integer read FFirst;
+  end;
+
   TEObject = class;
   TECustomNode = class;
   TEngine = class;
@@ -36,8 +80,14 @@ type
 
   TEObjectClass = class of TEObject;
 
-  TStorageErrorEvent = procedure(Sender: TObject; E: Exception; var Handled: Boolean) of object;
+  TStorageErrorEvent = procedure(Sender: TObject; const Msg: string; var Continue: Boolean) of object;
   TStorageProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
+
+  EDoublePrioriyID = class(Exception);
+
+  { Engine.TEBufferStream (instance size 20): the write stream's data buffer }
+  TEBufferStream = class(TFastMemoryStream)
+  end;
 
   { Engine.TEObject (instance size 8): +4 FOwner. }
   TEObject = class(TObject)
@@ -175,13 +225,14 @@ type
 
   TStreamProc = procedure(Stream: TStream) of object;
 
-  { Engine.TEStorageStream (instance size 36). stub }
+  { Engine.TEStorageStream (instance size 36): the base of every storage stream. The rw* methods do
+    nothing here; the subclasses read, write, compare or translate. }
   TEStorageStream = class(TObject)
   private
     FEngine: TEngine;
     FStream: TStream;
     FErrorHandled: Boolean;
-    FUnknown10: Integer;
+    FPropertyTable: TPropertyTable;
     FOnError: TStorageErrorEvent;
     FOnProgress: TStorageProgressEvent;
   public
@@ -209,33 +260,387 @@ type
     procedure ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
     property Engine: TEngine read FEngine;
     property Stream: TStream read FStream;
+    property PropertyTable: TPropertyTable read FPropertyTable;
     property OnError: TStorageErrorEvent read FOnError write FOnError;
     property OnProgress: TStorageProgressEvent read FOnProgress write FOnProgress;
   end;
 
-  { Engine.TEReadStorageStream (instance size 44). stub }
+  { Engine.TEReadStorageStream (instance size 44): +$24 FPartial, +$28 FDataBase. The constructor
+    reads the root property table; every property is found through the table and read at
+    FDataBase + offset. }
   TEReadStorageStream = class(TEStorageStream)
   private
-    FUnknown24: Integer;
-    FUnknown28: Integer;
+    FPartial: Boolean;
+    FDataBase: Integer;
   public
     constructor Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+    destructor Destroy; override;
     function StorageMode: TStorageModes; override;
+    procedure rwInteger(var I: Integer; ID: Integer); override;
+    procedure rwByte(var B: Byte; ID: Integer); override;
+    procedure rwShortint(var S: Shortint; ID: Integer); override;
+    procedure rwWord(var W: Word; ID: Integer); override;
+    procedure rwIntegerEx(var I: Integer; Default: Integer; ID: Integer); override;
+    procedure rwByteEx(var B: Byte; Default: Byte; ID: Integer); override;
+    procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); override;
+    procedure rwWordEx(var W: Word; Default: Word; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
+    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); override;
+    function OpenPropertyStream(ID: Integer): TStream; override;
+    procedure rwBool(var B: Boolean; ID: Integer); override;
+    function HandleException(E: Exception): Boolean;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject); override;
+    property DataBase: Integer read FDataBase;
   end;
 
-  { Engine.TEWriteStorageStream (instance size 44). stub }
+  { Engine.TEWriteStorageStream (instance size 44): +$24 FPartial, +$28 FBuffer. Values go into the
+    buffer; the property table records (id, buffer position). A nested object gets its own buffer,
+    appended to the outer one as [table][data]. The destructor writes the root table and buffer. }
   TEWriteStorageStream = class(TEStorageStream)
   private
-    FUnknown24: Integer;
-    FUnknown28: Integer;
+    FPartial: Boolean;
+    FBuffer: TEBufferStream;
+    procedure PropertyExistError(ID: Integer);
   public
     constructor Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+    destructor Destroy; override;
     function StorageMode: TStorageModes; override;
+    procedure rwByte(var B: Byte; ID: Integer); override;
+    procedure rwWord(var W: Word; ID: Integer); override;
+    procedure rwShortint(var S: Shortint; ID: Integer); override;
+    procedure rwInteger(var I: Integer; ID: Integer); override;
+    procedure rwByteEx(var B: Byte; Default: Byte; ID: Integer); override;
+    procedure rwWordEx(var W: Word; Default: Word; ID: Integer); override;
+    procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); override;
+    procedure rwIntegerEx(var I: Integer; Default: Integer; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
+    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); override;
+    function OpenPropertyStream(ID: Integer): TStream; override;
+    procedure rwBool(var B: Boolean; ID: Integer); override;
+    function HandleException(E: Exception): Boolean;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject); override;
   end;
 
+procedure StringToStream(const S: string; Stream: TStream);
+procedure StringFromStream(var S: string; Stream: TStream);
+procedure StringsToStream(Strings: TStrings; Stream: TStream);
+procedure StringsFromStream(Strings: TStrings; Stream: TStream);
+
+resourcestring
+  EStreamReadErrorStr = 'Error Reading EObject';
+  EStreamWriteErrorStr = 'Error Writing EObject';
+
 implementation
+
+{ strings }
+
+procedure StringToStream(const S: string; Stream: TStream);
+var
+  Len: Integer;
+begin
+  Len := Length(S);
+  Stream.Write(Len, SizeOf(Integer));
+  Stream.Write(PChar(S)^, Len);
+end;
+
+procedure StringFromStream(var S: string; Stream: TStream);
+var
+  Len: Integer;
+begin
+  Stream.Read(Len, SizeOf(Integer));
+  SetLength(S, Len);
+  Stream.Read(S[1], Len);
+end;
+
+procedure SaveStringToStream(const S: string; Stream: TStream);
+var
+  Len: Integer;
+  B: Byte;
+begin
+  Len := Length(S);
+  if Len < $FF then
+  begin
+    B := Len;
+    Stream.Write(B, SizeOf(Byte));
+  end
+  else
+  begin
+    B := $FF;
+    Stream.Write(B, SizeOf(Byte));
+    Stream.Write(Len, SizeOf(Integer));
+  end;
+  Stream.Write(PChar(S)^, Len);
+end;
+
+procedure LoadStringFromStream(var S: string; Stream: TStream);
+var
+  Len: Integer;
+  B: Byte;
+begin
+  S := '';
+  Stream.Read(B, SizeOf(Byte));
+  if B = $FF then
+    Stream.Read(Len, SizeOf(Integer))
+  else
+    Len := B;
+  SetLength(S, Len);
+  Stream.Read(S[1], Len);
+end;
+
+procedure StringsToStream(Strings: TStrings; Stream: TStream);
+var
+  P: PChar;
+  Len: Integer;
+begin
+  P := Strings.GetText;
+  Len := Length(P);
+  Stream.Write(Len, SizeOf(Integer));
+  Stream.WriteBuffer(P^, Len);
+  StrDispose(P);
+end;
+
+procedure StringsFromStream(Strings: TStrings; Stream: TStream);
+var
+  Len: Integer;
+  S: string;
+begin
+  Strings.BeginUpdate;
+  try
+    Stream.Read(Len, SizeOf(Integer));
+    SetString(S, nil, Len);
+    Stream.Read(Pointer(S)^, Len);
+    Strings.Text := S;
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+procedure StringsToStreamEx(Strings: TStrings; Stream: TStream);
+var
+  P: PChar;
+  Len, I, Obj: Integer;
+begin
+  P := Strings.GetText;
+  Len := Length(P);
+  Stream.Write(Len, SizeOf(Integer));
+  Stream.WriteBuffer(P^, Len);
+  StrDispose(P);
+  for I := 0 to Strings.Count - 1 do
+  begin
+    Obj := Integer(Strings.Objects[I]);
+    Stream.Write(Obj, SizeOf(Integer));
+  end;
+end;
+
+procedure StringsFromStreamEx(Strings: TStrings; Stream: TStream);
+var
+  Len, I, Obj: Integer;
+  S: string;
+begin
+  Strings.BeginUpdate;
+  try
+    Stream.Read(Len, SizeOf(Integer));
+    SetString(S, nil, Len);
+    Stream.Read(Pointer(S)^, Len);
+    Strings.Text := S;
+    for I := 0 to Strings.Count - 1 do
+    begin
+      Stream.Read(Obj, SizeOf(Integer));
+      Strings.Objects[I] := TObject(Obj);
+    end;
+  finally
+    Strings.EndUpdate;
+  end;
+end;
+
+{ TPropertyTable }
+
+destructor TPropertyTable.Destroy;
+begin
+  SetCapacity(0);
+  ReallocMem(FStack, 0);
+  inherited Destroy;
+end;
+
+procedure TPropertyTable.SetCapacity(NewCapacity: Integer);
+begin
+  if NewCapacity > 0 then
+    NewCapacity := (NewCapacity + 31) and not 31;
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FItems, NewCapacity * SizeOf(TPropertyItem));
+    FCapacity := NewCapacity;
+    if FCapacity < FCount then
+      FCount := FCapacity;
+  end;
+end;
+
+procedure TPropertyTable.Add(ID, Offset: Integer);
+begin
+  if FCapacity = FCount then
+    SetCapacity(FCapacity + 1);
+  FItems^[FCount].ID := ID;
+  FItems^[FCount].Offset := Offset;
+  Inc(FCount);
+  if ID > FMaxID then
+    FMaxID := ID;
+end;
+
+procedure TPropertyTable.Clear;
+begin
+  FNextIndex := 0;
+  FMaxID := 0;
+  SetCapacity(0);
+end;
+
+function TPropertyTable.FindOffset(ID: Integer): Integer;
+var
+  I: Integer;
+begin
+  I := FNextIndex;
+  if (I >= FCount) or (FItems^[I].ID <> ID) then
+  begin
+    I := FFirst;
+    Result := -1;
+    while (I < FCount) and (FItems^[I].ID <> ID) do
+      Inc(I);
+    if I <> FCount then
+    begin
+      Result := FItems^[I].Offset;
+      FNextIndex := I + 1;
+    end;
+  end
+  else
+  begin
+    Result := FItems^[I].Offset;
+    Inc(FNextIndex);
+  end;
+end;
+
+function TPropertyTable.PropertyExist(ID: Integer): Boolean;
+var
+  I: Integer;
+begin
+  if ID <= FMaxID then
+  begin
+    I := FFirst;
+    while (I < FCount) and (FItems^[I].ID <> ID) do
+      Inc(I);
+    Result := I <> FCount;
+  end
+  else
+    Result := False;
+end;
+
+procedure TPropertyTable.BackupSettings;
+begin
+  if FStackCount = FStackCapacity then
+  begin
+    Inc(FStackCapacity, 16);
+    ReallocMem(FStack, FStackCapacity * SizeOf(TPropertySettings));
+  end;
+  with FStack^[FStackCount] do
+  begin
+    First := FFirst;
+    NextIndex := FNextIndex;
+    MaxID := FMaxID;
+  end;
+  Inc(FStackCount);
+  FNextIndex := FCount;
+  FFirst := FCount;
+  FMaxID := 0;
+end;
+
+procedure TPropertyTable.RestoreSettings;
+begin
+  Dec(FStackCount);
+  FCount := FFirst;
+  with FStack^[FStackCount] do
+  begin
+    FFirst := First;
+    FNextIndex := NextIndex;
+    FMaxID := MaxID;
+  end;
+end;
+
+procedure TPropertyTable.LoadFromStream(Stream: TStream);
+var
+  LongCount, ID, Offset: Integer;
+  ShortCount: Byte;
+  Pair: Word;
+  I: Word;
+begin
+  Stream.Read(ShortCount, 1);
+  if (ShortCount and $80) <> 0 then
+  begin
+    ShortCount := ShortCount and $7F;
+    Stream.Read(LongCount, 4);
+  end
+  else
+    LongCount := 0;
+  if ShortCount <> 0 then
+    for I := 0 to ShortCount - 1 do
+    begin
+      Stream.Read(Pair, 2);
+      Add(Pair and $FF, Pair shr 8);
+    end;
+  if LongCount <> 0 then
+    for I := 0 to LongCount - 1 do
+    begin
+      Stream.Read(ID, 4);
+      Stream.Read(Offset, 4);
+      Add(ID, Offset);
+    end;
+end;
+
+procedure TPropertyTable.SaveToStream(Stream: TStream);
+var
+  LongCount, I: Integer;
+  ShortCount, Marker: Byte;
+  Pair: Integer;
+begin
+  LongCount := 0;
+  ShortCount := 0;
+  for I := FFirst to FCount - 1 do
+    if (FItems^[I].ID <= $7F) and (FItems^[I].Offset <= $FF) then
+      Inc(ShortCount)
+    else
+      Inc(LongCount);
+  if LongCount <> 0 then
+  begin
+    Marker := ShortCount or $80;
+    Stream.Write(Marker, 1);
+    Stream.Write(LongCount, 4);
+  end
+  else
+    Stream.Write(ShortCount, 1);
+  if ShortCount <> 0 then
+    for I := FFirst to FCount - 1 do
+      if (FItems^[I].ID <= $7F) and (FItems^[I].Offset <= $FF) then
+      begin
+        Pair := FItems^[I].ID + FItems^[I].Offset shl 8;
+        Stream.Write(Pair, 2);
+      end;
+  if LongCount <> 0 then
+    for I := FFirst to FCount - 1 do
+      if (FItems^[I].ID > $7F) or (FItems^[I].Offset > $FF) then
+      begin
+        Stream.Write(FItems^[I].ID, 4);
+        Stream.Write(FItems^[I].Offset, 4);
+      end;
+end;
 
 { TEObject }
 
@@ -959,13 +1364,14 @@ begin
   FErrorHandled := False;
 end;
 
+procedure TEStorageStream.ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
+begin
+  if Assigned(FOnProgress) then FOnProgress(Sender, Msg, Percent);
+end;
+
 function TEStorageStream.OpenPropertyStream(ID: Integer): TStream;
 begin
   Result := nil;
-end;
-
-procedure TEStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
-begin
 end;
 
 procedure TEStorageStream.rwData(var Buffer; Size: Integer; ID: Integer);
@@ -992,15 +1398,15 @@ procedure TEStorageStream.rwByte(var B: Byte; ID: Integer);
 begin
 end;
 
+procedure TEStorageStream.rwShortint(var S: Shortint; ID: Integer);
+begin
+end;
+
 procedure TEStorageStream.rwWord(var W: Word; ID: Integer);
 begin
 end;
 
 procedure TEStorageStream.rwBool(var B: Boolean; ID: Integer);
-begin
-end;
-
-procedure TEStorageStream.rwShortint(var S: Shortint; ID: Integer);
 begin
 end;
 
@@ -1020,39 +1426,778 @@ procedure TEStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: I
 begin
 end;
 
-procedure TEStorageStream.ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
+procedure TEStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
 begin
-  if Assigned(FOnProgress) then FOnProgress(Sender, Msg, Percent);
 end;
 
-{ TEReadStorageStream / TEWriteStorageStream: stubs }
-
-constructor TEReadStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
-begin
-  inherited Create(AStream, AEngine);
-end;
+{ TEWriteStorageStream }
 
 constructor TEWriteStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
 begin
   inherited Create(AStream, AEngine);
+  FEngine := AEngine;
+  FStream := AStream;
+  FBuffer := TEBufferStream.Create;
+  FPropertyTable := TPropertyTable.Create;
+  FPartial := APartial;
 end;
 
-function TEReadStorageStream.StorageMode: TStorageModes;
+destructor TEWriteStorageStream.Destroy;
 begin
-  Result := [smRead];
-end;
-
-procedure TEReadStorageStream.rwEObject(Obj: TEObject; ID: Integer);
-begin
+  FPropertyTable.SaveToStream(FStream);
+  FBuffer.SaveToStream(FStream);
+  FPropertyTable.Free;
+  FBuffer.Free;
+  inherited Destroy;
 end;
 
 function TEWriteStorageStream.StorageMode: TStorageModes;
 begin
-  Result := [smWrite];
+  if FPartial then
+    Result := [smWrite, smPartial]
+  else
+    Result := [smWrite];
+end;
+
+procedure TEWriteStorageStream.PropertyExistError(ID: Integer);
+begin
+  raise EDoublePrioriyID.Create('PropertyID already in use (' + IntToStr(ID) + ' / ' + ClassName + ')');
+end;
+
+procedure TEWriteStorageStream.rwByte(var B: Byte; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if B <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(B, SizeOf(Byte));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwWord(var W: Word; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if W <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(W, SizeOf(Word));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwShortint(var S: Shortint; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if S <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(S, SizeOf(Shortint));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwInteger(var I: Integer; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if I <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(I, SizeOf(Integer));
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('PropertyID already in use');
+end;
+
+procedure TEWriteStorageStream.rwByteEx(var B: Byte; Default: Byte; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if B <> Default then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(B, SizeOf(Byte));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwWordEx(var W: Word; Default: Word; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if W <> Default then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(W, SizeOf(Word));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if S <> Default then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(S, SizeOf(Shortint));
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwIntegerEx(var I: Integer; Default: Integer; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if I <> Default then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(I, SizeOf(Integer));
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('PropertyID already in use');
+end;
+
+procedure TEWriteStorageStream.rwString(var S: string; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if S <> '' then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      SaveStringToStream(S, FBuffer);
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if Strings.Count <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      StringsToStream(Strings, FBuffer);
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if Strings.Count <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      StringsToStreamEx(Strings, FBuffer);
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwData(var Buffer; Size: Integer; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if Size <> 0 then
+    begin
+      FPropertyTable.Add(ID, FBuffer.Position);
+      FBuffer.Write(Buffer, Size);
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+procedure TEWriteStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    try
+      SaveProc(FBuffer);
+    except
+    end;
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+function TEWriteStorageStream.OpenPropertyStream(ID: Integer): TStream;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    Result := FBuffer;
+  end
+  else
+  begin
+    PropertyExistError(ID);
+    Result := nil;
+  end;
+end;
+
+procedure TEWriteStorageStream.rwBool(var B: Boolean; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if B then FPropertyTable.Add(ID, FBuffer.Position);
+  end
+  else
+    PropertyExistError(ID);
+end;
+
+function TEWriteStorageStream.HandleException(E: Exception): Boolean;
+var
+  Continue: Boolean;
+begin
+  if not FErrorHandled then
+  begin
+    Continue := True;
+    if Assigned(FOnError) then
+      if E.Message = '' then
+        FOnError(Self, EStreamWriteErrorStr, Continue)
+      else
+        FOnError(Self, E.Message, Continue);
+    if not Continue then FErrorHandled := True;
+  end;
+  Result := not FErrorHandled;
+end;
+
+procedure TEWriteStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  Outer: TEBufferStream;
+  Start, AClassID: Integer;
+  O: TEObject;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    Start := FBuffer.Position;
+    O := Obj;
+    if O <> nil then AClassID := O.ClassID else AClassID := 0;
+    if AClassID <> 0 then
+    begin
+      Outer := FBuffer;
+      FBuffer := TEBufferStream.Create;
+      FPropertyTable.BackupSettings;
+      try
+        Obj.MainReadWrite(Self);
+        Outer.Write(AClassID, SizeOf(Integer));
+        FPropertyTable.SaveToStream(Outer);
+        FBuffer.SaveToStream(Outer);
+        FBuffer.Free;
+        FPropertyTable.RestoreSettings;
+        FBuffer := Outer;
+        FPropertyTable.Add(ID, Start);
+      except
+        on E: Exception do
+        begin
+          FPropertyTable.RestoreSettings;
+          FBuffer.Free;
+          FBuffer := Outer;
+          Outer.Position := Start;
+          if not HandleException(E) then raise;
+        end;
+      end;
+    end
+    else
+    begin
+      FBuffer.Write(AClassID, SizeOf(Integer));
+      FPropertyTable.Add(ID, Start);
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + IntToStr(ID) + ')');
+end;
+
+procedure TEWriteStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  Outer: TEBufferStream;
+  Start: Integer;
+  C: TEObject;
+  I: Integer;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    Start := FBuffer.Position;
+    Outer := FBuffer;
+    FBuffer := TEBufferStream.Create;
+    FPropertyTable.BackupSettings;
+    for I := 0 to Node.Count - 1 do
+    begin
+      C := Node.Children[I];
+      if (C <> nil) and (C.Owner = Node) and not (csShared in C.GetControlStyle) and
+        (csStored in C.GetControlStyle) then
+        rwCreateEObject(C, Node, I);
+    end;
+    FPropertyTable.SaveToStream(Outer);
+    FBuffer.SaveToStream(Outer);
+    FBuffer.Free;
+    FPropertyTable.RestoreSettings;
+    FBuffer := Outer;
+    FPropertyTable.Add(ID, Start);
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + IntToStr(ID) + ')');
 end;
 
 procedure TEWriteStorageStream.rwEObject(Obj: TEObject; ID: Integer);
+var
+  Outer: TEBufferStream;
+  Start: Integer;
 begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    Start := FBuffer.Position;
+    Outer := FBuffer;
+    FBuffer := TEBufferStream.Create;
+    FPropertyTable.BackupSettings;
+    try
+      Obj.MainReadWrite(Self);
+      FPropertyTable.SaveToStream(Outer);
+      FBuffer.SaveToStream(Outer);
+      FPropertyTable.RestoreSettings;
+      FBuffer.Free;
+      FBuffer := Outer;
+      FPropertyTable.Add(ID, Start);
+    except
+      on E: Exception do
+      begin
+        FPropertyTable.RestoreSettings;
+        FBuffer.Free;
+        FBuffer := Outer;
+        Outer.Position := Start;
+        if not HandleException(E) then raise;
+      end;
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + Obj.ClassName + ':' + IntToStr(ID) + ')');
+end;
+
+procedure TEWriteStorageStream.rwEObjectStream(Obj: TEObject);
+var
+  Outer: TEBufferStream;
+  Start, Len: Integer;
+begin
+  Start := FBuffer.Position;
+  Outer := FBuffer;
+  FBuffer := TEBufferStream.Create;
+  FPropertyTable.BackupSettings;
+  try
+    Obj.MainReadWrite(Self);
+    Outer.Write(Len, SizeOf(Integer));
+    FPropertyTable.SaveToStream(Outer);
+    FBuffer.SaveToStream(Outer);
+    Len := Outer.Position - Start - SizeOf(Integer);
+    Outer.Position := Start;
+    Outer.Write(Len, SizeOf(Integer));
+    Outer.Position := Start + Len + SizeOf(Integer);
+    FPropertyTable.RestoreSettings;
+    FBuffer.Free;
+    FBuffer := Outer;
+  except
+    on E: Exception do
+    begin
+      FBuffer.Free;
+      FBuffer := Outer;
+      FPropertyTable.RestoreSettings;
+      Len := 0;
+      Outer.Position := Start;
+      Outer.Write(Len, SizeOf(Integer));
+      if not HandleException(E) then raise;
+    end;
+  end;
+end;
+
+{ TEReadStorageStream }
+
+constructor TEReadStorageStream.Create(AStream: TStream; AEngine: TEngine; APartial: Boolean);
+begin
+  inherited Create(AStream, AEngine);
+  FPropertyTable := TPropertyTable.Create;
+  FPropertyTable.LoadFromStream(AStream);
+  FDataBase := FStream.Position;
+  FPartial := APartial;
+end;
+
+destructor TEReadStorageStream.Destroy;
+begin
+  FPropertyTable.Free;
+  inherited Destroy;
+end;
+
+function TEReadStorageStream.StorageMode: TStorageModes;
+begin
+  if FPartial then
+    Result := [smRead, smPartial]
+  else
+    Result := [smRead];
+end;
+
+procedure TEReadStorageStream.rwInteger(var I: Integer; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(I, SizeOf(Integer));
+  end
+  else
+    I := 0;
+end;
+
+procedure TEReadStorageStream.rwByte(var B: Byte; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(B, SizeOf(Byte));
+  end
+  else
+    B := 0;
+end;
+
+procedure TEReadStorageStream.rwShortint(var S: Shortint; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(S, SizeOf(Shortint));
+  end
+  else
+    S := 0;
+end;
+
+procedure TEReadStorageStream.rwWord(var W: Word; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(W, SizeOf(Word));
+  end
+  else
+    W := 0;
+end;
+
+procedure TEReadStorageStream.rwIntegerEx(var I: Integer; Default: Integer; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(I, SizeOf(Integer));
+  end
+  else
+    I := Default;
+end;
+
+procedure TEReadStorageStream.rwByteEx(var B: Byte; Default: Byte; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(B, SizeOf(Byte));
+  end
+  else
+    B := Default;
+end;
+
+procedure TEReadStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(S, SizeOf(Shortint));
+  end
+  else
+    S := Default;
+end;
+
+procedure TEReadStorageStream.rwWordEx(var W: Word; Default: Word; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(W, SizeOf(Word));
+  end
+  else
+    W := Default;
+end;
+
+procedure TEReadStorageStream.rwString(var S: string; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    LoadStringFromStream(S, FStream);
+  end
+  else
+    S := '';
+end;
+
+procedure TEReadStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    StringsFromStream(Strings, FStream);
+  end
+  else
+    Strings.Clear;
+end;
+
+procedure TEReadStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    StringsFromStreamEx(Strings, FStream);
+  end
+  else
+    Strings.Clear;
+end;
+
+procedure TEReadStorageStream.rwData(var Buffer; Size: Integer; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(Buffer, Size);
+  end;
+end;
+
+procedure TEReadStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    try
+      LoadProc(FStream);
+    except
+    end;
+  end;
+end;
+
+function TEReadStorageStream.OpenPropertyStream(ID: Integer): TStream;
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    Result := FStream;
+  end
+  else
+    Result := nil;
+end;
+
+procedure TEReadStorageStream.rwBool(var B: Boolean; ID: Integer);
+begin
+  B := FPropertyTable.FindOffset(ID) <> -1;
+end;
+
+function TEReadStorageStream.HandleException(E: Exception): Boolean;
+var
+  Continue: Boolean;
+begin
+  if not FErrorHandled then
+  begin
+    Continue := True;
+    if Assigned(FOnError) then
+      if E.Message = '' then
+        FOnError(Self, EStreamReadErrorStr, Continue)
+      else
+        FOnError(Self, E.Message, Continue);
+    if not Continue then FErrorHandled := True;
+  end;
+  Result := not FErrorHandled;
+end;
+
+procedure TEReadStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  Offset, SavedBase, AClassID: Integer;
+begin
+  Obj := nil;
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(AClassID, SizeOf(Integer));
+    if AClassID <> 0 then
+    begin
+      SavedBase := FDataBase;
+      FPropertyTable.BackupSettings;
+      FPropertyTable.LoadFromStream(FStream);
+      FDataBase := FStream.Position;
+      try
+        Obj := FEngine.CreateEObject(AClassID, nil);
+        Obj.FOwner := AOwner;
+        Obj.MainReadWrite(Self);
+        Obj.FOwner := nil;
+        Obj.SetOwner(AOwner);
+        FPropertyTable.RestoreSettings;
+        FDataBase := SavedBase;
+      except
+        on E: Exception do
+        begin
+          Obj.Free;
+          Obj := nil;
+          FPropertyTable.RestoreSettings;
+          FDataBase := SavedBase;
+          if not HandleException(E) then raise;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TEReadStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  Offset, SavedBase, I, ChildID: Integer;
+  Child: TEObject;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    SavedBase := FDataBase;
+    FPropertyTable.BackupSettings;
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FPropertyTable.LoadFromStream(FStream);
+    FDataBase := FStream.Position;
+    if csKeepIndex in Node.GetControlStyle then
+      for I := FPropertyTable.First to FPropertyTable.Count - 1 do
+      begin
+        ChildID := FPropertyTable.Items^[I].ID;
+        rwCreateEObject(Child, Node, ChildID);
+        if Child <> nil then Child.SetArrayOwner(Node, ChildID);
+      end
+    else
+      for I := FPropertyTable.First to FPropertyTable.Count - 1 do
+      begin
+        ChildID := FPropertyTable.Items^[I].ID;
+        rwCreateEObject(Child, Node, ChildID);
+      end;
+    FPropertyTable.RestoreSettings;
+    FDataBase := SavedBase;
+  end;
+end;
+
+procedure TEReadStorageStream.rwEObject(Obj: TEObject; ID: Integer);
+var
+  Offset, SavedBase: Integer;
+begin
+  SavedBase := FDataBase;
+  Offset := FPropertyTable.FindOffset(ID);
+  FPropertyTable.BackupSettings;
+  if Offset <> -1 then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FPropertyTable.LoadFromStream(FStream);
+    FDataBase := FStream.Position;
+  end;
+  try
+    Obj.MainReadWrite(Self);
+    FPropertyTable.RestoreSettings;
+    FDataBase := SavedBase;
+  except
+    on E: Exception do
+    begin
+      FPropertyTable.RestoreSettings;
+      FDataBase := SavedBase;
+      if not HandleException(E) then raise;
+    end;
+  end;
+end;
+
+procedure TEReadStorageStream.rwEObjectStream(Obj: TEObject);
+var
+  SavedBase, Start, Size: Integer;
+begin
+  Start := FStream.Position;
+  FStream.Read(Size, SizeOf(Integer));
+  if Size <> 0 then
+  begin
+    SavedBase := FDataBase;
+    FPropertyTable.BackupSettings;
+    try
+      FPropertyTable.LoadFromStream(FStream);
+      FDataBase := FStream.Position;
+      Obj.MainReadWrite(Self);
+      FPropertyTable.RestoreSettings;
+      FDataBase := SavedBase;
+      FStream.Position := Start + Size + SizeOf(Integer);
+    except
+      on E: Exception do
+      begin
+        FPropertyTable.RestoreSettings;
+        FDataBase := SavedBase;
+        FStream.Position := Start + Size + SizeOf(Integer);
+        if not HandleException(E) then raise;
+      end;
+    end;
+  end;
 end;
 
 end.
