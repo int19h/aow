@@ -15,8 +15,10 @@ type
   PByte = ^Byte;
   PInteger = ^Integer;
 
-  { TEStorageStream.StorageMode }
-  TStorageMode = (smRead, smWrite, smCompare, smPartial, smReserved4, smReserved5, smTranslate);
+  { TEStorageStream.StorageMode: smRead/smWrite the binary streams, smPartial the preview streams,
+    smText the text streams and the translate stream, smTranslate the translate stream,
+    smSetupCompare/smCompare the compare streams }
+  TStorageMode = (smRead, smWrite, smText, smPartial, smTranslate, smSetupCompare, smCompare);
   TStorageModes = set of TStorageMode;
 
   { TEObject.GetControlStyle }
@@ -161,6 +163,15 @@ type
 
   { Engine.TEObjectList (instance size 16): the child list of a TENode }
   TEObjectList = class(TList)
+  protected
+    function GetEObject(Index: Integer): TEObject;
+    procedure SetEObject(Index: Integer; Value: TEObject);
+  public
+    function FindObject(AClassID: Integer): TEObject;
+    function FindObjectIndex(AClassID: Integer): Integer;
+    procedure ClearList;
+    function AllHaveCID(AClassID: Integer): Boolean;
+    property EObjects[Index: Integer]: TEObject read GetEObject write SetEObject;
   end;
 
   { Engine.TENode (instance size 12): +8 FChildren }
@@ -420,7 +431,7 @@ type
     function OpenPropertyStream(ID: Integer): TStream; virtual;
     procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); virtual; abstract;
     procedure rwEObject(Obj: TEObject; ID: Integer); virtual; abstract;
-    procedure rwEObjectStream(Obj: TEObject); virtual; abstract;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); virtual; abstract;
     procedure rwChildren(Node: TECustomNode; ID: Integer); virtual; abstract;
     procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); virtual;
     procedure rwData(var Buffer; Size: Integer; ID: Integer); virtual;
@@ -475,7 +486,7 @@ type
     procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
     procedure rwChildren(Node: TECustomNode; ID: Integer); override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
-    procedure rwEObjectStream(Obj: TEObject); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
     property DataBase: Integer read FDataBase;
   end;
 
@@ -510,18 +521,105 @@ type
     procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
     procedure rwChildren(Node: TECustomNode; ID: Integer); override;
     procedure rwEObject(Obj: TEObject; ID: Integer); override;
-    procedure rwEObjectStream(Obj: TEObject); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
   end;
 
-  { Engine.TEReadTextStorageStream / TEWriteTextStorageStream: the text form of the storage. stub }
+  { Engine.TEReadTextStorageStream (instance size 56): +$24 FPath, +$28 FSize, +$2C FSections,
+    +$30 FText, +$34 FValues. The text form of the storage: "[:path:]" lines open the section of
+    an object (its path is the ids of its parents joined with '\'), "[id]=value" lines are its
+    properties; the section is split into FValues with the property table pointing at them. }
   TEReadTextStorageStream = class(TEStorageStream)
+  private
+    FPath: string;
+    FSize: Integer;
+    FSections: TStringList;
+    FText: TStringList;
+    FValues: TStringList;
+    procedure ReadStreamText;
+    procedure ReadTextBuffer;
   public
     constructor Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
+    destructor Destroy; override;
+    function StorageMode: TStorageModes; override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
   end;
 
+  { Engine.TEWriteTextStorageStream (instance size 44): +$24 FPath, +$28 FBuffer. Each object's
+    properties are collected in FBuffer and written behind the "[:path:]" line. }
   TEWriteTextStorageStream = class(TEStorageStream)
+  private
+    FPath: string;
+    FBuffer: TEBufferStream;
+    procedure WriteTextBuffer(Stream: TStream);
   public
     constructor Create(AStream: TStream; AEngine: TEngine);
+    destructor Destroy; override;
+    function StorageMode: TStorageModes; override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
+  end;
+
+  { Engine.TTranslateStorageStream (instance size 36): visits every string of an object tree
+    through TranslateString and TranslateStrings; nothing is read or written. }
+  TTranslateStorageStream = class(TEStorageStream)
+  public
+    constructor Create(AEngine: TEngine);
+    destructor Destroy; override;
+    function StorageMode: TStorageModes; override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
+    procedure TranslateStrings(var Strings: TStrings); virtual;
+    procedure TranslateString(var S: string); virtual;
+  end;
+
+  { Engine.TSetupCompareStorageStream (instance size 44): a read stream that announces a
+    comparison to come (smSetupCompare) }
+  TSetupCompareStorageStream = class(TEReadStorageStream)
+  public
+    function StorageMode: TStorageModes; override;
+  end;
+
+  { Engine.TCompareStorageStream (instance size 44): reads a stored copy and calls Mismatch for
+    every property that differs from the object; Mismatch raises and swallows its own exception,
+    a place for a breakpoint. }
+  TCompareStorageStream = class(TEReadStorageStream)
+  private
+    procedure Mismatch(ID: Integer);
+  public
+    constructor Create(AStream: TStream; AEngine: TEngine);
+    destructor Destroy; override;
+    function StorageMode: TStorageModes; override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
+    procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwInteger(var I: Integer; ID: Integer); override;
+    procedure rwByte(var B: Byte; ID: Integer); override;
+    procedure rwWord(var W: Word; ID: Integer); override;
+    procedure rwBool(var B: Boolean; ID: Integer); override;
+    procedure rwShortint(var S: Shortint; ID: Integer); override;
+    procedure rwIntegerEx(var I: Integer; Default: Integer; ID: Integer); override;
+    procedure rwByteEx(var B: Byte; Default: Byte; ID: Integer); override;
+    procedure rwWordEx(var W: Word; Default: Word; ID: Integer); override;
+    procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); override;
   end;
 
 procedure InitMsg(var Msg: TEMsg; MsgID: Integer; Sender: TEObject);
@@ -1013,7 +1111,7 @@ end;
 
 procedure TEObject.MainReadWrite(Stream: TEStorageStream);
 begin
-  if Stream.StorageMode * [smRead, smCompare, smTranslate] = [smRead] then Clear;
+  if Stream.StorageMode * [smRead, smText, smCompare] = [smRead] then Clear;
   ReadWrite(Stream);
 end;
 
@@ -1086,7 +1184,7 @@ end;
 procedure TECustomNode.MainReadWrite(Stream: TEStorageStream);
 begin
   if smRead in Stream.StorageMode then
-    if Stream.StorageMode * [smCompare, smTranslate] = [] then Clear;
+    if Stream.StorageMode * [smText, smCompare] = [] then Clear;
   ReadWrite(Stream);
   ReadWriteChildren(Stream);
 end;
@@ -1536,6 +1634,75 @@ end;
 
 {$I inc\HashTab.PAS}
 
+{ TEObjectList }
+
+function TEObjectList.GetEObject(Index: Integer): TEObject;
+begin
+  Result := TEObject(Items[Index]);
+end;
+
+procedure TEObjectList.SetEObject(Index: Integer; Value: TEObject);
+begin
+  Items[Index] := Value;
+end;
+
+function TEObjectList.FindObject(AClassID: Integer): TEObject;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  I := 0;
+  Found := False;
+  while not Found and (I < Count) do
+  begin
+    Found := (List^[I] <> nil) and (AClassID = TEObject(List^[I]).ClassID);
+    Inc(I);
+  end;
+  if Found then Result := TEObject(List^[I - 1]) else Result := nil;
+end;
+
+function TEObjectList.FindObjectIndex(AClassID: Integer): Integer;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  I := 0;
+  Found := False;
+  while not Found and (I < Count) do
+  begin
+    Found := (List^[I] <> nil) and (AClassID = TEObject(List^[I]).ClassID);
+    Inc(I);
+  end;
+  if Found then Result := I - 1 else Result := -1;
+end;
+
+procedure TEObjectList.ClearList;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+  begin
+    { the original tests List^[Count], one past the end, not List^[I] }
+    if List^[Count] <> nil then TEObject(List^[I]).Destroy;
+    Delete(I);
+  end;
+end;
+
+function TEObjectList.AllHaveCID(AClassID: Integer): Boolean;
+var
+  I: Integer;
+  OK: Boolean;
+begin
+  I := 0;
+  OK := True;
+  while I < Count do
+  begin
+    OK := (List^[I] = nil) or (AClassID = TEObject(List^[I]).ClassID);
+    Inc(I);
+  end;
+  Result := OK and (Count <> 0);
+end;
+
 { TEControlStyleNode }
 
 constructor TEControlStyleNode.Create(AOwner: TECustomNode);
@@ -1788,7 +1955,7 @@ end;
 procedure TEResourceEditSettings.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  if not (smCompare in Stream.StorageMode) then Stream.rwStringsEx(FEditors, 3);
+  if not (smText in Stream.StorageMode) then Stream.rwStringsEx(FEditors, 3);
 end;
 
 { TEngine }
@@ -2699,7 +2866,7 @@ begin
     raise EDoublePrioriyID.Create('Double priorityID found (' + Obj.ClassName + ':' + IntToStr(ID) + ')');
 end;
 
-procedure TEWriteStorageStream.rwEObjectStream(Obj: TEObject);
+procedure TEWriteStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
 var
   Outer: TEBufferStream;
   Start, Len: Integer;
@@ -3072,7 +3239,7 @@ begin
   end;
 end;
 
-procedure TEReadStorageStream.rwEObjectStream(Obj: TEObject);
+procedure TEReadStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
 var
   SavedBase, Start, Size: Integer;
 begin
@@ -3101,16 +3268,670 @@ begin
   end;
 end;
 
-{ Text storage streams: stubs }
-
-constructor TEReadTextStorageStream.Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
-begin
-  inherited Create(AStream, AEngine);
-end;
+{ TEWriteTextStorageStream }
 
 constructor TEWriteTextStorageStream.Create(AStream: TStream; AEngine: TEngine);
 begin
   inherited Create(AStream, AEngine);
+  FPath := '';
+  FBuffer := TEBufferStream.Create;
+  FPropertyTable := TPropertyTable.Create;
+end;
+
+destructor TEWriteTextStorageStream.Destroy;
+begin
+  WriteTextBuffer(FStream);
+  FBuffer.Free;
+  FPropertyTable.Free;
+end;
+
+function TEWriteTextStorageStream.StorageMode: TStorageModes;
+begin
+  Result := [smWrite, smText];
+end;
+
+procedure TEWriteTextStorageStream.WriteTextBuffer(Stream: TStream);
+var
+  S: string;
+begin
+  if (FPropertyTable.Count <> 0) and (FBuffer.Size <> 0) then
+  begin
+    S := '[:' + FPath + ':]' + #13 + #10;
+    if FPath <> '' then S := #13#10 + S;
+    Stream.Write(S[1], Length(S));
+    FBuffer.SaveToStream(Stream);
+  end;
+end;
+
+procedure TEWriteTextStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  O: TEObject;
+begin
+  O := Obj;
+  if O <> nil then rwEObject(O, ID);
+end;
+
+procedure TEWriteTextStorageStream.rwEObject(Obj: TEObject; ID: Integer);
+var
+  SavedBuffer: TEBufferStream;
+  SavedPath: string;
+  Continue: Boolean;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    SavedBuffer := FBuffer;
+    SavedPath := FPath;
+    FPropertyTable.BackupSettings;
+    FBuffer := TEBufferStream.Create;
+    if FPath <> '' then FPath := FPath + '\' + IntToStr(ID) else FPath := IntToStr(ID);
+    try
+      Obj.MainReadWrite(Self);
+      WriteTextBuffer(FStream);
+      FBuffer.Free;
+      FPropertyTable.RestoreSettings;
+      FBuffer := SavedBuffer;
+      FPath := SavedPath;
+      FPropertyTable.Add(ID, 0);
+    except
+      FBuffer.Free;
+      FBuffer := SavedBuffer;
+      FPropertyTable.RestoreSettings;
+      FPath := SavedPath;
+      Continue := True;
+      if Assigned(FOnError) then
+        FOnError(Self, 'Error writing object (cid:' + IntToStr(Obj.ClassID) + ')', Continue);
+      if not Continue then raise;
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found');
+end;
+
+procedure TEWriteTextStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
+begin
+  rwEObject(Obj, ID);
+end;
+
+procedure TEWriteTextStorageStream.rwString(var S: string; ID: Integer);
+var
+  Line: string;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if S <> '' then
+    begin
+      Line := '[' + IntToStr(ID) + ']=' + S + #13 + #10;
+      FBuffer.Write(Line[1], Length(Line));
+      FPropertyTable.Add(ID, 0);
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found');
+end;
+
+procedure TEWriteTextStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+var
+  Line: string;
+  P: PChar;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    if Strings.Count <> 0 then
+    begin
+      P := Strings.GetText;
+      try
+        Line := '[' + IntToStr(ID) + ']=';
+        if P <> nil then Line := Line + P else Line := Line + #13 + #10;
+        FBuffer.Write(Line[1], Length(Line));
+        FPropertyTable.Add(ID, 0);
+      finally
+        StrDispose(P);
+      end;
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found');
+end;
+
+procedure TEWriteTextStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+begin
+  rwStrings(Strings, ID);
+end;
+
+procedure TEWriteTextStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  SavedPath: string;
+  I: Integer;
+  C: TEObject;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    SavedPath := FPath;
+    if FPath <> '' then FPath := FPath + '\' + IntToStr(ID) else FPath := IntToStr(ID);
+    for I := 0 to Node.Count - 1 do
+    begin
+      C := Node.Children[I];
+      if (C <> nil) and (C.Owner = Node) and not (csShared in C.GetControlStyle) and
+        (csStored in C.GetControlStyle) then
+        rwEObject(C, I);
+    end;
+    FPath := SavedPath;
+    FPropertyTable.Add(ID, 0);
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found');
+end;
+
+{ TEReadTextStorageStream }
+
+constructor TEReadTextStorageStream.Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
+begin
+  inherited Create(AStream, AEngine);
+  FPath := '';
+  if ASize <= 0 then FSize := FStream.Size - FStream.Position else FSize := ASize;
+  FValues := TStringList.Create;
+  FPropertyTable := TPropertyTable.Create;
+  FText := TStringList.Create;
+  FSections := TStringList.Create;
+  ReadStreamText;
+  ReadTextBuffer;
+end;
+
+destructor TEReadTextStorageStream.Destroy;
+begin
+  FValues.Free;
+  FPropertyTable.Free;
+  FSections.Free;
+  FText.Free;
+end;
+
+procedure TEReadTextStorageStream.ReadStreamText;
+var
+  Buffer, Line: string;
+  Text: TStringList;
+  P, Start: PChar;
+  L: Integer;
+begin
+  Text := FText;
+  FSections.Clear;
+  Text.BeginUpdate;
+  try
+    SetString(Buffer, nil, FSize);
+    FStream.Read(Pointer(Buffer)^, FSize);
+    Text.Clear;
+    P := Pointer(Buffer);
+    if P <> nil then
+      while P^ <> #0 do
+      begin
+        Start := P;
+        while not (P^ in [#0, #10, #13]) do Inc(P);
+        SetString(Line, Start, P - Start);
+        if Line <> '' then
+        begin
+          L := Length(Line);
+          if (L >= 4) and (Copy(Line, 1, 2) = '[:') and (Copy(Line, L - 1, 2) = ':]') then
+            FSections.AddObject(Copy(Line, 3, L - 4), TObject(Text.Count))
+          else
+            Text.Add(Line);
+        end;
+        if P^ = #13 then Inc(P);
+        if P^ = #10 then Inc(P);
+      end;
+  finally
+    Text.EndUpdate;
+  end;
+end;
+
+function TEReadTextStorageStream.StorageMode: TStorageModes;
+begin
+  Result := [smRead, smText];
+end;
+
+{ "[id]=" at the start of a text line, or -1 }
+function GetLineID(S: string): Integer;
+var
+  I: Integer;
+begin
+  I := 1;
+  while S[I] in ['0'..'9', '['] do Inc(I);
+  if Copy(S, I, 2) = ']=' then Result := StrToInt(Copy(S, 2, I - 2)) else Result := -1;
+end;
+
+{ the text behind "[id]=" }
+function GetLineValue(S: string): string;
+var
+  I: Integer;
+begin
+  I := 1;
+  while S[I] in ['0'..'9', '[', ']'] do Inc(I);
+  Result := Copy(S, I + 1, Length(S) - I);
+end;
+
+procedure TEReadTextStorageStream.ReadTextBuffer;
+var
+  Index, First, Last, I, ID, NewID: Integer;
+  Value: string;
+begin
+  FValues.Clear;
+  Index := FSections.IndexOf(FPath);
+  if Index <> -1 then
+  begin
+    First := Integer(FSections.Objects[Index]);
+    if Index <> FSections.Count - 1 then
+      Last := Integer(FSections.Objects[Index + 1]) - 1
+    else
+      Last := FText.Count - 1;
+    I := First;
+    ID := -1;
+    Value := '';
+    while I <= Last do
+    begin
+      NewID := GetLineID(FText[I]);
+      if ID <> -1 then
+      begin
+        if (NewID <> ID) and (NewID <> -1) then
+        begin
+          FPropertyTable.Add(ID, FValues.Count);
+          FValues.Add(Value);
+          ID := NewID;
+          Value := GetLineValue(FText[I]);
+        end
+        else
+          Value := Value + #13 + #10 + FText[I];
+      end
+      else if NewID <> -1 then
+      begin
+        if ID = -1 then ID := NewID;
+        Value := GetLineValue(FText[I]);
+      end;
+      Inc(I);
+    end;
+    if ID <> -1 then
+    begin
+      FPropertyTable.Add(ID, FValues.Count);
+      FValues.Add(Value);
+    end;
+  end;
+end;
+
+procedure TEReadTextStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  O: TEObject;
+begin
+  O := Obj;
+  if O <> nil then rwEObject(O, ID);
+end;
+
+procedure TEReadTextStorageStream.rwEObject(Obj: TEObject; ID: Integer);
+var
+  SavedValues: TStringList;
+  SavedPath: string;
+  Continue: Boolean;
+begin
+  SavedPath := FPath;
+  if FPath <> '' then FPath := FPath + '\' + IntToStr(ID) else FPath := IntToStr(ID);
+  SavedValues := FValues;
+  FPropertyTable.BackupSettings;
+  FValues := TStringList.Create;
+  try
+    ReadTextBuffer;
+    Obj.MainReadWrite(Self);
+    FValues.Free;
+    FPropertyTable.RestoreSettings;
+    FValues := SavedValues;
+    FPath := SavedPath;
+  except
+    FValues.Free;
+    FPropertyTable.RestoreSettings;
+    FValues := SavedValues;
+    FPath := SavedPath;
+    Continue := True;
+    if Assigned(FOnError) then
+      FOnError(Self, 'Error reading object (cid:' + IntToStr(Obj.ClassID) + ')', Continue);
+    if not Continue then raise;
+  end;
+end;
+
+procedure TEReadTextStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
+begin
+  rwEObject(Obj, ID);
+end;
+
+procedure TEReadTextStorageStream.rwString(var S: string; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then S := FValues[Offset] else S := '';
+end;
+
+procedure TEReadTextStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+var
+  Offset: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then Strings.SetText(PChar(FValues[Offset])) else Strings.Clear;
+end;
+
+procedure TEReadTextStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+begin
+  rwStrings(Strings, ID);
+end;
+
+procedure TEReadTextStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  SavedPath: string;
+  I: Integer;
+  C: TEObject;
+begin
+  { the original saves the path and never restores it }
+  SavedPath := FPath;
+  if FPath <> '' then FPath := FPath + '\' + IntToStr(ID) else FPath := IntToStr(ID);
+  for I := 0 to Node.Count - 1 do
+  begin
+    C := Node.Children[I];
+    if (C <> nil) and (C.Owner = Node) and not (csShared in C.GetControlStyle) and
+      (csStored in C.GetControlStyle) then
+      rwEObject(C, I);
+  end;
+end;
+
+{ TTranslateStorageStream }
+
+constructor TTranslateStorageStream.Create(AEngine: TEngine);
+begin
+  inherited Create(nil, AEngine);
+  FPropertyTable := TPropertyTable.Create;
+end;
+
+destructor TTranslateStorageStream.Destroy;
+begin
+  FPropertyTable.Free;
+  inherited Destroy;
+end;
+
+function TTranslateStorageStream.StorageMode: TStorageModes;
+begin
+  Result := [smRead, smText, smTranslate];
+end;
+
+procedure TTranslateStorageStream.rwString(var S: string; ID: Integer);
+begin
+  TranslateString(S);
+end;
+
+procedure TTranslateStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+begin
+  TranslateStrings(Strings);
+end;
+
+procedure TTranslateStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+begin
+  TranslateStrings(Strings);
+end;
+
+procedure TTranslateStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  O: TEObject;
+begin
+  O := Obj;
+  if O <> nil then rwEObject(O, ID);
+end;
+
+procedure TTranslateStorageStream.rwEObject(Obj: TEObject; ID: Integer);
+var
+  Continue: Boolean;
+begin
+  try
+    FPropertyTable.BackupSettings;
+    Obj.MainReadWrite(Self);
+    FPropertyTable.RestoreSettings;
+  except
+    FPropertyTable.RestoreSettings;
+    { the original leaves Continue uninitialized here }
+    if Assigned(FOnError) then
+      FOnError(Self, 'Error reading object (cid:' + IntToStr(Obj.ClassID) + ')', Continue);
+    if not Continue then raise;
+  end;
+end;
+
+procedure TTranslateStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
+begin
+  rwEObject(Obj, ID);
+end;
+
+procedure TTranslateStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  I: Integer;
+  C: TEObject;
+begin
+  for I := 0 to Node.Count - 1 do
+  begin
+    C := Node.Children[I];
+    if (C <> nil) and (C.Owner = Node) and not (csShared in C.GetControlStyle) and
+      (csStored in C.GetControlStyle) then
+      rwEObject(C, I);
+  end;
+end;
+
+procedure TTranslateStorageStream.TranslateStrings(var Strings: TStrings);
+begin
+end;
+
+procedure TTranslateStorageStream.TranslateString(var S: string);
+begin
+end;
+
+{ TSetupCompareStorageStream }
+
+function TSetupCompareStorageStream.StorageMode: TStorageModes;
+begin
+  Result := [smRead, smSetupCompare];
+end;
+
+{ TCompareStorageStream }
+
+constructor TCompareStorageStream.Create(AStream: TStream; AEngine: TEngine);
+begin
+  inherited Create(AStream, AEngine, False);
+end;
+
+destructor TCompareStorageStream.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TCompareStorageStream.StorageMode: TStorageModes;
+begin
+  Result := [smRead, smCompare];
+end;
+
+procedure TCompareStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  Offset, SavedBase, AClassID: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if (Offset <> -1) and (Obj <> nil) then
+  begin
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FStream.Read(AClassID, SizeOf(Integer));
+    if AClassID <> 0 then
+    begin
+      SavedBase := FDataBase;
+      FPropertyTable.BackupSettings;
+      FPropertyTable.LoadFromStream(FStream);
+      FDataBase := FStream.Position;
+      try
+        Obj.MainReadWrite(Self);
+      finally
+        FPropertyTable.RestoreSettings;
+        FDataBase := SavedBase;
+      end;
+    end;
+  end;
+end;
+
+procedure TCompareStorageStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  SavedBase, I, Start: Integer;
+  C: TEObject;
+  Offset, Index: Integer;
+begin
+  Offset := FPropertyTable.FindOffset(ID);
+  if Offset <> -1 then
+  begin
+    SavedBase := FDataBase;
+    FPropertyTable.BackupSettings;
+    if FStream.Position <> FDataBase + Offset then FStream.Position := FDataBase + Offset;
+    FPropertyTable.LoadFromStream(FStream);
+    FDataBase := FStream.Position;
+    if csKeepIndex in Node.GetControlStyle then
+    begin
+      for I := FPropertyTable.First to FPropertyTable.Count - 1 do
+      begin
+        Index := FPropertyTable.Items^[I].ID;
+        C := Node.Children[Index];
+        if C <> nil then rwCreateEObject(C, Node, Index);
+      end;
+    end
+    else
+    begin
+      Start := 0;
+      while (Start < Node.Count) and (Node.Children[Start] <> nil) and
+        (Node.Children[Start].GetControlStyle * [csShared] <> []) do
+        Inc(Start);
+      for I := FPropertyTable.First to FPropertyTable.Count - 1 do
+      begin
+        Index := FPropertyTable.Items^[I].ID;
+        if Index < Node.Count then
+        begin
+          C := Node.Children[I - FPropertyTable.First + Start];
+          if C <> nil then rwCreateEObject(C, Node, Index);
+        end;
+      end;
+    end;
+    FPropertyTable.RestoreSettings;
+    FDataBase := SavedBase;
+  end;
+end;
+
+procedure TCompareStorageStream.Mismatch(ID: Integer);
+begin
+  try
+    raise Exception.Create('Property Mismatch (PropertyID:' + IntToStr(ID) + ')');
+  except
+  end;
+end;
+
+procedure TCompareStorageStream.rwData(var Buffer; Size: Integer; ID: Integer);
+var
+  P: Pointer;
+begin
+  P := nil;
+  ReallocMem(P, Size);
+  FillChar(P^, Size, 0);
+  inherited rwData(P^, Size, ID);
+  if not CompareMem(P, @Buffer, Size) then Mismatch(ID);
+  ReallocMem(P, 0);
+end;
+
+procedure TCompareStorageStream.rwString(var S: string; ID: Integer);
+var
+  Value: string;
+begin
+  inherited rwString(Value, ID);
+  if Value <> S then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwStrings(Strings: TStrings; ID: Integer);
+var
+  L: TStringList;
+begin
+  { the original never frees L }
+  L := TStringList.Create;
+  inherited rwStrings(L, ID);
+  if CompareText(L.Text, Strings.Text) <> 0 then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+var
+  L: TStringList;
+begin
+  L := TStringList.Create;
+  inherited rwStrings(L, ID);
+  if CompareText(L.Text, Strings.Text) <> 0 then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwInteger(var I: Integer; ID: Integer);
+var
+  Value: Integer;
+begin
+  inherited rwInteger(Value, ID);
+  if I <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwByte(var B: Byte; ID: Integer);
+var
+  Value: Byte;
+begin
+  inherited rwByte(Value, ID);
+  if B <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwShortint(var S: Shortint; ID: Integer);
+var
+  Value: Shortint;
+begin
+  inherited rwShortint(Value, ID);
+  if S <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwWord(var W: Word; ID: Integer);
+var
+  Value: Word;
+begin
+  inherited rwWord(Value, ID);
+  if W <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwBool(var B: Boolean; ID: Integer);
+var
+  Value: Boolean;
+begin
+  inherited rwBool(Value, ID);
+  if B <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwIntegerEx(var I: Integer; Default: Integer; ID: Integer);
+var
+  Value: Integer;
+begin
+  inherited rwIntegerEx(Value, Default, ID);
+  if I <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwByteEx(var B: Byte; Default: Byte; ID: Integer);
+var
+  Value: Byte;
+begin
+  inherited rwByteEx(Value, Default, ID);
+  if B <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer);
+var
+  Value: Shortint;
+begin
+  inherited rwShortintEx(Value, Default, ID);
+  if S <> Value then Mismatch(ID);
+end;
+
+procedure TCompareStorageStream.rwWordEx(var W: Word; Default: Word; ID: Integer);
+var
+  Value: Word;
+begin
+  inherited rwWordEx(Value, Default, ID);
+  if W <> Value then Mismatch(ID);
 end;
 
 initialization

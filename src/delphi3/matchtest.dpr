@@ -42,6 +42,10 @@ var
   CW: TECustomOwner;
   CL: TEObjectClassList;
   RS: TEResourceEditSettings;
+  FM: TFastMemoryStream;
+  OL: TEObjectList;
+  TS: TEStorageStream;
+  TT: TTranslateStorageStream;
 begin
   T := TPropertyTable.Create;
   M := TMemoryStream.Create;
@@ -284,5 +288,35 @@ begin
   InitMsgEx(Msg, 1, nil, 2);
   Writeln(GetCRC32(nil, 0), GetFileCRC32('f'), GetEngine(0) = EN, FindEngine(1) = EN);
   ReleaseCRC32Table;
+  FM := TFastMemoryStream.Create;
+  FM.Write(S, 4);
+  FM.Position := 0;
+  FM.Read(S, 4);
+  FM.Seek(0, 0);
+  FM.Capacity := 64;
+  FM.SaveToFile('f');
+  FM.LoadFromFile('f');
+  FM.Clear;
+  FM.Free;
+  OL := TEObjectList.Create;
+  OL.EObjects[0] := OL.EObjects[0];
+  Writeln(OL.FindObject(1) = nil, OL.FindObjectIndex(1), OL.AllHaveCID(1));
+  OL.ClearList;
+  OL.Free;
+  TS := TEWriteTextStorageStream.Create(M, EN);
+  TS.rwEObject(O, 1);
+  TS.Free;
+  TS := TEReadTextStorageStream.Create(M, EN, 0);
+  TS.rwEObject(O, 1);
+  TS.Free;
+  TT := TTranslateStorageStream.Create(EN);
+  TT.rwEObject(O, 1);
+  TT.TranslateString(S);
+  TT.Free;
+  TS := TCompareStorageStream.Create(M, EN);
+  TS.rwEObject(O, 1);
+  TS.Free;
+  TS := TSetupCompareStorageStream.Create(M, EN, False);
+  TS.Free;
   EN.Free;
 end.

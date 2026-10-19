@@ -50,5 +50,7 @@
  "Engine.ReleaseCRC32Table": "ReleaseCRC32Table",
  "FUN_5550e5b4": "BuildCRC32Table",
  "Engine.GetEngine": "GetEngine",
- "Engine.FindEngine": "FindEngine"
+ "Engine.FindEngine": "FindEngine",
+ "FUN_55512398": "GetLineID",
+ "FUN_55512454": "GetLineValue"
 }
