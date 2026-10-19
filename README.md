@@ -43,4 +43,17 @@ container). `tests/asgread.pas` reads a save with it and prints what `tools/asg_
 C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe -Mdelphi -Fusrc\recovered -FU%TEMP% -FE%TEMP% tests\asgread.pas
 ```
 
+## Generated object model and the round trip
+
+`tools/translate_readwrite.py` turns the typed `ReadWrite` decompiles into `src/model/AoWModel.pas`: one class
+per persisted class, fields typed by the `rw*` calls, embedded objects created in the constructors, class ids,
+and a `ReadWrite` that replays the original calls (what it cannot translate is left as a `TODO` comment and
+listed in `AoWModel.pas.report.txt`). Hand-written classes go in `src/model/hand/<Class>.decl.inc` and
+`.impl.inc` and replace the generated ones. `tests/roundtrip.pas` loads a save through the model, writes it
+back with `TEWriteStorageStream`, and compares the bytes:
+
+```bash
+C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe -Mdelphi -Fusrc\recovered -Fusrc\model -Fisrc\model -FU%TEMP% -FE%TEMP% tests\roundtrip.pas
+```
+
 Decompiler output goes to `notes/decomp/`, which is ignored by git.

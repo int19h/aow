@@ -1,0 +1,60 @@
+{
+ "TAIBudgetManager": {
+  "20": "TAIBudgetList"
+ },
+ "TAoWHSMap": {
+  "21": "TPlayerList",
+  "22": "TRaceList",
+  "29": "TStartupSongList",
+  "30": "TItemControl",
+  "38": "TUnitControl",
+  "40": "TGlobalMagicControl",
+  "42": "TTextControl",
+  "43": "TAoWMapCampaignSettings",
+  "44": "THeroControl",
+  "50": "TAIGroupManager",
+  "54": "TStructureControl",
+  "56": "TTutorialControl",
+  "60": "TSonglist"
+ },
+ "TEventLogbook": {
+  "10": "TEventLogList"
+ },
+ "TGlobalMagicControl": {
+  "10": "TGlobalEnchantmentList"
+ },
+ "THero": {
+  "36": "THeroInventory",
+  "37": "THeroItems"
+ },
+ "THeroControl": {
+  "20": "THeroList"
+ },
+ "TLeader": {
+  "36": "THeroInventory",
+  "37": "THeroItems"
+ },
+ "TPBEMPlayerSettings": {
+  "21": "TEmailGame"
+ },
+ "TPlayer": {
+  "23": "TEventLogbook",
+  "28": "TAIPlayerControl",
+  "30": "TLeader",
+  "31": "TPlayerMagicControl",
+  "35": "TPlayerStatistics",
+  "51": "TAIBudgetManager",
+  "52": "TDiplomaticActionList",
+  "54": "TPBEMPlayerSettings",
+  "58": "TPlayerDiplomaticRelations"
+ },
+ "TPlayerDiplomaticRelations": {
+  "21": "TENode"
+ },
+ "TPlayerMagicControl": {
+  "25": "TEnchantmentList"
+ },
+ "TPlayerStatistics": {
+  "20": "TTurnInfo"
+ }
+}

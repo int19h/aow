@@ -96,6 +96,7 @@ class Walker:
         self.rd, self.cdb, self.ids, self.max_depth = rd, cdb, ids, max_depth
         self.unknown = collections.defaultdict(collections.Counter)
         self.seen = collections.Counter()
+        self.embedded = {}       # owner class -> property id -> class of the embedded object
 
     def guess_class(self, p):
         """Pick the class whose persisted ids best cover the property table at p (ties: smallest schema)."""
@@ -169,6 +170,8 @@ class Walker:
                 if not sub:
                     sub = self.guess_class(at)
                     guessed = ' (guessed from property ids)' if sub else ''
+                if sub:
+                    self.embedded.setdefault(cls, {})[str(pid)] = sub
                 print('%s  %-28s %s%s' % (pad, name, rw, guessed))
                 if sub:
                     self.obj(sub, at, depth + 1, indent + 2)
@@ -227,6 +230,14 @@ def main():
     print('objects seen:', dict(w.seen))
     for cls, c in w.unknown.items():
         print('unknown ids in %s: %s' % (cls, dict(c)))
+    if '--embedded-out' in opts:
+        # merge with an existing file so that several saves/maps contribute
+        path = opts['--embedded-out']
+        data = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
+        for cls, m in w.embedded.items():
+            data.setdefault(cls, {}).update(m)
+        json.dump(data, open(path, 'w', encoding='utf-8'), indent=1, sort_keys=True)
+        print('embedded classes -> %s (%d owners)' % (path, len(data)))
 
 
 main()

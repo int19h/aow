@@ -45,6 +45,7 @@ type
   TEObject = class(TObject)
   private
     FOwner: TEObject;                          { +$04 }
+    FEmbeddedShared: Boolean;                  { model aid, not in the original: see GetControlStyle }
   public
     constructor Create(AOwner: TEObject); virtual;             { slot +$20 }
     destructor Destroy; override;
@@ -57,6 +58,10 @@ type
     procedure Clear; virtual;                                  { slot +$30 }
     procedure SetArrayOwner(AOwner: TEObject; Index: Integer); virtual;   { slot +$48 }
     property Owner: TEObject read FOwner write SetOwner;
+    { Objects that an owner creates in its constructor and persists with rwEObject must not be freed by
+      the owner's Clear nor written again by rwChildren. The original classes achieve that with their
+      own GetControlStyle overrides; the generated model sets this flag instead. }
+    property EmbeddedShared: Boolean read FEmbeddedShared write FEmbeddedShared;
   end;
 
   TEObjectClass = class of TEObject;
@@ -319,6 +324,12 @@ procedure StringsToStream(Strings: TStrings; Stream: TStream);
 const
   CompressStreamID: array[0..3] of AnsiChar = 'CFS'#0;
 
+var
+  { statistics for the round-trip tests }
+  StorageStats: record
+    ObjectsRead, ObjectsWritten, ChildrenRead, ChildrenWritten, ChildrenSkipped: Integer;
+  end;
+
 implementation
 
 { ---------------------------------------------------------------- strings }
@@ -410,7 +421,10 @@ end;
 
 function TEObject.GetControlStyle: Byte;                           { Engine.TEObject.GetControlStyle }
 begin
-  Result := csStored;
+  if FEmbeddedShared then
+    Result := csStored or csShared
+  else
+    Result := csStored;
 end;
 
 procedure TEObject.SetOwner(AOwner: TEObject);                     { Engine.TEObject.SetOwner }
@@ -1020,6 +1034,7 @@ begin
   FDataBase := FStream.Position;
   try
     Obj := FEngine.CreateEObject(AClassID, nil);
+    Inc(StorageStats.ObjectsRead);
     Obj.FOwner := AOwner;                      { set directly, SetOwner runs after the load }
     Obj.MainReadWrite(Self);
     Obj.FOwner := nil;
@@ -1088,6 +1103,7 @@ begin
   { every item of the nested table is one child, keyed by the id that was written }
   for I := FPropertyTable.First to FPropertyTable.Count - 1 do
   begin
+    Inc(StorageStats.ChildrenRead);
     rwCreateEObject(Child, Node, FPropertyTable.Items^[I].ID);
     { the original also calls Node slot +$48 (SetArrayOwner) on each child when StorageMode has bit 8,
       and relies on rwCreateEObject's SetOwner to insert the child; node classes come later }
@@ -1371,6 +1387,7 @@ begin
   FBuffer := TMemoryStream.Create;
   FPropertyTable.BackupSettings;
   try
+    Inc(StorageStats.ObjectsWritten);
     Obj.MainReadWrite(Self);
     if WriteClassID then
       Outer.Write(AClassID, 4);
@@ -1448,7 +1465,12 @@ begin
       if (Child <> nil) and (Child.FOwner = Node)
          and ((Child.GetControlStyle and csShared) = 0)
          and ((Child.GetControlStyle and csStored) <> 0) then
+      begin
+        Inc(StorageStats.ChildrenWritten);
         rwCreateEObject(Child, Node, I);
+      end
+      else
+        Inc(StorageStats.ChildrenSkipped);
     end;
     FPropertyTable.SaveToStream(Outer);
     FBuffer.Position := 0;

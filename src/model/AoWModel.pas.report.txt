@@ -1,0 +1,378 @@
+src/model/AoWModel.pas
+486 classes, 63 with TODOs
+
+## TAbility (1)
+  (*stream->vtbl->rwStreamProc)(stream,8,stream->vtbl,&DAT_557028dc,this->FImageSequenceList)
+## TAbilityControl (4)
+  iVar3 = *(int *)&this->FList->field_0x8
+  iVar2 = 0
+  do { iVar1 = Classes_TList_Get_23EDC2EF(this->FList,iVar2); if (iVar1 != 0) { Obj = (void *)Classes_TList_Get_23EDC2EF(this->FList,iVar2); (*stream->vtbl->rwEObject)(stream,Obj,iVar2 + 10); } iVar2 = 
+  if -1 < iVar3 + -1
+## TCustomAbilityList (5)
+  (*stream->vtbl->rwData)(stream,*(void **)&this->prop3,this->FAbCount + 7U >> 3,3)
+  AoWE_TCustomAbilityList_SetAbCount_23EDC2EF(this,iStack_10)
+  (*stream->vtbl->rwData)(stream,*(void **)&this->prop3,this->FAbCount + 7U >> 3,3)
+  do { cVar2 = (*this->vtbl->GetAbSet)(this,iStack_10); if (cVar2 != '\0') { iVar3 = AoWE_TAbilityControl_GetAbility_23EDC2EF (*(TAbilityControl **)(AoWE_AoWHSSet_678301D7 + 0x80),iStack_10); if (iVar3 
+  if ((bVar1 & 8) == 0) && (iVar4 = this->FAbCount, -1 < iVar4 + -1)
+## TAbilityOwner (21)
+  cVar2 = Engine_TPropertyTable_PropertyExist_23EDC2EF(*(undefined4 *)&stream->field_0x10,3)
+  SaveProc = (code *)System_TObject_Create_23EDC2EF(Engine__TIntegerList_D8218C48_exref,1)
+  pcVar5 = SaveProc
+  (*stream->vtbl->rwStreamProc) (stream,0x31,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,SaveProc)
+  apiStack_1c[0] = *(int **)(SaveProc + 8)
+  do { iVar3 = Engine_TIntegerList_Get_23EDC2EF(SaveProc,iStack_20); (*stream->vtbl->rwCreateEObject)(stream,&stack0xffffffdc,(void *)0x0,iVar3 + 0x32); if (pcStack_28 != (code *)0x0) { *(code **)(pcSta
+  if -1 < (int)*(int **)(SaveProc + 8) + -1
+  System_TObject_Free_23EDC2EF(SaveProc)
+  if cVar2 != '\0'
+  SaveProc_00 = (void *)System_TObject_Create_23EDC2EF(Engine__TIntegerList_D8218C48_exref,1)
+  for (apiStack_1c[0] = *(int **)&this->field_0x10;
+  apiStack_1c[0] != (int *)0x0
+## TMapObject (20)
+  UNRECOVERED_JUMPTABLE = (code *)&stack0xfffffffc
+  *in_FS_OFFSET = &uStack_228
+  HSEngine_TMapObject_SetResourceLinked_23EDC2EF(this,'\0')
+  (*this->vtbl->LinkToResource)(this,*(undefined4 *)&stream->field_0x4)
+  System__PStrCpy_51F89FF7(local_10c,&DAT_55609974)
+  System_TObject_ClassName_23EDC2EF(this->vtbl,local_20c)
+  System__PStrCat_51F89FF7(local_10c,local_20c)
+  System__PStrCat_51F89FF7(local_10c,&DAT_55609988)
+  System__LStrFromString_EF219F52(&local_c,local_10c)
+  SysUtils_IntToStr_0F6FDFF6(this->prop1,&local_210)
+  System__LStrCat_51F89FF7(&local_c,local_210)
+  SysUtils_Exception_Create_23EDC2EF(&HSEngine__EMapObjectResourceMissing_54E3FA20,1,local_c)
+## TAbstractUnit (8)
+  *in_FS_OFFSET = &uStack_20
+  (*stream->vtbl->rwCreateEObject)(stream,&local_8,(void *)0x0,0x30)
+  this->field_0x38 = 0
+  uVar2 = (**(code **)(*local_8 + 0x4c))()
+  this->field_0x38 = uVar2
+  if local_8 == (int *)0x0
+  *in_FS_OFFSET = uStack_20
+  this->field_0x38 = 0
+## TPlayerStructure (2)
+  (*stream->vtbl->rwStreamProc)(stream,6,stream->vtbl,(void *)0x55702f9c,this->FBitList)
+  Engine_TBitList_SaveToStream_23EDC2EF()
+## TMapObjectResource (19)
+  (*stream->vtbl->rwStreamProc) (stream,7,stream->vtbl,*(void **)(**(int **)&this->field_0x28 + 8), *(int **)&this->field_0x28)
+  ImageLib_TCustomImageLibrary_ReduceCount_23EDC2EF(*(undefined4 *)&this->field_0x20)
+  SaveProc = *(int **)&this->field_0x20
+  uVar3 = *(uint *)(*SaveProc + 0x34)
+  (*stream->vtbl->rwStreamProc)(stream,8,stream->vtbl,*(void **)(*SaveProc + 0x38),SaveProc)
+  uVar2 = (uint)bVar1
+  uVar3 = (uint)(*(int *)&this->field_0x24 != 0)
+  uVar2 = (*stream->vtbl->rwBool)(stream,&stack0xffffffe0,9)
+  uVar2 = (*stream->vtbl->rwBool)(stream,&stack0xffffffe0,9)
+  System_TObject_Free_23EDC2EF(*(undefined4 *)&this->field_0x24)
+  uVar2 = 0
+  *(undefined4 *)&this->field_0x24 = 0
+## TStructureResource (2)
+  (*stream->vtbl->rwStreamProc) (stream,0x1c,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection)
+  AoWE_TStructureResource_CalculatePadIndex_23EDC2EF(this)
+## TPlayerStructureResource (1)
+  (*this->vtbl->GenerateFlagPositions)()
+## TAnimation (1)
+  (*stream->vtbl->rwData)(stream,&this->prop10,0x10,10)
+## TAoWCampaign (11)
+  (*stream->vtbl->rwData)(stream,*(void **)(*(int *)&this->FStream + 4),iStack_14,6)
+  (**(code **)**(undefined4 **)&this->FStream)(*(undefined4 **)&this->FStream,iStack_14)
+  (*stream->vtbl->rwData)(stream,*(void **)(*(int *)&this->FStream + 4),iStack_14,6)
+  (*stream->vtbl->rwStreamProc) (stream,0xe,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  (*stream->vtbl->rwStreamProc)(stream,0x10,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  iVar2 = (*this->FAoWCampaignScenarioList->vtbl->GetCount)()
+  iVar6 = 0
+  do { iVar3 = AoWE_TAoWCampaignScenarioList_GetScenario_23EDC2EF (this->FAoWCampaignScenarioList,iVar6); if (*(int *)(iVar3 + 8) == 0) { iVar3 = AoWE_TAoWCampaignScenarioList_GetScenario_23EDC2EF (this
+  if -1 < iVar2 + -1
+  this->prop17 = 2
+  if (((bVar1 & 4) == 0) && (*(int *)&this->FIntegerList->field_0x8 == 0)) &&
+       (this->prop15 == false)
+## TAoWCampaignTransferSettings (10)
+  pTStack_14 = (TIntegerList *)0x55730dc5
+  pTStack_14 = (TIntegerList *)0x55730dd4
+  pTStack_14 = (TIntegerList *)0x55730de3
+  pTStack_14 = (TIntegerList *)0x55730df2
+  pTStack_14 = this->FIntegerList
+  (*stream->vtbl->rwStreamProc) (stream,0x17,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,pTStack_14)
+  (*stream->vtbl->rwCreateEObject)(stream,&pcStack_18,(void *)0x0,0x1b)
+  AoWE_TAoWCampaignTransferSettings_SetLeader_23EDC2EF(this,(int *)pcStack_18)
+  (**(code **)(*(int *)pcStack_18 + 0x2c))()
+  if pcStack_18 != (code *)0x0
+## THSMap (14)
+  UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
+  *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
+  this->field_0x3c = this->field_0x3c | 0x10
+  uVar3 = *(undefined4 *)&stream->field_0x20
+  this_00 = *(THSEngine **)&stream->field_0x4
+  System__LStrCat3_51F89FF7(&local_c,*(undefined4 *)&this_00->field_0x2c,this->prop2)
+  HSEngine_THSEngine_InitializeHSSet_23EDC2EF (this_00,local_c,extraout_ECX,in_stack_ffffffd4,uVar3)
+  if ((bVar2 & 1) != 0) && (this->prop2 != (char *)0x0)
+  *(int *)&this->field_0x34 = (int)local_5
+  pcVar1 = UNRECOVERED_JUMPTABLE
+  *in_FS_OFFSET = in_stack_ffffffd4
+  UNRECOVERED_JUMPTABLE = (code *)0x5560c5d1
+## TAoWHSMap (31)
+  UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
+  *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
+  uVar4 = 0
+  System_LoadResString_02614E1B(HSEngine_OneMomentPleaseStr_04ECFCC5_exref,&local_14)
+  AoWE_TranslateRStr_435799AA(local_14,&local_10)
+  Engine_TEStorageStream_ShowProgress_23EDC2EF(stream,this,local_10,uVar4)
+  HSEngine_THSMap_ResetModified_23EDC2EF(this)
+  this->field_0xdc = 0
+  *(TAoWHSMap **)&stream->field_0x18 = this
+  *(code **)&stream->field_0x14 = AoWE_TAoWHSMap_OnStreamError_23EDC2EF
+  if (this->field_0x3c & 2) != 0
+  iVar3 = this->prop4
+## THSSet (2)
+  Engine_TECustomOwner_SetEngine_23EDC2EF(this,*(undefined4 *)&stream->field_0x4)
+  *(undefined4 *)((int)this->prop7 + 8) = *(undefined4 *)&stream->field_0x4
+## TAoWHSSet (127)
+  *in_FS_OFFSET = &uStack_2c
+  uVar4 = 0
+  System_LoadResString_02614E1B(&AoWE_LoadingGamePackRStr_8276FCC3,&local_14)
+  AoWE_TranslateRStr_435799AA(local_14,&local_10)
+  Engine_TEStorageStream_ShowProgress_23EDC2EF(stream,this,local_10,uVar4)
+  goto LAB_5574ca43;
+  SysUtils_ExtractFilePath_435799AA(*(undefined4 *)(AoWE_AoWEngine_7E705837 + 0x44),&local_8)
+  System__LStrCat3_51F89FF7(&local_10,local_8,"ABILITY.PFS",0,0)
+  Engine_TEngine_WriteToFileCRC_23EDC2EF(AoWE_AoWEngine_7E705837,local_10,this->FAbilityControl)
+  System__LStrCat3_51F89FF7(&local_10,local_8,"UNITRES.PFS",0,0)
+  Engine_TEngine_WriteToFileCRC_23EDC2EF(AoWE_AoWEngine_7E705837,local_10,this->FUnitResourceList)
+  System__LStrCat3_51F89FF7(&local_10,local_8,"UNITGFX.PFS",0,0)
+## TMapField (12)
+  uVar4 = (uint)(byte)this->field_0xd
+  do { piStack_14 = *(int **)(*(int *)&this->field_0x8 + iStack_1c * 4); if ((((piStack_14 != (int *)0x0) && (this == (TMapField *)piStack_14[1])) && (uVar2 = (**(code **)(*piStack_14 + 4))(), (uVar2 & 
+  if -1 < (int)(uVar4 - 1)
+  iVar3 = *(int *)(*(int *)&stream->field_0x10 + 0xc) + -1
+  iVar3 = (iVar3 - iStack_18) + 1
+  do { ID = *(int *)(*(int *)(*(int *)&stream->field_0x10 + 4) + iStack_18 * 8); if (0x31 < ID) { (*stream->vtbl->rwCreateEObject)(stream,&piStack_14,this,ID); } iStack_18 = iStack_18 + 1; iVar3 = iVar3
+  if iStack_18 <= iVar3
+  iVar3 = *(int *)(*(int *)&stream->field_0x10 + 0xc) + -1
+  iVar3 = (iVar3 - iStack_18) + 1
+  do { if (0x31 < *(int *)(*(int *)(*(int *)&stream->field_0x10 + 4) + iStack_18 * 8)) { piStack_14 = *(int **)(*(int *)&this->field_0x8 + iStack_1c * 4); (*stream->vtbl->rwCreateEObject) (stream,&piSta
+  if iStack_18 <= iVar3
+  (*this->vtbl->ReadWriteChildren)(this,stream)
+## TMapLevel (24)
+  *(undefined4 *)&this->field_0x20 = *(undefined4 *)&stream->field_0x4
+  *(int *)&this->field_0x18 = *(int *)&this->field_0x4
+  *(undefined4 *)&this->field_0x1c = *(undefined4 *)(*(int *)&this->field_0x4 + 0x18)
+  bStack_24 = this->field_0xc
+  *(uint *)&this->field_0xc = (uint)bStack_24
+  bStack_23 = this->field_0x10
+  *(uint *)&this->field_0x10 = (uint)bStack_23
+  abStack_22[0] = this->field_0x8
+  *(uint *)&this->field_0x8 = (uint)abStack_22[0]
+  auStack_1c[0] = (bVar2 & 1) == 0
+  (**(code **)(**(int **)&this->field_0x1c + 0x8c))(*(int **)&this->field_0x1c,auStack_1c)
+  HSEngine_TMapLevel_CreateMapFieldList_23EDC2EF (this,*(int *)&this->field_0xc,*(int *)&this->field_0x10)
+## TArenaTE (2)
+  (*stream->vtbl->rwStreamProc) (stream,0x28,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  Engine_TIntegerList_SaveToStream_23EDC2EF()
+## TArmy (3)
+  if (((bVar1 & 2) == 0) || (AoWE_AoWHSMap_6B957A58 == 0)) ||
+     (*(char *)(AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01')
+  this->prop12 = this->prop12 & 0xfb
+  if ((bVar1 & 1) != 0) && ((this->prop12 & 4) != 0)
+## TMoveTE (2)
+  (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void *)0x55701d24,this->FMovepath)
+  HSEngine_TXYLList_SaveToStream_23EDC2EF()
+## TMoveArmyTE (1)
+  (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+## TArmyEventLog (3)
+  (*stream->vtbl->rwStreamProc)(stream,0x13,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  Engine_TByteList_SaveToStream_23EDC2EF()
+## TUnitHS (2)
+  this->prop9 = 3
+  if ((bVar1 & 0x20) == 0) && (this->prop9 == 0)
+## TArmyID (2)
+  (*stream->vtbl->rwStreamProc) (stream,0xc,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  Engine_TIntegerList_SaveToStream_23EDC2EF()
+## TArmyView (2)
+  (*stream->vtbl->rwData)(stream,&this->prop40,0x10,0x28)
+  (*stream->vtbl->rwData)(stream,&this->prop42,0x20,0x2a)
+## TCombatData (4)
+  (*stream->vtbl->rwStreamProc)(stream,0x19,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  (*stream->vtbl->rwStreamProc)(stream,0x1a,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  (*stream->vtbl->rwStreamProc)(stream,0x1d,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  Engine_TByteList_SaveToStream_23EDC2EF()
+## TCombatObject (1)
+  this->prop13 = this->prop13 & 0xfb
+## TCombatUnit (5)
+  piStack_10 = param_3
+  (*stream->vtbl->rwCreateEObject)(stream,&piStack_10,(void *)0x0,0x14)
+  (*this->vtbl->SetUnit)(this,piStack_10)
+  (**(code **)(*piStack_10 + 0x2c))()
+  if piStack_10 != (int *)0x0
+## TCommandAbilityData (2)
+  (*stream->vtbl->rwStreamProc)(stream,0x15,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  Engine_TByteList_SaveToStream_23EDC2EF()
+## TDispelMagicCA (2)
+  (*stream->vtbl->rwStreamProc) (stream,0x32,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  Engine_TIntegerList_SaveToStream_23EDC2EF()
+## TExplorationSiteResource (2)
+  iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x19,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection)
+  Engine_TIntegerList_SaveToStream_23EDC2EF(*(undefined4 *)(iVar1 + 8))
+## TDungeonResource (2)
+  iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection)
+  Engine_TIntegerList_SaveToStream_23EDC2EF(*(undefined4 *)(iVar1 + 8))
+## TESortNode (2)
+  SysUtils_Exception_Create_23EDC2EF (SysUtils__Exception_9880D0BF_exref,1,"Read/Write not supported (TESortNode)")
+  System__RaiseExcept_51F89FF7()
+## TMultiTargetCombatSpellCA (1)
+  (*stream->vtbl->rwStreamProc)(stream,0x15,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+## TFloodControl (3)
+  System__ReallocMem_51F89FF7(&this->prop22,this->prop20 * this->prop21 * 2)
+  (*stream->vtbl->rwData)(stream,*(void **)&this->prop22,this->prop20 * this->prop21 * 2,0x16)
+  if this->prop20 != 0
+## TGlobalMagicControl (2)
+  (*stream->vtbl->rwData)(stream,&this->prop0,0x24,0)
+  AoWE_TGlobalMagicControl_UpdateActiveEnchantments_23EDC2EF(this,extraout_EDX,extraout_ECX)
+## THero (11)
+  bVar2 = this->prop47
+  piVar4 = extraout_ECX
+  AoWE_THero_LinkToResource_23EDC2EF(this)
+  piVar4 = extraout_ECX_00
+  this->prop47 = bVar2
+  if ((bVar1 & 0x65) == 1) && ((this->field_0x5d & 1) != 0)
+  iVar3 = AoWE_THero_LevelToExperience_23EDC2EF(this,(uStack_14 >> 5) + 1)
+  this->FExperience = iVar3
+  if ((bVar2 & 0x45) == 1) && (this->FExperience == 0)
+  if (this->field_0x5d & 1) == 0
+  AoWE_THero_Loaded_23EDC2EF(this)
+## THeroControl (4)
+  iVar2 = (*this->FHeroList->vtbl->GetCount)()
+  iVar2 = iVar2 + -1
+  do { iVar3 = AoWE_THeroList_GetHero_23EDC2EF(this->FHeroList,iVar2); *(undefined1 *)(iVar3 + 0x98) = 1; iVar2 = iVar2 + -1; } while (iVar2 != -1);
+  if -1 < iVar2
+## TJoinEventLog (1)
+  (*stream->vtbl->rwStreamProc) (stream,0x16,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+## THeroLibraryManager (14)
+  UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
+  *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
+  SysUtils_ExtractFilePath_435799AA(*(undefined4 *)(AoWE_AoWEngine_7E705837 + 0x44),&local_8)
+  System__LStrCat3_51F89FF7(&local_c,local_8,"Heroes.PFS",0,0)
+  Engine_TEngine_WriteToFile_23EDC2EF(AoWE_AoWEngine_7E705837,local_c,this->FHeroLibrary)
+  AoWE_THeroLibraryManager_WriteUserLibraries_23EDC2EF(this)
+  AoWE_THeroLibraryManager_ReadUserLibraries_23EDC2EF(this)
+  System__LStrCat3_51F89FF7(&local_c,local_8,"Heroes.PFS",0,0)
+  Engine_TEngine_ReadFromFile_23EDC2EF(AoWE_AoWEngine_7E705837,local_c,this->FHeroLibrary)
+  pcVar1 = UNRECOVERED_JUMPTABLE
+  *in_FS_OFFSET = in_stack_ffffffd8
+  UNRECOVERED_JUMPTABLE = (code *)0x5578aac7
+## THeroResource (2)
+  this->prop13 = 3
+  if 6 < this->prop13
+## THuntAG (2)
+  (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  Engine_TIntegerList_SaveToStream_23EDC2EF()
+## TItem (3)
+  if ((bVar1 & 4) == 0) || (cVar2 = AoWE_TItem_GetLibraryItem_23EDC2EF(this), cVar2 == '\0')
+  if (((bVar1 & 4) == 0) ||
+      (cVar2 = System__IsClass_51F89FF7
+                         (*(undefined4 *)&this->field_0x4,&AoWE__TItemLibrary_5BD70B4F),
+      cVar2 != '\0')) || (cVar2 = AoWE_TItem_GetLibraryItem_23EDC2EF(this), cVar2 == '\0')
+  if ((bVar1 & 4) != 0) && (cVar2 = AoWE_TItem_GetLibraryItem_23EDC2EF(this), cVar2 != '\0')
+## TItemControl (8)
+  do { (*stream->vtbl->rwCreateEObject)(stream,&iStack_14,(void *)0x0,iStack_1c); if (iStack_14 != 0) { AoWE_TItemControl_ValidateItem_23EDC2EF(this,iStack_14); Classes_TList_Add_23EDC2EF(this->FList,iS
+  iVar2 = *(int *)&this->FList->field_0x8
+  do { if (*(int *)(*(int *)(*(int *)&this->FList->field_0x4 + iStack_18 * 4) + 4) == 0) { (*stream->vtbl->rwCreateEObject) (stream,(void *)(*(int *)&this->FList->field_0x4 + iStack_18 * 4), (void *)0x0
+  if -1 < iVar2 + -1
+  if ((bVar1 & 4) != 0) || (bVar1 = (*stream->vtbl->StorageMode)(stream), (bVar1 & 2) != 0)
+  iVar2 = *(int *)&this->FList->field_0x8
+  do { iStack_14 = Classes_TList_Get_23EDC2EF(this->FList,iStack_18); if (*(int *)(iStack_14 + 4) == 0) { (*stream->vtbl->rwCreateEObject)(stream,&iStack_14,(void *)0x0,iStack_1c); iStack_1c = iStack_1c
+  if -1 < iVar2 + -1
+## TItemHS (2)
+  Engine_TEChangeNotifyNode_BeginUpdate_23EDC2EF(this->FItemList)
+  Engine_TEChangeNotifyNode_EndUpdate_23EDC2EF(this->FItemList)
+## TItemLibraryManager (14)
+  UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
+  *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
+  SysUtils_ExtractFilePath_435799AA(*(undefined4 *)(AoWE_AoWEngine_7E705837 + 0x44),&local_8)
+  System__LStrCat3_51F89FF7(&local_c,local_8,"ITEMS.PFS",0,0)
+  Engine_TEngine_WriteToFile_23EDC2EF(AoWE_AoWEngine_7E705837,local_c,this->FItemList)
+  AoWE_TItemLibraryManager_WriteUserLibraries_23EDC2EF(this)
+  AoWE_TItemLibraryManager_ReadUserLibraries_23EDC2EF(this)
+  System__LStrCat3_51F89FF7(&local_c,local_8,"ITEMS.PFS",0,0)
+  Engine_TEngine_ReadFromFile_23EDC2EF(AoWE_AoWEngine_7E705837,local_c,this->FItemList)
+  pcVar1 = UNRECOVERED_JUMPTABLE
+  *in_FS_OFFSET = in_stack_ffffffd8
+  UNRECOVERED_JUMPTABLE = (code *)0x557954d7
+## TLeader (2)
+  (*stream->vtbl->rwStreamProc)(stream,0x2e,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  Engine_TByteList_SaveToStream_23EDC2EF()
+## TMapContainer (10)
+  *(undefined4 *)&this->field_0x18 = *(undefined4 *)&this->field_0x4
+  *(undefined4 *)&this->field_0x1c = *(undefined4 *)&stream->field_0x4
+  *(TMapContainer **)(*(int *)&this->field_0x18 + 0x10) = this
+  *(uint *)&this->field_0xc = uStack_10 & 0xff
+  uStack_10._0_2_ = CONCAT11(this->field_0x10,(undefined1)uStack_10)
+  (*stream->vtbl->rwByte)(stream,(void *)((int)&uStack_10 + 1),4)
+  *(uint *)&this->field_0x10 = uStack_10 >> 8 & 0xff
+  uStack_10._0_3_ = CONCAT12(this->field_0x14,(undefined2)uStack_10)
+  (*stream->vtbl->rwByte)(stream,(void *)((int)&uStack_10 + 2),5)
+  *(uint *)&this->field_0x14 = uStack_10 >> 0x10 & 0xff
+## TPlayer (26)
+  goto LAB_5575328f
+  if (*(byte *)(AoWE_AoWEngine_7E705837 + 0x34) & 6) == 0
+  iVar1 = this->FLeader
+  *(byte *)(iVar1 + 0x24) = this->FPlayerIndex
+  AoWE_THeroControl_RegisterHero_23EDC2EF((THeroControl *)AoWE_AoWHSMap_6B957A58[0x3e],iVar1)
+  if this->FLeader != 0
+  LAB_5575328f:
+  (**(code **)(*AoWE_AoWHSMap_6B957A58 + 0xc4)) (AoWE_AoWHSMap_6B957A58,abStack_18,abStack_14,abStack_10)
+  this->prop20 = abStack_18[0]
+  this->prop21 = abStack_14[0]
+  this->prop22 = abStack_10[0]
+  if (*(byte *)((int)AoWE_AoWHSMap_6B957A58 + 0xa5) == this->FPlayerIndex) &&
+          (*(char *)((int)AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01')
+## TPlayerDiplomaticRelations (2)
+  (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  this->FByteList->field_0x10 = 3
+## TPlayerMagicControl (1)
+  (*stream->vtbl->rwStreamProc) (stream,0x16,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+## TRace (8)
+  pTStack_14 = (TIntegerList *)0x5574d0bd
+  pTStack_14 = (TIntegerList *)0x5574d0cc
+  pTStack_14 = this->FIntegerList
+  (*stream->vtbl->rwStreamProc) (stream,3,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,pTStack_14)
+  AoWE_TRace_SetEnabled_23EDC2EF(this,(char)pcStack_18)
+  (*stream->vtbl->rwStreamProc)(stream,5,stream->vtbl,(void *)0x55702f4c,this->FByteList)
+  AoWE_TRace_ResetDefaultRaceRelations_23EDC2EF(this)
+  if ((bVar1 & 1) != 0) && (*(int *)&this->FByteList->field_0x8 == 0)
+## TRaceResource (2)
+  (*stream->vtbl->rwStreamProc) (stream,10,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FUnitIndexList)
+  (*stream->vtbl->rwStreamProc) (stream,0xb,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FUnitIndexList)
+## TSpell (2)
+  (*stream->vtbl->rwStrings)(stream,*(void **)&this->field_0x24,10)
+  (*stream->vtbl->rwStreamProc)(stream,0xc,stream->vtbl,&DAT_557028dc,this->FImageSequenceList)
+## TSpellControl (4)
+  iVar3 = *(int *)&this->FList->field_0x8
+  iVar2 = 0
+  do { iVar1 = Classes_TList_Get_23EDC2EF(this->FList,iVar2); if (iVar1 != 0) { Obj = (void *)Classes_TList_Get_23EDC2EF(this->FList,iVar2); (*stream->vtbl->rwEObject)(stream,Obj,iVar2 + 10); } iVar2 = 
+  if -1 < iVar3 + -1
+## TTutorialControl (2)
+  (*stream->vtbl->rwStreamProc) (stream,0x14,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
+  Engine_TIntegerList_SaveToStream_23EDC2EF()
+## TUnit (23)
+  UNRECOVERED_JUMPTABLE = (code *)&stack0xfffffffc
+  *in_FS_OFFSET = &uStack_28
+  uVar3 = AoWE_TUnitResource_UnitResourceIndex_23EDC2EF(this->FUnitResource)
+  if this->FUnitResource == (TUnitResource *)0x0
+  (*stream->vtbl->rwWord)(stream,(void *)((int)&uStack_8 + 2),10)
+  (*stream->vtbl->rwWord)(stream,(void *)((int)&uStack_8 + 2),10)
+  pTVar4 = (TUnitResource *) AoWE_TUnitResourceList_GetUnitResource_23EDC2EF (*(TUnitResourceList **)(AoWE_AoWHSSet_678301D7 + 0x5c), (int)uStack_8._2_2_)
+  this->FUnitResource = pTVar4
+  pcVar7 = "unit resource missing ("
+  SysUtils_IntToStr_0F6FDFF6((int)uStack_8._2_2_,&local_10)
+  puVar5 = &DAT_55782e78
+  uVar6 = local_10
+## TUnitControl (2)
+  this->prop10 = 1
+  if this->prop10 < 1
+## TUnitGFXResource (1)
+  (*stream->vtbl->rwStreamProc)(stream,5,stream->vtbl,&DAT_557028dc,this->FImageSequenceList)
+## TUnitResource (2)
+  bVar1 = 0
+  do { AoWE_TAbilityOwner_ValidateOwnerTypeAbilities_23EDC2EF((&this->FAbilityOwner)[bVar1]); bVar1 = bVar1 + 1; } while (bVar1 != 3);
+## TUnitSpellTE (1)
+  (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList)
