@@ -46,7 +46,7 @@ def field_expr(e, self_name, self_scale=1):
     When Ghidra declared Self as 'int *', 'param_1 + 3' is pointer arithmetic (offset 12) while
     '(int)param_1 + 3' is a byte offset; self_scale carries the element size (4) in that case."""
     e = e.strip()
-    # typed forms: &this->field_0x26, &this->prop_c, this->FHeroItems, *(int *)&this->field_0x74
+    # typed forms: &this->field_0x26, &this->prop_c, this->FHeroItems, *(int *)&this->field_0x74, *(void **)&this->field_0x3c
     m = re.search(r'this->field_0x([0-9a-f]+)', e)
     if m:
         return int(m.group(1), 16)

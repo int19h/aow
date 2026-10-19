@@ -88,15 +88,29 @@ def schema_for(cdb, cls):
     # Every node therefore has its child list under id 1, outside its own ReadWrite.
     if 'TECustomNode' in chain and 1 not in out:
         out[1] = ('Children', 'rwChildren', 0, '', 'TECustomNode')
+    if 'TMapLevel' in chain:
+        out[6] = ('Fields', 'fieldstream', 0, '', 'TMapLevel')
     return out
 
 
 class Walker:
-    def __init__(self, rd, cdb, ids, max_depth):
+    def __init__(self, rd, cdb, ids, max_depth, max_fields=1 << 30):
         self.rd, self.cdb, self.ids, self.max_depth = rd, cdb, ids, max_depth
+        self.max_fields = max_fields
         self.unknown = collections.defaultdict(collections.Counter)
         self.seen = collections.Counter()
         self.embedded = {}       # owner class -> property id -> class of the embedded object
+
+    def field_class(self):
+        return 'TAoWMapField' if 'TAoWMapField' in self.cdb else 'TMapField'
+
+    def level_field_count(self, entries, base):
+        """width (id 3) times height (id 4) of a TMapLevel, both stored as bytes."""
+        w = h = 0
+        for pid, off in entries:
+            if pid == 3: w = self.rd.u8(base + off)
+            if pid == 4: h = self.rd.u8(base + off)
+        return w * h
 
     def guess_class(self, p):
         """Pick the class whose persisted ids best cover the property table at p (ties: smallest schema)."""
@@ -140,6 +154,7 @@ class Walker:
             return
         self.seen[cls] += 1
         schema = schema_for(self.cdb, cls)
+        print('%sOBJ %s ids=%s' % (pad, cls, ','.join(str(e[0]) for e in entries)))
         print('%s%s  (%d props, table @%d, size %d)' % (pad, cls, len(entries), p, self.cdb.get(cls, {}).get('size', 0)))
         if depth >= self.max_depth:
             return
@@ -201,6 +216,18 @@ class Walker:
                         self.obj(sub, kbase + koff + 4, depth + 2, indent + 3)
             elif rw == 'rwStreamProc':
                 print('%s  %-28s %s @+%d' % (pad, name, rw, off))
+            elif rw == 'fieldstream':
+                # TMapLevel: property 6 is a run of rwEObjectStream records, one per map field
+                count = self.level_field_count(entries, base)
+                print('%s  %-28s %d map fields' % (pad, name, count))
+                p = at
+                for k in range(count):
+                    if p + 4 > len(rd.d): break
+                    ln = rd.i32(p)
+                    if ln <= 0: break
+                    if depth + 1 < self.max_depth and k < self.max_fields:
+                        self.obj(self.field_class(), p + 4, depth + 1, indent + 2)
+                    p += 4 + ln
             else:
                 print('%s  %-28s = %s' % (pad, name, self.value(rw, at, size)))
 
@@ -211,19 +238,30 @@ def main():
     depth = int(opts.get('--depth', 2))
     root_cls = opts.get('--class', 'TAoWHSMap')
     raw = open(args[0], 'rb').read()
-    assert raw[:4] == b'CFS\0', 'not a CFS container'
-    data = zlib.decompress(raw[5:])
+    if raw[:4] == b'CFS\0':
+        data = zlib.decompress(raw[5:])
+    else:
+        data = raw                                  # already inflated (e.g. the round-trip output)
+    if '--flat' in opts:
+        # one line per value, for diffing two files: path | name | value
+        global print
+        flat = open(opts['--flat'], 'w', encoding='utf-8')
+        def print(*a, **k):
+            flat.write(' '.join(str(x) for x in a) + '\n')
     rd = Reader(data)
     print('container version %d, inflated %d bytes' % (raw[4], len(data)))
     hdr_len = rd.i32(0)
     print('header: len=%d sig=%r reserved=%d classid=%d' % (hdr_len, data[4:8], rd.i32(8), rd.i32(12)))
     cdb = json.load(open(args[1], encoding='utf-8'))['classes']
-    ids = classid_map(args[2])
+    ids = {}
+    for d in args[2].split(';'):          # several typed dumps: AoWEPACK;HSEPack;Enginep
+        if os.path.isdir(d):
+            ids.update(classid_map(d))
     print('class ids known: %d; root class id %d -> %s' % (len(ids), rd.i32(12), ids.get(rd.i32(12))))
     # the header record is hdr_len bytes including its own length field; the loader seeks to hdr_len
     root_entries, root_base = rd.table(hdr_len)
     print('root table: %s' % root_entries)
-    w = Walker(rd, cdb, ids, depth)
+    w = Walker(rd, cdb, ids, depth, int(opts.get('--max-fields', 1 << 30)))
     for pid, off in root_entries:
         w.obj(ids.get(rd.i32(12), root_cls), root_base + off, 0, 0)
     print()

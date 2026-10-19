@@ -91,11 +91,12 @@ def find_vmts(img, exports):
     for va, name in exports.items():
         if re.match(r'^[A-Za-z0-9_]+\.\.T', name) and is_vmt(img, va):
             vmts.add(va)
-    if not vmts:   # executable: scan for self pointers
-        for lo, hi in img.code:
-            for va in range(lo + 76, hi - 4, 4):
-                if img.u32(va + VMT['SelfPtr']) == va and is_vmt(img, va):
-                    vmts.add(va)
+    # always scan for self pointers too: some package classes (e.g. the AI groups in IndependentAG)
+    # have no "Unit..TClass" export, and executables export nothing
+    for lo, hi in img.code:
+        for va in range(lo + 76, hi - 4, 4):
+            if img.u32(va + VMT['SelfPtr']) == va and is_vmt(img, va):
+                vmts.add(va)
     return sorted(vmts)
 
 

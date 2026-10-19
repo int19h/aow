@@ -90,6 +90,9 @@ def scan_module(path, modname, db, dups):
             if not parent and img.ok(parent_p):
                 pv = img.u32(parent_p)
                 parent = names.get(pv)
+                if not parent and img.ok(pv + rtti.VMT['ClassName']) and img.ok(img.u32(pv + rtti.VMT['ClassName'])):
+                    # a parent VMT that is not exported under "Unit..TClass": read its name directly
+                    parent = img.sstr(img.u32(pv + rtti.VMT['ClassName']))[0]
         entry = dict(module=modname, parent=parent, size=img.u32(va + rtti.VMT['InstanceSize']),
                      vmt_va='%08X' % va, fixed={}, vmt=[], fields={})
         for off, fname in FIXED:
@@ -181,6 +184,21 @@ def main():
             scan_module(p, mod, db, dups)
     inherit_slot_names(db)
     add_layouts(db, sys.argv[3:])
+    # field names must be unique within a class (and against its parents), or two fields print alike
+    for name, e in db.items():
+        taken = set()
+        p = e['parent']
+        while p in db:
+            taken.update(fd.get('name', '').lower() for fd in db[p]['fields'].values())
+            p = db[p]['parent']
+        for off in sorted(e['fields'], key=int):
+            fd = e['fields'][off]
+            base = fd.get('name') or ('field_%X' % int(off))
+            cand, k = base, 2
+            while cand.lower() in taken:
+                cand = '%s_%d' % (base, k); k += 1
+            fd['name'] = cand
+            taken.add(cand.lower())
     # resolve parents that name a class we have not scanned to None, keep the name for information
     for name, e in db.items():
         e['parent_known'] = e['parent'] in db

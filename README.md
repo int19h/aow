@@ -33,6 +33,14 @@ This repository holds no game files. The tools read an installed copy of the gam
 8. `python tools/asg_dump.py <save.asg> notes/classes.json notes/decomp/AoWEPACK-typed` walks a save or map
    file with the recovered schema and reports what it cannot explain.
 
+## Original toolchain
+
+Delphi 3.02 Professional (the compiler the game was built with) is unpacked at `C:\Tools\Delphi3`:
+`BIN\DCC32.EXE` with `DCC32.CFG` pointing at `LIB`, the RTL and VCL sources under `SOURCE`, and the runtime
+packages under `WINDOWS\SYSTEM`. After the 3.02 patch, `vcl30.dpl`, `vcldb30.dpl` and `vclx30.dpl` there are
+byte-identical to the game's copies. Recovered units can therefore be compiled with the original compiler and
+compared with the original code byte for byte.
+
 ## Recovered source
 
 `src/recovered/` holds hand-translated units, as opposed to the generated skeletons. `Engine.pas` is the

@@ -2,6 +2,9 @@
  "TAIBudgetManager": {
   "20": "TAIBudgetList"
  },
+ "TAirNode": {
+  "8": "TCommandedAbilityData"
+ },
  "TAoWHSMap": {
   "21": "TPlayerList",
   "22": "TRaceList",
@@ -17,8 +20,35 @@
   "56": "TTutorialControl",
   "60": "TSonglist"
  },
+ "TArmyHS": {
+  "10": "TArmy"
+ },
+ "TBuildersGuild": {
+  "8": "TCommandedAbilityData"
+ },
+ "TCity": {
+  "18": "TProductionControl",
+  "29": "TGlobalEnchantmentList"
+ },
+ "TCrypt": {
+  "5": "TArmy",
+  "8": "TECustomNode"
+ },
+ "TDeathNode": {
+  "8": "TCommandedAbilityData"
+ },
+ "TDungeon": {
+  "5": "TArmy",
+  "8": "TArmy"
+ },
+ "TEarthNode": {
+  "8": "TCommandedAbilityData"
+ },
  "TEventLogbook": {
   "10": "TEventLogList"
+ },
+ "TFireNode": {
+  "8": "TCommandedAbilityData"
  },
  "TGlobalMagicControl": {
   "10": "TGlobalEnchantmentList"
@@ -33,6 +63,13 @@
  "TLeader": {
   "36": "THeroInventory",
   "37": "THeroItems"
+ },
+ "TLifeNode": {
+  "8": "TCommandedAbilityData"
+ },
+ "TMonsterlair": {
+  "5": "TArmy",
+  "8": "TECustomNode"
  },
  "TPBEMPlayerSettings": {
   "21": "TEmailGame"
@@ -56,5 +93,24 @@
  },
  "TPlayerStatistics": {
   "20": "TTurnInfo"
+ },
+ "TProductionControl": {
+  "20": "TProductionQueue",
+  "21": "TUnitProductionList",
+  "22": "TProductionSettings"
+ },
+ "TPyramid": {
+  "5": "TArmy",
+  "8": "TECustomNode"
+ },
+ "TRuin": {
+  "5": "TArmy",
+  "8": "TECustomNode"
+ },
+ "TShipyard": {
+  "8": "TCommandedAbilityData"
+ },
+ "TWaterNode": {
+  "8": "TCommandedAbilityData"
  }
 }

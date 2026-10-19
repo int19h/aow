@@ -18,6 +18,7 @@ translation of every class that occurs in them.
 import json, os, re, sys, collections
 
 ENGINE_BASES = {'TEObject', 'TECustomNode', 'TENode', 'TEControlStyleNode', 'TEControlStyleObject', 'TEngine'}
+LIST_CLASSES = {'TIntegerList', 'TByteList', 'TShortIntList', 'TWordList', 'TBitList'}   # EngineLists.pas, not TEObjects
 RW_FIELD_TYPE = {'rwInteger': 'Integer', 'rwIntegerEx': 'Integer', 'rwByte': 'Byte', 'rwByteEx': 'Byte',
                  'rwWord': 'Word', 'rwWordEx': 'Word', 'rwBool': 'Boolean', 'rwShortint': 'Shortint',
                  'rwShortintEx': 'Shortint', 'rwString': 'string', 'rwStrings': 'TStringList',
@@ -210,6 +211,42 @@ class Translator:
         self.names = snapshot_names      # cls -> field name -> offset (from the dump's classes.json)
         self.models = {}
 
+    def thunk_class(self, m, addr):
+        """An import thunk address (jmp [IAT]) in the class's module -> the class of the imported
+        LoadFromStream/SaveToStream, e.g. 0x55702f4c -> TByteList."""
+        module = self.cdb.get(m.name, {}).get('module')
+        if not module:
+            return None
+        if not hasattr(self, '_thunks'):
+            self._thunks = {}
+        if module not in self._thunks:
+            table = {}
+            try:
+                import pefile
+                game = os.environ.get('AOW_GAME_DIR', r'D:\Games\GOG\Age of Wonders')
+                pe = pefile.PE(os.path.join(game, module), fast_load=True)
+                pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+                base = pe.OPTIONAL_HEADER.ImageBase
+                data = pe.get_memory_mapped_image()
+                iat = {}
+                for entry in getattr(pe, 'DIRECTORY_ENTRY_IMPORT', []):
+                    for imp in entry.imports:
+                        if imp.name:
+                            iat[imp.address] = imp.name.decode('latin1')
+                import struct
+                i = data.find(b'\xff\x25')
+                while i != -1:
+                    target = struct.unpack_from('<I', data, i + 2)[0]
+                    if target in iat:
+                        table[base + i] = iat[target]
+                    i = data.find(b'\xff\x25', i + 1)
+            except Exception:
+                pass
+            self._thunks[module] = table
+        name = self._thunks[module].get(addr)
+        mm = re.match(r'\w+\.(T\w+)\.(?:LoadFromStream|SaveToStream)@', name or '')
+        return mm.group(1) if mm else None
+
     def field_for(self, m, expr, rw):
         """Map a C argument expression to a model field name; declare the field. Returns Pascal expr or None."""
         e = expr.strip()
@@ -222,7 +259,7 @@ class Translator:
                 ftype = None          # set by caller with the size
             m.fields.setdefault(fname, [ftype, None])
             return fname
-        mm = re.match(r'^\*\((\w+(?: \*)?) \*\)&this->(\w+)$', e)
+        mm = re.match(r'^\*\((\w+(?: \*)?) \*\*?\)&this->(\w+)$', e)
         if mm:
             fname = ident(mm.group(2))
             m.fields.setdefault(fname, [RW_FIELD_TYPE.get(rw, 'Integer'), None])
@@ -233,7 +270,7 @@ class Translator:
             fname = 'L_' + ident(mm.group(1))
             m.fields.setdefault(fname, [RW_FIELD_TYPE.get(rw, 'Integer'), None])
             return fname
-        mm = re.match(r'^\(void \*\)\(\(int\)&(\w+) \+ (\d+)\)$', e)
+        mm = re.match(r'^\(?\(int\)&(\w+) \+ (\d+)\)?$', e)        # part of a local: ((int)&uStack_8 + 2)
         if mm:
             fname = 'L_' + ident(mm.group(1)) + '_' + mm.group(2)
             m.fields.setdefault(fname, [RW_FIELD_TYPE.get(rw, 'Integer'), None])
@@ -259,14 +296,16 @@ class Translator:
             if len(a) != 3: return None
             f = self.field_for(m, a[0], rw)
             if f is None: return None
-            size = a[1]
-            if not size.isdigit(): return None
-            n = int(size)
+            try:
+                n = int(a[1], 0)
+            except ValueError:
+                return None
             m.fields[f][0] = 'Byte' if n == 1 else 'array[0..%d] of Byte' % (n - 1)
-            out.append('%sStream.rwData(%s, %s, %s);' % (indent, f, size, a[2]))
+            out.append('%sStream.rwData(%s, %d, %s);' % (indent, f, n, a[2]))
         elif rw == 'rwEObject':
             if len(a) != 2: return None
-            mm = re.match(r'^(?:\(\w+ \*\))?this->(\w+)$', a[0].strip())
+            mm = re.match(r'^(?:\(\w+ \*\))?this->(\w+)$', a[0].strip()) or \
+                 re.match(r'^\*\((?:void|int|undefined4) \*\*?\)&this->(\w+)$', a[0].strip())
             if not mm: return None
             f = ident(mm.group(1))
             pid = a[1]
@@ -300,18 +339,34 @@ class Translator:
             if len(a) != 2: return None
             out.append('%sStream.rwChildren(Self, %s);' % (indent, a[1]))
         elif rw == 'rwStreamProc':
-            if len(a) != 4: return None
-            mm = re.match(r'^(?:\(\w+ \*\))?this->(\w+)$', a[1].strip())
-            if not mm: return None
-            lm = re.match(r'(\w+?)_(T\w+?)_LoadFromStream_', a[2]) or re.match(r'(\w+?)_(T\w+?)_SaveToStream_', a[3])
-            lcls = lm.group(2) if lm else None
+            # the decompiler shuffles the argument order of this call; find the pieces by shape:
+            # the id is a[0], the object is the this-> expression, the class comes from a named
+            # LoadFromStream/SaveToStream or from an import thunk address
+            if len(a) < 2: return None
+            fname, lcls = None, None
+            for arg in a[1:]:
+                s = arg.strip()
+                mm = re.match(r'^(?:\(\w+ \*\))?this->(\w+)$', s)
+                if mm:
+                    fname = mm.group(1); continue
+                mo = re.match(r'^\*\((?:\w+) \*\)&this->field_0x([0-9a-f]+)$', s) or \
+                     re.match(r'^\*\((?:\w+) \*\)\(\(int\)this \+ (0x[0-9a-f]+)\)$', s)
+                if mo:
+                    fname = 'field_%X' % int(mo.group(1), 16); continue
+                lm = re.match(r'(\w+?)_(T\w+?)_(?:LoadFromStream|SaveToStream)_', s)
+                if lm:
+                    lcls = lm.group(2); continue
+                ma = re.match(r'^(?:\(void \*\))?(0x[0-9a-f]+)$', s)
+                if ma and not lcls:
+                    lcls = self.thunk_class(m, int(ma.group(1), 16))
+            if not fname: return None
             if not lcls:
-                # the procedures came through an import thunk and show as addresses: use the field's class
                 for off, fd in self.cdb.get(m.name, {}).get('fields', {}).items():
-                    if fd.get('name') == mm.group(1) and re.match(r'T\w+List$', fd.get('type', '')):
+                    if fd.get('name') == fname and re.match(r'T\w+List$', fd.get('type', '')):
                         lcls = fd['type']
-            if not lcls: return None
-            f = ident(mm.group(1))
+            if lcls not in LIST_CLASSES:
+                return None               # other stream classes (TXYLList, TImageSequenceList, ...) are not translated yet
+            f = ident(fname)
             m.fields[f] = [lcls, lcls]
             out.append('%sStream.rwStreamProc(%s, %s.LoadFromStream, %s.SaveToStream);' % (indent, a[0], f, f))
         else:
@@ -352,8 +407,11 @@ class Translator:
                     continue
                 mm = re.match(r'^(\w+?)_(T\w+?)_ReadWrite_[0-9A-F]{8}\(', s)
                 if mm:
-                    out.append('%sinherited ReadWrite(Stream);' % indent)
+                    # the call names the ancestor whose ReadWrite runs; "inherited" is only right when
+                    # that is the model parent. TEObject.ReadWrite is empty, so a direct call to it
+                    # (skipping e.g. TEControlStyleNode.ReadWrite) translates to nothing.
                     m.parent_hint = mm.group(2)
+                    out.append(('INHERITED', indent, mm.group(2)))
                     continue
                 if re.match(r'^(uStack|local|puStack|pcStack|iStack|in_stack)\w* = ', s) or s.startswith('return'):
                     continue
@@ -484,6 +542,28 @@ def main():
             m.parent = 'TEObject'
         if m.parent == 'TECustomNode':
             m.parent = 'TENode'           # TECustomNode's list interface is abstract; TENode implements it
+    # resolve the deferred "inherited" markers now that parents are known
+    def chain_of(cls):
+        out, p = [], cdb.get(cls, {}).get('parent')
+        while p and len(out) < 64:
+            out.append(p); p = cdb.get(p, {}).get('parent')
+        return out
+    for m in tr.models.values():
+        resolved = []
+        for line in m.body:
+            if isinstance(line, tuple) and line[0] == 'INHERITED':
+                _, indent, called = line
+                if called == m.parent or called not in chain_of(m.name):
+                    resolved.append('%sinherited ReadWrite(Stream);' % indent)
+                elif called == 'TEObject' or (called == 'TECustomNode' and m.parent == 'TENode'):
+                    resolved.append('%s{ the original calls %s.ReadWrite here, skipping %s.ReadWrite }' % (indent, called, m.parent))
+                else:
+                    resolved.append('%s{ TODO: the original calls %s.ReadWrite directly, not %s.ReadWrite }' % (indent, called, m.parent))
+                    resolved.append('%sinherited ReadWrite(Stream);' % indent)
+                    m.todos.append('calls %s.ReadWrite directly' % called)
+            else:
+                resolved.append(line)
+        m.body = resolved
     # emit in parent-first order; a cycle (duplicate class names across modules) is cut at TEObject
     order, seen, visiting = [], set(), set()
     def visit(c):
@@ -524,6 +604,9 @@ def main():
             L.append('  { %s.%s: hand-written in hand/%s.decl.inc }' % (m.unit, c, c))
             L.append('  %s = class(%s)' % (c, m.parent))
             L.append('  {$I hand/%s.decl.inc}' % c)
+            if c in ids:
+                L.append('    function ClassID: Integer; override;')
+                impl.append('function %s.ClassID: Integer;\nbegin\n  Result := %d;\nend;\n' % (c, ids[c]))
             L.append('  end;')
             L.append('')
             impl.append('{$I hand/%s.impl.inc}\n' % c)
@@ -543,7 +626,9 @@ def main():
         ctor = []
         for fname, (ftype, init_cls) in m.fields.items():
             L.append('    %s: %s;' % (fname, ftype or 'Byte'))
-            if init_cls:
+            if init_cls in LIST_CLASSES:
+                ctor.append('  %s := %s.Create;' % (fname, init_cls))
+            elif init_cls:
                 ctor.append('  %s := %s.Create(Self);' % (fname, init_cls))
                 # an embedded object must survive the owner's Clear and must not be written as a child
                 ctor.append('  %s.EmbeddedShared := True;' % fname)

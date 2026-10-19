@@ -1,0 +1,820 @@
+
+ Start         Length     Name                   Class
+ 0001:00000000 00009EECH .text                   CODE
+ 0002:00000000 000002F0H .data                   DATA
+ 0002:000002F0 000005F9H .bss                    BSS
+
+
+Detailed map of segments
+
+ 0001:00000000 00003760 C=CODE     S=.text    G=(none)   M=System   ACBP=A9
+ 0001:00003760 00000164 C=CODE     S=.text    G=(none)   M=SysInit  ACBP=A9
+ 0001:000038C4 00000148 C=CODE     S=.text    G=(none)   M=Windows  ACBP=A9
+ 0001:00003A0C 000032EA C=CODE     S=.text    G=(none)   M=SysUtils ACBP=A9
+ 0001:00006CF8 00000038 C=CODE     S=.text    G=(none)   M=Messages ACBP=A9
+ 0001:00006D30 00000038 C=CODE     S=.text    G=(none)   M=ActiveX  ACBP=A9
+ 0001:00006D68 00000098 C=CODE     S=.text    G=(none)   M=Consts   ACBP=A9
+ 0001:00006E00 00000038 C=CODE     S=.text    G=(none)   M=TypInfo  ACBP=A9
+ 0001:00006E38 00002B0B C=CODE     S=.text    G=(none)   M=Classes  ACBP=A9
+ 0001:00009944 00000438 C=CODE     S=.text    G=(none)   M=PropTable ACBP=A9
+ 0001:00009D7C 0000016F C=CODE     S=.text    G=(none)   M=matchtest ACBP=A9
+ 0002:00000000 0000009A C=DATA     S=.data    G=DGROUP   M=System   ACBP=A9
+ 0002:0000009C 00000010 C=DATA     S=.data    G=DGROUP   M=SysInit  ACBP=A9
+ 0002:000000AC 000001DC C=DATA     S=.data    G=DGROUP   M=SysUtils ACBP=A9
+ 0002:00000288 0000000C C=DATA     S=.data    G=DGROUP   M=Classes  ACBP=A9
+ 0002:00001000 000004A8 C=BSS      S=.bss     G=DGROUP   M=System   ACBP=A9
+ 0002:000014A8 00000018 C=BSS      S=.bss     G=DGROUP   M=SysInit  ACBP=A9
+ 0002:000014C0 00000004 C=BSS      S=.bss     G=DGROUP   M=Windows  ACBP=A9
+ 0002:000014C4 00000110 C=BSS      S=.bss     G=DGROUP   M=SysUtils ACBP=A9
+ 0002:000015D4 00000004 C=BSS      S=.bss     G=DGROUP   M=Messages ACBP=A9
+ 0002:000015D8 00000004 C=BSS      S=.bss     G=DGROUP   M=ActiveX  ACBP=A9
+ 0002:000015DC 00000004 C=BSS      S=.bss     G=DGROUP   M=Consts   ACBP=A9
+ 0002:000015E0 00000004 C=BSS      S=.bss     G=DGROUP   M=TypInfo  ACBP=A9
+ 0002:000015E4 00000010 C=BSS      S=.bss     G=DGROUP   M=Classes  ACBP=A9
+ 0002:000015F4 00000004 C=BSS      S=.bss     G=DGROUP   M=PropTable ACBP=A9
+
+
+  Address         Publics by Name
+
+ 0002:000015F4       .1
+ 0001:00001660       @AbstractError
+ 0001:000031F1       @Append
+ 0001:000030CA       @Assign
+ 0001:00001A28       @CallDynaInst
+ 0001:00001A4C       @ClassCreate
+ 0001:00001A88       @ClassDestroy
+ 0001:0000316C       @Close
+ 0001:00001CE4       @DoneExcept
+ 0001:0000167C       @FillChar
+ 0001:00002700       @Finalize
+ 0001:00002640       @FinalizeArray
+ 0001:00002614       @FinalizeRecord
+ 0001:00003145       @Flush
+ 0001:00001544       @FreeMem
+ 0001:0000152C       @GetMem
+ 0001:000037D8       @GetTls
+ 0001:00002144       @Halt
+ 0001:0000202C       @Halt0
+ 0001:00001B78       @HandleAnyException
+ 0001:00001C3C       @HandleFinally
+ 0001:00003868       @InitExe
+ 0001:00001F8C       @InitResStrings
+ 0001:00002E94       @IntfClear
+ 0001:00002EAC       @IntfCopy
+ 0001:000019E0       @IsClass
+ 0001:00002180       @LStrArrayClr
+ 0001:000021B0       @LStrAsg
+ 0001:000023BC       @LStrCat
+ 0001:00002400       @LStrCatN
+ 0001:0000215C       @LStrClr
+ 0001:00002450       @LStrCmp
+ 0001:00002534       @LStrCopy
+ 0001:00002388       @LStrFromArray
+ 0001:00002300       @LStrFromChar
+ 0001:00002310       @LStrFromPChar
+ 0001:00002240       @LStrFromPCharLen
+ 0001:00002340       @LStrFromPWChar
+ 0001:00002270       @LStrFromPWCharLen
+ 0001:0000237C       @LStrFromString
+ 0001:000023A0       @LStrFromWStr
+ 0001:000021F4       @LStrLAsg
+ 0001:000023B4       @LStrLen
+ 0001:00002574       @LStrSetLength
+ 0001:000024F4       @LStrToPChar
+ 0001:0000221C       @NewAnsiString
+ 0001:00003370       @Pow10
+ 0001:00001C90       @RaiseAgain
+ 0001:00001C74       @RaiseExcept
+ 0001:0000155C       @ReallocMem
+ 0001:000031E3       @ResetText
+ 0001:000031EA       @RewritText
+ 0001:00002150       @RunError
+ 0001:00001F5C       @StartExe
+ 0001:0000169C       @StrLong
+ 0001:00001D14       @TryFinallyExit
+ 0001:000016FC       @ValLong
+ 0001:000029B8       @VarCast
+ 0001:00002850       @VarClear
+ 0001:00002AE8       @VarClr
+ 0001:00002884       @VarCopy
+ 0001:00002AAC       @VarToLStr
+ 0001:000017C8       @Write0Bool
+ 0001:000032D7       @Write0Char
+ 0001:00003340       @Write0CString
+ 0001:000017F8       @Write0Long
+ 0001:0000329C       @Write0String
+ 0001:000017A4       @WriteBool
+ 0001:00003329       @WriteChar
+ 0001:00003344       @WriteCString
+ 0001:000032C3       @WriteLn
+ 0001:000017D0       @WriteLong
+ 0001:000032A6       @WriteString
+ 0001:000025F0       @WStrArrayClr
+ 0001:000025D8       @WStrClr
+ 0001:00003120       @_Flush
+ 0001:000015F0       @_IOTest
+ 0002:00001018       AbstractErrorProc
+ 0001:00006D60       ActiveX
+ 0001:00002CF4       AddModuleUnloadProc
+ 0002:000013FC       AllocMemCount
+ 0002:00001400       AllocMemSize
+ 0001:000044BC       AnsiCompareText
+ 0001:00005FBC       AnsiStrRScan
+ 0001:00005FE4       AnsiStrScan
+ 0002:00001014       AssertErrorProc
+ 0001:00005F80       ByteType
+ 0001:000098D0       Classes
+ 0001:000038C4       CloseHandle
+ 0002:00001028       CmdLine
+ 0002:00001024       CmdShow
+ 0001:000038CC       CompareString
+ 0001:00004468       CompareText
+ 0001:00006DF8       Consts
+ 0001:000038D4       CreateFile
+ 0002:000014CC       CurrencyDecimals
+ 0002:000014C8       CurrencyFormat
+ 0002:000014C4       CurrencyString
+ 0002:000014CD       DateSeparator
+ 0002:00000008       DebugHook
+ 0002:000014CB       DecimalSeparator
+ 0002:00000000       Default8087CW
+ 0002:000000AC       EmptyStr
+ 0001:000038DC       EnumCalendarInfoA
+ 0001:00005808       EOutOfMemory.Destroy
+ 0001:00005814       EOutOfMemory.FreeInstance
+ 0002:00001590       EraNames
+ 0002:000015AC       EraYearOffsets
+ 0002:00001034       ErrorAddr
+ 0002:00001004       ErrorProc
+ 0002:00001008       ExceptClsProc
+ 0001:00005758       Exception.Create
+ 0001:0000578C       Exception.CreateFmt
+ 0002:00001010       ExceptionClass
+ 0001:00005508       ExceptionErrorMessage
+ 0002:0000100C       ExceptObjProc
+ 0002:00001000       ExceptProc
+ 0002:0000102C       ExitCode
+ 0002:00001030       ExitProc
+ 0001:0000462C       ExtractFileName
+ 0001:000045D4       FileClose
+ 0001:0000454C       FileCreate
+ 0002:0000103E       FileMode
+ 0001:0000450C       FileOpen
+ 0001:00004570       FileRead
+ 0001:000045C8       FileSeek
+ 0001:0000459C       FileWrite
+ 0001:00006DC8       Finalization
+ 0001:00009D7C       Finalization
+ 0001:00006D30       Finalization
+ 0001:000039D4       Finalization
+ 0001:00003644       Finalization
+ 0001:00006CF8       Finalization
+ 0001:00006B54       Finalization
+ 0001:0000388C       Finalization
+ 0001:00009D44       Finalization
+ 0001:00006E00       Finalization
+ 0001:00009854       Finalization
+ 0001:00002AF0       FindHInstance
+ 0001:00002B18       FindResourceHInstance
+ 0001:00006866       FloatToDecimal
+ 0001:000062CA       FloatToText
+ 0001:00006593       FloatToTextFmt
+ 0001:00004BA4       FmtStr
+ 0001:00004B90       Format
+ 0001:0000480C       FormatBuf
+ 0001:000038E4       FormatMessage
+ 0001:00003370       FPower10
+ 0001:000038EC       GetCPInfo
+ 0001:000038F4       GetCurrentThreadId
+ 0001:000051B4       GetFormatSettings
+ 0001:000038FC       GetLastError
+ 0001:00004D04       GetLocaleChar
+ 0001:00003904       GetLocaleInfo
+ 0001:00004CB8       GetLocaleStr
+ 0001:0000390C       GetModuleFileName
+ 0001:0000397C       GetSystemMetrics
+ 0001:00003914       GetThreadLocale
+ 0001:0000391C       GetVersionEx
+ 0001:00003924       GlobalAlloc
+ 0001:00003994       GlobalAllocPtr
+ 0001:0000392C       GlobalFree
+ 0001:000039C0       GlobalFreePtr
+ 0001:0000393C       GlobalHandle
+ 0001:00003934       GlobalLock
+ 0001:00003944       GlobalReAlloc
+ 0001:000039A4       GlobalReAllocPtr
+ 0001:0000394C       GlobalUnlock
+ 0002:00000004       HeapAllocFlags
+ 0002:000014B4       HInstance
+ 0002:00001044       Input
+ 0002:0000103C       IsConsole
+ 0002:00001020       IsLibrary
+ 0002:0000103D       IsMultiThread
+ 0001:000045DC       LastDelimiter
+ 0002:000000C4       LeadBytes
+ 0002:0000000C       LibModuleList
+ 0001:00002B34       LoadResourceModule
+ 0001:00002E50       LoadResString
+ 0001:00003984       LoadString
+ 0002:000014D4       LongDateFormat
+ 0002:00001568       LongDayNames
+ 0002:0000151C       LongMonthNames
+ 0002:000014E8       LongTimeFormat
+ 0002:0000101C       MainInstance
+ 0002:000015E4       MainThreadID
+ 0001:00009E04       matchtest
+ 0001:0000398C       MessageBox
+ 0001:00006D28       Messages
+ 0002:000014A8       ModuleIsLib
+ 0002:00000010       ModuleUnloadList
+ 0001:00001620       Move
+ 0002:000014C9       NegCurrFormat
+ 0002:000013EC       Null
+ 0001:00002798       OleStrToStrVar
+ 0002:00001210       Output
+ 0001:00009D74       PropTable
+ 0001:000060D0       RaiseLastWin32Error
+ 0002:00001038       RandSeed
+ 0001:00003954       ReadFile
+ 0001:00002DD0       RegisterModule
+ 0001:000091D0       RemoveFixupReferences
+ 0001:00009230       RemoveFixups
+ 0001:00002D14       RemoveModuleUnloadProc
+ 0001:0000395C       SetEndOfFile
+ 0001:00003964       SetFilePointer
+ 0002:000014D0       ShortDateFormat
+ 0002:0000154C       ShortDayNames
+ 0002:000014EC       ShortMonthNames
+ 0002:000014E4       ShortTimeFormat
+ 0001:00005694       ShowException
+ 0001:00004754       StrAlloc
+ 0001:00005FA4       StrByteType
+ 0001:000027BC       StringToOleStr
+ 0001:000046B8       StrLCopy
+ 0001:00004664       StrLen
+ 0001:00004B5C       StrLFmt
+ 0001:000046EC       StrLIComp
+ 0001:0000467C       StrMove
+ 0001:00004768       StrNew
+ 0001:00004734       StrScan
+ 0001:000044F4       StrToIntDef
+ 0001:00004C6C       SysErrorMessage
+ 0001:000010F4       SysFreeMem
+ 0001:00000F6C       SysGetMem
+ 0001:000038BC       SysInit
+ 0002:00001584       SysLocale
+ 0001:00001468       SysReallocMem
+ 0001:000036A4       System
+ 0001:00006C94       SysUtils
+ 0001:00008FCC       TCustomMemoryStream.Read
+ 0001:00009004       TCustomMemoryStream.Seek
+ 0001:00008FC4       TCustomMemoryStream.SetPointer
+ 0002:0000103F       Test8086
+ 0002:00001040       Test8087
+ 0001:00006A53       TextToFloat
+ 0001:00008EA8       TFileStream.Create
+ 0001:00008FA0       TFileStream.Destroy
+ 0001:00008E5C       THandleStream.Read
+ 0001:00008E7C       THandleStream.Seek
+ 0001:00008E88       THandleStream.SetSize
+ 0001:00008E6C       THandleStream.Write
+ 0002:000014CA       ThousandSeparator
+ 0002:000014DC       TimeAMString
+ 0002:000014E0       TimePMString
+ 0002:000014D8       TimeSeparator
+ 0001:00007654       TList.Clear
+ 0001:0000766C       TList.Delete
+ 0001:00007634       TList.Destroy
+ 0001:000076F0       TList.Error
+ 0001:00007728       TList.Get
+ 0001:0000778C       TList.Grow
+ 0001:000077C0       TList.SetCapacity
+ 0001:00007834       TList.SetCount
+ 0002:000014AC       TlsIndex
+ 0002:FFBF5008       TlsLast
+ 0001:00009054       TMemoryStream.Clear
+ 0001:00009028       TMemoryStream.Destroy
+ 0001:000090C0       TMemoryStream.Realloc
+ 0001:0000906C       TMemoryStream.SetCapacity
+ 0001:00009094       TMemoryStream.SetSize
+ 0001:00009180       TMemoryStream.Write
+ 0001:00001908       TObject.ClassName
+ 0001:00001958       TObject.Create
+ 0001:00001A48       TObject.DefaultHandler
+ 0001:00001974       TObject.Destroy
+ 0001:00001980       TObject.Free
+ 0001:00001930       TObject.FreeInstance
+ 0001:0000198C       TObject.InitInstance
+ 0001:0000191C       TObject.NewInstance
+ 0001:00001A40       TObject.SafeCallException
+ 0001:000078F0       TPersistent.Assign
+ 0001:000079F4       TPersistent.AssignTo
+ 0001:000079FC       TPersistent.DefineProperties
+ 0001:000078C4       TPersistent.Destroy
+ 0001:00007A00       TPersistent.GetNamePath
+ 0001:00007AB0       TPersistent.GetOwner
+ 0001:000099FC       TPropertyTable.Add
+ 0001:00009AC4       TPropertyTable.BackupSettings
+ 0001:00009A3C       TPropertyTable.Clear
+ 0001:00009994       TPropertyTable.Destroy
+ 0001:00009A50       TPropertyTable.FindOffset
+ 0001:00009B40       TPropertyTable.LoadFromStream
+ 0001:00009A9C       TPropertyTable.PropertyExist
+ 0001:00009B18       TPropertyTable.RestoreSettings
+ 0001:00009BF8       TPropertyTable.SaveToStream
+ 0001:000099CC       TPropertyTable.SetCapacity
+ 0001:000092F8       TReader.EndOfList
+ 0001:0000930C       TReader.NextValue
+ 0001:0000931C       TReader.Read
+ 0001:000093E0       TReader.ReadListBegin
+ 0001:000093E8       TReader.ReadListEnd
+ 0001:000093F0       TReader.ReadStr
+ 0001:0000942C       TReader.ReadString
+ 0001:0000948C       TReader.ReadValue
+ 0001:00008D8C       TStream.GetPosition
+ 0001:00008DA8       TStream.GetSize
+ 0001:00008D9C       TStream.SetPosition
+ 0001:00008DDC       TStream.SetSize
+ 0001:00008DE0       TStream.WriteBuffer
+ 0001:00008654       TStringList.Add
+ 0001:000086EC       TStringList.Changed
+ 0001:00008708       TStringList.Changing
+ 0001:00008724       TStringList.Clear
+ 0001:0000875C       TStringList.Delete
+ 0001:000085FC       TStringList.Destroy
+ 0001:000087FC       TStringList.Exchange
+ 0001:000088BC       TStringList.Find
+ 0001:00008924       TStringList.Get
+ 0001:00008994       TStringList.GetCapacity
+ 0001:00008998       TStringList.GetCount
+ 0001:0000899C       TStringList.GetObject
+ 0001:00008A38       TStringList.IndexOf
+ 0001:00008A70       TStringList.Insert
+ 0001:00008B64       TStringList.Put
+ 0001:00008C00       TStringList.PutObject
+ 0001:00008D34       TStringList.SetCapacity
+ 0001:00008D50       TStringList.SetUpdateState
+ 0001:00008D60       TStringList.Sort
+ 0001:00007AE0       TStrings.Add
+ 0001:00007B04       TStrings.AddObject
+ 0001:00007B28       TStrings.AddStrings
+ 0001:00007BE0       TStrings.Assign
+ 0001:00007C50       TStrings.BeginUpdate
+ 0001:00007CC0       TStrings.DefineProperties
+ 0001:00007AB4       TStrings.Destroy
+ 0001:00007D0C       TStrings.EndUpdate
+ 0001:00007D20       TStrings.Equals
+ 0001:00007DCC       TStrings.Error
+ 0001:00007E04       TStrings.Exchange
+ 0001:00007EEC       TStrings.GetCapacity
+ 0001:00007EF4       TStrings.GetObject
+ 0001:00007EF8       TStrings.GetText
+ 0001:00007F4C       TStrings.GetTextStr
+ 0001:00008034       TStrings.IndexOf
+ 0001:000080B4       TStrings.InsertObject
+ 0001:000080E4       TStrings.LoadFromFile
+ 0001:00008138       TStrings.LoadFromStream
+ 0001:000081E4       TStrings.Move
+ 0001:00008294       TStrings.Put
+ 0001:000082C4       TStrings.PutObject
+ 0001:00008378       TStrings.SaveToFile
+ 0001:000083D0       TStrings.SaveToStream
+ 0001:0000842C       TStrings.SetCapacity
+ 0001:00008430       TStrings.SetStringsAdapter
+ 0001:00008464       TStrings.SetText
+ 0001:000084B4       TStrings.SetTextStr
+ 0001:00008574       TStrings.SetUpdateState
+ 0001:00009734       TWriter.Write
+ 0001:00009798       TWriter.WriteListBegin
+ 0001:000097A0       TWriter.WriteListEnd
+ 0001:000097A8       TWriter.WriteString
+ 0001:00009804       TWriter.WriteValue
+ 0001:00006E30       TypInfo
+ 0002:000013DC       Unassigned
+ 0001:00002500       UniqueString
+ 0001:00002DE0       UnregisterModule
+ 0001:000075A0       UnRegisterModuleClasses
+ 0001:0000396C       VirtualQuery
+ 0001:0000270C       WideCharLenToStrVar
+ 0002:000000BC       Win32BuildNumber
+ 0001:00006184       Win32Check
+ 0002:000000C0       Win32CSDVersion
+ 0002:000000B4       Win32MajorVersion
+ 0002:000000B8       Win32MinorVersion
+ 0002:000000B0       Win32Platform
+ 0001:00003A04       Windows
+ 0001:00003974       WriteFile
+
+
+  Address         Publics by Value
+
+ 0002:FFBF5008       TlsLast
+ 0001:00000F6C       SysGetMem
+ 0001:000010F4       SysFreeMem
+ 0001:00001468       SysReallocMem
+ 0001:0000152C       @GetMem
+ 0001:00001544       @FreeMem
+ 0001:0000155C       @ReallocMem
+ 0001:000015F0       @_IOTest
+ 0001:00001620       Move
+ 0001:00001660       @AbstractError
+ 0001:0000167C       @FillChar
+ 0001:0000169C       @StrLong
+ 0001:000016FC       @ValLong
+ 0001:000017A4       @WriteBool
+ 0001:000017C8       @Write0Bool
+ 0001:000017D0       @WriteLong
+ 0001:000017F8       @Write0Long
+ 0001:00001908       TObject.ClassName
+ 0001:0000191C       TObject.NewInstance
+ 0001:00001930       TObject.FreeInstance
+ 0001:00001958       TObject.Create
+ 0001:00001974       TObject.Destroy
+ 0001:00001980       TObject.Free
+ 0001:0000198C       TObject.InitInstance
+ 0001:000019E0       @IsClass
+ 0001:00001A28       @CallDynaInst
+ 0001:00001A40       TObject.SafeCallException
+ 0001:00001A48       TObject.DefaultHandler
+ 0001:00001A4C       @ClassCreate
+ 0001:00001A88       @ClassDestroy
+ 0001:00001B78       @HandleAnyException
+ 0001:00001C3C       @HandleFinally
+ 0001:00001C74       @RaiseExcept
+ 0001:00001C90       @RaiseAgain
+ 0001:00001CE4       @DoneExcept
+ 0001:00001D14       @TryFinallyExit
+ 0001:00001F5C       @StartExe
+ 0001:00001F8C       @InitResStrings
+ 0001:0000202C       @Halt0
+ 0001:00002144       @Halt
+ 0001:00002150       @RunError
+ 0001:0000215C       @LStrClr
+ 0001:00002180       @LStrArrayClr
+ 0001:000021B0       @LStrAsg
+ 0001:000021F4       @LStrLAsg
+ 0001:0000221C       @NewAnsiString
+ 0001:00002240       @LStrFromPCharLen
+ 0001:00002270       @LStrFromPWCharLen
+ 0001:00002300       @LStrFromChar
+ 0001:00002310       @LStrFromPChar
+ 0001:00002340       @LStrFromPWChar
+ 0001:0000237C       @LStrFromString
+ 0001:00002388       @LStrFromArray
+ 0001:000023A0       @LStrFromWStr
+ 0001:000023B4       @LStrLen
+ 0001:000023BC       @LStrCat
+ 0001:00002400       @LStrCatN
+ 0001:00002450       @LStrCmp
+ 0001:000024F4       @LStrToPChar
+ 0001:00002500       UniqueString
+ 0001:00002534       @LStrCopy
+ 0001:00002574       @LStrSetLength
+ 0001:000025D8       @WStrClr
+ 0001:000025F0       @WStrArrayClr
+ 0001:00002614       @FinalizeRecord
+ 0001:00002640       @FinalizeArray
+ 0001:00002700       @Finalize
+ 0001:0000270C       WideCharLenToStrVar
+ 0001:00002798       OleStrToStrVar
+ 0001:000027BC       StringToOleStr
+ 0001:00002850       @VarClear
+ 0001:00002884       @VarCopy
+ 0001:000029B8       @VarCast
+ 0001:00002AAC       @VarToLStr
+ 0001:00002AE8       @VarClr
+ 0001:00002AF0       FindHInstance
+ 0001:00002B18       FindResourceHInstance
+ 0001:00002B34       LoadResourceModule
+ 0001:00002CF4       AddModuleUnloadProc
+ 0001:00002D14       RemoveModuleUnloadProc
+ 0001:00002DD0       RegisterModule
+ 0001:00002DE0       UnregisterModule
+ 0001:00002E50       LoadResString
+ 0001:00002E94       @IntfClear
+ 0001:00002EAC       @IntfCopy
+ 0001:000030CA       @Assign
+ 0001:00003120       @_Flush
+ 0001:00003145       @Flush
+ 0001:0000316C       @Close
+ 0001:000031E3       @ResetText
+ 0001:000031EA       @RewritText
+ 0001:000031F1       @Append
+ 0001:0000329C       @Write0String
+ 0001:000032A6       @WriteString
+ 0001:000032C3       @WriteLn
+ 0001:000032D7       @Write0Char
+ 0001:00003329       @WriteChar
+ 0001:00003340       @Write0CString
+ 0001:00003344       @WriteCString
+ 0001:00003370       @Pow10
+ 0001:00003370       FPower10
+ 0001:00003644       Finalization
+ 0001:000036A4       System
+ 0001:000037D8       @GetTls
+ 0001:00003868       @InitExe
+ 0001:0000388C       Finalization
+ 0001:000038BC       SysInit
+ 0001:000038C4       CloseHandle
+ 0001:000038CC       CompareString
+ 0001:000038D4       CreateFile
+ 0001:000038DC       EnumCalendarInfoA
+ 0001:000038E4       FormatMessage
+ 0001:000038EC       GetCPInfo
+ 0001:000038F4       GetCurrentThreadId
+ 0001:000038FC       GetLastError
+ 0001:00003904       GetLocaleInfo
+ 0001:0000390C       GetModuleFileName
+ 0001:00003914       GetThreadLocale
+ 0001:0000391C       GetVersionEx
+ 0001:00003924       GlobalAlloc
+ 0001:0000392C       GlobalFree
+ 0001:00003934       GlobalLock
+ 0001:0000393C       GlobalHandle
+ 0001:00003944       GlobalReAlloc
+ 0001:0000394C       GlobalUnlock
+ 0001:00003954       ReadFile
+ 0001:0000395C       SetEndOfFile
+ 0001:00003964       SetFilePointer
+ 0001:0000396C       VirtualQuery
+ 0001:00003974       WriteFile
+ 0001:0000397C       GetSystemMetrics
+ 0001:00003984       LoadString
+ 0001:0000398C       MessageBox
+ 0001:00003994       GlobalAllocPtr
+ 0001:000039A4       GlobalReAllocPtr
+ 0001:000039C0       GlobalFreePtr
+ 0001:000039D4       Finalization
+ 0001:00003A04       Windows
+ 0001:00004468       CompareText
+ 0001:000044BC       AnsiCompareText
+ 0001:000044F4       StrToIntDef
+ 0001:0000450C       FileOpen
+ 0001:0000454C       FileCreate
+ 0001:00004570       FileRead
+ 0001:0000459C       FileWrite
+ 0001:000045C8       FileSeek
+ 0001:000045D4       FileClose
+ 0001:000045DC       LastDelimiter
+ 0001:0000462C       ExtractFileName
+ 0001:00004664       StrLen
+ 0001:0000467C       StrMove
+ 0001:000046B8       StrLCopy
+ 0001:000046EC       StrLIComp
+ 0001:00004734       StrScan
+ 0001:00004754       StrAlloc
+ 0001:00004768       StrNew
+ 0001:0000480C       FormatBuf
+ 0001:00004B5C       StrLFmt
+ 0001:00004B90       Format
+ 0001:00004BA4       FmtStr
+ 0001:00004C6C       SysErrorMessage
+ 0001:00004CB8       GetLocaleStr
+ 0001:00004D04       GetLocaleChar
+ 0001:000051B4       GetFormatSettings
+ 0001:00005508       ExceptionErrorMessage
+ 0001:00005694       ShowException
+ 0001:00005758       Exception.Create
+ 0001:0000578C       Exception.CreateFmt
+ 0001:00005808       EOutOfMemory.Destroy
+ 0001:00005814       EOutOfMemory.FreeInstance
+ 0001:00005F80       ByteType
+ 0001:00005FA4       StrByteType
+ 0001:00005FBC       AnsiStrRScan
+ 0001:00005FE4       AnsiStrScan
+ 0001:000060D0       RaiseLastWin32Error
+ 0001:00006184       Win32Check
+ 0001:000062CA       FloatToText
+ 0001:00006593       FloatToTextFmt
+ 0001:00006866       FloatToDecimal
+ 0001:00006A53       TextToFloat
+ 0001:00006B54       Finalization
+ 0001:00006C94       SysUtils
+ 0001:00006CF8       Finalization
+ 0001:00006D28       Messages
+ 0001:00006D30       Finalization
+ 0001:00006D60       ActiveX
+ 0001:00006DC8       Finalization
+ 0001:00006DF8       Consts
+ 0001:00006E00       Finalization
+ 0001:00006E30       TypInfo
+ 0001:000075A0       UnRegisterModuleClasses
+ 0001:00007634       TList.Destroy
+ 0001:00007654       TList.Clear
+ 0001:0000766C       TList.Delete
+ 0001:000076F0       TList.Error
+ 0001:00007728       TList.Get
+ 0001:0000778C       TList.Grow
+ 0001:000077C0       TList.SetCapacity
+ 0001:00007834       TList.SetCount
+ 0001:000078C4       TPersistent.Destroy
+ 0001:000078F0       TPersistent.Assign
+ 0001:000079F4       TPersistent.AssignTo
+ 0001:000079FC       TPersistent.DefineProperties
+ 0001:00007A00       TPersistent.GetNamePath
+ 0001:00007AB0       TPersistent.GetOwner
+ 0001:00007AB4       TStrings.Destroy
+ 0001:00007AE0       TStrings.Add
+ 0001:00007B04       TStrings.AddObject
+ 0001:00007B28       TStrings.AddStrings
+ 0001:00007BE0       TStrings.Assign
+ 0001:00007C50       TStrings.BeginUpdate
+ 0001:00007CC0       TStrings.DefineProperties
+ 0001:00007D0C       TStrings.EndUpdate
+ 0001:00007D20       TStrings.Equals
+ 0001:00007DCC       TStrings.Error
+ 0001:00007E04       TStrings.Exchange
+ 0001:00007EEC       TStrings.GetCapacity
+ 0001:00007EF4       TStrings.GetObject
+ 0001:00007EF8       TStrings.GetText
+ 0001:00007F4C       TStrings.GetTextStr
+ 0001:00008034       TStrings.IndexOf
+ 0001:000080B4       TStrings.InsertObject
+ 0001:000080E4       TStrings.LoadFromFile
+ 0001:00008138       TStrings.LoadFromStream
+ 0001:000081E4       TStrings.Move
+ 0001:00008294       TStrings.Put
+ 0001:000082C4       TStrings.PutObject
+ 0001:00008378       TStrings.SaveToFile
+ 0001:000083D0       TStrings.SaveToStream
+ 0001:0000842C       TStrings.SetCapacity
+ 0001:00008430       TStrings.SetStringsAdapter
+ 0001:00008464       TStrings.SetText
+ 0001:000084B4       TStrings.SetTextStr
+ 0001:00008574       TStrings.SetUpdateState
+ 0001:000085FC       TStringList.Destroy
+ 0001:00008654       TStringList.Add
+ 0001:000086EC       TStringList.Changed
+ 0001:00008708       TStringList.Changing
+ 0001:00008724       TStringList.Clear
+ 0001:0000875C       TStringList.Delete
+ 0001:000087FC       TStringList.Exchange
+ 0001:000088BC       TStringList.Find
+ 0001:00008924       TStringList.Get
+ 0001:00008994       TStringList.GetCapacity
+ 0001:00008998       TStringList.GetCount
+ 0001:0000899C       TStringList.GetObject
+ 0001:00008A38       TStringList.IndexOf
+ 0001:00008A70       TStringList.Insert
+ 0001:00008B64       TStringList.Put
+ 0001:00008C00       TStringList.PutObject
+ 0001:00008D34       TStringList.SetCapacity
+ 0001:00008D50       TStringList.SetUpdateState
+ 0001:00008D60       TStringList.Sort
+ 0001:00008D8C       TStream.GetPosition
+ 0001:00008D9C       TStream.SetPosition
+ 0001:00008DA8       TStream.GetSize
+ 0001:00008DDC       TStream.SetSize
+ 0001:00008DE0       TStream.WriteBuffer
+ 0001:00008E5C       THandleStream.Read
+ 0001:00008E6C       THandleStream.Write
+ 0001:00008E7C       THandleStream.Seek
+ 0001:00008E88       THandleStream.SetSize
+ 0001:00008EA8       TFileStream.Create
+ 0001:00008FA0       TFileStream.Destroy
+ 0001:00008FC4       TCustomMemoryStream.SetPointer
+ 0001:00008FCC       TCustomMemoryStream.Read
+ 0001:00009004       TCustomMemoryStream.Seek
+ 0001:00009028       TMemoryStream.Destroy
+ 0001:00009054       TMemoryStream.Clear
+ 0001:0000906C       TMemoryStream.SetCapacity
+ 0001:00009094       TMemoryStream.SetSize
+ 0001:000090C0       TMemoryStream.Realloc
+ 0001:00009180       TMemoryStream.Write
+ 0001:000091D0       RemoveFixupReferences
+ 0001:00009230       RemoveFixups
+ 0001:000092F8       TReader.EndOfList
+ 0001:0000930C       TReader.NextValue
+ 0001:0000931C       TReader.Read
+ 0001:000093E0       TReader.ReadListBegin
+ 0001:000093E8       TReader.ReadListEnd
+ 0001:000093F0       TReader.ReadStr
+ 0001:0000942C       TReader.ReadString
+ 0001:0000948C       TReader.ReadValue
+ 0001:00009734       TWriter.Write
+ 0001:00009798       TWriter.WriteListBegin
+ 0001:000097A0       TWriter.WriteListEnd
+ 0001:000097A8       TWriter.WriteString
+ 0001:00009804       TWriter.WriteValue
+ 0001:00009854       Finalization
+ 0001:000098D0       Classes
+ 0001:00009994       TPropertyTable.Destroy
+ 0001:000099CC       TPropertyTable.SetCapacity
+ 0001:000099FC       TPropertyTable.Add
+ 0001:00009A3C       TPropertyTable.Clear
+ 0001:00009A50       TPropertyTable.FindOffset
+ 0001:00009A9C       TPropertyTable.PropertyExist
+ 0001:00009AC4       TPropertyTable.BackupSettings
+ 0001:00009B18       TPropertyTable.RestoreSettings
+ 0001:00009B40       TPropertyTable.LoadFromStream
+ 0001:00009BF8       TPropertyTable.SaveToStream
+ 0001:00009D44       Finalization
+ 0001:00009D74       PropTable
+ 0001:00009D7C       Finalization
+ 0001:00009E04       matchtest
+ 0002:00000000       Default8087CW
+ 0002:00000004       HeapAllocFlags
+ 0002:00000008       DebugHook
+ 0002:0000000C       LibModuleList
+ 0002:00000010       ModuleUnloadList
+ 0002:000000AC       EmptyStr
+ 0002:000000B0       Win32Platform
+ 0002:000000B4       Win32MajorVersion
+ 0002:000000B8       Win32MinorVersion
+ 0002:000000BC       Win32BuildNumber
+ 0002:000000C0       Win32CSDVersion
+ 0002:000000C4       LeadBytes
+ 0002:00001000       ExceptProc
+ 0002:00001004       ErrorProc
+ 0002:00001008       ExceptClsProc
+ 0002:0000100C       ExceptObjProc
+ 0002:00001010       ExceptionClass
+ 0002:00001014       AssertErrorProc
+ 0002:00001018       AbstractErrorProc
+ 0002:0000101C       MainInstance
+ 0002:00001020       IsLibrary
+ 0002:00001024       CmdShow
+ 0002:00001028       CmdLine
+ 0002:0000102C       ExitCode
+ 0002:00001030       ExitProc
+ 0002:00001034       ErrorAddr
+ 0002:00001038       RandSeed
+ 0002:0000103C       IsConsole
+ 0002:0000103D       IsMultiThread
+ 0002:0000103E       FileMode
+ 0002:0000103F       Test8086
+ 0002:00001040       Test8087
+ 0002:00001044       Input
+ 0002:00001210       Output
+ 0002:000013DC       Unassigned
+ 0002:000013EC       Null
+ 0002:000013FC       AllocMemCount
+ 0002:00001400       AllocMemSize
+ 0002:000014A8       ModuleIsLib
+ 0002:000014AC       TlsIndex
+ 0002:000014B4       HInstance
+ 0002:000014C4       CurrencyString
+ 0002:000014C8       CurrencyFormat
+ 0002:000014C9       NegCurrFormat
+ 0002:000014CA       ThousandSeparator
+ 0002:000014CB       DecimalSeparator
+ 0002:000014CC       CurrencyDecimals
+ 0002:000014CD       DateSeparator
+ 0002:000014D0       ShortDateFormat
+ 0002:000014D4       LongDateFormat
+ 0002:000014D8       TimeSeparator
+ 0002:000014DC       TimeAMString
+ 0002:000014E0       TimePMString
+ 0002:000014E4       ShortTimeFormat
+ 0002:000014E8       LongTimeFormat
+ 0002:000014EC       ShortMonthNames
+ 0002:0000151C       LongMonthNames
+ 0002:0000154C       ShortDayNames
+ 0002:00001568       LongDayNames
+ 0002:00001584       SysLocale
+ 0002:00001590       EraNames
+ 0002:000015AC       EraYearOffsets
+ 0002:000015E4       MainThreadID
+ 0002:000015F4       .1
+
+
+Line numbers for PropTable(PropTable.pas) segment .text
+
+    57 0001:00009994    58 0001:0000999A    59 0001:000099A3    60 0001:000099AD
+    61 0001:000099C6    64 0001:000099CC    65 0001:000099D2    66 0001:000099D6
+    67 0001:000099DC    69 0001:000099E1    70 0001:000099EE    71 0001:000099F1
+    72 0001:000099F6    74 0001:000099F9    77 0001:000099FC    78 0001:00009A05
+    79 0001:00009A0D    80 0001:00009A17    81 0001:00009A20    82 0001:00009A2A
+    83 0001:00009A2D    84 0001:00009A32    85 0001:00009A35    89 0001:00009A3C
+    90 0001:00009A41    91 0001:00009A46    92 0001:00009A4D    97 0001:00009A50
+    98 0001:00009A52    99 0001:00009A55   101 0001:00009A62   102 0001:00009A69
+   106 0001:00009A6E   107 0001:00009A71   109 0001:00009A76   108 0001:00009A77
+   110 0001:00009A84   112 0001:00009A89   113 0001:00009A90   116 0001:00009A96
+   121 0001:00009A9C   122 0001:00009A9D   124 0001:00009AA2   126 0001:00009AA7
+   125 0001:00009AA8   127 0001:00009AB5   130 0001:00009ABD   131 0001:00009ABF
+   134 0001:00009AC4   135 0001:00009AC7   137 0001:00009ACF   138 0001:00009AD3
+   140 0001:00009AE4   142 0001:00009AF0   143 0001:00009AF5   144 0001:00009AFB
+   146 0001:00009B01   147 0001:00009B04   148 0001:00009B0A   149 0001:00009B10
+   150 0001:00009B15   154 0001:00009B18   155 0001:00009B1B   156 0001:00009B21
+   158 0001:00009B2D   159 0001:00009B32   160 0001:00009B38   162 0001:00009B3E
+   169 0001:00009B40   170 0001:00009B4B   171 0001:00009B59   172 0001:00009B5F
+   175 0001:00009B67   176 0001:00009B6B   178 0001:00009B7B   180 0001:00009B84
+   181 0001:00009B94   178 0001:00009BB0   183 0001:00009BB3   185 0001:00009BBB
+   186 0001:00009BCB   187 0001:00009BDB   183 0001:00009BEA   189 0001:00009BED
+   196 0001:00009BF8   197 0001:00009C04   198 0001:00009C0A   199 0001:00009C0F
+   200 0001:00009C1B   201 0001:00009C34   203 0001:00009C3A   199 0001:00009C3F
+   204 0001:00009C42   205 0001:00009C49   208 0001:00009C5C   209 0001:00009C66
+   210 0001:00009C77   212 0001:00009C88   213 0001:00009C8F   214 0001:00009C9B
+   216 0001:00009CB4   217 0001:00009CCE   218 0001:00009CDF   213 0001:00009CE0
+   219 0001:00009CE3   220 0001:00009CEA   221 0001:00009CF6   223 0001:00009D0F
+   224 0001:00009D22   225 0001:00009D36   220 0001:00009D37   226 0001:00009D3A
+   228 0001:00009D7B
+
+Line numbers for matchtest(matchtest.dpr) segment .text
+
+    17 0001:00009E04    18 0001:00009E1E    19 0001:00009E2C    20 0001:00009E3A
+    21 0001:00009E48    22 0001:00009E59    23 0001:00009E60    24 0001:00009E71
+    25 0001:00009E78    26 0001:00009E81    27 0001:00009E8A    28 0001:00009E91
+    29 0001:00009E9A    30 0001:00009ED6    31 0001:00009EDD    32 0001:00009EE4
+
+Program entry point at 0001:00009E04

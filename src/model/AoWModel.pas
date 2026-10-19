@@ -40,21 +40,23 @@ type
   TAggressorAG = class;
   TGlobalEnchantment = class;
   TAirMasteryEnchantment = class;
-  TAirNode = class;
-  TAirNodeResource = class;
   TMultiHexMO = class;
   TILTerrainMO = class;
   TFixedILTerrainMO = class;
   TStructure = class;
   TPlayerStructure = class;
-  TAltar = class;
-  TAltarOfDeath = class;
+  TProductionPlace = class;
+  TAirNode = class;
   TMapObjectResource = class;
   TMultiHexMOR = class;
   TILTerrainMOR = class;
   TFixedILTerrainMOR = class;
   TStructureResource = class;
   TPlayerStructureResource = class;
+  TProductionPlaceResource = class;
+  TAirNodeResource = class;
+  TAltar = class;
+  TAltarOfDeath = class;
   TAltarResource = class;
   TAltarOfDeathResource = class;
   TAltarOfFire = class;
@@ -129,6 +131,7 @@ type
   TChangeGlobalMagicTE = class;
   TChangePlayerMagicTE = class;
   TChangePlayerSettingsTE = class;
+  TMoveOnEvent = class;
   TChangeSongMoveOnEvent = class;
   TChangeSongMoveOnEventResource = class;
   TCheatTE = class;
@@ -175,7 +178,11 @@ type
   TCosmeticSurgeryEnchantment = class;
   TCrop = class;
   TCropResource = class;
+  TExplorationSite = class;
+  TItemExplorationSite = class;
   TCrypt = class;
+  TExplorationSiteResource = class;
+  TItemExplorationSiteResource = class;
   TCryptResource = class;
   TDamageEffectCA = class;
   TDataPackage = class;
@@ -198,9 +205,7 @@ type
   TDispelMagicAbilityTE = class;
   TDispelMagicSpellCA = class;
   TDivineStorm = class;
-  TExplorationSite = class;
   TDungeon = class;
-  TExplorationSiteResource = class;
   TDungeonResource = class;
   TDurationAbilityData = class;
   TDynamicIsometricHexagon = class;
@@ -289,6 +294,7 @@ type
   THexagonBridge = class;
   THexagonBridgeResource = class;
   THexagonResource = class;
+  TTerrainMO = class;
   THillMO = class;
   THillMOR = class;
   THolyGround = class;
@@ -299,9 +305,7 @@ type
   TInvokeDeathCA = class;
   TItem = class;
   TItemControl = class;
-  TItemExplorationSite = class;
   TItemExplorationSiteEventLog = class;
-  TItemExplorationSiteResource = class;
   TItemGFX = class;
   TItemGFXList = class;
   TItemHS = class;
@@ -375,9 +379,7 @@ type
   TPowerNodeResource = class;
   TProductionControl = class;
   TProductionItem = class;
-  TProductionPlace = class;
   TProductionPlaceEventLog = class;
-  TProductionPlaceResource = class;
   TProductionQueue = class;
   TProductionSettings = class;
   TProductionTE = class;
@@ -408,7 +410,9 @@ type
   TRoadResource = class;
   TRuin = class;
   TRuinResource = class;
+  TSFX = class;
   TSFXLibrary = class;
+  TSFXSequence = class;
   TSaveGameTE = class;
   TScorcherAG = class;
   TScoutAG = class;
@@ -450,7 +454,6 @@ type
   TTeleport = class;
   TTeleportResource = class;
   TTerminatePlayerTE = class;
-  TTerrainMO = class;
   TTextControl = class;
   TTextControlItem = class;
   TTokenEventList = class;
@@ -641,13 +644,10 @@ type
     function ClassID: Integer; override;
   end;
 
-  { HSEngine.TMapObject  (20 TODO) }
+  { HSEngine.TMapObject: hand-written in hand/TMapObject.decl.inc }
   TMapObject = class(THexagonSprite)
-  public
-    L_local_8: Integer;
-    prop1: Integer;
+  {$I hand/TMapObject.decl.inc}
     function ClassID: Integer; override;
-    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { HSEPack.dpl.TAbstractHexagon: no ReadWrite of its own }
@@ -669,7 +669,7 @@ type
   TAbstractUnit = class(TAbilityOwner)
   public
     prop4: Integer;
-    field_18: Integer;
+    prop5: Integer;
     FMoraleValue: Byte;
     prop47: Byte;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -714,16 +714,6 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWEPACK.dpl.TAirNode: no ReadWrite of its own }
-  TAirNode = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { AoWEPACK.dpl.TAirNodeResource: no ReadWrite of its own }
-  TAirNodeResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
   { HSEngine.TMultiHexMO }
   TMultiHexMO = class(TMapObject)
   public
@@ -742,7 +732,7 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TStructure }
+  { AoWE.TStructure  (1 TODO) }
   TStructure = class(TFixedILTerrainMO)
   public
     prop0: Byte;
@@ -752,26 +742,30 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TPlayerStructure  (2 TODO) }
+  { AoWE.TPlayerStructure  (1 TODO) }
   TPlayerStructure = class(TStructure)
   public
     prop5: Byte;
+    FBitList: TBitList;
     prop7: Byte;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { Altar.TAltar }
-  TAltar = class(TPlayerStructure)
+  { PrdPlace.TProductionPlace }
+  TProductionPlace = class(TPlayerStructure)
   public
-    prop15: Byte;
-    prop16: Byte;
+    field_0x44: TEObject;
+    field_0x49: Byte;
+    field_0x48: Byte;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWEPACK.dpl.TAltarOfDeath: no ReadWrite of its own }
-  TAltarOfDeath = class(TAltar)
+  { AoWEPACK.dpl.TAirNode: no ReadWrite of its own }
+  TAirNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
@@ -806,7 +800,7 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TStructureResource  (2 TODO) }
+  { AoWE.TStructureResource  (3 TODO) }
   TStructureResource = class(TFixedILTerrainMOR)
   public
     prop20: Boolean;
@@ -823,6 +817,32 @@ type
   public
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { PrdPlace.TProductionPlaceResource  (2 TODO) }
+  TProductionPlaceResource = class(TPlayerStructureResource)
+  public
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TAirNodeResource: no ReadWrite of its own }
+  TAirNodeResource = class(TProductionPlaceResource)
+    function ClassID: Integer; override;
+  end;
+
+  { Altar.TAltar }
+  TAltar = class(TPlayerStructure)
+  public
+    prop15: Byte;
+    prop16: Byte;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TAltarOfDeath: no ReadWrite of its own }
+  TAltarOfDeath = class(TAltar)
+    function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TAltarResource: no ReadWrite of its own }
@@ -901,13 +921,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { Animation.TAnimation  (1 TODO) }
+  { Animation.TAnimation }
   TAnimation = class(THexagonSprite)
   public
-    prop10: Byte;
-    field_0x8: Byte;
-    field_0x9: Byte;
-    field_0xa: Byte;
+    prop10: array[0..15] of Byte;
+    prop11: Byte;
+    prop12: Byte;
+    prop13: Byte;
     prop14: Integer;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -928,7 +948,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TAoWCampaign  (11 TODO) }
+  { AoWE.TAoWCampaign  (9 TODO) }
   TAoWCampaign = class(TEObject)
   public
     L_iStack_14: Integer;
@@ -936,7 +956,9 @@ type
     FAoWCampaignScenarioList: TAoWCampaignScenarioList;
     prop12: string;
     prop13: Integer;
+    FIntegerList: TIntegerList;
     prop15: Boolean;
+    FByteList: TByteList;
     prop17: Byte;
     prop19: Byte;
     constructor Create(AOwner: TEObject); override;
@@ -993,15 +1015,17 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TAoWHSMap  (31 TODO) }
+  { AoWE.TAoWHSMap  (30 TODO) }
   TAoWHSMap = class(THSMap)
   public
     prop31: Byte;
     prop7: string;
     FStringList: TStringList;
+    FStringList_2: TStringList;
     prop13: Byte;
     prop16: Byte;
     prop17: Byte;
+    FByteList: TByteList;
     prop19: Integer;
     prop20: string;
     FPlayerList: TPlayerList;
@@ -1021,7 +1045,7 @@ type
     FUnitControl: TUnitControl;
     prop39: Byte;
     FGlobalMagicControl: TGlobalMagicControl;
-    field_EC: Integer;
+    prop41: Integer;
     FTextControl: TTextControl;
     FAoWMapCampaignSettings: TAoWMapCampaignSettings;
     prop45: Byte;
@@ -1041,7 +1065,7 @@ type
     FSonglist: TSonglist;
     prop61: Boolean;
     prop62: Boolean;
-    field_14C: Byte;
+    prop63: Byte;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -1097,11 +1121,10 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { HSEngine.TMapField  (12 TODO) }
+  { HSEngine.TMapField: hand-written in hand/TMapField.decl.inc }
   TMapField = class(TENode)
-  public
+  {$I hand/TMapField.decl.inc}
     function ClassID: Integer; override;
-    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWE.TAoWMapField }
@@ -1112,18 +1135,15 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { HSEngine.TMapLevel  (24 TODO) }
+  { HSEngine.TMapLevel: hand-written in hand/TMapLevel.decl.inc }
   TMapLevel = class(TENode)
-  public
-    L_bStack_24: Byte;
-    L_bStack_23: Byte;
-    L_abStack_22: Byte;
+  {$I hand/TMapLevel.decl.inc}
     function ClassID: Integer; override;
-    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWEPACK.dpl.TAoWMapLevel: no ReadWrite of its own }
+  { AoWEPACK.dpl.TAoWMapLevel: hand-written in hand/TAoWMapLevel.decl.inc }
   TAoWMapLevel = class(TMapLevel)
+  {$I hand/TAoWMapLevel.decl.inc}
     function ClassID: Integer; override;
   end;
 
@@ -1199,9 +1219,11 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { Arena.TArenaTE  (2 TODO) }
+  { Arena.TArenaTE  (1 TODO) }
   TArenaTE = class(TStructureTE)
   public
+    FIntegerList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1229,9 +1251,10 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TMoveArmyTE  (1 TODO) }
+  { AoWE.TMoveArmyTE }
   TMoveArmyTE = class(TMoveTE)
   public
+    FIntegerList: TIntegerList;
     prop31: Byte;
     prop32: Byte;
     prop33: Byte;
@@ -1241,6 +1264,7 @@ type
     prop37: Byte;
     prop38: Byte;
     prop39: Byte;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1272,13 +1296,15 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TArmyEventLog  (3 TODO) }
+  { AoWE.TArmyEventLog  (1 TODO) }
   TArmyEventLog = class(TEventLog)
   public
     FArmy: TArmy;
     FText: string;
     FStringList: TStringList;
     prop18: Integer;
+    FByteList: TByteList;
+    FByteList_2: TByteList;
     prop21: Boolean;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
@@ -1302,11 +1328,13 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TArmyID  (2 TODO) }
+  { AoWE.TArmyID  (1 TODO) }
   TArmyID = class(TEObject)
   public
     prop10: Byte;
     prop11: Integer;
+    FIntegerList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1330,12 +1358,12 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TArmyView  (2 TODO) }
+  { AoWE.TArmyView }
   TArmyView = class(TArmy)
   public
-    prop40: Byte;
+    prop40: array[0..15] of Byte;
     prop41: Word;
-    prop42: Byte;
+    prop42: array[0..31] of Byte;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1371,12 +1399,12 @@ type
   end;
 
   { AoWEPACK.dpl.TBuildersGuild: no ReadWrite of its own }
-  TBuildersGuild = class(TEObject)
+  TBuildersGuild = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TBuildersGuildResource: no ReadWrite of its own }
-  TBuildersGuildResource = class(TEObject)
+  TBuildersGuildResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
@@ -1443,13 +1471,24 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TChangeSongMoveOnEvent: no ReadWrite of its own }
-  TChangeSongMoveOnEvent = class(TEObject)
-    function ClassID: Integer; override;
+  { MoveOnEvents.TMoveOnEvent }
+  TMoveOnEvent = class(TMapObject)
+  public
+    prop30: Integer;
+    prop31: Byte;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TChangeSongMoveOnEventResource: no ReadWrite of its own }
-  TChangeSongMoveOnEventResource = class(TEObject)
+  { MoveOnEvents.TChangeSongMoveOnEvent }
+  TChangeSongMoveOnEvent = class(TMoveOnEvent)
+  public
+    prop40: string;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TChangeSongMoveOnEventResource: no ReadWrite of its own }
+  TChangeSongMoveOnEventResource = class(TMapObjectResource)
     function ClassID: Integer; override;
   end;
 
@@ -1467,7 +1506,7 @@ type
     function ClassID: Integer; override;
   end;
 
-  { City.TCity }
+  { City.TCity  (1 TODO) }
   TCity = class(TPlayerCropStructure)
   public
     FName: string;
@@ -1566,7 +1605,7 @@ type
     function ClassID: Integer; override;
   end;
 
-  { CombatILTer.TCombatILTerrainResource }
+  { CombatILTer.TCombatILTerrainResource  (1 TODO) }
   TCombatILTerrainResource = class(TILTerrainMOR)
   public
     prop20: Byte;
@@ -1585,6 +1624,7 @@ type
   TCombat = class(TEObject)
   public
     FCombatSide: TCombatSide;
+    FCombatSide_2: TCombatSide;
     FCombatLogbook: TEObject;
     FCombatData: TCombatData;
     constructor Create(AOwner: TEObject); override;
@@ -1595,16 +1635,16 @@ type
   TCombatActionList = class(TENode)
   end;
 
-  { AoWE.TCombatData  (4 TODO) }
+  { AoWE.TCombatData  (1 TODO) }
   TCombatData = class(TEObject)
   public
-    field_0x8: Integer;
+    prop10: Integer;
     prop11: Integer;
     prop12: Integer;
     prop13: array[0..1] of Byte;
     prop14: Byte;
     prop15: Byte;
-    prop10: Byte;
+    prop16: Byte;
     prop17: Integer;
     FCombatPlayerList: TCombatPlayerList;
     FENode: TENode;
@@ -1613,8 +1653,11 @@ type
     prop22: Integer;
     prop23: Integer;
     prop24: Integer;
+    FByteList_2: TByteList;
+    FByteList_3: TByteList;
     prop27: Byte;
     prop28: Boolean;
+    FByteList: TByteList;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -1641,6 +1684,7 @@ type
   TCombatLogbook = class(TEObject)
   public
     FCombatData: TCombatData;
+    FCombatData_2: TCombatData;
     FCombatActionList: TCombatActionList;
     prop8: Boolean;
     constructor Create(AOwner: TEObject); override;
@@ -1745,7 +1789,7 @@ type
   TCombatUnit = class(TCombatObject)
   public
     FAbilityOwner: TEObject;
-    field_0x54: Boolean;
+    prop21: Boolean;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1759,10 +1803,12 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TCommandAbilityData  (2 TODO) }
+  { AoWE.TCommandAbilityData  (1 TODO) }
   TCommandAbilityData = class(TAbilityData)
   public
     FAbilityID: Integer;
+    FByteList: TByteList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1834,13 +1880,45 @@ type
     function ClassID: Integer; override;
   end;
 
+  { ExploreS.TExplorationSite }
+  TExplorationSite = class(TStructure)
+  public
+    FArmy: TArmy;
+    prop6: Byte;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { ItemExpS.TItemExplorationSite }
+  TItemExplorationSite = class(TExplorationSite)
+  public
+    field_0x3c: TEObject;
+    field_0x38: Byte;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
   { AoWEPACK.dpl.TCrypt: no ReadWrite of its own }
-  TCrypt = class(TEObject)
+  TCrypt = class(TItemExplorationSite)
+    function ClassID: Integer; override;
+  end;
+
+  { ExploreS.TExplorationSiteResource  (2 TODO) }
+  TExplorationSiteResource = class(TStructureResource)
+  public
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TItemExplorationSiteResource: no ReadWrite of its own }
+  TItemExplorationSiteResource = class(TExplorationSiteResource)
     function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TCryptResource: no ReadWrite of its own }
-  TCryptResource = class(TEObject)
+  TCryptResource = class(TItemExplorationSiteResource)
     function ClassID: Integer; override;
   end;
 
@@ -1866,17 +1944,17 @@ type
   end;
 
   { AoWEPACK.dpl.TDeathNode: no ReadWrite of its own }
-  TDeathNode = class(TEObject)
+  TDeathNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TDeathNodeResource: no ReadWrite of its own }
-  TDeathNodeResource = class(TEObject)
+  TDeathNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TDeathStorm: no ReadWrite of its own }
-  TDeathStorm = class(TEObject)
+  { AoWEPACK.dpl.TDeathStorm: no ReadWrite of its own }
+  TDeathStorm = class(TAnimation)
     function ClassID: Integer; override;
   end;
 
@@ -1958,9 +2036,11 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TDispelMagicCA  (2 TODO) }
+  { AoWE.TDispelMagicCA  (1 TODO) }
   TDispelMagicCA = class(TSingleTargetCA)
   public
+    FIntegerList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
@@ -1989,39 +2069,26 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TDispelMagicSpellCA: no ReadWrite of its own }
-  TDispelMagicSpellCA = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TDivineStorm: no ReadWrite of its own }
-  TDivineStorm = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ExploreS.TExplorationSite }
-  TExplorationSite = class(TStructure)
+  { UnitSpells.TDispelMagicSpellCA }
+  TDispelMagicSpellCA = class(TDispelMagicCA)
   public
-    FArmy: TArmy;
-    prop6: Byte;
-    constructor Create(AOwner: TEObject); override;
+    field_0x14: Integer;
+    field_0x18: Integer;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TDivineStorm: no ReadWrite of its own }
+  TDivineStorm = class(TAnimation)
+    function ClassID: Integer; override;
   end;
 
   { Dungeon.TDungeon }
   TDungeon = class(TExplorationSite)
   public
-    FArmy: TArmy;
+    FArmy_2: TArmy;
     prop9: Byte;
     constructor Create(AOwner: TEObject); override;
-    function ClassID: Integer; override;
-    procedure ReadWrite(Stream: TEStorageStream); override;
-  end;
-
-  { ExploreS.TExplorationSiteResource  (2 TODO) }
-  TExplorationSiteResource = class(TStructureResource)
-  public
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -2096,12 +2163,12 @@ type
   end;
 
   { AoWEPACK.dpl.TEarthNode: no ReadWrite of its own }
-  TEarthNode = class(TEObject)
+  TEarthNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TEarthNodeResource: no ReadWrite of its own }
-  TEarthNodeResource = class(TEObject)
+  TEarthNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
@@ -2187,7 +2254,7 @@ type
   TFaceResourceList = class(TEResourceList)
   end;
 
-  { Farm.TFarm }
+  { Farm.TFarm  (1 TODO) }
   TFarm = class(TPlayerCropStructure)
   public
     prop20: Byte;
@@ -2205,13 +2272,15 @@ type
     function ClassID: Integer; override;
   end;
 
-  { CombatSpells.TMultiTargetCombatSpellCA  (1 TODO) }
+  { CombatSpells.TMultiTargetCombatSpellCA }
   TMultiTargetCombatSpellCA = class(TEObject)
   public
     prop20: Byte;
+    FByteList: TByteList;
     prop22: Integer;
     prop23: Boolean;
     prop24: Integer;
+    constructor Create(AOwner: TEObject); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
@@ -2233,7 +2302,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TFire }
+  { AoWE.TFire  (1 TODO) }
   TFire = class(TILTerrainMO)
   public
     prop5: Byte;
@@ -2263,16 +2332,16 @@ type
   end;
 
   { AoWEPACK.dpl.TFireNode: no ReadWrite of its own }
-  TFireNode = class(TEObject)
+  TFireNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TFireNodeResource: no ReadWrite of its own }
-  TFireNodeResource = class(TEObject)
+  TFireNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TFireResource }
+  { AoWE.TFireResource  (1 TODO) }
   TFireResource = class(TILTerrainMOR)
   public
     prop20: Byte;
@@ -2280,8 +2349,8 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TFireStorm: no ReadWrite of its own }
-  TFireStorm = class(TEObject)
+  { AoWEPACK.dpl.TFireStorm: no ReadWrite of its own }
+  TFireStorm = class(TAnimation)
     function ClassID: Integer; override;
   end;
 
@@ -2321,6 +2390,7 @@ type
   public
     prop20: Integer;
     prop21: Integer;
+    prop22: Integer;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
@@ -2337,8 +2407,8 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TFortifyAG: no ReadWrite of its own }
-  TFortifyAG = class(TEObject)
+  { AoWEPACK.dpl.TFortifyAG: no ReadWrite of its own }
+  TFortifyAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -2374,7 +2444,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { Gems.TGems }
+  { Gems.TGems  (1 TODO) }
   TGems = class(TILTerrainMO)
   public
     prop5: Integer;
@@ -2408,24 +2478,27 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TGlobalMagicControl  (2 TODO) }
+  { AoWE.TGlobalMagicControl  (1 TODO) }
   TGlobalMagicControl = class(TEObject)
   public
     FGlobalEnchantmentList: TGlobalEnchantmentList;
     prop11: Integer;
-    prop0: Byte;
+    prop0: array[0..35] of Byte;
     constructor Create(AOwner: TEObject); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TGuardAG: no ReadWrite of its own }
-  TGuardAG = class(TEObject)
+  { AoWEPACK.dpl.TGuardAG: no ReadWrite of its own }
+  TGuardAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
-  { ?.TGuardAreaAG: no ReadWrite of its own }
-  TGuardAreaAG = class(TEObject)
+  { IndependentAG.TGuardAreaAG }
+  TGuardAreaAG = class(TAIGroup)
+  public
+    field_0x50: Integer;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWEPACK.dpl.TGuardAreaGC: no ReadWrite of its own }
@@ -2514,7 +2587,7 @@ type
     FUnitLevel: Byte;
     prop23: Boolean;
     FExperience: Integer;
-    field_55: Byte;
+    prop25: Byte;
     prop26: Integer;
     prop27: Byte;
     FMovePoints: Byte;
@@ -2564,10 +2637,11 @@ type
   THeroItems = class(TItemList)
   end;
 
-  { AoWE.TJoinEventLog  (1 TODO) }
+  { AoWE.TJoinEventLog }
   TJoinEventLog = class(TEventLog)
   public
     prop21: Integer;
+    FIntegerList: TIntegerList;
     prop23: Byte;
     FStringList: TStringList;
     prop25: Integer;
@@ -2607,13 +2681,13 @@ type
   { AoWE.THeroResource  (2 TODO) }
   THeroResource = class(TAbstractUnitResource)
   public
-    field_0x1c: string;
+    prop10: string;
     prop11: Byte;
     prop12: Byte;
     prop13: Byte;
     prop14: Boolean;
     prop15: Byte;
-    prop10: Byte;
+    prop16: Byte;
     prop17: Byte;
     prop18: Byte;
     prop19: Byte;
@@ -2673,13 +2747,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.THexagonBridge: no ReadWrite of its own }
-  THexagonBridge = class(TEObject)
+  { AoWEPACK.dpl.THexagonBridge: no ReadWrite of its own }
+  THexagonBridge = class(TAbstractRoad)
     function ClassID: Integer; override;
   end;
 
-  { ?.THexagonBridgeResource: no ReadWrite of its own }
-  THexagonBridgeResource = class(TEObject)
+  { AoWEPACK.dpl.THexagonBridgeResource: no ReadWrite of its own }
+  THexagonBridgeResource = class(TMapObjectResource)
     function ClassID: Integer; override;
   end;
 
@@ -2688,40 +2762,52 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.THillMO: no ReadWrite of its own }
-  THillMO = class(TEObject)
+  { HSEPack.dpl.TTerrainMO: no ReadWrite of its own }
+  TTerrainMO = class(TMultiHexMO)
     function ClassID: Integer; override;
   end;
 
-  { ?.THillMOR: no ReadWrite of its own }
-  THillMOR = class(TEObject)
+  { AoWEPACK.dpl.THillMO: no ReadWrite of its own }
+  THillMO = class(TTerrainMO)
     function ClassID: Integer; override;
   end;
 
-  { ?.THolyGround: no ReadWrite of its own }
-  THolyGround = class(TEObject)
+  { AoWEPACK.dpl.THillMOR: no ReadWrite of its own }
+  THillMOR = class(TTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.THolyGroundResource: no ReadWrite of its own }
-  THolyGroundResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.THolyGroundSpellTE: no ReadWrite of its own }
-  THolyGroundSpellTE = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { AoWE.THuntAG  (2 TODO) }
-  THuntAG = class(TAIGroup)
+  { HolyG.THolyGround  (1 TODO) }
+  THolyGround = class(TILTerrainMO)
   public
+    prop40: Shortint;
+    prop41: Shortint;
+    prop42: Shortint;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TIceStorm: no ReadWrite of its own }
-  TIceStorm = class(TEObject)
+  { AoWEPACK.dpl.THolyGroundResource: no ReadWrite of its own }
+  THolyGroundResource = class(TILTerrainMOR)
+    function ClassID: Integer; override;
+  end;
+
+  { AoWEPACK.dpl.THolyGroundSpellTE: no ReadWrite of its own }
+  THolyGroundSpellTE = class(TGlobalTargetSpellTE)
+    function ClassID: Integer; override;
+  end;
+
+  { AoWE.THuntAG  (1 TODO) }
+  THuntAG = class(TAIGroup)
+  public
+    FIntegerList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TIceStorm: no ReadWrite of its own }
+  TIceStorm = class(TAnimation)
     function ClassID: Integer; override;
   end;
 
@@ -2739,13 +2825,13 @@ type
     FItemGFXIndex: Integer;
     FOwnerName: string;
     prop9: string;
-    field_0x45: Byte;
+    prop10: Byte;
     prop11: Byte;
     prop12: Byte;
     prop13: Byte;
     prop14: Byte;
     prop15: Byte;
-    prop10: Boolean;
+    prop16: Boolean;
     prop17: Integer;
     FStringList: TStringList;
     FObtainValue: Integer;
@@ -2757,26 +2843,19 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TItemControl  (8 TODO) }
+  { AoWE.TItemControl: hand-written in hand/TItemControl.decl.inc }
   TItemControl = class(TEObject)
+  {$I hand/TItemControl.decl.inc}
+  end;
+
+  { ItemExpS.TItemExplorationSiteEventLog  (1 TODO) }
+  TItemExplorationSiteEventLog = class(TEventLog)
   public
-    prop9: Integer;
+    field_0x1c: TStringList;
+    field_0x20: string;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
-  end;
-
-  { ?.TItemExplorationSite: no ReadWrite of its own }
-  TItemExplorationSite = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TItemExplorationSiteEventLog: no ReadWrite of its own }
-  TItemExplorationSiteEventLog = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TItemExplorationSiteResource: no ReadWrite of its own }
-  TItemExplorationSiteResource = class(TEObject)
-    function ClassID: Integer; override;
   end;
 
   { AoWE.TItemGFX }
@@ -2830,10 +2909,12 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TLeader  (2 TODO) }
+  { AoWE.TLeader  (1 TODO) }
   TLeader = class(THero)
   public
     FSpherePicksMax: Byte;
+    FByteList: TByteList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -2878,56 +2959,58 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TLifeNode: no ReadWrite of its own }
-  TLifeNode = class(TEObject)
+  { AoWEPACK.dpl.TLifeNode: no ReadWrite of its own }
+  TLifeNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
-  { ?.TLifeNodeResource: no ReadWrite of its own }
-  TLifeNodeResource = class(TEObject)
+  { AoWEPACK.dpl.TLifeNodeResource: no ReadWrite of its own }
+  TLifeNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TLightningStorm: no ReadWrite of its own }
-  TLightningStorm = class(TEObject)
+  { AoWEPACK.dpl.TLightningStorm: no ReadWrite of its own }
+  TLightningStorm = class(TAnimation)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMagicSanctuary: no ReadWrite of its own }
-  TMagicSanctuary = class(TEObject)
+  { AoWEPACK.dpl.TMagicSanctuary: no ReadWrite of its own }
+  TMagicSanctuary = class(TStructure)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMagicSanctuaryResource: no ReadWrite of its own }
-  TMagicSanctuaryResource = class(TEObject)
+  { AoWEPACK.dpl.TMagicSanctuaryResource: no ReadWrite of its own }
+  TMagicSanctuaryResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TManaCrystals: no ReadWrite of its own }
-  TManaCrystals = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TManaCrystalsResource: no ReadWrite of its own }
-  TManaCrystalsResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { HSEngine.TMapContainer  (10 TODO) }
-  TMapContainer = class(TENode)
+  { ManaCrystals.TManaCrystals  (1 TODO) }
+  TManaCrystals = class(TILTerrainMO)
   public
-    L_uStack_10: Byte;
+    prop5: Integer;
+    prop6: Byte;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TMerchant: no ReadWrite of its own }
-  TMerchant = class(TEObject)
+  { AoWEPACK.dpl.TManaCrystalsResource: no ReadWrite of its own }
+  TManaCrystalsResource = class(TILTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMerchantResource: no ReadWrite of its own }
-  TMerchantResource = class(TEObject)
+  { HSEngine.TMapContainer: hand-written in hand/TMapContainer.decl.inc }
+  TMapContainer = class(TENode)
+  {$I hand/TMapContainer.decl.inc}
+    function ClassID: Integer; override;
+  end;
+
+  { AoWEPACK.dpl.TMerchant: no ReadWrite of its own }
+  TMerchant = class(TStructure)
+    function ClassID: Integer; override;
+  end;
+
+  { AoWEPACK.dpl.TMerchantResource: no ReadWrite of its own }
+  TMerchantResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -2947,33 +3030,36 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TMine: no ReadWrite of its own }
-  TMine = class(TEObject)
+  { Mine.TMine }
+  TMine = class(TPlayerStructure)
+  public
+    field_0x3c: Byte;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TMineResource: no ReadWrite of its own }
+  TMineResource = class(TPlayerStructureResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMineResource: no ReadWrite of its own }
-  TMineResource = class(TEObject)
+  { AoWEPACK.dpl.TMonsterlair: no ReadWrite of its own }
+  TMonsterlair = class(TItemExplorationSite)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMonsterlair: no ReadWrite of its own }
-  TMonsterlair = class(TEObject)
+  { AoWEPACK.dpl.TMonsterlairResource: no ReadWrite of its own }
+  TMonsterlairResource = class(TItemExplorationSiteResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMonsterlairResource: no ReadWrite of its own }
-  TMonsterlairResource = class(TEObject)
+  { AoWEPACK.dpl.TMountainMO: no ReadWrite of its own }
+  TMountainMO = class(TTerrainMO)
     function ClassID: Integer; override;
   end;
 
-  { ?.TMountainMO: no ReadWrite of its own }
-  TMountainMO = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TMountainMOR: no ReadWrite of its own }
-  TMountainMOR = class(TEObject)
+  { AoWEPACK.dpl.TMountainMOR: no ReadWrite of its own }
+  TMountainMOR = class(TAoWTerrainResource)
     function ClassID: Integer; override;
   end;
 
@@ -3055,14 +3141,17 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TOverlayObject: no ReadWrite of its own }
-  TOverlayObject = class(TEObject)
+  { AoWEPACK.dpl.TOverlayObject: no ReadWrite of its own }
+  TOverlayObject = class(TFixedILTerrainMO)
     function ClassID: Integer; override;
   end;
 
-  { ?.TOverlayObjectResource: no ReadWrite of its own }
-  TOverlayObjectResource = class(TEObject)
+  { OverlayObject.TOverlayObjectResource  (1 TODO) }
+  TOverlayObjectResource = class(TFixedILTerrainMOR)
+  public
+    prop40: Integer;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWEPACK.dpl.TTurnPlayerControl: no ReadWrite of its own }
@@ -3084,18 +3173,18 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TPad: no ReadWrite of its own }
-  TPad = class(TEObject)
+  { AoWEPACK.dpl.TPad: no ReadWrite of its own }
+  TPad = class(TFixedILTerrainMO)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPadResource: no ReadWrite of its own }
-  TPadResource = class(TEObject)
+  { AoWEPACK.dpl.TPadResource: no ReadWrite of its own }
+  TPadResource = class(TFixedILTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPassiveAG: no ReadWrite of its own }
-  TPassiveAG = class(TEObject)
+  { AoWEPACK.dpl.TPassiveAG: no ReadWrite of its own }
+  TPassiveAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -3104,9 +3193,15 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TPatrolAG: no ReadWrite of its own }
-  TPatrolAG = class(TEObject)
+  { IndependentAG.TPatrolAG }
+  TPatrolAG = class(TAIGroup)
+  public
+    field_0x50: Integer;
+    field_0x54: Integer;
+    field_0x58: Byte;
+    field_0x5c: Integer;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWEPACK.dpl.TPatrolGC: no ReadWrite of its own }
@@ -3114,62 +3209,28 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TPestilenceStorm: no ReadWrite of its own }
-  TPestilenceStorm = class(TEObject)
+  { AoWEPACK.dpl.TPestilenceStorm: no ReadWrite of its own }
+  TPestilenceStorm = class(TAnimation)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPlaySampleMoveOnEvent: no ReadWrite of its own }
-  TPlaySampleMoveOnEvent = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TPlaySampleMoveOnEventResource: no ReadWrite of its own }
-  TPlaySampleMoveOnEventResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { AoWE.TPlayer  (26 TODO) }
-  TPlayer = class(TEObject)
+  { MoveOnEvents.TPlaySampleMoveOnEvent }
+  TPlaySampleMoveOnEvent = class(TMoveOnEvent)
   public
-    FRace: Byte;
-    field_A7: Byte;
-    prop4: Boolean;
-    prop5: Integer;
-    prop6: Integer;
-    field_45: Byte;
-    prop11: string;
-    prop12: string;
-    FGems: Integer;
-    FPlayerIndex: Byte;
-    FLeader: TEObject;
-    prop20: Byte;
-    prop21: Byte;
-    prop22: Byte;
-    FEventLogbook: TEventLogbook;
-    prop24: string;
-    prop25: Byte;
-    prop27: Byte;
-    FAIPlayerControl: TAIPlayerControl;
-    prop29: Byte;
-    FPlayerMagicControl: TPlayerMagicControl;
-    prop34: Integer;
-    FPlayerStatistics: TPlayerStatistics;
-    prop36: Integer;
-    prop37: Integer;
-    prop38: Integer;
-    prop39: Integer;
-    FStringList: TStringList;
-    prop50: Integer;
-    FAIBudgetManager: TAIBudgetManager;
-    FDiplomaticActionList: TDiplomaticActionList;
-    FPBEMPlayerSettings: TPBEMPlayerSettings;
-    prop56: Boolean;
-    prop57: Integer;
-    FPlayerDiplomaticRelations: TPlayerDiplomaticRelations;
-    constructor Create(AOwner: TEObject); override;
+    prop40: string;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TPlaySampleMoveOnEventResource: no ReadWrite of its own }
+  TPlaySampleMoveOnEventResource = class(TMapObjectResource)
+    function ClassID: Integer; override;
+  end;
+
+  { AoWE.TPlayer: hand-written in hand/TPlayer.decl.inc }
+  TPlayer = class(TEObject)
+  {$I hand/TPlayer.decl.inc}
+    function ClassID: Integer; override;
   end;
 
   { NetworkE.TPlayerCommunicationSettings }
@@ -3180,9 +3241,10 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TPlayerDiplomaticRelations  (2 TODO) }
+  { AoWE.TPlayerDiplomaticRelations  (1 TODO) }
   TPlayerDiplomaticRelations = class(TEObject)
   public
+    FByteList: TByteList;
     FENode: TENode;
     constructor Create(AOwner: TEObject); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -3192,11 +3254,12 @@ type
   TPlayerList = class(TEControlStyleNode)
   end;
 
-  { AoWE.TPlayerMagicControl  (1 TODO) }
+  { AoWE.TPlayerMagicControl }
   TPlayerMagicControl = class(TEObject)
   public
     prop20: Integer;
     prop21: Integer;
+    FIntegerList: TIntegerList;
     prop23: Integer;
     prop24: Integer;
     FEnchantmentList: TEnchantmentList;
@@ -3224,13 +3287,13 @@ type
   { AoWSetup.TPlayerSetupSettings }
   TPlayerSetupSettings = class(TEObject)
   public
-    field_0x20: Byte;
+    prop10: Byte;
     prop11: array[0..7] of Byte;
     prop12: Byte;
     prop13: Byte;
     FLeader: TLeader;
     prop15: Byte;
-    prop10: array[0..7] of Byte;
+    prop16: array[0..7] of Byte;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -3254,28 +3317,39 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TPoisonCloud: no ReadWrite of its own }
-  TPoisonCloud = class(TEObject)
+  { PoisonC.TPoisonCloud }
+  TPoisonCloud = class(TMultiHexMO)
+  public
+    prop15: Byte;
+    prop16: Integer;
+    prop17: Boolean;
+    prop18: Byte;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TPoisonCloudResource: no ReadWrite of its own }
+  TPoisonCloudResource = class(TMultiHexMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPoisonCloudResource: no ReadWrite of its own }
-  TPoisonCloudResource = class(TEObject)
+  { PoisonP.TPoisonPlant  (1 TODO) }
+  TPoisonPlant = class(TILTerrainMO)
+  public
+    prop40: Shortint;
+    prop41: Shortint;
+    prop42: Shortint;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TPoisonPlantResource: no ReadWrite of its own }
+  TPoisonPlantResource = class(TILTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPoisonPlant: no ReadWrite of its own }
-  TPoisonPlant = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TPoisonPlantResource: no ReadWrite of its own }
-  TPoisonPlantResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TPoisonPlantSpellTE: no ReadWrite of its own }
-  TPoisonPlantSpellTE = class(TEObject)
+  { AoWEPACK.dpl.TPoisonPlantSpellTE: no ReadWrite of its own }
+  TPoisonPlantSpellTE = class(TGlobalTargetSpellTE)
     function ClassID: Integer; override;
   end;
 
@@ -3300,13 +3374,16 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TPowerNode: no ReadWrite of its own }
-  TPowerNode = class(TEObject)
+  { PowerNode.TPowerNode }
+  TPowerNode = class(TPlayerStructure)
+  public
+    field_0x3c: Byte;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TPowerNodeResource: no ReadWrite of its own }
-  TPowerNodeResource = class(TEObject)
+  { AoWEPACK.dpl.TPowerNodeResource: no ReadWrite of its own }
+  TPowerNodeResource = class(TPlayerStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -3332,18 +3409,8 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TProductionPlace: no ReadWrite of its own }
-  TProductionPlace = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TProductionPlaceEventLog: no ReadWrite of its own }
-  TProductionPlaceEventLog = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TProductionPlaceResource: no ReadWrite of its own }
-  TProductionPlaceResource = class(TEObject)
+  { AoWEPACK.dpl.TProductionPlaceEventLog: no ReadWrite of its own }
+  TProductionPlaceEventLog = class(TProductionEventLog)
     function ClassID: Integer; override;
   end;
 
@@ -3354,13 +3421,13 @@ type
   { AoWE.TProductionSettings }
   TProductionSettings = class(TEObject)
   public
-    field_0x8: Integer;
+    prop10: Integer;
     prop11: Integer;
     prop12: Byte;
     prop13: Byte;
     prop14: Byte;
     prop15: Integer;
-    prop10: Integer;
+    prop16: Integer;
     prop17: TEObject;
     prop18: Integer;
     prop19: Integer;
@@ -3383,24 +3450,20 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TPyramid: no ReadWrite of its own }
-  TPyramid = class(TEObject)
+  { AoWEPACK.dpl.TPyramid: no ReadWrite of its own }
+  TPyramid = class(TItemExplorationSite)
     function ClassID: Integer; override;
   end;
 
-  { ?.TPyramidResource: no ReadWrite of its own }
-  TPyramidResource = class(TEObject)
+  { AoWEPACK.dpl.TPyramidResource: no ReadWrite of its own }
+  TPyramidResource = class(TItemExplorationSiteResource)
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TRace  (8 TODO) }
+  { AoWE.TRace: hand-written in hand/TRace.decl.inc }
   TRace = class(TEObject)
-  public
-    FRace: Byte;
-    L_pcStack_18: Boolean;
-    prop4: Boolean;
+  {$I hand/TRace.decl.inc}
     function ClassID: Integer; override;
-    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWE.TRaceList }
@@ -3410,7 +3473,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TRaceResource  (2 TODO) }
+  { AoWE.TRaceResource }
   TRaceResource = class(TEResource)
   public
     prop5: string;
@@ -3418,6 +3481,8 @@ type
     prop7: string;
     prop8: string;
     prop9: Byte;
+    FUnitIndexList: TIntegerList;
+    FUnitIndexList_2: TIntegerList;
     prop12: Integer;
     FStringList: TStringList;
     constructor Create(AOwner: TEObject); override;
@@ -3429,33 +3494,38 @@ type
   TRaceResourceList = class(TEResourceList)
   end;
 
-  { ?.TRaidAG: no ReadWrite of its own }
-  TRaidAG = class(TEObject)
+  { AoWEPACK.dpl.TRaidAG: no ReadWrite of its own }
+  TRaidAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
-  { ?.TRaiseTerrainTE: no ReadWrite of its own }
-  TRaiseTerrainTE = class(TEObject)
+  { AoWEPACK.dpl.TRaiseTerrainTE: no ReadWrite of its own }
+  TRaiseTerrainTE = class(TGlobalTargetSpellTE)
     function ClassID: Integer; override;
   end;
 
-  { ?.TRaisedMountain: no ReadWrite of its own }
-  TRaisedMountain = class(TEObject)
+  { Mountain.TRaisedMountain  (1 TODO) }
+  TRaisedMountain = class(TILTerrainMO)
+  public
+    prop40: Shortint;
+    prop41: Shortint;
+    prop42: Shortint;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TRaisedMountainResource: no ReadWrite of its own }
+  TRaisedMountainResource = class(TILTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TRaisedMountainResource: no ReadWrite of its own }
-  TRaisedMountainResource = class(TEObject)
+  { AoWEPACK.dpl.TRandomNode: no ReadWrite of its own }
+  TRandomNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
-  { ?.TRandomNode: no ReadWrite of its own }
-  TRandomNode = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TRandomNodeResource: no ReadWrite of its own }
-  TRandomNodeResource = class(TEObject)
+  { AoWEPACK.dpl.TRandomNodeResource: no ReadWrite of its own }
+  TRandomNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
@@ -3472,18 +3542,20 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TReflectingPool: no ReadWrite of its own }
-  TReflectingPool = class(TEObject)
+  { ReflectingPool.TReflectingPool }
+  TReflectingPool = class(TPlayerStructure)
+  public
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TReflectingPoolResource: no ReadWrite of its own }
+  TReflectingPoolResource = class(TPlayerStructureResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TReflectingPoolResource: no ReadWrite of its own }
-  TReflectingPoolResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TRefugeAG: no ReadWrite of its own }
-  TRefugeAG = class(TEObject)
+  { AoWEPACK.dpl.TRefugeAG: no ReadWrite of its own }
+  TRefugeAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -3533,18 +3605,32 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TRuin: no ReadWrite of its own }
-  TRuin = class(TEObject)
+  { AoWEPACK.dpl.TRuin: no ReadWrite of its own }
+  TRuin = class(TItemExplorationSite)
     function ClassID: Integer; override;
   end;
 
-  { ?.TRuinResource: no ReadWrite of its own }
-  TRuinResource = class(TEObject)
+  { AoWEPACK.dpl.TRuinResource: no ReadWrite of its own }
+  TRuinResource = class(TItemExplorationSiteResource)
     function ClassID: Integer; override;
+  end;
+
+  { Sound.TSFX }
+  TSFX = class(TEObject)
+  public
+    field_0x8: string;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { SoundP.dpl.TSFXLibrary: no ReadWrite of its own }
   TSFXLibrary = class(TENode)
+  end;
+
+  { Sound.TSFXSequence }
+  TSFXSequence = class(TENode)
+  public
+    field_0xc: Integer;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWE.TSaveGameTE }
@@ -3560,8 +3646,8 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TScoutAG: no ReadWrite of its own }
-  TScoutAG = class(TEObject)
+  { AoWEPACK.dpl.TScoutAG: no ReadWrite of its own }
+  TScoutAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -3589,13 +3675,13 @@ type
   { AoWSetup.TSetupSettings }
   TSetupSettings = class(TENode)
   public
-    field_0x10: string;
+    prop10: string;
     prop11: Byte;
     prop12: Boolean;
     prop13: string;
     prop14: Byte;
     prop15: Byte;
-    prop10: Boolean;
+    prop16: Boolean;
     prop17: Integer;
     prop18: Boolean;
     prop19: Integer;
@@ -3614,13 +3700,13 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TShipyard: no ReadWrite of its own }
-  TShipyard = class(TEObject)
+  { AoWEPACK.dpl.TShipyard: no ReadWrite of its own }
+  TShipyard = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
-  { ?.TShipyardResource: no ReadWrite of its own }
-  TShipyardResource = class(TEObject)
+  { AoWEPACK.dpl.TShipyardResource: no ReadWrite of its own }
+  TShipyardResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
@@ -3638,23 +3724,31 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TShowMessageMoveOnEvent: no ReadWrite of its own }
-  TShowMessageMoveOnEvent = class(TEObject)
+  { MoveOnEvents.TShowMessageMoveOnEvent }
+  TShowMessageMoveOnEvent = class(TMoveOnEvent)
+  public
+    FStringList: TStringList;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TShowMessageMoveOnEventResource: no ReadWrite of its own }
+  TShowMessageMoveOnEventResource = class(TMapObjectResource)
     function ClassID: Integer; override;
   end;
 
-  { ?.TShowMessageMoveOnEventResource: no ReadWrite of its own }
-  TShowMessageMoveOnEventResource = class(TEObject)
+  { Sign.TSign  (3 TODO) }
+  TSign = class(TStructure)
+  public
+    field_0x30: TStringList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TSign: no ReadWrite of its own }
-  TSign = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { ?.TSignResource: no ReadWrite of its own }
-  TSignResource = class(TEObject)
+  { AoWEPACK.dpl.TSignResource: no ReadWrite of its own }
+  TSignResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -3673,28 +3767,41 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TSmokeCloud: no ReadWrite of its own }
-  TSmokeCloud = class(TEObject)
+  { SmokeCloud.TSmokeCloud }
+  TSmokeCloud = class(TMultiHexMO)
+  public
+    prop15: Byte;
+    prop16: Integer;
+    prop17: Boolean;
+    prop18: Byte;
+    FSmokeCloudEnchantment: TSmokeCloudEnchantment;
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TSmokeCloudEnchantment: no ReadWrite of its own }
+  TSmokeCloudEnchantment = class(TGlobalEnchantment)
     function ClassID: Integer; override;
   end;
 
-  { ?.TSmokeCloudEnchantment: no ReadWrite of its own }
-  TSmokeCloudEnchantment = class(TEObject)
+  { AoWEPACK.dpl.TSmokeCloudResource: no ReadWrite of its own }
+  TSmokeCloudResource = class(TMultiHexMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TSmokeCloudResource: no ReadWrite of its own }
-  TSmokeCloudResource = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { SoundP.dpl.TSonglist: no ReadWrite of its own }
+  { Sound.TSonglist }
   TSonglist = class(TEObject)
+  public
+    field_0x8: TStringList;
+    constructor Create(AOwner: TEObject); override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TSpell  (2 TODO) }
+  { AoWE.TSpell  (1 TODO) }
   TSpell = class(TEObject)
   public
+    prop10: TStringList;
     FSFXLibrary: TSFXLibrary;
     prop13: Integer;
     prop14: Integer;
@@ -3725,13 +3832,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TSpringOfLife: no ReadWrite of its own }
-  TSpringOfLife = class(TEObject)
+  { AoWEPACK.dpl.TSpringOfLife: no ReadWrite of its own }
+  TSpringOfLife = class(TStructure)
     function ClassID: Integer; override;
   end;
 
-  { ?.TSpringOfLifeResource: no ReadWrite of its own }
-  TSpringOfLifeResource = class(TEObject)
+  { AoWEPACK.dpl.TSpringOfLifeResource: no ReadWrite of its own }
+  TSpringOfLifeResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -3739,9 +3846,14 @@ type
   TStartupSongList = class(TSonglist)
   end;
 
-  { ?.TStormSpellTE: no ReadWrite of its own }
-  TStormSpellTE = class(TEObject)
+  { Storms.TStormSpellTE }
+  TStormSpellTE = class(TSpellTE)
+  public
+    field_0x24: Byte;
+    field_0x25: Byte;
+    field_0x26: Byte;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { AoWE.TStrikeCA }
@@ -3760,8 +3872,8 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TSuicidalAG: no ReadWrite of its own }
-  TSuicidalAG = class(TEObject)
+  { AoWEPACK.dpl.TSuicidalAG: no ReadWrite of its own }
+  TSuicidalAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -3770,9 +3882,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TSummonSpellTE: no ReadWrite of its own }
-  TSummonSpellTE = class(TEObject)
+  { SummonSpells.TSummonSpellTE  (1 TODO) }
+  TSummonSpellTE = class(TSpellTE)
+  public
+    FUnitIndexList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { NetworkE.TSyncTE }
@@ -3798,13 +3914,19 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TTeleport: no ReadWrite of its own }
-  TTeleport = class(TEObject)
+  { Teleport.TTeleport }
+  TTeleport = class(TStructure)
+  public
+    field_0x30: Byte;
+    field_0x31: Byte;
+    field_0x32: Byte;
+    field_0x33: Byte;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TTeleportResource: no ReadWrite of its own }
-  TTeleportResource = class(TEObject)
+  { AoWEPACK.dpl.TTeleportResource: no ReadWrite of its own }
+  TTeleportResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -3814,11 +3936,6 @@ type
     prop20: Byte;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
-  end;
-
-  { HSEPack.dpl.TTerrainMO: no ReadWrite of its own }
-  TTerrainMO = class(TMultiHexMO)
-    function ClassID: Integer; override;
   end;
 
   { AoWEPACK.dpl.TTextControl: no ReadWrite of its own }
@@ -3860,13 +3977,16 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TTower: no ReadWrite of its own }
-  TTower = class(TEObject)
+  { Tower.TTower }
+  TTower = class(TPlayerStructure)
+  public
+    field_0x3c: Byte;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TTowerResource: no ReadWrite of its own }
-  TTowerResource = class(TEObject)
+  { AoWEPACK.dpl.TTowerResource: no ReadWrite of its own }
+  TTowerResource = class(TPlayerStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -3879,8 +3999,8 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TTransportAG: no ReadWrite of its own }
-  TTransportAG = class(TEObject)
+  { AoWEPACK.dpl.TTransportAG: no ReadWrite of its own }
+  TTransportAG = class(TAIGroup)
     function ClassID: Integer; override;
   end;
 
@@ -3910,9 +4030,11 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TTutorialControl  (2 TODO) }
+  { AoWE.TTutorialControl  (1 TODO) }
   TTutorialControl = class(TEObject)
   public
+    FIntegerList: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
@@ -3930,27 +4052,33 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TUnHolyGround: no ReadWrite of its own }
-  TUnHolyGround = class(TEObject)
+  { UnHolyG.TUnHolyGround  (1 TODO) }
+  TUnHolyGround = class(TILTerrainMO)
+  public
+    prop40: Shortint;
+    prop41: Shortint;
+    prop42: Shortint;
+    function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { AoWEPACK.dpl.TUnHolyGroundResource: no ReadWrite of its own }
+  TUnHolyGroundResource = class(TILTerrainMOR)
     function ClassID: Integer; override;
   end;
 
-  { ?.TUnHolyGroundResource: no ReadWrite of its own }
-  TUnHolyGroundResource = class(TEObject)
+  { AoWEPACK.dpl.TUnholyGroundSpellTE: no ReadWrite of its own }
+  TUnholyGroundSpellTE = class(TGlobalTargetSpellTE)
     function ClassID: Integer; override;
   end;
 
-  { ?.TUnholyGroundSpellTE: no ReadWrite of its own }
-  TUnholyGroundSpellTE = class(TEObject)
-    function ClassID: Integer; override;
-  end;
-
-  { AoWE.TUnit  (23 TODO) }
+  { AoWE.TUnit  (20 TODO) }
   TUnit = class(TAbstractUnit)
   public
     FExperience: Byte;
     FMovePoints: Byte;
     FHitPoints: Byte;
+    L_uStack_8_2: Word;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -3979,8 +4107,12 @@ type
     prop6: string;
     prop7: string;
     prop8: Integer;
-    field_0x30: Byte;
+    prop10: Byte;
     FSFXLibrary: TSFXLibrary;
+    FSFXLibrary_2: TSFXLibrary;
+    FSFXLibrary_3: TSFXLibrary;
+    FSFXLibrary_4: TSFXLibrary;
+    FSFXLibrary_5: TSFXLibrary;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -4015,13 +4147,13 @@ type
   { AoWE.TUnitResource  (2 TODO) }
   TUnitResource = class(TAbstractUnitResource)
   public
-    field_0x1c: string;
+    prop10: string;
     prop11: string;
     prop12: Byte;
     prop13: Byte;
     prop14: Byte;
     prop15: Byte;
-    prop10: Byte;
+    prop16: Byte;
     prop17: Byte;
     prop18: Byte;
     prop19: Byte;
@@ -4058,11 +4190,13 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TUnitSpellTE  (1 TODO) }
+  { AoWE.TUnitSpellTE }
   TUnitSpellTE = class(TSpellTE)
   public
+    FIntegerList: TIntegerList;
     prop31: array[0..7] of Byte;
     prop32: Byte;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -4075,9 +4209,16 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TUpdateSignTE: no ReadWrite of its own }
-  TUpdateSignTE = class(TEObject)
+  { Sign.TUpdateSignTE }
+  TUpdateSignTE = class(TTokenEvent)
+  public
+    FStringList: TStringList;
+    prop16: Byte;
+    prop17: Byte;
+    prop18: Byte;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
   { HSEPack.dpl.TUpperIsometricHexagon: no ReadWrite of its own }
@@ -4130,13 +4271,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { ?.TWaterNode: no ReadWrite of its own }
-  TWaterNode = class(TEObject)
+  { AoWEPACK.dpl.TWaterNode: no ReadWrite of its own }
+  TWaterNode = class(TProductionPlace)
     function ClassID: Integer; override;
   end;
 
-  { ?.TWaterNodeResource: no ReadWrite of its own }
-  TWaterNodeResource = class(TEObject)
+  { AoWEPACK.dpl.TWaterNodeResource: no ReadWrite of its own }
+  TWaterNodeResource = class(TProductionPlaceResource)
     function ClassID: Integer; override;
   end;
 
@@ -4148,13 +4289,19 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TWizardsTower: no ReadWrite of its own }
-  TWizardsTower = class(TEObject)
+  { WizardsTower.TWizardsTower }
+  TWizardsTower = class(TStructure)
+  public
+    field_0x30: Boolean;
+    field_0x31: array[0..1] of Byte;
+    field_0x33: Byte;
+    field_0x34: array[0..3] of Byte;
     function ClassID: Integer; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { ?.TWizardsTowerResource: no ReadWrite of its own }
-  TWizardsTowerResource = class(TEObject)
+  { AoWEPACK.dpl.TWizardsTowerResource: no ReadWrite of its own }
+  TWizardsTowerResource = class(TStructureResource)
     function ClassID: Integer; override;
   end;
 
@@ -4232,7 +4379,7 @@ end;
 
 procedure TAIGroup.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TUnitList.ReadWrite }
   Stream.rwInteger(prop20, $14);
   Stream.rwIntegerEx(prop21, -1, $15);
   Stream.rwIntegerEx(prop22, -1, $16);
@@ -4250,7 +4397,7 @@ end;
 
 procedure TAIGroupManager.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
   Stream.rwIntegerEx(prop30, 1, $1E);
 end;
 
@@ -4319,43 +4466,7 @@ begin
   Result := 65878;
 end;
 
-procedure TMapObject.ReadWrite(Stream: TEStorageStream);
-begin
-  { TODO: UNRECOVERED_JUMPTABLE = (code * )&stack0xfffffffc }
-  { TODO: *in_FS_OFFSET = &uStack_228 }
-  if (Stream.StorageMode and $44) = 0 then
-  begin
-    if (Stream.StorageMode and 1) = 0 then
-    begin
-      Stream.rwInteger(L_local_8, 1);
-    end
-    else
-    begin
-      { TODO: HSEngine_TMapObject_SetResourceLinked_23EDC2EF(this,'\0') }
-      Stream.rwInteger(prop1, 1);
-      { TODO: (*this->vtbl->LinkToResource)(this,*(undefined4 * )&stream->field_0x4) }
-      { TODO condition: (this->field_0xc & 2) == 0 }
-      if True then
-      begin
-        { TODO: System__PStrCpy_51F89FF7(local_10c,&DAT_55609974) }
-        { TODO: System_TObject_ClassName_23EDC2EF(this->vtbl,local_20c) }
-        { TODO: System__PStrCat_51F89FF7(local_10c,local_20c) }
-        { TODO: System__PStrCat_51F89FF7(local_10c,&DAT_55609988) }
-        { TODO: System__LStrFromString_EF219F52(&local_c,local_10c) }
-        { TODO: SysUtils_IntToStr_0F6FDFF6(this->prop1,&local_210) }
-        { TODO: System__LStrCat_51F89FF7(&local_c,local_210) }
-        { TODO: SysUtils_Exception_Create_23EDC2EF(&HSEngine__EMapObjectResourceMissing_54E3FA20,1,local_c) }
-        { TODO: System__RaiseExcept_51F89FF7() }
-      end;
-    end;
-  end;
-  { TODO: pcVar1 = UNRECOVERED_JUMPTABLE }
-  { TODO: *in_FS_OFFSET = uStack_228 }
-  { TODO: UNRECOVERED_JUMPTABLE = (code * )0x55609965 }
-  { TODO: System__LStrClr_40929B27(&local_210,uStack_228,pcVar1) }
-  { TODO: System__LStrClr_40929B27(&local_c) }
-  { TODO: (*UNRECOVERED_JUMPTABLE)() }
-end;
+{$I hand/TMapObject.impl.inc}
 
 function TAbstractHexagon.ClassID: Integer;
 begin
@@ -4376,7 +4487,7 @@ procedure TAbstractUnit.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(prop4, 4);
-  Stream.rwIntegerEx(field_18, -1, 5);
+  Stream.rwIntegerEx(prop5, -1, 5);
   Stream.rwByte(FMoraleValue, 6);
   Stream.rwByte(prop47, $2F);
   if (Stream.StorageMode and $45) = 1 then
@@ -4441,16 +4552,6 @@ begin
   Result := 135966;
 end;
 
-function TAirNode.ClassID: Integer;
-begin
-  Result := 133454;
-end;
-
-function TAirNodeResource.ClassID: Integer;
-begin
-  Result := 133455;
-end;
-
 procedure TMultiHexMO.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -4475,10 +4576,17 @@ end;
 
 procedure TStructure.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TFixedILTerrainMO.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwByte(prop0, 0);
   Stream.rwInteger(prop98, $62);
   Stream.rwByteEx(prop99, $FF, 99);
+end;
+
+constructor TPlayerStructure.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FBitList := TBitList.Create;
 end;
 
 function TPlayerStructure.ClassID: Integer;
@@ -4490,26 +4598,34 @@ procedure TPlayerStructure.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(prop5, 5);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,6,stream->vtbl,(void * )0x55702f9c,this->FBitList) }
+  Stream.rwStreamProc(6, FBitList.LoadFromStream, FBitList.SaveToStream);
   Stream.rwByte(prop7, 7);
   { TODO: Engine_TBitList_SaveToStream_23EDC2EF() }
 end;
 
-function TAltar.ClassID: Integer;
+constructor TProductionPlace.Create(AOwner: TEObject);
 begin
-  Result := 132081;
+  inherited Create(AOwner);
+  field_0x44 := TEObject.Create(Self);
+  field_0x44.EmbeddedShared := True;
 end;
 
-procedure TAltar.ReadWrite(Stream: TEStorageStream);
+function TProductionPlace.ClassID: Integer;
+begin
+  Result := 132026;
+end;
+
+procedure TProductionPlace.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(prop15, $F);
-  Stream.rwData(prop16, 1, $10);
+  Stream.rwEObject(field_0x44, 8);
+  Stream.rwData(field_0x49, 1, 9);
+  Stream.rwData(field_0x48, 1, 10);
 end;
 
-function TAltarOfDeath.ClassID: Integer;
+function TAirNode.ClassID: Integer;
 begin
-  Result := 131637;
+  Result := 133454;
 end;
 
 function TMapObjectResource.ClassID: Integer;
@@ -4602,6 +4718,7 @@ end;
 
 procedure TStructureResource.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMOR.ReadWrite directly, not TFixedILTerrainMOR.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwBool(prop20, $14);
   if (Stream.StorageMode and 4) = 0 then
@@ -4629,6 +4746,40 @@ begin
   begin
     { TODO: (*this->vtbl->GenerateFlagPositions)() }
   end;
+end;
+
+function TProductionPlaceResource.ClassID: Integer;
+begin
+  Result := 132027;
+end;
+
+procedure TProductionPlaceResource.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x12,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void ** )&this->field_0x74) }
+  { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
+end;
+
+function TAirNodeResource.ClassID: Integer;
+begin
+  Result := 133455;
+end;
+
+function TAltar.ClassID: Integer;
+begin
+  Result := 132081;
+end;
+
+procedure TAltar.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(prop15, $F);
+  Stream.rwData(prop16, 1, $10);
+end;
+
+function TAltarOfDeath.ClassID: Integer;
+begin
+  Result := 131637;
 end;
 
 function TAltarResource.ClassID: Integer;
@@ -4713,11 +4864,11 @@ end;
 
 procedure TAnimation.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwData)(stream,&this->prop10,0x10,10) }
-  Stream.rwByte(field_0x8, $B);
-  Stream.rwByte(field_0x9, $C);
-  Stream.rwByte(field_0xa, $D);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
+  Stream.rwData(prop10, 16, 10);
+  Stream.rwByte(prop11, $B);
+  Stream.rwByte(prop12, $C);
+  Stream.rwByte(prop13, $D);
   Stream.rwInteger(prop14, $E);
 end;
 
@@ -4745,6 +4896,8 @@ begin
   FAoWCampaignTransferSettings.EmbeddedShared := True;
   FAoWCampaignScenarioList := TAoWCampaignScenarioList.Create(Self);
   FAoWCampaignScenarioList.EmbeddedShared := True;
+  FIntegerList := TIntegerList.Create;
+  FByteList := TByteList.Create;
 end;
 
 procedure TAoWCampaign.ReadWrite(Stream: TEStorageStream);
@@ -4768,9 +4921,9 @@ begin
   Stream.rwEObject(FAoWCampaignScenarioList, 10);
   Stream.rwString(prop12, $C);
   Stream.rwInteger(prop13, $D);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0xe,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($E, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   Stream.rwBool(prop15, $F);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x10,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($10, FByteList.LoadFromStream, FByteList.SaveToStream);
   Stream.rwData(prop17, 1, $11);
   Stream.rwData(prop19, 1, $13);
   if (Stream.StorageMode and 4) = 0 then
@@ -4873,7 +5026,7 @@ procedure THSMap.ReadWrite(Stream: TEStorageStream);
 begin
   { TODO: UNRECOVERED_JUMPTABLE = (code * )*in_FS_OFFSET }
   { TODO: *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE }
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
   if (Stream.StorageMode and 9) = 9 then
   begin
     { TODO: this->field_0x3c = this->field_0x3c | 0x10 }
@@ -4909,6 +5062,8 @@ constructor TAoWHSMap.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
   FStringList := TStringList.Create;
+  FStringList_2 := TStringList.Create;
+  FByteList := TByteList.Create;
   FPlayerList := TPlayerList.Create(Self);
   FPlayerList.EmbeddedShared := True;
   TEControlStyleNode(FPlayerList).SetControlStyle(csStored or csShared);
@@ -4992,11 +5147,11 @@ begin
   end;
   Stream.rwString(prop7, 7);
   Stream.rwStrings(FStringList, $B);
-  Stream.rwStrings(FStringList, $C);
+  Stream.rwStrings(FStringList_2, $C);
   Stream.rwData(prop13, 1, $D);
   Stream.rwByte(prop16, $10);
   Stream.rwData(prop17, 1, $11);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x12,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($12, FByteList.LoadFromStream, FByteList.SaveToStream);
   Stream.rwInteger(prop19, $13);
   Stream.rwString(prop20, $14);
   Stream.rwEObject(FPlayerList, $15);
@@ -5028,7 +5183,7 @@ begin
   Stream.rwEObject(FUnitControl, $26);
   Stream.rwData(prop39, 1, $27);
   Stream.rwEObject(FGlobalMagicControl, $28);
-  Stream.rwIntegerEx(field_EC, 5, $29);
+  Stream.rwIntegerEx(prop41, 5, $29);
   Stream.rwEObject(FTextControl, $2A);
   Stream.rwEObject(FAoWMapCampaignSettings, $2B);
   Stream.rwEObject(FHeroControl, $2C);
@@ -5064,7 +5219,7 @@ begin
   end;
   Stream.rwBool(prop61, $3D);
   Stream.rwBool(prop62, $3E);
-  Stream.rwData(field_14C, 1, $3F);
+  Stream.rwData(prop63, 1, $3F);
   { TODO: pcVar1 = UNRECOVERED_JUMPTABLE }
   { TODO: *(int * )System_RandSeed_A0665B6E_exref = this->prop28 }
   { TODO: *in_FS_OFFSET = &DAT_55702f44 }
@@ -5080,7 +5235,7 @@ end;
 
 procedure TECustomOwner.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
   Stream.rwData(prop2, 1, 2);
 end;
 
@@ -5388,48 +5543,7 @@ begin
   Result := 65793;
 end;
 
-procedure TMapField.ReadWrite(Stream: TEStorageStream);
-begin
-  if (Stream.StorageMode and 4) = 0 then
-  begin
-    if (Stream.StorageMode and 1) = 0 then
-    begin
-      { TODO: uVar4 = (uint)(byte)this->field_0xd }
-      { TODO condition: -1 < (int)(uVar4 - 1) }
-      if True then
-      begin
-        { TODO: do [ piStack_14 = *(int ** )(*(int * )&this->field_0x8 + iStack_1c * 4); if ((((piStack_14 != (int * )0x0) && (this == (TMapField * )piStack_14[1])) && (uVar2 = (**(code ** )(*piStack_14 + 4))(), (uVar2 &  }
-      end;
-    end
-    else
-    begin
-      if (Stream.StorageMode and $40) = 0 then
-      begin
-        { TODO: iVar3 = *(int * )(*(int * )&stream->field_0x10 + 0xc) + -1 }
-        { TODO condition: iStack_18 <= iVar3 }
-        if True then
-        begin
-          { TODO: iVar3 = (iVar3 - iStack_18) + 1 }
-          { TODO: do [ ID = *(int * )(*(int * )(*(int * )&stream->field_0x10 + 4) + iStack_18 * 8); if (0x31 < ID) [ (*stream->vtbl->rwCreateEObject)(stream,&piStack_14,this,ID); ] iStack_18 = iStack_18 + 1; iVar3 = iVar3 }
-        end;
-      end
-      else
-      begin
-        { TODO: iVar3 = *(int * )(*(int * )&stream->field_0x10 + 0xc) + -1 }
-        { TODO condition: iStack_18 <= iVar3 }
-        if True then
-        begin
-          { TODO: iVar3 = (iVar3 - iStack_18) + 1 }
-          { TODO: do [ if (0x31 < *(int * )(*(int * )(*(int * )&stream->field_0x10 + 4) + iStack_18 * 8)) [ piStack_14 = *(int ** )(*(int * )&this->field_0x8 + iStack_1c * 4); (*stream->vtbl->rwCreateEObject) (stream,&piSta }
-        end;
-      end;
-    end;
-  end
-  else
-  begin
-    { TODO: (*this->vtbl->ReadWriteChildren)(this,stream) }
-  end;
-end;
+{$I hand/TMapField.impl.inc}
 
 function TAoWMapField.ClassID: Integer;
 begin
@@ -5447,63 +5561,14 @@ begin
   Result := 65794;
 end;
 
-procedure TMapLevel.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  if (Stream.StorageMode and 5) = 1 then
-  begin
-    { TODO: *(undefined4 * )&this->field_0x20 = *(undefined4 * )&stream->field_0x4 }
-    { TODO: *(int * )&this->field_0x18 = *(int * )&this->field_0x4 }
-    { TODO: *(undefined4 * )&this->field_0x1c = *(undefined4 * )(*(int * )&this->field_0x4 + 0x18) }
-  end;
-  { TODO: bStack_24 = this->field_0xc }
-  Stream.rwByte(L_bStack_24, 3);
-  { TODO: *(uint * )&this->field_0xc = (uint)bStack_24 }
-  { TODO: bStack_23 = this->field_0x10 }
-  Stream.rwByte(L_bStack_23, 4);
-  { TODO: *(uint * )&this->field_0x10 = (uint)bStack_23 }
-  { TODO: abStack_22[0] = this->field_0x8 }
-  Stream.rwByte(L_abStack_22, 5);
-  { TODO: *(uint * )&this->field_0x8 = (uint)abStack_22[0] }
-  if (Stream.StorageMode and $10) = 0 then
-  begin
-    { TODO: auStack_1c[0] = (bVar2 & 1) == 0 }
-    { TODO: (**(code ** )(**(int ** )&this->field_0x1c + 0x8c))(*(int ** )&this->field_0x1c,auStack_1c) }
-  end;
-  { TODO condition: ((bVar2 & 0x45) == 1) && (*(int * )&this->field_0xc != 0) }
-  if True then
-  begin
-    { TODO: HSEngine_TMapLevel_CreateMapFieldList_23EDC2EF (this,*(int * )&this->field_0xc,*(int * )&this->field_0x10) }
-  end;
-  if (Stream.StorageMode and $20) <> 0 then
-  begin
-    { TODO: iVar4 = *(int * )&this->field_0x2c }
-    { TODO: iVar5 = *(int * )&this->field_0x14 }
-    { TODO condition: -1 < *(int * )&this->field_0x14 + -1 }
-    if True then
-    begin
-      { TODO: do [ iStack_20 = iVar5; *(byte * )(iVar4 + 0xf) = *(byte * )(iVar4 + 0xf) | 8; iVar4 = iVar4 + *(int * )&this->field_0x28; iStack_20 = iStack_20 + -1; iVar5 = iStack_20; ] while (iStack_20 != 0); }
-    end;
-  end;
-  { TODO: pvVar3 = (*stream->vtbl->OpenPropertyStream)(stream,6) }
-  { TODO condition: (pvVar3 != (void * )0x0) || (bVar2 = (*stream->vtbl->StorageMode)(stream), (bVar2 & 4) != 0) }
-  if True then
-  begin
-    { TODO: iVar4 = iStack_20 / 10 }
-    { TODO: pvVar3 = *(void ** )&this->field_0x2c }
-    { TODO condition: -1 < iStack_20 + -1 }
-    if True then
-    begin
-      { TODO: iVar5 = 0 }
-      { TODO: do [ (*stream->vtbl->rwEObjectStream)(stream,pvVar3); pvVar3 = (void * )((int)pvVar3 + *(int * )&this->field_0x28); iVar4 = iVar4 + -1; if (iVar4 == 0) [ iStack_18 = iStack_18 + 10; bVar2 = (*stream->vt }
-    end;
-  end;
-end;
+{$I hand/TMapLevel.impl.inc}
 
 function TAoWMapLevel.ClassID: Integer;
 begin
   Result := 131091;
 end;
+
+{$I hand/TAoWMapLevel.impl.inc}
 
 function TTerrainMOR.ClassID: Integer;
 begin
@@ -5582,6 +5647,12 @@ begin
   Stream.rwInteger(prop23, $17);
 end;
 
+constructor TArenaTE.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 function TArenaTE.ClassID: Integer;
 begin
   Result := 133294;
@@ -5590,7 +5661,7 @@ end;
 procedure TArenaTE.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x28,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($28, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -5601,7 +5672,7 @@ end;
 
 procedure TArmy.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TUnitList.ReadWrite }
   Stream.rwByte(FPlayer, 4);
   Stream.rwByte(FXYL, 5);
   Stream.rwByte(prop6, 6);
@@ -5630,6 +5701,12 @@ begin
   { TODO: HSEngine_TXYLList_SaveToStream_23EDC2EF() }
 end;
 
+constructor TMoveArmyTE.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 function TMoveArmyTE.ClassID: Integer;
 begin
   Result := 135424;
@@ -5638,7 +5715,7 @@ end;
 procedure TMoveArmyTE.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($1E, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   Stream.rwByte(prop31, $1F);
   Stream.rwByte(prop32, $20);
   Stream.rwByte(prop33, $21);
@@ -5685,6 +5762,8 @@ begin
   FArmy := TArmy.Create(Self);
   FArmy.EmbeddedShared := True;
   FStringList := TStringList.Create;
+  FByteList := TByteList.Create;
+  FByteList_2 := TByteList.Create;
 end;
 
 function TArmyEventLog.ClassID: Integer;
@@ -5699,8 +5778,8 @@ begin
   Stream.rwString(FText, $10);
   Stream.rwStrings(FStringList, $11);
   Stream.rwInteger(prop18, $12);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x13,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($13, FByteList.LoadFromStream, FByteList.SaveToStream);
+  Stream.rwStreamProc($14, FByteList_2.LoadFromStream, FByteList_2.SaveToStream);
   Stream.rwBool(prop21, $15);
   { TODO: Engine_TByteList_SaveToStream_23EDC2EF() }
 end;
@@ -5712,7 +5791,7 @@ end;
 
 procedure TUnitHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwByte(prop9, 9);
   { TODO condition: ((bVar1 & 0x20) == 0) && (this->prop9 == 0) }
   if True then
@@ -5739,6 +5818,12 @@ begin
   Stream.rwEObject(FArmy, 10);
 end;
 
+constructor TArmyID.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 function TArmyID.ClassID: Integer;
 begin
   Result := 131616;
@@ -5749,7 +5834,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwByte(prop10, 10);
   Stream.rwInteger(prop11, $B);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0xc,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($C, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -5790,9 +5875,9 @@ end;
 procedure TArmyView.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwData)(stream,&this->prop40,0x10,0x28) }
+  Stream.rwData(prop40, 16, $28);
   Stream.rwWord(prop41, $29);
-  { TODO: (*stream->vtbl->rwData)(stream,&this->prop42,0x20,0x2a) }
+  Stream.rwData(prop42, 32, $2A);
 end;
 
 function TBloodShrine.ClassID: Integer;
@@ -5908,9 +5993,25 @@ begin
   Stream.rwString(prop31, $1F);
 end;
 
+procedure TMoveOnEvent.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(prop30, $1E);
+  Stream.rwByte(prop31, $1F);
+end;
+
 function TChangeSongMoveOnEvent.ClassID: Integer;
 begin
   Result := 132427;
+end;
+
+procedure TChangeSongMoveOnEvent.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if (Stream.StorageMode and 4) = 0 then
+  begin
+    Stream.rwString(prop40, $28);
+  end;
 end;
 
 function TChangeSongMoveOnEventResource.ClassID: Integer;
@@ -5951,6 +6052,7 @@ end;
 
 procedure TCity.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TPlayerStructure.ReadWrite directly, not TPlayerCropStructure.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwString(FName, $C);
   Stream.rwByte(FRace, $D);
@@ -6065,6 +6167,7 @@ end;
 
 procedure TCombatILTerrainResource.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMOR.ReadWrite directly, not TILTerrainMOR.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwByte(prop20, $14);
   Stream.rwByte(prop21, $15);
@@ -6081,6 +6184,8 @@ begin
   inherited Create(AOwner);
   FCombatSide := TCombatSide.Create(Self);
   FCombatSide.EmbeddedShared := True;
+  FCombatSide_2 := TCombatSide.Create(Self);
+  FCombatSide_2.EmbeddedShared := True;
   FCombatData := TCombatData.Create(Self);
   FCombatData.EmbeddedShared := True;
 end;
@@ -6089,7 +6194,7 @@ procedure TCombat.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwEObject(FCombatSide, 10);
-  Stream.rwEObject(FCombatSide, $B);
+  Stream.rwEObject(FCombatSide_2, $B);
   Stream.rwCreateEObject(FCombatLogbook, nil, $C);
   Stream.rwEObject(FCombatData, $D);
 end;
@@ -6103,6 +6208,9 @@ begin
   FENode.EmbeddedShared := True;
   FCombatPartyList := TCombatPartyList.Create(Self);
   FCombatPartyList.EmbeddedShared := True;
+  FByteList_2 := TByteList.Create;
+  FByteList_3 := TByteList.Create;
+  FByteList := TByteList.Create;
 end;
 
 function TCombatData.ClassID: Integer;
@@ -6113,13 +6221,13 @@ end;
 procedure TCombatData.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwInteger(field_0x8, 10);
+  Stream.rwInteger(prop10, 10);
   Stream.rwInteger(prop11, $B);
   Stream.rwInteger(prop12, $C);
   Stream.rwData(prop13, 2, $D);
   Stream.rwByte(prop14, $E);
   Stream.rwByte(prop15, $F);
-  Stream.rwData(prop10, 1, $10);
+  Stream.rwData(prop16, 1, $10);
   Stream.rwInteger(prop17, $11);
   Stream.rwEObject(FCombatPlayerList, $12);
   Stream.rwEObject(FENode, $13);
@@ -6128,11 +6236,11 @@ begin
   Stream.rwInteger(prop22, $16);
   Stream.rwInteger(prop23, $17);
   Stream.rwInteger(prop24, $18);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x19,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x1a,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($19, FByteList_2.LoadFromStream, FByteList_2.SaveToStream);
+  Stream.rwStreamProc($1A, FByteList_3.LoadFromStream, FByteList_3.SaveToStream);
   Stream.rwData(prop27, 1, $1B);
   Stream.rwBool(prop28, $1C);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x1d,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($1D, FByteList.LoadFromStream, FByteList.SaveToStream);
   { TODO: Engine_TByteList_SaveToStream_23EDC2EF() }
 end;
 
@@ -6164,6 +6272,8 @@ begin
   inherited Create(AOwner);
   FCombatData := TCombatData.Create(Self);
   FCombatData.EmbeddedShared := True;
+  FCombatData_2 := TCombatData.Create(Self);
+  FCombatData_2.EmbeddedShared := True;
   FCombatActionList := TCombatActionList.Create(Self);
   FCombatActionList.EmbeddedShared := True;
 end;
@@ -6177,7 +6287,7 @@ procedure TCombatLogbook.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwEObject(FCombatData, 5);
-  Stream.rwEObject(FCombatData, 6);
+  Stream.rwEObject(FCombatData_2, 6);
   Stream.rwEObject(FCombatActionList, 7);
   Stream.rwBool(prop8, 8);
 end;
@@ -6237,7 +6347,7 @@ end;
 
 procedure TCombatSide.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
 end;
 
 procedure TSingleTargetCA.ReadWrite(Stream: TEStorageStream);
@@ -6305,7 +6415,7 @@ begin
   begin
     Stream.rwCreateEObject(FAbilityOwner, nil, $14);
   end;
-  Stream.rwBool(field_0x54, $15);
+  Stream.rwBool(prop21, $15);
 end;
 
 function TCombatWall.ClassID: Integer;
@@ -6320,6 +6430,12 @@ begin
   Stream.rwByte(FHitPoints, $15);
 end;
 
+constructor TCommandAbilityData.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FByteList := TByteList.Create;
+end;
+
 function TCommandAbilityData.ClassID: Integer;
 begin
   Result := 131755;
@@ -6329,7 +6445,7 @@ procedure TCommandAbilityData.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(FAbilityID, $14);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x15,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($15, FByteList.LoadFromStream, FByteList.SaveToStream);
   { TODO: Engine_TByteList_SaveToStream_23EDC2EF() }
 end;
 
@@ -6414,9 +6530,64 @@ begin
   Result := 131947;
 end;
 
+constructor TExplorationSite.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FArmy := TArmy.Create(Self);
+  FArmy.EmbeddedShared := True;
+end;
+
+function TExplorationSite.ClassID: Integer;
+begin
+  Result := 132033;
+end;
+
+procedure TExplorationSite.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FArmy, 5);
+  Stream.rwData(prop6, 1, 6);
+end;
+
+constructor TItemExplorationSite.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  field_0x3c := TEObject.Create(Self);
+  field_0x3c.EmbeddedShared := True;
+end;
+
+function TItemExplorationSite.ClassID: Integer;
+begin
+  Result := 132083;
+end;
+
+procedure TItemExplorationSite.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(field_0x3c, 8);
+  Stream.rwData(field_0x38, 1, 9);
+end;
+
 function TCrypt.ClassID: Integer;
 begin
   Result := 131850;
+end;
+
+function TExplorationSiteResource.ClassID: Integer;
+begin
+  Result := 132034;
+end;
+
+procedure TExplorationSiteResource.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  { TODO: iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x19,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection_2) }
+  { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF(*(undefined4 * )(iVar1 + 8)) }
+end;
+
+function TItemExplorationSiteResource.ClassID: Integer;
+begin
+  Result := 132084;
 end;
 
 function TCryptResource.ClassID: Integer;
@@ -6558,10 +6729,16 @@ begin
   Stream.rwInteger(prop21, $15);
 end;
 
+constructor TDispelMagicCA.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 procedure TDispelMagicCA.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x32,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($32, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -6601,35 +6778,23 @@ begin
   Result := 131793;
 end;
 
+procedure TDispelMagicSpellCA.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(field_0x14, $3C);
+  Stream.rwInteger(field_0x18, $3D);
+end;
+
 function TDivineStorm.ClassID: Integer;
 begin
   Result := 135740;
 end;
 
-constructor TExplorationSite.Create(AOwner: TEObject);
-begin
-  inherited Create(AOwner);
-  FArmy := TArmy.Create(Self);
-  FArmy.EmbeddedShared := True;
-end;
-
-function TExplorationSite.ClassID: Integer;
-begin
-  Result := 132033;
-end;
-
-procedure TExplorationSite.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  Stream.rwEObject(FArmy, 5);
-  Stream.rwData(prop6, 1, 6);
-end;
-
 constructor TDungeon.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
-  FArmy := TArmy.Create(Self);
-  FArmy.EmbeddedShared := True;
+  FArmy_2 := TArmy.Create(Self);
+  FArmy_2.EmbeddedShared := True;
 end;
 
 function TDungeon.ClassID: Integer;
@@ -6640,20 +6805,8 @@ end;
 procedure TDungeon.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwEObject(FArmy, 8);
+  Stream.rwEObject(FArmy_2, 8);
   Stream.rwData(prop9, 1, 9);
-end;
-
-function TExplorationSiteResource.ClassID: Integer;
-begin
-  Result := 132034;
-end;
-
-procedure TExplorationSiteResource.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  { TODO: iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x19,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection) }
-  { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF(*(undefined4 * )(iVar1 + 8)) }
 end;
 
 function TDungeonResource.ClassID: Integer;
@@ -6664,7 +6817,7 @@ end;
 procedure TDungeonResource.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection) }
+  { TODO: iVar1 = (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,AoWE_TUnitIndexListCollection_SaveToStream_23EDC2EF, this->FUnitIndexListCollection_3) }
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF(*(undefined4 * )(iVar1 + 8)) }
 end;
 
@@ -6859,6 +7012,7 @@ end;
 
 procedure TFarm.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TPlayerStructure.ReadWrite directly, not TPlayerCropStructure.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwData(prop20, 1, $14);
 end;
@@ -6873,11 +7027,17 @@ begin
   Result := 131760;
 end;
 
+constructor TMultiTargetCombatSpellCA.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FByteList := TByteList.Create;
+end;
+
 procedure TMultiTargetCombatSpellCA.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(prop20, $14);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x15,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($15, FByteList.LoadFromStream, FByteList.SaveToStream);
   Stream.rwInteger(prop22, $16);
   Stream.rwBool(prop23, $17);
   Stream.rwInteger(prop24, $18);
@@ -6911,6 +7071,7 @@ end;
 
 procedure TFire.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwByte(prop5, 5);
   Stream.rwData(prop6, 1, 6);
@@ -6956,6 +7117,7 @@ end;
 
 procedure TFireResource.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMOR.ReadWrite directly, not TILTerrainMOR.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwData(prop20, 1, $14);
 end;
@@ -7061,7 +7223,7 @@ end;
 
 procedure TFrozenWaterHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwShortint(prop30, $1E);
   Stream.rwShortint(prop31, $1F);
 end;
@@ -7102,6 +7264,7 @@ end;
 
 procedure TGems.ReadWrite(Stream: TEStorageStream);
 begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
   inherited ReadWrite(Stream);
   Stream.rwInteger(prop5, 5);
   Stream.rwData(prop6, 1, 6);
@@ -7146,7 +7309,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwEObject(FGlobalEnchantmentList, 10);
   Stream.rwInteger(prop11, $B);
-  { TODO: (*stream->vtbl->rwData)(stream,&this->prop0,0x24,0) }
+  Stream.rwData(prop0, 36, 0);
   { TODO: AoWE_TGlobalMagicControl_UpdateActiveEnchantments_23EDC2EF(this,extraout_EDX,extraout_ECX) }
 end;
 
@@ -7158,6 +7321,12 @@ end;
 function TGuardAreaAG.ClassID: Integer;
 begin
   Result := 136273;
+end;
+
+procedure TGuardAreaAG.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(field_0x50, $32);
 end;
 
 function TGuardAreaGC.ClassID: Integer;
@@ -7177,7 +7346,7 @@ end;
 
 procedure THPBasedHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwInteger(prop4, 4);
   Stream.rwInteger(prop5, 5);
   Stream.rwByte(prop6, 6);
@@ -7290,7 +7459,7 @@ begin
   Stream.rwByte(FUnitLevel, $16);
   Stream.rwBool(prop23, $17);
   Stream.rwInteger(FExperience, $18);
-  Stream.rwData(field_55, 1, $19);
+  Stream.rwData(prop25, 1, $19);
   Stream.rwInteger(prop26, $1A);
   Stream.rwByte(prop27, $1B);
   { TODO condition: ((bVar2 & 0x45) == 1) && (this->FExperience == 0) }
@@ -7363,6 +7532,7 @@ end;
 constructor TJoinEventLog.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
   FStringList := TStringList.Create;
 end;
 
@@ -7370,7 +7540,7 @@ procedure TJoinEventLog.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(prop21, $15);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x16,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($16, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   Stream.rwByte(prop23, $17);
   Stream.rwStrings(FStringList, $18);
   Stream.rwInteger(prop25, $19);
@@ -7387,7 +7557,7 @@ end;
 
 procedure THeroLibrary.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THeroList.ReadWrite }
   Stream.rwString(prop20, $14);
   Stream.rwInteger(prop21, $15);
 end;
@@ -7446,7 +7616,7 @@ end;
 procedure THeroResource.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwString(field_0x1c, 10);
+  Stream.rwString(prop10, 10);
   Stream.rwByte(prop11, $B);
   Stream.rwData(prop12, 1, $C);
   Stream.rwData(prop13, 1, $D);
@@ -7457,7 +7627,7 @@ begin
   end;
   Stream.rwBool(prop14, $E);
   Stream.rwByte(prop15, $F);
-  Stream.rwByte(prop10, $10);
+  Stream.rwByte(prop16, $10);
   Stream.rwByte(prop17, $11);
   Stream.rwByte(prop18, $12);
   Stream.rwByte(prop19, $13);
@@ -7540,6 +7710,11 @@ begin
   Result := 131411;
 end;
 
+function TTerrainMO.ClassID: Integer;
+begin
+  Result := 131430;
+end;
+
 function THillMO.ClassID: Integer;
 begin
   Result := 131432;
@@ -7555,6 +7730,15 @@ begin
   Result := 131987;
 end;
 
+procedure THolyGround.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwShortintEx(prop40, -1, $28);
+  Stream.rwShortintEx(prop41, -1, $29);
+  Stream.rwShortintEx(prop42, -1, $2A);
+end;
+
 function THolyGroundResource.ClassID: Integer;
 begin
   Result := 131988;
@@ -7565,6 +7749,12 @@ begin
   Result := 135942;
 end;
 
+constructor THuntAG.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 function THuntAG.ClassID: Integer;
 begin
   Result := 136288;
@@ -7573,7 +7763,7 @@ end;
 procedure THuntAG.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($1E, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -7623,13 +7813,13 @@ begin
     { empty }
   end;
   Stream.rwString(prop9, 9);
-  Stream.rwData(field_0x45, 1, 10);
+  Stream.rwData(prop10, 1, 10);
   Stream.rwByte(prop11, $B);
   Stream.rwByte(prop12, $C);
   Stream.rwByte(prop13, $D);
   Stream.rwByte(prop14, $E);
   Stream.rwData(prop15, 1, $F);
-  Stream.rwBool(prop10, $10);
+  Stream.rwBool(prop16, $10);
   Stream.rwInteger(prop17, $11);
   Stream.rwStrings(FStringList, $12);
   Stream.rwInteger(FObtainValue, $13);
@@ -7641,44 +7831,12 @@ begin
   end;
 end;
 
-procedure TItemControl.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  Stream.rwInteger(prop9, 9);
-  if (Stream.StorageMode and $40) = 0 then
-  begin
-    if (Stream.StorageMode and $4C) = 0 then
-    begin
-      if (Stream.StorageMode and 1) <> 0 then
-      begin
-        { TODO: do [ (*stream->vtbl->rwCreateEObject)(stream,&iStack_14,(void * )0x0,iStack_1c); if (iStack_14 != 0) [ AoWE_TItemControl_ValidateItem_23EDC2EF(this,iStack_14); Classes_TList_Add_23EDC2EF(this->FList,iS }
-      end;
-      { TODO condition: ((bVar1 & 4) != 0) || (bVar1 = (*stream->vtbl->StorageMode)(stream), (bVar1 & 2) != 0) }
-      if True then
-      begin
-        { TODO: iVar2 = *(int * )&this->FList->field_0x8 }
-        { TODO condition: -1 < iVar2 + -1 }
-        if True then
-        begin
-          { TODO: do [ if (*(int * )(*(int * )(*(int * )&this->FList->field_0x4 + iStack_18 * 4) + 4) == 0) [ (*stream->vtbl->rwCreateEObject) (stream,(void * )(*(int * )&this->FList->field_0x4 + iStack_18 * 4), (void * )0x0 }
-        end;
-      end;
-    end;
-  end
-  else
-  begin
-    { TODO: iVar2 = *(int * )&this->FList->field_0x8 }
-    { TODO condition: -1 < iVar2 + -1 }
-    if True then
-    begin
-      { TODO: do [ iStack_14 = Classes_TList_Get_23EDC2EF(this->FList,iStack_18); if (*(int * )(iStack_14 + 4) == 0) [ (*stream->vtbl->rwCreateEObject)(stream,&iStack_14,(void * )0x0,iStack_1c); iStack_1c = iStack_1c }
-    end;
-  end;
-end;
+{$I hand/TItemControl.impl.inc}
 
-function TItemExplorationSite.ClassID: Integer;
+constructor TItemExplorationSiteEventLog.Create(AOwner: TEObject);
 begin
-  Result := 132083;
+  inherited Create(AOwner);
+  field_0x1c := TStringList.Create;
 end;
 
 function TItemExplorationSiteEventLog.ClassID: Integer;
@@ -7686,9 +7844,12 @@ begin
   Result := 132085;
 end;
 
-function TItemExplorationSiteResource.ClassID: Integer;
+procedure TItemExplorationSiteEventLog.ReadWrite(Stream: TEStorageStream);
 begin
-  Result := 132084;
+  inherited ReadWrite(Stream);
+  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x14,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void ** )&this->field_0x18) }
+  Stream.rwStrings(field_0x1c, $15);
+  Stream.rwString(field_0x20, $16);
 end;
 
 function TItemGFX.ClassID: Integer;
@@ -7723,7 +7884,7 @@ end;
 procedure TItemHS.ReadWrite(Stream: TEStorageStream);
 begin
   { TODO: Engine_TEChangeNotifyNode_BeginUpdate_23EDC2EF(this->FItemList) }
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwEObject(FItemList, 4);
   Stream.rwData(prop5, 1, 5);
   { TODO: Engine_TEChangeNotifyNode_EndUpdate_23EDC2EF(this->FItemList) }
@@ -7731,7 +7892,7 @@ end;
 
 procedure TItemLibrary.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TItemList.ReadWrite }
   Stream.rwString(prop20, $14);
   Stream.rwInteger(prop21, $15);
 end;
@@ -7788,6 +7949,12 @@ begin
   Stream.rwInteger(prop22, $16);
 end;
 
+constructor TLeader.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FByteList := TByteList.Create;
+end;
+
 function TLeader.ClassID: Integer;
 begin
   Result := 131634;
@@ -7797,7 +7964,7 @@ procedure TLeader.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByteEx(FSpherePicksMax, 5, $2D);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x2e,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($2E, FByteList.LoadFromStream, FByteList.SaveToStream);
   { TODO: Engine_TByteList_SaveToStream_23EDC2EF() }
 end;
 
@@ -7840,7 +8007,7 @@ end;
 
 procedure TLibraryImageHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwData(prop1, 1, 1);
   Stream.rwInteger(prop2, 2);
   Stream.rwInteger(prop3, 3);
@@ -7883,6 +8050,14 @@ begin
   Result := 132030;
 end;
 
+procedure TManaCrystals.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(prop5, 5);
+  Stream.rwData(prop6, 1, 6);
+end;
+
 function TManaCrystalsResource.ClassID: Integer;
 begin
   Result := 132031;
@@ -7893,24 +8068,7 @@ begin
   Result := 65795;
 end;
 
-procedure TMapContainer.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  if (Stream.StorageMode and 5) = 1 then
-  begin
-    { TODO: *(undefined4 * )&this->field_0x18 = *(undefined4 * )&this->field_0x4 }
-    { TODO: *(undefined4 * )&this->field_0x1c = *(undefined4 * )&stream->field_0x4 }
-    { TODO: *(TMapContainer ** )(*(int * )&this->field_0x18 + 0x10) = this }
-  end;
-  Stream.rwByte(L_uStack_10, 3);
-  { TODO: *(uint * )&this->field_0xc = uStack_10 & 0xff }
-  { TODO: uStack_10._0_2_ = CONCAT11(this->field_0x10,(undefined1)uStack_10) }
-  { TODO: (*stream->vtbl->rwByte)(stream,(void * )((int)&uStack_10 + 1),4) }
-  { TODO: *(uint * )&this->field_0x10 = uStack_10 >> 8 & 0xff }
-  { TODO: uStack_10._0_3_ = CONCAT12(this->field_0x14,(undefined2)uStack_10) }
-  { TODO: (*stream->vtbl->rwByte)(stream,(void * )((int)&uStack_10 + 2),5) }
-  { TODO: *(uint * )&this->field_0x14 = uStack_10 >> 0x10 & 0xff }
-end;
+{$I hand/TMapContainer.impl.inc}
 
 function TMerchant.ClassID: Integer;
 begin
@@ -7945,6 +8103,12 @@ end;
 function TMine.ClassID: Integer;
 begin
   Result := 131962;
+end;
+
+procedure TMine.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(field_0x3c, 1, $14);
 end;
 
 function TMineResource.ClassID: Integer;
@@ -8081,6 +8245,13 @@ begin
   Result := 131229;
 end;
 
+procedure TOverlayObjectResource.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMOR.ReadWrite directly, not TFixedILTerrainMOR.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(prop40, $28);
+end;
+
 function TTurnPlayerControl.ClassID: Integer;
 begin
   Result := 131664;
@@ -8130,6 +8301,15 @@ begin
   Result := 136274;
 end;
 
+procedure TPatrolAG.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(field_0x50, $28);
+  Stream.rwInteger(field_0x54, $29);
+  Stream.rwByte(field_0x58, $2A);
+  Stream.rwInteger(field_0x5c, $2B);
+end;
+
 function TPatrolGC.ClassID: Integer;
 begin
   Result := 136193;
@@ -8145,31 +8325,18 @@ begin
   Result := 132445;
 end;
 
+procedure TPlaySampleMoveOnEvent.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if (Stream.StorageMode and 4) = 0 then
+  begin
+    Stream.rwString(prop40, $28);
+  end;
+end;
+
 function TPlaySampleMoveOnEventResource.ClassID: Integer;
 begin
   Result := 132446;
-end;
-
-constructor TPlayer.Create(AOwner: TEObject);
-begin
-  inherited Create(AOwner);
-  FEventLogbook := TEventLogbook.Create(Self);
-  FEventLogbook.EmbeddedShared := True;
-  FAIPlayerControl := TAIPlayerControl.Create(Self);
-  FAIPlayerControl.EmbeddedShared := True;
-  FPlayerMagicControl := TPlayerMagicControl.Create(Self);
-  FPlayerMagicControl.EmbeddedShared := True;
-  FPlayerStatistics := TPlayerStatistics.Create(Self);
-  FPlayerStatistics.EmbeddedShared := True;
-  FStringList := TStringList.Create;
-  FAIBudgetManager := TAIBudgetManager.Create(Self);
-  FAIBudgetManager.EmbeddedShared := True;
-  FDiplomaticActionList := TDiplomaticActionList.Create(Self);
-  FDiplomaticActionList.EmbeddedShared := True;
-  FPBEMPlayerSettings := TPBEMPlayerSettings.Create(Self);
-  FPBEMPlayerSettings.EmbeddedShared := True;
-  FPlayerDiplomaticRelations := TPlayerDiplomaticRelations.Create(Self);
-  FPlayerDiplomaticRelations.EmbeddedShared := True;
 end;
 
 function TPlayer.ClassID: Integer;
@@ -8177,129 +8344,7 @@ begin
   Result := 131104;
 end;
 
-procedure TPlayer.ReadWrite(Stream: TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  Stream.rwByte(FRace, 2);
-  Stream.rwData(field_A7, 1, 3);
-  Stream.rwBool(prop4, 4);
-  Stream.rwInteger(prop5, 5);
-  Stream.rwInteger(prop6, 6);
-  Stream.rwData(field_45, 1, 10);
-  if (Stream.StorageMode and 4) = 0 then
-  begin
-    Stream.rwString(prop11, $B);
-  end;
-  Stream.rwString(prop12, $C);
-  Stream.rwInteger(FGems, $10);
-  Stream.rwByte(FPlayerIndex, $12);
-  { TODO condition: (*(byte * )(AoWE_AoWEngine_7E705837 + 0x34) & 6) == 0 }
-  if True then
-  begin
-    if (Stream.StorageMode and 4) = 0 then
-    begin
-      { TODO: goto LAB_5575328f }
-    end;
-  end;
-  if (Stream.StorageMode and 2) = 0 then
-  begin
-    Stream.rwCreateEObject(FLeader, nil, $13);
-    { TODO condition: this->FLeader != 0 }
-    if True then
-    begin
-      if (Stream.StorageMode and 8) = 0 then
-      begin
-        { TODO: iVar1 = this->FLeader }
-        { TODO: *(byte * )(iVar1 + 0x24) = this->FPlayerIndex }
-        { TODO: AoWE_THeroControl_RegisterHero_23EDC2EF((THeroControl * )AoWE_AoWHSMap_6B957A58[0x3e],iVar1) }
-      end;
-    end;
-  end;
-  { TODO: LAB_5575328f: }
-  if (Stream.StorageMode and 2) = 0 then
-  begin
-    Stream.rwByte(prop20, $14);
-    Stream.rwByte(prop21, $15);
-    Stream.rwByte(prop22, $16);
-  end
-  else
-  begin
-    { TODO condition: (*(byte * )((int)AoWE_AoWHSMap_6B957A58 + 0xa5) == this->FPlayerIndex) && (*(char * )((int)AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01') }
-    if True then
-    begin
-      { TODO: (**(code ** )(*AoWE_AoWHSMap_6B957A58 + 0xc4)) (AoWE_AoWHSMap_6B957A58,abStack_18,abStack_14,abStack_10) }
-      { TODO: this->prop20 = abStack_18[0] }
-      { TODO: this->prop21 = abStack_14[0] }
-      { TODO: this->prop22 = abStack_10[0] }
-      Stream.rwByte(prop20, $14);
-      Stream.rwByte(prop21, $15);
-      Stream.rwByte(prop22, $16);
-    end;
-  end;
-  if (Stream.StorageMode and 8) = 0 then
-  begin
-    Stream.rwEObject(FEventLogbook, $17);
-  end;
-  Stream.rwString(prop24, $18);
-  Stream.rwData(prop25, 1, $19);
-  if (Stream.StorageMode and 1) <> 0 then
-  begin
-    { TODO: (*stream->vtbl->rwStreamProc) (stream,0x1a,stream->vtbl,(void * )0x55702f4c,this->FDiplomaticRelationList) }
-  end;
-  Stream.rwByte(prop27, $1B);
-  Stream.rwEObject(FAIPlayerControl, $1C);
-  Stream.rwData(prop29, 1, $1D);
-  { TODO condition: this->FPlayerIndex != 0 }
-  if True then
-  begin
-    { TODO condition: (((bVar2 & 2) == 0) || ((*(byte * )(AoWE_AoWHSMap_6B957A58 + 0xf) & 2) == 0)) || (this->FLeader == 0) }
-    if True then
-    begin
-      { TODO: (*stream->vtbl->rwEObject)(stream,*(void ** )&this->field_0x58,0x1e) }
-    end
-    else
-    begin
-      Stream.rwEObject(FLeader, $1E);
-    end;
-  end;
-  Stream.rwEObject(FPlayerMagicControl, $1F);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x20,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x21,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
-  Stream.rwInteger(prop34, $22);
-  Stream.rwEObject(FPlayerStatistics, $23);
-  Stream.rwInteger(prop36, $24);
-  Stream.rwInteger(prop37, $25);
-  Stream.rwInteger(prop38, $26);
-  Stream.rwInteger(prop39, $27);
-  if (Stream.StorageMode and 1) <> 0 then
-  begin
-    { TODO: AoWE_TPlayer_SetRace_23EDC2EF(this,this->FRace) }
-    { TODO: this->FEventLogbook->field_0xc = this->FPlayerIndex }
-    { TODO: this->FDiplomaticRelationList->field_0x10 = 3 }
-  end;
-  Stream.rwStrings(FStringList, $28);
-  if (Stream.StorageMode and 1) <> 0 then
-  begin
-    { TODO: (*stream->vtbl->rwStreamProc) (stream,0x29,stream->vtbl,(void * )0x55702f4c,this->FDiplomaticRelationList) }
-  end;
-  Stream.rwInteger(prop50, $32);
-  Stream.rwEObject(FAIBudgetManager, $33);
-  Stream.rwEObject(FDiplomaticActionList, $34);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x35,stream->vtbl,(void * )0x55702f9c,this->FBitList) }
-  Stream.rwEObject(FPBEMPlayerSettings, $36);
-  Stream.rwBool(prop56, $38);
-  { TODO condition: ((bVar2 & 1) != 0) || (*(char * )((int)AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01') }
-  if True then
-  begin
-    Stream.rwInteger(prop57, $39);
-  end;
-  Stream.rwEObject(FPlayerDiplomaticRelations, $3A);
-  { TODO condition: this->FPlayerIndex == 0 }
-  if True then
-  begin
-    { TODO: this->field_A7 = 4 }
-  end;
-end;
+{$I hand/TPlayer.impl.inc}
 
 procedure TPlayerCommunicationSettings.ReadWrite(Stream: TEStorageStream);
 begin
@@ -8311,6 +8356,7 @@ end;
 constructor TPlayerDiplomaticRelations.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  FByteList := TByteList.Create;
   FENode := TENode.Create(Self);
   FENode.EmbeddedShared := True;
 end;
@@ -8318,7 +8364,7 @@ end;
 procedure TPlayerDiplomaticRelations.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
+  Stream.rwStreamProc($14, FByteList.LoadFromStream, FByteList.SaveToStream);
   Stream.rwEObject(FENode, $15);
   if (Stream.StorageMode and 1) <> 0 then
   begin
@@ -8329,6 +8375,7 @@ end;
 constructor TPlayerMagicControl.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
   FEnchantmentList := TEnchantmentList.Create(Self);
   FEnchantmentList.EmbeddedShared := True;
 end;
@@ -8338,7 +8385,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(prop20, $14);
   Stream.rwIntegerEx(prop21, $32, $15);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x16,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($16, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   Stream.rwInteger(prop23, $17);
   Stream.rwInteger(prop24, $18);
   Stream.rwEObject(FEnchantmentList, $19);
@@ -8379,13 +8426,13 @@ end;
 procedure TPlayerSetupSettings.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(field_0x20, 10);
+  Stream.rwByte(prop10, 10);
   Stream.rwData(prop11, 8, $B);
   Stream.rwByte(prop12, $C);
   Stream.rwData(prop13, 1, $D);
   Stream.rwEObject(FLeader, $E);
   Stream.rwData(prop15, 1, $F);
-  Stream.rwData(prop10, 8, $10);
+  Stream.rwData(prop16, 8, $10);
 end;
 
 constructor TPlayerStatistics.Create(AOwner: TEObject);
@@ -8423,6 +8470,15 @@ begin
   Result := 135743;
 end;
 
+procedure TPoisonCloud.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(prop15, $F);
+  Stream.rwInteger(prop16, $10);
+  Stream.rwBool(prop17, $11);
+  Stream.rwByte(prop18, $12);
+end;
+
 function TPoisonCloudResource.ClassID: Integer;
 begin
   Result := 135744;
@@ -8431,6 +8487,15 @@ end;
 function TPoisonPlant.ClassID: Integer;
 begin
   Result := 131998;
+end;
+
+procedure TPoisonPlant.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwShortintEx(prop40, -1, $28);
+  Stream.rwShortintEx(prop41, -1, $29);
+  Stream.rwShortintEx(prop42, -1, $2A);
 end;
 
 function TPoisonPlantResource.ClassID: Integer;
@@ -8475,6 +8540,12 @@ begin
   Result := 131482;
 end;
 
+procedure TPowerNode.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(field_0x3c, 1, $14);
+end;
+
 function TPowerNodeResource.ClassID: Integer;
 begin
   Result := 131483;
@@ -8514,31 +8585,21 @@ begin
   Stream.rwInteger(prop22, $16);
 end;
 
-function TProductionPlace.ClassID: Integer;
-begin
-  Result := 132026;
-end;
-
 function TProductionPlaceEventLog.ClassID: Integer;
 begin
   Result := 131835;
 end;
 
-function TProductionPlaceResource.ClassID: Integer;
-begin
-  Result := 132027;
-end;
-
 procedure TProductionSettings.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwInteger(field_0x8, 10);
+  Stream.rwInteger(prop10, 10);
   Stream.rwInteger(prop11, $B);
   Stream.rwByte(prop12, $C);
   Stream.rwByte(prop13, $D);
   Stream.rwByte(prop14, $E);
   Stream.rwInteger(prop15, $F);
-  Stream.rwInteger(prop10, $10);
+  Stream.rwInteger(prop16, $10);
   Stream.rwCreateEObject(prop17, nil, $11);
   Stream.rwInteger(prop18, $12);
   Stream.rwInteger(prop19, $13);
@@ -8578,40 +8639,19 @@ begin
   Result := 131586;
 end;
 
-procedure TRace.ReadWrite(Stream: TEStorageStream);
-begin
-  { TODO: pTStack_14 = (TIntegerList * )0x5574d0bd }
-  inherited ReadWrite(Stream);
-  { TODO: pTStack_14 = (TIntegerList * )0x5574d0cc }
-  Stream.rwByte(FRace, 2);
-  { TODO: pTStack_14 = this->FIntegerList }
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,3,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,pTStack_14) }
-  if (Stream.StorageMode and $45) = 1 then
-  begin
-    Stream.rwBool(L_pcStack_18, 4);
-    { TODO: AoWE_TRace_SetEnabled_23EDC2EF(this,(char)pcStack_18) }
-  end
-  else
-  begin
-    Stream.rwBool(prop4, 4);
-  end;
-  { TODO: (*stream->vtbl->rwStreamProc)(stream,5,stream->vtbl,(void * )0x55702f4c,this->FByteList) }
-  { TODO condition: ((bVar1 & 1) != 0) && (*(int * )&this->FByteList->field_0x8 == 0) }
-  if True then
-  begin
-    { TODO: AoWE_TRace_ResetDefaultRaceRelations_23EDC2EF(this) }
-  end;
-end;
+{$I hand/TRace.impl.inc}
 
 procedure TRaceList.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping TEControlStyleNode.ReadWrite }
   Stream.rwInteger(prop20, $14);
 end;
 
 constructor TRaceResource.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  FUnitIndexList := TIntegerList.Create;
+  FUnitIndexList_2 := TIntegerList.Create;
   FStringList := TStringList.Create;
 end;
 
@@ -8631,8 +8671,8 @@ begin
     Stream.rwString(prop8, 8);
   end;
   Stream.rwData(prop9, 1, 9);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,10,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FUnitIndexList) }
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0xb,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FUnitIndexList) }
+  Stream.rwStreamProc(10, FUnitIndexList.LoadFromStream, FUnitIndexList.SaveToStream);
+  Stream.rwStreamProc($B, FUnitIndexList_2.LoadFromStream, FUnitIndexList_2.SaveToStream);
   Stream.rwInteger(prop12, $C);
   Stream.rwStrings(FStringList, $D);
 end;
@@ -8650,6 +8690,15 @@ end;
 function TRaisedMountain.ClassID: Integer;
 begin
   Result := 131434;
+end;
+
+procedure TRaisedMountain.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwShortintEx(prop40, -1, $28);
+  Stream.rwShortintEx(prop41, -1, $29);
+  Stream.rwShortintEx(prop42, -1, $2A);
 end;
 
 function TRaisedMountainResource.ClassID: Integer;
@@ -8686,6 +8735,11 @@ end;
 function TReflectingPool.ClassID: Integer;
 begin
   Result := 132670;
+end;
+
+procedure TReflectingPool.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
 end;
 
 function TReflectingPoolResource.ClassID: Integer;
@@ -8753,6 +8807,21 @@ begin
   Result := 131995;
 end;
 
+procedure TSFX.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if (Stream.StorageMode and 4) = 0 then
+  begin
+    Stream.rwString(field_0x8, 5);
+  end;
+end;
+
+procedure TSFXSequence.ReadWrite(Stream: TEStorageStream);
+begin
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
+  Stream.rwInteger(field_0xc, 5);
+end;
+
 function TSaveGameTE.ClassID: Integer;
 begin
   Result := 135444;
@@ -8812,14 +8881,14 @@ end;
 
 procedure TSetupSettings.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
-  Stream.rwString(field_0x10, 10);
+  { the original calls TEObject.ReadWrite here, skipping TENode.ReadWrite }
+  Stream.rwString(prop10, 10);
   Stream.rwData(prop11, 1, $B);
   Stream.rwBool(prop12, $C);
   Stream.rwString(prop13, $D);
   Stream.rwData(prop14, 1, $E);
   Stream.rwData(prop15, 1, $F);
-  Stream.rwBool(prop10, $10);
+  Stream.rwBool(prop16, $10);
   Stream.rwInteger(prop17, $11);
   Stream.rwBool(prop18, $12);
   Stream.rwInteger(prop19, $13);
@@ -8867,9 +8936,21 @@ begin
   Stream.rwStrings(FStringList, $14);
 end;
 
+constructor TShowMessageMoveOnEvent.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FStringList := TStringList.Create;
+end;
+
 function TShowMessageMoveOnEvent.ClassID: Integer;
 begin
   Result := 132429;
+end;
+
+procedure TShowMessageMoveOnEvent.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FStringList, $28);
 end;
 
 function TShowMessageMoveOnEventResource.ClassID: Integer;
@@ -8877,9 +8958,27 @@ begin
   Result := 132430;
 end;
 
+constructor TSign.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  field_0x30 := TStringList.Create;
+end;
+
 function TSign.ClassID: Integer;
 begin
   Result := 131330;
+end;
+
+procedure TSign.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(field_0x30, 7);
+  { TODO condition: (*(int * )PTR_AoWE_AoWHSMap_6B957A58_558e9494 != 0) && (*(char * )(*(int * )PTR_AoWE_AoWHSMap_6B957A58_558e9494 + 0x13a) != '\x01') }
+  if True then
+  begin
+    { TODO: (*stream->vtbl->rwStreamProc) (stream,8,stream->vtbl,(void * )0x55702f9c,*(void ** )&this->field_0x34) }
+  end;
+  { TODO: Engine_TBitList_SaveToStream_23EDC2EF() }
 end;
 
 function TSignResource.ClassID: Integer;
@@ -8902,9 +9001,26 @@ begin
   Result := 131792;
 end;
 
+constructor TSmokeCloud.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FSmokeCloudEnchantment := TSmokeCloudEnchantment.Create(Self);
+  FSmokeCloudEnchantment.EmbeddedShared := True;
+end;
+
 function TSmokeCloud.ClassID: Integer;
 begin
   Result := 135746;
+end;
+
+procedure TSmokeCloud.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(prop15, $F);
+  Stream.rwInteger(prop16, $10);
+  Stream.rwBool(prop17, $11);
+  Stream.rwByte(prop18, $12);
+  Stream.rwEObject(FSmokeCloudEnchantment, $13);
 end;
 
 function TSmokeCloudEnchantment.ClassID: Integer;
@@ -8917,9 +9033,25 @@ begin
   Result := 135747;
 end;
 
+constructor TSonglist.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  field_0x8 := TStringList.Create;
+end;
+
+procedure TSonglist.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if (Stream.StorageMode and 4) = 0 then
+  begin
+    Stream.rwStrings(field_0x8, 10);
+  end;
+end;
+
 constructor TSpell.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  prop10 := TStringList.Create;
   FSFXLibrary := TSFXLibrary.Create(Self);
   FSFXLibrary.EmbeddedShared := True;
 end;
@@ -8927,7 +9059,7 @@ end;
 procedure TSpell.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStrings)(stream,*(void ** )&this->field_0x24,10) }
+  Stream.rwStrings(prop10, 10);
   Stream.rwEObject(FSFXLibrary, $B);
   { TODO: (*stream->vtbl->rwStreamProc)(stream,0xc,stream->vtbl,&DAT_557028dc,this->FImageSequenceList) }
   Stream.rwInteger(prop13, $D);
@@ -8981,6 +9113,14 @@ begin
   Result := 135937;
 end;
 
+procedure TStormSpellTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(field_0x24, $14);
+  Stream.rwByte(field_0x25, $15);
+  Stream.rwByte(field_0x26, $16);
+end;
+
 function TStrikeCA.ClassID: Integer;
 begin
   Result := 131754;
@@ -9009,9 +9149,22 @@ begin
   Result := 136195;
 end;
 
+constructor TSummonSpellTE.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FUnitIndexList := TIntegerList.Create;
+end;
+
 function TSummonSpellTE.ClassID: Integer;
 begin
   Result := 135947;
+end;
+
+procedure TSummonSpellTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc($1E, FUnitIndexList.LoadFromStream, FUnitIndexList.SaveToStream);
+  { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
 procedure TSyncTE.ReadWrite(Stream: TEStorageStream);
@@ -9044,6 +9197,15 @@ begin
   Result := 131332;
 end;
 
+procedure TTeleport.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(field_0x30, 7);
+  Stream.rwByte(field_0x31, 8);
+  Stream.rwByte(field_0x32, 9);
+  Stream.rwData(field_0x33, 1, 10);
+end;
+
 function TTeleportResource.ClassID: Integer;
 begin
   Result := 131333;
@@ -9058,11 +9220,6 @@ procedure TTerminatePlayerTE.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(prop20, $14);
-end;
-
-function TTerrainMO.ClassID: Integer;
-begin
-  Result := 131430;
 end;
 
 constructor TTextControlItem.Create(AOwner: TEObject);
@@ -9129,6 +9286,12 @@ begin
   Result := 132158;
 end;
 
+procedure TTower.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(field_0x3c, 1, $14);
+end;
+
 function TTowerResource.ClassID: Integer;
 begin
   Result := 132159;
@@ -9176,10 +9339,16 @@ begin
   Result := 131788;
 end;
 
+constructor TTutorialControl.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 procedure TTutorialControl.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x14,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($14, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -9208,6 +9377,15 @@ end;
 function TUnHolyGround.ClassID: Integer;
 begin
   Result := 131985;
+end;
+
+procedure TUnHolyGround.ReadWrite(Stream: TEStorageStream);
+begin
+  { TODO: the original calls TMultiHexMO.ReadWrite directly, not TILTerrainMO.ReadWrite }
+  inherited ReadWrite(Stream);
+  Stream.rwShortintEx(prop40, -1, $28);
+  Stream.rwShortintEx(prop41, -1, $29);
+  Stream.rwShortintEx(prop42, -1, $2A);
 end;
 
 function TUnHolyGroundResource.ClassID: Integer;
@@ -9248,11 +9426,11 @@ begin
         begin
           { TODO: uVar3 = AoWE_TUnitResource_UnitResourceIndex_23EDC2EF(this->FUnitResource) }
         end;
-        { TODO: (*stream->vtbl->rwWord)(stream,(void * )((int)&uStack_8 + 2),10) }
+        Stream.rwWord(L_uStack_8_2, 10);
       end
       else
       begin
-        { TODO: (*stream->vtbl->rwWord)(stream,(void * )((int)&uStack_8 + 2),10) }
+        Stream.rwWord(L_uStack_8_2, 10);
         { TODO: pTVar4 = (TUnitResource * ) AoWE_TUnitResourceList_GetUnitResource_23EDC2EF (*(TUnitResourceList ** )(AoWE_AoWHSSet_678301D7 + 0x5c), (int)uStack_8._2_2_) }
         { TODO: this->FUnitResource = pTVar4 }
         { TODO condition: pTVar4 == (TUnitResource * )0x0 }
@@ -9271,7 +9449,7 @@ begin
     else
     begin
       { TODO: uVar3 = AoWE_TUnitResource_UnitResourceIndex_23EDC2EF(this->FUnitResource) }
-      { TODO: (*stream->vtbl->rwWord)(stream,(void * )((int)&uStack_8 + 2),10) }
+      Stream.rwWord(L_uStack_8_2, 10);
     end;
   end;
   { TODO: pcVar1 = UNRECOVERED_JUMPTABLE }
@@ -9311,6 +9489,14 @@ begin
   inherited Create(AOwner);
   FSFXLibrary := TSFXLibrary.Create(Self);
   FSFXLibrary.EmbeddedShared := True;
+  FSFXLibrary_2 := TSFXLibrary.Create(Self);
+  FSFXLibrary_2.EmbeddedShared := True;
+  FSFXLibrary_3 := TSFXLibrary.Create(Self);
+  FSFXLibrary_3.EmbeddedShared := True;
+  FSFXLibrary_4 := TSFXLibrary.Create(Self);
+  FSFXLibrary_4.EmbeddedShared := True;
+  FSFXLibrary_5 := TSFXLibrary.Create(Self);
+  FSFXLibrary_5.EmbeddedShared := True;
 end;
 
 function TUnitGFXResource.ClassID: Integer;
@@ -9328,17 +9514,17 @@ begin
     Stream.rwString(prop7, 7);
   end;
   Stream.rwInteger(prop8, 8);
-  Stream.rwData(field_0x30, 1, 10);
+  Stream.rwData(prop10, 1, 10);
   Stream.rwEObject(FSFXLibrary, $F);
-  Stream.rwEObject(FSFXLibrary, $10);
-  Stream.rwEObject(FSFXLibrary, $11);
-  Stream.rwEObject(FSFXLibrary, $12);
-  Stream.rwEObject(FSFXLibrary, $13);
+  Stream.rwEObject(FSFXLibrary_2, $10);
+  Stream.rwEObject(FSFXLibrary_3, $11);
+  Stream.rwEObject(FSFXLibrary_4, $12);
+  Stream.rwEObject(FSFXLibrary_5, $13);
 end;
 
 procedure TUnitPositionHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwByte(prop25, $19);
   Stream.rwByte(prop26, $1A);
   Stream.rwByte(prop27, $1B);
@@ -9376,13 +9562,13 @@ end;
 procedure TUnitResource.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwString(field_0x1c, 10);
+  Stream.rwString(prop10, 10);
   Stream.rwString(prop11, $B);
   Stream.rwData(prop12, 1, $C);
   Stream.rwByte(prop13, $D);
   Stream.rwByte(prop14, $E);
   Stream.rwByte(prop15, $F);
-  Stream.rwByte(prop10, $10);
+  Stream.rwByte(prop16, $10);
   Stream.rwByte(prop17, $11);
   Stream.rwByte(prop18, $12);
   Stream.rwByte(prop19, $13);
@@ -9420,6 +9606,12 @@ begin
   Stream.rwInteger(prop24, $18);
 end;
 
+constructor TUnitSpellTE.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FIntegerList := TIntegerList.Create;
+end;
+
 function TUnitSpellTE.ClassID: Integer;
 begin
   Result := 135944;
@@ -9428,7 +9620,7 @@ end;
 procedure TUnitSpellTE.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x1e,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF,this->FIntegerList) }
+  Stream.rwStreamProc($1E, FIntegerList.LoadFromStream, FIntegerList.SaveToStream);
   Stream.rwData(prop31, 8, $1F);
   Stream.rwByte(prop32, $20);
 end;
@@ -9444,9 +9636,24 @@ begin
   Stream.rwString(prop20, $14);
 end;
 
+constructor TUpdateSignTE.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FStringList := TStringList.Create;
+end;
+
 function TUpdateSignTE.ClassID: Integer;
 begin
   Result := 131343;
+end;
+
+procedure TUpdateSignTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FStringList, $F);
+  Stream.rwByte(prop16, $10);
+  Stream.rwByte(prop17, $11);
+  Stream.rwByte(prop18, $12);
 end;
 
 function TUpperIsometricHexagon.ClassID: Integer;
@@ -9496,7 +9703,7 @@ end;
 
 procedure TWatcherHS.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited ReadWrite(Stream);
+  { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwEObject(FWatcherEnchantment, $28);
 end;
 
@@ -9534,6 +9741,15 @@ end;
 function TWizardsTower.ClassID: Integer;
 begin
   Result := 133278;
+end;
+
+procedure TWizardsTower.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwBool(field_0x30, $1E);
+  Stream.rwData(field_0x31, 2, $1F);
+  Stream.rwByte(field_0x33, $20);
+  Stream.rwData(field_0x34, 4, $21);
 end;
 
 function TWizardsTowerResource.ClassID: Integer;
