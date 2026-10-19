@@ -35,3 +35,8 @@ jdk*/
 *.swp
 Thumbs.db
 Desktop.ini
+
+# Delphi 3 build output (src/delphi3)
+*.dcu
+*.drc
+src/delphi3/*.map

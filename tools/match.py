@@ -80,6 +80,11 @@ def compare(a, b):
 
 
 def main():
+    show = None
+    if '--show' in sys.argv:
+        i = sys.argv.index('--show')
+        show = sys.argv[i + 1]
+        del sys.argv[i:i + 2]
     exe, mapf, orig, sigf = sys.argv[1:5]
     classes = sys.argv[5:]
     new = Image(exe)
@@ -119,6 +124,12 @@ def main():
                 b.pop()
             d = compare(a, b)
             total += 1
+            if show and name.endswith('.' + show):
+                print('==== %s: original (%s) | compiled' % (name, orig_name))
+                for i in range(max(len(a), len(b))):
+                    l = '%-8s %-34s' % a[i] if i < len(a) else ' ' * 43
+                    r = '%-8s %s' % b[i] if i < len(b) else ''
+                    print('  %3d  %s | %s' % (i, l, r))
             if d == -1:
                 ident += 1
                 print('%-40s MATCH  %d instructions, %d bytes' % (name, len(a), osize))

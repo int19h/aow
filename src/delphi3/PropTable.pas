@@ -68,8 +68,8 @@ begin
   begin
     ReallocMem(FItems, NewCapacity * SizeOf(TPropertyItem));
     FCapacity := NewCapacity;
-    if NewCapacity < FCount then
-      FCount := NewCapacity;
+    if FCapacity < FCount then
+      FCount := FCapacity;
   end;
 end;
 
@@ -96,15 +96,10 @@ var
   I: Integer;
 begin
   I := FNextIndex;
-  if (I < FCount) and (FItems^[I].ID = ID) then
+  if (I >= FCount) or (FItems^[I].ID <> ID) then
   begin
-    Result := FItems^[I].Offset;
-    Inc(FNextIndex);
-  end
-  else
-  begin
-    Result := -1;
     I := FFirst;
+    Result := -1;
     while (I < FCount) and (FItems^[I].ID <> ID) do
       Inc(I);
     if I <> FCount then
@@ -112,6 +107,11 @@ begin
       Result := FItems^[I].Offset;
       FNextIndex := I + 1;
     end;
+  end
+  else
+  begin
+    Result := FItems^[I].Offset;
+    Inc(FNextIndex);
   end;
 end;
 
@@ -163,62 +163,65 @@ end;
 
 procedure TPropertyTable.LoadFromStream(Stream: TStream);
 var
+  LongCount, ID, Offset: Integer;
   ShortCount: Byte;
-  LongCount, I, ID, Offset: Integer;
   Pair: Word;
+  I: Word;
 begin
   Stream.Read(ShortCount, 1);
-  if (ShortCount and $80) = 0 then
-    LongCount := 0
-  else
+  if (ShortCount and $80) <> 0 then
   begin
     ShortCount := ShortCount and $7F;
     Stream.Read(LongCount, 4);
-  end;
-  for I := 1 to ShortCount do
-  begin
-    Stream.Read(Pair, 2);
-    Add(Pair and $FF, Pair shr 8);
-  end;
-  for I := 1 to LongCount do
-  begin
-    Stream.Read(ID, 4);
-    Stream.Read(Offset, 4);
-    Add(ID, Offset);
-  end;
+  end
+  else
+    LongCount := 0;
+  if ShortCount <> 0 then
+    for I := 0 to ShortCount - 1 do
+    begin
+      Stream.Read(Pair, 2);
+      Add(Pair and $FF, Pair shr 8);
+    end;
+  if LongCount <> 0 then
+    for I := 0 to LongCount - 1 do
+    begin
+      Stream.Read(ID, 4);
+      Stream.Read(Offset, 4);
+      Add(ID, Offset);
+    end;
 end;
 
 procedure TPropertyTable.SaveToStream(Stream: TStream);
 var
   LongCount, I: Integer;
   ShortCount, Marker: Byte;
-  Pair: Word;
+  Pair: Integer;
 begin
   LongCount := 0;
   ShortCount := 0;
   for I := FFirst to FCount - 1 do
-    if (FItems^[I].ID < $80) and (FItems^[I].Offset < $100) then
+    if (FItems^[I].ID <= $7F) and (FItems^[I].Offset <= $FF) then
       Inc(ShortCount)
     else
       Inc(LongCount);
-  if LongCount = 0 then
-    Stream.Write(ShortCount, 1)
-  else
+  if LongCount <> 0 then
   begin
     Marker := ShortCount or $80;
     Stream.Write(Marker, 1);
     Stream.Write(LongCount, 4);
-  end;
+  end
+  else
+    Stream.Write(ShortCount, 1);
   if ShortCount <> 0 then
     for I := FFirst to FCount - 1 do
-      if (FItems^[I].ID < $80) and (FItems^[I].Offset < $100) then
+      if (FItems^[I].ID <= $7F) and (FItems^[I].Offset <= $FF) then
       begin
-        Pair := FItems^[I].ID + FItems^[I].Offset * $100;
+        Pair := FItems^[I].ID + FItems^[I].Offset shl 8;
         Stream.Write(Pair, 2);
       end;
   if LongCount <> 0 then
     for I := FFirst to FCount - 1 do
-      if (FItems^[I].ID >= $80) or (FItems^[I].Offset >= $100) then
+      if (FItems^[I].ID > $7F) or (FItems^[I].Offset > $FF) then
       begin
         Stream.Write(FItems^[I].ID, 4);
         Stream.Write(FItems^[I].Offset, 4);
