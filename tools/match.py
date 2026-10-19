@@ -16,7 +16,8 @@ instruction.
 An alias file maps original function names that are not class methods (unit procedures, nested functions
 that Ghidra named FUN_xxxxxxxx) to the symbol name the .map file gives them, for example
 {"FUN_555140bc": "QuickSort", "Engine.FillInteger": "FillInteger"}. A value "Name<Owner" picks the occurrence of a
-repeated name (nested functions) that the compiler emitted right before Owner.
+repeated name (nested functions) that the compiler emitted right before Owner. A key "address:size" names a
+function that Ghidra did not create (for example the tiny sort comparison functions).
 
 --show Method prints the two instruction streams side by side for that method.
 --quiet prints only the methods that differ and the totals.
@@ -136,6 +137,10 @@ def main():
                     orig_name = k
             pairs.append((name, orig_name))
     for orig_name, name in aliases.items():
+        if re.fullmatch(r'[0-9a-fA-F]{8}:\d+', orig_name):
+            # a function Ghidra did not name: "address:size" in hex and bytes
+            addr, size = orig_name.split(':')
+            sigs[orig_name] = (int(addr, 16), int(size))
         pairs.append((name, orig_name if orig_name in sigs else None))
 
     total = ident = 0
