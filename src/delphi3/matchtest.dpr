@@ -11,7 +11,8 @@ program matchtest;
 uses
   Classes,
   PropTable in 'PropTable.pas',
-  EngineLists in 'EngineLists.pas';
+  EngineLists in 'EngineLists.pas',
+  Engine in 'Engine.pas';
 
 var
   T: TPropertyTable;
@@ -26,6 +27,11 @@ var
   DI: TDoubleItem;
   QI: TQuadItem;
   EV: TNotifyEvent;
+  O: TEObject;
+  N: TENode;
+  EN: TEngine;
+  EL: TEObjectEditorList;
+  Msg: TEMsg;
   M: TMemoryStream;
 begin
   T := TPropertyTable.Create;
@@ -171,4 +177,27 @@ begin
   QI := LQ.First; Writeln(QI.A); QI := LQ.Last; Writeln(QI.D);
   Writeln(LQ.Expand.Count, LQ.IndexOfItemA(1), LQ.IndexOfItemB(2), LQ.IndexOfItemC(3), LQ.IndexOfItemD(4), LQ.Compare(LQ));
   LQ.Free;
+  EN := TEngine.Create(nil);
+  N := TENode.Create(EN);
+  O := TEObject.Create(N);
+  O.SetArrayOwner(N, 0);
+  O.MsgProc(Msg);
+  O.TimerEvent;
+  O.Clear;
+  O.LastMsg := O.LastMsg;
+  Writeln(O.ClassVersion, O.ClassID, O.EObjectPath, O.Compare(O, EN), Byte(O.GetControlStyle));
+  O.Assign(O, EN);
+  O.Copy(EN).Free;
+  O.Editor;
+  O.MainReadWrite(nil);
+  O.ReadWrite(nil);
+  Writeln(O.GetEngine = EN);
+  try O.AddRef; except end;
+  try O.Release; except end;
+  EL := TEObjectEditorList.Create;
+  Writeln(EL.FindEditor(1) = nil);
+  EL.Free;
+  O.Free;
+  N.Free;
+  EN.Free;
 end.
