@@ -23,17 +23,28 @@ class Reader:
     def i32(self, p): return struct.unpack_from('<i', self.d, p)[0]
 
     def table(self, p):
-        """Parse a property table at p. Returns (entries as ordered list of (id, offset), data base)."""
+        """Parse a property table at p. Returns (entries as ordered list of (id, offset), data base).
+        Raises ValueError when the bytes cannot be a table (used to reject false object guesses)."""
+        size = len(self.d)
+        if p < 0 or p >= size:
+            raise ValueError('table start outside data')
         n = self.d[p]; p += 1
         long_n = 0
         if n & 0x80:
             n &= 0x7F
+            if p + 4 > size: raise ValueError('truncated table')
             long_n = self.i32(p); p += 4
+            if long_n < 0 or long_n > 100000: raise ValueError('bad long count %d' % long_n)
+        if p + 2 * n + 8 * long_n > size:
+            raise ValueError('table runs past the data')
         entries = []
         for _ in range(n):
             entries.append((self.d[p], self.d[p + 1])); p += 2
         for _ in range(long_n):
             entries.append((self.i32(p), self.i32(p + 4))); p += 8
+        for pid, off in entries:
+            if off < 0 or pid < 0 or p + off > size:
+                raise ValueError('entry offset outside data')
         return entries, p
 
     def string(self, p):
@@ -73,6 +84,10 @@ def schema_for(cdb, cls):
                 except ValueError:
                     continue
                 out[pid] = (fd.get('name', '?'), fd['rw'], fd.get('size', 0), fd.get('type', ''), c)
+    # TECustomNode.MainReadWrite calls ReadWriteChildren after ReadWrite: rwChildren(Self, 1).
+    # Every node therefore has its child list under id 1, outside its own ReadWrite.
+    if 'TECustomNode' in chain and 1 not in out:
+        out[1] = ('Children', 'rwChildren', 0, '', 'TECustomNode')
     return out
 
 
@@ -116,10 +131,14 @@ class Walker:
     def obj(self, cls, p, depth, indent):
         """p points at the object's property table."""
         rd = self.rd
-        entries, base = rd.table(p)
+        pad = '  ' * indent
+        try:
+            entries, base = rd.table(p)
+        except ValueError as e:
+            print('%s%s  (no property table at %d: %s)' % (pad, cls, p, e))
+            return
         self.seen[cls] += 1
         schema = schema_for(self.cdb, cls)
-        pad = '  ' * indent
         print('%s%s  (%d props, table @%d, size %d)' % (pad, cls, len(entries), p, self.cdb.get(cls, {}).get('size', 0)))
         if depth >= self.max_depth:
             return
@@ -130,10 +149,16 @@ class Walker:
                 # static schema cannot know. Recognize them by the class id that starts such an entry.
                 cid = rd.i32(at) if at + 4 <= len(rd.d) else 0
                 if cid in self.ids:
-                    print('%s  item id %-4d classid=%d %s' % (pad, pid, cid, self.ids[cid]))
-                    if depth + 1 < self.max_depth:
-                        self.obj(self.ids[cid], at + 4, depth + 1, indent + 2)
-                    continue
+                    try:
+                        rd.table(at + 4)
+                        valid = True
+                    except ValueError:
+                        valid = False
+                    if valid:
+                        print('%s  item id %-4d classid=%d %s' % (pad, pid, cid, self.ids[cid]))
+                        if depth + 1 < self.max_depth:
+                            self.obj(self.ids[cid], at + 4, depth + 1, indent + 2)
+                        continue
                 self.unknown[cls][pid] += 1
                 print('%s  ? id %-4d @+%-6d %s' % (pad, pid, off, rd.d[at:at + 8].hex(' ')))
                 continue
@@ -157,9 +182,15 @@ class Walker:
                 if cid and sub:
                     self.obj(sub, at + 4, depth + 1, indent + 2)
             elif rw == 'rwChildren':
-                kids, kbase = rd.table(at)
+                try:
+                    kids, kbase = rd.table(at)
+                except ValueError as e:
+                    print('%s  %-28s children table unreadable: %s' % (pad, name, e))
+                    continue
                 print('%s  %-28s %d children' % (pad, name, len(kids)))
                 for kid, koff in kids:
+                    if kbase + koff + 4 > len(rd.d):
+                        continue
                     cid = rd.i32(kbase + koff)
                     sub = self.ids.get(cid)
                     print('%s    child id %d classid=%d %s' % (pad, kid, cid, sub or '?'))

@@ -163,7 +163,12 @@ def add_layouts(db, paths):
                     sz = int(size) if size.isdigit() else 1
                     t = 'byte' if sz == 1 else 'byte[%d]' % sz
                 f = fields.setdefault(str(int(off, 16)), {})
-                f.setdefault('name', ('prop_%s' % pid.replace('0x', '')) if pid else 'field_%X' % int(off, 16))
+                # decimal id in the name: ids 10 and 0x10 must not both become prop_10
+                try:
+                    pid_dec = str(int(pid, 0)) if pid else ''
+                except ValueError:
+                    pid_dec = pid
+                f.setdefault('name', ('prop%s' % pid_dec) if pid_dec else 'field_%X' % int(off, 16))
                 f.update(type=t, size=sz, src=f.get('src', 'readwrite'), rw=rw, id=pid)
 
 

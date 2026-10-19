@@ -1116,7 +1116,7 @@
 |---|---|---|---|---|
 | 4 | rwInteger | +$1C | 4 |  |
 |  | rwIntegerEx | +$18 | 4 | default 0xffffffff |
-| 6 | rwByte |  | 1 | indirect: &this->FMoraleValue |
+| 6 | rwByte | +$26 | 1 |  |
 | 0x2f | rwByte | +$24 | 1 |  |
 | 0 | rwCreateEObject |  | 4 | indirect: &local_8 |
 
@@ -1249,7 +1249,7 @@
 | 0x21 | rwBool | +$78 | 1 |  |
 | 0x22 | rwInteger | +$8C | 4 |  |
 | 0x23 | rwIntegerEx | +$90 | 4 | default 0xffffffff |
-| 0x24 | rwEObject |  | 4 | indirect: this->FInventory |
+| 0x24 | rwEObject | +$74 | 4 |  |
 | 0x25 | rwEObject | +$70 | 4 |  |
 | 0x26 | rwString | +$94 | 4 |  |
 | 0x27 | rwInteger | +$50 | 4 |  |

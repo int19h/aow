@@ -41,7 +41,8 @@ SET_STR = re.compile(r'System__LStr(?:L)?Asg_\w+\(&?' + FIELD + r',param_2\);')
 
 def body_statements(text):
     body = re.sub(r'/\*.*?\*/', '', text.split('{', 1)[-1], flags=re.S)
-    stmts = [s.strip() for s in body.split(';') if s.strip()]
+    stmts = [s.strip().strip('}').strip() for s in body.split(';')]
+    stmts = [s for s in stmts if s]
     return [s for s in stmts if not re.match(r'^(undefined|u?int|char|code|short|byte|float|double|long|bool|ushort|ulong|T\w+ \*)[0-9 \*]*\s+\w+(\s*\[\d+\])?$', s)]
 
 

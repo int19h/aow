@@ -56508,7 +56508,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -57846,7 +57846,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -58560,7 +58560,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -59287,7 +59287,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -59295,7 +59295,7 @@
      "id": "1"
     },
     "16": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -59303,7 +59303,7 @@
      "id": "2"
     },
     "20": {
-     "name": "prop_3",
+     "name": "prop3",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -59754,7 +59754,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_3",
+     "name": "prop3",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -59981,7 +59981,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -87890,7 +87890,7 @@
    ],
    "fields": {
     "56": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -87898,7 +87898,7 @@
      "id": "2"
     },
     "128": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -87906,7 +87906,7 @@
      "id": "4"
     },
     "132": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -87914,7 +87914,7 @@
      "id": "5"
     },
     "136": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -88875,7 +88875,7 @@
    ],
    "fields": {
     "56": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -88883,7 +88883,7 @@
      "id": "4"
     },
     "36": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -88891,7 +88891,7 @@
      "id": "5"
     },
     "40": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -88899,7 +88899,7 @@
      "id": "6"
     },
     "52": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -91900,7 +91900,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -91908,7 +91908,7 @@
      "id": "1"
     },
     "28": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -91916,7 +91916,7 @@
      "id": "2"
     },
     "16": {
-     "name": "prop_3",
+     "name": "prop3",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -91924,7 +91924,7 @@
      "id": "3"
     },
     "20": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -91932,7 +91932,7 @@
      "id": "4"
     },
     "24": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -92436,7 +92436,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -92444,7 +92444,7 @@
      "id": "4"
     },
     "16": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -92452,7 +92452,7 @@
      "id": "5"
     },
     "20": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -92990,7 +92990,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -93227,7 +93227,7 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -93235,7 +93235,7 @@
      "id": "4"
     },
     "44": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -93243,7 +93243,7 @@
      "id": "5"
     },
     "48": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -94079,7 +94079,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_3",
+     "name": "prop3",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -94087,7 +94087,7 @@
      "id": "3"
     },
     "17": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -94338,7 +94338,7 @@
    ],
    "fields": {
     "52": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -94346,7 +94346,7 @@
      "id": "0xc"
     },
     "56": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -94354,7 +94354,7 @@
      "id": "0xd"
     },
     "60": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -94362,7 +94362,7 @@
      "id": "0xe"
     },
     "64": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -100780,7 +100780,7 @@
    ],
    "fields": {
     "69": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -100788,7 +100788,7 @@
      "id": "0x11"
     },
     "68": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -108006,7 +108006,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_1",
+     "name": "prop1",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -108014,7 +108014,7 @@
      "id": "1"
     },
     "12": {
-     "name": "prop_2",
+     "name": "prop2",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -108188,7 +108188,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -108196,7 +108196,7 @@
      "id": "5"
     },
     "12": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -109100,7 +109100,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -109281,7 +109281,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -109455,7 +109455,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -110076,7 +110076,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -114473,7 +114473,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -114481,7 +114481,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -114932,7 +114932,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -114940,7 +114940,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -114948,7 +114948,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115392,7 +115392,7 @@
    ],
    "fields": {
     "40": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115400,7 +115400,7 @@
      "id": "0x10"
     },
     "12": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115408,7 +115408,7 @@
      "id": "0xb"
     },
     "16": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115416,7 +115416,7 @@
      "id": "0xc"
     },
     "28": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115424,7 +115424,7 @@
      "id": "0xd"
     },
     "29": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115432,7 +115432,7 @@
      "id": "0xe"
     },
     "32": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115440,7 +115440,7 @@
      "id": "0xf"
     },
     "36": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -115448,7 +115448,7 @@
      "id": "0x11"
     },
     "20": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115456,7 +115456,7 @@
      "id": "0x12"
     },
     "24": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115879,7 +115879,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115887,7 +115887,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115895,7 +115895,7 @@
      "id": "0x15"
     },
     "17": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115903,7 +115903,7 @@
      "id": "0x16"
     },
     "18": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115911,7 +115911,7 @@
      "id": "0x17"
     },
     "19": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -115919,7 +115919,7 @@
      "id": "0x18"
     },
     "24": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -115927,7 +115927,7 @@
      "id": "0x19"
     },
     "32": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115935,7 +115935,7 @@
      "id": "0x1a"
     },
     "36": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -115943,7 +115943,7 @@
      "id": "0x1b"
     },
     "28": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -116443,7 +116443,7 @@
      "id": "0x16"
     },
     "32": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -116451,7 +116451,7 @@
      "id": "0x17"
     },
     "24": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -116734,7 +116734,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -116742,7 +116742,7 @@
      "id": "10"
     },
     "12": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -116750,7 +116750,7 @@
      "id": "0xb"
     },
     "16": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -116758,7 +116758,7 @@
      "id": "0xc"
     },
     "8": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -117209,7 +117209,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -117217,7 +117217,7 @@
      "id": "0x14"
     },
     "17": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -117225,7 +117225,7 @@
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -117233,7 +117233,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -117484,7 +117484,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -117492,7 +117492,7 @@
      "id": "0x14"
     },
     "32": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -117500,7 +117500,7 @@
      "id": "0x15"
     },
     "36": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -117508,7 +117508,7 @@
      "id": "0x16"
     },
     "40": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -117516,7 +117516,7 @@
      "id": "0x17"
     },
     "28": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118360,7 +118360,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118368,7 +118368,7 @@
      "id": "0x14"
     },
     "44": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118376,7 +118376,7 @@
      "id": "0x15"
     },
     "52": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118384,7 +118384,7 @@
      "id": "0x17"
     },
     "56": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118408,7 +118408,7 @@
      "id": "0x1a"
     },
     "24": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118416,7 +118416,7 @@
      "id": "0x1b"
     },
     "28": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118424,7 +118424,7 @@
      "id": "0x1c"
     },
     "12": {
-     "name": "prop_1d",
+     "name": "FCheatEnabled",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -118432,7 +118432,7 @@
      "id": "0x1d"
     },
     "8": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118742,7 +118742,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -118750,7 +118750,7 @@
      "id": "10"
     },
     "24": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -118758,7 +118758,7 @@
      "id": "0xb"
     },
     "25": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -118766,7 +118766,7 @@
      "id": "0xc"
     },
     "28": {
-     "name": "prop_d",
+     "name": "FName",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -118782,7 +118782,7 @@
      "id": "0xe"
     },
     "20": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -119033,7 +119033,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -119484,7 +119484,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -119492,7 +119492,7 @@
      "id": "0x14"
     },
     "17": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -119500,7 +119500,7 @@
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -119508,7 +119508,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -119690,7 +119690,7 @@
      "id": "10"
     },
     "8": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -119698,7 +119698,7 @@
      "id": "0xb"
     },
     "24": {
-     "name": "prop_0",
+     "name": "prop0",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -119886,7 +119886,7 @@
      "id": "2"
     },
     "20": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -120177,7 +120177,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -120419,7 +120419,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -120427,7 +120427,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -121249,7 +121249,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -121257,7 +121257,7 @@
      "id": "0x19"
     },
     "12": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -121265,7 +121265,7 @@
      "id": "0x1a"
     },
     "16": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -121273,7 +121273,7 @@
      "id": "0x1b"
     },
     "20": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -121281,7 +121281,7 @@
      "id": "0x1c"
     },
     "24": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -121733,7 +121733,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -121741,7 +121741,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122378,7 +122378,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122576,7 +122576,7 @@
      "id": ""
     },
     "169": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -122584,7 +122584,7 @@
      "id": "4"
     },
     "172": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122592,7 +122592,7 @@
      "id": "5"
     },
     "176": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122608,7 +122608,7 @@
      "id": ""
     },
     "188": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -122616,7 +122616,7 @@
      "id": "0xb"
     },
     "192": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -122648,7 +122648,7 @@
      "id": "0x1e"
     },
     "45": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122656,7 +122656,7 @@
      "id": "0x14"
     },
     "46": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122664,7 +122664,7 @@
      "id": "0x15"
     },
     "47": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122680,7 +122680,7 @@
      "id": "0x17"
     },
     "48": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -122688,7 +122688,7 @@
      "id": "0x18"
     },
     "68": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122696,7 +122696,7 @@
      "id": "0x19"
     },
     "80": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122712,7 +122712,7 @@
      "id": "0x1c"
     },
     "168": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -122728,7 +122728,7 @@
      "id": "0x1f"
     },
     "92": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122744,7 +122744,7 @@
      "id": "0x23"
     },
     "108": {
-     "name": "prop_24",
+     "name": "prop36",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122752,7 +122752,7 @@
      "id": "0x24"
     },
     "112": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122760,7 +122760,7 @@
      "id": "0x25"
     },
     "120": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122768,7 +122768,7 @@
      "id": "0x26"
     },
     "124": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122784,7 +122784,7 @@
      "id": "0x28"
     },
     "116": {
-     "name": "prop_32",
+     "name": "prop50",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -122816,7 +122816,7 @@
      "id": "0x36"
     },
     "164": {
-     "name": "prop_38",
+     "name": "prop56",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -122824,7 +122824,7 @@
      "id": "0x38"
     },
     "180": {
-     "name": "prop_39",
+     "name": "prop57",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -123564,7 +123564,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -125401,7 +125401,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -125417,7 +125417,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -130304,7 +130304,7 @@
    ],
    "fields": {
     "314": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130312,7 +130312,7 @@
      "id": "0x1f"
     },
     "232": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -130336,7 +130336,7 @@
      "id": "0xc"
     },
     "260": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130344,7 +130344,7 @@
      "id": "0xd"
     },
     "164": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130352,7 +130352,7 @@
      "id": "0x10"
     },
     "364": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130360,7 +130360,7 @@
      "id": "0x11"
     },
     "372": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130368,7 +130368,7 @@
      "id": "0x13"
     },
     "376": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -130392,7 +130392,7 @@
      "id": "0x16"
     },
     "201": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130408,7 +130408,7 @@
      "id": "0x2c"
     },
     "228": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -130416,7 +130416,7 @@
      "id": "0x19"
     },
     "200": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130424,7 +130424,7 @@
      "id": "0x1a"
     },
     "268": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130432,7 +130432,7 @@
      "id": "0x1b"
     },
     "560": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130448,7 +130448,7 @@
      "id": "0x1e"
     },
     "280": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130456,7 +130456,7 @@
      "id": "0x22"
     },
     "281": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130464,7 +130464,7 @@
      "id": "0x23"
     },
     "556": {
-     "name": "prop_24",
+     "name": "prop36",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130472,7 +130472,7 @@
      "id": "0x24"
     },
     "282": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130488,7 +130488,7 @@
      "id": "0x26"
     },
     "569": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130528,7 +130528,7 @@
      "id": "0x2b"
     },
     "333": {
-     "name": "prop_2d",
+     "name": "prop45",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -130536,7 +130536,7 @@
      "id": "0x2d"
     },
     "336": {
-     "name": "prop_2e",
+     "name": "prop46",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130544,7 +130544,7 @@
      "id": "0x2e"
     },
     "340": {
-     "name": "prop_2f",
+     "name": "prop47",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130552,7 +130552,7 @@
      "id": "0x2f"
     },
     "328": {
-     "name": "prop_30",
+     "name": "prop48",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130560,7 +130560,7 @@
      "id": "0x30"
     },
     "331": {
-     "name": "prop_31",
+     "name": "prop49",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130576,7 +130576,7 @@
      "id": "0x32"
     },
     "344": {
-     "name": "prop_33",
+     "name": "prop51",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130584,7 +130584,7 @@
      "id": "0x33"
     },
     "348": {
-     "name": "prop_34",
+     "name": "prop52",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130592,7 +130592,7 @@
      "id": "0x34"
     },
     "312": {
-     "name": "prop_35",
+     "name": "prop53",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130608,7 +130608,7 @@
      "id": "0x36"
     },
     "352": {
-     "name": "prop_37",
+     "name": "prop55",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130624,7 +130624,7 @@
      "id": "0x38"
     },
     "356": {
-     "name": "prop_3a",
+     "name": "prop58",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -130632,7 +130632,7 @@
      "id": "0x3a"
     },
     "329": {
-     "name": "prop_3b",
+     "name": "prop59",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130640,7 +130640,7 @@
      "id": "0x3b"
     },
     "330": {
-     "name": "prop_3d",
+     "name": "prop61",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -130648,7 +130648,7 @@
      "id": "0x3d"
     },
     "401": {
-     "name": "prop_3e",
+     "name": "prop62",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -131106,7 +131106,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -131114,7 +131114,7 @@
      "id": "6"
     },
     "24": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -131122,7 +131122,7 @@
      "id": "7"
     },
     "28": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -132696,7 +132696,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -133563,7 +133563,7 @@
      "id": "5"
     },
     "20": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -133579,7 +133579,7 @@
      "id": "7"
     },
     "32": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "byte[2]",
      "size": 2,
      "src": "readwrite",
@@ -133795,7 +133795,7 @@
      "id": "2"
     },
     "8": {
-     "name": "prop_3",
+     "name": "prop3",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -134727,7 +134727,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -134735,7 +134735,7 @@
      "id": "6"
     },
     "28": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -134743,7 +134743,7 @@
      "id": "7"
     },
     "32": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -134751,7 +134751,7 @@
      "id": "8"
     },
     "44": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -135209,7 +135209,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135217,7 +135217,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135225,7 +135225,7 @@
      "id": "0x15"
     },
     "24": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135589,7 +135589,7 @@
      "id": "7"
     },
     "24": {
-     "name": "prop_8",
+     "name": "FOwnerName",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -135597,7 +135597,7 @@
      "id": "8"
     },
     "48": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -135605,7 +135605,7 @@
      "id": "9"
     },
     "68": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -135613,7 +135613,7 @@
      "id": "0x10"
     },
     "70": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135621,7 +135621,7 @@
      "id": "0xb"
     },
     "71": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135629,7 +135629,7 @@
      "id": "0xc"
     },
     "72": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135637,7 +135637,7 @@
      "id": "0xd"
     },
     "73": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135645,7 +135645,7 @@
      "id": "0xe"
     },
     "52": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -135653,7 +135653,7 @@
      "id": "0xf"
     },
     "20": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135669,7 +135669,7 @@
      "id": "0x12"
     },
     "44": {
-     "name": "prop_13",
+     "name": "FObtainValue",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135677,7 +135677,7 @@
      "id": "0x13"
     },
     "56": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135685,7 +135685,7 @@
      "id": "0x14"
     },
     "36": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -135693,7 +135693,7 @@
      "id": "0x15"
     },
     "40": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -136291,7 +136291,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -136299,7 +136299,7 @@
      "id": "0x14"
     },
     "28": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -136653,7 +136653,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -137496,7 +137496,7 @@
      "id": "4"
     },
     "16": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -137718,7 +137718,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -137726,7 +137726,7 @@
      "id": "5"
     },
     "28": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -137734,7 +137734,7 @@
      "id": "6"
     },
     "40": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -138185,7 +138185,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -139008,7 +139008,7 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_4",
+     "name": "prop4",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -139023,8 +139023,16 @@
      "rw": "rwIntegerEx",
      "id": ""
     },
+    "38": {
+     "name": "FMoraleValue",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "6"
+    },
     "36": {
-     "name": "prop_2f",
+     "name": "prop47",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139035,12 +139043,6 @@
      "name": "FAbilityCount",
      "type": "int",
      "size": 4,
-     "src": "accessor"
-    },
-    "38": {
-     "name": "FMoraleValue",
-     "type": "char",
-     "size": 1,
      "src": "accessor"
     }
    },
@@ -139524,7 +139526,7 @@
    ],
    "fields": {
     "43": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139532,7 +139534,7 @@
      "id": "0x10"
     },
     "36": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -139540,7 +139542,7 @@
      "id": "0xb"
     },
     "40": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139548,7 +139550,7 @@
      "id": "0xc"
     },
     "32": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139556,7 +139558,7 @@
      "id": "0xd"
     },
     "41": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139564,7 +139566,7 @@
      "id": "0xe"
     },
     "42": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139572,7 +139574,7 @@
      "id": "0xf"
     },
     "44": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139580,7 +139582,7 @@
      "id": "0x11"
     },
     "45": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139588,7 +139590,7 @@
      "id": "0x12"
     },
     "46": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139596,7 +139598,7 @@
      "id": "0x13"
     },
     "47": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139604,7 +139606,7 @@
      "id": "0x14"
     },
     "48": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139612,7 +139614,7 @@
      "id": "0x15"
     },
     "33": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139620,7 +139622,7 @@
      "id": "0x16"
     },
     "49": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139628,7 +139630,7 @@
      "id": "0x17"
     },
     "68": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139660,7 +139662,7 @@
      "id": "0x1b"
     },
     "80": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139668,7 +139670,7 @@
      "id": "0x1c"
     },
     "81": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -139676,7 +139678,7 @@
      "id": "0x1d"
     },
     "60": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -139684,7 +139686,7 @@
      "id": "0x1e"
     },
     "64": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -141576,7 +141578,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FUnitIndex",
+     "type": "int",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "unit": "AoWE",
    "parent_known": true
   },
@@ -142971,7 +142980,7 @@
    ],
    "fields": {
     "21": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -142979,7 +142988,7 @@
      "id": "0x1e"
     },
     "22": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -142987,7 +142996,7 @@
      "id": "0x1f"
     },
     "23": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -142995,7 +143004,7 @@
      "id": "0x20"
     },
     "24": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143003,7 +143012,7 @@
      "id": "0x21"
     },
     "25": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143011,7 +143020,7 @@
      "id": "0x22"
     },
     "26": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143027,7 +143036,7 @@
      "id": "0x24"
     },
     "16": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -143035,7 +143044,7 @@
      "id": "0x25"
     },
     "20": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143216,7 +143225,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -143224,7 +143233,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143232,7 +143241,7 @@
      "id": "0x15"
     },
     "24": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -143240,7 +143249,7 @@
      "id": "0x16"
     },
     "28": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -143698,7 +143707,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -143706,7 +143715,7 @@
      "id": "0x19"
     },
     "28": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143714,7 +143723,7 @@
      "id": "0x1a"
     },
     "29": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -143722,7 +143731,7 @@
      "id": "0x1b"
     },
     "32": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144008,7 +144017,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144016,7 +144025,7 @@
      "id": "0x15"
     },
     "36": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -144032,7 +144041,7 @@
      "id": "0x18"
     },
     "48": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144040,7 +144049,7 @@
      "id": "0x19"
     },
     "32": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144048,7 +144057,7 @@
      "id": "0x1a"
     },
     "52": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -144056,7 +144065,7 @@
      "id": "0x1b"
     },
     "56": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -144064,7 +144073,7 @@
      "id": "0x1c"
     },
     "40": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144598,7 +144607,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144606,7 +144615,7 @@
      "id": "0x27"
     },
     "28": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -144614,7 +144623,7 @@
      "id": "0x28"
     },
     "32": {
-     "name": "prop_29",
+     "name": "FText",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -144622,7 +144631,7 @@
      "id": "0x29"
     },
     "40": {
-     "name": "prop_2a",
+     "name": "prop42",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -144630,7 +144639,7 @@
      "id": "0x2a"
     },
     "36": {
-     "name": "prop_2b",
+     "name": "prop43",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145469,7 +145478,7 @@
    ],
    "fields": {
     "68": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145485,7 +145494,7 @@
      "id": "7"
     },
     "96": {
-     "name": "prop_10",
+     "name": "FName",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -145493,7 +145502,7 @@
      "id": "10"
     },
     "100": {
-     "name": "prop_b",
+     "name": "FNickname",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -145501,7 +145510,7 @@
      "id": "0xb"
     },
     "104": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145517,7 +145526,7 @@
      "id": "0xd"
     },
     "132": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145533,7 +145542,7 @@
      "id": "0xf"
     },
     "106": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145541,7 +145550,7 @@
      "id": "0x10"
     },
     "107": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145549,7 +145558,7 @@
      "id": "0x11"
     },
     "108": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145557,7 +145566,7 @@
      "id": "0x12"
     },
     "109": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145565,7 +145574,7 @@
      "id": "0x13"
     },
     "110": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145573,7 +145582,7 @@
      "id": "0x14"
     },
     "111": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145589,7 +145598,7 @@
      "id": "0x16"
     },
     "84": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -145613,7 +145622,7 @@
      "id": ""
     },
     "88": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145621,7 +145630,7 @@
      "id": "0x1a"
     },
     "92": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -145645,7 +145654,7 @@
      "id": "0x1e"
     },
     "136": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145653,7 +145662,7 @@
      "id": "0x1f"
     },
     "120": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -145661,7 +145670,7 @@
      "id": "0x21"
     },
     "140": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145669,12 +145678,20 @@
      "id": "0x22"
     },
     "144": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "int",
      "size": 4,
      "src": "readwrite",
      "rw": "rwIntegerEx",
      "id": "0x23"
+    },
+    "116": {
+     "name": "FInventory",
+     "type": "THeroInventory",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "0x24"
     },
     "112": {
      "name": "FHeroItems",
@@ -145685,7 +145702,7 @@
      "id": "0x25"
     },
     "148": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -145693,7 +145710,7 @@
      "id": "0x26"
     },
     "80": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -145703,12 +145720,6 @@
     "124": {
      "name": "FHeroPowerSource",
      "type": "THeroPowerSource",
-     "size": 4,
-     "src": "accessor"
-    },
-    "116": {
-     "name": "FInventory",
-     "type": "THeroInventory",
      "size": 4,
      "src": "accessor"
     }
@@ -147285,7 +147296,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -147293,7 +147304,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -147717,7 +147728,7 @@
    ],
    "fields": {
     "37": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147725,7 +147736,7 @@
      "id": "0x10"
     },
     "32": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147733,7 +147744,7 @@
      "id": "0xb"
     },
     "33": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147741,7 +147752,7 @@
      "id": "0xc"
     },
     "34": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147749,7 +147760,7 @@
      "id": "0xd"
     },
     "35": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -147757,7 +147768,7 @@
      "id": "0xe"
     },
     "36": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147765,7 +147776,7 @@
      "id": "0xf"
     },
     "38": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147773,7 +147784,7 @@
      "id": "0x11"
     },
     "39": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147781,7 +147792,7 @@
      "id": "0x12"
     },
     "40": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147789,7 +147800,7 @@
      "id": "0x13"
     },
     "41": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -147805,7 +147816,7 @@
      "id": "0x1d"
     },
     "48": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -149928,7 +149939,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -149936,7 +149947,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -150335,7 +150346,7 @@
      "id": "5"
     },
     "20": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150343,7 +150354,7 @@
      "id": "6"
     },
     "21": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150359,7 +150370,7 @@
      "id": "8"
     },
     "38": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150367,7 +150378,7 @@
      "id": "9"
     },
     "39": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150375,7 +150386,7 @@
      "id": "10"
     },
     "40": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150383,7 +150394,7 @@
      "id": "0xd"
     },
     "36": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150391,7 +150402,7 @@
      "id": "0xb"
     },
     "17": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150781,7 +150792,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -150789,7 +150800,7 @@
      "id": "0x28"
     },
     "60": {
-     "name": "prop_29",
+     "name": "prop41",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -150797,7 +150808,7 @@
      "id": "0x29"
     },
     "64": {
-     "name": "prop_2a",
+     "name": "prop42",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -151885,7 +151896,7 @@
      "id": "0xf"
     },
     "28": {
-     "name": "prop_10",
+     "name": "FText",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -151901,7 +151912,7 @@
      "id": "0x11"
     },
     "36": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -151909,7 +151920,7 @@
      "id": "0x12"
     },
     "48": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -152188,7 +152199,7 @@
      "id": "0x10"
     },
     "28": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -152196,7 +152207,7 @@
      "id": "0x11"
     },
     "36": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152204,7 +152215,7 @@
      "id": "0x12"
     },
     "40": {
-     "name": "prop_13",
+     "name": "FText",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152212,7 +152223,7 @@
      "id": "0x13"
     },
     "44": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152428,7 +152439,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152436,7 +152447,7 @@
      "id": "5"
     },
     "40": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152444,7 +152455,7 @@
      "id": "6"
     },
     "44": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152452,7 +152463,7 @@
      "id": "7"
     },
     "32": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -152460,7 +152471,7 @@
      "id": "8"
     },
     "48": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -152468,7 +152479,7 @@
      "id": "9"
     },
     "60": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -154174,7 +154185,7 @@
    ],
    "fields": {
     "37": {
-     "name": "prop_0",
+     "name": "prop0",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -154182,7 +154193,7 @@
      "id": "0"
     },
     "28": {
-     "name": "prop_62",
+     "name": "prop98",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -154190,7 +154201,7 @@
      "id": "0x62"
     },
     "36": {
-     "name": "prop_99",
+     "name": "prop99",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -154370,7 +154381,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -154378,7 +154389,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -154642,7 +154653,7 @@
    ],
    "fields": {
     "76": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -154650,7 +154661,7 @@
      "id": "0x14"
     },
     "72": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -154666,7 +154677,7 @@
      "id": "0x16"
     },
     "84": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -156349,7 +156360,7 @@
    ],
    "fields": {
     "48": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156357,7 +156368,7 @@
      "id": "5"
     },
     "49": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156807,7 +156818,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -156815,7 +156826,7 @@
      "id": "0xf"
     },
     "16": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156823,7 +156834,7 @@
      "id": "0x10"
     },
     "17": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156831,7 +156842,7 @@
      "id": "0x11"
     },
     "18": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156839,7 +156850,7 @@
      "id": "0x12"
     },
     "19": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -156847,7 +156858,7 @@
      "id": "0x13"
     },
     "20": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -156855,7 +156866,7 @@
      "id": "0x14"
     },
     "28": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -156863,7 +156874,7 @@
      "id": "0x15"
     },
     "32": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -156871,7 +156882,7 @@
      "id": "0x16"
     },
     "36": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -157388,7 +157399,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "char",
      "size": 1,
      "src": "readwrite",
@@ -157396,7 +157407,7 @@
      "id": "0x1e"
     },
     "13": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "char",
      "size": 1,
      "src": "readwrite",
@@ -158332,7 +158343,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -158340,7 +158351,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -158348,7 +158359,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -158356,7 +158367,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -158364,7 +158375,7 @@
      "id": "0x17"
     },
     "20": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -159912,7 +159923,7 @@
    ],
    "fields": {
     "29": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -159920,7 +159931,7 @@
      "id": "5"
     },
     "28": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -159928,7 +159939,7 @@
      "id": "6"
     },
     "36": {
-     "name": "prop_7",
+     "name": "prop7",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -159936,7 +159947,7 @@
      "id": "7"
     },
     "30": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -160193,7 +160204,7 @@
    ],
    "fields": {
     "68": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -160997,7 +161008,7 @@
    ],
    "fields": {
     "70": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -161005,7 +161016,7 @@
      "id": "10"
     },
     "69": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -161013,7 +161024,7 @@
      "id": "0xc"
     },
     "71": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -161021,7 +161032,7 @@
      "id": "0xd"
     },
     "12": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -162213,7 +162224,7 @@
    ],
    "fields": {
     "76": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163045,7 +163056,7 @@
    ],
    "fields": {
     "13": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163053,7 +163064,7 @@
      "id": "10"
     },
     "14": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163061,7 +163072,7 @@
      "id": "0xb"
     },
     "12": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163298,7 +163309,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163314,7 +163325,7 @@
      "id": "0x10"
     },
     "17": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte[2]",
      "size": 2,
      "src": "readwrite",
@@ -163530,7 +163541,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -163746,7 +163757,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -163962,7 +163973,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -164385,7 +164396,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -164601,7 +164612,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -164609,7 +164620,7 @@
      "id": "0x14"
     },
     "13": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -164825,7 +164836,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165269,7 +165280,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -165277,7 +165288,7 @@
      "id": "0xb"
     },
     "16": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -165285,7 +165296,7 @@
      "id": "0xc"
     },
     "20": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -165293,7 +165304,7 @@
      "id": "0xd"
     },
     "26": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165301,7 +165312,7 @@
      "id": "0xe"
     },
     "24": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165309,7 +165320,7 @@
      "id": "0xf"
     },
     "25": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165759,7 +165770,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165767,7 +165778,7 @@
      "id": "0x14"
     },
     "9": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -165775,7 +165786,7 @@
      "id": "0x15"
     },
     "10": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -166219,7 +166230,7 @@
    ],
    "fields": {
     "48": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -166227,7 +166238,7 @@
      "id": "0x10"
     },
     "12": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166235,7 +166246,7 @@
      "id": "0xb"
     },
     "16": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166243,7 +166254,7 @@
      "id": "0xc"
     },
     "34": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte[2]",
      "size": 2,
      "src": "readwrite",
@@ -166251,7 +166262,7 @@
      "id": "0xd"
     },
     "36": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -166259,7 +166270,7 @@
      "id": "0xe"
     },
     "37": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -166267,7 +166278,7 @@
      "id": "0xf"
     },
     "68": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166299,7 +166310,7 @@
      "id": "0x14"
     },
     "72": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -166307,7 +166318,7 @@
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166315,7 +166326,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166323,7 +166334,7 @@
      "id": "0x17"
     },
     "28": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -166331,7 +166342,7 @@
      "id": "0x18"
     },
     "76": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -166339,7 +166350,7 @@
      "id": "0x1b"
     },
     "77": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -166555,7 +166566,7 @@
      "id": "7"
     },
     "25": {
-     "name": "prop_8",
+     "name": "prop8",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -167101,7 +167112,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -168451,7 +168462,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte[4]",
      "size": 4,
      "src": "readwrite",
@@ -168461,6 +168472,12 @@
     "12": {
      "name": "FAIPlayerActionList",
      "type": "TAIPlayerActionList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FProcessCyclesMax",
+     "type": "int",
      "size": 4,
      "src": "accessor"
     },
@@ -173664,7 +173681,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173672,7 +173689,7 @@
      "id": "0x1e"
     },
     "12": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173680,7 +173697,7 @@
      "id": "0x1f"
     },
     "16": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173688,7 +173705,7 @@
      "id": "0x20"
     },
     "20": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173696,7 +173713,7 @@
      "id": "0x21"
     },
     "24": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173704,7 +173721,7 @@
      "id": "0x22"
     },
     "48": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173712,7 +173729,7 @@
      "id": "0x23"
     },
     "52": {
-     "name": "prop_24",
+     "name": "prop36",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173720,7 +173737,7 @@
      "id": "0x24"
     },
     "28": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173728,7 +173745,7 @@
      "id": "0x25"
     },
     "32": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173736,7 +173753,7 @@
      "id": "0x26"
     },
     "36": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173744,7 +173761,7 @@
      "id": "0x27"
     },
     "40": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -173752,7 +173769,7 @@
      "id": "0x28"
     },
     "44": {
-     "name": "prop_29",
+     "name": "prop41",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174590,7 +174607,7 @@
      "id": "0x14"
     },
     "48": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174598,7 +174615,7 @@
      "id": "0x15"
     },
     "52": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174606,7 +174623,7 @@
      "id": "0x16"
     },
     "40": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174614,7 +174631,7 @@
      "id": "0x17"
     },
     "44": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174622,7 +174639,7 @@
      "id": "0x18"
     },
     "32": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -174630,7 +174647,7 @@
      "id": "0x19"
     },
     "36": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176755,7 +176772,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176763,7 +176780,7 @@
      "id": "0x14"
     },
     "48": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176771,7 +176788,7 @@
      "id": "0x15"
     },
     "44": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176779,7 +176796,7 @@
      "id": "0x16"
     },
     "56": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176787,7 +176804,7 @@
      "id": "0x17"
     },
     "60": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -176795,7 +176812,7 @@
      "id": "0x18"
     },
     "40": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -176803,7 +176820,7 @@
      "id": "0x19"
     },
     "52": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -176811,7 +176828,7 @@
      "id": "0x1a"
     },
     "77": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -176819,7 +176836,7 @@
      "id": "0x1b"
     },
     "78": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -176843,7 +176860,7 @@
      "id": "0x1e"
     },
     "72": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -176851,7 +176868,7 @@
      "id": "0x1f"
     },
     "76": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -177136,7 +177153,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -183454,7 +183471,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -183462,7 +183479,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -183470,7 +183487,7 @@
      "id": "0x15"
     },
     "24": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -183651,7 +183668,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -183659,7 +183676,7 @@
      "id": "0x1e"
     },
     "20": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -184083,7 +184100,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -184362,7 +184379,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184370,7 +184387,7 @@
      "id": "0x1f"
     },
     "46": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184378,7 +184395,7 @@
      "id": "0x20"
     },
     "47": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184386,7 +184403,7 @@
      "id": "0x21"
     },
     "48": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184394,7 +184411,7 @@
      "id": "0x22"
     },
     "45": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184402,7 +184419,7 @@
      "id": "0x23"
     },
     "28": {
-     "name": "prop_24",
+     "name": "prop36",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184410,7 +184427,7 @@
      "id": "0x24"
     },
     "49": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184418,7 +184435,7 @@
      "id": "0x25"
     },
     "50": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -184426,7 +184443,7 @@
      "id": "0x26"
     },
     "51": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -185521,7 +185538,7 @@
    ],
    "fields": {
     "57": {
-     "name": "prop_32",
+     "name": "prop50",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -185965,7 +185982,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -185973,7 +185990,7 @@
      "id": "0x1e"
     },
     "20": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -185981,7 +185998,7 @@
      "id": "0x1f"
     },
     "21": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -185989,7 +186006,7 @@
      "id": "0x20"
     },
     "22": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -185997,7 +186014,7 @@
      "id": "0x21"
     },
     "23": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186005,7 +186022,7 @@
      "id": "0x22"
     },
     "28": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186013,7 +186030,7 @@
      "id": "0x23"
     },
     "29": {
-     "name": "prop_24",
+     "name": "prop36",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186021,7 +186038,7 @@
      "id": "0x24"
     },
     "36": {
-     "name": "prop_25",
+     "name": "prop37",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186029,7 +186046,7 @@
      "id": "0x25"
     },
     "40": {
-     "name": "prop_26",
+     "name": "prop38",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186037,7 +186054,7 @@
      "id": "0x26"
     },
     "52": {
-     "name": "prop_27",
+     "name": "prop39",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186045,7 +186062,7 @@
      "id": "0x27"
     },
     "56": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186053,7 +186070,7 @@
      "id": "0x28"
     },
     "45": {
-     "name": "prop_29",
+     "name": "prop41",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186061,7 +186078,7 @@
      "id": "0x29"
     },
     "46": {
-     "name": "prop_2a",
+     "name": "prop42",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186069,7 +186086,7 @@
      "id": "0x2a"
     },
     "24": {
-     "name": "prop_2b",
+     "name": "prop43",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -186077,7 +186094,7 @@
      "id": "0x2b"
     },
     "48": {
-     "name": "prop_2c",
+     "name": "prop44",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186370,7 +186387,7 @@
    ],
    "fields": {
     "60": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186378,7 +186395,7 @@
      "id": "0x28"
     },
     "61": {
-     "name": "prop_29",
+     "name": "prop41",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186386,7 +186403,7 @@
      "id": "0x29"
     },
     "62": {
-     "name": "prop_2a",
+     "name": "prop42",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186394,7 +186411,7 @@
      "id": "0x2a"
     },
     "72": {
-     "name": "prop_2b",
+     "name": "prop43",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186402,7 +186419,7 @@
      "id": "0x2b"
     },
     "76": {
-     "name": "prop_2c",
+     "name": "prop44",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186410,7 +186427,7 @@
      "id": "0x2c"
     },
     "80": {
-     "name": "prop_2d",
+     "name": "prop45",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -186418,7 +186435,7 @@
      "id": "0x2d"
     },
     "68": {
-     "name": "prop_2e",
+     "name": "prop46",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -186599,7 +186616,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186607,7 +186624,7 @@
      "id": "0x14"
     },
     "17": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186788,7 +186805,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -186969,7 +186986,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -186977,7 +186994,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -187158,7 +187175,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -187166,7 +187183,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -187347,7 +187364,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -187355,7 +187372,7 @@
      "id": "0x1e"
     },
     "20": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -187536,7 +187553,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -188130,7 +188147,7 @@
    ],
    "fields": {
     "96": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -189847,7 +189864,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -189863,7 +189880,7 @@
      "id": "0xc"
     },
     "13": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -189871,7 +189888,7 @@
      "id": "0xd"
     },
     "16": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -190567,7 +190584,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -191835,7 +191852,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -191876,6 +191893,18 @@
    "fields": {
     "8": {
      "name": "FCapacity",
+     "type": "int",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FAttackerDV",
+     "type": "int",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FDefenderDV",
      "type": "int",
      "size": 4,
      "src": "accessor"
@@ -193119,7 +193148,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte[4]",
      "size": 4,
      "src": "readwrite",
@@ -196041,7 +196070,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -196765,7 +196794,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -197524,7 +197553,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -198283,7 +198312,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -199042,7 +199071,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -201088,7 +201117,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -201096,7 +201125,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -201104,7 +201133,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -201821,7 +201850,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -201829,7 +201858,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -207505,7 +207534,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -207686,7 +207715,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -207694,7 +207723,7 @@
      "id": "0x19"
     },
     "20": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -207702,7 +207731,7 @@
      "id": "0x1a"
     },
     "24": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -207710,7 +207739,7 @@
      "id": "0x1b"
     },
     "28": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -208929,7 +208958,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -208937,7 +208966,7 @@
      "id": "0x19"
     },
     "20": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -208945,7 +208974,7 @@
      "id": "0x1a"
     },
     "24": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -208953,7 +208982,7 @@
      "id": "0x1b"
     },
     "28": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -209134,7 +209163,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -209142,7 +209171,7 @@
      "id": "10"
     },
     "13": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -209940,7 +209969,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -209948,7 +209977,7 @@
      "id": "0x19"
     },
     "20": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -210693,7 +210722,7 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -210701,7 +210730,7 @@
      "id": "0x14"
     },
     "24": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -210890,7 +210919,7 @@
      "id": "0xf"
     },
     "16": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -210898,7 +210927,7 @@
      "id": "0x10"
     },
     "15": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "char",
      "size": 1,
      "src": "readwrite",
@@ -210906,7 +210935,7 @@
      "id": "0x11"
     },
     "14": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "char",
      "size": 1,
      "src": "readwrite",
@@ -212650,7 +212679,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214063,7 +214092,7 @@
      "id": "0xb"
     },
     "20": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214071,7 +214100,7 @@
      "id": "0xd"
     },
     "28": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214079,7 +214108,7 @@
      "id": "0xe"
     },
     "24": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214087,7 +214116,7 @@
      "id": "0xf"
     },
     "33": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -214505,7 +214534,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214513,7 +214542,7 @@
      "id": "0xf"
     },
     "20": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -214521,7 +214550,7 @@
      "id": "0x10"
     },
     "24": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -214529,7 +214558,7 @@
      "id": "0x11"
     },
     "28": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -215124,7 +215153,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -215132,7 +215161,7 @@
      "id": "0x14"
     },
     "28": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -215520,7 +215549,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte[8]",
      "size": 8,
      "src": "readwrite",
@@ -215528,7 +215557,7 @@
      "id": "0x1f"
     },
     "40": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -215756,7 +215785,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -215764,7 +215793,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -215772,7 +215801,7 @@
      "id": "0x15"
     },
     "17": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -215780,7 +215809,7 @@
      "id": "0x16"
     },
     "20": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte[8]",
      "size": 8,
      "src": "readwrite",
@@ -215788,7 +215817,7 @@
      "id": "0x17"
     },
     "28": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217211,7 +217240,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217219,7 +217248,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217227,7 +217256,7 @@
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217235,7 +217264,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217243,7 +217272,7 @@
      "id": "0x17"
     },
     "8": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -217441,7 +217470,7 @@
      "id": "0x16"
     },
     "32": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217449,7 +217478,7 @@
      "id": "0x18"
     },
     "36": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217457,7 +217486,7 @@
      "id": "0x19"
     },
     "24": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217465,7 +217494,7 @@
      "id": "0x1a"
     },
     "8": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -217669,7 +217698,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -217677,7 +217706,7 @@
      "id": "9"
     },
     "12": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -217685,7 +217714,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -218216,7 +218245,7 @@
      "id": "10"
     },
     "8": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -218224,7 +218253,7 @@
      "id": "0xc"
     },
     "36": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218232,7 +218261,7 @@
      "id": "0xd"
     },
     "28": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -218240,7 +218269,7 @@
      "id": "0xf"
     },
     "49": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218248,7 +218277,7 @@
      "id": "0x11"
     },
     "48": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218504,7 +218533,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218512,7 +218541,7 @@
      "id": "0x14"
     },
     "17": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218520,7 +218549,7 @@
      "id": "0x15"
     },
     "18": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218528,7 +218557,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218536,7 +218565,7 @@
      "id": "0x17"
     },
     "28": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218544,7 +218573,7 @@
      "id": "0x18"
     },
     "19": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218552,7 +218581,7 @@
      "id": "0x19"
     },
     "20": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -218568,7 +218597,7 @@
      "id": "0x1b"
     },
     "36": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218576,7 +218605,7 @@
      "id": "0x1c"
     },
     "40": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218584,7 +218613,7 @@
      "id": "0x1d"
     },
     "44": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -218592,7 +218621,7 @@
      "id": "0x1e"
     },
     "12": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -219043,7 +219072,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -219051,7 +219080,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -219302,7 +219331,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -220651,7 +220680,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -220659,7 +220688,7 @@
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -220667,7 +220696,7 @@
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -224482,7 +224511,7 @@
    ],
    "fields": {
     "72": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -224684,7 +224713,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -228775,7 +228804,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -229331,7 +229360,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_28",
+     "name": "prop40",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -234418,7 +234447,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -234426,7 +234455,7 @@
      "id": "0x14"
     },
     "40": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -235489,7 +235518,7 @@
    ],
    "fields": {
     "72": {
-     "name": "prop_c",
+     "name": "FName",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -235513,7 +235542,7 @@
      "id": "0xf"
     },
     "77": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -235529,7 +235558,7 @@
      "id": "0x12"
     },
     "68": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -235537,7 +235566,7 @@
      "id": "0x16"
     },
     "116": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -236058,7 +236087,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -236066,7 +236095,7 @@
      "id": "0x14"
     },
     "28": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -236074,7 +236103,7 @@
      "id": "0x15"
     },
     "32": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -236082,7 +236111,7 @@
      "id": "0x16"
     },
     "36": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -237312,7 +237341,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -237320,7 +237349,7 @@
      "id": "0x14"
     },
     "36": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -237876,7 +237905,7 @@
    ],
    "fields": {
     "44": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -237884,7 +237913,7 @@
      "id": "0x1e"
     },
     "40": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -242319,7 +242348,7 @@
    ],
    "fields": {
     "68": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -243484,7 +243513,7 @@
    ],
    "fields": {
     "48": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -250507,7 +250536,7 @@
      "id": "5"
     },
     "48": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -251350,7 +251379,7 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_5",
+     "name": "prop5",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -251358,7 +251387,7 @@
      "id": "5"
     },
     "32": {
-     "name": "prop_6",
+     "name": "prop6",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -252920,7 +252949,7 @@
      "id": "8"
     },
     "60": {
-     "name": "prop_9",
+     "name": "prop9",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -256989,7 +257018,7 @@
    ],
    "fields": {
     "65": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -256997,7 +257026,7 @@
      "id": "0xf"
     },
     "64": {
-     "name": "prop_10",
+     "name": "prop16",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -260390,7 +260419,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -260398,7 +260427,7 @@
      "id": "0x1e"
     },
     "16": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -261421,7 +261450,7 @@
      "id": "0x28"
     },
     "24": {
-     "name": "prop_29",
+     "name": "prop41",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -274751,7 +274780,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -274759,7 +274788,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -274767,7 +274796,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -274775,7 +274804,7 @@
      "id": "0x16"
     },
     "20": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -274949,7 +274978,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -274957,7 +274986,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte[4]",
      "size": 4,
      "src": "readwrite",
@@ -274965,7 +274994,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -274973,7 +275002,7 @@
      "id": "0x16"
     },
     "17": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -274981,7 +275010,7 @@
      "id": "0x17"
     },
     "20": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275425,7 +275454,7 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte[8]",
      "size": 8,
      "src": "readwrite",
@@ -275433,7 +275462,7 @@
      "id": "0x10"
     },
     "8": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte[8]",
      "size": 8,
      "src": "readwrite",
@@ -275441,7 +275470,7 @@
      "id": "0xb"
     },
     "24": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275449,7 +275478,7 @@
      "id": "0xc"
     },
     "33": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275465,7 +275494,7 @@
      "id": "0xe"
     },
     "25": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275744,7 +275773,7 @@
    ],
    "fields": {
     "42": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -275752,7 +275781,7 @@
      "id": "0x10"
     },
     "36": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275760,7 +275789,7 @@
      "id": "0xb"
     },
     "37": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -275768,7 +275797,7 @@
      "id": "0xc"
     },
     "20": {
-     "name": "prop_d",
+     "name": "prop13",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -275776,7 +275805,7 @@
      "id": "0xd"
     },
     "40": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275784,7 +275813,7 @@
      "id": "0xe"
     },
     "41": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275792,7 +275821,7 @@
      "id": "0xf"
     },
     "44": {
-     "name": "prop_11",
+     "name": "prop17",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275800,7 +275829,7 @@
      "id": "0x11"
     },
     "38": {
-     "name": "prop_12",
+     "name": "prop18",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -275808,7 +275837,7 @@
      "id": "0x12"
     },
     "48": {
-     "name": "prop_13",
+     "name": "prop19",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275816,7 +275845,7 @@
      "id": "0x13"
     },
     "52": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275832,7 +275861,7 @@
      "id": "0x15"
     },
     "12": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275840,7 +275869,7 @@
      "id": "0x16"
     },
     "32": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275848,7 +275877,7 @@
      "id": "0x17"
     },
     "39": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -275856,7 +275885,7 @@
      "id": "0x18"
     },
     "60": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275864,7 +275893,7 @@
      "id": "0x19"
     },
     "24": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275872,7 +275901,7 @@
      "id": "0x1a"
     },
     "28": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -275880,7 +275909,7 @@
      "id": "0x1b"
     },
     "61": {
-     "name": "prop_1c",
+     "name": "prop28",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -275888,7 +275917,7 @@
      "id": "0x1c"
     },
     "62": {
-     "name": "prop_1d",
+     "name": "prop29",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -279766,7 +279795,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -279774,7 +279803,7 @@
      "id": "0x1e"
     },
     "32": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -281196,7 +281225,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -281204,7 +281233,7 @@
      "id": "0x14"
     },
     "32": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -282208,7 +282237,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -284629,7 +284658,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -285241,7 +285270,7 @@
    ],
    "fields": {
     "36": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -286344,7 +286373,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -286352,7 +286381,7 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -286360,7 +286389,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -286646,7 +286675,7 @@
    ],
    "fields": {
     "40": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -286662,7 +286691,7 @@
      "id": "0x15"
     },
     "36": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -286670,7 +286699,7 @@
      "id": "0x16"
     },
     "38": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -286678,7 +286707,7 @@
      "id": "0x17"
     },
     "37": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "char",
      "size": 1,
      "src": "readwrite",
@@ -290256,7 +290285,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -290264,7 +290293,7 @@
      "id": "0x1e"
     },
     "28": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -290480,7 +290509,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -290488,7 +290517,7 @@
      "id": "0x14"
     },
     "13": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -290496,7 +290525,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -290504,7 +290533,7 @@
      "id": "0x16"
     },
     "20": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -290512,7 +290541,7 @@
      "id": "0x17"
     },
     "24": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -290728,7 +290757,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -290736,7 +290765,7 @@
      "id": "0x14"
     },
     "20": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -290744,7 +290773,7 @@
      "id": "0x16"
     },
     "24": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -290752,7 +290781,7 @@
      "id": "0x17"
     },
     "28": {
-     "name": "prop_18",
+     "name": "prop24",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -300069,7 +300098,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -300077,7 +300106,7 @@
      "id": "0x14"
     },
     "13": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -300085,7 +300114,7 @@
      "id": "0x15"
     },
     "16": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -300093,7 +300122,7 @@
      "id": "0x16"
     },
     "20": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -302889,7 +302918,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -302897,7 +302926,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_e",
+     "name": "prop14",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -303078,7 +303107,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_f",
+     "name": "prop15",
      "type": "pointer",
      "size": 4,
      "src": "readwrite",
@@ -304479,7 +304508,7 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_10",
+     "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -304487,7 +304516,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -304495,7 +304524,7 @@
      "id": "0xb"
     },
     "12": {
-     "name": "prop_c",
+     "name": "prop12",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -304947,7 +304976,7 @@
      "id": "10"
     },
     "16": {
-     "name": "prop_b",
+     "name": "prop11",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -305440,7 +305469,7 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_f",
+     "name": "FText",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -305699,7 +305728,7 @@
      "id": "0x14"
     },
     "29": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -305707,7 +305736,7 @@
      "id": "0x15"
     },
     "30": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -307222,7 +307251,7 @@
      "id": "0x1e"
     },
     "36": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -307230,7 +307259,7 @@
      "id": "0x1f"
     },
     "37": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -307238,7 +307267,7 @@
      "id": "0x20"
     },
     "24": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "AnsiString",
      "size": 4,
      "src": "readwrite",
@@ -311384,7 +311413,7 @@
    ],
    "fields": {
     "69": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -311392,7 +311421,7 @@
      "id": "0x14"
     },
     "68": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -313055,7 +313084,7 @@
    ],
    "fields": {
     "72": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -315690,7 +315719,7 @@
    ],
    "fields": {
     "60": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -315871,7 +315900,7 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_1e",
+     "name": "prop30",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -315879,7 +315908,7 @@
      "id": "0x1e"
     },
     "24": {
-     "name": "prop_1f",
+     "name": "prop31",
      "type": "int",
      "size": 4,
      "src": "readwrite",
@@ -315887,7 +315916,7 @@
      "id": "0x1f"
     },
     "32": {
-     "name": "prop_20",
+     "name": "prop32",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -315895,7 +315924,7 @@
      "id": "0x20"
     },
     "34": {
-     "name": "prop_21",
+     "name": "prop33",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -315903,7 +315932,7 @@
      "id": "0x21"
     },
     "28": {
-     "name": "prop_22",
+     "name": "prop34",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -315911,7 +315940,7 @@
      "id": "0x22"
     },
     "30": {
-     "name": "prop_23",
+     "name": "prop35",
      "type": "word",
      "size": 2,
      "src": "readwrite",
@@ -317399,7 +317428,7 @@
    ],
    "fields": {
     "73": {
-     "name": "prop_14",
+     "name": "prop20",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -317407,7 +317436,7 @@
      "id": "0x14"
     },
     "72": {
-     "name": "prop_15",
+     "name": "prop21",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -317415,7 +317444,7 @@
      "id": "0x15"
     },
     "74": {
-     "name": "prop_16",
+     "name": "prop22",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -317423,7 +317452,7 @@
      "id": "0x16"
     },
     "75": {
-     "name": "prop_17",
+     "name": "prop23",
      "type": "bool",
      "size": 1,
      "src": "readwrite",
@@ -320923,7 +320952,7 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_19",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -320931,7 +320960,7 @@
      "id": "0x19"
     },
     "13": {
-     "name": "prop_1a",
+     "name": "prop26",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -320939,7 +320968,7 @@
      "id": "0x1a"
     },
     "24": {
-     "name": "prop_1b",
+     "name": "prop27",
      "type": "byte",
      "size": 1,
      "src": "readwrite",

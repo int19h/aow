@@ -75,6 +75,31 @@ each class's `ClassID` method, which is how the file stays independent of class 
 `rwStreamProc(id, obj, LoadProc, SaveProc)`: seek to the property and call a plain `LoadFromStream` or
 `SaveToStream` method, used for lists such as `TIntegerList`.
 
+`rwChildren(node, id)`: a nested property table whose entries are the children. Each entry's id is the
+child's slot and its value is `Integer` class id plus the child's own table, exactly like `rwCreateEObject`.
+`TECustomNode.MainReadWrite` calls `ReadWrite` and then `ReadWriteChildren`, which is `rwChildren(Self, 1)`,
+so every node class (players, units, armies, structures, all the lists) keeps its children under id 1 even
+though no `ReadWrite` method mentions it. Lists that are not nodes (`TItemControl`, `TAbilityOwner`) store
+their items with `rwCreateEObject` under computed ids (a base plus the index), which the walker recognizes
+by the class id at the start of the entry.
+
+Strings (`rwString`): one length byte, or `$FF` followed by an `Integer` length, then the characters.
+
+### File header
+
+The inflated map or save data starts with a 16-byte record: `Integer 16` (its size), `'HSM'#0`, `Integer 0`,
+`Integer ClassID` of the root object (131089 = `TAoWHSMap`). `THSEngine.LoadHSMfromStream` seeks to byte 16,
+creates the root object from the class id, and runs `TEngine.ReadEObject`: a `TEReadStorageStream` whose
+constructor reads the root property table (one entry, id 0, offset 0) and then `rwEObject(root, 0)`.
+
+### Validation
+
+`tools/asg_dump.py` walks a real file with this description and the schema in `classes.json`. On the shipped
+`After the Fall.asg` it reads the map name, the scenario set path `RELEASE\Release.hss`, the player, race,
+item, hero, structure and AI control objects, and the 48 items of the item library with their ability data,
+and it lists every property id the schema does not explain. Remaining gaps are ids whose last argument
+Ghidra dropped from the call (`rwIntegerEx`, `rwData`) and `rwStreamProc` payloads.
+
 With this, a Python reader for `.asg` and `.hsm` files is a straightforward next tool: inflate, read the root
 object's table, and walk `TAoWHSMap.ReadWrite` using `notes/persisted-fields.md` as the schema.
 

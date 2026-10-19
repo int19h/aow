@@ -173,6 +173,7 @@
 | offset | field | c type | from |
 |---|---|---|---|
 | +$0C | FAIPlayerActionList | TAIPlayerActionList | constructor |
+| +$18 | FProcessCyclesMax |  | getter |
 | +$1C | FAIMoveExecuter | TAIMoveExecuter | constructor |
 
 ## AoWE.TAIProductionLocationFinder
@@ -397,6 +398,7 @@
 | offset | field | c type | from |
 |---|---|---|---|
 | +$18 | FArmy | TArmy | constructor |
+| +$1C | FText | String | getter |
 | +$20 | FStringList | TStringList | constructor |
 | +$28 | FByteList | TByteList | constructor |
 | +$2C | FByteList | TByteList | constructor |
@@ -419,6 +421,7 @@
 |---|---|---|---|
 | +$18 | FArmy | TArmy | constructor |
 | +$20 | FStringList | TStringList | constructor |
+| +$28 | FText | String | getter |
 
 ## AoWE.TAutoProduceAIPA
 
@@ -608,6 +611,7 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
+| +$1C | FName | String | getter |
 | +$20 | FUpkeep |  | getter |
 
 ## AoWE.TGlobalMagicControl
@@ -630,8 +634,11 @@
 | +$3C | FFaceIndex |  | setter |
 | +$48 | FExperience |  | getter |
 | +$4C | FUnitLevel |  | getter |
+| +$60 | FName | String | getter |
+| +$64 | FNickname | String | getter |
 | +$69 | FGender |  | getter |
 | +$70 | FHeroItems | THeroItems | delegation |
+| +$74 | FHeroInventory | THeroInventory | constructor |
 | +$79 | FMovePoints |  | getter |
 | +$7A | FHitPoints |  | getter |
 | +$7C | FHeroPowerSource | THeroPowerSource | constructor |
@@ -644,6 +651,12 @@
 | +$08 | FEventList | TEventList | constructor |
 | +$10 | FEventList | TEventList | constructor |
 | +$14 | FHeroList | THeroList | constructor |
+
+## AoWE.THeroEmergeEventLog
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$20 | FText | String | getter |
 
 ## AoWE.THeroInventory
 
@@ -692,6 +705,8 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
+| +$18 | FOwnerName | String | getter |
+| +$2C | FObtainValue |  | getter |
 | +$3C | FStringList | TStringList | constructor |
 | +$40 | FItemGFXIndex |  | setter |
 
@@ -750,6 +765,8 @@
 | offset | field | c type | from |
 |---|---|---|---|
 | +$08 | FCapacity | int | setter |
+| +$18 | FAttackerDV |  | getter |
+| +$1C | FDefenderDV |  | getter |
 
 ## AoWE.TMoveArmyTE
 
@@ -890,6 +907,7 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
+| +$0C | FCheatEnabled |  | getter |
 | +$20 | FExternalPowerSource | TExternalPowerSource | constructor |
 | +$30 | FIntegerList | TIntegerList | constructor |
 | +$3C | FEnchantmentList | TEnchantmentList | delegation |
@@ -1086,6 +1104,12 @@
 | +$0C | FShowPriority |  | getter |
 | +$10 | FUnitGFXResource | TUnitGFXResource | delegation |
 
+## AoWE.TUnitIndexList
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$10 | FUnitIndex |  | getter |
+
 ## AoWE.TUnitIndexListCollection
 
 | offset | field | c type | from |
@@ -1187,6 +1211,7 @@
 | offset | field | c type | from |
 |---|---|---|---|
 | +$45 | FRace |  | getter |
+| +$48 | FName | String | getter |
 | +$4C | FWallType |  | setter |
 | +$50 | FProductionControl | TProductionControl | constructor |
 | +$58 | FGlobalEnchantmentList | TGlobalEnchantmentList | constructor |
@@ -1264,6 +1289,12 @@
 |---|---|---|---|
 | +$18 | FStringList | TStringList | constructor |
 
+## EventLog.TTextEventLog
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$18 | FText | String | getter |
+
 ## ExploreS.TExplorationSite
 
 | offset | field | c type | from |
@@ -1338,6 +1369,7 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
+| +$10 | FTerrain | undefined1 | getter |
 | +$14 | FByteList | TByteList | constructor |
 | +$18 | FByteList | TByteList | constructor |
 
