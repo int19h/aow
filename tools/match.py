@@ -21,6 +21,8 @@ function that Ghidra did not create (for example the tiny sort comparison functi
 
 --show Method prints the two instruction streams side by side for that method.
 --quiet prints only the methods that differ and the totals.
+--units Unit1,Unit2 also compares every unit-level function of those units (original name "Unit.Name")
+whose bare name is a symbol of the map file, so only nested and unnamed functions need aliases.
 """
 import json, os, re, struct, sys
 import pefile
@@ -143,6 +145,7 @@ def main():
     show = None
     aliases = {}
     quiet = False
+    units = []
     argv = sys.argv[1:]
     while argv and argv[0].startswith('--'):
         opt = argv.pop(0)
@@ -152,6 +155,8 @@ def main():
             aliases.update(json.load(open(argv.pop(0), encoding='utf-8')))
         elif opt == '--quiet':
             quiet = True
+        elif opt == '--units':
+            units += argv.pop(0).split(',')
         else:
             sys.exit('unknown option ' + opt)
     exe, mapf, orig, sigf = argv[:4]
@@ -187,6 +192,12 @@ def main():
                 if k.endswith('.' + oc + '.' + method):
                     orig_name = k
             pairs.append((name, orig_name))
+    aliased = set(aliases.values())
+    for unit in units:
+        for k in sorted(sigs, key=lambda k: sigs[k][0]):
+            parts = k.split('.')
+            if len(parts) == 2 and parts[0] == unit and parts[1] in syms and parts[1] not in aliased                     and k not in aliases and parts[1] not in (unit, 'Finalization'):
+                pairs.append((parts[1], k))
     for orig_name, name in aliases.items():
         if re.fullmatch(r'[0-9a-fA-F]{8}:\d+', orig_name):
             # a function Ghidra did not name: "address:size" in hex and bytes
