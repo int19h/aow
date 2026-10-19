@@ -24,7 +24,6 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$08 | 4 |  |  | rwInteger | 10 |  |
 | +$0C | 4 |  |  | rwInteger | 0xb |  |
 | +$10 | 1 |  |  | rwByte | 0xc |  |
 | +$11 | 3 | ? | | | | gap |
@@ -34,7 +33,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1D | 1 |  |  | rwByte | 0xe |  |
 | +$1E | 2 | ? | | | | gap |
 | +$20 | 4 |  |  | rwInteger | 0xf |  |
-| +$24 | 4 | ? | | | | gap |
+| +$24 | 4 |  |  | rwCreateEObject | 0x11 |  |
 | +$28 | 4 |  |  | rwInteger | 0x10 |  |
 
 ## TProductionTE : TTokenEvent  (size 40, 20 virtual methods)
@@ -46,7 +45,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$12 | 1 |  |  | rwByte | 0x17 |  |
 | +$13 | 1 |  |  | rwByte | 0x18 |  |
 | +$14 | 4 |  |  | rwInteger | 0x14 |  |
-| +$18 | 4 | ? | | | | gap |
+| +$18 | 4 |  |  | rwCreateEObject | 0x19 |  |
 | +$1C | 1 |  |  | rwBool | 0x1c |  |
 | +$1D | 3 | ? | | | | gap |
 | +$20 | 4 |  |  | rwInteger | 0x1a |  |
@@ -56,7 +55,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$14 | 4 |  |  | rwEObject | 0x14 |  |
+| +$14 | 4 | FProductionQueue | TProductionQueue | rwEObject | 0x14 |  |
 | +$18 | 1 |  |  | rwBool | 0x18 |  |
 | +$19 | 3 | ? | | | | gap |
 | +$1C | 4 | FUnitProductionList | TUnitProductionList | rwEObject | 0x15 |  |
@@ -101,12 +100,12 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$08 | 4 |  |  | rwInteger | 0x1e |  |
-| +$0C | 1 | FCheatEnabled | undefined1 | rwBool | 0x1d |  |
+| +$0C | 1 |  |  | rwBool | 0x1d |  |
 | +$0D | 11 | ? | | | | gap |
 | +$18 | 4 |  |  | rwInteger | 0x1b |  |
 | +$1C | 4 |  |  | rwInteger | 0x1c |  |
 | +$20 | 4 | ? | | | | gap |
-| +$24 | 4 | FMana | int | rwInteger | 0x14 |  |
+| +$24 | 4 |  |  | rwInteger | 0x14 |  |
 | +$28 | 4 | ? | | | | gap |
 | +$2C | 4 |  |  | rwIntegerEx | 0x15 | default 0x32 |
 | +$30 | 4 | ? | | | | gap |
@@ -115,7 +114,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$3C | 4 | FEnchantmentList | TEnchantmentList | rwEObject | 0x19 |  |
 | +$40 |  | FPowerSourceList | TPowerSourceList |  |  |  |
 | +$40 | 4 | ? | | | | gap |
-| +$44 | 1 |  |  | rwData | 0x1a |  |
+| +$44 | 1 | FActiveEnchantments |  | rwData | 0x1a |  |
 | +$45 | 7 | ? | | | | gap to end |
 
 ## TGlobalEnchantment : TEObject  (size 36, 35 virtual methods)
@@ -128,8 +127,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$18 | 1 |  |  | rwData | 0xb |  |
 | +$19 | 1 |  |  | rwByte | 0xc |  |
 | +$1A | 2 | ? | | | | gap |
-| +$1C | 4 | FName | String | rwString | 0xd |  |
-| +$20 | 4 | FUpkeep | undefined4 | rwInteger | 0xe |  |
+| +$1C | 4 |  |  | rwString | 0xd |  |
+| +$20 | 4 | FUpkeep |  | rwInteger | 0xe |  |
 
 ## TGlobalEnchantmentEventLog : TLocationTextEventLog  (size 36, 30 virtual methods)
 
@@ -162,7 +161,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$08 | 1 |  |  | rwByte | 2 |  |
+| +$08 | 1 | FRace |  | rwByte | 2 |  |
 | +$09 | 11 | ? | | | | gap |
 | +$14 | 1 |  |  | rwBool | 4 |  |
 | +$15 | 3 | ? | | | | gap to end |
@@ -240,7 +239,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$50 | 1 |  |  | rwByte | 0x1b |  |
 | +$51 | 3 | ? | | | | gap |
 | +$54 | 4 |  |  | rwEObject | 0x1f |  |
-| +$58 | 4 |  |  | rwEObject | 0x1e |  |
+| +$58 | 4 | ? | | | | gap |
 | +$5C | 4 |  |  | rwInteger | 0x22 |  |
 | +$60 | 4 |  |  | rwEObject | 0x23 |  |
 | +$64 | 8 | ? | | | | gap |
@@ -256,8 +255,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$94 | 12 | ? | | | | gap |
 | +$A0 | 4 |  |  | rwEObject | 0x36 |  |
 | +$A4 | 1 |  |  | rwBool | 0x38 |  |
-| +$A5 | 1 |  |  | rwByte | 2 |  |
-| +$A6 | 1 |  |  | rwByte | 0x12 |  |
+| +$A5 | 1 | FRace |  | rwByte | 2 |  |
+| +$A6 | 1 | FPlayerIndex |  | rwByte | 0x12 |  |
 | +$A7 | 1 |  |  | rwData |  |  |
 | +$A8 | 1 |  |  | rwData | 0x1d |  |
 | +$A9 | 1 |  |  | rwBool | 4 |  |
@@ -268,9 +267,11 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$B8 | 4 | ? | | | | gap |
 | +$BC | 4 |  |  | rwString | 0xb |  |
 | +$C0 | 4 |  |  | rwString | 0xc |  |
-| +$C4 | 4 |  |  | rwInteger | 0x10 |  |
-| +$C8 | 12 | ? | | | | gap |
-| +$D4 | 4 |  |  | rwEObject | 0x1e |  |
+| +$C4 | 4 | FGems |  | rwInteger | 0x10 |  |
+| +$C8 | 4 | FArmyUpkeep | undefined4 |  |  |  |
+| +$CC | 4 | FMagicUpkeep | undefined4 |  |  |  |
+| +$D0 | 4 | ? | | | | gap |
+| +$D4 | 4 | FLeader |  | rwEObject | 0x1e |  |
 | +$D8 | 4 |  |  | rwEObject | 0x17 |  |
 
 ## TPlayerList : TEControlStyleNode  (size 32, 34 virtual methods)
@@ -287,6 +288,15 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$18 | 2 |  |  | rwWord | 4 |  |
 | +$1A | 2 | ? | | | | gap to end |
 
+## TMoveControlSettings : TEObject  (size 428, 19 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$7C | 4 | FSourcePos | undefined4 |  |  |  |
+| +$80 | 8 | ? | | | | gap |
+| +$88 | 4 | FDestinationPos | undefined4 |  |  |  |
+| +$8C | 288 | ? | | | | gap to end |
+
 ## TTextControlItem : TEObject  (size 20, 19 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
@@ -295,12 +305,30 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$0C | 4 |  |  | rwStrings | 10 |  |
 | +$10 | 4 |  |  | rwString | 0xb |  |
 
+## TMoveSelector : TObject  (size 24, 13 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$0C | 4 | FCurrentMove | undefined4 |  |  |  |
+| +$10 | 8 | ? | | | | gap to end |
+
 ## TSelectedArmy : TMoveSelector  (size 40, 13 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$08 |  | FMoveSettingsList | TMoveSettingsList |  |  |  |
-| +$08 | 32 | ? | | | | gap to end |
+| +$08 | 4 | ? | | | | gap |
+| +$0C | 4 | FCurrentMove (TMoveSelector) | undefined4 |  |  |  |
+| +$10 | 24 | ? | | | | gap to end |
+
+## TAbstractAoWHSMap : THSMap  (size 216, 70 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$A4 |  | FCurrentPlayer |  |  |  |  |
+| +$A4 | 1 | ? | | | | gap |
+| +$A5 |  | FSeatedPlayer |  |  |  |  |
+| +$A5 | 51 | ? | | | | gap to end |
 
 ## TTutorialControl : TEObject  (size 12, 19 virtual methods)
 
@@ -311,7 +339,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$A4 | 1 |  |  | rwByte | 0x10 |  |
+| +$A4 | 1 | FCurrentPlayer |  | rwByte | 0x10 |  |
+| +$A5 |  | FSeatedPlayer (TAbstractAoWHSMap) |  |  |  |  |
 | +$A5 | 35 | ? | | | | gap |
 | +$C8 | 1 |  |  | rwBool | 0x1a |  |
 | +$C9 | 1 |  |  | rwBool | 0x17 |  |
@@ -328,9 +357,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$105 | 3 | ? | | | | gap |
 | +$108 | 4 |  |  | rwStrings | 0xc |  |
 | +$10C | 1 |  |  | rwByte | 0x1b |  |
-| +$10D | 3 | ? | | | | gap |
-| +$110 | 4 |  |  | rwEObject | 0x1d |  |
-| +$114 | 4 |  |  | rwEObject | 0x3c |  |
+| +$10D | 11 | ? | | | | gap |
 | +$118 | 1 |  |  | rwData | 0x22 |  |
 | +$119 | 1 |  |  | rwData | 0x23 |  |
 | +$11A | 1 |  |  | rwData | 0x25 |  |
@@ -380,14 +407,15 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$14 | 4 | FIndex | undefined4 |  |  |  |
+| +$14 |  | FIndex |  |  |  |  |
+| +$14 | 4 | ? | | | | gap |
 | +$18 | 4 |  |  | rwString | 7 |  |
 | +$1C | 4 |  |  | rwInteger | 8 |  |
+| +$20 |  | FCustomImageLibrary | TCustomImageLibrary |  |  |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 4 |  |  | rwString | 6 |  |
-| +$28 | 8 | ? | | | | gap |
-| +$30 | 1 |  |  | rwData | 10 |  |
-| +$31 | 3 | ? | | | | gap |
+| +$28 |  | FImageSequenceList | TImageSequenceList |  |  |  |
+| +$28 | 12 | ? | | | | gap |
 | +$34 | 4 |  |  | rwEObject | 0xf |  |
 | +$38 | 4 |  |  | rwEObject | 0x10 |  |
 | +$3C | 4 |  |  | rwEObject | 0x11 |  |
@@ -398,7 +426,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 4 | FShowPriority | undefined4 |  |  |  |
+| +$0C |  | FShowPriority |  |  |  |  |
+| +$0C | 4 | ? | | | | gap |
 | +$10 |  | FUnitGFXResource | TUnitGFXResource |  |  |  |
 | +$10 | 4 | ? | | | | gap |
 | +$14 | 1 |  |  | rwByte | 9 |  |
@@ -421,7 +450,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbCount | undefined4 | rwInteger | 2 |  |
+| +$0C | 4 | FAbCount |  | rwInteger | 2 |  |
 
 ## TAbilityOwner : TCustomAbilityList  (size 20, 39 virtual methods)
 
@@ -429,7 +458,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbCount (TCustomAbilityList) | undefined4 | rwInteger | 2 |  |
+| +$0C | 4 | FAbCount (TCustomAbilityList) |  | rwInteger | 2 |  |
 | +$10 | 4 | ? | | | | gap to end |
 
 ## TAbilityControl : TEObject  (size 32, 19 virtual methods)
@@ -463,22 +492,22 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbCount (TCustomAbilityList) | undefined4 | rwInteger | 2 |  |
+| +$0C | 4 | FAbCount (TCustomAbilityList) |  | rwInteger | 2 |  |
 | +$10 | 4 | ? | | | | gap |
 | +$14 | 4 |  |  | rwInteger | 0x11 |  |
-| +$18 | 4 | FOwnerName | String | rwString | 8 |  |
+| +$18 | 4 |  |  | rwString | 8 |  |
 | +$1C | 8 | ? | | | | gap |
 | +$24 | 4 |  |  | rwIntegerEx | 0x15 | default 0xffffffff |
 | +$28 | 4 |  |  | rwString | 0x16 |  |
-| +$2C | 4 | FObtainValue | int | rwInteger | 0x13 |  |
+| +$2C | 4 |  |  | rwInteger | 0x13 |  |
 | +$30 | 4 |  |  | rwString | 9 |  |
 | +$34 | 1 |  |  | rwData | 0xf |  |
 | +$35 | 3 | ? | | | | gap |
 | +$38 | 4 |  |  | rwInteger | 0x14 |  |
 | +$3C | 4 |  |  | rwStrings | 0x12 |  |
-| +$40 | 4 |  |  | rwInteger | 7 |  |
+| +$40 | 4 | FItemGFXIndex |  | rwInteger | 7 |  |
 | +$44 | 1 |  |  | rwBool | 0x10 |  |
-| +$45 | 1 |  |  | rwData | 10 |  |
+| +$45 | 1 | ? | | | | gap |
 | +$46 | 1 |  |  | rwByte | 0xb |  |
 | +$47 | 1 |  |  | rwByte | 0xc |  |
 | +$48 | 1 |  |  | rwByte | 0xd |  |
@@ -503,13 +532,24 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
+| +$08 | 4 |  |  | rwCreateEObject | iStack_1c |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  |  | rwInteger | 9 |  |
 | +$1C | 4 | ? | | | | gap to end |
+
+## TItemHSList : TItemList  (size 24, 37 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$04 | 4 | FOwner | undefined4 |  |  |  |
+| +$08 | 16 | ? | | | | gap to end |
 
 ## TItemHS : TSingleHS  (size 20, 68 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
+| +$04 |  | FMapField | TMapField |  |  |  |
+| +$04 | 8 | ? | | | | gap |
 | +$0C | 4 |  |  | rwEObject | 4 |  |
 | +$10 | 1 |  |  | rwData | 5 |  |
 | +$11 | 3 | ? | | | | gap to end |
@@ -537,28 +577,26 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  |  | rwByte | 6 |  |
-| +$27 | 21 | ? | | | | gap to end |
+| +$25 | 23 | ? | | | | gap to end |
 
 ## TAbstractUnitResource : TEResource  (size 28, 29 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 |  |  | rwInteger | 8 |  |
+| +$18 | 4 | FUnitGFXResourceIndex |  | rwInteger | 8 |  |
 
 ## TUnitResource : TAbstractUnitResource  (size 84, 29 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 |  (TAbstractUnitResource) |  | rwInteger | 8 |  |
-| +$1C | 4 |  |  | rwString | 10 |  |
+| +$18 | 4 | FUnitGFXResourceIndex (TAbstractUnitResource) |  | rwInteger | 8 |  |
+| +$1C | 4 | ? | | | | gap |
 | +$20 | 1 |  |  | rwByte | 0xd |  |
 | +$21 | 1 |  |  | rwData | 0x16 |  |
 | +$22 | 2 | ? | | | | gap |
@@ -580,7 +618,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$44 | 1 |  |  | rwByte | 0x18 |  |
 | +$45 | 3 | ? | | | | gap |
 | +$48 | 4 |  |  | rwStrings | 0x1a |  |
-| +$4C | 4 | FObtainValue | undefined4 | rwInteger | 0x1b |  |
+| +$4C | 4 | FObtainValue |  | rwInteger | 0x1b |  |
 | +$50 | 1 |  |  | rwData | 0x1c |  |
 | +$51 | 1 |  |  | rwData | 0x1d |  |
 | +$52 | 2 | ? | | | | gap to end |
@@ -591,40 +629,27 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount (TAbstractUnit) | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount (TAbstractUnit) |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  (TAbstractUnit) |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  (TAbstractUnit) |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  (TAbstractUnit) |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  (TAbstractUnit) |  | rwByte | 6 |  |
-| +$27 | 21 | ? | | | | gap |
-| +$3C | 1 | FExperience | undefined1 | rwByte | 7 |  |
-| +$3D | 1 | FMovePoints | undefined1 | rwByte | 8 |  |
-| +$3E | 1 | FHitPoints | undefined1 | rwByte | 9 |  |
+| +$25 | 23 | ? | | | | gap |
+| +$3C | 1 | FExperience |  | rwByte | 7 |  |
+| +$3D | 1 | FMovePoints |  | rwByte | 8 |  |
+| +$3E | 1 | FHitPoints |  | rwByte | 9 |  |
 | +$3F | 1 | ? | | | | gap |
-| +$40 | 4 | FUnitResource | int |  |  |  |
-| +$44 | 4 | ? | | | | gap to end |
-
-## TUnitIndexList : TIntegerList  (size 20, 5 virtual methods)
-
-| offset | size | field | c type | persisted as | id | note |
-|---|---|---|---|---|---|---|
-| +$10 | 4 | FUnitIndex | undefined4 |  |  |  |
+| +$40 |  | FUnitResource | TUnitResource |  |  |  |
+| +$40 | 8 | ? | | | | gap to end |
 
 ## TUnitSelectionControl : TStringList  (size 80, 32 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$38 |  | FUnitCategoryList | TUnitCategoryList |  |  |  |
-| +$38 | 24 | ? | | | | gap to end |
-
-## TUnitSelectorAAI : TActivateAbilityInfo  (size 32, 19 virtual methods)
-
-| offset | size | field | c type | persisted as | id | note |
-|---|---|---|---|---|---|---|
-| +$1C | 4 | FUnitSelector | int |  |  |  |
+| +$38 | 20 | ? | | | | gap |
+| +$4C | 4 | FSelectedHero | undefined4 |  |  |  |
 
 ## THeroInventory : TItemList  (size 24, 37 virtual methods)
 
@@ -704,7 +729,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$18 | 4 |  |  | rwInteger | 0x27 |  |
 | +$1C | 4 |  |  | rwInteger | 0x28 |  |
-| +$20 | 4 | FText | String | rwString | 0x29 |  |
+| +$20 | 4 |  |  | rwString | 0x29 |  |
 | +$24 | 1 |  |  | rwData | 0x2b |  |
 | +$25 | 3 | ? | | | | gap |
 | +$28 | 4 |  |  | rwString | 0x2a |  |
@@ -715,20 +740,18 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount (TAbstractUnit) | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount (TAbstractUnit) |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  (TAbstractUnit) |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  (TAbstractUnit) |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  (TAbstractUnit) |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  (TAbstractUnit) |  | rwByte | 6 |  |
-| +$27 | 21 | ? | | | | gap |
-| +$3C | 4 |  |  | rwInteger | 7 |  |
+| +$25 | 23 | ? | | | | gap |
+| +$3C | 4 | FFaceIndex |  | rwInteger | 7 |  |
 | +$40 | 4 | ? | | | | gap |
-| +$44 | 4 | FHeroResourceIndex | int | rwInteger | 8 |  |
-| +$48 | 4 | FExperience | undefined4 | rwInteger | 0x18 |  |
-| +$4C | 1 | FUnitLevel | undefined1 | rwByte | 0x16 |  |
+| +$44 | 4 |  |  | rwInteger | 8 |  |
+| +$48 | 4 | FExperience |  | rwInteger | 0x18 |  |
+| +$4C | 1 | FUnitLevel |  | rwByte | 0x16 |  |
 | +$4D | 3 | ? | | | | gap |
 | +$50 | 4 |  |  | rwInteger | 0x27 |  |
 | +$54 | 1 |  |  | rwBool | 0x17 |  |
@@ -737,10 +760,10 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$58 | 4 |  |  | rwInteger | 0x1a |  |
 | +$5C | 1 |  |  | rwByte | 0x1b |  |
 | +$5D | 3 | ? | | | | gap |
-| +$60 | 4 | FName | String | rwString | 10 |  |
-| +$64 | 4 | FNickname | String | rwString | 0xb |  |
+| +$60 | 4 |  |  | rwString | 10 |  |
+| +$64 | 4 |  |  | rwString | 0xb |  |
 | +$68 | 1 |  |  | rwByte | 0xc |  |
-| +$69 | 1 | FGender | undefined1 | rwData | 0xf |  |
+| +$69 | 1 | FGender |  | rwData | 0xf |  |
 | +$6A | 1 |  |  | rwByte | 0x10 |  |
 | +$6B | 1 |  |  | rwByte | 0x11 |  |
 | +$6C | 1 |  |  | rwByte | 0x12 |  |
@@ -748,12 +771,12 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$6E | 1 |  |  | rwByte | 0x14 |  |
 | +$6F | 1 |  |  | rwByte | 0x15 |  |
 | +$70 | 4 | FHeroItems | THeroItems | rwEObject | 0x25 |  |
-| +$74 | 4 |  |  | rwEObject | 0x24 |  |
+| +$74 | 4 | ? | | | | gap |
 | +$78 | 1 |  |  | rwBool | 0x21 |  |
-| +$79 | 1 | FMovePoints | undefined1 | rwByte | 0x1d |  |
-| +$7A | 1 | FHitPoints | undefined1 | rwByte | 0x1e |  |
+| +$79 | 1 | FMovePoints |  | rwByte | 0x1d |  |
+| +$7A | 1 | FHitPoints |  | rwByte | 0x1e |  |
 | +$7B | 5 | ? | | | | gap |
-| +$80 | 1 | FCastingPoints | undefined1 | rwByte | 0xd |  |
+| +$80 | 1 | FCastingPoints |  | rwByte | 0xd |  |
 | +$81 | 3 | ? | | | | gap |
 | +$84 | 4 |  |  | rwInteger | 0xe |  |
 | +$88 | 4 |  |  | rwInteger | 0x1f |  |
@@ -768,20 +791,18 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount (TAbstractUnit) | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount (TAbstractUnit) |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  (TAbstractUnit) |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  (TAbstractUnit) |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  (TAbstractUnit) |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  (TAbstractUnit) |  | rwByte | 6 |  |
-| +$27 | 21 | ? | | | | gap |
-| +$3C | 4 |  (THero) |  | rwInteger | 7 |  |
+| +$25 | 23 | ? | | | | gap |
+| +$3C | 4 | FFaceIndex (THero) |  | rwInteger | 7 |  |
 | +$40 | 4 | ? | | | | gap |
-| +$44 | 4 | FHeroResourceIndex (THero) | int | rwInteger | 8 |  |
-| +$48 | 4 | FExperience (THero) | undefined4 | rwInteger | 0x18 |  |
-| +$4C | 1 | FUnitLevel (THero) | undefined1 | rwByte | 0x16 |  |
+| +$44 | 4 |  (THero) |  | rwInteger | 8 |  |
+| +$48 | 4 | FExperience (THero) |  | rwInteger | 0x18 |  |
+| +$4C | 1 | FUnitLevel (THero) |  | rwByte | 0x16 |  |
 | +$4D | 3 | ? | | | | gap |
 | +$50 | 4 |  (THero) |  | rwInteger | 0x27 |  |
 | +$54 | 1 |  (THero) |  | rwBool | 0x17 |  |
@@ -790,10 +811,10 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$58 | 4 |  (THero) |  | rwInteger | 0x1a |  |
 | +$5C | 1 |  (THero) |  | rwByte | 0x1b |  |
 | +$5D | 3 | ? | | | | gap |
-| +$60 | 4 | FName (THero) | String | rwString | 10 |  |
-| +$64 | 4 | FNickname (THero) | String | rwString | 0xb |  |
+| +$60 | 4 |  (THero) |  | rwString | 10 |  |
+| +$64 | 4 |  (THero) |  | rwString | 0xb |  |
 | +$68 | 1 |  (THero) |  | rwByte | 0xc |  |
-| +$69 | 1 | FGender (THero) | undefined1 | rwData | 0xf |  |
+| +$69 | 1 | FGender (THero) |  | rwData | 0xf |  |
 | +$6A | 1 |  (THero) |  | rwByte | 0x10 |  |
 | +$6B | 1 |  (THero) |  | rwByte | 0x11 |  |
 | +$6C | 1 |  (THero) |  | rwByte | 0x12 |  |
@@ -801,12 +822,12 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$6E | 1 |  (THero) |  | rwByte | 0x14 |  |
 | +$6F | 1 |  (THero) |  | rwByte | 0x15 |  |
 | +$70 | 4 | FHeroItems (THero) | THeroItems | rwEObject | 0x25 |  |
-| +$74 | 4 |  (THero) |  | rwEObject | 0x24 |  |
+| +$74 | 4 | ? | | | | gap |
 | +$78 | 1 |  (THero) |  | rwBool | 0x21 |  |
-| +$79 | 1 | FMovePoints (THero) | undefined1 | rwByte | 0x1d |  |
-| +$7A | 1 | FHitPoints (THero) | undefined1 | rwByte | 0x1e |  |
+| +$79 | 1 | FMovePoints (THero) |  | rwByte | 0x1d |  |
+| +$7A | 1 | FHitPoints (THero) |  | rwByte | 0x1e |  |
 | +$7B | 5 | ? | | | | gap |
-| +$80 | 1 | FCastingPoints (THero) | undefined1 | rwByte | 0xd |  |
+| +$80 | 1 | FCastingPoints (THero) |  | rwByte | 0xd |  |
 | +$81 | 3 | ? | | | | gap |
 | +$84 | 4 |  (THero) |  | rwInteger | 0xe |  |
 | +$88 | 4 |  (THero) |  | rwInteger | 0x1f |  |
@@ -814,7 +835,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$90 | 4 |  (THero) |  | rwIntegerEx | 0x23 | default 0xffffffff |
 | +$94 | 4 |  (THero) |  | rwString | 0x26 |  |
 | +$98 | 4 | ? | | | | gap |
-| +$9C | 1 |  |  | rwByteEx | 0x2d | default 5 |
+| +$9C | 1 | FSpherePicksMax |  | rwByteEx | 0x2d | default 5 |
 | +$9D | 7 | ? | | | | gap to end |
 
 ## THeroControl : TEObject  (size 24, 19 virtual methods)
@@ -841,8 +862,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 |  (TAbstractUnitResource) |  | rwInteger | 8 |  |
-| +$1C | 4 |  |  | rwString | 10 |  |
+| +$18 | 4 | FUnitGFXResourceIndex (TAbstractUnitResource) |  | rwInteger | 8 |  |
+| +$1C | 4 | ? | | | | gap |
 | +$20 | 1 |  |  | rwByte | 0xb |  |
 | +$21 | 1 |  |  | rwData | 0xc |  |
 | +$22 | 1 |  |  | rwData | 0xd |  |
@@ -863,24 +884,29 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount (TAbstractUnit) | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount (TAbstractUnit) |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  (TAbstractUnit) |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  (TAbstractUnit) |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  (TAbstractUnit) |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  (TAbstractUnit) |  | rwByte | 6 |  |
-| +$27 | 21 | ? | | | | gap |
-| +$3C | 1 | FAttack | undefined1 |  |  |  |
-| +$3D | 1 | FDefense | undefined1 |  |  |  |
-| +$3E | 1 | FResistance | undefined1 |  |  |  |
-| +$3F | 1 | FHits | undefined1 |  |  |  |
-| +$40 | 1 | FDamage | undefined1 |  |  |  |
-| +$41 | 2 | FImmunityTypes | undefined2 |  |  |  |
-| +$43 | 2 | FProtectionTypes | undefined2 |  |  |  |
-| +$45 | 1 | FHitPoints | undefined1 |  |  |  |
-| +$46 | 2 | ? | | | | gap to end |
+| +$25 | 23 | ? | | | | gap |
+| +$3C |  | FAttack |  |  |  |  |
+| +$3C | 1 | ? | | | | gap |
+| +$3D |  | FDefense |  |  |  |  |
+| +$3D | 1 | ? | | | | gap |
+| +$3E |  | FResistance |  |  |  |  |
+| +$3E | 1 | ? | | | | gap |
+| +$3F |  | FHits |  |  |  |  |
+| +$3F | 1 | ? | | | | gap |
+| +$40 |  | FDamage |  |  |  |  |
+| +$40 | 1 | ? | | | | gap |
+| +$41 |  | FImmunityTypes |  |  |  |  |
+| +$41 | 2 | ? | | | | gap |
+| +$43 |  | FProtectionTypes |  |  |  |  |
+| +$43 | 2 | ? | | | | gap |
+| +$45 |  | FHitPoints |  |  |  |  |
+| +$45 | 3 | ? | | | | gap to end |
 
 ## TWallUnit : TAbstractUnit  (size 64, 110 virtual methods)
 
@@ -888,18 +914,19 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$08 |  |  (TCustomAbilityList) |  | rwData | 3 |  |
 | +$08 | 4 | ? | | | | gap |
-| +$0C | 4 | FAbilityCount (TAbstractUnit) | undefined4 | rwInteger | 2 |  |
-| +$10 | 8 | ? | | | | gap |
+| +$0C |  | FAbilityCount (TAbstractUnit) |  | rwInteger | 2 |  |
+| +$0C | 12 | ? | | | | gap |
 | +$18 | 4 |  (TAbstractUnit) |  | rwIntegerEx |  | default 0xffffffff |
 | +$1C | 4 |  (TAbstractUnit) |  | rwInteger | 4 |  |
 | +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  (TAbstractUnit) |  | rwByte | 0x2f |  |
-| +$25 | 1 | ? | | | | gap |
-| +$26 | 1 |  (TAbstractUnit) |  | rwByte | 6 |  |
-| +$27 | 22 | ? | | | | gap |
-| +$3D | 1 | FHitPoints | undefined1 |  |  |  |
-| +$3E | 1 | FHits | undefined1 |  |  |  |
-| +$3F | 1 | ? | | | | gap to end |
+| +$25 | 23 | ? | | | | gap |
+| +$3C |  | FWallType |  |  |  |  |
+| +$3C | 1 | ? | | | | gap |
+| +$3D |  | FHitPoints |  |  |  |  |
+| +$3D | 1 | ? | | | | gap |
+| +$3E |  | FHits |  |  |  |  |
+| +$3E | 2 | ? | | | | gap to end |
 
 ## TArmyID : TEObject  (size 20, 19 virtual methods)
 
@@ -914,15 +941,15 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$11 | 1 |  |  | rwData | 0xc |  |
-| +$12 | 1 | FPlayer | undefined1 | rwByte | 4 |  |
-| +$13 | 1 |  |  | rwByte | 5 |  |
+| +$12 | 1 | FPlayer |  | rwByte | 4 |  |
+| +$13 | 1 | FXYL |  | rwByte | 5 |  |
 | +$14 | 1 |  |  | rwByte | 6 |  |
 | +$15 | 1 |  |  | rwByte | 7 |  |
 | +$16 | 2 | ? | | | | gap |
-| +$18 | 1 | FUpkeep | undefined1 |  |  |  |
-| +$19 | 11 | ? | | | | gap |
+| +$18 |  | FUpkeep |  |  |  |  |
+| +$18 | 12 | ? | | | | gap |
 | +$24 | 1 |  |  | rwData | 0xb |  |
-| +$25 | 1 |  |  | rwByte | 8 |  |
+| +$25 | 1 | FDestinationPos |  | rwByte | 8 |  |
 | +$26 | 1 |  |  | rwByte | 9 |  |
 | +$27 | 1 |  |  | rwByte | 10 |  |
 | +$28 | 1 |  |  | rwData | 0xd |  |
@@ -933,15 +960,15 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$11 | 1 |  (TArmy) |  | rwData | 0xc |  |
-| +$12 | 1 | FPlayer (TArmy) | undefined1 | rwByte | 4 |  |
-| +$13 | 1 |  (TArmy) |  | rwByte | 5 |  |
+| +$12 | 1 | FPlayer (TArmy) |  | rwByte | 4 |  |
+| +$13 | 1 | FXYL (TArmy) |  | rwByte | 5 |  |
 | +$14 | 1 |  (TArmy) |  | rwByte | 6 |  |
 | +$15 | 1 |  (TArmy) |  | rwByte | 7 |  |
 | +$16 | 2 | ? | | | | gap |
-| +$18 | 1 | FUpkeep (TArmy) | undefined1 |  |  |  |
-| +$19 | 11 | ? | | | | gap |
+| +$18 |  | FUpkeep (TArmy) |  |  |  |  |
+| +$18 | 12 | ? | | | | gap |
 | +$24 | 1 |  (TArmy) |  | rwData | 0xb |  |
-| +$25 | 1 |  (TArmy) |  | rwByte | 8 |  |
+| +$25 | 1 | FDestinationPos (TArmy) |  | rwByte | 8 |  |
 | +$26 | 1 |  (TArmy) |  | rwByte | 9 |  |
 | +$27 | 1 |  (TArmy) |  | rwByte | 10 |  |
 | +$28 | 1 |  (TArmy) |  | rwData | 0xd |  |
@@ -957,7 +984,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 4 | FShowPriority (TUnitHS) | undefined4 |  |  |  |
+| +$0C |  | FShowPriority (TUnitHS) |  |  |  |  |
+| +$0C | 4 | ? | | | | gap |
 | +$10 |  | FUnitGFXResource (TUnitHS) | TUnitGFXResource |  |  |  |
 | +$10 | 4 | ? | | | | gap |
 | +$14 | 1 |  (TUnitHS) |  | rwByte | 9 |  |
@@ -970,7 +998,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$18 | 4 |  |  | rwEObject | 0xf |  |
-| +$1C | 4 | FText | String | rwString | 0x10 |  |
+| +$1C | 4 |  |  | rwString | 0x10 |  |
 | +$20 | 4 |  |  | rwStrings | 0x11 |  |
 | +$24 | 4 |  |  | rwInteger | 0x12 |  |
 | +$28 | 8 | ? | | | | gap |
@@ -986,7 +1014,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1D | 3 | ? | | | | gap |
 | +$20 | 4 |  |  | rwStrings | 0x10 |  |
 | +$24 | 4 |  |  | rwString | 0x12 |  |
-| +$28 | 4 | FText | String | rwString | 0x13 |  |
+| +$28 | 4 |  |  | rwString | 0x13 |  |
 | +$2C | 4 |  |  | rwString | 0x14 |  |
 | +$30 | 4 | ? | | | | gap to end |
 
@@ -994,8 +1022,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$14 | 4 | FRaceIndex | undefined4 |  |  |  |
-| +$18 | 8 | ? | | | | gap |
+| +$14 |  | FRaceIndex |  |  |  |  |
+| +$14 | 12 | ? | | | | gap |
 | +$20 | 4 |  |  | rwString | 8 |  |
 | +$24 | 4 |  |  | rwString | 5 |  |
 | +$28 | 4 |  |  | rwString | 6 |  |
@@ -1035,6 +1063,18 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$50 | 4 |  |  | rwStrings | 0x16 |  |
 | +$54 | 4 |  |  | rwInteger | 0x17 |  |
 | +$58 | 12 | ? | | | | gap to end |
+
+## TPlayerStructureIncomeSource : TIncomeSource  (size 12, 23 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$08 | 4 | Fup | undefined4 |  |  |  |
+
+## TPlayerStructurePowerSource : TPowerSource  (size 12, 24 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$08 | 4 | Fup | undefined4 |  |  |  |
 
 ## TPlayerStructure : TStructure  (size 60, 137 virtual methods)
 
@@ -1124,7 +1164,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1D | 1 |  |  | rwByte | 5 |  |
 | +$1E | 1 |  |  | rwByte | 8 |  |
 | +$1F | 1 | ? | | | | gap |
-| +$20 | 4 | FShowPriority | undefined4 |  |  |  |
+| +$20 |  | FShowPriority |  |  |  |  |
+| +$20 | 4 | ? | | | | gap |
 | +$24 | 1 |  |  | rwByte | 7 |  |
 | +$25 | 7 | ? | | | | gap to end |
 
@@ -1150,38 +1191,29 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 1 |  (TCombatObject) |  | rwData | 0xe |  |
-| +$0D | 56 | ? | | | | gap |
+| +$0C |  | Fup |  | rwData | 0xe |  |
+| +$0C | 57 | ? | | | | gap |
 | +$45 | 1 |  (TCombatObject) |  | rwByte | 0xc |  |
 | +$46 | 1 |  (TCombatObject) |  | rwByte | 10 |  |
 | +$47 | 1 |  (TCombatObject) |  | rwData | 0xd |  |
 | +$48 | 4 | ? | | | | gap |
-| +$4C | 4 | FAbilityOwner | undefined4 |  |  |  |
-| +$50 | 4 | FParty | int |  |  |  |
-| +$54 | 1 |  |  | rwBool | 0x15 |  |
-| +$55 | 7 | ? | | | | gap to end |
+| +$4C | 4 | FAbilityOwner |  | rwCreateEObject | 0x14 |  |
+| +$50 | 12 | ? | | | | gap to end |
 
 ## TCombatWall : TCombatObject  (size 80, 77 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 1 |  (TCombatObject) |  | rwData | 0xe |  |
-| +$0D | 56 | ? | | | | gap |
+| +$0C |  | Fup |  | rwData | 0xe |  |
+| +$0C | 57 | ? | | | | gap |
 | +$45 | 1 |  (TCombatObject) |  | rwByte | 0xc |  |
 | +$46 | 1 |  (TCombatObject) |  | rwByte | 10 |  |
 | +$47 | 1 |  (TCombatObject) |  | rwData | 0xd |  |
 | +$48 | 4 | ? | | | | gap |
 | +$4C | 1 |  |  | rwData | 0x14 |  |
-| +$4D | 1 | FHitPoints | undefined1 | rwByte | 0x15 |  |
-| +$4E | 1 | FLocked | undefined1 |  |  |  |
-| +$4F | 1 | ? | | | | gap to end |
-
-## TCombatViewer : TObject  (size 28, 0 virtual methods)
-
-| offset | size | field | c type | persisted as | id | note |
-|---|---|---|---|---|---|---|
-| +$0D | 1 | FSpeed | char |  |  |  |
-| +$0E | 14 | ? | | | | gap to end |
+| +$4D | 1 | FHitPoints |  | rwByte | 0x15 |  |
+| +$4E |  | FLocked |  |  |  |  |
+| +$4E | 2 | ? | | | | gap to end |
 
 ## TSingleTargetCA : TCombatAction  (size 16, 25 virtual methods)
 
@@ -1202,7 +1234,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$0F | 1 | ? | | | | gap |
 | +$10 | 1 |  |  | rwByte | 0xf |  |
 | +$11 | 2 |  |  | rwData | 0x11 |  |
-| +$13 | 2 |  |  | rwData | 0x10 |  |
+| +$13 | 2 | Fup |  | rwData | 0x10 |  |
 | +$15 | 3 | ? | | | | gap to end |
 
 ## TDamageEffectCA : TSingleTargetCA  (size 20, 25 virtual methods)
@@ -1276,7 +1308,6 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$08 | 4 |  |  | rwInteger | 10 |  |
 | +$0C | 4 |  |  | rwInteger | 0xb |  |
 | +$10 | 4 |  |  | rwInteger | 0xc |  |
 | +$14 | 4 |  |  | rwInteger | 0x16 |  |
@@ -1315,7 +1346,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$0C | 4 |  |  | rwEObject | 0xd |  |
-| +$10 | 12 | ? | | | | gap |
+| +$10 | 8 | ? | | | | gap |
+| +$18 | 4 |  |  | rwCreateEObject | 0xc |  |
 | +$1C | 4 |  |  | rwEObject | 10 |  |
 | +$20 | 4 |  |  | rwEObject | 0xb |  |
 | +$24 | 40 | ? | | | | gap to end |
@@ -1324,14 +1356,36 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
+| +$18 | 4 |  |  | rwCreateEObject | 0x14 |  |
+
+## TCombatTypeRequestEventLog : TEventLog  (size 44, 30 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$1B |  | FCenterLocation |  |  |  |  |
+| +$1B | 17 | ? | | | | gap to end |
+
+## TAIPlayerAction : TEObject  (size 20, 25 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$0C | 4 | Fup | int |  |  |  |
+| +$10 | 4 | ? | | | | gap to end |
 
 ## TAIPlayerControl : TEObject  (size 40, 19 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 | FProcessCyclesMax | undefined4 |  |  |  |
-| +$1C | 8 | ? | | | | gap |
 | +$24 | 4 |  |  | rwData | 10 |  |
+
+## TAIMoveControlSettings : TEObject  (size 360, 19 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$10 | 4 | FSourcePos | undefined4 |  |  |  |
+| +$14 | 8 | ? | | | | gap |
+| +$1C | 4 | FDestinationPos | undefined4 |  |  |  |
+| +$20 | 328 | ? | | | | gap to end |
 
 ## TAdjacentArmy : TEObject  (size 24, 19 virtual methods)
 
@@ -1382,8 +1436,6 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 | FLeader | int |  |  |  |
-| +$1C | 8 | ? | | | | gap |
 | +$24 | 4 |  |  | rwInteger | 0x14 |  |
 | +$28 | 1 |  |  | rwByte | 0x19 |  |
 | +$29 | 3 | ? | | | | gap |
@@ -1394,8 +1446,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$38 | 4 |  |  | rwInteger | 0x17 |  |
 | +$3C | 1 |  |  | rwData | 0x18 |  |
 | +$3D | 3 | ? | | | | gap |
-| +$40 | 4 | FGoldBudget | undefined4 | rwInteger | 0x1d |  |
-| +$44 | 4 | FManaBudget | undefined4 | rwInteger | 0x1e |  |
+| +$40 | 4 | FGoldBudget |  | rwInteger | 0x1d |  |
+| +$44 | 4 | FManaBudget |  | rwInteger | 0x1e |  |
 | +$48 | 4 |  |  | rwInteger | 0x1f |  |
 | +$4C | 1 |  |  | rwData | 0x20 |  |
 | +$4D | 1 |  |  | rwByte | 0x1b |  |
@@ -1413,8 +1465,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$20 | 4 | FTargetGold | undefined4 |  |  |  |
-| +$24 | 40 | ? | | | | gap to end |
+| +$20 |  | FTargetGold |  |  |  |  |
+| +$20 | 44 | ? | | | | gap to end |
 
 ## TAIGroupRecruitControl : TAIGroupControlPlugin  (size 152, 25 virtual methods)
 
@@ -1448,8 +1500,6 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$18 | 4 | FLeader (TAIGroup) | int |  |  |  |
-| +$1C | 8 | ? | | | | gap |
 | +$24 | 4 |  (TAIGroup) |  | rwInteger | 0x14 |  |
 | +$28 | 1 |  (TAIGroup) |  | rwByte | 0x19 |  |
 | +$29 | 3 | ? | | | | gap |
@@ -1460,8 +1510,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$38 | 4 |  (TAIGroup) |  | rwInteger | 0x17 |  |
 | +$3C | 1 |  (TAIGroup) |  | rwData | 0x18 |  |
 | +$3D | 3 | ? | | | | gap |
-| +$40 | 4 | FGoldBudget (TAIGroup) | undefined4 | rwInteger | 0x1d |  |
-| +$44 | 4 | FManaBudget (TAIGroup) | undefined4 | rwInteger | 0x1e |  |
+| +$40 | 4 | FGoldBudget (TAIGroup) |  | rwInteger | 0x1d |  |
+| +$44 | 4 | FManaBudget (TAIGroup) |  | rwInteger | 0x1e |  |
 | +$48 | 4 |  (TAIGroup) |  | rwInteger | 0x1f |  |
 | +$4C | 1 |  (TAIGroup) |  | rwData | 0x20 |  |
 | +$4D | 1 |  (TAIGroup) |  | rwByte | 0x1b |  |
@@ -1542,7 +1592,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$15 | 1 |  |  | rwByte | 0x20 |  |
 | +$16 | 1 |  |  | rwByte | 0x21 |  |
 | +$17 | 1 |  |  | rwByte | 0x22 |  |
-| +$18 | 4 | ? | | | | gap |
+| +$18 | 4 |  |  | rwCreateEObject | 0x2b |  |
 | +$1C | 1 |  |  | rwByte | 0x23 |  |
 | +$1D | 1 |  |  | rwByte | 0x24 |  |
 | +$1E | 6 | ? | | | | gap |
@@ -1575,7 +1625,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$3C | 1 |  |  | rwByte | 0x28 |  |
 | +$3D | 1 |  |  | rwByte | 0x29 |  |
 | +$3E | 1 |  |  | rwByte | 0x2a |  |
-| +$3F | 9 | ? | | | | gap |
+| +$3F | 5 | ? | | | | gap |
+| +$44 | 4 |  |  | rwCreateEObject | 0x2e |  |
 | +$48 | 1 |  |  | rwData | 0x2b |  |
 | +$49 | 3 | ? | | | | gap |
 | +$4C | 4 |  |  | rwInteger | 0x2c |  |
@@ -1630,16 +1681,14 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 1 |  (TCombatObject) |  | rwData | 0xe |  |
-| +$0D | 56 | ? | | | | gap |
+| +$0C |  | Fup (TCombatUnit) |  | rwData | 0xe |  |
+| +$0C | 57 | ? | | | | gap |
 | +$45 | 1 |  (TCombatObject) |  | rwByte | 0xc |  |
 | +$46 | 1 |  (TCombatObject) |  | rwByte | 10 |  |
 | +$47 | 1 |  (TCombatObject) |  | rwData | 0xd |  |
 | +$48 | 4 | ? | | | | gap |
-| +$4C | 4 | FAbilityOwner (TCombatUnit) | undefined4 |  |  |  |
-| +$50 | 4 | FParty (TCombatUnit) | int |  |  |  |
-| +$54 | 1 |  (TCombatUnit) |  | rwBool | 0x15 |  |
-| +$55 | 11 | ? | | | | gap |
+| +$4C | 4 | FAbilityOwner (TCombatUnit) |  | rwCreateEObject | 0x14 |  |
+| +$50 | 16 | ? | | | | gap |
 | +$60 | 1 |  |  | rwData | 0x28 |  |
 | +$61 | 3 | ? | | | | gap to end |
 
@@ -1648,7 +1697,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$0C |  | FCombatData | TCombatData | rwEObject | 0xd |  |
-| +$0C | 16 | ? | | | | gap |
+| +$0C | 12 | ? | | | | gap |
+| +$18 | 4 |  (TCombat) |  | rwCreateEObject | 0xc |  |
 | +$1C | 4 |  (TCombat) |  | rwEObject | 10 |  |
 | +$20 | 4 |  (TCombat) |  | rwEObject | 0xb |  |
 | +$24 | 44 | ? | | | | gap to end |
@@ -1663,8 +1713,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1C | 4 | ? | | | | gap |
 | +$20 | 2 |  (TAbility) |  | rwData | 9 |  |
 | +$22 | 2 | ? | | | | gap |
-| +$24 | 1 | FAbilityType | undefined1 |  |  |  |
-| +$25 | 3 | ? | | | | gap to end |
+| +$24 |  | FAbilityType |  |  |  |  |
+| +$24 | 4 | ? | | | | gap to end |
 
 ## TDurationAbilityData : TAbilityData  (size 20, 20 virtual methods)
 
@@ -1672,7 +1722,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$0C | 1 |  |  | rwByte | 0xb |  |
 | +$0D | 1 |  |  | rwByte | 0xd |  |
-| +$0E | 2 | FAbilityID | undefined2 | rwWord | 0xc |  |
+| +$0E | 2 | FAbilityID |  | rwWord | 0xc |  |
 | +$10 | 4 |  |  | rwInteger | 0xe |  |
 
 ## TMultiLevelAbilityData : TAbilityData  (size 16, 20 virtual methods)
@@ -1681,7 +1731,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$0C | 1 |  |  | rwByte | 10 |  |
 | +$0D | 1 | ? | | | | gap |
-| +$0E | 2 | FAbilityID | undefined2 | rwWord | 0xb |  |
+| +$0E | 2 | FAbilityID |  | rwWord | 0xb |  |
 
 ## TStrikeCA : TDamageCA  (size 28, 28 virtual methods)
 
@@ -1693,7 +1743,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$0F | 1 | ? | | | | gap |
 | +$10 | 1 |  (TDamageCA) |  | rwByte | 0xf |  |
 | +$11 | 2 |  (TDamageCA) |  | rwData | 0x11 |  |
-| +$13 | 2 |  (TDamageCA) |  | rwData | 0x10 |  |
+| +$13 | 2 | Fup (TDamageCA) |  | rwData | 0x10 |  |
 | +$15 | 3 | ? | | | | gap |
 | +$18 | 1 |  |  | rwData | 0x14 |  |
 | +$19 | 3 | ? | | | | gap to end |
@@ -1702,11 +1752,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$04 | 4 | FCapacity | int |  |  |  |
-| +$08 | 16 | ? | | | | gap |
-| +$18 | 4 | FAttackerDV | undefined4 |  |  |  |
-| +$1C | 4 | FDefenderDV | undefined4 |  |  |  |
-| +$20 | 20 | ? | | | | gap to end |
+| +$08 | 4 | FCapacity | int |  |  |  |
+| +$0C | 40 | ? | | | | gap to end |
 
 ## TStrikeAbility : TAdjustableAbility  (size 44, 67 virtual methods)
 
@@ -1718,8 +1765,8 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1C | 4 | ? | | | | gap |
 | +$20 | 2 |  (TAbility) |  | rwData | 9 |  |
 | +$22 | 2 | ? | | | | gap |
-| +$24 | 1 | FAbilityType (TAdjustableAbility) | undefined1 |  |  |  |
-| +$25 | 3 | ? | | | | gap |
+| +$24 |  | FAbilityType (TAdjustableAbility) |  |  |  |  |
+| +$24 | 4 | ? | | | | gap |
 | +$28 |  | FMeleeRound | TMeleeRound |  |  |  |
 | +$28 | 4 | ? | | | | gap to end |
 
@@ -1733,7 +1780,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$0F | 1 | ? | | | | gap |
 | +$10 | 1 |  (TDamageCA) |  | rwByte | 0xf |  |
 | +$11 | 2 |  (TDamageCA) |  | rwData | 0x11 |  |
-| +$13 | 2 |  (TDamageCA) |  | rwData | 0x10 |  |
+| +$13 | 2 | Fup (TDamageCA) |  | rwData | 0x10 |  |
 | +$15 | 3 | ? | | | | gap |
 | +$18 | 4 |  |  | rwData | 0x14 |  |
 
@@ -1747,13 +1794,14 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1C | 4 | ? | | | | gap |
 | +$20 | 2 |  (TAbility) |  | rwData | 9 |  |
 | +$22 | 2 | ? | | | | gap |
-| +$24 | 1 | FAbilityType (TAdjustableAbility) | undefined1 |  |  |  |
-| +$25 | 3 | ? | | | | gap |
-| +$28 | 1 | FRangeRA | undefined1 |  |  |  |
-| +$29 | 2 | ? | | | | gap |
-| +$2B | 2 | FDamageTypesRA | undefined2 |  |  |  |
-| +$2D | 1 | FAttackRepeatRA | undefined1 |  |  |  |
-| +$2E | 2 | ? | | | | gap to end |
+| +$24 |  | FAbilityType (TAdjustableAbility) |  |  |  |  |
+| +$24 | 4 | ? | | | | gap |
+| +$28 |  | FRangeRA |  |  |  |  |
+| +$28 | 3 | ? | | | | gap |
+| +$2B |  | FDamageTypesRA |  |  |  |  |
+| +$2B | 2 | ? | | | | gap |
+| +$2D |  | FAttackRepeatRA |  |  |  |  |
+| +$2D | 3 | ? | | | | gap to end |
 
 ## TPossessCA : TSingleTargetCA  (size 20, 25 virtual methods)
 
@@ -1809,7 +1857,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 4 | FAbilityID | undefined4 | rwInteger | 0x14 |  |
+| +$0C | 4 | FAbilityID |  | rwInteger | 0x14 |  |
 | +$10 | 1 |  |  | rwByte | 0x16 |  |
 | +$11 | 3 | ? | | | | gap |
 | +$14 | 4 |  |  | rwInteger | 0x15 |  |
@@ -1832,7 +1880,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 4 | FAbilityID | undefined4 | rwInteger | 0x14 |  |
+| +$0C | 4 | FAbilityID |  | rwInteger | 0x14 |  |
 | +$10 | 4 | ? | | | | gap to end |
 
 ## THealingAbilityData : TAbilityData  (size 16, 20 virtual methods)
@@ -1887,7 +1935,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 |---|---|---|---|---|---|---|
 | +$0C | 1 |  (TMultiLevelAbilityData) |  | rwByte | 10 |  |
 | +$0D | 1 | ? | | | | gap |
-| +$0E | 2 | FAbilityID (TMultiLevelAbilityData) | undefined2 | rwWord | 0xb |  |
+| +$0E | 2 | FAbilityID (TMultiLevelAbilityData) |  | rwWord | 0xb |  |
 | +$10 | 1 |  |  | rwByte | 0x19 |  |
 | +$11 | 3 | ? | | | | gap |
 | +$14 | 4 |  |  | rwString | 0x1a |  |
@@ -1909,10 +1957,10 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-| +$0C | 2 | FAbilityID | undefined2 | rwWord | 0xf |  |
+| +$0C | 2 | FAbilityID |  | rwWord | 0xf |  |
 | +$0E | 1 |  |  | rwShortintEx | 0x12 | default 0xffffffff |
 | +$0F | 1 |  |  | rwShortintEx | 0x11 | default 0xffffffff |
-| +$10 | 4 | FEnchantment | undefined4 |  |  |  |
+| +$10 | 4 |  |  | rwCreateEObject | 0x10 |  |
 
 ## TCosmeticSurgeryEnchantment : TUnitEnchantment  (size 36, 28 virtual methods)
 
@@ -1937,8 +1985,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$1C | 4 |  |  | rwInteger | 0xe |  |
 | +$20 | 1 |  |  | rwData | 0x10 |  |
 | +$21 | 1 |  |  | rwByte | 0x11 |  |
-| +$22 | 2 | ? | | | | gap |
-| +$24 | 4 |  |  | rwStrings | 10 |  |
+| +$22 | 6 | ? | | | | gap |
 | +$28 | 4 |  |  | rwEObject | 0xb |  |
 | +$2C | 8 | ? | | | | gap to end |
 
@@ -2000,6 +2047,20 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | +$14 | 4 |  |  | rwInteger | 0x16 |  |
 | +$18 | 4 |  |  | rwInteger | 0x17 |  |
 
+## TAoWCampaignTransferSettings : TEObject  (size 80, 19 virtual methods)
+
+| offset | size | field | c type | persisted as | id | note |
+|---|---|---|---|---|---|---|
+| +$08 | 4 |  |  | rwCreateEObject | 0x1b |  |
+| +$0C | 4 |  |  | rwEObject | 0x14 |  |
+| +$10 | 4 |  |  | rwEObject | 0x15 |  |
+| +$14 | 4 |  |  | rwEObject | 0x16 |  |
+| +$18 | 4 |  |  | rwInteger | 0x1a |  |
+| +$1C | 4 | ? | | | | gap |
+| +$20 | 4 |  |  | rwInteger | 0x18 |  |
+| +$24 | 4 |  |  | rwInteger | 0x19 |  |
+| +$28 | 40 | ? | | | | gap to end |
+
 ## TAoWCampaignScenario : TEObject  (size 20, 19 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
@@ -2013,7 +2074,7 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$08 | 4 |  |  | rwString | 0xc |  |
-| +$0C |  | FStream | TStream |  |  |  |
+| +$0C |  | FStream | TStream | rwData | 6 |  |
 | +$0C | 4 | ? | | | | gap |
 | +$10 | 4 |  |  | rwEObject | 10 |  |
 | +$14 | 8 | ? | | | | gap |
@@ -2049,18 +2110,13 @@ Rows marked (inherited) come from a parent class in the same unit. Parents outsi
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
 | +$10 | 4 |  |  | rwInteger | 0x15 |  |
-| +$14 | 4 | ? | | | | gap to end |
+| +$14 | 4 |  |  | rwCreateEObject | 0x14 |  |
 
 ## TDiplomaticActionEventLog : TEventLog  (size 28, 30 virtual methods)
 
 | offset | size | field | c type | persisted as | id | note |
 |---|---|---|---|---|---|---|
-
-## TAgeOfWondersEngine : THexagonSpriteEngine  (size 64, 12 virtual methods)
-
-| offset | size | field | c type | persisted as | id | note |
-|---|---|---|---|---|---|---|
-| +$3C | 4 | FHSEngine | undefined4 |  |  |  |
+| +$18 | 4 |  |  | rwCreateEObject | 0x14 |  |
 
 ## TConstructStructureTE : TTokenEvent  (size 28, 20 virtual methods)
 

@@ -6,12 +6,10 @@ Slot targets are named through the module's export table, or through its import 
 method is inherited from another package. Use it to read decompiler output such as
 ``(**(code **)(*obj + 0x30))(...)``: slot 0x30 of the object's class is the method being called.
 """
-import importlib.util, os, sys
+import os, sys
 
-spec = importlib.util.spec_from_file_location('delphi_rtti', os.path.join(os.path.dirname(__file__), 'delphi_rtti.py'))
-rtti = importlib.util.module_from_spec(spec)
-src = open(spec.origin, encoding='utf-8').read().replace('\nmain()\n', '\n')
-exec(compile(src, spec.origin, 'exec'), rtti.__dict__)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import delphi_rtti as rtti
 
 
 def main():

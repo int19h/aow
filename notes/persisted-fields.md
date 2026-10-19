@@ -2,7 +2,9 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x15 | rwBool | +$54 | 1 |  |
+| 0 | rwCreateEObject |  | 4 | indirect: &uStack_10 |
+| 0x14 | rwCreateEObject | +$4C | 4 |  |
+| 0x15 | rwBool |  | 1 | indirect: &this->prop_15 |
 
 ## AoWE.TCombatWall : AoWE.TCombatObject
 
@@ -26,6 +28,7 @@
 |---|---|---|---|---|
 | 10 | rwEObject | +$1C | 4 |  |
 | 0xb | rwEObject | +$20 | 4 |  |
+| 0xc | rwCreateEObject | +$18 | 4 |  |
 | 0xd | rwEObject | +$0C | 4 |  |
 
 ## AoWE.TCombatParty : Engine.TEObject
@@ -51,7 +54,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwInteger | +$08 | 4 |  |
+| 10 | rwInteger | +$30 | 4 |  |
 | 0xb | rwInteger | +$0C | 4 |  |
 | 0xc | rwInteger | +$10 | 4 |  |
 | 0xd | rwData | +$22 | 2 |  |
@@ -66,11 +69,11 @@
 | 0x16 | rwInteger | +$14 | 4 |  |
 | 0x17 | rwInteger | +$18 | 4 |  |
 | 0x18 | rwInteger | +$1C | 4 |  |
-| 0x19 | rwStreamProc |  |  | indirect: *param_2 |
-| 0x1a | rwStreamProc |  |  | indirect: *param_2 |
+| 0x19 | rwStreamProc |  |  | indirect: stream->vtbl |
+| 0x1a | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x1b | rwData | +$4C | 1 |  |
 | 0x1c | rwBool | +$4D | 1 |  |
-| 0x1d | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1d | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TCombatLogbook : Engine.TEObject
 
@@ -85,6 +88,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x14 | rwCreateEObject | +$18 | 4 |  |
 
 ## AoWE.TSingleTargetCA : Engine.TEObject
 
@@ -144,7 +148,7 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x15 | rwInteger | +$18 | 4 |  |
-| 0x16 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x16 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x17 | rwByte | +$24 | 1 |  |
 | 0x18 | rwStrings | +$2C | 4 |  |
 | 0x19 | rwInteger | +$30 | 4 |  |
@@ -170,6 +174,7 @@
 | 0x28 | rwInteger | +$38 | 4 |  |
 | 0x29 | rwData | +$2D | 1 |  |
 | 0x2a | rwData | +$2E | 1 |  |
+| 0x2b | rwCreateEObject | +$18 | 4 |  |
 | 0x2c | rwIntegerEx | +$30 | 4 | default 0xffffffff |
 
 ## AoWE.TNegotiateRequestEventLog : AoWE.TJoinEventLog
@@ -182,6 +187,7 @@
 | 0x2b | rwData | +$48 | 1 |  |
 | 0x2c | rwInteger | +$4C | 4 |  |
 | 0x2d | rwInteger | +$50 | 4 |  |
+| 0x2e | rwCreateEObject | +$44 | 4 |  |
 
 ## AoWE.TDiplomaticAction : Engine.TEObject
 
@@ -204,12 +210,14 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x14 | rwCreateEObject | +$14 | 4 |  |
 | 0x15 | rwInteger | +$10 | 4 |  |
 
 ## AoWE.TDiplomaticActionEventLog : EventLog.TEventLog
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x14 | rwCreateEObject | +$18 | 4 |  |
 
 ## AoWE.TAoWMapCampaignSettings : Engine.TEObject
 
@@ -220,6 +228,20 @@
 | 0x16 | rwInteger | +$14 | 4 |  |
 | 0x17 | rwInteger | +$18 | 4 |  |
 | 0x18 | rwBool | +$08 | 1 |  |
+
+## AoWE.TAoWCampaignTransferSettings : Engine.TEObject
+
+| id | rw | offset | size | note |
+|---|---|---|---|---|
+| 0x14 | rwEObject | +$0C | 4 |  |
+| 0x15 | rwEObject | +$10 | 4 |  |
+| 0x16 | rwEObject | +$14 | 4 |  |
+|  | rwStreamProc |  |  | indirect: 0x17 |
+| 0x18 | rwInteger | +$20 | 4 |  |
+| 0x19 | rwInteger | +$24 | 4 |  |
+| 0x1a | rwInteger | +$18 | 4 |  |
+| 0 | rwCreateEObject |  | 4 | indirect: &pcStack_20 |
+| 0x1b | rwCreateEObject | +$08 | 4 |  |
 
 ## AoWE.TAoWCampaignScenario : Engine.TEObject
 
@@ -234,16 +256,16 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 5 | rwInteger |  | 4 | indirect: &uStack_14 |
-| 6 | rwData |  | uStack_14 | indirect: *(undefined4 *)(*(int *)(param_1 + 0xc) + 4) |
+| 6 | rwData | +$0C | uStack_14 |  |
 | 5 | rwInteger |  | 4 | indirect: &uStack_14 |
-| 6 | rwData |  | uStack_14 | indirect: *(undefined4 *)(*(int *)(param_1 + 0xc) + 4) |
+| 6 | rwData | +$0C | uStack_14 |  |
 | 7 | rwEObject | +$20 | 4 |  |
 | 10 | rwEObject | +$10 | 4 |  |
 | 0xc | rwString | +$08 | 4 |  |
 | 0xd | rwInteger | +$24 | 4 |  |
-| 0xe | rwStreamProc |  |  | indirect: *param_2 |
+| 0xe | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0xf | rwBool | +$1C | 1 |  |
-| 0x10 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x10 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x11 | rwData | +$31 | 1 |  |
 | 0x13 | rwData | +$30 | 1 |  |
 
@@ -320,9 +342,9 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1e | rwStreamProc |  |  | indirect: stream->vtbl |
 
-## AoWE.TFastCombatUnit : AoWE.TCombatUnit
+## AoWE.TFastCombatUnit
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -353,13 +375,13 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x14 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TMoveArmyTE : AoWE.TMoveTE
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1e | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x1f | rwByte | +$2C | 1 |  |
 | 0x20 | rwByte | +$2E | 1 |  |
 | 0x21 | rwByte | +$2F | 1 |  |
@@ -432,7 +454,7 @@
 | 0x76 | rwEObject | +$80 | 4 |  |
 | 0x77 | rwEObject | +$98 | 4 |  |
 | 0x11 | rwEObject | +$70 | 4 |  |
-| 0x12 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x12 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TRace : Engine.TEObject
 
@@ -442,7 +464,7 @@
 |  | rwStreamProc |  |  | indirect: 3 |
 | 4 | rwBool |  | 1 | indirect: &pcStack_20 |
 | 4 | rwBool | +$14 | 1 |  |
-| 5 | rwStreamProc |  |  | indirect: *param_2 |
+| 5 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TRaceList : Engine.TEObject
 
@@ -463,9 +485,9 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 2 | rwInteger | +$0C | 4 |  |
-| 3 | rwData | +$08 | param_1[3] + 7U >> 3 |  |
+| 3 | rwData | +$08 | this->FAbCount + 7U >> 3 |  |
 | 2 | rwInteger |  | 4 | indirect: &iStack_10 |
-| 3 | rwData | +$08 | param_1[3] + 7U >> 3 |  |
+| 3 | rwData | +$08 | this->FAbCount + 7U >> 3 |  |
 
 ## AoWE.TAbility : Engine.TEObject
 
@@ -474,15 +496,18 @@
 | 5 | rwStrings | +$10 | 4 |  |
 | 6 | rwInteger | +$14 | 4 |  |
 | 7 | rwEObject | +$18 | 4 |  |
-| 8 | rwStreamProc |  |  | indirect: *param_2 |
+| 8 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 9 | rwData | +$20 | 2 |  |
 
-## AoWE.TAbilityOwner : AoWE.TCustomAbilityList
+## AoWE.TAbilityOwner
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 |  | rwStreamProc |  |  | indirect: 0x31 |
-| 0x31 | rwStreamProc |  |  | indirect: *param_2 |
+| iVar4 + 0x32 | rwCreateEObject |  | 4 | indirect: &pcStack_2c |
+| 0x31 | rwStreamProc |  |  | indirect: stream->vtbl |
+| iVar4 + 0x32 | rwCreateEObject |  | 4 | indirect: &pcStack_2c |
+| 0 | rwCreateEObject |  | 4 | indirect: apiStack_1c |
 
 ## AoWE.TAbilityControl : Engine.TEObject
 
@@ -501,7 +526,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x14 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x15 | rwEObject | +$10 | 4 |  |
 
 ## AoWE.TTurnInfoItem : Engine.TEObject
@@ -543,6 +568,7 @@
 | 0xc | rwString | +$C0 | 4 |  |
 | 0x10 | rwInteger | +$C4 | 4 |  |
 | 0x12 | rwByte | +$A6 | 1 |  |
+| 0x13 | rwCreateEObject | +$D4 | 4 |  |
 | 0x14 | rwByte | +$2D | 1 |  |
 | 0x15 | rwByte | +$2E | 1 |  |
 | 0x16 | rwByte | +$2F | 1 |  |
@@ -552,15 +578,15 @@
 | 0x17 | rwEObject | +$D8 | 4 |  |
 | 0x18 | rwString | +$30 | 4 |  |
 | 0x19 | rwData | +$44 | 1 |  |
-| 0x1a | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1a | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x1b | rwByte | +$50 | 1 |  |
 | 0x1c | rwEObject | +$88 | 4 |  |
 | 0x1d | rwData | +$A8 | 1 |  |
-| 0x1e | rwEObject | +$58 | 4 |  |
+| 0x1e | rwEObject | +$D4 | 4 |  |
 | 0x1e | rwEObject | +$D4 | 4 |  |
 | 0x1f | rwEObject | +$54 | 4 |  |
-| 0x20 | rwStreamProc |  |  | indirect: *param_2 |
-| 0x21 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x20 | rwStreamProc |  |  | indirect: stream->vtbl |
+| 0x21 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x22 | rwInteger | +$5C | 4 |  |
 | 0x23 | rwEObject | +$60 | 4 |  |
 | 0x24 | rwInteger | +$6C | 4 |  |
@@ -568,11 +594,11 @@
 | 0x26 | rwInteger | +$78 | 4 |  |
 | 0x27 | rwInteger | +$7C | 4 |  |
 | 0x28 | rwStrings | +$34 | 4 |  |
-| 0x29 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x29 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x32 | rwInteger | +$74 | 4 |  |
 | 0x33 | rwEObject | +$8C | 4 |  |
 | 0x34 | rwEObject | +$90 | 4 |  |
-| 0x35 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x35 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x36 | rwEObject | +$A0 | 4 |  |
 | 0x38 | rwBool | +$A4 | 1 |  |
 | 0x39 | rwInteger | +$B4 | 4 |  |
@@ -587,8 +613,8 @@
 | 7 | rwString | +$2C | 4 |  |
 | 8 | rwString | +$20 | 4 |  |
 | 9 | rwData | +$30 | 1 |  |
-| 10 | rwStreamProc |  |  | indirect: *param_2 |
-| 0xb | rwStreamProc |  |  | indirect: *param_2 |
+| 10 | rwStreamProc |  |  | indirect: stream->vtbl |
+| 0xb | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0xc | rwInteger | +$3C | 4 |  |
 | 0xd | rwStrings | +$44 | 4 |  |
 
@@ -611,13 +637,14 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwInteger | +$08 | 4 |  |
+| 10 | rwInteger | +$28 | 4 |  |
 | 0xb | rwInteger | +$0C | 4 |  |
 | 0xc | rwByte | +$10 | 1 |  |
 | 0xd | rwByte | +$1C | 1 |  |
 | 0xe | rwByte | +$1D | 1 |  |
 | 0xf | rwInteger | +$20 | 4 |  |
 | 0x10 | rwInteger | +$28 | 4 |  |
+| 0x11 | rwCreateEObject | +$24 | 4 |  |
 | 0x12 | rwInteger | +$14 | 4 |  |
 | 0x13 | rwInteger | +$18 | 4 |  |
 
@@ -630,6 +657,7 @@
 | 0x16 | rwByte | +$11 | 1 |  |
 | 0x17 | rwByte | +$12 | 1 |  |
 | 0x18 | rwByte | +$13 | 1 |  |
+| 0x19 | rwCreateEObject | +$18 | 4 |  |
 | 0x1a | rwInteger | +$20 | 4 |  |
 | 0x1b | rwInteger | +$24 | 4 |  |
 | 0x1c | rwBool | +$1C | 1 |  |
@@ -660,14 +688,14 @@
 | 0x15 | rwString | +$48 | 4 |  |
 | 0x16 | rwStrings | +$50 | 4 |  |
 | 0x17 | rwInteger | +$54 | 4 |  |
-| 0x1c | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1c | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TPlayerStructure : AoWE.TStructure
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 5 | rwByte | +$30 | 1 |  |
-| 6 | rwStreamProc |  |  | indirect: *param_2 |
+| 6 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 7 | rwByte | +$31 | 1 |  |
 
 ## AoWE.TPlayerStructureResource : AoWE.TStructureResource
@@ -734,7 +762,7 @@
 | 0x1e | rwShortint | +$0C | 1 |  |
 | 0x1f | rwShortint | +$0D | 1 |  |
 
-## AoWE.TDurationAbilityData : AoWE.TAbilityData
+## AoWE.TDurationAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -743,18 +771,19 @@
 | 0xd | rwByte | +$0D | 1 |  |
 | 0xe | rwInteger | +$10 | 4 |  |
 
-## AoWE.TMultiLevelAbilityData : AoWE.TAbilityData
+## AoWE.TMultiLevelAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 10 | rwByte | +$0C | 1 |  |
 | 0xb | rwWord | +$0E | 2 |  |
 
-## AoWE.TUnitEnchantmentAbilityData : AoWE.TAbilityData
+## AoWE.TUnitEnchantmentAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0xf | rwWord | +$0C | 2 |  |
+| 0x10 | rwCreateEObject | +$10 | 4 |  |
 | 0x11 | rwShortintEx | +$0F | 1 | default 0xffffffff |
 | 0x12 | rwShortintEx | +$0E | 1 | default 0xffffffff |
 
@@ -790,7 +819,7 @@
 |---|---|---|---|---|
 | 0x14 | rwBool | +$10 | 1 |  |
 
-## AoWE.TPossessedAbilityData : AoWE.TAbilityData
+## AoWE.TPossessedAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -814,7 +843,7 @@
 |---|---|---|---|---|
 | 0x14 | rwBool | +$10 | 1 |  |
 
-## AoWE.THealingAbilityData : AoWE.TAbilityData
+## AoWE.THealingAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -833,9 +862,9 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x32 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x32 | rwStreamProc |  |  | indirect: stream->vtbl |
 
-## AoWE.TDispelMagicAbilityData : AoWE.TAbilityData
+## AoWE.TDispelMagicAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -857,14 +886,14 @@
 |---|---|---|---|---|
 | 0x14 | rwData | +$18 | 4 |  |
 
-## AoWE.TCommandAbilityData : AoWE.TAbilityData
+## AoWE.TCommandAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x14 | rwInteger | +$0C | 4 |  |
-| 0x15 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x15 | rwStreamProc |  |  | indirect: stream->vtbl |
 
-## AoWE.TCommandedAbilityData : AoWE.TAbilityData
+## AoWE.TCommandedAbilityData
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -884,7 +913,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x14 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TAoWMapField : HSEngine.TMapField
 
@@ -903,7 +932,7 @@
 | 0xd | rwData | +$104 | 1 |  |
 | 0x10 | rwByte | +$A4 | 1 |  |
 | 0x11 | rwData | +$16C | 1 |  |
-| 0x12 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x12 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x13 | rwInteger | +$174 | 4 |  |
 | 0x14 | rwString | +$178 | 4 |  |
 | 0x15 | rwEObject | +$140 | 4 |  |
@@ -914,7 +943,6 @@
 | 0x1a | rwBool | +$C8 | 1 |  |
 | 0x1b | rwByte | +$10C | 1 |  |
 | 0x1c | rwInteger | +$230 | 4 |  |
-| 0x1d | rwEObject | +$110 | 4 |  |
 | 0x1e | rwEObject | +$F4 | 4 |  |
 | 0x22 | rwData | +$118 | 1 |  |
 | 0x23 | rwData | +$119 | 1 |  |
@@ -941,7 +969,6 @@
 | 0x38 | rwEObject | +$124 | 4 |  |
 | 0x3a | rwInteger | +$164 | 4 |  |
 | 0x3b | rwBool | +$149 | 1 |  |
-| 0x3c | rwEObject | +$114 | 4 |  |
 | 0x3d | rwBool | +$14A | 1 |  |
 | 0x3e | rwBool | +$191 | 1 |  |
 |  | rwData | +$14C | 1 |  |
@@ -950,9 +977,9 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwStrings | +$24 | 4 |  |
+| 10 | rwStrings | +$20 | 4 |  |
 | 0xb | rwEObject | +$28 | 4 |  |
-| 0xc | rwStreamProc |  |  | indirect: *param_2 |
+| 0xc | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0xd | rwInteger | +$14 | 4 |  |
 | 0xe | rwInteger | +$1C | 4 |  |
 | 0xf | rwInteger | +$18 | 4 |  |
@@ -995,7 +1022,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1e | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x1f | rwData | +$2C | 8 |  |
 | 0x20 | rwByte | +$28 | 1 |  |
 
@@ -1024,7 +1051,7 @@
 |---|---|---|---|---|
 | 0x14 | rwInteger | +$24 | 4 |  |
 | 0x15 | rwIntegerEx | +$2C | 4 | default 0x32 |
-| 0x16 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x16 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x17 | rwInteger | +$34 | 4 |  |
 | 0x18 | rwInteger | +$38 | 4 |  |
 | 0x19 | rwEObject | +$3C | 4 |  |
@@ -1083,16 +1110,17 @@
 |---|---|---|---|---|
 | 10 | rwInteger | +$08 | 4 |  |
 
-## AoWE.TAbstractUnit : AoWE.TAbilityOwner
+## AoWE.TAbstractUnit
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 4 | rwInteger | +$1C | 4 |  |
 |  | rwIntegerEx | +$18 | 4 | default 0xffffffff |
-| 6 | rwByte | +$26 | 1 |  |
+| 6 | rwByte |  | 1 | indirect: &this->FMoraleValue |
 | 0x2f | rwByte | +$24 | 1 |  |
+| 0 | rwCreateEObject |  | 4 | indirect: &local_8 |
 
-## AoWE.TUnit : AoWE.TAbstractUnit
+## AoWE.TUnit
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -1107,11 +1135,11 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 5 | rwStreamProc |  |  | indirect: *param_2 |
+| 5 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 6 | rwString | +$24 | 4 |  |
 | 7 | rwString | +$18 | 4 |  |
 | 8 | rwInteger | +$1C | 4 |  |
-| 10 | rwData | +$30 | 1 |  |
+| 10 | rwData | +$38 | 1 |  |
 | 0xf | rwEObject | +$34 | 4 |  |
 | 0x10 | rwEObject | +$38 | 4 |  |
 | 0x11 | rwEObject | +$3C | 4 |  |
@@ -1134,7 +1162,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwString | +$1C | 4 |  |
+| 10 | rwString | +$2B | 4 |  |
 | 0xb | rwString | +$24 | 4 |  |
 | 0xc | rwData | +$28 | 1 |  |
 | 0xd | rwByte | +$20 | 1 |  |
@@ -1190,7 +1218,7 @@
 | 0x2a | rwString | +$28 | 4 |  |
 | 0x2b | rwData | +$24 | 1 |  |
 
-## AoWE.THero : AoWE.TAbstractUnit
+## AoWE.THero
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
@@ -1221,7 +1249,7 @@
 | 0x21 | rwBool | +$78 | 1 |  |
 | 0x22 | rwInteger | +$8C | 4 |  |
 | 0x23 | rwIntegerEx | +$90 | 4 | default 0xffffffff |
-| 0x24 | rwEObject | +$74 | 4 |  |
+| 0x24 | rwEObject |  | 4 | indirect: this->FInventory |
 | 0x25 | rwEObject | +$70 | 4 |  |
 | 0x26 | rwString | +$94 | 4 |  |
 | 0x27 | rwInteger | +$50 | 4 |  |
@@ -1239,7 +1267,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwString | +$1C | 4 |  |
+| 10 | rwString | +$25 | 4 |  |
 | 0xb | rwByte | +$20 | 1 |  |
 | 0xc | rwData | +$21 | 1 |  |
 | 0xd | rwData | +$22 | 1 |  |
@@ -1272,12 +1300,12 @@
 |---|---|---|---|---|
 | 0x14 | rwEObject | +$08 | 4 |  |
 
-## AoWE.TLeader : AoWE.THero
+## AoWE.TLeader
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x2d | rwByteEx | +$9C | 1 | default 5 |
-| 0x2e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x2e | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TArmyID : Engine.TEObject
 
@@ -1285,7 +1313,7 @@
 |---|---|---|---|---|
 | 10 | rwByte | +$0C | 1 |  |
 | 0xb | rwInteger | +$10 | 4 |  |
-| 0xc | rwStreamProc |  |  | indirect: *param_2 |
+| 0xc | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## AoWE.TArmyView : AoWE.TArmy
 
@@ -1303,8 +1331,8 @@
 | 0x10 | rwString | +$1C | 4 |  |
 | 0x11 | rwStrings | +$20 | 4 |  |
 | 0x12 | rwInteger | +$24 | 4 |  |
-| 0x13 | rwStreamProc |  |  | indirect: *param_2 |
-| 0x14 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x13 | rwStreamProc |  |  | indirect: stream->vtbl |
+| 0x14 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x15 | rwBool | +$30 | 1 |  |
 
 ## AoWE.TArmyInfoEventLog : EventLog.TEventLog
@@ -1347,14 +1375,14 @@
 | 0x15 | rwData | +$14 | 1 |  |
 | 0x16 | rwInteger | +$18 | 4 |  |
 
-## AoWE.TItem : AoWE.TAbilityOwner
+## AoWE.TItem
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 7 | rwInteger | +$40 | 4 |  |
 | 8 | rwString | +$18 | 4 |  |
 | 9 | rwString | +$30 | 4 |  |
-| 10 | rwData | +$45 | 1 |  |
+| 10 | rwData | +$44 | 1 |  |
 | 0xb | rwByte | +$46 | 1 |  |
 | 0xc | rwByte | +$47 | 1 |  |
 | 0xd | rwByte | +$48 | 1 |  |
@@ -1373,6 +1401,9 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 9 | rwInteger | +$18 | 4 |  |
+| iStack_1c | rwCreateEObject |  | 4 | indirect: &iStack_14 |
+| iStack_1c | rwCreateEObject | +$08 | 4 |  |
+| iStack_1c | rwCreateEObject |  | 4 | indirect: &iStack_14 |
 
 ## AoWE.TItemLibrary : Engine.TEObject
 
@@ -1435,11 +1466,13 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x28 | rwCreateEObject | +$2C | 4 |  |
 
 ## GlobalTargetSpells.TVortexTE : GlobalTargetSpells.TGlobalTargetSpellTE
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x28 | rwCreateEObject | +$2C | 4 |  |
 
 ## Mountain.TRaisedMountain : HSEngine.TMultiHexMO
 
@@ -1453,8 +1486,8 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 7 | rwStrings | +$30 | 4 |  |
-| 8 | rwStreamProc |  |  | indirect: *param_2 |
+| 7 | rwStrings |  | 4 | indirect: param_1[1].vtbl |
+| 8 | rwStreamProc |  |  | indirect: param_2->vtbl |
 
 ## Sign.TUpdateSignTE : NetworkE.TTokenEvent
 
@@ -1469,10 +1502,10 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 7 | rwByte | +$30 | 1 |  |
-| 8 | rwByte | +$31 | 1 |  |
-| 9 | rwByte | +$32 | 1 |  |
-| 10 | rwData | +$33 | 1 |  |
+| 7 | rwByte | +$04 | 1 |  |
+| 8 | rwByte |  | 1 | indirect: (undefined1 *)((int)&param_1[1].vtbl + 1) |
+| 9 | rwByte |  | 1 | indirect: (undefined1 *)((int)&param_1[1].vtbl + 2) |
+| 10 | rwData |  | 1 | indirect: (undefined1 *)((int)&param_1[1].vtbl + 3) |
 
 ## City.TCity : AoWE.TPlayerStructure
 
@@ -1515,6 +1548,7 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x1e | rwInteger | +$2C | 4 |  |
+| 0x1f | rwCreateEObject | +$28 | 4 |  |
 
 ## Farm.TFarm : AoWE.TPlayerStructure
 
@@ -1532,7 +1566,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwData | +$3C | 1 |  |
+| 0x14 | rwData | +$04 | 1 |  |
 
 ## ManaCrystals.TManaCrystals : HSEngine.TMultiHexMO
 
@@ -1545,15 +1579,15 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 8 | rwEObject | +$44 | 4 |  |
-| 9 | rwData | +$49 | 1 |  |
-| 10 | rwData | +$48 | 1 |  |
+| 8 | rwEObject |  | 4 | indirect: *(undefined4 *)&param_1[1].field_0x8 |
+| 9 | rwData |  | 1 | indirect: &param_1[1].field_0xd |
+| 10 | rwData |  | 1 | indirect: &param_1[1].field_0xc |
 
 ## PrdPlace.TProductionPlaceResource : AoWE.TPlayerStructureResource
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x12 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x12 | rwStreamProc |  |  | indirect: param_2->vtbl |
 
 ## ExploreS.TExplorationSite : AoWE.TStructure
 
@@ -1566,28 +1600,28 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x19 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x19 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## ItemExpS.TItemExplorationSite : ExploreS.TExplorationSite
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 8 | rwEObject | +$3C | 4 |  |
-| 9 | rwData | +$38 | 1 |  |
+| 8 | rwEObject |  | 4 | indirect: param_1[1].FAoWMapField |
+| 9 | rwData | +$04 | 1 |  |
 
 ## ItemExpS.TItemExplorationSiteEventLog : EventLog.TEventLog
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwStreamProc |  |  | indirect: *param_2 |
-| 0x15 | rwStrings | +$1C | 4 |  |
-| 0x16 | rwString | +$20 | 4 |  |
+| 0x14 | rwStreamProc |  |  | indirect: param_2->vtbl |
+| 0x15 | rwStrings |  | 4 | indirect: *(undefined4 *)&param_1[1].field_0x4 |
+| 0x16 | rwString |  | 4 | indirect: &param_1[1].prop_10 |
 
 ## Tower.TTower : AoWE.TPlayerStructure
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwData | +$3C | 1 |  |
+| 0x14 | rwData | +$04 | 1 |  |
 
 ## PoisonP.TPoisonPlant : HSEngine.TMultiHexMO
 
@@ -1615,7 +1649,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1e | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## HolyG.THolyGround : HSEngine.TMultiHexMO
 
@@ -1646,9 +1680,9 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwByte | +$24 | 1 |  |
-| 0x15 | rwByte | +$25 | 1 |  |
-| 0x16 | rwByte | +$26 | 1 |  |
+| 0x14 | rwByte |  | 1 | indirect: &param_1[1].field_0x4 |
+| 0x15 | rwByte |  | 1 | indirect: &param_1[1].field_0x5 |
+| 0x16 | rwByte |  | 1 | indirect: &param_1[1].field_0x6 |
 
 ## Altar.TAltar : AoWE.TPlayerStructure
 
@@ -1661,7 +1695,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x14 | rwData | +$3C | 1 |  |
+| 0x14 | rwData | +$04 | 1 |  |
 
 ## FlagEvents.TFlagEvent : HSEngine.TMapObject
 
@@ -1714,35 +1748,40 @@
 |---|---|---|---|---|
 | 0x28 | rwInteger | +$44 | 4 |  |
 
+## ReflectingPool.TReflectingPool : AoWE.TPlayerStructure
+
+| id | rw | offset | size | note |
+|---|---|---|---|---|
+
 ## WizardsTower.TWizardsTower : AoWE.TStructure
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwBool | +$30 | 1 |  |
-| 0x1f | rwData | +$31 | 2 |  |
-| 0x20 | rwByte | +$33 | 1 |  |
-| 0x21 | rwData | +$34 | 4 |  |
+| 0x1e | rwBool | +$04 | 1 |  |
+| 0x1f | rwData |  | 2 | indirect: (undefined1 *)((int)&param_1[1].vtbl + 1) |
+| 0x20 | rwByte |  | 1 | indirect: (undefined1 *)((int)&param_1[1].vtbl + 3) |
+| 0x21 | rwData |  | 4 | indirect: &param_1[1].FAoWMapField |
 
 ## Arena.TArenaTE : AoWE.TStructureTE
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x28 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x28 | rwStreamProc |  |  | indirect: stream->vtbl |
 
 ## IndependentAG.TGuardAreaAG : AoWE.TAIGroup
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x32 | rwInteger | +$50 | 4 |  |
+| 0x32 | rwInteger | +$04 | 4 |  |
 
 ## IndependentAG.TPatrolAG : AoWE.TAIGroup
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x28 | rwInteger | +$50 | 4 |  |
-| 0x29 | rwInteger | +$54 | 4 |  |
-| 0x2a | rwByte | +$58 | 1 |  |
-| 0x2b | rwInteger | +$5C | 4 |  |
+| 0x28 | rwInteger | +$04 | 4 |  |
+| 0x29 | rwInteger |  | 4 | indirect: &param_1[1].field_0x4 |
+| 0x2a | rwByte |  | 1 | indirect: &param_1[1].field_0x8 |
+| 0x2b | rwInteger |  | 4 | indirect: &param_1[1].field_0xc |
 
 ## AoWSetup.TSetupPackage : Engine.TEObject
 
@@ -1751,6 +1790,7 @@
 | 0x14 | rwInteger | +$08 | 4 |  |
 | 0x15 | rwInteger | +$0C | 4 |  |
 | 0x16 | rwInteger | +$10 | 4 |  |
+| 0x17 | rwCreateEObject | +$14 | 4 |  |
 
 ## AoWSetup.TRemotePlayer : Engine.TEObject
 
@@ -1766,7 +1806,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwByte | +$20 | 1 |  |
+| 10 | rwByte | +$10 | 1 |  |
 | 0xb | rwData | +$08 | 8 |  |
 | 0xc | rwByte | +$18 | 1 |  |
 | 0xd | rwData | +$21 | 1 |  |
@@ -1778,7 +1818,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 10 | rwString | +$10 | 4 |  |
+| 10 | rwString | +$2A | 4 |  |
 | 0xb | rwData | +$24 | 1 |  |
 | 0xc | rwBool | +$25 | 1 |  |
 | 0xd | rwString | +$14 | 4 |  |
@@ -1803,20 +1843,21 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x1e | rwStreamProc |  |  | indirect: *param_2 |
+| 0x1e | rwStreamProc |  |  | indirect: param_2->vtbl |
 
 ## UnitSpells.TDispelMagicSpellCA : AoWE.TDispelMagicCA
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
-| 0x3c | rwInteger | +$14 | 4 |  |
-| 0x3d | rwInteger | +$18 | 4 |  |
+| 0x3c | rwInteger | +$04 | 4 |  |
+| 0x3d | rwInteger |  | 4 | indirect: &param_1[1].field_0x4 |
 
 ## GlobalSpells.TWarpPartyTE : AoWE.TSpellTE
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x1e | rwInteger | +$24 | 4 |  |
+| 0x1f | rwCreateEObject | +$20 | 4 |  |
 
 ## GlobalSpells.TDisjunctionTE : AoWE.TSpellTE
 
@@ -1829,6 +1870,7 @@
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0x19 | rwCreateEObject | +$20 | 4 |  |
 
 ## GlobalEnchantmentSpells.THatredEnchantment : AoWE.TGlobalEnchantment
 
@@ -1848,7 +1890,7 @@
 |---|---|---|---|---|
 | 0x14 | rwInteger | +$08 | 4 |  |
 | 0x15 | rwInteger | +$0C | 4 |  |
-| 0x16 | rwData | +$10 | *(int *)(param_1 + 8) * *(int *)(param_1 + 0xc) * 2 |  |
+| 0x16 | rwData | +$10 | this->prop_14 * this->prop_15 * 2 |  |
 
 ## GlobalEnchantmentSpells.TFloodEnchantment : AoWE.TGlobalEnchantment
 
@@ -1882,7 +1924,7 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 0x14 | rwByte | +$0C | 1 |  |
-| 0x15 | rwStreamProc |  |  | indirect: *param_2 |
+| 0x15 | rwStreamProc |  |  | indirect: stream->vtbl |
 | 0x16 | rwInteger | +$14 | 4 |  |
 | 0x17 | rwBool | +$18 | 1 |  |
 | 0x18 | rwInteger | +$1C | 4 |  |
@@ -1901,15 +1943,16 @@
 | id | rw | offset | size | note |
 |---|---|---|---|---|
 | 10 | rwData | +$14 | 0x10 |  |
-| 0xb | rwByte | +$08 | 1 |  |
-| 0xc | rwByte | +$09 | 1 |  |
-| 0xd | rwByte | +$0A | 1 |  |
+| 0xb | rwByte |  | 1 | indirect: &this->FXhx |
+| 0xc | rwByte |  | 1 | indirect: &this->FYhx |
+| 0xd | rwByte |  | 1 | indirect: &this->FLhx |
 | 0xe | rwInteger | +$10 | 4 |  |
 
 ## Animation.TAnimationTE : NetworkE.TTokenEvent
 
 | id | rw | offset | size | note |
 |---|---|---|---|---|
+| 0xf | rwCreateEObject | +$14 | 4 |  |
 
 ## EventLog.TEventLog : Engine.TEObject
 

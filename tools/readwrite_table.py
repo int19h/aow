@@ -20,7 +20,11 @@ SIZES = {'rwInteger': 4, 'rwIntegerEx': 4, 'rwByte': 1, 'rwByteEx': 1, 'rwWord':
          'rwEObject': 4, 'rwCreateEObject': 4}
 
 CALL = re.compile(r'\(\*\*\(code \*\*\)\(\*(\w+) \+ (0x[0-9a-f]+)\)\)\s*\(([^;]*?)\);', re.S)
-PARENT = re.compile(r'^\s+(\w+_T\w+_ReadWrite)_[0-9A-F]{8}\((\w+),(\w+)\);', re.M)
+# typed output after ApplyDelphiClasses: (*stream->vtbl->rwByte)(stream,&this->prop_c,0xc);
+TYPED_CALL = re.compile(r'\(\*(\w+)->vtbl->(\w+)\)\s*\(([^;]*?)\);', re.S)
+SLOT_BY_NAME = {v: k for k, v in SLOTS.items()}
+PARENT = re.compile(r'^\s+(\w+_T\w+_ReadWrite)_[0-9A-F]{8}\(\(?\w*\s*\*?\)?(\w+),(\w+)\);', re.M)
+NAME_TO_OFF = {}   # cls -> field name -> offset, loaded from classes.json when given
 
 
 def parse_args(s):
@@ -42,6 +46,13 @@ def field_expr(e, self_name, self_scale=1):
     When Ghidra declared Self as 'int *', 'param_1 + 3' is pointer arithmetic (offset 12) while
     '(int)param_1 + 3' is a byte offset; self_scale carries the element size (4) in that case."""
     e = e.strip()
+    # typed forms: &this->field_0x26, &this->prop_c, this->FHeroItems, *(int *)&this->field_0x74
+    m = re.search(r'this->field_0x([0-9a-f]+)', e)
+    if m:
+        return int(m.group(1), 16)
+    m = re.search(r'this->([A-Za-z]\w*)', e)
+    if m:
+        return NAME_TO_OFF.get(self_scale if isinstance(self_scale, str) else '', {}).get(m.group(1))
     byte_cast = e.startswith('(int)')
     e = e.replace('(int)', '').strip()
     m = re.fullmatch(re.escape(self_name) + r'\s*\+\s*(0x[0-9a-f]+|\d+)', e)
@@ -61,15 +72,25 @@ def field_expr(e, self_name, self_scale=1):
 
 def analyze(path):
     text = open(path, encoding='utf-8', errors='replace').read()
-    m = re.search(r'^\w[\w \*]*?(\w+)\((\w+ \*?\*?)?(\w+),(?:\w+ \*?\*?)?(\w+)', text, re.M)
+    # the signature may wrap onto a second line: "void X_ReadWrite_HASH\n   (TClass *this,TEStorageStream *stream,...)"
+    m = re.search(r'(\w+_ReadWrite_[0-9A-F]{8})\s*\(\s*(\w+ \*?\*?)?\s*(\w+)\s*,\s*(?:\w+ \*?\*?)?\s*(\w+)', text)
     if not m:
         return None
     self_name, stream_name = m.group(3), m.group(4)
-    self_scale = 4 if (m.group(2) or '').strip().endswith('*') else 1
+    self_type = (m.group(2) or '').strip()
+    typed = self_name == 'this'
+    cls = self_type.rstrip(' *') if typed else ''
+    # for typed output field_expr resolves "this->Name" through NAME_TO_OFF[cls]; pass the class as the scale slot
+    self_scale = cls if typed else (4 if self_type.endswith('*') else 1)
     parent = PARENT.search(text)
     rows = []
+    calls = []
     for call in CALL.finditer(text):
-        obj, slot, args = call.group(1), int(call.group(2), 16), parse_args(call.group(3))
+        calls.append((call.group(1), int(call.group(2), 16), call.group(3)))
+    for call in TYPED_CALL.finditer(text):
+        calls.append((call.group(1), SLOT_BY_NAME.get(call.group(2), -1), call.group(3)))
+    for obj, slot, argtext in calls:
+        args = parse_args(argtext)
         if obj != stream_name:
             continue
         name = SLOTS.get(slot, 'slot%X' % slot)
@@ -94,8 +115,28 @@ def analyze(path):
     return self_name, parent.group(1) if parent else None, rows
 
 
+def load_names(path):
+    import json
+    cdb = json.load(open(path, encoding='utf-8'))['classes']
+    for cls, e in cdb.items():
+        chain, p = [], cls
+        while p in cdb and len(chain) < 64:
+            chain.append(p); p = cdb[p]['parent']
+        for c in reversed(chain):
+            for off, fd in cdb[c]['fields'].items():
+                if 'name' in fd:
+                    NAME_TO_OFF.setdefault(cls, {})[fd['name']] = int(off)
+
+
 def main():
     d = sys.argv[1]
+    # Struct field names in the dump come from the classes.json that was current when the program was typed.
+    # The pipeline stores that file next to the dump; prefer it over a newer one.
+    snapshot = os.path.join(d, 'classes.json')
+    if os.path.exists(snapshot):
+        load_names(snapshot)
+    elif len(sys.argv) > 3:
+        load_names(sys.argv[3])
     out = []
     files = sorted(f for f in os.listdir(d) if f.endswith('.c'))
     for f in files:

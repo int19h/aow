@@ -1,11 +1,16 @@
-## Animation.TAnimation
+## Animation.TImageSequenceAnimation
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$08 | FXhx | undefined1 | getter |
-| +$09 | FYhx | undefined1 | getter |
-| +$0A | FLhx | undefined1 | getter |
-| +$0B | FLevel | undefined1 | getter |
+| +$3C | FImageSequence | undefined4 | setter |
+| +$40 | FXhpOffset | undefined4 | setter |
+| +$44 | FYhpOffset | undefined4 | setter |
+
+## Animation.TTwinkleAnimation
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$3C | Fup | undefined4 | setter |
 
 ## AoWE.TAIBudgetManager
 
@@ -17,15 +22,14 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$18 | FLeader | int | setter |
-| +$40 | FGoldBudget | undefined4 | getter |
-| +$44 | FManaBudget | undefined4 | getter |
+| +$40 | FGoldBudget |  | getter |
+| +$44 | FManaBudget |  | getter |
 
 ## AoWE.TAIGroupControlTarget
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$20 | FTargetGold | undefined4 | getter |
+| +$20 | FTargetGold |  | getter |
 
 ## AoWE.TAIGroupCooperationControl
 
@@ -51,23 +55,43 @@
 |---|---|---|---|
 | +$08 | FEObjectList | TEObjectList | delegation |
 
+## AoWE.TAIMoveControlSettings
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$10 | FSourcePos | undefined4 | setter |
+| +$1C | FDestinationPos | undefined4 | setter |
+
 ## AoWE.TAIMoveExecuter
 
 | offset | field | c type | from |
 |---|---|---|---|
 | +$18 | FAIMoveExecuterUnitList | TAIMoveExecuterUnitList | delegation |
 
-## AoWE.TAIPlayerControl
+## AoWE.TAIPlayerAction
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$18 | FProcessCyclesMax | undefined4 | getter |
+| +$0C | Fup | int | setter |
+
+## AoWE.TAbstractAoWHSMap
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$A4 | FCurrentPlayer |  | setter |
+| +$A5 | FSeatedPlayer |  | setter |
 
 ## AoWE.TAbstractUnit
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FAbilityCount | undefined4 | getter |
+| +$0C | FAbilityCount |  | getter |
+
+## AoWE.TAbstractUnitResource
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$18 | FUnitGFXResourceIndex |  | setter |
 
 ## AoWE.TAdjacentArmy
 
@@ -79,26 +103,20 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$24 | FAbilityType | undefined1 | getter |
+| +$24 | FAbilityType |  | getter |
 
 ## AoWE.TAdjustableUnit
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$3C | FAttack | undefined1 | getter |
-| +$3D | FDefense | undefined1 | getter |
-| +$3E | FResistance | undefined1 | getter |
-| +$3F | FHits | undefined1 | getter |
-| +$40 | FDamage | undefined1 | getter |
-| +$41 | FImmunityTypes | undefined2 | getter |
-| +$43 | FProtectionTypes | undefined2 | getter |
-| +$45 | FHitPoints | undefined1 | getter |
-
-## AoWE.TAgeOfWondersEngine
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$3C | FHSEngine | undefined4 | setter |
+| +$3C | FAttack |  | getter |
+| +$3D | FDefense |  | getter |
+| +$3E | FResistance |  | getter |
+| +$3F | FHits |  | getter |
+| +$40 | FDamage |  | getter |
+| +$41 | FImmunityTypes |  | getter |
+| +$43 | FProtectionTypes |  | getter |
+| +$45 | FHitPoints |  | getter |
 
 ## AoWE.TAoWCampaign
 
@@ -110,20 +128,10 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$12 | FPlayer | undefined1 | getter |
-| +$18 | FUpkeep | undefined1 | getter |
-
-## AoWE.TArmyEventLog
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$1C | FText | String | getter |
-
-## AoWE.TArmyInfoEventLog
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$28 | FText | String | getter |
+| +$12 | FPlayer |  | getter |
+| +$13 | FXYL |  | setter |
+| +$18 | FUpkeep |  | getter |
+| +$25 | FDestinationPos |  | setter |
 
 ## AoWE.TCombatData
 
@@ -131,43 +139,50 @@
 |---|---|---|---|
 | +$38 | FCombatPlayerList | TCombatPlayerList | delegation |
 
+## AoWE.TCombatTypeRequestEventLog
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$1B | FCenterLocation |  | setter |
+
 ## AoWE.TCombatUnit
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$4C | FAbilityOwner | undefined4 | getter |
-| +$50 | FParty | int | setter |
-
-## AoWE.TCombatViewer
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$0D | FSpeed | char | setter |
+| +$0C | Fup |  | setter |
+| +$4C | FAbilityOwner |  | getter |
 
 ## AoWE.TCombatWall
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$4D | FHitPoints | undefined1 | getter |
-| +$4E | FLocked | undefined1 | getter |
+| +$0C | Fup |  | setter |
+| +$4D | FHitPoints |  | getter |
+| +$4E | FLocked |  | getter |
 
 ## AoWE.TCommandAbilityData
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FAbilityID | undefined4 | getter |
+| +$0C | FAbilityID |  | getter |
 
 ## AoWE.TCommandedAbilityData
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FAbilityID | undefined4 | getter |
+| +$0C | FAbilityID |  | getter |
 
 ## AoWE.TCustomAbilityList
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FAbCount | undefined4 | getter |
+| +$0C | FAbCount |  | getter |
+
+## AoWE.TDamageCA
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$13 | Fup |  | setter |
 
 ## AoWE.TDiplomaticRelationHistoryList
 
@@ -179,7 +194,7 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0E | FAbilityID | undefined2 | getter |
+| +$0E | FAbilityID |  | getter |
 
 ## AoWE.TFastCombat
 
@@ -191,14 +206,13 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$20 | FShowPriority | undefined4 | getter |
+| +$20 | FShowPriority |  | getter |
 
 ## AoWE.TGlobalEnchantment
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$1C | FName | String | getter |
-| +$20 | FUpkeep | undefined4 | getter |
+| +$20 | FUpkeep |  | getter |
 
 ## AoWE.TGlobalMagicControl
 
@@ -210,22 +224,14 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$44 | FHeroResourceIndex | int | setter |
-| +$48 | FExperience | undefined4 | getter |
-| +$4C | FUnitLevel | undefined1 | getter |
-| +$60 | FName | String | getter |
-| +$64 | FNickname | String | getter |
-| +$69 | FGender | undefined1 | getter |
+| +$3C | FFaceIndex |  | setter |
+| +$48 | FExperience |  | getter |
+| +$4C | FUnitLevel |  | getter |
+| +$69 | FGender |  | getter |
 | +$70 | FHeroItems | THeroItems | delegation |
-| +$79 | FMovePoints | undefined1 | getter |
-| +$7A | FHitPoints | undefined1 | getter |
-| +$80 | FCastingPoints | undefined1 | getter |
-
-## AoWE.THeroEmergeEventLog
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$20 | FText | String | getter |
+| +$79 | FMovePoints |  | getter |
+| +$7A | FHitPoints |  | getter |
+| +$80 | FCastingPoints |  | getter |
 
 ## AoWE.THeroInventory
 
@@ -249,28 +255,62 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$18 | FOwnerName | String | getter |
-| +$2C | FObtainValue | int | getter |
+| +$40 | FItemGFXIndex |  | setter |
+
+## AoWE.TItemHS
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$04 | FMapField | TMapField | delegation |
+
+## AoWE.TItemHSList
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$04 | FOwner | undefined4 | setter |
+
+## AoWE.TLeader
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$9C | FSpherePicksMax |  | setter |
 
 ## AoWE.TMeleeRound
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$04 | FCapacity | int | setter |
-| +$18 | FAttackerDV | undefined4 | getter |
-| +$1C | FDefenderDV | undefined4 | getter |
+| +$08 | FCapacity | int | setter |
+
+## AoWE.TMoveControlSettings
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$7C | FSourcePos | undefined4 | setter |
+| +$88 | FDestinationPos | undefined4 | setter |
+
+## AoWE.TMoveSelector
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$0C | FCurrentMove | undefined4 | setter |
 
 ## AoWE.TMultiLevelAbilityData
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0E | FAbilityID | undefined2 | getter |
+| +$0E | FAbilityID |  | getter |
 
 ## AoWE.TPlayer
 
 | offset | field | c type | from |
 |---|---|---|---|
 | +$28 | FArmyList | TArmyList | delegation |
+| +$A5 | FRace |  | setter |
+| +$A6 | FPlayerIndex |  | setter |
+| +$C4 | FGems |  | setter |
+| +$C8 | FArmyUpkeep | undefined4 | setter |
+| +$CC | FMagicUpkeep | undefined4 | setter |
+| +$D4 | FLeader |  | setter |
 
 ## AoWE.TPlayerList
 
@@ -282,30 +322,48 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FCheatEnabled | undefined1 | getter |
-| +$24 | FMana | int | setter |
 | +$3C | FEnchantmentList | TEnchantmentList | delegation |
 | +$40 | FPowerSourceList | TPowerSourceList | delegation |
+| +$44 | FActiveEnchantments |  | setter |
+
+## AoWE.TPlayerStructureIncomeSource
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$08 | Fup | undefined4 | setter |
+
+## AoWE.TPlayerStructurePowerSource
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$08 | Fup | undefined4 | setter |
 
 ## AoWE.TProductionControl
 
 | offset | field | c type | from |
 |---|---|---|---|
+| +$14 | FProductionQueue | TProductionQueue | delegation |
 | +$1C | FUnitProductionList | TUnitProductionList | delegation |
+
+## AoWE.TRace
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$08 | FRace |  | setter |
 
 ## AoWE.TRaceResource
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$14 | FRaceIndex | undefined4 | getter |
+| +$14 | FRaceIndex |  | getter |
 
 ## AoWE.TRangedAttackAbility
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$28 | FRangeRA | undefined1 | getter |
-| +$2B | FDamageTypesRA | undefined2 | getter |
-| +$2D | FAttackRepeatRA | undefined1 | getter |
+| +$28 | FRangeRA |  | getter |
+| +$2B | FDamageTypesRA |  | getter |
+| +$2D | FAttackRepeatRA |  | getter |
 
 ## AoWE.TSelectedArmy
 
@@ -329,62 +387,53 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$3C | FExperience | undefined1 | getter |
-| +$3D | FMovePoints | undefined1 | getter |
-| +$3E | FHitPoints | undefined1 | getter |
-| +$40 | FUnitResource | int | setter |
+| +$3C | FExperience |  | getter |
+| +$3D | FMovePoints |  | getter |
+| +$3E | FHitPoints |  | getter |
+| +$40 | FUnitResource | TUnitResource | delegation |
 
 ## AoWE.TUnitEnchantmentAbilityData
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FAbilityID | undefined2 | getter |
-| +$10 | FEnchantment | undefined4 | setter |
+| +$0C | FAbilityID |  | getter |
 
 ## AoWE.TUnitGFXResource
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$14 | FIndex | undefined4 | getter |
+| +$14 | FIndex |  | getter |
+| +$20 | FCustomImageLibrary | TCustomImageLibrary | delegation |
+| +$28 | FImageSequenceList | TImageSequenceList | delegation |
 
 ## AoWE.TUnitHS
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$0C | FShowPriority | undefined4 | getter |
+| +$0C | FShowPriority |  | getter |
 | +$10 | FUnitGFXResource | TUnitGFXResource | delegation |
-
-## AoWE.TUnitIndexList
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$10 | FUnitIndex | undefined4 | getter |
 
 ## AoWE.TUnitResource
 
 | offset | field | c type | from |
 |---|---|---|---|
 | +$38 | FAbilityOwner | TAbilityOwner | delegation |
-| +$4C | FObtainValue | undefined4 | getter |
+| +$4C | FObtainValue |  | getter |
 
 ## AoWE.TUnitSelectionControl
 
 | offset | field | c type | from |
 |---|---|---|---|
 | +$38 | FUnitCategoryList | TUnitCategoryList | delegation |
-
-## AoWE.TUnitSelectorAAI
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$1C | FUnitSelector | int | setter |
+| +$4C | FSelectedHero | undefined4 | setter |
 
 ## AoWE.TWallUnit
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$3D | FHitPoints | undefined1 | getter |
-| +$3E | FHits | undefined1 | getter |
+| +$3C | FWallType |  | setter |
+| +$3D | FHitPoints |  | getter |
+| +$3E | FHits |  | getter |
 
 ## AoWSetup.TSetupControl
 
@@ -396,50 +445,45 @@
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$45 | FRace | undefined1 | getter |
-| +$48 | FName | String | getter |
+| +$45 | FRace |  | getter |
+| +$4C | FWallType |  | setter |
 
-## City.TCityEnchantment
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$28 | FLocation | undefined3 | getter |
-
-## City.TCityOverlayHS
+## Crops.TCrop
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$14 | FMode | char | setter |
+| +$1C | FCropOwner | undefined4 | setter |
 
 ## Crops.TPlayerCropStructure
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$3C | FIncome | undefined1 | getter |
+| +$3C | FIncome |  | getter |
 
-## EventLog.TTextEventLog
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$18 | FText | String | getter |
-
-## HeroGrid.THeroGrid
+## EventLog.TLocationTextEventLog
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$1E0 | FHeroList | THeroList | delegation |
+| +$1C | FLocation |  | setter |
 
-## HxBridge.THexagonBridge
-
-| offset | field | c type | from |
-|---|---|---|---|
-| +$10 | FTerrain | undefined1 | getter |
-
-## MoveOnEvents.TMoveOnEvent
+## GlobalSpells.TDisjunctionSpellCaster
 
 | offset | field | c type | from |
 |---|---|---|---|
-| +$04 | FRadius | byte | setter |
+| +$14 | FEnchantmentID | undefined4 | setter |
+| +$18 | FDispelChance | int | setter |
+
+## ItemGrid.TItemGrid
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$1E4 | FItems | undefined4 | setter |
+
+## PageTurnCtrl.TPageTurnControl
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$18 | FPageDimensions | undefined4 | setter |
 
 ## PassiveAb.TImmunityAbility
 
@@ -458,3 +502,29 @@
 | offset | field | c type | from |
 |---|---|---|---|
 | +$28 | FProtectionTypes | undefined2 | getter |
+
+## RaceBox.TRaceBox
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$17C | FRaces | undefined4 | setter |
+
+## UnitGrid.TUnitGrid
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$1E0 | FUnits | int | setter |
+| +$1E5 | FShowUnitLevel | undefined1 | setter |
+
+## UnitIGrd.TUnitIndexGrid
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$79 | FShowUnitLevel | undefined1 | setter |
+| +$1DC | FUnitIndexList | int | setter |
+
+## UnitTabC.TUnitTabControl
+
+| offset | field | c type | from |
+|---|---|---|---|
+| +$144 | FUnitIndexGrid | int | setter |

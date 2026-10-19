@@ -201,4 +201,5 @@ def main():
         print(text)
 
 
-main()
+if __name__ == '__main__':
+    main()

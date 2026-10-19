@@ -50,6 +50,34 @@ The slots are:
 Property ids are small integers unique within a class. A read checks `TPropertyTable.PropertyExist(id)`
 before older optional properties, which is how files from earlier versions stay loadable.
 
+### On-disk layout of one object (from `TEReadStorageStream` in Enginep.dpl)
+
+An object is a property table followed by its data. `TPropertyTable.LoadFromStream` reads:
+
+1. One count byte. If bit 7 is set, the low 7 bits are the count of short entries and an `Integer` count
+   of long entries follows.
+2. `count` short entries of two bytes: property id, then offset.
+3. The long entries, each `Integer` id and `Integer` offset.
+
+`FDataBase` is the stream position right after the table. Every `rw*` call looks its id up in the table
+(`FindOffset`), seeks to `FDataBase + offset` when needed, and reads the raw value (`rwInteger` reads 4 bytes,
+`rwByte` 1, `rwString` a length-prefixed string). A missing id leaves the default value.
+
+`rwEObject(obj, id)` (an object owned inline): seek to the property, read a nested property table, set
+`FDataBase` to the position after it, call `obj.MainReadWrite(stream)`, then restore the outer table and base.
+`MainReadWrite` calls `Clear` first in read mode, then `ReadWrite`.
+
+`rwCreateEObject(var obj, owner, id)`: read an `Integer` class id at the property. If it is 0 the object is nil.
+Otherwise read the nested table, ask the engine for a new instance of that class id (`TEngine` VMT slot +$90,
+`CreateEObject(ClassID)`), set its owner, and run `MainReadWrite` as above. Class ids are the values returned by
+each class's `ClassID` method, which is how the file stays independent of class names.
+
+`rwStreamProc(id, obj, LoadProc, SaveProc)`: seek to the property and call a plain `LoadFromStream` or
+`SaveToStream` method, used for lists such as `TIntegerList`.
+
+With this, a Python reader for `.asg` and `.hsm` files is a straightforward next tool: inflate, read the root
+object's table, and walk `TAoWHSMap.ReadWrite` using `notes/persisted-fields.md` as the schema.
+
 ### Worked example: THero
 
 From `THero.ReadWrite` plus the getters: `+$44 FHeroResourceIndex: Integer` (id 8, read first so that
