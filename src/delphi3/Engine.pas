@@ -9,7 +9,7 @@ unit Engine;
 interface
 
 uses
-  Windows, SysUtils, Classes, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
+  Windows, SysUtils, Classes, Menus, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
 
 type
   PByte = ^Byte;
@@ -74,6 +74,7 @@ type
   TEngine = class;
   TEStorageStream = class;
   TEObjectEditorList = class;
+  TEResource = class;
 
   TEObjectClass = class of TEObject;
 
@@ -85,9 +86,12 @@ type
     Seq: Integer;
     Sender: TEObject;
     Param: array[0..2] of Integer;
-    Engine: TEngine;
-    Data: array[0..3] of Integer;
-    Result: Integer;
+    case Integer of
+      0: (Engine: TEngine;
+          Data: array[0..3] of Integer;
+          Result: Integer);
+      1: (Obj: TEObject);
+      2: (Value: Integer);
   end;
 
 
@@ -316,16 +320,20 @@ type
     property Events: TEventList read FEvents;
   end;
 
-  { TEObjectEditor.Edit calls this like a constructor: the flag is the hidden allocation flag }
-  TEditorConstructor = procedure(Alloc: Boolean; Obj: TEObject) of object;
+  { TEObjectEditor.Edit reports the end of an edit (Cancel) to the caller, for example a resource grid }
+  TEditDoneEvent = procedure(Cancel: Boolean; Obj: TEResource) of object;
 
-  { Engine.TEObjectEditor (instance size 8): editors are looked up by class. stub }
+  { Engine.TEObjectEditor (instance size 8): editors are classes looked up by the class id of the
+    object (TEObject.Editor); everything is called on the class. The base editor edits nothing:
+    Edit reports a cancel at once. }
   TEObjectEditor = class(TEObject)
   public
     class function EditorClassID: Integer; virtual;
-    procedure Edit(Obj: TEObject; CreateEditor: TEditorConstructor); virtual;
-    procedure UpdateMultiPopupMenu(Objects: TList; Menu: TObject; A, B, C: Integer); virtual;
-    procedure UpdatePopupMenu(Obj: TEObject; Menu: TObject; A, B: Integer); virtual;
+    class procedure Edit(Obj: TEObject; AEngine: TEngine; Done: TEditDoneEvent); virtual;
+    class procedure UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+      Menu: TPopupMenu; Objects: TEObjectList); virtual;
+    class procedure UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+      Menu: TPopupMenu); virtual;
   end;
 
   TEObjectEditorClass = class of TEObjectEditor;
@@ -591,14 +599,15 @@ type
     property Node: TECustomNode read FNode;
   end;
 
-  { Engine.TEResource (instance size 24): +8 FResourceList, +$C FResourceID, +$10 and +$14 two
-    more persisted integers (ids 2 and 3) }
+  { Engine.TEResource (instance size 24): +8 FResourceList, +$C FResourceID, +$10 FEditID (the
+    edit id of the resource grid that placed it), +$14 FEditIndex (its cell in that grid); all three
+    integers are persisted (ids 1..3) }
   TEResource = class(TEObject)
   private
     FResourceList: TECustomNode;
     FResourceID: Integer;
-    FValue2: Integer;
-    FValue3: Integer;
+    FEditID: Integer;
+    FEditIndex: Integer;
   public
     procedure SetOwner(AOwner: TECustomNode); override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -610,7 +619,9 @@ type
     function ResourceUserClassID: Integer; virtual;
     function CreateResourceUser: TEObject; virtual;
     procedure Draw(Dest: TObject; Rect: TRect; Mode: Byte; A, B, C, D: Integer); virtual;
-    property ResourceList: TECustomNode read FResourceList;
+    property ResourceList: TECustomNode read FResourceList write FResourceList;
+    property EditID: Integer read FEditID write FEditID;
+    property EditIndex: Integer read FEditIndex write FEditIndex;
     property ResourceID: Integer read FResourceID write FResourceID;
     property CellImage: Pointer read GetCellImage write SetCellImage;
   end;
@@ -627,19 +638,20 @@ type
     property Resources[Index: Integer]: TEResource read GetResource;
   end;
 
-  { Engine.TEComponent (instance size 56): +$24 FOnLoaded, +$2C FOnDestroy, +$34 the object it
-    owns (its name is not known; it is freed with the component) }
+  { Engine.TEComponent (instance size 56): +$24 FOnLoaded, +$2C FOnDestroy, +$34 FEngine, the
+    engine the component owns and frees }
   TEComponent = class(TComponent)
   private
     FOnLoaded: TNotifyEvent;
     FOnDestroy: TNotifyEvent;
-    FObject: TObject;
+    FEngine: TEngine;
   protected
     procedure Loaded; override;
   public
     destructor Destroy; override;
     property OnLoaded: TNotifyEvent read FOnLoaded write FOnLoaded;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
+    property Engine: TEngine read FEngine write FEngine;
   end;
 
   { Engine.TECopyComponent (instance size 44): +$24 FName, +$28 FEObjects. Carries objects through
@@ -661,6 +673,7 @@ type
     procedure PasteFromClipboard(AEngine: TEngine; Name: string);
     property EObjects[Index: Integer]: TEObject read GetEObject write SetEObject;
     property Count: Integer read GetCount;
+    property EObjectList: TEObjectList read FEObjects;
   end;
 
   { Engine.TCallBackEventList (instance size 8): +4 FList of 12-byte records on the heap }
@@ -2608,16 +2621,18 @@ begin
   Result := 0;
 end;
 
-procedure TEObjectEditor.Edit(Obj: TEObject; CreateEditor: TEditorConstructor);
+class procedure TEObjectEditor.Edit(Obj: TEObject; AEngine: TEngine; Done: TEditDoneEvent);
 begin
-  CreateEditor(True, Obj);
+  Done(True, TEResource(Obj));
 end;
 
-procedure TEObjectEditor.UpdateMultiPopupMenu(Objects: TList; Menu: TObject; A, B, C: Integer);
+class procedure TEObjectEditor.UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+  Menu: TPopupMenu; Objects: TEObjectList);
 begin
 end;
 
-procedure TEObjectEditor.UpdatePopupMenu(Obj: TEObject; Menu: TObject; A, B: Integer);
+class procedure TEObjectEditor.UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+  Menu: TPopupMenu);
 begin
 end;
 
@@ -3570,8 +3585,8 @@ procedure TEResource.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(FResourceID, 1);
-  Stream.rwInteger(FValue2, 2);
-  Stream.rwInteger(FValue3, 3);
+  Stream.rwInteger(FEditID, 2);
+  Stream.rwInteger(FEditIndex, 3);
 end;
 
 function TEResource.ResourceUserClassID: Integer;
@@ -3662,7 +3677,7 @@ end;
 destructor TEComponent.Destroy;
 begin
   if Assigned(FOnDestroy) then FOnDestroy(Self);
-  FObject.Free;
+  FEngine.Free;
   inherited Destroy;
 end;
 

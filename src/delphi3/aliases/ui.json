@@ -1,0 +1,9 @@
+{
+ "FUN_5551de6c": "DrawFocusFrame",
+ "FUN_5551f058": "AdjustColors<TDrawImagePanel.Paint",
+ "EResGrid.Register": "Register",
+ "ImgLComp.ImgLComp": "ImgLComp",
+ "ImgLComp.Finalization": "Finalization<ImgLComp",
+ "EResGrid.EResGrid": "EResGrid",
+ "EResGrid.Finalization": "Finalization<EResGrid"
+}

@@ -13,6 +13,11 @@ contains
   EngineLists,
   zlib,
   ImageLib,
-  Engine;
+  Engine,
+  EList,
+  PlugInM,
+  DebMDlg,
+  ImgLComp,
+  EResGrid;
 
 end.

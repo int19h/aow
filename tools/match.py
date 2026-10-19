@@ -21,6 +21,8 @@ function that Ghidra did not create (for example the tiny sort comparison functi
 
 --show Method prints the two instruction streams side by side for that method.
 --quiet prints only the methods that differ and the totals.
+A case jump table after 'jmp dword ptr [reg*4 + table]' is compared as one pseudo-instruction that
+lists the entries as offsets into the function.
 --units Unit1,Unit2 also compares every unit-level function of those units (original name "Unit.Name")
 whose bare name is a symbol of the map file, so only nested and unnamed functions need aliases.
 """
@@ -115,6 +117,30 @@ def disasm_skipping_tables(md, img, va, size, on_exception):
         for ins in insns:
             out.append(normalize(ins, img))
             pos = ins.address - va + ins.size
+            m = None
+            if ins.mnemonic == 'jmp':
+                m = re.fullmatch(r'dword ptr \[(?:e[a-z]{2})\*4 \+ (0x[0-9a-f]+)\]', ins.op_str)
+            if m and va <= int(m.group(1), 16) < va + size:
+                # a case jump table: dwords pointing into this function, after alignment padding;
+                # compared as one pseudo-instruction holding the entries' offsets in the function.
+                # The base is entry 0; with a byte index table in front the first slots can be unused.
+                tpos = int(m.group(1), 16) - va
+                skip = 0
+                while skip < 8 and tpos + 4 <= size and \
+                        not va <= struct.unpack('<I', code[tpos:tpos + 4])[0] < va + size:
+                    tpos += 4
+                    skip += 1
+                entries = []
+                while tpos + 4 <= size:
+                    t = struct.unpack('<I', code[tpos:tpos + 4])[0]
+                    if not va <= t < va + size:
+                        break
+                    entries.append(t - va)
+                    tpos += 4
+                if entries and tpos > pos:
+                    out.append(('.table', ' '.join('%x' % e for e in entries)))
+                    pos = tpos
+                    break
             if ins.mnemonic == 'jmp' and on_exception is not None:
                 try:
                     if int(ins.op_str, 16) == on_exception:
