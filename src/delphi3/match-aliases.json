@@ -42,5 +42,13 @@
  "Engine.StringToStream": "StringToStream",
  "Engine.StringFromStream": "StringFromStream",
  "Engine.StringsToStream": "StringsToStream",
- "Engine.StringsFromStream": "StringsFromStream"
+ "Engine.StringsFromStream": "StringsFromStream",
+ "Engine.InitMsg": "InitMsg",
+ "Engine.InitMsgEx": "InitMsgEx",
+ "Engine.GetCRC32": "GetCRC32",
+ "Engine.GetFileCRC32": "GetFileCRC32",
+ "Engine.ReleaseCRC32Table": "ReleaseCRC32Table",
+ "FUN_5550e5b4": "BuildCRC32Table",
+ "Engine.GetEngine": "GetEngine",
+ "Engine.FindEngine": "FindEngine"
 }

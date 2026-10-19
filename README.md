@@ -41,6 +41,22 @@ packages under `WINDOWS\SYSTEM`. After the 3.02 patch, `vcl30.dpl`, `vcldb30.dpl
 byte-identical to the game's copies. Recovered units can therefore be compiled with the original compiler and
 compared with the original code byte for byte.
 
+## Byte-matching the Engine unit
+
+`src/delphi3/` is the `Engine` unit written for Delphi 3.02 and compared with `Enginep.dpl` method by
+method: `tools/match.py` disassembles both and reports every instruction that differs. 472 of 483 functions
+compile to identical code (the value lists, the property table, TEObject and the node classes, the read and
+write storage streams, TEngine with its class registry and hash tables). `notes/match.md` has the workflow,
+the state table and what the comparisons taught about the compiler. Build and compare:
+
+```bash
+cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B matchtest.dpr
+```
+
+```bash
+python tools/match.py --quiet --alias src/delphi3/match-aliases.json src/delphi3/matchtest.exe src/delphi3/matchtest.map "D:\Games\GOG\Age of Wonders\Enginep.dpl" notes/signatures/Enginep.dpl.json TEngine TEObject TENode
+```
+
 ## Recovered source
 
 `src/recovered/` holds hand-translated units, as opposed to the generated skeletons. `Engine.pas` is the

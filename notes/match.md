@@ -33,11 +33,19 @@ local variable order, loop shape.
 |---|---|---|
 | TPropertyTable | 10 | 10 |
 | TIntegerList, TByteList, TShortIntList, TWordList, TBitList, TEventList, TDoubleItemList, TQuadItemList (with QuickSort, DefaultRun, ReturnAddr, Fill* and the sort comparison helpers) | 268 | 268 |
-| TEObject, TEObjectEditorList.FindEditor, TEngine.ReadEObject/WriteEObject | 25 | 25 |
+| TEObject, TEObjectEditorList.FindEditor | 23 | 23 |
 | TECustomNode, TENode | 29 | 28 |
 | TEStorageStream, TEReadStorageStream, TEWriteStorageStream, string stream helpers | 72 | 67 |
+| TEngine (35 methods), TEObjectClassList, TEControlStyleObject, TEControlStyleNode, TECustomOwner, TEResourceEditSettings | 67 | 66 |
+| THashList, TIntegerHashList, TIntegerHashTable256 (`inc/HashTab.PAS`) | 16 | 13 |
+| InitMsg, InitMsgEx, GetCRC32, BuildCRC32Table, GetFileCRC32, ReleaseCRC32Table, GetEngine, FindEngine | 8 | 7 |
 
-The six that differ are identical except for one register choice each (`notes/match.md`, below).
+483 functions, 472 identical (33,450 of 35,287 bytes). Three of the eleven that differ are the
+`Assert` line numbers in `inc/HashTab.PAS` (the original counts them from the start of its
+Engine.pas: 7127, 7137 and 7155); the other eight differ in one register choice each (below).
+`src/delphi3/matchpkg.dpk` builds the same units as a package, the way the original was built; the
+package code is identical to the program code, so the compile mode is not what decides those
+registers.
 
 ## What the compiler does (learned from the matches)
 
@@ -72,10 +80,40 @@ The six that differ are identical except for one register choice each (`notes/ma
   methods declared and not with two). These will settle only when the whole unit is assembled with
   the original's declarations.
 
+- A sub-expression that recurs in a statement is computed once and kept in a callee-saved
+  register: `FLists[Key and $FF].Find(Key)` followed by `FLists[Key and $FF].Delete(Key)` computes
+  `Key and $FF` once (writing it to a local gives a different register order). The same reuse shows
+  up for `AClasses[I]` in `TEngine.RegisterEClasses`.
+- Two locals whose live ranges do not overlap share a register: `I := IndexOf(Name); if I <> -1
+  then Result := Objects[I] else Result := ...` keeps I and Result in one register, and the source
+  with `Result` used as the index compiles differently.
+- A function result that is also the search index (`TEResourceEditSettings.RemoveEditor` returns
+  the index it deleted) keeps the index in a callee-saved register; a procedure with a local keeps
+  it in eax.
+- A nested call `GetEClass(AClassID).Create(AOwner)` moves all parameters to callee-saved
+  registers; `C := GetEClass(AClassID); Result := C.Create(AOwner)` leaves them where they arrive.
+  Likewise `L := TList.Create; ...; Result := L` keeps the list in a register where using `Result`
+  in the loop spills it.
+- `Assert` compiles to a compare, a jump and a call with the message, the file name and the line
+  number; the line number counts from the start of the unit through `{$I}` includes, so the
+  include file's Asserts tell where it sat in the original unit.
+- `Result := Result xor $FFFFFFFF` is `xor eax,-1`; `not Result` is `not eax`.
+- `GetHeapStatus.TotalAllocated` in an expression calls into a temp record each time; a ShortString
+  `ClassName + '...'` concatenation runs `PStrCat` before the long-string concatenation.
+- Package compilation (`-Z` style, a `.dpk` requiring vcl30) produces the same method code as a
+  program: class references are read through the VMT self pointer in both.
+
 ## Open items
 
-- `TECustomNode.DestroyAllChildren`, `TEReadStorageStream.rwBool`, and the `try` frame register in
+- `TECustomNode.DestroyAllChildren`, `TEReadStorageStream.rwBool`, the `try` frame register in
   `TEReadStorageStream.rwCreateEObject`, `TEWriteStorageStream.rwCreateEObject`, `rwEObject`,
-  `rwEObjectStream`: same code apart from register choice.
-- Next classes: `TEngine` (35 methods), `TCompressStream` and the zlib unit, `TCompareStorageStream`,
-  the text storage streams, `TEChangeNotifyNode`, `TETimerNode`, `TESortNode`; then the game units.
+  `rwEObjectStream`, `TEngine.GetEClass` (Self stays in eax in the original, mine moves it to ebx
+  before a field read) and `GetEngine` (the Index parameter stays in eax): same code apart from
+  register choice. Tried for GetEClass: locals for the table and the result, `with`, a property,
+  `Assigned`, `Exit` forms, parameter names; none changes the allocation.
+- The three `Assert` line numbers in `inc/HashTab.PAS` settle only when the whole unit is laid out
+  as the original (THashList.SetCapacity's Assert at line 7127).
+- Next classes: `TCompressStream` and the zlib unit, `TCompareStorageStream`, the text storage
+  streams (`TEReadTextStorageStream`, `TEWriteTextStorageStream`), `TStringHashList` and
+  `TStringHashTable256` (also from `inc/HashTab.PAS`), `TEChangeNotifyNode`, `TETimerNode`,
+  `TESortNode`, the plug-in loader and the unit initialization; then the game units.

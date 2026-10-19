@@ -1,0 +1,16 @@
+package matchpkg;
+
+{ The same units built as a package, like the original Enginep.dpl, to see whether the compile
+  mode changes register allocation. }
+
+{$DESCRIPTION 'byte-match test package'}
+
+requires
+  vcl30;
+
+contains
+  FMemStr,
+  EngineLists,
+  Engine;
+
+end.

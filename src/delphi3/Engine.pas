@@ -3,15 +3,18 @@ unit Engine;
 { The Engine unit of Enginep.dpl written for the original compiler (Delphi 3.02), class by class:
   tools/match.py compares the code DCC32 generates for every method with the code in the game's
   module. Declarations follow the original instance layouts and VMT orders (notes/classes.json); a
-  method whose body is still a stub is marked "stub". The value lists live in EngineLists.pas and
-  TPropertyTable in PropTable.pas until the whole unit is assembled. }
+  method whose body is still a stub is marked "stub". The value lists live in EngineLists.pas until
+  the whole unit is assembled; the hash classes come from inc\HashTab.PAS as in the original. }
 
 interface
 
 uses
-  SysUtils, Classes, FMemStr;
+  SysUtils, Classes, Forms, EngineLists, FMemStr;
 
 type
+  PByte = ^Byte;
+  PInteger = ^Integer;
+
   { TEStorageStream.StorageMode }
   TStorageMode = (smRead, smWrite, smCompare, smPartial, smReserved4, smReserved5, smTranslate);
   TStorageModes = set of TStorageMode;
@@ -19,14 +22,6 @@ type
   { TEObject.GetControlStyle }
   TEControlStyle = (csStored, csShared, csReserved2, csKeepIndex);
   TEControlStyles = set of TEControlStyle;
-
-  PEMsg = ^TEMsg;
-  TEMsg = record
-    MsgID: Integer;
-    Seq: Integer;
-    Param: Integer;
-    Result: Integer;
-  end;
 
   PPropertyItem = ^TPropertyItem;
   TPropertyItem = record
@@ -79,6 +74,20 @@ type
   TEObjectEditorList = class;
 
   TEObjectClass = class of TEObject;
+
+  { The message record (48 bytes) that InitMsg clears: +0 MsgID, +4 Seq, +8 Sender, +$18 Engine
+    (TEngine.ActivateEObject), +$2C Result (-1 after InitMsg). }
+  PEMsg = ^TEMsg;
+  TEMsg = record
+    MsgID: Integer;
+    Seq: Integer;
+    Sender: TEObject;
+    Param: array[0..2] of Integer;
+    Engine: TEngine;
+    Data: array[0..3] of Integer;
+    Result: Integer;
+  end;
+
 
   TStorageErrorEvent = procedure(Sender: TObject; const Msg: string; var Continue: Boolean) of object;
   TStorageProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
@@ -186,8 +195,116 @@ type
 
   TEObjectEditorClass = class of TEObjectEditor;
 
-  { Engine.TEObjectClassList (instance size 16): a TList of class references. stub }
+  { Engine.THashList (instance size 16): +4 FCount, +8 FCapacity, +$C FItems. The hash classes
+    come from an include file of the original, D:\GEngine\Engine\inc\HashTab.PAS, whose name the
+    Assert calls carry. }
+  THashItem = record
+    Key: Integer;
+    Item: Pointer;
+  end;
+  PHashItemArray = ^THashItemArray;
+  THashItemArray = array[0..MaxInt div SizeOf(THashItem) - 1] of THashItem;
+
+  THashList = class(TObject)
+  private
+    FCount: Integer;
+    FCapacity: Integer;
+    FItems: PHashItemArray;
+  protected
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure Delete(Index: Integer);
+    procedure Add(Item: THashItem);
+  public
+    destructor Destroy; override;
+    procedure Clear; virtual;
+    property Count: Integer read FCount;
+  end;
+
+  { Engine.TIntegerHashList (instance size 16): items keyed by an integer }
+  TIntegerHashList = class(THashList)
+  public
+    procedure Add(Item: Pointer; Key: Integer);
+    procedure Delete(Key: Integer);
+    function Find(Key: Integer): Pointer;
+  end;
+
+  { Engine.TIntegerHashTable (instance size 4): the abstract table interface }
+  TIntegerHashTable = class(TObject)
+  public
+    procedure Add(Item: Pointer; Key: Integer); virtual; abstract;
+    procedure Delete(Key: Integer); virtual; abstract;
+    function Find(Key: Integer): Pointer; virtual; abstract;
+    procedure Clear; virtual; abstract;
+    function GetFreeID: Integer; virtual; abstract;
+  end;
+
+  { Engine.TIntegerHashTable256 (instance size 1028): 256 lists selected by the low key byte }
+  TIntegerHashTable256 = class(TIntegerHashTable)
+  private
+    FLists: array[0..255] of TIntegerHashList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear; override;
+    procedure Add(Item: Pointer; Key: Integer); override;
+    procedure Delete(Key: Integer); override;
+    function Find(Key: Integer): Pointer; override;
+    procedure DeleteSafe(Item: Pointer; Key: Integer);
+    function GetFreeID: Integer; override;
+  end;
+
+  { Engine.TEControlStyleObject (instance size 12): +8 FControlStyle }
+  TEControlStyleObject = class(TEObject)
+  private
+    FControlStyle: TEControlStyles;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    class function ClassID: Integer; override;
+    function GetControlStyle: TEControlStyles; override;
+    procedure SetControlStyle(Value: TEControlStyles);
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { Engine.TEControlStyleNode (instance size 16): +$C FControlStyle }
+  TEControlStyleNode = class(TENode)
+  private
+    FControlStyle: TEControlStyles;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    class function ClassID: Integer; override;
+    function GetControlStyle: TEControlStyles; override;
+    procedure SetControlStyle(Value: TEControlStyles);
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { Engine.TECustomOwner (instance size 20): +$C FEngine, +$10 FControlStyle. A node that knows
+    its engine: message $20000008 (TEngine.ActivateEObject) carries the engine in the message. }
+  TECustomOwner = class(TENode)
+  private
+    FEngine: TEngine;
+    FControlStyle: TEControlStyles;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    class function ClassID: Integer; override;
+    function GetEngine: TEngine; override;
+    procedure SetEngine(AEngine: TEngine);
+    function GetControlStyle: TEControlStyles; override;
+    procedure SetControlStyle(Value: TEControlStyles);
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    procedure MsgProc(var Msg: TEMsg; Sender: TEObject); override;
+  end;
+
+  { Engine.TEObjectClassList (instance size 16): a TList of class references }
   TEObjectClassList = class(TList)
+  protected
+    function GetEClass(Index: Integer): TEObjectClass;
+  public
+    function FindClass(AClassID: Integer): TEObjectClass;
+    function FindClassIndex(AClassID: Integer): Integer;
+    function GetClass(AClassID: Integer): TEObjectClass;
+    procedure RegisterClass(AClass: TEObjectClass);
+    procedure UnregisterClass(AClass: TEObjectClass);
+    property EClasses[Index: Integer]: TEObjectClass read GetEClass;
   end;
 
   { Engine.TEObjectEditorList (instance size 16) }
@@ -196,31 +313,94 @@ type
     function FindEditor(AClassID: Integer): TEObjectEditorClass;
   end;
 
-  { Engine.TEngine (instance size 52): +$18 FEditors. stub }
+  { Engine.TEResourceEditSettings (instance size 16): +$C FEditors, editor names with ids }
+  TEResourceEditSettings = class(TEControlStyleObject)
+  private
+    FEditors: TStringList;
+    function GetUniqueEditID: Integer;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    class function ClassID: Integer; override;
+    function GetUniqueEditorName(Name: string): string;
+    function GetEditID(Name: string): Integer;
+    function RemoveEditor(Name: string): Integer;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    property Editors: TStringList read FEditors;
+  end;
+
+  { TEngine.OutputDebugStr / OutputDebugMessage hand this to the debug events }
+  TEngineDebugInfo = record
+    ID: Integer;
+    Text: string;
+  end;
+
+  TEngineOption = (eoVerifyClasses);
+  TEngineOptions = set of TEngineOption;
+
+  TEReadTextStorageStream = class;
+  TEWriteTextStorageStream = class;
+
+  { Engine.TEngine (instance size 52): +$C FMsgCount, +$10 FEClasses, +$14 FClassTable,
+    +$18 FEditors, +$1C FControlNode, +$24 FDebugIDs, +$28 FDebugEvents, +$2C FStartupDirectory,
+    +$31 FOptions. Every engine is in the Engines list. }
   TEngine = class(TENode)
   private
-    FUnknown0C: Integer;
-    FUnknown10: Integer;
-    FUnknown14: Integer;
+    FMsgCount: Integer;
+    FEClasses: TEObjectClassList;
+    FClassTable: TIntegerHashTable256;
     FEditors: TEObjectEditorList;
-    FUnknown1C: Integer;
+    FControlNode: TEControlStyleNode;
     FUnknown20: Integer;
-    FUnknown24: Integer;
-    FUnknown28: Integer;
-    FUnknown2C: Integer;
-    FUnknown30: Integer;
+    FDebugIDs: TStringList;
+    FDebugEvents: TEventList;
+    FStartupDirectory: string;
+    FUnknown30: Byte;
+    FOptions: TEngineOptions;
+    function CreateUniqueDebugID: Integer;
   public
     function GetEngine: TEngine; override;
     constructor Create(AOwner: TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure SetStartupDirectory(const Value: string); virtual;
+    destructor Destroy; override;
+    procedure SetStartupDirectory(Value: string); virtual;
     procedure UpdateStartupDirectory; virtual;
     function CreateEObject(AClassID: Integer; AOwner: TECustomNode): TEObject; virtual;
     function GetEClass(AClassID: Integer): TEObjectClass; virtual;
     function TranslateText(const Text: string): string; virtual;
-    procedure ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    function RegisterDebugID(const Name: string): Integer;
+    procedure UnregisterDebugID(ID: Integer);
+    procedure OutputDebugStr(const S: string);
+    procedure OutputDebugMessage(ID: Integer; const S: string);
+    procedure ResetMsgCount;
+    function IncMsgCount: Integer;
+    procedure RegisterEClasses(AClasses: array of TEObjectClass);
+    procedure UnregisterEClasses(AClasses: array of TEObjectClass);
+    function GetDescendantClasses(AClass: TClass): TEObjectClassList;
+    procedure ActivateEObject(Obj: TEObject);
     procedure WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+    function RetrieveEObject(Stream: TStream; AProgress: TStorageProgressEvent): TEObject;
+    function RetrieveFromFile(const FileName: string; AProgress: TStorageProgressEvent): TEObject;
+    procedure StoreInFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure WriteToFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+    procedure WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+    function ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent): Boolean;
+    procedure ReadTextFromFile(const FileName: string; Obj: TEObject);
+    procedure WriteTextToFile(const FileName: string; Obj: TEObject);
+    function VerifyEObjectClass(AClass: TEObjectClass): Boolean;
+    property EClasses: TEObjectClassList read FEClasses;
+    property ClassTable: TIntegerHashTable256 read FClassTable;
     property Editors: TEObjectEditorList read FEditors;
+    property ControlNode: TEControlStyleNode read FControlNode;
+    property DebugIDs: TStringList read FDebugIDs;
+    property DebugEvents: TEventList read FDebugEvents;
+    property StartupDirectory: string read FStartupDirectory write SetStartupDirectory;
+    property Options: TEngineOptions read FOptions write FOptions;
   end;
 
   TStreamProc = procedure(Stream: TStream) of object;
@@ -333,6 +513,28 @@ type
     procedure rwEObjectStream(Obj: TEObject); override;
   end;
 
+  { Engine.TEReadTextStorageStream / TEWriteTextStorageStream: the text form of the storage. stub }
+  TEReadTextStorageStream = class(TEStorageStream)
+  public
+    constructor Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
+  end;
+
+  TEWriteTextStorageStream = class(TEStorageStream)
+  public
+    constructor Create(AStream: TStream; AEngine: TEngine);
+  end;
+
+procedure InitMsg(var Msg: TEMsg; MsgID: Integer; Sender: TEObject);
+procedure InitMsgEx(var Msg: TEMsg; MsgID: Integer; Sender: TEObject; Seq: Integer);
+function GetCRC32(P: Pointer; Size: Integer): Integer;
+function GetFileCRC32(const FileName: string): Integer;
+procedure ReleaseCRC32Table;
+function GetEngine(Index: Integer): TEngine;
+function FindEngine(AClassID: Integer): TEngine;
+
+var
+  Engines: TList;
+
 procedure StringToStream(const S: string; Stream: TStream);
 procedure StringFromStream(var S: string; Stream: TStream);
 procedure StringsToStream(Strings: TStrings; Stream: TStream);
@@ -341,6 +543,7 @@ procedure StringsFromStream(Strings: TStrings; Stream: TStream);
 resourcestring
   EStreamReadErrorStr = 'Error Reading EObject';
   EStreamWriteErrorStr = 'Error Writing EObject';
+  UserStr = 'User';
 
 implementation
 
@@ -1269,6 +1472,233 @@ procedure TEObjectEditor.UpdatePopupMenu;
 begin
 end;
 
+{ CRC32 }
+
+var
+  CRC32Table: PIntegerArray;
+
+procedure BuildCRC32Table;
+var
+  I, J, C, Polynomial: Integer;
+begin
+  if CRC32Table = nil then
+  begin
+    GetMem(CRC32Table, 256 * SizeOf(Integer));
+    Polynomial := Integer($EDB88320);
+    for I := 0 to 255 do
+    begin
+      C := I;
+      for J := 7 downto 0 do
+      begin
+        if C and 1 <> 0 then C := (C shr 1) xor Polynomial else C := C shr 1;
+        CRC32Table^[I] := C;
+      end;
+    end;
+  end;
+end;
+
+procedure ReleaseCRC32Table;
+begin
+  FreeMem(CRC32Table);
+end;
+
+function GetCRC32(P: Pointer; Size: Integer): Integer;
+begin
+  if CRC32Table = nil then BuildCRC32Table;
+  Result := -1;
+  while Size <> 0 do
+  begin
+    Result := CRC32Table^[(PByte(P)^ xor Result) and $FF] xor ((Result shr 8) and $FFFFFF);
+    Inc(PByte(P));
+    Dec(Size);
+  end;
+  Result := Result xor $FFFFFFFF;
+end;
+
+function GetFileCRC32(const FileName: string): Integer;
+var
+  M: TMemoryStream;
+  F: TFileStream;
+begin
+  M := TMemoryStream.Create;
+  try
+    F := TFileStream.Create(FileName, fmOpenRead);
+    try
+      M.LoadFromStream(F);
+      Result := GetCRC32(M.Memory, M.Size);
+    finally
+      F.Free;
+    end;
+  finally
+    M.Free;
+  end;
+end;
+
+{$I inc\HashTab.PAS}
+
+{ TEControlStyleNode }
+
+constructor TEControlStyleNode.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+class function TEControlStyleNode.ClassID: Integer;
+begin
+  Result := $101;
+end;
+
+function TEControlStyleNode.GetControlStyle: TEControlStyles;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleNode.SetControlStyle(Value: TEControlStyles);
+begin
+  FControlStyle := Value;
+end;
+
+procedure TEControlStyleNode.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FControlStyle, 1, 2);
+end;
+
+{ TEControlStyleObject }
+
+constructor TEControlStyleObject.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+class function TEControlStyleObject.ClassID: Integer;
+begin
+  Result := $51;
+end;
+
+function TEControlStyleObject.GetControlStyle: TEControlStyles;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleObject.SetControlStyle(Value: TEControlStyles);
+begin
+  FControlStyle := Value;
+end;
+
+procedure TEControlStyleObject.ReadWrite(Stream: TEStorageStream);
+begin
+  Stream.rwData(FControlStyle, 1, 1);
+end;
+
+{ TECustomOwner }
+
+constructor TECustomOwner.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FOwner := AOwner;
+  FControlStyle := inherited GetControlStyle;
+end;
+
+class function TECustomOwner.ClassID: Integer;
+begin
+  Result := $103;
+end;
+
+function TECustomOwner.GetEngine: TEngine;
+begin
+  Result := FEngine;
+end;
+
+procedure TECustomOwner.SetEngine(AEngine: TEngine);
+begin
+  FEngine := AEngine;
+end;
+
+function TECustomOwner.GetControlStyle: TEControlStyles;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TECustomOwner.SetControlStyle(Value: TEControlStyles);
+begin
+  FControlStyle := Value;
+end;
+
+procedure TECustomOwner.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FControlStyle, 1, 2);
+end;
+
+procedure TECustomOwner.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  if Msg.MsgID = $20000008 then FEngine := Msg.Engine;
+  inherited MsgProc(Msg, Sender);
+end;
+
+{ TEObjectClassList }
+
+function TEObjectClassList.GetEClass(Index: Integer): TEObjectClass;
+begin
+  Result := TEObjectClass(Items[Index]);
+end;
+
+function TEObjectClassList.FindClass(AClassID: Integer): TEObjectClass;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  I := 0;
+  Found := False;
+  while not Found and (I < Count) do
+  begin
+    Found := AClassID = TEObjectClass(Items[I]).ClassID;
+    Inc(I);
+  end;
+  if Found then Result := TEObjectClass(Items[I - 1]) else Result := nil;
+end;
+
+function TEObjectClassList.FindClassIndex(AClassID: Integer): Integer;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  I := 0;
+  Found := False;
+  while not Found and (I < Count) do
+  begin
+    Found := AClassID = TEObjectClass(Items[I]).ClassID;
+    Inc(I);
+  end;
+  if Found then Result := I - 1 else Result := -1;
+end;
+
+function TEObjectClassList.GetClass(AClassID: Integer): TEObjectClass;
+begin
+  Result := FindClass(AClassID);
+  if Result = nil then
+    raise Exception.Create('Unregistered E-ClassID found (' + IntToStr(AClassID) + ')');
+end;
+
+procedure TEObjectClassList.RegisterClass(AClass: TEObjectClass);
+begin
+  if (FindClass(AClass.ClassID) = nil) and (AClass.ClassID <> 0) then
+    Add(AClass)
+  else
+    raise Exception.Create('EObject Class ID double defined!');
+end;
+
+procedure TEObjectClassList.UnregisterClass(AClass: TEObjectClass);
+var
+  I: Integer;
+begin
+  I := FindClassIndex(AClass.ClassID);
+  if I <> -1 then Delete(I);
+end;
+
 { TEObjectEditorList }
 
 function TEObjectEditorList.FindEditor(AClassID: Integer): TEObjectEditorClass;
@@ -1283,39 +1713,117 @@ begin
     Result := nil;
 end;
 
-{ TEngine: stubs except the object entry points }
+{ TEResourceEditSettings }
 
-function TEngine.GetEngine: TEngine;
+constructor TEResourceEditSettings.Create(AOwner: TECustomNode);
 begin
-  Result := Self;
+  inherited Create(AOwner);
+  FEditors := TStringList.Create;
 end;
+
+destructor TEResourceEditSettings.Destroy;
+begin
+  FEditors.Free;
+  inherited Destroy;
+end;
+
+class function TEResourceEditSettings.ClassID: Integer;
+begin
+  Result := $402;
+end;
+
+function TEResourceEditSettings.GetUniqueEditorName(Name: string): string;
+var
+  S: string;
+begin
+  S := Name;
+  while FEditors.IndexOf(S) <> -1 do
+    S := Name + IntToStr(Random($FFFFFFF));
+  Result := S;
+end;
+
+function TEResourceEditSettings.GetUniqueEditID: Integer;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  Result := 1;
+  I := 0;
+  Found := FEditors.Count = 0;
+  while not Found do
+  begin
+    if Result <> Integer(FEditors.Objects[I]) then
+    begin
+      Inc(I);
+      Found := I = FEditors.Count;
+    end
+    else
+    begin
+      I := 0;
+      Inc(Result);
+    end;
+  end;
+end;
+
+function TEResourceEditSettings.GetEditID(Name: string): Integer;
+var
+  I: Integer;
+begin
+  I := FEditors.IndexOf(Name);
+  if I <> -1 then
+    Result := Integer(FEditors.Objects[I])
+  else
+  begin
+    Result := GetUniqueEditID;
+    FEditors.AddObject(Name, TObject(Result));
+  end;
+end;
+
+function TEResourceEditSettings.RemoveEditor(Name: string): Integer;
+begin
+  Result := FEditors.IndexOf(Name);
+  if Result <> -1 then FEditors.Delete(Result);
+end;
+
+procedure TEResourceEditSettings.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if not (smCompare in Stream.StorageMode) then Stream.rwStringsEx(FEditors, 3);
+end;
+
+{ TEngine }
 
 constructor TEngine.Create(AOwner: TECustomNode);
 begin
   inherited Create(AOwner);
+  UpdateStartupDirectory;
+  FOptions := [eoVerifyClasses];
+  FDebugEvents := TEventList.Create;
+  FEClasses := TEObjectClassList.Create;
+  FClassTable := TIntegerHashTable256.Create;
+  FEditors := TEObjectEditorList.Create;
+  FControlNode := TEControlStyleNode.Create(Self);
+  FControlNode.SetControlStyle([csShared]);
+  FDebugIDs := TStringList.Create;
+  FDebugIDs.AddObject(UserStr, TObject(-1));
+  RegisterEClasses([TEControlStyleObject, TEControlStyleNode, TECustomOwner, TEResourceEditSettings]);
+  Engines.Add(Self);
+end;
+
+destructor TEngine.Destroy;
+begin
+  FEditors.Free;
+  Engines.Remove(Self);
+  FDebugEvents.Free;
+  FDebugIDs.Free;
+  inherited Destroy;
+  FClassTable.Free;
+  FEClasses.Free;
 end;
 
 class function TEngine.ClassID: Integer;
 begin
-  Result := 0;
-end;
-
-procedure TEngine.SetStartupDirectory(const Value: string);
-begin
-end;
-
-procedure TEngine.UpdateStartupDirectory;
-begin
-end;
-
-function TEngine.CreateEObject(AClassID: Integer; AOwner: TECustomNode): TEObject;
-begin
-  Result := nil;
-end;
-
-function TEngine.GetEClass(AClassID: Integer): TEObjectClass;
-begin
-  Result := nil;
+  Result := $11;
 end;
 
 function TEngine.TranslateText(const Text: string): string;
@@ -1323,17 +1831,133 @@ begin
   Result := Text;
 end;
 
-procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-var
-  S: TEStorageStream;
+procedure TEngine.UpdateStartupDirectory;
 begin
-  S := TEReadStorageStream.Create(Stream, Self, False);
-  S.OnProgress := AProgress;
-  try
-    S.rwEObject(Obj, 0);
-  finally
-    S.Free;
+  FStartupDirectory := ExtractFilePath(Application.ExeName);
+end;
+
+procedure TEngine.SetStartupDirectory(Value: string);
+begin
+  FStartupDirectory := Value;
+end;
+
+function TEngine.CreateUniqueDebugID: Integer;
+begin
+  Result := 0;
+  while FDebugIDs.IndexOfObject(TObject(Result)) <> -1 do Inc(Result);
+end;
+
+function TEngine.RegisterDebugID(const Name: string): Integer;
+begin
+  Result := CreateUniqueDebugID;
+  FDebugIDs.AddObject(Name, TObject(Result));
+end;
+
+procedure TEngine.UnregisterDebugID(ID: Integer);
+var
+  I: Integer;
+begin
+  I := FDebugIDs.IndexOfObject(TObject(ID));
+  if I <> -1 then FDebugIDs.Delete(I);
+end;
+
+procedure TEngine.OutputDebugStr(const S: string);
+var
+  Info: TEngineDebugInfo;
+begin
+  Info.ID := -1;
+  Info.Text := S;
+  FDebugEvents.TriggerNotifyEvents(TObject(@Info));
+end;
+
+procedure TEngine.OutputDebugMessage(ID: Integer; const S: string);
+var
+  Info: TEngineDebugInfo;
+begin
+  Info.ID := ID;
+  Info.Text := S;
+  FDebugEvents.TriggerNotifyEvents(TObject(@Info));
+end;
+
+function TEngine.GetEngine: TEngine;
+begin
+  Result := Self;
+end;
+
+procedure TEngine.ResetMsgCount;
+var
+  Msg: TEMsg;
+begin
+  InitMsgEx(Msg, 1, Self, FMsgCount + 1);
+  MsgProc(Msg, Self);
+  FMsgCount := 0;
+end;
+
+function TEngine.IncMsgCount: Integer;
+begin
+  Inc(FMsgCount);
+  if FMsgCount > $FFFFFFF then ResetMsgCount;
+  Result := FMsgCount;
+end;
+
+procedure TEngine.RegisterEClasses(AClasses: array of TEObjectClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AClasses) do
+  begin
+    if eoVerifyClasses in FOptions then VerifyEObjectClass(AClasses[I]);
+    if FClassTable.Find(AClasses[I].ClassID) <> nil then
+      raise Exception.Create('EObject Class ID double defined!');
+    FEClasses.Add(AClasses[I]);
+    FClassTable.Add(AClasses[I], AClasses[I].ClassID);
   end;
+end;
+
+procedure TEngine.UnregisterEClasses(AClasses: array of TEObjectClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AClasses) do
+  begin
+    FEClasses.Remove(AClasses[I]);
+    FClassTable.Delete(AClasses[I].ClassID);
+  end;
+end;
+
+function TEngine.GetEClass(AClassID: Integer): TEObjectClass;
+begin
+  Result := TEObjectClass(FClassTable.Find(AClassID));
+  if Result = nil then
+    raise Exception.Create('Unregistered E-ClassID found (' + IntToStr(AClassID) + ')');
+end;
+
+function TEngine.GetDescendantClasses(AClass: TClass): TEObjectClassList;
+var
+  I: Integer;
+  L: TEObjectClassList;
+begin
+  L := TEObjectClassList.Create;
+  for I := 0 to FEClasses.Count - 1 do
+    if TEObjectClass(FEClasses[I]).InheritsFrom(AClass) then L.Add(FEClasses[I]);
+  Result := L;
+end;
+
+procedure TEngine.ActivateEObject(Obj: TEObject);
+var
+  Msg: TEMsg;
+begin
+  InitMsg(Msg, $20000008, Self);
+  Msg.Engine := Self;
+  Obj.MsgProc(Msg, Self);
+end;
+
+function TEngine.CreateEObject(AClassID: Integer; AOwner: TECustomNode): TEObject;
+var
+  C: TEObjectClass;
+begin
+  C := GetEClass(AClassID);
+  Result := C.Create(AOwner);
 end;
 
 procedure TEngine.WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
@@ -1349,10 +1973,287 @@ begin
   end;
 end;
 
+procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
+begin
+  S := TEReadStorageStream.Create(Stream, Self, False);
+  S.OnProgress := AProgress;
+  try
+    S.rwEObject(Obj, 0);
+  finally
+    S.Free;
+  end;
+end;
 
+procedure TEngine.WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
+begin
+  S := TEWriteStorageStream.Create(Stream, Self, True);
+  S.OnProgress := AProgress;
+  try
+    S.rwEObject(Obj, 0);
+  finally
+    S.Free;
+  end;
+end;
 
+procedure TEngine.ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
+begin
+  S := TEReadStorageStream.Create(Stream, Self, True);
+  S.OnProgress := AProgress;
+  try
+    S.rwEObject(Obj, 0);
+  finally
+    S.Free;
+  end;
+end;
 
+procedure TEngine.StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  S: TEStorageStream;
+begin
+  S := TEWriteStorageStream.Create(Stream, Self, False);
+  S.OnProgress := AProgress;
+  try
+    S.rwCreateEObject(Obj, nil, 0);
+  finally
+    S.Free;
+  end;
+end;
 
+function TEngine.RetrieveEObject(Stream: TStream; AProgress: TStorageProgressEvent): TEObject;
+var
+  S: TEStorageStream;
+begin
+  S := TEReadStorageStream.Create(Stream, Self, False);
+  S.OnProgress := AProgress;
+  try
+    S.rwCreateEObject(Result, nil, 0);
+  finally
+    S.Free;
+  end;
+end;
+
+function TEngine.RetrieveFromFile(const FileName: string; AProgress: TStorageProgressEvent): TEObject;
+var
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := RetrieveEObject(F, AProgress);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TEngine.StoreInFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmCreate);
+  try
+    StoreEObject(F, Obj, AProgress);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TEngine.WriteToFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  M: TMemoryStream;
+  F: TFileStream;
+begin
+  M := TMemoryStream.Create;
+  try
+    WriteEObject(M, Obj, AProgress);
+    F := TFileStream.Create(FileName, fmCreate);
+    try
+      M.Position := 0;
+      F.CopyFrom(M, M.Size);
+    finally
+      F.Free;
+    end;
+  finally
+    M.Free;
+  end;
+end;
+
+procedure TEngine.ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  M: TMemoryStream;
+  F: TFileStream;
+begin
+  M := TMemoryStream.Create;
+  F := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    M.LoadFromStream(F);
+  finally
+    F.Free;
+  end;
+  M.Position := 0;
+  try
+    ReadEObject(M, Obj, AProgress);
+  finally
+    M.Free;
+  end;
+end;
+
+procedure TEngine.WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+var
+  CRC1, CRC2: Integer;
+  M: TMemoryStream;
+  F: TFileStream;
+begin
+  M := TMemoryStream.Create;
+  try
+    WriteEObject(M, Obj, AProgress);
+    CRC1 := GetCRC32(M.Memory, M.Size);
+    M.Write(CRC1, SizeOf(Integer));
+    CRC2 := GetCRC32(M.Memory, M.Size);
+    F := TFileStream.Create(FileName, fmCreate);
+    try
+      F.Write(CRC2, SizeOf(Integer));
+      F.Write(M.Memory^, M.Size);
+    finally
+      F.Free;
+    end;
+  finally
+    M.Free;
+  end;
+end;
+
+function TEngine.ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent): Boolean;
+var
+  M: TMemoryStream;
+  F: TFileStream;
+  CRC2, CRC1: Integer;
+begin
+  Result := False;
+  M := TMemoryStream.Create;
+  F := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    M.LoadFromStream(F);
+    M.Position := 0;
+    if M.Size > 8 then
+    begin
+      CRC1 := PInteger(M.Memory)^;
+      CRC2 := PInteger(Integer(M.Memory) + M.Size - 4)^;
+      if (CRC1 = GetCRC32(Pointer(Integer(M.Memory) + 4), M.Size - 4)) and
+        (CRC2 = GetCRC32(Pointer(Integer(M.Memory) + 4), M.Size - 8)) then
+      begin
+        M.Position := 4;
+        ReadEObject(M, Obj, AProgress);
+        Result := True;
+      end;
+    end;
+  finally
+    F.Free;
+    M.Free;
+  end;
+end;
+
+procedure TEngine.ReadTextFromFile(const FileName: string; Obj: TEObject);
+var
+  S: TEStorageStream;
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    S := TEReadTextStorageStream.Create(F, Self, 0);
+    try
+      S.rwEObject(Obj, 0);
+    finally
+      S.Free;
+    end;
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TEngine.WriteTextToFile(const FileName: string; Obj: TEObject);
+var
+  S: TEStorageStream;
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmCreate);
+  try
+    S := TEWriteTextStorageStream.Create(F, Self);
+    try
+      S.rwEObject(Obj, 0);
+    finally
+      S.Free;
+    end;
+  finally
+    F.Free;
+  end;
+end;
+
+function TEngine.VerifyEObjectClass(AClass: TEObjectClass): Boolean;
+var
+  Allocated: Integer;
+begin
+  Result := True;
+  Allocated := GetHeapStatus.TotalAllocated;
+  AClass.Create(nil).Free;
+  try
+    if Allocated <> GetHeapStatus.TotalAllocated then
+      raise Exception.Create(AClass.ClassName + ' contains memory leak constructor/destructor(' +
+        IntToStr(GetHeapStatus.TotalAllocated - Allocated) + ' bytes)');
+  except
+  end;
+end;
+
+{ Messages and engines }
+
+procedure InitMsg(var Msg: TEMsg; MsgID: Integer; Sender: TEObject);
+begin
+  FillChar(Msg, SizeOf(TEMsg), 0);
+  Msg.MsgID := MsgID;
+  Msg.Sender := Sender;
+  Msg.Result := -1;
+end;
+
+procedure InitMsgEx(var Msg: TEMsg; MsgID: Integer; Sender: TEObject; Seq: Integer);
+begin
+  FillChar(Msg, SizeOf(TEMsg), 0);
+  Msg.MsgID := MsgID;
+  Msg.Seq := Seq;
+  Msg.Sender := Sender;
+  Msg.Result := -1;
+end;
+
+function GetEngine(Index: Integer): TEngine;
+begin
+  if (Engines = nil) or (Index < 0) or (Index >= Engines.Count) then
+    Result := nil
+  else
+    Result := TEngine(Engines[Index]);
+end;
+
+function FindEngine(AClassID: Integer): TEngine;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  Found := False;
+  Result := nil;
+  if Engines <> nil then
+  begin
+    I := 0;
+    Found := False;
+    while not Found and (I < Engines.Count) do
+    begin
+      Found := AClassID = TEngine(Engines[I]).ClassID;
+      Inc(I);
+    end;
+    if Found then Result := TEngine(Engines[I - 1]);
+  end;
+  if not Found then raise Exception.Create('Cannot access Engine');
+end;
 
 { TEStorageStream }
 
@@ -2199,5 +3100,22 @@ begin
     end;
   end;
 end;
+
+{ Text storage streams: stubs }
+
+constructor TEReadTextStorageStream.Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
+begin
+  inherited Create(AStream, AEngine);
+end;
+
+constructor TEWriteTextStorageStream.Create(AStream: TStream; AEngine: TEngine);
+begin
+  inherited Create(AStream, AEngine);
+end;
+
+initialization
+  Engines := TList.Create;
+finalization
+  Engines.Free;
 
 end.

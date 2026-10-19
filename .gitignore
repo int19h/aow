@@ -40,3 +40,4 @@ Desktop.ini
 *.dcu
 *.drc
 src/delphi3/*.map
+*.dcp
