@@ -123,6 +123,70 @@ public class ApplyDelphiClasses extends GhidraScript {
         println("ApplyDelphiClasses: Self typed on " + typed + " methods (" + created + " parameter lists recovered)");
     }
 
+    // Parameter lists of the Engine.TEStorageStream virtual methods (after Self). "p" = pointer,
+    // "i" = int, "b" = byte, "w" = word, "c" = char. From notes/persistence.md.
+    static final Map<String, String[]> STORAGE_SIGS = new HashMap<>();
+    static {
+        STORAGE_SIGS.put("StorageMode", new String[] {});
+        STORAGE_SIGS.put("OpenPropertyStream", new String[] {"i:ID"});
+        STORAGE_SIGS.put("rwCreateEObject", new String[] {"p:Obj", "p:Owner", "i:ID"});
+        STORAGE_SIGS.put("rwEObject", new String[] {"p:Obj", "i:ID"});
+        STORAGE_SIGS.put("rwEObjectStream", new String[] {"p:Obj"});
+        STORAGE_SIGS.put("rwChildren", new String[] {"p:Node", "i:ID"});
+        STORAGE_SIGS.put("rwStreamProc", new String[] {"i:ID", "p:Obj", "p:LoadProc", "p:SaveProc"});
+        STORAGE_SIGS.put("rwData", new String[] {"p:Buffer", "i:Size", "i:ID"});
+        STORAGE_SIGS.put("rwString", new String[] {"p:S", "i:ID"});
+        STORAGE_SIGS.put("rwStrings", new String[] {"p:Strings", "i:ID"});
+        STORAGE_SIGS.put("rwStringsEx", new String[] {"p:Strings", "i:ID"});
+        STORAGE_SIGS.put("rwInteger", new String[] {"p:I", "i:ID"});
+        STORAGE_SIGS.put("rwByte", new String[] {"p:B", "i:ID"});
+        STORAGE_SIGS.put("rwWord", new String[] {"p:W", "i:ID"});
+        STORAGE_SIGS.put("rwBool", new String[] {"p:B", "i:ID"});
+        STORAGE_SIGS.put("rwShortint", new String[] {"p:S", "i:ID"});
+        STORAGE_SIGS.put("rwIntegerEx", new String[] {"p:I", "i:Default", "i:ID"});
+        STORAGE_SIGS.put("rwByteEx", new String[] {"p:B", "b:Default", "i:ID"});
+        STORAGE_SIGS.put("rwWordEx", new String[] {"p:W", "w:Default", "i:ID"});
+        STORAGE_SIGS.put("rwShortintEx", new String[] {"p:S", "c:Default", "i:ID"});
+    }
+
+    boolean isStorageStream(String cls) {
+        String c = cls;
+        for (int i = 0; i < 16 && c != null && classes.has(c); i++) {
+            if (c.equals("TEStorageStream")) return true;
+            JsonElement p = classes.getAsJsonObject(c).get("parent");
+            c = p.isJsonNull() ? null : p.getAsString();
+        }
+        return false;
+    }
+
+    ghidra.program.model.data.FunctionDefinitionDataType storageSignature(String cls, String method) {
+        ghidra.program.model.data.FunctionDefinitionDataType fd =
+                new ghidra.program.model.data.FunctionDefinitionDataType(CAT, "TEStorageStream_" + method);
+        String[] spec = STORAGE_SIGS.get(method);
+        ghidra.program.model.data.ParameterDefinition[] ps = new ghidra.program.model.data.ParameterDefinition[spec.length + 1];
+        ps[0] = new ghidra.program.model.data.ParameterDefinitionImpl("this",
+                new PointerDataType(structs.get(cls), dtm), null);
+        for (int i = 0; i < spec.length; i++) {
+            String[] kv = spec[i].split(":");
+            DataType t;
+            switch (kv[0]) {
+                case "i": t = IntegerDataType.dataType; break;
+                case "b": t = ByteDataType.dataType; break;
+                case "w": t = UnsignedShortDataType.dataType; break;
+                case "c": t = CharDataType.dataType; break;
+                default: t = new PointerDataType(VoidDataType.dataType, dtm);
+            }
+            ps[i + 1] = new ghidra.program.model.data.ParameterDefinitionImpl(kv[1], t, null);
+        }
+        fd.setArguments(ps);
+        fd.setReturnType(method.equals("StorageMode") ? ByteDataType.dataType
+                : method.equals("OpenPropertyStream") ? new PointerDataType(VoidDataType.dataType, dtm) : VoidDataType.dataType);
+        try {
+            fd.setCallingConvention(currentProgram.getCompilerSpec().getDefaultCallingConvention().getName());
+        } catch (Exception e) { }
+        return fd;
+    }
+
     /** "AoWE.THero.GetExperience@23EDC2EF" or "THero.vmt1C" or "THero.Destroy" -> "THero" when known. */
     String classOf(String fname, Map<String, String> known) {
         String n = fname.split("@")[0];
@@ -180,13 +244,20 @@ public class ApplyDelphiClasses extends GhidraScript {
         StructureDataType vt = new StructureDataType(CAT, name + "_vtbl", 0, dtm);
         JsonArray slots = c.getAsJsonArray("vmt");
         Set<String> used = new HashSet<>();
+        boolean storage = isStorageStream(name);
         for (JsonElement e : slots) {
             JsonObject s = e.getAsJsonObject();
             String mn = s.get("name").isJsonNull() ? null : s.get("name").getAsString();
             if (mn == null) mn = "vmt" + Integer.toHexString(s.get("offset").getAsInt()).toUpperCase();
             mn = mn.replaceAll("[^A-Za-z0-9_]", "_");
             if (!used.add(mn)) mn = mn + "_" + s.get("offset").getAsInt();
-            vt.add(new PointerDataType(VoidDataType.dataType, dtm), 4, mn, s.get("symbol").isJsonNull() ? null : s.get("symbol").getAsString());
+            DataType slotType = new PointerDataType(VoidDataType.dataType, dtm);
+            if (storage && STORAGE_SIGS.containsKey(mn)) {
+                // exact prototypes for the storage stream: without them the decompiler drops the
+                // trailing stack argument (the property id) of every rw* call
+                slotType = new PointerDataType(storageSignature(name, mn), dtm);
+            }
+            vt.add(slotType, 4, mn, s.get("symbol").isJsonNull() ? null : s.get("symbol").getAsString());
         }
         if (vt.getLength() == 0) vt.add(new PointerDataType(VoidDataType.dataType, dtm), 4, "vmt0", null);
         vtbls.put(name, vt);

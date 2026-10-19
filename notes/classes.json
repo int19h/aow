@@ -115391,13 +115391,13 @@
     }
    ],
    "fields": {
-    "40": {
+    "8": {
      "name": "prop10",
      "type": "int",
      "size": 4,
      "src": "readwrite",
      "rw": "rwInteger",
-     "id": "0x10"
+     "id": "10"
     },
     "12": {
      "name": "prop11",
@@ -115438,6 +115438,14 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0xf"
+    },
+    "40": {
+     "name": "prop16",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0x10"
     },
     "36": {
      "name": "prop17",
@@ -122568,12 +122576,12 @@
      "id": "2"
     },
     "167": {
-     "name": "field_A7",
+     "name": "prop3",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
      "rw": "rwData",
-     "id": ""
+     "id": "3"
     },
     "169": {
      "name": "prop4",
@@ -122600,12 +122608,12 @@
      "id": "6"
     },
     "69": {
-     "name": "field_45",
+     "name": "prop10",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
      "rw": "rwData",
-     "id": ""
+     "id": "10"
     },
     "188": {
      "name": "prop11",
@@ -122718,6 +122726,14 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0x1d"
+    },
+    "88": {
+     "name": "prop30",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "0x1e"
     },
     "84": {
      "name": "FPlayerMagicControl",
@@ -130319,14 +130335,6 @@
      "rw": "rwString",
      "id": "7"
     },
-    "240": {
-     "name": "FStringList",
-     "type": "TStringList",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwStrings",
-     "id": "0xb"
-    },
     "264": {
      "name": "FStringList",
      "type": "TStringList",
@@ -130439,6 +130447,14 @@
      "rw": "rwInteger",
      "id": "0x1c"
     },
+    "272": {
+     "name": "FStartupSongList",
+     "type": "TStartupSongList",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "0x1d"
+    },
     "244": {
      "name": "FItemControl",
      "type": "TItemControl",
@@ -130504,12 +130520,12 @@
      "id": "0x28"
     },
     "236": {
-     "name": "field_EC",
+     "name": "prop41",
      "type": "int",
      "size": 4,
      "src": "readwrite",
      "rw": "rwIntegerEx",
-     "id": ""
+     "id": "0x29"
     },
     "316": {
      "name": "FTextControl",
@@ -130639,6 +130655,14 @@
      "rw": "rwBool",
      "id": "0x3b"
     },
+    "276": {
+     "name": "FSonglist",
+     "type": "TSonglist",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "0x3c"
+    },
     "330": {
      "name": "prop61",
      "type": "bool",
@@ -130656,12 +130680,12 @@
      "id": "0x3e"
     },
     "332": {
-     "name": "field_14C",
+     "name": "prop63",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
      "rw": "rwData",
-     "id": ""
+     "id": "0x3f"
     },
     "216": {
      "name": "FSelectedArmy",
@@ -130675,15 +130699,9 @@
      "size": 4,
      "src": "accessor"
     },
-    "272": {
-     "name": "FStartupSongList",
-     "type": "TStartupSongList",
-     "size": 4,
-     "src": "accessor"
-    },
-    "276": {
-     "name": "FSonglist",
-     "type": "TSonglist",
+    "240": {
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "accessor"
     },
@@ -131129,37 +131147,13 @@
      "rw": "rwInteger",
      "id": "8"
     },
-    "56": {
-     "name": "FSFXLibrary",
-     "type": "TSFXLibrary",
-     "size": 4,
+    "48": {
+     "name": "prop10",
+     "type": "byte",
+     "size": 1,
      "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "0x10"
-    },
-    "52": {
-     "name": "FSFXLibrary",
-     "type": "TSFXLibrary",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "0xf"
-    },
-    "60": {
-     "name": "FSFXLibrary",
-     "type": "TSFXLibrary",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "0x11"
-    },
-    "64": {
-     "name": "FSFXLibrary",
-     "type": "TSFXLibrary",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "0x12"
+     "rw": "rwData",
+     "id": "10"
     },
     "68": {
      "name": "FSFXLibrary",
@@ -131184,6 +131178,30 @@
     "40": {
      "name": "FImageSequenceList",
      "type": "TImageSequenceList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "52": {
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
+     "size": 4,
+     "src": "accessor"
+    },
+    "56": {
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
+     "size": 4,
+     "src": "accessor"
+    },
+    "60": {
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
+     "size": 4,
+     "src": "accessor"
+    },
+    "64": {
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "accessor"
     }
@@ -135604,13 +135622,13 @@
      "rw": "rwString",
      "id": "9"
     },
-    "68": {
+    "69": {
      "name": "prop10",
-     "type": "bool",
+     "type": "byte",
      "size": 1,
      "src": "readwrite",
-     "rw": "rwBool",
-     "id": "0x10"
+     "rw": "rwData",
+     "id": "10"
     },
     "70": {
      "name": "prop11",
@@ -135651,6 +135669,14 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0xf"
+    },
+    "68": {
+     "name": "prop16",
+     "type": "bool",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwBool",
+     "id": "0x10"
     },
     "20": {
      "name": "prop17",
@@ -139016,12 +139042,12 @@
      "id": "4"
     },
     "24": {
-     "name": "field_18",
+     "name": "prop5",
      "type": "int",
      "size": 4,
      "src": "readwrite",
      "rw": "rwIntegerEx",
-     "id": ""
+     "id": "5"
     },
     "38": {
      "name": "FMoraleValue",
@@ -139525,13 +139551,13 @@
     }
    ],
    "fields": {
-    "43": {
+    "28": {
      "name": "prop10",
-     "type": "byte",
-     "size": 1,
+     "type": "AnsiString",
+     "size": 4,
      "src": "readwrite",
-     "rw": "rwByte",
-     "id": "0x10"
+     "rw": "rwString",
+     "id": "10"
     },
     "36": {
      "name": "prop11",
@@ -139572,6 +139598,14 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0xf"
+    },
+    "43": {
+     "name": "prop16",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x10"
     },
     "44": {
      "name": "prop17",
@@ -145614,12 +145648,12 @@
      "id": "0x18"
     },
     "85": {
-     "name": "field_55",
+     "name": "prop25",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
      "rw": "rwData",
-     "id": ""
+     "id": "0x19"
     },
     "88": {
      "name": "prop26",
@@ -147727,13 +147761,13 @@
     }
    ],
    "fields": {
-    "37": {
+    "28": {
      "name": "prop10",
-     "type": "byte",
-     "size": 1,
+     "type": "AnsiString",
+     "size": 4,
      "src": "readwrite",
-     "rw": "rwByte",
-     "id": "0x10"
+     "rw": "rwString",
+     "id": "10"
     },
     "32": {
      "name": "prop11",
@@ -147774,6 +147808,14 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0xf"
+    },
+    "37": {
+     "name": "prop16",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x10"
     },
     "38": {
      "name": "prop17",
@@ -161645,6 +161687,14 @@
      "rw": "rwCreateEObject",
      "id": "0x14"
     },
+    "84": {
+     "name": "prop21",
+     "type": "bool",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwBool",
+     "id": "0x15"
+    },
     "12": {
      "name": "Fup",
      "type": "int",
@@ -166229,13 +166279,13 @@
     }
    ],
    "fields": {
-    "48": {
+    "8": {
      "name": "prop10",
-     "type": "byte",
-     "size": 1,
+     "type": "int",
+     "size": 4,
      "src": "readwrite",
-     "rw": "rwData",
-     "id": "0x10"
+     "rw": "rwInteger",
+     "id": "10"
     },
     "12": {
      "name": "prop11",
@@ -166276,6 +166326,14 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0xf"
+    },
+    "48": {
+     "name": "prop16",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "0x10"
     },
     "68": {
      "name": "prop17",
@@ -166541,14 +166599,6 @@
     }
    ],
    "fields": {
-    "12": {
-     "name": "FCombatData",
-     "type": "TCombatData",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "5"
-    },
     "16": {
      "name": "FCombatData",
      "type": "TCombatData",
@@ -166572,6 +166622,12 @@
      "src": "readwrite",
      "rw": "rwBool",
      "id": "8"
+    },
+    "12": {
+     "name": "FCombatData",
+     "type": "TCombatData",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -166830,14 +166886,6 @@
     }
    ],
    "fields": {
-    "28": {
-     "name": "FCombatSide",
-     "type": "TCombatSide",
-     "size": 4,
-     "src": "readwrite",
-     "rw": "rwEObject",
-     "id": "10"
-    },
     "32": {
      "name": "FCombatSide",
      "type": "TCombatSide",
@@ -166861,6 +166909,12 @@
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xd"
+    },
+    "28": {
+     "name": "FCombatSide",
+     "type": "TCombatSide",
+     "size": 4,
+     "src": "accessor"
     },
     "36": {
      "name": "FEventList",
@@ -214075,13 +214129,13 @@
     }
    ],
    "fields": {
-    "32": {
-     "name": "FStringList",
-     "type": "byte",
-     "size": 1,
+    "36": {
+     "name": "prop10",
+     "type": "pointer",
+     "size": 4,
      "src": "readwrite",
-     "rw": "rwData",
-     "id": "0x10"
+     "rw": "rwStrings",
+     "id": "10"
     },
     "40": {
      "name": "FSFXLibrary",
@@ -214114,6 +214168,14 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0xf"
+    },
+    "32": {
+     "name": "FStringList",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "0x10"
     },
     "33": {
      "name": "prop17",
@@ -275453,13 +275515,13 @@
     }
    ],
    "fields": {
-    "16": {
+    "32": {
      "name": "prop10",
-     "type": "byte[8]",
-     "size": 8,
+     "type": "byte",
+     "size": 1,
      "src": "readwrite",
-     "rw": "rwData",
-     "id": "0x10"
+     "rw": "rwByte",
+     "id": "10"
     },
     "8": {
      "name": "prop11",
@@ -275500,6 +275562,14 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0xf"
+    },
+    "16": {
+     "name": "prop16",
+     "type": "byte[8]",
+     "size": 8,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "0x10"
     }
    },
    "parent_known": true
@@ -275772,13 +275842,13 @@
     }
    ],
    "fields": {
-    "42": {
+    "16": {
      "name": "prop10",
-     "type": "bool",
-     "size": 1,
+     "type": "AnsiString",
+     "size": 4,
      "src": "readwrite",
-     "rw": "rwBool",
-     "id": "0x10"
+     "rw": "rwString",
+     "id": "10"
     },
     "36": {
      "name": "prop11",
@@ -275819,6 +275889,14 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0xf"
+    },
+    "42": {
+     "name": "prop16",
+     "type": "bool",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwBool",
+     "id": "0x10"
     },
     "44": {
      "name": "prop17",
@@ -302924,6 +303002,30 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "10"
+    },
+    "8": {
+     "name": "prop11",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0xb"
+    },
+    "9": {
+     "name": "prop12",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0xc"
+    },
+    "10": {
+     "name": "prop13",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0xd"
     },
     "16": {
      "name": "prop14",

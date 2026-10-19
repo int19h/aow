@@ -22,19 +22,20 @@ type
     Name: string;
     IDs: string;
     procedure ReadWrite(Stream: TEStorageStream); override;
-    procedure SetOwner(AOwner: TEObject); override;
   end;
 
-  { A node: after its own properties the children follow under id 1 (TECustomNode.MainReadWrite). }
-  TProbeNode = class(TProbeObject)
+  { A node: after its own properties the children follow under id 1 (TECustomNode.MainReadWrite).
+    TENode supplies the child list; rwCreateEObject attaches children through SetOwner. }
+  TProbeNode = class(TENode)
   public
-    Children: TList;
-    constructor Create(AOwner: TEObject); override;
-    destructor Destroy; override;
-    procedure MainReadWrite(Stream: TEStorageStream); override;
+    Name: string;
+    IDs: string;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    { embedded lists are shared children of their owner: Clear empties them instead of freeing them }
+    function GetControlStyle: Byte; override;
   end;
 
-  TPlayerProbe = class(TProbeNode)
+  TPlayerProbe = class(TProbeObject)
   public
     Race: Byte;
     Gold, Gems: Integer;
@@ -56,37 +57,35 @@ type
     function CreateEObject(AClassID: Integer; AOwner: TEObject): TEObject; override;
   end;
 
-procedure TProbeObject.ReadWrite(Stream: TEStorageStream);
+  { TPlayer and TMapProbe are nodes in the original (TPlayer descends from TENode through TEObject?
+    no: TPlayer is a TEObject with lists inside; the player list is the node). }
+
+function TableIDs(Stream: TEStorageStream): string;
 var
   T: TPropertyTable;
   I: Integer;
 begin
+  Result := '';
+  if not (Stream is TEReadStorageStream) then
+    Exit;
   T := TEReadStorageStream(Stream).PropertyTable;
-  IDs := '';
   for I := T.First to T.Count - 1 do
-    IDs := IDs + IntToStr(T.Items^[I].ID) + ' ';
+    Result := Result + IntToStr(T.Items^[I].ID) + ' ';
 end;
 
-constructor TProbeNode.Create(AOwner: TEObject);
+procedure TProbeObject.ReadWrite(Stream: TEStorageStream);
 begin
-  inherited Create(AOwner);
-  Children := TList.Create;
+  IDs := TableIDs(Stream);
 end;
 
-destructor TProbeNode.Destroy;
-var
-  I: Integer;
+procedure TProbeNode.ReadWrite(Stream: TEStorageStream);
 begin
-  for I := 0 to Children.Count - 1 do
-    TObject(Children[I]).Free;
-  Children.Free;
-  inherited Destroy;
+  IDs := TableIDs(Stream);
 end;
 
-procedure TProbeNode.MainReadWrite(Stream: TEStorageStream);
+function TProbeNode.GetControlStyle: Byte;
 begin
-  inherited MainReadWrite(Stream);
-  Stream.rwChildren(Self, 1);
+  Result := csStored or csShared;
 end;
 
 procedure TPlayerProbe.ReadWrite(Stream: TEStorageStream);
@@ -125,15 +124,10 @@ begin
   else
     Result := TProbeObject.Create(AOwner);
   end;
-  TProbeObject(Result).Name := 'class ' + IntToStr(AClassID);
-end;
-
-{ Children are attached through SetOwner, which rwCreateEObject calls after the load. }
-procedure TProbeObject.SetOwner(AOwner: TEObject);
-begin
-  inherited SetOwner(AOwner);
-  if AOwner is TProbeNode then
-    TProbeNode(AOwner).Children.Add(Self);
+  if Result is TProbeObject then
+    TProbeObject(Result).Name := 'class ' + IntToStr(AClassID)
+  else if Result is TProbeNode then
+    TProbeNode(Result).Name := 'class ' + IntToStr(AClassID);
 end;
 
 var
@@ -173,8 +167,8 @@ begin
     Writeln('scenario set: ', Map.ScenarioSet);
     Writeln('size: ', Map.Width, ' x ', Map.Height);
     Writeln('name: ', Map.MapName);
-    Writeln('players: ', Map.PlayerList.Children.Count);
-    for I := 0 to Map.PlayerList.Children.Count - 1 do
+    Writeln('players: ', Map.PlayerList.Count);
+    for I := 0 to Map.PlayerList.Count - 1 do
     begin
       P := TPlayerProbe(Map.PlayerList.Children[I]);
       Writeln('  player ', I, ': race=', P.Race, ' gold=', P.Gold, ' gems=', P.Gems, ' name=', P.Name2, '  ids: ', P.IDs);

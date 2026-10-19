@@ -28,32 +28,109 @@ const
   smNoProgress = $10;
   smTranslate = $40;    { TTranslateStorageStream }
 
+  { TEObject.GetControlStyle flags }
+  csStored = 1;
+  csShared = 2;
+  csKeepIndex = 8;
+
 type
   TEStorageStream = class;
   TEngine = class;
 
-  { Engine.TEObject (instance size 8): +4 FOwner. ClassVersion/ClassID/ReadWrite/MainReadWrite are the
-    virtual slots that persistence uses; the rest of the class is left for later. }
+  TECustomNode = class;
+
+  { Engine.TEObject (instance size 8): +4 FOwner. The slot comments give the original VMT offsets.
+    GetControlStyle flags: csStored (1) the object is written by rwChildren; csShared (2) the owner
+    does not free it on Clear and rwChildren skips it; csKeepIndex (8) RemoveChild leaves a nil slot. }
   TEObject = class(TObject)
   private
     FOwner: TEObject;                          { +$04 }
   public
-    constructor Create(AOwner: TEObject); virtual;
-    function ClassVersion: Integer; virtual;   { slot +$00 }
-    procedure SetOwner(AOwner: TEObject); virtual;   { slot +$08 }
-    procedure ReadWrite(Stream: TEStorageStream); virtual;        { slot +$18 }
-    procedure MainReadWrite(Stream: TEStorageStream); virtual;    { slot +$1C }
-    function ClassID: Integer; virtual;        { slot +$24 }
-    procedure Clear; virtual;                  { slot +$30 }
+    constructor Create(AOwner: TEObject); virtual;             { slot +$20 }
+    destructor Destroy; override;
+    function ClassVersion: Integer; virtual;                   { slot +$00 }
+    function GetControlStyle: Byte; virtual;                   { slot +$04 }
+    procedure SetOwner(AOwner: TEObject); virtual;             { slot +$08 }
+    procedure ReadWrite(Stream: TEStorageStream); virtual;     { slot +$18 }
+    procedure MainReadWrite(Stream: TEStorageStream); virtual; { slot +$1C }
+    function ClassID: Integer; virtual;                        { slot +$24 }
+    procedure Clear; virtual;                                  { slot +$30 }
+    procedure SetArrayOwner(AOwner: TEObject; Index: Integer); virtual;   { slot +$48 }
     property Owner: TEObject read FOwner write SetOwner;
   end;
 
   TEObjectClass = class of TEObject;
 
-  { The part of Engine.TEngine that the storage stream needs: creating an object from its class id. }
+  { Engine.TECustomNode (instance size 8): a TEObject that owns children through an abstract list
+    interface; TENode keeps them in a TList. Children are persisted after the node's own properties. }
+  TECustomNode = class(TEObject)
+  public
+    destructor Destroy; override;
+    procedure MainReadWrite(Stream: TEStorageStream); override;
+    procedure Clear; override;
+    function GetChild(Index: Integer): TEObject; virtual; abstract;      { slot +$4C }
+    procedure SetChild(Index: Integer; Child: TEObject); virtual; abstract;   { slot +$50 }
+    function GetCount: Integer; virtual; abstract;                      { slot +$54 }
+    function AddChild(Child: TEObject): Integer; virtual; abstract;     { slot +$70 }
+    procedure RemoveChild(Child: TEObject); virtual; abstract;          { slot +$6C }
+    procedure ReadWriteChildren(Stream: TEStorageStream); virtual;
+    procedure DestroyAllChildren; virtual;
+    function FindChild(AClassID: Integer): TEObject;
+    function FindChildIndex(Child: TEObject): Integer; virtual;
+    function DestroyChildren(AClassID: Integer): Integer;
+    property Count: Integer read GetCount;
+    property Children[Index: Integer]: TEObject read GetChild write SetChild;
+  end;
+
+  { Engine.TENode (instance size 12): +8 FChildren, a TEObjectList (TList of TEObject). }
+  TENode = class(TECustomNode)
+  private
+    FChildren: TList;                          { +$08 }
+  public
+    constructor Create(AOwner: TEObject); override;
+    destructor Destroy; override;
+    procedure Clear; override;
+    procedure DestroyAllChildren; override;
+    function GetChild(Index: Integer): TEObject; override;
+    procedure SetChild(Index: Integer; Child: TEObject); override;
+    function GetCount: Integer; override;
+    function AddChild(Child: TEObject): Integer; override;
+    procedure RemoveChild(Child: TEObject); override;
+    function FindChildIndex(Child: TEObject): Integer; override;
+    procedure DestroyEObjects(AClassID: Integer);
+  end;
+
+  { Engine.TEControlStyleNode (instance size 16, class id $101): a node with a stored control style. }
+  TEControlStyleNode = class(TENode)
+  private
+    FControlStyle: Byte;                       { +$0C }
+  public
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    function GetControlStyle: Byte; override;
+    procedure SetControlStyle(Value: Byte);
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { Engine.TEControlStyleObject (instance size 12, class id $51). }
+  TEControlStyleObject = class(TEObject)
+  private
+    FControlStyle: Byte;                       { +$08 }
+  public
+    constructor Create(AOwner: TEObject); override;
+    function ClassID: Integer; override;
+    function GetControlStyle: Byte; override;
+    procedure SetControlStyle(Value: Byte);
+    procedure ReadWrite(Stream: TEStorageStream); override;
+  end;
+
+  { The part of Engine.TEngine that persistence needs: creating an object from its class id, and the
+    root read/write entry points. }
   TEngine = class(TEObject)
   public
     function CreateEObject(AClassID: Integer; AOwner: TEObject): TEObject; virtual;   { slot +$90 }
+    procedure ReadEObject(Stream: TStream; Obj: TEObject);     { Engine.TEngine.ReadEObject }
+    procedure WriteEObject(Stream: TStream; Obj: TEObject);    { Engine.TEngine.WriteEObject }
   end;
 
   PPropertyItem = ^TPropertyItem;
@@ -181,6 +258,46 @@ type
     property DataBase: Integer read FDataBase;
   end;
 
+  { Engine.TEWriteStorageStream (instance size 44). Values go into a memory buffer; the property table
+    records (id, buffer position) for each one. Nested objects get their own buffer, which is appended
+    to the outer buffer as [table][data] when they finish. The destructor writes the root table and
+    the root buffer to the real stream. Properties equal to their default (0, empty, False) are not
+    written at all; the reader turns a missing id back into the default. }
+  TEWriteStorageStream = class(TEStorageStream)
+  private
+    FPropertyTable: TPropertyTable;            { +$10 }
+    FPartial: Boolean;                         { +$24 }
+    FBuffer: TMemoryStream;                    { +$28  TEBufferStream }
+    procedure PropertyExistError(ID: Integer);
+    procedure CheckNew(ID: Integer);
+    procedure Nest(Obj: TEObject; ID: Integer; WriteClassID: Boolean);
+  public
+    constructor Create(AStream: TStream; APartial: Boolean; AEngine: TEngine); reintroduce;
+    destructor Destroy; override;
+    function StorageMode: Byte; override;
+    function OpenPropertyStream(ID: Integer): TStream; override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TEObject; ID: Integer); override;
+    procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject); override;
+    procedure rwChildren(Node: TEObject; ID: Integer); override;
+    procedure rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc); override;
+    procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
+    procedure rwString(var S: string; ID: Integer); override;
+    procedure rwStrings(Strings: TStrings; ID: Integer); override;
+    procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
+    procedure rwInteger(var I: Integer; ID: Integer); override;
+    procedure rwByte(var B: Byte; ID: Integer); override;
+    procedure rwWord(var W: Word; ID: Integer); override;
+    procedure rwBool(var B: Boolean; ID: Integer); override;
+    procedure rwShortint(var S: Shortint; ID: Integer); override;
+    procedure rwIntegerEx(var I: Integer; Default: Integer; ID: Integer); override;
+    procedure rwByteEx(var B: Byte; Default: Byte; ID: Integer); override;
+    procedure rwWordEx(var W: Word; Default: Word; ID: Integer); override;
+    procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); override;
+  end;
+
+  EDoublePriorityID = class(Exception);        { Engine.EDoublePrioriyID, misspelled in the original }
+
   { Engine.TCompressStream: a TMemoryStream whose file form is "CFS"#0, a version byte, and the zlib
     stream of the contents (version 2). Version 0 means stored without compression. }
   TCompressStream = class(TMemoryStream)
@@ -274,10 +391,16 @@ end;
 
 { ---------------------------------------------------------------- TEObject }
 
-constructor TEObject.Create(AOwner: TEObject);
+constructor TEObject.Create(AOwner: TEObject);                     { Engine.TEObject.Create }
 begin
   inherited Create;
-  FOwner := AOwner;
+  SetOwner(AOwner);
+end;
+
+destructor TEObject.Destroy;                                       { Engine.TEObject.Destroy }
+begin
+  SetOwner(nil);
+  inherited Destroy;
 end;
 
 function TEObject.ClassVersion: Integer;
@@ -285,9 +408,31 @@ begin
   Result := 0;
 end;
 
-procedure TEObject.SetOwner(AOwner: TEObject);
+function TEObject.GetControlStyle: Byte;                           { Engine.TEObject.GetControlStyle }
 begin
+  Result := csStored;
+end;
+
+procedure TEObject.SetOwner(AOwner: TEObject);                     { Engine.TEObject.SetOwner }
+begin
+  { the owner is told through its node interface: slot +$6C RemoveChild, slot +$70 AddChild }
+  if AOwner <> FOwner then
+  begin
+    if FOwner is TECustomNode then
+      TECustomNode(FOwner).RemoveChild(Self);
+    FOwner := AOwner;
+    if AOwner is TECustomNode then
+      TECustomNode(AOwner).AddChild(Self);
+  end;
+end;
+
+procedure TEObject.SetArrayOwner(AOwner: TEObject; Index: Integer);   { Engine.TEObject.SetArrayOwner }
+begin
+  if FOwner is TECustomNode then
+    TECustomNode(FOwner).RemoveChild(Self);
   FOwner := AOwner;
+  if AOwner is TECustomNode then
+    TECustomNode(AOwner).SetChild(Index, Self);
 end;
 
 procedure TEObject.ReadWrite(Stream: TEStorageStream);             { Engine.TEObject.ReadWrite: empty }
@@ -310,9 +455,297 @@ procedure TEObject.Clear;
 begin
 end;
 
+{ ---------------------------------------------------------------- TECustomNode }
+
+destructor TECustomNode.Destroy;                                   { Engine.TECustomNode.Destroy }
+begin
+  DestroyAllChildren;
+  inherited Destroy;
+end;
+
+procedure TECustomNode.MainReadWrite(Stream: TEStorageStream);     { Engine.TECustomNode.MainReadWrite }
+begin
+  if (Stream.StorageMode and smRead) <> 0 then
+    if (Stream.StorageMode and (smCompare or smTranslate)) = 0 then
+      Clear;
+  ReadWrite(Stream);
+  ReadWriteChildren(Stream);
+end;
+
+procedure TECustomNode.ReadWriteChildren(Stream: TEStorageStream);   { Engine.TECustomNode.ReadWriteChildren }
+begin
+  Stream.rwChildren(Self, 1);
+end;
+
+procedure TECustomNode.Clear;                                      { Engine.TECustomNode.Clear }
+var
+  I: Integer;
+  Child: TEObject;
+begin
+  if GetCount = 0 then
+    Exit;
+  { owned children are freed, shared ones are cleared }
+  for I := GetCount - 1 downto 0 do
+  begin
+    Child := GetChild(I);
+    if (Child <> nil) and (Child.FOwner = Self) then
+      if (Child.GetControlStyle and csShared) = 0 then
+        Child.Free
+      else
+        Child.Clear;
+  end;
+  { then every child that is not an owned shared one leaves the list }
+  for I := GetCount - 1 downto 0 do
+  begin
+    Child := GetChild(I);
+    if Child <> nil then
+      if not ((Child.FOwner = Self) and ((Child.GetControlStyle and csShared) <> 0)) then
+        RemoveChild(Child);
+  end;
+end;
+
+procedure TECustomNode.DestroyAllChildren;                         { Engine.TECustomNode.DestroyAllChildren }
+var
+  I: Integer;
+  Child: TEObject;
+begin
+  for I := GetCount - 1 downto 0 do
+  begin
+    Child := GetChild(I);
+    if (Child <> nil) and (Child.FOwner = Self) then
+      Child.Free;
+  end;
+  for I := GetCount - 1 downto 0 do
+  begin
+    Child := GetChild(I);
+    if Child <> nil then
+      RemoveChild(Child);
+  end;
+end;
+
+function TECustomNode.FindChild(AClassID: Integer): TEObject;       { Engine.TECustomNode.FindChild }
+var
+  I: Integer;
+begin
+  for I := 0 to GetCount - 1 do
+  begin
+    Result := GetChild(I);
+    if (Result <> nil) and (Result.ClassID = AClassID) then
+      Exit;
+  end;
+  Result := nil;
+end;
+
+function TECustomNode.FindChildIndex(Child: TEObject): Integer;     { Engine.TECustomNode.FindChildIndex }
+begin
+  Result := GetCount - 1;
+  while (Result >= 0) and (GetChild(Result) <> Child) do
+    Dec(Result);
+end;
+
+function TECustomNode.DestroyChildren(AClassID: Integer): Integer;  { Engine.TECustomNode.DestroyChildren }
+var
+  I: Integer;
+  Child: TEObject;
+begin
+  Result := 0;
+  for I := GetCount - 1 downto 0 do
+  begin
+    Child := GetChild(I);
+    if (Child <> nil) and (Child.ClassID = AClassID) then
+    begin
+      Child.Free;
+      Inc(Result);
+    end;
+  end;
+end;
+
+{ ---------------------------------------------------------------- TENode }
+
+constructor TENode.Create(AOwner: TEObject);                       { Engine.TENode.Create }
+begin
+  FChildren := TList.Create;                   { TEObjectList in the original }
+  inherited Create(AOwner);
+end;
+
+destructor TENode.Destroy;                                         { Engine.TENode.Destroy }
+begin
+  inherited Destroy;
+  FChildren.Free;
+end;
+
+function TENode.GetChild(Index: Integer): TEObject;
+begin
+  Result := TEObject(FChildren[Index]);
+end;
+
+procedure TENode.SetChild(Index: Integer; Child: TEObject);        { Engine.TENode.SetChild }
+var
+  Old: TEObject;
+begin
+  while Index >= GetCount do
+    FChildren.Add(nil);
+  Old := TEObject(FChildren[Index]);
+  if (Old <> nil) and (Old.FOwner = Self) then
+    Old.Free;
+  FChildren[Index] := Child;
+end;
+
+function TENode.GetCount: Integer;
+begin
+  Result := FChildren.Count;
+end;
+
+function TENode.AddChild(Child: TEObject): Integer;                { Engine.TENode.AddChild }
+begin
+  FChildren.Add(Child);
+  Result := FChildren.Count - 1;
+end;
+
+procedure TENode.RemoveChild(Child: TEObject);                     { Engine.TENode.RemoveChild }
+var
+  I: Integer;
+begin
+  if (GetControlStyle and csKeepIndex) = 0 then
+    FChildren.Remove(Child)
+  else
+  begin
+    I := FChildren.IndexOf(Child);
+    if I <> -1 then
+      FChildren[I] := nil;
+  end;
+end;
+
+function TENode.FindChildIndex(Child: TEObject): Integer;
+begin
+  Result := FChildren.IndexOf(Child);
+end;
+
+procedure TENode.Clear;                                            { Engine.TENode.Clear }
+var
+  I: Integer;
+begin
+  inherited Clear;
+  { trailing nil slots left by csKeepIndex are dropped }
+  I := FChildren.Count - 1;
+  while (I >= 0) and (FChildren[I] = nil) do
+  begin
+    FChildren.Delete(I);
+    Dec(I);
+  end;
+end;
+
+procedure TENode.DestroyAllChildren;                               { Engine.TENode.DestroyAllChildren }
+var
+  I: Integer;
+  Child: TEObject;
+begin
+  Clear;
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    Child := TEObject(FChildren[I]);
+    if (Child <> nil) and (Child.FOwner = Self) then
+      Child.Free;
+  end;
+end;
+
+procedure TENode.DestroyEObjects(AClassID: Integer);               { Engine.TENode.DestroyEObjects }
+var
+  I: Integer;
+  Child: TEObject;
+begin
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    Child := TEObject(FChildren[I]);
+    if (Child <> nil) and (Child.ClassID = AClassID) and (Child.FOwner = Self) then
+      Child.Free;
+  end;
+end;
+
+{ ---------------------------------------------------------------- control style classes }
+
+constructor TEControlStyleNode.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+function TEControlStyleNode.ClassID: Integer;
+begin
+  Result := $101;
+end;
+
+function TEControlStyleNode.GetControlStyle: Byte;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleNode.SetControlStyle(Value: Byte);
+begin
+  FControlStyle := Value;
+end;
+
+procedure TEControlStyleNode.ReadWrite(Stream: TEStorageStream);   { Engine.TEControlStyleNode.ReadWrite }
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FControlStyle, 1, 2);
+end;
+
+constructor TEControlStyleObject.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+function TEControlStyleObject.ClassID: Integer;
+begin
+  Result := $51;
+end;
+
+function TEControlStyleObject.GetControlStyle: Byte;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleObject.SetControlStyle(Value: Byte);
+begin
+  FControlStyle := Value;
+end;
+
+procedure TEControlStyleObject.ReadWrite(Stream: TEStorageStream);   { Engine.TEControlStyleObject.ReadWrite }
+begin
+  Stream.rwData(FControlStyle, 1, 1);
+end;
+
+{ ---------------------------------------------------------------- TEngine }
+
 function TEngine.CreateEObject(AClassID: Integer; AOwner: TEObject): TEObject;
 begin
   Result := nil;
+end;
+
+procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject);      { Engine.TEngine.ReadEObject }
+var
+  S: TEReadStorageStream;
+begin
+  S := TEReadStorageStream.Create(Stream, False, Self);
+  try
+    S.rwEObject(Obj, 0);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TEngine.WriteEObject(Stream: TStream; Obj: TEObject);     { Engine.TEngine.WriteEObject }
+var
+  S: TEWriteStorageStream;
+begin
+  S := TEWriteStorageStream.Create(Stream, False, Self);
+  try
+    S.rwEObject(Obj, 0);
+  finally
+    S.Free;                                    { the destructor writes table and data }
+  end;
 end;
 
 { ---------------------------------------------------------------- TPropertyTable }
@@ -865,6 +1298,301 @@ begin
       FErrorHandled := True;
   end;
   Result := not FErrorHandled;
+end;
+
+{ ---------------------------------------------------------------- TEWriteStorageStream }
+
+constructor TEWriteStorageStream.Create(AStream: TStream; APartial: Boolean; AEngine: TEngine);   { Engine.TEWriteStorageStream.Create }
+begin
+  inherited Create(AStream, AEngine);
+  FBuffer := TMemoryStream.Create;
+  FPropertyTable := TPropertyTable.Create;
+  FPartial := APartial;
+end;
+
+destructor TEWriteStorageStream.Destroy;                           { Engine.TEWriteStorageStream.Destroy }
+begin
+  FPropertyTable.SaveToStream(FStream);
+  FBuffer.Position := 0;
+  FStream.CopyFrom(FBuffer, FBuffer.Size);
+  FPropertyTable.Free;
+  FBuffer.Free;
+  inherited Destroy;
+end;
+
+function TEWriteStorageStream.StorageMode: Byte;                   { Engine.TEWriteStorageStream.StorageMode }
+begin
+  if FPartial then
+    Result := smWrite or smPartial
+  else
+    Result := smWrite;
+end;
+
+procedure TEWriteStorageStream.PropertyExistError(ID: Integer);    { Engine.TEWriteStorageStream.PropertyExistError }
+begin
+  raise EDoublePriorityID.Create('PropertyID already in use (' + IntToStr(ID) + ') in ' + ClassName);
+end;
+
+procedure TEWriteStorageStream.CheckNew(ID: Integer);
+begin
+  if FPropertyTable.PropertyExist(ID) then
+    PropertyExistError(ID);
+end;
+
+function TEWriteStorageStream.OpenPropertyStream(ID: Integer): TStream;   { Engine.TEWriteStorageStream.OpenPropertyStream }
+begin
+  CheckNew(ID);
+  FPropertyTable.Add(ID, FBuffer.Position);
+  Result := FBuffer;
+end;
+
+{ Shared body of rwEObject, rwCreateEObject and rwChildren: run the object in a fresh buffer and append
+  [class id][table][data] (class id only for rwCreateEObject) to the outer buffer under ID. }
+procedure TEWriteStorageStream.Nest(Obj: TEObject; ID: Integer; WriteClassID: Boolean);
+var
+  Outer: TMemoryStream;
+  Start, AClassID: Integer;
+begin
+  Outer := FBuffer;
+  Start := Outer.Position;
+  if WriteClassID then
+  begin
+    if Obj = nil then
+      AClassID := 0
+    else
+      AClassID := Obj.ClassID;
+    if AClassID = 0 then
+    begin
+      Outer.Write(AClassID, 4);
+      FPropertyTable.Add(ID, Start);
+      Exit;
+    end;
+  end;
+  FBuffer := TMemoryStream.Create;
+  FPropertyTable.BackupSettings;
+  try
+    Obj.MainReadWrite(Self);
+    if WriteClassID then
+      Outer.Write(AClassID, 4);
+    FPropertyTable.SaveToStream(Outer);
+    FBuffer.Position := 0;
+    Outer.CopyFrom(FBuffer, FBuffer.Size);
+  finally
+    FBuffer.Free;
+    FPropertyTable.RestoreSettings;
+    FBuffer := Outer;
+  end;
+  FPropertyTable.Add(ID, Start);
+end;
+
+procedure TEWriteStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TEObject; ID: Integer);   { Engine.TEWriteStorageStream.rwCreateEObject }
+begin
+  if FPropertyTable.PropertyExist(ID) then
+    raise EDoublePriorityID.Create('Double priorityID found (' + IntToStr(ID) + ')');
+  Nest(Obj, ID, True);
+end;
+
+procedure TEWriteStorageStream.rwEObject(Obj: TEObject; ID: Integer);   { Engine.TEWriteStorageStream.rwEObject }
+begin
+  if FPropertyTable.PropertyExist(ID) then
+    raise EDoublePriorityID.Create('Double priorityID found (' + IntToStr(ID) + ') for ' + Obj.ClassName);
+  Nest(Obj, ID, False);
+end;
+
+procedure TEWriteStorageStream.rwEObjectStream(Obj: TEObject);     { Engine.TEWriteStorageStream.rwEObjectStream }
+var
+  Outer: TMemoryStream;
+  Start, Len: Integer;
+begin
+  Outer := FBuffer;
+  Start := Outer.Position;
+  FBuffer := TMemoryStream.Create;
+  FPropertyTable.BackupSettings;
+  try
+    Obj.MainReadWrite(Self);
+    Len := 0;
+    Outer.Write(Len, 4);
+    FPropertyTable.SaveToStream(Outer);
+    FBuffer.Position := 0;
+    Outer.CopyFrom(FBuffer, FBuffer.Size);
+    Len := Outer.Position - Start - 4;
+    Outer.Position := Start;
+    Outer.Write(Len, 4);
+    Outer.Position := Start + Len + 4;
+  finally
+    FPropertyTable.RestoreSettings;
+    FBuffer.Free;
+    FBuffer := Outer;
+  end;
+end;
+
+procedure TEWriteStorageStream.rwChildren(Node: TEObject; ID: Integer);   { Engine.TEWriteStorageStream.rwChildren }
+var
+  Outer: TMemoryStream;
+  Start, I: Integer;
+  N: TECustomNode;
+  Child: TEObject;
+begin
+  if FPropertyTable.PropertyExist(ID) then
+    raise EDoublePriorityID.Create('Double priorityID found (' + IntToStr(ID) + ')');
+  N := Node as TECustomNode;
+  Outer := FBuffer;
+  Start := Outer.Position;
+  FBuffer := TMemoryStream.Create;
+  FPropertyTable.BackupSettings;
+  try
+    { every owned, stored, non-shared child goes under its index }
+    for I := 0 to N.GetCount - 1 do
+    begin
+      Child := N.GetChild(I);
+      if (Child <> nil) and (Child.FOwner = Node)
+         and ((Child.GetControlStyle and csShared) = 0)
+         and ((Child.GetControlStyle and csStored) <> 0) then
+        rwCreateEObject(Child, Node, I);
+    end;
+    FPropertyTable.SaveToStream(Outer);
+    FBuffer.Position := 0;
+    Outer.CopyFrom(FBuffer, FBuffer.Size);
+  finally
+    FBuffer.Free;
+    FPropertyTable.RestoreSettings;
+    FBuffer := Outer;
+  end;
+  FPropertyTable.Add(ID, Start);
+end;
+
+procedure TEWriteStorageStream.rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc);   { Engine.TEWriteStorageStream.rwStreamProc }
+begin
+  CheckNew(ID);
+  FPropertyTable.Add(ID, FBuffer.Position);
+  SaveProc(FBuffer);
+end;
+
+procedure TEWriteStorageStream.rwData(var Buffer; Size: Integer; ID: Integer);   { Engine.TEWriteStorageStream.rwData }
+begin
+  CheckNew(ID);
+  if Size <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(Buffer, Size);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwString(var S: string; ID: Integer);   { Engine.TEWriteStorageStream.rwString }
+begin
+  CheckNew(ID);
+  if S <> '' then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    WriteStringToStream(S, FBuffer);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwStrings(Strings: TStrings; ID: Integer);   { Engine.TEWriteStorageStream.rwStrings }
+begin
+  CheckNew(ID);
+  if Strings.Count <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    StringsToStream(Strings, FBuffer);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwStringsEx(Strings: TStrings; ID: Integer);
+begin
+  CheckNew(ID);
+  if Strings.Count <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    StringsToStream(Strings, FBuffer);        { FUN_5550f9b4 also writes the Objects; not translated yet }
+  end;
+end;
+
+procedure TEWriteStorageStream.rwInteger(var I: Integer; ID: Integer);   { Engine.TEWriteStorageStream.rwInteger }
+begin
+  CheckNew(ID);
+  if I <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(I, 4);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwByte(var B: Byte; ID: Integer);
+begin
+  CheckNew(ID);
+  if B <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(B, 1);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwWord(var W: Word; ID: Integer);
+begin
+  CheckNew(ID);
+  if W <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(W, 2);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwBool(var B: Boolean; ID: Integer);   { Engine.TEWriteStorageStream.rwBool: only the id is stored }
+begin
+  CheckNew(ID);
+  if B then
+    FPropertyTable.Add(ID, FBuffer.Position);
+end;
+
+procedure TEWriteStorageStream.rwShortint(var S: Shortint; ID: Integer);
+begin
+  CheckNew(ID);
+  if S <> 0 then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(S, 1);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwIntegerEx(var I: Integer; Default: Integer; ID: Integer);
+begin
+  CheckNew(ID);
+  if I <> Default then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(I, 4);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwByteEx(var B: Byte; Default: Byte; ID: Integer);
+begin
+  CheckNew(ID);
+  if B <> Default then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(B, 1);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwWordEx(var W: Word; Default: Word; ID: Integer);
+begin
+  CheckNew(ID);
+  if W <> Default then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(W, 2);
+  end;
+end;
+
+procedure TEWriteStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer);
+begin
+  CheckNew(ID);
+  if S <> Default then
+  begin
+    FPropertyTable.Add(ID, FBuffer.Position);
+    FBuffer.Write(S, 1);
+  end;
 end;
 
 { ---------------------------------------------------------------- TCompressStream }
