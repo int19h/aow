@@ -1,0 +1,113 @@
+== Agtime  (1 classes, 2 funcs, 1 types)
+   TagTime (3): Create Execute RecvData
+   funcs: Register TagTime
+== Msreg32  (0 classes, 1 funcs, 0 types)
+   funcs: Register
+== agConst  (0 classes, 0 funcs, 0 types)
+== agFtpCls  (1 classes, 5 funcs, 2 types)
+   TagFTPDirList (9): Add AddString Assign Clear Create Destroy Get GetCount Put
+   funcs: TFTPProxyType TFileKind TServerType TagFTPDirEntry TagFTPDirList
+== agFtpUt  (0 classes, 4 funcs, 0 types)
+   funcs: DosFTPDateTimeToDateTime GetMonthNumber LastPos UnixFTPDateTimeToDateTime
+== agRasCmp  (3 classes, 4 funcs, 3 types)
+   ERASError (1): CreateRes
+   TServiceNameProperty (4): GetAttributes GetValue GetValues SetValue
+   TagRas (17): Cancel Create Destroy Dial GetActiveConnections GetEntries GetInstalled GetIsActive GetRASStatusString GetTimeOut HangUp MinimizeConnectWindow ReInit SetOwnConnection SetService SetTimeOut WndProc
+   funcs: ERASError TRASNotifyEvent TServiceNameProperty TagRas
+== agfinger  (1 classes, 2 funcs, 1 types)
+   TagFinger (5): Create Destroy Execute RecvData SetQuery
+   funcs: Register TagFinger
+== agftp  (1 classes, 2 funcs, 1 types)
+   TagFTP (36): AbortTransfer AcceptDataConnection AppendStoreFile ChangeDirectory ChangeToUpperDirectory CloseConnection CloseDataConnection CloseListenerSocket Create DeleteDirectory Delete_File Destroy FillDirList GetCurrentDirectory GetDirectory GetServerType LogIn LogOut MakeDirectory Open OpenConnection OpenListenerSocket ReInit RecvFTPStream RenameFile RequestDataConnection ResumeRetrieveFile ResumeStoreFile RetrieveFile SendFTPStream SetCurrentDirectory SetProxy SetServerType StoreFile StoreUnique WndProc
+   funcs: TTransferType TagFTP
+== aghttp  (1 classes, 1 funcs, 1 types)
+   TagHTTP (17): Chunked Create Destroy Get GetAuthorized Head HeadAuthorized Post PostAuthorized RecvData RecvHeaders SendPostQuery SendQuery SetPostContentType SetProxy SetURL StringToStream
+   funcs: TagHTTP
+== agrasAPI  (0 classes, 1 funcs, 0 types)
+   funcs: TRasConnState
+== agsocket  (1 classes, 1 funcs, 1 types)
+   TagSocket (32): Cancel CanceledError Close Connect Create Destroy DoError Error GetLocalHost GetOnLine GetServerReplyCode GetService GetTimeOut GetWinsockAvailable GetWinsockLoaded Notification Open OpenSocket ReInit RecvLine RecvLineStream RecvLines RecvStream ResolveRemoteHost SendLine SendStream SetTimeOut SetWinsockLoaded TimeOutError Verify WndProc WriteLogFile
+   funcs: TagSocket
+== agtypes  (2 classes, 13 funcs, 5 types)
+   ECanceledError (1): Create
+   ETimedOutError (1): Create
+   funcs: ECanceledError EMessageParserError EServerError ESocketError ETimedOutError TUnits TmsAddressRejectedEvent TmsErrorEvent TmsLineTransmitEvent TmsNumNotifyEvent TmsProgressEvent TmsProtocol TmsUserMsgSaveEvent
+== agwhois  (1 classes, 1 funcs, 1 types)
+   TagWhoIs (4): Create Destroy Execute RecvData
+   funcs: TagWhoIs
+== agwsock  (1 classes, 3 funcs, 2 types)
+   TagWinsock (59): Destroy FreeWinsock GetAvailable GetFuncPtr GetLoaded LoadWinsock WSAAsyncGetHostByAddr WSAAsyncGetHostByName WSAAsyncGetProtoByName WSAAsyncGetProtoByNumber WSAAsyncGetServByName WSAAsyncGetServByPort WSAAsyncSelect WSACancelAsyncRequest WSACancelBlockingCall WSACleanup WSAGetAsyncBuflen WSAGetAsyncError WSAGetLastError WSAGetSelectError WSAGetSelectEvent WSAIsBlocking WSAMakeSelectReply WSAMakeSyncReply WSARecvEx WSASetBlockingHook WSASetLastError WSAStartup WSAUnhookBlockingHook accept bind closesocket connect gethostbyaddr gethostbyname gethostname getpeername getprotobyname getprotobynumber getservbyname getservbyport getsockname getsockopt htonl htons inet_addr inet_ntoa ioctlsocket listen ntohl ntohs recv recvfrom select send sendto setsockopt shutdown socket
+   funcs: EWinsockDLLError TagWinsock agWinsock
+== ims  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== msCls  (3 classes, 3 funcs, 3 types)
+   TLineStream (6): Create Destroy GetNextLine LoadNextPart Reset SetBufSize
+   TTempFileStream (7): Create Destroy LoadFromFile LoadFromStream MakeTempFileName SaveToFile SaveToStream
+   TTimeCounter (5): Create Destroy TimerOff TimerOn TimerOnTimer
+   funcs: TLineStream TTempFileStream TTimeCounter
+== msaddred  (1 classes, 2 funcs, 1 types)
+   TMailAddressDlg (4): FormCreate FormDestroy OKButtonClick SetMailAddress
+   funcs: MailAddressDlg TMailAddressDlg
+== msaddrpe  (2 classes, 2 funcs, 2 types)
+   TAddrEditDlg (6): AddButtonClick DeleteButtonClick EditButtonClick FormCreate FormDestroy SetAddrList
+   TmsAddressListProperty (2): Edit GetAttributes
+   funcs: TAddrEditDlg TmsAddressListProperty
+== msattadd  (1 classes, 2 funcs, 1 types)
+   TAttEditDlg (2): BrowseButtonClick FileNameEditExit
+   funcs: AttEditDlg TAttEditDlg
+== msattpe  (2 classes, 3 funcs, 2 types)
+   TAttListEditDlg (8): AddButtonClick DeleteButtonClick DownButtonClick EditButtonClick FormCreate FormDestroy SetAttList UpButtonClick
+   TmsAttListProperty (2): Edit GetAttributes
+   funcs: AttListEditDlg TAttListEditDlg TmsAttListProperty
+== msconst  (0 classes, 0 funcs, 0 types)
+== msmb  (1 classes, 1 funcs, 1 types)
+   TmsMailBase (2): CloseConnection OpenConnection
+   funcs: TmsMailBase
+== msmime  (1 classes, 5 funcs, 1 types)
+   TQuotedPrintable (6): Create Decode Encode ReformatParagraph ReplaceHex ReplaceHiChars
+   funcs: DecodeHeader EncodeHeader MakeBinData MakeTextData TQuotedPrintable
+== msmsg  (5 classes, 6 funcs, 6 types)
+   TmsArticle (6): Assign Clear LoadFromStream ProcessHeaders SaveToStream Verify
+   TmsCustomMessage (18): Assign CleanUpFiles Clear Create Destroy Error ExecuteAttachment GetContentType LoadFromFile LoadHeaders Loaded SaveAttachment SaveToFile SetAttachments SetBody SetContentType SetHeaders Verify
+   TmsListMessage (2): Create Destroy
+   TmsMessage (11): Assign Clear Create Destroy LoadFromStream ProcessHeaders SaveToStream SetBCC SetCC SetRecipients Verify
+   TmsMessageList (9): Add Clear Create Delete Destroy GetCount GetItem Remove SetItem
+   funcs: EMessageError TmsArticle TmsCustomMessage TmsListMessage TmsMessage TmsMessageList
+== msmsgcls  (5 classes, 10 funcs, 5 types)
+   TmsAddressList (11): Add AddAddress Assign Clear Create DefineProperties Delete Destroy GetCount GetItem SetItem
+   TmsAttItem (4): Assign Create Destroy SetFileName
+   TmsAttList (12): Add AddFile Assign Clear Create DefineProperties Delete Destroy Exchange GetCount GetItem SetItem
+   TmsHeaders (6): CleanUp Contains GetFieldBody GetMultiLineFieldBody Remove RemoveXHeaders
+   TmsMailAddress (3): Assign Clear Edit
+   funcs: EncNames TCharSet TEncoding TMsgEncoding TPriority TmsAddressList TmsAttItem TmsAttList TmsHeaders TmsMailAddress
+== msnntp  (1 classes, 1 funcs, 1 types)
+   TmsNNTP (22): ConcatIfNotBlank Create Destroy GetCurrentArticle LoadNewsGroupList LogIn LogOut Notification Open PostArticle RetrieveAllHeaders RetrieveArticleById RetrieveArticleByNumber RetrieveCurrentArticle RetrieveCurrentHeader RetrieveNewsGroupList RetrieveNextNHeaders SaveNewsGroupList SetCurrentArticle SetLastHeaderNumber SetNewsGroup SetNextArticle
+   funcs: TmsNNTP
+== msnwscls  (2 classes, 4 funcs, 4 types)
+   TmsNewsGroupList (12): Add Clear Create Destroy Get GetCount LoadFromFile LoadFromStream PickAPart Put SaveToFile SaveToStream
+   TmsNgInfoList (7): Add Clear Create Destroy Get GetCount Put
+   funcs: TmsNewsGroupList TmsNewsgroup TmsNgInfoItem TmsNgInfoList
+== mspars  (6 classes, 7 funcs, 6 types)
+   TmsArticleDecoder (1): ProcessHeaders
+   TmsArticleEncoder (1): PrepareGlobalHeaders
+   TmsCustomDecoder (15): Create Destroy Error FillHeaders Process ProcessAlternativeMessage ProcessAttachments ProcessBody ProcessError ProcessFileMessage ProcessMIMEMessage ProcessMultiPartMessage ProcessNotMIMEMessage ProcessSinglePartMessage RemoveTrailingDot
+   TmsCustomEncoder (13): Create FilterHeaders ListHeadersToStream MakeUniqueID PrepareAnAttachment PrepareBody PrepareFancyMessage PrepareFileMessage PrepareMultipartMessage PrepareTextPlainMessage PrepareUUEncodedMessage Process StringToStream
+   TmsMessageDecoder (1): ProcessHeaders
+   TmsMessageEncoder (1): PrepareGlobalHeaders
+   funcs: ForceBCC TmsArticleDecoder TmsArticleEncoder TmsCustomDecoder TmsCustomEncoder TmsMessageDecoder TmsMessageEncoder
+== mspop3  (3 classes, 3 funcs, 3 types)
+   TmsCustomPOP (11): Create DeleteMessage Destroy GetServerReplyCode GetStatistics LogIn LogOut Open ReInit RetrieveMessage Verify
+   TmsPOP (4): Create Destroy OutputMsgStream RetrieveAllMessages
+   TmsRemotePOP (14): CheckIdentity Create Destroy FillRemoteInfoItem IDsAreSame MarkToDelete MarkToRetrieve OutputMsgStream Reset SetMessageDirectory Transfer UpdateRemoteInfo UpdateRemoteInfoAndUIDL UpdateUIDL
+   funcs: TmsCustomPOP TmsPOP TmsRemotePOP
+== mspop3cl  (2 classes, 4 funcs, 2 types)
+   TmsRemoteInfo (6): Add Clear Create Destroy GetCount GetItem
+   TmsRemoteInfoItem (6): Create Destroy GetMarkedToDelete GetMarkedToRetrieve SetMarkedToDelete SetMarkedToRetrieve
+   funcs: TmsAction TmsActionSet TmsRemoteInfo TmsRemoteInfoItem
+== mssmtp  (1 classes, 1 funcs, 1 types)
+   TmsSMTP (12): Create Destroy LogIn LogOut Notification Open PrepareMessage Reset Send SendBody SendEnvelope Send_Message
+   funcs: TmsSMTP
+== msutils  (0 classes, 19 funcs, 0 types)
+   funcs: AddBackSlash DateTimeToMailDate DefaultTimeZoneString GetContentType GetFirstPart GetParameter MailDateToDateTime MailDateToGMT MakeTimeDifferential PickMailAddress PickNumber PickString SLSaveToFile SplitAddress TEncMethod TimeZone TrimQuotes TrimStrings ValidTimeZone
+== msuucode  (0 classes, 4 funcs, 0 types)
+   funcs: IsUUCodeStart UUMakeBinData UUMakeTextData UUPickFileName

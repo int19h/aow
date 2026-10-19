@@ -1,0 +1,271 @@
+# D:\Games\GOG\Age of Wonders\ims.dpl: 49 classes
+class TQuotedPrintable (TObject) size=16 virtuals=0 vmt=004036A8
+class TMailAddressDlg (TForm) size=508 virtuals=32 vmt=00404698
+  field  +01DC Bevel1                         TBevel
+  field  +01E0 OKButton                       TButton
+  field  +01E4 CancelButton                   TButton
+  field  +01E8 AddressEdit                    TEdit
+  field  +01EC NameEdit                       TEdit
+  field  +01F0 Label1                         TLabel
+  field  +01F4 Label2                         TLabel
+  method 00404894 OKButtonClick
+  method 00404918 FormCreate
+  method 00404930 FormDestroy
+  unit msaddred
+class TmsMailAddress (TPersistent) size=516 virtuals=4 vmt=00404AC4
+  unit msmsgcls
+  prop   Name                           ShortString                  get=field+0004 set=field+0004
+  prop   Address                        ShortString                  get=field+0104 set=field+0104
+class TmsAddressList (TPersistent) size=8 virtuals=3 vmt=00404B90
+  unit msmsgcls
+class TmsAttItem (TPersistent) size=524 virtuals=3 vmt=00404C18
+  unit msmsgcls
+class TmsAttList (TPersistent) size=8 virtuals=3 vmt=00404C98
+  unit msmsgcls
+class TmsHeaders (TStringList) size=44 virtuals=32 vmt=00404D18
+  unit msmsgcls
+class TTempFileStream (TFileStream) size=344 virtuals=4 vmt=004062E0
+class TLineStream (TMemoryStream) size=32 virtuals=5 vmt=0040637C
+class TTimeCounter (TObject) size=20 virtuals=0 vmt=00406400
+class TagRas (TComponent) size=108 virtuals=10 vmt=00406BF4
+  unit agRasCmp
+  prop   Service                        String                       get=field+0028 set=static 00407770
+  prop   ForceService                   Boolean                      get=field+0058 set=field+0058 default=1
+  prop   MinimizeAtConnect              Boolean                      get=field+0048 set=field+0048 default=0
+  prop   Password                       String                       get=field+004C set=field+004C
+  prop   RemovePassword                 Boolean                      get=field+0050 set=field+0050 default=1
+  prop   TimeOut                        Integer                      get=static 00407468 set=static 00407470 default=120
+  prop   OnStatusChange                 TRASNotifyEvent(tkMethod)    get=field+0038 set=field+0038
+  prop   OnDisconnected                 TNotifyEvent                 get=field+0040 set=field+0040
+class TServiceNameProperty (TPropertyEditor) size=16 virtuals=11 vmt=00406DD8
+class TagWinsock (TObject) size=8 virtuals=0 vmt=00407F3C
+class TagSocket (TComponent) size=592 virtuals=15 vmt=00408CB4
+  unit agsocket
+  prop   WinsockLoaded                  Boolean                      get=static 00409444 set=static 00409454 default=0
+  prop   RAS                            TagRas(tkClass)              get=field+0084 set=field+0084
+class TmsNewsgroup (TObject) size=20 virtuals=0 vmt=0040AA84
+class TmsNewsGroupList (TPersistent) size=8 virtuals=3 vmt=0040AB0C
+  unit msnwscls
+class TmsNgInfoItem (TmsHeaders) size=48 virtuals=32 vmt=0040AB98
+  unit msnwscls
+class TmsNgInfoList (TPersistent) size=8 virtuals=3 vmt=0040AC90
+  unit msnwscls
+class TmsCustomDecoder (TObject) size=40 virtuals=1 vmt=0040B9A0
+class TmsMessageDecoder (TmsCustomDecoder) size=40 virtuals=1 vmt=0040BA3C
+class TmsArticleDecoder (TmsCustomDecoder) size=40 virtuals=1 vmt=0040BAC0
+class TmsCustomEncoder (TObject) size=24 virtuals=1 vmt=0040BB44
+class TmsMessageEncoder (TmsCustomEncoder) size=24 virtuals=1 vmt=0040BBC8
+class TmsArticleEncoder (TmsCustomEncoder) size=24 virtuals=1 vmt=0040BC4C
+class TmsCustomMessage (TComponent) size=572 virtuals=15 vmt=00410E78
+  unit msmsg
+  prop   Attachments                    TmsAttList(tkClass)          get=field+0134 set=static 0041162C
+  prop   ContentType                    ShortString                  get=static 00411754 set=static 00411A98
+  prop   Encoding                       TMsgEncoding(tkEnumeration)  get=field+0128 set=field+0128 default=0
+  prop   Sender                         TmsMailAddress(tkClass)      get=field+0024 set=field+0024
+  prop   Subject                        ShortString                  get=field+0028 set=field+0028
+  prop   CharSet                        TCharSet(tkEnumeration)      get=field+0129 set=field+0129 default=0
+  prop   Headers                        TmsHeaders(tkClass)          get=field+012C set=static 00411614
+  prop   Body                           TStrings                     get=field+0130 set=static 00411620
+class TmsMessage (TmsCustomMessage) size=588 virtuals=15 vmt=00411048
+  unit msmsg
+  prop   Recipients                     TmsAddressList(tkClass)      get=field+023C set=static 004120C0
+  prop   ReturnReceipt                  Boolean                      get=field+0248 set=field+0248
+  prop   Priority                       TPriority(tkEnumeration)     get=field+0249 set=field+0249 default=1
+  prop   CC                             TmsAddressList(tkClass)      get=field+0240 set=static 004120CC
+  prop   BCC                            TmsAddressList(tkClass)      get=field+0244 set=static 004120D8
+class TmsArticle (TmsCustomMessage) size=584 virtuals=15 vmt=004111A0
+  unit msmsg
+  prop   NewsGroups                     String                       get=field+023C set=field+023C
+class TmsListMessage (TmsMessage) size=588 virtuals=15 vmt=00411294
+  unit msmsg
+class TmsMessageList (TComponent) size=40 virtuals=10 vmt=00411348
+  unit msmsg
+class TmsMailBase (TagSocket) size=592 virtuals=17 vmt=00412BA8
+  unit msmb
+  prop   Server                         String                       get=field+0024 set=field+0024
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+class TmsSMTP (TmsMailBase) size=636 virtuals=17 vmt=00412DE8
+  unit mssmtp
+  prop   MailMessage                    TmsMessage(tkClass)          get=field+0270 set=field+0270
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnPrepare                      TNotifyEvent                 get=field+0250 set=field+0250
+  prop   OnSending                      TNotifyEvent                 get=field+0258 set=field+0258
+  prop   OnMailSent                     TNotifyEvent                 get=field+0260 set=field+0260
+  prop   OnAddressRejected              TmsAddressRejectedEvent(tkMethod) get=field+0268 set=field+0268
+class TmsRemoteInfoItem (TObject) size=20 virtuals=0 vmt=004139E4
+class TmsRemoteInfo (TObject) size=8 virtuals=0 vmt=00413A74
+class TmsCustomPOP (TmsMailBase) size=636 virtuals=19 vmt=00413C9C
+  unit mspop3
+  prop   UserName                       String                       get=field+0250 set=field+0250
+  prop   Password                       String                       get=field+0254 set=field+0254
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnRetrieving                   TmsNumNotifyEvent(tkMethod)  get=field+0260 set=field+0260
+  prop   OnRetrieved                    TmsNumNotifyEvent(tkMethod)  get=field+0268 set=field+0268
+  prop   OnDeleting                     TmsNumNotifyEvent(tkMethod)  get=field+0270 set=field+0270
+class TmsPOP (TmsCustomPOP) size=640 virtuals=19 vmt=00413E78
+  unit mspop3
+class TmsRemotePOP (TmsCustomPOP) size=696 virtuals=19 vmt=00413F2C
+  unit mspop3
+  prop   MessageDirectory               String                       get=field+027C set=static 00414978
+  prop   OnUpdatingInfo                 TNotifyEvent                 get=field+0288 set=field+0288
+  prop   OnInfoUpdated                  TNotifyEvent                 get=field+0290 set=field+0290
+  prop   OnTransferringData             TNotifyEvent                 get=field+0298 set=field+0298
+  prop   OnDataTransfered               TNotifyEvent                 get=field+02A0 set=field+02A0
+  prop   OnNextInfoUpdated              TmsNumNotifyEvent(tkMethod)  get=field+02A8 set=field+02A8
+  prop   OnUserMessageSave              TmsUserMsgSaveEvent(tkMethod) get=field+02B0 set=field+02B0
+class TAddrEditDlg (TForm) size=516 virtuals=32 vmt=004153DC
+  field  +01DC OKButton                       TButton
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 Bevel1                         TBevel
+  field  +01E8 Panel1                         TPanel
+  field  +01EC EditButton                     TButton
+  field  +01F0 AddButton                      TButton
+  field  +01F4 DeleteButton                   TButton
+  field  +01F8 HelpButton                     TButton
+  field  +01FC StringGrid1                    TStringGrid
+  method 004156E4 FormCreate
+  method 004158D0 EditButtonClick
+  method 004158F4 AddButtonClick
+  method 004156FC FormDestroy
+  method 00415940 DeleteButtonClick
+  unit msaddrpe
+class TmsAddressListProperty (TClassProperty) size=16 virtuals=11 vmt=004155E4
+class TAttEditDlg (TForm) size=524 virtuals=32 vmt=004159E0
+  field  +01DC Bevel1                         TBevel
+  field  +01E0 Label1                         TLabel
+  field  +01E4 FileNameEdit                   TEdit
+  field  +01E8 BrowseButton                   TButton
+  field  +01EC OKButton                       TButton
+  field  +01F0 CancelButton                   TButton
+  field  +01F4 HelpButton                     TButton
+  field  +01F8 OpenDialog1                    TOpenDialog
+  field  +01FC Label2                         TLabel
+  field  +0200 ContentTypeEdit                TEdit
+  field  +0204 Label3                         TLabel
+  field  +0208 EncodingBox                    TComboBox
+  method 00415BAC BrowseButtonClick
+  method 00415C1C FileNameEditExit
+  unit msattadd
+class TAttListEditDlg (TForm) size=520 virtuals=32 vmt=00415E3C
+  field  +01DC Bevel1                         TBevel
+  field  +01E0 ListBox1                       TListBox
+  field  +01E4 EditButton                     TButton
+  field  +01E8 AddButton                      TButton
+  field  +01EC DeleteButton                   TButton
+  field  +01F0 OKButton                       TButton
+  field  +01F4 CancelButton                   TButton
+  field  +01F8 HelpButton                     TButton
+  field  +01FC UpButton                       TButton
+  field  +0200 DownButton                     TButton
+  method 004162A0 AddButtonClick
+  method 004163CC DeleteButtonClick
+  method 00416178 FormCreate
+  method 00416190 FormDestroy
+  method 00416418 EditButtonClick
+  method 0041657C UpButtonClick
+  method 004165D8 DownButtonClick
+  unit msattpe
+class TmsAttListProperty (TClassProperty) size=16 virtuals=11 vmt=00416084
+class TmsNNTP (TmsMailBase) size=704 virtuals=17 vmt=004166BC
+  unit msnntp
+  prop   Article                        TmsArticle(tkClass)          get=field+0284 set=field+0284
+  prop   NewsGroup                      String                       get=field+0250 set=static 00416C34
+  prop   Authenticate                   Boolean                      get=field+0270 set=field+0270
+  prop   Username                       String                       get=field+0274 set=field+0274
+  prop   Password                       String                       get=field+0278 set=field+0278
+  prop   OnNextHeaderRetrieved          TmsNumNotifyEvent(tkMethod)  get=field+027C set=field+027C
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnArticleRetrieved             TNotifyEvent                 get=field+0298 set=field+0298
+  prop   OnPosted                       TNotifyEvent                 get=field+0288 set=field+0288
+  prop   OnPosting                      TNotifyEvent                 get=field+0290 set=field+0290
+  prop   OnGroupSelected                TNotifyEvent                 get=field+02A0 set=field+02A0
+  prop   OnLastHeaderRetrieved          TNotifyEvent                 get=field+02A8 set=field+02A8
+  prop   OnRetrievingNewsGroupList      TNotifyEvent                 get=field+02B0 set=field+02B0
+  prop   OnNewsGroupListRetrieved       TNotifyEvent                 get=field+02B8 set=field+02B8
+class TagFinger (TagSocket) size=612 virtuals=15 vmt=0041788C
+  unit agfinger
+  prop   Query                          String                       get=field+0250 set=static 00417B40
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+  prop   OnSendingQuery                 TNotifyEvent                 get=field+0258 set=field+0258
+class TagWhoIs (TagSocket) size=608 virtuals=15 vmt=00417D4C
+  unit agwhois
+  prop   Server                         String                       get=field+0024 set=field+0024
+  prop   Query                          String                       get=field+0250 set=field+0250
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+  prop   OnSendingQuery                 TNotifyEvent                 get=field+0258 set=field+0258
+class TagTime (TagSocket) size=600 virtuals=15 vmt=00418118
+  unit Agtime
+  prop   Server                         String                       get=field+0024 set=field+0024
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnConnected                    TNotifyEvent                 get=field+0044 set=field+0044
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+class TagFTPDirEntry (TObject) size=532 virtuals=0 vmt=00418ABC
+class TagFTPDirList (TPersistent) size=12 virtuals=3 vmt=00418B38
+  unit agFtpCls
+class TagFTP (TagSocket) size=672 virtuals=15 vmt=004193A8
+  unit agftp
+  prop   Server                         String                       get=field+0024 set=field+0024
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnConnected                    TNotifyEvent                 get=field+0044 set=field+0044
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+  prop   OnLineSent                     TmsLineTransmitEvent(tkMethod) get=field+0074 set=field+0074
+  prop   OnLineReceived                 TmsLineTransmitEvent(tkMethod) get=field+007C set=field+007C
+  prop   UserName                       String                       get=field+0258 set=field+0258
+  prop   Password                       String                       get=field+025C set=field+025C
+  prop   ServerType                     TServerType(tkEnumeration)   get=static 0041986C set=static 00419878
+  prop   UseProxy                       Boolean                      get=field+028A set=field+028A default=0
+  prop   Proxy                          String                       get=field+028C set=static 004199AC
+  prop   ProxyType                      TFTPProxyType(tkEnumeration) get=field+0290 set=field+0290
+  prop   TrasferBufferSize              Cardinal                     get=field+0284 set=field+0284 default=2048
+  prop   TransferType                   TTransferType(tkEnumeration) get=field+0260 set=field+0260 default=0
+  prop   OnTransferStart                TNotifyEvent                 get=field+0264 set=field+0264
+  prop   OnTransferProgress             TmsProgressEvent(tkMethod)   get=field+026C set=field+026C
+  prop   OnTransferEnd                  TNotifyEvent                 get=field+0274 set=field+0274
+class TagHTTP (TagSocket) size=644 virtuals=15 vmt=0041BCC4
+  unit aghttp
+  prop   URL                            String                       get=field+0250 set=static 0041C06C
+  prop   Proxy                          String                       get=field+026C set=static 0041C260
+  prop   ProxyUserName                  String                       get=field+0270 set=field+0270
+  prop   ProxyPassword                  String                       get=field+0274 set=field+0274
+  prop   UserAgent                      String                       get=field+027C set=field+027C
+  prop   DefaultPort                    Word                         get=field+0030 set=field+0030
+  prop   TimeOut                        Integer                      get=static 00409494 set=static 004094A0 default=60
+  prop   OnOpen                         TNotifyEvent                 get=field+003C set=field+003C
+  prop   OnProgress                     TmsProgressEvent(tkMethod)   get=field+0064 set=field+0064
+  prop   OnClosing                      TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnClosed                       TNotifyEvent                 get=field+0054 set=field+0054
+  prop   OnCancel                       TNotifyEvent                 get=field+005C set=field+005C
+  prop   OnError                        TmsErrorEvent(tkMethod)      get=field+006C set=field+006C
+  prop   OnSending                      TNotifyEvent                 get=field+0258 set=field+0258

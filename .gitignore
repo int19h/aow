@@ -1,0 +1,37 @@
+# Generated decompiler output (large, derived from the game binaries; regenerate with tools/ghidra)
+notes/decomp/
+
+# Ghidra project files and script build output, in case they land here by accident
+*.gpr
+*.rep/
+*.lock
+*.lock~
+ghidra_scripts/
+bin/
+
+# Python
+__pycache__/
+*.pyc
+
+# Local tool installs must stay outside the repo (C:\Tools, C:\lazarus)
+ghidra_*/
+lazarus/
+jdk*/
+
+# Game files are never checked in
+*.dpl
+*.exe
+*.dll
+*.ilb
+*.ILB
+*.hsm
+*.HSM
+*.asg
+*.pfs
+
+# Editors and OS
+.vs/
+.vscode/
+*.swp
+Thumbs.db
+Desktop.ini

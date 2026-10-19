@@ -1,0 +1,7 @@
+# D:\Games\GOG\Age of Wonders\AbilityP.dpl: 6 classes
+class TMoveAbility (TAbility) size=24 virtuals=5 vmt=00401C1C
+class TImmunityAbility (TAbility) size=24 virtuals=5 vmt=0040201C
+class TStrikeAbility (TAbility) size=24 virtuals=5 vmt=0040248C
+class TShootAbility (TAbility) size=24 virtuals=5 vmt=004028F4
+class TUnitAbility (TAbility) size=24 virtuals=5 vmt=00402F40
+class TAbililtyPlugIn (TPlugIn) size=16 virtuals=3 vmt=00403BFC

@@ -1,0 +1,7 @@
+== VFW  (0 classes, 59 funcs, 0 types)
+   funcs: AVIFileAddRef AVIFileCreateStream AVIFileEndRecord AVIFileExit AVIFileGetStream AVIFileInfo AVIFileInit AVIFileOpen AVIFileReadData AVIFileRelease AVIFileWriteData AVIMakeCompressedStream AVIMakeFileFromStreams AVISave AVISaveOptions AVISaveOptionsFree AVISaveV AVIStreamAddRef AVIStreamBeginStreaming AVIStreamCreate AVIStreamEndStreaming AVIStreamFindSample AVIStreamGetFrame AVIStreamGetFrameClose AVIStreamGetFrameOpen AVIStreamInfo AVIStreamLength AVIStreamOpenFromFile AVIStreamRead AVIStreamReadData AVIStreamReadFormat AVIStreamRelease AVIStreamSampleToTime AVIStreamSetFormat AVIStreamStart AVIStreamTimeToSample AVIStreamWrite AVIStreamWriteData CLSID_AVIFile CLSID_AVISimpleUnMarshal CreateEditableStream IAVIEditStream IAVIFile IAVIStream ICClose ICDecompress ICLocate ICM_FRAMERATE ICSendMessage ICTYPE_AUDIO ICTYPE_VIDEO IGetFrame IID_IAVIEditStream IID_IAVIFile IID_IAVIStream IID_IAVIStreaming IID_IGetFrame InitVFW ReleaseVFW
+== Video  (1 classes, 8 funcs, 4 types)
+   TVideoPlayer (27): Clear Close CloseDecompressor Create Destroy GetEndPosition GetPosition GetSoundLoaded GetVideoLoaded Initialize Open OptimizeOutputPFID Pause Play Release RenderVideoFrame ResetSoundStream Resume SetPosition SetupSound SetupVideo Show ShowFrame Stop StopSoundStream StreamSound Update
+   funcs: Register TSoundControlSettings TStreamSoundEvent TStreamSoundMode TVideoPlayer TVideoPlayerLoopMode TVideoPlayerOptions TVideoPlayerStatus
+== VideoP  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

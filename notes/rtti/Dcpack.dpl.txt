@@ -1,0 +1,72 @@
+# D:\Games\GOG\Age of Wonders\Dcpack.dpl: 19 classes
+class TMatrix (TObject) size=12 virtuals=0 vmt=55101B2C
+class TAbstractDC (TComponent) size=36 virtuals=45 vmt=55101BF0
+  unit DisplayC
+class TDisplayCtrl (TAbstractDC) size=76 virtuals=45 vmt=55101D18
+  unit DisplayC
+class TDDrawFSWinControl (TWinControl) size=284 virtuals=31 vmt=55101E44
+  unit DisplayC
+class TCustomDisplay (TWinControl) size=428 virtuals=46 vmt=5510239C
+  unit DisplayC
+class TDisplay (TCustomDisplay) size=428 virtuals=46 vmt=551024F0
+  unit DisplayC
+  prop   Align                          TAlign                       get=field+0048 set=static 551015D4 default=0
+  prop   Color                          TColor                       get=field+0054 set=static 55101604 default=-2147483643
+  prop   Enabled                        Boolean                      get=field+0045 set=static 551015FC default=1
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnKeyDown                      TKeyEvent                    get=field+00EC set=field+00EC
+  prop   OnKeyPress                     TKeyPressEvent               get=field+00F4 set=field+00F4
+  prop   OnKeyUp                        TKeyEvent                    get=field+00FC set=field+00FC
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   Options                        TDisplayOptions(tkSet)       get=field+0185 set=field+0185
+  prop   BufferingScheme                TBufferingScheme(tkEnumeration) get=field+0189 set=static 55104C00
+  prop   BackSurfaceControlMode         TBackSurfaceControlMode(tkEnumeration) get=field+0188 set=field+0188
+  prop   BackSurfaceWidth               Integer                      get=field+018C set=static 55104FCC
+  prop   BackSurfaceHeight              Integer                      get=field+0190 set=static 55104FF0
+  prop   FrameRate                      Integer                      get=field+0174 set=virt+0084
+  prop   PrimaryDC                      TAbstractDC(tkClass)         get=field+01A0 set=field+01A0
+  prop   SecondaryDC                    TAbstractDC(tkClass)         get=field+01A4 set=field+01A4
+  prop   UpdateFrameMode                TUpdateFrameMode(tkEnumeration) get=field+0187 set=static 55104C94
+  prop   OnResize                       TNotifyEvent                 get=field+0134 set=field+0134
+  prop   OnBltSurface                   TNotifyEvent                 get=field+011C set=field+011C
+  prop   OnDeactivateDC                 TDCNotifyEvent(tkMethod)     get=field+014C set=field+014C
+  prop   OnActivateDC                   TDCNotifyEvent(tkMethod)     get=field+0144 set=field+0144
+  prop   OnUpdateFrame                  TUpdateFrameEvent(tkMethod)  get=field+0124 set=field+0124
+  prop   OnHide                         TNotifyEvent                 get=field+0154 set=field+0154
+  prop   OnShow                         TNotifyEvent                 get=field+015C set=field+015C
+  prop   OnError                        TErrorEvent(tkMethod)        get=field+013C set=field+013C
+  prop   OnSurfaceDataLost              TSurfaceDataLostEvent(tkMethod) get=field+012C set=field+012C
+  prop   OnResizeBackSurface            TResizeBackSurfaceEvent(tkMethod) get=field+0164 set=field+0164
+  prop   OnSwapDC                       TSwapDCEvent(tkMethod)       get=field+016C set=field+016C
+class TUpdateFrameThread (TThread) size=52 virtuals=2 vmt=55102A88
+class TDisplayGDISurface (TGDISurface) size=12 virtuals=20 vmt=55102B14
+class TWindowsDC (TDisplayCtrl) size=88 virtuals=45 vmt=55102BE8
+  unit DisplayC
+class TWindows08DC (TWindowsDC) size=1172 virtuals=45 vmt=55102D10
+  unit DisplayC
+class TWindows16DC (TWindowsDC) size=100 virtuals=45 vmt=55102E78
+  unit DisplayC
+  prop   PixelFormat                    TWin16DCPixelFormat(tkEnumeration) get=field+0058 set=static 551067A4
+class TWindows24DC (TWindowsDC) size=96 virtuals=45 vmt=55102FCC
+  unit DisplayC
+class TWindows32DC (TWindowsDC) size=96 virtuals=45 vmt=551030F8
+  unit DisplayC
+class TDDrawDCSurface (TDDrawSurface) size=100 virtuals=18 vmt=55103224
+class TDDrawDC (TDisplayCtrl) size=92 virtuals=45 vmt=551032E8
+  unit DisplayC
+  prop   UseVideoMemory                 Boolean                      get=field+0058 set=field+0058
+  prop   UseVerticalBlank               Boolean                      get=field+0059 set=field+0059
+  prop   DebugMode                      Boolean                      get=field+005A set=field+005A
+class TDDrawFullScrDC (TDDrawDC) size=112 virtuals=46 vmt=55103484
+  unit DisplayC
+  prop   DisplayWidth                   Integer                      get=field+0060 set=field+0060
+  prop   DisplayHeight                  Integer                      get=field+0064 set=field+0064
+  prop   Enable3D                       Boolean                      get=field+006C set=field+006C
+class TDDrawFullScr16DC (TDDrawFullScrDC) size=112 virtuals=46 vmt=55103628
+  unit DisplayC
+class TDDrawFullScr24DC (TDDrawFullScrDC) size=112 virtuals=46 vmt=55103760
+  unit DisplayC
+class TDDrawFullScr32DC (TDDrawFullScrDC) size=112 virtuals=46 vmt=55103898
+  unit DisplayC

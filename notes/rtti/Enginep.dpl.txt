@@ -1,0 +1,161 @@
+# D:\Games\GOG\Age of Wonders\Enginep.dpl: 71 classes
+class TFastMemoryStream (TStream) size=20 virtuals=4 vmt=55501F2C
+class TCustomZlibStream (TStream) size=65612 virtuals=4 vmt=55502334
+class TCompressionStream (TCustomZlibStream) size=65612 virtuals=4 vmt=55502410
+class TDecompressionStream (TCustomZlibStream) size=65612 virtuals=4 vmt=555024A0
+class TIntegerList (TPersistent) size=20 virtuals=5 vmt=5550B908
+  unit Engine
+class TByteList (TPersistent) size=20 virtuals=5 vmt=5550B994
+  unit Engine
+class TShortIntList (TPersistent) size=20 virtuals=5 vmt=5550BA18
+  unit Engine
+class TWordList (TPersistent) size=20 virtuals=5 vmt=5550BAA4
+  unit Engine
+class TBitList (TPersistent) size=20 virtuals=5 vmt=5550BB28
+  unit Engine
+class TEventList (TPersistent) size=24 virtuals=5 vmt=5550BBAC
+  unit Engine
+class TDoubleItemList (TPersistent) size=24 virtuals=5 vmt=5550BC30
+  unit Engine
+class TQuadItemList (TPersistent) size=32 virtuals=5 vmt=5550BCBC
+  unit Engine
+class TCallBackEventList (TObject) size=8 virtuals=0 vmt=5550BD48
+class THashList (TObject) size=16 virtuals=1 vmt=5550BDC8
+class TIntegerHashTable (TObject) size=4 virtuals=4 vmt=5550BE3C
+class TIntegerHashList (THashList) size=16 virtuals=1 vmt=5550BECC
+class TIntegerHashTable256 (TIntegerHashTable) size=1028 virtuals=5 vmt=5550BF50
+class TStringHashTable (TObject) size=4 virtuals=4 vmt=5550BFEC
+class TStringHashList (THashList) size=16 virtuals=1 vmt=5550C07C
+class TStringHashTable256 (TStringHashTable) size=1028 virtuals=4 vmt=5550C0F8
+class TEObject (TObject) size=8 virtuals=19 vmt=5550C188
+class TEObjectClassList (TList) size=16 virtuals=2 vmt=5550C244
+class TEObjectList (TList) size=16 virtuals=2 vmt=5550C2CC
+class TEObjectEditor (TEObject) size=8 virtuals=23 vmt=5550C454
+class TEObjectEditorList (TEObjectClassList) size=16 virtuals=2 vmt=5550C528
+class TECustomNode (TEObject) size=8 virtuals=34 vmt=5550C5B0
+class TENode (TECustomNode) size=12 virtuals=34 vmt=5550C6B0
+class TEReferenceNode (TENode) size=12 virtuals=34 vmt=5550C7A0
+class TEChangeNotifyNode (TECustomNode) size=16 virtuals=35 vmt=5550C8A0
+class TEChangeNotifyEventList (TEChangeNotifyNode) size=20 virtuals=35 vmt=5550C9AC
+class TEControlStyleNode (TENode) size=16 virtuals=34 vmt=5550CAC0
+class TESortNode (TECustomNode) size=24 virtuals=37 vmt=5550CBC8
+class TEInverseSortNode (TESortNode) size=24 virtuals=37 vmt=5550CCCC
+class TEControlStyleSortNode (TESortNode) size=28 virtuals=37 vmt=5550CDE0
+class TEControlStyleInverseSortNode (TEInverseSortNode) size=28 virtuals=37 vmt=5550CEFC
+class TEControlStyleObject (TEObject) size=12 virtuals=19 vmt=5550D028
+class TETimerNode (TECustomNode) size=56 virtuals=34 vmt=5550D0FC
+class TEUser (TEObject) size=12 virtuals=19 vmt=5550D1F4
+class TECustomOwner (TENode) size=20 virtuals=34 vmt=5550D2A8
+class TECopyComponent (TComponent) size=44 virtuals=10 vmt=5550D3A8
+  unit Engine
+class TEngine (TENode) size=52 virtuals=39 vmt=5550D510
+class TEComponent (TComponent) size=56 virtuals=10 vmt=5550D628
+  unit Engine
+class TEResource (TEObject) size=24 virtuals=25 vmt=5550D6C0
+class TEResourceList (TECustomOwner) size=20 virtuals=35 vmt=5550D794
+class TEResourceEditSettings (TEControlStyleObject) size=16 virtuals=19 vmt=5550D898
+class TPlugIn (TObject) size=16 virtuals=3 vmt=5550D96C
+class TPlugInControl (TEObject) size=16 virtuals=19 vmt=5550D9E0
+class TPropertyTable (TObject) size=40 virtuals=0 vmt=5550DB9C
+class TEBufferStream (TFastMemoryStream) size=20 virtuals=4 vmt=5550DCE8
+class TEStorageStream (TObject) size=36 virtuals=20 vmt=5550DD70
+class TEReadStorageStream (TEStorageStream) size=44 virtuals=20 vmt=5550DE38
+class TEWriteStorageStream (TEStorageStream) size=44 virtuals=20 vmt=5550DF08
+class TEWriteTextStorageStream (TEStorageStream) size=44 virtuals=20 vmt=5550DFE0
+class TEReadTextStorageStream (TEStorageStream) size=56 virtuals=20 vmt=5550E0D0
+class TTranslateStorageStream (TEStorageStream) size=36 virtuals=22 vmt=5550E1BC
+class TSetupCompareStorageStream (TEReadStorageStream) size=44 virtuals=20 vmt=5550E29C
+class TCompareStorageStream (TEReadStorageStream) size=44 virtuals=20 vmt=5550E37C
+class TDebugWriteStream (TEWriteStorageStream) size=44 virtuals=20 vmt=5550E454
+class TCompressStream (TMemoryStream) size=20 virtuals=5 vmt=5550E568
+class TDrawImageGrid (TDrawGrid) size=560 virtuals=39 vmt=5551D2B4
+  unit ImgLComp
+  prop   ScaleX                         Integer                      get=field+01E0 set=field+01E0
+  prop   ScaleY                         Integer                      get=field+01E4 set=field+01E4
+  prop   SelectColor                    TColor                       get=field+01EC set=static 5551E3E8
+  prop   SelectionEnabled               Boolean                      get=field+022E set=static 5551E414
+  prop   BltMode                        TBltMode                     get=field+01E8 set=field+01E8
+  prop   MinRowCount                    Integer                      get=field+01F8 set=static 5551E378
+  prop   MinColCount                    Integer                      get=field+01FC set=static 5551E394
+  prop   MaxRowCount                    Integer                      get=field+0200 set=static 5551E3B0
+  prop   MaxColCount                    Integer                      get=field+0204 set=static 5551E3CC
+  prop   RowCount                       Integer                      get=static 5551E318 set=static 5551E320
+  prop   ColCount                       Integer                      get=static 5551E348 set=static 5551E350
+  prop   OnCutCell                      TGridEditEvent(tkMethod)     get=field+020C set=field+020C
+  prop   OnCopyCell                     TGridEditEvent(tkMethod)     get=field+0214 set=field+0214
+  prop   OnPasteCell                    TGridEditEvent(tkMethod)     get=field+021C set=field+021C
+  prop   OnDeleteCell                   TGridEditEvent(tkMethod)     get=field+0224 set=field+0224
+  prop   EditBeep                       Boolean                      get=field+0208 set=field+0208
+  prop   EditMode                       TEditMode(tkEnumeration)     get=field+0209 set=field+0209
+  prop   GrowDirection                  TGrowDirection(tkEnumeration) get=field+022C set=field+022C
+  prop   ShowGridIndex                  Boolean                      get=field+022D set=static 5551E04C
+  prop   BkColor                        TColor                       get=field+01F0 set=field+01F0
+class TImageListGrid (TDrawImageGrid) size=576 virtuals=40 vmt=5551D6CC
+  unit ImgLComp
+  prop   SkipEmptyImages                Boolean                      get=field+0238 set=field+0238
+class TImageLibGrid (TImageListGrid) size=580 virtuals=40 vmt=5551D810
+  unit ImgLComp
+  prop   ImageLibrary                   TImageLibrary                get=field+0240 set=static 5551EC44
+class TDrawImagePanel (TCustomPanel) size=372 virtuals=33 vmt=5551D98C
+  unit ImgLComp
+  prop   Align                          TAlign                       get=field+0048 set=static 5550190C default=0
+  prop   Color                          TColor                       get=field+0054 set=static 5550192C default=-2147483633
+  prop   BevelInner                     TPanelBevel                  get=field+011C set=static 55501C1C default=0
+  prop   BevelOuter                     TPanelBevel                  get=field+011D set=static 55501C24 default=2
+  prop   BevelWidth                     TBevelWidth                  get=field+0120 set=static 55501C2C default=1
+  prop   BorderStyle                    TBorderStyle                 get=field+0128 set=static 55501C3C default=0
+  prop   BorderWidth                    TBorderWidth                 get=field+0124 set=static 55501C34 default=0
+  prop   BltMode                        TBltMode                     get=field+0142 set=field+0142
+  prop   ScaleX                         Integer                      get=field+014C set=field+014C
+  prop   ScaleY                         Integer                      get=field+0150 set=field+0150
+  prop   FocusColor                     TColor                       get=field+0144 set=static 5551EDBC
+  prop   ShowFocus                      Boolean                      get=field+0148 set=static 5551EDC8
+  prop   MinimizeImage                  Boolean                      get=field+0149 set=field+0149
+  prop   EditBeep                       Boolean                      get=field+0140 set=field+0140
+  prop   EditMode                       TEditMode(tkEnumeration)     get=field+0141 set=field+0141
+  prop   OnDrawImage                    TDrawImageEvent(tkMethod)    get=field+0138 set=field+0138
+  prop   OnCutImage                     TGridEditEvent(tkMethod)     get=field+0154 set=field+0154
+  prop   OnCopyImage                    TGridEditEvent(tkMethod)     get=field+015C set=field+015C
+  prop   OnPasteImage                   TGridEditEvent(tkMethod)     get=field+0164 set=field+0164
+  prop   OnDeleteImage                  TGridEditEvent(tkMethod)     get=field+016C set=field+016C
+class TLibraryImagePanel (TDrawImagePanel) size=376 virtuals=33 vmt=5551DD88
+  unit ImgLComp
+class TEResourceGridControl (TEUser) size=16 virtuals=19 vmt=5551F378
+class TECustomResourceGrid (TImageListGrid) size=628 virtuals=41 vmt=5551F44C
+  unit EResGrid
+class TEResourceGrid (TECustomResourceGrid) size=640 virtuals=41 vmt=5551F5D4
+  unit EResGrid
+  prop   OnLinkToResourceList           TLinkResourceEvent(tkMethod) get=field+0278 set=field+0278
+  prop   ResourceListCID                Integer                      get=field+0274 set=field+0274
+  prop   DefaultResourceCID             Integer                      get=field+0260 set=field+0260
+  prop   Engine                         TEComponent(tkClass)         get=field+0254 set=static 5551F9BC
+  prop   ShowGridIndex                  Boolean                      get=field+022D set=static 5551E04C
+  prop   UseEditID                      Boolean                      get=field+0270 set=field+0270
+class TListObject (TObject) size=4 virtuals=3 vmt=55520FD4
+class TObjectList (TList) size=16 virtuals=2 vmt=55521050
+class TPlugInManager (TComponent) size=60 virtuals=10 vmt=55521308
+  unit PlugInM
+  prop   PlugInsLoaded                  Boolean                      get=field+0028 set=none
+  prop   PlugInDirectory                String                       get=field+002C set=none
+  prop   PlugInExtension                String                       get=field+0030 set=field+0030
+  prop   OnLoadPlugIn                   TLoadPlugInEvent(tkMethod)   get=field+0034 set=field+0034
+class TDebugMessageDlg (TForm) size=540 virtuals=32 vmt=55521AE0
+  field  +01DC Panel2                         TPanel
+  field  +01E0 SaveBtn                        TButton
+  field  +01E4 SaveDialog                     TSaveDialog
+  field  +01E8 StayOnTop                      TCheckBox
+  field  +01EC ClearBtn                       TButton
+  field  +01F0 UpdateBox                      TCheckBox
+  field  +01F4 PageControl1                   TPageControl
+  field  +01F8 InfoSheet                      TTabSheet
+  field  +01FC SettingsSheet                  TTabSheet
+  field  +0200 DebugStrings                   TMemo
+  field  +0204 GroupBox1                      TGroupBox
+  field  +0208 VisibleDebugNames              TCheckListBox
+  field  +020C ShowSelectedIDs                TRadioButton
+  field  +0210 ShowAllIDs                     TRadioButton
+  method 55521F30 SaveBtnClick
+  method 55521FD8 StayOnTopClick
+  method 55522000 ClearBtnClick
+  method 55522014 FormClose
+  unit DebMDlg

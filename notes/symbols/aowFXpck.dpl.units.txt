@@ -1,0 +1,6 @@
+== aowFX  (2 classes, 13 funcs, 6 types)
+   TXYZList (7): Add Clear Create Delete Destroy GetCount GetXYZ
+   TfxParticleSystem (2): GetEffect GetParticle
+   funcs: MakeArcPath MakeArcPathXY MakeLightningPath MakeLinePath MakeSwarmPath ScatterPath TCircleDir TXYZ TXYZList TfxParticle TfxParticleEffect TfxParticleObject TfxParticleSystem
+== aowFXpck  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

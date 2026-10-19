@@ -1,0 +1,37 @@
+# sections
+CODE va=00001000 vsize=364524 raw=00000400 rsize=364544
+DATA va=0005A000 vsize=1588 raw=00059400 rsize=2048
+BSS va=0005B000 vsize=733 raw=00059C00 rsize=0
+.idata va=0005C000 vsize=74620 raw=00059C00 rsize=74752
+.reloc va=0006F000 vsize=24628 raw=0006C000 rsize=25088
+.rsrc va=00076000 vsize=1660416 raw=00072200 rsize=1660416
+
+# imports
+VCL30.dpl: Math.Math@00000000 Math.Finalization@51F89FF7
+kernel32.dll: Sleep SetCurrentDirectoryA GlobalMemoryStatus GetVolumeInformationA GetLogicalDrives GetDriveTypeA CreateFileMappingA CreateFileA CopyFileA CloseHandle
+user32.dll: UnionRect
+ole32.dll: CoCreateInstance CoInitialize
+GFXEPACK.dpl: GFXE.GFXE@00000000 GFXE.Finalization@51F89FF7 GFXE.DD@8F53B98C GFXE.ListDisplayModes@C3BF61F4 GFXE.TDisplayModeList.GetCount@23EDC2EF GFXE.TDisplayModeList.GetItems@23EDC2EF GFXE.TDisplayModeList.Create@23EDC2EF GFXE.TLookupBlendTableCollection100.GetLookupTables@23EDC2EF GFXE.CreateSDfromSD@1AF820EE GFXE.ColorFillSD@250AC013 GFXE.IntensityBlendTable@AB1D79F5 GFXE.AlphaBlendTable@AB1D79F5 GFXE..TDisplayModeList@D7D547B2
+ILPACK.dpl: ImageLib.ImageLib@00000000 ImageLib.Finalization@51F89FF7 ImageLib.TCustomImageLibrary.ImageExist@23EDC2EF ImageLib.TCustomImageLibrary.Get@23EDC2EF ImageLib.TCustomImageLibrary.LoadDiscardableImageData@23EDC2EF ImageLib.TCustomImageLibrary.ReleaseDiscardableImageData@23EDC2EF ImageLib.TImageSequenceList.Show@23EDC2EF ImageLib.TImageSequenceList.GetImageSequence@23EDC2EF ImageLib.ParseFontText@8A915BC5 ImageLib.TImageLibraryFont.SetTextEx@23EDC2EF ImageLib.TImageLibraryFont.SetTextCentered@23EDC2EF ImageLib.TImageLibraryFont.SetText@23EDC2EF ImageLib.TImageLibraryFont.SetColor@23EDC2EF ImageLib.DrawImageLine@F4100AF0 ImageLib.TLibraryImage.ShowClipped@23EDC2EF ImageLib..TImageLibraryFont@301188BB ImageLib..TImageLibrary@FA2681AB
+EngineP.dpl: DebMDlg.DebMDlg@00000000 DebMDlg.Finalization@51F89FF7 DebMDlg.TDebugMessageDlg.SetEngine@23EDC2EF DebMDlg.TDebugMessageDlg.Create@23EDC2EF DebMDlg..TDebugMessageDlg@8CF6C4A9
+SoundP.dpl: DSound.DSound@00000000 DSound.Finalization@51F89FF7 DSound.IDirectSoundBuffer@13C5FB65 DSound.IDirectSound@D739AF1B DSound.IID_IDirectSound@A5BFC334 DSound.CLSID_DirectSound@A5BFC334
+HSEPack.dpl: ProgDlg.ProgDlg@00000000 ProgDlg.Finalization@51F89FF7
+Network.dpl: NetworkE.NetworkE@00000000 NetworkE.Finalization@51F89FF7 NetworkE.TTokenManager.GetTokenControl@23EDC2EF NetworkE.TRemotePCC.DataReceived@23EDC2EF NetworkE.TPlayerCommunicationControl.IndexOfSystemID@23EDC2EF NetworkE.TPlayerCommunicationControl.GetPlayers@23EDC2EF NetworkE..TRemotePCC@F7D47854
+AoWEPACK.dpl: PageTurnCtrl.PageTurnCtrl@00000000 PageTurnCtrl.Finalization@51F89FF7
+Localize.dpl: IvMulti.IvMulti@00000000 IvMulti.Finalization@51F89FF7 IvMulti..TIvTranslator@E57B7673
+aowFXpck.dpl: aowFX.aowFX@00000000 aowFX.Finalization@51F89FF7
+DCPACK.dpl: DisplayC.DisplayC@00000000 DisplayC.Finalization@51F89FF7 DisplayC.TDDrawFullScrDC.SwitchResolution@23EDC2EF DisplayC.TCustomDisplay.SetBackSurfaceHeight@23EDC2EF DisplayC.TCustomDisplay.SetBackSurfaceWidth@23EDC2EF DisplayC..TDDrawFullScr16DC@399E9EBA DisplayC..TWindows16DC@EC6BBC49 DisplayC..TDisplay@7AC3D970
+aowInt.dpl: aowUserDrawBox.aowUserDrawBox@00000000 aowUserDrawBox.Finalization@51F89FF7 aowUserDrawBox..TaowUserDrawBox@0D42D8EF
+AOWTools.dpl: AoWArnoLine.AoWArnoLine@00000000 AoWArnoLine.Finalization@51F89FF7 AoWArnoLine.TAoWArnoLine.SetIBottom@23EDC2EF AoWArnoLine.TAoWArnoLine.SetIMiddle@23EDC2EF AoWArnoLine.TAoWArnoLine.SetITop@23EDC2EF AoWArnoLine..TAoWArnoLine@13614C6B
+AoWTCPCK.dpl: OverviewUnit.OverviewUnit@00000000 OverviewUnit.Finalization@51F89FF7 OverviewUnit.PlaceOverviewUnit@2B1F96C2
+vclx30.dpl: FileCtrl.FileCtrl@00000000 FileCtrl.Finalization@51F89FF7
+aowDPlay.dpl: aowDPlayComp.aowDPlayComp@00000000 aowDPlayComp.Finalization@51F89FF7 aowDPlayComp.TGDPlay.EjectPlayer@23EDC2EF aowDPlayComp.TGDPlay.CheckMessages@23EDC2EF aowDPlayComp.TGDPlay.SendFileDataMessage@23EDC2EF aowDPlayComp.TGDPlay.SendPingMessage@23EDC2EF aowDPlayComp.TGDPlay.SendChatMessage@23EDC2EF aowDPlayComp.TGDPlay.SendMessage@23EDC2EF aowDPlayComp.TGDPlay.GetPlayerIndex@23EDC2EF aowDPlayComp.TGDPlay.LockSession@23EDC2EF aowDPlayComp.TGDPlay.JoinSession@23EDC2EF aowDPlayComp.TGDPlay.DisConnect@23EDC2EF aowDPlayComp.TGDPlay.Connect@23EDC2EF aowDPlayComp.TGDPlay.GetSessions@23EDC2EF aowDPlayComp.TGDPlay.CloseSession@23EDC2EF aowDPlayComp.TGDPlay.CreateSession@23EDC2EF aowDPlayComp.TGDPlay.GetConnections@23EDC2EF aowDPlayComp.TGDPlay.CheckLobby@23EDC2EF aowDPlayComp.TGDPlay.SetPlayerName@23EDC2EF aowDPlayComp..TGDPlay@780ED94B
+shell32.dll: ShellExecuteA
+ims.dpl: mspop3.mspop3@00000000 mspop3.Finalization@51F89FF7
+VideoP.dpl: Video.Video@00000000 Video.Finalization@51F89FF7 Video.TVideoPlayer.Update@23EDC2EF Video.TVideoPlayer.Play@23EDC2EF Video.TVideoPlayer.SetPosition@23EDC2EF Video.TVideoPlayer.Show@23EDC2EF Video.TVideoPlayer.Close@23EDC2EF Video.TVideoPlayer.Open@23EDC2EF Video.TVideoPlayer.GetVideoLoaded@23EDC2EF Video..TVideoPlayer@CF2F19C9
+
+# units (export counts)
+
+# classes
+
+# exports

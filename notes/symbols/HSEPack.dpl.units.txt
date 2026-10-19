@@ -1,0 +1,97 @@
+== BorderHx  (2 classes, 3 funcs, 2 types)
+   TBorderHexagon (7): CanChangeTerrain CanSelect ClassID GetLevel GetShowPriority SetOwner Show
+   TBorderHexagonResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterBorderHexagon TBorderHexagon TBorderHexagonResource
+== Bridge  (2 classes, 3 funcs, 2 types)
+   TBridge (5): ClassID Create PlaceHX Show UpdateTransitions
+   TBridgeResource (7): ClassID Create Editor MsgProc ResourceEditName ResourceUserClassID Show
+   funcs: RegisterBridge TBridge TBridgeResource
+== HSEPack  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== HSEdData  (0 classes, 1 funcs, 0 types)
+   funcs: UpdateMap
+== HSEdMod  (1 classes, 2 funcs, 1 types)
+   THSEditModule (1): SetHSEngine
+   funcs: HSEditModule THSEditModule
+== HSEngine  (31 classes, 106 funcs, 44 types)
+   TAbstractBorderHexagon (1): ClassID
+   TAbstractHexagon (11): Activate CanPlace ChangeTerrain ClassID GetLevel GetShowPriority MapFieldMsgProc PlaceHX SetResource TerrainChanged UpdateTransitions
+   TAbstractHexagonResource (3): Create GetHexagonControl MsgProc
+   TAbstractRoad (8): Activate CanPlace ChangeTerrain ClassID GetLevel GetShowPriority NeighbourTerrainChanged UpdateTransitions
+   TAbstractRoadResource (3): GetRoadControl MsgProc PlaceResourceUser
+   TCustomFixedVisibleHS (2): GetShowPriority Show
+   TFixedVisibleHS (5): GetShowPriority GetVisible MainRemove MakeVisible SetVisible
+   THPBasedHS (6): ClassID Create GetVisible Place ReadWrite SetVisible
+   THSEngine (19): ClassID CloseHSM CloseHSS Create CreateHSSet CreatePreviewHSM Destroy GetHSSetFiles InitializeHSSet LoadHSM LoadHSMEx LoadHSMfromStream LoadHSS LoadPreviewHSM NewHSM SaveHSM SaveHSMtoStream SaveHSS SetHSMap
+   THSMap (54): Activate AddMapLevel CanChangeTerrain CenterViewTo ChangeTerrain ChangeTerrainEx ChangeViewTo ClassID Clear ClearTerrain ClearViewPort Create CreateMouse CreateNewMap Deactivate Destroy DrawDynamicHS DrawDynamicHSEx DrawDynamicScene DrawStaticHS DrawStaticHSEx DrawStaticScene FillLevelWithResource GetControlStyle GetMaxXhp GetMaxYhp GetViewCenter InitializeNewMap InvalidateStaticScene LockTerrainChangedEvent MainReadWrite MakeVisible MsgProc NewFrame NotifyProgress Place PlaceHX ReadWrite Remove RemoveMapLevel ResetModified ResetVisibleDynamicHS ResetVisibleStaticHS SetHSSFileName SetModified SetViewPort TerrainChanged TerrainChangedRad TriggerTerrainChangedEvent UnlockTerrainChangedEvent UpdateDynamicScene UpdateStaticScene ViewLevel Viewing
+   THSMapMouse (18): Create DblClick Destroy Down GetCursor GetXhp GetXhx GetYhp GetYhx MouseDblClick MouseDown MouseMove MouseUp Move Reset SetCapture SetCursor Up
+   THSMapViewer (13): CenterScene ChangeScene Create Destroy ResetStaticSurface SetHSMap SetSceneHeight SetSceneL SetSceneWidth SetSceneX SetSceneY ShowScene VerifyStaticSurface
+   THSSet (12): Activate ClassID Clear Create DeActivate Destroy MsgProc ReadWrite ResetEditting ResetModified SetEditting SetModified
+   THexagonSprite (53): Activate CanChangeTerrain CanMoveOn CanMoveOver CanSelect ChangeTerrain Changed ClassID Connect ControlMode Deactivate Destroy Disconnect EditName GetBaseHX GetEditMode GetLevel GetLhx GetOverlay GetOverlayCount GetSelected GetShowPriority GetTerrain GetTerrainCount GetVisible GetXYL GetXhx GetYhx Loaded MainLoaded MainPlace MainRemove MakeVisible MapFieldMsgProc MoveExclusive NeighbourTerrainChanged Place PlaceOnMap PlaceOnMapEx PlaceUserOnMapEx Remove RemoveFromMap RemoveFromMapEx RemoveUserFromMapEx Select SetEditMode SetOverlay SetTerrain SetVisible SortMapFieldEx TerrainChanged Unselect UpdateMapField
+   THexagonSpriteEngine (5): Create CreateEngine GetHSSetSearchPath SetHSEngine SetHSSetSearchPath
+   THexagonSpriteSelection (16): CanSelectLocation Clear Create Destroy FindClass FindLocationHSIndex GetHS Select SelectLocation SelectLocationHS SelectLocationHX TriggerDeselectEvent TriggerSelectEvent Unselect UnselectAll UnselectLocation
+   TLibraryImageHS (22): CanPlace ClassID Create GetDestroyOnShow GetEditMode GetLevel GetMapIsOwner GetShowPriority GetVisible MakeVisible Place PlaceHX ReadWrite Remove SetDestroyOnShow SetEditMode SetImage SetLevel SetMapIsOwner SetShowPriorityOffset SetVisible Show
+   TMORTerrainControl (11): Clear Create CreateMO Destroy GetControlStyle GetRndResource Initialize MsgProc Place PlaceClass RegisterResource
+   TMapContainer (19): Activate AddLevel ClassID Clear Create GetEngine GetField GetFieldXYL GetMapLevel InsertHS Loaded MainReadWrite MsgProc New ReadWrite RemoveHS RemoveLevel SetOwner UpdateTerrain
+   TMapField (58): Activate AddChild AddHS CanChangeTerrain CanChangeTerrainEx CanMoveOn CanMoveOver ClassID CopyDynamicVisibleHS CopyStaticVisibleHS Create Destroy DestroyHS DestroyLevelHS FindChild FindHS FindNoneTransparentHS FindNoneTransparentHSCID FindOwnedChild FindOwnedHS FreeInstance GetChild GetControlStyle GetCount GetDecorationType GetHN GetHNofHS GetMaxLevelNoneTransparentHS GetMaxLevelOverlayHS GetMaxLevelTerrainHS GetXYL HSListDataSize Initialize Loaded MainReadWrite MoveExclusive NeighbourTerrainChanged NewInstance ReadWrite Remove RemoveChild RemoveHS ResetDynamicVisibleHS ResetStaticVisibleHS Resize SendMapFieldMsg SendMsg SetChild SetHN SetHNofHS SetOwner Sort TerrainChanged UpdateMapField UpdateNeighbourTerrain UpdateOverlayType UpdateTerrain UpdateTerrainType
+   TMapLevel (20): Activate AddChild ClassID Create CreateMapFieldList Destroy DestroyHS DestroyMapFieldList GetChild GetCount GetEngine GetField Loaded MapFieldClass MsgProc New ReadWrite RemoveChild SetChild UpdateTerrain
+   TMapObject (45): Activate CanPlace CanSelect ClassID Connect Deactivate Disconnect EditName GetEditMode GetLevel GetLhx GetOverlay GetOverlayCount GetResourceID GetResourceLinked GetResourceList GetSelected GetShowPriority GetTerrain GetTerrainCount GetVisible GetXhx GetYhx LinkToResource Loaded MainPlace MainRemove MakeVisible MapFieldMsgProc Place PlaceHX PlaceOnMap ReadWrite Remove RemoveFromMap Select SetEditMode SetOverlay SetResource SetResourceID SetResourceLinked SetTerrain SetVisible Show Unselect
+   TMapObjectResource (18): CalcShowPriorityOffset ClassID ClassVersion ClearTerrain Create CreateResourceUser Destroy Draw EditDropMsg GetCellImage GetEngine MsgProc PlaceResourceUser ReadWrite ResourceEditName SetCellImage SetLevel ShowComplexImage
+   TMapObjectResourceList (2): FindMOR GetMOR
+   TMultiHexMO (19): CanPlace CanPlaceOnHS CanSelect Connect Disconnect GetMostFrequentMapFieldTerrainType GetShowPriority GetXYL GetXhx GetYhx OverrideTerrain PlaceHX PlaceOnMap ReadWrite RemoveFromMap Show SortMapFields UpdateMapFields UpdateTerrain
+   TMultiHexMOR (5): ClassID Create ReadWrite SetdXmainP SetdYmainP
+   TNewHSMapSettings (1): Create
+   TSingleHS (18): Activate Activated CanPlace Connect Deactivate Disconnect GetEditMode GetSelected GetShowPriority GetVisible MakeVisible Place PlaceHX Remove Select SetEditMode SetVisible Unselect
+   TTerrainList (17): Assign CompareTerrain CreateSurroundingHNTable Destroy GetOverlay GetTandO GetTerrain GetUsed LoadFromStream Pack SaveToStream SetCount SetOverlay SetTandO SetTerrain UsedOverlays UsedTerrain
+   TVisibilityList (3): Grow QuickClear RemoveChild
+   TXYLList (28): Add AddXYL Assign Clear Compare Create Delete Destroy Error Exchange Expand First Get Grow IndexOf IndexOfXY IndexOfXYL Insert Last LoadFromStream Move Pack Put Remove SaveToStream SetCapacity SetCount Sort
+   funcs: BridgeStr CenterHNtoHX ClosingStr ConnectingHX CopyStr CutStr DeleteStr EMapObjectResourceMissing EditStr GenerateWalkAroundRoute HNtoHP HNtoHX HNtoHXTable HNtoRad HNtoRadTable HNtoXYTable HPtoHN HPtoHX HPtoHXs HSEngineDID HSMID HVtoHX HXtoH HXtoHN HXtoHP HXtoHT HXtoHV HXtoRad HXtoV HexagonStr InitHNWalk InvHN InvHNTable InvalidPlaceMentStr LoadingStr LocationsConnected LowerIsometricHexagonStr OneMomentPleaseStr PackXYL PasteStr RadToHN RadToHNTable Register SaveChangesToXStr SelectedStr TAbstractBorderHexagon TAbstractBorderHexagonResource TAbstractHexagon TAbstractHexagonResource TAbstractRoad TAbstractRoadResource TCenterViewEvent TChangeTerrainProc TChangeViewEvent TControlMode TCustomFixedVisibleHS TFixedVisibleHS THPBasedHS THSEngine THSEngineStatus THSMap THSMapMouse THSMapStatus THSMapViewer THSSet THSSetStatus THexagonControl THexagonSprite THexagonSpriteEngine THexagonSpriteSelection TLibraryImageHS TLibraryImageHSStatus TMORTerrainControl TMapContainer TMapField TMapFieldStatus TMapLevel TMapObject TMapObjectResource TMapObjectResourceList TMapObjectStatus TMapProgressType TMouseStatus TMultiHexMO TMultiHexMOR TNewHSMapSettings TOnShowHSEvent TRoadControl TSingleHS TTerrainChangedProc TTerrainCompareMode TTerrainList TViewLevelEvent TVisibilityList TWalkAroundRouteCallBack TXYLList TerrainStr TranslateHX TranslateZeroHX TransparentStr UpperIsometricHexagonStr WalkToNextHN dHXtoHN dHXtoHNfast dHXtoHT dHXtoRad
+== HSLib  (2 classes, 3 funcs, 2 types)
+   THSLibrary (6): ClearList Create CreateHS Destroy RemoveHS SetEngine
+   TLibraryHS (16): Create Destroy GetBaseHex GetLevel GetLhx GetShowPriority GetXhx GetYhx MsgProc Place PlaceEx PlaceHX PlaceHXEx Remove SetImage Show
+   funcs: Register THSLibrary TLibraryHS
+== HSMEdit  (3 classes, 7 funcs, 3 types)
+   THSMEdit (70): Activate BltStaticScene BuildDynamicScene BuildStaticScene CMWantSpecialKey CanCloseMap CenterView ClearKeyboardQueue ClearPopupMenu Close CopyHS Create CutHS DblClick DeActivate DeleteHS DeselectPlaceHS Destroy DropSelectedPlaceHS EditSelectedHS ExecuteBltSurfaceEvent GetCopyPasteHSIDstring GetRoadControl HidePreview HorzScrollBarChange KeyDown Load LoadHSM MouseDown MouseMove MouseUp NewMap PasteHS PopupCopy PopupCut PopupDelete PopupEdit PopupPaste ProgressEvent RebuildScene Resize Save SaveAs SelectAndEditHS SelectChangeTerrain SelectClearTerrain SelectEditResource SelectEraser SelectForceTerrain SelectPlaceHS SelectRoad SetBrushSize SetHSEngine SetHSMapFilename SetOverwrite SetParent SetRoadControl SetSceneLevel ShowMsg ShowPopupMenu ShowPreview ShowSelection SurfaceDataLost UpdateCaption UpdateFrame UpdateMouseCoordinates UpdateScrollBars ValidatePreviewView VerifyMouseScrolling VertScrollBarChange
+   THSMEditControl (3): Destroy GetControlStyle MsgProc
+   THSMPlaceControl (2): MsgProc PlaceTerrain
+   funcs: Register THSMEdit THSMEditControl THSMEditViewMode THSMPlaceControl THSMPlaceControlMode TShowMessageEvent
+== HSSEdit  (2 classes, 4 funcs, 2 types)
+   THSSEdit (13): Activate CanCloseSet Close Create DeActivate Destroy Load LoadHSSFile NewSet Save SaveAs SetHSEngine UpdateCaption
+   THSSEditControl (3): Destroy GetControlStyle MsgProc
+   funcs: Register THSSEdit THSSEditControl TShowMessageEvent
+== Hexagon  (2 classes, 3 funcs, 2 types)
+   THexagon (5): ClassID NeighbourTerrainChanged Show UpdateTransition UpdateTransitions
+   THexagonResource (7): ClassID Create MsgProc PlaceResourceUser ResourceEditName ResourceUserClassID Show
+   funcs: RegisterHexagon THexagon THexagonResource
+== ILTer  (4 classes, 5 funcs, 4 types)
+   TFixedILTerrainMO (5): CanChangeTerrain ChangeTerrain ClassID ForceTerrainType TerrainChanged
+   TFixedILTerrainMOR (3): ClassID ResourceEditName ResourceUserClassID
+   TILTerrainMO (16): Activate CanChangeTerrain CanPlace ChangeTerrain ClassID Create ForceTerrainType GetTerrain GetTerrainTypeImage GetValidTerrainType Loaded PlaceHX PlaceOnMap Show TerrainChanged ValidTerrainType
+   TILTerrainMOR (4): ClassID ResourceEditName ResourceUserClassID SetCellImage
+   funcs: RegisterILTerrain TFixedILTerrainMO TFixedILTerrainMOR TILTerrainMO TILTerrainMOR
+== IsoHex  (7 classes, 8 funcs, 7 types)
+   TDynamicIsometricHexagon (14): CanSelect ClassID ControlMode Create Destroy GetControlStyle GetLevel GetLhx GetShowPriority GetVisible GetXhx GetYhx SetVisible Show
+   TIsometricHexagon (8): ClassID Create Destroy Disconnect DynamicIsometricHexagonClass NeighbourTerrainChanged Show ShowDynamic
+   TIsometricHexagonResource (4): ClassID Create MsgProc PlaceResourceUser
+   TLowerIsometricHexagon (3): ClassID ShowDynamic UpdateTransitions
+   TLowerIsometricHexagonResource (3): ClassID ResourceEditName ResourceUserClassID
+   TUpperIsometricHexagon (4): ClassID Show ShowDynamic UpdateTransitions
+   TUpperIsometricHexagonResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterIsometricHexagon TDynamicIsometricHexagon TIsometricHexagon TIsometricHexagonResource TLowerIsometricHexagon TLowerIsometricHexagonResource TUpperIsometricHexagon TUpperIsometricHexagonResource
+== ProgDlg  (1 classes, 1 funcs, 1 types)
+   TProgressDlg (1): ProgressEvent
+   funcs: TProgressDlg
+== RndHex  (1 classes, 2 funcs, 1 types)
+   TRndHexagonResource (4): ClassID CreateResourceUser MsgProc ResourceEditName
+   funcs: RegisterRandomHexagon TRndHexagonResource
+== Road  (2 classes, 3 funcs, 2 types)
+   TRoad (6): ClassID Create PlaceHX Show UpdateNeighbourTransitions UpdateTransitions
+   TRoadResource (5): ClassID Editor ResourceEditName ResourceUserClassID Show
+   funcs: RegisterRoad TRoad TRoadResource
+== TerCBox  (1 classes, 3 funcs, 1 types)
+   TTerrainComboBox (6): Change Create GenerateTerrainItems GetSelectedTerrain SetHexagonSpriteEngine SetTerrainType
+   funcs: Register TTerrainComboBox TTerrainComboBoxMode
+== Terrain  (2 classes, 3 funcs, 2 types)
+   TTerrainMO (11): CanChangeOwnTerrain CanChangeTerrain ChangeTerrain ClassID ClearTerrain Create FindCompatibleResource FindDecorationResource FindTerrainResource MapFieldMsgProc PlaceHX
+   TTerrainMOR (6): ClassID Create Destroy ReadWrite ResourceEditName ResourceUserClassID
+   funcs: RegisterTerrain TTerrainMO TTerrainMOR

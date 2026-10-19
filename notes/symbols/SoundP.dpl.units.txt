@@ -1,0 +1,27 @@
+== DSound  (0 classes, 21 funcs, 0 types)
+   funcs: CLSID_DirectSound CLSID_DirectSoundCapture DSSPEAKER_COMBINED DSSPEAKER_CONFIG DSSPEAKER_GEOMETRY IDirectSound IDirectSound3DBuffer IDirectSound3DListener IDirectSoundBuffer IDirectSoundCapture IDirectSoundCaptureBuffer IDirectSoundNotify IID_IDirectSound IID_IDirectSound3DBuffer IID_IDirectSound3DListener IID_IDirectSoundBuffer IID_IDirectSoundCapture IID_IDirectSoundCaptureBuffer IID_IDirectSoundNotify IID_IKsPropertySet IKsPropertySet
+== GalSndS  (3 classes, 6 funcs, 5 types)
+   TGalaxySample (11): Create Destroy GetLooped GetPanning GetPlaying GetVolume Play SetLooped SetPanning SetVolume Stop
+   TGalaxySampleData (3): Create CreateEx Destroy
+   TGalaxySoundSystem (26): Activate BackupSongStatus Deactivate FadeMusicVolume FadeSFXVolume GetMusicEnabled GetMusicVolume GetName GetPlayingSong GetPlayingSongFileName GetSFXEnabled GetSFXVolume GetSoundSettings PlaySong PlaySongEx Process ResetPlayingSongData RestoreSongStatus SampleClass SampleDataClass SetMusicEnabled SetMusicVolume SetSFXEnabled SetSFXVolume SetSoundSettings StopSong
+   funcs: TGalaxySample TGalaxySampleData TGalaxySampleDataType TGalaxySongStatus TGalaxySoundSystem TPlayingSongStatus
+== Galaxy  (0 classes, 100 funcs, 0 types)
+   funcs: GalaxyActive InitializeGalaxy ReleaseGalaxy glxAllocateStreamingBuffer glxAudioBuffer glxAudioOutput glxAuthorName glxCDVolume glxCallbackFunction glxChannels glxControlChannel glxControlInstrument glxControlMusic glxControlSample glxControlSample3D glxControlVoice glxCurrentOrder glxCurrentPtr glxCurrentSample glxCurrentSpeed glxCurrentTempo glxCurrentTick glxCurrentTime glxDeInit glxDetectOutput glxEffectChannels glxFlushOutput glxInfo glxInit glxInitialPanning glxInitialSpeed glxInitialTempo glxInstruments glxK3DFound glxKNIFound glxLoadEffects glxLoadInstrumentSample glxLoadInstument glxLoadMusic glxLoadSample glxLock glxMMXFound glxMaxPeriod glxMinPeriod glxMusicChorus glxMusicEnabled glxMusicLooping glxMusicReverb glxMusicVoices glxMusicVolume glxOrders glxOutputActive glxPatternBreak glxPatternRow glxPatterns glxPlayerMode glxResetMusic glxSampleChorus glxSampleReverb glxSampleVolume glxSamplingrate glxSaveEffects glxSaveInstrumentSample glxSaveInstruments glxSaveMusic glxSaveSample glxSetCDAudoVolume glxSetCallBack glxSetIOInterface glxSetMemInterface glxSetMusicChorus glxSetMusicReverb glxSetMusicVolume glxSetSampleChorus glxSetSampleReverb glxSetSampleReverb2 glxSetSampleVoices glxSetSampleVolume glxSongLength glxSongName glxStartCDAudio glxStartInstrument glxStartMusic glxStartOutput glxStartSample glxStartSample3D glxStopCDAudio glxStopInstrument glxStopMusic glxStopOutput glxStopSample glxStopSample3D glxUnloadInstrument glxUnloadInstrumentSample glxUnloadMusic glxUnloadSample glxUnlock glxVoices glxfClose glxfOpen
+== SFXEdDlg  (1 classes, 2 funcs, 1 types)
+   TSFXLibraryEditDlg (15): AddSFXClick AddSeqClick DeleteSFXClick DeleteSeqClick Edit FormCreate OKBtnClick PlaySFXClick PlaySFXFileClick PlaySeqClick SFXIDEditUpdate SelectSequence SequenceListKeyDown SequenceListSelectCell UpdateSequenceList
+   funcs: SFXLibraryEditDlg TSFXLibraryEditDlg
+== Sound  (11 classes, 57 funcs, 17 types)
+   TSFX (4): ClassID Play PlayEx ReadWrite
+   TSFXLibrary (6): ClassID DoubleID Find GetSFXSequence Play PlayEx
+   TSFXManager (4): Clear Create Destroy ExecutePathSearch
+   TSFXManagerComboBox (6): Create GenerateItems GetSFXName SetSFXManager SetSFXName SetSubDirectory
+   TSFXManagerListBox (6): Create GenerateItems GetSFXName SetSFXManager SetSFXName SetSubDirectory
+   TSFXSequence (5): ClassID GetSFX Play PlayEx ReadWrite
+   TSample (7): Create Destroy Execute GetPlaying Play Stop Update
+   TSampleData (5): AddRef Create CreateEx Destroy Release
+   TSongPlayer (10): Create Destroy Pause Play PlayEx Resume SetSongs SongsChanged Stop Update
+   TSonglist (7): ClassID Create Destroy ReadWrite Search SetSongs SongsChanged
+   TSoundSystem (4): AddRef Create Destroy Release
+   funcs: BackupSongStatus BaseSoundEnginePath CreateSample CreateSampleData CreateSampleDataEx FadeMusicVolume GetMusicEnabled GetMusicVolume GetSFXEnabled GetSFXVolume GetSongName GetSoundSettings InitializeSoundSystem LockSampleData PlaySample PlaySampleEx PlaySong PlaySongEx PlayingSongFileName ProcessSound Register RegisterSoundEngineClasses RegisterSoundSystem ReleaseSoundSystem RestoreSongStatus SamplesActive SamplesLoaded SetMusicEnabled SetMusicVolume SetSFXEnabled SetSFXVolume SetSoundSettings SongPlayer SoundSystemStatus StopSong TSFX TSFXLibrary TSFXList TSFXManager TSFXManagerComboBox TSFXManagerListBox TSFXSequence TSample TSampleCallBack TSampleCallBackMode TSampleData TSamplePanning TSampleStatus TSongPlayer TSongPlayerStatus TSongStatus TSonglist TSoundOutputMode TSoundSystem TSoundSystemStatus UnlockSampleData UnregisterSoundEngineClasses
+== SoundP  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

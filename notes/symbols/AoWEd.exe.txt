@@ -1,0 +1,35 @@
+# sections
+CODE va=00001000 vsize=188068 raw=00000400 rsize=188416
+DATA va=0002F000 vsize=428 raw=0002E400 rsize=512
+BSS va=00030000 vsize=485 raw=0002E600 rsize=0
+.idata va=00031000 vsize=59654 raw=0002E600 rsize=59904
+.reloc va=00040000 vsize=21964 raw=0003D000 rsize=22016
+.rsrc va=00046000 vsize=626176 raw=00042600 rsize=626176
+
+# imports
+VCL30.dpl: Math.Math@00000000 Math.Finalization@51F89FF7
+kernel32.dll: Sleep GetLastError CreateFileMappingA CloseHandle
+user32.dll: UpdateWindow SetWindowPos SetKeyboardState SendMessageA ReleaseDC ReleaseCapture PeekMessageA OffsetRect MessageBeep LoadBitmapA InflateRect GetSystemMetrics GetKeyboardState GetFocus GetDesktopWindow GetDC EnableWindow DrawFocusRect DrawEdge
+gdi32.dll: SetTextAlign SelectObject GetTextMetricsA ExtTextOutA
+AoWEPACK.dpl: RandomNode.RandomNode@00000000 RandomNode.Finalization@51F89FF7
+HSEPack.dpl: TerCBox.TerCBox@00000000 TerCBox.Finalization@51F89FF7 TerCBox.TTerrainComboBox.SetHexagonSpriteEngine@23EDC2EF TerCBox.TTerrainComboBox.SetTerrainType@23EDC2EF TerCBox..TTerrainComboBox@8D225295
+ILPACK.dpl: ILEdForm.ILEdForm@00000000 ILEdForm.Finalization@51F89FF7
+GFXEPACK.dpl: GFXDiag.GFXDiag@00000000 GFXDiag.Finalization@51F89FF7
+SoundP.dpl: SFXEdDlg.SFXEdDlg@00000000 SFXEdDlg.Finalization@51F89FF7 SFXEdDlg.TSFXLibraryEditDlg.Edit@23EDC2EF SFXEdDlg..TSFXLibraryEditDlg@D7237410
+EngineP.dpl: EResGrid.EResGrid@00000000 EResGrid.Finalization@51F89FF7 EResGrid.TECustomResourceGrid.GetResourceColRow@23EDC2EF EResGrid..TEResourceGrid@8752A6EA
+Network.dpl: NetworkE.NetworkE@00000000 NetworkE.Finalization@51F89FF7
+Localize.dpl: IvTests.IvTests@00000000 IvTests.Finalization@51F89FF7
+aowFXpck.dpl: aowFX.aowFX@00000000 aowFX.Finalization@51F89FF7
+vclx30.dpl: checklst.checklst@00000000 checklst.Finalization@51F89FF7 checklst.TCheckListBox.GetChecked@23EDC2EF checklst.TCheckListBox.SetChecked@23EDC2EF checklst..TCheckListBox@C10C8849
+DCPACK.dpl: DisplayC.DisplayC@00000000 DisplayC.Finalization@51F89FF7 DisplayC.TCustomDisplay.SetCursor@23EDC2EF DisplayC..TDDrawFullScr16DC@399E9EBA DisplayC..TWindows16DC@EC6BBC49 DisplayC..TDisplay@7AC3D970
+AoWTCPCK.dpl: CenterViewLoc.CenterViewLoc@00000000 CenterViewLoc.Finalization@51F89FF7
+VCLADDON.dpl: EStrGrid.EStrGrid@00000000 EStrGrid.Finalization@51F89FF7 EStrGrid.TEditStringGrid.SetRowCount@23EDC2EF EStrGrid..TEditStringGrid@405B6922
+ILToolsP.dpl: Str2Clip.Str2Clip@00000000 Str2Clip.Finalization@51F89FF7
+aowInt.dpl: AOWToolTip.AOWToolTip@00000000 AOWToolTip.Finalization@51F89FF7
+AOWTools.dpl: Scanner.Scanner@00000000 Scanner.Finalization@51F89FF7 Scanner.TScanner.DrawMap@23EDC2EF Scanner.TScanner.SetMap@23EDC2EF Scanner.TScanner.SetTHeight@23EDC2EF Scanner.TScanner.SetTWidth@23EDC2EF Scanner.TScanner.SetTTop@23EDC2EF Scanner.TScanner.SetTLeft@23EDC2EF Scanner.TScanner.SetObDrawn@23EDC2EF Scanner.TScanner.SetLevel@23EDC2EF Scanner..TScanner@BEECB1CB
+
+# units (export counts)
+
+# classes
+
+# exports

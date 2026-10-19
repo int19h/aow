@@ -1,0 +1,543 @@
+# D:\Games\GOG\Age of Wonders\Localize.dpl: 92 classes
+class TIvDemoDialog (TForm) size=556 virtuals=32 vmt=004033E8
+  field  +01DC Panel1                         TPanel
+  field  +01E0 HeaderLabel                    TLabel
+  field  +01E4 InfoLabel                      TLabel
+  field  +01E8 CompanyLabel                   TLabel
+  field  +01EC AddressLabel                   TLabel
+  field  +01F0 CityLabel                      TLabel
+  field  +01F4 CountryLabel                   TLabel
+  field  +01F8 PhoneLabel                     TLabel
+  field  +01FC FaxLabel                       TLabel
+  field  +0200 EmailLabel                     TLabel
+  field  +0204 PhoneValue                     TLabel
+  field  +0208 FaxValue                       TLabel
+  field  +020C EmailValue                     TLabel
+  field  +0210 CreditCardLabel                TLabel
+  field  +0214 WWWLabel                       TLabel
+  field  +0218 WWWValue                       TLabel
+  field  +021C OKButton                       TButton
+  field  +0220 InternationalLabel             TLabel
+  field  +0224 InternationalValue             TLabel
+  field  +0228 DealerLabel                    TLabel
+  unit IvDemoD
+class TIvStringParser (TObject) size=24 virtuals=0 vmt=00403A94
+class TIvAnsiParser (TIvStringParser) size=24 virtuals=0 vmt=00403B24
+class TIvPropInfoList (TObject) size=16 virtuals=0 vmt=0040449C
+class TIvLanguage (TObject) size=60 virtuals=4 vmt=00404614
+class TIvLocale (TObject) size=248 virtuals=4 vmt=00404A98
+class TIvContext (TObject) size=12 virtuals=0 vmt=00404C4C
+class TIvTranslation (TObject) size=24 virtuals=0 vmt=00404CDC
+class TIvDictionary (TComponent) size=124 virtuals=29 vmt=0040508C
+  unit IvDictio
+  prop   DictionaryName                 String                       get=field+003C set=static 00406C48
+  prop   PrimaryLanguage                Integer                      get=static 00406C5C set=static 00406C68 default=0
+  prop   SubLanguage                    Integer                      get=static 00406C94 set=static 00406CA0 default=1
+  prop   Language                       Integer                      get=field+0044 set=static 004072BC default=-1
+  prop   Binding                        TIvBinding(tkEnumeration)    get=field+0062 set=field+0062 default=1
+  prop   Options                        TIvDictionaryOptions(tkSet)  get=field+0060 set=field+0060 default=15
+  prop   MissingTranslation             TIvMissingTranslation(tkEnumeration) get=field+0061 set=field+0061 default=0
+  prop   Euro                           TIvEuro(tkEnumeration)       get=field+0038 set=static 00407918 default=0
+  prop   CheckLevel                     TIvCheckLevel(tkEnumeration) get=field+0078 set=field+0078 default=2
+  prop   OnLanguageChange               TNotifyEvent                 get=field+0030 set=field+0030
+  prop   OnLocaleChange                 TNotifyEvent                 get=field+0028 set=field+0028
+class TIvDictionaries (TObject) size=8 virtuals=0 vmt=00405330
+class TIvCustomTranslator (TComponent) size=84 virtuals=16 vmt=00405464
+  unit IvDictio
+  prop   DictionaryName                 String                       get=field+0030 set=static 0040A6AC
+  prop   OnBeforeTranslate              TIvTranslateEvent(tkMethod)  get=field+0034 set=field+0034
+  prop   OnAfterTranslate               TIvTranslateEvent(tkMethod)  get=field+003C set=field+003C
+  prop   OnLocaleChange                 TNotifyEvent                 get=field+0044 set=field+0044
+  prop   OnLanguageChange               TNotifyEvent                 get=field+004C set=field+004C
+class TIvTargetProperty (TObject) size=16 virtuals=0 vmt=0040BD38
+class TIvTargetProperties (TPersistent) size=12 virtuals=3 vmt=0040BDD0
+  unit IvMulti
+class TIvBidirectionalState (TObject) size=20 virtuals=0 vmt=0040C214
+class TIvTranslatorTableItem (TObject) size=24 virtuals=0 vmt=0040C29C
+class TIvTranslatorTable (TObject) size=8 virtuals=0 vmt=0040C350
+class TIvModule (TComponent) size=36 virtuals=14 vmt=0040C3D0
+  unit IvMulti
+class TIvModules (TObject) size=8 virtuals=0 vmt=0040C478
+class TIvTranslator (TIvCustomTranslator) size=160 virtuals=28 vmt=0040C4E8
+  unit IvMulti
+  prop   NativeLayout                   TIvReadingOrder(tkEnumeration) get=field+0054 set=field+0054 default=0
+  prop   Targets                        TIvTargetProperties(tkClass) get=field+0060 set=static 0040D474
+  prop   Options                        TIvTranslatorOptions(tkSet)  get=field+0064 set=field+0064 default=223
+  prop   MultiByteScale                 Integer                      get=field+0070 set=field+0070 default=100
+  prop   OnTranslate                    TIvTranslateNotifyEvent(tkMethod) get=field+0078 set=field+0078
+  prop   OnScale                        TIvTranslateNotifyEvent(tkMethod) get=field+0080 set=field+0080
+  prop   OnRestrictComponent            TIvRestrictComponentEvent(tkMethod) get=field+0088 set=field+0088
+  prop   OnRestrictObject               TIvRestrictObjectEvent(tkMethod) get=field+0090 set=field+0090
+  prop   OnRestrictProperty             TIvRestrictPropertyEvent(tkMethod) get=field+0098 set=field+0098
+class TIvTargetPropertyDialog (TForm) size=512 virtuals=32 vmt=004103C8
+  field  +01DC OKButton                       TButton
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 ClassLabel                     TLabel
+  field  +01E8 PropertyLabel                  TLabel
+  field  +01EC ClassNameEdit                  TEdit
+  field  +01F0 PropertyNameEdit               TEdit
+  field  +01F4 HelpButton                     TButton
+  field  +01F8 TypeRadio                      TRadioGroup
+  method 004105B8 HelpButtonClick
+  method 00410654 FormCloseQuery
+  method 004107A4 FormCreate
+  unit IvTargD
+class TIvTargetPropertiesDialog (TForm) size=512 virtuals=32 vmt=00410824
+  field  +01DC OKButton                       TButton
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 AddButton                      TButton
+  field  +01E8 RemoveButton                   TButton
+  field  +01EC EditButton                     TButton
+  field  +01F0 HelpButton                     TButton
+  field  +01F4 DetectButton                   TButton
+  field  +01F8 List                           TListView
+  method 00410CA0 AddButtonClick
+  method 00410D50 EditButtonClick
+  method 00410E18 RemoveButtonClick
+  method 00410EF4 HelpButtonClick
+  method 00410C28 DetectButtonClick
+  method 00410EC0 UpdateButtons
+  method 00410FE4 FormDestroy
+  method 00410FEC ListKeyDown
+  method 0041102C FormCreate
+  unit IvTargsd
+class TIvControlModule (TIvModule) size=36 virtuals=14 vmt=004111C4
+  unit IvConMod
+class TIvLanguageDialog (TForm) size=500 virtuals=32 vmt=004119D4
+  field  +01DC TreeView                       TTreeView
+  field  +01E0 OKButton                       TButton
+  field  +01E4 CancelButton                   TButton
+  field  +01E8 HelpButton                     TButton
+  field  +01EC Translator                     TIvTranslator
+  field  +01F0 IvControlModule1               TIvControlModule
+  method 00412714 FormActivate
+  method 00412744 TreeViewDblClick
+  method 0041272C HelpButtonClick
+  unit IvLanguD
+class TIvBaseReader (TObject) size=8 virtuals=3 vmt=004127F8
+class TIvAnsiReader (TIvBaseReader) size=276 virtuals=3 vmt=0041288C
+class TIvResourceAnsiReader (TIvBaseReader) size=20 virtuals=3 vmt=00412910
+class TIvBaseWideReader (TObject) size=8 virtuals=3 vmt=00412E40
+class TIvWideReader (TIvBaseWideReader) size=536 virtuals=3 vmt=00412EE0
+class TIvResourceWideReader (TIvBaseWideReader) size=20 virtuals=3 vmt=00412F68
+class TIvWideParser (TObject) size=28 virtuals=0 vmt=004134FC
+class TIvPasswordDialog (TForm) size=516 virtuals=32 vmt=00413DB0
+  field  +01DC GroupBox                       TGroupBox
+  field  +01E0 Label1                         TLabel
+  field  +01E4 Label2                         TLabel
+  field  +01E8 UserName                       TEdit
+  field  +01EC Password                       TEdit
+  field  +01F0 OKButton                       TButton
+  field  +01F4 CancelButton                   TButton
+  field  +01F8 HelpButton                     TButton
+  field  +01FC SavePassword                   TCheckBox
+  field  +0200 IvTranslator1                  TIvTranslator
+  method 00413F48 HelpButtonClick
+  unit IvPassWD
+class TIvPageSetupDialog (TCommonDialog) size=164 virtuals=15 vmt=004143F8
+  unit IvPSDlg
+  prop   Options                        TIvPageSetupOptions(tkSet)   get=field+004C set=field+004C default=129
+  prop   Measurements                   TIvPSMeasurements(tkEnumeration) get=field+0078 set=field+0078 default=0
+  prop   Positions                      TIvDialogPositions(tkSet)    get=field+0080 set=field+0080 default=3
+  prop   Parent                         TWinControl                  get=field+007C set=field+007C
+  prop   DictionaryName                 String                       get=field+0088 set=static 00415020
+  prop   OnPrinter                      TIvPSPrinterEvent(tkMethod)  get=field+008C set=field+008C
+  prop   OnInitPaintPage                TIvPSInitPaintPageEvent(tkMethod) get=field+0094 set=field+0094
+  prop   OnPaintPage                    TIvPSPaintPageEvent(tkMethod) get=field+009C set=field+009C
+class TIvSynchroObject (TObject) size=4 virtuals=2 vmt=00415614
+class TIvHandleObject (TIvSynchroObject) size=12 virtuals=2 vmt=0041569C
+class TIvEvent (TIvHandleObject) size=12 virtuals=2 vmt=00415774
+class TIvSimpleEvent (TIvEvent) size=12 virtuals=2 vmt=004157EC
+class TIvCriticalSection (TIvSynchroObject) size=28 virtuals=2 vmt=00415870
+class TIvWinSocket (TObject) size=48 virtuals=1 vmt=00415B5C
+class TIvWinSocketStream (TStream) size=16 virtuals=4 vmt=00415BF8
+class TIvServerDictionary (TIvDictionary) size=160 virtuals=29 vmt=00416EEC
+  unit IvDsMult
+  prop   CodePage                       Integer                      get=field+0080 set=field+0080 default=1252
+  prop   UserName                       String                       get=field+0088 set=field+0088
+  prop   Password                       String                       get=field+008C set=field+008C
+  prop   RemoteDictionaryName           String                       get=field+0084 set=static 004172A8
+  prop   Address                        String                       get=static 004171AC set=static 004171E0
+  prop   Port                           Integer                      get=static 0041727C set=static 00417288 default=1099
+  prop   Timeout                        Integer                      get=field+0090 set=field+0090 default=5000
+  prop   TranslationMode                TIvTranslationMode(tkEnumeration) get=field+007C set=field+007C default=1
+class TIvCustomDatabaseDictionary (TIvDictionary) size=136 virtuals=29 vmt=004188E8
+  unit IvDatDic
+  prop   TableName                      String                       get=field+007C set=field+007C
+  prop   LanguageTableName              String                       get=field+0080 set=field+0080
+  prop   LocaleTableName                String                       get=field+0084 set=field+0084
+class TIvDBDictionary (TIvCustomDatabaseDictionary) size=140 virtuals=29 vmt=00418B60
+  unit IvDBMult
+  prop   DatabaseName                   String                       get=static 00418CE4 set=static 00418D00
+  prop   TableType                      TTableType                   get=static 00418D50 set=static 00418D60 default=0
+class TIvCustomFileDictionary (TIvDictionary) size=136 virtuals=30 vmt=00419CE0
+  unit IvAMulti
+  prop   FileName                       String                       get=static 00419EF8 set=field+007C
+  prop   Storage                        TIvStorage(tkEnumeration)    get=field+0084 set=field+0084 default=0
+class TIvReader (TReader) size=100 virtuals=8 vmt=0041A5B4
+class TIvTextDictionary (TIvCustomFileDictionary) size=156 virtuals=33 vmt=0041BD40
+  unit IvFiMult
+  prop   LanguageFileName               String                       get=static 0041BFE0 set=field+0088
+  prop   LocaleFileName                 String                       get=static 0041C054 set=field+008C
+  prop   Convert                        Boolean                      get=field+0098 set=field+0098 default=1
+class TIvFileDictionary (TIvTextDictionary) size=156 virtuals=33 vmt=0041BED4
+  unit IvFiMult
+class TIvMLDFile (TObject) size=67 virtuals=0 vmt=0041F1D8
+class TIvBinaryDictionary (TIvCustomFileDictionary) size=152 virtuals=33 vmt=004208A4
+  unit IvBinDic
+class TIvLanguageSelectDialog (TForm) size=496 virtuals=32 vmt=00421C4C
+  field  +01DC ListBox                        TListBox
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 OkButton                       TButton
+  field  +01E8 HelpButton                     TButton
+  field  +01EC Translator                     TIvTranslator
+  method 00422080 ListBoxDblClick
+  method 00422098 HelpButtonClick
+  unit IvLaSelD
+class TIvCustomLabel (TCustomLabel) size=200 virtuals=24 vmt=00422128
+  unit IvMlCtrl
+class TIvLabel (TIvCustomLabel) size=200 virtuals=24 vmt=00422204
+  unit IvMlCtrl
+  prop   Align                          TAlign                       get=field+0048 set=static 00401F80 default=0
+  prop   Alignment                      TAlignment                   get=field+00BC set=static 00402500 default=0
+  prop   AutoSize                       Boolean                      get=field+00BD set=virt+005C default=1
+  prop   Caption                        TCaption                     get=static 00402008 set=static 00402010
+  prop   Color                          TColor                       get=field+0054 set=static 00402048 default=-2147483643
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401FF8 default=1
+  prop   FocusControl                   TWinControl                  get=field+00B8 set=static 00402518
+  prop   Font                           TFont                        get=field+0050 set=static 00402018
+  prop   Locale                         Integer                      get=field+00C4 set=static 0042429C
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 00402058 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00402030 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00402040 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00402000
+  prop   ShowAccelChar                  Boolean                      get=field+00C0 set=static 00402520 default=1
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00402038
+  prop   Transparent                    Boolean                      get=static 00402510 set=static 00402528 default=0
+  prop   Layout                         TTextLayout                  get=field+00BE set=static 00402530 default=0
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401FF0 default=1
+  prop   WordWrap                       Boolean                      get=field+00BF set=static 00402538 default=0
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TIvCustomGroupBox (TCustomGroupBox) size=288 virtuals=32 vmt=00422708
+  unit IvMlCtrl
+class TIvGroupBox (TIvCustomGroupBox) size=288 virtuals=32 vmt=00422808
+  unit IvMlCtrl
+  prop   Align                          TAlign                       get=field+0048 set=static 00401F80 default=0
+  prop   Caption                        TCaption                     get=static 00402008 set=static 00402010
+  prop   Color                          TColor                       get=field+0054 set=static 00402048 default=-2147483643
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 00402180
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401FF8 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 00402018
+  prop   Locale                         Integer                      get=field+011C set=static 00424568
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 00402058 default=1
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 00402190 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00402030 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00402040 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00402000
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00402038
+  prop   TabOrder                       TTabOrder                    get=static 00402198 set=static 004021A0 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 004021A8 default=0
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401FF0 default=1
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TIvCustomRadioGroup (TCustomRadioGroup) size=308 virtuals=33 vmt=00422CFC
+  unit IvMlCtrl
+class TIvRadioGroup (TIvCustomRadioGroup) size=308 virtuals=33 vmt=00422E04
+  unit IvMlCtrl
+  prop   Align                          TAlign                       get=field+0048 set=static 00401F80 default=0
+  prop   Caption                        TCaption                     get=static 00402008 set=static 00402010
+  prop   Color                          TColor                       get=field+0054 set=static 00402048 default=-2147483643
+  prop   Columns                        Integer                      get=field+0128 set=static 004027E0 default=1
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 00402180
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401FF8 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 00402018
+  prop   ItemIndex                      Integer                      get=field+0124 set=static 004027E8 default=-1
+  prop   Items                          TStrings                     get=field+0120 set=static 004027F0
+  prop   Locale                         Integer                      get=field+0130 set=static 0042479C
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 00402058 default=1
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 00402190 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00402030 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00402040 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00402000
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00402038
+  prop   TabOrder                       TTabOrder                    get=static 00402198 set=static 004021A0 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 004021A8 default=0
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401FF0 default=1
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TIvCustomListBox (TCustomListBox) size=344 virtuals=33 vmt=004232D4
+  unit IvMlCtrl
+class TIvListBox (TIvCustomListBox) size=344 virtuals=33 vmt=004233D8
+  unit IvMlCtrl
+  prop   Align                          TAlign                       get=field+0048 set=static 00401F80 default=0
+  prop   BorderStyle                    TBorderStyle                 get=field+011C set=static 00402688 default=1
+  prop   Color                          TColor                       get=field+0054 set=static 00402048 default=-2147483643
+  prop   Columns                        Integer                      get=field+0124 set=static 00402620 default=0
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 00402180
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401FF8 default=1
+  prop   ExtendedSelect                 Boolean                      get=field+0130 set=static 00402638 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 00402018
+  prop   ImeMode                        TImeMode                     get=field+00E4 set=field+00E4 default=3
+  prop   ImeName                        TImeName                     get=field+00E8 set=field+00E8
+  prop   IntegralHeight                 Boolean                      get=field+012D set=static 00402640 default=0
+  prop   ItemHeight                     Integer                      get=static 00402648 set=static 00402650
+  prop   Items                          TStrings                     get=field+0118 set=static 00402690
+  prop   Locale                         Integer                      get=field+0154 set=static 004249D0
+  prop   MultiSelect                    Boolean                      get=field+012E set=static 00402660 default=0
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 00402058 default=0
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 00402190 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00402030 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00402040 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00402000
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00402038
+  prop   Sorted                         Boolean                      get=field+012F set=static 00402678 default=0
+  prop   Style                          TListBoxStyle                get=field+012C set=static 00402680 default=0
+  prop   TabOrder                       TTabOrder                    get=static 00402198 set=static 004021A0 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 004021A8 default=1
+  prop   TabWidth                       Integer                      get=field+0134 set=static 00402658 default=0
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401FF0 default=1
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnDrawItem                     TDrawItemEvent               get=field+0144 set=field+0144
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnKeyDown                      TKeyEvent                    get=field+00EC set=field+00EC
+  prop   OnKeyPress                     TKeyPressEvent               get=field+00F4 set=field+00F4
+  prop   OnKeyUp                        TKeyEvent                    get=field+00FC set=field+00FC
+  prop   OnMeasureItem                  TMeasureItemEvent            get=field+014C set=field+014C
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TIvCustomComboBox (TCustomComboBox) size=372 virtuals=35 vmt=00423B14
+  unit IvMlCtrl
+class TIvComboBox (TIvCustomComboBox) size=372 virtuals=35 vmt=00423C20
+  unit IvMlCtrl
+  prop   Style                          TComboBoxStyle               get=field+0121 set=virt+0088 default=0
+  prop   Color                          TColor                       get=field+0054 set=static 00402048 default=-2147483643
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 00402180
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DropDownCount                  Integer                      get=field+012C set=field+012C default=8
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401FF8 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 00402018
+  prop   ImeMode                        TImeMode                     get=field+00E4 set=field+00E4 default=3
+  prop   ImeName                        TImeName                     get=field+00E8 set=field+00E8
+  prop   ItemHeight                     Integer                      get=static 004025A0 set=static 004025A8
+  prop   Items                          TStrings                     get=field+0118 set=static 004025B0
+  prop   Locale                         Integer                      get=field+0170 set=static 00424A54
+  prop   MaxLength                      Integer                      get=field+0128 set=static 00402588 default=0
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 00402058 default=0
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 00402190 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00402030 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00402040 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00402000
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00402038
+  prop   Sorted                         Boolean                      get=field+0120 set=static 00402590 default=0
+  prop   TabOrder                       TTabOrder                    get=static 00402198 set=static 004021A0 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 004021A8 default=1
+  prop   Text                           TCaption                     get=static 00402008 set=static 00402010
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401FF0 default=1
+  prop   OnChange                       TNotifyEvent                 get=field+0150 set=field+0150
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnDrawItem                     TDrawItemEvent               get=field+0160 set=field+0160
+  prop   OnDropDown                     TNotifyEvent                 get=field+0158 set=field+0158
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnKeyDown                      TKeyEvent                    get=field+00EC set=field+00EC
+  prop   OnKeyPress                     TKeyPressEvent               get=field+00F4 set=field+00F4
+  prop   OnKeyUp                        TKeyEvent                    get=field+00FC set=field+00FC
+  prop   OnMeasureItem                  TMeasureItemEvent            get=field+0168 set=field+0168
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TIvSubLanguageSelectDialog (TForm) size=496 virtuals=32 vmt=00424B18
+  field  +01DC ListBox                        TIvListBox
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 OkButton                       TButton
+  field  +01E8 Translator                     TIvTranslator
+  field  +01EC HelpButton                     TButton
+  method 00425088 ListBoxDblClick
+  method 004250A0 HelpButtonClick
+  method 004250B8 FormActivate
+  unit IvSuSeld
+class TIvLocaleSelectDialog (TForm) size=496 virtuals=32 vmt=00425148
+  field  +01DC ListBox                        TIvListBox
+  field  +01E0 CancelButton                   TButton
+  field  +01E4 OkButton                       TButton
+  field  +01E8 HelpButton                     TButton
+  field  +01EC Translator                     TIvTranslator
+  method 004255A0 ListBoxDblClick
+  method 004255B8 HelpButtonClick
+  unit IvLoSelD
+class TIvFilterEditor (TForm) size=492 virtuals=32 vmt=0042926C
+  field  +01DC Bevel1                         TBevel
+  field  +01E0 OKButton                       TButton
+  field  +01E4 CancelButton                   TButton
+  field  +01E8 HelpButton                     TButton
+  method 00429670 FormCreate
+  method 00429A8C HelpButtonClick
+  unit IvFiltEd
+class TIvFilterProperty (TStringProperty) size=16 virtuals=11 vmt=004293E4
+class TIvUserDictionary (TIvDictionary) size=172 virtuals=29 vmt=00429DAC
+  unit IvUsrDic
+  prop   OnLanguageCount                TIvCountEvent(tkMethod)      get=field+007C set=field+007C
+  prop   OnLanguageData                 TIvLanguageEvent(tkMethod)   get=field+0084 set=field+0084
+  prop   OnLocaleCount                  TIvCountEvent(tkMethod)      get=field+008C set=field+008C
+  prop   OnLocaleData                   TIvLocaleEvent(tkMethod)     get=field+0094 set=field+0094
+  prop   OnTranslate                    TIvTranslateEvent(tkMethod)  get=field+009C set=field+009C
+  prop   OnTranslateContext             TIvTranslateContextEvent(tkMethod) get=field+00A4 set=field+00A4
+class TIvTest (TObject) size=4 virtuals=9 vmt=0042A47C
+class TIvCoverTest (TIvTest) size=8 virtuals=9 vmt=0042A50C
+class TIvMinimumTest (TIvTest) size=8 virtuals=9 vmt=0042A5A8
+class TIvCodePageTest (TIvTest) size=8 virtuals=9 vmt=0042A658
+class TIvSinglebyteTest (TIvCodePageTest) size=40 virtuals=9 vmt=0042A78C
+class TIvMultibyteTest (TIvCodePageTest) size=12 virtuals=9 vmt=0042A830
+class TIvBidirectionalTest (TIvCodePageTest) size=8 virtuals=9 vmt=0042A8D4
+class TIvTestDictionary (TIvDictionary) size=172 virtuals=29 vmt=0042D24C
+  unit IvTestDi
+  prop   TestType                       TIvTestType(tkEnumeration)   get=field+0080 set=field+0080 default=2
+  prop   TestPrimary                    Integer                      get=field+00A8 set=field+00A8 default=0
+  prop   ReplaceChar                    Char                         get=field+0081 set=field+0081 default=46
+  prop   ReductionChar                  String                       get=field+0084 set=field+0084
+  prop   SingleByteOptions              TIvSinglebyteTestOptions(tkSet) get=field+0088 set=field+0088 default=8
+  prop   From1To5                       Integer                      get=field+008C set=field+008C default=200
+  prop   From6To10                      Integer                      get=field+0090 set=field+0090 default=100
+  prop   From11To20                     Integer                      get=field+0094 set=field+0094 default=70
+  prop   From21To30                     Integer                      get=field+0098 set=field+0098 default=50
+  prop   From31To50                     Integer                      get=field+009C set=field+009C default=30
+  prop   Over50                         Integer                      get=field+00A0 set=field+00A0 default=20
+  prop   ExpandChar                     Char                         get=field+00A4 set=field+00A4 default=95
+  prop   LastChar                       Char                         get=field+00A5 set=field+00A5 default=88
+  prop   UseDoubleByteChars             Boolean                      get=field+0089 set=field+0089 default=1
+class TIvAboutDialog (TForm) size=524 virtuals=32 vmt=0042D944
+  field  +01DC Panel1                         TPanel
+  field  +01E0 OKButton                       TButton
+  field  +01E4 ProgramIcon                    TImage
+  field  +01E8 ProductName                    TLabel
+  field  +01EC Version                        TLabel
+  field  +01F0 Copyright                      TLabel
+  field  +01F4 Comments                       TLabel
+  field  +01F8 URL                            TLabel
+  field  +01FC CopyrightSupra                 TLabel
+  field  +0200 URLSupra                       TLabel
+  field  +0204 Email                          TLabel
+  field  +0208 EmailLabel                     TLabel
+  method 0042DCC0 URLClick
+  method 0042DB04 FormCreate
+  method 0042DD64 EmailClick
+  unit IvAboutD
+class TIvDialogModule (TIvModule) size=36 virtuals=14 vmt=0042DE90
+  unit IvDlgMod
+class TIvFileNameProperty (TStringProperty) size=16 virtuals=11 vmt=00430440
+class TIvMLDFileNameProperty (TIvFileNameProperty) size=16 virtuals=11 vmt=004304F0
+class TIvDictionaryNameProperty (TStringProperty) size=16 virtuals=11 vmt=004305A8
+class TIvCommonDialog (TComponent) size=92 virtuals=14 vmt=00435E80
+  unit IvMlDlgs
+  prop   Ctl3D                          Boolean                      get=field+0024 set=field+0024 default=1
+  prop   HelpContext                    THelpContext                 get=field+002C set=field+002C default=0
+  prop   Positions                      TIvDialogPositions(tkSet)    get=field+0040 set=field+0040 default=3
+  prop   Parent                         TWinControl                  get=field+003C set=field+003C
+  prop   DictionaryName                 String                       get=field+0048 set=static 00436E48
+  prop   OnClose                        TNotifyEvent                 get=field+004C set=field+004C
+  prop   OnShow                         TNotifyEvent                 get=field+0054 set=field+0054
+class TIvOpenDialog (TIvCommonDialog) size=160 virtuals=15 vmt=00436060
+  unit IvMlDlgs
+  prop   DefaultExt                     String                       get=field+0078 set=field+0078
+  prop   FileName                       String                       get=static 00437978 set=field+007C
+  prop   Filter                         String                       get=field+0064 set=field+0064
+  prop   FilterIndex                    Integer                      get=static 004379D0 set=field+0068 default=1
+  prop   InitialDir                     String                       get=field+0070 set=static 004379EC
+  prop   Options                        TOpenOptions                 get=field+0060 set=field+0060 default=16384
+  prop   Title                          String                       get=field+0074 set=field+0074
+  prop   OnFolderChange                 TNotifyEvent                 get=field+0090 set=field+0090
+  prop   OnSelectionChange              TNotifyEvent                 get=field+0088 set=field+0088
+  prop   OnTypeChange                   TNotifyEvent                 get=field+0098 set=field+0098
+class TIvSaveDialog (TIvOpenDialog) size=160 virtuals=15 vmt=004362CC
+  unit IvMlDlgs
+class TIvOpenPictureDialog (TIvOpenDialog) size=184 virtuals=15 vmt=00436380
+  unit IvMlDlgs
+class TIvSavePictureDialog (TIvOpenPictureDialog) size=184 virtuals=15 vmt=00436458
+  method 004385AC Execute
+  unit IvMlDlgs
+class TIvColorDialog (TIvCommonDialog) size=104 virtuals=14 vmt=0043652C
+  unit IvMlDlgs
+  prop   Color                          TColor                       get=field+005C set=field+005C default=0
+  prop   Ctl3D                          Boolean                      get=field+0024 set=field+0024 default=0
+  prop   CustomColors                   TStrings                     get=field+0064 set=static 004389CC
+  prop   Options                        TColorDialogOptions          get=field+0060 set=field+0060 default=0
+class TIvFontDialog (TIvCommonDialog) size=120 virtuals=14 vmt=00436668
+  unit IvMlDlgs
+  prop   Font                           TFont                        get=field+005C set=static 00438D50
+  prop   Device                         TFontDialogDevice            get=field+0060 set=field+0060 default=0
+  prop   MinFontSize                    Integer                      get=field+006C set=field+006C
+  prop   MaxFontSize                    Integer                      get=field+0070 set=field+0070
+  prop   Options                        TFontDialogOptions           get=field+0061 set=field+0061 default=4
+  prop   OnApply                        TFDApplyEvent                get=field+0064 set=field+0064
+class TIvPrinterSetupDialog (TIvCommonDialog) size=92 virtuals=14 vmt=004367F0
+  unit IvMlDlgs
+class TIvPrintDialog (TIvCommonDialog) size=116 virtuals=14 vmt=004368B0
+  unit IvMlDlgs
+  prop   Collate                        Boolean                      get=field+0064 set=field+0064 default=0
+  prop   Copies                         Integer                      get=field+0070 set=static 0043916C default=0
+  prop   FromPage                       Integer                      get=field+005C set=field+005C default=0
+  prop   MinPage                        Integer                      get=field+0068 set=field+0068 default=0
+  prop   MaxPage                        Integer                      get=field+006C set=field+006C default=0
+  prop   Options                        TPrintDialogOptions          get=field+0065 set=field+0065 default=0
+  prop   PrintToFile                    Boolean                      get=field+0066 set=field+0066 default=0
+  prop   PrintRange                     TPrintRange                  get=field+0067 set=field+0067 default=0
+  prop   ToPage                         Integer                      get=field+0060 set=field+0060 default=0
+class TIvFindDialog (TIvCommonDialog) size=684 virtuals=14 vmt=00436A9C
+  unit IvMlDlgs
+  prop   FindText                       String                       get=static 00439920 set=static 00439AA8
+  prop   Options                        TFindOptions                 get=field+005C set=field+005C default=1
+  prop   OnFind                         TNotifyEvent                 get=field+0070 set=field+0070
+class TIvReplaceDialog (TIvFindDialog) size=684 virtuals=14 vmt=00436BC0
+  unit IvMlDlgs
+  prop   ReplaceText                    String                       get=static 00439984 set=static 00439B34
+  prop   OnReplace                      TNotifyEvent                 get=field+0078 set=field+0078
+class TIvUnicodeDictionary (TIvFileDictionary) size=156 virtuals=33 vmt=00439EBC
+  unit IvUMulti
+class TIvEmbeddedBinaryDictionary (TIvBinaryDictionary) size=152 virtuals=33 vmt=0043A000
+  unit IvEBinDi
+  prop   Storage                        TIvStorage(tkEnumeration)    get=field+0084 set=field+0084 default=1
+class TIvEmbeddedDictionary (TIvFileDictionary) size=156 virtuals=33 vmt=0043A1A8
+  unit IvEFiMul
+  prop   Storage                        TIvStorage(tkEnumeration)    get=field+0084 set=field+0084 default=1
+class TIvExtendedTranslator (TIvTranslator) size=160 virtuals=28 vmt=0043A348
+  unit IvEMulti

@@ -1,0 +1,7 @@
+# D:\Games\GOG\Age of Wonders\aowFXpck.dpl: 6 classes
+class TXYZ (TObject) size=16 virtuals=0 vmt=004017C4
+class TXYZList (TObject) size=8 virtuals=0 vmt=00401828
+class TfxParticleObject (TObject) size=44 virtuals=0 vmt=00401894
+class TfxParticle (TfxParticleObject) size=44 virtuals=0 vmt=00401914
+class TfxParticleEffect (TfxParticleObject) size=44 virtuals=0 vmt=00401984
+class TfxParticleSystem (TfxParticleObject) size=52 virtuals=0 vmt=00401A04

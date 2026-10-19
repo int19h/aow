@@ -1,0 +1,22 @@
+== DCPACK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== DisplayC  (18 classes, 34 funcs, 22 types)
+   TAbstractDC (2): BltInvalidatedSurface GetSurface
+   TCustomDisplay (38): ActivateDC CMKeyUP CMWantSpecialKey Create CreateParams CreateWnd DeactivateDC Destroy ExecuteBltSurfaceEvent GetCursor GetDC GetMouseAboveSurface GetMouseButton GetMousePos GetPalette Hide KeyDown Loaded MouseDown PauseFrameUpdateLoop Resize ResizeBackSurfaces ResumeFrameUpdateLoop SetBackSurfaceHeight SetBackSurfaceWidth SetBufferingScheme SetCursor SetFrameRate SetUpdateFrameMode Show ShowError StartUpdateFrameLoop StopUpdateFrameLoop SupportDC SurfaceDataLost SwapDC UpdateFrame WndProc
+   TDDrawDC (8): BltSurface Deactivate FlipSurface GetSurface ShowFrameRate SurfaceLost VerifyLostSurfaces WaitForVerticalBlank
+   TDDrawDCSurface (1): SetDDSurface
+   TDDrawFSWinControl (12): Click Create CreateParams DblClick Destroy KeyDown KeyPress KeyUp MouseDown MouseMove MouseUp WndProc
+   TDDrawFullScr16DC (2): Create CreateSurfaces
+   TDDrawFullScr24DC (1): Create
+   TDDrawFullScr32DC (1): Create
+   TDDrawFullScrDC (19): Activate Create CreateSurfaces Deactivate Destroy FlipSurface GetMousePos Handle Hide HideApplicationForms HookMainWindow MainWindowHook OutputWnd ResizeBackSurfaces SetDisplayMode Show ShowApplicationForms SwitchResolution UnHookMainWindow
+   TDisplayCtrl (38): Activate BltSurface Create Deactivate Destroy FlipSurface GetBlockPosofPix GetCurrentFrameRate GetDisplay GetHPalette GetInvBlockSize GetInvMatrix GetMousePos GetPalette GetPixPosofBlock GetPrimarySurfaceRgn GetStatus GetSurfaceCount Handle Hide InitInvMatrix InvWndwithValue Invalidate InvalidateAll NewFrame OutputWnd RealizePalet RealizePaletNow ResizeBackSurfaces SetPalet SetPrimarySurfaceRgn Show ShowError ShowFrameRate SupportDisplayMode WaitForVerticalBlank WindowRecreated WndProc
+   TDisplayGDISurface (2): Create GetHandle
+   TMatrix (4): Create Destroy GetVal SetVal
+   TUpdateFrameThread (3): Create Execute TriggerUpdateFrame
+   TWindows08DC (11): Activate Create CreateHPalette Deactivate Destroy GetHPalette GetPalette GetSurface ReleaseHPalette UpdatePalette WindowRecreated
+   TWindows16DC (5): Activate Create Deactivate GetSurface SetPixelFormat
+   TWindows24DC (3): Activate Deactivate GetSurface
+   TWindows32DC (3): Activate Deactivate GetSurface
+   TWindowsDC (9): Activate BltSurface Create Deactivate FlipSurface GetInvBlockSize ShowFrameRate SupportDisplayMode WindowRecreated
+   funcs: Register TAbstractDC TActivatedDCType TBackSurfaceControlMode TBufferingScheme TCustomDisplay TDCNotifyEvent TDDrawDC TDDrawDCSurface TDDrawFSWinControl TDDrawFullScr16DC TDDrawFullScr24DC TDDrawFullScr32DC TDDrawFullScrDC TDisplay TDisplayCtrl TDisplayCtrlStatus TDisplayGDISurface TDisplayOptions TDisplayStatus TErrorEvent TMatrix TResizeBackSurfaceEvent TSurfaceDataLostEvent TSwapDCEvent TUpdateFrameEvent TUpdateFrameMode TUpdateFrameThread TWin16DCPixelFormat TWindows08DC TWindows16DC TWindows24DC TWindows32DC TWindowsDC

@@ -1,0 +1,91 @@
+== AOWGauge  (1 classes, 3 funcs, 1 types)
+   TAoWGauge (15): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Draw SetILFIndex SetILFrame SetILTNorm SetILTSel SetILTnIndex SetILTsIndex SetPos SetSize Validate
+   funcs: Register TAOWGaugeType TAoWGauge
+== AOWInterfaceEditor  (1 classes, 2 funcs, 1 types)
+   TAOWComponentEditor (4): Edit ExecuteVerb GetVerb GetVerbCount
+   funcs: Register TAOWComponentEditor
+== AOWInterfaceImgLib  (1 classes, 2 funcs, 1 types)
+   TInterfaceIL (6): CheckIL DrawILF DrawILI DrawILLh DrawILLv DrawILT
+   funcs: Register TInterfaceIL
+== AOWMenu  (1 classes, 2 funcs, 1 types)
+   TAOWMenu (23): CheckKeyDown CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy DetachMenu DetachMenuBar Draw SetFStrings SetILTSel SetILTsIndex SetITStrings SetMenu SetMenuBar SetPopupOwner SetSize SetVisible SetWinLeft SetWinTop Update Validate
+   funcs: Register TAOWMenu
+== AOWMenuBar  (1 classes, 2 funcs, 1 types)
+   TAOWMenuBar (14): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy Draw ReAlign SetFStrings SetILButton SetILDIndex SetILUIndex SetSize Validate
+   funcs: Register TAOWMenuBar
+== AOWToolTip  (1 classes, 2 funcs, 1 types)
+   TAOWToolTip (9): CheckMouseDown Create Destroy Draw SetFStrings SetSize SetVisible Update Validate
+   funcs: Register TAOWToolTip
+== AOWWinManager  (1 classes, 2 funcs, 1 types)
+   TAOWWinManager (17): CheckKeyDown CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Draw DrawSurface InvalidateRect SetCursor SetILBIndex SetILFIndex SetILTB SetILTF SetOverPri Update Validate
+   funcs: Register TAOWWinManager
+== AoWBaseWin  (1 classes, 1 funcs, 1 types)
+   TAOWBaseWindow (10): AddBltRect DrawSurfDesc DrawSurface InvalidateRect SetILFIndex SetILFrame SetILTIndex SetILTexture SetManager SetVisible
+   funcs: TAOWBaseWindow
+== AoWButton  (2 classes, 3 funcs, 2 types)
+   TAOWBaseButton (10): Draw SetGText SetILButton SetILDIndex SetILHIndex SetILIcon SetILUIndex SetSize SetVisible Validate
+   TAOWButton (3): CheckMouseDown CheckMouseMove CheckMouseUp
+   funcs: Register TAOWBaseButton TAOWButton
+== AoWCheckBox  (1 classes, 2 funcs, 1 types)
+   TAOWCheckBox (4): CheckMouseDown CheckMouseMove CheckMouseUp SetChecked
+   funcs: Register TAOWCheckBox
+== AoWComboBox  (1 classes, 2 funcs, 1 types)
+   TAOWComboBox (21): CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy Draw SetFStrings SetILEIndex SetILEdit SetILFIndex SetILFrame SetILTNorm SetILTSel SetILTnIndex SetILTsIndex SetIndex SetSize SetVScroll SetVisible Update Validate
+   funcs: Register TAOWComboBox
+== AoWComp  (1 classes, 12 funcs, 3 types)
+   TAoWComponent (31): AddBltRect AddDrawRect CheckKeyDown CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp ClearBltList ClearDrawList Create Destroy Draw DrawSurfDesc DrawSurface InvalidateRect OnChangeText ReAlign SetAlign SetColor SetHeight SetOwner SetPriority SetSelColor SetSize SetVisible SetWidth SetWinLeft SetWinTop Setup Update Validate
+   funcs: TAOWAlignHeight TAOWAlignWidth TAOWAlignment TAOWDrawMethod TAoWComponent TAoWOnDebugEvent TAoWOnDrawBackEvent TAoWOnDrawEvent TAoWOnDrawItemEvent TButtonType TaowRect TaowTextAlign
+== AoWControl  (1 classes, 1 funcs, 1 types)
+   TAOWControl (8): CheckMouseDown CheckMouseMove Create Destroy SetAOWWindow SetOwner SetToolStrings Update
+   funcs: TAOWControl
+== AoWDialogForm  (1 classes, 2 funcs, 1 types)
+   TDialog (12): CompComboChange Display1MouseDown Display1MouseMove Display1MouseUp Display1UpdateFrame Draw UpDown2Click UpDown3Click UpDown6Click UpDown7Click UpDown8Click UpDown9Click
+   funcs: Dialog TDialog
+== AoWEdit  (1 classes, 2 funcs, 1 types)
+   TAOWEdit (13): CheckKeyDown CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Draw SetGText SetILEdit SetILIndex SetSize Update Validate
+   funcs: Register TAOWEdit
+== AoWFrame  (1 classes, 3 funcs, 1 types)
+   TAoWFrame (13): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Draw SetILFIndex SetILFrame SetILLIndex SetILLine SetILTIndex SetILTexture SetSize Validate
+   funcs: Register TAoWFrame TFrameType
+== AoWHScroll  (1 classes, 2 funcs, 1 types)
+   TAOWHScrollBar (5): CheckMouseDown CheckMouseMove CheckMouseUp Draw SetSize
+   funcs: Register TAOWHScrollBar
+== AoWHTMLMemo  (1 classes, 5 funcs, 2 types)
+   TaowHTMLMemo (14): Create Destroy Draw InvalidateRect LoadFont OnChangeText SetAOWWindow SetFStrings SetFileName SetListOff SetOwner SetSize SetVScroll Update
+   funcs: Register TChangeInfo TIntParseMode TaowAlign TaowHTMLMemo
+== AoWImage  (1 classes, 2 funcs, 1 types)
+   TAOWImage (13): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Draw SetAnim SetCurrent SetEnd SetILB SetSize SetStart Update Validate
+   funcs: Register TAOWImage
+== AoWLabel  (1 classes, 2 funcs, 1 types)
+   TAOWLabel (9): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Draw SetGFont SetGText SetSize Validate
+   funcs: Register TAOWLabel
+== AoWListBox  (1 classes, 3 funcs, 1 types)
+   TAOWListBox (21): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy Draw SetFStrings SetILFIndex SetILFrame SetILTNorm SetILTSel SetILTnIndex SetILTsIndex SetIndex SetListOff SetSize SetVScroll SetVisible Update Validate
+   funcs: Register TAOWListBox TLBType
+== AoWMemo  (1 classes, 4 funcs, 2 types)
+   TAOWMemo (22): CheckKeyDown CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create CurToReal Destroy Draw KeyStuff RealToCur SetFStrings SetILFIndex SetILFrame SetILTIndex SetILTexture SetListOff SetSize SetVScroll SetVisible Update Validate
+   funcs: Register TAOWMemo TColorChange TMemoType
+== AoWPanel  (1 classes, 2 funcs, 1 types)
+   TAOWPanel (17): AddBltRect AddDrawRect CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy DetachMenuBar Draw InvalidateRect SetAOWWindow SetOwner SetSize SetTabPanel SetVisible Setup Update
+   funcs: Register TAOWPanel
+== AoWTabPanel  (1 classes, 2 funcs, 1 types)
+   TAOWTabPanel (14): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy Draw SetFStrings SetILButton SetILDIndex SetILUIndex SetIndex SetSize Validate
+   funcs: Register TAOWTabPanel
+== AoWVScroll  (2 classes, 5 funcs, 2 types)
+   TAOWScrollBar (21): Create SetFMax SetFMin SetFNum SetFPos SetILBIndex SetILBack SetILDDIndex SetILDUIndex SetILDec SetILIDIndex SetILITab SetILIUIndex SetILInc SetILLBack SetILLTab SetILTIndex SetLarge SetSmall Update Validate
+   TAOWVScrollBar (5): CheckMouseDown CheckMouseMove CheckMouseUp Draw SetSize
+   funcs: Register TAOWScrollBar TAOWVScrollBar TaowScrollType TaowTabType
+== AoWWinControl  (1 classes, 3 funcs, 1 types)
+   TAOWWindowControl (10): Blt CheckKeyDown CheckKeyPress Create Destroy DetachMenuBar RadioChange SetOverlap Validate VerifyBackSurface
+   funcs: TAOWWindowControl TAoWOnDrawSurface TWindowType
+== AoWWinGeneric  (1 classes, 1 funcs, 1 types)
+   TAOWGenericWindow (4): Destroy SetBuffer SetCursor SetOwner
+   funcs: TAOWGenericWindow
+== AoWWindow  (1 classes, 2 funcs, 1 types)
+   TAOWWindow (7): CheckMouseDown CheckMouseMove CheckMouseUp Create Draw ReAlign SetSize
+   funcs: Register TAOWWindow
+== aowInt  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== aowUserDrawBox  (1 classes, 2 funcs, 1 types)
+   TaowUserDrawBox (6): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Draw Validate
+   funcs: Register TaowUserDrawBox

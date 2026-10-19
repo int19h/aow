@@ -1,0 +1,11 @@
+== DPLobby  (0 classes, 25 funcs, 0 types)
+   funcs: CLSID_DirectPlayLobby DPAID_ComPort DPAID_INet DPAID_INetPort DPAID_INetW DPAID_LobbyProvider DPAID_Modem DPAID_ModemW DPAID_Phone DPAID_PhoneW DPAID_ServiceProvider DPAID_TotalSize DPLPROPERTY_LobbyGuid DPLPROPERTY_MessagesSupported DPLPROPERTY_PlayerGuid DPLPROPERTY_PlayerScore IDirectPlayLobby IDirectPlayLobby2 IDirectPlayLobby3 IID_IDirectPlayLobby IID_IDirectPlayLobby2 IID_IDirectPlayLobby2A IID_IDirectPlayLobby3 IID_IDirectPlayLobby3A IID_IDirectPlayLobbyA
+== DPlay  (0 classes, 18 funcs, 0 types)
+   funcs: CLSID_DirectPlay DPSPGUID_IPX DPSPGUID_MODEM DPSPGUID_SERIAL DPSPGUID_TCPIP IDirectPlay IDirectPlay2 IDirectPlay3 IDirectPlay3A IDirectPlay4 IDirectPlay4A IID_IDirectPlay IID_IDirectPlay2 IID_IDirectPlay2A IID_IDirectPlay3 IID_IDirectPlay3A IID_IDirectPlay4 IID_IDirectPlay4A
+== aowDPlay  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== aowDPlayComp  (3 classes, 40 funcs, 9 types)
+   TGDFile (1): Destroy
+   TGDMessage (1): Destroy
+   TGDPlay (27): CheckLobby CheckMessages CloseSession Connect Create CreateMsg CreatePlayer CreateSession Destroy DisConnect EjectPlayer GetConnections GetPlayerIndex GetPlayers GetSessions JoinSession LockSession SendChatMessage SendFileDataMessage SendFileMessage SendMessage SendPingMessage SetGMsgs SetPlayerName SetUseCodes UpdatePlayerInfo UpdateSessionInfo
+   funcs: ConItem ConItems Cons GotConnection GotPlayer GotSession PlayerItem Plays Register SDescItem SDescs SPlayers Sess TCapsItem TConnectionType TFileSendMode TFileStatus TGDChatMessageEvent TGDConnection TGDCreateGroupEvent TGDCreatePlayerEvent TGDDebugEvent TGDDestroyGroupEvent TGDDestroyPlayerEvent TGDFile TGDFileDoneMessageEvent TGDFileProgressMessageEvent TGDFileStartMessageEvent TGDMessage TGDMessageErrorEvent TGDMessageEvent TGDNameChangeEvent TGDNowHostingEvent TGDPingMessageEvent TGDPlay TGDPlayer TGDSession TGDSessionLostEvent TGuidItem TgdSentMsg

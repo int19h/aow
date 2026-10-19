@@ -1,0 +1,102 @@
+# D:\Games\GOG\Age of Wonders\HSEPack.dpl: 66 classes
+class TNewHSMapSettings (TObject) size=32 virtuals=0 vmt=5560232C
+class TTerrainList (TObject) size=12 virtuals=3 vmt=55602418
+class TMapField (TECustomNode) size=24 virtuals=35 vmt=55602500
+class TMapLevel (TECustomNode) size=124 virtuals=36 vmt=556025FC
+class TMapContainer (TENode) size=32 virtuals=38 vmt=556026FC
+class TVisibilityList (TEControlStyleInverseSortNode) size=28 virtuals=37 vmt=5560280C
+class THexagonSpriteSelection (TEControlStyleNode) size=32 virtuals=34 vmt=5560291C
+class THSMapMouse (TObject) size=60 virtuals=10 vmt=55602A70
+class THSMap (TENode) size=164 virtuals=59 vmt=55602D50
+class THSMapViewer (TComponent) size=76 virtuals=12 vmt=55602EC4
+  unit HSEngine
+  prop   OnSceneChanged                 TNotifyEvent                 get=field+0040 set=field+0040
+class TMORTerrainControl (TEObject) size=24 virtuals=22 vmt=55602F94
+class THexagonControl (TMORTerrainControl) size=24 virtuals=22 vmt=55603070
+class TRoadControl (TMORTerrainControl) size=24 virtuals=22 vmt=55603144
+class THSSet (TECustomOwner) size=72 virtuals=34 vmt=55603270
+class THSEngine (TEngine) size=88 virtuals=46 vmt=556033F0
+class THexagonSpriteEngine (TEComponent) size=60 virtuals=12 vmt=55603530
+  unit HSEngine
+  prop   OnRegisterClasses              TNotifyEvent                 get=field+0024 set=field+0024
+  prop   OnUnRegisterClasses            TNotifyEvent                 get=field+002C set=field+002C
+class THexagonSprite (TEObject) size=8 virtuals=66 vmt=55603694
+class TSingleHS (THexagonSprite) size=12 virtuals=68 vmt=55603818
+class TFixedVisibleHS (THexagonSprite) size=12 virtuals=66 vmt=55603998
+class TCustomFixedVisibleHS (TFixedVisibleHS) size=24 virtuals=66 vmt=55603B70
+class TLibraryImageHS (THexagonSprite) size=32 virtuals=69 vmt=55603D78
+class THPBasedHS (THexagonSprite) size=24 virtuals=66 vmt=55603F08
+class TMapObject (THexagonSprite) size=16 virtuals=71 vmt=55604190
+class TMapObjectResource (TEResource) size=52 virtuals=28 vmt=55604320
+class TMapObjectResourceList (TEResourceList) size=20 virtuals=35 vmt=55604428
+class TMultiHexMO (TMapObject) size=20 virtuals=74 vmt=55604540
+class TMultiHexMOR (TMapObjectResource) size=68 virtuals=30 vmt=556046DC
+class TAbstractHexagon (TMapObject) size=16 virtuals=72 vmt=556047CC
+class TAbstractHexagonResource (TMapObjectResource) size=52 virtuals=29 vmt=5560496C
+class TAbstractBorderHexagon (TAbstractHexagon) size=16 virtuals=72 vmt=55604A70
+class TAbstractBorderHexagonResource (TAbstractHexagonResource) size=52 virtuals=29 vmt=55604C1C
+class TAbstractRoad (TMapObject) size=16 virtuals=72 vmt=55604D2C
+class TAbstractRoadResource (TMapObjectResource) size=52 virtuals=29 vmt=55604EC4
+class TXYLList (TPersistent) size=20 virtuals=5 vmt=55604FC0
+  unit HSEngine
+class TTerrainComboBox (TComboBox) size=380 virtuals=35 vmt=55610928
+  unit TerCBox
+  prop   Mode                           TTerrainComboBoxMode(tkEnumeration) get=field+0170 set=field+0170
+  prop   TerrainType                    Shortint                     get=field+0171 set=static 55610B20
+  prop   HexagonSpriteEngine            THexagonSpriteEngine(tkClass) get=field+0174 set=static 55610E20
+  prop   AllowTransparent               Boolean                      get=field+0178 set=field+0178
+class TLibraryHS (THPBasedHS) size=44 virtuals=66 vmt=55610FC8
+class THSLibrary (TImageLibrary) size=92 virtuals=19 vmt=55611140
+  unit HSLib
+  prop   Engine                         THexagonSpriteEngine(tkClass) get=field+0058 set=static 556117F4
+class TProgressDlg (TForm) size=488 virtuals=32 vmt=5561195C
+  field  +01DC ProgressPanel                  TPanel
+  field  +01E0 ProgressMessage                TLabel
+  field  +01E4 ProgressBar                    TProgressBar
+  unit ProgDlg
+class THexagon (TAbstractHexagon) size=20 virtuals=73 vmt=55611B10
+class THexagonResource (TAbstractHexagonResource) size=56 virtuals=29 vmt=55611CA4
+class THSEditModule (TDataModule) size=84 virtuals=10 vmt=556121F4
+  field  +0044 HSEditIL                       TImageLibrary
+  field  +0048 HSBrushes                      THSLibrary
+  unit HSEdMod
+class THSMEditControl (TEUser) size=16 virtuals=19 vmt=5561232C
+class THSMPlaceControl (TEObject) size=24 virtuals=19 vmt=5561245C
+class THSMEdit (TDisplay) size=624 virtuals=51 vmt=55612564
+  unit HSMEdit
+  prop   OnShowMessage                  TShowMessageEvent(tkMethod)  get=field+0204 set=field+0204
+  prop   OnUpdateCaption                TNotifyEvent                 get=field+0214 set=field+0214
+  prop   OnActivate                     TNotifyEvent                 get=field+0220 set=field+0220
+  prop   OnDeactivate                   TNotifyEvent                 get=field+0228 set=field+0228
+  prop   OnStaticSceneUpdated           TNotifyEvent                 get=field+020C set=field+020C
+  prop   OnDeselectPlaceHS              TNotifyEvent                 get=field+0238 set=field+0238
+  prop   OnSelectPlaceHS                TNotifyEvent                 get=field+0230 set=field+0230
+  prop   LoadMapFileFilter              String                       get=field+01DC set=field+01DC
+  prop   SaveMapFileFilter              String                       get=field+01E0 set=field+01E0
+class THSSEditControl (TEUser) size=16 virtuals=19 vmt=55615824
+class THSSEdit (TComponent) size=80 virtuals=11 vmt=556158EC
+  unit HSSEdit
+  prop   OnShowMessage                  TShowMessageEvent(tkMethod)  get=field+003C set=field+003C
+  prop   OnUpdateCaption                TNotifyEvent                 get=field+0044 set=field+0044
+  prop   OnActivate                     TNotifyEvent                 get=field+002C set=field+002C
+  prop   OnDeactivate                   TNotifyEvent                 get=field+0034 set=field+0034
+class TTerrainMO (TMultiHexMO) size=20 virtuals=77 vmt=556161C8
+class TTerrainMOR (TMultiHexMOR) size=72 virtuals=30 vmt=5561636C
+class TRoad (TAbstractRoad) size=20 virtuals=72 vmt=55616C70
+class TRoadResource (TAbstractRoadResource) size=52 virtuals=29 vmt=55616DF4
+class TBorderHexagon (TAbstractBorderHexagon) size=16 virtuals=72 vmt=55617384
+class TBorderHexagonResource (TAbstractBorderHexagonResource) size=52 virtuals=29 vmt=55617520
+class TBridge (TAbstractRoad) size=20 virtuals=72 vmt=55617804
+class TBridgeResource (TAbstractRoadResource) size=52 virtuals=29 vmt=5561798C
+class TILTerrainMO (TMultiHexMO) size=28 virtuals=78 vmt=556181E8
+class TILTerrainMOR (TMultiHexMOR) size=68 virtuals=30 vmt=55618394
+class TFixedILTerrainMO (TILTerrainMO) size=28 virtuals=78 vmt=55618484
+class TFixedILTerrainMOR (TILTerrainMOR) size=68 virtuals=30 vmt=5561863C
+class TDynamicIsometricHexagon (THexagonSprite) size=8 virtuals=66 vmt=55618F40
+class TIsometricHexagon (TAbstractHexagon) size=24 virtuals=74 vmt=556190D8
+class TIsometricHexagonResource (TAbstractHexagonResource) size=56 virtuals=29 vmt=55619280
+class TUpperIsometricHexagon (TIsometricHexagon) size=24 virtuals=74 vmt=55619384
+class TUpperIsometricHexagonResource (TIsometricHexagonResource) size=56 virtuals=29 vmt=55619534
+class TLowerIsometricHexagon (TIsometricHexagon) size=24 virtuals=74 vmt=55619640
+class TLowerIsometricHexagonResource (TIsometricHexagonResource) size=56 virtuals=29 vmt=556197F0
+class TRndHexagonResource (THexagonResource) size=56 virtuals=29 vmt=5561A884

@@ -1,0 +1,23 @@
+== AOWTools  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== AoWArnoLine  (1 classes, 2 funcs, 1 types)
+   TAoWArnoLine (8): Create Destroy Draw SetIBottom SetIMiddle SetITop SetSize Validate
+   funcs: Register TAoWArnoLine
+== AoWBookWindow  (1 classes, 2 funcs, 1 types)
+   TAoWBookWindow (10): Blt CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy DrawSurface SetVisible StartAnim Update
+   funcs: Register TAoWBookWindow
+== AoWLenLine  (1 classes, 2 funcs, 1 types)
+   TAoWLenLine (8): CheckKeyPress CheckMouseDown CheckMouseMove CheckMouseUp Draw SetILLine SetSize Validate
+   funcs: Register TAoWLenLine
+== AowUserWindow  (1 classes, 3 funcs, 1 types)
+   TAoWUserWindow (1): DrawSurface
+   funcs: Register TAoWUserWindow TDrawSurfaceExEvent
+== Scanner  (1 classes, 3 funcs, 1 types)
+   TScanner (39): CheckMouseDown CheckMouseMove CheckMouseUp Create Destroy Draw DrawMap DrawObjects GetExplored GetObject GetObjectSize GetOverlay GetTerrain SetArmies SetBuildings SetExplored SetFogimgLib SetHimgLib SetILFIndex SetILFrame SetImgLib SetLevel SetMap SetMapHeight SetMapWidth SetNaturals SetObDrawn SetObjIL SetObjectSize SetOverlay SetSize SetSteps SetTHeight SetTLeft SetTTop SetTWidth SetTerrain Update Validate
+   funcs: Register TOType TScanner
+== StartMenu  (1 classes, 2 funcs, 1 types)
+   TStartMenu (4): CheckMouseDown Draw SetSize SetVisible
+   funcs: Register TStartMenu
+== TurnButton  (1 classes, 3 funcs, 1 types)
+   TAOWTurnButton (9): CheckMouseDown CheckMouseMove CheckMouseUp Create Draw SetILB SetSize Update Validate
+   funcs: Register TAOWTurnButton TButtonType

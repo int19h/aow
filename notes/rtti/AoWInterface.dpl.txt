@@ -1,0 +1,370 @@
+# D:\Games\GOG\Age of Wonders\AoWInterface.dpl: 33 classes
+class TAoWComponent (TComponent) size=252 virtuals=32 vmt=00401C2C
+  unit AoWComp
+  prop   OnMouseDown                    TMouseEvent                  get=field+0038 set=field+0038
+  prop   OnMouseUp                      TMouseEvent                  get=field+0040 set=field+0040
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0048 set=field+0048
+  prop   OnKeyPress                     TKeyPressEvent               get=field+0050 set=field+0050
+  prop   OnKeyDown                      TKeyEvent                    get=field+0058 set=field+0058
+  prop   OnDraw                         TAoWOnDrawEvent(tkMethod)    get=field+0030 set=field+0030
+  prop   OnUpdate                       TNotifyEvent                 get=field+00E8 set=field+00E8
+  prop   Visible                        Boolean                      get=field+0069 set=virt+0044 default=1
+  prop   OnDebugMessage                 TAoWOnDebugEvent(tkMethod)   get=field+00F4 set=field+00F4
+class TILEdit (TImageLibrary) size=80 virtuals=19 vmt=004021DC
+  unit AOWInterfaceImgLib
+class TILFrame (TImageLibrary) size=80 virtuals=19 vmt=0040229C
+  unit AOWInterfaceImgLib
+class TILTexture (TImageLibrary) size=80 virtuals=19 vmt=00402364
+  unit AOWInterfaceImgLib
+class TILButton (TImageLibrary) size=80 virtuals=19 vmt=0040242C
+  unit AOWInterfaceImgLib
+class TILIcon (TImageLibrary) size=80 virtuals=19 vmt=004024F4
+  unit AOWInterfaceImgLib
+class TILScrollBar (TImageLibrary) size=80 virtuals=19 vmt=004025B4
+  unit AOWInterfaceImgLib
+class TILLine (TImageLibrary) size=80 virtuals=19 vmt=00402684
+  unit AOWInterfaceImgLib
+class TAOWWindowControl (TAoWComponent) size=416 virtuals=35 vmt=00402898
+  unit AoWWinControl
+  prop   Priority                       Integer                      get=field+00A8 set=virt+0040
+  prop   WinLeft                        Integer                      get=field+0080 set=virt+0030
+  prop   WinTop                         Integer                      get=field+0084 set=virt+0034
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   OnDrawBack                     TAoWOnDrawBackEvent(tkMethod) get=field+0198 set=field+0198
+class TDialog (TForm) size=664 virtuals=32 vmt=00402F04
+  field  +01DC Display1                       TDisplay
+  field  +01E0 Windows16DC1                   TWindows16DC
+  field  +01E4 Label8                         TLabel
+  field  +01E8 Label1                         TLabel
+  field  +01EC Label2                         TLabel
+  field  +01F0 Label3                         TLabel
+  field  +01F4 Label4                         TLabel
+  field  +01F8 Label9                         TLabel
+  field  +01FC TopEdit                        TEdit
+  field  +0200 LeftEdit                       TEdit
+  field  +0204 UpDown2                        TUpDown
+  field  +0208 UpDown3                        TUpDown
+  field  +020C HeightEdit                     TEdit
+  field  +0210 WidthEdit                      TEdit
+  field  +0214 UpDown6                        TUpDown
+  field  +0218 UpDown7                        TUpDown
+  field  +021C GridXEdit                      TEdit
+  field  +0220 GridYEdit                      TEdit
+  field  +0224 UpDown8                        TUpDown
+  field  +0228 UpDown9                        TUpDown
+  field  +022C CompCombo                      TComboBox
+  method 004035B8 Display1UpdateFrame
+  method 004037A0 Display1MouseDown
+  method 004038B8 UpDown2Click
+  method 00403950 Display1MouseMove
+  method 00403A9C Display1MouseUp
+  method 00403AAC UpDown3Click
+  method 00403B44 UpDown6Click
+  method 00403BD4 UpDown7Click
+  method 00403C64 UpDown9Click
+  method 00403CC0 UpDown8Click
+  method 00403D1C CompComboChange
+  unit AoWDialogForm
+class TAOWWinManager (TAoWComponent) size=308 virtuals=32 vmt=00403E90
+  unit AOWWinManager
+  prop   Cursor                         TCursor                      get=field+002E set=static 004042AC
+  prop   OnChangeCursor                 TNotifyEvent                 get=field+0120 set=field+0120
+  prop   WinLeft                        Integer                      get=field+0080 set=virt+0030
+  prop   WinTop                         Integer                      get=field+0084 set=virt+0034
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   BackgroundTexture              TILTexture(tkClass)          get=field+0100 set=field+0100
+  prop   ForegroundTexture              TILTexture(tkClass)          get=field+00FC set=field+00FC
+  prop   OverlayPriority                Integer                      get=field+0104 set=static 00404294
+  prop   BorderLeft                     Integer                      get=field+010C set=field+010C
+  prop   BorderRight                    Integer                      get=field+0114 set=field+0114
+  prop   BorderTop                      Integer                      get=field+0110 set=field+0110
+  prop   BorderBottom                   Integer                      get=field+0118 set=field+0118
+class TAOWBaseWindow (TAOWWindowControl) size=440 virtuals=35 vmt=004055BC
+  unit AoWBaseWin
+  prop   OnShow                         TNotifyEvent                 get=field+01A8 set=field+01A8
+  prop   OnHide                         TNotifyEvent                 get=field+01B0 set=field+01B0
+class TAOWGenericWindow (TAOWBaseWindow) size=440 virtuals=35 vmt=00406298
+  unit AoWWinGeneric
+  prop   WinManager                     TAOWWinManager(tkClass)      get=field+01A4 set=static 004066F8
+  prop   UseVMem                        Boolean                      get=field+016C set=field+016C
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   OverlapTopCorners              Boolean                      get=field+0128 set=static 00402B58
+  prop   Cursor                         TCursor                      get=field+002E set=static 004067E4
+  prop   DoubleBuffered                 Boolean                      get=field+018D set=field+018D
+  prop   OnChangeCursor                 TNotifyEvent                 get=field+0130 set=field+0130
+  prop   WindowType                     TWindowType(tkEnumeration)   get=field+0149 set=field+0149
+  prop   Masked                         Boolean                      get=field+0155 set=field+0155
+  prop   MaskColor                      TColor                       get=field+0168 set=field+0168
+  prop   OnDrawSurface                  TAoWOnDrawSurface(tkMethod)  get=field+00FC set=field+00FC
+class TAOWWindow (TAOWGenericWindow) size=448 virtuals=37 vmt=00406884
+  unit AoWWindow
+  prop   AlignWidth                     TAOWAlignWidth(tkEnumeration) get=field+00D0 set=field+00D0
+  prop   AlignHeight                    TAOWAlignHeight(tkEnumeration) get=field+00D1 set=field+00D1
+  prop   alHeightPercent                Byte                         get=field+00AD set=field+00AD
+  prop   alWidthPercent                 Byte                         get=field+00AC set=field+00AC
+  prop   alLeftOffPercent               Integer                      get=field+00B0 set=field+00B0
+  prop   alRightOffPercent              Integer                      get=field+00B4 set=field+00B4
+  prop   alTopOffPercent                Integer                      get=field+00B8 set=field+00B8
+  prop   alBottomOffPercent             Integer                      get=field+00BC set=field+00BC
+  prop   alLeftOffset                   Integer                      get=field+00C0 set=field+00C0
+  prop   alRightOffset                  Integer                      get=field+00C4 set=field+00C4
+  prop   alTopOffset                    Integer                      get=field+00C8 set=field+00C8
+  prop   alBottomOffset                 Integer                      get=field+00CC set=field+00CC
+  prop   ILFrame                        TILFrame(tkClass)            get=field+01B8 set=virt+008C
+  prop   ILTexture                      TILTexture(tkClass)          get=field+01BC set=virt+0090
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   DragHeight                     Integer                      get=field+0124 set=field+0124
+  prop   Draggable                      LongBool                     get=field+0110 set=field+0110
+  prop   Resizable                      LongBool                     get=field+0114 set=field+0114
+  prop   OnDrag                         TNotifyEvent                 get=field+0060 set=field+0060
+  prop   OnResize                       TNotifyEvent                 get=field+011C set=field+011C
+  prop   MinWidth                       Integer                      get=field+0138 set=field+0138
+  prop   MinHeight                      Integer                      get=field+013C set=field+013C
+  prop   MaxWidth                       Integer                      get=field+0140 set=field+0140
+  prop   MaxHeight                      Integer                      get=field+0144 set=field+0144
+  prop   UseManagerBorders              Boolean                      get=field+0154 set=field+0154
+class TAOWToolTip (TAOWGenericWindow) size=496 virtuals=37 vmt=00408CAC
+  unit AOWToolTip
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+01B8 set=static 004094AC
+  prop   OnDrawItem                     TNotifyEvent                 get=field+01BC set=field+01BC
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   ToolTipStatic                  Boolean                      get=field+01C4 set=field+01C4
+  prop   ToolTipDelay                   Integer                      get=field+01C8 set=field+01C8
+  prop   ShowDuration                   Integer                      get=field+01CC set=field+01CC
+  prop   ILFrame                        TILFrame(tkClass)            get=field+01D0 set=virt+008C
+  prop   ILTexture                      TILTexture(tkClass)          get=field+01D4 set=virt+0090
+class TAOWControl (TAoWComponent) size=272 virtuals=32 vmt=0040A240
+  unit AoWControl
+  prop   Priority                       Integer                      get=field+00A8 set=virt+0040
+  prop   WinLeft                        Integer                      get=field+0080 set=virt+0030
+  prop   WinTop                         Integer                      get=field+0084 set=virt+0034
+  prop   AOWWindow                      TAOWBaseWindow(tkClass)      get=field+0108 set=static 0040A7D8
+  prop   AlignWidth                     TAOWAlignWidth(tkEnumeration) get=field+00D0 set=field+00D0
+  prop   AlignHeight                    TAOWAlignHeight(tkEnumeration) get=field+00D1 set=field+00D1
+  prop   alHeightPercent                Byte                         get=field+00AD set=field+00AD
+  prop   alWidthPercent                 Byte                         get=field+00AC set=field+00AC
+  prop   alLeftOffPercent               Integer                      get=field+00B0 set=field+00B0
+  prop   alRightOffPercent              Integer                      get=field+00B4 set=field+00B4
+  prop   alTopOffPercent                Integer                      get=field+00B8 set=field+00B8
+  prop   alBottomOffPercent             Integer                      get=field+00BC set=field+00BC
+  prop   alLeftOffset                   Integer                      get=field+00C0 set=field+00C0
+  prop   alRightOffset                  Integer                      get=field+00C4 set=field+00C4
+  prop   alTopOffset                    Integer                      get=field+00C8 set=field+00C8
+  prop   alBottomOffset                 Integer                      get=field+00CC set=field+00CC
+  prop   ToolTip                        TAOWToolTip(tkClass)         get=field+010C set=field+010C
+  prop   ToolTipText                    TStringList                  get=field+00FC set=static 0040A8C4
+  prop   CaptureInput                   Boolean                      get=field+00F0 set=field+00F0
+class TAOWButton (TAOWControl) size=300 virtuals=34 vmt=0040ADC4
+  unit AoWButton
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Text                           String                       get=field+008C set=static 0040B188
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   BorderHeightSelected           Integer                      get=field+0120 set=field+0120
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ButtonType                     TButtonType(tkEnumeration)   get=field+0114 set=field+0114
+  prop   ILButton                       TILButton(tkClass)           get=field+0118 set=virt+0080
+  prop   ILIcon                         TILIcon(tkClass)             get=field+011C set=virt+0084
+  prop   OnClick                        TNotifyEvent                 get=field+0124 set=field+0124
+class TAOWCheckBox (TAOWControl) size=288 virtuals=35 vmt=0040BCB8
+  unit AoWCheckBox
+  prop   Checked                        Boolean                      get=field+00E0 set=virt+0088
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   RadioIndex                     Integer                      get=field+00DC set=field+00DC
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Text                           String                       get=field+008C set=static 0040BF7C
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   BorderHeightSelected           Integer                      get=field+011C set=field+011C
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ButtonType                     TButtonType(tkEnumeration)   get=field+0110 set=field+0110
+  prop   ILButton                       TILButton(tkClass)           get=field+0114 set=virt+0080
+  prop   ILIcon                         TILIcon(tkClass)             get=field+0118 set=virt+0084
+class TAOWVScrollBar (TAOWControl) size=328 virtuals=33 vmt=0040CBE4
+  unit AoWVScroll
+  prop   Delay                          Byte                         get=field+0136 set=field+0136 default=20
+  prop   Min                            Integer                      get=field+0114 set=static 0040D224
+  prop   Max                            Integer                      get=field+0118 set=static 0040D230
+  prop   SmallChange                    Integer                      get=field+011C set=static 0040D1FC
+  prop   LargeChange                    Integer                      get=field+0120 set=static 0040D210
+  prop   Position                       Integer                      get=field+0124 set=static 0040D254
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   NumberVisible                  Integer                      get=field+013C set=static 0040D23C
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   VanishWhenFull                 Boolean                      get=field+0144 set=field+0144
+  prop   ILScroll                       TILScrollBar(tkClass)        get=field+0110 set=virt+0080
+class TAOWComboBox (TAOWControl) size=368 virtuals=36 vmt=0040E1F4
+  unit AoWComboBox
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+0118 set=static 0040E7E4
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   VScrollBar                     TAOWVScrollBar(tkClass)      get=field+011C set=static 0040E86C
+  prop   NumberVisible                  Integer                      get=field+0120 set=field+0120
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   Selected                       Integer                      get=field+0128 set=field+0128
+  prop   PriorityOpened                 Integer                      get=field+0130 set=field+0130
+  prop   OnDrawItem                     TNotifyEvent                 get=field+0138 set=field+0138
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ILEdit                         TILEdit(tkClass)             get=field+0148 set=virt+0080
+  prop   ILFrame                        TILFrame(tkClass)            get=field+014C set=virt+0084
+  prop   ILTextureNormal                TILTexture(tkClass)          get=field+0150 set=virt+0088
+  prop   ILTextureSelected              TILTexture(tkClass)          get=field+0154 set=virt+008C
+  prop   ItemHeight                     Integer                      get=field+0158 set=field+0158
+class TAOWEdit (TAOWControl) size=296 virtuals=33 vmt=004102CC
+  unit AoWEdit
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Text                           String                       get=field+008C set=static 0041077C
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   MaxChars                       Byte                         get=field+0110 set=field+0110
+  prop   CursorChar                     Char                         get=field+0111 set=field+0111
+  prop   BlinkDelay                     Byte                         get=field+0118 set=field+0118
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   Editable                       Boolean                      get=field+011C set=field+011C
+  prop   ILEdit                         TILEdit(tkClass)             get=field+0120 set=virt+0080
+class TAOWImage (TAOWControl) size=288 virtuals=32 vmt=004116B0
+  unit AoWImage
+  prop   ImageLib                       TImageLibrary                get=field+0070 set=virt+002C
+  prop   CurrentImage                   Integer                      get=field+011C set=static 0041193C
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   Animate                        Boolean                      get=field+0110 set=field+0110
+  prop   AnimFrameDelay                 Integer                      get=field+0114 set=field+0114
+class TAOWLabel (TAOWControl) size=272 virtuals=32 vmt=00411D7C
+  unit AoWLabel
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=static 00411F30
+  prop   Text                           String                       get=field+008C set=static 00411F3C
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+class TAOWListBox (TAOWControl) size=360 virtuals=35 vmt=0041227C
+  unit AoWListBox
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+0110 set=static 00412940
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   VScrollBar                     TAOWVScrollBar(tkClass)      get=field+0114 set=static 00412A20
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   OnDoubleClick                  TNotifyEvent                 get=field+0144 set=field+0144
+  prop   Selected                       Integer                      get=field+011C set=field+011C
+  prop   OnDrawItem                     TNotifyEvent                 get=field+0124 set=field+0124
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ILFrame                        TILFrame(tkClass)            get=field+0134 set=virt+0080
+  prop   ILTextureNormal                TILTexture(tkClass)          get=field+0138 set=virt+0084
+  prop   ILTextureSelected              TILTexture(tkClass)          get=field+013C set=virt+0088
+  prop   ItemHeight                     Integer                      get=field+0140 set=field+0140
+class TAOWTabPanel (TAOWControl) size=292 virtuals=33 vmt=00413C70
+  unit AoWTabPanel
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+0110 set=static 00414138
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   Selected                       Integer                      get=field+0114 set=static 004141C0
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ILButton                       TILButton(tkClass)           get=field+0118 set=virt+0080
+  prop   BorderHeightSelected           Integer                      get=field+011C set=field+011C
+class TColorChange (TObject) size=12 virtuals=0 vmt=004150C8
+class TAOWMemo (TAOWControl) size=388 virtuals=34 vmt=00415140
+  unit AoWMemo
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+0114 set=static 00415D60
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   VScrollBar                     TAOWVScrollBar(tkClass)      get=field+011C set=static 00415E68
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   OnDrawItem                     TNotifyEvent                 get=field+012C set=field+012C
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   CursorChar                     Char                         get=field+0139 set=field+0139
+  prop   BlinkDelay                     Byte                         get=field+0140 set=field+0140
+  prop   Editable                       Boolean                      get=field+0158 set=field+0158
+  prop   ILFrame                        TILFrame(tkClass)            get=field+015C set=virt+0080
+  prop   ILTexture                      TILTexture(tkClass)          get=field+0160 set=virt+0084
+  prop   ItemHeight                     Integer                      get=field+0164 set=field+0164
+  prop   ColorChangeChar                Char                         get=field+0168 set=field+0168
+class TAOWComponentEditor (TComponentEditor) size=20 virtuals=6 vmt=00417D54
+class TAoWGauge (TAOWControl) size=300 virtuals=35 vmt=00417F48
+  unit AOWGauge
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   Min                            Integer                      get=field+0110 set=field+0110
+  prop   Max                            Integer                      get=field+0114 set=field+0114
+  prop   Position                       Integer                      get=field+0118 set=static 0041859C
+  prop   ILFrame                        TILFrame(tkClass)            get=field+011C set=virt+0080
+  prop   ILTextureNormal                TILTexture(tkClass)          get=field+0120 set=virt+0084
+  prop   ILTextureSelected              TILTexture(tkClass)          get=field+0124 set=virt+0088
+  prop   GaugeType                      TAOWGaugeType(tkEnumeration) get=field+0128 set=field+0128
+class TAOWMenuBar (TAOWControl) size=296 virtuals=33 vmt=00419664
+  unit AOWMenuBar
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   Items                          TStringList                  get=field+0110 set=static 00419B24
+  prop   BorderWidth                    Integer                      get=field+0094 set=field+0094
+  prop   BorderHeight                   Integer                      get=field+0098 set=field+0098
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   Selected                       Integer                      get=field+0114 set=field+0114
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   ILButton                       TILButton(tkClass)           get=field+0118 set=virt+0080
+class TAOWMenu (TAOWGenericWindow) size=540 virtuals=40 vmt=0041AAB0
+  unit AOWMenu
+  prop   ILFrame                        TILFrame(tkClass)            get=field+01BC set=virt+0094
+  prop   ILTextureNormal                TILTexture(tkClass)          get=field+01C0 set=virt+0098
+  prop   ILTextureSelected              TILTexture(tkClass)          get=field+01C4 set=virt+009C
+  prop   Items                          TStringList                  get=field+01C8 set=static 0041B928
+  prop   ItemTypes                      TStringList                  get=field+01CC set=static 0041B9B0
+  prop   OnChange                       TNotifyEvent                 get=field+0060 set=field+0060
+  prop   OnDrawItem                     TNotifyEvent                 get=field+01D0 set=field+01D0
+  prop   TextColor                      TColor                       get=field+0024 set=virt+0048
+  prop   TextSelColor                   TColor                       get=field+0028 set=virt+004C
+  prop   AOWFont                        TImageLibraryFont            get=field+0088 set=field+0088
+  prop   ItemHeight                     Integer                      get=field+01D8 set=field+01D8
+  prop   OwnerMenuBar                   TAOWMenuBar(tkClass)         get=field+01DC set=virt+0090
+  prop   OwnerMenu                      TAOWMenu(tkClass)            get=field+01E0 set=virt+008C
+  prop   OwnerItem                      Integer                      get=field+00E4 set=field+00E4
+  prop   SubMenuShowDelay               Integer                      get=field+01E4 set=field+01E4
+  prop   OnSelect                       TNotifyEvent                 get=field+01E8 set=field+01E8
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+class TAoWFrame (TAOWControl) size=292 virtuals=35 vmt=0041D16C
+  unit AoWFrame
+  prop   WinWidth                       Integer                      get=field+0078 set=virt+0038
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   FrameType                      TFrameType(tkEnumeration)    get=field+0110 set=field+0110
+  prop   ILFrame                        TILFrame(tkClass)            get=field+0114 set=virt+0080
+  prop   ILTexture                      TILTexture(tkClass)          get=field+0118 set=virt+0084
+  prop   ILLine                         TILLine(tkClass)             get=field+011C set=virt+0088
+  prop   PopupMenu                      TAOWMenu(tkClass)            get=field+0120 set=field+0120
+class TAOWPanel (TAOWBaseWindow) size=476 virtuals=38 vmt=0041EA7C
+  unit AoWPanel
+  prop   WinHeight                      Integer                      get=field+007C set=virt+003C
+  prop   AOWWindow                      TAOWBaseWindow(tkClass)      get=field+01D8 set=static 0041F25C
+  prop   AlignWidth                     TAOWAlignWidth(tkEnumeration) get=field+00D0 set=field+00D0
+  prop   AlignHeight                    TAOWAlignHeight(tkEnumeration) get=field+00D1 set=field+00D1
+  prop   alHeightPercent                Byte                         get=field+00AD set=field+00AD
+  prop   alWidthPercent                 Byte                         get=field+00AC set=field+00AC
+  prop   alLeftOffPercent               Integer                      get=field+00B0 set=field+00B0
+  prop   alRightOffPercent              Integer                      get=field+00B4 set=field+00B4
+  prop   alTopOffPercent                Integer                      get=field+00B8 set=field+00B8
+  prop   alBottomOffPercent             Integer                      get=field+00BC set=field+00BC
+  prop   alLeftOffset                   Integer                      get=field+00C0 set=field+00C0
+  prop   alRightOffset                  Integer                      get=field+00C4 set=field+00C4
+  prop   alTopOffset                    Integer                      get=field+00C8 set=field+00C8
+  prop   alBottomOffset                 Integer                      get=field+00CC set=field+00CC
+  prop   PanelType                      TWindowType(tkEnumeration)   get=field+01D0 set=field+01D0
+  prop   TabPanel                       TAOWTabPanel(tkClass)        get=field+01D4 set=virt+0094
+  prop   ILFrame                        TILFrame(tkClass)            get=field+01C8 set=virt+008C
+  prop   ILTexture                      TILTexture(tkClass)          get=field+01CC set=virt+0090
+  prop   OwnerItem                      Integer                      get=field+00E4 set=field+00E4

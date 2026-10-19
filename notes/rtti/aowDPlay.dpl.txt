@@ -1,0 +1,39 @@
+# D:\Games\GOG\Age of Wonders\aowDPlay.dpl: 9 classes
+class TGuidItem (TObject) size=20 virtuals=0 vmt=00401870
+class TGDConnection (TObject) size=32 virtuals=0 vmt=004018E4
+class TGDSession (TObject) size=124 virtuals=0 vmt=00401960
+class TGDPlayer (TObject) size=52 virtuals=0 vmt=004019D8
+class TCapsItem (TObject) size=44 virtuals=0 vmt=00401A4C
+class TGDFile (TObject) size=24 virtuals=0 vmt=00401AC0
+class TGDMessage (TObject) size=16 virtuals=0 vmt=00401B44
+class TgdSentMsg (TObject) size=20 virtuals=0 vmt=00401BBC
+class TGDPlay (TComponent) size=544 virtuals=10 vmt=00401F84
+  unit aowDPlayComp
+  prop   SessionName                    String                       get=field+0024 set=field+0024
+  prop   MaxPlayers                     Integer                      get=field+002C set=field+002C
+  prop   PlayerName                     String                       get=field+0028 set=static 00402984
+  prop   OnMessage                      TGDMessageEvent(tkMethod)    get=field+0030 set=field+0030
+  prop   OnChatMessage                  TGDChatMessageEvent(tkMethod) get=field+0038 set=field+0038
+  prop   OnPingMessage                  TGDPingMessageEvent(tkMethod) get=field+0040 set=field+0040
+  prop   OnFileStartMessage             TGDFileStartMessageEvent(tkMethod) get=field+0048 set=field+0048
+  prop   OnFileProgressMessage          TGDFileProgressMessageEvent(tkMethod) get=field+0050 set=field+0050
+  prop   OnFileDoneMessage              TGDFileDoneMessageEvent(tkMethod) get=field+0058 set=field+0058
+  prop   OnCreatePlayer                 TGDCreatePlayerEvent(tkMethod) get=field+0068 set=field+0068
+  prop   OnCreateGroup                  TGDCreateGroupEvent(tkMethod) get=field+0070 set=field+0070
+  prop   OnDestroyPlayer                TGDDestroyPlayerEvent(tkMethod) get=field+0078 set=field+0078
+  prop   OnDestroyGroup                 TGDDestroyGroupEvent(tkMethod) get=field+0080 set=field+0080
+  prop   OnSessionLost                  TGDSessionLostEvent(tkMethod) get=field+0088 set=field+0088
+  prop   OnNowHosting                   TGDNowHostingEvent(tkMethod) get=field+0090 set=field+0090
+  prop   OnMessageError                 TGDMessageErrorEvent(tkMethod) get=field+0060 set=field+0060
+  prop   OnPlayerNameChange             TGDNameChangeEvent(tkMethod) get=field+0098 set=field+0098
+  prop   OnGroupNameChange              TGDNameChangeEvent(tkMethod) get=field+00A0 set=field+00A0
+  prop   GauranteeMsgs                  Boolean                      get=field+00C0 set=static 0040291C
+  prop   UseCodes                       Boolean                      get=field+00DC set=static 00402950
+  prop   OnEjected                      TNotifyEvent                 get=field+00A8 set=field+00A8
+  prop   OnSessionClosed                TNotifyEvent                 get=field+00B0 set=field+00B0
+  prop   OnDisconnected                 TNotifyEvent                 get=field+00B8 set=field+00B8
+  prop   TCPPort                        String                       get=field+0190 set=field+0190
+  prop   ModemPhoneNumber               String                       get=field+018C set=field+018C
+  prop   UseSetupDialogs                Boolean                      get=field+0194 set=field+0194
+  prop   FilePacketSize                 Integer                      get=field+01A0 set=field+01A0
+  prop   OnDebugMessage                 TGDDebugEvent(tkMethod)      get=field+01A8 set=field+01A8

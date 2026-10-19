@@ -1,0 +1,6 @@
+# D:\Games\GOG\Age of Wonders\VideoP.dpl: 1 classes
+class TVideoPlayer (TComponent) size=424 virtuals=10 vmt=00402384
+  unit Video
+  prop   OnStreamSound                  TStreamSoundEvent(tkMethod)  get=field+018C set=field+018C
+  prop   Loopmode                       TVideoPlayerLoopMode(tkEnumeration) get=field+002A set=field+002A
+  prop   Options                        TVideoPlayerOptions(tkSet)   get=field+002B set=field+002B

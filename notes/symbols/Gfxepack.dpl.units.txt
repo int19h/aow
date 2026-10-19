@@ -1,0 +1,26 @@
+== GFXDiag  (1 classes, 1 funcs, 1 types)
+   TGFXEDiagnoseDlg (1): FormCreate
+   funcs: TGFXEDiagnoseDlg
+== GFXE  (19 classes, 134 funcs, 23 types)
+   TBlendTable (1): Initialize
+   TBlendTable5Bit (3): Assign Copy Create
+   TBlendTableList (7): Add Clear Create Delete Destroy GetCount GetTables
+   TDDrawSurface (16): AsyncCls Blt BltColorKey Cls CreateSurface Destroy GetHeight GetPixelFormatID GetWidth Lock LockEx Lost Resize Restore Unlock UnlockEx
+   TDIB08Surface (13): Blt BltDC Cls Create Destroy GetHeight GetPixelFormatID GetWidth Lock Resize SetPalette Unlock UpdatePalette
+   TDIB16Surface (12): Blt BltDC Cls Create Destroy GetHeight GetPixelFormatID GetWidth Lock Resize SetPixelFormatID Unlock
+   TDIB24Surface (11): Blt BltDC Cls Create Destroy GetBMPInfo GetHeight GetWidth Lock Resize Unlock
+   TDIB32Surface (10): Blt BltDC Cls Create Destroy GetHeight GetWidth Lock Resize Unlock
+   TDIBSurface (14): Blt Clear Cls Destroy GetBITMAPINFO GetBITMAPINFOHEADER GetHeight GetWidth Lock Resize SaveToBMP24 Setup Unlock UpdatePalette
+   TDataSurface (11): CaptureSurface Create CreateFromSurface Destroy GetHeight GetPixelFormatID GetWidth Lock Resize SetPalette Unlock
+   TDisplayModeList (7): Add Clear Create Delete Destroy GetCount GetItems
+   TDrawPanel (3): Create Paint WndProc
+   TGDISurface (9): Blt BltDC Cls Create GetHandle GetHeight GetWidth Resize SetHandle
+   TGFXEPalette (7): Assign Compare GetEntry GetNearestColor LoadFromStream Remap SaveToStream
+   TLookupBlendTableCollection100 (5): Clear Create Destroy GenerateLookupTables GetLookupTables
+   TOpenImageFileDialog (2): Create Loaded
+   TRectangle (2): Create CreateRect
+   TRectangleList (2): Destroy GetRectangle
+   TSurface (16): Blt BltClipped BltColorKey BltColorKeyClipped BltDC BltStretch Cls GetColor GetPixelFormatID GetPixelInfo Lock LockEx Resize Unlock UnlockEx UpdatePalette
+   funcs: AlphaBlendTable BlendColorKey555 BlendColorKey565 BlendStretched555 BlendStretched565 BlendSurface555 BlendSurface565 BltColorKey16 BltRect BltSDRectClipped BltSprite16 BltSpriteClipped16 BltStretched16 BltTransparent555 BltTransparent565 BrightenBlendTable CLSID_DirectDraw CLSID_DirectDrawClipper Color2PixelInfo ColorFillSD CreateSDfromSD CreateSurfaceFromImageFile DD DDSDtoSurfaceDesc DDStoPFID DirectDrawActivated DirectDrawCreate DirectDrawCreateClipper DirectDrawEnumerate DisplayModeSupported DrawLine DrawLine16 FPBltRect FillInt FillTrippleByte FillWord ForceOptimal16BitPixelFormatID GenerateAlphaBlendTable GenerateBrightenBlendTable GenerateIntensityBlendTable GenerateShadowBlendTable GetElapsedMicroSeconds GetElapsedMilliSeconds GetErrorMsg GetImageFilePixelFormat GetImageFilesFilter GetOptimalGFXESettings GetOptimalPixelFormatID GetPixelInfo GetPrimarySurfacePFID GetSurfaceRectangles IDirectDraw IDirectDraw2 IDirectDrawClipper IDirectDrawColorControl IDirectDrawPalette IDirectDrawSurface IDirectDrawSurface2 IDirectDrawSurface3 IID_IDirectDraw IID_IDirectDraw2 IID_IDirectDrawClipper IID_IDirectDrawColorControl IID_IDirectDrawPalette IID_IDirectDrawSurface IID_IDirectDrawSurface2 IID_IDirectDrawSurface3 IntensityBlendTable LinearAlphaBlendTable ListDisplayModes LoadGFXESettingsFromStream LoadImageFile MASKtoPFID MMXsupport MinimizeInvTransparentRect MinimizeTransparentRect PFIDtoMASK PixelInfo2Color RDTSC ReadGFXESettingsFromRegistry Register RegisterBltProc RegisterBltRect RegisterImageFileClasses RemapPixelInfo RemapSurface RemapSurface08to24 RemapSurface08to555 RemapSurface08to565 RemapSurface16to08 RemapSurface16to16 RemapSurface16to32 RemapSurface24to555 RemapSurface24to565 RemapSurface32to555 RemapSurface32to565 RemapSurface555to24 RemapSurface555to32 RemapSurface555to565 RemapSurface565to24 RemapSurface565to32 RemapSurface565to555 RemapSurfacePart RepMovsdBltRect SaveGFXESettingsToStream SaveSurfaceDescToBMP24 ShadowBlendTable TBlendTable TBlendTable5Bit TBlendTableList TDDSCreationFlags TDDrawSurface TDDrawSurfaceStatus TDIB08Surface TDIB16Surface TDIB24Surface TDIB32Surface TDIBSurface TDataSurface TDisplayModeItem TDisplayModeList TDrawPanel TGDISurface TGFXEPalette TImageFile TLookupBlendTableCollection100 TOnDrawRectEvent TOnProgressEvent TOpenImageFileDialog TRectangle TRectangleList TSurface ValidImageFile WriteGFXESettingsToRegistry
+== GFXEPACK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

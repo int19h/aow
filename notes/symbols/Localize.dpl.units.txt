@@ -1,0 +1,178 @@
+== IvAMulti  (1 classes, 5 funcs, 4 types)
+   TIvCustomFileDictionary (16): CanBeOpened ClearTranslations ContextQuickSort Create Destroy ExpandFileName Find FindContext GetFileName GetTranslation GetTranslationCount LanguageChanged QuickSort Sort TranslateContextString TranslateString
+   funcs: EIvNullNativeString EIvSorting EIvTranslationRowIncomplete TIvCustomFileDictionary TIvStorage
+== IvAboutD  (1 classes, 1 funcs, 1 types)
+   TIvAboutDialog (3): EmailClick FormCreate URLClick
+   funcs: TIvAboutDialog
+== IvBinDic  (1 classes, 1 funcs, 1 types)
+   TIvBinaryDictionary (17): CloseFile DefineProperties GetLanguageCount GetLanguageData GetLanguageDatas GetLocaleCount GetLocaleData GetLocaleDatas GetTranslationCount LoadTranslation OpenFile ReadLanguages ReadLocales ReadTranslations WriteLanguages WriteLocales WriteTranslations
+   funcs: TIvBinaryDictionary
+== IvCommon  (0 classes, 5 funcs, 0 types)
+   funcs: LICENSE_NAMES_C TIvDetectType TIvLicense TIvVendor VENDOR_NAMES_C
+== IvConMod  (1 classes, 1 funcs, 1 types)
+   TIvControlModule (3): ChangeComponentReadingOrder FlipControl TranslateComponent
+   funcs: TIvControlModule
+== IvDBMult  (1 classes, 2 funcs, 2 types)
+   TIvDBDictionary (18): Close Create GetContextType GetDatabaseName GetLanguageCount GetLanguageData GetLanguageDatas GetLocaleCount GetLocaleData GetTableType LanguageFromDataset LocaleFromDataset Open OpenTable SetDatabaseName SetTableType TranslateContextString TranslateString
+   funcs: EIvInvalidParameter TIvDBDictionary
+== IvDatDic  (1 classes, 2 funcs, 2 types)
+   TIvCustomDatabaseDictionary (1): GetFieldIndex
+   funcs: EIvNoIndex TIvCustomDatabaseDictionary
+== IvDemoD  (1 classes, 1 funcs, 1 types)
+   TIvDemoDialog (1): CreateValue
+   funcs: TIvDemoDialog
+== IvDialog  (0 classes, 8 funcs, 0 types)
+   funcs: IvChooseColor IvChooseFont IvFindText IvGetOpenFileName IvGetSaveFileName IvPageSetupDlg IvPrintDlg IvReplaceText
+== IvDictio  (8 classes, 88 funcs, 13 types)
+   TIvContext (6): Assign Clear ContextCodeToType ContextTypeToCode CreateValue Equals
+   TIvCustomTranslator (14): ClearTranslations Create Destroy GetSystemMenuWinHandle IsDesignTime LanguageChanged SetDictionary SetDictionaryName ShowEvaluation Translate TranslateHost TranslateSystemMenu Unbind UnbindAndSetNative
+   TIvDictionaries (5): Create Destroy FindDictionary GetCount GetItems
+   TIvDictionary (75): AddTranslator CanBeOpened CheckTranslation Close CompareStr CompareText ComposeCountryName ComposeLanguageName ComposeLocaleName Create DecodeLocale DefineProperties Destroy DoesContextTranslationExist DoesTranslationExist FreeList GetCompareOptions GetContextCode GetDefaultLanguage GetLanguage GetLanguageDatas GetLocale GetLocaleDataById GetLocaleDatas GetLocaleIds GetLocales GetPrimaryLanguage GetPrimaryLanguages GetSubLanguage GetSubLanguages GetSystemLocaleData GetSystemLocaleIds GetSystemLocales GetTranslationCount GetTranslationMode GetTranslator GetTranslatorCount HandleException InitLanguage InitLocale IsDesignTime IsLanguageSupportedByCodePage IsLanguageSupportedBySystem IsLocaleSupported IsLocaleSupportedByCodePage IsLocaleSupportedBySystem IsOpen IvCompareBinary IvCompareStr IvCompareText IvWideCompareBinary IvWideCompareStr IvWideCompareText LanguageChanged LocaleToLanguage Open ReadDictionaryCode RemoveTranslator SetDictionaryName SetEuro SetLanguage SetLocale SetPrimaryLanguage SetSubLanguage SetTimeFormats SynchronizeLanguage SynchronizeLocale Translate TranslateContext TranslateDateFormat TranslateString TranslateStrings TranslateWindow UnbindTranslators WriteDictionaryCode
+   TIvLanguage (32): AddISOCountry AddSub Assign ClearISOCountries ClearSubs Copy Create CreateValue Destroy GetActiveLocale GetAllSubs GetBundleExtension GetCharsetType GetDefaultLocale GetDisplayName GetISOAllCountries GetISOCountries GetISOCountry GetISOCountryCount GetLangId GetLocale GetOptionsAsInt GetSub GetSubCount GetSubs Init SetActiveSub SetAllSubs SetCodePage SetISOAllCountries SetOptionsAsInt SubStrToSubId
+   TIvLocale (11): Assign Copy GetCharsetType GetDisplayName GetEMU GetEMUCurrencyString GetLangId GetLocale Init SetLangId SetLocale
+   TIvPropInfoList (3): Create Destroy Get
+   TIvTranslation (3): ComposeKey CreateValue GetKey
+   funcs: Dictionaries EIvMulti GetDefaultDictionary GetEMUPhase GetMLRegistryValue IsEMUMember IvCharsetToCode IvCodePageToCharset IvCodeToCharset IvDoesLanguageRequirePro IvDoesLanguageRequirePro32 IvGetCharacterSetType IvGetCharsetInfo IvGetFontNames IvGetFontNamesOfCharset IvGetPrimaryFromLocale IvGetSubFromLocale IvGetSupportedCharsets IvIsCodePageSupportedBySystem IvIsLocaleBidirectional IvIsLocaleMultiByte IvIsLocaleSingleByte IvIsLocaleSupportedByCodePage IvLangIdToCharset IvLangIdToCodePage IvLoadResString IvMakeLangId IvMakeLcId IvResetKeyboardLayout IvSetKeyboardLayout IvShortCutToText IvStrLen IvStrToWStr IvWStrPCopy IvWStrToStr KeyboardLayout MlFormat MlMessageDlg MlShowMessage TIvBinding TIvByteOrder TIvCalendarType TIvCharacterSet TIvCharacterSetType TIvCheckLevel TIvContext TIvContextCode TIvContextType TIvContextTypeItem TIvCurrencyFormat TIvCustomTranslator TIvDayOfWeek TIvDictionaries TIvDictionary TIvDictionaryFormat TIvDictionaryOption TIvDictionaryOptions TIvDisplayName TIvEMU TIvEuro TIvFirstWeekOfYear TIvFontCharset TIvFontCharsets TIvLanguage TIvLanguageDialogOption TIvLanguageDialogOptions TIvLanguageOption TIvLanguageOptions TIvLocale TIvMeasurementSystem TIvMissingTranslation TIvNegativeCurrencyFormat TIvPropInfoList TIvTimeFormat TIvTimeMarkPosition TIvTranslateEvent TIvTranslation TIvTranslationMode TIvTranslatorState TIvTranslatorStateValue Translate TranslateContext TranslateLoadResString TranslateShortCutToText loadResStringChanged resStrTranslationEnabled resStringBuffer shortCutBuffer
+== IvDlgMod  (1 classes, 2 funcs, 1 types)
+   TIvDialogModule (4): AddDialogClass Loaded RemoveDialogClass TranslateDialog
+   funcs: IvCommonDialogProc TIvDialogModule
+== IvDlgReg  (0 classes, 1 funcs, 0 types)
+   funcs: Register
+== IvDsMult  (1 classes, 1 funcs, 1 types)
+   TIvServerDictionary (29): Close Create Destroy GetAddress GetDictionaries GetLanguageCount GetLanguageData GetLocaleCount GetLocaleData GetLoginMessage GetPort GetTranslationCount GetTranslationMode LanguageChanged Login Logout Open ReadMessage ReadReply SetAddress SetPort SetRemoteDictionaryName StringToLanguage StringToLocale Transaction TransactionEx TranslateContextString TranslateString TranslateStrings
+   funcs: TIvServerDictionary
+== IvEBinDi  (1 classes, 1 funcs, 1 types)
+   TIvEmbeddedBinaryDictionary (1): Create
+   funcs: TIvEmbeddedBinaryDictionary
+== IvEFiMul  (1 classes, 1 funcs, 1 types)
+   TIvEmbeddedDictionary (1): Create
+   funcs: TIvEmbeddedDictionary
+== IvEMulti  (0 classes, 1 funcs, 1 types)
+   funcs: TIvExtendedTranslator
+== IvFiMult  (1 classes, 4 funcs, 2 types)
+   TIvTextDictionary (24): CanBeOpened Create DefineProperties GetContextType GetContextTypeW GetLanguage GetLanguageCount GetLanguageData GetLanguageDatas GetLanguageFileName GetLanguageW GetLocale GetLocaleCount GetLocaleData GetLocaleDatas GetLocaleFileName GetLocaleW LoadTranslation ReadLanguages ReadLocales ReadTranslations WriteLanguages WriteLocales WriteTranslations
+   funcs: IsUnicodeFile IsUnicodeResource TIvFileDictionary TIvTextDictionary
+== IvFiltEd  (2 classes, 2 funcs, 2 types)
+   TIvFilterEditor (2): FormCreate HelpButtonClick
+   TIvFilterProperty (2): Edit GetAttributes
+   funcs: TIvFilterEditor TIvFilterProperty
+== IvLaSelD  (1 classes, 2 funcs, 1 types)
+   TIvLanguageSelectDialog (4): CreateParam GetLanguage HelpButtonClick ListBoxDblClick
+   funcs: SelectLanguage TIvLanguageSelectDialog
+== IvLanguD  (1 classes, 5 funcs, 1 types)
+   TIvLanguageDialog (5): CreateParam FormActivate GetSelectedValue HelpButtonClick TreeViewDblClick
+   funcs: SelectLanguage SelectLocale SelectSublanguage TIvLanguageDialog TIvLanguageDialogType
+== IvLoSelD  (1 classes, 2 funcs, 1 types)
+   TIvLocaleSelectDialog (4): CreateParam GetLocale HelpButtonClick ListBoxDblClick
+   funcs: SelectLocale TIvLocaleSelectDialog
+== IvMLDFil  (1 classes, 4 funcs, 1 types)
+   TIvMLDFile (51): Close Create Destroy GetAnsiKey GetAnsiNative GetAnsiString GetByteOrder GetCharacterSet GetContextCode GetContextType GetCurrentLanguage GetCurrentLocale GetDescription GetInfo GetLanguage GetLanguageCount GetLocale GetLocaleCount GetOwner GetTranslation GetTranslationCount GetTranslations GetUsers GetVersion GetWideKey GetWideNative GetWideString GoInfoSection GoLanguageSection GoLocaleSection GoTranslationSection IsOpen MoveToBlockEnd Open OpenFile ReadAnsiChars ReadAnsiString ReadBoolean ReadByte ReadChar ReadChars ReadDWord ReadHeader ReadString ReadWideChars ReadWideString ReadWord SetBlockSize SkipBytes UseComponentContext UseFormContext
+   funcs: IvChangeDWordByteOrder IvChangeStringByteOrder IvChangeWordByteOrder TIvMLDFile
+== IvMLTP  (1 classes, 11 funcs, 2 types)
+   EIvMLTPError (1): CreateMsg
+   funcs: EIvMLTPError EIvSocketError IvIsDNSAddress TIvActionType TIvApplicationType TIvClientType TIvMessageGroup TIvMessageGroups TIvMessageType TIvPlatform TIvUserType
+== IvMlCons  (0 classes, 19 funcs, 0 types)
+   funcs: SColorPrefix SColorTags SMsgDlgAbort SMsgDlgAll SMsgDlgCancel SMsgDlgConfirm SMsgDlgError SMsgDlgHelp SMsgDlgHelpHelp SMsgDlgHelpNone SMsgDlgIgnore SMsgDlgInformation SMsgDlgNo SMsgDlgNoToAll SMsgDlgOK SMsgDlgRetry SMsgDlgWarning SMsgDlgYes SMsgDlgYesToAll
+== IvMlCtrl  (5 classes, 10 funcs, 10 types)
+   TIvCustomComboBox (3): Create CreateParams SetLocale
+   TIvCustomGroupBox (3): Create Paint SetLocale
+   TIvCustomLabel (3): Create Paint SetLocale
+   TIvCustomListBox (3): Create CreateParams SetLocale
+   TIvCustomRadioGroup (3): Create Paint SetLocale
+   funcs: TIvComboBox TIvCustomComboBox TIvCustomGroupBox TIvCustomLabel TIvCustomListBox TIvCustomRadioGroup TIvGroupBox TIvLabel TIvListBox TIvRadioGroup
+== IvMlDlgs  (11 classes, 13 funcs, 11 types)
+   TIvColorDialog (4): Create Destroy Execute SetCustomColors
+   TIvCommonDialog (15): Create DefaultHandler Destroy DoClose DoShow GetParentWnd InitDictionary MessageHook SetDictionary SetDictionaryName TaskModalDialog WMDestroy WMInitDialog WMNCDestroy WndProc
+   TIvFindDialog (17): CloseDialog Create Destroy Execute Find GetFindText GetLeft GetPosition GetReplaceText GetTop MessageHook Replace SetFindText SetLeft SetPosition SetReplaceText SetTop
+   TIvFontDialog (6): Apply Create Destroy Execute SetFont WndProc
+   TIvOpenDialog (14): Create DefineProperties Destroy DoExecute DoFolderChange DoSelectionChange DoTypeChange Execute GetFileName GetFilterIndex GetStaticRect SetHistoryList SetInitialDir WndProc
+   TIvOpenPictureDialog (6): Create Destroy DoClose DoSelectionChange DoShow Execute
+   TIvPrintDialog (2): Execute SetNumCopies
+   TIvPrinterSetupDialog (1): Execute
+   TIvReplaceDialog (1): Create
+   TIvSaveDialog (1): Execute
+   TIvSavePictureDialog (1): Execute
+   funcs: TIvColorDialog TIvCommonDialog TIvDialogPosition TIvDialogPositions TIvFindDialog TIvFontDialog TIvOpenDialog TIvOpenPictureDialog TIvPrintDialog TIvPrinterSetupDialog TIvReplaceDialog TIvSaveDialog TIvSavePictureDialog
+== IvMlRead  (1 classes, 1 funcs, 1 types)
+   TIvReader (23): DoGetLanguageDatas DoGetLocaleDatas DoLoadTranslation FindPropertyData GetLanguageData GetLanguageDatas GetLocaleData GetLocaleDatas LoadTranslation ReadLanguage ReadLocale ReadLongString SkipComponent SkipComponentBody SkipComponentHeader SkipLanguages SkipLocales SkipProperty SkipSetBody SkipTranslations SkipValue WriteLanguage WriteLocale
+   funcs: TIvReader
+== IvMlUtil  (0 classes, 48 funcs, 0 types)
+   funcs: BUTTONCAPTIONS_C CAPTIONS_C FOOT_IN_METERS_C FURLONG_IN_METERS_C INCH_IN_METERS_C IvDayOfWeek IvDayOfWeekNumber IvFirstDayOfMonth IvFirstDayOfWeek IvFirstDayOfYear IvFirstWeekOfMonth IvFormAlwaysStayOnTop IvFormatArea IvFormatDryCapacity IvFormatGeneric IvFormatLength IvFormatLiquidCapacity IvFormatTemperature IvFormatWeight IvInputBox IvInputQuery IvMessageBox IvMessageBoxEx IvMessageBoxPos IvMessageBoxPosEx IvSelectDirectory IvShowMessage IvShowMessagePos IvVCLDayToDay IvWeek IvWeekEx MILE_IN_METERS OUNCE_IN_KILOGRAMS_C POUND_IN_KILOGRAMS_C TIvMetricArea TIvMetricCapacity TIvMetricLength TIvMetricTemperature TIvMetricWeight TIvUSArea TIvUSDryCapacity TIvUSLength TIvUSLiquidCapacity TIvUSQuantity TIvUSTemperature TIvUSWeight TON_IN_KILOGRAMS_C YARD_IN_METERS_C
+== IvMulReg  (3 classes, 4 funcs, 3 types)
+   TIvDictionaryNameProperty (2): GetAttributes GetValues
+   TIvFileNameProperty (2): BrowseFileName GetAttributes
+   TIvMLDFileNameProperty (1): Edit
+   funcs: Register TIvDictionaryNameProperty TIvFileNameProperty TIvMLDFileNameProperty
+== IvMulti  (8 classes, 21 funcs, 8 types)
+   TIvBidirectionalState (1): Create
+   TIvModule (4): ChangeComponentReadingOrder FlipControl TranslateComponent UnFlipControl
+   TIvModules (9): Add ChangeComponentReadingOrder Create Destroy FlipControl GetCount GetItems TranslateComponent UnFlipControl
+   TIvTargetProperties (18): Add Assign Copy Create DefineProperties Delete Destroy DoesMatch Find GetCount GetItems IsComponentInTargets IsDefault IsEqual IsPropertyExcluded IsPropertyInTargets ReadData SetDefault
+   TIvTargetProperty (7): Assign Copy Create CreateDefault IsDefault IsEqual SetDefault
+   TIvTranslator (37): AddObjectTargets AddTranslation ChangeComponentReadingOrder CheckHostFont Close Create DefineProperties Destroy DetectTargets DoTranslateContextString DoTranslateString DoTranslateStrings FlipControl GetAutoOpen GetBidirectionalState GetHost GetNativePropertyValue GetNativePropertyValueEx GetSystemMenuWinHandle LanguageChanged Loaded Notification Open ReadTargets SetAutoOpen SetTargets Translate TranslateComponent TranslateHost TranslateObject TranslateSubComponent UnFlipControl Unbind UnbindAndSetNative UpdateControl UpdateControls WriteTargets
+   TIvTranslatorTable (6): Add Clear Create Destroy GetCount GetItem
+   TIvTranslatorTableItem (1): Create
+   funcs: IvCenterControl Modules TIvBidirectionalState TIvChangeReadingOrderEvent TIvModule TIvModules TIvReadingOrder TIvRestrictComponentEvent TIvRestrictObjectEvent TIvRestrictPropertyEvent TIvRestriction TIvRestrictions TIvTargetProperties TIvTargetProperty TIvTargetType TIvTranslateNotifyEvent TIvTranslator TIvTranslatorOption TIvTranslatorOptions TIvTranslatorTable TIvTranslatorTableItem
+== IvOldReg  (0 classes, 1 funcs, 0 types)
+   funcs: Register
+== IvPSDlg  (1 classes, 14 funcs, 1 types)
+   TIvPageSetupDialog (6): Create Execute Printer SetDictionary SetDictionaryName TaskModalDialog
+   funcs: IvPageSetupDlg TIvDialogPosition TIvDialogPositions TIvPSInitPaintPageEvent TIvPSMeasurements TIvPSPaintPageEvent TIvPSPaintWhat TIvPSPaperOrientation TIvPSPaperType TIvPSPrinterEvent TIvPSPrinterType TIvPageSetupDialog TIvPageSetupOption TIvPageSetupOptions
+== IvParser  (1 classes, 2 funcs, 2 types)
+   TIvStringParser (19): CodeStr Create CreateValue DecodeStr Eol GetBoolean GetBooleanDef GetChar GetCharDef GetCurrentValue GetFloat GetFloatDef GetInteger GetIntegerDef GetString PeekChar RemoveWhiteSpaces SetValue TakeChar
+   funcs: TIvAnsiParser TIvStringParser
+== IvPassWD  (1 classes, 1 funcs, 1 types)
+   TIvPasswordDialog (1): HelpButtonClick
+   funcs: TIvPasswordDialog
+== IvReader  (2 classes, 5 funcs, 3 types)
+   TIvAnsiReader (7): Close Create Destroy Eof Open ReadIntoBuffer ReadLine
+   TIvResourceAnsiReader (4): Create Eof Open ReadLine
+   funcs: CR_C LF_C TIvAnsiReader TIvBaseReader TIvResourceAnsiReader
+== IvSocket  (2 classes, 3 funcs, 3 types)
+   TIvWinSocket (10): Close Create Destroy Disconnect InitSocket Lock LookupName LookupService Open Unlock
+   TIvWinSocketStream (7): Create Destroy Read ReadMessage Seek WaitForData Write
+   funcs: EIvSocketError TIvWinSocket TIvWinSocketStream
+== IvStamp  (0 classes, 3 funcs, 0 types)
+   funcs: CalculateTimeLeft GetTimeStampDaysLeft InstallPackage
+== IvSuSeld  (1 classes, 2 funcs, 1 types)
+   TIvSubLanguageSelectDialog (5): CreateParam FormActivate GetLocale HelpButtonClick ListBoxDblClick
+   funcs: SelectSublanguage TIvSubLanguageSelectDialog
+== IvSynchr  (5 classes, 6 funcs, 5 types)
+   TIvCriticalSection (6): Acquire Create Destroy Enter Leave Release
+   TIvEvent (4): Create ResetEvent SetEvent WaitFor
+   TIvHandleObject (1): Destroy
+   TIvSimpleEvent (1): Create
+   TIvSynchroObject (2): Acquire Release
+   funcs: TIvCriticalSection TIvEvent TIvHandleObject TIvSimpleEvent TIvSynchroObject TIvWaitResult
+== IvTargD  (1 classes, 1 funcs, 1 types)
+   TIvTargetPropertyDialog (4): FormCloseQuery FormCreate HelpButtonClick SetItem
+   funcs: TIvTargetPropertyDialog
+== IvTargsd  (1 classes, 1 funcs, 1 types)
+   TIvTargetPropertiesDialog (16): AddButtonClick AddItem AddNew ClearList DetectButtonClick EditButtonClick FormCreate FormDestroy GetItem GetItems HelpButtonClick ListKeyDown RemoveButtonClick SetItems UpdateButtons UpdateListItem
+   funcs: TIvTargetPropertiesDialog
+== IvTestDi  (1 classes, 1 funcs, 1 types)
+   TIvTestDictionary (13): Create Destroy GetLanguageCount GetLanguageData GetLocaleCount GetLocaleData GetTestCodePage GetTestLangId GetTestPrimary Init Loaded TranslateContextString TranslateString
+   funcs: TIvTestDictionary
+== IvTests  (7 classes, 11 funcs, 7 types)
+   TIvBidirectionalTest (5): Copy GetName GetPureASCII GetTestCode Translate
+   TIvCodePageTest (3): CreateValue GetCodePage SetCodePage
+   TIvCoverTest (5): Copy CreateValue GetName GetTestCode Translate
+   TIvMinimumTest (5): Copy CreateValue GetName GetTestCode Translate
+   TIvMultibyteTest (9): Copy CreateValue GetCodePage GetName GetPrimary GetPureASCII GetSub GetTestCode Translate
+   TIvSinglebyteTest (8): Copy CreateValue CreateValueEx GetName GetPrimary GetPureASCII GetTestCode Translate
+   TIvTest (10): Copy GetCodePage GetName GetPrimary GetPureASCII GetSub GetTestCode SetCodePage ToLanguage Translate
+   funcs: TIvBidirectionalTest TIvCodePageTest TIvCoverTest TIvMinimumTest TIvMultibyteTest TIvSinglebyteTest TIvSinglebyteTestOption TIvSinglebyteTestOptions TIvTest TIvTestCode TIvTestType
+== IvUMulti  (0 classes, 1 funcs, 1 types)
+   funcs: TIvUnicodeDictionary
+== IvUsrDic  (1 classes, 6 funcs, 1 types)
+   TIvUserDictionary (6): GetLanguageCount GetLanguageData GetLocaleCount GetLocaleData TranslateContextString TranslateString
+   funcs: TIvCountEvent TIvLanguageEvent TIvLocaleEvent TIvTranslateContextEvent TIvTranslateEvent TIvUserDictionary
+== IvWParser  (1 classes, 1 funcs, 1 types)
+   TIvWideParser (18): CodeStr Create CreateValue DecodeStr Eol GetAnsiChar GetAnsiString GetBoolean GetBooleanDef GetChar GetCharDef GetCurrentValue GetFloat GetFloatDef GetInteger GetIntegerDef GetString SetValue
+   funcs: TIvWideParser
+== IvWReader  (2 classes, 9 funcs, 4 types)
+   TIvResourceWideReader (4): Create Eof Open ReadLine
+   TIvWideReader (8): ChangeWordByteOrder Close Create Destroy Eof Open ReadIntoBuffer ReadLine
+   funcs: EIvNotUnicodeFile TIvBaseWideReader TIvResourceWideReader TIvWideReader UTF16BE_TAG_C UTF16LE_TAG_C WIDE_CR_C WIDE_LF_C WIDE_TAB_C
+== Localize  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

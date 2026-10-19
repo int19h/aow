@@ -1,0 +1,20 @@
+== AbilPack  (1 classes, 1 funcs, 1 types)
+   TAbililtyPlugIn (3): Finalize Initialize Name
+   funcs: TAbililtyPlugIn
+== AbilityP  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== ImmAb  (1 classes, 3 funcs, 1 types)
+   TImmunityAbility (2): Create GetAbilityID
+   funcs: RegisterImmunityAbilities TImmunityAbility UnRegisterImmunityAbilities
+== MoveAb  (1 classes, 3 funcs, 1 types)
+   TMoveAbility (2): Create GetAbilityID
+   funcs: RegisterMoveAbilities TMoveAbility UnRegisterMoveAbilities
+== ShootAb  (1 classes, 3 funcs, 1 types)
+   TShootAbility (2): Create GetAbilityID
+   funcs: RegisterShootAbilities TShootAbility UnRegisterShootAbilities
+== StrikeAb  (1 classes, 3 funcs, 1 types)
+   TStrikeAbility (2): Create GetAbilityID
+   funcs: RegisterStrikeAbilities TStrikeAbility UnRegisterStrikeAbilities
+== UnitAb  (1 classes, 3 funcs, 1 types)
+   TUnitAbility (2): Create GetAbilityID
+   funcs: RegisterUnitAbilities TUnitAbility UnRegisterUnitAbilities

@@ -1,0 +1,49 @@
+# D:\Games\GOG\Age of Wonders\AOWTools.dpl: 7 classes
+class TScanner (TAOWControl) size=388 virtuals=39 vmt=5970213C
+  unit Scanner
+  prop   WinWidth                       Integer                      get=field+007C set=virt+0060
+  prop   WinHeight                      Integer                      get=field+0080 set=virt+0064
+  prop   TilesImageLib                  TImageLibrary                get=field+0118 set=static 597028D0
+  prop   HiLightsImageLib               TImageLibrary                get=field+011C set=static 597028DC
+  prop   FogImageLib                    TImageLibrary                get=field+0120 set=static 597028E8
+  prop   ILObjects                      TImageLibrary                get=field+0124 set=static 59702578
+  prop   TileBoxTop                     Integer                      get=field+0128 set=static 597029A8
+  prop   TileBoxLeft                    Integer                      get=field+0130 set=static 59702990
+  prop   TileBoxWidth                   Integer                      get=field+0134 set=static 597029C0
+  prop   TileBoxHeight                  Integer                      get=field+012C set=static 597029D8
+  prop   HighLights                     Boolean                      get=field+0138 set=field+0138
+  prop   Buildings                      Boolean                      get=field+0139 set=static 597025B0
+  prop   Armies                         Boolean                      get=field+013A set=static 5970258C
+  prop   Naturals                       Boolean                      get=field+013B set=static 597025D4
+  prop   OnChangeTileBox                TNotifyEvent                 get=field+013C set=field+013C
+  prop   MapDrawSteps                   Integer                      get=field+0144 set=static 597028F4
+  prop   ILFrame                        TInterfaceIL                 get=field+014C set=virt+0098
+  prop   ILIndexFrame                   Integer                      get=field+0150 set=static 59702550
+class TStartMenu (TAOWMenu) size=600 virtuals=45 vmt=597042FC
+  unit StartMenu
+  prop   ILWholeMenu                    TImageLibrary                get=field+0254 set=field+0254
+class TAOWTurnButton (TAOWControl) size=324 virtuals=39 vmt=59704A68
+  unit TurnButton
+  prop   ImageLib                       TImageLibrary                get=field+0114 set=virt+0098
+  prop   CurPlayer                      Integer                      get=field+0118 set=field+0118
+  prop   LastPlayer                     Integer                      get=field+011C set=field+011C
+  prop   Animating                      Boolean                      get=field+0120 set=field+0120
+  prop   OnAnimDone                     TNotifyEvent                 get=field+012C set=field+012C
+  prop   OnChange                       TNotifyEvent                 get=field+0134 set=field+0134
+  prop   Checked                        Boolean                      get=field+013C set=field+013C
+class TAoWLenLine (TAOWControl) size=280 virtuals=39 vmt=597052BC
+  unit AoWLenLine
+  prop   WinHeight                      Integer                      get=field+0080 set=virt+0064
+  prop   ILLine                         TInterfaceIL                 get=field+0114 set=virt+0098
+class TAoWArnoLine (TAOWControl) size=292 virtuals=38 vmt=59705830
+  unit AoWArnoLine
+  prop   WinHeight                      Integer                      get=field+0080 set=virt+0064
+  prop   ImageTop                       TLibraryImage                get=field+0114 set=static 59705A8C
+  prop   ImageMiddle                    TLibraryImage                get=field+0118 set=static 59705AA0
+  prop   ImageBottom                    TLibraryImage                get=field+011C set=static 59705AB4
+class TAoWBookWindow (TAOWWindow) size=520 virtuals=42 vmt=59705D48
+  unit AoWBookWindow
+  prop   OnAnimDone                     TNotifyEvent                 get=field+01EC set=field+01EC
+class TAoWUserWindow (TAOWWindow) size=500 virtuals=42 vmt=59706628
+  unit AowUserWindow
+  prop   OnDrawSurfaceEx                TDrawSurfaceExEvent(tkMethod) get=field+01EC set=field+01EC

@@ -1,0 +1,78 @@
+# D:\Games\GOG\Age of Wonders\ILToolsP.dpl: 4 classes
+class TImageSequencer (TComponent) size=76 virtuals=10 vmt=55301CE4
+  unit ILTools
+  prop   OnChange                       TNotifyEvent                 get=field+0028 set=field+0028
+  prop   OnCreateImageSequence          TOnCreateImageSequenceEvent(tkMethod) get=field+0030 set=field+0030
+  prop   ILManager                      TImageLibraryManager         get=field+0024 set=field+0024
+class TSequenceLayerSelector (TTabControl) size=324 virtuals=31 vmt=55301DFC
+  unit ILTools
+  prop   ImageSequencer                 TImageSequencer(tkClass)     get=field+0140 set=static 55302A70
+class TSequenceDisplayEditor (TDisplay) size=480 virtuals=46 vmt=55301FC0
+  unit ILTools
+  prop   ImageSequencer                 TImageSequencer(tkClass)     get=field+01AC set=static 5530262C
+  prop   FrameCount                     Integer                      get=field+01B4 set=field+01B4
+  prop   ImageCenterX                   Integer                      get=field+01B8 set=field+01B8
+  prop   ImageCenterY                   Integer                      get=field+01BC set=field+01BC
+  prop   DraggingImage                  Boolean                      get=field+01C0 set=none
+  prop   PreviewFrames                  TFrameTableList              get=field+01B0 set=none
+  prop   OnStartUpdateFrame             TUpdateFrameEvent            get=field+01C4 set=field+01C4
+  prop   OnShowImageSequence            TOnShowImageSequenceEvent(tkMethod) get=field+01D4 set=field+01D4
+  prop   ShowLooped                     Boolean                      get=field+01DC set=field+01DC
+class TImageSequenceEditor (TForm) size=616 virtuals=32 vmt=5530310C
+  field  +01DC SequenceLayerSelector          TSequenceLayerSelector
+  field  +01E0 PreviewILGrid                  TImageLibraryGrid
+  field  +01E4 Panel6                         TPanel
+  field  +01E8 AniSettingsBox                 TGroupBox
+  field  +01EC Label4                         TLabel
+  field  +01F0 Label5                         TLabel
+  field  +01F4 SequenceSpeedBox               TComboBox
+  field  +01F8 SequenceModeBox                TComboBox
+  field  +01FC GroupBox1                      TGroupBox
+  field  +0200 FrameTableEdit                 TEdit
+  field  +0204 GroupBox2                      TGroupBox
+  field  +0208 GroupBox3                      TGroupBox
+  field  +020C LayerSpin                      TSpin
+  field  +0210 PlayModeBox                    TGroupBox
+  field  +0214 PlayLooped                     TCheckBox
+  field  +0218 PlayBtn                        TButton
+  field  +021C SequenceDisplayEditor          TSequenceDisplayEditor
+  field  +0220 ImageSequencer                 TImageSequencer
+  field  +0224 Windows16DC                    TWindows16DC
+  field  +0228 Panel7                         TPanel
+  field  +022C Panel8                         TPanel
+  field  +0230 OpenLayerBtn                   TSpeedButton
+  field  +0234 CloseLayerBtn                  TSpeedButton
+  field  +0238 ImageIndexSelector             TDrawGrid
+  field  +023C Panel1                         TPanel
+  field  +0240 OkBtn                          TButton
+  field  +0244 CancelBtn                      TButton
+  field  +0248 GridLibrary                    TImageLibrary
+  field  +024C Panel2                         TPanel
+  field  +0250 ILManagerComboBox              TILManagerComboBox
+  field  +0254 Label1                         TLabel
+  field  +0258 Label2                         TLabel
+  field  +025C ColorDialog                    TColorDialog
+  field  +0260 ChangeColor                    TButton
+  method 55303750 FrameTableEditChange
+  method 553038D8 ILManagerComboBoxChange
+  method 55303944 LayerSpinUpdate
+  method 553039B8 PlayBtnClick
+  method 553039C8 PlayLoopedClick
+  method 553039E4 SequenceDisplayEditorResizeBackSurface
+  method 55303A10 SequenceDisplayEditorUpdateFrame
+  method 55303AA4 SequenceModeBoxChange
+  method 55303AD8 SequenceSpeedBoxChange
+  method 55303B10 ImageSequencerChange
+  method 55303CFC ImageSequencerCreateImageSequence
+  method 55303D08 ImageIndexSelectorDrawCell
+  method 55303E78 ImageIndexSelectorSelectCell
+  method 55303E90 CloseLayerBtnClick
+  method 55303E9C ImageIndexSelectorDrawCell2
+  method 55304018 ImageIndexSelectorSelectCell2
+  method 55304030 OpenLayerBtnClick
+  method 5530403C FormCreate
+  method 55304060 SpeedButton2Click
+  method 55304054 FormDestroy
+  method 553040F4 ImageIndexSelectorKeyDown
+  method 553043BC ChangeColorClick
+  unit ILSeqEd

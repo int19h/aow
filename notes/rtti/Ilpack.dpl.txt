@@ -1,0 +1,320 @@
+# D:\Games\GOG\Age of Wonders\Ilpack.dpl: 53 classes
+class THashList (TObject) size=16 virtuals=1 vmt=55202348
+class TIntegerHashTable (TObject) size=4 virtuals=4 vmt=552023BC
+class TIntegerHashList (THashList) size=16 virtuals=1 vmt=5520244C
+class TIntegerHashTable256 (TIntegerHashTable) size=1028 virtuals=4 vmt=552024D0
+class TStringHashTable (TObject) size=4 virtuals=4 vmt=55202568
+class TStringHashList (THashList) size=16 virtuals=1 vmt=552025F8
+class TStringHashTable256 (TStringHashTable) size=1028 virtuals=4 vmt=55202678
+class TPerformanceDlg (TForm) size=564 virtuals=32 vmt=55202C88
+  field  +01DC CloseBtn                       TButton
+  field  +01E0 Panel1                         TPanel
+  field  +01E4 GroupBox1                      TGroupBox
+  field  +01E8 AlignMnt                       TComboBox
+  field  +01EC GroupBox2                      TGroupBox
+  field  +01F0 Label1                         TLabel
+  field  +01F4 FPS                            TEdit
+  field  +01F8 GroupBox3                      TGroupBox
+  field  +01FC IntervalSize                   TComboBox
+  field  +0200 Label2                         TLabel
+  field  +0204 ElapsedTime                    TEdit
+  field  +0208 GroupBox4                      TGroupBox
+  field  +020C ClrCache                       TCheckBox
+  field  +0210 Label3                         TLabel
+  field  +0214 RDTSCEdit                      TEdit
+  field  +0218 GroupBox5                      TGroupBox
+  field  +021C PFBox                          TComboBox
+  field  +0220 ShowModeBox                    TRadioGroup
+  method 552036AC CloseBtnClick
+  method 552036B8 FormCreate
+  method 552037F0 IntervalSizeChange
+  method 552036F4 PFBoxChange
+  unit PerfDlg
+class TPerformanceThread (TThread) size=100 virtuals=2 vmt=55202F0C
+class TImageLibraryEditGrid (TDrawGrid) size=520 virtuals=43 vmt=552038A0
+  unit ILEdGrid
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+01FC set=static 55203F74
+  prop   OnMultiSelect                  TNotifyEvent                 get=field+01EC set=field+01EC
+  prop   OnEditCell                     TEditEvent(tkMethod)         get=field+01F4 set=field+01F4
+  prop   SelectionEnabled               Boolean                      get=field+0200 set=field+0200
+class TSpinButton (TWinControl) size=312 virtuals=31 vmt=55204A40
+  unit ILSpin
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 55201C18
+  prop   DownGlyph                      TBitmap                      get=static 55205BC4 set=static 55205BD0
+  prop   DownNumGlyphs                  TNumGlyphs                   get=static 55205C30 set=static 55205C3C default=1
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 55201A78 default=1
+  prop   FocusControl                   TWinControl                  get=field+0124 set=field+0124
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 55201C28 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 55201AC0 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 55201A80
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 55201AB8
+  prop   TabOrder                       TTabOrder                    get=static 55201C30 set=static 55201C38 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 55201C40 default=0
+  prop   UpGlyph                        TBitmap                      get=static 55205B40 set=static 55205B4C
+  prop   UpNumGlyphs                    TNumGlyphs                   get=static 55205BAC set=static 55205BB8 default=1
+  prop   Visible                        Boolean                      get=field+0044 set=static 55201A70 default=1
+  prop   OnDownClick                    TNotifyEvent                 get=field+0130 set=field+0130
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+  prop   OnUpClick                      TNotifyEvent                 get=field+0128 set=field+0128
+class TILSpinEdit (TCustomEdit) size=336 virtuals=42 vmt=55204ED0
+  unit ILSpin
+  prop   OnUpdate                       TNotifyEvent                 get=field+0144 set=field+0144
+  prop   AutoSelect                     Boolean                      get=field+0120 set=field+0120 default=1
+  prop   AutoSize                       Boolean                      get=field+011F set=static 55201DF8 default=1
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483643
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 55201C18
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   EditorEnabled                  Boolean                      get=field+0140 set=field+0140 default=1
+  prop   Enabled                        Boolean                      get=field+0045 set=static 55201A78 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 55201A98
+  prop   Increment                      Integer                      get=field+0138 set=field+0138 default=1
+  prop   MaxLength                      Integer                      get=field+0118 set=static 55201E00 default=0
+  prop   MaxValue                       Integer                      get=field+0134 set=field+0134
+  prop   MinValue                       Integer                      get=field+0130 set=field+0130
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 55201AD8 default=0
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 55201C28 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 55201AB0 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 55201AC0 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 55201A80
+  prop   ReadOnly                       Boolean                      get=field+011E set=static 55201E08 default=0
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 55201AB8
+  prop   TabOrder                       TTabOrder                    get=static 55201C30 set=static 55201C38 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 55201C40 default=1
+  prop   Value                          Integer                      get=static 55206180 set=static 55206238
+  prop   Visible                        Boolean                      get=field+0044 set=static 55201A70 default=1
+  prop   OnChange                       TNotifyEvent                 get=field+0128 set=field+0128
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnKeyDown                      TKeyEvent                    get=field+00EC set=field+00EC
+  prop   OnKeyPress                     TKeyPressEvent               get=field+00F4 set=field+00F4
+  prop   OnKeyUp                        TKeyEvent                    get=field+00FC set=field+00FC
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TTimerSpeedButton (TSpeedButton) size=216 virtuals=22 vmt=552055FC
+  unit ILSpin
+class TImageSettingsEditor (TCustomPanel) size=340 virtuals=32 vmt=55206518
+  unit ImgSetEd
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+0148 set=static 552068D0
+  prop   ImageIndex                     Integer                      get=field+0150 set=static 552068DC
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   BevelInner                     TPanelBevel                  get=field+011C set=static 55202018 default=0
+  prop   BevelOuter                     TPanelBevel                  get=field+011D set=static 55202020 default=2
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483633
+class TSubImageSettingsEditor (TCustomPanel) size=444 virtuals=32 vmt=55206C34
+  unit SImgSEd
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+01A4 set=static 55207ED0
+  prop   ImageIndex                     Integer                      get=field+01AC set=static 55207EDC
+  prop   SubImageIndex                  Integer                      get=field+01B0 set=static 55207EE8
+  prop   ImageLibraryEditGrid           TImageLibraryEditGrid(tkClass) get=field+01B8 set=field+01B8
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   BevelInner                     TPanelBevel                  get=field+011C set=static 55202018 default=0
+  prop   BevelOuter                     TPanelBevel                  get=field+011D set=static 55202020 default=2
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483633
+  prop   Font                           TFont                        get=field+0050 set=static 55201A98
+class TSubImageList (TListBox) size=344 virtuals=33 vmt=55208590
+  unit SubImgEd
+class TSubImageEditor (TCustomPanel) size=400 virtuals=36 vmt=55208694
+  unit SubImgEd
+  prop   SubImageSettingsEditor         TSubImageSettingsEditor(tkClass) get=field+018C set=field+018C
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+0174 set=static 552090A4
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   EditMode                       TEditMode(tkEnumeration)     get=field+014C set=field+014C
+  prop   Test                           TCustomImageLibrary(tkClass) get=field+0178 set=field+0178
+  prop   SubImageSelected               TSubImageSelectedEvent(tkMethod) get=field+017C set=field+017C
+  prop   BevelInner                     TPanelBevel                  get=field+011C set=static 55202018 default=0
+  prop   BevelOuter                     TPanelBevel                  get=field+011D set=static 55202020 default=2
+class TImageLibraryEditForm (TForm) size=584 virtuals=32 vmt=55209428
+  field  +01DC Panel2                         TPanel
+  field  +01E0 OKBtn                          TButton
+  field  +01E4 CancelBtn                      TButton
+  field  +01E8 Panel1                         TPanel
+  field  +01EC ToolBar1                       TToolBar
+  field  +01F0 OpenBtn                        TToolButton
+  field  +01F4 AddBtn                         TToolButton
+  field  +01F8 EnabledList                    TImageList
+  field  +01FC ToolButton1                    TToolButton
+  field  +0200 OpenILDialog                   TOpenDialog
+  field  +0204 SaveBtn                        TToolButton
+  field  +0208 ILEditGrid                     TImageLibraryEditGrid
+  field  +020C Panel3                         TPanel
+  field  +0210 Bevel2                         TBevel
+  field  +0214 Panel7                         TPanel
+  field  +0218 Label4                         TLabel
+  field  +021C BltModeBox                     TComboBox
+  field  +0220 ImageTrackerPanel              TDrawPanel
+  field  +0224 ImageSettingsEditor            TImageSettingsEditor
+  field  +0228 SaveILDialog                   TSaveDialog
+  field  +022C Panel4                         TPanel
+  field  +0230 SubImageSettingsEditor         TSubImageSettingsEditor
+  field  +0234 SubImageEditor                 TSubImageEditor
+  field  +0238 Splitter1                      TSplitter
+  field  +023C Panel5                         TPanel
+  field  +0240 Panel16                        TPanel
+  method 55209B9C ILEditGridSelectCell
+  method 55209BD8 ImageTrackerPanelDraw
+  method 55209C78 ToolButton1Click
+  method 55209CDC OpenBtnClick
+  method 55209D40 SaveBtnClick
+  method 55209DA4 AddBtnClick
+  method 55209E90 BltModeBoxChange
+  method 55209E9C SubImageEditorSubImageSelected
+  method 55209EB4 FormActivate
+  unit ILEdForm
+class TImageLibraryEditor (TComponentEditor) size=12 virtuals=6 vmt=552097F8
+class TPaletteManager (TObject) size=8 virtuals=0 vmt=55209FA0
+class TLibraryImagePalette (TPersistent) size=20 virtuals=3 vmt=5520A01C
+  unit ImageLib
+class TCustomImageLibrary (TComponent) size=80 virtuals=19 vmt=5520A124
+  unit ImageLib
+class TImageLibrary (TCustomImageLibrary) size=80 virtuals=19 vmt=5520A210
+  unit ImageLib
+  prop   LoadOnDemand                   Boolean                      get=field+0032 set=static 5521A868
+  prop   OnChange                       TNotifyEvent                 get=field+0028 set=field+0028
+  prop   FileName                       String                       get=field+0038 set=static 5521A4B0
+class TGrabInfo (TObject) size=24 virtuals=4 vmt=5520A390
+class TLibraryImage (TPersistent) size=64 virtuals=48 vmt=5520A514
+  unit ImageLib
+class TImageNode (TLibraryImage) size=76 virtuals=48 vmt=5520A65C
+  unit ImageLib
+class TImage08 (TLibraryImage) size=76 virtuals=50 vmt=5520A790
+  unit ImageLib
+class TPicture08 (TImage08) size=88 virtuals=50 vmt=5520A8C8
+  unit ImageLib
+class TRLESprite08 (TImage08) size=104 virtuals=50 vmt=5520AA04
+  unit ImageLib
+class TImage16 (TLibraryImage) size=72 virtuals=48 vmt=5520AB44
+  unit ImageLib
+class TPicture16 (TImage16) size=84 virtuals=48 vmt=5520AC74
+  unit ImageLib
+class TTransparentPicture16 (TPicture16) size=84 virtuals=48 vmt=5520ADA8
+  unit ImageLib
+class TSprite16 (TImage16) size=108 virtuals=48 vmt=5520AEF0
+  unit ImageLib
+class TRLESprite16 (TImage16) size=96 virtuals=48 vmt=5520B020
+  unit ImageLib
+class TTransparentRLESprite16 (TRLESprite16) size=96 virtuals=48 vmt=5520B158
+  unit ImageLib
+class TBitMaskGrabInfo (TGrabInfo) size=28 virtuals=4 vmt=5520B2A4
+class TBitMask (TLibraryImage) size=88 virtuals=48 vmt=5520B334
+  unit ImageLib
+class TShadow (TBitMask) size=88 virtuals=48 vmt=5520B464
+  unit ImageLib
+class TImageLibraryFont (TCustomImageLibrary) size=100 virtuals=19 vmt=5520B5C8
+  unit ImageLib
+  prop   CharacterDistance              Integer                      get=field+0050 set=field+0050
+  prop   CharCase                       TEditCharCase                get=field+0058 set=field+0058
+  prop   Color                          TColor                       get=field+005C set=static 552141E4
+  prop   FontColorPaletteIndex          Integer                      get=field+0060 set=static 552141CC
+  prop   LoadOnDemand                   Boolean                      get=field+0032 set=static 5521A868
+  prop   OnChange                       TNotifyEvent                 get=field+0028 set=field+0028
+  prop   FileName                       String                       get=field+0038 set=static 5521A4B0
+class TCustomImageLibraryPanel (TCustomPanel) size=340 virtuals=32 vmt=5520B7A0
+  unit ImageLib
+class TImageLibraryPanel (TCustomImageLibraryPanel) size=340 virtuals=32 vmt=5520B8B0
+  unit ImageLib
+  prop   BevelInner                     TPanelBevel                  get=field+011C set=static 55202018 default=0
+  prop   BevelOuter                     TPanelBevel                  get=field+011D set=static 55202020 default=2
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+014C set=static 552149D8
+  prop   ImageIndex                     Integer                      get=field+0150 set=static 552149C4
+  prop   BltMode                        TBltMode(tkEnumeration)      get=field+0140 set=static 55214988
+  prop   OnUpdated                      TNotifyEvent                 get=field+0144 set=field+0144
+  prop   ScaleX                         Integer                      get=field+0138 set=static 5521499C
+  prop   ScaleY                         Integer                      get=field+013C set=static 552149B0
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483633
+class TCustomImageDrawGrid (TCustomGrid) size=476 virtuals=46 vmt=5520BB90
+  unit ImageLib
+class TImageDrawGrid (TCustomImageDrawGrid) size=476 virtuals=46 vmt=5520BCD8
+  unit ImageLib
+  prop   SelectionEnabled               Boolean                      get=field+01C1 set=static 55214E50
+  prop   FocusColor                     TColor                       get=field+01BC set=static 55214E64
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   BltMode                        TBltMode(tkEnumeration)      get=field+01A8 set=static 55214E3C
+  prop   OnCellUpdated                  TDrawCellEvent               get=field+01AC set=field+01AC
+  prop   ScaleX                         Integer                      get=field+01A0 set=static 55214E6C
+  prop   ScaleY                         Integer                      get=field+01A4 set=static 55214E80
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483643
+  prop   ScrollBars                     TScrollStyle                 get=field+0160 set=static 55202260 default=3
+  prop   DefaultRowHeight               Integer                      get=field+0140 set=static 55202228 default=24
+  prop   DefaultColWidth                Integer                      get=field+013C set=static 55202220 default=64
+  prop   GridLineWidth                  Integer                      get=field+0150 set=static 55202240 default=1
+  prop   ColCount                       Integer                      get=static 55214EA8 set=static 55214EB0
+  prop   RowCount                       Integer                      get=static 55214F48 set=static 55214F50
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 55201A80
+  prop   EditMode                       TILGridEditMode(tkSet)       get=field+01A9 set=field+01A9
+  prop   Options                        TGridOptions                 get=field+0154 set=static 55202248 default=31
+  prop   GrowDirection                  TILGrowDirection(tkEnumeration) get=field+01C0 set=field+01C0
+  prop   MinRowCount                    Integer                      get=field+01C4 set=static 55214ED8
+  prop   MinColCount                    Integer                      get=field+01C8 set=static 55214EF4
+  prop   MaxRowCount                    Integer                      get=field+01CC set=static 55214F10
+  prop   MaxColCount                    Integer                      get=field+01D0 set=static 55214F2C
+  prop   ShowGridIndex                  Boolean                      get=field+01D4 set=static 55214E94
+  prop   Font                           TFont                        get=field+0050 set=static 55201A98
+class TCustomImageLibraryGrid (TCustomImageDrawGrid) size=480 virtuals=46 vmt=5520C180
+  unit ImageLib
+class TImageLibraryGrid (TCustomImageLibraryGrid) size=480 virtuals=46 vmt=5520C2C4
+  unit ImageLib
+  prop   SelectionEnabled               Boolean                      get=field+01C1 set=static 55214E50
+  prop   FocusColor                     TColor                       get=field+01BC set=static 55214E64
+  prop   Align                          TAlign                       get=field+0048 set=static 55201A10 default=0
+  prop   ImageLibrary                   TCustomImageLibrary(tkClass) get=field+01DC set=static 552155A8
+  prop   BltMode                        TBltMode(tkEnumeration)      get=field+01A8 set=static 55214E3C
+  prop   OnCellUpdated                  TDrawCellEvent               get=field+01AC set=field+01AC
+  prop   ScaleX                         Integer                      get=field+01A0 set=static 55214E6C
+  prop   ScaleY                         Integer                      get=field+01A4 set=static 55214E80
+  prop   Color                          TColor                       get=field+0054 set=static 55201AC8 default=-2147483643
+  prop   ScrollBars                     TScrollStyle                 get=field+0160 set=static 55202260 default=3
+  prop   DefaultRowHeight               Integer                      get=field+0140 set=static 55202228 default=24
+  prop   DefaultColWidth                Integer                      get=field+013C set=static 55202220 default=64
+  prop   GridLineWidth                  Integer                      get=field+0150 set=static 55202240 default=1
+  prop   ColCount                       Integer                      get=static 55214EA8 set=static 55214EB0
+  prop   RowCount                       Integer                      get=static 55214F48 set=static 55214F50
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 55201A80
+  prop   EditMode                       TILGridEditMode(tkSet)       get=field+01A9 set=field+01A9
+  prop   Options                        TGridOptions                 get=field+0154 set=static 55202248 default=31
+  prop   GrowDirection                  TILGrowDirection(tkEnumeration) get=field+01C0 set=field+01C0
+  prop   MinRowCount                    Integer                      get=field+01C4 set=static 55214ED8
+  prop   MinColCount                    Integer                      get=field+01C8 set=static 55214EF4
+  prop   MaxRowCount                    Integer                      get=field+01CC set=static 55214F10
+  prop   MaxColCount                    Integer                      get=field+01D0 set=static 55214F2C
+  prop   ShowGridIndex                  Boolean                      get=field+01D4 set=static 55214E94
+  prop   Font                           TFont                        get=field+0050 set=static 55201A98
+class TILManagerObject (TObject) size=12 virtuals=0 vmt=5520C820
+class TILManagerList (TStringList) size=52 virtuals=32 vmt=5520C8A0
+  unit ImageLib
+class TImageLibraryManager (TComponent) size=48 virtuals=10 vmt=5520C99C
+  unit ImageLib
+  prop   SearchPath                     String                       get=field+0024 set=field+0024
+class TILManagerComboBox (TComboBox) size=388 virtuals=35 vmt=5520CA80
+  unit ImageLib
+  prop   ILManager                      TImageLibraryManager(tkClass) get=field+0170 set=static 5521793C
+  prop   Category                       TILManagerCategory(tkSet)    get=field+0174 set=field+0174
+  prop   SubDirectory                   String                       get=field+0178 set=static 55217948
+  prop   SkipDirectories                String                       get=field+017C set=field+017C
+  prop   EmptyILName                    String                       get=field+0180 set=field+0180
+class TILManagerListBox (TListBox) size=360 virtuals=33 vmt=5520CC70
+  unit ImageLib
+  prop   ILManager                      TImageLibraryManager(tkClass) get=field+0154 set=static 55217E78
+  prop   Category                       TILManagerCategory(tkSet)    get=field+0158 set=field+0158
+  prop   SubDirectory                   String                       get=field+015C set=static 55217E84
+  prop   SkipDirectories                String                       get=field+0160 set=field+0160
+  prop   EmptyILName                    String                       get=field+0164 set=field+0164
+class TImageSequence (TObject) size=56 virtuals=0 vmt=5520CEB0
+class TImageSequenceList (TList) size=28 virtuals=2 vmt=5520CF40
+class TFrameTableList (TPersistent) size=20 virtuals=5 vmt=5520CFCC
+  unit ImageLib

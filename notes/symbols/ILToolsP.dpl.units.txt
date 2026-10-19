@@ -1,0 +1,12 @@
+== ILSeqEd  (1 classes, 2 funcs, 1 types)
+   TImageSequenceEditor (25): ChangeColorClick CloseLayerBtnClick FormCreate FormDestroy FrameTableEditChange GetImageSequenceList ILManagerComboBoxChange ImageIndexSelectorDrawCell ImageIndexSelectorDrawCell2 ImageIndexSelectorKeyDown ImageIndexSelectorSelectCell ImageIndexSelectorSelectCell2 ImageSequencerChange ImageSequencerCreateImageSequence LayerSpinUpdate OpenLayerBtnClick PlayBtnClick PlayLoopedClick SequenceDisplayEditorResizeBackSurface SequenceDisplayEditorUpdateFrame SequenceModeBoxChange SequenceSpeedBoxChange SetImageSequenceList ShowModal SpeedButton2Click
+   funcs: ImageSequenceEditor TImageSequenceEditor
+== ILTools  (3 classes, 6 funcs, 3 types)
+   TImageSequencer (9): AddSequenceLayer CurrentImageSequenceUpdated DecreaseLayer DeleteSequenceLayer Destroy IncreaseLayer SetCurrentImageSequence SetCurrentSequenceIndex SetImageSequenceList
+   TSequenceDisplayEditor (9): Create Destroy MouseDown MouseMove MouseUp ResizeBackSurfaces SetImageSequencer UpdateFrame UpdateSettings
+   TSequenceLayerSelector (7): Change Create Destroy SetImageSequencer SetParent UpdateSettings UpdateTabs
+   funcs: Register TImageSequencer TOnCreateImageSequenceEvent TOnShowImageSequenceEvent TSequenceDisplayEditor TSequenceLayerSelector
+== ILToolsP  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== Str2Clip  (0 classes, 2 funcs, 0 types)
+   funcs: CopyStreamToClipboard PasteStreamFromClipboard

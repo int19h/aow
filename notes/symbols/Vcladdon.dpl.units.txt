@@ -1,0 +1,21 @@
+== EStrGrid  (1 classes, 3 funcs, 1 types)
+   TEditStringGrid (4): CanEditAcceptKey GetRowCount SetMinRowCount SetRowCount
+   funcs: Register TCanAcceptKeyEvent TEditStringGrid
+== FilCtl95  (2 classes, 3 funcs, 2 types)
+   TDirectory95ListBox (1): ReadBitmaps
+   TDrive95ComboBox (1): Create
+   funcs: Register TDirectory95ListBox TDrive95ComboBox
+== SpinEdit  (3 classes, 5 funcs, 4 types)
+   TSpin (22): CMEnter CMExit CheckValue Create CreateParams CreateWnd Destroy DoExit DownClick GetChildren GetMinHeight GetValue IsValidChar KeyDown KeyPress OnUpdateEvent SetEditRect SetValue UpClick WMCut WMPaste WMSize
+   TSpinButton (22): AdjustSize BtnClick BtnMouseDown Create CreateButton GetDownGlyph GetDownNumGlyphs GetUpGlyph GetUpNumGlyphs KeyDown Loaded Notification SetBounds SetDownGlyph SetDownNumGlyphs SetFocusBtn SetUpGlyph SetUpNumGlyphs WMGetDlgCode WMKillFocus WMSetFocus WMSize
+   TTimerSpeedButton (5): Destroy MouseDown MouseUp Paint TimerExpired
+   funcs: Register TSpin TSpinButton TTimeBtnState TTimerSpeedButton
+== TB97  (5 classes, 10 funcs, 6 types)
+   TDock97 (20): AlignControls ArrangeToolbars BuildRowInfo ChangeDockList ChangeWidthHeight Create CreateParams Destroy FreeRowInfo GetDesignModeRowOf GetHighestRow GetRowOf InsertRowBefore Loaded Paint RemoveBlankRows SetBoundLines SetParent SetPosition WMSize
+   TEdit97 (12): CMEnabledChanged CMFontChanged Create Loaded MouseMove NewAdjustHeight RedrawBorder WMKillFocus WMNCCalcSize WMNCPaint WMPaint WMSetFocus
+   TToolbar97 (42): AlignControls ArrangeControls AutoArrangeControls BuildGroupInfo CMVisibleChanged CancelModes Create CreateParams Destroy DrawDraggingRect Dropped FreeGroupInfo GetDockedTo LoadPosition Loaded MouseDown MouseMove MouseMover MouseUp MoveOnScreen NewFormWindowProc NewMainWindowHook Paint RedrawCaption SavePosition SetBounds SetCanDock SetCloseButton SetDockPos SetDockRow SetDockedTo SetParent SetSlaveControl ShouldBeVisible WMActivate WMCancelMode WMGetMinMaxInfo WMMouseActivate WMNCCalcSize WMNCHitTest WMNCLButtonDown WMNCPaint
+   TToolbarButton97 (34): CMButtonPressed CMDialogChar CMEnabledChanged CMFontChanged CMMouseEnter CMMouseLeave CMSysColorChange CMTextChanged Click Create Destroy GetGlyph GetNumGlyphs GetPalette GlyphChanged GlyphDraw InvalidateIt Loaded MouseDown MouseMove MouseUp Paint SetAllowAllUp SetDown SetGlyph SetGroupIndex SetLayout SetMargin SetNumGlyphs SetOpaque SetSpacing UpdateExclusive UpdateTracking WMLButtonDblClk
+   TToolbarSep97 (3): MouseDown Paint SetParent
+   funcs: Register TDock97 TDockBoundLines TDockPosition TDockType TEdit97 TInsertRemoveEvent TToolbar97 TToolbarButton97 TToolbarSep97
+== VCLADDON  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable

@@ -1,0 +1,8 @@
+== ADCPACK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== AdvancedDisplay  (1 classes, 4 funcs, 1 types)
+   TAdvancedDisplay (9): Create CreateParams HideApplicationForms KeyDown MouseDown SetDisplayMode ShowApplicationForms SwapDisplayMode WndProc
+   funcs: Register TAdvancedDisplay TDisplayMode TDisplayModeStatus
+== ZoomControl  (1 classes, 3 funcs, 1 types)
+   TZoomControl (10): CMWantSpecialKey Create CreateParams HideApplicationForms KeyDown MaximizeZoom MouseDown NormalizeZoom ShowApplicationForms WndProc
+   funcs: Register TZoomControl TZoomState

@@ -1,0 +1,5 @@
+# D:\Games\GOG\Age of Wonders\Adcpack.dpl: 2 classes
+class TZoomControl (TWinControl) size=340 virtuals=31 vmt=0040171C
+  unit ZoomControl
+class TAdvancedDisplay (TWinControl) size=340 virtuals=31 vmt=00401F20
+  unit AdvancedDisplay

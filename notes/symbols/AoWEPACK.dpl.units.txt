@@ -1,0 +1,1020 @@
+== AGCPlugins  (3 classes, 6 funcs, 6 types)
+   TAIGroupDefendTargetSelector (8): Activate Create Destroy GetMovepathBattleFieldStrength Process Reset Setup TargetFoundEvent
+   TAIGroupRazeControl (7): Activate ExecuteRaze Process Reset Setup ValidateRazeCity ValidateRazeStructure
+   TAIGroupWanderControl (6): Activate Create Destroy Process Reset Setup
+   funcs: TAIGroupDefendTargetSelector TAIGroupDefendTargetSelectorMode TAIGroupRazeControl TAIGroupRazeControlMode TAIGroupWanderControl TAIGroupWanderMode
+== AirNode  (2 classes, 3 funcs, 2 types)
+   TAirNode (2): ClassID GetMagicSphere
+   TAirNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAirNode TAirNode TAirNodeResource
+== AlgnmBox  (1 classes, 2 funcs, 1 types)
+   TAlignmentBox (6): Change Create GenerateItems Loaded SetAlignment SetAlignments
+   funcs: Register TAlignmentBox
+== AltDeath  (2 classes, 3 funcs, 2 types)
+   TAltarOfDeath (2): ClassID CreateStorm
+   TAltarOfDeathResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfDeath TAltarOfDeath TAltarOfDeathResource
+== AltFire  (2 classes, 3 funcs, 2 types)
+   TAltarOfFire (3): ClassID Create CreateStorm
+   TAltarOfFireResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfFire TAltarOfFire TAltarOfFireResource
+== AltIce  (2 classes, 3 funcs, 2 types)
+   TAltarOfIce (2): ClassID CreateStorm
+   TAltarOfIceResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfIce TAltarOfIce TAltarOfIceResource
+== AltLife  (2 classes, 3 funcs, 2 types)
+   TAltarOfLife (2): ClassID CreateStorm
+   TAltarOfLifeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfLife TAltarOfLife TAltarOfLifeResource
+== AltLight  (2 classes, 3 funcs, 2 types)
+   TAltarOfLightning (2): ClassID CreateStorm
+   TAltarOfLightningResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfLightning TAltarOfLightning TAltarOfLightningResource
+== AltPest  (2 classes, 3 funcs, 2 types)
+   TAltarOfPestilence (2): ClassID CreateStorm
+   TAltarOfPestilenceResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltarOfPestilence TAltarOfPestilence TAltarOfPestilenceResource
+== Altar  (2 classes, 4 funcs, 2 types)
+   TAltar (19): CanTarget CancelTargeting ClassID CreateStorm ExecuteAI ExecuteTE GetCurrentActivityText GetDefaultAITargetPriority GetRazed GetRechargeDays GetTargeting NewDay OnTargetSelectionChange ReadWrite SetPlayer SetRazed StormTargetSelected Target TargetMana
+   TAltarResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAltar TAltar TAltarMode TAltarResource
+== Animation  (4 classes, 10 funcs, 7 types)
+   TAnimation (35): Activate AnimationControlMode CanPlace ClassID Connect Create Deactivate Destroy DestroyEvent Disconnect ExecuteTE GetControlStyle GetEditMode GetLevel GetLhx GetSelected GetShowPriority GetVisible GetXhx GetYhx MakeVisible NewFrame NewFrameEvent Place PlaceHX PlaceTE ReadWrite Remove RemoveTE Select SetDimensions SetEditMode SetVisible Show Unselect
+   TAnimationTE (4): ClassID Execute Initialize ReadWrite
+   TImageSequenceAnimation (7): Create NewFrame SetImageSequence SetXhpOffset SetYhpOffset Show UpdateDimensions
+   TTwinkleAnimation (3): Create Setup Show
+   funcs: TAnimation TAnimationControlMode TAnimationState TAnimationTE TAnimationTEState TImageSequenceAnimation TNewFrameAnimationEvent TShowAnimationEvent TTwinkleAnimation TTwinkleMode
+== AoWE  (377 classes, 1795 funcs, 444 types)
+   TAIBudget (6): ClassID Done GetReady OutputDebugInfo ReadWrite UpdateDayRequirements
+   TAIBudgetList (1): GetBudgets
+   TAIBudgetManager (30): BudgetExpenseMade BudgetExpenseMadeEx Create Destroy ExpenseMade GetBudgetGoldUpkeep GetBudgetManaUpkeep GetGroupsGoldBudget GetGroupsManaBudget GetRequiredBudgetDayGold GetRequiredBudgetDayMana GetReservedBudgetGold GetReservedBudgetMana MsgProc OutputDebugInfo ProductionExpenseMade ReadWrite RequestBudgetExpense RequestBudgetExpenseEx RequestExpense RequestProductionExpense RequestProductionExpenseEx ReserveForBudgets ReturnExpense ReturnFromBudgets UpdateBudgetDayRequirements UpdateBudgets UpdateProductionUpkeep ValidateManaUpkeep ValidateReservations
+   TAICastSpellActionList (2): GetCastSpellActions SortOnPriority
+   TAIExecuter (14): ActivatePlayer CaptureTokenCycles Create DeactivatePlayer Destroy GetProcessTimeElapsed GetProcessTimeLeft Lock Process RequestProcessTime TokenControlDoneEvent TokenCyclesCaptured Unlock UseProcessTime
+   TAIGroup (39): Activate AddRef AddTransporter AddUnit AddUnits Behavior ClassID Clear CooperateWithGroup Create CreateGroupControl Deactivate DefendLocation DeleteUnit Destroy GetAdjacent GetGoldBudget GetLoc GetLocation GetManaBudget GetMovePointsMin GetMovesMin GetProcessPriority GetRecruitableUnits GroupControlClass MakeTargetExpense MsgProc NewTurn ReadWrite Release RequestTargetExpense ResetTargetExpense ReturnTargetExpense SetLeader SetPlayer SetupTarget SetupTargetEx UnitProduced ValidateEmpty
+   TAIGroupControl (27): Activate ActivatePlugin CombineIdleGroups Create Deactivate DeactivatePlugin Destroy Done ExecuteME FindAvailableTransporter GetStrengthMax MainProcessStates MoveExecuterDone Process ProcessStates ProcessStatesLooped ProductionLocationFoundEvent RecruitmentGroupFoundEvent ResetCP ResetME RetrieveGroupArmy SetupCP SetupME Split TargetFoundEvent UpdateGroupChanges Validate
+   TAIGroupControlPlugin (10): Activate AddRef Create Deactivate Done GetBusy MainProcess Process Release Validate
+   TAIGroupControlTarget (7): AddRef Create GetDebugInfo GetTargetGold GetTargetMana Release Validate
+   TAIGroupControlTargetList (7): Add Delete GetTargets IndexOfXYL SortOnDataB SortOnPriority Validate
+   TAIGroupCooperationControl (15): Activate AddCooperationGroup Create Destroy ExecuteCooperation GetBusy GetCooperateMoveDays GetCooperateStrengthEx GetCooperatedStrength Process Reset SetCooperateStrengthEx Setup UpdateCompletion ValidCooperationGroup
+   TAIGroupDefenseControl (5): Activate Create Destroy GetBusy Process
+   TAIGroupList (4): FindID GetGroups IndexOfID SortOnProcessPriority
+   TAIGroupManager (7): Create CreateGroup CreateUniqueID Destroy ReadWrite RegisterAIGroupClasses UnregisterAIGroupClasses
+   TAIGroupProductionControl (20): Activate AddProduction Create DeleteProduction Destroy ExecuteProductions GetBusy GetCompleteProductionTime GetCurrentProductionTime GetProduceStrengthEx GetProducedStrength ListProduceableUnits Process Reset SetProduceStrengthEx Setup UnitProductionPriority UpdateCompletion UpdateProduceableUnits ValidProductionLocation
+   TAIGroupProductionList (7): Add ChangeGroup Delete DeleteUnit GetProductions GetStrengthMax IndexOfU
+   TAIGroupProductionLocation (4): AddRef Create Release Validate
+   TAIGroupProductionLocationList (7): Add Delete FindPC GetProductionLocation IndexOfPC SortOnMovePoints Validate
+   TAIGroupRecruitControl (18): Activate AddRecruitUnit Create DeleteRecruitUnit Destroy ExecuteRecruitment GetBusy GetRecruitMoveDays GetRecruitStrengthEx GetRecruitedStrength Process RecruitFromGroup Reset SetRecruitStrengthEx Setup UpdateCompletion UsefullRecruitUnit ValidRecruitmentGroup
+   TAIGroupTargetFinder (8): Activate Create Destroy GetBusy Process Reset Setup TargetFoundEvent
+   TAIGroupTargetSelector (26): Activate ActivatePlugin AllowMultiTargets Create DeactivatePlugin Destroy GetBusy GetRequiredBattleFieldStrength GetRequiredBattleFieldSuperiority GetRequiredCombatPredictorSuperiority GetRequiredStrength GetRequiredSuperiority GetRequiredTargetStrength GetTargetSetupPriority GetValidTargets NoTargetsFound Process Reset Setup ShowTargetInfo TargetOverlapFound TargetProcessed ValidMultiTarget Validate ValidateTargetOverlap ValidateTargetRequirements
+   TAIGroupUnitProduction (6): AddRef Create Destroy Release SetProductionLocation SetU
+   TAIGroupUnitProductionList (1): GetUnitProductions
+   TAIMoveControl (13): CalculateTransportGaps CanMove Cancel Clear Create Destroy Initialize Process ProcessCanMove ProcessTransporterCanMove ProcessingDone Reset SelectCombinedTransporterArmyMpT
+   TAIMoveControlSettings (8): AddRef Clear Create Destroy Release SetDestinationPos SetSourcePos Setup
+   TAIMoveExecuter (23): ActivateMEC AddArmy AddTransporter AddUnit AddUnits Clear Create CreateArmies DeactivateMEC Destroy ExecuteMove ExecuteMoves FinishMoves GetTransporting InvalidateMove Process ProcessExecuteMoves ProcessMECS Reset SetupTransporter UnitsMoveDone UpdateMoveResult Validate
+   TAIMoveExecuterArmy (8): CanAdd MovePoints Moves ResetTransporterSettings RetrieveArmy Setup ValidTerrain WaitingForTransport
+   TAIMoveExecuterArmyList (6): GetArmies IndexOf IndexOfLoc IndexOfTransportStatus IndexOfXYL SortOnMovePoints
+   TAIMoveExecuterControl (9): Activate CalculateMoves CanMoveTo Create CreateMove Deactivate Destroy Done Process
+   TAIMoveExecuterMove (6): AddUnit AddUnits Create Destroy RetrieveArmy SetUnitStatus
+   TAIMoveExecuterMoveQueue (3): Clear GetMoves Reset
+   TAIMoveExecuterUnit (3): Initialize ResetTransporterSettings Validate
+   TAIMoveExecuterUnitList (10): FindStatusUnit GetUnits IndexOfUnit IndexOfUnitID SelectionCount SetMoveResult SetStatus SetTransportStatus Transporter ValidateSelection
+   TAIMoveTargetSelector (13): Create Destroy Done Process ProcessBufferedTargets ProcessBufferedTransportTargets ProcessStates Reset Search SetTransporter SetupArmy SetupTransport TriggerTargetFound
+   TAIPlayerAction (5): Activate Deactivate Process Setup SupportedPhases
+   TAIPlayerActionList (2): GetActions IndexOf
+   TAIPlayerActionManager (6): Create Destroy GetCount GetRegisteredClasses RegisterClasses UnRegisterClasses
+   TAIPlayerControl (21): Activate ActivateAction CanDeclareWar CanOfferPeace CanProposeAlliance Create Deactivate DeactivateAction Destroy GetProcessCyclesMax GetRandomGroupBehavior ListAvailableTransporters ListIdealPeaceWarPlayers ListPeaceWarUnknownPlayers MsgProc Process ReadWrite Reset SetupProcessPhase UnitIndexToPriority UpdateSkirmishGroups
+   TAIProductionLocationFinder (8): Activate Create Destroy GetBusy Process ProductionLocationFoundEvent Reset Setup
+   TAIRecruitmentGroup (6): AddRef Create Destroy Release SetGroup Validate
+   TAIRecruitmentGroupFinder (8): Activate Create Destroy GetBusy Process RecruitGroupFoundEvent Reset Setup
+   TAIRecruitmentGroupList (8): Add Delete FindUnit GetRecruitmentGroups OutputDebugInfo SortOnMovePoints UnitExists Validate
+   TAISavingsBudget (2): ClassID Create
+   TAITransporterBudget (2): ClassID Create
+   TAbility (53): AbilityDataClass Activate ActivateCombat CanActivate CanActivateCombat CanExpand CombatDone CombatObjectDestroyed Create Destroy Execute Expand ExpandCost ExpandName GetAbilityType GetAttack GetCombatInfo GetCombatMode GetControlType GetDamage GetDamageValue GetDamageValueEx GetDefense GetEnabled GetHidden GetImmunityTypes GetInherent GetInherentLevel GetLevel GetMoveTypes GetName GetOffensiveStrength GetProtectionTypes GetResistance GetSkillPoints GetSourceName GetWallCombatFeatures ListInfo ListSpells NewCombatTurn NewDay NewTurn ReadWrite Remove SetAb ShowInfo fcExecuteCombatCommand fcGetDamageValue fcGetDamageValueEx fcPrefetchCombatCommands fcValidRoundDistance tcGetDamageValue tcGetDamageValueEx
+   TAbilityControl (11): Create Destroy GetAbility GetCount ListAbilities ListAbilityInfo ReadWrite RegisterAbility UnregisterAbility UnregisterAbilityID UnregisterAll
+   TAbilityData (2): GetAbilityID ReadWrite
+   TAbilityOwner (42): AddAbilityData AssignAb Changed Clear Create Execute ExpandAbility GetAbAttack GetAbAttackAll GetAbDamage GetAbDamageAll GetAbDefense GetAbDefenseAll GetAbEnabled GetAbImmunityTypes GetAbImmunityTypesAll GetAbLevel GetAbMoveTypes GetAbMoveTypesAll GetAbName GetAbProtectionTypes GetAbProtectionTypesAll GetAbResistance GetAbResistanceAll GetAbWallCombatFeatures GetAbilityData GetAbilitySelectionTypes GetOwnerName ListAbilities ListAbilitiesEx MsgProc ReadWrite RemoveAbility RemoveAbilityData RemoveAbilityDataID SetAbSet TriggerCombatDone TriggerNewCombatTurn TriggerNewDay TriggerNewTurn UpdateDefaultAbilities ValidateOwnerTypeAbilities
+   TAbilityPlugIn (3): Finalize Initialize Name
+   TAbilityTypeList (1): GetAbility
+   TAbstractAoWCombatMap (2): Create Destroy
+   TAbstractAoWHSMap (42): Create CreateMouse Destroy DrawFog DrawGrid DrawSelectionRect DropHeroItem ExploreArea FogArea GetHeroItemsOnGround HideHexagonSelector InvalidateMap InvalidateScannerIcons LockMapChangedEvent LockScannerIconsChangedEvent MapChanged MapChangedRad NewFrame PlayCenterAnimation ScannerIconsChanged ScannerIconsChangedRad SetCurrentPlayer SetExplorationEnabled SetFogEnabled SetSeatedPlayer ShowBackHexagonSelector ShowFrontHexagonSelector ShowHexagonSelector ShowMessage ShowWarning TriggerMapChangedEvent TriggerScannerIconsChangedEvent TriggerTerrainChangedEvent UnFogArea UnFogExploreArea UnlockMapChangedEvent UnlockScannerIconsChangedEvent UpdateDynamicScene UpdateFPS UpdateHexagonSelector UpdateShowMessage UpdateStaticScene
+   TAbstractAoWHSMapMouse (10): Create Destroy Down GetSelectingRectangle Move ResetRectangleSelection StartRectangleSelection StopRectangleSelection Up UpdateRectangleSelection
+   TAbstractUnit (141): AbilityToEnchantment Activate AddRef Animate CanActivate CanAddToList CanDisband CanDispelEnchantment CanJoin CanPlace Changed ConcealedOnMapF Create CreateMovePointTable Deactivate Destroy Disband ExecuteCombatDamageEffects ExecuteDamageEffects ExecuteDamageEffectsRole ExecuteDamageRole ExecuteDeathMasteryCurseRole ExecuteLifeMasteryFearRole ExecuteResistanceRole ExecuteStormDamage ExecuteTrailOfDarkness GetAbilityCount GetAbilityEnabled GetAbilityLevel GetAbilityName GetAbilityOwner GetAbilitySelectionTypes GetAbilitySet GetAlignment GetAttack GetBloodType GetCampaignTransferPoints GetCastingPoints GetCastingPointsMax GetCombatValue GetDamage GetDefense GetDescription GetExperience GetFace GetGender GetHitPoints GetHits GetImmunityTypes GetIndependentRelation GetInherentAbility GetInherentAbilityLevel GetInherentAttack GetInherentDamage GetInherentDefense GetInherentResistance GetJoinMessage GetLocation GetManaUpkeep GetMorale GetMovePoints GetMoveTypes GetMoves GetName GetNextLevelExperience GetObtainValue GetOwnerName GetPowerGeneration GetPreviewImage GetProtectionTypes GetRace GetRelation GetRelationValue GetResistance GetStrength GetStrengthMax GetTransportCapacity GetTransporter GetTransporting GetUnitGFXResourceIndex GetUnitLevel GetUnitMoraleValue GetUnitSize GetUnitType GetUpkeep GetWallCombatFeatures JoinAmount Killed ListAbilityInfo ListEnchantments MovePointCost MovedTo MsgProc NewDay NewTurn NewTurnDone OfferToJoin OptimalDamageType PathOfDecayTerrainChange PathOfFrostTerrainChange PathOfFrostTerrainChanged PathOfLifeTerrainChange Place ReadWrite RegisterEnchantments Release RemoveAbility RemoveEnchantments RemoveHandicaps ResetEarthMasteryStoneSkin ResetFireMasteryProtection ResetLifeMasteryBlessing ResetLifeMasteryFear Resurrect RetrieveDamageInfo SetCastingPoints SetEarthMasteryStoneSkin SetExperience SetFireMasteryProtection SetHitPoints SetLifeMasteryBlessing SetMovePoints SetOwner SetPlayer Show ShowEx ShowFace TrueVisionRange UnitKilled UnitRelation UnregisterEnchantments UpdateDefensiveStrength UpdateEnchanted UpdateMoraleValue UpdateOffensiveStrength UpdatePathOfFrost ValidTerrain ValidateCrusader ValidateDeathMastery ValidateLifeMastery VisibilityRange
+   TAbstractUnitResource (11): DropUnit EditDropMsg GetCellImage GetEngine GetFace GetObtainValue GetPreviewImage MsgProc ReadWrite ResourceEditName SetUnitGFXResourceIndex
+   TActivateAbilityInfo (3): AddRef Create Release
+   TAdjacentArmy (3): Create Destroy GetMovementDays
+   TAdjacentArmyList (4): GetAdjacent GetAdjacentArmies GetSlowestArmy IndexOfLoc
+   TAdjacentMEC (6): CalculateMeetingPoint CalculateMoves Create Destroy ExecuteMeetingPointMove ExecuteSurroundMove
+   TAdjustableAbility (1): GetAbilityType
+   TAdjustableUnit (11): Create GetAttack GetDamage GetDefense GetHitPoints GetHits GetImmunityTypes GetProtectionTypes GetResistance MakeDefaultLevelUnit SetHitPoints
+   TAgeOfWondersEngine (3): CreateEngine Destroy SetHSEngine
+   TAoWCampaign (14): AddScenario Clear Create CreateScenario Destroy FinishScenario GetAutoSaveFileName GetContainsMap ReadWrite ResetNextScenario RestartScenario SelectNextScenario SetupScenario StartScenario
+   TAoWCampaignScenario (4): ClassID Create Destroy ReadWrite
+   TAoWCampaignScenarioList (4): CreateUniqueID FindID GetScenario IndexOfID
+   TAoWCampaignTransferSettings (19): AddHero AddItem AddUnit AutoSelect Clear ClearSelection Create DeleteHero DeleteItem DeleteUnit Destroy ExecuteSelection GenerateTransferUnits ReadWrite Retrieve SetLeader SetSelectedTransferGold SetSelectedTransferMana SetupSelection
+   TAoWEngine (25): ClassID CloseCampaign CloseHSM Create CreateHSSet Destroy ExportTextToFile GetBuildNumber GetMajorVersion GetMinorVersion GetVersionStr LoadCampaign LoadCampaignMap NewCampaign RegisteredTo RegisteredVersion RequestAccess SaveCampaign SetHSMap SetVersion TranslateEObject TranslateEObjectFromFile TranslateRStr TranslateText UpdateStartupDirectory
+   TAoWHSMap (119): Activate ActivateMsg AddEffect AddMapLevel ArmyChanged ArmyDestroyed BeginArmyUpdate BeginStructureUpdate BeginUnitUpdate CancelEndTurn CenterOnLeader ChangeTerrain ChangeTerrainEx ClassID ClearExecuteEventLogBuffer Create CreateCombat CreateMouse CreateNewMap Destroy DestroyCombat DisableTurnTimer DrawDynamicScene EnableTurnTimer EndArmyUpdate EndStructureUpdate EndTurn EndUnitUpdate ExecuteEventLogDone ExecuteExitGame ExecuteGameOverEvent ExecuteNegotiateMove ExecuteNextEventLog ExitGame FoggedForPlayer GameOver GameOverEventHandled GenerateNewTurnOrder GetIndependentAIMode GetSynchronised GetTurnTimeLeft GetTurnTimerEnabled InitializeCombatMap InitializeMapLevel InitializeNewMap LockExecuteEventLog LockGameOverEvent LockRelationsChanged LockUpdateVisibility MainReadWrite MouseMoved MsgProc NewFrame NotifyPlayerChanged NotifyPlayerChangedEx NotifyProgress OnExecuteTokenEvent OnStreamError OnTokenManagerMessage PlaceTerrain PlayerChanged PlayerConnectionLost PlayerDisconnected Random ReadWrite ReleaseCombatMap ResetMapLevels ResetSeatedPlayerView ResetTurnTimer RetrieveBattleFieldInfo SaveGame SeatedPlayerChanged Select SelectNextArmy SelectNextHero SelectPrevArmy SendMsg SetExecuteEventLogDelay SetSeatedPlayer SetupPlayerControl ShowSeatedPlayerCallBack StartLoadedMap StartNewMap StartTokenEventLogging StopTokenEventLogging StructureChanged StructureDestroyed SynchroniseBegin SynchroniseEnd TerrainVisible TokenControlActivatedEvent TriggerCombatEvent TriggerEndTurnEvent TriggerExecuteEventLog TriggerGameTerminatedEvent TriggerPlayerTerminatedEvent TriggerRelationsChanged UnLockUpdateVisibility UnitChanged UnitDestroyed UnlockExecuteEventLog UnlockGameOverEvent UnlockGameOverEventCallBack UnlockRelationsChanged UpdateCursor UpdateEffects UpdateExecuteEventLogDelay UpdatePlayerSeen UpdateTurnTimeBeep UpdateVisibility ValidateMap ValidateObservation ValidateTerrainObservation VerifyAddOnPacks Visible VisibleForPlayer Watching WatchingTerrain ZeroTurnTimer
+   TAoWHSMapKeyboard (4): KeyDown Lock RunDefaultTest Unlock
+   TAoWHSMapMouse (5): DblClick Down GetCursor Move Up
+   TAoWHSSet (8): ClassID Create Destroy GetFileCRC MainReadWrite MsgProc ReadWrite RetrieveHSSCRC
+   TAoWMapCampaignSettings (2): Create ReadWrite
+   TAoWMapField (21): ClassID FogChanged GetAITarget GetArmyHS GetCombatTerrainTag GetConcealmentActive GetDefensePriority GetDefenseRequirements GetExplored GetIndependentRelation GetMagicShieldActive GetMoveAction GetPlayer GetProductionControl GetScannerIcon GetWallType ReadWrite RestoreTerrain SetExplored SetFogCount UpdateMapField
+   TAoWMapLevel (9): ClassID ExploreArea FogArea MapFieldClass Reset ResetFog ResetUnFog UnFogArea UnFogExploreArea
+   TAoWMapObjectEditor (1): EditorClassID
+   TAoWNewHSMapSettings (1): Create
+   TArmy (112): AIMovePriority Activate AddChild AddUnit AddUnitSelection AddUnits AssignSettings CanActivate CanAddUnit CanAddUnitSelection CanAddUnits CanCombine CanDeleteUnit CanPlace Changed ClassID ConcealedUnitsCount Create CreateGroupID CreateID CreateMovePointTable Deactivate Desert Destroy GetArmyHS GetBehavior GetCanJoinSelection GetConcealedForPlayer GetEngine GetFullyConcealed GetGroup GetGroupSelection GetJoinSelection GetLocation GetMoveAction GetOldAIBehavior GetPartyMoves GetPartyStatus GetPlayer GetRace GetStrengthEx GetStrengthMaxEx GetUnitConcealed GetUnitConcealedForPlayer GetUnitsConcealedForPlayer GetUpkeep HealUnits Hero ImmunityTypes IncommingNegotiateOffer IncommingNegotiateRequest IncommingStorm IndexOfTransporter InitializeGroupBehavior JoinAmount Kill Leader MakeIndependent MaxSize MoveOnMovePoints MovePoints MoveTypes MovedTo Moves MsgProc NewDay NewTurn NewTurnDone ObtainValue ReadWrite RemoveChild ResetDestinationPos ResetMoveDone RetrieveStormDamageInfo ReturnBattleFieldInfo Select SelectionCount SelectionUnit SetBehavior SetDestinationPos SetFullyConcealed SetGroup SetPlayer SetXYL Transporter TriggerFireDamage TriggerOnUpdateEvent TrueVisionRange TurnUnFogOff UnitsInTransporter Unselect Update UpdateAITarget UpdateConcealedUnits UpdateConcealment UpdateDesertion UpdateExploration UpdateFormation UpdateGroupBehavior UpdateIndependentRelation UpdateUnfog UpdateUpkeep UpdateVisibilityRanges ValidTerrain ValidTerrainEx Validate ValidateCrusaders ValidateMoveSelection ValidateSelection ValidateTerrain ValidateTerrainEx VisibilityRange
+   TArmyCombatMoveTE (17): Animating CanMoveNext ClassID CombatExecuted ExecuteCombat ExecuteLastMove ExecuteMove InitializeMove ProcessMove ReadWrite RequestCombatTypeCallBack RestoreHotSeatModeCallBack RestoreHotseatMode Setup SetupCombat ShowHotSeatPlayerCallBack Validate
+   TArmyCombineMoveTE (3): CanMoveNext ClassID ShowCombineFailure
+   TArmyDefaultMoveTE (2): ClassID Setup
+   TArmyEventLog (12): ClassID Create Destroy Execute GetLeftIcon GetText LeaderKilled PartyDestroyed ReadWrite SetArmyView ValidateGameOver ViewLocation
+   TArmyHS (36): Activate ArmyUpdated CanChangeTerrain CanMoveOn CanMoveOver CanSelect ClassID Clear Create Deactivate Destroy EditName GetFogEnabled GetMoveSteps GetSelected MapFieldMsgProc MoveFirst MoveTo MsgProc PlaceEx PlaceHX PlaceOnMap PlacePrivate PlayMoveSFX ReadWrite RemoveFromMap Select Show ShowEnchantments ShowShadow TerrainChanged Unselect UpdateFlagID UpdateMapField UpdateUnitGFXResource VisibleForSeatedPlayer
+   TArmyHSList (1): GetArmyHS
+   TArmyID (6): ClassID Create Destroy ReadWrite RetrieveArmy Valid
+   TArmyInfoEventLog (8): ClassID Create Destroy Execute GetText ReadWrite SetArmyView ViewLocation
+   TArmyList (1): GetArmy
+   TArmyNegotiateMoveTE (5): Animating CanMoveNext ClassID ExecuteMove Validate
+   TArmyView (9): ClassID GetConcealedforPlayer GetLocation GetUnitConcealedforPlayer MainReadWrite ReadWrite SetConcealedForPlayer SetUnitConcealedForPlayer Setup
+   TAutoProduceAIPA (14): Create Destroy ExecuteProduce ExecuteResearch FindAvailableTransporter Priority Process ProduceTransporter ProducingTransporter ResearchTransporter ResearchingTransporter TransporterPriority TransporterProductionControlExists UpdateProductions
+   TBoltsAbility (1): Create
+   TBreathAbility (5): Create GetOffensiveStrength fcExecuteCombatCommand fcGetDamageValueEx tcGetDamageValueEx
+   TBudgetManagerAIPA (4): Create Destroy Priority Process
+   TCastSpellAIPA (8): Activate CastingHeroesMax Create Destroy PrefetchCastSpellActions Priority Process ProcessStates
+   TChangeGlobalMagicTE (3): ClassID Execute ReadWrite
+   TChangePlayerMagicTE (3): ClassID Execute ReadWrite
+   TChangePlayerSettingsTE (3): ClassID Execute ReadWrite
+   TCharmAbility (4): CanTouch CanTouchUnit Create GetTouchAttack
+   TCharmedAbility (1): Create
+   TCheatTE (3): ClassID Execute ReadWrite
+   TCombat (39): Activate AddAdjacentArmies AddArmy AddArmyEx AddCombatPlayer AddEmptyArmy CheckTerminate Clear Create CreateCombatPlayer CreateCombatUnit CreateUniqueCOID Deactivate DefendersAvailable Destroy Execute ExecuteCombatAction Finalize GetCombatResultText GetLogCombatActions GetPartyPosition GetRound InitDefaultArmies Initialize LockExecuted NewRound NewTurn NextTurn ObjectDestroyed ObjectSideChanged PlayerTypeInvolved ReadWrite SetLogCombatActions SetLogbookHeader Setup Terminate UnlockExecuted UpdateSidesSettings UpdateStatus
+   TCombatAction (7): AddRef Create GetName Release ShowFieldObject ShowFightingObjects ShowObject
+   TCombatActionList (1): GetCombatActions
+   TCombatData (13): AddObject ClassID Clear Create Destroy FindID FindPosition GetCount GetObjects GetSideLeaderInvolved IndexOfID MsgProc ReadWrite
+   TCombatEventLog (12): ClassID Destroy Execute GetLeftIcon GetMiddleIcon GetRightIcon GetText GetTextColor PlayLoggedSFX ReadWrite SetCombatLogbook ViewLocation
+   TCombatFlowControlTE (3): ClassID Execute ReadWrite
+   TCombatLogbook (9): AddRef ClassID Clear Create Destroy ReadWrite Release SetFinalData SetInitialData
+   TCombatObject (70): Activate AddTarget CombatDone Create Deactivate DeleteTarget Destroy DestroyObject DoDamage ExecuteDamage ExecuteDamageEffects ExecuteDamageEffectsRole ExecuteDamageRole ExecuteDamageRoleEx Finalize GetAbilityCount GetAbilityEnabled GetAbilityLevel GetAbilityOwner GetAlignment GetAttack GetDamage GetDefense GetEnabled GetExperience GetHitPoints GetHits GetImmunityTypes GetLevel GetLocked GetMoves GetOpponentSide GetOptimalDamageType GetPlayer GetPlayerIR GetProtectionTypes GetResistance GetSide GetTargetCVDV GetTargetPriority GetTargetStrength GetTargetWallCV GetVisibilityRange IDStr Initialize NewRound NewTurn ObjectDestroyed ObjectSideChanged PlaySFX ReadWrite RemoveTarget ResetTargets SetAbilityEnabled SetCombatPlayer SetExperience SetHitPoints SetupTargets Show ShowAttackAnimation ShowHitAnimation SupportCombatMode Surrender TargetsChanged TurnDone WallCombatFeatures fcBehindWall fcExecute fcRoundDistance fcWallInBetween
+   TCombatObjectList (1): GetObject
+   TCombatObjectTurnDoneCA (4): ClassID Execute Play ReadWrite
+   TCombatParty (6): Activate ClassID Create Deactivate Destroy ReadWrite
+   TCombatPartyList (5): Activate CreateParty Deactivate GetControlStyle GetParty
+   TCombatPlayer (2): ClassID ReadWrite
+   TCombatPlayerList (6): Create Delete Destroy GetPlayers IndexOf IndexOfPlayer
+   TCombatPredictor (31): AddOpponent AddOpponents AddUnit AddUnitEx AddUnits AddWall CanPassWall Create CreateUniqueCPUID DeleteOpponents DeleteUnit DeleteUnits DeleteWall Destroy EnableAllUnits Execute ExecuteCombatRound FinishCombat GetEfficiency GetSuperiority InitAdjacentArmies InitAdjacentOpponents ListOptionalUnits ListRequiredUnits ListRequiredUnitsEx ListUselessUnits Reset ResetCombat SetupCombat Usefullness Validate
+   TCombatPredictorSide (3): GetStrength GetStrengthMax Reset
+   TCombatPredictorUnit (14): Create Destroy ExecuteRound FinishCombat InvalidateTargets ResetCombat ResetRoundTargets SetEnabled Setup SetupRoundTargets SortRoundTargets UpdateRoundTargetPriority UpdateTargets UpdateWallTargets
+   TCombatPredictorUnitList (3): GetUnits IndexOfCPUID IndexOfUnit
+   TCombatRestoreHotseatEventLog (1): Execute
+   TCombatSide (9): Create Destroy GetDestroyedObjects GetObjects GetUndestroyedConquerObjects IndexOfID OutputDebugInfo ReadWrite UpdateSettings
+   TCombatSpellCaster (3): AddRef Create Release
+   TCombatTypeRequestEventLog (5): Destroy Execute Select SetCenterLocation SetTokenEvent
+   TCombatUnit (60): Activate ClassID CombatDone CommandingTargetPriority CommandingTargetStrength Create Deactivate Destroy DestroyObject ExecuteDamageEffects ExecuteDamageEffectsRole Finalize GetAbilityCount GetAbilityEnabled GetAbilityLevel GetAbilityOwner GetAlignment GetAttack GetDamage GetDefense GetEnabled GetExperience GetHitPoints GetHits GetImmunityTypes GetLevel GetLocked GetMoves GetProtectionTypes GetResistance GetTargetCVDV GetTargetPriority GetTargetStrength GetTargetWallCV GetVisibilityRange IDStr Initialize KillUnit NewRound NewTurn ObjectDestroyed PlaySFX ReadWrite ReleaseUnitGFXResource SetAbilityEnabled SetExperience SetHitPoints SetParty SetStatus SetUnit Setup Show ShowAttackAnimation ShowHitAnimation SupportCombatMode Surrender UpdateParty UpdateUnitGFXResource UpdateWallCombatFeatures WallCombatFeatures
+   TCombatViewer (14): Create DefaultShowFightingObjects Destroy Finalize GetEndPosition Initialize Pause Play SetPosition SetSpeed ShowFieldObject ShowFightingObjects ShowObject Update
+   TCombatWall (22): Activate ClassID Create Deactivate Destroy DestroyObject GetDefense GetHitPoints GetHits GetImmunityTypes GetLocked GetResistance GetTargetPriority GetTargetStrength IDStr ReadWrite SetHitPoints Setup Show ShowAttackAnimation ShowHitAnimation fcRoundDistance
+   TCommandAbility (18): AbilityDataClass CanTouch CanTouchUnit CombatDone CombatObjectDestroyed Command Create CreateCommandCA GetAbilityType GetDamageValue GetDamageValueEx GetOffensiveStrength Remove ResetCommandedUnits Uncommand fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands
+   TCommandAbilityData (7): ClassID CommandingTargetPriority CommandingTargetStrength Create Destroy GetAbilityID ReadWrite
+   TCommandCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TCommandedAbility (5): AbilityDataClass CombatDone CombatObjectDestroyed Create Remove
+   TCommandedAbilityData (3): ClassID GetAbilityID ReadWrite
+   TConstructAbility (5): CanActivate Create Destroy GetControlType RegisterConstructionControl
+   TConstructStructureTE (3): ClassID Execute ReadWrite
+   TConstructionControl (4): CanConstruct Construct GetInfo ID
+   TConstructionControlList (2): FindID GetConstructionControl
+   TCosmeticSurgeryAbility (2): Create CreateEnchantment
+   TCosmeticSurgeryEnchantment (4): ClassID Create GetName ReadWrite
+   TCustomAbilityList (13): AssignAb Clear CompareAb ComposeAb Destroy GetAbCount GetAbSet GetItemString ListAbilitiesEx ReadWrite SetAbCount SetAbSet SetItemString
+   TDamageCA (8): ClassID Execute Generate GenerateEx Play ReadWrite Setup ShowObject
+   TDamageEffectCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TDefaultMEC (1): CalculateMoves
+   TDiplomacyAIPA (8): Activate Create CreateDA Destroy ExecuteDiplomacy ListDebugInfo Priority Process
+   TDiplomaticAction (21): Accept AddRef CanAccept CanReject CanSend ClassID Create CreateEventLog Destroy ExecuteAI ExecuteAccept ExecuteReject ExecuteSend GetName GetRelationModifier MsgProc ReadWrite Reject Release Send UpdateAIDiplomaticActionsLog
+   TDiplomaticActionEventLog (14): ClassID Destroy Execute GetLeftIcon GetMiddleIcon GetRightIcon GetText GetTextColor GetVisible MsgProc NotifyLogged PlayLoggedSFX ReadWrite SetDiplomaticAction
+   TDiplomaticActionList (2): FindLastAction GetDiplomaticActions
+   TDiplomaticActionTE (5): ClassID Destroy Execute ReadWrite SetDiplomaticAction
+   TDiplomaticRelationHistoryItem (2): ClassID ReadWrite
+   TDiplomaticRelationHistoryList (5): Add ClassID GetItems GetLastModifiedOnDay GetRelationOnDay
+   TDiplomaticRelationList (3): Create GetDiplomaticRelation SetDiplomaticRelation
+   TDisbandUnitTE (3): ClassID Execute ReadWrite
+   TDispelMagicAbility (26): AbilityDataClass Activate CanExpand CanTouch CanTouchUnit Create CreateCA Expand ExpandCost ExpandName GetCombatInfo GetControlType GetDamageValue GetDamageValueEx GetDispelMana GetEnabled GetLevel GetLevelName GetName GetSkillPoints NewTurn Remove SetEnabled fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands
+   TDispelMagicAbilityCA (2): ClassID Execute
+   TDispelMagicAbilityData (3): ClassID GetAbilityID ReadWrite
+   TDispelMagicAbilityTE (3): ClassID Execute ReadWrite
+   TDispelMagicAbilityUnitSelector (2): CanSelectUnit Select
+   TDispelMagicCA (7): Create Destroy Execute Generate Play ReadWrite ShowObject
+   TDominateAbility (2): Create GetTouchAttack
+   TDominatedAbility (1): Create
+   TDurationAbility (11): AbilityDataClass CombatDone Create Expand GetDuration GetName GetTotalDuration NewCombatTurn NewDay NewTurn Remove
+   TDurationAbilityData (3): ClassID GetAbilityID ReadWrite
+   TEmailGame (2): ClassID ReadWrite
+   TEmailGameControl (11): Create CreateEmailGame CreateUniqueLocalID Destroy EmailGameRestarted FindEmailGame GenerateSecurityID Load Save UpdateGame ValidateIncommingGame
+   TEmailGameList (2): GetEmailGames IndexOfUniqueLocalID
+   TEnchantment (12): CenterToLocation Create Dispel DispelChance GetAIUpkeepPriority GetBinding GetLocation GetName ReadWrite Select SetSource SetUpkeep
+   TEnchantmentList (3): FindID GetEnchantments IndexOfID
+   TEndTurnAIPA (3): Destroy Priority Process
+   TEndTurnTE (3): ClassID Execute ReadWrite
+   TEnhancementAbility (1): Create
+   TEntangleAbility (9): CanTouch Create CreateEntangleCA GetDamageValue GetDamageValueEx GetOffensiveStrength GetTouchAttack fcExecuteCombatCommand fcGetDamageValueEx
+   TEntangleCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TExportTextStream (2): rwString rwStrings
+   TExternalPowerSource (2): Name Power
+   TFaceResource (11): AddRef ClassID FaceResourceIndex GetCellImage GetEngine GetFaceImage LinkToIL ReadWrite Release ReleaseIL SetImageLibraryName
+   TFaceResourceList (5): Create GetFaceResource IndexOfFaceImage NextFace PrevFace
+   TFastCombat (18): Activate AttackerCanCrushWall ClassID Create CreateCombatUnit Deactivate Destroy Execute ExecuteCombatRound GetAttackerBalisticCV GetDefenderBalisticCV GetRoundDistance GetRoundDistanceMax GetWallInBetween GetWallSituation Initialize Setup ValidateWallBreaching
+   TFastCombatCommand (2): Create GetName
+   TFastCombatCommandList (8): Add Clear Create Delete Destroy GetCommands GetCount Sort
+   TFastCombatUnit (22): Activate CanCastWallSiegeSpell ClassID Create Deactivate DestroyObject GetTargetCVDV GetTargetPriority GetTargetWallCV Initialize KillUnit ReadWrite SetCombatPlayer SetUnit Show ShowAttackAnimation ShowHitAnimation UpdateWallSiegeObjectRegistration fcBehindWall fcExecute fcRoundDistance fcWallInBetween
+   TFire (25): ArmyPlaced CalcShowPriority CanDoDamage CanMoveOver CanPlace ClassID Connect Create GetMostFrequentMapFieldTerrainType GetShowPriority GetTerrain MakeVisible MapFieldMsgProc MsgProc NewTurn NewTurnDone PlaceHX PlaceOnMap ReadWrite RemoveFromMap SetupExplosion Show TriggerDamage UpdateMapField WaterMasteryCast
+   TFireControl (6): Create Destroy GetRndFireResource PlaceFire RegisterFireResource UnregisterFireResource
+   TFireResource (6): ClassID Destroy MsgProc ReadWrite ResourceEditName ResourceUserClassID
+   TFlagControl (6): Create Destroy ShowFlag ShowFlagEx ShowStructureFlag ShowStructureFlagEx
+   TFlameThrowingAbility (2): Create GetOffensiveStrength
+   TFleeCA (4): ClassID Execute Play ReadWrite
+   TFrozenWaterHS (8): ClassID GetLevel MeltIce MsgProc NewTurn ReadWrite Show TerrainChanged
+   TGameOverTE (3): ClassID Execute ReadWrite
+   TGlobalEnchantment (21): Activate AddRef CanActivate CanCast CanDeactivate CanDispel CanRemove Cast CenterToLocation Create Deactivate Dispel GetAIUpkeepPriority GetLocation GetName GetUpkeep ReadWrite Release Remove Setup VisibleForPlayer
+   TGlobalEnchantmentEventLog (3): ClassID GetLeftIcon ReadWrite
+   TGlobalEnchantmentList (1): GetEnchantments
+   TGlobalMagicControl (22): BeginUpdate Create CreateChangeMagicTE DecDoubleSphereManaCount Destroy DispelEnchantment EndUpdate ExecuteDispelEnchantment ExecuteRemoveEnchantment GetEnchantmentUpkeep GetSphereManaDoubled IncDoubleSphereManaCount IndexOfID MsgProc OutOfMana ReadWrite RemoveEnchantment RemovePlayerEnchantments TriggerChangedEvent Update UpdateActiveEnchantments ValidateEnchantmentID
+   TGroupControl (1): Behavior
+   TGroupControlAIPA (6): ActivateGroupControl Create DeactivateGroupControl Destroy Priority Process
+   TGroupControlLoopAIPA (8): Activate ActivateGroupControl Create DeactivateGroupControl Destroy Priority Process SupportedPhases
+   TGroupDefenseSelector (7): Create Destroy EnoughStrength Execute GetDefenders UpdateDefenseLocation UsefullUnit
+   TGuardAreaGC (2): Behavior ClassID
+   TGuardGC (2): Behavior ClassID
+   THealingAbility (20): AbilityDataClass Activate CanTouch CanTouchUnit Create CreateHealingCA GetCombatInfo GetControlType GetDamageValue GetDamageValueEx GetEnabled GetHealHitPoints GetName HealUnit NewTurn Remove SetEnabled fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands
+   THealingAbilityData (3): ClassID GetAbilityID ReadWrite
+   THealingCA (5): ClassID Execute Initialize Play ShowObject
+   THealingTE (3): ClassID Execute ReadWrite
+   THealingUnitSelector (2): CanSelectUnit Select
+   THero (132): Activate Animate AutoPlaceItem CanActivate CanCastCombatSpell CanCastSpell CanCastSpellInstantly CanJoin CanPlaceItem CanSwapItem CanUseItem CancelCasting CastCombatSpell CastSpell Casting CastingDone CastingMana CastingReady CastingTurns CastingTurnsLeft Changed ClassID CompatibleHero Create CreateHeroUpdateTE Deactivate Destroy DropItemsOnMap EditDropMsg EmergedToPlayer ExecuteCancelCasting ExecutePlaceItem ExecuteStartCasting ExecuteSwapItem ExecuteUpgradeHeroAI ExperienceToLevel GetAbSet GetAbilityCount GetAbilityEnabled GetAbilityLevel GetAbilityName GetAbilityOwner GetAbilitySelectionTypes GetAbilitySet GetAlignment GetAttack GetCampaignTransferPoints GetCastingPoints GetCastingPointsMax GetDamage GetDefense GetDescription GetEngine GetExperience GetFace GetGender GetHeroType GetHitPoints GetHits GetImmunityTypes GetInherentAttack GetInherentDamage GetInherentDefense GetInherentResistance GetItemsOnGround GetLevel GetLevelMax GetLibraryHero GetLibraryName GetMovePoints GetMoveTypes GetMoves GetName GetNextLevelExperience GetNickname GetObtainValue GetPowerGeneration GetPreviewImage GetProtectionTypes GetRace GetResistance GetSkillPoints GetSkillPointsMax GetSuperlativeAbOwner GetSuperlativeEnabledAbOwner GetUnitAbilityEnabled GetUnitGFXResourceIndex GetUnitLevel GetUnitType GetUpkeep Killed LevelToExperience LinkToResource ListSpells Loaded MsgProc NewDay NewTurn OfferToJoin PlaceItem ReadWrite RemoveCastingReadyEventLog ResetResourceSettings ResetSkillPoints Resurrect SetAbSet SetCastingPoints SetExperience SetFaceIndex SetHeroResourceIndex SetHitPoints SetLevel SetMovePoints SetNickname SetOwner SetPlayer SetRace SetUnitAttack SetUnitDamage SetUnitDefense SetUnitHits SetUnitMoves SetUnitResistance ShowEx SwapItem UpdateFromLibrary UpdateFromLibraryBegin UpdateFromLibraryEnd UpdateSettings UseItem UsedSkillPoints ValidateHeroUpgrade
+   THeroControl (22): Activate BeginUpdate Changed Create Deactivate Destroy EndUpdate FindID GetAverageFreeHeroLevel GetCount GetHero GetMinFreeHeroLevel HeroChanged IndexOf IndexOfLibraryEx ListDeadHeroes MsgProc ReadWrite RegisterHero UnRegisterHero UpdateLibraryHeroes ValidateLibraryHeroes
+   THeroEmergeEventLog (8): ClassID CreateHeroJoinEventLog Execute ExecuteAI GetText ReadWrite Setup ViewLocation
+   THeroInventory (11): Create Destroy GetAbilityCount GetAbilityEnabled GetAbilitySet GetControlStyle GetFreeSlot GetLocation GetSlot GetSuperlativeAbOwner GetSuperlativeEnabledAbOwner
+   THeroItems (21): CanPlaceItem Create Destroy GetAbilityCount GetAbilityEnabled GetAbilitySet GetAttack GetControlStyle GetDamage GetDefense GetImmunityTypes GetItemTypePosition GetLocation GetMoveTypes GetPositionItem GetPositionItemType GetProtectionTypes GetResistance GetSuperlativeAbOwner GetSuperlativeEnabledAbOwner PlaceItem
+   THeroJoinEventLog (4): Accept ClassID Execute ExecuteAI
+   THeroLibrary (8): AddChild CreateHero CreateUniqueLibraryID FindLibraryID GetName LoadFromFile ReadWrite SaveToFile
+   THeroLibraryManager (12): Create CreateLibrary DeleteLibrary Destroy FindHero GetCount GetLibrary IndexOfLibrary IndexOfLibraryName ReadUserLibraries ReadWrite WriteUserLibraries
+   THeroList (2): FindHero GetHero
+   THeroPowerSource (4): GetLocation Name Power Select
+   THeroResource (7): ClassID Create Destroy HeroResourceIndex ReadWrite ResourceUserClassID UsedSkillPoints
+   THeroResourceList (4): Create CreateHeroResourceStrings Find GetHeroResource
+   THeroUpdateTE (3): ClassID Execute ReadWrite
+   THeroUpgradeEventLog (5): ClassID Execute GetText ReadWrite ViewLocation
+   THeroUpgradeTE (6): ClassID Create Destroy Execute ReadWrite Setup
+   THuntAG (7): Behavior ClassID Create Destroy GroupControlClass HuntingPlayer ReadWrite
+   THuntAGC (2): ProcessStates TargetFoundEvent
+   TIncomeSource (4): CenterToLocation GetLocation Income Name
+   TIncomeSourceList (1): GetItems
+   TInitializeAIPA (2): Priority Process
+   TInvokeDeathAbility (11): CanTouch CanTouchUnit Create CreateCA GetCombatInfo GetDamageValue GetDamageValueEx GetOffensiveStrength GetTouchAttack fcExecuteCombatCommand fcGetDamageValueEx
+   TInvokeDeathCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TItem (29): Activate AddRef CanUse Changed ClassID Create Deactivate Destroy EditDropMsg ExecuteUse GetAbilitySelectionTypes GetCampaignTransferPoints GetImage GetLibraryItem GetLibraryName GetLocation GetObtainValue GetOwnerName MsgProc PlaceOnMap ReadWrite Release SetArrayOwner SetItemGFXIndex SetItemType SetOwner Show UpdateFromLibrary Use
+   TItemControl (19): Activate BeginUpdate Changed Create CreateUniqueID Deactivate Destroy EndUpdate FindItem GenerateItem GenerateItems GetCount GetItem ItemChanged ReadWrite RegisterItem UnRegisterItem UpdateLibraryItems ValidateItem
+   TItemGFX (11): AddRef ClassID GetCellImage GetEngine GetItemImage ItemGFXIndex LinkToIL ReadWrite Release ReleaseIL SetImageLibraryName
+   TItemGFXList (3): Create FindItemTypeGFX GetItemGFX
+   TItemHS (15): Activate CanPlace CanSelect ClassID Create Deactivate Destroy EditName GenerateItems GetLevel GetShowPriority ItemsChanged MsgProc ReadWrite Show
+   TItemHSList (2): GetLocation SetOwner
+   TItemLibrary (8): AddChild CreateItem CreateUniqueLibraryID FindLibraryID GetName LoadFromFile ReadWrite SaveToFile
+   TItemLibraryManager (12): Create CreateLibrary DeleteLibrary Destroy FindItem GetCount GetLibrary IndexOfLibrary IndexOfLibraryName ReadUserLibraries ReadWrite WriteUserLibraries
+   TItemList (16): AddChild Changed Clear Create DestroyAllChildren FindItem GetItem GetLocation LockChanged MainReadWrite RegisterItems RemoveChild SortOnName SortOnType UnlockChanged Update
+   TItemTE (3): ClassID Execute ReadWrite
+   TJoinEventLog (9): Accept Cancel Create Destroy ListJoinUnits ReadWrite Reject SetupJoinArmy Validate
+   TLeader (29): Activate AddSphere CanActivate CanAddSphere CanDisband Changed ClassID ClearSpheres Create Deactivate DeleteSphere DeleteSphereIndex Destroy EditDropMsg GetEngine GetNickname GetPowerGeneration GetSphereCount GetSpherePicks GetSpheres GetUnitMoraleValue GetUpkeep Killed MsgProc ReadWrite SetHeroResourceIndex SetNickname SetPlayer SetSpherePicksMax
+   TLeaderSetupControl (5): AddRef Create Destroy Done Release
+   TLeadershipAbility (11): AbilityDataClass CanExpand Create GetAttack GetDefense GetInherent GetLevel GetLevelName GetSourceName ResetExternalSource SetExternalSource
+   TLeadershipAbilityData (2): ClassID ReadWrite
+   TMeleeRound (16): Calculate CalculateDV CalculateFreeUnitSwing CalculateSingleSide CalculateStrikes CalculateUnit CalculateUnitStrikes Create CreateStrikeCA Destroy GetAttackerDV GetDefenderDV GetMeleeStrike Reset SetCapacity SetCount
+   TMoveArmyTE (17): Animating CanMoveNext ClassID Create DefaultMove Destroy ExecuteMove FinishMove GetNoneMovingArmyHS InitializeMove MoveVisible ObserveMove ReadWrite Setup SetupNextMove UpdateAnimation Validate
+   TMoveControl (25): Activate CalculateGaps CalculateMovePointLine CalculatePath CalculatePathEx CalculateTurnAroundMovePoints CanMove Clear Create Deactivate DefaultMoveOnMovePointProc Destroy ExecuteExternalMove ExploredOnlyMoveOnMovePointProc FindSubMoveOrigin GetMovePointsCostFast Process ProcessHexagon ProcessMove ProcessSubMove SetMapL SetupMove SetupSubMove ValidLocation ValidPath
+   TMoveControlSettings (18): AddRef Clear ClearMovePoints Create Destroy GetMovePointLevelData GetMovePoints GetMovePointsXYL Release Reset ResetState SetDestinationPos SetMovePoints SetMovePointsXYL SetSourcePos SetupArmy SetupLevel SetupMovePointData
+   TMoveSelector (19): Activate AddMoveObject CalculateMovePath Clear Create CreateMCS Deactivate DeleteMoveObject DeleteMoves Destroy ExecuteMove MouseDownEvent MouseMoveEvent SelectPath SetCurrentMove ShowMovePaths Unselect UpdateMoveCursor ValidateSelection
+   TMoveSettings (4): Create Destroy GetMoveLoc GetMovePrio
+   TMoveSettingsList (4): CalculateMovePositions GetMoveSettings GetNoneValidMove IndexOfMoveObject
+   TMoveTE (14): Create DefaultMove Destroy Execute FinishMove GetDirection GetHT GetMapF InitializeMove LastMove Move ProcessMove ReadWrite Validate
+   TMoveTarget (4): AddRef Create Destroy Release
+   TMoveTargetList (4): AddTargetEx GetTarget IndexOfXYL SortOnMovePoints
+   TMoveWallCA (4): ClassID Execute Play ReadWrite
+   TMovepath (3): GetMovePoints MovePointsToPos PosToMovePoints
+   TMultiLevelAbility (13): AbilityDataClass CanExpand Create Destroy Expand ExpandCost ExpandName GetInherentLevel GetLevel GetLevelName GetName GetSkillPoints Remove
+   TMultiLevelAbilityData (3): ClassID GetAbilityID ReadWrite
+   TMultiMoveTE (5): ClassID Create Destroy Execute ReadWrite
+   TNegotiateRequestEventLog (9): Accept Cancel ClassID Create CreateNegotiateTE Destroy Execute ReadWrite Reject
+   TNegotiateTE (8): Accept ClassID Create Destroy Execute ReadWrite Reject Validate
+   TNewCombatRoundCA (3): ClassID Execute Play
+   TNewCombatTurnCA (4): ClassID Execute Play ReadWrite
+   TPBEMPlayerControl (19): ClassID ContinueRestartedGameCallBack ContinueTurnDoneGameCallBack EndTurn EndTurnGameSavedCallBack ExitGame ExitGameSaveAsCallBack NewTurn PasswordValidated SendEmailGameAutomatedCallBack SendEmailGameCallBack SendEmailGameManualCallBack StartLoadedEmailGame StartLoadedMap StartNewMap TerminateEmailGame TerminateEmailGameCallBack TriggerGameRestartedEvents ValidateLoadedMap
+   TPBEMPlayerSettings (4): Create Destroy ReadWrite SetGame
+   TPadControl (8): CanPlacePad Create Destroy GetPadResource PlacePad RegisterPadResource SetPadResource UnregisterPadResource
+   TPassiveGC (2): Behavior ClassID
+   TPatrolGC (2): Behavior ClassID
+   TPlayer (60): ArmiesChanged BeginUpdate CaptureLocationsLeft ChangePlayerSettings CheckCaptureLocations ClassID Create CreateDiplomaticAction Destroy DiplomaticActionAleadySend EndUpdate GetBusy GetFace GetFirstDaySeen GetHeroCountMax GetHeroJoinChance GetHeroJoinLevelMax GetIdealHeroEmergeDay GetIdealHeroJoinDay GetLastDaySeen GetLeaderLocation GetLocal GetName GetNameEx GetSuperiority GetUnitCount GetUpkeep ListDiplomaticActions LockBusy LogbookChangedEvent MakeHeroEmerge MsgProc PlayerSeen ReadWrite RegisterIncomeSource RegisterVictoryLocation ResetBaseHeroJoinDay SetArmyUpkeep SetEndTurn SetGameOverStatus SetGems SetLeader SetMagicUpkeep SetName SetPlayerIndex SetRace SetupAIValidAttackPlayers Surrender UnlockBusy UnregisterIncomeSource UnregisterVictoryLocation UpdateAlliedPlayersSeen UpdateHeroJoin UpdateIncome UpdateLogbook UpdateTurnInfo ValidAttackRelation Validate ValidateLeader Win
+   TPlayerConnectionEventLog (4): ExitSaveGameCallBack No Setup Yes
+   TPlayerControl (31): AutoSave ConnectionLost Create Destroy EndTurn ExitGame ExitNetworkGameCallBack ExitSaveGameCallBack GameOver GameOverEventHandled GetSyncValue ListPlayerInfo LockAI NewDay NewFrame NewTurn OutOfSync PasswordFailed PasswordTryAgainCallBack PasswordValidated PlayerDisconnected SaveGameOnExitCallBack SetPlayerGameOverStatus SetSeatedPlayer Setup StartLoadedMap StartNewMap ValidateDisconnectedPlayers ValidatePassword ValidatePasswordCallBack ValidateTurnTiming
+   TPlayerDiplomaticRelations (8): Create Destroy GetDiplomaticRelation GetHistory MsgProc ReadWrite SetDiplomaticRelation ValidateHistory
+   TPlayerList (22): Assign BeginUpdate Create Destroy EndUpdate GetActivePlayers GetActivePlayersAllied GetAverageHeroCount GetAverageHeroLevel GetDiplomaticRelation GetDiplomaticRelationCount GetMaxHeroCount GetNumberOfPlayers GetPlayers GetSuperiorPlayer IndexOfPlayerType RaceToPlayer SetDiplomaticRelation SetNumberOfPlayers Update ValidateRaces VerifyRaces
+   TPlayerMagicControl (42): AIOverrideUpkeep AIRequestOverrideUpkeep BeginUpdate ChangePowerSettings Create CreateChangeMagicTE Destroy DispelEnchantment EndUpdate ExecuteChangePowerSettings ExecuteDispelEnchantment ExecuteResearchSpell ExecuteSpellResearched GetCheatEnabled GetManaIncome GetManaUpkeep GetNetPower GetNetPowerToMana GetNetPowerToResearch GetPower GetResearchTurnsLeft ListResearchSpells ListSpells MsgProc NewTurn OutOfMana ReadWrite RegisterEnchantment RegisterPowerSource RemoveEnchantments ResearchSpell ResearchTurns SetActiveEnchantments SetMana SetSpheres UnregisterEnchantment UnregisterPowerSource Update UpdateEnemyEnchantments ValidResearchSpell ValidateEnchantmentID ValidateEnchantmentsUpkeep
+   TPlayerMagicEventLog (6): ClassID Create Execute GetText ReadWrite ViewLocation
+   TPlayerStatistics (3): Create Destroy ReadWrite
+   TPlayerStructure (41): Activate ArmyChanged ArmyPlaced BuildingDone CanMoveOn CanMoveOver CanRebuild ClassID Create Deactivate Destroy ExecuteBuild ExecuteRebuild FinalizeCombat GetCombatEventText GetDefaultAITargetPriority GetIncome GetMoveAction GetPower GetVictoryLocation MapFieldMsgProc MsgProc NewDay NewTurn ReadWrite RegisterVictoryLocations SeatedPlayerChanged SetPlayer SetVictoryLocation Show StructureCaptured TrueVisionRange UnregisterVictoryLocations UpdateAITarget UpdateExploration UpdateFlagID UpdateMapField UpdatePlayer UpdatePlayerSeen UpdateUnfog VisibilityRange
+   TPlayerStructureIncomeSource (4): GetLocation Income Name Setup
+   TPlayerStructureList (1): GetStructure
+   TPlayerStructurePowerSource (5): GetLocation Name Power Select Setup
+   TPlayerStructureResource (9): ActivateMsg ClassID Create Destroy GenerateFlagPositions MsgProc PlaceResourceUser ReadWrite ResourceUserClassID
+   TPossessAbility (10): CanTouch CanTouchUnit Create CreatePossessCA GetDamageValue GetDamageValueEx GetOffensiveStrength GetTouchAttack fcExecuteCombatCommand fcGetDamageValueEx
+   TPossessCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TPossessedAbility (5): AbilityDataClass CombatObjectDestroyed Create Expand Remove
+   TPossessedAbilityData (3): ClassID GetAbilityID ReadWrite
+   TPowerSource (5): CenterToLocation GetLocation Name Power Select
+   TPowerSourceList (1): GetItems
+   TProcessEventlogAIPA (4): Create Destroy Priority Process
+   TProductionControl (57): Activate BeginUpdate CanExecuteProduction CanProduceUnit CanResearchUnit CancelProductionReturnGold CancelProductionReturnMana Create CreateProductionTE CreateUnitProduction Deactivate DeleteProduction DeleteProductions Destroy EndUpdate ExecuteAIProduction ExecuteAIResearch ExecuteAddProduction ExecuteCancelProduction ExecuteDeleteProduction ExecuteDeleteProductions ExecuteProduction ExecuteProductionTE FindOptimalResearchProduction GetLocation GetProduceUnitLevelMax GetProductionName GetProductionNameProgressive GetQueueLocked GetQueueSizeMax GetResearchUnitLevelMax GroupProductionProduced LockQueueProduction LoopableProduction NewTurn PlayerChanged Produce ProduceUnit ProduceUnitEx ProductionDone ReadWrite RegisterGroupProduction ResearchUnit RetryProductionExecution SetLoopQueueTo UnitProduced UnitProductionGold UnitProductionGoldUpkeep UnitProductionMana UnitProductionManaUpkeep UnitProductionTime UnitResearchGold UnitResearchMana UnitResearchTime UnitResearched UnregisterGroupProduction Update
+   TProductionControlList (1): GetPC
+   TProductionEventLog (1): ClassID
+   TProductionItem (4): ClassID GetName GetNameProgressive ReadWrite
+   TProductionQueue (3): GetItem IndexOf IndexOfID
+   TProductionSettings (3): Clear Destroy ReadWrite
+   TProductionTE (4): ClassID Destroy Execute ReadWrite
+   TRace (16): ClassID Create Destroy GetDefaultRaceRelation GetPlayerRelation GetPlayerRelationValue GetRelation GetRelationValue MsgProc NewDay ReadWrite ResetDefaultRaceRelations ResetPlayerRelations SetEnabled SetPlayerRelationValue SetRace
+   TRaceList (8): Create GetEnabledRaces GetRace GetRandomRace ReadWrite ResetDefaultRelations ResetPlayerRelations Update
+   TRaceResource (18): AddRef ClassID Create Destroy GetAlignment GetCellImage GetCityImage GetEngine GetFace GetRaceIndex LinkToIL MsgProc ReadWrite Release ReleaseIL ResourceEditName SetCellImage SetImageLibraryName
+   TRaceResourceList (3): Create GetMaxRaceIndex GetRaceResource
+   TRangedAttackAbility (18): Create CreateRangedAttackCA GetAttackRA GetAttackRepeatRA GetCombatInfo GetCombatMode GetControlType GetDamageRA GetDamageTypesRA GetDamageValue GetDamageValueEx GetOffensiveStrength GetRangeRA GetWallCombatFeatures fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands fcValidRoundDistance
+   TRangedAttackCA (5): ClassID GetName Play ReadWrite ShowObject
+   TRazeStructureEventLog (1): Yes
+   TRefugeGC (2): Behavior ClassID
+   TResearchSpellAIPA (2): Priority Process
+   TRestartGameEventLog (3): ClassID Execute GetText
+   TRoundAttackAbility (8): Create GetCombatInfo GetDamageValue GetDamageValueEx GetOffensiveStrength fcExecuteCombatCommand fcGetDamageValueEx tcGetDamageValueEx
+   TSMTPEventLog (2): Create Destroy
+   TSaveGameTE (3): ClassID Execute ReadWrite
+   TScoutGC (2): Behavior ClassID
+   TSeduceAbility (4): CanTouch CanTouchUnit Create GetTouchAttack
+   TSeducedAbility (1): Create
+   TSelectedArmy (32): ActivateMoveSelection AddMoveArmy CalculateMovePath Center Create Deactivate DeactivateMoveSelection Destroy ExecuteMove GetArmyHS GetMoveTypes GetSelection MouseDownEvent OnDestroyArmy OutputGroupInfo RectangleSelectEvent ResetSelectedUnitGFX Select SelectBuildRoad SelectPath SetArmyHS SetCurrentMove SetSelection ShowMovePaths ToggleGuard TurnDone Unselect Update UpdateMoveCursor UpdateSelectedUnitGFX ValidMultiMoveSelection ValidateSelection
+   TSelfDestructAbility (11): CanTouch CanTouchUnit Create CreateSelfDestructCA GetCombatInfo GetDamageValue GetDamageValueEx GetOffensiveStrength GetWallCombatFeatures fcExecuteCombatCommand fcGetDamageValueEx
+   TSelfDestructCA (3): ClassID Execute ShowObject
+   TSimultaniousPlayerControl (13): ClassID EndTurn GameOverEventHandled NewDay NewTurn PasswordValidated SetPlayerGameOverStatus Setup StartGameCallBack StartLoadedMap StartLoadedMapEx StartNewMap ValidateTurnTiming
+   TSingleTargetCA (5): GetDefensive ReadWrite SetDefensive ShowFieldObject ShowFightingObjects
+   TSpell (28): AICastSpellExpenseMade AIExecuteCastSpellAction AIPrefetchCastSpellActions AIRequestCastSpellExpense Activate ActivateCombat CanActivate CanActivateCombat CastingDone CombatCastingDone CombatSpellCast Create CreateCA CreateCastSpellAction Destroy ExecuteTE GetCombatDamageValue GetCombatDamageValueEx GetCombatInfo GetEnabled PlayDefaultCastEffects ReadWrite SetupCastSpellAction fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands tcGetDamageValue tcGetDamageValueEx
+   TSpellCC (1): GetName
+   TSpellCastEventLog (5): ClassID Execute GetText ReadWrite ViewLocation
+   TSpellCaster (6): AddRef CanCast Cast Create GetSource Release
+   TSpellCastingAbility (12): AICanCastCombatSpell CanActivate CanCastBreachWallSpell Create Expand GetControlType GetLevelName Remove fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands tcGetDamageValueEx
+   TSpellControl (11): Create Destroy GetCount GetRandomSpell GetSpell ListSpells ReadWrite RegisterSpell UnregisterAll UnregisterSpell UnregisterSpellID
+   TSpellList (9): Add Clear Create Delete Destroy GetCount GetSpell SortOnLevel SortOnName
+   TSpellTE (8): ClassID Execute GetSource Initialize PlayDefaultCastEffects Process ReadWrite Validate
+   TStartupSongList (2): Create OriginalSongsChanged
+   TStrikeAbility (14): CanExecuteMelee Create Destroy GetCombatInfo GetCombatMode GetControlType GetDamageTypes GetDamageValue GetDamageValueEx GetOffensiveStrength Remove fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands
+   TStrikeCA (5): ClassID Execute Generate Play ReadWrite
+   TStrikeEnhancementAbility (2): CanExpand Create
+   TStructure (80): Activate ArmyChanged ArmyPlaced ArmyRemoved BeginUpdate BuildingDone CanChangeTerrain CanDblClick CanPlace CanRaze CanRebuild CanSelect ClassID Create CreateShadow CreateTE Deactivate Destroy DestroyShadow EndUpdate ExecuteAI ExecuteBuild ExecuteRaze ExecuteRebuild ExecuteTE FogChanged ForceTerrainType GenerateRazeDefenders GetBottomBorderImage GetBuilding GetCurrentActivityText GetDefensePriority GetDefenseRequirements GetDescription GetMiddleBorderImage GetName GetOverlay GetPlayer GetRazeable GetRazed GetRebuildInfo GetTerrain GetTerrainTypeImage GetTopBorderImage ListArmies ListUnits MainValidateMap MapFieldMsgProc MsgProc NewDay NewTurn PlaceHX PlaceOnMap PlaceRazeDefenders PlaySelectSample Raze RazeEx ReadWrite Rebuild RemoveFromMap SeatedPlayerChanged Select SetRazed SetupRazeDefenderAG SetupTE Show ShowBorderImage ShowBorderImageDC ShowRazeAnimation ShowShadow TerrainChanged Unselect Update UpdateAITarget UpdateMapField UpdateRoads ValidTerrainType ValidateMap ValidateObservation VisibleForPlayer
+   TStructureAIPA (4): Activate Create Destroy Process
+   TStructureConstructionControl (4): CanConstruct Construct StructureResource ValidateLocation
+   TStructureControl (11): Activate Create CreateUniqueID Destroy FindID GetCount GetStructure IndexOfID ReadWrite Register Unregister
+   TStructurePhase1AIPA (2): Create Priority
+   TStructurePhase2AIPA (2): Create Priority
+   TStructureResource (8): CalculatePadIndex ClassID Create Destroy ReadWrite ResourceEditName ResourceUserClassID Show
+   TStructureShadow (7): Connect Destroy Disconnect GetShowPriority GetVisible SetVisible Show
+   TStructureTE (5): ClassID Execute Initialize ReadWrite Validate
+   TSubMove (3): AddMovePointLine Create Destroy
+   TSubMoveList (4): Delete DeleteXYL GetSubMove IndexOfXYL
+   TSuicidalGC (2): Behavior ClassID
+   TTargetSelectionControl (13): Activate Create Deactivate DeselectHS Destroy Initialize MouseDownEvent MouseMoveEvent NewFrameEvent ShowSelection TriggerOnChangeEvent UnitChanged ValidTarget
+   TTerminatePlayerTE (3): ClassID Execute ReadWrite
+   TTextControl (7): Delete FindID GetItem IndexOf New RetrieveText Sort
+   TTextControlItem (4): ClassID Create Destroy ReadWrite
+   TTouchAbility (12): CanTouch CanTouchUnit CombatTouchRole CombatTouchRoleProbability Create GetCombatInfo GetCombatMode GetControlType GetTouchAttack TouchRoleProbability fcPrefetchCombatCommands fcValidateMoveOutsideWall
+   TTranslateTextStream (2): TranslateString TranslateStrings
+   TTransportAbility (2): Create GetLevelName
+   TTransportMEC (7): CalculateMoves CalculateTransportPathCallBack CreateTransporterMove Done DumpTransportUnits TransportDone UpdateTransportMeetingPoint
+   TTurnInfo (1): GetTurnInfo
+   TTurnInfoItem (3): ClassID GetSuperiority ReadWrite
+   TTurnPlayerControl (18): ClassID DefaultStartMap EndTurn GameOver GameOverEventHandled NewDay NewTurn PasswordValidated ReplayLogbook SetPlayerGameOverStatus SetSeatedPlayer Setup ShowNewTurnCallBack StartGameCallBack StartLoadedMap StartLoadedMapEx StartNewMap ValidateTurnTiming
+   TTurnUndeadAbility (22): AbilityDataClass CanExpand CanTouch CanTouchUnit Create CreateTurnUndeadCA Expand ExpandCost ExpandName GetCombatInfo GetDamageValue GetDamageValueEx GetLevel GetLevelName GetName GetOffensiveStrength GetSkillPoints GetTouchAttack GetTurnUndeadDamage Remove fcExecuteCombatCommand fcGetDamageValueEx
+   TTurnUndeadCA (5): ClassID Execute GetSuccessfull Play ShowObject
+   TTutorialControl (4): Create Destroy ReadWrite ShowMessage
+   TUnit (43): Activate Changed ClassID GetAlignment GetAttack GetBloodType GetDamage GetDefense GetDescription GetExperience GetFace GetGender GetHitPoints GetHits GetInherentAttack GetInherentDamage GetInherentDefense GetInherentResistance GetMovePoints GetMoves GetName GetNextLevelExperience GetObtainValue GetPreviewImage GetRace GetRank GetResistance GetTransportCapacity GetTransporter GetUnitGFXResourceIndex GetUnitLevel GetUnitSize GetUnitType Killed NewDay ReadWrite SetExperience SetHitPoints SetMovePoints SetRank SetUnitResource ShowEx UnitKilled
+   TUnitCategoryList (5): AddUnit Clear Destroy GetCategory SortUnits
+   TUnitControl (10): Create Destroy FindUnit GetCount GetFreeID GetUnit ReadWrite RegisterUnit TriggerUnitsChanged UnRegisterUnit
+   TUnitEnchantment (9): ClassID Create Dispel GetAIUpkeepPriority GetBinding GetLocation GetName ReadWrite Select
+   TUnitEnchantmentAbility (14): AbilityDataClass CombatDone Create CreateEnchantment Expand GetAIUpkeepPriority GetDuration GetDurationMode GetName GetSourceName GetTotalDuration NewCombatTurn NewTurn Remove
+   TUnitEnchantmentAbilityData (6): ClassID Create Destroy GetAbilityID ReadWrite SetEnchantment
+   TUnitGFXResource (15): AddRef ClassID Create Destroy GetCellImage GetEngine GetFaceImage GetIndex LinkToIL MsgProc ReadWrite Release ReleaseIL SetFaceImageLibraryName Show
+   TUnitGFXResourceList (3): Create CreateUnitGFXSelectionList GetUnitGFXResource
+   TUnitHS (51): Activate CalcShowPriority CanMoveOver CanSelect CancelMove ClassID Connect Create CreateShadow Deactivate Destroy DestroyShadow Disconnect GetEditMode GetLevel GetLhx GetMoveStatus GetMoveSteps GetSelected GetShowPriority GetUnitGFXResourceIndex GetVisible GetXhx GetYhx MakeVisible MapFieldMsgProc MoveFirst MoveNext MoveTo Moving PauseMove Place PlaceHX PlaceOnMap ReadWrite Remove RemoveFromMap Select SetDirection SetEditMode SetMoveStatus SetOwner SetUnitGFXResourceIndex SetVisible Show ShowShadow TerrainChanged TimerEvent Unselect UpdateFlagID UpdateMapField
+   TUnitIndexList (5): Create GetUnitIndex SetUnitIndex SortUnits VerifyUnits
+   TUnitIndexListCollection (10): AddUnit Create DeleteUnit Destroy GetCollectionCount GetCount GetRndCollection GetU LoadFromStream SaveToStream
+   TUnitList (24): AddChild AddUnit AddUnits CanAddUnit CanDeleteUnit Clear DeleteUnit DestroyAllChildren FindID GetLocation GetPlayer GetStrength GetStrengthMax GetUnit IndexOf IndexOfBehavior IndexOfGroup IndexOfGroupID IndexOfID MainReadWrite RemoveChild SetUnit SortOnMoves SortUnits
+   TUnitProduction (2): ClassID ReadWrite
+   TUnitProductionList (4): Add GetItem IndexOf SortOnLevel
+   TUnitResource (14): ClassID Create CreateResourceUser Destroy DropUnit GetMoveTypes GetObtainValue GetTransportCapacity GetUnitName GetUpkeep ReadWrite ResourceUserClassID SetDescription UnitResourceIndex
+   TUnitResourceList (2): Create GetUnitResource
+   TUnitSelectionControl (10): Create Destroy DisableAllCategories GetUnitCategoryEnabled GetUnitCategoryList Reset SetSelectedHero SetSelectedUnitIndex SetUnitCategoryEnabled UpdateSelection
+   TUnitSelector (11): AddRef CanSelect CanSelectUnit Cancel Create Destroy GetSelectionCount Release Select SetSelection Setup
+   TUnitSelectorAAI (3): Create Destroy SetUnitSelector
+   TUnitShadowHS (2): GetShowPriority Show
+   TUnitSpell (21): AIExecuteCastSpellAction AIPrefetchCastSpellActions AIRetrieveOptimalTargetUnit Activate CanActivateCombat CastSpell Create CreateCA CreateCAEx ExecuteCA ExecuteSpell GetCombatInfo OnTargetSelectionChange OnValidateTarget ResetTargetSelection SetupTargetSelection SetupUSC TargetPartySelected ValidTargetParty ValidTargetUnit ValidateUnitSelection
+   TUnitSpellCA (4): ClassID Execute Play ReadWrite
+   TUnitSpellCaster (9): CanCast Cast Create Destroy GetRequiredDays GetRequiredMana GetSelectionCount SetSelection Valid
+   TUnitSpellTE (7): ClassID Create Destroy Initialize Process ReadWrite Validate
+   TUnitUserList (4): AddUnit AddUnitsEx Clear DeleteUnit
+   TUpdateHeaderCA (4): ClassID Execute Play ReadWrite
+   TWallCrushingAbility (10): CanTouch Create GetCombatInfo GetDamageValue GetDamageValueEx GetOffensiveStrength GetWallCombatFeatures fcExecuteCombatCommand fcGetDamageValueEx tcGetDamageValueEx
+   TWallUnit (7): GetDefense GetHitPoints GetHits GetImmunityTypes GetName GetUnitType SetWallType
+   TWebAbility (9): CanTouch Create CreateWebCA GetDamageValue GetDamageValueEx GetOffensiveStrength GetTouchAttack fcExecuteCombatCommand fcGetDamageValueEx
+   TWebCA (6): ClassID Execute Initialize Play ReadWrite ShowObject
+   TWorldFXHS (7): Activate Create DeActivate Destroy GetShowPriority NewFrame Show
+   funcs: AIDID AUnitJoinedTheForcesofYRstr AWarRelationIsRequiredForXRStr AbilitiesRStr AcceptAllianceRStr AcceptRStr AccumulateGoldRStr AccumulateManaRStr ActionAlreadyQueuedRStr ActivatingLevelRStr AdditionalDesignRStr AfterLiberationOneUnitJoinedTheForcesOfXRStr AfterLiberationXJoinedTheForcesOfYRStr AfterLiberationXunitsJoinedTheForcesOfYRStr AgeOfWondersEmailGameRStr AgeOfWondersRStr AggressiveRStr AggressorRStr AirMasteryRStr AirNodeRStr AirRStr AlignmentToIR AlignmentXRStr AllPlayersRStr AllSlotsAreInUseRStr AllianceAcceptedRStr AllianceBrokenRStr AllianceProposalRStr AllianceRStr AlliedVictoryXRStr AlsToInt AltarOfDeathRStr AltarOfFireRStr AltarOfIceRStr AltarOfLifeRStr AltarOfLightningRStr AltarOfPestilenceRStr AlwaysFastCombatRStr AlwaysRStr AlwaysTacticalCombatRStr AnarchyRStr AndRStr AnimateDeadRStr AnimateHeroRStr AnimateRuinsRStr AnimatedRStr AntiMagicShellRStr AoWAlreadyRunningRStr AoWEdRStr AoWEmailGameXRStr AoWEngine AoWHSMap AoWHSSet ArcheryRStr AreMovingRStr ArenaRStr ArmageddonRStr ArmiesRStr ArmyRStr ArtistsRStr AssignXNewSpheresRStr AttachmentDirectoryXRStr AttackItemRStr AttackRStr AttackRankProgression AutoRStr AverageRStr AzracPluralRStr AzracRStr BardsSkillsRStr BaseIncomeRStr BasePowerRStr BattleDrawnRStr BattleLostRStr BattleWonRStr BerserkRStr BetweenHumansRStr BirdsViewRStr BizzRStr BlackBoltsRStr BlackBreathRStr BlackCurseRStr BlessRStr BlessedRStr BloodShrineRStr BloodlustRStr BonesRStr BorderRStr BreakAllianceRStr BreakAllianceSuggestionRStr BribeRStr BribeUnitJoinRStr BribeUnitsJoinRStr BridgeRStr BuildRoadsRStr BuildXRStr BuildersGuildRStr BuildersGuildsRStr BuildingWallsRStr BurningRStr CPUEmperorRStr CPUKingRStr CPUKnightRStr CPULordRStr CPUWarriorRStr CallFlamesRStr CallHeroRStr CallLightningRStr CampaignMapRStr CampaignRStr CanOnlyBuildNextToWaterRStr CanOnlyUpgradeHeroOnceRStr CanOnlyUpgradeOnTheDayALevelIsMadeRStr CancelRStr CancelSpellResearchRStr CannotBreachWallRStr CannotBuildOnCurrentLocationRStr CannotBuildXInUndergroundRStr CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr CannotCastSpellInCombatRStr CannotCastSpellInUndergoundRStr CannotCombineArmiesRStr CannotCombineTransportersRStr CannotDispelWhenSpellWardIsActiveRStr CannotInflicDamageRStr CannotInflictDamageRStr CastXRStr CastXSpellRStr CasterMustBeInsideCityRStr CastingCostRStr CastingPointsRStr CastingRStr CastingReadyRStr CastingXInProgressRStr CastleRuinRStr CauseFearRStr CaveCrawlingRStr CaveRStr ChainLightningRStr ChangePasswordRStr ChangeRStr ChangeSongEventRStr ChargeRStr ChargingRStr CharmRStr CharmedRStr CheerfulRStr ChooseRStr CitiesRStr CityBattleDrawnRStr CityBattleLostRStr CityBattleWonRStr CityFortifiedRStr CityFortifyRStr CityFreeJoinRStr CityJoinHeaderRStr CityLootRStr CityLootedRStr CityLootingRStr CityMigratedToRStr CityOfXRStr CityRStr CityRazeRStr CityRebellionRStr CityTradeRStr CityTributeJoinRStr CityUpgradeRStr ClassicRStr ClickToBeginRStr CloseRStr CoDevelopedByRStr CoPublishedByRStr CoastRStr ColdBreathRStr ColdImmunityRStr ColdProtectionRStr ColdRStr ColdStrikeRStr CombatDID CombatRStr CombatRangeToCombatMode CommandAbilityIDs CommonRStr ConcealAreaRStr ConcealmentRStr ConfirmPasswordRStr ConfirmRStr ConfirmationFailedRStr ConnectionLostRStr ConnectionXLostRStr ConnectionXTimeOutRStr ConquerLocationsRStr ConquerTheMapRStr ConstructRStr ConstructingRoadCostsXRStr ContentRStr ContinueRStr CosmeticSurgeryOnXRStr CosmeticSurgeryRStr CosmosRStr CostXRStr CouldNotSaveXRStr CouldntChangePasswordRStr CreateArmyMoveTE CreateArmyMoveXYLTE CreateDamageCA CreateEnhancementAbility CreateNewLibraryRStr CreateStrikeCA CreatureRStr CreaturesRStr CropRStr CrusadeRStr CrusaderRStr CryptRStr CurrentRStr CurrentlyResearchingRStr CurseRStr CursedRStr CustomMapRStr CustomizeLeaderRStr DMDCtoDV DMmaxDCtoDV DVtoDEV DamageEffectsAnimationFrames DamageRankProgression DamageTypesToDamageType DarkElfPluralRStr DarkElfRStr DarkGiftRStr DayRStr DayXRStr DaysRStr DeadOakRStr DeadPineRStr DeadTreeRStr DeadTrunkRStr DeathImmunityRStr DeathMasteryRStr DeathNodeRStr DeathProtectionRStr DeathRStr DeathRayRStr DeathStormRStr DeathStrikeRStr DebugSaveDisabledRStr DebugSaveEnabledRStr DecayRStr DeclareWarRStr DeclareWarSuggestionRStr DeclineRStr DefaultRStr DefaultRaceRelations DefeatRStr DefendRStr DefenderRStr DefenseItemRStr DefenseRankProgression DefensiveRStr DeformFaceRStr DegreesRadToCo DeleteRStr DemoVersionMessageRStr DenseVegetationRStr DesertConcealmentRStr DesertRStr DesertUnitLowMoraleRStr DesertUnitLowMoraleSplitRStr DesertUnitNoUpkeepRStr DesertUnitsLowMoraleRStr DesertUnitsLowMoraleSplitRStr DesertUnitsNoUpkeepRStr DesertionRStr DesignerAndDirectorRStr DesktopWindowRStr DestroyAllEnemiesRStr DestroyingLevelRStr DevelopedByRStr DiplomacyRStr DiplomaticRelation DirtRStr DisabledRStr DiseaseCloudRStr DisjunctionRStr DispelMagicFailedRStr DispelMagicRStr DistributeCombatEvent DivineBreathRStr DivineDraftRStr DivineStormRStr DoYouWantToContinueExitingRStr DoYouWantToContinueRStr DoYouWantToSaveThisGameRStr DoYouWantToTryAgainRStr DoYouWishToContinueRStr DominateRStr DominatedRStr DoneRStr DoomGazeRStr DragonRStr DragonSlayingRStr DrinkRStr DungeonExploredRStr DungeonPrisonersJoinHeaderRStr DungeonRStr DurationCombatTurnRStr DurationDaysRStr DurationEntireCombatRStr DwarfPluralRStr DwarfRStr EarthMasteryRStr EarthNodeRStr EarthRStr EasyRStr EditorRStr ElfPluralRStr ElfRStr EmptyQueueRStr EnabledRStr EnchantWeaponRStr EnchantedRoadsRStr EnchantedWeaponRStr EnchantmentRStr Encode EnhancementRStr EnhancementsRStr EntangleRStr EntangleStrikeRStr EntangledRStr EnterLibraryNameRStr EnterNewPasswordRStr EnterPasswordRStr EnterRStr ErrorSavingXRStr EuropeRStr EvilRStr ExceptionalRStr ExecuteDamageRole ExecuteRStr ExitRStr ExpandRStr ExpanderRStr ExplorationDisabledRStr ExplorationEnabledRStr ExploredRStr ExplosionSFX ExternalIncomeRStr ExternalRStr ExtraLargeMapAbrRStr ExtraPowerRStr ExtraStrikeRStr FarmBattleWonRStr FarmRStr FarmsRStr FearlessRStr FileNameXRStr FileNotFoundRStr FillWithRandomUnitIndexes FillWithRandomUnits FinishRStr FinishedTheirTurnRStr FireAuraRStr FireBallRStr FireBarrierRStr FireBreathRStr FireCannonRStr FireDamageRStr FireImmunityRStr FireMasteryRStr FireMusketRStr FireNodeRStr FireProtectionRStr FireRStr FireStormRStr FireStrikeRStr FirstStrikeRStr FixedRStr FlagMessageEventRStr FlameThrowingRStr FlamingArrowRStr FloatingRStr FloodRStr FlowerRStr FlyingRStr FmtDaysLeftStr FmtDaysStr FmtTurnsLeftStr FmtTurnsStr FogDisabledRStr FogEnabledRStr ForXGoldRStr ForcedRStr ForestryRStr Format FortifyRStr FortifyingRStr FountainOfLifeRStr FreeMovementDisabledRStr FreeMovementEnabledRStr FreeMovementRStr FreeRStr FreezeRStr FreezeWaterRStr FrequentRStr FriendlyRStr FromTheRStr FrostBeamsRStr FrostBoltsRStr FrostlingPluralRStr FrostlingRStr FrozenRStr FullScreenRStr FuryRStr GalaxySoundSystemRStr GameOverDefeatEventLogRStr GameOverDefeatMessageRStr GameOverVictoryEventLogRStr GameOverVictoryMessageRStr GamePackLoadedRStr GameRestartEventLogXRStr GameRestartedRStr GameSavedRStr GameSuccessfullySavedRStr GameSuccessfullySentRStr GameTerminatedRStr GametypeXRStr GasBreathRStr GenerateExtraPowerRStr GenerateExtraPowerTextRStr GeneratingExtraPowerRStr GeneratingXPowerRStr GetBattleFieldStrengthAdvantage GetCombatSide GetMovepathBattleFieldStrength GetUnitIndexAIPriority GeyserRStr GlobalRStr GoDownRStr GoUpRStr GoblinPluralRStr GoblinRStr GoldFoundRStr GoldRStr GoldRushRStr GoodRStr GrassConcealmentRStr GrassRStr GreatHailRStr GuardAreaRStr GuardRStr HalflingPluralRStr HalflingRStr HandicapRStr HardRStr HarmonyRStr HasteRStr HatredRStr HeadItemRStr HealingRStr HealingShowersRStr HealingWaterRStr HeatWaveRStr HelpRStr HeroExperienceTable HeroRStr HeroUpgradeRStr HiddenmovementPleaseWaitRStr HighPrayerBlessingRStr HighPrayerRStr HighRStr HighmanPluralRStr HighmanRStr HillRStr HitPointsToHitPcnt HitRole HitRoleProbability HitsRankProgression HolyBoltsRStr HolyChampionRStr HolyFearRStr HolyGroundDamageRStr HolyGroundRStr HolyGroundsRStr HolyImmunityRStr HolyProtectionRStr HolyRStr HolyStrikeRStr HostileRStr HotSeatRStr HumanPluralRStr HumanRStr HumanoidRStr HumanoidsRStr HuntRStr HurlBoulderRStr HurlFireSkullRStr HurlStonesRStr IPXRStr IRtoAlignment IceRStr IceShardsRStr IceStormRStr IdleRStr IgnitionChance IgnitionRStr IncomeRStr IncomeXRStr IncompatibleVersionRStr IndependentGroupBehaviorTable IndependentRStr IndependentsAreMovingRStr IndependentsRStr InfoRStr InherentRStr InitializingLevelRStr InstallRStr InstallXRStr InstallingRStr InstallingXRStr InstantRStr IntToAls IntToMoveTypes InternetLanRStr InternetMailSuiteRStr IntroVoiceRStr InvalidLocationSpecifiedRStr InvalidPasswordRStr InvertDamageTypes InvisibilityRStr InvokeDeathRStr ItemAvailabilityRStr ItemBagRStr ItemsExploredRStr ItemsFoundRStr ItemsRStr ItsYourTurnRStr KillTheLeadersRStr Land LargeMapAbrRStr LavaRStr LeadProgrammerRStr LeadScenarioDesignerRStr LeaderOfTheXRStr LeaderRStr LeadershipAttackProgression LeadershipDefenseProgression LeadershipRStr LetTheGameBeginRStr LevelRStr LevelTerrainRStr LevelXRStr LiberatePrisonerMessageRStr LiberatePrisonersMessageRStr LifeDrainRStr LifeMasteryRStr LifeNodeRStr LifeRStr LifeStealingRStr LightVegetationRStr LightningBoltsRStr LightningImmunityRStr LightningProtectionRStr LightningRStr LightningStormRStr LightningStrikeRStr LiquidFormRStr ListMovementGaps LizardPluralRStr LizardRStr LoadGameRStr LoadingGamePackRStr LoadingHeroesRStr LoadingItemsRStr LoadingLevelRStr LoadingMapDataRStr LoadingUnitsRStr LoadingXRStr LocalRStr LongRangeRStr LootRStr LootingRStr LowSytemResourcesRStr MAGICDID MachineRStr MachinesRStr MadeAllianceRStr MagicBoltsRStr MagicImmunityRStr MagicProtectionRStr MagicRStr MagicSanctuaryRStr MagicStrikeRStr MakeTributeRStr ManaCrystalsFoundRStr ManaCrystalsRStr ManaPoolRStr ManaRStr MapRStr MapSuccessfullyValidatedRStr MapValidationFailedRStr MapXRStr MarksmanshipRStr MaxFortifyLevelReachedRStr MaxUpgradeLevelReachedRStr MaximizeMovePointTable MaximumPlayerHeroesXRStr MaximumSphereLevelXRStr MediumMapAbrRStr MediumRangeRStr MeleeDamageTypes MeleeRStr MerchantRStr MessageFromXRStr MessageRStr MessageReceivedRStr MessageSentRStr MigrateRStr MigrateToXRStr MigratingRStr MigratingToXRStr MindDecayRStr MineBattleWonRStr MineRStr MinesRStr MissingPlayerRStr ModemRStr MonsterLairRStr MoraleDefenseModifier MoraleRStr MoraleResistanceModifier MoraleToMoraleValue MoraleValueToMorale MoraleXRStr MountainRStr MountaineeringRStr MoveArmy MoveArmyEx MoveArmyXYL MoveArmyXYLEx MovePointTables MoveTypesToInt MovementRStr MusicRStr NameRStr NameXRStr NaturesBlessingRStr NeutralRStr NeverRStr NewDayRStr NextPlayerXRStr NextRStr NightVisionRStr NoContactRStr NoGlobalOpponentEnchantmentsActiveRStr NoGoldManaSpecifiedRStr NoHeroAnsweredYourCallRStr NoHeroAnswersYourCallRStr NoJoinAnimateRStr NoJoinResurrectionRStr NoLimitRStr NoNameSpecifiedRStr NoRazedStructureFoundRStr NoSummonLocationFoundRStr NoTimerRStr NoUnitSelectedRStr NoWarDeclaredtoXRStr NonameRStr NoneRStr NormalRStr NorthAmericaRStr NotAllSkillPointsAssignedRStr NotAllSpheresAssignedRStr NotEnoughCastingPointsRStr NotEnoughChannelingPointsRStr NotEnoughForcesRStr NotEnoughGoldRStr NotEnoughManaRStr NotEnoughMovePointsRStr NotImplementedRStr NotImplementedYetRStr NotPlacedOnMapRStr OKRStr OakRStr ObjectiveValidationFailedRStr ObjectiveXRStr ObserveDisabledRStr ObserveEnabledRStr ObstacleRStr OccupationForcesXRStr OfferPeaceRStr OkayRStr OneMomentPleaseRStr OnePrisonerLiberatedRStr OneUnitDesertedRStr OneUnitJoinedRStr OneUnitTrainedRStr OozeRStr OpenRStr OppressedRStr OptionsRStr OrcPluralRStr OrcRStr OutOfSyncRStr OverlayObjectRStr PBEMGameEndedRStr PBEMRestartCheatRStr PanickedRStr ParryRStr PartyJoinHeaderRStr PartyJoinRStr PartyOwnerXRStr PassWallRStr PassiveRStr PasswordConfirmationRStr PasswordFailedRStr PasswordVerificationRStr PathOfDecayRStr PathOfFrostRStr PathOfLifeRStr PatrolRStr PeaceOfferRStr PeaceRStr PestilenceRStr PestilenceStormRStr PhaseRStr PhysicalImmunityRStr PhysicalProtectionRStr PhysicalRStr PickupRStr PineRStr PlaceRandomUnits PlayByEmailRStr PlaySampleEventRStr Player2GroupBehaviorTable PlayerIsMovingRStr PlayerNameExRStr PlayerNameXRStr PlayerRStr PlayersOnMapXRStr PlayersRStr PleaseAssignAllSpheresRStr PleaseFillInAllSettingsRStr PleaseInsertTheAoWCDRStr PleaseInsertTheAoWCDRetryRStr PleaseSetupEmailSettingsFirstRStr PleaseWaitTillItIsYourTurnRStr PoisonCloudDamageRStr PoisonCloudRStr PoisonDartsRStr PoisonImmunityRStr PoisonPlantDamageRStr PoisonPlantRStr PoisonPlantsRStr PoisonProtectionRStr PoisonRStr PoisonStrikeRStr PoisonedRStr PoliteRStr PoorRStr PopulationRStr PossessRStr PossessedRStr PowerLeakRStr PowerNodeBattleWonRStr PowerNodeRStr PowerRStr PowerXRStr PrisonerLiberationRStr ProduceMerchandiseRStr ProduceMerchandiseTextRStr ProduceRStr ProduceXRStr ProducingMerchandiseRStr ProducingRStr ProducingXIncomeRStr ProducingXRStr ProductionPlaceXRazeRStr ProgrammerRStr PropertiesRStr ProposeAllianceRStr PublishedByRStr PureEvilRStr PureGoodRStr PureNeutralRStr PyramidRStr QACoreRStr QueueRStr RaceColors RaceNamesPluralRStr RaceNamesRStr RaceRelationXRStr RaceTerrain RaceXHaveNoValidCaptureLocationRStr RaceXRStr RaceXReachedGoldAmountRStr RaidRStr RaiseTerrainRStr RaisedMountainRStr RandomNodeRStr RandomRStr RareRStr RazeRStr RazeStructureWarningRStr RazedRStr ReadyRStr RebuildXRStr RecallSpiritRStr RecipientXRStr RedDragonRStr ReenterNewPasswordRStr ReenterPasswordRStr ReflectingPoolRStr RefugeJoinRStr RefugeRStr RefugeesJoinRStr RegenerationRStr Register RejectRStr RejuvenateRStr RemedyRStr RepeatRStr ReplayRStr RequiredManaRStr ResearchNewSpellRStr ResearchPointsRStr ResearchRStr ResearchSpellRStr ResearchXspellRStr ResearchedRStr ReservedRStr ResistanceRankProgression ResurrectHeroRStr ResurrectedRStr RetrieveDefaultDiplomaticActionMessage RetrieveStormDamageInfo RingItemRStr RoadRStr RoadsRStr RockRStr RocksRStr RoundAttackRStr RoundXRStr RubbleRStr RuinRStr SacredWrathRStr SacrificialFlameRStr SailingRStr SaveEmailGameRStr SaveGameAsRStr SaveGameToXRStr SaveRStr SavingGameRStr SavingLevelRStr ScenarioDesignersRStr ScenarioRStr ScenarioXRStr ScorchRStr ScorcherRStr ScoutRStr SearchRStr SecretRStr SeduceRStr SeducedRStr SelectAFileToLoadRStr SelectAMapRStr SelectConstructionPathRStr SelectRStr SelectTargetCityForXOnMapRStr SelectTargetLocationForXOnMapRStr SelectTargetPartyForXOnMapRStr SelectTargetRStr SelectUnitForDispelMagicRStr SelectUnitForXRStr SelectedSpheresRStr SelfDestructRStr SendMessageAsXRStr SendMessageRStr SendingEmailGameRStr SerialRStr SetupBattleFieldInfo ShipyardRStr ShockwaveRStr ShootBlackJavelinRStr ShootJavelinRStr ShortRangeRStr ShowDamageEffects ShowDamageIcon ShowHitPcnt ShowMessageEventRStr SignRStr SimultaneousRStr SkillPointsRStr SkirmishRStr SlaveryRStr SlowRStr SlugSlimeRStr SmallMapAbrRStr SmokeCloudRStr SnowConcealmentRStr SnowRStr SolarBlastRStr SolarFlareRStr SolidRStr SoundFXRStr SourceLibraryXRStr SpecialThanksRStr SpellCastingRStr SpellCheatDisabledRStr SpellCheatEnabledRStr SpellIsAlreadyResearchedRStr SpellRStr SpellWardRStr SplitOnEnterCaveWarningRStr SpringOfLifeRStr StableRStr StatisticsToDV StatisticsToLimitedDV StatisticsToMaxDamage StatusRStr StatusToDiplomaticRelation StatusToStatusValue StatusValueToStatus StatusWarmodeRStr StatusXRStr Step1CustomizeLeaderRStr Step2AssignSkillPointsRStr Step3AssignSpheresRStr SteppeConcealmentRStr SteppeRStr StoneSkinRStr StoneWallRStr StoningRStr StormDamageType StormRStr StoryAndEditingRStr StrengthInfoMax StrikeDV StrikeRStr StrongRStr StructureBuiltRStr StructureCapturedRStr StructureRStr StructureRazedRStr StructureRebuiltRStr StunnedRStr SuggestAllianceBreakWithYRStr SuggestSplitWithYRStr SuggestWarWithYRStr SuicidalRStr SuicidedRStr SummonAirElementalRStr SummonBlackDragonRStr SummonBlackSpiderRStr SummonBoarRStr SummonEarthElementalRStr SummonFireElementalRStr SummonFireSpriteRStr SummonFrogRStr SummonGoldDragonRStr SummonGreatEagleRStr SummonMermaidRStr SummonSyronRStr SummonWaterElementalRStr SummonXRStr SummonedRStr SummoningXRStr SurrenderYourEmpireRStr SwarmRStr SwimmingRStr SystemRStr TAIBudget TAIBudgetList TAIBudgetManager TAICastSpellAction TAICastSpellActionList TAIExecuter TAIExecuterStatus TAIGroup TAIGroupControl TAIGroupControlPlugin TAIGroupControlPluginStatus TAIGroupControlStatus TAIGroupControlTarget TAIGroupControlTargetList TAIGroupControlTargetStatus TAIGroupCooperateControlMode TAIGroupCooperationControl TAIGroupDefenseControl TAIGroupList TAIGroupManager TAIGroupProduction TAIGroupProductionControl TAIGroupProductionControlMode TAIGroupProductionList TAIGroupProductionLocation TAIGroupProductionLocationList TAIGroupRecruitControl TAIGroupRecruitControlMode TAIGroupStatus TAIGroupTargetFinder TAIGroupTargetFinderMode TAIGroupTargetPrioritySettings TAIGroupTargetSelector TAIGroupTargetSelectorMode TAIGroupTargetSelectorStatus TAIGroupTargetStatus TAIGroupTargetType TAIGroupUnitProduction TAIGroupUnitProductionList TAIMoveControl TAIMoveControlMode TAIMoveControlSettings TAIMoveControlStatus TAIMoveExecuter TAIMoveExecuterArmy TAIMoveExecuterArmyList TAIMoveExecuterControl TAIMoveExecuterMode TAIMoveExecuterMove TAIMoveExecuterMoveQueue TAIMoveExecuterStatus TAIMoveExecuterTransportStatus TAIMoveExecuterUnit TAIMoveExecuterUnitList TAIMoveExecuterUnitStatus TAIMoveExecuterUnitStatusSet TAIMoveResult TAIMoveTargetSelector TAIMoveTargetSelectorMode TAIMoveTargetSelectorStatus TAIPlayerAction TAIPlayerActionList TAIPlayerActionManager TAIPlayerControl TAIPlayerProcessPhase TAIPlayerProcessPhases TAIProductionLocationFinder TAIProductionLocationFinderMode TAIRecruitmentGroup TAIRecruitmentGroupFinder TAIRecruitmentGroupFinderMode TAIRecruitmentGroupList TAISavingsBudget TAITargetMode TAITargetType TAITransporterBudget TAbility TAbilityControl TAbilityControlType TAbilityData TAbilityInfoMode TAbilityList TAbilityOwner TAbilityPlugIn TAbilitySelectionType TAbilitySelectionTypeRStr TAbilitySelectionTypes TAbilityType TAbilityTypeList TAbilityTypeRStr TAbstractAoWCombatMap TAbstractAoWHSMap TAbstractAoWHSMapMouse TAbstractUnit TAbstractUnitResource TActivateAbilityInfo TAddUnitsResult TAdjacentArmy TAdjacentArmyList TAdjacentMEC TAdjustableAbility TAdjustableUnit TAgeOfWondersEngine TAlignment TAlignmentRStr TAlignments TAoWCampaign TAoWCampaignScenario TAoWCampaignScenarioList TAoWCampaignTransferSettings TAoWDictionary TAoWEngine TAoWHSMap TAoWHSMapKeyboard TAoWHSMapKeyboardMode TAoWHSMapMouse TAoWHSSet TAoWMapCampaignSettings TAoWMapField TAoWMapLevel TAoWMapObjectEditor TAoWNewHSMapSettings TAoWTerrainType TAoWTerrainTypes TAoWTokenManager TArmy TArmyCombatMoveTE TArmyCombineMoveTE TArmyDefaultMoveTE TArmyEventLog TArmyHS TArmyHSList TArmyID TArmyInfoEventLog TArmyList TArmyMode TArmyMoveMode TArmyNegotiateMoveTE TArmyPlaceMode TArmyStatus TArmyUserMode TArmyView TAutoProduceAIPA TBattleFieldInfoRequests TBehaviour TBloodType TBoltsAbility TBreathAbility TBudgetExpenseMode TBudgetManagerAIPA TCPIPRStr TCampaignAutoSaveType TCampaignDifficultyLevel TCampaignDifficultyLevelRStr TCanMoveMode TCastSpellAIPA TChangeGlobalMagicMode TChangeGlobalMagicTE TChangePlayerMagicMode TChangePlayerMagicTE TChangePlayerSettingsTE TCharmAbility TCharmedAbility TCheatTE TCombat TCombatAction TCombatActionList TCombatData TCombatEventLog TCombatExecutedEvent TCombatFlowControlMode TCombatFlowControlTE TCombatLogbook TCombatMode TCombatModeRStr TCombatModes TCombatMoveMode TCombatObject TCombatObjectControlMode TCombatObjectList TCombatObjectStatus TCombatObjectTurnDoneCA TCombatParty TCombatPartyList TCombatPlaceID TCombatPlayer TCombatPlayerList TCombatPredictor TCombatPredictorSide TCombatPredictorUnit TCombatPredictorUnitList TCombatPredictorUnitStatus TCombatRange TCombatResolveModeRStr TCombatRestoreHotseatEventLog TCombatResult TCombatSFXType TCombatSide TCombatSideIndex TCombatSpellCaster TCombatStatus TCombatTargetType TCombatType TCombatTypeRequestEventLog TCombatUnit TCombatViewer TCombatViewerStatus TCombatWall TCommandAbility TCommandAbilityData TCommandCA TCommandedAbility TCommandedAbilityData TConstructAbility TConstructStructureTE TConstructionControl TConstructionControlList TCosmeticSurgeryAbility TCosmeticSurgeryEnchantment TCreateMoveMode TCreateMoveResult TCustomAbilityList TDamageCA TDamageCombatActionMode TDamageEffectCA TDamageRollType TDamageType TDamageTypeRStr TDamageTypes TDefaultMEC TDefensePriority TDiplomacyAIPA TDiplomaticAction TDiplomaticActionEventLog TDiplomaticActionList TDiplomaticActionReaction TDiplomaticActionTE TDiplomaticActionType TDiplomaticRelation TDiplomaticRelationHistoryItem TDiplomaticRelationHistoryList TDiplomaticRelationList TDiplomaticRelationRStr TDiplomaticRelations TDisbandUnitTE TDispelMagicAbility TDispelMagicAbilityCA TDispelMagicAbilityData TDispelMagicAbilityTE TDispelMagicAbilityUnitSelector TDispelMagicCA TDominateAbility TDominatedAbility TDurationAbility TDurationAbilityData TDurationMode TEmailGame TEmailGameControl TEmailGameList TEmailSendMode TEnchantment TEnchantmentList TEndTurnAIPA TEndTurnMode TEndTurnTE TEnhancementAbility TEntangleAbility TEntangleCA TExitGameCallBack TExitGameMode TExportTextStream TExternalPowerSource TFaceResource TFaceResourceList TFastCombat TFastCombatCommand TFastCombatCommandList TFastCombatExecuteResult TFastCombatParty TFastCombatUnit TFastCombatUnitState TFinalizeMode TFire TFireControl TFireMode TFireResource TFireType TFlagControl TFlameThrowingAbility TFleeCA TFogExplorationChanged TFrozenWaterHS TGameOverStatus TGameOverTE TGameResult TGameStatus TGameType TGlobalEnchantment TGlobalEnchantmentEventLog TGlobalEnchantmentList TGlobalEnchantmentMode TGlobalEnchantmentStatus TGlobalEnchantmentType TGlobalEnchantmentTypes TGlobalMagicControl TGroupBehavior TGroupBehaviorStr TGroupControl TGroupControlAIPA TGroupControlLoopAIPA TGroupDefendMode TGroupDefenseControlMode TGroupDefenseSelector TGuardAreaGC TGuardGC THealingAbility THealingAbilityData THealingCA THealingTE THealingUnitSelector THero THeroControl THeroEmergeEventLog THeroEmergeMode THeroInventory THeroItemPosition THeroItems THeroJoinEventLog THeroJoinMode THeroLibrary THeroLibraryManager THeroList THeroMode THeroPowerSource THeroResource THeroResourceList THeroSortMode THeroStatus THeroType THeroTypes THeroUpdateMode THeroUpdateTE THeroUpgradeEventLog THeroUpgradeTE THeroesUpdatedEvent THotSeatMode THuntAG THuntAGC TIncomeSource TIncomeSourceList TIndependentAIMode TInitializeAIPA TInvokeDeathAbility TInvokeDeathCA TItem TItemAvailability TItemControl TItemControlStatus TItemGFX TItemGFXList TItemGenerateMode TItemHS TItemHSList TItemLibrary TItemLibraryManager TItemList TItemStatus TItemTE TItemTokenEventMode TItemType TItemTypes TJoinEventLog TJoinMode TLeader TLeaderSetupControl TLeaderSetupMode TLeaderSetupStatus TLeadershipAbility TLeadershipAbilityData TMPDID TMagicSphere TMagicSphereRStr TMagicSpheres TMeleeRound TMeleeStrikeResult TMorale TMoraleRStr TMoveAction TMoveArmyTE TMoveControl TMoveControlSettings TMoveControlSettingsStatus TMoveControlStatus TMoveMode TMoveOnMovePointProc TMoveSelector TMoveSelectorStatus TMoveSettings TMoveSettingsList TMoveSpeed TMoveStatus TMoveTE TMoveTarget TMoveTargetFoundEvent TMoveTargetList TMoveType TMoveTypes TMoveWallCA TMoveWallMode TMovepath TMultiLevelAbility TMultiLevelAbilityData TMultiMoveTE TNegotiateMode TNegotiateObject TNegotiateOffer TNegotiateRequestEventLog TNegotiateResult TNegotiateTE TNewCombatRoundCA TNewCombatTurnCA TNewTurnEventLog TNewTurnEventLogDialogStyle TNewTurnEventLogMode TPBEMPlayerControl TPBEMPlayerSettings TPBEMPlayerStatus TPadControl TPartyStatus TPartyStatusRStr TPassiveGC TPatrolGC TPlayMode TPlayModeRStr TPlayer TPlayerBehavior TPlayerBehaviorRStr TPlayerConnectionEventLog TPlayerConnectionFailure TPlayerConnectionType TPlayerConnectionTypeRStr TPlayerControl TPlayerDiplomaticRelations TPlayerEnchantmentType TPlayerEnchantmentTypes TPlayerList TPlayerMagicControl TPlayerMagicEventLog TPlayerMagicEventMode TPlayerStatistics TPlayerStatus TPlayerStructure TPlayerStructureIncomeSource TPlayerStructureList TPlayerStructurePowerSource TPlayerStructureResource TPlayerType TPlayerTypeRStr TPlayerTypes TPossessAbility TPossessCA TPossessedAbility TPossessedAbilityData TPowerSource TPowerSourceList TProcessEventlogAIPA TProcessTimeMode TProductionControl TProductionControlList TProductionControlStatus TProductionEventLog TProductionItem TProductionQueue TProductionSettings TProductionTE TProductionUpdateMode TRace TRaceList TRaceResource TRaceResourceList TRangedAttackAbility TRangedAttackCA TRazeStructureEventLog TRecruitmentGroupFinderMode TRectangleSelectEvent TRefugeGC TResearchSpellAIPA TRestartGameEventLog TRoundAttackAbility TSMTPEventLog TSaveGameTE TScoutGC TSeduceAbility TSeducedAbility TSelectedArmy TSelectedArmyMode TSelfDestructAbility TSelfDestructCA TSendEmailGameEventLog TShowMessageInfo TShowTargetSelectionEvent TSimultaniousPlayerControl TSingleTargetCA TSingleTargetMode TSpell TSpellCC TSpellCastEventLog TSpellCaster TSpellCastingAbility TSpellControl TSpellControlType TSpellList TSpellTE TSpellType TSpellTypeRStr TSpellTypes TStartupSongList TStatus TStatusRStr TStormType TStormTypeRStr TStrikeAbility TStrikeCA TStrikeEnhancementAbility TStrikeMode TStructure TStructureAIPA TStructureConstructionControl TStructureControl TStructurePhase1AIPA TStructurePhase2AIPA TStructureResource TStructureShadow TStructureShadowStatus TStructureTE TSubMove TSubMoveList TSuicidalGC TTacticalCombatAvailability TTacticalCombatAvailabilityRStr TTargetSelectionChange TTargetSelectionControl TTargetSelectionMode TTargetSelectionStatus TTerminatePlayerTE TTextControl TTextControlItem TTouchAbility TTranslateTextStream TTransportAbility TTransportMEC TTurnInfo TTurnInfoItem TTurnOrderMode TTurnPlayerControl TTurnUndeadAbility TTurnUndeadCA TTutorialControl TUnit TUnitAnimation TUnitCategoryList TUnitControl TUnitEnchantment TUnitEnchantmentAbility TUnitEnchantmentAbilityData TUnitGFXResource TUnitGFXResourceList TUnitGender TUnitHS TUnitIndexList TUnitIndexListCollection TUnitList TUnitOverlayModes TUnitPlaceMode TUnitProduction TUnitProductionList TUnitRank TUnitResource TUnitResourceList TUnitSelectionControl TUnitSelector TUnitSelectorAAI TUnitShadowHS TUnitSize TUnitSpell TUnitSpellCA TUnitSpellCaster TUnitSpellTE TUnitStatus TUnitType TUnitTypes TUnitUserList TUnitViewStatus TUpdateHeaderCA TValidateTargetEvent TVictoryCondition TVictoryConditionRStr TWallCombatFeatures TWallCrushingAbility TWallSituation TWallType TWallUnit TWebAbility TWebCA TWorldFXHS TakenRStr TargetRStr TeleportRStr TerminateGameSaveRStr TerrainBonusXRStr TerrainPenaltyXRStr TerribleRStr TerrorRStr TheGameContinuesRStr TheLeaderOfThePartyStepsForwardRStr TheLeaderStepsForewardRStr TheXliesInRuinsRStr TheyTaughtYouTheSpellXRStr ThisInNotAnUseableItemRStr ThreatRStr ThreatenToAttackRStr TitleRStr ToadRStr ToadstoolsRStr TornadoRStr TorsoItemRStr TotalCostXRStr TouchRStr TowerRStr TownGateRStr TownQuakeDamageRStr TownQuakeRStr TrailOfDarknessRStr TrainingCompletedRStr TranslateRStr TransparentRStr TransportRStr TransportXUnitsRStr TremorsRStr TributeRStr TriggerStormDamage TrueVisionRStr TunnelingRStr TurnLimitReachedRStr TurnModeXRStr TurnRStr TurnUndeadRStr TurnXRStr TurnedUndeadRStr TurnsRStr TurnsXRStr TutorialMessageEventRStr TutorialRStr TworldFXType UnavailableRStr UncommonRStr UndeadPluralRStr UndeadRStr UndefinedRStr UndergroundConcealmentRStr UnexploredRStr UnholyChampionRStr UnholyGroundDamageRStr UnholyGroundRStr UnholyGroundsRStr UniqueRStr UnitRStr UnitTypePluralRStr UnitTypeRStr UnitsBurnedRStr UnitsCrushedRStr UnitsDrownRStr UnitsToIndependentRelation UnknownRStr UnlimitedRStr UnrestRStr UnrulyRStr UpdatingTerrainLevelRStr UpgradeLevelXRStr UpgradeRStr UpgradingRStr UpkeepRStr UpkeepXRStr UseItemRStr UseXRStr UsedRStr UserRStr ValidAttackRelation ValidateAoWEngine VaporizeRStr VegetationRStr VenomousSpitRStr VersionXRStr VersionXYRequiredRStr VersusRStr VertigoRStr VeryRareRStr VictoryRStr ViewallTCRStr VisionRStr VortexDamageRStr VortexRStr WaitingRStr WalkingRStr WallBreachRStr WallClimbingRStr WallCrushingRStr WallRStr WarDeclaredRStr WarRStr WarmodeRStr WarmongerRStr WarningRStr WarpPartyRStr WaryRStr WastelandConcealmentRStr WastelandRStr WatcherRStr WaterConcealmentRStr WaterHexagonRStr WaterMasteryRStr WaterNodeRStr WaterRStr WaterWalkingRStr WeakRStr WebRStr WebbedRStr WillowRStr WindWalkingRStr WindsOfFuryRStr WizardsTowerRStr WonRStr WoodenWallRStr WraithsDelightRStr WriterRStr XAcceptedRStr XAlreadyActiveRStr XAlreadyExistsRStr XAlreadyJoinedRStr XAlreadyRemovedRStr XAlreadyResearchedRStr XAnimatedRStr XCastRStr XCastingReadyRStr XCropFieldsRStr XDayLeftRStr XDayRStr XDaysLeftRStr XDaysRStr XDispelledRStr XDoesntWantToJoinAnymoreRStr XEmergedAtYAndOffersToJoinYouForZgpRStr XExploredRStr XGoldRStr XHostYRStr XIgnoredRStr XInstalledAtYRStr XIsAlreadyActiveRStr XIsOutOfSightRStr XJoinedRStr XJoinedTheForcesOfYRstr XLeaderRStr XLeftTheGameRStr XLiberatedRStr XMadeALevelRStr XMadeYLevelsRStr XMinutesRStr XOffersToJoinRStr XOverthrownRStr XPowerRStr XPrisonersLiberatedRStr XProducedAtYRStr XRazedRStr XRejectedRStr XRelationMinusYRStr XRelationPlusYRStr XRemovedOutOfManaRStr XRemovedRStr XResearchedRStr XResurrectedRStr XSelectedRStr XSpellsRStr XSpellsSuccessfullyDispelledRStr XSuccessfullyDispelledRStr XTurnLeftRStr XTurnRStr XTurnsLeftRStr XTurnsRStr XUnitsDesertedRStr XUnitsJoinedRStr XUnitsJoinedTheForcesofYRstr XUnitsTrainedRStr XUpgradedRStr XatLocationYRStr XatYRStr XinYdaysRStr XsGameRStr XtimeYSphereRStr XwasResurrectedAndOffersToJoinYouForZgpRStr YouAreBeingAttackedRStr YouCannotChannelPowerFromThisNodeRStr YouNeed2HumanPlayersToPlayAnEmailGameRStr YouWereEjectedByTheHostRStr YouWhereVictoriousRStr YourAboutToExitAMultiPlayerGameRStr YourReignHasEndedRStr YourTurnContinuesRStr alsAll alsEvil alsGood alsNeutral alsPureEvil alsPureGood alsPureNeutral astAll cmAll dAlignmentToDiplomaticRelation dAlignmentToStatus dAlignmentToStatusValue dAlignmentsToStatus dtAll htAll itAll msAll spRStr
+== AoWEPACK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== AoWEReg  (0 classes, 0 funcs, 0 types)
+== AoWHex  (5 classes, 6 funcs, 5 types)
+   TAoWBorderHexagon (1): UpdateMapField
+   TAoWHexagon (4): ChangeTerrain NeighbourTerrainChanged TerrainChanged UpdateTransition
+   TAoWHexagonResource (1): MsgProc
+   TAoWWaterHexagon (5): ClassID Create Show ShowDynamic UpdateTransitions
+   TAoWWaterHexagonResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterAoWHexagon TAoWBorderHexagon TAoWHexagon TAoWHexagonResource TAoWWaterHexagon TAoWWaterHexagonResource
+== AoWReg  (1 classes, 13 funcs, 1 types)
+   TAoWRegistry (91): AssociateAoWMap GetAllowResolutionSwitches GetAttachmentDirectory GetAutoDebugSave GetAutoSave GetBoolean GetCheckEmailFrequency GetClassicWindowPopupEvents GetCombatResolveMode GetDebugMode GetDetailLevel GetDeveloper GetDisplayHeight GetDisplayMode GetDisplayWidth GetEmailGamesCRC GetFastMovementEnabled GetInteger GetLanguage GetLocalEmailAddress GetLogTokenEvents GetMainWindowPosition GetMainWindowState GetMapWindowPosition GetMovementSpeed GetMusicEnabled GetMusicVolume GetPOP3Password GetPOP3Server GetPOP3UserName GetRectangle GetRootDirectory GetSFXEnabled GetSFXVolume GetSMTPServer GetShadowsEnabled GetSimultaneousWindowPopupEvents GetSkipIntro GetSoundQuality GetStartupDirectory GetString GetSurfaceInVMem GetUseDirectSound RegisterDPlayLobbyServer SetAllowResolutionSwitches SetAttachmentDirectory SetAutoDebugSave SetAutoSave SetBoolean SetCheckEmailFrequency SetClassicWindowPopupEvents SetCombatResolveMode SetDebugMode SetDetailLevel SetDeveloper SetDisplayHeight SetDisplayMode SetDisplayWidth SetEmailGamesCRC SetFastMovementEnabled SetInteger SetLanguage SetLocalEmailAddress SetLogTokenEvents SetMainWindowPosition SetMainWindowState SetMapWindowPosition SetMovementSpeed SetMusicEnabled SetMusicVolume SetPOP3Password SetPOP3Server SetPOP3UserName SetRectangle SetRootDirectory SetSFXEnabled SetSFXVolume SetSMTPServer SetShadowsEnabled SetSimultaneousWindowPopupEvents SetSkipIntro SetSoundQuality SetStartupDirectory SetString SetSurfaceInVMem SetUseDirectSound rwBinaryData rwBool rwInteger rwRect rwString
+   funcs: AgeOfWondersMapStr AoWCDInserted GuaranteeAoWCD ID_AOWAPP TAoWLanguage TAoWRegistry TCombatResolveMode TDetailLevel TMovementSpeed TReadWriteMode TWindowPopupEvent TWindowPopupEvents ValidAoWCD
+== AoWRoad  (1 classes, 2 funcs, 1 types)
+   TAoWRoad (1): UpdateTransitions
+   funcs: RegisterAoWRoad TAoWRoad
+== AoWSetup  (7 classes, 27 funcs, 9 types)
+   TCustomizeLeaderControl (1): Done
+   TPlayerSetupSettings (4): ClassID Create Destroy ReadWrite
+   TRemotePlayer (2): ClassID ReadWrite
+   TRemotePlayerList (2): GetPlayers IndexOfRemoteID
+   TSetupControl (63): BeginUpdate CanSetHostRemoteID Create CustomizeLeaders DataReceived Destroy Disconnect EndUpdate GetAllMapsValid GetHost GetPlayerName GetPlayerSetupValid GetPreferredRace GetRemote LeaderCustomized ListAvailablePlayers ListPCCInfo LoadMap MapLoaded MapReceived PackageReceived PlayerNameToPlayerID RemoveIndependentPlayers Reset ResetPlayerSettings SendData SendHostMessage SendMessage SendPackage SetPlayerName SetPreferredRace SetupHost SetupMap SetupUser UpdatePreferredRaces UpdateSettings ValidateCompatibleVersion ValidateMap ValidatePlayerName hConnectPlayer hDisconnectPlayer hEjectPlayer hLeaderCustomized hMapLoaded hPickMap hPlayerSetupDone hSendMap hSetAlliedVictory hSetAlwaysViewTC hSetCustomizeLeaders hSetExplorationEnabled hSetHostRemoteID hSetIndependentAIMode hSetLeadersOnMap hSetPlayMode hSetPlayerBehavior hSetPlayerID hSetTacticalCombatAvailability hSetTurnLimitation hSetTurnTimeLimitation hUpdatePlayer hValidateSendMap hValidateSetupMap
+   TSetupPackage (4): ClassID Create Destroy ReadWrite
+   TSetupSettings (9): ClassID Create Destroy GetSettings IndexOfPlayer IndexOfRace IndexOfRemoteID ReadWrite Reset
+   funcs: Register RegisterSetupClasses TCustomizeLeaderControl TCustomizeLeaderEvent TEjectPlayerEvent TIncompatibleVersionEvent TLoadMapEvent TMapValidationInfo TPlayerSetupSettings TPlayerSetupStatus TRemotePlayer TRemotePlayerList TSendMapEvent TSetupControl TSetupControlEvent TSetupPackage TSetupPhase TSetupSettings TSetupStatus pidCPU1 pidCPU2 pidCPU3 pidCPU4 pidCPU5 pidFree pidHuman pidIdependent
+== AoWTer  (2 classes, 3 funcs, 2 types)
+   TAoWTerrain (4): MapFieldMsgProc MsgProc ValidateDeadTreeRegrow ValidateDenseVegetationBurned
+   TAoWTerrainResource (1): ReadWrite
+   funcs: RegisterAoWTerrain TAoWTerrain TAoWTerrainResource
+== Arena  (4 classes, 5 funcs, 4 types)
+   TArena (10): CanDblClick CanEnter CanTrainUnits ClassID CreateTE Enter ExecuteTE ExecuteTrainUnit TrainUnits UnitTrainCost
+   TArenaResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   TArenaTE (4): ClassID Create Destroy ReadWrite
+   TEnterArenaEventLog (8): CanTrain Create Destroy GetCount GetSelectionInfo GetUnit SetSelection Train
+   funcs: RegisterArena TArena TArenaResource TArenaTE TEnterArenaEventLog
+== BehaviorAG  (14 classes, 14 funcs, 14 types)
+   TAbstractBehaviorAG (1): CooperateWithGroup
+   TAbstractBehaviorAGC (2): Create Destroy
+   TAggressorAG (4): Behavior ClassID Create GroupControlClass
+   TAggressorAGC (1): ProcessStates
+   TDefenderAG (4): Behavior ClassID Create GroupControlClass
+   TDefenderAGC (1): ProcessStates
+   TExpanderAG (4): Behavior ClassID Create GroupControlClass
+   TExpanderAGC (1): ProcessStates
+   TNormalAG (4): Behavior ClassID Create GroupControlClass
+   TNormalAGC (1): ProcessStates
+   TScorcherAG (4): Behavior ClassID Create GroupControlClass
+   TScorcherAGC (1): ProcessStates
+   TSkirmishAG (4): Behavior ClassID Create GroupControlClass
+   TSkirmishAGC (1): ProcessStates
+   funcs: TAbstractBehaviorAG TAbstractBehaviorAGC TAggressorAG TAggressorAGC TDefenderAG TDefenderAGC TExpanderAG TExpanderAGC TNormalAG TNormalAGC TScorcherAG TScorcherAGC TSkirmishAG TSkirmishAGC
+== BldGuild  (2 classes, 4 funcs, 2 types)
+   TBuildersGuild (1): ClassID
+   TBuildersGuildResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: BuildersGuildIncome RegisterBuildersGuild TBuildersGuild TBuildersGuildResource
+== BloodShrine  (3 classes, 4 funcs, 3 types)
+   TBloodShrine (5): ArmyPlaced ClassID Create ExecuteBloodlust ShowBlessingAnimation
+   TBloodShrineAnimation (2): AnimationControlMode NewFrame
+   TBloodShrineResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterBloodShrine TBloodShrine TBloodShrineAnimation TBloodShrineResource
+== Cave  (3 classes, 5 funcs, 3 types)
+   TCave (21): Activate ArmyPlaced CanEnter CanEnterSelection CanPlace ClassID Create Deactivate Destroy Enter EnterEx EnterMovePoints GetBottomBorderImage GetMiddleBorderImage GetOverlay GetTerrainTypeImage GetTopBorderImage MoveExclusive PlaceHX ReadWrite UpdateMapField
+   TCaveResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   TEnterCaveEventLog (2): No Yes
+   funcs: RegisterCave TCave TCaveEntrance TCaveResource TEnterCaveEventLog
+== City  (12 classes, 33 funcs, 15 types)
+   TAICityFortifyBudget (1): ClassID
+   TAICityResearchBudget (1): ClassID
+   TAICityUpgradeBudget (1): ClassID
+   TCity (119): AICityEnchantmentUpkeepPriority Activate ActivateEnchantment ArmyPlaced ArmyRemoved BuildingDone CanDblClick CanFortify CanLoot CanMigrate CanProduce CanResearch CanTrade CanUpgrade CheckRebellion ClassID Create CreateMigrationItem CreateMigrationSelection CropTrampled Deactivate DeactivateEnchantment Destroy ExecuteAnarchy ExecuteFountainOfLife ExecuteRaze ExecuteTE FinalizeCombat Fortify FortifyCost FortifyTime GenerateDefenders GenerateRazeDefenders GenerateRebelUnits GetActiveAction GetBottomBorderImage GetBottomCityActionImage GetCivilStatus GetCombatEventText GetCurrentActivityText GetDefensePriority GetDefenseRequirements GetEnemiesIndependentRelation GetIndependentRelation GetMiddleBorderImage GetMiddleCityActionImage GetMoveAction GetName GetObtainUnitsValue GetObtainValue GetRace GetRazed GetRebuildInfo GetSize GetTopBorderImage GetTopCityActionImage GetValidTerrainType IncommingNegotiateOffer IncommingNegotiateRequest InitCombat JoinAmount ListCivilStatusInfo ListEnhancementsInfo ListIncomeInfo Loot LootTime MakeVisible MapFieldMsgProc Migrate MigrationTime MoveArmiesOutOfCity MsgProc NewDay NewTurn PlaceOnMap Produce ProductionCost ProductionTime ReadWrite RegisterEnchantments RemoveFromMap Research ResearchCost ResearchTime ResetEnchantments ReturnBattleFieldInfo Select SetDefaultProductions SetName SetPlayer SetRace SetRazed SetUpgradeLevel SetWallType SetupRazeDefenderAG Show StartTownQuake StopTownQuake StructureCaptured TerrainChanged Trade UnregisterEnchantments Update UpdateAIMigration UpdateAITarget UpdateActiveEnchantments UpdateCrops UpdateFlagID UpdateImages UpdateIncome UpdateMapField UpdatePlayer UpdateVisibleForSeatedPlayer Upgrade UpgradeCost UpgradeTime ValidateAICityAction ValidateMap VisibilityRange
+   TCityAIPA (16): FortifyCity Priority Process ResearchProduction UpdateStatistics UpgradeCity UpgradeableCities ValidFortifyBudgetCity ValidFortifyCity ValidResearchBudgetCity ValidResearchCity ValidUpgradeBudgetCity ValidUpgradeCity ValidateFortifyBudget ValidateResearchBudget ValidateUpgradeBudget
+   TCityEnchantment (9): ClassID Create Deactivate GetAIUpkeepPriority GetCity GetLocation GetName ReadWrite VisibleForPlayer
+   TCityOverlayHS (5): GetShowPriority PlayFadeShellAnimation PlaySetupShellAnimation SetMode Show
+   TCityProductionControl (15): CanExecuteProduction CreateUnitProduction ExecuteCancelProduction ExecuteProduction GetLocation GetPlayer GetProductionName GetProductionNameProgressive LockQueueProduction LoopableProduction NewTurn UnitProduced UnitProductionTime UnitResearched Update
+   TCityProductionEventLog (3): ClassID Execute GetCity
+   TCityRebellionEventLog (5): ClassID Execute GetText ReadWrite ViewLocation
+   TCityResource (7): ActivateMsg ClassID Create MsgProc ResourceEditName ResourceUserClassID ShowCity
+   TMigrationList (1): GetItems
+   funcs: CityActionToProductionID CityIncome CityUpgradeCost CityUpgradeStoneWallCost CityUpgradeWoodenWallCost PlayerCities ProductionIDToCityAction RaceInCity TAICityFortifyBudget TAICityResearchBudget TAICityUpgradeBudget TCity TCityAIPA TCityAction TCityActionRStr TCityEnchantment TCityEnchantmentID TCityEnchantmentIDRStr TCityEnchantmentIDs TCityMode TCityOverlayHS TCityOverlayMode TCityProductionControl TCityProductionEventLog TCityRebellionEventLog TCityResource TCivilStatus TCivilStatusRStr TDefendersGenerateMode TMigrationItem TMigrationList TMoveOutOfCitySelection UnitLevelToCityLevel
+== CitySpells  (13 classes, 17 funcs, 15 types)
+   TAnarchy (4): Create ExecuteTE ShowAnimation ValidTargetCity
+   TAnimateRuins (4): Create ExecuteTE ShowAnimation ValidTargetCity
+   TAntiMagicShell (2): Create PlayDefaultCityEffects
+   TCityEnchantmentSpell (7): AIExecuteCastSpellAction AIPrefetchCastSpellActions Create CreateTE ExecuteTE SetupTE ValidTargetCity
+   TCityEnchantmentSpellTE (1): ClassID
+   TCityTargetSpell (10): Activate Create CreateTE OnTargetSelectionChange PlayDefaultCityEffects SetupTE SetupTargetSelection TargetSelected ValidTargetCity ValidateTarget
+   TCityTargetSpellTE (5): ClassID GetSelectedCity ReadWrite SetLocation Validate
+   TFountainOfLife (3): Create ExecuteTE ShowFountain
+   TGoldRush (1): Create
+   TTownGate (7): CanActivate Create CreateTE ExecuteTE SetupTE SetupTargetSelection ValidTeleportLocation
+   TTownGateTE (4): ClassID Destroy ReadWrite Validate
+   TTownQuake (4): Create ExecuteTE TriggerArmyDamage ValidTargetCity
+   TWarmonger (1): Create
+   funcs: RegisterCitySpells TAnarchy TAnimateRuins TAntiMagicShell TCityEnchantmentCastSpellSituation TCityEnchantmentSpell TCityEnchantmentSpellTE TCityTargetMode TCityTargetSpell TCityTargetSpellTE TFountainOfLife TGoldRush TTownGate TTownGateTE TTownQuake TWarmonger UnregisterCitySpells
+== CombatSpells  (44 classes, 46 funcs, 44 types)
+   TAnimateDead (3): Create CreateCA fcGetDamageValueEx
+   TAnimateDeadCA (2): ClassID Execute
+   TCallFlames (1): Create
+   TChainLightning (1): Create
+   TColdBreath (1): Create
+   TCombatSpell (8): Create CreateCA GetCombatDamageValue GetCombatDamageValueEx GetCombatInfo fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands
+   TCombatSpellCA (6): ClassID Execute Play ReadWrite ShowFieldObject ShowObject
+   TDeathRay (1): Create
+   TDiseaseCloud (1): Create
+   TEntangle (3): Create CreateCA GetCombatDamageValueEx
+   TEntangleSpellCA (2): ClassID Execute
+   TExclusiveCombatSpellCA (5): Execute Play ReadWrite ShowFieldObject ShowObject
+   TFastCombatHighPrayerCA (3): ClassID Execute Generate
+   TFastCombatTerrorCA (3): ClassID Execute Generate
+   TFireBall (1): Create
+   TFireBreath (1): Create
+   TFlamingArrow (1): Create
+   TFrostBeams (1): Create
+   TGeyser (2): Create CreateCA
+   TGreatHail (1): Create
+   THighPrayer (6): Create CreateCA fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands tcGetDamageValueEx
+   TIceShards (1): Create
+   TMindDecay (2): Create CreateCA
+   TMindDecayCA (2): ClassID Execute
+   TMultiTargetCombatSpellCA (8): Create Destroy Execute Play ReadWrite ShowFieldObject ShowFightingObjects ShowObject
+   TOoze (2): Create GetCombatDamageValueEx
+   TRecallSpirit (3): Create CreateCA fcGetDamageValueEx
+   TRecallSpiritCA (2): ClassID Execute
+   TSacredWrath (1): Create
+   TSacrificialFlame (1): Create
+   TShockwave (1): Create
+   TSlow (3): Create CreateCA GetCombatDamageValueEx
+   TSlowCA (2): ClassID Execute
+   TSolarFlare (1): Create
+   TStoning (1): Create
+   TSwarm (1): Create
+   TTacticalCombatHighPrayerCA (2): ClassID Execute
+   TTacticalCombatTerrorCA (5): ClassID Execute Generate Play ReadWrite
+   TTerror (6): Create CreateCA fcExecuteCombatCommand fcGetDamageValueEx fcPrefetchCombatCommands tcGetDamageValueEx
+   TTremors (1): Create
+   TTurnUndead (3): Create CreateCA fcGetDamageValueEx
+   TTurnUndeadSpellCA (2): ClassID Execute
+   TVaporize (1): Create
+   TWindsOfFury (2): Create CreateCA
+   funcs: RegisterCombatSpells TAnimateDead TAnimateDeadCA TCallFlames TChainLightning TColdBreath TCombatSpell TCombatSpellCA TDeathRay TDiseaseCloud TEntangle TEntangleSpellCA TExclusiveCombatSpellCA TFastCombatHighPrayerCA TFastCombatTerrorCA TFireBall TFireBreath TFlamingArrow TFrostBeams TGeyser TGreatHail THighPrayer TIceShards TMindDecay TMindDecayCA TMultiTargetCombatSpellCA TOoze TRecallSpirit TRecallSpiritCA TSacredWrath TSacrificialFlame TShockwave TSlow TSlowCA TSolarFlare TStoning TSwarm TTacticalCombatHighPrayerCA TTacticalCombatTerrorCA TTerror TTremors TTurnUndead TTurnUndeadSpellCA TVaporize TWindsOfFury UnregisterCombatSpells
+== Crops  (4 classes, 5 funcs, 4 types)
+   TCrop (15): Activate CanPlace CanSelect ClassID Create Deactivate Destroy EndTurn GetTerrainTypeImage LinkToCropOwner MapFieldMsgProc MsgProc SetCropOwner TerrainChanged UpdateSettings
+   TCropResource (5): ClassID PlaceCrop ResourceEditName ResourceUserClassID SetLevel
+   TPlayerCropStructure (25): Activate CanPlace CanPlaceCrop ClassID Create CropTrampled CropsChanged CropsEnabled Deactivate Destroy GetCropCount GetIncome GetRace LinkToCrops NeighbourTerrainChanged NewTurn PlaceHX RegrowCrops Remove SetCropCount SetIncome SetPlayer UpdateCropSettings UpdateCrops UpdateIncome
+   TPlayerCropStructureResource (4): ClassID Destroy MsgProc ResourceUserClassID
+   funcs: RegisterCrops TCrop TCropResource TPlayerCropStructure TPlayerCropStructureResource
+== Crypt  (2 classes, 3 funcs, 2 types)
+   TCrypt (1): ClassID
+   TCryptResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterCrypt TCrypt TCryptResource
+== DeathNode  (2 classes, 3 funcs, 2 types)
+   TDeathNode (2): ClassID GetMagicSphere
+   TDeathNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterDeathNode TDeathNode TDeathNodeResource
+== Dungeon  (4 classes, 6 funcs, 4 types)
+   TDungeon (14): Activate ClassID Create Deactivate Destroy ExecuteSearchDone ExecuteTE GeneratePrisoners GetExplored LiberatePrisoners MsgProc NewDay ReadWrite SetupCombat
+   TDungeonResource (6): ClassID Create Destroy ReadWrite ResourceEditName ResourceUserClassID
+   TPrisonersArmy (1): CanAddUnit
+   TPrisonersJoinEventLog (2): Accept Cancel
+   funcs: RegisterDungeon TDungeon TDungeonResource TPrisonersArmy TPrisonersJoinEventLog TPrisonersMode
+== EarthNode  (2 classes, 3 funcs, 2 types)
+   TEarthNode (2): ClassID GetMagicSphere
+   TEarthNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterEarthNode TEarthNode TEarthNodeResource
+== EventLog  (16 classes, 27 funcs, 18 types)
+   TEndTurnEventLog (3): ClassID Execute GetVisible
+   TEventLog (17): AddRef CenterViewTo Create Execute GetLeftIcon GetLocation GetMiddleIcon GetRightIcon GetText GetTextColor GetVisible NotifyLogged PlayLoggedSFX ReadWrite Release SetOwner ViewLocation
+   TEventLogList (12): AddChild AddEvent BeginUpdate Changed Clear DestroyAllChildren EndUpdate FindID GetEvents MainReadWrite RemoveChild RemoveEvent
+   TEventLogbook (16): AddEvent ClassID Create CreateUniqueID Destroy FindFirstLog FindFirstLogEx FindID GetCount GetLogs GetOnChanged ListEvents MsgProc ReadWrite RemoveEvent SetOnChanged
+   TExecuteEventLogCallBackList (7): Add Clear Create Delete Destroy GetCount GetItem
+   TGameOverEventLog (7): ClassID Create Destroy Execute GetText Handled ReadWrite
+   THelpMessageEventLog (2): Create Destroy
+   TLocationTextEventLog (6): ClassID Create Execute GetLocation ReadWrite SetLocation
+   TMessageEventLog (7): Cancel Create Destroy No OK ReadWrite Yes
+   TNewDayEventLog (3): ClassID GetLeftIcon PlayLoggedSFX
+   TPasswordEventLog (1): Create
+   TSaveGameEventLog (1): Create
+   TShowBookEventLog (2): ClassID GetVisible
+   TShowMessageEventLog (4): ClassID Create Destroy ReadWrite
+   TTextEventLog (4): ClassID Execute GetText ReadWrite
+   TTutorialMessageEventLog (1): Create
+   funcs: DistributeEventLog DistributeLocationEventLog RegisterEventLog TEndTurnEventLog TEventLog TEventLogList TEventLogbook TExecuteDoneEvent TExecuteEventLogCallBackList TExecuteTrigger TExecuteTriggers TGameOverEventLog THelpMessageEventLog TLocationTextEventLog TMessageEventLog TMessageEventLogButtons TMessageEventLogLayout TNewDayEventLog TPasswordEventLog TPressedEventLogButton TSaveGameEventLog TSaveGameEventLogMode TShowBookEventLog TShowMessageEventLog TTextEventLog TTutorialMessageEventLog TUserEventLog
+== ExploreS  (3 classes, 5 funcs, 3 types)
+   TDefendersArmy (1): CanAddUnit
+   TExplorationSite (21): Activate CanSearch CanSelect ClassID CombatExecuted Create Deactivate Destroy ExecuteSearch ExecuteSearchDone ExecuteTE GenerateDefenders GetExplored GetTerrainTypeImage MsgProc NewDay ReadWrite RequestCombatTypeCallBack Search SetupCombat Update
+   TExplorationSiteResource (6): ClassID Create Destroy ReadWrite ResourceEditName ResourceUserClassID
+   funcs: RegisterExplorationSite TDefendersArmy TDefendersMode TExplorationSite TExplorationSiteResource
+== Farm  (2 classes, 5 funcs, 3 types)
+   TFarm (10): CanPlaceCrop ClassID CropsEnabled GetCurrentActivityText GetRazed ReadWrite SetRazed TerrainChanged UpdateAITarget UpdateCrops
+   TFarmResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: FarmIncome RegisterFarm TFarm TFarmMode TFarmResource
+== FileSecurity  (0 classes, 3 funcs, 0 types)
+   funcs: GetFileSecurityID RemoveFileSecurityID SetFileSecurityID
+== FireNode  (2 classes, 3 funcs, 2 types)
+   TFireNode (2): ClassID GetMagicSphere
+   TFireNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterFireNode TFireNode TFireNodeResource
+== FlagEvents  (6 classes, 9 funcs, 7 types)
+   TFlagEvent (11): CanPlace CanSelect GetTriggerPlayer MapFieldMsgProc MsgProc ReadWrite SetTriggerPlayer Show Trigger UpdateInstantTrigger UpdateNewTurnTrigger
+   TFlagEventResource (2): Create SetLevel
+   TFlagMessageEvent (5): ClassID Create Destroy ReadWrite Trigger
+   TFlagMessageEventResource (3): ClassID ResourceEditName ResourceUserClassID
+   TTutorialMessageEvent (5): ClassID Create Destroy ReadWrite Trigger
+   TTutorialMessageEventResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterFlagEvents TFlagEvent TFlagEventResource TFlagEventTriggerMode TFlagMessageEvent TFlagMessageEventLog TFlagMessageEventResource TTutorialMessageEvent TTutorialMessageEventResource
+== Gems  (2 classes, 4 funcs, 2 types)
+   TGems (9): ArmyEntered ClassID Create GenerateGemsAmount MapFieldMsgProc MsgProc ReadWrite UpdateAITarget UpdateMapField
+   TGemsResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterGems TGems TGemsGenerateMode TGemsResource
+== GlobalEnchantmentSpells  (27 classes, 29 funcs, 27 types)
+   TAirMastery (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TAirMasteryEnchantment (6): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority
+   TDeathMastery (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TDeathMasteryEnchantment (8): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority MsgProc NewTurn
+   TEarthMastery (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TEarthMasteryEnchantment (6): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority
+   TEnchantedRoads (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TEnchantedRoadsEnchantment (6): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority
+   TFireMastery (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TFireMasteryEnchantment (8): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority MsgProc UpdateFire
+   TFlood (4): Create CreateEnchantment ExecuteTE ShowAnimation
+   TFloodControl (6): Create Destroy Flood ReadWrite Restore Setup
+   TFloodEnchantment (13): Activate CanDeactivate ClassID Create DaysBeforeActive Deactivate Destroy GetAIUpkeepPriority GetName GetUpkeep MsgProc NewTurn ReadWrite
+   TGlobalEnchantmentSpell (10): AICanCastSpell AIExecuteCastSpellAction AIPrefetchCastSpellActions AIUpkeepPriority Activate CanActivate Create CreateEnchantment ExecuteTE SetupEnchantment
+   TGlobalEnchantmentSpellTE (5): ClassID Destroy Process ReadWrite Validate
+   THarmony (3): Create CreateEnchantment ExecuteTE
+   THarmonyEnchantment (8): Activate ClassID Create Deactivate GetAIUpkeepPriority MsgProc NewDay ReadWrite
+   THatred (3): Create CreateEnchantment ExecuteTE
+   THatredEnchantment (8): Activate ClassID Create Deactivate GetAIUpkeepPriority MsgProc NewDay ReadWrite
+   TLifeMastery (3): Create CreateEnchantment ExecuteTE
+   TLifeMasteryEnchantment (6): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority
+   TPowerLeak (3): Create CreateEnchantment ExecuteTE
+   TPowerLeakEnchantment (5): Activate ClassID Create Deactivate GetAIUpkeepPriority
+   TSpellWard (3): Create CreateEnchantment ExecuteTE
+   TSpellWardEnchantment (3): ClassID Create GetAIUpkeepPriority
+   TWaterMastery (3): Create CreateEnchantment ExecuteTE
+   TWaterMasteryEnchantment (6): Activate CanActivate ClassID Create Deactivate GetAIUpkeepPriority
+   funcs: RegisterGlobalEnchantmentSpells TAirMastery TAirMasteryEnchantment TDeathMastery TDeathMasteryEnchantment TEarthMastery TEarthMasteryEnchantment TEnchantedRoads TEnchantedRoadsEnchantment TFireMastery TFireMasteryEnchantment TFlood TFloodControl TFloodEnchantment TGlobalEnchantmentSpell TGlobalEnchantmentSpellTE THarmony THarmonyEnchantment THatred THatredEnchantment TLifeMastery TLifeMasteryEnchantment TPowerLeak TPowerLeakEnchantment TSpellWard TSpellWardEnchantment TWaterMastery TWaterMasteryEnchantment UnregisterGlobalEnchantmentSpells
+== GlobalSpells  (13 classes, 15 funcs, 13 types)
+   TAnimateHero (3): Activate Create ExecuteTE
+   TBirdsView (5): Activate CanActivate Create ExecuteTE GetEnabled
+   TBirdsViewHS (6): Create Destroy GetShowPriority Show StartAnimation StopAnimation
+   TCallHero (4): Activate Create ExecuteTE FindCallHero
+   TConcealArea (5): Activate CanActivate Create ExecuteTE GetEnabled
+   TConcealAreaHS (6): Create Destroy GetShowPriority Show StartAnimation StopAnimation
+   TCrusade (4): Activate Create ExecuteTE PlaceParty
+   TDisjunction (3): Activate CanActivate Create
+   TDisjunctionSpellCaster (9): CanCast Cast Create GetDispelChanceMax GetEnoughMana GetMana SelectedEnchantment SetDispelChance SetEnchantmentID
+   TDisjunctionTE (4): ClassID Process ReadWrite Validate
+   TResurrectHero (3): Activate Create ExecuteTE
+   TWarpParty (4): Activate CalculateWarpLocation Create ValidTarget
+   TWarpPartyTE (6): ClassID Create Destroy Process ReadWrite Validate
+   funcs: RegisterGlobalSpells TAnimateHero TBirdsView TBirdsViewHS TCallHero TConcealArea TConcealAreaHS TCrusade TDisjunction TDisjunctionSpellCaster TDisjunctionTE TResurrectHero TWarpParty TWarpPartyTE UnregisterGlobalSpells
+== GlobalTargetSpells  (21 classes, 24 funcs, 22 types)
+   TFireBarrier (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TFireBarrierTE (3): ClassID CreateFireBarrier Process
+   TFreezeWater (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TFreezeWaterTE (4): ChangeTerrain ClassID Process TerrainChanged
+   TGlobalTargetSpell (10): Activate CanActivate Create OnTargetSelectionChange SetupTargetSelection ShowTargetSelection TargetSelected ValidTargetMapF ValidTargetSelection ValidTargetSelectionMapF
+   TGlobalTargetSpellTE (4): ClassID PlayDefaultEffects ReadWrite SetLocation
+   THealingShowers (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   THealingShowersTE (4): ChangeTerrain ClassID Process ShowAnimation
+   TLevelTerrain (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TLevelTerrainTE (3): ClassID LevelTerrain Process
+   TRejuvenate (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TRejuvenateTE (3): ClassID Process RejuvenateTerrain
+   TSmokeCloudSpell (6): Create ExecuteTE SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TTornado (5): CalculateWarpLocation Create SetupTargetSelection TargetSelected ValidWarpLocation
+   TTornadoTE (7): ClassID Create Destroy Process ReadWrite ShowAnimation Validate
+   TVortex (5): Create SetupTargetSelection TargetSelected ValidTargetSelection ValidateTargetEvent
+   TVortexTE (7): ClassID Create Destroy Process ReadWrite ShowAnimation Validate
+   TWatcher (3): Create SetupTargetSelection TargetSelected
+   TWatcherEnchantment (4): Create Deactivate GetLocation GetName
+   TWatcherHS (19): Activate ClassID Create Deactivate Destroy GetLevel MapFieldMsgProc MsgProc PlaceOnMap ReadWrite RemoveFromMap Show StartAnimation StopAnimation UpdateExploration UpdateMapField UpdateUnfog UpdateVisibleForSeatedPlayer VisibilityRange
+   TWatcherTE (2): ClassID Process
+   funcs: RegisterGlobalTargetSpells TFireBarrier TFireBarrierTE TFreezeWater TFreezeWaterTE TGlobalTargetSpell TGlobalTargetSpellTE THealingShowers THealingShowersTE TLevelTerrain TLevelTerrainTE TRejuvenate TRejuvenateTE TSmokeCloudSpell TTornado TTornadoTE TVortex TVortexTE TWatcher TWatcherEnchantment TWatcherHS TWatcherStatus TWatcherTE UnregisterGlobalTargetSpells
+== HeroCtrl  (1 classes, 3 funcs, 1 types)
+   THeroControlGrid (16): Create DeleteHero Destroy DrawCell GetHero GetSelectedHero HeroChanged HeroControlChanged MouseDown RemoveFromMap SetAoWHSMap SetSelectedHero SortOnLevel SortOnName Unselect UpdateHeroes
+   funcs: Register THeroControlGrid THeroSortMode
+== HeroGrid  (1 classes, 3 funcs, 1 types)
+   THeroGrid (16): Create DelCell DeleteCell DeleteHero DeleteSelectedHero Destroy DrawCell GetHero GetSelectedHero HeroesUpdated SetHeroes SetSelectedHero SortHeroes SortOnLevel SortOnName UpdateHeroes
+   funcs: Register THeroGrid THeroSortMode
+== Hill  (2 classes, 3 funcs, 2 types)
+   THillMO (1): ClassID
+   THillMOR (3): ClassID CreateResourceUser ResourceEditName
+   funcs: RegisterHill THillMO THillMOR
+== HolyG  (4 classes, 7 funcs, 5 types)
+   THolyGround (16): ArmyPlaced CanDoDamage CanMoveOver ClassID MapFieldMsgProc MsgProc NewFrameSummonAnimation NewTurn PlaceOnMap ReadWrite RemoveFromMap RestoreTerrain Show ShowSummonAnimation TriggerArmyDamage UpdateMapField
+   THolyGroundResource (3): ClassID ResourceEditName ResourceUserClassID
+   THolyGroundSpell (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   THolyGroundSpellTE (3): ClassID CreateHolyGround Process
+   funcs: RegisterHolyGround THolyGround THolyGroundMode THolyGroundResource THolyGroundSpell THolyGroundSpellTE UnRegisterHolyGround
+== HxBridge  (2 classes, 3 funcs, 2 types)
+   THexagonBridge (20): Activate CanPlace ChangeTerrain ClassID Connect Create Destroy DirectionValid Disconnect GetLevel GetShowPriority GetTerrain LinkToResource MoveExclusive NeighbourTerrainChanged PlaceHX Show UpdateExclusiveMoves UpdateMapField UpdateTransitions
+   THexagonBridgeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterHexagonBridge THexagonBridge THexagonBridgeResource
+== IndependentAG  (10 classes, 12 funcs, 12 types)
+   TGuardAG (4): Behavior ClassID Create GroupControlClass
+   TGuardAreaAG (5): Behavior ClassID Create GroupControlClass ReadWrite
+   TGuardAreaAGC (4): MoveExecuterDone ProcessStates ProcessStatesLooped TargetFoundEvent
+   TPatrolAG (5): Behavior ClassID Create GroupControlClass ReadWrite
+   TPatrolAGC (4): MoveExecuterDone ProcessStates ResetPatrolToLocation TargetFoundEvent
+   TRaidAG (4): Behavior ClassID Create GroupControlClass
+   TRaidAGC (3): MoveExecuterDone ProcessStates TargetFoundEvent
+   TRefugeAG (4): Behavior ClassID Create GroupControlClass
+   TScoutAG (4): Behavior ClassID Create GroupControlClass
+   TScoutAGC (3): MoveExecuterDone ProcessStates TargetFoundEvent
+   funcs: TGuardAG TGuardAGC TGuardAreaAG TGuardAreaAGC TPatrolAG TPatrolAGC TRaidAG TRaidAGC TRefugeAG TRefugeAGC TScoutAG TScoutAGC
+== ItemCtrl  (1 classes, 3 funcs, 1 types)
+   TItemControlGrid (17): Create DelCell DeleteItem Destroy DrawCell EditItemDone GetItem GetSelectedItem ItemChanged ItemControlChanged MouseDown RemoveItemFromMap SetAoWHSMap SortOnName SortOnType Unselect UpdateItems
+   funcs: Register TItemControlGrid TItemSortMode
+== ItemExpS  (4 classes, 5 funcs, 4 types)
+   TExplorationSiteItemList (1): Destroy
+   TItemExplorationSite (11): Activate ClassID Create Deactivate Destroy ExecuteSearchDone Generate GetExplored NewDay ReadWrite SetupCombat
+   TItemExplorationSiteEventLog (4): ClassID Create Destroy ReadWrite
+   TItemExplorationSiteResource (1): ClassID
+   funcs: RegisterItemExplorationSite TExplorationSiteItemList TItemExplorationSite TItemExplorationSiteEventLog TItemExplorationSiteResource
+== ItemGrid  (1 classes, 4 funcs, 1 types)
+   TItemGrid (14): AddItem Create CreateNewItem DelCell DeleteItem Destroy DrawCell EditItemDone GetItem GetSelectedItem SetItems SortOnName SortOnType UpdateItems
+   funcs: Register TEditItemEvent TItemGrid TItemSortMode
+== LeadrGrd  (1 classes, 2 funcs, 1 types)
+   TLeaderGrid (9): Create Destroy DrawCell GetLeader GetSelectedLeader LeadersUpdated RemoveFromMap SetAoWHSMap SetSelectedLeader
+   funcs: Register TLeaderGrid
+== LicenseF  (1 classes, 1 funcs, 1 types)
+   TLicenseForm (1): FormCreate
+   funcs: TLicenseForm
+== LifeNode  (2 classes, 3 funcs, 2 types)
+   TLifeNode (2): ClassID GetMagicSphere
+   TLifeNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterLifeNode TLifeNode TLifeNodeResource
+== MagicSanctuary  (3 classes, 4 funcs, 3 types)
+   TMagicSanctuary (6): ArmyPlaced ClassID Create Destroy MakeVisible MapFieldMsgProc
+   TMagicSanctuaryOverlayHS (4): Create FadeUp GetShowPriority Show
+   TMagicSanctuaryResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterMagicSanctuary TMagicSanctuary TMagicSanctuaryOverlayHS TMagicSanctuaryResource
+== MainAG  (8 classes, 8 funcs, 8 types)
+   TFortifyAG (4): Behavior ClassID Create GroupControlClass
+   TFortifyAGC (10): CanBreachWall Create Destroy FortifyCity GetSurroundingEnemyStrength MakeUselessUnitsPassive ProcessStates Split TargetFoundEvent UpdateRequiredStrength
+   TPassiveAG (6): Behavior ClassID Create GetLoc GetRecruitableUnits GroupControlClass
+   TPassiveAGC (2): CombinePassiveGroups ProcessStates
+   TSuicidalAG (4): Behavior ClassID Create GroupControlClass
+   TSuicidalAGC (3): MoveExecuterDone ProcessStates TargetFoundEvent
+   TTransportAG (5): Behavior ClassID Create Destroy GroupControlClass
+   TTransportAGC (4): MoveExecuterDone ProcessStates SetupME TargetFoundEvent
+   funcs: TFortifyAG TFortifyAGC TPassiveAG TPassiveAGC TSuicidalAG TSuicidalAGC TTransportAG TTransportAGC
+== ManaCrystals  (2 classes, 4 funcs, 2 types)
+   TManaCrystals (9): ArmyEntered ClassID Create GenerateManaCrystalsAmount MapFieldMsgProc MsgProc ReadWrite UpdateAITarget UpdateMapField
+   TManaCrystalsResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterManaCrystals TManaCrystals TManaCrystalsGenerateMode TManaCrystalsResource
+== MapCtrl  (1 classes, 29 funcs, 1 types)
+   TAoWMapControl (45): ActivateAbility ActivateCombatMap ActivateHSM ArmyChanged ArmyDestroyed CastSpell ChangeDay CombatEvent Create DblClick DeactivateCombatMap DeactivateHSM DeselectHS Destroy DiplomaticChange EndTurn ExecuteEventLog ExitGameEvent GameOver GameTerminated GemsChanged GlobalMagicChanged HSChanged IncomeChanged LinkToHSM LogbookChanged MapChanged MapSettingsChanged NewTurn PlayerChanged PlayerMagicChanged PlayerTerminated RelationsChanged ReleaseHSM ScannerIconsChanged SeatedPlayerChanged SelectHS ShowMessage StructureChanged StructureDestroyed TargetSelectionChange UnitChanged UnitDestroyed UpkeepChanged ViewPortChange
+   funcs: Register TActivateAbilityEvent TAoWMapControl TArmyChangedEvent TArmyDeselectedEvent TArmyEvent TArmySelectedEvent TCastSpellEvent TCombatEvent TDayChangedEvent TEndTurnEvent THSChangedEvent TItemsSelectedEvent TMapChangedEvent TNewTurnEvent TOnExecuteEventLogEvent TOnGameOverEvent TOnGameTerminatedEvent TOnMessageEvent TOnPlayerTerminatedEvent TPlayerChangedEvent TScannerIconsChangedEvent TShowMessageEvent TStructureChangedEvent TStructureDeselectedEvent TStructureEvent TStructureSelectedEvent TTargetSelectionChangeEvent TUnitEvent
+== Merchant  (2 classes, 3 funcs, 2 types)
+   TMerchant (2): ClassID Create
+   TMerchantResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterMerchant TMerchant TMerchantResource
+== Mine  (2 classes, 5 funcs, 3 types)
+   TMine (13): Activate ClassID Create Deactivate Destroy GetCombatEventText GetCurrentActivityText GetIncome GetRazed ReadWrite SetPlayer SetRazed UpdateAITarget
+   TMineResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: MineIncome RegisterMine TMine TMineMode TMineResource
+== MonsterL  (2 classes, 3 funcs, 2 types)
+   TMonsterlair (1): ClassID
+   TMonsterlairResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterMonsterlair TMonsterlair TMonsterlairResource
+== Mountain  (6 classes, 9 funcs, 7 types)
+   TMountainMO (5): CanChangeTerrain CanPlace ClassID GetOverlay ValidMountainOverlap
+   TMountainMOR (3): ClassID ResourceEditName ResourceUserClassID
+   TRaiseTerrain (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TRaiseTerrainTE (3): ClassID Process RaiseTerrain
+   TRaisedMountain (9): ClassID MapFieldMsgProc MsgProc NewFrameRaiseTerrainAnimation NewTurn ReadWrite RestoreTerrain Show ShowRaiseTerrainAnimation
+   TRaisedMountainResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterMountain TMountainMO TMountainMOR TRaiseTerrain TRaiseTerrainTE TRaisedMountain TRaisedMountainMode TRaisedMountainResource UnRegisterMountain
+== MoveOnEvents  (8 classes, 9 funcs, 8 types)
+   TChangeSongMoveOnEvent (3): ClassID MovedOnTrigger ReadWrite
+   TChangeSongMoveOnEventResource (3): ClassID ResourceEditName ResourceUserClassID
+   TMoveOnEvent (14): Activate ArmyPlaced CanPlace CanSelect Connect Deactivate Disconnect GetTriggerPlayer MapFieldMsgProc MovedOnTrigger ReadWrite SetRadius SetTriggerPlayer Show
+   TMoveOnEventResource (3): Create ResourceEditName SetLevel
+   TPlaySampleMoveOnEvent (3): ClassID MovedOnTrigger ReadWrite
+   TPlaySampleMoveOnEventResource (3): ClassID ResourceEditName ResourceUserClassID
+   TShowMessageMoveOnEvent (5): ClassID Create Destroy MovedOnTrigger ReadWrite
+   TShowMessageMoveOnEventResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterMoveOnEvents TChangeSongMoveOnEvent TChangeSongMoveOnEventResource TMoveOnEvent TMoveOnEventResource TPlaySampleMoveOnEvent TPlaySampleMoveOnEventResource TShowMessageMoveOnEvent TShowMessageMoveOnEventResource
+== OverlayObject  (2 classes, 4 funcs, 2 types)
+   TOverlayObject (1): ClassID
+   TOverlayObjectResource (4): ClassID ReadWrite ResourceEditName ResourceUserClassID
+   funcs: RegisterOverlayObject TOverlayObject TOverlayObjectResource UnRegisterOverlayObject
+== Pad  (2 classes, 3 funcs, 2 types)
+   TPad (4): CanSelect ClassID Create ForceTerrainType
+   TPadResource (8): ActivateMsg ClassID Create Destroy Editor MsgProc ResourceEditName ResourceUserClassID
+   funcs: RegisterPad TPad TPadResource
+== PageTurnCtrl  (1 classes, 2 funcs, 1 types)
+   TPageTurnControl (10): BltVerticalScanLine Create GenerateInvCosTable GetInvCos RenderLeftRightScene RenderOpenCloseScene RenderScene SetPageDimensions Start UpdateScene
+   funcs: TPageTurnControl TPageTurnMode
+== PassiveAb  (45 classes, 47 funcs, 45 types)
+   TAnimatedAbility (1): Create
+   TBlessedEnchantment (5): Create GetAIUpkeepPriority GetDefense GetResistance GetSourceName
+   TBloodlustAbility (4): Create GetAttack GetDamage GetDefense
+   TBurningAbility (3): Create GetTotalDuration NewCombatTurn
+   TCombatResurrectedAbility (1): Create
+   TConcealmentEnchantment (1): Create
+   TCrusaderAbility (4): Create GetTotalDuration NewTurn Remove
+   TCursedAbility (5): Create GetDefense GetResistance GetSourceName GetTotalDuration
+   TDarkGiftEnchantment (3): Create GetAIUpkeepPriority GetDamage
+   TDecayAbility (3): CombatDone Create NewCombatTurn
+   TEnchantedWeaponAbility (4): Create GetAIUpkeepPriority GetAttack GetDamage
+   TEntangledAbility (5): Create CreateEnchantment GetDefense GetDurationMode GetTotalDuration
+   TFireAuraEnchantment (2): Create Remove
+   TFireProtectionEnchantment (2): Create GetSourceName
+   TFreeMovementAbility (1): Create
+   TFrozenAbility (5): Create CreateEnchantment GetDefense GetDurationMode GetTotalDuration
+   TFuryAbility (4): Create GetAIUpkeepPriority GetAttack GetDefense
+   THasteAbility (1): Create
+   THighPrayerBlessingAbility (3): Create GetDefense GetResistance
+   THolyChampionAbility (2): CanExpand Create
+   THolyChampionEnchantment (1): Create
+   THolyFear (3): Create GetSourceName GetTotalDuration
+   TImmunityAbility (3): Create GetImmunityTypes GetMoveTypes
+   TLiquidFormEnchantment (3): Create GetAIUpkeepPriority Remove
+   TMarksmanshipAbility (2): Create GetLevelName
+   TMovementAbility (3): Create GetMoveTypes GetWallCombatFeatures
+   TNaturesBlessingAbility (5): Create Expand GetAttack GetDefense GetResistance
+   TPanickedAbility (2): Create Expand
+   TPassWallAbility (2): Create GetWallCombatFeatures
+   TPoisonedAbility (5): Create GetAttack GetDamage GetDefense GetResistance
+   TProtectionAbility (2): Create GetProtectionTypes
+   TResurrectedAbility (1): Create
+   TSlowEnchantmentAbility (3): CombatDone Create CreateEnchantment
+   TStoneSkinAbility (3): Create GetDefense GetSourceName
+   TStunnedAbility (3): Create GetDefense GetTotalDuration
+   TSummonedAbility (6): Create GetAIUpkeepPriority GetDefaultDispelResistance GetDefaultManaUpkeep Remove UnitIndexToAIUpkeepPriority
+   TTurnedUndeadAbility (4): Create CreateEnchantment GetDurationMode GetTotalDuration
+   TUnholyChampionAbility (2): CanExpand Create
+   TUnholyChampionEnchantment (1): Create
+   TVertigoAbility (4): Create GetAttack GetDefense GetTotalDuration
+   TVisionAbility (2): Create GetLevelName
+   TWallClimbingAbility (2): Create GetWallCombatFeatures
+   TWaterWalkingEnchantment (2): Create Remove
+   TWebbedAbility (3): Create GetDefense GetTotalDuration
+   TWindWalkingEnchantment (2): Create Remove
+   funcs: RegisterPassiveAbilities TAnimatedAbility TBlessedEnchantment TBloodlustAbility TBurningAbility TCombatResurrectedAbility TConcealmentEnchantment TCrusaderAbility TCursedAbility TDarkGiftEnchantment TDecayAbility TEnchantedWeaponAbility TEntangledAbility TFireAuraEnchantment TFireProtectionEnchantment TFreeMovementAbility TFrozenAbility TFuryAbility THasteAbility THighPrayerBlessingAbility THolyChampionAbility THolyChampionEnchantment THolyFear TImmunityAbility TLiquidFormEnchantment TMarksmanshipAbility TMovementAbility TNaturesBlessingAbility TPanickedAbility TPassWallAbility TPoisonedAbility TProtectionAbility TResurrectedAbility TSlowEnchantmentAbility TStoneSkinAbility TStunnedAbility TSummonedAbility TTurnedUndeadAbility TUnholyChampionAbility TUnholyChampionEnchantment TVertigoAbility TVisionAbility TWallClimbingAbility TWaterWalkingEnchantment TWebbedAbility TWindWalkingEnchantment UnregisterPassiveAbilities
+== PlayerBox  (1 classes, 2 funcs, 1 types)
+   TPlayerComboBox (4): Change GenerateItems Loaded SetPlayerIndex
+   funcs: Register TPlayerComboBox
+== PoisonC  (2 classes, 3 funcs, 2 types)
+   TPoisonCloud (18): Activate ArmyPlaced CanDoDamage CanMoveOver CanSelect ClassID Create GetShowPriority MapFieldMsgProc MsgProc PlaceOnMap ReadWrite RemoveFromMap TriggerDamage UpdateCloud UpdateMapField UpdateMapFields ValidMoveDir
+   TPoisonCloudResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterPoisonCloud TPoisonCloud TPoisonCloudResource
+== PoisonP  (4 classes, 7 funcs, 5 types)
+   TPoisonPlant (18): ArmyPlaced CanDoDamage CanMoveOver ClassID Create MapFieldMsgProc MsgProc NewFrameSummonAnimation NewTurn PlaceOnMap PoisonPlantActive ReadWrite RemoveFromMap RestoreTerrain Show ShowSummonAnimation TriggerArmyDamage UpdateMapField
+   TPoisonPlantResource (3): ClassID ResourceEditName ResourceUserClassID
+   TPoisonPlantSpell (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TPoisonPlantSpellTE (3): ClassID CreatePoisonPlant Process
+   funcs: RegisterPoisonPlant TPoisonPlant TPoisonPlantMode TPoisonPlantResource TPoisonPlantSpell TPoisonPlantSpellTE UnRegisterPoisonPlant
+== PowerNode  (2 classes, 4 funcs, 3 types)
+   TPowerNode (13): Activate ClassID Create Deactivate Destroy GetCombatEventText GetCurrentActivityText GetPower GetRazed ReadWrite SetPlayer SetRazed UpdateAITarget
+   TPowerNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterPowerNode TPowerNode TPowerNodeMode TPowerNodeResource
+== PrdPlace  (4 classes, 7 funcs, 4 types)
+   TProductionPlace (43): Activate BuildingDone CanDblClick CanProduce CanResearch CanTrade ClassID Create CreateProductionControl Deactivate Destroy GenerateDefenders GetBaseIncome GetCurrentActivityText GetIncome GetMagicSphere GetPower GetProductionName GetProductionNameProgressive GetRazed ListIncomeInfo MapFieldMsgProc MasterySpellCast MsgProc NewDay NewTurn Produce ProductionGold ProductionMana ProductionTime ReadWrite Research ResearchGold ResearchMana ResearchTime ResetProductions Select SetPlayer SetRazed StructureCaptured Trade Update UpdateAITarget
+   TProductionPlaceControl (15): CanExecuteProduction ExecuteProduction GetLocation GetPlayer GetProductionName GetProductionNameProgressive NewTurn UnitProduced UnitProductionGold UnitProductionGoldUpkeep UnitProductionMana UnitProductionManaUpkeep UnitProductionTime UnitResearched Update
+   TProductionPlaceEventLog (3): ClassID Execute GetProductionPlace
+   TProductionPlaceResource (7): ClassID Create Destroy Editor ReadWrite ResourceEditName ResourceUserClassID
+   funcs: RegisterProductionPlace TProductionPlace TProductionPlaceControl TProductionPlaceDefendersMode TProductionPlaceEventLog TProductionPlaceMode TProductionPlaceResource
+== Pyramid  (2 classes, 3 funcs, 2 types)
+   TPyramid (1): ClassID
+   TPyramidResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterPyramid TPyramid TPyramidResource
+== RaceBox  (1 classes, 2 funcs, 1 types)
+   TRaceBox (6): Change Create GenerateItems Loaded SetRace SetRaces
+   funcs: Register TRaceBox
+== RandomNode  (2 classes, 3 funcs, 2 types)
+   TRandomNode (1): ClassID
+   TRandomNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterRandomNode TRandomNode TRandomNodeResource
+== ReflectingPool  (2 classes, 3 funcs, 2 types)
+   TReflectingPool (18): Activate ActivatePoolCentering ClassID Create Deactivate DeactivatePoolCentering GetDefaultAITargetPriority ListReflectingPools MapFieldMsgProc NewFrame NotifyPlayerChanged PoolVisionPlayer ReadWrite SetPlayer UpdateExploration UpdateReflectingPoolsExploration UpdateUnfog VisibilityRange
+   TReflectingPoolResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterReflectingPool TReflectingPool TReflectingPoolResource
+== Ruin  (2 classes, 3 funcs, 2 types)
+   TRuin (1): ClassID
+   TRuinResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterRuin TRuin TRuinResource
+== Shipyard  (3 classes, 4 funcs, 3 types)
+   TShipyard (3): ClassID GetBaseIncome UpdateAITarget
+   TShipyardConstructionControl (4): GetInfo ID StructureResource ValidateLocation
+   TShipyardResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterShipyard TShipyard TShipyardConstructionControl TShipyardResource
+== Sign  (3 classes, 4 funcs, 3 types)
+   TSign (10): CanChangeText ChangeText ClassID Create Destroy GetOverlay GetTextSeen ReadWrite Select SetText
+   TSignResource (5): ClassID Create ResourceEditName ResourceUserClassID Show
+   TUpdateSignTE (5): ClassID Create Destroy Execute ReadWrite
+   funcs: RegisterSign TSign TSignResource TUpdateSignTE
+== SmokeCloud  (3 classes, 4 funcs, 3 types)
+   TSmokeCloud (18): Activate CanSelect ClassID Create Deactivate Destroy GetShowPriority MapFieldMsgProc MsgProc PlaceOnMap ReadWrite RemoveFromMap Show UpdateCloud UpdateConcealment UpdateMapField UpdateVisibleForSeatedPlayer ValidMoveDir
+   TSmokeCloudEnchantment (6): ClassID Create Deactivate GetLocation GetName VisibleForPlayer
+   TSmokeCloudResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterSmokeCloud TSmokeCloud TSmokeCloudEnchantment TSmokeCloudResource
+== Spring  (3 classes, 4 funcs, 3 types)
+   TSpringOfLife (5): ArmyPlaced ClassID Create ExecuteNaturesBlessing ShowBlessingAnimation
+   TSpringOfLifeAnimation (2): AnimationControlMode NewFrame
+   TSpringOfLifeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterSpringOfLife TSpringOfLife TSpringOfLifeAnimation TSpringOfLifeResource
+== Storms  (16 classes, 18 funcs, 16 types)
+   TBlastStorm (10): ChangeStormTerrain FinalizeStorm GetTargetDamageInfo InitializeStorm Show StormFileName StormTerrainChanged StormType UpdateStorm UpdateTargetSelection
+   TDeathStorm (5): ChangeStormTerrain ClassID Name StormFileName StormType
+   TDeathStormSpell (2): Create CreateStorm
+   TDivineStorm (5): ChangeStormTerrain ClassID Name StormFileName StormType
+   TDivineStormSpell (2): Create CreateStorm
+   TFireStorm (9): ChangeStormTerrain ClassID FinalizeStorm GetTargetDamageInfo InitializeStorm Name Show UpdateStorm UpdateTargetSelection
+   TFireStormSpell (2): Create CreateStorm
+   TIceStorm (6): ChangeStormTerrain ClassID Name StormFileName StormTerrainChanged StormType
+   TIceStormSpell (2): Create CreateStorm
+   TLightningStorm (8): ClassID FinalizeStorm GetTargetDamageInfo InitializeStorm Name Show UpdateStorm UpdateTargetSelection
+   TLightningStormSpell (2): Create CreateStorm
+   TPestilenceStorm (8): ClassID FinalizeStorm GetTargetDamageInfo InitializeStorm Name Show UpdateStorm UpdateTargetSelection
+   TPestilenceStormSpell (2): Create CreateStorm
+   TStorm (6): FinalizeStorm GetBestTarget InitializeStorm ShowTargetSelection UpdateStorm UpdateTargetSelection
+   TStormSpell (8): AICastSpellPriority AIExecuteCastSpellAction AIPrefetchCastSpellActions Activate CanActivate Create ExecuteStormSpell OnTargetSelectionChange
+   TStormSpellTE (3): ClassID Process ReadWrite
+   funcs: RegisterStorms TBlastStorm TDeathStorm TDeathStormSpell TDivineStorm TDivineStormSpell TFireStorm TFireStormSpell TIceStorm TIceStormSpell TLightningStorm TLightningStormSpell TPestilenceStorm TPestilenceStormSpell TStorm TStormSpell TStormSpellTE UnRegisterStorms
+== SummonSpells  (15 classes, 17 funcs, 15 types)
+   TSummonAirElemental (1): Create
+   TSummonBlackDragon (1): Create
+   TSummonBlackSpider (2): Create SetupSummonSpellTE
+   TSummonBoar (1): Create
+   TSummonEarthElemental (1): Create
+   TSummonFireElemental (1): Create
+   TSummonFireSprite (1): Create
+   TSummonFrog (1): Create
+   TSummonGoldDragon (1): Create
+   TSummonGreatEagle (1): Create
+   TSummonMermaid (1): Create
+   TSummonSpell (8): AIExecuteCastSpellAction AIPrefetchCastSpellActions Activate Create Destroy GetAIUpkeepPriority GetDispelResistance SetupSummonSpellTE
+   TSummonSpellTE (5): ClassID Create Destroy Process ReadWrite
+   TSummonSyron (1): Create
+   TSummonWaterElemental (1): Create
+   funcs: RegisterSummonSpells TSummonAirElemental TSummonBlackDragon TSummonBlackSpider TSummonBoar TSummonEarthElemental TSummonFireElemental TSummonFireSprite TSummonFrog TSummonGoldDragon TSummonGreatEagle TSummonMermaid TSummonSpell TSummonSpellTE TSummonSyron TSummonWaterElemental UnregisterSummonSpells
+== Teleport  (2 classes, 4 funcs, 3 types)
+   TTeleport (15): Activate CanTeleport CanTeleportArmy ClassID Create Deactivate GetRazed MapFieldMsgProc MoveExclusive ReadWrite SetRazed ShowTeleportAnimations Teleport UpdateMapField ValidateMap
+   TTeleportResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterTeleport TTeleport TTeleportMode TTeleportResource
+== Tower  (3 classes, 5 funcs, 4 types)
+   TTower (8): ClassID GetDefaultAITargetPriority GetRazed MapFieldMsgProc ReadWrite SetRazed UpdateAITarget VisibilityRange
+   TTowerConstructionControl (4): CanConstruct GetInfo ID StructureResource
+   TTowerResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterTower TTower TTowerConstructionControl TTowerMode TTowerResource
+== UnHolyG  (4 classes, 7 funcs, 5 types)
+   TUnHolyGround (16): ArmyPlaced CanDoDamage CanMoveOver ClassID MapFieldMsgProc MsgProc NewFrameSummonAnimation NewTurn PlaceOnMap ReadWrite RemoveFromMap RestoreTerrain Show ShowSummonAnimation TriggerArmyDamage UpdateMapField
+   TUnHolyGroundResource (3): ClassID ResourceEditName ResourceUserClassID
+   TUnholyGroundSpell (5): Create SetupTargetSelection TargetSelected ValidTargetMapF ValidTargetSelectionMapF
+   TUnholyGroundSpellTE (3): ClassID CreateUnholyGround Process
+   funcs: RegisterUnHolyGround TUnHolyGround TUnHolyGroundMode TUnHolyGroundResource TUnholyGroundSpell TUnholyGroundSpellTE UnRegisterUnholyGround
+== UnitGrid  (1 classes, 3 funcs, 1 types)
+   TUnitGrid (11): AddUnit Create DblClick DeleteUnit Destroy DrawCell EditUnitDone GetSelectedUnit GetUnit SetShowUnitLevel SetUnits
+   funcs: Register TCanAcceptUnitEvent TUnitGrid
+== UnitIDlg  (1 classes, 2 funcs, 1 types)
+   TUnitInfoDlg (2): ShowUnit ShowUnitResource
+   funcs: TUnitInfoDlg UnitInfoDlg
+== UnitIGrd  (1 classes, 2 funcs, 1 types)
+   TUnitIndexGrid (11): AddUnit Create DblClick DeleteUnit DrawCell GetSelectedUnit GetUnit GetUnitIndex SetShowUnitLevel SetUnitIndex SetUnitIndexList
+   funcs: Register TUnitIndexGrid
+== UnitSpells  (20 classes, 22 funcs, 20 types)
+   TBless (3): Create ExecuteSpell ValidTargetUnit
+   TConcealment (3): Create ExecuteSpell ValidTargetUnit
+   TCosmeticSurgery (5): CastSpell Create ExecuteSpell GetCombatInfo ValidTargetUnit
+   TCosmeticSurgerySpellCaster (2): CanCast Cast
+   TDarkGift (3): Create ExecuteSpell ValidTargetUnit
+   TDispelMagic (7): Create CreateCA ExecuteSpell GetCombatInfo GetDispelMana ValidTargetParty ValidTargetUnit
+   TDispelMagicSpellCA (3): ClassID Execute ReadWrite
+   TEnchantWeapon (3): Create ExecuteSpell ValidTargetUnit
+   TFireAura (4): Create ExecuteSpell PlayDefaultCastEffects ValidTargetUnit
+   TFreeMovement (3): Create ExecuteSpell ValidTargetUnit
+   TFury (4): Create ExecuteSpell PlayDefaultCastEffects ValidTargetUnit
+   THaste (3): Create ExecuteSpell ValidTargetUnit
+   THealingWater (3): Create ExecuteSpell ValidTargetUnit
+   THolyChampion (3): Create ExecuteSpell ValidTargetUnit
+   TLiquidForm (4): Create ExecuteSpell PlayDefaultCastEffects ValidTargetUnit
+   TRemedy (3): Create ExecuteSpell ValidTargetUnit
+   TStoneSkin (3): Create ExecuteSpell ValidTargetUnit
+   TUnholyChampion (3): Create ExecuteSpell ValidTargetUnit
+   TWaterWalking (3): Create ExecuteSpell ValidTargetUnit
+   TWindWalking (3): Create ExecuteSpell ValidTargetUnit
+   funcs: RegisterUnitSpells TBless TConcealment TCosmeticSurgery TCosmeticSurgerySpellCaster TDarkGift TDispelMagic TDispelMagicSpellCA TEnchantWeapon TFireAura TFreeMovement TFury THaste THealingWater THolyChampion TLiquidForm TRemedy TStoneSkin TUnholyChampion TWaterWalking TWindWalking UnregisterUnitSpells
+== UnitTabC  (1 classes, 3 funcs, 1 types)
+   TUnitTabControl (7): Change Create Destroy SetUnitIndexGrid UnitIndexGridSelectCell UpdateSelection UpdateUnitIndexGrid
+   funcs: Register TOnSelectUnitEvent TUnitTabControl
+== WaterNode  (2 classes, 3 funcs, 2 types)
+   TWaterNode (2): ClassID GetMagicSphere
+   TWaterNodeResource (4): ClassID Create ResourceEditName ResourceUserClassID
+   funcs: RegisterWaterNode TWaterNode TWaterNodeResource
+== WizardsTower  (3 classes, 4 funcs, 3 types)
+   TEnterWizardsTowerEventLog (2): Create Destroy
+   TWizardsTower (15): ArmyPlaced Buy BuyCost CanBuy CanDblClick CanEnter ClassID Create Enter ExecuteTE GenerateSettings NewDay ReadWrite UpdateAITarget ValidAITarget
+   TWizardsTowerResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterWizardsTower TEnterWizardsTowerEventLog TWizardsTower TWizardsTowerResource

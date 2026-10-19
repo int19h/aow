@@ -1,0 +1,2120 @@
+# D:\Games\GOG\Age of Wonders\AoWEd.exe: 136 classes
+class TNewMapDlg (TForm) size=552 virtuals=32 vmt=004031C0
+  field  +01DC Panel1                         TPanel
+  field  +01E0 CancelBtn                      TButton
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 ClientPnl                      TPanel
+  field  +01EC MainPageControl                TPageControl
+  field  +01F0 GeneralSheet                   TTabSheet
+  field  +01F4 Bevel1                         TBevel
+  field  +01F8 MapSizePnl                     TPanel
+  field  +01FC ExtraLargeRB                   TRadioButton
+  field  +0200 LargeRB                        TRadioButton
+  field  +0204 MediumRB                       TRadioButton
+  field  +0208 SmallRB                        TRadioButton
+  field  +020C Label1                         TLabel
+  field  +0210 MapLevelPnl                    TPanel
+  field  +0214 Label2                         TLabel
+  field  +0218 OneLevel                       TRadioButton
+  field  +021C TwoLevels                      TRadioButton
+  field  +0220 ThreeLevels                    TRadioButton
+  field  +0224 Translator                     TIvTranslator
+  method 004034D4 OKBtnClick
+  unit NewMapDialog
+class TFontModule (TDataModule) size=80 virtuals=10 vmt=0040360C
+  field  +0044 Age10                          TImageLibraryFont
+  field  +0048 SmallFont                      TImageLibraryFont
+  field  +004C Age08                          TImageLibraryFont
+  method 004036B8 FontModuleCreate
+  unit FontMod
+class TMapObjectResourceEditForm (TForm) size=804 virtuals=38 vmt=004037F0
+  field  +01DC BottomPanel                    TPanel
+  field  +01E0 CloseBtn                       TButton
+  field  +01E4 CancelBtn                      TButton
+  field  +01E8 BottomBevel                    TBevel
+  field  +01EC MainPageControl                TPageControl
+  field  +01F0 SettingsSheet                  TTabSheet
+  field  +01F4 SettingsPanel                  TPanel
+  field  +01F8 SettingsWindowsDC              TWindows16DC
+  field  +01FC Panel5                         TPanel
+  field  +0200 Panel3                         TPanel
+  field  +0204 Label3                         TLabel
+  field  +0208 LevelBox                       TComboBox
+  field  +020C AnimationPanel                 TPanel
+  field  +0210 ComplexBox                     TCheckBox
+  field  +0214 AniSheet                       TTabSheet
+  field  +0218 OpenILDlg                      TOpenDialog
+  field  +021C TerrainPanel                   TPanel
+  field  +0220 Label1                         TLabel
+  field  +0224 TerrainComboBox                TTerrainComboBox
+  field  +0228 OverlayTerrainPanel            TPanel
+  field  +022C Label2                         TLabel
+  field  +0230 OverlayComboBox                TTerrainComboBox
+  field  +0234 LoadPanel                      TPanel
+  field  +0238 LoadImageSetBtn                TButton
+  field  +023C Panel2                         TPanel
+  field  +0240 Label6                         TLabel
+  field  +0244 Label7                         TLabel
+  field  +0248 MORComboBox                    TComboBox
+  field  +024C NameEdit                       TEdit
+  field  +0250 Panel1                         TPanel
+  field  +0254 Display                        TDisplay
+  field  +0258 ImageLibraryGrid               TImageLibraryGrid
+  field  +025C Panel4                         TPanel
+  field  +0260 Panel7                         TPanel
+  field  +0264 Panel8                         TPanel
+  field  +0268 ImageIndexSelector             TDrawGrid
+  field  +026C OpenLayerBtn                   TSpeedButton
+  field  +0270 CloseLayerBtn                  TSpeedButton
+  field  +0274 PreviewImagePanel              TPanel
+  field  +0278 Label8                         TLabel
+  field  +027C PreviewFramesEdit              TEdit
+  field  +0280 Panel9                         TPanel
+  field  +0284 Label9                         TLabel
+  field  +0288 ResourceIDEdit                 TEdit
+  field  +028C Windows16DC1                   TWindows16DC
+  field  +0290 ImageSequencer                 TImageSequencer
+  field  +0294 Windows16DC2                   TWindows16DC
+  field  +0298 SequenceLayerSelector          TSequenceLayerSelector
+  field  +029C PreviewILGrid                  TImageLibraryGrid
+  field  +02A0 Panel6                         TPanel
+  field  +02A4 AniSettingsBox                 TGroupBox
+  field  +02A8 Label4                         TLabel
+  field  +02AC Label5                         TLabel
+  field  +02B0 SequenceSpeedBox               TComboBox
+  field  +02B4 SequenceModeBox                TComboBox
+  field  +02B8 GroupBox1                      TGroupBox
+  field  +02BC FrameTableEdit                 TEdit
+  field  +02C0 GroupBox3                      TGroupBox
+  field  +02C4 LayerSpin                      TSpin
+  field  +02C8 SequenceDisplayEditor          TSequenceDisplayEditor
+  field  +02CC PlayModeBox                    TGroupBox
+  field  +02D0 PlayLooped                     TCheckBox
+  field  +02D4 PlayBtn                        TButton
+  field  +02D8 ILPanelLarge                   TPanel
+  field  +02DC ILManagerComboBox              TILManagerComboBox
+  field  +02E0 ImageLibraryLabel              TLabel
+  field  +02E4 BKColorLabel                   TLabel
+  field  +02E8 ChangeBKColor                  TButton
+  field  +02EC ColorDialog                    TColorDialog
+  method 004047EC FormClose
+  method 0040487C CloseBtnClick
+  method 004048A0 CancelBtnClick
+  method 004048B0 MORComboBoxChange
+  method 00404774 FormCreate
+  method 00404BBC ComplexBoxClick
+  method 00404BE4 TerrainComboBoxChange
+  method 00404C04 OverlayComboBoxChange
+  method 00404C38 LevelBoxChange
+  method 00404C70 NameEditChange
+  method 00404CC8 LoadImageSetBtnClick
+  method 00404D54 ImageIndexSelectorDrawCell
+  method 00404EF0 PreviewFramesEditChange
+  method 00404F44 MainPageControlChange
+  method 00404FD8 DisplayKeyDown
+  method 0040528C FrameTableEditChange
+  method 00405414 ILManagerComboBoxChange
+  method 00405480 ImageSequencerChange
+  method 0040566C ImageSequencerCreateImageSequence
+  method 0040567C LayerSpinUpdate
+  method 004056F0 SequenceDisplayEditorResizeBackSurface
+  method 00405730 SequenceDisplayEditorUpdateFrame
+  method 00405860 SequenceModeBoxChange
+  method 00405894 SequenceSpeedBoxChange
+  method 004058CC SequenceDisplayEditorActivateDC
+  method 00405170 DisplayUpdateFrame
+  method 004058D4 OpenLayerBtnClick
+  method 004058E0 CloseLayerBtnClick
+  method 004058EC ImageIndexSelectorSelectCell
+  method 0040590C PlayBtnClick
+  method 0040591C PlayLoopedClick
+  method 00405938 ChangeBKColorClick
+  method 00405978 ExEditClick
+  method 004059B0 ImageIndexSelectorKeyDown
+  method 00405CE8 ResourceIDEditChange
+  unit RMapObj
+class TMapObjectResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00404200
+class TMultiHexResourceEditForm (TMapObjectResourceEditForm) size=828 virtuals=40 vmt=00405DD8
+  field  +0324 BtnPanel                       TPanel
+  field  +0328 SelectBtn                      TSpeedButton
+  field  +032C DragBtn                        TSpeedButton
+  field  +0330 MainPBtn                       TSpeedButton
+  method 00406764 DisplayMouseDown
+  method 004068A4 DisplayMouseMove
+  method 00406998 DisplayMouseUp
+  method 004069BC SelectBtnClick
+  method 004069C4 DragBtnClick
+  method 004069CC MainPBtnClick
+  method 004069D4 TerrainComboBoxChange
+  method 00406430 DisplayUpdateFrame
+  method 004069D8 ComplexBoxClick
+  unit RMultiHx
+class TMultiHexResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00406020
+class TTerrainResourceEditForm (TMultiHexResourceEditForm) size=840 virtuals=40 vmt=00406AAC
+  field  +033C Panel10                        TPanel
+  field  +0340 Label10                        TLabel
+  field  +0344 DecorationComboBox             TComboBox
+  method 00406C30 TerrainComboBoxChange
+  method 00406CAC FormCreate
+  method 00406CE4 DecorationComboBoxChange
+  unit RTerrain
+class TILTerrainResourceEditForm (TMultiHexResourceEditForm) size=828 virtuals=40 vmt=00406D84
+  unit RILTer
+class TILTerrainResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00406EB4
+class TPadEditForm (TILTerrainResourceEditForm) size=828 virtuals=40 vmt=00407264
+  unit RPad
+class TPadResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00407378
+class TBridgeResourceEditForm (TMapObjectResourceEditForm) size=804 virtuals=38 vmt=00407494
+  unit RBridge
+class TBridgeResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=004075B8
+class TTerrainTypeSelectionForm (TForm) size=500 virtuals=33 vmt=004076D8
+  field  +01DC OKBtn                          TButton
+  field  +01E0 CancelBtn                      TButton
+  field  +01E4 Panel1                         TPanel
+  field  +01E8 Label1                         TLabel
+  field  +01EC Label2                         TLabel
+  field  +01F0 TerrainComboBox                TTerrainComboBox
+  unit TerTSFrm
+class THexagonResourceEditForm (TMapObjectResourceEditForm) size=804 virtuals=38 vmt=00407908
+  method 00407CC8 FormCreate
+  unit RHexagon
+class THexagonResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00407A40
+class TRoadResourceEditForm (TMapObjectResourceEditForm) size=804 virtuals=38 vmt=00407D74
+  unit RRoad
+class TRoadResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00407E94
+class TIsometricHexagonEditForm (TMapObjectResourceEditForm) size=804 virtuals=38 vmt=00407FB0
+  method 0040819C FormCreate
+  unit RIsoHex
+class TIsometricHexagonResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=004080EC
+class TAoWTerrainResourceEditForm (TTerrainResourceEditForm) size=852 virtuals=40 vmt=0040822C
+  field  +0348 CombatTerrainTagPanel          TPanel
+  field  +034C Label11                        TLabel
+  field  +0350 CombatTerrainTagBox            TComboBox
+  method 00408498 FormCreate
+  method 004084E4 CombatTerrainTagBoxChange
+  unit RAoWTer
+class TAoWTerrainResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=004083EC
+class TUnitFloater (TForm) size=512 virtuals=32 vmt=00408588
+  field  +01DC MainPageControl                TPageControl
+  field  +01E0 UnitSelectionSheet             TTabSheet
+  field  +01E4 UnitTabControl                 TUnitTabControl
+  field  +01E8 UnitSelectionGrid              TUnitIndexGrid
+  field  +01EC HeroSelectionSheet             TTabSheet
+  field  +01F0 HeroControlGrid                THeroControlGrid
+  field  +01F4 MapControl                     TAoWMapControl
+  field  +01F8 Translator                     TIvTranslator
+  method 0040899C HeroSelectionSheetEnter
+  method 004089BC FormShow
+  method 00408948 HeroControlGridSelectCell
+  method 004089DC MapControlActivateHSM
+  method 004089F0 MapControlDeactivateHSM
+  unit UnitFlt
+class TConstructionResourceEditForm (TMultiHexResourceEditForm) size=888 virtuals=40 vmt=00408A78
+  field  +033C TabSheet1                      TTabSheet
+  field  +0340 SelectSampleBox                TGroupBox
+  field  +0344 SFXManagerBox                  TSFXManagerComboBox
+  field  +0348 LoopBox                        TCheckBox
+  field  +034C PlaySample                     TSpeedButton
+  field  +0350 Label10                        TLabel
+  field  +0354 DescriptionSheet               TTabSheet
+  field  +0358 DescriptionMemo                TMemo
+  field  +035C CombatTerrainTagPanel          TPanel
+  field  +0360 CTTLabel                       TLabel
+  field  +0364 CombatTerrainTagEdit           TSpin
+  field  +0368 RazeDefendersSheet             TTabSheet
+  field  +036C RazeDefendersGrid              TUnitIndexGrid
+  field  +0370 AddRazeDefender                TButton
+  field  +0374 DeleteRazeDefender             TButton
+  method 004091FC LoopBoxClick
+  method 00409218 PlaySampleClick
+  method 0040927C SFXManagerBoxChange
+  method 004092D4 CloseBtnClick
+  method 00409338 CombatTerrainTagEditChange
+  method 00409354 AddRazeDefenderClick
+  method 004093A4 DeleteRazeDefenderClick
+  method 004093D4 MainPageControlChange
+  method 00409454 FormHide
+  unit RConstr
+class TConstructionResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00408DFC
+class TOverlayObjectResourceEditForm (TILTerrainResourceEditForm) size=840 virtuals=40 vmt=004094DC
+  field  +033C CombatTerrainTagPanel          TPanel
+  field  +0340 CTTLabel                       TLabel
+  field  +0344 CombatTerrainTagEdit           TSpin
+  method 00409798 CombatTerrainTagEditChange
+  unit ROverlay
+class TOverlayObjectResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00409694
+class TPlayerStructureResourceEditForm (TConstructionResourceEditForm) size=888 virtuals=40 vmt=0040982C
+  unit RPlayerStructure
+class TPlayerStructureResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00409974
+class TCityResourceEditForm (TPlayerStructureResourceEditForm) size=888 virtuals=40 vmt=00409A9C
+  method 00409D38 ComplexBoxClick
+  unit RCity
+class TCityResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00409BDC
+class TProdPlaceResEditForm (TPlayerStructureResourceEditForm) size=908 virtuals=40 vmt=00409DB4
+  field  +0378 ProductionSheet                TTabSheet
+  field  +037C GroupBox4                      TGroupBox
+  field  +0380 ProductionGrid                 TUnitIndexGrid
+  field  +0384 AddBtn                         TButton
+  field  +0388 DeleteBtn                      TButton
+  method 0040A108 AddBtnClick
+  method 0040A114 DeleteBtnClick
+  method 0040A078 FormCreate
+  method 0040A0F8 FormDestroy
+  method 0040A120 MainPageControlChange
+  method 0040A14C CloseBtnClick
+  unit RProdP
+class TProductionPlaceResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00409FC8
+class TFireResourceEditForm (TILTerrainResourceEditForm) size=840 virtuals=40 vmt=0040A1E4
+  field  +033C Panel10                        TPanel
+  field  +0340 Label10                        TLabel
+  field  +0344 FireTypeBox                    TComboBox
+  method 0040A41C FireTypeBoxChange
+  method 0040A438 FormCreate
+  unit RFire
+class TFireResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040A378
+class TExplorationSiteResourceEditForm (TConstructionResourceEditForm) size=908 virtuals=40 vmt=0040A4D4
+  field  +0378 DefendersSheet                 TTabSheet
+  field  +037C DefendersGrid                  TUnitIndexGrid
+  field  +0380 AddDefender                    TButton
+  field  +0384 DeleteDefender                 TButton
+  field  +0388 Label11                        TLabel
+  method 0040A7AC FormCreate
+  method 0040A7D0 MainPageControlChange
+  method 0040A850 FormDestroy
+  method 0040A860 AddDefenderClick
+  method 0040A8B0 DeleteDefenderClick
+  unit RExploreS
+class TExplorationSiteResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040A6FC
+class TDungeonResourceEditForm (TExplorationSiteResourceEditForm) size=928 virtuals=40 vmt=0040A958
+  field  +038C PrisonersSheet                 TTabSheet
+  field  +0390 Label12                        TLabel
+  field  +0394 PrisonersGrid                  TUnitIndexGrid
+  field  +0398 AddPrisoner                    TButton
+  field  +039C DeletePrisoners                TButton
+  method 0040AC08 MainPageControlChange
+  method 0040AC7C AddPrisonerClick
+  method 0040ACCC DeletePrisonersClick
+  method 0040ACFC FormCreate
+  unit RDungeon
+class TDungeonResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040AB60
+class TCombatTerrainResourceEditForm (TTerrainResourceEditForm) size=876 virtuals=40 vmt=0040AD98
+  field  +0348 CombatSettings                 TTabSheet
+  field  +034C CPanel                         TPanel
+  field  +0350 DefenseValue                   TLabel
+  field  +0354 BurnValue                      TLabel
+  field  +0358 DefenseValueEdit               TSpin
+  field  +035C BurnValueEdit                  TSpin
+  field  +0360 Label11                        TLabel
+  field  +0364 HitPointsEdit                  TSpin
+  field  +0368 MeleeTargetEdit                TCheckBox
+  method 0040B070 FormCreate
+  method 0040B438 CloseBtnClick
+  unit RCTerrain
+class TCombatTerrainResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040AFC0
+class TCombatILTerrainResourceEditForm (TILTerrainResourceEditForm) size=864 virtuals=40 vmt=0040B534
+  field  +033C CombatSettings                 TTabSheet
+  field  +0340 CPanel                         TPanel
+  field  +0344 DefenseValue                   TLabel
+  field  +0348 BurnValue                      TLabel
+  field  +034C DefenseValueEdit               TSpin
+  field  +0350 BurnValueEdit                  TSpin
+  field  +0354 CityWallPanel                  TPanel
+  field  +0358 Label10                        TLabel
+  field  +035C CityWallDirectionEdit          TSpin
+  method 0040B830 FormCreate
+  method 0040B8A8 CloseBtnClick
+  method 0040B8F8 CityWallDirectionEditUpdate
+  unit RCILTer
+class TCombatILTerrainResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040B780
+class TResourceEditForm (TForm) size=508 virtuals=33 vmt=0040B99C
+  field  +01DC Panel1                         TPanel
+  field  +01E0 CancelBtn                      TButton
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 Bevel2                         TBevel
+  method 0040BBF0 FormClose
+  unit ResEForm
+class TAoWResourceEditForm (TResourceEditForm) size=508 virtuals=33 vmt=0040BC6C
+  unit AoWREFrm
+class TSpinButton (TWinControl) size=312 virtuals=31 vmt=0040BE70
+  unit Spin
+  prop   Align                          TAlign                       get=field+0048 set=static 004014E0 default=0
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 004016E8
+  prop   DownGlyph                      TBitmap                      get=static 0040CF74 set=static 0040CF80
+  prop   DownNumGlyphs                  TNumGlyphs                   get=static 0040CFE0 set=static 0040CFEC default=1
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401548 default=1
+  prop   FocusControl                   TWinControl                  get=field+0124 set=field+0124
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 004016F8 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00401590 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00401550
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00401588
+  prop   TabOrder                       TTabOrder                    get=static 00401700 set=static 00401708 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 00401710 default=0
+  prop   UpGlyph                        TBitmap                      get=static 0040CEF4 set=static 0040CF00
+  prop   UpNumGlyphs                    TNumGlyphs                   get=static 0040CF5C set=static 0040CF68 default=1
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401540 default=1
+  prop   OnDownClick                    TNotifyEvent                 get=field+0130 set=field+0130
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+  prop   OnUpClick                      TNotifyEvent                 get=field+0128 set=field+0128
+class TSpinEdit (TCustomEdit) size=324 virtuals=42 vmt=0040C300
+  unit Spin
+  prop   AutoSelect                     Boolean                      get=field+0120 set=field+0120 default=1
+  prop   AutoSize                       Boolean                      get=field+011F set=static 00401A08 default=1
+  prop   Color                          TColor                       get=field+0054 set=static 00401598 default=-2147483643
+  prop   Ctl3D                          Boolean                      get=field+00D5 set=static 004016E8
+  prop   DragCursor                     TCursor                      get=field+005A set=field+005A default=-12
+  prop   DragMode                       TDragMode                    get=field+0049 set=virt+0038 default=0
+  prop   EditorEnabled                  Boolean                      get=field+0140 set=field+0140 default=1
+  prop   Enabled                        Boolean                      get=field+0045 set=static 00401548 default=1
+  prop   Font                           TFont                        get=field+0050 set=static 00401568
+  prop   Increment                      Integer                      get=field+0138 set=field+0138 default=1
+  prop   MaxLength                      Integer                      get=field+0118 set=static 00401A10 default=0
+  prop   MaxValue                       Integer                      get=field+0134 set=field+0134
+  prop   MinValue                       Integer                      get=field+0130 set=field+0130
+  prop   ParentColor                    Boolean                      get=field+0047 set=static 004015A8 default=0
+  prop   ParentCtl3D                    Boolean                      get=field+00D6 set=static 004016F8 default=1
+  prop   ParentFont                     Boolean                      get=field+0046 set=static 00401580 default=1
+  prop   ParentShowHint                 Boolean                      get=field+006A set=static 00401590 default=1
+  prop   PopupMenu                      TPopupMenu                   get=field+005C set=static 00401550
+  prop   ReadOnly                       Boolean                      get=field+011E set=static 00401A18 default=0
+  prop   ShowHint                       Boolean                      get=field+0069 set=static 00401588
+  prop   TabOrder                       TTabOrder                    get=static 00401700 set=static 00401708 default=-1
+  prop   TabStop                        Boolean                      get=field+00D4 set=static 00401710 default=1
+  prop   Value                          Integer                      get=static 0040D4B8 set=static 0040D540
+  prop   Visible                        Boolean                      get=field+0044 set=static 00401540 default=1
+  prop   OnChange                       TNotifyEvent                 get=field+0128 set=field+0128
+  prop   OnClick                        TNotifyEvent                 get=field+00A4 set=field+00A4
+  prop   OnDblClick                     TNotifyEvent                 get=field+00AC set=field+00AC
+  prop   OnDragDrop                     TDragDropEvent               get=field+0084 set=field+0084
+  prop   OnDragOver                     TDragOverEvent               get=field+008C set=field+008C
+  prop   OnEndDrag                      TEndDragEvent                get=field+009C set=field+009C
+  prop   OnEnter                        TNotifyEvent                 get=field+0104 set=field+0104
+  prop   OnExit                         TNotifyEvent                 get=field+010C set=field+010C
+  prop   OnKeyDown                      TKeyEvent                    get=field+00EC set=field+00EC
+  prop   OnKeyPress                     TKeyPressEvent               get=field+00F4 set=field+00F4
+  prop   OnKeyUp                        TKeyEvent                    get=field+00FC set=field+00FC
+  prop   OnMouseDown                    TMouseEvent                  get=field+006C set=field+006C
+  prop   OnMouseMove                    TMouseMoveEvent              get=field+0074 set=field+0074
+  prop   OnMouseUp                      TMouseEvent                  get=field+007C set=field+007C
+  prop   OnStartDrag                    TStartDragEvent              get=field+0094 set=field+0094
+class TTimerSpeedButton (TSpeedButton) size=216 virtuals=22 vmt=0040C9B4
+  unit Spin
+class TAoWDialog (TForm) size=480 virtuals=32 vmt=0040D824
+  method 0040D954 FormShow
+  unit AoWDlg
+class TUnitGFXGeneraterDlg (TAoWDialog) size=572 virtuals=32 vmt=0040DA44
+  field  +01E0 Panel2                         TPanel
+  field  +01E4 Panel3                         TPanel
+  field  +01E8 GenerateBtn                    TButton
+  field  +01EC CancelBtn                      TButton
+  field  +01F0 Label1                         TLabel
+  field  +01F4 StandStillEdit                 TEdit
+  field  +01F8 Label2                         TLabel
+  field  +01FC MoveEdit                       TEdit
+  field  +0200 Label3                         TLabel
+  field  +0204 Label4                         TLabel
+  field  +0208 AttackEdit                     TEdit
+  field  +020C HitEdit                        TEdit
+  field  +0210 Panel4                         TPanel
+  field  +0214 Label5                         TLabel
+  field  +0218 ILManagerComboBox              TILManagerComboBox
+  field  +021C Panel1                         TPanel
+  field  +0220 Label6                         TLabel
+  field  +0224 Label7                         TLabel
+  field  +0228 XshiftEdit                     TSpin
+  field  +022C YshiftEdit                     TSpin
+  field  +0230 Label8                         TLabel
+  field  +0234 SequenceSpeedBox               TComboBox
+  method 0040DFE4 GenerateBtnClick
+  unit EUGFXGen
+class TUnitGFXResourceEditForm (TAoWResourceEditForm) size=764 virtuals=33 vmt=0040E2F8
+  field  +01FC Panel2                         TPanel
+  field  +0200 Windows16DC1                   TWindows16DC
+  field  +0204 Panel3                         TPanel
+  field  +0208 UnitGFXNameEdit                TEdit
+  field  +020C PageControl1                   TPageControl
+  field  +0210 FramesSheet                    TTabSheet
+  field  +0214 FaceSheet                      TTabSheet
+  field  +0218 Panel4                         TPanel
+  field  +021C Panel5                         TPanel
+  field  +0220 Panel8                         TPanel
+  field  +0224 OpenLayerBtn                   TSpeedButton
+  field  +0228 CloseLayerBtn                  TSpeedButton
+  field  +022C ImageIndexSelector             TEditStringGrid
+  field  +0230 GroupBox4                      TGroupBox
+  field  +0234 FaceImagePanel                 TImageLibraryPanel
+  field  +0238 FaceImageLibraryPreviewGrid    TImageLibraryGrid
+  field  +023C FaceILManagerComboBox          TILManagerComboBox
+  field  +0240 FaceIndexSpin                  TSpin
+  field  +0244 Label1                         TLabel
+  field  +0248 Label2                         TLabel
+  field  +024C ImageSequencer                 TImageSequencer
+  field  +0250 Windows16DC2                   TWindows16DC
+  field  +0254 SequenceLayerSelector          TSequenceLayerSelector
+  field  +0258 PreviewILGrid                  TImageLibraryGrid
+  field  +025C Panel6                         TPanel
+  field  +0260 AniSettingsBox                 TGroupBox
+  field  +0264 Label4                         TLabel
+  field  +0268 Label5                         TLabel
+  field  +026C SequenceSpeedBox               TComboBox
+  field  +0270 SequenceModeBox                TComboBox
+  field  +0274 GroupBox1                      TGroupBox
+  field  +0278 FrameTableEdit                 TEdit
+  field  +027C GroupBox2                      TGroupBox
+  field  +0280 ILManagerComboBox              TILManagerComboBox
+  field  +0284 GroupBox3                      TGroupBox
+  field  +0288 LayerSpin                      TSpin
+  field  +028C GenerateBtn                    TButton
+  field  +0290 SFXSheet                       TTabSheet
+  field  +0294 GroupBox5                      TGroupBox
+  field  +0298 PlayHitSample                  TSpeedButton
+  field  +029C Panel7                         TPanel
+  field  +02A0 Panel9                         TPanel
+  field  +02A4 Panel10                        TPanel
+  field  +02A8 SequenceDisplayEditor          TSequenceDisplayEditor
+  field  +02AC GroupBox6                      TGroupBox
+  field  +02B0 MoveSpeedBox                   TComboBox
+  field  +02B4 GroupBox8                      TGroupBox
+  field  +02B8 SpeedButton1                   TSpeedButton
+  field  +02BC GroupBox9                      TGroupBox
+  field  +02C0 SpeedButton2                   TSpeedButton
+  field  +02C4 GroupBox10                     TGroupBox
+  field  +02C8 SpeedButton3                   TSpeedButton
+  field  +02CC EditStandstillSFX              TButton
+  field  +02D0 EditMoveSFX                    TButton
+  field  +02D4 EditMeleeSFX                   TButton
+  field  +02D8 EditDieSFX                     TButton
+  field  +02DC GroupBox7                      TGroupBox
+  field  +02E0 SpeedButton4                   TSpeedButton
+  field  +02E4 Button1                        TButton
+  field  +02E8 GroupBox11                     TGroupBox
+  field  +02EC Label3                         TLabel
+  field  +02F0 ChangeColor                    TButton
+  field  +02F4 ColorDialog                    TColorDialog
+  method 0040ED34 FormCreate
+  method 0040F02C LayerSpinUpdate
+  method 0040EFC0 ILManagerComboBoxChange
+  method 0040F0A0 SequenceModeBoxChange
+  method 0040F0D4 SequenceSpeedBoxChange
+  method 0040F144 FrameTableEditChange
+  method 0040F2CC ImageSequencerChange
+  method 0040F4B8 OpenLayerBtnClick
+  method 0040F4C4 CloseLayerBtnClick
+  method 0040F4D0 ImageIndexSelectorSelectCell
+  method 0040F5F4 SequenceDisplayEditorResizeBackSurface
+  method 0040F628 ImageSequencerCreateImageSequence
+  method 0040F638 UnitGFXNameEditChange
+  method 0040F690 FaceIndexSpinUpdate
+  method 0040F6C4 FaceILManagerComboBoxChange
+  method 0040F740 GenerateBtnClick
+  method 0040F55C SequenceDisplayEditorStartUpdateFrame
+  method 0040F774 MoveSpeedBoxChange
+  method 0040F790 SequenceDisplayEditorShowImageSequence
+  method 0040F85C EditStandstillSFXClick
+  method 0040F86C EditMoveSFXClick
+  method 0040F87C EditMeleeSFXClick
+  method 0040F88C EditDieSFXClick
+  method 0040F89C Button1Click
+  method 0040F8AC ImageIndexSelectorKeyDown
+  method 0040FBA8 ChangeColorClick
+  unit EUnitGFX
+class TUnitGFXResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0040EBC0
+class TAbstractUnitResourceEditForm (TAoWResourceEditForm) size=536 virtuals=33 vmt=0040FCC4
+  field  +01FC MainPageControl                TPageControl
+  field  +0200 GFXSFXSheet                    TTabSheet
+  field  +0204 GFXGroupBox                    TGroupBox
+  field  +0208 Label1                         TLabel
+  field  +020C UnitGFXBox                     TComboBox
+  field  +0210 PreviewImagePanel              TDrawPanel
+  method 0040FE78 FormCreate
+  method 0040FEF0 UnitGFXBoxChange
+  method 0040FF44 PreviewImagePanelDraw
+  unit EAUnitRes
+class TAbilitySelectionDlg (TAoWDialog) size=536 virtuals=38 vmt=00410004
+  field  +01E0 BottomPnl                      TPanel
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 CancelBtn                      TButton
+  field  +01EC ClientPnl                      TPanel
+  field  +01F0 MainPageControl                TPageControl
+  field  +01F4 GeneralSheet                   TTabSheet
+  field  +01F8 AddBtn                         TButton
+  field  +01FC DeleteBtn                      TButton
+  field  +0200 SelectedAbBox                  TListBox
+  field  +0204 AvailableAbBox                 TListBox
+  field  +0208 Panel2                         TPanel
+  field  +020C Panel3                         TPanel
+  field  +0210 Translator                     TIvTranslator
+  method 00410680 AddBtnClick
+  method 004106D4 DeleteBtnClick
+  method 00410728 FormShow
+  method 00410758 AvailableAbBoxClick
+  method 00410760 SelectedAbBoxClick
+  unit SelAbDlg
+class TUnitResourceEditForm (TAbstractUnitResourceEditForm) size=732 virtuals=33 vmt=004107E0
+  field  +0218 StatisticsSheet                TTabSheet
+  field  +021C Panel3                         TPanel
+  field  +0220 GroupBox2                      TGroupBox
+  field  +0224 Label11                        TLabel
+  field  +0228 Label13                        TLabel
+  field  +022C Label14                        TLabel
+  field  +0230 Label15                        TLabel
+  field  +0234 Label16                        TLabel
+  field  +0238 Label17                        TLabel
+  field  +023C GroupBox1                      TGroupBox
+  field  +0240 GeneralSheet                   TTabSheet
+  field  +0244 Panel2                         TPanel
+  field  +0248 GroupBox3                      TGroupBox
+  field  +024C Label4                         TLabel
+  field  +0250 Label5                         TLabel
+  field  +0254 Label6                         TLabel
+  field  +0258 Label8                         TLabel
+  field  +025C Label12                        TLabel
+  field  +0260 Label18                        TLabel
+  field  +0264 Label2                         TLabel
+  field  +0268 UnitNameEdit                   TEdit
+  field  +026C ClassNameEdit                  TEdit
+  field  +0270 AlignmentBox                   TAlignmentBox
+  field  +0274 RaceBox                        TRaceBox
+  field  +0278 UnitTypeBox                    TComboBox
+  field  +027C UnitLevelEdit                  TSpin
+  field  +0280 GenderBox                      TComboBox
+  field  +0284 Label7                         TLabel
+  field  +0288 TransportCapacityEdit          TSpin
+  field  +028C AttackEdit                     TSpin
+  field  +0290 DefenseEdit                    TSpin
+  field  +0294 ResistanceEdit                 TSpin
+  field  +0298 DamageEdit                     TSpin
+  field  +029C HitsEdit                       TSpin
+  field  +02A0 MovesEdit                      TSpin
+  field  +02A4 CostLabel                      TLabel
+  field  +02A8 CostEdit                       TSpin
+  field  +02AC DescriptionSheet               TTabSheet
+  field  +02B0 Panel8                         TPanel
+  field  +02B4 DescriptionMemo                TMemo
+  field  +02B8 Label3                         TLabel
+  field  +02BC UnitSizeBox                    TComboBox
+  field  +02C0 Label9                         TLabel
+  field  +02C4 BloodTypeBox                   TComboBox
+  field  +02C8 AbilityRankTabs                TTabControl
+  field  +02CC AbilityListBox                 TListBox
+  field  +02D0 AbilityBtn                     TButton
+  method 00410F24 FormDestroy
+  method 00410F70 RaceBoxChange
+  method 00410FB4 AbilityBtnClick
+  method 00411030 OKBtnClick
+  method 00410D50 FormCreate
+  method 004111D0 AbilityRankTabsChange
+  unit EUnitRes
+class TUnitResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00410CAC
+class TRaceResourceEditForm (TAoWResourceEditForm) size=632 virtuals=33 vmt=00411264
+  field  +01FC PageControl1                   TPageControl
+  field  +0200 GeneralSheet                   TTabSheet
+  field  +0204 UnitSheet                      TTabSheet
+  field  +0208 Label1                         TLabel
+  field  +020C Label2                         TLabel
+  field  +0210 Label3                         TLabel
+  field  +0214 Label4                         TLabel
+  field  +0218 Label6                         TLabel
+  field  +021C ILManagerComboBox              TILManagerComboBox
+  field  +0220 AlignmentBox                   TAlignmentBox
+  field  +0224 RaceNameAdjectiveEdit          TEdit
+  field  +0228 RaceNamePluralEdit             TEdit
+  field  +022C RaceNameEdit                   TEdit
+  field  +0230 AddBtn                         TButton
+  field  +0234 DeleteBtn                      TButton
+  field  +0238 UnitIndexGrid                  TUnitIndexGrid
+  field  +023C CitySheet                      TTabSheet
+  field  +0240 GroupBox1                      TGroupBox
+  field  +0244 DefaultUnitProdGrid            TUnitIndexGrid
+  field  +0248 Label5                         TLabel
+  field  +024C Label7                         TLabel
+  field  +0250 Label8                         TLabel
+  field  +0254 Label9                         TLabel
+  field  +0258 AddProdBtn                     TButton
+  field  +025C DeleteProdBtn                  TButton
+  field  +0260 RaceColorBtn                   TButton
+  field  +0264 ColorBox                       TShape
+  field  +0268 ColorDialog                    TColorDialog
+  field  +026C DescriptionSheet               TTabSheet
+  field  +0270 Panel8                         TPanel
+  field  +0274 DescriptionMemo                TMemo
+  method 00411720 FormCreate
+  method 0041185C OKBtnClick
+  method 00411948 FormDestroy
+  method 00411958 AddBtnClick
+  method 00411964 DeleteBtnClick
+  method 00411970 FormShow
+  method 00411980 AddProdBtnClick
+  method 004119BC DeleteProdBtnClick
+  method 004119E4 RaceColorBtnClick
+  unit ERaceRes
+class TRaceResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=0041167C
+class TFaceSelectionDlg (TAoWDialog) size=524 virtuals=32 vmt=00411AA4
+  field  +01E0 Panel1                         TPanel
+  field  +01E4 CancelBtn                      TButton
+  field  +01E8 OKBtn                          TButton
+  field  +01EC ClientPnl                      TPanel
+  field  +01F0 MainPageControl                TPageControl
+  field  +01F4 GeneralSheet                   TTabSheet
+  field  +01F8 FacesGrid                      TImageDrawGrid
+  field  +01FC Label1                         TLabel
+  field  +0200 Translator                     TIvTranslator
+  method 00411CC8 FacesGridCellUpdated
+  method 00411D7C FormCreate
+  method 00411E20 FormDeactivate
+  method 00411E2C OKBtnClick
+  unit FaceSel
+class THeroResourceEditForm (TAbstractUnitResourceEditForm) size=688 virtuals=33 vmt=00411EDC
+  field  +0218 Statistics                     TTabSheet
+  field  +021C GeneralSheet                   TTabSheet
+  field  +0220 Panel2                         TPanel
+  field  +0224 GroupBox3                      TGroupBox
+  field  +0228 Label2                         TLabel
+  field  +022C NameEdit                       TEdit
+  field  +0230 Label4                         TLabel
+  field  +0234 RaceBox                        TRaceBox
+  field  +0238 Label6                         TLabel
+  field  +023C AlignmentBox                   TAlignmentBox
+  field  +0240 Panel3                         TPanel
+  field  +0244 DesignerOnlyBox                TCheckBox
+  field  +0248 GroupBox1                      TGroupBox
+  field  +024C AbilityListBox                 TListBox
+  field  +0250 AbilityBtn                     TButton
+  field  +0254 GroupBox2                      TGroupBox
+  field  +0258 Label11                        TLabel
+  field  +025C Label13                        TLabel
+  field  +0260 Label14                        TLabel
+  field  +0264 Label15                        TLabel
+  field  +0268 Label16                        TLabel
+  field  +026C Label17                        TLabel
+  field  +0270 AttackEdit                     TSpin
+  field  +0274 DefenseEdit                    TSpin
+  field  +0278 ResistanceEdit                 TSpin
+  field  +027C DamageEdit                     TSpin
+  field  +0280 HitsEdit                       TSpin
+  field  +0284 MovesEdit                      TSpin
+  field  +0288 LevelPointsUsed                TPanel
+  field  +028C HeroTypeBox                    TComboBox
+  field  +0290 Label21                        TLabel
+  field  +0294 GroupBox4                      TGroupBox
+  field  +0298 FaceDrawPanel                  TDrawPanel
+  field  +029C SelectFaceBtn                  TButton
+  method 0041239C FormCreate
+  method 00412454 FormDestroy
+  method 00412460 AbilityBtnClick
+  method 004126E4 OKBtnClick
+  method 004126EC LevelPointsChanged
+  method 00412778 SelectFaceBtnClick
+  method 004127D0 FaceDrawPanelDraw
+  unit EHeroRes
+class THeroResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=004122F8
+class TItemSelectionDlg (TAoWDialog) size=524 virtuals=32 vmt=004128BC
+  field  +01E0 Panel1                         TPanel
+  field  +01E4 CancelBtn                      TButton
+  field  +01E8 OKBtn                          TButton
+  field  +01EC ClientPnl                      TPanel
+  field  +01F0 MainPageControl                TPageControl
+  field  +01F4 GeneralSheet                   TTabSheet
+  field  +01F8 ItemGrid                       TImageDrawGrid
+  field  +01FC Label1                         TLabel
+  method 00412B0C ItemGridCellUpdated
+  method 00412BC4 FormCreate
+  method 00412C74 FormDeactivate
+  method 00412C80 OKBtnClick
+  unit ItemSel
+class TItemEditForm (TForm) size=644 virtuals=32 vmt=00412D30
+  field  +01DC ClientPnl                      TPanel
+  field  +01E0 MainPageControl                TPageControl
+  field  +01E4 GeneralSheet                   TTabSheet
+  field  +01E8 Label4                         TLabel
+  field  +01EC Label3                         TLabel
+  field  +01F0 AvailabilityLabel              TLabel
+  field  +01F4 Label1                         TLabel
+  field  +01F8 Panel3                         TPanel
+  field  +01FC PreviewImagePanel              TDrawPanel
+  field  +0200 EditBtn                        TButton
+  field  +0204 ItemNameEdit                   TEdit
+  field  +0208 ItemTypeBox                    TComboBox
+  field  +020C AvailabilityBox                TComboBox
+  field  +0210 CostEdit                       TSpinEdit
+  field  +0214 OKBtn                          TButton
+  field  +0218 CancelBtn                      TButton
+  field  +021C SourceLibraryLbl               TLabel
+  field  +0220 Bevel1                         TBevel
+  field  +0224 StatisticsPnl                  TPanel
+  field  +0228 Label2                         TLabel
+  field  +022C Label5                         TLabel
+  field  +0230 Label7                         TLabel
+  field  +0234 Label6                         TLabel
+  field  +0238 Image8                         TImage
+  field  +023C Image7                         TImage
+  field  +0240 Image10                        TImage
+  field  +0244 Image6                         TImage
+  field  +0248 Label8                         TLabel
+  field  +024C Bevel2                         TBevel
+  field  +0250 AttackEdit                     TSpin
+  field  +0254 DefenseEdit                    TSpin
+  field  +0258 ResistanceEdit                 TSpin
+  field  +025C DamageEdit                     TSpin
+  field  +0260 AbilityListBox                 TListBox
+  field  +0264 Label9                         TLabel
+  field  +0268 ChangeAbilities                TButton
+  field  +026C ScrollPnl                      TPanel
+  field  +0270 Label11                        TLabel
+  field  +0274 SpellComboBox                  TComboBox
+  field  +0278 Translator                     TIvTranslator
+  method 00413914 EditBtnClick
+  method 0041397C PreviewImagePanelDraw
+  method 00413620 FormCreate
+  method 004139F0 ItemTypeBoxChange
+  method 00413A6C DefenseChange
+  method 00413A94 ResistanceChange
+  method 00413ABC AttackChange
+  method 00413AE4 DamageChange
+  method 00413A14 ItemNameEditChange
+  method 00413B0C AvailabilityBoxChange
+  method 00413B28 AbilityBtnClick
+  method 00413B70 DescriptionEditChange
+  method 00413B74 CostEditChange
+  method 00413B90 SpellComboBoxChange
+  method 004136FC FormDestroy
+  unit EItem
+class TItemFloater (TForm) size=484 virtuals=32 vmt=00413C54
+  field  +01DC ItemControlGrid                TItemControlGrid
+  field  +01E0 Translator                     TIvTranslator
+  method 00413D80 FormShow
+  method 00413D94 FormHide
+  method 00413DA4 ItemControlGridDblClick
+  unit ItemFlt
+class THeroEditForm (TForm) size=912 virtuals=38 vmt=00413E70
+  field  +01DC BottomPnl                      TPanel
+  field  +01E0 OKBtn                          TButton
+  field  +01E4 CancelBtn                      TButton
+  field  +01E8 ClientPnl                      TPanel
+  field  +01EC MainPageControl                TPageControl
+  field  +01F0 GeneralSheet                   TTabSheet
+  field  +01F4 Panel2                         TPanel
+  field  +01F8 Label4                         TLabel
+  field  +01FC Label5                         TLabel
+  field  +0200 Label2                         TLabel
+  field  +0204 Label1                         TLabel
+  field  +0208 Label3                         TLabel
+  field  +020C EditFaceBtn                    TButton
+  field  +0210 GenderBox                      TComboBox
+  field  +0214 NicknameEdit                   TComboBox
+  field  +0218 NameEdit                       TEdit
+  field  +021C HeroResourceComboBox           TComboBox
+  field  +0220 HeroLevelEdit                  TSpin
+  field  +0224 Panel4                         TPanel
+  field  +0228 PreviewImagePanel              TDrawPanel
+  field  +022C ResetBtn                       TButton
+  field  +0230 ItemSheet                      TTabSheet
+  field  +0234 Panel7                         TPanel
+  field  +0238 Label8                         TLabel
+  field  +023C Label10                        TLabel
+  field  +0240 BodyGrid                       TItemGrid
+  field  +0244 Image1                         TImage
+  field  +0248 Image2                         TImage
+  field  +024C Image3                         TImage
+  field  +0250 Image4                         TImage
+  field  +0254 Image5                         TImage
+  field  +0258 Image6                         TImage
+  field  +025C AddItemBtn                     TButton
+  field  +0260 DeleteItemBtn                  TButton
+  field  +0264 ItemGrid                       TItemGrid
+  field  +0268 SkillPoints                    TPanel
+  field  +026C SourceLibraryLbl               TLabel
+  field  +0270 Bevel1                         TBevel
+  field  +0274 Label15                        TLabel
+  field  +0278 Bevel2                         TBevel
+  field  +027C HitsLabel                      TLabel
+  field  +0280 DamageLabel                    TLabel
+  field  +0284 AttackLabel                    TLabel
+  field  +0288 AttackBase                     TLabel
+  field  +028C DamageBase                     TLabel
+  field  +0290 HitsBase                       TLabel
+  field  +0294 Image9                         TImage
+  field  +0298 Image7                         TImage
+  field  +029C Image11                        TImage
+  field  +02A0 AttackEdit                     TSpin
+  field  +02A4 DamageEdit                     TSpin
+  field  +02A8 HitsEdit                       TSpin
+  field  +02AC Label6                         TLabel
+  field  +02B0 Label20                        TLabel
+  field  +02B4 Label21                        TLabel
+  field  +02B8 Label34                        TLabel
+  field  +02BC Attack                         TLabel
+  field  +02C0 Label31                        TLabel
+  field  +02C4 Damage                         TLabel
+  field  +02C8 Label30                        TLabel
+  field  +02CC Hits                           TLabel
+  field  +02D0 DefenseLabel                   TLabel
+  field  +02D4 ResistanceLabel                TLabel
+  field  +02D8 MovesLabel                     TLabel
+  field  +02DC DefenseBase                    TLabel
+  field  +02E0 ResistanceBase                 TLabel
+  field  +02E4 MovesBase                      TLabel
+  field  +02E8 Label9                         TLabel
+  field  +02EC Label12                        TLabel
+  field  +02F0 Label22                        TLabel
+  field  +02F4 MovesEdit                      TSpin
+  field  +02F8 ResistanceEdit                 TSpin
+  field  +02FC DefenseEdit                    TSpin
+  field  +0300 Label33                        TLabel
+  field  +0304 Label32                        TLabel
+  field  +0308 Label29                        TLabel
+  field  +030C Moves                          TLabel
+  field  +0310 Resistance                     TLabel
+  field  +0314 Defense                        TLabel
+  field  +0318 Image10                        TImage
+  field  +031C Image8                         TImage
+  field  +0320 Image12                        TImage
+  field  +0324 Panel10                        TPanel
+  field  +0328 SelectedAbBox                  TListBox
+  field  +032C AvailableAbBox                 TListBox
+  field  +0330 Panel11                        TPanel
+  field  +0334 DeleteBtn                      TButton
+  field  +0338 AddBtn                         TButton
+  field  +033C SpheresSheet                   TTabSheet
+  field  +0340 SpherePnl                      TPanel
+  field  +0344 LifeLbl                        TLabel
+  field  +0348 DeathLbl                       TLabel
+  field  +034C EarthLbl                       TLabel
+  field  +0350 WaterLbl                       TLabel
+  field  +0354 FireLbl                        TLabel
+  field  +0358 AirLbl                         TLabel
+  field  +035C LifeEdit                       TSpin
+  field  +0360 DeathEdit                      TSpin
+  field  +0364 EarthEdit                      TSpin
+  field  +0368 AirEdit                        TSpin
+  field  +036C FireEdit                       TSpin
+  field  +0370 WaterEdit                      TSpin
+  field  +0374 Bevel3                         TBevel
+  field  +0378 Bevel4                         TBevel
+  field  +037C AssignSpheresLbl               TLabel
+  field  +0380 Translator                     TIvTranslator
+  method 00415A48 FormCreate
+  method 00415E64 HeroResourceComboBoxChange
+  method 00415E9C EditFaceBtnClick
+  method 00415EF8 PreviewImagePanelDraw
+  method 00415F6C OKBtnClick
+  method 00416038 HeroLevelEditChange
+  method 00416090 AttackEditChange
+  method 00416020 ResetBtnClick
+  method 004160E0 DefenseEditChange
+  method 00416130 ResistanceEditChange
+  method 00416180 DamageEditChange
+  method 004161D0 HitsEditChange
+  method 00416220 MovesEditChange
+  method 0041627C AddBtnClick
+  method 004162E0 DeleteBtnClick
+  method 00416344 AvailableAbBoxClick
+  method 0041634C SelectedAbBoxClick
+  method 00415D4C FormDestroy
+  method 00416354 AddItemBtnClick
+  method 004163EC DeleteItemBtnClick
+  method 00416410 MainPageControlChange
+  method 00416444 NicknameEditChange
+  method 0041649C NameEditChange
+  method 004164F4 ItemGridSelectCell
+  method 00416508 BodyGridSelectCell
+  method 0041651C BodyGridDblClick
+  method 00416570 ItemGridDblClick
+  method 004165C4 SphereEditChange
+  unit EHero
+class TItemGFXEditForm (TAoWResourceEditForm) size=560 virtuals=33 vmt=004166B4
+  field  +01FC MainPageControl                TPageControl
+  field  +0200 ImageSheet                     TTabSheet
+  field  +0204 GroupBox4                      TGroupBox
+  field  +0208 Label1                         TLabel
+  field  +020C Label2                         TLabel
+  field  +0210 ImagePanel                     TImageLibraryPanel
+  field  +0214 ImageLibraryPreviewGrid        TImageLibraryGrid
+  field  +0218 ILManagerComboBox              TILManagerComboBox
+  field  +021C ImageIndexSpin                 TSpin
+  field  +0220 Label3                         TLabel
+  field  +0224 ItemTypeBox                    TComboBox
+  field  +0228 DesignerOnlyBox                TCheckBox
+  method 00416A1C FormCreate
+  method 00416AD8 ILManagerComboBoxChange
+  method 00416B4C ImageIndexSpinUpdate
+  method 00416AAC OKBtnClick
+  method 00416B80 FormClose
+  unit EItemGFX
+class TItemGFXEditor (TEObjectEditor) size=8 virtuals=23 vmt=00416934
+class TFaceResourceEditForm (TAoWResourceEditForm) size=556 virtuals=33 vmt=00416C1C
+  field  +01FC MainPageControl                TPageControl
+  field  +0200 SettingsSheet                  TTabSheet
+  field  +0204 ImageSheet                     TTabSheet
+  field  +0208 GroupBox4                      TGroupBox
+  field  +020C Label1                         TLabel
+  field  +0210 Label2                         TLabel
+  field  +0214 ImagePanel                     TImageLibraryPanel
+  field  +0218 ImageLibraryPreviewGrid        TImageLibraryGrid
+  field  +021C ILManagerComboBox              TILManagerComboBox
+  field  +0220 ImageIndexSpin                 TSpin
+  field  +0224 DesignerOnlyBox                TCheckBox
+  method 00417030 ILManagerComboBoxChange
+  method 004170A4 ImageIndexSpinUpdate
+  method 00417014 OKBtnClick
+  method 004170D8 FormClose
+  method 00416F84 FormCreate
+  unit EFaceRes
+class TFaceResourceEditor (TEObjectEditor) size=8 virtuals=23 vmt=00416E98
+class TAoWMapEditForm (TForm) size=516 virtuals=37 vmt=00417174
+  field  +01DC ClientPnl                      TPanel
+  field  +01E0 ButtonPnl                      TPanel
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 CancelBtn                      TButton
+  field  +01EC Translator                     TIvTranslator
+  method 0041750C FormClose
+  method 00417510 FormShow
+  method 00417588 OKBtnClick
+  unit AoWMapEF
+class TItemHSEditForm (TAoWMapEditForm) size=564 virtuals=37 vmt=00417618
+  field  +0204 MainPageControl                TPageControl
+  field  +0208 GeneralSheet                   TTabSheet
+  field  +020C UserDefinedItemsPanel          TPanel
+  field  +0210 DeleteItemBtn                  TButton
+  field  +0214 ItemGrid                       TItemGrid
+  field  +0218 UserDefinedItemsBtn            TRadioButton
+  field  +021C AutoGenerateItemsPanel         TPanel
+  field  +0220 Label1                         TLabel
+  field  +0224 GenerateItemBox                TComboBox
+  field  +0228 AutoGenerateItemsBtn           TRadioButton
+  field  +022C AddBtn                         TButton
+  method 00417BA0 FormShow
+  method 00417B04 FormCreate
+  method 00417BF0 FormDestroy
+  method 00417C0C AddItemBtnClick
+  method 00417C60 AutoGenerateItemsBtnClick
+  method 00417C30 DeleteItemBtnClick
+  method 00417C3C GenerateItemBoxChange
+  method 00417C80 UserDefinedItemsBtnClick
+  method 00417CA4 OKBtnClick
+  method 00417DD4 ItemGridDblClick
+  unit EItemHS
+class TItemHSEditor (TEObjectEditor) size=8 virtuals=23 vmt=00417920
+class TItemPlaceControl (TEObject) size=8 virtuals=19 vmt=004179CC
+class TAoWMapObjEditForm (TAoWMapEditForm) size=528 virtuals=37 vmt=00417EC4
+  field  +0204 MainPageControl                TPageControl
+  field  +0208 GeneralSheet                   TTabSheet
+  unit EAoWMO
+class TSignEditForm (TAoWMapObjEditForm) size=536 virtuals=37 vmt=00418124
+  field  +0210 Label1                         TLabel
+  field  +0214 SignText                       TMemo
+  method 00418338 FormCreate
+  method 00418394 OKBtnClick
+  unit ESign
+class TSignEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=00418280
+class TPlayerConstructionEditForm (TAoWMapObjEditForm) size=560 virtuals=37 vmt=00418498
+  field  +0210 Panel3                         TPanel
+  field  +0214 BorderPanel                    TDrawPanel
+  field  +0218 PlayerComboBox                 TPlayerComboBox
+  field  +021C Label1                         TLabel
+  field  +0220 RazedBox                       TCheckBox
+  field  +0224 VictorySheet                   TTabSheet
+  field  +0228 Memo1                          TMemo
+  field  +022C VictoryListBox                 TCheckListBox
+  method 00418784 FormCreate
+  method 004189C0 OKBtnClick
+  method 00418A7C BorderPanelDraw
+  method 00418AB0 RazedBoxClick
+  unit EConstr
+class TPlayerConstructionEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=004186BC
+class TCityEditForm (TPlayerConstructionEditForm) size=608 virtuals=37 vmt=00418B78
+  field  +0230 Label2                         TLabel
+  field  +0234 NameEdit                       TEdit
+  field  +0238 Label6                         TLabel
+  field  +023C Label3                         TLabel
+  field  +0240 Label4                         TLabel
+  field  +0244 WallComboBox                   TComboBox
+  field  +0248 LevelEdit                      TSpin
+  field  +024C IncomeLabel                    TPanel
+  field  +0250 Label5                         TLabel
+  field  +0254 DefendersCB                    TComboBox
+  field  +0258 Label9                         TLabel
+  field  +025C RaceCB                         TComboBox
+  method 00418E98 FormCreate
+  method 004192A0 OKBtnClick
+  method 00419378 FormClose
+  method 0041939C PlayerComboBoxChange
+  method 004193B8 DefendersCBChange
+  method 004191E8 RazedBoxClick
+  method 0041919C RaceCBChange
+  unit Ecity
+class TCityEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=00418DE0
+class TTeleportEditForm (TAoWMapObjEditForm) size=568 virtuals=37 vmt=0041944C
+  field  +0210 GroupBox1                      TGroupBox
+  field  +0214 Label1                         TLabel
+  field  +0218 Label2                         TLabel
+  field  +021C Label3                         TLabel
+  field  +0220 XtoEdit                        TSpin
+  field  +0224 YtoEdit                        TSpin
+  field  +0228 LtoEdit                        TSpin
+  field  +022C Panel3                         TPanel
+  field  +0230 BorderPanel                    TDrawPanel
+  field  +0234 RazedCB                        TCheckBox
+  method 00419704 FormCreate
+  method 004197C8 BorderPanelDraw
+  method 004197FC OKBtnClick
+  unit ETeleprt
+class TTeleportEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=00419648
+class TArmyEditForm (TAoWMapObjEditForm) size=596 virtuals=37 vmt=004198F8
+  field  +0210 GroupBox1                      TGroupBox
+  field  +0214 UnitGrid                       TUnitGrid
+  field  +0218 AddBtn                         TButton
+  field  +021C DeleteBtn                      TButton
+  field  +0220 EditBtn                        TButton
+  field  +0224 GroupBox2                      TGroupBox
+  field  +0228 Dir1                           TRadioButton
+  field  +022C Dir6                           TRadioButton
+  field  +0230 Dir2                           TRadioButton
+  field  +0234 Dir5                           TRadioButton
+  field  +0238 Dir3                           TRadioButton
+  field  +023C Dir4                           TRadioButton
+  field  +0240 Label1                         TLabel
+  field  +0244 PlayerComboBox                 TPlayerComboBox
+  field  +0248 BehaviourPanel                 TPanel
+  field  +024C BehaviourComboBox              TComboBox
+  method 00419D74 FormCreate
+  method 00419E88 CloseBtnClick
+  method 00419EA0 PlayerComboBoxChange
+  method 0041A2C0 FormShow
+  method 0041A318 FormDestroy
+  method 0041A334 AddBtnClick
+  method 0041A340 DeleteBtnClick
+  method 0041A430 UnitGridSelectCell
+  method 0041A4B0 EditBtnClick
+  method 0041A278 BehaviourComboBoxChange
+  method 0041A518 DirectionChanged
+  method 0041A4E4 UnitGridDblClick
+  unit EArmy
+class TArmyHSEditor (TEObjectEditor) size=8 virtuals=23 vmt=00419C18
+class TArmyPlaceControl (TEObject) size=8 virtuals=19 vmt=00419CC4
+class TGemsEditForm (TAoWMapObjEditForm) size=560 virtuals=37 vmt=0041A658
+  field  +0210 UserDefined                    TRadioButton
+  field  +0214 AutoGenerate                   TRadioButton
+  field  +0218 AutoGeneratePanel              TPanel
+  field  +021C Label2                         TLabel
+  field  +0220 GenerateModeBox                TComboBox
+  field  +0224 UserDefinedPanel               TPanel
+  field  +0228 Label1                         TLabel
+  field  +022C GemsSpin                       TSpin
+  method 0041A950 GemsSpinChange
+  method 0041A96C FormCreate
+  method 0041A9F0 OKBtnClick
+  method 0041AA24 AutoGenerateClick
+  method 0041AA64 UserDefinedClick
+  method 0041AAA4 GenerateModeBoxChange
+  unit EGems
+class TGemsEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041A898
+class TExplorationSiteEditForm (TAoWMapObjEditForm) size=576 virtuals=37 vmt=0041AB40
+  field  +0210 DefendersSheet                 TTabSheet
+  field  +0214 AutoGenerateBtn                TRadioButton
+  field  +0218 AutoGeneratePanel              TPanel
+  field  +021C Label2                         TLabel
+  field  +0220 DefendersModeBox               TComboBox
+  field  +0224 UserDefinedPanel               TPanel
+  field  +0228 DefendersGrid                  TUnitGrid
+  field  +022C DeleteBtn                      TButton
+  field  +0230 AddBtn                         TButton
+  field  +0234 UserDefinedBtn                 TRadioButton
+  field  +0238 Panel3                         TPanel
+  field  +023C BorderPanel                    TDrawPanel
+  method 0041AF20 AddBtnClick
+  method 0041AF2C DeleteBtnClick
+  method 0041AF38 MainPageControlChange
+  method 0041AF78 FormCreate
+  method 0041B03C UserDefinedBtnClick
+  method 0041B080 AutoGenerateBtnClick
+  method 0041B0D8 FormDestroy
+  method 0041B0E8 DefendersModeBoxChange
+  method 0041B10C OKBtnClick
+  method 0041B158 FormShow
+  method 0041B1D0 BorderPanelDraw
+  unit EExplorS
+class TExplorationSiteEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041AE5C
+class TDungeonEditForm (TExplorationSiteEditForm) size=616 virtuals=37 vmt=0041B27C
+  field  +0240 PrisonersSheet                 TTabSheet
+  field  +0244 AutoGeneratePrisBtn            TRadioButton
+  field  +0248 AutoGeneratePrisPanel          TPanel
+  field  +024C Label1                         TLabel
+  field  +0250 PrisonersModeBox               TComboBox
+  field  +0254 UserDefinedPrisPanel           TPanel
+  field  +0258 PrisonersGrid                  TUnitGrid
+  field  +025C DeletePrisBtn                  TButton
+  field  +0260 AddPrisBtn                     TButton
+  field  +0264 UserDefinedPrisBtn             TRadioButton
+  method 0041B624 MainPageControlChange
+  method 0041B670 OKBtnClick
+  method 0041B6AC PrisonersModeBoxChange
+  method 0041B6D0 AutoGeneratePrisBtnClick
+  method 0041B71C UserDefinedPrisBtnClick
+  method 0041B754 AddPrisBtnClick
+  method 0041B760 DeletePrisBtnClick
+  method 0041B76C FormCreate
+  method 0041B7AC FormShow
+  unit EDungeon
+class TDungeonEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041B568
+class TItemExplorationSiteEditForm (TExplorationSiteEditForm) size=616 virtuals=37 vmt=0041B894
+  field  +0240 ItemsSheet                     TTabSheet
+  field  +0244 AutoGenerateItemsBtn           TRadioButton
+  field  +0248 UserDefinedItemsBtn            TRadioButton
+  field  +024C UserDefinedItemsPanel          TPanel
+  field  +0250 DeleteItemBtn                  TButton
+  field  +0254 AddItemBtn                     TButton
+  field  +0258 ItemGrid                       TItemGrid
+  field  +025C AutoGenerateItemsPanel         TPanel
+  field  +0260 Label1                         TLabel
+  field  +0264 GenerateItemBox                TComboBox
+  method 0041BC5C FormCreate
+  method 0041BCE8 FormDestroy
+  method 0041BD08 MainPageControlChange
+  method 0041BD6C OKBtnClick
+  method 0041BDA8 GenerateItemBoxChange
+  method 0041BDCC AutoGenerateItemsBtnClick
+  method 0041BE04 UserDefinedItemsBtnClick
+  method 0041BE50 AddItemBtnClick
+  method 0041BE74 DeleteItemBtnClick
+  unit EItmExpS
+class TItemExplorationSiteEditor (TEObjectEditor) size=8 virtuals=23 vmt=0041BB94
+class TManaCrystalsEditForm (TAoWMapObjEditForm) size=560 virtuals=37 vmt=0041BEF8
+  field  +0210 AutoGenerate                   TRadioButton
+  field  +0214 AutoGeneratePanel              TPanel
+  field  +0218 Label2                         TLabel
+  field  +021C GenerateModeBox                TComboBox
+  field  +0220 UserDefinedPanel               TPanel
+  field  +0224 Label1                         TLabel
+  field  +0228 ManaSpin                       TSpin
+  field  +022C UserDefined                    TRadioButton
+  method 0041C208 ManaSpinChange
+  method 0041C224 FormCreate
+  method 0041C2A8 OKBtnClick
+  method 0041C2DC AutoGenerateClick
+  method 0041C31C UserDefinedClick
+  method 0041C35C GenerateModeBoxChange
+  unit EManaC
+class TManaCrystalsEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041C148
+class TWizardsTowerEditForm (TAoWMapObjEditForm) size=592 virtuals=37 vmt=0041C3F8
+  field  +0210 CustomRB                       TRadioButton
+  field  +0214 RandomRB                       TRadioButton
+  field  +0218 SpellComboBox                  TComboBox
+  field  +021C SpellLbl                       TLabel
+  field  +0220 SpheresGB                      TGroupBox
+  field  +0224 LifeCB                         TCheckBox
+  field  +0228 WaterCB                        TCheckBox
+  field  +022C EarthCB                        TCheckBox
+  field  +0230 SecretCB                       TCheckBox
+  field  +0234 AirCB                          TCheckBox
+  field  +0238 FireCB                         TCheckBox
+  field  +023C DeathCB                        TCheckBox
+  field  +0240 CosmicCB                       TCheckBox
+  field  +0244 LevelRG                        TRadioGroup
+  field  +0248 Panel4                         TPanel
+  field  +024C BorderPanel                    TDrawPanel
+  method 0041C73C FormCreate
+  method 0041C8FC OKBtnClick
+  method 0041CBAC CustomRBClick
+  method 0041CBB4 BorderPanelDraw
+  unit EWizardsTower
+class TWizardsTowerEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041C67C
+class TSmokeCloudEditForm (TAoWMapObjEditForm) size=540 virtuals=37 vmt=0041CC60
+  field  +0210 MoveableCheck                  TCheckBox
+  field  +0214 DaysActiveEdit                 TComboBox
+  field  +0218 Label1                         TLabel
+  method 0041CEA8 FormCreate
+  method 0041CF2C OKBtnClick
+  unit ESmokeC
+class TSmokeCloudEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041CDE8
+class TFireEditForm (TAoWMapObjEditForm) size=536 virtuals=37 vmt=0041D060
+  field  +0210 DaysActiveEdit                 TComboBox
+  field  +0214 Label1                         TLabel
+  method 0041D278 FormCreate
+  method 0041D2E8 OKBtnClick
+  unit EFire
+class TFireEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041D1C0
+class TFarmEditForm (TPlayerConstructionEditForm) size=568 virtuals=37 vmt=0041D410
+  field  +0230 Label2                         TLabel
+  field  +0234 IncomeLabel                    TPanel
+  method 0041D614 FormCreate
+  unit EFarm
+class TFarmEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041D55C
+class TProductionPlaceEditForm (TPlayerConstructionEditForm) size=568 virtuals=37 vmt=0041D6EC
+  field  +0230 DefendersModeBox               TComboBox
+  field  +0234 Label2                         TLabel
+  method 0041D974 PlayerComboBoxChange
+  method 0041D948 FormCreate
+  method 0041D9D0 OKBtnClick
+  unit EProdP
+class TProductionPlaceEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041D880
+class TTCUnitPositionEditForm (TAoWMapObjEditForm) size=556 virtuals=37 vmt=0041DA70
+  field  +0210 GroupBox2                      TGroupBox
+  field  +0214 Dir1                           TRadioButton
+  field  +0218 Dir6                           TRadioButton
+  field  +021C Dir2                           TRadioButton
+  field  +0220 Dir5                           TRadioButton
+  field  +0224 Dir3                           TRadioButton
+  field  +0228 Dir4                           TRadioButton
+  method 0041DD64 DirectionChanged
+  method 0041DCDC FormCreate
+  unit ETCUnitPos
+class TUnitPositionEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041DC1C
+class TPoisonCloudEditForm (TAoWMapObjEditForm) size=540 virtuals=37 vmt=0041DE80
+  field  +0210 MoveableCheck                  TCheckBox
+  field  +0214 DaysActiveEdit                 TComboBox
+  field  +0218 Label1                         TLabel
+  method 0041E0C8 FormCreate
+  method 0041E14C OKBtnClick
+  unit EPoisonC
+class TPoisonCloudEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041E008
+class TMoveOnEventForm (TAoWMapObjEditForm) size=548 virtuals=37 vmt=0041E280
+  field  +0210 TriggerSheet                   TTabSheet
+  field  +0214 PlayersGroupBox                TGroupBox
+  field  +0218 TriggerPlayersLB               TCheckListBox
+  field  +021C RadiusEdit                     TSpin
+  field  +0220 Label1                         TLabel
+  method 0041E3F4 FormCreate
+  method 0041E584 OKBtnClick
+  unit EMoveOnEvent
+class TChangeSongEditForm (TMoveOnEventForm) size=572 virtuals=37 vmt=0041E698
+  field  +0224 Song                           TTabSheet
+  field  +0228 GroupBox1                      TGroupBox
+  field  +022C SongCB                         TComboBox
+  field  +0230 SongNameLabel                  TLabel
+  field  +0234 PlaySong                       TSpeedButton
+  method 0041E928 FormCreate
+  method 0041E9D8 FormDestroy
+  method 0041E9EC SongCBChange
+  method 0041EA54 PlaySongClick
+  unit EChangeSong
+class TChangeSongEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041E868
+class TShowMessageEditForm (TMoveOnEventForm) size=556 virtuals=37 vmt=0041EADC
+  field  +0224 TextSheet                      TTabSheet
+  field  +0228 MessageMemo                    TMemo
+  method 0041ED10 OKBtnClick
+  method 0041ED74 FormCreate
+  unit EShowMessage
+class TShowMessageEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041EC50
+class TPlaySampleEditForm (TMoveOnEventForm) size=568 virtuals=37 vmt=0041EE50
+  field  +0224 SampleSheet                    TTabSheet
+  field  +0228 SampleGroupBox                 TGroupBox
+  field  +022C SongNameLabel                  TLabel
+  field  +0230 PlaySong                       TSpeedButton
+  field  +0234 SFXManagerBox                  TSFXManagerComboBox
+  method 0041F118 PlaySongClick
+  method 0041F0E0 FormCreate
+  method 0041F17C OKBtnClick
+  unit EPlaySample
+class TPlaySampleEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041F020
+class TFlagEventEditForm (TAoWMapObjEditForm) size=544 virtuals=37 vmt=0041F258
+  field  +0210 PlayersGroupBox                TGroupBox
+  field  +0214 TriggerPlayersLB               TCheckListBox
+  field  +0218 Label1                         TLabel
+  field  +021C TriggerModeCB                  TComboBox
+  method 0041F3BC FormCreate
+  method 0041F520 OKBtnClick
+  unit EFlagEvent
+class TTutorialMessageEventEditForm (TFlagEventEditForm) size=552 virtuals=37 vmt=0041F624
+  field  +0220 MessageSheet                   TTabSheet
+  field  +0224 MessageMemo                    TMemo
+  method 0041F880 FormCreate
+  method 0041F8E4 OKBtnClick
+  unit ETutorialMessageEvent
+class TTutorialMessageEventEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041F7B8
+class TFlagMessageEventEditForm (TFlagEventEditForm) size=564 virtuals=37 vmt=0041F9C0
+  field  +0220 MessageSheet                   TTabSheet
+  field  +0224 MessageMemo                    TMemo
+  field  +0228 MessageLbl                     TLabel
+  field  +022C TitleLbl                       TLabel
+  field  +0230 TitleEdit                      TEdit
+  method 0041FCB8 OKBtnClick
+  method 0041FC40 FormCreate
+  unit EFlagMsgEvent
+class TFlagMessageEventEditor (TAoWMapObjectEditor) size=8 virtuals=23 vmt=0041FB7C
+class TAoWEngineModule (TDataModule) size=68 virtuals=10 vmt=0041FDB4
+  method 0041FF94 AoWEngineModuleCreate
+  unit AoWEMod
+class TItemLibraryEditForm (TForm) size=564 virtuals=32 vmt=00420050
+  field  +01DC Panel1                         TPanel
+  field  +01E0 CloseBtn                       TButton
+  field  +01E4 AddBtn                         TButton
+  field  +01E8 CopyBtn                        TButton
+  field  +01EC LibraryItemGrid                TItemGrid
+  field  +01F0 ItemToolbar                    TToolBar
+  field  +01F4 NewLibrary                     TToolButton
+  field  +01F8 DeleteLibrary                  TToolButton
+  field  +01FC NewItem                        TToolButton
+  field  +0200 DeleteItem                     TToolButton
+  field  +0204 ToolButton6                    TToolButton
+  field  +0208 ToolButton8                    TToolButton
+  field  +020C ItemImageList                  TImageList
+  field  +0210 Panel2                         TPanel
+  field  +0214 LibraryLbl                     TLabel
+  field  +0218 LibraryCB                      TComboBox
+  field  +021C SortOnNamesBtn                 TToolButton
+  field  +0220 SortOnTypeBtn                  TToolButton
+  field  +0224 ToolButton3                    TToolButton
+  field  +0228 EditItemBtn                    TToolButton
+  field  +022C Translator                     TIvTranslator
+  method 00420408 AddBtnClick
+  method 004207F4 FormShow
+  method 004204E8 CopyBtnClick
+  method 00420810 LibraryCBChange
+  method 0042082C SortOnNamesBtnClick
+  method 00420838 SortOnTypeBtnClick
+  method 00420A2C NewItemClick
+  method 00420844 DeleteItemClick
+  method 00420864 NewLibraryClick
+  method 0042096C DeleteLibraryClick
+  method 004209AC CloseBtnClick
+  method 00420A1C LibraryItemGridDblClick
+  method 00420A24 EditItemBtnClick
+  unit ItemLibF
+class TSplashForm (TForm) size=496 virtuals=32 vmt=00420B18
+  field  +01DC Image1                         TImage
+  field  +01E0 VersionLbl                     TLabel
+  field  +01E4 StatusLabel                    TLabel
+  field  +01E8 Label1                         TLabel
+  field  +01EC Translator                     TIvTranslator
+  method 00420C68 FormKeyDown
+  method 00420C7C Image1Click
+  method 00420C88 FormCreate
+  unit SplashFrm
+class TScannerFloater (TForm) size=528 virtuals=32 vmt=00420E84
+  field  +01DC Display                        TDisplay
+  field  +01E0 WindowsDC                      TWindows16DC
+  field  +01E4 Manager                        TAOWWinManager
+  field  +01E8 Dlg                            TAOWWindow
+  field  +01EC Scanner                        TScanner
+  field  +01F0 TheMap                         TAoWMapControl
+  field  +01F4 ScanTiles                      TInterfaceIL
+  field  +01F8 ScanFog                        TInterfaceIL
+  field  +01FC ScanHiLites                    TInterfaceIL
+  field  +0200 ScanObj                        TInterfaceIL
+  field  +0204 ScanWin                        TInterfaceIL
+  field  +0208 Translator                     TIvTranslator
+  method 004212D0 DisplayResize
+  method 00421314 DisplayMouseDown
+  method 0042133C DisplayMouseMove
+  method 00421364 DisplayMouseUp
+  method 0042138C TheMapMapChanged
+  method 004213F0 DisplayBltSurface
+  method 00421420 FormClose
+  method 00421440 TheMapViewPortChange
+  method 004214F4 ScannerChangeTileBox
+  method 0042159C TheMapScannerIconsChanged
+  unit ScannerFlt
+class TTextEditDlg (TForm) size=488 virtuals=32 vmt=00421634
+  field  +01DC OKBtn                          TButton
+  field  +01E0 CancelBtn                      TButton
+  field  +01E4 Memo                           TMemo
+  unit TextEdDlg
+class TTextControlEditForm (TForm) size=532 virtuals=32 vmt=00421798
+  field  +01DC Panel10                        TPanel
+  field  +01E0 Label7                         TLabel
+  field  +01E4 TextIDEdit                     TSpin
+  field  +01E8 TextMemo                       TMemo
+  field  +01EC NewText                        TButton
+  field  +01F0 DeleteText                     TButton
+  field  +01F4 FindText                       TButton
+  field  +01F8 TextScrollBar                  TScrollBar
+  field  +01FC CloseBtn                       TButton
+  field  +0200 Label1                         TLabel
+  field  +0204 Label2                         TLabel
+  field  +0208 DescriptionEdit                TEdit
+  method 00421B9C TextIDEditChange
+  method 00421BC8 NewTextClick
+  method 00421BE4 DeleteTextClick
+  method 00421C4C FindTextClick
+  method 00421D34 TextMemoChange
+  method 00421D98 TextScrollBarChange
+  method 00421DDC DescriptionEditChange
+  unit TextCtrlEd
+class TPasswordDlg (TForm) size=496 virtuals=32 vmt=00421F34
+  field  +01DC EnterPasswordLbl               TLabel
+  field  +01E0 PasswordEdit                   TEdit
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 CancelBtn                      TButton
+  field  +01EC Translator                     TIvTranslator
+  unit PasswordDialog
+class TMapSettingsDlg (TForm) size=768 virtuals=32 vmt=004220D8
+  field  +01DC ClientPnl                      TPanel
+  field  +01E0 MainPageControl                TPageControl
+  field  +01E4 GeneralSheet                   TTabSheet
+  field  +01E8 MapNameLbl                     TLabel
+  field  +01EC Label5                         TLabel
+  field  +01F0 MapnameEdit                    TEdit
+  field  +01F4 PasswordEdit                   TEdit
+  field  +01F8 SettingsSheet                  TTabSheet
+  field  +01FC GroupBox3                      TGroupBox
+  field  +0200 RaceListCheckBox               TCheckListBox
+  field  +0204 PlayersSheet                   TTabSheet
+  field  +0208 BottomPnl                      TPanel
+  field  +020C Button1                        TButton
+  field  +0210 CancelBtn                      TButton
+  field  +0214 MapIntroductionMemo            TMemo
+  field  +0218 MapDescriptionLbl              TLabel
+  field  +021C Bevel1                         TBevel
+  field  +0220 Label7                         TLabel
+  field  +0224 PlayListBox                    TListBox
+  field  +0228 AvailableSongsBox              TListBox
+  field  +022C Label4                         TLabel
+  field  +0230 AddSong                        TButton
+  field  +0234 DeleteSong                     TButton
+  field  +0238 MapSongsLbl                    TLabel
+  field  +023C IndependantAIGroup             TRadioGroup
+  field  +0240 RestrictionsBox                TGroupBox
+  field  +0244 Label6                         TLabel
+  field  +0248 NumberOfHeroesEdit             TSpin
+  field  +024C MaxSpherePicksEdit             TSpin
+  field  +0250 MaxSpellLevelLabel             TLabel
+  field  +0254 Label2                         TLabel
+  field  +0258 NumberOfPlayersEdit            TSpin
+  field  +025C Label1                         TLabel
+  field  +0260 PlayerCB                       TComboBox
+  field  +0264 Bevel3                         TBevel
+  field  +0268 PlayerPnl                      TPanel
+  field  +026C Label15                        TLabel
+  field  +0270 PlayerRaceBox                  TRaceBox
+  field  +0274 PlayerTypeBox                  TComboBox
+  field  +0278 Label16                        TLabel
+  field  +027C PlayerFixed                    TCheckBox
+  field  +0280 Label18                        TLabel
+  field  +0284 StartGoldEdit                  TSpin
+  field  +0288 ExternalGoldIncomeEdit         TSpin
+  field  +028C Label17                        TLabel
+  field  +0290 StartManaLbl                   TLabel
+  field  +0294 ExternalManaIncome             TLabel
+  field  +0298 Bevel2                         TBevel
+  field  +029C ObjectiveDescriptionLbl        TLabel
+  field  +02A0 ObjectiveMemo                  TMemo
+  field  +02A4 StartManaEdit                  TSpin
+  field  +02A8 ExternalPowerIncomeEdit        TSpin
+  field  +02AC BehaviorLbl                    TLabel
+  field  +02B0 BehaviorCB                     TComboBox
+  field  +02B4 Bevel4                         TBevel
+  field  +02B8 DiplomacySheet                 TTabSheet
+  field  +02BC RelationGrid                   TDrawGrid
+  field  +02C0 DiplomaticIcons                TImageList
+  field  +02C4 ChangePasswordBtn              TButton
+  field  +02C8 ObjectiveBox                   TGroupBox
+  field  +02CC ObjectivePnl                   TPanel
+  field  +02D0 AccumulateGoldRB               TRadioButton
+  field  +02D4 CaptureLocationsRB             TRadioButton
+  field  +02D8 NoneRB                         TRadioButton
+  field  +02DC AmountLbl                      TLabel
+  field  +02E0 AccumulateManaRB               TRadioButton
+  field  +02E4 Label3                         TLabel
+  field  +02E8 AccumulateManaEdit             TSpin
+  field  +02EC AccumulateGoldEdit             TSpin
+  field  +02F0 Translator                     TIvTranslator
+  method 00422FCC FormCreate
+  method 00423158 RaceListCheckBoxClickCheck
+  method 004234C8 ExternalGoldIncomeEditChange
+  method 00423504 StartGoldEditChange
+  method 00423540 PlayerFixedClick
+  method 0042357C PlayerRaceBoxChange
+  method 004236BC OKBtnClick
+  method 00423130 FormDestroy
+  method 0042382C AddSongClick
+  method 004238A0 DeleteSongClick
+  method 004238D4 ObjectiveBoxooClick
+  method 0042344C ObjectiveMemoChange
+  method 004235BC PlayerTypeBoxChange
+  method 004231BC PlayerCBChange
+  method 00423644 StartManaEditChange
+  method 00423680 ExternalPowerIncomeEditChange
+  method 004238D8 NumberOfPlayersEditChange
+  method 0042391C RelationGridSelectCell
+  method 00423A20 RelationGridDrawCell
+  method 00423E78 RelationGridMouseMove
+  method 00423E8C ChangePasswordBtnClick
+  method 00424008 VictoryConditionClick
+  method 00424010 FormCloseQuery
+  method 00423608 BehaviorCBChange
+  unit MapSDlg
+class THSSetDialog (TAoWDialog) size=512 virtuals=32 vmt=004240A8
+  field  +01E0 Panel1                         TPanel
+  field  +01E4 GroupBox1                      TGroupBox
+  field  +01E8 Label1                         TLabel
+  field  +01EC HSSNameEdit                    TEdit
+  field  +01F0 Label2                         TLabel
+  field  +01F4 PlugInListBox                  TCheckListBox
+  field  +01F8 OKBtn                          TButton
+  field  +01FC CancelBtn                      TButton
+  method 0042421C FormCreate
+  method 004242FC OKBtnClick
+  unit HSSetDlg
+class TMapValidationDlg (TForm) size=492 virtuals=32 vmt=00424424
+  field  +01DC Memo                           TMemo
+  field  +01E0 ButtonPnl                      TPanel
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 Translator                     TIvTranslator
+  unit ValidateMapDlg
+class THeroLibraryEditForm (TForm) size=564 virtuals=32 vmt=004245B4
+  field  +01DC Panel1                         TPanel
+  field  +01E0 CloseBtn                       TButton
+  field  +01E4 AddBtn                         TButton
+  field  +01E8 CopyBtn                        TButton
+  field  +01EC LibraryHeroGrid                THeroGrid
+  field  +01F0 ItemToolbar                    TToolBar
+  field  +01F4 ToolButton3                    TToolButton
+  field  +01F8 NewLibrary                     TToolButton
+  field  +01FC DeleteLibrary                  TToolButton
+  field  +0200 ToolButton6                    TToolButton
+  field  +0204 EditHeroBtn                    TToolButton
+  field  +0208 NewHero                        TToolButton
+  field  +020C DeleteHero                     TToolButton
+  field  +0210 ToolButton8                    TToolButton
+  field  +0214 SortOnNamesBtn                 TToolButton
+  field  +0218 SortOnLevelBtn                 TToolButton
+  field  +021C HeroImageList                  TImageList
+  field  +0220 Panel2                         TPanel
+  field  +0224 LibraryLbl                     TLabel
+  field  +0228 LibraryCB                      TComboBox
+  field  +022C Translator                     TIvTranslator
+  method 00424BA8 FormShow
+  method 00424BC4 AddBtnClick
+  method 00424D0C CopyBtnClick
+  method 00424DEC LibraryCBChange
+  method 00424E08 SortOnNameBtnClick
+  method 00424E14 SortOnLevelClick
+  method 00424E20 NewHeroClick
+  method 00424E94 NewLibraryClick
+  method 00424F9C DeleteLibraryClick
+  method 00425030 CloseBtnClick
+  method 0042505C EditHeroBtnClick
+  method 00425064 DeleteHeroClick
+  unit HeroLibF
+class TPlayerInfoFloater (TForm) size=612 virtuals=32 vmt=004250FC
+  field  +01DC PlayerInfoMapControl           TAoWMapControl
+  field  +01E0 Panel2                         TPanel
+  field  +01E4 PlayerComboBox                 TPlayerComboBox
+  field  +01E8 Label1                         TLabel
+  field  +01EC PlayerPageControl              TPageControl
+  field  +01F0 IncomeSheet                    TTabSheet
+  field  +01F4 Label7                         TLabel
+  field  +01F8 ExternalIncomeEdit             TPanel
+  field  +01FC StructureSheet                 TTabSheet
+  field  +0200 CityIncomeLab                  TLabel
+  field  +0204 MinesLbl                       TLabel
+  field  +0208 FarmLbl                        TLabel
+  field  +020C ExternalLbl                    TLabel
+  field  +0210 MineIncomeEdit                 TPanel
+  field  +0214 FarmIncomeEdit                 TPanel
+  field  +0218 UpkeepEdit                     TPanel
+  field  +021C NetIncomeEdit                  TPanel
+  field  +0220 Label6                         TLabel
+  field  +0224 Bevel1                         TBevel
+  field  +0228 StructureGrid                  TStringGrid
+  field  +022C PowerSheet                     TTabSheet
+  field  +0230 Label2                         TLabel
+  field  +0234 PowerNodePowerEdit             TPanel
+  field  +0238 Label3                         TLabel
+  field  +023C HeroPowerEdit                  TPanel
+  field  +0240 Bevel2                         TBevel
+  field  +0244 Label4                         TLabel
+  field  +0248 TotalPowerEdit                 TPanel
+  field  +024C VictoryLocationsSheet          TTabSheet
+  field  +0250 VictoryGrid                    TStringGrid
+  field  +0254 ExternalPowerEdit              TPanel
+  field  +0258 ExternalPwrLbl                 TLabel
+  field  +025C Translator                     TIvTranslator
+  field  +0260 CityIncomeEdit                 TPanel
+  method 00425B40 PlayerInfoMapControlActivateHSM
+  method 00425B64 PlayerInfoMapControlDeactivateHSM
+  method 00425B6C FormShow
+  method 00425B74 PlayerInfoMapControlGemsChanged
+  method 00425B90 PlayerInfoMapControlUpkeepChanged
+  method 00425BAC PlayerInfoMapControlIncomeChanged
+  method 00425BD4 PlayerComboBoxChange
+  method 00425BDC StructureGridDblClick
+  method 00425BC8 PlayerInfoMapControlStructureChanged
+  method 00425C50 PlayerInfoMapControlMapSettingsChanged
+  method 00425C58 FormClose
+  unit PlInfFlt
+class TMainForm (TForm) size=1708 virtuals=32 vmt=00425CF0
+  field  +01DC MainMenu1                      TMainMenu
+  field  +01E0 FileItem                       TMenuItem
+  field  +01E4 NewItem                        TMenuItem
+  field  +01E8 OpenMapItem                    TMenuItem
+  field  +01EC SaveItem                       TMenuItem
+  field  +01F0 SaveAsItem                     TMenuItem
+  field  +01F4 CloseItem                      TMenuItem
+  field  +01F8 N1                             TMenuItem
+  field  +01FC ExitItem                       TMenuItem
+  field  +0200 HelpItem                       TMenuItem
+  field  +0204 OptionsItem                    TMenuItem
+  field  +0208 About1                         TMenuItem
+  field  +020C EditItem                       TMenuItem
+  field  +0210 CutItem                        TMenuItem
+  field  +0214 CopyItem                       TMenuItem
+  field  +0218 PasteItem                      TMenuItem
+  field  +021C DeleteItem                     TMenuItem
+  field  +0220 HSMEditDC                      TWindows16DC
+  field  +0224 Panel1                         TPanel
+  field  +0228 EditStatusBar                  TStatusBar
+  field  +022C HSMEdit                        THSMEdit
+  field  +0230 HSSEdit                        THSSEdit
+  field  +0234 MORPanel                       TPanel
+  field  +0238 MainPageControl                TPageControl
+  field  +023C TileSheet                      TTabSheet
+  field  +0240 MORPageControl                 TPageControl
+  field  +0244 SurfaceSheet                   TTabSheet
+  field  +0248 SurfaceMORPage                 TPageControl
+  field  +024C GrassSheet                     TTabSheet
+  field  +0250 GrassMOR                       TEResourceGrid
+  field  +0254 Steppe                         TTabSheet
+  field  +0258 EResourceGrid2                 TEResourceGrid
+  field  +025C Desert                         TTabSheet
+  field  +0260 EResourceGrid3                 TEResourceGrid
+  field  +0264 Snow                           TTabSheet
+  field  +0268 EResourceGrid4                 TEResourceGrid
+  field  +026C Wasteland                      TTabSheet
+  field  +0270 EResourceGrid5                 TEResourceGrid
+  field  +0274 StructuresSheet                TTabSheet
+  field  +0278 StructuresMOR                  TEResourceGrid
+  field  +027C HexagonSheet                   TTabSheet
+  field  +0280 HexagonsMOR                    TEResourceGrid
+  field  +0284 UndergroundMORSHeet            TTabSheet
+  field  +0288 TabSheet1                      TTabSheet
+  field  +028C EResourceGrid6                 TEResourceGrid
+  field  +0290 UndergroundMORPage             TPageControl
+  field  +0294 DirtSheet                      TTabSheet
+  field  +0298 DirtMOR                        TEResourceGrid
+  field  +029C uWastelandSheet                TTabSheet
+  field  +02A0 uWastelandMOR                  TEResourceGrid
+  field  +02A4 TabSheet3                      TTabSheet
+  field  +02A8 uStructuresMOR                 TEResourceGrid
+  field  +02AC uHexagonSheet                  TTabSheet
+  field  +02B0 uHexagonsMOR                   TEResourceGrid
+  field  +02B4 TabSheet2                      TTabSheet
+  field  +02B8 EResourceGrid7                 TEResourceGrid
+  field  +02BC DDrawFullScr16DC               TDDrawFullScr16DC
+  field  +02C0 HeroesSheet                    TTabSheet
+  field  +02C4 HeroPopupMenu                  TPopupMenu
+  field  +02C8 AddFromHeroLib                 TMenuItem
+  field  +02CC DeleteHero                     TMenuItem
+  field  +02D0 EditHero                       TMenuItem
+  field  +02D4 PreviewMode640x4801            TMenuItem
+  field  +02D8 N640x480                       TMenuItem
+  field  +02DC N800x600                       TMenuItem
+  field  +02E0 N1024x768                      TMenuItem
+  field  +02E4 ObjectSheet                    TTabSheet
+  field  +02E8 ObjectMOR                      TEResourceGrid
+  field  +02EC uObjectsSheet                  TTabSheet
+  field  +02F0 EResourceGrid1                 TEResourceGrid
+  field  +02F4 UnitSelectionSheet             TTabSheet
+  field  +02F8 UnitTabControl                 TUnitTabControl
+  field  +02FC UnitSelectionGrid              TUnitIndexGrid
+  field  +0300 ItemSelectionSheet             TTabSheet
+  field  +0304 Panel5                         TPanel
+  field  +0308 Panel6                         TPanel
+  field  +030C EditBrushes                    THSLibrary
+  field  +0310 RemoveFromMap                  TMenuItem
+  field  +0314 N7                             TMenuItem
+  field  +0318 N8                             TMenuItem
+  field  +031C N6                             TMenuItem
+  field  +0320 SortName                       TMenuItem
+  field  +0324 SortLevels                     TMenuItem
+  field  +0328 NewHeroItem                    TMenuItem
+  field  +032C ItemPopupMenu                  TPopupMenu
+  field  +0330 EditItemItem                   TMenuItem
+  field  +0334 MenuItem2                      TMenuItem
+  field  +0338 OpenItemLib                    TMenuItem
+  field  +033C MenuItem4                      TMenuItem
+  field  +0340 NewItemItem                    TMenuItem
+  field  +0344 DeleteItemItem                 TMenuItem
+  field  +0348 MenuItem8                      TMenuItem
+  field  +034C SortItemNames                  TMenuItem
+  field  +0350 SortItemTypes                  TMenuItem
+  field  +0354 AgeOfWondersEngine             TAgeOfWondersEngine
+  field  +0358 DeveloperItems                 TMenuItem
+  field  +035C NewMapset                      TMenuItem
+  field  +0360 OpenMapset                     TMenuItem
+  field  +0364 N9                             TMenuItem
+  field  +0368 ExportText                     TMenuItem
+  field  +036C ImportText                     TMenuItem
+  field  +0370 DebugMode                      TMenuItem
+  field  +0374 N11                            TMenuItem
+  field  +0378 MapSetSettings                 TMenuItem
+  field  +037C MapSettings                    TMenuItem
+  field  +0380 N5                             TMenuItem
+  field  +0384 LeaderSelectionSheet           TTabSheet
+  field  +0388 LeaderSelectionGrid            TLeaderGrid
+  field  +038C N2                             TMenuItem
+  field  +0390 FogofWar                       TMenuItem
+  field  +0394 PlayerInfo                     TMenuItem
+  field  +0398 N4                             TMenuItem
+  field  +039C ItemControlGrid                TItemControlGrid
+  field  +03A0 RemoveItem                     TMenuItem
+  field  +03A4 GotoItem                       TMenuItem
+  field  +03A8 N10                            TMenuItem
+  field  +03AC HeroControlGrid                THeroControlGrid
+  field  +03B0 GoToHero                       TMenuItem
+  field  +03B4 N13                            TMenuItem
+  field  +03B8 LeaderPopupMenu                TPopupMenu
+  field  +03BC EditLeader                     TMenuItem
+  field  +03C0 GotoLeader                     TMenuItem
+  field  +03C4 RemoveLeader                   TMenuItem
+  field  +03C8 NewCombatMap                   TMenuItem
+  field  +03CC N14                            TMenuItem
+  field  +03D0 CombatSheet                    TTabSheet
+  field  +03D4 Panel4                         TPanel
+  field  +03D8 ScannerItem                    TMenuItem
+  field  +03DC CombatSurfacePageControl       TPageControl
+  field  +03E0 CCitySheet                     TTabSheet
+  field  +03E4 CCityMOR                       TEResourceGrid
+  field  +03E8 CObjectSheet                   TTabSheet
+  field  +03EC CObjectsMOR                    TEResourceGrid
+  field  +03F0 CGrassSheet                    TTabSheet
+  field  +03F4 CGrassMOR                      TEResourceGrid
+  field  +03F8 CSteppeSheet                   TTabSheet
+  field  +03FC CSteppeMOR                     TEResourceGrid
+  field  +0400 CDesertSheet                   TTabSheet
+  field  +0404 CDesertMOR                     TEResourceGrid
+  field  +0408 CSnowSheet                     TTabSheet
+  field  +040C CSnowMOR                       TEResourceGrid
+  field  +0410 CWastelandSheet                TTabSheet
+  field  +0414 CWastelandMOR                  TEResourceGrid
+  field  +0418 CDirtSheet                     TTabSheet
+  field  +041C CTerrainu                      TEResourceGrid
+  field  +0420 CStructureSheet                TTabSheet
+  field  +0424 CStructureMOR                  TEResourceGrid
+  field  +0428 ExplorationPlacesSheet         TTabSheet
+  field  +042C PageControl1                   TPageControl
+  field  +0430 CDungeonSheet                  TTabSheet
+  field  +0434 CDungeonMOR                    TEResourceGrid
+  field  +0438 CMonsterlairSheet              TTabSheet
+  field  +043C CMonsterlairMOR                TEResourceGrid
+  field  +0440 CCryptSheet                    TTabSheet
+  field  +0444 CCryptMOR                      TEResourceGrid
+  field  +0448 CCastleRuinSheet               TTabSheet
+  field  +044C CStructuresMOR                 TEResourceGrid
+  field  +0450 CZigguratSheet                 TTabSheet
+  field  +0454 CZigguratMOR                   TEResourceGrid
+  field  +0458 SettingsSheet                  TTabSheet
+  field  +045C PageControl3                   TPageControl
+  field  +0460 HiddenResourcesSheet           TTabSheet
+  field  +0464 HiddenResourceGrid             TEResourceGrid
+  field  +0468 RaceSheet                      TTabSheet
+  field  +046C RaceGrid                       TEResourceGrid
+  field  +0470 UnitGFX                        TTabSheet
+  field  +0474 UnitGFXGrid                    TEResourceGrid
+  field  +0478 UnitSheet                      TTabSheet
+  field  +047C UnitsGrid                      TEResourceGrid
+  field  +0480 HeroSheet                      TTabSheet
+  field  +0484 HeroGrid                       TEResourceGrid
+  field  +0488 ItemSheet                      TTabSheet
+  field  +048C ItemResourceGrid               TEResourceGrid
+  field  +0490 FaceSheet                      TTabSheet
+  field  +0494 FaceGrid                       TEResourceGrid
+  field  +0498 AbilitySheet                   TTabSheet
+  field  +049C Panel3                         TPanel
+  field  +04A0 AbilityListBox                 TListBox
+  field  +04A4 GroupBox1                      TGroupBox
+  field  +04A8 AbilityDescription             TMemo
+  field  +04AC AbilityLevelPointBox           TGroupBox
+  field  +04B0 Label1                         TLabel
+  field  +04B4 AbilityLevelPoints             TSpin
+  field  +04B8 SFXBox                         TGroupBox
+  field  +04BC EditAbilitySFXBtn              TButton
+  field  +04C0 AbGFXBox                       TGroupBox
+  field  +04C4 AbGFXEdit                      TButton
+  field  +04C8 GeneralSettingsSheet           TTabSheet
+  field  +04CC AnimationsBox                  TGroupBox
+  field  +04D0 EditAnimations                 TButton
+  field  +04D4 Spells                         TTabSheet
+  field  +04D8 Panel9                         TPanel
+  field  +04DC SpellListBox                   TListBox
+  field  +04E0 GroupBox2                      TGroupBox
+  field  +04E4 SpellDescription               TMemo
+  field  +04E8 GroupBox4                      TGroupBox
+  field  +04EC EditSpellSFX                   TButton
+  field  +04F0 GroupBox5                      TGroupBox
+  field  +04F4 EditSpellGFX                   TButton
+  field  +04F8 GroupBox3                      TGroupBox
+  field  +04FC Label2                         TLabel
+  field  +0500 Label3                         TLabel
+  field  +0504 Label4                         TLabel
+  field  +0508 SpellMana                      TSpin
+  field  +050C SpellResearchPoints            TSpin
+  field  +0510 SpellUpkeep                    TSpin
+  field  +0514 Label5                         TLabel
+  field  +0518 Label6                         TLabel
+  field  +051C SphereEdit                     TComboBox
+  field  +0520 SphereLevelEdit                TSpin
+  field  +0524 EditSpellText                  TButton
+  field  +0528 EditAbilityText                TButton
+  field  +052C GroupBox6                      TGroupBox
+  field  +0530 EditTextBtn                    TButton
+  field  +0534 ItemLibrariesBox               TGroupBox
+  field  +0538 EditItemLibrariesBtn           TButton
+  field  +053C HeroLibraryBox                 TGroupBox
+  field  +0540 EditHeroLibrariesBtn           TButton
+  field  +0544 GameSettingsMI                 TMenuItem
+  field  +0548 N12                            TMenuItem
+  field  +054C RemoveMapLevel                 TMenuItem
+  field  +0550 AddMapLevel                    TMenuItem
+  field  +0554 N15                            TMenuItem
+  field  +0558 ExportAbilityInfo              TMenuItem
+  field  +055C N1280x1024                     TMenuItem
+  field  +0560 RemoveLeadersItem              TMenuItem
+  field  +0564 DeveloperSheet                 TTabSheet
+  field  +0568 DeveloperResourceGrid          TEResourceGrid
+  field  +056C MapTextEditorMI                TMenuItem
+  field  +0570 N16                            TMenuItem
+  field  +0574 uDeveloperSheet                TTabSheet
+  field  +0578 uDeveloperResourceGrid         TEResourceGrid
+  field  +057C DefaultPlayersMI               TMenuItem
+  field  +0580 P0                             TMenuItem
+  field  +0584 ExportForMultilizer            TMenuItem
+  field  +0588 AoWEdDictionary                TIvBinaryDictionary
+  field  +058C Translator                     TIvTranslator
+  field  +0590 AbilityInfoGroup               TRadioGroup
+  field  +0594 AbilityInfoMemo                TMemo
+  field  +0598 AbilitySelectionGroup          TGroupBox
+  field  +059C AbilitySelectionCLB            TCheckListBox
+  field  +05A0 ItemsPnl                       TPanel
+  field  +05A4 OpenItemLibrary                TSpeedButton
+  field  +05A8 EditItemBtn                    TSpeedButton
+  field  +05AC NewItemBtn                     TSpeedButton
+  field  +05B0 DeleteItemBtn                  TSpeedButton
+  field  +05B4 SortItemsName                  TSpeedButton
+  field  +05B8 SortTypeBtn                    TSpeedButton
+  field  +05BC HeroPnl                        TPanel
+  field  +05C0 OpenHeroLibrary                TSpeedButton
+  field  +05C4 EditHeroBtn                    TSpeedButton
+  field  +05C8 AddHeroBtn                     TSpeedButton
+  field  +05CC RemoveHeroBtn                  TSpeedButton
+  field  +05D0 SortNameBtn                    TSpeedButton
+  field  +05D4 SortLevelBtn                   TSpeedButton
+  field  +05D8 SpellInfoGroup                 TGroupBox
+  field  +05DC SpellInfoMemo                  TMemo
+  field  +05E0 Panel2                         TPanel
+  field  +05E4 LoadBtn                        TSpeedButton
+  field  +05E8 SaveBtn                        TSpeedButton
+  field  +05EC ValidateMapBtn                 TSpeedButton
+  field  +05F0 Brush1Btn                      TSpeedButton
+  field  +05F4 Brush2Btn                      TSpeedButton
+  field  +05F8 Brush3Btn                      TSpeedButton
+  field  +05FC LevelUpBtn                     TSpeedButton
+  field  +0600 LevelDownBtn                   TSpeedButton
+  field  +0604 EraseBtn                       TSpeedButton
+  field  +0608 SelectBtn                      TSpeedButton
+  field  +060C OverrideBtn                    TSpeedButton
+  field  +0610 PreviewBtn                     TSpeedButton
+  field  +0614 Bevel2                         TBevel
+  field  +0618 ToolbarPnl                     TPanel
+  field  +061C ArmyBtn                        TSpeedButton
+  field  +0620 ItemBtn                        TSpeedButton
+  field  +0624 RoadBtn                        TSpeedButton
+  field  +0628 GrassBtn                       TSpeedButton
+  field  +062C WaterBtn                       TSpeedButton
+  field  +0630 IceBtn                         TSpeedButton
+  field  +0634 SnowBtn                        TSpeedButton
+  field  +0638 WastelandBtn                   TSpeedButton
+  field  +063C DesertBtn                      TSpeedButton
+  field  +0640 SteppeBtn                      TSpeedButton
+  field  +0644 Panel10                        TPanel
+  field  +0648 uArmyBtn                       TSpeedButton
+  field  +064C uItemBtn                       TSpeedButton
+  field  +0650 uBridgeBtn                     TSpeedButton
+  field  +0654 uWaterBtn                      TSpeedButton
+  field  +0658 DirtBtn                        TSpeedButton
+  field  +065C LavaBtn                        TSpeedButton
+  field  +0660 uIceBtn                        TSpeedButton
+  field  +0664 EarthBtn                       TSpeedButton
+  field  +0668 RockBtn                        TSpeedButton
+  field  +066C Panel7                         TPanel
+  field  +0670 SpeedButton1                   TSpeedButton
+  field  +0674 BorderBtn                      TSpeedButton
+  field  +0678 SpeedButton3                   TSpeedButton
+  field  +067C SpeedButton4                   TSpeedButton
+  field  +0680 SpeedButton5                   TSpeedButton
+  field  +0684 SpeedButton6                   TSpeedButton
+  field  +0688 SpeedButton7                   TSpeedButton
+  field  +068C SpeedButton8                   TSpeedButton
+  field  +0690 SpeedButton9                   TSpeedButton
+  field  +0694 SpeedButton10                  TSpeedButton
+  field  +0698 LeaderToolbar                  TPanel
+  field  +069C EditLeaderBtn                  TSpeedButton
+  method 0042840C FormCreate
+  method 00428C0C CopyItemClick
+  method 00428B34 CutItemClick
+  method 00428C78 DeleteItemClick
+  method 00428BA0 PasteItemClick
+  method 0042B7F0 OpenMapSetClick
+  method 00429604 Brush1BtnClick
+  method 00429614 Brush2BtnClick
+  method 00429624 Brush3BtnClick
+  method 004297BC OpenBtnClick
+  method 00429870 SaveBtnClick
+  method 004299A0 CloseItemClick
+  method 004299D0 NewItemClick
+  method 00429A9C SaveAsItemClick
+  method 00429BCC ExitItemClick
+  method 00429BD4 FormCloseQuery
+  method 00429D1C LevelDownBtnClick
+  method 00429E74 LevelUpBtnClick
+  method 00429FB0 HSMEditDeactivate
+  method 0042A178 HSMEditActivate
+  method 0042A4D4 HSSEditActivate
+  method 0042A61C HSSEditDeactivate
+  method 0042A6A0 HSMEditUpdateCaption
+  method 0042A7D0 LinkToMORList
+  method 0042A7E4 HSMEditShowMessage
+  method 0042A868 HSMEditStaticSceneUpdated
+  method 0042B2FC EraseBtnClick
+  method 0042B338 SelectHSBtnClick
+  method 0042A888 About1Click
+  method 0042A8E8 RaceGridLinkToResourceList
+  method 0042A9B4 UnitGFXGridLinkToResourceList
+  method 0042A9C8 UnitsGridLinkToResourceList
+  method 00428CA0 HSMEditUpdateFrame
+  method 0042A9DC PreviewBtnClick
+  method 0042A9AC MapSettingsClick
+  method 0042A9E8 N640x480Click
+  method 0042AA0C N800x600Click
+  method 0042AA30 N1024x768Click
+  method 0042AA78 HSMEditMouseMove
+  method 0042AB34 HeroGridLinkToResourceList
+  method 0042AB48 ItemResourceGridLinkToResourceList
+  method 0042AB5C FaceGridLinkToResourceList
+  method 0042AB70 UnitTabControlSelectUnit
+  method 0042AB9C SortNameBtnClick
+  method 0042ABA8 SortLevelBtnClick
+  method 0042ABB4 OpenHeroLibraryClick
+  method 0042AC10 SortItemsNameClick
+  method 0042AC1C SortTypeBtnClick
+  method 0042ADEC DeleteItemBtnClick
+  method 0042ACAC DeleteHeroBtnClick
+  method 0042AFBC OpenItemLibraryClick
+  method 0042B018 NewItemBtnClick
+  method 0042B0D4 NewHeroBtnClick
+  method 0042B124 WaterBtnClick
+  method 0042B160 GrassBtnClick
+  method 0042B19C SteppeBtnClick
+  method 0042B1D8 DesertBtnClick
+  method 0042B214 WastelandBtnClick
+  method 0042B250 SnowBtnClick
+  method 0042B28C IceBtnClick
+  method 0042B4A0 HSMEditSelectPlaceHS
+  method 0042B2C8 RoadBtnClick
+  method 0042B4F4 OverrideBtnClick
+  method 0042B50C ChangeTerrainBtnClick
+  method 0042B51C uWaterBtnClick
+  method 0042B548 DirtBtnClick
+  method 0042B574 LavaBtnClick
+  method 0042B5A0 uIceBtnClick
+  method 0042B5CC EarthBtnClick
+  method 0042B5F8 RockBtnClick
+  method 0042B624 ArmyBtnClick
+  method 0042B668 ItemBtnClick
+  method 0042B6AC EditHeroClick
+  method 0042AD4C RemoveFromMapClick
+  method 0042B7B4 HSMEditDeselectPlaceHS
+  method 0042A4B0 NewMapsetClick
+  method 0042B814 ExportTextClick
+  method 0042B914 ImportTextClick
+  method 0042A870 DebugModeClick
+  method 0042B9FC MapSetSettingsClick
+  method 0042BA50 LeaderSelectionGridSelectCell
+  method 0042BAEC FogofWarClick
+  method 0042BB24 PlayerInfoClick
+  method 0042BD48 FormShow
+  method 0042C1F0 AbilityListBoxClick
+  method 0042C4D8 AbilityLevelPointsChange
+  method 0042C53C AbilityDescriptionChange
+  method 0042CAAC EditAbilitySFXBtnClick
+  method 0042B710 ItemControlGridSelectCell
+  method 0042AE98 RemoveItemClick
+  method 0042CBBC GotoItemClick
+  method 0042AC28 HeroControlGridSelectCell
+  method 0042CC40 ItemControlGridUnselect
+  method 0042CC4C HeroControlGridUnselect
+  method 0042CC58 GoToHeroClick
+  method 0042CD60 ValidateMapBtnClick
+  method 0042BC7C AddMapLevelClick
+  method 0042D0DC EditLeaderClick
+  method 0042CCDC GoToLeaderClick
+  method 0042AF38 RemoveLeaderFromMapClick
+  method 0042CDA4 NewCombatMapClick
+  method 0042CEC8 LinkToCombatResources
+  method 0042CEE0 UnitPositionBtnClick
+  method 0042CF18 BorderBtnClick
+  method 0042CF28 EditAnimationsClick
+  method 0042CF60 AbGFXEditClick
+  method 0042D050 ScannerItemClick
+  method 0042BE14 SpellListBoxClick
+  method 0042C6F4 SpellDescriptionChange
+  method 0042CFD8 EditSpellGFXClick
+  method 0042CB34 EditSpellSFXClick
+  method 0042C980 SpellManaChange
+  method 0042C9E4 SpellResearchPointsChange
+  method 0042CA48 SpellUpkeepChange
+  method 0042C910 SphereLevelEditChange
+  method 0042C8AC SphereEditChange
+  method 0042C790 EditSpellTextClick
+  method 0042C5D8 EditAbilityTextClick
+  method 0042D0AC EditTextBtnClick
+  method 0042B080 EditItemClick
+  method 0042D138 HeroPopupMenuPopup
+  method 0042D1D0 ItemPopupMenuPopup
+  method 0042D268 GameSettingsClick
+  method 0042D2CC ExportAbilityInfoClick
+  method 0042D3F8 HSMEditActivateDC
+  method 0042AA54 N1280x1024Click
+  method 0042D44C RemoveLeadersMIClick
+  method 0042BB6C RemoveMapLevelClick
+  method 0042D4D8 MapTextEditorMIClick
+  method 0042D554 ExportForMultilizerClick
+  method 0042C3CC AbilitySelectionCLBClickCheck
+  method 0042D6EC HSMEditKeyDown
+  unit MDIForm
+class TGameSettingsDlg (TForm) size=568 virtuals=32 vmt=0042D8CC
+  field  +01DC BottomPnl                      TPanel
+  field  +01E0 ClientPnl                      TPanel
+  field  +01E4 OKBtn                          TButton
+  field  +01E8 CancelBtn                      TButton
+  field  +01EC MainPageControl                TPageControl
+  field  +01F0 GeneralSheet                   TTabSheet
+  field  +01F4 Bevel1                         TBevel
+  field  +01F8 TransferSettingsLbl            TLabel
+  field  +01FC TransferPointsLbl              TLabel
+  field  +0200 MaxHeroLevelMaxLbl             TLabel
+  field  +0204 TransferGoldLbl                TLabel
+  field  +0208 TransferManaLbl                TLabel
+  field  +020C TransferPointsMaxEdit          TSpin
+  field  +0210 TransferGoldMaxEdit            TSpin
+  field  +0214 TransferManaMaxEdit            TSpin
+  field  +0218 HeroLevelMaxEdit               TSpin
+  field  +021C Bevel3                         TBevel
+  field  +0220 AlliedVictoryCB                TCheckBox
+  field  +0224 GameTypeLbl                    TLabel
+  field  +0228 GameTypeCB                     TComboBox
+  field  +022C TurnLimitationLbl              TLabel
+  field  +0230 TurnLimitationEdit             TSpin
+  field  +0234 DemoMapCB                      TCheckBox
+  method 0042DD20 FormCreate
+  method 0042DDE0 OKBtnClick
+  method 0042E00C GameTypeCBChange
+  unit GameSDlg
+class TAboutDlg (TForm) size=508 virtuals=32 vmt=0042E08C
+  field  +01DC Panel1                         TPanel
+  field  +01E0 OKButton                       TButton
+  field  +01E4 Label1                         TLabel
+  field  +01E8 Image2                         TImage
+  field  +01EC VersionLbl                     TLabel
+  field  +01F0 Label2                         TLabel
+  field  +01F4 Bevel1                         TBevel
+  field  +01F8 Translator                     TIvTranslator
+  method 0042E1E4 FormCreate
+  unit AboutDialog

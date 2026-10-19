@@ -1,0 +1,117 @@
+== AoWTC  (21 classes, 63 funcs, 27 types)
+   TAoWCombatMap (25): AddEffect CancelEndTurn ClassID Create CreateMouse Destroy DrawDynamicScene DrawMoveRoute DropHeroItem EndCombat EndTurn GetEndTurnStatus GetHeroItemsOnGround GetNextUnit GetUnitLocation InitializeNewMap MouseMoveEvent MsgProc NewFrame NewTurn SelectNextUnit SetCombat SetSeatedCombatPlayer Surrender UpdateCursor
+   TAoWCombatMapField (2): ClassID GetDefenseValue
+   TAoWCombatMapLevel (2): ClassID MapFieldClass
+   TAoWNewCombatMapSettings (1): Create
+   TCAI (18): BeginTurn ChargeFromPos CheckUnit ContinueTurn Create CreateMove Destroy EvalAll EvalArea EvalBattle EvalBreath EvalHex EvalPath MakeTerrainPath MultDEV Reset UnitSafe tcDVtoDEV
+   TCBloodHS (6): Activate ClassID DeActivate GetLevel GetShowPriority Show
+   TCCorpseHS (8): Activate ClassID DeActivate GetLevel GetShowPriority MapFieldMsgProc NewFrame Show
+   TCItemHS (1): DeActivate
+   TCOozeHS (6): ClassID GetLevel GetOverlay GetShowPriority PlaceOnMap Show
+   TCombatMoveControl (1): ProcessMove
+   TCombatUnitSelectionControl (25): ActivateMoveSelection AddUnit CalculateMovePath CalculateRangedPath Create CreateMCS DeactivateMoveSelection DeactivateRangedPath Destroy ExecuteMoveSelection GetMoveTypes GetTCUnitHS MouseDownEvent MoveSelectedRoute MoveSelectionEvent MoveUnits RectangleSelectEvent Select SetCurrentMove SetTCUnitHS ShowMovePaths Unselect Update UpdateMoveCursor ValidMultiMoveSelection
+   TRangedPathHS (5): Activate ClassID DeActivate GetShowPriority Show
+   TRndTacHsm (6): Create Destroy InitTables PlaceCombatUnits RandomMap SetupUnit
+   TTacticalCombat (8): ClassID CreateCombatPlayer CreateCombatUnit Deactivate Execute Finalize Initialize ValidateWallCombat
+   TTacticalCombatPlayer (1): SetAuto
+   TTacticalCombatPlayerList (2): GetCount GetPlayers
+   TTacticalCombatUnit (5): ExecuteDamage GetPosValue MovedTo MsgProc NewTurn
+   TTacticalCombatUnitHS (22): AbRangedTC AbTouchMoveTC Activate CanMoveOn ClassID CreateTCAbList DeActivate GetMoveSteps Initialize ListAbilities MapFieldMsgProc MeleeMoveTC MsgProc NewFrame Select SelectAbility SelectSpell SetAction Show ShowShadow Unselect UpdateMapField
+   TUnitPositionControl (6): Create Destroy GetUnitPosition MsgProc SetUnitPosition ValidatePosition
+   TUnitPositionHS (9): Activate CanPlace ClassID Create Deactivate GetLevel ReadWrite Show UpdateImageIndex
+   TfxHS (8): Activate ClassID Create DeActivate Destroy GetShowPriority NewFrame Show
+   funcs: AbilTypes AoWCombatMap BeginRoundRStr BreathDir BreathHN BreathHit CombatLLoc CombatXLoc CombatYLoc DefPosX DefPosY GetMeleeDirIndex GetRangedDirIndex IndRStr MakeAbilPath MakeRangedPath MapRoads MapShape RegisterAoWTCClasses SpellTypes StatusAbils TAoWCombatMap TAoWCombatMapField TAoWCombatMapLevel TAoWCombatMapMouse TAoWNewCombatMapSettings TCAI TCAttack TCBloodHS TCCorpseHS TCDamage TCItemHS TCOozeHS TCombatMoveControl TCombatMoveControlSettings TCombatMoveMode TCombatUnitSelectionControl TFireStart TROb TRangedPathHS TRndHexMask TRndTacHsm TTCAbil TTCAbility TTCAction TTCDeathMethod TTacticalCombat TTacticalCombatPlayer TTacticalCombatPlayerList TTacticalCombatUnit TTacticalCombatUnitHS TUnitPositionControl TUnitPositionHS TaiMove TaiMoveType TaiStatus TfxHS TfxType WallISIndex WallMaxHP clusterChk raDir rndHex
+== AoWTCPCK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== AoWTCReg  (0 classes, 1 funcs, 0 types)
+   funcs: RegisterTacticalCombat
+== CMapCtrl  (1 classes, 13 funcs, 1 types)
+   TAoWCombatMapControl (24): ActivateAbility ActivateHSM ActivateMap CastSpell ChangeTurn Create DeactivateHSM DeactivateMap DeselectHS Destroy ExecuteEventLog GemsChanged IncomeChanged LinkToHSM LogbookChanged MapChanged MouseOverTarget PlayerChanged ReleaseHSM SeatedPlayerChanged SelectHS ShowMessage UnitChanged UpkeepChanged
+   funcs: Register TActivateCombatAbilityEvent TAoWCombatMapControl TCastCombatSpellEvent TDeselectHSEvent TMapChangedEvent TOnExecuteEventLogEvent TOnGameOverEvent TOnMessageEvent TPlayerChangedEvent TSelectHSEvent TShowMessageEvent TTurnChangedEvent
+== CenterViewLoc  (2 classes, 3 funcs, 2 types)
+   TCenterViewLocation (8): Activate CanPlace CanSelect ClassID Deactivate GetResourceList PlaceHX Show
+   TCenterViewLocationResource (5): ClassID Create ResourceEditName ResourceUserClassID SetLevel
+   funcs: RegisterCenterViewLocation TCenterViewLocation TCenterViewLocationResource
+== CityWall  (4 classes, 5 funcs, 4 types)
+   TCityWall (14): Activate CanMoveOn CanMoveOver ClassID GetDefense GetDirection GetOverlay GetTerrainTypeImage MapFieldMsgProc SetHitPoints Show ShowShadow UpdateMapField ValidTerrainType
+   TCityWallDoor (5): CanMoveOn CanMoveOver ClassID GetOverlay Show
+   TCityWallDoorResource (3): ClassID ResourceEditName ResourceUserClassID
+   TCityWallResource (4): ClassID ReadWrite ResourceEditName ResourceUserClassID
+   funcs: RegisterCityWall TCityWall TCityWallDoor TCityWallDoorResource TCityWallResource
+== CombatFire  (2 classes, 4 funcs, 2 types)
+   TCombatFire (13): Activate CanMoveOn ClassID Create DeActivate Destroy GetLevel GetShowPriority MakeVisible MsgProc NewTurn SetVisible Show
+   TCombatFireResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: CreateFire RegisterCombatFire TCombatFire TCombatFireResource
+== CombatHex  (4 classes, 5 funcs, 4 types)
+   TCombatHexagon (8): Activate ClassID GetResourceList NeighbourTerrainChanged Show TerrainChanged UpdateTransition UpdateTransitions
+   TCombatHexagonResource (6): ClassID GetCellImage GetHexagonControl MsgProc ResourceEditName ResourceUserClassID
+   TWaterCombatHexagon (2): ClassID GetResourceList
+   TWaterCombatHexagonResource (4): ClassID GetHexagonControl ResourceEditName ResourceUserClassID
+   funcs: RegisterCombatHexagon TCombatHexagon TCombatHexagonResource TWaterCombatHexagon TWaterCombatHexagonResource
+== CombatILTer  (5 classes, 6 funcs, 5 types)
+   TCombatFixedILTerrain (5): CanChangeTerrain ChangeTerrain ClassID ForceTerrainType TerrainChanged
+   TCombatFixedILTerrainResource (3): ClassID ResourceEditName ResourceUserClassID
+   TCombatILTerrain (13): Activate CanPlaceOnHS ClassID CreateShadow Deactivate Destroy DestroyShadow GetBurnValue GetDefense GetResourceList MakeVisible MapFieldMsgProc ShowShadow
+   TCombatILTerrainResource (4): ClassID ReadWrite ResourceEditName ResourceUserClassID
+   TCombatILTerrainShadow (2): GetShowPriority Show
+   funcs: RegisterCombatILTerrain TCombatFixedILTerrain TCombatFixedILTerrainResource TCombatILTerrain TCombatILTerrainResource TCombatILTerrainShadow
+== CombatObstacle  (4 classes, 5 funcs, 4 types)
+   TCombatObstacle (18): Activate CanMoveOn CanPlace ClassID CreateOverlay CreateShadow Deactivate Destroy DestroyOverlay DestroyShadow GetResourceList MakeVisible PlaceHX PlaceOnMap RemoveFromMap ShowOverlay ShowShadow UpdateMapField
+   TCombatObstacleOverlay (2): GetShowPriority Show
+   TCombatObstacleResource (3): ClassID ResourceEditName ResourceUserClassID
+   TCombatObstacleShadow (2): GetShowPriority Show
+   funcs: RegisterCombatObstacle TCombatObstacle TCombatObstacleOverlay TCombatObstacleResource TCombatObstacleShadow
+== CombatRoad  (2 classes, 3 funcs, 2 types)
+   TCombatRoad (9): Activate CanPlace ClassID GetResourceList NeighbourTerrainChanged PlaceHX Show UpdateTransition UpdateTransitions
+   TCombatRoadResource (6): ClassID GetCellImage GetRoadControl MsgProc ResourceEditName ResourceUserClassID
+   funcs: RegisterCombatRoad TCombatRoad TCombatRoadResource
+== CombatStructure  (2 classes, 2 funcs, 2 types)
+   TCombatStructure (13): Activate CanMoveOn CanPlace CanPlaceOnHS ClassID Create GetOverlay GetTerrainTypeImage MapFieldMsgProc SetHitPoints ShowShadow UpdateMapField ValidTerrainType
+   TCombatStructureResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: TCombatStructure TCombatStructureResource
+== CombatTE  (7 classes, 20 funcs, 7 types)
+   TCAbRangedTE (4): ClassID Execute NextStrike ReadWrite
+   TCAbTouchMoveTE (3): ClassID LastMove ReadWrite
+   TCEndCombatTE (2): ClassID Execute
+   TCEndTurnTE (2): ClassID Execute
+   TCMeleeMoveTE (4): ClassID ExecuteStrike LastMove NextStrike
+   TCombatMoveTE (7): ClassID DefaultMove Destroy ExecuteDefaultMove GetMapF Setup Validate
+   TTerminateCombatTE (2): ClassID Execute
+   funcs: CreateCombatMoveTE CreateTCAbRangedTE CreateTCAbTouchMoveTE CreateTCCancelEndTurnTE CreateTCEndCombatTE CreateTCEndTurnTE CreateTCMeleeMoveTE MakeDEHSList MakeHitBlood MoveCombatUnit RegisterCombatTE SetupMultiTCUnitMove TCAbRangedTE TCAbTouchMoveTE TCEndCombatTE TCEndTurnTE TCMeleeMoveTE TCombatMoveTE TTerminateCombatTE TTokenStep
+== CombatTerrain  (3 classes, 4 funcs, 3 types)
+   TCombatTerrain (16): Activate CanMoveOn CanPlaceOnHS ClassID CreateShadow Deactivate Destroy DestroyShadow GetResourceList MakeVisible MapFieldMsgProc PlaceOnMap RemoveFromMap SetHitPoints ShowShadow UpdateMapField
+   TCombatTerrainResource (4): ClassID ReadWrite ResourceEditName ResourceUserClassID
+   TCombatTerrainShadow (2): GetShowPriority Show
+   funcs: RegisterCombatTerrain TCombatTerrain TCombatTerrainResource TCombatTerrainShadow
+== FleeLoc  (3 classes, 4 funcs, 3 types)
+   TFleeLocation (12): Activate CanMoveOn CanPlace CanSelect ClassID Create DeActivate GetResourceList GetShowPriority NewFrame PlaceHX Show
+   TFleeLocationResource (3): ClassID ResourceEditName ResourceUserClassID
+   TMovementHS (4): CanMoveOn ClassID GetShowPriority Show
+   funcs: RegisterFleeLocation TFleeLocation TFleeLocationResource TMovementHS
+== House  (2 classes, 3 funcs, 2 types)
+   THouse (4): Activate ClassID Show ShowShadow
+   THouseResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterHouse THouse THouseResource
+== IsoCombatHex  (2 classes, 3 funcs, 2 types)
+   TIsometricCombatHexagon (3): ClassID GetResourceList ShowDynamic
+   TIsometricCombatHexagonResource (4): ClassID GetHexagonControl ResourceEditName ResourceUserClassID
+   funcs: RegisterIsometricCombatHexagon TIsometricCombatHexagon TIsometricCombatHexagonResource
+== MainStructure  (2 classes, 3 funcs, 2 types)
+   TMainStructure (2): ClassID GetTerrainTypeImage
+   TMainStructureResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterMainStructure TMainStructure TMainStructureResource
+== OverviewUnit  (1 classes, 2 funcs, 1 types)
+   TOverviewUnitHS (4): Destroy SetU Show ShowShadow
+   funcs: PlaceOverviewUnit TOverviewUnitHS
+== SingleCombatHex  (2 classes, 3 funcs, 2 types)
+   TSingleCombatHexagon (3): ClassID GetResourceList Show
+   TSingleCombatHexagonResource (6): ClassID GetHexagonControl MsgProc ResourceEditName ResourceUserClassID SetLevel
+   funcs: RegisterSingleCombatHexagon TSingleCombatHexagon TSingleCombatHexagonResource
+== Townhall  (2 classes, 3 funcs, 2 types)
+   TTownhall (1): ClassID
+   TTownhallResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterTownhall TTownhall TTownhallResource
+== WorkShop  (2 classes, 3 funcs, 2 types)
+   TWorkshop (1): ClassID
+   TWorkshopResource (3): ClassID ResourceEditName ResourceUserClassID
+   funcs: RegisterWorkshop TWorkshop TWorkshopResource

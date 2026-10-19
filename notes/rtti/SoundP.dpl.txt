@@ -1,0 +1,67 @@
+# D:\Games\GOG\Age of Wonders\SoundP.dpl: 18 classes
+class TGalaxySongStatus (TSongStatus) size=16 virtuals=0 vmt=554025D0
+class TGalaxySampleData (TSampleData) size=20 virtuals=4 vmt=554026A8
+class TGalaxySample (TSample) size=40 virtuals=11 vmt=55402738
+class TGalaxySoundSystem (TSoundSystem) size=60 virtuals=28 vmt=55402840
+class TSampleData (TObject) size=12 virtuals=4 vmt=554037EC
+class TSample (TObject) size=24 virtuals=11 vmt=55403880
+class TSoundSystem (TObject) size=12 virtuals=28 vmt=5540396C
+class TSFXList (TStringList) size=44 virtuals=32 vmt=55403A50
+  unit Sound
+class TSFXManager (TComponent) size=44 virtuals=10 vmt=55403B3C
+  unit Sound
+  prop   SearchPath                     String                       get=field+0024 set=field+0024
+  prop   SFX                            TSFXList(tkClass)            get=field+0028 set=none
+class TSFXManagerComboBox (TComboBox) size=384 virtuals=35 vmt=55403C2C
+  unit Sound
+  prop   SFXManager                     TSFXManager(tkClass)         get=field+0170 set=static 55404950
+  prop   SubDirectory                   String                       get=field+0174 set=static 5540495C
+  prop   SkipDirectories                String                       get=field+0178 set=field+0178
+  prop   EmptySFXName                   String                       get=field+017C set=field+017C
+class TSFXManagerListBox (TListBox) size=356 virtuals=33 vmt=55403DF8
+  unit Sound
+  prop   SFXManager                     TSFXManager(tkClass)         get=field+0154 set=static 55404E64
+  prop   SubDirectory                   String                       get=field+0158 set=static 55404E70
+  prop   SkipDirectories                String                       get=field+015C set=field+015C
+  prop   EmptySFXName                   String                       get=field+0160 set=field+0160
+class TSongStatus (TObject) size=8 virtuals=0 vmt=55403FBC
+class TSonglist (TEObject) size=16 virtuals=19 vmt=55404084
+class TSongPlayer (TObject) size=40 virtuals=0 vmt=55404140
+class TSFX (TEObject) size=12 virtuals=19 vmt=554041EC
+class TSFXSequence (TENode) size=16 virtuals=34 vmt=554042AC
+class TSFXLibrary (TENode) size=12 virtuals=34 vmt=554043A8
+class TSFXLibraryEditDlg (TForm) size=568 virtuals=32 vmt=55406ECC
+  field  +01DC GroupBox1                      TGroupBox
+  field  +01E0 Panel1                         TPanel
+  field  +01E4 SequenceList                   TStringGrid
+  field  +01E8 Panel2                         TPanel
+  field  +01EC SFXList                        TListBox
+  field  +01F0 AddSeq                         TButton
+  field  +01F4 DeleteSeq                      TButton
+  field  +01F8 IDLabel                        TLabel
+  field  +01FC SFXIDEdit                      TSpin
+  field  +0200 Panel3                         TPanel
+  field  +0204 Panel4                         TPanel
+  field  +0208 Panel5                         TPanel
+  field  +020C Panel6                         TPanel
+  field  +0210 Panel7                         TPanel
+  field  +0214 SFXManagerList                 TSFXManagerListBox
+  field  +0218 PlaySFXFile                    TSpeedButton
+  field  +021C AddSFX                         TButton
+  field  +0220 DeleteSFX                      TButton
+  field  +0224 OKBtn                          TButton
+  field  +0228 Button1                        TButton
+  field  +022C PlaySFX                        TSpeedButton
+  method 5540744C FormCreate
+  method 55407470 PlaySFXClick
+  method 55407500 PlaySFXFileClick
+  method 55407550 PlaySeqClick
+  method 55407594 AddSeqClick
+  method 554075CC DeleteSeqClick
+  method 554075E8 AddSFXClick
+  method 55407680 DeleteSFXClick
+  method 554076EC SequenceListSelectCell
+  method 554076FC SFXIDEditUpdate
+  method 55407728 OKBtnClick
+  method 554077DC SequenceListKeyDown
+  unit SFXEdDlg

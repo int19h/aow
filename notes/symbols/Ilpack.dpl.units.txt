@@ -1,0 +1,66 @@
+== HashTabU  (5 classes, 7 funcs, 7 types)
+   THashList (4): Add Clear Delete Destroy
+   TIntegerHashList (3): Add Delete Find
+   TIntegerHashTable256 (6): Add Clear Create Delete Destroy Find
+   TStringHashList (4): Add Clear Delete Find
+   TStringHashTable256 (6): Add Clear Create Delete Destroy Find
+   funcs: THashList TIntegerHashList TIntegerHashTable TIntegerHashTable256 TStringHashList TStringHashTable TStringHashTable256
+== ILEdForm  (2 classes, 2 funcs, 2 types)
+   TImageLibraryEditForm (12): AddBtnClick BltModeBoxChange Create Destroy FormActivate ILEditGridSelectCell ImageTrackerPanelDraw OpenBtnClick SaveBtnClick SetImageLibrary SubImageEditorSubImageSelected ToolButton1Click
+   TImageLibraryEditor (4): Edit ExecuteVerb GetVerb GetVerbCount
+   funcs: TImageLibraryEditForm TImageLibraryEditor
+== ILEdGrid  (1 classes, 2 funcs, 1 types)
+   TImageLibraryEditGrid (19): CopyCell Create CutCell DelCell DeleteCell DrawCell EditCell GetSelectedImage InsCell KeyDown MouseDown PasteCell SelectAll SelectCell SetImageIndex SetImageLibrary UpdateSettings WMSize WndProc
+   funcs: TEditEvent TImageLibraryEditGrid
+== ILPACK  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== ILSpin  (3 classes, 4 funcs, 4 types)
+   TILSpinEdit (18): CMEnter CMExit Create CreateParams CreateWnd Destroy DoExit DownClick GetChildren GetValue IsValidChar KeyDown KeyPress SetValue UpClick WMCut WMPaste WMSize
+   TSpinButton (17): Create GetDownGlyph GetDownNumGlyphs GetUpGlyph GetUpNumGlyphs KeyDown Loaded Notification SetBounds SetDownGlyph SetDownNumGlyphs SetUpGlyph SetUpNumGlyphs WMGetDlgCode WMKillFocus WMSetFocus WMSize
+   TTimerSpeedButton (4): Destroy MouseDown MouseUp Paint
+   funcs: TILSpinEdit TSpinButton TTimeBtnState TTimerSpeedButton
+== ImageLib  (29 classes, 62 funcs, 39 types)
+   TBitMask (18): AllocateMaskData ClassID CreateGrabForm CreateGrabInfo GrabImage Name ReadDiscardableImageData ReadImageData ReleaseDiscardableImageData SetHeight SetWidth SetXshift SetYshift ShowDC ShowOpaque SupportGrabPixelFormat WriteDiscardableImageData WriteImageData
+   TBitMaskGrabInfo (3): GrabInfoClass LoadFromStream SaveToStream
+   TCustomImageDrawGrid (29): CopyCell Create CutCell DelCell DeleteCell DrawCell GetColCount GetRowCount ImageIndex IndexToCell InsCell KeyDown PasteCell SelectCell SelectIndex SetBltMode SetColCount SetCount SetFocusColor SetMaxColCount SetMaxRowCount SetMinColCount SetMinRowCount SetRowCount SetScaleX SetScaleY SetSelectionEnabled SetShowGridIndex UpdateDimensions
+   TCustomImageLibrary (53): Add AddSub Assign CallOnChangeEvent Clear Copy CopyToClipboard Create DefineProperties Delete DeleteSub Destroy DisableOnChangeEvent DisableReloading Empty EnableOnChangeEvent Get GetFullFileName GetImage GetImageReference GetModified GetSafe GetSafeSub GetSub GetSubCount GetSubImage ImageExist IndexOf IndexOfSub Insert InsertSub IsReference LoadDiscardableImageData LoadFromFile LoadFromFileStream LoadFromStream Pack PasteFromClipboard ReduceCount ReleaseDiscardableImageData Remove RemoveSub SaveToFile SaveToStream SetCount SetFileName SetImage SetImageReference SetLoadOnDemand SetModified SetSubImage SubImageExist UpdateImageItemSettings
+   TCustomImageLibraryGrid (9): CopyCell CreateSelectedIL CutCell DelCell DeleteCell DrawCell InsCell PasteCell SetImageLibrary
+   TCustomImageLibraryPanel (7): Create Paint SetBltMode SetImageIndex SetImageLibrary SetScaleX SetScaleY
+   TFrameTableList (26): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get GetItemString Grow IndexOf Insert Last LoadFromStream Move Pack Put Remove SaveToStream SetCapacity SetCount SetItemString Sort
+   TGrabInfo (4): Copy GrabInfoClass LoadFromStream SaveToStream
+   TILManagerComboBox (6): Create GenerateItems GetImageLibraryName SetILManager SetImageLibraryName SetSubDirectory
+   TILManagerList (12): AddILFile AddILManagerObject Clear Create Delete Destroy GetIL LinkToIL LoadFromStream ReleaseIL SaveToStream UnloadIL
+   TILManagerListBox (6): Create GenerateItems GetImageLibraryName SetILManager SetImageLibraryName SetSubDirectory
+   TImage08 (10): Clear CreateLibraryImagePalette ReadImageData RegisterPalette RemapToPixelFormat SetOwner ShowDC SupportGrabPixelFormat UnregisterPalette WriteImageData
+   TImage16 (6): Create ReadDiscardableImageData ReadImageData ShowDC WriteDiscardableImageData WriteImageData
+   TImageLibraryFont (9): Create GetTextHeight GetTextWidth LoadFromStream SetColor SetFontColorPaletteIndex SetText SetTextCentered SetTextEx
+   TImageLibraryManager (9): Clear Create Destroy ExecutePathSearch LinkToIL LoadFromStream ReleaseIL SaveToStream UnloadIL
+   TImageNode (31): Add ClassID Clear Create Delete Destroy GetImage GetSafeImage IndexOf Info Insert LoadDiscardableImageData LoadFromStream LoadFromStreamEx Name ReleaseDiscardableImageData RemapToPixelFormat Remove SaveToStream SaveToStreamEx SetLoadMode SetOwner SetReloadingEnabled Show ShowBlended ShowDC ShowEx ShowOpaque ShowTransparent SupportShowMode UpdateDimensions
+   TImageSequence (16): Copy Create Destroy GetDimensions GetFrameIndex GetPreviewImage GetTotalSequenceFrames GetUnloopedFrameIndex LinkToIL LoadFromIniFile LoadFromStream ReleaseIL SaveToIniFile SaveToStream SetImageLibraryName SetSequenceMode
+   TImageSequenceList (28): Add Animating CopyToClipboard Create Delete Destroy DestroyItems GetDimensions GetFramesCount GetImageSequence GetLayerImageSequence GetPreviewImage GetSubCount GetSubImageSequence IndexOfSub LinkToIL LoadFromIniFile LoadFromStream PasteFromClipboard ReduceCount ReleaseIL SaveToIniFile SaveToStream SetImageSequence Show ShowLooped ShowLoopedEx UsedIndexString
+   TLibraryImage (48): ClassID ClassVersion Clear Copy Create CreateGrabForm CreateGrabInfo Destroy GetDimensions GetPalette GetRemapPalette GetTransparent GetVisualDimensions GrabImage GrabImages Info LoadDiscardableImageData LoadFromStream LoadFromStreamEx Name ReadDiscardableImageData ReadImageData ReleaseDiscardableImageData RemapToPixelFormat SaveToStream SaveToStreamEx SetDefaultShowInfo SetHeight SetLoadMode SetOwner SetReloadingEnabled SetWidth SetXshift SetYshift Show ShowBlended ShowBlendedStretched ShowClipped ShowDC ShowEx ShowOpaque ShowOpaqueStretched ShowStretched ShowTransparent SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData WriteImageData
+   TLibraryImagePalette (6): Assign Create Destroy LoadFromStream RemapPalette SaveToStream
+   TPaletteManager (10): Clear Create Destroy GetCount GetPalette LinkToPalette LoadFromStream RegisterPalette SaveToStream UnregisterPalette
+   TPicture08 (15): AllocateDiscardableImageData ClassID CreateGrabForm GrabImage Name ReadDiscardableImageData ReleaseDiscardableImageData SetHeight SetWidth SetXshift SetYshift ShowOpaque SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData
+   TPicture16 (20): AllocateDiscardableImageData ClassID CreateGrabForm GrabImage Name ReadDiscardableImageData ReleaseDiscardableImageData RemapToPixelFormat SetHeight SetWidth SetXshift SetYshift ShowBlended ShowBlendedStretched ShowOpaque ShowOpaqueStretched ShowTransparent SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData
+   TRLESprite08 (17): ClassID CreateGrabForm GetVisualDimensions GrabImage Name ReadDiscardableImageData ReadImageData ReleaseDiscardableImageData SetHeight SetWidth SetXshift SetYshift ShowOpaque SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData WriteImageData
+   TRLESprite16 (20): ClassID Create CreateGrabForm GetVisualDimensions GrabImage Name ReadDiscardableImageData ReadImageData ReleaseDiscardableImageData RemapToPixelFormat SetHeight SetWidth SetXshift SetYshift ShowOpaque ShowTransparent SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData WriteImageData
+   TShadow (5): ClassID Create Name ShowOpaque SupportShowMode
+   TSprite16 (22): AllocateDiscardableImageData ClassID Create CreateGrabForm GetVisualDimensions GrabImage Name ReadDiscardableImageData ReadImageData ReleaseDiscardableImageData RemapToPixelFormat SetHeight SetWidth SetXshift SetYshift ShowBlended ShowOpaque ShowTransparent SupportGrabPixelFormat SupportShowMode WriteDiscardableImageData WriteImageData
+   TTransparentPicture16 (4): ClassID Create Name SupportGrabPixelFormat
+   TTransparentRLESprite16 (4): ClassID Create Name SupportGrabPixelFormat
+   funcs: BaseImageLibraryPath BltImageSequence BltImageSequenceEx BltLibraryImage DrawImageLine FindLibraryImageClass GetLibraryImageClass LibraryImageClassCount ParseFontText ReadImageFromStream ReadImageFromStreamEx Register RegisterLibraryImageClasses TBitMask TBitMaskGrabInfo TBlendMode TBltMode TCustomImageDrawGrid TCustomImageLibrary TCustomImageLibraryGrid TCustomImageLibraryPanel TFrameTableList TGrabInfo TILGridEditMode TILGrowDirection TILManagerCategory TILManagerComboBox TILManagerList TILManagerListBox TILManagerObject TILManagerOptions TImage08 TImage16 TImageDrawGrid TImageLibrary TImageLibraryFont TImageLibraryGrid TImageLibraryManager TImageLibraryPanel TImageLibraryStatus TImageNode TImageSequence TImageSequenceList TImagesGrabbedEvent TLibraryImage TLibraryImagePalette TLoadMode TPaletteManager TPicture08 TPicture16 TRLESprite08 TRLESprite16 TSequenceMode TSetTextMode TShadow TShowMode TSprite16 TTransparentPicture16 TTransparentRLESprite16 UpdateImage WriteImageToStream WriteImageToStreamEx
+== ImgSetEd  (1 classes, 1 funcs, 1 types)
+   TImageSettingsEditor (10): CallILChangedEvent Create CreateSubControls Loaded ReferenceValueUpdate SetImageIndex SetImageLibrary SetParent UpdateBoundingRect UpdateSettings
+   funcs: TImageSettingsEditor
+== PerfDlg  (2 classes, 2 funcs, 2 types)
+   TPerformanceDlg (7): CloseBtnClick CreateDialog Destroy FormCreate IntervalSizeChange PFBoxChange SetPixelFormatID
+   TPerformanceThread (6): Create Destroy Execute ExecutePerformanceTest SetPerformance UpdatePixelFormat
+   funcs: TPerformanceDlg TPerformanceThread
+== SImgSEd  (1 classes, 1 funcs, 1 types)
+   TSubImageSettingsEditor (21): BlendModeChanged BlendPercentageChanged CallILChangedEvent Create CreateSubControls FileIndexChanged FileNameChanged GetSelectedImage HeightChanged LoadModeChanged Loaded SelectImage SetImageIndex SetImageLibrary SetParent SetSubImageIndex ShowModeChanged UpdateSettings WidthChanged XPositionChanged YPositionChanged
+   funcs: TSubImageSettingsEditor
+== SubImgEd  (2 classes, 5 funcs, 2 types)
+   TSubImageEditor (16): CallILChangedEvent CallSubImageSelectedEvent CopyCell Create CutCell DeleteCell GetSelectedImage PasteCell SetImageIndex SetImageLibrary SetSubImageIndex ShiftBtnDnPressed ShiftBtnUpPressed ShiftDn ShiftUp UpdateSettings
+   TSubImageList (6): Create MouseDown PopupCopy PopupCut PopupDelete PopupPaste
+   funcs: TEditEvent TEditMode TSubImageEditor TSubImageList TSubImageSelectedEvent

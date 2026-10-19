@@ -1,0 +1,86 @@
+== DebMDlg  (1 classes, 1 funcs, 1 types)
+   TDebugMessageDlg (9): ClearBtnClick Create Destroy FormClose OutputDebugInfoEvent SaveBtnClick SetEngine ShowID StayOnTopClick
+   funcs: TDebugMessageDlg
+== EList  (2 classes, 2 funcs, 2 types)
+   TListObject (3): Create LoadFromStream SaveToStream
+   TObjectList (6): Destroy DestroyItems GetListObject LoadFromStream SaveToStream SetListObject
+   funcs: TListObject TObjectList
+== EResGrid  (3 classes, 5 funcs, 3 types)
+   TECustomResourceGrid (37): Activate ClearPopupMenu CopyCell Create CreateDefaultResource CutCell DblClick DeActivate DeleteCell DeleteSelectedResources Destroy DrawCell EditResource EditResourceDone GenerateResourceEditList GenerateSelectedResourcesList GetEditIndex GetResource GetResourceColRow GetSelectedResources MouseDown PasteCell PasteImage PasteImageLibrary PopupAddRows PopupCopy PopupCut PopupDelete PopupEdit PopupPaste SelectCell SetEComponent SetResource ShowEditMultiPopupMenu ShowEditPopupMenu ShowPopupMenu UpdateResourceView
+   TEResourceGrid (2): Create InitializeResourceEditor
+   TEResourceGridControl (3): Destroy GetControlStyle MsgProc
+   funcs: Register TECustomResourceGrid TEResourceGrid TEResourceGridControl TLinkResourceEvent
+== Engine  (52 classes, 105 funcs, 62 types)
+   TBitList (27): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get GetBitsCleared GetBitsSet GetItemString Grow IndexOf Insert Last LoadFromStream Move Pack Put Remove SaveToStream SetCapacity SetCount SetItemString
+   TByteList (27): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get GetItemString Grow IndexOf Insert Last LoadFromStream Move Pack Put RandomChanceItem Remove SaveToStream SetCapacity SetCount SetItemString Sort
+   TCallBackEventList (7): Add Clear Create Delete Destroy GetCount GetItem
+   TCompareStorageStream (19): Create Destroy Mismatch StorageMode rwBool rwByte rwByteEx rwChildren rwCreateEObject rwData rwInteger rwIntegerEx rwShortint rwShortintEx rwString rwStrings rwStringsEx rwWord rwWordEx
+   TCompressStream (6): LoadFromFile LoadFromStream SaveToFile SaveToFileEx SaveToStream SaveToStreamEx
+   TDebugWriteStream (6): Create Destroy rwChildren rwCreateEObject rwEObject rwEObjectStream
+   TDoubleItemList (33): Add AddAB Assign Clear Compare Delete Destroy Error Exchange Expand First Get Grow IndexOf IndexOfItemA IndexOfItemB Insert Last LoadFromStream Move Pack Put RandomChanceItemA RandomChanceItemB Remove SaveToStream SetCapacity SetCount Sort SortAscendingItemA SortAscendingItemB SortDescendingItemA SortDescendingItemB
+   TEChangeNotifyEventList (3): Changed Create Destroy
+   TEChangeNotifyNode (20): AddChild Assign BeginUpdate Changed ClassID Clear Create Destroy EndUpdate FindChild FindChildIndex GetChild GetCount LockChanged MainReadWrite RemoveChild SendMsg SetChild Sort UnlockChanged
+   TEComponent (2): Destroy Loaded
+   TEControlStyleInverseSortNode (4): ClassID Create GetControlStyle SetControlStyle
+   TEControlStyleNode (5): ClassID Create GetControlStyle ReadWrite SetControlStyle
+   TEControlStyleObject (5): ClassID Create GetControlStyle ReadWrite SetControlStyle
+   TEControlStyleSortNode (4): ClassID Create GetControlStyle SetControlStyle
+   TECopyComponent (9): CopyToClipboard Create Destroy GetCount GetEObject PasteFromClipboard ReadState SetEObject WriteState
+   TECustomNode (15): Assign Clear Destroy DestroyAllChildren DestroyChildren FindChild FindChildInTree FindChildIndex FindOwnedChild MainReadWrite MsgProc QuickClear ReadWriteChildren SendMsg SendToChild
+   TECustomOwner (8): ClassID Create GetControlStyle GetEngine MsgProc ReadWrite SetControlStyle SetEngine
+   TEInverseSortNode (3): AddSortChild ClassID Sort
+   TENode (14): AddChild ClassID Clear Create Destroy DestroyAllChildren DestroyEObjects FindChild FindChildIndex GetChild GetCount RemoveChild SendMsg SetChild
+   TEObject (22): AddRef Assign ClassID ClassVersion Clear Compare Copy Create Destroy Editor GetControlStyle GetEObjectPath GetEngine GetLastMsg MainReadWrite MsgProc ReadWrite Release SetArrayOwner SetLastMsg SetOwner TimerEvent
+   TEObjectClassList (6): FindClass FindClassIndex GetClass GetEClass RegisterClass UnregisterClass
+   TEObjectEditor (4): Edit EditorClassID UpdateMultiPopupMenu UpdatePopupMenu
+   TEObjectEditorList (2): FindEditor RegisterClass
+   TEObjectList (6): AllHaveCID ClearList FindObject FindObjectIndex GetEObject SetEObject
+   TEReadStorageStream (23): Create Destroy HandleException OpenPropertyStream StorageMode rwBool rwByte rwByteEx rwChildren rwCreateEObject rwData rwEObject rwEObjectStream rwInteger rwIntegerEx rwShortint rwShortintEx rwStreamProc rwString rwStrings rwStringsEx rwWord rwWordEx
+   TEReadTextStorageStream (12): Create Destroy ReadStreamText ReadTextBuffer StorageMode rwChildren rwCreateEObject rwEObject rwEObjectStream rwString rwStrings rwStringsEx
+   TEReferenceNode (5): AddChild Clear DestroyAllChildren ReadWriteChildren RemoveChild
+   TEResource (10): ClassID CreateResourceUser Draw GetCellImage ReadWrite ResourceEditName ResourceUserClassID SetArrayOwner SetCellImage SetOwner
+   TEResourceEditSettings (8): ClassID Create Destroy GetEditID GetUniqueEditID GetUniqueEditorName ReadWrite RemoveEditor
+   TEResourceList (5): ClassID FindResource GetResource ResourceChanged ValidateResourceID
+   TESortNode (16): AddChild AddSortChild ClassID Create Destroy GetChild GetCount GetSortValue Grow QuickClear ReadWrite RemoveChild Resize SetChild SetSortValue Sort
+   TEStorageStream (17): Create OpenPropertyStream ShowProgress rwBool rwByte rwByteEx rwData rwInteger rwIntegerEx rwShortint rwShortintEx rwStreamProc rwString rwStrings rwStringsEx rwWord rwWordEx
+   TETimerNode (15): AddChild AddTimerChild ClassID Create Destroy FindTimerList GetChild GetControlStyle GetCount GetTimerList RemoveChild RemoveTimerChild SetChild TriggerTimerEvent TriggerTimerListEvent
+   TEUser (3): Connect Destroy Disconnect
+   TEWriteStorageStream (24): Create Destroy HandleException OpenPropertyStream PropertyExistError StorageMode rwBool rwByte rwByteEx rwChildren rwCreateEObject rwData rwEObject rwEObjectStream rwInteger rwIntegerEx rwShortint rwShortintEx rwStreamProc rwString rwStrings rwStringsEx rwWord rwWordEx
+   TEWriteTextStorageStream (11): Create Destroy StorageMode WriteTextBuffer rwChildren rwCreateEObject rwEObject rwEObjectStream rwString rwStrings rwStringsEx
+   TEngine (35): ActivateEObject ClassID Create CreateEObject CreateUniqueDebugID Destroy GetDescendantClasses GetEClass GetEngine IncMsgCount OutputDebugMessage OutputDebugStr ReadEObject ReadFromFile ReadFromFileCRC ReadPreviewEObject ReadTextFromFile RegisterDebugID RegisterEClasses ResetMsgCount RetrieveEObject RetrieveFromFile SetStartupDirectory StoreEObject StoreInFile TranslateText UnregisterDebugID UnregisterEClasses UpdateStartupDirectory VerifyEObjectClass WriteEObject WritePreviewEObject WriteTextToFile WriteToFile WriteToFileCRC
+   TEventList (22): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get Grow IndexOf Insert Last Move Pack Put Remove SetCapacity SetCount TriggerNotifyEvents
+   THashList (5): Add Clear Delete Destroy SetCapacity
+   TIntegerHashList (3): Add Delete Find
+   TIntegerHashTable256 (8): Add Clear Create Delete DeleteSafe Destroy Find GetFreeID
+   TIntegerList (27): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get GetItemString Grow IndexOf Insert Last LoadFromStream Move Pack Put RandomChanceItem Remove SaveToStream SetCapacity SetCount SetItemString Sort
+   TPlugIn (7): AddRef Create Destroy Finalize Initialize Name Release
+   TPlugInControl (11): Create Destroy FinalizePlugIns GetControlStyle GetEngine GetUsedPlugIns InitializePlugIns OnChange OnChanging ReadWrite SetUsedPlugIns
+   TPropertyTable (10): Add BackupSettings Clear Destroy FindOffset LoadFromStream PropertyExist RestoreSettings SaveToStream SetCapacity
+   TQuadItemList (37): Add AddABCD Assign Clear Compare Delete Destroy Error Exchange Expand First Get Grow IndexOf IndexOfItemA IndexOfItemB IndexOfItemC IndexOfItemD Insert Last LoadFromStream Move Pack Put Remove SaveToStream SetCapacity SetCount Sort SortAscendingItemA SortAscendingItemB SortAscendingItemC SortAscendingItemD SortDescendingItemA SortDescendingItemB SortDescendingItemC SortDescendingItemD
+   TSetupCompareStorageStream (1): StorageMode
+   TShortIntList (25): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get Grow IndexOf Insert Last LoadFromStream Move Pack Put RandomChanceItem Remove SaveToStream SetCapacity SetCount Sort
+   TStringHashList (4): Add Clear Delete Find
+   TStringHashTable256 (6): Add Clear Create Delete Destroy Find
+   TTranslateStorageStream (12): Create Destroy StorageMode TranslateString TranslateStrings rwChildren rwCreateEObject rwEObject rwEObjectStream rwString rwStrings rwStringsEx
+   TWordList (25): Add Assign Clear Compare Delete Destroy Error Exchange Expand First Get Grow IndexOf Insert Last LoadFromStream Move Pack Put RandomChanceItem Remove SaveToStream SetCapacity SetCount Sort
+   funcs: CopyStreamToClipboard EDoublePrioriyID EPlugInMissing EStreamReadErrorStr EStreamWriteErrorStr FillInteger FillLargeInteger FillQuadInteger FillWord FinalizePlugIns FindEngine FindPlugIn GetCRC32 GetEngine GetFileCRC32 GetPlugIn HexToInt InitMsg InitMsgEx InitializePlugIns LoadExternalPlugIns PasteStreamFromClipboard RegisterPlugIn ReleaseCRC32Table ReplaceText SortStrings SortStringsAscending SortStringsDescending SortStringsEx SortStringsNumericalAscending SortStringsNumericalDescending StringFromStream StringToStream StringsFromStream StringsToStream TBitList TByteList TCallBackEventList TCompareStorageStream TCompressLevel TCompressStream TDebugWriteStream TDoubleItemList TEBufferStream TEChangeNotifyEventList TEChangeNotifyNode TEComponent TEControlStyle TEControlStyleInverseSortNode TEControlStyleNode TEControlStyleObject TEControlStyleSortNode TECopyComponent TECustomNode TECustomOwner TEInverseSortNode TENode TEObject TEObjectClassList TEObjectEditor TEObjectEditorList TEObjectList TEReadStorageStream TEReadTextStorageStream TEReferenceNode TEResource TEResourceEditSettings TEResourceList TESortNode TEStorageStream TETimerNode TEUser TEWriteStorageStream TEWriteTextStorageStream TEditDoneEvent TEditMode TEditResult TEngine TEngineDebugInfo TEngineMode TEngineUser TEventList THashList TIntegerHashList TIntegerHashTable TIntegerHashTable256 TIntegerList TPlugIn TPlugInControl TProgressEvent TPropertyTable TQuadItemList TSetupCompareStorageStream TShortIntList TStorageMode TStorageStreamError TStringHashList TStringHashTable TStringHashTable256 TTranslateStorageStream TWordList UnloadExternalPlugIns UnregisterPlugIn UserStr VerifyEObjectEnabled
+== EngineP  (0 classes, 1 funcs, 0 types)
+   funcs: @GetPackageInfoTable
+== FMemStr  (1 classes, 1 funcs, 1 types)
+   TFastMemoryStream (11): Clear Destroy LoadFromFile LoadFromStream Read SaveToFile SaveToStream Seek SetCapacity SetSize Write
+   funcs: TFastMemoryStream
+== ImgLComp  (5 classes, 9 funcs, 5 types)
+   TDrawImageGrid (28): CopyCell Create CutCell DeleteCell Destroy DrawCell DrawCellFocus DrawCellImage DrawGridIndex GetCellIndex GetColCount GetRowCount KeyDown PasteCell RecalcRowsColumns SetCellCount SetColCount SetMaxColCount SetMaxRowCount SetMinColCount SetMinRowCount SetRowCount SetSelectColor SetSelectEnabledSilent SetSelectionEnabled SetShowGridIndex SingleCellSelected WndProc
+   TDrawImagePanel (14): CopyImage Create CutImage DeleteImage DrawFocus DrawImage DrawLibraryImage KeyDown MouseDown Paint PasteImage SetFocusColor SetShowFocus WndProc
+   TImageLibGrid (8): CopyCell CutCell DeleteCell DeleteSelectedImages DrawCell GetSelectedImageLib PasteCell SetImageLibrary
+   TImageListGrid (8): Create Destroy DestroyCellImageList GenerateCellImageList GetGridListIndex GetSelectedGridListIndex ImageEmpty SetGridList
+   TLibraryImagePanel (6): CopyImage CutImage DeleteImage DrawImage PasteImage SetLibraryImage
+   funcs: TDrawImageEvent TDrawImageGrid TDrawImagePanel TEditMode TGridEditEvent TGrowDirection TImageLibGrid TImageListGrid TLibraryImagePanel
+== PlugInM  (1 classes, 3 funcs, 1 types)
+   TPlugInManager (5): Create Destroy ExecutePlugInSearch LoadPlugIns ReleasePlugIns
+   funcs: Register TLoadPlugInEvent TPlugInManager
+== zlib  (3 classes, 9 funcs, 6 types)
+   TCompressionStream (6): Create Destroy GetCompressionRate Read Seek Write
+   TCustomZlibStream (2): Create Progress
+   TDecompressionStream (5): Create Destroy Read Seek Write
+   funcs: CompressBuf DecompressBuf ECompressionError EDecompressionError EZlibError TCompressionLevel TCompressionStream TCustomZlibStream TDecompressionStream

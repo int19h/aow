@@ -1,0 +1,40 @@
+# D:\Games\GOG\Age of Wonders\Gfxepack.dpl: 22 classes
+class TGFXEDiagnoseDlg (TForm) size=512 virtuals=32 vmt=55001A0C
+  field  +01DC Panel1                         TPanel
+  field  +01E0 Label1                         TLabel
+  field  +01E4 Label2                         TLabel
+  field  +01E8 Bevel1                         TBevel
+  field  +01EC GroupBox1                      TGroupBox
+  field  +01F0 BltGrid                        TStringGrid
+  field  +01F4 Button1                        TButton
+  field  +01F8 Button2                        TButton
+  field  +01FC Image1                         TImage
+  method 55001B7C FormCreate
+  unit GFXDiag
+class TGFXEPalette (TObject) size=1032 virtuals=0 vmt=55001F9C
+class TSurface (TObject) size=4 virtuals=18 vmt=55002010
+class TDataSurface (TSurface) size=44 virtuals=18 vmt=550020C4
+class TDIBSurface (TSurface) size=1100 virtuals=18 vmt=55002180
+class TDIB08Surface (TSurface) size=1092 virtuals=18 vmt=55002238
+class TDIB16Surface (TSurface) size=80 virtuals=18 vmt=550022F4
+class TDIB24Surface (TSurface) size=64 virtuals=18 vmt=550023B0
+class TDIB32Surface (TSurface) size=64 virtuals=18 vmt=5500246C
+class TGDISurface (TSurface) size=8 virtuals=20 vmt=55002528
+class TDDrawSurface (TSurface) size=100 virtuals=18 vmt=550026A4
+class TRectangle (TObject) size=20 virtuals=0 vmt=55002770
+class TRectangleList (TList) size=16 virtuals=2 vmt=550027E0
+class TDrawPanel (TCustomPanel) size=324 virtuals=32 vmt=550028E8
+  unit GFXE
+  prop   Color                          TColor                       get=field+0054 set=static 5500173C default=-2147483633
+  prop   Align                          TAlign                       get=field+0048 set=static 5500171C default=0
+  prop   OnDraw                         TOnDrawRectEvent(tkMethod)   get=field+013C set=field+013C
+  prop   EraseBkgndEnabled              Boolean                      get=field+0138 set=field+0138
+class TImageFile (TObject) size=4 virtuals=6 vmt=55002A64
+class TOpenImageFileDialog (TOpenDialog) size=144 virtuals=15 vmt=55002AEC
+  unit GFXE
+class TDisplayModeItem (TObject) size=16 virtuals=0 vmt=55002BAC
+class TDisplayModeList (TObject) size=8 virtuals=0 vmt=55002C28
+class TBlendTable (TObject) size=12 virtuals=2 vmt=55002CA4
+class TBlendTable5Bit (TBlendTable) size=1036 virtuals=2 vmt=55002D1C
+class TBlendTableList (TObject) size=8 virtuals=0 vmt=55002D9C
+class TLookupBlendTableCollection100 (TObject) size=412 virtuals=0 vmt=55002E14
