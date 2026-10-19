@@ -47,7 +47,12 @@ public class DecompileFunctions extends GhidraScript {
         int n = 0;
         for (Function f : funcs) {
             if (monitor.isCancelled()) break;
-            DecompileResults r = d.decompileFunction(f, 120, monitor);
+            if (f.isThunk()) continue;
+            if (f.getBody().getNumAddresses() > 65536) {
+                println("skipping oversized function " + f.getName(true) + " (" + f.getBody().getNumAddresses() + " bytes)");
+                continue;
+            }
+            DecompileResults r = d.decompileFunction(f, 60, monitor);
             String code = r.decompileCompleted() ? r.getDecompiledFunction().getC()
                                                  : "// decompile failed: " + r.getErrorMessage();
             String fn = f.getEntryPoint().toString() + "_" + f.getName(true).replaceAll("[^A-Za-z0-9_.]", "_");

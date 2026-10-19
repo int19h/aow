@@ -1,0 +1,79 @@
+# Persistence: how the engine saves and loads objects
+
+## Mechanism
+
+Engine objects descend from `Engine.TEObject` (Enginep.dpl). Each class overrides one virtual method,
+`ReadWrite(Stream: TEStorageStream)`, which both reads and writes. The stream decides the direction:
+`TEReadStorageStream` reads, `TEWriteStorageStream` writes, `TCompareStorageStream` compares two states
+(used for desync checks in multiplayer), and `TTranslateStorageStream` rewrites strings (localization).
+The storage stream offers typed calls: `rwBool`, `rwByte`, `rwShortint`, `rwWord`, `rwInteger`, `rwString`,
+`rwStrings`, `rwData`, `rwEObject`, `rwChildren`, `rwCreateEObject`, and `rwStreamProc`. The `...Ex` forms
+take a default value. `OpenPropertyStream` and `TPropertyTable` give each class's data a named or numbered
+slot, so that fields can be added without breaking older files (`TEObject.ClassVersion`).
+
+As a result, every persisted field of every engine class is listed, in order and with its type, in that class's
+`ReadWrite`. Decompiling the `ReadWrite` methods of the `AoWE` unit yields the data model. Only one class in
+AoWEPACK uses a plain `LoadFromStream`/`SaveToStream` pair.
+
+`tools/readwrite_table.py` extracts those calls from the decompiled output into `notes/persisted-fields.md`
+(218 classes), `tools/field_names.py` names offsets from trivial getters and setters, and `tools/class_layout.py`
+merges both with the RTTI sizes into `notes/engine-classes.md`.
+
+### TEStorageStream VMT
+
+Decompiled code calls the stream through its VMT, for example `(**(code **)(*stream + 0x30))(stream, Self + 0x26, 6)`.
+The slots are:
+
+| slot | method | arguments after Self |
+|---|---|---|
+| +$00 | StorageMode | returns a flag byte: 1 read, 2 write, 4 compare, 8 and $10 unknown, $20 unknown, $40 translate |
+| +$04 | OpenPropertyStream | |
+| +$08 | rwCreateEObject | var Obj; ?; id |
+| +$0C | rwEObject | Obj; id |
+| +$10 | rwEObjectStream | |
+| +$14 | rwChildren | |
+| +$18 | rwStreamProc | id; Obj; LoadProc; SaveProc |
+| +$1C | rwData | var Buf; Size; id |
+| +$20 | rwString | var S; id |
+| +$24 | rwStrings | Strings; id |
+| +$28 | rwStringsEx | |
+| +$2C | rwInteger | var I; id |
+| +$30 | rwByte | var B; id |
+| +$34 | rwWord | var W; id |
+| +$38 | rwBool | var B; id |
+| +$3C | rwShortint | var S; id |
+| +$40 | rwIntegerEx | var I; Default; id |
+| +$44 | rwByteEx | var B; Default; id |
+| +$48 | rwWordEx | var W; Default; id |
+| +$4C | rwShortintEx | var S; Default; id |
+
+Property ids are small integers unique within a class. A read checks `TPropertyTable.PropertyExist(id)`
+before older optional properties, which is how files from earlier versions stay loadable.
+
+### Worked example: THero
+
+From `THero.ReadWrite` plus the getters: `+$44 FHeroResourceIndex: Integer` (id 8, read first so that
+`LinkToResource` can run), `+$3C FFaceIndex` (7), `+$60 FName: String` (10), `+$64 FNickname: String` ($0B),
+`+$68` byte ($0C), `+$80 FCastingPoints: Byte` ($0D), `+$84` Integer ($0E), `+$69 FGender: Byte` ($0F, written
+with rwData), six bytes `+$6A..+$6F` ($10..$15: the hero's own attack, defense, damage, resistance, hits, moves
+by position in the unit stat block), `+$4C FUnitLevel: Byte` ($16), `+$54` Boolean ($17), `+$48 FExperience:
+Integer` ($18, defaulting to `LevelToExperience(1)`), `+$58` Integer ($1A), `+$5C` byte ($1B), `+$79 FMovePoints`
+($1D), `+$7A FHitPoints` ($1E), `+$88` Integer ($1F), `+$78` Boolean ($21), `+$8C` Integer ($22), `+$90`
+Integer default -1 ($23), `+$74` and `+$70 FHeroItems` as embedded objects ($24, $25), `+$94: String` ($26,
+skipped in compare mode), `+$50` Integer ($27).
+
+Classes with `ReadWrite` include `TAbility`, `TAbilityOwner`, `TAbstractUnit`, `TUnit`, `THero`, `TArmy`,
+`TStructure`, `TPlayer`, and `TAoWHSMap` (which also has `MainReadWrite` and `SaveGame`).
+
+## Save file container (`.asg`)
+
+A saved game starts with the four bytes `43 46 53 00` ("CFS\0"), one version byte (2 in v1.36 files),
+and then a zlib stream (`78 9C`). `After the Fall.asg` inflates from 87,834 to 790,598 bytes.
+The inflated data holds no property names, only values and the strings of the game state (hero names,
+event texts), so field names must come from the code. The container is `Engine.TCompressStream`
+(`SaveToFileEx`, `LoadFromFile`), built on the zlib unit in Enginep.dpl.
+
+Map files (`.hsm`) use the same container: `After the Fall.HSM` starts with `CFS\0`, version 2, zlib.
+Campaign files (`.cam`) and the scenario set `Release.hss` do not. `Keepers.CAM` starts with
+`01 00 00 00 50 22 00 82 05 00 00 00`, and `Release.hss` starts with `34 00 00 00 04 "HSS" 00 07 "RELEASE"`,
+which looks like a length-prefixed record with short strings: an uncompressed `TEStorageStream` layout.

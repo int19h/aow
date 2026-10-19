@@ -58,16 +58,30 @@ public class CreateDelphiFunctions extends GhidraScript {
         for (MemoryBlock b : currentProgram.getMemory().getBlocks()) {
             if (b.isExecute() && b.isInitialized()) code.add(b);
         }
-        // 1. exports
+        // 1. exports. Delphi also exports data: VMTs ("Unit..TClass"), type infos ("Unit.TName" whose bytes
+        //    start with a kind byte and the type name), and constants. Those must not become functions,
+        //    because the decompiler then chews on garbage for minutes.
         SymbolIterator syms = currentProgram.getSymbolTable().getAllSymbols(false);
+        int removed = 0;
         while (syms.hasNext()) {
             Symbol s = syms.next();
-            if (s.isExternalEntryPoint() && inCode(s.getAddress().getOffset()) && getFunctionAt(s.getAddress()) == null
-                    && getDataAt(s.getAddress()) == null) {
+            if (!s.isExternalEntryPoint() || !inCode(s.getAddress().getOffset())) continue;
+            boolean data = isDataExport(s);
+            Function existing = getFunctionAt(s.getAddress());
+            if (data) {
+                if (existing != null) {
+                    removeFunction(existing);
+                    clearListing(s.getAddress(), s.getAddress().add(Math.max(1, dataLength(s)) - 1));
+                    removed++;
+                }
+                continue;
+            }
+            if (existing == null && getDataAt(s.getAddress()) == null && looksLikeCode(s.getAddress())) {
                 Function f = createFunction(s.getAddress(), null);
                 if (f != null) created++;
             }
         }
+        println("CreateDelphiFunctions: removed " + removed + " functions at data exports");
         // 2./3. VMTs: scan for the self pointer
         int classes = 0;
         for (MemoryBlock b : code) {
@@ -90,6 +104,33 @@ public class CreateDelphiFunctions extends GhidraScript {
             }
         }
         println(String.format("CreateDelphiFunctions: %d classes, %d functions created, %d renamed", classes, created, renamed));
+    }
+
+    /** Exported type info: the bytes at the symbol are <kind><len><name> and the name is the symbol's last part. */
+    boolean isDataExport(Symbol s) throws Exception {
+        String n = s.getName();
+        if (n.contains("..")) return true;                      // class VMT
+        String last = n.split("@")[0];
+        last = last.substring(last.lastIndexOf('.') + 1);
+        if (last.isEmpty()) return false;
+        int kind = getByte(s.getAddress()) & 0xFF;
+        if (kind <= 0x11) {
+            String ts = shortString(s.getAddress().add(1));
+            if (ts != null && ts.equals(last)) return true;      // type info
+        }
+        return false;
+    }
+
+    int dataLength(Symbol s) throws Exception {
+        int n = getByte(s.getAddress().add(1)) & 0xFF;
+        return 2 + n;
+    }
+
+    /** Reject entry points that start with bytes no Delphi 3 prologue begins with. */
+    boolean looksLikeCode(Address a) throws Exception {
+        int b = getByte(a) & 0xFF;
+        if (b == 0x00 || b == 0xFF || b == 0xCC) return false;
+        return true;
     }
 
     void handleClass(Address vmt, String name) throws Exception {
