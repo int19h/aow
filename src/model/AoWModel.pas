@@ -756,7 +756,7 @@ type
   { PrdPlace.TProductionPlace }
   TProductionPlace = class(TPlayerStructure)
   public
-    field_0x44: TEObject;
+    field_0x44: TProductionControl;
     field_0x49: Byte;
     field_0x48: Byte;
     constructor Create(AOwner: TEObject); override;
@@ -819,9 +819,11 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { PrdPlace.TProductionPlaceResource  (2 TODO) }
+  { PrdPlace.TProductionPlaceResource  (1 TODO) }
   TProductionPlaceResource = class(TPlayerStructureResource)
   public
+    field_74: TIntegerList;
+    constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
@@ -1893,7 +1895,7 @@ type
   { ItemExpS.TItemExplorationSite }
   TItemExplorationSite = class(TExplorationSite)
   public
-    field_0x3c: TEObject;
+    field_0x3c: TItemList;
     field_0x38: Byte;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
@@ -2848,9 +2850,10 @@ type
   {$I hand/TItemControl.decl.inc}
   end;
 
-  { ItemExpS.TItemExplorationSiteEventLog  (1 TODO) }
+  { ItemExpS.TItemExplorationSiteEventLog }
   TItemExplorationSiteEventLog = class(TEventLog)
   public
+    field_18: TIntegerList;
     field_0x1c: TStringList;
     field_0x20: string;
     constructor Create(AOwner: TEObject); override;
@@ -3738,10 +3741,11 @@ type
     function ClassID: Integer; override;
   end;
 
-  { Sign.TSign  (3 TODO) }
+  { Sign.TSign  (2 TODO) }
   TSign = class(TStructure)
   public
     field_0x30: TStringList;
+    field_34: TBitList;
     constructor Create(AOwner: TEObject); override;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -4606,7 +4610,7 @@ end;
 constructor TProductionPlace.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
-  field_0x44 := TEObject.Create(Self);
+  field_0x44 := TProductionControl.Create(Self);
   field_0x44.EmbeddedShared := True;
 end;
 
@@ -4748,6 +4752,12 @@ begin
   end;
 end;
 
+constructor TProductionPlaceResource.Create(AOwner: TEObject);
+begin
+  inherited Create(AOwner);
+  field_74 := TIntegerList.Create;
+end;
+
 function TProductionPlaceResource.ClassID: Integer;
 begin
   Result := 132027;
@@ -4756,7 +4766,7 @@ end;
 procedure TProductionPlaceResource.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x12,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void ** )&this->field_0x74) }
+  Stream.rwStreamProc($12, field_74.LoadFromStream, field_74.SaveToStream);
   { TODO: Engine_TIntegerList_SaveToStream_23EDC2EF() }
 end;
 
@@ -6552,7 +6562,7 @@ end;
 constructor TItemExplorationSite.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
-  field_0x3c := TEObject.Create(Self);
+  field_0x3c := TItemList.Create(Self);
   field_0x3c.EmbeddedShared := True;
 end;
 
@@ -7836,6 +7846,7 @@ end;
 constructor TItemExplorationSiteEventLog.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
+  field_18 := TIntegerList.Create;
   field_0x1c := TStringList.Create;
 end;
 
@@ -7847,7 +7858,7 @@ end;
 procedure TItemExplorationSiteEventLog.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  { TODO: (*stream->vtbl->rwStreamProc) (stream,0x14,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void ** )&this->field_0x18) }
+  Stream.rwStreamProc($14, field_18.LoadFromStream, field_18.SaveToStream);
   Stream.rwStrings(field_0x1c, $15);
   Stream.rwString(field_0x20, $16);
 end;
@@ -8962,6 +8973,7 @@ constructor TSign.Create(AOwner: TEObject);
 begin
   inherited Create(AOwner);
   field_0x30 := TStringList.Create;
+  field_34 := TBitList.Create;
 end;
 
 function TSign.ClassID: Integer;
@@ -8976,7 +8988,7 @@ begin
   { TODO condition: (*(int * )PTR_AoWE_AoWHSMap_6B957A58_558e9494 != 0) && (*(char * )(*(int * )PTR_AoWE_AoWHSMap_6B957A58_558e9494 + 0x13a) != '\x01') }
   if True then
   begin
-    { TODO: (*stream->vtbl->rwStreamProc) (stream,8,stream->vtbl,(void * )0x55702f9c,*(void ** )&this->field_0x34) }
+    Stream.rwStreamProc(8, field_34.LoadFromStream, field_34.SaveToStream);
   end;
   { TODO: Engine_TBitList_SaveToStream_23EDC2EF() }
 end;

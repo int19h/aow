@@ -92,6 +92,17 @@ The inflated map or save data starts with a 16-byte record: `Integer 16` (its si
 creates the root object from the class id, and runs `TEngine.ReadEObject`: a `TEReadStorageStream` whose
 constructor reads the root property table (one entry, id 0, offset 0) and then `rwEObject(root, 0)`.
 
+### Round trip (2026-10-19)
+
+`tests/roundtrip.pas` loads a file through the generated object model (`src/model/AoWModel.pas`, built on
+`src/recovered/Engine.pas` and `EngineLists.pas`), writes it back with `TEWriteStorageStream`, and compares
+the bytes. Both shipped saves (`After the Fall.asg`, 790,598 bytes inflated, and `autosave.asg`) come back
+byte-identical: 40,741 objects, 1,428 children, 2 map levels with all their fields, units, structures and
+ability data. Two model aids made the last bytes match without changing the file semantics: embedded
+objects are flagged shared (`TEObject.EmbeddedShared`) so that `Clear` keeps them and `rwChildren` skips
+them, and a child remembers the slot it was read from (`TEObject.StoredIndex`) because the original owners
+have a few unstored children in front of the stored ones.
+
 ### Validation
 
 `tools/asg_dump.py` walks a real file with this description and the schema in `classes.json`. On the shipped

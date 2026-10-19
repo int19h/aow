@@ -1,5 +1,5 @@
 src/model/AoWModel.pas
-489 classes, 72 with TODOs
+489 classes, 71 with TODOs
 
 ## TAbility (1)
   (*stream->vtbl->rwStreamProc)(stream,8,stream->vtbl,&DAT_557028dc,this->FImageSequenceList)
@@ -72,8 +72,7 @@ src/model/AoWModel.pas
   calls TMultiHexMOR.ReadWrite directly
 ## TPlayerStructureResource (1)
   (*this->vtbl->GenerateFlagPositions)()
-## TProductionPlaceResource (2)
-  (*stream->vtbl->rwStreamProc) (stream,0x12,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void **)&this->field_0x74)
+## TProductionPlaceResource (1)
   Engine_TIntegerList_SaveToStream_23EDC2EF()
 ## TAoWCampaign (9)
   (*stream->vtbl->rwData)(stream,*(void **)(*(int *)&this->FStream + 4),iStack_14,6)
@@ -276,8 +275,6 @@ src/model/AoWModel.pas
   iVar2 = *(int *)&this->FList->field_0x8
   do { iStack_14 = Classes_TList_Get_23EDC2EF(this->FList,iStack_18); if (*(int *)(iStack_14 + 4) == 0) { (*stream->vtbl->rwCreateEObject)(stream,&iStack_14,(void *)0x0,iStack_1c); iStack_1c = iStack_1c
   if -1 < iVar2 + -1
-## TItemExplorationSiteEventLog (1)
-  (*stream->vtbl->rwStreamProc) (stream,0x14,stream->vtbl,Engine_TIntegerList_SaveToStream_23EDC2EF, *(void **)&this->field_0x18)
 ## TItemHS (2)
   Engine_TEChangeNotifyNode_BeginUpdate_23EDC2EF(this->FItemList)
   Engine_TEChangeNotifyNode_EndUpdate_23EDC2EF(this->FItemList)
@@ -337,8 +334,7 @@ src/model/AoWModel.pas
   if ((bVar1 & 1) != 0) && (*(int *)&this->FByteList->field_0x8 == 0)
 ## TRaisedMountain (1)
   calls TMultiHexMO.ReadWrite directly
-## TSign (3)
-  (*stream->vtbl->rwStreamProc) (stream,8,stream->vtbl,(void *)0x55702f9c,*(void **)&this->field_0x34)
+## TSign (2)
   if (*(int *)PTR_AoWE_AoWHSMap_6B957A58_558e9494 != 0) &&
      (*(char *)(*(int *)PTR_AoWE_AoWHSMap_6B957A58_558e9494 + 0x13a) != '\x01')
   Engine_TBitList_SaveToStream_23EDC2EF()

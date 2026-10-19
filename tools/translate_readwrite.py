@@ -349,10 +349,13 @@ class Translator:
                 mm = re.match(r'^(?:\(\w+ \*\))?this->(\w+)$', s)
                 if mm:
                     fname = mm.group(1); continue
-                mo = re.match(r'^\*\((?:\w+) \*\)&this->field_0x([0-9a-f]+)$', s) or \
-                     re.match(r'^\*\((?:\w+) \*\)\(\(int\)this \+ (0x[0-9a-f]+)\)$', s)
+                mo = re.match(r'^\*\((?:\w+) \*\*?\)&this->field_0x([0-9a-f]+)$', s) or \
+                     re.match(r'^\*\((?:\w+) \*\*?\)\(\(int\)this \+ (0x[0-9a-f]+)\)$', s)
                 if mo:
                     fname = 'field_%X' % int(mo.group(1), 16); continue
+                mo = re.match(r'^\*\((?:\w+) \*\*?\)&this->(\w+)$', s)
+                if mo:
+                    fname = mo.group(1); continue
                 lm = re.match(r'(\w+?)_(T\w+?)_(?:LoadFromStream|SaveToStream)_', s)
                 if lm:
                     lcls = lm.group(2); continue
@@ -483,6 +486,20 @@ def classid_map(dirs):
 def main():
     cdb = json.load(open(sys.argv[1], encoding='utf-8'))['classes']
     embedded = json.load(open(sys.argv[2], encoding='utf-8')) if os.path.exists(sys.argv[2]) else {}
+    overrides = os.path.join(os.path.dirname(sys.argv[2]), 'embedded-overrides.json')
+    if os.path.exists(overrides):
+        for cls, m in json.load(open(overrides, encoding='utf-8')).items():
+            if not cls.startswith('_'):
+                embedded.setdefault(cls, {}).update(m)
+    # the walker records guesses under the concrete class (TDeathNode); the rwEObject call lives in an
+    # ancestor's ReadWrite (TProductionPlace): make the guesses visible to every ancestor
+    cdb_tmp = json.load(open(sys.argv[1], encoding='utf-8'))['classes']
+    for cls in list(embedded):
+        p = cdb_tmp.get(cls, {}).get('parent')
+        while p:
+            for pid, sub in embedded[cls].items():
+                embedded.setdefault(p, {}).setdefault(pid, sub)
+            p = cdb_tmp.get(p, {}).get('parent')
     out_path = sys.argv[3]
     dirs = sys.argv[4:]
     tr = Translator(cdb, embedded, {})

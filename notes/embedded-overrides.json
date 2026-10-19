@@ -1,0 +1,5 @@
+{
+  "_comment": "Class of embedded objects (rwEObject) per owner class and property id, verified by reading the owner's constructor. Wins over the walker's guesses in embedded-classes.json.",
+  "TItemExplorationSite": {"8": "TItemList"},
+  "TProductionPlace": {"8": "TProductionControl"}
+}

@@ -46,6 +46,7 @@ type
   private
     FOwner: TEObject;                          { +$04 }
     FEmbeddedShared: Boolean;                  { model aid, not in the original: see GetControlStyle }
+    FStoredIndex: Integer;                     { model aid: the child slot this object was read from, or -1 }
   public
     constructor Create(AOwner: TEObject); virtual;             { slot +$20 }
     destructor Destroy; override;
@@ -62,6 +63,10 @@ type
       the owner's Clear nor written again by rwChildren. The original classes achieve that with their
       own GetControlStyle overrides; the generated model sets this flag instead. }
     property EmbeddedShared: Boolean read FEmbeddedShared write FEmbeddedShared;
+    { rwChildren stores a child under its index in the owner's list. The original owner has a few
+      unstored children (embedded lists) in front, created by its constructor; the model does not
+      reproduce that order yet, so the index a child was read from is kept and written back. }
+    property StoredIndex: Integer read FStoredIndex write FStoredIndex;
   end;
 
   TEObjectClass = class of TEObject;
@@ -405,6 +410,7 @@ end;
 constructor TEObject.Create(AOwner: TEObject);                     { Engine.TEObject.Create }
 begin
   inherited Create;
+  FStoredIndex := -1;
   SetOwner(AOwner);
 end;
 
@@ -1105,6 +1111,8 @@ begin
   begin
     Inc(StorageStats.ChildrenRead);
     rwCreateEObject(Child, Node, FPropertyTable.Items^[I].ID);
+    if Child <> nil then
+      Child.FStoredIndex := FPropertyTable.Items^[I].ID;
     { the original also calls Node slot +$48 (SetArrayOwner) on each child when StorageMode has bit 8,
       and relies on rwCreateEObject's SetOwner to insert the child; node classes come later }
   end;
@@ -1467,7 +1475,10 @@ begin
          and ((Child.GetControlStyle and csStored) <> 0) then
       begin
         Inc(StorageStats.ChildrenWritten);
-        rwCreateEObject(Child, Node, I);
+        if Child.FStoredIndex >= 0 then
+          rwCreateEObject(Child, Node, Child.FStoredIndex)   { model aid, see StoredIndex }
+        else
+          rwCreateEObject(Child, Node, I);
       end
       else
         Inc(StorageStats.ChildrenSkipped);
