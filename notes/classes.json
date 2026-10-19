@@ -56506,7 +56506,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_2",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "2"
+    }
+   },
    "parent_known": true
   },
   "TESortNode": {
@@ -57835,7 +57844,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_1",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "1"
+    }
+   },
    "parent_known": true
   },
   "TETimerNode": {
@@ -58540,7 +58558,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "prop_2",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "2"
+    }
+   },
    "parent_known": true
   },
   "TECopyComponent": {
@@ -59258,7 +59285,32 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_1",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "1"
+    },
+    "16": {
+     "name": "prop_2",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "2"
+    },
+    "20": {
+     "name": "prop_3",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "3"
+    }
+   },
    "parent_known": true
   },
   "TEResourceList": {
@@ -59700,7 +59752,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_3",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwStringsEx",
+     "id": "3"
+    }
+   },
    "parent_known": true
   },
   "TPlugIn": {
@@ -59918,7 +59979,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_1",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwStrings",
+     "id": "1"
+    }
+   },
    "parent_known": true
   },
   "TPropertyTable": {
@@ -87818,7 +87888,40 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "56": {
+     "name": "prop_2",
+     "type": "AnsiString",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwString",
+     "id": "2"
+    },
+    "128": {
+     "name": "prop_4",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "4"
+    },
+    "132": {
+     "name": "prop_5",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "5"
+    },
+    "136": {
+     "name": "prop_6",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "6"
+    }
+   },
    "parent_known": true
   },
   "THSMapViewer": {
@@ -88770,7 +88873,40 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "56": {
+     "name": "prop_4",
+     "type": "AnsiString",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwString",
+     "id": "4"
+    },
+    "36": {
+     "name": "prop_5",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "5"
+    },
+    "40": {
+     "name": "prop_6",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "6"
+    },
+    "52": {
+     "name": "prop_7",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "7"
+    }
+   },
    "parent_known": true
   },
   "THSEngine": {
@@ -91762,7 +91898,48 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_1",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "1"
+    },
+    "28": {
+     "name": "prop_2",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "2"
+    },
+    "16": {
+     "name": "prop_3",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "3"
+    },
+    "20": {
+     "name": "prop_4",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "4"
+    },
+    "24": {
+     "name": "prop_5",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "5"
+    }
+   },
    "parent_known": true
   },
   "THPBasedHS": {
@@ -92257,7 +92434,32 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_4",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "4"
+    },
+    "16": {
+     "name": "prop_5",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "5"
+    },
+    "20": {
+     "name": "prop_6",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "6"
+    }
+   },
    "parent_known": true
   },
   "TMapObject": {
@@ -92786,7 +92988,16 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_1",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "1"
+    }
+   },
    "parent_known": true
   },
   "TMapObjectResource": {
@@ -93014,7 +93225,32 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "28": {
+     "name": "prop_4",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "4"
+    },
+    "44": {
+     "name": "prop_5",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "5"
+    },
+    "48": {
+     "name": "prop_6",
+     "type": "AnsiString",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwString",
+     "id": "6"
+    }
+   },
    "parent_known": true
   },
   "TMapObjectResourceList": {
@@ -93841,7 +94077,24 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "prop_3",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "3"
+    },
+    "17": {
+     "name": "prop_4",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "4"
+    }
+   },
    "parent_known": true
   },
   "TMultiHexMOR": {
@@ -94083,7 +94336,40 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "52": {
+     "name": "prop_c",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0xc"
+    },
+    "56": {
+     "name": "prop_d",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0xd"
+    },
+    "60": {
+     "name": "prop_e",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0xe"
+    },
+    "64": {
+     "name": "prop_f",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0xf"
+    }
+   },
    "parent_known": true
   },
   "TAbstractHexagon": {
@@ -100492,7 +100778,24 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "69": {
+     "name": "prop_11",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x11"
+    },
+    "68": {
+     "name": "prop_12",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x12"
+    }
+   },
    "parent_known": true
   },
   "TRoad": {
@@ -107701,7 +108004,24 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_1",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "1"
+    },
+    "12": {
+     "name": "prop_2",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "2"
+    }
+   },
    "parent_known": true
   },
   "TPlayerCommunicationSettings": {
@@ -107866,7 +108186,24 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_5",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwData",
+     "id": "5"
+    },
+    "12": {
+     "name": "prop_6",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "6"
+    }
+   },
    "parent_known": true
   },
   "TPlayerCommunicationSettingsList": {
@@ -108761,7 +109098,16 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_10",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "10"
+    }
+   },
    "parent_known": true
   },
   "TTokenPackage": {
@@ -108933,7 +109279,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "20": {
+     "name": "prop_5",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "5"
+    }
+   },
    "parent_known": true
   },
   "TTokenEventList": {
@@ -109098,7 +109453,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "prop_5",
+     "type": "pointer",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwEObject",
+     "id": "5"
+    }
+   },
    "parent_known": true
   },
   "TTokenPackageDistributer": {
@@ -109710,7 +110074,16 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "prop_14",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0x14"
+    }
+   },
    "parent_known": true
   },
   "TGalaxySongStatus": {
@@ -113372,7 +113745,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FXYZList",
+     "type": "TXYZList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TPlayerStructureList": {
@@ -116055,8 +116435,8 @@
      "id": "0x15"
     },
     "36": {
-     "name": "prop_16",
-     "type": "pointer",
+     "name": "FProductionSettings",
+     "type": "TProductionSettings",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -118059,9 +118439,27 @@
      "rw": "rwInteger",
      "id": "0x1e"
     },
+    "32": {
+     "name": "FExternalPowerSource",
+     "type": "TExternalPowerSource",
+     "size": 4,
+     "src": "accessor"
+    },
+    "48": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
     "64": {
      "name": "FPowerSourceList",
      "type": "TPowerSourceList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "72": {
+     "name": "FEventList",
+     "type": "TEventList",
      "size": 4,
      "src": "accessor"
     }
@@ -119306,6 +119704,12 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0"
+    },
+    "60": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -119488,6 +119892,18 @@
      "src": "readwrite",
      "rw": "rwBool",
      "id": "4"
+    },
+    "12": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -120462,12 +120878,18 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FENode",
+     "type": "TENode",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x15"
+    },
+    "12": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -120641,7 +121063,26 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "FLeader",
+     "type": "TLeader",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FLeader",
+     "type": "TLeader",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTurnInfoItem": {
@@ -121284,8 +121725,8 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FTurnInfo",
+     "type": "TTurnInfo",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -121945,8 +122386,8 @@
      "id": "0x14"
     },
     "12": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FEmailGame",
+     "type": "TEmailGame",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122231,8 +122672,8 @@
      "id": "0x16"
     },
     "216": {
-     "name": "prop_17",
-     "type": "pointer",
+     "name": "FEventLogbook",
+     "type": "TEventLogbook",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122263,8 +122704,8 @@
      "id": "0x1b"
     },
     "136": {
-     "name": "prop_1c",
-     "type": "pointer",
+     "name": "FAIPlayerControl",
+     "type": "TAIPlayerControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122279,8 +122720,8 @@
      "id": "0x1d"
     },
     "84": {
-     "name": "prop_1f",
-     "type": "pointer",
+     "name": "FPlayerMagicControl",
+     "type": "TPlayerMagicControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122295,8 +122736,8 @@
      "id": "0x22"
     },
     "96": {
-     "name": "prop_23",
-     "type": "pointer",
+     "name": "FPlayerStatistics",
+     "type": "TPlayerStatistics",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122335,8 +122776,8 @@
      "id": "0x27"
     },
     "52": {
-     "name": "prop_28",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -122351,24 +122792,24 @@
      "id": "0x32"
     },
     "140": {
-     "name": "prop_33",
-     "type": "pointer",
+     "name": "FAIBudgetManager",
+     "type": "TAIBudgetManager",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x33"
     },
     "144": {
-     "name": "prop_34",
-     "type": "pointer",
+     "name": "FDiplomaticActionList",
+     "type": "TDiplomaticActionList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x34"
     },
     "160": {
-     "name": "prop_36",
-     "type": "pointer",
+     "name": "FPBEMPlayerSettings",
+     "type": "TPBEMPlayerSettings",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -122391,16 +122832,112 @@
      "id": "0x39"
     },
     "64": {
-     "name": "prop_3a",
-     "type": "pointer",
+     "name": "FPlayerDiplomaticRelations",
+     "type": "TPlayerDiplomaticRelations",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x3a"
     },
+    "12": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FPlayerStructureList",
+     "type": "TPlayerStructureList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "32": {
+     "name": "FPlayerStructureList",
+     "type": "TPlayerStructureList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "36": {
+     "name": "FProductionControlList",
+     "type": "TProductionControlList",
+     "size": 4,
+     "src": "accessor"
+    },
     "40": {
      "name": "FArmyList",
      "type": "TArmyList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "56": {
+     "name": "FDiplomaticRelationList",
+     "type": "TDiplomaticRelationList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "60": {
+     "name": "FDiplomaticRelationList",
+     "type": "TDiplomaticRelationList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "100": {
+     "name": "FIncomeSourceList",
+     "type": "TIncomeSourceList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "104": {
+     "name": "FPlayerStructureList",
+     "type": "TPlayerStructureList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "128": {
+     "name": "FHeroList",
+     "type": "THeroList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "132": {
+     "name": "FAIGroupList",
+     "type": "TAIGroupList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "148": {
+     "name": "FBitList",
+     "type": "TBitList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "152": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "156": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
      "size": 4,
      "src": "accessor"
     },
@@ -122690,6 +123227,30 @@
     "8": {
      "name": "FEObjectList",
      "type": "TEObjectList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FByteList",
+     "type": "TByteList",
      "size": 4,
      "src": "accessor"
     }
@@ -123459,7 +124020,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FDoubleItemList",
+     "type": "TDoubleItemList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TSubMoveList": {
@@ -123895,6 +124463,24 @@
     }
    ],
    "fields": {
+    "16": {
+     "name": "FSubMoveList",
+     "type": "TSubMoveList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "104": {
+     "name": "FMovepath",
+     "type": "TMovepath",
+     "size": 4,
+     "src": "accessor"
+    },
     "124": {
      "name": "FSourcePos",
      "type": "int",
@@ -123904,6 +124490,12 @@
     "136": {
      "name": "FDestinationPos",
      "type": "int",
+     "size": 4,
+     "src": "accessor"
+    },
+    "168": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
      "size": 4,
      "src": "accessor"
     }
@@ -123953,7 +124545,26 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "456": {
+     "name": "FXYLList",
+     "type": "TXYLList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "460": {
+     "name": "FXYLList",
+     "type": "TXYLList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "464": {
+     "name": "FXYLList",
+     "type": "TXYLList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAoWTokenManager": {
@@ -124616,7 +125227,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "24": {
+     "name": "FDoubleItemList",
+     "type": "TDoubleItemList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTextControlItem": {
@@ -124791,8 +125409,8 @@
      "id": "9"
     },
     "12": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -126701,7 +127319,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FMovepath",
+     "type": "TMovepath",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TMoveSettingsList": {
@@ -127095,6 +127720,12 @@
     }
    ],
    "fields": {
+    "8": {
+     "name": "FMoveSettingsList",
+     "type": "TMoveSettingsList",
+     "size": 4,
+     "src": "accessor"
+    },
     "12": {
      "name": "FCurrentMove",
      "type": "int",
@@ -127230,6 +127861,12 @@
      "type": "TMoveSettingsList",
      "size": 4,
      "src": "accessor"
+    },
+    "32": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -127262,7 +127899,26 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FShortIntList",
+     "type": "TShortIntList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "52": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "60": {
+     "name": "FStringList",
+     "type": "TStringList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAoWHSMapKeyboard": {
@@ -127536,7 +128192,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "76": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAoWHSMapMouse": {
@@ -128172,6 +128835,36 @@
      "type": "int",
      "size": 4,
      "src": "accessor"
+    },
+    "168": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "188": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "192": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "204": {
+     "name": "FCustomFixedVisibleHS",
+     "type": "TCustomFixedVisibleHS",
+     "size": 4,
+     "src": "accessor"
+    },
+    "208": {
+     "name": "FCustomFixedVisibleHS",
+     "type": "TCustomFixedVisibleHS",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -128695,7 +129388,20 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "216": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "220": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTutorialControl": {
@@ -128860,7 +129566,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TStartupSongList": {
@@ -129607,16 +130320,16 @@
      "id": "7"
     },
     "240": {
-     "name": "prop_b",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
      "id": "0xb"
     },
     "264": {
-     "name": "prop_c",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -129663,16 +130376,16 @@
      "id": "0x14"
     },
     "320": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FPlayerList",
+     "type": "TPlayerList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x15"
     },
     "324": {
-     "name": "prop_16",
-     "type": "pointer",
+     "name": "FRaceList",
+     "type": "TRaceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129687,8 +130400,8 @@
      "id": "0x17"
     },
     "248": {
-     "name": "prop_18",
-     "type": "pointer",
+     "name": "FHeroControl",
+     "type": "THeroControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129727,8 +130440,8 @@
      "id": "0x1c"
     },
     "244": {
-     "name": "prop_1e",
-     "type": "pointer",
+     "name": "FItemControl",
+     "type": "TItemControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129767,8 +130480,8 @@
      "id": "0x25"
     },
     "252": {
-     "name": "prop_26",
-     "type": "pointer",
+     "name": "FUnitControl",
+     "type": "TUnitControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129783,8 +130496,8 @@
      "id": "0x27"
     },
     "392": {
-     "name": "prop_28",
-     "type": "pointer",
+     "name": "FGlobalMagicControl",
+     "type": "TGlobalMagicControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129799,16 +130512,16 @@
      "id": ""
     },
     "316": {
-     "name": "prop_2a",
-     "type": "pointer",
+     "name": "FTextControl",
+     "type": "TTextControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x2a"
     },
     "396": {
-     "name": "prop_2b",
-     "type": "pointer",
+     "name": "FAoWMapCampaignSettings",
+     "type": "TAoWMapCampaignSettings",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129855,8 +130568,8 @@
      "id": "0x31"
     },
     "304": {
-     "name": "prop_32",
-     "type": "pointer",
+     "name": "FAIGroupManager",
+     "type": "TAIGroupManager",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129887,8 +130600,8 @@
      "id": "0x35"
     },
     "256": {
-     "name": "prop_36",
-     "type": "pointer",
+     "name": "FStructureControl",
+     "type": "TStructureControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129903,8 +130616,8 @@
      "id": "0x37"
     },
     "292": {
-     "name": "prop_38",
-     "type": "pointer",
+     "name": "FTutorialControl",
+     "type": "TTutorialControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -129949,6 +130662,240 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": ""
+    },
+    "216": {
+     "name": "FSelectedArmy",
+     "type": "TSelectedArmy",
+     "size": 4,
+     "src": "accessor"
+    },
+    "224": {
+     "name": "FTargetSelectionControl",
+     "type": "TTargetSelectionControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "272": {
+     "name": "FStartupSongList",
+     "type": "TStartupSongList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "276": {
+     "name": "FSonglist",
+     "type": "TSonglist",
+     "size": 4,
+     "src": "accessor"
+    },
+    "296": {
+     "name": "FAIExecuter",
+     "type": "TAIExecuter",
+     "size": 4,
+     "src": "accessor"
+    },
+    "308": {
+     "name": "FAoWHSMapKeyboard",
+     "type": "TAoWHSMapKeyboard",
+     "size": 4,
+     "src": "accessor"
+    },
+    "368": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "380": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "388": {
+     "name": "FMoveControl",
+     "type": "TMoveControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "408": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "412": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "416": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "420": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "424": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "428": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "432": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "436": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "440": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "444": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "452": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "460": {
+     "name": "FEventLogList",
+     "type": "TEventLogList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "464": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "468": {
+     "name": "FExecuteEventLogCallBackList",
+     "type": "TExecuteEventLogCallBackList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "480": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "484": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "488": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "492": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "496": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "520": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "524": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "528": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "532": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "536": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "540": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "544": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "548": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "552": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "572": {
+     "name": "FAoWTokenManager",
+     "type": "TAoWTokenManager",
+     "size": 4,
+     "src": "accessor"
+    },
+    "576": {
+     "name": "FPlayerCommunicator",
+     "type": "TPlayerCommunicator",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -130183,40 +131130,40 @@
      "id": "8"
     },
     "56": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x10"
     },
     "52": {
-     "name": "prop_f",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xf"
     },
     "60": {
-     "name": "prop_11",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x11"
     },
     "64": {
-     "name": "prop_12",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x12"
     },
     "68": {
-     "name": "prop_13",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -132608,8 +133555,8 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_5",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -132624,8 +133571,8 @@
      "id": "6"
     },
     "24": {
-     "name": "prop_7",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -132638,6 +133585,12 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "9"
+    },
+    "28": {
+     "name": "FImageSequenceList",
+     "type": "TImageSequenceList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -133558,7 +134511,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TItemGFX": {
@@ -134701,8 +135661,8 @@
      "id": "0x11"
     },
     "60": {
-     "name": "prop_12",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -135513,12 +136473,18 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FItemList",
+     "type": "TItemList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x14"
+    },
+    "12": {
+     "name": "FENode",
+     "type": "TENode",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -135695,12 +136661,24 @@
      "id": "9"
     },
     "8": {
-     "name": "prop_iStack_1c",
-     "type": "pointer",
+     "name": "FList",
+     "type": "TList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwCreateEObject",
      "id": "iStack_1c"
+    },
+    "12": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -136510,8 +137488,8 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_4",
-     "type": "pointer",
+     "name": "FItemList",
+     "type": "TItemList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -137213,6 +138191,18 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "10"
+    },
+    "12": {
+     "name": "FIntegerHashTable256",
+     "type": "TIntegerHashTable256",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -138654,8 +139644,8 @@
      "id": "0x19"
     },
     "72": {
-     "name": "prop_1a",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -140618,7 +141608,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FUnitIndexList",
+     "type": "TUnitIndexList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TUnitCategoryList": {
@@ -140921,9 +141918,33 @@
     }
    ],
    "fields": {
+    "48": {
+     "name": "FBitList",
+     "type": "TBitList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "52": {
+     "name": "FBitList",
+     "type": "TBitList",
+     "size": 4,
+     "src": "accessor"
+    },
     "56": {
      "name": "FUnitCategoryList",
      "type": "TUnitCategoryList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "60": {
+     "name": "FUnitCategoryList",
+     "type": "TUnitCategoryList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "64": {
+     "name": "FUnitIndexList",
+     "type": "TUnitIndexList",
      "size": 4,
      "src": "accessor"
     },
@@ -141008,7 +142029,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TUnitSelectorAAI": {
@@ -141991,8 +143019,8 @@
      "id": "0x23"
     },
     "28": {
-     "name": "prop_24",
-     "type": "pointer",
+     "name": "FAbilityOwner",
+     "type": "TAbilityOwner",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -142996,8 +144024,8 @@
      "id": "0x17"
     },
     "44": {
-     "name": "prop_18",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -143042,6 +144070,12 @@
      "src": "readwrite",
      "rw": "rwIntegerEx",
      "id": "0x1d"
+    },
+    "28": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -144666,6 +145700,12 @@
      "rw": "rwInteger",
      "id": "0x27"
     },
+    "124": {
+     "name": "FHeroPowerSource",
+     "type": "THeroPowerSource",
+     "size": 4,
+     "src": "accessor"
+    },
     "116": {
      "name": "FInventory",
      "type": "THeroInventory",
@@ -145510,6 +146550,12 @@
      "src": "readwrite",
      "rw": "rwByteEx",
      "id": "0x2d"
+    },
+    "160": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -145948,12 +146994,24 @@
    ],
    "fields": {
     "20": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FHeroList",
+     "type": "THeroList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x14"
+    },
+    "8": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -146409,12 +147467,18 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FHeroLibrary",
+     "type": "THeroLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x14"
+    },
+    "12": {
+     "name": "FENode",
+     "type": "TENode",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -146733,8 +147797,8 @@
      "id": "0x14"
     },
     "44": {
-     "name": "prop_1d",
-     "type": "pointer",
+     "name": "FAbilityOwner",
+     "type": "TAbilityOwner",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -148878,6 +149942,12 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0xb"
+    },
+    "8": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -150279,8 +151349,8 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FArmy",
+     "type": "TArmy",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -150807,8 +151877,8 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_f",
-     "type": "pointer",
+     "name": "FArmy",
+     "type": "TArmy",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -150823,8 +151893,8 @@
      "id": "0x10"
     },
     "32": {
-     "name": "prop_11",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -150845,6 +151915,18 @@
      "src": "readwrite",
      "rw": "rwBool",
      "id": "0x15"
+    },
+    "40": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "44": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -151090,16 +152172,16 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_f",
-     "type": "pointer",
+     "name": "FArmy",
+     "type": "TArmy",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xf"
     },
     "32": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -151394,8 +152476,8 @@
      "id": "0xc"
     },
     "68": {
-     "name": "prop_d",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -151404,6 +152486,18 @@
     "20": {
      "name": "FRaceIndex",
      "type": "int",
+     "size": 4,
+     "src": "accessor"
+    },
+    "56": {
+     "name": "FUnitIndexList",
+     "type": "TUnitIndexList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "64": {
+     "name": "FUnitIndexList",
+     "type": "TUnitIndexList",
      "size": 4,
      "src": "accessor"
     }
@@ -153290,6 +154384,12 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0x15"
+    },
+    "8": {
+     "name": "FENode",
+     "type": "TENode",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -153558,8 +154658,8 @@
      "id": "0x15"
     },
     "80": {
-     "name": "prop_16",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -153572,6 +154672,12 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0x17"
+    },
+    "92": {
+     "name": "FUnitIndexListCollection",
+     "type": "TUnitIndexListCollection",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -155257,6 +156363,12 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "7"
+    },
+    "52": {
+     "name": "FBitList",
+     "type": "TBitList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -156456,7 +157568,20 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FBitList",
+     "type": "TBitList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TFlagControl": {
@@ -156893,92 +158018,152 @@
    ],
    "fields": {
     "84": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FRaceResourceList",
+     "type": "TRaceResourceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "10"
     },
     "108": {
-     "name": "prop_b",
-     "type": "pointer",
+     "name": "FItemLibraryManager",
+     "type": "TItemLibraryManager",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xb"
     },
     "92": {
-     "name": "prop_6f",
-     "type": "pointer",
+     "name": "FUnitResourceList",
+     "type": "TUnitResourceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x6f"
     },
     "96": {
-     "name": "prop_70",
-     "type": "pointer",
+     "name": "FUnitGFXResourceList",
+     "type": "TUnitGFXResourceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x70"
     },
     "100": {
-     "name": "prop_71",
-     "type": "pointer",
+     "name": "FHeroResourceList",
+     "type": "THeroResourceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x71"
     },
     "104": {
-     "name": "prop_72",
-     "type": "pointer",
+     "name": "FItemGFXList",
+     "type": "TItemGFXList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x72"
     },
     "116": {
-     "name": "prop_73",
-     "type": "pointer",
+     "name": "FFaceResourceList",
+     "type": "TFaceResourceList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x73"
     },
     "132": {
-     "name": "prop_75",
-     "type": "pointer",
+     "name": "FSpellControl",
+     "type": "TSpellControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x75"
     },
     "128": {
-     "name": "prop_76",
-     "type": "pointer",
+     "name": "FAbilityControl",
+     "type": "TAbilityControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x76"
     },
     "152": {
-     "name": "prop_77",
-     "type": "pointer",
+     "name": "FTextControl",
+     "type": "TTextControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x77"
     },
     "112": {
-     "name": "prop_11",
-     "type": "pointer",
+     "name": "FHeroLibraryManager",
+     "type": "THeroLibraryManager",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x11"
+    },
+    "72": {
+     "name": "FFireControl",
+     "type": "TFireControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "76": {
+     "name": "FFireControl",
+     "type": "TFireControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "80": {
+     "name": "FFireControl",
+     "type": "TFireControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "88": {
+     "name": "FPadControl",
+     "type": "TPadControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "120": {
+     "name": "FFlagControl",
+     "type": "TFlagControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "124": {
+     "name": "FFireControl",
+     "type": "TFireControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "136": {
+     "name": "FMapObjectResourceList",
+     "type": "TMapObjectResourceList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "140": {
+     "name": "FHexagonControl",
+     "type": "THexagonControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "144": {
+     "name": "FRoadControl",
+     "type": "TRoadControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "148": {
+     "name": "FImageSequenceList",
+     "type": "TImageSequenceList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -157621,7 +158806,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FEmailGameList",
+     "type": "TEmailGameList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TRestartGameEventLog": {
@@ -158133,7 +159325,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "36": {
+     "name": "FStringList",
+     "type": "TStringList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TFire": {
@@ -159032,7 +160231,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "4": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCombatPredictorUnit": {
@@ -159063,7 +160269,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "52": {
+     "name": "FQuadItemList",
+     "type": "TQuadItemList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCombatPredictorUnitList": {
@@ -159186,7 +160399,32 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "4": {
+     "name": "FCombatPredictorUnitList",
+     "type": "TCombatPredictorUnitList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "8": {
+     "name": "FCombatPredictorUnitList",
+     "type": "TCombatPredictorUnitList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "12": {
+     "name": "FCombatPredictorSide",
+     "type": "TCombatPredictorSide",
+     "size": 4,
+     "src": "accessor"
+    },
+    "16": {
+     "name": "FCombatPredictorSide",
+     "type": "TCombatPredictorSide",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCombatObject": {
@@ -159789,6 +161027,18 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0xe"
+    },
+    "16": {
+     "name": "FQuadItemList",
+     "type": "TQuadItemList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FQuadItemList",
+     "type": "TQuadItemList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -161330,7 +162580,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "20": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCombatViewer": {
@@ -161361,7 +162618,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FCombat",
+     "type": "TCombat",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCombatAction": {
@@ -164051,6 +165315,12 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0x10"
+    },
+    "8": {
+     "name": "FArmy",
+     "type": "TArmy",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -165013,16 +166283,16 @@
      "id": "0x12"
     },
     "52": {
-     "name": "prop_13",
-     "type": "pointer",
+     "name": "FENode",
+     "type": "TENode",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x13"
     },
     "60": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FCombatPartyList",
+     "type": "TCombatPartyList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -165075,6 +166345,24 @@
      "src": "readwrite",
      "rw": "rwBool",
      "id": "0x1c"
+    },
+    "40": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "44": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "64": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -165243,24 +166531,24 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_5",
-     "type": "pointer",
+     "name": "FCombatData",
+     "type": "TCombatData",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "5"
     },
     "16": {
-     "name": "prop_6",
-     "type": "pointer",
+     "name": "FCombatData",
+     "type": "TCombatData",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "6"
     },
     "20": {
-     "name": "prop_7",
-     "type": "pointer",
+     "name": "FCombatActionList",
+     "type": "TCombatActionList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -165532,36 +166820,42 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FCombatSide",
+     "type": "TCombatSide",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "10"
     },
     "32": {
-     "name": "prop_b",
-     "type": "pointer",
+     "name": "FCombatSide",
+     "type": "TCombatSide",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xb"
     },
     "24": {
-     "name": "prop_c",
-     "type": "pointer",
+     "name": "FCombatLogbook",
+     "type": "TCombatLogbook",
      "size": 4,
      "src": "readwrite",
      "rw": "rwCreateEObject",
      "id": "0xc"
     },
     "12": {
-     "name": "prop_d",
-     "type": "pointer",
+     "name": "FCombatData",
+     "type": "TCombatData",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0xd"
+    },
+    "36": {
+     "name": "FEventList",
+     "type": "TEventList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -166713,7 +168007,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupList": {
@@ -167156,6 +168457,18 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "10"
+    },
+    "12": {
+     "name": "FAIPlayerActionList",
+     "type": "TAIPlayerActionList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FAIMoveExecuter",
+     "type": "TAIMoveExecuter",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -167322,7 +168635,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIMoveControlSettings": {
@@ -167499,6 +168819,12 @@
      "type": "int",
      "size": 4,
      "src": "accessor"
+    },
+    "340": {
+     "name": "FMovepath",
+     "type": "TMovepath",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -167665,7 +168991,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "540": {
+     "name": "FMoveControlSettings",
+     "type": "TMoveControlSettings",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TMoveTarget": {
@@ -168265,7 +169598,32 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "FMoveTargetList",
+     "type": "TMoveTargetList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FMoveControlSettings",
+     "type": "TMoveControlSettings",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FMoveTargetList",
+     "type": "TMoveTargetList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "584": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIMoveExecuterUnit": {
@@ -169510,7 +170868,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "FMovepath",
+     "type": "TMovepath",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIMoveExecuterMoveQueue": {
@@ -169994,7 +171359,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FAIMoveControl",
+     "type": "TAIMoveControl",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TDefaultMEC": {
@@ -170864,7 +172236,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "24": {
+     "name": "FAdjacentArmyList",
+     "type": "TAdjacentArmyList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTransportMEC": {
@@ -171244,6 +172623,18 @@
     }
    ],
    "fields": {
+    "16": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "20": {
+     "name": "FAIMoveExecuterMoveQueue",
+     "type": "TAIMoveExecuterMoveQueue",
+     "size": 4,
+     "src": "accessor"
+    },
     "24": {
      "name": "FAIMoveExecuterUnitList",
      "type": "TAIMoveExecuterUnitList",
@@ -173660,7 +175051,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "36": {
+     "name": "FQuadItemList",
+     "type": "TQuadItemList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TProcessEventlogAIPA": {
@@ -174075,7 +175473,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "24": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TStructurePhase1AIPA": {
@@ -175452,6 +176857,12 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0x20"
+    },
+    "32": {
+     "name": "FAIGroupProductionList",
+     "type": "TAIGroupProductionList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -175731,6 +177142,12 @@
      "src": "readwrite",
      "rw": "rwIntegerEx",
      "id": "0x1e"
+    },
+    "16": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -177521,7 +178938,32 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "36": {
+     "name": "FAIGroupControlTargetList",
+     "type": "TAIGroupControlTargetList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "344": {
+     "name": "FCombatPredictor",
+     "type": "TCombatPredictor",
+     "size": 4,
+     "src": "accessor"
+    },
+    "352": {
+     "name": "FAIRecruitmentGroupList",
+     "type": "TAIRecruitmentGroupList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "356": {
+     "name": "FAIGroupProductionLocationList",
+     "type": "TAIGroupProductionLocationList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupTargetFinder": {
@@ -177735,7 +179177,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FAIMoveTargetSelector",
+     "type": "TAIMoveTargetSelector",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TGroupDefenseSelector": {
@@ -177774,7 +179223,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupDefenseControl": {
@@ -177974,7 +179430,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "28": {
+     "name": "FGroupDefenseSelector",
+     "type": "TGroupDefenseSelector",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIRecruitmentGroupFinder": {
@@ -178181,7 +179644,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FAIMoveTargetSelector",
+     "type": "TAIMoveTargetSelector",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupRecruitControl": {
@@ -178816,7 +180286,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FAIMoveTargetSelector",
+     "type": "TAIMoveTargetSelector",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupUnitProduction": {
@@ -179471,6 +180948,12 @@
      "type": "TAIGroupUnitProductionList",
      "size": 4,
      "src": "accessor"
+    },
+    "56": {
+     "name": "FAIGroupUnitProductionList",
+     "type": "TAIGroupUnitProductionList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -179703,7 +181186,38 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "36": {
+     "name": "FAIGroupRecruitControl",
+     "type": "TAIGroupRecruitControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "40": {
+     "name": "FAIGroupProductionControl",
+     "type": "TAIGroupProductionControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "44": {
+     "name": "FAIGroupCooperationControl",
+     "type": "TAIGroupCooperationControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "64": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "132": {
+     "name": "FAIGroupTargetPrioritySettings",
+     "type": "TAIGroupTargetPrioritySettings",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "THuntAG": {
@@ -180127,7 +181641,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "80": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "THuntAGC": {
@@ -182373,7 +183894,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "20": {
+     "name": "FMovepath",
+     "type": "TMovepath",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TMultiMoveTE": {
@@ -182547,8 +184075,8 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FTokenEventList",
+     "type": "TTokenEventList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -182904,6 +184432,12 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0x27"
+    },
+    "32": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -189556,7 +191090,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "44": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTransportAbility": {
@@ -200475,6 +202016,12 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0x14"
+    },
+    "16": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -206994,7 +208541,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TDispelMagicAbilityCA": {
@@ -210859,7 +212413,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "40": {
+     "name": "FConstructionControlList",
+     "type": "TConstructionControlList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TCosmeticSurgeryEnchantment": {
@@ -212486,7 +214047,7 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_10",
+     "name": "FStringList",
      "type": "byte",
      "size": 1,
      "src": "readwrite",
@@ -212494,8 +214055,8 @@
      "id": "0x10"
     },
     "40": {
-     "name": "prop_b",
-     "type": "pointer",
+     "name": "FSFXLibrary",
+     "type": "TSFXLibrary",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -212532,6 +214093,12 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0x11"
+    },
+    "44": {
+     "name": "FImageSequenceList",
+     "type": "TImageSequenceList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -212698,7 +214265,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "8": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TSpellList": {
@@ -212729,7 +214303,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "4": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TSpellTE": {
@@ -213737,7 +215318,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "20": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TUnitSpellTE": {
@@ -213946,6 +215534,18 @@
      "src": "readwrite",
      "rw": "rwByte",
      "id": "0x20"
+    },
+    "32": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "36": {
+     "name": "FUnitUserList",
+     "type": "TUnitUserList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -215419,7 +217019,32 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "24": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "28": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "32": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "36": {
+     "name": "FAICastSpellActionList",
+     "type": "TAICastSpellActionList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAoWMapCampaignSettings": {
@@ -215792,24 +217417,24 @@
    ],
    "fields": {
     "12": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FHeroList",
+     "type": "THeroList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x14"
     },
     "16": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FItemList",
+     "type": "TItemList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x15"
     },
     "20": {
-     "name": "prop_16",
-     "type": "pointer",
+     "name": "FUnitList",
+     "type": "TUnitList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -215846,6 +217471,36 @@
      "src": "readwrite",
      "rw": "rwCreateEObject",
      "id": "0x1b"
+    },
+    "28": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "40": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "44": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "48": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "60": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -216545,16 +218200,16 @@
      "id": "6"
     },
     "32": {
-     "name": "prop_7",
-     "type": "pointer",
+     "name": "FAoWCampaignTransferSettings",
+     "type": "TAoWCampaignTransferSettings",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "7"
     },
     "16": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FAoWCampaignScenarioList",
+     "type": "TAoWCampaignScenarioList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -216599,6 +218254,18 @@
      "src": "readwrite",
      "rw": "rwData",
      "id": "0x13"
+    },
+    "20": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    },
+    "24": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -216893,8 +218560,8 @@
      "id": "0x1a"
     },
     "32": {
-     "name": "prop_1b",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -218467,7 +220134,26 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "92": {
+     "name": "FAoWRegistry",
+     "type": "TAoWRegistry",
+     "size": 4,
+     "src": "accessor"
+    },
+    "116": {
+     "name": "FEmailGameControl",
+     "type": "TEmailGameControl",
+     "size": 4,
+     "src": "accessor"
+    },
+    "120": {
+     "name": "FAoWDictionary",
+     "type": "TAoWDictionary",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAgeOfWondersEngine": {
@@ -226334,12 +228020,18 @@
    ],
    "fields": {
     "16": {
-     "name": "prop_28",
-     "type": "pointer",
+     "name": "FWatcherEnchantment",
+     "type": "TWatcherEnchantment",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x28"
+    },
+    "24": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -233829,8 +235521,8 @@
      "id": "0x10"
     },
     "80": {
-     "name": "prop_12",
-     "type": "pointer",
+     "name": "FProductionControl",
+     "type": "TProductionControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -233853,12 +235545,18 @@
      "id": "0x1b"
     },
     "88": {
-     "name": "prop_1d",
-     "type": "pointer",
+     "name": "FGlobalEnchantmentList",
+     "type": "TGlobalEnchantmentList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
      "id": "0x1d"
+    },
+    "96": {
+     "name": "FCityOverlayHS",
+     "type": "TCityOverlayHS",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -248801,8 +250499,8 @@
    ],
    "fields": {
     "52": {
-     "name": "prop_5",
-     "type": "pointer",
+     "name": "FArmy",
+     "type": "TArmy",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -249065,7 +250763,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "100": {
+     "name": "FUnitIndexListCollection",
+     "type": "TUnitIndexListCollection",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TGems": {
@@ -251207,8 +252912,8 @@
    ],
    "fields": {
     "56": {
-     "name": "prop_8",
-     "type": "pointer",
+     "name": "FArmy",
+     "type": "TArmy",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -251471,7 +253176,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "104": {
+     "name": "FUnitIndexListCollection",
+     "type": "TUnitIndexListCollection",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TPrisonersJoinEventLog": {
@@ -259701,8 +261413,8 @@
    ],
    "fields": {
     "28": {
-     "name": "prop_28",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -260482,8 +262194,8 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_28",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -266080,7 +267792,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "40": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TArena": {
@@ -267471,7 +269190,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupRazeControl": {
@@ -267871,7 +269597,20 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "32": {
+     "name": "FAIMoveTargetSelector",
+     "type": "TAIMoveTargetSelector",
+     "size": 4,
+     "src": "accessor"
+    },
+    "36": {
+     "name": "FAIGroupControlTargetList",
+     "type": "TAIGroupControlTargetList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAIGroupWanderControl": {
@@ -268071,7 +269810,14 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "36": {
+     "name": "FMoveControlSettings",
+     "type": "TMoveControlSettings",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TAbstractBehaviorAG": {
@@ -268751,7 +270497,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "368": {
+     "name": "FAIGroupTargetSelector",
+     "type": "TAIGroupTargetSelector",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TSkirmishAG": {
@@ -273704,8 +275457,8 @@
      "id": "0xd"
     },
     "28": {
-     "name": "prop_e",
-     "type": "pointer",
+     "name": "FLeader",
+     "type": "TLeader",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -274071,8 +275824,8 @@
      "id": "0x14"
     },
     "56": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FRemotePlayerList",
+     "type": "TRemotePlayerList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -274498,6 +276251,18 @@
     "40": {
      "name": "FSetupSettings",
      "type": "TSetupSettings",
+     "size": 4,
+     "src": "accessor"
+    },
+    "44": {
+     "name": "FMemoryStream",
+     "type": "TMemoryStream",
+     "size": 4,
+     "src": "accessor"
+    },
+    "52": {
+     "name": "FRemotePlayer",
+     "type": "TRemotePlayer",
      "size": 4,
      "src": "accessor"
     }
@@ -276688,7 +278453,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TConcealArea": {
@@ -277487,7 +279259,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "16": {
+     "name": "FIntegerList",
+     "type": "TIntegerList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TBirdsView": {
@@ -284875,8 +286654,8 @@
      "id": "0x14"
     },
     "44": {
-     "name": "prop_15",
-     "type": "pointer",
+     "name": "FFloodControl",
+     "type": "TFloodControl",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -288979,6 +290758,12 @@
      "src": "readwrite",
      "rw": "rwInteger",
      "id": "0x18"
+    },
+    "16": {
+     "name": "FByteList",
+     "type": "TByteList",
+     "size": 4,
+     "src": "accessor"
     }
    },
    "parent_known": true
@@ -302443,7 +304228,14 @@
     }
    },
    "vmt": [],
-   "fields": {},
+   "fields": {
+    "4": {
+     "name": "FList",
+     "type": "TList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TEventLog": {
@@ -303147,8 +304939,8 @@
    ],
    "fields": {
     "8": {
-     "name": "prop_10",
-     "type": "pointer",
+     "name": "FEventLogList",
+     "type": "TEventLogList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwEObject",
@@ -304408,8 +306200,8 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -304659,8 +306451,8 @@
    ],
    "fields": {
     "24": {
-     "name": "prop_14",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -305422,8 +307214,8 @@
    ],
    "fields": {
     "32": {
-     "name": "prop_1e",
-     "type": "pointer",
+     "name": "FStringList",
+     "type": "TStringList",
      "size": 4,
      "src": "readwrite",
      "rw": "rwStrings",
@@ -305695,7 +307487,14 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "24": {
+     "name": "FStringList",
+     "type": "TStringList",
+     "size": 4,
+     "src": "accessor"
+    }
+   },
    "parent_known": true
   },
   "TTutorialMessageEventLog": {
@@ -309583,7 +311382,24 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "69": {
+     "name": "prop_14",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x14"
+    },
+    "68": {
+     "name": "prop_15",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x15"
+    }
+   },
    "parent_known": true
   },
   "TCombatFixedILTerrain": {
@@ -311237,7 +313053,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "72": {
+     "name": "prop_19",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x19"
+    }
+   },
    "parent_known": true
   },
   "TCityWallDoor": {
@@ -313863,7 +315688,16 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "60": {
+     "name": "prop_1e",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0x1e"
+    }
+   },
    "parent_known": true
   },
   "TCAbRangedTE": {
@@ -314035,7 +315869,56 @@
      "own": true
     }
    ],
-   "fields": {},
+   "fields": {
+    "20": {
+     "name": "prop_1e",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0x1e"
+    },
+    "24": {
+     "name": "prop_1f",
+     "type": "int",
+     "size": 4,
+     "src": "readwrite",
+     "rw": "rwInteger",
+     "id": "0x1f"
+    },
+    "32": {
+     "name": "prop_20",
+     "type": "word",
+     "size": 2,
+     "src": "readwrite",
+     "rw": "rwWord",
+     "id": "0x20"
+    },
+    "34": {
+     "name": "prop_21",
+     "type": "word",
+     "size": 2,
+     "src": "readwrite",
+     "rw": "rwWord",
+     "id": "0x21"
+    },
+    "28": {
+     "name": "prop_22",
+     "type": "word",
+     "size": 2,
+     "src": "readwrite",
+     "rw": "rwWord",
+     "id": "0x22"
+    },
+    "30": {
+     "name": "prop_23",
+     "type": "word",
+     "size": 2,
+     "src": "readwrite",
+     "rw": "rwWord",
+     "id": "0x23"
+    }
+   },
    "parent_known": true
   },
   "TTerminateCombatTE": {
@@ -315514,7 +317397,40 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "73": {
+     "name": "prop_14",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x14"
+    },
+    "72": {
+     "name": "prop_15",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x15"
+    },
+    "74": {
+     "name": "prop_16",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x16"
+    },
+    "75": {
+     "name": "prop_17",
+     "type": "bool",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwBool",
+     "id": "0x17"
+    }
+   },
    "parent_known": true
   },
   "TCombatRoad": {
@@ -319005,7 +320921,32 @@
      "own": false
     }
    ],
-   "fields": {},
+   "fields": {
+    "12": {
+     "name": "prop_19",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x19"
+    },
+    "13": {
+     "name": "prop_1a",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x1a"
+    },
+    "24": {
+     "name": "prop_1b",
+     "type": "byte",
+     "size": 1,
+     "src": "readwrite",
+     "rw": "rwByte",
+     "id": "0x1b"
+    }
+   },
    "parent_known": true
   },
   "TCBloodHS": {

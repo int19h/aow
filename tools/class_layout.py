@@ -8,7 +8,7 @@ persistence call that stores it, and its property id. Inherited rows come from t
 class table is complete on its own. Unknown gaps between known offsets are shown as "?" so that the
 remaining work is visible.
 """
-import re, sys, collections
+import json, os, re, sys, collections
 
 
 def read_rtti(path):
@@ -50,6 +50,11 @@ def main():
     classes = read_rtti(rtti_path)
     persisted = read_tables(pf_path, unit)
     named = read_tables(fn_path, unit)
+    # classes.json (next to the persisted table) is the merged truth, including hand overrides
+    cdb = {}
+    cdb_path = os.path.join(os.path.dirname(os.path.abspath(pf_path)), 'classes.json')
+    if os.path.exists(cdb_path):
+        cdb = json.load(open(cdb_path, encoding='utf-8'))['classes']
 
     def own_rows(cls):
         rows = {}
@@ -67,6 +72,17 @@ def main():
             r = rows.setdefault(o, {})
             r['name'] = name; r['ctype'] = ctype
             r.setdefault('size', SIZE_BY_C.get(ctype, 0))
+        for off, fd in cdb.get(cls, {}).get('fields', {}).items():
+            o = int(off)
+            r = rows.setdefault(o, {})
+            if fd.get('name') and not fd['name'].startswith(('prop_', 'field_')):
+                r['name'] = fd['name']
+            if fd.get('type') and not r.get('ctype'):
+                r['ctype'] = fd['type']
+            if fd.get('size') and not r.get('size'):
+                r['size'] = fd['size']
+            if fd.get('src') == 'manual' or (fd.get('src') or '').startswith('manual'):
+                r['note'] = (r.get('note', '') + ' manual').strip()
         return rows
 
     def chain(cls):

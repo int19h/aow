@@ -15,6 +15,15 @@ The script collects (class, offset, name, type) and prints one table per class.
 import json, os, re, sys, collections
 
 FILE = re.compile(r'^[0-9a-f]+_(\w+?)\.(T\w+)\.(Get|Set)(\w+?)_[0-9A-F]{8}\.c$')
+CTOR_FILE = re.compile(r'^[0-9a-f]+_(\w+?)\.(T\w+)\.Create_[0-9A-F]{8}\.c$')
+# In a constructor, "VAR = <ctor call>(...)" followed by "FIELD = VAR" (or "FIELD = <ctor call>" directly)
+# gives the class of an embedded object. Three call shapes occur:
+#   AoWE_TItemControl_Create_HASH(...)                         own constructor of the class
+#   Engine_TEObject_Create_HASH(&AoWE__TAoWHSMapKeyboard_HASH,1,0)   inherited constructor, class passed first
+#   System_TObject_Create_HASH(Classes__TList_HASH_exref,1)   plain TObject.Create with the class
+CTOR_CALL = re.compile(r'(?:(?P<unit>\w+?)_(?P<cls>T\w+?)_Create_[0-9A-F]{8}\s*\((?!\s*&?\w+__T)'
+                       r'|\w+_Create_[0-9A-F]{8}\s*\(\s*(?:\(\w+ \*\))?&?(?P<unit2>\w+?)__(?P<cls2>T\w+?)_[0-9A-F]{8})')
+ASSIGN = re.compile(r'^(?P<lhs>.+?) = (?:\((?:\w+ \*?)\))?\s*(?P<rhs>.+)$', re.S)
 RAW_OFF = r'(?:\(int\))?param_1 \+ (0x[0-9a-f]+|\d+)'
 # a field access, raw or typed; group 'type' = C type when visible, 'off' = hex offset, 'name' = struct field name
 FIELD = (r'(?:\*\((?P<type>\w+(?: \*)?) \*\)\(' + RAW_OFF.replace('(0x', '(?P<off>0x') + r'\)'
@@ -68,6 +77,36 @@ def main():
 
     fields = collections.defaultdict(dict)   # (unit, cls) -> off -> (name, type, rank)
     for f in os.listdir(d):
+        cm = CTOR_FILE.match(f)
+        if cm:
+            unit, cls = cm.groups()
+            text = open(os.path.join(d, f), encoding='utf-8', errors='replace').read()
+            var_class = {}
+            for st in body_statements(text):
+                a = ASSIGN.match(st)
+                if not a:
+                    continue
+                lhs, rhs = a.group('lhs').strip(), a.group('rhs').strip()
+                c = CTOR_CALL.search(rhs)
+                tcls = (c.group('cls') or c.group('cls2')) if c else var_class.get(rhs)
+                if not tcls:
+                    continue
+                fm = re.match(r'^(?:' + FIELD + r')$', lhs)
+                if fm is None:
+                    if re.fullmatch(r'\w+', lhs):
+                        var_class[lhs] = tcls      # temp variable holding the new object
+                    continue
+                r = resolve(fm, cls)
+                if not r:
+                    continue
+                existing = fields[(unit, cls)].get(r[0])
+                # rank 3 is the weakest: a getter or setter name wins, the class type is still useful
+                name = existing[0] if existing else 'F' + tcls[1:]
+                if existing is None:
+                    fields[(unit, cls)][r[0]] = (name, tcls, 3)
+                elif not existing[1] or existing[1] in ('int', 'undefined4', 'pointer'):
+                    fields[(unit, cls)][r[0]] = (existing[0], tcls, existing[2])
+            continue
         m = FILE.match(f)
         if not m:
             continue
@@ -107,7 +146,7 @@ def main():
         out.append('|---|---|---|---|')
         for off in sorted(offs):
             fname, ctype, rank = offs[off]
-            out.append('| +$%02X | %s | %s | %s |' % (off, fname, ctype, {0: 'getter', 1: 'setter', 2: 'delegation'}[rank]))
+            out.append('| +$%02X | %s | %s | %s |' % (off, fname, ctype, {0: 'getter', 1: 'setter', 2: 'delegation', 3: 'constructor'}[rank]))
         out.append('')
     text = '\n'.join(out)
     if out_path:
