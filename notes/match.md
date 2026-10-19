@@ -33,19 +33,26 @@ local variable order, loop shape.
 |---|---|---|
 | TPropertyTable | 10 | 10 |
 | TIntegerList, TByteList, TShortIntList, TWordList, TBitList, TEventList, TDoubleItemList, TQuadItemList (with QuickSort, DefaultRun, ReturnAddr, Fill* and the sort comparison helpers) | 268 | 268 |
-| TEObject, TEObjectEditorList.FindEditor | 23 | 23 |
-| TECustomNode, TENode | 29 | 28 |
-| TEStorageStream, TEReadStorageStream, TEWriteStorageStream, string stream helpers | 72 | 67 |
-| TEngine (35 methods), TEObjectClassList, TEControlStyleObject, TEControlStyleNode, TECustomOwner, TEResourceEditSettings | 67 | 66 |
-| THashList, TIntegerHashList, TIntegerHashTable256 (`inc/HashTab.PAS`) | 16 | 13 |
-| InitMsg, InitMsgEx, GetCRC32, BuildCRC32Table, GetFileCRC32, ReleaseCRC32Table, GetEngine, FindEngine | 8 | 7 |
+| TEObject, TEObjectEditor, TEObjectEditorList, TEObjectList | 33 | 32 |
+| TECustomNode, TENode, TEChangeNotifyNode, TEChangeNotifyEventList, TETimerNode, TEReferenceNode, TESortNode and the sort node variants, TEUser | 115 | 114 |
+| TEStorageStream, TEReadStorageStream, TEWriteStorageStream, TDebugWriteStream, the text streams, TTranslateStorageStream, TSetupCompareStorageStream, TCompareStorageStream, string stream helpers | 149 | 141 |
+| TEngine, TEObjectClassList, TEControlStyleObject, TEControlStyleNode, TECustomOwner, TEResource, TEResourceList, TEResourceEditSettings, TEComponent, TECopyComponent, TPlugIn, TPlugInControl, TCallBackEventList, TCompressStream | 121 | 117 |
+| THashList, TIntegerHashList, TIntegerHashTable256, TStringHashList, TStringHashTable256 (`inc/HashTab.PAS`) | 30 | 26 |
+| FMemStr.TFastMemoryStream | 11 | 11 |
+| unit functions: InitMsg, CRC32, engine and plug-in lookups, string sorting, ReplaceText, HexToInt, clipboard streams, external plug-in loading | 42 | 37 |
 
-483 functions, 472 identical (33,450 of 35,287 bytes). Three of the eleven that differ are the
-`Assert` line numbers in `inc/HashTab.PAS` (the original counts them from the start of its
-Engine.pas: 7127, 7137 and 7155); the other eight differ in one register choice each (below).
-`src/delphi3/matchpkg.dpk` builds the same units as a package, the way the original was built; the
-package code is identical to the program code, so the compile mode is not what decides those
-registers.
+734 functions, 711 identical (50,949 of 54,811 bytes): every method of every class of the
+original Engine unit is written, plus the FMemStr unit. Five of the 23 that differ are `Assert`
+line numbers (the original counts them from the start of its Engine.pas: THashList.SetCapacity 7127,
+THashList.Delete 7137, TIntegerHashList.Add 7155, TStringHashList.Add 7282, TEChangeNotifyNode.
+EndUpdate 8215). The other 18 differ in one register choice each (below). `src/delphi3/matchpkg.dpk`
+builds the same units as a package, the way the original was built; the package code is identical
+to the program code. The Delphi 3.0 compiler from the original release CD (March 1997) gives worse
+results (argument evaluation order differs in 20 more functions), and the 3.02 patch does not change
+DCC32.EXE, so the installed compiler is the right one.
+
+The units the Engine unit imports but that are not matched yet are stubs: `zlib.pas` (the stream
+classes TCompressStream calls) and `ImageLib.pas` (the one entry point TEResource.Draw calls).
 
 ## What the compiler does (learned from the matches)
 
@@ -103,17 +110,40 @@ registers.
 - Package compilation (`-Z` style, a `.dpk` requiring vcl30) produces the same method code as a
   program: class references are read through the VMT self pointer in both.
 
+- A `while` whose condition is one comparison of a register variable is compiled with the test at
+  the top and again at the bottom (`GetCRC32`); a condition with `and`/`or` or a memory operand gets
+  a `jmp` to the test at the bottom.
+- `for I := 7 downto 0` with I unused counts a register up from -8; `for I := 0 to 7` counts down.
+- Small sets of chars (`P^ in [#0, #10, #13]`) are tested with a chain of `sub/je`.
+- `Dispose(P)` passes the record size to FreeMem; `FreeMem(P, Size)` does not.
+- A chain of `if Count = 4 ... else if Count = 1 ... else if Count = 2` keeps the order of the
+  compares; a `case` sorts them into a decrement chain.
+- An `except` block without `on` is `HandleAnyException` + `DoneExcept`; `raise` inside it is
+  `RaiseAgain`.
+- A `Byte` parameter passed to an enumerated parameter is loaded into `al` and copied through `eax`
+  (`TCompressStream.SaveToStreamEx`); no cast tried reproduces it.
+- Passing a parameter straight to a method pointer that mimics a constructor
+  (`TEditorConstructor = procedure(Alloc: Boolean; Obj: TEObject) of object`) is how
+  `TEObjectEditor.Edit` calls an editor class constructor.
+- Stack parameters are pushed left to right (`pushtest`): the first stack parameter has the highest
+  address.
+
 ## Open items
 
-- `TECustomNode.DestroyAllChildren`, `TEReadStorageStream.rwBool`, the `try` frame register in
-  `TEReadStorageStream.rwCreateEObject`, `TEWriteStorageStream.rwCreateEObject`, `rwEObject`,
-  `rwEObjectStream`, `TEngine.GetEClass` (Self stays in eax in the original, mine moves it to ebx
-  before a field read) and `GetEngine` (the Index parameter stays in eax): same code apart from
-  register choice. Tried for GetEClass: locals for the table and the result, `with`, a property,
-  `Assigned`, `Exit` forms, parameter names; none changes the allocation.
-- The three `Assert` line numbers in `inc/HashTab.PAS` settle only when the whole unit is laid out
-  as the original (THashList.SetCapacity's Assert at line 7127).
-- Next classes: `TCompressStream` and the zlib unit, `TCompareStorageStream`, the text storage
-  streams (`TEReadTextStorageStream`, `TEWriteTextStorageStream`), `TStringHashList` and
-  `TStringHashTable256` (also from `inc/HashTab.PAS`), `TEChangeNotifyNode`, `TETimerNode`,
-  `TESortNode`, the plug-in loader and the unit initialization; then the game units.
+- 18 functions differ in one register choice: `TEReadStorageStream.rwBool`, the `try` frame
+  register after a call whose result was just tested or stored (`TEReadStorageStream.rwCreateEObject`,
+  `TEWriteStorageStream.rwCreateEObject`, `rwEObject`, `rwEObjectStream`, `CopyStreamToClipboard`,
+  `PasteStreamFromClipboard`), a parameter or `Self` left in eax by the original where this compiler
+  moves it to a callee-saved register (`TEngine.GetEClass`, `GetEngine`, `TECopyComponent.GetEObject`,
+  the three text stream `rwCreateEObject`s, `TCompareStorageStream.rwCreateEObject`,
+  `TDebugWriteStream.rwCreateEObject`), a loop variable kept in memory
+  (`TPlugInControl.InitializePlugIns`), an unsigned branch (`SortStringsEx`) and the enum conversion in
+  `TCompressStream.SaveToStreamEx`. All variants tried compile to the same code, so they look like a
+  difference in the compiler build rather than in the source; the original keeps value tracking
+  across a `try` frame and does not allocate single-use parameters, this DCC32 (10.0, 4 Aug 1997,
+  identical on the 3.01 CD and after the 3.02 patch) does the opposite.
+- The five `Assert` line numbers settle only when the whole unit is laid out as the original.
+- `GetEngine`, `GetPlugIn`: the same source compiles with Index in ebx for one and in eax for the
+  other in the original.
+- Next: the remaining units of Enginep.dpl (`zlib`, `EList`, `PlugInM`, `DebMDlg`, `EResGrid`,
+  `ImgLComp`, `EngineP`), then the game units (AoWEPACK.dpl and the others).

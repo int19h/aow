@@ -11,6 +11,8 @@ requires
 contains
   FMemStr,
   EngineLists,
+  zlib,
+  ImageLib,
   Engine;
 
 end.

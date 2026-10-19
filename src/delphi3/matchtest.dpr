@@ -9,7 +9,10 @@ program matchtest;
 {$APPTYPE CONSOLE}
 
 uses
+  Windows,
   Classes,
+  zlib in 'zlib.pas',
+  ImageLib in 'ImageLib.pas',
   FMemStr in 'FMemStr.pas',
   EngineLists in 'EngineLists.pas',
   Engine in 'Engine.pas';
@@ -46,6 +49,26 @@ var
   OL: TEObjectList;
   TS: TEStorageStream;
   TT: TTranslateStorageStream;
+  TN: TETimerNode;
+  CH: TEChangeNotifyNode;
+  SN: TESortNode;
+  RN: TEReferenceNode;
+  US: TEUser;
+  RL: TEResourceList;
+  RE: TEResource;
+  CB: TCallBackEventList;
+  CE: TCallBackEventList;
+  SH: TStringHashTable256;
+  SL: TStringHashList;
+  EC: TEComponent;
+  CBE: TCallBackEvent;
+  RC: TRect;
+  CS: TCompressStream;
+  PI: TPlugIn;
+  PC: TPlugInControl;
+  DW: TDebugWriteStream;
+  SLS: TStringList;
+  CC: TECopyComponent;
 begin
   T := TPropertyTable.Create;
   M := TMemoryStream.Create;
@@ -195,7 +218,7 @@ begin
   O := TEObject.Create(N);
   O.SetArrayOwner(N, 0);
   O.MsgProc(Msg, nil);
-  O.TimerEvent;
+  O.TimerEvent(0, nil);
   O.Clear;
   O.LastMsg := O.LastMsg;
   Writeln(O.ClassVersion, O.ClassID, O.EObjectPath, O.Compare(O, EN), Byte(O.GetControlStyle));
@@ -318,5 +341,101 @@ begin
   TS.Free;
   TS := TSetupCompareStorageStream.Create(M, EN, False);
   TS.Free;
+  TN := TETimerNode.Create(nil);
+  TN.AddTimerChild(O, 2);
+  TN.RemoveTimerChild(O, 2);
+  TN.TriggerTimerEvent;
+  Writeln(TN.GetTimerList(1).Count, TN.Tick);
+  TN.Free;
+  CH := TEChangeNotifyNode.Create(nil);
+  CH.LockChanged;
+  CH.UnlockChanged;
+  CH.BeginUpdate;
+  CH.Sort(nil);
+  CH.EndUpdate;
+  CH.Free;
+  CH := TEChangeNotifyEventList.Create(nil);
+  CH.Free;
+  SN := TESortNode.Create(nil);
+  SN.AddSortChild(O, 1);
+  SN.Sort;
+  SN.SortValue[0] := SN.SortValue[0];
+  SN.Grow;
+  SN.Free;
+  SN := TEInverseSortNode.Create(nil);
+  SN.Free;
+  SN := TEControlStyleSortNode.Create(nil);
+  TEControlStyleSortNode(SN).SetControlStyle([]);
+  SN.Free;
+  SN := TEControlStyleInverseSortNode.Create(nil);
+  TEControlStyleInverseSortNode(SN).SetControlStyle([]);
+  SN.Free;
+  RN := TEReferenceNode.Create(nil);
+  RN.Free;
+  US := TEUser.Create(nil);
+  US.Connect(nil);
+  US.Free;
+  RL := TEResourceList.Create(nil);
+  RL.ValidateResourceID(0);
+  Writeln(RL.FindResource(1) = nil, RL.Resources[0] = nil);
+  RL.ResourceChanged;
+  RL.Free;
+  RE := TEResource.Create(nil);
+  RE.Draw(nil, RC, 0, 0, 0, 0, 0);
+  Writeln(RE.ResourceEditName, RE.CreateResourceUser = nil);
+  RE.Free;
+  CB := TCallBackEventList.Create;
+  CB.Add(CBE);
+  Writeln(CB.Count, CB[0] = nil);
+  CB.Delete(0);
+  CB.Free;
+  SH := TStringHashTable256.Create;
+  SH.Add(SH, 'ab');
+  Writeln(SH.Find('ab') = SH);
+  SH.Delete('ab');
+  SH.Clear;
+  SH.Free;
+  SL := TStringHashList.Create;
+  SL.Free;
+  EC := TEComponent.Create(nil);
+  EC.Free;
+  CS := TCompressStream.Create;
+  CS.LoadFromFile('f');
+  CS.SaveToFile('f');
+  Writeln(CS.SaveToFileEx('f', 3), CS.SaveToStreamEx(M, 3));
+  CS.SaveToStream(M);
+  CS.LoadFromStream(M);
+  CS.Free;
+  PI := TPlugIn.Create;
+  Writeln(PI.Name, PI.Initialize(EN), PI.Finalize(EN), PI.RefCount, GetPlugIn(0) = PI, FindPlugIn('a') = PI);
+  InitializePlugIns(EN);
+  FinalizePlugIns(EN);
+  PI.AddRef;
+  PI.Release;
+  PI.Free;
+  PC := TPlugInControl.Create(nil);
+  PC.UsedPlugIns := PC.UsedPlugIns;
+  PC.ReadWrite(nil);
+  PC.Free;
+  DW := TDebugWriteStream.Create(M, EN);
+  DW.rwEObject(O, 1);
+  DW.rwEObjectStream(O, 1);
+  DW.Free;
+  SLS := TStringList.Create;
+  SortStrings(SLS, nil);
+  SortStringsAscending(SLS, [SLS]);
+  SortStringsDescending(SLS, [SLS]);
+  SortStringsNumericalAscending(SLS, [SLS]);
+  SortStringsNumericalDescending(SLS, [SLS]);
+  SLS.Free;
+  Writeln(ReplaceText('a', 'b', 'c'), HexToInt('ff'), CopyStreamToClipboard(M, 'x'), PasteStreamFromClipboard(M, 'x'));
+  LoadExternalPlugIns('.');
+  UnloadExternalPlugIns;
+  CC := TECopyComponent.Create(nil);
+  CC.EObjects[0] := O;
+  Writeln(CC.Count, CC.EObjects[0] = nil);
+  CC.CopyToClipboard(EN, 'x');
+  CC.PasteFromClipboard(EN, 'x');
+  CC.Free;
   EN.Free;
 end.

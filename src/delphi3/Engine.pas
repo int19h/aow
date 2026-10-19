@@ -9,7 +9,7 @@ unit Engine;
 interface
 
 uses
-  SysUtils, Classes, Forms, EngineLists, FMemStr;
+  Windows, SysUtils, Classes, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
 
 type
   PByte = ^Byte;
@@ -100,6 +100,18 @@ type
   TEBufferStream = class(TFastMemoryStream)
   end;
 
+  { Engine.TCompressStream (instance size 20): a TMemoryStream whose SaveToStream writes the
+    "CFS" header, the compression level and the zlib-compressed bytes }
+  TCompressStream = class(TMemoryStream)
+  public
+    procedure LoadFromStream(Stream: TStream);
+    function SaveToStreamEx(Stream: TStream; Level: Byte): Integer;
+    procedure SaveToStream(Stream: TStream);
+    function SaveToFileEx(const FileName: string; Level: Byte): Integer;
+    procedure SaveToFile(const FileName: string);
+    procedure LoadFromFile(const FileName: string);
+  end;
+
   { Engine.TEObject (instance size 8): +4 FOwner. }
   TEObject = class(TObject)
   private
@@ -116,13 +128,13 @@ type
     procedure MainReadWrite(Stream: TEStorageStream); virtual;
     constructor Create(AOwner: TECustomNode); virtual;
     class function ClassID: Integer; virtual;
-    procedure AddRef; virtual;
-    procedure Release; virtual;
+    function AddRef: Integer; virtual;
+    function Release: Integer; virtual;
     procedure Clear; virtual;
     function Compare(Obj: TEObject; AEngine: TEngine): Boolean; virtual;
     function Editor: TClass; virtual;
     procedure Assign(Source: TEObject; AEngine: TEngine); virtual;
-    procedure TimerEvent; virtual;
+    procedure TimerEvent(Tick: Integer; Sender: TEObject); virtual;
     procedure MsgProc(var Msg: TEMsg; Sender: TEObject); virtual;
     procedure SetArrayOwner(AOwner: TECustomNode; Index: Integer); virtual;
     destructor Destroy; override;
@@ -130,6 +142,48 @@ type
     property Owner: TECustomNode read FOwner write SetOwner;
     property EObjectPath: string read GetEObjectPath;
     property LastMsg: Integer read GetLastMsg write SetLastMsg;
+  end;
+
+  { Engine.TPlugIn (instance size 16): +4 FRefCount, +8 FEngines, +$C FCounts. A plug-in registers
+    itself in PlugIns on creation and counts the engines it is initialized for. }
+  TPlugIn = class(TObject)
+  private
+    FRefCount: Integer;
+    FEngines: TList;
+    FCounts: TIntegerList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddRef;
+    procedure Release;
+    function Name: string; virtual;
+    function Initialize(AEngine: TEngine): Boolean; virtual;
+    function Finalize(AEngine: TEngine): Boolean; virtual;
+    property RefCount: Integer read FRefCount;
+  end;
+
+  EPlugInMissing = class(Exception);
+
+  { Engine.TPlugInControl (instance size 16): +8 FEngine, +$C FUsedPlugIns; the names of the
+    plug-ins an engine uses, initialized and finalized as the list changes }
+  TPlugInControl = class(TEObject)
+  private
+    FEngine: TEngine;
+    FUsedPlugIns: TStringList;
+    procedure SetUsedPlugIns(Value: TStrings);
+    function GetUsedPlugIns: TStrings;
+    procedure OnChange(Sender: TObject);
+    procedure OnChanging(Sender: TObject);
+    procedure InitializePlugIns;
+    procedure FinalizePlugIns;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    function GetEngine: TEngine; override;
+    function GetControlStyle: TEControlStyles; override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    property Engine: TEngine read FEngine write FEngine;
+    property UsedPlugIns: TStrings read GetUsedPlugIns write SetUsedPlugIns;
   end;
 
   { Engine.TECustomNode (instance size 8): children through an abstract list interface. Message ids
@@ -149,7 +203,7 @@ type
     procedure DestroyAllChildren; virtual;
     procedure QuickClear; virtual;
     procedure SendMsg(var Msg: TEMsg; Sender: TEObject); virtual;
-    procedure RemoveChild(Child: TEObject); virtual; abstract;
+    function RemoveChild(Child: TEObject): Integer; virtual; abstract;
     function AddChild(Child: TEObject): Integer; virtual; abstract;
     function DestroyChildren(AClassID: Integer): Integer; virtual;
     function FindChildInTree(AClassID: Integer): TEObject; virtual;
@@ -187,7 +241,7 @@ type
     function GetCount: Integer; override;
     procedure DestroyAllChildren; override;
     procedure SendMsg(var Msg: TEMsg; Sender: TEObject); override;
-    procedure RemoveChild(Child: TEObject); override;
+    function RemoveChild(Child: TEObject): Integer; override;
     function AddChild(Child: TEObject): Integer; override;
     function FindChild(AClassID: Integer): TEObject; override;
     function FindChildIndex(Child: TEObject): Integer; override;
@@ -195,13 +249,83 @@ type
     procedure DestroyEObjects(AClassID: Integer);
   end;
 
+  { Engine.TETimerNode (instance size 56): +8 FTick, +$C FCount, +$10 FTimerLists[1..10]. Children
+    sit in one of ten lists and get TimerEvent every tick, every second tick, ... every tenth. }
+  TETimerNode = class(TECustomNode)
+  private
+    FTick: Integer;
+    FCount: Integer;
+    FTimerLists: array[1..10] of TList;
+    function FindTimerList(Child: TEObject): Integer;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    class function ClassID: Integer; override;
+    function GetControlStyle: TEControlStyles; override;
+    function GetCount: Integer; override;
+    function GetTimerList(Timer: Shortint): TList;
+    function RemoveChild(Child: TEObject): Integer; override;
+    function AddChild(Child: TEObject): Integer; override;
+    function GetChild(Index: Integer): TEObject; override;
+    procedure SetChild(Index: Integer; Child: TEObject); override;
+    function AddTimerChild(Child: TEObject; Timer: Shortint): Integer;
+    function RemoveTimerChild(Child: TEObject; Timer: Shortint): Integer;
+    procedure TriggerTimerListEvent(Timer: Integer);
+    procedure TriggerTimerEvent;
+    property Tick: Integer read FTick;
+  end;
+
+  { Engine.TEChangeNotifyNode (instance size 16): +8 FChildren, +$C FUpdateCount. A node that calls
+    Changed whenever its children change, unless a BeginUpdate holds the call back. }
+  TEChangeNotifyNode = class(TECustomNode)
+  private
+    FChildren: TEObjectList;
+    FUpdateCount: Integer;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    procedure Clear; override;
+    class function ClassID: Integer; override;
+    function GetChild(Index: Integer): TEObject; override;
+    procedure SetChild(Index: Integer; Child: TEObject); override;
+    procedure Assign(Source: TEObject; AEngine: TEngine); override;
+    procedure LockChanged;
+    procedure UnlockChanged;
+    procedure Changed; virtual;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure Sort(Compare: TListSortCompare);
+    procedure MainReadWrite(Stream: TEStorageStream); override;
+    function GetCount: Integer; override;
+    procedure SendMsg(var Msg: TEMsg; Sender: TEObject); override;
+    function RemoveChild(Child: TEObject): Integer; override;
+    function AddChild(Child: TEObject): Integer; override;
+    function FindChild(AClassID: Integer): TEObject; override;
+    function FindChildIndex(Child: TEObject): Integer; override;
+    property UpdateCount: Integer read FUpdateCount;
+  end;
+
+  { Engine.TEChangeNotifyEventList (instance size 20): +$10 FEvents, notified by Changed }
+  TEChangeNotifyEventList = class(TEChangeNotifyNode)
+  private
+    FEvents: TEventList;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    procedure Changed; override;
+    property Events: TEventList read FEvents;
+  end;
+
+  { TEObjectEditor.Edit calls this like a constructor: the flag is the hidden allocation flag }
+  TEditorConstructor = procedure(Alloc: Boolean; Obj: TEObject) of object;
+
   { Engine.TEObjectEditor (instance size 8): editors are looked up by class. stub }
   TEObjectEditor = class(TEObject)
   public
     class function EditorClassID: Integer; virtual;
-    procedure Edit; virtual;
-    procedure UpdateMultiPopupMenu; virtual;
-    procedure UpdatePopupMenu; virtual;
+    procedure Edit(Obj: TEObject; CreateEditor: TEditorConstructor); virtual;
+    procedure UpdateMultiPopupMenu(Objects: TList; Menu: TObject; A, B, C: Integer); virtual;
+    procedure UpdatePopupMenu(Obj: TEObject; Menu: TObject; A, B: Integer); virtual;
   end;
 
   TEObjectEditorClass = class of TEObjectEditor;
@@ -262,6 +386,44 @@ type
     function Find(Key: Integer): Pointer; override;
     procedure DeleteSafe(Item: Pointer; Key: Integer);
     function GetFreeID: Integer; override;
+  end;
+
+  { Engine.TStringHashList (instance size 16): THashList items whose key dword is a string }
+  PStringHashItem = ^TStringHashItem;
+  TStringHashItem = record
+    Key: string;
+    Item: Pointer;
+  end;
+
+  TStringHashList = class(THashList)
+  public
+    procedure Clear; override;
+    function Find(const Key: string): Pointer;
+    procedure Add(Item: Pointer; const Key: string);
+    procedure Delete(const Key: string);
+  end;
+
+  { Engine.TStringHashTable (instance size 4): the abstract table interface }
+  TStringHashTable = class(TObject)
+  public
+    procedure Add(Item: Pointer; const Key: string); virtual; abstract;
+    procedure Delete(const Key: string); virtual; abstract;
+    function Find(const Key: string): Pointer; virtual; abstract;
+    procedure Clear; virtual; abstract;
+  end;
+
+  { Engine.TStringHashTable256 (instance size 1028): 256 lists selected by a hash of the first
+    and the second-to-last character and the length }
+  TStringHashTable256 = class(TStringHashTable)
+  private
+    FLists: array[0..255] of TStringHashList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear; override;
+    procedure Add(Item: Pointer; const Key: string); override;
+    procedure Delete(const Key: string); override;
+    function Find(const Key: string): Pointer; override;
   end;
 
   { Engine.TEControlStyleObject (instance size 12): +8 FControlStyle }
@@ -338,6 +500,189 @@ type
     function RemoveEditor(Name: string): Integer;
     procedure ReadWrite(Stream: TEStorageStream); override;
     property Editors: TStringList read FEditors;
+  end;
+
+  { Engine.TESortNode (instance size 24): +8 FSorted, +$C FCount, +$10 FCapacity, +$14 FItems.
+    Children with a sort value, kept in order once Sort has run. }
+  PSortItem = ^TSortItem;
+  TSortItem = record
+    SortValue: Integer;
+    Child: TEObject;
+  end;
+  PSortItemArray = ^TSortItemArray;
+  TSortItemArray = array[0..MaxInt div SizeOf(TSortItem) - 1] of TSortItem;
+
+  TESortNode = class(TECustomNode)
+  private
+    FSorted: Boolean;
+    FCount: Integer;
+    FCapacity: Integer;
+    FItems: PSortItemArray;
+    function GetSortValue(Index: Integer): Integer;
+    procedure SetSortValue(Index: Integer; Value: Integer);
+    procedure Resize(NewCapacity: Integer);
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    destructor Destroy; override;
+    class function ClassID: Integer; override;
+    procedure QuickClear; override;
+    function GetChild(Index: Integer): TEObject; override;
+    procedure SetChild(Index: Integer; Child: TEObject); override;
+    function GetCount: Integer; override;
+    procedure Grow; virtual;
+    function RemoveChild(Child: TEObject): Integer; override;
+    function AddChild(Child: TEObject): Integer; override;
+    function AddSortChild(Child: TEObject; SortValue: Integer): Integer; virtual;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    procedure Sort; virtual;
+    property SortValue[Index: Integer]: Integer read GetSortValue write SetSortValue;
+    property Sorted: Boolean read FSorted;
+  end;
+
+  { Engine.TEInverseSortNode: the same, sorted the other way }
+  TEInverseSortNode = class(TESortNode)
+  public
+    class function ClassID: Integer; override;
+    function AddSortChild(Child: TEObject; SortValue: Integer): Integer; override;
+    procedure Sort; override;
+  end;
+
+  { Engine.TEControlStyleSortNode (instance size 28): +$18 FControlStyle }
+  TEControlStyleSortNode = class(TESortNode)
+  private
+    FControlStyle: TEControlStyles;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    class function ClassID: Integer; override;
+    function GetControlStyle: TEControlStyles; override;
+    procedure SetControlStyle(Value: TEControlStyles);
+  end;
+
+  { Engine.TEControlStyleInverseSortNode (instance size 28): +$18 FControlStyle }
+  TEControlStyleInverseSortNode = class(TEInverseSortNode)
+  private
+    FControlStyle: TEControlStyles;
+  public
+    constructor Create(AOwner: TECustomNode); override;
+    class function ClassID: Integer; override;
+    function GetControlStyle: TEControlStyles; override;
+    procedure SetControlStyle(Value: TEControlStyles);
+  end;
+
+  { Engine.TEReferenceNode (instance size 12): a TENode that holds references to objects owned
+    elsewhere (AddRef on AddChild, Release on removal) }
+  TEReferenceNode = class(TENode)
+  public
+    procedure Clear; override;
+    procedure ReadWriteChildren(Stream: TEStorageStream); override;
+    procedure DestroyAllChildren; override;
+    function RemoveChild(Child: TEObject): Integer; override;
+    function AddChild(Child: TEObject): Integer; override;
+  end;
+
+  { Engine.TEUser (instance size 12): +8 FNode, the node the user is connected to }
+  TEUser = class(TEObject)
+  private
+    FNode: TECustomNode;
+  public
+    destructor Destroy; override;
+    procedure Connect(Node: TECustomNode);
+    procedure Disconnect;
+    property Node: TECustomNode read FNode;
+  end;
+
+  { Engine.TEResource (instance size 24): +8 FResourceList, +$C FResourceID, +$10 and +$14 two
+    more persisted integers (ids 2 and 3) }
+  TEResource = class(TEObject)
+  private
+    FResourceList: TECustomNode;
+    FResourceID: Integer;
+    FValue2: Integer;
+    FValue3: Integer;
+  public
+    procedure SetOwner(AOwner: TECustomNode); override;
+    procedure ReadWrite(Stream: TEStorageStream); override;
+    class function ClassID: Integer; override;
+    procedure SetArrayOwner(AOwner: TECustomNode; Index: Integer); override;
+    function GetCellImage: Pointer; virtual;
+    procedure SetCellImage(Value: Pointer); virtual;
+    class function ResourceEditName: string; virtual;
+    function ResourceUserClassID: Integer; virtual;
+    function CreateResourceUser: TEObject; virtual;
+    procedure Draw(Dest: TObject; Rect: TRect; Mode: Byte; A, B, C, D: Integer); virtual;
+    property ResourceList: TECustomNode read FResourceList;
+    property ResourceID: Integer read FResourceID write FResourceID;
+    property CellImage: Pointer read GetCellImage write SetCellImage;
+  end;
+
+  { Engine.TEResourceList (instance size 20): resources with unique ids }
+  TEResourceList = class(TECustomOwner)
+  protected
+    function GetResource(Index: Integer): TEResource;
+  public
+    class function ClassID: Integer; override;
+    procedure ResourceChanged; virtual;
+    function FindResource(ID: Integer): TEResource;
+    procedure ValidateResourceID(Index: Integer);
+    property Resources[Index: Integer]: TEResource read GetResource;
+  end;
+
+  { Engine.TEComponent (instance size 56): +$24 FOnLoaded, +$2C FOnDestroy, +$34 the object it
+    owns (its name is not known; it is freed with the component) }
+  TEComponent = class(TComponent)
+  private
+    FOnLoaded: TNotifyEvent;
+    FOnDestroy: TNotifyEvent;
+    FObject: TObject;
+  protected
+    procedure Loaded; override;
+  public
+    destructor Destroy; override;
+    property OnLoaded: TNotifyEvent read FOnLoaded write FOnLoaded;
+    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
+  end;
+
+  { Engine.TECopyComponent (instance size 44): +$24 FName, +$28 FEObjects. Carries objects through
+    the VCL clipboard as a streamed component; CopyEngine is the engine that reads them back. }
+  TECopyComponent = class(TComponent)
+  private
+    FName: string;
+    FEObjects: TEObjectList;
+    function GetEObject(Index: Integer): TEObject;
+    procedure SetEObject(Index: Integer; Value: TEObject);
+    function GetCount: Integer;
+  protected
+    procedure ReadState(Reader: TReader); override;
+    procedure WriteState(Writer: TWriter); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure CopyToClipboard(AEngine: TEngine; Name: string);
+    procedure PasteFromClipboard(AEngine: TEngine; Name: string);
+    property EObjects[Index: Integer]: TEObject read GetEObject write SetEObject;
+    property Count: Integer read GetCount;
+  end;
+
+  { Engine.TCallBackEventList (instance size 8): +4 FList of 12-byte records on the heap }
+  PCallBackEvent = ^TCallBackEvent;
+  TCallBackEvent = record
+    Event: TNotifyEvent;
+    Data: Integer;
+  end;
+
+  TCallBackEventList = class(TObject)
+  private
+    FList: TList;
+    function GetCount: Integer;
+    function GetItem(Index: Integer): PCallBackEvent;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    procedure Add(const Event: TCallBackEvent);
+    procedure Delete(Index: Integer);
+    property Count: Integer read GetCount;
+    property Items[Index: Integer]: PCallBackEvent read GetItem; default;
   end;
 
   { TEngine.OutputDebugStr / OutputDebugMessage hand this to the debug events }
@@ -524,6 +869,18 @@ type
     procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
   end;
 
+  { Engine.TDebugWriteStream (instance size 44): a write storage stream that writes every
+    object's data straight into the stream (FBuffer is the stream itself) }
+  TDebugWriteStream = class(TEWriteStorageStream)
+  public
+    constructor Create(AStream: TStream; AEngine: TEngine);
+    destructor Destroy; override;
+    procedure rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer); override;
+    procedure rwChildren(Node: TECustomNode; ID: Integer); override;
+    procedure rwEObject(Obj: TEObject; ID: Integer); override;
+    procedure rwEObjectStream(Obj: TEObject; ID: Integer); override;
+  end;
+
   { Engine.TEReadTextStorageStream (instance size 56): +$24 FPath, +$28 FSize, +$2C FSections,
     +$30 FText, +$34 FValues. The text form of the storage: "[:path:]" lines open the section of
     an object (its path is the ids of its parents joined with '\'), "[id]=value" lines are its
@@ -622,6 +979,28 @@ type
     procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); override;
   end;
 
+  { SortStrings: Compare gets two strings with their objects; the linked lists follow the moves }
+  TStringCompareFunc = function(const S1, S2: string; O1, O2: TObject): Integer;
+
+function ReplaceText(S, Old, New: string): string;
+procedure SortStrings(Strings: TStrings; Compare: TStringCompareFunc);
+procedure SortStringsEx(Strings: TStrings; Compare: TStringCompareFunc; LinkedStrings: array of TStrings);
+procedure SortStringsAscending(Strings: TStrings; LinkedStrings: array of TStrings);
+procedure SortStringsDescending(Strings: TStrings; LinkedStrings: array of TStrings);
+procedure SortStringsNumericalAscending(Strings: TStrings; LinkedStrings: array of TStrings);
+procedure SortStringsNumericalDescending(Strings: TStrings; LinkedStrings: array of TStrings);
+function HexToInt(const S: string): Integer;
+function CopyStreamToClipboard(Stream: TStream; const Format: string): Integer;
+function PasteStreamFromClipboard(Stream: TStream; const Format: string): Integer;
+procedure RegisterPlugIn(PlugIn: TPlugIn);
+procedure UnregisterPlugIn(PlugIn: TPlugIn);
+procedure InitializePlugIns(AEngine: TEngine);
+procedure FinalizePlugIns(AEngine: TEngine);
+function GetPlugIn(Index: Integer): TPlugIn;
+function FindPlugIn(Name: string): TPlugIn;
+procedure LoadExternalPlugIns(const Directory: string);
+procedure UnloadExternalPlugIns;
+
 procedure InitMsg(var Msg: TEMsg; MsgID: Integer; Sender: TEObject);
 procedure InitMsgEx(var Msg: TEMsg; MsgID: Integer; Sender: TEObject; Seq: Integer);
 function GetCRC32(P: Pointer; Size: Integer): Integer;
@@ -632,6 +1011,11 @@ function FindEngine(AClassID: Integer): TEngine;
 
 var
   Engines: TList;
+  PlugIns: TList;
+  CopyEngine: TEngine;
+  Packages: TStringList;
+  ClipboardFormat: Word;
+  EngineLoaded: Boolean;
 
 procedure StringToStream(const S: string; Stream: TStream);
 procedure StringFromStream(var S: string; Stream: TStream);
@@ -646,6 +1030,674 @@ resourcestring
 implementation
 
 { strings }
+
+{ TESortNode }
+
+constructor TESortNode.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FItems := nil;
+end;
+
+destructor TESortNode.Destroy;
+begin
+  inherited Destroy;
+  Resize(0);
+end;
+
+class function TESortNode.ClassID: Integer;
+begin
+  Result := $104;
+end;
+
+procedure TESortNode.QuickClear;
+begin
+  Resize(0);
+end;
+
+function TESortNode.GetChild(Index: Integer): TEObject;
+begin
+  Result := FItems^[Index].Child;
+end;
+
+procedure TESortNode.SetChild(Index: Integer; Child: TEObject);
+begin
+  FItems^[Index].Child := Child;
+end;
+
+function TESortNode.GetSortValue(Index: Integer): Integer;
+begin
+  Result := FItems^[Index].SortValue;
+end;
+
+procedure TESortNode.SetSortValue(Index: Integer; Value: Integer);
+begin
+  FItems^[Index].SortValue := Value;
+end;
+
+function TESortNode.GetCount: Integer;
+begin
+  Result := FCount;
+end;
+
+procedure TESortNode.Resize(NewCapacity: Integer);
+begin
+  ReallocMem(FItems, NewCapacity * SizeOf(TSortItem));
+  FCapacity := NewCapacity;
+  if FCapacity < FCount then FCount := FCapacity;
+end;
+
+procedure TESortNode.Grow;
+begin
+  Resize(FCapacity + 2);
+end;
+
+function TESortNode.RemoveChild(Child: TEObject): Integer;
+begin
+  Result := FCount - 1;
+  while (Result >= 0) and (Child <> FItems^[Result].Child) do Dec(Result);
+  if Result >= 0 then
+  begin
+    Dec(FCount);
+    if Result < FCount then
+      Move(FItems^[Result + 1], FItems^[Result], (FCount - Result) shl 3);
+  end;
+end;
+
+function TESortNode.AddChild(Child: TEObject): Integer;
+begin
+  Result := AddSortChild(Child, 0);
+end;
+
+function TESortNode.AddSortChild(Child: TEObject; SortValue: Integer): Integer;
+var
+  I: Integer;
+begin
+  if FCount >= FCapacity then Grow;
+  if FSorted then
+  begin
+    I := FCount;
+    while (I > 0) and (SortValue > FItems^[I - 1].SortValue) do Dec(I);
+    if I <> FCount then Move(FItems^[I], FItems^[I + 1], (FCount - I) shl 3);
+    FItems^[I].Child := Child;
+    FItems^[I].SortValue := SortValue;
+    Result := I;
+  end
+  else
+  begin
+    FItems^[FCount].Child := Child;
+    FItems^[FCount].SortValue := SortValue;
+    Result := FCount;
+  end;
+  Inc(FCount);
+end;
+
+procedure TESortNode.ReadWrite(Stream: TEStorageStream);
+begin
+  raise Exception.Create('Read/Write not supported (TESortNode)');
+end;
+
+procedure SortItems(SortList: PSortItemArray; L, R: Integer);
+var
+  I, J, P: Integer;
+  T: TSortItem;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1].SortValue;
+    repeat
+      while P > SortList^[I].SortValue do Inc(I);
+      while P < SortList^[J].SortValue do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then SortItems(SortList, L, J);
+    L := I;
+  until I >= R;
+end;
+
+procedure TESortNode.Sort;
+begin
+  if not FSorted and (FCount > 0) then SortItems(FItems, 0, FCount - 1);
+  FSorted := True;
+end;
+
+procedure InverseSortItems(SortList: PSortItemArray; L, R: Integer);
+var
+  I, J, P: Integer;
+  T: TSortItem;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1].SortValue;
+    repeat
+      while P < SortList^[I].SortValue do Inc(I);
+      while P > SortList^[J].SortValue do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then InverseSortItems(SortList, L, J);
+    L := I;
+  until I >= R;
+end;
+
+{ TEInverseSortNode }
+
+class function TEInverseSortNode.ClassID: Integer;
+begin
+  Result := $106;
+end;
+
+function TEInverseSortNode.AddSortChild(Child: TEObject; SortValue: Integer): Integer;
+var
+  I: Integer;
+begin
+  if FCount >= FCapacity then Grow;
+  if FSorted then
+  begin
+    I := FCount;
+    while (I > 0) and (SortValue < FItems^[I - 1].SortValue) do Dec(I);
+    if I <> FCount then Move(FItems^[I], FItems^[I + 1], (FCount - I) shl 3);
+    FItems^[I].Child := Child;
+    FItems^[I].SortValue := SortValue;
+    Result := I;
+  end
+  else
+  begin
+    FItems^[FCount].Child := Child;
+    FItems^[FCount].SortValue := SortValue;
+    Result := FCount;
+  end;
+  Inc(FCount);
+end;
+
+procedure TEInverseSortNode.Sort;
+begin
+  if not FSorted and (FCount > 0) then InverseSortItems(FItems, 0, FCount - 1);
+  FSorted := True;
+end;
+
+{ TEControlStyleSortNode }
+
+constructor TEControlStyleSortNode.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+class function TEControlStyleSortNode.ClassID: Integer;
+begin
+  Result := $105;
+end;
+
+function TEControlStyleSortNode.GetControlStyle: TEControlStyles;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleSortNode.SetControlStyle(Value: TEControlStyles);
+begin
+  FControlStyle := Value;
+end;
+
+{ TEControlStyleInverseSortNode }
+
+constructor TEControlStyleInverseSortNode.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FControlStyle := inherited GetControlStyle;
+end;
+
+class function TEControlStyleInverseSortNode.ClassID: Integer;
+begin
+  Result := $107;
+end;
+
+function TEControlStyleInverseSortNode.GetControlStyle: TEControlStyles;
+begin
+  Result := FControlStyle;
+end;
+
+procedure TEControlStyleInverseSortNode.SetControlStyle(Value: TEControlStyles);
+begin
+  FControlStyle := Value;
+end;
+
+{ TCompressStream }
+
+const
+  CompressMagic: array[0..3] of Char = 'CFS'#0;
+
+procedure TCompressStream.LoadFromStream(Stream: TStream);
+var
+  Compressed: Boolean;
+  Magic: array[0..3] of Char;
+  D: TDecompressionStream;
+  Buffer: Pointer;
+  Count: Integer;
+begin
+  Stream.Read(Magic, SizeOf(Magic));
+  Stream.Read(Compressed, SizeOf(Compressed));
+  if Magic <> CompressMagic then
+  begin
+    Compressed := False;
+    Stream.Seek(0, soFromBeginning);
+  end;
+  if Compressed then
+  begin
+    Buffer := nil;
+    Count := -1;
+    ReallocMem(Buffer, 8096);
+    D := TDecompressionStream.Create(Stream);
+    try
+      while Count <> 0 do
+      begin
+        Count := D.Read(Buffer^, 8096);
+        if Count <> 0 then WriteBuffer(Buffer^, Count);
+      end;
+    finally
+      ReallocMem(Buffer, 0);
+      D.Free;
+    end;
+  end
+  else
+    CopyFrom(Stream, Stream.Size - Stream.Position);
+  Position := 0;
+end;
+
+function TCompressStream.SaveToStreamEx(Stream: TStream; Level: Byte): Integer;
+var
+  C: TCompressionStream;
+  StartSize: Integer;
+begin
+  Position := 0;
+  Result := 100;
+  StartSize := Stream.Size;
+  Stream.Write(CompressMagic, SizeOf(CompressMagic));
+  Stream.Write(Level, SizeOf(Level));
+  if Level <> 0 then
+  begin
+    C := TCompressionStream.Create(TCompressionLevel(Level), Stream);
+    try
+      C.CopyFrom(Self, 0);
+      Result := Round((1 - (Stream.Size - StartSize) / Size) * 100);
+    finally
+      C.Free;
+    end;
+  end
+  else
+    Stream.CopyFrom(Self, 0);
+end;
+
+procedure TCompressStream.SaveToStream(Stream: TStream);
+begin
+  SaveToStreamEx(Stream, 2);
+end;
+
+function TCompressStream.SaveToFileEx(const FileName: string; Level: Byte): Integer;
+var
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmCreate);
+  try
+    Result := SaveToStreamEx(F, Level);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TCompressStream.SaveToFile(const FileName: string);
+var
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmCreate);
+  try
+    SaveToStreamEx(F, 2);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TCompressStream.LoadFromFile(const FileName: string);
+var
+  F: TFileStream;
+begin
+  F := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    LoadFromStream(F);
+  finally
+    F.Free;
+  end;
+end;
+
+{ TETimerNode }
+
+constructor TETimerNode.Create(AOwner: TECustomNode);
+var
+  I: Integer;
+begin
+  inherited Create(AOwner);
+  FCount := 0;
+  for I := 1 to 10 do FTimerLists[I] := TList.Create;
+end;
+
+destructor TETimerNode.Destroy;
+var
+  I: Integer;
+begin
+  inherited Destroy;
+  for I := 1 to 10 do FTimerLists[I].Free;
+end;
+
+class function TETimerNode.ClassID: Integer;
+begin
+  Result := $108;
+end;
+
+function TETimerNode.GetControlStyle: TEControlStyles;
+begin
+  Result := [csStored, csShared, csReserved2];
+end;
+
+function TETimerNode.GetCount: Integer;
+begin
+  Result := FCount;
+end;
+
+function TETimerNode.GetTimerList(Timer: Shortint): TList;
+begin
+  Result := FTimerLists[Timer];
+end;
+
+function TETimerNode.FindTimerList(Child: TEObject): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  I := 0;
+  while (Result = -1) and (I < 10) do
+  begin
+    Inc(I);
+    { the original indexes the lists with Result (-1 on the first round), not with I }
+    Result := FTimerLists[Result].IndexOf(Child);
+  end;
+  if Result <> -1 then Result := I else Result := -1;
+end;
+
+function TETimerNode.RemoveChild(Child: TEObject): Integer;
+var
+  L: Integer;
+begin
+  L := FindTimerList(Child);
+  if L <> -1 then
+  begin
+    Result := FTimerLists[L].Remove(Child);
+    if Result <> -1 then Dec(FCount);
+  end
+  else
+    Result := -1;
+end;
+
+function TETimerNode.AddChild(Child: TEObject): Integer;
+begin
+  Result := FTimerLists[1].Add(Child);
+  Inc(FCount);
+end;
+
+function TETimerNode.GetChild(Index: Integer): TEObject;
+var
+  I, Total: Integer;
+  L: TList;
+begin
+  I := 1;
+  L := FTimerLists[1];
+  Total := L.Count;
+  while (Index >= Total) and (I < 10) do
+  begin
+    Inc(I);
+    L := FTimerLists[I];
+    Inc(Total, L.Count);
+  end;
+  L := FTimerLists[I];
+  Dec(Total, L.Count);
+  Result := TEObject(L.List^[Index - Total]);
+end;
+
+procedure TETimerNode.SetChild(Index: Integer; Child: TEObject);
+begin
+  raise Exception.Create('Set Child not supported (TETimerNode)');
+end;
+
+function TETimerNode.AddTimerChild(Child: TEObject; Timer: Shortint): Integer;
+begin
+  Result := FTimerLists[Timer].Add(Child);
+  Inc(FCount);
+end;
+
+function TETimerNode.RemoveTimerChild(Child: TEObject; Timer: Shortint): Integer;
+begin
+  Result := FTimerLists[Timer].Remove(Child);
+  if Result <> -1 then Dec(FCount);
+end;
+
+procedure TETimerNode.TriggerTimerListEvent(Timer: Integer);
+var
+  I: Integer;
+begin
+  for I := 0 to FTimerLists[Timer].Count - 1 do
+    TEObject(FTimerLists[Timer].List^[I]).TimerEvent(FTick, Self);
+end;
+
+procedure TETimerNode.TriggerTimerEvent;
+begin
+  if FTick > $FFFFFFF then FTick := FTick and $F;
+  Inc(FTick);
+  TriggerTimerListEvent(1);
+  if FTick and 1 = 0 then TriggerTimerListEvent(2);
+  if FTick mod 3 = 0 then TriggerTimerListEvent(3);
+  if FTick and 3 = 2 then TriggerTimerListEvent(4);
+  if FTick mod 5 = 0 then TriggerTimerListEvent(5);
+  if FTick mod 6 = 0 then TriggerTimerListEvent(6);
+  if FTick mod 7 = 0 then TriggerTimerListEvent(7);
+  if FTick and 7 = 4 then TriggerTimerListEvent(8);
+  if FTick mod 9 = 0 then TriggerTimerListEvent(9);
+  if FTick mod 10 = 0 then TriggerTimerListEvent(10);
+end;
+
+{ Strings }
+
+function ReplaceText(S, Old, New: string): string;
+var
+  P: Integer;
+begin
+  Result := '';
+  P := Pos(Old, S);
+  while P <> 0 do
+  begin
+    Result := Result + Copy(S, 1, P - 1) + New;
+    S := Copy(S, P + Length(Old), Length(S) - P - Length(Old) + 1);
+    P := Pos(Old, S);
+  end;
+  Result := Result + S;
+end;
+
+type
+  TExchangeProc = procedure(Data: TList; I, J: Integer);
+  TSortStringsContext = record
+    Strings: TStrings;
+    Compare: TStringCompareFunc;
+    ExchangeProc: TExchangeProc;
+    ExchangeData: TList;
+  end;
+
+procedure QuickSortStrings(var Ctx: TSortStringsContext; L, R: Integer);
+var
+  I, J, M: Integer;
+  PO: TObject;
+  P: string;
+begin
+  repeat
+    I := L;
+    J := R;
+    M := (L + R) shr 1;
+    P := Ctx.Strings[M];
+    PO := Ctx.Strings.Objects[M];
+    repeat
+      while Ctx.Compare(Ctx.Strings[I], P, Ctx.Strings.Objects[I], PO) < 0 do Inc(I);
+      while Ctx.Compare(Ctx.Strings[J], P, Ctx.Strings.Objects[J], PO) > 0 do Dec(J);
+      if I <= J then
+      begin
+        Ctx.Strings.Exchange(I, J);
+        if Assigned(Ctx.ExchangeProc) then Ctx.ExchangeProc(Ctx.ExchangeData, I, J);
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortStrings(Ctx, L, J);
+    L := I;
+  until I >= R;
+end;
+
+procedure SortStrings(Strings: TStrings; Compare: TStringCompareFunc);
+var
+  Ctx: TSortStringsContext;
+begin
+  if Strings.Count <> 0 then
+  begin
+    Ctx.Strings := Strings;
+    Ctx.Compare := Compare;
+    Ctx.ExchangeProc := nil;
+    QuickSortStrings(Ctx, 0, Strings.Count - 1);
+  end;
+end;
+
+procedure ExchangeLinkedStrings(Lists: TList; I, J: Integer);
+var
+  K: Integer;
+begin
+  for K := Lists.Count - 1 downto 0 do TStrings(Lists.List^[K]).Exchange(I, J);
+end;
+
+procedure SortStringsEx(Strings: TStrings; Compare: TStringCompareFunc; LinkedStrings: array of TStrings);
+var
+  Lists: TList;
+  I: Integer;
+  Ctx: TSortStringsContext;
+begin
+  if Strings.Count <> 0 then
+  begin
+    Strings.BeginUpdate;
+    Ctx.Strings := Strings;
+    Ctx.Compare := Compare;
+    if High(LinkedStrings) >= 0 then
+    begin
+      Lists := TList.Create;
+      for I := 0 to High(LinkedStrings) do
+      begin
+        LinkedStrings[I].BeginUpdate;
+        Lists.Add(LinkedStrings[I]);
+      end;
+      Ctx.ExchangeProc := ExchangeLinkedStrings;
+      Ctx.ExchangeData := Lists;
+    end
+    else
+      Lists := nil;
+    QuickSortStrings(Ctx, 0, Strings.Count - 1);
+    if Lists <> nil then
+    begin
+      for I := 0 to High(LinkedStrings) do LinkedStrings[I].EndUpdate;
+      Lists.Free;
+    end;
+    Strings.EndUpdate;
+  end;
+end;
+
+function CompareAscending(const S1, S2: string; O1, O2: TObject): Integer;
+begin
+  Result := CompareText(S1, S2);
+  if Result = 0 then Result := Length(S1) - Length(S2);
+end;
+
+procedure SortStringsAscending(Strings: TStrings; LinkedStrings: array of TStrings);
+begin
+  SortStringsEx(Strings, CompareAscending, LinkedStrings);
+end;
+
+function CompareDescending(const S1, S2: string; O1, O2: TObject): Integer;
+begin
+  Result := CompareText(S2, S1);
+  if Result = 0 then Result := Length(S2) - Length(S1);
+end;
+
+procedure SortStringsDescending(Strings: TStrings; LinkedStrings: array of TStrings);
+begin
+  SortStringsEx(Strings, CompareDescending, LinkedStrings);
+end;
+
+function CompareNumericalAscending(const S1, S2: string; O1, O2: TObject): Integer;
+var
+  V1, V2: Integer;
+begin
+  V1 := StrToIntDef(S1, -1);
+  V2 := StrToIntDef(S2, -1);
+  Result := V1 - V2;
+end;
+
+procedure SortStringsNumericalAscending(Strings: TStrings; LinkedStrings: array of TStrings);
+begin
+  SortStringsEx(Strings, CompareNumericalAscending, LinkedStrings);
+end;
+
+function CompareNumericalDescending(const S1, S2: string; O1, O2: TObject): Integer;
+var
+  V1, V2: Integer;
+begin
+  V1 := StrToIntDef(S1, -1);
+  V2 := StrToIntDef(S2, -1);
+  Result := V2 - V1;
+end;
+
+procedure SortStringsNumericalDescending(Strings: TStrings; LinkedStrings: array of TStrings);
+begin
+  SortStringsEx(Strings, CompareNumericalDescending, LinkedStrings);
+end;
+
+function HexToInt(const S: string): Integer;
+var
+  I, L, D: Integer;
+  C: Char;
+begin
+  Result := 0;
+  L := Length(S);
+  if L > 8 then L := 8;
+  for I := 0 to L - 1 do
+  begin
+    C := S[L - I];
+    if C in ['0'..'9'] then
+      D := Ord(C) - Ord('0')
+    else if C in ['A'..'F'] then
+      D := Ord(C) - Ord('A') + 10
+    else if C in ['a'..'f'] then
+      D := Ord(C) - Ord('a') + 10
+    else
+      D := 0;
+    Result := Result or (D shl (I * 4));
+  end;
+end;
 
 procedure StringToStream(const S: string; Stream: TStream);
 var
@@ -962,12 +2014,12 @@ begin
   Result := 0;
 end;
 
-procedure TEObject.AddRef;
+function TEObject.AddRef: Integer;
 begin
   raise Exception.Create('Reference counting not supported');
 end;
 
-procedure TEObject.Release;
+function TEObject.Release: Integer;
 begin
   raise Exception.Create('Reference counting not supported');
 end;
@@ -998,7 +2050,7 @@ begin
   if Result = nil then Result := TEObjectEditor;
 end;
 
-procedure TEObject.TimerEvent;
+procedure TEObject.TimerEvent(Tick: Integer; Sender: TEObject);
 begin
 end;
 
@@ -1496,17 +2548,15 @@ begin
         end;
 end;
 
-procedure TENode.RemoveChild(Child: TEObject);
-var
-  I: Integer;
+function TENode.RemoveChild(Child: TEObject): Integer;
 begin
   if csKeepIndex in GetControlStyle then
   begin
-    I := FChildren.IndexOf(Child);
-    if I <> -1 then FChildren.List^[I] := nil;
+    Result := FChildren.IndexOf(Child);
+    if Result <> -1 then FChildren.List^[Result] := nil;
   end
   else
-    FChildren.Remove(Child);
+    Result := FChildren.Remove(Child);
 end;
 
 function TENode.AddChild(Child: TEObject): Integer;
@@ -1558,15 +2608,16 @@ begin
   Result := 0;
 end;
 
-procedure TEObjectEditor.Edit;
+procedure TEObjectEditor.Edit(Obj: TEObject; CreateEditor: TEditorConstructor);
+begin
+  CreateEditor(True, Obj);
+end;
+
+procedure TEObjectEditor.UpdateMultiPopupMenu(Objects: TList; Menu: TObject; A, B, C: Integer);
 begin
 end;
 
-procedure TEObjectEditor.UpdateMultiPopupMenu;
-begin
-end;
-
-procedure TEObjectEditor.UpdatePopupMenu;
+procedure TEObjectEditor.UpdatePopupMenu(Obj: TEObject; Menu: TObject; A, B: Integer);
 begin
 end;
 
@@ -1632,7 +2683,157 @@ begin
   end;
 end;
 
+{ Clipboard: a registered format holding the format name, its length and the stream bytes }
+
+function CopyStreamToClipboard(Stream: TStream; const Format: string): Integer;
+var
+  SavedPosition: Integer;
+  H: THandle;
+  P: PChar;
+begin
+  SavedPosition := Stream.Position;
+  Result := -1;
+  if OpenClipboard(Application.Handle) and (Format <> '') then
+  try
+    Stream.Position := 0;
+    H := GlobalAlloc(GMEM_MOVEABLE, Length(Format) + 4 + 4 + Stream.Size);
+    try
+      P := GlobalLock(H);
+      try
+        PInteger(P)^ := Length(Format);
+        Move(PChar(Format)^, P[4], Length(Format));
+        PInteger(P + 4 + Length(Format))^ := Stream.Size;
+        Inc(P, 4);
+        Stream.ReadBuffer(P[Length(Format) + 4], Stream.Size);
+        SetClipboardData(ClipboardFormat, H);
+        Result := Stream.Size;
+      finally
+        GlobalUnlock(H);
+      end;
+    except
+      GlobalFree(H);
+      raise;
+    end;
+  finally
+    Stream.Position := SavedPosition;
+    CloseClipboard;
+  end;
+end;
+
+function PasteStreamFromClipboard(Stream: TStream; const Format: string): Integer;
+var
+  H: THandle;
+  P: PChar;
+  L: Integer;
+  S: string;
+begin
+  Result := -1;
+  if OpenClipboard(Application.Handle) then
+  try
+    H := GetClipboardData(ClipboardFormat);
+    if H <> 0 then
+    begin
+      P := GlobalLock(H);
+      try
+        if GlobalSize(THandle(P)) > 4 then
+        begin
+          L := PInteger(P)^;
+          SetLength(S, L);
+          Move(P[4], S[1], L);
+          if S = Format then
+          begin
+            Inc(P, 4);
+            P := PChar(L + Integer(P));
+            L := PInteger(P)^;
+            Stream.Position := 0;
+            Stream.Size := L;
+            Stream.WriteBuffer(P[4], L);
+            Result := L;
+            Stream.Position := 0;
+          end;
+        end;
+      finally
+        GlobalUnlock(H);
+      end;
+    end;
+  finally
+    CloseClipboard;
+  end;
+end;
+
+{ TCallBackEventList }
+
+constructor TCallBackEventList.Create;
+begin
+  inherited Create;
+  FList := TList.Create;
+end;
+
+destructor TCallBackEventList.Destroy;
+begin
+  Clear;
+  FList.Free;
+  inherited Destroy;
+end;
+
+procedure TCallBackEventList.Clear;
+begin
+  while FList.Count <> 0 do Delete(FList.Count - 1);
+end;
+
+function TCallBackEventList.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TCallBackEventList.GetItem(Index: Integer): PCallBackEvent;
+begin
+  Result := FList.List^[Index];
+end;
+
+procedure TCallBackEventList.Add(const Event: TCallBackEvent);
+var
+  P: PCallBackEvent;
+begin
+  New(P);
+  P^ := Event;
+  FList.Add(P);
+end;
+
+procedure TCallBackEventList.Delete(Index: Integer);
+begin
+  if Index < FList.Count then
+  begin
+    Dispose(PCallBackEvent(FList.List^[Index]));
+    FList.Delete(Index);
+  end;
+end;
+
 {$I inc\HashTab.PAS}
+
+{ TEUser }
+
+destructor TEUser.Destroy;
+begin
+  Disconnect;
+  inherited Destroy;
+end;
+
+procedure TEUser.Connect(Node: TECustomNode);
+begin
+  Disconnect;
+  FNode := Node;
+  if Node <> nil then FNode.AddChild(Self);
+end;
+
+procedure TEUser.Disconnect;
+begin
+  if FNode <> nil then
+  begin
+    FNode.RemoveChild(Self);
+    FNode := nil;
+  end;
+end;
 
 { TEObjectList }
 
@@ -1701,6 +2902,326 @@ begin
     Inc(I);
   end;
   Result := OK and (Count <> 0);
+end;
+
+{ TEChangeNotifyNode }
+
+constructor TEChangeNotifyNode.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FChildren := TEObjectList.Create;
+  FUpdateCount := 0;
+end;
+
+destructor TEChangeNotifyNode.Destroy;
+begin
+  BeginUpdate;
+  inherited Destroy;
+  FChildren.Free;
+  FChildren := nil;
+end;
+
+procedure TEChangeNotifyNode.Clear;
+var
+  I: Integer;
+  C: TEObject;
+begin
+  for I := Count - 1 downto 0 do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    if (C <> nil) and (C.Owner = Self) then
+      if not (csShared in C.GetControlStyle) then C.Destroy else C.Clear;
+  end;
+  for I := Count - 1 downto 0 do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    if C <> nil then
+      if not ((C.Owner = Self) and (csShared in C.GetControlStyle)) then RemoveChild(C);
+  end;
+  I := FChildren.Count - 1;
+  while (I >= 0) and (FChildren.List^[I] = nil) do
+  begin
+    FChildren.Delete(I);
+    Dec(I);
+  end;
+  if FUpdateCount = 0 then Changed;
+end;
+
+class function TEChangeNotifyNode.ClassID: Integer;
+begin
+  Result := $109;
+end;
+
+function TEChangeNotifyNode.GetChild(Index: Integer): TEObject;
+begin
+  Result := TEObject(FChildren.List^[Index]);
+end;
+
+procedure TEChangeNotifyNode.SetChild(Index: Integer; Child: TEObject);
+begin
+  while Index >= Count do FChildren.Add(nil);
+  FChildren.Items[Index] := Child;
+  if FUpdateCount = 0 then Changed;
+end;
+
+procedure TEChangeNotifyNode.Assign(Source: TEObject; AEngine: TEngine);
+begin
+  BeginUpdate;
+  inherited Assign(Source, AEngine);
+  EndUpdate;
+end;
+
+procedure TEChangeNotifyNode.LockChanged;
+begin
+  Inc(FUpdateCount);
+end;
+
+procedure TEChangeNotifyNode.UnlockChanged;
+begin
+  Dec(FUpdateCount);
+end;
+
+procedure TEChangeNotifyNode.Changed;
+begin
+end;
+
+procedure TEChangeNotifyNode.BeginUpdate;
+begin
+  Inc(FUpdateCount);
+end;
+
+procedure TEChangeNotifyNode.EndUpdate;
+begin
+  Assert(FUpdateCount > 0, 'Invalid UpdateCount Usage');
+  Dec(FUpdateCount);
+  if FUpdateCount = 0 then Changed;
+end;
+
+procedure TEChangeNotifyNode.Sort(Compare: TListSortCompare);
+begin
+  BeginUpdate;
+  FChildren.Sort(Compare);
+  EndUpdate;
+end;
+
+procedure TEChangeNotifyNode.MainReadWrite(Stream: TEStorageStream);
+begin
+  if Stream.StorageMode * [smRead, smText, smCompare] = [smRead] then BeginUpdate;
+  inherited MainReadWrite(Stream);
+  if Stream.StorageMode * [smRead, smText, smCompare] = [smRead] then EndUpdate;
+end;
+
+function TEChangeNotifyNode.GetCount: Integer;
+begin
+  Result := FChildren.Count;
+end;
+
+procedure TEChangeNotifyNode.SendMsg(var Msg: TEMsg; Sender: TEObject);
+var
+  I: Integer;
+begin
+  with FChildren do
+    if csKeepIndex in GetControlStyle then
+      if Msg.MsgID and $10000000 <> 0 then
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(List^[I]) do
+              begin
+                if GetLastMsg <> Msg.Seq then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+              end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(Items[I]) do
+              begin
+                if (GetLastMsg <> Msg.Seq) and (Owner = Self) then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+              end;
+        end
+      else
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(List^[I]) do
+              begin
+                MsgProc(Msg, Self);
+              end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            if List^[I] <> nil then
+              with TEObject(Items[I]) do
+              begin
+                if Owner = Self then MsgProc(Msg, Self);
+              end;
+        end
+    else
+      if Msg.MsgID and $10000000 <> 0 then
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(List^[I]) do
+            begin
+                if GetLastMsg <> Msg.Seq then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+            end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(Items[I]) do
+            begin
+                if (GetLastMsg <> Msg.Seq) and (Owner = Self) then
+                begin
+                  SetLastMsg(Msg.Seq);
+                  MsgProc(Msg, Self);
+                end;
+            end;
+        end
+      else
+        if Msg.MsgID and $20000000 = 0 then
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(List^[I]) do
+            begin
+                MsgProc(Msg, Self);
+            end;
+        end
+        else
+        begin
+          for I := Count - 1 downto 0 do
+            with TEObject(Items[I]) do
+            begin
+                if Owner = Self then MsgProc(Msg, Self);
+            end;
+        end;
+end;
+
+function TEChangeNotifyNode.RemoveChild(Child: TEObject): Integer;
+begin
+  if csKeepIndex in GetControlStyle then
+  begin
+    Result := FChildren.IndexOf(Child);
+    if Result <> -1 then FChildren.List^[Result] := nil;
+  end
+  else
+    Result := FChildren.Remove(Child);
+  if FUpdateCount = 0 then Changed;
+end;
+
+function TEChangeNotifyNode.AddChild(Child: TEObject): Integer;
+begin
+  FChildren.Add(Child);
+  if FUpdateCount = 0 then Changed;
+  Result := FChildren.Count - 1;
+end;
+
+function TEChangeNotifyNode.FindChild(AClassID: Integer): TEObject;
+var
+  I: Integer;
+  Found: Boolean;
+  C: TEObject;
+begin
+  I := 0;
+  Found := False;
+  C := nil;
+  while not Found and (I < FChildren.Count) do
+  begin
+    C := TEObject(FChildren.List^[I]);
+    Found := (C <> nil) and (AClassID = C.ClassID);
+    Inc(I);
+  end;
+  if Found then Result := C else Result := nil;
+end;
+
+function TEChangeNotifyNode.FindChildIndex(Child: TEObject): Integer;
+begin
+  Result := Count - 1;
+  while (Result >= 0) and (Child <> FChildren.List^[Result]) do Dec(Result);
+end;
+
+{ TEChangeNotifyEventList }
+
+constructor TEChangeNotifyEventList.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FEvents := TEventList.Create;
+end;
+
+destructor TEChangeNotifyEventList.Destroy;
+begin
+  FEvents.Free;
+  inherited Destroy;
+end;
+
+procedure TEChangeNotifyEventList.Changed;
+begin
+  FEvents.TriggerNotifyEvents(Self);
+end;
+
+{ TEReferenceNode }
+
+procedure TEReferenceNode.Clear;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do TEObject(FChildren.List^[I]).Release;
+  FChildren.Clear;
+end;
+
+procedure TEReferenceNode.DestroyAllChildren;
+begin
+  Clear;
+end;
+
+procedure TEReferenceNode.ReadWriteChildren(Stream: TEStorageStream);
+var
+  I: Integer;
+begin
+  if smWrite in Stream.StorageMode then
+  begin
+    for I := 0 to FChildren.Count - 1 do
+      if TEObject(FChildren.List^[I]).FOwner = nil then TEObject(FChildren.List^[I]).FOwner := Self;
+    inherited ReadWriteChildren(Stream);
+    for I := 0 to FChildren.Count - 1 do
+      if TEObject(FChildren.List^[I]).FOwner = Self then TEObject(FChildren.List^[I]).FOwner := nil;
+  end
+  else
+  begin
+    inherited ReadWriteChildren(Stream);
+    if Stream.StorageMode * [smRead, smText, smCompare] = [smRead] then
+      for I := 0 to FChildren.Count - 1 do TEObject(FChildren.List^[I]).Release;
+  end;
+end;
+
+function TEReferenceNode.RemoveChild(Child: TEObject): Integer;
+begin
+  Result := FChildren.Remove(Child);
+  if Result <> -1 then Child.Release;
+end;
+
+function TEReferenceNode.AddChild(Child: TEObject): Integer;
+begin
+  if Child.FOwner = Self then Child.FOwner := nil;
+  FChildren.Add(Child);
+  if Child.AddRef = -1 then raise Exception.Create('EObject doesn''t support ReferenceCounting');
+  Result := FChildren.Count - 1;
 end;
 
 { TEControlStyleNode }
@@ -1878,6 +3399,277 @@ begin
     Result := TEObjectEditorClass(List^[I])
   else
     Result := nil;
+end;
+
+{ TECopyComponent }
+
+type
+  { the layout of TList, to write its count field straight from the object }
+  TListFields = class(TObject)
+    FList: Pointer;
+    FCount: Integer;
+  end;
+
+function TECopyComponent.GetEObject(Index: Integer): TEObject;
+begin
+  Result := TEObject(FEObjects[Index]);
+end;
+
+procedure TECopyComponent.SetEObject(Index: Integer; Value: TEObject);
+begin
+  while Index >= FEObjects.Count do FEObjects.Add(nil);
+  FEObjects.EObjects[Index] := Value;
+end;
+
+function TECopyComponent.GetCount: Integer;
+begin
+  Result := FEObjects.Count;
+end;
+
+procedure TECopyComponent.ReadState(Reader: TReader);
+var
+  Size, Count, I: Integer;
+  S: TEReadStorageStream;
+  M: TMemoryStream;
+  O: TEObject;
+begin
+  inherited ReadState(Reader);
+  M := TMemoryStream.Create;
+  try
+    Reader.Read(Size, SizeOf(Integer));
+    M.Size := Size;
+    Reader.Read(M.Memory^, Size);
+    FEObjects.Clear;
+    StringFromStream(FName, M);
+    M.Read(Count, SizeOf(Integer));
+    S := TEReadStorageStream.Create(M, CopyEngine, False);
+    try
+      for I := 0 to Count - 1 do
+      begin
+        S.rwCreateEObject(O, nil, I);
+        FEObjects.Add(O);
+      end;
+    finally
+      S.Free;
+    end;
+  finally
+    M.Destroy;
+  end;
+end;
+
+procedure TECopyComponent.WriteState(Writer: TWriter);
+var
+  S: TEWriteStorageStream;
+  Size: Integer;
+  M: TMemoryStream;
+  O: TEObject;
+  I: Integer;
+begin
+  inherited WriteState(Writer);
+  M := TMemoryStream.Create;
+  StringToStream(FName, M);
+  M.Write(TListFields(FEObjects).FCount, SizeOf(Integer));
+  S := TEWriteStorageStream.Create(M, CopyEngine, False);
+  try
+    for I := 0 to FEObjects.Count - 1 do
+    begin
+      O := FEObjects.EObjects[I];
+      S.rwCreateEObject(O, nil, I);
+    end;
+  finally
+    S.Free;
+  end;
+  Size := M.Size;
+  Writer.Write(Size, SizeOf(Integer));
+  Writer.Write(M.Memory^, Size);
+  M.Destroy;
+end;
+
+constructor TECopyComponent.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FName := '';
+  FEObjects := TEObjectList.Create;
+end;
+
+destructor TECopyComponent.Destroy;
+begin
+  FEObjects.Free;
+  inherited Destroy;
+end;
+
+procedure TECopyComponent.CopyToClipboard(AEngine: TEngine; Name: string);
+begin
+  CopyEngine := AEngine;
+  FName := Name;
+  Clipboard.SetComponent(Self);
+end;
+
+procedure TECopyComponent.PasteFromClipboard(AEngine: TEngine; Name: string);
+var
+  C: TComponent;
+  I: Integer;
+  Source: TECopyComponent;
+begin
+  FEObjects.ClearList;
+  CopyEngine := AEngine;
+  C := Clipboard.GetComponent(Self, nil);
+  if (C <> nil) and (C is TECopyComponent) and (TECopyComponent(C).FName = Name) then
+  begin
+    Source := TECopyComponent(C);
+    for I := 0 to Source.Count - 1 do
+    begin
+      EObjects[I] := Source.EObjects[I];
+      Source.EObjects[I] := nil;
+    end;
+  end;
+  C.Free;
+end;
+
+{ TEResource }
+
+class function TEResource.ClassID: Integer;
+begin
+  Result := $400;
+end;
+
+class function TEResource.ResourceEditName: string;
+begin
+  Result := ClassName;
+end;
+
+procedure TEResource.SetOwner(AOwner: TECustomNode);
+begin
+  inherited SetOwner(AOwner);
+  FResourceList := AOwner;
+end;
+
+procedure TEResource.SetArrayOwner(AOwner: TECustomNode; Index: Integer);
+begin
+  inherited SetArrayOwner(AOwner, Index);
+  FResourceList := AOwner;
+end;
+
+procedure TEResource.Draw(Dest: TObject; Rect: TRect; Mode: Byte; A, B, C, D: Integer);
+var
+  R: TRect;
+begin
+  BltLibraryImage(Dest, GetCellImage, Rect, Mode, A, B, C, D, False, R);
+end;
+
+function TEResource.GetCellImage: Pointer;
+begin
+  Result := nil;
+end;
+
+procedure TEResource.SetCellImage(Value: Pointer);
+begin
+end;
+
+procedure TEResource.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FResourceID, 1);
+  Stream.rwInteger(FValue2, 2);
+  Stream.rwInteger(FValue3, 3);
+end;
+
+function TEResource.ResourceUserClassID: Integer;
+begin
+  Result := 0;
+end;
+
+function TEResource.CreateResourceUser: TEObject;
+var
+  UserClassID: Integer;
+begin
+  UserClassID := ResourceUserClassID;
+  if UserClassID <> 0 then
+    Result := GetEngine.CreateEObject(UserClassID, nil)
+  else
+    Result := nil;
+end;
+
+{ TEResourceList }
+
+class function TEResourceList.ClassID: Integer;
+begin
+  Result := $401;
+end;
+
+function TEResourceList.GetResource(Index: Integer): TEResource;
+begin
+  Result := TEResource(FChildren.List^[Index]);
+end;
+
+procedure TEResourceList.ResourceChanged;
+begin
+end;
+
+function TEResourceList.FindResource(ID: Integer): TEResource;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  with FChildren do
+  begin
+    Found := False;
+    I := 0;
+    while not Found and (I <> Count) do
+    begin
+      Found := (List^[I] <> nil) and (ID = TEResource(List^[I]).FResourceID);
+      Inc(I);
+    end;
+    if Found then Result := TEResource(List^[I - 1]) else Result := nil;
+  end;
+end;
+
+procedure TEResourceList.ValidateResourceID(Index: Integer);
+var
+  ID, NewID, Tries: Integer;
+  Found: Boolean;
+begin
+  if Index < FChildren.Count then
+  begin
+    ID := GetResource(Index).FResourceID;
+    with GetResource(Index) do FResourceID := FResourceID xor $FFFF;
+    if FindResource(ID) <> nil then
+    begin
+      Tries := 10;
+      Found := False;
+      NewID := 0;
+      while (Tries > 0) and not Found do
+      begin
+        NewID := Random($FFFFFFF);
+        Found := FindResource(NewID) = nil;
+        Dec(Tries);
+      end;
+      while not Found do
+      begin
+        NewID := Tries;
+        Found := FindResource(NewID) = nil;
+        Inc(Tries);
+      end;
+      GetResource(Index).FResourceID := NewID;
+    end
+    else
+      GetResource(Index).FResourceID := ID;
+  end;
+end;
+
+{ TEComponent }
+
+destructor TEComponent.Destroy;
+begin
+  if Assigned(FOnDestroy) then FOnDestroy(Self);
+  FObject.Free;
+  inherited Destroy;
+end;
+
+procedure TEComponent.Loaded;
+begin
+  inherited Loaded;
+  if Assigned(FOnLoaded) then FOnLoaded(Self);
 end;
 
 { TEResourceEditSettings }
@@ -2374,6 +4166,303 @@ begin
   end;
 end;
 
+{ TPlugIn }
+
+constructor TPlugIn.Create;
+begin
+  inherited Create;
+  FEngines := TList.Create;
+  FCounts := TIntegerList.Create;
+  RegisterPlugIn(Self);
+  FRefCount := 1;
+end;
+
+destructor TPlugIn.Destroy;
+begin
+  while FEngines.Count <> 0 do Finalize(TEngine(FEngines[FEngines.Count - 1]));
+  FEngines.Free;
+  FCounts.Free;
+  UnregisterPlugIn(Self);
+  inherited Destroy;
+end;
+
+procedure TPlugIn.AddRef;
+begin
+  Inc(FRefCount);
+end;
+
+procedure TPlugIn.Release;
+begin
+  Dec(FRefCount);
+  if FRefCount = 0 then Destroy;
+end;
+
+function TPlugIn.Name: string;
+begin
+  Result := 'Abstract PlugIn';
+end;
+
+function TPlugIn.Initialize(AEngine: TEngine): Boolean;
+var
+  I: Integer;
+begin
+  AddRef;
+  I := FEngines.IndexOf(AEngine);
+  if I = -1 then
+  begin
+    FEngines.Add(AEngine);
+    FCounts.Add(1);
+    Result := True;
+  end
+  else
+  begin
+    FCounts[I] := FCounts[I] + 1;
+    Result := False;
+  end;
+end;
+
+function TPlugIn.Finalize(AEngine: TEngine): Boolean;
+var
+  I: Integer;
+begin
+  I := FEngines.IndexOf(AEngine);
+  if I <> -1 then
+  begin
+    if FCounts[I] = 0 then raise Exception.Create('Invalid PlugIn Finalize Usage');
+    if FCounts[I] = 1 then
+    begin
+      FEngines.Remove(AEngine);
+      FCounts.Delete(I);
+      Result := True;
+    end
+    else
+    begin
+      FCounts[I] := FCounts[I] - 1;
+      Result := False;
+    end;
+  end
+  else
+    Result := False;
+  Release;
+end;
+
+{ Plug-in registry }
+
+procedure RegisterPlugIn(PlugIn: TPlugIn);
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  Found := False;
+  I := 0;
+  while not Found and (I <> PlugIns.Count) do
+  begin
+    Found := TPlugIn(PlugIns[I]).Name = PlugIn.Name;
+    Inc(I);
+  end;
+  if not Found then
+    PlugIns.Add(PlugIn)
+  else
+    raise Exception.Create('PlugIn ' + PlugIn.Name + ' already registered');
+end;
+
+procedure UnregisterPlugIn(PlugIn: TPlugIn);
+begin
+  if PlugIns.IndexOf(PlugIn) <> -1 then
+    PlugIns.Remove(PlugIn)
+  else
+    raise Exception.Create('PlugIn not found');
+end;
+
+{ TPlugInControl }
+
+constructor TPlugInControl.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FUsedPlugIns := TStringList.Create;
+  FUsedPlugIns.Sorted := True;
+  FUsedPlugIns.OnChange := OnChange;
+  FUsedPlugIns.OnChanging := OnChanging;
+  FEngine := nil;
+end;
+
+destructor TPlugInControl.Destroy;
+begin
+  FUsedPlugIns.Clear;
+  FUsedPlugIns.Free;
+  inherited Destroy;
+end;
+
+function TPlugInControl.GetEngine: TEngine;
+begin
+  Result := FEngine;
+end;
+
+function TPlugInControl.GetControlStyle: TEControlStyles;
+begin
+  Result := [csStored, csShared];
+end;
+
+procedure TPlugInControl.SetUsedPlugIns(Value: TStrings);
+begin
+  FUsedPlugIns.Assign(Value);
+end;
+
+function TPlugInControl.GetUsedPlugIns: TStrings;
+begin
+  Result := FUsedPlugIns;
+end;
+
+procedure TPlugInControl.OnChange(Sender: TObject);
+begin
+  InitializePlugIns;
+end;
+
+procedure TPlugInControl.OnChanging(Sender: TObject);
+begin
+  FinalizePlugIns;
+end;
+
+procedure TPlugInControl.InitializePlugIns;
+var
+  I: Integer;
+  S: string;
+  P: TPlugIn;
+begin
+  for I := 0 to FUsedPlugIns.Count - 1 do
+  begin
+    S := FUsedPlugIns[I];
+    P := FindPlugIn(S);
+    if P <> nil then
+      P.Initialize(FEngine)
+    else
+    begin
+      S := 'PlugIn Missing (' + FUsedPlugIns[I] + ')';
+      raise EPlugInMissing.Create(S);
+    end;
+  end;
+end;
+
+procedure TPlugInControl.FinalizePlugIns;
+var
+  I: Integer;
+  P: TPlugIn;
+begin
+  for I := 0 to FUsedPlugIns.Count - 1 do
+  begin
+    P := FindPlugIn(FUsedPlugIns[I]);
+    if P <> nil then P.Finalize(FEngine);
+  end;
+end;
+
+procedure TPlugInControl.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if not (smTranslate in Stream.StorageMode) then Stream.rwStrings(FUsedPlugIns, 1);
+end;
+
+procedure InitializePlugIns(AEngine: TEngine);
+var
+  I: Integer;
+begin
+  for I := 0 to PlugIns.Count - 1 do TPlugIn(PlugIns[I]).Initialize(AEngine);
+end;
+
+procedure FinalizePlugIns(AEngine: TEngine);
+var
+  I: Integer;
+begin
+  for I := 0 to PlugIns.Count - 1 do TPlugIn(PlugIns[I]).Finalize(AEngine);
+end;
+
+function GetPlugIn(Index: Integer): TPlugIn;
+begin
+  if (PlugIns <> nil) and (Index >= 0) and (Index < PlugIns.Count) then
+    Result := TPlugIn(PlugIns[Index])
+  else
+    Result := nil;
+end;
+
+function FindPlugIn(Name: string): TPlugIn;
+var
+  I: Integer;
+begin
+  Result := nil;
+  if PlugIns <> nil then
+  begin
+    I := 0;
+    while (I <> PlugIns.Count) and (Result = nil) do
+    begin
+      if TPlugIn(PlugIns[I]).Name = Name then Result := TPlugIn(PlugIns[I]);
+      Inc(I);
+    end;
+  end;
+end;
+
+procedure LoadExternalPlugIns(const Directory: string);
+var
+  Dir: string;
+
+  procedure LoadFrom(Dir: string);
+  var
+    SR: TSearchRec;
+    Dirs: TStringList;
+    I: Integer;
+    Found: Boolean;
+    H: HMODULE;
+  begin
+    Found := FindFirst(Dir + '*.DPL', faAnyFile - faDirectory, SR) = 0;
+    while Found do
+    begin
+      try
+        H := LoadPackage(Dir + SR.Name);
+        Packages.AddObject(Dir + SR.Name, TObject(H));
+      except
+        raise Exception.Create('Unable to load PlugIn: ' + Dir + SR.Name);
+      end;
+      Found := FindNext(SR) = 0;
+    end;
+    FindClose(SR);
+    Dirs := TStringList.Create;
+    Found := FindFirst(Dir + '*.*', faDirectory, SR) = 0;
+    while Found do
+    begin
+      if (SR.Attr and faDirectory <> 0) and (SR.Name <> '.') and (SR.Name <> '..') then
+        Dirs.Add(Dir + SR.Name + '\');
+      Found := FindNext(SR) = 0;
+    end;
+    FindClose(SR);
+    for I := 0 to Dirs.Count - 1 do LoadFrom(Dirs[I]);
+    Dirs.Free;
+  end;
+
+begin
+  Dir := ExpandFileName(Directory);
+  { the original tests the character of Directory, not of Dir }
+  if (Dir <> '') and (Directory[Length(Dir)] <> '\') then Dir := Dir + '\';
+  LoadFrom(Dir);
+end;
+
+procedure UnloadExternalPlugIns;
+var
+  I: Integer;
+  S: string;
+begin
+  for I := Packages.Count - 1 downto 0 do
+  begin
+    try
+      S := Packages[I];
+      { the original hands the name, not the handle in Objects, to UnloadPackage }
+      UnloadPackage(HMODULE(S));
+      Packages.Delete(I);
+    except
+      S := 'Could not release PlugIn: ' + Packages[I];
+      raise Exception.Create(S);
+    end;
+  end;
+  Packages.Clear;
+end;
+
 { Messages and engines }
 
 procedure InitMsg(var Msg: TEMsg; MsgID: Integer; Sender: TEObject);
@@ -2395,10 +4484,10 @@ end;
 
 function GetEngine(Index: Integer): TEngine;
 begin
-  if (Engines = nil) or (Index < 0) or (Index >= Engines.Count) then
-    Result := nil
+  if (Engines <> nil) and (Index >= 0) and (Index < Engines.Count) then
+    Result := TEngine(Engines[Index])
   else
-    Result := TEngine(Engines[Index]);
+    Result := nil;
 end;
 
 function FindEngine(AClassID: Integer): TEngine;
@@ -3422,6 +5511,128 @@ begin
     raise EDoublePrioriyID.Create('Double priorityID found');
 end;
 
+{ TDebugWriteStream }
+
+constructor TDebugWriteStream.Create(AStream: TStream; AEngine: TEngine);
+begin
+  FEngine := AEngine;
+  FStream := AStream;
+  FBuffer := TEBufferStream(AStream);
+  FPropertyTable := TPropertyTable.Create;
+  FPartial := False;
+  FErrorHandled := False;
+end;
+
+destructor TDebugWriteStream.Destroy;
+begin
+  FPropertyTable.SaveToStream(FStream);
+  FPropertyTable.Free;
+end;
+
+procedure TDebugWriteStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
+var
+  AClassID: Integer;
+  O: TEObject;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    O := Obj;
+    if O <> nil then AClassID := O.ClassID else AClassID := 0;
+    if AClassID <> 0 then
+    begin
+      FPropertyTable.BackupSettings;
+      try
+        Obj.MainReadWrite(Self);
+        FBuffer.Write(AClassID, SizeOf(Integer));
+        FPropertyTable.SaveToStream(FBuffer);
+        FBuffer.Free;
+        FPropertyTable.RestoreSettings;
+        FPropertyTable.Add(ID, FBuffer.Position);
+      except
+        on E: Exception do
+        begin
+          FPropertyTable.RestoreSettings;
+          if not HandleException(E) then raise;
+        end;
+      end;
+    end
+    else
+    begin
+      FBuffer.Write(AClassID, SizeOf(Integer));
+      FPropertyTable.Add(ID, FBuffer.Position);
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + IntToStr(ID) + ')');
+end;
+
+procedure TDebugWriteStream.rwChildren(Node: TECustomNode; ID: Integer);
+var
+  C: TEObject;
+  I: Integer;
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    FPropertyTable.BackupSettings;
+    for I := 0 to Node.Count - 1 do
+    begin
+      C := Node.Children[I];
+      if (C <> nil) and (C.Owner = Node) and not (csShared in C.GetControlStyle) and
+        (csStored in C.GetControlStyle) then
+        rwCreateEObject(C, Node, I);
+    end;
+    FPropertyTable.SaveToStream(FBuffer);
+    FPropertyTable.RestoreSettings;
+    FPropertyTable.Add(ID, FBuffer.Position);
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + IntToStr(ID) + ')');
+end;
+
+procedure TDebugWriteStream.rwEObject(Obj: TEObject; ID: Integer);
+begin
+  if not FPropertyTable.PropertyExist(ID) then
+  begin
+    FPropertyTable.BackupSettings;
+    try
+      Obj.MainReadWrite(Self);
+      FPropertyTable.SaveToStream(FBuffer);
+      FPropertyTable.RestoreSettings;
+      FPropertyTable.Add(ID, FBuffer.Position);
+    except
+      on E: Exception do
+      begin
+        FPropertyTable.RestoreSettings;
+        if not HandleException(E) then raise;
+      end;
+    end;
+  end
+  else
+    raise EDoublePrioriyID.Create('Double priorityID found (' + Obj.ClassName + ':' + IntToStr(ID) + ')');
+end;
+
+procedure TDebugWriteStream.rwEObjectStream(Obj: TEObject; ID: Integer);
+var
+  Size: Integer;
+begin
+  FPropertyTable.BackupSettings;
+  try
+    Obj.MainReadWrite(Self);
+    FBuffer.Write(Size, SizeOf(Integer));
+    FPropertyTable.SaveToStream(FBuffer);
+    FBuffer.Write(Size, SizeOf(Integer));
+    FPropertyTable.RestoreSettings;
+  except
+    on E: Exception do
+    begin
+      FPropertyTable.RestoreSettings;
+      Size := 0;
+      FBuffer.Write(Size, SizeOf(Integer));
+      if not HandleException(E) then raise;
+    end;
+  end;
+end;
+
 { TEReadTextStorageStream }
 
 constructor TEReadTextStorageStream.Create(AStream: TStream; AEngine: TEngine; ASize: Integer);
@@ -3935,8 +6146,18 @@ begin
 end;
 
 initialization
+  CRC32Table := nil;
+  EngineLoaded := True;
   Engines := TList.Create;
+  PlugIns := TList.Create;
+  Packages := TStringList.Create;
+  ClipboardFormat := RegisterClipboardFormat('ECLIPBOARD FORMAT');
+  RegisterClass(TECopyComponent);
 finalization
+  ReleaseCRC32Table;
+  UnloadExternalPlugIns;
+  Packages.Free;
   Engines.Free;
+  PlugIns.Free;
 
 end.
