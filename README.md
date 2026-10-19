@@ -33,4 +33,14 @@ This repository holds no game files. The tools read an installed copy of the gam
 8. `python tools/asg_dump.py <save.asg> notes/classes.json notes/decomp/AoWEPACK-typed` walks a save or map
    file with the recovered schema and reports what it cannot explain.
 
+## Recovered source
+
+`src/recovered/` holds hand-translated units, as opposed to the generated skeletons. `Engine.pas` is the
+persistence part of the original `Engine` unit (property tables, the storage streams, the compressed
+container). `tests/asgread.pas` reads a save with it and prints what `tools/asg_dump.py` prints:
+
+```bash
+C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe -Mdelphi -Fusrc\recovered -FU%TEMP% -FE%TEMP% tests\asgread.pas
+```
+
 Decompiler output goes to `notes/decomp/`, which is ignored by git.
