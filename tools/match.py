@@ -15,7 +15,8 @@ instruction.
 
 An alias file maps original function names that are not class methods (unit procedures, nested functions
 that Ghidra named FUN_xxxxxxxx) to the symbol name the .map file gives them, for example
-{"FUN_555140bc": "QuickSort", "Engine.FillInteger": "FillInteger"}.
+{"FUN_555140bc": "QuickSort", "Engine.FillInteger": "FillInteger"}. A value "Name<Owner" picks the occurrence of a
+repeated name (nested functions) that the compiler emitted right before Owner.
 
 --show Method prints the two instruction streams side by side for that method.
 --quiet prints only the methods that differ and the totals.
@@ -50,8 +51,24 @@ def map_symbols(map_path):
             seg_base[m.group(1)] = (int(m.group(2), 16), int(m.group(3), 16))
         m = re.match(r'\s*(\d{4}):([0-9A-F]{8})\s+(\S+)\s*$', line)
         if m:
-            syms.setdefault(m.group(3), (m.group(1), int(m.group(2), 16)))
+            # nested functions and helpers may repeat a name (DefaultRun, ReturnAddr): keep every address
+            loc = (m.group(1), int(m.group(2), 16))
+            if loc not in syms.setdefault(m.group(3), []):   # the map lists each symbol by name and by value
+                syms[m.group(3)].append(loc)
     return syms, seg_base
+
+
+def resolve(syms, name):
+    """A map symbol: 'Name' (first occurrence) or 'Name<Owner' (the occurrence of Name with the highest address
+    below Owner, for a nested function or helper that the compiler emits right before the function using it)."""
+    if '<' in name:
+        n, owner = name.split('<')
+        if n not in syms or owner not in syms:
+            return None
+        oseg, ooff = syms[owner][0]
+        cands = [off for seg, off in syms[n] if seg == oseg and off < ooff]
+        return (oseg, max(cands)) if cands else None
+    return syms[name][0] if name in syms else None
 
 
 def normalize(ins, img):
@@ -102,7 +119,7 @@ def main():
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     # code segment 0001 starts at the first section's VA
     text_va = new.base + new.pe.sections[0].VirtualAddress
-    code_syms = sorted(((off, name) for name, (seg, off) in syms.items() if seg == '0001'))
+    code_syms = sorted((off, name) for name, locs in syms.items() for seg, off in locs if seg == '0001')
 
     # (map name, original name) pairs to compare
     pairs = []
@@ -127,11 +144,12 @@ def main():
         if orig_name is None:
             print('%-40s no original' % name)
             continue
-        if name not in syms:
+        loc = resolve(syms, name)
+        if loc is None:
             print('%-40s not in map (unreferenced, smart-linked out?)' % name)
             continue
         ova, osize = sigs[orig_name]
-        seg, off = syms[name]
+        seg, off = loc
         nva = text_va + off
         # the new function's size: up to the next symbol in the map
         nxt = min((o for (o, n) in code_syms if o > off), default=off + osize + 64)

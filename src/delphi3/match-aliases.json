@@ -1,6 +1,16 @@
 {
  "Engine.FillInteger": "FillInteger",
- "FUN_555140bc": "QuickSort",
- "FUN_55514218": "DefaultRun",
- "FUN_55513c60": "ReturnAddr"
+ "FUN_55513c60": "ReturnAddr<TIntegerList.Error",
+ "FUN_555140bc": "QuickSortInteger",
+ "FUN_55514218": "DefaultRun<TIntegerList.SaveToStream",
+ "FUN_5551460c": "ReturnAddr<TByteList.Error",
+ "FUN_55514a68": "QuickSortByte",
+ "FUN_55514bc0": "DefaultRun<TByteList.SaveToStream",
+ "FUN_55515008": "ReturnAddr<TShortIntList.Error",
+ "FUN_55515464": "QuickSortShortInt",
+ "FUN_555155bc": "DefaultRun<TShortIntList.SaveToStream",
+ "FUN_55515870": "ReturnAddr<TWordList.Error",
+ "FUN_55515cdc": "QuickSortWord",
+ "FUN_55515e40": "DefaultRun<TWordList.SaveToStream",
+ "Engine.FillWord": "FillWord"
 }
