@@ -1005,7 +1005,7 @@ type
     function ClassID: Integer; override;
   end;
 
-  { HSEngine.THSMap  (14 TODO) }
+  { HSEngine.THSMap  (13 TODO) }
   THSMap = class(TENode)
   public
     prop2: string;
@@ -1017,9 +1017,10 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TAoWHSMap  (30 TODO) }
+  { AoWE.TAoWHSMap  (24 TODO) }
   TAoWHSMap = class(THSMap)
   public
+    field_0x3c: Integer;
     prop31: Byte;
     prop7: string;
     FStringList: TStringList;
@@ -1230,7 +1231,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TArmy  (3 TODO) }
+  { AoWE.TArmy  (2 TODO) }
   TArmy = class(TUnitList)
   public
     FPlayer: Byte;
@@ -1313,7 +1314,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.TUnitHS  (2 TODO) }
+  { AoWE.TUnitHS  (1 TODO) }
   TUnitHS = class(THexagonSprite)
   public
     prop9: Byte;
@@ -2387,7 +2388,7 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { GlobalEnchantmentSpells.TFloodControl  (3 TODO) }
+  { GlobalEnchantmentSpells.TFloodControl  (2 TODO) }
   TFloodControl = class(TEObject)
   public
     prop20: Integer;
@@ -2568,10 +2569,11 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
   end;
 
-  { AoWE.THero  (11 TODO) }
+  { AoWE.THero  (8 TODO) }
   THero = class(TAbstractUnit)
   public
     prop8: Integer;
+    field_0x5d: Integer;
     FFaceIndex: Integer;
     L_uStack_14: Integer;
     FName: string;
@@ -4076,12 +4078,13 @@ type
     function ClassID: Integer; override;
   end;
 
-  { AoWE.TUnit  (20 TODO) }
+  { AoWE.TUnit  (19 TODO) }
   TUnit = class(TAbstractUnit)
   public
     FExperience: Byte;
     FMovePoints: Byte;
     FHitPoints: Byte;
+    FUnitResource: Integer;
     L_uStack_8_2: Word;
     function ClassID: Integer; override;
     procedure ReadWrite(Stream: TEStorageStream); override;
@@ -5047,8 +5050,7 @@ begin
   end;
   if (Stream.StorageMode and 8) = 0 then
   begin
-    { TODO condition: ((bVar2 & 1) != 0) && (this->prop2 != (char * )0x0) }
-    if True then
+    if ((Stream.StorageMode and 1) <> 0) and (prop2 <> '') then
     begin
       { TODO: uVar3 = *(undefined4 * )&stream->field_0x20 }
       { TODO: this_00 = *(THSEngine ** )&stream->field_0x4 }
@@ -5128,15 +5130,13 @@ begin
     { TODO: HSEngine_THSMap_ResetModified_23EDC2EF(this) }
   end;
   { TODO: this->field_0xdc = 0 }
-  { TODO condition: (this->field_0x3c & 2) != 0 }
-  if True then
+  if (field_0x3c and 2) <> 0 then
   begin
     { TODO: *(TAoWHSMap ** )&stream->field_0x18 = this }
     { TODO: *(code ** )&stream->field_0x14 = AoWE_TAoWHSMap_OnStreamError_23EDC2EF }
   end;
   Stream.rwData(prop31, 1, $1F);
-  { TODO condition: this->prop31 == 1 }
-  if True then
+  if prop31 = 1 then
   begin
     { TODO: iVar3 = this->prop4 }
     { TODO: this->prop4 = 0 }
@@ -5148,8 +5148,7 @@ begin
     { TODO: iVar3 = 0 }
   end;
   inherited ReadWrite(Stream);
-  { TODO condition: this->prop31 == 1 }
-  if True then
+  if prop31 = 1 then
   begin
     { TODO: this->prop4 = iVar3 }
     { TODO: this->prop5 = local_8 }
@@ -5207,22 +5206,19 @@ begin
   Stream.rwInteger(prop52, $34);
   Stream.rwBool(prop53, $35);
   Stream.rwEObject(FStructureControl, $36);
-  { TODO condition: ((bVar2 & 1) != 0) || (this->prop31 != 1) }
-  if True then
+  if ((Stream.StorageMode and 1) <> 0) or (prop31 <> 1) then
   begin
     Stream.rwInteger(prop55, $37);
   end;
   Stream.rwEObject(FTutorialControl, $38);
-  { TODO condition: ((bVar2 & 1) != 0) || (this->prop31 != 1) }
-  if True then
+  if ((Stream.StorageMode and 1) <> 0) or (prop31 <> 1) then
   begin
     Stream.rwInteger(prop58, $3A);
   end;
   Stream.rwBool(prop59, $3B);
   if (Stream.StorageMode and 4) = 0 then
   begin
-    { TODO condition: ((bVar2 & 8) == 0) && (this->prop31 != 1) }
-    if True then
+    if ((Stream.StorageMode and 8) = 0) and (prop31 <> 1) then
     begin
       Stream.rwEObject(FSonglist, $3C);
     end;
@@ -5697,8 +5693,7 @@ begin
   end;
   Stream.rwData(prop11, 1, $B);
   Stream.rwData(prop12, 1, $C);
-  { TODO condition: ((bVar1 & 1) != 0) && ((this->prop12 & 4) != 0) }
-  if True then
+  if ((Stream.StorageMode and 1) <> 0) and ((prop12 and 4) <> 0) then
   begin
     { TODO: this->prop12 = this->prop12 & 0xfb }
   end;
@@ -5803,8 +5798,7 @@ procedure TUnitHS.ReadWrite(Stream: TEStorageStream);
 begin
   { the original calls TEObject.ReadWrite here, skipping THexagonSprite.ReadWrite }
   Stream.rwByte(prop9, 9);
-  { TODO condition: ((bVar1 & 0x20) == 0) && (this->prop9 == 0) }
-  if True then
+  if ((Stream.StorageMode and $20) = 0) and (prop9 = 0) then
   begin
     { TODO: this->prop9 = 3 }
   end;
@@ -7183,8 +7177,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(prop20, $14);
   Stream.rwInteger(prop21, $15);
-  { TODO condition: this->prop20 != 0 }
-  if True then
+  if prop20 <> 0 then
   begin
     if (Stream.StorageMode and 1) <> 0 then
     begin
@@ -7444,8 +7437,7 @@ begin
     { TODO: piVar4 = extraout_ECX_00 }
   end;
   inherited ReadWrite(Stream);
-  { TODO condition: ((bVar1 & 0x65) == 1) && ((this->field_0x5d & 1) != 0) }
-  if True then
+  if ((Stream.StorageMode and $65) = 1) and ((field_0x5d and 1) <> 0) then
   begin
     { TODO: this->prop47 = bVar2 }
   end;
@@ -7472,8 +7464,7 @@ begin
   Stream.rwData(prop25, 1, $19);
   Stream.rwInteger(prop26, $1A);
   Stream.rwByte(prop27, $1B);
-  { TODO condition: ((bVar2 & 0x45) == 1) && (this->FExperience == 0) }
-  if True then
+  if ((Stream.StorageMode and $45) = 1) and (FExperience = 0) then
   begin
     { TODO: iVar3 = AoWE_THero_LevelToExperience_23EDC2EF(this,(uStack_14 >> 5) + 1) }
     { TODO: this->FExperience = iVar3 }
@@ -7484,8 +7475,7 @@ begin
   Stream.rwBool(prop33, $21);
   Stream.rwInteger(prop34, $22);
   Stream.rwIntegerEx(prop35, -1, $23);
-  { TODO condition: (this->field_0x5d & 1) == 0 }
-  if True then
+  if (field_0x5d and 1) = 0 then
   begin
     Stream.rwEObject(FInventory, $24);
     Stream.rwEObject(FHeroItems, $25);
@@ -9429,8 +9419,7 @@ begin
     begin
       if (Stream.StorageMode and 1) = 0 then
       begin
-        { TODO condition: this->FUnitResource == (TUnitResource * )0x0 }
-        if True then
+        if FUnitResource = $0 then
         begin
           { empty }
         end

@@ -27,7 +27,7 @@ src/model/AoWModel.pas
   SaveProc_00 = (void *)System_TObject_Create_23EDC2EF(Engine__TIntegerList_D8218C48_exref,1)
   for (apiStack_1c[0] = *(int **)&this->field_0x10;
   apiStack_1c[0] != (int *)0x0
-## TMapObject (20)
+## TMapObject (19)
   UNRECOVERED_JUMPTABLE = (code *)&stack0xfffffffc
   *in_FS_OFFSET = &uStack_228
   HSEngine_TMapObject_SetResourceLinked_23EDC2EF(this,'\0')
@@ -96,7 +96,7 @@ src/model/AoWModel.pas
   AoWE_TAoWCampaignTransferSettings_SetLeader_23EDC2EF(this,(int *)pcStack_18)
   (**(code **)(*(int *)pcStack_18 + 0x2c))()
   if pcStack_18 != (code *)0x0
-## THSMap (14)
+## THSMap (13)
   UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
   *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
   this->field_0x3c = this->field_0x3c | 0x10
@@ -104,12 +104,12 @@ src/model/AoWModel.pas
   this_00 = *(THSEngine **)&stream->field_0x4
   System__LStrCat3_51F89FF7(&local_c,*(undefined4 *)&this_00->field_0x2c,this->prop2)
   HSEngine_THSEngine_InitializeHSSet_23EDC2EF (this_00,local_c,extraout_ECX,in_stack_ffffffd4,uVar3)
-  if ((bVar2 & 1) != 0) && (this->prop2 != (char *)0x0)
   *(int *)&this->field_0x34 = (int)local_5
   pcVar1 = UNRECOVERED_JUMPTABLE
   *in_FS_OFFSET = in_stack_ffffffd4
   UNRECOVERED_JUMPTABLE = (code *)0x5560c5d1
-## TAoWHSMap (30)
+  System__LStrClr_40929B27(&local_c,in_stack_ffffffd4,pcVar1)
+## TAoWHSMap (24)
   UNRECOVERED_JUMPTABLE = (code *)*in_FS_OFFSET
   *in_FS_OFFSET = &UNRECOVERED_JUMPTABLE
   uVar4 = 0
@@ -120,8 +120,8 @@ src/model/AoWModel.pas
   this->field_0xdc = 0
   *(TAoWHSMap **)&stream->field_0x18 = this
   *(code **)&stream->field_0x14 = AoWE_TAoWHSMap_OnStreamError_23EDC2EF
-  if (this->field_0x3c & 2) != 0
   iVar3 = this->prop4
+  this->prop4 = 0
 ## THSSet (2)
   Engine_TECustomOwner_SetEngine_23EDC2EF(this,*(undefined4 *)&stream->field_0x4)
   *(undefined4 *)((int)this->prop7 + 8) = *(undefined4 *)&stream->field_0x4
@@ -166,19 +166,17 @@ src/model/AoWModel.pas
   HSEngine_TMapLevel_CreateMapFieldList_23EDC2EF (this,*(int *)&this->field_0xc,*(int *)&this->field_0x10)
 ## TArenaTE (1)
   Engine_TIntegerList_SaveToStream_23EDC2EF()
-## TArmy (3)
+## TArmy (2)
   if (((bVar1 & 2) == 0) || (AoWE_AoWHSMap_6B957A58 == 0)) ||
      (*(char *)(AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01')
   this->prop12 = this->prop12 & 0xfb
-  if ((bVar1 & 1) != 0) && ((this->prop12 & 4) != 0)
 ## TMoveTE (2)
   (*stream->vtbl->rwStreamProc)(stream,0x14,stream->vtbl,(void *)0x55701d24,this->FMovepath)
   HSEngine_TXYLList_SaveToStream_23EDC2EF()
 ## TArmyEventLog (1)
   Engine_TByteList_SaveToStream_23EDC2EF()
-## TUnitHS (2)
+## TUnitHS (1)
   this->prop9 = 3
-  if ((bVar1 & 0x20) == 0) && (this->prop9 == 0)
 ## TArmyID (1)
   Engine_TIntegerList_SaveToStream_23EDC2EF()
 ## TCity (1)
@@ -214,25 +212,21 @@ src/model/AoWModel.pas
   calls TMultiHexMO.ReadWrite directly
 ## TFireResource (1)
   calls TMultiHexMOR.ReadWrite directly
-## TFloodControl (3)
+## TFloodControl (2)
   System__ReallocMem_51F89FF7(&this->prop22,this->prop20 * this->prop21 * 2)
   (*stream->vtbl->rwData)(stream,*(void **)&this->prop22,this->prop20 * this->prop21 * 2,0x16)
-  if this->prop20 != 0
 ## TGems (1)
   calls TMultiHexMO.ReadWrite directly
 ## TGlobalMagicControl (1)
   AoWE_TGlobalMagicControl_UpdateActiveEnchantments_23EDC2EF(this,extraout_EDX,extraout_ECX)
-## THero (11)
+## THero (8)
   bVar2 = this->prop47
   piVar4 = extraout_ECX
   AoWE_THero_LinkToResource_23EDC2EF(this)
   piVar4 = extraout_ECX_00
   this->prop47 = bVar2
-  if ((bVar1 & 0x65) == 1) && ((this->field_0x5d & 1) != 0)
   iVar3 = AoWE_THero_LevelToExperience_23EDC2EF(this,(uStack_14 >> 5) + 1)
   this->FExperience = iVar3
-  if ((bVar2 & 0x45) == 1) && (this->FExperience == 0)
-  if (this->field_0x5d & 1) == 0
   AoWE_THero_Loaded_23EDC2EF(this)
 ## THeroControl (4)
   iVar2 = (*this->FHeroList->vtbl->GetCount)()
@@ -306,13 +300,12 @@ src/model/AoWModel.pas
   *(uint *)&this->field_0x14 = uStack_10 >> 0x10 & 0xff
 ## TOverlayObjectResource (1)
   calls TMultiHexMOR.ReadWrite directly
-## TPlayer (20)
+## TPlayer (17)
   goto LAB_5575328f
   if (*(byte *)(AoWE_AoWEngine_7E705837 + 0x34) & 6) == 0
   iVar1 = this->FLeader
   *(byte *)(iVar1 + 0x24) = this->FPlayerIndex
   AoWE_THeroControl_RegisterHero_23EDC2EF((THeroControl *)AoWE_AoWHSMap_6B957A58[0x3e],iVar1)
-  if this->FLeader != 0
   LAB_5575328f:
   (**(code **)(*AoWE_AoWHSMap_6B957A58 + 0xc4)) (AoWE_AoWHSMap_6B957A58,abStack_18,abStack_14,abStack_10)
   this->prop20 = abStack_18[0]
@@ -320,6 +313,8 @@ src/model/AoWModel.pas
   this->prop22 = abStack_10[0]
   if (*(byte *)((int)AoWE_AoWHSMap_6B957A58 + 0xa5) == this->FPlayerIndex) &&
           (*(char *)((int)AoWE_AoWHSMap_6B957A58 + 0x13a) != '\x01')
+  if (((bVar2 & 2) == 0) || ((*(byte *)(AoWE_AoWHSMap_6B957A58 + 0xf) & 2) == 0)) ||
+       (this->FLeader == 0)
 ## TPlayerDiplomaticRelations (1)
   this->FByteList->field_0x10 = 3
 ## TPoisonPlant (1)
@@ -351,11 +346,10 @@ src/model/AoWModel.pas
   Engine_TIntegerList_SaveToStream_23EDC2EF()
 ## TUnHolyGround (1)
   calls TMultiHexMO.ReadWrite directly
-## TUnit (20)
+## TUnit (19)
   UNRECOVERED_JUMPTABLE = (code *)&stack0xfffffffc
   *in_FS_OFFSET = &uStack_28
   uVar3 = AoWE_TUnitResource_UnitResourceIndex_23EDC2EF(this->FUnitResource)
-  if this->FUnitResource == (TUnitResource *)0x0
   pTVar4 = (TUnitResource *) AoWE_TUnitResourceList_GetUnitResource_23EDC2EF (*(TUnitResourceList **)(AoWE_AoWHSSet_678301D7 + 0x5c), (int)uStack_8._2_2_)
   this->FUnitResource = pTVar4
   pcVar7 = "unit resource missing ("
@@ -364,6 +358,7 @@ src/model/AoWModel.pas
   uVar6 = local_10
   System__LStrCatN_51F89FF7(&local_c,3)
   SysUtils_Exception_Create_23EDC2EF (SysUtils__Exception_9880D0BF_exref,1,local_c,puVar5,uVar6,pcVar7)
+  System__RaiseExcept_51F89FF7()
 ## TUnitControl (2)
   this->prop10 = 1
   if this->prop10 < 1

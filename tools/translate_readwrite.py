@@ -376,19 +376,97 @@ class Translator:
             return None
         return out
 
-    def translate_cond(self, cond, modes):
-        """Translate an if-condition that only involves StorageMode variables and constants."""
+    def translate_cond(self, cond, modes, m=None):
+        """Translate an if-condition made of StorageMode tests and simple field tests joined by && / ||.
+        Field tests ("this->prop31 != 1", "(this->field_0x5d & 1) == 0", "this->FLeader == (T *)0x0")
+        become tests on model fields; unknown fields are declared as Integer so that the shape of the
+        original logic survives (their value is 0 in the model unless a rw call fills them)."""
         c = cond.strip()
-        # ((bVar1 & 0x65) == 1), ((uVar3 & 4) == 0), (!bVar), bVar != 0
-        m = re.fullmatch(r'\(?\(?(\w+) & (0x[0-9a-fA-F]+|\d+)\)? (==|!=) (0x[0-9a-fA-F]+|\d+)\)?', c)
-        if m and m.group(1) in modes:
-            op = '=' if m.group(3) == '==' else '<>'
-            return '(Stream.StorageMode and %s) %s %s' % (pas_num(m.group(2)), op, pas_num(m.group(4)))
-        m = re.fullmatch(r'\(?(\w+) (==|!=) (0x[0-9a-fA-F]+|\d+)\)?', c)
-        if m and m.group(1) in modes:
-            op = '=' if m.group(2) == '==' else '<>'
-            return 'Stream.StorageMode %s %s' % (op, pas_num(m.group(3)))
+        return self._cond(c, modes, m)
+
+    def _strip_parens(self, s):
+        s = s.strip()
+        while s.startswith('(') and s.endswith(')'):
+            depth = 0
+            ok = True
+            for i, ch in enumerate(s):
+                if ch == '(': depth += 1
+                elif ch == ')':
+                    depth -= 1
+                    if depth == 0 and i != len(s) - 1:
+                        ok = False; break
+            if not ok: break
+            s = s[1:-1].strip()
+        return s
+
+    def _split_top(self, s, op):
+        depth, parts, cur, i = 0, [], '', 0
+        while i < len(s):
+            ch = s[i]
+            if ch == '(': depth += 1
+            elif ch == ')': depth -= 1
+            if depth == 0 and s.startswith(op, i):
+                parts.append(cur); cur = ''; i += len(op); continue
+            cur += ch; i += 1
+        parts.append(cur)
+        return parts
+
+    def _cond(self, s, modes, m):
+        s = self._strip_parens(s)
+        for op, pas in (('||', 'or'), ('&&', 'and')):
+            parts = self._split_top(s, op)
+            if len(parts) > 1:
+                sub = [self._cond(p, modes, m) for p in parts]
+                if any(x is None for x in sub):
+                    return None
+                return ' %s ' % pas + ''.join(())  if False else (' %s ' % pas).join('(%s)' % x for x in sub)
+        # atoms
+        mm = re.fullmatch(r'\(?(\w+) & (0x[0-9a-fA-F]+|\d+)\)? (==|!=) (0x[0-9a-fA-F]+|\d+)', s)
+        if mm and mm.group(1) in modes:
+            op = '=' if mm.group(3) == '==' else '<>'
+            return '(Stream.StorageMode and %s) %s %s' % (pas_num(mm.group(2)), op, pas_num(mm.group(4)))
+        mm = re.fullmatch(r'(\w+) (==|!=) (0x[0-9a-fA-F]+|\d+)', s)
+        if mm and mm.group(1) in modes:
+            op = '=' if mm.group(2) == '==' else '<>'
+            return 'Stream.StorageMode %s %s' % (op, pas_num(mm.group(3)))
+        if m is None:
+            return None
+        # field tests
+        mm = re.fullmatch(r'\(?this->(\w+) & (0x[0-9a-fA-F]+|\d+)\)? (==|!=) (0x[0-9a-fA-F]+|\d+)', s)
+        if mm:
+            f = self.model_field(m, mm.group(1), 'Integer')
+            op = '=' if mm.group(3) == '==' else '<>'
+            return '(%s and %s) %s %s' % (f, pas_num(mm.group(2)), op, pas_num(mm.group(4)))
+        mm = re.fullmatch(r'this->(\w+) (==|!=) (?:\((?:T\w+|void|char|int) \*\))?(0x[0-9a-fA-F]+|\d+)', s)
+        if mm:
+            f = self.model_field(m, mm.group(1), None)
+            op = '=' if mm.group(2) == '==' else '<>'
+            val = pas_num(mm.group(3))
+            is_zero = int(mm.group(3), 0) == 0
+            ftype = m.fields.get(f, ['Integer'])[0] or 'Integer'
+            if (ftype.startswith('T') or ftype == 'Pointer') and is_zero:
+                val = 'nil'
+            elif ftype == 'string' and is_zero:
+                val = "''"                # a nil string pointer is the empty string
+            elif ftype == 'Boolean':
+                val = 'False' if is_zero else 'True'
+            return '%s %s %s' % (f, op, val)
+        mm = re.fullmatch(r'this->(\w+)', s)
+        if mm:
+            f = self.model_field(m, mm.group(1), 'Boolean')
+            return '%s' % f
+        mm = re.fullmatch(r'!this->(\w+)', s)
+        if mm:
+            f = self.model_field(m, mm.group(1), 'Boolean')
+            return 'not %s' % f
         return None
+
+    def model_field(self, m, cname, default_type):
+        """Model field for a decompiled field name; declares it when a rw call has not already."""
+        f = ident(cname)
+        if f not in m.fields:
+            m.fields[f] = [default_type or 'Integer', None]
+        return f
 
     def translate_stmts(self, m, stmts, indent, modes):
         out = []
@@ -422,7 +500,7 @@ class Translator:
                     continue                  # local variable declaration
                 out.append('%s{ TODO: %s }' % (indent, safe(s))); m.todos.append(s)
             elif kind == 'if':
-                cond = self.translate_cond(st[1], modes)
+                cond = self.translate_cond(st[1], modes, m)
                 body = self.translate_stmts(m, st[2], indent + '  ', set(modes))
                 els = self.translate_stmts(m, st[3], indent + '  ', set(modes)) if st[3] else None
                 if cond is None:

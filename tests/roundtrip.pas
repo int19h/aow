@@ -38,7 +38,7 @@ var
   end;
   EngineObj: TModelEngine;
   Root: TEObject;
-  Out: TMemoryStream;
+  Out, Out2: TMemoryStream;
   F: TFileStream;
   I, N, FirstDiff, Diffs: Integer;
   A, B: PByte;
@@ -90,6 +90,20 @@ begin
       for I := FirstDiff to FirstDiff + 15 do if I < Out.Size then Write(IntToHex(B[I], 2), ' ');
       Writeln;
     end;
+    { Files written by older versions carry properties the current code never writes, so a second
+      pass tells whether the model is at least stable: load what we wrote and write it again. }
+    Root.Free;
+    Root := EngineObj.CreateEObject(Header.RootClassID, nil);
+    Out.Position := Header.Size;
+    EngineObj.ReadEObject(Out, Root);
+    Out2 := TMemoryStream.Create;
+    Out2.Write(Header, SizeOf(Header));
+    EngineObj.WriteEObject(Out2, Root);
+    if (Out2.Size = Out.Size) and CompareMem(Out.Memory, Out2.Memory, Out.Size) then
+      Writeln('SECOND PASS OK: stable (load of our output writes identical bytes)')
+    else
+      Writeln('SECOND PASS DIFFERS: ', Out2.Size, ' bytes vs ', Out.Size);
+    Out2.Free;
   end;
   if ParamCount >= 2 then
   begin

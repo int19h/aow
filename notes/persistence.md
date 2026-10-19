@@ -103,6 +103,12 @@ objects are flagged shared (`TEObject.EmbeddedShared`) so that `Clear` keeps the
 them, and a child remembers the slot it was read from (`TEObject.StoredIndex`) because the original owners
 have a few unstored children in front of the stored ones.
 
+The 23 shipped maps (`.hsm`) do not come back identical, because they were written by older versions and
+carry properties the 1.36 code reads but never writes (for example `TPlayer` id $1A, a legacy relation list,
+and the `TAoWHSMap` scenario-only conditions on `prop31`). For them the test does a second pass: loading our
+output and writing it again gives identical bytes for all 23, which is the same behavior as the game's own
+load-and-save.
+
 ### Validation
 
 `tools/asg_dump.py` walks a real file with this description and the schema in `classes.json`. On the shipped
