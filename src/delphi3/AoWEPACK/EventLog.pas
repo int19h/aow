@@ -59,7 +59,7 @@ type
     procedure PlayLoggedSFX(A1: Integer); virtual;  { +068 draft }
     procedure NotifyLogged(A1: Integer); virtual;  { +06C draft }
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; virtual;
-    procedure ViewLocation(A1: Integer; A2: Integer); virtual;  { +074 draft }
+    procedure ViewLocation; virtual; { +074 }
     procedure CenterViewTo(X, Y, L: Shortint);
   end;
 
@@ -333,7 +333,7 @@ begin end;
 procedure TEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TEventLog.ViewLocation;
 begin end;
 
 procedure TEventLog.PlayLoggedSFX(A1: Integer);

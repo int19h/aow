@@ -5814,7 +5814,7 @@ begin end;
 procedure TSpellCastEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TSpellCastEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TSpellCastEventLog.ViewLocation;
 begin end;
 
 function TSpellCastEventLog.GetText: string;
@@ -6423,7 +6423,7 @@ begin Result := 0; end;
 procedure TPlayerMagicEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TPlayerMagicEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TPlayerMagicEventLog.ViewLocation;
 begin end;
 
 function TPlayerMagicEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
@@ -6581,23 +6581,23 @@ begin Result := 0; end;
 function TGlobalEnchantment.Release: Integer;
 begin Result := 0; end;
 
-procedure TGlobalEnchantment.GetAIUpkeepPriority;
-begin end;
+function TGlobalEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
-procedure TGlobalEnchantment.GetLocation(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantment.GetLocation: TXYL;
+begin Result.XYL := 0; end;
 
 procedure TGlobalEnchantment.CenterToLocation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalEnchantment.GetName(A1: Integer);
-begin end;
+function TGlobalEnchantment.GetName: string;
+begin Result := ''; end;
 
 procedure TGlobalEnchantment.GetUpkeep;
 begin end;
 
-procedure TGlobalEnchantment.VisibleForPlayer(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -6614,8 +6614,8 @@ begin end;
 procedure TGlobalEnchantment.CanDeactivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalEnchantment.Deactivate(A1: Byte);
-begin end;
+function TGlobalEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantment.CanCast;
 begin end;

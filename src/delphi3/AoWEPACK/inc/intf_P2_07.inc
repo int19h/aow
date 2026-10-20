@@ -22,7 +22,7 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
     procedure Setup(Hero: THero; Player: Shortint; Mode: THeroJoinMode);
     function CreateHeroJoinEventLog: THeroJoinEventLog;
     function ExecuteAI: Boolean;
@@ -536,7 +536,7 @@
     procedure NewDay;  { draft }
     procedure CanActivate;  { draft }
     procedure GetMoveAction(A1: Byte; A2: Integer);  { draft }
-    procedure GetCanJoinSelection(A1: Byte; A2: Integer);  { draft }
+    function GetCanJoinSelection(Player: Shortint): Byte;
     function GetJoinSelection(Player: Shortint): Byte;
     function JoinAmount(Player: Shortint; Selection: Byte): Integer;
     procedure IncommingNegotiateRequest(A1: Integer);  { draft }
@@ -640,7 +640,7 @@
     function GetText: string; override;
     function GetLeftIcon: Integer; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
     procedure SetArmyView;  { draft }
     procedure LeaderKilled;  { draft }
     procedure PartyDestroyed;  { draft }
@@ -665,7 +665,7 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
     procedure SetArmyView;  { draft }
   end;
 

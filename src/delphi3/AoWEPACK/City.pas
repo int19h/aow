@@ -1,13 +1,13 @@
 unit City;
 
-{ City, from AoWEPACK.dpl. Recovered TCity bodies through GetObtainValue,
-  migration helpers, and production sorting. Layouts and VMT order follow the original;
-  remaining draft declarations and stub bodies are retained for the next recovery pass. }
+{ City, from AoWEPACK.dpl. Recovered TCity negotiation, resource, enchantment,
+  event-log and AI bodies. Layouts and VMT order follow the original;
+  earlier production-control and overlay stubs remain for a later recovery pass. }
 
 interface
 
 uses
-  Animation, Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Crops, EventLog;
+  Animation, Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Crops, EventLog, AoWReg;
 
 type
   TCityProductionControl = class;
@@ -88,7 +88,7 @@ type
     function GetItems(Index: Integer): TMigrationItem;
   end;
 
-  { TCityEnchantment (instance size 44, VMT 557A7294): $24 FEnchantmentID. }
+  { TCityEnchantment (instance size 44, VMT 557A7294): $24 FEnchantmentID, $28 FEnchantmentLocation. }
   TCityEnchantment = class(TGlobalEnchantment)
   public
     FEnchantmentID: TCityEnchantmentID; { $24 }
@@ -97,12 +97,12 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetName(A1: Integer); override;
-    procedure GetLocation(A1: Integer; A2: Integer); override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
-    procedure VisibleForPlayer(A1: Integer; A2: Integer); override;
-    procedure GetCity;  { draft }
+    function GetName: string; override;
+    function GetLocation: TXYL; override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
+    function VisibleForPlayer(Player: Shortint): Boolean; override;
+    function GetCity: TCity;
   end;
 
   { TCity (instance size 120, VMT 557A73F0): $44 FMode, $45 FRace,
@@ -178,7 +178,7 @@ type
     procedure FinalizeCombat(Combat: TCombat); override;
     function GetCombatEventText(Combat: TCombat): string; override;
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); override;
-    procedure GetMoveAction(A1: Integer; A2: Integer); override;
+    function GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction; override;
     function UpdatePlayer: Boolean; override;
     procedure UpdateIncome; override;
     procedure UpdateCrops; override;
@@ -243,15 +243,15 @@ type
     procedure InitCombat(Combat: TCombat; Army: TArmyHS);
     function GetObtainValue: Integer;
     function JoinAmount(Player: Shortint): Integer;
-    procedure IncommingNegotiateRequest(A1: Integer);  { draft }
-    procedure IncommingNegotiateOffer(A1: Integer);  { draft }
+    function IncommingNegotiateRequest(Request: TNegotiateRequestEventLog): Boolean;
+    function IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
     function GetEnemiesIndependentRelation(Player: Shortint): Shortint;
-    procedure GetIndependentRelation;  { draft }
-    procedure ReturnBattleFieldInfo(A1: Integer);  { draft }
-    procedure UpdateVisibleForSeatedPlayer;  { draft }
-    procedure GetTopCityActionImage(A1: Integer);  { draft }
-    procedure GetMiddleCityActionImage(A1: Integer);  { draft }
-    procedure GetBottomCityActionImage(A1: Integer);  { draft }
+    function GetIndependentRelation: Shortint;
+    procedure ReturnBattleFieldInfo(var Info: TBattleFieldInfo);
+    procedure UpdateVisibleForSeatedPlayer;
+    function GetTopCityActionImage(Action: TCityAction): TLibraryImage;
+    function GetMiddleCityActionImage(Action: TCityAction): TLibraryImage;
+    function GetBottomCityActionImage(Action: TCityAction): TLibraryImage;
   end;
 
   { TCityResource (instance size 124, VMT 557A76AC): $78 FSize. }
@@ -265,7 +265,7 @@ type
     class function ResourceEditName: string; override;
     function ResourceUserClassID: Integer; override;
     procedure ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity);
-    procedure ActivateMsg;  { draft }
+    procedure ActivateMsg;
   end;
 
   { TCityRebellionEventLog (instance size 40, VMT 557A77A0): $18 FXhx, $1C FYhx,
@@ -280,7 +280,7 @@ type
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
   end;
 
   { TAICityUpgradeBudget (instance size 56, VMT 557A78B4) }
@@ -301,30 +301,30 @@ type
     class function ClassID: Integer; override;
   end;
 
-  { TCityAIPA (instance size 48, VMT 557A7B54) }
+  { TCityAIPA (instance size 48, VMT 557A7B54): $14 FCityCount,
+    $18..$24 FProductionLevelCounts, $28 FMaxProductionLevel, $2C FProductionRatio. }
   TCityAIPA = class(TAIPlayerAction)
   public
-    F_CityAIPA_14: Integer;
-    F_CityAIPA_18: Byte;
-    F_CityAIPA_19: array[0..14] of Byte;
-    F_CityAIPA_28: Integer;
-    F_CityAIPA_2C: Integer;
+    FCityCount: Integer; { $14 }
+    FProductionLevelCounts: array[1..4] of Integer; { $18..$24 }
+    FMaxProductionLevel: Integer; { $28 }
+    FProductionRatio: Single; { $2C }
     class function Priority: Integer; override;
     function Process: Boolean; override;
-    procedure ValidResearchCity(A1: Integer);  { draft }
-    procedure ValidResearchBudgetCity(A1: Integer);  { draft }
-    procedure ValidateResearchBudget(A1: Integer);  { draft }
-    procedure ResearchProduction(A1: Integer; A2: Integer);  { draft }
-    procedure ValidUpgradeCity(A1: Integer);  { draft }
-    procedure ValidUpgradeBudgetCity(A1: Integer);  { draft }
-    procedure UpgradeCity(A1: Integer);  { draft }
-    procedure ValidateUpgradeBudget(A1: Integer);  { draft }
-    procedure ValidFortifyCity(A1: Integer);  { draft }
-    procedure ValidFortifyBudgetCity(A1: Integer);  { draft }
-    procedure FortifyCity(A1: Integer);  { draft }
-    procedure ValidateFortifyBudget(A1: Integer);  { draft }
-    procedure UpgradeableCities(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateStatistics;  { draft }
+    function ValidResearchCity(City: TCity): Boolean;
+    function ValidResearchBudgetCity(City: TCity): Boolean;
+    procedure ValidateResearchBudget(Budget: TAIBudget);
+    function ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean;
+    function ValidUpgradeCity(City: TCity): Boolean;
+    function ValidUpgradeBudgetCity(City: TCity): Boolean;
+    function UpgradeCity(Budget: TAIBudget): Boolean;
+    procedure ValidateUpgradeBudget(Budget: TAIBudget);
+    function ValidFortifyCity(City: TCity): Boolean;
+    function ValidFortifyBudgetCity(City: TCity): Boolean;
+    function FortifyCity(Budget: TAIBudget): Boolean;
+    procedure ValidateFortifyBudget(Budget: TAIBudget);
+    function UpgradeableCities: Integer;
+    procedure UpdateStatistics;
   end;
 
   { TCityProductionEventLog (instance size 32, VMT 557A7C24) }
@@ -332,7 +332,7 @@ type
   public
     class function ClassID: Integer; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure GetCity;  { draft }
+    function GetCity: TCity;
   end;
 
   { TRegistrator (instance size 4, VMT 557AF144) }
@@ -344,8 +344,8 @@ function ProductionIDToCityAction(ID: Integer): TCityAction;
 function CityActionToProductionID(Action: TCityAction): Integer;
 function RaceInCity(Race, Player: Shortint): Boolean;
 function UnitLevelToCityLevel(Level, Size: Integer): Integer;
-procedure PlayerCities(A1: Byte);  { draft }
-procedure CityIncome(A1: Byte);  { draft }
+function PlayerCities(Player: Shortint): Integer;
+function CityIncome(Player: Shortint): Integer;
 
 implementation
 
@@ -362,6 +362,7 @@ const
   RaceTerrainTable: ^TRaceTerrainTable = @AoWE.RaceTerrain;
   StatusNames: ^TStatusNames = @AoWE.TStatusRStr;
   RaceNames: PRaceNames = @AoWE.RaceNamesPluralRStr;
+  CityEnchantmentNames: array[TCityEnchantmentID] of string = ('Fountain Of Life', 'Gold Rush', 'Anti Magic Shell', 'Warmonger');
   UpgradePrices: array[1..4] of Byte = (250, 250, 250, 250);
   WoodWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
   StoneWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
@@ -378,6 +379,8 @@ const
   XCropFieldsText: PResStringRec = @AoWE.XCropFieldsRStr;
   ProducingMerchandiseText: PResStringRec = @AoWE.ProducingMerchandiseRStr;
   GoldRushText: PResStringRec = @AoWE.GoldRushRStr;
+  CityText: PResStringRec = @AoWE.CityRStr;
+  RebellionText: PResStringRec = @AoWE.CityRebellionRStr;
   RaceRelationXText: PResStringRec = @AoWE.RaceRelationXRStr;
   TerrainPenaltyXText: PResStringRec = @AoWE.TerrainPenaltyXRStr;
   TerrainBonusXText: PResStringRec = @AoWE.TerrainBonusXRStr;
@@ -2076,93 +2079,466 @@ begin
 end;
 
 function TCity.JoinAmount(Player: Shortint): Integer;
+const JoinPercent: array[TStatus] of Integer = (200, 175, 150, 125, 100);
+var Armies: TArmyHSList; I: Integer; Army: TArmy; CanJoin: Boolean; Value: Integer;
 begin
   Result := 0;
+  Armies := TArmyHSList.Create(nil);
+  ListArmies(Armies);
+  I := Armies.Count;
+  CanJoin := True;
+  if I <> 0 then
+  begin
+    while (I <> 0) and CanJoin do
+    begin
+      Dec(I);
+      Army := Armies.GetArmyHS(I).FArmy;
+      CanJoin := Army.GetCanJoinSelection(Player) = Army.ValidateSelection($FF);
+      if CanJoin then Inc(Result, Army.JoinAmount(Player, $FF));
+    end;
+    if CanJoin then
+    begin
+      Value := GetObtainValue div 4;
+      Inc(Result, JoinPercent[WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(Player)] * Value div 100);
+    end
+    else Result := -1;
+  end
+  else if WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(Player) in [sPolite, sFriendly] then Result := 0
+  else Result := -1;
+  Armies.Free;
 end;
 
-procedure TCity.GetMoveAction(A1: Integer; A2: Integer);
-begin end;
+function TCity.GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction;
+begin
+  Result := Action;
+  if FPlayer = 0 then
+  begin
+    if (Action in [maNormal, maAttack]) and not GetRazed and not (cmWarmode in FMode) then
+      if JoinAmount(Player) <> -1 then Result := maNegotiate else Result := maAttack;
+  end
+  else if (FPlayer <> Player) and (FPlayer <> -1) then Result := maAttack;
+end;
 
-procedure TCity.IncommingNegotiateRequest(A1: Integer);
-begin end;
+function TCity.IncommingNegotiateRequest(Request: TNegotiateRequestEventLog): Boolean;
+var Amount: Integer;
+begin
+  if (FPlayer = 0) and not (cmWarmode in FMode) then
+  begin
+    Amount := JoinAmount(Request.FPlayer);
+    if Amount <> -1 then
+    begin
+      Request.FObject := noCity;
+      Request.FText := SysUtils.Format(TranslateRStr(CityJoinHeaderRStr), [GetName]);
+      Request.FGold := Amount;
+      if Request.FGold = 0 then Request.FJoinMessage.Text := TranslateRStr(CityFreeJoinRStr)
+      else Request.FJoinMessage.Text := SysUtils.Format(TranslateRStr(CityTributeJoinRStr), [IntToStr(Request.FGold)]);
+      Result := True;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TCity.IncommingNegotiateOffer(A1: Integer);
-begin end;
+function TCity.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
+var Amount, I: Integer; Armies: TArmyHSList; Log: TLocationTextEventLog;
+begin
+  if Offer.FObject = noCity then
+  begin
+    Amount := JoinAmount(Offer.FPlayer);
+    if (Offer.FOffer = noOfferBribe) and (Amount <= Offer.FGold) and (Amount <> -1) then
+    begin
+      if WorldMap^.FPlayers.GetPlayers(Offer.FPlayer).FGems >= Offer.FGold then
+      begin
+        SetPlayer(Offer.FPlayer);
+        Armies := TArmyHSList.Create(nil);
+        ListArmies(Armies);
+        for I := 0 to Armies.Count - 1 do
+          if Armies.GetArmyHS(I).FArmy.FPlayer = 0 then Armies.GetArmyHS(I).FArmy.SetPlayer(Offer.FPlayer);
+        Armies.Free;
+        Log := TLocationTextEventLog.Create(nil);
+        Log.FPlayer := FPlayer;
+        Log.FText := SysUtils.Format(TranslateRStr(XOverthrownRStr), [GetName]);
+        Log.SetLocation(GetXhx, GetYhx, GetLhx);
+        DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+        Log.Release;
+        Offer.Accept;
+      end
+      else WorldMap^.ShowMessage(TranslateRStr(NotEnoughGoldRStr));
+    end
+    else Offer.Reject;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TCity.GetEnemiesIndependentRelation(Player: Shortint): Shortint;
-begin Result := 0; end;
+var Units: TUnitUserList; I: Integer;
+begin
+  Units := TUnitUserList.Create(nil);
+  ListUnits(Units);
+  for I := Units.Count - 1 downto 0 do
+    if Units.GetUnit(I).CanJoin(Player) then Units.DeleteUnit(Units.GetUnit(I));
+  Result := UnitsToIndependentRelation(Units, FRace); { Original uses the race index as the default relation. }
+  Units.Free;
+end;
 
-procedure TCity.GetIndependentRelation;
-begin end;
+function TCity.GetIndependentRelation: Shortint;
+var Units: TUnitUserList;
+begin
+  Units := TUnitUserList.Create(nil);
+  ListUnits(Units);
+  Result := UnitsToIndependentRelation(Units, FRace); { Original uses the race index as the default relation. }
+  Units.Free;
+end;
 
-procedure TCity.ReturnBattleFieldInfo(A1: Integer);
-begin end;
+procedure TCity.ReturnBattleFieldInfo(var Info: TBattleFieldInfo);
+var Value: Integer; Relation: TDiplomaticRelation;
+begin
+  if (bfrEffectiveStrength in Info.Requests) and (FPlayer > 0) then
+  begin
+    Value := 5000;
+    if WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(FPlayer) in [sHostile, sWary] then Value := 10000;
+    Relation := DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, 0);
+    if Ord(Relation) in Info.FriendlyRelations then Dec(Info.FriendlyStrength, Value);
+    if Ord(Relation) in Info.EnemyRelations then Dec(Info.Strength, Value);
+  end;
+end;
 
 procedure TCity.UpdateVisibleForSeatedPlayer;
-begin end;
+var Visible: Boolean;
+begin
+  Visible := VisibleForPlayer(WorldMap^.FSeatedPlayer);
+  if FEnchantmentsVisible xor Visible then
+  begin
+    FEnchantmentsVisible := Visible;
+    if FEnchantments <> [] then WorldMap^.FGlobalMagicControl.TriggerChangedEvent;
+  end;
+end;
 
 procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  if not ((Msg.MsgID = $110C) and (FResource.TerrainList.Terrain[Msg.HN] >= 0)) then inherited MapFieldMsgProc(Msg);
+  if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
+  begin
+    if (Msg.MsgID = $110C) and (Msg.HN = 0) then
+    begin
+      if ((WorldMap^.FFogEnabled = 0) or not FFogged) and (FPlayer >= 0) then
+      begin
+        if FPlayer = 0 then Inc(Msg.Param[0], $D0000)
+        else Inc(Msg.Param[0], (WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerRace + 1) * $10000);
+      end
+      else Inc(Msg.Param[0], $E0000);
+      Inc(Msg.Param[0], (TCityResource(FResource).FSize - 1) * $400000);
+    end
+    else if Msg.MsgID = $1201 then Msg.Result := Integer(FProduction)
+    else if Msg.MsgID = $1108 then ReturnBattleFieldInfo(TBattleFieldInfo(Pointer(Msg.Param[0])^))
+    else if Msg.MsgID = $1107 then
+    begin
+      InitCombat(TCombat(Msg.Param[0]), TArmyHS(Msg.Param[1]));
+      Msg.Result := 1;
+    end
+    else if Msg.MsgID = $110D then UpdateVisibleForSeatedPlayer
+    else if Msg.MsgID = $1123 then
+    begin
+      if (FWallType <> 0) and not (cmWarmode in FMode) and not GetRazed then
+        if Self = TMapField(Msg.Param[0]).FindNoneTransparentHS(TCity) then Msg.Result := FWallType;
+    end
+    else if Msg.MsgID = $1125 then
+    begin
+      if FPlayer = 0 then Msg.Result := GetIndependentRelation;
+    end
+    else if Msg.MsgID = $110E then
+    begin
+      if IncommingNegotiateRequest(TNegotiateRequestEventLog(Msg.Param[0])) then Msg.Param[1] := 1;
+    end
+    else if Msg.MsgID = $110F then
+    begin
+      if IncommingNegotiateOffer(TNegotiateTE(Msg.Param[0])) then Msg.Result := 1;
+    end
+    else if (Msg.MsgID = $1129) and (ceiAntiMagicShell in FEnchantments) then Msg.Param[0] := 1;
+  end;
+end;
 
 function TCity.GetTopBorderImage: TLibraryImage;
-begin Result := nil; end;
+var Index: Integer; Sequences: TImageSequenceList;
+begin
+  Result := GetTopCityActionImage(GetActiveAction);
+  if Result = nil then
+  begin
+    if FRace <> -1 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(40)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(43);
+    end
+    else Result := nil;
+  end;
+  if cmRazed in FMode then
+  begin
+    Index := 42;
+    Sequences := FResource.ImageSequenceList;
+    if Sequences <> nil then
+    begin
+      if Sequences.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end;
+end;
 
 function TCity.GetMiddleBorderImage: TLibraryImage;
-begin Result := nil; end;
+var Index: Integer; Sequences: TImageSequenceList;
+begin
+  Result := GetMiddleCityActionImage(GetActiveAction);
+  if Result = nil then
+  begin
+    if FRace <> -1 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(41)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(44);
+    end
+    else Result := nil;
+  end;
+  if cmRazed in FMode then
+  begin
+    Index := 43;
+    Sequences := FResource.ImageSequenceList;
+    if Sequences <> nil then
+    begin
+      if Sequences.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end;
+end;
 
 function TCity.GetBottomBorderImage: TLibraryImage;
-begin Result := nil; end;
+var Index: Integer; Sequences: TImageSequenceList;
+begin
+  Result := GetBottomCityActionImage(GetActiveAction);
+  if Result = nil then
+  begin
+    if FRace >= 0 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(42)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(45);
+    end
+    else Result := nil;
+  end;
+  if cmRazed in FMode then
+  begin
+    Index := 44;
+    Sequences := FResource.ImageSequenceList;
+    if Sequences <> nil then
+    begin
+      if Sequences.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end;
+end;
 
-procedure TCity.GetTopCityActionImage(A1: Integer);
-begin end;
+function TCity.GetTopCityActionImage(Action: TCityAction): TLibraryImage;
+var Index: Integer;
+begin
+  if not (Action in [caNone, caTrade, caProduce]) then
+  begin
+    Index := -1;
+    case Action of
+      caUpgrade: Index := 33;
+      caFortify:
+        if FWallType = 0 then Index := 30
+        else if FWallType = 1 then Index := 48;
+      caMigrate: Index := 39;
+      caLoot: Index := 45;
+      caRaze: Index := 51;
+    end;
+    if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
+    begin
+      if FResource.ImageSequenceList.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end
+  else
+  begin
+    if FRace <> -1 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(40)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(43);
+    end
+    else Result := nil;
+  end;
+end;
 
-procedure TCity.GetMiddleCityActionImage(A1: Integer);
-begin end;
+function TCity.GetMiddleCityActionImage(Action: TCityAction): TLibraryImage;
+var Index: Integer;
+begin
+  if not (Action in [caNone, caTrade, caProduce]) then
+  begin
+    Index := -1;
+    case Action of
+      caUpgrade: Index := 34;
+      caFortify:
+        if FWallType = 0 then Index := 31
+        else if FWallType = 1 then Index := 49;
+      caMigrate: Index := 40;
+      caLoot: Index := 46;
+      caRaze: Index := 52;
+    end;
+    if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
+    begin
+      if FResource.ImageSequenceList.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end
+  else
+  begin
+    if FRace <> -1 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(41)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(44);
+    end
+    else Result := nil;
+  end;
+end;
 
-procedure TCity.GetBottomCityActionImage(A1: Integer);
-begin end;
+function TCity.GetBottomCityActionImage(Action: TCityAction): TLibraryImage;
+var Index: Integer;
+begin
+  if not (Action in [caNone, caTrade, caProduce]) then
+  begin
+    Index := -1;
+    case Action of
+      caUpgrade: Index := 35;
+      caFortify:
+        if FWallType = 0 then Index := 32
+        else if FWallType = 1 then Index := 50;
+      caMigrate: Index := 41;
+      caLoot: Index := 47;
+      caRaze: Index := 53;
+    end;
+    if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
+    begin
+      if FResource.ImageSequenceList.GetImageSequence(Index) <> nil then
+        Result := FResource.ImageSequenceList.GetImageSequence(Index).GetPreviewImage
+      else Result := nil;
+    end
+    else Result := nil;
+  end
+  else
+  begin
+    if FRace >= 0 then
+    begin
+      if GetLhx = 0 then Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(42)
+    else Result := WorldSet^.FRaceResources.GetRaceResource(FRace).FImageLibrary.GetSafe(45);
+    end
+    else Result := nil;
+  end;
+end;
 
 function TCity.GetCurrentActivityText: string;
-begin end;
+begin
+  if FProduction.FQueue.Count = 0 then Result := TranslateRStr(LoadResString(ProducingMerchandiseText))
+  else Result := FProduction.GetProductionNameProgressive(FProduction.FQueue.GetItem(0));
+end;
 
 procedure TCity.Select;
-begin end;
+begin
+  inherited Select;
+end;
 
 constructor TCityResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeable := True;
+end;
 
 class function TCityResource.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20109;
+end;
 
 class function TCityResource.ResourceEditName: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(LoadResString(CityText));
+end;
 
 function TCityResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20108;
+end;
 
 procedure TCityResource.ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity);
-begin end;
+var
+  Image: TLibraryImage;
+begin
+  X := FdXImage + X;
+  Y := Y + FdYImage;
+  Image := City.FWallBackImage;
+  if Image <> nil then Image.Show(X, Y, SurfaceDesc);
+  if City.FCityImage <> nil then
+    if City.GetSelected and ([msActivated, msEditting] <= WorldMap^.Status) then
+      City.FCityImage.ShowTransparent(X, Y, SurfaceDesc)
+    else City.FCityImage.Show(X, Y, SurfaceDesc);
+  Image := City.FWallFrontImage;
+  if Image <> nil then Image.Show(X, Y, SurfaceDesc);
+end;
 
 procedure TCityResource.ActivateMsg;
-begin end;
+var I: Integer;
+begin
+  FSize := 0;
+  for I := 0 to FTerrainList.Count - 1 do
+    if FTerrainList.Terrain[I] >= 0 then Inc(FSize);
+end;
 
 procedure TCityResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then ActivateMsg;
+end;
 
 class function TCityRebellionEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20112;
+end;
 
 procedure TCityRebellionEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FXhx, $14);
+  Stream.rwInteger(FYhx, $15);
+  Stream.rwInteger(FLhx, $16);
+  Stream.rwString(FCityName, $17);
+end;
 
 function TCityRebellionEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  Result := SysUtils.Format(TranslateRStr(LoadResString(RebellionText)), [FCityName]);
+end;
 
-procedure TCityRebellionEventLog.ViewLocation(A1: Integer; A2: Integer);
-begin end;
+procedure TCityRebellionEventLog.ViewLocation;
+begin
+  CenterViewTo(FXhx, FYhx, FLhx);
+end;
 
 function TCityRebellionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var ShowEvent: Boolean;
+begin
+  ShowEvent := Trigger = etUser;
+  ShowEvent := ShowEvent or ((WorldMap^.FPlayMode = pmTurn) and
+    (wpRebellion in WorldEngine^.FRegistry.GetClassicWindowPopupEvents));
+  ShowEvent := ShowEvent or ((WorldMap^.FPlayMode = pmSimultaneous) and
+    (wpRebellion in WorldEngine^.FRegistry.GetSimultaneousWindowPopupEvents));
+  if ShowEvent then Result := inherited Execute(Mode, Trigger, Done)
+  else Result := False;
+end;
 
 function TMigrationList.GetItems(Index: Integer): TMigrationItem;
 begin
@@ -2170,97 +2546,505 @@ begin
 end;
 
 constructor TCityEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FEnchantmentMode := FEnchantmentMode - [gemTrueGlobal, gemOwned];
+end;
 
 class function TCityEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202EC;
+end;
 
 procedure TCityEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FEnchantmentID, SizeOf(FEnchantmentID), $14);
+  Stream.rwInteger(FEnchantmentLocation.XYL, $15);
+end;
 
-procedure TCityEnchantment.VisibleForPlayer(A1: Integer; A2: Integer);
-begin end;
+function TCityEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
+begin
+  Result := GetCity.VisibleForPlayer(Player);
+end;
 
-procedure TCityEnchantment.GetLocation(A1: Integer; A2: Integer);
-begin end;
+function TCityEnchantment.GetLocation: TXYL;
+begin
+  Result.X := FEnchantmentLocation.X;
+  Result.Y := FEnchantmentLocation.Y;
+  Result.L := FEnchantmentLocation.L;
+end;
 
-procedure TCityEnchantment.Deactivate(A1: Byte);
-begin end;
+function TCityEnchantment.Deactivate(Player: Byte): Boolean;
+begin
+  if getActivated in FEnchantmentStatus then
+  begin
+    Result := inherited Deactivate(Player);
+    GetCity.DeactivateEnchantment(Self);
+  end
+  else Result := False;
+end;
 
-procedure TCityEnchantment.GetCity;
-begin end;
+function TCityEnchantment.GetCity: TCity;
+begin
+  Result := TCity(WorldMap^.MapContainer.GetField(FEnchantmentLocation.X,
+    FEnchantmentLocation.Y, FEnchantmentLocation.L).FindNoneTransparentHS(TCity));
+end;
 
-procedure TCityEnchantment.GetName(A1: Integer);
-begin end;
+function TCityEnchantment.GetName: string;
+begin
+  Result := TranslateRStr(CityEnchantmentNames[FEnchantmentID]);
+end;
 
-procedure TCityEnchantment.GetAIUpkeepPriority;
-begin end;
+function TCityEnchantment.GetAIUpkeepPriority: Integer;
+var City: TCity;
+begin
+  City := GetCity;
+  if City <> nil then Result := City.AICityEnchantmentUpkeepPriority(FEnchantmentID)
+  else Result := 0;
+end;
 
 class function TAICityUpgradeBudget.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20115;
+end;
 
 class function TAICityResearchBudget.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20116;
+end;
 
 class function TAICityFortifyBudget.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20117;
+end;
 
 class function TCityAIPA.Priority: Integer;
-begin Result := 0; end;
+begin
+  Result := 13;
+end;
 
-procedure TCityAIPA.ValidResearchCity(A1: Integer);
-begin end;
+function TCityAIPA.ValidResearchCity(City: TCity): Boolean;
+begin
+  Result := City.FProduction.GetProduceUnitLevelMax < City.FUpgradeLevel;
+  Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+end;
 
-procedure TCityAIPA.ValidResearchBudgetCity(A1: Integer);
-begin end;
+function TCityAIPA.ValidResearchBudgetCity(City: TCity): Boolean;
+begin
+  Result := (City.FProduction.GetProduceUnitLevelMax <> City.FUpgradeLevel) or (City.GetActiveAction = caUpgrade);
+end;
 
-procedure TCityAIPA.ValidateResearchBudget(A1: Integer);
-begin end;
+procedure TCityAIPA.ValidateResearchBudget(Budget: TAIBudget);
+var
+  Player: TPlayer;
+  I, Count, Total, Priority: Integer;
+  Structure: TPlayerStructure;
+begin
+  Player := FControl.FPlayer;
+  Count := 0;
+  Total := 0;
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    Structure := Player.FStructures.GetStructure(I);
+    if Structure is TCity then
+    begin
+      Inc(Total);
+      if ValidResearchBudgetCity(TCity(Structure)) then Inc(Count);
+    end;
+  end;
+  if Count = 0 then
+  begin
+    Player.FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+    Budget.FGold := 0;
+    Budget.FMana := 0;
+    Budget.FRequiredGold := 0;
+    Budget.FPriority := 7;
+  end
+  else
+  begin
+    Budget.FRequiredGold := 125;
+    Priority := 7 - (Count * Total) div 3;
+    if Priority < 3 then Priority := 3;
+    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+  end;
+end;
 
-procedure TCityAIPA.ResearchProduction(A1: Integer; A2: Integer);
-begin end;
+function TCityAIPA.ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean;
+var
+  Player: TPlayer;
+  Cities: TDoubleItemList;
+  I, J, UnitIndex, Index, Value: Integer;
+  Structure: TPlayerStructure;
+  City: TCity;
+  Valid: Boolean;
+  Production: TProductionItem;
+begin
+  Result := False;
+  Player := FControl.FPlayer;
+  Cities := TDoubleItemList.Create;
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    Structure := Player.FStructures.GetStructure(I);
+    if (Structure is TCity) and ValidResearchCity(TCity(Structure)) then
+    begin
+      City := TCity(Structure);
+      Valid := False;
+      for J := City.FProduction.FUnitProductions.Count - 1 downto 0 do
+      begin
+        UnitIndex := City.FProduction.FUnitProductions.GetItem(J).FUnitIndex;
+        if UnitIndex <> -1 then
+          Valid := Valid or ((WorldSet^.FUnitResources.GetUnitResource(UnitIndex).FLevel = City.FUpgradeLevel) and
+            not City.FProduction.FUnitProductions.GetItem(J).FResearched and
+            (City.ResearchCost(J) <= ResearchBudget.FGold + UpgradeBudget.FGold));
+      end;
+      if Valid then Cities.AddAB(Integer(City), City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3));
+    end;
+  end;
+  Cities.SortDescendingItemB;
+  if Cities.Count <> 0 then
+  begin
+    Index := 0;
+    Value := Round(Cities[0].B * 0.75);
+    while (Index + 1 < Cities.Count) and (Value <= Cities[Index + 1].B) do Inc(Index);
+    Index := WorldMap^.Random(Index + 1);
+    City := TCity(Cities[Index].A);
+    RandomSeed^ := WorldMap^.Random($FFFFFF);
+    Index := TCity(Cities[Index].A).FProduction.FindOptimalResearchProduction(nil, ResearchBudget.FGold + UpgradeBudget.FGold);
+    if Index <> -1 then
+    begin
+      City.FProduction.ExecuteDeleteProductions;
+      Production := TProductionItem.Create(nil);
+      Production.FProductionID := 2;
+      Production.FParameter := Index;
+      City.FProduction.ExecuteAddProduction(Production);
+      Production.Free;
+      Value := City.ResearchCost(Index);
+      if Value > ResearchBudget.FGold then
+      begin
+        Dec(Value, ResearchBudget.FGold);
+        Player.FAIBudget.BudgetExpenseMade(ResearchBudget.FGold, 0, ResearchBudget, bemBudget);
+        Player.FAIBudget.BudgetExpenseMade(Value, 0, UpgradeBudget, bemBudget);
+      end
+      else Player.FAIBudget.BudgetExpenseMade(Value, 0, ResearchBudget, bemBudget);
+      Result := True;
+    end;
+  end;
+  Cities.Free;
+end;
 
-procedure TCityAIPA.ValidUpgradeCity(A1: Integer);
-begin end;
+function TCityAIPA.ValidUpgradeCity(City: TCity): Boolean;
+var Reason: string; Level: Integer;
+begin
+  Level := City.FProduction.GetProduceUnitLevelMax;
+  Result := City.CanUpgrade(False, Reason);
+  Result := Result and (City.GetSize > City.FUpgradeLevel) and
+    not ((Level = FMaxProductionLevel) and (FProductionLevelCounts[Level] = 1)) and
+    (Level = City.FUpgradeLevel);
+  Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+end;
 
-procedure TCityAIPA.ValidUpgradeBudgetCity(A1: Integer);
-begin end;
+function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean;
+var Level: Integer;
+begin
+  Level := City.FProduction.GetProduceUnitLevelMax;
+  Result := (City.GetSize > City.FUpgradeLevel) and (Level = City.FUpgradeLevel);
+end;
 
-procedure TCityAIPA.UpgradeCity(A1: Integer);
-begin end;
+function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean;
+var
+  Player: TPlayer;
+  Cities: TDoubleItemList;
+  I, Priority: Integer;
+  City: TCity;
+  Production: TProductionItem;
+begin
+  Player := FControl.FPlayer;
+  Cities := TDoubleItemList.Create;
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    City := TCity(Player.FStructures.GetStructure(I));
+    if (City is TCity) and ValidUpgradeCity(City) then
+    begin
+      Priority := City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3);
+      Cities.AddAB(Integer(City), Priority);
+    end;
+  end;
+  Cities.SortDescendingItemB;
+  Result := Cities.Count <> 0;
+  if Result then
+  begin
+    with Cities[0] do
+    begin
+    TCity(A).FProduction.ExecuteDeleteProductions;
+    Production := TProductionItem.Create(nil);
+    Production.FProductionID := CityActionToProductionID(caUpgrade);
+    TCity(A).FProduction.ExecuteAddProduction(Production);
+    Production.Free;
+    Player.FAIBudget.BudgetExpenseMade(250, 0, Budget, bemBudget);
+    end;
+  end;
+  Cities.Free;
+end;
 
-procedure TCityAIPA.ValidateUpgradeBudget(A1: Integer);
-begin end;
+procedure TCityAIPA.ValidateUpgradeBudget(Budget: TAIBudget);
+var
+  Player: TPlayer;
+  I, Count, Priority: Integer;
+  Structure: TPlayerStructure;
+begin
+  Player := FControl.FPlayer;
+  Count := 0;
 
-procedure TCityAIPA.ValidFortifyCity(A1: Integer);
-begin end;
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    Structure := Player.FStructures.GetStructure(I);
+    if Structure is TCity then
+    begin
 
-procedure TCityAIPA.ValidFortifyBudgetCity(A1: Integer);
-begin end;
+      if ValidUpgradeBudgetCity(TCity(Structure)) then Inc(Count);
+    end;
+  end;
+  if Count = 0 then
+  begin
+    Player.FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+    Budget.FGold := 0;
+    Budget.FMana := 0;
+    Budget.FRequiredGold := 0;
+    Budget.FPriority := 7;
+  end
+  else
+  begin
+    Budget.FRequiredGold := 250;
+    Priority := 8 - Count div 2;
+    if Priority < 5 then Priority := 5;
+    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+  end;
+end;
 
-procedure TCityAIPA.FortifyCity(A1: Integer);
-begin end;
+function TCityAIPA.ValidFortifyCity(City: TCity): Boolean;
+var Reason: string;
+begin
+  Result := City.CanFortify(False, Reason);
+  Result := (Result and (City.FWallType = 0)) or
+    ((City.FWallType = 1) and (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
+  Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+end;
 
-procedure TCityAIPA.ValidateFortifyBudget(A1: Integer);
-begin end;
+function TCityAIPA.ValidFortifyBudgetCity(City: TCity): Boolean;
+begin
+  Result := (City.FWallType = 0) or ((City.FWallType = 1) and
+    (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
+end;
 
-procedure TCityAIPA.UpgradeableCities(A1: Integer; A2: Integer);
-begin end;
+function TCityAIPA.FortifyCity(Budget: TAIBudget): Boolean;
+var
+  Player: TPlayer;
+  Cities: TDoubleItemList;
+  I, Priority: Integer;
+  City: TCity;
+  Production: TProductionItem;
+begin
+  Player := FControl.FPlayer;
+  Cities := TDoubleItemList.Create;
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    City := TCity(Player.FStructures.GetStructure(I));
+    if (City is TCity) and ValidFortifyCity(City) then
+    begin
+      Priority := City.GetSize * 2 + City.FProductionPriority;
+      if City.FWallType = 0 then Inc(Priority, 3);
+      Cities.AddAB(Integer(City), Priority);
+    end;
+  end;
+  Cities.SortDescendingItemB;
+  Result := Cities.Count <> 0;
+  if Result then
+  begin
+    with Cities[0] do
+    begin
+    TCity(A).FProduction.ExecuteDeleteProductions;
+    Player.FAIBudget.BudgetExpenseMade(TCity(A).FortifyCost, 0, Budget, bemBudget);
+    Production := TProductionItem.Create(nil);
+    Production.FProductionID := CityActionToProductionID(caFortify);
+    TCity(A).FProduction.ExecuteAddProduction(Production);
+    Production.Free;
+    end;
+  end;
+  Cities.Free;
+end;
+
+procedure TCityAIPA.ValidateFortifyBudget(Budget: TAIBudget);
+var
+  Player: TPlayer;
+  I, Count, Priority: Integer;
+  Structure: TPlayerStructure;
+begin
+  Player := FControl.FPlayer;
+  Count := 0;
+
+  for I := Player.FStructures.Count - 1 downto 0 do
+  begin
+    Structure := Player.FStructures.GetStructure(I);
+    if Structure is TCity then
+    begin
+
+      if ValidFortifyBudgetCity(TCity(Structure)) then Inc(Count);
+    end;
+  end;
+  if Count = 0 then
+  begin
+    Player.FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+    Budget.FGold := 0;
+    Budget.FMana := 0;
+    Budget.FRequiredGold := 0;
+    Budget.FPriority := 7;
+  end
+  else
+  begin
+    Budget.FRequiredGold := 80;
+    Priority := 8 - Count div 2;
+    if Priority < 4 then Priority := 4;
+    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+  end;
+end;
+
+function TCityAIPA.UpgradeableCities: Integer;
+var I: Integer; Structure: TPlayerStructure; City: TCity;
+begin
+  Result := 0;
+  for I := FControl.FPlayer.FStructures.Count - 1 downto 0 do
+  begin
+    Structure := FControl.FPlayer.FStructures.GetStructure(I);
+    if Structure is TCity then
+    begin
+      City := TCity(Structure);
+      if City.GetSize > City.FUpgradeLevel then Inc(Result);
+    end;
+  end;
+end;
 
 procedure TCityAIPA.UpdateStatistics;
-begin end;
+var
+  I, Level, Available, Busy: Integer;
+  City: TCity;
+begin
+  FCityCount := 0;
+  FMaxProductionLevel := 0;
+  Available := 0;
+  Busy := 0;
+  FillChar(FProductionLevelCounts, SizeOf(FProductionLevelCounts), 0);
+  for I := FControl.FPlayer.FStructures.Count - 1 downto 0 do
+    if FControl.FPlayer.FStructures.GetStructure(I) is TCity then
+    begin
+      Inc(FCityCount);
+      City := TCity(FControl.FPlayer.FStructures.GetStructure(I));
+      if City.GetActiveAction in [caNone, caTrade, caProduce] then
+      begin
+        Inc(Available, (City.GetSize + 1) div 2);
+        Level := City.FProduction.GetProduceUnitLevelMax;
+        if Level > 0 then Inc(FProductionLevelCounts[Level]);
+        if Level > FMaxProductionLevel then FMaxProductionLevel := Level;
+      end
+      else Inc(Busy, (City.GetSize + 1) div 2);
+    end;
+  if FCityCount <> 0 then FProductionRatio := Round(Available / (Available + Busy)) { Original rounds the fraction before storing it. }
+  else FProductionRatio := 0;
+end;
 
 function TCityAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Player: TPlayer;
+  Manager: TAIBudgetManager;
+  UpgradeBudget, ResearchBudget, FortifyBudget: TAIBudget;
+begin
+  UpdateStatistics;
+  Player := FControl.FPlayer;
+  if Player.FPlayerIndex <> 0 then
+  begin
+    Manager := Player.FAIBudget;
+    UpgradeBudget := TAIBudget(Manager.FBudgets.FindChild($20115));
+    if UpgradeBudget = nil then
+    begin
+      UpgradeBudget := TAICityUpgradeBudget.Create(nil);
+      UpgradeBudget.Owner := Manager.FBudgets;
+      UpgradeBudget.FRequiredGold := 250;
+      UpgradeBudget.FPriority := 7;
+    end;
+    ResearchBudget := TAIBudget(Manager.FBudgets.FindChild($20116));
+    if ResearchBudget <> nil then
+    begin
+      if ResearchBudget.FGold + UpgradeBudget.FGold > 125 then
+        if ResearchProduction(ResearchBudget, UpgradeBudget) then
+        begin
+          ResearchBudget.FPriority := 7;
+          ResearchBudget.FRequiredGold := 125;
+        end;
+    end
+    else
+    begin
+      ResearchBudget := TAICityResearchBudget.Create(nil);
+      ResearchBudget.FPriority := 7;
+      ResearchBudget.FRequiredGold := 125;
+      ResearchBudget.Owner := Manager.FBudgets;
+    end;
+    ValidateResearchBudget(ResearchBudget);
+    if UpgradeBudget.GetReady then
+      if UpgradeCity(UpgradeBudget) then
+      begin
+        UpgradeBudget.FRequiredGold := 250;
+        UpgradeBudget.FPriority := 7;
+      end;
+    ValidateUpgradeBudget(UpgradeBudget);
+    FortifyBudget := TAIBudget(Manager.FBudgets.FindChild($20117));
+    if FortifyBudget = nil then
+    begin
+      if WorldMap^.FDay > 5 then
+      begin
+        FortifyBudget := TAICityFortifyBudget.Create(nil);
+        FortifyBudget.FPriority := 7;
+        FortifyBudget.FRequiredGold := 80;
+        FortifyBudget.Owner := Manager.FBudgets;
+      end;
+    end
+    else if FortifyBudget.GetReady then
+      if FortifyCity(FortifyBudget) then
+      begin
+        FortifyBudget.FPriority := 7;
+        FortifyBudget.FRequiredGold := 80;
+      end;
+    if FortifyBudget <> nil then ValidateFortifyBudget(FortifyBudget);
+  end;
+  Result := False;
+end;
 
 class function TCityProductionEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202FA;
+end;
 
-procedure TCityProductionEventLog.GetCity;
-begin end;
+function TCityProductionEventLog.GetCity: TCity;
+begin
+  Result := TCity(WorldMap^.MapContainer.GetField(FXhx, FYhx, FLhx).FindNoneTransparentHS(TCity));
+end;
 
 function TCityProductionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var City: TCity;
+begin
+  if Trigger = etUser then
+  begin
+    City := GetCity;
+    if (City <> nil) and (WorldMap^.FSeatedPlayer = City.FPlayer) then
+    begin
+      WorldMap^.CenterViewTo(FXhx, FYhx, FLhx);
+      WorldMap^.TriggerExecuteEventLog(Self, True, Done);
+    end;
+  end;
+  Result := False;
+end;
 
 function ProductionIDToCityAction(ID: Integer): TCityAction;
 begin
@@ -2310,11 +3094,43 @@ begin
   Result := Level;
 end;
 
-procedure PlayerCities(A1: Byte);
-begin end;
+function PlayerCities(Player: Shortint): Integer;
+var
+  P: TPlayer;
+  I: Integer;
+  Structure: TPlayerStructure;
+begin
+  if WorldMap^ = nil then Result := 0
+  else
+  begin
+    P := WorldMap^.FPlayers.GetPlayers(Player);
+    Result := 0;
+    for I := 0 to P.FStructures.Count - 1 do
+    begin
+      Structure := P.FStructures.GetStructure(I);
+      if (Structure.ClassID = $20108) and (Structure.FPlayer = Player) then Inc(Result, 1);
+    end;
+  end;
+end;
 
-procedure CityIncome(A1: Byte);
-begin end;
+function CityIncome(Player: Shortint): Integer;
+var
+  P: TPlayer;
+  I: Integer;
+  Structure: TPlayerStructure;
+begin
+  if WorldMap^ = nil then Result := -1
+  else
+  begin
+    P := WorldMap^.FPlayers.GetPlayers(Player);
+    Result := 0;
+    for I := 0 to P.FStructures.Count - 1 do
+    begin
+      Structure := P.FStructures.GetStructure(I);
+      if (Structure.ClassID = $20108) and (Structure.FPlayer = Player) then Inc(Result, TCity(Structure).FIncome);
+    end;
+  end;
+end;
 
 
 initialization

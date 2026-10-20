@@ -72,7 +72,7 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
   end;
 
   { TPowerSource (instance size 8, VMT 5570AE18) }
@@ -173,8 +173,8 @@
   public
     F_GlobalEnchantment_08: Integer;
     F_GlobalEnchantment_0C: Integer;
-    F_GlobalEnchantment_10: Byte;
-    F_GlobalEnchantment_11: Byte;
+    FEnchantmentStatus: TGlobalEnchantmentStatus; { $10 }
+    FEnchantmentMode: TGlobalEnchantmentMode; { $11 }
     F_GlobalEnchantment_12: array[0..1] of Byte;
     FEnchantmentSpellID: Integer; { $14 }
     F_GlobalEnchantment_18: Byte;
@@ -187,12 +187,12 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure GetName(A1: Integer); virtual;  { +04C draft }
+    function GetName: string; virtual;  { +04C }
     procedure GetUpkeep; virtual;  { +050 draft }
-    procedure GetLocation(A1: Integer; A2: Integer); virtual;  { +054 draft }
-    procedure GetAIUpkeepPriority; virtual;  { +058 draft }
+    function GetLocation: TXYL; virtual;  { +054 }
+    function GetAIUpkeepPriority: Integer; virtual;  { +058 }
     procedure CanDeactivate(A1: Integer; A2: Integer); virtual;  { +05C draft }
-    procedure Deactivate(A1: Byte); virtual;  { +060 draft }
+    function Deactivate(Player: Byte): Boolean; virtual;  { +060 }
     procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +064 draft }
     procedure Activate(A1: Byte); virtual;
     procedure CanCast; virtual;  { +06C draft }
@@ -201,7 +201,7 @@
     procedure Dispel(A1: Byte); virtual;  { +078 draft }
     procedure CanRemove(A1: Byte; A2: Integer); virtual;  { +07C draft }
     procedure Remove(A1: Byte); virtual;  { +080 draft }
-    procedure VisibleForPlayer(A1: Integer; A2: Integer); virtual;  { +084 draft }
+    function VisibleForPlayer(Player: Shortint): Boolean; virtual;  { +084 }
     procedure CenterToLocation(A1: Integer; A2: Integer); virtual;  { +088 draft }
     procedure Setup(A1: Integer; A2: Integer);  { draft }
   end;
@@ -257,7 +257,7 @@
     procedure RemovePlayerEnchantments(Player: Shortint);
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
-    procedure TriggerChangedEvent;  { draft }
+    procedure TriggerChangedEvent;
     procedure Update;  { draft }
     procedure GetEnchantmentUpkeep(A1: Integer);  { draft }
     procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }

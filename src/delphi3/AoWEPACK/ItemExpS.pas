@@ -2,7 +2,8 @@ unit ItemExpS;
 
 { Draft declarations of ItemExpS, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TExplorationSiteItemList and TItemExplorationSite bodies are recovered;
+  the event-log and resource bodies below remain for the next pass. }
 
 interface
 
@@ -22,12 +23,12 @@ type
     destructor Destroy; override;
   end;
 
-  { TItemExplorationSite (instance size 64, VMT 557C23BC) }
+  { TItemExplorationSite (instance size 64, VMT 557C23BC): $38 FItemCount, $3C FItems. }
   TItemExplorationSite = class(TExplorationSite)
   public
-    F_ItemExplorationSite_38: Byte;
+    FItemCount: Byte; { $38; 0 user-defined, 4 random }
     F_ItemExplorationSite_39: array[0..2] of Byte;
-    F_ItemExplorationSite_3C: Integer;
+    FItems: TExplorationSiteItemList; { $3C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -38,16 +39,17 @@ type
     function GetExplored: Boolean; override;
     procedure SetupCombat(A1: TCombat; A2: TArmyHS); override;
     procedure ExecuteSearchDone(A1: TCombatType; A2: TCombatResult); override;
-    procedure Generate; virtual;  { +204 draft }
+    procedure Generate; virtual; { +204 }
   end;
 
-  { TItemExplorationSiteEventLog (instance size 40, VMT 557C264C) }
+  { TItemExplorationSiteEventLog (instance size 40, VMT 557C264C):
+    $18 FItemIDs, $1C FMessages, $20 FTitle, $24 FLocation. }
   TItemExplorationSiteEventLog = class(TEventLog)
   public
-    F_ItemExplorationSiteEventLog_18: array[0..3] of Byte;
-    F_ItemExplorationSiteEventLog_1C: Integer;
-    F_ItemExplorationSiteEventLog_20: Integer;
-    F_ItemExplorationSiteEventLog_24: array[0..3] of Byte;
+    FItemIDs: TIntegerList; { $18 }
+    FMessages: TStringList; { $1C }
+    FTitle: string; { $20 }
+    FLocation: TXYL; { $24 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -64,41 +66,118 @@ procedure RegisterItemExplorationSite(A1: Integer; A2: Integer; A3: Integer);  {
 
 implementation
 
+type
+  PAoWMap = ^TAoWHSMap;
+const
+  WorldMap: PAoWMap = @AoWE.AoWHSMap;
+  RandomSeed: ^Integer = @System.RandSeed;
+  ItemsFoundText: PResStringRec = @AoWE.ItemsFoundRStr;
+  ItemsExploredText: PResStringRec = @AoWE.ItemsExploredRStr;
+  AllItemTypes: TItemTypes = [itHead, itTorso, itAttack, itDefense, itRing, itScroll, itUse];
+
 destructor TExplorationSiteItemList.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 constructor TItemExplorationSite.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FItems := TExplorationSiteItemList.Create(nil);
+  FItemCount := 2;
+end;
 
 destructor TItemExplorationSite.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FItems.Free;
+  FItems := nil;
+end;
 
 class function TItemExplorationSite.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $203F3;
+end;
 
 procedure TItemExplorationSite.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FItems, 8);
+  Stream.rwData(FItemCount, SizeOf(FItemCount), 9);
+end;
 
 procedure TItemExplorationSite.Activate;
-begin end;
+begin
+  inherited Activate;
+  FItems.RegisterItems;
+end;
 
 procedure TItemExplorationSite.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+end;
 
 function TItemExplorationSite.GetExplored: Boolean;
-begin Result := False; end;
+begin
+  Result := FItems.Count = 0;
+end;
 
 procedure TItemExplorationSite.Generate;
-begin end;
+var I: Byte; Item: TItem;
+begin
+  if FItemCount <> 0 then
+  begin
+    RandomSeed^ := WorldMap^.Random($FFFFFF);
+    if FItemCount = 4 then FItemCount := WorldMap^.Random(3) + 1;
+    FItems.Clear;
+    for I := 1 to FItemCount do
+    begin
+      Item := WorldMap^.FItemControl.GenerateItem(AllItemTypes, 0, $FFFF);
+      if Item <> nil then Item.Owner := FItems;
+    end;
+  end;
+end;
 
 procedure TItemExplorationSite.SetupCombat(A1: TCombat; A2: TArmyHS);
-begin end;
+begin
+  inherited SetupCombat(A1, A2);
+  A1.FItems := FItems;
+end;
 
 procedure TItemExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
-begin end;
+var
+  Army: TArmyHS;
+  Log: TItemExplorationSiteEventLog;
+  I: Integer;
+  Item: TItem;
+begin
+  if A2 in [crVictory, crNoDefenders] then
+  begin
+    Army := TArmyHS(Owner.FindOwnedChild($20217));
+    Log := TItemExplorationSiteEventLog.Create(nil);
+    Log.FPlayer := Army.FArmy.FPlayer;
+    Log.FTitle := TranslateRStr(LoadResString(ItemsFoundText));
+    Log.FLocation.X := GetXhx;
+    Log.FLocation.Y := GetYhx;
+    Log.FLocation.L := GetLhx;
+    for I := FItems.Count - 1 downto 0 do
+    begin
+      Item := FItems.GetItem(I);
+      Log.FItemIDs.Add(Item.FItemID);
+      Item.PlaceOnMap(WorldMap^, GetXhx, GetYhx, GetLhx);
+    end;
+    Log.FMessages.CommaText := SysUtils.Format(TranslateRStr(LoadResString(ItemsExploredText)), [FResource.ResourceEditName]);
+    Log.Execute(False, etEvent, nil);
+    Log.Release;
+    Update;
+  end;
+end;
 
 procedure TItemExplorationSite.NewDay;
-begin end;
+begin
+  inherited NewDay;
+  if WorldMap^.FDay = 1 then Generate;
+end;
 
 constructor TItemExplorationSiteEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;

@@ -5765,8 +5765,8 @@ begin end;
 procedure TProductionControl.Deactivate;
 begin end;
 
-procedure TProductionControl.GetProduceUnitLevelMax;
-begin end;
+function TProductionControl.GetProduceUnitLevelMax: Integer;
+begin Result := 0; end;
 
 procedure TProductionControl.GetResearchUnitLevelMax;
 begin end;
@@ -5912,8 +5912,8 @@ begin end;
 function TProductionControl.GetProductionNameProgressive(Item: TProductionItem): string;
 begin end;
 
-procedure TProductionControl.FindOptimalResearchProduction(A1: Integer; A2: Integer);
-begin end;
+function TProductionControl.FindOptimalResearchProduction(Predictor: TCombatPredictor; Gold: Integer): Integer;
+begin Result := 0; end;
 
 function TProductionControlList.GetPC(Index: Integer): TProductionControl;
 begin Result := nil; end;
@@ -6065,8 +6065,8 @@ begin end;
 procedure TStructure.SetRazed(Value: Boolean);
 begin end;
 
-procedure TStructure.VisibleForPlayer(A1: Byte);
-begin end;
+function TStructure.VisibleForPlayer(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TStructure.ValidateObservation(A1: Byte);
 begin end;
@@ -6116,7 +6116,7 @@ begin Result := dpNone; end;
 function TStructure.GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean;
 begin Result := False; end;
 
-procedure TStructure.ListUnits(A1: Integer);
+procedure TStructure.ListUnits(List: TUnitList);
 begin end;
 
 procedure TStructure.ListArmies(List: TArmyHSList);
@@ -6320,8 +6320,8 @@ begin Result := 0; end;
 procedure TPlayerStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin end;
 
-procedure TPlayerStructure.GetMoveAction(A1: Integer; A2: Integer);
-begin end;
+function TPlayerStructure.GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction;
+begin Result := maNormal; end;
 
 procedure TPlayerStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;

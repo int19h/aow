@@ -2233,7 +2233,7 @@ begin
   end;
 end;
 
-procedure TCombatEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TCombatEventLog.ViewLocation;
 { needs: EventLog.TEventLog.CenterViewTo has three Byte arguments. }
 asm
   MOV EDX, [EAX+$18]

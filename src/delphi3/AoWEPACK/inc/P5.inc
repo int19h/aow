@@ -196,7 +196,7 @@ begin
   Stream.rwByte(FX, $20);
   Stream.rwByte(FY, $21);
   Stream.rwByte(FL, $22);
-  Stream.rwByte(FPlayer, $23);
+  Stream.rwByte(Byte(FPlayer), $23);
   Stream.rwByte(FOwnerPlayer, $24);
   Stream.rwData(FObject, SizeOf(FObject), $25);
   Stream.rwInteger(FMovePoints, $26);
@@ -1752,7 +1752,7 @@ begin
       begin
         Item := TItem(Item.Copy(AoWEngine));
         Item.SetOwner(FItems);
-        Item.FHeroID := FLeader.FUnitID;
+        Item.FItemID := FLeader.FUnitID;
         Item.Release;
       end;
     end;
@@ -1764,7 +1764,7 @@ begin
       begin
         Item := TItem(Item.Copy(AoWEngine));
         Item.SetOwner(FItems);
-        Item.FHeroID := FLeader.FUnitID;
+        Item.FItemID := FLeader.FUnitID;
         Item.Release;
       end;
     end;
@@ -1790,7 +1790,7 @@ begin
             begin
               Item := TItem(Item.Copy(AoWEngine));
               Item.SetOwner(FItems);
-              Item.FHeroID := Hero.FUnitID;
+              Item.FItemID := Hero.FUnitID;
               Item.Release;
             end;
           end;
@@ -1802,7 +1802,7 @@ begin
             begin
               Item := TItem(Item.Copy(AoWEngine));
               Item.SetOwner(FItems);
-              Item.FHeroID := Hero.FUnitID;
+              Item.FItemID := Hero.FUnitID;
               Item.Release;
             end;
           end;
@@ -2031,7 +2031,7 @@ begin
       for J := FSelectedItems.Count - 1 downto 0 do
       begin
         Item := FItems.GetItem(FSelectedItems[J]);
-        if Leader.FUnitID = Item.FHeroID then
+        if Leader.FUnitID = Item.FItemID then
         begin
           Item := TItem(FItems.GetItem(FSelectedItems[J]).Copy(AoWEngine));
           if Leader.AutoPlaceItem(Item) then FSelectedItems.Delete(J);
@@ -2055,7 +2055,7 @@ begin
       for J := FSelectedItems.Count - 1 downto 0 do
       begin
         Item := FItems.GetItem(FSelectedItems[J]);
-        if Hero.FUnitID = Item.FHeroID then
+        if Hero.FUnitID = Item.FItemID then
         begin
           Item := TItem(FItems.GetItem(FSelectedItems[J]).Copy(AoWEngine));
           if Hero.AutoPlaceItem(Item) then FSelectedItems.Delete(J);

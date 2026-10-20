@@ -102,6 +102,6 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
   end;
 

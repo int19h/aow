@@ -6,6 +6,7 @@
   public
     FFaceLibrary: TCustomImageLibrary; { $18 }
     FImageLibrary: TCustomImageLibrary; { $1C }
+    { conflict: FImageLibrary: TImageLibrary; }
     FImageLibraryName: string; { $20 }
     FName: string; { $24 }
     FRaceName: string;  { $28 }
@@ -132,9 +133,9 @@
     function ExecuteAI(Player: Shortint; Phase: Integer): Boolean; virtual;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); virtual;
     procedure Update; virtual;  { +1C8 draft }
-    procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }
+    function VisibleForPlayer(Player: Shortint): Boolean; virtual;
     function CanDblClick: Boolean; virtual;
-    procedure ListUnits(A1: Integer); virtual;  { +1D4 draft }
+    procedure ListUnits(List: TUnitList); virtual;
     procedure ListArmies(List: TArmyHSList); virtual;
     procedure GetRebuildInfo(var Cost, Time: Integer); virtual;
     procedure CanRebuild(A1: Integer; A2: Integer); virtual;  { +1E0 draft }
@@ -273,7 +274,7 @@
     procedure FinalizeCombat(Combat: TCombat); virtual;
     function GetCombatEventText(Combat: TCombat): string; virtual; { +210; $557D066C }
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
-    procedure GetMoveAction(A1: Integer; A2: Integer); virtual;  { +218 draft }
+    function GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction; virtual;
     function GetDefaultAITargetPriority: Integer; virtual;
     function UpdatePlayer: Boolean; virtual;
     procedure GetVictoryLocation(A1: Byte);  { draft }

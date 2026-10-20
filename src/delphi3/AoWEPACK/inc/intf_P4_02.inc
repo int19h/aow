@@ -1017,7 +1017,7 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
   end;
 
   { TUnitSpellCaster (instance size 28, VMT 55723318; $14 target-unit users, $18 selection bits) }

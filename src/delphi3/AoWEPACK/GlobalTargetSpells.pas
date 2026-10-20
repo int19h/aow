@@ -149,9 +149,9 @@ type
   public
     FWatcher: TWatcherHS;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetName(A1: Integer); override;
-    procedure GetLocation(A1: Integer; A2: Integer); override;
-    procedure Deactivate(A1: Byte); override;
+    function GetName: string; override;
+    function GetLocation: TXYL; override;
+    function Deactivate(Player: Byte): Boolean; override;
   end;
 
   { TWatcherHS (instance size 32, VMT 5579D7A0): $0C state, $0D unfog
@@ -1298,17 +1298,17 @@ end;
 constructor TWatcherEnchantment.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  TGlobalEnchantmentMode(F_GlobalEnchantment_11) :=
-    TGlobalEnchantmentMode(F_GlobalEnchantment_11) - [gemTrueGlobal, gemOwned];
+  TGlobalEnchantmentMode(FEnchantmentMode) :=
+    TGlobalEnchantmentMode(FEnchantmentMode) - [gemTrueGlobal, gemOwned];
   FEnchantmentSpellID := 50;
 end;
 
-procedure TWatcherEnchantment.GetName(A1: Integer);
+function TWatcherEnchantment.GetName: string;
 begin
-  PSpellString(A1)^ := TSpellNameView(Pointer(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57))^).Name;
+  Result := TSpellNameView(Pointer(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57))^).Name;
 end;
 
-procedure TWatcherEnchantment.GetLocation(A1: Integer; A2: Integer);
+function TWatcherEnchantment.GetLocation: TXYL;
 asm
   { needs: TGlobalEnchantment.GetLocation returns a packed TXYL in EAX.
     Preserve its original register ABI while the shared procedure draft remains. }
@@ -1332,7 +1332,7 @@ asm
   POP EBX
 end;
 
-procedure TWatcherEnchantment.Deactivate(A1: Byte);
+function TWatcherEnchantment.Deactivate(Player: Byte): Boolean;
 asm
   { needs: TGlobalEnchantment.Deactivate returns a value; P7 overrides retain
     the procedure draft, so preserve the original ABI and conditional Free. }
@@ -1544,7 +1544,7 @@ procedure TWatcherHS.Deactivate;
 begin
   inherited Deactivate;
   TWatcherState(FWatcherState) := TWatcherState(FWatcherState) - [wsActive];
-  if FEnchantment.F_GlobalEnchantment_10 and 1 <> 0 then
+  if getActivated in FEnchantment.FEnchantmentStatus then
     FEnchantment.Deactivate(FEnchantment.FPlayerIndex);
   SpellHSMap^.NotifyPlayerChanged(TMapField(Owner).Xhx,TMapField(Owner).Yhx,TMapField(Owner).Lhx);
   UpdateUnfog;

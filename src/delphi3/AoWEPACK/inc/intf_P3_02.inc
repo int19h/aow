@@ -311,8 +311,8 @@
     FExplorationSite: Byte; { $40 }
     { conflict: FVisibilityMode: Byte; }
     F_Combat_41: array[0..2] of Byte;
-    F_Combat_44: Byte;
-    F_Combat_45: array[0..6] of Byte;
+    FItems: TItemList; { $44 }
+    F_Combat_48: array[0..3] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -368,7 +368,7 @@
     function GetRightIcon: Integer; override;
     procedure PlayLoggedSFX(A1: Integer); override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure ViewLocation(A1: Integer; A2: Integer); override;
+    procedure ViewLocation; override;
     procedure SetCombatLogbook(Logbook: TCombatLogbook);
   end;
 

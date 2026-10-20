@@ -161,7 +161,7 @@
     function ResearchUnit(Index: Integer; Queue: Boolean): Boolean; virtual;
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
-    procedure GetProduceUnitLevelMax;  { draft }
+    function GetProduceUnitLevelMax: Integer;
     procedure GetResearchUnitLevelMax;  { draft }
     procedure RegisterGroupProduction;  { draft }
     procedure UnregisterGroupProduction;  { draft }
@@ -170,7 +170,7 @@
     procedure RetryProductionExecution(A1: Integer);  { draft }
     procedure SetLoopQueueTo(A1: Integer);  { draft }
     procedure ProductionDone;
-    procedure FindOptimalResearchProduction(A1: Integer; A2: Integer);  { draft }
+    function FindOptimalResearchProduction(Predictor: TCombatPredictor; Gold: Integer): Integer;
   end;
 
   { TProductionControlList (instance size 16, VMT 5570A8FC) }

@@ -1,5 +1,6 @@
 {
   "557a7ce4:96": "ProductionIDToCityAction",
   "557a7d44:96": "CityActionToProductionID",
-  "FUN_557ac624": "CompareCityProductions"
+  "FUN_557ac624": "CompareCityProductions",
+  "557b2bd8:138": "TFarm.GetCurrentActivityText"
 }

@@ -542,6 +542,7 @@
     FGoldUpkeep: Integer; { $14 }
     FManaUpkeep: Integer; { $18 }
     FDays: Integer; { $1C }
+    { conflict: FPriority: Integer; }
     FDayGoldMax: Integer; { $20 }
     FDayManaMax: Integer; { $24 }
     FDayGold: Integer; { $28 }
@@ -583,6 +584,7 @@
   public
     FPlayer: TPlayer; { $08 }
     FBudgets: TAIBudgetList; { $0C }
+    { conflict: FBudgets: TENode; }
     FGoldIncomeFactor: Single; { $10 }
     FManaIncomeFactor: Single; { $14 }
     FGoldReserveFactor: Single; { $18 }

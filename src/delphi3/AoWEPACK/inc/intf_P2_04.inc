@@ -47,7 +47,7 @@
     +46 FAttack; +47 FDefense; +48 FDamage; +49 FResistance. }
   TItem = class(TAbilityOwner)
   public
-    FHeroID: Integer; { $14 }
+    FItemID: Integer; { $14 }
     F_Item_18: Integer;
     F_Item_1C: Byte;
     F_Item_1D: array[0..2] of Byte;
@@ -119,7 +119,7 @@
     procedure Update;  { draft }
     procedure SortOnName;  { draft }
     procedure SortOnType;  { draft }
-    procedure RegisterItems;  { draft }
+    procedure RegisterItems;
     procedure LockChanged;  { draft }
     procedure UnlockChanged;  { draft }
   end;
@@ -183,7 +183,7 @@
     procedure UpdateLibraryItems;  { draft }
     procedure RegisterItem(Item: TItem);
     procedure UnRegisterItem(A1: Integer);  { draft }
-    procedure GenerateItem(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    function GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
     procedure GenerateItems(A1: Byte; A2: Integer; A3: Integer);  { draft }
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }

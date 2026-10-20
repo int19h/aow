@@ -834,7 +834,7 @@
     FY: Byte;
     FL: Byte;
     FArmyID: TArmyID;
-    FPlayer: Byte;
+    FPlayer: Shortint; { $1C }
     FOwnerPlayer: Byte;
     F_NegotiateTE_1E: array[0..1] of Byte;
     FArmyHS: TArmyHS;

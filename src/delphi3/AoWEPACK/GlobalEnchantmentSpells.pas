@@ -71,8 +71,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
   end;
@@ -91,8 +91,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
   end;
@@ -111,8 +111,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
   end;
@@ -133,8 +133,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure Activate(A1: Byte); override;
     procedure NewDay;  { draft }
   end;
@@ -155,8 +155,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure Activate(A1: Byte); override;
     procedure NewDay;  { draft }
   end;
@@ -174,8 +174,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure Activate(A1: Byte); override;
   end;
 
@@ -216,11 +216,11 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetName(A1: Integer); override;
+    function GetName: string; override;
     procedure GetUpkeep; override;
-    procedure GetAIUpkeepPriority; override;
+    function GetAIUpkeepPriority: Integer; override;
     procedure CanDeactivate(A1: Integer; A2: Integer); override;
-    procedure Deactivate(A1: Byte); override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure Activate(A1: Byte); override;
     procedure DaysBeforeActive;  { draft }
     procedure NewTurn;  { draft }
@@ -240,8 +240,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
   end;
@@ -260,8 +260,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
     procedure NewTurn(A1: Byte);  { draft }
@@ -282,8 +282,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
     procedure UpdateFire(A1: Integer; A2: Byte);  { draft }
@@ -303,8 +303,8 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
-    procedure Deactivate(A1: Byte); override;
+    function GetAIUpkeepPriority: Integer; override;
+    function Deactivate(Player: Byte): Boolean; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Byte); override;
   end;
@@ -323,7 +323,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetAIUpkeepPriority; override;
+    function GetAIUpkeepPriority: Integer; override;
   end;
 
   { TSpellWard (instance size 56, VMT 557EF6D8) }
@@ -390,8 +390,8 @@ begin end;
 class function TEnchantedRoadsEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TEnchantedRoadsEnchantment.GetAIUpkeepPriority;
-begin end;
+function TEnchantedRoadsEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TEnchantedRoadsEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -399,8 +399,8 @@ begin end;
 procedure TEnchantedRoadsEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TEnchantedRoadsEnchantment.Deactivate(A1: Byte);
-begin end;
+function TEnchantedRoadsEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 constructor TEnchantedRoads.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -420,8 +420,8 @@ begin end;
 class function TAirMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TAirMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TAirMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TAirMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -429,8 +429,8 @@ begin end;
 procedure TAirMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TAirMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TAirMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 constructor TAirMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -450,8 +450,8 @@ begin end;
 class function TWaterMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TWaterMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TWaterMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TWaterMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -459,8 +459,8 @@ begin end;
 procedure TWaterMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TWaterMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TWaterMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TWaterMastery.CreateEnchantment;
 begin end;
@@ -477,8 +477,8 @@ begin end;
 class function THatredEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure THatredEnchantment.GetAIUpkeepPriority;
-begin end;
+function THatredEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure THatredEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -492,8 +492,8 @@ begin end;
 procedure THatredEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure THatredEnchantment.Deactivate(A1: Byte);
-begin end;
+function THatredEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure THatred.CreateEnchantment;
 begin end;
@@ -510,8 +510,8 @@ begin end;
 class function THarmonyEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure THarmonyEnchantment.GetAIUpkeepPriority;
-begin end;
+function THarmonyEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure THarmonyEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -525,8 +525,8 @@ begin end;
 procedure THarmonyEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure THarmonyEnchantment.Deactivate(A1: Byte);
-begin end;
+function THarmonyEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure THarmony.CreateEnchantment;
 begin end;
@@ -543,14 +543,14 @@ begin end;
 class function TPowerLeakEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPowerLeakEnchantment.GetAIUpkeepPriority;
-begin end;
+function TPowerLeakEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TPowerLeakEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TPowerLeakEnchantment.Deactivate(A1: Byte);
-begin end;
+function TPowerLeakEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TPowerLeak.CreateEnchantment;
 begin end;
@@ -588,8 +588,8 @@ begin end;
 class function TFloodEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFloodEnchantment.GetAIUpkeepPriority;
-begin end;
+function TFloodEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TFloodEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -597,8 +597,8 @@ begin end;
 procedure TFloodEnchantment.DaysBeforeActive;
 begin end;
 
-procedure TFloodEnchantment.GetName(A1: Integer);
-begin end;
+function TFloodEnchantment.GetName: string;
+begin Result := ''; end;
 
 procedure TFloodEnchantment.GetUpkeep;
 begin end;
@@ -615,8 +615,8 @@ begin end;
 procedure TFloodEnchantment.CanDeactivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TFloodEnchantment.Deactivate(A1: Byte);
-begin end;
+function TFloodEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TFlood.CreateEnchantment;
 begin end;
@@ -636,8 +636,8 @@ begin end;
 class function TLifeMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TLifeMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TLifeMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TLifeMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -645,8 +645,8 @@ begin end;
 procedure TLifeMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TLifeMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TLifeMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 constructor TLifeMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -663,8 +663,8 @@ begin end;
 class function TDeathMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDeathMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TDeathMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TDeathMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -672,8 +672,8 @@ begin end;
 procedure TDeathMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TDeathMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TDeathMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TDeathMasteryEnchantment.NewTurn(A1: Byte);
 begin end;
@@ -699,8 +699,8 @@ begin end;
 class function TFireMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFireMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TFireMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TFireMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -708,8 +708,8 @@ begin end;
 procedure TFireMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TFireMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TFireMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TFireMasteryEnchantment.UpdateFire(A1: Integer; A2: Byte);
 begin end;
@@ -735,8 +735,8 @@ begin end;
 class function TEarthMasteryEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TEarthMasteryEnchantment.GetAIUpkeepPriority;
-begin end;
+function TEarthMasteryEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 procedure TEarthMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
@@ -744,8 +744,8 @@ begin end;
 procedure TEarthMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
-procedure TEarthMasteryEnchantment.Deactivate(A1: Byte);
-begin end;
+function TEarthMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+begin Result := False; end;
 
 constructor TEarthMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -765,8 +765,8 @@ begin end;
 class function TSpellWardEnchantment.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSpellWardEnchantment.GetAIUpkeepPriority;
-begin end;
+function TSpellWardEnchantment.GetAIUpkeepPriority: Integer;
+begin Result := 0; end;
 
 constructor TSpellWard.Create(AOwner: Engine.TECustomNode);
 begin end;

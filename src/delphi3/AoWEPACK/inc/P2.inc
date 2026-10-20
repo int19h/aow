@@ -4293,7 +4293,7 @@ begin
   else Result := False;
 end;
 
-procedure THeroUpgradeEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure THeroUpgradeEventLog.ViewLocation;
 var U: TAbstractUnit; X, Y, L: Shortint;
 begin
   U := AoWHSMap.FUnitControl.FindUnit(FUnitID);
@@ -4394,7 +4394,7 @@ begin
   Result := FText;
 end;
 
-procedure THeroEmergeEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure THeroEmergeEventLog.ViewLocation;
 var U: TAbstractUnit; X, Y, L: Shortint;
 begin
   U := AoWHSMap.FUnitControl.FindUnit(FUnitID);
@@ -5081,10 +5081,10 @@ var I: Integer; Position: THeroItemPosition;
 begin
   for I := FInventory.Count - 1 downto 0 do
     if FInventory.GetItem(I) <> nil then
-      ExecutePlaceItem(FInventory.GetItem(I).FHeroID, ipGround);
+      ExecutePlaceItem(FInventory.GetItem(I).FItemID, ipGround);
   for Position := ipAttackSlot to ipRightRingSlot do
     if FHeroItems.GetPositionItem(Position) <> nil then
-      ExecutePlaceItem(FHeroItems.GetPositionItem(Position).FHeroID, ipGround);
+      ExecutePlaceItem(FHeroItems.GetPositionItem(Position).FItemID, ipGround);
   FDeathDay := AoWHSMap.FPlayers.GetPlayers(FPlayer).FDay;
   FDeathPlayer := FPlayer;
   inherited Killed;
@@ -6661,7 +6661,7 @@ begin end;
 function TArmyEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
-procedure TArmyEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TArmyEventLog.ViewLocation;
 begin end;
 
 constructor TArmyInfoEventLog.Create(AOwner: Engine.TECustomNode);
@@ -6682,7 +6682,7 @@ begin end;
 function TArmyInfoEventLog.GetText: string;
 begin Result := ''; end;
 
-procedure TArmyInfoEventLog.ViewLocation(A1: Integer; A2: Integer);
+procedure TArmyInfoEventLog.ViewLocation;
 begin end;
 
 function TArmyInfoEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
@@ -6989,8 +6989,8 @@ begin end;
 procedure TArmy.GetMoveAction(A1: Byte; A2: Integer);
 begin end;
 
-procedure TArmy.GetCanJoinSelection(A1: Byte; A2: Integer);
-begin end;
+function TArmy.GetCanJoinSelection(Player: Shortint): Byte;
+begin Result := 0; end;
 
 function TArmy.GetJoinSelection(Player: Shortint): Byte;
 begin Result := 0; end;
@@ -7424,8 +7424,8 @@ begin end;
 procedure TItemControl.UnRegisterItem(A1: Integer);
 begin end;
 
-procedure TItemControl.GenerateItem(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TItemControl.GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
+begin Result := nil; end;
 
 procedure TItemControl.GenerateItems(A1: Byte; A2: Integer; A3: Integer);
 begin end;

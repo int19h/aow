@@ -20,10 +20,10 @@ type
     FCloud: TSmokeCloud;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetName(A1: Integer); override;
-    procedure GetLocation(A1: Integer; A2: Integer); override;
-    procedure Deactivate(A1: Byte); override;
-    procedure VisibleForPlayer(A1: Integer; A2: Integer); override;
+    function GetName: string; override;
+    function GetLocation: TXYL; override;
+    function Deactivate(Player: Byte): Boolean; override;
+    function VisibleForPlayer(Player: Shortint): Boolean; override;
   end;
 
   { TSmokeCloud (instance size 36, VMT 5579C044): +$14 FPlayer, +$18 FTurnsRemaining,
@@ -91,21 +91,21 @@ const
 constructor TSmokeCloudEnchantment.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  TCloudEnchantmentOptions(F_GlobalEnchantment_11) :=
-    TCloudEnchantmentOptions(F_GlobalEnchantment_11) - [ce0, ce1];
+  TCloudEnchantmentOptions(FEnchantmentMode) :=
+    TCloudEnchantmentOptions(FEnchantmentMode) - [ce0, ce1];
   FEnchantmentSpellID := 25;
 end;
 
 class function TSmokeCloudEnchantment.ClassID: Integer;
 begin Result := $21244; end;
 
-procedure TSmokeCloudEnchantment.GetName(A1: Integer);
+function TSmokeCloudEnchantment.GetName: string;
 begin
   { needs: the base GetName parameter is a hidden string result pointer. }
-  PString(A1)^ := TCloudSpellFields(Pointer(TSpellControl(WorldSet^.FSpellControl).GetSpell($4A))^).Name;
+  Result := TCloudSpellFields(Pointer(TSpellControl(WorldSet^.FSpellControl).GetSpell($4A))^).Name;
 end;
 
-procedure TSmokeCloudEnchantment.GetLocation(A1: Integer; A2: Integer);
+function TSmokeCloudEnchantment.GetLocation: TXYL;
 { needs: the base GetLocation returns TXYL in EAX, not two Integer parameters.
   Use its proven register ABI until the shared virtual declaration is recovered. }
 asm
@@ -129,7 +129,7 @@ asm
   POP EBX
 end;
 
-procedure TSmokeCloudEnchantment.Deactivate(A1: Byte);
+function TSmokeCloudEnchantment.Deactivate(Player: Byte): Boolean;
 { needs: the base Deactivate returns Integer in EAX and takes no argument. }
 asm
   PUSH EBX
@@ -153,7 +153,7 @@ asm
   POP EBX
 end;
 
-procedure TSmokeCloudEnchantment.VisibleForPlayer(A1: Integer; A2: Integer);
+function TSmokeCloudEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
 { needs: the base VisibleForPlayer(Player: Shortint): Boolean.
   The assembly retains the result ABI while the inherited declaration is a draft. }
 asm

@@ -44,9 +44,9 @@ type
     procedure CropsChanged; virtual;  { +23C draft }
     procedure CropTrampled(Player: Shortint); virtual;
     procedure SetIncome(A1: Byte);  { draft }
-    procedure UpdateCropSettings;  { draft }
+    procedure UpdateCropSettings;
     function GetCropCount: Integer;
-    procedure SetCropCount(A1: Integer);  { draft }
+    procedure SetCropCount(A1: Integer);
     procedure LinkToCrops;  { draft }
   end;
 
