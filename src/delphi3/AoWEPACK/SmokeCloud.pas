@@ -1,8 +1,7 @@
 unit SmokeCloud;
 
-{ Draft declarations of SmokeCloud, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ SmokeCloud of AoWEPACK.dpl: recovered bodies and original instance layouts.
+  Remaining inherited declaration constraints are documented at local ABI adapters. }
 
 interface
 
@@ -15,10 +14,10 @@ type
   TSmokeCloudResource = class;
 
 
-  { TSmokeCloudEnchantment (instance size 40, VMT 5579BF2C) }
+  { TSmokeCloudEnchantment (instance size 40, VMT 5579BF2C): +$24 FCloud. }
   TSmokeCloudEnchantment = class(TGlobalEnchantment)
   public
-    F_SmokeCloudEnchantment_24: array[0..3] of Byte;
+    FCloud: TSmokeCloud;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetName(A1: Integer); override;
@@ -27,16 +26,18 @@ type
     procedure VisibleForPlayer(A1: Integer; A2: Integer); override;
   end;
 
-  { TSmokeCloud (instance size 36, VMT 5579C044) }
+  { TSmokeCloud (instance size 36, VMT 5579C044): +$14 FPlayer, +$18 FTurnsRemaining,
+    +$1C FDrifting, +$1D FDirection, +$1E FUpdated, +$1F FVisibleForSeatedPlayer, +$20 FEnchantment. }
   TSmokeCloud = class(TMultiHexMO)
   public
-    F_SmokeCloud_14: Byte;
-    F_SmokeCloud_15: array[0..2] of Byte;
-    F_SmokeCloud_18: Integer;
-    F_SmokeCloud_1C: Byte;
-    F_SmokeCloud_1D: Byte;
-    F_SmokeCloud_1E: array[0..1] of Byte;
-    F_SmokeCloud_20: Integer;
+    FPlayer: Shortint;
+    FReserved: array[0..2] of Byte;
+    FTurnsRemaining: Integer;
+    FDrifting: Boolean;
+    FDirection: Byte;
+    FUpdated: Boolean;
+    FVisibleForSeatedPlayer: Boolean;
+    FEnchantment: TSmokeCloudEnchantment;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -51,10 +52,10 @@ type
     procedure Deactivate; override;
     procedure UpdateMapField(const Info: HSEngine.THSMapFieldInfo); override;
     function CanSelect(Xhp, Yhp: Integer): Boolean; override;
-    procedure UpdateConcealment(A1: Byte; A2: Byte; A3: Integer);  { draft }
-    procedure UpdateVisibleForSeatedPlayer;  { draft }
-    procedure ValidMoveDir(A1: Integer);  { draft }
-    procedure UpdateCloud;  { draft }
+    procedure UpdateConcealment(Xhx, Yhx, Lhx: Shortint);
+    procedure UpdateVisibleForSeatedPlayer;
+    function ValidMoveDir(Direction: Integer): Boolean;
+    procedure UpdateCloud;
   end;
 
   { TSmokeCloudResource (instance size 68, VMT 5579C1E0) }
@@ -65,93 +66,435 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterSmokeCloud;  { draft }
+procedure RegisterSmokeCloud(AEngine: TEngine);
 
 implementation
 
+type
+  PAoWHSMap = ^TAoWHSMap;
+  PAoWHSSet = ^TAoWHSSet;
+  TCloudSpellFields = packed record
+    Reserved: array[0..7] of Byte;
+    Name: string;
+  end;
+  TCloudMapFields = packed record
+    Reserved: array[0..164] of Byte;
+    SeatedPlayer: Byte;
+  end;
+  TCloudFieldFlags = packed record
+    Reserved: array[0..23] of Byte;
+    Flags: Integer;
+  end;
+  TCloudEnchantmentOptions = set of (ce0, ce1, ce2, ce3, ce4, ce5, ce6, ce7);
+const
+  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
+  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;
+
+{ needs: TSpellControl.GetSpell(ID): TSpell; the original uses EAX as a spell pointer.
+  Tail-call adapter preserves the draft method's real register ABI. }
+function CloudSpell(Control: TSpellControl; ID: Integer): TSpell; assembler;
+asm
+  JMP TSpellControl.GetSpell
+end;
+
+{ needs: draft AoWE result types for Random, Visible, GetArmyHS, TranslateRStr. }
+function CloudRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
+asm JMP TAoWHSMap.Random end;
+function CloudVisible(Map: TAoWHSMap; Xhx, Yhx: Shortint; Lhx: Shortint; Radius: Integer): Boolean; assembler;
+asm JMP TAoWHSMap.Visible end;
+function CloudArmyHS(MapField: TAoWMapField): TArmyHS; assembler;
+asm JMP TAoWMapField.GetArmyHS end;
+function TranslateCloudName(const S: string): string; assembler;
+asm JMP AoWE.TranslateRStr end;
+
 constructor TSmokeCloudEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  TCloudEnchantmentOptions(F_GlobalEnchantment_11) :=
+    TCloudEnchantmentOptions(F_GlobalEnchantment_11) - [ce0, ce1];
+  F_GlobalEnchantment_14 := 25;
+end;
 
 class function TSmokeCloudEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21244; end;
 
 procedure TSmokeCloudEnchantment.GetName(A1: Integer);
-begin end;
+begin
+  { needs: the base GetName parameter is a hidden string result pointer. }
+  PString(A1)^ := TCloudSpellFields(Pointer(CloudSpell(TSpellControl(WorldSet^.FSpellControl), $4A))^).Name;
+end;
 
 procedure TSmokeCloudEnchantment.GetLocation(A1: Integer; A2: Integer);
-begin end;
+{ needs: the base GetLocation returns TXYL in EAX, not two Integer parameters.
+  Use its proven register ABI until the shared virtual declaration is recovered. }
+asm
+  PUSH EBX
+  PUSH ECX
+  MOV EBX,EAX
+  MOV EAX,[EBX+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$74]
+  MOV [ESP],AL
+  MOV EAX,[EBX+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$78]
+  MOV [ESP+1],AL
+  MOV EAX,[EBX+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$7C]
+  MOV [ESP+2],AL
+  MOV EAX,[ESP]
+  POP EDX
+  POP EBX
+end;
 
 procedure TSmokeCloudEnchantment.Deactivate(A1: Byte);
-begin end;
+{ needs: the base Deactivate returns Integer in EAX and takes no argument. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI,EAX
+  TEST BYTE PTR [ESI+$10],1
+  JZ @@inactive
+  MOV EAX,ESI
+  CALL TGlobalEnchantment.Deactivate
+  MOV EBX,EAX
+  MOV EAX,[ESI+$24]
+  TEST BYTE PTR [EAX+$C],$20
+  JZ @@done
+  CALL TObject.Free
+  JMP @@done
+@@inactive:
+  XOR EBX,EBX
+@@done:
+  MOV EAX,EBX
+  POP ESI
+  POP EBX
+end;
 
 procedure TSmokeCloudEnchantment.VisibleForPlayer(A1: Integer; A2: Integer);
-begin end;
+{ needs: the base VisibleForPlayer(Player: Shortint): Boolean.
+  The assembly retains the result ABI while the inherited declaration is a draft. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  ADD ESP,-$24
+  MOV [ESP],DL
+  MOV ESI,EAX
+  LEA EDI,[ESP+4]
+  MOV AL,[ESI+$19]
+  CMP AL,[ESP]
+  SETE BL
+  PUSH 0
+  MOV EAX,[ESI+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$78]
+  MOVSX EAX,AL
+  PUSH EAX
+  MOV EAX,[ESI+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$74]
+  MOVSX EDX,AL
+  MOV EAX,EDI
+  POP ECX
+  CALL InitHNWalk
+  JMP @@test
+@@loop:
+  MOV EAX,[ESI+$24]
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$7C]
+  MOVSX EAX,AL
+  PUSH EAX
+  MOV AL,[ESP+4]
+  PUSH EAX
+  MOV EAX,[WorldMap]
+  MOV EAX,[EAX]
+  MOV ECX,[EDI+$14]
+  MOV EDX,[EDI+$10]
+  CALL TAoWHSMap.VisibleForPlayer
+  MOV EBX,EAX
+  MOV EAX,EDI
+  CALL WalkToNextHN
+@@test:
+  TEST BL,BL
+  JNZ @@done
+  CMP DWORD PTR [EDI+$C],3
+  JLE @@loop
+@@done:
+  MOV EAX,EBX
+  ADD ESP,$24
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 constructor TSmokeCloud.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FEnchantment := TSmokeCloudEnchantment.Create(nil);
+  FEnchantment.FCloud := Self;
+  FVisibleForSeatedPlayer := False;
+  FDrifting := False;
+end;
 
 destructor TSmokeCloud.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FEnchantment.Release;
+end;
 
 class function TSmokeCloud.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21242; end;
 
 function TSmokeCloud.GetShowPriority: Integer;
-begin Result := 0; end;
+begin Result := inherited GetShowPriority + $0C000000; end;
 
 function TSmokeCloud.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+var
+  Xhx, Yhx, HN: Integer;
+begin
+  if msEditting in FResource.Engine.HSMap.Status then
+  begin
+    HPtoHX(Xhp, Yhp, Xhx, Yhx);
+    HN := dHXtoHN(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhx, Yhx);
+    Result := (HN < FResource.TerrainList.Count) and (FResource.TerrainList.Terrain[HN] >= -1);
+  end
+  else Result := False;
+end;
 
 procedure TSmokeCloud.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), 15);
+  Stream.rwInteger(FTurnsRemaining, 16);
+  Stream.rwBool(FDrifting, 17);
+  Stream.rwByte(FDirection, 18);
+  Stream.rwEObject(FEnchantment, 19);
+end;
 
-procedure TSmokeCloud.UpdateConcealment(A1: Byte; A2: Byte; A3: Integer);
-begin end;
+procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint);
+var
+  Walk: THNWalkData;
+  Level: TMapLevel;
+  MapField: TAoWMapField;
+  ArmyHS: TArmyHS;
+begin
+  Level := WorldMap^.MapContainer.MapLevels[Lhx];
+  InitHNWalk(Walk, Xhx, Yhx, 0);
+  with Walk do
+  while FResource.TerrainList.Count > HN do
+  begin
+    if (FResource.TerrainList.Terrain[HN] >= -1) and (X >= 0) and
+      (Y >= 0) and (X < Level.Width) and (Level.Height > Y) then
+    begin
+      MapField := TAoWMapField(Level.GetField(X, Y));
+      ArmyHS := CloudArmyHS(MapField);
+      if ArmyHS <> nil then TArmy(ArmyHS.F_ArmyHS_1C).Update;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 procedure TSmokeCloud.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if (Info.HN > 18) and (Info.HN < 37) then
+    TCloudFieldFlags(Pointer(Info.MapField)^).Flags :=
+      TCloudFieldFlags(Pointer(Info.MapField)^).Flags or $01000000;
+end;
 
 procedure TSmokeCloud.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  if (Msg.MsgID <> $10) or (msEditting in WorldMap^.Status) then inherited MapFieldMsgProc(Msg);
+  if FResource.TerrainList.Terrain[Msg.HN] >= -1 then
+    if (Msg.MsgID = $1128) and (moActivated in FStatus) then Msg.Param[0] := 1
+    else if Msg.MsgID = $110D then UpdateVisibleForSeatedPlayer;
+end;
 
 procedure TSmokeCloud.UpdateVisibleForSeatedPlayer;
-begin end;
+var
+  Visible: Boolean;
+begin
+  Visible := CloudVisible(WorldMap^, GetXhx, GetYhx, GetLhx, 3) or
+    (FEnchantment.F_GlobalEnchantment_19 = TCloudMapFields(Pointer(WorldMap^)^).SeatedPlayer);
+  if FVisibleForSeatedPlayer xor Visible then
+  begin
+    FVisibleForSeatedPlayer := Visible;
+    TGlobalMagicControl(WorldMap^.FPlayerControl).TriggerChangedEvent;
+  end;
+end;
 
 function TSmokeCloud.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceOnMap;
+  if Result then UpdateMapFields(TMapLevel(Owner.Owner), FXhx, FYhx);
+end;
 
 procedure TSmokeCloud.RemoveFromMap;
-begin end;
+var
+  Level: TMapLevel;
+begin
+  Level := TMapLevel(Owner.Owner);
+  inherited RemoveFromMap;
+  UpdateMapFields(Level, FXhx, FYhx);
+end;
 
 procedure TSmokeCloud.Activate;
-begin end;
+{ needs: TGlobalEnchantment.Activate has one player parameter; the shared draft
+  has a second Integer parameter. Keep the original virtual-call ABI here. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV EBX,EAX
+  MOV EAX,EBX
+  CALL TMapObject.Activate
+  CMP BYTE PTR [EBX+$1D],0
+  JNE @@activate
+  MOV EAX,[WorldMap]
+  MOV EAX,[EAX]
+  MOV EDX,6
+  CALL CloudRandom
+  INC EAX
+  MOV [EBX+$1D],AL
+@@activate:
+  MOV ESI,[EBX+$20]
+  MOV AL,[ESI+$19]
+  TEST AL,AL
+  JLE @@conceal
+  TEST BYTE PTR [ESI+$10],1
+  JNE @@conceal
+  MOV EDX,EAX
+  MOV EAX,ESI
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$68]
+@@conceal:
+  MOV EAX,EBX
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$7C]
+  PUSH EAX
+  MOV EAX,EBX
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$78]
+  PUSH EAX
+  MOV EAX,EBX
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$74]
+  MOV EDX,EAX
+  MOV EAX,EBX
+  POP ECX
+  CALL TSmokeCloud.UpdateConcealment
+  MOV EAX,EBX
+  CALL TSmokeCloud.UpdateVisibleForSeatedPlayer
+  POP ESI
+  POP EBX
+end;
 
 procedure TSmokeCloud.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  if Shortint(FEnchantment.F_GlobalEnchantment_19) > 0 then
+    FEnchantment.Deactivate(FEnchantment.F_GlobalEnchantment_19);
+  UpdateConcealment(GetXhx, GetYhx, GetLhx);
+end;
 
 procedure TSmokeCloud.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  if FVisibleForSeatedPlayer or (msEditting in WorldMap^.Status) then
+    inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
-procedure TSmokeCloud.ValidMoveDir(A1: Integer);
-begin end;
+function TSmokeCloud.ValidMoveDir(Direction: Integer): Boolean;
+var
+  Xhx, Yhx: Integer;
+  Level: TMapLevel;
+begin
+  Level := TMapLevel(Owner.Owner);
+  CenterHNtoHX(GetXhx, GetYhx, Direction, Xhx, Yhx);
+  CenterHNtoHX(Xhx, Yhx, Direction, Xhx, Yhx);
+  Result := (Xhx >= 10) and (Yhx >= 10) and (Level.Width >= Xhx + 10) and (Level.Height >= Yhx + 10);
+end;
 
 procedure TSmokeCloud.UpdateCloud;
-begin end;
+var
+  Xhx, Yhx: Integer;
+  Directions: TByteList;
+  Valid: Boolean;
+  Direction, Tries: Integer;
+  Lhx: Integer;
+begin
+  if FTurnsRemaining <> 1 then
+  begin
+    FUpdated := True;
+    if FTurnsRemaining <> 0 then Dec(FTurnsRemaining);
+    if FDrifting then
+    begin
+      Direction := 0;
+      Directions := TByteList.Create;
+      Valid := False;
+      Directions.Add(FDirection);
+      if FDirection <> 1 then Directions.Add(FDirection - 1) else Directions.Add(6);
+      if FDirection <> 6 then Directions.Add(FDirection + 1) else Directions.Add(1);
+      while (Directions.Count <> 0) and not Valid do
+      begin
+        Direction := Directions[CloudRandom(WorldMap^, Directions.Count)];
+        Valid := ValidMoveDir(Direction);
+        if not Valid then Directions.Remove(Direction);
+      end;
+      Directions.Free;
+      if not Valid then
+      begin
+        Tries := 20;
+        while not Valid and (Tries <> 0) do
+        begin
+          Direction := CloudRandom(WorldMap^, 6) + 1;
+          Valid := ValidMoveDir(Direction);
+          Dec(Tries);
+        end;
+      end;
+      if Valid then
+      begin
+        FDirection := Direction;
+        Lhx := GetLhx;
+        CenterHNtoHX(GetXhx, GetYhx, Direction, Xhx, Yhx);
+              CenterHNtoHX(Xhx, Yhx, Direction, Xhx, Yhx);
+        Disconnect;
+        UpdateConcealment(FXhx, FYhx, Lhx);
+        FXhx := Xhx;
+        FYhx := Yhx;
+        Owner := WorldMap^.MapContainer.GetField(Xhx, Yhx, Lhx);
+        Connect;
+        UpdateConcealment(FXhx, FYhx, Lhx);
+      end;
+    end;
+  end
+  else Destroy;
+end;
 
 procedure TSmokeCloud.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20020002) and (Msg.Value = FPlayer) and not FUpdated then
+  begin
+    UpdateCloud;
+    Exit;
+  end;
+  if (Msg.MsgID = $20020003) and (Msg.Value = FPlayer) then FUpdated := False
+  else if Msg.MsgID = $20020009 then UpdateVisibleForSeatedPlayer;
+end;
 
 class function TSmokeCloudResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21243; end;
 
 class function TSmokeCloudResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateCloudName(LoadResString(@SmokeCloudRStr)); end;
 
 function TSmokeCloudResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $21242; end;
 
-procedure RegisterSmokeCloud;
-begin end;
+procedure RegisterSmokeCloud(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TSmokeCloud, TSmokeCloudResource, TSmokeCloudEnchantment]);
+end;
 
 
 initialization

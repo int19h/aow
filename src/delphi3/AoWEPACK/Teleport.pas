@@ -1,26 +1,27 @@
 unit Teleport;
 
-{ Draft declarations of Teleport, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Teleport of AoWEPACK.dpl: recovered bodies and original instance layouts.
+  Remaining inherited declaration constraints are documented at local ABI adapters. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Animation;
 
 type
+  TTeleportState = set of (tsRazed, ts1, ts2, ts3, ts4, ts5, ts6, ts7);
   TTeleport = class;
   TTeleportResource = class;
 
 
-  { TTeleport (instance size 52, VMT 557A4A28) }
+  { TTeleport (instance size 52, VMT 557A4A28): +$30 FDestinationX, +$31 FDestinationY,
+    +$32 FDestinationL, +$33 FState (bit 0 razed). }
   TTeleport = class(TStructure)
   public
-    F_Teleport_30: Byte;
-    F_Teleport_31: Byte;
-    F_Teleport_32: Byte;
-    F_Teleport_33: Byte;
+    FDestinationX: Shortint;
+    FDestinationY: Shortint;
+    FDestinationL: Shortint;
+    FState: TTeleportState;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -32,10 +33,10 @@ type
     procedure SetRazed(A1: Integer); override;
     procedure GetRazed; override;
     procedure ValidateMap(A1: Integer); override;
-    procedure ShowTeleportAnimations;  { draft }
-    procedure CanTeleportArmy(A1: Integer; A2: Integer);  { draft }
-    procedure CanTeleport(A1: Integer);  { draft }
-    procedure Teleport(A1: Byte);  { draft }
+    procedure ShowTeleportAnimations;
+    function CanTeleportArmy(ArmyHS: TArmyHS): Boolean;
+    function CanTeleport(Player: Shortint): Boolean;
+    function Teleport(Player: Shortint): Boolean;
   end;
 
   { TTeleportResource (instance size 100, VMT 557A4C88) }
@@ -47,69 +48,292 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterTeleport;  { draft }
+procedure RegisterTeleport(AEngine: TEngine);
 
 implementation
 
+type
+  PAoWHSMap = ^TAoWHSMap;
+  PAoWHSSet = ^TAoWHSSet;
+  TTeleportFieldFlags = packed record
+    Reserved: array[0..23] of Byte;
+    Flags: Integer;
+  end;
+  TTeleportMapFields = packed record
+    Reserved: array[0..164] of Byte;
+    SeatedPlayer: Shortint;
+  end;
+  TTeleportPlayerFields = packed record
+    Reserved: array[0..164] of Byte;
+    Race: Shortint;
+  end;
+  TTeleportImageFields = packed record
+    Reserved: array[0..19] of Byte;
+    ImageIndex: Integer;
+  end;
+  TTeleportMoveFlags = set of (tm0, tm1, tm2, tm3, tm4, tm5, tm6, tm7);
+  TTeleportRaceNames = array[0..12] of string;
+  PTeleportRaceNames = ^TTeleportRaceNames;
+const
+  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
+  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;
+  { Original AoWE resource initialization table $55798BC0..$557990E4. }
+  RaceNames: TTeleportRaceNames = ('Humans', 'Azracs', 'Lizards', 'Frostlings',
+    'Elves', 'Halflings', 'Dwarves', 'Highmen', 'Dark Elves', 'Orcs',
+    'Goblins', 'Undead(plural)', 'Independents');
+  RaceNameTable: PTeleportRaceNames = @RaceNames;
+resourcestring
+  TeleportNoWarRStr = 'Not at war with the %s'; { original RT_STRING $FCD6 }
+  TeleportWarningRStr = 'Warning'; { original RT_STRING $FEB4 }
+
+{ needs: draft AoWE result declarations; retain their proven register ABI. }
+function TranslateTeleportName(const S: string): string; assembler;
+asm JMP AoWE.TranslateRStr end;
+function TeleportVisible(Map: TAoWHSMap; X, Y: Integer; Player: Shortint; L: Integer): Boolean; assembler;
+asm JMP TAoWHSMap.VisibleForPlayer end;
+function TeleportArmy(Field: TAoWMapField): TArmyHS; assembler;
+asm JMP TAoWMapField.GetArmyHS end;
+function TeleportValidTerrain(Army: TArmy; Terrain, Overlay: Shortint): Boolean; assembler;
+asm JMP TArmy.ValidTerrain end;
+function TeleportCanAdd(Army: TArmy; Units: TUnitList): Boolean; assembler;
+asm JMP TArmy.CanAddUnits end;
+function TeleportFieldPlayer(Field: TAoWMapField): Shortint; assembler;
+asm JMP TAoWMapField.GetPlayer end;
+function TeleportMoveAction(Field: TAoWMapField; Player: Byte): Byte; assembler;
+asm JMP TAoWMapField.GetMoveAction end;
+function TeleportPlayer(List: TPlayerList; Player: Integer): TPlayer; assembler;
+asm JMP TPlayerList.GetPlayers end;
+function TeleportPlayerBusy(Player: TPlayer): Boolean; assembler;
+asm JMP TPlayer.GetBusy end;
+function TeleportRelation(List: TPlayerList; PlayerA, PlayerB: Shortint): Byte; assembler;
+asm JMP TPlayerList.GetDiplomaticRelation end;
+function TeleportMoveArmy(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
+  Flags: TTeleportMoveFlags; Extra: Integer): Boolean; assembler;
+asm JMP AoWE.MoveArmyEx end;
+function TeleportCreateMove(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
+  Flags: TTeleportMoveFlags; Extra: Integer): TTokenEvent; assembler;
+asm JMP AoWE.CreateArmyMoveTE end;
+
 constructor TTeleport.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDestinationX := 0;
+  FDestinationY := 0;
+  FDestinationL := 0;
+end;
 
 class function TTeleport.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20104; end;
 
 procedure TTeleport.GetRazed;
-begin end;
+{ needs: TStructure.GetRazed returns Boolean in AL. }
+asm
+  TEST BYTE PTR [EAX+$33],1
+  SETNE AL
+end;
 
 procedure TTeleport.SetRazed(A1: Integer);
-begin end;
+begin
+  if Byte(A1) <> 0 then Include(FState, tsRazed) else Exclude(FState, tsRazed);
+  { needs: ILTer.TILTerrainMO.FImageIndex is private. }
+  TTeleportImageFields(Pointer(Self)^).ImageIndex := GetTerrainTypeImage(TerrainType);
+end;
 
 procedure TTeleport.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FDestinationX), 7);
+  Stream.rwByte(Byte(FDestinationY), 8);
+  Stream.rwByte(Byte(FDestinationL), 9);
+  Stream.rwData(FState, 1, 10);
+end;
 
 procedure TTeleport.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if Info.HN = 0 then
+    TTeleportFieldFlags(Pointer(Info.MapField)^).Flags :=
+      TTeleportFieldFlags(Pointer(Info.MapField)^).Flags or $8000;
+end;
 
 procedure TTeleport.MoveExclusive(const Info: HSEngine.THSSenderInfo);
-begin end;
+begin
+  if (Info.HN = 0) and not (tsRazed in FState) then
+    TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField),
+      Integer(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL)), 0);
+end;
 
 procedure TTeleport.ShowTeleportAnimations;
-begin end;
+var
+  Anim: TImageSequenceAnimation;
+begin
+  Anim := TImageSequenceAnimation.Create(nil);
+  Anim.SetImageSequence(Integer(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[13]));
+  WorldMap^.PlaceHX(Anim, GetXhx, GetYhx, GetLhx);
+  Anim := TImageSequenceAnimation.Create(nil);
+  Anim.SetImageSequence(Integer(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[12]));
+  WorldMap^.PlaceHX(Anim, FDestinationX, FDestinationY, FDestinationL);
+end;
 
 procedure TTeleport.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if (Msg.HN = 0) and (Msg.MsgID = $1140) and
+    (TMapField(Msg.Param[1]).Xhx = FDestinationX) and
+    (TMapField(Msg.Param[1]).Yhx = FDestinationY) and
+    (TMapField(Msg.Param[1]).Lhx = FDestinationL) then
+  begin
+    if (WorldMap^.F_AbstractAoWHSMap_C8 = 0) or
+      TeleportVisible(WorldMap^, GetXhx, GetYhx,
+        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer, GetLhx) or
+      TeleportVisible(WorldMap^, FDestinationX, FDestinationY,
+        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer, FDestinationL) then
+      Sound.PlaySample('SFX\PLACES\TELEPORT.WAV');
+    ShowTeleportAnimations;
+  end;
+end;
 
 procedure TTeleport.Activate;
-begin end;
+begin inherited Activate; TMapField(Owner).UpdateMapField; end;
 
 procedure TTeleport.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  FStatus := FStatus - [moActivated];
+  TMapField(Owner).UpdateMapField;
+end;
 
-procedure TTeleport.CanTeleportArmy(A1: Integer; A2: Integer);
-begin end;
+function TTeleport.CanTeleportArmy(ArmyHS: TArmyHS): Boolean;
+var
+  Field: TAoWMapField;
+  OtherArmy: TArmyHS;
+begin
+  Result := False;
+  if (FDestinationL >= 0) and (FDestinationL < WorldMap^.MapContainer.LevelCount) and
+    (FDestinationX >= 0) and (FDestinationX < WorldMap^.MapContainer.Width) and
+    (FDestinationY >= 0) and (FDestinationY < WorldMap^.MapContainer.Height) then
+  begin
+    Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
+    if TeleportValidTerrain(TArmy(ArmyHS.F_ArmyHS_1C), Field.TerrainType, Field.OverlayType) then
+    begin
+      OtherArmy := TeleportArmy(Field);
+      { Original rejects a same-player army when CanAddUnits succeeds. }
+      if (OtherArmy <> nil) and
+        (TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12 = TArmy(OtherArmy.F_ArmyHS_1C).F_Army_12) and
+        TeleportCanAdd(TArmy(OtherArmy.F_ArmyHS_1C), TUnitList(ArmyHS.F_ArmyHS_1C)) then Exit;
+      Result := True;
+    end;
+  end;
+end;
 
-procedure TTeleport.CanTeleport(A1: Integer);
-begin end;
+function TTeleport.CanTeleport(Player: Shortint): Boolean;
+var
+  ArmyHS: TArmyHS;
+begin
+  ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
+  { Original only checks destination X here; X=0 is rejected. }
+  Result := (ArmyHS <> nil) and (Byte(Player) = TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) and
+    not (tsRazed in FState) and (FDestinationX > 0);
+end;
 
-procedure TTeleport.Teleport(A1: Byte);
-begin end;
+function TTeleport.Teleport(Player: Shortint): Boolean;
+var
+  ArmyHS: TArmyHS;
+  Path: TMovepath;
+  Field: TAoWMapField;
+  Event: TTokenEvent;
+  MessageText: string;
+begin
+  if CanTeleport(Player) then
+  begin
+    ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
+    if CanTeleportArmy(ArmyHS) then
+    begin
+      TArmy(ArmyHS.F_ArmyHS_1C).ResetDestinationPos;
+      Path := TMovepath.Create;
+      Path.AddXYL(FDestinationX, FDestinationY, FDestinationL);
+      Path.AddXYL(GetXhx, GetYhx, GetLhx);
+      Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
+      if (TeleportMoveAction(Field, TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) <> 1) or
+        (TeleportFieldPlayer(Field) <= 0) or
+        (TeleportRelation(TPlayerList(WorldMap^.FPlayers),
+          Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12), TeleportFieldPlayer(Field)) in [1, 3]) then
+      begin
+        if (TeleportFieldPlayer(Field) <= -1) or
+          (Byte(TeleportFieldPlayer(Field)) = TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+          Result := TeleportMoveArmy(ArmyHS, -1, Path, [], 0)
+        else
+          if not TeleportPlayerBusy(TeleportPlayer(TPlayerList(WorldMap^.FPlayers),
+            Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12))) then
+          begin
+            Event := TeleportCreateMove(ArmyHS, -1, Path, [], 1);
+            if Event <> nil then
+            begin
+              TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(
+                Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)).AddEvent(Event);
+              Event.Release;
+              Result := True;
+            end
+            else Result := False;
+          end
+          else Result := False;
+        if Result and (Byte(TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
+          TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+        begin
+          WorldMap^.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
+          TSelectedArmy(WorldMap^.F_AoWHSMap_D8).Select(Integer(ArmyHS));
+        end;
+      end
+      else
+      begin
+        MessageText := SysUtils.Format(TranslateTeleportName(LoadResString(@TeleportNoWarRStr)),
+          [TranslateTeleportName(RaceNameTable^[TTeleportPlayerFields(Pointer(TeleportPlayer(
+            TPlayerList(WorldMap^.FPlayers), TeleportFieldPlayer(Field)))^).Race])]);
+        TAbstractAoWHSMap(WorldMap^).ShowMessage(Integer(Pointer(MessageText)));
+        Result := False;
+      end;
+      { Original frees the path only on normal completion. }
+      Path.Free;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
 procedure TTeleport.ValidateMap(A1: Integer);
-begin end;
+var
+  Valid: Boolean;
+begin
+  { needs: TStructure.ValidateMap(Log: TStrings): Boolean. }
+  if (FDestinationX = 0) or (FDestinationY = 0) then
+  begin
+    TStrings(A1).Add(TranslateTeleportName(LoadResString(@TeleportWarningRStr)) + ': ' +
+      TranslateTeleportName(LoadResString(@InvalidLocationSpecifiedRStr)));
+    Valid := False;
+  end
+  else Valid := True;
+  asm MOV AL,Valid end;
+end;
 
 constructor TTeleportResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  F_StructureResource_60 := 200;
+  F_StructureResource_58 := 1;
+  F_StructureResource_5A := 25;
+  F_StructureResource_5B := 2;
+end;
 
 class function TTeleportResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20105; end;
 
 class function TTeleportResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateTeleportName(LoadResString(@TeleportRStr)); end;
 
 function TTeleportResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20104; end;
 
-procedure RegisterTeleport;
-begin end;
+procedure RegisterTeleport(AEngine: TEngine);
+begin AEngine.RegisterEClasses([TTeleport, TTeleportResource]); end;
 
 
 initialization

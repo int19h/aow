@@ -57,10 +57,18 @@ procedure RegisterHexagonBridge(AEngine: TEngine);
 implementation
 
 type
+  PAoWHSMap = ^TAoWHSMap;
+  TBridgeMoveData = packed record
+    Reserved: array[0..48] of Byte;
+    Costs: array[0..15, 0..15] of Shortint;
+  end;
   TBridgeFieldData = packed record
     Reserved: array[0..23] of Byte;
     Flags: Integer;
   end;
+
+const
+  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
 
 { needs: AoWE.Land must return Boolean, as AL is tested at $55799C6F.
   Tail-call adapter until the shared declaration is corrected. }
@@ -173,22 +181,18 @@ begin
       for I := 0 to FSideB.Count - 1 do
       begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideB[I], Xhx, Yhx);
-        { needs: AoWE.AoWHSMap global ($558E9494); use the owning level's map. }
-        MapField := TMapLevel(Owner.Owner).Map.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
+        MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
         TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField), Integer(MapField),
-          Shortint(PByteArray(@TMoveControl(Info.Sender).F_MoveControl_31)^[
-            MapField.TerrainType * 16 + MapField.OverlayType]));
+          TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
       end;
     end
     else if FSideB.IndexOf(Info.HN) <> -1 then
       for I := 0 to FSideA.Count - 1 do
       begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideA[I], Xhx, Yhx);
-        { needs: AoWE.AoWHSMap global ($558E9494); use the owning level's map. }
-        MapField := TMapLevel(Owner.Owner).Map.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
+        MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
         TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField), Integer(MapField),
-          Shortint(PByteArray(@TMoveControl(Info.Sender).F_MoveControl_31)^[
-            MapField.TerrainType * 16 + MapField.OverlayType]));
+          TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
       end;
 end;
 
@@ -322,8 +326,7 @@ begin
     if DirectionValid(TMapField(Owner), 1) then FDirection := 1
     else if DirectionValid(TMapField(Owner), 2) then FDirection := 2
     else if DirectionValid(TMapField(Owner), 0) then FDirection := 0
-    { needs: AoWE.AoWHSMap global ($558E9494); use the owning level's map. }
-    else if msEditting in TMapLevel(Owner.Owner).Map.Status then FDirection := -1;
+    else if msEditting in WorldMap^.Status then FDirection := -1;
     UpdateExclusiveMoves;
   end;
 end;

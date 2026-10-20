@@ -2760,12 +2760,12 @@ begin
   if Resource <> nil then
   begin
     Cloud := TSmokeCloud(Resource.CreateResourceUser);
-    Cloud.F_SmokeCloud_14 := Caster.FPlayer;
-    Cloud.F_SmokeCloud_18 := -1;
-    TGlobalEnchantment(Cloud.F_SmokeCloud_20).F_GlobalEnchantment_19 :=
+    Cloud.FPlayer := Caster.FPlayer;
+    Cloud.FTurnsRemaining := -1;
+    TGlobalEnchantment(Cloud.FEnchantment).F_GlobalEnchantment_19 :=
       Caster.FPlayer;
-    TGlobalEnchantment(Cloud.F_SmokeCloud_20).F_GlobalEnchantment_20 := Spell.F_Spell_18;
-    Cloud.F_SmokeCloud_1C := 0;
+    TGlobalEnchantment(Cloud.FEnchantment).F_GlobalEnchantment_20 := Spell.F_Spell_18;
+    Cloud.FDrifting := False;
     if not SpellHSMap^.PlaceHX(Cloud,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer) then
       Cloud.Free;
