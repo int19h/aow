@@ -105,6 +105,13 @@ type
 
 resourcestring
   WaitingRStr = 'Waiting';
+  ActionAlreadyQueuedRStr = 'Action already queued';
+  ProduceXRStr = 'Produce %s';
+  InstallXRStr = 'Install %s';
+  SummonXRStr = 'Summon %s';
+  ProducingXRStr = 'Producing %s';
+  InstallingXRStr = 'Installing %s';
+  SummoningXRStr = 'Summoning %s';
 
 resourcestring
   ConfirmRStr = 'Confirm';
@@ -6453,106 +6460,450 @@ begin
 end;
 
 function TProductionControl.ExecuteAIProduction(Index, GroupID: Integer): Boolean;
-begin Result := False; end;
+var
+  Item: TProductionItem;
+begin
+  ExecuteDeleteProductions;
+  Item := TProductionItem.Create(nil);
+  Item.FProductionID := 1;
+  Item.FParameter := Index;
+  Item.FGroupID := GroupID;
+  ExecuteAddProduction(Item);
+  Item.Free;
+  Result := True;
+end;
 
 function TProductionControl.ExecuteAIResearch(Index: Integer): Boolean;
-begin Result := False; end;
+var
+  Item: TProductionItem;
+begin
+  if not FUnitProductions.GetItem(Index).FResearched then
+  begin
+    ExecuteDeleteProductions;
+    Item := TProductionItem.Create(nil);
+    Item.FProductionID := 2;
+    Item.FParameter := Index;
+    ExecuteAddProduction(Item);
+    Item.Free;
+    Result := True;
+  end
+  else Result := True;
+end;
 
 function TProductionControl.ExecuteProductionTE(Event: TProductionTE): TExecuteResult;
-begin Result := erRetry; end;
+begin
+  case Event.FCommand of
+    0:
+      begin
+        BeginUpdate;
+        if not Event.FQueue then ExecuteDeleteProductions;
+        ExecuteAddProduction(Event.FItem);
+        Result := erDone;
+        EndUpdate;
+      end;
+    1:
+      begin
+        ExecuteDeleteProduction(Event.FIndex);
+        Result := erDone;
+      end;
+    2:
+      begin
+        ExecuteDeleteProductions;
+        Result := erDone;
+      end;
+    3:
+      begin
+        if (FQueue.Count <> 0) and (FStatus = pcsWaiting) then
+          ExecuteProduction(FQueue.GetItem(0));
+        Result := erDone;
+      end;
+    4:
+      begin
+        FLoopQueue := Event.FIndex = 1;
+        Update;
+        Result := erDone;
+      end;
+  else Result := erDone;
+  end;
+end;
 
-procedure TProductionControl.CreateProductionTE;
-begin end;
+function TProductionControl.CreateProductionTE: TProductionTE;
+var
+  Event: TProductionTE;
+begin
+  Event := TProductionTE.Create(nil);
+  GetLocation(Event.FX, Event.FY, Event.FL);
+  Event.FPlayer := GetPlayer;
+  Result := Event;
+end;
 
 function TProductionControl.UnitProduced: Boolean;
-begin end;
+begin Result := False; end;
 
-function TProductionControl.CreateUnitProduction(A1: Integer): TUnit;
-begin Result := nil; end;
+function TProductionControl.CreateUnitProduction(Index: Integer): TUnit;
+var
+  AUnit: TUnit;
+begin
+  if FUnitProductions.GetItem(Index) <> nil then
+  begin
+    AUnit := TUnit.Create(nil);
+    AUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(Index).FUnitIndex));
+    Result := AUnit;
+  end
+  else Result := nil;
+end;
 
 function TProductionControl.UnitProductionGold(Index: Integer): Integer;
-begin end;
+var
+  UnitIndex: Integer;
+begin
+  UnitIndex := FUnitProductions.GetItem(Index).FUnitIndex;
+  Result := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex).FObtainValue;
+end;
 
 function TProductionControl.UnitProductionGoldUpkeep(Index: Integer): Integer;
-begin end;
+begin
+  Result := (AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(Index).FUnitIndex).FLevel + 1) * 2;
+end;
 
 function TProductionControl.UnitProductionMana(Index: Integer): Integer;
-begin end;
+begin Result := 0; end;
 
 function TProductionControl.UnitProductionManaUpkeep(Index: Integer): Integer;
-begin end;
+begin Result := 0; end;
 
 function TProductionControl.UnitProductionTime(Index: Integer): Integer;
-begin end;
+var
+  UnitIndex: Integer;
+begin
+  UnitIndex := FUnitProductions.GetItem(Index).FUnitIndex;
+  Result := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex).FLevel;
+end;
 
 function TProductionControl.CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
-begin end;
+begin Result := True; end;
 
 function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean;
-begin Result := False; end;
+var
+  Event: TProductionTE;
+  Reason: string;
+begin
+  if CanProduceUnit(Index, Queue, Reason) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 0;
+    Event.FQueue := Queue;
+    Event.FItem := TProductionItem.Create(nil);
+    with Event.FItem do
+    begin
+      FProductionID := 1;
+      FParameter := Index;
+      FGroupID := GroupID;
+    end;
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TProductionControl.ProduceUnit(Index: Integer; Queue: Boolean): Boolean;
-begin end;
+begin
+  Result := ProduceUnitEx(Index, 0, Queue);
+end;
 
 procedure TProductionControl.UnitResearched;
-begin end;
+begin
+  FUnitProductions.GetItem(FSettings.FUnitProductionIndex).FResearched := True;
+end;
 
 function TProductionControl.UnitResearchGold(Index: Integer): Integer;
-begin end;
+var
+  UnitIndex: Integer;
+begin
+  UnitIndex := FUnitProductions.GetItem(Index).FUnitIndex;
+  Result := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex).FObtainValue;
+end;
 
 function TProductionControl.UnitResearchMana(Index: Integer): Integer;
-begin end;
+begin Result := 0; end;
 
 function TProductionControl.UnitResearchTime(Index: Integer): Integer;
-begin end;
+var
+  UnitIndex: Integer;
+begin
+  UnitIndex := FUnitProductions.GetItem(Index).FUnitIndex;
+  Result := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex).FLevel;
+end;
 
 function TProductionControl.CanResearchUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
-begin end;
+begin
+  if not Queue or (FQueue.IndexOf(2, Index, 0) = -1) then Result := True
+  else
+  begin
+    Result := False;
+    Reason := TranslateRStr(ActionAlreadyQueuedRStr);
+  end;
+end;
 
 function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean;
-begin end;
+var
+  Event: TProductionTE;
+  Reason: string;
+begin
+  if CanResearchUnit(Index, Queue, Reason) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 0;
+    Event.FQueue := Queue;
+    Event.FItem := TProductionItem.Create(nil);
+    with Event.FItem do
+    begin
+      FProductionID := 2;
+      FParameter := Index;
+    end;
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := False; { Original returns False after successfully queueing research. }
+  end
+  else Result := True;
+end;
 
 function TProductionControl.Produce(Item: TProductionItem; Queue: Boolean): Boolean;
-begin end;
+var
+  Event: TProductionTE;
+begin
+  if not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 0;
+    Event.FQueue := Queue;
+    Event.FItem := TProductionItem(Item.Copy(AoWEngine));
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := False; { Original returns False after successfully queueing production. }
+  end
+  else Result := True;
+end;
 
-procedure TProductionControl.DeleteProduction(A1: Integer);
-begin end;
+function TProductionControl.DeleteProduction(Index: Integer): Boolean;
+var
+  Event: TProductionTE;
+begin
+  if (Index >= 0) and (Index < FQueue.Count) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 1;
+    Event.FIndex := Index;
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TProductionControl.DeleteProductions;
-begin end;
+function TProductionControl.DeleteProductions: Boolean;
+var
+  Event: TProductionTE;
+begin
+  if (FQueue.Count <> 0) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 2;
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TProductionControl.RetryProductionExecution(A1: Integer);
-begin end;
+function TProductionControl.RetryProductionExecution(var Reason: string): Boolean;
+var
+  Event: TProductionTE;
+begin
+  if (FQueue.Count <> 0) and (FStatus = pcsWaiting) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    if CanExecuteProduction(FQueue.GetItem(0), Reason) then
+    begin
+      Event := CreateProductionTE;
+      Event.FCommand := 3;
+      AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+      Event.Release;
+      Result := True;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TProductionControl.SetLoopQueueTo(A1: Integer);
-begin end;
+function TProductionControl.SetLoopQueueTo(Value: Boolean): Boolean;
+var
+  Event: TProductionTE;
+begin
+  if (Value <> FLoopQueue) and not AoWHSMap.FPlayers.GetPlayers(GetPlayer).GetBusy then
+  begin
+    Event := CreateProductionTE;
+    Event.FCommand := 4;
+    if Value then Event.FIndex := 1 else Event.FIndex := 0;
+    AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TProductionControl.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin
+  X := -1;
+  Y := -1;
+  L := -1;
+end;
 
 procedure TProductionControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FQueue, 20);
+  Stream.rwEObject(FUnitProductions, 21);
+  Stream.rwEObject(FSettings, 22);
+  Stream.rwData(FStatus, SizeOf(FStatus), 23);
+  Stream.rwBool(FLoopQueue, 24);
+end;
 
 procedure TProductionControl.ProductionDone;
-begin end;
+begin
+  BeginUpdate;
+  if FLoopQueue and LoopableProduction(FQueue.GetItem(0)) then
+    FQueue.FChildren.Move(0, FQueue.Count - 1)
+  else FQueue.GetItem(0).Free;
+  if FQueue.Count <> 0 then ExecuteProduction(FQueue.GetItem(0))
+  else FStatus := pcsIdle;
+  EndUpdate;
+end;
 
 procedure TProductionControl.NewTurn(Player: Shortint);
-begin end;
+begin
+  if (FStatus = pcsWaiting) and (Player = GetPlayer) then
+  begin
+    if FQueue.Count <> 0 then ExecuteProduction(FQueue.GetItem(0))
+    else FStatus := pcsIdle;
+  end
+  else if (FStatus = pcsProducing) and (Player = FSettings.FPlayer) then
+  begin
+    if FSettings.FTurnsLeft > 0 then Dec(FSettings.FTurnsLeft);
+    if FSettings.FTurnsLeft = 0 then
+      case FQueue.GetItem(0).FProductionID of
+        1:
+          if UnitProduced then
+          begin
+            if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) and (FSettings.FGroupID <> 0) then
+              GroupProductionProduced(FSettings.FUnit, FSettings.FGroupID);
+            FSettings.Clear;
+            ProductionDone;
+          end;
+        2:
+          begin
+            UnitResearched;
+            FSettings.Clear;
+            ProductionDone;
+          end;
+      end;
+  end;
+end;
 
-function TProductionControl.LockQueueProduction(A1: TProductionItem): Boolean;
+function TProductionControl.LockQueueProduction(Item: TProductionItem): Boolean;
 begin Result := False; end;
 
-function TProductionControl.LoopableProduction(A1: Integer): Boolean;
-begin Result := False; end;
+function TProductionControl.LoopableProduction(Item: TProductionItem): Boolean;
+begin Result := Item.FProductionID <> 2; end;
 
 function TProductionControl.GetProductionName(Item: TProductionItem): string;
-begin end;
+var
+  Production: TUnitProduction;
+begin
+  case Item.FProductionID of
+    1:
+      begin
+        Production := FUnitProductions.GetItem(Item.FParameter);
+        if Production <> nil then
+          if UnitProductionGold(Item.FParameter) <> 0 then
+            Result := Format(TranslateRStr(ProduceXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+          else Result := Format(TranslateRStr(SummonXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+        else Result := TranslateRStr(UnknownRStr);
+      end;
+    2:
+      begin
+        Production := FUnitProductions.GetItem(Item.FParameter);
+        if Production <> nil then
+          Result := Format(TranslateRStr(InstallXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+        else Result := TranslateRStr(UnknownRStr);
+      end;
+  else Result := TranslateRStr(UnknownRStr);
+  end;
+end;
 
 function TProductionControl.GetProductionNameProgressive(Item: TProductionItem): string;
-begin end;
+var
+  Production: TUnitProduction;
+begin
+  case Item.FProductionID of
+    1:
+      begin
+        Production := FUnitProductions.GetItem(Item.FParameter);
+        if Production <> nil then
+          if UnitProductionGold(Item.FParameter) <> 0 then
+            Result := Format(TranslateRStr(ProducingXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+          else Result := Format(TranslateRStr(SummoningXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+        else Result := TranslateRStr(UnknownRStr);
+      end;
+    2:
+      begin
+        Production := FUnitProductions.GetItem(Item.FParameter);
+        if Production <> nil then
+          Result := Format(TranslateRStr(InstallingXRStr), [AoWHSSet.FUnitResources.GetUnitResource(Production.FUnitIndex).GetUnitName])
+        else Result := TranslateRStr(UnknownRStr);
+      end;
+  else Result := TranslateRStr(UnknownRStr);
+  end;
+end;
 
 function TProductionControl.FindOptimalResearchProduction(Predictor: TCombatPredictor; Gold: Integer): Integer;
-begin Result := 0; end;
+var
+  Player: TPlayer;
+  AUnit: TUnit;
+  Productions: TDoubleItemList;
+  I, Priority, Minimum: Integer;
+  Include: Boolean;
+begin
+  Player := AoWHSMap.FPlayers.GetPlayers(GetPlayer);
+  AUnit := TUnit.Create(nil);
+  Productions := TDoubleItemList.Create;
+  for I := FUnitProductions.Count - 1 downto 0 do
+    if not FUnitProductions.GetItem(I).FResearched then
+    begin
+      Include := UnitResearchGold(I) <= Gold;
+      if Predictor <> nil then
+      begin
+        AUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(I).FUnitIndex));
+        Priority := Predictor.Usefullness(AUnit);
+        Include := Priority and $800000 <> 0; { Original replaces the affordability check here. }
+      end
+      else Priority := GetUnitIndexAIPriority(FUnitProductions.GetItem(I).FUnitIndex, Player.FPlayerIndex, 0);
+      if Include then Productions.AddAB(I, Priority);
+    end;
+  if Productions.Count <> 0 then
+  begin
+    Productions.SortDescendingItemB;
+    Result := 0;
+    Minimum := Round(Productions[0].B * 0.8);
+    while (Result + 1 < Productions.Count) and (Productions[Result + 1].B >= Minimum) do Inc(Result);
+    if AoWHSMap.Random(2) = 1 then Result := 0
+    else Result := AoWHSMap.Random(Result + 1);
+    Result := Productions[Result].A;
+  end
+  else Result := -1;
+  Productions.Free;
+  AUnit.Free;
+end;
 
 function TProductionControlList.GetPC(Index: Integer): TProductionControl;
 begin
@@ -7518,157 +7869,532 @@ begin
 end;
 
 constructor TStructureResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetLevel(26);
+  FConnectRoads := True;
+  FTerrainBound := True;
+  FDescription := TStringList.Create;
+  FDefenders := TUnitIndexListCollection.Create;
+  FRazeDefenderBudget := 50;
+  FRazeable := False;
+end;
 
 destructor TStructureResource.Destroy;
-begin end;
+begin
+  FDescription.Free;
+  FDefenders.Free;
+  inherited Destroy;
+end;
 
 class function TStructureResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2034B; end;
 
 class function TStructureResource.ResourceEditName: string;
 begin Result := ''; end;
 
 function TStructureResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2034A; end;
 
 procedure TStructureResource.CalculatePadIndex;
-begin end;
+var
+  I: Integer;
+begin
+  FFlagType := 0;
+  for I := 0 to FTerrainList.Count - 1 do
+    if FTerrainList.Terrain[I] >= 0 then Inc(FFlagType);
+end;
 
 procedure TStructureResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwBool(F_StructureResource_4C, 20);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FSelectSFX, 21);
+  Stream.rwStrings(FDescription, 22);
+  Stream.rwInteger(FScannerIcon, 23);
+  Stream.rwStreamProc(28, FDefenders.SaveToStream, FDefenders.LoadFromStream);
+  if smRead in Stream.StorageMode then CalculatePadIndex;
+end;
 
 procedure TStructureResource.Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure);
-begin end;
+var
+  Index, Offset, FrameIndex: Integer;
+  Sequence: TImageSequence;
+begin
+  if Structure.GetSelected and (AoWHSMap.Frame and 6 = 6) then
+  begin
+    Index := Structure.ImageIndex;
+    Offset := TMapField(Structure.Owner).Xhx + TMapField(Structure.Owner).Yhx * 16;
+    if FImageSequenceList <> nil then
+    begin
+      Sequence := FImageSequenceList.List^[Index];
+      while Sequence <> nil do
+      begin
+        FrameIndex := Sequence.GetFrameIndex(AoWHSMap.Frame, Offset);
+        if FrameIndex <> -1 then
+          if Sequence.ImageLibrary[FrameIndex].ShowInfo.ShowMode = smOpaque then
+            Sequence.ImageLibrary[FrameIndex].ShowTransparent(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc)
+          else Sequence.ImageLibrary[FrameIndex].Show(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
+        Sequence := Sequence.Next;
+      end;
+    end
+    else FImageLibrary[Index].ShowTransparent(X + FdXImage, Y + FdYImage, SurfaceDesc);
+  end
+  else
+    if FImageSequenceList = nil then FImageLibrary[Structure.ImageIndex].Show(X, Y, SurfaceDesc)
+    else ShowComplexImage(X, Y, SurfaceDesc, Structure.ImageIndex,
+      TMapField(Structure.Owner).Xhx + TMapField(Structure.Owner).Yhx * 16);
+end;
 
 constructor TPlayerStructure.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FVictoryLocations := TBitList.Create;
+  FUnfogRange := 0;
+end;
 
 destructor TPlayerStructure.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FVictoryLocations.Free;
+end;
 
 class function TPlayerStructure.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2034C; end;
 
-procedure TPlayerStructure.GetVictoryLocation(A1: Byte);
-begin end;
+function TPlayerStructure.GetVictoryLocation(Player: Shortint): Boolean;
+begin
+  Result := FVictoryLocations[Player];
+end;
 
-procedure TPlayerStructure.SetVictoryLocation(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerStructure.SetVictoryLocation(Player: Shortint; Value: Boolean);
+begin
+  if FVictoryLocations[Player] <> Value then
+  begin
+    FVictoryLocations[Player] := Value;
+    if Value then AoWHSMap.FPlayers.GetPlayers(Player).RegisterVictoryLocation(Self)
+    else AoWHSMap.FPlayers.GetPlayers(Player).UnregisterVictoryLocation(Self);
+    Update;
+  end;
+end;
 
 procedure TPlayerStructure.RegisterVictoryLocations;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 1 to FVictoryLocations.Count - 1 do
+    if FVictoryLocations[I] then
+      if AoWHSMap.FPlayers.GetPlayers(I) <> nil then
+        AoWHSMap.FPlayers.GetPlayers(I).RegisterVictoryLocation(Self)
+      else FVictoryLocations[I] := False;
+end;
 
 procedure TPlayerStructure.UnregisterVictoryLocations;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 1 to FVictoryLocations.Count - 1 do
+    if FVictoryLocations[I] and (AoWHSMap.FPlayers.GetPlayers(I) <> nil) then
+      AoWHSMap.FPlayers.GetPlayers(I).UnregisterVictoryLocation(Self);
+end;
 
 procedure TPlayerStructure.BuildingDone;
-begin end;
+begin
+  inherited BuildingDone;
+  UpdatePlayer;
+  UpdateExploration;
+  UpdateUnfog;
+end;
 
 function TPlayerStructure.CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean;
 begin
-  Result := False;
+  Result := inherited CanRebuild(AUnit, Reason);
 end;
 
 function TPlayerStructure.ExecuteRebuild(AUnit: TAbstractUnit): Boolean;
 begin
-  Result := False;
+  Result := inherited ExecuteRebuild(AUnit);
+  if Result then SetPlayer(AUnit.FPlayer);
 end;
 
 function TPlayerStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean;
 begin
-  Result := False;
+  Result := inherited ExecuteBuild(AUnit, Days);
+  if Result then SetPlayer(AUnit.FPlayer);
 end;
 
 function TPlayerStructure.UpdatePlayer: Boolean;
-begin Result := False; end;
+var
+  Player: Shortint;
+  Different: Boolean;
+  Count: Integer;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+  Army: TArmyHS;
+begin
+  Player := -1;
+  Different := False;
+  Count := GetTerrainCount;
+  Level := TMapLevel(Owner.Owner);
+  InitHNWalk(Walk, FXhx, FYhx, 0);
+  while (Walk.HN < Count) and not Different do
+  begin
+    if (FResource.TerrainList.Terrain[Walk.HN] >= 0) and
+      (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Army := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
+      if Army <> nil then
+        if Player <> -1 then Different := Army.FArmy.FPlayer <> Player
+        else Player := Army.FArmy.FPlayer;
+    end;
+    WalkToNextHN(Walk);
+  end;
+  if Player <> -1 then
+    if Different then SetPlayer(-1) else SetPlayer(Player);
+  Result := not Different;
+end;
 
 procedure TPlayerStructure.NewTurn(Player: Shortint);
-begin end;
+begin
+  inherited NewTurn(Player);
+  if (Player = FPlayer) and (FProductionPriority <> $FF) then Inc(FProductionPriority);
+end;
 
 procedure TPlayerStructure.NewDay;
-begin end;
+begin
+  inherited NewDay;
+  if (AoWHSMap.FDay = 1) and (FPlayer > 0) then
+  begin
+    UpdateExploration;
+    UpdatePlayerSeen;
+  end;
+end;
 
 procedure TPlayerStructure.StructureCaptured(OldPlayer, NewPlayer: Shortint);
-begin end;
+var
+  Log: TLocationTextEventLog;
+  Text: string;
+begin
+  if not GetRazed and not GetBuilding and (OldPlayer = 0) and
+    not (msEditting in AoWHSMap.Status) and (moActivated in FStatus) and
+    not TPlayerStructureResource(FResource).FClaimed then
+  begin
+    Log := TLocationTextEventLog.Create(nil);
+    Log.FPlayer := NewPlayer;
+    Text := Format(TranslateRStr(StructureCapturedRStr), [EditName]);
+    Log.FText := Text;
+    Log.FXhx := GetXhx;
+    Log.FYhx := GetYhx;
+    Log.FLhx := GetLhx;
+    DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+    Log.Release;
+  end;
+end;
 
 function TPlayerStructure.GetCombatEventText(Combat: TCombat): string;
-begin Result := ''; end;
+begin
+  if not GetRazed then
+    if Combat.FCombatResult in [crVictory, crNoDefenders] then
+      Result := Format(TranslateRStr(StructureCapturedRStr), [EditName])
+    else Result := '';
+  { Original leaves the result unchanged for a razed structure. }
+end;
 
 procedure TPlayerStructure.FinalizeCombat(Combat: TCombat);
-begin end;
+begin
+  if Combat.FCombatResult in [crVictory, crNoDefenders] then
+    with Combat.FCombatData do SetPlayer(FPlayers.GetPlayers(FAttackerPlayer).FPlayer);
+end;
 
 procedure TPlayerStructure.SetPlayer(Player: Shortint);
-begin end;
+var
+  I: Integer;
+begin
+  if Player <> FPlayer then
+  begin
+    if GetRazed and not GetBuilding then Exit;
+    FProductionPriority := 0;
+    if FPlayer <> -1 then AoWHSMap.FPlayers.GetPlayers(FPlayer).FStructures.RemoveChild(Self);
+    if AoWHSMap.FDay > 0 then StructureCaptured(FPlayer, Player);
+    FPlayer := Player;
+    UpdateUnfog;
+    UpdatePlayerSeen;
+    UpdateExploration;
+    AoWHSMap.ScannerIconsChangedRad(GetXhx, GetYhx, GetLhx, HNtoRad(FResource.TerrainList.Count));
+    UpdateFlagID;
+    FogChanged;
+    AoWHSMap.NotifyPlayerChanged(GetXhx, GetYhx, GetLhx);
+    if FPlayer <> -1 then AoWHSMap.FPlayers.GetPlayers(FPlayer).FStructures.AddChild(Self);
+    if (FPlayer > 0) and (AoWHSMap.FVictoryCondition = vcCaptureLocations) then
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        if FVictoryLocations[I] then
+          if (I = FPlayer) or (AoWHSMap.FAlliedVictory and
+            (AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer, I) = drAlliance)) then
+            AoWHSMap.FPlayers.GetPlayers(I).CheckCaptureLocations;
+    Update;
+  end;
+end;
 
 procedure TPlayerStructure.UpdateFlagID;
-begin end;
+begin
+  if not (moEditMode in FStatus) then
+    if FPlayer < 1 then
+      if not TPlayerStructureResource(FResource).FClaimed then FFlagID := $3F
+      else FFlagID := $20
+    else FFlagID := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
+  else FFlagID := $3F;
+end;
 
 procedure TPlayerStructure.ArmyPlaced(A1: TArmyHS);
-begin end;
+begin UpdatePlayer; end;
 
 procedure TPlayerStructure.ArmyChanged(Army: TArmyHS);
-begin end;
+begin UpdatePlayer; end;
 
 function TPlayerStructure.GetIncome: Integer;
-begin end;
+begin Result := 0; end;
 
 function TPlayerStructure.GetPower: Integer;
-begin end;
+begin Result := 0; end;
 
 procedure TPlayerStructure.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), 5);
+  Stream.rwStreamProc(6, FVictoryLocations.SaveToStream, FVictoryLocations.LoadFromStream);
+  Stream.rwByte(FProductionPriority, 7);
+end;
 
 procedure TPlayerStructure.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Xhp, Yhp: Integer;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  if (FFlagID <> $3F) and ((AoWHSMap.FFogEnabled = 0) or not FFogged) then
+    with TPlayerStructureResource(FResource) do
+      if FFlagType <= 1 then
+        AoWHSSet.FFlagControl.ShowFlag(FFlagX + XhpSurf, FFlagY + YhpSurf,
+          Engine.HSMap.Frame + Xhp, FFlagID, SurfaceDesc)
+      else FFlagControl.ShowStructureFlag(FFlagX + XhpSurf, FFlagY + YhpSurf,
+          Engine.HSMap.Frame + Xhp, FFlagID, SurfaceDesc);
+  TPlayerStructureResource(FResource).Show(XhpSurf, YhpSurf, SurfaceDesc, Self);
+end;
 
 function TPlayerStructure.TrueVisionRange: Integer;
-begin Result := 0; end;
+begin Result := 1; end;
 
 function TPlayerStructure.VisibilityRange: Integer;
-begin Result := 0; end;
+begin
+  if not GetBuilding then
+  begin
+    Result := 6;
+    if (GetLhx <> 0) or ((FPlayer > 0) and
+      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments and 8 <> 0)) then
+      Result := (Result + 1) shr 1;
+  end
+  else Result := 4;
+end;
 
 procedure TPlayerStructure.UpdatePlayerSeen;
-begin end;
+var
+  I, X, Y: Integer;
+begin
+  if (moPlacedOnMap in FStatus) and (FPlayer > 0) then
+    for I := 0 to FResource.TerrainList.Count - 1 do
+      if FResource.TerrainList.Terrain[I] >= 0 then
+      begin
+        CenterHNtoHX(FXhx, FYhx, I, X, Y);
+        AoWHSMap.UpdatePlayerSeen(FPlayer, X, Y, GetLhx, VisibilityRange, TrueVisionRange);
+      end;
+end;
 
 procedure TPlayerStructure.UpdateExploration;
-begin end;
+var
+  Player, I, X, Y: Integer;
+begin
+  if (moPlacedOnMap in FStatus) and (FPlayer > 0) then
+    for Player := 1 to AoWHSMap.FPlayers.Count - 1 do
+      if (Player = FPlayer) or
+        (AoWHSMap.FPlayers.GetPlayers(FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Player) = drAlliance) then
+        for I := 0 to FResource.TerrainList.Count - 1 do
+          if FResource.TerrainList.Terrain[I] >= 0 then
+          begin
+            CenterHNtoHX(FXhx, FYhx, I, X, Y);
+            AoWHSMap.ExploreArea(X, Y, TMapField(Owner).Lhx, Player, VisibilityRange);
+          end;
+end;
 
 procedure TPlayerStructure.UpdateUnfog;
-begin end;
+var
+  Range, I, X, Y: Integer;
+begin
+  if not (moPlacedOnMap in FStatus) then Exit;
+  if (moActivated in FStatus) and (FPlayer <> -1) and (AoWHSMap.FSeatedPlayer <> -1) and
+    ((AoWHSMap.FSeatedPlayer = FPlayer) or
+    (AoWHSMap.FPlayers.GetPlayers(FPlayer).FDiplomaticRelations.GetDiplomaticRelation(AoWHSMap.FSeatedPlayer) = drAlliance)) then
+    Range := VisibilityRange
+  else Range := 0;
+  if Range <> FUnfogRange then
+  begin
+    if FUnfogRange <> 0 then
+      for I := 0 to FResource.TerrainList.Count - 1 do
+        if FResource.TerrainList.Terrain[I] >= 0 then
+        begin
+          CenterHNtoHX(FXhx, FYhx, I, X, Y);
+          AoWHSMap.FogArea(X, Y, TMapField(Owner).Lhx, FUnfogRange);
+        end;
+    FUnfogRange := Range;
+    if FUnfogRange <> 0 then
+      for I := 0 to FResource.TerrainList.Count - 1 do
+        if FResource.TerrainList.Terrain[I] >= 0 then
+        begin
+          CenterHNtoHX(FXhx, FYhx, I, X, Y);
+          AoWHSMap.UnFogArea(X, Y, TMapField(Owner).Lhx, FUnfogRange);
+        end;
+  end;
+end;
 
 procedure TPlayerStructure.SeatedPlayerChanged;
-begin end;
+begin
+  inherited SeatedPlayerChanged;
+  UpdateUnfog;
+end;
 
 procedure TPlayerStructure.Activate;
-begin end;
+begin
+  inherited Activate;
+  UpdateFlagID;
+  UpdateUnfog;
+  RegisterVictoryLocations;
+  if FPlayer <> -1 then AoWHSMap.FPlayers.GetPlayers(FPlayer).FStructures.AddChild(Self);
+end;
 
 procedure TPlayerStructure.Deactivate;
-begin end;
+begin
+  if FPlayer <> -1 then AoWHSMap.FPlayers.GetPlayers(FPlayer).FStructures.RemoveChild(Self);
+  UnregisterVictoryLocations;
+  inherited Deactivate;
+  UpdateUnfog;
+end;
 
 procedure TPlayerStructure.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
-begin end;
+begin
+  if FResource.TerrainList.Terrain[Info.HN] >= 0 then
+    if not GetRazed and (FPlayer <> -1) and (TMoveControl(Info.Sender).FPlayer <> FPlayer) and
+      (Info.MoveOverCode <> 1) then
+    begin
+      MoveResult.Code := -1;
+      MoveResult.Done := True;
+    end;
+end;
 
 function TPlayerStructure.CanMoveOver(const Info: HSEngine.THSSenderInfo): Integer;
-begin Result := 0; end;
+begin
+  if (FResource.TerrainList.Terrain[Info.HN] >= 0) and (not GetRazed or GetBuilding) then
+  begin
+    if FPlayer = 0 then
+      if (TMoveControl(Info.Sender).FPlayer = FPlayer) or not TPlayerStructureResource(FResource).FClaimed then
+        Result := 1
+      else Result := 0
+    else
+      if (TMoveControl(Info.Sender).FPlayer = FPlayer) or (FPlayer = -1) then Result := 1
+      else Result := 0;
+  end
+  else Result := 1;
+end;
 
 procedure TPlayerStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020005 then
+  begin
+    if AoWHSMap.FPlayers.GetNumberOfPlayers < FPlayer then SetPlayer(0);
+    UpdateFlagID;
+  end
+  else if Msg.MsgID = $20020008 then
+  begin
+    UpdateExploration;
+    UpdateUnfog;
+  end;
+end;
 
 procedure TPlayerStructure.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if FResource.TerrainList.Terrain[Info.HN] >= 0 then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $0B007000;
+end;
 
 function TPlayerStructure.GetDefaultAITargetPriority: Integer;
-begin Result := 0; end;
+begin Result := 10; end;
 
 procedure TPlayerStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
-begin end;
+begin
+  if GetRazed and not GetBuilding then Exit;
+  case Info.Mode of
+    tmAttack:
+      if (Info.Player <> FPlayer) and not GetRazed then
+        if (FPlayer = 0) or ValidAttackRelation(Info.Player, Info.IndependentRelation, FPlayer, 0) then
+          Data.Priority := GetDefaultAITargetPriority;
+  end;
+end;
 
 function TPlayerStructure.GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction;
-begin Result := maNormal; end;
+begin
+  if (Player <> FPlayer) and not GetRazed and
+    ((FPlayer <> 0) or TPlayerStructureResource(FResource).FClaimed) then Action := maAttack;
+  Result := Action;
+end;
 
 procedure TPlayerStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  if (Msg.MsgID = $110C) and (Msg.HN = 0) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
+  begin
+    if (AoWHSMap.FFogEnabled = 0) or not FFogged then
+    begin
+      if FPlayer < 0 then Inc(Msg.Param[0], $E00)
+      else if FPlayer < 1 then Inc(Msg.Param[0], $D00)
+      else Inc(Msg.Param[0], (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace + 1) * $100);
+      if (AoWHSMap.FVictoryCondition = vcCaptureLocations) and FVictoryLocations[AoWHSMap.FSeatedPlayer] then
+        Msg.Param[0] := Msg.Param[0] or $1000000;
+    end
+    else Inc(Msg.Param[0], $E00);
+  end
+  else inherited MapFieldMsgProc(Msg);
+  if Msg.MsgID = $1100 then
+  begin
+    if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and not GetRazed then
+      if FPlayer = 0 then
+        if not TPlayerStructureResource(FResource).FClaimed then Msg.Result := -1 else Msg.Result := 0
+      else Msg.Result := FPlayer;
+  end
+  else if (Msg.MsgID = $110D) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
+  begin
+    if (FPlayer > 0) and (Msg.Param[0] <= VisibilityRange) then
+      AoWHSMap.UpdatePlayerSeen(FPlayer, Msg.MapField.Xhx, Msg.MapField.Yhx, Msg.MapField.Lhx,
+        Msg.Param[0], TrueVisionRange);
+  end
+  else if (Msg.MsgID = $1130) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then Msg.Result := FPlayer
+  else if (Msg.MsgID = $1101) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
+    Msg.Param[1] := Ord(GetMoveAction(Msg.Param[0], TMoveAction(Msg.Param[1])))
+  else if (Msg.MsgID = $110A) and (FPlayer > 0) then
+  begin
+    if (FPlayer = Msg.Param[1]) or
+      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Msg.Param[1]) = drAlliance) then
+      if Msg.Param[0] <= VisibilityRange then Msg.Result := 1;
+  end;
+  if (Msg.MsgID = $110B) and (FPlayer > 0) then
+  begin
+    if (FPlayer = Msg.Param[1]) or
+      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Msg.Param[1]) = drAlliance) then
+      if Msg.Param[0] <= TrueVisionRange then Msg.Result := 1;
+  end
+  else if (Msg.MsgID = $1110) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
+    FinalizeCombat(TCombat(Msg.Param[0]))
+  else if (Msg.MsgID = $1109) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
+    string(Pointer(Msg.Result)^) := GetCombatEventText(TCombat(Msg.Param[0]));
+end;
 
 constructor TPlayerStructureResource.Create(AOwner: Engine.TECustomNode);
 begin end;

@@ -128,24 +128,24 @@
     procedure ExecuteDeleteProduction(Index: Integer); virtual; { $68 }
     procedure ExecuteDeleteProductions; virtual;
     function ExecuteProductionTE(Event: TProductionTE): TExecuteResult; virtual; { $70 }
-    procedure CreateProductionTE; virtual;  { +074 draft }
+    function CreateProductionTE: TProductionTE; virtual; { $74; 5575D54C }
     procedure GetLocation(var X, Y, L: Shortint); virtual;
     function GetPlayer: Shortint; virtual; abstract;
     function GetQueueSizeMax: Integer; virtual;
     function GetQueueLocked: Boolean; virtual;
-    function LoopableProduction(A1: Integer): Boolean; virtual;
-    function LockQueueProduction(A1: TProductionItem): Boolean; virtual;
+    function LoopableProduction(Item: TProductionItem): Boolean; virtual; { $88; 5575DDFC }
+    function LockQueueProduction(Item: TProductionItem): Boolean; virtual;
     function UnitProduced: Boolean; virtual;
     procedure UnitResearched; virtual;
     procedure Update; virtual;
-    function CreateUnitProduction(A1: Integer): TUnit; virtual;
+    function CreateUnitProduction(Index: Integer): TUnit; virtual;
     procedure Activate; virtual;
     procedure Deactivate; virtual;
     procedure NewTurn(Player: Shortint); virtual;
     procedure PlayerChanged; virtual;
     function CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean; virtual;
-    procedure DeleteProduction(A1: Integer); virtual;  { +0B4 draft }
-    procedure DeleteProductions; virtual;  { +0B8 draft }
+    function DeleteProduction(Index: Integer): Boolean; virtual; { $B4; 5575D9E0 }
+    function DeleteProductions: Boolean; virtual; { $B8; 5575DA60 }
     function GetProductionName(Item: TProductionItem): string; virtual;
     function GetProductionNameProgressive(Item: TProductionItem): string; virtual;
     function UnitProductionGold(Index: Integer): Integer; virtual;
@@ -169,8 +169,8 @@
     procedure UnregisterGroupProduction;
     procedure GroupProductionProduced(AUnit: TAbstractUnit; GroupID: Integer);
     function Produce(Item: TProductionItem; Queue: Boolean): Boolean;
-    procedure RetryProductionExecution(A1: Integer);  { draft }
-    procedure SetLoopQueueTo(A1: Integer);  { draft }
+    function RetryProductionExecution(var Reason: string): Boolean; { 5575DAD8 }
+    function SetLoopQueueTo(Value: Boolean): Boolean; { 5575DB80 }
     procedure ProductionDone;
     function FindOptimalResearchProduction(Predictor: TCombatPredictor; Gold: Integer): Integer;
   end;

@@ -81,7 +81,7 @@
   public
     F_MoveControl_04: Integer;
     F_MoveControl_08: Byte;
-    F_MoveControl_09: Byte;
+    FPlayer: Shortint; { $09; 55761458 }
     F_MoveControl_0A: Byte;
     F_MoveControl_0B: array[0..0] of Byte;
     F_MoveControl_0C: Integer;

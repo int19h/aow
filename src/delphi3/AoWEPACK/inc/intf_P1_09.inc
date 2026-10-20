@@ -184,7 +184,7 @@
     FFlagType: Byte; { $46 }
     F_StructureResource_47: array[0..0] of Byte;
     FSelectSFX: string; { $48; 5575EA18 }
-    F_StructureResource_4C: Byte;
+    F_StructureResource_4C: Boolean; { $4C; stored as rwBool at 55760564 }
     F_StructureResource_4D: array[0..2] of Byte;
     FDescription: TStrings; { $50; 5575E988 }
     FScannerIcon: Integer; { $54; 5575F817 }
@@ -202,7 +202,7 @@
     class function ResourceEditName: string; override;
     function ResourceUserClassID: Integer; override;
     procedure Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure); virtual;
-    procedure CalculatePadIndex;  { draft }
+    procedure CalculatePadIndex;
   end;
 
   { TRazeStructureEventLog: size $2C; $28 structure. VMT 55714050. }
@@ -233,14 +233,15 @@
     procedure Setup(Structure: TPlayerStructure);
   end;
 
-  { TPlayerStructure (instance size 60, VMT 55714340) }
+  { TPlayerStructure: size $3C; $30 player, $31 turns owned (FProductionPriority),
+    $32 flag ID, $34 victory-location bits, $38 unfog range. VMT 55714340. }
   TPlayerStructure = class(TStructure)
   public
     FPlayer: Shortint;  { $30 }
     FProductionPriority: Byte; { $31 }
-    F_PlayerStructure_32: Byte;
+    FFlagID: Byte; { $32 }
     F_PlayerStructure_33: array[0..0] of Byte;
-    F_PlayerStructure_34: Integer;
+    FVictoryLocations: TBitList; { $34 }
     FUnfogRange: Byte; { $38; $557D50FC }
     F_PlayerStructure_39: array[0..2] of Byte;
     destructor Destroy; override;
@@ -268,22 +269,22 @@
     procedure SetPlayer(Player: Shortint); virtual;
     function GetIncome: Integer; virtual;
     function GetPower: Integer; virtual;
-    procedure UpdateFlagID; virtual;  { +1FC draft }
+    procedure UpdateFlagID; virtual; { $1FC }
     function VisibilityRange: Integer; virtual;
-    procedure UpdateUnfog; virtual;  { +204 draft }
-    procedure UpdateExploration; virtual;  { +208 draft }
+    procedure UpdateUnfog; virtual; { $204 }
+    procedure UpdateExploration; virtual; { $208 }
     procedure FinalizeCombat(Combat: TCombat); virtual;
     function GetCombatEventText(Combat: TCombat): string; virtual; { +210; $557D066C }
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
     function GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction; virtual;
     function GetDefaultAITargetPriority: Integer; virtual;
     function UpdatePlayer: Boolean; virtual;
-    procedure GetVictoryLocation(A1: Byte);  { draft }
-    procedure SetVictoryLocation(A1: Integer; A2: Integer);  { draft }
-    procedure RegisterVictoryLocations;  { draft }
-    procedure UnregisterVictoryLocations;  { draft }
+    function GetVictoryLocation(Player: Shortint): Boolean; { 557607AC }
+    procedure SetVictoryLocation(Player: Shortint; Value: Boolean); { 557607B8 }
+    procedure RegisterVictoryLocations;
+    procedure UnregisterVictoryLocations;
     function TrueVisionRange: Integer;
-    procedure UpdatePlayerSeen;  { draft }
+    procedure UpdatePlayerSeen;
   end;
 
   { TPlayerStructureResource (instance size 116, VMT 557145E0) }
@@ -293,7 +294,7 @@
     F_PlayerStructureResource_65: array[0..2] of Byte;
     FFlagX: Integer; { $68 }
     FFlagY: Integer; { $6C }
-    F_PlayerStructureResource_70: Integer;
+    FFlagControl: TFlagControl; { $70; 5576103D }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

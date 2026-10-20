@@ -42,7 +42,7 @@ type
     function ExecuteProduction(Item: TProductionItem): Boolean; override;
     procedure GetLocation(var X, Y, L: Shortint); override;
     function GetPlayer: Shortint; override;
-    function LoopableProduction(A1: Integer): Boolean; override;
+    function LoopableProduction(A1: TProductionItem): Boolean; override;
     function LockQueueProduction(A1: TProductionItem): Boolean; override;
     function UnitProduced: Boolean; override;
     procedure UnitResearched; override;
@@ -592,7 +592,7 @@ begin
   end;
 end;
 
-function TCityProductionControl.LoopableProduction(A1: Integer): Boolean;
+function TCityProductionControl.LoopableProduction(A1: TProductionItem): Boolean;
 begin
   Result := inherited LoopableProduction(A1);
   case ProductionIDToCityAction(TProductionItem(A1).FProductionID) of
