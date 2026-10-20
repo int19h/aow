@@ -115,7 +115,7 @@ type
     F_CombatSpell_3D: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetCombatInfo(A1: Integer; A2: Integer); override;
+    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
     procedure GetCombatDamageValue(A1: Integer; A2: Integer); override;
     procedure GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer); override;
     procedure fcPrefetchCombatCommands(A1: Integer); override;
@@ -473,7 +473,7 @@ begin end;
 constructor TCombatSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TCombatSpell.GetCombatInfo(A1: Integer; A2: Integer);
+procedure TCombatSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
 begin end;
 
 procedure TCombatSpell.GetCombatDamageValue(A1: Integer; A2: Integer);

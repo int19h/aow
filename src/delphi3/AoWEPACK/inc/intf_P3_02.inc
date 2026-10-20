@@ -288,7 +288,7 @@
     $28 lock count; $2C FOnExecuted; $34 terminated; $38 FOnTerminated. }
   TCombat = class(TEObject)
   public
-    F_Combat_08: TCombatStatus;
+    FStatus: TCombatStatus; { $08 }
     F_Combat_09: array[0..2] of Byte;
     FCombatData: TCombatData;  { $0C }
     F_Combat_10: Integer;

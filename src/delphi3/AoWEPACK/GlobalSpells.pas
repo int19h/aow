@@ -145,8 +145,8 @@ type
     F_DisjunctionSpellCaster_14: Integer;
     F_DisjunctionSpellCaster_18: Integer;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CanCast(A1: Integer); override;
-    procedure Cast; override;
+    function CanCast(var Reason: string): Boolean; override;
+    function Cast: Boolean; override;
     procedure SetEnchantmentID(A1: Integer);  { draft }
     procedure SelectedEnchantment;  { draft }
     procedure GetMana;  { draft }
@@ -626,11 +626,11 @@ begin end;
 procedure TDisjunctionSpellCaster.GetEnoughMana;
 begin end;
 
-procedure TDisjunctionSpellCaster.CanCast(A1: Integer);
-begin end;
+function TDisjunctionSpellCaster.CanCast(var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TDisjunctionSpellCaster.Cast;
-begin end;
+function TDisjunctionSpellCaster.Cast: Boolean;
+begin Result := False; end;
 
 constructor TDisjunction.Create(AOwner: Engine.TECustomNode);
 begin end;

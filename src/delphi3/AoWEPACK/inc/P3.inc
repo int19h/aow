@@ -1270,8 +1270,8 @@ end;
 
 destructor TCombat.Destroy;
 begin
-  if cActivated in F_Combat_08 then Deactivate;
-  if cExecuting in F_Combat_08 then Finalize;
+  if cActivated in FStatus then Deactivate;
+  if cExecuting in FStatus then Finalize;
   TObject(F_Combat_24).Free;
   TObject(FSides[csAttacker]).Free;
   TObject(FSides[csDefender]).Free;
@@ -1281,12 +1281,12 @@ begin
 end;
 
 function TCombat.GetLogCombatActions: Boolean;
-begin Result := cLogCombatActions in F_Combat_08; end;
+begin Result := cLogCombatActions in FStatus; end;
 
 procedure TCombat.SetLogCombatActions(A1: Byte);
 begin
-  if A1 <> 0 then F_Combat_08 := F_Combat_08 + [cLogCombatActions]
-  else F_Combat_08 := F_Combat_08 - [cLogCombatActions];
+  if A1 <> 0 then FStatus := FStatus + [cLogCombatActions]
+  else FStatus := FStatus - [cLogCombatActions];
 end;
 
 procedure TCombat.ReadWrite(Stream: Engine.TEStorageStream);
@@ -1303,7 +1303,7 @@ begin Result := TCombatData(FCombatData).F_CombatData_44; end;
 
 procedure TCombat.ExecuteCombatAction(A1: TCombatAction);
 begin
-  if cLogCombatActions in F_Combat_08 then TCombatActionList(TCombatLogbook(F_Combat_18).FActions).AddChild(TCombatAction(A1));
+  if cLogCombatActions in FStatus then TCombatActionList(TCombatLogbook(F_Combat_18).FActions).AddChild(TCombatAction(A1));
   TCombatAction(A1).Execute(Self);
 end;
 
@@ -1326,7 +1326,7 @@ begin
   TCombatLogbook(F_Combat_18).Clear;
   F_Combat_10 := 1;
   TCombatData(FCombatData).Clear;
-  F_Combat_08 := [];
+  FStatus := [];
 end;
 
 procedure TCombat.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer);
@@ -1462,12 +1462,12 @@ end;
 procedure TCombat.Activate;
 var I: Integer;
 begin
-  Assert(not (cActivated in F_Combat_08), 'Combat already activated');
-  F_Combat_08 := F_Combat_08 + [cActivated];
+  Assert(not (cActivated in FStatus), 'Combat already activated');
+  FStatus := FStatus + [cActivated];
   TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).Activate(Integer(Self));
   for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
     TCombatData(FCombatData).GetObjects(I).Activate(Integer(Self));
-  if cExecuting in F_Combat_08 then
+  if cExecuting in FStatus then
   begin
     for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
       TCombatData(FCombatData).GetObjects(I).SetupTargets;
@@ -1478,8 +1478,8 @@ end;
 procedure TCombat.Deactivate;
 var I: Integer;
 begin
-  Assert(cActivated in F_Combat_08, 'Combat Failure during Deactivating');
-  F_Combat_08 := F_Combat_08 - [cActivated];
+  Assert(cActivated in FStatus, 'Combat Failure during Deactivating');
+  FStatus := FStatus - [cActivated];
   for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
     TCombatData(FCombatData).GetObjects(I).Deactivate;
   TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).Deactivate(Integer(Self));

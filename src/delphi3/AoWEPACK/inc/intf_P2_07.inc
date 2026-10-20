@@ -32,7 +32,7 @@
     +60 FHeroName; +6A..6F unit attack, defense, damage, hits, moves, resistance. }
   THero = class(TAbstractUnit)
   public
-    F_Hero_3C: Integer;
+    FFaceIndex: Integer; { $3C }
     F_Hero_40: Integer;
     F_Hero_44: Integer;
     F_Hero_48: Integer;

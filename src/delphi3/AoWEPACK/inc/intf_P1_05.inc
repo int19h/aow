@@ -270,7 +270,7 @@
     F_AoWHSMap_1D4: Integer;
     F_AoWHSMap_1D8: Integer;
     F_AoWHSMap_1DC: Integer;
-    F_AoWHSMap_1E0: Integer;
+    FCosmeticSurgeryEvents: TEventList; { $1E0 }
     F_AoWHSMap_1E4: Integer;
     F_AoWHSMap_1E8: Integer;
     F_AoWHSMap_1EC: Integer;

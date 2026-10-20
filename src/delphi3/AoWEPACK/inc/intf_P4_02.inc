@@ -835,7 +835,7 @@
   { TCosmeticSurgeryEnchantment (instance size 36, VMT 55722888) }
   TCosmeticSurgeryEnchantment = class(TUnitEnchantment)
   public
-    F_CosmeticSurgeryEnchantment_20: Integer;
+    FFaceIndex: Integer; { $20 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -873,6 +873,14 @@
     procedure GetName(A1: Integer); override;
   end;
 
+  TUnitSpellData = array[0..1] of Integer;
+  TSpellCombatInfo = packed record
+    Attack, Damage: Shortint;
+    DamageTypes: TDamageTypes;
+    RepeatCount, Range, Radius: Shortint;
+    TargetTypes: TCombatTargetType;
+  end;
+
   { TSpell (instance size 52, VMT 55722D7C; $08 name, $0C control types,
     $10 spell ID, $14 base mana cost, $20 sphere, $21 level, $22 type,
     $24 text, $28 sounds, $2C images; $18/$1C/$30 remain unresolved Integers) }
@@ -897,7 +905,7 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual; { +04C; byte coordinates, external overrides are draft }
+    procedure PlayDefaultCastEffects(Player, X, Y, Layer: Shortint); virtual; { +04C }
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; virtual;  { +050 }
     function CreateCastSpellAction: TAICastSpellAction; virtual;  { +054 }
     procedure SetupCastSpellAction(A1: TAbstractUnit; A2: TAICastSpellAction); virtual;  { +058 }
@@ -909,7 +917,7 @@
     procedure CanActivateCombat(A1: Integer; A2: Integer); virtual;  { +070 draft }
     procedure ActivateCombat(A1: Integer); virtual;  { +074 draft }
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); virtual;  { +078 draft }
-    procedure GetCombatInfo(A1: Integer; A2: Integer); virtual;  { +07C draft }
+    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); virtual; { +07C }
     procedure GetCombatDamageValue(A1: Integer; A2: Integer); virtual;  { +080 draft }
     procedure GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +084 draft }
     procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +088 draft }
@@ -984,8 +992,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure CanCast(A1: Integer); virtual;  { +04C draft }
-    procedure Cast; virtual;  { +050 draft }
+    function CanCast(var Reason: string): Boolean; virtual; { +04C }
+    function Cast: Boolean; virtual; { +050 }
     function GetSource: TAbstractUnit;
   end;
 
@@ -1020,8 +1028,8 @@
     F_UnitSpellCaster_19: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CanCast(A1: Integer); override;
-    procedure Cast; override;
+    function CanCast(var Reason: string): Boolean; override;
+    function Cast: Boolean; override;
     procedure SetSelection(Selection: Byte);
     function GetSelectionCount: Integer;
     function GetRequiredMana: Integer;
@@ -1032,17 +1040,18 @@
   { TUnitSpellTE (instance size 52, VMT 557233E8) }
   TUnitSpellTE = class(TSpellTE)
   public
-    F_UnitSpellTE_20: Integer;
-    F_UnitSpellTE_24: Integer;
-    F_UnitSpellTE_28: Byte;
-    F_UnitSpellTE_29: array[0..10] of Byte;
+    FTargetUnitIDs: TIntegerList; { $20 }
+    FTargetUnits: TUnitUserList; { $24 }
+    FTargetPlayer: Shortint; { $28 }
+    F_UnitSpellTE_29: array[0..2] of Byte;
+    FSpellData: TUnitSpellData; { $2C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
-    procedure Initialize(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
   end;
 
   { TUnitSpellCA (instance size 32, VMT 557234B8) }
@@ -1062,26 +1071,26 @@
   { TUnitSpell (instance size 68, VMT 55723590) }
   TUnitSpell = class(TSpell)
   public
-    F_UnitSpell_34: Byte;
+    FAllowMultipleTargets: Boolean; { $34 }
     F_UnitSpell_35: array[0..2] of Byte;
-    F_UnitSpell_38: Integer;
-    F_UnitSpell_3C: Byte;
+    FTargetRange: Integer; { $38 }
+    FUnitDispelResistance: Byte; { $3C }
     F_UnitSpell_3D: array[0..2] of Byte;
-    F_UnitSpell_40: Integer;
+    FAIValue: Integer; { $40 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
     function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
     procedure CanActivateCombat(A1: Integer; A2: Integer); override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetCombatInfo(A1: Integer; A2: Integer); override;
-    procedure ValidTargetUnit(A1: Integer; A2: Integer); virtual;  { +09C draft }
+    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
+    function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; virtual;  { +09C }
     procedure ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A0 draft }
     procedure SetupUSC(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A4 draft }
-    procedure CastSpell(A1: Integer; A2: Integer); virtual;  { +0A8 draft }
+    function CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean; virtual; { +0A8 }
     procedure ValidTargetParty(A1: Integer; A2: Integer); virtual;  { +0AC draft }
     procedure TargetPartySelected(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
-    procedure ExecuteSpell(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0B4 draft }
+    function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; virtual;  { +0B4 }
     procedure CreateCAEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0B8 draft }
     procedure ExecuteCA(A1: Integer; A2: Integer); virtual;  { +0BC draft }
     procedure AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0C0 draft }

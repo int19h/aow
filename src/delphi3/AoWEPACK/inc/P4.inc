@@ -1049,7 +1049,7 @@ end;
 procedure TCosmeticSurgeryEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwInteger(F_CosmeticSurgeryEnchantment_20, 25);
+  Stream.rwInteger(FFaceIndex, 25);
 end;
 
 function TCosmeticSurgeryEnchantment.GetName: string;
@@ -3710,9 +3710,8 @@ asm
   XOR EAX, EAX
 end;
 
-procedure TSpell.GetCombatInfo(A1: Integer; A2: Integer);
-{ ECX is a var parameter pointing to the eight-byte combat-info record.
-  Preserve this ABI while unmarked external overrides still use Integer drafts. }
+procedure TSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+{ ECX points to the eight-byte TSpellCombatInfo record. }
 asm
   PUSH EBX
   MOV EBX, ECX
@@ -3774,9 +3773,8 @@ begin
   CombatCastingDone(Source, Mana);
 end;
 
-procedure TSpell.PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-{ Byte player/X/Y/Layer ABI is retained until UnitSpells' unmarked overrides
-  can be updated. Unmarked P1 map fields and Animation declarations stay intact. }
+procedure TSpell.PlayDefaultCastEffects(Player, X, Y, Layer: Shortint);
+{ Player/X/Y/Layer use the original byte ABI. }
 asm
   PUSH ECX
   PUSH EBX
@@ -4349,8 +4347,8 @@ asm
   CALL TUnitControl.FindUnit
 end;
 
-procedure TSpellCaster.CanCast(A1: Integer);
-{ The inherited draft's A1 is unused; AL reports whether the source still exists. }
+function TSpellCaster.CanCast(var Reason: string): Boolean;
+{ Reason is unused; AL reports whether the source still exists. }
 asm
   MOV EDX, [AoWHSMap]
   MOV EDX, [EDX + $FC]
@@ -4361,7 +4359,7 @@ asm
   SETNE AL
 end;
 
-procedure TSpellCaster.Cast;
+function TSpellCaster.Cast: Boolean;
 asm
   MOV AL, 1
 end;
@@ -4499,7 +4497,7 @@ begin
     Result := 0;
 end;
 
-procedure TUnitSpellCaster.CanCast(A1: Integer);
+function TUnitSpellCaster.CanCast(var Reason: string): Boolean;
 { Compatibility body: Boolean result in AL; source/selection validation and casting. }
 asm
   PUSH ebp
@@ -4633,7 +4631,7 @@ asm
   RET
 end;
 
-procedure TUnitSpellCaster.Cast;
+function TUnitSpellCaster.Cast: Boolean;
 { Compatibility body: Boolean result in AL; source/selection validation and casting. }
 asm
   PUSH ebp
@@ -4776,7 +4774,7 @@ begin Result := 0; end;
 procedure TUnitSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TUnitSpellTE.Initialize(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TUnitSpellTE.Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
 begin end;
 
 function TUnitSpellTE.Validate(A1: THero): Boolean;
@@ -4788,14 +4786,14 @@ begin Result := False; end;
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TUnitSpell.GetCombatInfo(A1: Integer; A2: Integer);
+procedure TUnitSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
 begin end;
 
-procedure TUnitSpell.ExecuteSpell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TUnitSpell.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;
+begin Result := False; end;
 
-procedure TUnitSpell.ValidTargetUnit(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpell.ValidTargetUnit(Source, Target: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TUnitSpell.ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -4803,8 +4801,8 @@ begin end;
 procedure TUnitSpell.SetupUSC(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TUnitSpell.CastSpell(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpell.CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean;
+begin Result := False; end;
 
 procedure TUnitSpell.OnValidateTarget(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
 begin end;
