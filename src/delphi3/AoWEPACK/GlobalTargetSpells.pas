@@ -527,7 +527,7 @@ begin
     TTargetSelectionControl(A2).Initialize(A1);
     Mode := [tmOwnerDraw, tmValidateDistance, tmExternalFloater] + Mode;
     { needs: TAbstractUnit.GetLocation(var X, Y, Layer: Shortint); $5579E5D5. }
-    TAbstractUnit(A1).GetLocation(Integer(@UnitX), Integer(@UnitY), Integer(@UnitLayer));
+    TAbstractUnit(A1).GetLocation(UnitX, UnitY, UnitLayer);
     CenterX := UnitX;
     CenterY := UnitY;
     CenterLayer := UnitLayer;
@@ -567,7 +567,7 @@ begin
   Result := BaseCanActivate(Spell, Caster, MessagePtr);
   if Result and Spell.FAboveGroundOnly then
   begin
-    TAbstractUnit(Caster).GetLocation(Integer(@X), Integer(@Y), Integer(@Layer));
+    TAbstractUnit(Caster).GetLocation(X, Y, Layer);
     if Layer <> 0 then
     begin
       Result := False;
@@ -604,7 +604,7 @@ begin
   BaseActivate(Spell, Caster, A2);
   if VirtualCanActivate(Spell, Caster, Integer(@MessageText)) then
   begin
-    Spell.FCasterID := TAbstractUnit(Caster).F_AbstractUnit_18;
+    Spell.FCasterID := TAbstractUnit(Caster).FUnitID;
     Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).F_AbstractUnit_24);
     Spell.SetupTargetSelection(Caster, SpellHSMap^.F_AoWHSMap_E0);
     TTargetSelectionControl(SpellHSMap^.F_AoWHSMap_E0).Activate;
