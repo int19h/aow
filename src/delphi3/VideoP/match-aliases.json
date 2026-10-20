@@ -1,0 +1,7 @@
+{
+ "FUN_00401508": "GetProc",
+ "VFW.VFW": "VFW",
+ "VFW.Finalization": "Finalization<VFW",
+ "Video.Video": "Video",
+ "Video.Finalization": "Finalization<Video"
+}
