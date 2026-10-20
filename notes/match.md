@@ -232,7 +232,19 @@ declaration the machine code cannot show (types, visibility, published propertie
 point at a declaration to fix. Build the package with the `.dpk` of the package directory and
 `-LE<dir> -LN<dir>` (Windows paths). Enginep.dpl, first run (2026-10-19): 645 exports equal, 127
 different, 257 missing; the missing ones are the value lists, which the original declares in the
-Engine unit and Engine.pas keeps in EngineLists.pas.
+Engine unit and Engine.pas keeps in EngineLists.pas. (2026-10-20, after the fold: 700 same, 113
+different, 0 missing.)
+
+What a test package showed about the hash (2026-10-20): the hash of a class symbol (`Unit..TClass`
+and `Unit.TClass`) includes the name of every member, private ones too (renaming a private method,
+a private field, a public method, a property or a method parameter changes it), and the class name.
+Every method of a class exports the same hash, so method symbols add nothing. A unit-level routine's
+hash ignores parameter names and `const` on a string parameter. A method-pointer type's hash
+includes its parameter names, which the module's RTTI for tkMethod types lists. So routine and
+method-pointer hashes are exact checks; a class hash can only be matched where every member name is
+known, which excludes the original's private names. Thirteen Engine classes match today
+(`TIntegerHashTable`, `TStringHashList`, the string hash tables, `TEBufferStream`,
+`TSetupCompareStorageStream`, the exception classes and the five anonymous enumerations).
 
 ## Compiler switches (sweep, 2026-10-19)
 
