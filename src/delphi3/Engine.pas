@@ -670,8 +670,7 @@ type
     property Tick: Integer read FTick;
   end;
 
-  { Engine.TEChangeNotifyNode (instance size 16): +8 FChildren, +$C FUpdateCount. A node that calls
-    Changed whenever its children change, unless a BeginUpdate holds the call back. }
+  { Engine.TEChangeNotifyNode (16 bytes): +8 FChildren, +$C FUpdateCount; Changed on child changes. }
   TEChangeNotifyNode = class(TECustomNode)
   protected
     FChildren: TEObjectList;
