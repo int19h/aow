@@ -61,7 +61,7 @@ type
     procedure NewTurn(Player: Shortint); override;
     procedure BuildingDone; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure Update; override;
     function CanDblClick: Boolean; override;
     procedure SetPlayer(Player: Shortint); override;
@@ -606,21 +606,21 @@ begin
   end;
 end;
 
-procedure TProductionPlace.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TProductionPlace.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin
   if not GetRazed then
     case Info.Mode of
       tmAttack, tmRaid:
         if Info.Player <> FPlayer then
-          if FPlayer = 0 then Priority := 50
-          else if ValidAttackRelation(Info.Player, Info.IndependentRelation, FPlayer, False) then
+          if FPlayer = 0 then Data.Priority := 50
+          else if ValidAttackRelation(Info.Player, Info.IndependentRelation, FPlayer, 0) then
           begin
-            Priority := 50 + AoWHSMap.FPlayers.GetPlayers(Info.Player).FIncome div 2;
-            if Priority < 25 then Priority := 25;
-            if Priority > 75 then Priority := 75;
+            Data.Priority := 50 + AoWHSMap.FPlayers.GetPlayers(Info.Player).FIncome div 2;
+            if Data.Priority < 25 then Data.Priority := 25;
+            if Data.Priority > 75 then Data.Priority := 75;
           end;
-      tmProduce: if Info.Player = FPlayer then Priority := Priority or 2;
-      tmDefend: if Info.Player = FPlayer then Priority := 30;
+      tmProduce: if Info.Player = FPlayer then Data.Priority := Data.Priority or 2;
+      tmDefend: if Info.Player = FPlayer then Data.Priority := 30;
     end;
 end;
 

@@ -3624,8 +3624,8 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 procedure TRaceResource.SetCellImage(Value: ImageLib.TLibraryImage);
 begin end;
 
-procedure TRaceResource.GetCityImage(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TRaceResource.GetCityImage(Size, Terrain, Level: Integer): TLibraryImage;
+begin Result := nil; end;
 
 procedure TRaceResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
@@ -3655,13 +3655,13 @@ begin end;
 destructor TFlagControl.Destroy;
 begin end;
 
-procedure TFlagControl.ShowFlag(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TFlagControl.ShowFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 procedure TFlagControl.ShowFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
 begin end;
 
-procedure TFlagControl.ShowStructureFlag(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TFlagControl.ShowStructureFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 procedure TFlagControl.ShowStructureFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
@@ -3682,8 +3682,8 @@ begin end;
 procedure TUnitProductionList.Add(UnitIndex: Integer; Researched: Boolean);
 begin end;
 
-procedure TUnitProductionList.IndexOf(A1: Integer);
-begin end;
+function TUnitProductionList.IndexOf(Index: Integer): Integer;
+begin Result := 0; end;
 
 procedure TUnitProductionList.SortOnLevel;
 begin end;
@@ -3790,7 +3790,7 @@ begin end;
 function TProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
 begin end;
 
-procedure TProductionControl.ExecuteAddProduction(A1: Integer);
+procedure TProductionControl.ExecuteAddProduction(Item: TProductionItem);
 begin end;
 
 procedure TProductionControl.ExecuteDeleteProduction(A1: Integer);
@@ -3946,7 +3946,7 @@ begin end;
 procedure TStructure.ExecuteAI(A1: Integer; A2: Integer);
 begin end;
 
-procedure TStructure.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin end;
 
 function TStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
@@ -4069,7 +4069,7 @@ begin end;
 procedure TStructure.BuildingDone;
 begin end;
 
-procedure TStructure.GetRebuildInfo(A1: Integer; A2: Integer);
+procedure TStructure.GetRebuildInfo(var Cost, Time: Integer);
 begin end;
 
 procedure TStructure.CanRebuild(A1: Integer; A2: Integer);
@@ -4096,16 +4096,16 @@ begin end;
 procedure TStructure.SeatedPlayerChanged;
 begin end;
 
-procedure TStructure.GetDefensePriority;
-begin end;
+function TStructure.GetDefensePriority: TDefensePriority;
+begin Result := dpNone; end;
 
-procedure TStructure.GetDefenseRequirements(A1: Integer; A2: Integer);
-begin end;
+function TStructure.GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean;
+begin Result := False; end;
 
 procedure TStructure.ListUnits(A1: Integer);
 begin end;
 
-procedure TStructure.ListArmies(A1: TArmyHSList);
+procedure TStructure.ListArmies(List: TArmyHSList);
 begin end;
 
 function TStructure.ValidateMap(A1: Integer): Boolean;
@@ -4141,10 +4141,10 @@ begin end;
 procedure TStructure.CanRaze(A1: Byte; A2: Integer);
 begin end;
 
-procedure TStructure.GenerateRazeDefenders(A1: Integer; A2: Integer);
-begin end;
+function TStructure.GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean;
+begin Result := False; end;
 
-procedure TStructure.SetupRazeDefenderAG(A1: Integer; A2: Integer);
+procedure TStructure.SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList);
 begin end;
 
 procedure TStructure.PlaceRazeDefenders(A1: Byte);
@@ -4153,8 +4153,8 @@ begin end;
 procedure TStructure.ShowRazeAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TStructure.ExecuteRaze(A1: Integer; A2: Integer);
-begin end;
+function TStructure.ExecuteRaze(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TStructure.RazeEx(A1: Integer);
 begin end;
@@ -4186,7 +4186,7 @@ begin end;
 procedure TStructureResource.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TStructureResource.Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TStructureResource.Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure);
 begin end;
 
 constructor TPlayerStructure.Create(AOwner: Engine.TECustomNode);
@@ -4222,8 +4222,8 @@ begin end;
 procedure TPlayerStructure.ExecuteBuild(A1: Integer; A2: Byte);
 begin end;
 
-procedure TPlayerStructure.UpdatePlayer;
-begin end;
+function TPlayerStructure.UpdatePlayer: Boolean;
+begin Result := False; end;
 
 procedure TPlayerStructure.NewTurn(Player: Shortint);
 begin end;
@@ -4234,10 +4234,10 @@ begin end;
 procedure TPlayerStructure.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 begin end;
 
-procedure TPlayerStructure.GetCombatEventText(A1: Integer; A2: Integer);
+procedure TPlayerStructure.GetCombatEventText(Combat: TCombat; var Text: string);
 begin end;
 
-procedure TPlayerStructure.FinalizeCombat(A1: Integer);
+procedure TPlayerStructure.FinalizeCombat(Combat: TCombat);
 begin end;
 
 procedure TPlayerStructure.SetPlayer(Player: Shortint);
@@ -4303,7 +4303,7 @@ begin end;
 function TPlayerStructure.GetDefaultAITargetPriority: Integer;
 begin Result := 0; end;
 
-procedure TPlayerStructure.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TPlayerStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin end;
 
 procedure TPlayerStructure.GetMoveAction(A1: Integer; A2: Integer);
@@ -5366,7 +5366,7 @@ begin end;
 procedure TAoWHSMap.DrawDynamicScene(var SD: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TAoWHSMap.RetrieveBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TAoWHSMap.RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo);
 begin end;
 
 procedure TAoWHSMap.TriggerRelationsChanged;
@@ -5956,7 +5956,7 @@ begin end;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 begin end;
 
-function FillWithRandomUnits(A1: TUnitIndexList; A2: TUnitList; A3: Integer; A4: Integer; A5: TUnitTypes): Integer;
+function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
 begin Result := 0; end;
 
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -5986,14 +5986,14 @@ begin end;
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
 begin end;
 
-function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean;
-begin end;
+function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
+begin Result := False; end;
 
 procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);
 begin end;
 
-procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);
-begin end;
+function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
+begin Result := 0; end;
 
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 begin end;
@@ -6001,7 +6001,7 @@ begin end;
 procedure Encode(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure SetupBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 begin end;
 
 procedure StrengthInfoMax(A1: Integer);

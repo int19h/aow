@@ -92,6 +92,7 @@
     FScenarios: TAoWCampaignScenarioList; { $10 }
     FCompletedScenarios: TIntegerList; { $14 }
     FRaceHistory: TByteList; { $18 }
+    { conflict: FRaces: TByteList; }
     FScenarioStarted: Boolean; { $1C }
     F_AoWCampaign_1D: array[0..2] of Byte;
     FTransferSettings: TAoWCampaignTransferSettings; { $20 }

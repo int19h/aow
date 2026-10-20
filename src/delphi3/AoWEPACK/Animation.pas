@@ -29,6 +29,7 @@ type
     F_Animation_09: Byte;
     F_Animation_0A: Byte;
     FAnimationLevel: Byte; { $0B }
+    { conflict: FLevel: Byte; }
     F_Animation_0C: Byte;
     F_Animation_0D: array[0..2] of Byte;
     FFrameCounter: Integer; { $10 }

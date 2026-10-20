@@ -38,7 +38,7 @@ type
     class function ClassID: Integer; override;
     class function ResourceEditName: string; override;
     function ResourceUserClassID: Integer; override;
-    procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    procedure Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure); override;
   end;
 
   { TUpdateSignTE (instance size 24, VMT 557A43DC): +$10 FText, +$14 FXhx, +$15 FYhx, +$16 FLhx. }
@@ -165,19 +165,18 @@ begin Result := TranslateSignName(LoadResString(@SignRStr)); end;
 function TSignResource.ResourceUserClassID: Integer;
 begin Result := $20102; end;
 
-procedure TSignResource.Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TSignResource.Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure);
 var
   Sequence: TImageSequence;
   Index, Offset, Image: Integer;
   Animate: Boolean;
 begin
-  { needs: TStructureResource.Show(X, Y: Integer; const SD: TSurfaceDesc; Obj: TStructure). }
   if FImageSequenceList <> nil then
   begin
-    Index := TSign(A4).ImageIndex;
-    Offset := TMapField(TSign(A4).Owner).Xhx + TMapField(TSign(A4).Owner).Yhx * 16;
+    Index := TSign(Structure).ImageIndex;
+    Offset := TMapField(TSign(Structure).Owner).Xhx + TMapField(TSign(Structure).Owner).Yhx * 16;
     Animate := (TSignMapFields(Pointer(WorldMap^)^).SeatedPlayer < 0) or
-      not TSign(A4).GetTextSeen(TSignMapFields(Pointer(WorldMap^)^).SeatedPlayer);
+      not TSign(Structure).GetTextSeen(TSignMapFields(Pointer(WorldMap^)^).SeatedPlayer);
     if Index < FImageSequenceList.Count then Sequence := TImageSequence(FImageSequenceList.List^[Index])
     else Sequence := nil;
     while Sequence <> nil do
@@ -185,10 +184,10 @@ begin
       if Animate then Image := Sequence.GetFrameIndex(WorldMap^.Frame, Offset)
       else Image := Sequence.GetUnloopedFrameIndex(0);
       if Image <> -1 then
-        if TSign(A4).GetSelected and (WorldMap^.Frame and 6 = 6) then
-          Sequence.ImageLibrary[Image].ShowTransparent(A1 + Sequence.dXshift, A2 + Sequence.dYshift, PSignSurfaceDesc(A3)^)
+        if TSign(Structure).GetSelected and (WorldMap^.Frame and 6 = 6) then
+          Sequence.ImageLibrary[Image].ShowTransparent(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc)
         else
-          Sequence.ImageLibrary[Image].Show(A1 + Sequence.dXshift, A2 + Sequence.dYshift, PSignSurfaceDesc(A3)^);
+          Sequence.ImageLibrary[Image].Show(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
       Sequence := Sequence.Next;
     end;
   end;

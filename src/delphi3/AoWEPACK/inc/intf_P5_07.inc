@@ -88,7 +88,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure RegisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
     procedure UnregisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
-    procedure CreateGroup(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    function CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
     procedure CreateUniqueID;  { draft }
   end;
 

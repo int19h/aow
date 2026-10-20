@@ -7,11 +7,26 @@ var
 const
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   { Original alsAll at $558E8068 excludes alPureNeutral. }
+  RaceTerrain: TRaceTerrainTable = (
+    (Bonus: []; Penalty: []),
+    (Bonus: [2]; Penalty: [3, 6, 13]),
+    (Bonus: [0]; Penalty: [2, 5]),
+    (Bonus: [3, 6, 13]; Penalty: [2]),
+    (Bonus: [1]; Penalty: [5]),
+    (Bonus: [1]; Penalty: [5]),
+    (Bonus: [12]; Penalty: []),
+    (Bonus: []; Penalty: []),
+    (Bonus: [12]; Penalty: []),
+    (Bonus: []; Penalty: []),
+    (Bonus: [12]; Penalty: []),
+    (Bonus: [5]; Penalty: [1])); { $558E8394 }
+  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   alsAll: TAlignments = [alPureGood, alGood, alNeutral, alEvil, alPureEvil, alNone];
 var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string;
   TCombatModeRStr: array[TCombatMode] of string;
+  TStatusRStr: TStatusNames;
   TDamageTypeRStr: array[TDamageType] of string;
   { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo
     ($55730868) reads its entries. AIDID $558FA050 goes to TEngine.OutputDebugMessage. (P5) }

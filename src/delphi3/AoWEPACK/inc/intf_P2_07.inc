@@ -450,7 +450,7 @@
     procedure GetStrengthEx(A1: Integer; A2: Integer);  { draft }
     procedure GetStrengthMaxEx(A1: Integer; A2: Integer);  { draft }
     procedure ReturnBattleFieldInfo(A1: Integer; A2: Integer);  { draft }
-    procedure HealUnits(A1: Integer);  { draft }
+    function HealUnits(Selection: Byte): Boolean;
     procedure CreateGroupID(A1: Integer);  { draft }
     procedure GetGroup(A1: Byte);  { draft }
     procedure SetGroup(A1: Integer; A2: Integer);  { draft }
@@ -492,6 +492,7 @@
     procedure SetPlayer(Player: Shortint);
     function ImmunityTypes(A1: Byte): TDamageTypes;
     function ObtainValue(Player: Shortint): Integer;
+    { conflict: function ObtainValue(Selection: Byte): Integer; }
     function MovePoints(A1: Byte): Shortint;
     procedure Moves(A1: Integer);  { draft }
     procedure MoveTypes(A1: Integer; A2: Integer);  { draft }
@@ -606,13 +607,13 @@
     procedure PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure PlayMoveSFX;  { draft }
     procedure ShowEnchantments(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure PlaceEx(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    function PlaceEx(X, Y: Shortint; Mode: TArmyPlaceMode; L: Shortint): Boolean;
   end;
 
   { TArmyHSList (instance size 20, VMT 5571352C) }
   TArmyHSList = class(TEChangeNotifyEventList)
   public
-    function GetArmyHS(A1: Integer): TArmyHS;
+    function GetArmyHS(Index: Integer): TArmyHS;
   end;
 
   { TArmyEventLog (instance size 52, VMT 55713628) }

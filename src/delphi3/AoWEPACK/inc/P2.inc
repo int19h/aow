@@ -1193,7 +1193,7 @@ begin
   TUnitControl(AoWHSMap.FUnitControl).RegisterUnit(Self);
   if (FGroupID <> 0) and (FPlayer >= 0) then
   begin
-    Group := P2FindGroup(TAIGroupList(AoWHSMap.F_AoWHSMap_130), FGroupID);
+    Group := P2FindGroup(TAIGroupList(AoWHSMap.FAIGroupManager), FGroupID);
     if Group <> nil then Group.AddUnit(Self)
     else FGroupID := 0;
   end
@@ -5509,8 +5509,8 @@ begin end;
 procedure TArmy.ReturnBattleFieldInfo(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.HealUnits(A1: Integer);
-begin end;
+function TArmy.HealUnits(Selection: Byte): Boolean;
+begin Result := False; end;
 
 procedure TArmy.CreateGroupID(A1: Integer);
 begin end;
@@ -5651,7 +5651,7 @@ function TArmy.ImmunityTypes(A1: Byte): TDamageTypes;
 begin Result := []; end;
 
 function TArmy.ObtainValue(Player: Shortint): Integer;
-begin end;
+begin Result := 0; end;
 
 function TArmy.MovePoints(A1: Byte): Shortint;
 begin Result := 0; end;
@@ -5928,8 +5928,8 @@ begin end;
 procedure TArmyHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
-procedure TArmyHS.PlaceEx(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+function TArmyHS.PlaceEx(X, Y: Shortint; Mode: TArmyPlaceMode; L: Shortint): Boolean;
+begin Result := False; end;
 
 function TArmyHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
 begin Result := 0; end;
@@ -5938,7 +5938,7 @@ begin Result := 0; end;
 function TArmyHS.GetMoveSteps: Integer;
 begin Result := 0; end;
 
-function TArmyHSList.GetArmyHS(A1: Integer): TArmyHS;
+function TArmyHSList.GetArmyHS(Index: Integer): TArmyHS;
 begin Result := nil; end;
 
 procedure TSelectedArmy.Create(A1: Byte);

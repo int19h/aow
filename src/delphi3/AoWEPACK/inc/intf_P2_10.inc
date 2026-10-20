@@ -57,7 +57,7 @@ procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure CombatRangeToCombatMode(A1: Byte);  { draft }
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
-function FillWithRandomUnits(A1: TUnitIndexList; A2: TUnitList; A3: Integer; A4: Integer; A5: TUnitTypes): Integer;
+function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
 procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
@@ -67,12 +67,12 @@ procedure GetCombatSide(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Intege
 procedure AlignmentToIR(A1: Byte);  { draft }
 procedure IRtoAlignment(A1: Integer);  { draft }
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
-function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean;
+function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
 procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);  { draft }
-procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);  { draft }
+function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 procedure Encode(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure SetupBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 procedure StrengthInfoMax(A1: Integer);  { draft }
 procedure InvertDamageTypes(A1: Word);  { draft }
 procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }

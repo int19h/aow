@@ -344,7 +344,7 @@ begin
   { needs: AoWE.AoWEngine global; its resource engine provides the same settings. }
   if (TAoWEngine(FResource.Engine).FAnimationDetail <> 0) and
     ((TAoWMapField(Owner).FFieldFlags and $FF0000 <> 0) or
-    (TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).F_AbstractAoWHSMap_C8 = 0)) then
+    (TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).FFogEnabled = 0)) then
   begin
     Inc(FAnimationFrame);
     if Smallint(FAnimationFrame) >= 0 then

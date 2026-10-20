@@ -54,7 +54,7 @@
     F_AIPlayerControl_1C: Integer;
     F_AIPlayerControl_20: Byte;
     F_AIPlayerControl_21: array[0..2] of Byte;
-    F_AIPlayerControl_24: Integer;
+    FDefenseStrengthMultiplier: Single; { $24 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

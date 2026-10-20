@@ -24,7 +24,7 @@ type
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     function VisibilityRange: Integer; override;
     function GetDefaultAITargetPriority: Integer; override;
   end;
@@ -70,12 +70,12 @@ end;
 function TTower.GetDefaultAITargetPriority: Integer;
 begin Result := 1; end;
 
-procedure TTower.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TTower.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin
-  inherited UpdateAITarget(Info, Priority);
+  inherited UpdateAITarget(Info, Data);
   if not (tsRazed in FState) then
     case Info.Mode of
-      tmFortify: if Info.Player = FPlayer then Priority := 50;
+      tmFortify: if Info.Player = FPlayer then Data.Priority := 50;
     end;
 end;
 

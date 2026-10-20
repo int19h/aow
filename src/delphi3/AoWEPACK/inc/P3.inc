@@ -1071,7 +1071,7 @@ function TCombatObject.GetPlayerIR: Shortint;
 var Player: Byte;
 begin
   Player := FCombatPlayer;
-  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_09)
+  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).FIndependentRelation)
   else Result := -1;
 end;
 
@@ -1441,7 +1441,7 @@ begin end;
 procedure TCombat.AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure TCombat.InitDefaultArmies(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TCombat.InitDefaultArmies(Army: TArmy; X, Y, L: Integer);
 begin end;
 
 procedure TCombat.Initialize;
@@ -1645,7 +1645,7 @@ procedure TCombatPlayer.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(Byte(FPlayer), $14);
-  Stream.rwByte(F_CombatPlayer_09, $15);
+  Stream.rwByte(FIndependentRelation, $15);
   Stream.rwData(F_CombatPlayer_0A, 1, $16);
 end;
 
@@ -1677,7 +1677,7 @@ begin
   begin
     Dec(Result);
     P := TCombatPlayer(FChildren.List^[Result]);
-    if (P.FPlayer = A1) and (P.F_CombatPlayer_09 = A2) then Exit;
+    if (P.FPlayer = A1) and (P.FIndependentRelation = A2) then Exit;
   end;
   Result := -1;
 end;
@@ -1717,8 +1717,8 @@ begin
   Stream.rwInteger(F_CombatData_0C, $0B);
   Stream.rwInteger(F_CombatData_10, $0C);
   Stream.rwData(F_CombatData_22, 2, $0D);
-  Stream.rwByte(F_CombatData_24, $0E);
-  Stream.rwByte(F_CombatData_25, $0F);
+  Stream.rwByte(Byte(FAttackerPlayer), $0E);
+  Stream.rwByte(Byte(FDefenderPlayer), $0F);
   Stream.rwData(F_CombatData_30, 1, $10);
   Stream.rwInteger(F_CombatData_44, $11);
   Stream.rwEObject(TEObject(FPlayers), $12);
@@ -2517,7 +2517,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCombatPredictorUnit.Setup(A1: Integer; A2: Integer; A3: Byte);
+procedure TCombatPredictorUnit.Setup(A1: TAbstractUnit; A2: Integer; A3: Byte);
 var Predictor: TCombatPredictor absolute A2; P: TCombatPredictor; U: TAbstractUnit;
 begin
   U := TAbstractUnit(A1);
@@ -2938,8 +2938,8 @@ begin
   TList(F_CombatPredictor_08).Clear;
 end;
 
-procedure TCombatPredictor.Execute;
-begin end;
+function TCombatPredictor.Execute: TCombatResult;
+begin Result := crIdle; end;
 
 procedure TCombatPredictor.DeleteUnit(A1: Integer);
 var I, J: Integer; U: TCombatPredictorUnit; D: TDamageType;
@@ -2964,7 +2964,7 @@ begin
   end;
 end;
 
-function TCombatPredictor.AddUnitEx(A1: Integer; A2: Byte; A3: Byte): TCombatPredictorUnit;
+function TCombatPredictor.AddUnitEx(A1: TAbstractUnit; A2: Byte; A3: Byte): TCombatPredictorUnit;
 var U: TCombatPredictorUnit; D: TDamageType;
 begin
   U := TCombatPredictorUnit.Create;
@@ -2979,24 +2979,24 @@ begin
   Result := U;
 end;
 
-procedure TCombatPredictor.AddUnit(A1: Integer);
+procedure TCombatPredictor.AddUnit(A1: TAbstractUnit);
 begin AddUnitEx(A1, 0, 0); end;
 
 procedure TCombatPredictor.AddUnits(A1: Integer);
 var I: Integer;
 begin
   for I := 0 to TUnitList(A1).Count - 1 do
-    AddUnit(Integer(TUnitList(A1).GetUnit(I)));
+    AddUnit(TUnitList(A1).GetUnit(I));
 end;
 
-procedure TCombatPredictor.AddOpponent(A1: Integer; A2: Integer);
+procedure TCombatPredictor.AddOpponent(A1: TAbstractUnit; A2: Byte);
 begin AddUnitEx(A1, 1, Byte(A2)); end;
 
 procedure TCombatPredictor.AddOpponents(A1: Integer; A2: Byte);
 var I: Integer;
 begin
   for I := 0 to TUnitList(A1).Count - 1 do
-    AddOpponent(Integer(TUnitList(A1).GetUnit(I)), A2);
+    AddOpponent(TUnitList(A1).GetUnit(I), A2);
 end;
 
 procedure TCombatPredictor.AddWall(A1: Integer);
@@ -3113,7 +3113,7 @@ begin
   end;
 end;
 
-function TCombatPredictor.Usefullness(A1: Integer): Integer;
+function TCombatPredictor.Usefullness(A1: TAbstractUnit): Integer;
 var Wall, U, Target: TCombatPredictorUnit; I: Integer; AllDead, Useful: Boolean;
 begin
   EnableAllUnits;

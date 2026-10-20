@@ -3083,8 +3083,8 @@ begin end;
 procedure TAIGroupManager.UnregisterAIGroupClasses(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroupManager.CreateGroup(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TAIGroupManager.CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
+begin Result := nil; end;
 
 procedure TAIGroupManager.CreateUniqueID;
 begin end;

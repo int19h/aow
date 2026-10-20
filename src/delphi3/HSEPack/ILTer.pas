@@ -33,7 +33,7 @@ type
     function GetTerrainTypeImage(TerrainType: Integer): Integer; virtual;
     function ForceTerrainType(MapLevel: TMapLevel; Xhx, Yhx: ShortInt): ShortInt; virtual;
     function GetValidTerrainType(MapLevel: TMapLevel; Xhx, Yhx: ShortInt): ShortInt; virtual;
-    property ImageIndex: Integer read FImageIndex;
+    property ImageIndex: Integer read FImageIndex write FImageIndex;
     property TerrainType: ShortInt read FTerrainType;
   end;
 

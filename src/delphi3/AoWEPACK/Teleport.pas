@@ -170,7 +170,7 @@ begin
     (TMapField(Msg.Param[1]).Yhx = FDestinationY) and
     (TMapField(Msg.Param[1]).Lhx = FDestinationL) then
   begin
-    if (WorldMap^.F_AbstractAoWHSMap_C8 = 0) or
+    if (WorldMap^.FFogEnabled = 0) or
       TeleportVisible(WorldMap^, GetXhx, GetYhx,
         TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer, GetLhx) or
       TeleportVisible(WorldMap^, FDestinationX, FDestinationY,

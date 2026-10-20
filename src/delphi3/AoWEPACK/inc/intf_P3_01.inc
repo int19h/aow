@@ -31,7 +31,7 @@
     F_CombatPredictorUnit_51: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create;  { draft }
-    procedure Setup(A1: Integer; A2: Integer; A3: Byte);  { draft }
+    procedure Setup(A1: TAbstractUnit; A2: Integer; A3: Byte);
     procedure SetEnabled(A1: Byte);  { draft }
     procedure UpdateTargets;  { draft }
     procedure UpdateWallTargets;  { draft }
@@ -93,12 +93,12 @@
     function ExecuteCombatRound: Boolean;  { draft }
     function CanPassWall: Boolean;  { draft }
     procedure FinishCombat;  { draft }
-    procedure Execute;  { draft }
+    function Execute: TCombatResult;
     procedure DeleteUnit(A1: Integer);  { draft }
-    function AddUnitEx(A1: Integer; A2: Byte; A3: Byte): TCombatPredictorUnit;  { draft }
-    procedure AddUnit(A1: Integer);  { draft }
+    function AddUnitEx(A1: TAbstractUnit; A2: Byte; A3: Byte): TCombatPredictorUnit;
+    procedure AddUnit(A1: TAbstractUnit);
     procedure AddUnits(A1: Integer);  { draft }
-    procedure AddOpponent(A1: Integer; A2: Integer);  { draft }
+    procedure AddOpponent(A1: TAbstractUnit; A2: Byte);
     procedure AddOpponents(A1: Integer; A2: Byte);  { draft }
     procedure AddWall(A1: Integer);  { draft }
     procedure DeleteWall;  { draft }
@@ -112,7 +112,7 @@
     procedure ListRequiredUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListOptionalUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListUselessUnits(A1: Integer);  { draft }
-    function Usefullness(A1: Integer): Integer;  { draft }
+    function Usefullness(A1: TAbstractUnit): Integer;
   end;
 
   { TCombatObject: instance size $4C, VMT 557158EC.

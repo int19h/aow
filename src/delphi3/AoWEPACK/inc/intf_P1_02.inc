@@ -28,7 +28,7 @@
   public
     function GetItem(Index: Integer): TUnitProduction;
     procedure Add(UnitIndex: Integer; Researched: Boolean);
-    procedure IndexOf(A1: Integer);  { draft }
+    function IndexOf(Index: Integer): Integer;
     procedure SortOnLevel;
   end;
 
@@ -122,7 +122,7 @@
     procedure ExecuteAIProduction(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure ExecuteAIResearch(A1: Integer); virtual;  { +05C draft }
     function ExecuteProduction(Item: TProductionItem): Boolean; virtual;
-    procedure ExecuteAddProduction(A1: Integer); virtual;  { +064 draft }
+    procedure ExecuteAddProduction(Item: TProductionItem); virtual;
     procedure ExecuteDeleteProduction(A1: Integer); virtual;  { +068 draft }
     procedure ExecuteDeleteProductions; virtual;
     procedure ExecuteProductionTE(A1: Integer); virtual;  { +070 draft }

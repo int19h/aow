@@ -121,6 +121,7 @@
     F_PlayerMagicControl_40: Integer;
     F_PlayerMagicControl_44: Byte;
     FEnemyEnchantments: Byte; { $45 }
+    { conflict: FGlobalEnchantmentFlags: Byte; }
     F_PlayerMagicControl_46: array[0..1] of Byte;
     F_PlayerMagicControl_48: Integer;
     destructor Destroy; override;

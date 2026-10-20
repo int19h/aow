@@ -425,6 +425,9 @@ type
   TPlayerConnectionType = (pcLocal, pcNetwork, pcEmail);  { ot=1 }
   TMoveAction = (maNormal, maAttack, maNegotiate, maCombine);  { ot=1 }
   TBloodType = (btNone, btRed, btBlue, btGreen);  { ot=1 }
+  TCityTerrainSet = set of 0..15;
+  TRaceTerrainInfo = record Bonus, Penalty: TCityTerrainSet; end;
+  TRaceTerrainTable = array[0..11] of TRaceTerrainInfo;
   TDefensePriority = (dpNone, dpLow, dpAverage, dpHigh);  { ot=1 }
   TAbilitySelectionType = (astUnit, astHeadItem, astTorsoItem, astAttackItem, astDefenseItem, astRingItem, astUseItem, astCustomizeLeader, astHeroUpgrade, astEditor);  { ot=1 }
   TAbilitySelectionTypes = set of TAbilitySelectionType; { ot=3 }
@@ -440,6 +443,7 @@ type
   TUnitSize = (usSmall, usMedium, usLarge, usExtraLarge);  { ot=1 }
   TMorale = (mTerrible, mPoor, mOK, mGood, mHigh);  { ot=1 }
   TStatus = (sHostile, sWary, sNeutral, sPolite, sFriendly);  { ot=1 }
+  TStatusNames = array[TStatus] of string;
   TWallType = (wtNone, wtWood, wtStone);  { ot=1 }
   TWallSituation = (wsNone, wsSource, wsTarget);  { ot=1 }
   TExitGameMode = (egmLoad, egmReload, egmExit, egmTerminate);  { ot=1 }
@@ -460,6 +464,13 @@ type
   TAITargetInfo = record Player, IndependentRelation: Shortint; Mode: TAITargetMode; end;
   TworldFXType = (fxHatred, fxCrusade, fxWaterMastery, fxSpellWard, fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEarthMastery, fxEMParticle, fxTranquility, fxTranqParticle);  { ot=1 }
   TBattleFieldInfoRequests = set of (bfrWallPassing, bfrReturnImmunityTypes, bfrIgnorePassiveIndependents, bfrEffectiveStrength, bfrIgnoreIndependents); { ot=1 }
+  TBattleFieldInfo = packed record
+    Player, IndependentRelation: Shortint; Requests: TBattleFieldInfoRequests;
+    DamageTypes: TDamageTypes; Reserved05: array[0..14] of Byte;
+    Strength: Integer; { $14 } Reserved18: Integer;
+  end;
+  TDefenseRequirements = record Reserved00: array[0..27] of Byte; Strength: Integer; end;
+  TAITargetData = record Priority: Integer; TargetType: TAITargetType; Cost: Integer; end;
   TProductionControlStatus = (pcsIdle, pcsWaiting, pcsProducing);  { ot=1 }
   TProductionUpdateMode = (umProduce, umResearch, umCancel);  { ot=1 }
   TChangePlayerMagicMode = (cmmDispelEnchantment, cmmChangePowerSettings, cmmResearchSpell);  { ot=1 }

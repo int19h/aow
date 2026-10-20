@@ -29,10 +29,10 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetIncome: Integer; override;
-    procedure GetCombatEventText(A1: Integer; A2: Integer); override;
+    procedure GetCombatEventText(Combat: TCombat; var Text: string); override;
   end;
 
   { TMineResource (instance size 116, VMT 557B42A8) }
@@ -108,12 +108,12 @@ begin
     [IntToStr(GetIncome)]);
 end;
 
-procedure TMine.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TMine.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 var CandidatePriority: Integer;
 begin
   if not GetRazed or GetBuilding then
   begin
-    CandidatePriority := Priority;
+    CandidatePriority := Data.Priority;
     if TMineAIInfo(Info).Kind = 0 then
     begin
       if (Byte(TMineAIInfo(Info).Player) <> Byte(FPlayer)) and
@@ -128,9 +128,9 @@ begin
         end;
     end
     else if (TMineAIInfo(Info).Kind = 6) and
-      (Byte(TMineAIInfo(Info).Player) = Byte(FPlayer)) then Priority := 20;
+      (Byte(TMineAIInfo(Info).Player) = Byte(FPlayer)) then Data.Priority := 20;
     { Original can overwrite the special kind-6 priority with the previous higher value. }
-    if Priority < CandidatePriority then Priority := CandidatePriority;
+    if Data.Priority < CandidatePriority then Data.Priority := CandidatePriority;
   end;
 end;
 
@@ -186,12 +186,12 @@ begin
   Stream.rwData(FState, 1, 20);
 end;
 
-procedure TMine.GetCombatEventText(A1: Integer; A2: Integer);
+procedure TMine.GetCombatEventText(Combat: TCombat; var Text: string);
 begin
-  if (TMineCombatData(Pointer(A1)^).Outcome = 3) or
-    (TMineCombatData(Pointer(A1)^).Outcome = 6) then
-    TranslateMineText(MineBattleWonRStr, PString(A2)^)
-  else PString(A2)^ := '';
+  if (Combat.FCombatResult = crVictory) or
+    (Combat.FCombatResult = crNoDefenders) then
+    TranslateMineText(MineBattleWonRStr, Text)
+  else Text := '';
 end;
 
 constructor TMineResource.Create(AOwner: Engine.TECustomNode);
@@ -224,9 +224,9 @@ begin
   begin
     P := TPlayerList(WorldMap^.FPlayers).GetPlayers(Player);
     Result := 0;
-    for I := 0 to TEObjectList(P.FStructures).Count - 1 do
+    for I := 0 to P.FStructures.Count - 1 do
     begin
-      S := MineStructure(TPlayerStructureList(P.FStructures), I);
+      S := P.FStructures.GetStructure(I);
       if (S.ClassID = $2037A) and (Shortint(Byte(S.FPlayer)) = Player) then
         Inc(Result, S.GetIncome);
     end;

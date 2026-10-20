@@ -1965,7 +1965,7 @@ begin
             end;
         if Owner = 0 then
         begin
-          Group := SpellCreateGroup(TAIGroupManager(SpellHSMap^.F_AoWHSMap_130),0,
+          Group := SpellCreateGroup(TAIGroupManager(SpellHSMap^.FAIGroupManager),0,
             SpellIndependentRelation(MovedUnits,5),13);
           Group.AddUnits(MovedUnits);
           TSpellAIGroupFields(Pointer(Group)^).Enemies.Add(Caster.FUnitID);

@@ -197,7 +197,8 @@
   TCombatPlayer = class(TEObject)
   public
     FPlayer: Shortint; { $08 }
-    F_CombatPlayer_09: Byte;
+    { conflict: FPlayer: Byte; }
+    FIndependentRelation: Byte; { $09 }
     F_CombatPlayer_0A: Byte;
     F_CombatPlayer_0B: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -228,8 +229,8 @@
     F_CombatData_1C: Integer;
     F_CombatData_20: array[0..1] of Byte;
     F_CombatData_22: TDamageTypes;
-    F_CombatData_24: Byte;
-    F_CombatData_25: Byte;
+    FAttackerPlayer: Shortint; { $24 }
+    FDefenderPlayer: Shortint; { $25 }
     F_CombatData_26: array[0..1] of Byte;
     F_CombatData_28: Integer;
     F_CombatData_2C: Integer;
@@ -291,8 +292,10 @@
     FStatus: TCombatStatus; { $08 }
     F_Combat_09: array[0..2] of Byte;
     FCombatData: TCombatData;  { $0C }
+    { conflict: FData: TCombatData; }
     F_Combat_10: Integer;
     FCombatResult: TCombatResult; { $14 }
+    { conflict: FResult: TCombatResult; }
     F_Combat_15: array[0..2] of Byte;
     FLogbook: TCombatLogbook; { $18 }
     FSides: array[csAttacker..csDefender] of TCombatSide;  { $1C..$20 }
@@ -340,7 +343,7 @@
     procedure AddArmy(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
     procedure AddArmyEx(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Boolean);
     procedure AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure InitDefaultArmies(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure InitDefaultArmies(Army: TArmy; X, Y, L: Integer);
     procedure LockExecuted;  { draft }
     procedure UnlockExecuted;  { draft }
     procedure GetCombatResultText(A1: Integer);  { draft }

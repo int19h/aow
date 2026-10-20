@@ -28,10 +28,10 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetPower: Integer; override;
-    procedure GetCombatEventText(A1: Integer; A2: Integer); override;
+    procedure GetCombatEventText(Combat: TCombat; var Text: string); override;
   end;
 
   { TPowerNodeResource (instance size 116, VMT 557D027C) }
@@ -71,7 +71,7 @@ begin end;
 function TPowerNode.GetCurrentActivityText: string;
 begin end;
 
-procedure TPowerNode.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
+procedure TPowerNode.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin end;
 
 procedure TPowerNode.SetPlayer(Player: Shortint);
@@ -83,7 +83,7 @@ begin end;
 procedure TPowerNode.Deactivate;
 begin end;
 
-procedure TPowerNode.GetCombatEventText(A1: Integer; A2: Integer);
+procedure TPowerNode.GetCombatEventText(Combat: TCombat; var Text: string);
 begin end;
 
 constructor TPowerNodeResource.Create(AOwner: Engine.TECustomNode);

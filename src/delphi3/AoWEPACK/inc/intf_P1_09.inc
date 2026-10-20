@@ -11,9 +11,9 @@
     F_RaceResource_30: Byte;
     F_RaceResource_31: array[0..2] of Byte;
     F_RaceResource_34: Integer;
-    FUnitIndexes: TIntegerList;  { $38 }
+    FUnitIndexes: TUnitIndexList;  { $38 }
     F_RaceResource_3C: Integer;
-    F_RaceResource_40: Integer;
+    FSpecialUnitIndexes: TUnitIndexList; { $40 }
     F_RaceResource_44: Integer;
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
@@ -31,7 +31,7 @@
     procedure LinkToIL;  { draft }
     procedure ReleaseIL;  { draft }
     procedure SetImageLibraryName(A1: Integer; A2: Integer);  { draft }
-    procedure GetCityImage(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function GetCityImage(Size, Terrain, Level: Integer): TLibraryImage;
     function GetAlignment: TAlignment;
   end;
 
@@ -67,7 +67,7 @@
     F_Structure_25: Byte;
     F_Structure_26: array[0..1] of Byte;
     F_Structure_28: Integer;
-    F_Structure_2C: Byte;
+    FFogged: Boolean; { $2C }
     F_Structure_2D: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -102,12 +102,12 @@
     function GetRazed: Boolean; virtual;
     procedure GetRazeable; virtual;  { +154 draft }
     procedure RazeEx(A1: Integer); virtual;  { +158 draft }
-    procedure SetupRazeDefenderAG(A1: Integer; A2: Integer); virtual;  { +15C draft }
+    procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); virtual;
     function CreateTE: TStructureTE; virtual;
     procedure SetupTE(A1: TStructureTE); virtual;
     function ExecuteTE(A1: TStructureTE): TExecuteResult; virtual;
-    procedure GetDefenseRequirements(A1: Integer; A2: Integer); virtual;  { +16C draft }
-    procedure GetDefensePriority; virtual;  { +170 draft }
+    function GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean; virtual;
+    function GetDefensePriority: TDefensePriority; virtual;
     procedure NewDay; virtual;  { +174 draft }
     procedure NewTurn(Player: Shortint); virtual;
     procedure SeatedPlayerChanged; virtual;  { +17C draft }
@@ -121,20 +121,20 @@
     procedure BuildingDone; virtual;  { +19C draft }
     procedure ExecuteRebuild(A1: Integer); virtual;  { +1A0 draft }
     procedure ExecuteBuild(A1: Integer; A2: Byte); virtual;  { +1A4 draft }
-    procedure GenerateRazeDefenders(A1: Integer; A2: Integer); virtual;  { +1A8 draft }
+    function GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean; virtual;
     procedure PlaceRazeDefenders(A1: Byte); virtual;  { +1AC draft }
-    procedure ExecuteRaze(A1: Integer; A2: Integer); virtual;  { +1B0 draft }
+    function ExecuteRaze(Player: Shortint): Boolean; virtual;
     function GetCurrentActivityText: string; virtual;
     function ValidateMap(A1: Integer): Boolean; virtual;  { +1B8  }
     procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
     procedure ExecuteAI(A1: Integer; A2: Integer); virtual;  { +1C0 draft }
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); virtual;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); virtual;
     procedure Update; virtual;  { +1C8 draft }
     procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }
     function CanDblClick: Boolean; virtual;
     procedure ListUnits(A1: Integer); virtual;  { +1D4 draft }
-    procedure ListArmies(A1: TArmyHSList); virtual;  { +1D8 }
-    procedure GetRebuildInfo(A1: Integer; A2: Integer); virtual;  { +1DC draft }
+    procedure ListArmies(List: TArmyHSList); virtual;
+    procedure GetRebuildInfo(var Cost, Time: Integer); virtual;
     procedure CanRebuild(A1: Integer; A2: Integer); virtual;  { +1E0 draft }
     procedure Rebuild(A1: Integer); virtual;  { +1E4 draft }
     procedure Raze(A1: Integer); virtual;  { +1E8 draft }
@@ -176,7 +176,7 @@
     FTerrainBound: Boolean; { $44 }
     { conflict: FUsePad: Boolean; }
     FConnectRoads: Boolean; { $45 }
-    F_StructureResource_46: Byte;
+    FFlagType: Byte; { $46 }
     F_StructureResource_47: array[0..0] of Byte;
     F_StructureResource_48: Integer;
     F_StructureResource_4C: Byte;
@@ -196,7 +196,7 @@
     class function ClassID: Integer; override;
     class function ResourceEditName: string; override;
     function ResourceUserClassID: Integer; override;
-    procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +078 draft }
+    procedure Show(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Structure: TStructure); virtual;
     procedure CalculatePadIndex;  { draft }
   end;
 
@@ -259,7 +259,7 @@
     procedure BuildingDone; override;
     procedure ExecuteRebuild(A1: Integer); override;
     procedure ExecuteBuild(A1: Integer; A2: Byte); override;
-    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure CanRebuild(A1: Integer; A2: Integer); override;
     procedure SetPlayer(Player: Shortint); virtual;
     function GetIncome: Integer; virtual;
@@ -268,12 +268,12 @@
     function VisibilityRange: Integer; virtual;
     procedure UpdateUnfog; virtual;  { +204 draft }
     procedure UpdateExploration; virtual;  { +208 draft }
-    procedure FinalizeCombat(A1: Integer); virtual;  { +20C draft }
-    procedure GetCombatEventText(A1: Integer; A2: Integer); virtual;  { +210 draft }
+    procedure FinalizeCombat(Combat: TCombat); virtual;
+    procedure GetCombatEventText(Combat: TCombat; var Text: string); virtual;
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
     procedure GetMoveAction(A1: Integer; A2: Integer); virtual;  { +218 draft }
     function GetDefaultAITargetPriority: Integer; virtual;
-    procedure UpdatePlayer; virtual;  { +220 draft }
+    function UpdatePlayer: Boolean; virtual;
     procedure GetVictoryLocation(A1: Byte);  { draft }
     procedure SetVictoryLocation(A1: Integer; A2: Integer);  { draft }
     procedure RegisterVictoryLocations;  { draft }
@@ -287,8 +287,8 @@
   public
     FClaimed: Boolean;  { $64 }
     F_PlayerStructureResource_65: array[0..2] of Byte;
-    F_PlayerStructureResource_68: Integer;
-    F_PlayerStructureResource_6C: Integer;
+    FFlagX: Integer; { $68 }
+    FFlagY: Integer; { $6C }
     F_PlayerStructureResource_70: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;

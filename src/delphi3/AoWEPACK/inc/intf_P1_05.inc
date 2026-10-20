@@ -101,7 +101,7 @@
     F_AbstractAoWHSMap_BC: Integer;
     F_AbstractAoWHSMap_C0: Integer;
     F_AbstractAoWHSMap_C4: Integer;
-    F_AbstractAoWHSMap_C8: Byte;
+    FFogEnabled: Byte; { $C8 }
     FExplorationEnabled: Boolean; { $C9 }
     F_AbstractAoWHSMap_CA: Byte;
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
@@ -212,7 +212,7 @@
     F_AoWHSMap_124: Integer;
     FAIExecuter: TAIExecuter; { $128 }
     F_AoWHSMap_12C: Integer;
-    F_AoWHSMap_130: Integer;
+    FAIGroupManager: TAIGroupManager; { $130 }
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
     FRequestCombatType: Boolean; { $139 }
@@ -411,7 +411,7 @@
     function CreateCombat(A1: Integer): TCombat;
     procedure ShowSeatedPlayerCallBack;  { draft }
     procedure DestroyCombat;  { draft }
-    procedure RetrieveBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo);
     procedure TriggerRelationsChanged;  { draft }
     procedure LockRelationsChanged;  { draft }
     procedure UnlockRelationsChanged;  { draft }
