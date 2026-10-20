@@ -451,7 +451,7 @@ procedure TDrawImageGrid.DrawCellImage(Image: TLibraryImage; Rect: TRect; State:
 var
   R: TRect;
 begin
-  BltLibraryImage(Canvas, Image, Rect, Byte(FBltMode), FScaleX, FScaleY, FBkColor, Color, False, R);
+  BltLibraryImage(Canvas, Image, Rect, FBltMode, FScaleX, FScaleY, FBkColor, Color, False, R);
   DrawCellFocus(Rect, State);
 end;
 
@@ -770,7 +770,7 @@ var
 begin
   { the third parameter is not used (the callers pass False); differs from the original in one
     register: it keeps Image in esi (as if Image were used after the call) }
-  BltLibraryImage(Canvas, Image, Rect, Byte(FBltMode), FScaleX, FScaleY, 0, Color, False, R);
+  BltLibraryImage(Canvas, Image, Rect, FBltMode, FScaleX, FScaleY, 0, Color, False, R);
   Rect := R;
   if Focused and FShowFocus then DrawFocus(Rect);
 end;

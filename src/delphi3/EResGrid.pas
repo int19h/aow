@@ -221,7 +221,7 @@ begin
       end
       else
       begin
-        TEResource(FResources[I]).Draw(Canvas, ARect, Byte(BltMode), ScaleX, ScaleY, BkColor, Color);
+        TEResource(FResources[I]).Draw(Canvas, ARect, BltMode, ScaleX, ScaleY, BkColor, Color);
         DrawCellFocus(ARect, AState);
       end;
     end

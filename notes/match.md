@@ -13,7 +13,7 @@ local variable order, loop shape.
    a function). The decompiled C in `notes/decomp/` gives the logic; the disassembly gives the shape.
 2. Write the method in `src/delphi3/*.pas` (Delphi 3 syntax, CRLF line endings, `uses Consts` for the
    list error strings). Keep the original instance layout and VMT order from `notes/classes.json`.
-3. Build: `C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B matchtest.dpr` in `src/delphi3`. The host program
+3. Build: `C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Ilpack\stubs;Gfxepack" matchtest.dpr` in `src/delphi3` (ImageLib comes from the Ilpack sources). The host program
    references every class so that smart linking keeps the methods; a method that is not referenced
    shows up as "not in map".
 4. Compare: `python tools/match.py --quiet --alias src/delphi3/match-aliases.json
@@ -58,10 +58,10 @@ to the program code. The Delphi 3.0 compiler from the original release CD (March
 results (argument evaluation order differs in 20 more functions), and the 3.02 patch does not change
 DCC32.EXE, so the installed compiler is the right one.
 
-Every unit of Enginep.dpl is written. `ImageLib.pas` is a stub of the Ilpack.dpl unit with the
-declarations the Engine, ImgLComp and EResGrid units call. The small units have their own host
+Every unit of Enginep.dpl is written. They build against the recovered ImageLib of Ilpack.dpl
+(`src/delphi3/Ilpack`), which uses GFXE (`src/delphi3/Gfxepack`). The small units have their own host
 programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); build them from
-`src/delphi3/hosts` with `-U.. -O..`.
+`src/delphi3/hosts` with `"-U..;..\Ilpack;..\Ilpack\stubs;..\Gfxepack" -O..`.
 
 ## What the compiler does (learned from the matches)
 

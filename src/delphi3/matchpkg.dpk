@@ -1,7 +1,8 @@
 package matchpkg;
 
-{ The same units built as a package, like the original Enginep.dpl, to see whether the compile
-  mode changes register allocation. }
+{ The units of Enginep.dpl built as a package, like the original. Build from this directory with
+  -UIlpack;Ilpack\stubs;Gfxepack: ImageLib comes from the Ilpack sources, as the original
+  required ilpack. }
 
 {$DESCRIPTION 'byte-match test package'}
 
@@ -12,7 +13,6 @@ contains
   FMemStr,
   EngineLists,
   zlib,
-  ImageLib,
   Engine,
   EList,
   PlugInM,

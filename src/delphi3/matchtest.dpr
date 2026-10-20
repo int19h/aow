@@ -3,7 +3,8 @@ program matchtest;
 { Host program for the byte-matching experiment: it only has to reference every class so that the
   linker keeps them (every method of a class with a VMT is kept once the class is used). Build with
   the original compiler:
-    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B matchtest.dpr
+    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Ilpack\stubs;Gfxepack" matchtest.dpr
+  (ImageLib comes from Ilpack, which uses GFXE). The small units have their own hosts in hosts\.
   -GD writes matchtest.map with the address of every method; tools/match.py reads it. }
 
 {$APPTYPE CONSOLE}
@@ -12,7 +13,7 @@ uses
   Windows,
   Classes,
   zlib in 'zlib.pas',
-  ImageLib in 'ImageLib.pas',
+  ImageLib,
   FMemStr in 'FMemStr.pas',
   EngineLists in 'EngineLists.pas',
   Engine in 'Engine.pas';
@@ -381,7 +382,7 @@ begin
   RL.ResourceChanged;
   RL.Free;
   RE := TEResource.Create(nil);
-  RE.Draw(nil, RC, 0, 0, 0, 0, 0);
+  RE.Draw(nil, RC, bmNone, 0, 0, 0, 0);
   Writeln(RE.ResourceEditName, RE.CreateResourceUser = nil);
   RE.Free;
   CB := TCallBackEventList.Create;

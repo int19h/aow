@@ -9,11 +9,11 @@ package it `requires`, which says nothing about real use. Function counts and si
 |---|---|---|---|
 | Gfxepack.dpl | GFXE (236), GFXDiag (3) | - | done, 252/262 |
 | Dcpack.dpl | DisplayC (165), TWindows08DIBSurface (10) | GFXE | done, 169/174 |
-| Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | ImageLib, HashTabU in progress |
+| Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | ImageLib + HashTabU done, 513/536; editors to do (stubs in Ilpack/stubs) |
 | Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | ImageLib | done, 865/892 |
 | aowDPlay.dpl | aowDPlayComp (35), DPlay, DPLobby | - | done, 39/39 |
 | VideoP.dpl | Video (30), VFW (4) | GFXE | done, 35/35 |
-| Network.dpl | NetworkE (149) | Engine | in progress |
+| Network.dpl | NetworkE (149) | Engine | done, 148/148 |
 | SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Engine, SpinEdit | in progress |
 | Adcpack.dpl | ZoomControl (13), AdvancedDisplay (12) | GFXE | done, 25/25 |
 | aowFXpck.dpl | aowFX (17) | - | done, 18/18 |
@@ -34,8 +34,8 @@ package it `requires`, which says nothing about real use. Function counts and si
 ## Layout of the recovered source
 
 - `src/delphi3/` holds the units of Enginep.dpl (Engine.pas with `inc/HashTab.PAS`, EngineLists.pas,
-  FMemStr.pas, zlib.pas, EList.pas, PlugInM.pas, DebMDlg.pas, ImgLComp.pas, EResGrid.pas) and the
-  stub `ImageLib.pas` for what the Engine unit calls in Ilpack.dpl.
+  FMemStr.pas, zlib.pas with the zlib object files in `obj/`, EList.pas, PlugInM.pas, DebMDlg.pas,
+  ImgLComp.pas, EResGrid.pas), built against the recovered ImageLib in `src/delphi3/Ilpack`.
 - Every other package gets a directory `src/delphi3/<Package>/` with its units, its own host program
   `matchtest.dpr` and its own `match-aliases.json`. Units of other packages are found through
   `-U` paths at build time.

@@ -9,7 +9,7 @@ unit Engine;
 interface
 
 uses
-  Windows, SysUtils, Classes, Menus, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
+  Windows, SysUtils, Classes, Graphics, Menus, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
 
 type
   PByte = ^Byte;
@@ -613,17 +613,18 @@ type
     procedure ReadWrite(Stream: TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure SetArrayOwner(AOwner: TECustomNode; Index: Integer); override;
-    function GetCellImage: Pointer; virtual;
-    procedure SetCellImage(Value: Pointer); virtual;
+    function GetCellImage: TLibraryImage; virtual;
+    procedure SetCellImage(Value: TLibraryImage); virtual;
     class function ResourceEditName: string; virtual;
     function ResourceUserClassID: Integer; virtual;
     function CreateResourceUser: TEObject; virtual;
-    procedure Draw(Dest: TObject; Rect: TRect; Mode: Byte; A, B, C, D: Integer); virtual;
+    procedure Draw(Canvas: TCanvas; Rect: TRect; Mode: TBltMode; ScaleX, ScaleY: Integer; BkColor,
+      Color: TColor); virtual;
     property ResourceList: TECustomNode read FResourceList write FResourceList;
     property EditID: Integer read FEditID write FEditID;
     property EditIndex: Integer read FEditIndex write FEditIndex;
     property ResourceID: Integer read FResourceID write FResourceID;
-    property CellImage: Pointer read GetCellImage write SetCellImage;
+    property CellImage: TLibraryImage read GetCellImage write SetCellImage;
   end;
 
   { Engine.TEResourceList (instance size 20): resources with unique ids }
@@ -3565,19 +3566,20 @@ begin
   FResourceList := AOwner;
 end;
 
-procedure TEResource.Draw(Dest: TObject; Rect: TRect; Mode: Byte; A, B, C, D: Integer);
+procedure TEResource.Draw(Canvas: TCanvas; Rect: TRect; Mode: TBltMode; ScaleX, ScaleY: Integer;
+  BkColor, Color: TColor);
 var
   R: TRect;
 begin
-  BltLibraryImage(Dest, GetCellImage, Rect, Mode, A, B, C, D, False, R);
+  BltLibraryImage(Canvas, GetCellImage, Rect, Mode, ScaleX, ScaleY, BkColor, Color, False, R);
 end;
 
-function TEResource.GetCellImage: Pointer;
+function TEResource.GetCellImage: TLibraryImage;
 begin
   Result := nil;
 end;
 
-procedure TEResource.SetCellImage(Value: Pointer);
+procedure TEResource.SetCellImage(Value: TLibraryImage);
 begin
 end;
 
