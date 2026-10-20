@@ -1,20 +1,18 @@
 { Interface declaration run owned by P2. }
-  { TUnitGFXResource (instance size 72, VMT 5570EA70) }
+  { TUnitGFXResource (instance size 72, VMT 5570EA70): +18 FName; +1C FFaceIndex;
+    +20 FFaceImageLibrary; +24 FFaceImageLibraryName; +28 FSequences; +2C FRefCount;
+    +30 flags; +34..44 FSFXLibraries. }
   TUnitGFXResource = class(TEResource)
   public
-    F_UnitGFXResource_18: Integer;
-    F_UnitGFXResource_1C: Integer;
-    F_UnitGFXResource_20: Integer;
-    F_UnitGFXResource_24: Integer;
+    FName: string;  { $18 }
+    FFaceIndex: Integer;  { $1C }
+    FFaceImageLibrary: TCustomImageLibrary;  { $20 }
+    FFaceImageLibraryName: string;  { $24 }
     FSequences: TImageSequenceList;
-    F_UnitGFXResource_2C: Integer;
+    FRefCount: Integer;  { $2C }
     F_UnitGFXResource_30: Byte;
     F_UnitGFXResource_31: array[0..2] of Byte;
-    F_UnitGFXResource_34: Integer;
-    F_UnitGFXResource_38: Integer;
-    F_UnitGFXResource_3C: Integer;
-    F_UnitGFXResource_40: Integer;
-    F_UnitGFXResource_44: Integer;
+    FSFXLibraries: array[0..4] of TSFXLibrary;  { $34..$44 }
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -24,12 +22,12 @@
     function Release: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetCellImage: ImageLib.TLibraryImage; override;
-    procedure LinkToIL;  { draft }
-    procedure ReleaseIL;  { draft }
-    procedure SetFaceImageLibraryName(A1: Integer; A2: Integer);  { draft }
+    procedure LinkToIL;
+    procedure ReleaseIL;
+    procedure SetFaceImageLibraryName(Value: string);
     function GetFaceImage: TLibraryImage;
     procedure Show(Direction,X,Y: Integer; const SD: TSurfaceDesc);
-    procedure GetIndex;  { draft }
+    function GetIndex: Integer;
   end;
 
   { TUnitGFXResourceList (instance size 20, VMT 5570EB68) }
@@ -37,7 +35,7 @@
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetUnitGFXResource(Index: Integer): TUnitGFXResource;
-    procedure CreateUnitGFXSelectionList(A1: Integer; A2: Integer);  { draft }
+    procedure CreateUnitGFXSelectionList(List: TStrings);
   end;
 
   { TAoWMapObjectEditor (instance size 8, VMT 5570EC78) }
@@ -46,11 +44,10 @@
     class function EditorClassID: Integer; override;
   end;
 
-  { TUnitShadowHS (instance size 12, VMT 5570ED54) }
+  { TUnitShadowHS (instance size 12, VMT 5570ED54): +08 FUnitHS. }
   TUnitShadowHS = class(THexagonSprite)
   public
-    F_UnitShadowHS_08: Byte;
-    F_UnitShadowHS_09: array[0..2] of Byte;
+    FUnitHS: TUnitHS;  { $08 }
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
   end;
@@ -103,7 +100,7 @@
     procedure CalcShowPriority; virtual;  { +108 draft }
     procedure MoveTo(A1: Integer; A2: Integer); virtual;  { +10C draft }
     procedure PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +110 draft }
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); virtual;  { +114 draft }
+    procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); virtual;
     procedure UpdateFlagID; virtual;  { +118 draft }
     procedure MoveFirst(A1: Integer; A2: Integer); virtual;  { +11C draft }
     function GetMoveSteps: Integer; virtual;  { +120 draft }

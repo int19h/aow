@@ -45,10 +45,10 @@
     function Release: Integer; override;
     procedure Clear; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure AddUnit(A1: Integer); override;
-    procedure DeleteUnit(A1: Integer); override;
-    procedure AddUnits(A1: Integer); override;
+    procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); override;
+    function AddUnit(AUnit: TAbstractUnit): Boolean; override;
+    function DeleteUnit(AUnit: TAbstractUnit): Boolean; override;
+    function AddUnits(Units: TUnitList): Boolean; override;
     procedure GetGoldBudget; virtual;  { +0B8 draft }
     procedure GetManaBudget; virtual;  { +0BC draft }
     procedure GetLoc(A1: Integer; A2: Integer); virtual;  { +0C0 draft }

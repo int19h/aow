@@ -20,7 +20,7 @@ type
   { TPrisonersArmy (instance size 44, VMT 557C53F4) }
   TPrisonersArmy = class(TArmy)
   public
-    procedure CanAddUnit(A1: Integer; A2: Integer); override;
+    function CanAddUnit(AUnit: TAbstractUnit): Boolean; override;
   end;
 
   { TDungeon (instance size 64, VMT 557C557C) }
@@ -72,8 +72,8 @@ procedure RegisterDungeon;  { draft }
 
 implementation
 
-procedure TPrisonersArmy.CanAddUnit(A1: Integer; A2: Integer);
-begin end;
+function TPrisonersArmy.CanAddUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TDungeon.Create(AOwner: Engine.TECustomNode);
 begin end;

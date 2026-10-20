@@ -2623,7 +2623,7 @@ begin
   for I := TList(FSides[0]).Count - 1 downto 0 do
   begin
     U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
-    if U.F_CombatPredictorUnit_38 <= 0 then TUnitList(A1).AddUnit(U.F_CombatPredictorUnit_04);
+    if U.F_CombatPredictorUnit_38 <= 0 then TUnitList(A1).AddUnit(TAbstractUnit(U.F_CombatPredictorUnit_04));
   end;
 end;
 

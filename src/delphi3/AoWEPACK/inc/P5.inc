@@ -234,7 +234,7 @@ begin
   begin
     AUnit := P5FindUnit(TUnitControl(AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
     { needs: P2 AddUnit(AUnit: TAbstractUnit), VMT $AC at 5572C1AC. }
-    Units.AddUnit(Integer(AUnit));
+    Units.AddUnit(AUnit);
   end;
   Selection := FSelection;
 end;
@@ -2455,7 +2455,7 @@ begin end;
 procedure TAIGroup.GetLoc(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroup.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TAIGroup.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin end;
 
 procedure TAIGroup.GetAdjacent(A1: Integer; A2: Integer);
@@ -2500,14 +2500,14 @@ begin end;
 procedure TAIGroup.AddTransporter(A1: Integer);
 begin end;
 
-procedure TAIGroup.AddUnit(A1: Integer);
-begin end;
+function TAIGroup.AddUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
-procedure TAIGroup.AddUnits(A1: Integer);
-begin end;
+function TAIGroup.AddUnits(Units: TUnitList): Boolean;
+begin Result := False; end;
 
-procedure TAIGroup.DeleteUnit(A1: Integer);
-begin end;
+function TAIGroup.DeleteUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TAIGroup.UnitProduced(A1: Integer; A2: Integer);
 begin end;

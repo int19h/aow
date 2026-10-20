@@ -90,7 +90,7 @@
     function GetBloodType: TBloodType; virtual;  { +110 draft }
     function GetUnitType: TUnitType; virtual;  { +114 draft }
     function GetUnitGFXResourceIndex: Integer; virtual;  { +118 draft }
-    function CanAddToList: Boolean; virtual;  { +11C draft }
+    function CanAddToList(AList: TUnitList): Boolean; virtual;
     function GetWallCombatFeatures: TWallCombatFeatures; virtual;  { +120 draft }
     function GetCampaignTransferPoints: Integer; virtual;  { +124 draft }
     function GetCastingPointsMax: Byte; virtual;  { +128 draft }
@@ -317,7 +317,8 @@
     procedure SetUnitResource(Resource: TUnitResource);
   end;
 
-  { TUnitList (instance size 16, VMT 55710EC8) }
+  { TUnitList (instance size 16, VMT 55710EC8): inherited +08 child list, +0C update count.
+    Direct-list methods await protected visibility for Engine.TEChangeNotifyNode.FChildren. }
   TUnitList = class(TEChangeNotifyNode)
   public
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
@@ -325,17 +326,17 @@
     procedure DestroyAllChildren; override;
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
-    procedure GetPlayer; virtual;  { +08C draft }
+    function GetPlayer: Shortint; virtual;
     procedure GetStrength(A1: Integer); virtual;  { +090 draft }
     procedure GetStrengthMax(A1: Word; A2: Integer); virtual;  { +094 draft }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +098 draft }
+    procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); virtual;
     procedure SortUnits; virtual;  { +09C draft }
     procedure SortOnMoves; virtual;  { +0A0 draft }
-    procedure CanAddUnit(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
-    procedure CanDeleteUnit(A1: Integer); virtual;  { +0A8 draft }
-    procedure AddUnit(A1: Integer); virtual;  { +0AC draft }
-    procedure DeleteUnit(A1: Integer); virtual;  { +0B0 draft }
-    procedure AddUnits(A1: Integer); virtual;  { +0B4 draft }
+    function CanAddUnit(AUnit: TAbstractUnit): Boolean; virtual;
+    function CanDeleteUnit(AUnit: TAbstractUnit): Boolean; virtual;
+    function AddUnit(AUnit: TAbstractUnit): Boolean; virtual;
+    function DeleteUnit(AUnit: TAbstractUnit): Boolean; virtual;
+    function AddUnits(Units: TUnitList): Boolean; virtual;
     procedure IndexOf;  { draft }
     procedure IndexOfID(A1: Integer);  { draft }
     procedure IndexOfBehavior(A1: Integer);  { draft }
@@ -350,9 +351,9 @@
   TUnitUserList = class(TUnitList)
   public
     procedure Clear; override;
-    procedure AddUnit(A1: Integer); override;
-    procedure DeleteUnit(A1: Integer); override;
-    procedure AddUnitsEx(A1: Integer; A2: Integer);  { draft }
+    function AddUnit(AUnit: TAbstractUnit): Boolean; override;
+    function DeleteUnit(AUnit: TAbstractUnit): Boolean; override;
+    procedure AddUnitsEx(Units: TUnitList; Selection: Byte);
   end;
 
   { TUnitIndexList (instance size 20, VMT 55711118) }
@@ -365,20 +366,20 @@
     procedure SortUnits;  { draft }
   end;
 
-  { TUnitIndexListCollection (instance size 12, VMT 557111A4) }
+  { TUnitIndexListCollection (instance size 12, VMT 557111A4): +04 FCollectionSize; +08 FUnits. }
   TUnitIndexListCollection = class(TObject)
   public
-    F_UnitIndexListCollection_04: Integer;
-    F_UnitIndexListCollection_08: Integer;
+    FCollectionSize: Integer;  { $04 }
+    FUnits: TUnitIndexList;  { $08 }
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure LoadFromStream;  { draft }
-    procedure SaveToStream;  { draft }
+    constructor Create;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
     function GetCollectionCount(Index: Integer): Integer;
-    procedure GetCount;  { draft }
+    function GetCount: Integer;
     function GetU(Collection, Index: Integer): Integer;
-    procedure AddUnit(A1: Integer; A2: Integer);  { draft }
-    procedure DeleteUnit(A1: Integer; A2: Integer);  { draft }
+    function AddUnit(Collection, UnitIndex: Integer): Boolean;
+    procedure DeleteUnit(Collection, Index: Integer);
     function GetRndCollection: Integer;
   end;
 

@@ -959,7 +959,7 @@ begin
     FPlayer := PSourceInfo(Source).Player;
   end;
   FUnits.Clear;
-  FUnits.AddUnits(Integer(Units));
+  FUnits.AddUnits(Units);
   FUnits.SortUnits;
   { Original accumulates FSelectable rather than clearing it on a new setup. }
   for I := FUnits.GetCount - 1 downto 0 do

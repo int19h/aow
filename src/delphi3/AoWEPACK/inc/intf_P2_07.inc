@@ -348,13 +348,18 @@
     procedure Find(A1: Integer; A2: Byte);  { draft }
   end;
 
-  { TAdjustableUnit (instance size 72, VMT 55712A54) }
+  { TAdjustableUnit (instance size 72, VMT 55712A54): +3C attack; +3D defense; +3E resistance;
+    +3F hits; +40 damage; +41 immunity; +43 protection; +45 hit points. }
   TAdjustableUnit = class(TAbstractUnit)
   public
-    F_AdjustableUnit_3C: Integer;
-    F_AdjustableUnit_40: Integer;
-    F_AdjustableUnit_44: array[0..0] of Byte;
-    F_AdjustableUnit_45: Byte;
+    FAttack: Shortint;  { $3C }
+    FDefense: Shortint;  { $3D }
+    FResistance: Shortint;  { $3E }
+    FHits: Shortint;  { $3F }
+    FDamage: Shortint;  { $40 }
+    FImmunityTypes: TDamageTypes;  { $41 }
+    FProtectionTypes: TDamageTypes;  { $43 }
+    FHitPoints: Shortint;  { $45 }
     F_AdjustableUnit_46: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAttack: Shortint; override;
@@ -366,20 +371,23 @@
     procedure SetHitPoints(Value: Shortint); override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetProtectionTypes: TDamageTypes; override;
-    procedure MakeDefaultLevelUnit(A1: Byte);  { draft }
+    procedure MakeDefaultLevelUnit(Level: Shortint);
   end;
 
-  { TWallUnit (instance size 64, VMT 55712C84) }
+  { TWallUnit (instance size 64, VMT 55712C84): +3C FWallType; +3D FHitPoints; +3E FHits. }
   TWallUnit = class(TAbstractUnit)
   public
-    F_WallUnit_3C: Integer;
+    FWallType: TWallType;  { $3C }
+    FHitPoints: Shortint;  { $3D }
+    FHits: Shortint;  { $3E }
+    F_WallUnit_3F: Byte;
     function GetDefense: Shortint; override;
     function GetHits: Shortint; override;
     function GetHitPoints: Shortint; override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetName: string; override;
     function GetUnitType: TUnitType; override;
-    procedure SetWallType(A1: Integer);  { draft }
+    procedure SetWallType(Value: TWallType);
   end;
 
   { TArmyID (instance size 20, VMT 55712FF4) }
@@ -428,12 +436,12 @@
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
     procedure Changed; override;
-    procedure GetPlayer; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure CanAddUnit(A1: Integer; A2: Integer); override;
-    procedure CanDeleteUnit(A1: Integer); override;
-    procedure AddUnit(A1: Integer); override;
-    procedure AddUnits(A1: Integer); override;
+    function GetPlayer: Shortint; override;
+    procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); override;
+    function CanAddUnit(AUnit: TAbstractUnit): Boolean; override;
+    function CanDeleteUnit(AUnit: TAbstractUnit): Boolean; override;
+    function AddUnit(AUnit: TAbstractUnit): Boolean; override;
+    function AddUnits(Units: TUnitList): Boolean; override;
     procedure GetUnitConcealedForPlayer(A1: Integer; A2: Integer); virtual;  { +0B8 draft }
     procedure GetConcealedForPlayer(A1: Byte); virtual;  { +0BC draft }
     procedure Kill(A1: Integer);  { draft }
@@ -545,7 +553,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); override;
     procedure GetUnitConcealedForPlayer(A1: Integer; A2: Integer); override;
     procedure GetConcealedForPlayer(A1: Byte); override;
     procedure Setup(A1: Integer; A2: Byte); virtual;  { +0C0 draft }
@@ -585,7 +593,7 @@
     function EditName: string; override;
     procedure MoveTo(A1: Integer; A2: Integer); override;
     procedure PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); override;
     procedure UpdateFlagID; override;
     procedure MoveFirst(A1: Integer; A2: Integer); override;
     function GetMoveSteps: Integer; override;

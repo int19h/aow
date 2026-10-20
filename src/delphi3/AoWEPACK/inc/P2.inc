@@ -647,10 +647,7 @@ end;
 procedure TAbstractUnit.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin
   if Owner is TUnitList then
-    { needs: TUnitList.GetLocation and P5 TAIGroup.GetLocation take three
-      var Shortint coordinates (5577EDB2..5577EDC5). Keep the inherited draft
-      signature compatible until P5 can update its override. }
-    TUnitList(Owner).GetLocation(Integer(@Xhx), Integer(@Yhx), Integer(@Lhx))
+    TUnitList(Owner).GetLocation(Xhx, Yhx, Lhx)
   else
   begin
     Xhx := -1;
@@ -926,7 +923,7 @@ begin
     ResetEarthMasteryStoneSkin;
     ResetFireMasteryProtection;
     List := TUnitUserList(FGroup);
-    if List <> nil then List.DeleteUnit(Integer(Self));
+    if List <> nil then List.DeleteUnit(Self);
     FPlayer := Player;
     Release;
   end;
@@ -1204,7 +1201,7 @@ begin
   if (FGroupID <> 0) and (FPlayer >= 0) then
   begin
     Group := P2FindGroup(TAIGroupList(AoWHSMap.F_AoWHSMap_130), FGroupID);
-    if Group <> nil then Group.AddUnit(Integer(Self))
+    if Group <> nil then Group.AddUnit(Self)
     else FGroupID := 0;
   end
   else FGroupID := 0;
@@ -1217,7 +1214,7 @@ var
   Group: TUnitUserList;
 begin
   Group := FGroup;
-  if Group <> nil then Group.DeleteUnit(Integer(Self));
+  if Group <> nil then Group.DeleteUnit(Self);
   TUnitControl(AoWHSMap.F_AoWHSMap_FC).UnRegisterUnit(Self);
   FUnitStatus := FUnitStatus - [usActivated];
   UnregisterEnchantments;
@@ -1688,7 +1685,7 @@ begin
   ResetFireMasteryProtection;
   UnregisterEnchantments;
   Group := FGroup;
-  if Group <> nil then Group.DeleteUnit(Integer(Self));
+  if Group <> nil then Group.DeleteUnit(Self);
   SetPlayer(-1);
   Changed;
 end;
@@ -1961,7 +1958,7 @@ begin
   end;
 end;
 
-function TAbstractUnit.CanAddToList: Boolean;
+function TAbstractUnit.CanAddToList(AList: TUnitList): Boolean;
 begin
   Result := True;
 end;
@@ -2666,31 +2663,63 @@ begin
 end;
 
 function TUnitList.RemoveChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+begin
+  Result := inherited RemoveChild(Child);
+  if Result <> -1 then Child.Release;
+end;
 
 function TUnitList.AddChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+begin
+  with TAbstractUnit(Child) do
+    if Self.CanAddUnit(TAbstractUnit(Child)) then
+    begin
+      AddRef;
+      Result := inherited AddChild(Child);
+    end
+    else Result := -1;
+end;
 
 procedure TUnitList.Clear;
 begin end;
 
 procedure TUnitList.DestroyAllChildren;
-begin end;
+begin
+  Clear;
+end;
 
-procedure TUnitList.CanAddUnit(A1: Integer; A2: Integer);
-begin end;
+function TUnitList.CanAddUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  Result := AUnit.CanAddToList(Self);
+end;
 
-procedure TUnitList.CanDeleteUnit(A1: Integer);
-begin end;
+function TUnitList.CanDeleteUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  Result := True;
+end;
 
-procedure TUnitList.AddUnit(A1: Integer);
-begin end;
+function TUnitList.AddUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  AUnit.SetOwner(Self);
+  Result := AUnit.Owner = Self;
+end;
 
-procedure TUnitList.AddUnits(A1: Integer);
-begin end;
+function TUnitList.AddUnits(Units: TUnitList): Boolean;
+var
+  I: Integer;
+begin
+  for I := Units.Count - 1 downto 0 do AddUnit(Units.GetUnit(I));
+  Result := True;
+end;
 
-procedure TUnitList.DeleteUnit(A1: Integer);
-begin end;
+function TUnitList.DeleteUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  if CanDeleteUnit(AUnit) then
+  begin
+    Result := True;
+    AUnit.SetOwner(nil);
+  end
+  else Result := False;
+end;
 
 procedure TUnitList.IndexOf;
 begin end;
@@ -2725,11 +2754,17 @@ begin end;
 procedure TUnitList.SortOnMoves;
 begin end;
 
-procedure TUnitList.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TUnitList.GetLocation(var Xhx, Yhx, Lhx: Shortint);
+begin
+  Xhx := -1;
+  Yhx := -1;
+  Lhx := -1;
+end;
 
-procedure TUnitList.GetPlayer;
-begin end;
+function TUnitList.GetPlayer: Shortint;
+begin
+  Result := -1;
+end;
 
 procedure TUnitList.GetStrength(A1: Integer);
 begin end;
@@ -2740,158 +2775,444 @@ begin end;
 procedure TUnitUserList.Clear;
 begin end;
 
-procedure TUnitUserList.AddUnit(A1: Integer);
-begin end;
+function TUnitUserList.AddUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  if CanAddUnit(AUnit) then
+  begin
+    AddChild(AUnit);
+    Result := True;
+    Exit;
+  end;
+  Result := False;
+end;
 
-procedure TUnitUserList.DeleteUnit(A1: Integer);
-begin end;
+function TUnitUserList.DeleteUnit(AUnit: TAbstractUnit): Boolean;
+begin
+  if CanDeleteUnit(AUnit) then
+  begin
+    RemoveChild(AUnit);
+    Result := True;
+    Exit;
+  end;
+  Result := False;
+end;
 
-procedure TUnitUserList.AddUnitsEx(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitUserList.AddUnitsEx(Units: TUnitList; Selection: Byte);
+var
+  I: Integer;
+begin
+  for I := 0 to Units.Count - 1 do
+    if ((1 shl I) and Selection) <> 0 then AddUnit(Units.GetUnit(I));
+end;
 
 constructor TUnitIndexListCollection.Create;
-begin end;
+begin
+  inherited Create;
+  FUnits := TUnitIndexList.Create;
+  FCollectionSize := 8;
+end;
 
 destructor TUnitIndexListCollection.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FUnits.Free;
+end;
 
-procedure TUnitIndexListCollection.LoadFromStream;
-begin end;
+procedure TUnitIndexListCollection.LoadFromStream(Stream: TStream);
+begin
+  FUnits.LoadFromStream(Stream);
+end;
 
-procedure TUnitIndexListCollection.SaveToStream;
-begin end;
+procedure TUnitIndexListCollection.SaveToStream(Stream: TStream);
+begin
+  FUnits.SaveToStream(Stream);
+end;
 
 function TUnitIndexListCollection.GetCollectionCount(Index: Integer): Integer;
-begin end;
+var
+  I, Last: Integer;
+begin
+  Result := 0;
+  I := Index * FCollectionSize;
+  Last := FCollectionSize + I;
+  if Last > FUnits.Count then Last := FUnits.Count;
+  while (I < Last) and (FUnits[I] <> -1) do
+  begin
+    Inc(I);
+    Inc(Result);
+  end;
+end;
 
-procedure TUnitIndexListCollection.GetCount;
-begin end;
+function TUnitIndexListCollection.GetCount: Integer;
+begin
+  Result := (FUnits.Count + (FCollectionSize - 1)) div FCollectionSize;
+end;
 
 function TUnitIndexListCollection.GetU(Collection, Index: Integer): Integer;
-begin end;
+begin
+  Result := FUnits[Index + Collection * FCollectionSize];
+end;
 
-procedure TUnitIndexListCollection.AddUnit(A1: Integer; A2: Integer);
-begin end;
+function TUnitIndexListCollection.AddUnit(Collection, UnitIndex: Integer): Boolean;
+var
+  N: Integer;
+begin
+  N := GetCollectionCount(Collection);
+  if N < FCollectionSize then
+  begin
+    FUnits.Insert(N + Collection * FCollectionSize, UnitIndex);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TUnitIndexListCollection.DeleteUnit(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitIndexListCollection.DeleteUnit(Collection, Index: Integer);
+var
+  N: Integer;
+begin
+  N := GetCollectionCount(Collection);
+  if Index < N then
+  begin
+    FUnits.Delete(Collection * FCollectionSize + Index);
+    FUnits.Insert(Collection * FCollectionSize + N - 1, -1);
+  end;
+end;
 
 function TUnitIndexListCollection.GetRndCollection: Integer;
-begin end;
+var
+  Index, Tries: Integer;
+begin
+  Tries := 10;
+  repeat
+    Index := Random(GetCount);
+    Dec(Tries);
+  until (GetCollectionCount(Index) <> 0) or (Tries = 0);
+  if GetCollectionCount(Index) = 0 then
+  begin
+    Index := 0;
+    while (Index < GetCount) and (GetCollectionCount(Index) = 0) do Inc(Index);
+    if GetCollectionCount(Index) = 0 then Index := -1;
+  end;
+  Result := Index;
+end;
 
-procedure TWallUnit.SetWallType(A1: Integer);
-begin end;
+resourcestring
+  P2WoodenWallRStr = 'Wooden Wall';
+  P2StoneWallRStr = 'Stone Wall';
+  P2UndefinedWallRStr = 'Undefined';
+
+procedure TWallUnit.SetWallType(Value: TWallType);
+var
+  WallType: TWallType;
+begin
+  WallType := Value;
+  FWallType := WallType;
+  if WallType = wtStone then FHits := 10 else FHits := 5;
+  FHitPoints := FHits;
+end;
 
 function TWallUnit.GetImmunityTypes: TDamageTypes;
-begin end;
+const
+  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];
+  WallDamageTypes: TDamageTypes = [dtWall];
+begin
+  Result := AllDamageTypes - WallDamageTypes;
+end;
 
 function TWallUnit.GetDefense: Shortint;
-begin end;
+begin
+  Result := 0;
+end;
 
 function TWallUnit.GetHitPoints: Shortint;
-begin end;
+begin
+  Result := FHitPoints;
+end;
 
 function TWallUnit.GetHits: Shortint;
-begin end;
+begin
+  Result := FHits;
+end;
 
 function TWallUnit.GetName: string;
-begin end;
+begin
+  case FWallType of
+    wtWood: Result := TranslateRStr(P2WoodenWallRStr);
+    wtStone: Result := TranslateRStr(P2StoneWallRStr);
+    wtNone: Result := TranslateRStr(P2UndefinedWallRStr);
+  end;
+end;
 
 function TWallUnit.GetUnitType: TUnitType;
-begin end;
+begin
+  Result := utMachine;
+end;
 
 constructor TAdjustableUnit.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  MakeDefaultLevelUnit(1);
+end;
 
-procedure TAdjustableUnit.MakeDefaultLevelUnit(A1: Byte);
-begin end;
+procedure TAdjustableUnit.MakeDefaultLevelUnit(Level: Shortint);
+begin
+  { Original retains protection from an earlier, higher-level setup. }
+  case Level of
+    1:
+      begin
+        FAttack := 4;
+        FDefense := 2;
+        FResistance := 3;
+        FDamage := 3;
+        FHits := 5;
+        SetAbSet(21, 1);
+        SetAbSet(0, 1);
+        FImmunityTypes := [dtWall];
+      end;
+    2:
+      begin
+        FAttack := 5;
+        FDefense := 3;
+        FResistance := 3;
+        FDamage := 3;
+        FHits := 8;
+        SetAbSet(21, 1);
+        SetAbSet(0, 1);
+        FImmunityTypes := [dtWall];
+      end;
+    3:
+      begin
+        FAttack := 6;
+        FDefense := 3;
+        FResistance := 4;
+        FDamage := 7;
+        FHits := 15;
+        SetAbSet(21, 1);
+        SetAbSet(0, 1);
+        FImmunityTypes := [dtWall];
+        FProtectionTypes := [dtPhysical];
+      end;
+    else
+      begin
+        FAttack := 6;
+        FDefense := 3;
+        FResistance := 4;
+        FDamage := 7;
+        FHits := 20;
+        FImmunityTypes := [dtPhysical, dtWall];
+        SetAbSet(21, 1);
+        SetAbSet(0, 1);
+      end;
+  end;
+  FHitPoints := FHits;
+end;
 
 function TAdjustableUnit.GetAttack: Shortint;
-begin end;
+begin Result := FAttack; end;
 
 function TAdjustableUnit.GetDefense: Shortint;
-begin end;
+begin Result := FDefense; end;
 
 function TAdjustableUnit.GetDamage: Shortint;
-begin end;
+begin Result := FDamage; end;
 
 function TAdjustableUnit.GetHits: Shortint;
-begin end;
+begin Result := FHits; end;
 
 function TAdjustableUnit.GetHitPoints: Shortint;
-begin end;
+begin Result := FHitPoints; end;
 
 procedure TAdjustableUnit.SetHitPoints(Value: Shortint);
-begin end;
+begin FHitPoints := Value; end;
 
 function TAdjustableUnit.GetResistance: Shortint;
-begin end;
+begin Result := FResistance; end;
 
 function TAdjustableUnit.GetImmunityTypes: TDamageTypes;
-begin end;
+begin Result := FImmunityTypes; end;
 
 function TAdjustableUnit.GetProtectionTypes: TDamageTypes;
-begin end;
+begin Result := FProtectionTypes; end;
 
 constructor TUnitGFXResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSequences := TImageSequenceList.Create(nil, nil);
+  FRefCount := 0;
+  FSFXLibraries[0] := TSFXLibrary.Create(nil);
+  FSFXLibraries[1] := TSFXLibrary.Create(nil);
+  FSFXLibraries[2] := TSFXLibrary.Create(nil);
+  FSFXLibraries[3] := TSFXLibrary.Create(nil);
+  FSFXLibraries[4] := TSFXLibrary.Create(nil);
+end;
 
 destructor TUnitGFXResource.Destroy;
-begin end;
+begin
+  if FRefCount <> 0 then ReleaseIL;
+  FSequences.Free;
+  FSFXLibraries[0].Free;
+  FSFXLibraries[1].Free;
+  FSFXLibraries[2].Free;
+  FSFXLibraries[3].Free;
+  FSFXLibraries[4].Free;
+  inherited Destroy;
+end;
 
 class function TUnitGFXResource.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20210;
+end;
 
 function TUnitGFXResource.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := AoWEngine;
+end;
 
 procedure TUnitGFXResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then
+    FSequences.FILManager := THSEngine(Msg.Engine).HSSet.ImageLibraryManager;
+end;
 
 procedure TUnitGFXResource.LinkToIL;
-begin end;
+begin
+  FSequences.LinkToIL;
+  if FFaceImageLibraryName <> '' then
+  begin
+    FFaceImageLibrary := FSequences.ILManager.LinkToIL([icDisk], FFaceImageLibraryName);
+    Exit;
+  end;
+  FFaceImageLibrary := nil;
+end;
 
 procedure TUnitGFXResource.ReleaseIL;
-begin end;
+begin
+  FSequences.ReleaseIL;
+  if FFaceImageLibrary <> nil then
+  begin
+    if FFaceImageLibraryName <> '' then
+      FSequences.ILManager.ReleaseIL([icDisk], FFaceImageLibraryName);
+    FFaceImageLibrary := nil;
+  end;
+end;
 
-procedure TUnitGFXResource.SetFaceImageLibraryName(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitGFXResource.SetFaceImageLibraryName(Value: string);
+begin
+  if FFaceImageLibraryName <> '' then
+    FSequences.ILManager.ReleaseIL([icDisk], FFaceImageLibraryName);
+  FFaceImageLibraryName := Value;
+  { Original releases the old library even when no reference is held. }
+  if (FFaceImageLibraryName <> '') and (FRefCount <> 0) then
+    FFaceImageLibrary := FSequences.ILManager.LinkToIL([icDisk], FFaceImageLibraryName);
+end;
 
 function TUnitGFXResource.AddRef: Integer;
-begin Result := 0; end;
+begin
+  if FRefCount = 0 then LinkToIL;
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TUnitGFXResource.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  if (FRefCount = 0) and not (ssEditting in AoWHSSet.Status) and
+     ((AoWHSMap = nil) or not (msEditting in AoWHSMap.Status)) then
+    ReleaseIL;
+  Result := FRefCount;
+end;
 
 function TUnitGFXResource.GetFaceImage: TLibraryImage;
-begin end;
+begin
+  AddRef;
+  if FFaceImageLibrary <> nil then
+    Result := FFaceImageLibrary.GetImage(FFaceIndex)
+  else Result := nil;
+  Release;
+end;
 
 function TUnitGFXResource.GetCellImage: ImageLib.TLibraryImage;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  AddRef;
+  if FSequences.GetImageSequence(2) <> nil then
+    Result := FSequences.GetImageSequence(2).GetPreviewImage
+  else Result := nil;
+  if Result = nil then Result := FSequences.GetPreviewImage;
+  Release;
+end;
 
 procedure TUnitGFXResource.Show(Direction,X,Y: Integer; const SD: TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  Index: Integer;
+begin
+  AddRef;
+  Sequence := FSequences.List^[Direction - 1];
+  while Sequence <> nil do
+  begin
+    Index := Sequence.GetFrameIndex(1, 0);
+    if Index <> -1 then Sequence.ImageLibrary[Index].Show(X, Y, SD);
+    Sequence := Sequence.Next;
+  end;
+  Release;
+end;
 
-procedure TUnitGFXResource.GetIndex;
-begin end;
+function TUnitGFXResource.GetIndex: Integer;
+begin
+  Result := EditIndex;
+end;
 
 procedure TUnitGFXResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc(5, FSequences.LoadFromStream, FSequences.SaveToStream);
+  if not (smText in Stream.StorageMode) then
+  begin
+    Stream.rwString(FFaceImageLibraryName, 6);
+    Stream.rwString(FName, 7);
+  end;
+  Stream.rwInteger(FFaceIndex, 8);
+  Stream.rwData(F_UnitGFXResource_30, 1, 10);
+  Stream.rwEObject(FSFXLibraries[0], 15);
+  Stream.rwEObject(FSFXLibraries[1], 16);
+  Stream.rwEObject(FSFXLibraries[2], 17);
+  Stream.rwEObject(FSFXLibraries[3], 18);
+  Stream.rwEObject(FSFXLibraries[4], 19);
+end;
 
 constructor TUnitGFXResourceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csKeepIndex]);
+end;
 
 function TUnitGFXResourceList.GetUnitGFXResource(Index: Integer): TUnitGFXResource;
-begin end;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := FChildren.List^[Index]
+  else Result := nil;
+end;
 
-procedure TUnitGFXResourceList.CreateUnitGFXSelectionList(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitGFXResourceList.CreateUnitGFXSelectionList(List: TStrings);
+var
+  I: Integer;
+begin
+  List.Clear;
+  for I := 0 to Count - 1 do
+    if FChildren.List^[I] <> nil then
+      List.AddObject(TUnitGFXResource(Children[I]).FName, TObject(I));
+end;
 
 function TUnitShadowHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := (FUnitHS.GetShowPriority and $03FFFFFF) + $64000000;
+end;
 
 procedure TUnitShadowHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  FUnitHS.ShowShadow(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 constructor TUnitHS.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3010,7 +3331,7 @@ begin end;
 function TUnitHS.Place(Map: HSEngine.TMapContainer; Xhp, Yhp, Lhx: Integer): Boolean;
 begin Result := False; end;
 
-procedure TUnitHS.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
+procedure TUnitHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 procedure TUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
@@ -4024,7 +4345,7 @@ begin end;
 procedure TArmyView.MainReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TArmyView.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TArmyView.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin end;
 
 constructor TArmyEventLog.Create(AOwner: Engine.TECustomNode);
@@ -4225,8 +4546,8 @@ begin end;
 procedure TArmy.Unselect;
 begin end;
 
-procedure TArmy.GetPlayer;
-begin end;
+function TArmy.GetPlayer: Shortint;
+begin Result := -1; end;
 
 procedure TArmy.GetUnitConcealed(A1: Integer);
 begin end;
@@ -4315,14 +4636,14 @@ begin end;
 procedure TArmy.UpdateUnfog;
 begin end;
 
-procedure TArmy.CanAddUnit(A1: Integer; A2: Integer);
-begin end;
+function TArmy.CanAddUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TArmy.CanAddUnits(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.AddUnits(A1: Integer);
-begin end;
+function TArmy.AddUnits(Units: TUnitList): Boolean;
+begin Result := False; end;
 
 procedure TArmy.CanAddUnitSelection(A1: Integer; A2: Integer);
 begin end;
@@ -4330,8 +4651,8 @@ begin end;
 procedure TArmy.AddUnitSelection(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.CanDeleteUnit(A1: Integer);
-begin end;
+function TArmy.CanDeleteUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 function TArmy.RemoveChild(Child: Engine.TEObject): Integer;
 begin Result := 0; end;
@@ -4339,10 +4660,10 @@ begin Result := 0; end;
 function TArmy.AddChild(Child: Engine.TEObject): Integer;
 begin Result := 0; end;
 
-procedure TArmy.AddUnit(A1: Integer);
-begin end;
+function TArmy.AddUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
-procedure TArmy.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TArmy.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin end;
 
 procedure TArmy.SelectionUnit(A1: Byte; A2: Integer);
@@ -4504,7 +4825,7 @@ begin end;
 procedure TArmyHS.PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TArmyHS.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
+procedure TArmyHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 procedure TArmyHS.PlayMoveSFX;

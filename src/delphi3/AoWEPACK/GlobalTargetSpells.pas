@@ -1951,7 +1951,7 @@ begin
         MapF := TAoWMapField(SpellHSMap^.MapContainer.GetFieldXYL(Location));
         if TArmy(Army.FArmy).ValidateSelection($FF) = Selection then
         begin
-          MovedUnits.AddUnits(Integer(Army.FArmy));
+          MovedUnits.AddUnits(Army.FArmy);
           Army.MoveTo(Integer(MapF),0);
         end
         else
@@ -1959,7 +1959,7 @@ begin
             if (Selection and (1 shl I)) <> 0 then
             begin
               UnitObj := TArmy(Army.FArmy).GetUnit(I);
-              MovedUnits.AddUnit(Integer(UnitObj));
+              MovedUnits.AddUnit(UnitObj);
               Placed := UnitObj.Place(TSpellLocation(Location).X,TSpellLocation(Location).Y,TSpellLocation(Location).Layer,Byte(TArmy(Army.FArmy).FPlayer),[]);
               if Placed <> nil then TArmy(Placed.FArmy).UpdateExploration;
             end;
@@ -1967,7 +1967,7 @@ begin
         begin
           Group := SpellCreateGroup(TAIGroupManager(SpellHSMap^.F_AoWHSMap_130),0,
             SpellIndependentRelation(MovedUnits,5),13);
-          Group.AddUnits(Integer(MovedUnits));
+          Group.AddUnits(MovedUnits);
           TSpellAIGroupFields(Pointer(Group)^).Enemies.Add(Caster.FUnitID);
           Group.Release;
         end;

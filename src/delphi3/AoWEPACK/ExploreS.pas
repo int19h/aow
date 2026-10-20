@@ -19,7 +19,7 @@ type
   { TDefendersArmy (instance size 44, VMT 557C12B4) }
   TDefendersArmy = class(TArmy)
   public
-    procedure CanAddUnit(A1: Integer; A2: Integer); override;
+    function CanAddUnit(AUnit: TAbstractUnit): Boolean; override;
   end;
 
   { TExplorationSite (instance size 56, VMT 557C1440) }
@@ -67,8 +67,8 @@ procedure RegisterExplorationSite;  { draft }
 
 implementation
 
-procedure TDefendersArmy.CanAddUnit(A1: Integer; A2: Integer);
-begin end;
+function TDefendersArmy.CanAddUnit(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TExplorationSite.Create(AOwner: Engine.TECustomNode);
 begin end;
