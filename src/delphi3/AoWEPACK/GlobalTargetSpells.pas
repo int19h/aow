@@ -64,7 +64,7 @@ type
     function Activate(A1: TAbstractUnit): Boolean; override;
     procedure ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); virtual;  { +09C }
     procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); virtual;  { +0A4 }
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; virtual;  { +0A8  }
     procedure ValidTargetSelection(A1: Integer); virtual;  { +0AC draft }
     function ValidTargetSelectionMapF(A1: Integer): Boolean; virtual;  { +0B0  }
@@ -84,7 +84,7 @@ type
   TFreezeWater = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -102,7 +102,7 @@ type
   TFireBarrier = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -120,7 +120,7 @@ type
   TLevelTerrain = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -138,7 +138,7 @@ type
   TRejuvenate = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -199,7 +199,7 @@ type
   TWatcher = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
   end;
 
@@ -224,7 +224,7 @@ type
   TTornado = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidWarpLocation(Army: TArmyHS; X, Y, Layer: Shortint): Boolean;
     function CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer;
@@ -251,7 +251,7 @@ type
   TVortex = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     procedure ValidTargetSelection(A1: Integer); override;
     procedure ValidateTargetEvent(Target: TTargetSelectionControl; X,Y,Layer: Shortint; var Valid: Boolean);
@@ -272,7 +272,7 @@ type
   THealingShowers = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -283,7 +283,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -513,7 +513,7 @@ begin
   end;
 end;
 
-procedure TGlobalTargetSpell.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TGlobalTargetSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionView;
   UnitLayer, UnitY, UnitX: Shortint;
@@ -599,7 +599,7 @@ begin
   begin
     Spell.FCasterID := TAbstractUnit(Caster).FUnitID;
     Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).FPlayer);
-    Spell.SetupTargetSelection(Caster, Integer(SpellHSMap^.FTargetSelection));
+    Spell.SetupTargetSelection(TAbstractUnit(Caster), SpellHSMap^.FTargetSelection);
     TTargetSelectionControl(SpellHSMap^.FTargetSelection).Activate;
     Result := True;
   end
@@ -792,13 +792,13 @@ asm
   POP EBX
 end;
 
-procedure TFreezeWater.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TFreezeWater.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
     TShortIntList(Target.FHNs).Add(0);
@@ -966,13 +966,13 @@ asm
   POP EBX
 end;
 
-procedure TFireBarrier.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TFireBarrier.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
     TShortIntList(Target.FHNs).Add(0);
@@ -1137,13 +1137,13 @@ asm
   POP EBX
 end;
 
-procedure TLevelTerrain.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TLevelTerrain.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
     TShortIntList(Target.FHNs).Add(0);
@@ -1269,13 +1269,13 @@ asm
   POP EBX
 end;
 
-procedure TRejuvenate.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TRejuvenate.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(3) - 1 do
     TShortIntList(Target.FHNs).Add(0);
@@ -1710,7 +1710,7 @@ begin
   asm MOV AL, Busy; XOR AL, 1 end;
 end;
 
-procedure TWatcher.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TWatcher.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 begin
   inherited SetupTargetSelection(A1,A2);
   TTargetSelectionMode(TTargetSelectionControl(A2).FTargetMode) :=
@@ -2074,11 +2074,11 @@ begin
   asm MOV AL, Busy; XOR AL, 1 end;
 end;
 
-procedure TTornado.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TTornado.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var Target: TTargetSelectionControl;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1,Integer(Target));
+  inherited SetupTargetSelection(A1,Target);
   TShortIntList(Target.FHNs).Clear;
 end;
 
@@ -2317,11 +2317,11 @@ begin
   asm MOV AL, Busy; XOR AL, 1 end;
 end;
 
-procedure TVortex.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TVortex.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var Target: TTargetSelectionControl;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1,Integer(Target));
+  inherited SetupTargetSelection(A1,Target);
   TShortIntList(Target.FHNs).Clear;
   TTargetSelectionView(Target).OnValidate := ValidateTargetEvent;
 end;
@@ -2492,13 +2492,13 @@ function THealingShowers.ValidTargetSelectionMapF(A1: Integer): Boolean;
 begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
-procedure THealingShowers.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure THealingShowers.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
     TShortIntList(Target.FHNs).Add(0);
@@ -2540,13 +2540,13 @@ function TSmokeCloudSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
 begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
-procedure TSmokeCloudSpell.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TSmokeCloudSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var
   Target: TTargetSelectionControl;
   I: Integer;
 begin
   Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1, Integer(Target));
+  inherited SetupTargetSelection(A1, Target);
   TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(4) - 1 do
     TShortIntList(Target.FHNs).Add(0);

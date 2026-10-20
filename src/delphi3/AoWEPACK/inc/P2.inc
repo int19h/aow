@@ -7321,8 +7321,8 @@ begin end;
 procedure TArmy.MaxSize(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.Hero(A1: Integer; A2: Byte);
-begin end;
+function TArmy.Hero(Selection: Byte; Types: THeroTypes): THero;
+begin Result := nil; end;
 
 procedure TArmy.Leader(A1: Integer);
 begin end;
@@ -7564,7 +7564,7 @@ begin end;
 procedure TArmyHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
-function TArmyHS.PlaceEx(X, Y: Shortint; Mode: TArmyPlaceMode; L: Shortint): Boolean;
+function TArmyHS.PlaceEx(X, Y, L: Shortint; Mode: TArmyPlaceMode): Boolean;
 begin Result := False; end;
 
 function TArmyHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;

@@ -76,10 +76,10 @@
     function GetMoves: Shortint; virtual; { $D4; 5573743C }
     function GetMovePoints: Shortint; virtual; { $D8; 557373E8 }
     procedure SetMovePoints(Value: Shortint); virtual;  { +0DC draft }
-    function GetHitPoints: Shortint; virtual;  { +0E0 draft }
+    function GetHitPoints: Shortint; virtual;  { +0E0 }
     procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 }
     function GetMoveTypes: TMoveTypes; virtual;  { +0E8 draft }
-    function GetImmunityTypes: TDamageTypes; virtual;  { +0EC draft }
+    function GetImmunityTypes: TDamageTypes; virtual;  { +0EC }
     function GetProtectionTypes: TDamageTypes; virtual;  { +0F0 draft }
     function GetFace: TLibraryImage; virtual;  { +0F4 draft }
     function GetName: string; virtual;
@@ -89,8 +89,8 @@
     function GetTransporter: Boolean; virtual;  { +108 draft }
     function GetGender: TUnitGender; virtual;  { +10C draft }
     function GetBloodType: TBloodType; virtual;  { +110 draft }
-    function GetUnitType: TUnitType; virtual;  { +114 draft }
-    function GetUnitGFXResourceIndex: Integer; virtual;  { +118 draft }
+    function GetUnitType: TUnitType; virtual;  { +114 }
+    function GetUnitGFXResourceIndex: Integer; virtual;  { +118 }
     function CanAddToList(AList: TUnitList): Boolean; virtual;
     function GetWallCombatFeatures: TWallCombatFeatures; virtual;  { +120 draft }
     function GetCampaignTransferPoints: Integer; virtual;  { +124 draft }
@@ -102,7 +102,7 @@
     procedure NewTurn(Player: Shortint); virtual;  { +13C draft }
     procedure NewTurnDone(Player: Shortint); virtual;  { +140 draft }
     function GetAbilityLevel(AbilityID: Integer): Integer; virtual;  { +144 draft }
-    function GetAbilityEnabled(AbilityID: Integer): Boolean; virtual;  { +148 draft }
+    function GetAbilityEnabled(AbilityID: Integer): Boolean; virtual;  { +148 }
     function GetAbilitySet(AbilityID: Integer): Boolean; virtual;  { +14C draft }
     function GetAbilityName(AbilityID: Integer): string; virtual;  { +150 draft }
     function GetAbilityOwner(AbilityID: Integer): TAbilityOwner; virtual;  { +154 draft }

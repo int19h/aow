@@ -482,12 +482,12 @@
     procedure UpdateUpkeep;  { draft }
     procedure ValidateTerrainEx(A1: Byte; A2: Byte);  { draft }
     procedure ValidateTerrain(TerrainType, OverlayType: Shortint);
-    procedure Validate;  { draft }
+    procedure Validate;
     procedure UpdateFormation;  { draft }
     procedure Update;  { draft }
     procedure TriggerOnUpdateEvent;  { draft }
-    procedure Activate;  { draft }
-    procedure Deactivate;  { draft }
+    procedure Activate;
+    procedure Deactivate;
     function ValidateSelection(A1: Byte): Byte;
     function SelectionCount(Selection: Byte): Integer;
     procedure ValidateMoveSelection(A1: Integer; A2: Integer);  { draft }
@@ -510,7 +510,7 @@
     function CanPlace(A1: Shortint; A2: Shortint; A3: Shortint): Boolean;
     procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure MaxSize(A1: Integer; A2: Integer);  { draft }
-    procedure Hero(A1: Integer; A2: Byte);  { draft }
+    function Hero(Selection: Byte; Types: THeroTypes): THero;
     procedure Leader(A1: Integer);  { draft }
     function Transporter(Player: Byte): TAbstractUnit;
     { conflict: function Transporter(Selection: Byte): TAbstractUnit; }
@@ -614,7 +614,7 @@
     procedure PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure PlayMoveSFX;  { draft }
     procedure ShowEnchantments(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    function PlaceEx(X, Y: Shortint; Mode: TArmyPlaceMode; L: Shortint): Boolean;
+    function PlaceEx(X, Y, L: Shortint; Mode: TArmyPlaceMode): Boolean;
   end;
 
   { TArmyHSList (instance size 20, VMT 5571352C) }
@@ -645,19 +645,19 @@
     procedure SetArmyView;  { draft }
     procedure LeaderKilled;  { draft }
     procedure PartyDestroyed;  { draft }
-    procedure ValidateGameOver;  { draft }
+    procedure ValidateGameOver;
   end;
 
   { TArmyInfoEventLog (instance size 52, VMT 55713724) }
   TArmyInfoEventLog = class(TEventLog)
   public
-    F_ArmyInfoEventLog_18: Integer;
-    F_ArmyInfoEventLog_1C: Byte;
+    FArmyView: TArmyView; { $18 }
+    FSelection: Byte; { $1C }
     F_ArmyInfoEventLog_1D: array[0..2] of Byte;
-    F_ArmyInfoEventLog_20: Integer;
-    F_ArmyInfoEventLog_24: Integer;
-    F_ArmyInfoEventLog_28: Integer;
-    F_ArmyInfoEventLog_2C: Integer;
+    FMessages: TStrings; { $20 }
+    FTitle: string; { $24 }
+    FText: string; { $28 }
+    FDescription: string; { $2C }
     F_ArmyInfoEventLog_30: Byte;
     F_ArmyInfoEventLog_31: array[0..2] of Byte;
     destructor Destroy; override;

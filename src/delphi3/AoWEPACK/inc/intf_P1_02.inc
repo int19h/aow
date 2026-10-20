@@ -60,10 +60,12 @@
     FGold: Integer; { $08 }
     FMana: Integer; { $0C }
     FTurnsLeft: Shortint;  { $10 }
+    { conflict: FTurnsRemaining: Shortint; }
     F_ProductionSettings_11: array[0..2] of Byte;
     FGoldUpkeep: Integer; { $14 }
     FManaUpkeep: Integer; { $18 }
     FTurnsTotal: Shortint;  { $1C }
+    { conflict: FDuration: Shortint; }
     FPlayer: Shortint;  { $1D }
     F_ProductionSettings_1E: array[0..1] of Byte;
     FGroupID: Integer; { $20 }

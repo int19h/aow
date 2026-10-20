@@ -1,9 +1,7 @@
 unit ItemExpS;
 
-{ Draft declarations of ItemExpS, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  TExplorationSiteItemList and TItemExplorationSite bodies are recovered;
-  the event-log and resource bodies below remain for the next pass. }
+{ ItemExpS, from AoWEPACK.dpl. Recovered exploration, event-log and resource
+  bodies at the original instance layouts and VMT order. }
 
 interface
 
@@ -62,7 +60,7 @@ type
     class function ClassID: Integer; override;
   end;
 
-procedure RegisterItemExplorationSite(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure RegisterItemExplorationSite(Engine: TEngine);
 
 implementation
 
@@ -166,7 +164,7 @@ begin
       Log.FItemIDs.Add(Item.FItemID);
       Item.PlaceOnMap(WorldMap^, GetXhx, GetYhx, GetLhx);
     end;
-    Log.FMessages.CommaText := SysUtils.Format(TranslateRStr(LoadResString(ItemsExploredText)), [FResource.ResourceEditName]);
+    Log.FMessages.Text := SysUtils.Format(TranslateRStr(LoadResString(ItemsExploredText)), [FResource.ResourceEditName]);
     Log.Execute(False, etEvent, nil);
     Log.Release;
     Update;
@@ -180,23 +178,37 @@ begin
 end;
 
 constructor TItemExplorationSiteEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FItemIDs := TIntegerList.Create;
+  FMessages := TStringList.Create;
+end;
 
 destructor TItemExplorationSiteEventLog.Destroy;
-begin end;
+begin
+  FItemIDs.Free;
+  FMessages.Free;
+  inherited Destroy;
+end;
 
 class function TItemExplorationSiteEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203F5; end;
 
 procedure TItemExplorationSiteEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc(20, FItemIDs.LoadFromStream, FItemIDs.SaveToStream);
+  Stream.rwStrings(FMessages, 21);
+  Stream.rwString(FTitle, 22);
+end;
 
 class function TItemExplorationSiteResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203F4; end;
 
-procedure RegisterItemExplorationSite(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
+procedure RegisterItemExplorationSite(Engine: TEngine);
+begin
+  Engine.RegisterEClasses([TItemExplorationSiteEventLog]);
+end;
 
 initialization
 finalization

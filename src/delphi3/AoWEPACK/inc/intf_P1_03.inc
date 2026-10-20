@@ -371,7 +371,7 @@
     procedure GetDefenseRequirements(A1: Integer; A2: Integer);  { draft }
     procedure GetWallType;  { draft }
     function GetArmyHS: TArmyHS;
-    procedure RestoreTerrain;  { draft }
+    procedure RestoreTerrain;
   end;
 
   { TAoWMapLevel (instance size 128, VMT 5570C864) }

@@ -7,7 +7,7 @@ unit PoisonP;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, GlobalTargetSpells;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, GlobalTargetSpells, AoWE;
 
 type
   TPoisonPlant = class;
@@ -63,7 +63,7 @@ type
   TPoisonPlantSpell = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -155,7 +155,7 @@ begin Result := False; end;
 function TPoisonPlantSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
 begin Result := False; end;
 
-procedure TPoisonPlantSpell.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TPoisonPlantSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 begin end;
 
 function TPoisonPlantSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;

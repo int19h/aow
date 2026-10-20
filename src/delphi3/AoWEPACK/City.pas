@@ -2,7 +2,7 @@ unit City;
 
 { City, from AoWEPACK.dpl. Recovered TCity negotiation, resource, enchantment,
   event-log and AI bodies. Layouts and VMT order follow the original;
-  earlier production-control and overlay stubs remain for a later recovery pass. }
+  production-control bodies recovered from the original code. }
 
 interface
 
@@ -423,13 +423,165 @@ begin
 end;
 
 function TCityProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
-begin end;
+var Log: TLocationTextEventLog;
+begin
+  Result := inherited ExecuteProduction(Item);
+  if Result then
+    case ProductionIDToCityAction(Item.FProductionID) of
+      caTrade:
+        begin
+          FSettings.FTurnsTotal := Item.FParameter;
+          FSettings.FTurnsLeft := 1;
+          FSettings.FPlayer := GetPlayer;
+          FStatus := pcsProducing;
+        end;
+      caFortify:
+        begin
+          FSettings.FTurnsTotal := FCity.FortifyTime;
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          FSettings.FPlayer := GetPlayer;
+          FSettings.FGold := FCity.FortifyCost;
+          WorldMap^.FPlayers.GetPlayers(GetPlayer).SetGems(
+            WorldMap^.FPlayers.GetPlayers(GetPlayer).FGems - FSettings.FGold);
+          FStatus := pcsProducing;
+        end;
+      caUpgrade:
+        begin
+          FSettings.FTurnsTotal := FCity.UpgradeTime;
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          FSettings.FPlayer := GetPlayer;
+          FSettings.FGold := FCity.UpgradeCost;
+          WorldMap^.FPlayers.GetPlayers(GetPlayer).SetGems(
+            WorldMap^.FPlayers.GetPlayers(GetPlayer).FGems - FSettings.FGold);
+          FStatus := pcsProducing;
+        end;
+      caLoot:
+        begin
+          FSettings.FTurnsTotal := FCity.LootTime;
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          FSettings.FPlayer := GetPlayer;
+          FSettings.FGold := 0;
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + (-30));
+          Log := TLocationTextEventLog.Create(nil);
+          Log.FPlayer := GetPlayer;
+          Log.FText := SysUtils.Format(TranslateRStr(CityLootingRStr), [FCity.GetName]);
+          Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
+          DistributeLocationEventLog(Log, GetPlayer, FCity.GetXhx, FCity.GetYhx, FCity.GetLhx, 0);
+          Log.Release;
+          FCity.FOverlay.SetMode(omLooting);
+          FStatus := pcsProducing;
+        end;
+      caMigrate:
+        begin
+          FSettings.FTurnsTotal := FCity.MigrationTime(Item.FParameter);
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          FSettings.FPlayer := GetPlayer;
+          FStatus := pcsProducing;
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + (-15));
+        end;
+    end;
+end;
 
 procedure TCityProductionControl.NewTurn(Player: Shortint);
-begin end;
+var Log: TCityProductionEventLog;
+begin
+  inherited NewTurn(Player);
+  if (FStatus = pcsProducing) and (Player = FSettings.FPlayer) and
+    (FSettings.FTurnsLeft = 0) then
+    case ProductionIDToCityAction(FQueue.GetItem(0).FProductionID) of
+      caTrade: ProductionDone;
+      caUpgrade:
+        begin
+          BeginUpdate;
+          FCity.SetUpgradeLevel(FCity.FUpgradeLevel + 1);
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + 5);
+          ProductionDone;
+          Log := TCityProductionEventLog.Create(nil);
+          Log.FPlayer := GetPlayer;
+          Log.FText := SysUtils.Format(TranslateRStr(XUpgradedRStr), [FCity.GetName]);
+          Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
+          WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+          Log.Release;
+          EndUpdate;
+        end;
+      caFortify:
+        begin
+          BeginUpdate;
+          case FCity.FWallType of
+            0: FCity.FWallType := 1;
+            1: FCity.FWallType := 2;
+          end;
+          Log := TCityProductionEventLog.Create(nil);
+          Log.FPlayer := GetPlayer;
+          Log.FText := SysUtils.Format(TranslateRStr(CityFortifiedRStr), [FCity.GetName]);
+          Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
+          WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+          Log.Release;
+          FCity.UpdateImages;
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + 5);
+          ProductionDone;
+          EndUpdate;
+        end;
+      caLoot:
+        begin
+          BeginUpdate;
+          Log := TCityProductionEventLog.Create(nil);
+          Log.FPlayer := GetPlayer;
+          Log.FText := SysUtils.Format(TranslateRStr(CityLootedRStr), [FCity.GetName, IntToStr(FCity.FIncome * 3)]);
+          Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
+          WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+          Log.Release;
+          WorldMap^.FPlayers.GetPlayers(GetPlayer).SetGems(
+            WorldMap^.FPlayers.GetPlayers(GetPlayer).FGems + FCity.FIncome * 3);
+          FCity.FOverlay.SetMode(omIdle);
+          FCity.SetRazed(True);
+          EndUpdate;
+        end;
+      caMigrate:
+        begin
+          BeginUpdate;
+          Log := TCityProductionEventLog.Create(nil);
+          Log.FPlayer := GetPlayer;
+          Log.FText := SysUtils.Format(TranslateRStr(CityMigratedToRStr), [FCity.GetName, TranslateRStr(RaceNames^[FQueue.GetItem(0).FParameter])]);
+          Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
+          WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+          Log.Release;
+          FCity.SetRace(FQueue.GetItem(0).FParameter);
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + 10);
+          FUnitProductions.Clear;
+          FCity.SetUpgradeLevel(FCity.FUpgradeLevel);
+          ProductionDone;
+          EndUpdate;
+        end;
+    end;
+end;
 
 procedure TCityProductionControl.ExecuteCancelProduction;
-begin end;
+begin
+  if FStatus = pcsProducing then
+    case ProductionIDToCityAction(FQueue.GetItem(0).FProductionID) of
+      caLoot:
+        if FSettings.FTurnsLeft = FSettings.FTurnsTotal then
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) - (-30))
+        else
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + 20);
+      caMigrate:
+        if FSettings.FTurnsLeft = FSettings.FTurnsTotal then
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) - (-15))
+        else
+          WorldMap^.FRaces.GetRace(FCity.FRace).SetPlayerRelationValue(GetPlayer,
+            WorldMap^.FRaces.GetRace(FCity.FRace).GetPlayerRelationValue(GetPlayer) + 10);
+    end;
+  inherited ExecuteCancelProduction;
+end;
 
 function TCityProductionControl.LockQueueProduction(A1: TProductionItem): Boolean;
 begin
@@ -1080,7 +1232,7 @@ begin
     begin
       Army := TArmyHS(MapLevel.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
       if (Army <> nil) and (not (msSkipOwnPlayer in Selection) or (Army.FArmy.FPlayer <> FPlayer)) then
-        Result := Army.PlaceEx(Walk.X, Walk.Y, [apSafe, apScanArea], GetLhx);
+        Result := Army.PlaceEx(Walk.X, Walk.Y, GetLhx, [apSafe, apScanArea]);
     end;
     WalkToNextHN(Walk);
   end;

@@ -75,7 +75,7 @@ type
   TRaiseTerrain = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
+    procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
     function ValidTargetMapF(A1: Integer): Boolean; override;
@@ -361,7 +361,7 @@ begin
   Result := Valid;
 end;
 
-procedure TRaiseTerrain.SetupTargetSelection(A1: Integer; A2: Integer);
+procedure TRaiseTerrain.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 var I: Integer;
 begin
   inherited SetupTargetSelection(A1, A2);

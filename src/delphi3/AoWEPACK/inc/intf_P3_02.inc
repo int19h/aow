@@ -311,7 +311,7 @@
     FExplorationSite: Byte; { $40 }
     { conflict: FVisibilityMode: Byte; }
     F_Combat_41: array[0..2] of Byte;
-    FItems: TItemList; { $44 }
+    FItems: TEObject; { $44; item list or prisoners army }
     F_Combat_48: array[0..3] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
