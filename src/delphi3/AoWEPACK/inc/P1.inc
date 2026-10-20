@@ -8760,7 +8760,7 @@ begin end;
 function TAoWHSMap.ChangeTerrain(MO: HSEngine.TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer;
 begin Result := 0; end;
 
-function TAoWHSMap.ChangeTerrainEx(MO: HSEngine.TMapObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer;
+function TAoWHSMap.ChangeTerrainEx(MO: Engine.TEObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer;
 begin Result := 0; end;
 
 procedure TAoWHSMap.CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);
@@ -9323,10 +9323,10 @@ begin Result := 0; end;
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TriggerStormDamage(Storm: TStormType; X, Y, L, InnerRadius, OuterRadius, Player: Shortint);
 begin end;
 
-procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
+procedure RetrieveStormDamageInfo(Player: Shortint; Storm: TStormType; X, Y, L, InnerRadius, OuterRadius: Shortint; var Info: TStormDamageInfo);
 begin end;
 
 procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);

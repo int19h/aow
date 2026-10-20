@@ -354,7 +354,7 @@ begin
   Result := Count;
 end;
 
-function THSMap.ChangeTerrainEx(MO: TMapObject; X, Y, L, Radius: Integer;
+function THSMap.ChangeTerrainEx(MO: TEObject; X, Y, L, Radius: Integer;
   ChangeTerrainProc: TChangeTerrainProc; TerrainChangedProc: TTerrainChangedProc): Integer;
 var
   OrgList, NewList: TShortIntList;

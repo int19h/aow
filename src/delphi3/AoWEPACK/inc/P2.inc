@@ -1522,7 +1522,7 @@ begin
   begin
     Ice := TFrozenWaterHS(MapField.FindOwnedHS(TFrozenWaterHS));
     if Ice <> nil then
-    begin Ice.F_FrozenWaterHS_0C := 2; Ice.F_FrozenWaterHS_0D := FPlayer; end;
+    begin Ice.FDaysRemaining := 2; Ice.FCasterPlayer := FPlayer; end;
   end
   else if (TerrainType in [1,2,4,5]) and (MapField.Lhx = 0) then
     TerrainType := Ord(ttSnow);
@@ -1540,8 +1540,8 @@ begin
       Ice := TFrozenWaterHS.Create(nil);
       AoWHSMap.PlaceHX(Ice,MapField.Xhx,MapField.Yhx,MapField.Lhx);
     end;
-    Ice.F_FrozenWaterHS_0C := 2;
-    Ice.F_FrozenWaterHS_0D := FPlayer;
+    Ice.FDaysRemaining := 2;
+    Ice.FCasterPlayer := FPlayer;
   end;
 end;
 
@@ -1559,7 +1559,7 @@ begin
     begin
       Ice := TFrozenWaterHS(Field.FindOwnedHS(TFrozenWaterHS));
       if Ice <> nil then
-      begin Ice.F_FrozenWaterHS_0C := 2; Ice.F_FrozenWaterHS_0D := FPlayer; end;
+      begin Ice.FDaysRemaining := 2; Ice.FCasterPlayer := FPlayer; end;
     end;
   end;
 end;

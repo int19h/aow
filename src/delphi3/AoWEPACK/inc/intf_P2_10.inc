@@ -59,8 +59,8 @@ function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
-procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure TriggerStormDamage(Storm: TStormType; X, Y, L, InnerRadius, OuterRadius, Player: Shortint);
+procedure RetrieveStormDamageInfo(Player: Shortint; Storm: TStormType; X, Y, L, InnerRadius, OuterRadius: Shortint; var Info: TStormDamageInfo);
 procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);  { draft }
 procedure StatusToDiplomaticRelation(A1: Byte);  { draft }
 function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;

@@ -76,9 +76,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
 procedure RegisterMountain(AEngine: TEngine);
@@ -279,7 +279,7 @@ begin
     begin
       Field := TAoWMapField(Level.Field[Walk.X, Walk.Y]);
       Mountain := nil;
-      if TRaiseTerrain(WorldSet^.FSpellControl.GetSpell(19)).ValidTargetMapF(Integer(Field)) then
+      if TRaiseTerrain(WorldSet^.FSpellControl.GetSpell(19)).ValidTargetMapF(Field) then
       begin
         Found := False;
         I := Resources.Count;
@@ -335,7 +335,7 @@ begin
   FAboveGroundOnly := True;
 end;
 
-function TRaiseTerrain.ValidTargetMapF(A1: Integer): Boolean;
+function TRaiseTerrain.ValidTargetMapF(A1: TMapField): Boolean;
 begin
   Result := inherited ValidTargetMapF(A1) and
     not (TAoWMapField(A1).TerrainType in [0, 6, 10, 13]) and
@@ -344,7 +344,7 @@ begin
   if Result then Result := TAoWMapField(A1).GetArmyHS = nil;
 end;
 
-function TRaiseTerrain.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TRaiseTerrain.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 var
   Valid: Boolean;
   Army: TArmyHS;
@@ -370,7 +370,7 @@ begin
     TTargetSelectionControl(A2).FHNs.Add(0);
 end;
 
-function TRaiseTerrain.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TRaiseTerrain.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var Event: TRaiseTerrainTE;
 begin
   Event := TRaiseTerrainTE.Create(nil);

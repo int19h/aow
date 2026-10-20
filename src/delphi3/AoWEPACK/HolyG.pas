@@ -62,9 +62,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
 procedure RegisterHolyGround(Engine: TEngine);
@@ -292,7 +292,7 @@ begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
     begin
       Field := TAoWMapField(Level.Field[Walk.X, Walk.Y]);
-      if THolyGroundSpell(WorldSet^.FSpellControl.GetSpell(13)).ValidTargetMapF(Integer(Field)) then
+      if THolyGroundSpell(WorldSet^.FSpellControl.GetSpell(13)).ValidTargetMapF(Field) then
         if Field.GetArmyHS = nil then
         begin
           Field.RestoreTerrain;
@@ -340,7 +340,7 @@ begin
   FAboveGroundOnly := False;
 end;
 
-function THolyGroundSpell.ValidTargetMapF(A1: Integer): Boolean;
+function THolyGroundSpell.ValidTargetMapF(A1: TMapField): Boolean;
 begin
   Result := inherited ValidTargetMapF(A1) and (TAoWMapField(A1).TerrainType in [1..5, 12]);
   { Original overlay test allows these overlays even when the terrain check failed. }
@@ -350,7 +350,7 @@ begin
     (TAoWMapField(A1).GetArmyHS = nil);
 end;
 
-function THolyGroundSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function THolyGroundSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 var Army: TArmyHS;
 begin
   Result := inherited ValidTargetMapF(A1) and (TAoWMapField(A1).TerrainType in [1..5, 12]);
@@ -374,7 +374,7 @@ begin
     TTargetSelectionControl(A2).FHNs.Add(0);
 end;
 
-function THolyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function THolyGroundSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var Event: THolyGroundSpellTE;
 begin
   Event := THolyGroundSpellTE.Create(nil);

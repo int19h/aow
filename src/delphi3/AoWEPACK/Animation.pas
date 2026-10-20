@@ -74,7 +74,7 @@ type
     procedure RemoveTE; virtual;  { +110 draft }
     procedure ExecuteTE; virtual;  { +114 draft }
     procedure CanPlace(A1: Integer; A2: Byte; A3: Integer; A4: Integer); virtual;  { +118 draft }
-    procedure PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +11C draft }
+    function PlaceHX(Map: TMapContainer; X, Y, L: Shortint): Boolean; virtual; { +11C }
     procedure NewFrame; virtual;  { +120 draft }
     procedure DestroyEvent;  { draft }
     procedure NewFrameEvent;  { draft }
@@ -123,7 +123,7 @@ type
     F_TwinkleAnimation_51: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure Setup(A1: TImageSequence; A2: TTwinkleMode; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+    procedure Setup(Sequence: TImageSequence; Mode: TTwinkleMode; StartFrame, Duration, Radius, Count: Integer);
   end;
 
 
@@ -225,8 +225,8 @@ begin end;
 function TAnimation.Place(Map: HSEngine.TMapContainer; Xhp, Yhp, Lhx: Integer): Boolean;
 begin Result := False; end;
 
-procedure TAnimation.PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAnimation.PlaceHX(Map: TMapContainer; X, Y, L: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TAnimation.Remove;
 begin end;
@@ -273,7 +273,7 @@ begin end;
 procedure TTwinkleAnimation.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TTwinkleAnimation.Setup(A1: TImageSequence; A2: TTwinkleMode; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TTwinkleAnimation.Setup(Sequence: TImageSequence; Mode: TTwinkleMode; StartFrame, Duration, Radius, Count: Integer);
 begin end;
 
 

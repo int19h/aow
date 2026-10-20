@@ -328,8 +328,8 @@
   { TFrozenWaterHS (instance size 16, VMT 557147B4) }
   TFrozenWaterHS = class(TSingleHS)
   public
-    F_FrozenWaterHS_0C: Byte;
-    F_FrozenWaterHS_0D: Byte;
+    FDaysRemaining: Byte; { $0C; 557CCEC1 }
+    FCasterPlayer: Byte; { $0D; 557CCEC7 }
     F_FrozenWaterHS_0E: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

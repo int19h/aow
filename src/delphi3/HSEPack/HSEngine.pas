@@ -582,7 +582,7 @@ type
     procedure MakeVisible(Xhx, Yhx, Lhx, Radius: Integer); virtual;
     function CreateNewMap(Settings: TNewHSMapSettings): Boolean; virtual;
     function ChangeTerrain(MO: TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer; virtual;
-    function ChangeTerrainEx(MO: TMapObject; X, Y, L, Radius: Integer;
+    function ChangeTerrainEx(MO: TEObject; X, Y, L, Radius: Integer;
       ChangeTerrainProc: TChangeTerrainProc; TerrainChangedProc: TTerrainChangedProc): Integer; virtual;
     procedure UpdateStaticScene; virtual;
     procedure UpdateDynamicScene; virtual;

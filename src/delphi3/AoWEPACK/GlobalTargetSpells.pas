@@ -38,7 +38,7 @@ type
     $20 FLocation: packed X/Y/layer coordinates; $23 reserved. }
   TGlobalTargetSpellTE = class(TSpellTE)
   public
-    FLocation: Integer;
+    FLocation: TXYL; { $20; packed coordinates, 557C493C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure SetLocation(X, Y, Layer: Shortint);
@@ -65,10 +65,10 @@ type
     procedure ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); virtual;  { +09C }
     procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); virtual;  { +0A4 }
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; virtual;  { +0A8  }
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; virtual;  { +0A8  }
     procedure ValidTargetSelection(A1: Integer); virtual;  { +0AC draft }
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; virtual;  { +0B0  }
-    function ValidTargetMapF(A1: Integer): Boolean; virtual;  { +0B4  }
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; virtual;  { +0B0  }
+    function ValidTargetMapF(A1: TMapField): Boolean; virtual;  { +0B4  }
   end;
 
   { TFreezeWaterTE (instance size 36, VMT 5579CDE0) }
@@ -85,9 +85,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
   { TFireBarrierTE (instance size 36, VMT 5579CFFC) }
@@ -103,9 +103,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
   { TLevelTerrainTE (instance size 36, VMT 5579D218) }
@@ -121,9 +121,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
   { TRejuvenateTE (instance size 36, VMT 5579D434) }
@@ -139,9 +139,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
   { TWatcherEnchantment (instance size 40, VMT 5579D648): $24 FWatcher. }
@@ -200,7 +200,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
   end;
 
   { TTornadoTE (instance size 48, VMT 5579DB38): $24 angle,
@@ -225,7 +225,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidWarpLocation(Army: TArmyHS; X, Y, Layer: Shortint): Boolean;
     function CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer;
   end;
@@ -252,7 +252,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     procedure ValidTargetSelection(A1: Integer); override;
     procedure ValidateTargetEvent(Target: TTargetSelectionControl; X,Y,Layer: Shortint; var Valid: Boolean);
   end;
@@ -273,9 +273,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
   { TSmokeCloudSpell (instance size 60, VMT 5579E16C) }
@@ -284,9 +284,9 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
 procedure RegisterGlobalTargetSpells(A1: Integer);  { draft }
@@ -400,7 +400,7 @@ end;
 procedure TGlobalTargetSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwInteger(FLocation, $14);
+  Stream.rwInteger(FLocation.XYL, $14);
 end;
 
 procedure TGlobalTargetSpellTE.SetLocation(X, Y, Layer: Shortint);
@@ -452,21 +452,21 @@ begin
     begin
       Radius := HNtoRad(HN);
       Intensity := Abs((SpellHSMap^.Frame + Radius) mod 9 - 4) * 20 + 20;
-      TCustomImageLibrary(Target.F_TargetSelectionControl_04)[0].ShowBlended(Xs - 8, Ys, SurfaceDesc,
+      TCustomImageLibrary(Target.FImageLibrary)[0].ShowBlended(Xs - 8, Ys, SurfaceDesc,
         SpellIntensityTable^.LookupTables[Intensity]);
     end
     else
-      TCustomImageLibrary(Target.F_TargetSelectionControl_04)[1].Show(Xs - 8, Ys, SurfaceDesc);
+      TCustomImageLibrary(Target.FImageLibrary)[1].Show(Xs - 8, Ys, SurfaceDesc);
   end;
 end;
 
-function TGlobalTargetSpell.ValidTargetMapF(A1: Integer): Boolean;
+function TGlobalTargetSpell.ValidTargetMapF(A1: TMapField): Boolean;
 asm
   { needs: Boolean result, retained in AL for the existing procedure ABI. }
   MOV AL, 1
 end;
 
-function TGlobalTargetSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TGlobalTargetSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 begin
   if (SpellHSMap^.FExplorationEnabled) and
     not TAoWMapField(A1).GetExplored(FCasterPlayer) then
@@ -544,7 +544,7 @@ begin
   end;
 end;
 
-function TGlobalTargetSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TGlobalTargetSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 asm
   { needs: Boolean result; stack arguments require the normal EBP frame. }
   XOR EAX, EAX
@@ -599,7 +599,7 @@ begin
   begin
     Spell.FCasterID := TAbstractUnit(Caster).FUnitID;
     Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).FPlayer);
-    Spell.SetupTargetSelection(TAbstractUnit(Caster), SpellHSMap^.FTargetSelection);
+    Spell.SetupTargetSelection(TAbstractUnit(Caster), TTargetSelectionControl(SpellHSMap^.FTargetSelection));
     TTargetSelectionControl(SpellHSMap^.FTargetSelection).Activate;
     Result := True;
   end
@@ -633,8 +633,8 @@ begin
       Ice := TFrozenWaterHS(MapF.FindOwnedHS(TFrozenWaterHS));
       if Ice <> nil then
       begin
-        Ice.F_FrozenWaterHS_0C := (SpellHSMap^.Random(11) - 5) div 5 + 3;
-        Ice.F_FrozenWaterHS_0D := FEventPlayerIndex;
+        Ice.FDaysRemaining := (SpellHSMap^.Random(11) - 5) div 5 + 3;
+        Ice.FCasterPlayer := FEventPlayerIndex;
       end;
     end;
 end;
@@ -652,8 +652,8 @@ begin
       Ice := TFrozenWaterHS.Create(nil);
       SpellHSMap^.PlaceHX(Ice, MapF.Xhx, MapF.Yhx, MapF.Lhx);
     end;
-    Ice.F_FrozenWaterHS_0C := (SpellHSMap^.Random(11) - 5) div 5 + 3;
-    Ice.F_FrozenWaterHS_0D := FEventPlayerIndex;
+    Ice.FDaysRemaining := (SpellHSMap^.Random(11) - 5) div 5 + 3;
+    Ice.FCasterPlayer := FEventPlayerIndex;
   end;
 end;
 
@@ -701,7 +701,7 @@ begin
   FMagicSphere := msWater;
 end;
 
-function TFreezeWater.ValidTargetMapF(A1: Integer): Boolean;
+function TFreezeWater.ValidTargetMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -743,7 +743,7 @@ asm
   POP EBX
 end;
 
-function TFreezeWater.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TFreezeWater.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -804,7 +804,7 @@ begin
     TShortIntList(Target.FHNs).Add(0);
 end;
 
-function TFreezeWater.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TFreezeWater.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TFreezeWaterTE;
 begin
@@ -873,7 +873,7 @@ begin
   FMagicSphere := msFire;
 end;
 
-function TFireBarrier.ValidTargetMapF(A1: Integer): Boolean;
+function TFireBarrier.ValidTargetMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -916,7 +916,7 @@ asm
   POP EBX
 end;
 
-function TFireBarrier.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TFireBarrier.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -978,7 +978,7 @@ begin
     TShortIntList(Target.FHNs).Add(0);
 end;
 
-function TFireBarrier.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TFireBarrier.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TFireBarrierTE;
 begin
@@ -1040,7 +1040,7 @@ begin
   FMagicSphere := msEarth;
 end;
 
-function TLevelTerrain.ValidTargetMapF(A1: Integer): Boolean;
+function TLevelTerrain.ValidTargetMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -1085,7 +1085,7 @@ asm
   POP EBX
 end;
 
-function TLevelTerrain.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TLevelTerrain.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -1149,7 +1149,7 @@ begin
     TShortIntList(Target.FHNs).Add(0);
 end;
 
-function TLevelTerrain.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TLevelTerrain.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TLevelTerrainTE;
 begin
@@ -1215,7 +1215,7 @@ begin
   FAboveGroundOnly := True;
 end;
 
-function TRejuvenate.ValidTargetMapF(A1: Integer): Boolean;
+function TRejuvenate.ValidTargetMapF(A1: TMapField): Boolean;
 asm
   { Original result in AL, with two early returns. }
   PUSH EBX
@@ -1242,7 +1242,7 @@ asm
   POP EBX
 end;
 
-function TRejuvenate.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TRejuvenate.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 asm
   { Original result in AL, with two early returns. }
   PUSH EBX
@@ -1281,7 +1281,7 @@ begin
     TShortIntList(Target.FHNs).Add(0);
 end;
 
-function TRejuvenate.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TRejuvenate.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TRejuvenateTE;
 begin
@@ -1690,7 +1690,7 @@ begin
   FAboveGroundOnly := False;
 end;
 
-function TWatcher.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TWatcher.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Busy: Boolean;
   Event: TWatcherTE;
@@ -2052,7 +2052,7 @@ begin
   Locations.Free;
 end;
 
-function TTornado.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TTornado.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TTornadoTE;
   Army: TArmyHS;
@@ -2295,7 +2295,7 @@ begin
   end;
 end;
 
-function TVortex.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TVortex.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TVortexTE;
   Army: TArmyHS;
@@ -2484,11 +2484,11 @@ begin
   FMagicSphere := msWater;
 end;
 
-function THealingShowers.ValidTargetMapF(A1: Integer): Boolean;
+function THealingShowers.ValidTargetMapF(A1: TMapField): Boolean;
 begin Result := inherited ValidTargetMapF(A1); end;
 
 
-function THealingShowers.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function THealingShowers.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
@@ -2505,7 +2505,7 @@ begin
 end;
 
 
-function THealingShowers.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function THealingShowers.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: THealingShowersTE;
 begin
@@ -2532,11 +2532,11 @@ begin
   FMagicSphere := msFire;
 end;
 
-function TSmokeCloudSpell.ValidTargetMapF(A1: Integer): Boolean;
+function TSmokeCloudSpell.ValidTargetMapF(A1: TMapField): Boolean;
 begin Result := inherited ValidTargetMapF(A1); end;
 
 
-function TSmokeCloudSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TSmokeCloudSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
@@ -2553,7 +2553,7 @@ begin
 end;
 
 
-function TSmokeCloudSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TSmokeCloudSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TGlobalTargetSpellTE;
 begin

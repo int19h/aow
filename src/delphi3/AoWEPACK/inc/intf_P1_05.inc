@@ -2,13 +2,12 @@
   { TTargetSelectionControl (instance size 92, VMT 5570E03C) }
   TTargetSelectionControl = class(TObject)
   public
-    F_TargetSelectionControl_04: Integer;
+    FImageLibrary: TCustomImageLibrary; { $04 }
     FHNs: TShortIntList; { $08 }
     FStatus: TTargetSelectionStatus; { $0C }
     FTargetMode: TTargetSelectionMode; { $0D }
     F_TargetSelectionControl_0E: array[0..1] of Byte;
-    F_TargetSelectionControl_10: Integer;
-    F_TargetSelectionControl_14: Integer;
+    FOnShow: TShowTargetSelectionEvent; { $10 }
     FOnValidateTarget: TValidateTargetEvent; { $18 }
     FRange: Integer; { $20 }
     FSourceX: Integer; { $24 }
@@ -329,7 +328,7 @@
     procedure Activate; override;
     function CreateNewMap(Settings: HSEngine.TNewHSMapSettings): Boolean; override;
     function ChangeTerrain(MO: HSEngine.TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer; override;
-    function ChangeTerrainEx(MO: HSEngine.TMapObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer; override;
+    function ChangeTerrainEx(MO: Engine.TEObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer; override;
     procedure DrawDynamicScene(var SD: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;
     procedure SetSeatedPlayer(A1: Shortint); override;

@@ -396,6 +396,12 @@ type
   TPlayerBehavior = (pbNormal, pbAggressor, pbDefender, pbExpander, pbScorcher, pbRandom);  { ot=1 }
   TGroupBehavior = (gbNone, gbPatrol, gbGuard, gbGuardArea, gbScout, gbRefuge, gbRaid, gbAggressive, gbDefensive, gbFortify, gbSuicidal, gbPassive, gbUndefined, gbHunt, gbExpand, gbScorch, gbNormal, gbSkirmish, gbTransport);  { ot=1 }
   TStormType = (stNone, stFire, stDeath, stHoly, stIce, stLightning, stPestilence);  { ot=1 }
+  { Storm damage summary (20 bytes): $0C friendly damage, $10 enemy damage. }
+  TStormDamageInfo = record
+    Reserved00: array[0..11] of Byte;
+    FriendlyDamage: Integer;
+    EnemyDamage: Integer;
+  end;
   TPlayerType = (ptHuman, ptCPU1, ptCPU2, ptCPU3, ptIndependent, ptFree, ptCPU4, ptCPU5);  { ot=1 }
   TPlayerTypes = set of TPlayerType; { ot=1 }
   TGameOverStatus = (goNone, goWon, goLost);  { ot=1 }

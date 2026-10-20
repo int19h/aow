@@ -1,8 +1,7 @@
 unit Storms;
 
-{ Draft declarations of Storms, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Storms, recovered from AoWEPACK.dpl through TFireStorm.
+  Later classes retain draft bodies and marked guessed signatures. }
 
 interface
 
@@ -11,11 +10,6 @@ uses
 
 type
   TStorm = class;
-  TStormDamageInfo = record
-    Reserved00: array[0..11] of Byte;
-    FriendlyDamage: Integer; { $0C }
-    EnemyDamage: Integer; { $10 }
-  end;
   TBlastStorm = class;
   TIceStorm = class;
   TDeathStorm = class;
@@ -33,34 +27,35 @@ type
   TPestilenceStormSpell = class;
 
 
-  { TStorm (instance size 64, VMT 557CB0BC) }
+  { TStorm (instance size 64, VMT 557CB0BC): $3C player, $3D padding. }
   TStorm = class(TAnimation)
   public
-    F_Storm_3C: array[0..3] of Byte;
-    procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual; abstract;  { +124 draft }
+    FPlayer: Shortint; { $3C }
+    FReserved3D: array[0..2] of Byte;
+    procedure GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo); virtual; abstract;  { +124 }
     procedure UpdateTargetSelection(Selection: TTargetSelectionControl); virtual;
     procedure InitializeStorm(Player, X, Y, L: Shortint); virtual;
     function UpdateStorm: Boolean; virtual;
-    procedure FinalizeStorm; virtual;  { +134 draft }
+    procedure FinalizeStorm; virtual;  { +134 }
     class function Name: string; virtual; abstract;
-    procedure ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure ShowTargetSelection(Selection: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc);
     function GetBestTarget(Player: Shortint; X, Y, L, Range: Integer; var Target: TXYL; var Info: TStormDamageInfo): Boolean;
   end;
 
-  { TBlastStorm (instance size 68, VMT 557CB260) }
+  { TBlastStorm (instance size 68, VMT 557CB260): $40 storm image library. }
   TBlastStorm = class(TStorm)
   public
-    F_BlastStorm_40: array[0..3] of Byte;
+    FStormImages: TCustomImageLibrary; { $40 }
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo); override;
     procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
     procedure InitializeStorm(Player, X, Y, L: Shortint); override;
     function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
-    procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); virtual;  { +13C draft }
-    procedure StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer); virtual;  { +140 draft }
-    procedure StormFileName(A1: Integer); virtual;  { +144 draft }
-    procedure StormType; virtual;  { +148 draft }
+    procedure ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint); virtual;  { +13C }
+    procedure StormTerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint); virtual;  { +140 }
+    function StormFileName: string; virtual;  { +144 }
+    function StormType: TStormType; virtual;  { +148 }
   end;
 
   { TIceStorm (instance size 68, VMT 557CB41C) }
@@ -68,10 +63,10 @@ type
   public
     class function ClassID: Integer; override;
     class function Name: string; override;
-    procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure StormFileName(A1: Integer); override;
-    procedure StormType; override;
+    procedure ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint); override;
+    procedure StormTerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint); override;
+    function StormFileName: string; override;
+    function StormType: TStormType; override;
   end;
 
   { TDeathStorm (instance size 68, VMT 557CB5D8) }
@@ -79,9 +74,9 @@ type
   public
     class function ClassID: Integer; override;
     class function Name: string; override;
-    procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure StormFileName(A1: Integer); override;
-    procedure StormType; override;
+    procedure ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint); override;
+    function StormFileName: string; override;
+    function StormType: TStormType; override;
   end;
 
   { TDivineStorm (instance size 68, VMT 557CB794) }
@@ -89,18 +84,18 @@ type
   public
     class function ClassID: Integer; override;
     class function Name: string; override;
-    procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure StormFileName(A1: Integer); override;
-    procedure StormType; override;
+    procedure ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint); override;
+    function StormFileName: string; override;
+    function StormType: TStormType; override;
   end;
 
-  { TLightningStorm (instance size 68, VMT 557CB958) }
+  { TLightningStorm (instance size 68, VMT 557CB958): $40 storm image library. }
   TLightningStorm = class(TStorm)
   public
-    F_LightningStorm_40: array[0..3] of Byte;
+    FStormImages: TCustomImageLibrary; { $40 }
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo); override;
     procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
     procedure InitializeStorm(Player, X, Y, L: Shortint); override;
     function UpdateStorm: Boolean; override;
@@ -113,13 +108,13 @@ type
   public
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo); override;
     procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
     procedure InitializeStorm(Player, X, Y, L: Shortint); override;
     function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
     class function Name: string; override;
-    procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
   end;
 
   { TPestilenceStorm (instance size 68, VMT 557CBCB8) }
@@ -128,7 +123,7 @@ type
     F_PestilenceStorm_40: array[0..3] of Byte;
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo); override;
     procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
     procedure InitializeStorm(Player, X, Y, L: Shortint); override;
     function UpdateStorm: Boolean; override;
@@ -212,136 +207,412 @@ procedure UnRegisterStorms(A1: Integer);  { draft }
 implementation
 
 procedure TStorm.InitializeStorm(Player, X, Y, L: Shortint);
-begin end;
+begin
+  FPlayer := Player;
+  FAnimationLevel := 28;
+  AoWHSMap.LockExecuteEventLog;
+end;
 
 function TStorm.UpdateStorm: Boolean;
-begin Result := False; end;
+begin
+  Result := False;
+end;
 
 procedure TStorm.FinalizeStorm;
-begin end;
+begin
+  AoWHSMap.UnlockExecuteEventLog;
+end;
 
-procedure TStorm.ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TStorm.ShowTargetSelection(Selection: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  Intensity: Integer;
+begin
+  HN := HNtoRad(HN);
+  Intensity := Abs((AoWHSMap.Frame + HN) mod 9 - 4) * 20 + 20;
+  Selection.FImageLibrary[0].ShowBlended(Xs - 8, Ys, SurfaceDesc,
+    IntensityBlendTable.GetLookupTables(Intensity));
+end;
 
 procedure TStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
-begin end;
+begin
+  Selection.FOnShow := ShowTargetSelection;
+  Selection.FTargetMode := Selection.FTargetMode + [tmOwnerDraw];
+end;
 
 function TStorm.GetBestTarget(Player: Shortint; X, Y, L, Range: Integer; var Target: TXYL; var Info: TStormDamageInfo): Boolean;
-begin Result := False; end;
+var
+  Candidate: TStormDamageInfo;
+  Walk: THNWalkData;
+  Level: TMapLevel;
+  ArmyHS: TArmyHS;
+begin
+  Level := AoWHSMap.MapContainer.MapLevels[L];
+  Target.XYL := $FFFFFF;
+  Result := False;
+  FillChar(Info, SizeOf(Info), 0);
+  FillChar(Candidate, SizeOf(Candidate), 0);
+  InitHNWalk(Walk, X, Y, 0);
+  while Walk.Radius <= Range do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      ArmyHS := TAoWMapField(Level.Field[Walk.X, Walk.Y]).GetArmyHS;
+      if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer <> 0) and
+        ValidAttackRelation(Player, 0, ArmyHS.FArmy.FPlayer, 0) then
+      begin
+        GetTargetDamageInfo(Player, Walk.X, Walk.Y, L, Candidate);
+        if Info.EnemyDamage - Info.FriendlyDamage < Candidate.EnemyDamage - Candidate.FriendlyDamage then
+        begin
+          Info := Candidate;
+          Target := PackXYL(Walk.X, Walk.Y, L);
+          Result := True;
+        end;
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 procedure TBlastStorm.InitializeStorm(Player, X, Y, L: Shortint);
-begin end;
+var
+  R: TRect;
+begin
+  inherited InitializeStorm(Player, X, Y, L);
+  FStormImages := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], StormFileName);
+  if GetVisible then FStormImages.LoadDiscardableImageData;
+  R.Left := -(FStormImages[0].Width shr 1);
+  R.Right := FStormImages[0].Width shr 1;
+  R.Top := -(FStormImages[0].Height shr 1);
+  R.Bottom := FStormImages[0].Height shr 1;
+  SetDimensions(R);
+  AoWHSMap.ValidateTerrainObservation(AoWHSMap.FCurrentPlayer, X, Y, L, 4);
+  if (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) or AoWHSMap.TerrainVisible(X, Y, L, 4) then
+    PlaySample('SFX\ATTACK\STORMBIG.WAV');
+  PlaceHX(AoWHSMap.MapContainer, X, Y, L);
+end;
 
-procedure TBlastStorm.StormFileName(A1: Integer);
-begin end;
+function TBlastStorm.StormFileName: string;
+begin
+  Result := '';
+end;
 
-procedure TBlastStorm.StormType;
-begin end;
+function TBlastStorm.StormType: TStormType;
+begin
+  Result := stNone;
+end;
 
-procedure TBlastStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TBlastStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
+begin
+end;
 
-procedure TBlastStorm.StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TBlastStorm.StormTerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
+begin
+end;
 
 function TBlastStorm.UpdateStorm: Boolean;
-begin Result := False; end;
+begin
+  NewFrame;
+  if FFrameCounter = 8 then
+    AoWHSMap.ChangeTerrainEx(nil, GetXhx, GetYhx, GetLhx, 1, ChangeStormTerrain, StormTerrainChanged)
+  else if FFrameCounter = 12 then
+    AoWHSMap.ChangeTerrainEx(nil, GetXhx, GetYhx, GetLhx, 2, ChangeStormTerrain, StormTerrainChanged)
+  else if FFrameCounter = 18 then
+    AoWHSMap.ChangeTerrainEx(nil, GetXhx, GetYhx, GetLhx, 3, ChangeStormTerrain, StormTerrainChanged)
+  else if FFrameCounter = 22 then
+    AoWHSMap.ChangeTerrainEx(nil, GetXhx, GetYhx, GetLhx, 4, ChangeStormTerrain, StormTerrainChanged);
+  if FStormImages.Count = FFrameCounter then
+  begin
+    TriggerStormDamage(StormType, GetXhx, GetYhx, GetLhx, 0, 4, AoWHSMap.FCurrentPlayer);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 procedure TBlastStorm.FinalizeStorm;
-begin end;
+begin
+  FStormImages.ReleaseDiscardableImageData;
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], StormFileName);
+  inherited FinalizeStorm;
+end;
 
 procedure TBlastStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  X, Y, Frame: Integer;
+begin
+  Frame := FFrameCounter mod FStormImages.Count;
+  HXtoHP(GetXhx, GetYhx, X, Y);
+  X := X - (FStormImages[Frame].Width shr 1) + 10;
+  Y := Y - (FStormImages[Frame].Height shr 1) - 42;
+  FStormImages[Frame].Show(X - XhpSurf, Y - YhpSurf, SurfaceDesc);
+end;
 
 procedure TBlastStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
-begin end;
+var
+  I: Integer;
+begin
+  inherited UpdateTargetSelection(Selection);
+  Selection.FHNs.Clear;
+  for I := 0 to RadToHN(5) - 1 do Selection.FHNs.Add(0);
+end;
 
-procedure TBlastStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TBlastStorm.GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo);
+begin
+  RetrieveStormDamageInfo(Player, StormType, X, Y, L, 0, 4, Info);
+end;
 
 class function TIceStorm.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2123A;
+end;
 
 class function TIceStorm.Name: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(IceStormRStr);
+end;
 
-procedure TIceStorm.StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TIceStorm.StormTerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
+var
+  Ice: TFrozenWaterHS;
+begin
+  if (MapF.TerrainType in [6, 13]) and not (OriginalTerrainType in [6, 13]) then
+  begin
+    Ice := TFrozenWaterHS(MapF.FindOwnedHS(TFrozenWaterHS));
+    if Ice = nil then
+    begin
+      Ice := TFrozenWaterHS.Create(nil);
+      AoWHSMap.PlaceHX(Ice, MapF.Xhx, MapF.Yhx, MapF.Lhx);
+    end;
+    Ice.FDaysRemaining := 3 + (AoWHSMap.Random(11) - 5) div 5;
+    Ice.FCasterPlayer := FPlayer;
+  end;
+end;
 
-procedure TIceStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TIceStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
+var
+  Ice: TFrozenWaterHS;
+begin
+  { Original sends terrain 13 to the default branch before the ice refresh test. }
+  case Smallint(TerrainType) of
+    0: TerrainType := 6;
+    6:
+      if TerrainType in [6, 13] then
+      begin
+        Ice := TFrozenWaterHS(MapF.FindOwnedHS(TFrozenWaterHS));
+        if Ice <> nil then
+        begin
+          Ice.FDaysRemaining := 3 + (AoWHSMap.Random(11) - 5) div 5;
+          Ice.FCasterPlayer := FPlayer;
+        end;
+      end;
+  else
+    TerrainType := 3;
+  end;
+end;
 
-procedure TIceStorm.StormFileName(A1: Integer);
-begin end;
+function TIceStorm.StormFileName: string;
+begin
+  Result := 'EFFECTS\STORM1.ILB';
+end;
 
-procedure TIceStorm.StormType;
-begin end;
+function TIceStorm.StormType: TStormType;
+begin
+  Result := stIce;
+end;
 
 class function TLightningStorm.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2123B;
+end;
 
 class function TLightningStorm.Name: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(LightningStormRStr);
+end;
 
 procedure TLightningStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  X, Y, Frame: Integer;
+begin
+  Frame := FFrameCounter mod FStormImages.Count;
+  if FStormImages[Frame] <> nil then
+  begin
+    HXtoHP(GetXhx, GetYhx, X, Y);
+    X := X - (FStormImages[Frame].Width shr 1) + 20;
+    Y := Y - FStormImages[Frame].Height + 32 + 40;
+    FStormImages[Frame].Show(X - XhpSurf, Y - YhpSurf, SurfaceDesc);
+  end;
+end;
 
 procedure TLightningStorm.InitializeStorm(Player, X, Y, L: Shortint);
-begin end;
+var
+  R: TRect;
+begin
+  inherited InitializeStorm(Player, X, Y, L);
+  FStormImages := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'EFFECTS\LIGHTN.ILB');
+  if GetVisible then FStormImages.LoadDiscardableImageData;
+  R.Left := -(FStormImages[0].Width shr 1);
+  R.Right := FStormImages[0].Width shr 1;
+  R.Top := -FStormImages[0].Height + 32;
+  R.Bottom := 32;
+  SetDimensions(R);
+  AoWHSMap.ValidateTerrainObservation(AoWHSMap.FCurrentPlayer, X, Y, L, 2);
+  PlaceHX(AoWHSMap.MapContainer, X, Y, L);
+end;
 
 procedure TLightningStorm.FinalizeStorm;
-begin end;
+begin
+  FStormImages.ReleaseDiscardableImageData;
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'EFFECTS\LIGHTN.ILB');
+  inherited FinalizeStorm;
+end;
 
 function TLightningStorm.UpdateStorm: Boolean;
-begin Result := False; end;
+begin
+  NewFrame;
+  if FStormImages.GetSafe(FFrameCounter) <> nil then PlaySample('SFX\ATTACK\LIGHTNG.WAV');
+  if FStormImages.Count = FFrameCounter then
+  begin
+    TriggerStormDamage(stLightning, GetXhx, GetYhx, GetLhx, 0, 1, AoWHSMap.FCurrentPlayer);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 procedure TLightningStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
-begin end;
+var
+  I: Integer;
+begin
+  inherited UpdateTargetSelection(Selection);
+  { Original adds to the map selection, without clearing its existing hexes. }
+  for I := 0 to RadToHN(2) - 1 do AoWHSMap.FTargetSelection.FHNs.Add(0);
+end;
 
-procedure TLightningStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TLightningStorm.GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo);
+begin
+  RetrieveStormDamageInfo(Player, stLightning, X, Y, L, 0, 1, Info);
+end;
 
 class function TDeathStorm.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2123D;
+end;
 
 class function TDeathStorm.Name: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(DeathStormRStr);
+end;
 
-procedure TDeathStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TDeathStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
+begin
+  case Smallint(TerrainType) of
+    0, 6: ;
+  else
+    TerrainType := 5;
+  end;
+end;
 
-procedure TDeathStorm.StormFileName(A1: Integer);
-begin end;
+function TDeathStorm.StormFileName: string;
+begin
+  Result := 'EFFECTS\STORMD.ILB';
+end;
 
-procedure TDeathStorm.StormType;
-begin end;
+function TDeathStorm.StormType: TStormType;
+begin
+  Result := stDeath;
+end;
 
 class function TFireStorm.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2123E;
+end;
 
 class function TFireStorm.Name: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(FireStormRStr);
+end;
 
 procedure TFireStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  X, Y, Frame: Integer;
+  Sequence: TImageSequence;
+begin
+  HXtoHP(GetXhx, GetYhx, X, Y);
+  X := X - XhpSurf + 8;
+  Y := Y - YhpSurf;
+  Sequence := AoWHSSet.FImageSequences.ImageSequences[0];
+  while Sequence <> nil do
+  begin
+    Frame := Sequence.GetUnloopedFrameIndex(FFrameCounter);
+    if (Frame <> -1) and Sequence.ImageLibrary.ImageExist(Frame) then
+      Sequence.ImageLibrary[Frame].Show(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
+    Sequence := Sequence.Next;
+  end;
+end;
 
 procedure TFireStorm.InitializeStorm(Player, X, Y, L: Shortint);
-begin end;
+var
+  R: TRect;
+begin
+  inherited InitializeStorm(Player, X, Y, L);
+  R.Left := -80;
+  R.Right := 96;
+  R.Top := -80;
+  R.Bottom := 96;
+  SetDimensions(R);
+  AoWHSMap.ValidateTerrainObservation(AoWHSMap.FCurrentPlayer, X, Y, L, 2);
+  PlaceHX(AoWHSMap.MapContainer, X, Y, L);
+end;
 
 procedure TFireStorm.FinalizeStorm;
-begin end;
+begin
+  inherited FinalizeStorm;
+end;
 
-procedure TFireStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TFireStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
+begin
+  case Smallint(TerrainType) of
+    6: TerrainType := 0;
+  end;
+end;
 
 function TFireStorm.UpdateStorm: Boolean;
-begin Result := False; end;
+var
+  Sequence: TImageSequence;
+  Frame: Integer;
+begin
+  NewFrame;
+  if FFrameCounter = 20 then
+  begin
+    TriggerStormDamage(stFire, GetXhx, GetYhx, GetLhx, 0, 2, AoWHSMap.FCurrentPlayer);
+    AoWHSMap.ChangeTerrainEx(Self, GetXhx, GetYhx, GetLhx, 2, ChangeStormTerrain, nil);
+  end;
+  Sequence := AoWHSSet.FImageSequences.ImageSequences[0];
+  Frame := -1;
+  while (Sequence <> nil) and (Frame = -1) do
+  begin
+    Frame := Sequence.GetUnloopedFrameIndex(FFrameCounter);
+    Sequence := Sequence.Next;
+  end;
+  if Frame = 1 then
+    if (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) or
+      AoWHSMap.TerrainVisible(GetXhx, GetYhx, GetLhx, 2) then
+      PlaySample(ExplosionSFX[System.Random(2)]);
+  Result := Frame <> -1;
+end;
 
 procedure TFireStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
-begin end;
+var
+  I: Integer;
+begin
+  inherited UpdateTargetSelection(Selection);
+  { Original adds to the map selection, without clearing its existing hexes. }
+  for I := 0 to RadToHN(3) - 1 do AoWHSMap.FTargetSelection.FHNs.Add(0);
+end;
 
-procedure TFireStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TFireStorm.GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo);
+begin
+  RetrieveStormDamageInfo(Player, stFire, X, Y, L, 0, 2, Info);
+end;
 
 class function TDivineStorm.ClassID: Integer;
 begin Result := 0; end;
@@ -349,14 +620,14 @@ begin Result := 0; end;
 class function TDivineStorm.Name: string;
 begin Result := ''; end;
 
-procedure TDivineStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
+procedure TDivineStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
 begin end;
 
-procedure TDivineStorm.StormFileName(A1: Integer);
-begin end;
+function TDivineStorm.StormFileName: string;
+begin Result := ''; end;
 
-procedure TDivineStorm.StormType;
-begin end;
+function TDivineStorm.StormType: TStormType;
+begin Result := stNone; end;
 
 class function TPestilenceStorm.ClassID: Integer;
 begin Result := 0; end;
@@ -379,7 +650,7 @@ begin Result := False; end;
 procedure TPestilenceStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
-procedure TPestilenceStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TPestilenceStorm.GetTargetDamageInfo(Player, X, Y, L: Shortint; var Info: TStormDamageInfo);
 begin end;
 
 class function TStormSpellTE.ClassID: Integer;

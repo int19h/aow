@@ -63,9 +63,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
-    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
-    function ValidTargetMapF(A1: Integer): Boolean; override;
+    function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: TMapField): Boolean; override;
+    function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
 procedure RegisterUnHolyGround(A1: Integer);  { draft }
@@ -284,16 +284,16 @@ begin Result := False; end;
 constructor TUnholyGroundSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-function TUnholyGroundSpell.ValidTargetMapF(A1: Integer): Boolean;
+function TUnholyGroundSpell.ValidTargetMapF(A1: TMapField): Boolean;
 begin Result := False; end;
 
-function TUnholyGroundSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+function TUnholyGroundSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
 begin Result := False; end;
 
 procedure TUnholyGroundSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 begin end;
 
-function TUnholyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+function TUnholyGroundSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 begin Result := False; end;
 
 procedure RegisterUnHolyGround(A1: Integer);
