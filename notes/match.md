@@ -235,16 +235,19 @@ different, 257 missing; the missing ones are the value lists, which the original
 Engine unit and Engine.pas keeps in EngineLists.pas. (2026-10-20, after the fold: 700 same, 113
 different, 0 missing.)
 
-What a test package showed about the hash (2026-10-20): the hash of a class symbol (`Unit..TClass`
-and `Unit.TClass`) includes the name of every member, private ones too (renaming a private method,
-a private field, a public method, a property or a method parameter changes it), and the class name.
-Every method of a class exports the same hash, so method symbols add nothing. A unit-level routine's
-hash ignores parameter names and `const` on a string parameter. A method-pointer type's hash
-includes its parameter names, which the module's RTTI for tkMethod types lists. So routine and
-method-pointer hashes are exact checks; a class hash can only be matched where every member name is
-known, which excludes the original's private names. Thirteen Engine classes match today
-(`TIntegerHashTable`, `TStringHashList`, the string hash tables, `TEBufferStream`,
-`TSetupCompareStorageStream`, the exception classes and the five anonymous enumerations).
+What test packages showed about the hash (2026-10-20, one declaration changed per build): the hash
+of a class symbol (`Unit..TClass` and `Unit.TClass`) covers the class name, the types of all fields
+including private ones, the signatures and visibility of all methods including private ones, and
+the names of property accessors (`read FCount` versus `read GetCount`); it does not cover the names
+of fields, methods, parameters or properties. Every method of a class exports the same hash, so
+method symbols add nothing. Type names count everywhere (`TStringsSortCompare` versus
+`TStringCompareFunc` changed `SortStrings`). A unit-level routine's hash ignores parameter names
+and `const` on a string parameter; a method-pointer type's hash ignores parameter names too. So
+the remaining class differences are type, visibility or accessor differences, which are
+recoverable; only a private accessor method's name is a guess (Delphi convention: Get/Set plus the
+property name). Thirteen Engine classes match today (`TIntegerHashTable`, `TStringHashList`, the
+string hash tables, `TEBufferStream`, `TSetupCompareStorageStream`, the exception classes and the
+five anonymous enumerations).
 
 ## Compiler switches (sweep, 2026-10-19)
 

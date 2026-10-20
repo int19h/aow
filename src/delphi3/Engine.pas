@@ -483,8 +483,8 @@ type
   end;
 
 
-  TStorageStreamError = procedure(Sender: TEStorageStream; const Msg: string; var Continue: Boolean) of object;
-  TProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
+  TStorageStreamError = procedure(StorageStream: TEStorageStream; const Message: string; var Handled: Boolean) of object;
+  TProgressEvent = procedure(Sender: TObject; const Message: string; Progression: Integer) of object;
 
   EDoublePrioriyID = class(Exception);
 
@@ -715,7 +715,7 @@ type
   TEditResult = (erOK, erCancel);
   TEditMode = set of (emEdit, emCut, emCopy, emPaste, emDelete);
 
-  TEditDoneEvent = procedure(Cancel: Boolean; Obj: TEResource) of object;
+  TEditDoneEvent = procedure(EditResult: Boolean; EObject: TEResource) of object;
 
   { Engine.TEObjectEditor (instance size 8): editors are classes looked up by the class id of the
     object (TEObject.Editor); everything is called on the class. The base editor edits nothing:
@@ -1389,7 +1389,7 @@ type
   end;
 
   { SortStrings: Compare gets two strings with their objects; the linked lists follow the moves }
-  TStringCompareFunc = function(const S1, S2: string; O1, O2: TObject): Integer;
+  TStringsSortCompare = function(const S1, S2: string; O1, O2: TObject): Integer;
 
 const
   { Compatibility names used by the recovered dependent packages. }
@@ -1402,8 +1402,8 @@ const
   smPartial = smPreview;
 
 function ReplaceText(S, Old, New: string): string;
-procedure SortStrings(Strings: TStrings; Compare: TStringCompareFunc);
-procedure SortStringsEx(Strings: TStrings; Compare: TStringCompareFunc; LinkedStrings: array of TStrings);
+procedure SortStrings(Strings: TStrings; Compare: TStringsSortCompare);
+procedure SortStringsEx(Strings: TStrings; Compare: TStringsSortCompare; LinkedStrings: array of TStrings);
 procedure SortStringsAscending(Strings: TStrings; LinkedStrings: array of TStrings);
 procedure SortStringsDescending(Strings: TStrings; LinkedStrings: array of TStrings);
 procedure SortStringsNumericalAscending(Strings: TStrings; LinkedStrings: array of TStrings);
@@ -1969,7 +1969,7 @@ type
   TExchangeProc = procedure(Data: TList; I, J: Integer);
   TSortStringsContext = record
     Strings: TStrings;
-    Compare: TStringCompareFunc;
+    Compare: TStringsSortCompare;
     ExchangeProc: TExchangeProc;
     ExchangeData: TList;
   end;
@@ -2002,7 +2002,7 @@ begin
   until I >= R;
 end;
 
-procedure SortStrings(Strings: TStrings; Compare: TStringCompareFunc);
+procedure SortStrings(Strings: TStrings; Compare: TStringsSortCompare);
 var
   Ctx: TSortStringsContext;
 begin
@@ -2022,7 +2022,7 @@ begin
   for K := Lists.Count - 1 downto 0 do TStrings(Lists.List^[K]).Exchange(I, J);
 end;
 
-procedure SortStringsEx(Strings: TStrings; Compare: TStringCompareFunc; LinkedStrings: array of TStrings);
+procedure SortStringsEx(Strings: TStrings; Compare: TStringsSortCompare; LinkedStrings: array of TStrings);
 var
   Lists: TList;
   I: Integer;
