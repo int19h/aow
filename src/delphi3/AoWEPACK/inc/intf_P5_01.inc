@@ -34,7 +34,7 @@
     F_MoveControlSettings_44: Byte;
     F_MoveControlSettings_45: array[0..30] of Byte;
     F_MoveControlSettings_64: Byte;
-    F_MoveControlSettings_65: Byte;
+    FStatus: TMoveControlSettingsStatus; { $65 }
     FMode: TMoveMode; { $66; 557D7B17 }
     F_MoveControlSettings_67: array[0..0] of Byte;
     FPath: TMovepath;  { $68 }
@@ -65,7 +65,7 @@
     procedure Reset;
     procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
     procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
-    procedure SetupArmy(A1: Integer; A2: Integer);  { draft }
+    procedure SetupArmy(Army: TArmyHS; Selection: Byte);
     procedure SetupLevel(A1: Integer);  { draft }
     procedure SetupMovePointData(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure ClearMovePoints;  { draft }
@@ -129,13 +129,13 @@
     procedure ExecuteExternalMove(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure SetupSubMove(A1: Integer; A2: Integer);  { draft }
     procedure ProcessSubMove(A1: Integer);  { draft }
-    procedure Process;  { draft }
-    procedure CalculatePathEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    function Process: Boolean;
+    procedure CalculatePathEx(Path: TMovepath; X, Y, L: Shortint);
     procedure CalculatePath(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure ExploredOnlyMoveOnMovePointProc(A1: Integer; A2: Integer);  { draft }
-    procedure Activate(A1: Integer);  { draft }
+    procedure Activate(Settings: TMoveControlSettings);
     procedure Deactivate;  { draft }
-    procedure CanMove(A1: Integer; A2: Integer);  { draft }
+    function CanMove(Settings: TMoveControlSettings; Mode: TCanMoveMode): Integer;
     procedure ValidPath(A1: Integer; A2: Integer);  { draft }
     procedure CalculateGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure CalculateTurnAroundMovePoints(A1: Integer);  { draft }

@@ -745,8 +745,8 @@
   { TMultiMoveTE (instance size 24, VMT 5571C408) }
   TMultiMoveTE = class(TTokenEvent)
   public
-    F_MultiMoveTE_10: Integer;
-    F_MultiMoveTE_14: Byte;
+    FEvents: TTokenEventList; { $10 }
+    FMoveMode: Byte; { $14 }
     F_MultiMoveTE_15: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -980,7 +980,7 @@
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TFastCombatUnit (instance size 100, VMT 5571D4BC) }
+  { TFastCombatUnit (instance size $64, VMT 5571D4BC). $5C round distance, $60 state. }
   TFastCombatUnit = class(TCombatUnit)
   public
     FRoundDistance: Integer; { $5C }
@@ -1007,8 +1007,8 @@
     procedure DestroyObject; override;
     procedure SetUnit(AUnit: TAbstractUnit); override;
     procedure KillUnit; override;
-    procedure CanCastWallSiegeSpell;  { draft }
-    procedure UpdateWallSiegeObjectRegistration;  { draft }
+    function CanCastWallSiegeSpell: Boolean;
+    procedure UpdateWallSiegeObjectRegistration;
   end;
 
   { TFastCombatParty (instance size 28, VMT 5571D670) }
@@ -1025,7 +1025,7 @@
   { TFastCombat (instance size 80, VMT 5571D7BC) }
   TFastCombat = class(TCombat)
   public
-    F_FastCombat_4C: Integer;
+    FWallSiegeObjectCount: Integer; { $4C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -1037,11 +1037,11 @@
     procedure Deactivate; override;
     function GetRoundDistance: Integer;
     procedure GetRoundDistanceMax;  { draft }
-    procedure GetWallInBetween(A1: Integer; A2: Integer);  { draft }
+    function GetWallInBetween(Source, Target: Byte): Boolean;
     function GetWallSituation(A1, A2: TCombatObject): TWallSituation;
-    procedure AttackerCanCrushWall;  { draft }
-    procedure GetAttackerBalisticCV(A1: Integer; A2: Integer);  { draft }
-    procedure GetDefenderBalisticCV(A1: Integer; A2: Integer);  { draft }
+    function AttackerCanCrushWall: Boolean;
+    function GetAttackerBalisticCV: Integer;
+    function GetDefenderBalisticCV: Integer;
     procedure ValidateWallBreaching;  { draft }
     procedure ExecuteCombatRound;  { draft }
   end;

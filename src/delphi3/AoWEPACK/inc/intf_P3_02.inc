@@ -150,7 +150,7 @@
   { TFleeCA (instance size 16, VMT 55716954) }
   TFleeCA = class(TCombatAction)
   public
-    F_FleeCA_0C: Byte;
+    FObjectID: Byte; { $0C }
     F_FleeCA_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -171,7 +171,7 @@
     F_CombatParty_0C: Integer;
     F_CombatParty_10: Integer;
     F_CombatParty_14: Integer;
-    F_CombatParty_18: Byte;
+    FWall: Byte; { $18 }
     F_CombatParty_19: Byte;
     F_CombatParty_1A: Byte;
     F_CombatParty_1B: array[0..0] of Byte;
@@ -199,7 +199,7 @@
     FPlayer: Shortint; { $08 }
     { conflict: FPlayer: Byte; }
     FIndependentRelation: Byte; { $09 }
-    F_CombatPlayer_0A: Byte;
+    FSideIndex: Byte; { $0A }
     F_CombatPlayer_0B: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -221,9 +221,9 @@
     $3C parties; $44 round; $48 header string; $4D Boolean; $50 combat wall. }
   TCombatData = class(TEObject)
   public
-    F_CombatData_08: Integer;
-    F_CombatData_0C: Integer;
-    F_CombatData_10: Integer;
+    FX: Integer; { $08 }
+    FY: Integer; { $0C }
+    FL: Integer; { $10 }
     F_CombatData_14: Integer;
     F_CombatData_18: Integer;
     F_CombatData_1C: Integer;
@@ -239,14 +239,14 @@
     F_CombatData_32: array[0..1] of Byte;
     F_CombatData_34: Integer;
     FPlayers: TCombatPlayerList; { $38 }
-    F_CombatData_3C: Integer;
+    FParties: TCombatPartyList; { $3C }
     F_CombatData_40: Integer;
     F_CombatData_44: Integer;
     FHeader: string; { $48 }
     FWallType: Byte; { $4C }
     FWallBreached: Boolean; { $4D }
     F_CombatData_4E: array[0..1] of Byte;
-    F_CombatData_50: Integer;
+    FWall: TCombatWall; { $50 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

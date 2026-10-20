@@ -10872,7 +10872,7 @@ begin
   Data := TCombatData(Logbook.FFinalData);
   for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
     if AoWHSMap.VisibleForPlayer(
-      Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10, I) or
+      Data.FX, Data.FY, Data.FL, I) or
       (TCombatPlayerList(TCombatData(Logbook.FInitialData).FPlayers).IndexOfPlayer(I) <> -1) then
     begin
       Event := TCombatEventLog.Create(nil);
@@ -11324,8 +11324,8 @@ begin end;
 procedure InvertDamageTypes(A1: Word);
 begin end;
 
-procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
+begin Result := 0; end;
 
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer;
 begin Result := 0; end;

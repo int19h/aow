@@ -7,7 +7,7 @@
     Looped: Boolean;
   end;
 
-  TP2MovePointTable = array[0..15, -1..14] of Shortint;
+  TP2MovePointTable = TMovePointTable;
 
   { TUnitControl (instance size 20, VMT 557105E8):
     +08 FNextUnitID; +0C FUnitTable; +10 FUnits. }
