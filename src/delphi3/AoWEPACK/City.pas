@@ -140,9 +140,9 @@ type
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
     procedure Select; override;
     function GetValidTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt; override;
-    procedure GetTopBorderImage; override;
-    procedure GetMiddleBorderImage; override;
-    procedure GetBottomBorderImage; override;
+    function GetTopBorderImage: TLibraryImage; override;
+    function GetMiddleBorderImage: TLibraryImage; override;
+    function GetBottomBorderImage: TLibraryImage; override;
     function GetName: string; override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
@@ -171,10 +171,10 @@ type
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); override;
     procedure GetMoveAction(A1: Integer; A2: Integer); override;
     procedure UpdatePlayer; override;
-    procedure UpdateIncome(A1: Integer; A2: Integer); override;
+    procedure UpdateIncome; override;
     procedure UpdateCrops; override;
-    procedure GetRace; override;
-    procedure CropTrampled(A1: Integer); override;
+    function GetRace: Shortint; override;
+    procedure CropTrampled(Player: Shortint); override;
     procedure SetRace(A1: Byte); virtual;  { +244 draft }
     procedure GetActiveAction;  { draft }
     procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
@@ -486,7 +486,7 @@ begin end;
 procedure TCity.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
-procedure TCity.CropTrampled(A1: Integer);
+procedure TCity.CropTrampled(Player: Shortint);
 begin end;
 
 procedure TCity.MoveArmiesOutOfCity(A1: Byte);
@@ -621,7 +621,7 @@ begin end;
 procedure TCity.ListIncomeInfo(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCity.UpdateIncome(A1: Integer; A2: Integer);
+procedure TCity.UpdateIncome;
 begin end;
 
 function TCity.GetValidTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
@@ -666,8 +666,8 @@ begin end;
 procedure TCity.SetRace(A1: Byte);
 begin end;
 
-procedure TCity.GetRace;
-begin end;
+function TCity.GetRace: Shortint;
+begin Result := 0; end;
 
 procedure TCity.Activate;
 begin end;
@@ -732,14 +732,14 @@ begin end;
 procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
-procedure TCity.GetTopBorderImage;
-begin end;
+function TCity.GetTopBorderImage: TLibraryImage;
+begin Result := nil; end;
 
-procedure TCity.GetMiddleBorderImage;
-begin end;
+function TCity.GetMiddleBorderImage: TLibraryImage;
+begin Result := nil; end;
 
-procedure TCity.GetBottomBorderImage;
-begin end;
+function TCity.GetBottomBorderImage: TLibraryImage;
+begin Result := nil; end;
 
 procedure TCity.GetTopCityActionImage(A1: Integer);
 begin end;

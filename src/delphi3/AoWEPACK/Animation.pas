@@ -81,7 +81,7 @@ type
     procedure NewFrame; virtual;  { +120 draft }
     procedure DestroyEvent;  { draft }
     procedure NewFrameEvent;  { draft }
-    procedure SetDimensions(A1: Integer);  { draft }
+    procedure SetDimensions(const R: TRect);
   end;
 
   { TAnimationTE (instance size 24, VMT 557FB074) }
@@ -189,7 +189,7 @@ begin end;
 function TAnimation.GetSelected: Boolean;
 begin Result := False; end;
 
-procedure TAnimation.SetDimensions(A1: Integer);
+procedure TAnimation.SetDimensions(const R: TRect);
 begin end;
 
 function TAnimation.GetXhx: Shortint;

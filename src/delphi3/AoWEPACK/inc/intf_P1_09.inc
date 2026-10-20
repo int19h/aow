@@ -93,9 +93,9 @@
     function ValidTerrainType(TerrainType: Integer): Boolean; override;
     function GetTerrainTypeImage(TerrainType: Integer): Integer; override;
     function ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt; override;
-    procedure GetTopBorderImage; virtual;  { +138 draft }
-    procedure GetMiddleBorderImage; virtual;  { +13C draft }
-    procedure GetBottomBorderImage; virtual;  { +140 draft }
+    function GetTopBorderImage: TLibraryImage; virtual;
+    function GetMiddleBorderImage: TLibraryImage; virtual;
+    function GetBottomBorderImage: TLibraryImage; virtual;
     procedure GetDescription; virtual;  { +144 draft }
     function GetName: string; virtual;
     procedure SetRazed(Value: Boolean); virtual;

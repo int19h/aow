@@ -32,9 +32,9 @@ type
     function CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
     function PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
     function GetTerrainTypeImage(TerrainType: Integer): Integer; override;
-    procedure GetTopBorderImage; override;
-    procedure GetMiddleBorderImage; override;
-    procedure GetBottomBorderImage; override;
+    function GetTopBorderImage: TLibraryImage; override;
+    function GetMiddleBorderImage: TLibraryImage; override;
+    function GetBottomBorderImage: TLibraryImage; override;
     procedure ArmyPlaced(A1: Integer); override;
     function EnterMovePoints(Army: TArmy; Selection: Byte): Shortint;
     function CanEnterSelection(Units: TUnitList): Byte;
@@ -120,19 +120,10 @@ type
     Reserved: array[0..48] of Byte;
     Costs: array[0..15, 0..15] of Shortint;
   end;
-{ needs: TStructure border image methods return TLibraryImage in EAX. }
-function CaveTop(Structure: TStructure): TLibraryImage; assembler;
-asm JMP TStructure.GetTopBorderImage end;
-function CaveMiddle(Structure: TStructure): TLibraryImage; assembler;
-asm JMP TStructure.GetMiddleBorderImage end;
-function CaveBottom(Structure: TStructure): TLibraryImage; assembler;
-asm JMP TStructure.GetBottomBorderImage end;
 function CaveUnit(Units: TUnitList; Index: Integer): TAbstractUnit; assembler;
 asm JMP TUnitList.GetUnit end;
 function CaveUnitCost(AUnit: TAbstractUnit; Terrain, Overlay: Shortint): Integer; assembler;
 asm JMP TAbstractUnit.MovePointCost end;
-function CaveUnitMovePoints(AUnit: TAbstractUnit): Shortint; assembler;
-asm MOV EDX,[EAX]; JMP DWORD PTR [EDX+$D8] end;
 function CaveArmyMovePoints(Army: TArmy; Selection: Byte; Terrain, Overlay: Shortint): Shortint; assembler;
 asm JMP TArmy.MoveOnMovePoints end;
 function CaveValidateSelection(Army: TArmy; Selection: Byte): Byte; assembler;
@@ -178,46 +169,40 @@ end;
 class function TCave.ClassID: Integer;
 begin Result := $2037E; end;
 
-procedure TCave.GetTopBorderImage;
-var Image: TLibraryImage;
+function TCave.GetTopBorderImage: TLibraryImage;
 begin
   if FEntrance = ceUp then
   begin
     if (FResource.ImageSequenceList <> nil) and
       (FResource.ImageSequenceList.ImageSequences[33] <> nil) then
-      Image := FResource.ImageSequenceList.ImageSequences[33].GetPreviewImage
-    else Image := nil;
+      Result := FResource.ImageSequenceList.ImageSequences[33].GetPreviewImage
+    else Result := nil;
   end
-  else Image := CaveTop(Self);
-  asm MOV EAX,Image end;
+  else Result := inherited GetTopBorderImage;
 end;
 
-procedure TCave.GetMiddleBorderImage;
-var Image: TLibraryImage;
+function TCave.GetMiddleBorderImage: TLibraryImage;
 begin
   if FEntrance = ceUp then
   begin
     if (FResource.ImageSequenceList <> nil) and
       (FResource.ImageSequenceList.ImageSequences[34] <> nil) then
-      Image := FResource.ImageSequenceList.ImageSequences[34].GetPreviewImage
-    else Image := nil;
+      Result := FResource.ImageSequenceList.ImageSequences[34].GetPreviewImage
+    else Result := nil;
   end
-  else Image := CaveMiddle(Self);
-  asm MOV EAX,Image end;
+  else Result := inherited GetMiddleBorderImage;
 end;
 
-procedure TCave.GetBottomBorderImage;
-var Image: TLibraryImage;
+function TCave.GetBottomBorderImage: TLibraryImage;
 begin
   if FEntrance = ceUp then
   begin
     if (FResource.ImageSequenceList <> nil) and
       (FResource.ImageSequenceList.ImageSequences[35] <> nil) then
-      Image := FResource.ImageSequenceList.ImageSequences[35].GetPreviewImage
-    else Image := nil;
+      Result := FResource.ImageSequenceList.ImageSequences[35].GetPreviewImage
+    else Result := nil;
   end
-  else Image := CaveBottom(Self);
-  asm MOV EAX,Image end;
+  else Result := inherited GetBottomBorderImage;
 end;
 
 function TCave.GetTerrainTypeImage(TerrainType: Integer): Integer;
@@ -280,14 +265,12 @@ end;
 
 procedure TCave.MoveExclusive(const Info: HSEngine.THSSenderInfo);
 var Field: TMapField;
-  Cave: TCave;
 begin
-  Cave := Self;
   if Info.HN = 0 then
   begin
-    case Cave.FEntrance of
-      ceDown: Field := WorldMap^.MapContainer.GetField(Cave.FXhx, Cave.FYhx, TMapField(Cave.Owner).Lhx + 1);
-      ceUp: Field := WorldMap^.MapContainer.GetField(Cave.FXhx, Cave.FYhx, TMapField(Cave.Owner).Lhx - 1);
+    case FEntrance of
+      ceUp: Field := WorldMap^.MapContainer.GetField(FXhx, FYhx, TMapField(Owner).Lhx - 1);
+      ceDown: Field := WorldMap^.MapContainer.GetField(FXhx, FYhx, TMapField(Owner).Lhx + 1);
     else Field := nil;
     end;
     { Original dereferences the destination even for an idle entrance. }
@@ -336,17 +319,16 @@ begin
   begin
     AUnit := CaveUnit(Units, I);
     if CaveUnitCost(AUnit, Field.TerrainType, Field.OverlayType) <=
-      CaveUnitMovePoints(AUnit) then Inc(Result, Byte(1) shl I);
+      AUnit.GetMovePoints then Inc(Result, Byte(1) shl I);
   end;
 end;
 
 function TCave.CanEnter(Player: Shortint): Boolean;
-var ArmyHS: Pointer;
+var ArmyHS: TArmyHS;
 begin
-  ArmyHS := Owner.FindOwnedChild($20217);
-  if ArmyHS = nil then Result := False
-  else if Player <> Shortint(TArmy(TArmyHS(ArmyHS).FArmy).FPlayer) then Result := False
-  else Result := CanEnterSelection(TUnitList(TArmyHS(ArmyHS).FArmy)) <> 0;
+  ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
+  Result := (ArmyHS <> nil) and (Player = ArmyHS.FArmy.FPlayer) and
+    (CanEnterSelection(ArmyHS.FArmy) <> 0);
 end;
 
 function TCave.EnterEx: Boolean;

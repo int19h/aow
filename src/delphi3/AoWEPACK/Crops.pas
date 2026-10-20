@@ -35,14 +35,14 @@ type
     procedure NewTurn(Player: Shortint); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetIncome: Integer; override;
-    procedure CanPlaceCrop(A1: Integer); virtual;  { +224 draft }
-    procedure CropsEnabled; virtual;  { +228 draft }
+    function CanPlaceCrop(Field: TMapField): Boolean; virtual;
+    function CropsEnabled: Boolean; virtual;
     procedure RegrowCrops; virtual;  { +22C draft }
-    procedure UpdateIncome(A1: Integer; A2: Integer); virtual;  { +230 draft }
+    procedure UpdateIncome; virtual;
     procedure UpdateCrops; virtual;  { +234 draft }
-    procedure GetRace; virtual;  { +238 draft }
+    function GetRace: Shortint; virtual;
     procedure CropsChanged; virtual;  { +23C draft }
-    procedure CropTrampled(A1: Integer); virtual;  { +240 draft }
+    procedure CropTrampled(Player: Shortint); virtual;
     procedure SetIncome(A1: Byte);  { draft }
     procedure UpdateCropSettings;  { draft }
     function GetCropCount: Integer;
@@ -96,9 +96,6 @@ procedure RegisterCrops(AEngine: TEngine);
 implementation
 
 type
-  TCropPlayers = class(TPlayerList)
-    function PlayerAt(Player: Integer): TPlayer;
-  end;
   PCropMap = ^TAoWHSMap;
   TCropILFields = packed record
     Reserved: array[0..19] of Byte;
@@ -107,51 +104,6 @@ type
   end;
 const
   WorldMap: PCropMap = @AoWE.AoWHSMap;
-
-{ needs: GetArmyHS returns TArmyHS; its EAX is tested at $557A5D0A. }
-function CropArmy(Field: TAoWMapField): TArmyHS; assembler;
-asm JMP TAoWMapField.GetArmyHS end;
-{ needs: GetDiplomaticRelation returns Byte, tested against 1 at $557A5D41. }
-function CropRelation(List: TPlayerList; A, B: Shortint): Byte; assembler;
-asm JMP TPlayerList.GetDiplomaticRelation end;
-{ GetRace's virtual slot returns a signed race id in AL. }
-procedure CropTrample(Structure: TPlayerCropStructure; Player: Shortint); assembler;
-asm MOV ECX,[EAX]; JMP DWORD PTR [ECX+$240] end;
-function CropRace(Structure: TPlayerCropStructure): Shortint; assembler;
-asm MOV EDX,[EAX]; JMP DWORD PTR [EDX+$238] end;
-function TranslateCropName(const Name: string): string; assembler;
-asm JMP AoWE.TranslateRStr end;
-
-
-
-type
-  TCropPlayerFields = packed record
-    Reserved: array[0..164] of Byte;
-    Race: Shortint;
-  end;
-{ needs: the following draft methods return objects or values in EAX/AL. }
-function TCropPlayers.PlayerAt(Player: Integer): TPlayer; assembler;
-asm JMP TPlayerList.GetPlayers end;
-function CropGetRace(List: TRaceList; Race: Shortint): TRace; assembler;
-asm JMP TRaceList.GetRace end;
-function CropRelationValue(Race: TRace; Player: Shortint): Integer; assembler;
-asm JMP TRace.GetPlayerRelationValue end;
-function CropRazed(Structure: TStructure): Boolean; assembler;
-asm MOV EDX,[EAX]; JMP DWORD PTR [EDX+$150] end;
-function CropBuilding(Structure: TStructure): Boolean; assembler;
-asm JMP TStructure.GetBuilding end;
-function CropEnabled(Structure: TPlayerCropStructure): Boolean; assembler;
-asm MOV EDX,[EAX]; JMP DWORD PTR [EDX+$228] end;
-function CropAllowed(Structure: TPlayerCropStructure; Field: TMapField): Boolean; assembler;
-asm MOV ECX,[EAX]; JMP DWORD PTR [ECX+$224] end;
-procedure CropUpdateIncome(Structure: TPlayerCropStructure); assembler;
-asm MOV EDX,[EAX]; JMP DWORD PTR [EDX+$230] end;
-procedure CropSetPlayer(Structure: TPlayerStructure; Player: Byte); assembler;
-asm JMP TPlayerStructure.SetPlayer end;
-procedure CropPlayerIncome(Player: TPlayer); assembler;
-asm JMP TPlayer.UpdateIncome end;
-function CropRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
-asm JMP TAoWHSMap.Random end;
 
 constructor TCrop.Create(AOwner: Engine.TECustomNode);
 begin
@@ -183,14 +135,13 @@ end;
 procedure TCrop.EndTurn(Player: Shortint);
 var Army: TArmyHS;
 begin
-  Army := CropArmy(TAoWMapField(Owner));
+  Army := TAoWMapField(Owner).GetArmyHS;
   if (Army <> nil) and (Player = Shortint(TArmy(Army.FArmy).FPlayer)) and
-    (Shortint(Byte(FCropOwner.FPlayer)) > 0) and
-    (Player <> Shortint(Byte(FCropOwner.FPlayer))) then
-    if CropRelation(TPlayerList(WorldMap^.FPlayers),
-      Shortint(Byte(FCropOwner.FPlayer)), Player) = 1 then
+    (FCropOwner.FPlayer > 0) and
+    (Player <> FCropOwner.FPlayer) then
+    if TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(FCropOwner.FPlayer, Player) = drWar then
     begin
-      CropTrample(FCropOwner, Player);
+      FCropOwner.CropTrampled(Player);
       Destroy;
     end;
 end;
@@ -275,7 +226,7 @@ end;
 function TCrop.GetTerrainTypeImage(TerrainType: Integer): Integer;
 begin
   Result := TerrainType;
-  if (FCropOwner <> nil) and (CropRace(FCropOwner) = 11) then Inc(Result, 30);
+  if (FCropOwner <> nil) and (FCropOwner.GetRace = 11) then Inc(Result, 30);
 end;
 
 function TCrop.CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
@@ -299,7 +250,7 @@ function TCropResource.ResourceUserClassID: Integer;
 begin Result := $2036A; end;
 
 class function TCropResource.ResourceEditName: string;
-begin Result := TranslateCropName(CropRStr); end;
+begin Result := TranslateRStr(CropRStr); end;
 
 function TCropResource.PlaceCrop(X, Y, L: Shortint; CropOwner: TPlayerCropStructure): TCrop;
 begin
@@ -334,16 +285,15 @@ begin Result := $2034E; end;
 function TPlayerCropStructure.GetIncome: Integer;
 asm MOVZX EAX,BYTE PTR [EAX+$3C] end;
 
-procedure TPlayerCropStructure.CropTrampled(A1: Integer);
-var Race: Shortint;
+procedure TPlayerCropStructure.CropTrampled(Player: Shortint);
+var Race: Integer;
 begin
-  if (Byte(A1) <> Byte(FPlayer)) and (Shortint(Byte(FPlayer)) > 0) and
-    (Shortint(A1) > 0) then
+  if (Player <> FPlayer) and (FPlayer > 0) and
+    (Player > 0) then
   begin
-    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))))^).Race;
-    CropGetRace(TRaceList(WorldMap^.FRaces), Race).SetPlayerRelationValue(
-      Byte(A1), CropRelationValue(CropGetRace(TRaceList(WorldMap^.FRaces), Race),
-      Shortint(A1)) + 5);
+    Race := TPlayerList(WorldMap^.FPlayers).GetPlayers(FPlayer).FPlayerRace;
+    TRaceList(WorldMap^.FRaces).GetRace(Race).SetPlayerRelationValue(
+      Player, TRaceList(WorldMap^.FRaces).GetRace(Race).GetPlayerRelationValue(Player) - (-5));
   end;
 end;
 
@@ -353,9 +303,9 @@ begin
   if (A1 <> FIncome) and (moActivated in FStatus) then
   begin
     FIncome := A1;
-    Player := Shortint(Byte(FPlayer));
+    Player := FPlayer;
     if Player <> -1 then
-      CropPlayerIncome(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player));
+      TPlayerList(WorldMap^.FPlayers).GetPlayers(Player).UpdateIncome;
   end;
 end;
 
@@ -365,44 +315,39 @@ begin
     SetCropCount(GetCropCount + 1);
 end;
 
-procedure TPlayerCropStructure.CropsEnabled;
+function TPlayerCropStructure.CropsEnabled: Boolean;
 begin
-  if not CropRazed(Self) and not CropBuilding(Self) then
-    asm MOV AL,1 end
-  else
-    asm XOR EAX,EAX end;
+  Result := not GetRazed and not GetBuilding;
 end;
 
 procedure TPlayerCropStructure.NewTurn(Player: Shortint);
-var PlayerIndex: Byte;
 begin
-  PlayerIndex := Byte(Player);
   inherited NewTurn(Player);
-  if Byte(FPlayer) = PlayerIndex then
-    if CropEnabled(Self) then RegrowCrops;
+  if FPlayer = Player then
+    if CropsEnabled then RegrowCrops;
 end;
 
-procedure TPlayerCropStructure.UpdateIncome(A1: Integer; A2: Integer);
+procedure TPlayerCropStructure.UpdateIncome;
 begin
-  if not CropRazed(Self) and not CropBuilding(Self) then
+  if not GetRazed and not GetBuilding then
     SetIncome(GetCropCount * 2)
   else SetIncome(0);
 end;
 
 procedure TPlayerCropStructure.CropsChanged;
-asm MOV EDX,[EAX]; CALL DWORD PTR [EDX+$230] end;
+begin UpdateIncome; end;
 
 procedure TPlayerCropStructure.SetPlayer(Player: Shortint);
 begin
-  if Byte(Player) <> Byte(FPlayer) then
+  if Player <> FPlayer then
   begin
-    if Byte(FPlayer) <> $FF then
-      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))).
+    if FPlayer <> -1 then
+      TPlayerList(WorldMap^.FPlayers).GetPlayers(FPlayer).
         UnregisterIncomeSource(FIncomeSource);
-    CropSetPlayer(Self, Byte(Player));
+    inherited SetPlayer(Player);
     UpdateCrops;
-    if Byte(FPlayer) <> $FF then
-      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))).
+    if FPlayer <> -1 then
+      TPlayerList(WorldMap^.FPlayers).GetPlayers(FPlayer).
         RegisterIncomeSource(FIncomeSource);
   end;
 end;
@@ -411,9 +356,9 @@ procedure TPlayerCropStructure.Activate;
 var Player: Shortint;
 begin
   inherited Activate;
-  Player := Shortint(Byte(FPlayer));
+  Player := FPlayer;
   if Player <> -1 then
-    TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player).
+    TPlayerList(WorldMap^.FPlayers).GetPlayers(Player).
       RegisterIncomeSource(FIncomeSource);
   if not GetEditMode then
   begin
@@ -425,9 +370,9 @@ end;
 procedure TPlayerCropStructure.Deactivate;
 var Player: Shortint;
 begin
-  Player := Shortint(Byte(FPlayer));
+  Player := FPlayer;
   if Player <> -1 then
-    TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player).
+    TPlayerList(WorldMap^.FPlayers).GetPlayers(Player).
       UnregisterIncomeSource(FIncomeSource);
   inherited Deactivate;
 end;
@@ -456,20 +401,18 @@ begin
   if not GetEditMode and (moActivated in FStatus) then
   begin
     if msEditting in WorldMap^.Status then
-      if CropEnabled(Self) then
+      if CropsEnabled then
         SetCropCount(TPlayerCropStructureResource(FResource).FCropLocations.Count);
     UpdateCropSettings;
-    CropUpdateIncome(Self);
+    UpdateIncome;
   end;
 end;
 
-procedure TPlayerCropStructure.GetRace;
-var Race: Shortint;
+function TPlayerCropStructure.GetRace: Shortint;
 begin
-  if Shortint(Byte(FPlayer)) > 0 then
-    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))))^).Race
-  else Race := -1;
-  asm MOV AL,Race end;
+  if FPlayer > 0 then
+    Result := TPlayerList(WorldMap^.FPlayers).GetPlayers(FPlayer).FPlayerRace
+  else Result := -1;
 end;
 
 function TPlayerCropStructure.GetCropCount: Integer;
@@ -492,31 +435,27 @@ begin
   end;
 end;
 
-procedure TPlayerCropStructure.CanPlaceCrop(A1: Integer);
+function TPlayerCropStructure.CanPlaceCrop(Field: TMapField): Boolean;
 var
-  Field: TMapField;
   Army: TArmyHS;
   HS: THexagonSprite;
-  Allowed: Boolean;
 begin
-  Field := TMapField(A1);
-  if CropRazed(Self) then Allowed := False
-  else
+  if not GetRazed then
   begin
     Army := TArmyHS(Field.FindOwnedChild($20217));
-    Allowed := ((Army = nil) or
-      (CropRelation(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(Army.FArmy).FPlayer), Shortint(Byte(FPlayer))) <> 1));
-    if Allowed then
+    Result := ((Army = nil) or
+      (TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(
+        TArmy(Army.FArmy).FPlayer, FPlayer) <> drWar));
+    if Result then
     begin
       HS := Field.GetMaxLevelNoneTransparentHS;
-      Allowed := (HS = nil) or (HS.GetLevel < 26);
+      Result := (HS = nil) or (HS.GetLevel < 26);
     end;
-    if Allowed then
-      Allowed := (Field.TerrainType in [1..4, 12]) or
-        ((Field.TerrainType = 5) and (CropRace(Self) = 11));
-  end;
-  asm MOV AL,Allowed end;
+    if Result then
+      Result := (Field.TerrainType in [1..4, 12]) or
+        ((Field.TerrainType = 5) and (GetRace = 11));
+  end
+  else Result := False;
 end;
 
 procedure TPlayerCropStructure.SetCropCount(A1: Integer);
@@ -545,7 +484,7 @@ begin
       begin
         Field := MapLevel.GetField(X, Y);
         Crop := TCrop(Field.FindOwnedChild($2036A));
-        if (Crop <> nil) or not CropAllowed(Self, Field) then
+        if (Crop <> nil) or not CanPlaceCrop(Field) then
         begin
           if (Crop <> nil) and (Crop.FCropOwner = Self) then Crops.Add(Crop);
           Locations.Delete(I);
@@ -558,7 +497,7 @@ begin
       if Resource <> nil then
         while (Crops.Count <> A1) and (Locations.Count <> 0) do
         begin
-          I := CropRandom(WorldMap^, Locations.Count);
+          I := WorldMap^.Random(Locations.Count);
           CenterHNtoHX(FXhx, FYhx, Locations.List^[I], X, Y);
           Crop := Resource.PlaceCrop(X, Y, MapLevel.Lhx, Self);
           if Crop <> nil then
@@ -572,7 +511,7 @@ begin
     else if Crops.Count > A1 then
       while (Crops.Count <> A1) and (Crops.Count <> 0) do
       begin
-        I := CropRandom(WorldMap^, Crops.Count);
+        I := WorldMap^.Random(Crops.Count);
         TCrop(Crops.Items[I]).Destroy;
         Crops.Delete(I);
       end;

@@ -50,7 +50,7 @@ procedure DamageTypesToDamageType(A1: Word; A2: Integer; A3: Integer);  { draft 
 procedure dAlignmentToStatus(A1: Integer; A2: Integer);  { draft }
 procedure AlsToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure Land(A1: Byte);  { draft }
+function Land(Terrain: Shortint): Boolean;
 procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure CombatRangeToCombatMode(A1: Byte);  { draft }

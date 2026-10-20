@@ -42,12 +42,6 @@ type
 const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
 
-{ needs: AoWE.TAoWHSMap.Random must return Integer; EAX is tested at $5579BD4E. }
-function TerrainRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
-asm
-  JMP TAoWHSMap.Random
-end;
-
 procedure TAoWTerrain.ValidateDenseVegetationBurned(Info: Pointer);
 var
   R: TTerrainMOR;
@@ -76,7 +70,7 @@ var
   OldOwner: TECustomNode;
 begin
   if Owner.FindOwnedChild($2077E) = nil then
-    if TerrainRandom(WorldMap^, 20) = 0 then
+    if WorldMap^.Random(20) = 0 then
     begin
       R := FindCompatibleResource(TTerrainMOR(FResource).TerrainType, 1, 0);
       if R <> nil then

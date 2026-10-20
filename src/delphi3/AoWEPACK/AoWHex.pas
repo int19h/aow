@@ -105,12 +105,6 @@ const
   SideHN: array[0..2] of Byte = (6, 1, 2);
   SideClear: array[0..2] of Byte = ($F6, $ED, $DB);
 
-{ needs: AoWE.TranslateRStr(const S: string): string ($5579B5AF..$5579B5B4). }
-function TranslateHexName(const S: string): string; assembler;
-asm
-  JMP AoWE.TranslateRStr
-end;
-
 procedure TAoWHexagon.NeighbourTerrainChanged(HN: Integer; const Info: HSEngine.THSTerrainInfo);
 begin
   if HN = 0 then
@@ -349,7 +343,7 @@ begin
   Yhp := Yhp - YhpSurf;
   { needs: AoWE.AoWEngine global; its resource engine provides the same settings. }
   if (TAoWEngine(FResource.Engine).F_AoWEngine_6D <> 0) and
-    ((TAoWMapField(Owner).F_AoWMapField_1A <> 0) or
+    ((TAoWMapField(Owner).FFieldFlags and $FF0000 <> 0) or
     (TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).F_AbstractAoWHSMap_C8 = 0)) then
   begin
     Inc(FAnimationFrame);
@@ -458,7 +452,7 @@ class function TAoWWaterHexagonResource.ClassID: Integer;
 begin Result := $2073E; end;
 
 class function TAoWWaterHexagonResource.ResourceEditName: string;
-begin Result := TranslateHexName(LoadResString(@WaterHexagonRStr)); end;
+begin Result := TranslateRStr(LoadResString(@WaterHexagonRStr)); end;
 
 function TAoWWaterHexagonResource.ResourceUserClassID: Integer;
 begin Result := $2073D; end;

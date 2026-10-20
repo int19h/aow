@@ -301,7 +301,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Assign(Source: Engine.TEObject; AEngine: Engine.TEngine); override;
     procedure GetDiplomaticRelationCount(A1: Integer; A2: Byte);  { draft }
-    procedure GetDiplomaticRelation(A1: Byte; A2: Integer);  { draft }
+    function GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
     procedure SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);  { draft }
     procedure GetActivePlayers(A1: Integer; A2: Integer);  { draft }
     procedure Update;  { draft }
@@ -330,9 +330,7 @@
   { TAoWMapField (instance size 28, VMT 5570C764) }
   TAoWMapField = class(TMapField)
   public
-    F_AoWMapField_18: Word;
-    F_AoWMapField_1A: Byte;
-    F_AoWMapField_1B: Byte;
+    FFieldFlags: Integer;  { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure UpdateMapField; override;

@@ -28,7 +28,7 @@ type
     class function ClassID: Integer; override;
     procedure ArmyPlaced(A1: Integer); override;
     procedure ShowBlessingAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
-    procedure ExecuteNaturesBlessing(ArmyHS: Pointer);
+    procedure ExecuteNaturesBlessing(ArmyHS: TArmyHS);
   end;
 
   { TSpringOfLifeResource (instance size 100, VMT 557A3C6C) }
@@ -45,18 +45,7 @@ procedure RegisterSpringOfLife(AEngine: TEngine);
 implementation
 
 type
-  TSpringUnitList = class(TUnitList)
-    function UnitAt(Index: Integer): TUnit;
-  end;
-  TSpringMap = class(TAoWHSMap)
-    function IsVisible(Xhx, Yhx, Lhx: Shortint; Radius: Integer): Boolean;
-    function IsWatching(Xhx, Yhx, Lhx: Shortint; Radius: Integer): Boolean;
-  end;
   PAoWHSMap = ^TAoWHSMap;
-  TSpringMapFields = packed record
-    Reserved: array[0..164] of Byte;
-    SeatedPlayer: Byte;
-  end;
   TSpringAnimationCallback = packed record
     Reserved: array[0..35] of Byte;
     OnShow: TShowAnimationEvent;
@@ -71,16 +60,6 @@ procedure TSpringOfLifeAnimation.AnimationControlMode;
 asm
   MOV AL,SpringMode
 end;
-
-{ needs: AoWE draft result signatures; preserve the original register ABI. }
-function TSpringUnitList.UnitAt(Index: Integer): TUnit; assembler;
-asm JMP TUnitList.GetUnit end;
-function TSpringMap.IsVisible(Xhx, Yhx, Lhx: Shortint; Radius: Integer): Boolean; assembler;
-asm JMP TAoWHSMap.Visible end;
-function TSpringMap.IsWatching(Xhx, Yhx, Lhx: Shortint; Radius: Integer): Boolean; assembler;
-asm JMP TAoWHSMap.Watching end;
-function TranslateSpringName(const S: string): string; assembler;
-asm JMP AoWE.TranslateRStr end;
 
 procedure TSpringOfLifeAnimation.NewFrame;
 begin
@@ -104,24 +83,23 @@ begin
   FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.F_Animation_10, SurfaceDesc);
 end;
 
-procedure TSpringOfLife.ExecuteNaturesBlessing(ArmyHS: Pointer);
+procedure TSpringOfLife.ExecuteNaturesBlessing(ArmyHS: TArmyHS);
 var
   Anim: TSpringOfLifeAnimation;
   R: TRect;
   I: Integer;
 begin
-  for I := 0 to TUnitList(TArmyHS(ArmyHS).FArmy).Count - 1 do
-    TSpringUnitList(TArmyHS(ArmyHS).FArmy).UnitAt(I).ExpandAbility(99);
-  if (Byte(TArmy(TArmyHS(ArmyHS).FArmy).FPlayer) =
-    TSpringMapFields(Pointer(WorldMap^)^).SeatedPlayer) or
-    TSpringMap(WorldMap^).IsWatching(GetXhx, GetYhx, GetLhx, 0) then
+  for I := 0 to ArmyHS.FArmy.Count - 1 do
+    ArmyHS.FArmy.GetUnit(I).ExpandAbility(99);
+  if (Byte(ArmyHS.FArmy.FPlayer) =
+    WorldMap^.FSeatedPlayer) or
+    WorldMap^.Watching(GetXhx, GetYhx, GetLhx, 0) then
     Sound.PlaySample('SFX\ATTACK\ENCHP02.WAV');
-  if TSpringMap(WorldMap^).IsVisible(GetXhx, GetYhx, GetLhx, 0) then
+  if WorldMap^.Visible(GetXhx, GetYhx, GetLhx, 0) then
   begin
     Anim := TSpringOfLifeAnimation.Create(nil);
     R := Rect(-16, -8, 32, 40);
-    { needs: TAnimation.SetDimensions(const R: TRect). }
-    Anim.SetDimensions(Integer(@R));
+    Anim.SetDimensions(R);
     Anim.F_Animation_0B[0] := 27;
     TSpringAnimationCallback(Pointer(Anim)^).OnShow := ShowBlessingAnimation;
     WorldMap^.PlaceHX(Anim, GetXhx, GetYhx, GetLhx);
@@ -131,7 +109,7 @@ end;
 procedure TSpringOfLife.ArmyPlaced(A1: Integer);
 begin
   inherited ArmyPlaced(A1);
-  if not (TMapField(Owner).TerrainType in [3, 5]) then ExecuteNaturesBlessing(Pointer(A1));
+  if not (TMapField(Owner).TerrainType in [3, 5]) then ExecuteNaturesBlessing(TArmyHS(A1));
 end;
 
 constructor TSpringOfLifeResource.Create(AOwner: Engine.TECustomNode);
@@ -144,7 +122,7 @@ class function TSpringOfLifeResource.ClassID: Integer;
 begin Result := $20101; end;
 
 class function TSpringOfLifeResource.ResourceEditName: string;
-begin Result := TranslateSpringName(LoadResString(@SpringOfLifeRStr)); end;
+begin Result := TranslateRStr(LoadResString(@SpringOfLifeRStr)); end;
 
 function TSpringOfLifeResource.ResourceUserClassID: Integer;
 begin Result := $20100; end;

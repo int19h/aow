@@ -27,8 +27,8 @@ type
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
-    procedure CanPlaceCrop(A1: Integer); override;
-    procedure CropsEnabled; override;
+    function CanPlaceCrop(Field: TMapField): Boolean; override;
+    function CropsEnabled: Boolean; override;
     procedure UpdateCrops; override;
   end;
 
@@ -61,11 +61,11 @@ begin end;
 procedure TFarm.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TFarm.CropsEnabled;
-begin end;
+function TFarm.CropsEnabled: Boolean;
+begin Result := False; end;
 
-procedure TFarm.CanPlaceCrop(A1: Integer);
-begin end;
+function TFarm.CanPlaceCrop(Field: TMapField): Boolean;
+begin Result := False; end;
 
 procedure TFarm.UpdateCrops;
 begin end;

@@ -81,31 +81,12 @@ type
     Reserved: array[0..164] of Byte;
     SeatedPlayer: Byte;
   end;
-  TCloudFieldFlags = packed record
-    Reserved: array[0..23] of Byte;
-    Flags: Integer;
-  end;
   TCloudEnchantmentOptions = set of (ce0, ce1, ce2, ce3, ce4, ce5, ce6, ce7);
 const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
   WorldSet: PAoWHSSet = @AoWE.AoWHSSet;
 
-{ needs: TSpellControl.GetSpell(ID): TSpell; the original uses EAX as a spell pointer.
-  Tail-call adapter preserves the draft method's real register ABI. }
-function CloudSpell(Control: TSpellControl; ID: Integer): TSpell; assembler;
-asm
-  JMP TSpellControl.GetSpell
-end;
 
-{ needs: draft AoWE result types for Random, Visible, GetArmyHS, TranslateRStr. }
-function CloudRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
-asm JMP TAoWHSMap.Random end;
-function CloudVisible(Map: TAoWHSMap; Xhx, Yhx: Shortint; Lhx: Shortint; Radius: Integer): Boolean; assembler;
-asm JMP TAoWHSMap.Visible end;
-function CloudArmyHS(MapField: TAoWMapField): TArmyHS; assembler;
-asm JMP TAoWMapField.GetArmyHS end;
-function TranslateCloudName(const S: string): string; assembler;
-asm JMP AoWE.TranslateRStr end;
 
 constructor TSmokeCloudEnchantment.Create(AOwner: Engine.TECustomNode);
 begin
@@ -121,7 +102,7 @@ begin Result := $21244; end;
 procedure TSmokeCloudEnchantment.GetName(A1: Integer);
 begin
   { needs: the base GetName parameter is a hidden string result pointer. }
-  PString(A1)^ := TCloudSpellFields(Pointer(CloudSpell(TSpellControl(WorldSet^.FSpellControl), $4A))^).Name;
+  PString(A1)^ := TCloudSpellFields(Pointer(TSpellControl(WorldSet^.FSpellControl).GetSpell($4A))^).Name;
 end;
 
 procedure TSmokeCloudEnchantment.GetLocation(A1: Integer; A2: Integer);
@@ -282,14 +263,14 @@ var
 begin
   Level := WorldMap^.MapContainer.MapLevels[Lhx];
   InitHNWalk(Walk, Xhx, Yhx, 0);
-  with Walk do
-  while FResource.TerrainList.Count > HN do
+  with FResource.TerrainList do
+  while Count > Walk.HN do
   begin
-    if (FResource.TerrainList.Terrain[HN] >= -1) and (X >= 0) and
-      (Y >= 0) and (X < Level.Width) and (Level.Height > Y) then
+    if (Terrain[Walk.HN] >= -1) and (Walk.X >= 0) and
+      (Walk.Y >= 0) and (Walk.X < Level.Width) and (Level.Height > Walk.Y) then
     begin
-      MapField := TAoWMapField(Level.GetField(X, Y));
-      ArmyHS := CloudArmyHS(MapField);
+      MapField := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+      ArmyHS := MapField.GetArmyHS;
       if ArmyHS <> nil then TArmy(ArmyHS.FArmy).Update;
     end;
     WalkToNextHN(Walk);
@@ -299,8 +280,8 @@ end;
 procedure TSmokeCloud.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin
   if (Info.HN > 18) and (Info.HN < 37) then
-    TCloudFieldFlags(Pointer(Info.MapField)^).Flags :=
-      TCloudFieldFlags(Pointer(Info.MapField)^).Flags or $01000000;
+    TAoWMapField(Info.MapField).FFieldFlags :=
+      TAoWMapField(Info.MapField).FFieldFlags or $01000000;
 end;
 
 procedure TSmokeCloud.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
@@ -315,7 +296,7 @@ procedure TSmokeCloud.UpdateVisibleForSeatedPlayer;
 var
   Visible: Boolean;
 begin
-  Visible := CloudVisible(WorldMap^, GetXhx, GetYhx, GetLhx, 3) or
+  Visible := WorldMap^.Visible( GetXhx, GetYhx, GetLhx, 3) or
     (FEnchantment.F_GlobalEnchantment_19 = TCloudMapFields(Pointer(WorldMap^)^).SeatedPlayer);
   if FVisibleForSeatedPlayer xor Visible then
   begin
@@ -353,7 +334,7 @@ asm
   MOV EAX,[WorldMap]
   MOV EAX,[EAX]
   MOV EDX,6
-  CALL CloudRandom
+  CALL TAoWHSMap.Random
   INC EAX
   MOV [EBX+$1D],AL
 @@activate:
@@ -436,7 +417,7 @@ begin
       if FDirection <> 6 then Directions.Add(FDirection + 1) else Directions.Add(1);
       while (Directions.Count <> 0) and not Valid do
       begin
-        Direction := Directions[CloudRandom(WorldMap^, Directions.Count)];
+        Direction := Directions[WorldMap^.Random( Directions.Count)];
         Valid := ValidMoveDir(Direction);
         if not Valid then Directions.Remove(Direction);
       end;
@@ -446,7 +427,7 @@ begin
         Tries := 20;
         while not Valid and (Tries <> 0) do
         begin
-          Direction := CloudRandom(WorldMap^, 6) + 1;
+          Direction := WorldMap^.Random( 6) + 1;
           Valid := ValidMoveDir(Direction);
           Dec(Tries);
         end;
@@ -486,7 +467,7 @@ class function TSmokeCloudResource.ClassID: Integer;
 begin Result := $21243; end;
 
 class function TSmokeCloudResource.ResourceEditName: string;
-begin Result := TranslateCloudName(LoadResString(@SmokeCloudRStr)); end;
+begin Result := TranslateRStr(LoadResString(@SmokeCloudRStr)); end;
 
 function TSmokeCloudResource.ResourceUserClassID: Integer;
 begin Result := $21242; end;

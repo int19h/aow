@@ -87,26 +87,14 @@ resourcestring
   TeleportWarningRStr = 'Warning'; { original RT_STRING $FEB4 }
 
 { needs: draft AoWE result declarations; retain their proven register ABI. }
-function TranslateTeleportName(const S: string): string; assembler;
-asm JMP AoWE.TranslateRStr end;
 function TeleportVisible(Map: TAoWHSMap; X, Y: Integer; Player: Shortint; L: Integer): Boolean; assembler;
 asm JMP TAoWHSMap.VisibleForPlayer end;
-function TeleportArmy(Field: TAoWMapField): TArmyHS; assembler;
-asm JMP TAoWMapField.GetArmyHS end;
 function TeleportValidTerrain(Army: TArmy; Terrain, Overlay: Shortint): Boolean; assembler;
 asm JMP TArmy.ValidTerrain end;
 function TeleportCanAdd(Army: TArmy; Units: TUnitList): Boolean; assembler;
 asm JMP TArmy.CanAddUnits end;
-function TeleportFieldPlayer(Field: TAoWMapField): Shortint; assembler;
-asm JMP TAoWMapField.GetPlayer end;
 function TeleportMoveAction(Field: TAoWMapField; Player: Byte): Byte; assembler;
 asm JMP TAoWMapField.GetMoveAction end;
-function TeleportPlayer(List: TPlayerList; Player: Integer): TPlayer; assembler;
-asm JMP TPlayerList.GetPlayers end;
-function TeleportPlayerBusy(Player: TPlayer): Boolean; assembler;
-asm JMP TPlayer.GetBusy end;
-function TeleportRelation(List: TPlayerList; PlayerA, PlayerB: Shortint): Byte; assembler;
-asm JMP TPlayerList.GetDiplomaticRelation end;
 function TeleportMoveArmy(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
   Flags: TTeleportMoveFlags; Extra: Integer): Boolean; assembler;
 asm JMP AoWE.MoveArmyEx end;
@@ -134,7 +122,7 @@ end;
 
 procedure TTeleport.SetRazed(Value: Boolean);
 begin
-  if Value then Include(FState, tsRazed) else Exclude(FState, tsRazed);
+  if Value then FState := FState + [tsRazed] else FState := FState - [tsRazed];
   { needs: ILTer.TILTerrainMO.FImageIndex is private. }
   TTeleportImageFields(Pointer(Self)^).ImageIndex := GetTerrainTypeImage(TerrainType);
 end;
@@ -215,7 +203,7 @@ begin
     Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
     if TeleportValidTerrain(TArmy(ArmyHS.FArmy), Field.TerrainType, Field.OverlayType) then
     begin
-      OtherArmy := TeleportArmy(Field);
+      OtherArmy := Field.GetArmyHS;
       { Original rejects a same-player army when CanAddUnits succeeds. }
       if (OtherArmy <> nil) and
         (Byte(TArmy(ArmyHS.FArmy).FPlayer) = Byte(TArmy(OtherArmy.FArmy).FPlayer)) and
@@ -231,7 +219,7 @@ var
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
   { Original only checks destination X here; X=0 is rejected. }
-  Result := (ArmyHS <> nil) and (Byte(Player) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) and
+  Result := (ArmyHS <> nil) and (Player = ArmyHS.FArmy.FPlayer) and
     not (tsRazed in FState) and (FDestinationX > 0);
 end;
 
@@ -254,16 +242,13 @@ begin
       Path.AddXYL(GetXhx, GetYhx, GetLhx);
       Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
       if (TeleportMoveAction(Field, Byte(TArmy(ArmyHS.FArmy).FPlayer)) <> 1) or
-        (TeleportFieldPlayer(Field) <= 0) or
-        (TeleportRelation(TPlayerList(WorldMap^.FPlayers),
-          Shortint(TArmy(ArmyHS.FArmy).FPlayer), TeleportFieldPlayer(Field)) in [1, 3]) then
+        (Field.GetPlayer <= 0) or
+        (TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(
+          ArmyHS.FArmy.FPlayer, Field.GetPlayer) in [drWar, drUnknown]) then
       begin
-        if (TeleportFieldPlayer(Field) <= -1) or
-          (Byte(TeleportFieldPlayer(Field)) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
-          Result := TeleportMoveArmy(ArmyHS, -1, Path, [], 0)
-        else
-          if not TeleportPlayerBusy(TeleportPlayer(TPlayerList(WorldMap^.FPlayers),
-            Shortint(TArmy(ArmyHS.FArmy).FPlayer))) then
+        if (Field.GetPlayer > -1) and
+          (Field.GetPlayer <> ArmyHS.FArmy.FPlayer) then
+          if not TPlayerList(WorldMap^.FPlayers).GetPlayers(ArmyHS.FArmy.FPlayer).GetBusy then
           begin
             Event := TeleportCreateMove(ArmyHS, -1, Path, [], 1);
             if Event <> nil then
@@ -275,7 +260,8 @@ begin
             end
             else Result := False;
           end
-          else Result := False;
+          else Result := False
+        else Result := TeleportMoveArmy(ArmyHS, -1, Path, [], 0);
         if Result and (Byte(TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
           Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         begin
@@ -285,9 +271,8 @@ begin
       end
       else
       begin
-        MessageText := SysUtils.Format(TranslateTeleportName(LoadResString(@TeleportNoWarRStr)),
-          [TranslateTeleportName(RaceNameTable^[TTeleportPlayerFields(Pointer(TeleportPlayer(
-            TPlayerList(WorldMap^.FPlayers), TeleportFieldPlayer(Field)))^).Race])]);
+        MessageText := SysUtils.Format(TranslateRStr(LoadResString(@TeleportNoWarRStr)),
+          [TranslateRStr(RaceNameTable^[TPlayerList(WorldMap^.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
         TAbstractAoWHSMap(WorldMap^).ShowMessage(Integer(Pointer(MessageText)));
         Result := False;
       end;
@@ -306,8 +291,8 @@ begin
   { needs: TStructure.ValidateMap(Log: TStrings): Boolean. }
   if (FDestinationX = 0) or (FDestinationY = 0) then
   begin
-    TStrings(A1).Add(TranslateTeleportName(LoadResString(@TeleportWarningRStr)) + ': ' +
-      TranslateTeleportName(LoadResString(@InvalidLocationSpecifiedRStr)));
+    TStrings(A1).Add(TranslateRStr(LoadResString(@TeleportWarningRStr)) + ': ' +
+      TranslateRStr(LoadResString(@InvalidLocationSpecifiedRStr)));
     Valid := False;
   end
   else Valid := True;
@@ -327,7 +312,7 @@ class function TTeleportResource.ClassID: Integer;
 begin Result := $20105; end;
 
 class function TTeleportResource.ResourceEditName: string;
-begin Result := TranslateTeleportName(LoadResString(@TeleportRStr)); end;
+begin Result := TranslateRStr(LoadResString(@TeleportRStr)); end;
 
 function TTeleportResource.ResourceUserClassID: Integer;
 begin Result := $20104; end;

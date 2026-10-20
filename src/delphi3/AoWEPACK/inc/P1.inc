@@ -2378,8 +2378,8 @@ begin end;
 procedure TPlayerList.GetDiplomaticRelationCount(A1: Integer; A2: Byte);
 begin end;
 
-procedure TPlayerList.GetDiplomaticRelation(A1: Byte; A2: Integer);
-begin end;
+function TPlayerList.GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
+begin Result := drPeace; end;
 
 procedure TPlayerList.SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);
 begin end;
@@ -3150,14 +3150,14 @@ begin end;
 procedure TStructure.FogChanged;
 begin end;
 
-procedure TStructure.GetTopBorderImage;
-begin end;
+function TStructure.GetTopBorderImage: TLibraryImage;
+begin Result := nil; end;
 
-procedure TStructure.GetMiddleBorderImage;
-begin end;
+function TStructure.GetMiddleBorderImage: TLibraryImage;
+begin Result := nil; end;
 
-procedure TStructure.GetBottomBorderImage;
-begin end;
+function TStructure.GetBottomBorderImage: TLibraryImage;
+begin Result := nil; end;
 
 function TStructure.GetOverlay(Index: Integer): Shortint;
 begin Result := 0; end;
@@ -4868,8 +4868,8 @@ begin end;
 procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure Land(A1: Byte);
-begin end;
+function Land(Terrain: Shortint): Boolean;
+begin Result := False; end;
 
 procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);
 begin end;

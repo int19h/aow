@@ -62,20 +62,9 @@ type
     Reserved: array[0..48] of Byte;
     Costs: array[0..15, 0..15] of Shortint;
   end;
-  TBridgeFieldData = packed record
-    Reserved: array[0..23] of Byte;
-    Flags: Integer;
-  end;
 
 const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
-
-{ needs: AoWE.Land must return Boolean, as AL is tested at $55799C6F.
-  Tail-call adapter until the shared declaration is corrected. }
-function BridgeLand(Terrain: Shortint): Boolean; assembler;
-asm
-  JMP AoWE.Land
-end;
 
 constructor THexagonBridge.Create(AOwner: TECustomNode);
 begin
@@ -115,14 +104,13 @@ end;
 
 function THexagonBridge.GetShowPriority: Integer;
 var
-  MapField: TMapField;
-  Xhx: Shortint;
   Xhp, Yhp: Integer;
 begin
-  MapField := TMapField(Owner);
-  Xhx := MapField.Xhx;
-  Xhp := Xhx * 32 + 8;
-  Yhp := (Xhx and 1) * 16 + MapField.Yhx * 32;
+  with TMapField(Owner) do
+  begin
+    Xhp := Xhx * 32 + 8;
+    Yhp := (Xhx and 1) * 16 + Yhx * 32;
+  end;
   Result := $68000000 + Yhp shl 13 + (Xhp + 8);
 end;
 
@@ -165,9 +153,8 @@ end;
 procedure THexagonBridge.UpdateMapField(const Info: THSMapFieldInfo);
 begin
   if Info.HN <> 0 then
-    { needs: AoWE.TAoWMapField flags at +$18 are 32 bits ($55799919). }
-    TBridgeFieldData(Pointer(Info.MapField)^).Flags :=
-      TBridgeFieldData(Pointer(Info.MapField)^).Flags or $8000;
+    TAoWMapField(Info.MapField).FFieldFlags :=
+      TAoWMapField(Info.MapField).FFieldFlags or $8000;
 end;
 
 procedure THexagonBridge.MoveExclusive(const Info: THSSenderInfo);
@@ -221,8 +208,8 @@ end;
 
 function THexagonBridge.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
 var
-  MapField: TMapField;
   Road: THexagonSprite;
+  MapField: TMapField;
 begin
   MapField := MapContainer.GetField(Xhx, Yhx, Lhx);
   Road := MapField.FindHS(TAbstractRoad);
@@ -248,11 +235,11 @@ begin
   Level := TMapLevel(MapField.Owner);
   CenterHNtoHX(MapField.Xhx, MapField.Yhx, Direction + 1, Xhx, Yhx);
   if (Xhx >= 0) and (Yhx >= 0) and (Xhx < Level.Width) and (Yhx < Level.Height) then
-    if BridgeLand(Level.GetField(Xhx, Yhx).TerrainType) then
+    if Land(Level.GetField(Xhx, Yhx).TerrainType) then
     begin
       CenterHNtoHX(MapField.Xhx, MapField.Yhx, Direction + 4, Xhx, Yhx);
       if (Xhx >= 0) and (Yhx >= 0) and (Xhx < Level.Width) and (Yhx < Level.Height) then
-        Result := BridgeLand(Level.GetField(Xhx, Yhx).TerrainType);
+        Result := Land(Level.GetField(Xhx, Yhx).TerrainType);
     end;
 end;
 
@@ -273,46 +260,46 @@ begin
       0:
         begin
           CenterHNtoHX(Xhx, Yhx, 2, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(2);
           CenterHNtoHX(Xhx, Yhx, 3, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(3);
           CenterHNtoHX(Xhx, Yhx, 5, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(5);
           CenterHNtoHX(Xhx, Yhx, 6, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(6);
         end;
       1:
         begin
           CenterHNtoHX(Xhx, Yhx, 3, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(3);
           CenterHNtoHX(Xhx, Yhx, 4, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(4);
           CenterHNtoHX(Xhx, Yhx, 6, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(6);
           CenterHNtoHX(Xhx, Yhx, 1, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(1);
         end;
       2:
         begin
           CenterHNtoHX(Xhx, Yhx, 1, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(1);
           CenterHNtoHX(Xhx, Yhx, 2, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideB.Add(2);
           CenterHNtoHX(Xhx, Yhx, 4, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(4);
           CenterHNtoHX(Xhx, Yhx, 5, X, Y);
-          if not BridgeLand(Level.GetField(X, Y).TerrainType) then
+          if not Land(Level.GetField(X, Y).TerrainType) then
             FSideA.Add(5);
         end;
     end;
