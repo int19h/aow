@@ -2,7 +2,8 @@ unit CombatSpells;
 
 { Draft declarations of CombatSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  The combat action bases and TCombatSpell are recovered; later classes remain drafts. }
+  The combat action bases and spell classes through TTerror are recovered;
+  TWindsOfFury and later classes remain drafts. }
 
 interface
 
@@ -127,7 +128,8 @@ type
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
   end;
 
-  { TSolarFlare (instance size 64, VMT 557F40BC) }
+  { TSolarFlare (instance size 64, VMT 557F40BC):
+    inherited $34 combat statistics, $3C damage mode. }
   TSolarFlare = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -140,7 +142,8 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TTurnUndead (instance size 64, VMT 557F42C8) }
+  { TTurnUndead (instance size 64, VMT 557F42C8):
+    inherited $34 combat statistics, $3C damage mode. }
   TTurnUndead = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -153,7 +156,7 @@ type
   public
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
-    procedure Generate(A1: Integer);  { draft }
+    procedure Generate(A1: TCombatObject);
   end;
 
   { TTacticalCombatHighPrayerCA (instance size 28, VMT 557F44D0) }
@@ -163,7 +166,8 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { THighPrayer (instance size 64, VMT 557F45CC) }
+  { THighPrayer (instance size 64, VMT 557F45CC):
+    inherited $34 combat statistics, $3C damage mode. }
   THighPrayer = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -174,13 +178,15 @@ type
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
   end;
 
-  { TDeathRay (instance size 64, VMT 557F46E0) }
+  { TDeathRay (instance size 64, VMT 557F46E0):
+    inherited $34 combat statistics, $3C damage mode. }
   TDeathRay = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TDiseaseCloud (instance size 64, VMT 557F47F0) }
+  { TDiseaseCloud (instance size 64, VMT 557F47F0):
+    inherited $34 combat statistics, $3C damage mode. }
   TDiseaseCloud = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -193,20 +199,23 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TMindDecay (instance size 64, VMT 557F49E8) }
+  { TMindDecay (instance size 64, VMT 557F49E8):
+    inherited $34 combat statistics, $3C damage mode. }
   TMindDecay = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
   end;
 
-  { TChainLightning (instance size 64, VMT 557F4AFC) }
+  { TChainLightning (instance size 64, VMT 557F4AFC):
+    inherited $34 combat statistics, $3C damage mode. }
   TChainLightning = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TColdBreath (instance size 64, VMT 557F4C18) }
+  { TColdBreath (instance size 64, VMT 557F4C18):
+    inherited $34 combat statistics, $3C damage mode. }
   TColdBreath = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -219,7 +228,8 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TSlow (instance size 64, VMT 557F4E00) }
+  { TSlow (instance size 64, VMT 557F4E00):
+    inherited $34 combat statistics, $3C damage mode. }
   TSlow = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -234,7 +244,8 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TEntangle (instance size 64, VMT 557F4FF0) }
+  { TEntangle (instance size 64, VMT 557F4FF0):
+    inherited $34 combat statistics, $3C damage mode. }
   TEntangle = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -242,87 +253,101 @@ type
     procedure GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
   end;
 
-  { TTremors (instance size 64, VMT 557F5100) }
+  { TTremors (instance size 64, VMT 557F5100):
+    inherited $34 combat statistics, $3C damage mode. }
   TTremors = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TCallFlames (instance size 64, VMT 557F5210) }
+  { TCallFlames (instance size 64, VMT 557F5210):
+    inherited $34 combat statistics, $3C damage mode. }
   TCallFlames = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TFireBreath (instance size 64, VMT 557F5324) }
+  { TFireBreath (instance size 64, VMT 557F5324):
+    inherited $34 combat statistics, $3C damage mode. }
   TFireBreath = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TSwarm (instance size 64, VMT 557F5438) }
+  { TSwarm (instance size 64, VMT 557F5438):
+    inherited $34 combat statistics, $3C damage mode. }
   TSwarm = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TGreatHail (instance size 64, VMT 557F5544) }
+  { TGreatHail (instance size 64, VMT 557F5544):
+    inherited $34 combat statistics, $3C damage mode. }
   TGreatHail = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TFireBall (instance size 64, VMT 557F5658) }
+  { TFireBall (instance size 64, VMT 557F5658):
+    inherited $34 combat statistics, $3C damage mode. }
   TFireBall = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TGeyser (instance size 64, VMT 557F5768) }
+  { TGeyser (instance size 64, VMT 557F5768):
+    inherited $34 combat statistics, $3C damage mode. }
   TGeyser = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
   end;
 
-  { TIceShards (instance size 64, VMT 557F5874) }
+  { TIceShards (instance size 64, VMT 557F5874):
+    inherited $34 combat statistics, $3C damage mode. }
   TIceShards = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TFrostBeams (instance size 64, VMT 557F5988) }
+  { TFrostBeams (instance size 64, VMT 557F5988):
+    inherited $34 combat statistics, $3C damage mode. }
   TFrostBeams = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TVaporize (instance size 64, VMT 557F5A9C) }
+  { TVaporize (instance size 64, VMT 557F5A9C):
+    inherited $34 combat statistics, $3C damage mode. }
   TVaporize = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TFlamingArrow (instance size 64, VMT 557F5BAC) }
+  { TFlamingArrow (instance size 64, VMT 557F5BAC):
+    inherited $34 combat statistics, $3C damage mode. }
   TFlamingArrow = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TStoning (instance size 64, VMT 557F5CC4) }
+  { TStoning (instance size 64, VMT 557F5CC4):
+    inherited $34 combat statistics, $3C damage mode. }
   TStoning = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TOoze (instance size 64, VMT 557F5DD4) }
+  { TOoze (instance size 64, VMT 557F5DD4):
+    inherited $34 combat statistics, $3C damage mode. }
   TOoze = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
   end;
 
-  { TSacredWrath (instance size 64, VMT 557F5EDC) }
+  { TSacredWrath (instance size 64, VMT 557F5EDC):
+    inherited $34 combat statistics, $3C damage mode. }
   TSacredWrath = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -333,26 +358,28 @@ type
   public
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
-    procedure Generate(A1: Integer);  { draft }
+    procedure Generate(A1: TCombatObject);
   end;
 
-  { TTacticalCombatTerrorCA (instance size 24, VMT 557F60E0) }
+  { TTacticalCombatTerrorCA (instance size 24, VMT 557F60E0):
+    $0C source ID, $0D target ID, $10 casting mana, $14 success. }
   TTacticalCombatTerrorCA = class(TCombatAction)
   public
-    F_TacticalCombatTerrorCA_0C: Byte;
-    F_TacticalCombatTerrorCA_0D: Byte;
+    FSourceID: Byte; { $0C }
+    FTargetID: Byte; { $0D }
     F_TacticalCombatTerrorCA_0E: array[0..1] of Byte;
-    F_TacticalCombatTerrorCA_10: Integer;
-    F_TacticalCombatTerrorCA_14: Byte;
+    FManaCost: Integer; { $10 }
+    FSucceeded: Boolean; { $14 }
     F_TacticalCombatTerrorCA_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure Generate(A1: Integer; A2: Integer);  { draft }
+    procedure Generate(A1, A2: TCombatObject);
   end;
 
-  { TTerror (instance size 64, VMT 557F61D4) }
+  { TTerror (instance size 64, VMT 557F61D4):
+    inherited $34 combat statistics, $3C damage mode. }
   TTerror = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -416,6 +443,7 @@ procedure RegisterCombatSpells(A1: Integer);  { draft }
 procedure UnregisterCombatSpells(A1: Integer);  { draft }
 
 implementation
+
 
 class function TCombatSpellCA.ClassID: Integer;
 begin
@@ -816,199 +844,1048 @@ begin
 end;
 
 constructor TSolarFlare.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(SolarFlareRStr);
+  FSpellID := 100;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 4;
+    DamageTypes := [dtHoly];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 class function TTurnUndeadSpellCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202CC;
+end;
+
 
 procedure TTurnUndeadSpellCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+  Target: TCombatUnit;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  inherited Execute(A1);
+  if FDamage <> 0 then
+  begin
+    Source := A1.FCombatData.FindID(FSourceID);
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    if not (csDestroyed in Target.FStatus) then
+    begin
+      AoWHSSet.FAbilityControl.GetAbility(34).Expand(Target.FUnit);
+      Data := TUnitEnchantmentAbilityData(Target.FUnit.GetAbilityData(34));
+      if Data <> nil then Data.FEnchantmentPlayerIndex := Source.FCombatPlayer;
+    end;
+  end;
+end;
+
 
 constructor TTurnUndead.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(TurnUndeadRStr);
+  FSpellID := 101;
+  FDamageMode := 1;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 5;
+    DamageTypes := [dtHoly];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 function TTurnUndead.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TTurnUndeadSpellCA;
+begin
+  Action := TTurnUndeadSpellCA.Create(nil);
+  Action.FSpellID := FSpellID;
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  if (A2 is TCombatUnit) and (TCombatUnit(A2).FUnit.GetUnitType in [utHumanoid, utCreature]) and
+    ((TCombatUnit(A2).FUnit.GetRace = 11) or TCombatUnit(A2).FUnit.GetAbilityEnabled(129)) then
+    Action.GenerateEx(A1, A2, FCombatInfo.Attack, FCombatInfo.Damage,
+      FCombatInfo.DamageTypes, FDamageMode);
+  Result := Action;
+end;
+
 
 procedure TTurnUndead.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+begin
+  if (A2 is TCombatUnit) and (TCombatUnit(A2).FUnit.GetUnitType in [utHumanoid, utCreature]) and
+    ((TCombatUnit(A2).FUnit.GetRace = 11) or TCombatUnit(A2).FUnit.GetAbilityEnabled(129)) then
+    inherited fcGetDamageValueEx(A1, A2, A3, A4)
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
 class function TFastCombatHighPrayerCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C7;
+end;
+
 
 procedure TFastCombatHighPrayerCA.Execute(A1: TCombat);
-begin end;
+var
+  I: Integer;
+  Target: TCombatObject;
+begin
+  inherited Execute(A1);
+  for I := FTargetIDs.Count - 1 downto 0 do
+  begin
+    Target := A1.FCombatData.FindID(FTargetIDs[I]);
+    Target.SetHitPoints(Target.GetHitPoints + 5);
+    AoWHSSet.FAbilityControl.GetAbility(100).Expand(TCombatUnit(Target).FUnit);
+  end;
+end;
 
-procedure TFastCombatHighPrayerCA.Generate(A1: Integer);
-begin end;
+
+procedure TFastCombatHighPrayerCA.Generate(A1: TCombatObject);
+var
+  I: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+begin
+  FSpellID := 102;
+  FSourceID := A1.FID;
+  with A1.FCombat do Side := FSides[A1.GetSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if (Target is TCombatUnit) and not (csDestroyed in Target.FStatus) then
+      FTargetIDs.Add(Target.FID);
+  end;
+end;
+
 
 class function TTacticalCombatHighPrayerCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202CA;
+end;
+
 
 procedure TTacticalCombatHighPrayerCA.Execute(A1: TCombat);
-begin end;
+var
+  Target: TCombatObject;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Target := A1.FCombatData.FindID(FTargetID);
+    Target.SetHitPoints(Target.GetHitPoints + 5);
+    AoWHSSet.FAbilityControl.GetAbility(100).Expand(TCombatUnit(Target).FUnit);
+  end;
+end;
+
 
 constructor THighPrayer.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(HighPrayerRStr);
+  FSpellID := 102;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 0;
+    DamageTypes := [];
+    RepeatCount := 1;
+    Range := -1;
+    TargetTypes := [cttFriend];
+  end;
+end;
+
 
 function THighPrayer.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TTacticalCombatHighPrayerCA;
+begin
+  Action := TTacticalCombatHighPrayerCA.Create(nil);
+  Action.FSucceeded := True;
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  Result := Action;
+end;
 
 procedure THighPrayer.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
-begin end;
+var
+  I: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+  Value: Integer;
+  Command: TSpellCC;
+begin
+  Value := 0;
+  Side := A1.FCombat.FSides[A1.FSource.GetSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if (Target.FCombatValue <> 0) and (Target is TCombatUnit) then
+      Inc(Value, DVtoDEV((Target.GetHits - Target.GetHitPoints) * 100, 0, A1.FSource, Target));
+  end;
+  if Value <> 0 then
+  begin
+    Command := TSpellCC.Create(52);
+    Command.FTarget := nil;
+    Command.FMoveCost := 1;
+    Command.FSpellID := FSpellID;
+    Command.FExpectedDV := Value;
+    A1.Add(Command);
+  end;
+end;
+
 
 function THighPrayer.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+var
+  Action: TFastCombatHighPrayerCA;
+begin
+  Action := TFastCombatHighPrayerCA.Create(nil);
+  Action.Generate(A1);
+  Action.FManaCost := THero(TCombatUnit(A1).FUnit).CastingMana(Self);
+  A1.FCombat.ExecuteCombatAction(Action);
+  Action.Release;
+  Result := True;
+end;
+
 
 procedure THighPrayer.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+var
+  I, Value, Healing: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+begin
+  Value := 0;
+  Side := A1.FCombat.FSides[A1.GetSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if (Target.FCombatValue <> 0) and (Target is TCombatUnit) then
+    begin
+      Healing := Target.GetHits - Target.GetHitPoints;
+      if Healing > 5 then Healing := 5;
+      Inc(Value, Healing * 100);
+    end;
+  end;
+  if Value <> 0 then
+  begin
+    A4.SourceDamage := Value;
+    A4.SourceCost := Value div 100;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [dtDeath];
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
+
 
 procedure THighPrayer.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+var
+  Healing, Value: Integer;
+begin
+  Healing := A2.GetHits - A2.GetHitPoints;
+  if Healing > 5 then Healing := 5;
+  Value := Healing * 100;
+  if Value <> 0 then
+  begin
+    A3.SourceDamage := Value;
+    A3.SourceCost := Value div 100;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [dtDeath];
+  end
+  else
+  begin
+    A3.SourceDamage := 0;
+    A3.SourceCost := 0;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [];
+  end;
+end;
+
 
 constructor TDeathRay.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(DeathRayRStr);
+  FSpellID := 103;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 4;
+    DamageTypes := [dtDeath];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 constructor TDiseaseCloud.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(DiseaseCloudRStr);
+  FSpellID := 104;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 3;
+    DamageTypes := [dtDeath];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 class function TMindDecayCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202CB;
+end;
+
 
 procedure TMindDecayCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+  Target: TCombatUnit;
+  I: Integer;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Source := A1.FCombatData.FindID(FSourceID);
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    Source.SetExperience(Source.GetExperience + Target.GetLevel);
+    for I := 0 to 2 do
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).ResetCommandedUnits(Target);
+    for I := 0 to 2 do
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).Uncommand(Target);
+    AoWHSSet.FAbilityControl.GetAbility(131).Expand(Target.FUnit);
+    Target.SetCombatPlayer(Source.FCombatPlayer);
+  end;
+end;
+
 
 constructor TMindDecay.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(MindDecayRStr);
+  FSpellID := 106;
+  with FCombatInfo do
+  begin
+    Attack := 5;
+    Damage := 0;
+    DamageTypes := [dtNone];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 3;
+  end;
+end;
+
 
 function TMindDecay.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TMindDecayCA;
+begin
+  Action := TMindDecayCA.Create(nil);
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  if (A2 is TCombatUnit) and (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) and
+    (TCombatUnit(A2).FUnit.GetRace <> 11) and not TCombatUnit(A2).FUnit.GetAbilityEnabled(129) and
+    not (TCombatUnit(A2).FUnit is TLeader) then
+    Action.FSucceeded := HitRole(FCombatInfo.Attack - A2.GetResistance);
+  Result := Action;
+end;
+
 
 constructor TChainLightning.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(ChainLightningRStr);
+  FSpellID := 107;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 4;
+    DamageTypes := [dtLightning];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 3;
+  end;
+end;
+
 
 constructor TColdBreath.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(ColdBreathRStr);
+  FSpellID := 108;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 5;
+    DamageTypes := [dtCold];
+    RepeatCount := 1;
+    Range := 4;
+  end;
+end;
+
 
 class function TSlowCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202D0;
+end;
+
 
 procedure TSlowCA.Execute(A1: TCombat);
-begin end;
+var
+  Target: TCombatUnit;
+  Source: TCombatObject;
+  Enchantment: TUnitEnchantment;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    Source := A1.FCombatData.FindID(FSourceID);
+    if Target.FUnit.ExpandAbility(132) then
+    begin
+      Enchantment := TUnitEnchantmentAbilityData(Target.FUnit.GetAbilityData(132)).FEnchantment;
+      Enchantment.SetUpkeep(0);
+      Enchantment.SetSource(Source.GetPlayer);
+    end;
+  end;
+end;
+
 
 constructor TSlow.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(SlowRStr);
+  FSpellID := 110;
+  with FCombatInfo do
+  begin
+    Attack := 9;
+    Damage := 0;
+    DamageTypes := [dtNone];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 procedure TSlow.GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+begin
+  with A3 do
+  begin
+    SourceDamage := 0;
+    SourceCost := 0;
+    TargetDamage := 0;
+    TargetCost := 0;
+    DamageTypes := [];
+  end;
+end;
+
 
 function TSlow.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TSlowCA;
+begin
+  Action := TSlowCA.Create(nil);
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  if not A2.GetAbilityEnabled(132) then
+    Action.FSucceeded := HitRole(FCombatInfo.Attack - A2.GetResistance);
+  Result := Action;
+end;
+
 
 class function TEntangleSpellCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C8;
+end;
+
 
 procedure TEntangleSpellCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+  Target: TCombatUnit;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Source := A1.FCombatData.FindID(FSourceID);
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    AoWHSSet.FAbilityControl.GetAbility(94).Expand(Target.FUnit);
+    Data := TUnitEnchantmentAbilityData(Target.FUnit.GetAbilityData(94));
+    if Data <> nil then Data.FEnchantmentPlayerIndex := Source.FCombatPlayer;
+  end;
+end;
+
 
 constructor TEntangle.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(EntangleRStr);
+  FSpellID := 111;
+  with FCombatInfo do
+  begin
+    Attack := 7;
+    Damage := 0;
+    DamageTypes := [dtNone];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 function TEntangle.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TEntangleSpellCA;
+begin
+  Action := TEntangleSpellCA.Create(nil);
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  if not A2.GetAbilityEnabled(1) and not A2.GetAbilityEnabled(94) then
+    Action.FSucceeded := HitRole(FCombatInfo.Attack - A2.GetResistance);
+  Result := Action;
+end;
+
 
 procedure TEntangle.GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+begin
+  if not A2.GetAbilityEnabled(1) and not A2.GetAbilityEnabled(94) then
+  begin
+    A3.SourceDamage := Round((A2.GetHitPoints * 100) * HitRoleProbability(FCombatInfo.Attack - A2.GetResistance));
+    A3.SourceCost := A2.GetHitPoints;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [dtNone];
+  end
+  else
+  begin
+    A3.SourceDamage := 0;
+    A3.SourceCost := 0;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [];
+  end;
+end;
+
 
 constructor TTremors.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TremorsRStr; { Original leaves this spell name untranslated. }
+  FSpellID := 112;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 5;
+    DamageTypes := [dtPhysical, dtWall];
+    RepeatCount := 1;
+    Range := -1;
+    Radius := 5;
+  end;
+end;
+
 
 constructor TCallFlames.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(CallFlamesRStr);
+  FSpellID := 113;
+  with FCombatInfo do
+  begin
+    Attack := 9;
+    Damage := 3;
+    DamageTypes := [dtFire];
+    RepeatCount := 1;
+    Range := 8;
+    Radius := 1;
+  end;
+end;
+
 
 constructor TFireBreath.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(FireBreathRStr);
+  FSpellID := 114;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 5;
+    DamageTypes := [dtFire];
+    RepeatCount := 1;
+    Range := 4;
+    Radius := 3;
+  end;
+end;
+
 
 constructor TSwarm.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(SwarmRStr);
+  FSpellID := 115;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 2;
+    DamageTypes := [dtFire];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 5;
+  end;
+end;
+
 
 constructor TGreatHail.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(GreatHailRStr);
+  FSpellID := 116;
+  with FCombatInfo do
+  begin
+    Attack := 5;
+    Damage := 5;
+    DamageTypes := [dtPhysical, dtWall];
+    RepeatCount := 3;
+    Range := 12;
+    Radius := 2;
+  end;
+end;
+
 
 constructor TFireBall.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(FireBallRStr);
+  FSpellID := 117;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 6;
+    DamageTypes := [dtFire, dtWall];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 constructor TGeyser.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(GeyserRStr);
+  FSpellID := 118;
+  with FCombatInfo do
+  begin
+    Attack := 9;
+    Damage := 5;
+    DamageTypes := [dtPhysical];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 1;
+  end;
+end;
+
 
 function TGeyser.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TCombatSpellCA;
+begin
+  Action := TCombatSpellCA.Create(nil);
+  Action.FSpellID := FSpellID;
+  if A2.GetAbilityEnabled(1) or A2.GetAbilityEnabled(59) then
+    Action.Generate(A1, A2, FCombatInfo.Attack, FCombatInfo.Damage div 2, FCombatInfo.DamageTypes)
+  else
+    Action.Generate(A1, A2, FCombatInfo.Attack, FCombatInfo.Damage, FCombatInfo.DamageTypes);
+  if A3 then Action.FManaCost := THero(TCombatUnit(A1).FUnit).CastingMana(Self);
+  Result := Action;
+end;
+
 
 constructor TIceShards.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(IceShardsRStr);
+  FSpellID := 119;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 4;
+    DamageTypes := [dtPhysical];
+    RepeatCount := 3;
+    Range := 12;
+  end;
+end;
+
 
 constructor TFrostBeams.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(FrostBeamsRStr);
+  FSpellID := 120;
+  with FCombatInfo do
+  begin
+    Attack := 9;
+    Damage := 3;
+    DamageTypes := [dtCold];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 3;
+  end;
+end;
+
 
 constructor TVaporize.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(VaporizeRStr);
+  FSpellID := 121;
+  FDamageMode := 1;
+  with FCombatInfo do
+  begin
+    Attack := 7;
+    Damage := 5;
+    DamageTypes := [dtPhysical];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 constructor TStoning.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(StoningRStr);
+  FSpellID := 122;
+  with FCombatInfo do
+  begin
+    Attack := 5;
+    Damage := 2;
+    DamageTypes := [dtPhysical];
+    RepeatCount := 6;
+    Range := 12;
+  end;
+end;
+
 
 constructor TFlamingArrow.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(FlamingArrowRStr);
+  FSpellID := 123;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 4;
+    DamageTypes := [dtFire, dtPhysical];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
+
 
 constructor TOoze.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(OozeRStr);
+  FSpellID := 124;
+  with FCombatInfo do
+  begin
+    Attack := 0;
+    Damage := 0;
+    DamageTypes := [];
+    RepeatCount := 0;
+    Range := 8;
+  end;
+end;
+
 
 procedure TOoze.GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+var
+  Protection, Immunity: TDamageTypes;
+begin
+  Protection := A2.GetProtectionTypes;
+  Immunity := A2.GetImmunityTypes;
+  A3.DamageTypes := FCombatInfo.DamageTypes;
+  A3.SourceDamage := Round(HitRoleProbability(FCombatInfo.Attack - A2.GetResistance) * 200);
+  A3.SourceCost := 200;
+  A3.TargetDamage := 0;
+  A3.TargetCost := 0;
+end;
+
 
 constructor TSacredWrath.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(SacredWrathRStr);
+  FSpellID := 125;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 5;
+    DamageTypes := [dtHoly];
+    RepeatCount := 1;
+    Range := 8;
+    Radius := 3;
+  end;
+end;
+
 
 class function TFastCombatTerrorCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C1;
+end;
+
 
 procedure TFastCombatTerrorCA.Execute(A1: TCombat);
-begin end;
+var
+  I: Integer;
+  Target: TCombatUnit;
+begin
+  inherited Execute(A1);
+  for I := FTargetIDs.Count - 1 downto 0 do
+  begin
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetIDs[I]));
+    AoWHSSet.FAbilityControl.GetAbility(108).Expand(Target.FUnit);
+  end;
+end;
 
-procedure TFastCombatTerrorCA.Generate(A1: Integer);
-begin end;
+
+procedure TFastCombatTerrorCA.Generate(A1: TCombatObject);
+var
+  I: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+begin
+  FSpellID := 105;
+  FSourceID := A1.FID;
+  with A1.FCombat do Side := FSides[A1.GetOpponentSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if not (csDestroyed in Target.FStatus) and not Target.GetAbilityEnabled(108) and
+      not Target.GetAbilityEnabled(67) and (Target is TCombatUnit) and
+      not (dtDeath in Target.GetImmunityTypes) and
+      (TCombatUnit(Target).FUnit.GetUnitType <> utMachine) and
+      HitRole(6 - Target.GetResistance) then FTargetIDs.Add(Target.FID);
+  end;
+end;
+
 
 class function TTacticalCombatTerrorCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C9;
+end;
+
 
 procedure TTacticalCombatTerrorCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FSourceID, 20);
+  Stream.rwByte(FTargetID, 21);
+  Stream.rwInteger(FManaCost, 22);
+  Stream.rwBool(FSucceeded, 23);
+end;
+
 
 procedure TTacticalCombatTerrorCA.Execute(A1: TCombat);
-begin end;
+var
+  Target, Source: TCombatUnit;
+begin
+  if FSucceeded then
+  begin
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    AoWHSSet.FAbilityControl.GetAbility(108).Expand(Target.FUnit);
+  end;
+  if (FManaCost <> 0) and (cExecuting in A1.FStatus) then
+  begin
+    Source := TCombatUnit(A1.FCombatData.FindID(FSourceID));
+    AoWHSSet.FSpellControl.GetSpell(105).CastingDone(Source.FUnit, FManaCost);
+  end;
+end;
+
 
 function TTacticalCombatTerrorCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  Execute(A1.FCombat);
+  Result := False;
+end;
 
-procedure TTacticalCombatTerrorCA.Generate(A1: Integer; A2: Integer);
-begin end;
+
+procedure TTacticalCombatTerrorCA.Generate(A1, A2: TCombatObject);
+begin
+  FSucceeded := False;
+  FSourceID := A1.FID;
+  FTargetID := A2.FID;
+  if not A2.GetAbilityEnabled(108) and not A2.GetAbilityEnabled(67) and
+    (A2 is TCombatUnit) and not (dtDeath in A2.GetImmunityTypes) and
+    (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) then
+    FSucceeded := HitRole(6 - A2.GetResistance);
+end;
+
 
 constructor TTerror.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(TerrorRStr);
+  FSpellID := 105;
+  with FCombatInfo do
+  begin
+    Attack := 6;
+    Damage := 0;
+    DamageTypes := [dtDeath];
+    RepeatCount := 1;
+    Range := -1;
+  end;
+end;
+
 
 function TTerror.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TTacticalCombatTerrorCA;
+begin
+  Action := TTacticalCombatTerrorCA.Create(nil);
+  Action.Generate(A1, A2);
+  if A3 then Action.FManaCost := THero(TCombatUnit(A1).FUnit).CastingMana(Self);
+  Result := Action;
+end;
+
 
 procedure TTerror.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
-begin end;
+var
+  I: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+  Value: Integer;
+  Command: TSpellCC;
+begin
+  Value := 0;
+  Side := A1.FCombat.FSides[A1.FSource.GetOpponentSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if not Target.GetAbilityEnabled(108) and (Target.FCombatValue <> 0) and
+      (Target is TCombatUnit) and not (dtDeath in Target.GetImmunityTypes) then
+      Inc(Value, Target.GetTargetPriority);
+  end;
+  if Value <> 0 then
+  begin
+    Command := TSpellCC.Create(52);
+    Command.FTarget := nil;
+    Command.FMoveCost := 1;
+    Command.FSpellID := FSpellID;
+    Command.FExpectedDV := Value;
+    A1.Add(Command);
+  end;
+end;
+
 
 function TTerror.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+var
+  Action: TFastCombatTerrorCA;
+begin
+  Action := TFastCombatTerrorCA.Create(nil);
+  Action.Generate(A1);
+  Action.FManaCost := THero(TCombatUnit(A1).FUnit).CastingMana(Self);
+  A1.FCombat.ExecuteCombatAction(Action);
+  Action.Release;
+  Result := True;
+end;
+
 
 procedure TTerror.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+var
+  I, Value: Integer;
+  Side: TCombatSide;
+  Target: TCombatObject;
+begin
+  Value := 0;
+  Side := A1.FCombat.FSides[A1.GetOpponentSide];
+  for I := Side.GetCount - 1 downto 0 do
+  begin
+    Target := Side.GetObjects(I);
+    if not Target.GetAbilityEnabled(108) and (Target.FCombatValue <> 0) and
+      (Target is TCombatUnit) and not (dtDeath in Target.GetImmunityTypes) then
+      Inc(Value, Round(HitRoleProbability(6 - Target.GetResistance) * 100));
+  end;
+  if Value <> 0 then
+  begin
+    A4.SourceDamage := Value;
+    A4.SourceCost := Value div 100;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [dtDeath];
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
+
 
 procedure TTerror.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+var
+  Value: Integer;
+begin
+  if not A2.GetAbilityEnabled(108) and (A2.FCombatValue <> 0) and
+    (A2 is TCombatUnit) and not (dtDeath in A2.GetImmunityTypes) then
+    Value := Round(HitRoleProbability(6 - A2.GetResistance) * 100)
+  else Value := 0;
+  if Value <> 0 then
+  begin
+    A3.SourceDamage := Value;
+    A3.SourceCost := Value div 100;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [dtDeath];
+  end
+  else
+  begin
+    A3.SourceDamage := 0;
+    A3.SourceCost := 0;
+    A3.TargetDamage := 0;
+    A3.TargetCost := 0;
+    A3.DamageTypes := [];
+  end;
+end;
+
 
 constructor TWindsOfFury.Create(AOwner: Engine.TECustomNode);
 begin end;

@@ -61,7 +61,7 @@
     function RemoveAbility(A1: Integer): Boolean; override;
     function GetUpkeep: Shortint; virtual;  { +09C draft }
     function GetUnitLevel: Shortint; virtual;
-    function GetRace: Shortint; virtual;  { +0A4 draft }
+    function GetRace: Shortint; virtual; { +0A4; 557F7CBA }
     function GetInherentAttack: Shortint; virtual;  { +0A8 draft }
     function GetInherentDefense: Shortint; virtual;  { +0AC draft }
     function GetInherentDamage: Shortint; virtual;  { +0B0 draft }

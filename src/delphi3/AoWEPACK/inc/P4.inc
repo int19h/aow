@@ -80,7 +80,7 @@ type
   end;
 
 const
-  P4CommandAbilityIDs: array[0..2] of Integer = (29, 28, 148);
+  { CommandAbilityIDs is declared in the interface (557F8492). }
   P4LeadershipAttack: array[0..4] of Shortint = (0, 1, 1, 2, 2);
   P4LeadershipDefense: array[0..4] of Shortint = (2, 0, 1, 1, 2);
   { Class-reference constants used by the recovered multilevel implementation. }
@@ -129,8 +129,8 @@ resourcestring
   FlameThrowingRStr = 'Flame Throwing';
   UsedRStr = 'Used';
   SelectUnitForXRStr = 'Select unit for %s';
-  EntangleRStr = 'Entangle';
-  TurnUndeadRStr = 'Turn Undead';
+  { EntangleRStr is declared in the interface (557F8A68). }
+  { TurnUndeadRStr is declared in the interface (557F7B94). }
   StrikeRStr = 'Strike';
   WallCrushingRStr = 'Wall Crushing';
   SelfDestructRStr = 'Self Destruct';
@@ -2628,9 +2628,9 @@ begin
     Source := TCombatUnit(A1.FCombatData.FindID(FSourceID));
     Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
     for I := 0 to 2 do
-      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).ResetCommandedUnits(Target);
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).ResetCommandedUnits(Target);
     for I := 0 to 2 do
-      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).Uncommand(Target);
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).Uncommand(Target);
     NewUnit := Target.FUnit;
     NewUnit.AddRef;
     Target.SetUnit(nil);
@@ -5379,9 +5379,9 @@ begin
     Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
     Source.SetExperience(Source.GetExperience + Target.GetLevel);
     for I := 0 to 2 do
-      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).ResetCommandedUnits(Target);
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).ResetCommandedUnits(Target);
     for I := 0 to 2 do
-      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).Uncommand(Target);
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(CommandAbilityIDs[I])).Uncommand(Target);
     if Source.GetSide <> Target.GetSide then
       TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(FAbilityID)).Command(Source, Target);
   end;

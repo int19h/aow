@@ -229,7 +229,7 @@ begin
   if FUnit <> nil then Result := TAbstractUnit(FUnit).GetAbilityCount else Result := 0;
 end;
 
-function TCombatUnit.GetHits: Byte;
+function TCombatUnit.GetHits: Shortint;
 var U: TAbstractUnit;
 begin
   U := TAbstractUnit(FUnit);
@@ -687,7 +687,7 @@ begin Result := 3; end;
 function TCombatWall.IDStr: string;
 begin Result := 'Wall'; end;
 
-function TCombatWall.GetHits: Byte;
+function TCombatWall.GetHits: Shortint;
 begin if FWallType = 2 then Result := 10 else Result := 5; end;
 
 function TCombatWall.GetHitPoints: Shortint;
@@ -1032,7 +1032,7 @@ begin Result := []; end;
 function TCombatObject.GetMoves: Integer;
 begin Result := 0; end;
 
-function TCombatObject.GetHits: Byte;
+function TCombatObject.GetHits: Shortint;
 begin Result := 0; end;
 
 procedure TCombatObject.SetHitPoints(A1: Byte);

@@ -169,10 +169,10 @@
     function GetDamage: Shortint; virtual;  { +078 draft }
     function GetImmunityTypes: TDamageTypes; virtual;  { +07C }
     function GetProtectionTypes: TDamageTypes; virtual;  { +080 }
-    function GetHits: Byte; virtual;  { +084 draft }
+    function GetHits: Shortint; virtual;  { +084; 557F8068 }
     { conflict: function GetHits: Shortint; virtual; }
     function GetHitPoints: Shortint; virtual;  { +088 }
-    procedure SetHitPoints(A1: Byte); virtual;  { +08C draft }
+    procedure SetHitPoints(A1: Byte); virtual; { +08C; 557F7DEC }
     { conflict: procedure SetHitPoints(A1: Shortint); virtual; }
     function GetAlignment: TAlignment; virtual;  { +090 draft }
     function GetMoves: Integer; virtual;  { +094 draft }
@@ -180,7 +180,7 @@
     procedure SetExperience(A1: Integer); virtual;  { +09C draft }
     function GetLevel: Byte; virtual;  { +0A0 draft }
     function GetVisibilityRange: Integer; virtual;  { +0A4 draft }
-    function GetAbilityEnabled(A1: Integer): Boolean; virtual;  { +0A8 draft }
+    function GetAbilityEnabled(A1: Integer): Boolean; virtual; { +0A8; 557F89BC }
     procedure SetAbilityEnabled(A1: Integer; A2: Boolean); virtual;  { +0AC draft }
     function GetAbilityLevel(A1: Integer): Integer; virtual;  { +0B0 draft }
     function GetAbilityCount: Integer; virtual;  { +0B4 draft }
@@ -255,7 +255,7 @@
     function GetDamage: Shortint; override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetProtectionTypes: TDamageTypes; override;
-    function GetHits: Byte; override;
+    function GetHits: Shortint; override;
     { conflict: function GetHits: Shortint; override; }
     function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Byte); override;
@@ -321,7 +321,7 @@
     function GetDefense: Shortint; override;
     function GetResistance: Shortint; override;
     function GetImmunityTypes: TDamageTypes; override;
-    function GetHits: Byte; override;
+    function GetHits: Shortint; override;
     { conflict: function GetHits: Shortint; override; }
     function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Byte); override;
@@ -350,7 +350,7 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    function GetObjects(A1: Integer): TCombatObject;  { draft }
+    function GetObjects(A1: Integer): TCombatObject; { 557F7E59 }
     function IndexOfID(A1: Integer): Integer;  { draft }
     function GetDestroyedObjects: Integer;  { draft }
     function GetUndestroyedConquerObjects: Integer;  { draft }

@@ -94,6 +94,8 @@ function ValidateAoWEngine: Boolean;
 var
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
 
+const
+  CommandAbilityIDs: array[0..2] of Integer = (29, 28, 148); { 557F8492 }
 resourcestring
   SystemRStr = 'System';
   { conflict: DispelMagicRStr = 'Dispel Magic'; }
@@ -184,7 +186,7 @@ resourcestring
   CPUKnightRStr = 'CPU Knight';
   CPULordRStr = 'CPU Lord';
   CPUWarriorRStr = 'CPU Squire';
-  CallHeroRStr = 'Call Hero';
+  CallHeroRStr = 'Call Hero'; CallFlamesRStr = 'Call Flames'; { 557F8CE4 }
   CallLightningRStr = 'Call Lightning';
   CampaignMapRStr = 'Campaign map';
   CampaignRStr = 'Campaign';
@@ -238,7 +240,7 @@ resourcestring
   CoPublishedByRStr = '                ';
   ColdImmunityRStr = 'Cold Immunity';
   ColdProtectionRStr = 'Cold Protection';
-  ColdRStr = 'Cold';
+  ColdRStr = 'Cold'; ColdBreathRStr = 'Cold Breath'; { 557F8758 }
   CombatRStr = 'Combat';
   CommonRStr = 'Common';
   ConcealAreaRStr = 'Conceal Area';
@@ -328,7 +330,7 @@ resourcestring
   EnchantmentRStr = 'Enchantment';
   EnhancementRStr = 'Enhancement';
   EnhancementsRStr = 'Enhancements';
-  EntangledRStr = 'Entangled';
+  EntangledRStr = 'Entangled'; EntangleRStr = 'Entangle'; { 557F8A68 }
   EnterLibraryNameRStr = 'Enter library name';
   EnterNewPasswordRStr = 'Enter new password:';
   EnterPasswordRStr = 'Enter password:';
@@ -351,7 +353,7 @@ resourcestring
   FileNameXRStr = 'File name: %s';
   FinishRStr = 'Finish';
   FireAuraRStr = 'Fire Halo';
-  FireBallRStr = 'Fireball';
+  FireBallRStr = 'Fireball'; FireBreathRStr = 'Fire Breath'; { 557F8DA0 }
   FireBarrierRStr = 'Fire Barrier';
   FireImmunityRStr = 'Fire Immunity';
   FireMasteryRStr = 'Fire Mastery';
@@ -779,7 +781,7 @@ resourcestring
   TunnelingRStr = 'Tunneling';
   TurnModeXRStr = 'Turn mode: %s';
   TurnRStr = 'Turn';
-  TurnedUndeadRStr = 'Turned Undead';
+  TurnedUndeadRStr = 'Turned Undead'; TurnUndeadRStr = 'Turn Undead'; { 557F7B94 }
   TurnsRStr = 'Turns';
   TurnsXRStr = 'Turns: %s';
   TutorialMessageEventRStr = 'Tutorial Message Event';
