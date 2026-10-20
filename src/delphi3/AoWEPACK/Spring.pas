@@ -17,7 +17,7 @@ type
   { TSpringOfLifeAnimation (instance size 60, VMT 557A3858) }
   TSpringOfLifeAnimation = class(TAnimation)
   public
-    procedure AnimationControlMode; override;
+    function AnimationControlMode: TAnimationControlMode; override;
     procedure NewFrame; override;
   end;
 
@@ -26,7 +26,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure ArmyPlaced(A1: Integer); override;
+    procedure ArmyPlaced(A1: TArmyHS); override;
     procedure ShowBlessingAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
     procedure ExecuteNaturesBlessing(ArmyHS: TArmyHS);
   end;
@@ -56,7 +56,7 @@ const
 
 { needs: AnimationControlMode returns TAnimationControlMode in AL. }
 
-procedure TSpringOfLifeAnimation.AnimationControlMode;
+function TSpringOfLifeAnimation.AnimationControlMode: TAnimationControlMode;
 asm
   MOV AL,SpringMode
 end;
@@ -106,7 +106,7 @@ begin
   end;
 end;
 
-procedure TSpringOfLife.ArmyPlaced(A1: Integer);
+procedure TSpringOfLife.ArmyPlaced(A1: TArmyHS);
 begin
   inherited ArmyPlaced(A1);
   if not (TMapField(Owner).TerrainType in [3, 5]) then ExecuteNaturesBlessing(TArmyHS(A1));

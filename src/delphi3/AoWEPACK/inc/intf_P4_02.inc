@@ -891,7 +891,7 @@
     F_Spell_0D: array[0..2] of Byte;
     FSpellID: Integer;
     FBaseManaCost: Integer;
-    F_Spell_18: Integer;
+    FResearchCost: Integer; { $18; 557D5EE7 }
     FManaUpkeep: Integer; { $1C }
     FMagicSphere: TMagicSphere; { $20 }
     FSpellLevel: Byte;

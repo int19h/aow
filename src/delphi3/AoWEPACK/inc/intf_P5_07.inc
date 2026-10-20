@@ -31,11 +31,14 @@
     FLeaderID: Integer; { $2C }
     FTransporterID: Integer; { $30 }
     FTargetStatus: TAIGroupTargetStatus; { $34 }
+    { conflict: FIndependentRelation: Shortint; }
     F_AIGroup_35: array[0..2] of Byte;
     FTargetXYL: TXYL; { $38 }
+    { conflict: FTargetLocation: Integer; }
     FTargetType: TAIGroupTargetType; { $3C }
     F_AIGroup_3D: array[0..2] of Byte;
     FGoldBudget: Integer; { $40 }
+    { conflict: FTargetGold: Integer; }
     FManaBudget: Integer; { $44 }
     FTargetMovePoints: Integer; { $48 }
     FTargetMode: Byte; { $4C }
@@ -70,11 +73,11 @@
     procedure GetMovePointsMin;  { draft }
     procedure GetMovesMin;  { draft }
     procedure ResetTargetExpense;  { draft }
-    procedure ReturnTargetExpense;  { draft }
+    procedure ReturnTargetExpense;
     procedure RequestTargetExpense(A1: Integer; A2: Integer);  { draft }
     procedure MakeTargetExpense(A1: Integer; A2: Integer);  { draft }
-    procedure SetupTargetEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
-    procedure SetupTarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function SetupTargetEx(A1: TXYL; A2, A3, A4, A5: Integer; A6: Byte; A7: TAIGroupTargetStatus): Boolean;
+    function SetupTarget(A1: TAIGroupControlTarget; A2: TAIGroupTargetStatus; A3: Boolean): Boolean;
     procedure ValidateEmpty;  { draft }
     procedure AddTransporter(A1: Integer);  { draft }
     procedure UnitProduced(A1: Integer; A2: Integer);  { draft }
@@ -102,19 +105,14 @@
   TAIGroupControlTarget = class(TEObject)
   public
     F_AIGroupControlTarget_08: Integer;
-    F_AIGroupControlTarget_0C: Byte;
-    F_AIGroupControlTarget_0D: array[0..10] of Byte;
-    F_AIGroupControlTarget_18: Integer;
-    F_AIGroupControlTarget_1C: Byte;
-    F_AIGroupControlTarget_1D: array[0..2] of Byte;
-    F_AIGroupControlTarget_20: Integer;
-    F_AIGroupControlTarget_24: array[0..11] of Byte;
-    F_AIGroupControlTarget_30: Integer;
-    F_AIGroupControlTarget_34: Integer;
-    F_AIGroupControlTarget_38: Integer;
+    FInfo: TAITargetInfo; { $0C; 557D77A4 }
+    FData: TAITargetData; { $18; 557D77BE }
+    FLocation: TXYL; { $30; 557D77CD }
+    FMovePoints: Integer; { $34; 557D77D3 }
+    FTransporterID: Integer; { $38; 557D77FF }
     F_AIGroupControlTarget_3C: Byte;
     F_AIGroupControlTarget_3D: array[0..2] of Byte;
-    F_AIGroupControlTarget_40: Integer;
+    FPathStrength: Integer; { $40; 557D77F4 }
     F_AIGroupControlTarget_44: Integer;
     F_AIGroupControlTarget_48: array[0..3] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -130,10 +128,10 @@
   TAIGroupControlTargetList = class(TEReferenceNode)
   public
     F_AIGroupControlTargetList_0C: Integer;
-    procedure GetTargets(A1: Integer);  { draft }
-    procedure SortOnPriority;  { draft }
+    function GetTargets(A1: Integer): TAIGroupControlTarget;
+    procedure SortOnPriority;
     procedure SortOnDataB;  { draft }
-    procedure Add;  { draft }
+    procedure Add(A1: TAIGroupControlTarget);
     procedure Delete(A1: Integer);  { draft }
     procedure Validate;  { draft }
     procedure IndexOfXYL(A1: Integer);  { draft }
@@ -201,16 +199,16 @@
     F_AIGroupControlPlugin_10: Integer;
     F_AIGroupControlPlugin_14: Byte;
     F_AIGroupControlPlugin_15: array[0..2] of Byte;
-    F_AIGroupControlPlugin_18: Integer;
+    FState: Integer; { $18; 557D7422 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure Validate; virtual;  { $4C }
     procedure GetBusy; virtual;  { +050 draft }
-    procedure Activate(A1: Integer; A2: Integer); virtual;  { +054 draft }
+    function Activate(Control: TAIGroupControl): Boolean; virtual;
     procedure Deactivate; virtual;  { +058 draft }
-    procedure Process(A1: Integer; A2: Integer); virtual;  { +05C draft }
-    procedure Done;  { draft }
+    function Process: Boolean; virtual;
+    procedure Done;
     procedure MainProcess;  { draft }
   end;
 
@@ -221,21 +219,20 @@
     FGroup: TAIGroup; { $0C }
     F_AIGroupControl_10: Byte;
     F_AIGroupControl_11: array[0..2] of Byte;
-    F_AIGroupControl_14: Integer;
+    FLocation: TXYL; { $14; 557D74F8 }
     F_AIGroupControl_18: Integer;
-    F_AIGroupControl_1C: Integer;
-    F_AIGroupControl_20: Byte;
+    FArmyHS: TArmyHS; { $1C; 557D7B43 }
+    FSelection: Byte; { $20; 557D7B4C }
     F_AIGroupControl_21: array[0..2] of Byte;
     F_AIGroupControl_24: Integer;
     F_AIGroupControl_28: Byte;
     F_AIGroupControl_29: array[0..38] of Byte;
-    F_AIGroupControl_50: Integer;
-    F_AIGroupControl_54: Byte;
-    F_AIGroupControl_55: array[0..254] of Byte;
+    FStrengthMax: Integer; { $50; 557D7805 }
+    FMovePointTable: TMovePointTable; { $54; 557D7845 }
     F_AIGroupControl_154: Word;
     F_AIGroupControl_156: array[0..1] of Byte;
     F_AIGroupControl_158: Integer;
-    F_AIGroupControl_15C: Integer;
+    FMoveExecuter: TAIMoveExecuter; { $15C; 557D7974 }
     F_AIGroupControl_160: Integer;
     F_AIGroupControl_164: Integer;
     F_AIGroupControl_168: Integer;
@@ -253,8 +250,8 @@
     procedure Activate; virtual;  { +06C draft }
     procedure Deactivate; virtual;  { +070 draft }
     procedure ResetME; virtual;  { +074 draft }
-    procedure SetupME(A1: Integer; A2: Integer); virtual;  { +078 draft }
-    procedure ExecuteME(A1: Integer; A2: Integer; A3: Integer); virtual;  { +07C draft }
+    procedure SetupME; virtual; { +078 }
+    procedure ExecuteME(A1, A2, A3: Shortint); virtual; { +07C }
     procedure Done;  { draft }
     procedure GetStrengthMax(A1: Word; A2: Integer);  { draft }
     procedure UpdateGroupChanges;  { draft }
@@ -284,8 +281,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Reset; virtual;  { +060 draft }
     procedure Setup(A1: Integer); virtual;  { +064 draft }
     procedure TargetFoundEvent(A1: Integer; A2: Integer);  { draft }
@@ -317,8 +314,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
   end;
 
   { TAIRecruitmentGroupFinder (instance size 52, VMT 5571AE1C) }
@@ -334,8 +331,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Setup(A1: Integer); virtual;  { +060 draft }
     procedure RecruitGroupFoundEvent(A1: Integer; A2: Integer);  { draft }
     procedure Reset;  { draft }
@@ -366,8 +363,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Setup; virtual;  { +060 draft }
     procedure GetRecruitedStrength;  { draft }
     procedure GetRecruitStrengthEx(A1: Integer);  { draft }
@@ -406,8 +403,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Setup(A1: Integer; A2: Integer); virtual;  { +060 draft }
     procedure GetCooperateMoveDays(A1: Integer; A2: Integer);  { draft }
     procedure GetCooperatedStrength;  { draft }
@@ -433,8 +430,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Setup(A1: Integer); virtual;  { +060 draft }
     procedure ProductionLocationFoundEvent(A1: Integer; A2: Integer);  { draft }
     procedure Reset;  { draft }
@@ -505,8 +502,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure Setup(A1: Integer); virtual;  { +060 draft }
     procedure GetProducedStrength;  { draft }
     procedure GetProduceStrengthEx(A1: Integer);  { draft }
@@ -568,8 +565,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Validate; override;
     procedure GetBusy; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Activate(Control: TAIGroupControl): Boolean; override;
+    function Process: Boolean; override;
     procedure TargetOverlapFound(A1: Integer; A2: Integer);  { draft }
     procedure ValidateTargetOverlap(A1: Integer; A2: Integer);  { draft }
     procedure GetValidTargets;  { draft }

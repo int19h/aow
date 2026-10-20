@@ -34,7 +34,7 @@ type
     class function ClassID: Integer; override;
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
-    procedure ArmyPlaced(A1: Integer); override;
+    procedure ArmyPlaced(A1: TArmyHS); override;
   end;
 
   { TMagicSanctuaryResource (instance size 100, VMT 557D4464) }
@@ -133,7 +133,7 @@ begin
     if Msg.MsgID = $1129 then Msg.Param[0] := 1;
 end;
 
-procedure TMagicSanctuary.ArmyPlaced(A1: Integer);
+procedure TMagicSanctuary.ArmyPlaced(A1: TArmyHS);
 begin
   inherited ArmyPlaced(A1);
   FOverlayHS.FadeUp;

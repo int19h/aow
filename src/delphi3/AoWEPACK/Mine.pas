@@ -51,14 +51,6 @@ implementation
 
 type
   PMineMap = ^TAoWHSMap;
-  TMineAIInfo = packed record
-    Player, OtherPlayer: Shortint;
-    Kind: Byte;
-  end;
-  TMinePlayerData = packed record
-    Reserved: array[0..207] of Byte;
-    Gold: Integer;
-  end;
   TMineCombatData = packed record
     Reserved: array[0..19] of Byte;
     Outcome: Byte;
@@ -70,10 +62,6 @@ type
 const WorldMap: PMineMap = @AoWE.AoWHSMap;
 
 { needs: draft AoWE methods have object, integer and Boolean results. }
-function MineAttackRelation(Player, OtherPlayer, Owner: Shortint; Mode: Byte): Boolean; assembler;
-asm JMP AoWE.ValidAttackRelation end;
-function MineStructure(List: TPlayerStructureList; Index: Integer): TPlayerStructure; assembler;
-asm JMP TPlayerStructureList.GetStructure end;
 procedure TranslateMineText(const S: string; var Text: string); assembler;
 asm JMP AoWE.TranslateRStr end;
 
@@ -114,21 +102,21 @@ begin
   if not GetRazed or GetBuilding then
   begin
     CandidatePriority := Data.Priority;
-    if TMineAIInfo(Info).Kind = 0 then
+    if Ord(Info.Mode) = 0 then
     begin
-      if (Byte(TMineAIInfo(Info).Player) <> Byte(FPlayer)) and
+      if (Byte(Info.Player) <> Byte(FPlayer)) and
         not GetRazed then
         if Byte(FPlayer) = 0 then CandidatePriority := 50
-        else if MineAttackRelation(TMineAIInfo(Info).Player,
-          TMineAIInfo(Info).OtherPlayer, Shortint(Byte(FPlayer)), 0) then
+        else if ValidAttackRelation(Info.Player,
+          Info.IndependentRelation, Shortint(Byte(FPlayer)), 0) then
         begin
-          CandidatePriority := 50 - TMinePlayerData(Pointer(TPlayerList(WorldMap^.FPlayers).GetPlayers(TMineAIInfo(Info).Player))^).Gold div 2;
+          CandidatePriority := 50 - WorldMap^.FPlayers.GetPlayers(Info.Player).FIncome div 2;
           if CandidatePriority < 25 then CandidatePriority := 25;
           if CandidatePriority > 75 then CandidatePriority := 75;
         end;
     end
-    else if (TMineAIInfo(Info).Kind = 6) and
-      (Byte(TMineAIInfo(Info).Player) = Byte(FPlayer)) then Data.Priority := 20;
+    else if (Ord(Info.Mode) = 6) and
+      (Byte(Info.Player) = Byte(FPlayer)) then Data.Priority := 20;
     { Original can overwrite the special kind-6 priority with the previous higher value. }
     if Data.Priority < CandidatePriority then Data.Priority := CandidatePriority;
   end;

@@ -4668,11 +4668,11 @@ begin end;
 procedure TAIGroup.MakeTargetExpense(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroup.SetupTargetEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+function TAIGroup.SetupTargetEx(A1: TXYL; A2, A3, A4, A5: Integer; A6: Byte; A7: TAIGroupTargetStatus): Boolean;
+begin Result := False; end;
 
-procedure TAIGroup.SetupTarget(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAIGroup.SetupTarget(A1: TAIGroupControlTarget; A2: TAIGroupTargetStatus; A3: Boolean): Boolean;
+begin Result := False; end;
 
 procedure TAIGroup.ValidateEmpty;
 begin end;
@@ -4771,8 +4771,8 @@ begin end;
 procedure TAIGroupControlTarget.GetDebugInfo(A1: Integer);
 begin end;
 
-procedure TAIGroupControlTargetList.GetTargets(A1: Integer);
-begin end;
+function TAIGroupControlTargetList.GetTargets(A1: Integer): TAIGroupControlTarget;
+begin Result := nil; end;
 
 procedure TAIGroupControlTargetList.SortOnPriority;
 begin end;
@@ -4780,7 +4780,7 @@ begin end;
 procedure TAIGroupControlTargetList.SortOnDataB;
 begin end;
 
-procedure TAIGroupControlTargetList.Add;
+procedure TAIGroupControlTargetList.Add(A1: TAIGroupControlTarget);
 begin end;
 
 procedure TAIGroupControlTargetList.Delete(A1: Integer);
@@ -4894,10 +4894,10 @@ begin end;
 procedure TAIGroupControl.ResetME;
 begin end;
 
-procedure TAIGroupControl.SetupME(A1: Integer; A2: Integer);
+procedure TAIGroupControl.SetupME;
 begin end;
 
-procedure TAIGroupControl.ExecuteME(A1: Integer; A2: Integer; A3: Integer);
+procedure TAIGroupControl.ExecuteME(A1, A2, A3: Shortint);
 begin end;
 
 procedure TAIGroupControl.ResetCP;
@@ -4966,14 +4966,14 @@ begin end;
 procedure TAIGroupControlPlugin.GetBusy;
 begin end;
 
-procedure TAIGroupControlPlugin.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupControlPlugin.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupControlPlugin.Deactivate;
 begin end;
 
-procedure TAIGroupControlPlugin.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupControlPlugin.Process: Boolean;
+begin Result := False; end;
 
 procedure TAIGroupControlPlugin.MainProcess;
 begin end;
@@ -5080,11 +5080,11 @@ begin end;
 procedure TAIGroupDefenseControl.GetBusy;
 begin end;
 
-procedure TAIGroupDefenseControl.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupDefenseControl.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
-procedure TAIGroupDefenseControl.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupDefenseControl.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIGroupTargetFinder.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5101,14 +5101,14 @@ begin end;
 procedure TAIGroupTargetFinder.Setup(A1: Integer);
 begin end;
 
-procedure TAIGroupTargetFinder.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetFinder.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupTargetFinder.GetBusy;
 begin end;
 
-procedure TAIGroupTargetFinder.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetFinder.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIRecruitmentGroupFinder.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5128,11 +5128,11 @@ begin end;
 procedure TAIRecruitmentGroupFinder.Setup(A1: Integer);
 begin end;
 
-procedure TAIRecruitmentGroupFinder.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIRecruitmentGroupFinder.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
-procedure TAIRecruitmentGroupFinder.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIRecruitmentGroupFinder.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIGroupRecruitControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5182,11 +5182,11 @@ begin end;
 procedure TAIGroupRecruitControl.Setup;
 begin end;
 
-procedure TAIGroupRecruitControl.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupRecruitControl.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
-procedure TAIGroupRecruitControl.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupRecruitControl.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIProductionLocationFinder.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5206,11 +5206,11 @@ begin end;
 procedure TAIProductionLocationFinder.Setup(A1: Integer);
 begin end;
 
-procedure TAIProductionLocationFinder.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIProductionLocationFinder.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
-procedure TAIProductionLocationFinder.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIProductionLocationFinder.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIGroupUnitProduction.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5278,8 +5278,8 @@ begin end;
 procedure TAIGroupProductionControl.Setup(A1: Integer);
 begin end;
 
-procedure TAIGroupProductionControl.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupProductionControl.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupProductionControl.ListProduceableUnits(A1: Integer);
 begin end;
@@ -5290,8 +5290,8 @@ begin end;
 procedure TAIGroupProductionControl.UpdateProduceableUnits;
 begin end;
 
-procedure TAIGroupProductionControl.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupProductionControl.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIGroupCooperationControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5323,8 +5323,8 @@ begin end;
 procedure TAIGroupCooperationControl.Setup(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroupCooperationControl.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupCooperationControl.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupCooperationControl.AddCooperationGroup(A1: Integer; A2: Integer);
 begin end;
@@ -5335,8 +5335,8 @@ begin end;
 procedure TAIGroupCooperationControl.ExecuteCooperation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroupCooperationControl.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupCooperationControl.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIGroupTargetSelector.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5371,8 +5371,8 @@ begin end;
 procedure TAIGroupTargetSelector.Setup(A1: Integer);
 begin end;
 
-procedure TAIGroupTargetSelector.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.Activate(Control: TAIGroupControl): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupTargetSelector.TargetProcessed;
 begin end;
@@ -5413,8 +5413,8 @@ begin end;
 procedure TAIGroupTargetSelector.AllowMultiTargets(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIGroupTargetSelector.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.Process: Boolean;
+begin Result := False; end;
 
 constructor TAIMoveControlSettings.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5779,7 +5779,7 @@ begin end;
 procedure TAIMoveTargetSelector.SetTransporter(A1: Integer);
 begin end;
 
-procedure TAIMoveTargetSelector.Reset(A1: Integer; A2: Integer);
+procedure TAIMoveTargetSelector.Reset;
 begin end;
 
 procedure TAIMoveTargetSelector.SetupArmy(A1: Integer; A2: Integer);
@@ -5803,10 +5803,10 @@ begin end;
 procedure TAIMoveTargetSelector.ProcessStates(A1: Integer);
 begin end;
 
-procedure TAIMoveTargetSelector.Process(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveTargetSelector.Process: Boolean;
+begin Result := False; end;
 
-procedure TAIMoveTargetSelector.Search(A1: Integer);
+procedure TAIMoveTargetSelector.Search(A1: TAIGroupControl);
 begin end;
 
 constructor TFastCombatCommand.Create(A1: Integer);
@@ -6022,8 +6022,8 @@ begin end;
 procedure TMoveControlSettings.ClearMovePoints;
 begin end;
 
-procedure TMoveControlSettings.GetMovePoints(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TMoveControlSettings.GetMovePoints(A1: Integer; A2: Integer; A3: Integer): Integer;
+begin Result := 0; end;
 
 procedure TMoveControlSettings.SetMovePoints(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;

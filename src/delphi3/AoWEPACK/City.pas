@@ -161,7 +161,7 @@ type
     function GetDefensePriority: TDefensePriority; override;
     procedure NewDay; override;
     procedure NewTurn(Player: Shortint); override;
-    procedure ArmyPlaced(A1: Integer); override;
+    procedure ArmyPlaced(A1: TArmyHS); override;
     procedure ArmyRemoved; override;
     procedure BuildingDone; override;
     function GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean; override;
@@ -1172,7 +1172,7 @@ begin
   Result := True;
 end;
 
-procedure TCity.ArmyPlaced(A1: Integer);
+procedure TCity.ArmyPlaced(A1: TArmyHS);
 begin
   inherited ArmyPlaced(A1);
   if ceiFountainOfLife in FEnchantments then ExecuteFountainOfLife;

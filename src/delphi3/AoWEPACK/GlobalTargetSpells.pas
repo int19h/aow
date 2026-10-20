@@ -2589,7 +2589,7 @@ begin
     Cloud.FTurnsRemaining := -1;
     TGlobalEnchantment(Cloud.FEnchantment).FPlayerIndex :=
       Caster.FPlayer;
-    TGlobalEnchantment(Cloud.FEnchantment).FEnchantmentManaUpkeep := Spell.F_Spell_18;
+    TGlobalEnchantment(Cloud.FEnchantment).FEnchantmentManaUpkeep := Spell.FResearchCost;
     Cloud.FDrifting := False;
     if not SpellHSMap^.PlaceHX(Cloud,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer) then

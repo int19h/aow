@@ -205,8 +205,8 @@
   TMoveTarget = class(TEObject)
   public
     F_MoveTarget_08: Integer;
-    F_MoveTarget_0C: array[0..35] of Byte;
-    F_MoveTarget_30: Integer;
+    FData: TAITargetData; FLocation: TXYL; FMovePoints, FTransporterID: Integer; { $0C/$24/$28/$2C; 557D77BB }
+    FMovepath: TMovepath; { $30; 557D77EA }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
@@ -227,34 +227,29 @@
   public
     F_AIMoveTargetSelector_08: Integer;
     F_AIMoveTargetSelector_0C: Integer;
-    F_AIMoveTargetSelector_10: Byte;
+    FStatus: TAIMoveTargetSelectorStatus; { $10; 557D790E }
     F_AIMoveTargetSelector_11: array[0..2] of Byte;
     F_AIMoveTargetSelector_14: Integer;
     F_AIMoveTargetSelector_18: Byte;
     F_AIMoveTargetSelector_19: array[0..2] of Byte;
     F_AIMoveTargetSelector_1C: Integer;
-    F_AIMoveTargetSelector_20: Integer;
-    F_AIMoveTargetSelector_24: Integer;
+    FOnTargetFound: TMoveTargetFoundEvent; { $20; 557D7656 }
     F_AIMoveTargetSelector_28: Integer;
     F_AIMoveTargetSelector_2C: Byte;
     F_AIMoveTargetSelector_2D: Byte;
     F_AIMoveTargetSelector_2E: array[0..253] of Byte;
-    F_AIMoveTargetSelector_12C: Integer;
-    F_AIMoveTargetSelector_130: Byte;
-    F_AIMoveTargetSelector_131: Byte;
-    F_AIMoveTargetSelector_132: array[0..9] of Byte;
-    F_AIMoveTargetSelector_13C: Byte;
-    F_AIMoveTargetSelector_13D: Byte;
-    F_AIMoveTargetSelector_13E: array[0..253] of Byte;
-    F_AIMoveTargetSelector_23C: Integer;
-    F_AIMoveTargetSelector_240: Integer;
+    FSourceLocation: TXYL; { $12C; 557D7838 }
+    FTargetInfo: TAITargetInfo; { $130; 557D779E }
+    FMovePointTable: TMovePointTable; { $13C; 557D783F }
+    FMovePointsMax: Integer; { $23C; 557D7660 }
+    FMovePointsMin: Integer; { $240; 557D766C }
     F_AIMoveTargetSelector_244: Integer;
     F_AIMoveTargetSelector_248: Integer;
     F_AIMoveTargetSelector_24C: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetTransporter(A1: Integer);  { draft }
-    procedure Reset(A1: Integer; A2: Integer);  { draft }
+    procedure Reset;
     procedure SetupArmy(A1: Integer; A2: Integer);  { draft }
     procedure SetupTransport(A1: Integer; A2: Byte);  { draft }
     procedure Done;  { draft }
@@ -262,8 +257,8 @@
     procedure ProcessBufferedTargets;  { draft }
     procedure ProcessBufferedTransportTargets(A1: Integer; A2: Integer);  { draft }
     procedure ProcessStates(A1: Integer);  { draft }
-    procedure Process(A1: Integer; A2: Integer);  { draft }
-    procedure Search(A1: Integer);  { draft }
+    function Process: Boolean;
+    procedure Search(A1: TAIGroupControl);
   end;
 
   { TAIMoveExecuterUnit (instance size 56, VMT 5571819C) }
@@ -459,7 +454,7 @@
     F_AIMoveExecuter_18: Integer;
     F_AIMoveExecuter_1C: Integer;
     F_AIMoveExecuter_20: Integer;
-    F_AIMoveExecuter_24: Byte;
+    FMode: TAIMoveExecuterMode; { $24; 557D7981 }
     F_AIMoveExecuter_25: array[0..2] of Byte;
     F_AIMoveExecuter_28: Integer;
     FStatus: TAIMoveExecuterStatus; { $2C }

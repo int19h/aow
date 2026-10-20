@@ -26,7 +26,7 @@
     F_MoveControlSettings_0C: Integer;
     F_MoveControlSettings_10: Integer;
     F_MoveControlSettings_14: array[0..3] of Byte;
-    F_MoveControlSettings_18: Integer;
+    FProcessedMapFields: TList; { $18; 557D7BF9 }
     F_MoveControlSettings_1C: Integer;
     F_MoveControlSettings_20: Integer;
     F_MoveControlSettings_24: Byte;
@@ -35,7 +35,7 @@
     F_MoveControlSettings_45: array[0..30] of Byte;
     F_MoveControlSettings_64: Byte;
     F_MoveControlSettings_65: Byte;
-    F_MoveControlSettings_66: Byte;
+    FMode: TMoveMode; { $66; 557D7B17 }
     F_MoveControlSettings_67: array[0..0] of Byte;
     FPath: TMovepath;  { $68 }
     FPlayer: Shortint;  { $6C }
@@ -50,26 +50,26 @@
     F_MoveControlSettings_8C: Integer;
     F_MoveControlSettings_90: Integer;
     F_MoveControlSettings_94: array[0..3] of Byte;
-    F_MoveControlSettings_98: Integer;
+    FMovePointsMax: Integer; { $98; 557D7B3D }
     FArmyHS: TArmyHS;  { $9C }
     FSelection: Integer;  { $A0 }
     F_MoveControlSettings_A4: array[0..3] of Byte;
     FUnits: TUnitList; { $A8 }
-    FMovePointTable: array[0..15, 0..15] of Shortint;  { $AC }
+    FMovePointTable: TMovePointTable;  { $AC }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure Clear; override;
     procedure ResetState;  { draft }
-    procedure Reset;  { draft }
+    procedure Reset;
     procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
     procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
     procedure SetupArmy(A1: Integer; A2: Integer);  { draft }
     procedure SetupLevel(A1: Integer);  { draft }
     procedure SetupMovePointData(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure ClearMovePoints;  { draft }
-    procedure GetMovePoints(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function GetMovePoints(A1: Integer; A2: Integer; A3: Integer): Integer;
     procedure SetMovePoints(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure GetMovePointLevelData(A1: Integer);  { draft }
     procedure GetMovePointsXYL(A1: Integer; A2: Integer);  { draft }

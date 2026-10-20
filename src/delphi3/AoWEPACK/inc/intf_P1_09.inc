@@ -102,7 +102,7 @@
     function GetName: string; virtual;
     procedure SetRazed(Value: Boolean); virtual;
     function GetRazed: Boolean; virtual;
-    procedure GetRazeable; virtual;  { +154 draft }
+    function GetRazeable: Boolean; virtual; { $154; 557D7523 }
     procedure RazeEx(A1: Integer); virtual;  { +158 draft }
     procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); virtual;
     function CreateTE: TStructureTE; virtual;
@@ -113,7 +113,7 @@
     procedure NewDay; virtual;  { +174 draft }
     procedure NewTurn(Player: Shortint); virtual;
     procedure SeatedPlayerChanged; virtual;  { +17C draft }
-    procedure ArmyPlaced(A1: Integer); virtual;  { +180 draft }
+    procedure ArmyPlaced(A1: TArmyHS); virtual; { +180 }
     procedure ArmyRemoved; virtual;  { +184 draft }
     procedure ArmyChanged; virtual;  { +188 draft }
     procedure PlaySelectSample; virtual;  { +18C draft }
@@ -139,7 +139,7 @@
     procedure GetRebuildInfo(var Cost, Time: Integer); virtual;
     procedure CanRebuild(A1: Integer; A2: Integer); virtual;  { +1E0 draft }
     procedure Rebuild(A1: Integer); virtual;  { +1E4 draft }
-    procedure Raze(A1: Integer); virtual;  { +1E8 draft }
+    procedure Raze(A1: Shortint); virtual; { $1E8; 557D7432 }
     procedure CanRaze(A1: Byte; A2: Integer); virtual;  { +1EC draft }
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
@@ -256,7 +256,7 @@
     procedure NewDay; override;
     procedure NewTurn(Player: Shortint); override;
     procedure SeatedPlayerChanged; override;
-    procedure ArmyPlaced(A1: Integer); override;
+    procedure ArmyPlaced(A1: TArmyHS); override;
     procedure ArmyChanged; override;
     procedure BuildingDone; override;
     procedure ExecuteRebuild(A1: Integer); override;

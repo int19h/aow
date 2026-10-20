@@ -4925,7 +4925,7 @@ begin
   FSpellText := TStringList.Create;
   FCastSounds := TSFXLibrary.Create(nil);
   FCastImages := TImageSequenceList.Create(AoWHSSet.ImageLibraryManager, nil);
-  F_Spell_18 := 1;
+  FResearchCost := 1;
   FSpellControlTypes := [sctGlobal];
 end;
 
@@ -4950,7 +4950,7 @@ begin
   Stream.rwStreamProc(12, FCastImages.LoadFromStream, FCastImages.SaveToStream);
   Stream.rwInteger(FBaseManaCost, 13);
   Stream.rwInteger(FManaUpkeep, 14);
-  Stream.rwInteger(F_Spell_18, 15);
+  Stream.rwInteger(FResearchCost, 15);
   Stream.rwData(FMagicSphere, 1, 16);
   Stream.rwByte(FSpellLevel, 17);
 end;

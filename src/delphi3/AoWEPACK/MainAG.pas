@@ -96,7 +96,7 @@ type
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
-    procedure SetupME(A1: Integer; A2: Integer); override;
+    procedure SetupME; override;
   end;
 
 
@@ -210,7 +210,7 @@ begin end;
 procedure TTransportAGC.MoveExecuterDone;
 begin end;
 
-procedure TTransportAGC.SetupME(A1: Integer; A2: Integer);
+procedure TTransportAGC.SetupME;
 begin end;
 
 procedure TTransportAGC.ProcessStates(A1: Integer; A2: Integer);

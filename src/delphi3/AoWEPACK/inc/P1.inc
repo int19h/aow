@@ -6056,8 +6056,8 @@ begin Result := False; end;
 function TStructure.PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
 begin Result := False; end;
 
-procedure TStructure.GetRazeable;
-begin end;
+function TStructure.GetRazeable: Boolean;
+begin Result := False; end;
 
 function TStructure.GetRazed: Boolean;
 begin end;
@@ -6098,7 +6098,7 @@ begin end;
 procedure TStructure.NewTurn(Player: Shortint);
 begin end;
 
-procedure TStructure.ArmyPlaced(A1: Integer);
+procedure TStructure.ArmyPlaced(A1: TArmyHS);
 begin end;
 
 procedure TStructure.ArmyRemoved;
@@ -6173,7 +6173,7 @@ begin Result := False; end;
 procedure TStructure.RazeEx(A1: Integer);
 begin end;
 
-procedure TStructure.Raze(A1: Integer);
+procedure TStructure.Raze(A1: Shortint);
 begin end;
 
 procedure TStructure.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
@@ -6260,7 +6260,7 @@ begin end;
 procedure TPlayerStructure.UpdateFlagID;
 begin end;
 
-procedure TPlayerStructure.ArmyPlaced(A1: Integer);
+procedure TPlayerStructure.ArmyPlaced(A1: TArmyHS);
 begin end;
 
 procedure TPlayerStructure.ArmyChanged;

@@ -35,7 +35,7 @@ type
     function GetTopBorderImage: TLibraryImage; override;
     function GetMiddleBorderImage: TLibraryImage; override;
     function GetBottomBorderImage: TLibraryImage; override;
-    procedure ArmyPlaced(A1: Integer); override;
+    procedure ArmyPlaced(A1: TArmyHS); override;
     function EnterMovePoints(Army: TArmy; Selection: Byte): Shortint;
     function CanEnterSelection(Units: TUnitList): Byte;
     function CanEnter(Player: Shortint): Boolean;
@@ -423,7 +423,7 @@ begin
   else Result := False;
 end;
 
-procedure TCave.ArmyPlaced(A1: Integer);
+procedure TCave.ArmyPlaced(A1: TArmyHS);
 var L: Integer; ArmyHS: TArmyHS;
 begin
   inherited ArmyPlaced(A1);

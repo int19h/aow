@@ -461,7 +461,8 @@ type
   TPartyStatus = (psUnruly, psUnrest, psStable, psContent, psCheerful);  { ot=1 }
   TAITargetMode = (tmAttack, tmRaid, tmRecruit, tmProduce, tmHunt, tmFortify, tmDefend, tmGuardArea, tmAttackArmies);  { ot=1 }
   TAITargetType = (attAttack, attNegotiate);  { ot=1 }
-  TAITargetInfo = record Player, IndependentRelation: Shortint; Mode: TAITargetMode; end;
+  TMovePointTable = array[0..15, 0..15] of Shortint; { $100; 557D7848 }
+  TAITargetInfo = record Player, IndependentRelation: Shortint; Mode: TAITargetMode; Reserved03: Byte; Reserved04, Reserved08: Integer; end; { $0C; 557D779E }
   TworldFXType = (fxHatred, fxCrusade, fxWaterMastery, fxSpellWard, fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEarthMastery, fxEMParticle, fxTranquility, fxTranqParticle);  { ot=1 }
   TBattleFieldInfoRequests = set of (bfrWallPassing, bfrReturnImmunityTypes, bfrIgnorePassiveIndependents, bfrEffectiveStrength, bfrIgnoreIndependents); { ot=1 }
   TBattleFieldRelations = set of 0..7;
@@ -474,7 +475,7 @@ type
     Strength: Integer; { $14 } Reserved18: Integer;
   end;
   TDefenseRequirements = record Reserved00: array[0..27] of Byte; Strength: Integer; end;
-  TAITargetData = record Priority: Integer; TargetType: TAITargetType; Cost: Integer; end;
+  TAITargetData = record Priority: Integer; TargetType: TAITargetType; Cost: Integer; Reserved0C: array[0..11] of Byte; end; { $18; 557D77C1 }
   TProductionControlStatus = (pcsIdle, pcsWaiting, pcsProducing);  { ot=1 }
   TProductionUpdateMode = (umProduce, umResearch, umCancel);  { ot=1 }
   TChangePlayerMagicMode = (cmmDispelEnchantment, cmmChangePowerSettings, cmmResearchSpell);  { ot=1 }

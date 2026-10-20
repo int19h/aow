@@ -69,7 +69,7 @@ type
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
     procedure Select; override;
     procedure Unselect; override;
-    procedure AnimationControlMode; virtual;  { +108 draft }
+    function AnimationControlMode: TAnimationControlMode; virtual; { $108; 557E2BB4 }
     procedure PlaceTE; virtual;  { +10C draft }
     procedure RemoveTE; virtual;  { +110 draft }
     procedure ExecuteTE; virtual;  { +114 draft }
@@ -147,8 +147,8 @@ begin end;
 function TAnimation.GetControlStyle: Engine.TEControlStyles;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TAnimation.AnimationControlMode;
-begin end;
+function TAnimation.AnimationControlMode: TAnimationControlMode;
+begin Result := []; end;
 
 procedure TAnimation.Activate;
 begin end;
