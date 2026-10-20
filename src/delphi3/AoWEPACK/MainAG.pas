@@ -182,7 +182,7 @@ begin
   begin
     Group := Player.FAIGroups.GetGroups(I);
     if (FGroup.FGroupID <> Group.FGroupID) and
-      (Group.ClassID = $21458) and (FGroup.FTargetStatus = Group.FTargetStatus) then
+      (Group.ClassID = $21458) and (FGroup.FIndependentRelation = Group.FIndependentRelation) then
     begin
       OtherLocation.XYL := Group.GetLoc;
       if (Location.L = OtherLocation.L) and
@@ -209,7 +209,7 @@ begin
         Selector.Execute(FGroup, Location.X, Location.Y, Location.L, nil);
         if (Selector.FDefenders.Count <> FGroup.Count) and (FGroup.FPlayer <> 0) then
         begin
-          Group := AoWHSMap.FAIGroupManager.CreateGroup(FGroup.FPlayer, Shortint(FGroup.FTargetStatus),
+          Group := AoWHSMap.FAIGroupManager.CreateGroup(FGroup.FPlayer, Shortint(FGroup.FIndependentRelation),
             AoWHSMap.FPlayers.GetPlayers(FGroup.FPlayer).FAIControl.GetRandomGroupBehavior);
           for I := FGroup.Count - 1 downto 0 do
           begin

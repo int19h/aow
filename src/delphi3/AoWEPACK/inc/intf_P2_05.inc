@@ -73,8 +73,8 @@
     function GetDamage: Shortint; virtual;  { +0C8 draft }
     function GetResistance: Shortint; virtual;  { +0CC }
     function GetHits: Shortint; virtual;  { +0D0 }
-    function GetMoves: Shortint; virtual;  { +0D4 draft }
-    function GetMovePoints: Shortint; virtual;  { +0D8 draft }
+    function GetMoves: Shortint; virtual; { $D4; 5573743C }
+    function GetMovePoints: Shortint; virtual; { $D8; 557373E8 }
     procedure SetMovePoints(Value: Shortint); virtual;  { +0DC draft }
     function GetHitPoints: Shortint; virtual;  { +0E0 draft }
     procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 }

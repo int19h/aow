@@ -36,13 +36,13 @@
     procedure UnRegisterClasses(Classes: array of TAIPlayerActionClass);
   end;
 
-  { TAIGroupList (instance size 12, VMT 55717710) }
+  { TAIGroupList (instance size $0C, VMT 55717710). $08 children. }
   TAIGroupList = class(TENode)
   public
     function GetGroups(Index: Integer): TAIGroup;
-    procedure IndexOfID(A1: Integer);  { draft }
+    function IndexOfID(ID: Integer): Integer;
     function FindID(ID: Integer): TAIGroup;
-    procedure SortOnProcessPriority;  { draft }
+    procedure SortOnProcessPriority;
   end;
 
   { TAIPlayerControl (instance size $28, VMT 5571780C).

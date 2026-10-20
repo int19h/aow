@@ -13,8 +13,8 @@
 
   { TAIGroup (instance size $50, VMT 55719FB8). $10 status, $14 references,
     $18 leader, $1C transporter, $20 productions, $24 ID, $28 player,
-    $2C/$30 leader/transporter IDs, $34 target status, $38 target location,
-    $3C target type, $40/$44 budget, $48 move points, $4C mode, $4D/$4E priorities. }
+    $2C/$30 leader/transporter IDs, $34 independent relation, $38 target location,
+    $3C target status, $40/$44 budget, $48 move points, $4C mode, $4D/$4E priorities. }
   TAIGroupControlClass = class of TAIGroupControl;
   TAIGroupClass = class of TAIGroup;
 
@@ -31,14 +31,13 @@
     F_AIGroup_29: array[0..2] of Byte;
     FLeaderID: Integer; { $2C }
     FTransporterID: Integer; { $30 }
-    FTargetStatus: TAIGroupTargetStatus; { $34 }
+    FIndependentRelation: Shortint; { $34 }
     { conflict: FRelation: Shortint; }
-    { conflict: FIndependentRelation: Shortint; }
     F_AIGroup_35: array[0..2] of Byte;
     FTargetXYL: TXYL; { $38 }
     { conflict: FDefenseLocation: TXYL; }
     { conflict: FTargetLocation: Integer; }
-    FTargetType: TAIGroupTargetType; { $3C }
+    FTargetType: TAIGroupTargetStatus; { $3C }
     F_AIGroup_3D: array[0..2] of Byte;
     FGoldBudget: Integer; { $40 }
     { conflict: FTargetGold: Integer; }
@@ -66,121 +65,131 @@
     function GetManaBudget: Integer; virtual; { $BC }
     function GetLoc: Integer; virtual; { $C0 }
     class function GroupControlClass: TAIGroupControlClass; virtual; { $C4 }
-    procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
+    procedure NewTurn(Player: Shortint); virtual; { $C8 }
     function CreateGroupControl: TAIGroupControl; virtual; { $CC }
     class function Behavior: TGroupBehavior; virtual;
-    procedure DefendLocation(A1: Integer); virtual; { +0D4 }
-    procedure CooperateWithGroup(A1: Integer); virtual;  { +0D8 draft }
+    function DefendLocation(Location: Integer): Boolean; virtual; { $D4 }
+    function CooperateWithGroup(Group: TAIGroup): Boolean; virtual; { $D8 }
     function GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean; virtual; { $DC }
     function GetProcessPriority: Integer;
-    procedure GetAdjacent(A1: Integer; A2: Integer);  { draft }
-    procedure SetLeader(A1: Integer);  { draft }
-    procedure GetMovePointsMin;  { draft }
-    procedure GetMovesMin;  { draft }
-    procedure ResetTargetExpense;  { draft }
+    function GetAdjacent: Boolean;
+    procedure SetLeader(AUnit: TAbstractUnit);
+    function GetMovePointsMin: Integer;
+    function GetMovesMin: Integer;
+    procedure ResetTargetExpense;
     procedure ReturnTargetExpense;
-    procedure RequestTargetExpense(A1: Integer; A2: Integer);  { draft }
-    procedure MakeTargetExpense(A1: Integer; A2: Integer);  { draft }
-    function SetupTargetEx(A1: TXYL; A2, A3, A4, A5: Integer; A6: Byte; A7: TAIGroupTargetStatus): Boolean;
-    function SetupTarget(A1: TAIGroupControlTarget; A2: TAIGroupTargetStatus; A3: Boolean): Boolean;
-    procedure ValidateEmpty;  { draft }
-    procedure AddTransporter(A1: Integer);  { draft }
+    function RequestTargetExpense(Gold, Mana: Integer): Boolean;
+    function MakeTargetExpense(Gold, Mana: Integer): Boolean;
+    function SetupTargetEx(Location: TXYL; MovePoints: Integer; TargetType: TAIGroupTargetStatus; Mode: Byte; TransporterID, Gold, Mana: Integer): Boolean;
+    function SetupTarget(Target: TAIGroupControlTarget; TargetType: TAIGroupTargetStatus; Mode: Byte): Boolean;
+    procedure ValidateEmpty;
+    procedure AddTransporter(AUnit: TAbstractUnit);
     procedure UnitProduced(Control: TProductionControl; AUnit: TAbstractUnit);
-    procedure Activate;  { draft }
-    procedure Deactivate;  { draft }
-    procedure SetPlayer(A1: Integer);  { draft }
+    procedure Activate;
+    procedure Deactivate;
+    procedure SetPlayer(Player: Shortint);
   end;
 
-  { TAIGroupManager (instance size 20, VMT 5571A104) }
+  { TAIGroupManager (instance size $14, VMT 5571A104). $0C next ID, $10 classes. }
   TAIGroupManager = class(TAIGroupList)
   public
-    F_AIGroupManager_0C: Integer;
-    F_AIGroupManager_10: Integer;
+    FNextID: Integer; { $0C }
+    FRegisteredClasses: TList; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure RegisterAIGroupClasses(Classes: array of TAIGroupClass);
-    procedure UnregisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
+    procedure UnregisterAIGroupClasses(Classes: array of TAIGroupClass);
     function CreateGroup(Player, Relation: Shortint; Behavior: TGroupBehavior): TAIGroup;
-    procedure CreateUniqueID;  { draft }
+    function CreateUniqueID: Integer;
   end;
 
-  { TAIGroupControlTarget (instance size 76, VMT 5571A280) }
+  { TAIGroupControlTarget (instance size $4C, VMT 5571A280).
+    $08 references; $0C info; $18 data; $30 location; $34 moves; $38 transporter;
+    $3C status; $40 path strength; $44 data A; $48 data B. }
   TAIGroupControlTarget = class(TEObject)
   public
-    F_AIGroupControlTarget_08: Integer;
+    FRefCount: Integer; { $08 }
     FInfo: TAITargetInfo; { $0C; 557D77A4 }
     FData: TAITargetData; { $18; 557D77BE }
     FLocation: TXYL; { $30; 557D77CD }
     FMovePoints: Integer; { $34; 557D77D3 }
     FTransporterID: Integer; { $38; 557D77FF }
-    F_AIGroupControlTarget_3C: Byte;
+    FStatus: TAIGroupControlTargetStatus; { $3C }
     F_AIGroupControlTarget_3D: array[0..2] of Byte;
     FPathStrength: Integer; { $40; 557D77F4 }
-    F_AIGroupControlTarget_44: Integer;
-    F_AIGroupControlTarget_48: array[0..3] of Byte;
+    FDataA: Integer; { $44 }
+    FDataB: Integer; { $48 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate(A1: Integer); virtual;  { $4C }
-    procedure GetTargetGold;  { draft }
-    procedure GetTargetMana;  { draft }
-    procedure GetDebugInfo(A1: Integer);  { draft }
+    function Validate(Control: TAIGroupControl): Boolean; virtual; { $4C }
+    function GetTargetGold: Integer;
+    function GetTargetMana: Integer;
+    procedure GetDebugInfo(var Text: string);
   end;
 
-  { TAIGroupControlTargetList (instance size 16, VMT 5571A354) }
+  { TAIGroupControlTargetList (instance size $10, VMT 5571A354).
+    $08 children; $0C group control. }
   TAIGroupControlTargetList = class(TEReferenceNode)
   public
-    F_AIGroupControlTargetList_0C: Integer;
-    function GetTargets(A1: Integer): TAIGroupControlTarget;
+    FControl: TAIGroupControl; { $0C }
+    function GetTargets(Index: Integer): TAIGroupControlTarget;
     procedure SortOnPriority;
-    procedure SortOnDataB;  { draft }
-    procedure Add(A1: TAIGroupControlTarget);
-    procedure Delete(A1: Integer);  { draft }
-    procedure Validate;  { draft }
-    procedure IndexOfXYL(A1: Integer);  { draft }
+    procedure SortOnDataB;
+    procedure Add(Target: TAIGroupControlTarget);
+    procedure Delete(Index: Integer);
+    function Validate: Boolean;
+    function IndexOfXYL(Location: Integer): Integer;
   end;
 
-  { TAIRecruitmentGroup (instance size 40, VMT 5571A468) }
+  { TAIRecruitmentGroup (instance size $28, VMT 5571A468). $08 references,
+    $0C location, $10 group, $14 moves, $18 transporter, $1C path strength. }
   TAIRecruitmentGroup = class(TEObject)
   public
-    F_AIRecruitmentGroup_08: Integer;
-    F_AIRecruitmentGroup_0C: Integer;
-    F_AIRecruitmentGroup_10: Integer;
-    F_AIRecruitmentGroup_14: Integer;
-    F_AIRecruitmentGroup_18: Integer;
-    F_AIRecruitmentGroup_1C: Integer;
+    FRefCount: Integer; { $08 }
+    FLocation: TXYL; { $0C }
+    FGroup: TAIGroup; { $10 }
+    FMovePoints: Integer; { $14 }
+    FTransporterID: Integer; { $18 }
+    FPathStrength: Integer; { $1C }
     F_AIRecruitmentGroup_20: array[0..7] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate(A1: Integer; A2: Integer); virtual;  { $4C }
-    procedure SetGroup(A1: Integer);  { draft }
+    function Validate(Control: TAIGroupControl): Boolean; virtual; { $4C }
+    procedure SetGroup(Group: TAIGroup);
   end;
 
-  { TAIRecruitmentGroupList (instance size 12, VMT 5571A538) }
+  { TAIRecruitmentGroupList (instance size $0C, VMT 5571A538). $08 children. }
   TAIRecruitmentGroupList = class(TEReferenceNode)
   public
-    procedure GetRecruitmentGroups(A1: Integer);  { draft }
-    procedure SortOnMovePoints;  { draft }
-    procedure OutputDebugInfo;  { draft }
-    procedure Add;  { draft }
-    procedure Delete(A1: Integer);  { draft }
-    procedure Validate(A1: Integer; A2: Integer);  { draft }
-    procedure UnitExists(A1: Integer);  { draft }
-    procedure FindUnit(A1: Integer);  { draft }
+    function GetRecruitmentGroups(Index: Integer): TAIRecruitmentGroup;
+    procedure SortOnMovePoints;
+    procedure OutputDebugInfo;
+    procedure Add(Group: TAIRecruitmentGroup);
+    procedure Delete(Index: Integer);
+    function Validate(Control: TAIGroupControl): Boolean;
+    function UnitExists(AUnit: TAbstractUnit): Boolean;
+    function FindUnit(AUnit: TAbstractUnit): TAIRecruitmentGroup;
   end;
 
-  { TAIGroupProductionLocation (instance size 40, VMT 5571A648) }
+  { TAIGroupProductionLocation (instance size $28, VMT 5571A648). $08 references,
+    $0C production control, $10 location, $14 moves, $18 transporter, $1C path strength. }
   TAIGroupProductionLocation = class(TEObject)
   public
-    F_AIGroupProductionLocation_08: Integer;
-    F_AIGroupProductionLocation_0C: array[0..27] of Byte;
+    FRefCount: Integer; { $08 }
+    FProductionControl: TProductionControl; { $0C }
+    FLocation: TXYL; { $10 }
+    FMovePoints: Integer; { $14 }
+    FTransporterID: Integer; { $18 }
+    FPathStrength: Integer; { $1C }
+    F_AIGroupProductionLocation_20: array[0..7] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate; virtual;  { $4C }
+    function Validate(Control: TAIGroupControl): Boolean; virtual; { $4C }
   end;
 
   { TAIGroupProductionLocationList (instance size 12, VMT 5571A728) }

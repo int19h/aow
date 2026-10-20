@@ -140,7 +140,7 @@ begin
         Structure := TStructure(WorldMap^.MapContainer.GetFieldXYL(Integer(FControl.FLocation)).FindNoneTransparentHS(TStructure));
         if (Structure <> nil) and Structure.GetRazeable then
         begin
-          SetupBattleFieldInfo(Info, FControl.FGroup.FPlayer, Shortint(FControl.FGroup.FTargetStatus),
+          SetupBattleFieldInfo(Info, FControl.FGroup.FPlayer, Shortint(FControl.FGroup.FIndependentRelation),
             [bfrIgnoreIndependents], FDamageTypes);
           WorldMap^.RetrieveBattleFieldInfo(FControl.FLocation.X, FControl.FLocation.Y,
             FControl.FLocation.L, 15, Info);
@@ -194,7 +194,7 @@ begin
   begin
     Result := 0;
     I := FPathStep;
-    SetupBattleFieldInfo(Info, FControl.FGroup.FPlayer, Shortint(FControl.FGroup.FTargetStatus),
+    SetupBattleFieldInfo(Info, FControl.FGroup.FPlayer, Shortint(FControl.FGroup.FIndependentRelation),
       [], FDamageTypes);
     Info.FriendlyRelations := [];
     Info.Requests := Info.Requests + [bfrIgnorePassiveIndependents];
@@ -234,7 +234,7 @@ begin
     FSourceLocation := Control.FLocation;
     FMovePointTable := Control.FMovePointTable;
     FTargetInfo.Player := Control.FGroup.FPlayer;
-    FTargetInfo.IndependentRelation := Shortint(Control.FGroup.FTargetStatus);
+    FTargetInfo.IndependentRelation := Shortint(Control.FGroup.FIndependentRelation);
   end;
   case WorldMap^.FPlayers.GetPlayers(Control.FGroup.FPlayer).FPlayerType of
     ptCPU2: FMode := FMode + [dtmCalculateMovepathBFS];
@@ -270,7 +270,7 @@ begin
       begin
         if FTargets.Count <> 0 then
         begin
-          FControl.FGroup.SetupTarget(nil, gtsIdle, False);
+          FControl.FGroup.SetupTarget(nil, gtsIdle, 0);
           FControl.SetupME;
           if Integer(FTargets.GetTargets(0).FLocation) = Integer(FControl.FLocation) then
             FControl.FMoveExecuter.FMode := FControl.FMoveExecuter.FMode - [memAdjacent];
@@ -283,7 +283,7 @@ begin
           FControl.SetupME;
           with FControl.FMoveExecuter do FMode := FMode - [memAdjacent];
           with FControl do ExecuteME(FLocation.X, FLocation.Y, FLocation.L);
-          FControl.FGroup.SetupTarget(nil, gtsIdle, False);
+          FControl.FGroup.SetupTarget(nil, gtsIdle, 0);
           Done;
         end;
         Result := False;
@@ -406,7 +406,7 @@ begin
           if Field <> nil then
           begin
             Location.XYL := Field.GetXYL;
-            FControl.FGroup.SetupTargetEx(Location, Fields[I].B, 0, 0, -1, 1, gtsExecute);
+            FControl.FGroup.SetupTargetEx(Location, Fields[I].B, gtsExecute, 1, -1, 0, 0);
             Inc(FState);
           end
           else Done;

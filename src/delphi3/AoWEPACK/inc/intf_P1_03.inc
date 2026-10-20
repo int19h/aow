@@ -364,7 +364,7 @@
     procedure GetConcealmentActive;  { draft }
     function GetMagicShieldActive: Boolean;
     function GetProductionControl: TProductionControl;
-    procedure GetAITarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function GetAITarget(Control: TAIGroupControl; const Info: TAITargetInfo; var Data: TAITargetData): Boolean; { 55737FF5 }
     function GetMoveAction(A1: Byte): TMoveAction;
     function GetIndependentRelation: Byte;
     procedure GetDefensePriority;  { draft }

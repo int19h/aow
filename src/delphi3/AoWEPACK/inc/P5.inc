@@ -2771,7 +2771,7 @@ begin
     for I := FPlayer.FAIGroups.Count - 1 downto 0 do
     begin
       Group := FPlayer.FAIGroups.GetGroups(I);
-      if (Group.FTargetType <> attDefend) and
+      if (Group.FTargetType <> gtsExecute) and
         (Group.ClassID <> $21459) and (Group.ClassID <> $21466) and
         (Group.ClassID <> $21451) and (Group.ClassID <> $21453) and
         (Group.ClassID <> $21467) then
@@ -4539,7 +4539,7 @@ begin
   FProductions := TAIGroupProductionList.Create(nil);
   FGroupID := -1;
   FPlayer := -1;
-  FTargetStatus := TAIGroupTargetStatus(-1);
+  FIndependentRelation := -1;
   FTransporterID := -1;
   FLeaderID := -1;
   FProcessPriority := 10;
@@ -4587,7 +4587,7 @@ begin
   Stream.rwInteger(Integer(FTargetXYL), $17);
   Stream.rwData(FTargetType, SizeOf(FTargetType), $18);
   Stream.rwByte(Byte(FPlayer), $19);
-  Stream.rwData(FTargetStatus, SizeOf(FTargetStatus), $1A);
+  Stream.rwData(FIndependentRelation, SizeOf(FIndependentRelation), $1A);
   Stream.rwByte(FProcessPriority, $1B);
   Stream.rwByte(FRecruitmentPriority, $1C);
   Stream.rwInteger(FGoldBudget, $1D);
@@ -4629,22 +4629,74 @@ begin
 end;
 
 function TAIGroup.GetLoc: Integer;
-begin Result := 0; end;
+var
+  Location: TXYL;
+  Leader: TAbstractUnit;
+begin
+  Leader := FLeader;
+  if Leader <> nil then
+  begin
+    Leader.GetLocation(Location.X, Location.Y, Location.L);
+    Location.Flag := 0;
+  end
+  else Location.XYL := $FFFFFF;
+  Result := Location.XYL;
+end;
 
 procedure TAIGroup.GetLocation(var Xhx, Yhx, Lhx: Shortint);
-begin end;
+var
+  Location: TXYL;
+begin
+  Location.XYL := GetLoc;
+  Xhx := Location.X;
+  Yhx := Location.Y;
+  Lhx := Location.L;
+end;
 
-procedure TAIGroup.GetAdjacent(A1: Integer; A2: Integer);
-begin end;
+function TAIGroup.GetAdjacent: Boolean;
+var
+  Locations: TXYLList;
+  I: Integer;
+  Location: TXYL;
+begin
+  Locations := TXYLList.Create;
+  for I := Count - 1 downto 0 do
+  begin
+    GetUnit(I).GetLocation(Location.X, Location.Y, Location.L);
+    Locations.Add(PackXYL(Location.X, Location.Y, Location.L));
+  end;
+  Result := LocationsConnected(Locations);
+  Locations.Free;
+end;
 
-procedure TAIGroup.SetLeader(A1: Integer);
-begin end;
+procedure TAIGroup.SetLeader(AUnit: TAbstractUnit);
+begin
+  if IndexOf(AUnit) <> -1 then
+  begin
+    FLeader := AUnit;
+    FLeaderID := AUnit.FUnitID;
+  end;
+end;
 
-procedure TAIGroup.GetMovePointsMin;
-begin end;
+function TAIGroup.GetMovePointsMin: Integer;
+var
+  I: Integer;
+begin
+  Result := 50;
+  for I := Count - 1 downto 0 do
+    if Result > GetUnit(I).GetMovePoints then
+      Result := GetUnit(I).GetMovePoints;
+end;
 
-procedure TAIGroup.GetMovesMin;
-begin end;
+function TAIGroup.GetMovesMin: Integer;
+var
+  I: Integer;
+begin
+  Result := 50;
+  for I := Count - 1 downto 0 do
+    if Result > GetUnit(I).GetMoves then
+      Result := GetUnit(I).GetMoves;
+end;
 
 function TAIGroup.GetGoldBudget: Integer;
 begin
@@ -4657,193 +4709,708 @@ begin
 end;
 
 procedure TAIGroup.ResetTargetExpense;
-begin end;
+begin
+  FGoldBudget := 0;
+  FManaBudget := 0;
+end;
 
 procedure TAIGroup.ReturnTargetExpense;
-begin end;
+begin
+  if (FGoldBudget > 0) or (FManaBudget > 0) then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.ReturnExpense(FGoldBudget, FManaBudget);
+    FGoldBudget := 0;
+    FManaBudget := 0;
+  end;
+end;
 
-procedure TAIGroup.RequestTargetExpense(A1: Integer; A2: Integer);
-begin end;
+function TAIGroup.RequestTargetExpense(Gold, Mana: Integer): Boolean;
+var
+  G, M: Integer;
+begin
+  G := Gold - FGoldBudget;
+  M := Mana - FManaBudget;
+  Result := AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.RequestBudgetExpense(
+    G, M, AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.FDefaultBudget, True);
+end;
 
-procedure TAIGroup.MakeTargetExpense(A1: Integer; A2: Integer);
-begin end;
+function TAIGroup.MakeTargetExpense(Gold, Mana: Integer): Boolean;
+begin
+  if RequestTargetExpense(Gold, Mana) then
+  begin
+    ReturnTargetExpense;
+    Result := AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.BudgetExpenseMade(
+      Gold, Mana, AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.FDefaultBudget, bemPoolThenBudget);
+    if Result then
+    begin
+      FGoldBudget := Gold;
+      FManaBudget := Mana;
+    end;
+  end
+  else Result := False;
+end;
 
-function TAIGroup.SetupTargetEx(A1: TXYL; A2, A3, A4, A5: Integer; A6: Byte; A7: TAIGroupTargetStatus): Boolean;
-begin Result := False; end;
+function TAIGroup.SetupTargetEx(Location: TXYL; MovePoints: Integer;
+  TargetType: TAIGroupTargetStatus; Mode: Byte;
+  TransporterID, Gold, Mana: Integer): Boolean;
+var
+  Transporter: TAbstractUnit;
+begin
+  if Integer(Location) <> $FFFFFF then
+  begin
+    FTargetXYL := Location;
+    FTargetType := TargetType;
+    FTargetMovePoints := MovePoints;
+    FTargetMode := Mode;
+    if TargetType = gtsExecute then Dec(FTargetMovePoints, GetMovePointsMin);
+    Result := MakeTargetExpense(Gold, Mana);
+  end
+  else
+  begin
+    Integer(FTargetXYL) := $FFFFFF;
+    FTargetType := TargetType;
+    FTargetMode := Mode;
+    FTargetMovePoints := 0;
+    ReturnTargetExpense;
+    Result := True;
+  end;
+  if (Integer(Location) <> $FFFFFF) and (TransporterID <> -1) then
+    AddTransporter(TUnitControl(AoWHSMap.FUnitControl).FindUnit(TransporterID))
+  else
+  begin
+    Transporter := FTransporter;
+    if Transporter <> nil then DeleteUnit(Transporter);
+  end;
+end;
 
-function TAIGroup.SetupTarget(A1: TAIGroupControlTarget; A2: TAIGroupTargetStatus; A3: Boolean): Boolean;
-begin Result := False; end;
+function TAIGroup.SetupTarget(Target: TAIGroupControlTarget;
+  TargetType: TAIGroupTargetStatus; Mode: Byte): Boolean;
+var
+  Transporter: TAbstractUnit;
+begin
+  if Target <> nil then
+  begin
+    FTargetXYL := Target.FLocation;
+    FTargetType := TargetType;
+    FTargetMovePoints := Target.FMovePoints;
+    FTargetMode := Mode;
+    if TargetType = gtsExecute then Dec(FTargetMovePoints, GetMovePointsMin);
+    Result := MakeTargetExpense(Target.GetTargetGold, Target.GetTargetMana);
+  end
+  else
+  begin
+    Integer(FTargetXYL) := $FFFFFF;
+    FTargetType := TargetType;
+    FTargetMode := Mode;
+    FTargetMovePoints := 0;
+    ReturnTargetExpense;
+    Result := True;
+  end;
+  if (Target <> nil) and (Target.FTransporterID <> -1) then
+    AddTransporter(TUnitControl(AoWHSMap.FUnitControl).FindUnit(Target.FTransporterID))
+  else
+  begin
+    Transporter := FTransporter;
+    if Transporter <> nil then DeleteUnit(Transporter);
+  end;
+end;
 
 procedure TAIGroup.ValidateEmpty;
-begin end;
+var
+  Empty: Boolean;
+begin
+  Empty := (Count = 0) and (FTransporterID = -1);
+  if Empty and not (agsEmpty in FStatus) then
+  begin
+    FStatus := FStatus + [agsEmpty];
+    Release;
+  end
+  else if not Empty and (agsEmpty in FStatus) then
+  begin
+    FStatus := FStatus - [agsEmpty];
+    AddRef;
+  end;
+end;
 
-procedure TAIGroup.AddTransporter(A1: Integer);
-begin end;
+procedure TAIGroup.AddTransporter(AUnit: TAbstractUnit);
+var
+  OldTransporter: TAbstractUnit;
+  Group: TAIGroup;
+begin
+  OldTransporter := FTransporter;
+  if AUnit <> OldTransporter then
+  begin
+    if OldTransporter <> nil then
+    begin
+      OldTransporter.FGroup := nil;
+      OldTransporter.FGroupID := 0;
+      OldTransporter.Release;
+    end;
+    Group := AUnit.FGroup;
+    if Group <> nil then
+    begin
+      Group.DeleteUnit(AUnit);
+      AUnit.FGroupID := 0;
+    end;
+    FTransporterID := AUnit.FUnitID;
+    FTransporter := AUnit;
+    FTransporter.AddRef;
+    AUnit.FGroupID := FGroupID;
+    AUnit.FGroup := Self;
+    ValidateEmpty;
+  end;
+end;
 
 function TAIGroup.AddUnit(AUnit: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Group: TAIGroup;
+begin
+  if IndexOf(AUnit) = -1 then
+  begin
+    Group := AUnit.FGroup;
+    if Group <> nil then Group.DeleteUnit(AUnit);
+    if (AUnit.FUnitID <> FTransporterID) or not AUnit.GetTransporter then
+    begin
+      AddChild(AUnit);
+      if FLeaderID = -1 then SetLeader(AUnit);
+    end
+    else
+    begin
+      FTransporter := AUnit;
+      FTransporter.AddRef;
+    end;
+    AUnit.FGroupID := FGroupID;
+    AUnit.FGroup := Self;
+    FStatus := FStatus + [agsChanged];
+    Result := True;
+  end
+  else Result := False;
+  ValidateEmpty;
+end;
 
 function TAIGroup.AddUnits(Units: TUnitList): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+begin
+  AddRef;
+  for I := Units.Count - 1 downto 0 do
+    AddUnit(Units.GetUnit(I));
+  Release;
+  Result := True;
+end;
 
 function TAIGroup.DeleteUnit(AUnit: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  X1, Y1, L1, X2, Y2, L2: Shortint;
+  Leader: TAbstractUnit;
+begin
+  AUnit.AddRef;
+  if RemoveChild(AUnit) <> -1 then
+  begin
+    AUnit.FGroupID := 0;
+    AUnit.FGroup := nil;
+    Leader := FLeader;
+    if Leader = AUnit then
+    begin
+      Leader.GetLocation(X1, Y1, L1);
+      FLeader := nil;
+      FLeaderID := -1;
+      I := Count;
+      while (I <> 0) and (FLeader = nil) do
+      begin
+        Dec(I);
+        TAbstractUnit(FChildren.List^[I]).GetLocation(X2, Y2, L2);
+        if (X1 = X2) and (Y1 = Y2) and (L1 = L2) then
+          SetLeader(TAbstractUnit(FChildren.List^[I]));
+      end;
+      if (FLeader = nil) and (Count <> 0) then
+        SetLeader(TAbstractUnit(FChildren.List^[0]));
+    end;
+    FStatus := FStatus + [agsChanged];
+    Result := True;
+  end
+  else if AUnit = FTransporter then
+  begin
+    AUnit.FGroupID := 0;
+    AUnit.FGroup := nil;
+    FTransporterID := -1;
+    FTransporter.Release;
+    FTransporter := nil;
+    FStatus := FStatus + [agsChanged];
+    Result := True;
+  end
+  else Result := False;
+  ValidateEmpty;
+  AUnit.Release;
+end;
 
 procedure TAIGroup.UnitProduced(Control: TProductionControl; AUnit: TAbstractUnit);
-begin end;
+var
+  X1, Y1, L1, X2, Y2, L2: Shortint;
+begin
+  if FLeader <> nil then
+  begin
+    GetLocation(X1, Y1, L1);
+    AUnit.GetLocation(X2, Y2, L2);
+    if (L1 = L2) and (dHXtoRad(X1, Y1, X2, Y2) <= 2) then
+      AddUnit(AUnit);
+    FProductions.DeleteUnit(AUnit);
+  end;
+end;
 
-procedure TAIGroup.CooperateWithGroup(A1: Integer);
-begin end;
+function TAIGroup.CooperateWithGroup(Group: TAIGroup): Boolean;
+begin
+  Result := Group.Behavior = Behavior;
+end;
 
-procedure TAIGroup.DefendLocation(A1: Integer);
-begin end;
+function TAIGroup.DefendLocation(Location: Integer): Boolean;
+var
+  GroupLocation: TXYL;
+begin
+  GroupLocation.XYL := GetLoc;
+  Result := (TXYL(Location).L = GroupLocation.L) and
+    (dHXtoRad(TXYL(Location).X, TXYL(Location).Y, GroupLocation.X, GroupLocation.Y) <= 1);
+end;
 
 function TAIGroup.GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean;
 begin Result := False; end;
 
 procedure TAIGroup.Activate;
-begin end;
+var
+  Player: Shortint;
+begin
+  Assert(not (agsActivated in FStatus));
+  FStatus := FStatus + [agsActivated];
+  Player := FPlayer;
+  if Player <> -1 then AoWHSMap.FPlayers.GetPlayers(Player).FAIGroups.AddChild(Self);
+  FLeader := FindID(FLeaderID);
+  Assert((FTransporter <> nil) or (FTransporterID = -1));
+end;
 
 procedure TAIGroup.Deactivate;
-begin end;
+var
+  Player: Shortint;
+begin
+  Assert(agsActivated in FStatus);
+  FStatus := FStatus - [agsActivated];
+  Player := FPlayer;
+  if Player <> -1 then AoWHSMap.FPlayers.GetPlayers(Player).FAIGroups.RemoveChild(Self);
+end;
 
-procedure TAIGroup.SetPlayer(A1: Integer);
-begin end;
+procedure TAIGroup.SetPlayer(Player: Shortint);
+begin
+  if Player <> FPlayer then
+  begin
+    if (agsActivated in FStatus) and (FPlayer <> -1) then
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIGroups.RemoveChild(Self);
+    FPlayer := Player;
+    if (agsActivated in FStatus) and (FPlayer <> -1) then
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIGroups.AddChild(Self);
+  end;
+end;
 
-procedure TAIGroup.NewTurn(A1: Byte);
-begin end;
+procedure TAIGroup.NewTurn(Player: Shortint);
+begin
+  if Player = FPlayer then FStatus := FStatus - [agsDone];
+end;
 
 procedure TAIGroup.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020002 then NewTurn(Shortint(Integer(Msg.Engine)))
+  else if Msg.MsgID = $20000008 then
+  begin
+    Activate;
+    ValidateEmpty;
+  end;
+end;
 
 function TAIGroupList.GetGroups(Index: Integer): TAIGroup;
-begin Result := nil; end;
+begin
+  if (Index >= 0) and (Index < Count) then
+    Result := TAIGroup(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure TAIGroupList.IndexOfID(A1: Integer);
-begin end;
+function TAIGroupList.IndexOfID(ID: Integer): Integer;
+begin
+  Result := FChildren.Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if ID = TAIGroup(FChildren.List^[Result]).FGroupID then Exit;
+  end;
+  Result := -1;
+end;
 
 function TAIGroupList.FindID(ID: Integer): TAIGroup;
-begin Result := nil; end;
+var
+  I: Integer;
+begin
+  I := IndexOfID(ID);
+  if I <> -1 then Result := TAIGroup(FChildren.List^[I])
+  else Result := nil;
+end;
+
+function CompareAIGroupProcessPriority(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIGroup(Item2).GetProcessPriority - TAIGroup(Item1).GetProcessPriority;
+  if Result = 0 then Result := TAIGroup(Item2).FGroupID - TAIGroup(Item1).FGroupID;
+end;
 
 procedure TAIGroupList.SortOnProcessPriority;
-begin end;
+begin
+  FChildren.Sort(CompareAIGroupProcessPriority);
+end;
 
 constructor TAIGroupManager.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FNextID := 1;
+  FRegisteredClasses := TList.Create;
+end;
 
 destructor TAIGroupManager.Destroy;
-begin end;
+begin
+  FRegisteredClasses.Free;
+  inherited Destroy;
+end;
 
 procedure TAIGroupManager.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwIntegerEx(FNextID, 1, $1E);
+end;
 
 procedure TAIGroupManager.RegisterAIGroupClasses(Classes: array of TAIGroupClass);
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Classes) do
+    if FRegisteredClasses.IndexOf(Classes[I]) = -1 then
+      FRegisteredClasses.Add(Classes[I]);
+end;
 
-procedure TAIGroupManager.UnregisterAIGroupClasses(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupManager.UnregisterAIGroupClasses(Classes: array of TAIGroupClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Classes) do
+    FRegisteredClasses.Remove(Classes[I]);
+end;
 
 function TAIGroupManager.CreateGroup(Player, Relation: Shortint; Behavior: TGroupBehavior): TAIGroup;
-begin Result := nil; end;
+var
+  I: Integer;
+  Found: Boolean;
+begin
+  Found := False;
+  I := FRegisteredClasses.Count;
+  while not Found and (I <> 0) do
+  begin
+    Dec(I);
+    Found := Behavior = TAIGroupClass(FRegisteredClasses[I]).Behavior;
+  end;
+  if Found then
+  begin
+    Result := TAIGroupClass(FRegisteredClasses[I]).Create(Self);
+    Result.FGroupID := CreateUniqueID;
+    Result.FPlayer := Player;
+    Result.FIndependentRelation := Relation;
+    Result.AddRef;
+    Result.Activate;
+  end
+  else Result := nil;
+end;
 
-procedure TAIGroupManager.CreateUniqueID;
-begin end;
+function TAIGroupManager.CreateUniqueID: Integer;
+begin
+  Result := FNextID;
+  while IndexOfID(Result) <> -1 do
+  begin
+    Inc(Result);
+    if Result > $FFFFFFF then Result := 1;
+  end;
+  FNextID := Result + 1;
+end;
 
 constructor TAIGroupControlTarget.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FTransporterID := -1;
+end;
 
 function TAIGroupControlTarget.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIGroupControlTarget.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
-procedure TAIGroupControlTarget.Validate(A1: Integer);
-begin end;
+function TAIGroupControlTarget.Validate(Control: TAIGroupControl): Boolean;
+var
+  Data: TAITargetData;
+  X: Shortint;
+begin
+  X := FLocation.X;
+  if X <> -1 then
+    Result := TAoWMapField(AoWHSMap.MapContainer.GetField(X, FLocation.Y, FLocation.L)).GetAITarget(Control, FInfo, Data)
+  else Result := False;
+end;
 
-procedure TAIGroupControlTarget.GetTargetGold;
-begin end;
+function TAIGroupControlTarget.GetTargetGold: Integer;
+begin
+  Result := FData.Cost;
+end;
 
-procedure TAIGroupControlTarget.GetTargetMana;
-begin end;
+function TAIGroupControlTarget.GetTargetMana: Integer;
+begin
+  Result := 0;
+end;
 
-procedure TAIGroupControlTarget.GetDebugInfo(A1: Integer);
-begin end;
+procedure TAIGroupControlTarget.GetDebugInfo(var Text: string);
+begin
+  Text := 'Target(' + IntToStr(FLocation.X) + ',' + IntToStr(FLocation.Y) +
+    ',' + IntToStr(FLocation.L) + '): Prio:' + IntToStr(FData.Priority);
+  if FTransporterID <> -1 then
+    Text := Text + '/Transporter(' + IntToStr(FTransporterID) + ')';
+end;
 
-function TAIGroupControlTargetList.GetTargets(A1: Integer): TAIGroupControlTarget;
-begin Result := nil; end;
+function TAIGroupControlTargetList.GetTargets(Index: Integer): TAIGroupControlTarget;
+begin
+  Assert((Index >= 0) and (Index < FChildren.Count));
+  Result := TAIGroupControlTarget(FChildren.List^[Index]);
+end;
+
+function CompareAIGroupTargetPriority(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIGroupControlTarget(Item2).FData.Priority - TAIGroupControlTarget(Item1).FData.Priority;
+end;
 
 procedure TAIGroupControlTargetList.SortOnPriority;
-begin end;
+begin
+  FChildren.Sort(CompareAIGroupTargetPriority);
+end;
+
+function CompareAIGroupTargetDataB(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIGroupControlTarget(Item2).FDataB - TAIGroupControlTarget(Item1).FDataB;
+end;
 
 procedure TAIGroupControlTargetList.SortOnDataB;
-begin end;
+begin
+  FChildren.Sort(CompareAIGroupTargetDataB);
+end;
 
-procedure TAIGroupControlTargetList.Add(A1: TAIGroupControlTarget);
-begin end;
+procedure TAIGroupControlTargetList.Add(Target: TAIGroupControlTarget);
+begin
+  AddChild(Target);
+end;
 
-procedure TAIGroupControlTargetList.Delete(A1: Integer);
-begin end;
+procedure TAIGroupControlTargetList.Delete(Index: Integer);
+begin
+  RemoveChild(GetTargets(Index));
+end;
 
-procedure TAIGroupControlTargetList.Validate;
-begin end;
+function TAIGroupControlTargetList.Validate: Boolean;
+var
+  I: Integer;
+  Target: TAIGroupControlTarget;
+begin
+  Result := True;
+  AoWHSMap.FAIExecuter.UseProcessTime(Count * 20);
+  for I := Count - 1 downto 0 do
+  begin
+    Target := TAIGroupControlTarget(FChildren.List^[I]);
+    if not Target.Validate(FControl) then
+    begin
+      RemoveChild(Target);
+      Result := False;
+    end;
+  end;
+end;
 
-procedure TAIGroupControlTargetList.IndexOfXYL(A1: Integer);
-begin end;
+function TAIGroupControlTargetList.IndexOfXYL(Location: Integer): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Location = TAIGroupControlTarget(FChildren.List^[Result]).FLocation.XYL then Exit;
+  end;
+  Result := -1;
+end;
 
 constructor TAIRecruitmentGroup.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+end;
 
 destructor TAIRecruitmentGroup.Destroy;
-begin end;
+begin
+  SetGroup(nil);
+  inherited Destroy;
+end;
 
 function TAIRecruitmentGroup.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIRecruitmentGroup.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
-procedure TAIRecruitmentGroup.SetGroup(A1: Integer);
-begin end;
+procedure TAIRecruitmentGroup.SetGroup(Group: TAIGroup);
+var
+  OldGroup: TAIGroup;
+begin
+  OldGroup := FGroup;
+  if OldGroup <> Group then
+  begin
+    if OldGroup <> nil then OldGroup.Release;
+    FGroup := Group;
+    if FGroup <> nil then FGroup.AddRef;
+  end;
+end;
 
-procedure TAIRecruitmentGroup.Validate(A1: Integer; A2: Integer);
-begin end;
+function TAIRecruitmentGroup.Validate(Control: TAIGroupControl): Boolean;
+var
+  Location: TXYL;
+begin
+  if FGroup.Count <> 0 then
+  begin
+    Location.XYL := FGroup.GetLoc;
+    Result := (Location.X = FLocation.X) and (Location.Y = FLocation.Y) and
+      (Location.L = FLocation.L) and (FGroup.FPlayer = Control.FGroup.FPlayer);
+  end
+  else Result := False;
+end;
 
-procedure TAIRecruitmentGroupList.GetRecruitmentGroups(A1: Integer);
-begin end;
+function TAIRecruitmentGroupList.GetRecruitmentGroups(Index: Integer): TAIRecruitmentGroup;
+begin
+  Assert((Index >= 0) and (Index < FChildren.Count));
+  Result := TAIRecruitmentGroup(FChildren.List^[Index]);
+end;
+
+function CompareAIRecruitmentGroupMovePoints(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIRecruitmentGroup(Item2).FMovePoints - TAIRecruitmentGroup(Item1).FMovePoints;
+end;
 
 procedure TAIRecruitmentGroupList.SortOnMovePoints;
-begin end;
+begin
+  FChildren.Sort(CompareAIRecruitmentGroupMovePoints);
+end;
 
 procedure TAIRecruitmentGroupList.OutputDebugInfo;
-begin end;
+var
+  I: Integer;
+  Text: string;
+  Group: TAIRecruitmentGroup;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Group := GetRecruitmentGroups(I);
+    Text := Group.FGroup.ClassName + '(ID:' + IntToStr(Group.FGroup.FGroupID) + ')';
+    Text := Text + '/Loc:(' + IntToStr(Group.FLocation.X) + ',' +
+      IntToStr(Group.FLocation.Y) + ',' + IntToStr(Group.FLocation.L) + ')';
+    Text := Text + '/MP:' + IntToStr(Group.FMovePoints);
+    Text := Text + '/MPBFS:' + IntToStr(Group.FPathStrength);
+    AoWEngine.OutputDebugMessage(AIDID, Text);
+  end;
+end;
 
-procedure TAIRecruitmentGroupList.Add;
-begin end;
+procedure TAIRecruitmentGroupList.Add(Group: TAIRecruitmentGroup);
+begin
+  AddChild(Group);
+end;
 
-procedure TAIRecruitmentGroupList.Delete(A1: Integer);
-begin end;
+procedure TAIRecruitmentGroupList.Delete(Index: Integer);
+begin
+  RemoveChild(GetRecruitmentGroups(Index));
+end;
 
-procedure TAIRecruitmentGroupList.Validate(A1: Integer; A2: Integer);
-begin end;
+function TAIRecruitmentGroupList.Validate(Control: TAIGroupControl): Boolean;
+var
+  I: Integer;
+  Group: TAIRecruitmentGroup;
+begin
+  Result := True;
+  for I := Count - 1 downto 0 do
+  begin
+    Group := TAIRecruitmentGroup(FChildren.List^[I]);
+    if not Group.Validate(Control) then
+    begin
+      RemoveChild(Group);
+      Result := False;
+    end;
+  end;
+end;
 
-procedure TAIRecruitmentGroupList.UnitExists(A1: Integer);
-begin end;
+function TAIRecruitmentGroupList.UnitExists(AUnit: TAbstractUnit): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  I := Count;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    Result := TAIRecruitmentGroup(FChildren.List^[I]).FGroup.IndexOf(AUnit) <> -1;
+  end;
+end;
 
-procedure TAIRecruitmentGroupList.FindUnit(A1: Integer);
-begin end;
+function TAIRecruitmentGroupList.FindUnit(AUnit: TAbstractUnit): TAIRecruitmentGroup;
+var
+  I: Integer;
+begin
+  Result := nil;
+  I := Count;
+  while (Result = nil) and (I <> 0) do
+  begin
+    Dec(I);
+    if TAIRecruitmentGroup(FChildren.List^[I]).FGroup.IndexOf(AUnit) <> -1 then
+      Result := TAIRecruitmentGroup(FChildren.List^[I]);
+  end;
+end;
 
 constructor TAIGroupProductionLocation.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+end;
 
 function TAIGroupProductionLocation.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIGroupProductionLocation.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
-procedure TAIGroupProductionLocation.Validate;
-begin end;
+function TAIGroupProductionLocation.Validate(Control: TAIGroupControl): Boolean;
+begin
+  Result := True;
+end;
 
 procedure TAIGroupProductionLocationList.GetProductionLocation(A1: Integer);
 begin end;

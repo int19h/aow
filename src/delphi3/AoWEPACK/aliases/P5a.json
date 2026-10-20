@@ -1,0 +1,19 @@
+{
+  "FUN_5572c924": "NegotiateArmy",
+  "FUN_5572cb08": "BroadcastDiplomaticEvent",
+  "5572ceac:1540": "TDiplomaticAction.GetRelationModifier",
+  "5572ddb4:1294": "TDiplomaticAction.ExecuteAccept",
+  "5572ee44:77": "TDiplomaticActionEventLog.PlayLoggedSFX",
+  "5572d82c:1408": "TDiplomaticAction.ExecuteAI",
+  "5572f05c:1832": "TDiplomaticActionEventLog.GetText",
+  "557316cc:9": "CompareCampaignTransfer",
+  "55733130:24": "CompareAIPlayerActionClasses",
+  "557334d4:177": "TAIPlayerControl.Activate",
+  "55734b8c:269": "TGroupControlAIPA.Process",
+  "55734dbc:269": "TGroupControlLoopAIPA.Process",
+  "55734f40:9": "CompareAutoProductions",
+  "55737d54:46": "CompareAIGroupProcessPriority",
+  "557381ac:9": "CompareAIGroupTargetPriority",
+  "557381c8:9": "CompareAIGroupTargetDataB",
+  "55738418:9": "CompareAIRecruitmentGroupMovePoints"
+}

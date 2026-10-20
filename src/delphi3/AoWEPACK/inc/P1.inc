@@ -8169,8 +8169,8 @@ begin Result := False; end;
 function TAoWMapField.GetProductionControl: TProductionControl;
 begin Result := nil; end;
 
-procedure TAoWMapField.GetAITarget(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAoWMapField.GetAITarget(Control: TAIGroupControl; const Info: TAITargetInfo; var Data: TAITargetData): Boolean;
+begin Result := False; end;
 
 function TAoWMapField.GetMoveAction(A1: Byte): TMoveAction;
 begin Result := maNormal; end;
