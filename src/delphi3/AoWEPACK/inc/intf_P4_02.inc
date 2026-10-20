@@ -7,10 +7,11 @@
     function Finalize(AEngine: Engine.TEngine): Boolean; override;
   end;
 
-  { TAdjustableAbility (instance size 40, VMT 5571D930) }
+  { TAdjustableAbility (instance size 40, VMT 5571D930; $24 ability type) }
   TAdjustableAbility = class(TAbility)
   public
-    F_AdjustableAbility_24: Integer;
+    FAbilityType: TAbilityType; { $24 }
+    FAbilityTypePadding: array[0..2] of Byte; { $25 }
     procedure GetAbilityType; override;
   end;
 
@@ -20,23 +21,24 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TDurationAbilityData (instance size 20, VMT 5571DC94) }
+  { TDurationAbilityData (instance size 20, VMT 5571DC94;
+    $0C duration, $0D player index, $0E ability ID, $10 unresolved Integer) }
   TDurationAbilityData = class(TAbilityData)
   public
-    F_DurationAbilityData_0C: Byte;
-    F_DurationAbilityData_0D: Byte;
-    F_DurationAbilityData_0E: Word;
+    FDuration: Byte;
+    FPlayerIndex: Byte;
+    FAbilityID: Word;
     F_DurationAbilityData_10: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetAbilityID; override;
   end;
 
-  { TDurationAbility (instance size 44, VMT 5571DD68) }
+  { TDurationAbility (instance size 44, VMT 5571DD68; $28 duration mode) }
   TDurationAbility = class(TAdjustableAbility)
   public
-    F_DurationAbility_28: Byte;
-    F_DurationAbility_29: array[0..2] of Byte;
+    FDurationMode: TDurationMode;
+    FDurationPadding: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetName(A1: Integer; A2: Integer); override;
     procedure NewDay(A1: Integer); override;
@@ -46,8 +48,8 @@
     procedure NewCombatTurn(A1: Integer; A2: Integer); override;
     procedure CombatDone(A1: Integer); override;
     procedure AbilityDataClass; override;
-    procedure GetDuration(A1: Integer); virtual;  { +10C draft }
-    procedure GetTotalDuration; virtual;  { +110 draft }
+    function GetDuration(AbilityOwner: TAbilityOwner): Byte; virtual; { +10C }
+    procedure GetTotalDuration; virtual; { +110 needs: Integer result; PassiveAb overrides are draft }
   end;
 
   { TMultiLevelAbilityData (instance size 16, VMT 5571DEF8) }

@@ -1,47 +1,347 @@
+{ P4 abilities and magic.
+  TAdjustableAbility and TDurationAbilityData are recovered; TDurationAbility
+  is recovered except for NewDay's undeclared shared map global.
+  Other classes below still contain their original draft bodies.
+  Declaration adapters are temporary and marked with the owning package's needs. }
+
+type
+  P4LongString = ^string;
+  { Temporary declaration views: no instances are created. }
+  TDurationReturnView = class(TAbility)
+    function GetDuration(AbilityOwner: TAbilityOwner): Byte; virtual; abstract;
+    function GetTotalDuration: Integer; virtual; abstract;
+  end;
+  { needs: P3 TCombatObject.GetAbilityOwner: TAbilityOwner at VMT $B8.
+    This declaration-only view preserves TEObject's slots through $48 and
+    the TCombatObject slots $4C..$B8; no instances are created. }
+  TCombatOwnerReturnView = class(TEObject)
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    procedure Slot58; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    procedure Slot70; virtual; abstract;
+    procedure Slot74; virtual; abstract;
+    procedure Slot78; virtual; abstract;
+    procedure Slot7C; virtual; abstract;
+    procedure Slot80; virtual; abstract;
+    procedure Slot84; virtual; abstract;
+    procedure Slot88; virtual; abstract;
+    procedure Slot8C; virtual; abstract;
+    procedure Slot90; virtual; abstract;
+    procedure Slot94; virtual; abstract;
+    procedure Slot98; virtual; abstract;
+    procedure Slot9C; virtual; abstract;
+    procedure SlotA0; virtual; abstract;
+    procedure SlotA4; virtual; abstract;
+    procedure SlotA8; virtual; abstract;
+    procedure SlotAC; virtual; abstract;
+    procedure SlotB0; virtual; abstract;
+    procedure SlotB4; virtual; abstract;
+    function GetAbilityOwner: TAbilityOwner; virtual; abstract;
+  end;
+  TAbilityOwnerP4 = class(TAbilityOwner)
+    function DurationData(AbilityID: Integer): TDurationAbilityData;
+  end;
+
+const
+  { The class-reference constant supplies the EAX return while the inherited
+    AbilityDataClass declaration is still a procedure. }
+  P4DurationDataClass: TEObjectClass = TDurationAbilityData;
+
+resourcestring
+  DurationDaysRStr = '(%s/%s days)';
+  DurationCombatTurnRStr = '(%s/%s turns)';
+  DurationEntireCombatRStr = '(combat only)';
+
+function P4TranslateRStr(const S: string): string; assembler;
+{ needs: P1 TranslateRStr(const S: string): string; 55764EF6 returns a string. }
+asm
+  JMP TranslateRStr
+end;
+
+function P4Format(const S: string; const Args: array of const): string; assembler;
+{ needs: P1 Format(const S: string; const Args: array of const): string;
+  55764F04 has array high bound 1 in ECX and result pointer on stack. }
+asm
+  { Assembler functions with a stack result pointer receive an implicit EBP frame. }
+  POP EBP
+  JMP Format
+end;
+
+function TAbilityOwnerP4.DurationData(AbilityID: Integer): TDurationAbilityData;
+assembler;
+{ needs: P1 TAbilityOwner.GetAbilityData: TAbilityData; 55765044 tests EAX. }
+asm
+  JMP TAbilityOwner.GetAbilityData
+end;
+
+function P4BaseAbilityName(Ability: TAbility; AbilityOwner: Integer): string; assembler;
+{ needs: P1 TAbility.GetName string result in ECX at 55764E7C. }
+asm
+  JMP TAbility.GetName
+end;
+
 procedure TAdjustableAbility.GetAbilityType;
-begin end;
+{ needs: P1 TAbility.GetAbilityType: TAbilityType (AL at 55764C70). }
+asm
+  MOV AL, [EAX].TAdjustableAbility.FAbilityType
+end;
 
 class function TDurationAbilityData.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $22002;
+end;
 
 procedure TDurationAbilityData.GetAbilityID;
-begin end;
+{ needs: P1 TAbilityData.GetAbilityID: Integer (EAX at 55764C7C). }
+asm
+  MOVZX EAX, [EAX].TDurationAbilityData.FAbilityID
+end;
 
 procedure TDurationAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FDuration, 11);
+  Stream.rwWord(FAbilityID, 12);
+  Stream.rwByte(FPlayerIndex, 13);
+  Stream.rwInteger(F_DurationAbilityData_10, 14);
+end;
 
 constructor TDurationAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 procedure TDurationAbility.AbilityDataClass;
-begin end;
+{ needs: P1 TAbility.AbilityDataClass: class of TAbilityData (EAX at 55764D04). }
+asm
+  MOV EAX, DWORD PTR [P4DurationDataClass]
+end;
 
 procedure TDurationAbility.GetTotalDuration;
-begin end;
+{ needs: GetTotalDuration: Integer and matching P6 PassiveAb overrides. }
+asm
+  MOV EAX, 3
+end;
 
 procedure TDurationAbility.NewDay(A1: Integer);
-begin end;
+begin
+  { needs: P1 global AoWHSMap: TAoWHSMap (558FA040); 55764D14 removes
+    this ability from A1 when AoWHSMap.F_AoWHSMap_174 = 1. }
+end;
 
 procedure TDurationAbility.NewTurn(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.NewTurn(AbilityOwner: TAbilityOwner; PlayerIndex: ShortInt).
+  Original 55764D33 saves ECX, EDX, EAX to EBX, ESI, EDI. Integer drafts require
+  typed locals here; direct casts, reordered locals and absolute aliases differ. }
+var
+  PlayerIndex: ShortInt;
+  AbilityOwner: TAbilityOwnerP4;
+  Data: TDurationAbilityData;
+begin
+  PlayerIndex := ShortInt(A2);
+  AbilityOwner := TAbilityOwnerP4(A1);
+  if FDurationMode = dmDay then
+  begin
+    Data := AbilityOwner.DurationData(F_Ability_0C);
+    if Data <> nil then
+    begin
+      if (Data.FDuration <> 0) and (PlayerIndex = Data.FPlayerIndex) then
+      begin
+        Dec(Data.FDuration);
+        if Data.FDuration = 0 then
+          AbilityOwner.RemoveAbility(F_Ability_0C);
+      end;
+    end
+    else
+      AbilityOwner.RemoveAbility(F_Ability_0C);
+  end;
+end;
 
 procedure TDurationAbility.NewCombatTurn(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.NewCombatTurn(CombatObject: TCombatObject; PlayerIndex: ShortInt).
+  Original 55764D8F saves ECX, EDX, EAX to EBX, ESI, EDI. Same local variants
+  as NewTurn were tried; absolute aliases force an unwanted EBP frame. }
+var
+  PlayerIndex: ShortInt;
+  CombatObject: TCombatOwnerReturnView;
+  Data: TDurationAbilityData;
+begin
+  PlayerIndex := ShortInt(A2);
+  CombatObject := TCombatOwnerReturnView(A1);
+  if FDurationMode = dmCombatTurn then
+  begin
+    Data := TAbilityOwnerP4(CombatObject.GetAbilityOwner).DurationData(F_Ability_0C);
+    if Data <> nil then
+    begin
+      if (Data.FDuration <> 0) and (PlayerIndex = Data.FPlayerIndex) then
+      begin
+        Dec(Data.FDuration);
+        if Data.FDuration = 0 then
+          CombatObject.GetAbilityOwner.RemoveAbility(F_Ability_0C);
+      end;
+    end
+    else
+      CombatObject.GetAbilityOwner.RemoveAbility(F_Ability_0C);
+  end;
+end;
 
 procedure TDurationAbility.CombatDone(A1: Integer);
-begin end;
+begin
+  case FDurationMode of
+    dmCombatTurn, dmEntireCombat:
+      TCombatOwnerReturnView(A1).GetAbilityOwner.RemoveAbility(F_Ability_0C);
+  end;
+end;
 
 procedure TDurationAbility.GetName(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.GetName(AbilityOwner: TAbilityOwner): string;
+  A2 is the hidden string-result pointer in ECX at 55764E3E. }
+begin
+  if A1 <> 0 then
+    case FDurationMode of
+      dmDay:
+        begin
+          inherited GetName(A1, A2);
+          if GetDuration(TAbilityOwner(A1)) <> 0 then
+            P4LongString(Pointer(A2))^ := P4LongString(Pointer(A2))^ + ' ' +
+              P4Format(P4TranslateRStr(DurationDaysRStr),
+                [IntToStr(GetDuration(TAbilityOwner(A1))), IntToStr(TDurationReturnView(Self).GetTotalDuration)]);
+        end;
+      dmCombatTurn:
+        begin
+          P4LongString(Pointer(A2))^ := P4BaseAbilityName(Self, A1) + ' ' +
+            P4Format(P4TranslateRStr(DurationCombatTurnRStr),
+              [IntToStr(GetDuration(TAbilityOwner(A1))), IntToStr(TDurationReturnView(Self).GetTotalDuration)]);
+        end;
+      dmEntireCombat:
+        begin
+          P4LongString(Pointer(A2))^ := P4BaseAbilityName(Self, A1) + ' ' + P4TranslateRStr(DurationEntireCombatRStr);
+        end;
+      { Original leaves the caller's string untouched for dmNone and a nonnil owner. }
+    end
+  else
+    inherited GetName(A1, A2);
+end;
 
-procedure TDurationAbility.GetDuration(A1: Integer);
-begin end;
+function TDurationAbility.GetDuration(AbilityOwner: TAbilityOwner): Byte;
+{ 55765034 saves Self and AbilityOwner in EBX/ESI. The typed adapter, explicit
+  locals, with, and inverted branch variants all omit those saves; a procedural
+  cast adds an indirect call. Retain the straightforward body pending P1's API. }
+var
+  Data: TDurationAbilityData;
+begin
+  Data := TAbilityOwnerP4(AbilityOwner).DurationData(F_Ability_0C);
+  if Data <> nil then
+    Result := Data.FDuration
+  else
+    Result := 0;
+end;
 
 procedure TDurationAbility.Expand(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.Expand(AbilityOwner: TAbilityOwner): Boolean.
+  A2 is a spurious draft parameter; original 55765054 does not consume ECX. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  PUSH EBP
+  MOV EDI, EDX
+  MOV EBP, EAX
+  XOR EBX, EBX
+  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EAX, EDI
+  CALL TAbilityOwner.GetAbilityData
+  MOV ESI, EAX
+  TEST ESI, ESI
+  JNE @@Existing
+  XOR ECX, ECX
+  MOV DL, 1
+  MOV EAX, DWORD PTR [P4DurationDataClass]
+  CALL TEObject.Create
+  MOV ESI, EAX
+  MOV AX, WORD PTR [EBP].TAbility.F_Ability_0C
+  MOV [ESI].TDurationAbilityData.FAbilityID, AX
+  MOV EAX, EBP
+  MOV EDX, [EAX]
+  CALL DWORD PTR [EDX + $110]
+  MOV [ESI].TDurationAbilityData.FDuration, AL
+  PUSH 1
+  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, EDI
+  MOV EAX, EBP
+  CALL TAbility.SetAb
+  MOV EDX, ESI
+  MOV EAX, EDI
+  CALL TAbilityOwner.AddAbilityData
+  MOV BL, 1
+  JMP @@Done
+@@Existing:
+  MOV EAX, EBP
+  MOV EDX, [EAX]
+  CALL DWORD PTR [EDX + $110]
+  XOR EDX, EDX
+  MOV DL, [ESI].TDurationAbilityData.FDuration
+  CMP EAX, EDX
+  JLE @@Done
+  MOV BL, 1
+  MOV EAX, EBP
+  MOV EDX, [EAX]
+  CALL DWORD PTR [EDX + $110]
+  MOV [ESI].TDurationAbilityData.FDuration, AL
+@@Done:
+  MOV EAX, EBX
+  POP EBP
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TDurationAbility.Remove(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.Remove(AbilityOwner: TAbilityOwner): Boolean.
+  Original 557650D8 returns success in AL; A2 is unused. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  PUSH EBP
+  MOV ESI, EDX
+  MOV EBP, EAX
+  MOV BL, 1
+  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EAX, ESI
+  CALL TAbilityOwner.GetAbilityData
+  MOV EDI, EAX
+  TEST EDI, EDI
+  JE @@Missing
+  PUSH 0
+  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, ESI
+  MOV EAX, EBP
+  CALL TAbility.SetAb
+  MOV EDX, EDI
+  MOV EAX, ESI
+  CALL TAbilityOwner.RemoveAbilityData
+  JMP @@Done
+@@Missing:
+  PUSH 0
+  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, ESI
+  MOV EAX, EBP
+  CALL TAbility.SetAb
+  XOR EBX, EBX
+@@Done:
+  MOV EAX, EBX
+  POP EBP
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;

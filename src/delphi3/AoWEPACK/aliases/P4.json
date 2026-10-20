@@ -1,0 +1,12 @@
+{
+  "TRebuildConstructionControl.vmt58": "TRebuildConstructionControl.ID",
+  "TRebuildConstructionControl.vmt4C": "TRebuildConstructionControl.GetInfo",
+  "TRebuildConstructionControl.vmt50": "TRebuildConstructionControl.CanConstruct",
+  "TRebuildConstructionControl.vmt54": "TRebuildConstructionControl.Construct",
+  "TBuildRoadsControl.vmt20": "TBuildRoadsControl.Create",
+  "TBuildRoadsControl.Destroy": "TBuildRoadsControl.Destroy",
+  "TBuildRoadsControl.vmt58": "TBuildRoadsControl.ID",
+  "TBuildRoadsControl.vmt4C": "TBuildRoadsControl.GetInfo",
+  "TBuildRoadsControl.vmt50": "TBuildRoadsControl.CanConstruct",
+  "TBuildRoadsControl.vmt54": "TBuildRoadsControl.Construct"
+}
