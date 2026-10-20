@@ -1,5 +1,5 @@
 { Interface declaration run owned by P2. }
-  { TAoWEngine (instance size 128, VMT 557244F0) }
+  { TAoWEngine (instance size 128, VMT 557244F0): +6E FDemo. }
   TAoWEngine = class(THSEngine)
   public
     F_AoWEngine_58: Integer;
@@ -12,7 +12,7 @@
     { conflict: FUnitFont: TImageLibraryFont; }
     F_AoWEngine_6C: Byte;
     FAnimationDetail: Byte; { $6D }
-    F_AoWEngine_6E: Byte;
+    FDemo: Boolean; { $6E; 5578B227 }
     F_AoWEngine_6F: array[0..0] of Byte;
     FCampaign: TAoWCampaign; { $70 }
     FEmailGames: TEmailGameControl; { $74 }

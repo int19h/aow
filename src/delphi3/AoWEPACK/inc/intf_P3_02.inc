@@ -210,7 +210,7 @@
   public
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    function GetPlayers(A1: Shortint): TCombatPlayer;  { draft }
+    function GetPlayers(A1: Shortint): TCombatPlayer;
     function IndexOfPlayer(A1: Byte): Integer;
     function IndexOf(A1: Byte; A2: Byte): Integer;  { draft }
     procedure Delete(A1: Integer);  { draft }

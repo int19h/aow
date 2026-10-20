@@ -247,7 +247,7 @@
     FTurnOrder: TByteList; { $170 }
     FDay: Integer;  { $174 }
     F_AoWHSMap_178: Integer;
-    F_AoWHSMap_17C: Integer;
+    FOnLeaderChanged: TEventList; { $17C; 5578B0B7 }
     FShowIndependentMoves: Boolean; { $180 }
     F_AoWHSMap_181: array[0..2] of Byte;
     FMoveControl: TMoveControl;  { $184 }

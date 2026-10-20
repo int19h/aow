@@ -6319,269 +6319,707 @@ begin
   else Result := False;
 end;
 
-procedure THeroUpdateTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure THeroUpdateTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitID, 20);
+  Stream.rwData(FMode, 1, 21);
+  Stream.rwInteger(FItemID, 22);
+  Stream.rwInteger(FParameter, 23);
+end;
 
 class function THeroUpdateTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21105; end;
 
-function THeroUpdateTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function THeroUpdateTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var Success: Boolean; Hero: THero;
+begin
+  Success := False;
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  if ((AoWHSMap.FCombat = nil) and (AoWHSMap.FCurrentPlayer = Hero.FPlayer)) or
+    ((AoWHSMap.FCombat <> nil) and
+    (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = Hero.FPlayer)) then
+    case FMode of
+      hmPlaceItem: Success := Hero.ExecutePlaceItem(FItemID, THeroItemPosition(FParameter));
+      hmSwapItem: Success := Hero.ExecuteSwapItem(FItemID, FParameter);
+      hmStartCasting: Success := Hero.ExecuteStartCasting(FItemID);
+      hmCancelCasting: Success := Hero.ExecuteCancelCasting;
+    end;
+  if Success then Result := erDone else Result := erDoneHalt;
+end;
 
 function THeroResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
-begin Result := []; end;
+begin Result := [astUnit, astEditor]; end;
 
-constructor THeroResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor THeroResource.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FAbilities := THeroResourceAbilityOwner.Create(nil);
+  FAttack := 3;
+  FDefense := 3;
+  FDamage := 3;
+  FHits := 5;
+  FMoves := 28;
+  FResistance := 2;
+end;
 
 destructor THeroResource.Destroy;
-begin end;
+begin FAbilities.Free; inherited Destroy; end;
 
 class function THeroResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20231; end;
 
 function THeroResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20230; end;
 
-procedure THeroResource.HeroResourceIndex;
-begin end;
+function THeroResource.HeroResourceIndex: Integer;
+begin Result := Owner.FindChildIndex(Self); end;
 
-procedure THeroResource.UsedSkillPoints;
-begin end;
+function THeroResource.UsedSkillPoints: Integer;
+var I: Integer;
+begin
+  Result := FAttack * 5 + FDefense * 5 + FDamage * 10 + FResistance * 5 + FHits * 5 + FMoves * 2;
+  for I := FAbilities.GetAbCount - 1 downto 0 do
+    if FAbilities.GetAbSet(I) then
+      Inc(Result, AoWHSSet.FAbilityControl.GetAbility(I).GetSkillPoints(FAbilities));
+end;
 
-procedure THeroResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure THeroResource.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FName, 10);
+  Stream.rwByte(Byte(FRace), 11);
+  Stream.rwData(FHeroType, 1, 12);
+  Stream.rwData(FAlignment, 1, 13);
+  if FAlignment > alNone then FAlignment := alNeutral;
+  Stream.rwBool(FHidden, 14);
+  Stream.rwByte(Byte(FAttack), 15);
+  Stream.rwByte(Byte(FDefense), 16);
+  Stream.rwByte(Byte(FDamage), 17);
+  Stream.rwByte(Byte(FHits), 18);
+  Stream.rwByte(Byte(FMoves), 19);
+  Stream.rwByte(Byte(FResistance), 20);
+  Stream.rwEObject(FAbilities, 29);
+  Stream.rwInteger(FFaceIndex, 30);
+end;
 
-constructor THeroResourceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor THeroResourceList.Create(AOwner: TECustomNode);
+begin inherited Create(AOwner); SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]); end;
 
 function THeroResourceList.GetHeroResource(Index: Integer): THeroResource;
-begin Result := nil; end;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then Result := THeroResource(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure THeroResourceList.CreateHeroResourceStrings(A1: Byte);
-begin end;
+function THeroResourceList.CreateHeroResourceStrings(HeroTypes: THeroTypes): TStringList;
+var I: Integer; Resource: THeroResource; List: TStringList;
+begin
+  List := TStringList.Create;
+  for I := 0 to FChildren.Count - 1 do
+  begin
+    Resource := THeroResource(FChildren.List^[I]);
+    if (Resource <> nil) and ((euDesigner in AoWEngine.FUser) or not Resource.FHidden) and
+      (Resource.FHeroType in HeroTypes) then List.AddObject(Resource.FName, TObject(I));
+  end;
+  Result := List;
+end;
 
 function THeroResourceList.Find(Race: Integer; HeroType: THeroType): Integer;
-begin Result := 0; end;
+var I: Integer; Resource: THeroResource;
+begin
+  I := 0;
+  Result := -1;
+  while (I < FChildren.Count) and (Result = -1) do
+  begin
+    Resource := THeroResource(FChildren.List^[I]);
+    if (Resource <> nil) and (Race = Resource.FRace) and (HeroType = Resource.FHeroType) then Result := I;
+    Inc(I);
+  end;
+end;
 
-procedure THeroList.FindHero(A1: Integer);
-begin end;
+function THeroList.FindHero(ID: Integer): THero;
+var I: Integer;
+begin
+  I := 0;
+  Result := nil;
+  while (I <> FChildren.Count) and (Result = nil) do
+  begin
+    if ID = THero(FChildren.List^[I]).FUnitID then Result := THero(FChildren.List^[I]);
+    Inc(I);
+  end;
+end;
 
 function THeroList.GetHero(Index: Integer): THero;
-begin Result := nil; end;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then Result := THero(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-constructor THeroControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor THeroControl.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FOnChanged := TEventList.Create;
+  FOnHeroChanged := TEventList.Create;
+  FHeroes := THeroList.Create(nil);
+end;
 
 destructor THeroControl.Destroy;
-begin end;
+var I: Integer;
+begin
+  BeginUpdate;
+  for I := FHeroes.GetCount - 1 downto 0 do UnRegisterHero(THero(FHeroes.FChildren.List^[I]));
+  FHeroes.Free;
+  FOnHeroChanged.Free;
+  FOnChanged.Free;
+  inherited Destroy;
+end;
 
 procedure THeroControl.Changed;
-begin end;
+begin if FUpdateCount = 0 then FOnChanged.TriggerNotifyEvents(Self); end;
 
-procedure THeroControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure THeroControl.ReadWrite(Stream: TEStorageStream);
+var I: Integer;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FHeroes, 20);
+  if Stream.StorageMode * [smRead, smTextOnly, smSetupCompare, smCompare] = [smRead] then
+    for I := FHeroes.GetCount - 1 downto 0 do FHeroes.GetHero(I).FRegistered := True;
+end;
 
 procedure THeroControl.BeginUpdate;
-begin end;
+begin Inc(FUpdateCount); end;
 
 procedure THeroControl.EndUpdate;
-begin end;
+begin Dec(FUpdateCount); if FUpdateCount = 0 then Changed; end;
 
 procedure THeroControl.UpdateLibraryHeroes;
-begin end;
+var I: Integer;
+begin
+  BeginUpdate;
+  for I := FHeroes.GetCount - 1 downto 0 do THero(FHeroes.FChildren.List^[I]).UpdateFromLibrary;
+  EndUpdate;
+end;
 
 function THeroControl.GetHero(Index: Integer): THero;
-begin Result := nil; end;
+begin Result := THero(FHeroes.FChildren.List^[Index]); end;
 
 function THeroControl.GetCount: Integer;
-begin Result := 0; end;
+begin Result := FHeroes.GetCount; end;
 
 function THeroControl.FindID(ID: Integer): THero;
-begin Result := nil; end;
+begin Result := FHeroes.FindHero(ID); end;
 
-procedure THeroControl.IndexOf;
-begin end;
+function THeroControl.IndexOf(Hero: THero): Integer;
+begin Result := FHeroes.FChildren.IndexOf(Hero); end;
 
-procedure THeroControl.IndexOfLibraryEx(A1: Integer; A2: Integer);
-begin end;
+function THeroControl.IndexOfLibraryEx(const LibraryName: string; LibraryID: Integer): Integer;
+var Hero: THero;
+begin
+  Result := FHeroes.GetCount;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    Hero := THero(FHeroes.FChildren.List^[Result]);
+    if (Hero.FLibraryID = LibraryID) and (CompareText(Hero.GetLibraryName, LibraryName) = 0) then Exit;
+  end;
+  Result := -1;
+end;
 
 procedure THeroControl.ValidateLibraryHeroes;
-begin end;
+var I: Integer; Hero: THero;
+begin
+  for I := FHeroes.GetCount - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if (Hero <> nil) and (Hero.FLibraryID <> -1) and
+      (AoWHSSet.FHeroLibraries.FindHero(Hero.FLibraryName, Hero.FLibraryID) = nil) then
+      if Hero.Owner = nil then Hero.Free else Hero.FLibraryID := -1;
+  end;
+end;
 
 procedure THeroControl.Activate;
-begin end;
+var I: Integer; Hero: THero;
+begin
+  for I := FHeroes.GetCount - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if (not (usActivated in Hero.FUnitStatus)) and (Hero.Owner = nil) then Hero.Activate;
+  end;
+end;
 
 procedure THeroControl.Deactivate;
-begin end;
+var I: Integer; Hero: THero;
+begin
+  for I := FHeroes.GetCount - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if (usActivated in Hero.FUnitStatus) and (Hero.Owner = nil) then Hero.Deactivate;
+  end;
+end;
 
-procedure THeroControl.RegisterHero(Hero: THero);
-begin end;
+function THeroControl.RegisterHero(Hero: THero): Boolean;
+begin
+  if not Hero.FRegistered then
+  begin Hero.FRegistered := True; FHeroes.AddChild(Hero); Changed; Result := True; end
+  else Result := False;
+end;
 
 procedure THeroControl.UnRegisterHero(Hero: THero);
-begin end;
+begin
+  if Hero.FRegistered then
+  begin Hero.FRegistered := False; FHeroes.RemoveChild(Hero); Changed; end;
+end;
 
 procedure THeroControl.HeroChanged(Hero: THero);
-begin end;
+begin if not (msDestroying in AoWHSMap.Status) then FOnHeroChanged.TriggerNotifyEvents(Hero); end;
 
-procedure THeroControl.GetAverageFreeHeroLevel(A1: Integer; A2: Integer);
-begin end;
+function THeroControl.GetAverageFreeHeroLevel: Integer;
+var I, Count: Integer; Hero: THero;
+begin
+  Result := 0;
+  Count := 0;
+  for I := FHeroes.FChildren.Count - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if not (hsDied in Hero.FHeroStatus) and (Hero.FPlayer <= 0) then
+    begin Inc(Result, Hero.GetLevel); Inc(Count); end;
+  end;
+  if Count <> 0 then Result := Result div Count else Result := 0;
+end;
 
 function THeroControl.GetMinFreeHeroLevel: Integer;
-begin Result := 0; end;
+var I: Integer; Hero: THero;
+begin
+  Result := 30;
+  for I := FHeroes.FChildren.Count - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if not (hsDied in Hero.FHeroStatus) and (Hero.FPlayer <= 0) and (Result > Hero.GetLevel) then
+      Result := Hero.GetLevel;
+  end;
+end;
 
-procedure THeroControl.ListDeadHeroes(A1: Integer);
-begin end;
+procedure THeroControl.ListDeadHeroes(List: THeroList);
+var I: Integer; Hero: THero;
+begin
+  for I := FHeroes.FChildren.Count - 1 downto 0 do
+  begin
+    Hero := THero(FHeroes.FChildren.List^[I]);
+    if hsDied in Hero.FHeroStatus then List.AddChild(Hero);
+  end;
+end;
 
-procedure THeroControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure THeroControl.MsgProc(var Msg: TEMsg; Sender: TEObject);
+var I: Integer;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then
+  begin ValidateLibraryHeroes; Activate; end
+  else if Msg.MsgID = $20010017 then Deactivate
+  else
+    for I := FHeroes.GetCount - 1 downto 0 do
+      if THero(FHeroes.FChildren.List^[I]).Owner = nil then
+        THero(FHeroes.FChildren.List^[I]).MsgProc(Msg, Sender);
+end;
 
-procedure THeroLibrary.CreateUniqueLibraryID;
-begin end;
+function THeroLibrary.CreateUniqueLibraryID: Integer;
+var I: Integer;
+begin
+  repeat
+    I := 0;
+    Inc(FNextLibraryID);
+    if FNextLibraryID > $FFFFFFF then FNextLibraryID := 0;
+    while (I <> FChildren.Count) and (THero(FChildren.List^[I]).FLibraryID <> FNextLibraryID) do Inc(I);
+  until I = FChildren.Count;
+  Result := FNextLibraryID;
+end;
 
-function THeroLibrary.AddChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+function THeroLibrary.AddChild(Child: TEObject): Integer;
+begin
+  with THero(Child) do
+    { Original checks unit IDs rather than library IDs for a collision. }
+    if (FLibraryID = 0) or (FindHero(FLibraryID) <> nil) then FLibraryID := CreateUniqueLibraryID;
+  FChildren.Add(Child);
+  if Child.AddRef = -1 then raise Exception.Create('EObject doesn''t support ReferenceCounting');
+  Result := FChildren.Count - 1;
+end;
 
-procedure THeroLibrary.CreateHero;
-begin end;
+function THeroLibrary.CreateHero: THero;
+var Hero: THero;
+begin
+  Hero := THero.Create(nil);
+  Hero.SetHeroResourceIndex(0);
+  Hero.FLibraryID := CreateUniqueLibraryID;
+  Hero.FLibraryName := FLibraryName;
+  Hero.SetOwner(Self);
+  Hero.Release;
+  Result := Hero;
+end;
 
-procedure THeroLibrary.GetName(A1: Integer);
-begin end;
+function THeroLibrary.GetName: string;
+begin
+  Result := FLibraryName;
+  if Result = '' then Result := TranslateRStr(SystemRStr);
+end;
 
-procedure THeroLibrary.FindLibraryID(A1: Integer);
-begin end;
+function THeroLibrary.FindLibraryID(ID: Integer): THero;
+var I: Integer;
+begin
+  I := FChildren.Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    if ID = THero(FChildren.List^[I]).FLibraryID then
+    begin Result := THero(FChildren.List^[I]); Exit; end;
+  end;
+  Result := nil;
+end;
 
-procedure THeroLibrary.LoadFromFile;
-begin end;
+procedure THeroLibrary.LoadFromFile(const FileName: string);
+begin AoWEngine.ReadFromFile(FileName, Self, nil); end;
 
-procedure THeroLibrary.SaveToFile;
-begin end;
+procedure THeroLibrary.SaveToFile(const FileName: string);
+begin AoWEngine.WriteToFile(FileName, Self, nil); end;
 
-procedure THeroLibrary.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure THeroLibrary.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FLibraryName, 20);
+  Stream.rwInteger(FNextLibraryID, 21);
+end;
 
-constructor THeroLibraryManager.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor THeroLibraryManager.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FSystemLibrary := THeroLibrary.Create(nil);
+  FLibraries := TENode.Create(nil);
+end;
 
 destructor THeroLibraryManager.Destroy;
-begin end;
+begin FLibraries.Free; FSystemLibrary.Free; inherited Destroy; end;
 
-procedure THeroLibraryManager.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure THeroLibraryManager.ReadWrite(Stream: TEStorageStream);
+var Directory: string;
+begin
+  inherited ReadWrite(Stream);
+  if Stream.StorageMode * [smTextOnly, smCompare] = [] then
+  begin
+    Directory := ExtractFilePath(AoWEngine.HSSFileName);
+    if smRead in Stream.StorageMode then
+    begin
+      ReadUserLibraries;
+      AoWEngine.ReadFromFile(Directory + 'Heroes.PFS', FSystemLibrary, nil);
+    end
+    else
+    begin
+      AoWEngine.WriteToFile(Directory + 'Heroes.PFS', FSystemLibrary, nil);
+      WriteUserLibraries;
+    end;
+  end
+  else Stream.rwEObject(FSystemLibrary, 20);
+end;
 
-procedure THeroLibraryManager.GetLibrary(A1: Integer);
-begin end;
+function THeroLibraryManager.GetLibrary(Index: Integer): THeroLibrary;
+begin Result := THeroLibrary(FLibraries.FChildren.EObjects[Index]); end;
 
-procedure THeroLibraryManager.GetCount;
-begin end;
+function THeroLibraryManager.GetCount: Integer;
+begin Result := FLibraries.GetCount; end;
 
 procedure THeroLibraryManager.ReadUserLibraries;
-begin end;
+var Lib: THeroLibrary; Search: TSearchRec; Found: Boolean;
+begin
+  FLibraries.Clear;
+  FLibraries.AddChild(FSystemLibrary);
+  Found := FindFirst(AoWEngine.StartupDirectory + 'User\' + '*' + '.ahl', faAnyFile - faDirectory, Search) = 0;
+  while Found do
+  begin
+    Lib := THeroLibrary.Create(nil);
+    try
+      Lib.LoadFromFile(AoWEngine.StartupDirectory + 'User\' + Search.Name);
+      Lib.SetOwner(FLibraries);
+    except
+      Lib.Free;
+    end;
+    Found := FindNext(Search) = 0;
+  end;
+  FindClose(Search);
+end;
 
 procedure THeroLibraryManager.WriteUserLibraries;
-begin end;
+var I: Integer; Lib: THeroLibrary;
+begin
+  for I := 1 to FLibraries.GetCount - 1 do
+  begin
+    Lib := GetLibrary(I);
+    Lib.SaveToFile(AoWEngine.StartupDirectory + 'User\' + Lib.GetName + '.ahl');
+  end;
+end;
 
-procedure THeroLibraryManager.IndexOfLibraryName(A1: Integer);
-begin end;
+function THeroLibraryManager.IndexOfLibraryName(const Name: string): Integer;
+begin
+  Result := FLibraries.GetCount;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if CompareText(Name, THeroLibrary(FLibraries.FChildren.List^[Result]).FLibraryName) = 0 then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure THeroLibraryManager.IndexOfLibrary;
-begin end;
+function THeroLibraryManager.IndexOfLibrary(Lib: THeroLibrary): Integer;
+begin Result := FLibraries.FChildren.IndexOf(Lib); end;
 
 function THeroLibraryManager.FindHero(const LibraryName: string; LibraryID: Integer): THero;
-begin Result := nil; end;
+var Index: Integer;
+begin
+  Index := IndexOfLibraryName(LibraryName);
+  if Index <> -1 then Result := THeroLibrary(FLibraries.FChildren.List^[Index]).FindLibraryID(LibraryID)
+  else Result := nil;
+end;
 
-procedure THeroLibraryManager.CreateLibrary(A1: Integer);
-begin end;
+function THeroLibraryManager.CreateLibrary(const Name: string): THeroLibrary;
+var LibraryName: string;
+begin
+  LibraryName := Name;
+  { Original retains the period when stripping the extension. }
+  if Pos('.', LibraryName) <> 0 then LibraryName := System.Copy(LibraryName, 1, Pos('.', LibraryName));
+  if (LibraryName <> '') and (IndexOfLibraryName(LibraryName) = -1) then
+  begin
+    Result := THeroLibrary.Create(FLibraries);
+    Result.FLibraryName := LibraryName;
+    Result.SaveToFile(AoWEngine.StartupDirectory + 'Release\' + LibraryName + '.ahl');
+  end
+  else Result := nil;
+end;
 
-procedure THeroLibraryManager.DeleteLibrary(A1: Integer);
-begin end;
+procedure THeroLibraryManager.DeleteLibrary(Index: Integer);
+begin
+  if (Index < FLibraries.GetCount) and (Index > 0) then
+  begin
+    Windows.DeleteFile(PChar(AoWEngine.StartupDirectory + 'User\' + GetLibrary(Index).GetName + '.ahl'));
+    GetLibrary(Index).Free;
+  end;
+end;
 
-constructor TLeader.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TLeader.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FSpheres := TByteList.Create;
+  FSpherePicksMax := 5;
+end;
 
 destructor TLeader.Destroy;
-begin end;
+begin
+  if (AoWHSMap <> nil) and (AoWHSMap.FPlayers.GetPlayers(FPlayer) <> nil) and
+    (Self = AoWHSMap.FPlayers.GetPlayers(FPlayer).FLeader) then AoWHSMap.FPlayers.GetPlayers(FPlayer).SetLeader(nil);
+  inherited Destroy;
+  FSpheres.Free;
+end;
 
 procedure TLeader.Changed;
-begin end;
+begin
+  inherited Changed;
+  if (AoWHSMap <> nil) and not (msDestroying in AoWHSMap.Status) then
+    AoWHSMap.FOnLeaderChanged.TriggerNotifyEvents(Self);
+end;
 
 class function TLeader.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20232; end;
 
 function TLeader.GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer;
-begin end;
+begin Result := 90; end;
 
 function TLeader.GetNickname: string;
-begin Result := ''; end;
+begin
+  if AoWHSMap <> nil then
+    if AoWHSMap.FGameType <> gtCampaign then Result := ''
+    else begin Result := FNickname; Exit; end
+  else Result := '';
+end;
 
 procedure TLeader.SetNickname(Value: string);
-begin end;
+begin
+  if (AoWHSMap <> nil) and (AoWHSMap.FGameType = gtCampaign) then inherited SetNickname(Value);
+end;
 
 function TLeader.GetSpherePicks(Sphere: TMagicSphere): Byte;
-begin end;
+var I: Integer;
+begin
+  if Sphere <> msCosmos then
+  begin
+    Result := 0;
+    for I := FSpheres.Count - 1 downto 0 do
+      if FSpheres.List^[I] = Byte(Sphere) then Inc(Result);
+  end
+  else Result := 4;
+end;
 
-procedure TLeader.GetSpheres(A1: Integer);
-begin end;
+function TLeader.GetSpheres(Index: Integer): TMagicSphere;
+begin Result := TMagicSphere(FSpheres.List^[Index]); end;
 
 function TLeader.GetSphereCount: Integer;
-begin Result := 0; end;
+begin Result := FSpheres.Count; end;
 
-procedure TLeader.SetSpherePicksMax(A1: Byte);
-begin end;
+procedure TLeader.SetSpherePicksMax(Value: Byte);
+begin
+  FSpherePicksMax := Value;
+  while FSpheres.Count > FSpherePicksMax do FSpheres.Delete(FSpheres.Count - 1);
+end;
 
-procedure TLeader.CanAddSphere(A1: Integer);
-begin end;
+function TLeader.CanAddSphere(Sphere: TMagicSphere): Boolean;
+begin
+  if FSpheres.Count < FSpherePicksMax then
+  begin
+    if Sphere = msCosmos then begin Result := False; Exit; end;
+    if AoWEngine.FDemo and (GetSpherePicks(Sphere) >= 2) then begin Result := False; Exit; end;
+    if GetSpherePicks(Sphere) = 4 then begin Result := False; Exit; end;
+    if (Sphere = msFire) and (GetSpherePicks(msWater) <> 0) then begin Result := False; Exit; end;
+    if (Sphere = msWater) and (GetSpherePicks(msFire) <> 0) then begin Result := False; Exit; end;
+    if (Sphere = msLife) and (GetSpherePicks(msDeath) <> 0) then begin Result := False; Exit; end;
+    if (Sphere = msDeath) and (GetSpherePicks(msLife) <> 0) then begin Result := False; Exit; end;
+    if (Sphere = msEarth) and (GetSpherePicks(msAir) <> 0) then begin Result := False; Exit; end;
+    if (Sphere = msAir) and (GetSpherePicks(msEarth) <> 0) then begin Result := False; Exit; end;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TLeader.AddSphere(Sphere: TMagicSphere): Boolean;
-begin Result := False; end;
+begin Result := CanAddSphere(Sphere); if Result then FSpheres.Add(Byte(Sphere)); end;
 
-procedure TLeader.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TLeader.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020005 then
+  begin
+    SetSpherePicksMax(Byte(AoWHSMap.FSphereCount));
+    if AoWHSMap.FPlayers.GetCount > FPlayer then
+    begin
+      if AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace <> FRace then
+      begin
+        SetHeroResourceIndex(AoWHSSet.FHeroResources.Find(AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace, htHeroLeader));
+        Changed;
+      end;
+    end
+    else Destroy;
+  end;
+end;
 
-procedure TLeader.DeleteSphereIndex(A1: Integer);
-begin end;
+function TLeader.DeleteSphereIndex(Index: Integer): Boolean;
+begin
+  if (Index >= 0) and (Index < FSpheres.Count) then
+  begin FSpheres.Delete(Index); Result := True; end
+  else Result := False;
+end;
 
-procedure TLeader.DeleteSphere(A1: Byte; A2: Integer);
-begin end;
+function TLeader.DeleteSphere(Sphere: TMagicSphere): Boolean;
+var I: Integer;
+begin
+  I := FSpheres.Count;
+  Result := False;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    Result := FSpheres[I] = Byte(Sphere);
+  end;
+  if Result then FSpheres.Delete(I);
+end;
 
 procedure TLeader.ClearSpheres;
-begin end;
+begin FSpheres.Clear; end;
 
 function TLeader.GetPowerGeneration: Integer;
-begin end;
+begin
+  if GetAbilityEnabled(52) then Result := GetAbilityLevel(52) * 5 + 5 else Result := 0;
+end;
 
-procedure TLeader.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TLeader.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByteEx(FSpherePicksMax, 5, 45);
+  Stream.rwStreamProc(46, FSpheres.LoadFromStream, FSpheres.SaveToStream);
+end;
 
-function TLeader.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TLeader.GetEngine: TEngine;
+begin Result := AoWEngine; end;
 
 procedure TLeader.SetHeroResourceIndex(Value: Integer);
-begin end;
+begin
+  inherited SetHeroResourceIndex(Value);
+  if (FHeroResource <> nil) and (AoWHSMap <> nil) and (msEditting in AoWHSMap.Status) then
+    FHeroName := FHeroResource.FName;
+end;
 
 procedure TLeader.SetPlayer(Player: Shortint);
-begin end;
+begin
+  if Player <> FPlayer then
+    if FPlayer <> 0 then begin SetOwner(nil); Changed; end
+    else inherited SetPlayer(Player);
+end;
 
 procedure TLeader.Killed;
-begin end;
+begin
+  if (usActivated in FUnitStatus) and (AoWHSMap.FCombat = nil) then AoWHSMap.GameOver(FPlayer, goLost);
+  inherited Killed;
+end;
 
 function TLeader.CanActivate: Boolean;
-begin end;
+var Leader: TLeader;
+begin
+  Result := inherited CanActivate;
+  if Result then
+  begin
+    Leader := AoWHSMap.FPlayers.GetPlayers(FPlayer).FLeader;
+    if (Leader <> nil) and not CompatibleHero(Leader) then Result := False;
+  end;
+end;
 
 procedure TLeader.Activate;
-begin end;
+var Leader: TLeader;
+begin
+  FLibraryID := -1;
+  if FPlayer = 0 then FPlayer := AoWHSMap.FPlayers.RaceToPlayer(FRace);
+  inherited Activate;
+  if AoWHSMap.FPlayers.GetPlayers(FPlayer) <> nil then
+  begin
+    Leader := AoWHSMap.FPlayers.GetPlayers(FPlayer).FLeader;
+    if Leader <> Self then
+    begin
+      if (Leader <> nil) and (Leader.Owner <> nil) then
+        try
+          raise Exception.Create('Double leader used');
+        except
+          { Original silently swallows this duplicate-leader exception. }
+        end;
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).SetLeader(Self);
+      Changed;
+    end
+    else Changed;
+  end
+  else begin SetOwner(nil); Release; end;
+end;
 
 procedure TLeader.Deactivate;
-begin end;
+begin inherited Deactivate; end;
 
 procedure TLeader.EditDropMsg(var Msg: TEMsg);
-begin end;
+var Level: TMapLevel; L, X, Y: Integer; Placed: Boolean;
+begin
+  Level := TMapLevel(Msg.Param[0]);
+  L := Msg.Data[1];
+  HPtoHX(Msg.Value, Msg.Data[0], X, Y);
+  if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
+    Placed := Place(X, Y, L, FPlayer, []) <> nil
+  else Placed := False;
+  if Placed then Msg.Result := 0 else Msg.Result := -1;
+end;
 
 function TLeader.CanDisband(var Reason: string): Boolean;
-begin end;
+begin Result := False; end;
 
 function TLeader.GetUpkeep: Shortint;
-begin end;
+begin Result := 0; end;
 
 constructor TArmyID.Create(AOwner: Engine.TECustomNode);
 begin end;

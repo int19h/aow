@@ -210,12 +210,12 @@
     function CancelCasting: Boolean;
   end;
 
-  { TLeader (instance size 164, VMT 55712238) }
+  { TLeader (instance size 164, VMT 55712238): +9C FSpherePicksMax; +A0 FSpheres. }
   TLeader = class(THero)
   public
-    F_Leader_9C: Byte;
+    FSpherePicksMax: Byte; { $9C }
     F_Leader_9D: array[0..2] of Byte;
-    F_Leader_A0: Integer;
+    FSpheres: TByteList; { $A0 }
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -237,97 +237,98 @@
     procedure SetHeroResourceIndex(Value: Integer); override;
     procedure EditDropMsg(var Msg: TEMsg); override;
     function GetSpherePicks(Sphere: TMagicSphere): Byte;
-    procedure GetSpheres(A1: Integer);  { draft }
+    function GetSpheres(Index: Integer): TMagicSphere;
     function GetSphereCount: Integer;
-    procedure SetSpherePicksMax(A1: Byte);  { draft }
-    procedure CanAddSphere(A1: Integer);  { draft }
+    procedure SetSpherePicksMax(Value: Byte);
+    function CanAddSphere(Sphere: TMagicSphere): Boolean;
     function AddSphere(Sphere: TMagicSphere): Boolean;
-    procedure DeleteSphereIndex(A1: Integer);  { draft }
-    procedure DeleteSphere(A1: Byte; A2: Integer);  { draft }
-    procedure ClearSpheres;  { draft }
+    function DeleteSphereIndex(Index: Integer): Boolean;
+    function DeleteSphere(Sphere: TMagicSphere): Boolean;
+    procedure ClearSpheres;
   end;
 
   { THeroList (instance size 12, VMT 557124C8) }
   THeroList = class(TEReferenceNode)
   public
-    procedure FindHero(A1: Integer);  { draft }
+    function FindHero(ID: Integer): THero;
     function GetHero(Index: Integer): THero;
   end;
 
-  { THeroControl (instance size 24, VMT 557125BC) }
+  { THeroControl (instance size 24, VMT 557125BC): +08 FOnChanged; +0C FUpdateCount;
+    +10 FOnHeroChanged; +14 FHeroes. }
   THeroControl = class(TEObject)
   public
-    F_HeroControl_08: Integer;
-    F_HeroControl_0C: Integer;
-    F_HeroControl_10: Integer;
-    F_HeroControl_14: Integer;
+    FOnChanged: TEventList; { $08 }
+    FUpdateCount: Integer; { $0C }
+    FOnHeroChanged: TEventList; { $10 }
+    FHeroes: THeroList; { $14 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure Changed;  { draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
-    procedure UpdateLibraryHeroes;  { draft }
+    procedure Changed;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure UpdateLibraryHeroes;
     function GetHero(Index: Integer): THero;
     function GetCount: Integer;
     function FindID(ID: Integer): THero;
-    procedure IndexOf;  { draft }
-    procedure IndexOfLibraryEx(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateLibraryHeroes;  { draft }
-    procedure Activate;  { draft }
-    procedure Deactivate;  { draft }
-    procedure RegisterHero(Hero: THero);
+    function IndexOf(Hero: THero): Integer;
+    function IndexOfLibraryEx(const LibraryName: string; LibraryID: Integer): Integer;
+    procedure ValidateLibraryHeroes;
+    procedure Activate;
+    procedure Deactivate;
+    function RegisterHero(Hero: THero): Boolean;
     procedure UnRegisterHero(Hero: THero);
     procedure HeroChanged(Hero: THero);
-    procedure GetAverageFreeHeroLevel(A1: Integer; A2: Integer);  { draft }
+    function GetAverageFreeHeroLevel: Integer;
     function GetMinFreeHeroLevel: Integer;
-    procedure ListDeadHeroes(A1: Integer);  { draft }
+    procedure ListDeadHeroes(List: THeroList);
   end;
 
-  { THeroLibrary (instance size 20, VMT 5571267C) }
+  { THeroLibrary (instance size 20, VMT 5571267C): +0C FLibraryName; +10 FNextLibraryID. }
   THeroLibrary = class(THeroList)
   public
-    F_HeroLibrary_0C: Integer;
-    F_HeroLibrary_10: Integer;
+    FLibraryName: string; { $0C }
+    FNextLibraryID: Integer; { $10 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     function AddChild(Child: Engine.TEObject): Integer; override;
-    procedure CreateUniqueLibraryID;  { draft }
-    procedure CreateHero;  { draft }
-    procedure GetName(A1: Integer);  { draft }
-    procedure FindLibraryID(A1: Integer);  { draft }
-    procedure LoadFromFile;  { draft }
-    procedure SaveToFile;  { draft }
+    function CreateUniqueLibraryID: Integer;
+    function CreateHero: THero;
+    function GetName: string;
+    function FindLibraryID(ID: Integer): THero;
+    procedure LoadFromFile(const FileName: string);
+    procedure SaveToFile(const FileName: string);
   end;
 
-  { THeroLibraryManager (instance size 16, VMT 55712788) }
+  { THeroLibraryManager (instance size 16, VMT 55712788): +08 FSystemLibrary; +0C FLibraries. }
   THeroLibraryManager = class(TEObject)
   public
-    F_HeroLibraryManager_08: Integer;
-    F_HeroLibraryManager_0C: Integer;
+    FSystemLibrary: THeroLibrary; { $08 }
+    FLibraries: TENode; { $0C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetLibrary(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
-    procedure ReadUserLibraries;  { draft }
-    procedure WriteUserLibraries;  { draft }
-    procedure IndexOfLibraryName(A1: Integer);  { draft }
-    procedure IndexOfLibrary;  { draft }
+    function GetLibrary(Index: Integer): THeroLibrary;
+    function GetCount: Integer;
+    procedure ReadUserLibraries;
+    procedure WriteUserLibraries;
+    function IndexOfLibraryName(const Name: string): Integer;
+    function IndexOfLibrary(Lib: THeroLibrary): Integer;
     function FindHero(const LibraryName: string; LibraryID: Integer): THero;
-    procedure CreateLibrary(A1: Integer);  { draft }
-    procedure DeleteLibrary(A1: Integer);  { draft }
+    function CreateLibrary(const Name: string): THeroLibrary;
+    procedure DeleteLibrary(Index: Integer);
   end;
 
   { THeroResource (instance size 52, VMT 55712854): +20 FRace; +21 FHeroType;
-    +22 FAlignment; +24..29 base statistics; +2C FAbilities; +30 FFaceIndex. }
+    +1C FName; +22 FAlignment; +23 FHidden; +24..29 base statistics; +2C FAbilities; +30 FFaceIndex. }
   THeroResource = class(TAbstractUnitResource)
   public
-    F_HeroResource_1C: Integer;
+    FName: string; { $1C }
     FRace: Shortint;  { $20 }
     FHeroType: THeroType;  { $21 }
     FAlignment: TAlignment;  { $22 }
-    F_HeroResource_23: Byte;
+    FHidden: Boolean; { $23 }
     FAttack: Shortint;  { $24 }
     FDefense: Shortint;  { $25 }
     FDamage: Shortint;  { $26 }
@@ -342,8 +343,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function ResourceUserClassID: Integer; override;
-    procedure HeroResourceIndex;  { draft }
-    procedure UsedSkillPoints;  { draft }
+    function HeroResourceIndex: Integer;
+    function UsedSkillPoints: Integer;
   end;
 
   { THeroResourceList (instance size 20, VMT 5571294C) }
@@ -351,7 +352,7 @@
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetHeroResource(Index: Integer): THeroResource;
-    procedure CreateHeroResourceStrings(A1: Byte);  { draft }
+    function CreateHeroResourceStrings(HeroTypes: THeroTypes): TStringList;
     function Find(Race: Integer; HeroType: THeroType): Integer;
   end;
 

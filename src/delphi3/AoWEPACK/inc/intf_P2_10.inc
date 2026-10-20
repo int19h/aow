@@ -91,6 +91,7 @@ var
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
 
 resourcestring
+  SystemRStr = 'System';
   CastingXInProgressRStr = 'Casting %s...'; { $55707454 }
   P2NotEnoughCastingPointsRStr = 'Not enough channeling points'; { $557075E4 }
   CannotCastSpellInCombatRStr = 'Cannot cast spell in combat'; { $5570826C }

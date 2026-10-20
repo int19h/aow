@@ -1118,7 +1118,7 @@ type
     FDebugIDs: TStringList;
     FDebugEvents: TEventList;
     FStartupDirectory: string;
-    FUnknown30: Byte;
+  public FUser: TEngineUser; private { $30; 5578A15C }
     FOptions: TEngineOptions;
     function CreateUniqueDebugID: Integer;
   public
