@@ -7,7 +7,7 @@ unit LicenseF;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   TLicenseForm = class;
@@ -15,26 +15,27 @@ type
 
   { TLicenseForm (instance size 516, VMT 558076CC) }
   TLicenseForm = class(TForm)
-  public
-    F_LicenseForm_1DC: Integer;
-    F_LicenseForm_1E0: Integer;
-    F_LicenseForm_1E4: Integer;
-    F_LicenseForm_1E8: Integer;
-    F_LicenseForm_1EC: Integer;
-    F_LicenseForm_1F0: Integer;
-    F_LicenseForm_1F4: Integer;
-    F_LicenseForm_1F8: Integer;
-    F_LicenseForm_1FC: Integer;
-    F_LicenseForm_200: Integer;
-    procedure FormCreate;  { draft }
+  published
+    LicenseMemo: TMemo; { +$1DC }
+    Panel1: TPanel; { +$1E0 }
+    Image1: TImage; { +$1E4 }
+    Label1: TLabel; { +$1E8 }
+    Panel2: TPanel; { +$1EC }
+    Bevel1: TBevel; { +$1F0 }
+    Label2: TLabel; { +$1F4 }
+    YesBtn: TButton; { +$1F8 }
+    NoBtn: TButton; { +$1FC }
+    Image2: TImage; { +$200 }
+    procedure FormCreate(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TLicenseForm.FormCreate;
-begin end;
-
+procedure TLicenseForm.FormCreate(Sender: TObject);
+begin
+  LicenseMemo.Lines.LoadFromFile(AoWEngine.StartupDirectory + 'LICENSE.TXT');
+end;
 
 initialization
 finalization

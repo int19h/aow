@@ -98,7 +98,12 @@ implementation
 type
   { needs: AoWE.TAoWMapField.GetPlayer must return Shortint (557D11BB).
     The procedural cast calls the existing method with its recovered ABI. }
-  TMapFieldGetPlayer = function(MapField: TAoWMapField): Shortint;
+  PFlagMapView = ^TFlagMapView;
+  TFlagMapView = record Reserved: array[0..$A4] of Byte; SeatedPlayer: Shortint; end;
+  TMessageLogView = class(TObject) Reserved: array[4..$17] of Byte; Message: TStrings; HelpFile: string; end;
+
+function MapFieldGetPlayer(MapField: TAoWMapField): Shortint; assembler;
+asm jmp TAoWMapField.GetPlayer end;
 
 procedure TFlagEvent.ReadWrite(Stream: Engine.TEStorageStream);
 begin
@@ -115,7 +120,7 @@ end;
 function TFlagEvent.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin
   { needs: AoWE.AoWHSMap global; original tests msEditting in its Status at 557D1158. }
-  Result := False;
+  Result := msEditting in AoWHSMap.Status;
 end;
 
 function TFlagEvent.GetTriggerPlayer(Player: Shortint): Boolean;
@@ -141,14 +146,14 @@ procedure TFlagEvent.UpdateInstantTrigger;
 var
   Player: Shortint;
 begin
-  Player := TMapFieldGetPlayer(@TAoWMapField.GetPlayer)(TAoWMapField(Owner));
+  Player := MapFieldGetPlayer(TAoWMapField(Owner));
   if (Player <> -1) and GetTriggerPlayer(Player) and Trigger(Player) then
     SetTriggerPlayer(Player, False);
 end;
 
 procedure TFlagEvent.UpdateNewTurnTrigger(Player: Shortint);
 begin
-  if (Player = TMapFieldGetPlayer(@TAoWMapField.GetPlayer)(TAoWMapField(Owner))) and
+  if (Player = MapFieldGetPlayer(TAoWMapField(Owner))) and
     GetTriggerPlayer(Player) and Trigger(Player) then
     SetTriggerPlayer(Player, False);
 end;
@@ -169,7 +174,7 @@ end;
 
 procedure TFlagEvent.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin
-  { needs: AoWE.AoWHSMap global; inherited Show only in msEditting (557D128E). }
+  if msEditting in AoWHSMap.Status then inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
 end;
 
 constructor TFlagEventResource.Create(AOwner: Engine.TECustomNode);
@@ -208,10 +213,16 @@ begin
 end;
 
 function TFlagMessageEvent.Trigger(Player: Shortint): Boolean;
+var Log: TFlagMessageEventLog;
 begin
-  { needs: AoWE.AoWHSMap; EventLog.THelpMessageEventLog +$18 TStrings, +$1C string;
-    TAoWHSMap.TriggerExecuteEventLog needs typed Log and Instant parameters (last two arguments are zero).
-    Original 557D13B4..557D1417 queues the help message for the seated player. }
+  if PFlagMapView(AoWHSMap)^.SeatedPlayer = Player then
+  begin
+    Log := TFlagMessageEventLog.Create(nil);
+    TMessageLogView(Log).HelpFile := FHelpFileName;
+    TMessageLogView(Log).Message.Text := FMessage.Text;
+    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Ord(FTriggerMode = etmInstant), 0, 0);
+    Log.Release;
+  end;
   Result := True;
 end;
 
@@ -222,6 +233,8 @@ end;
 
 class function TFlagMessageEventResource.ResourceEditName: string;
 begin
+  { needs: AoWE.TranslateRStr(const S: string): string; pass its
+    hidden result address explicitly until P1 corrects the declaration. }
   Result := AoWE.TranslateRStr(FlagMessageEventRStr);
 end;
 
@@ -254,10 +267,15 @@ begin
 end;
 
 function TTutorialMessageEvent.Trigger(Player: Shortint): Boolean;
+var Log: TTutorialMessageEventLog;
 begin
-  { needs: AoWE.AoWHSMap; EventLog.TTutorialMessageEventLog +$18 TStrings;
-    TAoWHSMap.TriggerExecuteEventLog needs typed Log and Instant parameters (last two arguments are zero).
-    Original 557D155C..557D15B4 queues the tutorial message for the seated player. }
+  if PFlagMapView(AoWHSMap)^.SeatedPlayer = Player then
+  begin
+    Log := TTutorialMessageEventLog.Create(nil);
+    TMessageLogView(Log).Message.Text := FMessage.Text;
+    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Ord(FTriggerMode = etmInstant), 0, 0);
+    Log.Release;
+  end;
   Result := True;
 end;
 
@@ -268,6 +286,8 @@ end;
 
 class function TTutorialMessageEventResource.ResourceEditName: string;
 begin
+  { needs: AoWE.TranslateRStr(const S: string): string; pass its
+    hidden result address explicitly until P1 corrects the declaration. }
   Result := AoWE.TranslateRStr(TutorialMessageEventRStr);
 end;
 

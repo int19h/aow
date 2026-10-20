@@ -1,1 +1,12 @@
-{}
+{
+  "AlgnmBox.Register": "Register<AlgnmBox",
+  "AoWSetup.Register": "Register<AoWSetup",
+  "HeroCtrl.Register": "Register<HeroCtrl",
+  "HeroGrid.Register": "Register<HeroGrid",
+  "ItemCtrl.Register": "Register<ItemCtrl",
+  "ItemGrid.Register": "Register<ItemGrid",
+  "LeadrGrd.Register": "Register<LeadrGrd",
+  "MapCtrl.Register": "Register<MapCtrl",
+  "PlayerBox.Register": "Register<PlayerBox",
+  "RaceBox.Register": "Register<RaceBox"
+}

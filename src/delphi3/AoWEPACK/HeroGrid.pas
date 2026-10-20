@@ -2,12 +2,12 @@ unit HeroGrid;
 
 { Draft declarations of HeroGrid, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  List management and selection recovered; remaining rendering/editor stubs are unfinished. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   THeroGrid = class;
@@ -16,82 +16,230 @@ type
   { THeroGrid (instance size 496, VMT 558012E8) }
   THeroGrid = class(TCustomImageDrawGrid)
   public
-    F_HeroGrid_1DC: Integer;
-    F_HeroGrid_1E0: array[0..7] of Byte;
-    F_HeroGrid_1E8: Integer;
-    F_HeroGrid_1EC: array[0..3] of Byte;
+    FIndices: TIntegerList; { +$1DC }
+    FHeroes: THeroList; { +$1E0 }
+    FDisplayOptions: array[0..2] of Byte; { +$1E4 }
+    FUnplacedOnly: Boolean; { +$1E7 }
+    FStream: TMemoryStream; { +$1E8 }
+    FSort: Byte; { +$1EC }
+    FReserved1ED: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;
     procedure DeleteCell; override;
     procedure DelCell; override;
-    procedure GetHero(A1: Integer);  { draft }
-    procedure GetSelectedHero;  { draft }
-    procedure SetSelectedHero;  { draft }
-    procedure SortHeroes(A1: Byte);  { draft }
-    procedure UpdateHeroes;  { draft }
-    procedure SortOnName;  { draft }
-    procedure SortOnLevel;  { draft }
-    procedure HeroesUpdated;  { draft }
-    procedure SetHeroes(A1: Integer);  { draft }
-    procedure DeleteHero;  { draft }
-    procedure DeleteSelectedHero;  { draft }
+    function GetHero(Index: Integer): THero;
+    function GetSelectedHero: THero;
+    procedure SetSelectedHero(Value: THero);
+    procedure SortHeroes(Mode: Byte);
+    procedure UpdateHeroes;
+    procedure SortOnName;
+    procedure SortOnLevel;
+    procedure HeroesUpdated(Sender: TObject);
+    procedure SetHeroes(Value: THeroList);
+    procedure DeleteHero(Index: Integer);
+    procedure DeleteSelectedHero;
   end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 
 implementation
 
+type
+  TRawView = record Fields: array[0..511] of Pointer; end;
+  PNodeView = ^TNodeView;
+  TNodeView = record Reserved: array[0..7] of Byte; Children: TList; end;
+  PEngineView = ^TEngineView;
+  TEngineView = record Reserved: array[0..$2F] of Byte; Status: Byte; end;
+  PHeroView = ^THeroView;
+  THeroView = record
+    Reserved00: array[0..$5F] of Byte;
+    Name: string;
+    Reserved64: array[0..3] of Byte;
+    Race: Byte;
+    Reserved69: array[0..$E] of Byte;
+    Hidden: Boolean;
+  end;
+  PItemView = ^TItemView;
+  TItemView = record
+    Reserved00: array[0..$17] of Byte;
+    Name: string;
+    Reserved1C: array[0..$17] of Byte;
+    Kind: Byte;
+    Reserved35: array[0..$E] of Byte;
+    Hidden: Boolean;
+  end;
+
+{ needs: typed results for the existing draft methods. These tail jumps keep their ABI. }
+function HeroAt(List: THeroList; Index: Integer): THero; assembler;
+asm jmp THeroList.GetHero end;
+function ControlHeroAt(Control: THeroControl; Index: Integer): THero; assembler;
+asm jmp THeroControl.GetHero end;
+function HeroCount(Control: THeroControl): Integer; assembler;
+asm jmp THeroControl.GetCount end;
+function HeroIndexOf(Control: THeroControl; Hero: THero): Integer; assembler;
+asm jmp THeroControl.IndexOf end;
+function HeroLevel(Hero: THero): Shortint; assembler;
+asm jmp THero.GetLevel end;
+function ItemAt(List: TItemList; Index: Integer): TItem; assembler;
+asm mov ecx,[eax]; jmp dword ptr [ecx+$8C] end;
+function ControlItemAt(Control: TItemControl; Index: Integer): TItem; assembler;
+asm jmp TItemControl.GetItem end;
+function ItemCount(Control: TItemControl): Integer; assembler;
+asm jmp TItemControl.GetCount end;
+function PlayerAt(List: TPlayerList; Index: Integer): TPlayer; assembler;
+asm jmp TPlayerList.GetPlayers end;
+function RaceToPlayer(List: TPlayerList; Race: Byte): Integer; assembler;
+asm jmp TPlayerList.RaceToPlayer end;
+
+var SortHeroList: THeroList;
+
+function HeroGridCompareName(A, B: Integer): Integer;
+begin
+  Result := CompareText(PHeroView(HeroAt(SortHeroList, A))^.Name, PHeroView(HeroAt(SortHeroList, B))^.Name);
+  { Original uses object addresses to break ties. }
+  if Result = 0 then Result := Integer(HeroAt(SortHeroList, A)) - Integer(HeroAt(SortHeroList, B));
+end;
+function HeroGridCompareLevel(A, B: Integer): Integer;
+begin
+  Result := HeroLevel(HeroAt(SortHeroList, A)) - HeroLevel(HeroAt(SortHeroList, B));
+  if Result = 0 then Result := Integer(HeroAt(SortHeroList, A)) - Integer(HeroAt(SortHeroList, B));
+end;
+
 constructor THeroGrid.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  DefaultColWidth := 155;
+  DefaultRowHeight := 46;
+  GrowDirection := ilVertical;
+  BltMode := TBltMode(2);
+  FIndices := TIntegerList.Create;
+  FStream := TMemoryStream.Create;
+  FSort := 1;
+end;
 
 destructor THeroGrid.Destroy;
-begin end;
+begin
+  SetHeroes(nil);
+  FIndices.Free;
+  FStream.Free;
+  inherited Destroy;
+end;
 
 procedure THeroGrid.DeleteCell;
-begin end;
+begin
+  if igDelete in EditMode then DeleteSelectedHero;
+end;
 
 procedure THeroGrid.DelCell;
-begin end;
+begin
+  if igDel in EditMode then DeleteSelectedHero;
+end;
 
-procedure THeroGrid.GetHero(A1: Integer);
-begin end;
+function THeroGrid.GetHero(Index: Integer): THero;
+begin
+  { Original checks only the upper bound. }
+  if Index < FIndices.Count then Result := HeroAt(FHeroes, FIndices[Index])
+  else Result := nil;
+end;
 
-procedure THeroGrid.GetSelectedHero;
-begin end;
+function THeroGrid.GetSelectedHero: THero;
+var
+  Index: Integer;
+begin
+  Index := ImageIndex(Col, Row);
+  if Index < FIndices.Count then Result := HeroAt(FHeroes, FIndices[Index])
+  else Result := nil;
+end;
 
-procedure THeroGrid.SetSelectedHero;
-begin end;
+procedure THeroGrid.SetSelectedHero(Value: THero);
+var
+  I: Integer;
+begin
+  I := PNodeView(FHeroes)^.Children.IndexOf(Value);
+  if I <> -1 then
+  begin
+    I := FIndices.IndexOf(I);
+    if I <> -1 then SelectIndex(I);
+  end;
+end;
 
-procedure THeroGrid.SortHeroes(A1: Byte);
-begin end;
+procedure THeroGrid.SortHeroes(Mode: Byte);
+begin
+  FSort := Mode;
+  SortHeroList := FHeroes;
+  case FSort of
+    0: FIndices.Sort(HeroGridCompareName);
+    1: FIndices.Sort(HeroGridCompareLevel);
+  end;
+  Invalidate;
+end;
 
 procedure THeroGrid.UpdateHeroes;
-begin end;
+var
+  I: Integer;
+  List: THeroList;
+begin
+  FIndices.Clear;
+  List := FHeroes;
+  if List <> nil then
+  begin
+    for I := 0 to List.Count - 1 do
+      if ((PEngineView(AoWEngine)^.Status and 2) <> 0) or not PHeroView(HeroAt(FHeroes, I))^.Hidden then
+        if not FUnplacedOnly or (HeroAt(FHeroes, I).Owner = nil) then FIndices.Add(I);
+    Count := FIndices.Count;
+  end;
+  SortHeroes(FSort);
+  Invalidate;
+  if SelectionEnabled and Focused then SelectCell(Col, Row);
+end;
 
 procedure THeroGrid.SortOnName;
-begin end;
+begin
+  SortHeroes(0);
+end;
 
 procedure THeroGrid.SortOnLevel;
-begin end;
+begin
+  SortHeroes(1);
+end;
 
-procedure THeroGrid.HeroesUpdated;
-begin end;
+procedure THeroGrid.HeroesUpdated(Sender: TObject);
+begin
+  UpdateHeroes;
+end;
 
-procedure THeroGrid.SetHeroes(A1: Integer);
-begin end;
+procedure THeroGrid.SetHeroes(Value: THeroList);
+begin
+  if Value <> FHeroes then
+  begin
+    FHeroes := Value;
+    UpdateHeroes;
+  end;
+end;
 
 procedure THeroGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
 begin end;
 
-procedure THeroGrid.DeleteHero;
-begin end;
+procedure THeroGrid.DeleteHero(Index: Integer);
+var
+  Hero: THero;
+begin
+  Hero := GetHero(Index);
+  if Hero <> nil then
+  begin
+    FHeroes.RemoveChild(Hero);
+    UpdateHeroes;
+  end;
+end;
 
 procedure THeroGrid.DeleteSelectedHero;
-begin end;
+begin
+  DeleteHero(ImageIndex(Col, Row));
+end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin RegisterComponents('AoW', [THeroGrid]); end;
 
 
 initialization
