@@ -47,8 +47,10 @@ compared with the original code byte for byte.
 method: `tools/match.py` disassembles both and reports every instruction that differs. Every unit of
 Enginep.dpl is written; 865 of 892 functions compile to identical code, the rest differ in one register
 choice or an `Assert` line number (`notes/match.md` lists them). `notes/modules.md` gives the order for
-the other packages. `notes/match.md` has the workflow,
-the state table and what the comparisons taught about the compiler. Build and compare:
+the other packages, and thirteen of them are recovered the same way in `src/delphi3/<Package>/`;
+`sh tools/checkall.sh` rebuilds and compares all of them from a clean copy. `notes/match.md` has
+the workflow, the state table and what the comparisons taught about the compiler;
+`notes/handoff.md` has the state at 2026-10-20, the open items and the plan. Build and compare:
 
 ```bash
 cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matchtest.dpr

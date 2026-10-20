@@ -277,5 +277,7 @@ date and version as `DCC32.EXE`), and Delphi 3 builds other than 3.0 and 3.01.
 - The five `Assert` line numbers settle only when the whole unit is laid out as the original.
 - `GetEngine`, `GetPlugIn`: the same source compiles with Index in ebx for one and in eax for the
   other in the original.
-- Next: the remaining units of Enginep.dpl (`zlib`, `EList`, `PlugInM`, `DebMDlg`, `EResGrid`,
-  `ImgLComp`, `EngineP`), then the game units (AoWEPACK.dpl and the others).
+- Every unit of Enginep.dpl and thirteen more packages are done (the state table above and
+  `tools/checkall.sh`). `notes/handoff.md` (2026-10-20) has the per-package leftovers, the open
+  declaration work (export hashes, the EngineLists fold, the access classes, the Assert layout)
+  and the order of the remaining modules, AoWEPACK.dpl first.
