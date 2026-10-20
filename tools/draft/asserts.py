@@ -1,10 +1,11 @@
-"""Global line numbers of the Assert calls in HSEngine.pas with its {$I} includes, as DCC32 counts
-them (an include's lines take the place of the directive line), against the original's."""
-import os, re
-D = 'C:/git/int19h/aow/src/delphi3/HSEPack'
-ORIG = {('HXSPRITE.PAS', 1): 2475, ('HXSPRITE.PAS', 2): 2681, ('MAPOBJ.PAS', 1): 4328,
-        ('MAPOBJ.PAS', 2): 4334, ('MAPOBJ.PAS', 3): 4340, ('HSMAP.PAS', 1): 5989, ('LibImgHS.PAS', 1): 6626}
-main = open(D + '/HSEngine.pas', encoding='latin1').read().split('\n')
+"""Global line numbers of the Assert calls in a unit with its {$I} includes, as DCC32 counts
+them. Usage: asserts.py <unit.pas> [original-lines.json]. (An include's lines take the place of the directive line), against the original's."""
+import os, re, sys, json
+D = os.path.dirname(os.path.abspath(sys.argv[1]))
+ORIG = {}
+if len(sys.argv)>2:
+    ORIG = {(f, int(n)): line for f,n,line in json.load(open(sys.argv[2]))}
+main = open(sys.argv[1], encoding='latin1').read().split('\n')
 g = 0
 prev = None
 for i, l in enumerate(main, 1):

@@ -16,7 +16,7 @@ def scan(text):
     cur = None; vis = 'public'
     for l in intf.split('\n'):
         m = re.match(r'\s*(\w+) = class\((\w+)\)', l)
-        if m: cur = m.group(1); classes.append(cur); vis = 'public'; continue
+        if m: cur = m.group(1); classes.append(UNIT[0] + '.' + cur); vis = 'public'; continue
         if cur and re.match(r'\s*end;', l): cur = None; continue
         m = re.match(r'\s*(private|protected|public|published)\s*$', l)
         if m: vis = m.group(1); continue
@@ -24,8 +24,8 @@ def scan(text):
         m = re.match(r'\s*(?:class )?(procedure|function|constructor|destructor) (\w+)', l)
         if not m: continue
         if cur and ('virtual' in l or 'override' in l or 'dynamic' in l or 'message' in l): continue
-        if cur: methods.append(cur + '.' + m.group(2))
-        elif m.group(2) != 'Register': methods.append(m.group(2))
+        if cur: methods.append(UNIT[0] + '.' + cur + '.' + m.group(2))
+        elif m.group(2) != 'Register': methods.append(UNIT[0] + '.' + m.group(2))
         else: methods.append(UNIT[0] + '.Register')
 def expand(path):
     text = open(path, encoding='latin1').read()

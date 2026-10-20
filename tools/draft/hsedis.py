@@ -1,20 +1,17 @@
-"""Disassemble HSEPack.dpl functions with call targets resolved: local functions by name, import
+"""Disassemble a module functions with call targets resolved: local functions by name, import
 thunks (jmp [IAT]) by the imported name, VMT calls annotated with the slot offset.
-Usage: hsedis.py [--module=X.dpl] name-substring... (a trailing dot lists a whole class)"""
+Usage: hsedis.py <module.dpl> <signatures.json> name-substring... (a trailing dot lists a whole class)"""
 import json, sys, struct, re
 import pefile, capstone
 def strip(n):
     return re.sub(r'@[0-9A-F]{8}$', '', n)
-G = 'D:/Games/GOG/Age of Wonders/'
-mod = 'HSEPack.dpl'
-args = []
-for a in sys.argv[1:]:
-    if a.startswith('--module='): mod = a.split('=', 1)[1]
-    else: args.append(a)
-pe = pefile.PE(G + mod)
+from pathlib import Path
+mod = sys.argv[1]
+args = sys.argv[3:]
+pe = pefile.PE(mod)
 base = pe.OPTIONAL_HEADER.ImageBase
 data = pe.get_memory_mapped_image()
-sigs = json.load(open('C:/git/int19h/aow/notes/signatures/%s.json' % mod))
+sigs = json.load(open(sys.argv[2]))
 names = {int(f['addr'], 16): strip(f['name']) for f in sigs}
 iat = {}
 for e in getattr(pe, 'DIRECTORY_ENTRY_IMPORT', []):

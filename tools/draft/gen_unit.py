@@ -1,20 +1,30 @@
-CRLF = chr(13) + chr(10)
-"""Write the draft HSEngine.pas: types, resourcestrings, classes (draft fields and methods), unit
-routines, stub implementations. Usage: gen_unit.py <out.pas>"""
-import sys, io, re, os, glob, collections, contextlib
-sys.path.insert(0, 'C:/Users/int19h/AppData/Local/Temp/hse_tools')
-sys.argv = ['gen_draft.py', 'HSEngine']
-buf = io.StringIO()
-with contextlib.redirect_stdout(buf):
-    import gen_draft as G
+"""Write a draft unit, preserving entry/field/VMT inference from the HSEPack tools.
+Usage: gen_unit.py <module.dpl> <signatures.json> <Unit> <out.pas>
+Optional --decomp supplies Ghidra field accesses; --vcl-source supplies Delphi source.
+For AoWE, implementation fragments follow notes/aowepack-plan.md P1 through P5.
+"""
+import sys, io, re, os, glob, collections, contextlib, runpy
+from pathlib import Path
+from types import SimpleNamespace
+from config import parser
+parser_ = parser(__doc__)
+parser_.add_argument('output', type=Path)
+parser_.add_argument('--all', action='store_true', help='write all module units beside output')
+args = parser_.parse_args()
+argv = [str(Path(__file__).with_name('gen_draft.py')), str(args.module), str(args.signatures), args.unit,
+        '--classes', str(args.classes), '--source-root', str(args.source_root)]
+for flag, value in (('--decomp',args.decomp),('--vcl-source',args.vcl_source)):
+    if value: argv += [flag,str(value)]
+saved = sys.argv
+sys.argv = argv
+with contextlib.redirect_stdout(io.StringIO()):
+    G = SimpleNamespace(**runpy.run_path(argv[0]))
+sys.argv = saved
 from entry import analyze, sigs
-out_path = sys.argv[1] if len(sys.argv) > 1 else None
-OUT = 'C:/git/int19h/aow/src/delphi3/HSEPack/HSEngine.pas'
-
-# ---- field scan
-D = 'C:/git/int19h/aow/notes/decomp/HSEPack-typed-all'
+CRLF = '\r\n'
+D = args.decomp
 acc = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
-for f in glob.glob(D + '/*.c'):
+for f in glob.glob(str(D / '*.c')) if D else []:
     src = open(f, encoding='latin1').read()
     types = {v: t for t, v in re.findall(r'\b(T\w+) \*(\w+)\b', src)}
     for m in re.finditer(r'(?:\*\((\w+(?: \w+)?) \*\)&)?(?:\(\((T\w+) \*\)(\w+)\)|(\w+))->field_0x([0-9a-f]+)', src):
@@ -30,7 +40,7 @@ def size_of(n):
 def fields_for(n):
     lo = size_of(G.classes[n]['parent']); hi = G.classes[n]['size']
     # collect accesses from the class and descendants
-    offs = {}
+    offs = {int(off): f['size'] for off,f in G.classes[n].get('fields', {}).items() if lo <= int(off) < hi and f.get('size') in (1,2,4)}
     for t in [n] + G.desc(n):
         for off, c in acc[t].items():
             if lo <= off < hi:
@@ -49,144 +59,163 @@ def fields_for(n):
         res.append('F_%s_%02X: array[0..%d] of Byte;' % (short, pos, hi - pos - 1))
     return res
 
-TYPES_A = '''  PInteger = ^Integer;
-
-  TWalkAroundRouteCallBack = function(X: Integer; Y: Integer; var Cancel: Boolean): Boolean of object;
-'''
-RES = '''resourcestring
-  TerrainStr = 'Terrain';
-  BridgeStr = 'Bridge';
-  UpperIsometricHexagonStr = 'Upper Isometric Hexagon';
-  LowerIsometricHexagonStr = 'Lower Isometric Hexagon';
-  InvalidPlaceMentStr = 'Invalid Placement';
-  HexagonStr = 'Hexagon';
-  SelectedStr = 'selected';
-  TransparentStr = 'Transparent';
-  LoadingStr = 'Loading';
-  ClosingStr = 'Closing';
-  SaveChangesToXStr = 'Save changes to %s';
-  OneMomentPleaseStr = 'One moment please...';
-  CutStr = 'Cu&t';
-  PasteStr = '&Paste';
-  DeleteStr = '&Delete';
-  CopyStr = '&Copy';
-  EditStr = '&Edit';
-'''
-# types that go right before a class (declaration order of the type infos)
-BEFORE = {
- 'TTerrainList': ['TTerrainCompareMode = set of (cmSameOverlayType, cmSameTerrainType);'],
- 'TMapField': ['TMapFieldStatus = set of (msTerrainLocked, msVisible, msLoading, msComparing);'],
- 'THSMapMouse': ['TMouseStatus = set of (msChangingCapture);'],
- 'THSMap': ['TCenterViewEvent = procedure(Xhx: Integer; Yhx: Integer; Lhx: Integer) of object;',
-            'TChangeViewEvent = procedure(Xhp: Integer; Yhp: Integer; Lhp: Integer) of object;',
-            'TViewLevelEvent = procedure(Lhx: Integer) of object;',
-            'THSMapStatus = set of (msModified, msEditting, msActivated, msDestroying, msPreviewMode);',
-            'TMapProgressType = (ptLoading, ptSaving, ptInitializing, ptUpdatingTerrain, ptActivating, ptDestroying);',
-            'TChangeTerrainProc = procedure(MapF: TMapField; var TerrainType: Shortint; var OverlayType: Shortint) of object;',
-            'TTerrainChangedProc = procedure(MapF: TMapField; OriginalTerrainType: Shortint; OriginalOverlayType: Shortint) of object;'],
- 'THSSet': ['THSSetStatus = set of (ssModified, ssEditting, ssActivated, ssDestroying);'],
- 'THSEngine': ['THSEngineStatus = set of (esLoadingHSMSettings, esLoadingHSM, esSavingHSM, esLoadingHSS, esSavingHSS);'],
- 'THexagonSprite': ['TControlMode = set of (cmMultiSelect, cmShowSelectionSelf);'],
- 'TCustomFixedVisibleHS': ['TOnShowHSEvent = procedure(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc) of object;'],
- 'TLibraryImageHS': ['TLibraryImageHSStatus = set of (lsVisible, lsEditMode, lsDestroyOnShow, lsMapIsOwner, lsPlacedOnMap);'],
- 'TMapObject': ['TMapObjectStatus = set of (moVisible, moResourceLinked, moEditMode, moPlacedOnMap, moSelected, moActivated);'],
-}
-
 def impl_header(cls, decl):
     d = re.sub(r'\s*\{[^}]*\}\s*$', '', decl).strip()
     d = re.sub(r'\s*(virtual|override|dynamic|abstract|reintroduce)\s*;', '', d).strip()
     m = re.match(r'((?:class )?(?:procedure|function|constructor|destructor)) (\w+)(.*)$', d)
     return '%s %s.%s%s' % (m.group(1), cls, m.group(2), m.group(3))
-INTF = {  # class -> interface include
- 'TNewHSMapSettings': 'intf_A1', 'TTerrainList': 'intf_A1',
- 'TMapField': 'intf_C', 'TMapLevel': 'intf_C', 'TMapContainer': 'intf_C', 'TVisibilityList': 'intf_C',
- 'THexagonSpriteSelection': 'intf_D', 'THSMapMouse': 'intf_D', 'THSMap': 'intf_D', 'THSMapViewer': 'intf_D',
- 'TMORTerrainControl': 'intf_E', 'THexagonControl': 'intf_E', 'TRoadControl': 'intf_E', 'THSSet': 'intf_E',
- 'THSEngine': 'intf_E', 'THexagonSpriteEngine': 'intf_E',
- 'THexagonSprite': 'intf_B', 'TSingleHS': 'intf_B', 'TFixedVisibleHS': 'intf_B', 'TCustomFixedVisibleHS': 'intf_B',
- 'TLibraryImageHS': 'intf_B', 'THPBasedHS': 'intf_B',
- 'TXYLList': 'intf_A2'}
-IMPL = {
- 'TTerrainList': 'impl_A1', 'TXYLList': 'impl_A1',
- 'THexagonSprite': 'HXSPRITE.PAS', 'THPBasedHS': 'HXSPRITE.PAS', 'TSingleHS': 'HXSPRITE.PAS',
- 'TFixedVisibleHS': 'HXSPRITE.PAS', 'TCustomFixedVisibleHS': 'HXSPRITE.PAS',
- 'TMapField': 'impl_C1', 'TNewHSMapSettings': 'impl_A2', 'TMapLevel': 'impl_C2', 'TMapContainer': 'impl_C2',
- 'THSSet': 'impl_E1', 'THSMapMouse': 'impl_D1', 'THexagonSpriteSelection': 'impl_D1', 'TVisibilityList': 'impl_C3',
- 'THSMap': 'HSMAP.PAS', 'TLibraryImageHS': 'LibImgHS.PAS', 'TMORTerrainControl': 'impl_E2',
- 'THexagonControl': 'impl_E2', 'TRoadControl': 'impl_E2',
- 'THSMapViewer': 'impl_D2', 'THSEngine': 'impl_E3', 'THexagonSpriteEngine': 'impl_E3'}
-IMPL_ORDER = ['impl_A1', 'HXSPRITE.PAS', 'impl_C1', 'impl_A2', 'impl_C2', 'impl_E1', 'MAPOBJ.PAS', 'impl_D1',
-              'impl_C3', 'HSMAP.PAS', 'LibImgHS.PAS', 'impl_A3', 'impl_E2', 'impl_D2', 'impl_E3', 'impl_A4']
-INTF_ORDER = ['intf_A1', 'intf_C', 'intf_D', 'intf_E', 'intf_B', 'intf_F', 'intf_A2']
-files = collections.defaultdict(list)
-for n, *_ in G.out:
-    if n not in INTF: INTF[n] = 'intf_F'
-    if n not in IMPL: IMPL[n] = 'MAPOBJ.PAS'
-for n, p, size, vmt, lines in G.out:
-    for t in BEFORE.get(n, []): files[INTF[n]].append('  ' + t)
-    if BEFORE.get(n): files[INTF[n]].append('')
-    files[INTF[n]].append('  { %s (instance size %d): draft }' % (n, size))
-    files[INTF[n]].append('  %s = class(%s)' % (n, p))
-    fs = fields_for(n)
-    if fs:
-        files[INTF[n]].append('  public')
-        for f in fs: files[INTF[n]].append('    ' + f)
-    files[INTF[n]].append('  public')
-    for l in lines:
-        files[INTF[n]].append('    ' + l)
-        if 'abstract;' in l: continue
-        files[IMPL[n]].append(impl_header(n, l))
-        files[IMPL[n]].append('begin')
-        files[IMPL[n]].append('end;')
-        files[IMPL[n]].append('')
-    files[INTF[n]].append('  end;')
-    files[INTF[n]].append('')
-# unit routines
-routines = []
-W = {1: 'Byte', 2: 'Word', 4: 'Integer'}
-for va, s in sorted(sigs('HSEPack.dpl').items()):
-    nm = s['name'].split('@')[0]
-    if not nm.startswith('HSEngine.') or nm.count('.') != 1: continue
-    r = nm.split('.')[1]
-    if r in ('Register', 'Finalization', 'HSEngine'): continue
-    used, rn = analyze('HSEPack.dpl', va, s['size'])
-    ps = []
-    regs = [x for x in ('eax', 'edx', 'ecx') if x in used]
-    nreg = {'eax': 1, 'edx': 2, 'ecx': 3}[regs[-1]] if regs else 0
-    if rn: nreg = 3
-    for x in ('eax', 'edx', 'ecx')[:nreg]: ps.append(W[used.get(x, 4)])
-    ps += ['Integer'] * ((rn or 0) // 4)
-    ret = G.ret_of(s)
-    args = '(%s)' % '; '.join('A%d: %s' % (j + 1, t) for j, t in enumerate(ps)) if ps else ''
-    d = '%s %s%s%s;' % ('function' if ret else 'procedure', r, args, (': ' + ret) if ret else '')
-    files['intf_A3'].append(d + '  { draft }')
-    files['impl_A3'].append(re.sub(r'\s*\{.*$', '', d)); files['impl_A3'].append('begin'); files['impl_A3'].append('end;'); files['impl_A3'].append('')
 
-files['intf_A3'] += ['', 'const', '  HSMID: Integer = 0;  { draft }', '', 'var', '  HSEngineDID: Integer;  { draft }', '', 'procedure Register;']
-files['impl_A4'] += ['procedure Register;', 'begin', 'end;', '']
-os.makedirs(os.path.dirname(OUT) + '/inc', exist_ok=True)
-for k, v in files.items():
-    fn = k if k.endswith('.PAS') else k + '.inc'
-    open(os.path.dirname(OUT) + '/inc/' + fn, 'w', newline='').write(CRLF.join(v) + CRLF)
-src = ['unit HSEngine;', '',
- '{ DRAFT generated from the VMTs, the entry registers and the decompiled field accesses: field',
- '  names F_<Class>_<offset> and parameter lists marked "draft" are placeholders for the owner of',
- '  each class to replace. During the work every group of classes lives in its own include files',
- '  (inc/intf_*.inc for declarations, inc/impl_*.inc and the original include files HXSPRITE.PAS,',
- '  MAPOBJ.PAS, HSMAP.PAS, LibImgHS.PAS for the code); the final unit inlines the inc files. }', '',
- 'interface', '', 'uses',
- '  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls,',
- '  ExtCtrls, Engine, GFXE, ImageLib, DisplayC, Sound;', '', 'type', TYPES_A.rstrip(chr(10)), '', RES.rstrip(chr(10)), '', 'type']
-for n, *_ in G.out: src.append('  %s = class;' % n)
-src.append('')
-for k in INTF_ORDER:
-    src.append('{$I inc' + chr(92) + '%s.inc}' % k)
-src.append('')
-src.append('{$I inc' + chr(92) + 'intf_A3.inc}')
-src += ['', 'implementation', '']
-for k in IMPL_ORDER:
-    fn = k if k.endswith('.PAS') else k + '.inc'
-    src.append('{$I inc' + chr(92) + '%s}' % fn)
-src += ['', 'end.']
-open(OUT, 'w', newline='').write(CRLF.join(src) + CRLF)
-print('written')
+def capture(tool, unit):
+    saved = sys.argv
+    sys.argv = [tool, str(args.module), unit]
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        runpy.run_path(str(Path(__file__).with_name(tool)), init_globals={'_pe':G.pe})
+    sys.argv = saved
+    return buf.getvalue().splitlines()
+
+def stub(decl):
+    if not re.match(r'(?:class )?function ', decl): return 'begin end;'
+    ret = re.search(r':\s*([\w.]+)\s*;\s*$', decl)
+    typ = next((x for x in ret.groups() if x), 'Integer') if ret else 'Integer'
+    if typ.lower() in ('string','ansistring','widestring','shortstring'): value = "''"
+    elif typ.lower() in ('boolean','bool','longbool','wordbool','bytebool'): value = 'False'
+    elif typ.lower() in ('integer','cardinal','longint','longword','byte','word','smallint','shortint','single','double','extended','currency','int64'): value = '0'
+    elif typ.lower() == 'pointer' or typ.startswith('P') or typ in G.classes: value = 'nil'
+    else: return 'begin FillChar(Result, SizeOf(Result), 0); end;'
+    return 'begin Result := %s; end;' % value
+
+first_address = {}
+for name,(va,_) in G.hse.items():
+    parts = name.split('.')
+    if len(parts)==3:
+        first_address[parts[1]] = min(first_address.get(parts[1],va),va)
+aowe_order = sorted((first_address[cn],cn) for cn in G.own_unit_classes if G.owners[cn]=='AoWE' and cn in first_address)
+aowe_seq = [cn for va,cn in aowe_order]
+def owner_part(n):
+    if G.MOD.lower() != 'aowepack.dpl' or G.owners[n] != 'AoWE': return 'P1'
+    if n in ('TUnitResourceAbilityOwner','THeroResourceAbilityOwner'): return 'P2'
+    if n in ('TRebuildConstructionControl','TBuildRoadsControl'): return 'P4'
+    seq = aowe_seq
+    if n not in seq: return 'P1'
+    for part,first,last in [('P1','TAoWHSSet','TFrozenWaterHS'),('P1','TTutorialControl','TAoWHSMap'),
+                            ('P2','TUnitControl','TAgeOfWondersEngine'),('P3','TCombatUnit','TCombatPredictor'),
+                            ('P4','TAdjustableAbility','TAbilityPlugIn'),('P4','TSpellCC','TChangeGlobalMagicTE'),
+                            ('P5','TJoinEventLog','TPadControl')]:
+        if seq.index(first) <= seq.index(n) <= seq.index(last): return part
+    raise ValueError('No work package for '+n)
+
+def write(path, lines):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    with open(path,'w',newline='',encoding='latin1') as f: f.write(CRLF.join(lines)+CRLF)
+
+def generate(unit, output):
+    own = [row for row in G.out if G.owners[row[0]] == unit]
+    if G.MOD.lower() == 'localize.dpl':
+        wanted = {'IvDictio': {'TIvDictionary','TIvCustomTranslator'}, 'IvAMulti': {'TIvCustomFileDictionary'},
+                  'IvBinDic': {'TIvBinaryDictionary'}, 'IvMulti': {'TIvCustomTranslator','TIvTranslator'}}
+        own = [row for row in own if row[0] in wanted.get(unit,set())]
+        needed = {'Create','Destroy','DefineProperties','CanBeOpened','LanguageChanged',
+                  'TranslateContextString','TranslateString','GetLanguageCount','GetLanguageData',
+                  'GetLanguageDatas','GetLocaleCount','GetLocaleData','GetLocaleDatas','GetTranslationCount',
+                  'LoadTranslation','ReadLanguages','ReadLocales','ReadTranslations','Close','GetPrimaryLanguages',
+                  'GetTranslationMode','IsLocaleSupported','Open','SetDictionaryName','SetLanguage',
+                  'SynchronizeLanguage','SynchronizeLocale','Translate','TranslateStrings'}
+        filtered = []
+        for n,p,size,vmt,lines in own:
+            kept = []
+            for l in lines:
+                name = re.search(r'(?:procedure|function|constructor|destructor) (\w+)',l).group(1)
+                if name in needed and n not in ('TIvTranslator','TIvCustomTranslator'): kept.append(l)
+                elif 'virtual;' in l:
+                    slot = next(v['offset'] for v in G.classes[n]['vmt'] if v['name']==name)
+                    kept.append('procedure Reserved_%03X; virtual; abstract; { unused slot }' % slot)
+            filtered.append((n,p,size,vmt,kept))
+        own = filtered
+    imports = set()
+    # Recovered types in base declarations are available through these units.
+    uses = ['Windows','Messages','SysUtils','Classes','Graphics','Controls','Forms','Dialogs','Menus',
+            'StdCtrls','ExtCtrls','ComCtrls','Grids','Registry','Engine','PlugInM',
+            'GFXE','ImageLib','DisplayC','Sound','NetworkE','aowFX','HSEngine','IsoHex','ILTer',
+            'Terrain','Hexagon','Road','BorderHx','IvDictio','IvAMulti','IvBinDic','IvMulti']
+    if G.MOD.lower() == 'localize.dpl':
+        uses = ['Windows','Messages','SysUtils','Classes','Graphics','Controls','Forms']
+    for n,p,*_ in own:
+        if p in G.owners and G.owners[p] != unit: imports.add(G.owners[p])
+    uses = [u for u in uses if u != unit]
+    uses += sorted(imports-set(uses))
+    types = [l for l in capture('typeinfo.py',unit) if ' = ' in l]
+    if G.MOD.lower() == 'localize.dpl': types = []
+    # RTTI is in declaration order. Class forwards precede callbacks that use them.
+    declarations = []
+    implementations = collections.defaultdict(list)
+    for n in [r[0] for r in own]: declarations.append('  %s = class;' % n)
+    declarations += [''] + ['  '+t for t in types] + ['']
+    for n,p,size,vmt,lines in own:
+        declarations += ['  { %s (instance size %d, VMT %s) }' % (n,size,vmt),
+                         '  %s = class(%s)' % (n,p), '  public']
+        declarations += ['    '+f for f in fields_for(n)]
+        for l in lines:
+            declarations.append('    '+l)
+        declarations += ['  end;','']
+    # Bodies follow first original method address, with methods in address order.
+    for n,p,size,vmt,lines in sorted(own,key=lambda r:min((a for k,(a,s) in G.hse.items() if k.startswith(unit+'.'+r[0]+'.')), default=0)):
+        for l in sorted(lines,key=lambda l:G.hse.get(unit+'.'+n+'.'+re.search(r'(?:procedure|function|constructor|destructor) (\w+)',l).group(1),(0,None))[0]):
+            if 'abstract;' in l: continue
+            d = impl_header(n,l)
+            implementations[owner_part(n)].extend([d,stub(d),''])
+    W = {1: 'Byte', 2: 'Word', 4: 'Integer'}
+    for va, s in sorted(sigs(G.MOD).items()):
+        nm = s['name'].split('@')[0]
+        if not nm.startswith(unit + '.') or nm.count('.') != 1: continue
+        r = nm.split('.')[1]
+        if not r or r in ('Finalization', unit) or r in G.classes or G.MOD.lower() == 'localize.dpl': continue
+        used, rn = analyze(G.MOD, va, s['size'])
+        ps = []
+        regs = [x for x in ('eax', 'edx', 'ecx') if x in used]
+        nreg = {'eax': 1, 'edx': 2, 'ecx': 3}[regs[-1]] if regs else 0
+        if rn: nreg = 3
+        for x in ('eax', 'edx', 'ecx')[:nreg]: ps.append(W[used.get(x, 4)])
+        ps += ['Integer'] * ((rn or 0) // 4)
+        ret = G.ret_of(s)
+        args = '(%s)' % '; '.join('A%d: %s' % (j + 1, t) for j, t in enumerate(ps)) if ps else ''
+        d = '%s %s%s%s;' % ('function' if ret else 'procedure', r, args, (': ' + ret) if ret else '')
+        declarations.append(d + '  { draft }')
+        implementations['P1'].extend([d, stub(d), ''])
+
+    resources = []
+    for l in capture('resstr.py',unit):
+        m = re.match(r'\w+ \w+\.(\w+) = (.*); \{ id (\d+) \}',l)
+        if not m: continue
+        import ast
+        val = ast.literal_eval(m.group(2))
+        if val is None: continue
+        text = "'" + val.replace("'", "''").replace('\r', "'#13'").replace('\n', "'#10'") + "'"
+        resources.append('  %s = %s;' % (m.group(1),text))
+    src = ['unit %s;' % unit,'','{ Draft declarations of %s, from %s.' % (unit,G.MOD),
+           '  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.',
+           '  Stub bodies are placeholders for source recovery. }','','interface','',
+           'uses','  '+', '.join(uses)+';',''] + (['type'] if own or types else []) + declarations
+    if resources: src += ['','resourcestring']+resources
+    src += ['','implementation','']
+    if G.MOD.lower() == 'aowepack.dpl' and unit == 'AoWE':
+        for part in ('P1','P2','P3','P4','P5'):
+            write(output.parent/'inc'/(part+'.inc'), implementations[part])
+            src.append('{$I inc\\%s.inc}' % part)
+    else:
+        src += implementations['P1']
+    if any(x['name'].split('@')[0] == unit+'.'+unit for x in sigs(G.MOD).values()):
+        src += ['', 'initialization']
+    if any(x['name'].split('@')[0] == unit+'.Finalization' for x in sigs(G.MOD).values()):
+        src += ['finalization']
+    src += ['','end.']
+    write(output,src)
+
+if args.all:
+    units = sorted({s['name'].split('.')[0] for s in sigs(G.MOD).values() if '.' in s['name']})
+    if G.MOD.lower() == 'localize.dpl': units = ['IvDictio','IvAMulti','IvBinDic','IvMulti']
+    for unit in units: generate(unit,args.output.parent/(unit+'.pas'))
+    print('written %d units' % len(units))
+else:
+    generate(args.unit,args.output)
+    print('written', args.output)

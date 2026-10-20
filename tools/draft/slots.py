@@ -1,8 +1,10 @@
+"""Inspect VMT slots. Usage: slots.py <module> <signatures-dir> <unit> [classes.json]"""
 import json, glob, os, re, sys, collections
-R = 'C:/git/int19h/aow/notes/'
-classes = json.load(open(R + 'classes.json'))['classes']
+from pathlib import Path
+R = sys.argv[2]
+classes = json.load(open(sys.argv[4] if len(sys.argv)>4 else Path(__file__).resolve().parents[2] / 'notes/classes.json'))['classes']
 sigs = {}
-for f in glob.glob(R + 'signatures/*.json'):
+for f in glob.glob(R + '/*.json'):
     mod = os.path.basename(f)[:-5]
     for s in json.load(open(f)):
         sigs[(mod, int(s['addr'], 16))] = s
@@ -26,18 +28,18 @@ def descendants(n):
     return out
 def nslots(n):
     return len(classes[n]['vmt']) if n in classes else 0
-unit = sys.argv[1]
+unit = sys.argv[3]
 for n, c in sorted(classes.items(), key=lambda kv: kv[1].get('vmt_va', '')):
-    if c['module'] != 'HSEPack.dpl': continue
+    if c['module'].lower() != os.path.basename(sys.argv[1]).lower(): continue
     syms = [v['symbol'] for v in c['vmt'] if v['own']]
     # unit of the class: from own symbols or Destroy
-    us = {s.split('.')[0] for s in syms} | {v['symbol'].split('.')[0] for v in c['fixed'].values() if v['symbol'].split('.')[1] == n}
+    us = {s.split('.')[0] for s in syms if s} | {v['symbol'].split('.')[0] for v in c['fixed'].values() if v['symbol'] and v['symbol'].split('.')[1] == n}
     if unit not in us and unit != '*': continue
     p = c['parent']
     ps = nslots(p)
     print('== %s(%s) size=%d vmt=%s slots=%d parent_slots=%d units=%s' % (n, p, c['size'], c['vmt_va'], len(c['vmt']), ps, us))
     for k, v in c['fixed'].items():
-        if v['symbol'].split('.')[-2:-1] == [n]: print('   fixed', k, fmt(sig_at(n, v['target'])))
+        if v['symbol'] and v['symbol'].split('.')[-2:-1] == [n]: print('   fixed', k, fmt(sig_at(n, v['target'])))
     for i, v in enumerate(c['vmt']):
         intro = i >= ps
         if not v['own'] and not intro: continue

@@ -2,17 +2,20 @@
 stack bytes it pops (ret n). Used for draft method signatures."""
 import json, glob, os, re, struct
 import pefile, capstone
-G = 'D:/Games/GOG/Age of Wonders/'
-R = 'C:/git/int19h/aow/notes/'
+from pathlib import Path
+G = ''
+R = str(Path(__file__).resolve().parents[2] / 'notes/signatures') + '/'
 _pe = {}
 def module(mod):
     if mod not in _pe:
-        pe = pefile.PE(G + mod, fast_load=True)
+        pe = pefile.PE(str(Path(G) / mod), fast_load=True)
         _pe[mod] = (pe.OPTIONAL_HEADER.ImageBase, pe.get_memory_mapped_image())
     return _pe[mod]
 md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
 md.detail = True
 REGS = {'eax': ('eax', 4), 'ax': ('eax', 2), 'al': ('eax', 1), 'edx': ('edx', 4), 'dx': ('edx', 2), 'dl': ('edx', 1), 'ecx': ('ecx', 4), 'cx': ('ecx', 2), 'cl': ('ecx', 1)}
+from functools import lru_cache
+@lru_cache(maxsize=None)
 def analyze(mod, va, size):
     base, data = module(mod)
     code = bytes(data[va - base:va - base + size])
@@ -42,10 +45,14 @@ def analyze(mod, va, size):
     # scan all rets
     rets = set()
     for ins in md.disasm(code, va):
-        if ins.mnemonic == 'ret': rets.add(int(ins.op_str, 16) if ins.op_str else 0)
+        if ins.mnemonic == 'ret':
+            pop = int(ins.op_str, 16) if ins.op_str else 0
+            # Delphi stack arguments occupy aligned words; linear disassembly can also
+            # encounter embedded case-table/data bytes after the function's code.
+            if pop % 4 == 0 and pop <= 256: rets.add(pop)
     return used, max(rets) if rets else None
 _sigs = {}
 def sigs(mod):
     if mod not in _sigs:
-        _sigs[mod] = {int(s['addr'], 16): s for s in json.load(open(R + 'signatures/%s.json' % mod))}
+        _sigs[mod] = {int(s['addr'], 16): s for s in json.load(open(R + '%s.json' % mod))}
     return _sigs[mod]

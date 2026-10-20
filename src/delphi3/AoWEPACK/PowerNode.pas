@@ -1,0 +1,108 @@
+unit PowerNode;
+
+{ Draft declarations of PowerNode, from AoWEPACK.dpl.
+  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Stub bodies are placeholders for source recovery. }
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+
+type
+  TPowerNode = class;
+  TPowerNodeResource = class;
+
+
+  { TPowerNode (instance size 68, VMT 557CFFE4) }
+  TPowerNode = class(TPlayerStructure)
+  public
+    F_PowerNode_3C: Byte;
+    F_PowerNode_3D: array[0..6] of Byte;
+    destructor Destroy; override;
+    procedure ReadWrite(Stream: Engine.TEStorageStream); override;
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    class function ClassID: Integer; override;
+    procedure Activate; override;
+    procedure Deactivate; override;
+    procedure SetRazed(A1: Integer); override;
+    procedure GetRazed; override;
+    procedure GetCurrentActivityText(A1: Integer); override;
+    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
+    procedure SetPlayer(A1: Integer; A2: Integer); override;
+    procedure GetPower; override;
+    procedure GetCombatEventText(A1: Integer; A2: Integer); override;
+  end;
+
+  { TPowerNodeResource (instance size 116, VMT 557D027C) }
+  TPowerNodeResource = class(TPlayerStructureResource)
+  public
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    class function ClassID: Integer; override;
+    class function ResourceEditName: string; override;
+    function ResourceUserClassID: Integer; override;
+  end;
+
+procedure RegisterPowerNode;  { draft }
+
+implementation
+
+constructor TPowerNode.Create(AOwner: Engine.TECustomNode);
+begin end;
+
+destructor TPowerNode.Destroy;
+begin end;
+
+class function TPowerNode.ClassID: Integer;
+begin Result := 0; end;
+
+procedure TPowerNode.GetPower;
+begin end;
+
+procedure TPowerNode.GetRazed;
+begin end;
+
+procedure TPowerNode.SetRazed(A1: Integer);
+begin end;
+
+procedure TPowerNode.ReadWrite(Stream: Engine.TEStorageStream);
+begin end;
+
+procedure TPowerNode.GetCurrentActivityText(A1: Integer);
+begin end;
+
+procedure TPowerNode.UpdateAITarget(A1: Integer; A2: Integer);
+begin end;
+
+procedure TPowerNode.SetPlayer(A1: Integer; A2: Integer);
+begin end;
+
+procedure TPowerNode.Activate;
+begin end;
+
+procedure TPowerNode.Deactivate;
+begin end;
+
+procedure TPowerNode.GetCombatEventText(A1: Integer; A2: Integer);
+begin end;
+
+constructor TPowerNodeResource.Create(AOwner: Engine.TECustomNode);
+begin end;
+
+class function TPowerNodeResource.ResourceEditName: string;
+begin Result := ''; end;
+
+class function TPowerNodeResource.ClassID: Integer;
+begin Result := 0; end;
+
+function TPowerNodeResource.ResourceUserClassID: Integer;
+begin Result := 0; end;
+
+procedure RegisterPowerNode;
+begin end;
+
+
+initialization
+finalization
+
+end.

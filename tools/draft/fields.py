@@ -1,5 +1,6 @@
+"""Inspect field accesses in Ghidra output. Usage: fields.py <decomp-dir> Class..."""
 import re, os, sys, collections, glob
-D = r'C:/git/int19h/aow/notes/decomp/HSEPack-typed-all'
+D = sys.argv[1]
 acc = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
 users = collections.defaultdict(lambda: collections.defaultdict(set))
 for f in glob.glob(D + '/*.c'):
@@ -15,7 +16,7 @@ for f in glob.glob(D + '/*.c'):
         if not t: continue
         acc[t][int(off, 16)][cast or 'byte?'] += 1
         users[t][int(off, 16)].add(fn.split('.')[-2] + '.' + fn.split('.')[-1] if fn.count('.') >= 2 else fn)
-cls = sys.argv[1:]
+cls = sys.argv[2:]
 for t in cls:
     print('==', t)
     for off in sorted(acc[t]):

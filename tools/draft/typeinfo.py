@@ -1,6 +1,7 @@
+"""Read exact enum, set and method-pointer RTTI. Usage: typeinfo.py <module.dpl> [Unit]"""
 import pefile, struct, sys
 path = sys.argv[1]; unit = sys.argv[2] if len(sys.argv) > 2 else None
-pe = pefile.PE(path)
+pe = globals().get('_pe') or pefile.PE(path)
 base = pe.OPTIONAL_HEADER.ImageBase
 img = pe.get_memory_mapped_image()
 imports = {}
@@ -21,7 +22,14 @@ def tname(pp):
         if p in imports: return '<imp %s>'%imports[p]
         return ss(p+1)[0]
     except Exception: return '?%x' % pp
-for e in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+def enum_values(va):
+    nm, p = ss(va+1)
+    mn, mx = i32(p+1), i32(p+5)
+    q = p+13; vals = []
+    for i in range(mx-mn+1):
+        v,q = ss(q); vals.append(v)
+    return '(' + ', '.join(vals) + ')'
+for e in sorted(pe.DIRECTORY_ENTRY_EXPORT.symbols, key=lambda e: e.address):
     if not e.name: continue
     s = e.name.decode()
     if s.endswith('@23EDC2EF'): continue
@@ -41,7 +49,9 @@ for e in pe.DIRECTORY_ENTRY_EXPORT.symbols:
             v, q = ss(q); vals.append(v)
         print('%s = (%s);  { ot=%d }' % (nm, ', '.join(vals), ot))
     elif kind == 'tkSet':
-        print('%s = set of %s; { ot=%d }' % (nm, tname(u32(p+1)), u8(p)))
+        tn = tname(u32(p+1))
+        if tn.startswith('.'): tn = enum_values(u32(u32(p+1)))
+        print('%s = set of %s; { ot=%d }' % (nm, tn, u8(p)))
     elif kind == 'tkMethod':
         mk = u8(p); pc = u8(p+1); q = p+2; ps = []
         for i in range(pc):
