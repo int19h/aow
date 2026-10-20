@@ -537,37 +537,38 @@
   end;
 
   { TAIBudget (instance size $38, VMT 55719258).
-    $0C required gold, $10 required mana, $30 gold, $34 mana. }
+    $08 priority, $0C/$10 required gold/mana, $14/$18 upkeep, $1C days,
+    $20/$24 daily limits, $28/$2C daily requirements, $30/$34 gold/mana. }
   TAIBudget = class(TEObject)
   public
-    F_AIBudget_08: Integer;
+    FPriority: Integer; { $08 }
     FRequiredGold: Integer; { $0C }
     FRequiredMana: Integer; { $10 }
-    F_AIBudget_14: Integer;
-    F_AIBudget_18: Integer;
-    F_AIBudget_1C: Integer;
-    F_AIBudget_20: Integer;
-    F_AIBudget_24: Integer;
-    F_AIBudget_28: Integer;
-    F_AIBudget_2C: Integer;
+    FGoldUpkeep: Integer; { $14 }
+    FManaUpkeep: Integer; { $18 }
+    FDays: Integer; { $1C }
+    FDayGoldMax: Integer; { $20 }
+    FDayManaMax: Integer; { $24 }
+    FDayGold: Integer; { $28 }
+    FDayMana: Integer; { $2C }
     FGold: Integer; { $30 }
     FMana: Integer; { $34 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetReady; virtual;  { $4C }
-    procedure OutputDebugInfo; virtual;  { +050 draft }
-    procedure Done; virtual;  { +054 draft }
-    procedure UpdateDayRequirements; virtual;  { +058 draft }
+    function GetReady: Boolean; virtual; { $4C }
+    procedure OutputDebugInfo; virtual; { $50 }
+    procedure Done; virtual; { $54 }
+    procedure UpdateDayRequirements; virtual; { $58 }
   end;
 
-  { TAISavingsBudget (instance size 56, VMT 55719320) }
+  { TAISavingsBudget (instance size $38, VMT 55719320). Uses TAIBudget fields. }
   TAISavingsBudget = class(TAIBudget)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
   end;
 
-  { TAITransporterBudget (instance size 56, VMT 557193F8) }
+  { TAITransporterBudget (instance size $38, VMT 557193F8). Uses TAIBudget fields. }
   TAITransporterBudget = class(TAIBudget)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -577,59 +578,60 @@
   { TAIBudgetList (instance size 12, VMT 557194D8) }
   TAIBudgetList = class(TENode)
   public
-    procedure GetBudgets(A1: Integer);  { draft }
+    function GetBudgets(Index: Integer): TAIBudget;
   end;
 
-  { TAIBudgetManager (instance size 60, VMT 55719628) }
+  { TAIBudgetManager (instance size $3C, VMT 55719628). $08 player, $0C budgets,
+    $10..$1C income/reserve factors, $20/$24 production upkeep,
+    $28/$2C available upkeep, $30/$34 pool, $38 savings budget. }
   TAIBudgetManager = class(TEObject)
   public
     FPlayer: TPlayer; { $08 }
-    F_AIBudgetManager_0C: Integer;
-    F_AIBudgetManager_10: Integer;
-    F_AIBudgetManager_14: Integer;
-    F_AIBudgetManager_18: Integer;
-    F_AIBudgetManager_1C: Integer;
-    F_AIBudgetManager_20: Integer;
-    F_AIBudgetManager_24: Integer;
-    F_AIBudgetManager_28: Integer;
-    F_AIBudgetManager_2C: Integer;
-    F_AIBudgetManager_30: Integer;
-    F_AIBudgetManager_34: Integer;
+    FBudgets: TAIBudgetList; { $0C }
+    FGoldIncomeFactor: Single; { $10 }
+    FManaIncomeFactor: Single; { $14 }
+    FGoldReserveFactor: Single; { $18 }
+    FManaReserveFactor: Single; { $1C }
+    FProductionGoldUpkeep: Integer; { $20 }
+    FProductionManaUpkeep: Integer; { $24 }
+    FGoldUpkeep: Integer; { $28 }
+    FManaUpkeep: Integer; { $2C }
+    FGold: Integer; { $30 }
+    FMana: Integer; { $34 }
     FDefaultBudget: TAIBudget;  { $38; 55785970 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetBudgetGoldUpkeep;  { draft }
-    procedure GetBudgetManaUpkeep;  { draft }
-    procedure GetReservedBudgetGold;  { draft }
-    procedure GetReservedBudgetMana;  { draft }
-    procedure GetRequiredBudgetDayGold;  { draft }
-    procedure GetRequiredBudgetDayMana;  { draft }
-    procedure UpdateBudgetDayRequirements;  { draft }
-    procedure UpdateProductionUpkeep;  { draft }
-    procedure GetGroupsGoldBudget;  { draft }
-    procedure GetGroupsManaBudget;  { draft }
-    procedure ReserveForBudgets(A1: Integer; A2: Integer);  { draft }
-    procedure ReturnFromBudgets(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateReservations;  { draft }
-    procedure OutputDebugInfo;  { draft }
-    procedure ValidateManaUpkeep;  { draft }
+    function GetBudgetGoldUpkeep: Integer;
+    function GetBudgetManaUpkeep: Integer;
+    function GetReservedBudgetGold: Integer;
+    function GetReservedBudgetMana: Integer;
+    function GetRequiredBudgetDayGold: Integer;
+    function GetRequiredBudgetDayMana: Integer;
+    procedure UpdateBudgetDayRequirements;
+    procedure UpdateProductionUpkeep;
+    function GetGroupsGoldBudget: Integer;
+    function GetGroupsManaBudget: Integer;
+    procedure ReserveForBudgets(Gold, Mana: Integer);
+    procedure ReturnFromBudgets(Gold, Mana: Integer);
+    procedure ValidateReservations;
+    procedure OutputDebugInfo;
+    procedure ValidateManaUpkeep;
     procedure UpdateBudgets;
     function RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
     function RequestProductionExpenseEx(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer; Budget: TAIBudget): Boolean;
-    procedure ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer);
+    function ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
     function RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
-    { conflict: function RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean; }
     function BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
-    procedure RequestBudgetExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
-    procedure BudgetExpenseMadeEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
-    procedure RequestExpense(A1: Integer; A2: Integer);  { draft }
-    procedure ExpenseMade(A1: Integer; A2: Integer);  { draft }
-    procedure ReturnExpense(A1: Integer; A2: Integer);  { draft }
+    function RequestBudgetExpenseEx(Gold, Mana, GoldUpkeep, ManaUpkeep: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+    function BudgetExpenseMadeEx(Gold, Mana, GoldUpkeep, ManaUpkeep: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
+    function RequestExpense(Gold, Mana: Integer): Boolean;
+    function ExpenseMade(Gold, Mana: Integer): Boolean;
+    function ReturnExpense(Gold, Mana: Integer): Boolean;
   end;
 
-  { TBudgetManagerAIPA (instance size 20, VMT 557196F0) }
+  { TBudgetManagerAIPA (instance size $14, VMT 557196F0). No new fields. }
   TBudgetManagerAIPA = class(TAIPlayerAction)
   public
     destructor Destroy; override;
@@ -663,10 +665,10 @@
     function ResearchingTransporter: Boolean;
   end;
 
-  { TProcessEventlogAIPA (instance size 24, VMT 557198B4) }
+  { TProcessEventlogAIPA (instance size $18, VMT 557198B4). $14 log index. }
   TProcessEventlogAIPA = class(TAIPlayerAction)
   public
-    F_ProcessEventlogAIPA_14: Integer;
+    FLogIndex: Integer; { $14 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function Priority: Integer; override;

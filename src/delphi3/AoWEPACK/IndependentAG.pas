@@ -29,7 +29,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -45,7 +45,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -69,7 +69,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -87,7 +87,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -101,7 +101,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -118,7 +118,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -142,8 +142,8 @@ begin Result := 0; end;
 class function TGuardAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TGuardAG.GroupControlClass;
-begin end;
+class function TGuardAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 constructor TGuardAreaAG.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -154,8 +154,8 @@ begin Result := 0; end;
 class function TGuardAreaAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TGuardAreaAG.GroupControlClass;
-begin end;
+class function TGuardAreaAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TGuardAreaAG.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -181,8 +181,8 @@ begin Result := 0; end;
 class function TPatrolAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TPatrolAG.GroupControlClass;
-begin end;
+class function TPatrolAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TPatrolAG.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -208,8 +208,8 @@ begin Result := 0; end;
 class function TRefugeAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TRefugeAG.GroupControlClass;
-begin end;
+class function TRefugeAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 constructor TRaidAG.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -220,8 +220,8 @@ begin Result := 0; end;
 class function TRaidAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TRaidAG.GroupControlClass;
-begin end;
+class function TRaidAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TRaidAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -241,8 +241,8 @@ begin Result := 0; end;
 class function TScoutAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TScoutAG.GroupControlClass;
-begin end;
+class function TScoutAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TScoutAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
 begin end;

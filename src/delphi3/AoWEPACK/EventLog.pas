@@ -174,6 +174,7 @@ type
     function FindID(ID: Integer): TEventLog;
     procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
     function FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
+    { conflict: function FindFirstLogEx(ClassID, Player, Day: Integer): Integer; }
     procedure AddEvent(Event: TEventLog);
     procedure RemoveEvent(Event: TEventLog);
   end;
@@ -417,6 +418,7 @@ procedure TEventLogbook.FindFirstLog(A1: Integer; A2: Integer);
 begin end;
 
 function TEventLogbook.FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
+{ conflict: function TEventLogbook.FindFirstLogEx(ClassID, Player, Day: Integer): Integer; }
 begin Result := 0; end;
 
 procedure TEventLogbook.AddEvent(Event: TEventLog);

@@ -19,6 +19,9 @@ type
   end;
 
 
+var
+  TMPDID: Integer; { $558FA054 }
+
 resourcestring
   { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
   P5NotEnoughGoldRStr = 'Not enough gold.';
@@ -3792,209 +3795,838 @@ begin
 end;
 
 function TAutoProduceAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  I, Priority: Integer;
+  Budget: TAIBudget;
+begin
+  case FState of
+    0:
+      with FControl.FPlayer do
+      begin
+        if FPlayerIndex <> 0 then
+        begin
+          if (FindAvailableTransporter = nil) and not ProducingTransporter and
+            (AoWHSMap.FDay > 5) then
+          begin
+            Budget := TAIBudget(FAIBudget.FBudgets.FindChild($2029E));
+            if Budget = nil then
+            begin
+              Budget := TAITransporterBudget.Create(nil);
+              Budget.SetOwner(FAIBudget.FBudgets);
+            end;
+            if Budget.FRequiredGold < 100 then Inc(Budget.FRequiredGold, 15);
+            ProduceTransporter(Budget);
+            if not TransporterProductionControlExists then
+            begin
+              FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+              Budget.FGold := 0;
+              Budget.FMana := 0;
+              Budget.FRequiredGold := 0;
+            end;
+          end;
+          FGoldUpkeep := FAIBudget.FGoldUpkeep - Round(FIncome * 0.1);
+          if FGoldUpkeep < 0 then FGoldUpkeep := 0;
+          FManaUpkeep := FAIBudget.FManaUpkeep - Round(FMagicControl.GetManaIncome * 0.1);
+          if FManaUpkeep < 0 then FManaUpkeep := 0;
+          if (FPlayerIndex <> 0) and
+            ((FAIBudget.FGold > 25) or (FAIBudget.FMana > 25)) and
+            ((FGoldUpkeep > 0) or (FManaUpkeep > 0)) then
+          begin
+            FProductionIndex := -1;
+            Inc(FState);
+          end
+          else FState := -1;
+        end
+        else FState := -1;
+      end;
+    1:
+      while FState = 1 do
+      begin
+        Inc(FProductionIndex);
+        with FControl.FPlayer.FProductionControls do
+          if FProductionIndex < Count then
+            UpdateProductions(GetPC(FProductionIndex))
+          else
+          begin
+            FProductions.Sort(CompareAutoProductions);
+            if FProductions.Count <> 0 then Inc(FState)
+            else FState := -1;
+          end;
+      end;
+    2:
+      while (FState = 2) and not FControl.FPlayer.GetBusy do
+      begin
+        I := 0;
+        Priority := Round(FProductions[0].D * 0.8);
+        while (I + 1 < FProductions.Count) and
+          (FProductions[I + 1].D >= Priority) do Inc(I);
+        I := AoWHSMap.Random(I + 1);
+        ExecuteProduce(TProductionControl(FProductions[I].A), FProductions[I].B);
+        FProductions.Delete(I);
+        if not ((FProductions.Count <> 0) and
+          ((FGoldUpkeep > 2) or (FManaUpkeep > 2)) and
+          ((FControl.FPlayer.FAIBudget.FGold > 25) or
+          (FControl.FPlayer.FAIBudget.FMana > 25))) then FState := -1;
+      end;
+  end;
+  Result := FState <> -1;
+end;
 
-constructor TProcessEventlogAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TProcessEventlogAIPA.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FLogIndex := -1;
+end;
 
 destructor TProcessEventlogAIPA.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 class function TProcessEventlogAIPA.Priority: Integer;
-begin Result := 0; end;
+begin
+  Result := 999;
+end;
 
 function TProcessEventlogAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Done: Boolean;
+  Log: TEventLog;
+begin
+  Done := False;
+  while not FControl.FPlayer.GetBusy and not Done do
+  begin
+    if FLogIndex = -1 then
+      FLogIndex := FControl.FPlayer.FEventLogbook.FindFirstLogEx($202E3,
+        FControl.FPlayer.FPlayerIndex, AoWHSMap.FDay - 1) + 1
+    else
+      Inc(FLogIndex);
+    if FLogIndex < FControl.FPlayer.FEventLogbook.GetCount then
+    begin
+      Log := FControl.FPlayer.FEventLogbook.GetLogs(FLogIndex);
+      if Log is THeroEmergeEventLog then
+        THeroEmergeEventLog(Log).ExecuteAI
+      else if Log is TDiplomaticActionEventLog then
+        TDiplomaticActionEventLog(Log).FAction.ExecuteAI(FControl.FPlayer.FPlayerIndex);
+    end
+    else
+      Done := True;
+  end;
+  Result := not Done;
+end;
 
 class function TAIBudget.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2029C;
+end;
 
-procedure TAIBudget.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TAIBudget.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FPriority, $1E);
+  Stream.rwInteger(FRequiredGold, $1F);
+  Stream.rwInteger(FRequiredMana, $20);
+  Stream.rwInteger(FGoldUpkeep, $21);
+  Stream.rwInteger(FManaUpkeep, $22);
+  Stream.rwInteger(FGold, $23);
+  Stream.rwInteger(FMana, $24);
+  Stream.rwInteger(FDays, $25);
+  Stream.rwInteger(FDayGoldMax, $26);
+  Stream.rwInteger(FDayManaMax, $27);
+  Stream.rwInteger(FDayGold, $28);
+  Stream.rwInteger(FDayMana, $29);
+end;
 
 procedure TAIBudget.Done;
 begin end;
 
 procedure TAIBudget.OutputDebugInfo;
-begin end;
+begin
+  AoWEngine.OutputDebugMessage(TMPDID, ClassName + ' Gold:' +
+    IntToStr(FGold) + '/' + IntToStr(FRequiredGold) + ' Mana:' +
+    IntToStr(FMana) + '/' + IntToStr(FRequiredMana));
+end;
 
 procedure TAIBudget.UpdateDayRequirements;
-begin end;
+begin
+  FDayGold := FRequiredGold - FGold;
+  FDayMana := FRequiredMana - FMana;
+  if FDays <> 0 then
+  begin
+    if FDays > 1 then Dec(FDays);
+    FDayGold := Round(FDayGold / FDays);
+    FDayMana := Round(FDayMana / FDays);
+  end
+  else
+  begin
+    if FDayGoldMax < FDayGold then FDayGold := FDayGoldMax;
+    if FDayManaMax < FDayMana then FDayMana := FDayManaMax;
+  end;
+end;
 
-procedure TAIBudget.GetReady;
-begin end;
+function TAIBudget.GetReady: Boolean;
+begin
+  Result := (FRequiredGold = FGold) and (FRequiredMana = FMana);
+end;
 
-procedure TAIBudgetList.GetBudgets(A1: Integer);
-begin end;
+function TAIBudgetList.GetBudgets(Index: Integer): TAIBudget;
+begin
+  Result := TAIBudget(FChildren.List^[Index]);
+end;
 
-constructor TAIBudgetManager.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TAIBudgetManager.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FBudgets := TAIBudgetList.Create(nil);
+  FGoldIncomeFactor := 0.75;
+  FManaIncomeFactor := 0.75;
+  FGoldReserveFactor := 0.5;
+  FManaReserveFactor := 0.5;
+end;
 
 destructor TAIBudgetManager.Destroy;
-begin end;
+begin
+  FBudgets.Free;
+  inherited Destroy;
+end;
 
-procedure TAIBudgetManager.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TAIBudgetManager.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FBudgets, $14);
+  Stream.rwInteger(FGold, $15);
+  Stream.rwInteger(FMana, $16);
+  Stream.rwInteger(FGoldUpkeep, $17);
+  Stream.rwInteger(FManaUpkeep, $18);
+  Stream.rwInteger(FProductionGoldUpkeep, $19);
+  Stream.rwInteger(FProductionManaUpkeep, $1A);
+end;
 
-procedure TAIBudgetManager.GetBudgetGoldUpkeep;
-begin end;
+function TAIBudgetManager.GetBudgetGoldUpkeep: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FGoldUpkeep);
+end;
 
-procedure TAIBudgetManager.GetBudgetManaUpkeep;
-begin end;
+function TAIBudgetManager.GetBudgetManaUpkeep: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FManaUpkeep);
+end;
 
-procedure TAIBudgetManager.GetReservedBudgetGold;
-begin end;
+function TAIBudgetManager.GetReservedBudgetGold: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FGold);
+end;
 
-procedure TAIBudgetManager.GetReservedBudgetMana;
-begin end;
+function TAIBudgetManager.GetReservedBudgetMana: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FMana);
+end;
 
-procedure TAIBudgetManager.GetRequiredBudgetDayGold;
-begin end;
+function TAIBudgetManager.GetRequiredBudgetDayGold: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FDayGold);
+end;
 
-procedure TAIBudgetManager.GetRequiredBudgetDayMana;
-begin end;
+function TAIBudgetManager.GetRequiredBudgetDayMana: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FBudgets.Count - 1 downto 0 do
+    Inc(Result, FBudgets.GetBudgets(I).FDayMana);
+end;
 
 procedure TAIBudgetManager.UpdateBudgetDayRequirements;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FBudgets.Count - 1 downto 0 do
+    FBudgets.GetBudgets(I).UpdateDayRequirements;
+end;
 
 procedure TAIBudgetManager.UpdateProductionUpkeep;
-begin end;
+var
+  Control: TProductionControl;
+  I: Integer;
+begin
+  with FPlayer do
+  begin
+    FProductionManaUpkeep := 0;
+    FProductionGoldUpkeep := 0;
+    for I := FProductionControls.Count - 1 downto 0 do
+    begin
+      Control := FProductionControls.GetPC(I);
+      if (Control.FStatus = pcsProducing) and
+        (Control.FQueue.GetItem(0).FProductionID = 1) and
+        (Control.FSettings.FUnit <> nil) then
+      begin
+        Inc(FProductionGoldUpkeep, Control.FSettings.FGoldUpkeep);
+        Inc(FProductionManaUpkeep, Control.FSettings.FManaUpkeep);
+      end;
+    end;
+  end;
+end;
 
-procedure TAIBudgetManager.GetGroupsGoldBudget;
-begin end;
+function TAIBudgetManager.GetGroupsGoldBudget: Integer;
+var
+  I: Integer;
+begin
+  with FPlayer do
+  begin
+    Result := 0;
+    for I := FAIGroups.Count - 1 downto 0 do
+      Inc(Result, FAIGroups.GetGroups(I).GetGoldBudget);
+  end;
+end;
 
-procedure TAIBudgetManager.GetGroupsManaBudget;
-begin end;
+function TAIBudgetManager.GetGroupsManaBudget: Integer;
+var
+  I: Integer;
+begin
+  with FPlayer do
+  begin
+    Result := 0;
+    for I := FAIGroups.Count - 1 downto 0 do
+      Inc(Result, FAIGroups.GetGroups(I).GetManaBudget);
+  end;
+end;
 
-procedure TAIBudgetManager.ReserveForBudgets(A1: Integer; A2: Integer);
-begin end;
+procedure TAIBudgetManager.ReserveForBudgets(Gold, Mana: Integer);
+var
+  I, M, G, TotalGold, TotalMana, GoldLeft, ManaLeft: Integer;
+begin
+  GoldLeft := Gold;
+  ManaLeft := Mana;
+  TotalGold := GetRequiredBudgetDayGold;
+  TotalMana := GetRequiredBudgetDayMana;
+  I := FBudgets.Count;
+  while (I <> 0) and ((GoldLeft > 0) or (ManaLeft > 0)) do
+  begin
+    Dec(I);
+    if TotalGold <> 0 then
+    begin
+      G := Round(FBudgets.GetBudgets(I).FDayGold * Gold / TotalGold);
+      if G > FBudgets.GetBudgets(I).FDayGold then G := FBudgets.GetBudgets(I).FDayGold;
+      if G > GoldLeft then G := GoldLeft;
+    end
+    else G := 0;
+    if TotalMana <> 0 then
+    begin
+      M := Round(FBudgets.GetBudgets(I).FDayMana * Mana / TotalMana);
+      if M > FBudgets.GetBudgets(I).FDayMana then M := FBudgets.GetBudgets(I).FDayMana;
+      if M > ManaLeft then M := ManaLeft;
+    end
+    else M := 0;
+    with FBudgets.GetBudgets(I) do
+    begin
+      Inc(FGold, G);
+      Inc(FMana, M);
+      Dec(FDayGold, G);
+      Dec(FDayMana, M);
+    end;
+    Dec(GoldLeft, G);
+    Dec(ManaLeft, M);
+  end;
+end;
 
-procedure TAIBudgetManager.ReturnFromBudgets(A1: Integer; A2: Integer);
-begin end;
+procedure TAIBudgetManager.ReturnFromBudgets(Gold, Mana: Integer);
+var
+  I, G, M, TotalGold, TotalMana, GoldLeft, ManaLeft: Integer;
+begin
+  GoldLeft := Gold;
+  ManaLeft := Mana;
+  TotalGold := GetReservedBudgetGold;
+  TotalMana := GetReservedBudgetMana;
+  I := FBudgets.Count;
+  while (I <> 0) and ((GoldLeft > 0) or (ManaLeft > 0)) do
+  begin
+    Dec(I);
+    if (TotalGold <> 0) and (GoldLeft > 0) then
+    begin
+      G := Round(FBudgets.GetBudgets(I).FGold * Gold / TotalGold) + 1;
+      if G > FBudgets.GetBudgets(I).FGold then G := FBudgets.GetBudgets(I).FGold;
+      if G > GoldLeft then G := GoldLeft;
+    end
+    else G := 0;
+    if (TotalMana <> 0) and (ManaLeft > 0) then
+    begin
+      { Original bug: mana returns are weighted by reserved gold. }
+      M := Round(FBudgets.GetBudgets(I).FGold * Mana / TotalMana) + 1;
+      if M > FBudgets.GetBudgets(I).FMana then M := FBudgets.GetBudgets(I).FMana;
+      if M > ManaLeft then M := ManaLeft;
+    end
+    else M := 0;
+    with FBudgets.GetBudgets(I) do
+    begin
+      Dec(FGold, G);
+      Dec(FMana, M);
+    end;
+    Dec(GoldLeft, G);
+    Dec(ManaLeft, M);
+  end;
+end;
 
 procedure TAIBudgetManager.ValidateReservations;
-begin end;
+var
+  Gold, Mana: Integer;
+begin
+  Gold := GetReservedBudgetGold - FPlayer.FGems;
+  Mana := GetReservedBudgetMana - FPlayer.FMagicControl.FMana;
+  if Gold < 0 then Gold := 0;
+  if Mana < 0 then Mana := 0;
+  if (Gold > 0) or (Mana > 0) then
+  begin
+    AoWEngine.OutputDebugMessage(TMPDID, 'RETURNING FROM BUDGETS (GOLD:' +
+      IntToStr(Gold) + '/MANA:' + IntToStr(Mana) + ')');
+    ReturnFromBudgets(Gold, Mana);
+  end;
+end;
 
 procedure TAIBudgetManager.OutputDebugInfo;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FBudgets.Count - 1 do
+    FBudgets.GetBudgets(I).OutputDebugInfo;
+  AoWEngine.OutputDebugMessage(TMPDID, 'GROUPS BUDGET (GOLD:' +
+    IntToStr(GetGroupsGoldBudget) + '/MANA:' + IntToStr(GetGroupsManaBudget) + ')');
+  AoWEngine.OutputDebugMessage(TMPDID, 'POOL (GOLD:' +
+    IntToStr(FGold) + '/MANA:' + IntToStr(FMana) + ')');
+  AoWEngine.OutputDebugMessage(TMPDID, 'REAL (GOLD:' +
+    IntToStr(FPlayer.FGems) + '/MANA:' + IntToStr(FPlayer.FMagicControl.FMana) + ')');
+end;
 
 procedure TAIBudgetManager.ValidateManaUpkeep;
-begin end;
+begin
+  if FManaUpkeep < 0 then
+    FPlayer.FMagicControl.AIOverrideUpkeep($FFFFFF, Abs(FManaUpkeep));
+end;
 
 procedure TAIBudgetManager.UpdateBudgets;
-begin end;
+var
+  RequiredGold, RequiredMana, Gold, Mana, GoldUpkeep, ManaUpkeep, ReserveGold, ReserveMana: Integer;
+begin
+  ValidateReservations;
+  UpdateProductionUpkeep;
+  UpdateBudgetDayRequirements;
+  Gold := FPlayer.FGems - GetReservedBudgetGold - GetGroupsGoldBudget;
+  Mana := FPlayer.FMagicControl.FMana - GetReservedBudgetMana - GetGroupsManaBudget;
+  GoldUpkeep := FPlayer.GetUpkeep + FProductionGoldUpkeep + GetBudgetGoldUpkeep;
+  ManaUpkeep := FPlayer.FMagicControl.GetManaUpkeep + FProductionManaUpkeep + GetBudgetManaUpkeep;
+  FGoldUpkeep := Round(FPlayer.FIncome * FGoldIncomeFactor) - GoldUpkeep;
+  FManaUpkeep := Round(FPlayer.FMagicControl.GetManaIncome * FManaIncomeFactor) - ManaUpkeep;
+  if FManaUpkeep < 0 then ValidateManaUpkeep;
+  RequiredGold := GetRequiredBudgetDayGold;
+  RequiredMana := GetRequiredBudgetDayMana;
+  ReserveGold := Round(Gold * FGoldReserveFactor);
+  ReserveMana := Round(Mana * FManaReserveFactor);
+  if ReserveGold > RequiredGold then ReserveGold := RequiredGold;
+  if ReserveMana > RequiredMana then ReserveMana := RequiredMana;
+  ReserveForBudgets(ReserveGold, ReserveMana);
+  FGold := Gold - ReserveGold;
+  FMana := Mana - ReserveMana;
+end;
 
 function TAIBudgetManager.RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
-begin Result := False; end;
+begin
+  Result := ((Gold = 0) or (Gold <= FGold)) and
+    ((Mana = 0) or (Mana <= FMana)) and
+    ((GoldUpkeep = 0) or (GoldUpkeep <= FGoldUpkeep)) and
+    ((ManaUpkeep = 0) or (ManaUpkeep <= FManaUpkeep));
+end;
 
 function TAIBudgetManager.RequestProductionExpenseEx(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer; Budget: TAIBudget): Boolean;
-begin Result := False; end;
+var
+  G, M: Integer;
+begin
+  G := FGold;
+  M := FMana;
+  if Budget <> nil then
+  begin
+    Inc(G, Budget.FGold);
+    Inc(M, Budget.FMana);
+  end;
+  Result := ((Gold = 0) or (G >= Gold)) and
+    ((Mana = 0) or (Mana <= M)) and
+    ((GoldUpkeep = 0) or (FGoldUpkeep >= GoldUpkeep)) and
+    ((ManaUpkeep = 0) or (FManaUpkeep >= ManaUpkeep));
+end;
 
-procedure TAIBudgetManager.ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer);
-begin end;
+function TAIBudgetManager.ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
+begin
+  if RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep) then
+  begin
+    if Gold < 0 then Gold := 0;
+    if Mana < 0 then Mana := 0;
+    if ManaUpkeep < 0 then ManaUpkeep := 0;
+    if GoldUpkeep < 0 then GoldUpkeep := 0;
+    Dec(FGold, Gold);
+    Dec(FMana, Mana);
+    Dec(FGoldUpkeep, GoldUpkeep);
+    Dec(FManaUpkeep, ManaUpkeep);
+    Inc(FProductionGoldUpkeep, GoldUpkeep);
+    Inc(FProductionManaUpkeep, ManaUpkeep);
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TAIBudgetManager.RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
-{ conflict: function TAIBudgetManager.RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean; }
-begin Result := False; end;
+var
+  G, M: Integer;
+begin
+  G := 0;
+  M := 0;
+  if Budget <> nil then
+  begin
+    Inc(G, Budget.FGold);
+    Inc(M, Budget.FMana);
+  end;
+  if UsePool then
+  begin
+    Inc(G, FGold);
+    Inc(M, FMana);
+  end;
+  Result := ((Gold = 0) or (Gold <= G)) and
+    ((Mana = 0) or (Mana <= M));
+end;
 
 function TAIBudgetManager.BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
-begin Result := False; end;
+begin
+  if RequestBudgetExpense(Gold, Mana, Budget, Mode <> bemBudget) then
+  begin
+    if Gold < 0 then Gold := 0;
+    if Mana < 0 then Mana := 0;
+    if Mode = bemPoolThenBudget then
+    begin
+      if Gold < FGold then
+      begin
+        Dec(FGold, Gold);
+        Gold := 0;
+      end
+      else
+      begin
+        Dec(Gold, FGold);
+        FGold := 0;
+      end;
+      if Mana < FMana then
+      begin
+        Dec(FMana, Mana);
+        Mana := 0;
+      end
+      else
+      begin
+        Dec(Mana, FMana);
+        FMana := 0;
+      end;
+    end;
+    if Budget <> nil then
+    begin
+      if Gold < Budget.FGold then
+      begin
+        Dec(Budget.FGold, Gold);
+        Gold := 0;
+      end
+      else
+      begin
+        Dec(Gold, Budget.FGold);
+        Budget.FGold := 0;
+      end;
+      if Mana < Budget.FMana then
+      begin
+        Dec(Budget.FMana, Mana);
+        Mana := 0;
+      end
+      else
+      begin
+        Dec(Mana, Budget.FMana);
+        Budget.FMana := 0;
+      end;
+    end;
+    if Mode = bemBudgetThenPool then
+    begin
+      if Gold < FGold then Dec(FGold, Gold)
+      else FGold := 0;
+      if Mana < FMana then Dec(FMana, Mana)
+      else FMana := 0;
+    end;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAIBudgetManager.RequestBudgetExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+function TAIBudgetManager.RequestBudgetExpenseEx(Gold, Mana, GoldUpkeep, ManaUpkeep: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+begin
+  if Gold < 0 then Gold := 0;
+  if Mana < 0 then Mana := 0;
+  if ManaUpkeep < 0 then ManaUpkeep := 0;
+  if GoldUpkeep < 0 then GoldUpkeep := 0;
+  Result := RequestBudgetExpense(Gold, Mana, Budget, UsePool) and
+    ((GoldUpkeep = 0) or (GoldUpkeep <= FGoldUpkeep)) and
+    ((ManaUpkeep = 0) or (ManaUpkeep <= FManaUpkeep));
+end;
 
-procedure TAIBudgetManager.BudgetExpenseMadeEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+function TAIBudgetManager.BudgetExpenseMadeEx(Gold, Mana, GoldUpkeep, ManaUpkeep: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
+begin
+  if RequestBudgetExpenseEx(Gold, Mana, GoldUpkeep, ManaUpkeep, Budget, Mode <> bemBudget) then
+  begin
+    if Gold < 0 then Gold := 0;
+    if Mana < 0 then Mana := 0;
+    if ManaUpkeep < 0 then ManaUpkeep := 0;
+    if GoldUpkeep < 0 then GoldUpkeep := 0;
+    Result := BudgetExpenseMade(Gold, Mana, Budget, Mode);
+    Dec(FGoldUpkeep, GoldUpkeep);
+    Dec(FManaUpkeep, ManaUpkeep);
+  end
+  else Result := False;
+end;
 
-procedure TAIBudgetManager.RequestExpense(A1: Integer; A2: Integer);
-begin end;
+function TAIBudgetManager.RequestExpense(Gold, Mana: Integer): Boolean;
+begin
+  Result := (Gold >= 0) and (Mana >= 0) and (Gold <= FGold) and (Mana <= FMana);
+end;
 
-procedure TAIBudgetManager.ExpenseMade(A1: Integer; A2: Integer);
-begin end;
+function TAIBudgetManager.ExpenseMade(Gold, Mana: Integer): Boolean;
+begin
+  if RequestExpense(Gold, Mana) then
+  begin
+    if Gold < 0 then Gold := 0;
+    if Mana < 0 then Mana := 0;
+    Dec(FGold, Gold);
+    Dec(FMana, Mana);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAIBudgetManager.ReturnExpense(A1: Integer; A2: Integer);
-begin end;
+function TAIBudgetManager.ReturnExpense(Gold, Mana: Integer): Boolean;
+begin
+  if Gold < 0 then Gold := 0;
+  if Mana < 0 then Mana := 0;
+  Inc(FGold, Gold);
+  Inc(FMana, Mana);
+  Result := True;
+end;
 
-procedure TAIBudgetManager.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TAIBudgetManager.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  inherited MsgProc(Msg, Sender);
+  if (FPlayer.FPlayerType <> ptHuman) and (Msg.MsgID = $20000008) then
+  begin
+    FDefaultBudget := TAIBudget(FBudgets.FindChild($2029D));
+    if FDefaultBudget = nil then
+    begin
+      FDefaultBudget := TAISavingsBudget.Create(nil);
+      FDefaultBudget.SetOwner(FBudgets);
+    end;
+  end;
+end;
 
-constructor TAISavingsBudget.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TAISavingsBudget.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FRequiredGold := 150;
+  FRequiredMana := 150;
+  FDayGoldMax := 25;
+  FDayManaMax := 15;
+end;
 
 class function TAISavingsBudget.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2029D; end;
 
-constructor TAITransporterBudget.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TAITransporterBudget.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FDayGoldMax := 15;
+end;
 
 class function TAITransporterBudget.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2029E; end;
 
-constructor TBudgetManagerAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TBudgetManagerAIPA.Create(AOwner: TECustomNode);
+begin inherited Create(AOwner); end;
 
 destructor TBudgetManagerAIPA.Destroy;
-begin end;
+begin inherited Destroy; end;
 
 class function TBudgetManagerAIPA.Priority: Integer;
-begin Result := 0; end;
+begin Result := 25; end;
 
 function TBudgetManagerAIPA.Process: Boolean;
 begin Result := False; end;
 
-procedure TAIGroupProductionList.GetProductions(A1: Integer);
-begin end;
+function TAIGroupProductionList.GetProductions(Index: Integer): TAIGroupProduction;
+begin
+  Result := TAIGroupProduction(FChildren.List^[Index]);
+end;
 
-procedure TAIGroupProductionList.GetStrengthMax(A1: Word; A2: Integer);
-begin end;
+function TAIGroupProductionList.GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    Inc(Result, TAIGroupProduction(FChildren.List^[I]).FUnit.GetStrengthMax(DamageTypes));
+end;
 
-procedure TAIGroupProductionList.Add(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupProductionList.Add(Control: TProductionControl; AUnit: TAbstractUnit);
+begin
+  with TAIGroupProduction.Create(Self) do
+  begin
+    FControl := Control;
+    FUnit := AUnit;
+  end;
+end;
 
-procedure TAIGroupProductionList.Delete(A1: Integer);
-begin end;
+procedure TAIGroupProductionList.Delete(Index: Integer);
+begin
+  GetProductions(Index).Free;
+end;
 
-procedure TAIGroupProductionList.DeleteUnit;
-begin end;
+procedure TAIGroupProductionList.DeleteUnit(AUnit: TAbstractUnit);
+var
+  I: Integer;
+begin
+  I := IndexOfU(AUnit);
+  if I <> -1 then GetProductions(I).Free;
+end;
 
-procedure TAIGroupProductionList.ChangeGroup(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupProductionList.ChangeGroup(Index: Integer; Group: TAIGroup);
+begin
+  with GetProductions(Index) do
+  begin
+    FControl.FSettings.FGroupID := Group.FGroupID;
+    SetOwner(Group.FProductions);
+  end;
+end;
 
-procedure TAIGroupProductionList.IndexOfU(A1: Integer);
-begin end;
+function TAIGroupProductionList.IndexOfU(AUnit: TAbstractUnit): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if AUnit = TAIGroupProduction(FChildren.List^[Result]).FUnit then Exit;
+  end;
+  Result := -1;
+end;
 
-constructor TAIGroup.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TAIGroup.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FStatus := [];
+  FProductions := TAIGroupProductionList.Create(nil);
+  FGroupID := -1;
+  FPlayer := -1;
+  FTargetStatus := TAIGroupTargetStatus(-1);
+  FTransporterID := -1;
+  FLeaderID := -1;
+  FProcessPriority := 10;
+  FRecruitmentPriority := 10;
+end;
 
 destructor TAIGroup.Destroy;
-begin end;
+begin
+  if (AoWHSMap <> nil) and (AoWHSMap.FUnitControl = nil) and (Count <> 0) then
+  begin
+    { Original diagnostic raises and immediately swallows its exception. }
+    try
+      raise Exception.Create('oohps');
+    except
+    end;
+  end;
+  if agsActivated in FStatus then Deactivate;
+  Clear;
+  FProductions.Free;
+  inherited Destroy;
+end;
 
 function TAIGroup.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIGroup.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
 class function TAIGroup.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21450; end;
 
-procedure TAIGroup.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TAIGroup.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FGroupID, $14);
+  Stream.rwIntegerEx(FTransporterID, -1, $15);
+  Stream.rwIntegerEx(FLeaderID, -1, $16);
+  Stream.rwInteger(Integer(FTargetXYL), $17);
+  Stream.rwData(FTargetType, SizeOf(FTargetType), $18);
+  Stream.rwByte(Byte(FPlayer), $19);
+  Stream.rwData(FTargetStatus, SizeOf(FTargetStatus), $1A);
+  Stream.rwByte(FProcessPriority, $1B);
+  Stream.rwByte(FRecruitmentPriority, $1C);
+  Stream.rwInteger(FGoldBudget, $1D);
+  Stream.rwInteger(FManaBudget, $1E);
+  Stream.rwInteger(FTargetMovePoints, $1F);
+  Stream.rwData(FTargetMode, SizeOf(FTargetMode), $20);
+end;
 
 class function TAIGroup.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TAIGroup.GroupControlClass;
-begin end;
+class function TAIGroup.GroupControlClass: TAIGroupControlClass;
+begin
+  Result := TAIGroupControl;
+end;
 
 procedure TAIGroup.Clear;
-begin end;
+var
+  Transporter: TAbstractUnit;
+begin
+  while FChildren.Count <> 0 do
+    DeleteUnit(TAbstractUnit(FChildren.List^[FChildren.Count - 1]));
+  Transporter := FTransporter;
+  if Transporter <> nil then DeleteUnit(Transporter);
+  FLeader := nil;
+  FLeaderID := -1;
+end;
 
 function TAIGroup.CreateGroupControl: TAIGroupControl;
-begin Result := nil; end;
+begin
+  Result := GroupControlClass.Create(nil);
+  Result.FGroup := Self;
+  AddRef;
+end;
 
 function TAIGroup.GetProcessPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := Count + (Integer(FProcessPriority) shl 16);
+end;
 
 procedure TAIGroup.GetLoc(A1: Integer; A2: Integer);
 begin end;
@@ -4014,11 +4646,15 @@ begin end;
 procedure TAIGroup.GetMovesMin;
 begin end;
 
-procedure TAIGroup.GetGoldBudget;
-begin end;
+function TAIGroup.GetGoldBudget: Integer;
+begin
+  Result := FGoldBudget;
+end;
 
-procedure TAIGroup.GetManaBudget;
-begin end;
+function TAIGroup.GetManaBudget: Integer;
+begin
+  Result := FManaBudget;
+end;
 
 procedure TAIGroup.ResetTargetExpense;
 begin end;
@@ -4354,8 +4990,8 @@ begin Result := 0; end;
 class function THuntAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure THuntAG.GroupControlClass;
-begin end;
+class function THuntAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure THuntAG.HuntingPlayer(A1: Integer);
 begin end;

@@ -27,6 +27,6 @@
   { TAIGroupProduction (instance size 16, VMT 55719DDC) }
   TAIGroupProduction = class(TEObject)
   public
-    F_AIGroupProduction_08: array[0..7] of Byte;
+    FUnit: TAbstractUnit; { $08 } FControl: TProductionControl; { $0C }
   end;
 

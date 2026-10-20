@@ -131,8 +131,8 @@
     function GetCheatEnabled: Boolean;
     procedure SetActiveEnchantments(A1: Byte; A2: Integer);  { draft }
     procedure UpdateEnemyEnchantments;
-    procedure GetManaIncome;  { draft }
-    procedure GetManaUpkeep;  { draft }
+    function GetManaIncome: Integer;
+    function GetManaUpkeep: Integer;
     procedure SetMana(A1: Integer);
     procedure GetPower;  { draft }
     procedure OutOfMana(A1: Integer);  { draft }
@@ -165,7 +165,7 @@
     procedure ExecuteResearchSpell(A1: Integer);  { draft }
     procedure ResearchSpell(A1: Integer);  { draft }
     procedure AIRequestOverrideUpkeep(A1: Integer; A2: Integer);  { draft }
-    procedure AIOverrideUpkeep(A1: Integer; A2: Integer);  { draft }
+    procedure AIOverrideUpkeep(Priority, Amount: Integer);
   end;
 
   { TGlobalEnchantment (instance size 36, VMT 5570B398) }

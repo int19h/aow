@@ -1,41 +1,46 @@
 { Interface declaration run owned by P5. }
-  { TAIGroupProductionList (instance size 12, VMT 55719EA8) }
+  { TAIGroupProductionList (instance size $0C, VMT 55719EA8). $08 children. }
   TAIGroupProductionList = class(TENode)
   public
-    procedure GetProductions(A1: Integer);  { draft }
-    procedure GetStrengthMax(A1: Word; A2: Integer);  { draft }
-    procedure Add(A1: Integer; A2: Integer);  { draft }
-    procedure Delete(A1: Integer);  { draft }
-    procedure DeleteUnit;  { draft }
-    procedure ChangeGroup(A1: Integer; A2: Integer);  { draft }
-    procedure IndexOfU(A1: Integer);  { draft }
+    function GetProductions(Index: Integer): TAIGroupProduction;
+    function GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+    procedure Add(Control: TProductionControl; AUnit: TAbstractUnit);
+    procedure Delete(Index: Integer);
+    procedure DeleteUnit(AUnit: TAbstractUnit);
+    procedure ChangeGroup(Index: Integer; Group: TAIGroup);
+    function IndexOfU(AUnit: TAbstractUnit): Integer;
   end;
 
-  { TAIGroup (instance size $50, VMT 55719FB8). $10 status, $3C target type. }
+  { TAIGroup (instance size $50, VMT 55719FB8). $10 status, $14 references,
+    $18 leader, $1C transporter, $20 productions, $24 ID, $28 player,
+    $2C/$30 leader/transporter IDs, $34 target status, $38 target location,
+    $3C target type, $40/$44 budget, $48 move points, $4C mode, $4D/$4E priorities. }
+  TAIGroupControlClass = class of TAIGroupControl;
+
   TAIGroup = class(TUnitUserList)
   public
     FStatus: TAIGroupStatus; { $10 }
     F_AIGroup_11: array[0..2] of Byte;
-    F_AIGroup_14: Integer;
-    F_AIGroup_18: array[0..3] of Byte;
-    F_AIGroup_1C: Integer;
-    F_AIGroup_20: Integer;
+    FRefCount: Integer; { $14 }
+    FLeader: TAbstractUnit; { $18 }
+    FTransporter: TAbstractUnit; { $1C }
+    FProductions: TAIGroupProductionList; { $20 }
     FGroupID: Integer;  { $24; 5578305E }
-    F_AIGroup_28: Byte;
+    FPlayer: Shortint; { $28 }
     F_AIGroup_29: array[0..2] of Byte;
-    F_AIGroup_2C: Integer;
-    F_AIGroup_30: Integer;
-    F_AIGroup_34: Byte;
+    FLeaderID: Integer; { $2C }
+    FTransporterID: Integer; { $30 }
+    FTargetStatus: TAIGroupTargetStatus; { $34 }
     F_AIGroup_35: array[0..2] of Byte;
-    F_AIGroup_38: Integer;
+    FTargetXYL: TXYL; { $38 }
     FTargetType: TAIGroupTargetType; { $3C }
     F_AIGroup_3D: array[0..2] of Byte;
-    F_AIGroup_40: Integer;
-    F_AIGroup_44: Integer;
-    F_AIGroup_48: Integer;
-    F_AIGroup_4C: Byte;
-    F_AIGroup_4D: Byte;
-    F_AIGroup_4E: Byte;
+    FGoldBudget: Integer; { $40 }
+    FManaBudget: Integer; { $44 }
+    FTargetMovePoints: Integer; { $48 }
+    FTargetMode: Byte; { $4C }
+    FProcessPriority: Byte; { $4D }
+    FRecruitmentPriority: Byte; { $4E }
     F_AIGroup_4F: array[0..0] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -49,10 +54,10 @@
     function AddUnit(AUnit: TAbstractUnit): Boolean; override;
     function DeleteUnit(AUnit: TAbstractUnit): Boolean; override;
     function AddUnits(Units: TUnitList): Boolean; override;
-    procedure GetGoldBudget; virtual;  { +0B8 draft }
-    procedure GetManaBudget; virtual;  { +0BC draft }
+    function GetGoldBudget: Integer; virtual; { $B8 }
+    function GetManaBudget: Integer; virtual; { $BC }
     procedure GetLoc(A1: Integer; A2: Integer); virtual;  { +0C0 draft }
-    procedure GroupControlClass; virtual;  { +0C4 draft }
+    class function GroupControlClass: TAIGroupControlClass; virtual; { $C4 }
     procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
     function CreateGroupControl: TAIGroupControl; virtual; { $CC }
     class function Behavior: TGroupBehavior; virtual;
@@ -209,11 +214,11 @@
     procedure MainProcess;  { draft }
   end;
 
-  { TAIGroupControl (instance size 368, VMT 5571A978) }
+  { TAIGroupControl (instance size $170, VMT 5571A978). $0C group. }
   TAIGroupControl = class(TEObject)
   public
     F_AIGroupControl_08: Integer;
-    F_AIGroupControl_0C: Integer;
+    FGroup: TAIGroup; { $0C }
     F_AIGroupControl_10: Byte;
     F_AIGroupControl_11: array[0..2] of Byte;
     F_AIGroupControl_14: Integer;
@@ -595,7 +600,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
     procedure HuntingPlayer(A1: Integer);  { draft }
   end;

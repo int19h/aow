@@ -60,12 +60,12 @@
     F_ProductionSettings_0C: Integer;
     FWaiting: Boolean;  { $10 }
     F_ProductionSettings_11: array[0..2] of Byte;
-    F_ProductionSettings_14: Integer;
-    F_ProductionSettings_18: Integer;
+    FGoldUpkeep: Integer; { $14 }
+    FManaUpkeep: Integer; { $18 }
     FTradeMode: Byte;  { $1C }
     FPlayer: Shortint;  { $1D }
     F_ProductionSettings_1E: array[0..1] of Byte;
-    F_ProductionSettings_20: Integer;
+    FGroupID: Integer; { $20 }
     FUnit: TAbstractUnit;  { $24 }
     FUnitProductionIndex: Integer;  { $28 }
     destructor Destroy; override;

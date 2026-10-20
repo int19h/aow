@@ -26,7 +26,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetLoc(A1: Integer; A2: Integer); override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
     procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); override;
   end;
@@ -43,7 +43,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -68,7 +68,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -86,7 +86,7 @@ type
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -111,8 +111,8 @@ begin Result := 0; end;
 class function TPassiveAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TPassiveAG.GroupControlClass;
-begin end;
+class function TPassiveAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TPassiveAG.GetLoc(A1: Integer; A2: Integer);
 begin end;
@@ -135,8 +135,8 @@ begin Result := 0; end;
 class function TFortifyAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TFortifyAG.GroupControlClass;
-begin end;
+class function TFortifyAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 constructor TFortifyAGC.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -177,8 +177,8 @@ begin Result := 0; end;
 class function TSuicidalAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TSuicidalAG.GroupControlClass;
-begin end;
+class function TSuicidalAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TSuicidalAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -201,8 +201,8 @@ begin Result := 0; end;
 class function TTransportAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TTransportAG.GroupControlClass;
-begin end;
+class function TTransportAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TTransportAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
 begin end;

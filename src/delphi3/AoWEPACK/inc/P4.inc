@@ -6455,11 +6455,11 @@ begin end;
 procedure TPlayerMagicControl.UpdateEnemyEnchantments;
 begin end;
 
-procedure TPlayerMagicControl.GetManaIncome;
-begin end;
+function TPlayerMagicControl.GetManaIncome: Integer;
+begin Result := 0; end;
 
-procedure TPlayerMagicControl.GetManaUpkeep;
-begin end;
+function TPlayerMagicControl.GetManaUpkeep: Integer;
+begin Result := 0; end;
 
 procedure TPlayerMagicControl.SetMana(A1: Integer);
 begin end;
@@ -6560,7 +6560,7 @@ begin end;
 procedure TPlayerMagicControl.AIRequestOverrideUpkeep(A1: Integer; A2: Integer);
 begin end;
 
-procedure TPlayerMagicControl.AIOverrideUpkeep(A1: Integer; A2: Integer);
+procedure TPlayerMagicControl.AIOverrideUpkeep(Priority, Amount: Integer);
 begin end;
 
 class function TChangePlayerMagicTE.ClassID: Integer;

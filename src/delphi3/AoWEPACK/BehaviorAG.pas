@@ -45,7 +45,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -60,7 +60,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -75,7 +75,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -90,7 +90,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -105,7 +105,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -120,7 +120,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GroupControlClass; override;
+    class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
   end;
 
@@ -151,8 +151,8 @@ begin Result := 0; end;
 class function TNormalAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TNormalAG.GroupControlClass;
-begin end;
+class function TNormalAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TNormalAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
@@ -166,8 +166,8 @@ begin Result := 0; end;
 class function TDefenderAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TDefenderAG.GroupControlClass;
-begin end;
+class function TDefenderAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TDefenderAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
@@ -181,8 +181,8 @@ begin Result := 0; end;
 class function TAggressorAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TAggressorAG.GroupControlClass;
-begin end;
+class function TAggressorAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TAggressorAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
@@ -196,8 +196,8 @@ begin Result := 0; end;
 class function TExpanderAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TExpanderAG.GroupControlClass;
-begin end;
+class function TExpanderAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TExpanderAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
@@ -211,8 +211,8 @@ begin Result := 0; end;
 class function TScorcherAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TScorcherAG.GroupControlClass;
-begin end;
+class function TScorcherAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TScorcherAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
@@ -226,8 +226,8 @@ begin Result := 0; end;
 class function TSkirmishAG.Behavior: TGroupBehavior;
 begin Result := gbNone; end;
 
-procedure TSkirmishAG.GroupControlClass;
-begin end;
+class function TSkirmishAG.GroupControlClass: TAIGroupControlClass;
+begin Result := nil; end;
 
 procedure TSkirmishAGC.ProcessStates(A1: Integer; A2: Integer);
 begin end;
