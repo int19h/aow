@@ -23,7 +23,7 @@ package it `requires`, which says nothing about real use. Function counts and si
 | Vcladdon.dpl | TB97 (114), SpinEdit (52), EStrGrid, FilCtl95 | - | third party (Toolbar97, SpinEdit) |
 | Localize.dpl | Iv* units (1096) | - | third party (Multilizer) |
 | ims.dpl | ag*/ms* units (605) | - | third party (an internet suite) |
-| AoWEPACK.dpl | AoWE (4042), City (191), spells, abilities, events, AoWReg, AoWSetup, ... (6872) | Engine, GFXE, HSEPack units, ImageLib, Localize, NetworkE, Sound, aowFX | the game logic, 734 KB |
+| AoWEPACK.dpl | AoWE (4042), City (191), spells, abilities, events, AoWReg, AoWSetup, ... (6872) | Engine, GFXE, HSEPack units, ImageLib, Localize, NetworkE, Sound, aowFX | in progress: about 4,855 of 6,872 identical (2026-10-20), see notes/aowepack-plan.md |
 | AoWTCPCK.dpl | AoWTC (174), CombatTE (38), combat map units (565) | AoWEPACK units, Engine, GFXE, HSEPack units, ImageLib, NetworkE, Sound, aowFX | tactical combat |
 | AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWE, Engine | |
 | AOWTools.dpl | Scanner (42), AoWBookWindow, TurnButton, lines, StartMenu (109) | AoWE, PageTurnCtrl, GFXE, HSEngine, ImageLib, aowInt units | |
