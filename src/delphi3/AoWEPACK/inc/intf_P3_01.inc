@@ -160,15 +160,15 @@
     procedure TargetsChanged; virtual;  { +054 draft }
     function GetTargetPriority: Integer; virtual;  { +058 }
     function GetTargetStrength: Integer; virtual;  { +05C draft }
-    function GetEnabled: Boolean; virtual;  { +060 draft }
+    function GetEnabled: Boolean; virtual;  { +060 }
     function GetLocked: Boolean; virtual;  { +064 draft }
     procedure SetCombatPlayer(Player: Byte); virtual;  { +068 }
     function GetAttack: Shortint; virtual;  { +06C draft }
-    function GetDefense: Shortint; virtual;  { +070 draft }
-    function GetResistance: Shortint; virtual;  { +074 draft }
+    function GetDefense: Shortint; virtual;  { +070 }
+    function GetResistance: Shortint; virtual;  { +074 }
     function GetDamage: Shortint; virtual;  { +078 draft }
-    function GetImmunityTypes: TDamageTypes; virtual;  { +07C draft }
-    function GetProtectionTypes: TDamageTypes; virtual;  { +080 draft }
+    function GetImmunityTypes: TDamageTypes; virtual;  { +07C }
+    function GetProtectionTypes: TDamageTypes; virtual;  { +080 }
     function GetHits: Byte; virtual;  { +084 draft }
     { conflict: function GetHits: Shortint; virtual; }
     function GetHitPoints: Shortint; virtual;  { +088 }
@@ -207,11 +207,11 @@
     function ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; virtual;  { +104 draft }
     function DoDamage(A1: TCombatObject; A2: Integer): Integer; virtual;
     function GetOptimalDamageType(Types: TDamageTypes): TDamageType; virtual;  { +10C }
-    function ExecuteDamageRole(A1: Integer; A2: Integer; A3: TDamageTypes): Integer; virtual;  { +110 draft }
+    function ExecuteDamageRole(A1: Integer; A2: Integer; A3: TDamageTypes): Integer; virtual;  { +110 }
     function ExecuteDamageRoleEx(A1: Integer; A2: Integer; A3: TDamageTypes; A4: Byte): Integer; virtual;  { +114 draft }
     function ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes; virtual;  { +118 draft }
     procedure Surrender; virtual;  { +11C draft }
-    procedure DestroyObject; virtual;  { +120 draft }
+    procedure DestroyObject; virtual;  { +120 }
     function ExecuteDamage(A1: Integer): Integer; virtual;  { +124 draft }
     function ExecuteDamageEffects(A1: TDamageTypes): TDamageTypes; virtual;  { +128 draft }
     procedure TurnDone; virtual;  { +12C draft }

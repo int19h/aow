@@ -15,7 +15,7 @@
     FSource: TCombatObject;  { $04 }
     FSourceSide: TCombatSide; { $08 }
     FTargetSide: TCombatSide;  { $0C }
-    F_FastCombatCommandList_10: Integer;
+    FCombat: TFastCombat; { $10 }
     F_FastCombatCommandList_14: Integer;
     destructor Destroy; override;
     constructor Create(A1: Integer; A2: Integer);  { draft }

@@ -192,6 +192,7 @@
     function ExecuteSwapItem(ItemID1, ItemID2: Integer): Boolean;
     function AutoPlaceItem(Item: TItem): Boolean;
     function ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+    { conflict: procedure ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition); }
     function ExecuteStartCasting(SpellID: Integer): Boolean;
     procedure RemoveCastingReadyEventLog;
     function ExecuteCancelCasting: Boolean;

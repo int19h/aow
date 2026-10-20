@@ -5935,8 +5935,8 @@ begin Result := 0; end;
 procedure TFastCombat.GetWallInBetween(A1: Integer; A2: Integer);
 begin end;
 
-procedure TFastCombat.GetWallSituation(A1: Integer; A2: Integer);
-begin end;
+function TFastCombat.GetWallSituation(A1, A2: TCombatObject): TWallSituation;
+begin Result := wsNone; end;
 
 function TFastCombat.Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean;
 begin Result := False; end;

@@ -192,7 +192,7 @@ begin
   Stream.rwByte(FDuration, 11);
   Stream.rwWord(FAbilityID, 12);
   Stream.rwByte(FPlayerIndex, 13);
-  Stream.rwInteger(F_DurationAbilityData_10, 14);
+  Stream.rwInteger(FSource, 14);
 end;
 
 constructor TDurationAbility.Create(AOwner: Engine.TECustomNode);
@@ -5122,7 +5122,7 @@ asm
   POP EBP
 end;
 
-procedure TSpell.CreateCA(A1: Integer; A2: Integer; A3: Integer);
+function TSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
 asm
   XOR EAX, EAX
 end;
@@ -5144,14 +5144,14 @@ asm
   POP EBX
 end;
 
-procedure TSpell.GetCombatDamageValue(A1: Integer; A2: Integer);
+function TSpell.GetCombatDamageValue(A1, A2: TCombatObject): Integer;
 asm
   XOR EAX, EAX
 end;
 
-procedure TSpell.GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TSpell.GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 begin
-  with PP4DamageValue(Pointer(A3))^ do
+  with PP4DamageValue(@A3)^ do
   begin
     V0 := 0;
     V1 := 0;
@@ -5284,15 +5284,15 @@ asm
   XOR EAX, EAX
 end;
 
-procedure TSpell.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  FillChar(Pointer(A4)^, 20, 0);
+  FillChar(A4, 20, 0);
 end;
 
-procedure TSpell.fcPrefetchCombatCommands(A1: Integer);
+procedure TSpell.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
 begin end;
 
-procedure TSpell.fcExecuteCombatCommand(A1: Integer; A2: Integer);
+function TSpell.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 asm
   XOR EAX, EAX
 end;
@@ -6245,8 +6245,8 @@ begin Result := False; end;
 function TUnitSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
 begin Result := False; end;
 
-procedure TUnitSpell.CreateCA(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TUnitSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
+begin Result := nil; end;
 
 procedure TUnitSpell.CreateCAEx(A1: Integer; A2: Integer; A3: Integer);
 begin end;

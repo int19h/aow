@@ -1788,7 +1788,7 @@ begin
     if TP2OwnerCalls(Self).Expand(53) then
     begin
       Data := TDurationAbilityData(P2AbilityData(Self,53));
-      Data.F_DurationAbilityData_10 := 1;
+      Data.FSource := 1;
       Data.FDuration := 0;
     end;
 end;
@@ -1816,7 +1816,7 @@ begin
     if TP2OwnerCalls(Self).Expand(93) then
     begin
       Data := TDurationAbilityData(P2AbilityData(Self,93));
-      Data.F_DurationAbilityData_10 := 1;
+      Data.FSource := 1;
     end;
 end;
 
@@ -1828,7 +1828,7 @@ begin
   if Player > 0 then
     if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FEnemyEnchantments and 32 = 0 then
       if GetAbilityEnabled(93) then
-        if TDurationAbilityData(P2AbilityData(Self,93)).F_DurationAbilityData_10 = 1 then
+        if TDurationAbilityData(P2AbilityData(Self,93)).FSource = 1 then
           RemoveAbility(93);
 end;
 

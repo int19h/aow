@@ -28,7 +28,7 @@
     FDuration: Byte;
     FPlayerIndex: Byte;
     FAbilityID: Word;
-    F_DurationAbilityData_10: Integer;
+    FSource: Integer; { $10 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetAbilityID: Integer; override;
@@ -869,7 +869,7 @@
   { TSpellCC (instance size 32, VMT 55722D0C) }
   TSpellCC = class(TFastCombatCommand)
   public
-    F_SpellCC_1C: Integer;
+    FSpellID: Integer; { $1C }
     procedure GetName(A1: Integer); override;
   end;
 
@@ -916,15 +916,15 @@
     function Activate(A1: TAbstractUnit): Boolean; virtual;  { +06C }
     function CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean; virtual; { $070 }
     function ActivateCombat(A1: TAbstractUnit): Boolean; virtual; { $074 }
-    procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); virtual;  { +078 draft }
+    function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; virtual;  { +078 }
     procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); virtual; { +07C }
-    procedure GetCombatDamageValue(A1: Integer; A2: Integer); virtual;  { +080 draft }
-    procedure GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +084 draft }
+    function GetCombatDamageValue(A1, A2: TCombatObject): Integer; virtual;  { +080 }
+    procedure GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +084 }
     procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +088 draft }
     procedure tcGetDamageValue; virtual;  { +08C draft }
-    procedure fcPrefetchCombatCommands(A1: Integer); virtual;  { +090 draft }
-    procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); virtual;  { +094 draft }
-    procedure fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +098 draft }
+    procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); virtual;  { +090 }
+    function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; virtual;  { +094 }
+    procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); virtual;  { +098 }
     procedure CastingDone(Source: TAbstractUnit; Mana: Integer);
     procedure CombatCastingDone(Source: TCombatObject; Mana: Integer);
     procedure CombatSpellCast(Source: TCombatUnit);
@@ -1082,7 +1082,7 @@
     function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
     function CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean; override;
-    procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
+    function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
     procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; virtual;  { +09C }
     procedure ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A0 draft }

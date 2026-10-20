@@ -71,7 +71,7 @@
     function GetAttack: Shortint; virtual;  { +0C0 draft }
     function GetDefense: Shortint; virtual;  { +0C4 draft }
     function GetDamage: Shortint; virtual;  { +0C8 draft }
-    function GetResistance: Shortint; virtual;  { +0CC draft }
+    function GetResistance: Shortint; virtual;  { +0CC }
     function GetHits: Shortint; virtual;  { +0D0 }
     function GetMoves: Shortint; virtual;  { +0D4 draft }
     function GetMovePoints: Shortint; virtual;  { +0D8 draft }

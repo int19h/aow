@@ -1014,7 +1014,7 @@
     function GetRoundDistance: Integer;
     procedure GetRoundDistanceMax;  { draft }
     procedure GetWallInBetween(A1: Integer; A2: Integer);  { draft }
-    procedure GetWallSituation(A1: Integer; A2: Integer);  { draft }
+    function GetWallSituation(A1, A2: TCombatObject): TWallSituation;
     procedure AttackerCanCrushWall;  { draft }
     procedure GetAttackerBalisticCV(A1: Integer; A2: Integer);  { draft }
     procedure GetDefenderBalisticCV(A1: Integer; A2: Integer);  { draft }

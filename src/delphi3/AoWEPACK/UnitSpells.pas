@@ -48,7 +48,7 @@ type
   TDispelMagic = class(TUnitSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
+    function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
     procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; override;
     procedure ValidTargetParty(A1: Integer; A2: Integer); override;
@@ -1006,8 +1006,8 @@ begin end;
 procedure TDispelMagic.ValidTargetParty(A1: Integer; A2: Integer);
 begin end;
 
-procedure TDispelMagic.CreateCA(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TDispelMagic.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
+begin Result := nil; end;
 
 function TDispelMagic.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;
 begin Result := False; end;
