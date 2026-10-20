@@ -11,7 +11,10 @@ targets that resolve to a named function are annotated. Used to read the origina
 writing Delphi 3 source for it (see tools/match.py).
 """
 import json, sys
-import pefile
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 import capstone
 
 

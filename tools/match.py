@@ -27,7 +27,10 @@ lists the entries as offsets into the function.
 whose bare name is a symbol of the map file, so only nested and unnamed functions need aliases.
 """
 import json, os, re, struct, sys
-import pefile
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 import capstone
 
 

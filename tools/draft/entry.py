@@ -1,7 +1,11 @@
 """Entry analysis: which of edx/ecx a function reads before writing, at what width, and how many
 stack bytes it pops (ret n). Used for draft method signatures."""
 import json, glob, os, re, struct
-import pefile, capstone
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
+import capstone
 from pathlib import Path
 G = ''
 R = str(Path(__file__).resolve().parents[2] / 'notes/signatures') + '/'

@@ -1,5 +1,9 @@
 """Read exported resource strings. Usage: resstr.py <module.dpl> [Unit]"""
-import pefile, struct, sys
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
+import struct, sys
 pe = globals().get('_pe') or pefile.PE(sys.argv[1]); base = pe.OPTIONAL_HEADER.ImageBase; img = pe.get_memory_mapped_image()
 strings = {}
 for t in getattr(getattr(pe, 'DIRECTORY_ENTRY_RESOURCE', None), 'entries', []):

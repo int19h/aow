@@ -37,7 +37,10 @@ for path in sorted(opts.source_root.rglob('*.pas')):
     parse_pas(path)
 if opts.vcl_source:
     for path in sorted(opts.vcl_source.rglob('*.pas')): parse_pas(path)
-import pefile
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 pe = pefile.PE(str(opts.module))
 owners = {}
 for e in pe.DIRECTORY_ENTRY_EXPORT.symbols:

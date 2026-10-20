@@ -1,5 +1,9 @@
 """Read exact enum, set and method-pointer RTTI. Usage: typeinfo.py <module.dpl> [Unit]"""
-import pefile, struct, sys
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
+import struct, sys
 path = sys.argv[1]; unit = sys.argv[2] if len(sys.argv) > 2 else None
 pe = globals().get('_pe') or pefile.PE(path)
 base = pe.OPTIONAL_HEADER.ImageBase

@@ -2,7 +2,11 @@
 thunks (jmp [IAT]) by the imported name, VMT calls annotated with the slot offset.
 Usage: hsedis.py <module.dpl> <signatures.json> name-substring... (a trailing dot lists a whole class)"""
 import json, sys, struct, re
-import pefile, capstone
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
+import capstone
 def strip(n):
     return re.sub(r'@[0-9A-F]{8}$', '', n)
 from pathlib import Path
