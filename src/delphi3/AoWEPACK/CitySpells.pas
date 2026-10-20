@@ -533,7 +533,7 @@ begin
   Enchantment.FEnchantmentID := FEnchantmentID;
   Enchantment.FEnchantmentManaUpkeep := FManaUpkeep;
   Enchantment.FEnchantmentLocation.XYL := TMapField(TargetCity.Owner).GetXYL;
-  Enchantment.FEnchantmentSpellID := FEnchantmentSpellID;
+  Enchantment.FDispelMana := FEnchantmentSpellID;
   Enchantment.FPlayerIndex := A2.FPlayer;
   TargetCity.ActivateEnchantment(Enchantment);
   PlayDefaultCityEffects(A1.GetSource, TargetCity);

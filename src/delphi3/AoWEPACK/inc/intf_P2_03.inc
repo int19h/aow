@@ -102,7 +102,7 @@
     procedure Select; override;
     procedure Unselect; override;
     procedure CalcShowPriority; virtual;
-    function MoveTo(Field: TMapField): Boolean; virtual;
+    function MoveTo(Field: TMapField; MoveCost: Integer): Boolean; virtual;
     function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; virtual;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); virtual;
     procedure UpdateFlagID; virtual;

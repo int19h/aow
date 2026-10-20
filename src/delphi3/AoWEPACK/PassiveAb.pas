@@ -2,8 +2,7 @@ unit PassiveAb;
 
 { Draft declarations of PassiveAb, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  The signature-order range TVisionAbility through TBlessedEnchantment
-  is recovered; later classes remain drafts. }
+  All class bodies and the registration routines are recovered. }
 
 interface
 
@@ -94,7 +93,7 @@ type
     function Expand(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { THighPrayerBlessingAbility (instance size 44, VMT 557B5684) }
+  { THighPrayerBlessingAbility (instance size 44; $08 name, $0C ID, $20 selection types, $24 ability type, $28 duration mode; VMT 557B5684) }
   THighPrayerBlessingAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -246,37 +245,37 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TMarksmanshipAbility (instance size 48, VMT 557B7144) }
+  { TMarksmanshipAbility (instance size 48; $28 maximum level, $2C level costs; VMT 557B7144) }
   TMarksmanshipAbility = class(TMultiLevelAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetLevelName(A1: Integer): string; override;
   end;
 
-  { TMovementAbility (instance size 44, VMT 557B72DC) }
+  { TMovementAbility (instance size 44; $28 FMoveTypes; VMT 557B72DC) }
   TMovementAbility = class(TAdjustableAbility)
   public
-    F_MovementAbility_28: Byte;
+    FMoveTypes: TMoveTypes; { $28 }
     F_MovementAbility_29: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetMoveTypes(A1: TAbilityOwner): TMoveTypes; override;
     function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
   end;
 
-  { TImmunityAbility (instance size 44, VMT 557B7468) }
+  { TImmunityAbility (instance size 44; $28 FImmunityTypes; VMT 557B7468) }
   TImmunityAbility = class(TEnhancementAbility)
   public
-    F_ImmunityAbility_28: Word;
+    FImmunityTypes: TDamageTypes; { $28 }
     F_ImmunityAbility_2A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetMoveTypes(A1: TAbilityOwner): TMoveTypes; override;
     function GetImmunityTypes(A1: TAbilityOwner): TDamageTypes; override;
   end;
 
-  { TProtectionAbility (instance size 44, VMT 557B75F4) }
+  { TProtectionAbility (instance size 44; $28 FProtectionTypes; VMT 557B75F4) }
   TProtectionAbility = class(TEnhancementAbility)
   public
-    F_ProtectionAbility_28: Word;
+    FProtectionTypes: TDamageTypes; { $28 }
     F_ProtectionAbility_2A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetProtectionTypes(A1: TAbilityOwner): TDamageTypes; override;
@@ -383,34 +382,34 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TConcealmentEnchantment (instance size 40, VMT 557B899C) }
+  { TConcealmentEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B899C) }
   TConcealmentEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TFireAuraEnchantment (instance size 40, VMT 557B8B48) }
+  { TFireAuraEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B8B48) }
   TFireAuraEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Remove(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { TWaterWalkingEnchantment (instance size 40, VMT 557B8CF0) }
+  { TWaterWalkingEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B8CF0) }
   TWaterWalkingEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Remove(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { TWindWalkingEnchantment (instance size 40, VMT 557B8EA0) }
+  { TWindWalkingEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B8EA0) }
   TWindWalkingEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Remove(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { TLiquidFormEnchantment (instance size 40, VMT 557B904C) }
+  { TLiquidFormEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B904C) }
   TLiquidFormEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -429,7 +428,7 @@ type
     function GetAIUpkeepPriority(A1: TAbilityOwner): Integer; override;
   end;
 
-  { TDarkGiftEnchantment (instance size 40, VMT 557B939C) }
+  { TDarkGiftEnchantment (instance size 40; $08 name, $0C ID, $20 selection types, $24 ability type; VMT 557B939C) }
   TDarkGiftEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -454,8 +453,8 @@ type
     function CreateEnchantment: TUnitEnchantment; override;
   end;
 
-procedure RegisterPassiveAbilities(A1: Integer);  { draft }
-procedure UnregisterPassiveAbilities(A1: Integer);  { draft }
+procedure RegisterPassiveAbilities(Control: TAbilityControl);
+procedure UnregisterPassiveAbilities(Control: TAbilityControl);
 
 implementation
 
@@ -1248,88 +1247,445 @@ end;
 
 
 constructor TDarkGiftEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(DarkGiftRStr);
+  FAbilityID := 169;
+end;
 
 function TDarkGiftEnchantment.GetDamage(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function TDarkGiftEnchantment.GetAIUpkeepPriority(A1: TAbilityOwner): Integer;
-begin Result := 0; end;
+begin
+  Result := TAbstractUnit(A1).GetUnitLevel + 200;
+  if A1 is TLeader then Inc(Result, 50);
+end;
 
 constructor THighPrayerBlessingAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(HighPrayerRStr);
+  FAbilityID := 100;
+  FAbilityType := atEnhancement;
+  FDurationMode := dmEntireCombat;
+  FSelectionTypes := [];
+end;
 
 function THighPrayerBlessingAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function THighPrayerBlessingAbility.GetResistance(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 constructor TConcealmentEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(ConcealmentRStr);
+  FAbilityID := 162;
+end;
 
 constructor TFireAuraEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(FireAuraRStr);
+  FAbilityID := 163;
+end;
 
 function TFireAuraEnchantment.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  Result := inherited Remove(A1);
+  if Result and (A1.Owner is TArmy) then
+  begin
+    TAbstractUnit(A1).GetLocation(X, Y, L);
+    if X <> -1 then
+      with AoWHSMap.MapContainer.GetField(X, Y, L) do
+        TArmy(A1.Owner).ValidateTerrain(TerrainType, OverlayType);
+  end;
+end;
 
 constructor TWaterWalkingEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(WaterWalkingRStr);
+  FAbilityID := 164;
+end;
 
 function TWaterWalkingEnchantment.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  Result := inherited Remove(A1);
+  if Result and (A1.Owner is TArmy) then
+  begin
+    TAbstractUnit(A1).GetLocation(X, Y, L);
+    if X <> -1 then
+      with AoWHSMap.MapContainer.GetField(X, Y, L) do
+        TArmy(A1.Owner).ValidateTerrain(TerrainType, OverlayType);
+  end;
+end;
 
 constructor TWindWalkingEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(WindWalkingRStr);
+  FAbilityID := 165;
+end;
 
 function TWindWalkingEnchantment.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  Result := inherited Remove(A1);
+  if Result and (A1.Owner is TArmy) then
+  begin
+    TAbstractUnit(A1).GetLocation(X, Y, L);
+    if X <> -1 then
+      with AoWHSMap.MapContainer.GetField(X, Y, L) do
+        TArmy(A1.Owner).ValidateTerrain(TerrainType, OverlayType);
+  end;
+end;
 
 constructor TLiquidFormEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(LiquidFormRStr);
+  FAbilityID := 166;
+end;
 
 function TLiquidFormEnchantment.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  Result := inherited Remove(A1);
+  if Result and (A1.Owner is TArmy) then
+  begin
+    TAbstractUnit(A1).GetLocation(X, Y, L);
+    if X <> -1 then
+      with AoWHSMap.MapContainer.GetField(X, Y, L) do
+        TArmy(A1.Owner).ValidateTerrain(TerrainType, OverlayType);
+  end;
+end;
 
 function TLiquidFormEnchantment.GetAIUpkeepPriority(A1: TAbilityOwner): Integer;
-begin Result := 0; end;
+begin
+  Result := TAbstractUnit(A1).GetUnitLevel + 300;
+  if A1 is TLeader then Inc(Result, 50);
+end;
 
 constructor TMarksmanshipAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(MarksmanshipRStr);
+  FAbilityType := atEnhancement;
+  FAbilityID := 32;
+  FSelectionTypes := [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor];
+  FMaxLevel := 4;
+  FLevelCosts[1] := 5;
+  FLevelCosts[2] := 5;
+  FLevelCosts[3] := 5;
+  FLevelCosts[4] := 5;
+end;
 
 function TMarksmanshipAbility.GetLevelName(A1: Integer): string;
-begin end;
+begin
+  case A1 of
+    0: Result := TranslateRStr(MarksmanshipRStr);
+    1: Result := TranslateRStr(MarksmanshipRStr) + ' I';
+    2: Result := TranslateRStr(MarksmanshipRStr) + ' II';
+    3: Result := TranslateRStr(MarksmanshipRStr) + ' III';
+    4: Result := TranslateRStr(MarksmanshipRStr) + ' IV';
+  end;
+end;
 
 constructor TMovementAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astRingItem];
+  FAbilityType := atMovement;
+  FSkillPointCost := 0;
+end;
 
 function TMovementAbility.GetMoveTypes(A1: TAbilityOwner): TMoveTypes;
-begin Result := []; end;
+begin
+  Result := FMoveTypes;
+end;
 
 function TMovementAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
-begin Result := []; end;
+begin
+  if FAbilityID = 1 then Result := [wcWallPassing, wcParticipate]
+  else Result := [];
+end;
 
 constructor TImmunityAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astDefenseItem, astRingItem];
+  FAbilityType := atEnhancement;
+end;
 
 function TImmunityAbility.GetImmunityTypes(A1: TAbilityOwner): TDamageTypes;
-begin Result := []; end;
+begin
+  Result := FImmunityTypes;
+end;
 
 function TImmunityAbility.GetMoveTypes(A1: TAbilityOwner): TMoveTypes;
-begin Result := []; end;
+begin
+  if dtFire in FImmunityTypes then Result := [mtLavaCrossing]
+  else Result := [];
+end;
 
 constructor TProtectionAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astDefenseItem, astRingItem, astEditor];
+  FAbilityType := atEnhancement;
+end;
 
 function TProtectionAbility.GetProtectionTypes(A1: TAbilityOwner): TDamageTypes;
-begin Result := []; end;
+begin
+  Result := FProtectionTypes;
+end;
 
-procedure RegisterPassiveAbilities(A1: Integer);
-begin end;
+function CreateMovementAbility(ID: Integer; const Name: string; MoveTypes: TMoveTypes): TMovementAbility;
+var
+  Ability: TMovementAbility;
+begin
+  Ability := TMovementAbility.Create(nil);
+  Ability.FAbilityID := ID;
+  Ability.FAbilityName := Name;
+  Ability.FMoveTypes := MoveTypes;
+  if (mtMountaineering in MoveTypes) or (mtForestry in MoveTypes) or
+    (mtCaveCrawling in MoveTypes) then
+    Ability.FSelectionTypes := Ability.FSelectionTypes + [astEditor];
+  Result := Ability;
+end;
 
-procedure UnregisterPassiveAbilities(A1: Integer);
-begin end;
+function CreateImmunityAbility(ID: Integer; const Name: string; DamageTypes: TDamageTypes): TImmunityAbility;
+var
+  Ability: TImmunityAbility;
+begin
+  Ability := TImmunityAbility.Create(nil);
+  Ability.FAbilityID := ID;
+  Ability.FAbilityName := Name;
+  Ability.FImmunityTypes := DamageTypes;
+  if [dtPhysical, dtDeath, dtHoly, dtMagic] * DamageTypes = [] then
+    Ability.FSelectionTypes := [astUnit, astRingItem]
+  else if [dtDeath, dtHoly, dtMagic] * DamageTypes = [] then
+    Ability.FSelectionTypes := [astUnit, astRingItem]
+  else
+    Ability.FSelectionTypes := [astUnit];
+  if [dtPhysical, dtMagic] * DamageTypes = [] then
+    Ability.FSelectionTypes := Ability.FSelectionTypes + [astTorsoItem];
+  Result := Ability;
+end;
+
+function CreateProtectionAbility(ID: Integer; const Name: string; DamageTypes: TDamageTypes;
+  SelectionTypes: TAbilitySelectionTypes): TProtectionAbility;
+var
+  Ability: TProtectionAbility;
+begin
+  Ability := TProtectionAbility.Create(nil);
+  Ability.FAbilityID := ID;
+  Ability.FAbilityName := Name;
+  Ability.FProtectionTypes := DamageTypes;
+  Ability.FSelectionTypes := SelectionTypes;
+  Result := Ability;
+end;
+
+procedure RegisterPassiveAbilities(Control: TAbilityControl);
+begin
+  Control.RegisterAbility(CreateImmunityAbility(7, TranslateRStr(FireImmunityRStr), [dtFire]));
+  Control.RegisterAbility(CreateImmunityAbility(8, TranslateRStr(ColdImmunityRStr), [dtCold]));
+  Control.RegisterAbility(CreateImmunityAbility(9, TranslateRStr(LightningImmunityRStr), [dtLightning]));
+  Control.RegisterAbility(CreateImmunityAbility(10, TranslateRStr(PoisonImmunityRStr), [dtPoison]));
+  Control.RegisterAbility(CreateImmunityAbility(11, TranslateRStr(DeathImmunityRStr), [dtDeath]));
+  Control.RegisterAbility(CreateImmunityAbility(12, TranslateRStr(HolyImmunityRStr), [dtHoly]));
+  Control.RegisterAbility(CreateImmunityAbility(13, TranslateRStr(PhysicalImmunityRStr), [dtPhysical]));
+  Control.RegisterAbility(CreateImmunityAbility(6, TranslateRStr(MagicImmunityRStr), [dtMagic]));
+  Control.RegisterAbility(CreateProtectionAbility(71, TranslateRStr(FireProtectionRStr), [dtFire], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(76, TranslateRStr(ColdProtectionRStr), [dtCold], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(74, TranslateRStr(LightningProtectionRStr), [dtLightning], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(73, TranslateRStr(PoisonProtectionRStr), [dtPoison], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(70, TranslateRStr(DeathProtectionRStr), [dtDeath], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(72, TranslateRStr(HolyProtectionRStr), [dtHoly], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(77, TranslateRStr(PhysicalProtectionRStr), [dtPhysical], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateProtectionAbility(75, TranslateRStr(MagicProtectionRStr), [dtMagic], [astUnit, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateMovementAbility(0, TranslateRStr(WalkingRStr), [mtWalking]));
+  Control.RegisterAbility(CreateMovementAbility(1, TranslateRStr(FlyingRStr), [mtFlying]));
+  Control.RegisterAbility(CreateMovementAbility(2, TranslateRStr(SwimmingRStr), [mtSwimming]));
+  Control.RegisterAbility(CreateMovementAbility(3, TranslateRStr(ForestryRStr), [mtForestry]));
+  Control.RegisterAbility(CreateMovementAbility(4, TranslateRStr(CaveCrawlingRStr), [mtCaveCrawling]));
+  Control.RegisterAbility(CreateMovementAbility(5, TranslateRStr(MountaineeringRStr), [mtMountaineering]));
+  Control.RegisterAbility(CreateMovementAbility(23, TranslateRStr(SailingRStr), [mtSwimming]));
+  Control.RegisterAbility(CreateMovementAbility(42, TranslateRStr(TunnelingRStr), [mtTunneling]));
+  Control.RegisterAbility(CreateMovementAbility(59, TranslateRStr(FloatingRStr), [mtFlying]));
+  Control.RegisterAbility(CreateEnhancementAbility(26, TranslateRStr(TrailOfDarknessRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(39, TranslateRStr(NightVisionRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(43, TranslateRStr(IgnitionRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(49, TranslateRStr(RegenerationRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(51, TranslateRStr(CauseFearRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(54, TranslateRStr(InvisibilityRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(63, TranslateRStr(DragonRStr), [astUnit]));
+  Control.RegisterAbility(CreateEnhancementAbility(37, TranslateRStr(BardsSkillsRStr), [astUnit, astEditor]));
+  Control.RegisterAbility(CreateEnhancementAbility(41, TranslateRStr(TrueVisionRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor]));
+  Control.RegisterAbility(CreateEnhancementAbility(67, TranslateRStr(FearlessRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(68, TranslateRStr(PathOfDecayRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(69, TranslateRStr(PathOfLifeRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(109, TranslateRStr(PathOfFrostRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(TVisionAbility.Create(nil));
+  Control.RegisterAbility(THolyChampionAbility.Create(nil));
+  Control.RegisterAbility(TUnholyChampionAbility.Create(nil));
+  Control.RegisterAbility(TWallClimbingAbility.Create(nil));
+  Control.RegisterAbility(TPassWallAbility.Create(nil));
+  Control.RegisterAbility(TCursedAbility.Create(nil));
+  Control.RegisterAbility(TResurrectedAbility.Create(nil));
+  Control.RegisterAbility(TAnimatedAbility.Create(nil));
+  Control.RegisterAbility(TCombatResurrectedAbility.Create(nil));
+  Control.RegisterAbility(TMarksmanshipAbility.Create(nil));
+  Control.RegisterAbility(TSlowEnchantmentAbility.Create(nil));
+  Control.RegisterAbility(TWebbedAbility.Create(nil));
+  Control.RegisterAbility(TVertigoAbility.Create(nil));
+  Control.RegisterAbility(TPoisonedAbility.Create(nil));
+  Control.RegisterAbility(TEntangledAbility.Create(nil));
+  Control.RegisterAbility(TFrozenAbility.Create(nil));
+  Control.RegisterAbility(TStunnedAbility.Create(nil));
+  Control.RegisterAbility(TNaturesBlessingAbility.Create(nil));
+  Control.RegisterAbility(TBloodlustAbility.Create(nil));
+  Control.RegisterAbility(TTurnedUndeadAbility.Create(nil));
+  Control.RegisterAbility(THolyFear.Create(nil));
+  Control.RegisterAbility(THasteAbility.Create(nil));
+  Control.RegisterAbility(TStoneSkinAbility.Create(nil));
+  Control.RegisterAbility(TEnchantedWeaponAbility.Create(nil));
+  Control.RegisterAbility(TSummonedAbility.Create(nil));
+  Control.RegisterAbility(TFuryAbility.Create(nil));
+  Control.RegisterAbility(TFreeMovementAbility.Create(nil));
+  Control.RegisterAbility(THolyChampionEnchantment.Create(nil));
+  Control.RegisterAbility(TUnholyChampionEnchantment.Create(nil));
+  Control.RegisterAbility(TConcealmentEnchantment.Create(nil));
+  Control.RegisterAbility(TFireAuraEnchantment.Create(nil));
+  Control.RegisterAbility(TWaterWalkingEnchantment.Create(nil));
+  Control.RegisterAbility(TWindWalkingEnchantment.Create(nil));
+  Control.RegisterAbility(TLiquidFormEnchantment.Create(nil));
+  Control.RegisterAbility(TBlessedEnchantment.Create(nil));
+  Control.RegisterAbility(TCosmeticSurgeryAbility.Create(nil));
+  Control.RegisterAbility(TBurningAbility.Create(nil));
+  Control.RegisterAbility(TFireProtectionEnchantment.Create(nil));
+  Control.RegisterAbility(TPanickedAbility.Create(nil));
+  Control.RegisterAbility(TDecayAbility.Create(nil));
+  Control.RegisterAbility(THighPrayerBlessingAbility.Create(nil));
+  Control.RegisterAbility(TDarkGiftEnchantment.Create(nil));
+  Control.RegisterAbility(TCrusaderAbility.Create(nil));
+  Control.RegisterAbility(CreateEnhancementAbility(138, TranslateRStr(SteppeConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(139, TranslateRStr(UndergroundConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(140, TranslateRStr(GrassConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(141, TranslateRStr(SnowConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(142, TranslateRStr(DesertConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(143, TranslateRStr(WastelandConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(144, TranslateRStr(WaterConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem]));
+  Control.RegisterAbility(CreateEnhancementAbility(145, TranslateRStr(ConcealmentRStr), [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor]));
+end;
+
+procedure UnregisterPassiveAbilities(Control: TAbilityControl);
+begin
+  Control.UnregisterAbilityID(0);
+  Control.UnregisterAbilityID(1);
+  Control.UnregisterAbilityID(2);
+  Control.UnregisterAbilityID(3);
+  Control.UnregisterAbilityID(4);
+  Control.UnregisterAbilityID(5);
+  Control.UnregisterAbilityID(23);
+  Control.UnregisterAbilityID(42);
+  Control.UnregisterAbilityID(6);
+  Control.UnregisterAbilityID(7);
+  Control.UnregisterAbilityID(8);
+  Control.UnregisterAbilityID(9);
+  Control.UnregisterAbilityID(10);
+  Control.UnregisterAbilityID(11);
+  Control.UnregisterAbilityID(12);
+  Control.UnregisterAbilityID(13);
+  Control.UnregisterAbilityID(70);
+  Control.UnregisterAbilityID(71);
+  Control.UnregisterAbilityID(76);
+  Control.UnregisterAbilityID(72);
+  Control.UnregisterAbilityID(73);
+  Control.UnregisterAbilityID(74);
+  Control.UnregisterAbilityID(75);
+  Control.UnregisterAbilityID(77);
+  Control.UnregisterAbilityID(64);
+  Control.UnregisterAbilityID(146);
+  Control.UnregisterAbilityID(147);
+  Control.UnregisterAbilityID(26);
+  Control.UnregisterAbilityID(36);
+  Control.UnregisterAbilityID(66);
+  Control.UnregisterAbilityID(39);
+  Control.UnregisterAbilityID(43);
+  Control.UnregisterAbilityID(49);
+  Control.UnregisterAbilityID(51);
+  Control.UnregisterAbilityID(54);
+  Control.UnregisterAbilityID(63);
+  Control.UnregisterAbilityID(64);
+  Control.UnregisterAbilityID(37);
+  Control.UnregisterAbilityID(41);
+  Control.UnregisterAbilityID(67);
+  Control.UnregisterAbilityID(68);
+  Control.UnregisterAbilityID(69);
+  Control.UnregisterAbilityID(109);
+  Control.UnregisterAbilityID(32);
+  Control.UnregisterAbilityID(129);
+  Control.UnregisterAbilityID(128);
+  Control.UnregisterAbilityID(130);
+  Control.UnregisterAbilityID(93);
+  Control.UnregisterAbilityID(94);
+  Control.UnregisterAbilityID(95);
+  Control.UnregisterAbilityID(96);
+  Control.UnregisterAbilityID(97);
+  Control.UnregisterAbilityID(98);
+  Control.UnregisterAbilityID(92);
+  Control.UnregisterAbilityID(99);
+  Control.UnregisterAbilityID(168);
+  Control.UnregisterAbilityID(34);
+  Control.UnregisterAbilityID(53);
+  Control.UnregisterAbilityID(152);
+  Control.UnregisterAbilityID(153);
+  Control.UnregisterAbilityID(154);
+  Control.UnregisterAbilityID(155);
+  Control.UnregisterAbilityID(156);
+  Control.UnregisterAbilityID(157);
+  Control.UnregisterAbilityID(160);
+  Control.UnregisterAbilityID(161);
+  Control.UnregisterAbilityID(162);
+  Control.UnregisterAbilityID(163);
+  Control.UnregisterAbilityID(164);
+  Control.UnregisterAbilityID(165);
+  Control.UnregisterAbilityID(166);
+  Control.UnregisterAbilityID(158);
+  Control.UnregisterAbilityID(126);
+  Control.UnregisterAbilityID(127);
+  Control.UnregisterAbilityID(167);
+  Control.UnregisterAbilityID(108);
+  Control.UnregisterAbilityID(131);
+  Control.UnregisterAbilityID(100);
+  Control.UnregisterAbilityID(169);
+  Control.UnregisterAbilityID(132);
+  Control.UnregisterAbilityID(101);
+  Control.UnregisterAbilityID(138);
+  Control.UnregisterAbilityID(139);
+  Control.UnregisterAbilityID(140);
+  Control.UnregisterAbilityID(141);
+  Control.UnregisterAbilityID(142);
+  Control.UnregisterAbilityID(143);
+  Control.UnregisterAbilityID(144);
+  Control.UnregisterAbilityID(145);
+end;
 
 
 initialization

@@ -75,7 +75,7 @@ type
   TFreezeWaterTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure ChangeTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
     procedure TerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
   end;
@@ -94,7 +94,7 @@ type
   TFireBarrierTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure CreateFireBarrier;  { draft }
   end;
 
@@ -112,7 +112,7 @@ type
   TLevelTerrainTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure LevelTerrain;  { draft }
   end;
 
@@ -130,7 +130,7 @@ type
   TRejuvenateTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure RejuvenateTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
   end;
 
@@ -192,7 +192,7 @@ type
   TWatcherTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
   end;
 
   { TWatcher (instance size 60, VMT 5579DA04) }
@@ -215,7 +215,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
   end;
@@ -242,7 +242,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
   end;
@@ -262,7 +262,7 @@ type
   public
     FAnimation: TAnimation;
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
     procedure ChangeTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
@@ -657,7 +657,7 @@ begin
   end;
 end;
 
-function TFreezeWaterTE.Process(A1: Integer; A2: Integer): Boolean;
+function TFreezeWaterTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
   Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
@@ -672,7 +672,7 @@ begin
     Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
   begin
     Twinkle := TTwinkleAnimation.Create(nil);
-    Twinkle.Setup(Integer(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(10).FCastImages).ImageSequences[0]),2 { tmExpand },100,64,50,30);
+    Twinkle.Setup(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(10).FCastImages).ImageSequences[0],[tmExpand],100,64,50,30);
     SpellHSMap^.PlaceHX(Twinkle, TSpellLocation(FLocation).X,
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
@@ -854,7 +854,7 @@ begin
   end;
 end;
 
-function TFireBarrierTE.Process(A1: Integer; A2: Integer): Boolean;
+function TFireBarrierTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
   CreateFireBarrier;
@@ -1020,7 +1020,7 @@ begin
   end;
 end;
 
-function TLevelTerrainTE.Process(A1: Integer; A2: Integer): Boolean;
+function TLevelTerrainTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X, TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
@@ -1171,7 +1171,7 @@ begin
   if TerrainType in [Ord(ttDesert)..Ord(ttWasteland)] then TerrainType := Ord(ttGrass);
 end;
 
-function TRejuvenateTE.Process(A1: Integer; A2: Integer): Boolean;
+function TRejuvenateTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
   Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
@@ -1186,7 +1186,7 @@ begin
     Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
   begin
     Twinkle := TTwinkleAnimation.Create(nil);
-    Twinkle.Setup(Integer(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(41).FCastImages).ImageSequences[0]),1 { tmRotate },100,64,50,30);
+    Twinkle.Setup(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(41).FCastImages).ImageSequences[0],[tmRotate],100,64,50,30);
     SpellHSMap^.PlaceHX(Twinkle, TSpellLocation(FLocation).X,
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
@@ -1300,7 +1300,7 @@ begin
   inherited Create(AOwner);
   TGlobalEnchantmentMode(FEnchantmentMode) :=
     TGlobalEnchantmentMode(FEnchantmentMode) - [gemTrueGlobal, gemOwned];
-  FEnchantmentSpellID := 50;
+  FDispelMana := 50;
 end;
 
 function TWatcherEnchantment.GetName: string;
@@ -1663,7 +1663,7 @@ end;
 class function TWatcherTE.ClassID: Integer;
 begin Result := $2131B; end;
 
-function TWatcherTE.Process(A1: Integer; A2: Integer): Boolean;
+function TWatcherTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
   Watcher: TWatcherHS;
 begin
@@ -1952,7 +1952,7 @@ begin
         if TArmy(Army.FArmy).ValidateSelection($FF) = Selection then
         begin
           MovedUnits.AddUnits(Army.FArmy);
-          Army.MoveTo(MapF);
+          Army.MoveTo(MapF, 0);
         end
         else
           for I := TArmy(Army.FArmy).Count - 1 downto 0 do
@@ -1979,7 +1979,7 @@ begin
   Result := False;
 end;
 
-function TTornadoTE.Process(A1: Integer; A2: Integer): Boolean;
+function TTornadoTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 asm
   { needs: Boolean result on TSpellTE.Process; managed locals finalize in the helper. }
   JMP ProcessTornado
@@ -2257,7 +2257,7 @@ begin
   Result := False;
 end;
 
-function TVortexTE.Process(A1: Integer; A2: Integer): Boolean;
+function TVortexTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 asm JMP ProcessVortex end;
 
 constructor TVortex.Create(AOwner: Engine.TECustomNode);
@@ -2387,7 +2387,7 @@ begin
   end;
 end;
 
-function THealingShowersTE.Process(A1: Integer; A2: Integer): Boolean;
+function THealingShowersTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
   Level: TMapLevel;
   Walk: THNWalkData;

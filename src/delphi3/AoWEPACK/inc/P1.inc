@@ -8019,7 +8019,7 @@ begin end;
 procedure TMoveSelector.SetCurrentMove(A1: Integer);
 begin end;
 
-procedure TMoveSelector.Unselect(A1: Integer; A2: Integer);
+procedure TMoveSelector.Unselect;
 begin end;
 
 procedure TMoveSelector.ValidateSelection(A1: Integer);
@@ -9389,8 +9389,8 @@ begin end;
 procedure IgnitionChance(A1: Integer);
 begin end;
 
-procedure CreateEnhancementAbility(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
+begin Result := nil; end;
 
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
 begin Result := []; end;

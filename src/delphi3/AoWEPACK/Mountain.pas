@@ -67,7 +67,7 @@ type
   TRaiseTerrainTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure RaiseTerrain(Caster: TAbstractUnit);
   end;
 
@@ -314,7 +314,7 @@ begin
   end;
 end;
 
-function TRaiseTerrainTE.Process(A1: Integer; A2: Integer): Boolean;
+function TRaiseTerrainTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
   RaiseTerrain(TAbstractUnit(A1));

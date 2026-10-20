@@ -7,7 +7,7 @@ unit UnHolyG;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, GlobalTargetSpells;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, GlobalTargetSpells;
 
 type
   TUnHolyGround = class;
@@ -53,7 +53,7 @@ type
   TUnholyGroundSpellTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure CreateUnholyGround(A1: Integer);  { draft }
   end;
 
@@ -135,7 +135,7 @@ begin Result := 0; end;
 procedure TUnholyGroundSpellTE.CreateUnholyGround(A1: Integer);
 begin end;
 
-function TUnholyGroundSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+function TUnholyGroundSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin Result := False; end;
 
 constructor TUnholyGroundSpell.Create(AOwner: Engine.TECustomNode);

@@ -2,8 +2,7 @@ unit UnitSpells;
 
 { Draft declarations of UnitSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  THaste through TCosmeticSurgery and TDispelMagicSpellCA are recovered;
-  TDispelMagic and registration remain drafts. }
+  All class bodies and registration routines are recovered. }
 
 interface
 
@@ -44,16 +43,17 @@ type
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TDispelMagic (instance size 68, VMT 557E53F4) }
+  { TDispelMagic (instance size 68, VMT 557E53F4): inherited $34 multiple targets,
+    $38 target range, $3C dispel resistance, $40 AI value. }
   TDispelMagic = class(TUnitSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
     procedure GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; override;
-    procedure ValidTargetParty(A1: Integer; A2: Integer); override;
+    function ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean; override;
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; override;
-    procedure GetDispelMana(A1: Integer);  { draft }
+    function GetDispelMana(Source: TAbstractUnit): Integer;
   end;
 
   { THaste (instance size 68, VMT 557E5534) }
@@ -207,8 +207,8 @@ type
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; override;
   end;
 
-procedure RegisterUnitSpells(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure UnregisterUnitSpells(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure RegisterUnitSpells(Engine: TAoWEngine);
+procedure UnregisterUnitSpells(Engine: TAoWEngine);
 
 implementation
 
@@ -998,31 +998,137 @@ begin
 end;
 
 constructor TDispelMagic.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr('Dispel Magic');
+  FSpellID := 8;
+  FBaseManaCost := 5;
+  FSpellLevel := 1;
+  FMagicSphere := msCosmos;
+  FTargetRange := 4;
+  FAllowMultipleTargets := True;
+  FSpellControlTypes := [sctGlobal, sctCombat];
+end;
 
-procedure TDispelMagic.GetDispelMana(A1: Integer);
-begin end;
+function TDispelMagic.GetDispelMana(Source: TAbstractUnit): Integer;
+begin
+  Result := Source.GetAbLevel(52) * 15 + 25;
+end;
 
-procedure TDispelMagic.ValidTargetParty(A1: Integer; A2: Integer);
-begin end;
+function TDispelMagic.ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
+begin
+  Result := Party.FArmy.FPlayer = Source.FPlayer;
+end;
 
 function TDispelMagic.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TDispelMagicSpellCA;
+begin
+  Action := TDispelMagicSpellCA.Create(nil);
+  Action.FSpellID := FSpellID;
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.Generate(A1, A2, GetDispelMana(TCombatUnit(A1).FUnit));
+  if A3 then Action.FManaCost := FBaseManaCost;
+  Result := Action;
+end;
 
 function TDispelMagic.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;
-begin Result := False; end;
+var
+  Count: Integer;
+  Enchantments: TEnchantmentList;
+  I, Chance: Integer;
+begin
+  if ValidTargetUnit(Source, Target) then
+  begin
+    Count := 0;
+    Enchantments := TEnchantmentList.Create(nil);
+    Target.ListEnchantments(Enchantments);
+    for I := Enchantments.GetCount - 1 downto 0 do
+    begin
+      Chance := Enchantments.GetEnchantments(I).DispelChance(GetDispelMana(Source));
+      if Chance > AoWHSMap.Random(100) then
+      begin
+        Inc(Count);
+        Enchantments.GetEnchantments(I).Dispel;
+      end;
+    end;
+    if Source.FPlayer = AoWHSMap.FSeatedPlayer then
+      if Count > 0 then
+        AoWHSMap.ShowMessage(Format(TranslateRStr('%s spell(s) dispelled'), [IntToStr(Count)]))
+      else
+        AoWHSMap.ShowMessage(TranslateRStr('Dispel Magic failed'));
+    Result := Enchantments.GetCount > 0;
+    Enchantments.Free;
+  end
+  else
+    Result := False;
+end;
 
 function TDispelMagic.ValidTargetUnit(Source, Target: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited ValidTargetUnit(Source, Target);
+  Result := Result and Target.CanDispelEnchantment(Source.FPlayer);
+end;
 
 procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
-begin end;
+{ conflict: procedure TDispelMagic.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); }
+begin
+  inherited;
+  Info.TargetTypes := [cttFriend, cttEnemy];
+end;
 
-procedure RegisterUnitSpells(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure RegisterUnitSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Engine.RegisterEClasses([TDispelMagicSpellCA]);
+  Control.RegisterSpell(TDispelMagic.Create(nil));
+  Control.RegisterSpell(THaste.Create(nil));
+  Control.RegisterSpell(TStoneSkin.Create(nil));
+  Control.RegisterSpell(TEnchantWeapon.Create(nil));
+  Control.RegisterSpell(TFury.Create(nil));
+  Control.RegisterSpell(TFreeMovement.Create(nil));
+  Control.RegisterSpell(TRemedy.Create(nil));
+  Control.RegisterSpell(THolyChampion.Create(nil));
+  Control.RegisterSpell(TUnholyChampion.Create(nil));
+  Control.RegisterSpell(TConcealment.Create(nil));
+  Control.RegisterSpell(TFireAura.Create(nil));
+  Control.RegisterSpell(TWaterWalking.Create(nil));
+  Control.RegisterSpell(TWindWalking.Create(nil));
+  Control.RegisterSpell(TLiquidForm.Create(nil));
+  Control.RegisterSpell(THealingWater.Create(nil));
+  Control.RegisterSpell(TBless.Create(nil));
+  Control.RegisterSpell(TCosmeticSurgery.Create(nil));
+  Control.RegisterSpell(TDarkGift.Create(nil));
+end;
 
-procedure UnregisterUnitSpells(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure UnregisterUnitSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Control.UnregisterSpellID(8);
+  Control.UnregisterSpellID(15);
+  Control.UnregisterSpellID(17);
+  Control.UnregisterSpellID(16);
+  Control.UnregisterSpellID(33);
+  Control.UnregisterSpellID(32);
+  Control.UnregisterSpellID(35);
+  Control.UnregisterSpellID(37);
+  Control.UnregisterSpellID(36);
+  Control.UnregisterSpellID(39);
+  Control.UnregisterSpellID(40);
+  Control.UnregisterSpellID(42);
+  Control.UnregisterSpellID(43);
+  Control.UnregisterSpellID(49);
+  Control.UnregisterSpellID(55);
+  Control.UnregisterSpellID(56);
+  Control.UnregisterSpellID(59);
+  Control.UnregisterSpellID(77);
+  Engine.UnregisterEClasses([TDispelMagicSpellCA]);
+end;
 
 
 initialization

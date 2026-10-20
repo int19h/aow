@@ -213,7 +213,7 @@
     function CreateMCS: Integer; virtual;  { +010 draft }
     procedure SetCurrentMove(A1: Integer); virtual;  { +014 draft }
     procedure SelectPath(A1: Byte; A2: Integer; A3: Integer); virtual;  { +018 draft }
-    procedure Unselect(A1: Integer; A2: Integer); virtual;  { +01C draft }
+    procedure Unselect; virtual; { +01C }
     procedure ValidateSelection(A1: Integer); virtual;  { +020 draft }
     procedure ExecuteMove; virtual;  { +024 draft }
     procedure Activate(A1: Integer); virtual;  { +028 draft }

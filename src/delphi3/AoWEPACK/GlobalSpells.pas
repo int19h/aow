@@ -2,7 +2,8 @@ unit GlobalSpells;
 
 { Draft declarations of GlobalSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  TConcealAreaHS, TConcealArea and TBirdsViewHS are recovered; later classes remain drafts. }
+  TConcealAreaHS through TDisjunctionSpellCaster are recovered;
+  TDisjunction and the hero spells remain drafts. }
 
 interface
 
@@ -48,7 +49,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure GetEnabled; override;
+    function GetEnabled: Boolean; override;
     function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
   end;
@@ -71,36 +72,38 @@ type
     procedure StopAnimation;  { draft }
   end;
 
-  { TBirdsView (instance size 52, VMT 557E93E0) }
+  { TBirdsView (instance size 52, VMT 557E93E0): inherited $08 name, $10 spell ID,
+    $14 mana, $20 sphere, $21 level, $22 spell type. }
   TBirdsView = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure GetEnabled; override;
+    function GetEnabled: Boolean; override;
     function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
-  { TWarpPartyTE (instance size 40, VMT 557E94F4) }
+  { TWarpPartyTE (instance size 40, VMT 557E94F4): $20 army ID, $24 packed destination. }
   TWarpPartyTE = class(TSpellTE)
   public
-    F_WarpPartyTE_20: Integer;
-    F_WarpPartyTE_24: Integer;
+    FArmyID: TArmyID; { $20 }
+    FWarpLocation: TXYL; { $24 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
   end;
 
-  { TWarpParty (instance size 52, VMT 557E95CC) }
+  { TWarpParty (instance size 52, VMT 557E95CC): inherited $08 name, $10 ID,
+    $14 mana, $20 sphere, $21 level, $22 spell type. }
   TWarpParty = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Activate(A1: TAbstractUnit): Boolean; override;
-    procedure ValidTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure CalculateWarpLocation(A1: Integer);  { draft }
+    function ValidTarget(Army: TArmyHS; X, Y, Layer: Shortint): Boolean;
+    function CalculateWarpLocation(Army: TArmyHS): Integer;
   end;
 
   { TResurrectHero (instance size 52, VMT 557E96E0) }
@@ -128,31 +131,32 @@ type
     procedure FindCallHero(A1: Integer);  { draft }
   end;
 
-  { TDisjunctionTE (instance size 40, VMT 557E9A24) }
+  { TDisjunctionTE (instance size 40, VMT 557E9A24): $20 dispel chance, $24 enchantment ID. }
   TDisjunctionTE = class(TSpellTE)
   public
-    F_DisjunctionTE_20: Integer;
-    F_DisjunctionTE_24: Integer;
+    FDispelChance: Integer; { $20 }
+    FEnchantmentID: Integer; { $24 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
   end;
 
-  { TDisjunctionSpellCaster (instance size 28, VMT 557E9B00) }
+  { TDisjunctionSpellCaster (instance size 28, VMT 557E9B00): $14 enchantment ID,
+    $18 dispel chance; inherited $08 spell ID, $0C source unit ID, $10 references. }
   TDisjunctionSpellCaster = class(TSpellCaster)
   public
-    F_DisjunctionSpellCaster_14: Integer;
-    F_DisjunctionSpellCaster_18: Integer;
+    FEnchantmentID: Integer; { $14 }
+    FDispelChance: Integer; { $18 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CanCast(var Reason: string): Boolean; override;
     function Cast: Boolean; override;
-    procedure SetEnchantmentID(A1: Integer);  { draft }
-    procedure SelectedEnchantment;  { draft }
-    procedure GetMana;  { draft }
-    procedure SetDispelChance(A1: Integer);  { draft }
-    procedure GetDispelChanceMax;  { draft }
-    procedure GetEnoughMana;  { draft }
+    procedure SetEnchantmentID(A1: Integer);
+    function SelectedEnchantment: TGlobalEnchantment;
+    function GetMana: Integer;
+    procedure SetDispelChance(A1: Integer);
+    function GetDispelChanceMax: Integer;
+    function GetEnoughMana: Boolean;
   end;
 
   { TDisjunction (instance size 52, VMT 557E9BE4) }
@@ -177,7 +181,7 @@ procedure UnregisterGlobalSpells(A1: Integer);  { draft }
 
 implementation
 
-uses EventLog;
+uses EventLog, Animation;
 
 type
   PGlobalSpellMap = ^TAoWHSMap;
@@ -297,7 +301,7 @@ begin
   FMagicSphere := msEarth;
 end;
 
-procedure TConcealArea.GetEnabled;
+function TConcealArea.GetEnabled: Boolean;
 asm
   { needs: Boolean result on TSpell.GetEnabled. }
   MOV EAX,[GlobalSpellMap]
@@ -549,88 +553,446 @@ begin
 end;
 
 constructor TBirdsView.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(BirdsViewRStr);
+  FSpellID := 2;
+  FSpellType := stGlobal;
+  FBaseManaCost := 5;
+  FSpellLevel := 1;
+  FMagicSphere := msAir;
+end;
 
-procedure TBirdsView.GetEnabled;
-begin end;
+function TBirdsView.GetEnabled: Boolean;
+begin
+  Result := AoWHSMap.FExplorationEnabled;
+end;
 
 function TBirdsView.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, Layer: Shortint;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  CastingDone(A2, A1.FEventMana);
+  A2.GetLocation(X, Y, Layer);
+  if AoWHSMap.FSeatedPlayer = A2.FPlayer then
+    with TBirdsViewHS.Create(nil) do StartAnimation(X, Y, Layer, 14);
+  AoWHSMap.ExploreArea(X, Y, Layer, A2.FPlayer, 14);
+  Result := False;
+end;
 
 function TBirdsView.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+var
+  X, Y, Layer: Shortint;
+begin
+  Result := inherited CanActivate(A1, A2);
+  if Result then
+  begin
+    A1.GetLocation(X, Y, Layer);
+    if Layer <> 0 then
+    begin
+      A2 := TranslateRStr(CannotCastSpellInUndergoundRStr);
+      Result := False;
+    end;
+  end;
+end;
 
 function TBirdsView.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TSpellTE;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 constructor TWarpPartyTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FArmyID := nil;
+end;
 
 destructor TWarpPartyTE.Destroy;
-begin end;
+begin
+  FArmyID.Free;
+  inherited Destroy;
+end;
 
 class function TWarpPartyTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2130C;
+end;
 
 procedure TWarpPartyTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FWarpLocation.XYL, 30);
+  Stream.rwCreateEObject(TEObject(FArmyID), nil, 31);
+end;
 
 function TWarpPartyTE.Validate(A1: THero): Boolean;
-begin Result := False; end;
+var
+  Selection: Byte;
+  Army: TArmyHS;
+begin
+  Result := inherited Validate(A1) and FArmyID.Valid;
+  if Result then
+  begin
+    FArmyID.RetrieveArmy(Army, Selection);
+    Result := TWarpParty(AoWHSSet.FSpellControl.GetSpell(FEventSpellID)).ValidTarget(
+      Army, FWarpLocation.X, FWarpLocation.Y, FWarpLocation.L);
+  end;
+end;
 
-function TWarpPartyTE.Process(A1: Integer; A2: Integer): Boolean;
-begin Result := False; end;
+function TWarpPartyTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
+var
+  ShowSource, ShowTarget: Boolean;
+  Selection: Byte;
+  X, Y, Layer: Shortint;
+  Army: TArmyHS;
+  Field: TMapField;
+  Animation: TImageSequenceAnimation;
+begin
+  inherited Process(A1, A2);
+  A1.GetLocation(X, Y, Layer);
+  FArmyID.RetrieveArmy(Army, Selection);
+  Field := AoWHSMap.MapContainer.GetFieldXYL(FWarpLocation.XYL);
+  Army.MoveTo(Field, 0);
+  ShowSource := (AoWHSMap.FSeatedPlayer = A1.FPlayer) or
+    AoWHSMap.VisibleForPlayer(X, Y, Layer, AoWHSMap.FSeatedPlayer);
+  ShowTarget := (AoWHSMap.FSeatedPlayer = A1.FPlayer) or
+    AoWHSMap.VisibleForPlayer(Field.Xhx, Field.Yhx, Field.Lhx, AoWHSMap.FSeatedPlayer);
+  if ShowSource and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0] <> nil) then
+  begin
+    Animation := TImageSequenceAnimation.Create(nil);
+    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0]);
+    AoWHSMap.PlaceHX(Animation, X, Y, Layer);
+  end;
+  if ShowTarget and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0] <> nil) then
+  begin
+    Animation := TImageSequenceAnimation.Create(nil);
+    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0]);
+    AoWHSMap.PlaceHX(Animation, Field.Xhx, Field.Yhx, Field.Lhx);
+  end;
+  if A1.FPlayer = AoWHSMap.FSeatedPlayer then
+    AoWHSMap.CenterViewTo(Field.Xhx, Field.Yhx, Field.Lhx)
+  else
+    AoWHSMap.ValidateObservation(A1.FPlayer, Field.Xhx, Field.Yhx, Field.Lhx, 0);
+  if (A1.FPlayer = AoWHSMap.FSeatedPlayer) or AoWHSMap.Watching(X, Y, Layer, 0) or
+    AoWHSMap.Watching(Field.Xhx, Field.Yhx, Field.Lhx, 0) then
+    AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastSounds.Play(0);
+  AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1,
+    AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FBaseManaCost);
+  Result := False;
+end;
 
 constructor TWarpParty.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(WarpPartyRStr);
+  FSpellID := 34;
+  FSpellType := stGlobal;
+  FBaseManaCost := 1;
+  FSpellLevel := 2;
+  FMagicSphere := msFire;
+end;
 
-procedure TWarpParty.ValidTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TWarpParty.ValidTarget(Army: TArmyHS; X, Y, Layer: Shortint): Boolean;
+var
+  Field: TAoWMapField;
+  Msg: TMapFieldMsg;
+begin
+  Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, Layer));
+  Result := (Field.GetArmyHS = nil) and (Field.GetPlayer = -1);
+  if Result then
+  begin
+    Msg.MsgID := $1120;
+    Msg.Param[0] := Integer(Army);
+    Msg.Result := 0;
+    Field.SendMapFieldMsg(Msg);
+    Result := (Msg.Result = 0) and Army.FArmy.CanPlace(X, Y, Layer);
+  end;
+end;
 
-procedure TWarpParty.CalculateWarpLocation(A1: Integer);
-begin end;
+function TWarpParty.CalculateWarpLocation(Army: TArmyHS): Integer;
+var
+  Candidates: TList;
+  Table: TP2MovePointTable;
+  Msg: TMapFieldMsg;
+  Walk: THNWalkData;
+  Level: TMapLevel;
+  Field: TAoWMapField;
+  L, I: Integer;
+  Found: Boolean;
+begin
+  Candidates := TList.Create;
+  Army.FArmy.CreateMovePointTable($FF, Table);
+  InitHNWalk(Walk, Army.Xhx, Army.Yhx, 10);
+  Level := AoWHSMap.MapContainer.MapLevels[Army.Lhx];
+  while Walk.Radius < 20 do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Field := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+      if Table[Field.TerrainType, Field.OverlayType] <> -1 then Candidates.Add(Field);
+    end;
+    WalkToNextHN(Walk);
+  end;
+  for L := 0 to AoWHSMap.MapContainer.LevelCount - 1 do
+    if Abs(L - Army.Lhx) = 1 then
+    begin
+      Level := AoWHSMap.MapContainer.MapLevels[L];
+      InitHNWalk(Walk, Army.Xhx, Army.Yhx, 0);
+      while Walk.Radius < 10 do
+      begin
+        if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        begin
+          Field := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+          if Table[Field.TerrainType, Field.OverlayType] <> -1 then Candidates.Add(Field);
+        end;
+        WalkToNextHN(Walk);
+      end;
+    end;
+  Found := False;
+  Result := $FFFFFF;
+  while (Candidates.Count <> 0) and not Found do
+  begin
+    I := Random(Candidates.Count);
+    Field := Candidates[I];
+    if (Field.GetArmyHS = nil) and (Field.GetPlayer = -1) then
+    begin
+      Msg.MsgID := $1120;
+      Msg.Param[0] := Integer(Army);
+      Msg.Result := 0;
+      Field.SendMapFieldMsg(Msg);
+      Found := (Msg.Result = 0) and Army.FArmy.CanPlace(Field.Xhx, Field.Yhx, Field.Lhx);
+    end;
+    if Found then Result := Field.GetXYL
+    else Candidates.Delete(I);
+  end;
+  Candidates.Free;
+end;
 
 function TWarpParty.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TWarpPartyTE;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TWarpPartyTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    Event.FArmyID := TArmy(A1.Owner).CreateID($FF);
+    Event.FWarpLocation.XYL := CalculateWarpLocation(TArmy(A1.Owner).GetArmyHS);
+    AoWHSMap.FSelectedArmy.Unselect;
+    if Event.FWarpLocation.XYL <> $FFFFFF then
+    begin
+      AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+      Result := True;
+    end
+    else
+      Result := False;
+    Event.Release;
+  end
+  else
+    Result := False;
+end;
 
 class function TDisjunctionTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21319;
+end;
 
 procedure TDisjunctionTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FEnchantmentID, 20);
+  Stream.rwInteger(FDispelChance, 21);
+end;
 
 function TDisjunctionTE.Validate(A1: THero): Boolean;
-begin Result := False; end;
+var
+  Index: Integer;
+begin
+  Result := inherited Validate(A1);
+  Index := AoWHSMap.FGlobalMagicControl.IndexOfID(FEnchantmentID);
+  Result := Result and (Index <> -1);
+  if Result then
+  begin
+    with AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(Index) do
+      Result := AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FMagicControl.FMana + A1.FCastingProgress >=
+        Round(FDispelMana * 0.02 * FDispelChance) + FEventMana;
+  end;
+end;
 
-function TDisjunctionTE.Process(A1: Integer; A2: Integer): Boolean;
-begin Result := False; end;
+function TDisjunctionTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
+var
+  Enchantment: TGlobalEnchantment;
+  Index: Integer;
+  X, Y, Layer: Shortint;
+  Twinkle: TTwinkleAnimation;
+  Mana: Integer;
+begin
+  inherited Process(A1, A2);
+  Index := AoWHSMap.FGlobalMagicControl.IndexOfID(FEnchantmentID);
+  Enchantment := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(Index);
+  A1.GetLocation(X, Y, Layer);
+  AoWHSMap.ValidateObservation(A1.FPlayer, X, Y, Layer, 0);
+  Twinkle := TTwinkleAnimation.Create(nil);
+  Twinkle.Setup(AoWHSSet.FSpellControl.GetSpell(51).FCastImages[0],
+    [tmExpand, tmExplode], FEventMana + 50, 192, 50, 30);
+  AoWHSMap.PlaceHX(Twinkle, X, Y, Layer);
+  AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastSounds.Play(0);
+  Mana := Round(Enchantment.FDispelMana * 0.02 * FDispelChance);
+  AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FMagicControl.SetMana(
+    AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FMagicControl.FMana - Mana);
+  if AoWHSMap.Random(100) < FDispelChance then
+  begin
+    if AoWHSMap.FSeatedPlayer = A1.FPlayer then
+      AoWHSMap.ShowMessage(Format(TranslateRStr(XSuccessfullyDispelledRStr), [Enchantment.GetName]));
+    AoWHSMap.FGlobalMagicControl.ExecuteDispelEnchantment(A1.FPlayer, FEnchantmentID);
+  end
+  else if AoWHSMap.FSeatedPlayer = A1.FPlayer then
+    { Original formats this message with an unused enchantment-name argument. }
+    AoWHSMap.ShowMessage(Format(TranslateRStr('Dispel Magic failed'), [Enchantment.GetName]));
+  AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
+  Result := False;
+end;
 
 constructor TDisjunctionSpellCaster.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDispelChance := 50;
+end;
 
 procedure TDisjunctionSpellCaster.SetEnchantmentID(A1: Integer);
-begin end;
+begin
+  FEnchantmentID := A1;
+end;
 
-procedure TDisjunctionSpellCaster.SelectedEnchantment;
-begin end;
+function TDisjunctionSpellCaster.SelectedEnchantment: TGlobalEnchantment;
+var
+  Index: Integer;
+begin
+  Index := AoWHSMap.FGlobalMagicControl.IndexOfID(FEnchantmentID);
+  if Index <> -1 then
+    Result := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(Index)
+  else
+    Result := nil;
+end;
 
-procedure TDisjunctionSpellCaster.GetMana;
-begin end;
+function TDisjunctionSpellCaster.GetMana: Integer;
+var
+  Enchantment: TGlobalEnchantment;
+begin
+  Enchantment := SelectedEnchantment;
+  if Enchantment <> nil then
+    Result := Round(Enchantment.FDispelMana * 0.02 * FDispelChance)
+  else
+    Result := -1;
+end;
 
 procedure TDisjunctionSpellCaster.SetDispelChance(A1: Integer);
-begin end;
+begin
+  FDispelChance := A1;
+  if FDispelChance < 1 then FDispelChance := 1;
+  if FDispelChance > 75 then FDispelChance := 75;
+end;
 
-procedure TDisjunctionSpellCaster.GetDispelChanceMax;
-begin end;
+function TDisjunctionSpellCaster.GetDispelChanceMax: Integer;
+begin
+  Result := 75;
+end;
 
-procedure TDisjunctionSpellCaster.GetEnoughMana;
-begin end;
+function TDisjunctionSpellCaster.GetEnoughMana: Boolean;
+var
+  Source: THero;
+begin
+  Result := False;
+  Source := THero(AoWHSMap.FUnitControl.FindUnit(FCasterSourceID));
+  if SelectedEnchantment <> nil then
+    if not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.GetCheatEnabled then
+    begin
+      if AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.FMana + Source.FCastingProgress >=
+        AoWHSSet.FSpellControl.GetSpell(51).FBaseManaCost + GetMana then
+        Result := True;
+    end
+    else
+      Result := True;
+end;
 
 function TDisjunctionSpellCaster.CanCast(var Reason: string): Boolean;
-begin Result := False; end;
+var
+  Source: THero;
+begin
+  Result := inherited CanCast(Reason);
+  Source := THero(AoWHSMap.FUnitControl.FindUnit(FCasterSourceID));
+  if Result and (SelectedEnchantment <> nil) then
+    if not (getSpellWard in AoWHSMap.FGlobalMagicControl.FActiveEnchantments) or
+      (SelectedEnchantment.FEnchantmentType = getSpellWard) then
+    begin
+      if not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.GetCheatEnabled then
+      begin
+        if AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.FMana + Source.FCastingProgress >=
+          AoWHSSet.FSpellControl.GetSpell(51).FBaseManaCost + GetMana then
+          Result := True
+        else
+        begin
+          Result := False;
+          Reason := TranslateRStr(NotEnoughManaRStr);
+        end;
+      end
+      else
+        Result := True;
+    end
+    else
+    begin
+      Result := False;
+      Reason := TranslateRStr(CannotDispelWhenSpellWardIsActiveRStr);
+    end
+  else
+    Result := False;
+end;
 
 function TDisjunctionSpellCaster.Cast: Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Source: TAbstractUnit;
+  Event: TDisjunctionTE;
+begin
+  if CanCast(Reason) then
+  begin
+    Source := AoWHSMap.FUnitControl.FindUnit(FCasterSourceID);
+    if not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).GetBusy then
+    begin
+      Event := TDisjunctionTE.Create(nil);
+      Event.Initialize(FCasterSpellID, Source.FPlayer, Source.FUnitID,
+        AoWHSSet.FSpellControl.GetSpell(51).FBaseManaCost);
+      Event.FEnchantmentID := FEnchantmentID;
+      Event.FDispelChance := FDispelChance;
+      AoWHSMap.FTokenManager.GetTokenControl(Source.FPlayer).AddEvent(Event);
+      Event.Release;
+      Result := True;
+    end
+    else
+      Result := False;
+  end
+  else
+  begin
+    Result := False;
+    AoWHSMap.ShowMessage(Reason);
+  end;
+end;
 
 constructor TDisjunction.Create(AOwner: Engine.TECustomNode);
 begin end;

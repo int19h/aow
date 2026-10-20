@@ -481,7 +481,7 @@
     procedure UpdateConcealedUnits;  { draft }
     procedure UpdateUpkeep;  { draft }
     procedure ValidateTerrainEx(A1: Byte; A2: Byte);  { draft }
-    procedure ValidateTerrain;  { draft }
+    procedure ValidateTerrain(TerrainType, OverlayType: Shortint);
     procedure Validate;  { draft }
     procedure UpdateFormation;  { draft }
     procedure Update;  { draft }
@@ -601,7 +601,7 @@
     procedure Select; override;
     procedure Unselect; override;
     function EditName: string; override;
-    function MoveTo(Field: TMapField): Boolean; override;
+    function MoveTo(Field: TMapField; MoveCost: Integer): Boolean; override;
     function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; override;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); override;
     procedure UpdateFlagID; override;

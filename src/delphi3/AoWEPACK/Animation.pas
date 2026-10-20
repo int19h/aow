@@ -123,7 +123,7 @@ type
     F_TwinkleAnimation_51: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure Setup(A1: TImageSequence; A2: TTwinkleMode; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
   end;
 
 
@@ -273,7 +273,7 @@ begin end;
 procedure TTwinkleAnimation.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TTwinkleAnimation.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TTwinkleAnimation.Setup(A1: TImageSequence; A2: TTwinkleMode; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
 begin end;
 
 

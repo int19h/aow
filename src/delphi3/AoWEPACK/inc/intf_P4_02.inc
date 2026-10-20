@@ -917,7 +917,7 @@
     procedure SetupCastSpellAction(A1: TAbstractUnit; A2: TAICastSpellAction); virtual;  { +058 }
     procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); virtual;  { +05C }
     function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; virtual;  { +060 }
-    procedure GetEnabled; virtual;  { +064 draft }
+    function GetEnabled: Boolean; virtual; { +064 }
     function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; virtual;  { +068 }
     function Activate(A1: TAbstractUnit): Boolean; virtual;  { +06C }
     function CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean; virtual; { $070 }
@@ -983,7 +983,7 @@
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
     function Validate(A1: THero): Boolean; virtual;  { +050 }
-    function Process(A1: Integer; A2: Integer): Boolean; virtual;  { +054  }
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; virtual;  { +054  }
     procedure PlayDefaultCastEffects(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
     function GetSource: TAbstractUnit;
@@ -1056,7 +1056,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
     procedure Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
   end;
 
@@ -1094,7 +1094,7 @@
     procedure ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A0 draft }
     procedure SetupUSC(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A4 draft }
     function CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean; virtual; { +0A8 }
-    procedure ValidTargetParty(A1: Integer; A2: Integer); virtual;  { +0AC draft }
+    function ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean; virtual; { +0AC }
     procedure TargetPartySelected(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; virtual;  { +0B4 }
     procedure CreateCAEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0B8 draft }

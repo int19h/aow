@@ -176,8 +176,8 @@
     FEnchantmentStatus: TGlobalEnchantmentStatus; { $10 }
     FEnchantmentMode: TGlobalEnchantmentMode; { $11 }
     F_GlobalEnchantment_12: array[0..1] of Byte;
-    FEnchantmentSpellID: Integer; { $14 }
-    F_GlobalEnchantment_18: Byte;
+    FDispelMana: Integer; { $14; 557EB619 }
+    FEnchantmentType: TGlobalEnchantmentType; { $18 }
     FPlayerIndex: Byte; { $19 }
     { conflict: FEnchantmentPlayer: Shortint; }
     F_GlobalEnchantment_1A: array[0..1] of Byte;
@@ -242,7 +242,7 @@
     F_GlobalMagicControl_0C: Integer;
     FActiveEnchantments: TGlobalEnchantmentTypes; { $10 }
     F_GlobalMagicControl_11: array[0..2] of Byte;
-    F_GlobalMagicControl_14: Integer;
+    FEnchantments: TGlobalEnchantmentList; { $14 }
     F_GlobalMagicControl_18: Byte;
     F_GlobalMagicControl_19: array[0..34] of Byte;
     F_GlobalMagicControl_3C: Integer;
@@ -261,10 +261,10 @@
     procedure Update;  { draft }
     procedure GetEnchantmentUpkeep(A1: Integer);  { draft }
     procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
-    procedure IndexOfID(A1: Integer);  { draft }
+    function IndexOfID(A1: Integer): Integer;
     procedure ValidateEnchantmentID(A1: Integer);  { draft }
     procedure CreateChangeMagicTE;  { draft }
-    procedure ExecuteDispelEnchantment(A1: Integer; A2: Integer);  { draft }
+    function ExecuteDispelEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
     procedure DispelEnchantment(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteRemoveEnchantment(A1: Integer; A2: Integer);  { draft }
     procedure RemoveEnchantment(A1: Integer; A2: Integer);  { draft }

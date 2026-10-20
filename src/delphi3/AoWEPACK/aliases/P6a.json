@@ -1,1 +1,5 @@
-{}
+{
+  "FUN_557bbfb0": "CreateMovementAbility",
+  "FUN_557bc070": "CreateImmunityAbility",
+  "FUN_557bc184": "CreateProtectionAbility"
+}

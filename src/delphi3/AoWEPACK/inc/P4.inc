@@ -5525,7 +5525,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSpell.GetEnabled;
+function TSpell.GetEnabled: Boolean;
 asm
   MOV AL, 1
 end;
@@ -6055,7 +6055,7 @@ asm
   POP EBP
 end;
 
-function TSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+function TSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 asm
   PUSH EBX
   PUSH ESI
@@ -6785,7 +6785,7 @@ begin end;
 function TUnitSpellTE.Validate(A1: THero): Boolean;
 begin Result := False; end;
 
-function TUnitSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+function TUnitSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin Result := False; end;
 
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
@@ -6821,8 +6821,8 @@ begin end;
 procedure TUnitSpell.SetupTargetSelection(A1: Integer; A2: Integer);
 begin end;
 
-procedure TUnitSpell.ValidTargetParty(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpell.ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
+begin Result := False; end;
 
 procedure TUnitSpell.TargetPartySelected(A1: Integer; A2: Integer);
 begin end;
@@ -7280,8 +7280,8 @@ begin end;
 procedure TGlobalMagicControl.UpdateActiveEnchantments(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalMagicControl.IndexOfID(A1: Integer);
-begin end;
+function TGlobalMagicControl.IndexOfID(A1: Integer): Integer;
+begin Result := 0; end;
 
 procedure TGlobalMagicControl.ValidateEnchantmentID(A1: Integer);
 begin end;
@@ -7289,8 +7289,8 @@ begin end;
 procedure TGlobalMagicControl.CreateChangeMagicTE;
 begin end;
 
-procedure TGlobalMagicControl.ExecuteDispelEnchantment(A1: Integer; A2: Integer);
-begin end;
+function TGlobalMagicControl.ExecuteDispelEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
+begin Result := False; end;
 
 procedure TGlobalMagicControl.DispelEnchantment(A1: Integer; A2: Integer);
 begin end;

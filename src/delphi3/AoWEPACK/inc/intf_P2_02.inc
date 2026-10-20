@@ -14,7 +14,7 @@
     procedure UpdateMoveCursor; override;
     procedure SetCurrentMove(A1: Integer); override;
     procedure SelectPath(A1: Byte; A2: Integer; A3: Integer); override;
-    procedure Unselect(A1: Integer; A2: Integer); override;
+    procedure Unselect; override;
     procedure ValidateSelection(A1: Integer); override;
     procedure ExecuteMove; override;
     procedure Deactivate; override;

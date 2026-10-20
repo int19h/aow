@@ -3673,7 +3673,7 @@ begin
 end;
 
 
-function TUnitHS.MoveTo(Field: TMapField): Boolean;
+function TUnitHS.MoveTo(Field: TMapField; MoveCost: Integer): Boolean;
 begin
   if Owner <> nil then RemoveFromMap;
   FOwner := Field;
@@ -7228,7 +7228,7 @@ begin end;
 procedure TArmy.ValidateTerrainEx(A1: Byte; A2: Byte);
 begin end;
 
-procedure TArmy.ValidateTerrain;
+procedure TArmy.ValidateTerrain(TerrainType, OverlayType: Shortint);
 begin end;
 
 procedure TArmy.Validate;
@@ -7535,7 +7535,7 @@ begin end;
 procedure TArmyHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin end;
 
-function TArmyHS.MoveTo(Field: TMapField): Boolean;
+function TArmyHS.MoveTo(Field: TMapField; MoveCost: Integer): Boolean;
 begin Result := False; end;
 
 
@@ -7628,7 +7628,7 @@ begin end;
 procedure TSelectedArmy.SelectPath(A1: Byte; A2: Integer; A3: Integer);
 begin end;
 
-procedure TSelectedArmy.Unselect(A1: Integer; A2: Integer);
+procedure TSelectedArmy.Unselect;
 begin end;
 
 procedure TSelectedArmy.MouseDownEvent(A1: Integer);

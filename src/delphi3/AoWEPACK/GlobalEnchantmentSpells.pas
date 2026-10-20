@@ -47,7 +47,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Validate(A1: THero): Boolean; override;
-    function Process(A1: Integer; A2: Integer): Boolean; override;
+    function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
   end;
 
   { TGlobalEnchantmentSpell (instance size 56, VMT 557EDA18) }
@@ -351,7 +351,7 @@ begin end;
 function TGlobalEnchantmentSpellTE.Validate(A1: THero): Boolean;
 begin Result := False; end;
 
-function TGlobalEnchantmentSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+function TGlobalEnchantmentSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin Result := False; end;
 
 constructor TGlobalEnchantmentSpell.Create(AOwner: Engine.TECustomNode);

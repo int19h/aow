@@ -93,7 +93,7 @@ begin
   inherited Create(AOwner);
   TCloudEnchantmentOptions(FEnchantmentMode) :=
     TCloudEnchantmentOptions(FEnchantmentMode) - [ce0, ce1];
-  FEnchantmentSpellID := 25;
+  FDispelMana := 25;
 end;
 
 class function TSmokeCloudEnchantment.ClassID: Integer;
