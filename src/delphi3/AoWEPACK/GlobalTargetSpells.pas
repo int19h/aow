@@ -2,7 +2,9 @@ unit GlobalTargetSpells;
 
 { Draft declarations of GlobalTargetSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TGlobalTargetSpellTE and TGlobalTargetSpell have recovered bodies below;
+  the remaining classes are drafts. Local declaration workarounds are marked
+  needs; their global pointer cells require binding before runtime use. }
 
 interface
 
@@ -33,28 +35,36 @@ type
   TSmokeCloudSpell = class;
 
 
-  { TGlobalTargetSpellTE (instance size 36, VMT 5579CBAC) }
+  { TGlobalTargetSpellTE (instance size 36, VMT 5579CBAC).
+    $20 FLocation: packed X/Y/layer coordinates; $23 reserved. }
   TGlobalTargetSpellTE = class(TSpellTE)
   public
-    F_GlobalTargetSpellTE_20: Integer;
+    FLocation: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure SetLocation(A1: Byte; A2: Byte; A3: Integer);  { draft }
-    procedure PlayDefaultEffects(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure SetLocation(X, Y, Layer: Shortint);
+    procedure PlayDefaultEffects(X, Y, Layer: Shortint);
   end;
 
-  { TGlobalTargetSpell (instance size 60, VMT 5579CC9C) }
+  { TGlobalTargetSpell (instance size 60, VMT 5579CC9C).
+    $34 FCasterID, $38 FCasterPlayer, $39 FAboveGroundOnly, $3A padding.
+    needs: CanActivate/Activate and the target predicates return Boolean.
+    Procedure declarations retained for shared TSpell and P7 overrides.
+    ShowTargetSelection variants: reordered locals, split/inline radius,
+    target with-scope, and inline map-field lookup. SetupTargetSelection
+    variants: explicit class local, repeated casts, class with-scope,
+    record fields, record with-scope and reversed coordinate local order. }
   TGlobalTargetSpell = class(TSpell)
   public
-    F_GlobalTargetSpell_34: Integer;
-    F_GlobalTargetSpell_38: Byte;
-    F_GlobalTargetSpell_39: Byte;
+    FCasterID: Integer;
+    FCasterPlayer: Shortint;
+    FAboveGroundOnly: Boolean;
     F_GlobalTargetSpell_3A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Integer; A2: Integer); override;
-    procedure ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +09C draft }
-    procedure OnTargetSelectionChange(A1: Integer); virtual;  { +0A0 draft }
+    procedure ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); virtual;  { +09C }
+    procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
     procedure SetupTargetSelection(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
     procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0A8 draft }
     procedure ValidTargetSelection(A1: Integer); virtual;  { +0AC draft }
@@ -278,47 +288,336 @@ procedure UnregisterGlobalTargetSpells(A1: Integer);  { draft }
 
 implementation
 
+uses Animation;
+
+type
+  { needs: corrected result/callback signatures on TGlobalTargetSpell and
+    its P7 descendants. This call-only view uses the original VMT slots. }
+  TGlobalTargetSpellCalls = class(TSpell)
+    procedure ShowSelection(Target: TTargetSelectionControl; HN, X, Y: Integer;
+      const SD: TSurfaceDesc); virtual; abstract;
+    procedure SelectionChanged(Sender: TObject); virtual; abstract;
+    procedure SetupSelection(Caster, Target: Integer); virtual; abstract;
+    function Selected(Caster, X, Y, Layer: Integer): Boolean; virtual; abstract;
+    function ValidSelection(Target: Integer): Boolean; virtual; abstract;
+    function ValidSelectionMapF(MapF: Integer): Boolean; virtual; abstract;
+    function ValidMapF(MapF: Integer): Boolean; virtual; abstract;
+  end;
+  PSpellString = ^string;
+  TSpellNameView = record
+    Reserved: array[0..7] of Byte;
+    Name: string;
+  end;
+  { needs: typed TTargetSelectionControl fields. This view preserves all offsets;
+    $04 library, $0D mode, $10 show callback, $20 distance, $24/$28/$2C center,
+    $34 change events, $38 change, $39/$3A/$3B location, $3C text,
+    $40/$44 captions, $50/$54/$58 preview images. }
+  TTargetSelectionView = class(TObject)
+    ImageLibrary: TCustomImageLibrary;
+    Reserved08: Integer;
+    Status: Byte;
+    Mode: TTargetSelectionMode;
+    Padding0E: Word;
+    OnShow: TShowTargetSelectionEvent;
+    OnValidate: TValidateTargetEvent;
+    Distance, CenterX, CenterY, CenterLayer, Reserved30: Integer;
+    Changes: TEventList;
+    Change: TTargetSelectionChange;
+    X, Y, Layer: Shortint;
+    Text: TStrings;
+    Caption, CancelCaption: string;
+    Reserved48, Reserved4C: Integer;
+    Preview, ValidPreview, InvalidPreview: TLibraryImage;
+  end;
+  TTargetSelectionFields = record
+    VMT: Pointer;
+    ImageLibrary: TCustomImageLibrary;
+    Reserved08: Integer;
+    Status: Byte;
+    Mode: TTargetSelectionMode;
+    Padding0E: Word;
+    OnShow: TShowTargetSelectionEvent;
+    OnValidate: TValidateTargetEvent;
+    Distance, CenterX, CenterY, CenterLayer, Reserved30: Integer;
+    Changes: TEventList;
+    Change: TTargetSelectionChange;
+    X, Y, Layer: Shortint;
+    Text: TStrings;
+    Caption, CancelCaption: string;
+    Reserved48, Reserved4C: Integer;
+    Preview, ValidPreview, InvalidPreview: TLibraryImage;
+  end;
+  TSpellLocation = packed record
+    X, Y, Layer: Shortint;
+    Reserved: Byte;
+  end;
+
+var
+  { needs: AoWE.AoWHSSet and AoWE.AoWHSMap exported globals, loaded through
+    package pointer cells at $558E92E8 and $558E9494 in PlayDefaultEffects.
+    Temporary cells must be bound to those globals when P1 supplies them. }
+  SpellHSSet: ^TAoWHSSet;
+  SpellHSMap: ^TAoWHSMap;
+  { needs: package indirection for GFXE.IntensityBlendTable ($558FC31C). }
+  SpellIntensityTable: ^TLookupBlendTableCollection100;
+
+resourcestring
+  { needs: AoWE.CancelRStr, referenced at $5579E664; absent from draft. }
+  SpellCancelRStr = 'Cancel';
+
+{ needs: TSpellControl.GetSpell must return TSpell. Preserve its register ABI
+  with a tail call until the shared declaration is corrected. }
+function LookupSpell(Control: TSpellControl; ID: Integer): TSpell; assembler;
+asm
+  JMP TSpellControl.GetSpell
+end;
+
+{ needs: TAoWMapField.GetExplored(Player: Integer): Boolean ($5579E4C8). }
+function MapExplored(MapF: TAoWMapField; Player: Integer): Boolean; assembler;
+asm
+  JMP TAoWMapField.GetExplored
+end;
+
+{ needs: TUnitControl.FindUnit(ID: Integer): TAbstractUnit ($5579E4F7). }
+function FindSpellUnit(Control: TUnitControl; ID: Integer): TAbstractUnit; assembler;
+asm
+  JMP TUnitControl.FindUnit
+end;
+
+{ needs: AoWE.TranslateRStr(const S: string): string ($5579E62D). }
+function SpellTranslate(const S: string): string; assembler;
+asm
+  JMP AoWE.TranslateRStr
+end;
+
+{ needs: TSpell.CanActivate(Caster: TAbstractUnit; var Msg: string): Boolean. }
+function BaseCanActivate(Spell: TSpell; Caster: Integer; MessagePtr: Integer): Boolean; assembler;
+asm
+  JMP TSpell.CanActivate
+end;
+
 class function TGlobalTargetSpellTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21328;
+end;
 
 procedure TGlobalTargetSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FLocation, $14);
+end;
 
-procedure TGlobalTargetSpellTE.SetLocation(A1: Byte; A2: Byte; A3: Integer);
-begin end;
+procedure TGlobalTargetSpellTE.SetLocation(X, Y, Layer: Shortint);
+begin
+  TSpellLocation(FLocation).X := X;
+  TSpellLocation(FLocation).Y := Y;
+  TSpellLocation(FLocation).Layer := Layer;
+end;
 
-procedure TGlobalTargetSpellTE.PlayDefaultEffects(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TGlobalTargetSpellTE.PlayDefaultEffects(X, Y, Layer: Shortint);
+var
+  Animation: TImageSequenceAnimation;
+begin
+  { needs: TSpellControl.GetSpell(ID: Integer): TSpell; original calls at
+    $5579E2CE, $5579E301, $5579E344 consume EAX as the returned spell.
+    TSpell.$28 is TSFXLibrary; TSpell.$2C is TImageSequenceList. }
+  if TImageSequenceList(LookupSpell(
+    TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_SpellTE_10).F_Spell_2C).
+    ImageSequences[0] <> nil then
+  begin
+    Animation := TImageSequenceAnimation.Create(nil);
+    { needs: TImageSequenceAnimation.SetImageSequence(Value: TImageSequence). }
+    Animation.SetImageSequence(Integer(TImageSequenceList(
+      LookupSpell(
+      TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_SpellTE_10).F_Spell_2C).
+      ImageSequences[0]));
+    SpellHSMap^.PlaceHX(Animation, X, Y, Layer);
+  end;
+  TSFXLibrary(LookupSpell(
+    TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_SpellTE_10).F_Spell_28).Play(0);
+end;
 
 constructor TGlobalTargetSpell.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  F_Spell_22 := 2;
+end;
 
-procedure TGlobalTargetSpell.ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TGlobalTargetSpell.ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  Level: TMapLevel;
+  X, Y, Intensity, Radius: Integer;
+begin
+  Level := SpellHSMap^.MapContainer.MapLevels[Shortint(Target.F_TargetSelectionControl_3B)];
+  CenterHNtoHX(Shortint(Target.F_TargetSelectionControl_39), Shortint(Target.F_TargetSelectionControl_3A), HN, X, Y);
+  { Original accepts Width/Height themselves (strict > bounds test). }
+  if (X >= 0) and (Y >= 0) and (X <= Level.Width) and (Y <= Level.Height) then
+  begin
+    if TGlobalTargetSpellCalls(Self).ValidSelectionMapF(Integer(Level.Field[X, Y])) then
+    begin
+      Radius := HNtoRad(HN);
+      Intensity := Abs((SpellHSMap^.Frame + Radius) mod 9 - 4) * 20 + 20;
+      TCustomImageLibrary(Target.F_TargetSelectionControl_04)[0].ShowBlended(Xs - 8, Ys, SurfaceDesc,
+        SpellIntensityTable^.LookupTables[Intensity]);
+    end
+    else
+      TCustomImageLibrary(Target.F_TargetSelectionControl_04)[1].Show(Xs - 8, Ys, SurfaceDesc);
+  end;
+end;
 
 procedure TGlobalTargetSpell.ValidTargetMapF(A1: Integer);
-begin end;
+asm
+  { needs: Boolean result, retained in AL for the existing procedure ABI. }
+  MOV AL, 1
+end;
 
 procedure TGlobalTargetSpell.ValidTargetSelectionMapF(A1: Integer);
-begin end;
+begin
+  if (SpellHSMap^.F_AbstractAoWHSMap_C9 <> 0) and
+    not MapExplored(TAoWMapField(A1), FCasterPlayer) then
+  begin
+    { needs: Boolean function declaration; preserve result for callers. }
+    asm XOR EAX, EAX end;
+    Exit;
+  end;
+  asm MOV AL, 1 end;
+end;
 
 procedure TGlobalTargetSpell.ValidTargetSelection(A1: Integer);
-begin end;
+asm
+  { needs: Boolean result. }
+  MOV AL, 1
+end;
 
-procedure TGlobalTargetSpell.OnTargetSelectionChange(A1: Integer);
-begin end;
+procedure TGlobalTargetSpell.OnTargetSelectionChange(Sender: TObject);
+var
+  Target: TTargetSelectionView;
+  Caster: TAbstractUnit;
+begin
+  Target := TTargetSelectionView(Sender);
+  Caster := FindSpellUnit(TUnitControl(SpellHSMap^.F_AoWHSMap_FC), FCasterID);
+  if Caster <> nil then
+    case Target.Change of
+      tscDeactivated:
+        begin
+          Target.Changes.Remove(OnTargetSelectionChange);
+          TTargetSelectionControl(Target).Deactivate;
+        end;
+      tscSelected:
+        if TGlobalTargetSpellCalls(Self).ValidSelection(Integer(Target)) then
+          if TGlobalTargetSpellCalls(Self).Selected(Integer(Caster), Target.X, Target.Y, Target.Layer) then
+          begin
+            Target.Changes.Remove(OnTargetSelectionChange);
+            TTargetSelectionControl(Target).Deactivate;
+          end;
+    end
+  else
+  begin
+    Target.Changes.Remove(OnTargetSelectionChange);
+    TTargetSelectionControl(Target).Deactivate;
+  end;
+end;
 
 procedure TGlobalTargetSpell.SetupTargetSelection(A1: Integer; A2: Integer);
-begin end;
+var
+  UnitLayer, UnitY, UnitX: Shortint;
+begin
+  with TTargetSelectionFields(Pointer(A2)^) do
+  begin
+    TTargetSelectionControl(A2).Initialize(A1);
+    Mode := [tmOwnerDraw, tmValidateDistance, tmExternalFloater] + Mode;
+    { needs: TAbstractUnit.GetLocation(var X, Y, Layer: Shortint); $5579E5D5. }
+    TAbstractUnit(A1).GetLocation(Integer(@UnitX), Integer(@UnitY), Integer(@UnitLayer));
+    CenterX := UnitX;
+    CenterY := UnitY;
+    CenterLayer := UnitLayer;
+    Distance := 12;
+    Changes.Add(OnTargetSelectionChange);
+    OnShow := ShowTargetSelection;
+    { needs: TSpell.$08 is a string; draft declares Integer. }
+    Text.Text := SysUtils.Format(SpellTranslate(SelectTargetLocationForXOnMapRStr),
+      [TSpellNameView(Pointer(Self)^).Name]);
+    Caption := TSpellNameView(Pointer(Self)^).Name;
+    CancelCaption := SpellTranslate(SpellCancelRStr);
+    Preview := TImageSequenceList(LookupSpell(
+      TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_Spell_10).F_Spell_2C).
+      ImageSequences[20].GetPreviewImage;
+    ValidPreview := TImageSequenceList(LookupSpell(
+      TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_Spell_10).F_Spell_2C).
+      ImageSequences[21].GetPreviewImage;
+    InvalidPreview := TImageSequenceList(LookupSpell(
+      TSpellControl(SpellHSSet^.F_AoWHSSet_84), F_Spell_10).F_Spell_2C).
+      ImageSequences[22].GetPreviewImage;
+  end;
+end;
 
 procedure TGlobalTargetSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+asm
+  { needs: Boolean result; stack arguments require the normal EBP frame. }
+  XOR EAX, EAX
+end;
+
+{ needs: Boolean results on the shared TSpell virtuals. Helpers keep managed
+  string finalization before returning AL; the public methods tail-call them. }
+function GlobalTargetCanActivate(Spell: TGlobalTargetSpell; Caster: Integer;
+  MessagePtr: Integer): Boolean;
+var
+  X, Y, Layer: Shortint;
+begin
+  Result := BaseCanActivate(Spell, Caster, MessagePtr);
+  if Result and Spell.FAboveGroundOnly then
+  begin
+    TAbstractUnit(Caster).GetLocation(Integer(@X), Integer(@Y), Integer(@Layer));
+    if Layer <> 0 then
+    begin
+      Result := False;
+      PSpellString(MessagePtr)^ := SpellTranslate(CannotCastSpellInUndergoundRStr);
+    end;
+  end;
+end;
 
 procedure TGlobalTargetSpell.CanActivate(A1: Integer; A2: Integer);
-begin end;
+asm
+  JMP GlobalTargetCanActivate
+end;
+
+function VirtualCanActivate(Spell: TSpell; Caster, MessagePtr: Integer): Boolean; assembler;
+asm
+  MOV EAX, Spell
+  MOV EDX, Caster
+  MOV ECX, MessagePtr
+  PUSH EBX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX+$68]
+  POP EBX
+end;
+
+procedure BaseActivate(Spell: TSpell; Caster, A2: Integer); assembler;
+asm
+  JMP TSpell.Activate
+end;
+
+function GlobalTargetActivate(Spell: TGlobalTargetSpell; Caster, A2: Integer): Boolean;
+var
+  MessageText: string;
+begin
+  BaseActivate(Spell, Caster, A2);
+  if VirtualCanActivate(Spell, Caster, Integer(@MessageText)) then
+  begin
+    Spell.FCasterID := TAbstractUnit(Caster).F_AbstractUnit_18;
+    Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).F_AbstractUnit_24);
+    Spell.SetupTargetSelection(Caster, SpellHSMap^.F_AoWHSMap_E0);
+    TTargetSelectionControl(SpellHSMap^.F_AoWHSMap_E0).Activate;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 procedure TGlobalTargetSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+asm
+  JMP GlobalTargetActivate
+end;
 
 class function TFreezeWaterTE.ClassID: Integer;
 begin Result := 0; end;
