@@ -72,7 +72,7 @@ function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRa
 function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: Shortint): Integer;
 function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
-procedure Encode(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function Encode(Text: string; Mode: Integer): string;
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 procedure StrengthInfoMax(A1: Integer);  { draft }
 procedure InvertDamageTypes(A1: Word);  { draft }

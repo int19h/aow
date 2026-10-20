@@ -85,7 +85,7 @@
     function SetupTarget(A1: TAIGroupControlTarget; A2: TAIGroupTargetStatus; A3: Boolean): Boolean;
     procedure ValidateEmpty;  { draft }
     procedure AddTransporter(A1: Integer);  { draft }
-    procedure UnitProduced(A1: Integer; A2: Integer);  { draft }
+    procedure UnitProduced(Control: TProductionControl; AUnit: TAbstractUnit);
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
     procedure SetPlayer(A1: Integer);  { draft }
@@ -944,13 +944,10 @@
   { TTerminatePlayerTE (instance size 32, VMT 5571D37C) }
   TTerminatePlayerTE = class(TTokenEvent)
   public
-    F_TerminatePlayerTE_10: Byte;
+    FPlayer: Shortint; { $10; 55755EB4 }
     F_TerminatePlayerTE_11: array[0..2] of Byte;
-    F_TerminatePlayerTE_14: Byte;
-    F_TerminatePlayerTE_15: array[0..0] of Byte;
-    F_TerminatePlayerTE_16: Word;
-    F_TerminatePlayerTE_18: Integer;
-    F_TerminatePlayerTE_1C: Byte;
+    FExitCallBack: TExitGameCallBack; { $14; 55755EB7 }
+    FExitMode: TExitGameMode; { $1C; 55755EC3 }
     F_TerminatePlayerTE_1D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

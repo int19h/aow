@@ -98,7 +98,7 @@
     FTransferSettings: TAoWCampaignTransferSettings; { $20 }
     FCurrentScenarioID: Integer; { $24 }
     FNextScenarioID: Integer; { $28 }
-    F_AoWCampaign_2C: array[0..3] of Byte;
+    FFileName: string; { $2C; 55755C80 }
     FDifficultyLevel: TCampaignDifficultyLevel; { $30 }
     FPlayMode: TPlayMode; { $31 }
     F_AoWCampaign_32: array[0..1] of Byte;

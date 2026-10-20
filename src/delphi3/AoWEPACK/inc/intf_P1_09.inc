@@ -38,12 +38,12 @@
     function GetAlignment: TAlignment;
   end;
 
-  { TRaceResourceList (instance size 20, VMT 55713938) }
+  { TRaceResourceList: size $14, no added fields. VMT 55713938. }
   TRaceResourceList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetRaceResource(Index: Integer): TRaceResource;
-    procedure GetMaxRaceIndex;  { draft }
+    function GetMaxRaceIndex: Integer;
   end;
 
   { TStructureShadow (instance size 16, VMT 55713A94) }

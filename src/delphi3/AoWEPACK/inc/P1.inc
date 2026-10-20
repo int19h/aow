@@ -104,6 +104,20 @@ type
   end;
 
 resourcestring
+  WaitingRStr = 'Waiting';
+
+resourcestring
+  ConfirmRStr = 'Confirm';
+  YourAboutToExitAMultiPlayerGameRStr = 'You''re about to exit a multi-player game!';
+  DoYouWantToContinueExitingRStr = 'Do you want to continue exiting?';
+  MessageRStr = 'Message';
+  PleaseWaitTillItIsYourTurnRStr = 'Please, wait till it is your turn.';
+  SaveGameToXRStr = 'Save game to %s?';
+  DoYouWantToSaveThisGameRStr = 'Do you want to save this game?';
+  PasswordFailedRStr = 'Password failed!';
+  DoYouWantToTryAgainRStr = 'Do you want to try again?';
+
+resourcestring
   ConnectionLostRStr = 'Connection Lost!';
   ConnectionXLostRStr = 'Connection to %s lost!';
   ConnectionXTimeOutRStr = 'Connection to %s timed out!';
@@ -4478,47 +4492,276 @@ begin
     (AoWHSMap.FAILockCount <> 0);
 end;
 
-procedure TPlayerControl.ListPlayerInfo(A1: Integer);
-begin end;
+procedure TPlayerControl.ListPlayerInfo(Strings: TStrings);
+var
+  I, Race: Integer;
+  Text: string;
+  PCC: TPlayerCommunicationControl;
+begin
+  PCC := AoWHSMap.FPlayerCommunicator.PCC;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+  begin
+    Text := 'Player ' + IntToStr(I);
+    Race := AoWHSMap.FPlayers.GetPlayers(I).FPlayerRace;
+    if Race <> -1 then Text := Text + '(' + TranslateRStr(RaceNamesPluralRStr[Race]) + ')';
+    Text := Text + ' at system ' + IntToStr(PCC.Players[I].SystemID);
+    if Strings <> nil then Strings.Add(Text);
+    AoWEngine.OutputDebugStr(Text);
+  end;
+end;
 
-procedure TPlayerControl.ExitSaveGameCallBack(A1: Integer);
-begin end;
+procedure TPlayerControl.ExitSaveGameCallBack(Log: TEventLog);
+begin
+  if TSaveGameEventLog(Log).FFileName <> '' then
+  begin
+    if AoWEngine.FCampaign <> nil then AoWEngine.SaveCampaign(TSaveGameEventLog(Log).FFileName)
+    else AoWEngine.SaveHSM(TSaveGameEventLog(Log).FFileName, nil);
+    AoWHSMap.ExecuteExitGame;
+    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
+  end
+  else if Assigned(FExitCallBack) then FExitCallBack(FExitMode, False);
+  FExitCallBack := nil;
+end;
 
-procedure TPlayerControl.SaveGameOnExitCallBack(A1: Integer);
-begin end;
+procedure TPlayerControl.SaveGameOnExitCallBack(Log: TEventLog);
+var
+  SaveLog: TSaveGameEventLog;
+begin
+  if TMessageEventLog(Log).FPressedButton = pebYes then
+  begin
+    if ((AoWEngine.FCampaign = nil) and ((AoWHSMap.FileName = '') or
+      (CompareText(ExtractFileExt(AoWHSMap.FileName), '.hsm') = 0))) or
+      ((AoWEngine.FCampaign <> nil) and ((AoWEngine.FCampaign.FFileName = '') or
+      (CompareText(ExtractFileExt(AoWHSMap.FileName), '.csm') = 0))) then
+    begin
+      SaveLog := TSaveGameEventLog.Create(nil);
+      if AoWHSMap.FileName <> '' then
+      begin
+        SaveLog.FDefaultName := ExtractFileName(AoWHSMap.FileName);
+        if Pos('.', SaveLog.FDefaultName) <> 0 then
+          SaveLog.FDefaultName := System.Copy(SaveLog.FDefaultName, 1, Pos('.', SaveLog.FDefaultName) - 1);
+      end
+      else SaveLog.FDefaultName := AoWHSMap.FMapName;
+      SaveLog.FDirectory := AoWEngine.StartupDirectory + 'Save\';
+      AoWHSMap.TriggerExecuteEventLog(SaveLog, False, ExitSaveGameCallBack);
+      SaveLog.Release;
+    end
+    else
+    begin
+      with AoWEngine do
+        if FCampaign <> nil then SaveCampaign(FCampaign.FFileName)
+        else SaveHSM(AoWHSMap.FileName, nil);
+      AoWHSMap.ExecuteExitGame;
+      if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
+      FExitCallBack := nil;
+    end;
+  end
+  else if TMessageEventLog(Log).FPressedButton = pebNo then
+  begin
+    AoWHSMap.ExecuteExitGame;
+    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
+    FExitCallBack := nil;
+  end
+  else if TMessageEventLog(Log).FPressedButton = pebCancel then
+  begin
+    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, False);
+    FExitCallBack := nil;
+  end;
+end;
 
-procedure TPlayerControl.ExitNetworkGameCallBack(A1: Integer);
-begin end;
+procedure TPlayerControl.ExitNetworkGameCallBack(Log: TEventLog);
+var
+  TE: TTerminatePlayerTE;
+begin
+  if TMessageEventLog(Log).FPressedButton = pebYes then
+    if (AoWHSMap.FPlayMode = pmSimultaneous) or (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) then
+    begin
+      TE := TTerminatePlayerTE.Create(nil);
+      TE.FPlayer := AoWHSMap.FSeatedPlayer;
+      TE.FExitCallBack := FExitCallBack;
+      TE.FExitMode := FExitMode;
+      AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(TE);
+      TE.Release;
+    end;
+end;
 
-procedure TPlayerControl.ExitGame(A1: Byte);
-begin end;
+procedure TPlayerControl.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
+var
+  Log: TMessageEventLog;
+begin
+  if AoWHSMap.FCombat = nil then
+  begin
+    if (AoWHSMap.FConnectionType = pcNetwork) and (AoWHSMap.FGameStatus <> gsTerminated) and
+      (AoWHSMap.FGameType <> gtTutorial) and (AoWHSMap.FPlayers.FLocalPlayers.Count > 1) then
+    begin
+      if (AoWHSMap.FPlayMode = pmSimultaneous) or (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) then
+      begin
+        FExitMode := Mode;
+        FExitCallBack := Done;
+        Log := TMessageEventLog.Create(nil);
+        Log.FTitle := TranslateRStr(ConfirmRStr);
+        Log.FButtons := mebYesNoCancel;
+        Log.FLayout := melNormal;
+        Log.FMessage.Add(TranslateRStr(YourAboutToExitAMultiPlayerGameRStr));
+        Log.FMessage.Add(TranslateRStr(DoYouWantToContinueExitingRStr));
+        AoWHSMap.TriggerExecuteEventLog(Log, False, ExitNetworkGameCallBack);
+        Log.Release;
+      end
+      else
+      begin
+        Log := TMessageEventLog.Create(nil);
+        Log.FTitle := TranslateRStr(MessageRStr);
+        Log.FButtons := mebOk;
+        Log.FLayout := melNormal;
+        Log.FMessage.Add(TranslateRStr(PleaseWaitTillItIsYourTurnRStr));
+        AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+        Log.Release;
+      end;
+    end
+    else if (msModified in AoWHSMap.Status) and (AoWHSMap.FGameStatus <> gsTerminated) and
+      (AoWHSMap.FGameType <> gtTutorial) then
+    begin
+      if not Assigned(FExitCallBack) then
+      begin
+        if Mode <> egmReload then
+        begin
+          FExitMode := Mode;
+          FExitCallBack := Done;
+          Log := TMessageEventLog.Create(nil);
+          Log.FTitle := TranslateRStr(ConfirmRStr);
+          Log.FButtons := mebYesNoCancel;
+          if (AoWEngine.FCampaign = nil) and (AoWHSMap.FileName <> '') and
+            (CompareText(ExtractFileExt(AoWHSMap.FileName), '.hsm') <> 0) then
+          begin
+            Log.FLayout := melNormal;
+            Log.FMessage.Add(Format(TranslateRStr(SaveGameToXRStr), [ExtractFileName(AoWHSMap.FileName)]));
+          end
+          else if (AoWEngine.FCampaign <> nil) and (AoWEngine.FCampaign.FFileName <> '') and
+            (CompareText(ExtractFileExt(AoWHSMap.FileName), '.csm') <> 0) then
+          begin
+            { Original tests the map extension when saving a campaign. }
+            Log.FLayout := melNormal;
+            Log.FMessage.Add(Format(TranslateRStr(SaveGameToXRStr), [ExtractFileName(AoWEngine.FCampaign.FFileName)]));
+          end
+          else
+          begin
+            Log.FLayout := melNormal;
+            Log.FMessage.Add(TranslateRStr(DoYouWantToSaveThisGameRStr));
+          end;
+          AoWHSMap.TriggerExecuteEventLog(Log, False, SaveGameOnExitCallBack);
+          Log.Release;
+        end
+        else Done(Mode, True);
+      end
+      else FExitCallBack(FExitMode, False);
+    end
+    else AoWHSMap.ExecuteExitGame;
+  end
+  else if Assigned(Done) then Done(Mode, False);
+end;
 
 procedure TPlayerControl.PasswordFailed;
-begin end;
+begin
+  AoWHSMap.ExecuteExitGame;
+end;
 
 procedure TPlayerControl.PasswordValidated;
 begin end;
 
-procedure TPlayerControl.PasswordTryAgainCallBack(A1: Integer);
-begin end;
+procedure TPlayerControl.PasswordTryAgainCallBack(Log: TEventLog);
+var
+  PasswordLog: TPasswordEventLog;
+begin
+  if TMessageEventLog(Log).FPressedButton = pebYes then
+  begin
+    PasswordLog := TPasswordEventLog.Create(nil);
+    AoWHSMap.TriggerExecuteEventLog(PasswordLog, False, ValidatePasswordCallBack);
+    PasswordLog.Release;
+  end
+  else PasswordFailed;
+end;
 
-procedure TPlayerControl.ValidatePasswordCallBack(A1: Integer);
-begin end;
+procedure TPlayerControl.ValidatePasswordCallBack(Log: TEventLog);
+var
+  Password: string;
+  MessageLog: TMessageEventLog;
+begin
+  Password := Encode(TPasswordEventLog(Log).FPassword, 0);
+  if (TPasswordEventLog(Log).FPressedButton <> pebOk) or (Password <> FPassword) then
+  begin
+    MessageLog := TMessageEventLog.Create(nil);
+    MessageLog.FTitle := TranslateRStr(WarningRStr);
+    MessageLog.FButtons := mebYesNo;
+    MessageLog.FMessage.Text := TranslateRStr(PasswordFailedRStr);
+    MessageLog.FMessage.Add('');
+    MessageLog.FMessage.Add(TranslateRStr(DoYouWantToTryAgainRStr));
+    AoWHSMap.TriggerExecuteEventLog(MessageLog, False, PasswordTryAgainCallBack);
+    MessageLog.Release;
+  end
+  else PasswordValidated;
+end;
 
-procedure TPlayerControl.ValidatePassword(A1: string);
-begin end;
+procedure TPlayerControl.ValidatePassword(const Password: string);
+var
+  Log: TPasswordEventLog;
+begin
+  if AoWHSMap.FSeatedPlayer <> -1 then SetSeatedPlayer(-1);
+  FPassword := Password;
+  Log := TPasswordEventLog.Create(nil);
+  AoWHSMap.TriggerExecuteEventLog(Log, False, ValidatePasswordCallBack);
+  Log.Release;
+end;
 
 procedure TPlayerControl.ValidateTurnTiming;
 begin end;
 
 procedure TPlayerControl.ValidateDisconnectedPlayers;
-begin end;
+var
+  I, Player, Count: Integer;
+  Log: TPlayerConnectionEventLog;
+begin
+  for I := FDisconnectedPlayers.Count - 1 downto 0 do
+  begin
+    Player := FDisconnectedPlayers[I].A;
+    if AoWHSMap.FPlayers.GetPlayers(Player).FGameOverStatus = goNone then
+    begin
+      if AoWHSMap.FTokenManager.PlayerReady(AoWHSMap.FCurrentPlayer) and
+        (AoWHSMap.FTokenManager.TokenExecuter.ActiveTC.Count = 0) then
+      begin
+        Count := FDisconnectedPlayers[I].B;
+        if Count > 0 then
+        begin
+          Dec(Count);
+          FDisconnectedPlayers.List^[I].B := Count;
+        end;
+        if Count = 0 then
+        begin
+          Log := TPlayerConnectionEventLog.Create(nil);
+          Log.Setup(Player, 2);
+          AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+          Log.Release;
+          FDisconnectedPlayers.Delete(I);
+        end;
+      end;
+    end
+    else FDisconnectedPlayers.Delete(I);
+  end;
+end;
 
-procedure TPlayerControl.PlayerDisconnected(A1: Integer);
-begin end;
+procedure TPlayerControl.PlayerDisconnected(Player: Shortint);
+begin
+  if FDisconnectedPlayers.IndexOfItemA(Player) = -1 then FDisconnectedPlayers.AddAB(Player, 150);
+end;
 
 procedure TPlayerControl.ConnectionLost;
-begin end;
+var
+  Log: TPlayerConnectionEventLog;
+begin
+  Log := TPlayerConnectionEventLog.Create(nil);
+  Log.Setup(-1, 2);
+  AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+  Log.Release;
+end;
 
 function EndPlayerTurn(Player: Shortint): Boolean;
 var
@@ -5197,7 +5440,7 @@ begin
     end;
 end;
 
-procedure TPBEMPlayerControl.ExitGame(A1: Byte);
+procedure TPBEMPlayerControl.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
 var
   Log: TSaveGameEventLog;
 begin
@@ -5651,7 +5894,10 @@ begin
 end;
 
 constructor TRaceResourceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+end;
 
 function TRaceResourceList.GetRaceResource(Index: Integer): TRaceResource;
 begin
@@ -5660,158 +5906,551 @@ begin
   else Result := nil;
 end;
 
-procedure TRaceResourceList.GetMaxRaceIndex;
-begin end;
+function TRaceResourceList.GetMaxRaceIndex: Integer;
+begin
+  Result := Count - 1;
+  while (Result > 0) and (FChildren.List^[Result] = nil) do Dec(Result);
+end;
 
 constructor TFlagControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  with TAoWHSSet(AOwner) do
+  begin
+    FFlags := ImageLibraryManager.LinkToIL([icDisk], 'Flags.ILB');
+    Self.FRaceResources := FRaceResources;
+  end;
+  SetControlStyle([csFixedChild]);
+end;
 
 destructor TFlagControl.Destroy;
-begin end;
+begin
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'Flags.ILB');
+  FFlags := nil;
+  inherited Destroy;
+end;
 
 procedure TFlagControl.ShowFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
-begin end;
+begin
+  FFlags.Images[4].Show(X, Y, SurfaceDesc);
+  FrameOffset := (FrameOffset shr 2) mod 12;
+  if FlagID and $20 <> 0 then
+    FFlags.Images[FrameOffset + 22].Show(X - 21, Y - 16, SurfaceDesc)
+  else
+    FRaceResources.GetRaceResource(FlagID and $1F).FImageLibrary.Images[FrameOffset + 12].Show(X - 21, Y - 16, SurfaceDesc);
+end;
 
-procedure TFlagControl.ShowFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+procedure TFlagControl.ShowFlagEx(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc; ShowBase: Boolean);
+begin
+  if ShowBase then FFlags.Images[4].Show(X, Y, SurfaceDesc);
+  FrameOffset := (FrameOffset shr 2) mod 12;
+  if FlagID and $20 <> 0 then
+    FFlags.Images[FrameOffset + 22].Show(X - 21, Y - 16, SurfaceDesc)
+  else
+    FRaceResources.GetRaceResource(FlagID and $1F).FImageLibrary.Images[FrameOffset + 12].Show(X - 21, Y - 16, SurfaceDesc);
+end;
 
 procedure TFlagControl.ShowStructureFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
-begin end;
+begin
+  FFlags.Images[FlagID shr 6].Show(X, Y, SurfaceDesc);
+  FrameOffset := (FrameOffset shr 1) mod 12;
+  if FlagID and $20 <> 0 then
+    FFlags.Images[FrameOffset + 10].Show(X - 21, Y - 16, SurfaceDesc)
+  else
+    FRaceResources.GetRaceResource(FlagID and $1F).FImageLibrary.Images[FrameOffset].Show(X - 21, Y - 16, SurfaceDesc);
+end;
 
-procedure TFlagControl.ShowStructureFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+procedure TFlagControl.ShowStructureFlagEx(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc; ShowBase: Boolean);
+begin
+  if ShowBase then FFlags.Images[FlagID shr 6].Show(X, Y, SurfaceDesc);
+  FrameOffset := (FrameOffset shr 1) mod 12;
+  if FlagID and $20 <> 0 then
+    FFlags.Images[FrameOffset + 10].Show(X - 21, Y - 16, SurfaceDesc)
+  else
+    FRaceResources.GetRaceResource(FlagID and $1F).FImageLibrary.Images[FrameOffset].Show(X - 21, Y - 16, SurfaceDesc);
+end;
 
 class function TProductionEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F9; end;
 
 class function TUnitProduction.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20299; end;
 
 procedure TUnitProduction.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitIndex, 20);
+  Stream.rwBool(FResearched, 21);
+end;
 
 function TUnitProductionList.GetItem(Index: Integer): TUnitProduction;
-begin end;
+begin
+  if (Index >= 0) and (Index < Count) then Result := FChildren.List^[Index]
+  else Result := nil;
+end;
 
 procedure TUnitProductionList.Add(UnitIndex: Integer; Researched: Boolean);
-begin end;
+begin
+  with TUnitProduction.Create(Self) do
+  begin
+    FUnitIndex := UnitIndex;
+    FResearched := Researched;
+  end;
+end;
 
 function TUnitProductionList.IndexOf(Index: Integer): Integer;
-begin Result := 0; end;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Index = GetItem(Result).FUnitIndex then Exit;
+  end;
+  Result := -1;
+end;
+
+function CompareUnitProductionLevel(Item1, Item2: Pointer): Integer;
+var
+  Level1, Level2: Integer;
+begin
+  with TUnitProduction(Item1) do
+    if AoWHSSet.FUnitResources.GetUnitResource(FUnitIndex) <> nil then
+      Level1 := AoWHSSet.FUnitResources.GetUnitResource(FUnitIndex).FLevel * 2
+    else Level1 := 0;
+  if AoWHSSet.FUnitResources.GetUnitResource(TUnitProduction(Item2).FUnitIndex) <> nil then
+    Level2 := AoWHSSet.FUnitResources.GetUnitResource(TUnitProduction(Item2).FUnitIndex).FLevel * 2
+  else Level2 := 0;
+  Result := Level1 - Level2;
+  if Result = 0 then Result := TUnitProduction(Item1).FUnitIndex - TUnitProduction(Item2).FUnitIndex;
+end;
 
 procedure TUnitProductionList.SortOnLevel;
-begin end;
+begin
+  FChildren.Sort(CompareUnitProductionLevel);
+end;
 
 class function TProductionItem.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20297; end;
 
 procedure TProductionItem.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FProductionID, 20);
+  Stream.rwInteger(FParameter, 21);
+  Stream.rwInteger(FGroupID, 22);
+end;
 
-procedure TProductionItem.GetName(A1: Integer);
-begin end;
+function TProductionItem.GetName: string;
+begin
+  if Owner <> nil then Result := TProductionQueue(Owner).FProductionControl.GetProductionName(Self)
+  else Result := TranslateRStr(UnknownRStr);
+end;
 
-procedure TProductionItem.GetNameProgressive(A1: Integer);
-begin end;
+function TProductionItem.GetNameProgressive: string;
+begin
+  if Owner <> nil then Result := TProductionQueue(Owner).FProductionControl.GetProductionNameProgressive(Self)
+  else Result := TranslateRStr(UnknownRStr);
+end;
 
 function TProductionQueue.GetItem(Index: Integer): TProductionItem;
-begin end;
+begin
+  if (Index >= 0) and (Index < Count) then Result := FChildren.List^[Index]
+  else Result := nil;
+end;
 
-procedure TProductionQueue.IndexOfID(A1: Integer);
-begin end;
+function TProductionQueue.IndexOfID(ID: Integer): Integer;
+begin
+  Result := FChildren.Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if ID = TProductionItem(FChildren.List^[Result]).FProductionID then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TProductionQueue.IndexOf(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TProductionQueue.IndexOf(ID, Parameter, GroupID: Integer): Integer;
+var
+  Item: TProductionItem;
+begin
+  Result := FChildren.Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    Item := FChildren.List^[Result];
+    if (ID = Item.FProductionID) and (Parameter = Item.FParameter) and (Item.FGroupID = GroupID) then Exit;
+  end;
+  Result := -1;
+end;
 
 destructor TProductionSettings.Destroy;
-begin end;
+begin
+  Clear;
+  inherited Destroy;
+end;
 
 procedure TProductionSettings.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FGold, 10);
+  Stream.rwInteger(FMana, 11);
+  Stream.rwByte(Byte(FTurnsLeft), 12);
+  Stream.rwByte(Byte(FTurnsTotal), 13);
+  Stream.rwByte(Byte(FPlayer), 14);
+  Stream.rwInteger(FGroupID, 15);
+  Stream.rwInteger(FUnitProductionIndex, 16);
+  Stream.rwCreateEObject(TEObject(FUnit), nil, 17);
+  Stream.rwInteger(FGoldUpkeep, 18);
+  Stream.rwInteger(FManaUpkeep, 19);
+end;
 
 procedure TProductionSettings.Clear;
-begin end;
+var
+  U: TAbstractUnit;
+begin
+  FTurnsLeft := 0;
+  FGold := 0;
+  FMana := 0;
+  FTurnsTotal := 0;
+  FPlayer := 0;
+  FGroupID := 0;
+  FUnitProductionIndex := -1;
+  U := FUnit;
+  if U <> nil then
+  begin
+    U.Release;
+    FUnit := nil;
+  end;
+  { Original leaves the upkeep fields unchanged. }
+end;
 
 destructor TProductionTE.Destroy;
-begin end;
+begin
+  if FItem <> nil then
+  begin
+    FItem.Free;
+    FItem := nil;
+  end;
+  inherited Destroy;
+end;
 
 class function TProductionTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20298; end;
 
 procedure TProductionTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FCommand, 20);
+  Stream.rwByte(Byte(FX), 21);
+  Stream.rwByte(Byte(FY), 22);
+  Stream.rwByte(Byte(FL), 23);
+  Stream.rwByte(Byte(FPlayer), 24);
+  Stream.rwCreateEObject(TEObject(FItem), nil, 25);
+  Stream.rwInteger(FIndex, 26);
+  Stream.rwInteger(FReserved, 27);
+  Stream.rwBool(FQueue, 28);
+end;
 
 function TProductionTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  Control: TProductionControl;
+begin
+  Control := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL)).GetProductionControl;
+  if Control <> nil then Result := Control.ExecuteProductionTE(Self)
+  else Result := erDoneHalt;
+end;
 
 constructor TProductionControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSettings := TProductionSettings.Create(nil);
+  FUnitProductions := TUnitProductionList.Create(nil);
+  FQueue := TProductionQueue.Create(nil);
+  FQueue.FProductionControl := Self;
+  FStatus := pcsIdle;
+  Clear;
+end;
 
 destructor TProductionControl.Destroy;
-begin end;
+begin
+  FSettings.Free;
+  FUnitProductions.Free;
+  FQueue.Free;
+  inherited Destroy;
+end;
 
 procedure TProductionControl.BeginUpdate;
-begin end;
+begin Inc(FUpdateCount); end;
 
 procedure TProductionControl.EndUpdate;
-begin end;
+begin
+  Dec(FUpdateCount);
+  if FUpdateCount = 0 then Update;
+end;
 
 procedure TProductionControl.Update;
-begin end;
+begin
+  if FUpdateCount = 0 then
+    if Assigned(FOnChange) then FOnChange(Self);
+end;
 
 procedure TProductionControl.Activate;
-begin end;
+begin RegisterGroupProduction; end;
 
 procedure TProductionControl.Deactivate;
-begin end;
+begin UnregisterGroupProduction; end;
 
 function TProductionControl.GetProduceUnitLevelMax: Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+  Resource: TUnitResource;
+begin
+  Result := 0;
+  for I := FUnitProductions.Count - 1 downto 0 do
+    if (FUnitProductions.GetItem(I).FResearched) and (FUnitProductions.GetItem(I).FUnitIndex >= 0) then
+    begin
+      Resource := AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(I).FUnitIndex);
+      if Resource <> nil then
+        if Result < Resource.FLevel then Result := Resource.FLevel;
+    end;
+end;
 
-procedure TProductionControl.GetResearchUnitLevelMax;
-begin end;
+function TProductionControl.GetResearchUnitLevelMax: Integer;
+var
+  I: Integer;
+  Resource: TUnitResource;
+begin
+  Result := 0;
+  for I := FUnitProductions.Count - 1 downto 0 do
+    if (not FUnitProductions.GetItem(I).FResearched) and (FUnitProductions.GetItem(I).FUnitIndex >= 0) then
+    begin
+      Resource := AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(I).FUnitIndex);
+      if Resource <> nil then
+        if Result < Resource.FLevel then Result := Resource.FLevel;
+    end;
+end;
 
-procedure TProductionControl.CancelProductionReturnGold;
-begin end;
+function TProductionControl.CancelProductionReturnGold: Integer;
+begin
+  if FStatus = pcsProducing then
+    with FSettings do
+      if FTurnsTotal <> 0 then Result := Round(FTurnsLeft * FGold / FTurnsTotal)
+      else Result := 0
+  else Result := 0;
+end;
 
-procedure TProductionControl.CancelProductionReturnMana;
-begin end;
+function TProductionControl.CancelProductionReturnMana: Integer;
+begin
+  if FStatus = pcsProducing then
+    with FSettings do
+      if FTurnsTotal <> 0 then Result := Round(FTurnsLeft * FMana / FTurnsTotal)
+      else Result := 0
+  else Result := 0;
+end;
 
-procedure TProductionControl.GetQueueSizeMax;
-begin end;
+function TProductionControl.GetQueueSizeMax: Integer;
+begin Result := 5; end;
 
-procedure TProductionControl.GetQueueLocked;
-begin end;
+function TProductionControl.GetQueueLocked: Boolean;
+var
+  I: Integer;
+begin
+  I := FQueue.Count;
+  Result := I >= GetQueueSizeMax;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    Result := LockQueueProduction(FQueue.GetItem(I));
+  end;
+end;
 
 procedure TProductionControl.ExecuteCancelProduction;
-begin end;
+var
+  Player: Shortint;
+begin
+  if FStatus = pcsProducing then
+  begin
+    if FSettings.FGroupID <> 0 then UnregisterGroupProduction;
+    Player := GetPlayer;
+    if Player > -1 then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(Player).SetGems(
+        AoWHSMap.FPlayers.GetPlayers(Player).FGems + CancelProductionReturnGold);
+      AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.SetMana(
+        AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.FMana + CancelProductionReturnMana);
+    end;
+    FSettings.Clear;
+    FStatus := pcsWaiting;
+    Update;
+  end;
+end;
 
 procedure TProductionControl.RegisterGroupProduction;
-begin end;
+var
+  Group: TAIGroup;
+begin
+  if (FStatus = pcsProducing) and (FSettings.FGroupID <> 0) then
+  begin
+    Group := AoWHSMap.FAIGroupManager.FindID(FSettings.FGroupID);
+    if Group <> nil then Group.FProductions.Add(Self, FSettings.FUnit);
+  end;
+end;
 
 procedure TProductionControl.UnregisterGroupProduction;
-begin end;
+var
+  Group: TAIGroup;
+begin
+  if (FStatus = pcsProducing) and (FSettings.FGroupID <> 0) then
+  begin
+    Group := AoWHSMap.FAIGroupManager.FindID(FSettings.FGroupID);
+    if Group <> nil then Group.FProductions.DeleteUnit(FSettings.FUnit);
+    FSettings.FGroupID := 0;
+  end;
+end;
 
-procedure TProductionControl.GroupProductionProduced(A1: Integer; A2: Integer);
-begin end;
+procedure TProductionControl.GroupProductionProduced(AUnit: TAbstractUnit; GroupID: Integer);
+var
+  Group: TAIGroup;
+begin
+  Group := AoWHSMap.FPlayers.GetPlayers(GetPlayer).FAIGroups.FindID(GroupID);
+  if Group <> nil then Group.UnitProduced(Self, AUnit);
+end;
 
 procedure TProductionControl.PlayerChanged;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FQueue.Count - 1 downto 1 do FQueue.GetItem(I).Free;
+  UnregisterGroupProduction;
+  FLoopQueue := False;
+  if (FQueue.Count <> 0) and (FStatus <> pcsProducing) then
+  begin
+    FQueue.GetItem(0).Free;
+    FStatus := pcsIdle;
+  end;
+end;
 
 function TProductionControl.CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean;
-begin end;
+begin
+  if FStatus = pcsWaiting then Reason := '(' + LowerCase(TranslateRStr(WaitingRStr)) + ')';
+  { Original continues checking costs after assigning the waiting text. }
+  case Item.FProductionID of
+    1:
+      if UnitProductionGold(Item.FParameter) <= AoWHSMap.FPlayers.GetPlayers(GetPlayer).FGems then
+        if UnitProductionMana(Item.FParameter) <= AoWHSMap.FPlayers.GetPlayers(GetPlayer).FMagicControl.FMana then
+          Result := True
+        else
+        begin
+          Result := False;
+          Reason := TranslateRStr(NotEnoughManaRStr);
+        end
+      else
+      begin
+        Result := False;
+        Reason := TranslateRStr(NotEnoughGoldRStr);
+      end;
+    2:
+      if UnitResearchGold(Item.FParameter) <= AoWHSMap.FPlayers.GetPlayers(GetPlayer).FGems then
+        Result := True
+      else
+      begin
+        Result := False;
+        Reason := TranslateRStr(NotEnoughGoldRStr);
+      end;
+  else Result := False;
+  end;
+end;
 
 function TProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
-begin end;
+var
+  Reason: string;
+begin
+  if CanExecuteProduction(Item, Reason) then
+  begin
+    BeginUpdate;
+    ExecuteCancelProduction;
+    FStatus := pcsWaiting;
+    case Item.FProductionID of
+      1:
+        begin
+          FSettings.Clear;
+          FSettings.FUnitProductionIndex := Item.FParameter;
+          FSettings.FUnit := CreateUnitProduction(Item.FParameter);
+          FSettings.FGold := UnitProductionGold(Item.FParameter);
+          FSettings.FMana := UnitProductionMana(Item.FParameter);
+          FSettings.FGoldUpkeep := UnitProductionGoldUpkeep(Item.FParameter);
+          FSettings.FManaUpkeep := UnitProductionManaUpkeep(Item.FParameter);
+          FSettings.FGroupID := Item.FGroupID;
+          FSettings.FTurnsTotal := UnitProductionTime(Item.FParameter);
+          FSettings.FPlayer := GetPlayer;
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          with AoWHSMap.FPlayers.GetPlayers(FSettings.FPlayer) do
+          begin
+            SetGems(FGems - Self.FSettings.FGold);
+            FMagicControl.SetMana(FMagicControl.FMana - Self.FSettings.FMana);
+          end;
+          FStatus := pcsProducing;
+          if FSettings.FGroupID <> 0 then RegisterGroupProduction;
+        end;
+      2:
+        begin
+          FSettings.Clear;
+          FSettings.FUnitProductionIndex := Item.FParameter;
+          FSettings.FGold := UnitResearchGold(Item.FParameter);
+          FSettings.FMana := 0;
+          FSettings.FTurnsTotal := UnitResearchTime(Item.FParameter);
+          FSettings.FPlayer := GetPlayer;
+          FSettings.FTurnsLeft := FSettings.FTurnsTotal;
+          with AoWHSMap.FPlayers.GetPlayers(FSettings.FPlayer) do
+          begin
+            SetGems(FGems - Self.FSettings.FGold);
+            FMagicControl.SetMana(FMagicControl.FMana - Self.FSettings.FMana);
+          end;
+          FStatus := pcsProducing;
+        end;
+    end;
+    EndUpdate;
+    Result := True;
+  end
+  else
+  begin
+    FStatus := pcsWaiting;
+    Result := False;
+  end;
+end;
 
 procedure TProductionControl.ExecuteAddProduction(Item: TProductionItem);
-begin end;
+var
+  NewItem: TProductionItem;
+begin
+  BeginUpdate;
+  NewItem := TProductionItem(Item.Copy(AoWEngine));
+  NewItem.SetOwner(FQueue);
+  if FQueue.Count = 1 then ExecuteProduction(NewItem);
+  EndUpdate;
+end;
 
-procedure TProductionControl.ExecuteDeleteProduction(A1: Integer);
-begin end;
+procedure TProductionControl.ExecuteDeleteProduction(Index: Integer);
+begin
+  BeginUpdate;
+  if Index = 0 then
+  begin
+    ExecuteCancelProduction;
+    FQueue.GetItem(Index).Free;
+    if FQueue.Count <> 0 then ExecuteProduction(FQueue.GetItem(0))
+    else FStatus := pcsIdle;
+  end
+  else FQueue.GetItem(Index).Free;
+  EndUpdate;
+end;
 
 procedure TProductionControl.ExecuteDeleteProductions;
-begin end;
+begin
+  BeginUpdate;
+  ExecuteCancelProduction;
+  FQueue.Clear;
+  EndUpdate;
+end;
 
 procedure TProductionControl.ExecuteAIProduction(A1: Integer; A2: Integer);
 begin end;
@@ -5819,8 +6458,8 @@ begin end;
 procedure TProductionControl.ExecuteAIResearch(A1: Integer);
 begin end;
 
-procedure TProductionControl.ExecuteProductionTE(A1: Integer);
-begin end;
+function TProductionControl.ExecuteProductionTE(Event: TProductionTE): TExecuteResult;
+begin Result := erRetry; end;
 
 procedure TProductionControl.CreateProductionTE;
 begin end;
@@ -5900,7 +6539,7 @@ begin end;
 procedure TProductionControl.NewTurn(Player: Shortint);
 begin end;
 
-function TProductionControl.LockQueueProduction(A1: Integer): Boolean;
+function TProductionControl.LockQueueProduction(A1: TProductionItem): Boolean;
 begin Result := False; end;
 
 function TProductionControl.LoopableProduction(A1: Integer): Boolean;
@@ -6822,8 +7461,8 @@ begin end;
 function TAoWMapField.GetMagicShieldActive: Boolean;
 begin Result := False; end;
 
-procedure TAoWMapField.GetProductionControl;
-begin end;
+function TAoWMapField.GetProductionControl: TProductionControl;
+begin Result := nil; end;
 
 procedure TAoWMapField.GetAITarget(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -8015,8 +8654,14 @@ begin Result := 0; end;
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 begin end;
 
-procedure Encode(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function Encode(Text: string; Mode: Integer): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to Length(Text) do
+    Result := Result + Char(Ord(Text[I]) xor ((Length(Text) + I + 5) and $FF));
+end;
 
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 begin end;

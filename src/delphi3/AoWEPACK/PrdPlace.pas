@@ -231,7 +231,7 @@ end;
 procedure TProductionPlaceControl.NewTurn(Player: Shortint);
 begin
   inherited NewTurn(Player);
-  if (FStatus = pcsProducing) and (Player = FSettings.FPlayer) and not FSettings.FWaiting then
+  if (FStatus = pcsProducing) and (Player = FSettings.FPlayer) and (FSettings.FTurnsLeft = 0) then
     if FQueue.GetItem(0).FProductionID = 10 then ProductionDone;
 end;
 
@@ -241,8 +241,8 @@ begin
   if Result then
     case Item.FProductionID of
       10: begin
-        FSettings.FTradeMode := Item.FParameter;
-        FSettings.FWaiting := True;
+        FSettings.FTurnsTotal := Item.FParameter;
+        FSettings.FTurnsLeft := 1;
         FSettings.FPlayer := GetPlayer;
         FStatus := pcsProducing;
       end;

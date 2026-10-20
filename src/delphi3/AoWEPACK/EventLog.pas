@@ -253,13 +253,12 @@ type
   { TPasswordEventLog (instance size 40, VMT 557FD1C4) }
   TPasswordEventLog = class(TEventLog)
   public
-    F_PasswordEventLog_18: Byte;
-    F_PasswordEventLog_19: array[0..2] of Byte;
+    FPassword: string; { $18; 557563E0 }
     F_PasswordEventLog_1C: Byte;
     F_PasswordEventLog_1D: array[0..2] of Byte;
     F_PasswordEventLog_20: Byte;
     F_PasswordEventLog_21: array[0..2] of Byte;
-    F_PasswordEventLog_24: Byte;
+    FPressedButton: TPressedEventLogButton; { $24; 557563EA }
     F_PasswordEventLog_25: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;

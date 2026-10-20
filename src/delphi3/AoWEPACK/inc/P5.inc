@@ -4689,7 +4689,7 @@ begin Result := False; end;
 function TAIGroup.DeleteUnit(AUnit: TAbstractUnit): Boolean;
 begin Result := False; end;
 
-procedure TAIGroup.UnitProduced(A1: Integer; A2: Integer);
+procedure TAIGroup.UnitProduced(Control: TProductionControl; AUnit: TAbstractUnit);
 begin end;
 
 procedure TAIGroup.CooperateWithGroup(A1: Integer);
@@ -4722,8 +4722,8 @@ begin Result := nil; end;
 procedure TAIGroupList.IndexOfID(A1: Integer);
 begin end;
 
-procedure TAIGroupList.FindID;
-begin end;
+function TAIGroupList.FindID(ID: Integer): TAIGroup;
+begin Result := nil; end;
 
 procedure TAIGroupList.SortOnProcessPriority;
 begin end;

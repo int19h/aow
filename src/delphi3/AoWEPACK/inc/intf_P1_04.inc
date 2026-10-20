@@ -11,14 +11,14 @@
     procedure ExitSaveGameCallBack(Log: TEventLog);
   end;
 
-  { TPlayerControl: size $20; $18 disconnected-player list, $1C sync warning shown. VMT 5570D074. }
+  { TPlayerControl: size $20; $08 exit callback, $10 exit mode, $14 password,
+    $18 disconnected-player list, $1C sync warning shown. VMT 5570D074. }
   TPlayerControl = class(TEObject)
   public
-    F_PlayerControl_08: Integer;
-    F_PlayerControl_0C: Integer;
-    F_PlayerControl_10: Byte;
+    FExitCallBack: TExitGameCallBack; { $08 }
+    FExitMode: TExitGameMode; { $10 }
     F_PlayerControl_11: array[0..2] of Byte;
-    F_PlayerControl_14: Integer;
+    FPassword: string; { $14 }
     FDisconnectedPlayers: TDoubleItemList; { $18 }
     FOutOfSyncShown: Boolean; { $1C }
     F_PlayerControl_1D: array[0..2] of Byte;
@@ -28,31 +28,31 @@
     procedure NewDay; virtual;
     procedure NewTurn(Player: Shortint); virtual;
     procedure AutoSave; virtual;
-    procedure ValidateTurnTiming; virtual;  { +05C draft }
+    procedure ValidateTurnTiming; virtual;
     procedure Setup; virtual;
     procedure StartNewMap; virtual;
-    procedure StartLoadedMap; virtual;  { +068 draft }
-    procedure PasswordFailed; virtual;  { +06C draft }
-    procedure PasswordValidated; virtual;  { +070 draft }
+    procedure StartLoadedMap; virtual;
+    procedure PasswordFailed; virtual;
+    procedure PasswordValidated; virtual;
     procedure SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); virtual;
     procedure GameOver(Player: Shortint; Status: TGameOverStatus); virtual;
     procedure GameOverEventHandled(Player: Shortint); virtual;
-    procedure ExitGame(A1: Byte); virtual;  { +080 draft }
+    procedure ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack); virtual; { $80 }
     procedure EndTurn(Player: Shortint); virtual;
     procedure SetSeatedPlayer(Player: Shortint); virtual;
-    procedure ValidateDisconnectedPlayers; virtual;  { +08C draft }
-    procedure ConnectionLost; virtual;  { +090 draft }
+    procedure ValidateDisconnectedPlayers; virtual;
+    procedure ConnectionLost; virtual;
     function LockAI: Boolean; virtual;
     procedure GetSyncValue(var Value: Integer);
     procedure OutOfSync(Sender: TObject);
-    procedure ListPlayerInfo(A1: Integer);  { draft }
-    procedure ExitSaveGameCallBack(A1: Integer);  { draft }
-    procedure SaveGameOnExitCallBack(A1: Integer);  { draft }
-    procedure ExitNetworkGameCallBack(A1: Integer);  { draft }
-    procedure PasswordTryAgainCallBack(A1: Integer);  { draft }
-    procedure ValidatePasswordCallBack(A1: Integer);  { draft }
-    procedure ValidatePassword(A1: string);
-    procedure PlayerDisconnected(A1: Integer);  { draft }
+    procedure ListPlayerInfo(Strings: TStrings);
+    procedure ExitSaveGameCallBack(Log: TEventLog);
+    procedure SaveGameOnExitCallBack(Log: TEventLog);
+    procedure ExitNetworkGameCallBack(Log: TEventLog);
+    procedure PasswordTryAgainCallBack(Log: TEventLog);
+    procedure ValidatePasswordCallBack(Log: TEventLog);
+    procedure ValidatePassword(const Password: string);
+    procedure PlayerDisconnected(Player: Shortint);
   end;
 
   { TTextControlItem (instance size 20, VMT 5570D198) }
@@ -129,7 +129,7 @@
     procedure StartNewMap; override;
     procedure StartLoadedMap; override;
     procedure PasswordValidated; override;
-    procedure ExitGame(A1: Byte); override;
+    procedure ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack); override;
     procedure EndTurn(Player: Shortint); override;
     procedure TerminateEmailGame;
     procedure TerminateEmailGameCallBack(Log: TEventLog);

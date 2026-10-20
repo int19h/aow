@@ -1,15 +1,15 @@
 { Interface declaration run owned by P1. }
-  { TFlagControl (instance size 20, VMT 557149F8) }
+  { TFlagControl: size $14; $0C race resources, $10 flag library. VMT 557149F8. }
   TFlagControl = class(TEControlStyleObject)
   public
-    F_FlagControl_0C: Integer;
-    F_FlagControl_10: Integer;
+    FRaceResources: TRaceResourceList; { $0C }
+    FFlags: TCustomImageLibrary; { $10 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure ShowFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
-    procedure ShowFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure ShowFlagEx(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc; ShowBase: Boolean);
     procedure ShowStructureFlag(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc);
-    procedure ShowStructureFlagEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure ShowStructureFlagEx(X, Y, FrameOffset: Integer; FlagID: Byte; const SurfaceDesc: TSurfaceDesc; ShowBase: Boolean);
   end;
 
   { TAoWHSSet: instance size $A0, inherited $00..$47; fields $48..$9C

@@ -43,7 +43,7 @@ type
     procedure GetLocation(var X, Y, L: Shortint); override;
     function GetPlayer: Shortint; override;
     function LoopableProduction(A1: Integer): Boolean; override;
-    function LockQueueProduction(A1: Integer): Boolean; override;
+    function LockQueueProduction(A1: TProductionItem): Boolean; override;
     function UnitProduced: Boolean; override;
     procedure UnitResearched; override;
     procedure Update; override;
@@ -431,7 +431,7 @@ begin end;
 procedure TCityProductionControl.ExecuteCancelProduction;
 begin end;
 
-function TCityProductionControl.LockQueueProduction(A1: Integer): Boolean;
+function TCityProductionControl.LockQueueProduction(A1: TProductionItem): Boolean;
 begin
   Result := inherited LockQueueProduction(A1);
   case ProductionIDToCityAction(TProductionItem(A1).FProductionID) of
@@ -2628,7 +2628,7 @@ function TCityAIPA.ValidResearchCity(City: TCity): Boolean;
 begin
   Result := City.FProduction.GetProduceUnitLevelMax < City.FUpgradeLevel;
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidResearchBudgetCity(City: TCity): Boolean;
@@ -2743,7 +2743,7 @@ begin
     not ((Level = FMaxProductionLevel) and (FProductionLevelCounts[Level] = 1)) and
     (Level = City.FUpgradeLevel);
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean;
@@ -2831,7 +2831,7 @@ begin
   Result := (Result and (City.FWallType = 0)) or
     ((City.FWallType = 1) and (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FWaiting) = City.FProduction.FSettings.FTradeMode)));
+    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidFortifyBudgetCity(City: TCity): Boolean;

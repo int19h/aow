@@ -41,7 +41,7 @@
   public
     function GetGroups(Index: Integer): TAIGroup;
     procedure IndexOfID(A1: Integer);  { draft }
-    procedure FindID;  { draft }
+    function FindID(ID: Integer): TAIGroup;
     procedure SortOnProcessPriority;  { draft }
   end;
 

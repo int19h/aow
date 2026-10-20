@@ -13,7 +13,7 @@
     function GetArmy(Index: Integer): TArmy;
   end;
 
-  { TUnitProduction (instance size 16, VMT 5570A0D0) }
+  { TUnitProduction: size $10; $08 unit index, $0C researched. VMT 5570A0D0. }
   TUnitProduction = class(TEObject)
   public
     FUnitIndex: Integer;  { $08 }
@@ -23,7 +23,7 @@
     class function ClassID: Integer; override;
   end;
 
-  { TUnitProductionList (instance size 12, VMT 5570A194) }
+  { TUnitProductionList: size $0C, no added fields. VMT 5570A194. }
   TUnitProductionList = class(TENode)
   public
     function GetItem(Index: Integer): TUnitProduction;
@@ -32,37 +32,38 @@
     procedure SortOnLevel;
   end;
 
-  { TProductionItem (instance size 20, VMT 5570A29C) }
+  { TProductionItem: size $14; $08 production ID, $0C parameter, $10 group ID. VMT 5570A29C. }
   TProductionItem = class(TEObject)
   public
     FProductionID: Integer;  { $08 }
     FParameter: Integer;  { $0C }
-    F_ProductionItem_10: Integer;
+    FGroupID: Integer; { $10 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetName(A1: Integer); virtual;  { +04C draft }
-    procedure GetNameProgressive(A1: Integer);  { draft }
+    function GetName: string; virtual; { $4C }
+    function GetNameProgressive: string;
   end;
 
-  { TProductionQueue (instance size 16, VMT 5570A364) }
+  { TProductionQueue: size $10; $0C production control. VMT 5570A364. }
   TProductionQueue = class(TENode)
   public
-    F_ProductionQueue_0C: array[0..3] of Byte;
+    FProductionControl: TProductionControl; { $0C }
     function GetItem(Index: Integer): TProductionItem;
-    procedure IndexOfID(A1: Integer);  { draft }
-    procedure IndexOf(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function IndexOfID(ID: Integer): Integer;
+    function IndexOf(ID, Parameter, GroupID: Integer): Integer;
   end;
 
-  { TProductionSettings (instance size 44, VMT 5570A4B4) }
+  { TProductionSettings: size $2C; $08/$0C costs, $10 turns left, $14/$18 upkeep,
+    $1C turns total, $1D player, $20 group, $24 unit, $28 unit production. VMT 5570A4B4. }
   TProductionSettings = class(TEObject)
   public
-    F_ProductionSettings_08: Integer;
-    F_ProductionSettings_0C: Integer;
-    FWaiting: Boolean;  { $10 }
+    FGold: Integer; { $08 }
+    FMana: Integer; { $0C }
+    FTurnsLeft: Shortint;  { $10 }
     F_ProductionSettings_11: array[0..2] of Byte;
     FGoldUpkeep: Integer; { $14 }
     FManaUpkeep: Integer; { $18 }
-    FTradeMode: Byte;  { $1C }
+    FTurnsTotal: Shortint;  { $1C }
     FPlayer: Shortint;  { $1D }
     F_ProductionSettings_1E: array[0..1] of Byte;
     FGroupID: Integer; { $20 }
@@ -79,35 +80,34 @@
     class function ClassID: Integer; override;
   end;
 
-  { TProductionTE (instance size 40, VMT 5570A6C0) }
+  { TProductionTE: size $28; $10..$13 location/player, $14 command, $18 item,
+    $1C queue, $20 index, $24 reserved. VMT 5570A6C0. }
   TProductionTE = class(TTokenEvent)
   public
-    F_ProductionTE_10: Byte;
-    F_ProductionTE_11: Byte;
-    F_ProductionTE_12: Byte;
-    F_ProductionTE_13: Byte;
-    F_ProductionTE_14: Integer;
-    F_ProductionTE_18: Integer;
-    F_ProductionTE_1C: Byte;
+    FX: Shortint; { $10 }
+    FY: Shortint; { $11 }
+    FL: Shortint; { $12 }
+    FPlayer: Shortint; { $13 }
+    FCommand: Integer; { $14 }
+    FItem: TProductionItem; { $18 }
+    FQueue: Boolean; { $1C }
     F_ProductionTE_1D: array[0..2] of Byte;
-    F_ProductionTE_20: Integer;
-    F_ProductionTE_24: Integer;
+    FIndex: Integer; { $20 }
+    FReserved: Integer; { $24 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TProductionControl (instance size 40, VMT 5570A784) }
+  { TProductionControl: size $28; $08 change event, $10 update count, $14 queue,
+    $18 loop queue, $1C unit productions, $20 status, $24 settings. VMT 5570A784. }
   TProductionControl = class(TEObject)
   public
-    F_ProductionControl_08: Byte;
-    F_ProductionControl_09: array[0..0] of Byte;
-    F_ProductionControl_0A: Word;
-    F_ProductionControl_0C: Integer;
+    FOnChange: TNotifyEvent; { $08 }
     FUpdateCount: Integer;  { $10 }
     FQueue: TProductionQueue;  { $14 }
-    F_ProductionControl_18: Byte;
+    FLoopQueue: Boolean; { $18 }
     F_ProductionControl_19: array[0..2] of Byte;
     FUnitProductions: TUnitProductionList;  { $1C }
     FStatus: TProductionControlStatus;  { $20 }
@@ -116,23 +116,23 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CancelProductionReturnGold; virtual;  { +04C draft }
-    procedure CancelProductionReturnMana; virtual;  { +050 draft }
-    procedure ExecuteCancelProduction; virtual;  { +054 draft }
+    function CancelProductionReturnGold: Integer; virtual;
+    function CancelProductionReturnMana: Integer; virtual;
+    procedure ExecuteCancelProduction; virtual;
     procedure ExecuteAIProduction(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure ExecuteAIResearch(A1: Integer); virtual;  { +05C draft }
     function ExecuteProduction(Item: TProductionItem): Boolean; virtual;
     procedure ExecuteAddProduction(Item: TProductionItem); virtual;
-    procedure ExecuteDeleteProduction(A1: Integer); virtual;  { +068 draft }
+    procedure ExecuteDeleteProduction(Index: Integer); virtual; { $68 }
     procedure ExecuteDeleteProductions; virtual;
-    procedure ExecuteProductionTE(A1: Integer); virtual;  { +070 draft }
+    function ExecuteProductionTE(Event: TProductionTE): TExecuteResult; virtual; { $70 }
     procedure CreateProductionTE; virtual;  { +074 draft }
     procedure GetLocation(var X, Y, L: Shortint); virtual;
     function GetPlayer: Shortint; virtual; abstract;
-    procedure GetQueueSizeMax; virtual;  { +080 draft }
-    procedure GetQueueLocked; virtual;  { +084 draft }
+    function GetQueueSizeMax: Integer; virtual;
+    function GetQueueLocked: Boolean; virtual;
     function LoopableProduction(A1: Integer): Boolean; virtual;
-    function LockQueueProduction(A1: Integer): Boolean; virtual;
+    function LockQueueProduction(A1: TProductionItem): Boolean; virtual;
     function UnitProduced: Boolean; virtual;
     procedure UnitResearched; virtual;
     procedure Update; virtual;
@@ -159,13 +159,13 @@
     function UnitResearchTime(Index: Integer): Integer; virtual;
     function CanResearchUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean; virtual;
     function ResearchUnit(Index: Integer; Queue: Boolean): Boolean; virtual;
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
+    procedure BeginUpdate;
+    procedure EndUpdate;
     function GetProduceUnitLevelMax: Integer;
-    procedure GetResearchUnitLevelMax;  { draft }
-    procedure RegisterGroupProduction;  { draft }
-    procedure UnregisterGroupProduction;  { draft }
-    procedure GroupProductionProduced(A1: Integer; A2: Integer);  { draft }
+    function GetResearchUnitLevelMax: Integer;
+    procedure RegisterGroupProduction;
+    procedure UnregisterGroupProduction;
+    procedure GroupProductionProduced(AUnit: TAbstractUnit; GroupID: Integer);
     function Produce(Item: TProductionItem; Queue: Boolean): Boolean;
     procedure RetryProductionExecution(A1: Integer);  { draft }
     procedure SetLoopQueueTo(A1: Integer);  { draft }
