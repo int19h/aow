@@ -639,19 +639,20 @@ type
     property Resources[Index: Integer]: TEResource read GetResource;
   end;
 
-  { Engine.TEComponent (instance size 56): +$24 FOnLoaded, +$2C FOnDestroy, +$34 FEngine, the
-    engine the component owns and frees }
+  { Engine.TEComponent (instance size 56): +$24 FOnRegisterClasses (called from Loaded),
+    +$2C FOnUnRegisterClasses (called from Destroy), +$34 FEngine, the engine the component owns
+    and frees. Descendants such as HSEngine's THexagonSpriteEngine publish the two events. }
   TEComponent = class(TComponent)
   private
-    FOnLoaded: TNotifyEvent;
-    FOnDestroy: TNotifyEvent;
+    FOnRegisterClasses: TNotifyEvent;
+    FOnUnRegisterClasses: TNotifyEvent;
     FEngine: TEngine;
   protected
     procedure Loaded; override;
+    property OnRegisterClasses: TNotifyEvent read FOnRegisterClasses write FOnRegisterClasses;
+    property OnUnRegisterClasses: TNotifyEvent read FOnUnRegisterClasses write FOnUnRegisterClasses;
   public
     destructor Destroy; override;
-    property OnLoaded: TNotifyEvent read FOnLoaded write FOnLoaded;
-    property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
     property Engine: TEngine read FEngine write FEngine;
   end;
 
@@ -712,8 +713,8 @@ type
   TEWriteTextStorageStream = class;
 
   { Engine.TEngine (instance size 52): +$C FMsgCount, +$10 FEClasses, +$14 FClassTable,
-    +$18 FEditors, +$1C FControlNode, +$24 FDebugIDs, +$28 FDebugEvents, +$2C FStartupDirectory,
-    +$31 FOptions. Every engine is in the Engines list. }
+    +$18 FEditors, +$1C FControlNode, +$20 FComponent (the owning component), +$24 FDebugIDs,
+    +$28 FDebugEvents, +$2C FStartupDirectory, +$31 FOptions. Every engine is in the Engines list. }
   TEngine = class(TENode)
   private
     FMsgCount: Integer;
@@ -721,7 +722,9 @@ type
     FClassTable: TIntegerHashTable256;
     FEditors: TEObjectEditorList;
     FControlNode: TEControlStyleNode;
-    FUnknown20: Integer;
+  protected
+    FComponent: TEComponent;
+  private
     FDebugIDs: TStringList;
     FDebugEvents: TEventList;
     FStartupDirectory: string;
@@ -3678,7 +3681,7 @@ end;
 
 destructor TEComponent.Destroy;
 begin
-  if Assigned(FOnDestroy) then FOnDestroy(Self);
+  if Assigned(FOnUnRegisterClasses) then FOnUnRegisterClasses(Self);
   FEngine.Free;
   inherited Destroy;
 end;
@@ -3686,7 +3689,7 @@ end;
 procedure TEComponent.Loaded;
 begin
   inherited Loaded;
-  if Assigned(FOnLoaded) then FOnLoaded(Self);
+  if Assigned(FOnRegisterClasses) then FOnRegisterClasses(Self);
 end;
 
 { TEResourceEditSettings }
