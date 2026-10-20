@@ -836,10 +836,10 @@ begin
     if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
-      if Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) > -1 then
+      if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C)).F_Player_54).
-          RegisterEnchantment(Data.F_UnitEnchantmentAbilityData_10);
+          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
+          RegisterEnchantment(Integer(Data.FEnchantment));
     end;
   end;
 end;
@@ -858,10 +858,10 @@ begin
     if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
-      if Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) > -1 then
+      if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C)).F_Player_54).
-          UnregisterEnchantment(Data.F_UnitEnchantmentAbilityData_10);
+          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
+          UnregisterEnchantment(Integer(Data.FEnchantment));
     end;
   end;
 end;
@@ -875,7 +875,7 @@ begin
   if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
   begin
     Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
-    if Data <> nil then Result := TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10)
+    if Data <> nil then Result := TUnitEnchantment(Data.FEnchantment)
     else begin Result := nil; Exit; end;
   end
   else Result := nil;
@@ -1241,7 +1241,7 @@ var
 begin
   if GetAbilityEnabled(155) then
   begin
-    Enchantment := TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,155)).F_UnitEnchantmentAbilityData_10);
+    Enchantment := TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,155)).FEnchantment);
     if Enchantment <> nil then Result := Enchantment.F_Enchantment_10
     else begin Result := 0; Exit; end;
   end
@@ -1712,7 +1712,7 @@ end;
 procedure TAbstractUnit.ResetEarthMasteryStoneSkin;
 begin
   if GetAbilityEnabled(153) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).FEnchantment).F_Enchantment_0C) = -2 then
       RemoveAbility(153);
 end;
 
@@ -1723,7 +1723,7 @@ begin
   if (GetUnitType <> utMachine) and not GetAbilityEnabled(153) then
     if TP2OwnerCalls(Self).Expand(153) then
     begin
-      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).F_UnitEnchantmentAbilityData_10);
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).FEnchantment);
       Enchantment.SetUpkeep(0);
       Enchantment.SetSource(-2);
       Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),17)).Duration;
@@ -1733,7 +1733,7 @@ end;
 procedure TAbstractUnit.ResetFireMasteryProtection;
 begin
   if GetAbilityEnabled(167) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).FEnchantment).F_Enchantment_0C) = -2 then
       RemoveAbility(167);
 end;
 
@@ -1744,7 +1744,7 @@ begin
   if not GetAbilityEnabled(71) and not GetAbilityEnabled(167) then
     if TP2OwnerCalls(Self).Expand(167) then
     begin
-      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).F_UnitEnchantmentAbilityData_10);
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).FEnchantment);
       Enchantment.SetUpkeep(0);
       Enchantment.SetSource(-2);
       Enchantment.Duration := 7;
@@ -1754,7 +1754,7 @@ end;
 procedure TAbstractUnit.ResetLifeMasteryBlessing;
 begin
   if GetAbilityEnabled(158) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).FEnchantment).F_Enchantment_0C) = -2 then
       RemoveAbility(158);
 end;
 
@@ -1765,7 +1765,7 @@ begin
   if not GetAbilityEnabled(158) then
     if TP2OwnerCalls(Self).Expand(158) then
     begin
-      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).F_UnitEnchantmentAbilityData_10);
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).FEnchantment);
       Enchantment.SetUpkeep(0);
       Enchantment.SetSource(-2);
       Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),56)).Duration;
@@ -1775,7 +1775,7 @@ end;
 procedure TAbstractUnit.ResetLifeMasteryFear;
 begin
   if GetAbilityEnabled(53) then
-    if TUnitEnchantmentAbilityData(P2AbilityData(Self,53)).F_UnitEnchantmentAbilityData_10 = 1 then
+    if Integer(TUnitEnchantmentAbilityData(P2AbilityData(Self,53)).FEnchantment) = 1 then
       RemoveAbility(53);
 end;
 
@@ -2215,7 +2215,7 @@ begin
     if (dtCold in Active) and TP2OwnerCalls(Self).Expand(95) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self,95));
-      if Data <> nil then Data.F_UnitEnchantmentAbilityData_0F := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
+      if Data <> nil then Data.FEnchantmentPlayerIndex := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
       RemoveAbility(127);
       Result := Result + [dtCold];
     end;
@@ -2466,7 +2466,7 @@ begin
     Result := TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.F_AbstractUnitResource_18).GetFaceImage;
     Exit;
   end;
-  FaceIndex := TP2FaceEnchantmentFields(TUnitEnchantmentAbilityData(P2AbilityData(Self,126)).F_UnitEnchantmentAbilityData_10).FaceIndex;
+  FaceIndex := TP2FaceEnchantmentFields(TUnitEnchantmentAbilityData(P2AbilityData(Self,126)).FEnchantment).FaceIndex;
   if P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex) <> nil then
     Result := P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex).GetCellImage
   else Result := nil;

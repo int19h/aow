@@ -70,10 +70,10 @@
     procedure Select(A1: Integer; A2: Integer); virtual;  { +05C draft }
   end;
 
-  { TExternalPowerSource (instance size 12, VMT 5570AEEC) }
+  { TExternalPowerSource (instance size 12, VMT 5570AEEC; $08 external power control) }
   TExternalPowerSource = class(TPowerSource)
   public
-    F_ExternalPowerSource_08: Integer;
+    FExternalPowerControl: Integer;
     procedure Name(A1: Integer); override;
     procedure Power; override;
   end;
@@ -112,7 +112,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetCheatEnabled;  { draft }
+    function GetCheatEnabled: Boolean;
     procedure SetActiveEnchantments(A1: Byte; A2: Integer);  { draft }
     procedure UpdateEnemyEnchantments;  { draft }
     procedure GetManaIncome;  { draft }

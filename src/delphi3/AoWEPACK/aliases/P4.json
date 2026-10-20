@@ -8,5 +8,7 @@
   "TBuildRoadsControl.vmt58": "TBuildRoadsControl.ID",
   "TBuildRoadsControl.vmt4C": "TBuildRoadsControl.GetInfo",
   "TBuildRoadsControl.vmt50": "TBuildRoadsControl.CanConstruct",
-  "TBuildRoadsControl.vmt54": "TBuildRoadsControl.Construct"
+  "TBuildRoadsControl.vmt54": "TBuildRoadsControl.Construct",
+  "5577a060:44": "P4CompareSpellNames",
+  "5577a09c:42": "P4CompareSpellLevels"
 }

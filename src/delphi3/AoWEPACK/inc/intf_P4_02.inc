@@ -52,22 +52,22 @@
     procedure GetTotalDuration; virtual; { +110 needs: Integer result; PassiveAb overrides are draft }
   end;
 
-  { TMultiLevelAbilityData (instance size 16, VMT 5571DEF8) }
+  { TMultiLevelAbilityData (instance size 16, VMT 5571DEF8; $0C level, $0E ability ID) }
   TMultiLevelAbilityData = class(TAbilityData)
   public
-    F_MultiLevelAbilityData_0C: Byte;
+    FLevel: Byte;
     F_MultiLevelAbilityData_0D: array[0..0] of Byte;
-    F_MultiLevelAbilityData_0E: Word;
+    FLevelAbilityID: Word;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetAbilityID; override;
   end;
 
-  { TMultiLevelAbility (instance size 48, VMT 5571DFD0) }
+  { TMultiLevelAbility (instance size 48, VMT 5571DFD0; $28 max level, $2C level costs) }
   TMultiLevelAbility = class(TAdjustableAbility)
   public
-    F_MultiLevelAbility_28: Integer;
-    F_MultiLevelAbility_2C: Integer;
+    FMaxLevel: Integer;
+    FLevelCosts: TIntegerList; { $2C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetName(A1: Integer; A2: Integer); override;
@@ -770,19 +770,19 @@
     procedure Select; override;
   end;
 
-  { TUnitEnchantmentAbilityData (instance size 20, VMT 55722284) }
+  { TUnitEnchantmentAbilityData (instance size 20, VMT 55722284; $0C ability ID, $0E duration, $0F player, $10 enchantment) }
   TUnitEnchantmentAbilityData = class(TAbilityData)
   public
-    F_UnitEnchantmentAbilityData_0C: Word;
-    F_UnitEnchantmentAbilityData_0E: Byte;
-    F_UnitEnchantmentAbilityData_0F: Byte;
-    F_UnitEnchantmentAbilityData_10: Integer;
+    FEnchantmentAbilityID: Word;
+    FEnchantmentDuration: ShortInt; { $0E; -1 is permanent }
+    FEnchantmentPlayerIndex: ShortInt; { $0F }
+    FEnchantment: TUnitEnchantment; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetAbilityID; override;
-    procedure SetEnchantment(A1: Integer);  { draft }
+    procedure SetEnchantment(Enchantment: TUnitEnchantment);
   end;
 
   { TUnitEnchantmentAbility (instance size 40, VMT 55722364) }
@@ -872,28 +872,30 @@
     procedure GetName(A1: Integer); override;
   end;
 
-  { TSpell (instance size 52, VMT 55722D7C) }
+  { TSpell (instance size 52, VMT 55722D7C; $08 name, $0C control types,
+    $10 spell ID, $14 base mana cost, $20 sphere, $21 level, $22 type,
+    $24 text, $28 sounds, $2C images; $18/$1C/$30 remain unresolved Integers) }
   TSpell = class(TEObject)
   public
-    F_Spell_08: Integer;
-    F_Spell_0C: Byte;
+    FSpellName: string; { $08 }
+    FSpellControlTypes: TSpellControlType; { $0C }
     F_Spell_0D: array[0..2] of Byte;
-    F_Spell_10: Integer;
-    F_Spell_14: Integer;
+    FSpellID: Integer;
+    FBaseManaCost: Integer;
     F_Spell_18: Integer;
     F_Spell_1C: Integer;
-    F_Spell_20: Byte;
-    F_Spell_21: Byte;
-    F_Spell_22: Byte;
+    FMagicSphere: TMagicSphere; { $20 }
+    FSpellLevel: Byte;
+    FSpellType: TSpellType; { $22; stGlobal guard at 557792E8 }
     F_Spell_23: array[0..0] of Byte;
-    F_Spell_24: Integer;
-    F_Spell_28: Integer;
-    F_Spell_2C: Integer;
+    FSpellText: TStringList; { $24 }
+    FCastSounds: TSFXLibrary; { $28 }
+    FCastImages: TImageSequenceList; { $2C }
     F_Spell_30: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +04C draft }
+    procedure PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual; { +04C; byte coordinates, external overrides are draft }
     procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); virtual;  { +050 draft }
     procedure CreateCastSpellAction; virtual;  { +054 draft }
     procedure SetupCastSpellAction(A1: Integer; A2: Integer); virtual;  { +058 draft }
@@ -913,82 +915,83 @@
     procedure fcPrefetchCombatCommands(A1: Integer); virtual;  { +090 draft }
     procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); virtual;  { +094 draft }
     procedure fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +098 draft }
-    procedure CastingDone(A1: Integer; A2: Integer);  { draft }
-    procedure CombatCastingDone(A1: Integer; A2: Integer);  { draft }
-    procedure CombatSpellCast(A1: Integer);  { draft }
-    procedure AIRequestCastSpellExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure AICastSpellExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure CastingDone(Source: TAbstractUnit; Mana: Integer);
+    procedure CombatCastingDone(Source: TCombatObject; Mana: Integer);
+    procedure CombatSpellCast(Source: TCombatUnit);
+    function AIRequestCastSpellExpense(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
+    function AICastSpellExpenseMade(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
   end;
 
-  { TSpellControl (instance size 12, VMT 55722E94) }
+  { TSpellControl (instance size 12, VMT 55722E94; $08 registered-spell list) }
   TSpellControl = class(TEObject)
   public
-    F_SpellControl_08: Integer;
+    FRegisteredSpells: TList; { $08 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetCount;  { draft }
-    procedure GetSpell(A1: Integer);  { draft }
-    procedure RegisterSpell(A1: Integer);  { draft }
-    procedure UnregisterSpell(A1: Integer);  { draft }
+    function GetCount: Integer;
+    function GetSpell(Index: Integer): TSpell;
+    procedure RegisterSpell(Spell: TSpell);
+    procedure UnregisterSpell(Spell: TSpell);
     procedure UnregisterSpellID(A1: Integer);  { draft }
     procedure UnregisterAll;  { draft }
-    procedure ListSpells(A1: Integer; A2: Word);  { draft }
-    procedure GetRandomSpell(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ListSpells(SpellStrings: TStrings; Spheres: TMagicSpheres);
+    function GetRandomSpell(MinLevel, MaxLevel: Integer; Spheres: TMagicSpheres): Integer;
   end;
 
-  { TSpellList (instance size 8, VMT 55722F54) }
+  { TSpellList (instance size 8, VMT 55722F54; $04 spell list) }
   TSpellList = class(TObject)
   public
-    F_SpellList_04: Integer;
+    FSpells: TList; { $04 }
     destructor Destroy; override;
     constructor Create;  { draft }
-    procedure GetSpell(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
-    procedure Add;  { draft }
-    procedure Delete;  { draft }
+    function GetSpell(Index: Integer): TSpell;
+    function GetCount: Integer;
+    procedure Add(Spell: TSpell);
+    procedure Delete(Index: Integer);
     procedure Clear;  { draft }
     procedure SortOnName;  { draft }
     procedure SortOnLevel;  { draft }
   end;
 
-  { TSpellTE (instance size 32, VMT 55722FC4) }
+  { TSpellTE (instance size 32, VMT 55722FC4; $10 spell ID, $14 source ID, $18 player, $1C mana) }
   TSpellTE = class(TTokenEvent)
   public
-    F_SpellTE_10: Integer;
-    F_SpellTE_14: Integer;
-    F_SpellTE_18: Byte;
+    FEventSpellID: Integer;
+    FEventSourceID: Integer;
+    FEventPlayerIndex: Byte;
     F_SpellTE_19: array[0..2] of Byte;
-    F_SpellTE_1C: Integer;
+    FEventMana: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
     procedure Validate(A1: Integer); virtual;  { +050 draft }
     procedure Process(A1: Integer; A2: Integer); virtual;  { +054 draft }
     procedure PlayDefaultCastEffects(A1: Integer; A2: Integer); virtual;  { +058 draft }
-    procedure Initialize(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure GetSource;  { draft }
+    procedure Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
+    function GetSource: TAbstractUnit;
   end;
 
-  { TSpellCaster (instance size 20, VMT 5572308C) }
+  { TSpellCaster (instance size 20, VMT 5572308C; $08 spell ID, $0C source ID, $10 refcount) }
   TSpellCaster = class(TEObject)
   public
-    F_SpellCaster_08: Integer;
-    F_SpellCaster_0C: Integer;
-    F_SpellCaster_10: Integer;
+    FCasterSpellID: Integer;
+    FCasterSourceID: Integer;
+    FCasterRefCount: Integer;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure CanCast(A1: Integer); virtual;  { +04C draft }
     procedure Cast; virtual;  { +050 draft }
-    procedure GetSource;  { draft }
+    function GetSource: TAbstractUnit;
   end;
 
-  { TCombatSpellCaster (instance size 20, VMT 55723154) }
+  { TCombatSpellCaster (instance size 20, VMT 55723154; $08 spell ID, $0C source ID, $10 refcount) }
   TCombatSpellCaster = class(TEObject)
   public
-    F_CombatSpellCaster_08: array[0..7] of Byte;
-    F_CombatSpellCaster_10: Integer;
+    FCombatCasterSpellID: Integer; { $08 }
+    FCombatCasterSourceID: Integer; { $0C }
+    FCombatCasterRefCount: Integer;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
@@ -1006,21 +1009,21 @@
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 
-  { TUnitSpellCaster (instance size 28, VMT 55723318) }
+  { TUnitSpellCaster (instance size 28, VMT 55723318; $14 target-unit users, $18 selection bits) }
   TUnitSpellCaster = class(TSpellCaster)
   public
-    F_UnitSpellCaster_14: Integer;
-    F_UnitSpellCaster_18: Byte;
+    FTargetUnits: TUnitUserList; { $14 }
+    FSelectionMask: Byte;
     F_UnitSpellCaster_19: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CanCast(A1: Integer); override;
     procedure Cast; override;
-    procedure SetSelection(A1: Byte; A2: Integer);  { draft }
-    procedure GetSelectionCount;  { draft }
-    procedure GetRequiredMana;  { draft }
-    procedure GetRequiredDays;  { draft }
-    procedure Valid;  { draft }
+    procedure SetSelection(Selection: Byte);
+    function GetSelectionCount: Integer;
+    function GetRequiredMana: Integer;
+    function GetRequiredDays: Integer;
+    function Valid: Boolean;
   end;
 
   { TUnitSpellTE (instance size 52, VMT 557233E8) }

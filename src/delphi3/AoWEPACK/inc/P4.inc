@@ -1,11 +1,52 @@
+{ Engine's private list accessor is reached through its public property. }
+function P4LevelCost(Costs: TIntegerList; Level: Integer): Integer;
+begin
+  Result := Costs[Level];
+end;
+
 { P4 abilities and magic.
-  TAdjustableAbility and TDurationAbilityData are recovered; TDurationAbility
-  is recovered except for NewDay's undeclared shared map global.
-  Other classes below still contain their original draft bodies.
-  Declaration adapters are temporary and marked with the owning package's needs. }
+  Adjustable, duration and multilevel ability data; unit-enchantment ability data;
+  the base spell, spell events/control/list/casters and power-source classes are
+  recovered. Remaining draft bodies below are unchanged unless documented.
+  Compatibility declarations preserve calls to other packages' draft APIs; these
+  adapters never create instances of their declaration-only views. }
 
 type
   P4LongString = ^string;
+  P4ShortInt = ^ShortInt;
+  TUnitControlCallViewP4 = class(TUnitControl)
+    function FindUnitResult(ID: Integer): TAbstractUnit;
+  end;
+  { P1's unmarked $FC field is still Integer. This local view changes no layout. }
+  TP4MapUnitControl = record
+    Reserved: array[0..$FB] of Byte;
+    UnitControl: TUnitControlCallViewP4;
+  end;
+  PP4MapUnitControl = ^TP4MapUnitControl;
+  TSpellTECallViewP4 = class(TTokenEvent)
+    function ValidateValue(Source: TAbstractUnit): Boolean; virtual; abstract;
+    function ProcessValue(Source: TAbstractUnit; Pass: Integer): Boolean; virtual; abstract;
+  end;
+  TP4TokenExecuterState = record
+    Reserved: array[0..$1F] of Byte;
+    ExecuteCount: Integer;
+  end;
+  PP4TokenExecuterState = ^TP4TokenExecuterState;
+  THeroCastingViewP4 = class(THero)
+    function SpellMana(Spell: TSpell): Integer;
+  end;
+  TP4DamageValue = record
+    V0, V1, V2, V3: Integer;
+    DamageTypes: TDamageTypes;
+  end;
+  PP4DamageValue = ^TP4DamageValue;
+  TP4CombatInfo = record
+    V0, V1: Byte;
+    DamageTypes: TDamageTypes;
+    V4, V5, V6: Byte;
+    Modes: TCombatModes;
+  end;
+  PP4CombatInfo = ^TP4CombatInfo;
   { Temporary declaration views: no instances are created. }
   TDurationReturnView = class(TAbility)
     function GetDuration(AbilityOwner: TAbilityOwner): Byte; virtual; abstract;
@@ -14,6 +55,16 @@ type
   { needs: P3 TCombatObject.GetAbilityOwner: TAbilityOwner at VMT $B8.
     This declaration-only view preserves TEObject's slots through $48 and
     the TCombatObject slots $4C..$B8; no instances are created. }
+  { Only VMT $128/$12C are called; this view is never instantiated. }
+  TCastingPointsReturnViewP4 = class(TDurationReturnView)
+    procedure Slot114; virtual; abstract;
+    procedure Slot118; virtual; abstract;
+    procedure Slot11C; virtual; abstract;
+    procedure Slot120; virtual; abstract;
+    procedure Slot124; virtual; abstract;
+    function CastingPointsMax: ShortInt; virtual; abstract;
+    function CastingPoints: ShortInt; virtual; abstract;
+  end;
   TCombatOwnerReturnView = class(TEObject)
     procedure Slot4C; virtual; abstract;
     procedure Slot50; virtual; abstract;
@@ -52,11 +103,29 @@ const
   { The class-reference constant supplies the EAX return while the inherited
     AbilityDataClass declaration is still a procedure. }
   P4DurationDataClass: TEObjectClass = TDurationAbilityData;
+  P4MultiLevelDataClass: TEObjectClass = TMultiLevelAbilityData;
+  P4EmptySelection: Word = 0;
+  P4EmptyDamageTypes: TDamageTypes = [];
+  P4EmptyCombatModes: TCombatModes = [];
+  P4CastSpellActionClass: TEObjectClass = TAICastSpellAction;
+  P4CombatCasterClass: TEObjectClass = TCombatSpellCaster;
+  P4ImageAnimationClass: TEObjectClass = TImageSequenceAnimation;
+  P4UnitSelectionClass: TEObjectClass = TUnitUserList;
 
 resourcestring
+  NotEnoughManaRStr = 'Not enough mana.';
+  NotEnoughCastingPointsRStr = 'Not enough channeling points';
+  P4SpellWardBlocksCastRStr = 'Spell Ward locks all global enchantments';
+  P4ExternalPowerRStr = 'External';
   DurationDaysRStr = '(%s/%s days)';
   DurationCombatTurnRStr = '(%s/%s turns)';
   DurationEntireCombatRStr = '(combat only)';
+
+procedure P4TranslateInto(const S: string; var Dest: string); assembler;
+{ needs: P1 TranslateRStr has a string result at EDX; 5577C2D4. }
+asm
+  JMP TranslateRStr
+end;
 
 function P4TranslateRStr(const S: string): string; assembler;
 { needs: P1 TranslateRStr(const S: string): string; 55764EF6 returns a string. }
@@ -78,6 +147,51 @@ assembler;
 { needs: P1 TAbilityOwner.GetAbilityData: TAbilityData; 55765044 tests EAX. }
 asm
   JMP TAbilityOwner.GetAbilityData
+end;
+
+function P4MapRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
+{ needs: P1 TAoWHSMap.Random returns Integer; used at 55779F7A. }
+asm
+  JMP TAoWHSMap.Random
+end;
+
+function P4GetPlayer(Players: TPlayerList; PlayerIndex: Integer): TPlayer; assembler;
+{ needs: P1 TPlayerList.GetPlayers returns TPlayer; EAX is consumed at 55779710. }
+asm
+  JMP TPlayerList.GetPlayers
+end;
+
+function P4RequestUpkeep(Magic: TPlayerMagicControl; Priority: Integer): Integer; assembler;
+{ needs: AIRequestOverrideUpkeep has one explicit argument and returns Integer. }
+asm
+  JMP TPlayerMagicControl.AIRequestOverrideUpkeep
+end;
+
+function P4RequestBudget(Manager: TAIBudgetManager; A1, A2, A3, A4, A5, A6: Integer): Boolean; assembler;
+{ needs: P5 RequestBudgetExpenseEx returns Boolean; 55779781 tests AL. }
+asm
+  POP EBP
+  JMP TAIBudgetManager.RequestBudgetExpenseEx
+end;
+
+function P4BudgetMade(Manager: TAIBudgetManager; A1, A2, A3, A4, A5, A6: Integer): Boolean; assembler;
+{ needs: P5 BudgetExpenseMadeEx returns Boolean; 5577980F leaves AL for return. }
+asm
+  POP EBP
+  JMP TAIBudgetManager.BudgetExpenseMadeEx
+end;
+
+function THeroCastingViewP4.SpellMana(Spell: TSpell): Integer; assembler;
+{ needs: P2 THero.CastingMana(Spell: TSpell): Integer; 55779557 returns EAX. }
+asm
+  JMP THero.CastingMana
+end;
+
+{ These adapters retain byte coordinates while the P1 interface has Integer drafts. }
+function TUnitControlCallViewP4.FindUnitResult(ID: Integer): TAbstractUnit; assembler;
+{ needs: P2 TUnitControl.FindUnit returns TAbstractUnit; 55779966. }
+asm
+  JMP TUnitControl.FindUnit
 end;
 
 function P4BaseAbilityName(Ability: TAbility; AbilityOwner: Integer): string; assembler;
@@ -131,8 +245,8 @@ end;
 
 procedure TDurationAbility.NewDay(A1: Integer);
 begin
-  { needs: P1 global AoWHSMap: TAoWHSMap (558FA040); 55764D14 removes
-    this ability from A1 when AoWHSMap.FDay = 1. }
+  if AoWHSMap.FDay = 1 then
+    TAbilityOwner(A1).RemoveAbility(F_Ability_0C);
 end;
 
 procedure TDurationAbility.NewTurn(A1: Integer; A2: Integer);
@@ -344,70 +458,371 @@ asm
 end;
 
 procedure TMultiLevelAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FLevel, 10);
+  Stream.rwWord(FLevelAbilityID, 11);
+end;
 
 class function TMultiLevelAbilityData.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $22001;
+end;
 
 procedure TMultiLevelAbilityData.GetAbilityID;
-begin end;
+{ needs: P1 TAbilityData.GetAbilityID returns Integer; 55765160 zero-extends $0E. }
+asm
+  MOVZX EAX, [EAX].TMultiLevelAbilityData.FLevelAbilityID
+end;
 
 constructor TMultiLevelAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FLevelCosts := TIntegerList.Create;
+  FMaxLevel := 4;
+end;
 
 destructor TMultiLevelAbility.Destroy;
-begin end;
+begin
+  FLevelCosts.Free;
+  inherited Destroy;
+end;
 
 procedure TMultiLevelAbility.GetLevel(A1: Integer);
-begin end;
+{ needs: P1 inherited declaration returns Integer for TAbilityOwner in EDX. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI, EDX
+  MOV EBX, EAX
+  TEST ESI, ESI
+  JE @@NoOwner
+  MOV EDX, [EBX].TAbility.F_Ability_0C
+  MOV EAX, ESI
+  CALL TAbilityOwner.GetAbilityData
+  TEST EAX, EAX
+  JE @@Missing
+  MOVZX EAX, [EAX].TMultiLevelAbilityData.FLevel
+  DB $EB, $07 { branch past the missing-data exit and nil-owner zero result }
+@@Missing:
+  XOR EAX, EAX
+  POP ESI
+  POP EBX
+  RET
+@@NoOwner:
+  XOR EAX, EAX
+@@Done:
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.GetInherentLevel(A1: Integer);
-begin end;
+{ needs: P1 inherited declaration returns Integer for TAbilityOwner in EDX. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI, EDX
+  MOV EBX, EAX
+  TEST ESI, ESI
+  JE @@NoOwner
+  MOV EDX, [EBX].TAbility.F_Ability_0C
+  MOV EAX, ESI
+  CALL TAbilityOwner.GetAbilityData
+  TEST EAX, EAX
+  JE @@Missing
+  MOVZX EAX, [EAX].TMultiLevelAbilityData.FLevel
+  DB $EB, $07 { branch past the missing-data exit and nil-owner zero result }
+@@Missing:
+  XOR EAX, EAX
+  POP ESI
+  POP EBX
+  RET
+@@NoOwner:
+  XOR EAX, EAX
+@@Done:
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.AbilityDataClass;
-begin end;
+{ needs: P1 TAbility.AbilityDataClass returns a class reference; 55765228. }
+asm
+  MOV EAX, DWORD PTR [P4MultiLevelDataClass]
+end;
 
 procedure TMultiLevelAbility.GetLevelName(A1: Integer; A2: Integer);
-begin end;
+begin
+  P4LongString(Pointer(A2))^ := 'Unknown ' + IntToStr(A1);
+end;
 
 procedure TMultiLevelAbility.GetName(A1: Integer; A2: Integer);
-begin end;
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  MOV EDI, ECX
+  MOV ESI, EDX
+  MOV EBX, EAX
+  MOV EDX, ESI
+  MOV EAX, EBX
+  MOV ECX, [EAX]
+  CALL DWORD PTR [ECX + $70]
+  MOV EDX, EAX
+  MOV ECX, EDI
+  MOV EAX, EBX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $10C]
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.ExpandName(A1: Integer; A2: Integer);
-begin end;
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  MOV EDI, ECX
+  MOV ESI, EDX
+  MOV EBX, EAX
+  MOV EDX, ESI
+  MOV EAX, EBX
+  MOV ECX, [EAX]
+  CALL DWORD PTR [ECX + $70]
+  MOV EDX, EAX
+  INC EDX
+  MOV ECX, EDI
+  MOV EAX, EBX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $10C]
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.ExpandCost;
-begin end;
+{ needs: P1 TAbility.ExpandCost(AbilityOwner: TAbilityOwner): Integer; EDX is forwarded at 557652E4. }
+asm
+  PUSH EBX
+  MOV EBX, EAX
+  MOV EAX, EBX
+  MOV ECX, [EAX]
+  CALL DWORD PTR [ECX + $94]
+  CMP EAX, [EBX].TMultiLevelAbility.FMaxLevel
+  JGE @@Max
+  LEA EDX, [EAX + 1]
+  MOV EAX, [EBX].TMultiLevelAbility.FLevelCosts
+  CALL P4LevelCost
+  POP EBX
+  RET
+@@Max:
+  XOR EAX, EAX
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.CanExpand(A1: Integer);
-begin end;
+{ needs: P1 selection-types and inherent-level virtuals have results; 55765312/5576532E. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI, EDX
+  MOV EBX, EAX
+  MOV EAX, ESI
+  MOV EDX, [EAX]
+  CALL DWORD PTR [EDX + $8C]
+  AND AX, [EBX].TAbility.F_Ability_20
+  MOV DX, [P4EmptySelection]
+  CMP DX, AX
+  JE @@No
+  MOV EDX, ESI
+  MOV EAX, EBX
+  MOV ECX, [EAX]
+  CALL DWORD PTR [ECX + $94]
+  CMP EAX, [EBX].TMultiLevelAbility.FMaxLevel
+  JL @@Yes
+@@No:
+  XOR EAX, EAX
+  POP ESI
+  POP EBX
+  RET
+@@Yes:
+  MOV AL, 1
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.GetSkillPoints(A1: Integer);
-begin end;
+{ Original bug: charges the current level's cost repeatedly, rather than each preceding level's cost. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  PUSH EBP
+  MOV ESI, EAX
+  MOV EAX, ESI
+  MOV ECX, [EAX]
+  CALL DWORD PTR [ECX + $94]
+  MOV EDI, EAX
+  XOR EBP, EBP
+  MOV EBX, EDI
+  TEST EBX, EBX
+  JLE @@Done
+@@Next:
+  MOV EDX, EDI
+  MOV EAX, [ESI].TMultiLevelAbility.FLevelCosts
+  CALL P4LevelCost
+  ADD EBP, EAX
+  DEC EBX
+  JNE @@Next
+@@Done:
+  MOV EAX, EBP
+  POP EBP
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.Expand(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.Expand returns Boolean and takes one ability owner. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  PUSH EBP
+  MOV EDI, EDX
+  MOV ESI, EAX
+  XOR EBX, EBX
+  MOV EDX, [ESI].TAbility.F_Ability_0C
+  MOV EAX, EDI
+  CALL TAbilityOwner.GetAbilityData
+  MOV EBP, EAX
+  TEST EBP, EBP
+  JNE @@Existing
+  MOV EAX, [ESI]
+  CALL DWORD PTR [EAX + $108]
+  XOR ECX, ECX
+  MOV DL, 1
+  CALL DWORD PTR [EAX + $20]
+  MOV EBP, EAX
+  MOV AX, WORD PTR [ESI].TAbility.F_Ability_0C
+  MOV [EBP].TMultiLevelAbilityData.FLevelAbilityID, AX
+  MOV [EBP].TMultiLevelAbilityData.FLevel, 1
+  PUSH 1
+  MOV ECX, [ESI].TAbility.F_Ability_0C
+  MOV EDX, EDI
+  MOV EAX, ESI
+  CALL TAbility.SetAb
+  MOV EDX, EBP
+  MOV EAX, EDI
+  CALL TAbilityOwner.AddAbilityData
+  MOV BL, 1
+  JMP @@Done
+@@Existing:
+  XOR EAX, EAX
+  MOV AL, [EBP].TMultiLevelAbilityData.FLevel
+  CMP EAX, [ESI].TMultiLevelAbility.FMaxLevel
+  JE @@Done
+  MOV BL, 1
+  INC [EBP].TMultiLevelAbilityData.FLevel
+@@Done:
+  MOV EAX, EBX
+  POP EBP
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TMultiLevelAbility.Remove(A1: Integer; A2: Integer);
-begin end;
+{ needs: P1 TAbility.Remove returns Boolean and takes one ability owner. }
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  PUSH EBP
+  MOV EDI, EDX
+  MOV EBP, EAX
+  MOV BL, 1
+  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EAX, EDI
+  CALL TAbilityOwner.GetAbilityData
+  MOV ESI, EAX
+  TEST ESI, ESI
+  JE @@Missing
+  CMP [ESI].TMultiLevelAbilityData.FLevel, 1
+  JNE @@Decrement
+  PUSH 0
+  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, EDI
+  MOV EAX, EBP
+  CALL TAbility.SetAb
+  MOV EDX, ESI
+  MOV EAX, EDI
+  CALL TAbilityOwner.RemoveAbilityData
+  JMP @@Done
+@@Decrement:
+  DEC [ESI].TMultiLevelAbilityData.FLevel
+  JMP @@Done
+@@Missing:
+  PUSH 0
+  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, EDI
+  MOV EAX, EBP
+  CALL TAbility.SetAb
+  XOR EBX, EBX
+@@Done:
+  MOV EAX, EBX
+  POP EBP
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 constructor TUnitEnchantmentAbilityData.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FEnchantmentPlayerIndex := -1;
+  FEnchantmentDuration := -1;
+end;
 
 class function TUnitEnchantmentAbilityData.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202AC;
+end;
 
 destructor TUnitEnchantmentAbilityData.Destroy;
-begin end;
+var
+  Enchantment: TUnitEnchantment;
+begin
+  Enchantment := FEnchantment;
+  if Enchantment <> nil then
+    Enchantment.Free;
+  inherited Destroy;
+end;
 
 procedure TUnitEnchantmentAbilityData.GetAbilityID;
-begin end;
+{ needs: P1 TAbilityData.GetAbilityID returns Integer; 557654A8 reads $0C. }
+asm
+  MOVZX EAX, [EAX].TUnitEnchantmentAbilityData.FEnchantmentAbilityID
+end;
 
-procedure TUnitEnchantmentAbilityData.SetEnchantment(A1: Integer);
-begin end;
+procedure TUnitEnchantmentAbilityData.SetEnchantment(Enchantment: TUnitEnchantment);
+var
+  OldEnchantment: TUnitEnchantment;
+begin
+  OldEnchantment := FEnchantment;
+  if OldEnchantment <> nil then
+    OldEnchantment.Free;
+  FEnchantment := Enchantment;
+end;
 
 procedure TUnitEnchantmentAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwWord(FEnchantmentAbilityID, 15);
+  Stream.rwCreateEObject(TEObject(FEnchantment), nil, 16);
+  Stream.rwShortintEx(FEnchantmentPlayerIndex, -1, 17);
+  Stream.rwShortintEx(FEnchantmentDuration, -1, 18);
+end;
 
 constructor TUnitEnchantmentAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -1670,199 +2085,891 @@ procedure TSpellCC.GetName(A1: Integer);
 begin end;
 
 constructor TSpell.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellText := TStringList.Create;
+  FCastSounds := TSFXLibrary.Create(nil);
+  FCastImages := TImageSequenceList.Create(AoWHSSet.ImageLibraryManager, nil);
+  F_Spell_18 := 1;
+  FSpellControlTypes := [sctGlobal];
+end;
 
 destructor TSpell.Destroy;
-begin end;
+begin
+  FCastSounds.Free;
+  FCastImages.Free;
+  FSpellText.Free;
+  inherited Destroy;
+end;
 
 procedure TSpell.GetEnabled;
-begin end;
+asm
+  MOV AL, 1
+end;
 
 procedure TSpell.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FSpellText, 10);
+  Stream.rwEObject(FCastSounds, 11);
+  Stream.rwStreamProc(12, FCastImages.LoadFromStream, FCastImages.SaveToStream);
+  Stream.rwInteger(FBaseManaCost, 13);
+  Stream.rwInteger(F_Spell_1C, 14);
+  Stream.rwInteger(F_Spell_18, 15);
+  Stream.rwData(FMagicSphere, 1, 16);
+  Stream.rwByte(FSpellLevel, 17);
+end;
 
 procedure TSpell.CanActivate(A1: Integer; A2: Integer);
-begin end;
+{ Signature remains compatible with external draft overrides: AL is Boolean,
+  EDX is the caster, ECX points to the reason string. }
+asm
+  PUSH EBP
+  MOV EBP, ESP
+  PUSH 0
+  PUSH 0
+  PUSH EBX
+  MOV EBX, ECX
+  XOR EDX, EDX
+  PUSH EBP
+  PUSH OFFSET @@Exception
+  PUSH DWORD PTR FS:[EDX]
+  MOV DWORD PTR FS:[EDX], ESP
+  CMP BYTE PTR [EAX + $22], 2
+  JNE @@OtherSpell
+  MOV EAX, [AoWHSMap]
+  MOV EAX, [EAX + $188]
+  TEST BYTE PTR [EAX + $10], $40
+  JE @@Allowed
+  LEA EDX, [EBP - 8]
+  MOV EAX, OFFSET P4SpellWardBlocksCastRStr
+  CALL System.LoadResString
+  MOV EAX, [EBP - 8]
+  LEA EDX, [EBP - 4]
+  CALL TranslateRStr
+  MOV EDX, [EBP - 4]
+  MOV EAX, EBX
+  CALL System.@LStrAsg
+  XOR EBX, EBX
+  JMP @@Finally
+@@Allowed:
+  MOV BL, 1
+  JMP @@Finally
+@@OtherSpell:
+  MOV BL, 1
+@@Finally:
+  XOR EAX, EAX
+  POP EDX
+  POP ECX
+  POP ECX
+  MOV DWORD PTR FS:[EAX], EDX
+  PUSH OFFSET @@Return
+@@Clear:
+  LEA EAX, [EBP - 8]
+  MOV EDX, 2
+  CALL System.@LStrArrayClr
+  RET
+@@Exception:
+  JMP System.@HandleFinally
+  JMP @@Clear
+@@Return:
+  MOV EAX, EBX
+  POP EBX
+  POP ECX
+  POP ECX
+  POP EBP
+end;
 
 procedure TSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+{ Original returns false after optionally centering on the seated player's unit. }
+asm
+  PUSH EBX
+  PUSH ECX
+  MOV EAX, [AoWHSMap]
+  MOV AL, [EAX + $A5]
+  CMP AL, [EDX + $24]
+  JNE @@Done
+  LEA EAX, [ESP + 2]
+  PUSH EAX
+  LEA ECX, [ESP + 5]
+  LEA EAX, [ESP + 4]
+  XCHG EDX, EAX
+  CALL TAbstractUnit.GetLocation
+  CMP BYTE PTR [ESP], $FF
+  JE @@Done
+  MOVSX EAX, BYTE PTR [ESP + 2]
+  PUSH EAX
+  PUSH 3
+  MOVSX ECX, BYTE PTR [ESP + 9]
+  MOVSX EDX, BYTE PTR [ESP + 8]
+  MOV EAX, [AoWHSMap]
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $C8]
+@@Done:
+  XOR EAX, EAX
+  POP EDX
+  POP EBX
+end;
 
 procedure TSpell.CanActivateCombat(A1: Integer; A2: Integer);
-begin end;
+asm
+  MOV EAX, [AoWHSMap]
+  CMP DWORD PTR [EAX + $120], 0
+  SETNE AL
+end;
 
 procedure TSpell.ActivateCombat(A1: Integer);
-begin end;
+{ AL is the Boolean result; EDX is a combat object. }
+asm
+  PUSH EBP
+  MOV EBP, ESP
+  ADD ESP, -8
+  PUSH EBX
+  PUSH ESI
+  XOR ECX, ECX
+  MOV [EBP - 8], ECX
+  MOV [EBP - 4], EDX
+  MOV ESI, EAX
+  XOR EAX, EAX
+  PUSH EBP
+  PUSH OFFSET @@Exception
+  PUSH DWORD PTR FS:[EAX]
+  MOV DWORD PTR FS:[EAX], ESP
+  LEA ECX, [EBP - 8]
+  MOV EDX, [EBP - 4]
+  MOV EAX, ESI
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $70]
+  TEST AL, AL
+  JE @@Rejected
+  XOR ECX, ECX
+  MOV DL, 1
+  MOV EAX, [P4CombatCasterClass]
+  CALL TCombatSpellCaster.Create
+  MOV EBX, EAX
+  MOV EAX, [ESI].TSpell.FSpellID
+  MOV [EBX + 8], EAX
+  MOV EAX, [EBP - 4]
+  MOV EAX, [EAX + $18]
+  MOV [EBX + $0C], EAX
+  MOV EAX, [AoWHSMap]
+  MOV EAX, [EAX + $11C]
+  MOV EAX, [EAX + $D8]
+  MOV EDX, EBX
+  CALL TEventList.TriggerNotifyEvents
+  MOV EAX, EBX
+  MOV EDX, [EAX]
+  CALL DWORD PTR [EDX + $2C]
+  MOV BL, 1
+  JMP @@Finally
+@@Rejected:
+  XOR EBX, EBX
+@@Finally:
+  XOR EAX, EAX
+  POP EDX
+  POP ECX
+  POP ECX
+  MOV DWORD PTR FS:[EAX], EDX
+  PUSH OFFSET @@Return
+@@Clear:
+  LEA EAX, [EBP - 8]
+  CALL System.@LStrClr
+  RET
+@@Exception:
+  JMP System.@HandleFinally
+  JMP @@Clear
+@@Return:
+  MOV EAX, EBX
+  POP ESI
+  POP EBX
+  POP ECX
+  POP ECX
+  POP EBP
+end;
 
 procedure TSpell.CreateCA(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 procedure TSpell.GetCombatInfo(A1: Integer; A2: Integer);
-begin end;
+{ ECX is a var parameter pointing to the eight-byte combat-info record.
+  Preserve this ABI while unmarked external overrides still use Integer drafts. }
+asm
+  PUSH EBX
+  MOV EBX, ECX
+  MOV [EBX].TP4CombatInfo.V0, 0
+  MOV [EBX].TP4CombatInfo.V1, 0
+  MOV AX, [P4EmptyDamageTypes]
+  MOV [EBX].TP4CombatInfo.DamageTypes, AX
+  MOV [EBX].TP4CombatInfo.V4, 1
+  MOV [EBX].TP4CombatInfo.V5, 0
+  MOV [EBX].TP4CombatInfo.V6, 0
+  MOV AL, [P4EmptyCombatModes]
+  MOV [EBX].TP4CombatInfo.Modes, AL
+  POP EBX
+end;
 
 procedure TSpell.GetCombatDamageValue(A1: Integer; A2: Integer);
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 procedure TSpell.GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+begin
+  with PP4DamageValue(Pointer(A3))^ do
+  begin
+    V0 := 0;
+    V1 := 0;
+    V2 := 0;
+    V3 := 0;
+    DamageTypes := [];
+  end;
+end;
 
-procedure TSpell.CastingDone(A1: Integer; A2: Integer);
-begin end;
+procedure TSpell.CastingDone(Source: TAbstractUnit; Mana: Integer);
+begin
+  if Source is THero then
+    THero(Source).CastingDone(FSpellID, Mana);
+end;
 
-procedure TSpell.CombatCastingDone(A1: Integer; A2: Integer);
-begin end;
+procedure TSpell.CombatCastingDone(Source: TCombatObject; Mana: Integer);
+begin
+  if (Source is TCombatUnit) and
+    (TObject(TCombatUnit(Source).FUnit) is THero) then
+    with TCombatUnit(Source) do
+    begin
+      THero(FUnit).CastingDone(FSpellID, Mana);
+      UpdateWallCombatFeatures;
+      if TObject(Source.F_CombatObject_08) is TFastCombat then
+        TFastCombatUnit(Source).UpdateWallSiegeObjectRegistration;
+    end;
+end;
 
-procedure TSpell.CombatSpellCast(A1: Integer);
-begin end;
+procedure TSpell.CombatSpellCast(Source: TCombatUnit);
+var
+  Hero: THeroCastingViewP4;
+  Mana: Integer;
+begin
+  Hero := THeroCastingViewP4(Source.FUnit);
+  Mana := Hero.SpellMana(Self);
+  CombatCastingDone(Source, Mana);
+end;
 
 procedure TSpell.PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+{ Byte player/X/Y/Layer ABI is retained until UnitSpells' unmarked overrides
+  can be updated. Unmarked P1 map fields and Animation declarations stay intact. }
+asm
+  PUSH ECX
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  MOV EBX, ECX
+  MOV BYTE PTR [EBP - 1], DL
+  MOV ESI, EAX
+  MOV AL, BYTE PTR [EBP + 8]
+  PUSH EAX
+  PUSH 0
+  MOV CL, BYTE PTR [EBP + $0C]
+  MOV EDX, EBX
+  MOV EAX, [AoWHSMap]
+  CALL TAoWHSMap.Visible
+  TEST AL, AL
+  JE @@Done
+  MOV AL, BYTE PTR [EBP + $0C]
+  PUSH EAX
+  MOV AL, BYTE PTR [EBP + 8]
+  PUSH EAX
+  PUSH 0
+  MOV ECX, EBX
+  MOV DL, BYTE PTR [EBP - 1]
+  MOV EAX, [AoWHSMap]
+  CALL TAoWHSMap.ValidateObservation
+  MOV EDX, [ESI].TSpell.FSpellID
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  CALL TSpellControl.GetSpell
+  MOV EAX, [EAX].TSpell.FCastImages
+  XOR EDX, EDX
+  CALL TImageSequenceList.GetImageSequence
+  TEST EAX, EAX
+  JE @@Sound
+  XOR ECX, ECX
+  MOV DL, 1
+  MOV EAX, [P4ImageAnimationClass]
+  CALL TImageSequenceAnimation.Create
+  MOV EDI, EAX
+  MOV EDX, [ESI].TSpell.FSpellID
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  CALL TSpellControl.GetSpell
+  MOV EAX, [EAX].TSpell.FCastImages
+  XOR EDX, EDX
+  CALL TImageSequenceList.GetImageSequence
+  MOV EDX, EAX
+  MOV EAX, EDI
+  CALL TImageSequenceAnimation.SetImageSequence
+  MOVSX EAX, BYTE PTR [EBP + $0C]
+  PUSH EAX
+  MOVSX EAX, BYTE PTR [EBP + 8]
+  PUSH EAX
+  MOVSX ECX, BL
+  MOV EDX, EDI
+  MOV EAX, [AoWHSMap]
+  CALL THSMap.PlaceHX
+@@Sound:
+  MOV EAX, [AoWHSMap]
+  MOV AL, [EAX + $A5]
+  CMP AL, BYTE PTR [EBP - 1]
+  JE @@Play
+  MOV AL, BYTE PTR [EBP + 8]
+  PUSH EAX
+  PUSH 0
+  MOV CL, BYTE PTR [EBP + $0C]
+  MOV EDX, EBX
+  MOV EAX, [AoWHSMap]
+  CALL TAoWHSMap.Watching
+  TEST AL, AL
+  JE @@Done
+@@Play:
+  MOV EDX, [ESI].TSpell.FSpellID
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  CALL TSpellControl.GetSpell
+  MOV EAX, [EAX].TSpell.FCastSounds
+  XOR EDX, EDX
+  CALL TSFXLibrary.Play
+@@Done:
+  POP EDI
+  POP ESI
+  POP EBX
+  POP ECX
+end;
 
 procedure TSpell.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 procedure TSpell.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+begin
+  FillChar(Pointer(A4)^, 20, 0);
+end;
 
 procedure TSpell.fcPrefetchCombatCommands(A1: Integer);
 begin end;
 
 procedure TSpell.fcExecuteCombatCommand(A1: Integer; A2: Integer);
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 procedure TSpell.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI, EAX
+  MOV EAX, A3
+  PUSH EAX
+  MOV EAX, ESI
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $84]
+  POP ESI
+  POP EBX
+end;
 
 procedure TSpell.tcGetDamageValue;
-begin end;
+asm
+  PUSH EBX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $80]
+  POP EBX
+end;
 
 procedure TSpell.CreateCastSpellAction;
-begin end;
+asm
+  XOR ECX, ECX
+  MOV DL, 1
+  MOV EAX, [P4CastSpellActionClass]
+  CALL TEObject.Create
+end;
 
 procedure TSpell.SetupCastSpellAction(A1: Integer; A2: Integer);
-begin end;
+asm
+  MOV EAX, [EAX].TSpell.FSpellID
+  MOV [ECX + $0C], EAX
+  MOV EAX, [EDX + $18]
+  MOV [ECX + $08], EAX
+end;
 
-procedure TSpell.AIRequestCastSpellExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TSpell.AIRequestCastSpellExpense(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
+var
+  Manager: TAIBudgetManager;
+begin
+  if Upkeep > 0 then
+  begin
+    Dec(Mana, P4RequestUpkeep(TPlayerMagicControl(P4GetPlayer(
+      TPlayerList(AoWHSMap.FPlayers), ShortInt(Source.FPlayer)).F_Player_54),
+      Round(Upkeep * 0.8)));
+    if Mana < 0 then
+      Mana := 0;
+  end;
+  Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
+    ShortInt(Source.FPlayer)).F_Player_8C);
+  if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
+    ShortInt(Source.FPlayer)).F_Player_54).GetCheatEnabled then
+    Result := P4RequestBudget(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 1)
+  else
+    Result := True;
+end;
 
-procedure TSpell.AICastSpellExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TSpell.AICastSpellExpenseMade(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
+var
+  Manager: TAIBudgetManager;
+begin
+  if AIRequestCastSpellExpense(Source, Budget, Mana, Upkeep) then
+  begin
+    Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
+      ShortInt(Source.FPlayer)).F_Player_8C);
+    if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
+      ShortInt(Source.FPlayer)).F_Player_54).GetCheatEnabled then
+      Result := P4BudgetMade(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 2)
+    else
+      Result := True;
+  end
+  else
+    Result := False;
+end;
 
 procedure TSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
 begin end;
 
 procedure TSpell.AIExecuteCastSpellAction(A1: Integer);
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 class function TSpellTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21300;
+end;
 
 procedure TSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FEventSpellID, 15);
+  Stream.rwInteger(FEventSourceID, 16);
+  Stream.rwByte(FEventPlayerIndex, 17);
+  Stream.rwInteger(FEventMana, 18);
+end;
 
-procedure TSpellTE.Initialize(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+procedure TSpellTE.Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
+begin
+  FEventSpellID := SpellID;
+  FEventSourceID := SourceID;
+  FEventPlayerIndex := PlayerIndex;
+  FEventMana := Mana;
+end;
 
-procedure TSpellTE.GetSource;
-begin end;
+function TSpellTE.GetSource: TAbstractUnit;
+asm
+  MOV EDX, [AoWHSMap]
+  MOV EDX, [EDX + $FC]
+  MOV EAX, [EAX].TSpellTE.FEventSourceID
+  XCHG EDX, EAX
+  CALL TUnitControl.FindUnit
+end;
 
 procedure TSpellTE.Validate(A1: Integer);
-begin end;
+{ AL is Boolean. The original assumes the source supports THero's instant-cast API. }
+asm
+  PUSH EBP
+  MOV EBP, ESP
+  PUSH 0
+  PUSH EBX
+  PUSH ESI
+  MOV ESI, EDX
+  MOV EBX, EAX
+  XOR EAX, EAX
+  PUSH EBP
+  PUSH OFFSET @@Exception
+  PUSH DWORD PTR FS:[EAX]
+  MOV DWORD PTR FS:[EAX], ESP
+  MOV AL, [ESI + $24]
+  CMP AL, [EBX].TSpellTE.FEventPlayerIndex
+  JNE @@No
+  LEA EAX, [EBP - 4]
+  PUSH EAX
+  MOV ECX, [EBX].TSpellTE.FEventMana
+  MOV EDX, [EBX].TSpellTE.FEventSpellID
+  MOV EAX, ESI
+  CALL THero.CanCastSpellInstantly
+  TEST AL, AL
+  JNE @@Yes
+@@No:
+  XOR EAX, EAX
+  JMP @@Finally
+@@Yes:
+  MOV AL, 1
+@@Finally:
+  MOV EBX, EAX
+  XOR EAX, EAX
+  POP EDX
+  POP ECX
+  POP ECX
+  MOV DWORD PTR FS:[EAX], EDX
+  PUSH OFFSET @@Return
+@@Clear:
+  LEA EAX, [EBP - 4]
+  CALL System.@LStrClr
+  RET
+@@Exception:
+  JMP System.@HandleFinally
+  JMP @@Clear
+@@Return:
+  MOV EAX, EBX
+  POP ESI
+  POP EBX
+  POP ECX
+  POP EBP
+end;
 
 procedure TSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  MOV EDI, ECX
+  MOV ESI, EDX
+  MOV EBX, EAX
+  PUSH EDI
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  MOV EDX, [EBX].TSpellTE.FEventSpellID
+  CALL TSpellControl.GetSpell
+  MOV ECX, ESI
+  MOV EDX, EBX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $50]
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 function TSpellTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  Control: TUnitControlCallViewP4;
+  Source: TAbstractUnit;
+begin
+  inherited Execute(TE);
+  Control := TUnitControlCallViewP4(AoWHSMap.F_AoWHSMap_FC);
+  Source := Control.FindUnitResult(FEventSourceID);
+  if (Source <> nil) and ((PP4TokenExecuterState(TE)^.ExecuteCount <> 0) or
+    TSpellTECallViewP4(Self).ValidateValue(Source)) then
+  begin
+    if TSpellTECallViewP4(Self).ProcessValue(Source, PP4TokenExecuterState(TE)^.ExecuteCount) then
+      Result := erRetry
+    else
+      Result := erDone;
+  end
+  else
+    Result := erDoneHalt;
+end;
 
 procedure TSpellTE.PlayDefaultCastEffects(A1: Integer; A2: Integer);
-begin end;
+{ The draft A1/A2 are unused; the event's source provides player and location. }
+asm
+  PUSH EBX
+  PUSH ECX
+  MOV EBX, EAX
+  LEA EAX, [ESP + 2]
+  PUSH EAX
+  MOV EAX, EBX
+  CALL TSpellTE.GetSource
+  LEA ECX, [ESP + 5]
+  LEA EDX, [ESP + 4]
+  CALL TAbstractUnit.GetLocation
+  MOV AL, BYTE PTR [ESP + 1]
+  PUSH EAX
+  MOV AL, BYTE PTR [ESP + 6]
+  PUSH EAX
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  MOV EDX, [EBX].TSpellTE.FEventSpellID
+  CALL TSpellControl.GetSpell
+  PUSH EAX
+  MOV EAX, EBX
+  CALL TSpellTE.GetSource
+  MOV DL, [EAX + $24]
+  MOV CL, BYTE PTR [ESP + $0C]
+  POP EAX
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $4C]
+  POP EDX
+  POP EBX
+end;
 
 constructor TSpellControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRegisteredSpells := TList.Create;
+end;
 
 destructor TSpellControl.Destroy;
-begin end;
+begin
+  UnregisterAll;
+  FRegisteredSpells.Free;
+  inherited Destroy;
+end;
 
 procedure TSpellControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  I: Integer;
+begin
+  inherited ReadWrite(Stream);
+  for I := 0 to FRegisteredSpells.Count - 1 do
+    if FRegisteredSpells[I] <> nil then
+      Stream.rwEObject(TSpell(FRegisteredSpells[I]), I + 10);
+end;
 
-procedure TSpellControl.GetCount;
-begin end;
+function TSpellControl.GetCount: Integer;
+begin
+  Result := FRegisteredSpells.Count;
+end;
 
-procedure TSpellControl.GetSpell(A1: Integer);
-begin end;
+function TSpellControl.GetSpell(Index: Integer): TSpell;
+begin
+  Assert(Index >= 0);
+  if Index < FRegisteredSpells.Count then
+    Result := TSpell(FRegisteredSpells[Index])
+  else
+    Result := nil;
+end;
 
-procedure TSpellControl.RegisterSpell(A1: Integer);
-begin end;
+procedure TSpellControl.RegisterSpell(Spell: TSpell);
+var
+  ID: Integer;
+begin
+  ID := Spell.FSpellID;
+  if ID <> 0 then
+  begin
+    if (ID < FRegisteredSpells.Count) and (FRegisteredSpells[ID] <> nil) then
+      raise Exception.Create('Spell already registered (' + IntToStr(ID) + ')');
+    while FRegisteredSpells.Count <= ID do
+      FRegisteredSpells.Add(nil);
+    FRegisteredSpells.List^[ID] := Spell;
+    Spell.FCastImages.LinkToIL;
+  end
+  else
+    raise Exception.Create('Invalid SpellID (' + Spell.ClassName + ')');
+end;
 
-procedure TSpellControl.UnregisterSpell(A1: Integer);
-begin end;
+procedure TSpellControl.UnregisterSpell(Spell: TSpell);
+var
+  ID: Integer;
+begin
+  ID := Spell.FSpellID;
+  if ID <> 0 then
+  begin
+    if (ID < 0) or (ID >= FRegisteredSpells.Count) or (FRegisteredSpells[ID] <> Spell) then
+      raise Exception.Create('Cannot Unregister Spell (' + IntToStr(ID) + ')');
+    if FRegisteredSpells.List^[ID] <> nil then
+    begin
+      Spell.FCastImages.ReleaseIL;
+      TSpell(FRegisteredSpells.List^[ID]).Free;
+      FRegisteredSpells.List^[ID] := nil;
+    end;
+  end
+  else
+    raise Exception.Create('Invalid SpellID (' + Spell.ClassName + ')');
+end;
 
 procedure TSpellControl.UnregisterSpellID(A1: Integer);
-begin end;
+begin
+  if FRegisteredSpells.List^[A1] <> nil then
+    UnregisterSpell(TSpell(FRegisteredSpells.List^[A1]));
+end;
 
 procedure TSpellControl.UnregisterAll;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FRegisteredSpells.Count - 1 downto 0 do
+    if FRegisteredSpells[I] <> nil then
+      UnregisterSpell(TSpell(FRegisteredSpells[I]));
+end;
 
-procedure TSpellControl.ListSpells(A1: Integer; A2: Word);
-begin end;
+procedure TSpellControl.ListSpells(SpellStrings: TStrings; Spheres: TMagicSpheres);
+var
+  I: Integer;
+begin
+  SpellStrings.Clear;
+  with FRegisteredSpells do
+    for I := 0 to Count - 1 do
+      if (List^[I] <> nil) and (TSpell(List^[I]).FMagicSphere in Spheres) then
+        SpellStrings.AddObject(TSpell(List^[I]).FSpellName, TObject(I));
+end;
 
-procedure TSpellControl.GetRandomSpell(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TSpellControl.GetRandomSpell(MinLevel, MaxLevel: Integer; Spheres: TMagicSpheres): Integer;
+var
+  Candidates: TIntegerList;
+  I: Integer;
+  Spell: TSpell;
+begin
+  Candidates := TIntegerList.Create;
+  with FRegisteredSpells do
+    for I := Count - 1 downto 0 do
+    begin
+      Spell := TSpell(List^[I]);
+      if (Spell <> nil) and (Spell.FMagicSphere in Spheres) and
+        (Spell.FSpellLevel >= MinLevel) and (Spell.FSpellLevel <= MaxLevel) then
+        Candidates.Add(I);
+    end;
+  if Candidates.Count <> 0 then
+    Result := Candidates[P4MapRandom(AoWHSMap, Candidates.Count)]
+  else
+    Result := 0;
+  Candidates.Free;
+end;
 
 constructor TSpellList.Create;
-begin end;
+begin
+  inherited Create;
+  FSpells := TList.Create;
+end;
 
 destructor TSpellList.Destroy;
-begin end;
+begin
+  FSpells.Free;
+  inherited Destroy;
+end;
 
-procedure TSpellList.GetSpell(A1: Integer);
-begin end;
+function TSpellList.GetSpell(Index: Integer): TSpell;
+begin
+  if (Index >= 0) and (Index < GetCount) then
+    Result := TSpell(FSpells[Index])
+  else
+    Result := nil;
+end;
 
-procedure TSpellList.GetCount;
-begin end;
+function TSpellList.GetCount: Integer;
+begin
+  Result := FSpells.Count;
+end;
 
-procedure TSpellList.Add;
-begin end;
+procedure TSpellList.Add(Spell: TSpell);
+begin
+  FSpells.Add(Spell);
+end;
 
-procedure TSpellList.Delete;
-begin end;
+procedure TSpellList.Delete(Index: Integer);
+begin
+  FSpells.Delete(Index);
+end;
 
 procedure TSpellList.Clear;
-begin end;
+begin
+  FSpells.Clear;
+end;
+
+function P4CompareSpellNames(Item1, Item2: Pointer): Integer;
+begin
+  Result := CompareText(TSpell(Item1).FSpellName, TSpell(Item2).FSpellName);
+  if Result = 0 then
+    Result := TSpell(Item1).FSpellLevel - TSpell(Item2).FSpellLevel;
+end;
+
+function P4CompareSpellLevels(Item1, Item2: Pointer): Integer;
+begin
+  Result := TSpell(Item1).FSpellLevel - TSpell(Item2).FSpellLevel;
+  if Result = 0 then
+    Result := CompareText(TSpell(Item1).FSpellName, TSpell(Item2).FSpellName);
+end;
 
 procedure TSpellList.SortOnName;
-begin end;
+begin
+  FSpells.Sort(P4CompareSpellNames);
+end;
 
 procedure TSpellList.SortOnLevel;
-begin end;
+begin
+  FSpells.Sort(P4CompareSpellLevels);
+end;
 
 constructor TSpellCaster.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FCasterRefCount := 1;
+end;
 
 function TSpellCaster.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FCasterRefCount);
+  Result := FCasterRefCount;
+end;
 
 function TSpellCaster.Release: Integer;
-begin Result := 0; end;
+var
+  Count, ReleasedCount: Integer;
+begin
+  Dec(FCasterRefCount);
+  Count := FCasterRefCount;
+  ReleasedCount := Count;
+  if Count = 0 then
+    Destroy;
+  Result := ReleasedCount;
+end;
 
-procedure TSpellCaster.GetSource;
-begin end;
+function TSpellCaster.GetSource: TAbstractUnit;
+{ needs: P2 TUnitControl.FindUnit returns TAbstractUnit; 5577A140. }
+asm
+  MOV EDX, [AoWHSMap]
+  MOV EDX, [EDX + $FC]
+  MOV EAX, [EAX].TSpellCaster.FCasterSourceID
+  XCHG EDX, EAX
+  CALL TUnitControl.FindUnit
+end;
 
 procedure TSpellCaster.CanCast(A1: Integer);
-begin end;
+{ The inherited draft's A1 is unused; AL reports whether the source still exists. }
+asm
+  MOV EDX, [AoWHSMap]
+  MOV EDX, [EDX + $FC]
+  MOV EAX, [EAX].TSpellCaster.FCasterSourceID
+  XCHG EDX, EAX
+  CALL TUnitControl.FindUnit
+  TEST EAX, EAX
+  SETNE AL
+end;
 
 procedure TSpellCaster.Cast;
-begin end;
+asm
+  MOV AL, 1
+end;
 
 constructor TCombatSpellCaster.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FCombatCasterRefCount := 1;
+end;
 
 function TCombatSpellCaster.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FCombatCasterRefCount);
+  Result := FCombatCasterRefCount;
+end;
 
 function TCombatSpellCaster.Release: Integer;
-begin Result := 0; end;
+var
+  Count, ReleasedCount: Integer;
+begin
+  Dec(FCombatCasterRefCount);
+  Count := FCombatCasterRefCount;
+  ReleasedCount := Count;
+  if Count = 0 then
+    Destroy;
+  Result := ReleasedCount;
+end;
 
 class function TSpellCastEventLog.ClassID: Integer;
 begin Result := 0; end;
@@ -1880,31 +2987,351 @@ procedure TSpellCastEventLog.GetText(A1: Integer);
 begin end;
 
 constructor TUnitSpellCaster.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTargetUnits := TUnitUserList.Create(nil);
+end;
 
 destructor TUnitSpellCaster.Destroy;
-begin end;
+begin
+  FTargetUnits.Free;
+  inherited Destroy;
+end;
 
-procedure TUnitSpellCaster.SetSelection(A1: Byte; A2: Integer);
-begin end;
+procedure TUnitSpellCaster.SetSelection(Selection: Byte);
+asm
+  PUSH EBX
+  PUSH ESI
+  PUSH ECX
+  MOV BYTE PTR [ESP], DL
+  MOV EBX, EAX
+  MOV EAX, [AoWHSMap]
+  MOV EAX, [EAX + $FC]
+  MOV EDX, [EBX].TSpellCaster.FCasterSourceID
+  CALL TUnitControl.FindUnit
+  MOV ESI, EAX
+  PUSH ESP
+  MOV EAX, [AoWHSSet]
+  MOV EAX, [EAX + $84]
+  MOV EDX, [EBX].TSpellCaster.FCasterSpellID
+  CALL TSpellControl.GetSpell
+  MOV ECX, [EBX].TUnitSpellCaster.FTargetUnits
+  MOV EDX, ESI
+  MOV ESI, [EAX]
+  CALL DWORD PTR [ESI + $A0]
+  MOV AL, BYTE PTR [ESP]
+  MOV [EBX].TUnitSpellCaster.FSelectionMask, AL
+  POP EDX
+  POP ESI
+  POP EBX
+end;
 
-procedure TUnitSpellCaster.GetSelectionCount;
-begin end;
+function TUnitSpellCaster.GetSelectionCount: Integer;
+var
+  Bits: Integer;
+begin
+  Result := 0;
+  Bits := FSelectionMask;
+  while Bits <> 0 do
+  begin
+    if (Bits and 1) <> 0 then
+      Inc(Result);
+    Bits := Bits shr 1;
+  end;
+end;
 
-procedure TUnitSpellCaster.GetRequiredMana;
-begin end;
+function TUnitSpellCaster.GetRequiredMana: Integer;
+var
+  Hero: THeroCastingViewP4;
+  Mana, Count: Integer;
+begin
+  Hero := THeroCastingViewP4(PP4MapUnitControl(AoWHSMap)^.UnitControl.FindUnitResult(FCasterSourceID));
+  if Hero <> nil then
+  begin
+    Mana := Hero.SpellMana(TSpellControl(AoWHSSet.FSpellControl).GetSpell(FCasterSpellID));
+    Count := GetSelectionCount;
+    Mana := Mana * Count;
+    Result := Mana;
+  end
+  else
+    Result := -1;
+end;
 
-procedure TUnitSpellCaster.GetRequiredDays;
-begin end;
+function TUnitSpellCaster.GetRequiredDays: Integer;
+var
+  Hero: TCastingPointsReturnViewP4;
+  Deficit: Integer;
+begin
+  Hero := TCastingPointsReturnViewP4(PP4MapUnitControl(AoWHSMap)^.UnitControl.FindUnitResult(FCasterSourceID));
+  if (Hero <> nil) and (Hero.CastingPointsMax <> 0) then
+  begin
+    Deficit := GetRequiredMana - Hero.CastingPoints;
+    if Deficit > 0 then
+    begin
+      Result := Deficit div Hero.CastingPointsMax;
+      { Original bug: the remainder uses current points, not maximum points. }
+      if Deficit mod Hero.CastingPoints <> 0 then
+        Inc(Result);
+    end
+    else
+      Result := 0;
+  end
+  else
+    Result := 0;
+end;
 
 procedure TUnitSpellCaster.CanCast(A1: Integer);
-begin end;
+{ Compatibility body: Boolean result in AL; source/selection validation and casting. }
+asm
+  PUSH ebp
+  MOV ebp, esp
+  PUSH 0
+  PUSH 0
+  PUSH 0
+  PUSH ebx
+  PUSH esi
+  PUSH edi
+  MOV dword ptr [ebp - 4], edx
+  MOV esi, eax
+  XOR eax, eax
+  PUSH ebp
+  PUSH OFFSET @@L170
+  PUSH dword ptr fs:[eax]
+  MOV dword ptr fs:[eax], esp
+  MOV eax, dword ptr [AoWHSMap]
+  MOV eax, dword ptr [eax + $FC]
+  MOV edx, dword ptr [esi].TSpellCaster.FCasterSourceID
+  CALL TUnitControl.FindUnit
+  MOV ebx, eax
+  TEST ebx, ebx
+  JE @@L153
+  TEST byte ptr [ebx + $25], $10
+  JNE @@L153
+  CMP byte ptr [esi].TUnitSpellCaster.FSelectionMask, 0
+  JE @@L12C
+  MOVSX edx, byte ptr [ebx + $24]
+  MOV eax, dword ptr [AoWHSMap]
+  MOV eax, dword ptr [eax + $140]
+  CALL TPlayerList.GetPlayers
+  MOV eax, dword ptr [eax + $54]
+  CALL TPlayerMagicControl.GetCheatEnabled
+  TEST al, al
+  JNE @@L128
+  MOV eax, esi
+  CALL TUnitSpellCaster.GetRequiredMana
+  MOV edi, eax
+  MOV eax, ebx
+  CALL THero.CastingReady
+  TEST al, al
+  JE @@LA9
+  MOV eax, dword ptr [ebx + $84]
+  CMP eax, dword ptr [esi].TSpellCaster.FCasterSpellID
+  JNE @@LA9
+  MOV eax, dword ptr [AoWHSSet]
+  MOV eax, dword ptr [eax + $84]
+  MOV edx, dword ptr [esi].TSpellCaster.FCasterSpellID
+  CALL TSpellControl.GetSpell
+  SUB EDI, [EAX].TSpell.FBaseManaCost
+@@LA9:
+  MOV eax, ebx
+  MOV edx, dword ptr [eax]
+  CALL dword ptr [edx + $12C]
+  MOVSX eax, al
+  CMP edi, eax
+  JG @@L101
+  MOVSX edx, byte ptr [ebx + $24]
+  MOV eax, dword ptr [AoWHSMap]
+  MOV eax, dword ptr [eax + $140]
+  CALL TPlayerList.GetPlayers
+  MOV eax, dword ptr [eax + $54]
+  CMP edi, dword ptr [eax + $24]
+  JG @@LDA
+  MOV bl, 1
+  JMP @@L155
+@@LDA:
+  XOR ebx, ebx
+  LEA edx, [ebp - $C]
+  MOV eax, OFFSET NotEnoughManaRStr
+  CALL System.LoadResString
+  MOV eax, dword ptr [ebp - $C]
+  LEA edx, [ebp - 8]
+  CALL TranslateRStr
+  MOV edx, dword ptr [ebp - 8]
+  MOV eax, dword ptr [ebp - 4]
+  CALL System.@LStrAsg
+  JMP @@L155
+@@L101:
+  XOR ebx, ebx
+  LEA edx, [ebp - $C]
+  MOV eax, OFFSET NotEnoughCastingPointsRStr
+  CALL System.LoadResString
+  MOV eax, dword ptr [ebp - $C]
+  LEA edx, [ebp - 8]
+  CALL TranslateRStr
+  MOV edx, dword ptr [ebp - 8]
+  MOV eax, dword ptr [ebp - 4]
+  CALL System.@LStrAsg
+  JMP @@L155
+@@L128:
+  MOV bl, 1
+  JMP @@L155
+@@L12C:
+  XOR ebx, ebx
+  LEA edx, [ebp - $C]
+  MOV eax, OFFSET NoUnitSelectedRStr
+  CALL System.LoadResString
+  MOV eax, dword ptr [ebp - $C]
+  LEA edx, [ebp - 8]
+  CALL TranslateRStr
+  MOV edx, dword ptr [ebp - 8]
+  MOV eax, dword ptr [ebp - 4]
+  CALL System.@LStrAsg
+  JMP @@L155
+@@L153:
+  XOR ebx, ebx
+@@L155:
+  XOR eax, eax
+  POP edx
+  POP ecx
+  POP ecx
+  MOV dword ptr fs:[eax], edx
+  PUSH OFFSET @@L177
+@@L162:
+  LEA eax, [ebp - $C]
+  MOV edx, 2
+  CALL System.@LStrArrayClr
+  RET
+@@L170:
+  JMP System.@HandleFinally
+  JMP @@L162
+@@L177:
+  MOV eax, ebx
+  POP edi
+  POP esi
+  POP ebx
+  MOV esp, ebp
+  POP ebp
+  RET
+end;
 
 procedure TUnitSpellCaster.Cast;
-begin end;
+{ Compatibility body: Boolean result in AL; source/selection validation and casting. }
+asm
+  PUSH ebp
+  MOV ebp, esp
+  ADD esp, -$C
+  PUSH ebx
+  PUSH esi
+  PUSH edi
+  XOR edx, edx
+  MOV dword ptr [ebp - 8], edx
+  MOV ebx, eax
+  XOR eax, eax
+  PUSH ebp
+  PUSH OFFSET @@LE5
+  PUSH dword ptr fs:[eax]
+  MOV dword ptr fs:[eax], esp
+  LEA edx, [ebp - 8]
+  MOV eax, ebx
+  MOV ecx, dword ptr [eax]
+  CALL dword ptr [ecx + $4C]
+  TEST al, al
+  JE @@LCD
+  MOV eax, dword ptr [AoWHSMap]
+  MOV eax, dword ptr [eax + $FC]
+  MOV edx, dword ptr [ebx].TSpellCaster.FCasterSourceID
+  CALL TUnitControl.FindUnit
+  MOV dword ptr [ebp - $C], eax
+  CMP dword ptr [ebp - $C], 0
+  JE @@LC9
+  XOR ecx, ecx
+  MOV dl, 1
+  MOV eax, dword ptr [P4UnitSelectionClass]
+  CALL TEChangeNotifyNode.Create
+  MOV dword ptr [ebp - 4], eax
+  MOV eax, dword ptr [ebx].TUnitSpellCaster.FTargetUnits
+  MOV edx, dword ptr [eax]
+  CALL dword ptr [edx + $54]
+  MOV edi, eax
+  DEC edi
+  TEST edi, edi
+  JL @@L9C
+  INC edi
+  XOR esi, esi
+@@L6F:
+  MOV ecx, esi
+  MOV eax, 1
+  SHL eax, cl
+  XOR edx, edx
+  MOV dl, byte ptr [ebx].TUnitSpellCaster.FSelectionMask
+  AND eax, edx
+  JE @@L98
+  MOV edx, esi
+  MOV eax, dword ptr [ebx].TUnitSpellCaster.FTargetUnits
+  CALL TUnitList.GetUnit
+  MOV edx, eax
+  MOV eax, dword ptr [ebp - 4]
+  MOV ecx, dword ptr [eax]
+  CALL dword ptr [ecx + $AC]
+@@L98:
+  INC esi
+  DEC edi
+  JNE @@L6F
+@@L9C:
+  MOV eax, dword ptr [AoWHSSet]
+  MOV eax, dword ptr [eax + $84]
+  MOV edx, dword ptr [ebx].TSpellCaster.FCasterSpellID
+  CALL TSpellControl.GetSpell
+  MOV ecx, dword ptr [ebp - 4]
+  MOV edx, dword ptr [ebp - $C]
+  MOV ebx, dword ptr [eax]
+  CALL dword ptr [ebx + $A8]
+  MOV ebx, eax
+  MOV eax, dword ptr [ebp - 4]
+  CALL TObject.Free
+  JMP @@LCF
+@@LC9:
+  MOV bl, 1
+  JMP @@LCF
+@@LCD:
+  XOR ebx, ebx
+@@LCF:
+  XOR eax, eax
+  POP edx
+  POP ecx
+  POP ecx
+  MOV dword ptr fs:[eax], edx
+  PUSH OFFSET @@LEC
+@@LDC:
+  LEA eax, [ebp - 8]
+  CALL System.@LStrClr
+  RET
+@@LE5:
+  JMP System.@HandleFinally
+  JMP @@LDC
+@@LEC:
+  MOV eax, ebx
+  POP edi
+  POP esi
+  POP ebx
+  MOV esp, ebp
+  POP ebp
+  RET
+end;
 
-procedure TUnitSpellCaster.Valid;
-begin end;
+function TUnitSpellCaster.Valid: Boolean;
+{ Original 5577A7F0 saves Self in EBX even though it is used only before FindUnit.
+  Direct calls, separate Control/ID/This locals, ancestor/descendant casts, with
+  and reversed Boolean branches all omit that save with this compiler. }
+var
+  Source: TAbstractUnit;
+begin
+  Source := PP4MapUnitControl(AoWHSMap)^.UnitControl.FindUnitResult(FCasterSourceID);
+  if (Source = nil) or ((Byte(Source.FUnitStatus) and $10) <> 0) then
+    Result := False
+  else
+    Result := True;
+end;
 
 class function TUnitSpellCA.ClassID: Integer;
 begin Result := 0; end;
@@ -2084,28 +3511,74 @@ procedure TEnchantmentList.FindID;
 begin end;
 
 procedure TPowerSource.Name(A1: Integer);
-begin end;
+begin
+  P4LongString(Pointer(A1))^ := '';
+end;
 
 procedure TPowerSource.Power;
-begin end;
+asm
+  XOR EAX, EAX
+end;
 
 procedure TPowerSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+begin
+  P4ShortInt(Pointer(A1))^ := -1;
+  P4ShortInt(Pointer(A2))^ := -1;
+  P4ShortInt(Pointer(A3))^ := -1;
+end;
 
 procedure TPowerSource.CenterToLocation(A1: Integer; A2: Integer);
-begin end;
+{ A1 and A2 are unused draft parameters; the original takes no explicit arguments. }
+asm
+  PUSH EBX
+  PUSH ECX
+  LEA EDX, [ESP + 2]
+  PUSH EDX
+  LEA ECX, [ESP + 5]
+  LEA EDX, [ESP + 4]
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $54]
+  CMP BYTE PTR [ESP], $FF
+  JE @@Done
+  MOVSX EAX, BYTE PTR [ESP + 2]
+  PUSH EAX
+  MOVSX ECX, BYTE PTR [ESP + 5]
+  MOVSX EDX, BYTE PTR [ESP + 4]
+  MOV EAX, [AoWHSMap]
+  MOV EBX, [EAX]
+  CALL DWORD PTR [EBX + $BC]
+  MOV AL, BYTE PTR [ESP + 2]
+  PUSH EAX
+  MOV CL, BYTE PTR [ESP + 5]
+  MOV DL, BYTE PTR [ESP + 4]
+  MOV EAX, [AoWHSMap]
+  CALL TAbstractAoWHSMap.PlayCenterAnimation
+@@Done:
+  POP EDX
+  POP EBX
+end;
 
 procedure TPowerSource.Select(A1: Integer; A2: Integer);
 begin end;
 
 procedure TPowerSourceList.GetItems(A1: Integer);
-begin end;
+asm
+  MOV EAX, [EAX + 8]
+  MOV EAX, [EAX + 4]
+  MOV EAX, [EAX + EDX * 4]
+end;
 
 procedure TExternalPowerSource.Name(A1: Integer);
-begin end;
+begin
+  P4TranslateInto(P4ExternalPowerRStr, P4LongString(Pointer(A1))^);
+end;
 
 procedure TExternalPowerSource.Power;
-begin end;
+{ The external control's unmarked P1 fields retain their existing declaration. }
+asm
+  MOV EAX, [EAX].TExternalPowerSource.FExternalPowerControl
+  MOV EAX, [EAX + $1C]
+end;
 
 constructor TPlayerMagicEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -2134,8 +3607,13 @@ begin end;
 procedure TPlayerMagicControl.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TPlayerMagicControl.GetCheatEnabled;
-begin end;
+function TPlayerMagicControl.GetCheatEnabled: Boolean;
+begin
+  if TPlayer(F_PlayerMagicControl_10).FPlayerType = ptHuman then
+    Result := Boolean(F_PlayerMagicControl_0C)
+  else
+    Result := False;
+end;
 
 procedure TPlayerMagicControl.SetActiveEnchantments(A1: Byte; A2: Integer);
 begin end;

@@ -442,25 +442,25 @@ begin
     $5579E2CE, $5579E301, $5579E344 consume EAX as the returned spell.
     TSpell.$28 is TSFXLibrary; TSpell.$2C is TImageSequenceList. }
   if TImageSequenceList(LookupSpell(
-    TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_2C).
+    TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FCastImages).
     ImageSequences[0] <> nil then
   begin
     Animation := TImageSequenceAnimation.Create(nil);
     { needs: TImageSequenceAnimation.SetImageSequence(Value: TImageSequence). }
     Animation.SetImageSequence(Integer(TImageSequenceList(
       LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_2C).
+      TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FCastImages).
       ImageSequences[0]));
     SpellHSMap^.PlaceHX(Animation, X, Y, Layer);
   end;
   TSFXLibrary(LookupSpell(
-    TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_28).Play(0);
+    TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FCastSounds).Play(0);
 end;
 
 constructor TGlobalTargetSpell.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_Spell_22 := 2;
+  FSpellType := stGlobal;
 end;
 
 procedure TGlobalTargetSpell.ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc);
@@ -563,13 +563,13 @@ begin
     Caption := TSpellNameView(Pointer(Self)^).Name;
     CancelCaption := SpellTranslate(SpellCancelRStr);
     Preview := TImageSequenceList(LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), F_Spell_10).F_Spell_2C).
+      TSpellControl(SpellHSSet^.FSpellControl), FSpellID).FCastImages).
       ImageSequences[20].GetPreviewImage;
     ValidPreview := TImageSequenceList(LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), F_Spell_10).F_Spell_2C).
+      TSpellControl(SpellHSSet^.FSpellControl), FSpellID).FCastImages).
       ImageSequences[21].GetPreviewImage;
     InvalidPreview := TImageSequenceList(LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), F_Spell_10).F_Spell_2C).
+      TSpellControl(SpellHSSet^.FSpellControl), FSpellID).FCastImages).
       ImageSequences[22].GetPreviewImage;
   end;
 end;
@@ -683,7 +683,7 @@ begin
       if Ice <> nil then
       begin
         Ice.F_FrozenWaterHS_0C := (SpellMapRandom(SpellHSMap^, 11) - 5) div 5 + 3;
-        Ice.F_FrozenWaterHS_0D := F_SpellTE_18;
+        Ice.F_FrozenWaterHS_0D := FEventPlayerIndex;
       end;
     end;
 end;
@@ -702,7 +702,7 @@ begin
       SpellHSMap^.PlaceHX(Ice, MapF.Xhx, MapF.Yhx, MapF.Lhx);
     end;
     Ice.F_FrozenWaterHS_0C := (SpellMapRandom(SpellHSMap^, 11) - 5) div 5 + 3;
-    Ice.F_FrozenWaterHS_0D := F_SpellTE_18;
+    Ice.F_FrozenWaterHS_0D := FEventPlayerIndex;
   end;
 end;
 
@@ -722,7 +722,7 @@ begin
   begin
     Twinkle := TTwinkleAnimation.Create(nil);
     SpellTwinkleSetup(Twinkle, TImageSequenceList(LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), 10).F_Spell_2C).ImageSequences[0],
+      TSpellControl(SpellHSSet^.FSpellControl), 10).FCastImages).ImageSequences[0],
       [tmExpand], 100, 64, 50, 30);
     SpellHSMap^.PlaceHX(Twinkle, TSpellLocation(FLocation).X,
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
@@ -731,12 +731,12 @@ begin
   if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.FPlayer) or
     TSpellMapCalls(SpellHSMap^).WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
-    TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 10).F_Spell_28).Play(0);
+    TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 10).FCastSounds).Play(0);
   SpellHSMap^.ChangeTerrainEx(nil, TSpellLocation(FLocation).X,
     TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer, 1,
     ChangeTerrain, TerrainChanged);
-  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).
-    CastingDone(A1, F_SpellTE_1C);
+  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).
+    CastingDone(TAbstractUnit(A1), FEventMana);
   { needs: TSpellTE.Process returns a result in EAX (zero for this event). }
   asm XOR EAX, EAX end;
 end;
@@ -749,10 +749,10 @@ constructor TFreezeWater.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(FreezeWaterRStr);
-  F_Spell_10 := 10;
-  F_Spell_14 := 5;
-  F_Spell_21 := 3;
-  F_Spell_20 := 6;
+  FSpellID := 10;
+  FBaseManaCost := 5;
+  FSpellLevel := 3;
+  FMagicSphere := msWater;
 end;
 
 procedure TFreezeWater.ValidTargetMapF(A1: Integer);
@@ -863,8 +863,8 @@ var
   Event: TFreezeWaterTE;
 begin
   Event := TFreezeWaterTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -919,8 +919,8 @@ procedure TFireBarrierTE.Process(A1: Integer; A2: Integer);
 begin
   inherited Process(A1, A2);
   CreateFireBarrier;
-  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).
-    CastingDone(A1, LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_14);
+  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).
+    CastingDone(TAbstractUnit(A1), LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FBaseManaCost);
   asm XOR EAX, EAX end;
 end;
 
@@ -928,10 +928,10 @@ constructor TFireBarrier.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(FireBarrierRStr);
-  F_Spell_10 := 11;
-  F_Spell_14 := 5;
-  F_Spell_21 := 3;
-  F_Spell_20 := 5;
+  FSpellID := 11;
+  FBaseManaCost := 5;
+  FSpellLevel := 3;
+  FMagicSphere := msFire;
 end;
 
 procedure TFireBarrier.ValidTargetMapF(A1: Integer);
@@ -1044,8 +1044,8 @@ var
   Event: TFireBarrierTE;
 begin
   Event := TFireBarrierTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -1086,8 +1086,8 @@ begin
   inherited Process(A1, A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X, TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   LevelTerrain;
-  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).
-    CastingDone(A1, LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_14);
+  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).
+    CastingDone(TAbstractUnit(A1), LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FBaseManaCost);
   asm XOR EAX, EAX end;
 end;
 
@@ -1095,10 +1095,10 @@ constructor TLevelTerrain.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(LevelTerrainRStr);
-  F_Spell_10 := 18;
-  F_Spell_14 := 5;
-  F_Spell_21 := 3;
-  F_Spell_20 := 3;
+  FSpellID := 18;
+  FBaseManaCost := 5;
+  FSpellLevel := 3;
+  FMagicSphere := msEarth;
 end;
 
 procedure TLevelTerrain.ValidTargetMapF(A1: Integer);
@@ -1215,8 +1215,8 @@ var
   Event: TLevelTerrainTE;
 begin
   Event := TLevelTerrainTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -1248,7 +1248,7 @@ begin
   begin
     Twinkle := TTwinkleAnimation.Create(nil);
     SpellTwinkleSetup(Twinkle, TImageSequenceList(LookupSpell(
-      TSpellControl(SpellHSSet^.FSpellControl), 41).F_Spell_2C).ImageSequences[0],
+      TSpellControl(SpellHSSet^.FSpellControl), 41).FCastImages).ImageSequences[0],
       [tmRotate], 100, 64, 50, 30);
     SpellHSMap^.PlaceHX(Twinkle, TSpellLocation(FLocation).X,
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
@@ -1257,12 +1257,12 @@ begin
   if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.FPlayer) or
     TSpellMapCalls(SpellHSMap^).WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
-    TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 41).F_Spell_28).Play(0);
+    TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 41).FCastSounds).Play(0);
   SpellHSMap^.ChangeTerrainEx(nil, TSpellLocation(FLocation).X,
     TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer, 2,
     RejuvenateTerrain, nil);
-  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).
-    CastingDone(A1, LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), F_SpellTE_10).F_Spell_14);
+  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).
+    CastingDone(TAbstractUnit(A1), LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), FEventSpellID).FBaseManaCost);
   { needs: TSpellTE.Process returns a result in EAX (zero for this event). }
   asm XOR EAX, EAX end;
 end;
@@ -1271,10 +1271,10 @@ constructor TRejuvenate.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(RejuvenateRStr);
-  F_Spell_10 := 41;
-  F_Spell_14 := 5;
-  F_Spell_21 := 1;
-  F_Spell_20 := 1;
+  FSpellID := 41;
+  FBaseManaCost := 5;
+  FSpellLevel := 1;
+  FMagicSphere := msLife;
   FAboveGroundOnly := True;
 end;
 
@@ -1349,8 +1349,8 @@ var
   Event: TRejuvenateTE;
 begin
   Event := TRejuvenateTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -1486,7 +1486,7 @@ var
 begin
   FAnimationFrame := 0;
   SpellHSMap^.DynamicFixedVisibleHS.AddChild(Self);
-  TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 57).F_Spell_28).Play(0);
+  TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 57).FCastSounds).Play(0);
   FUnexplored.Clear;
   if SpellHSMap^.F_AbstractAoWHSMap_C9 <> 0 then
   begin
@@ -1518,8 +1518,8 @@ begin
     HXtoHP(Xhx,Yhx,X,Y);
     X := X-XhpSurf+16;
     Y := Y-YhpSurf+16;
-    if LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).F_Spell_2C <> 0 then
-      TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).F_Spell_2C).
+    if LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).FCastImages <> nil then
+      TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).FCastImages).
         ShowLooped(1,X,Y,SpellHSMap^.Frame,SurfaceDesc);
     if FAnimationFrame <> -1 then
     begin
@@ -1550,7 +1550,7 @@ begin
         if FAnimationFrame-Delay >= 0 then
         begin
           DegreesRadToCo(Angle,Radius,Integer(@DX),Integer(@DY));
-          TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).F_Spell_2C).
+          TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).FCastImages).
             Show(0,X+DX,Y+DY,FAnimationFrame-Delay,SurfaceDesc);
         end;
       end;
@@ -1755,10 +1755,10 @@ begin
   Watcher.FEnchantment.F_GlobalEnchantment_20 :=
     LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).F_Spell_1C;
   SpellHSMap^.PlaceHX(Watcher,TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
-  if Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = F_SpellTE_18 then
+  if Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = FEventPlayerIndex then
     Watcher.StartAnimation(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
-  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),F_SpellTE_10).
-    CastingDone(A1,LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),F_SpellTE_10).F_Spell_14);
+  LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),FEventSpellID).
+    CastingDone(TAbstractUnit(A1),LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),FEventSpellID).FBaseManaCost);
   asm XOR EAX, EAX end;
 end;
 
@@ -1770,7 +1770,7 @@ constructor TWatcher.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(WatcherRStr);
-  F_Spell_10 := 57;
+  FSpellID := 57;
   FAboveGroundOnly := False;
 end;
 
@@ -1784,8 +1784,8 @@ begin
   if not Busy then
   begin
     Event := TWatcherTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,F_Spell_14);
+    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
+      TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -1918,7 +1918,7 @@ begin
           X := Round(Cos(Angle)*Radius) + XShift;
           Y := Round(Sin(Angle)*Radius*0.5) + Height;
           TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),68).
-            F_Spell_2C).Show(0,Xhp+X,Yhp-Y,0,SurfaceDesc);
+            FCastImages).Show(0,Xhp+X,Yhp-Y,0,SurfaceDesc);
           Angle := 0.035 + Angle;
         end;
       end;
@@ -1998,9 +1998,9 @@ begin
   if Step = 0 then
   begin
     Event.FAngle := 0;
-    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
-      CastingDone(Integer(Caster),LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-        Event.F_SpellTE_10).F_Spell_14);
+    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.FEventSpellID).
+      CastingDone(Caster,LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
+        Event.FEventSpellID).FBaseManaCost);
     SpellObservation(SpellHSMap^,Caster.FPlayer,
       TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,
       TSpellLocation(Event.FLocation).Layer,2);
@@ -2008,7 +2008,7 @@ begin
       SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
         TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-        Event.F_SpellTE_10).F_Spell_28).Play(0);
+        Event.FEventSpellID).FCastSounds).Play(0);
     Event.FAnimation := TAnimation.Create(nil);
     Event.FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
@@ -2053,7 +2053,7 @@ begin
       TStrings(Log.F_ArmyEventLog_20).Add(SpellTranslate(TornadoRStr));
       Log.F_ArmyEventLog_24 := 2;
       SpellLogArmy(TUnitList(Log.F_ArmyEventLog_18),TArmy(Army.F_ArmyHS_1C),Selection);
-      DistributeLocationEventLog(Integer(Log),Event.F_SpellTE_18,Army.Xhx,Army.Yhx,Army.Lhx,1);
+      DistributeLocationEventLog(Integer(Log),Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx,1);
       Log.Release;
       Location := TTornado(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),68)).
         CalculateWarpLocation(Army,Selection);
@@ -2063,18 +2063,18 @@ begin
           SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
             TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
           TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-            Event.F_SpellTE_10).F_Spell_28).Play(1);
+            Event.FEventSpellID).FCastSounds).Play(1);
         if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = Caster.FPlayer) or
           SpellVisibleForPlayer(SpellHSMap^,TSpellLocation(Event.FLocation).X,
             TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,
             TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) then
           if TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-            Event.F_SpellTE_10).F_Spell_2C).ImageSequences[1] <> nil then
+            Event.FEventSpellID).FCastImages).ImageSequences[1] <> nil then
           begin
             Anim := TImageSequenceAnimation.Create(nil);
             Anim.SetImageSequence(Integer(TImageSequenceList(LookupSpell(
-              TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
-              F_Spell_2C).ImageSequences[1]));
+              TSpellControl(SpellHSSet^.FSpellControl),Event.FEventSpellID).
+              FCastImages).ImageSequences[1]));
             SpellHSMap^.PlaceHX(Anim,TSpellLocation(Event.FLocation).X,
               TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer);
           end;
@@ -2083,12 +2083,12 @@ begin
             TSpellLocation(Location).Y,TSpellLocation(Location).Layer,
             TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) then
           if TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-            Event.F_SpellTE_10).F_Spell_2C).ImageSequences[1] <> nil then
+            Event.FEventSpellID).FCastImages).ImageSequences[1] <> nil then
           begin
             Anim := TImageSequenceAnimation.Create(nil);
             Anim.SetImageSequence(Integer(TImageSequenceList(LookupSpell(
-              TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
-              F_Spell_2C).ImageSequences[1]));
+              TSpellControl(SpellHSSet^.FSpellControl),Event.FEventSpellID).
+              FCastImages).ImageSequences[1]));
             SpellHSMap^.PlaceHX(Anim,TSpellLocation(Location).X,
               TSpellLocation(Location).Y,TSpellLocation(Location).Layer);
           end;
@@ -2137,7 +2137,7 @@ constructor TTornado.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(TornadoRStr);
-  F_Spell_10 := 68;
+  FSpellID := 68;
   FAboveGroundOnly := True;
 end;
 
@@ -2211,8 +2211,8 @@ begin
   if not Busy then
   begin
     Event := TTornadoTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,F_Spell_14);
+    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
+      TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := SpellFieldArmy(TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)));
     if Army <> nil then Event.FArmyID := SpellArmyID(TArmy(Army.F_ArmyHS_1C),$FF);
@@ -2317,7 +2317,7 @@ begin
           X := Round(Cos(Angle)*Radius) + XShift;
           Y := Round(Sin(Angle)*Radius / 1.75) + Height;
           TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),70).
-            F_Spell_2C).Show(0,Xhp+X,Yhp-Y,0,SurfaceDesc);
+            FCastImages).Show(0,Xhp+X,Yhp-Y,0,SurfaceDesc);
           Angle := 0.035 + Angle;
         end;
       end;
@@ -2351,9 +2351,9 @@ begin
   if Step = 0 then
   begin
     Event.FAngle := 0;
-    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
-      CastingDone(Integer(Caster),LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-        Event.F_SpellTE_10).F_Spell_14);
+    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.FEventSpellID).
+      CastingDone(Caster,LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
+        Event.FEventSpellID).FBaseManaCost);
     SpellObservation(SpellHSMap^,Caster.FPlayer,
       TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,
       TSpellLocation(Event.FLocation).Layer,2);
@@ -2361,7 +2361,7 @@ begin
       SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
         TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-        Event.F_SpellTE_10).F_Spell_28).Play(0);
+        Event.FEventSpellID).FCastSounds).Play(0);
     Event.FAnimation := TAnimation.Create(nil);
     Event.FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
@@ -2425,7 +2425,7 @@ constructor TVortex.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(VortexRStr);
-  F_Spell_10  := 70;
+  FSpellID  := 70;
   FAboveGroundOnly := False;
 end;
 
@@ -2467,8 +2467,8 @@ begin
   if not Busy then
   begin
     Event := TVortexTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,F_Spell_14);
+    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
+      TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := SpellFieldArmy(TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)));
     if Army <> nil then Event.FArmyID := SpellArmyID(TArmy(Army.F_ArmyHS_1C),$FF);
@@ -2537,7 +2537,7 @@ begin
             XShift := X-Round(J*2*0.1);
             YShift := Y+Round(J*10*0.1);
             TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-              73).F_Spell_2C).Show(0,Xhp+XShift+120,Yhp+YShift-500+30,0,SurfaceDesc);
+              73).FCastImages).Show(0,Xhp+XShift+120,Yhp+YShift-500+30,0,SurfaceDesc);
           end;
       end;
     end;
@@ -2572,7 +2572,7 @@ begin
     if (TAbstractUnit(A1).FPlayer = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
       TSpellMapCalls(SpellHSMap^).WatchingTerrain(TSpellLocation(FLocation).X,
         TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer,2) then
-      TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),73).F_Spell_28).Play(0);
+      TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),73).FCastSounds).Play(0);
     FAnimation := TAnimation.Create(nil);
     FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(FAnimation)^).OnShow := ShowAnimation;
@@ -2580,8 +2580,8 @@ begin
     FAnimation.F_Animation_34 := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     FAnimation.Activate;
-    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),F_SpellTE_10).
-      CastingDone(A1,F_SpellTE_1C);
+    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),FEventSpellID).
+      CastingDone(TAbstractUnit(A1),FEventMana);
   end;
   if A2 = 50 then
   begin
@@ -2646,10 +2646,10 @@ constructor THealingShowers.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(HealingShowersRStr);
-  F_Spell_10 := 73;
-  F_Spell_14 := 5;
-  F_Spell_21 := 3;
-  F_Spell_20 := 6;
+  FSpellID := 73;
+  FBaseManaCost := 5;
+  FSpellLevel := 3;
+  FMagicSphere := msWater;
 end;
 
 procedure THealingShowers.ValidTargetMapF(A1: Integer);
@@ -2678,8 +2678,8 @@ var
   Event: THealingShowersTE;
 begin
   Event := THealingShowersTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -2694,10 +2694,10 @@ constructor TSmokeCloudSpell.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TSpellNameView(Pointer(Self)^).Name := SpellTranslate(SmokeCloudRStr);
-  F_Spell_10 := 74;
-  F_Spell_14 := 5;
-  F_Spell_21 := 3;
-  F_Spell_20 := 5;
+  FSpellID := 74;
+  FBaseManaCost := 5;
+  FSpellLevel := 3;
+  FMagicSphere := msFire;
 end;
 
 procedure TSmokeCloudSpell.ValidTargetMapF(A1: Integer);
@@ -2726,8 +2726,8 @@ var
   Event: TGlobalTargetSpellTE;
 begin
   Event := TGlobalTargetSpellTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
-    TAbstractUnit(A1).FUnitID, F_Spell_14);
+  Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
+    TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
@@ -2755,7 +2755,7 @@ begin
     SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
     TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
-      Event.F_SpellTE_10).F_Spell_28).Play(0);
+      Event.FEventSpellID).FCastSounds).Play(0);
   Resource := SpellResource(TObject(SpellHSSet^.MapObjectResourceList),$21243);
   if Resource <> nil then
   begin
@@ -2769,8 +2769,8 @@ begin
     if not SpellHSMap^.PlaceHX(Cloud,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer) then
       Cloud.Free;
-    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Spell.F_Spell_10).
-      CastingDone(Integer(Caster),Spell.F_Spell_14);
+    LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Spell.FSpellID).
+      CastingDone(Caster,Spell.FBaseManaCost);
   end;
   Result := False;
 end;
@@ -2796,15 +2796,15 @@ begin
   TEngine(A1).RegisterEClasses([TFreezeWaterTE,TFrozenWaterHS,TFireBarrierTE,
     TLevelTerrainTE,TRejuvenateTE,TWatcherTE,TWatcherHS,TTornadoTE,TVortexTE,
     THealingShowersTE,TGlobalTargetSpellTE]);
-  Control.RegisterSpell(Integer(TFreezeWater.Create(nil)));
-  Control.RegisterSpell(Integer(TFireBarrier.Create(nil)));
-  Control.RegisterSpell(Integer(TLevelTerrain.Create(nil)));
-  Control.RegisterSpell(Integer(TRejuvenate.Create(nil)));
-  Control.RegisterSpell(Integer(TWatcher.Create(nil)));
-  Control.RegisterSpell(Integer(TTornado.Create(nil)));
-  Control.RegisterSpell(Integer(TVortex.Create(nil)));
-  Control.RegisterSpell(Integer(THealingShowers.Create(nil)));
-  Control.RegisterSpell(Integer(TSmokeCloudSpell.Create(nil)));
+  Control.RegisterSpell(TFreezeWater.Create(nil));
+  Control.RegisterSpell(TFireBarrier.Create(nil));
+  Control.RegisterSpell(TLevelTerrain.Create(nil));
+  Control.RegisterSpell(TRejuvenate.Create(nil));
+  Control.RegisterSpell(TWatcher.Create(nil));
+  Control.RegisterSpell(TTornado.Create(nil));
+  Control.RegisterSpell(TVortex.Create(nil));
+  Control.RegisterSpell(THealingShowers.Create(nil));
+  Control.RegisterSpell(TSmokeCloudSpell.Create(nil));
 end;
 
 procedure UnregisterGlobalTargetSpells(A1: Integer);

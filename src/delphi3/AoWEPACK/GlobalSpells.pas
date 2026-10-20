@@ -224,7 +224,7 @@ begin
   FLayer := Layer;
   FFrame := 0;
   TSFXLibrary(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),1).
-    F_Spell_28).Play(0);
+    FCastSounds).Play(0);
   GlobalSpellMap^.DynamicFixedVisibleHS.AddChild(Self);
   InitHNWalk(Walk,FX,FY,0);
   Level := GlobalSpellMap^.MapContainer.MapLevels[FLayer];
@@ -281,7 +281,7 @@ begin
       begin
         GlobalDegreesRadToCo(Direction,Radius,X,Y);
         TImageSequenceList(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),
-          57).F_Spell_2C).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
+          57).FCastImages).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
       end;
     end;
     if FFrame = 40 then StopAnimation;
@@ -301,11 +301,11 @@ constructor TConcealArea.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   TGlobalSpellNameFields(Pointer(Self)^).Name := GlobalTranslate(ConcealAreaRStr);
-  F_Spell_10 := 1;
-  F_Spell_22 := 2;
-  F_Spell_14 := 5;
-  F_Spell_21 := 1;
-  F_Spell_20 := 3;
+  FSpellID := 1;
+  FSpellType := stGlobal;
+  FBaseManaCost := 5;
+  FSpellLevel := 1;
+  FMagicSphere := msEarth;
 end;
 
 procedure TConcealArea.GetEnabled;
@@ -347,7 +347,7 @@ var
   Log: TLocationTextEventLog;
 begin
   GlobalBaseExecute(Spell,Event,Caster);
-  Spell.CastingDone(Integer(Caster),Spell.F_Spell_14);
+  Spell.CastingDone(Caster,Spell.FBaseManaCost);
   Caster.GetLocation(X,Y,Layer);
   if Caster.FPlayer = PByte(Integer(GlobalSpellMap^)+$A5)^ then
     TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
@@ -474,8 +474,8 @@ begin
       Shortint(Caster.FPlayer))) then
   begin
     Event := TSpellTE.Create(nil);
-    Event.Initialize(Spell.F_Spell_10,Caster.FPlayer,
-      Caster.FUnitID,Spell.F_Spell_14);
+    Event.Initialize(Spell.FSpellID,Caster.FPlayer,
+      Caster.FUnitID,Spell.FBaseManaCost);
     TTokenManager(GlobalSpellMap^.F_AoWHSMap_23C).
       GetTokenControl(Shortint(Caster.FPlayer)).Add(Event);
     Event.Release;
