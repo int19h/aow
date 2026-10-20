@@ -1,0 +1,18 @@
+{
+ "FUN_55401e54": "GetGalaxyProc",
+ "Galaxy.Galaxy": "Galaxy",
+ "Galaxy.Finalization": "Finalization<Galaxy",
+ "GalSndS.GalSndS": "GalSndS",
+ "GalSndS.Finalization": "Finalization<GalSndS",
+ "FUN_554045e8": "Search<TSFXManager.ExecutePathSearch",
+ "FUN_55405398": "TSampleDataList.Find",
+ "TSampleList.Destroy": "TSampleList.Destroy",
+ "FUN_5540554c": "TSampleList.Clear",
+ "FUN_55406508": "TSoundSystemList.Find",
+ "Sound.Sound": "Sound",
+ "Sound.Finalization": "Finalization<Sound",
+ "SFXEdDlg.SFXEdDlg": "SFXEdDlg",
+ "SFXEdDlg.Finalization": "Finalization<SFXEdDlg",
+ "DSound.DSound": "DSound",
+ "DSound.Finalization": "Finalization<DSound"
+}
