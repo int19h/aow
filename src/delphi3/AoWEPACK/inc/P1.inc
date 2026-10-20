@@ -427,7 +427,7 @@ var
   DictionaryFile: string;
 begin
   inherited MainReadWrite(Stream);
-  if Stream.StorageMode * [smRead, smTextOnly, smPreview] = [smRead] then
+  if Stream.StorageMode * [smRead, smTextOnly, smCompare] = [smRead] then
   begin
     DictionaryFile := AoWEngine.StartupDirectory + 'Dict\' + 'Release' + '.mld';
     { needs: P2 TranslateEObjectFromFile(Obj: TEObject; const FileName: string). }
@@ -2694,7 +2694,7 @@ begin
   FProductionControls := TProductionControlList.Create;
   FIncomeSources := TIncomeSourceList.Create(nil);
   FLeaderSetup := TLeader.Create(nil);
-  FEndTurn := False;
+  FStatus := psIdle;
   FGameOverStatus := goNone;
   FFirstDaySeen := TIntegerList.Create;
   FFirstDaySeen.Default := -1;
@@ -2711,8 +2711,8 @@ begin
   FBaseHeroJoinDay := -1;
   FHeroJoinDay := -1;
   FPlayerRace := -1;
-  F_Player_2D := $FF;
-  F_Player_2E := $FF;
+  FViewX := $FF;
+  FViewY := $FF;
 end;
 
 destructor TPlayer.Destroy;
@@ -3146,120 +3146,779 @@ begin
   FLastHeroJoinDay := AoWHSMap.FDay;
 end;
 
-procedure TPlayer.MakeHeroEmerge(A1: Integer);
-begin end;
+procedure TPlayer.MakeHeroEmerge(Mode: THeroEmergeMode);
+var
+  Chance: Integer;
+  Heroes: TDoubleItemList;
+  Log: THeroEmergeEventLog;
+  Locations: TXYLList;
+  Structure: TStructure;
+  Item: TDoubleItem;
+  I: Integer;
+  Hero: THero;
+begin
+  Heroes := TDoubleItemList.Create;
+  if Mode = hemNormal then
+    for I := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+    begin
+      Hero := AoWHSMap.FHeroControl.GetHero(I);
+      if not (hsDied in Hero.FHeroStatus) and (Hero.FPlayer <= 0) and
+        (Hero.Owner = nil) and Hero.CanJoin(FPlayerIndex) then
+      begin
+        Chance := GetHeroJoinChance(Hero.GetLevel);
+        if (Chance > 0) and (Hero.JoinAmount(FPlayerIndex) < FGems) then
+          Heroes.AddAB(Integer(Hero), Chance * Chance);
+      end;
+    end
+  else if Mode = hemFirstHero then
+    for I := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+    begin
+      Hero := AoWHSMap.FHeroControl.GetHero(I);
+      if not (hsDied in Hero.FHeroStatus) and (Hero.FPlayer <= 0) and
+        (Hero.Owner = nil) and Hero.GetAbilityEnabled($34) and
+        (Hero.GetLevel >= 2) and (Hero.GetLevel <= 3) then
+        if (AoWHSMap.FRaces.GetRace(Hero.FRace).GetPlayerRelation(FPlayerIndex) in
+          [sPolite, sFriendly]) and (Hero.JoinAmount(FPlayerIndex) < FGems) then
+          Heroes.AddAB(Integer(Hero), (Hero.GetLevel - 2) * 1000 + 1);
+    end;
+  if Heroes.Count <> 0 then
+  begin
+    Locations := TXYLList.Create;
+    for I := FStructures.Count - 1 downto 0 do
+    begin
+      Structure := FStructures.GetStructure(I);
+      if Structure.ClassID = $20108 then
+        Locations.AddXYL(Structure.GetXhx, Structure.GetYhx, Structure.GetLhx);
+    end;
+    if Locations.Count <> 0 then
+    begin
+      FLastHeroEmergeDay := AoWHSMap.FDay;
+      RandSeed := AoWHSMap.Random($FFFFF);
+      I := Heroes.RandomChanceItemB(0);
+      Item := Heroes[I];
+      Hero := THero(Item.A);
+      I := AoWHSMap.Random(Locations.Count);
+      FEmergingHeroID := Hero.FUnitID;
+      Hero.UpdateSettings;
+      Hero.Place(Locations[I].X, Locations[I].Y, Locations[I].L,
+        0, [pmScanArea, pmCreateNewArmy]);
+      Structure := TStructure(AoWHSMap.MapContainer.GetField(
+        Locations[I].X, Locations[I].Y, Locations[I].L).
+        FindNoneTransparentHS(TStructure));
+      Log := THeroEmergeEventLog.Create(nil);
+      Log.Setup(Hero, FPlayerIndex, hjmEmerged);
+      if Structure <> nil then Log.FLocationName := Structure.GetName
+      else Log.FLocationName := TranslateRStr(UnknownRStr);
+      FEventLogbook.AddEvent(Log);
+      if (FPlayerIndex = AoWHSMap.FSeatedPlayer) and
+        (AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).FPlayerType = ptHuman) then
+        Log.Execute(False, etEvent, nil);
+      Log.Release;
+    end;
+    Locations.Free;
+  end;
+  Heroes.Free;
+end;
 
 procedure TPlayer.UpdateHeroJoin;
-begin end;
+var
+  I, Days: Integer;
+begin
+  for I := FHeroes.Count - 1 downto 0 do
+    if FHeroes.GetHero(I).GetLevel > FHighestHeroLevel then
+      FHighestHeroLevel := FHeroes.GetHero(I).GetLevel;
+  FBaseHeroJoinLevel := AoWHSMap.FPlayers.GetAverageHeroLevel;
+  if FBaseHeroJoinLevel = 0 then
+    FBaseHeroJoinLevel := AoWHSMap.FHeroControl.GetMinFreeHeroLevel;
+  if FHighestHeroLevel <> 0 then
+    FBaseHeroJoinLevel := (FBaseHeroJoinLevel + FHighestHeroLevel + 1) div 2;
+  if FHeroes.Count = GetHeroCountMax then ResetBaseHeroJoinDay;
+  FEmergingHeroID := 0;
+  Days := GetIdealHeroEmergeDay - AoWHSMap.FDay;
+  if (AoWHSMap.FDay = 1) and (FHeroes.Count = 1) and not AoWHSMap.FFixedLeaders then
+  begin
+    MakeHeroEmerge(hemFirstHero);
+    Exit;
+  end;
+  if Days <= 0 then
+    if AoWHSMap.Random(4) = 1 then MakeHeroEmerge(hemNormal);
+end;
 
-procedure TPlayer.GetHeroJoinChance(A1: Integer);
-begin end;
+function TPlayer.GetHeroJoinChance(Level: Integer): Integer;
+var
+  Maximum: Integer;
+begin
+  Maximum := GetHeroJoinLevelMax;
+  if Level <= Maximum then
+  begin
+    Result := Round((Maximum + 2) / (Level + 2) * 20);
+    if Result > 40 then Result := 40;
+  end
+  else Result := 0;
+end;
 
-procedure TPlayer.GetHeroJoinLevelMax(A1: Integer; A2: Integer);
-begin end;
+function TPlayer.GetHeroJoinLevelMax: Integer;
+var
+  Days: Integer;
+begin
+  Result := FBaseHeroJoinLevel;
+  Days := AoWHSMap.FDay - GetIdealHeroJoinDay;
+  if Days > 0 then Inc(Result, Days div 5);
+  if Days < 0 then
+  begin
+    Inc(Result, Round((Result * Days + 2.5) / 5));
+    if Result < 0 then Result := 0;
+  end;
+  if (Result < 3) and not AoWHSMap.FFixedLeaders and (AoWHSMap.FDay = 1) then
+    Result := 3;
+end;
 
 procedure TPlayer.ValidateLeader;
-begin end;
+var
+  FaceIndex, ResourceIndex: Integer;
+  HeroType: THeroType;
+  Name: string;
+begin
+  if (AoWHSMap <> nil) and (FPlayerIndex <> 0) then
+  begin
+    HeroType := htHeroLeader;
+    if (FLeader <> nil) and (FLeader.GetHeroType <> HeroType) then
+    begin
+      Name := FLeader.FHeroName;
+      FaceIndex := FLeader.FFaceIndex;
+      FLeader.Deactivate;
+      ResourceIndex := AoWHSSet.FHeroResources.Find(FPlayerRace, HeroType);
+      FLeader.SetHeroResourceIndex(ResourceIndex);
+      FLeader.FHeroName := Name;
+      FLeader.SetFaceIndex(FaceIndex);
+      FLeader.Activate;
+    end
+    else if FLeader = nil then
+    begin
+      ResourceIndex := AoWHSSet.FHeroResources.Find(FPlayerRace, HeroType);
+      if ResourceIndex <> -1 then
+      begin
+        FLeader := TLeader.Create(nil);
+        FLeader.SetHeroResourceIndex(ResourceIndex);
+        FLeader.FPlayer := FPlayerIndex;
+        FLeader.Activate;
+      end;
+    end
+    else if (FLeader <> nil) and not AoWHSMap.FFixedLeaders and
+      (AoWHSMap.FGameType <> gtCampaign) and not (msEditting in AoWHSMap.Status) then
+      FLeader.Owner := nil;
+  end;
+end;
 
-procedure TPlayer.SetLeader(A1: Integer);
-begin end;
+procedure TPlayer.SetLeader(Value: TLeader);
+begin
+  FLeader := Value;
+end;
 
-procedure TPlayer.SetRace(A1: Byte);
-begin end;
+procedure TPlayer.SetRace(Value: Shortint);
+begin
+  FPlayerRace := Value;
+end;
 
-procedure TPlayer.SetEndTurn(A1: Byte);
-begin end;
+procedure TPlayer.SetEndTurn(Value: Boolean);
+begin
+  if Value <> FSingleProcessCycle then
+  begin
+    FSingleProcessCycle := Value;
+    AoWHSMap.TriggerEndTurnEvent(FPlayerIndex);
+  end;
+end;
 
 procedure TPlayer.UpdateLogbook;
-begin end;
+begin
+  while (FEventLogbook.GetCount <> 0) and
+    (AoWHSMap.FDay - FEventLogbook.GetLogs(0).FDay >= 3) do
+    FEventLogbook.RemoveEvent(FEventLogbook.GetLogs(0));
+end;
 
 procedure TPlayer.UpdateTurnInfo;
-begin end;
+var
+  Info: TTurnInfoItem;
+  I, J: Integer;
+  Army: TArmy;
+  AUnit: TAbstractUnit;
+begin
+  Info := TTurnInfoItem.Create(FStatistics.FTurnInfo);
+  if FGameOverStatus <> goLost then
+  begin
+    Info.FGold := FGems;
+    Info.FMana := FMagicControl.FMana;
+    Info.FStructures := FStructures.Count;
+    Info.FHeroes := FHeroes.Count;
+    for I := 0 to FArmies.Count - 1 do
+    begin
+      Army := FArmies.GetArmy(I);
+      for J := Army.Count - 1 downto 0 do
+      begin
+        AUnit := Army.GetUnit(J);
+        if Info.FArmyStrength < $3FFFFFFF then
+          Inc(Info.FArmyStrength, AUnit.GetStrengthMax(dtAll - [dtWall]));
+      end;
+    end;
+  end;
+end;
 
 procedure TPlayer.UpdateAlliedPlayersSeen;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if I <> FPlayerIndex then
+      if AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayerIndex, I) = drAlliance then
+        PlayerSeen(I);
+end;
 
 procedure TPlayer.SetupAIValidAttackPlayers;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if I <> FPlayerIndex then
+      FAIValidAttackPlayers[I] := FDiplomaticRelations.GetDiplomaticRelation(I) = drWar;
+end;
 
 procedure TPlayer.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  FDiplomaticRelations.MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20000008) and (AoWHSMap.FDay = 0) then
+  begin
+    FFirstDaySeen.Clear;
+    FLastDaySeen.Clear;
+  end;
+  if Msg.MsgID = $20020005 then ValidateLeader;
+  if Msg.MsgID = $20020001 then
+    try
+      UpdateLogbook;
+      if AoWHSMap.FDay = 1 then
+      begin
+        FViewX := $FF;
+        if (AoWHSMap.FGameType <> gtCampaign) and not AoWHSMap.FFixedLeaders and
+          (FLeader <> nil) then
+        begin
+          FLeader.Owner := nil;
+          FMagicControl.UnregisterPowerSource(FLeader.FPowerSource);
+          FHeroes.RemoveChild(Self); { Original removes the player, not the leader. }
+        end;
+        UpdateAlliedPlayersSeen;
+        SetupAIValidAttackPlayers;
+      end;
+    except
+    end;
+  if Msg.MsgID = $20020103 then
+    if not Validate(TStrings(Msg.Value)) then Msg.Data[0] := 1;
+  if (Msg.MsgID = $20020002) and (Msg.Value = FPlayerIndex) then
+    UpdateAlliedPlayersSeen;
+  if (Msg.MsgID = $20020003) and (Msg.Value = FPlayerIndex) then
+  begin
+    UpdateTurnInfo;
+    if FPlayerIndex <> 0 then UpdateHeroJoin;
+  end;
+  if (Msg.MsgID = $20000008) and (AoWHSMap.FDay = 0) then
+  begin
+    FViewX := $FF;
+    FViewY := $FF;
+    FViewL := $FF;
+  end;
+  FMagicControl.MsgProc(Msg, Sender);
+  FAIControl.MsgProc(Msg, Sender);
+  FAIBudget.MsgProc(Msg, Sender);
+  FEventLogbook.MsgProc(Msg, Sender);
+end;
 
 procedure TPlayer.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  X, Y, L: Integer;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayerRace), 2);
+  Stream.rwData(FPlayerType, 1, 3);
+  Stream.rwBool(FParticipating, 4);
+  Stream.rwInteger(FInitialGold, 5);
+  Stream.rwInteger(FBaseIncome, 6);
+  Stream.rwData(FStatus, 1, $A);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FSettings, $B);
+  Stream.rwString(FDescription, $C);
+  Stream.rwInteger(FGems, $10);
+  Stream.rwByte(Byte(FPlayerIndex), $12);
+  if (AoWEngine.Status * [esLoadingHSM, esSavingHSM] <> []) or
+    (smTextOnly in Stream.StorageMode) then
+    if not (smWrite in Stream.StorageMode) then
+    begin
+      Stream.rwCreateEObject(TEObject(FLeader), nil, $13);
+      if (FLeader <> nil) and not (smPreview in Stream.StorageMode) then
+      begin
+        FLeader.FPlayer := FPlayerIndex;
+        AoWHSMap.FHeroControl.RegisterHero(FLeader);
+      end;
+    end;
+  if smWrite in Stream.StorageMode then
+  begin
+    if (AoWHSMap.FSeatedPlayer = FPlayerIndex) and (AoWHSMap.FConnectionType <> pcNetwork) then
+    begin
+      AoWHSMap.GetViewCenter(X, Y, L);
+      FViewX := X; FViewY := Y; FViewL := L;
+      Stream.rwByte(FViewX, $14);
+      Stream.rwByte(FViewY, $15);
+      Stream.rwByte(FViewL, $16);
+    end;
+  end
+  else
+  begin
+    Stream.rwByte(FViewX, $14);
+    Stream.rwByte(FViewY, $15);
+    Stream.rwByte(FViewL, $16);
+  end;
+  if not (smPreview in Stream.StorageMode) then Stream.rwEObject(FEventLogbook, $17);
+  Stream.rwString(FPassword, $18);
+  Stream.rwData(FGameOverStatus, 1, $19);
+  if smRead in Stream.StorageMode then
+    Stream.rwStreamProc($1A, FLegacyNewRelations.LoadFromStream, FLegacyNewRelations.SaveToStream);
+  Stream.rwByte(Byte(FMoraleValue), $1B);
+  Stream.rwEObject(FAIControl, $1C);
+  Stream.rwData(FBehavior, 1, $1D);
+  if FPlayerIndex <> 0 then
+    if (smWrite in Stream.StorageMode) and (msEditting in AoWHSMap.Status) and
+      (FLeader <> nil) then Stream.rwEObject(FLeader, $1E)
+    else Stream.rwEObject(FLeaderSetup, $1E);
+  Stream.rwEObject(FMagicControl, $1F);
+  Stream.rwStreamProc($20, FFirstDaySeen.LoadFromStream, FFirstDaySeen.SaveToStream);
+  Stream.rwStreamProc($21, FLastDaySeen.LoadFromStream, FLastDaySeen.SaveToStream);
+  Stream.rwInteger(FDay, $22);
+  Stream.rwEObject(FStatistics, $23);
+  Stream.rwInteger(FBaseHeroJoinLevel, $24);
+  Stream.rwInteger(FLastHeroJoinDay, $25);
+  Stream.rwInteger(FLastHeroEmergeDay, $26);
+  Stream.rwInteger(FHighestHeroLevel, $27);
+  if smRead in Stream.StorageMode then
+  begin
+    SetRace(FPlayerRace);
+    FEventLogbook.FPlayer := FPlayerIndex;
+    FLegacyNewRelations.Default := Ord(drUnknown);
+  end;
+  Stream.rwStrings(FMessages, $28);
+  if smRead in Stream.StorageMode then
+    Stream.rwStreamProc($29, FLegacyRelations.LoadFromStream, FLegacyRelations.SaveToStream);
+  Stream.rwInteger(FEmergingHeroID, $32);
+  Stream.rwEObject(FAIBudget, $33);
+  Stream.rwEObject(FDiplomaticActions, $34);
+  Stream.rwStreamProc($35, FAIValidAttackPlayers.LoadFromStream, FAIValidAttackPlayers.SaveToStream);
+  Stream.rwEObject(FPBEMSettings, $36);
+  Stream.rwBool(FHeroEmerging, $38);
+  if (smRead in Stream.StorageMode) or (AoWHSMap.FConnectionType <> pcNetwork) then
+    Stream.rwInteger(FBaseHeroJoinDay, $39);
+  Stream.rwEObject(FDiplomaticRelations, $3A);
+  if FPlayerIndex = 0 then FPlayerType := ptIndependent;
+end;
 
 function TPlayer.GetFirstDaySeen(Player: Shortint): Integer;
-begin Result := 0; end;
+begin
+  if Player <> FPlayerIndex then
+    if Player < FFirstDaySeen.Count then Result := FFirstDaySeen[Player]
+    else Result := -1
+  else Result := 0;
+end;
 
-procedure TPlayer.GetLastDaySeen(A1: Byte);
-begin end;
+function TPlayer.GetLastDaySeen(Player: Shortint): Integer;
+begin
+  if Player <> FPlayerIndex then
+    if Player < FLastDaySeen.Count then Result := FLastDaySeen[Player]
+    else Result := -1
+  else Result := AoWHSMap.FDay;
+end;
 
-procedure TPlayer.PlayerSeen(A1: Integer);
-begin end;
+procedure TPlayer.PlayerSeen(Player: Shortint);
+begin
+  if not (msEditting in AoWHSMap.Status) and
+    ((Player >= FLastDaySeen.Count) or (FLastDaySeen[Player] <> AoWHSMap.FDay)) then
+  begin
+    FLastDaySeen[Player] := AoWHSMap.FDay;
+    if GetFirstDaySeen(Player) = -1 then FFirstDaySeen[Player] := AoWHSMap.FDay;
+  end;
+end;
 
-procedure TPlayer.GetLeaderLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TPlayer.GetLeaderLocation(var X, Y, L: Shortint);
+begin
+  if (FLeader <> nil) and (FLeader.Owner <> nil) then
+    TUnitList(FLeader.Owner).GetLocation(X, Y, L)
+  else
+  begin
+    X := -1;
+    Y := -1;
+    L := -1;
+  end;
+end;
 
 function TPlayer.GetLocal: Boolean;
-begin Result := False; end;
+var
+  Control: TPlayerCommunicationControl;
+begin
+  Control := AoWHSMap.FPlayerCommunicator.PCC;
+  if Control <> nil then
+    case Control.GetPlayers(FPlayerIndex).ConnectionMode of
+      cmLocal, cmGlobal: begin Result := True; Exit; end;
+    else Result := False;
+    end
+  else Result := True;
+end;
 
-procedure TPlayer.RegisterVictoryLocation;
-begin end;
+procedure TPlayer.RegisterVictoryLocation(Structure: TPlayerStructure);
+begin
+  FVictoryLocations.AddChild(Structure);
+end;
 
-procedure TPlayer.UnregisterVictoryLocation;
-begin end;
+procedure TPlayer.UnregisterVictoryLocation(Structure: TPlayerStructure);
+begin
+  FVictoryLocations.RemoveChild(Structure);
+end;
 
 procedure TPlayer.CheckCaptureLocations;
-begin end;
+begin
+  if AoWHSMap.FVictoryCondition = vcCaptureLocations then
+    if CaptureLocationsLeft = 0 then AoWHSMap.GameOver(FPlayerIndex, goWon);
+end;
 
-procedure TPlayer.CaptureLocationsLeft;
-begin end;
+function TPlayer.CaptureLocationsLeft: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FVictoryLocations.Count - 1 do
+    if FVictoryLocations.GetStructure(I).FPlayer <> FPlayerIndex then
+      if not ((FVictoryLocations.GetStructure(I).FPlayer > 0) and
+        (AoWHSMap.FPlayers.GetDiplomaticRelation(
+          FVictoryLocations.GetStructure(I).FPlayer, FPlayerIndex) = drAlliance) and
+        AoWHSMap.FAlliedVictory) then Inc(Result);
+end;
 
 function TPlayer.CreateDiplomaticAction(Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
-begin Result := nil; end;
+begin
+  if AoWHSMap.FPlayers.GetPlayers(Target).FStatus = psPlaying then
+  begin
+    Result := TDiplomaticAction.Create(nil);
+    Result.FSource := FPlayerIndex;
+    Result.FTarget := Target;
+    Result.FOtherPlayer := Other;
+    Result.FActionType := Action;
+    RetrieveDefaultDiplomaticActionMessage(FPlayerIndex, Target, Other,
+      Action, darNone, Result.FMessage);
+  end
+  else Result := nil;
+end;
 
-procedure TPlayer.DiplomaticActionAleadySend(A1: Byte; A2: Byte; A3: Integer);
-begin end;
+function TPlayer.DiplomaticActionAleadySend(Action: TDiplomaticActionType; Target, Other: Shortint): Boolean;
+var
+  Logbook: TEventLogbook;
+  I: Integer;
+  Item: TDiplomaticAction;
+begin
+  Logbook := AoWHSMap.FPlayers.GetPlayers(Target).FEventLogbook;
+  Result := False;
+  I := Logbook.GetCount;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    if Logbook.GetLogs(I).FDay = AoWHSMap.FDay then
+      if Logbook.GetLogs(I) is TDiplomaticActionEventLog then
+      begin
+        Item := TDiplomaticActionEventLog(Logbook.GetLogs(I)).FAction;
+        Result := (Item.FActionType = Action) and
+          (Item.FSource = FPlayerIndex) and (Item.FTarget = Target) and
+          ((Other = -1) or (Item.FOtherPlayer = Other));
+      end;
+  end;
+end;
 
-procedure TPlayer.ListDiplomaticActions(A1: Integer; A2: Integer);
-begin end;
+function TPlayer.ListDiplomaticActions(Player: Shortint; var Actions: TDiplomaticActionList): Integer;
+var
+  Count, I: Integer;
+  Relation: TDiplomaticRelation;
+  Action: TDiplomaticAction;
+begin
+  if (Player <> FPlayerIndex) and (GetFirstDaySeen(Player) <> -1) then
+  begin
+    Count := Actions.Count;
+    Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, FPlayerIndex);
+    if (FPlayerType = ptHuman) and (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) then
+    begin
+      Action := CreateDiplomaticAction(daSendMessage, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    if (Relation in [drWar, drUnknown]) and not DiplomaticActionAleadySend(daOfferPeace, Player, -1) then
+    begin
+      Action := CreateDiplomaticAction(daOfferPeace, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    if (Relation <> drWar) and (Relation <> drAlliance) then
+    begin
+      Action := CreateDiplomaticAction(daDeclareWar, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    if (Relation in [drPeace]) and not DiplomaticActionAleadySend(daProposeAlliance, Player, -1) then
+    begin
+      Action := CreateDiplomaticAction(daProposeAlliance, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    if (Relation in [drPeace, drUnknown]) and not DiplomaticActionAleadySend(daThreatenToAttack, Player, -1) then
+    begin
+      Action := CreateDiplomaticAction(daThreatenToAttack, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    Action := CreateDiplomaticAction(daMakeTribute, Player, -1);
+    if Action <> nil then
+    begin
+      Actions.AddChild(Action);
+      Action.Release;
+    end;
+    if Relation = drAlliance then
+    begin
+      Action := CreateDiplomaticAction(daBreakAlliance, Player, -1);
+      if Action <> nil then
+      begin
+        Actions.AddChild(Action);
+        Action.Release;
+      end;
+    end;
+    for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+      if (I <> Player) and (I <> FPlayerIndex) and
+        (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) then
+        if not DiplomaticActionAleadySend(daDeclareWarToY, Player, I) and
+          (AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).GetFirstDaySeen(I) <> -1) and
+          (AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(I) <> -1) and
+          (AoWHSMap.FPlayers.GetDiplomaticRelation(Player, I) in [drPeace, drUnknown]) then
+        begin
+          Action := CreateDiplomaticAction(daDeclareWarToY, Player, I);
+          if Action <> nil then
+          begin
+            Actions.AddChild(Action);
+            Action.Release;
+          end;
+        end;
+    for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+      if (I <> Player) and (I <> FPlayerIndex) and
+        (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) then
+        if not DiplomaticActionAleadySend(daBreakAllianceWithY, Player, I) and
+          (AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).GetFirstDaySeen(I) <> -1) and
+          (AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(I) <> -1) and
+          (AoWHSMap.FPlayers.GetDiplomaticRelation(Player, I) = drAlliance) then
+        begin
+          Action := CreateDiplomaticAction(daBreakAllianceWithY, Player, I);
+          if Action <> nil then
+          begin
+            Actions.AddChild(Action);
+            Action.Release;
+          end;
+        end;
+    if (FPlayerRace = 5) and FHeroEmerging and (FPlayerType = ptHuman) and
+      (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) then
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        if (I <> Player) and (I <> FPlayerIndex) and
+          (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) and
+          (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) then
+          if (AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).GetFirstDaySeen(I) <> -1) and
+            (AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(I) <> -1) and
+            (AoWHSMap.FPlayers.GetPlayers(I).GetFirstDaySeen(Player) <> -1) then
+          begin
+            Action := CreateDiplomaticAction(daSendMessageAsY, Player, I);
+            if Action <> nil then
+            begin
+              Actions.AddChild(Action);
+              Action.Release;
+            end;
+          end;
+    Result := Actions.Count - Count;
+  end
+  else Result := 0;
+end;
 
-procedure TPlayer.ValidAttackRelation(A1: Integer; A2: Integer);
-begin end;
+function TPlayer.ValidAttackRelation(Player, IndependentRelation: Shortint): Boolean;
+begin
+  Assert(FPlayerIndex <> 0);
+  if FPlayerType in [ptCPU1, ptCPU2, ptCPU3, ptCPU4, ptCPU5] then
+    Result := FAIValidAttackPlayers[Player]
+  else
+    Result := DiplomaticRelation(FPlayerIndex, 0, Player, IndependentRelation) in
+      [drWar, drUnknown];
+end;
 
-procedure TPlayer.ChangePlayerSettings(A1: Integer);
-begin end;
+function TPlayer.ChangePlayerSettings(const Settings: string): Boolean;
+var
+  Event: TChangePlayerSettingsTE;
+begin
+  if not GetBusy then
+  begin
+    Event := TChangePlayerSettingsTE.Create(nil);
+    Event.FPlayer := FPlayerIndex;
+    Event.FSettings := Settings;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayerIndex).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 constructor TPlayerList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+  SetNumberOfPlayers(2);
+  F_PlayerList_14 := Integer(TByteList.Create);
+  FLocalHumanPlayers := TByteList.Create;
+  FActivePlayers := TByteList.Create;
+  FLocalPlayers := TByteList.Create;
+end;
 
 destructor TPlayerList.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  TByteList(F_PlayerList_14).Free;
+  FLocalHumanPlayers.Free;
+  FActivePlayers.Free;
+  FLocalPlayers.Free;
+end;
 
-procedure TPlayerList.GetDiplomaticRelationCount(A1: Integer; A2: Byte);
-begin end;
+function TPlayerList.GetDiplomaticRelationCount(Player: Shortint; Relations: TDiplomaticRelations): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if I <> Player then
+      if GetPlayers(I).FStatus = psPlaying then
+        if GetDiplomaticRelation(Player, I) in Relations then Inc(Result);
+end;
 
 function TPlayerList.GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
-{ conflict: function TPlayerList.GetDiplomaticRelation(Source, Target: Shortint): TDiplomaticRelation; }
-begin Result := drPeace; end;
+begin
+  Result := TPlayer(FChildren.List^[Player]).FDiplomaticRelations.GetDiplomaticRelation(OtherPlayer);
+end;
 
-procedure TPlayerList.SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+procedure TPlayerList.SetDiplomaticRelation(Player, OtherPlayer: Shortint; Relation: TDiplomaticRelation);
+var
+  I, J: Integer;
+begin
+  if (TPlayer(FChildren.List^[Player]).FDiplomaticRelations.GetDiplomaticRelation(OtherPlayer) <> Relation) or
+    (TPlayer(FChildren.List^[OtherPlayer]).FDiplomaticRelations.GetDiplomaticRelation(Player) <> Relation) then
+  begin
+    if Relation = drAlliance then
+      for I := 1 to Count - 1 do
+      begin
+        if (GetPlayers(Player).GetFirstDaySeen(I) = -1) and
+          (GetPlayers(OtherPlayer).GetFirstDaySeen(I) <> -1) then GetPlayers(Player).PlayerSeen(I);
+        if (GetPlayers(OtherPlayer).GetFirstDaySeen(I) = -1) and
+          (GetPlayers(Player).GetFirstDaySeen(I) <> -1) then GetPlayers(OtherPlayer).PlayerSeen(I);
+      end;
+    TPlayer(FChildren.List^[Player]).FDiplomaticRelations.SetDiplomaticRelation(OtherPlayer, Relation);
+    TPlayer(FChildren.List^[OtherPlayer]).FDiplomaticRelations.SetDiplomaticRelation(Player, Relation);
+    if Relation = drWar then
+    begin
+      TPlayer(FChildren.List^[Player]).FAIValidAttackPlayers[OtherPlayer] := True;
+      TPlayer(FChildren.List^[OtherPlayer]).FAIValidAttackPlayers[Player] := True;
+    end;
+    if Relation in [drPeace, drAlliance] then
+    begin
+      TPlayer(FChildren.List^[Player]).FAIValidAttackPlayers[OtherPlayer] := False;
+      TPlayer(FChildren.List^[OtherPlayer]).FAIValidAttackPlayers[Player] := False;
+    end;
+    AoWHSMap.FDiplomaticRelationsChangedEvents.TriggerNotifyEvents(Self);
+    for J := Count - 1 downto 1 do
+      TPlayer(FChildren.List^[J]).FMagicControl.UpdateEnemyEnchantments;
+    AoWHSMap.UpdateVisibility;
+  end;
+end;
 
-procedure TPlayerList.GetActivePlayers(A1: Integer; A2: Integer);
-begin end;
+function TPlayerList.GetActivePlayers: Integer;
+var
+  I: Integer;
+begin
+  I := 1;
+  Result := 0;
+  { Original tests the active count, not the index, and can run past the list. }
+  while Result <> FChildren.Count do
+  begin
+    if TPlayer(FChildren.List^[I]).FGameOverStatus <> goLost then Inc(Result);
+    Inc(I);
+  end;
+end;
 
 procedure TPlayerList.Update;
-begin end;
+var
+  I: Integer;
+  Player: TPlayer;
+begin
+  if AoWHSMap.FPlayerCommunicator.PCC <> nil then
+  begin
+    TByteList(F_PlayerList_14).Clear;
+    FLocalHumanPlayers.Clear;
+    FLocalPlayers.Clear;
+    FActivePlayers.Clear;
+    for I := 0 to FChildren.Count - 1 do
+    begin
+      Player := TPlayer(FChildren.List^[I]);
+      if Player.FStatus = psPlaying then
+      begin
+        if (Player.FGameOverStatus <> goLost) and (I <> 0) then FActivePlayers.Add(I);
+        if Player.GetLocal then
+        begin
+          TByteList(F_PlayerList_14).Add(I);
+          if Player.FPlayerType = ptHuman then FLocalHumanPlayers.Add(I);
+        end;
+        if Player.FPlayerType = ptHuman then FLocalPlayers.Add(I);
+      end;
+    end;
+  end;
+end;
 
 procedure TPlayerList.BeginUpdate;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    TPlayer(FChildren.List^[I]).BeginUpdate;
+end;
 
 procedure TPlayerList.EndUpdate;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    TPlayer(FChildren.List^[I]).EndUpdate;
+  Update;
+end;
 
 procedure TPlayerList.Assign(Source: Engine.TEObject; AEngine: Engine.TEngine);
-begin end;
+var
+  I: Integer;
+begin
+  SetNumberOfPlayers(TPlayerList(Source).GetNumberOfPlayers);
+  for I := 0 to FChildren.Count - 1 do
+    TPlayer(FChildren.List^[I]).Assign(TPlayerList(Source).GetPlayers(I), AoWEngine);
+end;
 
 function TPlayerList.GetPlayers(Index: Integer): TPlayer;
 begin
@@ -3268,20 +3927,68 @@ begin
   else Result := nil;
 end;
 
-procedure TPlayerList.GetActivePlayersAllied;
-begin end;
+function TPlayerList.GetActivePlayersAllied: Boolean;
+var
+  I, J: Integer;
+begin
+  Result := True;
+  I := FActivePlayers.Count;
+  while Result and (I <> 0) do
+  begin
+    Dec(I);
+    J := FActivePlayers.Count;
+    while Result and (J <> 0) do
+    begin
+      Dec(J);
+      if J <> I then Result := GetDiplomaticRelation(FActivePlayers[J], FActivePlayers[I]) = drAlliance;
+    end;
+  end;
+end;
 
-procedure TPlayerList.GetAverageHeroLevel;
-begin end;
+function TPlayerList.GetAverageHeroLevel: Integer;
+var
+  Count, I, J: Integer;
+  Player: TPlayer;
+begin
+  Count := 0;
+  Result := 0;
+  for I := 1 to FChildren.Count - 1 do
+  begin
+    Player := TPlayer(FChildren.EObjects[I]);
+    for J := Player.FHeroes.Count - 1 downto 0 do
+    begin
+      Inc(Result, Player.FHeroes.GetHero(J).GetLevel);
+      Inc(Count);
+    end;
+  end;
+  if Count <> 0 then Result := Result div Count
+  else Result := 0;
+end;
 
 function TPlayerList.GetAverageHeroCount: Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 1 to FChildren.Count - 1 do
+    Inc(Result, TPlayer(FChildren.EObjects[I]).FHeroes.Count);
+  Result := Result div (FChildren.Count - 1);
+end;
 
 function TPlayerList.GetMaxHeroCount: Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 1 to FChildren.Count - 1 do
+    if TPlayer(FChildren.EObjects[I]).FHeroes.Count > Result then
+      Result := TPlayer(FChildren.EObjects[I]).FHeroes.Count;
+end;
 
-procedure TPlayerList.GetNumberOfPlayers;
-begin end;
+function TPlayerList.GetNumberOfPlayers: Byte;
+begin
+  Result := FChildren.Count - 1;
+end;
 
 function TPlayerList.RaceToPlayer(Race: Shortint): Integer;
 var
@@ -3297,86 +4004,455 @@ begin
   end;
 end;
 
-procedure TPlayerList.SetNumberOfPlayers(A1: Integer);
-begin end;
+procedure TPlayerList.SetNumberOfPlayers(Value: Byte);
+var
+  Player: TPlayer;
+begin
+  if Value < 2 then Value := 2;
+  if Value > 12 then Value := 12;
+  while Count <= Value do
+  begin
+    Player := TPlayer.Create(nil);
+    Player.SetPlayerIndex(Count);
+    if Count = 0 then Player.FPlayerType := ptIndependent;
+    Player.FPlayerRace := Count - 1;
+    Player.SetArrayOwner(Self, Count);
+  end;
+  while Count > Value + 1 do
+  begin
+    GetPlayers(Count - 1).Destroy;
+    FChildren.Delete(Count - 1);
+  end;
+end;
 
-procedure TPlayerList.ValidateRaces(A1: Integer);
-begin end;
+procedure TPlayerList.ValidateRaces(Races: TRaceList);
+var
+  Available, Invalid: TIntegerList;
+  I, Index, DefaultRace: Integer;
+begin
+  Available := TIntegerList.Create;
+  Invalid := TIntegerList.Create;
+  for I := 0 to Races.Count - 1 do
+    if Races.GetRace(I).FEnabled then Available.Add(I);
+  for I := 1 to FChildren.Count - 1 do
+  begin
+    Index := Available.IndexOf(TPlayer(FChildren.List^[I]).FPlayerRace);
+    if Index = -1 then Invalid.Add(I)
+    else Available.Delete(Index);
+  end;
+  I := 0;
+  DefaultRace := -1;
+  while (I <> AoWHSSet.FRaceResources.Count) and (DefaultRace = -1) do
+  begin
+    if AoWHSSet.FRaceResources.GetRaceResource(I) <> nil then
+      if (Races = nil) or Races.GetRace(I).FEnabled then DefaultRace := I;
+    Inc(I);
+  end;
+  for I := 0 to Invalid.Count - 1 do
+    if Available.Count = 0 then TPlayer(FChildren.List^[Invalid[I]]).SetRace(DefaultRace)
+    else
+    begin
+      TPlayer(FChildren.List^[Invalid[I]]).SetRace(Available[0]);
+      Available.Delete(0);
+    end;
+  Invalid.Free;
+  Available.Free;
+end;
 
-procedure TPlayerList.VerifyRaces(A1: Integer; A2: Integer);
-begin end;
+function TPlayerList.VerifyRaces(Races: TRaceList): Integer;
+var
+  Valid: Boolean;
+  I, J: Integer;
+  Player: TPlayer;
+begin
+  Valid := True;
+  I := 1;
+  while Valid and (I < FChildren.Count) do
+  begin
+    Player := TPlayer(FChildren.List^[I]);
+    Valid := (Player.FPlayerRace <> -1) and Races.GetRace(Player.FPlayerRace).FEnabled;
+    if Valid then
+    begin
+      J := 1;
+      while Valid and (J <> FChildren.Count) do
+      begin
+        Valid := (J = I) or (GetPlayers(J).FPlayerRace <> Player.FPlayerRace);
+        Inc(J);
+      end;
+    end;
+    if Valid then Inc(I);
+  end;
+  if Valid then Result := 0
+  else Result := I;
+end;
 
-procedure TPlayerList.GetSuperiorPlayer(A1: Integer; A2: Integer);
-begin end;
+function TPlayerList.GetSuperiorPlayer: Shortint;
+var
+  Maximum, BestPlayer, I, Value: Integer;
+begin
+  Maximum := 0;
+  BestPlayer := -1;
+  for I := 1 to Count - 1 do
+    if GetPlayers(I).FStatus = psPlaying then
+    begin
+      Value := GetPlayers(I).GetSuperiority;
+      if Value > Maximum then
+      begin
+        Maximum := Value;
+        BestPlayer := I;
+      end;
+    end;
+  Result := BestPlayer;
+end;
 
-procedure TPlayerList.IndexOfPlayerType(A1: Integer);
-begin end;
+function TPlayerList.IndexOfPlayerType(PlayerType: TPlayerType): Integer;
+var
+  I: Integer;
+begin
+  I := Count;
+  repeat
+    if I = 0 then
+    begin
+      Result := -1;
+      Exit;
+    end;
+    Dec(I);
+  until GetPlayers(I).FPlayerType = PlayerType;
+  Result := I;
+end;
 
 constructor TLeaderSetupControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FItems := TIntegerList.Create;
+  FOriginalLeader := TLeader.Create(nil);
+  FLeader := TLeader.Create(nil);
+  FRefCount := 1;
+  FMode := [lsmLook, lsmSettings, lsmSpheres];
+  TMethod(FOnDone).Code := nil;
+  TMethod(FOnDone).Data := nil;
+end;
 
 destructor TLeaderSetupControl.Destroy;
-begin end;
+begin
+  FOriginalLeader.Free;
+  FLeader.Free;
+  FItems.Free;
+  inherited Destroy;
+end;
 
 function TLeaderSetupControl.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TLeaderSetupControl.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if Result = 0 then Destroy;
+end;
 
-procedure TLeaderSetupControl.Done;
-begin end;
+function TLeaderSetupControl.Done: Boolean;
+begin
+  if Assigned(FOnDone) then FOnDone(Self);
+  Result := True;
+end;
 
 constructor TPlayerControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDisconnectedPlayers := TDoubleItemList.Create;
+end;
 
 destructor TPlayerControl.Destroy;
-begin end;
+begin
+  if (AoWHSMap <> nil) and (AoWHSMap.FTokenManager <> nil) then
+    with AoWHSMap.FTokenManager.TokenExecuter do
+    begin
+      OnGetSyncValue := nil;
+      OnSyncError := nil;
+    end;
+  FDisconnectedPlayers.Free;
+  inherited Destroy;
+end;
 
 procedure TPlayerControl.Setup;
-begin end;
+var
+  I: Integer;
+  PCC: TLocalPCC;
+begin
+  if (AoWHSMap.FConnectionType = pcNetwork) and not (msEditting in AoWHSMap.Status) then
+  begin
+    if AoWHSMap.FPlayerCommunicator.PCC = nil then
+      raise Exception.Create('Please setup DirectPlayPCC');
+    with AoWHSMap.FTokenManager.TokenExecuter do
+    begin
+      OnGetSyncValue := Self.GetSyncValue;
+      OnSyncError := OutOfSync;
+    end;
+  end
+  else if ((msEditting in AoWHSMap.Status) or (AoWHSMap.FConnectionType in [pcLocal, pcEmail])) and
+    (AoWHSMap.FPlayerCommunicator.PCC = nil) then
+  begin
+    PCC := TLocalPCC.Create;
+    PCC.Setup(AoWHSMap.FPlayers.Count);
+    for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+      if AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman then
+        PCC.SetConnectionMode(I, cmLocal)
+      else PCC.SetConnectionMode(I, cmGlobal);
+    AoWHSMap.FPlayerCommunicator.ActivatePCC(PCC);
+    PCC.Release;
+    AoWHSMap.FPlayers.Update;
+  end;
+end;
 
-procedure TPlayerControl.GetSyncValue(A1: Integer);
-begin end;
+procedure TPlayerControl.GetSyncValue(var Value: Integer);
+begin
+  Value := AoWHSMap.FDefendersSeed;
+end;
 
-procedure TPlayerControl.OutOfSync;
-begin end;
+procedure TPlayerControl.OutOfSync(Sender: TObject);
+var
+  Log: TPlayerConnectionEventLog;
+begin
+  if AoWHSMap.FTokenManager.TokenExecuter.ActiveTC.Active then
+    if not FOutOfSyncShown then
+    begin
+      Log := TPlayerConnectionEventLog.Create(nil);
+      Log.Setup(-1, 3);
+      AoWHSMap.TriggerExecuteEventLog(Log, AoWHSMap.FCombat <> nil, nil);
+      Log.Release;
+      FOutOfSyncShown := True;
+    end
+    else AoWHSMap.FTokenManager.TokenExecuter.Lock;
+end;
 
 procedure TPlayerControl.NewFrame;
-begin end;
+begin
+  ValidateTurnTiming;
+  ValidateDisconnectedPlayers;
+end;
 
 procedure TPlayerControl.NewDay;
-begin end;
+var
+  Msg: TEMsg;
+  Log: TTextEventLog;
+  MessageLog: TMessageEventLog;
+  I: Integer;
+begin
+  Inc(AoWHSMap.FDay);
+  AoWHSMap.FPlayers.BeginUpdate;
+  AoWHSMap.LockRelationsChanged;
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+  begin
+    Log := TNewDayEventLog.Create(nil);
+    Log.FText := Format(TranslateRStr(NewDayRStr), [AoWHSMap.FDay]);
+    if (AoWHSMap.FDayLimit <> 0) and (AoWHSMap.FDayLimit - AoWHSMap.FDay <= 10) then
+      Log.FText := Log.FText + ' (' + FmtDaysLeftStr(AoWHSMap.FDayLimit - AoWHSMap.FDay) + ')';
+    Log.FPlayer := I;
+    AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Log);
+    Log.Release;
+  end;
+  if AoWHSMap.FTurnOrderMode = toChanging then AoWHSMap.GenerateNewTurnOrder;
+  if AoWHSMap.FDay = 1 then
+  begin
+    AoWHSMap.FRaces.ResetPlayerRelations;
+    if AoWHSMap.FConnectionType = pcLocal then
+    begin
+      Randomize;
+      AoWHSMap.FInitialRandomSeed := RandSeed;
+    end;
+    AoWHSMap.FDefendersSeed := AoWHSMap.FInitialRandomSeed;
+  end;
+  try
+    InitMsg(Msg, $20020001, Self);
+    AoWHSMap.SendMsg(Msg, Self);
+  except
+  end;
+  try
+    AoWHSMap.FNewDayEvents.TriggerNotifyEvents(Self);
+  except
+  end;
+  if AoWHSMap.FDayLimit = AoWHSMap.FDay then
+  begin
+    MessageLog := TMessageEventLog.Create(nil);
+    MessageLog.FTitle := TranslateRStr(InfoRStr);
+    MessageLog.FButtons := mebOk;
+    MessageLog.FLayout := melNormal;
+    MessageLog.FMessage.Text := TranslateRStr(TurnLimitReachedRStr);
+    AoWHSMap.TriggerExecuteEventLog(MessageLog, False, nil);
+    MessageLog.Release;
+    AoWHSMap.GameOver(AoWHSMap.FSeatedPlayer, goLost);
+    for I := 1 to AoWHSMap.FPlayers.Count - 1 do AoWHSMap.GameOver(I, goLost);
+  end;
+  AoWHSMap.UnlockRelationsChanged;
+  AoWHSMap.TriggerRelationsChanged;
+  AoWHSMap.FPlayers.EndUpdate;
+end;
 
 procedure TPlayerControl.AutoSave;
-begin end;
+var
+  FileName: string;
+begin
+  if AoWHSMap.FGameType = gtCampaign then
+    try
+      FileName := 'autosave.acg';
+      AoWEngine.SaveCampaign(AoWEngine.StartupDirectory + 'Save\' + FileName);
+    except
+      AoWHSMap.ShowWarning(Format(TranslateRStr(CouldNotSaveXRStr), [FileName]));
+    end
+  else
+    try
+      FileName := 'autosave.asg';
+      AoWEngine.SaveHSM(AoWEngine.StartupDirectory + 'Save\' + FileName, nil);
+    except
+      AoWHSMap.ShowWarning(Format(TranslateRStr(CouldNotSaveXRStr), [FileName]));
+    end;
+end;
 
-procedure TPlayerControl.EndTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerControl.EndTurn(Player: Shortint);
+var
+  Msg: TEMsg;
+  X, Y, L: Integer;
+  P: TPlayer;
+begin
+  AoWHSMap.LockRelationsChanged;
+  if Player = AoWHSMap.FSeatedPlayer then
+  begin
+    P := AoWHSMap.FPlayers.GetPlayers(Player);
+    P.SetEndTurn(True);
+    if P <> nil then
+    begin
+      AoWHSMap.GetViewCenter(X, Y, L);
+      P.FViewX := X; P.FViewY := Y; P.FViewL := L;
+    end;
+  end;
+  InitMsg(Msg, $20020007, Self);
+  Msg.Value := Player;
+  AoWHSMap.SendMsg(Msg, Self);
+  AoWHSMap.UnlockRelationsChanged;
+  AoWHSMap.TriggerRelationsChanged;
+end;
 
-procedure TPlayerControl.NewTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerControl.NewTurn(Player: Shortint);
+var
+  Msg: TEMsg;
+begin
+  if AoWHSMap.FDay <> 1 then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(Player).SetGems(
+      AoWHSMap.FPlayers.GetPlayers(Player).FGems +
+      AoWHSMap.FPlayers.GetPlayers(Player).FIncome -
+      AoWHSMap.FPlayers.GetPlayers(Player).GetUpkeep);
+    if AoWHSMap.FPlayers.GetPlayers(Player).FGems < 0 then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(Player).SetGems(0);
+      Dec(AoWHSMap.FPlayers.GetPlayers(Player).FMoraleValue, 5);
+      if AoWHSMap.FPlayers.GetPlayers(Player).FMoraleValue < -50 then
+        AoWHSMap.FPlayers.GetPlayers(Player).FMoraleValue := -50;
+    end
+    else AoWHSMap.FPlayers.GetPlayers(Player).FMoraleValue := 0;
+    AoWHSMap.FPlayers.GetPlayers(Player).SetEndTurn(False);
+  end;
+  Inc(AoWHSMap.FPlayers.GetPlayers(Player).FDay);
+  AoWHSMap.LockUpdateVisibility;
+  InitMsg(Msg, $20020002, Self);
+  Msg.Value := Player;
+  AoWHSMap.SendMsg(Msg, Self);
+  AoWHSMap.FNewTurnEvents.TriggerNotifyEvents(TObject(Integer(Player)));
+  InitMsg(Msg, $20020003, Self);
+  Msg.Value := Player;
+  AoWHSMap.SendMsg(Msg, Self);
+  AoWHSMap.UnLockUpdateVisibility;
+  if AoWHSMap.FDebugSave then
+    try
+      if AoWHSMap.FPlayMode = pmSimultaneous then
+      begin
+        if Player = 0 then
+          AoWEngine.SaveHSM(AoWEngine.StartupDirectory + 'DEBUG\' + AoWHSMap.FMapName +
+            IntToStr(AoWHSMap.FDay) + '_p' + IntToStr(AoWHSMap.FSeatedPlayer) +
+            '.asg', nil);
+      end
+      else
+        AoWEngine.SaveHSM(AoWEngine.StartupDirectory + 'DEBUG\' + AoWHSMap.FMapName +
+          IntToStr(AoWHSMap.FDay) + '-' + IntToStr(Player) + '_p' +
+          IntToStr(AoWHSMap.FSeatedPlayer) + '.asg', nil);
+    except
+    end;
+end;
 
 procedure TPlayerControl.StartNewMap;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    if (I = 0) or (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptIndependent) then
+      AoWHSMap.FPlayers.GetPlayers(I).FStatus := psPlaying;
+end;
 
 procedure TPlayerControl.StartLoadedMap;
 begin end;
 
-procedure TPlayerControl.SetPlayerGameOverStatus(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
+begin
+  AoWHSMap.FPlayers.GetPlayers(Player).SetGameOverStatus(Status);
+end;
 
-procedure TPlayerControl.GameOver(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerControl.GameOver(Player: Shortint; Status: TGameOverStatus);
+var
+  I: Integer;
+begin
+  if (AoWHSMap.FPlayers.GetPlayers(Player).FGameOverStatus <> Status) and
+    (AoWHSMap.FPlayers.GetPlayers(Player).FStatus <> psTerminated) then
+  begin
+    AoWHSMap.LockGameOverEvent;
+    SetPlayerGameOverStatus(Player, Status);
+    if Status = goLost then
+    begin
+      if not AoWHSMap.FAlliedVictory then
+      begin
+        if AoWHSMap.FPlayers.FActivePlayers.Count = 1 then
+          GameOver(AoWHSMap.FPlayers.FActivePlayers[0], goWon);
+      end
+      else if AoWHSMap.FPlayers.GetActivePlayersAllied then
+        for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+          if (I <> Player) and (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) and
+            (AoWHSMap.FPlayers.GetPlayers(I).FGameOverStatus <> goLost) then
+            SetPlayerGameOverStatus(I, goWon);
+    end
+    else if Status = goWon then
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        if (I <> Player) and (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) and
+          (AoWHSMap.FPlayers.GetPlayers(I).FGameOverStatus <> goLost) then
+          if (AoWHSMap.FPlayers.GetDiplomaticRelation(Player, I) = drAlliance) and
+            AoWHSMap.FAlliedVictory then SetPlayerGameOverStatus(I, goWon)
+          else SetPlayerGameOverStatus(I, goLost);
+    AoWHSMap.UnlockGameOverEvent;
+  end;
+end;
 
-procedure TPlayerControl.GameOverEventHandled(A1: Integer);
-begin end;
+procedure TPlayerControl.GameOverEventHandled(Player: Shortint);
+begin
+  AoWHSMap.FPlayers.GetPlayers(Player).FStatus := psTerminated;
+end;
 
-procedure TPlayerControl.SetSeatedPlayer(A1: Integer);
-begin end;
+procedure TPlayerControl.SetSeatedPlayer(Player: Shortint);
+begin
+  if Player <> AoWHSMap.FSeatedPlayer then
+  begin
+    AoWHSMap.FSeatedPlayer := Player;
+    AoWHSMap.SeatedPlayerChanged;
+    AoWHSMap.ResetSeatedPlayerView;
+  end;
+end;
 
-procedure TPlayerControl.LockAI;
-begin end;
+function TPlayerControl.LockAI: Boolean;
+begin
+  Result := (AoWHSMap.FConnectionType = pcLocal) and (AoWHSMap.FRequestCombatType = False) and
+    (AoWHSMap.FAILockCount <> 0);
+end;
 
 procedure TPlayerControl.ListPlayerInfo(A1: Integer);
 begin end;
@@ -3429,13 +4505,13 @@ begin end;
 procedure TTurnPlayerControl.NewDay;
 begin end;
 
-procedure TTurnPlayerControl.NewTurn(A1: Integer; A2: Integer);
+procedure TTurnPlayerControl.NewTurn(Player: Shortint);
 begin end;
 
 procedure TTurnPlayerControl.ReplayLogbook;
 begin end;
 
-procedure TTurnPlayerControl.SetSeatedPlayer(A1: Integer);
+procedure TTurnPlayerControl.SetSeatedPlayer(Player: Shortint);
 begin end;
 
 procedure TTurnPlayerControl.ShowNewTurnCallBack;
@@ -3444,7 +4520,7 @@ begin end;
 procedure TTurnPlayerControl.StartGameCallBack;
 begin end;
 
-procedure TTurnPlayerControl.EndTurn(A1: Integer; A2: Integer);
+procedure TTurnPlayerControl.EndTurn(Player: Shortint);
 begin end;
 
 procedure TTurnPlayerControl.DefaultStartMap;
@@ -3462,13 +4538,13 @@ begin end;
 procedure TTurnPlayerControl.StartLoadedMap;
 begin end;
 
-procedure TTurnPlayerControl.GameOverEventHandled(A1: Integer);
+procedure TTurnPlayerControl.GameOverEventHandled(Player: Shortint);
 begin end;
 
-procedure TTurnPlayerControl.SetPlayerGameOverStatus(A1: Integer; A2: Integer);
+procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
 begin end;
 
-procedure TTurnPlayerControl.GameOver(A1: Integer; A2: Integer);
+procedure TTurnPlayerControl.GameOver(Player: Shortint; Status: TGameOverStatus);
 begin end;
 
 procedure TTurnPlayerControl.ValidateTurnTiming;
@@ -3492,7 +4568,7 @@ begin end;
 procedure TPBEMPlayerControl.SendEmailGameCallBack(A1: Integer);
 begin end;
 
-procedure TPBEMPlayerControl.NewTurn(A1: Integer; A2: Integer);
+procedure TPBEMPlayerControl.NewTurn(Player: Shortint);
 begin end;
 
 procedure TPBEMPlayerControl.TriggerGameRestartedEvents(A1: Integer);
@@ -3501,7 +4577,7 @@ begin end;
 procedure TPBEMPlayerControl.EndTurnGameSavedCallBack(A1: Integer);
 begin end;
 
-procedure TPBEMPlayerControl.EndTurn(A1: Integer; A2: Integer);
+procedure TPBEMPlayerControl.EndTurn(Player: Shortint);
 begin end;
 
 procedure TPBEMPlayerControl.StartLoadedEmailGame;
@@ -3534,13 +4610,13 @@ begin end;
 class function TSimultaniousPlayerControl.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSimultaniousPlayerControl.NewTurn(A1: Integer; A2: Integer);
+procedure TSimultaniousPlayerControl.NewTurn(Player: Shortint);
 begin end;
 
 procedure TSimultaniousPlayerControl.Setup;
 begin end;
 
-procedure TSimultaniousPlayerControl.EndTurn(A1: Integer; A2: Integer);
+procedure TSimultaniousPlayerControl.EndTurn(Player: Shortint);
 begin end;
 
 procedure TSimultaniousPlayerControl.NewDay;
@@ -3561,16 +4637,16 @@ begin end;
 procedure TSimultaniousPlayerControl.StartLoadedMap;
 begin end;
 
-procedure TSimultaniousPlayerControl.GameOverEventHandled(A1: Integer);
+procedure TSimultaniousPlayerControl.GameOverEventHandled(Player: Shortint);
 begin end;
 
-procedure TSimultaniousPlayerControl.SetPlayerGameOverStatus(A1: Integer; A2: Integer);
+procedure TSimultaniousPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
 begin end;
 
 procedure TSimultaniousPlayerControl.ValidateTurnTiming;
 begin end;
 
-procedure TPlayerConnectionEventLog.Setup(A1: Byte; A2: Byte);
+procedure TPlayerConnectionEventLog.Setup(Player: Shortint; Reason: Byte);
 begin end;
 
 procedure TPlayerConnectionEventLog.ExitSaveGameCallBack(A1: Integer);
@@ -5285,7 +6361,7 @@ begin end;
 procedure TAoWHSMap.UpdateCursor;
 begin end;
 
-procedure TAoWHSMap.ResetSeatedPlayerView(A1: Integer; A2: Integer);
+procedure TAoWHSMap.ResetSeatedPlayerView;
 begin end;
 
 procedure TAoWHSMap.Select(A1: TArmyHS; A2: Boolean);
@@ -5871,8 +6947,11 @@ begin end;
 procedure FmtDaysStr(A1: Integer; A2: Integer);
 begin end;
 
-procedure FmtDaysLeftStr(A1: Integer; A2: Integer);
-begin end;
+function FmtDaysLeftStr(Days: Integer): string;
+begin
+  if Days = 1 then Result := Format(TranslateRStr(XDayLeftRStr), ['1'])
+  else Result := Format(TranslateRStr(XDaysLeftRStr), [IntToStr(Days)]);
+end;
 
 function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
 begin Result := 0; end;
@@ -5983,8 +7062,8 @@ begin end;
 procedure IRtoAlignment(A1: Integer);
 begin end;
 
-procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+function DiplomaticRelation(Player, IndependentRelation, OtherPlayer, OtherIndependentRelation: Shortint): TDiplomaticRelation;
+begin Result := drPeace; end;
 
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
 begin Result := False; end;

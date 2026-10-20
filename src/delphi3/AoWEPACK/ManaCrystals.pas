@@ -52,7 +52,7 @@ type
     procedure Location(X, Y, L: Shortint);
   end;
   TCrystalMagic = class(TPlayerMagicControl)
-    property Mana: Integer read F_PlayerMagicControl_24 write SetMana;
+    property Mana: Integer read FMana write SetMana;
   end;
   PCrystalMap = ^TAoWHSMap;
   TCrystalMapFields = packed record

@@ -547,7 +547,7 @@ begin
   for I := 0 to TPlayerList(AoWHSMap.FPlayers).Count - 1 do
   begin
     Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(I);
-    if (Player.FEndTurn = True) and (I <> Exclude) and
+    if (Player.FStatus = psPlaying) and (I <> Exclude) and
       ((I = Shortint(Log.FAction.FSource)) or
        (I = Shortint(Log.FAction.FTarget)) or
        ((P5FirstDaySeen(TPlayerList(AoWHSMap.FPlayers).GetPlayers(I),
@@ -673,9 +673,9 @@ end;
 procedure TDiplomaticAction.ReadWrite(Stream: TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(FSource, $14);
-  Stream.rwByte(FTarget, $15);
-  Stream.rwByte(FOtherPlayer, $16);
+  Stream.rwByte(Byte(FSource), $14);
+  Stream.rwByte(Byte(FTarget), $15);
+  Stream.rwByte(Byte(FOtherPlayer), $16);
   Stream.rwInteger(FGold, $17);
   Stream.rwInteger(FMana, $18);
   Stream.rwData(FActionType, SizeOf(FActionType), $19);
@@ -706,7 +706,7 @@ begin
       Assert(Log is TDiplomaticActionEventLog);
       TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FEventLogbook).AddEvent(Log);
       TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).SetGems(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FGems + FEscrowGold);
-      TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
+      TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).FMana + FEscrowMana);
       FEscrowGold := 0;
       FEscrowMana := 0;
     end;
@@ -717,7 +717,7 @@ function TDiplomaticAction.CreateEventLog: TDiplomaticActionEventLog;
 var Log: TDiplomaticActionEventLog;
 begin
   Log := TDiplomaticActionEventLog.Create(nil);
-  Log.F_EventLog_08 := AoWHSMap.FDay;
+  Log.FDay := AoWHSMap.FDay;
   Log.SetDiplomaticAction(Self);
   Result := Log;
 end;
@@ -769,7 +769,7 @@ begin
       daProposeAlliance:
         if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).CanProposeAlliance(FSource) then
         begin
-          RandSeed := (AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Shortint(FSource) + Shortint(FTarget)) shr 2;
+          RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Shortint(FSource) + Shortint(FTarget)) shr 2;
           Chance := (FEscrowGold + FEscrowMana) div 25 + 30;
           if Chance > 60 then Chance := 60;
           if System.Random(100) < Chance then Accept(ErrorText) else Reject(ErrorText);
@@ -819,7 +819,7 @@ begin
   P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).SetGems(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FGems + FEscrowGold);
   FEscrowGold := 0;
-  TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
+  TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).FMana + FEscrowMana);
   FEscrowMana := 0;
   AoWHSMap.LockRelationsChanged;
   for I := 0 to TRaceList(AoWHSMap.FRaces).Count - 1 do
@@ -949,7 +949,7 @@ begin
   end;
   TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).SetGems(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FGems + FEscrowGold);
   FEscrowGold := 0;
-  TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
+  TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).FMana + FEscrowMana);
   FEscrowMana := 0;
   P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   Log := TDiplomaticActionEventLog(TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FEventLogbook).FindID(FEventLogID));
@@ -983,7 +983,7 @@ begin
     FEscrowGold := FGold;
     TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).SetGems(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FGems - FGold);
     FEscrowMana := FMana;
-    TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 - FMana);
+    TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).FMana - FMana);
     case FActionType of
       daOfferPeace..daMakeTribute, daSendMessageAsY..daDeclareWarToY:
       begin
@@ -993,7 +993,7 @@ begin
         TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FEventLogbook).AddEvent(Log);
         if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
         Log.Release;
-        TEventList(AoWHSMap.F_AoWHSMap_1E8).TriggerNotifyEvents(Self);
+        TEventList(AoWHSMap.FDiplomaticRelationsChangedEvents).TriggerNotifyEvents(Self);
       end;
 
       daBreakAlliance:
@@ -1042,7 +1042,7 @@ function TDiplomaticAction.CanSend(var ErrorText: string): Boolean;
 begin
   if TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FGems >= FGold then
   begin
-    if TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 >= FMana then
+    if TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).FMana >= FMana then
     begin
       Result := True;
       if (FActionType = daMakeTribute) and (FGold = 0) and (FMana = 0) then
@@ -1479,19 +1479,19 @@ begin
     drPeace:
       if not TAIPlayerControl(FControl).CanOfferPeace(Player) and (IdealWar.IndexOf(Player) <> -1) then
       begin
-        RandSeed := AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source;
+        RandSeed := AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source;
         Index := System.Random(IdealWar.Count);
         if IdealWar[Index] = Player then Action := CreateDA(daDeclareWar, Player, -1, -1);
       end
       else if TAIPlayerControl(FControl).CanProposeAlliance(Player) then
       begin
-        RandSeed := (AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source) shr 2;
+        RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source) shr 2;
         if System.Random(100) < 30 then Action := CreateDA(daProposeAlliance, Player, -1, 10);
       end;
     drAlliance:
       if not TAIPlayerControl(FControl).CanOfferPeace(Player) and (IdealWar.IndexOf(Player) <> -1) then
       begin
-        RandSeed := AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source + 1;
+        RandSeed := AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source + 1;
         Index := System.Random(IdealWar.Count);
         if IdealWar[Index] = Player then Action := CreateDA(daBreakAlliance, Player, -1, -1);
       end;
@@ -2830,7 +2830,7 @@ begin
   Peace.Add(FPlayer.FPlayerIndex);
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do
     if I <> FPlayer.FPlayerIndex then
-      if (AoWHSMap.FPlayers.GetPlayers(I).FEndTurn = True) then
+      if (AoWHSMap.FPlayers.GetPlayers(I).FSingleProcessCycle = True) then
       begin
         Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);
         if Relation in [drPeace, drAlliance] then Peace.Add(I)
@@ -2857,7 +2857,7 @@ begin
   Players := TDoubleItemList.Create;
   Players.AddAB(FPlayer.FPlayerIndex, 999);
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do
-    if (I <> FPlayer.FPlayerIndex) and (AoWHSMap.FPlayers.GetPlayers(I).FEndTurn = True) then
+    if (I <> FPlayer.FPlayerIndex) and (AoWHSMap.FPlayers.GetPlayers(I).FSingleProcessCycle = True) then
     begin
       Priority := 0;
       Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);

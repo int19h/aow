@@ -111,6 +111,7 @@
     F_PlayerMagicControl_1C: Integer;
     F_PlayerMagicControl_20: Integer;
     F_PlayerMagicControl_24: Integer;
+    { conflict: FMana: Integer; $24, read at $55752DB0 }
     F_PlayerMagicControl_28: Word;
     F_PlayerMagicControl_2A: array[0..1] of Byte;
     FResearchPercentage: Integer; { $2C }

@@ -1461,7 +1461,7 @@ begin
         end;
       end;
       { Original resets the shared random generator for deterministic particles. }
-      RandSeed := SpellHSMap^.F_AoWHSMap_22C;
+      RandSeed := SpellHSMap^.FInitialRandomSeed;
       for I := 0 to 300 do
       begin
         Radius := Random(VisibilityRange shl 5);
@@ -1799,7 +1799,7 @@ begin
     Dec(Xhp,XhpSurf);
     Dec(Yhp,YhpSurf);
     FAngle := FAngle + 20 + FAnimation.FFrameCounter div 5;
-    RandSeed := SpellHSMap^.F_AoWHSMap_22C;
+    RandSeed := SpellHSMap^.FInitialRandomSeed;
     for I := 0 to 200 do
     begin
       Direction := Random(360);
@@ -2147,7 +2147,7 @@ begin
     Dec(Xhp,XhpSurf);
     Dec(Yhp,YhpSurf);
     FAngle := FAngle + 20 + FAnimation.FFrameCounter div 5;
-    RandSeed := SpellHSMap^.F_AoWHSMap_22C;
+    RandSeed := SpellHSMap^.FInitialRandomSeed;
     for I := 0 to 200 do
     begin
       Direction := Random(360);
@@ -2354,7 +2354,7 @@ begin
       dtlHigh: Count := 160;
     else Count := 100;
     end;
-    RandSeed := SpellHSMap^.F_AoWHSMap_22C;
+    RandSeed := SpellHSMap^.FInitialRandomSeed;
     for I := 0 to Count do
     begin
       X := Random(100)-50;

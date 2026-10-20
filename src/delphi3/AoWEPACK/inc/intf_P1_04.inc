@@ -7,11 +7,11 @@
     F_PlayerConnectionEventLog_2A: array[0..1] of Byte;
     procedure Yes; override;
     procedure No; override;
-    procedure Setup(A1: Byte; A2: Byte);  { draft }
+    procedure Setup(Player: Shortint; Reason: Byte);
     procedure ExitSaveGameCallBack(A1: Integer);  { draft }
   end;
 
-  { TPlayerControl (instance size 32, VMT 5570D074) }
+  { TPlayerControl: size $20; $18 disconnected-player list, $1C sync warning shown. VMT 5570D074. }
   TPlayerControl = class(TEObject)
   public
     F_PlayerControl_08: Integer;
@@ -19,32 +19,32 @@
     F_PlayerControl_10: Byte;
     F_PlayerControl_11: array[0..2] of Byte;
     F_PlayerControl_14: Integer;
-    F_PlayerControl_18: Integer;
-    F_PlayerControl_1C: Byte;
+    FDisconnectedPlayers: TDoubleItemList; { $18 }
+    FOutOfSyncShown: Boolean; { $1C }
     F_PlayerControl_1D: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure NewFrame; virtual;  { +04C draft }
-    procedure NewDay; virtual;  { +050 draft }
-    procedure NewTurn(A1: Integer; A2: Integer); virtual;  { +054 draft }
-    procedure AutoSave; virtual;  { +058 draft }
+    procedure NewFrame; virtual;
+    procedure NewDay; virtual;
+    procedure NewTurn(Player: Shortint); virtual;
+    procedure AutoSave; virtual;
     procedure ValidateTurnTiming; virtual;  { +05C draft }
-    procedure Setup; virtual;  { +060 draft }
-    procedure StartNewMap; virtual;  { +064 draft }
+    procedure Setup; virtual;
+    procedure StartNewMap; virtual;
     procedure StartLoadedMap; virtual;  { +068 draft }
     procedure PasswordFailed; virtual;  { +06C draft }
     procedure PasswordValidated; virtual;  { +070 draft }
-    procedure SetPlayerGameOverStatus(A1: Integer; A2: Integer); virtual;  { +074 draft }
-    procedure GameOver(A1: Integer; A2: Integer); virtual;  { +078 draft }
-    procedure GameOverEventHandled(A1: Integer); virtual;  { +07C draft }
+    procedure SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); virtual;
+    procedure GameOver(Player: Shortint; Status: TGameOverStatus); virtual;
+    procedure GameOverEventHandled(Player: Shortint); virtual;
     procedure ExitGame(A1: Byte); virtual;  { +080 draft }
-    procedure EndTurn(A1: Integer; A2: Integer); virtual;  { +084 draft }
-    procedure SetSeatedPlayer(A1: Integer); virtual;  { +088 draft }
+    procedure EndTurn(Player: Shortint); virtual;
+    procedure SetSeatedPlayer(Player: Shortint); virtual;
     procedure ValidateDisconnectedPlayers; virtual;  { +08C draft }
     procedure ConnectionLost; virtual;  { +090 draft }
-    procedure LockAI; virtual;  { +094 draft }
-    procedure GetSyncValue(A1: Integer);  { draft }
-    procedure OutOfSync;  { draft }
+    function LockAI: Boolean; virtual;
+    procedure GetSyncValue(var Value: Integer);
+    procedure OutOfSync(Sender: TObject);
     procedure ListPlayerInfo(A1: Integer);  { draft }
     procedure ExitSaveGameCallBack(A1: Integer);  { draft }
     procedure SaveGameOnExitCallBack(A1: Integer);  { draft }
@@ -90,17 +90,17 @@
   public
     class function ClassID: Integer; override;
     procedure NewDay; override;
-    procedure NewTurn(A1: Integer; A2: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
     procedure ValidateTurnTiming; override;
     procedure Setup; override;
     procedure StartNewMap; override;
     procedure StartLoadedMap; override;
     procedure PasswordValidated; override;
-    procedure SetPlayerGameOverStatus(A1: Integer; A2: Integer); override;
-    procedure GameOver(A1: Integer; A2: Integer); override;
-    procedure GameOverEventHandled(A1: Integer); override;
-    procedure EndTurn(A1: Integer; A2: Integer); override;
-    procedure SetSeatedPlayer(A1: Integer); override;
+    procedure SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); override;
+    procedure GameOver(Player: Shortint; Status: TGameOverStatus); override;
+    procedure GameOverEventHandled(Player: Shortint); override;
+    procedure EndTurn(Player: Shortint); override;
+    procedure SetSeatedPlayer(Player: Shortint); override;
     procedure StartLoadedMapEx; virtual;  { +098 draft }
     procedure ReplayLogbook;  { draft }
     procedure ShowNewTurnCallBack;  { draft }
@@ -120,12 +120,12 @@
     F_PBEMPlayerControl_20: Byte;
     F_PBEMPlayerControl_21: array[0..2] of Byte;
     class function ClassID: Integer; override;
-    procedure NewTurn(A1: Integer; A2: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
     procedure StartNewMap; override;
     procedure StartLoadedMap; override;
     procedure PasswordValidated; override;
     procedure ExitGame(A1: Byte); override;
-    procedure EndTurn(A1: Integer; A2: Integer); override;
+    procedure EndTurn(Player: Shortint); override;
     procedure TerminateEmailGame;  { draft }
     procedure TerminateEmailGameCallBack;  { draft }
     procedure SendEmailGameAutomatedCallBack(A1: Integer);  { draft }
@@ -145,15 +145,15 @@
   public
     class function ClassID: Integer; override;
     procedure NewDay; override;
-    procedure NewTurn(A1: Integer; A2: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
     procedure ValidateTurnTiming; override;
     procedure Setup; override;
     procedure StartNewMap; override;
     procedure StartLoadedMap; override;
     procedure PasswordValidated; override;
-    procedure SetPlayerGameOverStatus(A1: Integer; A2: Integer); override;
-    procedure GameOverEventHandled(A1: Integer); override;
-    procedure EndTurn(A1: Integer; A2: Integer); override;
+    procedure SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); override;
+    procedure GameOverEventHandled(Player: Shortint); override;
+    procedure EndTurn(Player: Shortint); override;
     procedure StartGameCallBack;  { draft }
     procedure StartLoadedMapEx;  { draft }
   end;

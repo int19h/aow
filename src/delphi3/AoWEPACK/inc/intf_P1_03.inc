@@ -84,23 +84,22 @@
     procedure ValidateHistory;
   end;
 
-  { TLeaderSetupControl (instance size 40, VMT 5570BE8C) }
+  { TLeaderSetupControl: size $28; $08 references, $0C leader, $10 mode, $14 original leader, $18 items, $20 done event. VMT 5570BE8C. }
   TLeaderSetupControl = class(TEObject)
   public
-    F_LeaderSetupControl_08: Integer;
-    F_LeaderSetupControl_0C: Integer;
-    F_LeaderSetupControl_10: Byte;
+    FRefCount: Integer; { $08 }
+    FLeader: TLeader; { $0C }
+    FMode: TLeaderSetupMode; { $10 }
     F_LeaderSetupControl_11: array[0..2] of Byte;
-    F_LeaderSetupControl_14: Integer;
-    F_LeaderSetupControl_18: Integer;
+    FOriginalLeader: TLeader; { $14 }
+    FItems: TIntegerList; { $18 }
     F_LeaderSetupControl_1C: array[0..3] of Byte;
-    F_LeaderSetupControl_20: Integer;
-    F_LeaderSetupControl_24: Integer;
+    FOnDone: TNotifyEvent; { $20 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Done; virtual;  { +04C draft }
+    function Done: Boolean; virtual;
   end;
 
   { TTurnInfoItem: size $1C; $08 gold, $0C mana, $10 structures, $14 army strength, $18 heroes }
@@ -164,11 +163,13 @@
 
   { TPlayer: size $DC; $08 update count, $0C..$18 events, $1C structures,
     $20 victory locations, $28 armies, $34 messages, $38/$3C legacy relations,
-    $40 diplomacy, $44 game over, $45 end turn, $48 busy count, $58 leader setup,
+    $40 diplomacy, $44 game over, $45 player status, $48 busy count, $50 morale, $58 leader setup,
     $60 statistics, $64 income sources, $68 known structures, $80 heroes,
     $84 groups, $88 AI control, $8C budget, $90 diplomatic actions, $94 attack players,
     $98/$9C seen days, $A0 PBEM, $A4 emerging hero, $A9 participating,
-    $AC initial gold, $B0 base income, $B4/$B8 hero join days, $C8/$CC upkeep }
+    $AC initial gold, $B0 base income, $B4/$B8 hero join days, $C8/$CC upkeep;
+    $2C end turn, $2D..$2F view, $30 password, $5C turn number, $6C base hero level,
+    $74 emerging hero ID, $78 emerge day, $7C highest hero level, $BC/$C0 settings/description }
   TPlayer = class(TEObject)
   public
     FUpdateCount: Integer; { $08 }
@@ -181,32 +182,34 @@
     FProductionControls: TProductionControlList;  { $24 }
     FArmies: TArmyList; { $28 }
     FSingleProcessCycle: Boolean; { $2C }
-    F_Player_2D: Byte;
-    F_Player_2E: Byte;
-    F_Player_2F: Byte;
-    F_Player_30: Integer;
+    { conflict: FEndTurn: Boolean; }
+    FViewX: Byte; { $2D }
+    FViewY: Byte; { $2E }
+    FViewL: Byte; { $2F }
+    FPassword: string; { $30 }
     FMessages: TStringList; { $34 }
     FLegacyRelations: TDiplomaticRelationList; { $38 }
     FLegacyNewRelations: TDiplomaticRelationList; { $3C }
     FDiplomaticRelations: TPlayerDiplomaticRelations; { $40 }
     FGameOverStatus: TGameOverStatus;  { $44 }
-    FEndTurn: Boolean; { $45 }
+    FStatus: TPlayerStatus; { $45 }
     F_Player_46: array[0..1] of Byte;
     FBusyCount: Integer; { $48 }
     FName: string; { $4C }
-    F_Player_50: Byte;
+    FMoraleValue: Shortint; { $50 }
     F_Player_51: array[0..2] of Byte;
     FMagicControl: TPlayerMagicControl;  { $54 }
     FLeaderSetup: TLeader; { $58 }
     FDay: Integer;  { $5C; 55785754 }
+    { conflict: FTurnNumber: Integer; }
     FStatistics: TPlayerStatistics; { $60 }
     FIncomeSources: TIncomeSourceList; { $64 }
     FKnownStructures: TPlayerStructureList; { $68 }
-    F_Player_6C: Integer;
+    FBaseHeroJoinLevel: Integer; { $6C }
     FLastHeroJoinDay: Integer; { $70 }
-    F_Player_74: Integer;
+    FEmergingHeroID: Integer; { $74 }
     FLastHeroEmergeDay: Integer; { $78 }
-    F_Player_7C: Integer;
+    FHighestHeroLevel: Integer; { $7C }
     FHeroes: THeroList; { $80 }
     FAIGroups: TAIGroupList; { $84 }
     FAIControl: TAIPlayerControl; { $88 }
@@ -222,6 +225,7 @@
     FPlayerIndex: Shortint; { $A6 }
     FPlayerType: TPlayerType;  { $A7 }
     FBehavior: TPlayerBehavior; { $A8 }
+    { conflict: FConnectionType: TPlayerConnectionType; }
     FParticipating: Boolean; { $A9 }
     F_Player_AA: array[0..1] of Byte;
     FInitialGold: Integer; { $AC }
@@ -229,8 +233,8 @@
     FBaseIncome: Integer; { $B0 }
     FBaseHeroJoinDay: Integer; { $B4 }
     FHeroJoinDay: Integer; { $B8 }
-    F_Player_BC: Integer;
-    F_Player_C0: Integer;
+    FSettings: string; { $BC }
+    FDescription: string; { $C0 }
     FGems: Integer; { $C4 }
     { conflict: FGems: Integer; $C4, read at $557A7E18 }
     FArmyUpkeep: Integer; { $C8 }
@@ -272,65 +276,67 @@
     function GetIdealHeroJoinDay: Integer;
     function GetIdealHeroEmergeDay: Integer;
     procedure ResetBaseHeroJoinDay;
-    procedure MakeHeroEmerge(A1: Integer);  { draft }
-    procedure UpdateHeroJoin;  { draft }
-    procedure GetHeroJoinChance(A1: Integer);  { draft }
-    procedure GetHeroJoinLevelMax(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateLeader;  { draft }
-    procedure SetLeader(A1: Integer);  { draft }
-    procedure SetRace(A1: Byte);  { draft }
-    procedure SetEndTurn(A1: Byte);  { draft }
-    procedure UpdateLogbook;  { draft }
-    procedure UpdateTurnInfo;  { draft }
-    procedure UpdateAlliedPlayersSeen;  { draft }
-    procedure SetupAIValidAttackPlayers;  { draft }
+    procedure MakeHeroEmerge(Mode: THeroEmergeMode);
+    procedure UpdateHeroJoin;
+    function GetHeroJoinChance(Level: Integer): Integer;
+    function GetHeroJoinLevelMax: Integer;
+    procedure ValidateLeader;
+    procedure SetLeader(Value: TLeader);
+    procedure SetRace(Value: Shortint);
+    procedure SetEndTurn(Value: Boolean);
+    procedure UpdateLogbook;
+    procedure UpdateTurnInfo;
+    procedure UpdateAlliedPlayersSeen;
+    procedure SetupAIValidAttackPlayers;
     function GetFirstDaySeen(Player: Shortint): Integer;
-    procedure GetLastDaySeen(A1: Byte);  { draft }
-    procedure PlayerSeen(A1: Integer);  { draft }
-    procedure GetLeaderLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function GetLastDaySeen(Player: Shortint): Integer;
+    procedure PlayerSeen(Player: Shortint);
+    procedure GetLeaderLocation(var X, Y, L: Shortint);
     function GetLocal: Boolean;
-    procedure RegisterVictoryLocation;  { draft }
-    procedure UnregisterVictoryLocation;  { draft }
-    procedure CheckCaptureLocations;  { draft }
-    procedure CaptureLocationsLeft;  { draft }
+    procedure RegisterVictoryLocation(Structure: TPlayerStructure);
+    procedure UnregisterVictoryLocation(Structure: TPlayerStructure);
+    procedure CheckCaptureLocations;
+    function CaptureLocationsLeft: Integer;
     function CreateDiplomaticAction(Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
-    procedure DiplomaticActionAleadySend(A1: Byte; A2: Byte; A3: Integer);  { draft }
-    procedure ListDiplomaticActions(A1: Integer; A2: Integer);  { draft }
-    procedure ValidAttackRelation(A1: Integer; A2: Integer);  { draft }
-    procedure ChangePlayerSettings(A1: Integer);  { draft }
+    function DiplomaticActionAleadySend(Action: TDiplomaticActionType; Target, Other: Shortint): Boolean;
+    function ListDiplomaticActions(Player: Shortint; var Actions: TDiplomaticActionList): Integer;
+    function ValidAttackRelation(Player, IndependentRelation: Shortint): Boolean;
+    function ChangePlayerSettings(const Settings: string): Boolean;
   end;
 
-  { TPlayerList (instance size 32, VMT 5570C5E8) }
+  { TPlayerList: size $20; $10 active, $14 local, $18 human, $1C local human lists. VMT 5570C5E8. }
   TPlayerList = class(TEControlStyleNode)
   public
     FActivePlayers: TByteList; { $10 }
     F_PlayerList_14: Integer;
     FLocalPlayers: TByteList; { $18 }
+    { conflict: FLocalPlayers: TByteList; $14 }
+    { conflict: FHumanPlayers: TByteList; }
     { conflict: FActivePlayers: TIntegerList; }
-    F_PlayerList_1C: Integer;
+    FLocalHumanPlayers: TByteList; { $1C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Assign(Source: Engine.TEObject; AEngine: Engine.TEngine); override;
-    procedure GetDiplomaticRelationCount(A1: Integer; A2: Byte);  { draft }
+    function GetDiplomaticRelationCount(Player: Shortint; Relations: TDiplomaticRelations): Integer;
     function GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
     { conflict: function GetDiplomaticRelation(Source, Target: Shortint): TDiplomaticRelation; }
-    procedure SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);  { draft }
-    procedure GetActivePlayers(A1: Integer; A2: Integer);  { draft }
-    procedure Update;  { draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
+    procedure SetDiplomaticRelation(Player, OtherPlayer: Shortint; Relation: TDiplomaticRelation);
+    function GetActivePlayers: Integer;
+    procedure Update;
+    procedure BeginUpdate;
+    procedure EndUpdate;
     function GetPlayers(Index: Integer): TPlayer;
-    procedure GetActivePlayersAllied;  { draft }
-    procedure GetAverageHeroLevel;  { draft }
+    function GetActivePlayersAllied: Boolean;
+    function GetAverageHeroLevel: Integer;
     function GetAverageHeroCount: Integer;
     function GetMaxHeroCount: Integer;
-    procedure GetNumberOfPlayers;  { draft }
+    function GetNumberOfPlayers: Byte;
     function RaceToPlayer(Race: Shortint): Integer;
-    procedure SetNumberOfPlayers(A1: Integer);  { draft }
-    procedure ValidateRaces(A1: Integer);  { draft }
-    procedure VerifyRaces(A1: Integer; A2: Integer);  { draft }
-    procedure GetSuperiorPlayer(A1: Integer; A2: Integer);  { draft }
-    procedure IndexOfPlayerType(A1: Integer);  { draft }
+    procedure SetNumberOfPlayers(Value: Byte);
+    procedure ValidateRaces(Races: TRaceList);
+    function VerifyRaces(Races: TRaceList): Integer;
+    function GetSuperiorPlayer: Shortint;
+    function IndexOfPlayerType(PlayerType: TPlayerType): Integer;
   end;
 
   { TAoWNewHSMapSettings (instance size 32, VMT 5570C6E0) }

@@ -36,10 +36,10 @@ type
   TMessageEventLogLayout = (melNormal, melHeader);  { ot=1 }
   TSaveGameEventLogMode = set of (sgmDisableCancel); { ot=1 }
 
-  { TEventLog (instance size 24, VMT 557FC1C8) }
+  { TEventLog: size $18; $08 day, $10 player. VMT 557FC1C8. }
   TEventLog = class(TEObject)
   public
-    F_EventLog_08: Integer;
+    FDay: Integer; { $08 }
     F_EventLog_0C: Integer;
     FPlayer: Shortint;  { $10 }
     F_EventLog_11: array[0..2] of Byte;
@@ -88,14 +88,14 @@ type
     procedure SetLocation(X, Y, L: Shortint);
   end;
 
-  { TMessageEventLog (instance size 40, VMT 557FCD24) }
+  { TMessageEventLog: size $28; $18 title, $20 message, $24 layout, $25 buttons. VMT 557FCD24. }
   TMessageEventLog = class(TEventLog)
   public
-    F_MessageEventLog_18: Integer;
+    FTitle: string; { $18 }
     F_MessageEventLog_1C: array[0..3] of Byte;
-    F_MessageEventLog_20: Integer;
-    F_MessageEventLog_24: Byte;
-    F_MessageEventLog_25: Byte;
+    FMessage: TStrings; { $20 }
+    FLayout: TMessageEventLogLayout; { $24 }
+    FButtons: TMessageEventLogButtons; { $25 }
     F_MessageEventLog_26: Byte;
     F_MessageEventLog_27: array[0..0] of Byte;
     destructor Destroy; override;
@@ -165,11 +165,11 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetCount;  { draft }
+    function GetCount: Integer;
     procedure GetOnChanged(A1: Integer);  { draft }
     procedure SetOnChanged(Value: TNotifyEvent);
     procedure ListEvents(A1: Integer);  { draft }
-    procedure GetLogs(A1: Integer);  { draft }
+    function GetLogs(Index: Integer): TEventLog;
     procedure CreateUniqueID;  { draft }
     function FindID(ID: Integer): TEventLog;
     procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
@@ -387,8 +387,8 @@ begin Result := 0; end;
 procedure TEventLogbook.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TEventLogbook.GetCount;
-begin end;
+function TEventLogbook.GetCount: Integer;
+begin Result := 0; end;
 
 procedure TEventLogbook.GetOnChanged(A1: Integer);
 begin end;
@@ -402,8 +402,8 @@ begin end;
 procedure TEventLogbook.ListEvents(A1: Integer);
 begin end;
 
-procedure TEventLogbook.GetLogs(A1: Integer);
-begin end;
+function TEventLogbook.GetLogs(Index: Integer): TEventLog;
+begin Result := nil; end;
 
 procedure TEventLogbook.CreateUniqueID;
 begin end;

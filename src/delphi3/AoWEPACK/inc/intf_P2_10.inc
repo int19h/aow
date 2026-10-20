@@ -37,7 +37,7 @@ function Format(const S: string; const Args: array of const): string;
 procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }
-procedure FmtDaysLeftStr(A1: Integer; A2: Integer);  { draft }
+function FmtDaysLeftStr(Days: Integer): string;
 function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
 procedure ShowHitPcnt(A1: Integer; A2: Integer; const A3: TSurfaceDesc; A4: Integer);
 procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
@@ -66,7 +66,7 @@ procedure StatusToDiplomaticRelation(A1: Byte);  { draft }
 function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;
 procedure AlignmentToIR(A1: Byte);  { draft }
 procedure IRtoAlignment(A1: Integer);  { draft }
-procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
+function DiplomaticRelation(Player, IndependentRelation, OtherPlayer, OtherIndependentRelation: Shortint): TDiplomaticRelation;
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
 { conflict: function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean; }
 function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: Shortint): Integer;

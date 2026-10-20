@@ -5,6 +5,7 @@ var
   AoWHSSet: TAoWHSSet;  { $558FA044 }
 
 const
+  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }
   alsPureEvil: TAlignments = [alEvil, alPureEvil, alNone]; { $558E8060 }
@@ -22,7 +23,6 @@ const
     (Bonus: []; Penalty: []),
     (Bonus: [12]; Penalty: []),
     (Bonus: [5]; Penalty: [1])); { $558E8394 }
-  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   alsAll: TAlignments = [alPureGood, alGood, alNeutral, alEvil, alPureEvil, alNone];
 var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
@@ -37,3 +37,13 @@ var
 
 var
   RaceNamesRStr: array[0..12] of string;
+
+resourcestring
+  CouldNotSaveXRStr = 'Could not save %s';
+  InfoRStr = 'Info';
+  NewDayRStr = 'Day %d dawns';
+  TurnLimitReachedRStr = 'Sorry, turn limit reached!';
+
+resourcestring
+  XDayLeftRStr = '%s day left';
+  XDaysLeftRStr = '%s days left';

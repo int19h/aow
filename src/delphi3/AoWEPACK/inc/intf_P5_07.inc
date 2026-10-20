@@ -679,9 +679,9 @@
   { TChangePlayerSettingsTE (instance size 24, VMT 5571C1F8) }
   TChangePlayerSettingsTE = class(TTokenEvent)
   public
-    F_ChangePlayerSettingsTE_10: Byte;
+    FPlayer: Shortint; { $10 }
     F_ChangePlayerSettingsTE_11: array[0..2] of Byte;
-    F_ChangePlayerSettingsTE_14: Integer;
+    FSettings: string; { $14 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;

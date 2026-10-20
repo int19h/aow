@@ -412,8 +412,8 @@ begin
     begin
       Log := TEnterCaveEventLog.Create(nil);
       Log.FCave := Self;
-      TStrings(Log.F_MessageEventLog_20).Text := TranslateCaveName(SplitOnEnterCaveWarningRStr);
-      Log.F_MessageEventLog_25 := Ord(mebYesNo);
+      Log.FMessage.Text := TranslateCaveName(SplitOnEnterCaveWarningRStr);
+      Log.FButtons := mebYesNo;
       Log.Execute(True, etUser, nil);
       Log.Release;
       Result := True;

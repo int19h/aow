@@ -126,9 +126,9 @@
   public
     FRefCount: Integer;
     FDay: Integer;
-    FSource: Byte;
-    FTarget: Byte;
-    FOtherPlayer: Byte;
+    FSource: Shortint; { $10 }
+    FTarget: Shortint; { $11 }
+    FOtherPlayer: Shortint; { $12 }
     FActionType: TDiplomaticActionType;
     FReaction: TDiplomaticActionReaction;
     FReserved: array[0..2] of Byte;

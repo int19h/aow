@@ -1646,7 +1646,7 @@ procedure TCity.GenerateRebelUnits(Units: TUnitList);
 var SavedSeed: Integer;
 begin
   SavedSeed := RandomSeed^;
-  RandomSeed^ := GetXhx * 10 + WorldMap^.F_AoWHSMap_22C + GetYhx;
+  RandomSeed^ := GetXhx * 10 + WorldMap^.FInitialRandomSeed + GetYhx;
   FillWithRandomUnits(WorldSet^.FRaceResources.GetRaceResource(FRace).FUnitIndexes,
     Units, 2, GetSize * 25, [utHumanoid, utCreature]);
   RandomSeed^ := SavedSeed;

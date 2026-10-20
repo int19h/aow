@@ -181,7 +181,10 @@
     procedure OriginalSongsChanged;  { draft }
   end;
 
-  { TAoWHSMap (instance size 1052, VMT 5570E874) }
+  { TAoWHSMap: size $41C; $E4 map name, $F8 heroes, $139 game mode, $13A stream mode,
+    $148 fixed leaders, $14B allied victory, $158 day limit, $16C turn order,
+    $19C/$1A0 day/turn events, $1D8 AI locks, $1E8 diplomacy events,
+    $22C initial seed, $230 random seed, $238 debug save, $240 communicator. VMT 5570E874. }
   TAoWHSMap = class(TAbstractAoWHSMap)
   public
     FSelectedArmy: TSelectedArmy; { $D8 }
@@ -193,7 +196,7 @@
     FSphereCount: Integer; { $EC }
     F_AoWHSMap_F0: Integer;
     FItemControl: TItemControl; { $F4 }
-    F_AoWHSMap_F8: Integer;
+    FHeroControl: THeroControl; { $F8 }
     FUnitControl: TUnitControl; { $FC }
     F_AoWHSMap_100: Integer;
     F_AoWHSMap_104: Byte;
@@ -216,14 +219,16 @@
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
     FRequestCombatType: Boolean; { $139 }
+    { conflict: FGameMode: Byte; }
     { conflict: FTacticalCombatEnabled: Boolean; }
     FConnectionType: TPlayerConnectionType; { $13A }
+    { conflict: FStreamMode: Byte; }
     { conflict: FTacticalCombatAvailability: TTacticalCombatAvailability; }
     F_AoWHSMap_13B: array[0..0] of Byte;
     F_AoWHSMap_13C: Integer;
     FPlayers: TPlayerList;  { $140 }
     FRaces: TRaceList;  { $144 }
-    F_AoWHSMap_148: Byte;
+    FFixedLeaders: Boolean; { $148 }
     F_AoWHSMap_149: Byte;
     F_AoWHSMap_14A: Byte;
     FAlliedVictory: Boolean; { $14B }
@@ -232,12 +237,12 @@
     F_AoWHSMap_14E: array[0..1] of Byte;
     F_AoWHSMap_150: Integer;
     FVictoryGold: Integer; { $154 }
-    F_AoWHSMap_158: Integer;
+    FDayLimit: Integer; { $158 }
     F_AoWHSMap_15C: Integer;
     F_AoWHSMap_160: Integer;
     F_AoWHSMap_164: Integer;
     F_AoWHSMap_168: Integer;
-    F_AoWHSMap_16C: Byte;
+    FTurnOrderMode: TTurnOrderMode; { $16C }
     F_AoWHSMap_16D: array[0..2] of Byte;
     F_AoWHSMap_170: Integer;
     FDay: Integer;  { $174 }
@@ -254,8 +259,8 @@
     F_AoWHSMap_192: array[0..1] of Byte;
     F_AoWHSMap_194: Integer;
     F_AoWHSMap_198: Integer;
-    F_AoWHSMap_19C: Integer;
-    F_AoWHSMap_1A0: Integer;
+    FNewDayEvents: TEventList; { $19C }
+    FNewTurnEvents: TEventList; { $1A0 }
     F_AoWHSMap_1A4: Integer;
     F_AoWHSMap_1A8: Integer;
     F_AoWHSMap_1AC: Integer;
@@ -270,11 +275,11 @@
     F_AoWHSMap_1CC: Integer;
     F_AoWHSMap_1D0: Integer;
     F_AoWHSMap_1D4: Integer;
-    F_AoWHSMap_1D8: Integer;
+    FAILockCount: Integer; { $1D8 }
     F_AoWHSMap_1DC: Integer;
     FCosmeticSurgeryEvents: TEventList; { $1E0 }
     F_AoWHSMap_1E4: Integer;
-    F_AoWHSMap_1E8: Integer;
+    FDiplomaticRelationsChangedEvents: TEventList; { $1E8 }
     F_AoWHSMap_1EC: Integer;
     F_AoWHSMap_1F0: Integer;
     F_AoWHSMap_1F4: Integer;
@@ -292,15 +297,16 @@
     F_AoWHSMap_220: Integer;
     F_AoWHSMap_224: Integer;
     F_AoWHSMap_228: Integer;
-    F_AoWHSMap_22C: Integer;
+    FInitialRandomSeed: Integer; { $22C }
     FDefendersSeed: Integer; { $230 }
+    { conflict: FRandomSeed: Integer; }
     F_AoWHSMap_234: Integer;
-    F_AoWHSMap_238: Byte;
+    FDebugSave: Boolean; { $238 }
     FPlayMode: TPlayMode; { $239 }
     F_AoWHSMap_23A: array[0..1] of Byte;
     FTokenManager: TTokenManager; { $23C }
     { conflict: FTokenManager: TAoWTokenManager; }
-    F_AoWHSMap_240: Integer;
+    FPlayerCommunicator: TPlayerCommunicator; { $240 }
     FPlayerControl: TPlayerControl; { $244 }
     F_AoWHSMap_248: Byte;
     FShowUnitShadows: Boolean;  { $249, tested at $55783E36 }
@@ -394,7 +400,7 @@
     procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure MouseMoved;  { draft }
     procedure UpdateCursor;  { draft }
-    procedure ResetSeatedPlayerView(A1: Integer; A2: Integer);  { draft }
+    procedure ResetSeatedPlayerView;
     procedure Select(A1: TArmyHS; A2: Boolean);
     procedure PlayerChanged;  { draft }
     procedure TokenControlActivatedEvent;  { draft }

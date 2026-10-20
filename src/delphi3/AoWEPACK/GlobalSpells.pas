@@ -264,7 +264,7 @@ begin
       end;
     end;
     { Original bug: Xhp/Yhp are uninitialized outside high detail. }
-    RandSeed := GlobalSpellMap^.F_AoWHSMap_22C;
+    RandSeed := GlobalSpellMap^.FInitialRandomSeed;
     for I := 0 to 200 do
     begin
       Radius := Random(448);
@@ -531,7 +531,7 @@ begin
       TCustomImageLibrary(GlobalSpellSet^.FGeneralImages)[5].
         ShowBlended(HX,HY,SurfaceDesc,AlphaBlendTable.LookupTables[Intensity]);
     end;
-    RandSeed := GlobalSpellMap^.F_AoWHSMap_22C;
+    RandSeed := GlobalSpellMap^.FInitialRandomSeed;
     for I := 0 to 200 do
     begin
       Radius := Random(448);

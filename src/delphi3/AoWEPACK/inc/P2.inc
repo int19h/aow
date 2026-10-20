@@ -737,7 +737,7 @@ begin
      not (Self is TLeader) and (Owner is TArmy) then
   begin
     if (GetUpkeep <> 0) and (Player > 0) and not GetAbilityEnabled(155) then
-      Inc(Value, Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).F_Player_50));
+      Inc(Value, Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FMoraleValue));
     for I := TArmy(Owner).Count - 1 downto 0 do
     begin
       AUnit := TAbstractUnit(TP2NodeFields(Owner).Children.List^[I]);
@@ -2303,7 +2303,7 @@ begin
   else Result := False;
 end;
 
-function TAbstractUnit.JoinAmount: Integer;
+function TAbstractUnit.JoinAmount(Player: Shortint): Integer;
 var
   Group: TUnitUserList;
 begin
@@ -4891,14 +4891,14 @@ begin end;
 function THero.GetNextLevelExperience: Integer;
 begin end;
 
-procedure THero.GetLevel;
-begin end;
+function THero.GetLevel: Shortint;
+begin Result := 0; end;
 
 procedure THero.SetLevel(A1: Integer);
 begin end;
 
-procedure THero.GetHeroType;
-begin end;
+function THero.GetHeroType: THeroType;
+begin Result := htHero; end;
 
 procedure THero.SetUnitAttack(Value: Shortint);
 begin end;
@@ -5164,13 +5164,13 @@ begin end;
 procedure THeroResourceList.CreateHeroResourceStrings(A1: Byte);
 begin end;
 
-procedure THeroResourceList.Find(A1: Integer; A2: Byte);
-begin end;
+function THeroResourceList.Find(Race: Integer; HeroType: THeroType): Integer;
+begin Result := 0; end;
 
 procedure THeroList.FindHero(A1: Integer);
 begin end;
 
-function THeroList.GetHero(A1: Integer): THero;
+function THeroList.GetHero(Index: Integer): THero;
 begin Result := nil; end;
 
 constructor THeroControl.Create(AOwner: Engine.TECustomNode);
@@ -5194,11 +5194,11 @@ begin end;
 procedure THeroControl.UpdateLibraryHeroes;
 begin end;
 
-procedure THeroControl.GetHero(A1: Integer);
-begin end;
+function THeroControl.GetHero(Index: Integer): THero;
+begin Result := nil; end;
 
-procedure THeroControl.GetCount;
-begin end;
+function THeroControl.GetCount: Integer;
+begin Result := 0; end;
 
 procedure THeroControl.FindID;
 begin end;
@@ -5218,7 +5218,7 @@ begin end;
 procedure THeroControl.Deactivate;
 begin end;
 
-procedure THeroControl.RegisterHero(A1: Integer);
+procedure THeroControl.RegisterHero(Hero: THero);
 begin end;
 
 procedure THeroControl.UnRegisterHero(A1: Integer);
@@ -5230,8 +5230,8 @@ begin end;
 procedure THeroControl.GetAverageFreeHeroLevel(A1: Integer; A2: Integer);
 begin end;
 
-procedure THeroControl.GetMinFreeHeroLevel;
-begin end;
+function THeroControl.GetMinFreeHeroLevel: Integer;
+begin Result := 0; end;
 
 procedure THeroControl.ListDeadHeroes(A1: Integer);
 begin end;

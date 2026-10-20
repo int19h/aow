@@ -127,7 +127,7 @@ type
   public
     FSetupControl: TSetupControl; { +$28 }
     FPlayerIndex: Integer; { +$2C }
-    procedure Done; override;
+    function Done: Boolean; override;
   end;
 
   { TSetupControl (instance size 160, VMT 557DF040) }
@@ -449,7 +449,7 @@ begin
   Stream.rwBool(FAlwaysViewTC, 29);
 end;
 
-procedure TCustomizeLeaderControl.Done; assembler;
+function TCustomizeLeaderControl.Done: Boolean; assembler;
 asm
   { needs: TLeaderSetupControl.Done returns Boolean (557DF7EA); its draft is a procedure. }
   mov edx, eax

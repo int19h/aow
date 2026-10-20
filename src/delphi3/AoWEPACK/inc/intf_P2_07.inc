@@ -40,7 +40,7 @@
     F_Hero_4D: array[0..2] of Byte;
     F_Hero_50: Integer;
     FUpgradePending: Boolean;  { $54 }
-    F_Hero_55: Byte;
+    FHeroStatus: THeroStatus; { $55 }
     F_Hero_56: array[0..1] of Byte;
     F_Hero_58: Integer;
     F_Hero_5C: Byte;
@@ -48,7 +48,7 @@
     F_Hero_5E: array[0..1] of Byte;
     FHeroName: string;  { $60 }
     F_Hero_64: Integer;
-    F_Hero_68: Byte;
+    FRace: Shortint; { $68 }
     F_Hero_69: Byte;
     FUnitAttack: Shortint;  { $6A }
     FUnitDefense: Shortint;  { $6B }
@@ -62,7 +62,7 @@
     F_Hero_79: Byte;
     F_Hero_7A: Byte;
     F_Hero_7B: array[0..0] of Byte;
-    F_Hero_7C: Integer;
+    FPowerSource: THeroPowerSource; { $7C }
     F_Hero_80: Byte;
     F_Hero_81: array[0..2] of Byte;
     FCastingSpellID: Integer; { $84 }
@@ -156,9 +156,9 @@
     procedure GetLevelMax;  { draft }
     procedure LevelToExperience(A1: Integer);  { draft }
     procedure ExperienceToLevel(A1: Integer);  { draft }
-    procedure GetLevel;  { draft }
+    function GetLevel: Shortint;
     procedure SetLevel(A1: Integer);  { draft }
-    procedure GetHeroType;  { draft }
+    function GetHeroType: THeroType;
     procedure SetUnitAttack(Value: Shortint);
     procedure SetUnitDefense(Value: Shortint);
     procedure SetUnitDamage(Value: Shortint);
@@ -247,7 +247,7 @@
   THeroList = class(TEReferenceNode)
   public
     procedure FindHero(A1: Integer);  { draft }
-    function GetHero(A1: Integer): THero;
+    function GetHero(Index: Integer): THero;
   end;
 
   { THeroControl (instance size 24, VMT 557125BC) }
@@ -265,19 +265,19 @@
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
     procedure UpdateLibraryHeroes;  { draft }
-    procedure GetHero(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
+    function GetHero(Index: Integer): THero;
+    function GetCount: Integer;
     procedure FindID;  { draft }
     procedure IndexOf;  { draft }
     procedure IndexOfLibraryEx(A1: Integer; A2: Integer);  { draft }
     procedure ValidateLibraryHeroes;  { draft }
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
-    procedure RegisterHero(A1: Integer);  { draft }
+    procedure RegisterHero(Hero: THero);
     procedure UnRegisterHero(A1: Integer);  { draft }
     procedure HeroChanged;  { draft }
     procedure GetAverageFreeHeroLevel(A1: Integer; A2: Integer);  { draft }
-    procedure GetMinFreeHeroLevel;  { draft }
+    function GetMinFreeHeroLevel: Integer;
     procedure ListDeadHeroes(A1: Integer);  { draft }
   end;
 
@@ -347,7 +347,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetHeroResource(A1: Integer);  { draft }
     procedure CreateHeroResourceStrings(A1: Byte);  { draft }
-    procedure Find(A1: Integer; A2: Byte);  { draft }
+    function Find(Race: Integer; HeroType: THeroType): Integer;
   end;
 
   { TAdjustableUnit (instance size 72, VMT 55712A54): +3C attack; +3D defense; +3E resistance;

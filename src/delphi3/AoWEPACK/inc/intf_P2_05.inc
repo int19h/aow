@@ -122,7 +122,7 @@
     procedure MovedTo(OldField, NewField: TMapField; MaxCost: Integer); virtual;  { +18C draft }
     function CanDisband(var Reason: string): Boolean; virtual;  { +190 draft }
     function CanJoin(Player: Shortint): Boolean; virtual;  { +194 draft }
-    function JoinAmount: Integer; virtual;  { +198 draft }
+    function JoinAmount(Player: Shortint): Integer; virtual; { $198 }
     function OfferToJoin(Player: Shortint): Boolean; virtual;  { +19C draft }
     procedure GetJoinMessage(Player: Shortint; Count, Amount: Integer; Mode: TJoinMode; Messages: TStrings); virtual;  { +1A0 draft }
     function ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; virtual;  { +1A4 draft }
