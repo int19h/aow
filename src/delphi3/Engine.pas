@@ -673,8 +673,9 @@ type
   { Engine.TEChangeNotifyNode (instance size 16): +8 FChildren, +$C FUpdateCount. A node that calls
     Changed whenever its children change, unless a BeginUpdate holds the call back. }
   TEChangeNotifyNode = class(TECustomNode)
-  private
+  protected
     FChildren: TEObjectList;
+  private
     FUpdateCount: Integer;
   public
     constructor Create(AOwner: TECustomNode); override;
