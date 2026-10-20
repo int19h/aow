@@ -1,74 +1,367 @@
+{ P2 recovery in original code order. }
+var
+  { needs: P1 shared var AoWHSMap: TAoWHSMap; original global at $558FA040,
+    read by TUnitControl.RegisterUnit at $5577EA49. Replace this local stand-in
+    with the shared declaration when P1 assembles the interface. }
+  P2AoWHSMap: TAoWHSMap;
+  { needs: P1 shared AoWHSSet: TAoWHSSet, original global 558FA044. }
+  P2AoWHSSet: TAoWHSSet;
+
+const
+  { needs: P1 shared dAlignmentToStatusValue, original 558E8480. }
+  P2AlignmentToStatusValue: array[TAlignment, TAlignment] of Shortint =
+    ((100,90,30,40,10,0,50), (90,90,40,50,10,10,50),
+     (30,40,70,50,40,30,50), (40,50,50,50,50,40,50),
+     (10,10,40,50,90,90,50), (0,10,30,40,90,100,50),
+     (50,50,50,50,50,50,50));
+
+{ needs: TAoWHSMap.UnitDestroyed(AUnit: TAbstractUnit); forward both registers
+  to the existing draft method until P1 corrects its declaration. }
+procedure P2NotifyUnitDestroyed(Map: TAoWHSMap; AUnit: TAbstractUnit); assembler;
+asm
+  JMP TAoWHSMap.UnitDestroyed
+end;
+
+{ needs: P1 StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes;
+  Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer.
+  The call at 5577EC46 passes CX as a set, four stack arguments, and returns EAX. }
+function P2StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes;
+  Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+  assembler;
+asm
+  { A stack-argument assembler routine gets an EBP frame; remove it before jumping. }
+  POP EBP
+  JMP StatisticsToDV
+end;
+
+{ needs: P1 result/argument declarations used by GetRelationValue,
+  evidenced by 5577EE1A..5577EE64 and 5577EEA1..5577EEAE.
+  These tail calls preserve the original register ABI while the drafts are assembled. }
+function P2GetRace(List: TRaceList; Index: Integer): TRace; assembler;
+asm
+  JMP TRaceList.GetRace
+end;
+
+function P2GetPlayerRelationValue(Race: TRace; Player: Shortint): Integer; assembler;
+asm
+  JMP TRace.GetPlayerRelationValue
+end;
+
+function P2GetPlayers(List: TPlayerList; Index: Integer): TPlayer; assembler;
+asm
+  JMP TPlayerList.GetPlayers
+end;
+
+function P2GetRaceResource(List: TRaceResourceList; Index: Integer): TRaceResource; assembler;
+asm
+  JMP TRaceResourceList.GetRaceResource
+end;
+
+function P2GetRaceAlignment(Race: TRaceResource): TAlignment; assembler;
+asm
+  JMP TRaceResource.GetAlignment
+end;
+
+function P2IRtoAlignment(Relation: Shortint): TAlignment; assembler;
+asm
+  JMP IRtoAlignment
+end;
+
+{ needs: P1 StatusValueToStatus(Value: Integer): TStatus; 5577EECE returns AL. }
+function P2StatusValueToStatus(Value: Integer): TStatus; assembler;
+asm
+  JMP StatusValueToStatus
+end;
+
+type
+  TP2RaceTerrain = record
+    Preferred, Disliked: TAoWTerrainTypes;
+  end;
+const
+  { needs: P1 shared RaceTerrain at 558E8394, 12 pairs of two-byte terrain sets. }
+  P2RaceTerrain: array[0..11] of TP2RaceTerrain = (
+    (Preferred: []; Disliked: []),
+    (Preferred: [ttDesert]; Disliked: [ttSnow, ttIce, ttUndergroundIce]),
+    (Preferred: [ttWater]; Disliked: [ttDesert, ttWasteland]),
+    (Preferred: [ttSnow, ttIce, ttUndergroundIce]; Disliked: [ttDesert]),
+    (Preferred: [ttGrass]; Disliked: [ttWasteland]),
+    (Preferred: [ttGrass]; Disliked: [ttWasteland]),
+    (Preferred: [ttDirt]; Disliked: []),
+    (Preferred: []; Disliked: []),
+    (Preferred: [ttDirt]; Disliked: []),
+    (Preferred: []; Disliked: []),
+    (Preferred: [ttDirt]; Disliked: []),
+    (Preferred: [ttWasteland]; Disliked: [ttGrass]));
+
 constructor TUnitControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FUnitTable := TIntegerHashTable256.Create;
+  FUnits := TList.Create;
+  FNextUnitID := 1;
+end;
 
 destructor TUnitControl.Destroy;
-begin end;
+begin
+  FUnits.Free;
+  FUnitTable.Free;
+  inherited Destroy;
+end;
 
 procedure TUnitControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FNextUnitID, 10);
+  if FNextUnitID <= 0 then FNextUnitID := 1;
+end;
 
-procedure TUnitControl.GetCount;
-begin end;
+function TUnitControl.GetCount: Integer;
+begin
+  Result := FUnits.Count;
+end;
 
 procedure TUnitControl.TriggerUnitsChanged;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FUnits.Count - 1 downto 0 do
+    TAbstractUnit(FUnits.List^[I]).Changed;
+end;
 
-procedure TUnitControl.GetUnit(A1: Integer);
-begin end;
+function TUnitControl.GetUnit(Index: Integer): TAbstractUnit;
+begin
+  Result := FUnits.List^[Index];
+end;
 
-procedure TUnitControl.FindUnit(A1: Integer);
-begin end;
+function TUnitControl.FindUnit(ID: Integer): TAbstractUnit;
+begin
+  Result := TAbstractUnit(FUnitTable.Find(ID));
+end;
 
-procedure TUnitControl.GetFreeID;
-begin end;
+function TUnitControl.GetFreeID: Integer;
+begin
+  while FUnitTable.Find(FNextUnitID) <> nil do
+  begin
+    Inc(FNextUnitID);
+    if FNextUnitID > $0FFFFFFF then FNextUnitID := 1;
+  end;
+  Result := FNextUnitID;
+end;
 
-procedure TUnitControl.RegisterUnit(A1: Integer);
-begin end;
+procedure TUnitControl.RegisterUnit(AUnit: TAbstractUnit);
+var
+  ExistingUnit: TAbstractUnit;
+begin
+  if not (usRegistered in AUnit.FUnitStatus) then
+  begin
+    if AUnit.FUnitID = -1 then
+    begin
+      AUnit.FUnitID := GetFreeID;
+      AUnit.FUnitStatus := AUnit.FUnitStatus + [usRegistered];
+      FUnitTable.Add(AUnit, AUnit.FUnitID);
+      FUnits.Add(AUnit);
+    end
+    else
+    begin
+      ExistingUnit := FUnitTable.Find(AUnit.FUnitID);
+      if ExistingUnit <> AUnit then
+      begin
+        FUnits.Add(AUnit);
+        AUnit.FUnitStatus := AUnit.FUnitStatus + [usRegistered];
+        if ExistingUnit = nil then
+          FUnitTable.Add(AUnit, AUnit.FUnitID)
+        else if msEditting in P2AoWHSMap.Status then
+        begin
+          AUnit.FUnitID := GetFreeID;
+          FUnitTable.Add(AUnit, AUnit.FUnitID);
+        end
+        else
+          try
+            raise Exception.Create('UnitID Failure');
+          except
+            AUnit.FUnitID := GetFreeID;
+            FUnitTable.Add(AUnit, AUnit.FUnitID);
+          end;
+      end;
+    end;
+  end;
+end;
 
-procedure TUnitControl.UnRegisterUnit(A1: Integer);
-begin end;
+procedure TUnitControl.UnRegisterUnit(AUnit: TAbstractUnit);
+begin
+  if usRegistered in AUnit.FUnitStatus then
+  begin
+    AUnit.FUnitStatus := AUnit.FUnitStatus - [usRegistered];
+    FUnitTable.DeleteSafe(AUnit, AUnit.FUnitID);
+    FUnits.Remove(AUnit);
+  end;
+end;
 
 constructor TAbstractUnit.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  FRefCount := 1;
+  inherited Create(AOwner);
+  FArmy := nil;
+  FUnitID := -1;
+end;
 
 destructor TAbstractUnit.Destroy;
-begin end;
+begin
+  if usActivated in FUnitStatus then Deactivate;
+  if P2AoWHSMap <> nil then
+  begin
+    { needs: P1 TAoWHSMap.UnitDestroyed(AUnit: TAbstractUnit),
+      EDX is Self at 5577EB8B; keep the argument live across the draft call. }
+    P2NotifyUnitDestroyed(P2AoWHSMap, Self);
+  end;
+  inherited Destroy;
+end;
 
-procedure TAbstractUnit.GetBloodType;
-begin end;
+function TAbstractUnit.GetBloodType: TBloodType;
+begin
+  Result := btRed;
+end;
 
-procedure TAbstractUnit.GetCampaignTransferPoints;
-begin end;
+function TAbstractUnit.GetCampaignTransferPoints: Integer;
+begin
+  Result := GetObtainValue;
+end;
 
 function TAbstractUnit.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAbstractUnit.Release: Integer;
-begin Result := 0; end;
+var
+  Count: Integer;
+begin
+  Dec(FRefCount);
+  Count := FRefCount;
+  Result := Count;
+  if Count = 0 then Destroy;
+end;
 
-procedure TAbstractUnit.RetrieveDamageInfo(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TAbstractUnit.RetrieveDamageInfo(Attack, Damage: Shortint;
+  DamageTypes: TDamageTypes; var DamageValue, ObtainValue: Integer);
+var
+  MaxDamage: Integer;
+begin
+  MaxDamage := GetHitPoints * 100;
+  DamageValue := P2StatisticsToDV(Attack, Damage, DamageTypes,
+    GetDefense, GetResistance, GetImmunityTypes, GetProtectionTypes);
+  if MaxDamage < DamageValue then DamageValue := MaxDamage;
+  if (DamageValue > 0) and (GetHitPoints > 0) then
+  begin
+    if MaxDamage > DamageValue then
+      ObtainValue := Round(GetObtainValue * (DamageValue * 0.75 / MaxDamage))
+    else
+      ObtainValue := GetObtainValue;
+  end
+  else
+    ObtainValue := 0;
+end;
 
 procedure TAbstractUnit.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+const
+  SelectionTypes: TAbilitySelectionTypes = [astUnit];
+asm
+  { needs: P1 TAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+    original 5577ECC0 takes no arguments and returns the set in AX. }
+  MOV AX, SelectionTypes
+end;
 
-procedure TAbstractUnit.GetWallCombatFeatures;
-begin end;
+function TAbstractUnit.GetWallCombatFeatures: TWallCombatFeatures;
+begin
+  Result := [];
+  if GetAbilityEnabled(1) or GetAbilityEnabled(165) or
+     GetAbilityEnabled(36) or GetAbilityEnabled(66) then
+    Result := Result + [wcWallPassing, wcParticipate];
+  if GetAbilityEnabled(117) or GetAbilityEnabled(24) or
+     GetAbilityEnabled(65) or GetAbilityEnabled(44) then
+    Result := Result + [wcWallBreaching, wcParticipate];
+end;
 
-procedure TAbstractUnit.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.GetLocation(var Xhx, Yhx, Lhx: Shortint);
+begin
+  if Owner is TUnitList then
+    { needs: TUnitList.GetLocation and P5 TAIGroup.GetLocation take three
+      var Shortint coordinates (5577EDB2..5577EDC5). Keep the inherited draft
+      signature compatible until P5 can update its override. }
+    TUnitList(Owner).GetLocation(Integer(@Xhx), Integer(@Yhx), Integer(@Lhx))
+  else
+  begin
+    Xhx := -1;
+    Yhx := -1;
+    Lhx := -1;
+  end;
+end;
 
-procedure TAbstractUnit.GetRace;
-begin end;
+function TAbstractUnit.GetRace: Shortint;
+begin
+  Result := -1;
+end;
 
-procedure TAbstractUnit.GetRelationValue(A1: Byte; A2: Integer);
-begin end;
+function TAbstractUnit.GetRelationValue(Player, IndependentRelation: Shortint): Integer;
+var
+  Race: Shortint;
+begin
+  Race := GetRace;
+  if Player <> 0 then
+  begin
+    if (Race <> -1) and not GetAbilityEnabled(107) then
+      Result := P2GetPlayerRelationValue(
+        P2GetRace(TRaceList(P2AoWHSMap.F_AoWHSMap_144), Race), Player)
+    else
+    begin
+      Result := P2AlignmentToStatusValue[GetAlignment, P2GetRaceAlignment(P2GetRaceResource(
+        TRaceResourceList(P2AoWHSSet.F_AoWHSSet_54),
+        Shortint(P2GetPlayers(TPlayerList(P2AoWHSMap.F_AoWHSMap_140), Player).F_Player_A5)))];
+    end;
+  end
+  else
+    Result := P2AlignmentToStatusValue[GetAlignment, P2IRtoAlignment(IndependentRelation)];
+end;
 
-procedure TAbstractUnit.GetRelation(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.GetRelation(Player, IndependentRelation: Shortint): TStatus;
+begin
+  Result := P2StatusValueToStatus(GetRelationValue(Player, IndependentRelation));
+end;
 
-procedure TAbstractUnit.GetUnitMoraleValue(A1: Integer; A2: Byte);
-begin end;
+function TAbstractUnit.GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer;
+{ Register allocation remains different: direct indexing, explicit race index,
+  a with-block, a map-field local, and a separate morale local were compared. }
+var
+  Race: Shortint;
+  Xhx, Yhx, Lhx: Shortint;
+  TerrainType: TAoWTerrainType;
+  Morale: Integer;
+begin
+  if (Player >= 0) and (GetUnitType <> utMachine) and
+     not (msEditting in P2AoWHSMap.Status) then
+  begin
+    Race := GetRace;
+    Morale := GetRelationValue(Player, IndependentRelation);
+    if Race <> -1 then
+    begin
+      GetLocation(Xhx, Yhx, Lhx);
+      if Xhx <> -1 then
+      begin
+        TerrainType := TAoWTerrainType(P2AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType);
+        if TerrainType in P2RaceTerrain[Race].Disliked then Dec(Morale, 10);
+        if TerrainType in P2RaceTerrain[Race].Preferred then Inc(Morale, 10);
+      end;
+    end;
+    if GetAbilityEnabled(53) then Dec(Morale, 40);
+    if GetAbilityEnabled(108) then Dec(Morale, 80);
+    if Morale < 0 then Morale := 0;
+    if Morale > 100 then Morale := 100;
+  end
+  else
+    Morale := 50;
+  Result := Morale;
+end;
 
 procedure TAbstractUnit.UnitRelation(A1: Integer; A2: Integer);
 begin end;
@@ -82,7 +375,7 @@ begin end;
 procedure TAbstractUnit.GetUnitSize;
 begin end;
 
-procedure TAbstractUnit.GetObtainValue;
+function TAbstractUnit.GetObtainValue: Integer;
 begin end;
 
 procedure TAbstractUnit.UpdateEnchanted;
@@ -127,7 +420,7 @@ begin end;
 procedure TAbstractUnit.GetInherentAbilityLevel(A1: Integer);
 begin end;
 
-procedure TAbstractUnit.GetAbilityEnabled(A1: Integer);
+function TAbstractUnit.GetAbilityEnabled(AbilityID: Integer): Boolean;
 begin end;
 
 procedure TAbstractUnit.GetAbilitySet(A1: Integer);
@@ -187,7 +480,7 @@ begin end;
 procedure TAbstractUnit.Deactivate;
 begin end;
 
-procedure TAbstractUnit.GetAlignment;
+function TAbstractUnit.GetAlignment: TAlignment;
 begin end;
 
 procedure TAbstractUnit.GetUpkeep;
@@ -208,7 +501,7 @@ begin end;
 procedure TAbstractUnit.SetMovePoints(A1: Integer);
 begin end;
 
-procedure TAbstractUnit.GetHitPoints;
+function TAbstractUnit.GetHitPoints: Shortint;
 begin end;
 
 procedure TAbstractUnit.SetHitPoints(A1: Integer);
@@ -223,13 +516,13 @@ begin end;
 procedure TAbstractUnit.GetTransporter;
 begin end;
 
-procedure TAbstractUnit.GetImmunityTypes;
+function TAbstractUnit.GetImmunityTypes: TDamageTypes;
 begin end;
 
-procedure TAbstractUnit.GetProtectionTypes;
+function TAbstractUnit.GetProtectionTypes: TDamageTypes;
 begin end;
 
-procedure TAbstractUnit.GetUnitType;
+function TAbstractUnit.GetUnitType: TUnitType;
 begin end;
 
 procedure TAbstractUnit.GetInherentAttack;
@@ -241,7 +534,7 @@ begin end;
 procedure TAbstractUnit.GetInherentDefense;
 begin end;
 
-procedure TAbstractUnit.GetDefense(A1: Integer; A2: Integer);
+function TAbstractUnit.GetDefense: Shortint;
 begin end;
 
 procedure TAbstractUnit.GetInherentDamage;
@@ -253,7 +546,7 @@ begin end;
 procedure TAbstractUnit.GetInherentResistance;
 begin end;
 
-procedure TAbstractUnit.GetResistance(A1: Integer; A2: Integer);
+function TAbstractUnit.GetResistance: Shortint;
 begin end;
 
 procedure TAbstractUnit.GetHits;
@@ -460,19 +753,19 @@ begin end;
 procedure TUnit.ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TUnit.GetObtainValue;
+function TUnit.GetObtainValue: Integer;
 begin end;
 
 procedure TUnit.GetMovePoints;
 begin end;
 
-procedure TUnit.GetAlignment;
+function TUnit.GetAlignment: TAlignment;
 begin end;
 
 procedure TUnit.SetMovePoints(A1: Integer);
 begin end;
 
-procedure TUnit.GetHitPoints;
+function TUnit.GetHitPoints: Shortint;
 begin end;
 
 procedure TUnit.SetHitPoints(A1: Integer);
@@ -481,10 +774,10 @@ begin end;
 procedure TUnit.GetUnitSize;
 begin end;
 
-procedure TUnit.GetBloodType;
+function TUnit.GetBloodType: TBloodType;
 begin end;
 
-procedure TUnit.GetUnitType;
+function TUnit.GetUnitType: TUnitType;
 begin end;
 
 procedure TUnit.GetGender;
@@ -526,7 +819,7 @@ begin end;
 procedure TUnit.GetInherentDefense;
 begin end;
 
-procedure TUnit.GetDefense(A1: Integer; A2: Integer);
+function TUnit.GetDefense: Shortint;
 begin end;
 
 procedure TUnit.GetInherentDamage;
@@ -538,7 +831,7 @@ begin end;
 procedure TUnit.GetInherentResistance;
 begin end;
 
-procedure TUnit.GetResistance(A1: Integer; A2: Integer);
+function TUnit.GetResistance: Shortint;
 begin end;
 
 procedure TUnit.Changed;
@@ -571,7 +864,7 @@ begin end;
 procedure TUnit.Activate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TUnit.GetRace;
+function TUnit.GetRace: Shortint;
 begin end;
 
 procedure TUnit.NewDay(A1: Integer; A2: Integer);
@@ -697,13 +990,13 @@ begin end;
 procedure TWallUnit.SetWallType(A1: Integer);
 begin end;
 
-procedure TWallUnit.GetImmunityTypes;
+function TWallUnit.GetImmunityTypes: TDamageTypes;
 begin end;
 
-procedure TWallUnit.GetDefense(A1: Integer; A2: Integer);
+function TWallUnit.GetDefense: Shortint;
 begin end;
 
-procedure TWallUnit.GetHitPoints;
+function TWallUnit.GetHitPoints: Shortint;
 begin end;
 
 procedure TWallUnit.GetHits;
@@ -712,7 +1005,7 @@ begin end;
 procedure TWallUnit.GetName(A1: Integer);
 begin end;
 
-procedure TWallUnit.GetUnitType;
+function TWallUnit.GetUnitType: TUnitType;
 begin end;
 
 constructor TAdjustableUnit.Create(AOwner: Engine.TECustomNode);
@@ -724,7 +1017,7 @@ begin end;
 procedure TAdjustableUnit.GetAttack(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAdjustableUnit.GetDefense(A1: Integer; A2: Integer);
+function TAdjustableUnit.GetDefense: Shortint;
 begin end;
 
 procedure TAdjustableUnit.GetDamage(A1: Integer; A2: Integer);
@@ -733,19 +1026,19 @@ begin end;
 procedure TAdjustableUnit.GetHits;
 begin end;
 
-procedure TAdjustableUnit.GetHitPoints;
+function TAdjustableUnit.GetHitPoints: Shortint;
 begin end;
 
 procedure TAdjustableUnit.SetHitPoints(A1: Integer);
 begin end;
 
-procedure TAdjustableUnit.GetResistance(A1: Integer; A2: Integer);
+function TAdjustableUnit.GetResistance: Shortint;
 begin end;
 
-procedure TAdjustableUnit.GetImmunityTypes;
+function TAdjustableUnit.GetImmunityTypes: TDamageTypes;
 begin end;
 
-procedure TAdjustableUnit.GetProtectionTypes;
+function TAdjustableUnit.GetProtectionTypes: TDamageTypes;
 begin end;
 
 constructor TUnitGFXResource.Create(AOwner: Engine.TECustomNode);
@@ -1243,7 +1536,7 @@ begin end;
 destructor THero.Destroy;
 begin end;
 
-procedure THero.GetCampaignTransferPoints;
+function THero.GetCampaignTransferPoints: Integer;
 begin end;
 
 procedure THero.GetLibraryName(A1: Integer);
@@ -1288,7 +1581,7 @@ begin end;
 class function THero.ClassID: Integer;
 begin Result := 0; end;
 
-procedure THero.GetObtainValue;
+function THero.GetObtainValue: Integer;
 begin end;
 
 procedure THero.GetDescription;
@@ -1297,7 +1590,7 @@ begin end;
 procedure THero.GetGender;
 begin end;
 
-procedure THero.GetUnitType;
+function THero.GetUnitType: TUnitType;
 begin end;
 
 procedure THero.NewDay(A1: Integer; A2: Integer);
@@ -1315,7 +1608,7 @@ begin end;
 procedure THero.OfferToJoin(A1: Integer);
 begin end;
 
-procedure THero.GetRace;
+function THero.GetRace: Shortint;
 begin end;
 
 procedure THero.GetName(A1: Integer);
@@ -1324,10 +1617,10 @@ begin end;
 procedure THero.GetMoveTypes;
 begin end;
 
-procedure THero.GetImmunityTypes;
+function THero.GetImmunityTypes: TDamageTypes;
 begin end;
 
-procedure THero.GetProtectionTypes;
+function THero.GetProtectionTypes: TDamageTypes;
 begin end;
 
 procedure THero.GetMovePoints;
@@ -1336,13 +1629,13 @@ begin end;
 procedure THero.SetMovePoints(A1: Integer);
 begin end;
 
-procedure THero.GetHitPoints;
+function THero.GetHitPoints: Shortint;
 begin end;
 
 procedure THero.SetHitPoints(A1: Integer);
 begin end;
 
-procedure THero.GetAlignment;
+function THero.GetAlignment: TAlignment;
 begin end;
 
 procedure THero.DropItemsOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
@@ -1468,7 +1761,7 @@ begin end;
 procedure THero.GetAbilityOwner(A1: Integer);
 begin end;
 
-procedure THero.GetAbilityEnabled(A1: Integer);
+function THero.GetAbilityEnabled(AbilityID: Integer): Boolean;
 begin end;
 
 procedure THero.GetAbilitySet(A1: Integer);
@@ -1489,7 +1782,7 @@ begin end;
 procedure THero.GetInherentDefense;
 begin end;
 
-procedure THero.GetDefense(A1: Integer; A2: Integer);
+function THero.GetDefense: Shortint;
 begin end;
 
 procedure THero.GetInherentDamage;
@@ -1501,7 +1794,7 @@ begin end;
 procedure THero.GetInherentResistance;
 begin end;
 
-procedure THero.GetResistance(A1: Integer; A2: Integer);
+function THero.GetResistance: Shortint;
 begin end;
 
 procedure THero.GetHits;
@@ -1822,7 +2115,7 @@ begin end;
 class function TLeader.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TLeader.GetUnitMoraleValue(A1: Integer; A2: Byte);
+function TLeader.GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer;
 begin end;
 
 procedure TLeader.GetNickname(A1: Integer);

@@ -83,32 +83,32 @@
     procedure Changed; override;
     procedure GetUpkeep; override;
     procedure GetUnitLevel; override;
-    procedure GetRace; override;
+    function GetRace: Shortint; override;
     procedure GetInherentAttack; override;
     procedure GetInherentDefense; override;
     procedure GetInherentDamage; override;
     procedure GetInherentResistance; override;
     procedure GetAttack(A1: Integer; A2: Integer); override;
-    procedure GetDefense(A1: Integer; A2: Integer); override;
+    function GetDefense: Shortint; override;
     procedure GetDamage(A1: Integer; A2: Integer); override;
-    procedure GetResistance(A1: Integer; A2: Integer); override;
+    function GetResistance: Shortint; override;
     procedure GetHits; override;
     procedure GetMoves; override;
     procedure GetMovePoints; override;
     procedure SetMovePoints(A1: Integer); override;
-    procedure GetHitPoints; override;
+    function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Integer); override;
     procedure GetMoveTypes; override;
-    procedure GetImmunityTypes; override;
-    procedure GetProtectionTypes; override;
+    function GetImmunityTypes: TDamageTypes; override;
+    function GetProtectionTypes: TDamageTypes; override;
     procedure GetFace; override;
     procedure GetName(A1: Integer); override;
-    procedure GetAlignment; override;
+    function GetAlignment: TAlignment; override;
     procedure GetPreviewImage; override;
     procedure GetGender; override;
-    procedure GetUnitType; override;
+    function GetUnitType: TUnitType; override;
     procedure GetUnitGFXResourceIndex; override;
-    procedure GetCampaignTransferPoints; override;
+    function GetCampaignTransferPoints: Integer; override;
     procedure GetCastingPointsMax; override;
     procedure GetCastingPoints; override;
     procedure SetCastingPoints(A1: Integer); override;
@@ -116,7 +116,7 @@
     procedure NewDay(A1: Integer; A2: Integer); override;
     procedure NewTurn(A1: Integer; A2: Integer); override;
     procedure GetAbilityLevel(A1: Integer); override;
-    procedure GetAbilityEnabled(A1: Integer); override;
+    function GetAbilityEnabled(AbilityID: Integer): Boolean; override;
     procedure GetAbilitySet(A1: Integer); override;
     procedure GetAbilityName(A1: Integer; A2: Integer); override;
     procedure GetAbilityOwner(A1: Integer); override;
@@ -126,7 +126,7 @@
     procedure GetNextLevelExperience; override;
     procedure GetDescription; override;
     procedure SetPlayer(A1: Integer); override;
-    procedure GetObtainValue; override;
+    function GetObtainValue: Integer; override;
     procedure CanActivate; override;
     procedure Activate(A1: Integer; A2: Integer); override;
     procedure Deactivate; override;
@@ -220,7 +220,7 @@
     procedure GetUpkeep; override;
     procedure GetPowerGeneration; override;
     procedure SetPlayer(A1: Integer); override;
-    procedure GetUnitMoraleValue(A1: Integer; A2: Byte); override;
+    function GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer; override;
     procedure CanActivate; override;
     procedure Activate(A1: Integer; A2: Integer); override;
     procedure Deactivate; override;
@@ -358,14 +358,14 @@
     F_AdjustableUnit_46: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetAttack(A1: Integer; A2: Integer); override;
-    procedure GetDefense(A1: Integer; A2: Integer); override;
+    function GetDefense: Shortint; override;
     procedure GetDamage(A1: Integer; A2: Integer); override;
-    procedure GetResistance(A1: Integer; A2: Integer); override;
+    function GetResistance: Shortint; override;
     procedure GetHits; override;
-    procedure GetHitPoints; override;
+    function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Integer); override;
-    procedure GetImmunityTypes; override;
-    procedure GetProtectionTypes; override;
+    function GetImmunityTypes: TDamageTypes; override;
+    function GetProtectionTypes: TDamageTypes; override;
     procedure MakeDefaultLevelUnit(A1: Byte);  { draft }
   end;
 
@@ -373,12 +373,12 @@
   TWallUnit = class(TAbstractUnit)
   public
     F_WallUnit_3C: Integer;
-    procedure GetDefense(A1: Integer; A2: Integer); override;
+    function GetDefense: Shortint; override;
     procedure GetHits; override;
-    procedure GetHitPoints; override;
-    procedure GetImmunityTypes; override;
+    function GetHitPoints: Shortint; override;
+    function GetImmunityTypes: TDamageTypes; override;
     procedure GetName(A1: Integer); override;
-    procedure GetUnitType; override;
+    function GetUnitType: TUnitType; override;
     procedure SetWallType(A1: Integer);  { draft }
   end;
 
