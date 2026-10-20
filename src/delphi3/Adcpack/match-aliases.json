@@ -1,0 +1,8 @@
+{
+ "ZoomControl.Register": "Register<ZoomControl",
+ "ZoomControl.ZoomControl": "ZoomControl",
+ "ZoomControl.Finalization": "Finalization<ZoomControl",
+ "AdvancedDisplay.Register": "Register<AdvancedDisplay",
+ "AdvancedDisplay.AdvancedDisplay": "AdvancedDisplay",
+ "AdvancedDisplay.Finalization": "Finalization<AdvancedDisplay"
+}

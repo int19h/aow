@@ -45,6 +45,7 @@ local variable order, loop shape.
 | Gfxepack.dpl: GFXE (surfaces, blitters, DirectDraw, blend tables), GFXDiag (`src/delphi3/Gfxepack/`) | 262 | 252 |
 | aowDPlay.dpl: aowDPlayComp (DirectPlay component), DPlay, DPLobby; VideoP.dpl: Video, VFW | 74 | 74 |
 | Dcpack.dpl: DisplayC (windowed and full-screen DirectDraw display controllers, frame thread), TWindows08DIBSurface | 174 | 169 |
+| Adcpack.dpl: ZoomControl, AdvancedDisplay (`{$O-,Q+}`); aowFXpck.dpl: aowFX (particle paths) | 43 | 43 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
@@ -141,7 +142,9 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
   the index in bx.
 - A `case` on a Word compiles to an ascending `sub ax,n / je` chain, but the branch bodies are laid
   out in source order.
-- Stack-spilled locals get addresses in declaration order, the first declared at the lowest address.
+- Stack slots of locals: in ImgLComp the first declared spilled local got the lower address, in
+  aowFX (MakeArcPath) the first declared got the higher address, as under `$O-`; locals that get a
+  register take no slot, and which local gets the register moves the others. Try both orders.
 - `(FMin <> 0) and (Value < FMin)` gives `cmp ecx,edx / jle`; `FMin > Value` gives `cmp edx,ecx / jge`.
 - A nil test `mov eax,[field] / test eax,eax` comes from a local or a `with`; `if F <> nil`,
   `Assigned(F)` and casts all give `cmp dword ptr [..],0`.
@@ -206,6 +209,13 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
 - A field used twice in a condition that contains a call goes into a callee-saved register.
 - Consecutive managed locals of one type are finalized together with one `FinalizeArray` or
   `LStrArrayClr`.
+
+- When both operands of a comparison or an addition are register variables, the right operand is
+  emitted first: `X1 = X2` gives `cmp X2,X1`, `Dist + Seg` gives `lea [right+left]`.
+- Under `$O-` a declared but unused local still takes a stack slot.
+- `case B of 0..89: ... else` compiles to `sub eax,90 / jae else`; a case on a two-value enumeration
+  to `sub al,1 / jb / je`.
+- Division of a real by a constant becomes a multiplication by the reciprocal.
 
 ## Compiler switches (sweep, 2026-10-19)
 
