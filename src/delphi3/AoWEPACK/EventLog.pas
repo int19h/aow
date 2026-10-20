@@ -88,7 +88,7 @@ type
     procedure SetLocation(X, Y, L: Shortint);
   end;
 
-  { TMessageEventLog: size $28; $18 title, $20 message, $24 layout, $25 buttons. VMT 557FCD24. }
+  { TMessageEventLog: size $28; $18 title, $20 message, $24 layout, $25 buttons, $26 pressed button. VMT 557FCD24. }
   TMessageEventLog = class(TEventLog)
   public
     FTitle: string; { $18 }
@@ -96,15 +96,15 @@ type
     FMessage: TStrings; { $20 }
     FLayout: TMessageEventLogLayout; { $24 }
     FButtons: TMessageEventLogButtons; { $25 }
-    F_MessageEventLog_26: Byte;
+    FPressedButton: TPressedEventLogButton; { $26 }
     F_MessageEventLog_27: array[0..0] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure OK; virtual;  { +078 draft }
     procedure Cancel; virtual;  { +07C draft }
-    procedure Yes; virtual;  { +080 draft }
-    procedure No; virtual;  { +084 draft }
+    function Yes: Boolean; virtual;
+    function No: Boolean; virtual;
   end;
 
   { THelpMessageEventLog (instance size 36, VMT 557FCE44) }
@@ -173,7 +173,7 @@ type
     procedure CreateUniqueID;  { draft }
     function FindID(ID: Integer): TEventLog;
     procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
-    procedure FindFirstLogEx(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
     procedure AddEvent(Event: TEventLog);
     procedure RemoveEvent(Event: TEventLog);
   end;
@@ -237,13 +237,15 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TSaveGameEventLog (instance size 44, VMT 557FD0A4) }
+  { TSaveGameEventLog: size $2C; $1C directory, $20 default name, $24 file name, $28 title. VMT 557FD0A4. }
   TSaveGameEventLog = class(TEventLog)
   public
     F_SaveGameEventLog_18: Byte;
-    F_SaveGameEventLog_19: array[0..14] of Byte;
-    F_SaveGameEventLog_28: Byte;
-    F_SaveGameEventLog_29: array[0..2] of Byte;
+    FReserved19: array[0..2] of Byte;
+    FDirectory: string; { $1C }
+    FDefaultName: string; { $20 }
+    FFileName: string; { $24 }
+    FTitle: string; { $28 }
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
@@ -262,7 +264,7 @@ type
   end;
 
 procedure RegisterEventLog;  { draft }
-procedure DistributeEventLog(A1: Integer; A2: Byte);  { draft }
+procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
 procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
 
 implementation
@@ -414,8 +416,8 @@ begin Result := nil; end;
 procedure TEventLogbook.FindFirstLog(A1: Integer; A2: Integer);
 begin end;
 
-procedure TEventLogbook.FindFirstLogEx(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TEventLogbook.FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
+begin Result := 0; end;
 
 procedure TEventLogbook.AddEvent(Event: TEventLog);
 begin end;
@@ -525,11 +527,17 @@ begin end;
 procedure TMessageEventLog.Cancel;
 begin end;
 
-procedure TMessageEventLog.Yes;
-begin end;
+function TMessageEventLog.Yes: Boolean;
+begin
+  FPressedButton := pebYes;
+  Result := True;
+end;
 
-procedure TMessageEventLog.No;
-begin end;
+function TMessageEventLog.No: Boolean;
+begin
+  FPressedButton := pebNo;
+  Result := True;
+end;
 
 constructor THelpMessageEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -549,7 +557,7 @@ begin end;
 procedure RegisterEventLog;
 begin end;
 
-procedure DistributeEventLog(A1: Integer; A2: Byte);
+procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
 begin end;
 
 procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);

@@ -49,9 +49,9 @@
   { TSMTPEventLog (instance size $34, VMT 55714F58). $24 message. }
   TSMTPEventLog = class(TEventLog)
   public
-    F_SMTPEventLog_18: array[0..11] of Byte;
+    FToAddress: string; { $18 } FFileName: string; { $1C } FSubject: string; { $20 }
     FMessage: TStringList; { $24 }
-    F_SMTPEventLog_28: array[0..11] of Byte;
+    FSuccess: Boolean; { $28 } FReserved29: array[0..2] of Byte; FFromAddress: string; { $2C } F_SMTPEventLog_30: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;

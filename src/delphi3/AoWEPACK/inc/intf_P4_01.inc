@@ -61,7 +61,7 @@
   { TPlayerMagicEventLog (instance size 44, VMT 5570AD0C) }
   TPlayerMagicEventLog = class(TEventLog)
   public
-    F_PlayerMagicEventLog_18: Byte;
+    FMode: Byte; { $18 }
     F_PlayerMagicEventLog_19: array[0..2] of Byte;
     F_PlayerMagicEventLog_1C: Integer;
     F_PlayerMagicEventLog_20: Integer;
@@ -147,7 +147,7 @@
     procedure ResearchTurns(A1: Integer; A2: Integer);  { draft }
     procedure GetResearchTurnsLeft;  { draft }
     procedure ValidResearchSpell(A1: Integer);  { draft }
-    procedure ListResearchSpells(A1: Integer; A2: Byte);  { draft }
+    procedure ListResearchSpells(var List: TSpellList; SpellTypes: TSpellTypes);
     procedure ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }

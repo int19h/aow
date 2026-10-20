@@ -121,8 +121,8 @@
     procedure ShowBackHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0EC draft }
     procedure ShowFrontHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0F0 draft }
     procedure UpdateHexagonSelector; virtual;  { +0F4 draft }
-    procedure SetSeatedPlayer(A1: Byte); virtual;  { +0F8 draft }
-    procedure SetCurrentPlayer(A1: Byte); virtual;  { +0FC draft }
+    procedure SetSeatedPlayer(A1: Shortint); virtual; { $F8 }
+    procedure SetCurrentPlayer(A1: Shortint); virtual; { $FC }
     procedure SetFogEnabled(A1: Byte); virtual;  { +100 draft }
     procedure SetExplorationEnabled(A1: Byte); virtual;  { +104 draft }
     procedure DropHeroItem(A1: Integer; A2: Integer); virtual;  { +108 draft }
@@ -212,7 +212,7 @@
     F_AoWHSMap_11B: array[0..0] of Byte;
     FCombatMap: TAbstractAoWCombatMap; { $11C }
     FCombat: TCombat; { $120 }
-    F_AoWHSMap_124: Integer;
+    FTutorialControl: TTutorialControl; { $124 }
     FAIExecuter: TAIExecuter; { $128 }
     FAIPlayerActionManager: TAIPlayerActionManager; { $12C }
     FAIGroupManager: TAIGroupManager; { $130 }
@@ -244,11 +244,11 @@
     F_AoWHSMap_168: Integer;
     FTurnOrderMode: TTurnOrderMode; { $16C }
     F_AoWHSMap_16D: array[0..2] of Byte;
-    F_AoWHSMap_170: Integer;
+    FTurnOrder: TByteList; { $170 }
     FDay: Integer;  { $174 }
     F_AoWHSMap_178: Integer;
     F_AoWHSMap_17C: Integer;
-    F_AoWHSMap_180: Byte;
+    FShowIndependentMoves: Boolean; { $180 }
     F_AoWHSMap_181: array[0..2] of Byte;
     FMoveControl: TMoveControl;  { $184 }
     FGlobalMagicControl: TGlobalMagicControl; { $188 }
@@ -332,10 +332,10 @@
     function ChangeTerrainEx(MO: HSEngine.TMapObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer; override;
     procedure DrawDynamicScene(var SD: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;
-    procedure SetSeatedPlayer(A1: Byte); override;
+    procedure SetSeatedPlayer(A1: Shortint); override;
     procedure TriggerCombatEvent; virtual;  { +118 draft }
     procedure TriggerGameTerminatedEvent; virtual;  { +11C draft }
-    procedure TriggerPlayerTerminatedEvent; virtual;  { +120 draft }
+    procedure TriggerPlayerTerminatedEvent(Player: Integer); virtual; { $120 }
     procedure StartNewMap; virtual;  { +124 draft }
     procedure StartLoadedMap; virtual;  { +128 draft }
     procedure TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent); virtual;
@@ -374,7 +374,7 @@
     procedure StructureChanged;  { draft }
     procedure StructureDestroyed;  { draft }
     procedure ExecuteExitGame;  { draft }
-    procedure ExitGame(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
     procedure TriggerEndTurnEvent(A1: Byte);  { draft }
     procedure ClearExecuteEventLogBuffer;  { draft }
     procedure ExecuteNextEventLog;  { draft }

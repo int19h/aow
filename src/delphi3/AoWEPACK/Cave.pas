@@ -56,8 +56,8 @@ type
   TEnterCaveEventLog = class(TMessageEventLog)
   public
     FCave: TCave;
-    procedure Yes; override;
-    procedure No; override;
+    function Yes: Boolean; override;
+    function No: Boolean; override;
   end;
 
 procedure RegisterCave(AEngine: TEngine);
@@ -453,13 +453,13 @@ begin Result := $2037F; end;
 function TCaveResource.ResourceUserClassID: Integer;
 begin Result := $2037E; end;
 
-procedure TEnterCaveEventLog.Yes;
+function TEnterCaveEventLog.Yes: Boolean;
 begin
   FCave.EnterEx;
   asm MOV AL,1 end;
 end;
 
-procedure TEnterCaveEventLog.No;
+function TEnterCaveEventLog.No: Boolean;
 asm MOV AL,1 end;
 
 procedure RegisterCave(AEngine: TEngine);

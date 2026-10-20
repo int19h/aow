@@ -15,7 +15,7 @@
     F_AoWEngine_6E: Byte;
     F_AoWEngine_6F: array[0..0] of Byte;
     FCampaign: TAoWCampaign; { $70 }
-    F_AoWEngine_74: Integer;
+    FEmailGames: TEmailGameControl; { $74 }
     F_AoWEngine_78: Integer;
     F_AoWEngine_7C: Byte;
     F_AoWEngine_7D: array[0..2] of Byte;

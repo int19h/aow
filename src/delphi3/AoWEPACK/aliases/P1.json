@@ -2,5 +2,6 @@
   "FUN_55703ef4": "StringToRect",
   "FUN_55704014": "RectToString",
   "FUN_55705a20": "TransformPassword",
-  "557506a0:108": "CompareAbilityNames"
+  "557506a0:108": "CompareAbilityNames",
+  "FUN_5574752c": "EndPlayerTurn"
 }

@@ -1,20 +1,22 @@
 { Interface declaration run owned by P1. }
-  { TRaceResource (instance size 72, VMT 55713838) }
+  { TRaceResource: size $48; $18 face library, $1C city library, $20 library name,
+    $24 name, $28 race name, $2C description, $30 alignments, $34 references,
+    $38 units, $3C hero unit, $40 special units, $44 hero names. VMT 55713838. }
   TRaceResource = class(TEResource)
   public
-    F_RaceResource_18: Integer;
-    F_RaceResource_1C: Integer;
-    F_RaceResource_20: Integer;
-    F_RaceResource_24: Integer;
+    FFaceLibrary: TCustomImageLibrary; { $18 }
+    FImageLibrary: TCustomImageLibrary; { $1C }
+    FImageLibraryName: string; { $20 }
+    FName: string; { $24 }
     FRaceName: string;  { $28 }
-    F_RaceResource_2C: Integer;
-    F_RaceResource_30: Byte;
+    FDescription: string; { $2C }
+    FAlignments: TAlignments; { $30 }
     F_RaceResource_31: array[0..2] of Byte;
-    F_RaceResource_34: Integer;
+    FReferences: Integer; { $34 }
     FUnitIndexes: TUnitIndexList;  { $38 }
-    F_RaceResource_3C: Integer;
+    FHeroUnitIndex: Integer; { $3C }
     FSpecialUnitIndexes: TUnitIndexList; { $40 }
-    F_RaceResource_44: Integer;
+    FHeroNames: TStringList; { $44 }
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -26,11 +28,11 @@
     function GetCellImage: ImageLib.TLibraryImage; override;
     procedure SetCellImage(Value: ImageLib.TLibraryImage); override;
     class function ResourceEditName: string; override;
-    procedure GetFace;  { draft }
-    procedure GetRaceIndex;  { draft }
-    procedure LinkToIL;  { draft }
-    procedure ReleaseIL;  { draft }
-    procedure SetImageLibraryName(A1: Integer; A2: Integer);  { draft }
+    function GetFace: TLibraryImage;
+    function GetRaceIndex: Integer;
+    procedure LinkToIL;
+    procedure ReleaseIL;
+    procedure SetImageLibraryName(Value: string);
     function GetCityImage(Size, Terrain, Level: Integer): TLibraryImage;
     function GetAlignment: TAlignment;
   end;
@@ -205,7 +207,7 @@
   public
     F_RazeStructureEventLog_28: Byte;
     F_RazeStructureEventLog_29: array[0..2] of Byte;
-    procedure Yes; override;
+    function Yes: Boolean; override;
   end;
 
   { TPlayerStructureIncomeSource (instance size 12, VMT 55714160) }

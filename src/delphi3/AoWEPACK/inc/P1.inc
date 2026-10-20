@@ -104,6 +104,33 @@ type
   end;
 
 resourcestring
+  ConnectionLostRStr = 'Connection Lost!';
+  ConnectionXLostRStr = 'Connection to %s lost!';
+  ConnectionXTimeOutRStr = 'Connection to %s timed out!';
+  OutOfSyncRStr = 'Out of sync!';
+  TerminateGameSaveRStr = 'The game will be terminated, do you want to save?';
+  LetTheGameBeginRStr = 'Let the game begin';
+  TheGameContinuesRStr = 'The game continues';
+  AgeOfWondersEmailGameRStr = 'Age of Wonders email game';
+  AoWEmailGameXRStr = 'AoW email game (%s)';
+  DoYouWantToContinueRStr = 'Do you want to continue?';
+  GameRestartEventLogXRStr = 'Game is restarted for unknown reason, contact %s for more information';
+  GameSavedRStr = '%s saved';
+  GameSuccessfullySavedRStr = 'Game successfully saved';
+  MapXRStr = 'Map: %s';
+  NameXRStr = 'Name: %s';
+  PBEMGameEndedRStr = 'This game''s turn has been ended. Restarting is only allowed for resend purposes.';
+  PBEMRestartCheatRStr = 'This game isn''t the original game. Restarting it qualifies you as a cheater!';
+  PlayersRStr = 'Players';
+  SaveEmailGameRStr = 'Save email game...';
+  TurnXRStr = 'Turn: %s';
+  WarningRStr = 'Warning';
+  XatYRStr = '%0:s at %1:s';
+  ItsYourTurnRStr = 'It''s your turn!';
+  YourTurnContinuesRStr = 'Your turn continues';
+  IndependentsAreMovingRStr = 'Independents are moving';
+  PlayerIsMovingRStr = '%s is moving';
+  AreMovingRStr = '%s are moving';
   PlayerRStr = 'Player';
   IndependentsRStr = 'Independents';
   PlayerNameExRStr = '%0:s of the %1:s';
@@ -4478,7 +4505,7 @@ begin end;
 procedure TPlayerControl.ValidatePasswordCallBack(A1: Integer);
 begin end;
 
-procedure TPlayerControl.ValidatePassword(A1: Integer);
+procedure TPlayerControl.ValidatePassword(A1: string);
 begin end;
 
 procedure TPlayerControl.ValidateTurnTiming;
@@ -4493,221 +4520,1135 @@ begin end;
 procedure TPlayerControl.ConnectionLost;
 begin end;
 
+function EndPlayerTurn(Player: Shortint): Boolean;
+var
+  Event: TEndTurnTE;
+begin
+  Event := TEndTurnTE.Create(nil);
+  Event.FPlayer := Player;
+  Event.FDay := AoWHSMap.FDay;
+  Event.FMode := emEndTurn;
+  AoWHSMap.FTokenManager.TokenControls[Player].AddEvent(Event);
+  Event.Release;
+  Result := True;
+end;
+
 class function TTurnPlayerControl.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20250; end;
 
 procedure TTurnPlayerControl.Setup;
-begin end;
+begin
+  inherited Setup;
+  AoWHSMap.FTokenManager.TokenExecuter.HoldTC := True;
+end;
 
 procedure TTurnPlayerControl.NewDay;
-begin end;
+var
+  Player: Integer;
+begin
+  if AoWHSMap.FRequestCombatType then
+  begin
+    Player := AoWHSMap.FSeatedPlayer;
+    AoWHSMap.FSeatedPlayer := -1;
+    inherited NewDay;
+    AoWHSMap.FSeatedPlayer := Player;
+  end
+  else inherited NewDay;
+end;
 
 procedure TTurnPlayerControl.NewTurn(Player: Shortint);
-begin end;
+var
+  Log: TNewTurnEventLog;
+  BookLog: TShowBookEventLog;
+  Spells: TSpellList;
+  MagicLog: TPlayerMagicEventLog;
+begin
+  AoWHSMap.LockMapChangedEvent;
+  AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(Player);
+  if AoWHSMap.FRequestCombatType then
+  begin
+    if AoWHSMap.FSeatedPlayer <> -1 then AoWHSMap.SetSeatedPlayer(-1);
+    if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman then
+    begin
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := AoWHSMap.FCurrentPlayer;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [nsCloseable];
+      Log.FText := TranslateRStr(ItsYourTurnRStr);
+      AoWHSMap.TriggerExecuteEventLog(Log, False, ShowNewTurnCallBack);
+      Log.Release;
+    end
+    else
+    begin
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := AoWHSMap.FCurrentPlayer;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [];
+      if Player = 0 then Log.FText := TranslateRStr(IndependentsAreMovingRStr)
+      else Log.FText := Format(TranslateRStr(PlayerIsMovingRStr), [AoWHSMap.FPlayers.GetPlayers(Player).GetName]);
+      AoWHSMap.TriggerExecuteEventLog(Log, True, nil);
+      Log.Release;
+    end;
+  end
+  else if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) and
+    (Player = AoWHSMap.FSeatedPlayer) then
+  begin
+    if (AoWHSMap.FGameType <> gtTutorial) or (AoWHSMap.FDay <> 1) then
+    begin
+      AoWHSMap.ResetTurnTimer;
+      AoWHSMap.EnableTurnTimer;
+      AoWHSMap.ResetSeatedPlayerView;
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := Player;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [nsCloseable];
+      Log.FText := TranslateRStr(ItsYourTurnRStr);
+      AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+      Log.Release;
+      ReplayLogbook;
+    end
+    else AoWHSMap.FTutorialControl.ShowMessage(50, 0, 1);
+  end;
+  inherited NewTurn(Player);
+  if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) and
+    (AoWHSMap.FConnectionType <> pcEmail) and AoWEngine.FRegistry.GetAutoSave then AutoSave;
+  AoWHSMap.UnlockMapChangedEvent;
+  AoWHSMap.InvalidateMap;
+  if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman then
+  begin
+    AoWHSMap.FAIExecuter.ActivatePlayer(Player);
+    if Player = 0 then AoWHSMap.ShowMessage(Format(TranslateRStr(AreMovingRStr), [TranslateRStr(IndependentsRStr)]))
+    else AoWHSMap.ShowMessage(Format(TranslateRStr(AreMovingRStr),
+      [TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace])]));
+  end
+  else
+  begin
+    PlaySample('SFX\EVENTS\NEWTURN.WAV');
+    if (AoWHSMap.FDay = 1) and (AoWHSMap.FRequestCombatType or (Player = AoWHSMap.FSeatedPlayer)) then
+    begin
+      if AoWHSMap.FGameType in [gtCustom, gtTutorial] then
+          begin
+            BookLog := TShowBookEventLog.Create(nil);
+            AoWHSMap.TriggerExecuteEventLog(BookLog, False, nil);
+            BookLog.Release;
+          end;
+      if AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.FResearchSpellID = 0 then
+      begin
+        Spells := TSpellList.Create;
+        AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.ListResearchSpells(Spells, [stCombat, stUnit, stGlobal]);
+        if Spells.GetCount > 0 then
+        begin
+          MagicLog := TPlayerMagicEventLog.Create(nil);
+          MagicLog.FMode := 2;
+          AoWHSMap.TriggerExecuteEventLog(MagicLog, False, nil);
+          MagicLog.Release;
+        end;
+        Spells.Free;
+      end;
+      AoWHSMap.FTutorialControl.ShowMessage(52, 0, 1);
+    end;
+  end;
+end;
 
 procedure TTurnPlayerControl.ReplayLogbook;
-begin end;
+var
+  Book: TEventLogbook;
+  Index, I: Integer;
+begin
+  Book := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FEventLogbook;
+  Index := Book.FindFirstLogEx($202E3, AoWHSMap.FCurrentPlayer, AoWHSMap.FDay - 1);
+  for I := Index + 1 to Book.GetCount - 1 do Book.GetLogs(I).Execute(False, etNewTurn, nil);
+end;
 
 procedure TTurnPlayerControl.SetSeatedPlayer(Player: Shortint);
-begin end;
+begin
+  AoWHSMap.LockMapChangedEvent;
+  inherited SetSeatedPlayer(Player);
+  AoWHSMap.UnlockMapChangedEvent;
+  AoWHSMap.InvalidateMap;
+end;
 
-procedure TTurnPlayerControl.ShowNewTurnCallBack;
-begin end;
+procedure TTurnPlayerControl.ShowNewTurnCallBack(Log: TEventLog);
+begin
+  SetSeatedPlayer(AoWHSMap.FCurrentPlayer);
+  AoWHSMap.ResetTurnTimer;
+  AoWHSMap.EnableTurnTimer;
+  if AoWHSMap.FCurrentPlayer <> -1 then ReplayLogbook;
+end;
 
-procedure TTurnPlayerControl.StartGameCallBack;
-begin end;
+procedure TTurnPlayerControl.StartGameCallBack(Log: TEventLog);
+begin
+  if AoWHSMap.FSeatedPlayer = -1 then SetSeatedPlayer(AoWHSMap.FCurrentPlayer);
+  AoWHSMap.EnableTurnTimer;
+end;
 
 procedure TTurnPlayerControl.EndTurn(Player: Shortint);
-begin end;
+var
+  Log: TEndTurnEventLog;
+  Index: Integer;
+  Found: Boolean;
+  NextPlayer: Shortint;
+begin
+  inherited EndTurn(Player);
+  if Player = AoWHSMap.FSeatedPlayer then
+  begin
+    AoWHSMap.ZeroTurnTimer;
+    if AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psPlaying then AoWHSMap.ClearExecuteEventLogBuffer;
+    AoWHSMap.Selection.UnselectLocation;
+  end;
+  if Player = AoWHSMap.FCurrentPlayer then
+  begin
+    if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman then AoWHSMap.FAIExecuter.DeactivatePlayer(Player);
+    Log := TEndTurnEventLog.Create(nil);
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FEventLogbook.AddEvent(Log);
+    Log.Release;
+    Index := AoWHSMap.FTurnOrder.IndexOf(AoWHSMap.FCurrentPlayer);
+    Found := False;
+    while not Found do
+    begin
+      Inc(Index);
+      if Index = AoWHSMap.FTurnOrder.Count then
+      begin
+        NewDay;
+        Index := 0;
+      end;
+      NextPlayer := AoWHSMap.FTurnOrder[Index];
+      Found := AoWHSMap.FPlayers.GetPlayers(NextPlayer).FStatus = psPlaying;
+      if not Found then
+      begin
+        inherited NewTurn(NextPlayer);
+        inherited EndTurn(NextPlayer);
+      end;
+    end;
+    if AoWHSMap.FTurnOrder.Count <> 0 then NewTurn(AoWHSMap.FTurnOrder[Index])
+    else NewTurn(0);
+  end;
+end;
 
 procedure TTurnPlayerControl.DefaultStartMap;
-begin end;
+begin
+  AoWHSMap.FPlayers.Update;
+  AoWHSMap.FRequestCombatType := (AoWHSMap.FConnectionType = pcEmail) or
+    ((AoWHSMap.FConnectionType = pcLocal) and (AoWHSMap.FPlayers.FLocalHumanPlayers.Count > 1));
+  AoWHSMap.FShowIndependentMoves := not AoWHSMap.FRequestCombatType;
+end;
 
 procedure TTurnPlayerControl.StartNewMap;
-begin end;
+begin
+  inherited StartNewMap;
+  DefaultStartMap;
+  NewDay;
+  if not AoWHSMap.FRequestCombatType then
+  begin
+    AoWHSMap.SetSeatedPlayer(AoWHSMap.FPlayers.FLocalHumanPlayers[0]);
+    AoWHSMap.ResetSeatedPlayerView;
+  end;
+  NewTurn(AoWHSMap.FTurnOrder[1]);
+end;
 
 procedure TTurnPlayerControl.StartLoadedMapEx;
-begin end;
+var
+  Log: TNewTurnEventLog;
+begin
+  DefaultStartMap;
+  AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(AoWHSMap.FCurrentPlayer);
+  if AoWHSMap.FRequestCombatType then
+  begin
+    AoWHSMap.SetSeatedPlayer(-1);
+    if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPlayerType = ptHuman then
+    begin
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := AoWHSMap.FCurrentPlayer;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [nsCloseable];
+      Log.FText := TranslateRStr(YourTurnContinuesRStr);
+      AoWHSMap.TriggerExecuteEventLog(Log, False, StartGameCallBack);
+      Log.Release;
+    end
+    else
+    begin
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := AoWHSMap.FCurrentPlayer;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [];
+      if AoWHSMap.FCurrentPlayer = 0 then Log.FText := TranslateRStr(IndependentsAreMovingRStr)
+      else Log.FText := Format(TranslateRStr(PlayerIsMovingRStr),
+        [AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).GetName]);
+      AoWHSMap.TriggerExecuteEventLog(Log, True, nil);
+      Log.Release;
+    end;
+  end
+  else
+  begin
+    AoWHSMap.SetSeatedPlayer(AoWHSMap.FPlayers.FLocalHumanPlayers[0]);
+    AoWHSMap.ResetSeatedPlayerView;
+    if (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPlayerType = ptHuman) and
+      (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) then
+    begin
+      Log := TNewTurnEventLog.Create(nil);
+      Log.FTurnPlayer := AoWHSMap.FSeatedPlayer;
+      Log.FMode := ntDialog;
+      Log.FDialogStyle := [nsCloseable];
+      Log.FText := TranslateRStr(YourTurnContinuesRStr);
+      AoWHSMap.TriggerExecuteEventLog(Log, False, StartGameCallBack);
+      Log.Release;
+    end;
+  end;
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPlayerType <> ptHuman then
+    AoWHSMap.FAIExecuter.ActivatePlayer(AoWHSMap.FCurrentPlayer);
+  AoWEngine.OutputDebugStr('Random Seed: ' + IntToStr(AoWHSMap.FDefendersSeed));
+end;
 
 procedure TTurnPlayerControl.PasswordValidated;
-begin end;
+begin StartLoadedMapEx; end;
 
 procedure TTurnPlayerControl.StartLoadedMap;
-begin end;
+begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FSettings <> '' then
+    ValidatePassword(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FSettings)
+  else StartLoadedMapEx;
+end;
 
 procedure TTurnPlayerControl.GameOverEventHandled(Player: Shortint);
-begin end;
+begin
+  if AoWHSMap.FRequestCombatType then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(Player).FStatus := psTerminated;
+    AoWHSMap.FPlayers.Update;
+    AoWHSMap.TriggerPlayerTerminatedEvent(Player);
+    if AoWHSMap.FPlayers.FLocalHumanPlayers.Count = 0 then AoWHSMap.TriggerGameTerminatedEvent
+    else EndPlayerTurn(AoWHSMap.FCurrentPlayer);
+  end;
+end;
 
 procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
-begin end;
+begin
+  inherited SetPlayerGameOverStatus(Player, Status);
+  if not AoWHSMap.FRequestCombatType or (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(Player).FStatus := psTerminated;
+    AoWHSMap.FPlayers.Update;
+    AoWHSMap.TriggerPlayerTerminatedEvent(Player);
+    if (AoWHSMap.FCurrentPlayer = Player) and AoWHSMap.FPlayers.GetPlayers(Player).GetLocal then
+      EndPlayerTurn(AoWHSMap.FCurrentPlayer);
+    if AoWHSMap.FPlayers.FLocalHumanPlayers.Count = 0 then AoWHSMap.TriggerGameTerminatedEvent;
+  end;
+end;
 
 procedure TTurnPlayerControl.GameOver(Player: Shortint; Status: TGameOverStatus);
-begin end;
+begin
+  AoWHSMap.LockGameOverEvent;
+  inherited GameOver(Player, Status);
+  AoWHSMap.UnlockGameOverEvent;
+end;
 
 procedure TTurnPlayerControl.ValidateTurnTiming;
-begin end;
+begin
+  if AoWHSMap.GetTurnTimerEnabled and (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) and
+    (AoWHSMap.GetTurnTimeLeft <= 0) then
+    if (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) and
+      (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FSingleProcessCycle = False) then
+      if AoWHSMap.FTokenManager.PlayerReady(AoWHSMap.FSeatedPlayer) then EndPlayerTurn(AoWHSMap.FSeatedPlayer);
+end;
 
 class function TPBEMPlayerControl.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20253; end;
 
 procedure TPBEMPlayerControl.TerminateEmailGame;
-begin end;
+begin AoWHSMap.ExitGame(egmExit, nil); end;
 
-procedure TPBEMPlayerControl.TerminateEmailGameCallBack;
-begin end;
+procedure TPBEMPlayerControl.TerminateEmailGameCallBack(Log: TEventLog);
+begin TerminateEmailGame; end;
 
-procedure TPBEMPlayerControl.SendEmailGameAutomatedCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.SendEmailGameAutomatedCallBack(Log: TEventLog);
+var
+  SendLog: TSendEmailGameEventLog;
+begin
+  Windows.DeleteFile(PChar(TSMTPEventLog(Log).FFileName));
+  if not TSMTPEventLog(Log).FSuccess then
+  begin
+    SendLog := TSendEmailGameEventLog.Create(nil);
+    SendLog.FMode := 1;
+    SendLog.FSendPlayer := AoWHSMap.FCurrentPlayer;
+    AoWHSMap.TriggerExecuteEventLog(SendLog, False, SendEmailGameCallBack);
+    SendLog.Release;
+  end
+  else TerminateEmailGame;
+end;
 
-procedure TPBEMPlayerControl.SendEmailGameManualCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.SendEmailGameManualCallBack(Log: TEventLog);
+var
+  Failed: Boolean;
+  MessageLog: TMessageEventLog;
+begin
+  if TSaveGameEventLog(Log).FFileName <> '' then
+    try
+      AoWEngine.SaveHSM(TSaveGameEventLog(Log).FFileName, nil);
+      AoWHSMap.ShowMessage(Format(TranslateRStr(GameSavedRStr), [TSaveGameEventLog(Log).FFileName]));
+      Failed := False;
+    except Failed := True;
+    end
+  else Failed := True;
+  if Failed then
+  begin
+    MessageLog := TMessageEventLog.Create(nil);
+    MessageLog.FMessage.Text := Format(TranslateRStr(CouldNotSaveXRStr) + '.', [TSaveGameEventLog(Log).FFileName]);
+    AoWHSMap.TriggerExecuteEventLog(MessageLog, False, TerminateEmailGameCallBack);
+    MessageLog.Release;
+  end
+  else
+  begin
+    MessageLog := TMessageEventLog.Create(nil);
+    MessageLog.FMessage.Text := Format(TranslateRStr(GameSuccessfullySavedRStr) + '.', [TSaveGameEventLog(Log).FFileName]);
+    AoWHSMap.TriggerExecuteEventLog(MessageLog, False, TerminateEmailGameCallBack);
+    MessageLog.Release;
+  end;
+end;
 
-procedure TPBEMPlayerControl.SendEmailGameCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.SendEmailGameCallBack(Log: TEventLog);
+var
+  SMTPLog: TSMTPEventLog;
+  SaveLog: TSaveGameEventLog;
+  TempPath: array[0..500] of Char;
+  I: Integer;
+begin
+  case TSendEmailGameEventLog(Log).FMode of
+    2: TerminateEmailGame;
+    1:
+      begin
+        SaveLog := TSaveGameEventLog.Create(nil);
+        SaveLog.FTitle := TranslateRStr(SaveEmailGameRStr);
+        SaveLog.FDefaultName := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName;
+        SaveLog.FDirectory := AoWEngine.StartupDirectory + 'EmailOut\';
+        AoWHSMap.TriggerExecuteEventLog(SaveLog, False, SendEmailGameManualCallBack);
+        SaveLog.Release;
+      end;
+    0:
+      begin
+        GetTempPath(SizeOf(TempPath), TempPath);
+        SMTPLog := TSMTPEventLog.Create(nil);
+        SMTPLog.FSubject := Format(TranslateRStr(AoWEmailGameXRStr),
+          [AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName]);
+        SMTPLog.FFromAddress := AoWEngine.FRegistry.GetLocalEmailAddress;
+        SMTPLog.FToAddress := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FEmailAddress;
+        SMTPLog.FFileName := TempPath + AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName + '.asg';
+        SMTPLog.FMessage.Add(TranslateRStr(AgeOfWondersEmailGameRStr));
+        SMTPLog.FMessage.Add('--------------------------------------------------------');
+        SMTPLog.FMessage.Add(Format(TranslateRStr(NameXRStr),
+          [AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName]));
+        SMTPLog.FMessage.Add(Format(TranslateRStr(MapXRStr), [AoWHSMap.FMapName]));
+        SMTPLog.FMessage.Add(Format(TranslateRStr(TurnXRStr), [IntToStr(AoWHSMap.FDay)]));
+        SMTPLog.FMessage.Add('');
+        SMTPLog.FMessage.Add(TranslateRStr(PlayersRStr) + ':');
+        for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+          if AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman then
+            SMTPLog.FMessage.Add(Format(TranslateRStr(XatYRStr),
+              [AoWHSMap.FPlayers.GetPlayers(I).GetName, AoWHSMap.FPlayers.GetPlayers(I).FPBEMSettings.FEmailGame.FEmailAddress]));
+        AoWEngine.SaveHSM(SMTPLog.FFileName, nil);
+        AoWHSMap.TriggerExecuteEventLog(SMTPLog, False, SendEmailGameAutomatedCallBack);
+        SMTPLog.Release;
+      end;
+  end;
+end;
 
 procedure TPBEMPlayerControl.NewTurn(Player: Shortint);
-begin end;
+var
+  Log: TSendEmailGameEventLog;
+begin
+  if (pbsNewTurn in AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus) or
+    (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) or
+    (AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psTerminated) then
+  begin
+    inherited NewTurn(Player);
+    AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus :=
+      AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus - [pbsNewTurn, pbsTurnDone] + [pbsPlaying];
+  end
+  else
+  begin
+    if (AoWHSMap.FPlayers.FLocalPlayers.Count > 1) or (Player <> FLocalPlayer) then
+    begin
+      AoWHSMap.SetCurrentPlayer(Player);
+      AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus :=
+        AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus + [pbsNewTurn];
+      Log := TSendEmailGameEventLog.Create(nil);
+      Log.FMode := 2;
+      Log.FSendPlayer := Player;
+      AoWHSMap.TriggerExecuteEventLog(Log, False, SendEmailGameCallBack);
+      Log.Release;
+    end
+    else
+    begin
+      inherited NewTurn(Player);
+      AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus :=
+        AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus - [pbsNewTurn, pbsTurnDone] + [pbsPlaying];
+    end;
+  end;
+end;
 
-procedure TPBEMPlayerControl.TriggerGameRestartedEvents(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.TriggerGameRestartedEvents(Player: Shortint);
+var
+  Log: TRestartGameEventLog;
+begin
+  AoWHSMap.SynchroniseBegin;
+  Log := TRestartGameEventLog.Create(nil);
+  Log.FPlayer := Player;
+  Log.FMessage.Text := Format(TranslateRStr(GameRestartEventLogXRStr), [AoWHSMap.FPlayers.GetPlayers(Player).GetName]);
+  DistributeEventLog(Log, False);
+  Log.Release;
+  AoWHSMap.SynchroniseEnd;
+end;
 
-procedure TPBEMPlayerControl.EndTurnGameSavedCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.EndTurnGameSavedCallBack(Log: TEventLog);
+var
+  Failed: Boolean;
+begin
+  if TSaveGameEventLog(Log).FFileName <> '' then
+    try
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus :=
+        (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus + [pbsTurnDone]) - [pbsPlaying];
+      AoWEngine.SaveHSM(TSaveGameEventLog(Log).FFileName, nil);
+      AoWHSMap.ShowMessage(Format(TranslateRStr(GameSavedRStr), [TSaveGameEventLog(Log).FFileName]));
+      AoWHSMap.SynchroniseBegin;
+      inherited EndTurn(AoWHSMap.FCurrentPlayer);
+      AoWHSMap.SynchroniseEnd;
+      Failed := False;
+    except
+      AoWHSMap.ShowWarning(Format(TranslateRStr(CouldNotSaveXRStr), [TSaveGameEventLog(Log).FFileName]));
+      Failed := True;
+    end
+  else Failed := True;
+  if Failed then AoWHSMap.TriggerEndTurnEvent(AoWHSMap.FCurrentPlayer);
+end;
 
 procedure TPBEMPlayerControl.EndTurn(Player: Shortint);
-begin end;
+var
+  SaveLog: TSaveGameEventLog;
+  MessageLog: TMessageEventLog;
+  Saved: Boolean;
+begin
+  if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) and
+    (AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psPlaying) then
+  begin
+    if CompareText(ExtractFileExt(AoWHSMap.FileName), '.hsm') = 0 then
+    begin
+      SaveLog := TSaveGameEventLog.Create(nil);
+      SaveLog.FTitle := TranslateRStr(SaveEmailGameRStr);
+      if AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FEmailGame.FName <> '' then
+        SaveLog.FDefaultName := AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FEmailGame.FName + '.asg';
+      SaveLog.FDirectory := AoWEngine.StartupDirectory + 'EmailIn\';
+      AoWHSMap.TriggerExecuteEventLog(SaveLog, False, EndTurnGameSavedCallBack);
+      SaveLog.Release;
+    end
+    else
+    begin
+      AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus :=
+        (AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus + [pbsTurnDone]) - [pbsPlaying];
+      try
+        AoWEngine.SaveHSM(AoWHSMap.FileName, nil);
+        Saved := True;
+      except Saved := False;
+      end;
+      if Saved then inherited EndTurn(AoWHSMap.FCurrentPlayer)
+      else
+      begin
+        MessageLog := TMessageEventLog.Create(nil);
+        MessageLog.FMessage.Text := Format(TranslateRStr(CouldNotSaveXRStr) + '.', [AoWHSMap.FileName]);
+        AoWHSMap.TriggerExecuteEventLog(MessageLog, False, TerminateEmailGameCallBack);
+        MessageLog.Release;
+      end;
+    end;
+  end
+  else inherited EndTurn(AoWHSMap.FCurrentPlayer); { Original uses current player, ignoring Player here. }
+end;
 
 procedure TPBEMPlayerControl.StartLoadedEmailGame;
-begin end;
+begin
+  AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FLastDay := AoWHSMap.FDay;
+  AoWEngine.FEmailGames.UpdateGame(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame);
+  AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus :=
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus + [pbsPlaying];
+  if pbsNewTurn in AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus then
+  begin
+    AoWHSMap.SynchroniseBegin;
+    DefaultStartMap;
+    AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(AoWHSMap.FCurrentPlayer);
+    NewTurn(AoWHSMap.FCurrentPlayer);
+    AoWHSMap.SynchroniseEnd;
+  end
+  else StartLoadedMapEx;
+end;
 
-procedure TPBEMPlayerControl.ContinueRestartedGameCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.ContinueRestartedGameCallBack(Log: TEventLog);
+begin
+  if TMessageEventLog(Log).FPressedButton = pebYes then
+  begin
+    AoWHSMap.SynchroniseBegin;
+    TriggerGameRestartedEvents(AoWHSMap.FCurrentPlayer);
+    AoWHSMap.SynchroniseEnd;
+    StartLoadedEmailGame;
+  end
+  else AoWHSMap.ExecuteExitGame;
+end;
 
-procedure TPBEMPlayerControl.ContinueTurnDoneGameCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.ContinueTurnDoneGameCallBack(Log: TEventLog);
+begin
+  if TMessageEventLog(Log).FPressedButton = pebYes then
+  begin
+    AoWHSMap.SynchroniseBegin;
+    DefaultStartMap;
+    AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(AoWHSMap.FCurrentPlayer);
+    EndTurn(AoWHSMap.FCurrentPlayer);
+    AoWHSMap.SynchroniseEnd;
+  end
+  else AoWHSMap.ExecuteExitGame;
+end;
 
 procedure TPBEMPlayerControl.ValidateLoadedMap;
-begin end;
+var
+  Restarted: Boolean;
+  Log: TMessageEventLog;
+begin
+  FLocalPlayer := AoWHSMap.FCurrentPlayer;
+  if AoWEngine.FEmailGames.FindEmailGame(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame) = nil then
+  begin
+    Restarted := AoWEngine.FEmailGames.EmailGameRestarted(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame);
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.SetGame(AoWEngine.FEmailGames.CreateEmailGame(
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName,
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FEmailAddress));
+    if Restarted then TriggerGameRestartedEvents(AoWHSMap.FCurrentPlayer);
+    StartLoadedEmailGame;
+  end
+  else
+  begin
+    if AoWEngine.FEmailGames.EmailGameRestarted(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame) then
+    begin
+      SetSeatedPlayer(-1);
+      Log := TMessageEventLog.Create(nil);
+      Log.FButtons := mebYesNo;
+      Log.FTitle := TranslateRStr(WarningRStr);
+      Log.FMessage.Text := TranslateRStr(PBEMRestartCheatRStr);
+      Log.FMessage.Add('');
+      Log.FMessage.Add(TranslateRStr(DoYouWantToContinueRStr));
+      AoWHSMap.TriggerExecuteEventLog(Log, False, ContinueRestartedGameCallBack);
+      Log.Release;
+    end
+    else
+    begin
+      SetSeatedPlayer(-1);
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus * [pbsNewTurn, pbsTurnDone] = [pbsTurnDone] then
+      begin
+        Log := TMessageEventLog.Create(nil);
+        Log.FTitle := TranslateRStr(WarningRStr);
+        Log.FButtons := mebYesNo;
+        Log.FMessage.Text := TranslateRStr(PBEMGameEndedRStr);
+        Log.FMessage.Add('');
+        Log.FMessage.Add(TranslateRStr(DoYouWantToContinueRStr));
+        AoWHSMap.TriggerExecuteEventLog(Log, False, ContinueTurnDoneGameCallBack);
+        Log.Release;
+      end
+      else StartLoadedEmailGame;
+    end;
+  end;
+end;
 
 procedure TPBEMPlayerControl.PasswordValidated;
-begin end;
+begin ValidateLoadedMap; end;
 
 procedure TPBEMPlayerControl.StartLoadedMap;
-begin end;
+begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FSettings <> '' then
+    ValidatePassword(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FSettings)
+  else ValidateLoadedMap;
+end;
 
 procedure TPBEMPlayerControl.StartNewMap;
-begin end;
+var
+  I: Integer;
+  Player: Byte;
+begin
+  DefaultStartMap;
+  NewDay;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    if (I = 0) or (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptIndependent) then
+      AoWHSMap.FPlayers.GetPlayers(I).FStatus := psPlaying;
+  I := 0;
+  while (I < AoWHSMap.FTurnOrder.Count) and
+    (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FTurnOrder[I]).FPlayerType <> ptHuman) do Inc(I);
+  Player := AoWHSMap.FTurnOrder[I];
+  if (AoWEngine.FEmailGames.FindEmailGame(AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FEmailGame) <> nil) and
+    (CompareText(AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FEmailGame.FEmailAddress, AoWEngine.FRegistry.GetLocalEmailAddress) = 0) then
+  begin
+    FLocalPlayer := Player;
+    AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus :=
+      AoWHSMap.FPlayers.GetPlayers(Player).FPBEMSettings.FStatus + [pbsNewTurn];
+  end
+  else AoWHSMap.SetSeatedPlayer(-1);
+  NewTurn(AoWHSMap.FTurnOrder[1]);
+end;
 
-procedure TPBEMPlayerControl.ExitGameSaveAsCallBack(A1: Integer);
-begin end;
+procedure TPBEMPlayerControl.ExitGameSaveAsCallBack(Log: TEventLog);
+begin
+  if TSaveGameEventLog(Log).FFileName <> '' then
+    try
+      AoWEngine.SaveHSM(TSaveGameEventLog(Log).FFileName, nil);
+      AoWHSMap.ExecuteExitGame;
+    except
+      AoWHSMap.ShowWarning(Format(TranslateRStr(CouldNotSaveXRStr), [TSaveGameEventLog(Log).FFileName]));
+    end;
+end;
 
 procedure TPBEMPlayerControl.ExitGame(A1: Byte);
-begin end;
+var
+  Log: TSaveGameEventLog;
+begin
+  if pbsPlaying in AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FStatus then
+  begin
+    if CompareText(ExtractFileExt(AoWHSMap.FileName), '.hsm') = 0 then
+    begin
+      Log := TSaveGameEventLog.Create(nil);
+      Log.FTitle := TranslateRStr(SaveEmailGameRStr);
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName <> '' then
+        Log.FDefaultName := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FName + '.asg';
+      Log.FDirectory := AoWEngine.StartupDirectory + 'EmailIn\';
+      AoWHSMap.TriggerExecuteEventLog(Log, False, ExitGameSaveAsCallBack);
+      Log.Release;
+    end
+    else
+    begin
+      AoWEngine.SaveHSM(AoWHSMap.FileName, nil);
+      AoWHSMap.ExecuteExitGame;
+    end;
+  end
+  else AoWHSMap.ExecuteExitGame;
+end;
 
 class function TSimultaniousPlayerControl.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20251; end;
 
 procedure TSimultaniousPlayerControl.NewTurn(Player: Shortint);
-begin end;
+var
+  Log: TEventLog;
+  Spells: TSpellList;
+begin
+  if Player = AoWHSMap.FSeatedPlayer then
+    if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman then
+    begin
+      if AoWHSMap.FDay = 1 then
+      begin
+        if AoWHSMap.FGameType = gtCustom then
+        begin
+          Log := TShowBookEventLog.Create(nil);
+          AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+          Log.Release;
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.FResearchSpellID = 0 then
+        begin
+          Spells := TSpellList.Create;
+          AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.ListResearchSpells(Spells, [stCombat, stUnit, stGlobal]);
+          if Spells.GetCount > 0 then
+          begin
+            Log := TPlayerMagicEventLog.Create(nil);
+            TPlayerMagicEventLog(Log).FMode := 2;
+            AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+            Log.Release;
+          end;
+          Spells.Free;
+        end;
+      end
+      else
+      begin
+        AoWHSMap.ResetTurnTimer;
+        AoWHSMap.EnableTurnTimer;
+      end;
+    end;
+  inherited NewTurn(Player);
+  if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman then
+    if AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psPlaying then AoWHSMap.FAIExecuter.ActivatePlayer(Player);
+end;
 
 procedure TSimultaniousPlayerControl.Setup;
-begin end;
+begin
+  inherited Setup;
+  AoWHSMap.FTokenManager.TokenExecuter.HoldTC := False;
+end;
 
 procedure TSimultaniousPlayerControl.EndTurn(Player: Shortint);
-begin end;
+var
+  I: Integer;
+  AllDone: Boolean;
+  Log: TEndTurnEventLog;
+  Msg: TEMsg;
+begin
+  AoWHSMap.FPlayers.GetPlayers(Player).SetEndTurn(True);
+  AllDone := True;
+  I := 1;
+  while AllDone and (I <> AoWHSMap.FPlayers.Count) do
+  begin
+    AllDone := (AoWHSMap.FPlayers.GetPlayers(I).FStatus <> psPlaying) or
+      AoWHSMap.FPlayers.GetPlayers(I).FSingleProcessCycle;
+    Inc(I);
+  end;
+  if AllDone then
+  begin
+    if AoWHSMap.FSeatedPlayer = Player then AoWHSMap.ClearExecuteEventLogBuffer;
+    AoWHSMap.LockRelationsChanged;
+    for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    begin
+      if AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying then
+      begin
+        if AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptHuman then AoWHSMap.FAIExecuter.DeactivatePlayer(I);
+        Log := TEndTurnEventLog.Create(nil);
+        AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Log);
+        Log.Release;
+      end;
+      InitMsg(Msg, $20020007, Self);
+      Msg.Value := I;
+      AoWHSMap.SendMsg(Msg, Self);
+    end;
+    AoWHSMap.UnlockRelationsChanged;
+    NewDay;
+  end;
+end;
 
 procedure TSimultaniousPlayerControl.NewDay;
-begin end;
+var
+  I: Integer;
+begin
+  AoWHSMap.Selection.UnselectLocation;
+  inherited NewDay;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do NewTurn(I);
+  PlaySample('SFX\EVENTS\NEWTURN.WAV');
+  if AoWEngine.FRegistry.GetAutoSave then AutoSave;
+end;
 
-procedure TSimultaniousPlayerControl.StartGameCallBack;
-begin end;
+procedure TSimultaniousPlayerControl.StartGameCallBack(Log: TEventLog);
+begin
+  if AoWHSMap.FConnectionType <> pcNetwork then
+  begin
+    AoWHSMap.FAIExecuter.Unlock;
+    AoWHSMap.ResetTurnTimer;
+    AoWHSMap.EnableTurnTimer;
+  end;
+end;
 
 procedure TSimultaniousPlayerControl.StartNewMap;
-begin end;
+var
+  I: Integer;
+  Log: TNewTurnEventLog;
+begin
+  inherited StartNewMap;
+  AoWHSMap.FShowIndependentMoves := False;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    if (I = 0) or (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptIndependent) then
+      AoWHSMap.FPlayers.GetPlayers(I).FStatus := psPlaying;
+  AoWHSMap.FPlayers.Update;
+  AoWHSMap.FCurrentPlayer := 0;
+  AoWHSMap.SetSeatedPlayer(AoWHSMap.FPlayers.FLocalHumanPlayers[0]);
+  AoWHSMap.SeatedPlayerChanged;
+  Assert(AoWHSMap.FSeatedPlayer <> 0);
+  AoWHSMap.ResetSeatedPlayerView;
+  AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(AoWHSMap.FCurrentPlayer);
+  Log := TNewTurnEventLog.Create(nil);
+  Log.FTurnPlayer := AoWHSMap.FSeatedPlayer;
+  Log.FMode := ntDialog;
+  Log.FDialogStyle := [nsCloseable];
+  Log.FText := TranslateRStr(LetTheGameBeginRStr);
+  AoWHSMap.TriggerExecuteEventLog(Log, False, StartGameCallBack);
+  Log.Release;
+  if AoWHSMap.FConnectionType = pcNetwork then
+  begin
+    AoWHSMap.ResetTurnTimer;
+    AoWHSMap.EnableTurnTimer;
+  end
+  else AoWHSMap.FAIExecuter.Lock;
+  NewDay;
+end;
 
 procedure TSimultaniousPlayerControl.StartLoadedMapEx;
-begin end;
+var
+  I: Integer;
+  Log: TNewTurnEventLog;
+  Player: TPlayer;
+begin
+  AoWHSMap.FShowIndependentMoves := False;
+  AoWHSMap.SetSeatedPlayer(AoWHSMap.FPlayers.FLocalHumanPlayers[0]);
+  AoWHSMap.SeatedPlayerChanged;
+  AoWHSMap.ResetSeatedPlayerView;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+  begin
+    Player := AoWHSMap.FPlayers.GetPlayers(I);
+    if (Player.FStatus = psPlaying) and (Player.FPlayerType <> ptHuman) then AoWHSMap.FAIExecuter.ActivatePlayer(I);
+  end;
+  for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    if AoWHSMap.FPlayers.GetPlayers(I).FStatus <> psPlaying then AoWHSMap.FTokenManager.TokenControls[I].Active := False;
+  AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(AoWHSMap.FCurrentPlayer);
+  Log := TNewTurnEventLog.Create(nil);
+  Log.FTurnPlayer := AoWHSMap.FSeatedPlayer;
+  Log.FMode := ntDialog;
+  Log.FDialogStyle := [nsCloseable];
+  Log.FText := TranslateRStr(TheGameContinuesRStr);
+  AoWHSMap.TriggerExecuteEventLog(Log, False, StartGameCallBack);
+  Log.Release;
+  if AoWHSMap.FConnectionType = pcNetwork then
+  begin
+    AoWHSMap.ResetTurnTimer;
+    AoWHSMap.EnableTurnTimer;
+  end
+  else AoWHSMap.FAIExecuter.Lock;
+end;
 
 procedure TSimultaniousPlayerControl.PasswordValidated;
-begin end;
+begin StartLoadedMapEx; end;
 
 procedure TSimultaniousPlayerControl.StartLoadedMap;
-begin end;
+begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FPlayers.FLocalHumanPlayers[0]).FSettings <> '' then
+    ValidatePassword(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FPlayers.FLocalHumanPlayers[0]).FSettings)
+  else StartLoadedMapEx;
+end;
 
 procedure TSimultaniousPlayerControl.GameOverEventHandled(Player: Shortint);
-begin end;
+begin
+  AoWHSMap.SetSeatedPlayer(-1);
+  AoWHSMap.TriggerGameTerminatedEvent;
+end;
 
 procedure TSimultaniousPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
-begin end;
+begin
+  inherited SetPlayerGameOverStatus(Player, Status);
+  AoWHSMap.FPlayers.GetPlayers(Player).FStatus := psTerminated;
+  AoWHSMap.FTokenManager.TokenExecuter.GetTC(Player).Active := False;
+  AoWHSMap.FPlayers.Update;
+  AoWHSMap.TriggerPlayerTerminatedEvent(Player);
+  if AoWHSMap.FPlayers.FLocalHumanPlayers.Count = 0 then AoWHSMap.TriggerGameTerminatedEvent
+  else EndTurn(Player);
+end;
 
 procedure TSimultaniousPlayerControl.ValidateTurnTiming;
-begin end;
+begin
+  if AoWHSMap.GetTurnTimerEnabled and (AoWHSMap.GetTurnTimeLeft <= 0) then
+    if (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) and
+      (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FSingleProcessCycle = False) then
+      if AoWHSMap.FTokenManager.PlayerReady(AoWHSMap.FSeatedPlayer) then EndPlayerTurn(AoWHSMap.FSeatedPlayer);
+end;
 
 procedure TPlayerConnectionEventLog.Setup(Player: Shortint; Reason: Byte);
-begin end;
+begin
+  FReason := Reason;
+  FDisconnectedPlayer := Player;
+  case FReason of
+    3:
+      begin
+        FButtons := mebYesNo;
+        FMessage.Text := TranslateRStr(OutOfSyncRStr);
+        FMessage.Add(TranslateRStr(TerminateGameSaveRStr));
+      end;
+    1:
+      begin
+        FButtons := mebYesNo;
+        FMessage.Text := Format(TranslateRStr(ConnectionXTimeOutRStr),
+          [AoWHSMap.FPlayers.GetPlayers(FDisconnectedPlayer).GetName]);
+        FMessage.Add('');
+        FMessage.Add(TranslateRStr(TerminateGameSaveRStr));
+      end;
+    2:
+      begin
+        FButtons := mebYesNo;
+        if FDisconnectedPlayer = -1 then FMessage.Text := TranslateRStr(ConnectionLostRStr)
+        else FMessage.Text := Format(TranslateRStr(ConnectionXLostRStr),
+          [AoWHSMap.FPlayers.GetPlayers(FDisconnectedPlayer).GetName]);
+        FMessage.Add('');
+        FMessage.Add(TranslateRStr(TerminateGameSaveRStr));
+      end;
+  end;
+end;
 
-procedure TPlayerConnectionEventLog.ExitSaveGameCallBack(A1: Integer);
-begin end;
+procedure TPlayerConnectionEventLog.ExitSaveGameCallBack(Log: TEventLog);
+begin
+  if TSaveGameEventLog(Log).FFileName <> '' then
+  begin
+    if AoWEngine.FCampaign <> nil then AoWEngine.SaveCampaign(TSaveGameEventLog(Log).FFileName)
+    else AoWEngine.SaveHSM(TSaveGameEventLog(Log).FFileName, nil);
+  end
+  else AoWHSMap.ExecuteExitGame; { Original exits twice when the dialog is canceled. }
+  AoWHSMap.ExecuteExitGame;
+end;
 
-procedure TPlayerConnectionEventLog.Yes;
-begin end;
+function TPlayerConnectionEventLog.Yes: Boolean;
+var
+  Log: TSaveGameEventLog;
+begin
+  Log := TSaveGameEventLog.Create(nil);
+  Log.FDefaultName := '';
+  Log.FDirectory := AoWEngine.StartupDirectory + 'Save\';
+  AoWHSMap.TriggerExecuteEventLog(Log, False, ExitSaveGameCallBack);
+  Log.Release;
+  Result := True;
+end;
 
-procedure TPlayerConnectionEventLog.No;
-begin end;
+function TPlayerConnectionEventLog.No: Boolean;
+begin
+  AoWHSMap.ExecuteExitGame;
+  Result := True;
+end;
 
 constructor TRaceResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FUnitIndexes := TUnitIndexList.Create;
+  FSpecialUnitIndexes := TUnitIndexList.Create;
+  FHeroNames := TStringList.Create;
+end;
 
 destructor TRaceResource.Destroy;
-begin end;
+begin
+  ReleaseIL;
+  FUnitIndexes.Free;
+  FSpecialUnitIndexes.Free;
+  FHeroNames.Free;
+  inherited Destroy;
+end;
 
 function TRaceResource.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWEngine; end;
 
-procedure TRaceResource.GetFace;
-begin end;
+function TRaceResource.GetFace: TLibraryImage;
+var
+  Images: TCustomImageLibrary;
+begin
+  AddRef;
+  Images := FFaceLibrary;
+  if Images <> nil then Result := Images.GetSafe(GetRaceIndex)
+  else Result := nil;
+  Release;
+end;
 
-procedure TRaceResource.GetRaceIndex;
-begin end;
+function TRaceResource.GetRaceIndex: Integer;
+begin Result := EditIndex; end;
 
 procedure TRaceResource.LinkToIL;
-begin end;
+begin
+  if FImageLibrary = nil then
+  begin
+    if FImageLibraryName <> '' then
+      FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], FImageLibraryName);
+    FFaceLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'FACES\R_FACES.ILB');
+  end;
+end;
 
 procedure TRaceResource.ReleaseIL;
-begin end;
+begin
+  if FImageLibrary <> nil then { Original leaves the face library linked when the city library is nil. }
+  begin
+    if FImageLibraryName <> '' then
+      AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], FImageLibraryName);
+    AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'FACES\R_FACES.ILB');
+    FFaceLibrary := nil;
+    FImageLibrary := nil;
+  end;
+end;
 
-procedure TRaceResource.SetImageLibraryName(A1: Integer; A2: Integer);
-begin end;
+procedure TRaceResource.SetImageLibraryName(Value: string);
+begin
+  if Value <> FImageLibraryName then
+  begin
+    ReleaseIL;
+    FImageLibraryName := Value;
+    if FReferences <> 0 then LinkToIL;
+  end;
+end;
 
 function TRaceResource.AddRef: Integer;
-begin Result := 0; end;
+begin
+  if FReferences = 0 then LinkToIL;
+  Inc(FReferences);
+  Result := FReferences;
+end;
 
 function TRaceResource.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FReferences);
+  if FReferences = 0 then ReleaseIL;
+  Result := FReferences;
+end;
 
 class function TRaceResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20201; end;
 
 class function TRaceResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Race'; end;
 
 function TRaceResource.GetCellImage: ImageLib.TLibraryImage;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  I: Integer;
+begin
+  AddRef;
+  Result := nil;
+  if FImageLibrary <> nil then
+  begin
+    I := 0;
+    while (I < FImageLibrary.Count) and (Result = nil) do
+    begin
+      Result := FImageLibrary[I];
+      Inc(I);
+    end;
+  end;
+  Release;
+end;
 
 procedure TRaceResource.SetCellImage(Value: ImageLib.TLibraryImage);
 begin end;
 
 function TRaceResource.GetCityImage(Size, Terrain, Level: Integer): TLibraryImage;
-begin Result := nil; end;
+var
+  Index: Integer;
+begin
+  if Terrain = 5 then Index := Size + 60 - 1
+  else Index := Terrain * 10 + 70 + (Size - 1);
+  if FImageLibrary.ImageExist(Index) then Result := FImageLibrary[Index]
+  else Result := nil;
+  if Result = nil then
+  begin
+    if Level = 0 then Index := Size + 50 - 1
+    else Index := Size + 60 - 1;
+    if FImageLibrary.ImageExist(Index) then Result := FImageLibrary[Index];
+  end;
+end;
 
 procedure TRaceResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then FUnitIndexes.VerifyUnits(True);
+end;
 
 procedure TRaceResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FName, 5);
+  Stream.rwString(FRaceName, 6);
+  Stream.rwString(FDescription, 7);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FImageLibraryName, 8);
+  Stream.rwData(FAlignments, 1, 9);
+  Stream.rwStreamProc(10, FUnitIndexes.LoadFromStream, FUnitIndexes.SaveToStream);
+  Stream.rwStreamProc(11, FSpecialUnitIndexes.LoadFromStream, FSpecialUnitIndexes.SaveToStream);
+  Stream.rwInteger(FHeroUnitIndex, 12);
+  Stream.rwStrings(FHeroNames, 13);
+end;
 
 function TRaceResource.GetAlignment: TAlignment;
-begin Result := alNone; end;
+begin
+  if FAlignments = alsPureGood then
+  begin
+    Result := alPureGood;
+    Exit;
+  end;
+  if FAlignments = alsGood then Result := alGood
+  else if FAlignments = alsNeutral then Result := alNeutral
+  else if FAlignments = alsEvil then Result := alEvil
+  else if FAlignments = alsPureEvil then Result := alPureEvil
+  else if FAlignments = alsPureNeutral then Result := alPureNeutral
+  else Result := alNone;
+end;
 
 constructor TRaceResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5454,8 +6395,8 @@ begin end;
 function TStructureTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TRazeStructureEventLog.Yes;
-begin end;
+function TRazeStructureEventLog.Yes: Boolean;
+begin Result := False; end;
 
 class function TConstructStructureTE.ClassID: Integer;
 begin Result := 0; end;
@@ -6001,10 +6942,10 @@ begin end;
 procedure TAbstractAoWHSMap.ShowMessage(const A1: string);
 begin end;
 
-procedure TAbstractAoWHSMap.SetSeatedPlayer(A1: Byte);
+procedure TAbstractAoWHSMap.SetSeatedPlayer(A1: Shortint);
 begin end;
 
-procedure TAbstractAoWHSMap.SetCurrentPlayer(A1: Byte);
+procedure TAbstractAoWHSMap.SetCurrentPlayer(A1: Shortint);
 begin end;
 
 function TAbstractAoWHSMap.FogArea(X, Y, Level: Integer; Range: Integer): Boolean;
@@ -6175,7 +7116,7 @@ begin end;
 function TAoWHSMap.CreateMouse: HSEngine.THSMapMouse;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TAoWHSMap.SetSeatedPlayer(A1: Byte);
+procedure TAoWHSMap.SetSeatedPlayer(A1: Shortint);
 begin end;
 
 function TAoWHSMap.TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
@@ -6256,7 +7197,7 @@ begin end;
 procedure TAoWHSMap.ExecuteExitGame;
 begin end;
 
-procedure TAoWHSMap.ExitGame(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAoWHSMap.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
 begin end;
 
 procedure TAoWHSMap.TriggerEndTurnEvent(A1: Byte);
@@ -6286,7 +7227,7 @@ begin end;
 procedure TAoWHSMap.TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent);
 begin end;
 
-procedure TAoWHSMap.TriggerPlayerTerminatedEvent;
+procedure TAoWHSMap.TriggerPlayerTerminatedEvent(Player: Integer);
 begin end;
 
 procedure TAoWHSMap.GameOverEventHandled;

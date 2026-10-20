@@ -1,14 +1,14 @@
 { Interface declaration run owned by P1. }
-  { TPlayerConnectionEventLog (instance size 44, VMT 5570CF20) }
+  { TPlayerConnectionEventLog: size $2C; $28 reason, $29 disconnected player. VMT 5570CF20. }
   TPlayerConnectionEventLog = class(TMessageEventLog)
   public
-    F_PlayerConnectionEventLog_28: Byte;
-    F_PlayerConnectionEventLog_29: Byte;
+    FReason: Byte; { $28 }
+    FDisconnectedPlayer: Shortint; { $29 }
     F_PlayerConnectionEventLog_2A: array[0..1] of Byte;
-    procedure Yes; override;
-    procedure No; override;
+    function Yes: Boolean; override;
+    function No: Boolean; override;
     procedure Setup(Player: Shortint; Reason: Byte);
-    procedure ExitSaveGameCallBack(A1: Integer);  { draft }
+    procedure ExitSaveGameCallBack(Log: TEventLog);
   end;
 
   { TPlayerControl: size $20; $18 disconnected-player list, $1C sync warning shown. VMT 5570D074. }
@@ -51,7 +51,7 @@
     procedure ExitNetworkGameCallBack(A1: Integer);  { draft }
     procedure PasswordTryAgainCallBack(A1: Integer);  { draft }
     procedure ValidatePasswordCallBack(A1: Integer);  { draft }
-    procedure ValidatePassword(A1: Integer);  { draft }
+    procedure ValidatePassword(A1: string);
     procedure PlayerDisconnected(A1: Integer);  { draft }
   end;
 
@@ -79,13 +79,17 @@
     procedure RetrieveText(ID: Integer; Text: TStrings);
   end;
 
-  { TNewTurnEventLog (instance size 36, VMT 5570D448) }
+  { TNewTurnEventLog: size $24; $18 player, $1C text, $20 mode, $21 dialog style. VMT 5570D448. }
   TNewTurnEventLog = class(TEventLog)
   public
-    F_NewTurnEventLog_18: array[0..11] of Byte;
+    FTurnPlayer: Shortint; { $18 }
+    FReserved19: array[0..2] of Byte;
+    FText: string; { $1C }
+    FMode: TNewTurnEventLogMode; { $20 }
+    FDialogStyle: TNewTurnEventLogDialogStyle; { $21 }
   end;
 
-  { TTurnPlayerControl (instance size 32, VMT 5570D54C) }
+  { TTurnPlayerControl: size $20, no added fields. VMT 5570D54C. }
   TTurnPlayerControl = class(TPlayerControl)
   public
     class function ClassID: Integer; override;
@@ -101,23 +105,24 @@
     procedure GameOverEventHandled(Player: Shortint); override;
     procedure EndTurn(Player: Shortint); override;
     procedure SetSeatedPlayer(Player: Shortint); override;
-    procedure StartLoadedMapEx; virtual;  { +098 draft }
-    procedure ReplayLogbook;  { draft }
-    procedure ShowNewTurnCallBack;  { draft }
-    procedure StartGameCallBack;  { draft }
-    procedure DefaultStartMap;  { draft }
+    procedure StartLoadedMapEx; virtual; { $98 }
+    procedure ReplayLogbook;
+    procedure ShowNewTurnCallBack(Log: TEventLog);
+    procedure StartGameCallBack(Log: TEventLog);
+    procedure DefaultStartMap;
   end;
 
-  { TSendEmailGameEventLog (instance size 28, VMT 5570D6AC) }
+  { TSendEmailGameEventLog: size $1C; $18 mode, $19 player. VMT 5570D6AC. }
   TSendEmailGameEventLog = class(TEventLog)
   public
-    F_SendEmailGameEventLog_18: array[0..3] of Byte;
+    FMode: Byte; { $18 }
+    FSendPlayer: Shortint; { $19 }
   end;
 
-  { TPBEMPlayerControl (instance size 36, VMT 5570D7AC) }
+  { TPBEMPlayerControl: size $24; $20 local player. VMT 5570D7AC. }
   TPBEMPlayerControl = class(TTurnPlayerControl)
   public
-    F_PBEMPlayerControl_20: Byte;
+    FLocalPlayer: Shortint; { $20 }
     F_PBEMPlayerControl_21: array[0..2] of Byte;
     class function ClassID: Integer; override;
     procedure NewTurn(Player: Shortint); override;
@@ -126,21 +131,21 @@
     procedure PasswordValidated; override;
     procedure ExitGame(A1: Byte); override;
     procedure EndTurn(Player: Shortint); override;
-    procedure TerminateEmailGame;  { draft }
-    procedure TerminateEmailGameCallBack;  { draft }
-    procedure SendEmailGameAutomatedCallBack(A1: Integer);  { draft }
-    procedure SendEmailGameManualCallBack(A1: Integer);  { draft }
-    procedure SendEmailGameCallBack(A1: Integer);  { draft }
-    procedure TriggerGameRestartedEvents(A1: Integer);  { draft }
-    procedure EndTurnGameSavedCallBack(A1: Integer);  { draft }
-    procedure StartLoadedEmailGame;  { draft }
-    procedure ContinueRestartedGameCallBack(A1: Integer);  { draft }
-    procedure ContinueTurnDoneGameCallBack(A1: Integer);  { draft }
-    procedure ValidateLoadedMap;  { draft }
-    procedure ExitGameSaveAsCallBack(A1: Integer);  { draft }
+    procedure TerminateEmailGame;
+    procedure TerminateEmailGameCallBack(Log: TEventLog);
+    procedure SendEmailGameAutomatedCallBack(Log: TEventLog);
+    procedure SendEmailGameManualCallBack(Log: TEventLog);
+    procedure SendEmailGameCallBack(Log: TEventLog);
+    procedure TriggerGameRestartedEvents(Player: Shortint);
+    procedure EndTurnGameSavedCallBack(Log: TEventLog);
+    procedure StartLoadedEmailGame;
+    procedure ContinueRestartedGameCallBack(Log: TEventLog);
+    procedure ContinueTurnDoneGameCallBack(Log: TEventLog);
+    procedure ValidateLoadedMap;
+    procedure ExitGameSaveAsCallBack(Log: TEventLog);
   end;
 
-  { TSimultaniousPlayerControl (instance size 32, VMT 5570D8C8) }
+  { TSimultaniousPlayerControl: size $20, no added fields. VMT 5570D8C8. }
   TSimultaniousPlayerControl = class(TPlayerControl)
   public
     class function ClassID: Integer; override;
@@ -154,8 +159,8 @@
     procedure SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); override;
     procedure GameOverEventHandled(Player: Shortint); override;
     procedure EndTurn(Player: Shortint); override;
-    procedure StartGameCallBack;  { draft }
-    procedure StartLoadedMapEx;  { draft }
+    procedure StartGameCallBack(Log: TEventLog);
+    procedure StartLoadedMapEx;
   end;
 
   { TMovepath (instance size 20, VMT 5570D9F0) }

@@ -8,6 +8,10 @@ const
   dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }
+  alsGood: TAlignments = [alPureGood, alGood, alNeutral, alNone]; { $558E8054 }
+  alsNeutral: TAlignments = [alGood, alNeutral, alEvil, alNone]; { $558E8058 }
+  alsEvil: TAlignments = [alNeutral, alEvil, alPureEvil, alNone]; { $558E805C }
+  alsPureNeutral: TAlignments = [alNeutral, alNone]; { $558E8064 }
   alsPureEvil: TAlignments = [alEvil, alPureEvil, alNone]; { $558E8060 }
   { Original alsAll at $558E8068 excludes alPureNeutral. }
   RaceTerrain: TRaceTerrainTable = (

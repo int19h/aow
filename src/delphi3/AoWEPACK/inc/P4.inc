@@ -5762,7 +5762,7 @@ begin end;
 procedure TPlayerMagicControl.ValidResearchSpell(A1: Integer);
 begin end;
 
-procedure TPlayerMagicControl.ListResearchSpells(A1: Integer; A2: Byte);
+procedure TPlayerMagicControl.ListResearchSpells(var List: TSpellList; SpellTypes: TSpellTypes);
 begin end;
 
 procedure TPlayerMagicControl.ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
