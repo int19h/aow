@@ -109,7 +109,7 @@ type
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;
     procedure UpdateDimensions;  { draft }
-    procedure SetImageSequence(A1: Integer);  { draft }
+    procedure SetImageSequence(Sequence: TImageSequence);
     procedure SetXhpOffset(A1: Integer);  { draft }
     procedure SetYhpOffset(A1: Integer);  { draft }
   end;
@@ -255,7 +255,7 @@ begin end;
 procedure TImageSequenceAnimation.UpdateDimensions;
 begin end;
 
-procedure TImageSequenceAnimation.SetImageSequence(A1: Integer);
+procedure TImageSequenceAnimation.SetImageSequence(Sequence: TImageSequence);
 begin end;
 
 procedure TImageSequenceAnimation.SetXhpOffset(A1: Integer);

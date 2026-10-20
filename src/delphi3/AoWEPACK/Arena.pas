@@ -32,7 +32,7 @@ type
     class function ClassID: Integer; override;
     procedure CreateTE; override;
     procedure ExecuteTE(A1: Integer; A2: Integer); override;
-    procedure CanDblClick; override;
+    function CanDblClick: Boolean; override;
     procedure UnitTrainCost(A1: Integer);  { draft }
     procedure ExecuteTrainUnit(A1: Integer);  { draft }
     procedure CanTrainUnits(A1: Byte; A2: Integer);  { draft }
@@ -88,7 +88,7 @@ begin end;
 class function TArena.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TArena.CanDblClick;
+function TArena.CanDblClick: Boolean;
 begin end;
 
 procedure TArena.UnitTrainCost(A1: Integer);

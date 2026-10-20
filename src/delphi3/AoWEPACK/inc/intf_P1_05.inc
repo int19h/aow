@@ -331,7 +331,7 @@
     procedure TriggerPlayerTerminatedEvent; virtual;  { +120 draft }
     procedure StartNewMap; virtual;  { +124 draft }
     procedure StartLoadedMap; virtual;  { +128 draft }
-    procedure TriggerExecuteEventLog(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +12C draft }
+    procedure TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent); virtual;
     procedure StartTokenEventLogging;  { draft }
     procedure StopTokenEventLogging;  { draft }
     procedure SynchroniseBegin;  { draft }
@@ -344,7 +344,7 @@
     procedure GetIndependentAIMode;  { draft }
     procedure SaveGame(A1: Integer);  { draft }
     function TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-    function Visible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+    function Visible(X, Y, L: Shortint; Mode: Integer): Boolean;
     function WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
     function Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
     procedure ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
@@ -398,7 +398,7 @@
     procedure TokenControlActivatedEvent;  { draft }
     procedure SetupPlayerControl(A1: Integer; A2: Integer);  { draft }
     procedure ActivateMsg;  { draft }
-    function Random(A1: Integer): Integer;
+    function Random(Range: Integer): Integer;
     procedure GenerateNewTurnOrder;  { draft }
     procedure EndTurn;  { draft }
     procedure CancelEndTurn;  { draft }

@@ -29,8 +29,8 @@ type
     procedure ExecuteTE(A1: Integer; A2: Integer); override;
     procedure NewDay; override;
     procedure ArmyPlaced(A1: Integer); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
-    procedure CanDblClick; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    function CanDblClick: Boolean; override;
     procedure ValidAITarget(A1: Integer);  { draft }
     procedure GenerateSettings;  { draft }
     procedure CanEnter(A1: Integer);  { draft }
@@ -75,13 +75,13 @@ begin Result := 0; end;
 procedure TWizardsTower.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TWizardsTower.CanDblClick;
+function TWizardsTower.CanDblClick: Boolean;
 begin end;
 
 procedure TWizardsTower.ValidAITarget(A1: Integer);
 begin end;
 
-procedure TWizardsTower.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TWizardsTower.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TWizardsTower.ArmyPlaced(A1: Integer);

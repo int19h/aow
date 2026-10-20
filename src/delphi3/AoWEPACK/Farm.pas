@@ -7,7 +7,7 @@ unit Farm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Crops;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Crops;
 
 type
   TFarm = class;
@@ -23,10 +23,10 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure TerrainChanged(const Info: HSEngine.THSTerrainInfo); override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
-    procedure GetCurrentActivityText(A1: Integer); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
+    function GetCurrentActivityText: string; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
     procedure CanPlaceCrop(A1: Integer); override;
     procedure CropsEnabled; override;
     procedure UpdateCrops; override;
@@ -49,13 +49,13 @@ implementation
 class function TFarm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFarm.GetRazed;
+function TFarm.GetRazed: Boolean;
 begin end;
 
-procedure TFarm.SetRazed(A1: Integer);
+procedure TFarm.SetRazed(Value: Boolean);
 begin end;
 
-procedure TFarm.GetCurrentActivityText(A1: Integer);
+function TFarm.GetCurrentActivityText: string;
 begin end;
 
 procedure TFarm.ReadWrite(Stream: Engine.TEStorageStream);
@@ -70,7 +70,7 @@ begin end;
 procedure TFarm.UpdateCrops;
 begin end;
 
-procedure TFarm.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TFarm.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TFarm.TerrainChanged(const Info: HSEngine.THSTerrainInfo);

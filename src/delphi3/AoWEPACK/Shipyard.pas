@@ -19,8 +19,8 @@ type
   TShipyard = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
-    procedure GetBaseIncome; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    function GetBaseIncome: Integer; override;
   end;
 
   { TShipyardResource (instance size 120, VMT 557C740C) }
@@ -48,10 +48,10 @@ implementation
 class function TShipyard.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TShipyard.GetBaseIncome;
+function TShipyard.GetBaseIncome: Integer;
 begin end;
 
-procedure TShipyard.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TShipyard.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 constructor TShipyardResource.Create(AOwner: Engine.TECustomNode);

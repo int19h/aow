@@ -139,7 +139,6 @@ resourcestring
   ObstacleRStr = 'Obstacle';
   LightVegetationRStr = 'Light Vegetation';
   SolidRStr = 'Solid';
-  NoneRStr = 'None';
   RocksRStr = 'Rocks';
   BonesRStr = 'Bones';
   DeadTreeRStr = 'Dead Tree';
@@ -1925,7 +1924,7 @@ begin end;
 procedure TAbilityOwner.ValidateOwnerTypeAbilities;
 begin end;
 
-procedure TAbilityOwner.GetAbilityData(A1: Integer);
+function TAbilityOwner.GetAbilityData(AbilityID: Integer): TAbilityData;
 begin end;
 
 procedure TAbilityOwner.AssignAb(A1: Integer);
@@ -1955,7 +1954,7 @@ begin end;
 procedure TAbilityOwner.Changed;
 begin end;
 
-procedure TAbilityOwner.ExpandAbility(A1: Integer);
+function TAbilityOwner.ExpandAbility(AbilityID: Integer): Boolean;
 begin end;
 
 procedure TAbilityOwner.RemoveAbility(A1: Integer);
@@ -2244,13 +2243,13 @@ begin end;
 procedure TPlayer.SetGems(A1: Integer);
 begin end;
 
-procedure TPlayer.UpdateIncome(A1: Integer; A2: Integer);
+procedure TPlayer.UpdateIncome;
 begin end;
 
-procedure TPlayer.RegisterIncomeSource(A1: Integer);
+procedure TPlayer.RegisterIncomeSource(Source: TIncomeSource);
 begin end;
 
-procedure TPlayer.UnregisterIncomeSource(A1: Integer);
+procedure TPlayer.UnregisterIncomeSource(Source: TIncomeSource);
 begin end;
 
 procedure TPlayer.GetUpkeep;
@@ -2815,10 +2814,10 @@ begin Result := 0; end;
 procedure TUnitProduction.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TUnitProductionList.GetItem(A1: Integer);
+function TUnitProductionList.GetItem(Index: Integer): TUnitProduction;
 begin end;
 
-procedure TUnitProductionList.Add(A1: Integer; A2: Integer);
+procedure TUnitProductionList.Add(UnitIndex: Integer; Researched: Boolean);
 begin end;
 
 procedure TUnitProductionList.IndexOf(A1: Integer);
@@ -2839,7 +2838,7 @@ begin end;
 procedure TProductionItem.GetNameProgressive(A1: Integer);
 begin end;
 
-procedure TProductionQueue.GetItem(A1: Integer);
+function TProductionQueue.GetItem(Index: Integer): TProductionItem;
 begin end;
 
 procedure TProductionQueue.IndexOfID(A1: Integer);
@@ -2923,10 +2922,10 @@ begin end;
 procedure TProductionControl.PlayerChanged;
 begin end;
 
-procedure TProductionControl.CanExecuteProduction(A1: Integer; A2: Integer);
+function TProductionControl.CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean;
 begin end;
 
-procedure TProductionControl.ExecuteProduction(A1: Integer);
+function TProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
 begin end;
 
 procedure TProductionControl.ExecuteAddProduction(A1: Integer);
@@ -2950,55 +2949,55 @@ begin end;
 procedure TProductionControl.CreateProductionTE;
 begin end;
 
-procedure TProductionControl.UnitProduced;
+function TProductionControl.UnitProduced: Boolean;
 begin end;
 
 procedure TProductionControl.CreateUnitProduction(A1: Integer);
 begin end;
 
-procedure TProductionControl.UnitProductionGold(A1: Integer);
+function TProductionControl.UnitProductionGold(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitProductionGoldUpkeep(A1: Integer);
+function TProductionControl.UnitProductionGoldUpkeep(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitProductionMana(A1: Integer);
+function TProductionControl.UnitProductionMana(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitProductionManaUpkeep(A1: Integer);
+function TProductionControl.UnitProductionManaUpkeep(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitProductionTime(A1: Integer);
+function TProductionControl.UnitProductionTime(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.CanProduceUnit(A1: Integer; A2: Integer; A3: Integer);
+function TProductionControl.CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
 begin end;
 
 procedure TProductionControl.ProduceUnitEx(A1: Integer; A2: Integer);
 begin end;
 
-procedure TProductionControl.ProduceUnit(A1: Integer; A2: Integer);
+function TProductionControl.ProduceUnit(Index: Integer; Queue: Boolean): Boolean;
 begin end;
 
 procedure TProductionControl.UnitResearched;
 begin end;
 
-procedure TProductionControl.UnitResearchGold(A1: Integer);
+function TProductionControl.UnitResearchGold(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitResearchMana;
+function TProductionControl.UnitResearchMana(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.UnitResearchTime(A1: Integer);
+function TProductionControl.UnitResearchTime(Index: Integer): Integer;
 begin end;
 
-procedure TProductionControl.CanResearchUnit(A1: Integer; A2: Integer);
+function TProductionControl.CanResearchUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
 begin end;
 
-procedure TProductionControl.ResearchUnit(A1: Integer; A2: Byte);
+function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean;
 begin end;
 
-procedure TProductionControl.Produce(A1: Integer; A2: Integer);
+function TProductionControl.Produce(Item: TProductionItem; Queue: Boolean): Boolean;
 begin end;
 
 procedure TProductionControl.DeleteProduction(A1: Integer);
@@ -3013,7 +3012,7 @@ begin end;
 procedure TProductionControl.SetLoopQueueTo(A1: Integer);
 begin end;
 
-procedure TProductionControl.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TProductionControl.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 procedure TProductionControl.ReadWrite(Stream: Engine.TEStorageStream);
@@ -3022,7 +3021,7 @@ begin end;
 procedure TProductionControl.ProductionDone;
 begin end;
 
-procedure TProductionControl.NewTurn(A1: Integer);
+procedure TProductionControl.NewTurn(Player: Shortint);
 begin end;
 
 procedure TProductionControl.LockQueueProduction(A1: Integer);
@@ -3031,10 +3030,10 @@ begin end;
 procedure TProductionControl.LoopableProduction(A1: Integer);
 begin end;
 
-procedure TProductionControl.GetProductionName(A1: Integer; A2: Integer);
+function TProductionControl.GetProductionName(Item: TProductionItem): string;
 begin end;
 
-procedure TProductionControl.GetProductionNameProgressive(A1: Integer; A2: Integer);
+function TProductionControl.GetProductionNameProgressive(Item: TProductionItem): string;
 begin end;
 
 procedure TProductionControl.FindOptimalResearchProduction(A1: Integer; A2: Integer);
@@ -3085,7 +3084,7 @@ begin end;
 procedure TStructure.ExecuteAI(A1: Integer; A2: Integer);
 begin end;
 
-procedure TStructure.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TStructure.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 function TStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
@@ -3124,16 +3123,16 @@ begin end;
 function TStructure.ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
 begin Result := 0; end;
 
-procedure TStructure.GetName(A1: Integer);
+function TStructure.GetName: string;
 begin end;
 
-procedure TStructure.GetCurrentActivityText(A1: Integer);
+function TStructure.GetCurrentActivityText: string;
 begin end;
 
 procedure TStructure.GetDescription;
 begin end;
 
-procedure TStructure.CanDblClick;
+function TStructure.CanDblClick: Boolean;
 begin end;
 
 function TStructure.CanSelect(Xhp, Yhp: Integer): Boolean;
@@ -3184,10 +3183,10 @@ begin Result := False; end;
 procedure TStructure.GetRazeable;
 begin end;
 
-procedure TStructure.GetRazed;
+function TStructure.GetRazed: Boolean;
 begin end;
 
-procedure TStructure.SetRazed(A1: Integer);
+procedure TStructure.SetRazed(Value: Boolean);
 begin end;
 
 procedure TStructure.VisibleForPlayer(A1: Byte);
@@ -3202,7 +3201,7 @@ begin end;
 procedure TStructure.ExecuteBuild(A1: Integer; A2: Byte);
 begin end;
 
-procedure TStructure.GetBuilding;
+function TStructure.GetBuilding: Boolean;
 begin end;
 
 procedure TStructure.BuildingDone;
@@ -3220,7 +3219,7 @@ begin end;
 procedure TStructure.NewDay;
 begin end;
 
-procedure TStructure.NewTurn(A1: Integer);
+procedure TStructure.NewTurn(Player: Shortint);
 begin end;
 
 procedure TStructure.ArmyPlaced(A1: Integer);
@@ -3364,13 +3363,13 @@ begin end;
 procedure TPlayerStructure.UpdatePlayer;
 begin end;
 
-procedure TPlayerStructure.NewTurn(A1: Integer);
+procedure TPlayerStructure.NewTurn(Player: Shortint);
 begin end;
 
 procedure TPlayerStructure.NewDay;
 begin end;
 
-procedure TPlayerStructure.StructureCaptured(A1: Integer; A2: Byte);
+procedure TPlayerStructure.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 begin end;
 
 procedure TPlayerStructure.GetCombatEventText(A1: Integer; A2: Integer);
@@ -3379,7 +3378,7 @@ begin end;
 procedure TPlayerStructure.FinalizeCombat(A1: Integer);
 begin end;
 
-procedure TPlayerStructure.SetPlayer(A1: Integer; A2: Integer);
+procedure TPlayerStructure.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TPlayerStructure.UpdateFlagID;
@@ -3391,10 +3390,10 @@ begin end;
 procedure TPlayerStructure.ArmyChanged;
 begin end;
 
-procedure TPlayerStructure.GetIncome(A1: Integer; A2: Integer);
+function TPlayerStructure.GetIncome: Integer;
 begin end;
 
-procedure TPlayerStructure.GetPower;
+function TPlayerStructure.GetPower: Integer;
 begin end;
 
 procedure TPlayerStructure.ReadWrite(Stream: Engine.TEStorageStream);
@@ -3442,7 +3441,7 @@ begin end;
 procedure TPlayerStructure.GetDefaultAITargetPriority;
 begin end;
 
-procedure TPlayerStructure.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TPlayerStructure.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TPlayerStructure.GetMoveAction(A1: Integer; A2: Integer);
@@ -3478,7 +3477,7 @@ begin end;
 function TPlayerStructureResource.PlaceResourceUser(HSMap: HSEngine.THSMap; Xhx, Yhx, Lhx: Shortint): HSEngine.TMapObject;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TPlayerStructureIncomeSource.Setup(A1: Integer);
+procedure TPlayerStructureIncomeSource.Setup(Structure: TPlayerStructure);
 begin end;
 
 procedure TPlayerStructureIncomeSource.Name(A1: Integer);
@@ -3490,7 +3489,7 @@ begin end;
 procedure TPlayerStructureIncomeSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TPlayerStructurePowerSource.Setup(A1: Integer);
+procedure TPlayerStructurePowerSource.Setup(Structure: TPlayerStructure);
 begin end;
 
 procedure TPlayerStructurePowerSource.Name(A1: Integer);
@@ -4246,7 +4245,7 @@ begin end;
 function TAoWHSMap.TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
 begin Result := False; end;
 
-function TAoWHSMap.Visible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+function TAoWHSMap.Visible(X, Y, L: Shortint; Mode: Integer): Boolean;
 begin Result := False; end;
 
 function TAoWHSMap.WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
@@ -4348,7 +4347,7 @@ begin end;
 procedure TAoWHSMap.UnlockExecuteEventLog;
 begin end;
 
-procedure TAoWHSMap.TriggerExecuteEventLog(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAoWHSMap.TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent);
 begin end;
 
 procedure TAoWHSMap.TriggerPlayerTerminatedEvent;
@@ -4453,7 +4452,7 @@ begin end;
 procedure TAoWHSMap.ActivateMsg;
 begin end;
 
-function TAoWHSMap.Random(A1: Integer): Integer;
+function TAoWHSMap.Random(Range: Integer): Integer;
 begin Result := 0; end;
 
 procedure TAoWHSMap.GenerateNewTurnOrder;
@@ -4726,11 +4725,11 @@ begin
     begin
       Event := TCombatEventLog.Create(nil);
       Event.SetCombatLogbook(Integer(Logbook));
-      AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Integer(Event));
+      AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Event);
       if Execute and (I = AoWHSMap.FSeatedPlayer) and
         (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
         (TCombatData(Logbook.F_CombatLogbook_10).F_CombatData_30 <> 6) then
-        Event.Execute(0, 0, 0, 0);
+        Event.Execute(0, etEvent, nil);
       Event.Release;
     end;
 end;
@@ -4881,7 +4880,7 @@ begin end;
 procedure CombatRangeToCombatMode(A1: Byte);
 begin end;
 
-procedure PlaceRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
+procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 begin end;
 
 procedure FillWithRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -4914,7 +4913,7 @@ begin end;
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
 begin end;
 
-procedure ValidAttackRelation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean;
 begin end;
 
 procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);

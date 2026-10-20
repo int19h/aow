@@ -422,9 +422,9 @@ begin
   begin
     Animation := TImageSequenceAnimation.Create(nil);
     { needs: TImageSequenceAnimation.SetImageSequence(Value: TImageSequence). }
-    Animation.SetImageSequence(Integer(TImageSequenceList(
+    Animation.SetImageSequence(TImageSequenceList(
       TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FCastImages).
-      ImageSequences[0]));
+      ImageSequences[0]);
     SpellHSMap^.PlaceHX(Animation, X, Y, Layer);
   end;
   TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FCastSounds).Play(0);
@@ -1563,8 +1563,8 @@ begin
   else
   begin
     Player := Shortint(FEnchantment.F_GlobalEnchantment_19);
-    if (Player > 0) and (PByte(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Player).
-      F_Player_54+$45)^ and 8 <> 0) then
+    if (Player > 0) and (PByte(Integer(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Player).
+      FMagicControl)+$45)^ and 8 <> 0) then
   begin
     Inc(Result);
     Result := Result shr 1;
@@ -1890,10 +1890,10 @@ begin
   begin
     Event.FArmyID.RetrieveArmy(Army,Selection);
     Exposed := (MapF.OverlayType <> 1) and (MapF.FindNoneTransparentHS(TStructure) = nil);
-    for I := 0 to TArmy(Army.F_ArmyHS_1C).Count - 1 do
+    for I := 0 to TArmy(Army.FArmy).Count - 1 do
       if (Selection and (1 shl I)) <> 0 then
       begin
-        UnitObj := TArmy(Army.F_ArmyHS_1C).GetUnit(I);
+        UnitObj := TArmy(Army.FArmy).GetUnit(I);
         case SpellUnitLevel(UnitObj) of
           1: Chance := 90;
           2: Chance := 70;
@@ -1905,19 +1905,19 @@ begin
         if Chance < SpellHSMap^.Random(100) then
           Selection := Selection and not (1 shl I);
       end;
-    if TArmy(Army.F_ArmyHS_1C).Transporter(-1) <> nil then
-      if TArmy(Army.F_ArmyHS_1C).Transporter(Selection) <> nil then Selection := $FF
+    if TArmy(Army.FArmy).Transporter(-1) <> nil then
+      if TArmy(Army.FArmy).Transporter(Selection) <> nil then Selection := $FF
       else Selection := 0;
     if Selection <> 0 then
     begin
       Log := TArmyEventLog.Create(nil);
-      Log.F_EventLog_10 := Caster.FPlayer;
+      Log.FPlayer := Caster.FPlayer;
       PSpellString(@Log.F_ArmyEventLog_1C)^ :=
         SysUtils.Format(AoWE.TranslateRStr(SpellXCastRStr),[AoWE.TranslateRStr(TornadoRStr)]);
       TStrings(Log.F_ArmyEventLog_20).Add(AoWE.TranslateRStr(TornadoRStr));
       Log.F_ArmyEventLog_24 := 2;
-      TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.F_ArmyHS_1C)),Selection);
-      DistributeLocationEventLog(Integer(Log),Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx,1);
+      TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.FArmy)),Selection);
+      DistributeLocationEventLog(Log,Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx,1);
       Log.Release;
       Location := TTornado(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(68)).
         CalculateWarpLocation(Army,Selection);
@@ -1931,8 +1931,8 @@ begin
           if TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).FCastImages).ImageSequences[1] <> nil then
           begin
             Anim := TImageSequenceAnimation.Create(nil);
-            Anim.SetImageSequence(Integer(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).
-              FCastImages).ImageSequences[1]));
+            Anim.SetImageSequence(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).
+              FCastImages).ImageSequences[1]);
             SpellHSMap^.PlaceHX(Anim,TSpellLocation(Event.FLocation).X,
               TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer);
           end;
@@ -1941,27 +1941,27 @@ begin
           if TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).FCastImages).ImageSequences[1] <> nil then
           begin
             Anim := TImageSequenceAnimation.Create(nil);
-            Anim.SetImageSequence(Integer(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).
-              FCastImages).ImageSequences[1]));
+            Anim.SetImageSequence(TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).
+              FCastImages).ImageSequences[1]);
             SpellHSMap^.PlaceHX(Anim,TSpellLocation(Location).X,
               TSpellLocation(Location).Y,TSpellLocation(Location).Layer);
           end;
         MovedUnits := TUnitUserList.Create(nil);
-        Owner := TArmy(Army.F_ArmyHS_1C).F_Army_12;
+        Owner := TArmy(Army.FArmy).FPlayer;
         MapF := TAoWMapField(SpellHSMap^.MapContainer.GetFieldXYL(Location));
-        if TArmy(Army.F_ArmyHS_1C).ValidateSelection($FF) = Selection then
+        if TArmy(Army.FArmy).ValidateSelection($FF) = Selection then
         begin
-          MovedUnits.AddUnits(Integer(Army.F_ArmyHS_1C));
+          MovedUnits.AddUnits(Integer(Army.FArmy));
           Army.MoveTo(Integer(MapF),0);
         end
         else
-          for I := TArmy(Army.F_ArmyHS_1C).Count - 1 downto 0 do
+          for I := TArmy(Army.FArmy).Count - 1 downto 0 do
             if (Selection and (1 shl I)) <> 0 then
             begin
-              UnitObj := TArmy(Army.F_ArmyHS_1C).GetUnit(I);
+              UnitObj := TArmy(Army.FArmy).GetUnit(I);
               MovedUnits.AddUnit(Integer(UnitObj));
-              Placed := UnitObj.Place(TSpellLocation(Location).X,TSpellLocation(Location).Y,TSpellLocation(Location).Layer,TArmy(Army.F_ArmyHS_1C).F_Army_12,[]);
-              if Placed <> nil then TArmy(Placed.F_ArmyHS_1C).UpdateExploration;
+              Placed := UnitObj.Place(TSpellLocation(Location).X,TSpellLocation(Location).Y,TSpellLocation(Location).Layer,Byte(TArmy(Army.FArmy).FPlayer),[]);
+              if Placed <> nil then TArmy(Placed.FArmy).UpdateExploration;
             end;
         if Owner = 0 then
         begin
@@ -2006,7 +2006,7 @@ begin
     Msg.Param[0] := Integer(Army);
     Msg.Result := 0;
     MapF.SendMapFieldMsg(Msg);
-    Result := (Msg.Result = 0) and TArmy(Army.F_ArmyHS_1C).CanPlace(X,Y,Layer);
+    Result := (Msg.Result = 0) and TArmy(Army.FArmy).CanPlace(X,Y,Layer);
   end;
 end;
 
@@ -2021,7 +2021,7 @@ var
   Index, X: Integer;
 begin
   Locations := TList.Create;
-  TArmy(Army.F_ArmyHS_1C).CreateMovePointTable(Selection,Table);
+  TArmy(Army.FArmy).CreateMovePointTable(Selection,Table);
   InitHNWalk(Walk,Army.Xhx,Army.Yhx,10);
   MapLevel := SpellHSMap^.MapContainer.MapLevels[Army.Lhx];
   while Walk.Radius < 15 do
@@ -2066,7 +2066,7 @@ begin
       TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
-    if Army <> nil then Event.FArmyID := TArmy(Army.F_ArmyHS_1C).CreateID($FF);
+    if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
@@ -2215,15 +2215,15 @@ begin
   begin
     Log := TArmyEventLog.Create(nil);
     PSpellString(@Log.F_ArmyEventLog_1C)^ := AoWE.TranslateRStr(VortexDamageRStr);
-    Log.F_EventLog_10 := Caster.FPlayer;
+    Log.FPlayer := Caster.FPlayer;
     TStrings(Log.F_ArmyEventLog_20).Add(AoWE.TranslateRStr(VortexRStr));
     Log.F_ArmyEventLog_24 := 2;
-    TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.F_ArmyHS_1C)),$FF);
-    TArmy(Army.F_ArmyHS_1C).BeginUpdate;
+    TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.FArmy)),$FF);
+    TArmy(Army.FArmy).BeginUpdate;
     Damaged := False;
-    for I := 0 to TArmy(Army.F_ArmyHS_1C).Count - 1 do
+    for I := 0 to TArmy(Army.FArmy).Count - 1 do
     begin
-      UnitObj := TArmy(Army.F_ArmyHS_1C).GetUnit(I);
+      UnitObj := TArmy(Army.FArmy).GetUnit(I);
       if (SpellMoveTypes(UnitObj) and 2) = 0 then
       begin
         if UnitObj.GetAbilityEnabled(2) then Resistance := 7
@@ -2244,14 +2244,14 @@ begin
     if Damaged then
     begin
       Log.ValidateGameOver;
-      DistributeLocationEventLog(Integer(Log),TArmy(Army.F_ArmyHS_1C).F_Army_12,
+      DistributeLocationEventLog(Log,TArmy(Army.FArmy).FPlayer,
         Army.Xhx,Army.Yhx,Army.Lhx,1);
     end;
     Log.Release;
-    TArmy(Army.F_ArmyHS_1C).Validate;
-    SpellValidateTerrainObservation(TArmy(Army.F_ArmyHS_1C),TMapField(Army.Owner).TerrainType,
+    TArmy(Army.FArmy).Validate;
+    SpellValidateTerrainObservation(TArmy(Army.FArmy),TMapField(Army.Owner).TerrainType,
       TMapField(Army.Owner).OverlayType,Caster.FPlayer);
-    TArmy(Army.F_ArmyHS_1C).EndUpdate;
+    TArmy(Army.FArmy).EndUpdate;
   end;
   Event.FAnimation.Free;
   Result := False;
@@ -2309,7 +2309,7 @@ begin
       TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
-    if Army <> nil then Event.FArmyID := TArmy(Army.F_ArmyHS_1C).CreateID($FF);
+    if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
@@ -2434,9 +2434,9 @@ begin
           Army := TAoWMapField(Level.GetField(Walk.X,Walk.Y)).GetArmyHS();
           if Army <> nil then
           begin
-            for I := 0 to TArmy(Army.F_ArmyHS_1C).Count-1 do
+            for I := 0 to TArmy(Army.FArmy).Count-1 do
             begin
-              UnitObj := TArmy(Army.F_ArmyHS_1C).GetUnit(I);
+              UnitObj := TArmy(Army.FArmy).GetUnit(I);
               if UnitObj.GetHitPoints < SpellHitPointsMax(UnitObj) then
               begin
                 UnitObj.SetHitPoints(UnitObj.GetHitPoints+5);
@@ -2448,15 +2448,15 @@ begin
                 Healed := True;
               end;
             end;
-            TArmy(Army.F_ArmyHS_1C).Update;
+            TArmy(Army.FArmy).Update;
             if Healed and SpellHSMap^.VisibleForPlayer(Army.Xhx,Army.Yhx,Army.Lhx,SpellHSMap^.FSeatedPlayer) then
             begin
               PlaySound := PlaySound or
-                (TArmy(Army.F_ArmyHS_1C).F_Army_12 =
+                (Byte(TArmy(Army.FArmy).FPlayer) =
                   SpellHSMap^.FSeatedPlayer) or
                 SpellHSMap^.Watching(Army.Xhx,Army.Yhx,Army.Lhx,1);
               Anim := TImageSequenceAnimation.Create(nil);
-              Anim.SetImageSequence(Integer(TImageSequenceList(TAbilityControl(SpellHSSet^.FAbilityControl).GetAbility(47).FImageSequences).ImageSequences[0]));
+              Anim.SetImageSequence(TImageSequenceList(TAbilityControl(SpellHSSet^.FAbilityControl).GetAbility(47).FImageSequences).ImageSequences[0]);
               Anim.F_Animation_0B[0] := 27;
               SpellHSMap^.PlaceHX(Anim,Army.Xhx,Army.Yhx,Army.Lhx);
             end;

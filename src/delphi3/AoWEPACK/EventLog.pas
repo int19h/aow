@@ -41,7 +41,7 @@ type
   public
     F_EventLog_08: Integer;
     F_EventLog_0C: Integer;
-    F_EventLog_10: Byte;
+    FPlayer: Shortint;  { $10 }
     F_EventLog_11: array[0..2] of Byte;
     F_EventLog_14: Integer;
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
@@ -58,7 +58,7 @@ type
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
     procedure PlayLoggedSFX(A1: Integer); virtual;  { +068 draft }
     procedure NotifyLogged(A1: Integer); virtual;  { +06C draft }
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +070 draft }
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; virtual;
     procedure ViewLocation(A1: Integer; A2: Integer); virtual;  { +074 draft }
     procedure CenterViewTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
   end;
@@ -66,26 +66,26 @@ type
   { TTextEventLog (instance size 28, VMT 557FC564) }
   TTextEventLog = class(TEventLog)
   public
-    F_TextEventLog_18: Integer;
+    FText: string;  { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TLocationTextEventLog (instance size 32, VMT 557FC664) }
   TLocationTextEventLog = class(TTextEventLog)
   public
-    F_LocationTextEventLog_1C: Byte;
-    F_LocationTextEventLog_1D: Byte;
-    F_LocationTextEventLog_1E: Byte;
+    FXhx: Shortint;  { $1C }
+    FYhx: Shortint;  { $1D }
+    FLhx: Shortint;  { $1E }
     F_LocationTextEventLog_1F: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure SetLocation(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    procedure SetLocation(X, Y, L: Shortint);
   end;
 
   { TMessageEventLog (instance size 40, VMT 557FCD24) }
@@ -174,7 +174,7 @@ type
     procedure FindID;  { draft }
     procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
     procedure FindFirstLogEx(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure AddEvent(A1: Integer);  { draft }
+    procedure AddEvent(Event: TEventLog);
     procedure RemoveEvent;  { draft }
   end;
 
@@ -189,7 +189,7 @@ type
   public
     class function ClassID: Integer; override;
     procedure GetVisible; override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TShowMessageEventLog (instance size 28, VMT 557FC85C) }
@@ -212,7 +212,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure Handled;  { draft }
   end;
 
@@ -263,7 +263,7 @@ type
 
 procedure RegisterEventLog;  { draft }
 procedure DistributeEventLog(A1: Integer; A2: Byte);  { draft }
-procedure DistributeLocationEventLog(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer);  { draft }
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
 
 implementation
 
@@ -321,7 +321,7 @@ begin end;
 procedure TEventLog.GetRightIcon;
 begin end;
 
-procedure TEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TEventLog.CenterViewTo(A1: Integer; A2: Integer; A3: Integer);
@@ -417,7 +417,7 @@ begin end;
 procedure TEventLogbook.FindFirstLogEx(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TEventLogbook.AddEvent(A1: Integer);
+procedure TEventLogbook.AddEvent(Event: TEventLog);
 begin end;
 
 procedure TEventLogbook.RemoveEvent;
@@ -432,7 +432,7 @@ begin end;
 procedure TTextEventLog.GetText(A1: Integer);
 begin end;
 
-procedure TTextEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TLocationTextEventLog.Create(AOwner: Engine.TECustomNode);
@@ -444,13 +444,13 @@ begin Result := 0; end;
 procedure TLocationTextEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TLocationTextEventLog.SetLocation(A1: Byte; A2: Byte; A3: Integer);
+procedure TLocationTextEventLog.SetLocation(X, Y, L: Shortint);
 begin end;
 
 procedure TLocationTextEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TLocationTextEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TLocationTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TEndTurnEventLog.GetVisible;
@@ -459,7 +459,7 @@ begin end;
 class function TEndTurnEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TEndTurnEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TEndTurnEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TShowMessageEventLog.Create(AOwner: Engine.TECustomNode);
@@ -492,7 +492,7 @@ begin end;
 procedure TGameOverEventLog.Handled;
 begin end;
 
-procedure TGameOverEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TGameOverEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 class function TNewDayEventLog.ClassID: Integer;
@@ -552,7 +552,7 @@ begin end;
 procedure DistributeEventLog(A1: Integer; A2: Byte);
 begin end;
 
-procedure DistributeLocationEventLog(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer);
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
 begin end;
 
 

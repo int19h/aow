@@ -290,7 +290,7 @@ begin
     begin
       MapField := TAoWMapField(Level.GetField(X, Y));
       ArmyHS := CloudArmyHS(MapField);
-      if ArmyHS <> nil then TArmy(ArmyHS.F_ArmyHS_1C).Update;
+      if ArmyHS <> nil then TArmy(ArmyHS.FArmy).Update;
     end;
     WalkToNextHN(Walk);
   end;

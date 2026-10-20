@@ -39,20 +39,20 @@ type
   public
     F_CityProductionControl_28: Integer;
     procedure ExecuteCancelProduction; override;
-    procedure ExecuteProduction(A1: Integer); override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetPlayer; override;
+    function ExecuteProduction(Item: TProductionItem): Boolean; override;
+    procedure GetLocation(var X, Y, L: Shortint); override;
+    function GetPlayer: Shortint; override;
     procedure LoopableProduction(A1: Integer); override;
     procedure LockQueueProduction(A1: Integer); override;
-    procedure UnitProduced; override;
+    function UnitProduced: Boolean; override;
     procedure UnitResearched; override;
     procedure Update; override;
     procedure CreateUnitProduction(A1: Integer); override;
-    procedure NewTurn(A1: Integer); override;
-    procedure CanExecuteProduction(A1: Integer; A2: Integer); override;
-    procedure GetProductionName(A1: Integer; A2: Integer); override;
-    procedure GetProductionNameProgressive(A1: Integer; A2: Integer); override;
-    procedure UnitProductionTime(A1: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
+    function CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean; override;
+    function GetProductionName(Item: TProductionItem): string; override;
+    function GetProductionNameProgressive(Item: TProductionItem): string; override;
+    function UnitProductionTime(Index: Integer): Integer; override;
   end;
 
   { TCityOverlayHS (instance size 28, VMT 557A6EFC) }
@@ -143,32 +143,32 @@ type
     procedure GetTopBorderImage; override;
     procedure GetMiddleBorderImage; override;
     procedure GetBottomBorderImage; override;
-    procedure GetName(A1: Integer); override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
+    function GetName: string; override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
     procedure SetupRazeDefenderAG(A1: Integer; A2: Integer); override;
     procedure ExecuteTE(A1: Integer; A2: Integer); override;
     procedure GetDefenseRequirements(A1: Integer; A2: Integer); override;
     procedure GetDefensePriority; override;
     procedure NewDay; override;
-    procedure NewTurn(A1: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
     procedure ArmyPlaced(A1: Integer); override;
     procedure ArmyRemoved; override;
     procedure BuildingDone; override;
     procedure GenerateRazeDefenders(A1: Integer; A2: Integer); override;
     procedure ExecuteRaze(A1: Integer; A2: Integer); override;
-    procedure GetCurrentActivityText(A1: Integer); override;
+    function GetCurrentActivityText: string; override;
     procedure ValidateMap(A1: Integer); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
     procedure Update; override;
-    procedure CanDblClick; override;
+    function CanDblClick: Boolean; override;
     procedure GetRebuildInfo(A1: Integer; A2: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
+    procedure SetPlayer(Player: Shortint); override;
     procedure UpdateFlagID; override;
     procedure VisibilityRange; override;
     procedure FinalizeCombat(A1: Integer); override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
-    procedure StructureCaptured(A1: Integer; A2: Byte); override;
+    procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); override;
     procedure GetMoveAction(A1: Integer; A2: Integer); override;
     procedure UpdatePlayer; override;
     procedure UpdateIncome(A1: Integer; A2: Integer); override;
@@ -269,7 +269,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 
@@ -321,7 +321,7 @@ type
   TCityProductionEventLog = class(TProductionEventLog)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure GetCity;  { draft }
   end;
 
@@ -339,13 +339,13 @@ procedure CityIncome(A1: Byte);  { draft }
 
 implementation
 
-procedure TCityProductionControl.CanExecuteProduction(A1: Integer; A2: Integer);
+function TCityProductionControl.CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean;
 begin end;
 
-procedure TCityProductionControl.ExecuteProduction(A1: Integer);
+function TCityProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
 begin end;
 
-procedure TCityProductionControl.NewTurn(A1: Integer);
+procedure TCityProductionControl.NewTurn(Player: Shortint);
 begin end;
 
 procedure TCityProductionControl.ExecuteCancelProduction;
@@ -357,16 +357,16 @@ begin end;
 procedure TCityProductionControl.LoopableProduction(A1: Integer);
 begin end;
 
-procedure TCityProductionControl.GetProductionName(A1: Integer; A2: Integer);
+function TCityProductionControl.GetProductionName(Item: TProductionItem): string;
 begin end;
 
-procedure TCityProductionControl.GetProductionNameProgressive(A1: Integer; A2: Integer);
+function TCityProductionControl.GetProductionNameProgressive(Item: TProductionItem): string;
 begin end;
 
 procedure TCityProductionControl.Update;
 begin end;
 
-procedure TCityProductionControl.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TCityProductionControl.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 procedure TCityProductionControl.CreateUnitProduction(A1: Integer);
@@ -375,13 +375,13 @@ begin end;
 procedure TCityProductionControl.UnitResearched;
 begin end;
 
-procedure TCityProductionControl.UnitProduced;
+function TCityProductionControl.UnitProduced: Boolean;
 begin end;
 
-procedure TCityProductionControl.GetPlayer;
+function TCityProductionControl.GetPlayer: Shortint;
 begin end;
 
-procedure TCityProductionControl.UnitProductionTime(A1: Integer);
+function TCityProductionControl.UnitProductionTime(Index: Integer): Integer;
 begin end;
 
 function TCityOverlayHS.GetShowPriority: Integer;
@@ -408,7 +408,7 @@ begin end;
 class function TCity.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TCity.CanDblClick;
+function TCity.CanDblClick: Boolean;
 begin end;
 
 procedure TCity.GetActiveAction;
@@ -465,13 +465,13 @@ begin end;
 procedure TCity.UpdateAIMigration;
 begin end;
 
-procedure TCity.StructureCaptured(A1: Integer; A2: Byte);
+procedure TCity.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 begin end;
 
 procedure TCity.ValidateAICityAction;
 begin end;
 
-procedure TCity.SetPlayer(A1: Integer; A2: Integer);
+procedure TCity.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TCity.SetupRazeDefenderAG(A1: Integer; A2: Integer);
@@ -483,7 +483,7 @@ begin end;
 procedure TCity.GetDefenseRequirements(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCity.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TCity.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TCity.CropTrampled(A1: Integer);
@@ -594,10 +594,10 @@ begin end;
 procedure TCity.ExecuteRaze(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCity.GetRazed;
+function TCity.GetRazed: Boolean;
 begin end;
 
-procedure TCity.SetRazed(A1: Integer);
+procedure TCity.SetRazed(Value: Boolean);
 begin end;
 
 procedure TCity.GetRebuildInfo(A1: Integer; A2: Integer);
@@ -609,7 +609,7 @@ begin end;
 procedure TCity.GenerateDefenders(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCity.NewTurn(A1: Integer);
+procedure TCity.NewTurn(Player: Shortint);
 begin end;
 
 procedure TCity.NewDay;
@@ -654,7 +654,7 @@ begin end;
 procedure TCity.UpdateFlagID;
 begin end;
 
-procedure TCity.GetName(A1: Integer);
+function TCity.GetName: string;
 begin end;
 
 procedure TCity.SetName(A1: Integer; A2: Integer);
@@ -750,7 +750,7 @@ begin end;
 procedure TCity.GetBottomCityActionImage(A1: Integer);
 begin end;
 
-procedure TCity.GetCurrentActivityText(A1: Integer);
+function TCity.GetCurrentActivityText: string;
 begin end;
 
 procedure TCity.Select;
@@ -789,7 +789,7 @@ begin end;
 procedure TCityRebellionEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCityRebellionEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TCityRebellionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TMigrationList.GetItems(A1: Integer);
@@ -885,7 +885,7 @@ begin Result := 0; end;
 procedure TCityProductionEventLog.GetCity;
 begin end;
 
-procedure TCityProductionEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TCityProductionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure ProductionIDToCityAction(A1: Integer; A2: Integer; A3: Integer);

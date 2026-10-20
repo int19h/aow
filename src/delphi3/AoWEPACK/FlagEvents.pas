@@ -220,7 +220,7 @@ begin
     Log := TFlagMessageEventLog.Create(nil);
     TMessageLogView(Log).HelpFile := FHelpFileName;
     TMessageLogView(Log).Message.Text := FMessage.Text;
-    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Ord(FTriggerMode = etmInstant), 0, 0);
+    AoWHSMap.TriggerExecuteEventLog(Log, FTriggerMode = etmInstant, nil);
     Log.Release;
   end;
   Result := True;
@@ -273,7 +273,7 @@ begin
   begin
     Log := TTutorialMessageEventLog.Create(nil);
     TMessageLogView(Log).Message.Text := FMessage.Text;
-    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Ord(FTriggerMode = etmInstant), 0, 0);
+    AoWHSMap.TriggerExecuteEventLog(Log, FTriggerMode = etmInstant, nil);
     Log.Release;
   end;
   Result := True;

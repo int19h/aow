@@ -23,9 +23,9 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
     procedure VisibilityRange; override;
     procedure GetDefaultAITargetPriority; override;
   end;
@@ -61,13 +61,13 @@ begin end;
 procedure TTower.GetDefaultAITargetPriority;
 begin end;
 
-procedure TTower.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TTower.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
-procedure TTower.GetRazed;
+function TTower.GetRazed: Boolean;
 begin end;
 
-procedure TTower.SetRazed(A1: Integer);
+procedure TTower.SetRazed(Value: Boolean);
 begin end;
 
 procedure TTower.ReadWrite(Stream: Engine.TEStorageStream);

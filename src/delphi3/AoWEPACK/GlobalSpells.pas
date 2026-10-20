@@ -355,14 +355,14 @@ begin
             if Log = nil then
             begin
               Log := TLocationTextEventLog.Create(nil);
-              Log.F_LocationTextEventLog_1C := Walk.X;
-              Log.F_LocationTextEventLog_1D := Walk.Y;
-              Log.F_LocationTextEventLog_1E := Layer;
-              Log.F_EventLog_10 := Caster.FPlayer;
-              PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
+              Log.FXhx := Walk.X;
+              Log.FYhx := Walk.Y;
+              Log.FLhx := Layer;
+              Log.FPlayer := Caster.FPlayer;
+              PGlobalSpellString(@Log.FText)^ :=
                 SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
                   [AoWE.TranslateRStr(ConcealAreaRStr)]);
-              TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Integer(Log));
+              TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
               Log.Release;
             end;
           end;
@@ -373,14 +373,14 @@ begin
     else if GlobalSpellMap^.VisibleForPlayer(X,Y,Layer,Player) then
     begin
       Log := TLocationTextEventLog.Create(nil);
-      Log.F_LocationTextEventLog_1C := X;
-      Log.F_LocationTextEventLog_1D := Y;
-      Log.F_LocationTextEventLog_1E := Layer;
-      Log.F_EventLog_10 := Caster.FPlayer;
-      PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
+      Log.FXhx := X;
+      Log.FYhx := Y;
+      Log.FLhx := Layer;
+      Log.FPlayer := Caster.FPlayer;
+      PGlobalSpellString(@Log.FText)^ :=
         SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
           [AoWE.TranslateRStr(ConcealAreaRStr)]);
-      TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Integer(Log));
+      TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
       Log.Release;
     end;
   end;

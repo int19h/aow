@@ -26,12 +26,12 @@ type
     class function ClassID: Integer; override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
-    procedure GetCurrentActivityText(A1: Integer); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
-    procedure GetIncome(A1: Integer; A2: Integer); override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
+    function GetCurrentActivityText: string; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure SetPlayer(Player: Shortint); override;
+    function GetIncome: Integer; override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
   end;
 
@@ -98,7 +98,7 @@ constructor TMine.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FIncomeSource := TPlayerStructureIncomeSource.Create(nil);
-  FIncomeSource.Setup(Integer(Self));
+  FIncomeSource.Setup(Self);
 end;
 
 destructor TMine.Destroy;
@@ -110,7 +110,7 @@ end;
 class function TMine.ClassID: Integer;
 begin Result := $2037A; end;
 
-procedure TMine.GetIncome(A1: Integer; A2: Integer);
+function TMine.GetIncome: Integer;
 begin
   if not MineRazed(Self) and not MineBuilding(Self) then
     asm MOV EAX,10 end
@@ -118,77 +118,77 @@ begin
     asm XOR EAX,EAX end;
 end;
 
-procedure TMine.GetCurrentActivityText(A1: Integer);
+function TMine.GetCurrentActivityText: string;
 begin
   MineFormat(TranslateMineName(ProducingXIncomeRStr),
-    [IntToStr(MineIncomeOf(Self))], PString(A1)^);
+    [IntToStr(MineIncomeOf(Self))], Result);
 end;
 
-procedure TMine.UpdateAITarget(A1: Integer; A2: Integer);
-var Priority: Integer;
+procedure TMine.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+var CandidatePriority: Integer;
 begin
   if not MineRazed(Self) or MineBuilding(Self) then
   begin
-    Priority := PInteger(A2)^;
-    if TMineAIInfo(Pointer(A1)^).Kind = 0 then
+    CandidatePriority := Priority;
+    if TMineAIInfo(Info).Kind = 0 then
     begin
-      if (Byte(TMineAIInfo(Pointer(A1)^).Player) <> F_PlayerStructure_30) and
+      if (Byte(TMineAIInfo(Info).Player) <> Byte(FPlayer)) and
         not MineRazed(Self) then
-        if F_PlayerStructure_30 = 0 then Priority := 50
-        else if MineAttackRelation(TMineAIInfo(Pointer(A1)^).Player,
-          TMineAIInfo(Pointer(A1)^).OtherPlayer, Shortint(F_PlayerStructure_30), 0) then
+        if Byte(FPlayer) = 0 then CandidatePriority := 50
+        else if MineAttackRelation(TMineAIInfo(Info).Player,
+          TMineAIInfo(Info).OtherPlayer, Shortint(Byte(FPlayer)), 0) then
         begin
-          Priority := 50 - TMinePlayerData(Pointer(MinePlayer(
-            TPlayerList(WorldMap^.FPlayers), TMineAIInfo(Pointer(A1)^).Player))^).Gold div 2;
-          if Priority < 25 then Priority := 25;
-          if Priority > 75 then Priority := 75;
+          CandidatePriority := 50 - TMinePlayerData(Pointer(MinePlayer(
+            TPlayerList(WorldMap^.FPlayers), TMineAIInfo(Info).Player))^).Gold div 2;
+          if CandidatePriority < 25 then CandidatePriority := 25;
+          if CandidatePriority > 75 then CandidatePriority := 75;
         end;
     end
-    else if (TMineAIInfo(Pointer(A1)^).Kind = 6) and
-      (Byte(TMineAIInfo(Pointer(A1)^).Player) = F_PlayerStructure_30) then PInteger(A2)^ := 20;
+    else if (TMineAIInfo(Info).Kind = 6) and
+      (Byte(TMineAIInfo(Info).Player) = Byte(FPlayer)) then Priority := 20;
     { Original can overwrite the special kind-6 priority with the previous higher value. }
-    if PInteger(A2)^ < Priority then PInteger(A2)^ := Priority;
+    if Priority < CandidatePriority then Priority := CandidatePriority;
   end;
 end;
 
-procedure TMine.SetPlayer(A1: Integer; A2: Integer);
+procedure TMine.SetPlayer(Player: Shortint);
 begin
-  if Byte(A1) <> F_PlayerStructure_30 then
+  if Byte(Player) <> Byte(FPlayer) then
     if moActivated in FStatus then
     begin
-      if F_PlayerStructure_30 <> $FF then
-        MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(F_PlayerStructure_30)).
-          UnregisterIncomeSource(Integer(FIncomeSource));
-      MineParentSetPlayer(Self, Byte(A1));
-      if F_PlayerStructure_30 <> $FF then
-        MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(F_PlayerStructure_30)).
-          RegisterIncomeSource(Integer(FIncomeSource));
+      if Byte(FPlayer) <> $FF then
+        MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(Byte(FPlayer))).
+          UnregisterIncomeSource(FIncomeSource);
+      MineParentSetPlayer(Self, Byte(Player));
+      if Byte(FPlayer) <> $FF then
+        MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(Byte(FPlayer))).
+          RegisterIncomeSource(FIncomeSource);
     end
-    else MineParentSetPlayer(Self, Byte(A1));
+    else MineParentSetPlayer(Self, Byte(Player));
 end;
 
 procedure TMine.Activate;
 begin
   inherited Activate;
-  if F_PlayerStructure_30 <> $FF then
-    MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(F_PlayerStructure_30)).
-      RegisterIncomeSource(Integer(FIncomeSource));
+  if Byte(FPlayer) <> $FF then
+    MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(Byte(FPlayer))).
+      RegisterIncomeSource(FIncomeSource);
 end;
 
 procedure TMine.Deactivate;
 begin
-  if F_PlayerStructure_30 <> $FF then
-    MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(F_PlayerStructure_30)).
-      UnregisterIncomeSource(Integer(FIncomeSource));
+  if Byte(FPlayer) <> $FF then
+    MinePlayer(TPlayerList(WorldMap^.FPlayers), Shortint(Byte(FPlayer))).
+      UnregisterIncomeSource(FIncomeSource);
   inherited Deactivate;
 end;
 
-procedure TMine.GetRazed;
+function TMine.GetRazed: Boolean;
 asm TEST BYTE PTR [EAX+$3C],1; SETNE AL end;
 
-procedure TMine.SetRazed(A1: Integer);
+procedure TMine.SetRazed(Value: Boolean);
 begin
-  if Byte(A1) <> 0 then
+  if Value then
   begin
     MineSetPlayer(Self, $FF);
     FState := FState or 1;
@@ -215,8 +215,8 @@ constructor TMineResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   F_StructureResource_44 := 0;
-  F_PlayerStructureResource_64 := 0;
-  F_StructureResource_58 := 1;
+  FClaimed := False;
+  FRazeable := True;
   F_StructureResource_60 := 75;
   F_StructureResource_5A := 25;
   F_StructureResource_5B := 2;
@@ -244,7 +244,7 @@ begin
     for I := 0 to TEObjectList(P.F_Player_1C).Count - 1 do
     begin
       S := MineStructure(TPlayerStructureList(P.F_Player_1C), I);
-      if (S.ClassID = $2037A) and (Shortint(S.F_PlayerStructure_30) = Player) then
+      if (S.ClassID = $2037A) and (Shortint(Byte(S.FPlayer)) = Player) then
         Inc(Result, MineIncomeOf(S));
     end;
   end

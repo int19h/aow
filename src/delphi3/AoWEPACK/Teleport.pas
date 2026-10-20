@@ -30,8 +30,8 @@ type
     procedure Activate; override;
     procedure Deactivate; override;
     procedure UpdateMapField(const Info: HSEngine.THSMapFieldInfo); override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
     procedure ValidateMap(A1: Integer); override;
     procedure ShowTeleportAnimations;
     function CanTeleportArmy(ArmyHS: TArmyHS): Boolean;
@@ -125,16 +125,16 @@ end;
 class function TTeleport.ClassID: Integer;
 begin Result := $20104; end;
 
-procedure TTeleport.GetRazed;
+function TTeleport.GetRazed: Boolean;
 { needs: TStructure.GetRazed returns Boolean in AL. }
 asm
   TEST BYTE PTR [EAX+$33],1
   SETNE AL
 end;
 
-procedure TTeleport.SetRazed(A1: Integer);
+procedure TTeleport.SetRazed(Value: Boolean);
 begin
-  if Byte(A1) <> 0 then Include(FState, tsRazed) else Exclude(FState, tsRazed);
+  if Value then Include(FState, tsRazed) else Exclude(FState, tsRazed);
   { needs: ILTer.TILTerrainMO.FImageIndex is private. }
   TTeleportImageFields(Pointer(Self)^).ImageIndex := GetTerrainTypeImage(TerrainType);
 end;
@@ -167,10 +167,10 @@ var
   Anim: TImageSequenceAnimation;
 begin
   Anim := TImageSequenceAnimation.Create(nil);
-  Anim.SetImageSequence(Integer(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[13]));
+  Anim.SetImageSequence(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[13]);
   WorldMap^.PlaceHX(Anim, GetXhx, GetYhx, GetLhx);
   Anim := TImageSequenceAnimation.Create(nil);
-  Anim.SetImageSequence(Integer(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[12]));
+  Anim.SetImageSequence(TImageSequenceList(WorldSet^.FImageSequences).ImageSequences[12]);
   WorldMap^.PlaceHX(Anim, FDestinationX, FDestinationY, FDestinationL);
 end;
 
@@ -213,13 +213,13 @@ begin
     (FDestinationY >= 0) and (FDestinationY < WorldMap^.MapContainer.Height) then
   begin
     Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
-    if TeleportValidTerrain(TArmy(ArmyHS.F_ArmyHS_1C), Field.TerrainType, Field.OverlayType) then
+    if TeleportValidTerrain(TArmy(ArmyHS.FArmy), Field.TerrainType, Field.OverlayType) then
     begin
       OtherArmy := TeleportArmy(Field);
       { Original rejects a same-player army when CanAddUnits succeeds. }
       if (OtherArmy <> nil) and
-        (TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12 = TArmy(OtherArmy.F_ArmyHS_1C).F_Army_12) and
-        TeleportCanAdd(TArmy(OtherArmy.F_ArmyHS_1C), TUnitList(ArmyHS.F_ArmyHS_1C)) then Exit;
+        (Byte(TArmy(ArmyHS.FArmy).FPlayer) = Byte(TArmy(OtherArmy.FArmy).FPlayer)) and
+        TeleportCanAdd(TArmy(OtherArmy.FArmy), TUnitList(ArmyHS.FArmy)) then Exit;
       Result := True;
     end;
   end;
@@ -231,7 +231,7 @@ var
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
   { Original only checks destination X here; X=0 is rejected. }
-  Result := (ArmyHS <> nil) and (Byte(Player) = TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) and
+  Result := (ArmyHS <> nil) and (Byte(Player) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) and
     not (tsRazed in FState) and (FDestinationX > 0);
 end;
 
@@ -248,28 +248,28 @@ begin
     ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
     if CanTeleportArmy(ArmyHS) then
     begin
-      TArmy(ArmyHS.F_ArmyHS_1C).ResetDestinationPos;
+      TArmy(ArmyHS.FArmy).ResetDestinationPos;
       Path := TMovepath.Create;
       Path.AddXYL(FDestinationX, FDestinationY, FDestinationL);
       Path.AddXYL(GetXhx, GetYhx, GetLhx);
       Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
-      if (TeleportMoveAction(Field, TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) <> 1) or
+      if (TeleportMoveAction(Field, Byte(TArmy(ArmyHS.FArmy).FPlayer)) <> 1) or
         (TeleportFieldPlayer(Field) <= 0) or
         (TeleportRelation(TPlayerList(WorldMap^.FPlayers),
-          Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12), TeleportFieldPlayer(Field)) in [1, 3]) then
+          Shortint(TArmy(ArmyHS.FArmy).FPlayer), TeleportFieldPlayer(Field)) in [1, 3]) then
       begin
         if (TeleportFieldPlayer(Field) <= -1) or
-          (Byte(TeleportFieldPlayer(Field)) = TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+          (Byte(TeleportFieldPlayer(Field)) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
           Result := TeleportMoveArmy(ArmyHS, -1, Path, [], 0)
         else
           if not TeleportPlayerBusy(TeleportPlayer(TPlayerList(WorldMap^.FPlayers),
-            Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12))) then
+            Shortint(TArmy(ArmyHS.FArmy).FPlayer))) then
           begin
             Event := TeleportCreateMove(ArmyHS, -1, Path, [], 1);
             if Event <> nil then
             begin
               TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(
-                Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)).AddEvent(Event);
+                Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
               Event.Release;
               Result := True;
             end
@@ -277,7 +277,7 @@ begin
           end
           else Result := False;
         if Result and (Byte(TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
-          TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+          Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         begin
           WorldMap^.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
           TSelectedArmy(WorldMap^.F_AoWHSMap_D8).Select(Integer(ArmyHS));
@@ -318,7 +318,7 @@ constructor TTeleportResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   F_StructureResource_60 := 200;
-  F_StructureResource_58 := 1;
+  FRazeable := True;
   F_StructureResource_5A := 25;
   F_StructureResource_5B := 2;
 end;

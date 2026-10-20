@@ -316,8 +316,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Remove(A1: Integer; A2: Integer); override;
     procedure GetAIUpkeepPriority(A1: Integer); override;
-    procedure GetDefaultManaUpkeep(A1: Integer);  { draft }
-    procedure GetDefaultDispelResistance(A1: Integer);  { draft }
+    function GetDefaultManaUpkeep(AUnit: TAbstractUnit): Integer;
+    function GetDefaultDispelResistance(AUnit: TAbstractUnit): Byte;
     procedure UnitIndexToAIUpkeepPriority(A1: Integer);  { draft }
   end;
 
@@ -676,10 +676,10 @@ begin end;
 constructor TSummonedAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TSummonedAbility.GetDefaultManaUpkeep(A1: Integer);
+function TSummonedAbility.GetDefaultManaUpkeep(AUnit: TAbstractUnit): Integer;
 begin end;
 
-procedure TSummonedAbility.GetDefaultDispelResistance(A1: Integer);
+function TSummonedAbility.GetDefaultDispelResistance(AUnit: TAbstractUnit): Byte;
 begin end;
 
 procedure TSummonedAbility.Remove(A1: Integer; A2: Integer);

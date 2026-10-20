@@ -110,9 +110,9 @@ var
   R: TRect;
   I: Integer;
 begin
-  for I := 0 to TUnitList(TArmyHS(ArmyHS).F_ArmyHS_1C).Count - 1 do
-    TSpringUnitList(TArmyHS(ArmyHS).F_ArmyHS_1C).UnitAt(I).ExpandAbility(99);
-  if (TArmy(TArmyHS(ArmyHS).F_ArmyHS_1C).F_Army_12 =
+  for I := 0 to TUnitList(TArmyHS(ArmyHS).FArmy).Count - 1 do
+    TSpringUnitList(TArmyHS(ArmyHS).FArmy).UnitAt(I).ExpandAbility(99);
+  if (Byte(TArmy(TArmyHS(ArmyHS).FArmy).FPlayer) =
     TSpringMapFields(Pointer(WorldMap^)^).SeatedPlayer) or
     TSpringMap(WorldMap^).IsWatching(GetXhx, GetYhx, GetLhx, 0) then
     Sound.PlaySample('SFX\ATTACK\ENCHP02.WAV');

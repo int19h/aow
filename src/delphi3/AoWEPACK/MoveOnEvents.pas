@@ -359,7 +359,7 @@ begin
     Log := TShowMessageEventLog.Create(nil);
     { needs: EventLog +$18 is TStrings; the unmarked draft field is Integer. }
     TStrings(Log.F_ShowMessageEventLog_18).Text := FMessage.Text;
-    AoWHSMap.TriggerExecuteEventLog(Integer(Log), 0, 0, 0);
+    AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
     Log.Release;
   end;
   SetTriggerPlayer(Player, False);

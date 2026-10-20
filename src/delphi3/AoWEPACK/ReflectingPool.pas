@@ -24,7 +24,7 @@ type
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
+    procedure SetPlayer(Player: Shortint); override;
     procedure VisibilityRange; override;
     procedure UpdateUnfog; override;
     procedure UpdateExploration; override;
@@ -84,7 +84,7 @@ begin end;
 procedure TReflectingPool.DeactivatePoolCentering;
 begin end;
 
-procedure TReflectingPool.SetPlayer(A1: Integer; A2: Integer);
+procedure TReflectingPool.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TReflectingPool.UpdateExploration;

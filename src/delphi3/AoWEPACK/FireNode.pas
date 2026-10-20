@@ -7,7 +7,7 @@ unit FireNode;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace;
 
 type
   TFireNode = class;
@@ -18,7 +18,7 @@ type
   TFireNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure GetMagicSphere; override;
+    function GetMagicSphere: TMagicSphere; override;
   end;
 
   { TFireNodeResource (instance size 120, VMT 557BF8D4) }
@@ -37,7 +37,7 @@ implementation
 class function TFireNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFireNode.GetMagicSphere;
+function TFireNode.GetMagicSphere: TMagicSphere;
 begin end;
 
 constructor TFireNodeResource.Create(AOwner: Engine.TECustomNode);

@@ -2509,7 +2509,7 @@ begin
   if Upkeep > 0 then
   begin
     Dec(Mana, P4RequestUpkeep(TPlayerMagicControl(P4GetPlayer(
-      TPlayerList(AoWHSMap.FPlayers), ShortInt(Source.FPlayer)).F_Player_54),
+      TPlayerList(AoWHSMap.FPlayers), ShortInt(Source.FPlayer)).FMagicControl),
       Round(Upkeep * 0.8)));
     if Mana < 0 then
       Mana := 0;
@@ -2517,7 +2517,7 @@ begin
   Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
     ShortInt(Source.FPlayer)).F_Player_8C);
   if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
-    ShortInt(Source.FPlayer)).F_Player_54).GetCheatEnabled then
+    ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
     Result := P4RequestBudget(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 1)
   else
     Result := True;
@@ -2532,7 +2532,7 @@ begin
     Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
       ShortInt(Source.FPlayer)).F_Player_8C);
     if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
-      ShortInt(Source.FPlayer)).F_Player_54).GetCheatEnabled then
+      ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
       Result := P4BudgetMade(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 2)
     else
       Result := True;
@@ -2738,6 +2738,7 @@ begin
 end;
 
 function TSpellControl.GetSpell(Index: Integer): TSpell;
+{ conflict: function TSpellControl.GetSpell(SpellID: Integer): TSpell; }
 begin
   Assert(Index >= 0);
   if Index < FRegisteredSpells.Count then
@@ -2974,7 +2975,7 @@ end;
 class function TSpellCastEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSpellCastEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TSpellCastEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TSpellCastEventLog.ReadWrite(Stream: Engine.TEStorageStream);
@@ -3489,7 +3490,7 @@ begin end;
 procedure TEnchantment.SetUpkeep(A1: Integer);
 begin end;
 
-procedure TEnchantment.SetSource(A1: Integer);
+procedure TEnchantment.SetSource(Player: Shortint);
 begin end;
 
 procedure TEnchantment.Dispel;
@@ -3592,7 +3593,7 @@ begin end;
 procedure TPlayerMagicEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TPlayerMagicEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TPlayerMagicEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TPlayerMagicEventLog.GetText(A1: Integer);
@@ -3690,16 +3691,16 @@ begin end;
 procedure TPlayerMagicControl.ValidateEnchantmentID(A1: Integer);
 begin end;
 
-procedure TPlayerMagicControl.RegisterEnchantment(A1: Integer);
+procedure TPlayerMagicControl.RegisterEnchantment(Enchantment: TEnchantment);
 begin end;
 
-procedure TPlayerMagicControl.UnregisterEnchantment(A1: Integer);
+procedure TPlayerMagicControl.UnregisterEnchantment(Enchantment: TEnchantment);
 begin end;
 
-procedure TPlayerMagicControl.RegisterPowerSource(A1: Integer);
+procedure TPlayerMagicControl.RegisterPowerSource(Source: TPowerSource);
 begin end;
 
-procedure TPlayerMagicControl.UnregisterPowerSource(A1: Integer);
+procedure TPlayerMagicControl.UnregisterPowerSource(Source: TPowerSource);
 begin end;
 
 procedure TPlayerMagicControl.CreateChangeMagicTE;

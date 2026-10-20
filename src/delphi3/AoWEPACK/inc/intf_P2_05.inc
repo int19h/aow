@@ -59,7 +59,7 @@
     procedure Changed; override;
     procedure RemoveAbility(A1: Integer); override;
     function GetUpkeep: Shortint; virtual;  { +09C draft }
-    function GetUnitLevel: Shortint; virtual;  { +0A0 draft }
+    function GetUnitLevel: Shortint; virtual;
     function GetRace: Shortint; virtual;  { +0A4 draft }
     function GetInherentAttack: Shortint; virtual;  { +0A8 draft }
     function GetInherentDefense: Shortint; virtual;  { +0AC draft }
@@ -81,7 +81,7 @@
     function GetImmunityTypes: TDamageTypes; virtual;  { +0EC draft }
     function GetProtectionTypes: TDamageTypes; virtual;  { +0F0 draft }
     function GetFace: TLibraryImage; virtual;  { +0F4 draft }
-    function GetName: string; virtual;  { +0F8 draft }
+    function GetName: string; virtual;
     function GetAlignment: TAlignment; virtual;  { +0FC draft }
     function GetPreviewImage: TLibraryImage; virtual;  { +100 draft }
     function GetTransportCapacity: Byte; virtual;  { +104 draft }
@@ -110,7 +110,7 @@
     procedure SetExperience(Value: Integer); virtual;  { +160 draft }
     function GetNextLevelExperience: Integer; virtual;  { +164 draft }
     function GetDescription: Integer; virtual;  { +168 draft }
-    procedure SetPlayer(Player: Shortint); virtual;  { +16C draft }
+    procedure SetPlayer(Player: Shortint); virtual;
     function GetIndependentRelation: Shortint; virtual;  { +170 draft }
     function GetObtainValue: Integer; virtual;  { +174 draft }
     function GetUnitSize: TUnitSize; virtual;  { +178 draft }
@@ -358,7 +358,7 @@
   { TUnitIndexList (instance size 20, VMT 55711118) }
   TUnitIndexList = class(TIntegerList)
   public
-    procedure Create(A1: Byte);  { draft }
+    constructor Create;
     procedure GetUnitIndex(A1: Integer);  { draft }
     procedure VerifyUnits(A1: Byte);  { draft }
     procedure SetUnitIndex(A1: Integer; A2: Integer);  { draft }
@@ -374,11 +374,11 @@
     constructor Create;  { draft }
     procedure LoadFromStream;  { draft }
     procedure SaveToStream;  { draft }
-    procedure GetCollectionCount(A1: Integer);  { draft }
+    function GetCollectionCount(Index: Integer): Integer;
     procedure GetCount;  { draft }
-    procedure GetU(A1: Integer; A2: Integer);  { draft }
+    function GetU(Collection, Index: Integer): Integer;
     procedure AddUnit(A1: Integer; A2: Integer);  { draft }
     procedure DeleteUnit(A1: Integer; A2: Integer);  { draft }
-    procedure GetRndCollection;  { draft }
+    function GetRndCollection: Integer;
   end;
 

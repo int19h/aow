@@ -136,10 +136,10 @@
     procedure GetAbEnabled(A1: Integer); virtual;  { +088 draft }
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); virtual;  { +08C draft }
     procedure Changed; virtual;  { +090 draft }
-    procedure ExpandAbility(A1: Integer); virtual;  { +094 draft }
+    function ExpandAbility(AbilityID: Integer): Boolean; virtual;
     procedure RemoveAbility(A1: Integer); virtual;  { +098 draft }
     procedure ValidateOwnerTypeAbilities;  { draft }
-    procedure GetAbilityData(A1: Integer);  { draft }
+    function GetAbilityData(AbilityID: Integer): TAbilityData;
     procedure AssignAb(A1: Integer);  { draft }
     procedure AddAbilityData(A1: Integer);  { draft }
     procedure RemoveAbilityData(A1: Integer);  { draft }

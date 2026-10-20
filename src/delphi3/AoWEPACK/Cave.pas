@@ -345,8 +345,8 @@ var ArmyHS: Pointer;
 begin
   ArmyHS := Owner.FindOwnedChild($20217);
   if ArmyHS = nil then Result := False
-  else if Player <> Shortint(TArmy(TArmyHS(ArmyHS).F_ArmyHS_1C).F_Army_12) then Result := False
-  else Result := CanEnterSelection(TUnitList(TArmyHS(ArmyHS).F_ArmyHS_1C)) <> 0;
+  else if Player <> Shortint(TArmy(TArmyHS(ArmyHS).FArmy).FPlayer) then Result := False
+  else Result := CanEnterSelection(TUnitList(TArmyHS(ArmyHS).FArmy)) <> 0;
 end;
 
 function TCave.EnterEx: Boolean;
@@ -360,11 +360,11 @@ var
   Event: TTokenEvent;
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
-  if (ArmyHS = nil) or not CanEnter(Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)) then
+  if (ArmyHS = nil) or not CanEnter(Shortint(TArmy(ArmyHS.FArmy).FPlayer)) then
     Result := False
   else
   begin
-    Selection := CanEnterSelection(TUnitList(ArmyHS.F_ArmyHS_1C));
+    Selection := CanEnterSelection(TUnitList(ArmyHS.FArmy));
     L := 0;
     Path := TMovepath.Create;
     case FEntrance of
@@ -372,25 +372,25 @@ begin
       ceDown: L := GetLhx + 1;
     end;
     Path.AddXYL(GetXhx, GetYhx, L);
-    Path.List^[0].Flag := EnterMovePoints(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
+    Path.List^[0].Flag := EnterMovePoints(TArmy(ArmyHS.FArmy), Selection);
     Path.AddXYL(GetXhx, GetYhx, GetLhx);
     Field := TAoWMapField(WorldMap^.MapContainer.GetField(GetXhx, GetYhx, L));
-    if (CaveMoveAction(Field, TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) <> 1) or
+    if (CaveMoveAction(Field, Byte(TArmy(ArmyHS.FArmy).FPlayer)) <> 1) or
       (CaveFieldPlayer(Field) <= 0) or
       (CaveRelation(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12), CaveFieldPlayer(Field)) in [1, 3]) then
+        Shortint(TArmy(ArmyHS.FArmy).FPlayer), CaveFieldPlayer(Field)) in [1, 3]) then
     begin
       if (CaveFieldPlayer(Field) < 0) or
-        (Byte(CaveFieldPlayer(Field)) = TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+        (Byte(CaveFieldPlayer(Field)) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         Result := CaveMoveArmy(ArmyHS, Shortint(Selection), Path, [], 0)
       else if not CavePlayerBusy(CavePlayer(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12))) then
+        Shortint(TArmy(ArmyHS.FArmy).FPlayer))) then
       begin
         Event := CaveCreateMove(ArmyHS, Shortint(Selection), Path, [], 1);
         if Event <> nil then
         begin
           TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(
-            Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)).AddEvent(Event);
+            Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
           Event.Release;
           Result := True;
         end
@@ -398,7 +398,7 @@ begin
       end
       else Result := False;
       if Result and (Byte(TCaveMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
-        TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) then
+        Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
       begin
         WorldMap^.ViewLevel(L);
         TSelectedArmy(WorldMap^.F_AoWHSMap_D8).Select(Integer(ArmyHS));
@@ -425,14 +425,14 @@ begin
   if CanEnter(Player) then
   begin
     ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
-    if CanEnterSelection(TUnitList(ArmyHS.F_ArmyHS_1C)) <>
-      CaveValidateSelection(TArmy(ArmyHS.F_ArmyHS_1C), $FF) then
+    if CanEnterSelection(TUnitList(ArmyHS.FArmy)) <>
+      CaveValidateSelection(TArmy(ArmyHS.FArmy), $FF) then
     begin
       Log := TEnterCaveEventLog.Create(nil);
       Log.FCave := Self;
       TStrings(Log.F_MessageEventLog_20).Text := TranslateCaveName(SplitOnEnterCaveWarningRStr);
       Log.F_MessageEventLog_25 := Ord(mebYesNo);
-      Log.Execute(1, 1, 0, 0);
+      Log.Execute(1, etUser, nil);
       Log.Release;
       Result := True;
     end
@@ -450,8 +450,8 @@ begin
   begin
     if FEntrance = ceDown then L := GetLhx + 1 else L := GetLhx - 1;
     TCaveLevel(WorldMap^.MapContainer.GetMapLevel(L)).Explore(
-      ArmyHS.GetXhx, ArmyHS.GetYhx, CaveVisibility(TArmy(ArmyHS.F_ArmyHS_1C)),
-      TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12);
+      ArmyHS.GetXhx, ArmyHS.GetYhx, CaveVisibility(TArmy(ArmyHS.FArmy)),
+      Byte(TArmy(ArmyHS.FArmy).FPlayer));
   end;
 end;
 

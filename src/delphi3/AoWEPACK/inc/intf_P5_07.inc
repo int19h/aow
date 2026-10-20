@@ -815,7 +815,7 @@
   public
     F_CombatRestoreHotseatEventLog_18: Byte;
     F_CombatRestoreHotseatEventLog_19: array[0..2] of Byte;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TNegotiateTE (instance size $3C, VMT 5571CCFC).
@@ -873,7 +873,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure Accept(A1: Integer; A2: Integer); override;
     procedure Cancel; override;
     function Reject(var ErrorText: string): Boolean; override;

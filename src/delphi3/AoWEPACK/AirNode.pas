@@ -7,7 +7,7 @@ unit AirNode;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace;
 
 type
   TAirNode = class;
@@ -18,7 +18,7 @@ type
   TAirNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure GetMagicSphere; override;
+    function GetMagicSphere: TMagicSphere; override;
   end;
 
   { TAirNodeResource (instance size 120, VMT 557C10A4) }
@@ -37,7 +37,7 @@ implementation
 class function TAirNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TAirNode.GetMagicSphere;
+function TAirNode.GetMagicSphere: TMagicSphere;
 begin end;
 
 constructor TAirNodeResource.Create(AOwner: Engine.TECustomNode);

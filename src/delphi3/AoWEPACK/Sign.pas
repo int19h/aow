@@ -127,7 +127,7 @@ var
   ArmyHS: TArmyHS;
 begin
   ArmyHS := SignArmyHS(TAoWMapField(Owner));
-  Result := (ArmyHS <> nil) and (TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12 =
+  Result := (ArmyHS <> nil) and (Byte(TArmy(ArmyHS.FArmy).FPlayer) =
     Byte(TSignMapFields(Pointer(WorldMap^)^).SeatedPlayer));
 end;
 

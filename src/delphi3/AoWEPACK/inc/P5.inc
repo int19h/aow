@@ -180,7 +180,7 @@ var
   I: Integer;
 begin
   FFirstUnitID := 0;
-  F_EventLog_10 := Byte(Player);
+  FPlayer := Byte(Player);
   FSelection := P5GetJoinSelection(Army, Player);
   FGold := P5JoinAmount(Army, Player, FSelection);
   FJoinMode := JoinMode;
@@ -244,7 +244,7 @@ begin
   { needs: P1 GetPlayers(Index: Integer): TPlayer; Player.Gold at $C4,
     EventLog.Player is signed (movsx edx,[Self+$10], 5572C1E3). }
   if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-    Shortint(Log.F_EventLog_10)).F_Player_C4 >= Log.FGold then
+    Shortint(Log.FPlayer)).F_Player_C4 >= Log.FGold then
     Result := True
   else
   begin
@@ -486,7 +486,7 @@ var
   ID: TArmyID;
 begin
   Result := TNegotiateTE.Create(nil);
-  Result.FPlayer := F_EventLog_10;
+  Result.FPlayer := FPlayer;
   Result.FObject := FObject;
   Result.FX := FX;
   Result.FY := FY;
@@ -511,16 +511,16 @@ begin
   Result := P5AcceptJoinEventLog(Log, ErrorText);
   if Result then
     if (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-      Shortint(Log.F_EventLog_10)).FPlayerType <> ptHuman) or
+      Shortint(Log.FPlayer)).FPlayerType <> ptHuman) or
       not P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-        Shortint(Log.F_EventLog_10))) then
+        Shortint(Log.FPlayer))) then
     begin
       TE := Log.CreateNegotiateTE;
       TE.FGold := Log.FGold;
       TE.FOffer := noOfferBribe;
       TE.FResult := nrAccept;
       TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[
-        Shortint(Log.F_EventLog_10)].AddEvent(TE);
+        Shortint(Log.FPlayer)].AddEvent(TE);
       TE.Release;
       Result := True;
     end;
@@ -540,15 +540,15 @@ begin
   if Result then
   begin
     if (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-      Shortint(F_EventLog_10)).FPlayerType = ptHuman) and
+      Shortint(FPlayer)).FPlayerType = ptHuman) and
       P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-        Shortint(F_EventLog_10))) then Exit;
+        Shortint(FPlayer))) then Exit;
     TE := CreateNegotiateTE;
     TE.FGold := 0;
     TE.FOffer := noForceOffer;
     TE.FResult := nrReject;
     TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[
-      Shortint(F_EventLog_10)].AddEvent(TE);
+      Shortint(FPlayer)].AddEvent(TE);
     TE.Release;
     Result := True;
   end;
@@ -560,8 +560,7 @@ asm
   MOV AL, 1
 end;
 
-procedure TNegotiateRequestEventLog.Execute(A1: Integer; A2: Integer;
-  A3: Integer; A4: Integer);
+function TNegotiateRequestEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 asm
   { needs: EventLog.TEventLog.Execute returns Boolean; A2 is a Boolean in CL.
     Shared map's current-player byte is $A5 (5572C8FC..5572C90B). }
@@ -572,8 +571,8 @@ asm
   MOV BL, [EBX+$A5]
   CMP BL, [EAX+$10]
   JNE @@Skip
-  PUSH A3
-  PUSH A4
+  PUSH DWORD PTR [Done+4]
+  PUSH DWORD PTR [Done]
   CALL TEventLog.Execute
   JMP @@Done
 @@Skip:
@@ -611,18 +610,18 @@ begin
     if Player = AoWHSMap.FSeatedPlayer then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
-      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
+      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.FArmy), Selection);
       Log.FMovePoints := MovePoints;
       Log.FX := Byte(X);
       Log.FY := Byte(Y);
       Log.FL := Byte(L);
-      Log.F_EventLog_10 := Byte(Player);
+      Log.FPlayer := Byte(Player);
       Msg.MsgID := $110E;
       Msg.Param[0] := Integer(Log);
       Msg.Param[1] := 0;
       Msg.Result := 0;
       AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
-      if Msg.Param[1] <> 0 then TP5EventLogABI(Log).Execute(True, False, nil, nil);
+      if Msg.Param[1] <> 0 then Log.Execute(1, etEvent, nil);
       Log.Release;
     end;
   end
@@ -631,12 +630,12 @@ begin
       Player)) then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
-      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
+      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.FArmy), Selection);
       Log.FMovePoints := MovePoints;
       Log.FX := Byte(X);
       Log.FY := Byte(Y);
       Log.FL := Byte(L);
-      Log.F_EventLog_10 := Byte(Player);
+      Log.FPlayer := Byte(Player);
       Msg.MsgID := $110E;
       Msg.Param[0] := Integer(Log);
       Msg.Param[1] := 0;
@@ -909,7 +908,7 @@ begin
       Assert(Log is TDiplomaticActionEventLog);
       P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
       P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 + FEscrowGold);
-      TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+      TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
       FEscrowGold := 0;
       FEscrowMana := 0;
     end;
@@ -1023,7 +1022,7 @@ begin
   P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_C4 + FEscrowGold);
   FEscrowGold := 0;
-  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FMagicControl).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
   FEscrowMana := 0;
   AoWHSMap.LockRelationsChanged;
   for I := 0 to TRaceList(AoWHSMap.FRaces).Count - 1 do
@@ -1153,7 +1152,7 @@ begin
   end;
   P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 + FEscrowGold);
   FEscrowGold := 0;
-  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 + FEscrowMana);
   FEscrowMana := 0;
   P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
@@ -1187,7 +1186,7 @@ begin
     FEscrowGold := FGold;
     P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 - FGold);
     FEscrowMana := FMana;
-    TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 - FMana);
+    TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 - FMana);
     case FActionType of
       daOfferPeace..daMakeTribute, daSendMessageAsY..daDeclareWarToY:
       begin
@@ -1246,7 +1245,7 @@ function TDiplomaticAction.CanSend(var ErrorText: string): Boolean;
 begin
   if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 >= FGold then
   begin
-    if TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 >= FMana then
+    if TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FMagicControl).F_PlayerMagicControl_24 >= FMana then
     begin
       Result := True;
       if (FActionType = daMakeTribute) and (FGold = 0) and (FMana = 0) then
@@ -1500,7 +1499,7 @@ begin
   Result := Result and ((Trigger = etUser) or (Log.FAction.FReaction <> darIgnore));
   if Result then
   begin
-    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Integer(Immediate), Integer(Data), Integer(Done));
+    AoWHSMap.TriggerExecuteEventLog(Log, Immediate, TExecuteDoneEvent(Pointer(@Done)^));
     Result := True;
   end
   else Result := False;
@@ -1610,7 +1609,7 @@ asm
   JMP P5DiplomaticRightIcon
 end;
 
-procedure TDiplomaticActionEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TDiplomaticActionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 asm
   POP EBP
   JMP P5DiplomaticExecute
@@ -1961,7 +1960,7 @@ begin Result := 0; end;
 procedure TRestartGameEventLog.GetText(A1: Integer);
 begin end;
 
-procedure TRestartGameEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TRestartGameEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 class function TEmailGame.ClassID: Integer;
@@ -4082,7 +4081,7 @@ begin end;
 procedure TArmyCombineMoveTE.CanMoveNext;
 begin end;
 
-procedure TCombatRestoreHotseatEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TCombatRestoreHotseatEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 class function TArmyCombatMoveTE.ClassID: Integer;

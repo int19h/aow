@@ -838,8 +838,8 @@ begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
       if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
-          RegisterEnchantment(Integer(Data.FEnchantment));
+          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).FMagicControl).
+          RegisterEnchantment(Data.FEnchantment);
     end;
   end;
 end;
@@ -860,8 +860,8 @@ begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
       if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
-          UnregisterEnchantment(Integer(Data.FEnchantment));
+          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).FMagicControl).
+          UnregisterEnchantment(Data.FEnchantment);
     end;
   end;
 end;
@@ -1394,13 +1394,13 @@ begin
   Table := P2MovePointTables[P2MoveTypesToInt(Moves)];
   if FPlayer > 0 then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 2 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 2 <> 0 then
       for Terrain := 0 to 15 do
         if Table[Terrain,4] <> -1 then Table[Terrain,4] := 2;
     if GetAbilityEnabled(23) or GetAbilityEnabled(1) or GetAbilityEnabled(165) then
     begin
-      Faster := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 4 <> 0;
-      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 4 <> 0;
+      Faster := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 4 <> 0;
+      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 4 <> 0;
       if Faster and not Slower then
       begin
         for Overlay := -1 to 11 do
@@ -1775,7 +1775,7 @@ end;
 procedure TAbstractUnit.ResetLifeMasteryFear;
 begin
   if GetAbilityEnabled(53) then
-    if Integer(TUnitEnchantmentAbilityData(P2AbilityData(Self,53)).FEnchantment) = 1 then
+    if TUnitEnchantmentAbilityData(P2AbilityData(Self,53)).FEnchantment = TUnitEnchantment(1) then
       RemoveAbility(53);
 end;
 
@@ -1801,9 +1801,9 @@ begin
   Player := FPlayer;
   if Player > 0 then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).F_Player_54).F_PlayerMagicControl_44 and 16 = 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).F_PlayerMagicControl_44 and 16 = 0 then
       ResetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 16 = 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 16 = 0 then
       ResetLifeMasteryFear;
   end;
 end;
@@ -1827,7 +1827,7 @@ var
 begin
   Player := FPlayer;
   if Player > 0 then
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).F_Player_54).F_PlayerMagicControl_45 and 32 = 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).F_PlayerMagicControl_45 and 32 = 0 then
       if GetAbilityEnabled(93) then
         if TDurationAbilityData(P2AbilityData(Self,93)).F_DurationAbilityData_10 = 1 then
           RemoveAbility(93);
@@ -1858,15 +1858,15 @@ procedure TAbstractUnit.NewTurnDone(Player: Shortint);
 begin
   if (Player = FPlayer) and (FPlayer > 0) then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 64 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 64 <> 0 then
       SetFireMasteryProtection;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 128 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 128 <> 0 then
       SetEarthMasteryStoneSkin;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 16 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 16 <> 0 then
       SetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 16 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 16 <> 0 then
       ExecuteLifeMasteryFearRole;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 32 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 32 <> 0 then
       ExecuteDeathMasteryCurseRole;
   end;
 end;
@@ -1881,7 +1881,7 @@ begin
   GetLocation(Xhx,Yhx,Lhx);
   if ((Lhx <> 0) and not GetAbilityEnabled(39)) or
      ((Lhx = 0) and (FPlayer > 0) and
-       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 8 <> 0)) then
+       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 8 <> 0)) then
     Result := (Result + 1) shr 1;
 end;
 
@@ -1923,8 +1923,8 @@ begin
       if ArmyHS <> nil then
       begin
         if (pmCreateNewArmy in Mode) or
-           ((Player <> -1) and (Shortint(ArmyHS.F_ArmyHS_1C.F_Army_12) <> Player)) or
-           not TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).CanAddUnit(Self) then Result := False
+           ((Player <> -1) and (Shortint(ArmyHS.FArmy.FPlayer) <> Player)) or
+           not TP2AbilityCalls(ArmyHS.FArmy).CanAddUnit(Self) then Result := False
         else Result := True;
       end
       else Result := ValidTerrain(Field.TerrainType,Field.OverlayType);
@@ -1949,12 +1949,12 @@ begin
       if ArmyHS = nil then
       begin
         ArmyHS := TArmyHS.Create(nil);
-        if Player <> -1 then ArmyHS.F_ArmyHS_1C.SetPlayer(Player);
-        if not TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).AddUnit(Self) or not AoWHSMap.PlaceHX(ArmyHS,Walk.X,Walk.Y,L) then
+        if Player <> -1 then ArmyHS.FArmy.SetPlayer(Player);
+        if not TP2AbilityCalls(ArmyHS.FArmy).AddUnit(Self) or not AoWHSMap.PlaceHX(ArmyHS,Walk.X,Walk.Y,L) then
         begin ArmyHS.Free; ArmyHS := nil; end;
         Result := ArmyHS;
       end
-      else if TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).AddUnit(Self) then Result := ArmyHS
+      else if TP2AbilityCalls(ArmyHS.FArmy).AddUnit(Self) then Result := ArmyHS
       else Result := nil;
     end;
     if Result = nil then WalkToNextHN(Walk);
@@ -2761,13 +2761,13 @@ begin end;
 procedure TUnitIndexListCollection.SaveToStream;
 begin end;
 
-procedure TUnitIndexListCollection.GetCollectionCount(A1: Integer);
+function TUnitIndexListCollection.GetCollectionCount(Index: Integer): Integer;
 begin end;
 
 procedure TUnitIndexListCollection.GetCount;
 begin end;
 
-procedure TUnitIndexListCollection.GetU(A1: Integer; A2: Integer);
+function TUnitIndexListCollection.GetU(Collection, Index: Integer): Integer;
 begin end;
 
 procedure TUnitIndexListCollection.AddUnit(A1: Integer; A2: Integer);
@@ -2776,7 +2776,7 @@ begin end;
 procedure TUnitIndexListCollection.DeleteUnit(A1: Integer; A2: Integer);
 begin end;
 
-procedure TUnitIndexListCollection.GetRndCollection;
+function TUnitIndexListCollection.GetRndCollection: Integer;
 begin end;
 
 procedure TWallUnit.SetWallType(A1: Integer);
@@ -3130,7 +3130,7 @@ begin end;
 function TUnitResourceList.GetUnitResource(Index: Integer): TUnitResource;
 begin end;
 
-procedure TUnitIndexList.Create(A1: Byte);
+constructor TUnitIndexList.Create;
 begin end;
 
 procedure TUnitIndexList.GetUnitIndex(A1: Integer);
@@ -3172,7 +3172,7 @@ begin end;
 procedure THeroUpgradeEventLog.GetText(A1: Integer);
 begin end;
 
-procedure THeroUpgradeEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function THeroUpgradeEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure THeroUpgradeEventLog.ViewLocation(A1: Integer; A2: Integer);
@@ -3181,7 +3181,7 @@ begin end;
 class function THeroJoinEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-procedure THeroJoinEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function THeroJoinEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure THeroJoinEventLog.ExecuteAI;
@@ -3211,7 +3211,7 @@ begin end;
 procedure THeroEmergeEventLog.ExecuteAI;
 begin end;
 
-procedure THeroEmergeEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function THeroEmergeEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor THeroInventory.Create(AOwner: Engine.TECustomNode);
@@ -3916,7 +3916,7 @@ begin end;
 procedure TLeader.SetNickname(A1: Integer; A2: Integer);
 begin end;
 
-procedure TLeader.GetSpherePicks(A1: Byte);
+function TLeader.GetSpherePicks(Sphere: TMagicSphere): Byte;
 begin end;
 
 procedure TLeader.GetSpheres(A1: Integer);
@@ -4057,7 +4057,7 @@ begin end;
 procedure TArmyEventLog.ValidateGameOver;
 begin end;
 
-procedure TArmyEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TArmyEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TArmyEventLog.ViewLocation(A1: Integer; A2: Integer);
@@ -4084,7 +4084,7 @@ begin end;
 procedure TArmyInfoEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmyInfoEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TArmyInfoEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TArmy.Create(AOwner: Engine.TECustomNode);
@@ -4123,7 +4123,7 @@ begin end;
 procedure TArmy.GetBehavior;
 begin end;
 
-procedure TArmy.SetBehavior(A1: Integer; A2: Integer);
+procedure TArmy.SetBehavior(Player: Shortint; Behavior: TGroupBehavior);
 begin end;
 
 procedure TArmy.GetOldAIBehavior;
@@ -4246,7 +4246,7 @@ begin end;
 procedure TArmy.ImmunityTypes(A1: Integer);
 begin end;
 
-procedure TArmy.ObtainValue(A1: Integer; A2: Integer);
+function TArmy.ObtainValue(Player: Shortint): Integer;
 begin end;
 
 procedure TArmy.MovePoints(A1: Integer);

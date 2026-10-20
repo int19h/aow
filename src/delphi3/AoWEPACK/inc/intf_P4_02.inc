@@ -891,6 +891,7 @@
     FSpellText: TStringList; { $24 }
     FCastSounds: TSFXLibrary; { $28 }
     FCastImages: TImageSequenceList; { $2C }
+    { conflict: FImageSequences: TImageSequenceList; }
     F_Spell_30: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -931,6 +932,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetCount: Integer;
     function GetSpell(Index: Integer): TSpell;
+    { conflict: function GetSpell(SpellID: Integer): TSpell; }
     procedure RegisterSpell(Spell: TSpell);
     procedure UnregisterSpell(Spell: TSpell);
     procedure UnregisterSpellID(A1: Integer);  { draft }
@@ -1005,7 +1007,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 

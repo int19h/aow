@@ -54,7 +54,7 @@ procedure Land(A1: Byte);  { draft }
 procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure CombatRangeToCombatMode(A1: Byte);  { draft }
-procedure PlaceRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 procedure FillWithRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
@@ -65,7 +65,7 @@ procedure GetCombatSide(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Intege
 procedure AlignmentToIR(A1: Byte);  { draft }
 procedure IRtoAlignment(A1: Integer);  { draft }
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
-procedure ValidAttackRelation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean;
 procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);  { draft }
 procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);  { draft }
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
@@ -84,7 +84,13 @@ procedure CreateStrikeCA(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure ValidateAoWEngine;  { draft }
 
+var
+  TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
+
 resourcestring
+  StructureCapturedRStr = '%s captured';
+  UnknownRStr = 'Unknown';
+  NoneRStr = 'None';
   AWarRelationIsRequiredForXRStr = 'A state of WAR is required for %s';
   AcceptAllianceRStr = 'Accept alliance';
   AcceptRStr = 'Accept';

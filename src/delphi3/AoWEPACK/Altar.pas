@@ -24,13 +24,13 @@ type
     F_Altar_42: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
     procedure ExecuteTE(A1: Integer; A2: Integer); override;
     procedure NewDay; override;
-    procedure GetCurrentActivityText(A1: Integer); override;
+    function GetCurrentActivityText: string; override;
     procedure ExecuteAI(A1: Integer; A2: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
+    procedure SetPlayer(Player: Shortint); override;
     procedure GetDefaultAITargetPriority; override;
     procedure CreateStorm; virtual;  { +224 draft }
     procedure StormTargetSelected(A1: Integer; A2: Byte); virtual;  { +228 draft }
@@ -65,7 +65,7 @@ begin end;
 procedure TAltar.GetDefaultAITargetPriority;
 begin end;
 
-procedure TAltar.GetCurrentActivityText(A1: Integer);
+function TAltar.GetCurrentActivityText: string;
 begin end;
 
 procedure TAltar.ExecuteTE(A1: Integer; A2: Integer);
@@ -101,13 +101,13 @@ begin end;
 procedure TAltar.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TAltar.SetPlayer(A1: Integer; A2: Integer);
+procedure TAltar.SetPlayer(Player: Shortint);
 begin end;
 
-procedure TAltar.GetRazed;
+function TAltar.GetRazed: Boolean;
 begin end;
 
-procedure TAltar.SetRazed(A1: Integer);
+procedure TAltar.SetRazed(Value: Boolean);
 begin end;
 
 procedure TAltar.ExecuteAI(A1: Integer; A2: Integer);

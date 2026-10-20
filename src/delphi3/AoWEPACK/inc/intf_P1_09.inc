@@ -97,9 +97,9 @@
     procedure GetMiddleBorderImage; virtual;  { +13C draft }
     procedure GetBottomBorderImage; virtual;  { +140 draft }
     procedure GetDescription; virtual;  { +144 draft }
-    procedure GetName(A1: Integer); virtual;  { +148 draft }
-    procedure SetRazed(A1: Integer); virtual;  { +14C draft }
-    procedure GetRazed; virtual;  { +150 draft }
+    function GetName: string; virtual;
+    procedure SetRazed(Value: Boolean); virtual;
+    function GetRazed: Boolean; virtual;
     procedure GetRazeable; virtual;  { +154 draft }
     procedure RazeEx(A1: Integer); virtual;  { +158 draft }
     procedure SetupRazeDefenderAG(A1: Integer; A2: Integer); virtual;  { +15C draft }
@@ -109,7 +109,7 @@
     procedure GetDefenseRequirements(A1: Integer; A2: Integer); virtual;  { +16C draft }
     procedure GetDefensePriority; virtual;  { +170 draft }
     procedure NewDay; virtual;  { +174 draft }
-    procedure NewTurn(A1: Integer); virtual;  { +178 draft }
+    procedure NewTurn(Player: Shortint); virtual;
     procedure SeatedPlayerChanged; virtual;  { +17C draft }
     procedure ArmyPlaced(A1: Integer); virtual;  { +180 draft }
     procedure ArmyRemoved; virtual;  { +184 draft }
@@ -124,14 +124,14 @@
     procedure GenerateRazeDefenders(A1: Integer; A2: Integer); virtual;  { +1A8 draft }
     procedure PlaceRazeDefenders(A1: Byte); virtual;  { +1AC draft }
     procedure ExecuteRaze(A1: Integer; A2: Integer); virtual;  { +1B0 draft }
-    procedure GetCurrentActivityText(A1: Integer); virtual;  { +1B4 draft }
+    function GetCurrentActivityText: string; virtual;
     procedure ValidateMap(A1: Integer); virtual;  { +1B8 draft }
     procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
     procedure ExecuteAI(A1: Integer; A2: Integer); virtual;  { +1C0 draft }
-    procedure UpdateAITarget(A1: Integer; A2: Integer); virtual;  { +1C4 draft }
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); virtual;
     procedure Update; virtual;  { +1C8 draft }
     procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }
-    procedure CanDblClick; virtual;  { +1D0 draft }
+    function CanDblClick: Boolean; virtual;
     procedure ListUnits(A1: Integer); virtual;  { +1D4 draft }
     procedure ListArmies(A1: Integer); virtual;  { +1D8 draft }
     procedure GetRebuildInfo(A1: Integer; A2: Integer); virtual;  { +1DC draft }
@@ -145,7 +145,7 @@
     procedure GetPlayer;  { draft }
     procedure FogChanged;  { draft }
     procedure ValidateObservation(A1: Byte);  { draft }
-    procedure GetBuilding;  { draft }
+    function GetBuilding: Boolean;
     procedure ShowBorderImage(A1: Integer; A2: Integer);  { draft }
     procedure ShowBorderImageDC(A1: Integer; A2: Integer);  { draft }
     procedure ShowRazeAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
@@ -182,11 +182,11 @@
     F_StructureResource_4D: array[0..2] of Byte;
     F_StructureResource_50: Integer;
     F_StructureResource_54: Integer;
-    F_StructureResource_58: Byte;
+    FRazeable: Boolean;  { $58 }
     F_StructureResource_59: Byte;
     F_StructureResource_5A: Byte;
     F_StructureResource_5B: Byte;
-    F_StructureResource_5C: Integer;
+    FDefenders: TUnitIndexListCollection;  { $5C }
     F_StructureResource_60: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -213,7 +213,7 @@
     procedure Name(A1: Integer); override;
     procedure Income; override;
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Setup(A1: Integer);  { draft }
+    procedure Setup(Structure: TPlayerStructure);
   end;
 
   { TPlayerStructurePowerSource (instance size 12, VMT 55714250) }
@@ -224,13 +224,13 @@
     procedure Power; override;
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
     procedure Select(A1: Integer; A2: Integer); override;
-    procedure Setup(A1: Integer);  { draft }
+    procedure Setup(Structure: TPlayerStructure);
   end;
 
   { TPlayerStructure (instance size 60, VMT 55714340) }
   TPlayerStructure = class(TStructure)
   public
-    F_PlayerStructure_30: Byte;
+    FPlayer: Shortint;  { $30 }
     F_PlayerStructure_31: Byte;
     F_PlayerStructure_32: Byte;
     F_PlayerStructure_33: array[0..0] of Byte;
@@ -250,25 +250,25 @@
     procedure Deactivate; override;
     procedure UpdateMapField(const Info: HSEngine.THSMapFieldInfo); override;
     procedure NewDay; override;
-    procedure NewTurn(A1: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
     procedure SeatedPlayerChanged; override;
     procedure ArmyPlaced(A1: Integer); override;
     procedure ArmyChanged; override;
     procedure BuildingDone; override;
     procedure ExecuteRebuild(A1: Integer); override;
     procedure ExecuteBuild(A1: Integer; A2: Byte); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
     procedure CanRebuild(A1: Integer; A2: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); virtual;  { +1F0 draft }
-    procedure GetIncome(A1: Integer; A2: Integer); virtual;  { +1F4 draft }
-    procedure GetPower; virtual;  { +1F8 draft }
+    procedure SetPlayer(Player: Shortint); virtual;
+    function GetIncome: Integer; virtual;
+    function GetPower: Integer; virtual;
     procedure UpdateFlagID; virtual;  { +1FC draft }
     procedure VisibilityRange; virtual;  { +200 draft }
     procedure UpdateUnfog; virtual;  { +204 draft }
     procedure UpdateExploration; virtual;  { +208 draft }
     procedure FinalizeCombat(A1: Integer); virtual;  { +20C draft }
     procedure GetCombatEventText(A1: Integer; A2: Integer); virtual;  { +210 draft }
-    procedure StructureCaptured(A1: Integer; A2: Byte); virtual;  { +214 draft }
+    procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
     procedure GetMoveAction(A1: Integer; A2: Integer); virtual;  { +218 draft }
     procedure GetDefaultAITargetPriority; virtual;  { +21C draft }
     procedure UpdatePlayer; virtual;  { +220 draft }
@@ -283,7 +283,7 @@
   { TPlayerStructureResource (instance size 116, VMT 557145E0) }
   TPlayerStructureResource = class(TStructureResource)
   public
-    F_PlayerStructureResource_64: Byte;
+    FClaimed: Boolean;  { $64 }
     F_PlayerStructureResource_65: array[0..2] of Byte;
     F_PlayerStructureResource_68: Integer;
     F_PlayerStructureResource_6C: Integer;

@@ -32,9 +32,9 @@ type
     procedure Deactivate; override;
     function CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
     function PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
-    procedure NewTurn(A1: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
-    procedure GetIncome(A1: Integer; A2: Integer); override;
+    procedure NewTurn(Player: Shortint); override;
+    procedure SetPlayer(Player: Shortint); override;
+    function GetIncome: Integer; override;
     procedure CanPlaceCrop(A1: Integer); virtual;  { +224 draft }
     procedure CropsEnabled; virtual;  { +228 draft }
     procedure RegrowCrops; virtual;  { +22C draft }
@@ -184,11 +184,11 @@ procedure TCrop.EndTurn(Player: Shortint);
 var Army: TArmyHS;
 begin
   Army := CropArmy(TAoWMapField(Owner));
-  if (Army <> nil) and (Player = Shortint(TArmy(Army.F_ArmyHS_1C).F_Army_12)) and
-    (Shortint(FCropOwner.F_PlayerStructure_30) > 0) and
-    (Player <> Shortint(FCropOwner.F_PlayerStructure_30)) then
+  if (Army <> nil) and (Player = Shortint(TArmy(Army.FArmy).FPlayer)) and
+    (Shortint(Byte(FCropOwner.FPlayer)) > 0) and
+    (Player <> Shortint(Byte(FCropOwner.FPlayer))) then
     if CropRelation(TPlayerList(WorldMap^.FPlayers),
-      Shortint(FCropOwner.F_PlayerStructure_30), Player) = 1 then
+      Shortint(Byte(FCropOwner.FPlayer)), Player) = 1 then
     begin
       CropTrample(FCropOwner, Player);
       Destroy;
@@ -319,7 +319,7 @@ begin
   inherited Create(AOwner);
   FChangingCrops := False;
   FIncomeSource := TPlayerStructureIncomeSource.Create(nil);
-  FIncomeSource.Setup(Integer(Self));
+  FIncomeSource.Setup(Self);
 end;
 
 destructor TPlayerCropStructure.Destroy;
@@ -331,16 +331,16 @@ end;
 class function TPlayerCropStructure.ClassID: Integer;
 begin Result := $2034E; end;
 
-procedure TPlayerCropStructure.GetIncome(A1: Integer; A2: Integer);
+function TPlayerCropStructure.GetIncome: Integer;
 asm MOVZX EAX,BYTE PTR [EAX+$3C] end;
 
 procedure TPlayerCropStructure.CropTrampled(A1: Integer);
 var Race: Shortint;
 begin
-  if (Byte(A1) <> F_PlayerStructure_30) and (Shortint(F_PlayerStructure_30) > 0) and
+  if (Byte(A1) <> Byte(FPlayer)) and (Shortint(Byte(FPlayer)) > 0) and
     (Shortint(A1) > 0) then
   begin
-    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(F_PlayerStructure_30)))^).Race;
+    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))))^).Race;
     CropGetRace(TRaceList(WorldMap^.FRaces), Race).SetPlayerRelationValue(
       Byte(A1), CropRelationValue(CropGetRace(TRaceList(WorldMap^.FRaces), Race),
       Shortint(A1)) + 5);
@@ -353,7 +353,7 @@ begin
   if (A1 <> FIncome) and (moActivated in FStatus) then
   begin
     FIncome := A1;
-    Player := Shortint(F_PlayerStructure_30);
+    Player := Shortint(Byte(FPlayer));
     if Player <> -1 then
       CropPlayerIncome(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player));
   end;
@@ -373,12 +373,12 @@ begin
     asm XOR EAX,EAX end;
 end;
 
-procedure TPlayerCropStructure.NewTurn(A1: Integer);
-var Player: Byte;
+procedure TPlayerCropStructure.NewTurn(Player: Shortint);
+var PlayerIndex: Byte;
 begin
-  Player := Byte(A1);
-  inherited NewTurn(A1);
-  if F_PlayerStructure_30 = Player then
+  PlayerIndex := Byte(Player);
+  inherited NewTurn(Player);
+  if Byte(FPlayer) = PlayerIndex then
     if CropEnabled(Self) then RegrowCrops;
 end;
 
@@ -392,18 +392,18 @@ end;
 procedure TPlayerCropStructure.CropsChanged;
 asm MOV EDX,[EAX]; CALL DWORD PTR [EDX+$230] end;
 
-procedure TPlayerCropStructure.SetPlayer(A1: Integer; A2: Integer);
+procedure TPlayerCropStructure.SetPlayer(Player: Shortint);
 begin
-  if Byte(A1) <> F_PlayerStructure_30 then
+  if Byte(Player) <> Byte(FPlayer) then
   begin
-    if F_PlayerStructure_30 <> $FF then
-      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(F_PlayerStructure_30)).
-        UnregisterIncomeSource(Integer(FIncomeSource));
-    CropSetPlayer(Self, Byte(A1));
+    if Byte(FPlayer) <> $FF then
+      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))).
+        UnregisterIncomeSource(FIncomeSource);
+    CropSetPlayer(Self, Byte(Player));
     UpdateCrops;
-    if F_PlayerStructure_30 <> $FF then
-      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(F_PlayerStructure_30)).
-        RegisterIncomeSource(Integer(FIncomeSource));
+    if Byte(FPlayer) <> $FF then
+      TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))).
+        RegisterIncomeSource(FIncomeSource);
   end;
 end;
 
@@ -411,10 +411,10 @@ procedure TPlayerCropStructure.Activate;
 var Player: Shortint;
 begin
   inherited Activate;
-  Player := Shortint(F_PlayerStructure_30);
+  Player := Shortint(Byte(FPlayer));
   if Player <> -1 then
     TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player).
-      RegisterIncomeSource(Integer(FIncomeSource));
+      RegisterIncomeSource(FIncomeSource);
   if not GetEditMode then
   begin
     LinkToCrops;
@@ -425,10 +425,10 @@ end;
 procedure TPlayerCropStructure.Deactivate;
 var Player: Shortint;
 begin
-  Player := Shortint(F_PlayerStructure_30);
+  Player := Shortint(Byte(FPlayer));
   if Player <> -1 then
     TCropPlayers(WorldMap^.FPlayers).PlayerAt(Player).
-      UnregisterIncomeSource(Integer(FIncomeSource));
+      UnregisterIncomeSource(FIncomeSource);
   inherited Deactivate;
 end;
 
@@ -466,8 +466,8 @@ end;
 procedure TPlayerCropStructure.GetRace;
 var Race: Shortint;
 begin
-  if Shortint(F_PlayerStructure_30) > 0 then
-    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(F_PlayerStructure_30)))^).Race
+  if Shortint(Byte(FPlayer)) > 0 then
+    Race := TCropPlayerFields(Pointer(TCropPlayers(WorldMap^.FPlayers).PlayerAt(Shortint(Byte(FPlayer))))^).Race
   else Race := -1;
   asm MOV AL,Race end;
 end;
@@ -506,7 +506,7 @@ begin
     Army := TArmyHS(Field.FindOwnedChild($20217));
     Allowed := ((Army = nil) or
       (CropRelation(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(Army.F_ArmyHS_1C).F_Army_12), Shortint(F_PlayerStructure_30)) <> 1));
+        Shortint(TArmy(Army.FArmy).FPlayer), Shortint(Byte(FPlayer))) <> 1));
     if Allowed then
     begin
       HS := Field.GetMaxLevelNoneTransparentHS;

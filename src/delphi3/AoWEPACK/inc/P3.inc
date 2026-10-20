@@ -1117,7 +1117,7 @@ begin
   if FTokenEvent <> nil then FTokenEvent.AddRef;
 end;
 
-procedure TCombatTypeRequestEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TCombatTypeRequestEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 asm
   PUSH EBX
   PUSH DWORD PTR [EBP+$0C]
@@ -1505,7 +1505,7 @@ end;
 procedure TCombatEventLog.PlayLoggedSFX(A1: Integer);
 begin end;
 
-procedure TCombatEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TCombatEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TCombatEventLog.ViewLocation(A1: Integer; A2: Integer);

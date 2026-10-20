@@ -6,14 +6,14 @@
     F_Enchantment_0C: Byte;
     F_Enchantment_0D: array[0..2] of Byte;
     F_Enchantment_10: Integer;
-    F_Enchantment_14: Byte;
+    FDispelResistance: Byte;  { $14 }
     F_Enchantment_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetName(A1: Integer); virtual;  { +04C draft }
     procedure GetBinding(A1: Integer); virtual;  { +050 draft }
-    procedure SetUpkeep(A1: Integer); virtual;  { +054 draft }
-    procedure SetSource(A1: Integer); virtual;  { +058 draft }
+    procedure SetUpkeep(A1: Integer); virtual;
+    procedure SetSource(Player: Shortint); virtual;
     procedure GetAIUpkeepPriority; virtual;  { +05C draft }
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +060 draft }
     procedure CenterToLocation; virtual;  { +064 draft }
@@ -56,7 +56,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 
@@ -114,7 +114,7 @@
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetCheatEnabled: Boolean;
     procedure SetActiveEnchantments(A1: Byte; A2: Integer);  { draft }
-    procedure UpdateEnemyEnchantments;  { draft }
+    procedure UpdateEnemyEnchantments;
     procedure GetManaIncome;  { draft }
     procedure GetManaUpkeep;  { draft }
     procedure SetMana(A1: Integer);  { draft }
@@ -135,12 +135,12 @@
     procedure ListSpells(A1: Integer; A2: Byte);  { draft }
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
-    procedure Update;  { draft }
+    procedure Update;
     procedure ValidateEnchantmentID(A1: Integer);  { draft }
-    procedure RegisterEnchantment(A1: Integer);  { draft }
-    procedure UnregisterEnchantment(A1: Integer);  { draft }
-    procedure RegisterPowerSource(A1: Integer);  { draft }
-    procedure UnregisterPowerSource(A1: Integer);  { draft }
+    procedure RegisterEnchantment(Enchantment: TEnchantment);
+    procedure UnregisterEnchantment(Enchantment: TEnchantment);
+    procedure RegisterPowerSource(Source: TPowerSource);
+    procedure UnregisterPowerSource(Source: TPowerSource);
     procedure CreateChangeMagicTE;  { draft }
     procedure ExecuteDispelEnchantment(A1: Integer);  { draft }
     procedure DispelEnchantment;  { draft }

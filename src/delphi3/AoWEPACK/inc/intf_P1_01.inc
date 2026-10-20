@@ -457,6 +457,7 @@ type
   TPartyStatus = (psUnruly, psUnrest, psStable, psContent, psCheerful);  { ot=1 }
   TAITargetMode = (tmAttack, tmRaid, tmRecruit, tmProduce, tmHunt, tmFortify, tmDefend, tmGuardArea, tmAttackArmies);  { ot=1 }
   TAITargetType = (attAttack, attNegotiate);  { ot=1 }
+  TAITargetInfo = record Player, IndependentRelation: Shortint; Mode: TAITargetMode; end;
   TworldFXType = (fxHatred, fxCrusade, fxWaterMastery, fxSpellWard, fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEarthMastery, fxEMParticle, fxTranquility, fxTranqParticle);  { ot=1 }
   TBattleFieldInfoRequests = set of (bfrWallPassing, bfrReturnImmunityTypes, bfrIgnorePassiveIndependents, bfrEffectiveStrength, bfrIgnoreIndependents); { ot=1 }
   TProductionControlStatus = (pcsIdle, pcsWaiting, pcsProducing);  { ot=1 }

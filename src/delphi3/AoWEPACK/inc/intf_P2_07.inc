@@ -3,7 +3,7 @@
   THeroJoinEventLog = class(TJoinEventLog)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure Accept(A1: Integer; A2: Integer); override;
     procedure ExecuteAI;  { draft }
   end;
@@ -20,7 +20,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure Setup(A1: Integer; A2: Byte);  { draft }
     procedure CreateHeroJoinEventLog;  { draft }
@@ -230,7 +230,7 @@
     procedure SetNickname(A1: Integer; A2: Integer); override;
     procedure SetHeroResourceIndex(A1: Integer); override;
     procedure EditDropMsg(A1: Integer); override;
-    procedure GetSpherePicks(A1: Byte);  { draft }
+    function GetSpherePicks(Sphere: TMagicSphere): Byte;
     procedure GetSpheres(A1: Integer);  { draft }
     procedure GetSphereCount;  { draft }
     procedure SetSpherePicksMax(A1: Byte);  { draft }
@@ -402,7 +402,7 @@
   public
     F_Army_10: Byte;
     F_Army_11: Byte;
-    F_Army_12: Byte;
+    FPlayer: Shortint;  { $12 }
     F_Army_13: Byte;
     F_Army_14: Byte;
     F_Army_15: Byte;
@@ -446,7 +446,7 @@
     procedure SetGroup(A1: Integer; A2: Integer);  { draft }
     procedure GetGroupSelection(A1: Integer);  { draft }
     procedure GetBehavior;  { draft }
-    procedure SetBehavior(A1: Integer; A2: Integer);  { draft }
+    procedure SetBehavior(Player: Shortint; Behavior: TGroupBehavior);
     procedure GetOldAIBehavior;  { draft }
     procedure InitializeGroupBehavior;  { draft }
     procedure UpdateGroupBehavior(A1: Integer; A2: Integer);  { draft }
@@ -481,7 +481,7 @@
     procedure GetUnitsConcealedForPlayer(A1: Integer; A2: Integer);  { draft }
     procedure SetPlayer(Player: Shortint);
     procedure ImmunityTypes(A1: Integer);  { draft }
-    procedure ObtainValue(A1: Integer; A2: Integer);  { draft }
+    function ObtainValue(Player: Shortint): Integer;
     procedure MovePoints(A1: Integer);  { draft }
     procedure Moves(A1: Integer);  { draft }
     procedure MoveTypes(A1: Integer; A2: Integer);  { draft }
@@ -556,7 +556,7 @@
   { TArmyHS (instance size 36, VMT 557133A0) }
   TArmyHS = class(TUnitHS)
   public
-    F_ArmyHS_1C: TArmy;
+    FArmy: TArmy;  { $1C }
     F_ArmyHS_20: Byte;
     F_ArmyHS_21: Byte;
     F_ArmyHS_22: Byte;
@@ -622,7 +622,7 @@
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
     procedure GetLeftIcon; override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }
     procedure LeaderKilled;  { draft }
@@ -647,7 +647,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetText(A1: Integer); override;
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }
   end;

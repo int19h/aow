@@ -7,7 +7,7 @@ unit WaterNode;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace;
 
 type
   TWaterNode = class;
@@ -18,7 +18,7 @@ type
   TWaterNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure GetMagicSphere; override;
+    function GetMagicSphere: TMagicSphere; override;
   end;
 
   { TWaterNodeResource (instance size 120, VMT 557C0BE0) }
@@ -37,7 +37,7 @@ implementation
 class function TWaterNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TWaterNode.GetMagicSphere;
+function TWaterNode.GetMagicSphere: TMagicSphere;
 begin end;
 
 constructor TWaterNodeResource.Create(AOwner: Engine.TECustomNode);

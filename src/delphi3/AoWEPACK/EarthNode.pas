@@ -7,7 +7,7 @@ unit EarthNode;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace;
 
 type
   TEarthNode = class;
@@ -18,7 +18,7 @@ type
   TEarthNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure GetMagicSphere; override;
+    function GetMagicSphere: TMagicSphere; override;
   end;
 
   { TEarthNodeResource (instance size 120, VMT 557BFD94) }
@@ -37,7 +37,7 @@ implementation
 class function TEarthNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TEarthNode.GetMagicSphere;
+function TEarthNode.GetMagicSphere: TMagicSphere;
 begin end;
 
 constructor TEarthNodeResource.Create(AOwner: Engine.TECustomNode);

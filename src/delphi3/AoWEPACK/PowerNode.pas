@@ -25,12 +25,12 @@ type
     class function ClassID: Integer; override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure SetRazed(A1: Integer); override;
-    procedure GetRazed; override;
-    procedure GetCurrentActivityText(A1: Integer); override;
-    procedure UpdateAITarget(A1: Integer; A2: Integer); override;
-    procedure SetPlayer(A1: Integer; A2: Integer); override;
-    procedure GetPower; override;
+    procedure SetRazed(Value: Boolean); override;
+    function GetRazed: Boolean; override;
+    function GetCurrentActivityText: string; override;
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure SetPlayer(Player: Shortint); override;
+    function GetPower: Integer; override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
   end;
 
@@ -56,25 +56,25 @@ begin end;
 class function TPowerNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPowerNode.GetPower;
+function TPowerNode.GetPower: Integer;
 begin end;
 
-procedure TPowerNode.GetRazed;
+function TPowerNode.GetRazed: Boolean;
 begin end;
 
-procedure TPowerNode.SetRazed(A1: Integer);
+procedure TPowerNode.SetRazed(Value: Boolean);
 begin end;
 
 procedure TPowerNode.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TPowerNode.GetCurrentActivityText(A1: Integer);
+function TPowerNode.GetCurrentActivityText: string;
 begin end;
 
-procedure TPowerNode.UpdateAITarget(A1: Integer; A2: Integer);
+procedure TPowerNode.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
-procedure TPowerNode.SetPlayer(A1: Integer; A2: Integer);
+procedure TPowerNode.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TPowerNode.Activate;

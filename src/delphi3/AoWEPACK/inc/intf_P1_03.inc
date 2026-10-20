@@ -171,7 +171,7 @@
     F_Player_18: Integer;
     F_Player_1C: Integer;
     F_Player_20: Integer;
-    F_Player_24: Integer;
+    FProductionControls: TProductionControlList;  { $24 }
     F_Player_28: Integer;
     F_Player_2C: Byte;
     F_Player_2D: Byte;
@@ -189,7 +189,7 @@
     F_Player_4C: Integer;
     F_Player_50: Byte;
     F_Player_51: array[0..2] of Byte;
-    F_Player_54: Integer;
+    FMagicControl: TPlayerMagicControl;  { $54 }
     F_Player_58: Integer;
     F_Player_5C: Integer;
     F_Player_60: Integer;
@@ -225,8 +225,8 @@
     F_Player_C4: Integer;
     F_Player_C8: Integer;
     F_Player_CC: Integer;
-    F_Player_D0: Integer;
-    F_Player_D4: Integer;
+    FIncome: Integer;  { $D0 }
+    FLeader: TLeader;  { $D4 }
     FEventLogbook: TEventLogbook;  { $D8 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -248,9 +248,9 @@
     procedure EndUpdate;  { draft }
     procedure ArmiesChanged;  { draft }
     procedure SetGems(A1: Integer);  { draft }
-    procedure UpdateIncome(A1: Integer; A2: Integer);  { draft }
-    procedure RegisterIncomeSource(A1: Integer);  { draft }
-    procedure UnregisterIncomeSource(A1: Integer);  { draft }
+    procedure UpdateIncome;
+    procedure RegisterIncomeSource(Source: TIncomeSource);
+    procedure UnregisterIncomeSource(Source: TIncomeSource);
     procedure GetUpkeep;  { draft }
     procedure SetArmyUpkeep(A1: Integer);  { draft }
     procedure SetMagicUpkeep(A1: Integer);  { draft }

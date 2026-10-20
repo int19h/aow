@@ -133,21 +133,21 @@ procedure TManaCrystals.ArmyEntered(ArmyHS: TArmyHS);
 var
   Log: TLocationTextEventLog;
 begin
-  if TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12 = 0 then Exit;
+  if Byte(TArmy(ArmyHS.FArmy).FPlayer) = 0 then Exit;
   if (Byte(TCrystalMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
-    TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12) or
+    Byte(TArmy(ArmyHS.FArmy).FPlayer)) or
     CrystalWatching(WorldMap^, GetXhx, GetYhx, GetLhx, 0) then
     PlaySample('SFX\EVENTS\MANA.WAV');
   with CrystalPlayer(TPlayerList(WorldMap^.FPlayers),
-    Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)) do
-    TCrystalMagic(F_Player_54).Mana := TCrystalMagic(F_Player_54).Mana + FAmount;
+    Shortint(TArmy(ArmyHS.FArmy).FPlayer)) do
+    TCrystalMagic(FMagicControl).Mana := TCrystalMagic(FMagicControl).Mana + FAmount;
   Log := TLocationTextEventLog.Create(nil);
-  Log.F_EventLog_10 := TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12;
-  PString(@Log.F_TextEventLog_18)^ := SysUtils.Format(TranslateCrystalName(ManaCrystalsFoundRStr),
+  Log.FPlayer := Byte(TArmy(ArmyHS.FArmy).FPlayer);
+  PString(@Log.FText)^ := SysUtils.Format(TranslateCrystalName(ManaCrystalsFoundRStr),
     [IntToStr(FAmount)]);
   TCrystalLog(Log).Location(GetXhx, GetYhx, GetLhx);
   TEventLogbook(CrystalPlayer(TPlayerList(WorldMap^.FPlayers),
-    Shortint(TArmy(ArmyHS.F_ArmyHS_1C).F_Army_12)).FEventLogbook).AddEvent(Integer(Log));
+    Shortint(TArmy(ArmyHS.FArmy).FPlayer)).FEventLogbook).AddEvent(Log);
   Log.Release;
   Destroy;
 end;

@@ -7,7 +7,7 @@ unit DeathNode;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace;
 
 type
   TDeathNode = class;
@@ -18,7 +18,7 @@ type
   TDeathNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
-    procedure GetMagicSphere; override;
+    function GetMagicSphere: TMagicSphere; override;
   end;
 
   { TDeathNodeResource (instance size 120, VMT 557C0258) }
@@ -37,7 +37,7 @@ implementation
 class function TDeathNode.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDeathNode.GetMagicSphere;
+function TDeathNode.GetMagicSphere: TMagicSphere;
 begin end;
 
 constructor TDeathNodeResource.Create(AOwner: Engine.TECustomNode);
