@@ -15,7 +15,6 @@ uses
   zlib in 'zlib.pas',
   ImageLib,
   FMemStr in 'FMemStr.pas',
-  EngineLists in 'EngineLists.pas',
   Engine in 'Engine.pas';
 
 var
@@ -232,6 +231,7 @@ begin
   try O.AddRef; except end;
   try O.Release; except end;
   EL := TEObjectEditorList.Create;
+  EL.RegisterClass(TEObjectEditor);
   Writeln(EL.FindEditor(1) = nil);
   EL.Free;
   O.Free;
@@ -403,7 +403,7 @@ begin
   CS := TCompressStream.Create;
   CS.LoadFromFile('f');
   CS.SaveToFile('f');
-  Writeln(CS.SaveToFileEx('f', 3), CS.SaveToStreamEx(M, 3));
+  Writeln(CS.SaveToFileEx('f', cpMax), CS.SaveToStreamEx(M, cpMax));
   CS.SaveToStream(M);
   CS.LoadFromStream(M);
   CS.Free;

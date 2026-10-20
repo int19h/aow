@@ -19,7 +19,7 @@ unit NetworkE;
 interface
 
 uses
-  Windows, SysUtils, Classes, Dialogs, Engine, EngineLists;
+  Windows, SysUtils, Classes, Dialogs, Engine;
 
 const
   { TRemotePCC.SendPackageData / TTokenControl.TokenEventsPrefetched: the package goes to every

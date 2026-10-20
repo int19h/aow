@@ -3,27 +3,415 @@ unit Engine;
 { The Engine unit of Enginep.dpl written for the original compiler (Delphi 3.02), class by class:
   tools/match.py compares the code DCC32 generates for every method with the code in the game's
   module. Declarations follow the original instance layouts and VMT orders (notes/classes.json); a
-  method whose body is still a stub is marked "stub". The value lists live in EngineLists.pas until
-  the whole unit is assembled; the hash classes come from inc\HashTab.PAS as in the original. }
+  method whose body is still a stub is marked "stub". The hash classes come from
+  inc\HashTab.PAS as in the original. }
 
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Menus, Forms, Clipbrd, EngineLists, FMemStr, ImageLib, zlib;
+  Windows, SysUtils, Classes, Graphics, Menus, Forms, Clipbrd, Consts, FMemStr, ImageLib, zlib;
+
+const
+  MaxListSize = Maxint div 16;
+
+type
+  PIntegerArray = ^TIntegerArray;
+  TIntegerArray = array[0..MaxListSize - 1] of Integer;
+  TIntegerSortCompare = function(Item1, Item2: Integer): Integer;
+
+  TIntegerList = class(TPersistent)
+  private
+    FList: PIntegerArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: Integer;
+    function Get(Index: Integer): Integer;
+    procedure Put(Index: Integer; Item: Integer);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    function GetItemString: string;
+    procedure SetItemString(S: string);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: Integer): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TIntegerList;
+    function First: Integer;
+    function IndexOf(Item: Integer): Integer;
+    procedure Insert(Index: Integer; Item: Integer);
+    function Last: Integer;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: Integer): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TIntegerSortCompare);
+    function Compare(List: TIntegerList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    function RandomChanceItem(Bonus: Integer): Integer;
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: Integer read FDefault write FDefault;
+    property Items[Index: Integer]: Integer read Get write Put; default;
+    property ItemString: string read GetItemString write SetItemString;
+    property List: PIntegerArray read FList;
+  end;
+
+  PByteArray = ^TByteArray;
+  TByteArray = array[0..MaxListSize - 1] of Byte;
+  TByteSortCompare = function(Item1, Item2: Byte): Integer;
+
+  TByteList = class(TPersistent)
+  private
+    FList: PByteArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: Byte;
+    function Get(Index: Integer): Byte;
+    procedure Put(Index: Integer; Item: Byte);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    function GetItemString: string;
+    procedure SetItemString(S: string);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: Byte): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TByteList;
+    function First: Byte;
+    function IndexOf(Item: Byte): Integer;
+    procedure Insert(Index: Integer; Item: Byte);
+    function Last: Byte;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: Byte): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TByteSortCompare);
+    function Compare(List: TByteList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    function RandomChanceItem(Bonus: Integer): Integer;
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: Byte read FDefault write FDefault;
+    property Items[Index: Integer]: Byte read Get write Put; default;
+    property ItemString: string read GetItemString write SetItemString;
+    property List: PByteArray read FList;
+  end;
+
+  PShortIntArray = ^TShortIntArray;
+  TShortIntArray = array[0..MaxListSize - 1] of ShortInt;
+  TShortIntSortCompare = function(Item1, Item2: ShortInt): Integer;
+
+  TShortIntList = class(TPersistent)
+  private
+    FList: PShortIntArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: ShortInt;
+    function Get(Index: Integer): ShortInt;
+    procedure Put(Index: Integer; Item: ShortInt);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: ShortInt): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TShortIntList;
+    function First: ShortInt;
+    function IndexOf(Item: ShortInt): Integer;
+    procedure Insert(Index: Integer; Item: ShortInt);
+    function Last: ShortInt;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: ShortInt): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TShortIntSortCompare);
+    function Compare(List: TShortIntList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    function RandomChanceItem(Bonus: Integer): Integer;
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: ShortInt read FDefault write FDefault;
+    property Items[Index: Integer]: ShortInt read Get write Put; default;
+    property List: PShortIntArray read FList;
+  end;
+
+  PWordArray = ^TWordArray;
+  TWordArray = array[0..MaxListSize - 1] of Word;
+  TWordSortCompare = function(Item1, Item2: Word): Integer;
+
+  TWordList = class(TPersistent)
+  private
+    FList: PWordArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: Word;
+    function Get(Index: Integer): Word;
+    procedure Put(Index: Integer; Item: Word);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: Word): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TWordList;
+    function First: Word;
+    function IndexOf(Item: Word): Integer;
+    procedure Insert(Index: Integer; Item: Word);
+    function Last: Word;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: Word): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TWordSortCompare);
+    function Compare(List: TWordList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    function RandomChanceItem(Bonus: Integer): Integer;
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: Word read FDefault write FDefault;
+    property Items[Index: Integer]: Word read Get write Put; default;
+    property List: PWordArray read FList;
+  end;
+
+  TBitList = class(TPersistent)
+  private
+    FList: Pointer;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: Boolean;
+    function Get(Index: Integer): Boolean;
+    procedure Put(Index: Integer; Item: Boolean);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    function GetItemString: string;
+    procedure SetItemString(S: string);
+    function GetBitsSet: Integer;
+    function GetBitsCleared: Integer;
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: Boolean): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TBitList;
+    function First: Boolean;
+    function IndexOf(Item: Boolean): Integer;
+    procedure Insert(Index: Integer; Item: Boolean);
+    function Last: Boolean;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: Boolean): Integer;
+    procedure Pack;
+    function Compare(List: TBitList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: Boolean read FDefault write FDefault;
+    property Items[Index: Integer]: Boolean read Get write Put; default;
+    property ItemString: string read GetItemString write SetItemString;
+    property BitsSet: Integer read GetBitsSet;
+    property BitsCleared: Integer read GetBitsCleared;
+  end;
+
+  PNotifyEventArray = ^TNotifyEventArray;
+  TNotifyEventArray = array[0..MaxListSize div 2 - 1] of TNotifyEvent;
+
+  TEventList = class(TPersistent)
+  private
+    FList: PNotifyEventArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: TNotifyEvent;
+    function Get(Index: Integer): TNotifyEvent;
+    procedure Put(Index: Integer; Item: TNotifyEvent);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(Item: TNotifyEvent): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TEventList;
+    function First: TNotifyEvent;
+    function IndexOf(Item: TNotifyEvent): Integer;
+    procedure Insert(Index: Integer; Item: TNotifyEvent);
+    function Last: TNotifyEvent;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(Item: TNotifyEvent): Integer;
+    procedure Pack;
+    function Compare(List: TEventList): Boolean;
+    procedure TriggerNotifyEvents(Sender: TObject);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: TNotifyEvent read FDefault write FDefault;
+    property Items[Index: Integer]: TNotifyEvent read Get write Put; default;
+    property List: PNotifyEventArray read FList;
+  end;
+
+  TDoubleItem = record
+    A: Integer;
+    B: Integer;
+  end;
+  PDoubleItemArray = ^TDoubleItemArray;
+  TDoubleItemArray = array[0..MaxListSize div 2 - 1] of TDoubleItem;
+  TDoubleItemSortCompare = function(const Item1, Item2: TDoubleItem): Integer;
+
+  TDoubleItemList = class(TPersistent)
+  private
+    FList: PDoubleItemArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: TDoubleItem;
+    function Get(Index: Integer): TDoubleItem;
+    procedure Put(Index: Integer; Item: TDoubleItem);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(const Item: TDoubleItem): Integer;
+    function AddAB(A, B: Integer): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TDoubleItemList;
+    function First: TDoubleItem;
+    function IndexOf(const Item: TDoubleItem): Integer;
+    function IndexOfItemA(A: Integer): Integer;
+    function IndexOfItemB(B: Integer): Integer;
+    procedure Insert(Index: Integer; const Item: TDoubleItem);
+    function Last: TDoubleItem;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(const Item: TDoubleItem): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TDoubleItemSortCompare);
+    procedure SortAscendingItemA;
+    procedure SortAscendingItemB;
+    procedure SortDescendingItemA;
+    procedure SortDescendingItemB;
+    function Compare(List: TDoubleItemList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    function RandomChanceItemA(Bonus: Integer): Integer;
+    function RandomChanceItemB(Bonus: Integer): Integer;
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: TDoubleItem read FDefault write FDefault;
+    property Items[Index: Integer]: TDoubleItem read Get write Put; default;
+    property List: PDoubleItemArray read FList;
+  end;
+
+  TQuadInteger = record
+    A: Integer;
+    B: Integer;
+    C: Integer;
+    D: Integer;
+  end;
+  TQuadItem = TQuadInteger;
+  PQuadItemArray = ^TQuadItemArray;
+  TQuadItemArray = array[0..MaxListSize div 4 - 1] of TQuadItem;
+  TQuadItemSortCompare = function(const Item1, Item2: TQuadItem): Integer;
+
+  TQuadItemList = class(TPersistent)
+  private
+    FList: PQuadItemArray;
+    FCount: Integer;
+    FCapacity: Integer;
+    FDefault: TQuadItem;
+    function Get(Index: Integer): TQuadItem;
+    procedure Put(Index: Integer; Item: TQuadItem);
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+  protected
+    procedure Grow; virtual;
+    class procedure Error(const Msg: string; Data: Integer); virtual;
+  public
+    destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
+    function Add(const Item: TQuadItem): Integer;
+    function AddABCD(A, B, C, D: Integer): Integer;
+    procedure Clear;
+    procedure Delete(Index: Integer);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TQuadItemList;
+    function First: TQuadItem;
+    function IndexOf(const Item: TQuadItem): Integer;
+    function IndexOfItemA(A: Integer): Integer;
+    function IndexOfItemB(B: Integer): Integer;
+    function IndexOfItemC(C: Integer): Integer;
+    function IndexOfItemD(D: Integer): Integer;
+    procedure Insert(Index: Integer; const Item: TQuadItem);
+    function Last: TQuadItem;
+    procedure Move(CurIndex, NewIndex: Integer);
+    function Remove(const Item: TQuadItem): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TQuadItemSortCompare);
+    procedure SortAscendingItemA;
+    procedure SortAscendingItemB;
+    procedure SortAscendingItemC;
+    procedure SortAscendingItemD;
+    procedure SortDescendingItemA;
+    procedure SortDescendingItemB;
+    procedure SortDescendingItemC;
+    procedure SortDescendingItemD;
+    function Compare(List: TQuadItemList): Boolean;
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Default: TQuadItem read FDefault write FDefault;
+    property Items[Index: Integer]: TQuadItem read Get write Put; default;
+    property List: PQuadItemArray read FList;
+  end;
+
+procedure FillInteger(var Buf; Count, Value: Integer);
+procedure FillWord(var Buf; Count: Integer; Value: Word);
+procedure FillLargeInteger(var Buf; Count: Integer; Value: TLargeInteger);
+procedure FillQuadInteger(var Buf; Count: Integer; const Value: TQuadItem);
 
 type
   PByte = ^Byte;
   PInteger = ^Integer;
 
-  { TEStorageStream.StorageMode: smRead/smWrite the binary streams, smPartial the preview streams,
-    smText the text streams and the translate stream, smTranslate the translate stream,
-    smSetupCompare/smCompare the compare streams }
-  TStorageMode = (smRead, smWrite, smText, smPartial, smTranslate, smSetupCompare, smCompare);
-  TStorageModes = set of TStorageMode;
-
   { TEObject.GetControlStyle }
-  TEControlStyle = (csStored, csShared, csReserved2, csKeepIndex);
-  TEControlStyles = set of TEControlStyle;
+  TEControlStyle = set of (csSaveLoad, csFixedChild, csVerifyFixedChildren, csArrayMode);
+  TEControlStyles = TEControlStyle;
 
   PPropertyItem = ^TPropertyItem;
   TPropertyItem = record
@@ -95,7 +483,7 @@ type
   end;
 
 
-  TStorageErrorEvent = procedure(Sender: TObject; const Msg: string; var Continue: Boolean) of object;
+  TStorageStreamError = procedure(Sender: TEStorageStream; const Msg: string; var Continue: Boolean) of object;
   TProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
 
   EDoublePrioriyID = class(Exception);
@@ -106,12 +494,14 @@ type
 
   { Engine.TCompressStream (instance size 20): a TMemoryStream whose SaveToStream writes the
     "CFS" header, the compression level and the zlib-compressed bytes }
+  TCompressLevel = (cpNone, cpFastest, cpDefault, cpMax);
+
   TCompressStream = class(TMemoryStream)
   public
     procedure LoadFromStream(Stream: TStream);
-    function SaveToStreamEx(Stream: TStream; Level: Byte): Integer;
+    function SaveToStreamEx(Stream: TStream; Level: TCompressLevel): Integer;
     procedure SaveToStream(Stream: TStream);
-    function SaveToFileEx(const FileName: string; Level: Byte): Integer;
+    function SaveToFileEx(const FileName: string; Level: TCompressLevel): Integer;
     procedure SaveToFile(const FileName: string);
     procedure LoadFromFile(const FileName: string);
   end;
@@ -322,6 +712,9 @@ type
   end;
 
   { TEObjectEditor.Edit reports the end of an edit (Cancel) to the caller, for example a resource grid }
+  TEditResult = (erOK, erCancel);
+  TEditMode = set of (emEdit, emCut, emCopy, emPaste, emDelete);
+
   TEditDoneEvent = procedure(Cancel: Boolean; Obj: TEResource) of object;
 
   { Engine.TEObjectEditor (instance size 8): editors are classes looked up by the class id of the
@@ -379,7 +772,6 @@ type
     procedure Delete(Key: Integer); virtual; abstract;
     function Find(Key: Integer): Pointer; virtual; abstract;
     procedure Clear; virtual; abstract;
-    function GetFreeID: Integer; virtual; abstract;
   end;
 
   { Engine.TIntegerHashTable256 (instance size 1028): 256 lists selected by the low key byte }
@@ -394,16 +786,10 @@ type
     procedure Delete(Key: Integer); override;
     function Find(Key: Integer): Pointer; override;
     procedure DeleteSafe(Item: Pointer; Key: Integer);
-    function GetFreeID: Integer; override;
+    function GetFreeID: Integer; virtual;
   end;
 
   { Engine.TStringHashList (instance size 16): THashList items whose key dword is a string }
-  PStringHashItem = ^TStringHashItem;
-  TStringHashItem = record
-    Key: string;
-    Item: Pointer;
-  end;
-
   TStringHashList = class(THashList)
   public
     procedure Clear; override;
@@ -492,6 +878,7 @@ type
   { Engine.TEObjectEditorList (instance size 16) }
   TEObjectEditorList = class(TEObjectClassList)
   public
+    procedure RegisterClass(AClass: TEObjectEditorClass);
     function FindEditor(AClassID: Integer): TEObjectEditorClass;
   end;
 
@@ -708,8 +1095,9 @@ type
     Text: string;
   end;
 
-  TEngineOption = (eoVerifyClasses);
-  TEngineOptions = set of TEngineOption;
+  TEngineUser = set of (euProgrammer, euDesigner, euUser);
+  TEngineMode = set of (emVerifyEObjects);
+  TEngineOptions = TEngineMode;
 
   TEReadTextStorageStream = class;
   TEWriteTextStorageStream = class;
@@ -778,7 +1166,9 @@ type
     property Options: TEngineOptions read FOptions write FOptions;
   end;
 
-  TStreamProc = procedure(Stream: TStream) of object;
+  TStorageMode = set of (smRead, smWrite, smTextOnly, smPreview, smTranslate, smSetupCompare, smCompare);
+  TStorageModes = TStorageMode;
+
 
   { Engine.TEStorageStream (instance size 36): the base of every storage stream. The rw* methods do
     nothing here; the subclasses read, write, compare or translate. }
@@ -788,7 +1178,7 @@ type
     FStream: TStream;
     FErrorHandled: Boolean;
     FPropertyTable: TPropertyTable;
-    FOnError: TStorageErrorEvent;
+    FOnError: TStorageStreamError;
     FOnProgress: TProgressEvent;
   public
     function StorageMode: TStorageModes; virtual; abstract;
@@ -816,7 +1206,7 @@ type
     property Engine: TEngine read FEngine;
     property Stream: TStream read FStream;
     property PropertyTable: TPropertyTable read FPropertyTable;
-    property OnError: TStorageErrorEvent read FOnError write FOnError;
+    property OnError: TStorageStreamError read FOnError write FOnError;
     property OnProgress: TProgressEvent read FOnProgress write FOnProgress;
   end;
 
@@ -1001,6 +1391,16 @@ type
   { SortStrings: Compare gets two strings with their objects; the linked lists follow the moves }
   TStringCompareFunc = function(const S1, S2: string; O1, O2: TObject): Integer;
 
+const
+  { Compatibility names used by the recovered dependent packages. }
+  csStored = csSaveLoad;
+  csShared = csFixedChild;
+  csReserved2 = csVerifyFixedChildren;
+  csKeepIndex = csArrayMode;
+  eoVerifyClasses = emVerifyEObjects;
+  smText = smTextOnly;
+  smPartial = smPreview;
+
 function ReplaceText(S, Old, New: string): string;
 procedure SortStrings(Strings: TStrings; Compare: TStringCompareFunc);
 procedure SortStringsEx(Strings: TStrings; Compare: TStringCompareFunc; LinkedStrings: array of TStrings);
@@ -1027,19 +1427,13 @@ function GetFileCRC32(const FileName: string): Integer;
 procedure ReleaseCRC32Table;
 function GetEngine(Index: Integer): TEngine;
 function FindEngine(AClassID: Integer): TEngine;
-
-var
-  Engines: TList;
-  PlugIns: TList;
-  CopyEngine: TEngine;
-  Packages: TStringList;
-  ClipboardFormat: Word;
-  EngineLoaded: Boolean;
-
 procedure StringToStream(const S: string; Stream: TStream);
 procedure StringFromStream(var S: string; Stream: TStream);
 procedure StringsToStream(Strings: TStrings; Stream: TStream);
 procedure StringsFromStream(Strings: TStrings; Stream: TStream);
+
+var
+  VerifyEObjectEnabled: Boolean;
 
 resourcestring
   EStreamReadErrorStr = 'Error Reading EObject';
@@ -1047,6 +1441,23 @@ resourcestring
   UserStr = 'User';
 
 implementation
+
+type
+  PStringHashItem = ^TStringHashItem;
+  TStringHashItem = record
+    Key: string;
+    Item: Pointer;
+  end;
+
+
+var
+  Engines: TList;
+  PlugIns: TList;
+  CopyEngine: TEngine;
+  Packages: TStringList;
+  ClipboardFormat: Word;
+  EngineLoaded: Boolean absolute VerifyEObjectEnabled;
+
 
 { strings }
 
@@ -1338,7 +1749,7 @@ begin
   Position := 0;
 end;
 
-function TCompressStream.SaveToStreamEx(Stream: TStream; Level: Byte): Integer;
+function TCompressStream.SaveToStreamEx(Stream: TStream; Level: TCompressLevel): Integer;
 var
   C: TCompressionStream;
   StartSize: Integer;
@@ -1348,7 +1759,7 @@ begin
   StartSize := Stream.Size;
   Stream.Write(CompressMagic, SizeOf(CompressMagic));
   Stream.Write(Level, SizeOf(Level));
-  if Level <> 0 then
+  if Level <> cpNone then
   begin
     C := TCompressionStream.Create(TCompressionLevel(Level), Stream);
     try
@@ -1364,10 +1775,10 @@ end;
 
 procedure TCompressStream.SaveToStream(Stream: TStream);
 begin
-  SaveToStreamEx(Stream, 2);
+  SaveToStreamEx(Stream, cpDefault);
 end;
 
-function TCompressStream.SaveToFileEx(const FileName: string; Level: Byte): Integer;
+function TCompressStream.SaveToFileEx(const FileName: string; Level: TCompressLevel): Integer;
 var
   F: TFileStream;
 begin
@@ -1385,7 +1796,7 @@ var
 begin
   F := TFileStream.Create(FileName, fmCreate);
   try
-    SaveToStreamEx(F, 2);
+    SaveToStreamEx(F, cpDefault);
   finally
     F.Free;
   end;
@@ -2784,6 +3195,2654 @@ end;
 
 { TCallBackEventList }
 
+
+
+procedure FillInteger(var Buf; Count, Value: Integer);
+asm
+        PUSH    EDI
+        MOV     EDI,EAX
+        MOV     EAX,ECX
+        MOV     ECX,EDX
+        REP     STOSD
+        POP     EDI
+end;
+
+procedure FillWord(var Buf; Count: Integer; Value: Word);
+asm
+        PUSH    EDI
+        MOV     EDI,EAX
+        MOV     EAX,ECX
+        MOV     ECX,EDX
+        REP     STOSW
+        POP     EDI
+end;
+
+procedure FillLargeInteger(var Buf; Count: Integer; Value: TLargeInteger);
+asm
+        TEST    EDX,EDX
+        JE      @@Exit
+        PUSH    EDI
+        PUSH    EBX
+        MOV     EDI,EAX
+        MOV     EAX,[ECX]
+        MOV     EBX,[ECX+4]
+@@Loop:
+        MOV     [EDI],EAX
+        MOV     [EDI+4],EBX
+        ADD     EDI,8
+        DEC     EDX
+        JNE     @@Loop
+        POP     EBX
+        POP     EDI
+@@Exit:
+end;
+
+procedure FillQuadInteger(var Buf; Count: Integer; const Value: TQuadItem);
+asm
+        TEST    EDX,EDX
+        JE      @@Exit
+        PUSH    EDI
+        PUSH    EBX
+        PUSH    ESI
+        MOV     EDI,EAX
+        MOV     EAX,[ECX]
+        MOV     EBX,[ECX+4]
+        MOV     ESI,[ECX+12]
+        MOV     ECX,[ECX+8]
+@@Loop:
+        MOV     [EDI],EAX
+        MOV     [EDI+4],EBX
+        MOV     [EDI+8],ECX
+        MOV     [EDI+12],ESI
+        ADD     EDI,16
+        DEC     EDX
+        JNE     @@Loop
+        POP     ESI
+        POP     EBX
+        POP     EDI
+@@Exit:
+end;
+
+{ TIntegerList }
+
+destructor TIntegerList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TIntegerList.Assign(Source: TPersistent);
+begin
+  if Source is TIntegerList then
+    with TIntegerList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(Integer));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TIntegerList.Add(Item: Integer): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+procedure TIntegerList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TIntegerList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(Integer));
+end;
+
+class procedure TIntegerList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TIntegerList.Exchange(Index1, Index2: Integer);
+var
+  Item: Integer;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TIntegerList.Expand: TIntegerList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TIntegerList.First: Integer;
+begin
+  Result := Get(0);
+end;
+
+function TIntegerList.Get(Index: Integer): Integer;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TIntegerList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TIntegerList.IndexOf(Item: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result] <> Item) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TIntegerList.Insert(Index: Integer; Item: Integer);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(Integer));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TIntegerList.Last: Integer;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TIntegerList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: Integer;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TIntegerList.Put(Index: Integer; Item: Integer);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TIntegerList.Remove(Item: Integer): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TIntegerList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TIntegerList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(Integer));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TIntegerList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillInteger(FList^[FCount], NewCount - FCount, FDefault);
+  FCount := NewCount;
+end;
+
+procedure QuickSortInteger(SortList: PIntegerArray; L, R: Integer;
+  SCompare: TIntegerSortCompare);
+var
+  I, J: Integer;
+  P, T: Integer;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortInteger(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TIntegerList.Sort(Compare: TIntegerSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortInteger(FList, 0, Count - 1, Compare);
+end;
+
+function TIntegerList.Compare(List: TIntegerList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(Integer));
+end;
+
+procedure TIntegerList.LoadFromStream(Stream: TStream);
+var
+  Count, Item, Run: Integer;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(Integer));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while Count <> FCount do
+  begin
+    Stream.Read(Item, SizeOf(Integer));
+    if Item = FDefault then
+    begin
+      Stream.Read(Run, SizeOf(Integer));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TIntegerList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and (FList^[J] = FDefault) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(Integer));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      Stream.Write(FDefault, SizeOf(Integer));
+      Stream.Write(Run, SizeOf(Integer));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(Integer));
+      Inc(I);
+    end;
+  end;
+end;
+
+function TIntegerList.GetItemString: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to FCount - 1 do
+    Result := Result + IntToStr(FList^[I]) + ',';
+  if Result <> '' then
+    Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TIntegerList.SetItemString(S: string);
+var
+  Item: string;
+  P, V: Integer;
+begin
+  Clear;
+  P := Pos(',', S);
+  while S <> '' do
+  begin
+    if P <> 0 then
+    begin
+      Item := Copy(S, 1, P - 1);
+      System.Delete(S, 1, P);
+    end
+    else
+    begin
+      Item := S;
+      S := '';
+    end;
+    if Item <> '' then V := StrToInt(Item) else V := 0;
+    Add(V);
+    P := Pos(',', S);
+  end;
+end;
+
+function TIntegerList.RandomChanceItem(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Total := 0;
+    Result := 0;
+    while Total < R do
+    begin
+      Chance := FList^[Result] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+      Inc(Result);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+{ TByteList }
+
+destructor TByteList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TByteList.Assign(Source: TPersistent);
+begin
+  if Source is TByteList then
+    with TByteList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(Byte));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TByteList.Add(Item: Byte): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+procedure TByteList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TByteList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(Byte));
+end;
+
+class procedure TByteList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TByteList.Exchange(Index1, Index2: Integer);
+var
+  Item: Byte;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TByteList.Expand: TByteList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TByteList.First: Byte;
+begin
+  Result := Get(0);
+end;
+
+function TByteList.Get(Index: Integer): Byte;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TByteList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TByteList.IndexOf(Item: Byte): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result] <> Item) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TByteList.Insert(Index: Integer; Item: Byte);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(Byte));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TByteList.Last: Byte;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TByteList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: Byte;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TByteList.Put(Index: Integer; Item: Byte);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TByteList.Remove(Item: Byte): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TByteList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TByteList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(Byte));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TByteList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillChar(FList^[FCount], NewCount - FCount, FDefault);
+  FCount := NewCount;
+end;
+
+procedure QuickSortByte(SortList: PByteArray; L, R: Integer;
+  SCompare: TByteSortCompare);
+var
+  I, J: Integer;
+  P, T: Byte;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortByte(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TByteList.Sort(Compare: TByteSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortByte(FList, 0, Count - 1, Compare);
+end;
+
+function TByteList.Compare(List: TByteList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(Byte));
+end;
+
+procedure TByteList.LoadFromStream(Stream: TStream);
+var
+  Item, Run: Byte;
+  Count: Integer;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(Byte));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while FCount < Count do
+  begin
+    Stream.Read(Item, SizeOf(Byte));
+    if Item = FDefault then
+    begin
+      Stream.Read(Run, SizeOf(Byte));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TByteList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+  B: Byte;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and (FList^[J] = FDefault) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(Byte));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      while Run > High(Byte) do
+      begin
+        B := High(Byte);
+        Stream.Write(FDefault, SizeOf(Byte));
+        Stream.Write(B, SizeOf(Byte));
+        Dec(Run, High(Byte));
+        Inc(I, High(Byte));
+      end;
+      B := Run;
+      Stream.Write(FDefault, SizeOf(Byte));
+      Stream.Write(B, SizeOf(Byte));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(Byte));
+      Inc(I);
+    end;
+  end;
+end;
+
+function TByteList.GetItemString: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to FCount - 1 do
+    Result := Result + IntToStr(FList^[I]) + ',';
+  if Result <> '' then
+    Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TByteList.SetItemString(S: string);
+var
+  Item: string;
+  P, V: Integer;
+begin
+  Clear;
+  P := Pos(',', S);
+  while S <> '' do
+  begin
+    if P <> 0 then
+    begin
+      Item := Copy(S, 1, P - 1);
+      System.Delete(S, 1, P);
+    end
+    else
+    begin
+      Item := S;
+      S := '';
+    end;
+    if Item <> '' then V := StrToInt(Item) else V := 0;
+    if V > High(Byte) then V := 0;
+    Add(V);
+    P := Pos(',', S);
+  end;
+end;
+
+function TByteList.RandomChanceItem(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Total := 0;
+    Result := 0;
+    while Total < R do
+    begin
+      Chance := FList^[Result] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+      Inc(Result);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+{ TShortIntList }
+
+destructor TShortIntList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TShortIntList.Assign(Source: TPersistent);
+begin
+  if Source is TShortIntList then
+    with TShortIntList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(ShortInt));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TShortIntList.Add(Item: ShortInt): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+procedure TShortIntList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TShortIntList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(ShortInt));
+end;
+
+class procedure TShortIntList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TShortIntList.Exchange(Index1, Index2: Integer);
+var
+  Item: ShortInt;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TShortIntList.Expand: TShortIntList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TShortIntList.First: ShortInt;
+begin
+  Result := Get(0);
+end;
+
+function TShortIntList.Get(Index: Integer): ShortInt;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TShortIntList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TShortIntList.IndexOf(Item: ShortInt): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result] <> Item) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TShortIntList.Insert(Index: Integer; Item: ShortInt);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(ShortInt));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TShortIntList.Last: ShortInt;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TShortIntList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: ShortInt;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TShortIntList.Put(Index: Integer; Item: ShortInt);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TShortIntList.Remove(Item: ShortInt): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TShortIntList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TShortIntList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(ShortInt));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TShortIntList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillChar(FList^[FCount], NewCount - FCount, FDefault);
+  FCount := NewCount;
+end;
+
+procedure QuickSortShortInt(SortList: PShortIntArray; L, R: Integer;
+  SCompare: TShortIntSortCompare);
+var
+  I, J: Integer;
+  P, T: ShortInt;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortShortInt(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TShortIntList.Sort(Compare: TShortIntSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortShortInt(FList, 0, Count - 1, Compare);
+end;
+
+function TShortIntList.Compare(List: TShortIntList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(ShortInt));
+end;
+
+procedure TShortIntList.LoadFromStream(Stream: TStream);
+var
+  Run: Byte;
+  Item: ShortInt;
+  Count: Integer;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(ShortInt));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while FCount < Count do
+  begin
+    Stream.Read(Item, SizeOf(ShortInt));
+    if Item = FDefault then
+    begin
+      Stream.Read(Run, SizeOf(Byte));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TShortIntList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+  B: Byte;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and (FList^[J] = FDefault) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(ShortInt));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      while Run > High(Byte) do
+      begin
+        B := High(Byte);
+        Stream.Write(FDefault, SizeOf(ShortInt));
+        Stream.Write(B, SizeOf(Byte));
+        Dec(Run, High(Byte));
+        Inc(I, High(Byte));
+      end;
+      B := Run;
+      Stream.Write(FDefault, SizeOf(ShortInt));
+      Stream.Write(B, SizeOf(Byte));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(ShortInt));
+      Inc(I);
+    end;
+  end;
+end;
+
+function TShortIntList.RandomChanceItem(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Total := 0;
+    Result := 0;
+    while Total < R do
+    begin
+      Chance := FList^[Result] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+      Inc(Result);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+{ TWordList }
+
+destructor TWordList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TWordList.Assign(Source: TPersistent);
+begin
+  if Source is TWordList then
+    with TWordList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(Word));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TWordList.Add(Item: Word): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+procedure TWordList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TWordList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(Word));
+end;
+
+class procedure TWordList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TWordList.Exchange(Index1, Index2: Integer);
+var
+  Item: Word;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TWordList.Expand: TWordList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TWordList.First: Word;
+begin
+  Result := Get(0);
+end;
+
+function TWordList.Get(Index: Integer): Word;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TWordList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TWordList.IndexOf(Item: Word): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result] <> Item) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TWordList.Insert(Index: Integer; Item: Word);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(Word));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TWordList.Last: Word;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TWordList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: Word;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TWordList.Put(Index: Integer; Item: Word);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TWordList.Remove(Item: Word): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TWordList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TWordList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(Word));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TWordList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillWord(FList^[FCount], NewCount - FCount, FDefault);
+  FCount := NewCount;
+end;
+
+procedure QuickSortWord(SortList: PWordArray; L, R: Integer;
+  SCompare: TWordSortCompare);
+var
+  I, J: Integer;
+  P, T: Word;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortWord(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TWordList.Sort(Compare: TWordSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortWord(FList, 0, Count - 1, Compare);
+end;
+
+function TWordList.Compare(List: TWordList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(Word));
+end;
+
+procedure TWordList.LoadFromStream(Stream: TStream);
+var
+  Item, Run: Word;
+  Count: Integer;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(Word));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while FCount < Count do
+  begin
+    Stream.Read(Item, SizeOf(Word));
+    if Item = FDefault then
+    begin
+      Stream.Read(Run, SizeOf(Word));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TWordList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+  B: Word;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and (FList^[J] = FDefault) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(Word));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      while Run > High(Word) do
+      begin
+        B := High(Word);
+        Stream.Write(FDefault, SizeOf(Word));
+        Stream.Write(B, SizeOf(Word));
+        Dec(Run, High(Byte));  { sic: the original subtracts $FF here but advances I by $FFFF }
+        Inc(I, High(Word));
+      end;
+      B := Run;
+      Stream.Write(FDefault, SizeOf(Word));
+      Stream.Write(B, SizeOf(Word));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(Word));
+      Inc(I);
+    end;
+  end;
+end;
+
+function TWordList.RandomChanceItem(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Total := 0;
+    Result := 0;
+    while Total < R do
+    begin
+      Chance := FList^[Result] + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+      Inc(Result);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+{ TBitList }
+
+destructor TBitList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TBitList.Assign(Source: TPersistent);
+begin
+  if Source is TBitList then
+    with TBitList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, ((Self.FCount + 31) shr 5) * SizeOf(Integer));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TBitList.Add(Item: Boolean): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  Put(FCount, Item);
+end;
+
+procedure TBitList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TBitList.Delete(Index: Integer);
+var
+  I: Integer;
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    for I := Index to FCount - 1 do Put(I, Get(I + 1));
+end;
+
+class procedure TBitList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TBitList.Exchange(Index1, Index2: Integer);
+var
+  Item: Boolean;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := Get(Index1);
+  Put(Index1, Get(Index2));
+  Put(Index2, Item);
+end;
+
+function TBitList.Expand: TBitList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TBitList.First: Boolean;
+begin
+  Result := Get(0);
+end;
+
+function TBitList.Get(Index: Integer): Boolean; assembler;
+asm
+        CMP     Index,[EAX].FCount
+        JAE     @@Default
+        MOV     EAX,[EAX].FList
+        BT      [EAX],Index
+        SBB     EAX,EAX
+        AND     EAX,1
+        RET
+@@Default:
+        MOV     AL,[EAX].FDefault
+        AND     EAX,1
+end;
+
+procedure TBitList.Put(Index: Integer; Item: Boolean); assembler;
+asm
+        CMP     Index,[EAX].FCount
+        JAE     @@Count
+@@1:    MOV     EAX,[EAX].FList
+        OR      Item,Item
+        JZ      @@2
+        BTS     [EAX],Index
+        RET
+@@2:    BTR     [EAX],Index
+        RET
+@@Count:
+        PUSH    Self
+        PUSH    Index
+        PUSH    ECX {Item}
+        INC     Index
+        CALL    TBitList.SetCount
+        POP     ECX {Item}
+        POP     Index
+        POP     Self
+        JMP     @@1
+end;
+
+procedure TBitList.Grow;
+begin
+  SetCapacity(FCapacity + 32);
+end;
+
+function TBitList.IndexOf(Item: Boolean): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (Item <> Get(Result)) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TBitList.Insert(Index: Integer; Item: Boolean);
+var
+  I: Integer;
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+  begin
+    Inc(FCount);
+    { sic: the original copies the same bit FCount - Index - 1 times instead of moving the tail }
+    for I := FCount - 2 downto Index do Put(Index + 1, Get(Index));
+  end
+  else
+    Inc(FCount);
+  Put(Index, Item);
+end;
+
+function TBitList.Last: Boolean;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TBitList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: Boolean;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+function TBitList.Remove(Item: Boolean): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TBitList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do if Items[I] = FDefault then Delete(I);
+end;
+
+procedure TBitList.SetCapacity(NewCapacity: Integer);
+var
+  I: Integer;
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  NewCapacity := (NewCapacity + 31) and not 31;
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity shr 3);
+    FCapacity := NewCapacity;
+    for I := FCount to NewCapacity - 1 do Put(I, FDefault);
+  end;
+end;
+
+procedure TBitList.SetCount(NewCount: Integer);
+var
+  I, OldCount: Integer;
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+  begin
+    OldCount := FCount;
+    FCount := NewCount;
+    for I := OldCount to FCount - 1 do Put(I, FDefault);
+  end
+  else
+    FCount := NewCount;
+end;
+
+function TBitList.Compare(List: TBitList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, (FCount + 7) shr 3);
+end;
+
+procedure TBitList.LoadFromStream(Stream: TStream);
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(Boolean));
+  Stream.Read(FCount, SizeOf(Integer));
+  SetCapacity(FCount);
+  Stream.Read(FList^, (FCount + 7) shr 3);
+end;
+
+procedure TBitList.SaveToStream(Stream: TStream);
+begin
+  Stream.Write(FDefault, SizeOf(Boolean));
+  Stream.Write(FCount, SizeOf(Integer));
+  Stream.Write(FList^, (FCount + 7) shr 3);
+end;
+
+function TBitList.GetItemString: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to FCount - 1 do
+    if Get(I) <> FDefault then
+      Result := Result + IntToStr(I) + ',';
+  if Result <> '' then
+    Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TBitList.SetItemString(S: string);
+var
+  Item: string;
+  P: Integer;
+begin
+  Clear;
+  P := Pos(',', S);
+  while S <> '' do
+  begin
+    if P <> 0 then
+    begin
+      Item := Copy(S, 1, P - 1);
+      System.Delete(S, 1, P);
+    end
+    else
+    begin
+      Item := S;
+      S := '';
+    end;
+    if Item <> '' then Put(StrToInt(Item), not FDefault);
+    P := Pos(',', S);
+  end;
+end;
+
+function TBitList.GetBitsSet: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FCount - 1 do
+    if Get(I) then Inc(Result);
+end;
+
+function TBitList.GetBitsCleared: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FCount - 1 do
+    if not Get(I) then Inc(Result);
+end;
+
+{ TEventList }
+
+destructor TEventList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TEventList.Assign(Source: TPersistent);
+begin
+  if Source is TEventList then
+    with TEventList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(TNotifyEvent));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TEventList.Add(Item: TNotifyEvent): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+procedure TEventList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TEventList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(TNotifyEvent));
+end;
+
+class procedure TEventList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TEventList.Exchange(Index1, Index2: Integer);
+var
+  Item: TNotifyEvent;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TEventList.Expand: TEventList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TEventList.First: TNotifyEvent;
+begin
+  Result := Get(0);
+end;
+
+function TEventList.Get(Index: Integer): TNotifyEvent;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TEventList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TEventList.IndexOf(Item: TNotifyEvent): Integer;
+var
+  M: TMethod;
+begin
+  Result := 0;
+  M := TMethod(Item);
+  while (Result < FCount) and ((TMethod(FList^[Result]).Data <> M.Data) or
+    (TMethod(FList^[Result]).Code <> M.Code)) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TEventList.Insert(Index: Integer; Item: TNotifyEvent);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(TNotifyEvent));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TEventList.Last: TNotifyEvent;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TEventList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: TNotifyEvent;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TEventList.Put(Index: Integer; Item: TNotifyEvent);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TEventList.Remove(Item: TNotifyEvent): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TEventList.Pack;
+var
+  I: Integer;
+  M: TMethod;
+begin
+  M := TMethod(FDefault);
+  { sic: the original deletes an item only when both halves differ from the default }
+  for I := FCount - 1 downto 0 do
+    if (TMethod(FList^[I]).Data <> M.Data) and (TMethod(FList^[I]).Code <> M.Code) then Delete(I);
+end;
+
+procedure TEventList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(TNotifyEvent));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TEventList.SetCount(NewCount: Integer);
+var
+  I, OldCount: Integer;
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+  begin
+    OldCount := FCount;
+    FCount := NewCount;
+    for I := OldCount to FCount - 1 do Put(I, FDefault);
+  end
+  else
+    FCount := NewCount;
+end;
+
+function TEventList.Compare(List: TEventList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(TNotifyEvent));
+end;
+
+procedure TEventList.TriggerNotifyEvents(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do
+    if Assigned(FList^[I]) then FList^[I](Sender);
+end;
+
+{ TDoubleItemList }
+
+destructor TDoubleItemList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TDoubleItemList.Assign(Source: TPersistent);
+begin
+  if Source is TDoubleItemList then
+    with TDoubleItemList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(TDoubleItem));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TDoubleItemList.Add(const Item: TDoubleItem): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+function TDoubleItemList.AddAB(A, B: Integer): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result].A := A;
+  FList^[Result].B := B;
+  Inc(FCount);
+end;
+
+procedure TDoubleItemList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TDoubleItemList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(TDoubleItem));
+end;
+
+class procedure TDoubleItemList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TDoubleItemList.Exchange(Index1, Index2: Integer);
+var
+  Item: TDoubleItem;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TDoubleItemList.Expand: TDoubleItemList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TDoubleItemList.First: TDoubleItem;
+begin
+  Result := Get(0);
+end;
+
+function TDoubleItemList.Get(Index: Integer): TDoubleItem;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TDoubleItemList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TDoubleItemList.IndexOf(const Item: TDoubleItem): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (Comp(FList^[Result]) <> Comp(Item)) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TDoubleItemList.IndexOfItemA(A: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].A <> A) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TDoubleItemList.IndexOfItemB(B: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].B <> B) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TDoubleItemList.Insert(Index: Integer; const Item: TDoubleItem);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(TDoubleItem));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TDoubleItemList.Last: TDoubleItem;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TDoubleItemList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: TDoubleItem;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TDoubleItemList.Put(Index: Integer; Item: TDoubleItem);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TDoubleItemList.Remove(const Item: TDoubleItem): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TDoubleItemList.Pack;
+var
+  I: Integer;
+  Item: TDoubleItem;
+begin
+  for I := FCount - 1 downto 0 do
+  begin
+    Item := Items[I];
+    if Comp(Item) = Comp(FDefault) then Delete(I);
+  end;
+end;
+
+procedure TDoubleItemList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(TDoubleItem));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TDoubleItemList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillLargeInteger(FList^[FCount], NewCount - FCount, TLargeInteger(FDefault));
+  FCount := NewCount;
+end;
+
+procedure QuickSortDoubleItem(SortList: PDoubleItemArray; L, R: Integer;
+  SCompare: TDoubleItemSortCompare);
+var
+  I, J: Integer;
+  P, T: TDoubleItem;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortDoubleItem(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TDoubleItemList.Sort(Compare: TDoubleItemSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortDoubleItem(FList, 0, Count - 1, Compare);
+end;
+
+function CompareDoubleItemAAscending(const Item1, Item2: TDoubleItem): Integer;
+begin
+  Result := Item1.A - Item2.A;
+end;
+
+function CompareDoubleItemBAscending(const Item1, Item2: TDoubleItem): Integer;
+begin
+  Result := Item1.B - Item2.B;
+end;
+
+function CompareDoubleItemADescending(const Item1, Item2: TDoubleItem): Integer;
+begin
+  Result := Item2.A - Item1.A;
+end;
+
+function CompareDoubleItemBDescending(const Item1, Item2: TDoubleItem): Integer;
+begin
+  Result := Item2.B - Item1.B;
+end;
+
+procedure TDoubleItemList.SortAscendingItemA;
+begin
+  Sort(CompareDoubleItemAAscending);
+end;
+
+procedure TDoubleItemList.SortAscendingItemB;
+begin
+  Sort(CompareDoubleItemBAscending);
+end;
+
+procedure TDoubleItemList.SortDescendingItemA;
+begin
+  Sort(CompareDoubleItemADescending);
+end;
+
+procedure TDoubleItemList.SortDescendingItemB;
+begin
+  Sort(CompareDoubleItemBDescending);
+end;
+
+function TDoubleItemList.Compare(List: TDoubleItemList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(TDoubleItem));
+end;
+
+procedure TDoubleItemList.LoadFromStream(Stream: TStream);
+var
+  Item: TDoubleItem;
+  Run, Count: Integer;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(TDoubleItem));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while FCount < Count do
+  begin
+    Stream.Read(Item, SizeOf(TDoubleItem));
+    if Comp(Item) = Comp(FDefault) then
+    begin
+      Stream.Read(Run, SizeOf(Integer));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TDoubleItemList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and (Comp(FList^[J]) = Comp(FDefault)) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(TDoubleItem));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      Stream.Write(FDefault, SizeOf(TDoubleItem));
+      Stream.Write(Run, SizeOf(Integer));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(TDoubleItem));
+      Inc(I);
+    end;
+  end;
+end;
+
+function TDoubleItemList.RandomChanceItemA(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I].A + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Total := 0;
+    Result := 0;
+    while Total < R do
+    begin
+      Chance := FList^[Result].A + Bonus;
+      if Chance < 0 then Chance := 0;
+      Inc(Total, Chance);
+      Inc(Result);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+function TDoubleItemList.RandomChanceItemB(Bonus: Integer): Integer;
+var
+  I, Total, Chance, R: Integer;
+begin
+  if FCount <> 0 then
+  begin
+    Total := 0;
+    for I := FCount - 1 downto 0 do
+    begin
+      Chance := FList^[I].B + Bonus;
+      if Chance > 0 then Inc(Total, Chance);
+    end;
+    R := Random(Total);
+    Result := 0;
+    Total := 0;
+    Chance := FList^[0].B + Bonus;
+    if Chance > 0 then Inc(Total, Chance);
+    while Total <= R do
+    begin
+      Inc(Result);
+      Chance := FList^[Result].B + Bonus;
+      if Chance > 0 then Inc(Total, Chance);
+    end;
+  end
+  else
+    Result := -1;
+end;
+
+{ TQuadItemList }
+
+destructor TQuadItemList.Destroy;
+begin
+  Clear;
+end;
+
+procedure TQuadItemList.Assign(Source: TPersistent);
+begin
+  if Source is TQuadItemList then
+    with TQuadItemList(Source) do
+    begin
+      Self.FCount := FCount;
+      Self.SetCapacity(FCount);
+      System.Move(FList^, Self.FList^, Self.FCount * SizeOf(TQuadItem));
+      Self.FDefault := FDefault;
+    end
+  else
+    inherited Assign(Source);
+end;
+
+function TQuadItemList.Add(const Item: TQuadItem): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result] := Item;
+  Inc(FCount);
+end;
+
+function TQuadItemList.AddABCD(A, B, C, D: Integer): Integer;
+begin
+  Result := FCount;
+  if Result = FCapacity then Grow;
+  FList^[Result].A := A;
+  FList^[Result].B := B;
+  FList^[Result].C := C;
+  FList^[Result].D := D;
+  Inc(FCount);
+end;
+
+procedure TQuadItemList.Clear;
+begin
+  SetCount(0);
+  SetCapacity(0);
+end;
+
+procedure TQuadItemList.Delete(Index: Integer);
+begin
+  if (Index < 0) or (Index >= FCount) then Error(SListIndexError, Index);
+  Dec(FCount);
+  if Index < FCount then
+    System.Move(FList^[Index + 1], FList^[Index],
+      (FCount - Index) * SizeOf(TQuadItem));
+end;
+
+class procedure TQuadItemList.Error(const Msg: string; Data: Integer);
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
+begin
+  raise EListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+end;
+
+procedure TQuadItemList.Exchange(Index1, Index2: Integer);
+var
+  Item: TQuadItem;
+begin
+  if (Index1 < 0) or (Index1 >= FCount) then Error(SListIndexError, Index1);
+  if (Index2 < 0) or (Index2 >= FCount) then Error(SListIndexError, Index2);
+  Item := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Item;
+end;
+
+function TQuadItemList.Expand: TQuadItemList;
+begin
+  if FCount = FCapacity then Grow;
+  Result := Self;
+end;
+
+function TQuadItemList.First: TQuadItem;
+begin
+  Result := Get(0);
+end;
+
+function TQuadItemList.Get(Index: Integer): TQuadItem;
+begin
+  if (Index < 0) or (Index >= FCount) then
+    Result := FDefault
+  else
+    Result := FList^[Index];
+end;
+
+procedure TQuadItemList.Grow;
+var
+  Delta: Integer;
+begin
+  if FCapacity > 64 then Delta := FCapacity div 4 else
+    if FCapacity > 8 then Delta := 16 else
+      Delta := 4;
+  SetCapacity(FCapacity + Delta);
+end;
+
+function TQuadItemList.IndexOf(const Item: TQuadItem): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and ((FList^[Result].A <> Item.A) or (FList^[Result].B <> Item.B) or
+    (FList^[Result].C <> Item.C) or (FList^[Result].D <> Item.D)) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TQuadItemList.IndexOfItemA(A: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].A <> A) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TQuadItemList.IndexOfItemB(B: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].B <> B) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TQuadItemList.IndexOfItemC(C: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].C <> C) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+function TQuadItemList.IndexOfItemD(D: Integer): Integer;
+begin
+  Result := 0;
+  while (Result < FCount) and (FList^[Result].D <> D) do Inc(Result);
+  if Result = FCount then Result := -1;
+end;
+
+procedure TQuadItemList.Insert(Index: Integer; const Item: TQuadItem);
+begin
+  if (Index < 0) or (Index > FCount) then Error(SListIndexError, Index);
+  if FCount = FCapacity then Grow;
+  if Index < FCount then
+    System.Move(FList^[Index], FList^[Index + 1],
+      (FCount - Index) * SizeOf(TQuadItem));
+  FList^[Index] := Item;
+  Inc(FCount);
+end;
+
+function TQuadItemList.Last: TQuadItem;
+begin
+  Result := Get(FCount - 1);
+end;
+
+procedure TQuadItemList.Move(CurIndex, NewIndex: Integer);
+var
+  Item: TQuadItem;
+begin
+  if CurIndex <> NewIndex then
+  begin
+    if (NewIndex < 0) or (NewIndex >= FCount) then Error(SListIndexError, NewIndex);
+    Item := Get(CurIndex);
+    Delete(CurIndex);
+    Insert(NewIndex, Item);
+  end;
+end;
+
+procedure TQuadItemList.Put(Index: Integer; Item: TQuadItem);
+begin
+  if Index < 0 then Error(SListIndexError, Index);
+  if Index >= FCount then SetCount(Index + 1);
+  FList^[Index] := Item;
+end;
+
+function TQuadItemList.Remove(const Item: TQuadItem): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result <> -1 then Delete(Result);
+end;
+
+procedure TQuadItemList.Pack;
+var
+  I: Integer;
+begin
+  for I := FCount - 1 downto 0 do
+    if (FList^[I].A = FDefault.A) and (FList^[I].B = FDefault.B) and
+      (FList^[I].C = FDefault.C) and (FList^[I].D = FDefault.D) then Delete(I);
+end;
+
+procedure TQuadItemList.SetCapacity(NewCapacity: Integer);
+begin
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
+  if NewCapacity <> FCapacity then
+  begin
+    ReallocMem(FList, NewCapacity * SizeOf(TQuadItem));
+    FCapacity := NewCapacity;
+  end;
+end;
+
+procedure TQuadItemList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize) then
+    Error(SListCountError, NewCount);
+  if NewCount > FCapacity then SetCapacity(NewCount);
+  if NewCount > FCount then
+    FillQuadInteger(FList^[FCount], NewCount - FCount, FDefault);
+  FCount := NewCount;
+end;
+
+procedure QuickSortQuadItem(SortList: PQuadItemArray; L, R: Integer;
+  SCompare: TQuadItemSortCompare);
+var
+  I, J: Integer;
+  P, T: TQuadItem;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := SortList^[(L + R) shr 1];
+    repeat
+      while SCompare(SortList^[I], P) < 0 do Inc(I);
+      while SCompare(SortList^[J], P) > 0 do Dec(J);
+      if I <= J then
+      begin
+        T := SortList^[I];
+        SortList^[I] := SortList^[J];
+        SortList^[J] := T;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then QuickSortQuadItem(SortList, L, J, SCompare);
+    L := I;
+  until I >= R;
+end;
+
+procedure TQuadItemList.Sort(Compare: TQuadItemSortCompare);
+begin
+  if (FList <> nil) and (Count > 0) then
+    QuickSortQuadItem(FList, 0, Count - 1, Compare);
+end;
+
+function CompareQuadItemAAscending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item1.A - Item2.A;
+end;
+
+function CompareQuadItemBAscending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item1.B - Item2.B;
+end;
+
+function CompareQuadItemCAscending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item1.C - Item2.C;
+end;
+
+function CompareQuadItemDAscending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item1.D - Item2.D;
+end;
+
+function CompareQuadItemADescending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.A - Item1.A;
+end;
+
+function CompareQuadItemBDescending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.B - Item1.B;
+end;
+
+function CompareQuadItemCDescending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.C - Item1.C;
+end;
+
+function CompareQuadItemDDescending(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.D - Item1.D;
+end;
+
+procedure TQuadItemList.SortAscendingItemA;
+begin
+  Sort(CompareQuadItemAAscending);
+end;
+
+procedure TQuadItemList.SortAscendingItemB;
+begin
+  Sort(CompareQuadItemBAscending);
+end;
+
+procedure TQuadItemList.SortAscendingItemC;
+begin
+  Sort(CompareQuadItemCAscending);
+end;
+
+procedure TQuadItemList.SortAscendingItemD;
+begin
+  Sort(CompareQuadItemDAscending);
+end;
+
+procedure TQuadItemList.SortDescendingItemA;
+begin
+  Sort(CompareQuadItemADescending);
+end;
+
+procedure TQuadItemList.SortDescendingItemB;
+begin
+  Sort(CompareQuadItemBDescending);
+end;
+
+procedure TQuadItemList.SortDescendingItemC;
+begin
+  Sort(CompareQuadItemCDescending);
+end;
+
+procedure TQuadItemList.SortDescendingItemD;
+begin
+  Sort(CompareQuadItemDDescending);
+end;
+
+function TQuadItemList.Compare(List: TQuadItemList): Boolean;
+begin
+  Result := List.FCount = FCount;
+  if Result then
+    Result := CompareMem(FList, List.FList, FCount * SizeOf(TQuadItem));
+end;
+
+procedure TQuadItemList.LoadFromStream(Stream: TStream);
+var
+  Run, Count: Integer;
+  Item: TQuadItem;
+begin
+  Clear;
+  Stream.Read(FDefault, SizeOf(TQuadItem));
+  Stream.Read(Count, SizeOf(Integer));
+  SetCapacity(Count);
+  while FCount < Count do
+  begin
+    Stream.Read(Item, SizeOf(TQuadItem));
+    if (Item.A = FDefault.A) and (Item.B = FDefault.B) and (Item.C = FDefault.C) and
+      (Item.D = FDefault.D) then
+    begin
+      Stream.Read(Run, SizeOf(Integer));
+      SetCount(FCount + Run);
+    end
+    else
+      Add(Item);
+  end;
+end;
+
+procedure TQuadItemList.SaveToStream(Stream: TStream);
+var
+  I, Run: Integer;
+
+  function DefaultRun: Integer;
+  var
+    J: Integer;
+  begin
+    Result := 0;
+    J := I;
+    while (J < FCount) and ((FList^[J].A = FDefault.A) and (FList^[J].B = FDefault.B) and
+      (FList^[J].C = FDefault.C) and (FList^[J].D = FDefault.D)) do
+    begin
+      Inc(Result);
+      Inc(J);
+    end;
+  end;
+
+begin
+  I := 0;
+  Stream.Write(FDefault, SizeOf(TQuadItem));
+  Stream.Write(FCount, SizeOf(Integer));
+  while FCount <> I do
+  begin
+    Run := DefaultRun;
+    if Run > 0 then
+    begin
+      Stream.Write(FDefault, SizeOf(TQuadItem));
+      Stream.Write(Run, SizeOf(Integer));
+      Inc(I, Run);
+    end
+    else
+    begin
+      Stream.Write(FList^[I], SizeOf(TQuadItem));
+      Inc(I);
+    end;
+  end;
+end;
+
 constructor TCallBackEventList.Create;
 begin
   inherited Create;
@@ -2830,6 +5889,1222 @@ begin
   end;
 end;
 
+{ Original source line layout for the HashTab assertions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
 {$I inc\HashTab.PAS}
 
 { TEUser }
@@ -3011,6 +7286,674 @@ begin
   Inc(FUpdateCount);
 end;
 
+{ Original source line layout for EndUpdate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
 procedure TEChangeNotifyNode.EndUpdate;
 begin
   Assert(FUpdateCount > 0, 'Invalid UpdateCount Usage');
@@ -3409,6 +8352,14 @@ begin
 end;
 
 { TEObjectEditorList }
+
+procedure TEObjectEditorList.RegisterClass(AClass: TEObjectEditorClass);
+begin
+  if FindEditor(AClass.EditorClassID) = nil then
+    Add(AClass)
+  else
+    raise Exception.Create('EObjectEditor Double Defined!');
+end;
 
 function TEObjectEditorList.FindEditor(AClassID: Integer): TEObjectEditorClass;
 var

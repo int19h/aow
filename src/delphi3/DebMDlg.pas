@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  ComCtrls, CheckLst, EngineLists, Engine;
+  ComCtrls, CheckLst, Engine;
 
 type
   { DebMDlg.TDebugMessageDlg (instance size 540): +$1DC..+$210 the components, +$214 FEngine,
