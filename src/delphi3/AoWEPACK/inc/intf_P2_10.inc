@@ -68,7 +68,7 @@ procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  
 procedure ValidAttackRelation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
 procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);  { draft }
 procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);  { draft }
-procedure DegreesRadToCo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 procedure Encode(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure SetupBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure StrengthInfoMax(A1: Integer);  { draft }

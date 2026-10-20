@@ -175,7 +175,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetCount;  { draft }
-    procedure GetAbility(A1: Integer);  { draft }
+    function GetAbility(A1: Integer): TAbility;
     procedure RegisterAbility(A1: Integer);  { draft }
     procedure UnregisterAbility(A1: Integer);  { draft }
     procedure UnregisterAll;  { draft }

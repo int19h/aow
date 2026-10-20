@@ -2710,8 +2710,8 @@ begin end;
 procedure TUnitList.FindID(A1: Integer);
 begin end;
 
-procedure TUnitList.GetUnit(A1: Integer);
-begin end;
+function TUnitList.GetUnit(A1: Integer): TAbstractUnit;
+begin Result := nil; end;
 
 procedure TUnitList.SetUnit(A1: Integer; A2: Integer);
 begin end;
@@ -3994,11 +3994,11 @@ begin Result := 0; end;
 procedure TArmyID.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TArmyID.Valid;
-begin end;
+function TArmyID.Valid: Boolean;
+begin Result := False; end;
 
-procedure TArmyID.RetrieveArmy(A1: Integer; A2: Integer);
-begin end;
+function TArmyID.RetrieveArmy(var A1: TArmyHS; var A2: Byte): Boolean;
+begin Result := False; end;
 
 procedure TArmyView.GetUnitConcealedForPlayer(A1: Integer; A2: Integer);
 begin end;
@@ -4135,8 +4135,8 @@ begin end;
 procedure TArmy.UpdateGroupBehavior(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.CreateID(A1: Integer; A2: Integer);
-begin end;
+function TArmy.CreateID(A1: Byte): TArmyID;
+begin Result := nil; end;
 
 class function TArmy.ClassID: Integer;
 begin Result := 0; end;
@@ -4210,8 +4210,8 @@ begin end;
 procedure TArmy.Deactivate;
 begin end;
 
-procedure TArmy.ValidateSelection(A1: Byte);
-begin end;
+function TArmy.ValidateSelection(A1: Byte): Byte;
+begin Result := 0; end;
 
 procedure TArmy.SelectionCount(A1: Byte);
 begin end;
@@ -4264,7 +4264,7 @@ begin end;
 procedure TArmy.MoveOnMovePoints(A1: Integer; A2: Byte; A3: Integer);
 begin end;
 
-procedure TArmy.CreateMovePointTable(A1: Integer; A2: Integer);
+procedure TArmy.CreateMovePointTable(A1: Byte; var Table);
 begin end;
 
 procedure TArmy.ValidTerrainEx(A1: Byte; A2: Integer; A3: Integer);
@@ -4273,8 +4273,8 @@ begin end;
 procedure TArmy.ValidTerrain(A1: Byte; A2: Integer);
 begin end;
 
-procedure TArmy.CanPlace(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TArmy.CanPlace(A1: Shortint; A2: Shortint; A3: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TArmy.MovedTo(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -4435,8 +4435,8 @@ begin Result := 0; end;
 procedure TArmyHS.GetFogEnabled;
 begin end;
 
-procedure TArmyHS.VisibleForSeatedPlayer;
-begin end;
+function TArmyHS.VisibleForSeatedPlayer: Boolean;
+begin Result := False; end;
 
 function TArmyHS.EditName: string;
 begin Result := ''; end;

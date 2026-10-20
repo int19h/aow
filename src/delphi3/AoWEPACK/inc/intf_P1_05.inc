@@ -343,12 +343,12 @@
     procedure OnTokenManagerMessage(A1: Integer; A2: Integer);  { draft }
     procedure GetIndependentAIMode;  { draft }
     procedure SaveGame(A1: Integer);  { draft }
-    procedure TerrainVisible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure Visible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure WatchingTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure Watching(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure ValidateTerrainObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure ValidateObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+    function Visible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+    function WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+    function Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+    procedure ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
+    procedure ValidateObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
     procedure UnlockGameOverEventCallBack;  { draft }
     procedure SelectNextHero;  { draft }
     procedure SelectNextArmy;  { draft }
@@ -398,7 +398,7 @@
     procedure TokenControlActivatedEvent;  { draft }
     procedure SetupPlayerControl(A1: Integer; A2: Integer);  { draft }
     procedure ActivateMsg;  { draft }
-    procedure Random(A1: Integer);  { draft }
+    function Random(A1: Integer): Integer;
     procedure GenerateNewTurnOrder;  { draft }
     procedure EndTurn;  { draft }
     procedure CancelEndTurn;  { draft }

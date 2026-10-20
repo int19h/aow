@@ -393,8 +393,8 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Valid;  { draft }
-    procedure RetrieveArmy(A1: Integer; A2: Integer);  { draft }
+    function Valid: Boolean;
+    function RetrieveArmy(var A1: TArmyHS; var A2: Byte): Boolean;
   end;
 
   { TArmy (instance size 44, VMT 557130EC) }
@@ -450,7 +450,7 @@
     procedure GetOldAIBehavior;  { draft }
     procedure InitializeGroupBehavior;  { draft }
     procedure UpdateGroupBehavior(A1: Integer; A2: Integer);  { draft }
-    procedure CreateID(A1: Integer; A2: Integer);  { draft }
+    function CreateID(A1: Byte): TArmyID;
     procedure GetArmyHS(A1: Integer; A2: Integer);  { draft }
     procedure AssignSettings(A1: Integer);  { draft }
     procedure SetFullyConcealed(A1: Byte);  { draft }
@@ -472,7 +472,7 @@
     procedure TriggerOnUpdateEvent;  { draft }
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
-    procedure ValidateSelection(A1: Byte);  { draft }
+    function ValidateSelection(A1: Byte): Byte;
     procedure SelectionCount(A1: Byte);  { draft }
     procedure ValidateMoveSelection(A1: Integer; A2: Integer);  { draft }
     procedure Select;  { draft }
@@ -487,10 +487,10 @@
     procedure MoveTypes(A1: Integer; A2: Integer);  { draft }
     procedure GetPartyMoves(A1: Byte);  { draft }
     procedure MoveOnMovePoints(A1: Integer; A2: Byte; A3: Integer);  { draft }
-    procedure CreateMovePointTable(A1: Integer; A2: Integer);  { draft }
+    procedure CreateMovePointTable(A1: Byte; var Table);
     procedure ValidTerrainEx(A1: Byte; A2: Integer; A3: Integer);  { draft }
     procedure ValidTerrain(A1: Byte; A2: Integer);  { draft }
-    procedure CanPlace(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    function CanPlace(A1: Shortint; A2: Shortint; A3: Shortint): Boolean;
     procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure MaxSize(A1: Integer; A2: Integer);  { draft }
     procedure Hero(A1: Integer; A2: Byte);  { draft }
@@ -590,7 +590,7 @@
     procedure MoveFirst(A1: Integer; A2: Integer); override;
     function GetMoveSteps: Integer; override;
     procedure GetFogEnabled;  { draft }
-    procedure VisibleForSeatedPlayer;  { draft }
+    function VisibleForSeatedPlayer: Boolean;
     procedure ArmyUpdated(A1: Integer);  { draft }
     procedure UpdateUnitGFXResource;  { draft }
     procedure PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }

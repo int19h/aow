@@ -1267,8 +1267,8 @@ begin end;
 procedure TAbilityControl.GetCount;
 begin end;
 
-procedure TAbilityControl.GetAbility(A1: Integer);
-begin end;
+function TAbilityControl.GetAbility(A1: Integer): TAbility;
+begin Result := nil; end;
 
 procedure TAbilityControl.RegisterAbility(A1: Integer);
 begin end;
@@ -1405,8 +1405,8 @@ begin end;
 class function TPlayer.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPlayer.GetBusy;
-begin end;
+function TPlayer.GetBusy: Boolean;
+begin Result := False; end;
 
 procedure TPlayer.GetSuperiority;
 begin end;
@@ -2909,8 +2909,8 @@ begin end;
 procedure TFireControl.GetRndFireResource(A1: Byte; A2: Integer);
 begin end;
 
-procedure TFireControl.PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TFireControl.PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Boolean): TFire;
+begin Result := nil; end;
 
 procedure TFireControl.RegisterFireResource;
 begin end;
@@ -3119,8 +3119,8 @@ begin end;
 class function TAoWMapField.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TAoWMapField.GetExplored(A1: Integer);
-begin end;
+function TAoWMapField.GetExplored(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAoWMapField.SetExplored(A1: Integer; A2: Integer);
 begin end;
@@ -3137,8 +3137,8 @@ begin end;
 procedure TAoWMapField.UpdateMapField;
 begin end;
 
-procedure TAoWMapField.GetPlayer;
-begin end;
+function TAoWMapField.GetPlayer: Shortint;
+begin Result := 0; end;
 
 procedure TAoWMapField.GetScannerIcon;
 begin end;
@@ -3149,8 +3149,8 @@ begin end;
 procedure TAoWMapField.GetConcealmentActive;
 begin end;
 
-procedure TAoWMapField.GetMagicShieldActive;
-begin end;
+function TAoWMapField.GetMagicShieldActive: Boolean;
+begin Result := False; end;
 
 procedure TAoWMapField.GetProductionControl;
 begin end;
@@ -3173,8 +3173,8 @@ begin end;
 procedure TAoWMapField.GetWallType;
 begin end;
 
-procedure TAoWMapField.GetArmyHS;
-begin end;
+function TAoWMapField.GetArmyHS: TArmyHS;
+begin Result := nil; end;
 
 procedure TAoWMapField.RestoreTerrain;
 begin end;
@@ -3449,22 +3449,22 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 procedure TAoWHSMap.SetSeatedPlayer(A1: Byte);
 begin end;
 
-procedure TAoWHSMap.TerrainVisible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
+function TAoWHSMap.TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+begin Result := False; end;
+
+function TAoWHSMap.Visible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+begin Result := False; end;
+
+function TAoWHSMap.WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+begin Result := False; end;
+
+function TAoWHSMap.Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
+begin Result := False; end;
+
+procedure TAoWHSMap.ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
 begin end;
 
-procedure TAoWHSMap.Visible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
-begin end;
-
-procedure TAoWHSMap.WatchingTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
-begin end;
-
-procedure TAoWHSMap.Watching(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
-begin end;
-
-procedure TAoWHSMap.ValidateTerrainObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
-
-procedure TAoWHSMap.ValidateObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
+procedure TAoWHSMap.ValidateObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
 begin end;
 
 procedure TAoWHSMap.UnlockGameOverEventCallBack;
@@ -3659,8 +3659,8 @@ begin end;
 procedure TAoWHSMap.ActivateMsg;
 begin end;
 
-procedure TAoWHSMap.Random(A1: Integer);
-begin end;
+function TAoWHSMap.Random(A1: Integer): Integer;
+begin Result := 0; end;
 
 procedure TAoWHSMap.GenerateNewTurnOrder;
 begin end;
@@ -4129,7 +4129,7 @@ begin end;
 procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);
 begin end;
 
-procedure DegreesRadToCo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 begin end;
 
 procedure Encode(A1: Integer; A2: Integer; A3: Integer);

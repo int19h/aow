@@ -57,7 +57,7 @@
     destructor Destroy; override;
     constructor Create;  { draft }
     procedure GetRndFireResource(A1: Byte; A2: Integer);  { draft }
-    procedure PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Boolean): TFire;
     procedure RegisterFireResource;  { draft }
     procedure UnregisterFireResource;  { draft }
   end;

@@ -1549,7 +1549,7 @@ begin
         Delay := Random(80);
         if FAnimationFrame-Delay >= 0 then
         begin
-          DegreesRadToCo(Angle,Radius,Integer(@DX),Integer(@DY));
+          DegreesRadToCo(Angle,Radius,DX,DY);
           TImageSequenceList(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).FCastImages).
             Show(0,X+DX,Y+DY,FAnimationFrame-Delay,SurfaceDesc);
         end;

@@ -342,7 +342,7 @@
     procedure IndexOfGroup(A1: Integer);  { draft }
     procedure IndexOfGroupID(A1: Integer);  { draft }
     procedure FindID(A1: Integer);  { draft }
-    procedure GetUnit(A1: Integer);  { draft }
+    function GetUnit(A1: Integer): TAbstractUnit;
     procedure SetUnit(A1: Integer; A2: Integer);  { draft }
   end;
 

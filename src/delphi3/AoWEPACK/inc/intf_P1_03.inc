@@ -233,7 +233,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetBusy;  { draft }
+    function GetBusy: Boolean;
     procedure GetSuperiority;  { draft }
     procedure GetUnitCount;  { draft }
     procedure SetPlayerIndex(A1: Byte);  { draft }
@@ -336,15 +336,15 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure UpdateMapField; override;
-    procedure GetExplored(A1: Integer);  { draft }
+    function GetExplored(A1: Integer): Boolean;
     procedure SetExplored(A1: Integer; A2: Integer);  { draft }
     procedure FogChanged;  { draft }
     procedure SetFogCount(A1: Byte);  { draft }
-    procedure GetPlayer;  { draft }
+    function GetPlayer: Shortint;
     procedure GetScannerIcon;  { draft }
     procedure GetCombatTerrainTag;  { draft }
     procedure GetConcealmentActive;  { draft }
-    procedure GetMagicShieldActive;  { draft }
+    function GetMagicShieldActive: Boolean;
     procedure GetProductionControl;  { draft }
     procedure GetAITarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure GetMoveAction(A1: Byte);  { draft }
@@ -352,7 +352,7 @@
     procedure GetDefensePriority;  { draft }
     procedure GetDefenseRequirements(A1: Integer; A2: Integer);  { draft }
     procedure GetWallType;  { draft }
-    procedure GetArmyHS;  { draft }
+    function GetArmyHS: TArmyHS;
     procedure RestoreTerrain;  { draft }
   end;
 
