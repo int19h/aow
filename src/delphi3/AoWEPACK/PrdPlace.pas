@@ -647,7 +647,7 @@ begin
           for I := GetCollectionCount(Collection) - 1 downto 0 do Units.Add(GetU(Collection, I));
         PlaceRandomUnits(Xhx, Yhx, Lhx, 0, Units, 4, Budget, [pmScanArea, pmNeglectEmptyPlayerLocation]);
         ArmyHS := TAoWMapField(FOwner).GetArmyHS;
-        if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = 0) then ArmyHS.FArmy.SetBehavior(-1, gbGuard);
+        if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = 0) then ArmyHS.FArmy.SetBehavior($FF, gbGuard);
         Units.Free;
       end;
     end;

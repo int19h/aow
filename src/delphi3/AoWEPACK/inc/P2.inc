@@ -7021,209 +7021,723 @@ begin Result := False; end;
 function TLeader.GetUpkeep: Shortint;
 begin Result := 0; end;
 
-constructor TArmyID.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TArmyID.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FUnitIDs := TIntegerList.Create;
+end;
 
 destructor TArmyID.Destroy;
-begin end;
+begin
+  FUnitIDs.Free;
+  inherited Destroy;
+end;
 
 class function TArmyID.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20220; end;
 
-procedure TArmyID.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyID.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), 10);
+  Stream.rwInteger(Integer(Pointer(@FX)^), 11);
+  Stream.rwStreamProc(12, FUnitIDs.LoadFromStream, FUnitIDs.SaveToStream);
+end;
 
 function TArmyID.Valid: Boolean;
-begin Result := False; end;
+var ArmyHS: TArmyHS; I: Integer;
+begin
+  if FX <> -1 then
+  begin
+    ArmyHS := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL)).GetArmyHS;
+    if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = FPlayer) then
+    begin
+      I := FUnitIDs.Count;
+      Result := True;
+      while Result and (I <> 0) do
+      begin
+        Dec(I);
+        Result := ArmyHS.FArmy.IndexOfID(FUnitIDs[I]) <> -1;
+      end;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-function TArmyID.RetrieveArmy(var A1: TArmyHS; var A2: Byte): Boolean;
-begin Result := False; end;
-
-procedure TArmyView.GetUnitConcealedForPlayer(A1: Integer; A2: Integer);
-begin end;
-
-procedure TArmyView.GetConcealedForPlayer(A1: Byte);
-begin end;
+function TArmyID.RetrieveArmy(var ArmyHS: TArmyHS; var Selection: Byte): Boolean;
+var I, Index: Integer;
+begin
+  if FX <> -1 then
+  begin
+    Selection := 0;
+    ArmyHS := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL)).GetArmyHS;
+    if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = FPlayer) then
+    begin
+      I := FUnitIDs.Count;
+      Result := True;
+      while Result and (I <> 0) do
+      begin
+        Dec(I);
+        Index := ArmyHS.FArmy.IndexOfID(FUnitIDs[I]);
+        { Original shifts by the missing unit index before reporting failure. }
+        Selection := Selection or (Byte(1) shl Index);
+        Result := Index <> -1;
+      end;
+    end
+    else Result := False;
+  end
+  else Result := False;
+  if not Result then
+  begin
+    ArmyHS := nil;
+    Selection := 0;
+  end;
+end;
 
 class function TArmyView.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20219; end;
 
-procedure TArmyView.SetConcealedForPlayer(A1: Byte; A2: Integer);
-begin end;
+function TArmyView.GetConcealedForPlayer(Player: Shortint): Boolean;
+begin Result := (FConcealedForPlayers shr (Player - 1)) and 1 <> 0; end;
 
-procedure TArmyView.SetUnitConcealedForPlayer(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TArmyView.SetConcealedForPlayer(Player: Shortint; Value: Boolean);
+var Mask: Integer;
+begin
+  Mask := 1 shl (Player - 1);
+  if Value then FConcealedForPlayers := FConcealedForPlayers or Word(Mask)
+  else FConcealedForPlayers := FConcealedForPlayers and not Word(Mask);
+end;
 
-procedure TArmyView.Setup(A1: TArmy; A2: Byte);
-begin end;
+function TArmyView.GetUnitConcealedForPlayer(Index: Integer; Player: Shortint): Boolean;
+begin Result := (FUnitConcealment[Index] shr (Player - 1)) and 1 <> 0; end;
 
-procedure TArmyView.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyView.SetUnitConcealedForPlayer(Index: Integer; Player: Shortint; Value: Boolean);
+var Mask: Integer;
+begin
+  Mask := 1 shl (Player - 1);
+  if Value then FUnitConcealment[Index] := FUnitConcealment[Index] or Word(Mask)
+  else FUnitConcealment[Index] := FUnitConcealment[Index] and not Word(Mask);
+end;
 
-procedure TArmyView.MainReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyView.Setup(Army: TArmy; Selection: Byte);
+var I, Player: Integer; AUnit: TAbstractUnit;
+begin
+  AssignSettings(Army);
+  FX := Army.FX;
+  FY := Army.FY;
+  FL := Army.FL;
+  for I := 0 to Army.GetCount - 1 do
+  begin
+    if Selection and 1 <> 0 then
+    begin
+      AUnit := TAbstractUnit(Army.GetUnit(I).Copy(AoWEngine));
+      AUnit.SetOwner(Self);
+      AUnit.Release;
+      FMoraleValues[GetCount - 1] := Army.GetUnit(I).FMoraleValue;
+      for Player := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+        SetUnitConcealedForPlayer(GetCount - 1, Player, Army.GetUnitConcealedForPlayer(I, Player));
+    end;
+    Selection := Selection shr 1;
+  end;
+end;
+
+procedure TArmyView.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FUnitConcealment, 16, 40);
+  Stream.rwWord(FConcealedForPlayers, 41);
+  Stream.rwData(FMoraleValues, 32, 42);
+end;
+
+procedure TArmyView.MainReadWrite(Stream: TEStorageStream);
+var I: Integer;
+begin
+  inherited MainReadWrite(Stream);
+  if smRead in Stream.StorageMode then
+    for I := 0 to GetCount - 1 do GetUnit(I).FMoraleValue := FMoraleValues[I];
+end;
 
 procedure TArmyView.GetLocation(var Xhx, Yhx, Lhx: Shortint);
-begin end;
+begin Xhx := FX; Yhx := FY; Lhx := FL; end;
 
-constructor TArmyEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TArmyEventLog.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FArmyMessages := TStringList.Create;
+  FArmyView := TArmyView.Create(nil);
+  FDamageValues := TByteList.Create;
+  FDamageTypes := TByteList.Create;
+end;
 
 destructor TArmyEventLog.Destroy;
-begin end;
+begin
+  FArmyMessages.Free;
+  FArmyView.Free;
+  FDamageValues.Free;
+  FDamageTypes.Free;
+  inherited Destroy;
+end;
 
 class function TArmyEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20218; end;
 
-procedure TArmyEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyEventLog.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FArmyView, 15);
+  Stream.rwString(FArmyText, 16);
+  Stream.rwStrings(FArmyMessages, 17);
+  Stream.rwInteger(FArmyIcon, 18);
+  Stream.rwStreamProc(19, FDamageValues.LoadFromStream, FDamageValues.SaveToStream);
+  Stream.rwStreamProc(20, FDamageTypes.LoadFromStream, FDamageTypes.SaveToStream);
+  Stream.rwBool(FGameOver, 21);
+end;
 
 function TArmyEventLog.GetLeftIcon: Integer;
-begin Result := 0; end;
+begin
+  if FArmyView.FPlayer > 0 then
+    Result := AoWHSMap.FPlayers.GetPlayers(FArmyView.FPlayer).FPlayerRace
+  else Result := 12;
+end;
 
-procedure TArmyEventLog.SetArmyView;
-begin end;
+procedure TArmyEventLog.SetArmyView(Value: TArmyView);
+begin FArmyView.Assign(Value, AoWEngine); end;
 
 function TArmyEventLog.GetText: string;
-begin Result := ''; end;
+begin Result := FArmyText; end;
 
-procedure TArmyEventLog.LeaderKilled;
-begin end;
+function TArmyEventLog.LeaderKilled: Boolean;
+var I: Integer;
+begin
+  Result := False;
+  I := FArmyView.GetCount;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    Result := (FArmyView.GetUnit(I) is TLeader) and
+      (FArmyView.GetUnit(I).GetHitPoints <= FDamageValues[I]);
+  end;
+end;
 
-procedure TArmyEventLog.PartyDestroyed;
-begin end;
+function TArmyEventLog.PartyDestroyed: Boolean;
+var I: Integer;
+begin
+  Result := True;
+  I := FArmyView.GetCount;
+  while Result and (I <> 0) do
+  begin
+    Dec(I);
+    Result := Result and (FArmyView.GetUnit(I).GetHitPoints <= FDamageValues[I]);
+  end;
+end;
 
 procedure TArmyEventLog.ValidateGameOver;
-begin end;
+begin
+  FGameOver := LeaderKilled or (PartyDestroyed and
+    (AoWHSMap.FPlayers.GetPlayers(FArmyView.FPlayer).FArmies.GetCount = 1));
+end;
 
 function TArmyEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var ShowEvent: Boolean;
+begin
+  Result := False;
+  case Trigger of
+    etUser:
+      begin
+        AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+        Result := True;
+      end;
+    etEvent, etNewTurn:
+      begin
+        ShowEvent := False;
+        if (AoWHSMap.FSeatedPlayer = FPlayer) or (AoWHSMap.FSeatedPlayer = FArmyView.FPlayer) then
+        begin
+          ShowEvent := ShowEvent or ((AoWHSMap.FPlayMode = pmTurn) and
+            (wpPartyDamage in AoWEngine.FRegistry.GetClassicWindowPopupEvents));
+          ShowEvent := ShowEvent or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+            (wpPartyDamage in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents));
+        end;
+        ShowEvent := ShowEvent or FGameOver;
+        if ShowEvent then
+        begin
+          AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+          Result := True;
+        end;
+      end;
+  end;
+end;
 
 procedure TArmyEventLog.ViewLocation;
-begin end;
+var Army: TArmyView;
+begin
+  Army := FArmyView;
+  if (Army <> nil) and (Army.FX <> -1) then CenterViewTo(Army.FX, Army.FY, Army.FL);
+end;
 
-constructor TArmyInfoEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TArmyInfoEventLog.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FMessages := TStringList.Create;
+  FArmyView := TArmyView.Create(nil);
+  FTriggers := [etEvent, etUser, etNewTurn];
+end;
 
 destructor TArmyInfoEventLog.Destroy;
-begin end;
+begin
+  FMessages.Free;
+  FArmyView.Free;
+  inherited Destroy;
+end;
 
 class function TArmyInfoEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E9; end;
 
-procedure TArmyInfoEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyInfoEventLog.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FArmyView, 15);
+  Stream.rwStrings(FMessages, 16);
+  Stream.rwData(FSelection, 1, 17);
+  Stream.rwString(FTitle, 18);
+  Stream.rwString(FText, 19);
+  Stream.rwString(FDescription, 20);
+end;
 
-procedure TArmyInfoEventLog.SetArmyView;
-begin end;
+procedure TArmyInfoEventLog.SetArmyView(Value: TArmyView);
+begin FArmyView.Assign(Value, AoWEngine); end;
 
 function TArmyInfoEventLog.GetText: string;
-begin Result := ''; end;
+begin Result := FText; end;
 
 procedure TArmyInfoEventLog.ViewLocation;
-begin end;
+var Army: TArmyView;
+begin
+  Army := FArmyView;
+  if (Army <> nil) and (Army.FX <> -1) then CenterViewTo(Army.FX, Army.FY, Army.FL);
+end;
 
 function TArmyInfoEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  Result := False;
+  if Trigger in FTriggers then
+    case Trigger of
+      etUser:
+        begin
+          AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+          Result := True;
+        end;
+      etNewTurn:
+        if (AoWHSMap.FSeatedPlayer = FPlayer) or (AoWHSMap.FSeatedPlayer = FArmyView.FPlayer) then
+        begin
+          AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+          Result := True;
+        end;
+      etEvent:
+        if (AoWHSMap.FConnectionType = pcLocal) and
+          ((AoWHSMap.FSeatedPlayer = FPlayer) or (AoWHSMap.FSeatedPlayer = FArmyView.FPlayer)) then
+        begin
+          AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+          Result := True;
+        end
+        else PlaySample('SFX\EVENTS\NEWEVENT.WAV');
+    end;
+end;
 
-constructor TArmy.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TArmy.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FX := -1;
+  FY := -1;
+  FL := -1;
+  FDestinationX := -1;
+  FDestinationY := -1;
+  FDestinationL := -1;
+  FIndependentRelation := -1;
+end;
 
 destructor TArmy.Destroy;
-begin end;
+begin
+  if not (msDestroying in AoWHSMap.Status) then AoWHSMap.ArmyDestroyed(GetArmyHS);
+  FOnUpdate := nil;
+  inherited Destroy;
+end;
 
-procedure TArmy.Kill(A1: Integer);
-begin end;
+procedure TArmy.Kill(Selection: Byte);
+var I: Integer;
+begin
+  BeginUpdate;
+  for I := GetCount - 1 downto 0 do
+    if (Selection shr I) and 1 <> 0 then TAbstractUnit(FChildren.List^[I]).Killed;
+  EndUpdate;
+end;
 
-procedure TArmy.GetStrengthEx(A1: Integer; A2: Integer);
-begin end;
+function TArmy.GetStrengthEx(Selection: Byte; DamageType: TDamageType): Integer;
+var I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+    if (1 shl I) and Selection <> 0 then
+      Inc(Result, TAbstractUnit(FChildren.List^[I]).GetStrength(DamageType));
+end;
 
-procedure TArmy.GetStrengthMaxEx(A1: Integer; A2: Integer);
-begin end;
+function TArmy.GetStrengthMaxEx(Selection: Byte; DamageTypes: TDamageTypes): Integer;
+var I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+    if (1 shl I) and Selection <> 0 then
+      Inc(Result, TAbstractUnit(FChildren.List^[I]).GetStrengthMax(DamageTypes));
+end;
 
-procedure TArmy.ReturnBattleFieldInfo(A1: Integer; A2: Integer);
-begin end;
+procedure TArmy.ReturnBattleFieldInfo(var Info: TBattleFieldInfo);
+var I, Strength: Integer; AUnit: TAbstractUnit;
+  Relation: TDiplomaticRelation; Behavior: TGroupBehavior; IncludeUnit: Boolean;
+begin
+  Relation := DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation);
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    AUnit := TAbstractUnit(FChildren.List^[I]);
+    if AUnit.FGroup <> nil then Behavior := AUnit.FGroup.Behavior else Behavior := gbPassive;
+    IncludeUnit := (Info.Units = nil) or (Info.Units.FChildren.IndexOf(AUnit) = -1);
+    if IncludeUnit and (bfrIgnorePassiveIndependents in Info.Requests) then
+      IncludeUnit := (AUnit.FPlayer <> 0) or ((AUnit.FGroup <> nil) and
+        (AUnit.FGroup.Behavior <> gbPassive) and (AUnit.FGroup.Behavior <> gbGuard));
+    if IncludeUnit and (bfrIgnoreIndependents in Info.Requests) and (AUnit.FPlayer = 0) then
+      IncludeUnit := False;
+    if IncludeUnit then
+    begin
+      Strength := AUnit.GetStrengthMax(Info.DamageTypes);
+      if Ord(Relation) in Info.FriendlyRelations then Inc(Info.FriendlyStrength, Strength);
+      if (Ord(Relation) in Info.EnemyRelations) or (Behavior = gbGuardArea) then Inc(Info.Strength, Strength);
+    end;
+  end;
+end;
 
 function TArmy.HealUnits(Selection: Byte): Boolean;
-begin Result := False; end;
+var I: Integer; AUnit: TAbstractUnit;
+begin
+  Result := False;
+  for I := 0 to GetCount - 1 do
+  begin
+    if Selection and 1 <> 0 then
+    begin
+      AUnit := TAbstractUnit(FChildren.List^[I]);
+      if AUnit.GetHitPoints <> AUnit.GetHits then
+      begin Result := True; AUnit.SetHitPoints(AUnit.GetHits); end;
+    end;
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TArmy.CreateGroupID(A1: Integer);
-begin end;
+function TArmy.CreateGroupID(Selection: Byte): Integer;
+var I: Integer;
+begin
+  I := 0;
+  while (Selection and 1 = 0) and (I <> FChildren.Count) do
+  begin
+    Inc(I);
+    Selection := Selection shr 1;
+  end;
+  if I <> FChildren.Count then Result := TAbstractUnit(FChildren.List^[I]).FUnitID
+  else Result := 0;
+end;
 
-procedure TArmy.GetGroup(A1: Byte);
-begin end;
+function TArmy.GetGroup(Selection: Byte): TAIGroup;
+var Different: Boolean; I: Integer; Found: Boolean;
+begin
+  Result := nil;
+  Different := False;
+  I := 0;
+  Found := False;
+  while (I <> FChildren.Count) and not Different do
+  begin
+    if Selection and 1 <> 0 then
+      if not Found then
+      begin
+        Result := TAbstractUnit(FChildren.List^[I]).FGroup;
+        Found := True;
+      end
+      else Different := Result <> TAbstractUnit(FChildren.List^[I]).FGroup;
+    Selection := Selection shr 1;
+    Inc(I);
+  end;
+  if Boolean(Byte(Different) or Byte(not Found)) then Result := nil;
+end;
 
-procedure TArmy.SetGroup(A1: Integer; A2: Integer);
-begin end;
+procedure TArmy.SetGroup(Selection: Byte; Group: TAIGroup);
+var I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+  begin
+    if Selection and 1 <> 0 then Group.AddUnit(TAbstractUnit(FChildren.List^[I]));
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TArmy.GetGroupSelection(A1: Integer);
-begin end;
+function TArmy.GetGroupSelection(GroupID: Integer): Byte;
+var I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    Result := Result shl 1;
+    if GroupID = TAbstractUnit(FChildren.List^[I]).FGroupID then Result := Result or 1;
+  end;
+end;
 
-procedure TArmy.GetBehavior;
-begin end;
+function TArmy.GetBehavior(Selection: Byte): TGroupBehavior;
+var Group: TAIGroup;
+begin
+  Group := GetGroup(Selection);
+  if Group <> nil then Result := Group.Behavior else Result := gbNone;
+end;
 
-procedure TArmy.SetBehavior(Player: Shortint; Behavior: TGroupBehavior);
-begin end;
+procedure TArmy.SetBehavior(Selection: Byte; Behavior: TGroupBehavior);
+var Group: TAIGroup; I: Integer;
+begin
+  Group := AoWHSMap.FAIGroupManager.CreateGroup(FPlayer, FIndependentRelation, Behavior);
+  if Group <> nil then
+  begin
+    for I := 0 to FChildren.Count - 1 do
+    begin
+      if Selection and 1 <> 0 then Group.AddUnit(TAbstractUnit(FChildren.List^[I]));
+      Selection := Selection shr 1;
+    end;
+    Group.Release;
+  end;
+end;
 
-procedure TArmy.GetOldAIBehavior;
-begin end;
+function TArmy.GetOldAIBehavior: TGroupBehavior;
+var I: Integer;
+begin
+  Result := gbNone;
+  I := GetCount;
+  while (Result = gbNone) and (I <> 0) do
+  begin
+    Dec(I);
+    Result := TGroupBehavior(GetUnit(I).F_AbstractUnit_38);
+  end;
+end;
 
 procedure TArmy.InitializeGroupBehavior;
-begin end;
+var Selection: Byte; Index: Integer; Behavior: TGroupBehavior; AHero: THero;
+begin
+  Selection := $FF;
+  AHero := Hero(Selection, [htLeader, htHeroLeader]);
+  if AHero <> nil then
+  begin
+    Index := IndexOf(AHero);
+    if Index <> -1 then
+    begin
+      SetBehavior(Byte(1) shl Index, gbFortify);
+      Selection := Selection and not (Byte(1) shl Index);
+    end;
+  end;
+  Index := IndexOfTransporter(Selection);
+  if (Index <> -1) and (FOldAIBehavior = gbNone) then
+    Selection := Selection and not (Byte(1) shl Index);
+  if Selection <> 0 then
+  begin
+    Behavior := FOldAIBehavior;
+    if Behavior = gbNone then
+      if (FPlayer = 0) and (AoWHSMap.GetIndependentAIMode <> iaOff) then
+      begin
+        if (FX <> -1) and
+          (AoWHSMap.MapContainer.GetField(FX, FY, FL).FindNoneTransparentHS(TPlayerStructure) = nil) then
+          if FIndependentRelation >= 0 then Behavior := gbPatrol else Behavior := gbGuardArea
+        else Behavior := gbPassive;
+      end
+      else Behavior := AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.GetRandomGroupBehavior;
+    SetBehavior(Selection, Behavior);
+  end;
+end;
 
-procedure TArmy.UpdateGroupBehavior(A1: Integer; A2: Integer);
-begin end;
+procedure TArmy.UpdateGroupBehavior;
+var Selection: Byte; Index: Integer; Behavior: TGroupBehavior;
+begin
+  Selection := GetGroupSelection(0);
+  if Selection <> 0 then
+  begin
+    Index := IndexOfTransporter(Selection);
+    if Index <> -1 then
+    begin
+      Selection := Selection and not (Byte(1) shl Index);
+      if TAbstractUnit(FChildren.List^[Index]).FGroupID = 0 then
+        SetBehavior(Byte(1) shl Index, gbTransport);
+    end;
+    Behavior := gbPassive;
+    if (FPlayer = 0) and (Hero(Selection, [htHero]) <> nil) then Behavior := gbScout
+    else if (FPlayer = 0) and (AoWHSMap.GetIndependentAIMode <> iaOff) and (FX <> -1) then
+      if AoWHSMap.MapContainer.GetField(FX, FY, FL).FindNoneTransparentHS(TPlayerStructure) = nil then
+        if FIndependentRelation >= 0 then Behavior := gbPatrol else Behavior := gbGuardArea;
+    if Selection <> 0 then
+    begin
+      Index := IndexOfBehavior(Behavior);
+      if Index = -1 then SetBehavior(Selection, Behavior)
+      else SetGroup(Selection, TAbstractUnit(FChildren.List^[Index]).FGroup);
+    end;
+  end;
+end;
 
-function TArmy.CreateID(A1: Byte): TArmyID;
-begin Result := nil; end;
+function TArmy.CreateID(Selection: Byte): TArmyID;
+var ID: TArmyID; I: Integer;
+begin
+  ID := TArmyID.Create(nil);
+  ID.FX := FX;
+  ID.FY := FY;
+  ID.FL := FL;
+  ID.FPlayer := FPlayer;
+  for I := 0 to GetCount - 1 do
+  begin
+    if Selection and 1 <> 0 then ID.FUnitIDs.Add(TAbstractUnit(FChildren.List^[I]).FUnitID);
+    Selection := Selection shr 1;
+  end;
+  Result := ID;
+end;
 
 class function TArmy.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20216; end;
 
 function TArmy.GetArmyHS: TArmyHS;
-begin Result := nil; end;
+var X, Y, L: Shortint;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+    Result := TArmyHS(AoWHSMap.MapContainer.GetField(X, Y, L).FindOwnedChild($20217))
+  else Result := nil;
+end;
 
-function TArmy.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TArmy.GetEngine: TEngine;
+begin Result := AoWEngine; end;
 
-procedure TArmy.AssignSettings(A1: Integer);
-begin end;
+procedure TArmy.AssignSettings(Army: TArmy);
+begin
+  FDestinationX := Army.FDestinationX;
+  FDestinationY := Army.FDestinationY;
+  FDestinationL := Army.FDestinationL;
+  FPlayer := Army.FPlayer;
+end;
 
-procedure TArmy.SetFullyConcealed(A1: Byte);
-begin end;
+procedure TArmy.SetFullyConcealed(Value: Boolean);
+begin
+  if Value <> (asFullyConcealed in FStatus) then
+  begin
+    if Value then FStatus := FStatus + [asFullyConcealed]
+    else FStatus := FStatus - [asFullyConcealed];
+    if (asActivated in FStatus) and (FX <> -1) then
+      AoWHSMap.ScannerIconsChangedRad(FX, FY, FL, 0);
+  end;
+end;
 
-procedure TArmy.GetFullyConcealed;
-begin end;
+function TArmy.GetFullyConcealed: Boolean;
+begin Result := asFullyConcealed in FStatus; end;
 
-procedure TArmy.UpdateConcealment(A1: Integer; A2: Integer);
-begin end;
+procedure TArmy.UpdateConcealment;
+var Concealed: Boolean; ALeader: TLeader; Changed, ShowCrown: Boolean;
+begin
+  if asActivated in FStatus then
+  begin
+    if (FConcealedUnits <> 0) and (AoWHSMap.FSeatedPlayer <> FPlayer) and
+      not (msEditting in AoWHSMap.Status) then Concealed := GetConcealedForPlayer(AoWHSMap.FSeatedPlayer)
+    else Concealed := False;
+    ALeader := Leader($FF);
+    ShowCrown := ALeader <> nil;
+    if ShowCrown and Concealed then
+      if (FConcealedUnits shr IndexOf(ALeader)) and 1 <> 0 then ShowCrown := False;
+    Changed := False;
+    if ShowCrown then FStatus := FStatus + [asShowCrown] else FStatus := FStatus - [asShowCrown];
+    if Concealed <> (asConcealed in FStatus) then
+    begin
+      if Concealed then FStatus := FStatus + [asConcealed] else FStatus := FStatus - [asConcealed];
+      Changed := True;
+    end;
+    Concealed := Concealed and (GetCount = ConcealedUnitsCount);
+    if Concealed <> GetFullyConcealed then
+    begin SetFullyConcealed(Concealed); Changed := True; end;
+    if Changed then TriggerOnUpdateEvent;
+  end;
+end;
 
-procedure TArmy.SetXYL(A1: Byte; A2: Byte; A3: Byte);
-begin end;
+procedure TArmy.SetXYL(X, Y, L: Shortint);
+begin
+  FX := X;
+  FY := Y;
+  FL := L;
+  if UpdateCount = 0 then UpdateConcealedUnits;
+end;
 
-procedure TArmy.GetRace(A1: Integer);
-begin end;
+function TArmy.GetRace(Selection: Byte): Integer;
+var Same: Boolean; I, Race: Integer;
+begin
+  Result := -1;
+  Same := True;
+  for I := 0 to GetCount - 1 do
+  begin
+    if Selection and 1 <> 0 then
+    begin
+      Race := TAbstractUnit(FChildren.List^[I]).GetRace;
+      if Race <> -1 then
+        if Result <> -1 then Same := Same and (Race = Result)
+        else Result := Race;
+    end;
+    Selection := Selection shr 1;
+  end;
+  if not Same then Result := -1;
+end;
 
-procedure TArmy.GetUpkeep;
-begin end;
+function TArmy.GetUpkeep: Byte;
+begin Result := FUpkeep; end;
 
 procedure TArmy.ResetDestinationPos;
-begin end;
+begin FDestinationX := -1; FDestinationY := -1; FDestinationL := -1; end;
 
-procedure TArmy.SetDestinationPos(A1: Byte; A2: Byte; A3: Integer);
-begin end;
+procedure TArmy.SetDestinationPos(X, Y, L: Shortint);
+begin FDestinationX := X; FDestinationY := Y; FDestinationL := L; end;
 
-procedure TArmy.ConcealedUnitsCount;
-begin end;
+function TArmy.ConcealedUnitsCount: Integer;
+var Selection: Byte;
+begin
+  Selection := FConcealedUnits;
+  Result := 0;
+  while Selection <> 0 do
+  begin
+    if Selection and 1 <> 0 then Inc(Result);
+    Selection := Selection shr 1;
+  end;
+end;
 
 procedure TArmy.UpdateConcealedUnits;
-begin end;
+var I: Integer; Field: TAoWMapField;
+begin
+  if (FX <> -1) and (FL <> -1) and (asActivated in FStatus) then
+  begin
+    FConcealedUnits := 0;
+    I := FChildren.Count;
+    Field := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL));
+    while I <> 0 do
+    begin
+      Dec(I);
+      FConcealedUnits := FConcealedUnits shl 1;
+      if TAbstractUnit(FChildren.List^[I]).ConcealedOnMapF(Field) then
+        FConcealedUnits := FConcealedUnits or 1;
+    end;
+  end;
+end;
 
 procedure TArmy.UpdateUpkeep;
-begin end;
+var Upkeep: Byte; I: Integer;
+begin
+  Upkeep := 0;
+  for I := 0 to GetCount - 1 do Inc(Upkeep, TAbstractUnit(FChildren.List^[I]).GetUpkeep);
+  if (Upkeep <> FUpkeep) and (asActivated in FStatus) then
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).SetArmyUpkeep(Upkeep - FUpkeep +
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FArmyUpkeep);
+  FUpkeep := Upkeep;
+end;
 
 procedure TArmy.Changed;
-begin end;
+begin Update; end;
 
 procedure TArmy.ValidateTerrainEx(A1: Byte; A2: Byte);
 begin end;
@@ -7270,14 +7784,14 @@ begin Result := -1; end;
 procedure TArmy.GetUnitConcealed(A1: Integer);
 begin end;
 
-procedure TArmy.GetUnitConcealedForPlayer(A1: Integer; A2: Integer);
-begin end;
+function TArmy.GetUnitConcealedForPlayer(Index: Integer; Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TArmy.GetUnitsConcealedForPlayer(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.GetConcealedForPlayer(A1: Byte);
-begin end;
+function TArmy.GetConcealedForPlayer(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TArmy.SetPlayer(Player: Shortint);
 begin end;
@@ -7324,15 +7838,15 @@ begin end;
 function TArmy.Hero(Selection: Byte; Types: THeroTypes): THero;
 begin Result := nil; end;
 
-procedure TArmy.Leader(A1: Integer);
-begin end;
+function TArmy.Leader(Selection: Byte): TLeader;
+begin Result := nil; end;
 
 function TArmy.Transporter(Player: Byte): TAbstractUnit;
 { conflict: function TArmy.Transporter(Selection: Byte): TAbstractUnit; }
 begin end;
 
-procedure TArmy.IndexOfTransporter(A1: Integer);
-begin end;
+function TArmy.IndexOfTransporter(Selection: Byte): Integer;
+begin Result := -1; end;
 
 function TArmy.UnitsInTransporter: Boolean;
 begin end;

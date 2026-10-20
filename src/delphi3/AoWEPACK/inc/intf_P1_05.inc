@@ -369,6 +369,7 @@
     procedure EndArmyUpdate;
     procedure ArmyChanged(Army: TArmyHS);
     procedure ArmyDestroyed(Army: TArmyHS);
+    { conflict: procedure ArmyDestroyed(Army: TArmy); }
     procedure BeginStructureUpdate;
     procedure EndStructureUpdate;
     procedure StructureChanged(Structure: TStructure);

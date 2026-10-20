@@ -138,8 +138,8 @@ end;
 procedure TExplorationSite.SetupCombat(A1: TCombat; A2: TArmyHS);
 begin
   A1.FOnExecuted := CombatExecuted;
-  A1.Setup(A2.FArmy.FPlayer, A2.FArmy.FRace, A2.GetXhx, A2.GetYhx, A2.GetLhx,
-    FDefenders.FPlayer, FDefenders.FRace, GetXhx, GetYhx, GetLhx, True);
+  A1.Setup(A2.FArmy.FPlayer, A2.FArmy.FIndependentRelation, A2.GetXhx, A2.GetYhx, A2.GetLhx,
+    FDefenders.FPlayer, FDefenders.FIndependentRelation, GetXhx, GetYhx, GetLhx, True);
   A1.AddArmy(A2.FArmy, csAttacker, GetXhx, GetYhx, GetLhx);
   A1.AddArmyEx(FDefenders, csDefender, -1, -1, -1, 1);
   A1.FExplorationSite := 1;

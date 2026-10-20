@@ -10367,6 +10367,7 @@ begin
 end;
 
 procedure TAoWHSMap.ArmyDestroyed(Army: TArmyHS);
+{ conflict: procedure TAoWHSMap.ArmyDestroyed(Army: TArmy); }
 begin
   FArmyDestroyedEvents.TriggerNotifyEvents(Army);
 end;

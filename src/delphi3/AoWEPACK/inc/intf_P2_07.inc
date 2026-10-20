@@ -398,42 +398,46 @@
     procedure SetWallType(Value: TWallType);
   end;
 
-  { TArmyID (instance size 20, VMT 55712FF4) }
+  { TArmyID (instance size 20, VMT 55712FF4): +08 FUnitIDs; +0C FPlayer; +10 FX, FY, FL. }
   TArmyID = class(TEObject)
   public
-    F_ArmyID_08: Integer;
-    F_ArmyID_0C: Byte;
+    FUnitIDs: TIntegerList; { $08 }
+    FPlayer: Shortint; { $0C }
     F_ArmyID_0D: array[0..2] of Byte;
-    F_ArmyID_10: Integer;
+    FX, FY, FL: Shortint; { $10..12 }
+    F_ArmyID_13: Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Valid: Boolean;
-    function RetrieveArmy(var A1: TArmyHS; var A2: Byte): Boolean;
+    function RetrieveArmy(var ArmyHS: TArmyHS; var Selection: Byte): Boolean;
   end;
 
-  { TArmy (instance size 44, VMT 557130EC) }
+  { TArmy (instance size 44, VMT 557130EC): +10 FStatus; +12 FPlayer;
+    +13..15 location; +16 FIndependentRelation; +18 FUpkeep; +1C FOnUpdate;
+    +24 FOldAIBehavior; +25..27 destination;
+    +29 FVisibilityRanges; +2A FConcealedUnits. }
   TArmy = class(TUnitList)
   public
-    F_Army_10: Byte;
+    FStatus: TArmyStatus; { $10 }
     F_Army_11: Byte;
     FPlayer: Shortint;  { $12 }
     FX: Shortint; { $13 }
     FY: Shortint; { $14 }
     FL: Shortint; { $15 }
-    FRace: Byte; { $16 }
+    FIndependentRelation: Shortint; { $16 }
     F_Army_17: Byte;
-    F_Army_18: Integer;
-    F_Army_1C: Integer;
-    F_Army_20: Integer;
-    F_Army_24: Byte;
-    F_Army_25: Byte;
-    F_Army_26: Byte;
-    F_Army_27: Byte;
+    FUpkeep: Byte; { $18 }
+    F_Army_19: array[0..2] of Byte;
+    FOnUpdate: TNotifyEvent; { $1C }
+    FOldAIBehavior: TGroupBehavior; { $24 }
+    FDestinationX: Shortint; { $25 }
+    FDestinationY: Shortint; { $26 }
+    FDestinationL: Shortint; { $27 }
     FMode: TArmyMode; { $28; 5577602E }
-    F_Army_29: Byte;
-    F_Army_2A: Byte;
+    FVisibilityRanges: Byte; { $29 }
+    FConcealedUnits: Byte; { $2A }
     F_Army_2B: array[0..0] of Byte;
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
@@ -450,36 +454,36 @@
     function CanDeleteUnit(AUnit: TAbstractUnit): Boolean; override;
     function AddUnit(AUnit: TAbstractUnit): Boolean; override;
     function AddUnits(Units: TUnitList): Boolean; override;
-    procedure GetUnitConcealedForPlayer(A1: Integer; A2: Integer); virtual;  { +0B8 draft }
-    procedure GetConcealedForPlayer(A1: Byte); virtual;  { +0BC draft }
-    procedure Kill(A1: Integer);  { draft }
-    procedure GetStrengthEx(A1: Integer; A2: Integer);  { draft }
-    procedure GetStrengthMaxEx(A1: Integer; A2: Integer);  { draft }
-    procedure ReturnBattleFieldInfo(A1: Integer; A2: Integer);  { draft }
+    function GetUnitConcealedForPlayer(Index: Integer; Player: Shortint): Boolean; virtual; { +0B8 }
+    function GetConcealedForPlayer(Player: Shortint): Boolean; virtual; { +0BC }
+    procedure Kill(Selection: Byte);
+    function GetStrengthEx(Selection: Byte; DamageType: TDamageType): Integer;
+    function GetStrengthMaxEx(Selection: Byte; DamageTypes: TDamageTypes): Integer;
+    procedure ReturnBattleFieldInfo(var Info: TBattleFieldInfo);
     function HealUnits(Selection: Byte): Boolean;
-    procedure CreateGroupID(A1: Integer);  { draft }
-    procedure GetGroup(A1: Byte);  { draft }
-    procedure SetGroup(A1: Integer; A2: Integer);  { draft }
-    procedure GetGroupSelection(A1: Integer);  { draft }
-    procedure GetBehavior;  { draft }
-    procedure SetBehavior(Player: Shortint; Behavior: TGroupBehavior);
-    procedure GetOldAIBehavior;  { draft }
-    procedure InitializeGroupBehavior;  { draft }
-    procedure UpdateGroupBehavior(A1: Integer; A2: Integer);  { draft }
-    function CreateID(A1: Byte): TArmyID;
+    function CreateGroupID(Selection: Byte): Integer;
+    function GetGroup(Selection: Byte): TAIGroup;
+    procedure SetGroup(Selection: Byte; Group: TAIGroup);
+    function GetGroupSelection(GroupID: Integer): Byte;
+    function GetBehavior(Selection: Byte): TGroupBehavior;
+    procedure SetBehavior(Selection: Byte; Behavior: TGroupBehavior);
+    function GetOldAIBehavior: TGroupBehavior;
+    procedure InitializeGroupBehavior;
+    procedure UpdateGroupBehavior;
+    function CreateID(Selection: Byte): TArmyID;
     function GetArmyHS: TArmyHS;
-    procedure AssignSettings(A1: Integer);  { draft }
-    procedure SetFullyConcealed(A1: Byte);  { draft }
-    procedure GetFullyConcealed;  { draft }
-    procedure UpdateConcealment(A1: Integer; A2: Integer);  { draft }
-    procedure SetXYL(A1: Byte; A2: Byte; A3: Byte);
-    procedure GetRace(A1: Integer);  { draft }
-    procedure GetUpkeep;  { draft }
-    procedure ResetDestinationPos;  { draft }
-    procedure SetDestinationPos(A1: Byte; A2: Byte; A3: Integer);  { draft }
-    procedure ConcealedUnitsCount;  { draft }
-    procedure UpdateConcealedUnits;  { draft }
-    procedure UpdateUpkeep;  { draft }
+    procedure AssignSettings(Army: TArmy);
+    procedure SetFullyConcealed(Value: Boolean);
+    function GetFullyConcealed: Boolean;
+    procedure UpdateConcealment;
+    procedure SetXYL(X, Y, L: Shortint);
+    function GetRace(Selection: Byte): Integer;
+    function GetUpkeep: Byte;
+    procedure ResetDestinationPos;
+    procedure SetDestinationPos(X, Y, L: Shortint);
+    function ConcealedUnitsCount: Integer;
+    procedure UpdateConcealedUnits;
+    procedure UpdateUpkeep;
     procedure ValidateTerrainEx(A1: Byte; A2: Byte);  { draft }
     procedure ValidateTerrain(TerrainType, OverlayType: Shortint);
     procedure Validate;
@@ -511,10 +515,10 @@
     procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure MaxSize(A1: Integer; A2: Integer);  { draft }
     function Hero(Selection: Byte; Types: THeroTypes): THero;
-    procedure Leader(A1: Integer);  { draft }
+    function Leader(Selection: Byte): TLeader;
     function Transporter(Player: Byte): TAbstractUnit;
     { conflict: function Transporter(Selection: Byte): TAbstractUnit; }
-    procedure IndexOfTransporter(A1: Integer);  { draft }
+    function IndexOfTransporter(Selection: Byte): Integer;
     function UnitsInTransporter: Boolean;
     procedure UpdateVisibilityRanges(A1: Integer; A2: Integer);  { draft }
     procedure VisibilityRange;  { draft }
@@ -551,24 +555,23 @@
     procedure CanCombine(A1: Integer; A2: Integer);  { draft }
   end;
 
-  { TArmyView (instance size 96, VMT 55713210) }
+  { TArmyView (instance size 96, VMT 55713210): +2C FUnitConcealment;
+    +3C FConcealedForPlayers; +40 FMoraleValues. }
   TArmyView = class(TArmy)
   public
-    F_ArmyView_2C: Byte;
-    F_ArmyView_2D: array[0..14] of Byte;
-    F_ArmyView_3C: Word;
+    FUnitConcealment: array[0..7] of Word; { $2C }
+    FConcealedForPlayers: Word; { $3C }
     F_ArmyView_3E: array[0..1] of Byte;
-    F_ArmyView_40: Byte;
-    F_ArmyView_41: array[0..30] of Byte;
+    FMoraleValues: array[0..7] of Integer; { $40 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); override;
-    procedure GetUnitConcealedForPlayer(A1: Integer; A2: Integer); override;
-    procedure GetConcealedForPlayer(A1: Byte); override;
-    procedure Setup(A1: TArmy; A2: Byte); virtual;  { +0C0 }
-    procedure SetConcealedForPlayer(A1: Byte; A2: Integer);  { draft }
-    procedure SetUnitConcealedForPlayer(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function GetUnitConcealedForPlayer(Index: Integer; Player: Shortint): Boolean; override;
+    function GetConcealedForPlayer(Player: Shortint): Boolean; override;
+    procedure Setup(Army: TArmy; Selection: Byte); virtual;  { +0C0 }
+    procedure SetConcealedForPlayer(Player: Shortint; Value: Boolean);
+    procedure SetUnitConcealedForPlayer(Index: Integer; Player: Shortint; Value: Boolean);
   end;
 
   { TArmyHS (instance size 36, VMT 557133A0) }
@@ -623,7 +626,8 @@
     function GetArmyHS(Index: Integer): TArmyHS;
   end;
 
-  { TArmyEventLog (instance size 52, VMT 55713628) }
+  { TArmyEventLog (instance size 52, VMT 55713628): +18 FArmyView; +1C FArmyText;
+    +20 FArmyMessages; +24 FArmyIcon; +28 FDamageValues; +2C FDamageTypes; +30 FGameOver. }
   TArmyEventLog = class(TEventLog)
   public
     FArmyView: TArmyView; { $18 }
@@ -632,7 +636,7 @@
     FArmyIcon: Integer; { $24 }
     FDamageValues: TByteList; { $28 }
     FDamageTypes: TByteList; { $2C }
-    F_ArmyEventLog_30: Byte;
+    FGameOver: Boolean; { $30 }
     F_ArmyEventLog_31: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -642,13 +646,14 @@
     function GetLeftIcon: Integer; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation; override;
-    procedure SetArmyView;  { draft }
-    procedure LeaderKilled;  { draft }
-    procedure PartyDestroyed;  { draft }
+    procedure SetArmyView(Value: TArmyView);
+    function LeaderKilled: Boolean;
+    function PartyDestroyed: Boolean;
     procedure ValidateGameOver;
   end;
 
-  { TArmyInfoEventLog (instance size 52, VMT 55713724) }
+  { TArmyInfoEventLog (instance size 52, VMT 55713724): +18 FArmyView; +1C FSelection;
+    +20 FMessages; +24 FTitle; +28 FText; +2C FDescription; +30 FTriggers. }
   TArmyInfoEventLog = class(TEventLog)
   public
     FArmyView: TArmyView; { $18 }
@@ -658,7 +663,7 @@
     FTitle: string; { $24 }
     FText: string; { $28 }
     FDescription: string; { $2C }
-    F_ArmyInfoEventLog_30: Byte;
+    FTriggers: TExecuteTriggers; { $30 }
     F_ArmyInfoEventLog_31: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -667,6 +672,6 @@
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation; override;
-    procedure SetArmyView;  { draft }
+    procedure SetArmyView(Value: TArmyView);
   end;
 

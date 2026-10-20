@@ -474,7 +474,7 @@ type
   TBattleFieldRelations = set of 0..7;
   TBattleFieldInfo = packed record
     Player, IndependentRelation: Shortint; Requests: TBattleFieldInfoRequests;
-    DamageTypes: TDamageTypes; Reserved05: array[0..6] of Byte;
+    DamageTypes: TDamageTypes; Reserved05: array[0..2] of Byte; Units: TUnitList; { $08; 5578C334 }
     FriendlyRelations, EnemyRelations: TBattleFieldRelations; { $0C, $0D }
     Reserved0E: array[0..1] of Byte;
     FriendlyStrength: Integer; { $10 }

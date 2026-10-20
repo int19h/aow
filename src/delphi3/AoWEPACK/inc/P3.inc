@@ -1463,7 +1463,7 @@ begin
             TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FIndependentRelation,
             TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer,
             TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FIndependentRelation,
-            ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace)
+            ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FIndependentRelation)
         else Side := csDefender;
         if Side <> csNeutral then
           AddArmy(ArmyHS.FArmy, Side, Walk.X, Walk.Y, Data.F_CombatData_10);
@@ -1507,8 +1507,8 @@ var Party: TCombatParty; Valid, Transport: Boolean; Player, Position: Byte;
     Transporter: TAbstractUnit;
 begin
   A1.BeginUpdate;
-  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FRace);
-  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FRace, A2);
+  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FIndependentRelation);
+  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FIndependentRelation, A2);
   Position := GetPartyPosition(A3, A4, A5);
   Party := TCombatPartyList(FCombatData.F_CombatData_3C).CreateParty(Integer(Self), Position, Player, A3, A4, A5, Integer(A1));
   Transporter := A1.Transporter($FF);
@@ -1547,8 +1547,8 @@ function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Int
 var Party: TCombatParty; Player: Byte; Index, I: Integer; UnitObj: TCombatUnit;
 begin
   A1.BeginUpdate;
-  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FRace);
-  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FRace, A2);
+  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FIndependentRelation);
+  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FIndependentRelation, A2);
   Party := TCombatPartyList(FCombatData.F_CombatData_3C).CreateParty(Integer(Self), A6, Player, A3, A4, A5, Integer(A1));
   Index := 0;
   for I := A1.Count - 1 downto 0 do
@@ -1871,7 +1871,7 @@ begin
     TArmy(P.F_CombatParty_08).SetPlayer(
       TCombatPlayerList(TCombatData(TCombat(A1).FCombatData).FPlayers).
         GetPlayers(Shortint(A3)).FPlayer);
-    if A7 <> 0 then TArmy(P.F_CombatParty_08).AssignSettings(A7);
+    if A7 <> 0 then TArmy(P.F_CombatParty_08).AssignSettings(TArmy(A7));
     TArmy(P.F_CombatParty_08).Activate;
   end
   else raise Exception.Create('CombatParty already exists!');
@@ -3389,7 +3389,7 @@ begin
   with A1.FArmy do
   begin
     Player := FPlayer;
-    Relation := FRace;
+    Relation := FIndependentRelation;
   end;
   Defender := TAoWMapField(Level.GetField(A2, A3)).GetPlayer;
   DefenderRelation := TAoWMapField(Level.GetField(A2, A3)).GetIndependentRelation;
@@ -3408,7 +3408,7 @@ begin
         ArmyHS := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
         if (ArmyHS <> nil) and (ArmyHS <> A1) then
         begin
-          Side := GetCombatSide(Player, Relation, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace);
+          Side := GetCombatSide(Player, Relation, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FIndependentRelation);
           if Side <> csNeutral then
           begin
             Field := Level.GetField(A2, A3);
@@ -3453,7 +3453,7 @@ begin
         ArmyHS := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
         if ArmyHS <> nil then
         begin
-          Side := GetCombatSide(A1, A2, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace);
+          Side := GetCombatSide(A1, A2, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FIndependentRelation);
           if Side = csDefender then
           begin
             Field := Level.GetField(A3, A4);

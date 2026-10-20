@@ -1,0 +1,7 @@
+{
+  "5578316c:257": "P2CompareUnits",
+  "55783298:40": "P2CompareUnitMoves",
+  "55785234:110": "P2CompareUnitIndexes",
+  "AoWE.TArmyView.GetConcealedforPlayer": "TArmyView.GetConcealedForPlayer",
+  "AoWE.TArmyView.GetUnitConcealedforPlayer": "TArmyView.GetUnitConcealedForPlayer"
+}
