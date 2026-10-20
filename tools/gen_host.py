@@ -1,8 +1,15 @@
-"""Write matchtest.dpr for HSEPack: every class of the listed units referenced as a class value, every
+"""Write matchtest.dpr for a package: every class of the listed units referenced as a class value, every
 non-virtual method and unit routine by address (@TClass.Method), so the host does not depend on the
-parameter lists. Usage: gen_host.py <dir> Unit1 Unit2 ..."""
-import re, sys, os, glob
-d = sys.argv[1]; units = sys.argv[2:]
+parameter lists. Usage: gen_host.py <dir> --unit-path <semicolon-separated -U paths> Unit1 Unit2 ..."""
+import argparse, re, os
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('directory', help='package source directory')
+parser.add_argument('--unit-path', required=True, help='semicolon-separated compiler -U paths')
+parser.add_argument('units', nargs='+', help='unit names in host uses order')
+args = parser.parse_args()
+d = args.directory; units = args.units
+package = os.path.basename(os.path.normpath(d))
 classes = []; methods = []
 def scan(text):
     intf = text.split('\nimplementation')[0]
@@ -31,11 +38,11 @@ for u in units:
     UNIT[0] = u
     scan(expand(os.path.join(d, u + '.pas')))
 o = ['program matchtest;', '',
-     '{ Host program for the byte-matching of HSEPack.dpl: it references every class and every',
+     '{ Host program for the byte-matching of %s.dpl: it references every class and every' % package,
      '  non-virtual method so that the linker keeps them; it is linked, never run. Build from this',
      '  directory with the original compiler into a directory with a short path (DCC32 crashes on',
      '  long paths):',
-     '    C:\\Tools\\Delphi3\\BIN\\DCC32.EXE -GD -B -Q "-U..;..\\Dcpack;..\\Gfxepack;..\\Ilpack;..\\Ilpack\\stubs;..\\SoundP"',
+     '    C:\\Tools\\Delphi3\\BIN\\DCC32.EXE -GD -B -Q "-U%s"' % args.unit_path,
      '      -O.. -E<outdir> -N<outdir> matchtest.dpr',
      '  -GD writes matchtest.map with the address of every method; tools/match.py reads it. }', '',
      '{$APPTYPE CONSOLE}', '', 'uses', '  SysUtils, Classes,']

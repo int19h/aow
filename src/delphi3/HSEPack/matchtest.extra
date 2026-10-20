@@ -5,5 +5,11 @@ var
 begin
   L[0] := X;
 end;
+procedure UseMapObject(O: TMapObject);
+begin
+  O.ResourceID := 0;
+  Writeln(O.ResourceLinked);
+end;
 ---
   UsePut(nil);
+  UseMapObject(nil);

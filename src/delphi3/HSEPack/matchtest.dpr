@@ -4,7 +4,7 @@ program matchtest;
   non-virtual method so that the linker keeps them; it is linked, never run. Build from this
   directory with the original compiler into a directory with a short path (DCC32 crashes on
   long paths):
-    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -Q "-U..;..\Dcpack;..\Gfxepack;..\Ilpack;..\Ilpack\stubs;..\SoundP"
+    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -Q "-U..;..\Dcpack;..\Gfxepack;..\Ilpack;..\SoundP"
       -O.. -E<outdir> -N<outdir> matchtest.dpr
   -GD writes matchtest.map with the address of every method; tools/match.py reads it. }
 
@@ -44,6 +44,11 @@ var
   X: TXYL;
 begin
   L[0] := X;
+end;
+procedure UseMapObject(O: TMapObject);
+begin
+  O.ResourceID := 0;
+  Writeln(O.ResourceLinked);
 end;
 
 begin
@@ -416,4 +421,5 @@ begin
   Use(nil, @RegisterIsometricHexagon);
   Use(nil, @RegisterRandomHexagon);
   UsePut(nil);
+  UseMapObject(nil);
 end.
