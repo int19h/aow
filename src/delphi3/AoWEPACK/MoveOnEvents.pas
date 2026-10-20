@@ -192,18 +192,20 @@ end;
 
 procedure TMoveOnEvent.Connect;
 var
+  Walk: THNWalkData;
   MapLevel: TMapLevel;
   MapField: TMapField;
-  Walk: THNWalkData;
 begin
   if not (moPlacedOnMap in FStatus) then
   begin
     FStatus := FStatus + [moPlacedOnMap];
-    MapField := TMapField(Owner);
-    MapLevel := TMapLevel(MapField.Owner);
+    with TMapField(Owner) do
+    begin
+      MapLevel := TMapLevel(Owner);
+      InitHNWalk(Walk, Xhx, Yhx, 0);
+    end;
     with Walk do
     begin
-    InitHNWalk(Walk, MapField.Xhx, MapField.Yhx, 0);
     while Radius <= FRadius do
     begin
       if (X >= 0) and (Y >= 0) and (X < MapLevel.Width) and (Y < MapLevel.Height) then

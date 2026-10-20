@@ -110,9 +110,8 @@ type
   { THelpMessageEventLog (instance size 36, VMT 557FCE44) }
   THelpMessageEventLog = class(TEventLog)
   public
-    F_HelpMessageEventLog_18: Integer;
-    F_HelpMessageEventLog_1C: Byte;
-    F_HelpMessageEventLog_1D: array[0..2] of Byte;
+    FMessage: TStringList; { $18 }
+    FHelpFileName: string; { $1C }
     F_HelpMessageEventLog_20: Byte;
     F_HelpMessageEventLog_21: array[0..2] of Byte;
     destructor Destroy; override;

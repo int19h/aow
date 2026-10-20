@@ -2,7 +2,7 @@ unit FlagEvents;
 
 { Draft declarations of FlagEvents, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Bodies recovered in signature order; remaining declaration blockers are marked needs. }
+  Trigger players, message text and help-file references recovered from the original. }
 
 interface
 
@@ -95,16 +95,6 @@ procedure RegisterFlagEvents(AEngine: TEngine);
 
 implementation
 
-type
-  { needs: AoWE.TAoWMapField.GetPlayer must return Shortint (557D11BB).
-    The procedural cast calls the existing method with its recovered ABI. }
-  PFlagMapView = ^TFlagMapView;
-  TFlagMapView = record Reserved: array[0..$A4] of Byte; SeatedPlayer: Shortint; end;
-  TMessageLogView = class(TObject) Reserved: array[4..$17] of Byte; Message: TStrings; HelpFile: string; end;
-
-function MapFieldGetPlayer(MapField: TAoWMapField): Shortint; assembler;
-asm jmp TAoWMapField.GetPlayer end;
-
 procedure TFlagEvent.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -119,7 +109,6 @@ end;
 
 function TFlagEvent.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin
-  { needs: AoWE.AoWHSMap global; original tests msEditting in its Status at 557D1158. }
   Result := msEditting in AoWHSMap.Status;
 end;
 
@@ -146,14 +135,14 @@ procedure TFlagEvent.UpdateInstantTrigger;
 var
   Player: Shortint;
 begin
-  Player := MapFieldGetPlayer(TAoWMapField(Owner));
+  Player := TAoWMapField(Owner).GetPlayer;
   if (Player <> -1) and GetTriggerPlayer(Player) and Trigger(Player) then
     SetTriggerPlayer(Player, False);
 end;
 
 procedure TFlagEvent.UpdateNewTurnTrigger(Player: Shortint);
 begin
-  if (Player = MapFieldGetPlayer(TAoWMapField(Owner))) and
+  if (Player = TAoWMapField(Owner).GetPlayer) and
     GetTriggerPlayer(Player) and Trigger(Player) then
     SetTriggerPlayer(Player, False);
 end;
@@ -215,11 +204,11 @@ end;
 function TFlagMessageEvent.Trigger(Player: Shortint): Boolean;
 var Log: TFlagMessageEventLog;
 begin
-  if PFlagMapView(AoWHSMap)^.SeatedPlayer = Player then
+  if AoWHSMap.FSeatedPlayer = Player then
   begin
     Log := TFlagMessageEventLog.Create(nil);
-    TMessageLogView(Log).HelpFile := FHelpFileName;
-    TMessageLogView(Log).Message.Text := FMessage.Text;
+    Log.FHelpFileName := FHelpFileName;
+    Log.FMessage.Text := FMessage.Text;
     AoWHSMap.TriggerExecuteEventLog(Log, FTriggerMode = etmInstant, nil);
     Log.Release;
   end;
@@ -233,8 +222,6 @@ end;
 
 class function TFlagMessageEventResource.ResourceEditName: string;
 begin
-  { needs: AoWE.TranslateRStr(const S: string): string; pass its
-    hidden result address explicitly until P1 corrects the declaration. }
   Result := AoWE.TranslateRStr(FlagMessageEventRStr);
 end;
 
@@ -269,10 +256,10 @@ end;
 function TTutorialMessageEvent.Trigger(Player: Shortint): Boolean;
 var Log: TTutorialMessageEventLog;
 begin
-  if PFlagMapView(AoWHSMap)^.SeatedPlayer = Player then
+  if AoWHSMap.FSeatedPlayer = Player then
   begin
     Log := TTutorialMessageEventLog.Create(nil);
-    TMessageLogView(Log).Message.Text := FMessage.Text;
+    Log.FMessage.Text := FMessage.Text;
     AoWHSMap.TriggerExecuteEventLog(Log, FTriggerMode = etmInstant, nil);
     Log.Release;
   end;
@@ -286,8 +273,6 @@ end;
 
 class function TTutorialMessageEventResource.ResourceEditName: string;
 begin
-  { needs: AoWE.TranslateRStr(const S: string): string; pass its
-    hidden result address explicitly until P1 corrects the declaration. }
   Result := AoWE.TranslateRStr(TutorialMessageEventRStr);
 end;
 
