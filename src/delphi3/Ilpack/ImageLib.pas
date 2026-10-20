@@ -1084,7 +1084,10 @@ type
   TImageSequenceList = class(TList)
   private
     FLinked: Boolean;
+  public
+    { HSEngine's TMapObjectResource.MsgProc writes FILManager directly }
     FILManager: TImageLibraryManager;
+  private
     FImageLibrary: TCustomImageLibrary;
   public
     constructor Create(AILManager: TImageLibraryManager; AImageLibrary: TCustomImageLibrary);

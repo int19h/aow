@@ -96,7 +96,7 @@ type
 
 
   TStorageErrorEvent = procedure(Sender: TObject; const Msg: string; var Continue: Boolean) of object;
-  TStorageProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
+  TProgressEvent = procedure(Sender: TObject; const Msg: string; Percent: Integer) of object;
 
   EDoublePrioriyID = class(Exception);
 
@@ -118,8 +118,9 @@ type
 
   { Engine.TEObject (instance size 8): +4 FOwner. }
   TEObject = class(TObject)
-  private
+  protected
     FOwner: TECustomNode;
+  private
     function GetEObjectPath: string;
   public
     function ClassVersion: Integer; virtual;
@@ -521,14 +522,15 @@ type
   TSortItemArray = array[0..MaxInt div SizeOf(TSortItem) - 1] of TSortItem;
 
   TESortNode = class(TECustomNode)
-  private
+  protected
     FSorted: Boolean;
     FCount: Integer;
     FCapacity: Integer;
     FItems: PSortItemArray;
+    procedure Resize(NewCapacity: Integer);
+  private
     function GetSortValue(Index: Integer): Integer;
     procedure SetSortValue(Index: Integer; Value: Integer);
-    procedure Resize(NewCapacity: Integer);
   public
     constructor Create(AOwner: TECustomNode); override;
     destructor Destroy; override;
@@ -751,18 +753,18 @@ type
     procedure UnregisterEClasses(AClasses: array of TEObjectClass);
     function GetDescendantClasses(AClass: TClass): TEObjectClassList;
     procedure ActivateEObject(Obj: TEObject);
-    procedure WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
-    function RetrieveEObject(Stream: TStream; AProgress: TStorageProgressEvent): TEObject;
-    function RetrieveFromFile(const FileName: string; AProgress: TStorageProgressEvent): TEObject;
-    procedure StoreInFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure WriteToFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
-    procedure WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
-    function ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent): Boolean;
+    procedure WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
+    procedure ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
+    procedure WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
+    procedure ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
+    procedure StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
+    function RetrieveEObject(Stream: TStream; AProgress: TProgressEvent): TEObject;
+    function RetrieveFromFile(const FileName: string; AProgress: TProgressEvent): TEObject;
+    procedure StoreInFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
+    procedure WriteToFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
+    procedure ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
+    procedure WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
+    function ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TProgressEvent): Boolean;
     procedure ReadTextFromFile(const FileName: string; Obj: TEObject);
     procedure WriteTextToFile(const FileName: string; Obj: TEObject);
     function VerifyEObjectClass(AClass: TEObjectClass): Boolean;
@@ -787,7 +789,7 @@ type
     FErrorHandled: Boolean;
     FPropertyTable: TPropertyTable;
     FOnError: TStorageErrorEvent;
-    FOnProgress: TStorageProgressEvent;
+    FOnProgress: TProgressEvent;
   public
     function StorageMode: TStorageModes; virtual; abstract;
     function OpenPropertyStream(ID: Integer): TStream; virtual;
@@ -795,7 +797,7 @@ type
     procedure rwEObject(Obj: TEObject; ID: Integer); virtual; abstract;
     procedure rwEObjectStream(Obj: TEObject; ID: Integer); virtual; abstract;
     procedure rwChildren(Node: TECustomNode; ID: Integer); virtual; abstract;
-    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); virtual;
+    procedure rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc); virtual;
     procedure rwData(var Buffer; Size: Integer; ID: Integer); virtual;
     procedure rwString(var S: string; ID: Integer); virtual;
     procedure rwStrings(Strings: TStrings; ID: Integer); virtual;
@@ -815,7 +817,7 @@ type
     property Stream: TStream read FStream;
     property PropertyTable: TPropertyTable read FPropertyTable;
     property OnError: TStorageErrorEvent read FOnError write FOnError;
-    property OnProgress: TStorageProgressEvent read FOnProgress write FOnProgress;
+    property OnProgress: TProgressEvent read FOnProgress write FOnProgress;
   end;
 
   { Engine.TEReadStorageStream (instance size 44): +$24 FPartial, +$28 FDataBase. The constructor
@@ -841,7 +843,7 @@ type
     procedure rwStrings(Strings: TStrings; ID: Integer); override;
     procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
     procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
-    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); override;
+    procedure rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc); override;
     function OpenPropertyStream(ID: Integer): TStream; override;
     procedure rwBool(var B: Boolean; ID: Integer); override;
     function HandleException(E: Exception): Boolean;
@@ -876,7 +878,7 @@ type
     procedure rwStrings(Strings: TStrings; ID: Integer); override;
     procedure rwStringsEx(Strings: TStrings; ID: Integer); override;
     procedure rwData(var Buffer; Size: Integer; ID: Integer); override;
-    procedure rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc); override;
+    procedure rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc); override;
     function OpenPropertyStream(ID: Integer): TStream; override;
     procedure rwBool(var B: Boolean; ID: Integer); override;
     function HandleException(E: Exception): Boolean;
@@ -3939,7 +3941,7 @@ begin
   Result := C.Create(AOwner);
 end;
 
-procedure TEngine.WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.WriteEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
 var
   S: TEStorageStream;
 begin
@@ -3952,7 +3954,7 @@ begin
   end;
 end;
 
-procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.ReadEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
 var
   S: TEStorageStream;
 begin
@@ -3965,7 +3967,7 @@ begin
   end;
 end;
 
-procedure TEngine.WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.WritePreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
 var
   S: TEStorageStream;
 begin
@@ -3978,7 +3980,7 @@ begin
   end;
 end;
 
-procedure TEngine.ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.ReadPreviewEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
 var
   S: TEStorageStream;
 begin
@@ -3991,7 +3993,7 @@ begin
   end;
 end;
 
-procedure TEngine.StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.StoreEObject(Stream: TStream; Obj: TEObject; AProgress: TProgressEvent);
 var
   S: TEStorageStream;
 begin
@@ -4004,7 +4006,7 @@ begin
   end;
 end;
 
-function TEngine.RetrieveEObject(Stream: TStream; AProgress: TStorageProgressEvent): TEObject;
+function TEngine.RetrieveEObject(Stream: TStream; AProgress: TProgressEvent): TEObject;
 var
   S: TEStorageStream;
 begin
@@ -4017,7 +4019,7 @@ begin
   end;
 end;
 
-function TEngine.RetrieveFromFile(const FileName: string; AProgress: TStorageProgressEvent): TEObject;
+function TEngine.RetrieveFromFile(const FileName: string; AProgress: TProgressEvent): TEObject;
 var
   F: TFileStream;
 begin
@@ -4029,7 +4031,7 @@ begin
   end;
 end;
 
-procedure TEngine.StoreInFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.StoreInFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
 var
   F: TFileStream;
 begin
@@ -4041,7 +4043,7 @@ begin
   end;
 end;
 
-procedure TEngine.WriteToFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.WriteToFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
 var
   M: TMemoryStream;
   F: TFileStream;
@@ -4061,7 +4063,7 @@ begin
   end;
 end;
 
-procedure TEngine.ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.ReadFromFile(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
 var
   M: TMemoryStream;
   F: TFileStream;
@@ -4081,7 +4083,7 @@ begin
   end;
 end;
 
-procedure TEngine.WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent);
+procedure TEngine.WriteToFileCRC(const FileName: string; Obj: TEObject; AProgress: TProgressEvent);
 var
   CRC1, CRC2: Integer;
   M: TMemoryStream;
@@ -4105,7 +4107,7 @@ begin
   end;
 end;
 
-function TEngine.ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TStorageProgressEvent): Boolean;
+function TEngine.ReadFromFileCRC(const FileName: string; Obj: TEObject; AProgress: TProgressEvent): Boolean;
 var
   M: TMemoryStream;
   F: TFileStream;
@@ -4603,7 +4605,7 @@ procedure TEStorageStream.rwShortintEx(var S: Shortint; Default: Shortint; ID: I
 begin
 end;
 
-procedure TEStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
+procedure TEStorageStream.rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc);
 begin
 end;
 
@@ -4809,7 +4811,7 @@ begin
     PropertyExistError(ID);
 end;
 
-procedure TEWriteStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
+procedure TEWriteStorageStream.rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc);
 begin
   if not FPropertyTable.PropertyExist(ID) then
   begin
@@ -5201,7 +5203,7 @@ begin
   end;
 end;
 
-procedure TEReadStorageStream.rwStreamProc(ID: Integer; Obj: TObject; LoadProc, SaveProc: TStreamProc);
+procedure TEReadStorageStream.rwStreamProc(ID: Integer; LoadProc, SaveProc: TStreamProc);
 var
   Offset: Integer;
 begin
