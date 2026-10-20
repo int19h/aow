@@ -10,24 +10,26 @@
   { TActivateAbilityInfo (instance size 28, VMT 5570F120) }
   TActivateAbilityInfo = class(TEObject)
   public
-    F_ActivateAbilityInfo_08: Integer;
-    F_ActivateAbilityInfo_0C: Integer;
-    F_ActivateAbilityInfo_10: Integer;
+    FReferences: Integer;  { $08 }
+    FUnitID: Integer;  { $0C }
+    FAbilityID: Integer;  { $10 }
     F_ActivateAbilityInfo_14: array[0..7] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
   end;
 
-  { TAbility (instance size 36, VMT 5570F254) }
+  { TAbility: size $24; $08 name, $0C ID, $10 description, $14 cost,
+    $18 SFX library, $1C image sequences, $20 selection types.
+    Procedure return-ABI adapters preserve unmarked overrides in other packages. }
   TAbility = class(TEObject)
   public
-    F_Ability_08: Integer;
-    F_Ability_0C: Integer;
-    F_Ability_10: Integer;
-    F_Ability_14: Integer;
-    F_Ability_18: Integer;
-    F_Ability_1C: Integer;
+    FAbilityName: string;  { $08 }
+    FAbilityID: Integer;  { $0C }
+    FDescription: TStringList;  { $10 }
+    FSkillPointCost: Integer;  { $14 }
+    FSFXLibrary: TSFXLibrary;  { $18 }
+    FImageSequences: TImageSequenceList;  { $1C }
     F_Ability_20: Word;
     F_Ability_22: array[0..1] of Byte;
     destructor Destroy; override;
@@ -61,7 +63,7 @@
     procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
     procedure Activate(A1: Integer; A2: Integer); virtual;  { +0B4 draft }
     procedure CanActivateCombat(A1: Integer; A2: Integer); virtual;  { +0B8 draft }
-    procedure ActivateCombat(A1: Integer; A2: Integer); virtual;  { +0BC draft }
+    function ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean; virtual;
     procedure ListSpells; virtual;  { +0C0 draft }
     procedure CanExpand(A1: Integer); virtual;  { +0C4 draft }
     procedure ExpandCost; virtual;  { +0C8 draft }
@@ -72,38 +74,37 @@
     procedure GetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0DC draft }
     procedure GetOffensiveStrength(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0E0 draft }
     procedure fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0E4 draft }
-    procedure fcGetDamageValue(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0E8 draft }
+    function fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer; virtual;
     procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0EC draft }
-    procedure tcGetDamageValue(A1: Integer); virtual;  { +0F0 draft }
+    function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual;
     procedure CombatObjectDestroyed(A1: Integer); virtual;  { +0F4 draft }
     procedure NewCombatTurn(A1: Integer; A2: Integer); virtual;  { +0F8 draft }
     procedure CombatDone(A1: Integer); virtual;  { +0FC draft }
     procedure ListInfo(A1: Integer; A2: Byte); virtual;  { +100 draft }
     procedure GetCombatInfo(A1: Integer; A2: Integer); virtual;  { +104 draft }
     procedure AbilityDataClass; virtual;  { +108 draft }
-    procedure ShowInfo(A1: Integer; A2: Integer);  { draft }
-    procedure SetAb(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ShowInfo(Owner: TAbilityOwner; Font: TImageLibraryFont; X, Y: Integer; const Surface: TSurfaceDesc);
+    procedure SetAb(Owner: TAbilityOwner; Index: Integer; Value: Byte);
   end;
 
-  { TCustomAbilityList (instance size 16, VMT 5570F3DC) }
+  { TCustomAbilityList: size $10; $08 ability-bit buffer, $0C bit count. }
   TCustomAbilityList = class(TEObject)
   public
-    F_CustomAbilityList_08: Byte;
-    F_CustomAbilityList_09: array[0..2] of Byte;
-    F_CustomAbilityList_0C: Integer;
+    FAbilityBits: Pointer;  { $08 }
+    FAbilityCount: Integer;  { $0C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure Clear; override;
     procedure GetAbSet(A1: Integer); virtual;  { +04C draft }
-    procedure SetAbSet(A1: Integer; A2: Byte); virtual;  { +050 draft }
-    procedure GetAbCount; virtual;  { +054 draft }
+    procedure SetAbSet(Index: Integer; Value: Byte); virtual;
+    function GetAbCount: Integer; virtual;
     procedure ListAbilitiesEx(A1: Integer; A2: Word); virtual;  { +058 draft }
-    procedure SetAbCount(A1: Integer);  { draft }
-    procedure AssignAb(A1: Integer; A2: Integer);  { draft }
-    procedure CompareAb(A1: Integer);  { draft }
-    procedure ComposeAb(A1: Integer);  { draft }
-    procedure GetItemString(A1: Integer);  { draft }
-    procedure SetItemString(A1: Integer);  { draft }
+    procedure SetAbCount(Value: Integer);
+    procedure AssignAb(Source: TCustomAbilityList);
+    function CompareAb(Source: TCustomAbilityList): Boolean;
+    function ComposeAb(Source: TCustomAbilityList): Boolean;
+    function GetItemString: string;
+    procedure SetItemString(S: string);
   end;
 
   { TAbilityList (instance size 16, VMT 5570F4B8) }
@@ -168,14 +169,14 @@
   { TAbilityControl (instance size 32, VMT 5570F71C) }
   TAbilityControl = class(TEObject)
   public
-    F_AbilityControl_08: Integer;
+    FAbilities: TList;  { $08 }
     F_AbilityControl_0C: Byte;
     F_AbilityControl_0D: array[0..18] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetCount;  { draft }
-    function GetAbility(A1: Integer): TAbility;
+    function GetAbility(Index: Integer): TAbility;
     procedure RegisterAbility(A1: Integer);  { draft }
     procedure UnregisterAbility(A1: Integer);  { draft }
     procedure UnregisterAll;  { draft }

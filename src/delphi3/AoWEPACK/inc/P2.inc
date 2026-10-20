@@ -790,7 +790,7 @@ begin
   while not Enchanted and (I <> 0) do
   begin
     Dec(I);
-    Enchanted := GetAbilityEnabled(P2TypeAbility(List, I).F_Ability_0C);
+    Enchanted := GetAbilityEnabled(P2TypeAbility(List, I).FAbilityID);
   end;
   if Enchanted then FUnitStatus := FUnitStatus + [usEnchanted]
   else FUnitStatus := FUnitStatus - [usEnchanted];
@@ -807,8 +807,8 @@ begin
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
-    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
-      RemoveAbility(Ability.F_Ability_0C);
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
+      RemoveAbility(Ability.FAbilityID);
   end;
   Release;
 end;
@@ -833,9 +833,9 @@ begin
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
-    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
     begin
-      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
       if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
           Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
@@ -855,9 +855,9 @@ begin
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
-    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
     begin
-      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
       if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
           Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).F_Player_54).
@@ -872,9 +872,9 @@ var
   Data: TUnitEnchantmentAbilityData;
 begin
   Ability := P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID);
-  if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+  if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
   begin
-    Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+    Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
     if Data <> nil then Result := TUnitEnchantment(Data.FEnchantment)
     else begin Result := nil; Exit; end;
   end
@@ -893,7 +893,7 @@ begin
   while not Result and (I <> 0) do
   begin
     Dec(I);
-    Enchantment := AbilityToEnchantment(P2TypeAbility(List, I).F_Ability_0C);
+    Enchantment := AbilityToEnchantment(P2TypeAbility(List, I).FAbilityID);
     if (Enchantment = nil) or (Player = Shortint(Enchantment.F_Enchantment_0C)) then
       Result := False
     else Result := True;
@@ -909,7 +909,7 @@ begin
   Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
   for I := Abilities.Count - 1 downto 0 do
   begin
-    Enchantment := AbilityToEnchantment(P2TypeAbility(Abilities, I).F_Ability_0C);
+    Enchantment := AbilityToEnchantment(P2TypeAbility(Abilities, I).FAbilityID);
     if Enchantment <> nil then List.AddChild(Enchantment);
   end;
 end;
@@ -953,7 +953,7 @@ end;
 
 function TAbstractUnit.GetAbilityCount: Integer;
 begin
-  Result := F_CustomAbilityList_0C;
+  Result := FAbilityCount;
 end;
 
 function TAbstractUnit.GetInherentAbility(AbilityID: Integer): Boolean;
@@ -988,7 +988,7 @@ end;
 
 function TAbstractUnit.GetAbilitySet(AbilityID: Integer): Boolean;
 asm
-  CMP EDX,[EAX].F_CustomAbilityList_0C
+  CMP EDX,[EAX].FAbilityCount
   JAE @@Default
   MOV EAX,DWORD PTR [EAX+8]
   BT [EAX],EDX
@@ -2045,19 +2045,19 @@ begin
   else Result := -1;
   if GetAbilityEnabled(96) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if GetAbilityEnabled(98) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if GetAbilityEnabled(93) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if uoHitPoints in Info.Overlays then
     P2ShowHitPercent(X,Y,SD,P2HitPercent(GetHitPoints,GetHits));
   if uoCombat in Info.Overlays then
@@ -2065,25 +2065,25 @@ begin
     if GetHitPoints = 0 then
       TCustomImageLibrary(P2AoWHSSet.FCombatImages)[4].Show(X+18,Y+10,SD);
     if GetAbilityEnabled(48) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),48).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),48).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(150) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),150).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),150).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(149) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),149).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),149).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(97) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),97).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),97).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(92) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),92).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),92).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(95) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),95).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),95).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(94) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),94).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),94).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(127) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),127).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),127).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(107) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),107).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),107).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(34) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),34).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),34).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
   end;
   if usEnchanted in FUnitStatus then
     if Info.Looped then
@@ -2298,7 +2298,7 @@ begin
           begin
             Dec(I);
             Result := (P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),I),Player) >= sPolite) and
-              (TIntegerList(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),I).F_RaceResource_38).
+              (TIntegerList(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),I).FUnitIndexes).
                 IndexOf(TUnitResource(TUnit(Self).FUnitResource).UnitResourceIndex) <> -1);
           end;
         end

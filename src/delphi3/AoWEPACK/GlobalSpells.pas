@@ -2,7 +2,7 @@ unit GlobalSpells;
 
 { Draft declarations of GlobalSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  TConcealAreaHS and TConcealArea are recovered; later classes remain drafts. }
+  TConcealAreaHS, TConcealArea and TBirdsViewHS are recovered; later classes remain drafts. }
 
 interface
 
@@ -53,20 +53,21 @@ type
     procedure Activate(A1: Integer; A2: Integer); override;
   end;
 
-  { TBirdsViewHS (instance size 24, VMT 557E925C) }
+  { TBirdsViewHS (instance size 24, VMT 557E925C): $0C/$0D/$0E
+    X/Y/layer, $0F padding, $10 unexplored hexagons, $14 animation frame. }
   TBirdsViewHS = class(TFixedVisibleHS)
   public
-    F_BirdsViewHS_0C: Byte;
-    F_BirdsViewHS_0D: Byte;
-    F_BirdsViewHS_0E: Byte;
+    FX: Shortint;
+    FY: Shortint;
+    FLayer: Shortint;
     F_BirdsViewHS_0F: array[0..0] of Byte;
-    F_BirdsViewHS_10: Integer;
-    F_BirdsViewHS_14: Integer;
+    FHexagons: TIntegerList;
+    FFrame: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure StartAnimation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure StartAnimation(X,Y,Layer,Radius: Shortint);
     procedure StopAnimation;  { draft }
   end;
 
@@ -181,6 +182,7 @@ uses EventLog;
 type
   PGlobalSpellMap = ^TAoWHSMap;
   PGlobalSpellSet = ^TAoWHSSet;
+  PGlobalSpellEngine = ^TAoWEngine;
   TGlobalSpellEngineFields = packed record
     Reserved: array[0..$6C] of Byte;
     Detail: Byte;
@@ -188,17 +190,9 @@ type
 const
   GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;
   GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;
+  GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;
 
 { needs: pointer and Boolean results on the shared procedure drafts. }
-function GlobalLookupSpell(Control: TSpellControl; ID: Integer): TSpell; assembler;
-asm JMP TSpellControl.GetSpell end;
-
-function GlobalExplored(MapF: TAoWMapField; Player: Byte): Boolean; assembler;
-asm JMP TAoWMapField.GetExplored end;
-
-procedure GlobalDegreesRadToCo(Degrees,Radius: Integer; var X,Y: Integer); assembler;
-asm POP EBP; JMP AoWE.DegreesRadToCo end;
-
 constructor TConcealAreaHS.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
@@ -223,7 +217,7 @@ begin
   FY := Y;
   FLayer := Layer;
   FFrame := 0;
-  TSFXLibrary(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),1).
+  TSFXLibrary(TSpellControl(GlobalSpellSet^.FSpellControl).GetSpell(1).
     FCastSounds).Play(0);
   GlobalSpellMap^.DynamicFixedVisibleHS.AddChild(Self);
   InitHNWalk(Walk,FX,FY,0);
@@ -232,8 +226,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and
       (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
-      if GlobalExplored(TAoWMapField(Level.GetField(Walk.X,Walk.Y)),
-        PByte(Integer(GlobalSpellMap^)+$A5)^) then FHexagons.Add(Walk.HN);
+      if TAoWMapField(Level.GetField(Walk.X,Walk.Y)).GetExplored(GlobalSpellMap^.FSeatedPlayer) then FHexagons.Add(Walk.HN);
     WalkToNextHN(Walk);
   end;
 end;
@@ -254,7 +247,7 @@ begin
   if GlobalSpellMap^.ViewL = FLayer then
   begin
     Inc(FFrame);
-    if (TGlobalSpellEngineFields(Pointer(GlobalSpellMap^.Engine)^).Detail = 2) and
+    if (GlobalSpellEngine^.F_AoWEngine_6D = 2) and
       (GlobalSpellMap^.ViewL = FLayer) then
     begin
       Intensity := 60-Abs(FFrame*3-60);
@@ -279,9 +272,8 @@ begin
       Delay := Random(20);
       if FFrame-Delay >= 0 then
       begin
-        GlobalDegreesRadToCo(Direction,Radius,X,Y);
-        TImageSequenceList(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),
-          57).FCastImages).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
+        AoWE.DegreesRadToCo(Direction,Radius,X,Y);
+        TImageSequenceList(TSpellControl(GlobalSpellSet^.FSpellControl).GetSpell(57).FCastImages).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
       end;
     end;
     if FFrame = 40 then StopAnimation;
@@ -294,13 +286,10 @@ type
     Name: string;
   end;
 
-function GlobalTranslate(const Text: string): string; assembler;
-asm JMP AoWE.TranslateRStr end;
-
 constructor TConcealArea.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  TGlobalSpellNameFields(Pointer(Self)^).Name := GlobalTranslate(ConcealAreaRStr);
+  TGlobalSpellNameFields(Pointer(Self)^).Name := AoWE.TranslateRStr(ConcealAreaRStr);
   FSpellID := 1;
   FSpellType := stGlobal;
   FBaseManaCost := 5;
@@ -324,14 +313,8 @@ resourcestring
 procedure GlobalBaseExecute(Spell: TSpell; Event: TSpellTE; Caster: TAbstractUnit); assembler;
 asm JMP TSpell.ExecuteTE end;
 
-function GlobalPlayer(List: TPlayerList; Index: Integer): TPlayer; assembler;
-asm JMP TPlayerList.GetPlayers end;
-
 function GlobalPlayerRelation(List: TPlayerList; Player,Other: Byte): Byte; assembler;
 asm JMP TPlayerList.GetDiplomaticRelation end;
-
-function GlobalVisible(Map: TAoWHSMap; X,Y,Layer: Integer; Player: Byte): Boolean; assembler;
-asm POP EBP; JMP TAoWHSMap.VisibleForPlayer end;
 
 procedure GlobalSetExplored(MapF: TAoWMapField; Player: Byte; Explored: Boolean); assembler;
 asm JMP TAoWMapField.SetExplored end;
@@ -349,7 +332,7 @@ begin
   GlobalBaseExecute(Spell,Event,Caster);
   Spell.CastingDone(Caster,Spell.FBaseManaCost);
   Caster.GetLocation(X,Y,Layer);
-  if Caster.FPlayer = PByte(Integer(GlobalSpellMap^)+$A5)^ then
+  if Caster.FPlayer = GlobalSpellMap^.FSeatedPlayer then
     TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
   for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
   begin
@@ -365,8 +348,8 @@ begin
           (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
         begin
           MapF := TAoWMapField(Level.GetField(Walk.X,Walk.Y));
-          if GlobalExplored(MapF,Player) and
-            not GlobalVisible(GlobalSpellMap^,Walk.X,Walk.Y,Layer,Player) then
+          if MapF.GetExplored(Player) and
+            not GlobalSpellMap^.VisibleForPlayer(Walk.X,Walk.Y,Layer,Player) then
           begin
             GlobalSetExplored(MapF,Player,False);
             if Log = nil then
@@ -377,10 +360,9 @@ begin
               Log.F_LocationTextEventLog_1E := Layer;
               Log.F_EventLog_10 := Caster.FPlayer;
               PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
-                SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
-                  [GlobalTranslate(ConcealAreaRStr)]);
-              TEventLogbook(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-                Player).FEventLogbook).AddEvent(Integer(Log));
+                SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
+                  [AoWE.TranslateRStr(ConcealAreaRStr)]);
+              TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Integer(Log));
               Log.Release;
             end;
           end;
@@ -388,7 +370,7 @@ begin
         WalkToNextHN(Walk);
       end;
     end
-    else if GlobalVisible(GlobalSpellMap^,X,Y,Layer,Player) then
+    else if GlobalSpellMap^.VisibleForPlayer(X,Y,Layer,Player) then
     begin
       Log := TLocationTextEventLog.Create(nil);
       Log.F_LocationTextEventLog_1C := X;
@@ -396,10 +378,9 @@ begin
       Log.F_LocationTextEventLog_1E := Layer;
       Log.F_EventLog_10 := Caster.FPlayer;
       PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
-        SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
-          [GlobalTranslate(ConcealAreaRStr)]);
-      TEventLogbook(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-        Player).FEventLogbook).AddEvent(Integer(Log));
+        SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
+          [AoWE.TranslateRStr(ConcealAreaRStr)]);
+      TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Integer(Log));
       Log.Release;
     end;
   end;
@@ -433,12 +414,11 @@ begin
     War := False;
     for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
       War := War or (GlobalDiplomaticRelation(TPlayerDiplomaticRelations(
-        GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-          Shortint(Caster.FPlayer)).F_Player_40),Player) = 1);
+        TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).F_Player_40),Player) = 1);
     if not War then
     begin
-      Message := SysUtils.Format(GlobalTranslate(AWarRelationIsRequiredForXRStr),
-        [GlobalTranslate(ConcealAreaRStr)]);
+      Message := SysUtils.Format(AoWE.TranslateRStr(AWarRelationIsRequiredForXRStr),
+        [AoWE.TranslateRStr(ConcealAreaRStr)]);
       Result := False;
     end;
   end;
@@ -458,9 +438,6 @@ function GlobalVirtualCanActivate(Spell: TSpell; Caster: TAbstractUnit;
   var Message: string): Boolean; assembler;
 asm PUSH EBX; MOV EBX,[EAX]; CALL DWORD PTR [EBX+$68]; POP EBX end;
 
-function GlobalPlayerBusy(Player: TPlayer): Boolean; assembler;
-asm JMP TPlayer.GetBusy end;
-
 function ActivateConcealArea(Spell: TConcealArea; Caster: TAbstractUnit;
   Activation: Integer): Boolean;
 var
@@ -470,8 +447,7 @@ begin
   GlobalBaseActivate(Spell,Caster,Activation);
   Result := False;
   if GlobalVirtualCanActivate(Spell,Caster,Message) and
-    not GlobalPlayerBusy(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-      Shortint(Caster.FPlayer))) then
+    not TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).GetBusy() then
   begin
     Event := TSpellTE.Create(nil);
     Event.Initialize(Spell.FSpellID,Caster.FPlayer,
@@ -490,22 +466,87 @@ asm
 end;
 
 constructor TBirdsViewHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FHexagons := TIntegerList.Create;
+end;
 
 destructor TBirdsViewHS.Destroy;
-begin end;
+begin
+  FHexagons.Free;
+  inherited Destroy;
+end;
 
 function TBirdsViewHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin Result := $78000000; end;
 
-procedure TBirdsViewHS.StartAnimation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+procedure TBirdsViewHS.StartAnimation(X,Y,Layer,Radius: Shortint);
+var
+  Walk: THNWalkData;
+  Level: TMapLevel;
+begin
+  FX := X;
+  FY := Y;
+  FLayer := Layer;
+  FFrame := 0;
+  TSFXLibrary(TSpellControl(GlobalSpellSet^.FSpellControl).GetSpell(2).
+    FCastSounds).Play(0);
+  InitHNWalk(Walk,X,Y,0);
+  Level := GlobalSpellMap^.MapContainer.MapLevels[Layer];
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and
+      (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      if not TAoWMapField(Level.GetField(Walk.X,Walk.Y)).GetExplored(GlobalSpellMap^.FSeatedPlayer) then FHexagons.Add(Walk.HN);
+    WalkToNextHN(Walk);
+  end;
+  GlobalSpellMap^.DynamicFixedVisibleHS.AddChild(Self);
+end;
 
 procedure TBirdsViewHS.StopAnimation;
-begin end;
+begin
+  GlobalSpellMap^.DynamicFixedVisibleHS.RemoveChild(Self);
+  GlobalSpellMap^.DynamicVisibleHS.RemoveChild(Self);
+  Destroy;
+end;
 
-procedure TBirdsViewHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+procedure TBirdsViewHS.Show(XhpSurf: Integer; YhpSurf: Integer;
+  const SurfaceDesc: GFXE.TSurfaceDesc);
+var
+  Xhp,Yhp,HX,HY,Intensity,Radius,Direction,X,Y: Integer;
+  I,Delay: Integer;
+begin
+  if GlobalSpellMap^.ViewL = FLayer then
+  begin
+    Inc(FFrame);
+    Intensity := 100-FFrame*2;
+    HXtoHP(FX,FY,Xhp,Yhp);
+    Xhp := Xhp-XhpSurf-8;
+    Dec(Yhp,YhpSurf);
+    for I := 0 to FHexagons.Count-1 do
+    begin
+      HNtoHP(FHexagons[I],HX,HY);
+      Inc(HX,Xhp);
+      Inc(HY,Yhp);
+      TCustomImageLibrary(GlobalSpellSet^.FGeneralImages)[5].
+        ShowBlended(HX,HY,SurfaceDesc,AlphaBlendTable.LookupTables[Intensity]);
+    end;
+    RandSeed := GlobalSpellMap^.F_AoWHSMap_22C;
+    for I := 0 to 200 do
+    begin
+      Radius := Random(448);
+      Direction := Random(360);
+      Delay := Random(30);
+      if FFrame-Delay >= 0 then
+      begin
+        AoWE.DegreesRadToCo(Direction,Radius,X,Y);
+        TImageSequenceList(TSpellControl(GlobalSpellSet^.FSpellControl).
+          GetSpell(57).FCastImages).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
+      end;
+    end;
+    if FFrame = 50 then StopAnimation;
+  end;
+end;
 
 constructor TBirdsView.Create(AOwner: Engine.TECustomNode);
 begin end;

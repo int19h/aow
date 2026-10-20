@@ -1,4 +1,109 @@
+const
+  P1EmptySelectionTypes: TAbilitySelectionTypes = [];
+
+const
+  P1EmptyMoveTypes: TMoveTypes = [];
+  P1EmptyDamageTypes: TDamageTypes = [];
+  P1EmptyWallFeatures: TWallCombatFeatures = [];
+  P1EmptyControlType: TAbilityControlType = [];
+
 type
+  PP1Pointer = ^Pointer;
+  PP1DamageValues = ^TP1DamageValues;
+  TP1DamageValues = record
+    Damage, CounterDamage, Experience, CounterExperience, Reserved: Integer;
+  end;
+  PP1CombatInfo = ^TP1CombatInfo;
+  TP1CombatInfo = packed record
+    Kind: Byte;
+    Attack, Damage: Shortint;
+    Types: TDamageTypes;
+    RepeatCount: Shortint;
+  end;
+  TP1OwnerView = class(TEObject)
+    function HasAbility(Index: Integer): Boolean; virtual; abstract;
+    procedure SetAbility(Index: Integer; Value: Byte); virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    procedure Slot58; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    function OwnerName: string; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    procedure Slot70; virtual; abstract;
+    procedure Slot74; virtual; abstract;
+    procedure Slot78; virtual; abstract;
+    procedure Slot7C; virtual; abstract;
+    procedure Slot80; virtual; abstract;
+    procedure Slot84; virtual; abstract;
+    procedure Slot88; virtual; abstract;
+    function SelectionTypes: TAbilitySelectionTypes; virtual; abstract;
+  end;
+  TP1AbilityView = class(TEObject)
+    procedure Execute; virtual; abstract;
+    function GetHidden: Boolean; virtual; abstract;
+    function GetAbilityType: TAbilityType; virtual; abstract;
+    function GetName(Owner: TAbilityOwner): string; virtual; abstract;
+    function GetAttack(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetDefense(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetResistance(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetDamage(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetMoveTypes(Owner: TAbilityOwner): TMoveTypes; virtual; abstract;
+    function GetLevel(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetEnabled(Owner: TAbilityOwner): Boolean; virtual; abstract;
+    function GetImmunityTypes(Owner: TAbilityOwner): TDamageTypes; virtual; abstract;
+    function GetProtectionTypes(Owner: TAbilityOwner): TDamageTypes; virtual; abstract;
+    function GetSkillPoints(Owner: TAbilityOwner): Integer; virtual; abstract;
+    function GetCombatMode(Owner: TAbilityOwner): TCombatMode; virtual; abstract;
+    function GetWallCombatFeatures(Owner: TAbilityOwner): TWallCombatFeatures; virtual; abstract;
+    function GetSourceName(Owner: TAbilityOwner): string; virtual; abstract;
+    function GetInherent(Owner: TAbilityOwner): Boolean; virtual; abstract;
+    function GetInherentLevel(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; virtual; abstract;
+    function fcValidRoundDistance(Source, Target: TCombatObject): Boolean; virtual; abstract;
+    procedure fcPrefetchCombatCommands(Owner: TAbilityOwner); virtual; abstract;
+    function fcExecuteCombatCommand(Owner: TAbilityOwner; Command: Pointer): Boolean; virtual; abstract;
+    procedure NewDay(Owner: TAbilityOwner); virtual; abstract;
+    procedure NewTurn(Owner: TAbilityOwner; Info: Pointer); virtual; abstract;
+    function CanActivate(Owner: TAbilityOwner; var Reason: string): Boolean; virtual; abstract;
+    function Activate(Owner: TAbilityOwner; var Reason: string): Boolean; virtual; abstract;
+    function CanActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean; virtual; abstract;
+    function ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean; virtual; abstract;
+    procedure ListSpells; virtual; abstract;
+    function CanExpand(Owner: TAbilityOwner): Boolean; virtual; abstract;
+    function ExpandCost: Integer; virtual; abstract;
+    function ExpandName(Owner: TAbilityOwner): string; virtual; abstract;
+    function Expand(Owner: TAbilityOwner): Boolean; virtual; abstract;
+    function Remove(Owner: TAbilityOwner): Boolean; virtual; abstract;
+    function GetDamageValue(Source, Target: TCombatObject): Integer; virtual; abstract;
+    procedure GetDamageValueEx(Source, Target: TCombatObject; Defensive: Boolean; var Values: TP1DamageValues); virtual; abstract;
+    procedure GetOffensiveStrength(Owner: TAbilityOwner; var Strength: Integer; var Types: TDamageTypes); virtual; abstract;
+    procedure fcGetDamageValueEx(Source, Target: TCombatObject; Defensive: Boolean; var Values: TP1DamageValues); virtual; abstract;
+    function fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer; virtual; abstract;
+    procedure tcGetDamageValueEx(Source, Target: TCombatObject; var Values: TP1DamageValues); virtual; abstract;
+    function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual; abstract;
+    procedure CombatObjectDestroyed(Obj: TCombatObject); virtual; abstract;
+    procedure NewCombatTurn(Owner: TAbilityOwner; Info: Pointer); virtual; abstract;
+    procedure CombatDone(Owner: TAbilityOwner); virtual; abstract;
+    procedure ListInfo(Strings: TStrings; Mode: Byte); virtual; abstract;
+    procedure GetCombatInfo(Owner: TAbilityOwner; var Info: TP1CombatInfo); virtual; abstract;
+    function AbilityDataClass: TClass; virtual; abstract;
+  end;
+  { TAbility name-return ABI at VMT +$58; declarations in other packages remain unchanged. }
+  TP1AbilityNameView = class(TEObject)
+    procedure Execute; virtual; abstract;
+    procedure GetHidden; virtual; abstract;
+    procedure GetAbilityType; virtual; abstract;
+    function GetName(Owner: Pointer): string; virtual; abstract;
+  end;
+  TP1AbilityKinds = set of 0..15;
+  { ABI view: P2 has an unmarked procedure GetAbSet override at +$4C. }
+  TP1AbilityBitsView = class(TEObject)
+    function GetAbSet(Index: Integer): Boolean; virtual; abstract;
+    procedure SetAbSet(Index: Integer; Value: Byte); virtual; abstract;
+    function GetAbCount: Integer; virtual; abstract;
+  end;
+  TP1GetUnitResource = function(List: TUnitResourceList; Index: Integer): TUnitResource;
   { ABI-only view of TUnitSelector: Boolean CanSelectUnit at VMT +$04. }
   TSelectorView = class(TObject)
     procedure SetSelection; virtual; abstract;
@@ -114,6 +219,65 @@ type
     function HitPoints: Shortint; virtual; abstract;
   end;
   TP1CombatPlayerIndex = function(List: TCombatPlayerList; Player: Byte): Integer;
+
+type
+  TP1DistanceCombatView = class(TObject)
+    procedure DistanceSlot00; virtual; abstract;
+    procedure DistanceSlot04; virtual; abstract;
+    procedure DistanceSlot08; virtual; abstract;
+    procedure DistanceSlot0C; virtual; abstract;
+    procedure DistanceSlot10; virtual; abstract;
+    procedure DistanceSlot14; virtual; abstract;
+    procedure DistanceSlot18; virtual; abstract;
+    procedure DistanceSlot1C; virtual; abstract;
+    procedure DistanceSlot20; virtual; abstract;
+    procedure DistanceSlot24; virtual; abstract;
+    procedure DistanceSlot28; virtual; abstract;
+    procedure DistanceSlot2C; virtual; abstract;
+    procedure DistanceSlot30; virtual; abstract;
+    procedure DistanceSlot34; virtual; abstract;
+    procedure DistanceSlot38; virtual; abstract;
+    procedure DistanceSlot3C; virtual; abstract;
+    procedure DistanceSlot40; virtual; abstract;
+    procedure DistanceSlot44; virtual; abstract;
+    procedure DistanceSlot48; virtual; abstract;
+    procedure DistanceSlot4C; virtual; abstract;
+    procedure DistanceSlot50; virtual; abstract;
+    procedure DistanceSlot54; virtual; abstract;
+    procedure DistanceSlot58; virtual; abstract;
+    procedure DistanceSlot5C; virtual; abstract;
+    procedure DistanceSlot60; virtual; abstract;
+    procedure DistanceSlot64; virtual; abstract;
+    procedure DistanceSlot68; virtual; abstract;
+    procedure DistanceSlot6C; virtual; abstract;
+    procedure DistanceSlot70; virtual; abstract;
+    procedure DistanceSlot74; virtual; abstract;
+    procedure DistanceSlot78; virtual; abstract;
+    procedure DistanceSlot7C; virtual; abstract;
+    procedure DistanceSlot80; virtual; abstract;
+    procedure DistanceSlot84; virtual; abstract;
+    procedure DistanceSlot88; virtual; abstract;
+    procedure DistanceSlot8C; virtual; abstract;
+    procedure DistanceSlot90; virtual; abstract;
+    function Speed: Integer; virtual; abstract;
+    procedure DistanceSlot98; virtual; abstract;
+    procedure DistanceSlot9C; virtual; abstract;
+    procedure DistanceSlotA0; virtual; abstract;
+    procedure DistanceSlotA4; virtual; abstract;
+    procedure DistanceSlotA8; virtual; abstract;
+    procedure DistanceSlotAC; virtual; abstract;
+    procedure DistanceSlotB0; virtual; abstract;
+    procedure DistanceSlotB4; virtual; abstract;
+    procedure DistanceSlotB8; virtual; abstract;
+    procedure DistanceSlotBC; virtual; abstract;
+    procedure DistanceSlotC0; virtual; abstract;
+    procedure DistanceSlotC4; virtual; abstract;
+    procedure DistanceSlotC8; virtual; abstract;
+    procedure DistanceSlotCC; virtual; abstract;
+    procedure DistanceSlotD0; virtual; abstract;
+    function LastRound: Integer; virtual; abstract;
+  end;
+  TP1FastRound = function(Combat: TFastCombat): Integer;
 
 constructor TAoWHSSet.Create(AOwner: Engine.TECustomNode);
 var
@@ -883,248 +1047,868 @@ begin
     TUnitIndexList(List^[Category]).Add(UnitIndex);
 end;
 
-procedure TUnitSelectionControl.Create(A1: Byte);
-begin end;
+constructor TUnitSelectionControl.Create;
+type
+  TCreateList = function(ListClass: TClass; Allocate: Byte): TUnitIndexList;
+begin
+  inherited Create;
+  FRacesEnabled := TBitList.Create;
+  with FRacesEnabled do Default := True;
+  FTypesEnabled := TBitList.Create;
+  with FTypesEnabled do Default := True;
+  FRaceUnits := TUnitCategoryList.Create;
+  FTypeUnits := TUnitCategoryList.Create;
+  { needs: P2 TUnitIndexList.Create is a parameterless constructor. }
+  FAllUnits := TCreateList(@TUnitIndexList.Create)(TUnitIndexList, 1);
+  Reset;
+end;
 
 destructor TUnitSelectionControl.Destroy;
-begin end;
+begin
+  Clear;
+  FRacesEnabled.Free;
+  FTypesEnabled.Free;
+  FRaceUnits.Free;
+  FTypeUnits.Free;
+  FAllUnits.Free;
+  inherited Destroy;
+end;
 
-procedure TUnitSelectionControl.SetSelectedUnitIndex(A1: Integer);
-begin end;
+procedure TUnitSelectionControl.SetSelectedUnitIndex(Value: Integer);
+var
+  Resource: TUnitResource;
+begin
+  if AoWHSSet <> nil then
+  begin
+    { needs: P2 GetUnitResource(Index: Integer): TUnitResource. }
+    Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(AoWHSSet.FUnitResources, Value);
+    if Resource <> nil then
+      FSelectedUnitIndex := Value
+    else FSelectedUnitIndex := -1;
+    FSelectedHero := nil;
+  end;
+end;
 
-procedure TUnitSelectionControl.SetSelectedHero(A1: Integer);
-begin end;
+procedure TUnitSelectionControl.SetSelectedHero(Value: THero);
+begin
+  FSelectedHero := Value;
+  FSelectedUnitIndex := -1;
+end;
 
-procedure TUnitSelectionControl.GetUnitCategoryList(A1: Integer);
-begin end;
+function TUnitSelectionControl.GetUnitCategoryList(Category: Shortint): TUnitIndexList;
+begin
+  if Category >= 0 then Result := FRaceUnits.GetCategory(Category)
+  else if Category = -16 then Result := FAllUnits
+  else Result := FTypeUnits.GetCategory(Shortint(Abs(Category)) - 1);
+end;
 
-procedure TUnitSelectionControl.GetUnitCategoryEnabled(A1: Integer);
-begin end;
+function TUnitSelectionControl.GetUnitCategoryEnabled(Category: Shortint): Boolean;
+begin
+  if Category >= 0 then Result := FRacesEnabled[Category]
+  else Result := FTypesEnabled[Shortint(Abs(Category)) - 1];
+end;
 
-procedure TUnitSelectionControl.SetUnitCategoryEnabled(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitSelectionControl.SetUnitCategoryEnabled(Category: Shortint; Value: Boolean);
+begin
+  if Category >= 0 then FRacesEnabled[Category] := Value
+  else FTypesEnabled[Shortint(Abs(Category)) - 1] := Value;
+end;
 
 procedure TUnitSelectionControl.Reset;
-begin end;
+var
+  I: Integer;
+begin
+  FAlignments := alsAll;
+  FMinimumLevel := 0;
+  FMaximumLevel := 255;
+  FRacesEnabled.Clear;
+  FTypesEnabled.Clear;
+  FAllUnits.Clear;
+  FSelectedUnitIndex := -1;
+  FSelectedHero := nil;
+  FShowRaceCategories := True;
+  FShowAllCategory := False;
+  FShowTypeCategories := True;
+  if AoWHSMap <> nil then
+    for I := 0 to AoWHSMap.FRaces.GetCount - 1 do
+      if AoWHSMap.FRaces.GetRace(I) <> nil then
+        FRacesEnabled[I] := AoWHSMap.FRaces.GetRace(I).FEnabled;
+end;
 
 procedure TUnitSelectionControl.DisableAllCategories;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to AoWHSSet.FRaceResources.GetCount - 1 do FRacesEnabled[I] := False;
+  for I := 0 to FTypesEnabled.Count - 1 do FTypesEnabled[I] := False;
+end;
 
 procedure TUnitSelectionControl.UpdateSelection;
-begin end;
+var
+  Index: Integer;
+  Resources: TUnitResourceList;
+  I, J: Integer;
+  Resource: TUnitResource;
+  UnitType_: TUnitType;
+begin
+  FRaceUnits.Clear;
+  FTypeUnits.Clear;
+  FAllUnits.Clear;
+  Resources := AoWHSSet.FUnitResources;
+  { needs: P2 GetUnitResource(Index: Integer): TUnitResource. }
+  { Original intersects FAlignments with itself, ignoring the unit alignment. }
+  if FShowAllCategory then
+    for I := 0 to Resources.GetCount - 1 do
+      if TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I) <> nil then
+      begin
+        Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I);
+        if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
+          (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
+          (FAlignments * FAlignments <> []) then FAllUnits.Add(I);
+      end;
+  if FShowTypeCategories then
+    for I := 0 to Resources.GetCount - 1 do
+      if TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I) <> nil then
+      begin
+        Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I);
+        if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
+          (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
+          (FAlignments * FAlignments <> []) then FTypeUnits.AddUnit(Integer(Resource.FUnitType), I);
+      end;
+  if FShowRaceCategories then
+    { Original bounds this race loop by the unit-resource count. }
+    for I := 0 to Resources.GetCount - 1 do
+      if FRacesEnabled[I] and (AoWHSSet.FRaceResources.GetRaceResource(I) <> nil) then
+        for J := 0 to AoWHSSet.FRaceResources.GetRaceResource(I).FUnitIndexes.Count - 1 do
+        begin
+          Index := AoWHSSet.FRaceResources.GetRaceResource(I).FUnitIndexes[J];
+          if Index <> -1 then
+          begin
+            Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, Index);
+            if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
+              (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
+              (FAlignments * FAlignments <> []) then FRaceUnits.AddUnit(I, Index);
+          end;
+        end;
+  FTypeUnits.SortUnits;
+  FRaceUnits.SortUnits;
+  FAllUnits.SortUnits;
+  Clear;
+  if FShowAllCategory and ((FAllUnits.Count <> 0) or FShowEmptyCategories) then
+    AddObject('All', TObject(-16));
+  if FShowTypeCategories then
+    for UnitType_ := Low(TUnitType) to High(TUnitType) do
+      if FTypesEnabled[Ord(UnitType_)] and
+        (FTypeUnits.GetCategory(Ord(UnitType_)) <> nil) and
+        ((FTypeUnits.GetCategory(Ord(UnitType_)).Count <> 0) or FShowEmptyCategories) then
+        AddObject(TranslateRStr(UnitTypePluralRStr[UnitType_]), TObject(-(Ord(UnitType_) + 1)));
+  if FShowRaceCategories then
+    for I := 0 to AoWHSSet.FRaceResources.GetCount - 1 do
+      if FRacesEnabled[I] and (FRaceUnits.GetCategory(I) <> nil) and
+        ((FRaceUnits.GetCategory(I).Count <> 0) or FShowEmptyCategories) then
+        AddObject(AoWHSSet.FRaceResources.GetRaceResource(I).FRaceName, TObject(I));
+end;
 
 constructor TActivateAbilityInfo.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FReferences := 1;
+end;
 
 function TActivateAbilityInfo.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FReferences);
+  Result := FReferences;
+end;
 
 function TActivateAbilityInfo.Release: Integer;
-begin Result := 0; end;
+var
+  Count: Integer;
+begin
+  Dec(FReferences);
+  Count := FReferences;
+  Result := Count;
+  if Count = 0 then Destroy;
+end;
 
 destructor TCustomAbilityList.Destroy;
-begin end;
+begin
+  Clear;
+  inherited Destroy;
+end;
 
 procedure TCustomAbilityList.Clear;
-begin end;
+begin
+  inherited Clear;
+  SetAbCount(0);
+end;
 
-procedure TCustomAbilityList.SetAbSet(A1: Integer; A2: Byte);
-begin end;
+procedure TCustomAbilityList.SetAbSet(Index: Integer; Value: Byte);
+asm
+  CMP EDX,[EAX].FAbilityCount
+  JAE @@grow
+@@set:
+  MOV EAX,[EAX].FAbilityBits
+  OR CL,CL
+  JZ @@clear
+  BTS [EAX],EDX
+  RET
+@@clear:
+  BTR [EAX],EDX
+  RET
+@@grow:
+  PUSH EAX
+  PUSH EDX
+  PUSH ECX
+  INC EDX
+  CALL TCustomAbilityList.SetAbCount
+  POP ECX
+  POP EDX
+  POP EAX
+  JMP @@set
+end;
 
 procedure TCustomAbilityList.GetAbSet(A1: Integer);
-begin end;
+{ needs: Boolean result; P2 has an unmarked procedure override. }
+asm
+  CMP EDX,[EAX].FAbilityCount
+  JAE @@none
+  MOV EAX,[EAX].FAbilityBits
+  BT [EAX],EDX
+  SBB EAX,EAX
+  AND EAX,1
+  RET
+@@none:
+  MOV AL,0
+  AND EAX,1
+end;
 
-procedure TCustomAbilityList.SetAbCount(A1: Integer);
-begin end;
+procedure TCustomAbilityList.SetAbCount(Value: Integer);
+var
+  OldSize, NewSize: Integer;
+begin
+  { Original assertion accepts every Integer: its bounds predicate uses OR. }
+  Assert(not ((Value < 0) and (Value >= $07FFFFFF)), 'Invalid AbCount Value (TArrayList)');
+  OldSize := (FAbilityCount + 7) shr 3;
+  NewSize := (Value + 7) shr 3;
+  if OldSize <> NewSize then
+  begin
+    ReallocMem(FAbilityBits, NewSize);
+    if OldSize < NewSize then
+      FillChar(Pointer(Integer(FAbilityBits) + OldSize)^, NewSize - OldSize, 0);
+  end;
+  FAbilityCount := Value;
+end;
 
-procedure TCustomAbilityList.GetAbCount;
-begin end;
+function TCustomAbilityList.GetAbCount: Integer;
+begin
+  Result := FAbilityCount;
+end;
 
-procedure TCustomAbilityList.AssignAb(A1: Integer; A2: Integer);
-begin end;
+procedure TCustomAbilityList.AssignAb(Source: TCustomAbilityList);
+var
+  Count, I: Integer;
+begin
+  if Source.GetAbCount > GetAbCount then Count := Source.GetAbCount
+  else Count := GetAbCount;
+  for I := 0 to Count - 1 do
+    if TP1AbilityBitsView(Source).GetAbSet(I) <> TP1AbilityBitsView(Self).GetAbSet(I) then
+      SetAbSet(I, Ord(TP1AbilityBitsView(Source).GetAbSet(I)));
+end;
 
-procedure TCustomAbilityList.CompareAb(A1: Integer);
-begin end;
+function TCustomAbilityList.CompareAb(Source: TCustomAbilityList): Boolean;
+begin
+  Result := Source.GetAbCount = FAbilityCount;
+  if Result then Result := CompareMem(FAbilityBits, Source.FAbilityBits, (GetAbCount + 7) shr 3);
+end;
 
-procedure TCustomAbilityList.ComposeAb(A1: Integer);
-begin end;
+function TCustomAbilityList.ComposeAb(Source: TCustomAbilityList): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to Source.GetAbCount - 1 do
+    if TP1AbilityBitsView(Source).GetAbSet(I) and not TP1AbilityBitsView(Self).GetAbSet(I) then
+    begin
+      SetAbSet(I, 1);
+      Result := True;
+    end;
+end;
 
 procedure TCustomAbilityList.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  I: Integer;
+begin
+  if Stream.StorageMode * [smTextOnly, smCompare] = [] then
+  begin
+    if smRead in Stream.StorageMode then
+    begin
+      Stream.rwInteger(I, 2);
+      SetAbCount(I);
+      Stream.rwData(FAbilityBits^, (FAbilityCount + 7) shr 3, 3);
+    end
+    else
+    begin
+      Stream.rwInteger(FAbilityCount, 2);
+      Stream.rwData(FAbilityBits^, (FAbilityCount + 7) shr 3, 3);
+    end;
+  end;
+  if not (smPreview in Stream.StorageMode) then
+    for I := 0 to FAbilityCount - 1 do
+      if TP1AbilityBitsView(Self).GetAbSet(I) and (AoWHSSet.FAbilityControl.GetAbility(I) = nil) then
+        SetAbSet(I, 0);
+end;
 
-procedure TCustomAbilityList.GetItemString(A1: Integer);
-begin end;
+function TCustomAbilityList.GetItemString: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to FAbilityCount - 1 do
+    if TP1AbilityBitsView(Self).GetAbSet(I) then Result := Result + IntToStr(I) + ',';
+  if Result <> '' then Result := System.Copy(Result, 1, Length(Result) - 1);
+end;
 
-procedure TCustomAbilityList.SetItemString(A1: Integer);
-begin end;
+procedure TCustomAbilityList.SetItemString(S: string);
+var
+  Part: string;
+  P: Integer;
+begin
+  Clear;
+  P := Pos(',', S);
+  while S <> '' do
+  begin
+    if P <> 0 then
+    begin
+      Part := System.Copy(S, 1, P - 1);
+      Delete(S, 1, P);
+    end
+    else
+    begin
+      Part := S;
+      S := '';
+    end;
+    if Part <> '' then SetAbSet(StrToInt(Part), 1);
+    P := Pos(',', S);
+  end;
+end;
 
 procedure TCustomAbilityList.ListAbilitiesEx(A1: Integer; A2: Word);
-begin end;
+var
+  I: Integer;
+  Ability: TAbility;
+begin
+  TStrings(A1).Clear;
+  for I := 0 to FAbilityCount - 1 do
+    if TP1AbilityBitsView(Self).GetAbSet(I) then
+    begin
+      Ability := AoWHSSet.FAbilityControl.GetAbility(I);
+      if TP1AbilityKinds(Ability.F_Ability_20) * TP1AbilityKinds(A2) <> [] then
+        { needs: TAbility.GetName(Owner): string; unmarked overrides stay untouched. }
+        TStrings(A1).AddObject(TP1AbilityNameView(Ability).GetName(nil), TObject(I));
+    end;
+end;
 
 procedure TAbilityData.GetAbilityID;
-begin end;
+{ needs: Integer result; unmarked overrides retain the draft procedure ABI. }
+asm
+  OR EAX,-1
+end;
 
 procedure TAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+end;
 
 constructor TAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDescription := TStringList.Create;
+  FSFXLibrary := TSFXLibrary.Create(nil);
+  FImageSequences := TImageSequenceList.Create(AoWHSSet.ImageLibraryManager, nil);
+end;
 
 destructor TAbility.Destroy;
-begin end;
+begin
+  FDescription.Free;
+  FSFXLibrary.Free;
+  FImageSequences.Free;
+  inherited Destroy;
+end;
 
-procedure TAbility.ShowInfo(A1: Integer; A2: Integer);
-begin end;
+procedure TAbility.ShowInfo(Owner: TAbilityOwner; Font: TImageLibraryFont; X, Y: Integer; const Surface: TSurfaceDesc);
+begin
+  Font.SetText(X, Y, TP1AbilityView(Self).GetName(Owner), Surface);
+end;
 
 procedure TAbility.GetSourceName(A1: Integer; A2: Integer);
-begin end;
+begin
+  TAbilityOwner(A1).GetOwnerName(A2);
+end;
 
-procedure TAbility.SetAb(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbility.SetAb(Owner: TAbilityOwner; Index: Integer; Value: Byte);
+begin
+  Owner.SetAbSet(Index, Value);
+end;
 
 procedure TAbility.GetControlType;
-begin end;
+{ needs: set result; preserve existing procedure-header return ABI. }
+asm
+  MOV AL,P1EmptyControlType
+end;
 
 procedure TAbility.GetCombatMode(A1: Integer);
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetDamageValue(A1: Integer; A2: Integer);
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+begin
+  with PP1DamageValues(A4)^ do
+  begin
+    Damage := 0;
+    Experience := 0;
+    CounterDamage := 0;
+    CounterExperience := 0;
+    { Original leaves Reserved untouched. }
+  end;
+end;
 
 procedure TAbility.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+begin
+  with PP1DamageValues(A4)^ do
+  begin
+    Damage := 0;
+    Experience := 0;
+    CounterDamage := 0;
+    CounterExperience := 0;
+    { Original leaves Reserved untouched. }
+  end;
+end;
 
 procedure TAbility.fcValidRoundDistance(A1: Integer; A2: Integer);
-begin end;
+var
+  Distance: Integer;
+  Value: Boolean;
+begin
+  { needs: Boolean result; P4 has an unmarked procedure override. }
+  { needs: P5 GetRoundDistance: Integer; P3 Speed/LastRound result signatures. }
+  Distance := TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).F_CombatObject_08));
+  if TP1DistanceCombatView(A1).Speed >= 32 then Inc(Distance, 2);
+  Value := Distance >= TP1DistanceCombatView(A2).LastRound;
+  if Value and (TCombatObject(A1) is TCombatUnit) and
+    (TObject(TCombatUnit(A1).FUnit) is THero) then
+    Value := Value and (((Byte(TCombatObject(A1).FStatus) and $10) <> 0) or
+      (TP1DistanceCombatView(A1).LastRound <=
+       TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).F_CombatObject_08)) + 2));
+  asm MOV AL,Value end;
+end;
 
-procedure TAbility.fcGetDamageValue(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAbility.fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer;
+var
+  Values: TP1DamageValues;
+begin
+  TP1AbilityView(Self).fcGetDamageValueEx(Source, Target, Defensive, Values);
+  Result := Values.Damage;
+end;
 
 procedure TAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+begin
+  TP1AbilityView(Self).fcGetDamageValueEx(TCombatObject(A1), TCombatObject(A2), False, PP1DamageValues(A3)^);
+end;
 
-procedure TAbility.tcGetDamageValue(A1: Integer);
-begin end;
+function TAbility.tcGetDamageValue(Source, Target: TCombatObject): Integer;
+var
+  Values: TP1DamageValues;
+begin
+  TP1AbilityView(Self).tcGetDamageValueEx(Source, Target, Values);
+  Result := Values.Damage;
+end;
 
 procedure TAbility.GetCombatInfo(A1: Integer; A2: Integer);
-begin end;
+begin
+  with PP1CombatInfo(A2)^ do
+  begin
+    Attack := -1;
+    Damage := -1;
+    Types := [];
+    RepeatCount := -1;
+  end;
+end;
 
 procedure TAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+{ needs: set result; preserve existing procedure-header return ABI. }
+asm
+  MOV AL,P1EmptyWallFeatures
+end;
 
 procedure TAbility.CanExpand(A1: Integer);
-begin end;
+{ needs: Boolean result; preserve unmarked P4 procedure overrides. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI,EDX
+  MOV EBX,EAX
+  MOV EDX,[EBX].FAbilityID
+  MOV EAX,ESI
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$4C]
+  TEST AL,AL
+  JNZ @@none
+  MOV EAX,ESI
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+$8C]
+  AND AX,[EBX].F_Ability_20
+  MOV DX,P1EmptySelectionTypes
+  CMP DX,AX
+  JNZ @@yes
+@@none:
+  XOR EAX,EAX
+  POP ESI
+  POP EBX
+  RET
+@@yes:
+  MOV AL,1
+  POP ESI
+  POP EBX
+end;
 
 procedure TAbility.ExpandName(A1: Integer; A2: Integer);
-begin end;
+begin
+  PString(A2)^ := FAbilityName;
+end;
 
 procedure TAbility.ExpandCost;
-begin end;
+asm
+  MOV EAX,[EAX].FSkillPointCost
+end;
 
 procedure TAbility.Expand(A1: Integer; A2: Integer);
-begin end;
+begin
+  TP1OwnerView(A1).SetAbility(FAbilityID, 1);
+  asm MOV AL,1 end;
+end;
 
 procedure TAbility.Remove(A1: Integer; A2: Integer);
-begin end;
+{ needs: Boolean result; preserve unmarked P4 procedure overrides. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI,EDX
+  MOV EBX,EAX
+  MOV EDX,[EBX].FAbilityID
+  MOV EAX,ESI
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$4C]
+  TEST AL,AL
+  JZ @@none
+  XOR ECX,ECX
+  MOV EDX,[EBX].FAbilityID
+  MOV EAX,ESI
+  MOV EBX,[EAX]
+  CALL DWORD PTR [EBX+$50]
+  MOV AL,1
+  POP ESI
+  POP EBX
+  RET
+@@none:
+  XOR EAX,EAX
+  POP ESI
+  POP EBX
+end;
 
 procedure TAbility.GetInherent(A1: Integer);
-begin end;
+asm
+  MOV EAX,[EAX].FAbilityID
+  XCHG EDX,EAX
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$4C]
+end;
 
 procedure TAbility.GetInherentLevel(A1: Integer);
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetSkillPoints(A1: Integer);
-begin end;
+{ needs: Integer result; preserve the unmarked P4 override's procedure header. }
+asm
+  PUSH EBX
+  PUSH ESI
+  MOV ESI,EDX
+  MOV EBX,EAX
+  MOV EDX,[EBX].FAbilityID
+  MOV EAX,ESI
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$4C]
+  TEST AL,AL
+  JZ @@none
+  MOV EAX,[EBX].FSkillPointCost
+  POP ESI
+  POP EBX
+  RET
+@@none:
+  XOR EAX,EAX
+  POP ESI
+  POP EBX
+end;
 
 procedure TAbility.AbilityDataClass;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetName(A1: Integer; A2: Integer);
-begin end;
+begin
+  PString(A2)^ := FAbilityName;
+end;
 
 procedure TAbility.GetAttack;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetDefense;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetResistance;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetDamage;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetMoveTypes;
-begin end;
+{ needs: set result; preserve existing procedure-header return ABI. }
+asm
+  MOV AL,P1EmptyMoveTypes
+end;
 
 procedure TAbility.GetHidden;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetLevel(A1: Integer);
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.GetOffensiveStrength(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+begin
+  PInteger(A2)^ := 0;
+  PWord(A3)^ := Word(P1EmptyDamageTypes);
+end;
 
 procedure TAbility.ListInfo(A1: Integer; A2: Byte);
-begin end;
+var
+  Info: TP1CombatInfo;
+  Strength: Integer;
+  Types: TDamageTypes;
+  DamageNames: string;
+  DamageType_: TDamageType;
+begin
+  TStrings(A1).Add('Name: ' + TP1AbilityView(Self).GetName(nil));
+  TStrings(A1).Add('-------------------------------------------------');
+  if A2 and 1 <> 0 then TStrings(A1).Add('ID: ' + IntToStr(FAbilityID));
+  TStrings(A1).Add('Type: ' + TranslateRStr(TAbilityTypeRStr[TP1AbilityView(Self).GetAbilityType]));
+  if TP1AbilityView(Self).GetAttack(nil) <> 0 then
+    TStrings(A1).Add('Attack modifier: ' + IntToStr(TP1AbilityView(Self).GetAttack(nil)));
+  if TP1AbilityView(Self).GetDefense(nil) <> 0 then
+    TStrings(A1).Add('Defense modifier: ' + IntToStr(TP1AbilityView(Self).GetDefense(nil)));
+  if TP1AbilityView(Self).GetDamage(nil) <> 0 then
+    TStrings(A1).Add('Damage modifier: ' + IntToStr(TP1AbilityView(Self).GetDamage(nil)));
+  if TP1AbilityView(Self).GetResistance(nil) <> 0 then
+    TStrings(A1).Add('Resistance modifier: ' + IntToStr(TP1AbilityView(Self).GetResistance(nil)));
+  if A2 and 2 <> 0 then
+  begin
+    TStrings(A1).Add('Description: ');
+    TStrings(A1).AddStrings(FDescription);
+  end;
+  if TP1AbilityView(Self).GetCombatMode(nil) <> cmNone then
+    TStrings(A1).Add('Combat mode: ' + TranslateRStr(TCombatModeRStr[TP1AbilityView(Self).GetCombatMode(nil)]));
+  if A2 and 4 <> 0 then
+  begin
+    TP1AbilityView(Self).GetCombatInfo(nil, Info);
+    if Info.Attack <> -1 then TStrings(A1).Add('Attack: ' + IntToStr(Info.Attack));
+    if Info.Damage <> -1 then TStrings(A1).Add('Damage: ' + IntToStr(Info.Damage));
+    if Info.RepeatCount <> -1 then TStrings(A1).Add('Repeat: ' + IntToStr(Info.RepeatCount));
+    if Info.Types <> [] then
+    begin
+      DamageNames := '';
+      for DamageType_ := Low(TDamageType) to High(TDamageType) do
+        if DamageType_ in Info.Types then
+        begin
+          if DamageNames <> '' then DamageNames := DamageNames + ',';
+          DamageNames := DamageNames + TranslateRStr(TDamageTypeRStr[DamageType_]);
+        end;
+      TStrings(A1).Add('Damage Types: ' + DamageNames);
+    end;
+  end;
+  if A2 and 8 <> 0 then
+  begin
+    TP1AbilityView(Self).GetOffensiveStrength(nil, Strength, Types);
+    if Strength <> 0 then TStrings(A1).Add('Strength: ' + IntToStr(Strength));
+  end;
+end;
 
 procedure TAbility.GetEnabled(A1: Integer);
-begin end;
+asm
+  MOV EAX,[EAX].FAbilityID
+  XCHG EDX,EAX
+  MOV ECX,[EAX]
+  CALL DWORD PTR [ECX+$4C]
+end;
 
 procedure TAbility.GetImmunityTypes;
-begin end;
+{ needs: set result; preserve existing procedure-header return ABI. }
+asm
+  MOV AX,P1EmptyDamageTypes
+end;
 
 procedure TAbility.GetProtectionTypes;
-begin end;
+{ needs: set result; preserve existing procedure-header return ABI. }
+asm
+  MOV AX,P1EmptyDamageTypes
+end;
 
 procedure TAbility.ListSpells;
-begin end;
+begin
+end;
 
 procedure TAbility.GetAbilityType;
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.CombatObjectDestroyed(A1: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.fcPrefetchCombatCommands(A1: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.fcExecuteCombatCommand(A1: Integer; A2: Integer);
-begin end;
+{ needs: function result; existing unmarked derived procedure headers are retained. }
+asm
+  XOR EAX,EAX
+end;
 
 procedure TAbility.Execute;
-begin end;
+begin
+end;
 
 procedure TAbility.NewDay(A1: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.NewTurn(A1: Integer; A2: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.NewCombatTurn(A1: Integer; A2: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.CombatDone(A1: Integer);
-begin end;
+begin
+end;
 
 procedure TAbility.CanActivate(A1: Integer; A2: Integer);
-begin end;
+begin
+  PString(A2)^ := '';
+  { needs: Boolean result; P4 overrides remain unmarked procedures. }
+  asm
+    MOV EDX,A1
+    MOV EAX,Self
+    MOV ECX,[EAX]
+    CALL DWORD PTR [ECX+$98]
+    AND EAX,1
+  end;
+end;
 
 procedure TAbility.Activate(A1: Integer; A2: Integer);
-begin end;
+var
+  Info: TActivateAbilityInfo;
+begin
+  { needs: Boolean result; P4 has unmarked procedure overrides. }
+  if TP1AbilityView(Self).CanActivate(TAbilityOwner(A1), PString(A2)^) then
+  begin
+    Info := TActivateAbilityInfo.Create(nil);
+    Info.FAbilityID := FAbilityID;
+    if TObject(A1) is TAbstractUnit then
+      Info.FUnitID := TAbstractUnit(A1).FUnitID
+    else Info.FUnitID := 0;
+    TEventList(AoWHSMap.F_AoWHSMap_1E4).TriggerNotifyEvents(Info);
+    Info.Release;
+    asm MOV AL,1 end;
+  end
+  else asm XOR EAX,EAX end;
+end;
 
 procedure TAbility.CanActivateCombat(A1: Integer; A2: Integer);
-begin end;
+begin
+  PString(A2)^ := '';
+  { needs: Boolean result; P4 overrides remain unmarked procedures. }
+  asm
+    MOV EDX,A1
+    MOV EAX,Self
+    MOV ECX,[EAX]
+    CALL DWORD PTR [ECX+$98]
+    AND EAX,2
+    SHR EAX,1
+  end;
+end;
 
-procedure TAbility.ActivateCombat(A1: Integer; A2: Integer);
-begin end;
+function TAbility.ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean;
+var
+  Info: TActivateAbilityInfo;
+begin
+  if TP1AbilityView(Self).CanActivateCombat(Owner, Reason) then
+  begin
+    Info := TActivateAbilityInfo.Create(nil);
+    Info.FAbilityID := FAbilityID;
+    if Owner is TAbstractUnit then
+      Info.FUnitID := TAbstractUnit(Owner).FUnitID
+    else Info.FUnitID := 0;
+    TEventList(PP1Pointer(AoWHSMap.F_AoWHSMap_11C + $DC)^).TriggerNotifyEvents(Info);
+    Info.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TAbility.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FDescription, 5);
+  Stream.rwInteger(FSkillPointCost, 6);
+  Stream.rwEObject(FSFXLibrary, 7);
+  Stream.rwStreamProc(8, FImageSequences.LoadFromStream, FImageSequences.SaveToStream);
+  Stream.rwData(F_Ability_20, 2, 9);
+end;
 
 constructor TAbilityOwner.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -1267,8 +2051,18 @@ begin end;
 procedure TAbilityControl.GetCount;
 begin end;
 
-function TAbilityControl.GetAbility(A1: Integer): TAbility;
-begin Result := nil; end;
+function TAbilityControl.GetAbility(Index: Integer): TAbility;
+var
+  Items: PIntegerArray;
+begin
+  Assert(Index >= 0, 'Invalid AbilityID');
+  if Index < FAbilities.Count then
+  begin
+    Items := PIntegerArray(FAbilities.List);
+    Result := TAbility(Items^[Index]);
+  end
+  else Result := nil;
+end;
 
 procedure TAbilityControl.RegisterAbility(A1: Integer);
 begin end;

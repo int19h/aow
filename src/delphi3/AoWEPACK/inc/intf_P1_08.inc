@@ -13,31 +13,31 @@
   { TUnitSelectionControl (instance size 80, VMT 557112B4) }
   TUnitSelectionControl = class(TStringList)
   public
-    F_UnitSelectionControl_2C: Byte;
-    F_UnitSelectionControl_2D: Byte;
-    F_UnitSelectionControl_2E: Byte;
+    FMinimumLevel: Byte;  { $2C }
+    FMaximumLevel: Byte;  { $2D }
+    FAlignments: TAlignments;  { $2E }
     F_UnitSelectionControl_2F: array[0..0] of Byte;
-    F_UnitSelectionControl_30: Integer;
-    F_UnitSelectionControl_34: Integer;
-    F_UnitSelectionControl_38: Integer;
-    F_UnitSelectionControl_3C: Integer;
-    F_UnitSelectionControl_40: Integer;
-    F_UnitSelectionControl_44: Integer;
-    F_UnitSelectionControl_48: Byte;
-    F_UnitSelectionControl_49: Byte;
-    F_UnitSelectionControl_4A: Byte;
-    F_UnitSelectionControl_4B: Byte;
-    F_UnitSelectionControl_4C: Integer;
+    FRacesEnabled: TBitList;  { $30 }
+    FTypesEnabled: TBitList;  { $34 }
+    FRaceUnits: TUnitCategoryList;  { $38 }
+    FTypeUnits: TUnitCategoryList;  { $3C }
+    FAllUnits: TUnitIndexList;  { $40 }
+    FSelectedUnitIndex: Integer;  { $44 }
+    FShowEmptyCategories: Boolean;  { $48 }
+    FShowRaceCategories: Boolean;  { $49 }
+    FShowTypeCategories: Boolean;  { $4A }
+    FShowAllCategory: Boolean;  { $4B }
+    FSelectedHero: THero;  { $4C }
     destructor Destroy; override;
-    procedure Create(A1: Byte);  { draft }
-    procedure SetSelectedUnitIndex(A1: Integer);  { draft }
-    procedure SetSelectedHero(A1: Integer);  { draft }
-    procedure GetUnitCategoryList(A1: Integer);  { draft }
-    procedure GetUnitCategoryEnabled(A1: Integer);  { draft }
-    procedure SetUnitCategoryEnabled(A1: Integer; A2: Integer);  { draft }
-    procedure Reset;  { draft }
-    procedure DisableAllCategories;  { draft }
-    procedure UpdateSelection;  { draft }
+    constructor Create;
+    procedure SetSelectedUnitIndex(Value: Integer);
+    procedure SetSelectedHero(Value: THero);
+    function GetUnitCategoryList(Category: Shortint): TUnitIndexList;
+    function GetUnitCategoryEnabled(Category: Shortint): Boolean;
+    procedure SetUnitCategoryEnabled(Category: Shortint; Value: Boolean);
+    procedure Reset;
+    procedure DisableAllCategories;
+    procedure UpdateSelection;
   end;
 
   { TUnitSelector (instance size 44, VMT 557113B8) }

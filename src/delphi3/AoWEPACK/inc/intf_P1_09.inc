@@ -6,12 +6,12 @@
     F_RaceResource_1C: Integer;
     F_RaceResource_20: Integer;
     F_RaceResource_24: Integer;
-    F_RaceResource_28: Integer;
+    FRaceName: string;  { $28 }
     F_RaceResource_2C: Integer;
     F_RaceResource_30: Byte;
     F_RaceResource_31: array[0..2] of Byte;
     F_RaceResource_34: Integer;
-    F_RaceResource_38: Integer;
+    FUnitIndexes: TIntegerList;  { $38 }
     F_RaceResource_3C: Integer;
     F_RaceResource_40: Integer;
     F_RaceResource_44: Integer;

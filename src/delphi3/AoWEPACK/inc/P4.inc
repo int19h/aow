@@ -246,7 +246,7 @@ end;
 procedure TDurationAbility.NewDay(A1: Integer);
 begin
   if AoWHSMap.FDay = 1 then
-    TAbilityOwner(A1).RemoveAbility(F_Ability_0C);
+    TAbilityOwner(A1).RemoveAbility(FAbilityID);
 end;
 
 procedure TDurationAbility.NewTurn(A1: Integer; A2: Integer);
@@ -262,18 +262,18 @@ begin
   AbilityOwner := TAbilityOwnerP4(A1);
   if FDurationMode = dmDay then
   begin
-    Data := AbilityOwner.DurationData(F_Ability_0C);
+    Data := AbilityOwner.DurationData(FAbilityID);
     if Data <> nil then
     begin
       if (Data.FDuration <> 0) and (PlayerIndex = Data.FPlayerIndex) then
       begin
         Dec(Data.FDuration);
         if Data.FDuration = 0 then
-          AbilityOwner.RemoveAbility(F_Ability_0C);
+          AbilityOwner.RemoveAbility(FAbilityID);
       end;
     end
     else
-      AbilityOwner.RemoveAbility(F_Ability_0C);
+      AbilityOwner.RemoveAbility(FAbilityID);
   end;
 end;
 
@@ -290,18 +290,18 @@ begin
   CombatObject := TCombatOwnerReturnView(A1);
   if FDurationMode = dmCombatTurn then
   begin
-    Data := TAbilityOwnerP4(CombatObject.GetAbilityOwner).DurationData(F_Ability_0C);
+    Data := TAbilityOwnerP4(CombatObject.GetAbilityOwner).DurationData(FAbilityID);
     if Data <> nil then
     begin
       if (Data.FDuration <> 0) and (PlayerIndex = Data.FPlayerIndex) then
       begin
         Dec(Data.FDuration);
         if Data.FDuration = 0 then
-          CombatObject.GetAbilityOwner.RemoveAbility(F_Ability_0C);
+          CombatObject.GetAbilityOwner.RemoveAbility(FAbilityID);
       end;
     end
     else
-      CombatObject.GetAbilityOwner.RemoveAbility(F_Ability_0C);
+      CombatObject.GetAbilityOwner.RemoveAbility(FAbilityID);
   end;
 end;
 
@@ -309,7 +309,7 @@ procedure TDurationAbility.CombatDone(A1: Integer);
 begin
   case FDurationMode of
     dmCombatTurn, dmEntireCombat:
-      TCombatOwnerReturnView(A1).GetAbilityOwner.RemoveAbility(F_Ability_0C);
+      TCombatOwnerReturnView(A1).GetAbilityOwner.RemoveAbility(FAbilityID);
   end;
 end;
 
@@ -350,7 +350,7 @@ function TDurationAbility.GetDuration(AbilityOwner: TAbilityOwner): Byte;
 var
   Data: TDurationAbilityData;
 begin
-  Data := TAbilityOwnerP4(AbilityOwner).DurationData(F_Ability_0C);
+  Data := TAbilityOwnerP4(AbilityOwner).DurationData(FAbilityID);
   if Data <> nil then
     Result := Data.FDuration
   else
@@ -368,7 +368,7 @@ asm
   MOV EDI, EDX
   MOV EBP, EAX
   XOR EBX, EBX
-  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, [EBP].TAbility.FAbilityID
   MOV EAX, EDI
   CALL TAbilityOwner.GetAbilityData
   MOV ESI, EAX
@@ -379,14 +379,14 @@ asm
   MOV EAX, DWORD PTR [P4DurationDataClass]
   CALL TEObject.Create
   MOV ESI, EAX
-  MOV AX, WORD PTR [EBP].TAbility.F_Ability_0C
+  MOV AX, WORD PTR [EBP].TAbility.FAbilityID
   MOV [ESI].TDurationAbilityData.FAbilityID, AX
   MOV EAX, EBP
   MOV EDX, [EAX]
   CALL DWORD PTR [EDX + $110]
   MOV [ESI].TDurationAbilityData.FDuration, AL
   PUSH 1
-  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV ECX, [EBP].TAbility.FAbilityID
   MOV EDX, EDI
   MOV EAX, EBP
   CALL TAbility.SetAb
@@ -427,14 +427,14 @@ asm
   MOV ESI, EDX
   MOV EBP, EAX
   MOV BL, 1
-  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, [EBP].TAbility.FAbilityID
   MOV EAX, ESI
   CALL TAbilityOwner.GetAbilityData
   MOV EDI, EAX
   TEST EDI, EDI
   JE @@Missing
   PUSH 0
-  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV ECX, [EBP].TAbility.FAbilityID
   MOV EDX, ESI
   MOV EAX, EBP
   CALL TAbility.SetAb
@@ -444,7 +444,7 @@ asm
   JMP @@Done
 @@Missing:
   PUSH 0
-  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV ECX, [EBP].TAbility.FAbilityID
   MOV EDX, ESI
   MOV EAX, EBP
   CALL TAbility.SetAb
@@ -497,7 +497,7 @@ asm
   MOV EBX, EAX
   TEST ESI, ESI
   JE @@NoOwner
-  MOV EDX, [EBX].TAbility.F_Ability_0C
+  MOV EDX, [EBX].TAbility.FAbilityID
   MOV EAX, ESI
   CALL TAbilityOwner.GetAbilityData
   TEST EAX, EAX
@@ -525,7 +525,7 @@ asm
   MOV EBX, EAX
   TEST ESI, ESI
   JE @@NoOwner
-  MOV EDX, [EBX].TAbility.F_Ability_0C
+  MOV EDX, [EBX].TAbility.FAbilityID
   MOV EAX, ESI
   CALL TAbilityOwner.GetAbilityData
   TEST EAX, EAX
@@ -692,7 +692,7 @@ asm
   MOV EDI, EDX
   MOV ESI, EAX
   XOR EBX, EBX
-  MOV EDX, [ESI].TAbility.F_Ability_0C
+  MOV EDX, [ESI].TAbility.FAbilityID
   MOV EAX, EDI
   CALL TAbilityOwner.GetAbilityData
   MOV EBP, EAX
@@ -704,11 +704,11 @@ asm
   MOV DL, 1
   CALL DWORD PTR [EAX + $20]
   MOV EBP, EAX
-  MOV AX, WORD PTR [ESI].TAbility.F_Ability_0C
+  MOV AX, WORD PTR [ESI].TAbility.FAbilityID
   MOV [EBP].TMultiLevelAbilityData.FLevelAbilityID, AX
   MOV [EBP].TMultiLevelAbilityData.FLevel, 1
   PUSH 1
-  MOV ECX, [ESI].TAbility.F_Ability_0C
+  MOV ECX, [ESI].TAbility.FAbilityID
   MOV EDX, EDI
   MOV EAX, ESI
   CALL TAbility.SetAb
@@ -742,7 +742,7 @@ asm
   MOV EDI, EDX
   MOV EBP, EAX
   MOV BL, 1
-  MOV EDX, [EBP].TAbility.F_Ability_0C
+  MOV EDX, [EBP].TAbility.FAbilityID
   MOV EAX, EDI
   CALL TAbilityOwner.GetAbilityData
   MOV ESI, EAX
@@ -751,7 +751,7 @@ asm
   CMP [ESI].TMultiLevelAbilityData.FLevel, 1
   JNE @@Decrement
   PUSH 0
-  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV ECX, [EBP].TAbility.FAbilityID
   MOV EDX, EDI
   MOV EAX, EBP
   CALL TAbility.SetAb
@@ -764,7 +764,7 @@ asm
   JMP @@Done
 @@Missing:
   PUSH 0
-  MOV ECX, [EBP].TAbility.F_Ability_0C
+  MOV ECX, [EBP].TAbility.FAbilityID
   MOV EDX, EDI
   MOV EAX, EBP
   CALL TAbility.SetAb
