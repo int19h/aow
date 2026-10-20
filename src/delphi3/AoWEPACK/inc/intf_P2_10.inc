@@ -1,0 +1,849 @@
+{ Interface declaration run owned by P2. }
+  { TUnitResourceAbilityOwner (instance size 20, VMT 55784B80) }
+  TUnitResourceAbilityOwner = class(TAbilityOwner)
+  public
+    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+  end;
+
+  { THeroResourceAbilityOwner (instance size 20, VMT 55789DE8) }
+  THeroResourceAbilityOwner = class(TAbilityOwner)
+  public
+    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+  end;
+
+procedure TranslateRStr(A1: Integer; A2: Integer);  { draft }
+procedure HitRole(A1: Integer);  { draft }
+procedure HitRoleProbability(A1: Integer);  { draft }
+procedure DMmaxDCtoDV(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure DMDCtoDV(A1: Integer; A2: Integer);  { draft }
+procedure ExecuteDamageRole(A1: Integer; A2: Integer);  { draft }
+procedure DVtoDEV(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+procedure StatisticsToMaxDamage(A1: Integer; A2: Word; A3: Integer; A4: Integer);  { draft }
+procedure StatisticsToDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+procedure StatisticsToLimitedDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure DistributeCombatEvent(A1: Integer; A2: Byte);  { draft }
+procedure CreateDamageCA(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure RetrieveDefaultDiplomaticActionMessage(A1: Integer; A2: Byte; A3: Byte);  { draft }
+procedure MaximizeMovePointTable(A1: Integer; A2: Integer);  { draft }
+procedure CreateArmyMoveTE(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure CreateArmyMoveXYLTE(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+procedure MoveArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure MoveArmy;  { draft }
+procedure MoveArmyXYL(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+procedure MoveArmyXYLEx(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure Format(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
+procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
+procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }
+procedure FmtDaysLeftStr(A1: Integer; A2: Integer);  { draft }
+procedure HitPointsToHitPcnt(A1: Integer; A2: Integer);  { draft }
+procedure ShowHitPcnt(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+procedure ShowDamageIcon(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure DamageEffectsAnimationFrames(A1: Word; A2: Integer; A3: Integer);  { draft }
+procedure StatusToStatusValue(A1: Integer);  { draft }
+procedure StatusValueToStatus(A1: Integer);  { draft }
+procedure MoraleToMoraleValue(A1: Integer);  { draft }
+procedure MoraleValueToMorale(A1: Integer);  { draft }
+procedure dAlignmentsToStatus(A1: Byte; A2: Byte; A3: Integer);  { draft }
+procedure DamageTypesToDamageType(A1: Word; A2: Integer; A3: Integer);  { draft }
+procedure dAlignmentToStatus(A1: Integer; A2: Integer);  { draft }
+procedure AlsToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
+procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Land(A1: Byte);  { draft }
+procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
+procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure CombatRangeToCombatMode(A1: Byte);  { draft }
+procedure PlaceRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure FillWithRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);  { draft }
+procedure StatusToDiplomaticRelation(A1: Byte);  { draft }
+procedure GetCombatSide(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+procedure AlignmentToIR(A1: Byte);  { draft }
+procedure IRtoAlignment(A1: Integer);  { draft }
+procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
+procedure ValidAttackRelation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);  { draft }
+procedure UnitsToIndependentRelation(A1: Integer; A2: Byte);  { draft }
+procedure DegreesRadToCo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+procedure Encode(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure SetupBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure StrengthInfoMax(A1: Integer);  { draft }
+procedure InvertDamageTypes(A1: Word);  { draft }
+procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure GetMovepathBattleFieldStrength(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+procedure IgnitionChance(A1: Integer);  { draft }
+procedure CreateEnhancementAbility(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure MeleeDamageTypes(A1: Integer);  { draft }
+procedure StrikeDV(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure CreateStrikeCA(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure ValidateAoWEngine;  { draft }
+
+resourcestring
+  AWarRelationIsRequiredForXRStr = 'A state of WAR is required for %s';
+  AcceptAllianceRStr = 'Accept alliance';
+  AcceptRStr = 'Accept';
+  AccumulateGoldRStr = 'Accumulate gold';
+  AccumulateManaRStr = 'Accumulate mana';
+  AdditionalDesignRStr = 'Additional Design';
+  AfterLiberationOneUnitJoinedTheForcesOfXRStr = 'After liberation 1 unit joined the forces of %s';
+  AfterLiberationXJoinedTheForcesOfYRStr = 'After liberation %s joined the forces of %s';
+  AfterLiberationXunitsJoinedTheForcesOfYRStr = 'After liberation %d units joined the forces of %s';
+  AgeOfWondersRStr = 'Age of Wonders';
+  AggressiveRStr = 'Aggressive';
+  AggressorRStr = 'Aggressor';
+  AirMasteryRStr = 'Air Mastery';
+  AirNodeRStr = 'Air Node';
+  AirRStr = 'Air';
+  AlignmentXRStr = 'Alignment: %s';
+  AllPlayersRStr = 'All players';
+  AllSlotsAreInUseRStr = 'All slots are in use...';
+  AllianceAcceptedRStr = 'Alliance accepted';
+  AllianceRStr = 'Alliance';
+  AlliedVictoryXRStr = 'Allied victory: %s';
+  AltarOfDeathRStr = 'Altar of Death';
+  AltarOfFireRStr = 'Altar of Fire';
+  AltarOfIceRStr = 'Altar of Ice';
+  AltarOfLifeRStr = 'Altar of Life';
+  AltarOfLightningRStr = 'Altar of Lightning';
+  AltarOfPestilenceRStr = 'Altar of Pestilence';
+  AlwaysFastCombatRStr = 'Always fast combat';
+  AlwaysRStr = 'Always';
+  AlwaysTacticalCombatRStr = 'Always tactical combat';
+  AnarchyRStr = 'Anarchy';
+  AndRStr = 'And';
+  AnimateDeadRStr = 'Animate Dead';
+  AnimateHeroRStr = 'Animate Hero';
+  AnimateRuinsRStr = 'Animate Ruins';
+  AnimatedRStr = 'Animated';
+  AntiMagicShellRStr = 'Anti Magic Shell';
+  AoWAlreadyRunningRStr = 'Age Of Wonders is already running';
+  AoWEdRStr = 'AoWEd';
+  ArenaRStr = 'Arena';
+  ArmageddonRStr = 'Armageddon';
+  ArmiesRStr = 'Armies';
+  ArtistsRStr = 'Artists';
+  AssignXNewSpheresRStr = 'Assign %s new spheres!';
+  AttachmentDirectoryXRStr = 'Attachment directory: %s';
+  AttackItemRStr = 'Attack item';
+  AttackRStr = 'Attack';
+  AutoRStr = 'Auto';
+  AverageRStr = 'Average';
+  AzracPluralRStr = 'Azracs';
+  AzracRStr = 'Azrac';
+  BardsSkillsRStr = 'Bard''s Skills';
+  BaseIncomeRStr = 'Base Income';
+  BasePowerRStr = 'Base Power';
+  BerserkRStr = 'Fury';
+  BetweenHumansRStr = 'Between Humans';
+  BirdsViewRStr = 'Bird''s View';
+  BizzRStr = 'Bizz';
+  BlackCurseRStr = 'Black Curse';
+  BlessRStr = 'Bless';
+  BlessedRStr = 'Blessed';
+  BloodShrineRStr = 'Blood Shrine';
+  BloodlustRStr = 'Bloodlust';
+  BribeRStr = 'Bribe';
+  BuildXRStr = 'Build %s';
+  BuildersGuildRStr = 'Builders Guild';
+  BuildersGuildsRStr = 'Builder Guilds';
+  BuildingWallsRStr = 'Building';
+  BurningRStr = 'Burning';
+  CPUEmperorRStr = 'CPU Emperor';
+  CPUKingRStr = 'CPU King';
+  CPUKnightRStr = 'CPU Knight';
+  CPULordRStr = 'CPU Lord';
+  CPUWarriorRStr = 'CPU Squire';
+  CallHeroRStr = 'Call Hero';
+  CallLightningRStr = 'Call Lightning';
+  CampaignMapRStr = 'Campaign map';
+  CampaignRStr = 'Campaign';
+  CanOnlyBuildNextToWaterRStr = 'Can only be built next to water';
+  CancelSpellResearchRStr = 'Cancels current spell research';
+  CannotCastSpellInUndergoundRStr = 'Cannot cast spell underground';
+  CannotDispelWhenSpellWardIsActiveRStr = 'Cannot dispel when Spell Ward is active';
+  CannotInflicDamageRStr = 'Cannot Inflict Damage';
+  CastXSpellRStr = 'Cast %s Spell';
+  CasterMustBeInsideCityRStr = 'Can only cast from inside city';
+  CastingCostRStr = 'Casting Cost';
+  CastingPointsRStr = 'Channeling Points';
+  CastingRStr = 'Casting';
+  CastingReadyRStr = 'Casting Ready';
+  CastleRuinRStr = 'Castle Ruin';
+  CauseFearRStr = 'Cause Fear';
+  CaveCrawlingRStr = 'Cave Crawling';
+  CaveRStr = 'Cave';
+  ChainLightningRStr = 'Chain Lighting';
+  ChangePasswordRStr = 'Change Password';
+  ChangeRStr = 'Change';
+  ChangeSongEventRStr = 'Change Song Event';
+  ChargingRStr = 'Charging';
+  CheerfulRStr = 'Cheerful';
+  ChooseRStr = 'Choose';
+  CitiesRStr = 'Cities';
+  CityBattleDrawnRStr = 'Battle of %s drawn';
+  CityBattleLostRStr = 'Battle of %s lost';
+  CityBattleWonRStr = '%s captured';
+  CityFortifiedRStr = '%s fortified';
+  CityFortifyRStr = 'Improves town defenses. Ground based attackers must breach the wall to enter town. First level of fortification is a wooden pallisade, the second level is a stone wall.';
+  CityFreeJoinRStr = 'The city council eagerly vows its loyalty and awaits your orders.';
+  CityJoinHeaderRStr = 'A herald from %s:';
+  CityLootRStr = 'Pillages the town, taking 1 turn per city hex, after which the town is turned to ruins. The amount of gold depends on the city size. Looting decreases your relation with the population''s race!';
+  CityLootedRStr = '%0:s looted (%1:s gold gained)';
+  CityLootingRStr = '%s is being looted';
+  CityMigratedToRStr = '%0:s migrated to %1:s';
+  CityOfXRStr = 'city of %s';
+  CityRStr = 'City';
+  CityRazeRStr = 'Destroys the town instantly by burning it to the ground. Razing is faster as the loot option, but doens''t deliver any gold. Razing decreases your relation with the population''s race!';
+  CityRebellionRStr = '%s rebelled';
+  CityTradeRStr = 'When producing merchandise, a city''s income increases by 25%.';
+  CityTributeJoinRStr = 'The city council offers its allegiance for %s pieces of gold.';
+  CityUpgradeRStr = 'Upgrades the infrastructure of the town with the technology to buy more powerful units.';
+  ClassicRStr = 'Classic';
+  ClickToBeginRStr = 'Click to begin';
+  CloseRStr = 'Close';
+  CoDevelopedByRStr = 'Co-developed by:';
+  CoPublishedByRStr = '                ';
+  ColdImmunityRStr = 'Cold Immunity';
+  ColdProtectionRStr = 'Cold Protection';
+  ColdRStr = 'Cold';
+  CombatRStr = 'Combat';
+  CommonRStr = 'Common';
+  ConcealAreaRStr = 'Conceal Area';
+  ConcealmentRStr = 'Concealment';
+  ConfirmPasswordRStr = 'Confirm Password';
+  ConfirmationFailedRStr = 'Confirmation failed';
+  ConquerLocationsRStr = 'Conquer locations';
+  ConquerTheMapRStr = 'Conquer the map';
+  ContentRStr = 'Content';
+  ContinueRStr = 'Continue';
+  CosmeticSurgeryOnXRStr = 'Cosmagic Surgery on %s';
+  CosmosRStr = 'Cosmos';
+  CostXRStr = 'Cost: %d';
+  CouldntChangePasswordRStr = 'Couldn''t change password!';
+  CreateNewLibraryRStr = 'Create New Library';
+  CreatureRStr = 'Creature';
+  CreaturesRStr = 'Creatures';
+  CropRStr = 'Crops';
+  CrusadeRStr = 'Crusade';
+  CrusaderRStr = 'Crusader';
+  CryptRStr = 'Crypt';
+  CurrentRStr = 'Current';
+  CurrentlyResearchingRStr = 'Currently Researching';
+  CurseRStr = 'Curse';
+  CursedRStr = 'Cursed';
+  CustomMapRStr = 'Custom map';
+  CustomizeLeaderRStr = 'Customize Leader';
+  DarkElfPluralRStr = 'Dark Elves';
+  DarkElfRStr = 'DarkElf';
+  DarkGiftRStr = 'Dark Gift';
+  DayRStr = 'Day';
+  DayXRStr = 'Day %d';
+  DaysRStr = 'Days';
+  DeadOakRStr = 'Dead Oak';
+  DeadPineRStr = 'Dead Pine';
+  DeadTrunkRStr = 'Dead Trunk';
+  DeathImmunityRStr = 'Death Immunity';
+  DeathMasteryRStr = 'Death Mastery';
+  DeathNodeRStr = 'Death Node';
+  DeathProtectionRStr = 'Death Protection';
+  DeathRStr = 'Death';
+  DeathRayRStr = 'Death Ray';
+  DeathStormRStr = 'Death Storm';
+  DebugSaveDisabledRStr = 'Debug save disabled';
+  DebugSaveEnabledRStr = 'Debug save enabled';
+  DecayRStr = 'Decay';
+  DeclineRStr = 'Decline';
+  DefaultRStr = 'Default';
+  DefeatRStr = 'Defeat';
+  DefendRStr = 'Defend';
+  DefenderRStr = 'Defender';
+  DefenseItemRStr = 'Defense item';
+  DefensiveRStr = 'Defensive';
+  DeformFaceRStr = 'Cosmagic Surgery';
+  DeleteRStr = 'Delete';
+  DemoVersionMessageRStr = 'Sorry, this function isn''t available in the demo.';
+  DesertConcealmentRStr = 'Desert Concealment';
+  DesignerAndDirectorRStr = 'Designer & Director';
+  DesktopWindowRStr = 'Desktop Window';
+  DestroyAllEnemiesRStr = 'Destroy all enemies';
+  DevelopedByRStr = 'Developed by';
+  DiplomacyRStr = 'Diplomacy';
+  DisabledRStr = 'Disabled';
+  DiseaseCloudRStr = 'Disease Cloud';
+  DisjunctionRStr = 'Disjunction';
+  DivineDraftRStr = 'Divine Draft';
+  DivineStormRStr = 'Divine Storm';
+  DoneRStr = 'Done';
+  DragonRStr = 'Dragon';
+  DrinkRStr = 'Drink';
+  DungeonExploredRStr = 'Dungeon Explored';
+  DungeonPrisonersJoinHeaderRStr = 'A rescued prisoner steps forward:';
+  DungeonRStr = 'Dungeon';
+  DwarfPluralRStr = 'Dwarves';
+  DwarfRStr = 'Dwarf';
+  EarthMasteryRStr = 'Earth Mastery';
+  EarthNodeRStr = 'Earth Node';
+  EasyRStr = 'Easy';
+  EditorRStr = 'Editor';
+  ElfPluralRStr = 'Elves';
+  ElfRStr = 'Elf';
+  EmptyQueueRStr = '<empty>';
+  EnabledRStr = 'Enabled';
+  EnchantWeaponRStr = 'Enchant Weapon';
+  EnchantedRoadsRStr = 'Enchanted Roads';
+  EnchantedWeaponRStr = 'Enchanted Weapon';
+  EnchantmentRStr = 'Enchantment';
+  EnhancementRStr = 'Enhancement';
+  EnhancementsRStr = 'Enhancements';
+  EntangledRStr = 'Entangled';
+  EnterLibraryNameRStr = 'Enter library name';
+  EnterNewPasswordRStr = 'Enter new password:';
+  EnterPasswordRStr = 'Enter password:';
+  EnterRStr = 'Enter';
+  EuropeRStr = '      ';
+  EvilRStr = 'Evil';
+  ExceptionalRStr = 'Exceptional';
+  ExecuteRStr = 'Execute';
+  ExitRStr = 'Exit';
+  ExpandRStr = 'Expand';
+  ExpanderRStr = 'Expander';
+  ExploredRStr = 'Explored';
+  ExternalIncomeRStr = 'External Income';
+  ExtraLargeMapAbrRStr = 'XL';
+  ExtraPowerRStr = 'Extra Power';
+  FarmBattleWonRStr = 'Farm captured';
+  FarmRStr = 'Farm';
+  FarmsRStr = 'Farms';
+  FearlessRStr = 'Fearless';
+  FileNameXRStr = 'File name: %s';
+  FinishRStr = 'Finish';
+  FireAuraRStr = 'Fire Halo';
+  FireBallRStr = 'Fireball';
+  FireBarrierRStr = 'Fire Barrier';
+  FireImmunityRStr = 'Fire Immunity';
+  FireMasteryRStr = 'Fire Mastery';
+  FireNodeRStr = 'Fire Node';
+  FireProtectionRStr = 'Fire Protection';
+  FireStormRStr = 'Fire Storm';
+  FixedRStr = 'Fixed';
+  FlagMessageEventRStr = 'Flag Message Event';
+  FlamingArrowRStr = 'Flaming Arrow';
+  FloatingRStr = 'Floating';
+  FloodRStr = 'Flood';
+  FlowerRStr = 'Flower';
+  FlyingRStr = 'Flying';
+  ForXGoldRStr = 'For %s gold';
+  ForcedRStr = '(forced)';
+  ForestryRStr = 'Forestry';
+  FortifyRStr = 'Fortify';
+  FortifyingRStr = 'Fortifying';
+  FountainOfLifeRStr = 'Fountain Of Life';
+  FreeMovementRStr = 'Free Movement';
+  FreeRStr = 'Free';
+  FreezeRStr = 'Freeze';
+  FreezeWaterRStr = 'Freeze Water';
+  FrequentRStr = 'Frequent';
+  FriendlyRStr = 'Friendly';
+  FromTheRStr = 'From the %s';
+  FrostBeamsRStr = 'Frost Beam';
+  FrostlingPluralRStr = 'Frostlings';
+  FrostlingRStr = 'Frostling';
+  FrozenRStr = 'Frozen';
+  FullScreenRStr = 'Full Screen';
+  FuryRStr = 'Fury';
+  GalaxySoundSystemRStr = 'Galaxy Sound System';
+  GameOverDefeatEventLogRStr = '%s is defeated!';
+  GameOverVictoryEventLogRStr = '%s is victorious!';
+  GameSuccessfullySentRStr = 'Game successfully sent';
+  GameTerminatedRStr = 'Game terminated';
+  GametypeXRStr = 'Game type: %s';
+  GenerateExtraPowerRStr = 'Generate Extra Power';
+  GenerateExtraPowerTextRStr = 'Increases the power generated by the node by 25%.';
+  GeneratingExtraPowerRStr = 'Generating Extra Power';
+  GeneratingXPowerRStr = 'Generating %s power';
+  GeyserRStr = 'Geyser';
+  GlobalRStr = 'Global';
+  GoDownRStr = 'Go Down';
+  GoUpRStr = 'Go Up';
+  GoblinPluralRStr = 'Goblins';
+  GoblinRStr = 'Goblin';
+  GoldFoundRStr = '%s gold pieces found';
+  GoldRStr = 'Gold';
+  GoldRushRStr = 'Gold Rush';
+  GoodRStr = 'Good';
+  GrassConcealmentRStr = 'Grass Concealment';
+  GreatHailRStr = 'Great Hail';
+  GuardAreaRStr = 'Guard Area';
+  GuardRStr = 'Guard';
+  HalflingPluralRStr = 'Halflings';
+  HalflingRStr = 'Halfling';
+  HandicapRStr = 'Handicap';
+  HardRStr = 'Hard';
+  HarmonyRStr = 'Tranquility';
+  HasteRStr = 'Haste';
+  HatredRStr = 'Hatred';
+  HeadItemRStr = 'Head item';
+  HealingShowersRStr = 'Healing Showers';
+  HealingWaterRStr = 'Healing Water';
+  HeatWaveRStr = 'Heat Wave';
+  HelpRStr = 'Help';
+  HeroRStr = 'Hero';
+  HeroUpgradeRStr = 'Hero upgrade';
+  HiddenmovementPleaseWaitRStr = 'Hidden movement, please wait';
+  HighPrayerBlessingRStr = 'Blessed';
+  HighPrayerRStr = 'High Prayer';
+  HighRStr = 'High';
+  HighmanPluralRStr = 'Highmen';
+  HighmanRStr = 'Highman';
+  HolyChampionRStr = 'Holy Champion';
+  HolyFearRStr = 'Holy Fear';
+  HolyGroundDamageRStr = 'Holy Ground Damage';
+  HolyGroundRStr = 'Holy Ground';
+  HolyGroundsRStr = 'Holy Woods';
+  HolyImmunityRStr = 'Holy Immunity';
+  HolyProtectionRStr = 'Holy Protection';
+  HolyRStr = 'Holy';
+  HostileRStr = 'Hostile';
+  HotSeatRStr = 'Hot Seat';
+  HumanPluralRStr = 'Humans';
+  HumanRStr = 'Human';
+  HumanoidRStr = 'Humanoid';
+  HumanoidsRStr = 'Humanoids';
+  HuntRStr = 'Hunt';
+  HurlFireSkullRStr = 'Hurl Fire Skull';
+  IPXRStr = 'IPX';
+  IceShardsRStr = 'Ice Shards';
+  IceStormRStr = 'Ice Storm';
+  IdleRStr = 'Idle';
+  IgnitionRStr = 'Ignition';
+  IncomeRStr = 'Income';
+  IncomeXRStr = 'Income: %s';
+  IncompatibleVersionRStr = 'Incompatible Version';
+  IndependentRStr = 'Independent';
+  InstallRStr = 'Install';
+  InstallingRStr = 'Installing';
+  InstantRStr = 'Instant';
+  InternetLanRStr = 'Internet/Lan';
+  InternetMailSuiteRStr = 'Internet Mail Suite';
+  IntroVoiceRStr = 'Intro Voice';
+  InvalidLocationSpecifiedRStr = 'invalid location specified';
+  InvalidPasswordRStr = 'Invalid password';
+  InvisibilityRStr = 'Invisibility';
+  ItemsExploredRStr = '"From the %s","you recovered the following items:"';
+  ItemsFoundRStr = 'Items Found';
+  ItemsRStr = 'Items';
+  KillTheLeadersRStr = 'Kill enemy leaders';
+  LargeMapAbrRStr = 'L';
+  LeadProgrammerRStr = 'Lead Programmer';
+  LeadScenarioDesignerRStr = 'Lead Scenario Designer';
+  LeaderOfTheXRStr = 'Leader of the %s';
+  LeaderRStr = 'Leader';
+  LevelRStr = 'Level';
+  LevelTerrainRStr = 'Level Terrain';
+  LevelXRStr = 'Level %s';
+  LiberatePrisonerMessageRStr = 'In gratitude for rescue, the captive offers to join you. Do you accept?';
+  LiberatePrisonersMessageRStr = 'Grateful to be rescued, the captives offer to join you. Do you accept?';
+  LifeDrainRStr = 'Life Drain';
+  LifeMasteryRStr = 'Life Mastery';
+  LifeNodeRStr = 'Life Node';
+  LifeRStr = 'Life';
+  LightningImmunityRStr = 'Lightning Immunity';
+  LightningProtectionRStr = 'Lightning Protection';
+  LightningRStr = 'Lightning';
+  LightningStormRStr = 'Lightning Storm';
+  LiquidFormRStr = 'Liquid Form';
+  LizardPluralRStr = 'Lizards';
+  LizardRStr = 'Lizard';
+  LoadGameRStr = 'Load Game';
+  LoadingMapDataRStr = 'Loading Map';
+  LoadingXRStr = 'Loading: %s...';
+  LocalRStr = 'Single Computer';
+  LongRangeRStr = 'Long Range';
+  LootRStr = 'Loot';
+  LootingRStr = 'Looting';
+  LowSytemResourcesRStr = 'Low System Resources! Age of Wonders requires at least 50MB of free virtual memory.  Please close down other programs, free up disk space, and/or reboot before trying to play the game again.';
+  MachineRStr = 'Machine';
+  MachinesRStr = 'Machines';
+  MagicImmunityRStr = 'Magic Immunity';
+  MagicProtectionRStr = 'Magic Protection';
+  MagicRStr = 'Magic';
+  MagicSanctuaryRStr = 'Magic Sanctuary';
+  ManaCrystalsFoundRStr = '%s mana crystals found';
+  ManaCrystalsRStr = 'Mana Crystals';
+  ManaPoolRStr = 'Mana Pool';
+  MapRStr = 'Map';
+  MarksmanshipRStr = 'Marksmanship';
+  MaxFortifyLevelReachedRStr = 'Max. fortify level reached.';
+  MaxUpgradeLevelReachedRStr = 'Max. upgrade level reached.';
+  MaximumPlayerHeroesXRStr = 'Maximum player heroes: %s';
+  MaximumSphereLevelXRStr = 'Maximum sphere level: %s';
+  MediumMapAbrRStr = 'M';
+  MediumRangeRStr = 'Medium Range';
+  MeleeRStr = 'Melee';
+  MerchantRStr = 'Merchant';
+  MessageFromXRStr = 'Message from %s';
+  MessageReceivedRStr = 'Message Received';
+  MigrateRStr = 'Migrate';
+  MigrateToXRStr = 'Migrate to %s';
+  MigratingRStr = 'Migrating';
+  MigratingToXRStr = 'Migrating to %s';
+  MindDecayRStr = 'Mind Decay';
+  MineBattleWonRStr = 'Mine captured';
+  MineRStr = 'Mine';
+  MinesRStr = 'Mines';
+  MissingPlayerRStr = 'Missing player %d';
+  ModemRStr = 'Modem';
+  MonsterLairRStr = 'Monster Lair';
+  MoraleRStr = 'Morale';
+  MoraleXRStr = 'Morale: %s';
+  MountaineeringRStr = 'Mountaineering';
+  MovementRStr = 'Movement';
+  MusicRStr = 'Music';
+  NameRStr = 'Name';
+  NaturesBlessingRStr = 'Nature''s Blessing';
+  NeutralRStr = 'Neutral';
+  NeverRStr = 'Never';
+  NextPlayerXRStr = 'Next Player: %s';
+  NextRStr = 'Next';
+  NightVisionRStr = 'Night Vision';
+  NoContactRStr = 'No Contact';
+  NoGlobalOpponentEnchantmentsActiveRStr = 'No global opponent enchantments active';
+  NoHeroAnsweredYourCallRStr = 'No hero answered your call';
+  NoHeroAnswersYourCallRStr = 'Nobody answers your call...';
+  NoJoinAnimateRStr = 'Who dares to call me! Do you really think I would serve you?!';
+  NoJoinResurrectionRStr = 'I needed that... Goodbye.';
+  NoLimitRStr = 'No Limit';
+  NoNameSpecifiedRStr = 'no name specified';
+  NoSummonLocationFoundRStr = 'No nearby summon location found';
+  NoTimerRStr = 'No Timer';
+  NonameRStr = 'Noname';
+  NormalRStr = 'Normal';
+  NorthAmericaRStr = '             ';
+  NotImplementedRStr = 'Not implemented';
+  NotImplementedYetRStr = 'Not implemented yet...';
+  OKRStr = 'OK';
+  OakRStr = 'Oak';
+  ObjectiveValidationFailedRStr = 'Objective (%s) failed with message: %s';
+  ObjectiveXRStr = 'Objective: %s';
+  OccupationForcesXRStr = 'Occupation Forces: %s';
+  OkayRStr = 'Okay';
+  OneMomentPleaseRStr = 'One moment please...';
+  OnePrisonerLiberatedRStr = '1 prisoner liberated';
+  OneUnitTrainedRStr = '1 unit trained';
+  OozeRStr = 'Ooze';
+  OpenRStr = 'Open';
+  OppressedRStr = 'Oppressed';
+  OptionsRStr = 'Options';
+  OrcPluralRStr = 'Orcs';
+  OrcRStr = 'Orc';
+  OverlayObjectRStr = 'Overlay Object';
+  PanickedRStr = 'Panicked';
+  PartyOwnerXRStr = 'Party Owner: %s';
+  PassWallRStr = 'Pass Wall';
+  PassiveRStr = 'Passive';
+  PasswordConfirmationRStr = 'Password confirmation';
+  PasswordVerificationRStr = 'Password Verification';
+  PathOfDecayRStr = 'Path Of Decay';
+  PathOfFrostRStr = 'Path Of Frost';
+  PathOfLifeRStr = 'Path Of Life';
+  PatrolRStr = 'Patrol';
+  PestilenceRStr = 'Pestilence';
+  PestilenceStormRStr = 'Pestilence cloud';
+  PhaseRStr = 'Phase';
+  PhysicalImmunityRStr = 'Physical Immunity';
+  PhysicalProtectionRStr = 'Physical Protection';
+  PhysicalRStr = 'Physical';
+  PickupRStr = 'Pickup';
+  PineRStr = 'Pine';
+  PlayByEmailRStr = 'Play by email';
+  PlaySampleEventRStr = 'Play Sample';
+  PlayerNameXRStr = 'Player name: %s';
+  PlayersOnMapXRStr = 'Players on map: %s';
+  PleaseAssignAllSpheresRStr = 'Please assign all spheres!';
+  PleaseFillInAllSettingsRStr = 'Please fill in all settings.';
+  PleaseInsertTheAoWCDRStr = 'Please insert the Age of Wonders CD.';
+  PleaseInsertTheAoWCDRetryRStr = 'Couldn''t find the Age of Wonders CD, do you want to retry?';
+  PleaseSetupEmailSettingsFirstRStr = 'Please setup email settings first!';
+  PoisonCloudDamageRStr = 'Poison Cloud Damage';
+  PoisonCloudRStr = 'Poison Cloud';
+  PoisonImmunityRStr = 'Poison Immunity';
+  PoisonPlantDamageRStr = 'Poison Plant Damage';
+  PoisonPlantRStr = 'Poison Plant';
+  PoisonPlantsRStr = 'Poison Plants';
+  PoisonProtectionRStr = 'Poison Protection';
+  PoisonRStr = 'Poison';
+  PoisonedRStr = 'Poisoned';
+  PoliteRStr = 'Polite';
+  PoorRStr = 'Poor';
+  PopulationRStr = 'Population';
+  PowerLeakRStr = 'Power Leak';
+  PowerNodeBattleWonRStr = 'Power Node captured';
+  PowerNodeRStr = 'Power Node';
+  PowerRStr = 'Power';
+  PowerXRStr = 'Power: %s';
+  PrisonerLiberationRStr = 'Prisoner Liberation';
+  ProduceMerchandiseRStr = 'Produce Merchandise';
+  ProduceMerchandiseTextRStr = 'When producing merchandise the income is increased by 25%.';
+  ProduceRStr = 'Produce';
+  ProducingMerchandiseRStr = 'Producing Merchandise';
+  ProducingRStr = 'Producing';
+  ProducingXIncomeRStr = 'Producing %s income';
+  ProductionPlaceXRazeRStr = 'Destroys the %s instantly by burning it to the ground.';
+  ProgrammerRStr = 'Programmer';
+  PropertiesRStr = 'Properties';
+  PublishedByRStr = 'Published by';
+  PureEvilRStr = 'Pure Evil';
+  PureGoodRStr = 'Pure Good';
+  PureNeutralRStr = 'Pure Neutral';
+  PyramidRStr = 'Pyramid';
+  QACoreRStr = 'QA Core';
+  QueueRStr = 'Queue';
+  RaceRelationXRStr = 'Race Relation: %s';
+  RaceXHaveNoValidCaptureLocationRStr = '%s have no valid capture locations';
+  RaceXRStr = 'Race: %s';
+  RaceXReachedGoldAmountRStr = '%s reached the gold amount for victory';
+  RaidRStr = 'Raid';
+  RaiseTerrainRStr = 'Raise Terrain';
+  RaisedMountainRStr = 'Raised Mountain';
+  RandomNodeRStr = 'Random Node';
+  RandomRStr = 'Random';
+  RareRStr = 'Rare';
+  RazeRStr = 'Raze';
+  RazedRStr = 'Razed';
+  ReadyRStr = 'Ready';
+  RecallSpiritRStr = 'Recall Spirits';
+  RecipientXRStr = 'Recipient: %s';
+  RedDragonRStr = 'Red Dragon';
+  ReenterNewPasswordRStr = 'Confirm new password:';
+  ReenterPasswordRStr = 'Confirm password:';
+  ReflectingPoolRStr = 'Reflecting Pool';
+  RefugeRStr = 'Refuge';
+  RegenerationRStr = 'Regeneration';
+  RejectRStr = 'Reject';
+  RejuvenateRStr = 'Rejuvenate';
+  RemedyRStr = 'Remedy';
+  RepeatRStr = 'Repeat';
+  ReplayRStr = 'Replay';
+  RequiredManaRStr = 'Required Mana';
+  ResearchNewSpellRStr = 'Research new spell';
+  ResearchPointsRStr = 'Research Points';
+  ResearchRStr = 'Research';
+  ResearchSpellRStr = 'Research Spell';
+  ResearchXspellRStr = 'Research %s Spell';
+  ResearchedRStr = 'Researched';
+  ResurrectHeroRStr = 'Resurrect Hero';
+  ResurrectedRStr = 'Resurrected';
+  RingItemRStr = 'Ring item';
+  RuinRStr = 'Ruin';
+  SacredWrathRStr = 'Sacred Wrath';
+  SacrificialFlameRStr = 'Sacrificial Flame';
+  SailingRStr = 'Sailing';
+  SaveGameAsRStr = 'Save game as...';
+  SaveRStr = 'Save';
+  ScenarioDesignersRStr = 'Scenario Designers';
+  ScenarioRStr = 'Scenario';
+  ScenarioXRStr = 'Scenario: %s';
+  ScorchRStr = 'Scorch';
+  ScorcherRStr = 'Scorcher';
+  ScoutRStr = 'Scout';
+  SearchRStr = 'Search';
+  SecretRStr = 'Secret';
+  SelectAFileToLoadRStr = 'Select a File to Load...';
+  SelectAMapRStr = 'Select a Map...';
+  SelectRStr = 'Select';
+  SelectTargetCityForXOnMapRStr = 'Select target city for %s on map.';
+  SelectTargetLocationForXOnMapRStr = 'Select target location for %s on map.';
+  SelectTargetRStr = 'Select Target';
+  SelectUnitForDispelMagicRStr = 'Select unit for "Dispel Magic"';
+  SelectedSpheresRStr = 'Selected Spheres';
+  SendingEmailGameRStr = 'Sending email game...';
+  SerialRStr = 'Serial';
+  ShipyardRStr = 'Shipyard';
+  ShockwaveRStr = 'Shock Wave';
+  ShortRangeRStr = 'Short Range';
+  ShowMessageEventRStr = 'Show Message Event';
+  SignRStr = 'Sign';
+  SimultaneousRStr = 'Simultaneous';
+  SkillPointsRStr = 'Skill Points';
+  SkirmishRStr = 'Skirmish';
+  SlaveryRStr = 'Enslaved';
+  SlowRStr = 'Slow';
+  SlugSlimeRStr = 'Slug Slime';
+  SmallMapAbrRStr = 'S';
+  SmokeCloudRStr = 'Cloud of Ashes';
+  SnowConcealmentRStr = 'Snow Concealment';
+  SolarBlastRStr = 'Solar Blast';
+  SolarFlareRStr = 'Solar Flare';
+  SoundFXRStr = 'Sound FX';
+  SourceLibraryXRStr = 'Source Library: %s';
+  SpecialThanksRStr = 'Special Thanks';
+  SpellIsAlreadyResearchedRStr = 'Spell already researched';
+  SpellRStr = 'Spell';
+  SpellWardRStr = 'Spell Ward';
+  SplitOnEnterCaveWarningRStr = 'Entering the cave will split your party. Do you wish to continue?';
+  SpringOfLifeRStr = 'Spring of Life';
+  StableRStr = 'Stable';
+  StatusRStr = 'Status';
+  StatusWarmodeRStr = 'Status: Warmode';
+  StatusXRStr = 'Status: %s';
+  Step1CustomizeLeaderRStr = 'Step 1: Customize Leader';
+  Step2AssignSkillPointsRStr = 'Step 2: Assign Skill Points';
+  Step3AssignSpheresRStr = 'Step 3: Assign Spheres';
+  SteppeConcealmentRStr = 'Steppe Concealment';
+  StoneSkinRStr = 'Stone Skin';
+  StoningRStr = 'Stoning';
+  StormRStr = 'Storm';
+  StoryAndEditingRStr = 'Story and Editing';
+  StrongRStr = 'Strong';
+  StunnedRStr = 'Stunned';
+  SuggestSplitWithYRStr = 'Suggest split with %s';
+  SuicidalRStr = 'Suicidal';
+  SuicidedRStr = 'Commited Suicide';
+  SummonAirElementalRStr = 'Summon Air Elemental';
+  SummonBlackDragonRStr = 'Summon Black Dragon';
+  SummonBlackSpiderRStr = 'Summon Black Spider';
+  SummonBoarRStr = 'Summon Boar';
+  SummonEarthElementalRStr = 'Summon Earth Elemental';
+  SummonFireElementalRStr = 'Summon Fire Elemental';
+  SummonFireSpriteRStr = 'Summon Fire Sprite';
+  SummonFrogRStr = 'Summon Frog';
+  SummonGoldDragonRStr = 'Summon Gold Dragon';
+  SummonGreatEagleRStr = 'Summon Great Eagle';
+  SummonMermaidRStr = 'Summon Mermaid';
+  SummonSyronRStr = 'Summon Syron';
+  SummonWaterElementalRStr = 'Summon Water Elemental';
+  SummonedRStr = 'Summoned';
+  SurrenderYourEmpireRStr = 'Surrender your empire?';
+  SwarmRStr = 'Swarm';
+  SwimmingRStr = 'Swimming';
+  TCPIPRStr = 'TCP/IP';
+  TakenRStr = '(taken)';
+  TargetRStr = 'Target';
+  TeleportRStr = 'Teleport';
+  TerrainBonusXRStr = 'Terrain Bonus: %s';
+  TerrainPenaltyXRStr = 'Terrain Penalty: %s';
+  TerribleRStr = 'Terrible';
+  TerrorRStr = 'Terror';
+  TheLeaderStepsForewardRStr = 'The leader of the party steps forward:';
+  TheXliesInRuinsRStr = 'The %s lies in ruins.';
+  TheyTaughtYouTheSpellXRStr = 'They taught you the spell %s';
+  TitleRStr = 'Title';
+  ToadRStr = 'Toad';
+  TornadoRStr = 'Tornado';
+  TorsoItemRStr = 'Torso item';
+  TotalCostXRStr = 'Total Cost: %s';
+  TouchRStr = 'Touch';
+  TowerRStr = 'Tower';
+  TownGateRStr = 'Town Gate';
+  TownQuakeDamageRStr = 'Town Quake Damage';
+  TownQuakeRStr = 'Town Quake';
+  TrailOfDarknessRStr = 'Trail Of Darkness';
+  TrainingCompletedRStr = 'Training completed';
+  TransparentRStr = 'Transparent';
+  TransportRStr = 'Transport';
+  TremorsRStr = 'Tremors';
+  TrueVisionRStr = 'True Seeing';
+  TunnelingRStr = 'Tunneling';
+  TurnModeXRStr = 'Turn mode: %s';
+  TurnRStr = 'Turn';
+  TurnedUndeadRStr = 'Turned Undead';
+  TurnsRStr = 'Turns';
+  TurnsXRStr = 'Turns: %s';
+  TutorialMessageEventRStr = 'Tutorial Message Event';
+  TutorialRStr = 'Tutorial';
+  UnavailableRStr = 'Unavailable';
+  UncommonRStr = 'Uncommon';
+  UndergroundConcealmentRStr = 'Underground Concealment';
+  UnexploredRStr = 'Unexplored';
+  UnholyChampionRStr = 'Unholy Champion';
+  UnholyGroundDamageRStr = 'Unholy Ground Damage';
+  UnholyGroundRStr = 'Unholy Ground';
+  UnholyGroundsRStr = 'Evil Woods';
+  UniqueRStr = 'Unique';
+  UnitRStr = 'Unit';
+  UnlimitedRStr = 'Unlimited';
+  UnrestRStr = 'Unrest';
+  UnrulyRStr = 'Unruly';
+  UpgradeLevelXRStr = 'Upgrade Level: %s';
+  UpgradeRStr = 'Upgrade';
+  UpgradingRStr = 'Upgrading';
+  UpkeepRStr = 'Upkeep';
+  UpkeepXRStr = 'Upkeep: %d';
+  UseItemRStr = 'Use item';
+  UseXRStr = 'Use %s';
+  UserRStr = 'user';
+  VaporizeRStr = 'Vaporize';
+  VersionXRStr = 'Version: %s';
+  VersionXYRequiredRStr = '(Version %0:s.%1:s required)';
+  VersusRStr = 'vs.';
+  VertigoRStr = 'Vertigo';
+  VeryRareRStr = 'Very Rare';
+  VictoryRStr = 'Victory';
+  ViewallTCRStr = 'View all TC';
+  VisionRStr = 'Vision';
+  VortexDamageRStr = 'Vortex Damage';
+  VortexRStr = 'Vortex';
+  WalkingRStr = 'Walking';
+  WallBreachRStr = 'Wall Breach';
+  WallClimbingRStr = 'Wall Climbing';
+  WallRStr = 'Wall';
+  WarmodeRStr = 'Warmode';
+  WarmongerRStr = 'Warmonger';
+  WarpPartyRStr = 'Warp Party';
+  WaryRStr = 'Wary';
+  WastelandConcealmentRStr = 'Wasteland Concealment';
+  WatcherRStr = 'Watcher';
+  WaterConcealmentRStr = 'Water Concealment';
+  WaterHexagonRStr = 'Water/Ice Hexagon';
+  WaterMasteryRStr = 'Water Mastery';
+  WaterNodeRStr = 'Water Node';
+  WaterWalkingRStr = 'Water Walking';
+  WeakRStr = 'Weak';
+  WebbedRStr = 'Webbed';
+  WillowRStr = 'Willow';
+  WindWalkingRStr = 'Wind Walking';
+  WindsOfFuryRStr = 'Winds Of Fury';
+  WizardsTowerRStr = 'Wizards Tower';
+  WonRStr = 'Won';
+  WraithsDelightRStr = 'Wraith''s delight';
+  WriterRStr = 'Writer';
+  XAlreadyActiveRStr = '%s already active';
+  XAlreadyExistsRStr = '%s already exists';
+  XAlreadyRemovedRStr = '%s already removed';
+  XAnimatedRStr = '%s animated';
+  XCropFieldsRStr = '%s Crop Fields';
+  XExploredRStr = '%s explored';
+  XGoldRStr = '%s gold';
+  XHostYRStr = '%0:s Host: %1:s';
+  XInstalledAtYRStr = '%0:s installed at %1:s';
+  XLiberatedRStr = '%s liberated';
+  XMinutesRStr = '%s minutes';
+  XOverthrownRStr = '%s overthrown';
+  XPowerRStr = '%s power';
+  XPrisonersLiberatedRStr = '%s prisoners liberated';
+  XProducedAtYRStr = '%0:s produced at %1:s';
+  XRazedRStr = '%s razed';
+  XRelationMinusYRStr = '%s Relation %d';
+  XRelationPlusYRStr = '%s Relation +%d';
+  XResurrectedRStr = '%s resurrected';
+  XSelectedRStr = '%s selected';
+  XSpellsRStr = '%s Spells';
+  XSuccessfullyDispelledRStr = '%s successfully dispelled';
+  XUnitsTrainedRStr = '%s units trained';
+  XUpgradedRStr = '%s upgraded';
+  XinYdaysRStr = '%s in %d day(s)';
+  XsGameRStr = '%s''s Game';
+  XtimeYSphereRStr = '%0:sx %1:s sphere';
+  YouCannotChannelPowerFromThisNodeRStr = 'You cannot channel power from this node';
+  YouNeed2HumanPlayersToPlayAnEmailGameRStr = 'You need 2 human players to play an email game.';
+  YouWereEjectedByTheHostRStr = 'You were ejected by the host.';
+  YouWhereVictoriousRStr = 'you were victorious!';
+  YourReignHasEndedRStr = 'your reign has ended!';
+  spRStr = 'sp';
+

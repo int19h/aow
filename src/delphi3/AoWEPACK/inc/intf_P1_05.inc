@@ -1,0 +1,429 @@
+{ Interface declaration run owned by P1. }
+  { TTargetSelectionControl (instance size 92, VMT 5570E03C) }
+  TTargetSelectionControl = class(TObject)
+  public
+    F_TargetSelectionControl_04: Integer;
+    F_TargetSelectionControl_08: Integer;
+    F_TargetSelectionControl_0C: Byte;
+    F_TargetSelectionControl_0D: Byte;
+    F_TargetSelectionControl_0E: array[0..1] of Byte;
+    F_TargetSelectionControl_10: Integer;
+    F_TargetSelectionControl_14: Integer;
+    F_TargetSelectionControl_18: Integer;
+    F_TargetSelectionControl_1C: Integer;
+    F_TargetSelectionControl_20: Integer;
+    F_TargetSelectionControl_24: Integer;
+    F_TargetSelectionControl_28: Integer;
+    F_TargetSelectionControl_2C: Integer;
+    F_TargetSelectionControl_30: Integer;
+    F_TargetSelectionControl_34: Integer;
+    F_TargetSelectionControl_38: Byte;
+    F_TargetSelectionControl_39: Byte;
+    F_TargetSelectionControl_3A: Byte;
+    F_TargetSelectionControl_3B: Byte;
+    F_TargetSelectionControl_3C: Integer;
+    F_TargetSelectionControl_40: Byte;
+    F_TargetSelectionControl_41: array[0..2] of Byte;
+    F_TargetSelectionControl_44: Byte;
+    F_TargetSelectionControl_45: array[0..2] of Byte;
+    F_TargetSelectionControl_48: Integer;
+    F_TargetSelectionControl_4C: array[0..3] of Byte;
+    F_TargetSelectionControl_50: Integer;
+    F_TargetSelectionControl_54: Integer;
+    F_TargetSelectionControl_58: Integer;
+    destructor Destroy; override;
+    constructor Create;  { draft }
+    procedure TriggerOnChangeEvent(A1: Byte);  { draft }
+    procedure DeselectHS;  { draft }
+    procedure MouseDownEvent;  { draft }
+    procedure ValidTarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure NewFrameEvent;  { draft }
+    procedure MouseMoveEvent;  { draft }
+    procedure ShowSelection(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure Initialize(A1: Integer);  { draft }
+    procedure Activate;  { draft }
+    procedure Deactivate;  { draft }
+    procedure UnitChanged(A1: Integer);  { draft }
+  end;
+
+  { TAoWHSMapKeyboard (instance size 20, VMT 5570E11C) }
+  TAoWHSMapKeyboard = class(TEObject)
+  public
+    F_AoWHSMapKeyboard_08: Integer;
+    F_AoWHSMapKeyboard_0C: Byte;
+    F_AoWHSMapKeyboard_0D: array[0..2] of Byte;
+    F_AoWHSMapKeyboard_10: Integer;
+    procedure KeyDown(A1: Integer; A2: Byte); virtual;  { +04C draft }
+    procedure Lock;  { draft }
+    procedure Unlock;  { draft }
+    procedure RunDefaultTest;  { draft }
+  end;
+
+  { TAbstractAoWHSMapMouse (instance size 80, VMT 5570E22C) }
+  TAbstractAoWHSMapMouse = class(THSMapMouse)
+  public
+    F_AbstractAoWHSMapMouse_3C: Integer;
+    F_AbstractAoWHSMapMouse_40: Integer;
+    F_AbstractAoWHSMapMouse_44: Integer;
+    F_AbstractAoWHSMapMouse_48: Integer;
+    F_AbstractAoWHSMapMouse_4C: Integer;
+    destructor Destroy; override;
+    procedure Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure Move(Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure Create(A1: Byte);  { draft }
+    procedure ResetRectangleSelection;  { draft }
+    procedure GetSelectingRectangle;  { draft }
+    procedure StartRectangleSelection(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateRectangleSelection(A1: Integer; A2: Integer);  { draft }
+    procedure StopRectangleSelection(A1: Integer; A2: Integer);  { draft }
+  end;
+
+  { TAoWHSMapMouse (instance size 80, VMT 5570E2DC) }
+  TAoWHSMapMouse = class(TAbstractAoWHSMapMouse)
+  public
+    function GetCursor: Integer; override;
+    procedure Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure Move(Shift: Classes.TShiftState; X, Y: Integer); override;
+    procedure DblClick; override;
+  end;
+
+  { TAbstractAoWHSMap (instance size 216, VMT 5570E37C) }
+  TAbstractAoWHSMap = class(THSMap)
+  public
+    F_AbstractAoWHSMap_A4: Integer;
+    F_AbstractAoWHSMap_A8: Integer;
+    F_AbstractAoWHSMap_AC: Integer;
+    F_AbstractAoWHSMap_B0: Byte;
+    F_AbstractAoWHSMap_B1: array[0..2] of Byte;
+    F_AbstractAoWHSMap_B4: Integer;
+    F_AbstractAoWHSMap_B8: Integer;
+    F_AbstractAoWHSMap_BC: Integer;
+    F_AbstractAoWHSMap_C0: Integer;
+    F_AbstractAoWHSMap_C4: Integer;
+    F_AbstractAoWHSMap_C8: Byte;
+    F_AbstractAoWHSMap_C9: Byte;
+    F_AbstractAoWHSMap_CA: Byte;
+    F_AbstractAoWHSMap_CB: array[0..0] of Byte;
+    F_AbstractAoWHSMap_CC: Integer;
+    F_AbstractAoWHSMap_D0: Integer;
+    F_AbstractAoWHSMap_D4: Byte;
+    F_AbstractAoWHSMap_D5: Byte;
+    F_AbstractAoWHSMap_D6: Byte;
+    F_AbstractAoWHSMap_D7: array[0..0] of Byte;
+    destructor Destroy; override;
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    function CreateMouse: HSEngine.THSMapMouse; override;
+    procedure TriggerTerrainChangedEvent(const R: Windows.TRect; L: Shortint); override;
+    procedure UpdateStaticScene; override;
+    procedure UpdateDynamicScene; override;
+    procedure NewFrame; override;
+    procedure ShowBackHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0EC draft }
+    procedure ShowFrontHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0F0 draft }
+    procedure UpdateHexagonSelector; virtual;  { +0F4 draft }
+    procedure SetSeatedPlayer(A1: Byte); virtual;  { +0F8 draft }
+    procedure SetCurrentPlayer(A1: Byte); virtual;  { +0FC draft }
+    procedure SetFogEnabled(A1: Byte); virtual;  { +100 draft }
+    procedure SetExplorationEnabled(A1: Byte); virtual;  { +104 draft }
+    procedure DropHeroItem(A1: Integer; A2: Integer); virtual;  { +108 draft }
+    function GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer; virtual;  { +10C draft }
+    procedure ShowMessage(A1: Integer); virtual;  { +110 draft }
+    procedure ShowWarning(A1: Integer); virtual;  { +114 draft }
+    procedure PlayCenterAnimation(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure LockMapChangedEvent;  { draft }
+    procedure UnlockMapChangedEvent;  { draft }
+    procedure MapChanged(A1: Integer);  { draft }
+    procedure MapChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure InvalidateMap;  { draft }
+    procedure TriggerMapChangedEvent(A1: Integer; A2: Integer);  { draft }
+    procedure LockScannerIconsChangedEvent;  { draft }
+    procedure UnlockScannerIconsChangedEvent;  { draft }
+    procedure ScannerIconsChanged(A1: Integer; A2: Integer);  { draft }
+    procedure ScannerIconsChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure InvalidateScannerIcons;  { draft }
+    procedure TriggerScannerIconsChangedEvent(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateShowMessage;  { draft }
+    procedure FogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure UnFogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure DrawGrid(A1: Integer);  { draft }
+    procedure DrawFog(A1: Integer);  { draft }
+    procedure ShowHexagonSelector;  { draft }
+    procedure HideHexagonSelector;  { draft }
+    procedure UpdateFPS(A1: Integer);  { draft }
+    procedure DrawSelectionRect(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+  end;
+
+  { TAbstractAoWCombatMap (instance size 224, VMT 5570E548) }
+  TAbstractAoWCombatMap = class(TAbstractAoWHSMap)
+  public
+    F_AbstractAoWCombatMap_D8: Integer;
+    F_AbstractAoWCombatMap_DC: Integer;
+    destructor Destroy; override;
+    constructor Create(AOwner: Engine.TECustomNode); override;
+  end;
+
+  { TTutorialControl (instance size 12, VMT 5570E6E4) }
+  TTutorialControl = class(TEObject)
+  public
+    F_TutorialControl_08: Integer;
+    destructor Destroy; override;
+    procedure ReadWrite(Stream: Engine.TEStorageStream); override;
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    procedure ShowMessage(A1: Integer; A2: Byte; A3: Integer);  { draft }
+  end;
+
+  { TStartupSongList (instance size 16, VMT 5570E7AC) }
+  TStartupSongList = class(TSonglist)
+  public
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    procedure OriginalSongsChanged;  { draft }
+  end;
+
+  { TAoWHSMap (instance size 1052, VMT 5570E874) }
+  TAoWHSMap = class(TAbstractAoWHSMap)
+  public
+    F_AoWHSMap_D8: Integer;
+    F_AoWHSMap_DC: Byte;
+    F_AoWHSMap_DD: array[0..2] of Byte;
+    F_AoWHSMap_E0: Integer;
+    F_AoWHSMap_E4: Integer;
+    F_AoWHSMap_E8: Integer;
+    F_AoWHSMap_EC: Integer;
+    F_AoWHSMap_F0: Integer;
+    F_AoWHSMap_F4: Integer;
+    F_AoWHSMap_F8: Integer;
+    F_AoWHSMap_FC: Integer;
+    F_AoWHSMap_100: Integer;
+    F_AoWHSMap_104: Byte;
+    F_AoWHSMap_105: array[0..2] of Byte;
+    F_AoWHSMap_108: Integer;
+    F_AoWHSMap_10C: Byte;
+    F_AoWHSMap_10D: array[0..2] of Byte;
+    F_AoWHSMap_110: Integer;
+    F_AoWHSMap_114: Integer;
+    F_AoWHSMap_118: Byte;
+    F_AoWHSMap_119: Byte;
+    F_AoWHSMap_11A: Byte;
+    F_AoWHSMap_11B: array[0..0] of Byte;
+    F_AoWHSMap_11C: Integer;
+    F_AoWHSMap_120: Integer;
+    F_AoWHSMap_124: Integer;
+    F_AoWHSMap_128: Integer;
+    F_AoWHSMap_12C: Integer;
+    F_AoWHSMap_130: Integer;
+    F_AoWHSMap_134: Integer;
+    F_AoWHSMap_138: Byte;
+    F_AoWHSMap_139: Byte;
+    F_AoWHSMap_13A: Byte;
+    F_AoWHSMap_13B: array[0..0] of Byte;
+    F_AoWHSMap_13C: Integer;
+    F_AoWHSMap_140: Integer;
+    F_AoWHSMap_144: Integer;
+    F_AoWHSMap_148: Byte;
+    F_AoWHSMap_149: Byte;
+    F_AoWHSMap_14A: Byte;
+    F_AoWHSMap_14B: Byte;
+    F_AoWHSMap_14C: Byte;
+    F_AoWHSMap_14D: Byte;
+    F_AoWHSMap_14E: array[0..1] of Byte;
+    F_AoWHSMap_150: Integer;
+    F_AoWHSMap_154: Integer;
+    F_AoWHSMap_158: Integer;
+    F_AoWHSMap_15C: Integer;
+    F_AoWHSMap_160: Integer;
+    F_AoWHSMap_164: Integer;
+    F_AoWHSMap_168: Integer;
+    F_AoWHSMap_16C: Byte;
+    F_AoWHSMap_16D: array[0..2] of Byte;
+    F_AoWHSMap_170: Integer;
+    F_AoWHSMap_174: Integer;
+    F_AoWHSMap_178: Integer;
+    F_AoWHSMap_17C: Integer;
+    F_AoWHSMap_180: Byte;
+    F_AoWHSMap_181: array[0..2] of Byte;
+    F_AoWHSMap_184: Integer;
+    F_AoWHSMap_188: Integer;
+    F_AoWHSMap_18C: Integer;
+    F_AoWHSMap_190: array[0..0] of Byte;
+    F_AoWHSMap_191: Byte;
+    F_AoWHSMap_192: array[0..1] of Byte;
+    F_AoWHSMap_194: Integer;
+    F_AoWHSMap_198: Integer;
+    F_AoWHSMap_19C: Integer;
+    F_AoWHSMap_1A0: Integer;
+    F_AoWHSMap_1A4: Integer;
+    F_AoWHSMap_1A8: Integer;
+    F_AoWHSMap_1AC: Integer;
+    F_AoWHSMap_1B0: Integer;
+    F_AoWHSMap_1B4: Integer;
+    F_AoWHSMap_1B8: Integer;
+    F_AoWHSMap_1BC: Integer;
+    F_AoWHSMap_1C0: Byte;
+    F_AoWHSMap_1C1: array[0..2] of Byte;
+    F_AoWHSMap_1C4: Integer;
+    F_AoWHSMap_1C8: Integer;
+    F_AoWHSMap_1CC: Integer;
+    F_AoWHSMap_1D0: Integer;
+    F_AoWHSMap_1D4: Integer;
+    F_AoWHSMap_1D8: Integer;
+    F_AoWHSMap_1DC: Integer;
+    F_AoWHSMap_1E0: Integer;
+    F_AoWHSMap_1E4: Integer;
+    F_AoWHSMap_1E8: Integer;
+    F_AoWHSMap_1EC: Integer;
+    F_AoWHSMap_1F0: Integer;
+    F_AoWHSMap_1F4: Integer;
+    F_AoWHSMap_1F8: Byte;
+    F_AoWHSMap_1F9: array[0..2] of Byte;
+    F_AoWHSMap_1FC: Integer;
+    F_AoWHSMap_200: Integer;
+    F_AoWHSMap_204: Integer;
+    F_AoWHSMap_208: Integer;
+    F_AoWHSMap_20C: Integer;
+    F_AoWHSMap_210: Integer;
+    F_AoWHSMap_214: Integer;
+    F_AoWHSMap_218: Integer;
+    F_AoWHSMap_21C: Integer;
+    F_AoWHSMap_220: Integer;
+    F_AoWHSMap_224: Integer;
+    F_AoWHSMap_228: Integer;
+    F_AoWHSMap_22C: Integer;
+    F_AoWHSMap_230: Integer;
+    F_AoWHSMap_234: Integer;
+    F_AoWHSMap_238: Byte;
+    F_AoWHSMap_239: Byte;
+    F_AoWHSMap_23A: array[0..1] of Byte;
+    F_AoWHSMap_23C: Integer;
+    F_AoWHSMap_240: Integer;
+    F_AoWHSMap_244: Integer;
+    F_AoWHSMap_248: Byte;
+    F_AoWHSMap_249: Byte;
+    F_AoWHSMap_24A: array[0..1] of Byte;
+    F_AoWHSMap_24C: Byte;
+    F_AoWHSMap_24D: array[0..458] of Byte;
+    F_AoWHSMap_418: Byte;
+    F_AoWHSMap_419: array[0..2] of Byte;
+    destructor Destroy; override;
+    procedure ReadWrite(Stream: Engine.TEStorageStream); override;
+    procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
+    constructor Create(AOwner: Engine.TECustomNode); override;
+    class function ClassID: Integer; override;
+    procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
+    procedure SendMsg(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
+    function CreateMouse: HSEngine.THSMapMouse; override;
+    procedure NotifyProgress(const Progress: HSEngine.TMapProgress); override;
+    procedure InitializeNewMap; override;
+    function AddMapLevel: Boolean; override;
+    procedure Activate; override;
+    function CreateNewMap(Settings: HSEngine.TNewHSMapSettings): Boolean; override;
+    function ChangeTerrain(MO: HSEngine.TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer; override;
+    function ChangeTerrainEx(MO: HSEngine.TMapObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer; override;
+    procedure DrawDynamicScene(var SD: GFXE.TSurfaceDesc); override;
+    procedure NewFrame; override;
+    procedure SetSeatedPlayer(A1: Byte); override;
+    procedure TriggerCombatEvent; virtual;  { +118 draft }
+    procedure TriggerGameTerminatedEvent; virtual;  { +11C draft }
+    procedure TriggerPlayerTerminatedEvent; virtual;  { +120 draft }
+    procedure StartNewMap; virtual;  { +124 draft }
+    procedure StartLoadedMap; virtual;  { +128 draft }
+    procedure TriggerExecuteEventLog(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +12C draft }
+    procedure StartTokenEventLogging;  { draft }
+    procedure StopTokenEventLogging;  { draft }
+    procedure SynchroniseBegin;  { draft }
+    procedure SynchroniseEnd;  { draft }
+    procedure GetSynchronised;  { draft }
+    procedure OnExecuteTokenEvent(A1: Integer);  { draft }
+    procedure PlayerDisconnected;  { draft }
+    procedure PlayerConnectionLost;  { draft }
+    procedure OnTokenManagerMessage(A1: Integer; A2: Integer);  { draft }
+    procedure GetIndependentAIMode;  { draft }
+    procedure SaveGame(A1: Integer);  { draft }
+    procedure TerrainVisible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure Visible(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure WatchingTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure Watching(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure ValidateTerrainObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure ValidateObservation(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure UnlockGameOverEventCallBack;  { draft }
+    procedure SelectNextHero;  { draft }
+    procedure SelectNextArmy;  { draft }
+    procedure SelectPrevArmy;  { draft }
+    procedure SeatedPlayerChanged;  { draft }
+    procedure BeginUnitUpdate;  { draft }
+    procedure EndUnitUpdate;  { draft }
+    procedure UnitChanged;  { draft }
+    procedure UnitDestroyed;  { draft }
+    procedure BeginArmyUpdate;  { draft }
+    procedure EndArmyUpdate;  { draft }
+    procedure ArmyChanged;  { draft }
+    procedure ArmyDestroyed;  { draft }
+    procedure BeginStructureUpdate;  { draft }
+    procedure EndStructureUpdate;  { draft }
+    procedure StructureChanged;  { draft }
+    procedure StructureDestroyed;  { draft }
+    procedure ExecuteExitGame;  { draft }
+    procedure ExitGame(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure TriggerEndTurnEvent(A1: Byte);  { draft }
+    procedure ClearExecuteEventLogBuffer;  { draft }
+    procedure ExecuteNextEventLog;  { draft }
+    procedure SetExecuteEventLogDelay(A1: Integer);  { draft }
+    procedure UpdateExecuteEventLogDelay;  { draft }
+    procedure ExecuteEventLogDone(A1: Integer);  { draft }
+    procedure LockExecuteEventLog;  { draft }
+    procedure UnlockExecuteEventLog;  { draft }
+    procedure GameOverEventHandled;  { draft }
+    procedure ExecuteGameOverEvent(A1: Integer);  { draft }
+    procedure UnlockGameOverEvent;  { draft }
+    procedure LockGameOverEvent;  { draft }
+    procedure GameOver(A1: Byte; A2: Integer);  { draft }
+    procedure VerifyAddOnPacks;  { draft }
+    procedure ValidateMap(A1: Integer);  { draft }
+    procedure OnStreamError(A1: Integer; A2: Integer);  { draft }
+    procedure InitializeMapLevel(A1: Byte);  { draft }
+    procedure NotifyPlayerChangedEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure UpdatePlayerSeen(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure VisibleForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure MouseMoved;  { draft }
+    procedure UpdateCursor;  { draft }
+    procedure ResetSeatedPlayerView(A1: Integer; A2: Integer);  { draft }
+    procedure Select(A1: Integer; A2: Integer);  { draft }
+    procedure PlayerChanged;  { draft }
+    procedure TokenControlActivatedEvent;  { draft }
+    procedure SetupPlayerControl(A1: Integer; A2: Integer);  { draft }
+    procedure ActivateMsg;  { draft }
+    procedure Random(A1: Integer);  { draft }
+    procedure GenerateNewTurnOrder;  { draft }
+    procedure EndTurn;  { draft }
+    procedure CancelEndTurn;  { draft }
+    procedure LockUpdateVisibility;  { draft }
+    procedure UnLockUpdateVisibility;  { draft }
+    procedure UpdateVisibility;  { draft }
+    procedure ResetMapLevels;  { draft }
+    procedure ExecuteNegotiateMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure InitializeCombatMap(A1: Integer; A2: Integer);  { draft }
+    procedure ReleaseCombatMap;  { draft }
+    procedure CreateCombat(A1: Integer);  { draft }
+    procedure ShowSeatedPlayerCallBack;  { draft }
+    procedure DestroyCombat;  { draft }
+    procedure RetrieveBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure TriggerRelationsChanged;  { draft }
+    procedure LockRelationsChanged;  { draft }
+    procedure UnlockRelationsChanged;  { draft }
+    procedure UpdateTurnTimeBeep;  { draft }
+    procedure ResetTurnTimer;  { draft }
+    procedure GetTurnTimeLeft;  { draft }
+    procedure GetTurnTimerEnabled;  { draft }
+    procedure EnableTurnTimer;  { draft }
+    procedure DisableTurnTimer;  { draft }
+    procedure ZeroTurnTimer;  { draft }
+    procedure CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure PlaceTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure UpdateEffects;  { draft }
+    procedure AddEffect(A1: Integer);  { draft }
+  end;
+
