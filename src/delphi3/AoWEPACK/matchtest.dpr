@@ -3471,5 +3471,5 @@ begin
   Use(nil, @WizardsTower.TWizardsTower.CanBuy);
   Use(nil, @WizardsTower.TWizardsTower.Buy);
   Use(nil, @WizardsTower.RegisterWizardsTower);
-  { per-package host additions: one {$I hosts\<Pkg>.inc} line per package, nothing else here }
+  { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
 end.

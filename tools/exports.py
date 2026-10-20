@@ -12,7 +12,10 @@ Prints, per unit, the number of exports with the same hash, a different hash, on
 and only in the build; --show lists the names of the differing and missing ones.
 """
 import collections, sys
-import pefile
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 
 
 def exports(path):

@@ -9,7 +9,10 @@ the published fields (name, offset, type), the published methods, and the publis
 (name, type, getter and setter field offsets or method addresses).
 """
 import re, struct, sys
-import pefile
+try:
+    import pefile
+except ImportError:  # the Codex sandbox cannot see the user's site-packages
+    import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 
 # Delphi 3 VMT layout: offsets relative to the VMT address (first user virtual method slot).
 # Confirmed against Ilpack.dpl: the self pointer sits at -64 and the class name pointer at -32.
