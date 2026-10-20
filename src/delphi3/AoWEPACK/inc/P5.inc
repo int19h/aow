@@ -3462,7 +3462,7 @@ begin Result := 0; end;
 procedure TFastCombatUnit.KillUnit;
 begin end;
 
-procedure TFastCombatUnit.SetUnit(A1: Integer);
+procedure TFastCombatUnit.SetUnit(AUnit: TAbstractUnit);
 begin end;
 
 procedure TFastCombatUnit.ReadWrite(Stream: Engine.TEStorageStream);
@@ -3474,26 +3474,26 @@ begin end;
 procedure TFastCombatUnit.UpdateWallSiegeObjectRegistration;
 begin end;
 
-procedure TFastCombatUnit.Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TFastCombatUnit.Show(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc);
 begin end;
 
-procedure TFastCombatUnit.ShowAttackAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+function TFastCombatUnit.ShowAttackAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
+begin Result := 0; end;
+
+function TFastCombatUnit.ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
+begin Result := 0; end;
+
+procedure TFastCombatUnit.SetCombatPlayer(Player: Byte);
 begin end;
 
-procedure TFastCombatUnit.ShowHitAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+function TFastCombatUnit.fcRoundDistance: Integer;
+begin Result := 0; end;
+
+procedure TFastCombatUnit.GetTargetCVDV(Target: TCombatObject; var CV, DV: Integer);
 begin end;
 
-procedure TFastCombatUnit.SetCombatPlayer(A1: Integer; A2: Integer);
-begin end;
-
-procedure TFastCombatUnit.fcRoundDistance;
-begin end;
-
-procedure TFastCombatUnit.GetTargetCVDV(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
-procedure TFastCombatUnit.GetTargetWallCV(A1: Integer);
-begin end;
+function TFastCombatUnit.GetTargetWallCV(Target: TCombatObject): Integer;
+begin Result := 0; end;
 
 function TFastCombatUnit.GetTargetPriority: Integer;
 begin Result := 0; end;
@@ -3516,8 +3516,8 @@ begin Result := False; end;
 function TFastCombatUnit.fcBehindWall: Boolean;
 begin Result := False; end;
 
-procedure TFastCombatUnit.fcExecute(A1: Integer);
-begin end;
+function TFastCombatUnit.fcExecute(A1: Integer): Boolean;
+begin Result := False; end;
 
 constructor TFastCombat.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3540,7 +3540,7 @@ begin end;
 procedure TFastCombat.Activate;
 begin end;
 
-procedure TFastCombat.Deactivate(A1: Integer; A2: Integer);
+procedure TFastCombat.Deactivate;
 begin end;
 
 function TFastCombat.CreateCombatUnit: Integer;

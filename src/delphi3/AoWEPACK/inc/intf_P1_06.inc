@@ -75,9 +75,9 @@
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); virtual;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); virtual;
     function fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer; virtual;
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0EC draft }
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); virtual;  { +0EC }
     function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual;
-    procedure CombatObjectDestroyed(A1: Integer); virtual;  { +0F4 draft }
+    procedure CombatObjectDestroyed(A1: TCombatObject); virtual;  { +0F4 }
     procedure NewCombatTurn(A1: TCombatObject; A2: Shortint); virtual;
     procedure CombatDone(A1: TCombatObject); virtual;
     procedure ListInfo(A1: TStrings; A2: TAbilityInfoMode); virtual;  { +100 }
@@ -172,6 +172,7 @@
   public
     FAbilities: TList;  { $08 }
     FAbilitiesByType: array[TAbilityType] of TAbilityTypeList;  { $0C..$1C }
+    { conflict: FCombatAbilities: TAbilityTypeList; }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

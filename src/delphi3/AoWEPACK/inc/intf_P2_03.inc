@@ -13,6 +13,9 @@
     F_UnitGFXResource_30: Byte;
     F_UnitGFXResource_31: array[0..2] of Byte;
     FSFXLibraries: array[0..4] of TSFXLibrary;  { $34..$44 }
+    { conflict: FSFXLibrary: TSFXLibrary; }
+    { conflict: FHitSFXLibrary: TSFXLibrary; }
+    { conflict: FDeathSFXLibrary: TSFXLibrary; }
     destructor Destroy; override;
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;

@@ -37,17 +37,17 @@ procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtDaysLeftStr(A1: Integer; A2: Integer);  { draft }
-procedure HitPointsToHitPcnt(A1: Integer; A2: Integer);  { draft }
-procedure ShowHitPcnt(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-procedure ShowDamageIcon(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
+procedure ShowHitPcnt(A1: Integer; A2: Integer; const A3: TSurfaceDesc; A4: Integer);
+procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
 procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-procedure DamageEffectsAnimationFrames(A1: Word; A2: Integer; A3: Integer);  { draft }
+function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;
 function StatusToStatusValue(Status: TStatus): Integer;
 function StatusValueToStatus(Value: Integer): TStatus;
 procedure MoraleToMoraleValue(A1: Integer);  { draft }
 procedure MoraleValueToMorale(A1: Integer);  { draft }
 procedure dAlignmentsToStatus(A1: Byte; A2: Byte; A3: Integer);  { draft }
-procedure DamageTypesToDamageType(A1: Word; A2: Integer; A3: Integer);  { draft }
+function DamageTypesToDamageType(A1: TDamageTypes): TDamageType;
 procedure dAlignmentToStatus(A1: Integer; A2: Integer);  { draft }
 procedure AlsToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);  { draft }

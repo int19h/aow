@@ -182,7 +182,7 @@
     F_Player_38: Integer;
     F_Player_3C: Integer;
     F_Player_40: Integer;
-    F_Player_44: Byte;
+    FGameOverStatus: TGameOverStatus;  { $44 }
     F_Player_45: Byte;
     F_Player_46: array[0..1] of Byte;
     F_Player_48: Integer;

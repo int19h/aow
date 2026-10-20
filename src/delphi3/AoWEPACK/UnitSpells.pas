@@ -39,7 +39,7 @@ type
     F_DispelMagicSpellCA_18: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
   end;
 
   { TDispelMagic (instance size 68, VMT 557E53F4) }
@@ -388,7 +388,7 @@ begin Result := 0; end;
 procedure TDispelMagicSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TDispelMagicSpellCA.Execute(A1: TCombat; A2: Integer);
+procedure TDispelMagicSpellCA.Execute(A1: TCombat);
 begin end;
 
 constructor TDispelMagic.Create(AOwner: Engine.TECustomNode);

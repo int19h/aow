@@ -1250,13 +1250,13 @@ begin
   Stream.rwData(FStrikeMode, 1, 20);
 end;
 
-procedure TStrikeCA.Execute(A1: TCombat; A2: Integer);
+procedure TStrikeCA.Execute(A1: TCombat);
 var
   Source, Target: TCombatObject;
   Data: TUnitEnchantmentAbilityData;
 begin
-  Source := A1.FCombatData.FindID(F_SingleTargetCA_0D);
-  Target := A1.FCombatData.FindID(F_SingleTargetCA_0E);
+  Source := A1.FCombatData.FindID(FSourceID);
+  Target := A1.FCombatData.FindID(FTargetID);
   FDamageDone := Source.DoDamage(Target, FDamage);
   if FEffects.Value <> [] then
     Target.ExecuteDamageEffects(FEffects.Value);
@@ -1270,17 +1270,17 @@ begin
     AoWHSSet.FAbilityControl.GetAbility(94).Expand(TCombatUnit(Target).FUnit);
     Data := TUnitEnchantmentAbilityData(TCombatUnit(Target).FUnit.GetAbilityData(94));
     if Data <> nil then
-      Data.FEnchantmentPlayerIndex := Source.F_CombatObject_45;
+      Data.FEnchantmentPlayerIndex := Source.FCombatPlayer;
   end;
 end;
 
 function TStrikeCA.Play(A1: TCombatViewer): Boolean;
 begin
-  if A1.F_CombatViewer_14 = 1 then
+  if A1.FTime = 1 then
     if FDamage = 0 then
-      A1.FCombat.FCombatData.FindID(F_SingleTargetCA_0D).PlaySFX(1)
+      A1.FCombat.FCombatData.FindID(FSourceID).PlaySFX(1)
     else
-      A1.FCombat.FCombatData.FindID(F_SingleTargetCA_0D).PlaySFX(0);
+      A1.FCombat.FCombatData.FindID(FSourceID).PlaySFX(0);
   Result := inherited Play(A1);
 end;
 
@@ -1658,7 +1658,7 @@ begin end;
 procedure TWallCrushingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
 begin end;
 
-procedure TWallCrushingAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TWallCrushingAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 begin end;
 
 procedure TWallCrushingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
@@ -1679,7 +1679,7 @@ begin end;
 class function TSelfDestructCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSelfDestructCA.Execute(A1: TCombat; A2: Integer);
+procedure TSelfDestructCA.Execute(A1: TCombat);
 begin end;
 
 procedure TSelfDestructCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -1736,7 +1736,7 @@ begin end;
 procedure TRoundAttackAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
 begin end;
 
-procedure TRoundAttackAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TRoundAttackAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 begin end;
 
 function TRoundAttackAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
@@ -1751,7 +1751,7 @@ begin end;
 procedure TPossessCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
 begin end;
 
-procedure TPossessCA.Execute(A1: TCombat; A2: Integer);
+procedure TPossessCA.Execute(A1: TCombat);
 begin end;
 
 procedure TPossessCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -1772,7 +1772,7 @@ begin end;
 constructor TPossessedAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TPossessedAbility.CombatObjectDestroyed(A1: Integer);
+procedure TPossessedAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin end;
 
 function TPossessedAbility.AbilityDataClass: TEObjectClass;
@@ -1823,7 +1823,7 @@ begin end;
 procedure TWebCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
 begin end;
 
-procedure TWebCA.Execute(A1: TCombat; A2: Integer);
+procedure TWebCA.Execute(A1: TCombat);
 begin end;
 
 procedure TWebCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -1868,7 +1868,7 @@ begin end;
 procedure TEntangleCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
 begin end;
 
-procedure TEntangleCA.Execute(A1: TCombat; A2: Integer);
+procedure TEntangleCA.Execute(A1: TCombat);
 begin end;
 
 procedure TEntangleCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -1910,7 +1910,7 @@ begin Result := 0; end;
 procedure TTurnUndeadCA.GetSuccessfull;
 begin end;
 
-procedure TTurnUndeadCA.Execute(A1: TCombat; A2: Integer);
+procedure TTurnUndeadCA.Execute(A1: TCombat);
 begin end;
 
 procedure TTurnUndeadCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -1997,7 +1997,7 @@ begin end;
 function TInvokeDeathCA.Play(A1: TCombatViewer): Boolean;
 begin Result := False; end;
 
-procedure TInvokeDeathCA.Execute(A1: TCombat; A2: Integer);
+procedure TInvokeDeathCA.Execute(A1: TCombat);
 begin end;
 
 procedure TInvokeDeathCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
@@ -2042,7 +2042,7 @@ begin Result := 0; end;
 procedure THealingCA.Initialize(A1: Byte; A2: Byte);
 begin end;
 
-procedure THealingCA.Execute(A1: TCombat; A2: Integer);
+procedure THealingCA.Execute(A1: TCombat);
 begin end;
 
 procedure THealingCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -2144,7 +2144,7 @@ begin end;
 procedure TDispelMagicCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TDispelMagicCA.Execute(A1: TCombat; A2: Integer);
+procedure TDispelMagicCA.Execute(A1: TCombat);
 begin end;
 
 procedure TDispelMagicCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -2159,7 +2159,7 @@ begin end;
 class function TDispelMagicAbilityCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDispelMagicAbilityCA.Execute(A1: TCombat; A2: Integer);
+procedure TDispelMagicAbilityCA.Execute(A1: TCombat);
 begin end;
 
 class function TDispelMagicAbilityData.ClassID: Integer;
@@ -2285,8 +2285,8 @@ begin end;
 function TSpellCastingAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 begin Result := False; end;
 
-procedure TSpellCastingAbility.CanCastBreachWallSpell(A1: Integer);
-begin end;
+function TSpellCastingAbility.CanCastBreachWallSpell(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TSpellCastingAbility.AICanCastCombatSpell(A1: Integer);
 begin end;
@@ -2294,7 +2294,7 @@ begin end;
 procedure TSpellCastingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
 begin end;
 
-procedure TSpellCastingAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TSpellCastingAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 begin end;
 
 procedure TSpellCastingAbility.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
@@ -2309,8 +2309,8 @@ begin end;
 procedure TRangedAttackCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
-procedure TRangedAttackCA.GetName(A1: Integer);
-begin end;
+function TRangedAttackCA.GetName: string;
+begin Result := ''; end;
 
 function TRangedAttackCA.Play(A1: TCombatViewer): Boolean;
 begin Result := False; end;
@@ -2384,7 +2384,7 @@ begin end;
 function TBreathAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 begin Result := False; end;
 
-procedure TBreathAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TBreathAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 begin end;
 
 constructor TFlameThrowingAbility.Create(AOwner: Engine.TECustomNode);
@@ -2408,11 +2408,11 @@ begin Result := 0; end;
 procedure TCommandAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TCommandAbilityData.CommandingTargetPriority(A1: Integer; A2: Integer);
-begin end;
+function TCommandAbilityData.CommandingTargetPriority(Combat: TCombat): Integer;
+begin Result := 0; end;
 
-procedure TCommandAbilityData.CommandingTargetStrength(A1: Integer; A2: Integer);
-begin end;
+function TCommandAbilityData.CommandingTargetStrength(Combat: TCombat): Integer;
+begin Result := 0; end;
 
 class function TCommandedAbilityData.ClassID: Integer;
 begin Result := 0; end;
@@ -2435,7 +2435,7 @@ begin Result := False; end;
 procedure TCommandedAbility.CombatDone(A1: TCombatObject);
 begin end;
 
-procedure TCommandedAbility.CombatObjectDestroyed(A1: Integer);
+procedure TCommandedAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin end;
 
 class function TCommandCA.ClassID: Integer;
@@ -2450,7 +2450,7 @@ begin end;
 procedure TCommandCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
-procedure TCommandCA.Execute(A1: TCombat; A2: Integer);
+procedure TCommandCA.Execute(A1: TCombat);
 begin end;
 
 function TCommandCA.Play(A1: TCombatViewer): Boolean;
@@ -2468,7 +2468,7 @@ begin Result := False; end;
 procedure TCommandAbility.CombatDone(A1: TCombatObject);
 begin end;
 
-procedure TCommandAbility.CombatObjectDestroyed(A1: Integer);
+procedure TCommandAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin end;
 
 procedure TCommandAbility.Command(A1: Integer; A2: Integer);
@@ -3004,7 +3004,7 @@ asm
   XOR EAX, EAX
 end;
 
-procedure TSpell.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TSpell.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 asm
   PUSH EBX
   PUSH ESI
@@ -3880,7 +3880,7 @@ begin Result := 0; end;
 procedure TUnitSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TUnitSpellCA.Execute(A1: TCombat; A2: Integer);
+procedure TUnitSpellCA.Execute(A1: TCombat);
 begin end;
 
 function TUnitSpellCA.Play(A1: TCombatViewer): Boolean;

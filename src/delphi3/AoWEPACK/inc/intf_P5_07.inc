@@ -958,22 +958,23 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetTargetCVDV(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetTargetWallCV(A1: Integer); override;
+    procedure GetTargetCVDV(Target: TCombatObject; var CV, DV: Integer); override;
+    function GetTargetWallCV(Target: TCombatObject): Integer; override;
     function GetTargetPriority: Integer; override;
-    procedure SetCombatPlayer(A1: Integer; A2: Integer); override;
+    procedure SetCombatPlayer(Player: Byte); override;
     procedure Activate(A1: Integer); override;
     procedure Deactivate; override;
     procedure Initialize(A1: Integer); override;
-    procedure fcRoundDistance; override;
-    procedure fcExecute(A1: Integer); override;
+    function fcRoundDistance: Integer; override;
+    function fcExecute(A1: Integer): Boolean; override;
     function fcBehindWall: Boolean; override;
     function fcWallInBetween(A1: Byte): Boolean; override;
-    procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure ShowAttackAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure ShowHitAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    { conflict: function fcWallInBetween(A1: Integer): Boolean; override; }
+    procedure Show(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc); override;
+    function ShowAttackAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; override;
+    function ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; override;
     procedure DestroyObject; override;
-    procedure SetUnit(A1: Integer); override;
+    procedure SetUnit(AUnit: TAbstractUnit); override;
     procedure KillUnit; override;
     procedure CanCastWallSiegeSpell;  { draft }
     procedure UpdateWallSiegeObjectRegistration;  { draft }
@@ -1002,7 +1003,7 @@
     function Execute: Byte; override;
     procedure Initialize; override;
     procedure Activate; override;
-    procedure Deactivate(A1: Integer; A2: Integer); override;
+    procedure Deactivate; override;
     procedure GetRoundDistance;  { draft }
     procedure GetRoundDistanceMax;  { draft }
     procedure GetWallInBetween(A1: Integer; A2: Integer);  { draft }

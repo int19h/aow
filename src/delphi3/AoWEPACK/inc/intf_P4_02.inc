@@ -97,7 +97,7 @@
     F_StrikeCA_19: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); override;
   end;
@@ -169,7 +169,7 @@
     F_RangedAttackCA_18: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetName(A1: Integer); override;
+    function GetName: string; override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
@@ -214,7 +214,7 @@
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
   end;
 
   { TFlameThrowingAbility (instance size 48, VMT 5571EDA4) }
@@ -248,7 +248,7 @@
     F_PossessCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
@@ -284,7 +284,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
-    procedure CombatObjectDestroyed(A1: Integer); override;
+    procedure CombatObjectDestroyed(A1: TCombatObject); override;
     function AbilityDataClass: TEObjectClass; override;
   end;
 
@@ -295,7 +295,7 @@
     F_WebCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
@@ -322,7 +322,7 @@
     F_EntangleCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
@@ -349,7 +349,7 @@
     F_InvokeDeathCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
@@ -375,7 +375,7 @@
   TTurnUndeadCA = class(TDamageCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure GetSuccessfull;  { draft }
@@ -417,7 +417,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
   end;
 
@@ -440,7 +440,7 @@
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Remove(A1: TAbilityOwner): Boolean; override;
-    procedure CombatObjectDestroyed(A1: Integer); override;
+    procedure CombatObjectDestroyed(A1: TCombatObject); override;
     procedure CombatDone(A1: TCombatObject); override;
     function AbilityDataClass: TEObjectClass; override;
   end;
@@ -453,7 +453,7 @@
     F_CommandCA_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
@@ -469,8 +469,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function GetAbilityID: Integer; override;
-    procedure CommandingTargetPriority(A1: Integer; A2: Integer);  { draft }
-    procedure CommandingTargetStrength(A1: Integer; A2: Integer);  { draft }
+    function CommandingTargetPriority(Combat: TCombat): Integer;
+    function CommandingTargetStrength(Combat: TCombat): Integer;
   end;
 
   { TCommandAbility (instance size 44, VMT 55720544) }
@@ -486,7 +486,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure CombatObjectDestroyed(A1: Integer); override;
+    procedure CombatObjectDestroyed(A1: TCombatObject); override;
     procedure CombatDone(A1: TCombatObject); override;
     function AbilityDataClass: TEObjectClass; override;
     procedure CanTouch(A1: Integer; A2: Integer); override;
@@ -544,7 +544,7 @@
   TSelfDestructCA = class(TDamageCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
 
@@ -574,7 +574,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
     procedure CanTouch(A1: Integer; A2: Integer); override;
   end;
@@ -583,7 +583,7 @@
   THealingCA = class(TSingleTargetCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte);  { draft }
@@ -652,7 +652,7 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Generate(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -662,7 +662,7 @@
   TDispelMagicAbilityCA = class(TDispelMagicCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
   end;
 
   { TDispelMagicAbilityTE (instance size 32, VMT 55721B1C) }
@@ -859,9 +859,9 @@
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
     function GetLevelName(A1: Integer): string; override;
-    procedure CanCastBreachWallSpell(A1: Integer);  { draft }
+    function CanCastBreachWallSpell(AUnit: TAbstractUnit): Boolean;
     procedure AICanCastCombatSpell(A1: Integer);  { draft }
   end;
 
@@ -911,7 +911,7 @@
     procedure GetCombatInfo(A1: Integer; A2: Integer); virtual;  { +07C draft }
     procedure GetCombatDamageValue(A1: Integer; A2: Integer); virtual;  { +080 draft }
     procedure GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +084 draft }
-    procedure tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +088 draft }
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); virtual;  { +088 }
     procedure tcGetDamageValue; virtual;  { +08C draft }
     procedure fcPrefetchCombatCommands(A1: Integer); virtual;  { +090 draft }
     procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); virtual;  { +094 draft }
@@ -1054,7 +1054,7 @@
     F_UnitSpellCA_1C: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: TCombat; A2: Integer); override;
+    procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
   end;
 

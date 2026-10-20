@@ -1446,7 +1446,7 @@ begin
   Result := Values.Damage;
 end;
 
-procedure TAbility.tcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer);
+procedure TAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
 begin
   TP1AbilityView(Self).fcGetDamageValueEx(TCombatObject(A1), TCombatObject(A2), False, PP1DamageValues(A3)^);
 end;
@@ -1729,7 +1729,7 @@ asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.CombatObjectDestroyed(A1: Integer);
+procedure TAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin
 end;
 
@@ -5009,18 +5009,18 @@ var
   I: Integer;
   Event: TCombatEventLog;
 begin
-  Data := TCombatData(Logbook.F_CombatLogbook_10);
+  Data := TCombatData(Logbook.FFinalData);
   for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
     if AoWHSMap.VisibleForPlayer(
       Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10, I) or
-      (TCombatPlayerList(TCombatData(Logbook.F_CombatLogbook_0C).F_CombatData_38).IndexOfPlayer(I) <> -1) then
+      (TCombatPlayerList(TCombatData(Logbook.FInitialData).F_CombatData_38).IndexOfPlayer(I) <> -1) then
     begin
       Event := TCombatEventLog.Create(nil);
       Event.SetCombatLogbook(Logbook);
       AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Event);
       if Execute and (I = AoWHSMap.FSeatedPlayer) and
         (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
-        (TCombatData(Logbook.F_CombatLogbook_10).F_CombatData_30 <> 6) then
+        (TCombatData(Logbook.FFinalData).F_CombatData_30 <> 6) then
         Event.Execute(0, etEvent, nil);
       Event.Release;
     end;
@@ -5319,20 +5319,20 @@ begin end;
 procedure FmtDaysLeftStr(A1: Integer; A2: Integer);
 begin end;
 
-procedure HitPointsToHitPcnt(A1: Integer; A2: Integer);
+function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
+begin Result := 0; end;
+
+procedure ShowHitPcnt(A1: Integer; A2: Integer; const A3: TSurfaceDesc; A4: Integer);
 begin end;
 
-procedure ShowHitPcnt(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
-
-procedure ShowDamageIcon(A1: Integer; A2: Integer; A3: Integer);
+procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
 begin end;
 
 procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure DamageEffectsAnimationFrames(A1: Word; A2: Integer; A3: Integer);
-begin end;
+function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;
+begin Result := 0; end;
 
 function StatusToStatusValue(Status: TStatus): Integer;
 begin
@@ -5374,8 +5374,8 @@ begin end;
 procedure dAlignmentsToStatus(A1: Byte; A2: Byte; A3: Integer);
 begin end;
 
-procedure DamageTypesToDamageType(A1: Word; A2: Integer; A3: Integer);
-begin end;
+function DamageTypesToDamageType(A1: TDamageTypes): TDamageType;
+begin Result := dtNone; end;
 
 procedure dAlignmentToStatus(A1: Integer; A2: Integer);
 begin end;
