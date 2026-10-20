@@ -136,7 +136,7 @@ begin
   FillWord(P^, 0, 0);
   Writeln(GetPixelInfo(SD, 0, 0), MASKtoPFID(16, 1, 2, 3, 4), PFIDtoMASK(1, I, J, K, L));
   CreateSDfromSD(SD, R, SD2);
-  RL := GetSurfaceRectangles(SD, 0, nil, nil);
+  RL := GetSurfaceRectangles(SD, 0, nil);
   MinimizeTransparentRect(SD, R, 0, R);
   MinimizeInvTransparentRect(SD, R, 0, R);
   DrawLine16(0, 0, 1, 1, 0, 0, SD);

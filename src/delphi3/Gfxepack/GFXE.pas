@@ -772,14 +772,14 @@ type
 
   TGenerateBlendTableProc = procedure(Table: TBlendTable; Value: Single);
 
-  { GFXE.TLookupBlendTableCollection100 (instance size 412): +4 FTables, +8 FLookup (101
+  { GFXE.TLookupBlendTableCollection100 (instance size 412): +4 FTables, +8 Lookup (101
     tables, indexed by percentage). }
   TLookupBlendTableCollection100 = class(TObject)
   private
     FTables: TBlendTableList;
-    FLookup: array[0..100] of TBlendTable;
+  public { ImageLib's blitters read Lookup directly; adding lines here moves the Asserts below }
+    Lookup: array[0..100] of TBlendTable;
     function GetLookupTables(Index: Integer): TBlendTable;
-  public
     constructor Create;
     destructor Destroy; override;
     procedure Clear;
@@ -827,7 +827,7 @@ function GetPixelInfo(const SD: TSurfaceDesc; X, Y: Integer): Integer;
 function MASKtoPFID(BitCount: Integer; RMask, GMask, BMask, AMask: Integer): Integer;
 function PFIDtoMASK(PixelFormatID: Integer; var RMask, GMask, BMask, AMask: Integer): Integer;
 procedure CreateSDfromSD(const Src: TSurfaceDesc; const R: TRect; var Dest: TSurfaceDesc);
-function GetSurfaceRectangles(SD: TSurfaceDesc; TransparentColor: Integer; Sender: TObject; OnProgress: TProgressEvent): TRectangleList;
+function GetSurfaceRectangles(SD: TSurfaceDesc; TransparentColor: Integer; OnProgress: TProgressEvent): TRectangleList;
 procedure MinimizeTransparentRect(const SD: TSurfaceDesc; const R: TRect; TransparentColor: Integer; var Result: TRect);
 procedure MinimizeInvTransparentRect(const SD: TSurfaceDesc; const R: TRect; TransparentColor: Integer; var Result: TRect);
 procedure DrawLine16(X1, Y1, X2, Y2, Skip: Integer; Color: Word; const SD: TSurfaceDesc);
@@ -2462,7 +2462,7 @@ end;
 
 { The rectangles of a surface: the maximal rectangles of TransparentColor bordered by other
   colors, found from their top left corners. }
-function GetSurfaceRectangles(SD: TSurfaceDesc; TransparentColor: Integer; Sender: TObject; OnProgress: TProgressEvent): TRectangleList;
+function GetSurfaceRectangles(SD: TSurfaceDesc; TransparentColor: Integer; OnProgress: TProgressEvent): TRectangleList;
 var
   List: TRectangleList;
   X, Y: Word;
@@ -9686,13 +9686,13 @@ end;
 
 function TLookupBlendTableCollection100.GetLookupTables(Index: Integer): TBlendTable;
 begin
-  Result := FLookup[Index];
+  Result := Lookup[Index];
 end;
 
 procedure TLookupBlendTableCollection100.Clear;
 begin
   FTables.Clear;
-  FillChar(FLookup, SizeOf(FLookup), 0);
+  FillChar(Lookup, SizeOf(Lookup), 0);
 end;
 
 function TLookupBlendTableCollection100.GenerateLookupTables(Bits: Integer; Proc: TGenerateBlendTableProc; Count: Integer): Boolean;
@@ -9722,7 +9722,7 @@ begin
     begin
       J := (I * Count) div 100;
       if J = Count then J := Count - 1;
-      FLookup[I] := FTables.Tables[J];
+      Lookup[I] := FTables.Tables[J];
     end;
     Result := True;
   end
