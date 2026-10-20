@@ -6,7 +6,7 @@
     F_UnitGFXResource_1C: Integer;
     F_UnitGFXResource_20: Integer;
     F_UnitGFXResource_24: Integer;
-    F_UnitGFXResource_28: Integer;
+    FSequences: TImageSequenceList;
     F_UnitGFXResource_2C: Integer;
     F_UnitGFXResource_30: Byte;
     F_UnitGFXResource_31: array[0..2] of Byte;
@@ -27,8 +27,8 @@
     procedure LinkToIL;  { draft }
     procedure ReleaseIL;  { draft }
     procedure SetFaceImageLibraryName(A1: Integer; A2: Integer);  { draft }
-    procedure GetFaceImage;  { draft }
-    procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function GetFaceImage: TLibraryImage;
+    procedure Show(Direction,X,Y: Integer; const SD: TSurfaceDesc);
     procedure GetIndex;  { draft }
   end;
 
@@ -36,7 +36,7 @@
   TUnitGFXResourceList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetUnitGFXResource(A1: Integer);  { draft }
+    function GetUnitGFXResource(Index: Integer): TUnitGFXResource;
     procedure CreateUnitGFXSelectionList(A1: Integer; A2: Integer);  { draft }
   end;
 

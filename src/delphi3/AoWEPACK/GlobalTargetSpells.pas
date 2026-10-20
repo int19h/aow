@@ -628,7 +628,7 @@ begin
   if VirtualCanActivate(Spell, Caster, Integer(@MessageText)) then
   begin
     Spell.FCasterID := TAbstractUnit(Caster).FUnitID;
-    Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).F_AbstractUnit_24);
+    Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).FPlayer);
     Spell.SetupTargetSelection(Caster, SpellHSMap^.F_AoWHSMap_E0);
     TTargetSelectionControl(SpellHSMap^.F_AoWHSMap_E0).Activate;
     Result := True;
@@ -714,7 +714,7 @@ begin
   Caster := TAbstractUnit(A1);
   inherited Process(A1, A2);
   with TSpellMapCalls(SpellHSMap^) do
-    ValidateTerrain(Caster.F_AbstractUnit_24,
+    ValidateTerrain(Caster.FPlayer,
       Byte(TSpellLocation(FLocation).X), Byte(TSpellLocation(FLocation).Y),
       Byte(TSpellLocation(FLocation).Layer), 2);
   if TSpellMapCalls(SpellHSMap^).TerrainVisible( Byte(TSpellLocation(FLocation).X),
@@ -728,7 +728,7 @@ begin
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
   { needs: TAbstractAoWHSMap.$A4 contains the seated player at byte $A5. }
-  if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.F_AbstractUnit_24) or
+  if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.FPlayer) or
     TSpellMapCalls(SpellHSMap^).WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
     TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 10).F_Spell_28).Play(0);
@@ -863,11 +863,11 @@ var
   Event: TFreezeWaterTE;
 begin
   Event := TFreezeWaterTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -907,7 +907,7 @@ begin
         begin
           Fire.SetupExplosion(Random(35));
           Fire.F_Fire_1D := 3;
-          Fire.F_Fire_24 := SpellSource(Self).F_AbstractUnit_24;
+          Fire.F_Fire_24 := SpellSource(Self).FPlayer;
         end;
       end;
     end;
@@ -1044,11 +1044,11 @@ var
   Event: TFireBarrierTE;
 begin
   Event := TFireBarrierTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -1215,11 +1215,11 @@ var
   Event: TLevelTerrainTE;
 begin
   Event := TLevelTerrainTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -1240,7 +1240,7 @@ begin
   Caster := TAbstractUnit(A1);
   inherited Process(A1, A2);
   with TSpellMapCalls(SpellHSMap^) do
-    ValidateTerrain(Caster.F_AbstractUnit_24,
+    ValidateTerrain(Caster.FPlayer,
       Byte(TSpellLocation(FLocation).X), Byte(TSpellLocation(FLocation).Y),
       Byte(TSpellLocation(FLocation).Layer), 2);
   if TSpellMapCalls(SpellHSMap^).TerrainVisible( Byte(TSpellLocation(FLocation).X),
@@ -1254,7 +1254,7 @@ begin
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
   { needs: TAbstractAoWHSMap.$A4 contains the seated player at byte $A5. }
-  if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.F_AbstractUnit_24) or
+  if (Byte(TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) = Caster.FPlayer) or
     TSpellMapCalls(SpellHSMap^).WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
     TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl), 41).F_Spell_28).Play(0);
@@ -1349,11 +1349,11 @@ var
   Event: TRejuvenateTE;
 begin
   Event := TRejuvenateTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -1751,7 +1751,7 @@ begin
   inherited Process(A1,A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   Watcher := TWatcherHS.Create(nil);
-  Watcher.FEnchantment.F_GlobalEnchantment_19 := TAbstractUnit(A1).F_AbstractUnit_24;
+  Watcher.FEnchantment.F_GlobalEnchantment_19 := TAbstractUnit(A1).FPlayer;
   Watcher.FEnchantment.F_GlobalEnchantment_20 :=
     LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),57).F_Spell_1C;
   SpellHSMap^.PlaceHX(Watcher,TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
@@ -1780,15 +1780,15 @@ var
   Event: TWatcherTE;
 begin
   Busy := SpellPlayerBusy(SpellPlayer(TPlayerList(SpellHSMap^.FPlayers),
-    Shortint(TAbstractUnit(A1).F_AbstractUnit_24)));
+    Shortint(TAbstractUnit(A1).FPlayer)));
   if not Busy then
   begin
     Event := TWatcherTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).F_AbstractUnit_24,
+    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
       TAbstractUnit(A1).FUnitID,F_Spell_14);
     Event.SetLocation(A2,A3,A4);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-      GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
   { needs: Boolean function result, preserved while P7 procedure overrides remain. }
@@ -2001,10 +2001,10 @@ begin
     LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
       CastingDone(Integer(Caster),LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
         Event.F_SpellTE_10).F_Spell_14);
-    SpellObservation(SpellHSMap^,Caster.F_AbstractUnit_24,
+    SpellObservation(SpellHSMap^,Caster.FPlayer,
       TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,
       TSpellLocation(Event.FLocation).Layer,2);
-    if (Caster.F_AbstractUnit_24 = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
+    if (Caster.FPlayer = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
       SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
         TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
@@ -2047,7 +2047,7 @@ begin
     if Selection <> 0 then
     begin
       Log := TArmyEventLog.Create(nil);
-      Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+      Log.F_EventLog_10 := Caster.FPlayer;
       PSpellString(@Log.F_ArmyEventLog_1C)^ :=
         SysUtils.Format(SpellTranslate(SpellXCastRStr),[SpellTranslate(TornadoRStr)]);
       TStrings(Log.F_ArmyEventLog_20).Add(SpellTranslate(TornadoRStr));
@@ -2059,12 +2059,12 @@ begin
         CalculateWarpLocation(Army,Selection);
       if Location <> $FFFFFF then
       begin
-        if (Caster.F_AbstractUnit_24 = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
+        if (Caster.FPlayer = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
           SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
             TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
           TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
             Event.F_SpellTE_10).F_Spell_28).Play(1);
-        if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = Caster.F_AbstractUnit_24) or
+        if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = Caster.FPlayer) or
           SpellVisibleForPlayer(SpellHSMap^,TSpellLocation(Event.FLocation).X,
             TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,
             TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) then
@@ -2078,7 +2078,7 @@ begin
             SpellHSMap^.PlaceHX(Anim,TSpellLocation(Event.FLocation).X,
               TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer);
           end;
-        if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = Caster.F_AbstractUnit_24) or
+        if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = Caster.FPlayer) or
           SpellVisibleForPlayer(SpellHSMap^,TSpellLocation(Location).X,
             TSpellLocation(Location).Y,TSpellLocation(Location).Layer,
             TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) then
@@ -2097,7 +2097,7 @@ begin
         MapF := TAoWMapField(SpellHSMap^.MapContainer.GetFieldXYL(Location));
         if SpellSelection(TArmy(Army.F_ArmyHS_1C),$FF) = Selection then
         begin
-          MovedUnits.AddUnits(Army.F_ArmyHS_1C);
+          MovedUnits.AddUnits(Integer(Army.F_ArmyHS_1C));  { AddUnits is still a draft }
           SpellMoveArmy(Army,MapF,0);
         end
         else
@@ -2207,17 +2207,17 @@ var
   Busy: Boolean;
 begin
   Busy := SpellPlayerBusy(SpellPlayer(TPlayerList(SpellHSMap^.FPlayers),
-    Shortint(TAbstractUnit(A1).F_AbstractUnit_24)));
+    Shortint(TAbstractUnit(A1).FPlayer)));
   if not Busy then
   begin
     Event := TTornadoTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).F_AbstractUnit_24,
+    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
       TAbstractUnit(A1).FUnitID,F_Spell_14);
     Event.SetLocation(A2,A3,A4);
     Army := SpellFieldArmy(TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)));
     if Army <> nil then Event.FArmyID := SpellArmyID(TArmy(Army.F_ArmyHS_1C),$FF);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-      GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
   asm MOV AL, Busy; XOR AL, 1 end;
@@ -2354,10 +2354,10 @@ begin
     LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),Event.F_SpellTE_10).
       CastingDone(Integer(Caster),LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
         Event.F_SpellTE_10).F_Spell_14);
-    SpellObservation(SpellHSMap^,Caster.F_AbstractUnit_24,
+    SpellObservation(SpellHSMap^,Caster.FPlayer,
       TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,
       TSpellLocation(Event.FLocation).Layer,2);
-    if (Caster.F_AbstractUnit_24 = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
+    if (Caster.FPlayer = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
       SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
         TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),
@@ -2376,7 +2376,7 @@ begin
   begin
     Log := TArmyEventLog.Create(nil);
     PSpellString(@Log.F_ArmyEventLog_1C)^ := SpellTranslate(VortexDamageRStr);
-    Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+    Log.F_EventLog_10 := Caster.FPlayer;
     TStrings(Log.F_ArmyEventLog_20).Add(SpellTranslate(VortexRStr));
     Log.F_ArmyEventLog_24 := 2;
     SpellLogArmy(TUnitList(Log.F_ArmyEventLog_18),TArmy(Army.F_ArmyHS_1C),$FF);
@@ -2411,7 +2411,7 @@ begin
     Log.Release;
     TArmy(Army.F_ArmyHS_1C).Validate;
     SpellValidateTerrain(TArmy(Army.F_ArmyHS_1C),TMapField(Army.Owner).TerrainType,
-      TMapField(Army.Owner).OverlayType,Caster.F_AbstractUnit_24);
+      TMapField(Army.Owner).OverlayType,Caster.FPlayer);
     TArmy(Army.F_ArmyHS_1C).EndUpdate;
   end;
   Event.FAnimation.Free;
@@ -2463,17 +2463,17 @@ var
   Busy: Boolean;
 begin
   Busy := SpellPlayerBusy(SpellPlayer(TPlayerList(SpellHSMap^.FPlayers),
-    Shortint(TAbstractUnit(A1).F_AbstractUnit_24)));
+    Shortint(TAbstractUnit(A1).FPlayer)));
   if not Busy then
   begin
     Event := TVortexTE.Create(nil);
-    Event.Initialize(F_Spell_10,TAbstractUnit(A1).F_AbstractUnit_24,
+    Event.Initialize(F_Spell_10,TAbstractUnit(A1).FPlayer,
       TAbstractUnit(A1).FUnitID,F_Spell_14);
     Event.SetLocation(A2,A3,A4);
     Army := SpellFieldArmy(TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)));
     if Army <> nil then Event.FArmyID := SpellArmyID(TArmy(Army.F_ArmyHS_1C),$FF);
     TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-      GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
   asm MOV AL, Busy; XOR AL, 1 end;
@@ -2567,9 +2567,9 @@ begin
   inherited Process(A1,A2);
   if A2 = 0 then
   begin
-    TSpellMapCalls(SpellHSMap^).ValidateTerrain(TAbstractUnit(A1).F_AbstractUnit_24,
+    TSpellMapCalls(SpellHSMap^).ValidateTerrain(TAbstractUnit(A1).FPlayer,
       TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer,2);
-    if (TAbstractUnit(A1).F_AbstractUnit_24 = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
+    if (TAbstractUnit(A1).FPlayer = TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
       TSpellMapCalls(SpellHSMap^).WatchingTerrain(TSpellLocation(FLocation).X,
         TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer,2) then
       TSFXLibrary(LookupSpell(TSpellControl(SpellHSSet^.FSpellControl),73).F_Spell_28).Play(0);
@@ -2678,11 +2678,11 @@ var
   Event: THealingShowersTE;
 begin
   Event := THealingShowersTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -2726,11 +2726,11 @@ var
   Event: TGlobalTargetSpellTE;
 begin
   Event := TGlobalTargetSpellTE.Create(nil);
-  Event.Initialize(F_Spell_10, TAbstractUnit(A1).F_AbstractUnit_24,
+  Event.Initialize(F_Spell_10, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, F_Spell_14);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
-    GetTokenControl(Shortint(TAbstractUnit(A1).F_AbstractUnit_24)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
   asm MOV AL, 1 end;
 end;
@@ -2747,10 +2747,10 @@ var
   Resource: TEResource;
   Cloud: TSmokeCloud;
 begin
-  SpellObservation(SpellHSMap^,SpellSource(Event).F_AbstractUnit_24,
+  SpellObservation(SpellHSMap^,SpellSource(Event).FPlayer,
     TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,
     TSpellLocation(Event.FLocation).Layer,2);
-  if (SpellSource(Event).F_AbstractUnit_24 =
+  if (SpellSource(Event).FPlayer =
     TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer) or
     SpellWatching(SpellHSMap^,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
@@ -2760,10 +2760,10 @@ begin
   if Resource <> nil then
   begin
     Cloud := TSmokeCloud(Resource.CreateResourceUser);
-    Cloud.F_SmokeCloud_14 := Caster.F_AbstractUnit_24;
+    Cloud.F_SmokeCloud_14 := Caster.FPlayer;
     Cloud.F_SmokeCloud_18 := -1;
     TGlobalEnchantment(Cloud.F_SmokeCloud_20).F_GlobalEnchantment_19 :=
-      Caster.F_AbstractUnit_24;
+      Caster.FPlayer;
     TGlobalEnchantment(Cloud.F_SmokeCloud_20).F_GlobalEnchantment_20 := Spell.F_Spell_18;
     Cloud.F_SmokeCloud_1C := 0;
     if not SpellHSMap^.PlaceHX(Cloud,TSpellLocation(Event.FLocation).X,

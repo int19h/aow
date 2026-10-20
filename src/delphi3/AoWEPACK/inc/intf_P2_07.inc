@@ -81,58 +81,58 @@
     procedure SetAbSet(A1: Integer; A2: Byte); override;
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
     procedure Changed; override;
-    procedure GetUpkeep; override;
-    procedure GetUnitLevel; override;
+    function GetUpkeep: Shortint; override;
+    function GetUnitLevel: Shortint; override;
     function GetRace: Shortint; override;
-    procedure GetInherentAttack; override;
-    procedure GetInherentDefense; override;
-    procedure GetInherentDamage; override;
-    procedure GetInherentResistance; override;
-    procedure GetAttack(A1: Integer; A2: Integer); override;
+    function GetInherentAttack: Shortint; override;
+    function GetInherentDefense: Shortint; override;
+    function GetInherentDamage: Shortint; override;
+    function GetInherentResistance: Shortint; override;
+    function GetAttack: Shortint; override;
     function GetDefense: Shortint; override;
-    procedure GetDamage(A1: Integer; A2: Integer); override;
+    function GetDamage: Shortint; override;
     function GetResistance: Shortint; override;
-    procedure GetHits; override;
-    procedure GetMoves; override;
-    procedure GetMovePoints; override;
-    procedure SetMovePoints(A1: Integer); override;
+    function GetHits: Shortint; override;
+    function GetMoves: Shortint; override;
+    function GetMovePoints: Shortint; override;
+    procedure SetMovePoints(Value: Shortint); override;
     function GetHitPoints: Shortint; override;
-    procedure SetHitPoints(A1: Integer); override;
-    procedure GetMoveTypes; override;
+    procedure SetHitPoints(Value: Shortint); override;
+    function GetMoveTypes: TMoveTypes; override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetProtectionTypes: TDamageTypes; override;
-    procedure GetFace; override;
-    procedure GetName(A1: Integer); override;
+    function GetFace: TLibraryImage; override;
+    function GetName: string; override;
     function GetAlignment: TAlignment; override;
-    procedure GetPreviewImage; override;
-    procedure GetGender; override;
+    function GetPreviewImage: TLibraryImage; override;
+    function GetGender: TUnitGender; override;
     function GetUnitType: TUnitType; override;
-    procedure GetUnitGFXResourceIndex; override;
+    function GetUnitGFXResourceIndex: Integer; override;
     function GetCampaignTransferPoints: Integer; override;
-    procedure GetCastingPointsMax; override;
-    procedure GetCastingPoints; override;
+    function GetCastingPointsMax: Byte; override;
+    function GetCastingPoints: Byte; override;
     procedure SetCastingPoints(A1: Integer); override;
-    procedure GetPowerGeneration; override;
-    procedure NewDay(A1: Integer; A2: Integer); override;
-    procedure NewTurn(A1: Integer; A2: Integer); override;
-    procedure GetAbilityLevel(A1: Integer); override;
+    function GetPowerGeneration: Integer; override;
+    procedure NewDay; override;
+    procedure NewTurn(Player: Shortint); override;
+    function GetAbilityLevel(AbilityID: Integer): Integer; override;
     function GetAbilityEnabled(AbilityID: Integer): Boolean; override;
-    procedure GetAbilitySet(A1: Integer); override;
-    procedure GetAbilityName(A1: Integer; A2: Integer); override;
-    procedure GetAbilityOwner(A1: Integer); override;
-    procedure GetAbilityCount; override;
-    procedure GetExperience; override;
-    procedure SetExperience(A1: Integer; A2: Integer); override;
-    procedure GetNextLevelExperience; override;
-    procedure GetDescription; override;
-    procedure SetPlayer(A1: Integer); override;
+    function GetAbilitySet(AbilityID: Integer): Boolean; override;
+    function GetAbilityName(AbilityID: Integer): string; override;
+    function GetAbilityOwner(AbilityID: Integer): TAbilityOwner; override;
+    function GetAbilityCount: Integer; override;
+    function GetExperience: Integer; override;
+    procedure SetExperience(Value: Integer); override;
+    function GetNextLevelExperience: Integer; override;
+    function GetDescription: Integer; override;
+    procedure SetPlayer(Player: Shortint); override;
     function GetObtainValue: Integer; override;
-    procedure CanActivate; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate: Boolean; override;
+    procedure Activate; override;
     procedure Deactivate; override;
-    procedure CanJoin(A1: Byte; A2: Integer); override;
-    procedure OfferToJoin(A1: Integer); override;
-    procedure ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function CanJoin(Player: Shortint): Boolean; override;
+    function OfferToJoin(Player: Shortint): Boolean; override;
+    function ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; override;
     procedure Killed; override;
     procedure Resurrect; override;
     procedure Animate; override;
@@ -217,14 +217,14 @@
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure Changed; override;
-    procedure GetUpkeep; override;
-    procedure GetPowerGeneration; override;
-    procedure SetPlayer(A1: Integer); override;
+    function GetUpkeep: Shortint; override;
+    function GetPowerGeneration: Integer; override;
+    procedure SetPlayer(Player: Shortint); override;
     function GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer; override;
-    procedure CanActivate; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate: Boolean; override;
+    procedure Activate; override;
     procedure Deactivate; override;
-    procedure CanDisband; override;
+    function CanDisband(var Reason: string): Boolean; override;
     procedure Killed; override;
     procedure GetNickname(A1: Integer); override;
     procedure SetNickname(A1: Integer; A2: Integer); override;
@@ -357,13 +357,13 @@
     F_AdjustableUnit_45: Byte;
     F_AdjustableUnit_46: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetAttack(A1: Integer; A2: Integer); override;
+    function GetAttack: Shortint; override;
     function GetDefense: Shortint; override;
-    procedure GetDamage(A1: Integer; A2: Integer); override;
+    function GetDamage: Shortint; override;
     function GetResistance: Shortint; override;
-    procedure GetHits; override;
+    function GetHits: Shortint; override;
     function GetHitPoints: Shortint; override;
-    procedure SetHitPoints(A1: Integer); override;
+    procedure SetHitPoints(Value: Shortint); override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetProtectionTypes: TDamageTypes; override;
     procedure MakeDefaultLevelUnit(A1: Byte);  { draft }
@@ -374,10 +374,10 @@
   public
     F_WallUnit_3C: Integer;
     function GetDefense: Shortint; override;
-    procedure GetHits; override;
+    function GetHits: Shortint; override;
     function GetHitPoints: Shortint; override;
     function GetImmunityTypes: TDamageTypes; override;
-    procedure GetName(A1: Integer); override;
+    function GetName: string; override;
     function GetUnitType: TUnitType; override;
     procedure SetWallType(A1: Integer);  { draft }
   end;
@@ -479,7 +479,7 @@
     procedure Unselect;  { draft }
     procedure GetUnitConcealed(A1: Integer);  { draft }
     procedure GetUnitsConcealedForPlayer(A1: Integer; A2: Integer);  { draft }
-    procedure SetPlayer(A1: Integer);  { draft }
+    procedure SetPlayer(Player: Shortint);
     procedure ImmunityTypes(A1: Integer);  { draft }
     procedure ObtainValue(A1: Integer; A2: Integer);  { draft }
     procedure MovePoints(A1: Integer);  { draft }
@@ -495,9 +495,9 @@
     procedure MaxSize(A1: Integer; A2: Integer);  { draft }
     procedure Hero(A1: Integer; A2: Byte);  { draft }
     procedure Leader(A1: Integer);  { draft }
-    procedure Transporter(A1: Integer);  { draft }
+    function Transporter(Player: Shortint): TAbstractUnit;
     procedure IndexOfTransporter(A1: Integer);  { draft }
-    procedure UnitsInTransporter;  { draft }
+    function UnitsInTransporter: Boolean;
     procedure UpdateVisibilityRanges(A1: Integer; A2: Integer);  { draft }
     procedure VisibilityRange;  { draft }
     procedure TrueVisionRange;  { draft }
@@ -556,7 +556,7 @@
   { TArmyHS (instance size 36, VMT 557133A0) }
   TArmyHS = class(TUnitHS)
   public
-    F_ArmyHS_1C: Integer;
+    F_ArmyHS_1C: TArmy;
     F_ArmyHS_20: Byte;
     F_ArmyHS_21: Byte;
     F_ArmyHS_22: Byte;

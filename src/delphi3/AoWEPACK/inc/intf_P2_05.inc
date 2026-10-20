@@ -1,4 +1,14 @@
 { Interface declaration run owned by P2. }
+  TP2UnitShowInfo = record
+    Direction: Byte;
+    Overlays: TUnitOverlayModes;
+    Animation: TUnitAnimation;
+    Frame: Integer;
+    Looped: Boolean;
+  end;
+
+  TP2MovePointTable = array[0..15, -1..14] of Shortint;
+
   { TUnitControl (instance size 20, VMT 557105E8):
     +08 FNextUnitID; +0C FUnitTable; +10 FUnits. }
   TUnitControl = class(TEObject)
@@ -19,23 +29,22 @@
   end;
 
   { TAbstractUnit (instance size 60, VMT 55710740):
-    +14 FRefCount; +18 FUnitID; +1C FArmy; +25 FUnitStatus.
+    +14 FRefCount; +18 FUnitID; +1C FGroupID; +25 FUnitStatus.
     Other fields retain their offset names pending recovery. }
   TAbstractUnit = class(TAbilityOwner)
   public
     FRefCount: Integer;
     FUnitID: Integer;
-    FArmy: TArmy;
-    F_AbstractUnit_20: Integer;
-    F_AbstractUnit_24: Byte;
+    FGroupID: Integer;
+    FGroup: TUnitUserList;
+    FPlayer: Shortint;
     FUnitStatus: TUnitStatus;
-    F_AbstractUnit_26: Byte;
+    FMoraleValue: Shortint;
     F_AbstractUnit_27: array[0..0] of Byte;
-    F_AbstractUnit_28: Byte;
-    F_AbstractUnit_29: array[0..8] of Byte;
-    F_AbstractUnit_32: Byte;
+    FOffensiveStrength: array[TDamageType] of Byte;
+    FMaxOffensiveStrength: Byte;
     F_AbstractUnit_33: array[0..0] of Byte;
-    F_AbstractUnit_34: Integer;
+    FDefensiveStrength: Integer;
     F_AbstractUnit_38: Byte;
     F_AbstractUnit_39: array[0..2] of Byte;
     destructor Destroy; override;
@@ -49,73 +58,73 @@
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
     procedure Changed; override;
     procedure RemoveAbility(A1: Integer); override;
-    procedure GetUpkeep; virtual;  { +09C draft }
-    procedure GetUnitLevel; virtual;  { +0A0 draft }
+    function GetUpkeep: Shortint; virtual;  { +09C draft }
+    function GetUnitLevel: Shortint; virtual;  { +0A0 draft }
     function GetRace: Shortint; virtual;  { +0A4 draft }
-    procedure GetInherentAttack; virtual;  { +0A8 draft }
-    procedure GetInherentDefense; virtual;  { +0AC draft }
-    procedure GetInherentDamage; virtual;  { +0B0 draft }
-    procedure GetInherentResistance; virtual;  { +0B4 draft }
-    procedure GetInherentAbility(A1: Integer); virtual;  { +0B8 draft }
-    procedure GetInherentAbilityLevel(A1: Integer); virtual;  { +0BC draft }
-    procedure GetAttack(A1: Integer; A2: Integer); virtual;  { +0C0 draft }
+    function GetInherentAttack: Shortint; virtual;  { +0A8 draft }
+    function GetInherentDefense: Shortint; virtual;  { +0AC draft }
+    function GetInherentDamage: Shortint; virtual;  { +0B0 draft }
+    function GetInherentResistance: Shortint; virtual;  { +0B4 draft }
+    function GetInherentAbility(AbilityID: Integer): Boolean; virtual;  { +0B8 draft }
+    function GetInherentAbilityLevel(AbilityID: Integer): Shortint; virtual;  { +0BC draft }
+    function GetAttack: Shortint; virtual;  { +0C0 draft }
     function GetDefense: Shortint; virtual;  { +0C4 draft }
-    procedure GetDamage(A1: Integer; A2: Integer); virtual;  { +0C8 draft }
+    function GetDamage: Shortint; virtual;  { +0C8 draft }
     function GetResistance: Shortint; virtual;  { +0CC draft }
-    procedure GetHits; virtual;  { +0D0 draft }
-    procedure GetMoves; virtual;  { +0D4 draft }
-    procedure GetMovePoints; virtual;  { +0D8 draft }
-    procedure SetMovePoints(A1: Integer); virtual;  { +0DC draft }
+    function GetHits: Shortint; virtual;  { +0D0 draft }
+    function GetMoves: Shortint; virtual;  { +0D4 draft }
+    function GetMovePoints: Shortint; virtual;  { +0D8 draft }
+    procedure SetMovePoints(Value: Shortint); virtual;  { +0DC draft }
     function GetHitPoints: Shortint; virtual;  { +0E0 draft }
-    procedure SetHitPoints(A1: Integer); virtual;  { +0E4 draft }
-    procedure GetMoveTypes; virtual;  { +0E8 draft }
+    procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 draft }
+    function GetMoveTypes: TMoveTypes; virtual;  { +0E8 draft }
     function GetImmunityTypes: TDamageTypes; virtual;  { +0EC draft }
     function GetProtectionTypes: TDamageTypes; virtual;  { +0F0 draft }
-    procedure GetFace; virtual;  { +0F4 draft }
-    procedure GetName(A1: Integer); virtual;  { +0F8 draft }
+    function GetFace: TLibraryImage; virtual;  { +0F4 draft }
+    function GetName: string; virtual;  { +0F8 draft }
     function GetAlignment: TAlignment; virtual;  { +0FC draft }
-    procedure GetPreviewImage; virtual;  { +100 draft }
-    procedure GetTransportCapacity; virtual;  { +104 draft }
-    procedure GetTransporter; virtual;  { +108 draft }
-    procedure GetGender; virtual;  { +10C draft }
+    function GetPreviewImage: TLibraryImage; virtual;  { +100 draft }
+    function GetTransportCapacity: Byte; virtual;  { +104 draft }
+    function GetTransporter: Boolean; virtual;  { +108 draft }
+    function GetGender: TUnitGender; virtual;  { +10C draft }
     function GetBloodType: TBloodType; virtual;  { +110 draft }
     function GetUnitType: TUnitType; virtual;  { +114 draft }
-    procedure GetUnitGFXResourceIndex; virtual;  { +118 draft }
-    procedure CanAddToList; virtual;  { +11C draft }
+    function GetUnitGFXResourceIndex: Integer; virtual;  { +118 draft }
+    function CanAddToList: Boolean; virtual;  { +11C draft }
     function GetWallCombatFeatures: TWallCombatFeatures; virtual;  { +120 draft }
     function GetCampaignTransferPoints: Integer; virtual;  { +124 draft }
-    procedure GetCastingPointsMax; virtual;  { +128 draft }
-    procedure GetCastingPoints; virtual;  { +12C draft }
+    function GetCastingPointsMax: Byte; virtual;  { +128 draft }
+    function GetCastingPoints: Byte; virtual;  { +12C draft }
     procedure SetCastingPoints(A1: Integer); virtual;  { +130 draft }
-    procedure GetPowerGeneration; virtual;  { +134 draft }
-    procedure NewDay(A1: Integer; A2: Integer); virtual;  { +138 draft }
-    procedure NewTurn(A1: Integer; A2: Integer); virtual;  { +13C draft }
-    procedure NewTurnDone(A1: Byte); virtual;  { +140 draft }
-    procedure GetAbilityLevel(A1: Integer); virtual;  { +144 draft }
+    function GetPowerGeneration: Integer; virtual;  { +134 draft }
+    procedure NewDay; virtual;  { +138 draft }
+    procedure NewTurn(Player: Shortint); virtual;  { +13C draft }
+    procedure NewTurnDone(Player: Shortint); virtual;  { +140 draft }
+    function GetAbilityLevel(AbilityID: Integer): Integer; virtual;  { +144 draft }
     function GetAbilityEnabled(AbilityID: Integer): Boolean; virtual;  { +148 draft }
-    procedure GetAbilitySet(A1: Integer); virtual;  { +14C draft }
-    procedure GetAbilityName(A1: Integer; A2: Integer); virtual;  { +150 draft }
-    procedure GetAbilityOwner(A1: Integer); virtual;  { +154 draft }
-    procedure GetAbilityCount; virtual;  { +158 draft }
-    procedure GetExperience; virtual;  { +15C draft }
-    procedure SetExperience(A1: Integer; A2: Integer); virtual;  { +160 draft }
-    procedure GetNextLevelExperience; virtual;  { +164 draft }
-    procedure GetDescription; virtual;  { +168 draft }
-    procedure SetPlayer(A1: Integer); virtual;  { +16C draft }
-    procedure GetIndependentRelation; virtual;  { +170 draft }
+    function GetAbilitySet(AbilityID: Integer): Boolean; virtual;  { +14C draft }
+    function GetAbilityName(AbilityID: Integer): string; virtual;  { +150 draft }
+    function GetAbilityOwner(AbilityID: Integer): TAbilityOwner; virtual;  { +154 draft }
+    function GetAbilityCount: Integer; virtual;  { +158 draft }
+    function GetExperience: Integer; virtual;  { +15C draft }
+    procedure SetExperience(Value: Integer); virtual;  { +160 draft }
+    function GetNextLevelExperience: Integer; virtual;  { +164 draft }
+    function GetDescription: Integer; virtual;  { +168 draft }
+    procedure SetPlayer(Player: Shortint); virtual;  { +16C draft }
+    function GetIndependentRelation: Shortint; virtual;  { +170 draft }
     function GetObtainValue: Integer; virtual;  { +174 draft }
-    procedure GetUnitSize; virtual;  { +178 draft }
+    function GetUnitSize: TUnitSize; virtual;  { +178 draft }
     function GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer; virtual;  { +17C draft }
-    procedure CanActivate; virtual;  { +180 draft }
-    procedure Activate(A1: Integer; A2: Integer); virtual;  { +184 draft }
+    function CanActivate: Boolean; virtual;  { +180 draft }
+    procedure Activate; virtual;  { +184 draft }
     procedure Deactivate; virtual;  { +188 draft }
-    procedure MovedTo(A1: Integer; A2: Integer; A3: Integer); virtual;  { +18C draft }
-    procedure CanDisband; virtual;  { +190 draft }
-    procedure CanJoin(A1: Byte; A2: Integer); virtual;  { +194 draft }
-    procedure JoinAmount(A1: Integer; A2: Integer); virtual;  { +198 draft }
-    procedure OfferToJoin(A1: Integer); virtual;  { +19C draft }
-    procedure GetJoinMessage(A1: Integer; A2: Integer); virtual;  { +1A0 draft }
-    procedure ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +1A4 draft }
+    procedure MovedTo(OldField, NewField: TMapField; MaxCost: Integer); virtual;  { +18C draft }
+    function CanDisband(var Reason: string): Boolean; virtual;  { +190 draft }
+    function CanJoin(Player: Shortint): Boolean; virtual;  { +194 draft }
+    function JoinAmount: Integer; virtual;  { +198 draft }
+    function OfferToJoin(Player: Shortint): Boolean; virtual;  { +19C draft }
+    procedure GetJoinMessage(Player: Shortint; Count, Amount: Integer; Mode: TJoinMode; Messages: TStrings); virtual;  { +1A0 draft }
+    function ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; virtual;  { +1A4 draft }
     procedure UnitKilled; virtual;  { +1A8 draft }
     procedure Killed; virtual;  { +1AC draft }
     procedure Resurrect; virtual;  { +1B0 draft }
@@ -125,36 +134,36 @@
     procedure GetLocation(var Xhx, Yhx, Lhx: Shortint);
     function GetRelationValue(Player, IndependentRelation: Shortint): Integer;
     function GetRelation(Player, IndependentRelation: Shortint): TStatus;  { draft }
-    procedure UnitRelation(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateMoraleValue;  { draft }
-    procedure GetMorale;  { draft }
+    function UnitRelation(AUnit: TAbstractUnit): TStatus;
+    function UpdateMoraleValue: Shortint;
+    function GetMorale: TMorale;
     procedure UpdateEnchanted;  { draft }
     procedure RemoveEnchantments;  { draft }
     procedure RemoveHandicaps;  { draft }
     procedure RegisterEnchantments;  { draft }
     procedure UnregisterEnchantments;  { draft }
-    procedure AbilityToEnchantment;  { draft }
-    procedure CanDispelEnchantment(A1: Integer);  { draft }
-    procedure ListEnchantments(A1: Integer; A2: Integer);  { draft }
+    function AbilityToEnchantment(AbilityID: Integer): TUnitEnchantment;
+    function CanDispelEnchantment(Player: Shortint): Boolean;
+    procedure ListEnchantments(List: TECustomNode);
     procedure UpdateDefensiveStrength;  { draft }
     procedure UpdateOffensiveStrength;  { draft }
-    procedure GetStrength(A1: Integer);  { draft }
-    procedure GetStrengthMax(A1: Word; A2: Integer);  { draft }
-    procedure GetCombatValue(A1: Integer; A2: Byte);  { draft }
-    procedure ListAbilityInfo(A1: Integer; A2: Integer);  { draft }
-    procedure GetManaUpkeep;  { draft }
-    procedure GetTransporting(A1: Integer; A2: Integer);  { draft }
-    procedure CreateMovePointTable(A1: Integer);  { draft }
-    procedure ValidTerrain(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteTrailOfDarkness(A1: Integer);  { draft }
-    procedure PathOfLifeTerrainChange(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure PathOfDecayTerrainChange(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure PathOfFrostTerrainChange(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure PathOfFrostTerrainChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure UpdatePathOfFrost(A1: Integer; A2: Integer);  { draft }
-    procedure ConcealedOnMapF(A1: Integer);  { draft }
-    procedure ExecuteStormDamage(A1: Byte);  { draft }
-    procedure MovePointCost(A1: Integer; A2: Byte);  { draft }
+    function GetStrength(DamageType: TDamageType): Integer;
+    function GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+    function GetCombatValue(Target: TAbstractUnit; Mode: Boolean): Integer;
+    procedure ListAbilityInfo(Names, Types, Sources: TStrings);
+    function GetManaUpkeep: Integer;
+    function GetTransporting: Boolean;
+    procedure CreateMovePointTable(var Table: TP2MovePointTable);
+    function ValidTerrain(TerrainType, OverlayType: Shortint): Boolean;
+    procedure ExecuteTrailOfDarkness(MapField: TMapField);
+    procedure PathOfLifeTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+    procedure PathOfDecayTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+    procedure PathOfFrostTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+    procedure PathOfFrostTerrainChanged(MapField: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
+    procedure UpdatePathOfFrost;
+    function ConcealedOnMapF(Field: TAoWMapField): Boolean;
+    function ExecuteStormDamage(Storm: TStormType): Integer;
+    function MovePointCost(TerrainType, OverlayType: Shortint): Integer;
     procedure ResetEarthMasteryStoneSkin;  { draft }
     procedure SetEarthMasteryStoneSkin;  { draft }
     procedure ResetFireMasteryProtection;  { draft }
@@ -166,20 +175,20 @@
     procedure ValidateLifeMastery;  { draft }
     procedure ExecuteDeathMasteryCurseRole;  { draft }
     procedure ValidateDeathMastery;  { draft }
-    procedure VisibilityRange(A1: Integer; A2: Integer);  { draft }
-    procedure TrueVisionRange;  { draft }
-    procedure CanPlace(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure Place(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function VisibilityRange: Integer;
+    function TrueVisionRange: Integer;
+    function CanPlace(X,Y,L: Integer; Player: Shortint; Mode: TUnitPlaceMode): Boolean;
+    function Place(X,Y,L: Integer; Player: Shortint; Mode: TUnitPlaceMode): TArmyHS;
     procedure ValidateCrusader;  { draft }
-    procedure Show(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ShowFace(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteDamageRole(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ExecuteResistanceRole(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteDamageEffectsRole(A1: Word);  { draft }
-    procedure ExecuteDamageEffects(A1: Word; A2: Integer);  { draft }
-    procedure ExecuteCombatDamageEffects(A1: Integer; A2: Integer);  { draft }
-    procedure OptimalDamageType(A1: Word; A2: Integer);  { draft }
-    procedure Disband;  { draft }
+    procedure Show(X,Y: Integer; const SD: TSurfaceDesc);
+    procedure ShowFace(const R: TRect; const SD: TSurfaceDesc);
+    function ExecuteDamageRole(Attack, Damage: Integer; DamageTypes: TDamageTypes): Integer;
+    function ExecuteResistanceRole(Attack: Integer; DamageType: TDamageType): Boolean;
+    function ExecuteDamageEffectsRole(DamageTypes: TDamageTypes): TDamageTypes;
+    function ExecuteDamageEffects(DamageTypes: TDamageTypes): TDamageTypes;
+    function ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes;
+    function OptimalDamageType(DamageTypes: TDamageTypes): TDamageType;
+    function Disband: Boolean;
   end;
 
   { TAbstractUnitResource (instance size 28, VMT 5571096C) }
@@ -192,7 +201,7 @@
     function GetCellImage: ImageLib.TLibraryImage; override;
     class function ResourceEditName: string; override;
     procedure DropUnit(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
-    procedure GetPreviewImage; virtual;  { +068 draft }
+    function GetPreviewImage: TLibraryImage; virtual;  { +068 draft }
     procedure GetFace; virtual;  { +06C draft }
     procedure GetObtainValue; virtual;  { +070 draft }
     procedure SetUnitGFXResourceIndex(A1: Integer);  { draft }
@@ -203,30 +212,30 @@
   TUnitResource = class(TAbstractUnitResource)
   public
     F_UnitResource_1C: Integer;
-    F_UnitResource_20: Byte;
+    FRace: Shortint;
     F_UnitResource_21: Byte;
     F_UnitResource_22: array[0..1] of Byte;
     F_UnitResource_24: Integer;
-    F_UnitResource_28: Byte;
-    F_UnitResource_29: Byte;
-    F_UnitResource_2A: Byte;
-    F_UnitResource_2B: Byte;
-    F_UnitResource_2C: Byte;
-    F_UnitResource_2D: Byte;
-    F_UnitResource_2E: Byte;
-    F_UnitResource_2F: Byte;
-    F_UnitResource_30: Byte;
-    F_UnitResource_31: Byte;
+    FAlignment: TAlignment;
+    FAttack: Shortint;
+    FDefense: Shortint;
+    FDamage: Shortint;
+    FHits: Shortint;
+    FMoves: Shortint;
+    FResistance: Shortint;
+    FLevel: Shortint;
+    FUnitType: TUnitType;
+    FGender: TUnitGender;
     F_UnitResource_32: array[0..5] of Byte;
     F_UnitResource_38: Integer;
     F_UnitResource_3C: Integer;
     F_UnitResource_40: Integer;
     F_UnitResource_44: Byte;
     F_UnitResource_45: array[0..2] of Byte;
-    F_UnitResource_48: Integer;
-    F_UnitResource_4C: Integer;
-    F_UnitResource_50: Byte;
-    F_UnitResource_51: Byte;
+    FDescription: Integer;
+    FObtainValue: Integer;
+    FUnitSize: TUnitSize;
+    FBloodType: TBloodType;
     F_UnitResource_52: array[0..1] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -237,75 +246,75 @@
     procedure DropUnit(A1: Integer; A2: Integer; A3: Integer); override;
     procedure GetObtainValue; override;
     procedure GetMoveTypes;  { draft }
-    procedure GetTransportCapacity;  { draft }
+    function GetTransportCapacity: Byte;
     procedure GetUpkeep;  { draft }
     procedure SetDescription;  { draft }
-    procedure UnitResourceIndex;  { draft }
-    procedure GetUnitName(A1: Integer);  { draft }
+    function UnitResourceIndex: Integer;
+    function GetUnitName: string;
   end;
 
   { TUnitResourceList (instance size 20, VMT 55710B64) }
   TUnitResourceList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetUnitResource(A1: Integer);  { draft }
+    function GetUnitResource(Index: Integer): TUnitResource;
   end;
 
   { TUnit (instance size 72, VMT 55710CAC) }
   TUnit = class(TAbstractUnit)
   public
-    F_Unit_3C: Byte;
-    F_Unit_3D: Byte;
-    F_Unit_3E: Byte;
+    FExperience: Byte;
+    FMovePoints: Shortint;
+    FHitPoints: Shortint;
     F_Unit_3F: array[0..0] of Byte;
-    F_Unit_40: Integer;
-    F_Unit_44: Byte;
-    F_Unit_45: Byte;
-    F_Unit_46: Byte;
-    F_Unit_47: Byte;
+    FUnitResource: TUnitResource;
+    FAbAttack: Shortint;
+    FAbDefense: Shortint;
+    FAbResistance: Shortint;
+    FAbDamage: Shortint;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Changed; override;
-    procedure GetUnitLevel; override;
+    function GetUnitLevel: Shortint; override;
     function GetRace: Shortint; override;
-    procedure GetInherentAttack; override;
-    procedure GetInherentDefense; override;
-    procedure GetInherentDamage; override;
-    procedure GetInherentResistance; override;
-    procedure GetAttack(A1: Integer; A2: Integer); override;
+    function GetInherentAttack: Shortint; override;
+    function GetInherentDefense: Shortint; override;
+    function GetInherentDamage: Shortint; override;
+    function GetInherentResistance: Shortint; override;
+    function GetAttack: Shortint; override;
     function GetDefense: Shortint; override;
-    procedure GetDamage(A1: Integer; A2: Integer); override;
+    function GetDamage: Shortint; override;
     function GetResistance: Shortint; override;
-    procedure GetHits; override;
-    procedure GetMoves; override;
-    procedure GetMovePoints; override;
-    procedure SetMovePoints(A1: Integer); override;
+    function GetHits: Shortint; override;
+    function GetMoves: Shortint; override;
+    function GetMovePoints: Shortint; override;
+    procedure SetMovePoints(Value: Shortint); override;
     function GetHitPoints: Shortint; override;
-    procedure SetHitPoints(A1: Integer); override;
-    procedure GetFace; override;
-    procedure GetName(A1: Integer); override;
+    procedure SetHitPoints(Value: Shortint); override;
+    function GetFace: TLibraryImage; override;
+    function GetName: string; override;
     function GetAlignment: TAlignment; override;
-    procedure GetPreviewImage; override;
-    procedure GetTransportCapacity; override;
-    procedure GetTransporter; override;
-    procedure GetGender; override;
+    function GetPreviewImage: TLibraryImage; override;
+    function GetTransportCapacity: Byte; override;
+    function GetTransporter: Boolean; override;
+    function GetGender: TUnitGender; override;
     function GetBloodType: TBloodType; override;
     function GetUnitType: TUnitType; override;
-    procedure GetUnitGFXResourceIndex; override;
-    procedure NewDay(A1: Integer; A2: Integer); override;
-    procedure GetExperience; override;
-    procedure SetExperience(A1: Integer; A2: Integer); override;
-    procedure GetNextLevelExperience; override;
-    procedure GetDescription; override;
+    function GetUnitGFXResourceIndex: Integer; override;
+    procedure NewDay; override;
+    function GetExperience: Integer; override;
+    procedure SetExperience(Value: Integer); override;
+    function GetNextLevelExperience: Integer; override;
+    function GetDescription: Integer; override;
     function GetObtainValue: Integer; override;
-    procedure GetUnitSize; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
-    procedure ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function GetUnitSize: TUnitSize; override;
+    procedure Activate; override;
+    function ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; override;
     procedure UnitKilled; override;
     procedure Killed; override;
-    procedure GetRank;  { draft }
-    procedure SetRank(A1: Integer);  { draft }
-    procedure SetUnitResource(A1: Integer; A2: Integer);  { draft }
+    function GetRank: TUnitRank;
+    procedure SetRank(Value: TUnitRank);
+    procedure SetUnitResource(Resource: TUnitResource);
   end;
 
   { TUnitList (instance size 16, VMT 55710EC8) }

@@ -1,9 +1,5 @@
 { P2 recovery in original code order. }
 var
-  { needs: P1 shared var AoWHSMap: TAoWHSMap; original global at $558FA040,
-    read by TUnitControl.RegisterUnit at $5577EA49. Replace this local stand-in
-    with the shared declaration when P1 assembles the interface. }
-  P2AoWHSMap: TAoWHSMap;
   { needs: P1 shared AoWHSSet: TAoWHSSet, original global 558FA044. }
   P2AoWHSSet: TAoWHSSet;
 
@@ -93,6 +89,371 @@ const
     (Preferred: [ttDirt]; Disliked: []),
     (Preferred: [ttWasteland]; Disliked: [ttGrass]));
 
+{ needs: draft P1 TRace.GetRelation(Race: Shortint): TStatus,
+  call 5577F02E takes DL and returns AL. }
+function P2RaceRelation(Race: TRace; OtherRace: Shortint): TStatus; assembler;
+asm JMP TRace.GetRelation end;
+
+{ needs: draft P1 dAlignmentToStatus(A, B: TAlignment): TStatus;
+  call 5577F04B uses AL/DL and returns AL. }
+function P2AlignmentRelation(A, B: TAlignment): TStatus; assembler;
+asm JMP dAlignmentToStatus end;
+
+{ needs: draft P1 MoraleValueToMorale(Value: Integer): TMorale;
+  5577F178 sign extends the morale byte into EAX before the call. }
+function P2MoraleValueToMorale(Value: Integer): TMorale; assembler;
+asm JMP MoraleValueToMorale end;
+
+type
+  { Local views of unmarked foreign fields; no foreign layout is changed. }
+  TP2NodeFields = class(TObject)
+    Owner: Pointer;
+    Children: TList;
+  end;
+  TP2AbilityControlFields = class(TObject)
+    Reserved: array[4..23] of Byte;
+    CombatAbilities: TAbilityTypeList;
+    Enchantments: TAbilityTypeList;
+  end;
+
+{ needs: draft P1 TAbilityTypeList.GetAbility(Index: Integer): TAbility;
+  5577F1AB returns a pointer whose +0C ability ID is read at 5577F1B0. }
+function P2TypeAbility(List: TAbilityTypeList; Index: Integer): TAbility; assembler;
+asm JMP TAbilityTypeList.GetAbility end;
+
+{ needs: draft P1 TAbilityControl.GetAbility(ID: Integer): TAbility;
+  5577F3C3 returns the class-tested pointer. }
+function P2ControlAbility(Control: TAbilityControl; ID: Integer): TAbility; assembler;
+asm JMP TAbilityControl.GetAbility end;
+
+{ needs: draft P1 TAbilityOwner.GetAbilityData(ID: Integer): TAbilityData;
+  calls 5577F2EB/5577F3F1 return a pointer with enchantment at +10. }
+function P2AbilityData(AOwner: TAbilityOwner; ID: Integer): TAbilityData; assembler;
+asm JMP TAbilityOwner.GetAbilityData end;
+
+type
+  { Local VMT view while foreign draft result types remain undeclared.
+    Offsets proved by calls 5577F57C, 5577F599, 5577F5D1, 5577F60C, 5577F651. }
+  { Damage-value record, five dwords at 5577F9FF..5577FA24. }
+  TP2DamageValue = record
+    Damage, Reserved, Cost, Reserved2, Reserved3: Integer;
+  end;
+  TP2AbilityCalls = class(TObject)
+    ReservedFields: array[4..11] of Byte;
+    AbilityID: Integer;
+    procedure Slot00; virtual; abstract;
+    procedure Slot04; virtual; abstract;
+    procedure Slot08; virtual; abstract;
+    procedure Slot0C; virtual; abstract;
+    procedure Slot10; virtual; abstract;
+    procedure Slot14; virtual; abstract;
+    procedure Slot18; virtual; abstract;
+    procedure Slot1C; virtual; abstract;
+    procedure Slot20; virtual; abstract;
+    procedure Slot24; virtual; abstract;
+    procedure Slot28; virtual; abstract;
+    procedure Slot2C; virtual; abstract;
+    procedure Slot30; virtual; abstract;
+    procedure Slot34; virtual; abstract;
+    procedure Slot38; virtual; abstract;
+    procedure Slot3C; virtual; abstract;
+    procedure Slot40; virtual; abstract;
+    procedure Slot44; virtual; abstract;
+    procedure Slot48; virtual; abstract;
+    function GetAbSet(Index: Integer): Boolean; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    function AbilityType: TAbilityType; virtual; abstract;
+    function AbilityName(AOwner: TAbilityOwner): string; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    function AbilityLevel(AOwner: TAbilityOwner): Integer; virtual; abstract;
+    function AbilityEnabled(AOwner: TAbilityOwner): Boolean; virtual; abstract;
+    procedure Slot78; virtual; abstract;
+    procedure Slot7C; virtual; abstract;
+    procedure Slot80; virtual; abstract;
+    procedure Slot84; virtual; abstract;
+    procedure Slot88; virtual; abstract;
+    function SourceName(AOwner: TAbilityOwner): string; virtual; abstract;
+    function AbilityInherent(AOwner: TAbilityOwner): Boolean; virtual; abstract;
+    function AbilityInherentLevel(AOwner: TAbilityOwner): Shortint; virtual; abstract;
+    procedure Slot98; virtual; abstract;
+    procedure Slot9C; virtual; abstract;
+    procedure SlotA0; virtual; abstract;
+    function CanAddUnit(AUnit: TAbstractUnit): Boolean; virtual; abstract;
+    procedure SlotA8; virtual; abstract;
+    function AddUnit(AUnit: TAbstractUnit): Boolean; virtual; abstract;
+    procedure SlotB0; virtual; abstract;
+    procedure SlotB4; virtual; abstract;
+    procedure SlotB8; virtual; abstract;
+    procedure SlotBC; virtual; abstract;
+    procedure SlotC0; virtual; abstract;
+    procedure SlotC4; virtual; abstract;
+    procedure SlotC8; virtual; abstract;
+    procedure SlotCC; virtual; abstract;
+    class function GroupBehavior: TGroupBehavior; virtual; abstract;
+    procedure SlotD4; virtual; abstract;
+    procedure SlotD8; virtual; abstract;
+    procedure DamageValueEx(AOwner: TAbilityOwner; Target: TAbstractUnit;
+      Mode: Boolean; var Info: TP2DamageValue); virtual; abstract;
+    procedure OffensiveStrength(AOwner: TAbilityOwner; var Strength: Integer;
+      var DamageTypes: TDamageTypes); virtual; abstract;
+  end;
+  TP2PString = ^string;
+
+function P2AlignmentToIR(Alignment: TAlignment): Shortint; assembler;
+asm JMP AlignmentToIR end;
+
+procedure P2TranslateRStr(const Text: string; var Dest: string); assembler;
+asm JMP TranslateRStr end;
+
+resourcestring
+  P2InherentRStr = 'Inherent'; { original resource at 5570716C }
+
+
+
+function P2VMTAbility(List: TAbilityTypeList; Index: Integer): TP2AbilityCalls; assembler;
+asm JMP TAbilityTypeList.GetAbility end;
+
+const
+  { needs: original shared ability-type text table at 558E8250.
+    These defaults follow the recovered ability-type enumeration. }
+  P2AbilityTypeNames: array[TAbilityType] of string =
+    ('Enhancement', 'Handicap', 'Movement', 'Combat', 'Enchantment');
+
+{ needs: draft P5 TAIGroupList.FindID(ID: Integer): TAIGroup;
+  5577FBD9..5577FBE6 passes saved group ID in EDX and uses returned object. }
+function P2FindGroup(List: TAIGroupList; ID: Integer): TAIGroup; assembler;
+asm JMP TAIGroupList.FindID end;
+
+function P2AbImmunity(AOwner: TAbilityOwner): TDamageTypes; assembler;
+asm JMP TAbilityOwner.GetAbImmunityTypesAll end;
+function P2AbProtection(AOwner: TAbilityOwner): TDamageTypes; assembler;
+asm JMP TAbilityOwner.GetAbProtectionTypesAll end;
+
+var
+  { needs: original shared MovePointTables at 558EA040, initialized by P1.
+    This storage is only a stand-in until the shared table is recovered. }
+  P2MovePointTables: array[0..255] of TP2MovePointTable;
+
+function P2MoveTypesToInt(MoveTypes: TMoveTypes): Integer; assembler;
+asm JMP MoveTypesToInt end;
+
+function P2AbMoves(AOwner: TAbilityOwner): TMoveTypes; assembler;
+asm JMP TAbilityOwner.GetAbMoveTypesAll end;
+
+{ needs: draft P1 return types; call sites 5578011B/5578012A/55780149. }
+function P2DiplomaticRelation(Relations: TPlayerDiplomaticRelations; Player: Integer): TDiplomaticRelation; assembler;
+asm JMP TPlayerDiplomaticRelations.GetDiplomaticRelation end;
+function P2Explored(MapField: TAoWMapField; Player: Integer): Boolean; assembler;
+asm JMP TAoWMapField.GetExplored end;
+function P2VisibleForPlayer(Map: TAoWHSMap; X,Y,L,Player: Integer): Boolean; assembler;
+asm POP EBP; JMP TAoWHSMap.VisibleForPlayer end;
+
+function P2ConcealmentActive(Field: TAoWMapField): Boolean; assembler;
+asm JMP TAoWMapField.GetConcealmentActive end;
+function P2Spell(Control: TSpellControl; ID: Integer): TSpell; assembler;
+asm JMP TSpellControl.GetSpell end;
+
+type
+  { VMT +94 is ExpandAbility for an owner; +54/+58 are enchantment setters. }
+  TP2OwnerCalls = class(TObject)
+    procedure Slot00; virtual; abstract;
+    procedure Slot04; virtual; abstract;
+    procedure Slot08; virtual; abstract;
+    procedure Slot0C; virtual; abstract;
+    procedure Slot10; virtual; abstract;
+    procedure Slot14; virtual; abstract;
+    procedure Slot18; virtual; abstract;
+    procedure Slot1C; virtual; abstract;
+    procedure Slot20; virtual; abstract;
+    procedure Slot24; virtual; abstract;
+    procedure Slot28; virtual; abstract;
+    procedure Slot2C; virtual; abstract;
+    procedure Slot30; virtual; abstract;
+    procedure Slot34; virtual; abstract;
+    procedure Slot38; virtual; abstract;
+    procedure Slot3C; virtual; abstract;
+    procedure Slot40; virtual; abstract;
+    procedure Slot44; virtual; abstract;
+    procedure Slot48; virtual; abstract;
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    procedure Slot58; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    procedure Slot70; virtual; abstract;
+    procedure Slot74; virtual; abstract;
+    procedure Slot78; virtual; abstract;
+    procedure Slot7C; virtual; abstract;
+    procedure Slot80; virtual; abstract;
+    procedure Slot84; virtual; abstract;
+    procedure Slot88; virtual; abstract;
+    procedure Slot8C; virtual; abstract;
+    procedure Slot90; virtual; abstract;
+    function Expand(ID: Integer): Boolean; virtual; abstract;
+  end;
+  TP2EnchantmentCalls = class(TObject)
+    Reserved: array[4..19] of Byte;
+    Duration: Byte;
+    procedure Slot00; virtual; abstract;
+    procedure Slot04; virtual; abstract;
+    procedure Slot08; virtual; abstract;
+    procedure Slot0C; virtual; abstract;
+    procedure Slot10; virtual; abstract;
+    procedure Slot14; virtual; abstract;
+    procedure Slot18; virtual; abstract;
+    procedure Slot1C; virtual; abstract;
+    procedure Slot20; virtual; abstract;
+    procedure Slot24; virtual; abstract;
+    procedure Slot28; virtual; abstract;
+    procedure Slot2C; virtual; abstract;
+    procedure Slot30; virtual; abstract;
+    procedure Slot34; virtual; abstract;
+    procedure Slot38; virtual; abstract;
+    procedure Slot3C; virtual; abstract;
+    procedure Slot40; virtual; abstract;
+    procedure Slot44; virtual; abstract;
+    procedure Slot48; virtual; abstract;
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure SetUpkeep(Value: Integer); virtual; abstract;
+    procedure SetSource(Player: Shortint); virtual; abstract;
+  end;
+  TP2SpellFields = class(TObject)
+    Reserved: array[4..59] of Byte;
+    Duration: Byte;
+  end;
+const
+  P2StormDamageType: array[TStormType] of TDamageType =
+    (dtNone,dtFire,dtDeath,dtHoly,dtCold,dtLightning,dtPoison);
+
+function P2HitRole(Value: Integer): Boolean; assembler;
+asm JMP HitRole end;
+procedure P2UnitChanged(Map: TAoWHSMap; AUnit: TAbstractUnit); assembler;
+asm JMP TAoWHSMap.UnitChanged end;
+
+function P2FieldPlayer(Field: TAoWMapField): Shortint; assembler;
+asm JMP TAoWMapField.GetPlayer end;
+
+function P2HitPercent(HitPoints, Hits: Shortint): Byte; assembler;
+asm JMP HitPointsToHitPcnt end;
+procedure P2ShowHitPercent(X,Y: Integer; const SD: TSurfaceDesc; Percent: Byte); assembler;
+asm POP EBP; JMP ShowHitPcnt end;
+
+function P2DamageRole(Damage, DC: Integer): Integer; assembler;
+asm JMP ExecuteDamageRole end;
+
+type
+  TP2CombatTurnFields = class(TObject)
+    Reserved: array[4..48] of Byte;
+    Turn: Byte;
+  end;
+  { Obsolete serialized behavior object, VMT +4C read at 55782176. }
+  TP2LegacyBehaviorCalls = class(TObject)
+    procedure Slot00; virtual; abstract;
+    procedure Slot04; virtual; abstract;
+    procedure Slot08; virtual; abstract;
+    procedure Slot0C; virtual; abstract;
+    procedure Slot10; virtual; abstract;
+    procedure Slot14; virtual; abstract;
+    procedure Slot18; virtual; abstract;
+    procedure Slot1C; virtual; abstract;
+    procedure Slot20; virtual; abstract;
+    procedure Slot24; virtual; abstract;
+    procedure Slot28; virtual; abstract;
+    procedure Slot2C; virtual; abstract;
+    procedure Slot30; virtual; abstract;
+    procedure Slot34; virtual; abstract;
+    procedure Slot38; virtual; abstract;
+    procedure Slot3C; virtual; abstract;
+    procedure Slot40; virtual; abstract;
+    procedure Slot44; virtual; abstract;
+    procedure Slot48; virtual; abstract;
+    function Behavior: Byte; virtual; abstract;
+  end;
+
+{ needs: P1 draft TRace.GetPlayerRelation(Player: Shortint): TStatus,
+  DL argument and AL comparison at 55782276. }
+function P2RacePlayerRelation(Race: TRace; Player: Shortint): TStatus; assembler;
+asm JMP TRace.GetPlayerRelation end;
+
+{ needs: P1 draft dAlignmentToDiplomaticRelation(A, B: TAlignment):
+  TDiplomaticRelation, AL/DL at 5578222D. }
+function P2AlignmentDiplomaticRelation(A, B: TAlignment): TDiplomaticRelation; assembler;
+asm JMP dAlignmentToDiplomaticRelation end;
+
+{ needs: P5 draft THuntAG.HuntingPlayer(Player: Shortint): Boolean,
+  DL argument and AL test at 5578230B. }
+function P2HuntingPlayer(Group: THuntAG; Player: Shortint): Boolean; assembler;
+asm JMP THuntAG.HuntingPlayer end;
+
+{ needs: P1 draft TPlayer.GetBusy: Boolean, AL test at 5578263D. }
+function P2PlayerBusy(Player: TPlayer): Boolean; assembler;
+asm JMP TPlayer.GetBusy end;
+
+function P2Translate(const Text: string): string; assembler;
+asm JMP TranslateRStr end;
+
+{ needs: P1 draft Format(const Text: string; const Args: array of const):
+  string, open-array call and hidden result at 55782521. }
+function P2Format(const Text: string; const Args: array of const): string; assembler;
+asm POP EBP; JMP Format end;
+
+resourcestring
+  P2RefugeJoinRStr = 'This one begs to join your cause.';
+  P2RefugeesJoinRStr = 'This group wishes to join your forces.';
+  P2BribeUnitJoinRStr = 'For %s gold pieces, this one offers to join you.';
+  P2BribeUnitsJoinRStr = 'For %s gold pieces, they offer to join you.';
+
+type TP2ShortintPointer = ^Shortint;
+  TP2MapPlayerFields = class(TObject)
+    Reserved: array[4..164] of Byte;
+    Player: Shortint;
+  end;
+
+{ Rank and morale tables read at 557829DD..55782B75. }
+const
+  P2RankDefense: array[TUnitRank] of Shortint = (0,1,1);
+  P2RankAttack: array[TUnitRank] of Shortint = (0,1,1);
+  P2RankDamage: array[TUnitRank] of Shortint = (0,0,1);
+  P2RankResistance: array[TUnitRank] of Shortint = (0,0,1);
+  P2RankHits: array[TUnitRank] of Shortint = (0,1,2);
+  P2MoraleResistance: array[TMorale] of Shortint = (-2,-1,0,0,0);
+  P2MoraleDefense: array[TMorale] of Shortint = (-2,-1,0,0,0);
+
+{ needs: P1 draft ability totals return Shortint, read into AL at
+  55782B3E, 55782B48, 55782B52 and 55782B5C. }
+function P2AbAttack(Owner: TAbilityOwner): Shortint; assembler;
+asm JMP TAbilityOwner.GetAbAttackAll end;
+function P2AbDefense(Owner: TAbilityOwner): Shortint; assembler;
+asm JMP TAbilityOwner.GetAbDefenseAll end;
+function P2AbResistance(Owner: TAbilityOwner): Shortint; assembler;
+asm JMP TAbilityOwner.GetAbResistanceAll end;
+function P2AbDamage(Owner: TAbilityOwner): Shortint; assembler;
+asm JMP TAbilityOwner.GetAbDamageAll end;
+
+{ needs: P1 draft TFaceResourceList.GetFaceResource(Index: Integer):
+  TFaceResource, pointer test at 5578288D. }
+function P2FaceResource(List: TFaceResourceList; Index: Integer): TFaceResource; assembler;
+asm JMP TFaceResourceList.GetFaceResource end;
+
+type
+  TP2FaceEnchantmentFields = class(TObject)
+    Reserved: array[4..31] of Byte;
+    FaceIndex: Integer;
+  end;
+  TP2RankAbilityFields = class(TObject)
+    Reserved: array[4..55] of Byte;
+    Abilities: array[TUnitRank] of Integer;
+  end;
+
 constructor TUnitControl.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
@@ -170,7 +531,7 @@ begin
         AUnit.FUnitStatus := AUnit.FUnitStatus + [usRegistered];
         if ExistingUnit = nil then
           FUnitTable.Add(AUnit, AUnit.FUnitID)
-        else if msEditting in P2AoWHSMap.Status then
+        else if msEditting in AoWHSMap.Status then
         begin
           AUnit.FUnitID := GetFreeID;
           FUnitTable.Add(AUnit, AUnit.FUnitID);
@@ -201,18 +562,18 @@ constructor TAbstractUnit.Create(AOwner: Engine.TECustomNode);
 begin
   FRefCount := 1;
   inherited Create(AOwner);
-  FArmy := nil;
+  FGroupID := 0;
   FUnitID := -1;
 end;
 
 destructor TAbstractUnit.Destroy;
 begin
   if usActivated in FUnitStatus then Deactivate;
-  if P2AoWHSMap <> nil then
+  if AoWHSMap <> nil then
   begin
     { needs: P1 TAoWHSMap.UnitDestroyed(AUnit: TAbstractUnit),
       EDX is Self at 5577EB8B; keep the argument live across the draft call. }
-    P2NotifyUnitDestroyed(P2AoWHSMap, Self);
+    P2NotifyUnitDestroyed(AoWHSMap, Self);
   end;
   inherited Destroy;
 end;
@@ -312,12 +673,12 @@ begin
   begin
     if (Race <> -1) and not GetAbilityEnabled(107) then
       Result := P2GetPlayerRelationValue(
-        P2GetRace(TRaceList(P2AoWHSMap.FRaces), Race), Player)
+        P2GetRace(TRaceList(AoWHSMap.FRaces), Race), Player)
     else
     begin
       Result := P2AlignmentToStatusValue[GetAlignment, P2GetRaceAlignment(P2GetRaceResource(
         TRaceResourceList(P2AoWHSSet.FRaceResources),
-        Shortint(P2GetPlayers(TPlayerList(P2AoWHSMap.FPlayers), Player).FPlayerRace)))];
+        Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)))];
     end;
   end
   else
@@ -339,7 +700,7 @@ var
   Morale: Integer;
 begin
   if (Player >= 0) and (GetUnitType <> utMachine) and
-     not (msEditting in P2AoWHSMap.Status) then
+     not (msEditting in AoWHSMap.Status) then
   begin
     Race := GetRace;
     Morale := GetRelationValue(Player, IndependentRelation);
@@ -348,7 +709,7 @@ begin
       GetLocation(Xhx, Yhx, Lhx);
       if Xhx <> -1 then
       begin
-        TerrainType := TAoWTerrainType(P2AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType);
+        TerrainType := TAoWTerrainType(AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType);
         if TerrainType in P2RaceTerrain[Race].Disliked then Dec(Morale, 10);
         if TerrainType in P2RaceTerrain[Race].Preferred then Inc(Morale, 10);
       end;
@@ -363,515 +724,1946 @@ begin
   Result := Morale;
 end;
 
-procedure TAbstractUnit.UnitRelation(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.UnitRelation(AUnit: TAbstractUnit): TStatus;
+var
+  Race, OtherRace: Shortint;
+begin
+  Race := GetRace;
+  OtherRace := AUnit.GetRace;
+  if (Race <> -1) and (OtherRace <> -1) then
+    Result := P2RaceRelation(P2GetRace(TRaceList(AoWHSMap.FRaces), Race), OtherRace)
+  else
+    Result := P2AlignmentRelation(GetAlignment, AUnit.GetAlignment);
+end;
 
-procedure TAbstractUnit.UpdateMoraleValue;
-begin end;
+function TAbstractUnit.UpdateMoraleValue: Shortint;
+var
+  Player, Value, I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  Player := Shortint(FPlayer);
+  Value := GetUnitMoraleValue(Player, GetIndependentRelation);
+  if not (msEditting in AoWHSMap.Status) and (GetUnitType <> utMachine) and
+     not (Self is TLeader) and (Owner is TArmy) then
+  begin
+    if (GetUpkeep <> 0) and (Player > 0) and not GetAbilityEnabled(155) then
+      Inc(Value, Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).F_Player_50));
+    for I := TArmy(Owner).Count - 1 downto 0 do
+    begin
+      AUnit := TAbstractUnit(TP2NodeFields(Owner).Children.List^[I]);
+      if AUnit.GetAbilityEnabled(37) and (AUnit <> Self) then
+        Inc(Value, 30)
+      else if UnitRelation(AUnit) in [sHostile, sWary] then
+        Dec(Value, 10);
+    end;
+  end;
+  if Value > 125 then FMoraleValue := 125
+  else if Value < -25 then FMoraleValue := -25
+  else FMoraleValue := Value;
+  Result := FMoraleValue;
+end;
 
-procedure TAbstractUnit.GetMorale;
-begin end;
+function TAbstractUnit.GetMorale: TMorale;
+begin
+  Result := P2MoraleValueToMorale(Shortint(FMoraleValue));
+end;
 
-procedure TAbstractUnit.GetUnitSize;
-begin end;
+function TAbstractUnit.GetUnitSize: TUnitSize;
+begin
+  Result := usMedium;
+end;
 
 function TAbstractUnit.GetObtainValue: Integer;
-begin end;
+begin
+  Result := 0;
+end;
 
 procedure TAbstractUnit.UpdateEnchanted;
-begin end;
+var
+  I: Integer;
+  List: TAbilityTypeList;
+  Enchanted: Boolean;
+begin
+  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  Enchanted := False;
+  I := List.Count;
+  while not Enchanted and (I <> 0) do
+  begin
+    Dec(I);
+    Enchanted := GetAbilityEnabled(P2TypeAbility(List, I).F_Ability_0C);
+  end;
+  if Enchanted then FUnitStatus := FUnitStatus + [usEnchanted]
+  else FUnitStatus := FUnitStatus - [usEnchanted];
+end;
 
 procedure TAbstractUnit.RemoveEnchantments;
-begin end;
+var
+  Ability: TAbility;
+  I: Integer;
+  List: TAbilityTypeList;
+begin
+  AddRef;
+  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  for I := List.Count - 1 downto 0 do
+  begin
+    Ability := P2TypeAbility(List, I);
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+      RemoveAbility(Ability.F_Ability_0C);
+  end;
+  Release;
+end;
 
 procedure TAbstractUnit.RemoveHandicaps;
-begin end;
+begin
+  AddRef;
+  RemoveAbility(93);
+  RemoveAbility(98);
+  RemoveAbility(53);
+  Release;
+end;
 
 procedure TAbstractUnit.RegisterEnchantments;
-begin end;
+var
+  Ability: TAbility;
+  I: Integer;
+  List: TAbilityTypeList;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  for I := List.Count - 1 downto 0 do
+  begin
+    Ability := P2TypeAbility(List, I);
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+    begin
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+      if Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) > -1 then
+        TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
+          Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C)).F_Player_54).
+          RegisterEnchantment(Data.F_UnitEnchantmentAbilityData_10);
+    end;
+  end;
+end;
 
 procedure TAbstractUnit.UnregisterEnchantments;
-begin end;
+var
+  Ability: TAbility;
+  I: Integer;
+  List: TAbilityTypeList;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  for I := List.Count - 1 downto 0 do
+  begin
+    Ability := P2TypeAbility(List, I);
+    if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+    begin
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+      if Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) > -1 then
+        TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
+          Shortint(TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10).F_Enchantment_0C)).F_Player_54).
+          UnregisterEnchantment(Data.F_UnitEnchantmentAbilityData_10);
+    end;
+  end;
+end;
 
-procedure TAbstractUnit.AbilityToEnchantment;
-begin end;
+function TAbstractUnit.AbilityToEnchantment(AbilityID: Integer): TUnitEnchantment;
+var
+  Ability: TAbility;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  Ability := P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID);
+  if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.F_Ability_0C) then
+  begin
+    Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.F_Ability_0C));
+    if Data <> nil then Result := TUnitEnchantment(Data.F_UnitEnchantmentAbilityData_10)
+    else begin Result := nil; Exit; end;
+  end
+  else Result := nil;
+end;
 
-procedure TAbstractUnit.CanDispelEnchantment(A1: Integer);
-begin end;
+function TAbstractUnit.CanDispelEnchantment(Player: Shortint): Boolean;
+var
+  I: Integer;
+  List: TAbilityTypeList;
+  Enchantment: TUnitEnchantment;
+begin
+  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  I := List.Count;
+  Result := False;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    Enchantment := AbilityToEnchantment(P2TypeAbility(List, I).F_Ability_0C);
+    if (Enchantment = nil) or (Player = Shortint(Enchantment.F_Enchantment_0C)) then
+      Result := False
+    else Result := True;
+  end;
+end;
 
-procedure TAbstractUnit.ListEnchantments(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.ListEnchantments(List: TECustomNode);
+var
+  I: Integer;
+  Abilities: TAbilityTypeList;
+  Enchantment: TUnitEnchantment;
+begin
+  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  for I := Abilities.Count - 1 downto 0 do
+  begin
+    Enchantment := AbilityToEnchantment(P2TypeAbility(Abilities, I).F_Ability_0C);
+    if Enchantment <> nil then List.AddChild(Enchantment);
+  end;
+end;
 
-procedure TAbstractUnit.SetPlayer(A1: Integer);
-begin end;
+procedure TAbstractUnit.SetPlayer(Player: Shortint);
+var
+  List: TUnitUserList;
+begin
+  if Player <> Shortint(FPlayer) then
+  begin
+    AddRef;
+    ResetLifeMasteryBlessing;
+    ResetLifeMasteryFear;
+    ResetEarthMasteryStoneSkin;
+    ResetFireMasteryProtection;
+    List := TUnitUserList(FGroup);
+    if List <> nil then List.DeleteUnit(Integer(Self));
+    FPlayer := Player;
+    Release;
+  end;
+end;
 
-procedure TAbstractUnit.GetIndependentRelation;
-begin end;
+function TAbstractUnit.GetIndependentRelation: Shortint;
+begin
+  if GetRace >= 0 then Result := GetRace
+  else Result := P2AlignmentToIR(GetAlignment);
+end;
 
 procedure TAbstractUnit.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  if AOwner <> FOwner then
+  begin
+    AddRef;
+    if FOwner <> nil then FOwner.RemoveChild(Self);
+    FOwner := AOwner;
+    if FOwner <> nil then
+      if FOwner.AddChild(Self) = -1 then FOwner := nil;
+    Release;
+  end;
+end;
 
-procedure TAbstractUnit.GetAbilityCount;
-begin end;
+function TAbstractUnit.GetAbilityCount: Integer;
+begin
+  Result := F_CustomAbilityList_0C;
+end;
 
-procedure TAbstractUnit.GetInherentAbility(A1: Integer);
-begin end;
+function TAbstractUnit.GetInherentAbility(AbilityID: Integer): Boolean;
+begin
+  if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
+  begin
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityInherent(Self);
+    Exit;
+  end;
+  Result := False;
+end;
 
-procedure TAbstractUnit.GetInherentAbilityLevel(A1: Integer);
-begin end;
+function TAbstractUnit.GetInherentAbilityLevel(AbilityID: Integer): Shortint;
+begin
+  if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
+  begin
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityInherentLevel(Self);
+    Exit;
+  end;
+  Result := 0;
+end;
 
 function TAbstractUnit.GetAbilityEnabled(AbilityID: Integer): Boolean;
-begin end;
+begin
+  if GetAbilitySet(AbilityID) then
+  begin
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityEnabled(Self);
+    Exit;
+  end;
+  Result := False;
+end;
 
-procedure TAbstractUnit.GetAbilitySet(A1: Integer);
-begin end;
+function TAbstractUnit.GetAbilitySet(AbilityID: Integer): Boolean;
+asm
+  CMP EDX,[EAX].F_CustomAbilityList_0C
+  JAE @@Default
+  MOV EAX,DWORD PTR [EAX+8]
+  BT [EAX],EDX
+  SBB EAX,EAX
+  AND EAX,1
+  RET
+@@Default:
+  MOV AL,0
+  AND EAX,1
+end;
 
-procedure TAbstractUnit.GetAbilityName(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.GetAbilityName(AbilityID: Integer): string;
+begin
+  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityName(Self);
+end;
 
-procedure TAbstractUnit.GetAbilityLevel(A1: Integer);
-begin end;
+function TAbstractUnit.GetAbilityLevel(AbilityID: Integer): Integer;
+begin
+  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityLevel(Self);
+end;
 
-procedure TAbstractUnit.GetAbilityOwner(A1: Integer);
-begin end;
+function TAbstractUnit.GetAbilityOwner(AbilityID: Integer): TAbilityOwner;
+begin
+  if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
+  begin Result := Self; Exit; end;
+  Result := nil;
+end;
 
 procedure TAbstractUnit.GetOwnerName(A1: Integer);
-begin end;
+begin
+  { needs: draft ancestor GetOwnerName is a string result; current A1 is its
+    hidden result pointer, proved by EDX at 5577F6A2 and 5577F6C2. }
+  P2TranslateRStr(P2InherentRStr, TP2PString(A1)^);
+end;
 
 procedure TAbstractUnit.RemoveAbility(A1: Integer);
-begin end;
+asm
+  { needs: draft P1 TAbilityOwner.RemoveAbility(ID: Integer): Boolean.
+    Preserve the returned EAX across Release, as at 5577F703..5577F70C. }
+  PUSH EBX
+  PUSH ESI
+  PUSH EDI
+  MOV ESI,EDX
+  MOV EDI,EAX
+  MOV EAX,EDI
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+28H]
+  MOV EDX,ESI
+  MOV EAX,EDI
+  CALL TAbilityOwner.RemoveAbility
+  MOV EBX,EAX
+  MOV EAX,EDI
+  MOV EDX,[EAX]
+  CALL DWORD PTR [EDX+2CH]
+  MOV EAX,EBX
+  POP EDI
+  POP ESI
+  POP EBX
+end;
 
 procedure TAbstractUnit.UpdateDefensiveStrength;
-begin end;
+begin
+  FDefensiveStrength := (GetDefense + 10 + GetResistance) * (GetHitPoints + 10);
+  if FDefensiveStrength < 0 then FDefensiveStrength := 1;
+end;
 
 procedure TAbstractUnit.UpdateOffensiveStrength;
+var
+  DamageType: TDamageType;
+  Ability: TP2AbilityCalls;
+  DamageTypes: TDamageTypes;
+  I, Strength: Integer;
+  Abilities: TAbilityTypeList;
+begin
+  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).CombatAbilities;
+  FMaxOffensiveStrength := 0;
+  FillChar(FOffensiveStrength, SizeOf(FOffensiveStrength), 0);
+  for I := Abilities.Count - 1 downto 0 do
+  begin
+    Ability := P2VMTAbility(Abilities, I);
+    if GetAbilityEnabled(Ability.AbilityID) then
+    begin
+      Ability.OffensiveStrength(Self, Strength, DamageTypes);
+      if Strength > 255 then Strength := 255;
+      Assert(DamageTypes <> [], 'Ability: ' + Ability.AbilityName(nil));
+      if DamageTypes <> [] then
+      begin
+        if FMaxOffensiveStrength < Strength then FMaxOffensiveStrength := Strength;
+        for DamageType := Low(TDamageType) to High(TDamageType) do
+          if DamageType in DamageTypes then
+            if FOffensiveStrength[DamageType] < Strength then
+              FOffensiveStrength[DamageType] := Strength;
+      end;
+    end;
+  end;
+end;
+
+function TAbstractUnit.GetStrength(DamageType: TDamageType): Integer;
+begin
+  if not (usActivated in FUnitStatus) then
+  begin UpdateDefensiveStrength; UpdateOffensiveStrength; end;
+  Result := FOffensiveStrength[DamageType];
+  if Result <> 0 then Result := (Result + 10) * FDefensiveStrength;
+end;
+
+function TAbstractUnit.GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+const
+  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];
+var
+  DamageType, BestType: TDamageType;
+begin
+  if not (usActivated in FUnitStatus) then
+  begin UpdateDefensiveStrength; UpdateOffensiveStrength; end;
+  if DamageTypes <> AllDamageTypes then
+  begin
+    Result := 0;
+    for DamageType := Low(TDamageType) to High(TDamageType) do
+      if DamageType in DamageTypes then
+        if Result < FOffensiveStrength[DamageType] then
+        begin
+          BestType := DamageType;
+          Result := FOffensiveStrength[DamageType];
+        end;
+    if Result <> 0 then Result := (Result + 10) * FDefensiveStrength;
+  end
+  else if FMaxOffensiveStrength <> 0 then
+    Result := (FMaxOffensiveStrength + 10) * FDefensiveStrength
+  else Result := 0;
+end;
+
+function TAbstractUnit.GetCombatValue(Target: TAbstractUnit; Mode: Boolean): Integer;
+var
+  I, Value: Integer;
+  Abilities: TAbilityTypeList;
+  Ability: TP2AbilityCalls;
+  Info: TP2DamageValue;
+begin
+  Result := 0;
+  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).CombatAbilities;
+  for I := Abilities.Count - 1 downto 0 do
+  begin
+    Ability := P2VMTAbility(Abilities, I);
+    if GetAbilityEnabled(Ability.AbilityID) then
+    begin
+      Ability.DamageValueEx(Self, Target, Mode, Info);
+      if Info.Damage > 0 then
+      begin
+        Value := Info.Damage;
+        Value := Value * Value div (Info.Cost + Value);
+        if Value <= 0 then Value := 1;
+        if Value > Result then Result := Value;
+      end;
+    end;
+  end;
+end;
+
+procedure TAbstractUnit.ListAbilityInfo(Names, Types, Sources: TStrings);
+var
+  I: Integer;
+  AOwner: TAbilityOwner;
+  Ability: TP2AbilityCalls;
+  TypeName: string;
+  Name, Source: string;
+begin
+  Names.Clear;
+  if Sources <> nil then Sources.Clear;
+  for I := 0 to GetAbilityCount - 1 do
+    if GetAbilitySet(I) then
+    begin
+      AOwner := GetAbilityOwner(I);
+      Ability := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), I));
+      Name := Ability.AbilityName(AOwner);
+      if Name <> '' then Names.AddObject(Name, TObject(I));
+      if Types <> nil then
+      begin
+        P2TranslateRStr(P2AbilityTypeNames[TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), I)).AbilityType], TypeName);
+        Types.AddObject(TypeName, TObject(I));
+      end;
+      Source := Ability.SourceName(AOwner);
+      if Sources <> nil then Sources.AddObject(Source, TObject(I));
+    end;
+end;
+
+function TAbstractUnit.GetDescription: Integer;
+begin
+  Result := 0;
+end;
+
+function TAbstractUnit.CanActivate: Boolean;
+begin
+  Result := True;
+end;
+
+function TAbstractUnit.GetExperience: Integer;
+begin
+  Result := 0;
+end;
+
+procedure TAbstractUnit.SetExperience(Value: Integer);
 begin end;
 
-procedure TAbstractUnit.GetStrength(A1: Integer);
-begin end;
+function TAbstractUnit.GetNextLevelExperience: Integer;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetStrengthMax(A1: Word; A2: Integer);
-begin end;
-
-procedure TAbstractUnit.GetCombatValue(A1: Integer; A2: Byte);
-begin end;
-
-procedure TAbstractUnit.ListAbilityInfo(A1: Integer; A2: Integer);
-begin end;
-
-procedure TAbstractUnit.GetDescription;
-begin end;
-
-procedure TAbstractUnit.CanActivate;
-begin end;
-
-procedure TAbstractUnit.GetExperience;
-begin end;
-
-procedure TAbstractUnit.SetExperience(A1: Integer; A2: Integer);
-begin end;
-
-procedure TAbstractUnit.GetNextLevelExperience;
-begin end;
-
-procedure TAbstractUnit.Activate(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.Activate;
+var
+  Group: TAIGroup;
+begin
+  FUnitStatus := FUnitStatus + [usActivated];
+  TUnitControl(AoWHSMap.F_AoWHSMap_FC).RegisterUnit(Self);
+  if (FGroupID <> 0) and (FPlayer >= 0) then
+  begin
+    Group := P2FindGroup(TAIGroupList(AoWHSMap.F_AoWHSMap_130), FGroupID);
+    if Group <> nil then Group.AddUnit(Integer(Self))
+    else FGroupID := 0;
+  end
+  else FGroupID := 0;
+  RegisterEnchantments;
+  Changed;
+end;
 
 procedure TAbstractUnit.Deactivate;
-begin end;
+var
+  Group: TUnitUserList;
+begin
+  Group := FGroup;
+  if Group <> nil then Group.DeleteUnit(Integer(Self));
+  TUnitControl(AoWHSMap.F_AoWHSMap_FC).UnRegisterUnit(Self);
+  FUnitStatus := FUnitStatus - [usActivated];
+  UnregisterEnchantments;
+end;
 
 function TAbstractUnit.GetAlignment: TAlignment;
-begin end;
+begin
+  Result := alNeutral;
+end;
 
-procedure TAbstractUnit.GetUpkeep;
-begin end;
+function TAbstractUnit.GetUpkeep: Shortint;
+begin
+  if not GetAbilityEnabled(155) then
+  begin Result := (GetUnitLevel + 1) * 2; Exit; end;
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetManaUpkeep;
-begin end;
+function TAbstractUnit.GetManaUpkeep: Integer;
+var
+  Enchantment: TEnchantment;
+begin
+  if GetAbilityEnabled(155) then
+  begin
+    Enchantment := TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,155)).F_UnitEnchantmentAbilityData_10);
+    if Enchantment <> nil then Result := Enchantment.F_Enchantment_10
+    else begin Result := 0; Exit; end;
+  end
+  else Result := 0;
+end;
 
-procedure TAbstractUnit.GetUnitLevel;
-begin end;
+function TAbstractUnit.GetUnitLevel: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetTransportCapacity;
-begin end;
+function TAbstractUnit.GetTransportCapacity: Byte;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetMovePoints;
-begin end;
+function TAbstractUnit.GetMovePoints: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.SetMovePoints(A1: Integer);
+procedure TAbstractUnit.SetMovePoints(Value: Shortint);
 begin end;
 
 function TAbstractUnit.GetHitPoints: Shortint;
-begin end;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.SetHitPoints(A1: Integer);
-begin end;
+procedure TAbstractUnit.SetHitPoints(Value: Shortint);
+begin
+  UpdateDefensiveStrength;
+end;
 
-procedure TAbstractUnit.GetTransporting(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.GetTransporting: Boolean;
+var
+  Xhx, Yhx, Lhx: Shortint;
+  MapField: TMapField;
+begin
+  GetLocation(Xhx,Yhx,Lhx);
+  if Xhx <> -1 then
+  begin
+    MapField := AoWHSMap.MapContainer.GetField(Xhx,Yhx,Lhx);
+    Result := not ValidTerrain(MapField.TerrainType, MapField.OverlayType);
+  end
+  else Result := False;
+end;
 
 procedure TAbstractUnit.UnitKilled;
 begin end;
 
-procedure TAbstractUnit.GetTransporter;
-begin end;
+function TAbstractUnit.GetTransporter: Boolean;
+begin
+  Result := GetTransportCapacity <> 0;
+end;
 
 function TAbstractUnit.GetImmunityTypes: TDamageTypes;
-begin end;
+begin
+  Result := P2AbImmunity(Self) + [dtWall];
+end;
 
 function TAbstractUnit.GetProtectionTypes: TDamageTypes;
-begin end;
+begin
+  Result := P2AbProtection(Self);
+end;
 
 function TAbstractUnit.GetUnitType: TUnitType;
-begin end;
+begin
+  Result := utHumanoid;
+end;
 
-procedure TAbstractUnit.GetInherentAttack;
-begin end;
+function TAbstractUnit.GetInherentAttack: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetAttack(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.GetAttack: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetInherentDefense;
-begin end;
+function TAbstractUnit.GetInherentDefense: Shortint;
+begin
+  Result := 0;
+end;
 
 function TAbstractUnit.GetDefense: Shortint;
-begin end;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetInherentDamage;
-begin end;
+function TAbstractUnit.GetInherentDamage: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetDamage(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.GetDamage: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetInherentResistance;
-begin end;
+function TAbstractUnit.GetInherentResistance: Shortint;
+begin
+  Result := 0;
+end;
 
 function TAbstractUnit.GetResistance: Shortint;
-begin end;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetHits;
-begin end;
+function TAbstractUnit.GetHits: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetMoves;
-begin end;
+function TAbstractUnit.GetMoves: Shortint;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetPowerGeneration;
-begin end;
+function TAbstractUnit.GetPowerGeneration: Integer;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetCastingPointsMax;
-begin end;
+function TAbstractUnit.GetCastingPointsMax: Byte;
+begin
+  Result := 0;
+end;
 
-procedure TAbstractUnit.GetCastingPoints;
-begin end;
+function TAbstractUnit.GetCastingPoints: Byte;
+begin
+  Result := 0;
+end;
 
 procedure TAbstractUnit.SetCastingPoints(A1: Integer);
 begin end;
 
-procedure TAbstractUnit.CreateMovePointTable(A1: Integer);
-begin end;
+procedure TAbstractUnit.CreateMovePointTable(var Table: TP2MovePointTable);
+var
+  Moves: TMoveTypes;
+  Terrain: Integer;
+  Overlay: Shortint;
+  Points: Integer;
+  Faster, Slower: Boolean;
+begin
+  Moves := GetMoveTypes;
+  if AoWHSMap.F_AoWHSMap_120 <> 0 then Moves := Moves - [mtTunneling];
+  Table := P2MovePointTables[P2MoveTypesToInt(Moves)];
+  if FPlayer > 0 then
+  begin
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 2 <> 0 then
+      for Terrain := 0 to 15 do
+        if Table[Terrain,4] <> -1 then Table[Terrain,4] := 2;
+    if GetAbilityEnabled(23) or GetAbilityEnabled(1) or GetAbilityEnabled(165) then
+    begin
+      Faster := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 4 <> 0;
+      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 4 <> 0;
+      if Faster and not Slower then
+      begin
+        for Overlay := -1 to 11 do
+          for Terrain := 0 to 15 do
+            if Table[Terrain,Overlay] > 2 then
+              Table[Terrain,Overlay] := (Integer(Table[Terrain,Overlay]) + 1) shr 1;
+      end
+      else if not Faster and Slower then
+        for Overlay := -1 to 11 do
+          for Terrain := 0 to 15 do
+            if Table[Terrain,Overlay] >= 1 then Table[Terrain,Overlay] := Table[Terrain,Overlay] * 2;
+    end;
+    if GetAbilityEnabled(152) then
+      for Overlay := -1 to 11 do
+        for Terrain := 0 to 15 do
+        begin
+          Points := Table[Terrain,Overlay];
+          if Points > 2 then
+          begin
+            Dec(Points);
+            { Original retains this redundant lower bound after Points > 2. }
+            if Points < 2 then Points := 2;
+          end;
+          Table[Terrain,Overlay] := Points;
+        end;
+    if GetAbilityEnabled(132) then
+      for Overlay := -1 to 11 do
+        for Terrain := 0 to 15 do
+          if Table[Terrain,Overlay] > 0 then Inc(Table[Terrain,Overlay],2);
+  end;
+end;
 
-procedure TAbstractUnit.GetMoveTypes;
-begin end;
+function TAbstractUnit.GetMoveTypes: TMoveTypes;
+begin
+  Result := P2AbMoves(Self);
+end;
 
-procedure TAbstractUnit.GetFace;
-begin end;
+function TAbstractUnit.GetFace: TLibraryImage;
+begin
+  Result := nil;
+end;
 
-procedure TAbstractUnit.GetName(A1: Integer);
-begin end;
+function TAbstractUnit.GetName: string;
+begin
+  Result := '';
+end;
 
-procedure TAbstractUnit.GetPreviewImage;
-begin end;
+function TAbstractUnit.GetPreviewImage: TLibraryImage;
+begin
+  Result := nil;
+end;
 
-procedure TAbstractUnit.GetUnitGFXResourceIndex;
-begin end;
+function TAbstractUnit.GetUnitGFXResourceIndex: Integer;
+begin
+  Result := -1;
+end;
 
-procedure TAbstractUnit.ValidTerrain(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.ValidTerrain(TerrainType, OverlayType: Shortint): Boolean;
+var
+  Moves: TMoveTypes;
+  Cost: Shortint;
+begin
+  { Original retrieves the movement set twice and retains the first dead store. }
+  Moves := GetMoveTypes;
+  Cost := P2MovePointTables[P2MoveTypesToInt(GetMoveTypes)][TerrainType,OverlayType];
+  if (Cost = -1) or (Cost > GetMoves) then Result := False
+  else Result := True;
+end;
 
-procedure TAbstractUnit.ExecuteTrailOfDarkness(A1: Integer);
-begin end;
+procedure TAbstractUnit.ExecuteTrailOfDarkness(MapField: TMapField);
+var
+  Level: TMapLevel;
+  Walk: THNWalkData;
+  Field: TAoWMapField;
+  Player: Integer;
+begin
+  Level := TMapLevel(MapField.Owner);
+  InitHNWalk(Walk,MapField.Xhx,MapField.Yhx,0);
+  while Walk.Radius <= 1 do
+  begin
+    if (Walk.X >= 0) and (Walk.X < Level.Width) and
+       (Walk.Y >= 0) and (Walk.Y < Level.Height) then
+    begin
+      Field := TAoWMapField(Level.GetField(Walk.X,Walk.Y));
+      if Smallint(Field.TerrainType) <> Ord(ttBorder) then
+        for Player := 1 to TPlayerList(AoWHSMap.FPlayers).Count - 1 do
+          if (Player <> FPlayer) and
+             (P2DiplomaticRelation(TPlayerDiplomaticRelations(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_40),Player) = drWar) and
+             P2Explored(Field,Player) and
+             not P2VisibleForPlayer(AoWHSMap,Walk.X,Walk.Y,MapField.Lhx,Player) then
+            Field.SetExplored(Player,0);
+    end;
+    WalkToNextHN(Walk);
+  end;
+  AoWHSMap.MapChangedRad(MapField.Xhx,MapField.Yhx,MapField.Lhx,1);
+end;
 
-procedure TAbstractUnit.PathOfLifeTerrainChange(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.PathOfLifeTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+begin
+  if (Smallint(TerrainType) <> Ord(ttIce)) and (Smallint(TerrainType) <> Ord(ttWater)) and (MapField.Lhx = 0) then
+    TerrainType := Ord(ttGrass);
+end;
 
-procedure TAbstractUnit.PathOfDecayTerrainChange(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.PathOfDecayTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+begin
+  if (Smallint(TerrainType) <> Ord(ttIce)) and (Smallint(TerrainType) <> Ord(ttWater)) and (MapField.Lhx = 0) then
+    TerrainType := Ord(ttWasteland);
+end;
 
-procedure TAbstractUnit.PathOfFrostTerrainChange(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.PathOfFrostTerrainChange(MapField: TMapField; var TerrainType, OverlayType: Shortint);
+var
+  Ice: TFrozenWaterHS;
+begin
+  if (Smallint(TerrainType) = Ord(ttWater)) or (Smallint(TerrainType) = Ord(ttUndergroundWater)) then
+  begin
+    if Smallint(TerrainType) = Ord(ttWater) then TerrainType := Ord(ttIce)
+    else TerrainType := Ord(ttUndergroundIce);
+  end
+  else if TerrainType in [6,13] then
+  begin
+    Ice := TFrozenWaterHS(MapField.FindOwnedHS(TFrozenWaterHS));
+    if Ice <> nil then
+    begin Ice.F_FrozenWaterHS_0C := 2; Ice.F_FrozenWaterHS_0D := FPlayer; end;
+  end
+  else if (TerrainType in [1,2,4,5]) and (MapField.Lhx = 0) then
+    TerrainType := Ord(ttSnow);
+end;
 
-procedure TAbstractUnit.PathOfFrostTerrainChanged(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.PathOfFrostTerrainChanged(MapField: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
+var
+  Ice: TFrozenWaterHS;
+begin
+  if (MapField.TerrainType in [6,13]) and not (OriginalTerrainType in [6,13]) then
+  begin
+    Ice := TFrozenWaterHS(MapField.FindOwnedHS(TFrozenWaterHS));
+    if Ice = nil then
+    begin
+      Ice := TFrozenWaterHS.Create(nil);
+      AoWHSMap.PlaceHX(Ice,MapField.Xhx,MapField.Yhx,MapField.Lhx);
+    end;
+    Ice.F_FrozenWaterHS_0C := 2;
+    Ice.F_FrozenWaterHS_0D := FPlayer;
+  end;
+end;
 
-procedure TAbstractUnit.UpdatePathOfFrost(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.UpdatePathOfFrost;
+var
+  Xhx,Yhx,Lhx: Shortint;
+  Field: TMapField;
+  Ice: TFrozenWaterHS;
+begin
+  GetLocation(Xhx,Yhx,Lhx);
+  if Xhx > -1 then
+  begin
+    Field := AoWHSMap.MapContainer.GetField(Xhx,Yhx,Lhx);
+    if Field.TerrainType in [6,13] then
+    begin
+      Ice := TFrozenWaterHS(Field.FindOwnedHS(TFrozenWaterHS));
+      if Ice <> nil then
+      begin Ice.F_FrozenWaterHS_0C := 2; Ice.F_FrozenWaterHS_0D := FPlayer; end;
+    end;
+  end;
+end;
 
-procedure TAbstractUnit.MovedTo(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.MovedTo(OldField, NewField: TMapField; MaxCost: Integer);
+var
+  Cost: Integer;
+  Army: TArmy;
+begin
+  Cost := MovePointCost(NewField.TerrainType,NewField.OverlayType);
+  if Cost < 0 then Cost := MaxCost else if Cost > MaxCost then Cost := MaxCost;
+  if (AoWHSMap.F_AoWHSMap_138 = 0) or (P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FPlayerType <> ptHuman) then
+  begin
+    if Cost > GetMovePoints then SetMovePoints(0)
+    else SetMovePoints(GetMovePoints - Cost);
+  end;
+  if Smallint(NewField.TerrainType) = Ord(ttEarth) then
+    AoWHSMap.ChangeTerrain(nil,NewField.Xhx,NewField.Yhx,NewField.Lhx,0,Ord(ttDirt));
+  if OldField <> nil then
+  begin
+    Army := TArmy(Owner);
+    if not ((Army is TArmy) and (Army.Transporter(-1) <> nil)) then
+    begin
+      if OldField.Lhx = 0 then
+      begin
+        if GetAbilityEnabled(69) then
+          AoWHSMap.ChangeTerrainEx(nil,OldField.Xhx,OldField.Yhx,OldField.Lhx,1,PathOfLifeTerrainChange,nil)
+        else if GetAbilityEnabled(68) then
+          AoWHSMap.ChangeTerrainEx(nil,OldField.Xhx,OldField.Yhx,OldField.Lhx,1,PathOfDecayTerrainChange,nil);
+      end;
+      if GetAbilityEnabled(109) then
+        AoWHSMap.ChangeTerrainEx(nil,OldField.Xhx,OldField.Yhx,OldField.Lhx,1,PathOfFrostTerrainChange,PathOfFrostTerrainChanged);
+    end;
+    if GetAbilityEnabled(26) then ExecuteTrailOfDarkness(OldField);
+  end;
+end;
 
-procedure TAbstractUnit.ConcealedOnMapF(A1: Integer);
-begin end;
+function TAbstractUnit.ConcealedOnMapF(Field: TAoWMapField): Boolean;
+begin
+  if not GetAbilityEnabled(54) and not P2ConcealmentActive(Field) then
+  begin
+    Result := GetAbilityEnabled(139) and (Field.Lhx <> 0);
+    if (Smallint(Field.OverlayType) = 1) and (GetAbilityEnabled(145) or GetAbilityEnabled(162)) then
+      Result := True
+    else
+      { Original terrain branches overwrite the underground concealment result. }
+      case Smallint(Field.TerrainType) of
+        1: Result := GetAbilityEnabled(140);
+        3: Result := GetAbilityEnabled(141);
+        2: Result := GetAbilityEnabled(142);
+        5: Result := GetAbilityEnabled(143);
+        0,10: Result := GetAbilityEnabled(144);
+        4: Result := GetAbilityEnabled(138);
+      end;
+  end
+  else Result := True;
+end;
 
-procedure TAbstractUnit.ExecuteStormDamage(A1: Byte);
-begin end;
+function TAbstractUnit.ExecuteStormDamage(Storm: TStormType): Integer;
+var
+  Overlay: Shortint;
+  Moves: TMoveTypes;
+  Xhx,Yhx,Lhx: Shortint;
+  Field: TMapField;
+  Terrain: Shortint;
+  DoubleDamage: Boolean;
+  Attack, Damage: Integer;
+begin
+  Moves := GetMoveTypes;
+  DoubleDamage := GetAbilityEnabled(23);
+  if not DoubleDamage and (mtFlying in Moves) then
+  begin
+    GetLocation(Xhx,Yhx,Lhx);
+    if Xhx <> -1 then
+    begin
+      Field := AoWHSMap.MapContainer.GetField(Xhx,Yhx,Lhx);
+      Terrain := Field.TerrainType;
+      Overlay := Field.OverlayType;
+      Moves := Moves - [mtFlying];
+      DoubleDamage := P2MovePointTables[P2MoveTypesToInt(Moves)][Terrain,Overlay] = 0;
+    end;
+  end;
+  case Storm of
+    stFire: begin Attack := 7; Damage := 5; end;
+    stLightning: begin Attack := 8; Damage := 7; end;
+    stDeath: begin Attack := 7; Damage := 4; end;
+    stHoly: begin Attack := 7; Damage := 5; end;
+    stIce: begin Attack := 7; Damage := 5; end;
+    stPestilence: begin Attack := 4; Damage := 3; end;
+  else Attack := 0; Damage := 0;
+  end;
+  if DoubleDamage then Damage := Damage * 2;
+  Damage := ExecuteDamageRole(Attack,Damage,[P2StormDamageType[Storm]]);
+  if Damage > GetHitPoints then Damage := GetHitPoints;
+  if Damage > 0 then
+    case Storm of
+      stDeath: ExecuteDamageEffects([dtDeath]);
+      stPestilence: ExecuteDamageEffects([dtPoison]);
+    end;
+  SetHitPoints(GetHitPoints - Damage);
+  Result := Damage;
+end;
 
-procedure TAbstractUnit.MovePointCost(A1: Integer; A2: Byte);
-begin end;
+function TAbstractUnit.MovePointCost(TerrainType, OverlayType: Shortint): Integer;
+var
+  Table: TP2MovePointTable;
+begin
+  CreateMovePointTable(Table);
+  Result := Table[TerrainType,OverlayType];
+end;
 
-procedure TAbstractUnit.GetGender;
-begin end;
+function TAbstractUnit.GetGender: TUnitGender;
+begin
+  Result := ugNeutral;
+end;
 
 procedure TAbstractUnit.Killed;
-begin end;
+var
+  Group: TUnitUserList;
+begin
+  FUnitStatus := FUnitStatus + [usKilled];
+  ResetLifeMasteryBlessing;
+  ResetLifeMasteryFear;
+  ResetEarthMasteryStoneSkin;
+  ResetFireMasteryProtection;
+  UnregisterEnchantments;
+  Group := FGroup;
+  if Group <> nil then Group.DeleteUnit(Integer(Self));
+  SetPlayer(-1);
+  Changed;
+end;
 
 procedure TAbstractUnit.Resurrect;
-begin end;
+begin
+  TP2OwnerCalls(Self).Expand(128);
+  FUnitStatus := FUnitStatus - [usKilled];
+  SetHitPoints(1);
+  SetPlayer(0);
+end;
 
 procedure TAbstractUnit.Animate;
-begin end;
+begin
+  TP2OwnerCalls(Self).Expand(129);
+  FUnitStatus := FUnitStatus - [usKilled];
+  SetHitPoints(1);
+  SetPlayer(0);
+end;
 
 procedure TAbstractUnit.ResetEarthMasteryStoneSkin;
-begin end;
+begin
+  if GetAbilityEnabled(153) then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+      RemoveAbility(153);
+end;
 
 procedure TAbstractUnit.SetEarthMasteryStoneSkin;
-begin end;
+var
+  Enchantment: TP2EnchantmentCalls;
+begin
+  if (GetUnitType <> utMachine) and not GetAbilityEnabled(153) then
+    if TP2OwnerCalls(Self).Expand(153) then
+    begin
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).F_UnitEnchantmentAbilityData_10);
+      Enchantment.SetUpkeep(0);
+      Enchantment.SetSource(-2);
+      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),17)).Duration;
+    end;
+end;
 
 procedure TAbstractUnit.ResetFireMasteryProtection;
-begin end;
+begin
+  if GetAbilityEnabled(167) then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+      RemoveAbility(167);
+end;
 
 procedure TAbstractUnit.SetFireMasteryProtection;
-begin end;
+var
+  Enchantment: TP2EnchantmentCalls;
+begin
+  if not GetAbilityEnabled(71) and not GetAbilityEnabled(167) then
+    if TP2OwnerCalls(Self).Expand(167) then
+    begin
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).F_UnitEnchantmentAbilityData_10);
+      Enchantment.SetUpkeep(0);
+      Enchantment.SetSource(-2);
+      Enchantment.Duration := 7;
+    end;
+end;
 
 procedure TAbstractUnit.ResetLifeMasteryBlessing;
-begin end;
+begin
+  if GetAbilityEnabled(158) then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).F_UnitEnchantmentAbilityData_10).F_Enchantment_0C) = -2 then
+      RemoveAbility(158);
+end;
 
 procedure TAbstractUnit.SetLifeMasteryBlessing;
-begin end;
+var
+  Enchantment: TP2EnchantmentCalls;
+begin
+  if not GetAbilityEnabled(158) then
+    if TP2OwnerCalls(Self).Expand(158) then
+    begin
+      Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).F_UnitEnchantmentAbilityData_10);
+      Enchantment.SetUpkeep(0);
+      Enchantment.SetSource(-2);
+      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),56)).Duration;
+    end;
+end;
 
 procedure TAbstractUnit.ResetLifeMasteryFear;
-begin end;
+begin
+  if GetAbilityEnabled(53) then
+    if TUnitEnchantmentAbilityData(P2AbilityData(Self,53)).F_UnitEnchantmentAbilityData_10 = 1 then
+      RemoveAbility(53);
+end;
 
 procedure TAbstractUnit.ExecuteLifeMasteryFearRole;
-begin end;
+var
+  Data: TDurationAbilityData;
+begin
+  if not GetAbilityEnabled(53) and (GetAlignment in [alEvil,alPureEvil]) and
+     not GetAbilityEnabled(67) and not GetAbilityEnabled(46) and
+     P2HitRole(4 - GetResistance) then
+    if TP2OwnerCalls(Self).Expand(53) then
+    begin
+      Data := TDurationAbilityData(P2AbilityData(Self,53));
+      Data.F_DurationAbilityData_10 := 1;
+      Data.FDuration := 0;
+    end;
+end;
 
 procedure TAbstractUnit.ValidateLifeMastery;
-begin end;
+var
+  Player: Shortint;
+begin
+  Player := FPlayer;
+  if Player > 0 then
+  begin
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).F_Player_54).F_PlayerMagicControl_44 and 16 = 0 then
+      ResetLifeMasteryBlessing;
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 16 = 0 then
+      ResetLifeMasteryFear;
+  end;
+end;
 
 procedure TAbstractUnit.ExecuteDeathMasteryCurseRole;
-begin end;
+var
+  Data: TDurationAbilityData;
+begin
+  if not GetAbilityEnabled(93) and (GetAlignment in [alPureGood,alGood]) and
+     P2HitRole(6 - GetResistance) then
+    if TP2OwnerCalls(Self).Expand(93) then
+    begin
+      Data := TDurationAbilityData(P2AbilityData(Self,93));
+      Data.F_DurationAbilityData_10 := 1;
+    end;
+end;
 
 procedure TAbstractUnit.ValidateDeathMastery;
-begin end;
+var
+  Player: Shortint;
+begin
+  Player := FPlayer;
+  if Player > 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).F_Player_54).F_PlayerMagicControl_45 and 32 = 0 then
+      if GetAbilityEnabled(93) then
+        if TDurationAbilityData(P2AbilityData(Self,93)).F_DurationAbilityData_10 = 1 then
+          RemoveAbility(93);
+end;
 
-procedure TAbstractUnit.NewTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.NewTurn(Player: Shortint);
+var
+  Heal: Shortint;
+begin
+  if Player = FPlayer then
+  begin
+    SetMovePoints(GetMoves);
+    if (GetHits <> GetHitPoints) and not GetAbilityEnabled(93) then
+    begin
+      if not GetAbilityEnabled(49) then
+      begin
+        Heal := Round(GetHits * 0.1);
+        if Heal = 0 then Heal := 1;
+      end
+      else Heal := GetHits;
+      SetHitPoints(GetHitPoints + Heal);
+    end;
+    if GetAbilityEnabled(109) then UpdatePathOfFrost;
+  end;
+end;
 
-procedure TAbstractUnit.NewTurnDone(A1: Byte);
-begin end;
+procedure TAbstractUnit.NewTurnDone(Player: Shortint);
+begin
+  if (Player = FPlayer) and (FPlayer > 0) then
+  begin
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 64 <> 0 then
+      SetFireMasteryProtection;
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 128 <> 0 then
+      SetEarthMasteryStoneSkin;
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_44 and 16 <> 0 then
+      SetLifeMasteryBlessing;
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 16 <> 0 then
+      ExecuteLifeMasteryFearRole;
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 32 <> 0 then
+      ExecuteDeathMasteryCurseRole;
+  end;
+end;
 
-procedure TAbstractUnit.VisibilityRange(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.VisibilityRange: Integer;
+var
+  Level: Integer;
+  Xhx,Yhx,Lhx: Shortint;
+begin
+  Level := GetAbilityLevel(64);
+  if Level <> 0 then Result := Level * 2 + 4 else Result := 4;
+  GetLocation(Xhx,Yhx,Lhx);
+  if ((Lhx <> 0) and not GetAbilityEnabled(39)) or
+     ((Lhx = 0) and (FPlayer > 0) and
+       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_54).F_PlayerMagicControl_45 and 8 <> 0)) then
+    Result := (Result + 1) shr 1;
+end;
 
-procedure TAbstractUnit.TrueVisionRange;
-begin end;
+function TAbstractUnit.TrueVisionRange: Integer;
+begin
+  if GetAbilityEnabled(41) then begin Result := VisibilityRange; Exit; end;
+  Result := 1;
+end;
 
 procedure TAbstractUnit.Changed;
-begin end;
+var
+  List: TECustomNode;
+begin
+  if usActivated in FUnitStatus then
+  begin
+    UpdateMoraleValue;
+    UpdateOffensiveStrength;
+    UpdateDefensiveStrength;
+    UpdateEnchanted;
+    if AoWHSMap <> nil then P2UnitChanged(AoWHSMap,Self);
+  end;
+  List := Owner;
+  if (List <> nil) and (List is TUnitList) then TUnitList(List).Changed;
+end;
 
-procedure TAbstractUnit.CanPlace(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAbstractUnit.CanPlace(X,Y,L: Integer; Player: Shortint; Mode: TUnitPlaceMode): Boolean;
+var
+  Field: TAoWMapField;
+  ArmyHS: TArmyHS;
+  FieldPlayer: Shortint;
+begin
+  if (X >= 0) and (Y >= 0) and (X < AoWHSMap.MapContainer.Width) and (Y < AoWHSMap.MapContainer.Height) then
+  begin
+    Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X,Y,L));
+    FieldPlayer := P2FieldPlayer(Field);
+    if (pmNeglectEmptyPlayerLocation in Mode) or (FieldPlayer = Player) or (FieldPlayer = -1) or (Player = -1) then
+    begin
+      ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(X,Y,L).FindOwnedChild($20217));
+      if ArmyHS <> nil then
+      begin
+        if (pmCreateNewArmy in Mode) or
+           ((Player <> -1) and (Shortint(ArmyHS.F_ArmyHS_1C.F_Army_12) <> Player)) or
+           not TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).CanAddUnit(Self) then Result := False
+        else Result := True;
+      end
+      else Result := ValidTerrain(Field.TerrainType,Field.OverlayType);
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TAbstractUnit.Place(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAbstractUnit.Place(X,Y,L: Integer; Player: Shortint; Mode: TUnitPlaceMode): TArmyHS;
+var
+  Walk: THNWalkData;
+  ArmyHS: TArmyHS;
+begin
+  Result := nil;
+  InitHNWalk(Walk,X,Y,0);
+  while (Result = nil) and ((Walk.Radius = 0) or (pmScanArea in Mode)) and (Walk.Radius < 30) do
+  begin
+    if CanPlace(Walk.X,Walk.Y,L,Player,Mode) then
+    begin
+      ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Walk.X,Walk.Y,L).FindOwnedChild($20217));
+      if ArmyHS = nil then
+      begin
+        ArmyHS := TArmyHS.Create(nil);
+        if Player <> -1 then ArmyHS.F_ArmyHS_1C.SetPlayer(Player);
+        if not TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).AddUnit(Self) or not AoWHSMap.PlaceHX(ArmyHS,Walk.X,Walk.Y,L) then
+        begin ArmyHS.Free; ArmyHS := nil; end;
+        Result := ArmyHS;
+      end
+      else if TP2AbilityCalls(ArmyHS.F_ArmyHS_1C).AddUnit(Self) then Result := ArmyHS
+      else Result := nil;
+    end;
+    if Result = nil then WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TAbstractUnit.CanAddToList;
-begin end;
+function TAbstractUnit.CanAddToList: Boolean;
+begin
+  Result := True;
+end;
 
-procedure TAbstractUnit.NewDay(A1: Integer; A2: Integer);
+procedure TAbstractUnit.NewDay;
 begin end;
 
 procedure TAbstractUnit.ValidateCrusader;
-begin end;
+var
+  Data: TDurationAbilityData;
+begin
+  Data := TDurationAbilityData(P2AbilityData(Self,101));
+  if Data <> nil then
+    if Data.FDuration <= 0 then Killed;
+end;
 
 procedure TAbstractUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg,Sender);
+  if Msg.MsgID = $20020002 then
+  begin NewTurn(Shortint(Msg.Value)); Exit; end
+  else if Msg.MsgID = $20020003 then NewTurnDone(Shortint(Msg.Value))
+  else if Msg.MsgID = $20020001 then NewDay
+  else if Msg.MsgID = $20020100 then ValidateLifeMastery
+  else if Msg.MsgID = $20020101 then ValidateDeathMastery;
+end;
 
-procedure TAbstractUnit.Show(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAbstractUnit.Show(X,Y: Integer; const SD: TSurfaceDesc);
+var
+  Info: TP2UnitShowInfo;
+begin
+  Info.Direction := 3;
+  Info.Overlays := [uoHitPoints,uoRank];
+  Info.Animation := uaStandStill;
+  Info.Frame := 0;
+  Info.Looped := False;
+  ShowEx(X,Y,SD,Info);
+end;
 
-procedure TAbstractUnit.ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAbstractUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer;
+var
+  Sequence: TImageSequence;
+  Frame, TotalFrames, ResourceIndex: Integer;
+begin
+  Result := 0;
+  ResourceIndex := GetUnitGFXResourceIndex;
+  TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).AddRef;
+  if Info.Animation <> uaNone then
+  begin
+    Sequence := TImageSequence(TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).FSequences.List^[Ord(Info.Animation) * 6 + Info.Direction - 1]);
+    if Sequence <> nil then
+    begin
+      if not Info.Looped then
+      begin
+        TotalFrames := Sequence.GetTotalSequenceFrames;
+        Frame := Sequence.GetUnloopedFrameIndex(Info.Frame);
+        if Frame >= 0 then
+          Sequence.ImageLibrary[Frame].Show(X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD)
+        else
+          TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Show(Info.Direction,X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD);
+        if TotalFrames - Info.Frame > Result then Result := TotalFrames - Info.Frame;
+      end
+      else
+      begin
+        Frame := Sequence.GetFrameIndex(Info.Frame,(Integer(Self) shr 2) and $FFFF);
+        if Frame >= 0 then
+          Sequence.ImageLibrary[Frame].Show(X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD);
+        Result := 1;
+      end;
+      Sequence := Sequence.Next;
+      while Sequence <> nil do
+      begin
+        Frame := Sequence.GetFrameIndex(Info.Frame,0);
+        if Frame >= 0 then
+          Sequence.ImageLibrary[Frame].Show(X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD);
+        Sequence := Sequence.Next;
+      end;
+    end
+    else Result := -1;
+  end
+  else Result := -1;
+  if GetAbilityEnabled(96) then
+    if Info.Looped then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+    else
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+  if GetAbilityEnabled(98) then
+    if Info.Looped then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+    else
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+  if GetAbilityEnabled(93) then
+    if Info.Looped then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+    else
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).F_Ability_1C).Show(0,X+32,Y+32,4,SD);
+  if uoHitPoints in Info.Overlays then
+    P2ShowHitPercent(X,Y,SD,P2HitPercent(GetHitPoints,GetHits));
+  if uoCombat in Info.Overlays then
+  begin
+    if GetHitPoints = 0 then
+      TCustomImageLibrary(P2AoWHSSet.FCombatImages)[4].Show(X+18,Y+10,SD);
+    if GetAbilityEnabled(48) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),48).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(150) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),150).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(149) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),149).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(97) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),97).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(92) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),92).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(95) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),95).F_Ability_1C).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(94) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),94).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(127) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),127).F_Ability_1C).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(107) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),107).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+    if GetAbilityEnabled(34) then
+      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),34).F_Ability_1C).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+  end;
+  if usEnchanted in FUnitStatus then
+    if Info.Looped then
+      TImageSequenceList(P2AoWHSSet.FImageSequences).ShowLooped(70,X+32,Y+40,AoWHSMap.Frame,SD)
+    else
+      TImageSequenceList(P2AoWHSSet.FImageSequences).Show(70,X+32,Y+40,5,SD);
+  TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Release;
+end;
 
-procedure TAbstractUnit.ShowFace(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.ShowFace(const R: TRect; const SD: TSurfaceDesc);
+var
+  Image: TLibraryImage;
+begin
+  Image := GetFace;
+  if Image <> nil then Image.ShowStretched(R,SD);
+  if GetAbilityEnabled(129) then
+    if AoWHSMap <> nil then
+      if TCustomImageLibrary(P2AoWHSSet.FGeneralImages)[45] <> nil then
+        TCustomImageLibrary(P2AoWHSSet.FGeneralImages)[45].ShowStretched(R,SD);
+end;
 
-procedure TAbstractUnit.ExecuteDamageRole(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAbstractUnit.ExecuteDamageRole(Attack, Damage: Integer; DamageTypes: TDamageTypes): Integer;
+var
+  Active: TDamageTypes;
+begin
+  Result := 0;
+  Active := DamageTypes - GetImmunityTypes;
+  if Active <> [] then
+  begin
+    Result := P2DamageRole(Damage, Attack - GetDefense);
+    if Active - GetProtectionTypes = [] then Result := (Result + 1) div 2;
+  end;
+end;
 
-procedure TAbstractUnit.ExecuteResistanceRole(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.ExecuteResistanceRole(Attack: Integer; DamageType: TDamageType): Boolean;
+begin
+  if not (DamageType in GetImmunityTypes) then
+  begin
+    if DamageType in GetProtectionTypes then Dec(Attack,2);
+    Result := P2HitRole(Attack - GetResistance);
+  end
+  else Result := False;
+end;
 
-procedure TAbstractUnit.ExecuteDamageEffectsRole(A1: Word);
-begin end;
+function TAbstractUnit.ExecuteDamageEffectsRole(DamageTypes: TDamageTypes): TDamageTypes;
+var
+  Active, Protection: TDamageTypes;
+  Resistance, EffectiveResistance: Integer;
+begin
+  Result := [];
+  Active := DamageTypes - GetImmunityTypes;
+  if Active <> [] then
+  begin
+    Resistance := GetResistance;
+    Protection := GetProtectionTypes;
+    if (dtFire in Active) and not GetAbilityEnabled(7) then
+    begin
+      if dtFire in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(4 - EffectiveResistance) then
+        Result := Result + [dtFire];
+    end;
+    if (dtLightning in Active) and (GetUnitType <> utMachine) and not GetAbilityEnabled(9) then
+    begin
+      if dtLightning in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(6 - EffectiveResistance) then
+        Result := Result + [dtLightning];
+    end;
+    if (dtPoison in Active) and not GetAbilityEnabled(10) then
+    begin
+      if dtPoison in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(3 - EffectiveResistance) then
+        Result := Result + [dtPoison];
+    end;
+    if (dtDeath in Active) and not GetAbilityEnabled(11) then
+    begin
+      if dtDeath in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(4 - EffectiveResistance) then
+        Result := Result + [dtDeath];
+    end;
+    if (dtHoly in Active) and not GetAbilityEnabled(12) then
+    begin
+      if dtHoly in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(3 - EffectiveResistance) and (GetUnitType <> utMachine) then
+        Result := Result + [dtHoly];
+    end;
+    if (dtCold in Active) and not GetAbilityEnabled(8) then
+    begin
+      if dtCold in Protection then EffectiveResistance := Resistance + 2
+      else EffectiveResistance := GetResistance;
+      if P2HitRole(2 - EffectiveResistance) then
+        Result := Result + [dtCold];
+    end;
+  end;
+end;
 
-procedure TAbstractUnit.ExecuteDamageEffects(A1: Word; A2: Integer);
-begin end;
+function TAbstractUnit.ExecuteDamageEffects(DamageTypes: TDamageTypes): TDamageTypes;
+var
+  Active: TDamageTypes;
+begin
+  Result := [];
+  Active := DamageTypes - GetImmunityTypes;
+  if Active <> [] then
+  begin
+    if (dtPoison in Active) and TP2OwnerCalls(Self).Expand(96) then
+      Result := Result + [dtPoison];
+    if (dtDeath in Active) and TP2OwnerCalls(Self).Expand(93) then
+      Result := Result + [dtDeath];
+    if (dtHoly in Active) and TP2OwnerCalls(Self).Expand(98) then
+      Result := Result + [dtHoly];
+  end;
+end;
 
-procedure TAbstractUnit.ExecuteCombatDamageEffects(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes;
+var
+  Active: TDamageTypes;
+  Data: TUnitEnchantmentAbilityData;
+begin
+  Result := [];
+  Active := DamageTypes - GetImmunityTypes;
+  if Active <> [] then
+  begin
+    if (dtFire in Active) and TP2OwnerCalls(Self).Expand(127) then
+    begin RemoveAbility(95); Result := Result + [dtFire]; end;
+    if (dtCold in Active) and TP2OwnerCalls(Self).Expand(95) then
+    begin
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self,95));
+      if Data <> nil then Data.F_UnitEnchantmentAbilityData_0F := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
+      RemoveAbility(127);
+      Result := Result + [dtCold];
+    end;
+    if (dtLightning in Active) and TP2OwnerCalls(Self).Expand(92) then
+    begin
+      Data := TUnitEnchantmentAbilityData(P2AbilityData(Self,92));
+      if Data <> nil then TDurationAbilityData(Data).FPlayerIndex := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
+      Result := Result + [dtLightning];
+    end;
+    if (dtPoison in Active) and TP2OwnerCalls(Self).Expand(96) then
+      Result := Result + [dtPoison];
+    if (dtDeath in Active) and TP2OwnerCalls(Self).Expand(93) then
+      Result := Result + [dtDeath];
+    if (dtHoly in Active) and TP2OwnerCalls(Self).Expand(98) then
+      Result := Result + [dtHoly];
+  end;
+end;
 
-procedure TAbstractUnit.OptimalDamageType(A1: Word; A2: Integer);
-begin end;
+function TAbstractUnit.OptimalDamageType(DamageTypes: TDamageTypes): TDamageType;
+var
+  Active, Protection: TDamageTypes;
+begin
+  Result := dtNone;
+  Active := DamageTypes - GetImmunityTypes;
+  if Active <> [] then
+  begin
+    Protection := GetProtectionTypes;
+    if (Protection = []) or (Active - Protection = []) then
+      while not (Result in Active) do Dec(Result)
+    else
+      while not (Result in Active) or (Result in Protection) do Dec(Result);
+  end;
+end;
 
 procedure TAbstractUnit.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  Legacy: TEObject;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FGroupID,4);
+  Stream.rwIntegerEx(FUnitID,-1,5);
+  Stream.rwByte(Byte(FMoraleValue),6);
+  Stream.rwByte(Byte(FPlayer),47);
+  if Stream.StorageMode * [smRead,smTextOnly,smCompare] = [smRead] then
+  begin
+    try
+      Legacy := nil;
+      Stream.rwCreateEObject(Legacy,nil,48);
+      if Legacy <> nil then F_AbstractUnit_38 := TP2LegacyBehaviorCalls(Legacy).Behavior
+      else F_AbstractUnit_38 := 0;
+      { Original retains the obsolete object loaded for behavior conversion. }
+    except
+    end;
+  end
+  else F_AbstractUnit_38 := 0;
+end;
 
-procedure TAbstractUnit.CanJoin(A1: Byte; A2: Integer);
-begin end;
+function TAbstractUnit.CanJoin(Player: Shortint): Boolean;
+var
+  Alignment: TAlignment;
+  Relation: TDiplomaticRelation;
+  I: Integer;
+  Group: TUnitUserList;
+begin
+  Group := FGroup;
+  if (Group = nil) or not (TP2AbilityCalls(Group).GroupBehavior in [gbGuard,gbGuardArea]) then
+  begin
+    if GetRace = -1 then
+    begin
+      Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),
+        Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FPlayerRace)));
+      if GetAlignment <> alNone then
+      begin
+        Relation := P2AlignmentDiplomaticRelation(GetAlignment,Alignment);
+        if (Relation = drUnknown) and (Self is TUnit) then
+        begin
+          Result := False;
+          I := TRaceList(AoWHSMap.FRaces).Count;
+          while not Result and (I <> 0) do
+          begin
+            Dec(I);
+            Result := (P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),I),Player) >= sPolite) and
+              (TIntegerList(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),I).F_RaceResource_38).
+                IndexOf(TUnitResource(TUnit(Self).FUnitResource).UnitResourceIndex) <> -1);
+          end;
+        end
+        else Result := Relation = drPeace;
+      end
+      else Result := True;
+    end
+    else Result := P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),GetRace),Player) >= sPolite;
+    if Result and (FGroup <> nil) and (TP2AbilityCalls(FGroup).GroupBehavior = gbHunt) and
+      P2HuntingPlayer(THuntAG(FGroup),Player) then Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TAbstractUnit.JoinAmount(A1: Integer; A2: Integer);
-begin end;
+function TAbstractUnit.JoinAmount: Integer;
+var
+  Group: TUnitUserList;
+begin
+  Group := FGroup;
+  if (Group <> nil) and (TP2AbilityCalls(Group).GroupBehavior = gbRefuge) then Result := 0
+  else Result := Round(GetObtainValue * 0.75);
+end;
 
-procedure TAbstractUnit.OfferToJoin(A1: Integer);
-begin end;
+function TAbstractUnit.OfferToJoin(Player: Shortint): Boolean;
+var
+  Group: TUnitUserList;
+  Alignment: TAlignment;
+begin
+  if CanJoin(Player) then
+    if GetRace <> -1 then
+      Result := P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),GetRace),Player) >= sPolite
+    else
+    begin
+      Group := FGroup;
+      if (Group <> nil) and (TP2AbilityCalls(Group).GroupBehavior = gbRefuge) then
+      begin
+        Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),
+          Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FPlayerRace)));
+        if ((GetAlignment <> alNone) or (GetUnitType = utMachine)) and
+          (P2AlignmentDiplomaticRelation(GetAlignment,Alignment) <> drPeace) then Result := False
+        else Result := True;
+      end
+      else Result := False;
+    end
+  else Result := False;
+end;
 
-procedure TAbstractUnit.GetJoinMessage(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnit.GetJoinMessage(Player: Shortint; Count, Amount: Integer; Mode: TJoinMode; Messages: TStrings);
+var
+  Group: TUnitUserList;
+begin
+  Messages.Clear;
+  case Mode of
+    jmDefault:
+      begin
+        Group := FGroup;
+        if (Group <> nil) and (TP2AbilityCalls(Group).GroupBehavior = gbRefuge) and (Amount = 0) then
+          if Count = 0 then Messages.Text := P2Translate(P2RefugeJoinRStr)
+          else Messages.Text := P2Translate(P2RefugeesJoinRStr)
+        else
+          if Count = 0 then Messages.Text := P2Format(P2Translate(P2BribeUnitJoinRStr),[IntToStr(Amount)])
+          else Messages.Text := P2Format(P2Translate(P2BribeUnitsJoinRStr),[IntToStr(Amount)]);
+      end;
+  end;
+end;
 
-procedure TAbstractUnit.CanDisband;
-begin end;
+function TAbstractUnit.CanDisband(var Reason: string): Boolean;
+begin
+  Result := TP2MapPlayerFields(AoWHSMap).Player = FPlayer;
+  if Result and GetTransporter and (Owner is TArmy) then
+    Result := TArmy(Owner).UnitsInTransporter = False;
+end;
 
-procedure TAbstractUnit.Disband;
-begin end;
+function TAbstractUnit.Disband: Boolean;
+var
+  Reason: string;
+  Event: TDisbandUnitTE;
+begin
+  if CanDisband(Reason) and not P2PlayerBusy(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer)) then
+  begin
+    Event := TDisbandUnitTE.Create(nil);
+    Event.F_DisbandUnitTE_10 := FUnitID;
+    Event.F_DisbandUnitTE_14 := FPlayer;
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).GetTokenControl(FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 class function TUnit.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20213; end;
 
-procedure TUnit.GetName(A1: Integer);
-begin end;
+function TUnit.GetName: string;
+begin Result := FUnitResource.GetUnitName; end;
 
-procedure TUnit.ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer;
+begin
+  Result := inherited ShowEx(X,Y,SD,Info);
+  if uoRank in Info.Overlays then
+    case GetRank of
+      urSilver: TCustomImageLibrary(P2AoWHSSet.FCombatImages)[5].Show(X+33,Y+12,SD);
+      urGold: TCustomImageLibrary(P2AoWHSSet.FCombatImages)[6].Show(X+33,Y+12,SD);
+    end;
+end;
 
 function TUnit.GetObtainValue: Integer;
-begin end;
+begin Result := FUnitResource.FObtainValue; end;
 
-procedure TUnit.GetMovePoints;
-begin end;
+function TUnit.GetMovePoints: Shortint;
+begin Result := FMovePoints; end;
 
 function TUnit.GetAlignment: TAlignment;
-begin end;
+begin
+  if GetAbilityEnabled(107) then begin Result := alPureEvil; Exit; end;
+  Result := FUnitResource.FAlignment;
+end;
 
-procedure TUnit.SetMovePoints(A1: Integer);
-begin end;
+procedure TUnit.SetMovePoints(Value: Shortint);
+begin
+  if Value > GetMoves then Value := GetMoves;
+  if Value < 0 then Value := 0;
+  FMovePoints := Value;
+end;
 
 function TUnit.GetHitPoints: Shortint;
-begin end;
+begin Result := FHitPoints; end;
 
-procedure TUnit.SetHitPoints(A1: Integer);
-begin end;
+procedure TUnit.SetHitPoints(Value: Shortint);
+begin
+  if Value > GetHits then Value := GetHits;
+  if Value < 0 then Value := 0;
+  FHitPoints := Value;
+  UpdateDefensiveStrength;
+end;
 
-procedure TUnit.GetUnitSize;
-begin end;
+function TUnit.GetUnitSize: TUnitSize;
+begin Result := FUnitResource.FUnitSize; end;
 
 function TUnit.GetBloodType: TBloodType;
-begin end;
+begin Result := FUnitResource.FBloodType; end;
 
 function TUnit.GetUnitType: TUnitType;
-begin end;
+begin Result := FUnitResource.FUnitType; end;
 
-procedure TUnit.GetGender;
-begin end;
+function TUnit.GetGender: TUnitGender;
+begin Result := FUnitResource.FGender; end;
 
 procedure TUnit.Killed;
-begin end;
+begin
+  inherited Killed;
+  UnitKilled;
+  SetOwner(nil);
+end;
 
 procedure TUnit.UnitKilled;
 begin end;
 
-procedure TUnit.GetFace;
-begin end;
+function TUnit.GetFace: TLibraryImage;
+var
+  FaceIndex: Integer;
+begin
+  if not GetAbilityEnabled(126) then
+  begin
+    Result := TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.F_AbstractUnitResource_18).GetFaceImage;
+    Exit;
+  end;
+  FaceIndex := TP2FaceEnchantmentFields(TUnitEnchantmentAbilityData(P2AbilityData(Self,126)).F_UnitEnchantmentAbilityData_10).FaceIndex;
+  if P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex) <> nil then
+    Result := P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex).GetCellImage
+  else Result := nil;
+end;
 
-procedure TUnit.GetExperience;
-begin end;
+function TUnit.GetExperience: Integer;
+begin Result := FExperience; end;
 
-procedure TUnit.SetExperience(A1: Integer; A2: Integer);
-begin end;
+procedure TUnit.SetExperience(Value: Integer);
+var
+  OldRank, Rank: TUnitRank;
+begin
+  OldRank := GetRank;
+  if Value > 255 then Value := 255;
+  FExperience := Value;
+  if GetRank <> OldRank then
+    for Rank := Succ(OldRank) to GetRank do
+      UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+  Changed;
+end;
 
-procedure TUnit.GetDescription;
-begin end;
+function TUnit.GetDescription: Integer;
+begin Result := FUnitResource.FDescription; end;
 
-procedure TUnit.GetNextLevelExperience;
-begin end;
+function TUnit.GetNextLevelExperience: Integer;
+begin
+  if FExperience >= FUnitResource.FLevel * 2 then
+    if FExperience >= FUnitResource.FLevel * 6 then Result := 0
+    else begin Result := FUnitResource.FLevel * 6; Exit; end
+  else Result := FUnitResource.FLevel * 2;
+end;
 
-procedure TUnit.GetRank;
-begin end;
+function TUnit.GetRank: TUnitRank;
+begin
+  if FExperience >= FUnitResource.FLevel * 2 then
+    if FExperience >= FUnitResource.FLevel * 6 then Result := urGold
+    else begin Result := urSilver; Exit; end
+  else Result := urNone;
+end;
 
-procedure TUnit.SetRank(A1: Integer);
-begin end;
+procedure TUnit.SetRank(Value: TUnitRank);
+begin
+  if Value <> GetRank then
+    case Value of
+      urNone: FExperience := 0;
+      urSilver: SetExperience(FUnitResource.FLevel * 2);
+      urGold: SetExperience(FUnitResource.FLevel * 6);
+    end;
+end;
 
-procedure TUnit.GetInherentAttack;
-begin end;
+function TUnit.GetInherentAttack: Shortint;
+begin Result := P2RankAttack[GetRank] + FUnitResource.FAttack; end;
 
-procedure TUnit.GetAttack(A1: Integer; A2: Integer);
-begin end;
+function TUnit.GetAttack: Shortint;
+begin
+  Result := P2RankAttack[GetRank] + (FUnitResource.FAttack + FAbAttack);
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
-procedure TUnit.GetInherentDefense;
-begin end;
+function TUnit.GetInherentDefense: Shortint;
+begin Result := P2RankDefense[GetRank] + FUnitResource.FDefense; end;
 
 function TUnit.GetDefense: Shortint;
-begin end;
+begin
+  Result := P2RankDefense[GetRank] + (FUnitResource.FDefense + FAbDefense) + P2MoraleDefense[GetMorale];
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
-procedure TUnit.GetInherentDamage;
-begin end;
+function TUnit.GetInherentDamage: Shortint;
+begin Result := P2RankDamage[GetRank] + FUnitResource.FDamage; end;
 
-procedure TUnit.GetDamage(A1: Integer; A2: Integer);
-begin end;
+function TUnit.GetDamage: Shortint;
+begin
+  Result := P2RankDamage[GetRank] + (FUnitResource.FDamage + FAbDamage);
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
-procedure TUnit.GetInherentResistance;
-begin end;
+function TUnit.GetInherentResistance: Shortint;
+begin Result := FUnitResource.FResistance; end;
 
 function TUnit.GetResistance: Shortint;
-begin end;
+begin
+  Result := P2MoraleResistance[GetMorale] + (FUnitResource.FResistance + FAbResistance) + P2RankResistance[GetRank];
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
 procedure TUnit.Changed;
-begin end;
+begin
+  inherited Changed;
+  FAbAttack := P2AbAttack(Self);
+  FAbDefense := P2AbDefense(Self);
+  FAbResistance := P2AbResistance(Self);
+  FAbDamage := P2AbDamage(Self);
+end;
 
-procedure TUnit.GetHits;
-begin end;
+function TUnit.GetHits: Shortint;
+begin Result := P2RankHits[GetRank] + FUnitResource.FHits; end;
 
-procedure TUnit.GetMoves;
-begin end;
+function TUnit.GetMoves: Shortint;
+begin Result := FUnitResource.FMoves; end;
 
-procedure TUnit.GetUnitLevel;
-begin end;
+function TUnit.GetUnitLevel: Shortint;
+begin Result := FUnitResource.FLevel; end;
 
-procedure TUnit.GetPreviewImage;
-begin end;
+function TUnit.GetPreviewImage: TLibraryImage;
+begin Result := FUnitResource.GetPreviewImage; end;
 
-procedure TUnit.GetTransportCapacity;
-begin end;
+function TUnit.GetTransportCapacity: Byte;
+begin
+  Result := GetAbilityLevel(50);
+  if Result < FUnitResource.GetTransportCapacity then Result := FUnitResource.GetTransportCapacity;
+end;
 
-procedure TUnit.GetTransporter;
-begin end;
+function TUnit.GetTransporter: Boolean;
+begin Result := FUnitResource.GetTransportCapacity <> 0; end;
 
-procedure TUnit.SetUnitResource(A1: Integer; A2: Integer);
-begin end;
+procedure TUnit.SetUnitResource(Resource: TUnitResource);
+var
+  Rank: TUnitRank;
+begin
+  if Resource <> FUnitResource then
+  begin
+    Clear;
+    FUnitResource := Resource;
+    if FUnitResource <> nil then
+    begin
+      UpdateMoraleValue;
+      for Rank := urNone to GetRank do
+        UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+      FHitPoints := GetHits;
+      FMovePoints := GetMoves;
+    end;
+  end;
+end;
 
-procedure TUnit.GetUnitGFXResourceIndex;
-begin end;
+function TUnit.GetUnitGFXResourceIndex: Integer;
+begin Result := FUnitResource.F_AbstractUnitResource_18; end;
 
-procedure TUnit.Activate(A1: Integer; A2: Integer);
-begin end;
+procedure TUnit.Activate;
+begin
+  if FUnitResource <> nil then begin inherited Activate; Exit; end;
+  AddRef;
+  AddRef;
+  AddRef;
+  Destroy;
+end;
 
 function TUnit.GetRace: Shortint;
-begin end;
+begin Result := FUnitResource.FRace; end;
 
-procedure TUnit.NewDay(A1: Integer; A2: Integer);
-begin end;
+procedure TUnit.NewDay;
+var
+  Rank: TUnitRank;
+begin
+  inherited NewDay;
+  if AoWHSMap.FDay = 1 then
+  begin
+    SetAbCount(0);
+    for Rank := urNone to GetRank do
+      UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+  end;
+end;
 
 procedure TUnit.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  ResourceIndex: Smallint;
+  Resource: TUnitResource;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FExperience,7);
+  Stream.rwByte(Byte(FMovePoints),8);
+  Stream.rwByte(Byte(FHitPoints),9);
+  if Stream.StorageMode * [smWrite,smTextOnly] = [smWrite] then
+    if smCompare in Stream.StorageMode then
+    begin
+      ResourceIndex := FUnitResource.UnitResourceIndex;
+      Stream.rwWord(Word(ResourceIndex),10);
+    end
+    else if smRead in Stream.StorageMode then
+    begin
+      Stream.rwWord(Word(ResourceIndex),10);
+      Resource := TUnitResourceList(P2AoWHSSet.FUnitResources).GetUnitResource(ResourceIndex);
+      FUnitResource := Resource;
+      if Resource = nil then raise Exception.Create('unit resource missing (' + IntToStr(ResourceIndex) + ')');
+    end
+    else
+    begin
+      Resource := FUnitResource;
+      if Resource <> nil then ResourceIndex := Resource.UnitResourceIndex
+      else ResourceIndex := -1;
+      Stream.rwWord(Word(ResourceIndex),10);
+    end;
+end;
 
 function TUnitList.RemoveChild(Child: Engine.TEObject): Integer;
 begin Result := 0; end;
@@ -999,10 +2791,10 @@ begin end;
 function TWallUnit.GetHitPoints: Shortint;
 begin end;
 
-procedure TWallUnit.GetHits;
+function TWallUnit.GetHits: Shortint;
 begin end;
 
-procedure TWallUnit.GetName(A1: Integer);
+function TWallUnit.GetName: string;
 begin end;
 
 function TWallUnit.GetUnitType: TUnitType;
@@ -1014,22 +2806,22 @@ begin end;
 procedure TAdjustableUnit.MakeDefaultLevelUnit(A1: Byte);
 begin end;
 
-procedure TAdjustableUnit.GetAttack(A1: Integer; A2: Integer);
+function TAdjustableUnit.GetAttack: Shortint;
 begin end;
 
 function TAdjustableUnit.GetDefense: Shortint;
 begin end;
 
-procedure TAdjustableUnit.GetDamage(A1: Integer; A2: Integer);
+function TAdjustableUnit.GetDamage: Shortint;
 begin end;
 
-procedure TAdjustableUnit.GetHits;
+function TAdjustableUnit.GetHits: Shortint;
 begin end;
 
 function TAdjustableUnit.GetHitPoints: Shortint;
 begin end;
 
-procedure TAdjustableUnit.SetHitPoints(A1: Integer);
+procedure TAdjustableUnit.SetHitPoints(Value: Shortint);
 begin end;
 
 function TAdjustableUnit.GetResistance: Shortint;
@@ -1071,13 +2863,13 @@ begin Result := 0; end;
 function TUnitGFXResource.Release: Integer;
 begin Result := 0; end;
 
-procedure TUnitGFXResource.GetFaceImage;
+function TUnitGFXResource.GetFaceImage: TLibraryImage;
 begin end;
 
 function TUnitGFXResource.GetCellImage: ImageLib.TLibraryImage;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TUnitGFXResource.Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TUnitGFXResource.Show(Direction,X,Y: Integer; const SD: TSurfaceDesc);
 begin end;
 
 procedure TUnitGFXResource.GetIndex;
@@ -1089,7 +2881,7 @@ begin end;
 constructor TUnitGFXResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TUnitGFXResourceList.GetUnitGFXResource(A1: Integer);
+function TUnitGFXResourceList.GetUnitGFXResource(Index: Integer): TUnitGFXResource;
 begin end;
 
 procedure TUnitGFXResourceList.CreateUnitGFXSelectionList(A1: Integer; A2: Integer);
@@ -1263,7 +3055,7 @@ begin end;
 procedure TAbstractUnitResource.GetFace;
 begin end;
 
-procedure TAbstractUnitResource.GetPreviewImage;
+function TAbstractUnitResource.GetPreviewImage: TLibraryImage;
 begin end;
 
 function TAbstractUnitResource.GetCellImage: ImageLib.TLibraryImage;
@@ -1299,7 +3091,7 @@ begin end;
 procedure TUnitResource.GetMoveTypes;
 begin end;
 
-procedure TUnitResource.GetTransportCapacity;
+function TUnitResource.GetTransportCapacity: Byte;
 begin end;
 
 procedure TUnitResource.GetUpkeep;
@@ -1317,13 +3109,13 @@ begin Result := 0; end;
 function TUnitResource.CreateResourceUser: Engine.TEObject;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TUnitResource.UnitResourceIndex;
+function TUnitResource.UnitResourceIndex: Integer;
 begin end;
 
 class function TUnitResource.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TUnitResource.GetUnitName(A1: Integer);
+function TUnitResource.GetUnitName: string;
 begin end;
 
 procedure TUnitResource.ReadWrite(Stream: Engine.TEStorageStream);
@@ -1335,7 +3127,7 @@ begin end;
 constructor TUnitResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TUnitResourceList.GetUnitResource(A1: Integer);
+function TUnitResourceList.GetUnitResource(Index: Integer): TUnitResource;
 begin end;
 
 procedure TUnitIndexList.Create(A1: Byte);
@@ -1551,7 +3343,7 @@ begin end;
 procedure THero.UpdateFromLibrary;
 begin end;
 
-procedure THero.GetUnitLevel;
+function THero.GetUnitLevel: Shortint;
 begin end;
 
 procedure THero.SetOwner(AOwner: Engine.TECustomNode);
@@ -1572,7 +3364,7 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 procedure THero.GetLibraryHero;
 begin end;
 
-procedure THero.ShowEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function THero.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer;
 begin end;
 
 procedure THero.Changed;
@@ -1584,37 +3376,37 @@ begin Result := 0; end;
 function THero.GetObtainValue: Integer;
 begin end;
 
-procedure THero.GetDescription;
+function THero.GetDescription: Integer;
 begin end;
 
-procedure THero.GetGender;
+function THero.GetGender: TUnitGender;
 begin end;
 
 function THero.GetUnitType: TUnitType;
 begin end;
 
-procedure THero.NewDay(A1: Integer; A2: Integer);
+procedure THero.NewDay;
 begin end;
 
 procedure THero.UsedSkillPoints;
 begin end;
 
-procedure THero.CanJoin(A1: Byte; A2: Integer);
+function THero.CanJoin(Player: Shortint): Boolean;
 begin end;
 
 procedure THero.EmergedToPlayer;
 begin end;
 
-procedure THero.OfferToJoin(A1: Integer);
+function THero.OfferToJoin(Player: Shortint): Boolean;
 begin end;
 
 function THero.GetRace: Shortint;
 begin end;
 
-procedure THero.GetName(A1: Integer);
+function THero.GetName: string;
 begin end;
 
-procedure THero.GetMoveTypes;
+function THero.GetMoveTypes: TMoveTypes;
 begin end;
 
 function THero.GetImmunityTypes: TDamageTypes;
@@ -1623,16 +3415,16 @@ begin end;
 function THero.GetProtectionTypes: TDamageTypes;
 begin end;
 
-procedure THero.GetMovePoints;
+function THero.GetMovePoints: Shortint;
 begin end;
 
-procedure THero.SetMovePoints(A1: Integer);
+procedure THero.SetMovePoints(Value: Shortint);
 begin end;
 
 function THero.GetHitPoints: Shortint;
 begin end;
 
-procedure THero.SetHitPoints(A1: Integer);
+procedure THero.SetHitPoints(Value: Shortint);
 begin end;
 
 function THero.GetAlignment: TAlignment;
@@ -1650,25 +3442,25 @@ begin end;
 procedure THero.Animate;
 begin end;
 
-procedure THero.CanActivate;
+function THero.CanActivate: Boolean;
 begin end;
 
-procedure THero.GetUpkeep;
+function THero.GetUpkeep: Shortint;
 begin end;
 
-procedure THero.SetPlayer(A1: Integer);
+procedure THero.SetPlayer(Player: Shortint);
 begin end;
 
 procedure THero.CompatibleHero(A1: Integer; A2: Integer);
 begin end;
 
-procedure THero.Activate(A1: Integer; A2: Integer);
+procedure THero.Activate;
 begin end;
 
 procedure THero.Deactivate;
 begin end;
 
-procedure THero.GetUnitGFXResourceIndex;
+function THero.GetUnitGFXResourceIndex: Integer;
 begin end;
 
 procedure THero.GetSkillPoints;
@@ -1680,10 +3472,10 @@ begin end;
 procedure THero.GetLevelMax;
 begin end;
 
-procedure THero.GetExperience;
+function THero.GetExperience: Integer;
 begin end;
 
-procedure THero.SetExperience(A1: Integer; A2: Integer);
+procedure THero.SetExperience(Value: Integer);
 begin end;
 
 procedure THero.LevelToExperience(A1: Integer);
@@ -1692,7 +3484,7 @@ begin end;
 procedure THero.ExperienceToLevel(A1: Integer);
 begin end;
 
-procedure THero.GetNextLevelExperience;
+function THero.GetNextLevelExperience: Integer;
 begin end;
 
 procedure THero.GetLevel;
@@ -1737,7 +3529,7 @@ begin end;
 procedure THero.ValidateHeroUpgrade(A1: Integer; A2: Integer);
 begin end;
 
-procedure THero.NewTurn(A1: Integer; A2: Integer);
+procedure THero.NewTurn(Player: Shortint);
 begin end;
 
 procedure THero.SetAbSet(A1: Integer; A2: Byte);
@@ -1749,7 +3541,7 @@ begin end;
 procedure THero.GetUnitAbilityEnabled;
 begin end;
 
-procedure THero.GetAbilityCount;
+function THero.GetAbilityCount: Integer;
 begin end;
 
 procedure THero.GetSuperlativeEnabledAbOwner(A1: Integer; A2: Integer);
@@ -1758,64 +3550,64 @@ begin end;
 procedure THero.GetSuperlativeAbOwner(A1: Integer; A2: Integer);
 begin end;
 
-procedure THero.GetAbilityOwner(A1: Integer);
+function THero.GetAbilityOwner(AbilityID: Integer): TAbilityOwner;
 begin end;
 
 function THero.GetAbilityEnabled(AbilityID: Integer): Boolean;
 begin end;
 
-procedure THero.GetAbilitySet(A1: Integer);
+function THero.GetAbilitySet(AbilityID: Integer): Boolean;
 begin end;
 
-procedure THero.GetAbilityName(A1: Integer; A2: Integer);
+function THero.GetAbilityName(AbilityID: Integer): string;
 begin end;
 
-procedure THero.GetAbilityLevel(A1: Integer);
+function THero.GetAbilityLevel(AbilityID: Integer): Integer;
 begin end;
 
-procedure THero.GetInherentAttack;
+function THero.GetInherentAttack: Shortint;
 begin end;
 
-procedure THero.GetAttack(A1: Integer; A2: Integer);
+function THero.GetAttack: Shortint;
 begin end;
 
-procedure THero.GetInherentDefense;
+function THero.GetInherentDefense: Shortint;
 begin end;
 
 function THero.GetDefense: Shortint;
 begin end;
 
-procedure THero.GetInherentDamage;
+function THero.GetInherentDamage: Shortint;
 begin end;
 
-procedure THero.GetDamage(A1: Integer; A2: Integer);
+function THero.GetDamage: Shortint;
 begin end;
 
-procedure THero.GetInherentResistance;
+function THero.GetInherentResistance: Shortint;
 begin end;
 
 function THero.GetResistance: Shortint;
 begin end;
 
-procedure THero.GetHits;
+function THero.GetHits: Shortint;
 begin end;
 
-procedure THero.GetMoves;
+function THero.GetMoves: Shortint;
 begin end;
 
-procedure THero.GetPowerGeneration;
+function THero.GetPowerGeneration: Integer;
 begin end;
 
-procedure THero.GetCastingPointsMax;
+function THero.GetCastingPointsMax: Byte;
 begin end;
 
-procedure THero.GetCastingPoints;
+function THero.GetCastingPoints: Byte;
 begin end;
 
 procedure THero.SetCastingPoints(A1: Integer);
 begin end;
 
-procedure THero.GetPreviewImage;
+function THero.GetPreviewImage: TLibraryImage;
 begin end;
 
 procedure THero.ResetSkillPoints;
@@ -1830,7 +3622,7 @@ begin end;
 procedure THero.SetRace(A1: Byte; A2: Integer);
 begin end;
 
-procedure THero.GetFace;
+function THero.GetFace: TLibraryImage;
 begin end;
 
 procedure THero.SetFaceIndex(A1: Integer);
@@ -2154,7 +3946,7 @@ begin end;
 procedure TLeader.ClearSpheres;
 begin end;
 
-procedure TLeader.GetPowerGeneration;
+function TLeader.GetPowerGeneration: Integer;
 begin end;
 
 procedure TLeader.ReadWrite(Stream: Engine.TEStorageStream);
@@ -2166,16 +3958,16 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 procedure TLeader.SetHeroResourceIndex(A1: Integer);
 begin end;
 
-procedure TLeader.SetPlayer(A1: Integer);
+procedure TLeader.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TLeader.Killed;
 begin end;
 
-procedure TLeader.CanActivate;
+function TLeader.CanActivate: Boolean;
 begin end;
 
-procedure TLeader.Activate(A1: Integer; A2: Integer);
+procedure TLeader.Activate;
 begin end;
 
 procedure TLeader.Deactivate;
@@ -2184,10 +3976,10 @@ begin end;
 procedure TLeader.EditDropMsg(A1: Integer);
 begin end;
 
-procedure TLeader.CanDisband;
+function TLeader.CanDisband(var Reason: string): Boolean;
 begin end;
 
-procedure TLeader.GetUpkeep;
+function TLeader.GetUpkeep: Shortint;
 begin end;
 
 constructor TArmyID.Create(AOwner: Engine.TECustomNode);
@@ -2448,7 +4240,7 @@ begin end;
 procedure TArmy.GetConcealedForPlayer(A1: Byte);
 begin end;
 
-procedure TArmy.SetPlayer(A1: Integer);
+procedure TArmy.SetPlayer(Player: Shortint);
 begin end;
 
 procedure TArmy.ImmunityTypes(A1: Integer);
@@ -2496,13 +4288,13 @@ begin end;
 procedure TArmy.Leader(A1: Integer);
 begin end;
 
-procedure TArmy.Transporter(A1: Integer);
+function TArmy.Transporter(Player: Shortint): TAbstractUnit;
 begin end;
 
 procedure TArmy.IndexOfTransporter(A1: Integer);
 begin end;
 
-procedure TArmy.UnitsInTransporter;
+function TArmy.UnitsInTransporter: Boolean;
 begin end;
 
 procedure TArmy.UpdateVisibilityRanges(A1: Integer; A2: Integer);

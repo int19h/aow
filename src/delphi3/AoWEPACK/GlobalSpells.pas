@@ -349,13 +349,13 @@ begin
   GlobalBaseExecute(Spell,Event,Caster);
   Spell.CastingDone(Integer(Caster),Spell.F_Spell_14);
   Caster.GetLocation(X,Y,Layer);
-  if Caster.F_AbstractUnit_24 = PByte(Integer(GlobalSpellMap^)+$A5)^ then
+  if Caster.FPlayer = PByte(Integer(GlobalSpellMap^)+$A5)^ then
     TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
   for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
   begin
     Level := GlobalSpellMap^.MapContainer.MapLevels[Layer];
     if (GlobalPlayerRelation(TPlayerList(GlobalSpellMap^.FPlayers),
-      Caster.F_AbstractUnit_24,Player) = 1) and (Player <> Shortint(Caster.F_AbstractUnit_24)) then
+      Caster.FPlayer,Player) = 1) and (Player <> Shortint(Caster.FPlayer)) then
     begin
       Log := nil;
       InitHNWalk(Walk,X,Y,0);
@@ -375,7 +375,7 @@ begin
               Log.F_LocationTextEventLog_1C := Walk.X;
               Log.F_LocationTextEventLog_1D := Walk.Y;
               Log.F_LocationTextEventLog_1E := Layer;
-              Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+              Log.F_EventLog_10 := Caster.FPlayer;
               PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
                 SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
                   [GlobalTranslate(ConcealAreaRStr)]);
@@ -394,7 +394,7 @@ begin
       Log.F_LocationTextEventLog_1C := X;
       Log.F_LocationTextEventLog_1D := Y;
       Log.F_LocationTextEventLog_1E := Layer;
-      Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+      Log.F_EventLog_10 := Caster.FPlayer;
       PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
         SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
           [GlobalTranslate(ConcealAreaRStr)]);
@@ -434,7 +434,7 @@ begin
     for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
       War := War or (GlobalDiplomaticRelation(TPlayerDiplomaticRelations(
         GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-          Shortint(Caster.F_AbstractUnit_24)).F_Player_40),Player) = 1);
+          Shortint(Caster.FPlayer)).F_Player_40),Player) = 1);
     if not War then
     begin
       Message := SysUtils.Format(GlobalTranslate(AWarRelationIsRequiredForXRStr),
@@ -471,13 +471,13 @@ begin
   Result := False;
   if GlobalVirtualCanActivate(Spell,Caster,Message) and
     not GlobalPlayerBusy(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
-      Shortint(Caster.F_AbstractUnit_24))) then
+      Shortint(Caster.FPlayer))) then
   begin
     Event := TSpellTE.Create(nil);
-    Event.Initialize(Spell.F_Spell_10,Caster.F_AbstractUnit_24,
+    Event.Initialize(Spell.F_Spell_10,Caster.FPlayer,
       Caster.FUnitID,Spell.F_Spell_14);
     TTokenManager(GlobalSpellMap^.F_AoWHSMap_23C).
-      GetTokenControl(Shortint(Caster.F_AbstractUnit_24)).Add(Event);
+      GetTokenControl(Shortint(Caster.FPlayer)).Add(Event);
     Event.Release;
     Result := True;
   end;

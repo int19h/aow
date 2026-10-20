@@ -199,7 +199,7 @@ begin
     AUnit := P5FindUnit(
       TUnitControl(P5AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
     { Original behavior: missing and dead units do not invalidate the offer. }
-    if (AUnit <> nil) and (AUnit.F_AbstractUnit_24 = 0) then
+    if (AUnit <> nil) and (AUnit.FPlayer = 0) then
     begin
       { needs: P2 GetLocation(var X, Y, L: Shortint), 5572C12B..5572C138. }
       AUnit.GetLocation(Location.X, Location.Y, Location.L);
