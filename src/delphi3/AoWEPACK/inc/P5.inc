@@ -6393,9 +6393,9 @@ begin end;
 procedure TPadControl.UnregisterPadResource(Resource: TMapObjectResource; Size: Integer);
 begin end;
 
-procedure TPadControl.CanPlacePad(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TPadControl.CanPlacePad(X, Y, L: Shortint; Size: Integer): Boolean;
+begin Result := False; end;
 
-procedure TPadControl.PlacePad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TPadControl.PlacePad(X, Y, L: Shortint; Size: Integer): TILTerrainMO;
+begin Result := nil; end;
 

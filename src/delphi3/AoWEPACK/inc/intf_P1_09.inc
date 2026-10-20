@@ -46,12 +46,12 @@
     function GetMaxRaceIndex: Integer;
   end;
 
-  { TStructureShadow (instance size 16, VMT 55713A94) }
+  { TStructureShadow: size $10; $08 connected/visible flags, $0C structure. VMT 55713A94. }
   TStructureShadow = class(THexagonSprite)
   public
-    F_StructureShadow_08: Byte;
+    FShadowStatus: TStructureShadowStatus; { $08 }
     F_StructureShadow_09: array[0..2] of Byte;
-    F_StructureShadow_0C: Integer;
+    FStructure: TStructure; { $0C }
     destructor Destroy; override;
     procedure SetVisible(Value: Boolean); override;
     function GetVisible: Boolean; override;
@@ -61,15 +61,16 @@
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
   end;
 
-  { TStructure (instance size 48, VMT 55713C18) }
+  { TStructure: size $30; $1C ID, $20 update count, $24 building player,
+    $25 days left, $28 shadow, $2C fogged. VMT 55713C18. }
   TStructure = class(TFixedILTerrainMO)
   public
-    F_Structure_1C: Integer;
+    FStructureID: Integer; { $1C }
     FUpdateCount: Integer; { $20 }
     FBuildingPlayer: Shortint; { $24 }
-    F_Structure_25: Byte;
+    FBuildingDays: Byte; { $25 }
     F_Structure_26: array[0..1] of Byte;
-    F_Structure_28: Integer;
+    FShadow: TStructureShadow; { $28 }
     FFogged: Boolean; { $2C }
     F_Structure_2D: array[0..2] of Byte;
     destructor Destroy; override;
@@ -99,59 +100,59 @@
     function GetTopBorderImage: TLibraryImage; virtual;
     function GetMiddleBorderImage: TLibraryImage; virtual;
     function GetBottomBorderImage: TLibraryImage; virtual;
-    procedure GetDescription; virtual;  { +144 draft }
+    function GetDescription: TStrings; virtual; { $144 }
     function GetName: string; virtual;
     procedure SetRazed(Value: Boolean); virtual;
     function GetRazed: Boolean; virtual;
     function GetRazeable: Boolean; virtual; { $154; 557D7523 }
-    procedure RazeEx(A1: Integer); virtual;  { +158 draft }
-    procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); virtual;
+    function RazeEx(Player: Shortint): Boolean; virtual;  { $158 }
+    procedure SetupRazeDefenderAG(Attackers, Defenders: TUnitList); virtual;
     function CreateTE: TStructureTE; virtual;
     procedure SetupTE(A1: TStructureTE); virtual;
     function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; virtual;
     function GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean; virtual;
     function GetDefensePriority: TDefensePriority; virtual;
-    procedure NewDay; virtual;  { +174 draft }
+    procedure NewDay; virtual;  { $174 }
     procedure NewTurn(Player: Shortint); virtual;
-    procedure SeatedPlayerChanged; virtual;  { +17C draft }
+    procedure SeatedPlayerChanged; virtual;  { $17C }
     procedure ArmyPlaced(A1: TArmyHS); virtual; { +180 }
-    procedure ArmyRemoved; virtual;  { +184 draft }
-    procedure ArmyChanged; virtual;  { +188 draft }
-    procedure PlaySelectSample; virtual;  { +18C draft }
-    procedure CreateShadow; virtual;  { +190 draft }
-    procedure DestroyShadow; virtual;  { +194 draft }
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); virtual;  { +198 draft }
-    procedure BuildingDone; virtual;  { +19C draft }
-    procedure ExecuteRebuild(A1: Integer); virtual;  { +1A0 draft }
-    procedure ExecuteBuild(A1: Integer; A2: Byte); virtual;  { +1A4 draft }
+    procedure ArmyRemoved(Army: TArmyHS); virtual;  { $184 }
+    procedure ArmyChanged(Army: TArmyHS); virtual;  { $188 }
+    procedure PlaySelectSample; virtual;  { $18C }
+    procedure CreateShadow; virtual;  { $190 }
+    procedure DestroyShadow; virtual;  { $194 }
+    procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $198 }
+    procedure BuildingDone; virtual;  { $19C }
+    function ExecuteRebuild(AUnit: TAbstractUnit): Boolean; virtual; { $1A0 }
+    function ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean; virtual;  { $1A4 }
     function GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean; virtual;
-    procedure PlaceRazeDefenders(A1: Byte); virtual;  { +1AC draft }
+    function PlaceRazeDefenders(Player: Shortint): Boolean; virtual;  { $1AC }
     function ExecuteRaze(Player: Shortint): Boolean; virtual;
     function GetCurrentActivityText: string; virtual;
-    function ValidateMap(A1: Integer): Boolean; virtual;  { +1B8  }
-    procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
+    function ValidateMap(Messages: TStrings): Boolean; virtual;  { +1B8  }
+    function MainValidateMap(Messages: TStrings): Boolean; virtual;  { $1BC }
     function ExecuteAI(Player: Shortint; Phase: Integer): Boolean; virtual;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); virtual;
-    procedure Update; virtual;  { +1C8 draft }
+    procedure Update; virtual;  { $1C8 }
     function VisibleForPlayer(Player: Shortint): Boolean; virtual;
     function CanDblClick: Boolean; virtual;
-    procedure ListUnits(List: TUnitList); virtual;
-    procedure ListArmies(List: TArmyHSList); virtual;
+    function ListUnits(List: TUnitList): Integer; virtual;
+    function ListArmies(List: TArmyHSList): Integer; virtual;
     procedure GetRebuildInfo(var Cost, Time: Integer); virtual;
-    procedure CanRebuild(A1: Integer; A2: Integer); virtual;  { +1E0 draft }
-    procedure Rebuild(A1: Integer); virtual;  { +1E4 draft }
-    procedure Raze(A1: Shortint); virtual; { $1E8; 557D7432 }
-    procedure CanRaze(A1: Byte; A2: Integer); virtual;  { +1EC draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
-    procedure UpdateRoads(A1: Integer);  { draft }
-    procedure GetPlayer;  { draft }
-    procedure FogChanged;  { draft }
-    procedure ValidateObservation(A1: Byte);
+    function CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean; virtual;  { $1E0 }
+    function Rebuild(AUnit: TAbstractUnit): Boolean; virtual;  { $1E4 }
+    function Raze(Player: Shortint): Boolean; virtual; { $1E8; 557D7432 }
+    function CanRaze(Player: Shortint; var Reason: string): Boolean; virtual;  { $1EC }
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure UpdateRoads(MapField: TMapField);
+    function GetPlayer: Shortint;
+    procedure FogChanged;
+    function ValidateObservation(Player: Shortint): Boolean;
     function GetBuilding: Boolean;
-    procedure ShowBorderImage(A1: Integer; A2: Integer);  { draft }
-    procedure ShowBorderImageDC(A1: Integer; A2: Integer);  { draft }
-    procedure ShowRazeAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function ShowBorderImage(SurfaceDesc: TSurfaceDesc; R: TRect): Boolean;
+    function ShowBorderImageDC(DC: HDC; R: TRect): Boolean;
+    procedure ShowRazeAnimation(Animation: TAnimation; X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
   end;
 
   { TStructureControl (instance size 20, VMT 55713E78) }
@@ -168,12 +169,13 @@
     procedure CreateUniqueID;  { draft }
     procedure IndexOfID(A1: Integer);  { draft }
     procedure FindID;  { draft }
-    procedure Register(A1: Integer);  { draft }
-    procedure Unregister(A1: Integer);  { draft }
+    procedure Register(Structure: TStructure);
+    procedure Unregister(Structure: TStructure);
     procedure Activate;  { draft }
   end;
 
-  { TStructureResource (instance size 100, VMT 55713F40) }
+  { TStructureResource: size $64; $48 selection SFX, $50 description,
+    $54 scanner icon. VMT 55713F40; other recovered resource fields below. }
   TStructureResource = class(TFixedILTerrainMOR)
   public
     FTerrainBound: Boolean; { $44 }
@@ -181,11 +183,11 @@
     FConnectRoads: Boolean; { $45 }
     FFlagType: Byte; { $46 }
     F_StructureResource_47: array[0..0] of Byte;
-    F_StructureResource_48: Integer;
+    FSelectSFX: string; { $48; 5575EA18 }
     F_StructureResource_4C: Byte;
     F_StructureResource_4D: array[0..2] of Byte;
-    F_StructureResource_50: Integer;
-    F_StructureResource_54: Integer;
+    FDescription: TStrings; { $50; 5575E988 }
+    FScannerIcon: Integer; { $54; 5575F817 }
     FRazeable: Boolean;  { $58 }
     FCastsShadow: Boolean; { $59; $5575F6ED, $557D6C7F }
     FRebuildGold: Byte; { $5A }
@@ -203,11 +205,10 @@
     procedure CalculatePadIndex;  { draft }
   end;
 
-  { TRazeStructureEventLog (instance size 44, VMT 55714050) }
+  { TRazeStructureEventLog: size $2C; $28 structure. VMT 55714050. }
   TRazeStructureEventLog = class(TMessageEventLog)
   public
-    F_RazeStructureEventLog_28: Byte;
-    F_RazeStructureEventLog_29: array[0..2] of Byte;
+    FStructure: TStructure; { $28; 5576039B }
     function Yes: Boolean; override;
   end;
 
@@ -258,12 +259,12 @@
     procedure NewTurn(Player: Shortint); override;
     procedure SeatedPlayerChanged; override;
     procedure ArmyPlaced(A1: TArmyHS); override;
-    procedure ArmyChanged; override;
+    procedure ArmyChanged(Army: TArmyHS); override;
     procedure BuildingDone; override;
-    procedure ExecuteRebuild(A1: Integer); override;
-    procedure ExecuteBuild(A1: Integer; A2: Byte); override;
+    function ExecuteRebuild(AUnit: TAbstractUnit): Boolean; override;
+    function ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean; override;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
-    procedure CanRebuild(A1: Integer; A2: Integer); override;
+    function CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean; override;
     procedure SetPlayer(Player: Shortint); virtual;
     function GetIncome: Integer; virtual;
     function GetPower: Integer; virtual;
@@ -321,7 +322,7 @@
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
     procedure Validate; virtual;  { +050 draft }
-    procedure Initialize(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure Initialize(AClassID: Integer; X, Y, L: Shortint);
   end;
 
   { TFrozenWaterHS (instance size 16, VMT 557147B4) }

@@ -198,7 +198,7 @@
     FItemControl: TItemControl; { $F4 }
     FHeroControl: THeroControl; { $F8 }
     FUnitControl: TUnitControl; { $FC }
-    F_AoWHSMap_100: Integer;
+    FStructureControl: TStructureControl; { $100; 5575F6CF }
     F_AoWHSMap_104: Byte;
     F_AoWHSMap_105: array[0..2] of Byte;
     F_AoWHSMap_108: Integer;
@@ -355,7 +355,7 @@
     function WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
     function Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
     procedure ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
-    procedure ValidateObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
+    function ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
     procedure UnlockGameOverEventCallBack;  { draft }
     procedure SelectNextHero;  { draft }
     procedure SelectNextArmy;  { draft }
@@ -371,8 +371,8 @@
     procedure ArmyDestroyed;  { draft }
     procedure BeginStructureUpdate;  { draft }
     procedure EndStructureUpdate;  { draft }
-    procedure StructureChanged;  { draft }
-    procedure StructureDestroyed;  { draft }
+    procedure StructureChanged(Structure: TStructure);
+    procedure StructureDestroyed(Structure: TStructure);
     procedure ExecuteExitGame;  { draft }
     procedure ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
     procedure TriggerEndTurnEvent(A1: Byte);  { draft }

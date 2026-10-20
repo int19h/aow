@@ -173,7 +173,7 @@
     function FindOptimalResearchProduction(Predictor: TCombatPredictor; Gold: Integer): Integer;
   end;
 
-  { TProductionControlList (instance size 16, VMT 5570A8FC) }
+  { TProductionControlList: size $10; inherited $04 item array. VMT 5570A8FC. }
   TProductionControlList = class(TList)
   public
     function GetPC(Index: Integer): TProductionControl;

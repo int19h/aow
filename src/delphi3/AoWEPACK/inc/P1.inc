@@ -314,7 +314,7 @@ begin
   DecorationTypes.Add(TranslateRStr(DeadTreeRStr));
   DecorationTypes.Add(TranslateRStr(ToadstoolsRStr));
   FPadControl := TPadControl.Create(Self);
-  Enabled := TBitList(FPadControl.F_PadControl_10);
+  Enabled := FPadControl.FTerrainTypes;
   Enabled[1] := True;
   Enabled[2] := True;
   Enabled[3] := True;
@@ -6555,199 +6555,577 @@ function TProductionControl.FindOptimalResearchProduction(Predictor: TCombatPred
 begin Result := 0; end;
 
 function TProductionControlList.GetPC(Index: Integer): TProductionControl;
-begin Result := nil; end;
+begin
+  Result := TProductionControl(List^[Index]);
+end;
 
 destructor TStructureShadow.Destroy;
-begin end;
+begin
+  if sssVisible in FShadowStatus then AoWHSMap.StaticVisibleHS.RemoveChild(Self);
+  inherited Destroy;
+end;
 
 procedure TStructureShadow.SetVisible(Value: Boolean);
-begin end;
+begin
+  if Value then FShadowStatus := FShadowStatus + [sssVisible]
+  else FShadowStatus := FShadowStatus - [sssVisible];
+end;
 
 function TStructureShadow.GetVisible: Boolean;
-begin Result := False; end;
+begin
+  Result := sssVisible in FShadowStatus;
+end;
 
 procedure TStructureShadow.Connect;
-begin end;
+var
+  Walk: THNWalkData;
+  Count: Integer;
+  Level: TMapLevel;
+begin
+  if not (sssConnected in FShadowStatus) then
+  begin
+    FShadowStatus := FShadowStatus + [sssConnected];
+    Count := FStructure.GetTerrainCount;
+    Level := TMapLevel(FStructure.Owner.Owner);
+    InitHNWalk(Walk, TMapField(FStructure.Owner).Xhx, TMapField(FStructure.Owner).Yhx, 0);
+    while Walk.HN < Count do
+    begin
+      if ((FStructure.GetTerrain(Walk.HN) >= -1) or (FStructure.GetOverlay(Walk.HN) >= -1)) and
+        (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        Level.GetField(Walk.X, Walk.Y).AddHS(Self, Walk.HN);
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
 procedure TStructureShadow.Disconnect;
-begin end;
+var
+  Walk: THNWalkData;
+  Count: Integer;
+  Level: TMapLevel;
+begin
+  if sssConnected in FShadowStatus then
+  begin
+    Count := FStructure.GetTerrainCount;
+    FShadowStatus := FShadowStatus - [sssConnected];
+    Level := TMapLevel(FStructure.Owner.Owner);
+    InitHNWalk(Walk, TMapField(FStructure.Owner).Xhx, TMapField(FStructure.Owner).Yhx, 0);
+    while Walk.HN < Count do
+    begin
+      if ((FStructure.GetTerrain(Walk.HN) >= -1) or (FStructure.GetOverlay(Walk.HN) >= -1)) and
+        (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        Level.GetField(Walk.X, Walk.Y).RemoveHS(Self);
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
 function TStructureShadow.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := (FStructure.GetShowPriority and $03FFFFFF) + $30000000;
+end;
 
 procedure TStructureShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  FStructure.ShowShadow(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 class function TStructure.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2034A;
+end;
 
 constructor TStructure.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FBuildingPlayer := -1;
+  FFogged := True;
+end;
 
 destructor TStructure.Destroy;
-begin end;
+begin
+  if FShadow <> nil then DestroyShadow;
+  if (Owner <> nil) and (moResourceLinked in FStatus) and TStructureResource(FResource).FTerrainBound then
+    Owner.DestroyChildren($20106);
+  inherited Destroy;
+  if (AoWHSMap <> nil) and not (msDestroying in AoWHSMap.Status) then
+    AoWHSMap.StructureDestroyed(Self);
+end;
 
 procedure TStructure.BeginUpdate;
-begin end;
+begin
+  Inc(FUpdateCount);
+end;
 
 procedure TStructure.EndUpdate;
-begin end;
+begin
+  Dec(FUpdateCount);
+  if FUpdateCount = 0 then AoWHSMap.StructureChanged(Self);
+end;
 
 procedure TStructure.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FBuildingDays, 0);
+  Stream.rwInteger(FStructureID, $62);
+  Stream.rwByteEx(Byte(FBuildingPlayer), $FF, $63);
+end;
 
 function TStructure.ExecuteAI(Player: Shortint; Phase: Integer): Boolean;
 begin Result := False; end;
 
 procedure TStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
-begin end;
+begin
+end;
 
 function TStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
-begin Result := 0; end;
+begin
+  if GetRazed then
+    if TerrainType = 3 then Result := 23
+    else if TerrainType = 5 then Result := 24
+    else Result := 22
+  else if GetBuilding then
+    if TerrainType = 3 then Result := 26
+    else if TerrainType = 5 then Result := 27
+    else Result := 25
+  else Result := inherited GetTerrainTypeImage(TerrainType);
+end;
 
-procedure TStructure.UpdateRoads(A1: Integer);
-begin end;
+procedure TStructure.UpdateRoads(MapField: TMapField);
+var
+  Level: TMapLevel;
+  Table: TWordList;
+  I, X, Y: Integer;
+  Road: TAbstractRoad;
+begin
+  Level := TMapLevel(MapField.Owner);
+  Table := FResource.TerrainList.CreateSurroundingHNTable;
+  for I := 0 to Table.Count - 1 do
+  begin
+    CenterHNtoHX(MapField.Xhx, MapField.Yhx, Table[I], X, Y);
+    if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
+    begin
+      Road := TAbstractRoad(Level.GetField(X, Y).FindOwnedHS(TAbstractRoad));
+      if Road <> nil then Road.UpdateTransitions;
+    end;
+  end;
+  Table.Free;
+end;
 
-procedure TStructure.GetPlayer;
-begin end;
+function TStructure.GetPlayer: Shortint;
+begin
+  Result := TAoWMapField(Owner).GetPlayer;
+end;
 
 function TStructure.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceOnMap;
+  if not GetEditMode then UpdateRoads(TMapField(Owner));
+end;
 
 procedure TStructure.RemoveFromMap;
-begin end;
+var
+  MapField: TMapField;
+begin
+  MapField := TMapField(Owner);
+  inherited RemoveFromMap;
+  if (MapField <> nil) and not GetEditMode then UpdateRoads(MapField);
+end;
 
 procedure TStructure.CreateShadow;
-begin end;
+begin
+  if FShadow <> nil then DestroyShadow;
+  FShadow := TStructureShadow.Create(nil);
+  FShadow.FStructure := Self;
+  FShadow.Connect;
+end;
 
 procedure TStructure.DestroyShadow;
-begin end;
+begin
+  if FShadow <> nil then
+  begin
+    if sssConnected in FShadow.FShadowStatus then FShadow.Disconnect;
+    FShadow.Free;
+    FShadow := nil;
+  end;
+end;
 
 procedure TStructure.Update;
-begin end;
+begin
+  if FUpdateCount = 0 then AoWHSMap.StructureChanged(Self);
+end;
 
 function TStructure.CreateTE: TStructureTE;
-begin Result := nil; end;
+begin
+  Result := TStructureTE.Create(nil);
+end;
 
 procedure TStructure.SetupTE(A1: TStructureTE);
-begin end;
+begin
+  A1.Initialize(ClassID, GetXhx, GetYhx, GetLhx);
+end;
 
 function TStructure.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
-begin Result := erRetry; end;
+var
+  AUnit: TAbstractUnit;
+begin
+  if A1.FAction = -1 then
+    if ExecuteRaze(A1.FParam) then Result := erDone else Result := erDoneHalt
+  else if A1.FAction = -2 then
+  begin
+    AUnit := AoWHSMap.FUnitControl.FindUnit(A1.FParam);
+    if (AUnit <> nil) and ExecuteRebuild(AUnit) then
+    begin
+      AUnit.Killed;
+      Result := erDone;
+    end
+    else Result := erDoneHalt;
+  end
+  else Result := erDoneHalt;
+end;
 
 function TStructure.ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
-begin Result := 0; end;
+begin
+  if MapLevel.Lhx <> 0 then Result := 12 else Result := -1;
+end;
 
 function TStructure.GetName: string;
-begin end;
+begin
+  Result := EditName;
+end;
 
 function TStructure.GetCurrentActivityText: string;
-begin end;
+begin
+  Result := '-';
+end;
 
-procedure TStructure.GetDescription;
-begin end;
+function TStructure.GetDescription: TStrings;
+begin
+  Result := TStructureResource(FResource).FDescription;
+end;
 
 function TStructure.CanDblClick: Boolean;
-begin end;
+begin
+  Result := False;
+end;
 
 function TStructure.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, HN: Integer;
+begin
+  if (AoWHSMap.FFogEnabled = 0) or not FFogged then
+  begin
+    HPtoHX(Xhp, Yhp, X, Y);
+    HN := dHXtoHN(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+    if (HN >= FResource.TerrainList.Count) or
+      ((FResource.TerrainList.Terrain[HN] < 0) and (FResource.TerrainList.Overlay[HN] < 0)) then
+      Result := False
+    else Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TStructure.PlaySelectSample;
-begin end;
+begin
+  if not GetRazed and (TStructureResource(FResource).FSelectSFX <> '') then
+    Sound.PlaySample(TStructureResource(FResource).FSelectSFX);
+end;
 
 procedure TStructure.Select;
-begin end;
+begin
+  inherited Select;
+  if not (msEditting in AoWHSMap.Status) then PlaySelectSample;
+end;
 
 procedure TStructure.Unselect;
-begin end;
+begin
+  inherited Unselect;
+end;
 
 procedure TStructure.FogChanged;
-begin end;
+var
+  Walk: THNWalkData;
+  Count: Integer;
+  Level: TMapLevel;
+begin
+  FFogged := AoWHSMap.FFogEnabled <> 0;
+  if FFogged then
+  begin
+    Count := GetTerrainCount;
+    Level := TMapLevel(Owner.Owner);
+    InitHNWalk(Walk, FXhx, FYhx, 0);
+    while (Walk.HN < Count) and FFogged do
+    begin
+      if (FResource.TerrainList.Terrain[Walk.HN] >= 0) and
+        (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        FFogged := not (msVisible in Level.GetField(Walk.X, Walk.Y).Status);
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
 function TStructure.GetTopBorderImage: TLibraryImage;
-begin Result := nil; end;
+var
+  Sequences: TImageSequenceList;
+begin
+  Sequences := FResource.ImageSequenceList;
+  if Sequences <> nil then
+    if Sequences.GetImageSequence(30) <> nil then
+      Result := FResource.ImageSequenceList.GetImageSequence(30).GetPreviewImage
+    else Result := nil
+  else Result := FResource.ImageLibrary.GetImage(30);
+end;
 
 function TStructure.GetMiddleBorderImage: TLibraryImage;
-begin Result := nil; end;
+var
+  Sequences: TImageSequenceList;
+begin
+  Sequences := FResource.ImageSequenceList;
+  if Sequences <> nil then
+    if Sequences.GetImageSequence(31) <> nil then
+      Result := FResource.ImageSequenceList.GetImageSequence(31).GetPreviewImage
+    else Result := nil
+  else Result := FResource.ImageLibrary.GetImage(31);
+end;
 
 function TStructure.GetBottomBorderImage: TLibraryImage;
-begin Result := nil; end;
+var
+  Sequences: TImageSequenceList;
+begin
+  Sequences := FResource.ImageSequenceList;
+  if Sequences <> nil then
+    if Sequences.GetImageSequence(32) <> nil then
+      Result := FResource.ImageSequenceList.GetImageSequence(32).GetPreviewImage
+    else Result := nil
+  else Result := FResource.ImageLibrary.GetImage(32);
+end;
 
 function TStructure.GetOverlay(Index: Integer): Shortint;
-begin Result := 0; end;
+begin
+  Result := FResource.TerrainList.Terrain[Index];
+  if Result >= 0 then Result := 7;
+end;
 
 function TStructure.GetTerrain(Index: Integer): ShortInt;
-begin Result := 0; end;
+begin
+  Result := FResource.TerrainList.Terrain[Index];
+  if Result >= 0 then Result := FTerrainType;
+end;
 
 function TStructure.CanChangeTerrain(const Info: HSEngine.THSSenderInfo): Boolean;
-begin Result := False; end;
+begin
+  Result := TStructureResource(FResource).FTerrainBound or inherited CanChangeTerrain(Info);
+end;
 
 function TStructure.ValidTerrainType(TerrainType: Integer): Boolean;
-begin Result := False; end;
+begin
+  Result := (TStructureResource(FResource).FTerrainBound and AoWHSSet.FPadControl.FTerrainTypes[TerrainType]) or inherited ValidTerrainType(TerrainType);
+end;
 
 procedure TStructure.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  if FResource.TerrainList.Terrain[Info.HN] >= 0 then
+    if TStructureResource(FResource).FTerrainBound then
+    begin
+      FTerrainType := Info.TerrainType;
+      FImageIndex := GetTerrainTypeImage(FTerrainType);
+    end
+    else inherited TerrainChanged(Info);
+end;
 
 function TStructure.CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
-begin Result := False; end;
+begin
+  if TStructureResource(FResource).FTerrainBound then
+    Result := AoWHSSet.FPadControl.CanPlacePad(Xhx, Yhx, Lhx, TStructureResource(FResource).FFlagType)
+  else Result := inherited CanPlace(MapContainer, Xhx, Yhx, Lhx);
+end;
 
 function TStructure.PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
-begin Result := False; end;
+var
+  Pad: TILTerrainMO;
+begin
+  if GetEditMode or CanPlace(MapContainer, Xhx, Yhx, Lhx) then
+    if TStructureResource(FResource).FTerrainBound then
+    begin
+      if not GetEditMode then
+        Pad := AoWHSSet.FPadControl.PlacePad(Xhx, Yhx, Lhx, TStructureResource(FResource).FFlagType)
+      else Pad := nil;
+      if (Pad <> nil) or GetEditMode then
+      begin
+        if Pad <> nil then FTerrainType := Pad.TerrainType;
+        Result := inherited PlaceHX(MapContainer, Xhx, Yhx, Lhx);
+      end
+      else Result := False;
+    end
+    else Result := inherited PlaceHX(MapContainer, Xhx, Yhx, Lhx)
+  else Result := False;
+end;
 
 function TStructure.GetRazeable: Boolean;
-begin Result := False; end;
+begin
+  Result := TStructureResource(FResource).FRazeable;
+end;
 
 function TStructure.GetRazed: Boolean;
-begin end;
+begin
+  Result := False;
+end;
 
 procedure TStructure.SetRazed(Value: Boolean);
 begin end;
 
 function TStructure.VisibleForPlayer(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  Walk: THNWalkData;
+begin
+  Result := False;
+  if Player >= 0 then
+  begin
+    InitHNWalk(Walk, FXhx, FYhx, 0);
+    while (Walk.HN < GetTerrainCount) and not Result do
+    begin
+      if FResource.TerrainList.Used[Walk.HN] then
+        Result := AoWHSMap.VisibleForPlayer(Walk.X, Walk.Y, GetLhx, Player);
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
-procedure TStructure.ValidateObservation(A1: Byte);
-begin end;
+function TStructure.ValidateObservation(Player: Shortint): Boolean;
+var
+  Walk: THNWalkData;
+  Level: TMapLevel;
+begin
+  Result := False;
+  Level := TMapLevel(Owner.Owner);
+  InitHNWalk(Walk, FXhx, FYhx, 0);
+  while (Walk.HN < GetTerrainCount) and not Result do
+  begin
+    if FResource.TerrainList.Used[Walk.HN] and
+      (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      Result := AoWHSMap.ValidateObservation(Player, Walk.X, Walk.Y, GetLhx, 0);
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TStructure.ExecuteRebuild(A1: Integer);
-begin end;
+function TStructure.ExecuteRebuild(AUnit: TAbstractUnit): Boolean;
+var
+  Cost, Time: Integer;
+  Reason: string;
+begin
+  Result := CanRebuild(AUnit, Reason);
+  if Result then
+  begin
+    GetRebuildInfo(Cost, Time);
+    AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).SetGems(AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FGems - Cost);
+    FBuildingDays := Time;
+    FBuildingPlayer := AUnit.FPlayer;
+    ValidateObservation(AUnit.FPlayer);
+    FImageIndex := GetTerrainTypeImage(FTerrainType);
+  end;
+end;
 
-procedure TStructure.ExecuteBuild(A1: Integer; A2: Byte);
-begin end;
+function TStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean;
+begin
+  FBuildingDays := Days;
+  FBuildingPlayer := AUnit.FPlayer;
+  FImageIndex := GetTerrainTypeImage(FTerrainType);
+  ValidateObservation(AUnit.FPlayer);
+  Result := True;
+end;
 
 function TStructure.GetBuilding: Boolean;
-begin end;
+begin
+  Result := FBuildingPlayer <> -1;
+end;
 
 procedure TStructure.BuildingDone;
-begin end;
+var
+  Log: TLocationTextEventLog;
+begin
+  Log := TLocationTextEventLog.Create(nil);
+  Log.FPlayer := FBuildingPlayer;
+  if GetRazed then Log.FText := Format(TranslateRStr(StructureRebuiltRStr), [EditName])
+  else Log.FText := Format(TranslateRStr(StructureBuiltRStr), [EditName]);
+  Log.SetLocation(GetXhx, GetYhx, GetLhx);
+  DistributeLocationEventLog(Log, FBuildingPlayer, GetXhx, GetYhx, GetLhx, 0);
+  Log.Release;
+  SetRazed(False);
+  FBuildingPlayer := -1;
+  FImageIndex := GetTerrainTypeImage(FTerrainType);
+end;
 
 procedure TStructure.GetRebuildInfo(var Cost, Time: Integer);
-begin end;
+begin
+  with TStructureResource(FResource) do
+  begin
+    Cost := FRebuildGold;
+    Time := FRebuildDays;
+  end;
+end;
 
-procedure TStructure.CanRebuild(A1: Integer; A2: Integer);
-begin end;
+function TStructure.CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean;
+var
+  Cost, Time: Integer;
+begin
+  if GetRazed then
+    if not GetBuilding then
+    begin
+      GetRebuildInfo(Cost, Time);
+      if AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FGems >= Cost then Result := True
+      else
+      begin
+        Reason := TranslateRStr(NotEnoughGoldRStr);
+        Result := False;
+      end;
+    end
+    else Result := False
+  else Result := False;
+end;
 
-procedure TStructure.Rebuild(A1: Integer);
-begin end;
+function TStructure.Rebuild(AUnit: TAbstractUnit): Boolean;
+var
+  Reason: string;
+  Event: TStructureTE;
+begin
+  if CanRebuild(AUnit, Reason) and not AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).GetBusy then
+  begin
+    Event := CreateTE;
+    SetupTE(Event);
+    Event.FAction := -2;
+    Event.FParam := AUnit.FUnitID;
+    AoWHSMap.FTokenManager.GetTokenControl(AUnit.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TStructure.NewDay;
 begin end;
 
 procedure TStructure.NewTurn(Player: Shortint);
-begin end;
+begin
+  if Player = FBuildingPlayer then
+  begin
+    if FBuildingDays <> 0 then Dec(FBuildingDays);
+    if FBuildingDays = 0 then BuildingDone;
+  end;
+end;
 
 procedure TStructure.ArmyPlaced(A1: TArmyHS);
 begin end;
 
-procedure TStructure.ArmyRemoved;
+procedure TStructure.ArmyRemoved(Army: TArmyHS);
 begin end;
 
-procedure TStructure.ArmyChanged;
+procedure TStructure.ArmyChanged(Army: TArmyHS);
 begin end;
 
 procedure TStructure.SeatedPlayerChanged;
-begin end;
+begin
+  FogChanged;
+end;
 
 function TStructure.GetDefensePriority: TDefensePriority;
 begin Result := dpNone; end;
@@ -6755,68 +7133,389 @@ begin Result := dpNone; end;
 function TStructure.GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean;
 begin Result := False; end;
 
-procedure TStructure.ListUnits(List: TUnitList);
-begin end;
+function TStructure.ListUnits(List: TUnitList): Integer;
+var
+  Walk: THNWalkData;
+  Count: Integer;
+  Level: TMapLevel;
+  Army: TArmyHS;
+begin
+  Result := 0;
+  Count := GetTerrainCount;
+  Level := TMapLevel(Owner.Owner);
+  InitHNWalk(Walk, FXhx, FYhx, 0);
+  while Walk.HN < Count do
+  begin
+    if (FResource.TerrainList.Terrain[Walk.HN] >= 0) and
+      (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Army := TAoWMapField(Level.GetField(Walk.X, Walk.Y)).GetArmyHS;
+      if Army <> nil then
+      begin
+        List.AddUnits(Army.FArmy);
+        Inc(Result, Army.FArmy.Count);
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TStructure.ListArmies(List: TArmyHSList);
-begin end;
+function TStructure.ListArmies(List: TArmyHSList): Integer;
+var
+  Walk: THNWalkData;
+  Count: Integer;
+  Level: TMapLevel;
+  Army: TEObject;
+begin
+  List.BeginUpdate;
+  Result := 0;
+  Count := GetTerrainCount;
+  Level := TMapLevel(Owner.Owner);
+  InitHNWalk(Walk, FXhx, FYhx, 0);
+  while Walk.HN < Count do
+  begin
+    if (FResource.TerrainList.Terrain[Walk.HN] >= 0) and
+      (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Army := Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217);
+      if Army <> nil then
+      begin
+        List.AddChild(Army);
+        Inc(Result);
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+  List.EndUpdate;
+end;
 
-function TStructure.ValidateMap(A1: Integer): Boolean;
-begin Result := False; end;
+function TStructure.ValidateMap(Messages: TStrings): Boolean;
+begin
+  Result := True;
+end;
 
-procedure TStructure.MainValidateMap(A1: Integer);
-begin end;
+function TStructure.MainValidateMap(Messages: TStrings): Boolean;
+var
+  Errors: TStringList;
+  I: Integer;
+begin
+  Errors := TStringList.Create;
+  Result := ValidateMap(Errors);
+  if Errors.Count <> 0 then
+  begin
+    Messages.Add(Format(TranslateRStr(XatLocationYRStr), [EditName,
+      '(' + IntToStr(GetXhx) + ', ' + IntToStr(GetYhx) + ', ' + IntToStr(GetLhx) + ')']));
+    for I := 0 to Errors.Count - 1 do Messages.Add('  ' + Errors[I]);
+  end;
+  Errors.Free;
+end;
 
 procedure TStructure.Activate;
-begin end;
+begin
+  inherited Activate;
+  AoWHSMap.FStructureControl.Register(Self);
+  if AoWHSMap.FShowUnitShadows and TStructureResource(FResource).FCastsShadow and not GetEditMode then
+    CreateShadow;
+end;
 
 procedure TStructure.Deactivate;
-begin end;
+begin
+  AoWHSMap.FStructureControl.Unregister(Self);
+  inherited Deactivate;
+end;
 
 procedure TStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
+    if Msg.MsgID = $1106 then FogChanged
+    else if Msg.MsgID = $1200 then
+    begin
+      UpdateAITarget(TAITargetInfo(Pointer(Msg.Param[0])^), TAITargetData(Pointer(Msg.Param[1])^));
+      if TAITargetData(Pointer(Msg.Param[1])^).Priority < 0 then Msg.Result := 1;
+    end
+    else if Msg.MsgID = $1124 then ArmyChanged(TArmyHS(Msg.Param[0]))
+    else if Msg.MsgID = $1102 then ArmyPlaced(TArmyHS(Msg.Param[0]))
+    else if Msg.MsgID = $1103 then ArmyRemoved(TArmyHS(Msg.Param[0]))
+    else if Msg.MsgID = $1131 then
+    begin
+      if TStructureResource(FResource).FConnectRoads then Msg.Param[1] := 1;
+    end
+    else if Msg.MsgID = $1122 then Msg.Result := TStructureResource(FResource).FScannerIcon
+    else if Msg.MsgID = $1126 then Msg.Result := Ord(GetDefensePriority)
+    else if Msg.MsgID = $1127 then
+    begin
+      if GetDefenseRequirements(Msg.Param[0], TDefenseRequirements(Pointer(Msg.Param[1])^)) then Msg.Result := 1;
+    end
+    else if (Msg.MsgID = $110C) and (Msg.HN = 0) then
+    begin
+      if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and ((AoWHSMap.FFogEnabled = 0) or not FFogged) then
+        Inc(Msg.Param[0], $E00);
+    end;
+end;
 
 procedure TStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020001 then NewDay
+  else if Msg.MsgID = $20020002 then NewTurn(Msg.Data[0])
+  else if Msg.MsgID = $20020006 then SeatedPlayerChanged
+  else if Msg.MsgID = $20020103 then
+    if not MainValidateMap(TStrings(Msg.Data[0])) then Msg.Result := 1;
+end;
 
-procedure TStructure.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TStructure.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  Xhp, Yhp: Integer;
+begin
+  HXtoHP(FXhx, FYhx, Xhp, Yhp);
+  FResource.ImageSequenceList.Show(90, Xhp - XhpSurf, Yhp - YhpSurf, 0, SurfaceDesc);
+end;
 
 procedure TStructure.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Xhp, Yhp: Integer;
+begin
+  HXtoHP(FXhx, FYhx, Xhp, Yhp);
+  TStructureResource(FResource).Show(Xhp - XhpSurf, Yhp - YhpSurf, SurfaceDesc, Self);
+end;
 
-procedure TStructure.ShowBorderImage(A1: Integer; A2: Integer);
-begin end;
+function TStructure.ShowBorderImage(SurfaceDesc: TSurfaceDesc; R: TRect): Boolean;
+var
+  TopImage, MiddleImage, BottomImage: TLibraryImage;
+  Height, Y, I: Integer;
+begin
+  Result := False;
+  if GetTopBorderImage <> nil then
+  begin
+    if SurfaceDesc.ClipRect.Right > R.Right then SurfaceDesc.ClipRect.Right := R.Right;
+    if SurfaceDesc.ClipRect.Bottom > R.Bottom then SurfaceDesc.ClipRect.Bottom := R.Bottom;
+    Height := R.Bottom - R.Top;
+    TopImage := GetTopBorderImage;
+    MiddleImage := GetMiddleBorderImage;
+    BottomImage := GetBottomBorderImage;
+    if (BottomImage <> nil) and (TopImage <> nil) and (MiddleImage <> nil) then
+    begin
+      { Original uses the height, rather than R.Bottom, for the bottom image. }
+      BottomImage.Show(R.Left, Height - BottomImage.Height, SurfaceDesc);
+      if Height > BottomImage.Height then
+      begin
+        Y := R.Bottom - BottomImage.Height - MiddleImage.Height;
+        for I := 0 to (Height - BottomImage.Height) div MiddleImage.Height do
+        begin
+          MiddleImage.Show(R.Left, Y, SurfaceDesc);
+          Dec(Y, MiddleImage.Height);
+        end;
+        TopImage.Show(R.Left, R.Top, SurfaceDesc);
+      end;
+      Result := True;
+    end;
+  end;
+end;
 
-procedure TStructure.ShowBorderImageDC(A1: Integer; A2: Integer);
-begin end;
+function TStructure.ShowBorderImageDC(DC: HDC; R: TRect): Boolean;
+var
+  Surface: TDIB16Surface;
+  SurfaceDesc: TSurfaceDesc;
+begin
+  Result := False;
+  if GetBottomBorderImage <> nil then
+  begin
+    Surface := TDIB16Surface.Create(R.Right - R.Left, R.Bottom - R.Top, pfRGB565);
+    try
+      Surface.Lock(SurfaceDesc);
+      Result := ShowBorderImage(SurfaceDesc, Rect(0, 0, R.Right - R.Left, R.Bottom - R.Top));
+      Surface.Unlock;
+      Surface.BltDC(DC, nil, @R);
+    finally
+      Surface.Free;
+    end;
+  end;
+end;
 
-procedure TStructure.CanRaze(A1: Byte; A2: Integer);
-begin end;
+function TStructure.CanRaze(Player: Shortint; var Reason: string): Boolean;
+var
+  Predictor: TCombatPredictor;
+  Defenders, Units: TUnitList;
+  I: Integer;
+begin
+  if not GetRazed and GetRazeable then
+  begin
+    Predictor := TCombatPredictor.Create;
+    Defenders := TUnitList.Create(nil);
+    Units := TUnitUserList.Create(nil);
+    ListUnits(Units);
+    for I := 0 to Units.Count - 1 do
+      if Units.GetUnit(I).FPlayer = Player then Predictor.AddUnit(Units.GetUnit(I));
+    Units.Free;
+    GenerateRazeDefenders(Player, Defenders);
+    for I := 0 to Defenders.Count - 1 do Predictor.AddOpponent(Defenders.GetUnit(I), 0);
+    Predictor.Execute;
+    Result := (Predictor.FResult in [3, 4, 6]) and (Predictor.GetSuperiority > 50);
+    if not Result then Reason := TranslateRStr(NotEnoughForcesRStr);
+    Defenders.Free;
+    Predictor.Free;
+  end
+  else Result := False;
+end;
 
 function TStructure.GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean;
-begin Result := False; end;
+var
+  Collection: Integer;
+  Indexes: TUnitIndexList;
+  I: Integer;
+begin
+  RandSeed := GetXhx + AoWHSMap.FInitialRandomSeed + GetYhx;
+  Collection := TStructureResource(FResource).FDefenders.GetRndCollection;
+  if Collection <> -1 then
+  begin
+    Indexes := TUnitIndexList.Create;
+    with TStructureResource(FResource).FDefenders do
+      for I := GetCollectionCount(Collection) - 1 downto 0 do Indexes.Add(GetU(Collection, I));
+    FillWithRandomUnits(Indexes, Units, 4, TStructureResource(FResource).FRazeDefenderBudget,
+      [utHumanoid, utCreature, utMachine]);
+    while Units.Count > 8 do Units.DeleteUnit(Units.GetUnit(Units.Count - 1));
+    Indexes.Free;
+  end;
+  Result := True;
+end;
 
-procedure TStructure.SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList);
-begin end;
+procedure TStructure.SetupRazeDefenderAG(Attackers, Defenders: TUnitList);
+var
+  Group: THuntAG;
+  I: Integer;
+begin
+  Group := THuntAG(AoWHSMap.FAIGroupManager.CreateGroup(0, UnitsToIndependentRelation(Defenders, 5), gbHunt));
+  Group.AddUnits(Defenders);
+  for I := Attackers.Count - 1 downto 0 do
+    if Attackers.GetUnit(I).FPlayer <> 0 then Group.FTargetUnitIDs.Add(Attackers.GetUnit(I).FUnitID);
+  Group.Release;
+end;
 
-procedure TStructure.PlaceRazeDefenders(A1: Byte);
-begin end;
+function TStructure.PlaceRazeDefenders(Player: Shortint): Boolean;
+var
+  Defenders, Placed, Attackers: TUnitList;
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  Defenders := TUnitList.Create(nil);
+  Placed := TUnitUserList.Create(nil);
+  Attackers := TUnitUserList.Create(nil);
+  GenerateRazeDefenders(Player, Defenders);
+  if Defenders.Count <> 0 then
+  begin
+    for I := Defenders.Count - 1 downto 0 do
+    begin
+      AUnit := Defenders.GetUnit(I);
+      Placed.AddUnit(AUnit);
+      AUnit.Place(GetXhx, GetYhx, GetLhx, 0, [pmScanArea]);
+    end;
+    ListUnits(Attackers);
+    SetupRazeDefenderAG(Attackers, Placed);
+    Result := True;
+  end
+  else Result := False;
+  Attackers.Free;
+  Placed.Free;
+  Defenders.Free;
+end;
 
-procedure TStructure.ShowRazeAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TStructure.ShowRazeAnimation(Animation: TAnimation; X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
+begin
+  if (TImageSequenceAnimation(Animation).FImageSequence.GetUnloopedFrameIndex(Animation.FFrameCounter) = 0) and
+    (AoWEngine.FAnimationDetail <> 0) then Sound.PlaySample(ExplosionSFX[System.Random(2)]);
+end;
 
 function TStructure.ExecuteRaze(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Log: TLocationTextEventLog;
+  Animation: TImageSequenceAnimation;
+begin
+  if CanRaze(Player, Reason) then
+  begin
+    BeginUpdate;
+    Log := TLocationTextEventLog.Create(nil);
+    Log.FPlayer := Player;
+    Log.FText := Format(TranslateRStr(StructureRazedRStr), [EditName]);
+    Log.SetLocation(GetXhx, GetYhx, GetLhx);
+    DistributeLocationEventLog(Log, Player, GetXhx, GetYhx, GetLhx, 0);
+    Log.Release;
+    if FResource.ImageSequenceList.GetImageSequence(20) <> nil then
+    begin
+      Animation := TImageSequenceAnimation.Create(nil);
+      Animation.SetImageSequence(FResource.ImageSequenceList.GetImageSequence(20));
+      Animation.SetXhpOffset(Animation.FXhpOffset - 16);
+      Animation.SetYhpOffset(Animation.FYhpOffset - 16);
+      Animation.FOnShow := ShowRazeAnimation;
+      AoWHSMap.PlaceHX(Animation, GetXhx, GetYhx, GetLhx);
+    end;
+    if FResource.ImageSequenceList.GetImageSequence(21) <> nil then
+    begin
+      Animation := TImageSequenceAnimation.Create(nil);
+      Animation.SetImageSequence(FResource.ImageSequenceList.GetImageSequence(21));
+      Animation.FFrameCount := 300;
+      Animation.SetXhpOffset(Animation.FXhpOffset - 16);
+      Animation.SetYhpOffset(Animation.FYhpOffset - 16);
+      Animation.FLooped := True;
+      AoWHSMap.PlaceHX(Animation, GetXhx, GetYhx, GetLhx);
+    end;
+    ValidateObservation(Player);
+    SetRazed(True);
+    PlaceRazeDefenders(Player);
+    EndUpdate;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TStructure.RazeEx(A1: Integer);
-begin end;
+function TStructure.RazeEx(Player: Shortint): Boolean;
+var
+  Reason: string;
+  Event: TStructureTE;
+begin
+  if CanRaze(Player, Reason) and not AoWHSMap.FPlayers.GetPlayers(Player).GetBusy then
+  begin
+    Event := CreateTE;
+    SetupTE(Event);
+    Event.FAction := -1;
+    Event.FParam := Player;
+    AoWHSMap.FTokenManager.GetTokenControl(Player).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TStructure.Raze(A1: Shortint);
-begin end;
+function TStructure.Raze(Player: Shortint): Boolean;
+var
+  Reason: string;
+  Log: TRazeStructureEventLog;
+begin
+  if CanRaze(Player, Reason) and not AoWHSMap.FPlayers.GetPlayers(Player).GetBusy then
+  begin
+    if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) then Result := RazeEx(Player)
+    else
+    begin
+      Log := TRazeStructureEventLog.Create(nil);
+      Log.FStructure := Self;
+      Log.FButtons := mebYesNo;
+      Log.FTitle := TranslateRStr(WarningRStr);
+      Log.FMessage.Add(TranslateRStr(RazeStructureWarningRStr));
+      Log.FMessage.Add(TranslateRStr(DoYouWishToContinueRStr));
+      Log.Execute(True, etUser, nil);
+      Log.Release;
+      Result := True;
+    end;
+  end
+  else Result := False;
+end;
 
 procedure TStructure.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if FResource.TerrainList.Terrain[Info.HN] >= 0 then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $08000000;
+end;
 
 constructor TStructureResource.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -6866,14 +7565,20 @@ begin end;
 procedure TPlayerStructure.BuildingDone;
 begin end;
 
-procedure TPlayerStructure.CanRebuild(A1: Integer; A2: Integer);
-begin end;
+function TPlayerStructure.CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean;
+begin
+  Result := False;
+end;
 
-procedure TPlayerStructure.ExecuteRebuild(A1: Integer);
-begin end;
+function TPlayerStructure.ExecuteRebuild(AUnit: TAbstractUnit): Boolean;
+begin
+  Result := False;
+end;
 
-procedure TPlayerStructure.ExecuteBuild(A1: Integer; A2: Byte);
-begin end;
+function TPlayerStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean;
+begin
+  Result := False;
+end;
 
 function TPlayerStructure.UpdatePlayer: Boolean;
 begin Result := False; end;
@@ -6902,7 +7607,7 @@ begin end;
 procedure TPlayerStructure.ArmyPlaced(A1: TArmyHS);
 begin end;
 
-procedure TPlayerStructure.ArmyChanged;
+procedure TPlayerStructure.ArmyChanged(Army: TArmyHS);
 begin end;
 
 function TPlayerStructure.GetIncome: Integer;
@@ -7022,7 +7727,7 @@ begin end;
 class function TStructureTE.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TStructureTE.Initialize(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
+procedure TStructureTE.Initialize(AClassID: Integer; X, Y, L: Shortint);
 begin end;
 
 procedure TStructureTE.ReadWrite(Stream: Engine.TEStorageStream);
@@ -7083,10 +7788,10 @@ begin end;
 procedure TStructureControl.FindID;
 begin end;
 
-procedure TStructureControl.Register(A1: Integer);
+procedure TStructureControl.Register(Structure: TStructure);
 begin end;
 
-procedure TStructureControl.Unregister(A1: Integer);
+procedure TStructureControl.Unregister(Structure: TStructure);
 begin end;
 
 procedure TStructureControl.Activate;
@@ -7773,8 +8478,8 @@ begin Result := False; end;
 procedure TAoWHSMap.ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
 begin end;
 
-procedure TAoWHSMap.ValidateObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
-begin end;
+function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAoWHSMap.UnlockGameOverEventCallBack;
 begin end;
@@ -7821,10 +8526,10 @@ begin end;
 procedure TAoWHSMap.EndStructureUpdate;
 begin end;
 
-procedure TAoWHSMap.StructureChanged;
+procedure TAoWHSMap.StructureChanged(Structure: TStructure);
 begin end;
 
-procedure TAoWHSMap.StructureDestroyed;
+procedure TAoWHSMap.StructureDestroyed(Structure: TStructure);
 begin end;
 
 procedure TAoWHSMap.TriggerCombatEvent;

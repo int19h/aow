@@ -155,19 +155,19 @@ type
     function GetName: string; override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); override;
+    procedure SetupRazeDefenderAG(Armies, Units: TUnitList); override;
     function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; override;
     function GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean; override;
     function GetDefensePriority: TDefensePriority; override;
     procedure NewDay; override;
     procedure NewTurn(Player: Shortint); override;
     procedure ArmyPlaced(A1: TArmyHS); override;
-    procedure ArmyRemoved; override;
+    procedure ArmyRemoved(Army: TArmyHS); override;
     procedure BuildingDone; override;
     function GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean; override;
     function ExecuteRaze(Player: Shortint): Boolean; override;
     function GetCurrentActivityText: string; override;
-    function ValidateMap(A1: Integer): Boolean; override;
+    function ValidateMap(A1: TStrings): Boolean; override;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure Update; override;
     function CanDblClick: Boolean; override;
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-function TCity.ValidateMap(A1: Integer): Boolean;
+function TCity.ValidateMap(A1: TStrings): Boolean;
 begin
   Result := inherited ValidateMap(A1);
   if (CompareText(FName, TranslateRStr(NonameRStr)) = 0) or (FName = '') then
@@ -951,7 +951,7 @@ begin
   end;
 end;
 
-procedure TCity.SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList);
+procedure TCity.SetupRazeDefenderAG(Armies, Units: TUnitList);
 var Group: TAIGroup;
 begin
   if WorldMap^.Random(8) = 0 then
@@ -1182,9 +1182,9 @@ begin
   if ceiAntiMagicShell in FEnchantments then FOverlay.PlayFadeShellAnimation;
 end;
 
-procedure TCity.ArmyRemoved;
+procedure TCity.ArmyRemoved(Army: TArmyHS);
 begin
-  inherited ArmyRemoved;
+  inherited ArmyRemoved(Army);
   UpdatePlayer;
 end;
 

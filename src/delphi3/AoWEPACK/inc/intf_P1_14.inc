@@ -51,3 +51,12 @@ resourcestring
 resourcestring
   XDayLeftRStr = '%s day left';
   XDaysLeftRStr = '%s days left';
+
+resourcestring
+  StructureRazedRStr = '%s razed';
+  StructureBuiltRStr = '%s built';
+  StructureRebuiltRStr = '%s rebuilt';
+  XatLocationYRStr = '%0:s at location %1:s';
+  NotEnoughForcesRStr = 'Your forces aren''t sufficient';
+  RazeStructureWarningRStr = 'You''re about to raze this structure.';
+  DoYouWishToContinueRStr = 'Do you wish to continue?';

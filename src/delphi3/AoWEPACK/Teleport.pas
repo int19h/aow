@@ -32,7 +32,7 @@ type
     procedure UpdateMapField(const Info: HSEngine.THSMapFieldInfo); override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    function ValidateMap(A1: Integer): Boolean; override;
+    function ValidateMap(A1: TStrings): Boolean; override;
     procedure ShowTeleportAnimations;
     function CanTeleportArmy(ArmyHS: TArmyHS): Boolean;
     function CanTeleport(Player: Shortint): Boolean;
@@ -284,7 +284,7 @@ begin
   else Result := False;
 end;
 
-function TTeleport.ValidateMap(A1: Integer): Boolean;
+function TTeleport.ValidateMap(A1: TStrings): Boolean;
 var
   Valid: Boolean;
 begin

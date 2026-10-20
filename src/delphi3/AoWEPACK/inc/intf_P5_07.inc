@@ -596,7 +596,7 @@
   { THuntAG (instance size 84, VMT 5571B8D0) }
   THuntAG = class(TAIGroup)
   public
-    F_HuntAG_50: Integer;
+    FTargetUnitIDs: TIntegerList; { $50; 5575FE61 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
