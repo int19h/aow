@@ -119,7 +119,7 @@
     FResearchPointsLeft: Integer; { $38 }
     F_PlayerMagicControl_3C: Integer;
     F_PlayerMagicControl_40: Integer;
-    F_PlayerMagicControl_44: Byte;
+    FActiveEnchantments: TPlayerEnchantmentTypes; { $44; 557EFE57 }
     FEnemyEnchantments: Byte; { $45 }
     { conflict: FGlobalEnchantmentFlags: Byte; }
     F_PlayerMagicControl_46: array[0..1] of Byte;
@@ -129,7 +129,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetCheatEnabled: Boolean;
-    procedure SetActiveEnchantments(A1: Byte; A2: Integer);  { draft }
+    procedure SetActiveEnchantments(Value: TPlayerEnchantmentTypes);
     procedure UpdateEnemyEnchantments;
     function GetManaIncome: Integer;
     function GetManaUpkeep: Integer;
@@ -178,10 +178,10 @@
     F_GlobalEnchantment_12: array[0..1] of Byte;
     FDispelMana: Integer; { $14; 557EB619 }
     FEnchantmentType: TGlobalEnchantmentType; { $18 }
-    FPlayerIndex: Byte; { $19 }
+    FPlayerIndex: Shortint; { $19 }
     { conflict: FEnchantmentPlayer: Shortint; }
     F_GlobalEnchantment_1A: array[0..1] of Byte;
-    F_GlobalEnchantment_1C: Integer;
+    FName: string; { $1C; 557EFCFF }
     FEnchantmentManaUpkeep: Integer; { $20 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -193,10 +193,10 @@
     function GetAIUpkeepPriority: Integer; virtual;  { +058 }
     procedure CanDeactivate(A1: Integer; A2: Integer); virtual;  { +05C draft }
     function Deactivate(Player: Byte): Boolean; virtual;  { +060 }
-    procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +064 draft }
-    procedure Activate(A1: Byte); virtual;
-    procedure CanCast; virtual;  { +06C draft }
-    procedure Cast(A1: Integer); virtual;  { +070 draft }
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; virtual; { +064 }
+    function Activate(Player: Shortint): Boolean; virtual;
+    function CanCast(Player: Shortint; var Reason: string): Boolean; virtual; { +06C }
+    function Cast(Player: Shortint): Boolean; virtual; { +070 }
     procedure CanDispel; virtual;  { +074 draft }
     procedure Dispel(A1: Byte); virtual;  { +078 draft }
     procedure CanRemove(A1: Byte; A2: Integer); virtual;  { +07C draft }

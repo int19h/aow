@@ -1,8 +1,6 @@
 unit UnHolyG;
 
-{ Draft declarations of UnHolyG, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  TUnHolyGround is recovered; resource and spell bodies remain drafts. }
+{ UnHolyG, recovered from AoWEPACK.dpl at the original instance layouts. }
 
 interface
 
@@ -55,7 +53,7 @@ type
   public
     class function ClassID: Integer; override;
     function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
-    procedure CreateUnholyGround(A1: Integer);  { draft }
+    procedure CreateUnholyGround(Source: TAbstractUnit);
   end;
 
   { TUnholyGroundSpell (instance size 60, VMT 557C8EA4) }
@@ -68,8 +66,8 @@ type
     function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
-procedure RegisterUnHolyGround(A1: Integer);  { draft }
-procedure UnRegisterUnholyGround(A1: Integer);  { draft }
+procedure RegisterUnHolyGround(AEngine: TAoWEngine);
+procedure UnRegisterUnholyGround(AEngine: TAoWEngine);
 
 implementation
 
@@ -82,6 +80,8 @@ const
   WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;
   RandomSeed: ^Integer = @System.RandSeed;
   GoodAlignments: ^TAlignments = @AoWE.alsPureGood;
+  GroundText: PResStringRec = @AoWE.UnholyGroundRStr;
+  SpellText: PResStringRec = @AoWE.UnholyGroundsRStr;
 
 class function TUnHolyGround.ClassID: Integer;
 begin Result := $20391; end;
@@ -264,44 +264,147 @@ begin
 end;
 
 class function TUnHolyGroundResource.ResourceEditName: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(LoadResString(GroundText));
+end;
 
 class function TUnHolyGroundResource.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20392;
+end;
 
 function TUnHolyGroundResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20391;
+end;
 
 class function TUnholyGroundSpellTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21307;
+end;
 
-procedure TUnholyGroundSpellTE.CreateUnholyGround(A1: Integer);
-begin end;
+procedure TUnholyGroundSpellTE.CreateUnholyGround(Source: TAbstractUnit);
+var
+  Level: TMapLevel;
+  Walk: THNWalkData;
+  Resource: TUnHolyGroundResource;
+  MapF: TAoWMapField;
+  Ground: TUnHolyGround;
+  Anim: TImageSequenceAnimation;
+begin
+  with THNWalkData(Pointer(@Walk)^) do
+  begin
+    Level := WorldMap^.MapContainer.MapLevels[FLocation.L];
+    InitHNWalk(Walk, FLocation.X, FLocation.Y, 0);
+    Resource := TUnHolyGroundResource(WorldSet^.MapObjectResourceList.FindChild($20392));
+    while Radius <= 1 do
+    begin
+      if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
+      begin
+        MapF := TAoWMapField(Level.GetField(X, Y));
+        if TGlobalTargetSpell(WorldSet^.FSpellControl.GetSpell(14)).ValidTargetMapF(MapF) and
+          (MapF.GetArmyHS = nil) then
+        begin
+          MapF.RestoreTerrain;
+          Ground := TUnHolyGround(Resource.CreateResourceUser);
+          Ground.FDuration := 3 + (WorldMap^.Random(11) - 5) div 5;
+          Ground.FPlayer := Source.FPlayer;
+          Ground.FOriginalOverlay := MapF.OverlayType;
+          WorldMap^.ClearTerrain(X, Y, FLocation.L, 0, -1);
+          if WorldMap^.PlaceHX(Ground, X, Y, FLocation.L) then
+          begin
+            Ground.FMode := [hgSummoning];
+            Anim := TImageSequenceAnimation.Create(nil);
+            Anim.SetImageSequence(WorldSet^.FSpellControl.GetSpell(14).FCastImages.ImageSequences[0]);
+            Anim.FOnShow := Ground.ShowSummonAnimation;
+            Anim.FOnNewFrame := Ground.NewFrameSummonAnimation;
+            Anim.FFrameCounter := -WorldMap^.Random(15);
+            Anim.FTag := Source.FPlayer;
+            WorldMap^.PlaceHX(Anim, X, Y, FLocation.L);
+          end
+          else Ground.Free;
+        end;
+      end;
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
 function TUnholyGroundSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
-begin Result := False; end;
+begin
+  inherited Process(A1, A2);
+  CreateUnholyGround(A1);
+  WorldMap^.ValidateTerrainObservation(A1.FPlayer, FLocation.X, FLocation.Y, FLocation.L, 1);
+  WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
+  Result := False;
+end;
 
 constructor TUnholyGroundSpell.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(LoadResString(SpellText));
+  FSpellID := 14;
+  FBaseManaCost := 5;
+  FSpellLevel := 2;
+  FMagicSphere := msDeath;
+  FAboveGroundOnly := False;
+end;
 
 function TUnholyGroundSpell.ValidTargetMapF(A1: TMapField): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited ValidTargetMapF(A1) and (A1.TerrainType in [1..5, 12]);
+  { Original precedence accepts these overlays without the terrain test. }
+  Result := Result and (A1.OverlayType = -1) or (A1.OverlayType in [1..4, 9]);
+  Result := Result and (A1.FindHS(TStructure) = nil) and (TAoWMapField(A1).GetArmyHS = nil);
+end;
 
 function TUnholyGroundSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
-begin Result := False; end;
+var
+  Army: TArmyHS;
+begin
+  Result := inherited ValidTargetMapF(A1) and (A1.TerrainType in [1..5, 12]);
+  { Original precedence accepts these overlays without the terrain test. }
+  Result := Result and (A1.OverlayType = -1) or (A1.OverlayType in [1..4, 9]);
+  Result := Result and (A1.FindHS(TStructure) = nil);
+  if Result then
+  begin
+    Army := TAoWMapField(A1).GetArmyHS;
+    if Army <> nil then Result := not Army.VisibleForSeatedPlayer;
+  end;
+end;
 
 procedure TUnholyGroundSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
-begin end;
+var
+  I: Integer;
+begin
+  inherited SetupTargetSelection(A1, A2);
+  A2.FHNs.Clear;
+  for I := 0 to RadToHN(2) - 1 do A2.FHNs.Add(0);
+end;
 
 function TUnholyGroundSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
-begin Result := False; end;
+var
+  Event: TUnholyGroundSpellTE;
+begin
+  Event := TUnholyGroundSpellTE.Create(nil);
+  Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+  Event.SetLocation(A2, A3, A4);
+  WorldMap^.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+  Event.Release;
+  Result := True;
+end;
 
-procedure RegisterUnHolyGround(A1: Integer);
-begin end;
+procedure RegisterUnHolyGround(AEngine: TAoWEngine);
+begin
+  AEngine.RegisterEClasses([TUnHolyGround, TUnHolyGroundResource, TUnholyGroundSpellTE]);
+  AEngine.FGameSet.FSpellControl.RegisterSpell(TUnholyGroundSpell.Create(nil));
+end;
 
-procedure UnRegisterUnholyGround(A1: Integer);
-begin end;
-
+procedure UnRegisterUnholyGround(AEngine: TAoWEngine);
+begin
+  AEngine.UnRegisterEClasses([TUnHolyGround, TUnHolyGroundResource, TUnholyGroundSpellTE]);
+  AEngine.FGameSet.FSpellControl.UnregisterSpellID(14);
+end;
 
 initialization
 finalization

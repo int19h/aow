@@ -2,7 +2,7 @@ unit GlobalEnchantmentSpells;
 
 { Draft declarations of GlobalEnchantmentSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  The initial three classes are recovered; later bodies remain drafts. }
 
 interface
 
@@ -39,10 +39,10 @@ type
   TSpellWard = class;
 
 
-  { TGlobalEnchantmentSpellTE (instance size 36, VMT 557ED91C) }
+  { TGlobalEnchantmentSpellTE (instance size 36, VMT 557ED91C): $20 FEnchantment. }
   TGlobalEnchantmentSpellTE = class(TSpellTE)
   public
-    F_GlobalEnchantmentSpellTE_20: Integer;
+    FEnchantment: TGlobalEnchantment; { $20 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -50,20 +50,20 @@ type
     function Process(A1: TAbstractUnit; A2: Integer): Boolean; override;
   end;
 
-  { TGlobalEnchantmentSpell (instance size 56, VMT 557EDA18) }
+  { TGlobalEnchantmentSpell (instance size 56, VMT 557EDA18): $34 FAIBasePriority. }
   TGlobalEnchantmentSpell = class(TSpell)
   public
-    F_GlobalEnchantmentSpell_34: Integer;
+    FAIBasePriority: Integer; { $34 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
     function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
     function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
-    procedure AICanCastSpell(A1: Integer); virtual;  { +09C draft }
-    procedure CreateEnchantment; virtual;  { +0A0 draft }
-    procedure SetupEnchantment(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
-    procedure AIUpkeepPriority;  { draft }
+    function AICanCastSpell(Source: TAbstractUnit): Boolean; virtual; { +09C }
+    function CreateEnchantment: TGlobalEnchantment; virtual; { +0A0 }
+    procedure SetupEnchantment(Source: TAbstractUnit; Enchantment: TGlobalEnchantment); virtual; { +0A4 }
+    function AIUpkeepPriority: Integer;
   end;
 
   { TEnchantedRoadsEnchantment (instance size 36, VMT 557EDB5C) }
@@ -73,8 +73,8 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TEnchantedRoads (instance size 56, VMT 557EDC88) }
@@ -82,7 +82,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -93,8 +93,8 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TAirMastery (instance size 56, VMT 557EDEE0) }
@@ -102,7 +102,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -113,8 +113,8 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TWaterMastery (instance size 56, VMT 557EE138) }
@@ -122,7 +122,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
   { THatredEnchantment (instance size 40, VMT 557EE268) }
@@ -135,7 +135,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure Activate(A1: Byte); override;
+    function Activate(Player: Shortint): Boolean; override;
     procedure NewDay;  { draft }
   end;
 
@@ -144,7 +144,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
   { THarmonyEnchantment (instance size 40, VMT 557EE4A8) }
@@ -157,7 +157,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure Activate(A1: Byte); override;
+    function Activate(Player: Shortint): Boolean; override;
     procedure NewDay;  { draft }
   end;
 
@@ -166,7 +166,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
   { TPowerLeakEnchantment (instance size 36, VMT 557EE6F0) }
@@ -176,7 +176,7 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure Activate(A1: Byte); override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TPowerLeak (instance size 56, VMT 557EE814) }
@@ -184,7 +184,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
   { TFloodControl (instance size 20, VMT 557EE93C) }
@@ -221,7 +221,7 @@ type
     function GetAIUpkeepPriority: Integer; override;
     procedure CanDeactivate(A1: Integer; A2: Integer); override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure Activate(A1: Byte); override;
+    function Activate(Player: Shortint): Boolean; override;
     procedure DaysBeforeActive;  { draft }
     procedure NewTurn;  { draft }
   end;
@@ -231,7 +231,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -242,8 +242,8 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TLifeMastery (instance size 56, VMT 557EED74) }
@@ -251,7 +251,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
   { TDeathMasteryEnchantment (instance size 36, VMT 557EEEA4) }
@@ -262,8 +262,8 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
     procedure NewTurn(A1: Byte);  { draft }
   end;
 
@@ -272,7 +272,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -284,8 +284,8 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
     procedure UpdateFire(A1: Integer; A2: Byte);  { draft }
   end;
 
@@ -294,7 +294,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -305,8 +305,8 @@ type
     class function ClassID: Integer; override;
     function GetAIUpkeepPriority: Integer; override;
     function Deactivate(Player: Byte): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte); override;
+    function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
+    function Activate(Player: Shortint): Boolean; override;
   end;
 
   { TEarthMastery (instance size 56, VMT 557EF484) }
@@ -314,7 +314,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 
@@ -331,7 +331,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
-    procedure CreateEnchantment; override;
+    function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
 procedure RegisterGlobalEnchantmentSpells(A1: Integer);  { draft }
@@ -339,68 +339,208 @@ procedure UnregisterGlobalEnchantmentSpells(A1: Integer);  { draft }
 
 implementation
 
+type
+  PAoWMap = ^TAoWHSMap;
+const
+  WorldMap: PAoWMap = @AoWE.AoWHSMap;
+  SpellWardText: PResStringRec = @AoWE.CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr;
+  RoadsText: PResStringRec = @AoWE.EnchantedRoadsRStr;
+  AlreadyActiveText: PResStringRec = @AoWE.XIsAlreadyActiveRStr;
+
 destructor TGlobalEnchantmentSpellTE.Destroy;
-begin end;
+begin
+  if FEnchantment <> nil then
+  begin
+    FEnchantment.Release;
+    FEnchantment := nil;
+  end;
+  inherited Destroy;
+end;
 
 class function TGlobalEnchantmentSpellTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21312;
+end;
 
 procedure TGlobalEnchantmentSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwCreateEObject(TEObject(FEnchantment), nil, $19);
+end;
 
 function TGlobalEnchantmentSpellTE.Validate(A1: THero): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+begin
+  Result := inherited Validate(A1);
+  Result := Result and FEnchantment.CanCast(A1.FPlayer, Reason);
+end;
 
 function TGlobalEnchantmentSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Process(A1, A2);
+end;
 
 constructor TGlobalEnchantmentSpell.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAIBasePriority := -1;
+end;
 
-procedure TGlobalEnchantmentSpell.CreateEnchantment;
-begin end;
+function TGlobalEnchantmentSpell.CreateEnchantment: TGlobalEnchantment;
+begin
+  Result := nil;
+end;
 
-procedure TGlobalEnchantmentSpell.SetupEnchantment(A1: Integer; A2: Integer);
-begin end;
+procedure TGlobalEnchantmentSpell.SetupEnchantment(Source: TAbstractUnit; Enchantment: TGlobalEnchantment);
+begin
+  Enchantment.FEnchantmentManaUpkeep := FManaUpkeep;
+end;
 
 function TGlobalEnchantmentSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+begin
+  if A3 = 0 then TGlobalEnchantmentSpellTE(A1).FEnchantment.Cast(A2.FPlayer);
+  Result := False;
+end;
 
 function TGlobalEnchantmentSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+var
+  Enchantment: TGlobalEnchantment;
+begin
+  Result := inherited CanActivate(A1, A2);
+  if Result then
+    if not (getSpellWard in WorldMap^.FGlobalMagicControl.FActiveEnchantments) then
+    begin
+      Enchantment := CreateEnchantment;
+      if Enchantment <> nil then
+      begin
+        SetupEnchantment(A1, Enchantment);
+        Result := Enchantment.CanCast(A1.FPlayer, A2);
+        Enchantment.Release;
+      end;
+    end
+    else
+    begin
+      Result := False;
+      A2 := TranslateRStr(LoadResString(SpellWardText));
+    end;
+end;
 
 function TGlobalEnchantmentSpell.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Event: TGlobalEnchantmentSpellTE;
+  Reason: string;
+begin
+  if CanActivate(A1, Reason) and not WorldMap^.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TGlobalEnchantmentSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    Event.FEnchantment := CreateEnchantment;
+    SetupEnchantment(A1, Event.FEnchantment);
+    WorldMap^.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TGlobalEnchantmentSpell.AICanCastSpell(A1: Integer);
-begin end;
+function TGlobalEnchantmentSpell.AICanCastSpell(Source: TAbstractUnit): Boolean;
+var
+  Reason: string;
+begin
+  Result := (FAIBasePriority <> -1) and THero(Source).CanCastSpell(FSpellID, Reason);
+  Result := Result and CanActivate(Source, Reason);
+end;
 
-procedure TGlobalEnchantmentSpell.AIUpkeepPriority;
-begin end;
+function TGlobalEnchantmentSpell.AIUpkeepPriority: Integer;
+var
+  Enchantment: TGlobalEnchantment;
+begin
+  { Original creates the base enchantment here. }
+  Enchantment := TGlobalEnchantment.Create(nil);
+  Result := Enchantment.GetAIUpkeepPriority;
+  Enchantment.Release;
+end;
 
 procedure TGlobalEnchantmentSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
-begin end;
+var
+  Action: TAICastSpellAction;
+begin
+  if AICanCastSpell(A1) and AIRequestCastSpellExpense(A1, FBaseManaCost, FManaUpkeep, AIUpkeepPriority) then
+  begin
+    Action := CreateCastSpellAction;
+    SetupCastSpellAction(A1, Action);
+    Action.FPriority := FAIBasePriority;
+    Action.SetOwner(A2);
+  end;
+end;
 
 function TGlobalEnchantmentSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+begin
+  if AICanCastSpell(A1) then
+  begin
+    AICastSpellExpenseMade(A1, FBaseManaCost, FManaUpkeep, AIUpkeepPriority);
+    with THero(A1) do
+      if CanCastSpellInstantly(FSpellID, FBaseManaCost, Reason) then
+        Result := Self.Activate(A1)
+      else if FCastingSpellID <> FSpellID then
+      begin
+        ExecuteStartCasting(FSpellID);
+        Result := True;
+      end
+      else Result := True;
+  end
+  else Result := False;
+end;
 
 constructor TEnchantedRoadsEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(RoadsText));
+  FEnchantmentType := getNone;
+  FDispelMana := 50;
+end;
 
 class function TEnchantedRoadsEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21313;
+end;
 
 function TEnchantedRoadsEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := 900;
+end;
 
-procedure TEnchantedRoadsEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TEnchantedRoadsEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+var
+  Text: string;
+begin
+  Result := inherited CanActivate(Player, Reason);
+  if Result and (petEnchantedRoads in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments) then
+  begin
+    Text := AoWE.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
+    Reason := Text;
+    Result := False;
+  end;
+end;
 
-procedure TEnchantedRoadsEnchantment.Activate(A1: Byte);
-begin end;
+function TEnchantedRoadsEnchantment.Activate(Player: Shortint): Boolean;
+begin
+  inherited Activate(Player);
+  WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.SetActiveEnchantments(
+    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments + [petEnchantedRoads]);
+  Result := True;
+end;
 
 function TEnchantedRoadsEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+begin
+  inherited Deactivate(Player);
+  WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.SetActiveEnchantments(
+    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments - [petEnchantedRoads]);
+  Result := True;
+end;
 
 constructor TEnchantedRoads.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -411,8 +551,8 @@ begin end;
 function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 begin Result := False; end;
 
-procedure TEnchantedRoads.CreateEnchantment;
-begin end;
+function TEnchantedRoads.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TAirMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -423,11 +563,11 @@ begin Result := 0; end;
 function TAirMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TAirMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TAirMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TAirMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TAirMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TAirMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -441,8 +581,8 @@ begin end;
 function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 begin Result := False; end;
 
-procedure TAirMastery.CreateEnchantment;
-begin end;
+function TAirMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TWaterMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -453,17 +593,17 @@ begin Result := 0; end;
 function TWaterMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TWaterMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TWaterMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TWaterMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TWaterMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TWaterMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure TWaterMastery.CreateEnchantment;
-begin end;
+function TWaterMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TWaterMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -489,14 +629,14 @@ begin end;
 procedure THatredEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure THatredEnchantment.Activate(A1: Byte);
-begin end;
+function THatredEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function THatredEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure THatred.CreateEnchantment;
-begin end;
+function THatred.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor THatred.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -522,14 +662,14 @@ begin end;
 procedure THarmonyEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure THarmonyEnchantment.Activate(A1: Byte);
-begin end;
+function THarmonyEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function THarmonyEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure THarmony.CreateEnchantment;
-begin end;
+function THarmony.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor THarmony.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -546,14 +686,14 @@ begin Result := 0; end;
 function TPowerLeakEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TPowerLeakEnchantment.Activate(A1: Byte);
-begin end;
+function TPowerLeakEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TPowerLeakEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure TPowerLeak.CreateEnchantment;
-begin end;
+function TPowerLeak.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TPowerLeak.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -609,8 +749,8 @@ begin end;
 procedure TFloodEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TFloodEnchantment.Activate(A1: Byte);
-begin end;
+function TFloodEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TFloodEnchantment.CanDeactivate(A1: Integer; A2: Integer);
 begin end;
@@ -618,8 +758,8 @@ begin end;
 function TFloodEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure TFlood.CreateEnchantment;
-begin end;
+function TFlood.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TFlood.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -639,11 +779,11 @@ begin Result := 0; end;
 function TLifeMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TLifeMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TLifeMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TLifeMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TLifeMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TLifeMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -651,8 +791,8 @@ begin Result := False; end;
 constructor TLifeMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TLifeMastery.CreateEnchantment;
-begin end;
+function TLifeMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 function TLifeMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 begin Result := False; end;
@@ -666,11 +806,11 @@ begin Result := 0; end;
 function TDeathMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TDeathMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TDeathMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TDeathMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TDeathMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TDeathMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -684,8 +824,8 @@ begin end;
 constructor TDeathMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TDeathMastery.CreateEnchantment;
-begin end;
+function TDeathMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 procedure TDeathMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
@@ -702,11 +842,11 @@ begin Result := 0; end;
 function TFireMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TFireMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TFireMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TFireMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TFireMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TFireMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -720,8 +860,8 @@ begin end;
 constructor TFireMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TFireMastery.CreateEnchantment;
-begin end;
+function TFireMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 procedure TFireMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
@@ -738,11 +878,11 @@ begin Result := 0; end;
 function TEarthMasteryEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
-procedure TEarthMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TEarthMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TEarthMasteryEnchantment.Activate(A1: Byte);
-begin end;
+function TEarthMasteryEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 function TEarthMasteryEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -756,8 +896,8 @@ begin end;
 function TEarthMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 begin Result := False; end;
 
-procedure TEarthMastery.CreateEnchantment;
-begin end;
+function TEarthMastery.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TSpellWardEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -774,8 +914,8 @@ begin end;
 function TSpellWard.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 begin Result := False; end;
 
-procedure TSpellWard.CreateEnchantment;
-begin end;
+function TSpellWard.CreateEnchantment: TGlobalEnchantment;
+begin Result := nil; end;
 
 procedure RegisterGlobalEnchantmentSpells(A1: Integer);
 begin end;

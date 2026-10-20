@@ -1393,12 +1393,12 @@ begin
   Table := P2MovePointTables[P2MoveTypesToInt(Moves)];
   if FPlayer > 0 then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 2 <> 0 then
+    if (petEnchantedRoads in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
       for Terrain := 0 to 15 do
         if Table[Terrain,4] <> -1 then Table[Terrain,4] := 2;
     if GetAbilityEnabled(23) or GetAbilityEnabled(1) or GetAbilityEnabled(165) then
     begin
-      Faster := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 4 <> 0;
+      Faster := (petAirMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments);
       Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 4 <> 0;
       if Faster and not Slower then
       begin
@@ -1800,7 +1800,7 @@ begin
   Player := FPlayer;
   if Player > 0 then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).F_PlayerMagicControl_44 and 16 = 0 then
+    if not (petLifeMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FActiveEnchantments) then
       ResetLifeMasteryBlessing;
     if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 = 0 then
       ResetLifeMasteryFear;
@@ -1857,11 +1857,11 @@ procedure TAbstractUnit.NewTurnDone(Player: Shortint);
 begin
   if (Player = FPlayer) and (FPlayer > 0) then
   begin
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 64 <> 0 then
+    if (petFireMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
       SetFireMasteryProtection;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 128 <> 0 then
+    if (petEarthMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
       SetEarthMasteryStoneSkin;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 16 <> 0 then
+    if (petLifeMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
       SetLifeMasteryBlessing;
     if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 <> 0 then
       ExecuteLifeMasteryFearRole;

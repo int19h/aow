@@ -7604,7 +7604,7 @@ begin
     Result := False;
 end;
 
-procedure TPlayerMagicControl.SetActiveEnchantments(A1: Byte; A2: Integer);
+procedure TPlayerMagicControl.SetActiveEnchantments(Value: TPlayerEnchantmentTypes);
 begin end;
 
 procedure TPlayerMagicControl.UpdateEnemyEnchantments;
@@ -7760,11 +7760,11 @@ begin end;
 procedure TGlobalEnchantment.Setup(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalEnchantment.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TGlobalEnchantment.Activate(A1: Byte);
-begin end;
+function TGlobalEnchantment.Activate(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantment.CanDeactivate(A1: Integer; A2: Integer);
 begin end;
@@ -7772,11 +7772,11 @@ begin end;
 function TGlobalEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
 
-procedure TGlobalEnchantment.CanCast;
-begin end;
+function TGlobalEnchantment.CanCast(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TGlobalEnchantment.Cast(A1: Integer);
-begin end;
+function TGlobalEnchantment.Cast(Player: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantment.CanDispel;
 begin end;
