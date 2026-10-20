@@ -42,6 +42,7 @@ local variable order, loop shape.
 | unit functions: InitMsg, CRC32, engine and plug-in lookups, string sorting, ReplaceText, HexToInt, clipboard streams, external plug-in loading | 42 | 37 |
 | zlib (Borland's unit from the Delphi 3 CD, with the CD's zlib 1.0.4 object files), EList, PlugInM, DebMDlg | 46 | 46 |
 | ImgLComp (image grids and panels), EResGrid (resource grid) | 112 | 108 |
+| Gfxepack.dpl: GFXE (surfaces, blitters, DirectDraw, blend tables), GFXDiag (`src/delphi3/Gfxepack/`) | 262 | 252 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
@@ -159,6 +160,27 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
 - A `case` jump table follows `jmp dword ptr [reg*4 + table]`, with a byte index table in front when
   the case values are sparse; the table base is entry 0 even if the lowest value is higher.
   `match.py` compares the tables as lists of offsets into the function.
+
+- A multi-line `Assert` records the line where the statement ends.
+- A `TLargeInteger(C)` typecast of a local forces an EBP frame; `PLargeInteger(@C)^` keeps the
+  frame-less form.
+- A pure-asm function that names `Result` gets an extra `mov al,Result` at the end; using a local
+  in the asm avoids it.
+- `Result := TClass(Items[I])` saves and restores the arguments; `P := Items[I]; Result :=
+  TClass(P)` compiles to `call; ret`.
+- Register-convention arguments: deferred simple arguments are loaded right to left; a field
+  reached through a pointer is evaluated at once, a field of Self is deferred; an untyped `var`
+  argument is loaded before the other deferred ones.
+- `if F(...) = X then` uses eax for temporaries while pushing stdcall arguments; `Result := F(...);
+  if Result = X` uses ecx.
+- `for J := 0 to 255 do ... Pal[J].rgbRed` steps a pointer through the local array.
+- With tied weights the first declared local gets eax; `Inc(P)` versus `P := Pointer(Integer(P) +
+  n)` changes which local gets edx or ecx.
+- A `const R: TRect` parameter copied into a local spills the pointer first; a by-value TRect is
+  copied at entry.
+- `2 * (A - B)`, `(A - B) * 2` and `shl 1` all compile to `add r,r`.
+- Inline assembler compiles verbatim; Delphi 3's assembler has no MMX or CPUID mnemonics, so the
+  original encodes them with `DB`.
 
 ## Compiler switches (sweep, 2026-10-19)
 
