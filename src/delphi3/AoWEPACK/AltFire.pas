@@ -1,28 +1,27 @@
 unit AltFire;
 
-{ Draft declarations of AltFire, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AltFire altar specialization recovered from AoWEPACK.dpl.
+  Both classes retain their inherited layouts with no added fields. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Altar;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Altar, Storms;
 
 type
   TAltarOfFire = class;
   TAltarOfFireResource = class;
 
 
-  { TAltarOfFire (instance size 68, VMT 557CF5F8) }
+  { TAltarOfFire (instance size 68, no added fields, VMT 557CF5F8) }
   TAltarOfFire = class(TAltar)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure CreateStorm; override;
+    function CreateStorm: TStorm; override;
   end;
 
-  { TAltarOfFireResource (instance size 116, VMT 557CF8B0) }
+  { TAltarOfFireResource (instance size 116, no added fields, VMT 557CF8B0) }
   TAltarOfFireResource = class(TAltarResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -31,34 +30,41 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterAltarOfFire;  { draft }
+procedure RegisterAltarOfFire(AEngine: TEngine);
 
 implementation
 
 constructor TAltarOfFire.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TAltarOfFire.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023A; end;
 
-procedure TAltarOfFire.CreateStorm;
-begin end;
+function TAltarOfFire.CreateStorm: TStorm;
+begin
+  Result := TFireStorm.Create(nil);
+end;
 
 constructor TAltarOfFireResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TAltarOfFireResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(AltarOfFireRStr); end;
 
 class function TAltarOfFireResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023B; end;
 
 function TAltarOfFireResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023A; end;
 
-procedure RegisterAltarOfFire;
-begin end;
-
+procedure RegisterAltarOfFire(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TAltarOfFire, TAltarOfFireResource]);
+end;
 
 initialization
 finalization

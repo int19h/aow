@@ -36,7 +36,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure Activate; override;
     procedure Deactivate; override;
-    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
+    function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; override;
     procedure NewDay; override;
     function GetExplored: Boolean; override;
     procedure SetupCombat(A1: TCombat; A2: TArmyHS); override;
@@ -114,7 +114,7 @@ begin end;
 procedure TDungeon.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-function TDungeon.ExecuteTE(A1: TStructureTE): TExecuteResult;
+function TDungeon.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
 begin Result := erRetry; end;
 
 constructor TDungeonResource.Create(AOwner: Engine.TECustomNode);

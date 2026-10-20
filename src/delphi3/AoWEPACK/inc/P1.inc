@@ -5016,8 +5016,8 @@ begin end;
 procedure TStructure.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TStructure.ExecuteAI(A1: Integer; A2: Integer);
-begin end;
+function TStructure.ExecuteAI(Player: Shortint; Phase: Integer): Boolean;
+begin Result := False; end;
 
 procedure TStructure.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 begin end;
@@ -5052,7 +5052,7 @@ begin Result := nil; end;
 procedure TStructure.SetupTE(A1: TStructureTE);
 begin end;
 
-function TStructure.ExecuteTE(A1: TStructureTE): TExecuteResult;
+function TStructure.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
 begin Result := erRetry; end;
 
 function TStructure.ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
@@ -5674,7 +5674,7 @@ begin end;
 procedure TTargetSelectionControl.ShowSelection(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TTargetSelectionControl.Initialize(A1: TAbstractUnit);
+procedure TTargetSelectionControl.Initialize(A1: TObject);
 begin end;
 
 procedure TTargetSelectionControl.Activate;

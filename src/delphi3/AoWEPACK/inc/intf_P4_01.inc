@@ -107,11 +107,10 @@
     F_PlayerMagicControl_0D: array[0..2] of Byte;
     FPlayer: TPlayer; { $10 }
     F_PlayerMagicControl_14: Integer;
-    FMana: Integer; { $18 }
+    F_PlayerMagicControl_18: Integer;
     F_PlayerMagicControl_1C: Integer;
     F_PlayerMagicControl_20: Integer;
-    F_PlayerMagicControl_24: Integer;
-    { conflict: FMana: Integer; $24, read at $55752DB0 }
+    FMana: Integer; { $24 }
     F_PlayerMagicControl_28: Word;
     F_PlayerMagicControl_2A: array[0..1] of Byte;
     FResearchPercentage: Integer; { $2C }

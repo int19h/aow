@@ -93,6 +93,7 @@ var
 resourcestring
   NoUnitSelectedRStr = 'No unit selected'; { $55707A6C }
   NotEnoughGoldRStr = 'Not enough gold.'; { $5570719C }
+  NotEnoughManaRStr = 'Not enough mana.';
   StructureCapturedRStr = '%s captured';
   UnknownRStr = 'Unknown';
   NoneRStr = 'None';

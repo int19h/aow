@@ -37,7 +37,7 @@ type
     procedure Deactivate; override;
     function CanSelect(Xhp, Yhp: Integer): Boolean; override;
     function GetTerrainTypeImage(TerrainType: Integer): Integer; override;
-    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
+    function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; override;
     procedure NewDay; override;
     procedure Update; override;
     function GetExplored: Boolean; virtual;
@@ -206,9 +206,9 @@ begin
   else Result := False;
 end;
 
-function TExplorationSite.ExecuteTE(A1: TStructureTE): TExecuteResult;
+function TExplorationSite.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
 begin
-  Result := inherited ExecuteTE(A1);
+  Result := inherited ExecuteTE(A1, Executer);
   if A1.FAction = 0 then
     if ExecuteSearch(TCombatType(A1.FParam)) then Result := erDone
     else Result := erDoneHalt;

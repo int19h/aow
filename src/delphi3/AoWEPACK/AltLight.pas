@@ -1,27 +1,26 @@
 unit AltLight;
 
-{ Draft declarations of AltLight, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AltLight altar specialization recovered from AoWEPACK.dpl.
+  Both classes retain their inherited layouts with no added fields. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Altar;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Altar, Storms;
 
 type
   TAltarOfLightning = class;
   TAltarOfLightningResource = class;
 
 
-  { TAltarOfLightning (instance size 68, VMT 557D16F4) }
+  { TAltarOfLightning (instance size 68, no added fields, VMT 557D16F4) }
   TAltarOfLightning = class(TAltar)
   public
     class function ClassID: Integer; override;
-    procedure CreateStorm; override;
+    function CreateStorm: TStorm; override;
   end;
 
-  { TAltarOfLightningResource (instance size 116, VMT 557D19B4) }
+  { TAltarOfLightningResource (instance size 116, no added fields, VMT 557D19B4) }
   TAltarOfLightningResource = class(TAltarResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -30,31 +29,36 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterAltarOfLightning;  { draft }
+procedure RegisterAltarOfLightning(AEngine: TEngine);
 
 implementation
 
 class function TAltarOfLightning.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023D; end;
 
-procedure TAltarOfLightning.CreateStorm;
-begin end;
+function TAltarOfLightning.CreateStorm: TStorm;
+begin
+  Result := TLightningStorm.Create(nil);
+end;
 
 constructor TAltarOfLightningResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TAltarOfLightningResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(AltarOfLightningRStr); end;
 
 class function TAltarOfLightningResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023E; end;
 
 function TAltarOfLightningResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2023D; end;
 
-procedure RegisterAltarOfLightning;
-begin end;
-
+procedure RegisterAltarOfLightning(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TAltarOfLightning, TAltarOfLightningResource]);
+end;
 
 initialization
 finalization

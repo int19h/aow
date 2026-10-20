@@ -101,7 +101,6 @@ resourcestring
   SelfDestructRStr = 'Self Destruct';
   RoundAttackRStr = 'Round Attack';
   LeadershipRStr = 'Leadership';
-  NotEnoughManaRStr = 'Not enough mana.';
   NotEnoughCastingPointsRStr = 'Not enough channeling points';
   P4SpellWardBlocksCastRStr = 'Spell Ward locks all global enchantments';
   P4ExternalPowerRStr = 'External';

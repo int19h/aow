@@ -371,7 +371,7 @@ type
     property PrefetchTC: TTokenControl read FPrefetchTC;
     property ActiveTCIndex: Integer read FActiveTCIndex;
     property TokenCounter: Integer read FTokenCounter;
-    property Round: Integer read FRound;
+    property Round: Integer read FRound; property ExecuteCount: Integer read FExecuteCount;
     property State: TTokenExecuterStates read FState;
     property Locked: Boolean read GetLocked;
     property HoldTC: Boolean read FHoldTC write FHoldTC;

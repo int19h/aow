@@ -464,9 +464,13 @@ type
   TAITargetInfo = record Player, IndependentRelation: Shortint; Mode: TAITargetMode; end;
   TworldFXType = (fxHatred, fxCrusade, fxWaterMastery, fxSpellWard, fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEarthMastery, fxEMParticle, fxTranquility, fxTranqParticle);  { ot=1 }
   TBattleFieldInfoRequests = set of (bfrWallPassing, bfrReturnImmunityTypes, bfrIgnorePassiveIndependents, bfrEffectiveStrength, bfrIgnoreIndependents); { ot=1 }
+  TBattleFieldRelations = set of 0..7;
   TBattleFieldInfo = packed record
     Player, IndependentRelation: Shortint; Requests: TBattleFieldInfoRequests;
-    DamageTypes: TDamageTypes; Reserved05: array[0..14] of Byte;
+    DamageTypes: TDamageTypes; Reserved05: array[0..6] of Byte;
+    FriendlyRelations, EnemyRelations: TBattleFieldRelations; { $0C, $0D }
+    Reserved0E: array[0..1] of Byte;
+    FriendlyStrength: Integer; { $10 }
     Strength: Integer; { $14 } Reserved18: Integer;
   end;
   TDefenseRequirements = record Reserved00: array[0..27] of Byte; Strength: Integer; end;

@@ -156,7 +156,7 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); override;
-    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
+    function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; override;
     function GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean; override;
     function GetDefensePriority: TDefensePriority; override;
     procedure NewDay; override;
@@ -699,8 +699,8 @@ begin
   else Result := caNone;
 end;
 
-function TCity.ExecuteTE(A1: TStructureTE): TExecuteResult;
-begin Result := inherited ExecuteTE(A1); end;
+function TCity.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
+begin Result := inherited ExecuteTE(A1, Executer); end;
 
 procedure TCity.Update;
 begin

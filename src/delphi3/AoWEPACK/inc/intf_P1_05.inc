@@ -4,7 +4,7 @@
   public
     F_TargetSelectionControl_04: Integer;
     FHNs: TShortIntList; { $08 }
-    F_TargetSelectionControl_0C: Byte;
+    FStatus: TTargetSelectionStatus; { $0C }
     FTargetMode: TTargetSelectionMode; { $0D }
     F_TargetSelectionControl_0E: array[0..1] of Byte;
     F_TargetSelectionControl_10: Integer;
@@ -14,7 +14,7 @@
     FSourceX: Integer; { $24 }
     FSourceY: Integer; { $28 }
     FSourceL: Integer; { $2C }
-    F_TargetSelectionControl_30: Integer;
+    FSource: TObject; { $30 }
     FOnChange: TEventList; { $34 }
     FChange: TTargetSelectionChange; { $38 }
     FTargetX: Shortint; { $39 }
@@ -37,7 +37,7 @@
     procedure NewFrameEvent;  { draft }
     procedure MouseMoveEvent;  { draft }
     procedure ShowSelection(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure Initialize(A1: TAbstractUnit);
+    procedure Initialize(A1: TObject);
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
     procedure UnitChanged(A1: Integer);  { draft }

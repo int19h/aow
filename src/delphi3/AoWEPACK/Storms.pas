@@ -11,6 +11,11 @@ uses
 
 type
   TStorm = class;
+  TStormDamageInfo = record
+    Reserved00: array[0..11] of Byte;
+    FriendlyDamage: Integer; { $0C }
+    EnemyDamage: Integer; { $10 }
+  end;
   TBlastStorm = class;
   TIceStorm = class;
   TDeathStorm = class;
@@ -33,13 +38,13 @@ type
   public
     F_Storm_3C: array[0..3] of Byte;
     procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual; abstract;  { +124 draft }
-    procedure UpdateTargetSelection(A1: Integer); virtual;  { +128 draft }
-    procedure InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer); virtual;  { +12C draft }
-    procedure UpdateStorm; virtual;  { +130 draft }
+    procedure UpdateTargetSelection(Selection: TTargetSelectionControl); virtual;
+    procedure InitializeStorm(Player, X, Y, L: Shortint); virtual;
+    function UpdateStorm: Boolean; virtual;
     procedure FinalizeStorm; virtual;  { +134 draft }
-    procedure Name(A1: Integer); virtual; abstract;  { +138 draft }
+    class function Name: string; virtual; abstract;
     procedure ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure GetBestTarget(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+    function GetBestTarget(Player: Shortint; X, Y, L, Range: Integer; var Target: TXYL; var Info: TStormDamageInfo): Boolean;
   end;
 
   { TBlastStorm (instance size 68, VMT 557CB260) }
@@ -48,9 +53,9 @@ type
     F_BlastStorm_40: array[0..3] of Byte;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure UpdateTargetSelection(A1: Integer); override;
-    procedure InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure UpdateStorm; override;
+    procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
+    procedure InitializeStorm(Player, X, Y, L: Shortint); override;
+    function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
     procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); virtual;  { +13C draft }
     procedure StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer); virtual;  { +140 draft }
@@ -62,7 +67,7 @@ type
   TIceStorm = class(TBlastStorm)
   public
     class function ClassID: Integer; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
     procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
     procedure StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer); override;
     procedure StormFileName(A1: Integer); override;
@@ -73,7 +78,7 @@ type
   TDeathStorm = class(TBlastStorm)
   public
     class function ClassID: Integer; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
     procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
     procedure StormFileName(A1: Integer); override;
     procedure StormType; override;
@@ -83,7 +88,7 @@ type
   TDivineStorm = class(TBlastStorm)
   public
     class function ClassID: Integer; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
     procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer); override;
     procedure StormFileName(A1: Integer); override;
     procedure StormType; override;
@@ -96,11 +101,11 @@ type
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure UpdateTargetSelection(A1: Integer); override;
-    procedure InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure UpdateStorm; override;
+    procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
+    procedure InitializeStorm(Player, X, Y, L: Shortint); override;
+    function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
   end;
 
   { TFireStorm (instance size 64, VMT 557CBB0C) }
@@ -109,11 +114,11 @@ type
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure UpdateTargetSelection(A1: Integer); override;
-    procedure InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure UpdateStorm; override;
+    procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
+    procedure InitializeStorm(Player, X, Y, L: Shortint); override;
+    function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
     procedure ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);  { draft }
   end;
 
@@ -124,11 +129,11 @@ type
     class function ClassID: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure UpdateTargetSelection(A1: Integer); override;
-    procedure InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure UpdateStorm; override;
+    procedure UpdateTargetSelection(Selection: TTargetSelectionControl); override;
+    procedure InitializeStorm(Player, X, Y, L: Shortint); override;
+    function UpdateStorm: Boolean; override;
     procedure FinalizeStorm; override;
-    procedure Name(A1: Integer); override;
+    class function Name: string; override;
   end;
 
   { TStormSpellTE (instance size 40, VMT 557CBE74) }
@@ -206,11 +211,11 @@ procedure UnRegisterStorms(A1: Integer);  { draft }
 
 implementation
 
-procedure TStorm.InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
+procedure TStorm.InitializeStorm(Player, X, Y, L: Shortint);
 begin end;
 
-procedure TStorm.UpdateStorm;
-begin end;
+function TStorm.UpdateStorm: Boolean;
+begin Result := False; end;
 
 procedure TStorm.FinalizeStorm;
 begin end;
@@ -218,13 +223,13 @@ begin end;
 procedure TStorm.ShowTargetSelection(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure TStorm.UpdateTargetSelection(A1: Integer);
+procedure TStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
-procedure TStorm.GetBestTarget(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+function TStorm.GetBestTarget(Player: Shortint; X, Y, L, Range: Integer; var Target: TXYL; var Info: TStormDamageInfo): Boolean;
+begin Result := False; end;
 
-procedure TBlastStorm.InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
+procedure TBlastStorm.InitializeStorm(Player, X, Y, L: Shortint);
 begin end;
 
 procedure TBlastStorm.StormFileName(A1: Integer);
@@ -239,8 +244,8 @@ begin end;
 procedure TBlastStorm.StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TBlastStorm.UpdateStorm;
-begin end;
+function TBlastStorm.UpdateStorm: Boolean;
+begin Result := False; end;
 
 procedure TBlastStorm.FinalizeStorm;
 begin end;
@@ -248,7 +253,7 @@ begin end;
 procedure TBlastStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TBlastStorm.UpdateTargetSelection(A1: Integer);
+procedure TBlastStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
 procedure TBlastStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -257,8 +262,8 @@ begin end;
 class function TIceStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TIceStorm.Name(A1: Integer);
-begin end;
+class function TIceStorm.Name: string;
+begin Result := ''; end;
 
 procedure TIceStorm.StormTerrainChanged(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -275,22 +280,22 @@ begin end;
 class function TLightningStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TLightningStorm.Name(A1: Integer);
-begin end;
+class function TLightningStorm.Name: string;
+begin Result := ''; end;
 
 procedure TLightningStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TLightningStorm.InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
+procedure TLightningStorm.InitializeStorm(Player, X, Y, L: Shortint);
 begin end;
 
 procedure TLightningStorm.FinalizeStorm;
 begin end;
 
-procedure TLightningStorm.UpdateStorm;
-begin end;
+function TLightningStorm.UpdateStorm: Boolean;
+begin Result := False; end;
 
-procedure TLightningStorm.UpdateTargetSelection(A1: Integer);
+procedure TLightningStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
 procedure TLightningStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -299,8 +304,8 @@ begin end;
 class function TDeathStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDeathStorm.Name(A1: Integer);
-begin end;
+class function TDeathStorm.Name: string;
+begin Result := ''; end;
 
 procedure TDeathStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -314,13 +319,13 @@ begin end;
 class function TFireStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFireStorm.Name(A1: Integer);
-begin end;
+class function TFireStorm.Name: string;
+begin Result := ''; end;
 
 procedure TFireStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TFireStorm.InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
+procedure TFireStorm.InitializeStorm(Player, X, Y, L: Shortint);
 begin end;
 
 procedure TFireStorm.FinalizeStorm;
@@ -329,10 +334,10 @@ begin end;
 procedure TFireStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TFireStorm.UpdateStorm;
-begin end;
+function TFireStorm.UpdateStorm: Boolean;
+begin Result := False; end;
 
-procedure TFireStorm.UpdateTargetSelection(A1: Integer);
+procedure TFireStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
 procedure TFireStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -341,8 +346,8 @@ begin end;
 class function TDivineStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDivineStorm.Name(A1: Integer);
-begin end;
+class function TDivineStorm.Name: string;
+begin Result := ''; end;
 
 procedure TDivineStorm.ChangeStormTerrain(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -356,22 +361,22 @@ begin end;
 class function TPestilenceStorm.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPestilenceStorm.Name(A1: Integer);
-begin end;
+class function TPestilenceStorm.Name: string;
+begin Result := ''; end;
 
 procedure TPestilenceStorm.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TPestilenceStorm.InitializeStorm(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
+procedure TPestilenceStorm.InitializeStorm(Player, X, Y, L: Shortint);
 begin end;
 
 procedure TPestilenceStorm.FinalizeStorm;
 begin end;
 
-procedure TPestilenceStorm.UpdateStorm;
-begin end;
+function TPestilenceStorm.UpdateStorm: Boolean;
+begin Result := False; end;
 
-procedure TPestilenceStorm.UpdateTargetSelection(A1: Integer);
+procedure TPestilenceStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
 begin end;
 
 procedure TPestilenceStorm.GetTargetDamageInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);

@@ -29,7 +29,7 @@ type
   public
     class function ClassID: Integer; override;
     function CreateTE: TStructureTE; override;
-    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
+    function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; override;
     function CanDblClick: Boolean; override;
     function UnitTrainCost(AUnit: TAbstractUnit): Integer;
     procedure ExecuteTrainUnit(AUnit: TAbstractUnit);
@@ -132,10 +132,10 @@ begin
     end;
 end;
 
-function TArena.ExecuteTE(A1: TStructureTE): TExecuteResult;
+function TArena.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
 var I: Integer; AUnit: TAbstractUnit; ErrorText: string;
 begin
-  Result := inherited ExecuteTE(A1);
+  Result := inherited ExecuteTE(A1, Executer);
   if A1.FAction = 1 then
     if CanTrainUnits(A1.FParam, TArenaTE(A1).FUnitIDs, ErrorText) then
     begin

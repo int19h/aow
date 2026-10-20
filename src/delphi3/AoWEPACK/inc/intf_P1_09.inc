@@ -105,7 +105,7 @@
     procedure SetupRazeDefenderAG(Armies: TArmyHSList; Units: TUnitList); virtual;
     function CreateTE: TStructureTE; virtual;
     procedure SetupTE(A1: TStructureTE); virtual;
-    function ExecuteTE(A1: TStructureTE): TExecuteResult; virtual;
+    function ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; virtual;
     function GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements): Boolean; virtual;
     function GetDefensePriority: TDefensePriority; virtual;
     procedure NewDay; virtual;  { +174 draft }
@@ -127,7 +127,7 @@
     function GetCurrentActivityText: string; virtual;
     function ValidateMap(A1: Integer): Boolean; virtual;  { +1B8  }
     procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
-    procedure ExecuteAI(A1: Integer; A2: Integer); virtual;  { +1C0 draft }
+    function ExecuteAI(Player: Shortint; Phase: Integer): Boolean; virtual;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); virtual;
     procedure Update; virtual;  { +1C8 draft }
     procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }

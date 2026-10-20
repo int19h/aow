@@ -1,27 +1,26 @@
 unit AltIce;
 
-{ Draft declarations of AltIce, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AltIce altar specialization recovered from AoWEPACK.dpl.
+  Both classes retain their inherited layouts with no added fields. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Altar;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Altar, Storms;
 
 type
   TAltarOfIce = class;
   TAltarOfIceResource = class;
 
 
-  { TAltarOfIce (instance size 68, VMT 557CFAF0) }
+  { TAltarOfIce (instance size 68, no added fields, VMT 557CFAF0) }
   TAltarOfIce = class(TAltar)
   public
     class function ClassID: Integer; override;
-    procedure CreateStorm; override;
+    function CreateStorm: TStorm; override;
   end;
 
-  { TAltarOfIceResource (instance size 116, VMT 557CFDA0) }
+  { TAltarOfIceResource (instance size 116, no added fields, VMT 557CFDA0) }
   TAltarOfIceResource = class(TAltarResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -30,31 +29,36 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterAltarOfIce;  { draft }
+procedure RegisterAltarOfIce(AEngine: TEngine);
 
 implementation
 
 class function TAltarOfIce.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2024B; end;
 
-procedure TAltarOfIce.CreateStorm;
-begin end;
+function TAltarOfIce.CreateStorm: TStorm;
+begin
+  Result := TIceStorm.Create(nil);
+end;
 
 constructor TAltarOfIceResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TAltarOfIceResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(AltarOfIceRStr); end;
 
 class function TAltarOfIceResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2024C; end;
 
 function TAltarOfIceResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2024B; end;
 
-procedure RegisterAltarOfIce;
-begin end;
-
+procedure RegisterAltarOfIce(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TAltarOfIce, TAltarOfIceResource]);
+end;
 
 initialization
 finalization

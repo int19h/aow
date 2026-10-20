@@ -1,27 +1,26 @@
 unit AltDeath;
 
-{ Draft declarations of AltDeath, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AltDeath altar specialization recovered from AoWEPACK.dpl.
+  Both classes retain their inherited layouts with no added fields. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Altar;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Altar, Storms;
 
 type
   TAltarOfDeath = class;
   TAltarOfDeathResource = class;
 
 
-  { TAltarOfDeath (instance size 68, VMT 557D2094) }
+  { TAltarOfDeath (instance size 68, no added fields, VMT 557D2094) }
   TAltarOfDeath = class(TAltar)
   public
     class function ClassID: Integer; override;
-    procedure CreateStorm; override;
+    function CreateStorm: TStorm; override;
   end;
 
-  { TAltarOfDeathResource (instance size 116, VMT 557D234C) }
+  { TAltarOfDeathResource (instance size 116, no added fields, VMT 557D234C) }
   TAltarOfDeathResource = class(TAltarResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -30,31 +29,36 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterAltarOfDeath;  { draft }
+procedure RegisterAltarOfDeath(AEngine: TEngine);
 
 implementation
 
 class function TAltarOfDeath.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20235; end;
 
-procedure TAltarOfDeath.CreateStorm;
-begin end;
+function TAltarOfDeath.CreateStorm: TStorm;
+begin
+  Result := TDeathStorm.Create(nil);
+end;
 
 constructor TAltarOfDeathResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TAltarOfDeathResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(AltarOfDeathRStr); end;
 
 class function TAltarOfDeathResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20236; end;
 
 function TAltarOfDeathResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20235; end;
 
-procedure RegisterAltarOfDeath;
-begin end;
-
+procedure RegisterAltarOfDeath(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TAltarOfDeath, TAltarOfDeathResource]);
+end;
 
 initialization
 finalization
