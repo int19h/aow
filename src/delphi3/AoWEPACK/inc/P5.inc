@@ -227,7 +227,7 @@ function P5AcceptJoinEventLog(Log: TJoinEventLog; var ErrorText: string): Boolea
 begin
   { needs: P1 GetPlayers(Index: Integer): TPlayer; Player.Gold at $C4,
     EventLog.Player is signed (movsx edx,[Self+$10], 5572C1E3). }
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
     Shortint(Log.F_EventLog_10)).F_Player_C4 >= Log.FGold then
     Result := True
   else
@@ -357,22 +357,22 @@ var
   Path: TMovepath;
   Move: TMoveArmyTE;
 begin
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
     Shortint(FPlayer)).F_Player_C4 >= FGold then
   begin
-    P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
       Shortint(FPlayer)).SetGems(
-      P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+      P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
         Shortint(FPlayer)).F_Player_C4 - FGold);
     if FEventLogID <> -1 then
     begin
       Log := P5FindEventLog(TEventLogbook(
-        P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
-          Shortint(FPlayer)).F_Player_D8), FEventLogID);
+        P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+          Shortint(FPlayer)).FEventLogbook), FEventLogID);
       if Log <> nil then
         P5RemoveEventLog(TEventLogbook(
-          P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
-            Shortint(FPlayer)).F_Player_D8), Log);
+          P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+            Shortint(FPlayer)).FEventLogbook), Log);
     end;
     if (FArmyHS <> nil) and (nmMoveOnAccept in FMode) then
     begin
@@ -493,9 +493,9 @@ var
 begin
   Result := P5AcceptJoinEventLog(Log, ErrorText);
   if Result then
-    if (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
-      Shortint(Log.F_EventLog_10)).F_Player_A7 <> 0) or
-      not P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    if (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+      Shortint(Log.F_EventLog_10)).FPlayerType <> ptHuman) or
+      not P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
         Shortint(Log.F_EventLog_10))) then
     begin
       TE := Log.CreateNegotiateTE;
@@ -522,9 +522,9 @@ begin
   Result := inherited Reject(ErrorText);
   if Result then
   begin
-    if (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
-      Shortint(F_EventLog_10)).F_Player_A7 = 0) and
-      P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    if (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+      Shortint(F_EventLog_10)).FPlayerType = ptHuman) and
+      P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
         Shortint(F_EventLog_10))) then Exit;
     TE := CreateNegotiateTE;
     TE.FGold := 0;
@@ -587,11 +587,11 @@ var
   ErrorText: string;
   Msg: TMapFieldMsg;
 begin
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
-    Player).F_Player_A7 = 0 then
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+    Player).FPlayerType = ptHuman then
   begin
     { needs: P1 current-player byte at $A5, inside the draft $A4 field. }
-    if Player = TXYL(P5AoWHSMap.F_AbstractAoWHSMap_A4).Y then
+    if Player = P5AoWHSMap.FSeatedPlayer then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
       Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
@@ -610,7 +610,7 @@ begin
     end;
   end
   else
-    if P5PlayerLocal(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    if P5PlayerLocal(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
       Player)) then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
@@ -626,7 +626,7 @@ begin
       Msg.Result := 0;
       P5AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
       if (Msg.Param[1] <> 0) and
-        (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+        (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
           Player).F_Player_C4 >= Log.FGold) then
         Log.Accept(Integer(@ErrorText), 0)
       else

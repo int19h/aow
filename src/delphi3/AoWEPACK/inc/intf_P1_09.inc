@@ -39,7 +39,7 @@
   TRaceResourceList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetRaceResource(A1: Integer);  { draft }
+    function GetRaceResource(Index: Integer): TRaceResource;
     procedure GetMaxRaceIndex;  { draft }
   end;
 

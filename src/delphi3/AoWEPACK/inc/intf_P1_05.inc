@@ -92,7 +92,9 @@
   { TAbstractAoWHSMap (instance size 216, VMT 5570E37C) }
   TAbstractAoWHSMap = class(THSMap)
   public
-    F_AbstractAoWHSMap_A4: Integer;
+    FCurrentPlayer: Shortint;  { $A4 }
+    FSeatedPlayer: Shortint;  { $A5 }
+    FReservedA6: array[0..1] of Byte;
     F_AbstractAoWHSMap_A8: Integer;
     F_AbstractAoWHSMap_AC: Integer;
     F_AbstractAoWHSMap_B0: Byte;
@@ -220,8 +222,8 @@
     F_AoWHSMap_13A: Byte;
     F_AoWHSMap_13B: array[0..0] of Byte;
     F_AoWHSMap_13C: Integer;
-    F_AoWHSMap_140: Integer;
-    F_AoWHSMap_144: Integer;
+    FPlayers: TPlayerList;  { $140 }
+    FRaces: TRaceList;  { $144 }
     F_AoWHSMap_148: Byte;
     F_AoWHSMap_149: Byte;
     F_AoWHSMap_14A: Byte;
@@ -239,13 +241,13 @@
     F_AoWHSMap_16C: Byte;
     F_AoWHSMap_16D: array[0..2] of Byte;
     F_AoWHSMap_170: Integer;
-    F_AoWHSMap_174: Integer;
+    FDay: Integer;  { $174 }
     F_AoWHSMap_178: Integer;
     F_AoWHSMap_17C: Integer;
     F_AoWHSMap_180: Byte;
     F_AoWHSMap_181: array[0..2] of Byte;
     F_AoWHSMap_184: Integer;
-    F_AoWHSMap_188: Integer;
+    FPlayerControl: TPlayerControl;  { $188 }
     F_AoWHSMap_18C: Integer;
     F_AoWHSMap_190: array[0..0] of Byte;
     F_AoWHSMap_191: Byte;
@@ -386,7 +388,7 @@
     procedure NotifyPlayerChangedEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure UpdatePlayerSeen(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
     procedure NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure VisibleForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
     procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure MouseMoved;  { draft }
     procedure UpdateCursor;  { draft }

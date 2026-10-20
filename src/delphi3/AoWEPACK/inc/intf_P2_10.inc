@@ -11,20 +11,20 @@
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
   end;
 
-procedure TranslateRStr(A1: Integer; A2: Integer);  { draft }
-procedure HitRole(A1: Integer);  { draft }
-procedure HitRoleProbability(A1: Integer);  { draft }
-procedure DMmaxDCtoDV(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure DMDCtoDV(A1: Integer; A2: Integer);  { draft }
-procedure ExecuteDamageRole(A1: Integer; A2: Integer);  { draft }
-procedure DVtoDEV(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-procedure StatisticsToMaxDamage(A1: Integer; A2: Word; A3: Integer; A4: Integer);  { draft }
-procedure StatisticsToDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
-procedure StatisticsToLimitedDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
-procedure DistributeCombatEvent(A1: Integer; A2: Byte);  { draft }
-procedure CreateDamageCA(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+function TranslateRStr(const S: string): string;
+function HitRole(AttackDefense: Integer): Boolean;
+function HitRoleProbability(AttackDefense: Integer): Single;
+function DMmaxDCtoDV(Damage, AttackDefense, Maximum: Integer): Integer;
+function DMDCtoDV(Damage, AttackDefense: Integer): Integer;
+function ExecuteDamageRole(Damage, AttackDefense: Integer): Integer;
+function DVtoDEV(SourceDV, TargetDV: Integer; Source, Target: TCombatObject): Integer;
+function StatisticsToMaxDamage(Damage: Integer; DamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+procedure DistributeCombatEvent(Logbook: TCombatLogbook; Execute: Boolean);
+function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensive: Boolean; DamageTypes: TDamageTypes): TDamageCA;
 procedure RetrieveDefaultDiplomaticActionMessage(A1: Integer; A2: Byte; A3: Byte);  { draft }
-procedure MaximizeMovePointTable(A1: Integer; A2: Integer);  { draft }
+procedure MaximizeMovePointTable(var Table; const Other);
 procedure CreateArmyMoveTE(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure CreateArmyMoveXYLTE(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
 procedure MoveArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
@@ -41,8 +41,8 @@ procedure ShowHitPcnt(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { dr
 procedure ShowDamageIcon(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure DamageEffectsAnimationFrames(A1: Word; A2: Integer; A3: Integer);  { draft }
-procedure StatusToStatusValue(A1: Integer);  { draft }
-procedure StatusValueToStatus(A1: Integer);  { draft }
+function StatusToStatusValue(Status: TStatus): Integer;
+function StatusValueToStatus(Value: Integer): TStatus;
 procedure MoraleToMoraleValue(A1: Integer);  { draft }
 procedure MoraleValueToMorale(A1: Integer);  { draft }
 procedure dAlignmentsToStatus(A1: Byte; A2: Byte; A3: Integer);  { draft }

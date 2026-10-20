@@ -222,9 +222,7 @@ end;
 
 class function TFlagMessageEventResource.ResourceEditName: string;
 begin
-  { needs: AoWE.TranslateRStr(const S: string): string; pass its
-    hidden result address explicitly until P1 corrects the declaration. }
-  AoWE.TranslateRStr(Integer(FlagMessageEventRStr), Integer(@Result));
+  Result := AoWE.TranslateRStr(FlagMessageEventRStr);
 end;
 
 function TFlagMessageEventResource.ResourceUserClassID: Integer;
@@ -270,9 +268,7 @@ end;
 
 class function TTutorialMessageEventResource.ResourceEditName: string;
 begin
-  { needs: AoWE.TranslateRStr(const S: string): string; pass its
-    hidden result address explicitly until P1 corrects the declaration. }
-  AoWE.TranslateRStr(Integer(TutorialMessageEventRStr), Integer(@Result));
+  Result := AoWE.TranslateRStr(TutorialMessageEventRStr);
 end;
 
 function TTutorialMessageEventResource.ResourceUserClassID: Integer;

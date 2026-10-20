@@ -1,43 +1,43 @@
 { Interface declaration run owned by P1. }
-  { TRace (instance size 24, VMT 5570B8C4) }
+  { TRace: size $18; $08 race, $0C defaults, $10 player relations, $14 enabled. }
   TRace = class(TEObject)
   public
-    F_Race_08: Byte;
+    FRace: Shortint;  { $08 }
     F_Race_09: array[0..2] of Byte;
-    F_Race_0C: Integer;
-    F_Race_10: Integer;
-    F_Race_14: Byte;
+    FDefaultRelations: TByteList;  { $0C, TStatus values }
+    FPlayerRelations: TIntegerList;  { $10 }
+    FEnabled: Boolean;  { $14 }
     F_Race_15: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetRelationValue(A1: Integer);  { draft }
-    procedure GetRelation(A1: Integer);  { draft }
-    procedure SetPlayerRelationValue(A1: Byte; A2: Integer);  { draft }
-    procedure GetPlayerRelationValue(A1: Integer);  { draft }
-    procedure GetPlayerRelation(A1: Integer);  { draft }
-    procedure NewDay;  { draft }
-    procedure GetDefaultRaceRelation(A1: Integer);  { draft }
-    procedure ResetDefaultRaceRelations;  { draft }
-    procedure ResetPlayerRelations;  { draft }
-    procedure SetRace(A1: Byte);  { draft }
-    procedure SetEnabled(A1: Integer);  { draft }
+    function GetRelationValue(Race: Shortint): Integer;
+    function GetRelation(Race: Shortint): TStatus;
+    procedure SetPlayerRelationValue(Player: Shortint; Value: Integer);
+    function GetPlayerRelationValue(Player: Shortint): Integer;
+    function GetPlayerRelation(Player: Shortint): TStatus;
+    procedure NewDay;
+    function GetDefaultRaceRelation(Race: Shortint): TStatus;
+    procedure ResetDefaultRaceRelations;
+    procedure ResetPlayerRelations;
+    procedure SetRace(Value: Shortint);
+    procedure SetEnabled(Value: Boolean);
   end;
 
   { TRaceList (instance size 20, VMT 5570B974) }
   TRaceList = class(TEControlStyleNode)
   public
-    F_RaceList_10: Integer;
+    FRelationOffset: Integer;  { $10 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetRace(A1: Integer);  { draft }
-    procedure GetEnabledRaces;  { draft }
-    procedure GetRandomRace;  { draft }
-    procedure ResetPlayerRelations;  { draft }
-    procedure ResetDefaultRelations;  { draft }
-    procedure Update(A1: Integer; A2: Integer);  { draft }
+    function GetRace(Index: Integer): TRace;
+    function GetEnabledRaces: Integer;
+    function GetRandomRace: Shortint;
+    procedure ResetPlayerRelations;
+    procedure ResetDefaultRelations;
+    procedure Update;
   end;
 
   { TDiplomaticRelationList (instance size 20, VMT 5570BA68) }
@@ -210,9 +210,9 @@
     F_Player_9C: Integer;
     F_Player_A0: Integer;
     F_Player_A4: Byte;
-    F_Player_A5: Byte;
+    FPlayerRace: Shortint;  { $A5 }
     F_Player_A6: Byte;
-    F_Player_A7: Byte;
+    FPlayerType: TPlayerType;  { $A7 }
     F_Player_A8: Byte;
     F_Player_A9: Byte;
     F_Player_AA: array[0..1] of Byte;
@@ -227,7 +227,7 @@
     F_Player_CC: Integer;
     F_Player_D0: Integer;
     F_Player_D4: Integer;
-    F_Player_D8: Integer;
+    FEventLogbook: TEventLogbook;  { $D8 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -307,13 +307,13 @@
     procedure Update;  { draft }
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
-    procedure GetPlayers(A1: Integer);  { draft }
+    function GetPlayers(Index: Integer): TPlayer;
     procedure GetActivePlayersAllied;  { draft }
     procedure GetAverageHeroLevel;  { draft }
     procedure GetAverageHeroCount;  { draft }
     procedure GetMaxHeroCount;  { draft }
     procedure GetNumberOfPlayers;  { draft }
-    procedure RaceToPlayer(A1: Byte);  { draft }
+    function RaceToPlayer(Race: Shortint): Integer;
     procedure SetNumberOfPlayers(A1: Integer);  { draft }
     procedure ValidateRaces(A1: Integer);  { draft }
     procedure VerifyRaces(A1: Integer; A2: Integer);  { draft }

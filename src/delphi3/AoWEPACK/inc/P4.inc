@@ -132,7 +132,7 @@ end;
 procedure TDurationAbility.NewDay(A1: Integer);
 begin
   { needs: P1 global AoWHSMap: TAoWHSMap (558FA040); 55764D14 removes
-    this ability from A1 when AoWHSMap.F_AoWHSMap_174 = 1. }
+    this ability from A1 when AoWHSMap.FDay = 1. }
 end;
 
 procedure TDurationAbility.NewTurn(A1: Integer; A2: Integer);

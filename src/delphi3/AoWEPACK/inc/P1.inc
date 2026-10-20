@@ -1,211 +1,887 @@
 type
-  P1String = ^string;
+  { ABI-only view of TUnitSelector: Boolean CanSelectUnit at VMT +$04. }
+  TSelectorView = class(TObject)
+    procedure SetSelection; virtual; abstract;
+    function CanSelectUnit(Unit_: TUnit): Boolean; virtual; abstract;
+  end;
 
-var
-  { needs: public AoWEngine: TAoWEngine; original global at $558FA048,
-    read by TranslateRStr ($557249FC). Kept local to P1 until interface assembly. }
-  AoWEngine: TAoWEngine;
+resourcestring
+  NoUnitSelectedRStr = 'No unit selected';
+
+resourcestring
+  WaterRStr = 'Water';
+  GrassRStr = 'Grass';
+  DesertRStr = 'Desert';
+  SnowRStr = 'Snow';
+  SteppeRStr = 'Steppe';
+  WastelandRStr = 'Wasteland';
+  IceRStr = 'Ice';
+  EarthRStr = 'Earth';
+  RockRStr = 'Rock';
+  LavaRStr = 'Lava';
+  ReservedRStr = 'Reserved';
+  DirtRStr = 'Dirt';
+  CoastRStr = 'Coast';
+  BorderRStr = 'Border';
+  MountainRStr = 'Mountain';
+  DenseVegetationRStr = 'Dense Vegetation';
+  HillRStr = 'Hill';
+  VegetationRStr = 'Vegetation';
+  RoadRStr = 'Road';
+  BridgeRStr = 'Bridge';
+  RubbleRStr = 'Rubble';
+  StructureRStr = 'Structure';
+  ObstacleRStr = 'Obstacle';
+  LightVegetationRStr = 'Light Vegetation';
+  SolidRStr = 'Solid';
+  NoneRStr = 'None';
+  RocksRStr = 'Rocks';
+  BonesRStr = 'Bones';
+  DeadTreeRStr = 'Dead Tree';
+  ToadstoolsRStr = 'Toadstools';
+  LoadingGamePackRStr = 'Loading Game Pack';
+  LoadingUnitsRStr = 'Loading Units';
+  LoadingHeroesRStr = 'Loading Heroes';
+  LoadingItemsRStr = 'Loading Items';
+  GamePackLoadedRStr = 'Game Pack Loaded';
+
+const
+  DefaultRaceRelations: array[0..11, 0..11] of TStatus = (
+    (sFriendly, sPolite, sPolite, sPolite, sNeutral, sNeutral, sNeutral, sPolite, sNeutral, sNeutral, sNeutral, sWary),
+    (sPolite, sFriendly, sPolite, sNeutral, sNeutral, sNeutral, sNeutral, sWary, sNeutral, sNeutral, sNeutral, sWary),
+    (sPolite, sPolite, sFriendly, sPolite, sNeutral, sNeutral, sNeutral, sWary, sNeutral, sNeutral, sNeutral, sWary),
+    (sPolite, sNeutral, sPolite, sFriendly, sNeutral, sNeutral, sNeutral, sWary, sNeutral, sNeutral, sNeutral, sWary),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sFriendly, sFriendly, sPolite, sFriendly, sHostile, sHostile, sHostile, sHostile),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sFriendly, sFriendly, sFriendly, sPolite, sHostile, sHostile, sHostile, sHostile),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sPolite, sFriendly, sFriendly, sFriendly, sHostile, sHostile, sHostile, sHostile),
+    (sPolite, sWary, sWary, sWary, sFriendly, sPolite, sFriendly, sFriendly, sHostile, sHostile, sHostile, sHostile),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sHostile, sHostile, sHostile, sHostile, sFriendly, sFriendly, sPolite, sPolite),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sHostile, sHostile, sHostile, sHostile, sFriendly, sFriendly, sFriendly, sPolite),
+    (sNeutral, sNeutral, sNeutral, sNeutral, sHostile, sHostile, sHostile, sHostile, sPolite, sFriendly, sFriendly, sPolite),
+    (sWary, sWary, sWary, sWary, sHostile, sHostile, sHostile, sHostile, sPolite, sPolite, sPolite, sFriendly));
+
+type
+  { ABI-only view of TDamageCA ($18 bytes), inherited TEObject VMT through $48. }
+  TP1DamageActionView = class(TEObject)
+  public
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    procedure Slot58; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Generate(Source, Target: TCombatObject; Damage: Shortint;
+      Defensive: Boolean; DamageTypes: TDamageTypes); virtual; abstract;
+  end;
+  { ABI-only view of the $4C-byte TCombatObject, VMT $58 priority / $88 HP. }
+  TP1CombatObjectView = class(TObject)
+  public
+    procedure Slot00; virtual; abstract;
+    procedure Slot04; virtual; abstract;
+    procedure Slot08; virtual; abstract;
+    procedure Slot0C; virtual; abstract;
+    procedure Slot10; virtual; abstract;
+    procedure Slot14; virtual; abstract;
+    procedure Slot18; virtual; abstract;
+    procedure Slot1C; virtual; abstract;
+    procedure Slot20; virtual; abstract;
+    procedure Slot24; virtual; abstract;
+    procedure Slot28; virtual; abstract;
+    procedure Slot2C; virtual; abstract;
+    procedure Slot30; virtual; abstract;
+    procedure Slot34; virtual; abstract;
+    procedure Slot38; virtual; abstract;
+    procedure Slot3C; virtual; abstract;
+    procedure Slot40; virtual; abstract;
+    procedure Slot44; virtual; abstract;
+    procedure Slot48; virtual; abstract;
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    function TargetPriority: Integer; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    procedure Slot70; virtual; abstract;
+    procedure Slot74; virtual; abstract;
+    procedure Slot78; virtual; abstract;
+    procedure Slot7C; virtual; abstract;
+    procedure Slot80; virtual; abstract;
+    procedure Slot84; virtual; abstract;
+    function HitPoints: Shortint; virtual; abstract;
+  end;
+  TP1CombatPlayerIndex = function(List: TCombatPlayerList; Player: Byte): Integer;
 
 constructor TAoWHSSet.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  Enabled: TBitList;
+begin
+  inherited Create(AOwner);
+  FCombatResources := TMapObjectResourceList.Create(Self);
+  FCombatResources.SetControlStyle([csSaveLoad, csFixedChild]);
+  FCombatHexagons := THexagonControl.Create(Self);
+  FCombatHexagons.MOClass := TAbstractHexagon;
+  FCombatRoads := TRoadControl.Create(Self);
+  FCombatRoads.MOClass := TAbstractRoad;
+  ImageLibraryManager.ExecutePathSearch(AoWEngine.StartupDirectory + 'IMAGES');
+  SFXManager.ExecutePathSearch(AoWEngine.StartupDirectory + 'SFX');
+  FImageSequences := TImageSequenceList.Create(ImageLibraryManager, nil);
+  TerrainTypes.Add(TranslateRStr(WaterRStr));
+  TerrainTypes.Add(TranslateRStr(GrassRStr));
+  TerrainTypes.Add(TranslateRStr(DesertRStr));
+  TerrainTypes.Add(TranslateRStr(SnowRStr));
+  TerrainTypes.Add(TranslateRStr(SteppeRStr));
+  TerrainTypes.Add(TranslateRStr(WastelandRStr));
+  TerrainTypes.Add(TranslateRStr(IceRStr));
+  TerrainTypes.Add(TranslateRStr(EarthRStr));
+  TerrainTypes.Add(TranslateRStr(RockRStr));
+  TerrainTypes.Add(TranslateRStr(LavaRStr));
+  TerrainTypes.Add(TranslateRStr(WaterRStr));
+  TerrainTypes.Add(TranslateRStr(ReservedRStr));
+  TerrainTypes.Add(TranslateRStr(DirtRStr));
+  TerrainTypes.Add(TranslateRStr(IceRStr));
+  TerrainTypes.Add(TranslateRStr(CoastRStr));
+  TerrainTypes.Add(TranslateRStr(BorderRStr));
+  OverlayTypes.Add(TranslateRStr(MountainRStr));
+  OverlayTypes.Add(TranslateRStr(DenseVegetationRStr));
+  OverlayTypes.Add(TranslateRStr(HillRStr));
+  OverlayTypes.Add(TranslateRStr(VegetationRStr));
+  OverlayTypes.Add(TranslateRStr(RoadRStr));
+  OverlayTypes.Add(TranslateRStr(BridgeRStr));
+  OverlayTypes.Add(TranslateRStr(RubbleRStr));
+  OverlayTypes.Add(TranslateRStr(StructureRStr));
+  OverlayTypes.Add(TranslateRStr(ObstacleRStr));
+  OverlayTypes.Add(TranslateRStr(LightVegetationRStr));
+  OverlayTypes.Add(TranslateRStr(SolidRStr));
+  DecorationTypes.Add(TranslateRStr(NoneRStr));
+  DecorationTypes.Add(TranslateRStr(RocksRStr));
+  DecorationTypes.Add(TranslateRStr(BonesRStr));
+  DecorationTypes.Add(TranslateRStr(DeadTreeRStr));
+  DecorationTypes.Add(TranslateRStr(ToadstoolsRStr));
+  FPadControl := TPadControl.Create(Self);
+  Enabled := TBitList(FPadControl.F_PadControl_10);
+  Enabled[1] := True;
+  Enabled[2] := True;
+  Enabled[3] := True;
+  Enabled[4] := True;
+  Enabled[5] := True;
+  Enabled[6] := True;
+  Enabled[12] := True;
+  FRaceResources := TRaceResourceList.Create(Self);
+  FFlagControl := TFlagControl.Create(Self);
+  FFireControl := TFireControl.Create;
+  FUnitResources := TUnitResourceList.Create(Self);
+  FUnitGFXResources := TUnitGFXResourceList.Create(Self);
+  FHeroResources := THeroResourceList.Create(Self);
+  FItemGFXResources := TItemGFXList.Create(Self);
+  FFaceResources := TFaceResourceList.Create(Self);
+  FItemLibraries := TItemLibraryManager.Create(nil);
+  FHeroLibraries := THeroLibraryManager.Create(nil);
+  FAbilityControl := TAbilityControl.Create(nil);
+  FSpellControl := TSpellControl.Create(nil);
+  FTextControl := TTextControl.Create(nil);
+  FGeneralImages := ImageLibraryManager.LinkToIL([icDisk], 'GENERAL.ILB');
+  FCursorImages := ImageLibraryManager.LinkToIL([icDisk], 'CURSORS.ILB');
+  FCombatImages := ImageLibraryManager.LinkToIL([icDisk], 'COMBAT.ILB');
+end;
 
 destructor TAoWHSSet.Destroy;
-begin end;
+begin
+  FFireControl.Free;
+  FImageSequences.Free;
+  FTextControl.Free;
+  FAbilityControl.UnregisterAll;
+  FSpellControl.UnregisterAll;
+  FItemLibraries.Free;
+  FHeroLibraries.Free;
+  inherited Destroy;
+  FAbilityControl.Free;
+  FSpellControl.Free;
+end;
 
 class function TAoWHSSet.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20010; end;
 
-procedure TAoWHSSet.GetFileCRC(A1: Integer; A2: Integer);
-begin end;
+function TAoWHSSet.GetFileCRC(const FileName: string; AtEnd: Boolean): Integer;
+var
+  FileStream: TFileStream;
+begin
+  Result := 0;
+  FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+  try
+    if AtEnd then
+    begin
+      FileStream.Position := FileStream.Size - 4;
+      FileStream.Read(Result, 4);
+    end
+    else FileStream.Read(Result, 4);
+  finally
+    FileStream.Free;
+  end;
+end;
 
-procedure TAoWHSSet.RetrieveHSSCRC;
-begin end;
+function TAoWHSSet.RetrieveHSSCRC: Integer;
+var
+  CRCs: TIntegerList;
+  Path: string;
+begin
+  CRCs := TIntegerList.Create;
+  Path := ExtractFilePath(AoWEngine.HSSFileName);
+  { Original includes ABILITY.PFS twice and does not free CRCs on a read error. }
+  CRCs.Add(GetFileCRC(Path + 'ABILITY.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'ABILITY.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'UNITRES.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'UNITGFX.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'HERORES.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'ITEMGFX.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'FACERES.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'COMB_RES.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'SPELLS.PFS', False));
+  CRCs.Add(GetFileCRC(Path + 'RELEASE.HSS', True));
+  Result := GetCRC32(CRCs.List, CRCs.Count * 4);
+  CRCs.Free;
+end;
 
 procedure TAoWHSSet.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  Path: string;
+  Loaded: Boolean;
+begin
+  if smRead in Stream.StorageMode then
+    Stream.ShowProgress(Self, TranslateRStr(LoadingGamePackRStr), 0);
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FRaceResources, $0A);
+  Stream.rwEObject(FItemLibraries, $0B);
+  if not (smTextOnly in Stream.StorageMode) then
+  begin
+    Path := ExtractFilePath(AoWEngine.HSSFileName);
+    if smRead in Stream.StorageMode then
+    begin
+      Loaded := AoWEngine.ReadFromFileCRC(Path + 'ABILITY.PFS', FAbilityControl, nil);
+      Stream.ShowProgress(Self, TranslateRStr(LoadingUnitsRStr), 70);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'UNITRES.PFS', FUnitResources, nil);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'UNITGFX.PFS', FUnitGFXResources, nil);
+      Stream.ShowProgress(Self, TranslateRStr(LoadingHeroesRStr), 80);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'HERORES.PFS', FHeroResources, nil);
+      Stream.ShowProgress(Self, TranslateRStr(LoadingItemsRStr), 90);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'ITEMGFX.PFS', FItemGFXResources, nil);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'FACERES.PFS', FFaceResources, nil);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'COMB_RES.PFS', FCombatResources, nil);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'SPELLS.PFS', FSpellControl, nil);
+      Loaded := Loaded and AoWEngine.ReadFromFileCRC(Path + 'TEXT.PFS', FTextControl, nil);
+      if not Loaded then raise Exception.Create('CRC-CHECK FAILED');
+      Stream.ShowProgress(Self, TranslateRStr(GamePackLoadedRStr), 100);
+    end
+    else
+    begin
+      AoWEngine.WriteToFileCRC(Path + 'ABILITY.PFS', FAbilityControl, nil);
+      AoWEngine.WriteToFileCRC(Path + 'UNITRES.PFS', FUnitResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'UNITGFX.PFS', FUnitGFXResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'HERORES.PFS', FHeroResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'ITEMGFX.PFS', FItemGFXResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'FACERES.PFS', FFaceResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'COMB_RES.PFS', FCombatResources, nil);
+      AoWEngine.WriteToFileCRC(Path + 'SPELLS.PFS', FSpellControl, nil);
+      AoWEngine.WriteToFileCRC(Path + 'TEXT.PFS', FTextControl, nil);
+    end;
+  end
+  else
+  begin
+    Stream.rwEObject(FUnitResources, $6F);
+    Stream.rwEObject(FUnitGFXResources, $70);
+    Stream.rwEObject(FHeroResources, $71);
+    Stream.rwEObject(FItemGFXResources, $72);
+    Stream.rwEObject(FFaceResources, $73);
+    Stream.rwEObject(FSpellControl, $75);
+    Stream.rwEObject(FAbilityControl, $76);
+    Stream.rwEObject(FTextControl, $77);
+  end;
+  Stream.rwEObject(FHeroLibraries, $11);
+  Stream.rwStreamProc($12, FImageSequences.LoadFromStream, FImageSequences.SaveToStream);
+  if smRead in Stream.StorageMode then
+  begin
+    FImageSequences.LinkToIL;
+    FHSSCRC := RetrieveHSSCRC;
+  end;
+end;
 
 procedure TAoWHSSet.MainReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  DictionaryFile: string;
+begin
+  inherited MainReadWrite(Stream);
+  if Stream.StorageMode * [smRead, smTextOnly, smPreview] = [smRead] then
+  begin
+    DictionaryFile := AoWEngine.StartupDirectory + 'Dict\' + 'Release' + '.mld';
+    { needs: P2 TranslateEObjectFromFile(Obj: TEObject; const FileName: string). }
+    AoWEngine.TranslateEObjectFromFile(Integer(Self), Integer(Pointer(DictionaryFile)));
+  end;
+end;
 
 procedure TAoWHSSet.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  FItemLibraries.MsgProc(Msg, Sender);
+end;
 
 constructor TRace.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPlayerRelations := TIntegerList.Create;
+  FDefaultRelations := TByteList.Create;
+  FRace := -1;
+  FEnabled := False;
+end;
 
 destructor TRace.Destroy;
-begin end;
+begin
+  SetEnabled(False);
+  FPlayerRelations.Free;
+  FDefaultRelations.Free;
+  inherited Destroy;
+end;
 
-procedure TRace.GetRelationValue(A1: Integer);
-begin end;
+function TRace.GetRelationValue(Race: Shortint): Integer;
+var
+  Player: Integer;
+begin
+  Player := AoWHSMap.FPlayers.RaceToPlayer(Race);
+  if Player = -1 then Result := StatusToStatusValue(TStatus(FDefaultRelations[Race]))
+  else Result := FPlayerRelations[Player - 1];
+  Result := Result + TRaceList(Owner).FRelationOffset;
+end;
 
-procedure TRace.GetRelation(A1: Integer);
-begin end;
+function TRace.GetRelation(Race: Shortint): TStatus;
+var
+  Player: Integer;
+begin
+  Player := AoWHSMap.FPlayers.RaceToPlayer(Race);
+  if Player = -1 then
+    Result := StatusValueToStatus(StatusToStatusValue(TStatus(FDefaultRelations[Race])) + AoWHSMap.FRaces.FRelationOffset)
+  else Result := StatusValueToStatus(FPlayerRelations[Player - 1] + AoWHSMap.FRaces.FRelationOffset);
+end;
 
-procedure TRace.SetPlayerRelationValue(A1: Byte; A2: Integer);
-begin end;
+procedure TRace.SetPlayerRelationValue(Player: Shortint; Value: Integer);
+begin
+  if Player > 0 then
+  begin
+    { Original dereferences AoWHSMap before the nil check below. }
+    FPlayerRelations[Player - 1] := Value - AoWHSMap.FRaces.FRelationOffset;
+    if AoWHSMap <> nil then AoWHSMap.TriggerRelationsChanged;
+  end;
+end;
 
-procedure TRace.GetPlayerRelationValue(A1: Integer);
-begin end;
+function TRace.GetPlayerRelationValue(Player: Shortint): Integer;
+begin
+  if Player > 0 then Result := FPlayerRelations[Player - 1] + AoWHSMap.FRaces.FRelationOffset
+  else Result := 50;
+end;
 
-procedure TRace.GetPlayerRelation(A1: Integer);
-begin end;
+function TRace.GetPlayerRelation(Player: Shortint): TStatus;
+begin
+  if Player > 0 then Result := StatusValueToStatus(FPlayerRelations[Player - 1] + AoWHSMap.FRaces.FRelationOffset)
+  else Result := sNeutral;
+end;
 
 procedure TRace.NewDay;
-begin end;
+type
+  TControlBits = set of 0..7;
+var
+  I, DefaultValue: Integer;
+begin
+  if AoWHSMap.FDay <> 1 then
+  begin
+    if TControlBits(AoWHSMap.FPlayerControl.F_PlayerControl_10) * [1, 2] = [] then
+      for I := 0 to FPlayerRelations.Count - 1 do
+      begin
+        DefaultValue := StatusToStatusValue(TStatus(FDefaultRelations[AoWHSMap.FPlayers.GetPlayers(I + 1).FPlayerRace]));
+        if FPlayerRelations[I] > DefaultValue then
+        begin
+          FPlayerRelations[I] := FPlayerRelations[I] - 1;
+          if FPlayerRelations[I] < DefaultValue then FPlayerRelations[I] := DefaultValue;
+        end;
+        if FPlayerRelations[I] < DefaultValue then
+        begin
+          FPlayerRelations[I] := FPlayerRelations[I] + 1;
+          if FPlayerRelations[I] > DefaultValue then FPlayerRelations[I] := DefaultValue;
+        end;
+      end;
+  end
+  else ResetPlayerRelations;
+end;
 
-procedure TRace.GetDefaultRaceRelation(A1: Integer);
-begin end;
+function TRace.GetDefaultRaceRelation(Race: Shortint): TStatus;
+begin
+  if (Race >= 0) and (Race < FDefaultRelations.Count) then
+    Result := TStatus(FDefaultRelations[Race])
+  else Result := sNeutral;
+end;
 
 class function TRace.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20202; end;
 
 procedure TRace.ResetDefaultRaceRelations;
-begin end;
+var
+  I: Integer;
+begin
+  FDefaultRelations.Clear;
+  if (Smallint(FRace) >= 0) and (Smallint(FRace) <= 11) then
+    for I := 0 to 11 do FDefaultRelations.Add(Ord(DefaultRaceRelations[FRace, I]));
+end;
 
 procedure TRace.ResetPlayerRelations;
-begin end;
+var
+  I: Integer;
+begin
+  FPlayerRelations.Clear;
+  for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+    FPlayerRelations.Add(StatusToStatusValue(TStatus(FDefaultRelations[AoWHSMap.FPlayers.GetPlayers(I).FPlayerRace])));
+end;
 
-procedure TRace.SetRace(A1: Byte);
-begin end;
+procedure TRace.SetRace(Value: Shortint);
+begin
+  FRace := Value;
+  ResetDefaultRaceRelations;
+end;
 
-procedure TRace.SetEnabled(A1: Integer);
-begin end;
+procedure TRace.SetEnabled(Value: Boolean);
+begin
+  if Value <> FEnabled then
+    if AoWHSSet.FRaceResources.GetRaceResource(FRace) <> nil then
+    begin
+      if Value then AoWHSSet.FRaceResources.GetRaceResource(FRace).AddRef
+      else AoWHSSet.FRaceResources.GetRaceResource(FRace).Release;
+      FEnabled := Value;
+    end;
+end;
 
 procedure TRace.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  Enabled: Boolean;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FRace), 2);
+  Stream.rwStreamProc(3, FPlayerRelations.LoadFromStream, FPlayerRelations.SaveToStream);
+  if Stream.StorageMode * [smRead, smTextOnly, smCompare] = [smRead] then
+  begin
+    { Original leaves this local uninitialized if property 4 is absent. }
+    Stream.rwBool(Enabled, 4);
+    SetEnabled(Enabled);
+  end
+  else Stream.rwBool(FEnabled, 4);
+  Stream.rwStreamProc(5, FDefaultRelations.LoadFromStream, FDefaultRelations.SaveToStream);
+  if (smRead in Stream.StorageMode) and (FDefaultRelations.Count = 0) then ResetDefaultRaceRelations;
+end;
 
 procedure TRace.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020001 then NewDay;
+end;
 
 constructor TRaceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+end;
 
 procedure TRaceList.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FRelationOffset, 20);
+end;
 
-procedure TRaceList.GetRace(A1: Integer);
-begin end;
+function TRaceList.GetRace(Index: Integer): TRace;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then Result := TRace(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure TRaceList.GetEnabledRaces;
-begin end;
+function TRaceList.GetEnabledRaces: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FChildren.Count - 1 do
+    if (FChildren.List^[I] <> nil) and TRace(FChildren.List^[I]).FEnabled then Inc(Result);
+end;
 
-procedure TRaceList.GetRandomRace;
-begin end;
+function TRaceList.GetRandomRace: Shortint;
+var
+  I: Integer;
+  Races: TList;
+begin
+  Races := TList.Create;
+  for I := 0 to FChildren.Count - 1 do
+    if (FChildren.List^[I] <> nil) and TRace(FChildren.List^[I]).FEnabled then Races.Add(FChildren.List^[I]);
+  if Races.Count <> 0 then Result := TRace(Races.List^[Random(Races.Count)]).FRace
+  else Result := -1;
+  Races.Free;
+end;
 
 procedure TRaceList.ResetPlayerRelations;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    if FChildren.List^[I] <> nil then TRace(FChildren.List^[I]).ResetPlayerRelations;
+end;
 
 procedure TRaceList.ResetDefaultRelations;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    if FChildren.List^[I] <> nil then TRace(FChildren.List^[I]).ResetDefaultRaceRelations;
+end;
 
-procedure TRaceList.Update(A1: Integer; A2: Integer);
-begin end;
+procedure TRaceList.Update;
+var
+  I: Integer;
+  Race: TRace;
+begin
+  for I := 0 to AoWHSSet.FRaceResources.GetCount - 1 do
+    if AoWHSSet.FRaceResources.GetRaceResource(I) <> nil then
+    begin
+      if GetRace(I) = nil then
+      begin
+        Race := TRace.Create(nil);
+        Race.FRace := I;
+        Race.SetArrayOwner(Self, I);
+        Race.SetEnabled(True);
+      end;
+    end
+    else GetRace(I).Free;
+end;
 
 class function TFaceResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20270; end;
 
 function TFaceResource.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWEngine; end;
 
-procedure TFaceResource.FaceResourceIndex;
-begin end;
+function TFaceResource.FaceResourceIndex: Integer;
+begin Result := Owner.FindChildIndex(Self); end;
 
 procedure TFaceResource.LinkToIL;
-begin end;
+begin
+  ReleaseIL;
+  if FImageLibraryName <> '' then
+    FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], FImageLibraryName)
+  else FImageLibrary := nil;
+end;
 
 procedure TFaceResource.ReleaseIL;
-begin end;
+begin
+  if FImageLibrary <> nil then
+  begin
+    if FImageLibraryName <> '' then
+      AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], FImageLibraryName);
+    FImageLibrary := nil;
+  end;
+end;
 
-procedure TFaceResource.SetImageLibraryName(A1: Integer; A2: Integer);
-begin end;
+procedure TFaceResource.SetImageLibraryName(Value: string);
+begin
+  if FImageLibraryName <> '' then
+  begin
+    { Original releases the old name even when this resource has no references. }
+    AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], FImageLibraryName);
+    FImageLibrary := nil;
+  end;
+  FImageLibraryName := Value;
+  if (FImageLibraryName <> '') and (FReferences <> 0) then
+    FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], FImageLibraryName);
+end;
 
 function TFaceResource.AddRef: Integer;
-begin Result := 0; end;
+begin
+  if FReferences = 0 then LinkToIL;
+  Inc(FReferences);
+  Result := FReferences;
+end;
 
 function TFaceResource.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FReferences);
+  if FReferences = 0 then ReleaseIL;
+  Result := FReferences;
+end;
 
 function TFaceResource.GetCellImage: ImageLib.TLibraryImage;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  AddRef;
+  Result := FImageLibrary[FImageIndex];
+  Release;
+end;
 
-procedure TFaceResource.GetFaceImage;
-begin end;
+function TFaceResource.GetFaceImage: TLibraryImage;
+var
+  Images: TCustomImageLibrary;
+begin
+  Images := FImageLibrary;
+  if Images <> nil then Result := Images[FImageIndex]
+  else Result := nil;
+end;
 
 procedure TFaceResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FImageLibraryName, 5);
+  Stream.rwInteger(FImageIndex, 6);
+  Stream.rwBool(FDeveloperOnly, 7);
+end;
 
 constructor TFaceResourceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+end;
 
-procedure TFaceResourceList.IndexOfFaceImage(A1: Integer);
-begin end;
+function TFaceResourceList.IndexOfFaceImage(Image: TLibraryImage): Integer;
+var
+  Face: TFaceResource;
+begin
+  Result := GetCount;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    Face := TFaceResource(FChildren.List^[Result]);
+    if (Face <> nil) and (Face.GetFaceImage = Image) then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TFaceResourceList.GetFaceResource(A1: Integer);
-begin end;
+function TFaceResourceList.GetFaceResource(Index: Integer): TFaceResource;
+begin
+  if (Index < FChildren.Count) and (Index >= 0) then
+    Result := TFaceResource(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure TFaceResourceList.PrevFace(A1: Integer);
-begin end;
+function TFaceResourceList.PrevFace(Index: Integer): Integer;
+var
+  Developer: Boolean;
+begin
+  Result := Index;
+  Developer := TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetDeveloper;
+  { Original assumes the list contains a selectable face. }
+  repeat
+    Dec(Result);
+    if Result < 0 then Result := FChildren.Count - 1;
+  until (FChildren.List^[Result] <> nil) and
+    (Developer or not TFaceResource(FChildren.List^[Result]).FDeveloperOnly);
+end;
 
-procedure TFaceResourceList.NextFace(A1: Integer);
-begin end;
+function TFaceResourceList.NextFace(Index: Integer): Integer;
+var
+  Developer: Boolean;
+begin
+  Result := Index;
+  Developer := TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetDeveloper;
+  { Original assumes the list contains a selectable face. }
+  repeat
+    Inc(Result);
+    if Result >= FChildren.Count then Result := 0;
+  until (FChildren.List^[Result] <> nil) and
+    (Developer or not TFaceResource(FChildren.List^[Result]).FDeveloperOnly);
+end;
 
 constructor TUnitSelector.Create;
-begin end;
+begin
+  inherited Create;
+  FUnits := TUnitUserList.Create(nil);
+  FReferences := 1;
+  FCanceled := False;
+end;
 
 destructor TUnitSelector.Destroy;
-begin end;
+begin
+  FUnits.Free;
+  inherited Destroy;
+end;
 
-procedure TUnitSelector.AddRef;
-begin end;
+function TUnitSelector.AddRef: Integer;
+begin
+  Inc(FReferences);
+  Result := FReferences;
+end;
 
-procedure TUnitSelector.Release;
-begin end;
+function TUnitSelector.Release: Integer;
+var
+  Count: Integer;
+begin
+  Dec(FReferences);
+  Count := FReferences;
+  Result := Count;
+  if Count = 0 then Destroy;
+end;
 
-procedure TUnitSelector.SetSelection(A1: Byte);
-begin end;
+procedure TUnitSelector.SetSelection(Value: Byte);
+begin
+  FSelection := Value and FSelectable;
+end;
 
-procedure TUnitSelector.GetSelectionCount;
-begin end;
+function TUnitSelector.GetSelectionCount: Integer;
+var
+  Bits: Cardinal;
+begin
+  Result := 0;
+  Bits := Byte(FSelection);
+  while Bits <> 0 do
+  begin
+    if Bits and 1 <> 0 then Inc(Result);
+    Bits := Bits shr 1;
+  end;
+end;
 
-procedure TUnitSelector.CanSelect(A1: Integer);
-begin end;
+function TUnitSelector.CanSelect(var Error: string): Boolean;
+begin
+  if FSelection = 0 then
+  begin
+    Error := TranslateRStr(NoUnitSelectedRStr);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 procedure TUnitSelector.Select;
-begin end;
+asm
+  { needs: function Select: Boolean; P4 has unmarked procedure overrides. }
+  PUSH EBX
+  PUSH ESI
+  MOV BL, 1
+  CMP WORD PTR [EAX+$1E], 0
+  JE @@Done
+  MOV ESI, EAX
+  MOV EDX, EAX
+  MOV EAX, [ESI+$20]
+  CALL DWORD PTR [ESI+$1C]
+@@Done:
+  MOV EAX, EBX
+  POP ESI
+  POP EBX
+end;
 
 procedure TUnitSelector.Cancel;
-begin end;
+begin
+  if Assigned(FOnCancel) then FOnCancel(Self);
+end;
 
 procedure TUnitSelector.CanSelectUnit(A1: Integer);
-begin end;
+asm
+  { needs: function CanSelectUnit(Unit: TUnit): Boolean; unmarked P4 overrides. }
+  MOV AL, 1
+end;
 
-procedure TUnitSelector.Setup(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitSelector.Setup(Source: Pointer; Units: TUnitList);
+type
+  PSourceInfo = ^TSourceInfo;
+  TSourceInfo = record
+    Reserved00: array[0..$17] of Byte;
+    Source: Pointer;
+    Reserved1C: array[$1C..$23] of Byte;
+    Player: Shortint;
+  end;
+  TGetUnit = function(List: TUnitList; Index: Integer): TUnit;
+var
+  I: Integer;
+begin
+  if Source <> nil then
+  begin
+    FSource := PSourceInfo(Source).Source;
+    FPlayer := PSourceInfo(Source).Player;
+  end;
+  FUnits.Clear;
+  FUnits.AddUnits(Integer(Units));
+  FUnits.SortUnits;
+  { Original accumulates FSelectable rather than clearing it on a new setup. }
+  for I := FUnits.GetCount - 1 downto 0 do
+  begin
+    { needs: P2 GetUnit(Index: Integer): TUnit; current implementation is procedure. }
+    Source := Pointer(TGetUnit(@TUnitList.GetUnit)(FUnits, I));
+    if TSelectorView(Self).CanSelectUnit(TUnit(Source)) then FSelectable := FSelectable or (Byte(1) shl I);
+  end;
+end;
 
 constructor TUnitSelectorAAI.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FUnitSelector := nil;
+end;
 
 destructor TUnitSelectorAAI.Destroy;
-begin end;
+var
+  Selector: TUnitSelector;
+begin
+  Selector := FUnitSelector;
+  if Selector <> nil then
+  begin
+    Selector.Release;
+    FUnitSelector := nil;
+  end;
+  inherited Destroy;
+end;
 
-procedure TUnitSelectorAAI.SetUnitSelector(A1: Integer);
-begin end;
+procedure TUnitSelectorAAI.SetUnitSelector(Value: TUnitSelector);
+var
+  Old: TUnitSelector;
+begin
+  Old := FUnitSelector;
+  if Old <> Value then
+  begin
+    if Old <> nil then Old.Release;
+    Old := Value;
+    FUnitSelector := Old;
+    if Old <> nil then Old.AddRef;
+  end;
+end;
 
 destructor TUnitCategoryList.Destroy;
-begin end;
+begin
+  Clear;
+  inherited Destroy;
+end;
 
-procedure TUnitCategoryList.GetCategory(A1: Integer);
-begin end;
+function TUnitCategoryList.GetCategory(Index: Integer): TUnitIndexList;
+begin
+  if (Index >= 0) and (Index < Count) then
+    Result := TUnitIndexList(Items[Index])
+  else Result := nil;
+end;
 
 procedure TUnitCategoryList.Clear;
-begin end;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if List^[I] <> nil then TUnitIndexList(List^[I]).Free;
+  inherited Clear;
+end;
 
 procedure TUnitCategoryList.SortUnits;
-begin end;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if List^[I] <> nil then TUnitIndexList(List^[I]).SortUnits;
+end;
 
-procedure TUnitCategoryList.AddUnit(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitCategoryList.AddUnit(Category, UnitIndex: Integer);
+type
+  TCreateList = function(ListClass: TClass; Allocate: Byte): TUnitIndexList;
+begin
+  while Category >= Count do Add(nil);
+  { Original does not reject negative category indexes. }
+  if List^[Category] = nil then
+    { needs: P2 TUnitIndexList.Create is a parameterless constructor. }
+    List^[Category] := TCreateList(@TUnitIndexList.Create)(TUnitIndexList, 1);
+  if TUnitIndexList(List^[Category]).IndexOf(UnitIndex) = -1 then
+    TUnitIndexList(List^[Category]).Add(UnitIndex);
+end;
 
 procedure TUnitSelectionControl.Create(A1: Byte);
 begin end;
@@ -930,8 +1606,12 @@ begin end;
 procedure TPlayerList.Assign(Source: Engine.TEObject; AEngine: Engine.TEngine);
 begin end;
 
-procedure TPlayerList.GetPlayers(A1: Integer);
-begin end;
+function TPlayerList.GetPlayers(Index: Integer): TPlayer;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := TPlayer(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 procedure TPlayerList.GetActivePlayersAllied;
 begin end;
@@ -948,8 +1628,19 @@ begin end;
 procedure TPlayerList.GetNumberOfPlayers;
 begin end;
 
-procedure TPlayerList.RaceToPlayer(A1: Byte);
-begin end;
+function TPlayerList.RaceToPlayer(Race: Shortint): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  I := 1;
+  { Original uses <> Count and assumes at least the independent player exists. }
+  while (Result = -1) and (I <> FChildren.Count) do
+  begin
+    if TPlayer(FChildren.List^[I]).FPlayerRace = Race then Result := I;
+    Inc(I);
+  end;
+end;
 
 procedure TPlayerList.SetNumberOfPlayers(A1: Integer);
 begin end;
@@ -1293,8 +1984,12 @@ begin end;
 constructor TRaceResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TRaceResourceList.GetRaceResource(A1: Integer);
-begin end;
+function TRaceResourceList.GetRaceResource(Index: Integer): TRaceResource;
+begin
+  if (Index < GetCount) and (Index >= 0) then
+    Result := TRaceResource(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 procedure TRaceResourceList.GetMaxRaceIndex;
 begin end;
@@ -2922,8 +3617,8 @@ begin end;
 procedure TAoWHSMap.NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TAoWHSMap.VisibleForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAoWHSMap.VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
+begin Result := False; { draft body } end;
 
 procedure TAoWHSMap.FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
@@ -3066,59 +3761,219 @@ begin end;
 procedure TAoWHSMap.AddEffect(A1: Integer);
 begin end;
 
-procedure TranslateRStr(A1: Integer; A2: Integer);
-var
-  Source: string absolute A1;
+function TranslateRStr(const S: string): string;
 begin
-  { needs: function TranslateRStr(const S: string): string, both here and on
-    TAoWEngine; intf_P2_10 / intf_P2_08 currently declare the register operands
-    as Integers. The second operand is the hidden string-result pointer. }
   if AoWEngine <> nil then
   begin
-    AoWEngine.TranslateRStr(A1, A2);
+    { needs: TAoWEngine.TranslateRStr(const S: string): string; the P2 body
+      still has its draft header. Preserve its register ABI until assembled. }
+    AoWEngine.TranslateRStr(Integer(Pointer(S)), Integer(@Result));
     Exit;
   end;
-  P1String(A2)^ := Source;
+  Result := S;
 end;
 
-procedure HitRole(A1: Integer);
-begin end;
+function HitRole(AttackDefense: Integer): Boolean;
+begin
+  AttackDefense := AttackDefense * 10 + 50;
+  if AttackDefense < 10 then AttackDefense := 10;
+  if AttackDefense > 90 then AttackDefense := 90;
+  Result := Random(100) < AttackDefense;
+end;
 
-procedure HitRoleProbability(A1: Integer);
-begin end;
+function HitRoleProbability(AttackDefense: Integer): Single;
+var
+  Chance: Integer;
+begin
+  Chance := AttackDefense * 10 + 50;
+  if Chance < 10 then Chance := 10;
+  if Chance > 90 then Chance := 90;
+  Result := Chance / 100;
+end;
 
-procedure DMmaxDCtoDV(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function DMmaxDCtoDV(Damage, AttackDefense, Maximum: Integer): Integer;
+begin
+  if Damage > 0 then
+  begin
+    Result := DMDCtoDV(Damage, AttackDefense);
+    { Original updates only the unused Maximum parameter, leaving Result uncapped. }
+    if Damage > Maximum then Maximum := Damage;
+  end
+  else Result := 0;
+end;
 
-procedure DMDCtoDV(A1: Integer; A2: Integer);
-begin end;
+function DMDCtoDV(Damage, AttackDefense: Integer): Integer;
+var
+  Threshold: Integer;
+begin
+  if Damage > 0 then
+  begin
+    Threshold := 10 - AttackDefense * 2;
+    if Threshold > 18 then Result := Damage
+    else if Threshold >= 0 then
+    begin
+      Result := ((Damage - 1) * (18 - Threshold) + 1) shr 1 +
+        (Damage + (18 - Threshold));
+      if Threshold <> 0 then Inc(Result);
+    end
+    else
+    begin
+      Result := Damage + 1 + (18 - Threshold) +
+        (((Damage - 1) * (18 - Threshold) + 1) shr 1);
+      Threshold := -Threshold;
+      Threshold := ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
+        (Threshold + 19)) shr 1) + Threshold + 1;
+      Result := Result - Threshold;
+    end;
+    Result := Result * 5;
+  end
+  else Result := 0;
+end;
 
-procedure ExecuteDamageRole(A1: Integer; A2: Integer);
-begin end;
+function ExecuteDamageRole(Damage, AttackDefense: Integer): Integer;
+var
+  Roll: Integer;
+begin
+  if Damage > 0 then
+  begin
+    Roll := Random(20);
+    if Roll <= 1 then Result := 0
+    else if Roll >= 18 then Result := Damage
+    else
+    begin
+      AttackDefense := 10 - AttackDefense * 2;
+      if (Roll >= AttackDefense) and (AttackDefense < 18) then
+        Result := ((Damage - 1) * (Roll - AttackDefense) +
+          ((18 - AttackDefense) shr 1)) div (18 - AttackDefense) + 1
+      else Result := 0;
+    end;
+  end
+  else Result := 0;
+end;
 
-procedure DVtoDEV(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function DVtoDEV(SourceDV, TargetDV: Integer; Source, Target: TCombatObject): Integer;
+var
+  SourceObject: TP1CombatObjectView;
+begin
+  SourceObject := TP1CombatObjectView(Source);
+  { needs: P3 TCombatObject.GetTargetPriority: Integer (+$58) and
+    GetHitPoints: Shortint (+$88). Their procedure bodies are still drafts;
+    the typed VMT view preserves the proven call ABI without editing P3 bodies. }
+  if TP1CombatObjectView(Target).TargetPriority <> 0 then
+  begin
+    Result := TP1CombatObjectView(Target).TargetPriority +
+      Round(TP1CombatObjectView(Target).TargetPriority *
+        (SourceDV / (TP1CombatObjectView(Target).HitPoints * 100)));
+    if TargetDV <> 0 then
+      Result := Result - (SourceObject.TargetPriority +
+        Round(SourceObject.TargetPriority *
+          (TargetDV / (SourceObject.HitPoints * 100))));
+  end
+  else
+    Result := SourceDV + (-99999) -
+      SourceObject.TargetPriority * TargetDV;
+end;
 
-procedure StatisticsToMaxDamage(A1: Integer; A2: Word; A3: Integer; A4: Integer);
-begin end;
+function StatisticsToMaxDamage(Damage: Integer; DamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+begin
+  DamageTypes := DamageTypes - ImmunityTypes;
+  if DamageTypes <> [] then
+  begin
+    if DamageTypes - ProtectionTypes = [] then
+      Result := (Damage + 1) shr 1
+    else Result := Damage;
+  end
+  else Result := 0;
+end;
 
-procedure StatisticsToDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+begin
+  DamageTypes := DamageTypes - ImmunityTypes;
+  if DamageTypes <> [] then
+  begin
+    Attack := Attack - Defense;
+    if DamageTypes - ProtectionTypes = [] then Damage := (Damage + 1) shr 1;
+    Result := DMDCtoDV(Damage, Attack);
+  end
+  else Result := 0;
+end;
 
-procedure StatisticsToLimitedDV(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
-begin end;
+function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+var
+  Limit: Integer;
+begin
+  Limit := Maximum;
+  DamageTypes := DamageTypes - ImmunityTypes;
+  if DamageTypes <> [] then
+  begin
+    Attack := Attack - Defense;
+    if DamageTypes - ProtectionTypes = [] then Damage := (Damage + 1) shr 1;
+    Result := DMmaxDCtoDV(Damage, Attack, Limit);
+    Limit := Limit * 100;
+    if Result > Limit then Result := Limit;
+  end
+  else Result := 0;
+end;
 
-procedure DistributeCombatEvent(A1: Integer; A2: Byte);
-begin end;
+procedure DistributeCombatEvent(Logbook: TCombatLogbook; Execute: Boolean);
+var
+  Data: TCombatData;
+  I: Integer;
+  Event: TCombatEventLog;
+begin
+  Data := TCombatData(Logbook.F_CombatLogbook_10);
+  for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+    { needs: typed P3 IndexOfPlayer and the P1 VisibleForPlayer/GetPlayers
+      declarations; direct procedural casts preserve their existing draft ABI. }
+    if AoWHSMap.VisibleForPlayer(
+      Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10, I) or
+      (TP1CombatPlayerIndex(@TCombatPlayerList.IndexOfPlayer)(
+        TCombatPlayerList(TCombatData(Logbook.F_CombatLogbook_0C).F_CombatData_38), I) <> -1) then
+    begin
+      Event := TCombatEventLog.Create(nil);
+      Event.SetCombatLogbook(Integer(Logbook));
+      AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Integer(Event));
+      if Execute and (I = AoWHSMap.FSeatedPlayer) and
+        (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
+        (TCombatData(Logbook.F_CombatLogbook_10).F_CombatData_30 <> 6) then
+        Event.Execute(0, 0, 0, 0);
+      Event.Release;
+    end;
+end;
 
-procedure CreateDamageCA(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensive: Boolean; DamageTypes: TDamageTypes): TDamageCA;
+var
+  Action: TP1DamageActionView;
+begin
+  Action := TP1DamageActionView(TDamageCA.Create(nil));
+  { needs: P3 TDamageCA.Generate(Source, Target: TCombatObject;
+    Damage: Shortint; Defensive: Boolean; DamageTypes: TDamageTypes), VMT +$68. }
+  Action.Generate(Source, Target,
+    Shortint(Damage), Defensive, DamageTypes);
+  Result := TDamageCA(Action);
+end;
 
 procedure RetrieveDefaultDiplomaticActionMessage(A1: Integer; A2: Byte; A3: Byte);
 begin end;
 
-procedure MaximizeMovePointTable(A1: Integer; A2: Integer);
-begin end;
+procedure MaximizeMovePointTable(var Table; const Other);
+type
+  TMoveTable = array[0..15, 0..15] of Shortint;
+var
+  I, J: Integer;
+  OldValue, Value: Shortint;
+begin
+  for I := 0 to 12 do
+    for J := 0 to 15 do
+    begin
+      OldValue := TMoveTable(Table)[J, I];
+      Value := TMoveTable(Other)[J, I];
+      if (OldValue <> -1) and
+        ((OldValue < Value) or
+        (Value = -1)) then
+        TMoveTable(Table)[J, I] := Value;
+    end;
+end;
 
 procedure CreateArmyMoveTE(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
 begin end;
@@ -3168,11 +4023,36 @@ begin end;
 procedure DamageEffectsAnimationFrames(A1: Word; A2: Integer; A3: Integer);
 begin end;
 
-procedure StatusToStatusValue(A1: Integer);
-begin end;
+function StatusToStatusValue(Status: TStatus): Integer;
+begin
+  case Ord(Status) of
+    0: Result := 10;
+    1: Result := 30;
+    2: Result := 50;
+    3: Result := 70;
+    4: Result := 90;
+  else
+    Result := 50;
+    { Original constructs and leaks this exception without raising it. }
+    Exception.Create('Invalid TStatus Value');
+  end;
+end;
 
-procedure StatusValueToStatus(A1: Integer);
-begin end;
+function StatusValueToStatus(Value: Integer): TStatus;
+begin
+  if Value <= 20 then Result := sHostile
+  else if Value > 80 then Result := sFriendly
+  else
+    case Value of
+      21..40: Result := sWary;
+      41..60: Result := sNeutral;
+      61..80: Result := sPolite;
+    else
+      Result := sNeutral;
+      { Original constructs and leaks this exception without raising it. }
+      Exception.Create('Invalid StatusValue');
+    end;
+end;
 
 procedure MoraleToMoraleValue(A1: Integer);
 begin end;

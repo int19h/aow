@@ -1,12 +1,13 @@
 { Interface declaration run owned by P1. }
+  TUnitSelectorNotifyEvent = procedure(Selector: TUnitSelector) of object;
   { TUnitCategoryList (instance size 16, VMT 55711230) }
   TUnitCategoryList = class(TList)
   public
     destructor Destroy; override;
-    procedure GetCategory(A1: Integer);  { draft }
-    procedure Clear;  { draft }
-    procedure SortUnits;  { draft }
-    procedure AddUnit(A1: Integer; A2: Integer);  { draft }
+    function GetCategory(Index: Integer): TUnitIndexList;
+    procedure Clear;
+    procedure SortUnits;
+    procedure AddUnit(Category, UnitIndex: Integer);
   end;
 
   { TUnitSelectionControl (instance size 80, VMT 557112B4) }
@@ -42,44 +43,38 @@
   { TUnitSelector (instance size 44, VMT 557113B8) }
   TUnitSelector = class(TObject)
   public
-    F_UnitSelector_04: Integer;
-    F_UnitSelector_08: Byte;
+    FReferences: Integer;  { $04 }
+    FPlayer: Shortint;  { $08 }
     F_UnitSelector_09: array[0..2] of Byte;
     F_UnitSelector_0C: Byte;
     F_UnitSelector_0D: array[0..2] of Byte;
-    F_UnitSelector_10: Integer;
-    F_UnitSelector_14: Byte;
-    F_UnitSelector_15: Byte;
-    F_UnitSelector_16: Byte;
+    FUnits: TUnitUserList;  { $10 }
+    FSelection: Byte;  { $14 }
+    FCanceled: Boolean;  { $15 }
+    FSelectable: Byte;  { $16 }
     F_UnitSelector_17: array[0..0] of Byte;
-    F_UnitSelector_18: Integer;
-    F_UnitSelector_1C: Byte;
-    F_UnitSelector_1D: array[0..0] of Byte;
-    F_UnitSelector_1E: Word;
-    F_UnitSelector_20: Integer;
-    F_UnitSelector_24: Byte;
-    F_UnitSelector_25: array[0..0] of Byte;
-    F_UnitSelector_26: Word;
-    F_UnitSelector_28: Integer;
+    FSource: Pointer;  { $18 }
+    FOnSelect: TUnitSelectorNotifyEvent;  { $1C }
+    FOnCancel: TUnitSelectorNotifyEvent;  { $24 }
     destructor Destroy; override;
-    procedure SetSelection(A1: Byte); virtual;  { +000 draft }
+    procedure SetSelection(Value: Byte); virtual;
     procedure CanSelectUnit(A1: Integer); virtual;  { +004 draft }
-    procedure Setup(A1: Integer; A2: Integer); virtual;  { +008 draft }
-    procedure CanSelect(A1: Integer); virtual;  { +00C draft }
+    procedure Setup(Source: Pointer; Units: TUnitList); virtual;
+    function CanSelect(var Error: string): Boolean; virtual;
     procedure Select; virtual;  { +010 draft }
-    procedure Cancel; virtual;  { +014 draft }
+    procedure Cancel; virtual;
     constructor Create;  { draft }
-    procedure AddRef;  { draft }
-    procedure Release;  { draft }
-    procedure GetSelectionCount;  { draft }
+    function AddRef: Integer;
+    function Release: Integer;
+    function GetSelectionCount: Integer;
   end;
 
   { TUnitSelectorAAI (instance size 32, VMT 55711454) }
   TUnitSelectorAAI = class(TActivateAbilityInfo)
   public
-    F_UnitSelectorAAI_1C: array[0..3] of Byte;
+    FUnitSelector: TUnitSelector;  { $1C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetUnitSelector(A1: Integer);  { draft }
+    procedure SetUnitSelector(Value: TUnitSelector);
   end;
 

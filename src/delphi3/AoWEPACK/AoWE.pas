@@ -45,10 +45,11 @@ uses
 {$I inc\intf_P2_09.inc}
 {$I inc\intf_P4_03.inc}
 {$I inc\intf_P2_10.inc}
-
-{$I inc\intf_P1_globals.inc}
+{$I inc\intf_P1_14.inc}
 
 implementation
+
+uses AoWReg;
 
 {$I inc\P1.inc}
 {$I inc\P2.inc}

@@ -312,12 +312,12 @@ begin
   begin
     if (Race <> -1) and not GetAbilityEnabled(107) then
       Result := P2GetPlayerRelationValue(
-        P2GetRace(TRaceList(P2AoWHSMap.F_AoWHSMap_144), Race), Player)
+        P2GetRace(TRaceList(P2AoWHSMap.FRaces), Race), Player)
     else
     begin
       Result := P2AlignmentToStatusValue[GetAlignment, P2GetRaceAlignment(P2GetRaceResource(
-        TRaceResourceList(P2AoWHSSet.F_AoWHSSet_54),
-        Shortint(P2GetPlayers(TPlayerList(P2AoWHSMap.F_AoWHSMap_140), Player).F_Player_A5)))];
+        TRaceResourceList(P2AoWHSSet.FRaceResources),
+        Shortint(P2GetPlayers(TPlayerList(P2AoWHSMap.FPlayers), Player).FPlayerRace)))];
     end;
   end
   else
