@@ -1,15 +1,17 @@
 { Interface declaration run owned by P1. }
   { TFire (instance size 44, VMT 557150AC) }
+  { TFire (instance size 44): $1C FMode, $1D FTurnsLeft, $1E FAge,
+    $20 FShowPriority, $24 FPlayer, $28 FExplosionFrame. }
   TFire = class(TILTerrainMO)
   public
-    F_Fire_1C: Byte;
-    F_Fire_1D: Byte;
-    F_Fire_1E: Byte;
+    FMode: TFireMode; { $1C }
+    FTurnsLeft: Byte; { $1D }
+    FAge: Byte; { $1E }
     F_Fire_1F: array[0..0] of Byte;
-    F_Fire_20: Integer;
-    F_Fire_24: Byte;
+    FShowPriority: Integer; { $20 }
+    FPlayer: Shortint; { $24 }
     F_Fire_25: array[0..2] of Byte;
-    F_Fire_28: Integer;
+    FExplosionFrame: Integer; { $28 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -27,20 +29,21 @@
     function CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
     function PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean; override;
     function GetMostFrequentMapFieldTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx, Default: Shortint): Shortint; override;
-    procedure CalcShowPriority(A1: Integer);  { draft }
-    procedure SetupExplosion(A1: Integer);  { draft }
-    procedure TriggerDamage;  { draft }
-    procedure CanDoDamage(A1: Integer);  { draft }
-    procedure ArmyPlaced(A1: Integer);  { draft }
-    procedure NewTurn;  { draft }
-    procedure NewTurnDone;  { draft }
-    procedure WaterMasteryCast;  { draft }
+    procedure CalcShowPriority(MapField: TMapField);
+    procedure SetupExplosion(Delay: Integer);
+    procedure TriggerDamage;
+    function CanDoDamage(Units: TUnitList): Boolean;
+    procedure ArmyPlaced(ArmyHS: TArmyHS);
+    procedure NewTurn;
+    procedure NewTurnDone;
+    procedure WaterMasteryCast;
   end;
 
   { TFireResource (instance size 72, VMT 55715274) }
+  { TFireResource (instance size 72): $44 FFireType. }
   TFireResource = class(TILTerrainMOR)
   public
-    F_FireResource_44: Byte;
+    FFireType: TFireType; { $44 }
     F_FireResource_45: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -51,14 +54,15 @@
   end;
 
   { TFireControl (instance size 8, VMT 55715360) }
+  { TFireControl (instance size 8): $04 FResources. }
   TFireControl = class(TObject)
   public
-    F_FireControl_04: Integer;
+    FResources: TList; { $04 }
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure GetRndFireResource(A1: Byte; A2: Integer);  { draft }
-    function PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Boolean): TFire;
-    procedure RegisterFireResource;  { draft }
-    procedure UnregisterFireResource;  { draft }
+    constructor Create;
+    function GetRndFireResource(FireType: TFireType): TFireResource;
+    function PlaceFire(X, Y, L: Integer; FireType: TFireType): TFire;
+    procedure RegisterFireResource(Resource: TFireResource);
+    procedure UnregisterFireResource(Resource: TFireResource);
   end;
 

@@ -2,7 +2,7 @@
   { TStructureAIPA (instance size 28, VMT 5571999C) }
   TStructureAIPA = class(TAIPlayerAction)
   public
-    F_StructureAIPA_14: Integer;
+    FPhase: Integer; { $14; 557626E3 }
     F_StructureAIPA_18: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

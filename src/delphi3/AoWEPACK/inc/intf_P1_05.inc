@@ -28,18 +28,18 @@
     FValidTargetImage: TLibraryImage; { $54 }
     FInvalidTargetImage: TLibraryImage; { $58 }
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure TriggerOnChangeEvent(A1: Byte);  { draft }
-    procedure DeselectHS;  { draft }
-    procedure MouseDownEvent;  { draft }
-    procedure ValidTarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure NewFrameEvent;  { draft }
-    procedure MouseMoveEvent;  { draft }
-    procedure ShowSelection(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    constructor Create;
+    procedure TriggerOnChangeEvent(Change: TTargetSelectionChange);
+    procedure DeselectHS(Sender: TObject);
+    procedure MouseDownEvent(Sender: TObject);
+    function ValidTarget(X, Y, L: Shortint): Boolean;
+    procedure NewFrameEvent(Sender: TObject);
+    procedure MouseMoveEvent(Sender: TObject);
+    procedure ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
     procedure Initialize(A1: TObject);
-    procedure Activate;  { draft }
-    procedure Deactivate;  { draft }
-    procedure UnitChanged(A1: Integer);  { draft }
+    procedure Activate;
+    procedure Deactivate;
+    procedure UnitChanged(AUnit: TAbstractUnit);
   end;
 
   { TAoWHSMapKeyboard (instance size 20, VMT 5570E11C) }
@@ -215,7 +215,7 @@
     FAIExecuter: TAIExecuter; { $128 }
     FAIPlayerActionManager: TAIPlayerActionManager; { $12C }
     FAIGroupManager: TAIGroupManager; { $130 }
-    F_AoWHSMap_134: Integer;
+    FKeyboard: TAoWHSMapKeyboard; { $134; 5576374C }
     F_AoWHSMap_138: Byte;
     FRequestCombatType: Boolean; { $139 }
     { conflict: FGameMode: Byte; }

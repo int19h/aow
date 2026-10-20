@@ -79,7 +79,7 @@ procedure InvertDamageTypes(A1: Word);  { draft }
 procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
 procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
-procedure IgnitionChance(A1: Integer);  { draft }
+function IgnitionChance(MapField: TAoWMapField): Integer; { 55762E4D }
 function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
 function StrikeDV(A1, A2: TCombatObject): Integer;

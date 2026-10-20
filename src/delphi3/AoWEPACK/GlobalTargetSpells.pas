@@ -841,12 +841,12 @@ begin
       if TGlobalTargetSpellCalls(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(11)).
         ValidMapF(Integer(MapF)) and (MapF.GetArmyHS() = nil) then
       begin
-        Fire := TFireControl(SpellHSSet^.FFireControl).PlaceFire(Walk.X,Walk.Y,TSpellLocation(FLocation).Layer,True);
+        Fire := TFireControl(SpellHSSet^.FFireControl).PlaceFire(Walk.X,Walk.Y,TSpellLocation(FLocation).Layer,ftLarge);
         if Fire <> nil then
         begin
           Fire.SetupExplosion(Random(35));
-          Fire.F_Fire_1D := 3;
-          Fire.F_Fire_24 := Self.GetSource().FPlayer;
+          Fire.FTurnsLeft := 3;
+          Fire.FPlayer := Self.GetSource().FPlayer;
         end;
       end;
     end;

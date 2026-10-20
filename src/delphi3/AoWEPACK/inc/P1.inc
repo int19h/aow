@@ -8541,194 +8541,722 @@ begin end;
 class function TStructurePhase1AIPA.Priority: Integer;
 begin Result := 0; end;
 
+{ TStructurePhase2AIPA (instance size 28): inherited $14 FPhase. }
 constructor TStructurePhase2AIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPhase := 2;
+end;
 
 class function TStructurePhase2AIPA.Priority: Integer;
-begin Result := 0; end;
+begin
+  Result := 15;
+end;
 
+{ TFire (instance size 44): $1C mode, $1D lifetime, $1E age,
+  $20 priority, $24 owner player, $28 explosion frame. }
 constructor TFire.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTurnsLeft := 3;
+  FAge := 0;
+  FPlayer := 0;
+  FShowPriority := $68000000;
+  FMode := [fmExpandable];
+  FExplosionFrame := 0;
+end;
 
 class function TFire.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2077E;
+end;
 
 procedure TFire.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FTurnsLeft, 5);
+  Stream.rwData(FMode, 1, 6);
+  Stream.rwByte(Byte(FPlayer), 7);
+  Stream.rwByte(FAge, 8);
+end;
 
 function TFire.GetTerrain(Index: Integer): ShortInt;
-begin Result := 0; end;
+begin
+  Result := FResource.TerrainList.GetTerrain(Index);
+  if Result >= 0 then Result := -1;
+end;
 
 function TFire.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := FShowPriority;
+end;
 
-procedure TFire.CalcShowPriority(A1: Integer);
-begin end;
+procedure TFire.CalcShowPriority(MapField: TMapField);
+var
+  X, Y: Integer;
+  HS: THexagonSprite;
+begin
+  HXtoHP(MapField.Xhx, MapField.Yhx, X, Y);
+  HS := MapField.GetMaxLevelNoneTransparentHS;
+  FShowPriority := $68000000 + (Y + 36) shl 13 + (X + 16);
+  if (HS <> Self) and (HS <> nil) then
+    if HS.GetShowPriority >= FShowPriority then
+      FShowPriority := HS.GetShowPriority + 1;
+end;
 
 function TFire.PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
-begin Result := False; end;
+begin
+  CalcShowPriority(MapContainer.GetField(Xhx, Yhx, Lhx));
+  Result := inherited PlaceHX(MapContainer, Xhx, Yhx, Lhx);
+end;
 
 function TFire.GetMostFrequentMapFieldTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx, Default: Shortint): Shortint;
-begin Result := 0; end;
+var
+  Terrains: TTerrainList;
+  Counts: array[0..127] of Byte;
+  Walk: THNWalkData;
+  TerrainType: Shortint;
+begin
+  Result := Default;
+  Terrains := FResource.TerrainList;
+  if Result < 0 then Result := 0;
+  FillChar(Counts, SizeOf(Counts), 0);
+  InitHNWalk(Walk, Xhx, Yhx, 0);
+  while Walk.HN < Terrains.Count do
+  begin
+    if (FResource.TerrainList.GetTerrain(Walk.HN) >= 0) and
+      (Walk.X >= 0) and (Walk.Y >= 0) and
+      (Walk.X < MapLevel.Width) and (Walk.Y < MapLevel.Height) then
+    begin
+      TerrainType := MapLevel.GetField(Walk.X, Walk.Y).TerrainType;
+      if TerrainType >= 0 then
+      begin
+        Inc(Counts[TerrainType]);
+        if Counts[TerrainType] > Counts[Result] then Result := TerrainType;
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+  if Default >= 0 then
+    if Counts[Result] = Counts[Default] then Result := Default;
+end;
 
 procedure TFire.Connect;
-begin end;
+begin
+  CalcShowPriority(TMapField(Owner));
+  inherited Connect;
+end;
 
 function TFire.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceOnMap;
+  if Result then TMapField(Owner).UpdateMapField;
+end;
 
 procedure TFire.RemoveFromMap;
-begin end;
+var
+  MapField: TMapField;
+begin
+  MapField := TMapField(Owner);
+  if MapField <> nil then
+    with MapField do
+    begin
+      inherited RemoveFromMap;
+      UpdateMapField;
+    end;
+end;
 
 function TFire.CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: ShortInt): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanPlace(MapContainer, Xhx, Yhx, Lhx);
+  if Result then Result := MapContainer.GetField(Xhx, Yhx, Lhx).FindOwnedChild(ClassID) = nil;
+end;
 
-procedure TFire.SetupExplosion(A1: Integer);
-begin end;
+procedure TFire.SetupExplosion(Delay: Integer);
+begin
+  if FResource.ImageSequenceList.GetImageSequence(20) <> nil then
+    FExplosionFrame := Delay + AoWHSMap.Frame;
+end;
 
 procedure TFire.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+begin
+  if not (moVisible in FStatus) and (FExplosionFrame <> 0) and
+    (AoWHSMap.Frame = FExplosionFrame) then
+    PlaySample(ExplosionSFX[(GetXhx + AoWHSMap.Frame) mod 2]);
+  inherited MakeVisible(VisibilityList);
+end;
 
 procedure TFire.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Frame, X, Y: Integer;
+begin
+  if FExplosionFrame <> 0 then
+  begin
+    Frame := AoWHSMap.Frame - FExplosionFrame;
+    if (Frame >= 0) and
+      (Frame < FResource.ImageSequenceList.GetImageSequence(20).GetTotalSequenceFrames) then
+    begin
+      HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+      FResource.ImageSequenceList.Show(20, X - XhpSurf, Y - YhpSurf, Frame, SurfaceDesc);
+    end
+    else if (Frame < -1000) or (Frame >= 0) then
+    begin
+      FExplosionFrame := 0;
+      inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
+    end;
+  end
+  else inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 procedure TFire.TriggerDamage;
-begin end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1105;
+  Msg.Param[0] := Integer(Self);
+  Msg.Result := 0;
+  TMapField(Owner).SendMapFieldMsg(Msg);
+end;
 
-procedure TFire.CanDoDamage(A1: Integer);
-begin end;
+function TFire.CanDoDamage(Units: TUnitList): Boolean;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  Result := False;
+  I := Units.GetCount;
+  while not Result and (I <> 0) do
+  begin
+    Dec(I);
+    AUnit := Units.GetUnit(I);
+    Result := not (dtFire in AUnit.GetImmunityTypes);
+  end;
+end;
 
 procedure TFire.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if FResource.TerrainList.GetTerrain(Info.HN) >= 0 then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $2000;
+end;
 
 function TFire.CanMoveOver(const Info: HSEngine.THSSenderInfo): Integer;
-begin Result := 0; end;
+begin
+  if FResource.TerrainList.GetTerrain(Info.HN) >= 0 then
+  begin
+    if not CanDoDamage(TMoveControl(Info.Sender).FSettings.FUnits) then Result := 1
+    else
+    begin
+      Result := 0;
+      Exit;
+    end;
+  end
+  else Result := 1;
+end;
 
-procedure TFire.ArmyPlaced(A1: Integer);
-begin end;
+procedure TFire.ArmyPlaced(ArmyHS: TArmyHS);
+begin
+  if not (msEditting in AoWHSMap.Status) then ArmyHS.FArmy.TriggerFireDamage;
+end;
 
 procedure TFire.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  if (Msg.MsgID <> $10) or (msEditting in AoWHSMap.Status) then inherited MapFieldMsgProc(Msg);
+  if (Msg.MsgID = $1142) and (FResource.TerrainList.GetTerrain(Msg.HN) >= 0) then
+  begin
+    ArmyPlaced(TArmyHS(Msg.Param[0]));
+    Exit;
+  end;
+  if (Msg.MsgID = $1120) and (FResource.TerrainList.GetTerrain(Msg.HN) >= 0) then
+    if not (dtFire in TArmyHS(Msg.Param[0]).FArmy.ImmunityTypes($FF)) then Msg.Result := 1;
+end;
 
 procedure TFire.NewTurn;
-begin end;
+begin
+  if FAge < 99 then Inc(FAge);
+end;
 
 procedure TFire.NewTurnDone;
-begin end;
+var
+  Walk: THNWalkData;
+  MapLevel: TMapLevel;
+  Chance: Integer;
+  Fire: TFire;
+begin
+  if FAge > 0 then
+  begin
+    MapLevel := TMapLevel(TMapField(Owner).Owner);
+    InitHNWalk(Walk, GetXhx, GetYhx, 1);
+    while Walk.Radius = 1 do
+    begin
+      { Original excludes the top row when spreading fire. }
+      if (Walk.X >= 0) and (Walk.X < MapLevel.Width) and
+        (Walk.Y > 0) and (Walk.Y < MapLevel.Height) then
+      begin
+        Chance := IgnitionChance(TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y)));
+        if Chance > AoWHSMap.Random(1000) then
+        begin
+          RandSeed := AoWHSMap.Random($FFFFFF);
+          Fire := AoWHSSet.FFireControl.PlaceFire(Walk.X, Walk.Y, GetLhx, ftLarge);
+          if Fire <> nil then
+          begin
+            Fire.FPlayer := FPlayer;
+            Fire.FTurnsLeft := 3;
+          end;
+        end;
+      end;
+      WalkToNextHN(Walk);
+    end;
+  end;
+  if FTurnsLeft <> 0 then
+  begin
+    Dec(FTurnsLeft);
+    if FTurnsLeft <> 0 then TriggerDamage else Destroy;
+  end
+  else TriggerDamage;
+end;
 
 procedure TFire.WaterMasteryCast;
-begin end;
+begin
+  if FTurnsLeft <> 0 then Destroy;
+end;
 
 procedure TFire.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20020002) and (Msg.Value = FPlayer) then
+  begin
+    NewTurn;
+    Exit;
+  end;
+  if (Msg.MsgID = $20020003) and (Msg.Value = FPlayer) then NewTurnDone
+  else if (Msg.MsgID = $20020102) and (Byte(Msg.Param[1]) = 6) then WaterMasteryCast;
+end;
 
+{ TFireResource (instance size 72): $44 FFireType. }
 destructor TFireResource.Destroy;
-begin end;
+begin
+  if (FEngine <> nil) and not (ssDestroying in AoWHSSet.Status) then
+    AoWHSSet.FFireControl.UnregisterFireResource(Self);
+  inherited Destroy;
+end;
+
+resourcestring
+    FireRStr = 'Fire';
 
 class function TFireResource.ResourceEditName: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(FireRStr);
+end;
 
 class function TFireResource.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2077F;
+end;
 
 function TFireResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2077E;
+end;
 
 procedure TFireResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FFireType, 1, 20);
+end;
 
 procedure TFireResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then AoWHSSet.FFireControl.RegisterFireResource(Self);
+end;
 
+{ TFireControl (instance size 8): $04 FResources. }
 constructor TFireControl.Create;
-begin end;
+begin
+  inherited Create;
+  FResources := TList.Create;
+end;
 
 destructor TFireControl.Destroy;
-begin end;
+begin
+  FResources.Free;
+  inherited Destroy;
+end;
 
-procedure TFireControl.GetRndFireResource(A1: Byte; A2: Integer);
-begin end;
+function TFireControl.GetRndFireResource(FireType: TFireType): TFireResource;
+var
+  I: Integer;
+  Resources: TList;
+begin
+  Resources := TList.Create;
+  for I := 0 to FResources.Count - 1 do
+    if TFireResource(FResources.List^[I]).FFireType = FireType then
+      Resources.Add(FResources.List^[I]);
+  if Resources.Count <> 0 then
+    Result := TFireResource(Resources.List^[System.Random(Resources.Count)])
+  else Result := nil;
+  Resources.Free;
+end;
 
-function TFireControl.PlaceFire(A1: Integer; A2: Integer; A3: Integer; A4: Boolean): TFire;
-begin Result := nil; end;
+function TFireControl.PlaceFire(X, Y, L: Integer; FireType: TFireType): TFire;
+var
+  Resource: TFireResource;
+  Fire: TFire;
+begin
+  Resource := GetRndFireResource(FireType);
+  if Resource <> nil then
+  begin
+    Fire := TFire(Resource.CreateResourceUser);
+    Fire.FPlayer := AoWHSMap.FCurrentPlayer;
+    if not AoWHSMap.PlaceHX(Fire, X, Y, L) then
+    begin
+      Fire.Free;
+      Result := nil;
+    end
+    else
+    begin
+      Result := Fire;
+      Fire.TriggerDamage;
+    end;
+  end
+  else Result := nil;
+end;
 
-procedure TFireControl.RegisterFireResource;
-begin end;
+procedure TFireControl.RegisterFireResource(Resource: TFireResource);
+begin
+  FResources.Add(Resource);
+end;
 
-procedure TFireControl.UnregisterFireResource;
-begin end;
+procedure TFireControl.UnregisterFireResource(Resource: TFireResource);
+begin
+  FResources.Remove(Resource);
+end;
 
+{ TTargetSelectionControl (instance size 92): $04 images, $08 HNs,
+  $0C status, $0D mode, $10/$18 callbacks, $20 range, $24..$2C source
+  coordinates, $30 source, $34 change events, $38 change, $39..$3B target,
+  $3C text, $40 title, $44 cancel text, $50/$54/$58 images. }
 constructor TTargetSelectionControl.Create;
-begin end;
+begin
+  inherited Create;
+  FOnChange := TEventList.Create;
+  FHNs := TShortIntList.Create;
+  FText := TStringList.Create;
+end;
 
 destructor TTargetSelectionControl.Destroy;
-begin end;
+begin
+  FText.Free;
+  FOnChange.Free;
+  FOnChange := nil;
+  FHNs.Free;
+  FHNs := nil;
+  if FImageLibrary <> nil then
+  begin
+    { Original links the image library again when destroying the control. }
+    AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'TARGHEX.ILB');
+    FImageLibrary := nil;
+  end;
+  inherited Destroy;
+end;
 
-procedure TTargetSelectionControl.TriggerOnChangeEvent(A1: Byte);
-begin end;
+procedure TTargetSelectionControl.TriggerOnChangeEvent(Change: TTargetSelectionChange);
+begin
+  FChange := Change;
+  FOnChange.TriggerNotifyEvents(Self);
+  FChange := tscNone;
+end;
 
-procedure TTargetSelectionControl.DeselectHS;
-begin end;
+procedure TTargetSelectionControl.DeselectHS(Sender: TObject);
+begin
+  if tsActivated in FStatus then Deactivate;
+end;
 
-procedure TTargetSelectionControl.MouseDownEvent;
-begin end;
+procedure TTargetSelectionControl.MouseDownEvent(Sender: TObject);
+var
+  Mouse: THSMapMouse;
+begin
+  if tsActivated in FStatus then
+  begin
+    if (AoWHSMap.Mouse.Capture <> Self) or (AoWHSMap.Mouse.Button = mbRight) then
+    begin
+      Deactivate;
+      AoWHSMap.FSelectedArmy.FIgnoreMouseDown := True;
+    end
+    else
+    begin
+      Mouse := AoWHSMap.Mouse;
+      if (Mouse.Capture = Self) and (Mouse.Button = mbLeft) then
+      if ValidTarget(FTargetX, FTargetY, FTargetL) then
+      begin
+        TriggerOnChangeEvent(tscSelected);
+        if not (tsActivated in FStatus) then AoWHSMap.FSelectedArmy.FIgnoreMouseDown := True;
+      end;
+    end;
+  end;
+end;
 
-procedure TTargetSelectionControl.ValidTarget(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TTargetSelectionControl.ValidTarget(X, Y, L: Shortint): Boolean;
+var
+  MapField: TMapField;
+begin
+  if (X <> -1) and (Y <> -1) then
+  begin
+    if tmValidateDistance in FTargetMode then
+      Result := dHXtoRad(FSourceX, FSourceY, X, Y) <= FRange
+    else Result := True;
+    if tmFixedLevel in FTargetMode then Result := Result and (L = FSourceL);
+    MapField := AoWHSMap.MapContainer.GetField(X, Y, L);
+    Result := Result and (Smallint(MapField.TerrainType) <> 15);
+    if Result and Assigned(FOnValidateTarget) then FOnValidateTarget(Self, X, Y, L, Result);
+  end
+  else Result := False;
+end;
 
-procedure TTargetSelectionControl.NewFrameEvent;
-begin end;
+procedure TTargetSelectionControl.NewFrameEvent(Sender: TObject);
+begin
+  if tsActivated in FStatus then
+    if tsVisible in FStatus then
+    begin
+      AoWHSMap.Mouse.SetCursor(110 + (AoWHSMap.Frame shr 2) mod 10);
+      AoWHSMap.Mouse.CursorVisible := True;
+    end
+    else
+    begin
+      AoWHSMap.Mouse.SetCursor(120);
+      AoWHSMap.Mouse.CursorVisible := False;
+    end;
+end;
 
-procedure TTargetSelectionControl.MouseMoveEvent;
-begin end;
+procedure TTargetSelectionControl.MouseMoveEvent(Sender: TObject);
+begin
+  if tsActivated in FStatus then
+  begin
+    FTargetX := AoWHSMap.Mouse.GetXhx;
+    FTargetY := AoWHSMap.Mouse.GetYhx;
+    FTargetL := AoWHSMap.ViewL;
+    if (AoWHSMap.Mouse.GetXhx <> -1) and (AoWHSMap.Mouse.GetYhx <> -1) and
+      ValidTarget(AoWHSMap.Mouse.GetXhx, AoWHSMap.Mouse.GetYhx, AoWHSMap.ViewL) then
+      FStatus := FStatus + [tsVisible]
+    else FStatus := FStatus - [tsVisible];
+  end;
+end;
 
-procedure TTargetSelectionControl.ShowSelection(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TTargetSelectionControl.ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  I, DX, DY, X, Y, XS, YS: Integer;
+begin
+  if (tsActivated in FStatus) and (FTargetX <> -1) and (tsVisible in FStatus) then
+  begin
+    HXtoHP(FTargetX, FTargetY, X, Y);
+    Dec(X, XhpSurf);
+    Dec(Y, YhpSurf);
+    for I := 0 to FHNs.Count - 1 do
+      if FHNs[I] >= 0 then
+      begin
+        HNtoHP(I, DX, DY);
+        XS := X + DX;
+        YS := Y + DY;
+        if tmOwnerDraw in FTargetMode then
+        begin
+          if Assigned(FOnShow) then FOnShow(Self, I, XS, YS, SurfaceDesc);
+        end
+        else FImageLibrary.Get(FHNs[I]).Show(XS - 8, YS, SurfaceDesc);
+      end;
+  end;
+end;
 
 procedure TTargetSelectionControl.Initialize(A1: TObject);
-begin end;
+begin
+  if FImageLibrary = nil then
+    FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'TARGHEX.ILB');
+  if not (tsActivated in FStatus) then
+  begin
+    FHNs.Clear;
+    FSource := A1;
+    FTargetMode := [tmFixedLevel];
+  end
+  else raise Exception.Create('please deactivate before initializing (TTargetSelectionControl)');
+end;
 
 procedure TTargetSelectionControl.Activate;
-begin end;
+begin
+  if not (tsActivated in FStatus) then
+  begin
+    FStatus := FStatus + [tsActivated];
+    AoWHSMap.Mouse.SetCapture(Self);
+    AoWHSMap.Mouse.OnDown.Add(MouseDownEvent);
+    AoWHSMap.Mouse.OnMove.Add(MouseMoveEvent);
+    AoWHSMap.NewFrameEvents.Add(NewFrameEvent);
+    AoWHSMap.Selection.OnDeselect.Add(DeselectHS);
+    AoWHSMap.Mouse.CursorMode := $100;
+    AoWHSMap.FKeyboard.Lock;
+    TriggerOnChangeEvent(tscActivated);
+    MouseMoveEvent(Self);
+  end
+  else raise Exception.Create('Already activated');
+end;
 
 procedure TTargetSelectionControl.Deactivate;
-begin end;
+var
+  ArmyHS: TArmyHS;
+begin
+  if tsActivated in FStatus then
+  begin
+    FStatus := FStatus - [tsActivated];
+    AoWHSMap.Mouse.OnDown.Remove(MouseDownEvent);
+    AoWHSMap.Mouse.OnMove.Remove(MouseMoveEvent);
+    AoWHSMap.NewFrameEvents.Remove(NewFrameEvent);
+    AoWHSMap.Selection.OnDeselect.Remove(DeselectHS);
+    if AoWHSMap.Mouse.Capture = Self then
+      if AoWHSMap.FSelectedArmy.GetArmyHS <> nil then
+      begin
+        ArmyHS := AoWHSMap.FSelectedArmy.GetArmyHS;
+        AoWHSMap.Mouse.SetCapture(nil);
+        AoWHSMap.Selection.UnselectLocation;
+        AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+      end
+      else AoWHSMap.Mouse.SetCapture(nil);
+    AoWHSMap.FKeyboard.Unlock;
+    TriggerOnChangeEvent(tscDeactivated);
+    FSource := nil;
+    FOnShow := nil;
+    FOnValidateTarget := nil;
+  end;
+end;
 
-procedure TTargetSelectionControl.UnitChanged(A1: Integer);
-begin end;
+procedure TTargetSelectionControl.UnitChanged(AUnit: TAbstractUnit);
+begin
+  if (tsActivated in FStatus) and (FSource <> nil) and (AUnit = FSource) and
+    (usKilled in AUnit.FUnitStatus) then Deactivate;
+end;
 
-function TMovepath.MovePointsToPos(A1: Integer): Integer;
-begin Result := 0; end;
+{ TMovepath (instance size 20): inherited $04 locations and $08 count. }
+function TMovepath.MovePointsToPos(MovePoints: Integer): Integer;
+begin
+  if MovePoints >= 0 then
+  begin
+    Result := Count;
+    while (Result > 0) and (MovePoints >= 0) do
+    begin
+      Dec(Result);
+      Dec(MovePoints, List^[Result].Flag);
+    end;
+    if MovePoints < 0 then Inc(Result);
+  end
+  else Result := Count - 1;
+end;
 
-procedure TMovepath.PosToMovePoints(A1: Integer);
-begin end;
+function TMovepath.PosToMovePoints(Pos: Integer): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := Count - 1 downto Pos do Inc(Result, List^[I].Flag);
+end;
 
-procedure TMovepath.GetMovePoints;
-begin end;
+function TMovepath.GetMovePoints: Integer;
+begin
+  Result := PosToMovePoints(0);
+end;
 
+{ TMoveSettings (instance size 44): $08 path, $0C path cost, $10 object,
+  $14 available points, $1C priority, $20 selection, $24 position, $28 valid. }
 constructor TMoveSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPath := TMovepath.Create;
+  FPriority := 1;
+end;
 
 destructor TMoveSettings.Destroy;
-begin end;
+begin
+  FPath.Free;
+  inherited Destroy;
+end;
 
-procedure TMoveSettings.GetMoveLoc(A1: Integer; A2: Integer);
-begin end;
+function TMoveSettings.GetMoveLoc: TXYL;
+begin
+  if (FPath.Count > FMovePos) and (FMovePos >= 0) then
+  begin
+    Result := FPath.List^[FMovePos];
+    Result.Flag := 0;
+  end
+  else Integer(Result) := $FFFFFF;
+end;
 
-procedure TMoveSettings.GetMovePrio;
-begin end;
+function TMoveSettings.GetMovePrio: Integer;
+begin
+  Result := (FPath.Count - FMovePos) * FPriority;
+end;
 
-procedure TMoveSettingsList.GetMoveSettings(A1: Integer);
-begin end;
+{ TMoveSettingsList (instance size 12): inherited $08 FChildren. }
+function TMoveSettingsList.GetMoveSettings(Index: Integer): TMoveSettings;
+begin
+  Result := TMoveSettings(FChildren.List^[Index]);
+end;
 
-procedure TMoveSettingsList.GetNoneValidMove;
-begin end;
+function TMoveSettingsList.GetNoneValidMove: Integer;
+var
+  I, MinPriority, Priority: Integer;
+begin
+  Result := -1;
+  MinPriority := $FFFFFF;
+  for I := GetCount - 1 downto 0 do
+    with TMoveSettings(FChildren.List^[I]) do
+      if not FValid then
+      begin
+        Priority := GetMovePrio;
+        if Priority <= MinPriority then
+        begin
+          Result := I;
+          MinPriority := Priority;
+        end;
+      end;
+end;
 
-procedure TMoveSettingsList.IndexOfMoveObject(A1: Integer);
-begin end;
+function TMoveSettingsList.IndexOfMoveObject(MoveObject: TObject): Integer;
+begin
+  Result := GetCount;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if MoveObject = TMoveSettings(FChildren.List^[Result]).FMoveObject then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TMoveSettingsList.CalculateMovePositions(A1: Integer; A2: Integer);
-begin end;
+procedure TMoveSettingsList.CalculateMovePositions(Validate: TValidateMovePositionProc);
+var
+  I, Index: Integer;
+  Settings: TMoveSettings;
+begin
+  for I := GetCount - 1 downto 0 do
+  begin
+    Settings := GetMoveSettings(I);
+    Settings.FMovePos := Settings.FPath.MovePointsToPos(Settings.FMovePoints);
+    Settings.FValid := (Settings.FPath.Count = 0) or (Settings.FMovePos = Settings.FPath.Count - 1);
+  end;
+  Index := GetNoneValidMove;
+  while not (Index = -1) do
+  begin
+    if Validate(Self, Index) then
+    begin
+      GetMoveSettings(Index).FValid := True;
+      for I := 0 to GetCount - 1 do
+        if Index <> I then
+          if Integer(GetMoveSettings(Index).GetMoveLoc) = Integer(GetMoveSettings(I).GetMoveLoc) then
+            if GetMoveSettings(Index).GetMovePrio < GetMoveSettings(I).GetMovePrio then
+              GetMoveSettings(I).FValid := False;
+    end
+    else
+    begin
+      Inc(GetMoveSettings(Index).FMovePos);
+      GetMoveSettings(Index).FValid := GetMoveSettings(Index).FMovePos = GetMoveSettings(Index).FPath.Count - 1;
+    end;
+    Index := GetNoneValidMove;
+  end;
+end;
 
 constructor TMoveSelector.Create;
 begin end;
@@ -10112,8 +10640,8 @@ begin Result := 0; end;
 procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
-procedure IgnitionChance(A1: Integer);
-begin end;
+function IgnitionChance(MapField: TAoWMapField): Integer;
+begin Result := 0; end;
 
 function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
 begin Result := nil; end;

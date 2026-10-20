@@ -6,7 +6,7 @@
     F_SelectedArmy_19: array[0..2] of Byte;
     F_SelectedArmy_1C: Integer;
     F_SelectedArmy_20: Integer;
-    F_SelectedArmy_24: Byte;
+    FIgnoreMouseDown: Boolean; { $24; 557632E7 }
     F_SelectedArmy_25: array[0..2] of Byte;
     destructor Destroy; override;
     procedure MouseDownEvent(A1: Integer); override;

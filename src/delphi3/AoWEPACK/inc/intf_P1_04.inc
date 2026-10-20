@@ -164,36 +164,46 @@
   end;
 
   { TMovepath (instance size 20, VMT 5570D9F0) }
+  { TMovepath (instance size 20): inherited $04 locations and $08 count;
+    the signed Flag byte of each location is its movement cost. }
   TMovepath = class(TXYLList)
   public
-    function MovePointsToPos(A1: Integer): Integer;
-    procedure PosToMovePoints(A1: Integer);  { draft }
-    procedure GetMovePoints;  { draft }
+    function MovePointsToPos(MovePoints: Integer): Integer;
+    function PosToMovePoints(Pos: Integer): Integer;
+    function GetMovePoints: Integer;
   end;
 
-  { TMoveSettings (instance size 44, VMT 5570DA70) }
+  { TMoveSettings (instance size 44): $08 FPath, $0C FPathMovePoints,
+    $10 FMoveObject, $14 FMovePoints, $1C FPriority, $20 FSelection,
+    $24 FMovePos, $28 FValid. }
   TMoveSettings = class(TEObject)
   public
-    F_MoveSettings_08: Integer;
-    F_MoveSettings_0C: array[0..15] of Byte;
-    F_MoveSettings_1C: Integer;
-    F_MoveSettings_20: array[0..3] of Byte;
-    F_MoveSettings_24: Integer;
-    F_MoveSettings_28: Byte;
-    F_MoveSettings_29: array[0..2] of Byte;
+    FPath: TMovepath; { $08 }
+    FPathMovePoints: Integer; { $0C }
+    FMoveObject: TObject; { $10 }
+    FMovePoints: Integer; { $14 }
+    FReserved18: array[0..3] of Byte;
+    FPriority: Integer; { $1C }
+    FSelection: Byte; { $20 }
+    FReserved21: array[0..2] of Byte;
+    FMovePos: Integer; { $24 }
+    FValid: Boolean; { $28 }
+    FReserved29: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetMoveLoc(A1: Integer; A2: Integer);  { draft }
-    procedure GetMovePrio;  { draft }
+    function GetMoveLoc: TXYL;
+    function GetMovePrio: Integer;
   end;
 
-  { TMoveSettingsList (instance size 12, VMT 5570DB30) }
+  TValidateMovePositionProc = function(Moves: TMoveSettingsList; Index: Integer): Boolean;
+
+  { TMoveSettingsList (instance size 12): inherited $08 FChildren. }
   TMoveSettingsList = class(TENode)
   public
-    procedure GetMoveSettings(A1: Integer);  { draft }
-    procedure GetNoneValidMove;  { draft }
-    procedure IndexOfMoveObject(A1: Integer);  { draft }
-    procedure CalculateMovePositions(A1: Integer; A2: Integer);  { draft }
+    function GetMoveSettings(Index: Integer): TMoveSettings;
+    function GetNoneValidMove: Integer;
+    function IndexOfMoveObject(MoveObject: TObject): Integer;
+    procedure CalculateMovePositions(Validate: TValidateMovePositionProc);
   end;
 
   { TMoveSelector (instance size 24, VMT 5570DC88) }
