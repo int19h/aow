@@ -1,0 +1,52 @@
+{ Group C: AoWButton, AoWCheckBox, AoWEdit, AoWImage, AoWLabel, AOWGauge, AoWFrame,
+  aowUserDrawBox }
+procedure HostC;
+var
+  BB: TAOWBaseButton;
+  BT: TAOWButton;
+  CB: TAOWCheckBox;
+  ED: TAOWEdit;
+  IM: TAOWImage;
+  LB: TAOWLabel;
+  GA: TAoWGauge;
+  FR: TAoWFrame;
+  UD: TaowUserDrawBox;
+begin
+  BB := TAOWBaseButton.Create(nil);
+  BB.SetGText('');
+  BT := TAOWButton.Create(nil);
+  BT.Free;
+  AoWButton.Register;
+  CB := TAOWCheckBox.Create(nil);
+  CB.Free;
+  AoWCheckBox.Register;
+  ED := TAOWEdit.Create(nil);
+  ED.SetGText('');
+  ED.SetILIndex(0);
+  AoWEdit.Register;
+  IM := TAOWImage.Create(nil);
+  IM.SetILB(nil);
+  IM.SetAnim(True);
+  IM.SetStart(0);
+  IM.SetCurrent(0);
+  IM.SetEnd(0);
+  AoWImage.Register;
+  LB := TAOWLabel.Create(nil);
+  LB.SetGFont(nil);
+  LB.SetGText('');
+  AoWLabel.Register;
+  GA := TAoWGauge.Create(nil);
+  GA.SetILFIndex(0);
+  GA.SetILTnIndex(0);
+  GA.SetILTsIndex(0);
+  GA.SetPos(0);
+  AOWGauge.Register;
+  FR := TAoWFrame.Create(nil);
+  FR.SetILFIndex(0);
+  FR.SetILLIndex(0);
+  FR.SetILTIndex(0);
+  AoWFrame.Register;
+  UD := TaowUserDrawBox.Create(nil);
+  UD.Free;
+  aowUserDrawBox.Register;
+end;

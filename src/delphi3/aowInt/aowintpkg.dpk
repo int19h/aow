@@ -1,0 +1,15 @@
+package aowintpkg;
+
+{ The units of aowInt.dpl built as a package: tools/exports.py compares the export name hashes
+  (class layouts, visibility, routine signatures) with the original module. }
+
+requires
+  vcl30;
+
+contains
+  AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWDialogForm, AOWWinManager, AoWBaseWin,
+  AoWWinGeneric, AoWWindow, AOWToolTip, AoWControl, AoWVScroll, AOWMenuBar, AOWMenu, AoWButton,
+  AoWCheckBox, AoWComboBox, AoWEdit, AoWImage, AoWLabel, AoWListBox, AoWTabPanel, AoWMemo,
+  AOWInterfaceEditor, AOWGauge, AoWFrame, AoWPanel, AoWHScroll, AoWHTMLMemo, aowUserDrawBox;
+
+end.
