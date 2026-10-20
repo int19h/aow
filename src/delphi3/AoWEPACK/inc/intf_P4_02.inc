@@ -1006,7 +1006,7 @@
     F_SpellCastEventLog_1C: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
@@ -1094,7 +1094,7 @@
   TResearchSpellAIPA = class(TAIPlayerAction)
   public
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 
   { TAICastSpellAction (instance size 28, VMT 557237A8) }
@@ -1122,7 +1122,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
     procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     procedure PrefetchCastSpellActions(A1: Integer);  { draft }
     procedure CastingHeroesMax;  { draft }
     procedure ProcessStates;  { draft }

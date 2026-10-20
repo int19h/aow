@@ -49,12 +49,12 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure GetText(A1: Integer); virtual;  { +04C draft }
-    procedure GetTextColor; virtual;  { +050 draft }
-    procedure GetLeftIcon; virtual;  { +054 draft }
-    procedure GetMiddleIcon; virtual;  { +058 draft }
-    procedure GetRightIcon; virtual;  { +05C draft }
-    procedure GetVisible; virtual;  { +060 draft }
+    function GetText: string; virtual;  { $04C }
+    function GetTextColor: TColor; virtual;  { $050 }
+    function GetLeftIcon: Integer; virtual;  { $054 }
+    function GetMiddleIcon: Integer; virtual;  { $058 }
+    function GetRightIcon: Integer; virtual;  { $05C }
+    function GetVisible: Boolean; virtual;  { $060 }
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
     procedure PlayLoggedSFX(A1: Integer); virtual;  { +068 draft }
     procedure NotifyLogged(A1: Integer); virtual;  { +06C draft }
@@ -69,7 +69,7 @@ type
     FText: string;  { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
@@ -170,11 +170,11 @@ type
     procedure ListEvents(A1: Integer);  { draft }
     procedure GetLogs(A1: Integer);  { draft }
     procedure CreateUniqueID;  { draft }
-    procedure FindID;  { draft }
+    function FindID(ID: Integer): TEventLog;
     procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
     procedure FindFirstLogEx(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure AddEvent(Event: TEventLog);
-    procedure RemoveEvent;  { draft }
+    procedure RemoveEvent(Event: TEventLog);
   end;
 
   { TUserEventLog (instance size 32, VMT 557FC474) }
@@ -187,7 +187,7 @@ type
   TEndTurnEventLog = class(TEventLog)
   public
     class function ClassID: Integer; override;
-    procedure GetVisible; override;
+    function GetVisible: Boolean; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
@@ -210,7 +210,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure Handled;  { draft }
   end;
@@ -219,7 +219,7 @@ type
   TNewDayEventLog = class(TTextEventLog)
   public
     class function ClassID: Integer; override;
-    procedure GetLeftIcon; override;
+    function GetLeftIcon: Integer; override;
     procedure PlayLoggedSFX(A1: Integer); override;
   end;
 
@@ -227,7 +227,7 @@ type
   TShowBookEventLog = class(TEventLog)
   public
     class function ClassID: Integer; override;
-    procedure GetVisible; override;
+    function GetVisible: Boolean; override;
   end;
 
   { TTutorialMessageEventLog (instance size 36, VMT 557FCF54) }
@@ -302,23 +302,23 @@ begin Result := 0; end;
 procedure TEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TEventLog.GetVisible;
-begin end;
+function TEventLog.GetVisible: Boolean;
+begin Result := False; end;
 
-procedure TEventLog.GetText(A1: Integer);
-begin end;
+function TEventLog.GetText: string;
+begin Result := ''; end;
 
-procedure TEventLog.GetTextColor;
-begin end;
+function TEventLog.GetTextColor: TColor;
+begin Result := 0; end;
 
-procedure TEventLog.GetLeftIcon;
-begin end;
+function TEventLog.GetLeftIcon: Integer;
+begin Result := 0; end;
 
-procedure TEventLog.GetMiddleIcon;
-begin end;
+function TEventLog.GetMiddleIcon: Integer;
+begin Result := 0; end;
 
-procedure TEventLog.GetRightIcon;
-begin end;
+function TEventLog.GetRightIcon: Integer;
+begin Result := 0; end;
 
 function TEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
@@ -407,8 +407,8 @@ begin end;
 procedure TEventLogbook.CreateUniqueID;
 begin end;
 
-procedure TEventLogbook.FindID;
-begin end;
+function TEventLogbook.FindID(ID: Integer): TEventLog;
+begin Result := nil; end;
 
 procedure TEventLogbook.FindFirstLog(A1: Integer; A2: Integer);
 begin end;
@@ -419,7 +419,7 @@ begin end;
 procedure TEventLogbook.AddEvent(Event: TEventLog);
 begin end;
 
-procedure TEventLogbook.RemoveEvent;
+procedure TEventLogbook.RemoveEvent(Event: TEventLog);
 begin end;
 
 class function TTextEventLog.ClassID: Integer;
@@ -428,8 +428,8 @@ begin Result := 0; end;
 procedure TTextEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TTextEventLog.GetText(A1: Integer);
-begin end;
+function TTextEventLog.GetText: string;
+begin Result := ''; end;
 
 function TTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
@@ -452,8 +452,8 @@ begin end;
 function TLocationTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
-procedure TEndTurnEventLog.GetVisible;
-begin end;
+function TEndTurnEventLog.GetVisible: Boolean;
+begin Result := False; end;
 
 class function TEndTurnEventLog.ClassID: Integer;
 begin Result := 0; end;
@@ -485,8 +485,8 @@ begin Result := 0; end;
 procedure TGameOverEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TGameOverEventLog.GetText(A1: Integer);
-begin end;
+function TGameOverEventLog.GetText: string;
+begin Result := ''; end;
 
 procedure TGameOverEventLog.Handled;
 begin end;
@@ -497,8 +497,8 @@ begin end;
 class function TNewDayEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TNewDayEventLog.GetLeftIcon;
-begin end;
+function TNewDayEventLog.GetLeftIcon: Integer;
+begin Result := 0; end;
 
 procedure TNewDayEventLog.PlayLoggedSFX(A1: Integer);
 begin end;
@@ -506,8 +506,8 @@ begin end;
 class function TShowBookEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TShowBookEventLog.GetVisible;
-begin end;
+function TShowBookEventLog.GetVisible: Boolean;
+begin Result := False; end;
 
 constructor TMessageEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;

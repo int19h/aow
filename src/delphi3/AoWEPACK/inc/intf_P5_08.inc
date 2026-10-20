@@ -180,12 +180,12 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetText(A1: Integer); override;
-    procedure GetTextColor; override;
-    procedure GetLeftIcon; override;
-    procedure GetMiddleIcon; override;
-    procedure GetRightIcon; override;
-    procedure GetVisible; override;
+    function GetText: string; override;
+    function GetTextColor: TColor; override;
+    function GetLeftIcon: Integer; override;
+    function GetMiddleIcon: Integer; override;
+    function GetRightIcon: Integer; override;
+    function GetVisible: Boolean; override;
     procedure PlayLoggedSFX(A1: Integer); override;
     procedure NotifyLogged(A1: Integer); override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
@@ -201,7 +201,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
     procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     function CreateDA(Action: TDiplomaticActionType; Target, Other: Shortint; MinDays: Integer): TDiplomaticAction;
     function ExecuteDiplomacy(Player: Shortint): Boolean;
     procedure ListDebugInfo;

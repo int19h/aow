@@ -1,9 +1,10 @@
 { Interface declaration run owned by P5. }
-  { TAIPlayerAction (instance size 20, VMT 55717458) }
+  { TAIPlayerAction (instance size $14, VMT 55717458).
+    $08 process cycles, $0C player control, $10 phase. }
   TAIPlayerAction = class(TEObject)
   public
-    F_AIPlayerAction_08: Integer;
-    F_AIPlayerAction_0C: Integer;
+    FProcessCycles: Integer; { $08 }
+    FControl: TAIPlayerControl; { $0C }
     F_AIPlayerAction_10: Byte;
     F_AIPlayerAction_11: array[0..2] of Byte;
     procedure Priority; virtual; abstract;  { +04C draft }
@@ -11,7 +12,7 @@
     procedure Setup(A1: Integer; A2: Integer); virtual;  { +054 draft }
     procedure Activate(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure Deactivate; virtual;  { +05C draft }
-    procedure Process(A1: Integer; A2: Integer); virtual;  { +060 draft }
+    function Process: Boolean; virtual; { $60 }
   end;
 
   { TAIPlayerActionList (instance size 12, VMT 55717534) }
@@ -45,7 +46,7 @@
   { TAIPlayerControl (instance size 40, VMT 5571780C) }
   TAIPlayerControl = class(TEObject)
   public
-    F_AIPlayerControl_08: Integer;
+    FPlayer: TPlayer; { $08 }
     F_AIPlayerControl_0C: Integer;
     F_AIPlayerControl_10: Integer;
     F_AIPlayerControl_14: Integer;
@@ -489,14 +490,14 @@
   public
     destructor Destroy; override;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 
   { TInitializeAIPA (instance size 20, VMT 55718FB4) }
   TInitializeAIPA = class(TAIPlayerAction)
   public
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 
   { TGroupControlAIPA (instance size 28, VMT 55719090) }
@@ -507,7 +508,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     procedure ActivateGroupControl(A1: Integer);  { draft }
     procedure DeactivateGroupControl;  { draft }
   end;
@@ -522,7 +523,7 @@
     procedure Priority; override;
     procedure SupportedPhases; override;
     procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     procedure ActivateGroupControl(A1: Integer);  { draft }
     procedure DeactivateGroupControl;  { draft }
   end;
@@ -624,7 +625,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 
   { TAutoProduceAIPA (instance size 40, VMT 557197D4) }
@@ -638,7 +639,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     procedure UpdateProductions(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteProduce(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteResearch(A1: Integer; A2: Integer);  { draft }
@@ -658,6 +659,6 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 

@@ -2261,8 +2261,8 @@ begin end;
 procedure TPlayer.SetMagicUpkeep(A1: Integer);
 begin end;
 
-procedure TPlayer.GetName(A1: Integer);
-begin end;
+function TPlayer.GetName: string;
+begin Result := ''; end;
 
 procedure TPlayer.GetNameEx(A1: Integer);
 begin end;
@@ -2354,8 +2354,8 @@ begin end;
 procedure TPlayer.CaptureLocationsLeft;
 begin end;
 
-procedure TPlayer.CreateDiplomaticAction(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TPlayer.CreateDiplomaticAction(Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
+begin Result := nil; end;
 
 procedure TPlayer.DiplomaticActionAleadySend(A1: Byte; A2: Byte; A3: Integer);
 begin end;
@@ -3585,8 +3585,8 @@ begin end;
 procedure TStructureAIPA.Activate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TStructureAIPA.Process(A1: Integer; A2: Integer);
-begin end;
+function TStructureAIPA.Process: Boolean;
+begin Result := False; end;
 
 constructor TStructurePhase1AIPA.Create(AOwner: Engine.TECustomNode);
 begin end;

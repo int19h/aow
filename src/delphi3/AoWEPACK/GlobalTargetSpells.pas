@@ -490,7 +490,7 @@ var
   Caster: TAbstractUnit;
 begin
   Target := TTargetSelectionView(Sender);
-  Caster := TUnitControl(SpellHSMap^.F_AoWHSMap_FC).FindUnit(FCasterID);
+  Caster := TUnitControl(SpellHSMap^.FUnitControl).FindUnit(FCasterID);
   if Caster <> nil then
     case Target.Change of
       tscDeactivated:

@@ -2662,7 +2662,7 @@ var
   Source: TAbstractUnit;
 begin
   inherited Execute(TE);
-  Control := TUnitControlCallViewP4(AoWHSMap.F_AoWHSMap_FC);
+  Control := TUnitControlCallViewP4(AoWHSMap.FUnitControl);
   Source := Control.FindUnitResult(FEventSourceID);
   if (Source <> nil) and ((PP4TokenExecuterState(TE)^.ExecuteCount <> 0) or
     TSpellTECallViewP4(Self).ValidateValue(Source)) then
@@ -2984,8 +2984,8 @@ begin end;
 procedure TSpellCastEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TSpellCastEventLog.GetText(A1: Integer);
-begin end;
+function TSpellCastEventLog.GetText: string;
+begin Result := ''; end;
 
 constructor TUnitSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin
@@ -3433,8 +3433,8 @@ begin end;
 procedure TResearchSpellAIPA.Priority;
 begin end;
 
-procedure TResearchSpellAIPA.Process(A1: Integer; A2: Integer);
-begin end;
+function TResearchSpellAIPA.Process: Boolean;
+begin Result := False; end;
 
 procedure TAICastSpellActionList.GetCastSpellActions(A1: Integer);
 begin end;
@@ -3463,8 +3463,8 @@ begin end;
 procedure TCastSpellAIPA.ProcessStates;
 begin end;
 
-procedure TCastSpellAIPA.Process(A1: Integer; A2: Integer);
-begin end;
+function TCastSpellAIPA.Process: Boolean;
+begin Result := False; end;
 
 constructor TEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3596,8 +3596,8 @@ begin end;
 function TPlayerMagicEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
-procedure TPlayerMagicEventLog.GetText(A1: Integer);
-begin end;
+function TPlayerMagicEventLog.GetText: string;
+begin Result := ''; end;
 
 constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3808,8 +3808,8 @@ begin Result := 0; end;
 procedure TGlobalEnchantmentEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TGlobalEnchantmentEventLog.GetLeftIcon;
-begin end;
+function TGlobalEnchantmentEventLog.GetLeftIcon: Integer;
+begin Result := 0; end;
 
 procedure TGlobalEnchantmentList.GetEnchantments(A1: Integer);
 begin end;

@@ -55,7 +55,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
@@ -196,7 +196,7 @@
     F_GlobalEnchantmentEventLog_21: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetLeftIcon; override;
+    function GetLeftIcon: Integer; override;
   end;
 
   { TGlobalEnchantmentList (instance size 12, VMT 5570B5C0) }

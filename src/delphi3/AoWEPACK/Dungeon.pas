@@ -64,8 +64,8 @@ type
     F_PrisonersJoinEventLog_3D: Byte;
     F_PrisonersJoinEventLog_3E: Byte;
     F_PrisonersJoinEventLog_3F: array[0..0] of Byte;
-    procedure Accept(A1: Integer; A2: Integer); override;
-    procedure Cancel; override;
+    function Accept(var ErrorText: string): Boolean; override;
+    function Cancel: Boolean; override;
   end;
 
 procedure RegisterDungeon;  { draft }
@@ -135,11 +135,11 @@ begin Result := 0; end;
 procedure TDungeonResource.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TPrisonersJoinEventLog.Accept(A1: Integer; A2: Integer);
-begin end;
+function TPrisonersJoinEventLog.Accept(var ErrorText: string): Boolean;
+begin Result := False; end;
 
-procedure TPrisonersJoinEventLog.Cancel;
-begin end;
+function TPrisonersJoinEventLog.Cancel: Boolean;
+begin Result := False; end;
 
 procedure RegisterDungeon;
 begin end;

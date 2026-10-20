@@ -197,7 +197,7 @@
     F_AoWHSMap_F0: Integer;
     F_AoWHSMap_F4: Integer;
     F_AoWHSMap_F8: Integer;
-    F_AoWHSMap_FC: Integer;
+    FUnitControl: TUnitControl; { $FC }
     F_AoWHSMap_100: Integer;
     F_AoWHSMap_104: Byte;
     F_AoWHSMap_105: array[0..2] of Byte;

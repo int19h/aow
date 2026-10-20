@@ -211,7 +211,7 @@
     F_Player_A0: Integer;
     F_Player_A4: Byte;
     FPlayerRace: Shortint;  { $A5 }
-    F_Player_A6: Byte;
+    FPlayerIndex: Shortint; { $A6 }
     FPlayerType: TPlayerType;  { $A7 }
     F_Player_A8: Byte;
     F_Player_A9: Byte;
@@ -222,7 +222,7 @@
     F_Player_B8: Integer;
     F_Player_BC: Integer;
     F_Player_C0: Integer;
-    F_Player_C4: Integer;
+    FGems: Integer; { $C4 }
     F_Player_C8: Integer;
     F_Player_CC: Integer;
     FIncome: Integer;  { $D0 }
@@ -254,7 +254,7 @@
     procedure GetUpkeep;  { draft }
     procedure SetArmyUpkeep(A1: Integer);  { draft }
     procedure SetMagicUpkeep(A1: Integer);  { draft }
-    procedure GetName(A1: Integer);  { draft }
+    function GetName: string;
     procedure GetNameEx(A1: Integer);  { draft }
     procedure SetName(A1: Integer; A2: Integer);  { draft }
     procedure GetFace;  { draft }
@@ -283,7 +283,7 @@
     procedure UnregisterVictoryLocation;  { draft }
     procedure CheckCaptureLocations;  { draft }
     procedure CaptureLocationsLeft;  { draft }
-    procedure CreateDiplomaticAction(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    function CreateDiplomaticAction(Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
     procedure DiplomaticActionAleadySend(A1: Byte; A2: Byte; A3: Integer);  { draft }
     procedure ListDiplomaticActions(A1: Integer; A2: Integer);  { draft }
     procedure ValidAttackRelation(A1: Integer; A2: Integer);  { draft }

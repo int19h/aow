@@ -4,7 +4,7 @@
   public
     class function ClassID: Integer; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure Accept(A1: Integer; A2: Integer); override;
+    function Accept(var ErrorText: string): Boolean; override;
     procedure ExecuteAI;  { draft }
   end;
 
@@ -19,7 +19,7 @@
     F_HeroEmergeEventLog_28: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure Setup(A1: Integer; A2: Byte);  { draft }
@@ -411,9 +411,9 @@
     F_Army_10: Byte;
     F_Army_11: Byte;
     FPlayer: Shortint;  { $12 }
-    F_Army_13: Byte;
-    F_Army_14: Byte;
-    F_Army_15: Byte;
+    FX: Shortint; { $13 }
+    FY: Shortint; { $14 }
+    FL: Shortint; { $15 }
     F_Army_16: Byte;
     F_Army_17: Byte;
     F_Army_18: Integer;
@@ -481,7 +481,7 @@
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
     function ValidateSelection(A1: Byte): Byte;
-    procedure SelectionCount(A1: Byte);  { draft }
+    function SelectionCount(Selection: Byte): Integer;
     procedure ValidateMoveSelection(A1: Integer; A2: Integer);  { draft }
     procedure Select;  { draft }
     procedure Unselect;  { draft }
@@ -528,8 +528,8 @@
     procedure CanActivate;  { draft }
     procedure GetMoveAction(A1: Byte; A2: Integer);  { draft }
     procedure GetCanJoinSelection(A1: Byte; A2: Integer);  { draft }
-    procedure GetJoinSelection(A1: Byte; A2: Integer);  { draft }
-    procedure JoinAmount(A1: Byte; A2: Integer);  { draft }
+    function GetJoinSelection(Player: Shortint): Byte;
+    function JoinAmount(Player: Shortint; Selection: Byte): Integer;
     procedure IncommingNegotiateRequest(A1: Integer);  { draft }
     procedure IncommingNegotiateOffer(A1: Integer);  { draft }
     procedure TriggerFireDamage;  { draft }
@@ -628,8 +628,8 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
-    procedure GetLeftIcon; override;
+    function GetText: string; override;
+    function GetLeftIcon: Integer; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }
@@ -654,7 +654,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }

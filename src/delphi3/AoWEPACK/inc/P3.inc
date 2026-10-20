@@ -1483,23 +1483,23 @@ end;
 procedure TCombatEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin inherited ReadWrite(Stream); Stream.rwCreateEObject(TEObject(F_CombatEventLog_18), nil, $14); end;
 
-procedure TCombatEventLog.GetTextColor;
-begin end;
+function TCombatEventLog.GetTextColor: TColor;
+begin Result := 0; end;
 
-procedure TCombatEventLog.GetLeftIcon;
-begin end;
+function TCombatEventLog.GetLeftIcon: Integer;
+begin Result := 0; end;
 
-procedure TCombatEventLog.GetMiddleIcon;
+function TCombatEventLog.GetMiddleIcon: Integer;
 { needs: Integer result in EventLog's unmarked interface. }
 asm MOV EAX, $0D end;
 
-procedure TCombatEventLog.GetRightIcon;
-begin end;
+function TCombatEventLog.GetRightIcon: Integer;
+begin Result := 0; end;
 
-procedure TCombatEventLog.GetText(A1: Integer);
+function TCombatEventLog.GetText: string;
 begin
   { needs: string result in EventLog's unmarked interface. }
-  PP3String(A1)^ := TCombatData(TCombatLogbook(F_CombatEventLog_18).F_CombatLogbook_10).F_CombatData_48;
+  Result := TCombatData(TCombatLogbook(F_CombatEventLog_18).F_CombatLogbook_10).F_CombatData_48;
 end;
 
 procedure TCombatEventLog.PlayLoggedSFX(A1: Integer);

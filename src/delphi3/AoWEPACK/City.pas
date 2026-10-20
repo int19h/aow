@@ -268,7 +268,7 @@ type
     F_CityRebellionEventLog_24: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
+    function GetText: string; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
@@ -300,7 +300,7 @@ type
     F_CityAIPA_28: Integer;
     F_CityAIPA_2C: Integer;
     procedure Priority; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
     procedure ValidResearchCity(A1: Integer);  { draft }
     procedure ValidResearchBudgetCity(A1: Integer);  { draft }
     procedure ValidateResearchBudget(A1: Integer);  { draft }
@@ -783,8 +783,8 @@ begin Result := 0; end;
 procedure TCityRebellionEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TCityRebellionEventLog.GetText(A1: Integer);
-begin end;
+function TCityRebellionEventLog.GetText: string;
+begin Result := ''; end;
 
 procedure TCityRebellionEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
@@ -876,8 +876,8 @@ begin end;
 procedure TCityAIPA.UpdateStatistics;
 begin end;
 
-procedure TCityAIPA.Process(A1: Integer; A2: Integer);
-begin end;
+function TCityAIPA.Process: Boolean;
+begin Result := False; end;
 
 class function TCityProductionEventLog.ClassID: Integer;
 begin Result := 0; end;

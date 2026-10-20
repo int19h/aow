@@ -20,8 +20,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Validate: Boolean; virtual;  { +078 }
     procedure ListJoinUnits(Units: TUnitList; var Selection: Byte); virtual;  { +07C }
-    procedure Accept(A1: Integer; A2: Integer); virtual;  { +080 needs: P2 THeroJoinEventLog.Accept must return Boolean, var ErrorText: string. }
-    procedure Cancel; virtual;  { +084 needs: P7 TPrisonersJoinEventLog.Cancel returns Boolean. }
+    function Accept(var ErrorText: string): Boolean; virtual;  { $80 }
+    function Cancel: Boolean; virtual;  { $84 }
     function Reject(var ErrorText: string): Boolean; virtual;  { +088 }
     procedure SetupJoinArmy(Army: TArmy; Player: Shortint; JoinMode: TJoinMode);
   end;

@@ -1197,7 +1197,7 @@ var
   Group: TAIGroup;
 begin
   FUnitStatus := FUnitStatus + [usActivated];
-  TUnitControl(AoWHSMap.F_AoWHSMap_FC).RegisterUnit(Self);
+  TUnitControl(AoWHSMap.FUnitControl).RegisterUnit(Self);
   if (FGroupID <> 0) and (FPlayer >= 0) then
   begin
     Group := P2FindGroup(TAIGroupList(AoWHSMap.F_AoWHSMap_130), FGroupID);
@@ -1215,7 +1215,7 @@ var
 begin
   Group := FGroup;
   if Group <> nil then Group.DeleteUnit(Self);
-  TUnitControl(AoWHSMap.F_AoWHSMap_FC).UnRegisterUnit(Self);
+  TUnitControl(AoWHSMap.FUnitControl).UnRegisterUnit(Self);
   FUnitStatus := FUnitStatus - [usActivated];
   UnregisterEnchantments;
 end;
@@ -3490,8 +3490,8 @@ begin Result := 0; end;
 procedure THeroUpgradeEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure THeroUpgradeEventLog.GetText(A1: Integer);
-begin end;
+function THeroUpgradeEventLog.GetText: string;
+begin Result := ''; end;
 
 function THeroUpgradeEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
@@ -3508,8 +3508,8 @@ begin end;
 procedure THeroJoinEventLog.ExecuteAI;
 begin end;
 
-procedure THeroJoinEventLog.Accept(A1: Integer; A2: Integer);
-begin end;
+function THeroJoinEventLog.Accept(var ErrorText: string): Boolean;
+begin Result := False; end;
 
 class function THeroEmergeEventLog.ClassID: Integer;
 begin Result := 0; end;
@@ -3520,8 +3520,8 @@ begin end;
 procedure THeroEmergeEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure THeroEmergeEventLog.GetText(A1: Integer);
-begin end;
+function THeroEmergeEventLog.GetText: string;
+begin Result := ''; end;
 
 procedure THeroEmergeEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
@@ -4360,14 +4360,14 @@ begin Result := 0; end;
 procedure TArmyEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TArmyEventLog.GetLeftIcon;
-begin end;
+function TArmyEventLog.GetLeftIcon: Integer;
+begin Result := 0; end;
 
 procedure TArmyEventLog.SetArmyView;
 begin end;
 
-procedure TArmyEventLog.GetText(A1: Integer);
-begin end;
+function TArmyEventLog.GetText: string;
+begin Result := ''; end;
 
 procedure TArmyEventLog.LeaderKilled;
 begin end;
@@ -4399,8 +4399,8 @@ begin end;
 procedure TArmyInfoEventLog.SetArmyView;
 begin end;
 
-procedure TArmyInfoEventLog.GetText(A1: Integer);
-begin end;
+function TArmyInfoEventLog.GetText: string;
+begin Result := ''; end;
 
 procedure TArmyInfoEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
@@ -4534,8 +4534,8 @@ begin end;
 function TArmy.ValidateSelection(A1: Byte): Byte;
 begin Result := 0; end;
 
-procedure TArmy.SelectionCount(A1: Byte);
-begin end;
+function TArmy.SelectionCount(Selection: Byte): Integer;
+begin Result := 0; end;
 
 procedure TArmy.ValidateMoveSelection(A1: Integer; A2: Integer);
 begin end;
@@ -4711,11 +4711,11 @@ begin end;
 procedure TArmy.GetCanJoinSelection(A1: Byte; A2: Integer);
 begin end;
 
-procedure TArmy.GetJoinSelection(A1: Byte; A2: Integer);
-begin end;
+function TArmy.GetJoinSelection(Player: Shortint): Byte;
+begin Result := 0; end;
 
-procedure TArmy.JoinAmount(A1: Byte; A2: Integer);
-begin end;
+function TArmy.JoinAmount(Player: Shortint; Selection: Byte): Integer;
+begin Result := 0; end;
 
 procedure TArmy.IncommingNegotiateRequest(A1: Integer);
 begin end;

@@ -874,8 +874,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure Accept(A1: Integer; A2: Integer); override;
-    procedure Cancel; override;
+    function Accept(var ErrorText: string): Boolean; override;
+    function Cancel: Boolean; override;
     function Reject(var ErrorText: string): Boolean; override;
     function CreateNegotiateTE: TNegotiateTE; virtual;  { +08C }
   end;

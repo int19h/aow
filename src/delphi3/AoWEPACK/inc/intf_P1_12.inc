@@ -7,7 +7,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Activate(A1: Integer; A2: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process: Boolean; override;
   end;
 
   { TStructurePhase1AIPA (instance size 28, VMT 55719A78) }

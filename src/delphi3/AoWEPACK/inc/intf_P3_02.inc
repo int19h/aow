@@ -352,11 +352,11 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetText(A1: Integer); override;
-    procedure GetTextColor; override;
-    procedure GetLeftIcon; override;
-    procedure GetMiddleIcon; override;
-    procedure GetRightIcon; override;
+    function GetText: string; override;
+    function GetTextColor: TColor; override;
+    function GetLeftIcon: Integer; override;
+    function GetMiddleIcon: Integer; override;
+    function GetRightIcon: Integer; override;
     procedure PlayLoggedSFX(A1: Integer); override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
