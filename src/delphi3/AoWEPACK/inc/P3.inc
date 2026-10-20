@@ -1,41 +1,177 @@
+{ P3 combat implementation. Recovered methods precede the remaining drafts.
+  TCombatUnit.Setup retains an ABI view for the one-argument SetCombatPlayer;
+  its P5 override must be fixed before the shared declaration can be corrected.
+  The two damage-effects entry-point casts preserve the original result while
+  P2 still declares those functions as procedures. }
+type
+  { needs: P2 nonvirtual damage-effects routines return TDamageTypes. The typed
+    entry-point casts preserve the register ABI until the declarations are fixed. }
+  TP3ExecuteCombatDamageEffects = function(U: TAbstractUnit; Combat: Integer;
+    Effects: TDamageTypes): TDamageTypes;
+  TP3ExecuteDamageEffectsRole = function(U: TAbstractUnit; Effects: TDamageTypes): TDamageTypes;
+  { ABI view only; never instantiated. needs: P2 TAbstractUnit's two
+    procedure drafts at +$144/+$148 are Integer/Boolean getters. }
+  TP3AbstractUnitAccess = class(TAbilityOwner)
+  public
+    procedure Slot09C; virtual; abstract; { +$09C }
+    procedure Slot0A0; virtual; abstract; { +$0A0 }
+    procedure Slot0A4; virtual; abstract; { +$0A4 }
+    procedure Slot0A8; virtual; abstract; { +$0A8 }
+    procedure Slot0AC; virtual; abstract; { +$0AC }
+    procedure Slot0B0; virtual; abstract; { +$0B0 }
+    procedure Slot0B4; virtual; abstract; { +$0B4 }
+    procedure Slot0B8; virtual; abstract; { +$0B8 }
+    procedure Slot0BC; virtual; abstract; { +$0BC }
+    procedure Slot0C0; virtual; abstract; { +$0C0 }
+    procedure Slot0C4; virtual; abstract; { +$0C4 }
+    procedure Slot0C8; virtual; abstract; { +$0C8 }
+    procedure Slot0CC; virtual; abstract; { +$0CC }
+    procedure Slot0D0; virtual; abstract; { +$0D0 }
+    procedure Slot0D4; virtual; abstract; { +$0D4 }
+    procedure Slot0D8; virtual; abstract; { +$0D8 }
+    procedure Slot0DC; virtual; abstract; { +$0DC }
+    procedure Slot0E0; virtual; abstract; { +$0E0 }
+    procedure Slot0E4; virtual; abstract; { +$0E4 }
+    procedure Slot0E8; virtual; abstract; { +$0E8 }
+    procedure Slot0EC; virtual; abstract; { +$0EC }
+    procedure Slot0F0; virtual; abstract; { +$0F0 }
+    procedure Slot0F4; virtual; abstract; { +$0F4 }
+    procedure Slot0F8; virtual; abstract; { +$0F8 }
+    procedure Slot0FC; virtual; abstract; { +$0FC }
+    procedure Slot100; virtual; abstract; { +$100 }
+    procedure Slot104; virtual; abstract; { +$104 }
+    procedure Slot108; virtual; abstract; { +$108 }
+    procedure Slot10C; virtual; abstract; { +$10C }
+    procedure Slot110; virtual; abstract; { +$110 }
+    procedure Slot114; virtual; abstract; { +$114 }
+    procedure Slot118; virtual; abstract; { +$118 }
+    procedure Slot11C; virtual; abstract; { +$11C }
+    procedure Slot120; virtual; abstract; { +$120 }
+    procedure Slot124; virtual; abstract; { +$124 }
+    procedure Slot128; virtual; abstract; { +$128 }
+    procedure Slot12C; virtual; abstract; { +$12C }
+    procedure Slot130; virtual; abstract; { +$130 }
+    procedure Slot134; virtual; abstract; { +$134 }
+    procedure Slot138; virtual; abstract; { +$138 }
+    procedure Slot13C; virtual; abstract; { +$13C }
+    procedure Slot140; virtual; abstract; { +$140 }
+    function GetAbilityLevel(Ability: Integer): Integer; virtual; abstract;
+    function GetAbilityEnabled(Ability: Integer): Boolean; virtual; abstract;
+  end;
+  { needs: P3 TCombatObject.SetCombatPlayer takes one Byte; changing its
+    declaration also requires P5 TFastCombatUnit's override to be corrected. }
+  TP3CombatPlayerAccess = class(TEObject)
+  public
+    procedure Slot04C; virtual; abstract;
+    procedure Slot050; virtual; abstract;
+    procedure Slot054; virtual; abstract;
+    procedure Slot058; virtual; abstract;
+    procedure Slot05C; virtual; abstract;
+    procedure Slot060; virtual; abstract;
+    procedure Slot064; virtual; abstract;
+    procedure SetCombatPlayer(Player: Byte); virtual; abstract;
+  end;
+
 constructor TCombatUnit.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FControlMode := [cmConquerObject];
+  FUnitGFXResourceIndex := -1;
+end;
 
 destructor TCombatUnit.Destroy;
-begin end;
+begin
+  SetUnit(0);
+  inherited Destroy;
+end;
 
 class function TCombatUnit.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202A1; end;
 
-procedure TCombatUnit.Setup(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TCombatUnit.Setup(A1: Byte; A2: Integer; A3: Integer; A4: Byte; A5: Byte);
+begin
+  FID := A1;
+  FPosition := A4;
+  with TP3CombatPlayerAccess(Self) do SetCombatPlayer(A5);
+  SetUnit(A3);
+end;
 
-procedure TCombatUnit.GetVisibilityRange;
-begin end;
+function TCombatUnit.GetVisibilityRange: Integer;
+var
+  Level: Integer;
+  U: TAbstractUnit;
+begin
+  U := FUnit;
+  if U <> nil then
+  begin
+    { needs: P2 TAbstractUnit.GetAbilityLevel returns Integer (+$144),
+      GetAbilityEnabled returns Boolean (+$148); original calls at $55724AE2/$55724B0D. }
+    Level := TP3AbstractUnitAccess(U).GetAbilityLevel($40);
+    if Level <> 0 then
+      Result := Level * 2 + 4
+    else
+      Result := 4;
+    if (TCombat(F_CombatObject_08).F_Combat_40 = 1) and
+       not TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($27) then
+      Result := (Result + 1) div 2;
+  end
+  else Result := 0;
+end;
 
-procedure TCombatUnit.NewTurn(A1: Integer);
-begin end;
+procedure TCombatUnit.NewTurn(A1: Byte);
+var
+  U: TAbstractUnit;
+begin
+  inherited NewTurn(A1);
+  U := FUnit;
+  if U <> nil then U.TriggerNewCombatTurn(Integer(Self), A1);
+end;
 
 procedure TCombatUnit.NewRound;
-begin end;
+begin inherited NewRound; end;
 
 procedure TCombatUnit.CombatDone;
-begin end;
+var
+  U: TAbstractUnit;
+begin
+  inherited CombatDone;
+  U := FUnit;
+  if U <> nil then U.TriggerCombatDone(Integer(Self));
+end;
 
-procedure TCombatUnit.GetEnabled;
-begin end;
+function TCombatUnit.GetEnabled: Boolean;
+begin
+  Result := (FUnit <> nil) and ([csDestroyed, csFled] * FStatus = []) and
+    not FDisabled;
+end;
 
-procedure TCombatUnit.GetLocked;
-begin end;
+function TCombatUnit.GetLocked: Boolean;
+begin
+  { needs: P2 Boolean result for TAbstractUnit.GetAbilityEnabled. }
+  Result := TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($5F) or
+    TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($61) or
+    TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($5C) or
+    TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($5E) or
+    TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($22);
+end;
 
-procedure TCombatUnit.WallCombatFeatures;
-begin end;
+function TCombatUnit.WallCombatFeatures: TWallCombatFeatures;
+begin Result := FWallCombatFeatures; end;
 
-procedure TCombatUnit.ExecuteDamageEffects(A1: Word; A2: Integer);
-begin end;
+function TCombatUnit.ExecuteDamageEffects(A1: TDamageTypes): TDamageTypes;
+begin
+  { needs: P2 TAbstractUnit.ExecuteCombatDamageEffects(Combat, Effects): TDamageTypes;
+    $55724C2F calls it with Self in EAX, combat in EDX, effects in CX. }
+  Result := TP3ExecuteCombatDamageEffects(@TAbstractUnit.ExecuteCombatDamageEffects)(
+    FUnit, F_CombatObject_08, A1);
+end;
 
-procedure TCombatUnit.ExecuteDamageEffectsRole(A1: Word; A2: Integer);
-begin end;
+function TCombatUnit.ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes;
+begin
+  { needs: P2 TAbstractUnit.ExecuteDamageEffectsRole(Effects): TDamageTypes;
+    $55724C4C consumes the damage-effect set result from AX. }
+  Result := TP3ExecuteDamageEffectsRole(@TAbstractUnit.ExecuteDamageEffectsRole)(FUnit, A1);
+end;
 
 procedure TCombatUnit.UpdateWallCombatFeatures;
 begin end;
@@ -226,8 +362,8 @@ begin end;
 procedure TCombatWall.GetImmunityTypes;
 begin end;
 
-procedure TCombatWall.GetLocked;
-begin end;
+function TCombatWall.GetLocked: Boolean;
+begin Result := F_CombatWall_4E <> 0; end;
 
 procedure TCombatWall.SetHitPoints(A1: Byte);
 begin end;
@@ -295,17 +431,17 @@ begin end;
 procedure TCombatObject.fcRoundDistance;
 begin end;
 
-procedure TCombatObject.GetVisibilityRange;
-begin end;
+function TCombatObject.GetVisibilityRange: Integer;
+begin Result := 0; end;
 
 procedure TCombatObject.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TCombatObject.WallCombatFeatures;
-begin end;
+function TCombatObject.WallCombatFeatures: TWallCombatFeatures;
+begin Result := []; end;
 
-procedure TCombatObject.GetEnabled;
-begin end;
+function TCombatObject.GetEnabled: Boolean;
+begin Result := [csDestroyed, csFled] * FStatus = []; end;
 
 procedure TCombatObject.GetSide;
 begin end;
@@ -313,7 +449,7 @@ begin end;
 procedure TCombatObject.GetOpponentSide;
 begin end;
 
-procedure TCombatObject.NewTurn(A1: Integer);
+procedure TCombatObject.NewTurn(A1: Byte);
 begin end;
 
 procedure TCombatObject.NewRound;
@@ -340,8 +476,8 @@ begin end;
 procedure TCombatObject.PlaySFX(A1: Byte);
 begin end;
 
-procedure TCombatObject.GetLocked;
-begin end;
+function TCombatObject.GetLocked: Boolean;
+begin Result := False; end;
 
 procedure TCombatObject.SetCombatPlayer(A1: Integer; A2: Integer);
 begin end;
@@ -427,11 +563,11 @@ begin end;
 procedure TCombatObject.ExecuteDamageRoleEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TCombatObject.ExecuteDamageEffects(A1: Word; A2: Integer);
-begin end;
+function TCombatObject.ExecuteDamageEffects(A1: TDamageTypes): TDamageTypes;
+begin Result := []; end;
 
-procedure TCombatObject.ExecuteDamageEffectsRole(A1: Word; A2: Integer);
-begin end;
+function TCombatObject.ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes;
+begin Result := []; end;
 
 procedure TCombatObject.DoDamage(A1: Integer; A2: Integer);
 begin end;

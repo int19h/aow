@@ -1,3 +1,11 @@
+type
+  P1String = ^string;
+
+var
+  { needs: public AoWEngine: TAoWEngine; original global at $558FA048,
+    read by TranslateRStr ($557249FC). Kept local to P1 until interface assembly. }
+  AoWEngine: TAoWEngine;
+
 constructor TAoWHSSet.Create(AOwner: Engine.TECustomNode);
 begin end;
 
@@ -3059,7 +3067,19 @@ procedure TAoWHSMap.AddEffect(A1: Integer);
 begin end;
 
 procedure TranslateRStr(A1: Integer; A2: Integer);
-begin end;
+var
+  Source: string absolute A1;
+begin
+  { needs: function TranslateRStr(const S: string): string, both here and on
+    TAoWEngine; intf_P2_10 / intf_P2_08 currently declare the register operands
+    as Integers. The second operand is the hidden string-result pointer. }
+  if AoWEngine <> nil then
+  begin
+    AoWEngine.TranslateRStr(A1, A2);
+    Exit;
+  end;
+  P1String(A2)^ := Source;
+end;
 
 procedure HitRole(A1: Integer);
 begin end;

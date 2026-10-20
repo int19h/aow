@@ -113,11 +113,13 @@
     procedure Usefullness(A1: Integer; A2: Integer);  { draft }
   end;
 
-  { TCombatObject (instance size 76, VMT 557158EC) }
+  { TCombatObject (instance size $4C, VMT 557158EC).
+    $0C FID; $46 FPosition; $47 FStatus; $48 FControlMode.
+    Other fields retain their offset names pending recovery. }
   TCombatObject = class(TEObject)
   public
     F_CombatObject_08: Integer;
-    F_CombatObject_0C: Byte;
+    FID: Byte;
     F_CombatObject_0D: array[0..2] of Byte;
     F_CombatObject_10: Integer;
     F_CombatObject_14: Integer;
@@ -135,9 +137,9 @@
     F_CombatObject_40: Integer;
     F_CombatObject_44: Byte;
     F_CombatObject_45: Byte;
-    F_CombatObject_46: Byte;
-    F_CombatObject_47: Byte;
-    F_CombatObject_48: Byte;
+    FPosition: Byte;
+    FStatus: TCombatObjectStatus;
+    FControlMode: TCombatObjectControlMode;
     F_CombatObject_49: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -147,8 +149,8 @@
     procedure TargetsChanged; virtual;  { +054 draft }
     procedure GetTargetPriority; virtual;  { +058 draft }
     procedure GetTargetStrength; virtual;  { +05C draft }
-    procedure GetEnabled; virtual;  { +060 draft }
-    procedure GetLocked; virtual;  { +064 draft }
+    function GetEnabled: Boolean; virtual;  { +060 draft }
+    function GetLocked: Boolean; virtual;  { +064 draft }
     procedure SetCombatPlayer(A1: Integer; A2: Integer); virtual;  { +068 draft }
     procedure GetAttack; virtual;  { +06C draft }
     procedure GetDefense; virtual;  { +070 draft }
@@ -164,7 +166,7 @@
     procedure GetExperience; virtual;  { +098 draft }
     procedure SetExperience; virtual;  { +09C draft }
     procedure GetLevel; virtual;  { +0A0 draft }
-    procedure GetVisibilityRange; virtual;  { +0A4 draft }
+    function GetVisibilityRange: Integer; virtual;  { +0A4 draft }
     procedure GetAbilityEnabled; virtual;  { +0A8 draft }
     procedure SetAbilityEnabled; virtual;  { +0AC draft }
     procedure GetAbilityLevel; virtual;  { +0B0 draft }
@@ -181,9 +183,9 @@
     procedure fcBehindWall; virtual;  { +0DC draft }
     procedure fcWallInBetween(A1: Integer); virtual;  { +0E0 draft }
     procedure SupportCombatMode(A1: Byte; A2: Integer); virtual;  { +0E4 draft }
-    procedure WallCombatFeatures; virtual;  { +0E8 draft }
+    function WallCombatFeatures: TWallCombatFeatures; virtual;  { +0E8 draft }
     procedure PlaySFX(A1: Byte); virtual;  { +0EC draft }
-    procedure NewTurn(A1: Integer); virtual;  { +0F0 draft }
+    procedure NewTurn(A1: Byte); virtual;  { +0F0 draft }
     procedure NewRound; virtual;  { +0F4 draft }
     procedure CombatDone; virtual;  { +0F8 draft }
     procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +0FC draft }
@@ -193,11 +195,11 @@
     procedure GetOptimalDamageType(A1: Word; A2: Integer); virtual;  { +10C draft }
     procedure ExecuteDamageRole(A1: Integer; A2: Integer; A3: Integer); virtual;  { +110 draft }
     procedure ExecuteDamageRoleEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +114 draft }
-    procedure ExecuteDamageEffectsRole(A1: Word; A2: Integer); virtual;  { +118 draft }
+    function ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes; virtual;  { +118 draft }
     procedure Surrender; virtual;  { +11C draft }
     procedure DestroyObject; virtual;  { +120 draft }
     function ExecuteDamage(A1: Integer): Integer; virtual;  { +124 draft }
-    procedure ExecuteDamageEffects(A1: Word; A2: Integer); virtual;  { +128 draft }
+    function ExecuteDamageEffects(A1: TDamageTypes): TDamageTypes; virtual;  { +128 draft }
     procedure TurnDone; virtual;  { +12C draft }
     procedure IDStr(A1: Integer); virtual;  { +130 draft }
     procedure AddTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
@@ -211,15 +213,18 @@
     procedure GetPlayerIR;  { draft }
   end;
 
-  { TCombatUnit (instance size 92, VMT 55715A94) }
+  { TCombatUnit (instance size $5C, VMT 55715A94).
+    $4C FUnit; $50 party; $54 FDisabled; $55 FWallCombatFeatures;
+    $58 FUnitGFXResourceIndex. Inherited: $0C FID; $46 FPosition;
+    $47 FStatus; $48 FControlMode. }
   TCombatUnit = class(TCombatObject)
   public
-    F_CombatUnit_4C: Integer;
+    FUnit: TAbstractUnit;
     F_CombatUnit_50: array[0..3] of Byte;
-    F_CombatUnit_54: Byte;
-    F_CombatUnit_55: Byte;
+    FDisabled: Boolean;
+    FWallCombatFeatures: TWallCombatFeatures;
     F_CombatUnit_56: array[0..1] of Byte;
-    F_CombatUnit_58: Integer;
+    FUnitGFXResourceIndex: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -228,8 +233,8 @@
     procedure GetTargetWallCV(A1: Integer); override;
     procedure GetTargetPriority; override;
     procedure GetTargetStrength; override;
-    procedure GetEnabled; override;
-    procedure GetLocked; override;
+    function GetEnabled: Boolean; override;
+    function GetLocked: Boolean; override;
     procedure GetAttack; override;
     procedure GetDefense; override;
     procedure GetResistance; override;
@@ -244,7 +249,7 @@
     procedure GetExperience; override;
     procedure SetExperience; override;
     procedure GetLevel; override;
-    procedure GetVisibilityRange; override;
+    function GetVisibilityRange: Integer; override;
     procedure GetAbilityEnabled; override;
     procedure SetAbilityEnabled; override;
     procedure GetAbilityLevel; override;
@@ -256,22 +261,22 @@
     procedure Initialize(A1: Integer); override;
     procedure Finalize(A1: Integer); override;
     procedure SupportCombatMode(A1: Byte; A2: Integer); override;
-    procedure WallCombatFeatures; override;
+    function WallCombatFeatures: TWallCombatFeatures; override;
     procedure PlaySFX(A1: Byte); override;
-    procedure NewTurn(A1: Integer); override;
+    procedure NewTurn(A1: Byte); override;
     procedure NewRound; override;
     procedure CombatDone; override;
     procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
     procedure ShowAttackAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
     procedure ShowHitAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
-    procedure ExecuteDamageEffectsRole(A1: Word; A2: Integer); override;
+    function ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes; override;
     procedure Surrender; override;
     procedure DestroyObject; override;
-    procedure ExecuteDamageEffects(A1: Word; A2: Integer); override;
+    function ExecuteDamageEffects(A1: TDamageTypes): TDamageTypes; override;
     procedure IDStr(A1: Integer); override;
     procedure SetUnit(A1: Integer); virtual;  { +134 draft }
     procedure KillUnit; virtual;  { +138 draft }
-    procedure Setup(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure Setup(A1: Byte; A2: Integer; A3: Integer; A4: Byte; A5: Byte);  { draft }
     procedure UpdateWallCombatFeatures;  { draft }
     procedure SetParty(A1: Integer);  { draft }
     procedure UpdateParty;  { draft }
@@ -295,7 +300,7 @@
     class function ClassID: Integer; override;
     procedure GetTargetPriority; override;
     procedure GetTargetStrength; override;
-    procedure GetLocked; override;
+    function GetLocked: Boolean; override;
     procedure GetDefense; override;
     procedure GetResistance; override;
     procedure GetImmunityTypes; override;
