@@ -207,11 +207,11 @@
     FGameResult: TGameResult; { $119 }
     FGameType: TGameType; { $11A }
     F_AoWHSMap_11B: array[0..0] of Byte;
-    F_AoWHSMap_11C: Integer;
+    FCombatMap: TAbstractAoWCombatMap; { $11C }
     FCombat: TCombat; { $120 }
     F_AoWHSMap_124: Integer;
     FAIExecuter: TAIExecuter; { $128 }
-    F_AoWHSMap_12C: Integer;
+    FAIPlayerActionManager: TAIPlayerActionManager; { $12C }
     FAIGroupManager: TAIGroupManager; { $130 }
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
@@ -342,7 +342,7 @@
     procedure PlayerDisconnected;  { draft }
     procedure PlayerConnectionLost;  { draft }
     procedure OnTokenManagerMessage(A1: Integer; A2: Integer);  { draft }
-    procedure GetIndependentAIMode;  { draft }
+    function GetIndependentAIMode: TIndependentAIMode;
     procedure SaveGame(A1: Integer);  { draft }
     function TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
     function Visible(X, Y, L: Shortint; Mode: Integer): Boolean;

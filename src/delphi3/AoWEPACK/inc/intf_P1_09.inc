@@ -233,7 +233,7 @@
   TPlayerStructure = class(TStructure)
   public
     FPlayer: Shortint;  { $30 }
-    F_PlayerStructure_31: Byte;
+    FProductionPriority: Byte; { $31 }
     F_PlayerStructure_32: Byte;
     F_PlayerStructure_33: array[0..0] of Byte;
     F_PlayerStructure_34: Integer;

@@ -309,7 +309,7 @@ type
     F_CityAIPA_19: array[0..14] of Byte;
     F_CityAIPA_28: Integer;
     F_CityAIPA_2C: Integer;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
     procedure ValidResearchCity(A1: Integer);  { draft }
     procedure ValidResearchBudgetCity(A1: Integer);  { draft }
@@ -2205,8 +2205,8 @@ begin Result := 0; end;
 class function TAICityFortifyBudget.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TCityAIPA.Priority;
-begin end;
+class function TCityAIPA.Priority: Integer;
+begin Result := 0; end;
 
 procedure TCityAIPA.ValidResearchCity(A1: Integer);
 begin end;

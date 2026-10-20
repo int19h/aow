@@ -1833,7 +1833,7 @@ begin
     if Owner is TAbstractUnit then
       Info.FUnitID := TAbstractUnit(Owner).FUnitID
     else Info.FUnitID := 0;
-    TEventList(PP1Pointer(AoWHSMap.F_AoWHSMap_11C + $DC)^).TriggerNotifyEvents(Info);
+    TEventList(PP1Pointer(Integer(AoWHSMap.FCombatMap) + $DC)^).TriggerNotifyEvents(Info);
     Info.Release;
     Result := True;
   end
@@ -3188,8 +3188,8 @@ begin end;
 procedure TPlayer.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TPlayer.GetFirstDaySeen(A1: Byte);
-begin end;
+function TPlayer.GetFirstDaySeen(Player: Shortint): Integer;
+begin Result := 0; end;
 
 procedure TPlayer.GetLastDaySeen(A1: Byte);
 begin end;
@@ -3835,8 +3835,8 @@ begin end;
 function TProductionControl.CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
 begin end;
 
-procedure TProductionControl.ProduceUnitEx(A1: Integer; A2: Integer);
-begin end;
+function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean;
+begin Result := False; end;
 
 function TProductionControl.ProduceUnit(Index: Integer; Queue: Boolean): Boolean;
 begin end;
@@ -3901,8 +3901,8 @@ begin end;
 procedure TProductionControl.FindOptimalResearchProduction(A1: Integer; A2: Integer);
 begin end;
 
-procedure TProductionControlList.GetPC(A1: Integer);
-begin end;
+function TProductionControlList.GetPC(Index: Integer): TProductionControl;
+begin Result := nil; end;
 
 destructor TStructureShadow.Destroy;
 begin end;
@@ -4454,14 +4454,14 @@ begin Result := False; end;
 constructor TStructurePhase1AIPA.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TStructurePhase1AIPA.Priority;
-begin end;
+class function TStructurePhase1AIPA.Priority: Integer;
+begin Result := 0; end;
 
 constructor TStructurePhase2AIPA.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TStructurePhase2AIPA.Priority;
-begin end;
+class function TStructurePhase2AIPA.Priority: Integer;
+begin Result := 0; end;
 
 constructor TFire.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -5093,8 +5093,8 @@ begin end;
 procedure TAoWHSMap.OnTokenManagerMessage(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAoWHSMap.GetIndependentAIMode;
-begin end;
+function TAoWHSMap.GetIndependentAIMode: TIndependentAIMode;
+begin Result := iaOff; end;
 
 procedure TAoWHSMap.SaveGame(A1: Integer);
 begin end;
@@ -5989,8 +5989,8 @@ begin end;
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
 begin Result := False; end;
 
-procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: Shortint): Integer;
+begin Result := 0; end;
 
 function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
 begin Result := 0; end;

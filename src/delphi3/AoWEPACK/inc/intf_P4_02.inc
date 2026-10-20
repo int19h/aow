@@ -1103,7 +1103,7 @@
   { TResearchSpellAIPA (instance size 20, VMT 557236C4) }
   TResearchSpellAIPA = class(TAIPlayerAction)
   public
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
   end;
 
@@ -1131,7 +1131,7 @@
     F_CastSpellAIPA_24: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Activate: Boolean; override;
     function Process: Boolean; override;
     procedure PrefetchCastSpellActions(A1: Integer);  { draft }

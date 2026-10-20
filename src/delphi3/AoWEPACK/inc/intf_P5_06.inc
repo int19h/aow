@@ -7,109 +7,117 @@
     FControl: TAIPlayerControl; { $0C }
     FPhase: TAIPlayerProcessPhase; { $10 }
     F_AIPlayerAction_11: array[0..2] of Byte;
-    procedure Priority; virtual; abstract;  { +04C draft }
+    class function Priority: Integer; virtual; abstract;  { $4C }
     class function SupportedPhases: TAIPlayerProcessPhases; virtual; { $50 }
     function Setup(Control: TAIPlayerControl; Phase: TAIPlayerProcessPhase): Boolean; virtual; { $54 }
     function Activate: Boolean; virtual; { $58 }
-    procedure Deactivate; virtual;  { +05C draft }
+    procedure Deactivate; virtual; { $5C }
     function Process: Boolean; virtual; { $60 }
   end;
 
-  { TAIPlayerActionList (instance size 12, VMT 55717534) }
+  TAIPlayerActionClass = class of TAIPlayerAction;
+
+  { TAIPlayerActionList (instance size $0C, VMT 55717534). $08 children. }
   TAIPlayerActionList = class(TENode)
   public
-    procedure GetActions(A1: Integer);  { draft }
-    procedure IndexOf;  { draft }
+    function GetActions(Index: Integer): TAIPlayerAction;
+    function IndexOf(Action: TAIPlayerAction): Integer;
   end;
 
-  { TAIPlayerActionManager (instance size 12, VMT 5571763C) }
+  { TAIPlayerActionManager (instance size $0C, VMT 5571763C). $08 registered classes. }
   TAIPlayerActionManager = class(TEObject)
   public
-    F_AIPlayerActionManager_08: Integer;
+    FRegisteredClasses: TList; { $08 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetCount;  { draft }
-    procedure GetRegisteredClasses(A1: Integer);  { draft }
-    procedure RegisterClasses(A1: Integer; A2: Integer);  { draft }
-    procedure UnRegisterClasses(A1: Integer; A2: Integer);  { draft }
+    function GetCount: Integer;
+    function GetRegisteredClasses(Index: Integer): TAIPlayerActionClass;
+    procedure RegisterClasses(Classes: array of TAIPlayerActionClass);
+    procedure UnRegisterClasses(Classes: array of TAIPlayerActionClass);
   end;
 
   { TAIGroupList (instance size 12, VMT 55717710) }
   TAIGroupList = class(TENode)
   public
-    procedure GetGroups(A1: Integer);  { draft }
+    function GetGroups(Index: Integer): TAIGroup;
     procedure IndexOfID(A1: Integer);  { draft }
     procedure FindID;  { draft }
     procedure SortOnProcessPriority;  { draft }
   end;
 
-  { TAIPlayerControl (instance size 40, VMT 5571780C) }
+  { TAIPlayerControl (instance size $28, VMT 5571780C).
+    $08 player, $0C actions, $10 action, $14 action index, $18 cycles,
+    $1C move executer, $20 phase, $24 progress. }
   TAIPlayerControl = class(TEObject)
   public
     FPlayer: TPlayer; { $08 }
-    F_AIPlayerControl_0C: Integer;
-    F_AIPlayerControl_10: Integer;
-    F_AIPlayerControl_14: Integer;
-    F_AIPlayerControl_18: Integer;
-    F_AIPlayerControl_1C: Integer;
-    F_AIPlayerControl_20: Byte;
+    FActions: TAIPlayerActionList; { $0C }
+    FAction: TAIPlayerAction; { $10 }
+    FActionIndex: Integer; { $14 }
+    FProcessCyclesMax: Integer; { $18 }
+    FMoveExecuter: TAIMoveExecuter; { $1C }
+    FPhase: TAIPlayerProcessPhase; { $20 }
     F_AIPlayerControl_21: array[0..2] of Byte;
     FDefenseStrengthMultiplier: Single; { $24 }
+    { conflict: FProgress: Single; }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure ListAvailableTransporters(A1: Integer);  { draft }
-    procedure UnitIndexToPriority(A1: Integer);  { draft }
-    procedure Reset;  { draft }
-    procedure SetupProcessPhase(A1: Integer);  { draft }
-    procedure GetProcessCyclesMax;  { draft }
-    procedure Activate(A1: Integer; A2: Integer);  { draft }
-    procedure Deactivate;  { draft }
-    procedure GetRandomGroupBehavior;  { draft }
-    procedure UpdateSkirmishGroups;  { draft }
-    procedure ActivateAction(A1: Integer);  { draft }
-    procedure DeactivateAction;  { draft }
+    function ListAvailableTransporters(Units: TUnitList): Integer;
+    function UnitIndexToPriority(UnitIndex: Integer): Integer;
+    procedure Reset;
+    procedure SetupProcessPhase(Phase: TAIPlayerProcessPhase);
+    function GetProcessCyclesMax: Integer;
+    procedure Activate(Executer: TAIExecuter);
+    procedure Deactivate;
+    function GetRandomGroupBehavior: TGroupBehavior;
+    procedure UpdateSkirmishGroups;
+    function ActivateAction(Index: Integer): Boolean;
+    procedure DeactivateAction;
     procedure ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList);
     procedure ListIdealPeaceWarPlayers(Peace, War: TByteList);
     function CanOfferPeace(Player: Byte): Boolean;
     function CanDeclareWar(Player: Byte): Boolean;
     function CanProposeAlliance(Player: Byte): Boolean;
-    procedure Process(A1: Integer);  { draft }
+    function Process(Executer: TAIExecuter; TokenControlDone: Boolean): Boolean;
   end;
 
-  { TAIExecuter (instance size 52, VMT 55717968) }
+  { TAIExecuter (instance size $34, VMT 55717968).
+    $08 cycles, $0C players, $10 current player, $14 player cycles, $18 status,
+    $19 token done, $1A time mode, $1C time, $20 used time, $24 start,
+    $28 token cycles, $2C token cycle, $30 lock count. }
   TAIExecuter = class(TEObject)
   public
-    F_AIExecuter_08: Integer;
-    F_AIExecuter_0C: Integer;
-    F_AIExecuter_10: Byte;
+    FProcessCycles: Integer; { $08 }
+    FPlayers: TByteList; { $0C }
+    FPlayer: Shortint; { $10 }
     F_AIExecuter_11: array[0..2] of Byte;
-    F_AIExecuter_14: Integer;
-    F_AIExecuter_18: Byte;
-    F_AIExecuter_19: Byte;
-    F_AIExecuter_1A: Byte;
+    FPlayerProcessCycles: Integer; { $14 }
+    FStatus: TAIExecuterStatus; { $18 }
+    FTokenControlDone: Boolean; { $19 }
+    FProcessTimeMode: TProcessTimeMode; { $1A }
     F_AIExecuter_1B: array[0..0] of Byte;
-    F_AIExecuter_1C: Integer;
-    F_AIExecuter_20: Integer;
-    F_AIExecuter_24: Integer;
-    F_AIExecuter_28: Integer;
-    F_AIExecuter_2C: Integer;
-    F_AIExecuter_30: Integer;
+    FProcessTime: Integer; { $1C }
+    FProcessTimeUsed: Integer; { $20 }
+    FProcessStarted: Integer; { $24 }
+    FTokenCycles: Integer; { $28 }
+    FTokenCycle: Integer; { $2C }
+    FLockCount: Integer; { $30 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure RequestProcessTime(A1: Integer);  { draft }
-    procedure GetProcessTimeLeft;  { draft }
-    procedure GetProcessTimeElapsed;  { draft }
-    procedure UseProcessTime(A1: Integer);  { draft }
-    procedure ActivatePlayer(A1: Integer);  { draft }
+    function RequestProcessTime(Time: Integer): Boolean;
+    function GetProcessTimeLeft: Integer;
+    function GetProcessTimeElapsed: Integer;
+    procedure UseProcessTime(Time: Integer);
+    function ActivatePlayer(Player: Shortint): Boolean;
     procedure DeactivatePlayer(Player: Shortint);
-    procedure TokenControlDoneEvent;  { draft }
-    procedure Lock;  { draft }
-    procedure Unlock;  { draft }
-    procedure CaptureTokenCycles(A1: Integer);  { draft }
-    procedure TokenCyclesCaptured;  { draft }
-    procedure Process(A1: Integer; A2: Integer);  { draft }
+    procedure TokenControlDoneEvent;
+    procedure Lock;
+    procedure Unlock;
+    procedure CaptureTokenCycles(Cycles: Integer);
+    procedure TokenCyclesCaptured;
+    procedure Process;
   end;
 
   { TAIMoveControlSettings (instance size 360, VMT 55717A78) }
@@ -379,11 +387,11 @@
     F_AIMoveExecuterControl_10: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CreateMove(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +04C draft }
+    procedure CreateMove(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { $4C }
     procedure CanMoveTo(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer); virtual;  { +050 draft }
     procedure CalculateMoves(A1: Integer; A2: Integer); virtual;  { +054 draft }
     procedure Activate(A1: Integer); virtual;  { +058 draft }
-    procedure Deactivate; virtual;  { +05C draft }
+    procedure Deactivate; virtual; { $5C }
     procedure Done; virtual;  { +060 draft }
     procedure Process; virtual;  { +064 draft }
   end;
@@ -454,7 +462,7 @@
     F_AIMoveExecuter_24: Byte;
     F_AIMoveExecuter_25: array[0..2] of Byte;
     F_AIMoveExecuter_28: Integer;
-    F_AIMoveExecuter_2C: Byte;
+    FStatus: TAIMoveExecuterStatus; { $2C }
     F_AIMoveExecuter_2D: Byte;
     F_AIMoveExecuter_2E: array[0..1] of Byte;
     F_AIMoveExecuter_30: Integer;
@@ -480,7 +488,7 @@
     procedure UpdateMoveResult;  { draft }
     procedure ProcessExecuteMoves;  { draft }
     procedure ProcessMECS;  { draft }
-    procedure Process;  { draft }
+    function Process: Boolean;
     procedure SetupTransporter(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteMove(A1: Byte; A2: Integer; A3: Integer);  { draft }
   end;
@@ -489,51 +497,52 @@
   TEndTurnAIPA = class(TAIPlayerAction)
   public
     destructor Destroy; override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
   end;
 
   { TInitializeAIPA (instance size 20, VMT 55718FB4) }
   TInitializeAIPA = class(TAIPlayerAction)
   public
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
   end;
 
-  { TGroupControlAIPA (instance size 28, VMT 55719090) }
+  { TGroupControlAIPA (instance size $1C). $14 group cycles, $18 group control. }
   TGroupControlAIPA = class(TAIPlayerAction)
   public
-    F_GroupControlAIPA_14: Integer;
-    F_GroupControlAIPA_18: Integer;
+    FGroupProcessCycles: Integer; { $14 }
+    FGroupControl: TAIGroupControl; { $18 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
-    procedure ActivateGroupControl(A1: Integer);  { draft }
-    procedure DeactivateGroupControl;  { draft }
+    procedure ActivateGroupControl(Group: TAIGroup);
+    procedure DeactivateGroupControl;
   end;
 
-  { TGroupControlLoopAIPA (instance size 28, VMT 55719170) }
+  { TGroupControlLoopAIPA (instance size $1C). $14 group cycles, $18 group control. }
   TGroupControlLoopAIPA = class(TAIPlayerAction)
   public
-    F_GroupControlLoopAIPA_14: Integer;
-    F_GroupControlLoopAIPA_18: Integer;
+    FGroupProcessCycles: Integer; { $14 }
+    FGroupControl: TAIGroupControl; { $18 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     class function SupportedPhases: TAIPlayerProcessPhases; override;
     function Activate: Boolean; override;
     function Process: Boolean; override;
-    procedure ActivateGroupControl(A1: Integer);  { draft }
-    procedure DeactivateGroupControl;  { draft }
+    procedure ActivateGroupControl(Group: TAIGroup);
+    procedure DeactivateGroupControl;
   end;
 
-  { TAIBudget (instance size 56, VMT 55719258) }
+  { TAIBudget (instance size $38, VMT 55719258).
+    $0C required gold, $10 required mana, $30 gold, $34 mana. }
   TAIBudget = class(TEObject)
   public
     F_AIBudget_08: Integer;
-    F_AIBudget_0C: Integer;
-    F_AIBudget_10: Integer;
+    FRequiredGold: Integer; { $0C }
+    FRequiredMana: Integer; { $10 }
     F_AIBudget_14: Integer;
     F_AIBudget_18: Integer;
     F_AIBudget_1C: Integer;
@@ -541,11 +550,11 @@
     F_AIBudget_24: Integer;
     F_AIBudget_28: Integer;
     F_AIBudget_2C: Integer;
-    F_AIBudget_30: Integer;
-    F_AIBudget_34: Integer;
+    FGold: Integer; { $30 }
+    FMana: Integer; { $34 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetReady; virtual;  { +04C draft }
+    procedure GetReady; virtual;  { $4C }
     procedure OutputDebugInfo; virtual;  { +050 draft }
     procedure Done; virtual;  { +054 draft }
     procedure UpdateDayRequirements; virtual;  { +058 draft }
@@ -606,11 +615,12 @@
     procedure ValidateReservations;  { draft }
     procedure OutputDebugInfo;  { draft }
     procedure ValidateManaUpkeep;  { draft }
-    procedure UpdateBudgets;  { draft }
-    procedure RequestProductionExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure RequestProductionExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure ProductionExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure UpdateBudgets;
+    function RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
+    function RequestProductionExpenseEx(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer; Budget: TAIBudget): Boolean;
+    procedure ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer);
     function RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+    { conflict: function RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean; }
     function BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
     procedure RequestBudgetExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
     procedure BudgetExpenseMadeEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
@@ -624,32 +634,33 @@
   public
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
   end;
 
-  { TAutoProduceAIPA (instance size 40, VMT 557197D4) }
+  { TAutoProduceAIPA (instance size $28, VMT 557197D4).
+    $14 production index, $18 state, $1C gold upkeep, $20 mana upkeep, $24 productions. }
   TAutoProduceAIPA = class(TAIPlayerAction)
   public
-    F_AutoProduceAIPA_14: Integer;
-    F_AutoProduceAIPA_18: Integer;
-    F_AutoProduceAIPA_1C: Integer;
-    F_AutoProduceAIPA_20: Integer;
-    F_AutoProduceAIPA_24: Integer;
+    FProductionIndex: Integer; { $14 }
+    FState: Integer; { $18 }
+    FGoldUpkeep: Integer; { $1C }
+    FManaUpkeep: Integer; { $20 }
+    FProductions: TQuadItemList; { $24 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
-    procedure UpdateProductions(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteProduce(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteResearch(A1: Integer; A2: Integer);  { draft }
-    procedure TransporterPriority;  { draft }
-    procedure ResearchTransporter(A1: Integer);  { draft }
-    procedure ProduceTransporter(A1: Integer);  { draft }
-    procedure FindAvailableTransporter;  { draft }
-    procedure TransporterProductionControlExists;  { draft }
-    procedure ProducingTransporter;  { draft }
-    procedure ResearchingTransporter;  { draft }
+    procedure UpdateProductions(Control: TProductionControl);
+    function ExecuteProduce(Control: TProductionControl; Index: Integer): Boolean;
+    function ExecuteResearch(Control: TProductionControl; Index: Integer): Boolean;
+    function TransporterPriority(UnitIndex: Integer): Integer;
+    function ResearchTransporter(Budget: TAIBudget): Boolean;
+    function ProduceTransporter(Budget: TAIBudget): Boolean;
+    function FindAvailableTransporter: TAbstractUnit;
+    function TransporterProductionControlExists: Boolean;
+    function ProducingTransporter: Boolean;
+    function ResearchingTransporter: Boolean;
   end;
 
   { TProcessEventlogAIPA (instance size 24, VMT 557198B4) }
@@ -658,7 +669,7 @@
     F_ProcessEventlogAIPA_14: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Process: Boolean; override;
   end;
 

@@ -207,7 +207,7 @@
     F_DiplomacyAIPA_15: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
     function Activate: Boolean; override;
     function Process: Boolean; override;
     function CreateDA(Action: TDiplomaticActionType; Target, Other: Shortint; MinDays: Integer): TDiplomaticAction;

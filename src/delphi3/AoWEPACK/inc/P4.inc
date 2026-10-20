@@ -5523,8 +5523,8 @@ begin end;
 function TUnitSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
 begin Result := False; end;
 
-procedure TResearchSpellAIPA.Priority;
-begin end;
+class function TResearchSpellAIPA.Priority: Integer;
+begin Result := 0; end;
 
 function TResearchSpellAIPA.Process: Boolean;
 begin Result := False; end;
@@ -5541,8 +5541,8 @@ begin end;
 destructor TCastSpellAIPA.Destroy;
 begin end;
 
-procedure TCastSpellAIPA.Priority;
-begin end;
+class function TCastSpellAIPA.Priority: Integer;
+begin Result := 0; end;
 
 function TCastSpellAIPA.Activate: Boolean;
 begin Result := False; end;

@@ -1428,8 +1428,8 @@ begin inherited Create(AOwner); end;
 destructor TDiplomacyAIPA.Destroy;
 begin inherited Destroy; end;
 
-procedure TDiplomacyAIPA.Priority;
-asm MOV EAX, 14 end;
+class function TDiplomacyAIPA.Priority: Integer;
+begin Result := 14; end;
 
 function TDiplomacyAIPA.Activate: Boolean;
 begin Result := inherited Activate; FNextPlayer := 0; end;
@@ -2543,230 +2543,1253 @@ end;
 procedure TAIPlayerAction.Deactivate;
 begin end;
 
-procedure TAIPlayerActionList.GetActions(A1: Integer);
-begin end;
+function TAIPlayerActionList.GetActions(Index: Integer): TAIPlayerAction;
+begin
+  Result := TAIPlayerAction(FChildren.List^[Index]);
+end;
 
-procedure TAIPlayerActionList.IndexOf;
-begin end;
+function TAIPlayerActionList.IndexOf(Action: TAIPlayerAction): Integer;
+begin
+  Result := FChildren.IndexOf(Action);
+end;
 
 constructor TAIPlayerActionManager.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRegisteredClasses := TList.Create;
+end;
 
 destructor TAIPlayerActionManager.Destroy;
-begin end;
+begin
+  FRegisteredClasses.Free;
+  inherited Destroy;
+end;
 
-procedure TAIPlayerActionManager.GetCount;
-begin end;
+function TAIPlayerActionManager.GetCount: Integer;
+begin
+  Result := FRegisteredClasses.Count;
+end;
 
-procedure TAIPlayerActionManager.GetRegisteredClasses(A1: Integer);
-begin end;
+function TAIPlayerActionManager.GetRegisteredClasses(Index: Integer): TAIPlayerActionClass;
+begin
+  Result := TAIPlayerActionClass(FRegisteredClasses.List^[Index]);
+end;
 
-procedure TAIPlayerActionManager.RegisterClasses(A1: Integer; A2: Integer);
-begin end;
+function CompareAIPlayerActionClasses(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIPlayerActionClass(Item2).Priority - TAIPlayerActionClass(Item1).Priority;
+end;
 
-procedure TAIPlayerActionManager.UnRegisterClasses(A1: Integer; A2: Integer);
-begin end;
+procedure TAIPlayerActionManager.RegisterClasses(Classes: array of TAIPlayerActionClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Classes) do
+  begin
+    if FRegisteredClasses.IndexOf(Classes[I]) <> -1 then
+      raise Exception.Create('AIPlayerAction already Registered');
+    FRegisteredClasses.Add(Classes[I]);
+  end;
+  FRegisteredClasses.Sort(CompareAIPlayerActionClasses);
+end;
+
+procedure TAIPlayerActionManager.UnRegisterClasses(Classes: array of TAIPlayerActionClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Classes) do
+    FRegisteredClasses.Remove(Classes[I]);
+end;
+
+const
+  Player2GroupBehaviorTable: array[pbNormal..pbScorcher, 0..9] of TGroupBehavior =
+    ((gbNormal,gbNormal,gbNormal,gbNormal,gbNormal,gbNormal,gbNormal,gbNormal,gbNormal,gbNormal),
+     (gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive,gbAggressive),
+     (gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive,gbDefensive),
+     (gbExpand,gbExpand,gbExpand,gbExpand,gbExpand,gbExpand,gbExpand,gbExpand,gbExpand,gbExpand),
+     (gbScorch,gbScorch,gbScorch,gbScorch,gbScorch,gbScorch,gbScorch,gbScorch,gbScorch,gbScorch));
+  IndependentGroupBehaviorTable: array[TIndependentAIMode, 0..9] of TGroupBehavior =
+    ((gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive),
+     (gbPatrol,gbScout,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive),
+     (gbPatrol,gbPatrol,gbScout,gbScout,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive,gbPassive),
+     (gbPatrol,gbPatrol,gbScout,gbScout,gbSuicidal,gbSuicidal,gbRaid,gbPassive,gbPassive,gbPassive));
 
 constructor TAIPlayerControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FActions := TAIPlayerActionList.Create(nil);
+  FMoveExecuter := TAIMoveExecuter.Create(nil);
+  FProcessCyclesMax := 10;
+end;
 
 destructor TAIPlayerControl.Destroy;
-begin end;
+begin
+  Reset;
+  try
+    FActions.Free;
+    FActions := nil;
+  except
+  end;
+  try
+    FMoveExecuter.Free;
+    FMoveExecuter := nil;
+  except
+  end;
+  inherited Destroy;
+end;
 
 procedure TAIPlayerControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FDefenseStrengthMultiplier, SizeOf(FDefenseStrengthMultiplier), 10);
+end;
 
 procedure TAIPlayerControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20010017 then Deactivate;
+end;
 
-procedure TAIPlayerControl.ListAvailableTransporters(A1: Integer);
-begin end;
+function TAIPlayerControl.ListAvailableTransporters(Units: TUnitList): Integer;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+  Group: TUnitUserList;
+begin
+  Result := 0;
+  with FPlayer do
+    for I := 0 to FArmies.Count - 1 do
+    begin
+      AUnit := FArmies.GetArmy(I).Transporter($FF);
+      if AUnit <> nil then
+      begin
+        Group := AUnit.FGroup;
+        if (Group = nil) or (Group.ClassID = $21467) then
+        begin
+          Units.AddUnit(AUnit);
+          Inc(Result);
+        end;
+      end;
+    end;
+end;
 
-procedure TAIPlayerControl.UnitIndexToPriority(A1: Integer);
-begin end;
+function TAIPlayerControl.UnitIndexToPriority(UnitIndex: Integer): Integer;
+begin
+  Result := GetUnitIndexAIPriority(UnitIndex, FPlayer.FPlayerIndex, 0);
+end;
 
 procedure TAIPlayerControl.Reset;
-begin end;
+begin
+  FPhase := appNone;
+  FActionIndex := -1;
+  DeactivateAction;
+  FActions.Clear;
+end;
 
-procedure TAIPlayerControl.SetupProcessPhase(A1: Integer);
-begin end;
+procedure TAIPlayerControl.SetupProcessPhase(Phase: TAIPlayerProcessPhase);
+var
+  I: Integer;
+  ActionClass: TAIPlayerActionClass;
+  Action: TAIPlayerAction;
+begin
+  FActions.Clear;
+  for I := 0 to AoWHSMap.FAIPlayerActionManager.GetCount - 1 do
+  begin
+    ActionClass := AoWHSMap.FAIPlayerActionManager.GetRegisteredClasses(I);
+    if Phase in ActionClass.SupportedPhases then
+    begin
+      Action := ActionClass.Create(nil);
+      if Action.Setup(Self, Phase) then Action.SetOwner(FActions)
+      else Action.Free;
+    end;
+  end;
+  FPhase := Phase;
+end;
 
-procedure TAIPlayerControl.GetProcessCyclesMax;
-begin end;
+function TAIPlayerControl.GetProcessCyclesMax: Integer;
+begin
+  if not FPlayer.FSingleProcessCycle then Result := FProcessCyclesMax
+  else Result := 1;
+end;
 
-procedure TAIPlayerControl.Activate(A1: Integer; A2: Integer);
-begin end;
+procedure TAIPlayerControl.Activate(Executer: TAIExecuter);
+begin
+  Reset;
+  if AoWHSMap.FDay < 10 then FDefenseStrengthMultiplier := AoWHSMap.FDay * 0.1
+  else FDefenseStrengthMultiplier := 1;
+  SetupProcessPhase(appMain);
+  case FPlayer.FPlayerType of
+    ptCPU1: FProcessCyclesMax := 5;
+    ptCPU2: FProcessCyclesMax := 7;
+    ptCPU3: FProcessCyclesMax := 9;
+    ptCPU4: FProcessCyclesMax := 9;
+    ptCPU5: FProcessCyclesMax := 9;
+    ptIndependent: FProcessCyclesMax := 3;
+  end;
+end;
 
 procedure TAIPlayerControl.Deactivate;
-begin end;
+begin
+  Reset;
+end;
 
-procedure TAIPlayerControl.GetRandomGroupBehavior;
-begin end;
+function TAIPlayerControl.GetRandomGroupBehavior: TGroupBehavior;
+var
+  Player: TPlayer;
+begin
+  Player := FPlayer;
+  if FPlayer.FPlayerIndex = 0 then
+    Result := IndependentGroupBehaviorTable[AoWHSMap.GetIndependentAIMode, Random(10)]
+  else Result := Player2GroupBehaviorTable[Player.FBehavior, Random(10)];
+end;
 
 procedure TAIPlayerControl.UpdateSkirmishGroups;
-begin end;
+var
+  I, J, SkirmishCount, WantedCount, GroupPriority, UnitPriority: Integer;
+  Group: TAIGroup;
+  AUnit: TAbstractUnit;
+  Units: TDoubleItemList;
+  Item: TDoubleItem;
+begin
+  SkirmishCount := 0;
+  for I := 0 to FPlayer.FAIGroups.Count - 1 do
+    if FPlayer.FAIGroups.GetGroups(I).ClassID = $21466 then Inc(SkirmishCount);
+  if AoWHSMap.FDay > 5 then
+  begin
+    WantedCount := FPlayer.FAIGroups.Count div 6;
+    if WantedCount > 4 then WantedCount := 4;
+    if (WantedCount = 0) and (AoWHSMap.FDay and $10 = $10) then
+      WantedCount := 1;
+  end
+  else WantedCount := 2;
+  if SkirmishCount < WantedCount then
+  begin
+    Units := TDoubleItemList.Create;
+    for I := FPlayer.FAIGroups.Count - 1 downto 0 do
+    begin
+      Group := FPlayer.FAIGroups.GetGroups(I);
+      if (Group.FTargetType <> attDefend) and
+        (Group.ClassID <> $21459) and (Group.ClassID <> $21466) and
+        (Group.ClassID <> $21451) and (Group.ClassID <> $21453) and
+        (Group.ClassID <> $21467) then
+      begin
+        GroupPriority := Group.GetProcessPriority * -10;
+        for J := Group.Count - 1 downto 0 do
+        begin
+          AUnit := Group.GetUnit(J);
+          if not (AUnit is THero) then
+          begin
+            UnitPriority := AUnit.GetMoves;
+            if mtFlying in AUnit.GetMoveTypes then Inc(UnitPriority, 15);
+            Units.AddAB(Integer(AUnit), UnitPriority + GroupPriority);
+          end;
+        end;
+      end;
+    end;
+    Units.SortDescendingItemB;
+    while (SkirmishCount < WantedCount) and (Units.Count <> 0) do
+    begin
+      Group := AoWHSMap.FAIGroupManager.CreateGroup(FPlayer.FPlayerIndex, 0, Shortint(gbSkirmish));
+      Item := Units[0];
+      Group.AddUnit(TAbstractUnit(Item.A));
+      Group.Release;
+      Inc(SkirmishCount);
+      Units.Delete(0);
+    end;
+    Units.Free;
+  end;
+end;
 
-procedure TAIPlayerControl.ActivateAction(A1: Integer);
-begin end;
+function TAIPlayerControl.ActivateAction(Index: Integer): Boolean;
+begin
+  DeactivateAction;
+  FAction := FActions.GetActions(Index);
+  Result := FAction.Activate;
+  if not Result then FAction := nil;
+end;
 
 procedure TAIPlayerControl.DeactivateAction;
-begin end;
+var
+  Action: TAIPlayerAction;
+begin
+  Action := FAction;
+  if Action <> nil then
+  begin
+    Action.Deactivate;
+    FAction := nil;
+  end;
+end;
 
 procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList);
-begin end;
+var
+  I: Integer;
+  Relation: TDiplomaticRelation;
+begin
+  Peace.Clear;
+  War.Clear;
+  Peace.Add(FPlayer.FPlayerIndex);
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if I <> FPlayer.FPlayerIndex then
+      if (AoWHSMap.FPlayers.GetPlayers(I).FEndTurn = True) then
+      begin
+        Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);
+        if Relation in [drPeace, drAlliance] then Peace.Add(I)
+        else if Relation = drWar then War.Add(I)
+        else if Relation = drUnknown then
+          if FPlayer.GetFirstDaySeen(I) <> -1 then Unknown.Add(I);
+      end;
+  { Original behavior: Unknown is not cleared before appending. }
+end;
 
 procedure TAIPlayerControl.ListIdealPeaceWarPlayers(Peace, War: TByteList);
-begin end;
+var
+  I: Integer;
+  Players: TDoubleItemList;
+  Relation: TDiplomaticRelation;
+  Priority: Integer;
+  RaceRelation: TStatus;
+  Days: Integer;
+  Action: TDiplomaticAction;
+  Item: TDoubleItem;
+begin
+  Peace.Clear;
+  War.Clear;
+  Players := TDoubleItemList.Create;
+  Players.AddAB(FPlayer.FPlayerIndex, 999);
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if (I <> FPlayer.FPlayerIndex) and (AoWHSMap.FPlayers.GetPlayers(I).FEndTurn = True) then
+    begin
+      Priority := 0;
+      Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);
+      RaceRelation := AoWHSMap.FRaces.GetRace(
+        AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
+        GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(I).FPlayerRace);
+      Action := FPlayer.FDiplomaticActions.FindLastAction(daDeclareWar, darNone,
+        I, FPlayer.FPlayerIndex, -1);
+      if Action <> nil then
+      begin
+        Days := AoWHSMap.FDay - Action.FDay;
+        if Days < 30 then Priority := Days + (Priority - 30);
+      end;
+      case RaceRelation of
+        sHostile, sWary: Inc(Priority, 0);
+        sNeutral: Inc(Priority, 10);
+        sPolite, sFriendly: Inc(Priority, 20);
+      end;
+      if Relation = drAlliance then Inc(Priority, 50)
+      else if Relation = drPeace then Inc(Priority, 15);
+      if (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
+        (FPlayer.FPlayerType in [ptCPU3, ptCPU4, ptCPU5]) then Dec(Priority, 5);
+      Players.AddAB(I, Priority);
+    end;
+  Players.SortDescendingItemB;
+  for I := 0 to Players.Count div 2 - 1 do
+  begin
+    Item := Players[I];
+    Peace.Add(Item.A);
+  end;
+  for I := Players.Count - 1 downto (Players.Count + 1) div 2 do
+  begin
+    Item := Players[I];
+    War.Add(Item.A);
+  end;
+  if Odd(Players.Count) then
+  begin
+    Item := Players[Players.Count div 2];
+    RaceRelation := AoWHSMap.FRaces.GetRace(
+      AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
+      GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(Item.A).FPlayerRace);
+    if RaceRelation in [sHostile, sWary] then War.Add(Item.A)
+    else Peace.Add(Item.A);
+  end;
+  Players.Free;
+end;
 
 function TAIPlayerControl.CanOfferPeace(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  IdealPeace, IdealWar, Peace, War, Unknown: TByteList;
+  PeaceCount, WarCount, PeaceIndex, WarIndex, Index, I: Integer;
+begin
+  if not ((FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) = drWar) and
+    (FPlayer.FDiplomaticRelations.GetDiplomaticRelation(Shortint(Player)) = drWar)) then
+  begin
+    IdealPeace := TByteList.Create;
+    IdealWar := TByteList.Create;
+    Peace := TByteList.Create;
+    War := TByteList.Create;
+    Unknown := TByteList.Create;
+    ListPeaceWarUnknownPlayers(Peace, War, Unknown);
+    ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+    War.Remove(Player);
+    Unknown.Remove(Player);
+    Peace.Remove(Player);
+    PeaceCount := Peace.Count;
+    WarCount := War.Count;
+    PeaceIndex := IdealPeace.IndexOf(Player);
+    WarIndex := IdealWar.IndexOf(Player);
+    for I := 0 to Unknown.Count - 1 do
+    begin
+      Index := IdealPeace.IndexOf(Unknown[I]);
+      if Index <> -1 then
+        if (PeaceIndex = -1) or (Index < PeaceIndex) then Inc(PeaceCount)
+        else Inc(WarCount);
+      Index := IdealWar.IndexOf(Unknown[I]);
+      if Index <> -1 then
+        if (WarIndex = -1) or (Index < WarIndex) then Inc(WarCount)
+        else Inc(PeaceCount);
+    end;
+    if (WarCount < PeaceCount) and
+      not ((WarCount = 0) and (PeaceCount = 1) and
+        (AoWHSMap.FPlayers.FActivePlayers.Count < 3)) then Result := False
+    else Result := True;
+    if FPlayer.FPlayerType in [ptCPU3, ptCPU4, ptCPU5] then
+      if AoWHSMap.FRaces.GetRace(
+        AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
+        GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(Shortint(Player)).FPlayerRace)
+        in [sHostile, sWary] then Result := False;
+    Peace.Free;
+    War.Free;
+    Unknown.Free;
+    IdealPeace.Free;
+    IdealWar.Free;
+  end
+  else Result := False;
+end;
 
 function TAIPlayerControl.CanDeclareWar(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  IdealPeace, IdealWar, Peace, War, Unknown: TByteList;
+  PeaceCount, WarCount, PeaceIndex, WarIndex, Index, I: Integer;
+begin
+  if not ((FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) = drPeace) and
+    (FPlayer.FDiplomaticRelations.GetDiplomaticRelation(Shortint(Player)) = drPeace)) then
+  begin
+    IdealPeace := TByteList.Create;
+    IdealWar := TByteList.Create;
+    Peace := TByteList.Create;
+    War := TByteList.Create;
+    Unknown := TByteList.Create;
+    ListPeaceWarUnknownPlayers(Peace, War, Unknown);
+    ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+    Peace.Remove(Player);
+    Unknown.Remove(Player);
+    War.Remove(Player);
+    PeaceCount := Peace.Count;
+    WarCount := War.Count;
+    PeaceIndex := IdealPeace.IndexOf(Player);
+    WarIndex := IdealWar.IndexOf(Player);
+    for I := 0 to Unknown.Count - 1 do
+    begin
+      Index := IdealPeace.IndexOf(Unknown[I]);
+      if Index <> -1 then
+        if (PeaceIndex = -1) or (Index < PeaceIndex) then Inc(PeaceCount)
+        else Inc(WarCount);
+      Index := IdealWar.IndexOf(Unknown[I]);
+      if Index <> -1 then
+        if (WarIndex = -1) or (Index < WarIndex) then Inc(WarCount)
+        else Inc(PeaceCount);
+    end;
+    if (PeaceCount < WarCount) and
+      (FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) <> drWar) then
+      Result := False
+    else Result := True;
+    Peace.Free;
+    War.Free;
+    Unknown.Free;
+    IdealPeace.Free;
+    IdealWar.Free;
+  end
+  else Result := False;
+end;
 
 function TAIPlayerControl.CanProposeAlliance(Player: Byte): Boolean;
-begin Result := False; end;
+begin
+  if CanOfferPeace(Player) and
+    (FPlayer.FDiplomaticRelations.GetDiplomaticRelation(Shortint(Player)) = drPeace) then
+  begin
+    Result := AoWHSMap.FDay > 10;
+    if AoWHSMap.FDay - FPlayer.FDiplomaticRelations.GetHistory(
+      Shortint(Player)).GetLastModifiedOnDay < 8 then Result := False;
+    if AoWHSMap.FRaces.GetRace(
+      AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
+      GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(Shortint(Player)).FPlayerRace)
+      in [sHostile, sWary] then Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TAIPlayerControl.Process(A1: Integer);
-begin end;
+function TAIPlayerControl.Process(Executer: TAIExecuter; TokenControlDone: Boolean): Boolean;
+var
+  Done: Boolean;
+  I: Integer;
+  Action: TAIPlayerAction;
+begin
+  if not FPlayer.GetBusy and AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex) then
+  begin
+    case FPhase of
+    appMain:
+    begin
+      Done := False;
+      while not Done and (FActions.Count <> 0) and not FPlayer.GetBusy and
+        AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex) do
+      begin
+        if FMoveExecuter.FStatus = mesBusy then Done := FMoveExecuter.Process
+        else
+        begin
+          while (FAction = nil) and (FActions.Count <> 0) do
+            if not ActivateAction(0) then FActions.GetActions(0).Free;
+          if FAction <> nil then
+          begin
+            Done := FAction.Process;
+            if not Done then
+            begin
+              Action := FAction;
+              DeactivateAction;
+              Action.Free;
+            end;
+          end;
+        end;
+        if not Done and (Executer.GetProcessTimeLeft <= 0) then Done := True;
+      end;
+      if FActions.Count = 0 then SetupProcessPhase(appLoop);
+      Result := not FPlayer.GetBusy and
+        AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex);
+    end;
+    appLoop:
+    begin
+      Done := False;
+      I := 0;
+      while not Done and (I < FActions.Count) and not FPlayer.GetBusy and
+        AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex) do
+      begin
+        if FMoveExecuter.FStatus = mesBusy then Done := FMoveExecuter.Process
+        else
+        begin
+          while (FAction = nil) and (I <> FActions.Count) do
+          begin
+            Inc(I);
+            Inc(FActionIndex);
+            if FActionIndex >= FActions.Count then FActionIndex := 0;
+            if FActionIndex < FActions.Count then ActivateAction(FActionIndex);
+          end;
+          if FAction <> nil then
+          begin
+            Done := FAction.Process;
+            if not Done then DeactivateAction;
+          end;
+        end;
+        if not Done and (Executer.GetProcessTimeLeft <= 0) then Done := True;
+      end;
+      Result := (FActions.Count <> 0) and not FPlayer.GetBusy and
+        AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex);
+    end;
+    else Result := False;
+    end;
+  end
+  else Result := False;
+end;
 
 constructor TAIExecuter.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPlayers := TByteList.Create;
+  FPlayer := -1;
+  FProcessTimeMode := ptmStatic;
+  FProcessTime := 5000;
+  FTokenCycles := 5;
+end;
 
 destructor TAIExecuter.Destroy;
-begin end;
+begin
+  FPlayers.Free;
+  inherited Destroy;
+end;
 
-procedure TAIExecuter.RequestProcessTime(A1: Integer);
-begin end;
+function TAIExecuter.RequestProcessTime(Time: Integer): Boolean;
+var
+  Used: Integer;
+begin
+  case FProcessTimeMode of
+    ptmStatic:
+    begin
+      Used := FProcessTimeUsed;
+      if Used <> 0 then Result := Time <= FProcessTime - Used
+      else Result := True;
+    end;
+    ptmDynamic:
+      if FProcessTimeUsed <> 0 then Result := Time < GetProcessTimeLeft
+      else Result := True;
+  else Result := False;
+  end;
+end;
 
-procedure TAIExecuter.GetProcessTimeLeft;
-begin end;
+function TAIExecuter.GetProcessTimeLeft: Integer;
+begin
+  case FProcessTimeMode of
+    ptmStatic: Result := FProcessTime - FProcessTimeUsed;
+    { Original behavior: the millisecond delta is multiplied by 1000. }
+    ptmDynamic: Result := FProcessTime - (GetElapsedMilliSeconds - FProcessStarted) * 1000;
+  else Result := -1;
+  end;
+end;
 
-procedure TAIExecuter.GetProcessTimeElapsed;
-begin end;
+function TAIExecuter.GetProcessTimeElapsed: Integer;
+begin
+  case FProcessTimeMode of
+    ptmStatic: Result := FProcessTimeUsed;
+    ptmDynamic: Result := (GetElapsedMilliSeconds - FProcessStarted) * 1000;
+  else Result := -1;
+  end;
+end;
 
-procedure TAIExecuter.UseProcessTime(A1: Integer);
-begin end;
+procedure TAIExecuter.UseProcessTime(Time: Integer);
+begin
+  if aesExecuting in FStatus then Inc(FProcessTimeUsed, Time);
+end;
 
-procedure TAIExecuter.ActivatePlayer(A1: Integer);
-begin end;
+function TAIExecuter.ActivatePlayer(Player: Shortint): Boolean;
+begin
+  if FPlayers.IndexOf(Byte(Player)) = -1 then
+  begin
+    FPlayers.Add(Byte(Player));
+    FStatus := FStatus + [aesEnabled];
+    AoWHSMap.FPlayers.GetPlayers(Player).FAIControl.Activate(Self);
+    if FPlayer = -1 then FPlayer := Player;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TAIExecuter.DeactivatePlayer(Player: Shortint);
-begin end;
+begin
+  if FPlayers.IndexOf(Byte(Player)) <> -1 then
+  begin
+    FPlayers.Remove(Byte(Player));
+    AoWHSMap.FPlayers.GetPlayers(Player).FAIControl.Deactivate;
+    if FPlayers.Count = 0 then
+    begin
+      FPlayer := -1;
+      FStatus := FStatus - [aesEnabled];
+    end;
+  end;
+end;
 
 procedure TAIExecuter.TokenControlDoneEvent;
-begin end;
+begin
+  if (aesEnabled in FStatus) and (AoWHSMap.FPlayMode = pmSimultaneous) then
+  begin
+    FTokenControlDone := True;
+    if (AoWHSMap.FCurrentPlayer = 0) and (AoWHSMap.FCombatMap = nil) then
+      CaptureTokenCycles(5);
+  end;
+end;
 
 procedure TAIExecuter.Lock;
-begin end;
+begin
+  Inc(FLockCount);
+end;
 
 procedure TAIExecuter.Unlock;
-begin end;
+begin
+  Assert(FLockCount <> 0);
+  Dec(FLockCount);
+end;
 
-procedure TAIExecuter.CaptureTokenCycles(A1: Integer);
-begin end;
+procedure TAIExecuter.CaptureTokenCycles(Cycles: Integer);
+begin
+  Assert(not (aesTokenLocked in FStatus));
+  FStatus := FStatus + [aesTokenLocked];
+  AoWHSMap.FTokenManager.TokenExecuter.Lock;
+  FTokenCycle := 0;
+  FTokenCycles := Cycles;
+end;
 
 procedure TAIExecuter.TokenCyclesCaptured;
-begin end;
+begin
+  Assert(aesTokenLocked in FStatus);
+  FStatus := FStatus - [aesTokenLocked];
+  AoWHSMap.FTokenManager.TokenExecuter.Unlock;
+end;
 
-procedure TAIExecuter.Process(A1: Integer; A2: Integer);
-begin end;
+procedure TAIExecuter.Process;
+var
+  Done: Boolean;
+  I, Index: Integer;
+begin
+  if (aesEnabled in FStatus) and (FLockCount = 0) then
+  begin
+    FStatus := FStatus + [aesExecuting];
+    AoWHSMap.SynchroniseBegin;
+    FProcessTimeUsed := 0;
+    if FProcessTimeMode = ptmDynamic then FProcessStarted := GetElapsedMilliSeconds
+    else FProcessStarted := 0;
+    try
+      case AoWHSMap.FPlayMode of
+        pmTurn:
+          if not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy and
+            AoWHSMap.FTokenManager.PlayerReady(FPlayer) then
+          begin
+            Inc(FProcessCycles);
+            AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.Process(Self, FTokenControlDone);
+            FTokenControlDone := False;
+          end;
+        pmSimultaneous:
+          if aesTokenLocked in FStatus then
+          begin
+            Inc(FProcessCycles);
+            Done := False;
+            I := 0;
+            while not Done and (GetProcessTimeLeft > 0) and
+              (aesEnabled in FStatus) and (I < FPlayers.Count) do
+            begin
+              Done := AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.Process(Self, FTokenControlDone);
+              if Done then
+              begin
+                Inc(FPlayerProcessCycles);
+                I := 0;
+              end
+              else Inc(I);
+              FTokenControlDone := False;
+              if not Done or
+                (AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.GetProcessCyclesMax <= FPlayerProcessCycles) then
+              begin
+                Index := FPlayers.IndexOf(Byte(FPlayer));
+                Inc(Index);
+                FPlayerProcessCycles := 0;
+                { Original behavior: Index = Count is not wrapped here. }
+                if Index > FPlayers.Count then Index := 0;
+                FPlayer := FPlayers[Index];
+              end;
+            end;
+            Inc(FTokenCycle);
+            if (I >= FPlayers.Count) or (FTokenCycle >= FTokenCycles) then TokenCyclesCaptured;
+          end;
+      end;
+    except
+      ShowMessage('AI ERROR');
+    end;
+    AoWHSMap.SynchroniseEnd;
+    FStatus := FStatus - [aesExecuting];
+  end;
+end;
 
-procedure TInitializeAIPA.Priority;
-begin end;
+class function TInitializeAIPA.Priority: Integer;
+begin Result := 1000; end;
 
 function TInitializeAIPA.Process: Boolean;
-begin Result := False; end;
+begin
+  FControl.FPlayer.FAIBudget.UpdateBudgets;
+  if FControl.FPlayer.FPlayerIndex <> 0 then FControl.UpdateSkirmishGroups;
+  Result := False;
+end;
 
 destructor TEndTurnAIPA.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
-procedure TEndTurnAIPA.Priority;
-begin end;
+class function TEndTurnAIPA.Priority: Integer;
+begin Result := 10; end;
 
 function TEndTurnAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Event: TEndTurnTE;
+begin
+  if not FControl.FPlayer.FSingleProcessCycle then
+  begin
+    Event := TEndTurnTE.Create(nil);
+    Event.FPlayer := FControl.FPlayer.FPlayerIndex;
+    Event.FDay := AoWHSMap.FDay;
+    Event.FMode := emEndTurn;
+    AoWHSMap.FTokenManager.GetTokenControl(FControl.FPlayer.FPlayerIndex).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 constructor TGroupControlAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 destructor TGroupControlAIPA.Destroy;
-begin end;
+begin
+  DeactivateGroupControl;
+  inherited Destroy;
+end;
 
-procedure TGroupControlAIPA.Priority;
-begin end;
+class function TGroupControlAIPA.Priority: Integer;
+begin Result := 20; end;
 
-procedure TGroupControlAIPA.ActivateGroupControl(A1: Integer);
-begin end;
+procedure TGroupControlAIPA.ActivateGroupControl(Group: TAIGroup);
+begin
+  DeactivateGroupControl;
+  FGroupControl := Group.CreateGroupControl;
+  FGroupControl.Activate;
+end;
 
 procedure TGroupControlAIPA.DeactivateGroupControl;
-begin end;
+var
+  Control: TAIGroupControl;
+begin
+  Control := FGroupControl;
+  if Control <> nil then
+  begin
+    Control.Deactivate;
+    FGroupControl.Free;
+    FGroupControl := nil;
+  end;
+end;
 
 function TGroupControlAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Busy, Done: Boolean;
+  I: Integer;
+  Control: TAIGroupControl;
+begin
+  Inc(FGroupProcessCycles);
+  try
+    Busy := False;
+    Done := False;
+    while not Done and not Busy and (AoWHSMap.FAIExecuter.GetProcessTimeLeft > 0) do
+    begin
+      if FGroupControl = nil then
+      begin
+        FControl.FPlayer.FAIGroups.SortOnProcessPriority;
+        I := 0;
+        while (I < FControl.FPlayer.FAIGroups.Count) and
+          (agsDone in FControl.FPlayer.FAIGroups.GetGroups(I).FStatus) do Inc(I);
+        if I < FControl.FPlayer.FAIGroups.Count then
+          ActivateGroupControl(FControl.FPlayer.FAIGroups.GetGroups(I))
+        else Done := True;
+      end;
+      Control := FGroupControl;
+      if Control <> nil then
+      begin
+        Busy := Control.Process(False);
+        if not Busy then DeactivateGroupControl;
+      end
+      else Done := True;
+    end;
+    Result := not Done;
+  except
+    Result := False;
+  end;
+end;
 
 constructor TGroupControlLoopAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 destructor TGroupControlLoopAIPA.Destroy;
-begin end;
+begin
+  DeactivateGroupControl;
+  inherited Destroy;
+end;
 
-procedure TGroupControlLoopAIPA.Priority;
-begin end;
+class function TGroupControlLoopAIPA.Priority: Integer;
+begin Result := 20; end;
+
+procedure TGroupControlLoopAIPA.ActivateGroupControl(Group: TAIGroup);
+begin
+  DeactivateGroupControl;
+  FGroupControl := Group.CreateGroupControl;
+  FGroupControl.Activate;
+end;
+
+procedure TGroupControlLoopAIPA.DeactivateGroupControl;
+var
+  Control: TAIGroupControl;
+begin
+  Control := FGroupControl;
+  if Control <> nil then
+  begin
+    Control.Deactivate;
+    FGroupControl.Free;
+    FGroupControl := nil;
+  end;
+end;
 
 class function TGroupControlLoopAIPA.SupportedPhases: TAIPlayerProcessPhases;
 begin Result := [appLoop]; end;
 
-procedure TGroupControlLoopAIPA.ActivateGroupControl(A1: Integer);
-begin end;
-
-procedure TGroupControlLoopAIPA.DeactivateGroupControl;
-begin end;
-
 function TGroupControlLoopAIPA.Activate: Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+begin
+  Result := inherited Activate;
+  with FControl.FPlayer do
+    for I := FAIGroups.Count - 1 downto 0 do
+      FAIGroups.GetGroups(I).FStatus := FAIGroups.GetGroups(I).FStatus - [agsDone];
+end;
 
 function TGroupControlLoopAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Busy, Done: Boolean;
+  I: Integer;
+  Control: TAIGroupControl;
+begin
+  Inc(FGroupProcessCycles);
+  try
+    Busy := False;
+    Done := False;
+    while not Done and not Busy and (AoWHSMap.FAIExecuter.GetProcessTimeLeft > 0) do
+    begin
+      if FGroupControl = nil then
+      begin
+        FControl.FPlayer.FAIGroups.SortOnProcessPriority;
+        I := 0;
+        while (I < FControl.FPlayer.FAIGroups.Count) and
+          (agsDone in FControl.FPlayer.FAIGroups.GetGroups(I).FStatus) do Inc(I);
+        if I < FControl.FPlayer.FAIGroups.Count then
+          ActivateGroupControl(FControl.FPlayer.FAIGroups.GetGroups(I))
+        else Done := True;
+      end;
+      Control := FGroupControl;
+      if Control <> nil then
+      begin
+        Busy := Control.Process(True);
+        if not Busy then DeactivateGroupControl;
+      end
+      else Done := True;
+    end;
+    Result := not Done;
+  except
+    Result := False;
+  end;
+end;
 
 constructor TAutoProduceAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FProductions := TQuadItemList.Create;
+end;
 
 destructor TAutoProduceAIPA.Destroy;
-begin end;
+begin
+  FProductions.Free;
+  inherited Destroy;
+end;
 
-procedure TAutoProduceAIPA.Priority;
-begin end;
+class function TAutoProduceAIPA.Priority: Integer;
+begin Result := 12; end;
 
-procedure TAutoProduceAIPA.UpdateProductions(A1: Integer; A2: Integer);
-begin end;
+function CompareAutoProductions(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.D - Item1.D;
+end;
 
-procedure TAutoProduceAIPA.ExecuteProduce(A1: Integer; A2: Integer);
-begin end;
+procedure TAutoProduceAIPA.UpdateProductions(Control: TProductionControl);
+var
+  I, UnitIndex, Priority, Bonus: Integer;
+begin
+  if Control.FStatus = pcsIdle then
+  begin
+    Bonus := 0;
+    for I := 0 to Control.FUnitProductions.Count - 1 do
+      if Control.FUnitProductions.GetItem(I).FResearched then
+      begin
+        UnitIndex := Control.FUnitProductions.GetItem(I).FUnitIndex;
+        if UnitIndex <> -1 then
+        begin
+          Priority := FControl.UnitIndexToPriority(UnitIndex);
+          if Priority <> -1 then
+            FProductions.AddABCD(Integer(Control), I, 0, Priority + Bonus);
+        end;
+      end;
+  end;
+end;
 
-procedure TAutoProduceAIPA.ExecuteResearch(A1: Integer; A2: Integer);
-begin end;
+function TAutoProduceAIPA.ExecuteProduce(Control: TProductionControl; Index: Integer): Boolean;
+var
+  Gold, Mana, GoldUpkeep, ManaUpkeep: Integer;
+begin
+  Result := False;
+  if (FControl.FPlayer.FProductionControls.IndexOf(Control) <> -1) and
+    (Control.FStatus = pcsIdle) then
+  begin
+    Gold := Control.UnitProductionGold(Index);
+    Mana := Control.UnitProductionMana(Index);
+    GoldUpkeep := Control.UnitProductionGoldUpkeep(Index);
+    ManaUpkeep := Control.UnitProductionManaUpkeep(Index);
+    if (GoldUpkeep <= FGoldUpkeep) and (ManaUpkeep <= FManaUpkeep) then
+      if FControl.FPlayer.FAIBudget.RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep) then
+        if Control.ProduceUnitEx(Index, 0, False) then
+        begin
+          FControl.FPlayer.FAIBudget.ProductionExpenseMade(
+            Control.UnitProductionGold(Index), Control.UnitProductionGoldUpkeep(Index),
+            Control.UnitProductionMana(Index), Control.UnitProductionManaUpkeep(Index));
+          Dec(FGoldUpkeep, GoldUpkeep);
+          Dec(FManaUpkeep, ManaUpkeep);
+          Result := True;
+        end;
+  end;
+end;
 
-procedure TAutoProduceAIPA.TransporterPriority;
-begin end;
+function TAutoProduceAIPA.ExecuteResearch(Control: TProductionControl; Index: Integer): Boolean;
+var
+  Gold, Mana: Integer;
+begin
+  Result := False;
+  if (FControl.FPlayer.FProductionControls.IndexOf(Control) <> -1) and
+    (Control.FStatus = pcsIdle) then
+  begin
+    { Original behavior: affordability uses production prices for research. }
+    Gold := Control.UnitProductionGold(Index);
+    Mana := Control.UnitProductionMana(Index);
+    if FControl.FPlayer.FAIBudget.RequestProductionExpense(Gold, 0, Mana, 0) then
+      if Control.ResearchUnit(Index, False) then
+      begin
+        FControl.FPlayer.FAIBudget.ExpenseMade(Control.UnitResearchGold(Index),
+          Control.UnitResearchMana(Index));
+        Result := True;
+      end;
+  end;
+end;
 
-procedure TAutoProduceAIPA.ResearchTransporter(A1: Integer);
-begin end;
+function TAutoProduceAIPA.TransporterPriority(UnitIndex: Integer): Integer;
+var
+  Resource: TUnitResource;
+  AUnit: TUnit;
+begin
+  Resource := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex);
+  if (Resource <> nil) and (Resource.GetTransportCapacity <> 0) then
+  begin
+    AUnit := TUnit.Create(nil);
+    AUnit.SetUnitResource(Resource);
+    AUnit.UpdateOffensiveStrength;
+    Result := AUnit.FMaxOffensiveStrength;
+    AUnit.Release;
+    if Result <= 0 then Result := -1;
+  end
+  else Result := -1;
+end;
 
-procedure TAutoProduceAIPA.ProduceTransporter(A1: Integer);
-begin end;
+function TAutoProduceAIPA.ResearchTransporter(Budget: TAIBudget): Boolean;
+var
+  Candidates: TQuadItemList;
+  Structure: TPlayerStructure;
+  I, J: Integer;
+  X, Y, L: Shortint;
+  Player: TPlayer;
+  Control: TProductionControl;
+  Resource: TUnitResource;
+  Priority: Integer;
+begin
+  Player := FControl.FPlayer;
+  if Budget.FGold > 50 then
+  begin
+    Candidates := TQuadItemList.Create;
+    I := Player.FProductionControls.Count;
+    while I <> 0 do
+    begin
+      Dec(I);
+      Control := Player.FProductionControls.GetPC(I);
+      if Control.FStatus = pcsIdle then
+        for J := 0 to Control.FUnitProductions.Count - 1 do
+          if (Control.FUnitProductions.GetItem(J).FUnitIndex <> -1) and
+            not Control.FUnitProductions.GetItem(J).FResearched then
+          begin
+            Resource := AoWHSSet.FUnitResources.GetUnitResource(
+              Control.FUnitProductions.GetItem(J).FUnitIndex);
+            if Resource.GetTransportCapacity <> 0 then
+              if Player.FAIBudget.RequestBudgetExpense(
+                Control.UnitResearchGold(J),
+                Control.UnitResearchMana(J), Budget, False) then
+              begin
+                Control.GetLocation(X, Y, L);
+                Structure := TPlayerStructure(AoWHSMap.MapContainer.GetField(X, Y, L).
+                  FindNoneTransparentHS(TPlayerStructure));
+                Priority := TransporterPriority(Control.FUnitProductions.GetItem(J).FUnitIndex);
+                if Priority <> -1 then
+                begin
+                  if (Structure <> nil) and (Structure.FProductionPriority > 0) then
+                    if Structure.FProductionPriority > 10 then
+                      Priority := Priority * 5
+                    else Priority := Round(Priority * 0.5 * Structure.FProductionPriority);
+                  Candidates.AddABCD(Integer(Control), J, 0, Priority);
+                end;
+              end;
+          end;
+    end;
+    if Candidates.Count <> 0 then
+    begin
+      Candidates.Sort(CompareAutoProductions);
+      Player.FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+      if ExecuteResearch(TProductionControl(Candidates[0].A), Candidates[0].B) then
+      begin
+        Budget.FGold := 0;
+        Budget.FMana := 0;
+        Budget.FRequiredGold := 0;
+        Budget.FRequiredMana := 0;
+      end
+      else Player.FAIBudget.ExpenseMade(Budget.FGold, Budget.FMana);
+    end;
+    Candidates.Free;
+  end;
+  { Original behavior: both transporter routines always return False. }
+  Result := False;
+end;
 
-procedure TAutoProduceAIPA.FindAvailableTransporter;
-begin end;
+function TAutoProduceAIPA.ProduceTransporter(Budget: TAIBudget): Boolean;
+var
+  Candidates: TQuadItemList;
+  Structure: TPlayerStructure;
+  I, J: Integer;
+  X, Y, L: Shortint;
+  Player: TPlayer;
+  Control: TProductionControl;
+  Resource: TUnitResource;
+  Priority: Integer;
+begin
+  Player := FControl.FPlayer;
+  if Budget.FGold > 50 then
+  begin
+    Candidates := TQuadItemList.Create;
+    I := Player.FProductionControls.Count;
+    while I <> 0 do
+    begin
+      Dec(I);
+      Control := Player.FProductionControls.GetPC(I);
+      if Control.FStatus = pcsIdle then
+        for J := 0 to Control.FUnitProductions.Count - 1 do
+          if (Control.FUnitProductions.GetItem(J).FUnitIndex <> -1) and
+            Control.FUnitProductions.GetItem(J).FResearched then
+          begin
+            Resource := AoWHSSet.FUnitResources.GetUnitResource(
+              Control.FUnitProductions.GetItem(J).FUnitIndex);
+            if Resource.GetTransportCapacity <> 0 then
+              if Player.FAIBudget.RequestBudgetExpense(
+                Control.UnitProductionGold(J),
+                Control.UnitProductionMana(J), Budget, False) then
+                if Player.FAIBudget.RequestProductionExpenseEx(
+                  Control.UnitProductionGold(J), Control.UnitProductionGoldUpkeep(J),
+                  Control.UnitProductionMana(J), Control.UnitProductionManaUpkeep(J), Budget) then
+              begin
+                Control.GetLocation(X, Y, L);
+                Structure := TPlayerStructure(AoWHSMap.MapContainer.GetField(X, Y, L).
+                  FindNoneTransparentHS(TPlayerStructure));
+                Priority := TransporterPriority(Control.FUnitProductions.GetItem(J).FUnitIndex);
+                if Priority <> -1 then
+                begin
+                  if (Structure <> nil) and (Structure.FProductionPriority > 0) then
+                    if Structure.FProductionPriority > 10 then
+                      Inc(Priority, Priority * 5)
+                    else Inc(Priority, Round(Priority * 0.5 * Structure.FProductionPriority));
+                  Candidates.AddABCD(Integer(Control), J, 0, Priority);
+                end;
+              end;
+          end;
+    end;
+    if Candidates.Count <> 0 then
+    begin
+      Candidates.Sort(CompareAutoProductions);
+      Player.FAIBudget.ReturnExpense(Budget.FGold, Budget.FMana);
+      if ExecuteProduce(TProductionControl(Candidates[0].A), Candidates[0].B) then
+      begin
+        Budget.FGold := 0;
+        Budget.FMana := 0;
+        Budget.FRequiredGold := 0;
+        Budget.FRequiredMana := 0;
+      end
+      else Player.FAIBudget.ExpenseMade(Budget.FGold, Budget.FMana);
+    end
+    else if not ResearchingTransporter then ResearchTransporter(Budget);
+    Candidates.Free;
+  end;
+  { Original behavior: both transporter routines always return False. }
+  Result := False;
+end;
 
-procedure TAutoProduceAIPA.TransporterProductionControlExists;
-begin end;
+function TAutoProduceAIPA.FindAvailableTransporter: TAbstractUnit;
+var
+  I: Integer;
+begin
+  with FControl.FPlayer do
+  begin
+    Result := nil;
+    I := FArmies.Count;
+    while (I <> 0) and (Result = nil) do
+    begin
+      Dec(I);
+      Result := FArmies.GetArmy(I).Transporter($FF);
+      if (Result <> nil) and (Result.FGroupID <> 0) then Result := nil;
+    end;
+  end;
+end;
 
-procedure TAutoProduceAIPA.ProducingTransporter;
-begin end;
+function TAutoProduceAIPA.TransporterProductionControlExists: Boolean;
+var
+  I, J: Integer;
+  Control: TProductionControl;
+  Resource: TUnitResource;
+begin
+  with FControl.FPlayer do
+  begin
+    Result := False;
+    I := FProductionControls.Count;
+    while (I <> 0) and not Result do
+    begin
+      Dec(I);
+      Control := FProductionControls.GetPC(I);
+      for J := 0 to Control.FUnitProductions.Count - 1 do
+        if (Control.FUnitProductions.GetItem(J).FUnitIndex <> -1) and
+          Control.FUnitProductions.GetItem(J).FResearched then
+        begin
+          Resource := AoWHSSet.FUnitResources.GetUnitResource(
+            Control.FUnitProductions.GetItem(J).FUnitIndex);
+          Result := Result or (Resource.GetTransportCapacity <> 0);
+        end;
+    end;
+  end;
+end;
 
-procedure TAutoProduceAIPA.ResearchingTransporter;
-begin end;
+function TAutoProduceAIPA.ProducingTransporter: Boolean;
+var
+  I: Integer;
+  Control: TProductionControl;
+begin
+  with FControl.FPlayer do
+  begin
+    Result := False;
+    I := FProductionControls.Count;
+    while (I <> 0) and not Result do
+    begin
+      Dec(I);
+      Control := FProductionControls.GetPC(I);
+      if Control.FStatus = pcsProducing then
+        if Control.FQueue.GetItem(0).FProductionID = 1 then
+          Result := Control.FSettings.FUnit.GetTransportCapacity <> 0;
+    end;
+  end;
+end;
+
+function TAutoProduceAIPA.ResearchingTransporter: Boolean;
+var
+  I: Integer;
+  Control: TProductionControl;
+  Resource: TUnitResource;
+begin
+  with FControl.FPlayer do
+  begin
+    Result := False;
+    I := FProductionControls.Count;
+    while (I <> 0) and not Result do
+    begin
+      Dec(I);
+      Control := FProductionControls.GetPC(I);
+      if Control.FStatus = pcsProducing then
+        if Control.FQueue.GetItem(0).FProductionID = 2 then
+        begin
+          Resource := AoWHSSet.FUnitResources.GetUnitResource(
+            Control.FUnitProductions.GetItem(Control.FSettings.FUnitProductionIndex).FUnitIndex);
+          if Resource <> nil then Result := Resource.GetTransportCapacity <> 0;
+        end;
+    end;
+  end;
+end;
 
 function TAutoProduceAIPA.Process: Boolean;
 begin Result := False; end;
@@ -2777,8 +3800,8 @@ begin end;
 destructor TProcessEventlogAIPA.Destroy;
 begin end;
 
-procedure TProcessEventlogAIPA.Priority;
-begin end;
+class function TProcessEventlogAIPA.Priority: Integer;
+begin Result := 0; end;
 
 function TProcessEventlogAIPA.Process: Boolean;
 begin Result := False; end;
@@ -2861,16 +3884,17 @@ begin end;
 procedure TAIBudgetManager.UpdateBudgets;
 begin end;
 
-procedure TAIBudgetManager.RequestProductionExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAIBudgetManager.RequestProductionExpense(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer): Boolean;
+begin Result := False; end;
 
-procedure TAIBudgetManager.RequestProductionExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAIBudgetManager.RequestProductionExpenseEx(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer; Budget: TAIBudget): Boolean;
+begin Result := False; end;
 
-procedure TAIBudgetManager.ProductionExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAIBudgetManager.ProductionExpenseMade(Gold, GoldUpkeep, Mana, ManaUpkeep: Integer);
 begin end;
 
 function TAIBudgetManager.RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+{ conflict: function TAIBudgetManager.RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean; }
 begin Result := False; end;
 
 function TAIBudgetManager.BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
@@ -2912,8 +3936,8 @@ begin end;
 destructor TBudgetManagerAIPA.Destroy;
 begin end;
 
-procedure TBudgetManagerAIPA.Priority;
-begin end;
+class function TBudgetManagerAIPA.Priority: Integer;
+begin Result := 0; end;
 
 function TBudgetManagerAIPA.Process: Boolean;
 begin Result := False; end;
@@ -2966,11 +3990,11 @@ begin end;
 procedure TAIGroup.Clear;
 begin end;
 
-procedure TAIGroup.CreateGroupControl;
-begin end;
+function TAIGroup.CreateGroupControl: TAIGroupControl;
+begin Result := nil; end;
 
-procedure TAIGroup.GetProcessPriority;
-begin end;
+function TAIGroup.GetProcessPriority: Integer;
+begin Result := 0; end;
 
 procedure TAIGroup.GetLoc(A1: Integer; A2: Integer);
 begin end;
@@ -3056,8 +4080,8 @@ begin end;
 procedure TAIGroup.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TAIGroupList.GetGroups(A1: Integer);
-begin end;
+function TAIGroupList.GetGroups(Index: Integer): TAIGroup;
+begin Result := nil; end;
 
 procedure TAIGroupList.IndexOfID(A1: Integer);
 begin end;
@@ -3084,6 +4108,7 @@ procedure TAIGroupManager.UnregisterAIGroupClasses(A1: Integer; A2: Integer);
 begin end;
 
 function TAIGroupManager.CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
+{ conflict: function TAIGroupManager.CreateGroup(Player: Shortint; Priority: Byte; Behavior: TGroupBehavior): TAIGroup; }
 begin Result := nil; end;
 
 procedure TAIGroupManager.CreateUniqueID;
@@ -3281,8 +4306,8 @@ begin end;
 procedure TAIGroupControl.Validate;
 begin end;
 
-procedure TAIGroupControl.Process(A1: Byte);
-begin end;
+function TAIGroupControl.Process(Looped: Boolean): Boolean;
+begin Result := False; end;
 
 procedure TAIGroupControl.FindAvailableTransporter;
 begin end;
@@ -4100,8 +5125,8 @@ begin end;
 procedure TAIMoveExecuter.ProcessMECS;
 begin end;
 
-procedure TAIMoveExecuter.Process;
-begin end;
+function TAIMoveExecuter.Process: Boolean;
+begin Result := False; end;
 
 procedure TAIMoveExecuter.SetupTransporter(A1: Integer; A2: Integer);
 begin end;

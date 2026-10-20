@@ -14,14 +14,14 @@
   TStructurePhase1AIPA = class(TStructureAIPA)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
   end;
 
   { TStructurePhase2AIPA (instance size 28, VMT 55719B60) }
   TStructurePhase2AIPA = class(TStructureAIPA)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Priority; override;
+    class function Priority: Integer; override;
   end;
 
   { TAIGroupProduction (instance size 16, VMT 55719DDC) }

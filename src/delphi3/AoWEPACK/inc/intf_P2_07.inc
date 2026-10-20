@@ -507,6 +507,7 @@
     procedure Hero(A1: Integer; A2: Byte);  { draft }
     procedure Leader(A1: Integer);  { draft }
     function Transporter(Player: Byte): TAbstractUnit;
+    { conflict: function Transporter(Selection: Byte): TAbstractUnit; }
     procedure IndexOfTransporter(A1: Integer);  { draft }
     function UnitsInTransporter: Boolean;
     procedure UpdateVisibilityRanges(A1: Integer; A2: Integer);  { draft }

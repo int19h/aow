@@ -5693,6 +5693,7 @@ procedure TArmy.Leader(A1: Integer);
 begin end;
 
 function TArmy.Transporter(Player: Byte): TAbstractUnit;
+{ conflict: function TArmy.Transporter(Selection: Byte): TAbstractUnit; }
 begin end;
 
 procedure TArmy.IndexOfTransporter(A1: Integer);

@@ -152,7 +152,7 @@
     function UnitProductionManaUpkeep(Index: Integer): Integer; virtual;
     function UnitProductionTime(Index: Integer): Integer; virtual;
     function CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean; virtual;
-    procedure ProduceUnitEx(A1: Integer; A2: Integer); virtual;  { +0DC draft }
+    function ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean; virtual; { $DC }
     function ProduceUnit(Index: Integer; Queue: Boolean): Boolean; virtual;
     function UnitResearchGold(Index: Integer): Integer; virtual;
     function UnitResearchMana(Index: Integer): Integer; virtual;
@@ -176,6 +176,6 @@
   { TProductionControlList (instance size 16, VMT 5570A8FC) }
   TProductionControlList = class(TList)
   public
-    procedure GetPC(A1: Integer);  { draft }
+    function GetPC(Index: Integer): TProductionControl;
   end;
 

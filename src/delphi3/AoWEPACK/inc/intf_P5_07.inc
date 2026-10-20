@@ -11,10 +11,10 @@
     procedure IndexOfU(A1: Integer);  { draft }
   end;
 
-  { TAIGroup (instance size 80, VMT 55719FB8) }
+  { TAIGroup (instance size $50, VMT 55719FB8). $10 status, $3C target type. }
   TAIGroup = class(TUnitUserList)
   public
-    F_AIGroup_10: Byte;
+    FStatus: TAIGroupStatus; { $10 }
     F_AIGroup_11: array[0..2] of Byte;
     F_AIGroup_14: Integer;
     F_AIGroup_18: array[0..3] of Byte;
@@ -28,7 +28,7 @@
     F_AIGroup_34: Byte;
     F_AIGroup_35: array[0..2] of Byte;
     F_AIGroup_38: Integer;
-    F_AIGroup_3C: Byte;
+    FTargetType: TAIGroupTargetType; { $3C }
     F_AIGroup_3D: array[0..2] of Byte;
     F_AIGroup_40: Integer;
     F_AIGroup_44: Integer;
@@ -54,12 +54,12 @@
     procedure GetLoc(A1: Integer; A2: Integer); virtual;  { +0C0 draft }
     procedure GroupControlClass; virtual;  { +0C4 draft }
     procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
-    procedure CreateGroupControl; virtual;  { +0CC draft }
+    function CreateGroupControl: TAIGroupControl; virtual; { $CC }
     class function Behavior: TGroupBehavior; virtual;
     procedure DefendLocation(A1: Integer); virtual; { +0D4 }
     procedure CooperateWithGroup(A1: Integer); virtual;  { +0D8 draft }
     procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0DC draft }
-    procedure GetProcessPriority;  { draft }
+    function GetProcessPriority: Integer;
     procedure GetAdjacent(A1: Integer; A2: Integer);  { draft }
     procedure SetLeader(A1: Integer);  { draft }
     procedure GetMovePointsMin;  { draft }
@@ -89,6 +89,7 @@
     procedure RegisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
     procedure UnregisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
     function CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
+    { conflict: function CreateGroup(Player: Shortint; Priority: Byte; Behavior: TGroupBehavior): TAIGroup; }
     procedure CreateUniqueID;  { draft }
   end;
 
@@ -114,7 +115,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate(A1: Integer); virtual;  { +04C draft }
+    procedure Validate(A1: Integer); virtual;  { $4C }
     procedure GetTargetGold;  { draft }
     procedure GetTargetMana;  { draft }
     procedure GetDebugInfo(A1: Integer);  { draft }
@@ -147,7 +148,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate(A1: Integer; A2: Integer); virtual;  { +04C draft }
+    procedure Validate(A1: Integer; A2: Integer); virtual;  { $4C }
     procedure SetGroup(A1: Integer);  { draft }
   end;
 
@@ -172,7 +173,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate; virtual;  { +04C draft }
+    procedure Validate; virtual;  { $4C }
   end;
 
   { TAIGroupProductionLocationList (instance size 12, VMT 5571A728) }
@@ -199,7 +200,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
-    procedure Validate; virtual;  { +04C draft }
+    procedure Validate; virtual;  { $4C }
     procedure GetBusy; virtual;  { +050 draft }
     procedure Activate(A1: Integer; A2: Integer); virtual;  { +054 draft }
     procedure Deactivate; virtual;  { +058 draft }
@@ -236,7 +237,7 @@
     F_AIGroupControl_16C: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure MoveExecuterDone; virtual;  { +04C draft }
+    procedure MoveExecuterDone; virtual;  { $4C }
     procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); virtual;  { +050 draft }
     procedure RecruitmentGroupFoundEvent(A1: Integer; A2: Integer; A3: Integer); virtual;  { +054 draft }
     procedure ProductionLocationFoundEvent(A1: Integer; A2: Integer; A3: Integer); virtual;  { +058 draft }
@@ -259,7 +260,7 @@
     procedure ActivatePlugin(A1: Integer);  { draft }
     procedure DeactivatePlugin;  { draft }
     procedure MainProcessStates(A1: Integer);  { draft }
-    procedure Process(A1: Byte);  { draft }
+    function Process(Looped: Boolean): Boolean;
     procedure FindAvailableTransporter;  { draft }
   end;
 
@@ -609,7 +610,7 @@
   { TGroupControl (instance size 8, VMT 5571BB04) }
   TGroupControl = class(TEObject)
   public
-    procedure Behavior; virtual;  { +04C draft }
+    procedure Behavior; virtual;  { $4C }
   end;
 
   { TGuardGC (instance size 8, VMT 5571BBC8) }
@@ -661,13 +662,14 @@
     procedure Behavior; override;
   end;
 
-  { TEndTurnTE (instance size 28, VMT 5571C138) }
+  { TEndTurnTE (instance size $1C, VMT 5571C138).
+    $10 player, $14 day, $18 end-turn mode. }
   TEndTurnTE = class(TTokenEvent)
   public
-    F_EndTurnTE_10: Byte;
+    FPlayer: Shortint; { $10 }
     F_EndTurnTE_11: array[0..2] of Byte;
-    F_EndTurnTE_14: Integer;
-    F_EndTurnTE_18: Byte;
+    FDay: Integer; { $14 }
+    FMode: TEndTurnMode; { $18 }
     F_EndTurnTE_19: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

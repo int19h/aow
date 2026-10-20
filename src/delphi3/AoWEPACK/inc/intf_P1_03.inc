@@ -180,7 +180,7 @@
     FVictoryLocations: TPlayerStructureList; { $20 }
     FProductionControls: TProductionControlList;  { $24 }
     FArmies: TArmyList; { $28 }
-    F_Player_2C: Byte;
+    FSingleProcessCycle: Boolean; { $2C }
     F_Player_2D: Byte;
     F_Player_2E: Byte;
     F_Player_2F: Byte;
@@ -221,7 +221,7 @@
     FPlayerRace: Shortint;  { $A5 }
     FPlayerIndex: Shortint; { $A6 }
     FPlayerType: TPlayerType;  { $A7 }
-    F_Player_A8: Byte;
+    FBehavior: TPlayerBehavior; { $A8 }
     FParticipating: Boolean; { $A9 }
     F_Player_AA: array[0..1] of Byte;
     FInitialGold: Integer; { $AC }
@@ -284,7 +284,7 @@
     procedure UpdateTurnInfo;  { draft }
     procedure UpdateAlliedPlayersSeen;  { draft }
     procedure SetupAIValidAttackPlayers;  { draft }
-    procedure GetFirstDaySeen(A1: Byte);  { draft }
+    function GetFirstDaySeen(Player: Shortint): Integer;
     procedure GetLastDaySeen(A1: Byte);  { draft }
     procedure PlayerSeen(A1: Integer);  { draft }
     procedure GetLeaderLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -303,7 +303,7 @@
   { TPlayerList (instance size 32, VMT 5570C5E8) }
   TPlayerList = class(TEControlStyleNode)
   public
-    F_PlayerList_10: Integer;
+    FActivePlayers: TByteList; { $10 }
     F_PlayerList_14: Integer;
     FLocalPlayers: TByteList; { $18 }
     { conflict: FActivePlayers: TIntegerList; }

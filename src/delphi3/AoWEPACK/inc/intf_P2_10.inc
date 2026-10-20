@@ -68,7 +68,8 @@ procedure AlignmentToIR(A1: Byte);  { draft }
 procedure IRtoAlignment(A1: Integer);  { draft }
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
-procedure GetUnitIndexAIPriority(A1: Integer; A2: Byte; A3: Integer);  { draft }
+{ conflict: function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean; }
+function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: Shortint): Integer;
 function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 procedure Encode(A1: Integer; A2: Integer; A3: Integer);  { draft }
