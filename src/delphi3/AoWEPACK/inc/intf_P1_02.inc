@@ -67,7 +67,7 @@
     FPlayer: Shortint;  { $1D }
     F_ProductionSettings_1E: array[0..1] of Byte;
     FGroupID: Integer; { $20 }
-    FUnit: TAbstractUnit;  { $24 }
+    FUnit: TUnit; { $24; 5573BBC3 }
     FUnitProductionIndex: Integer;  { $28 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -119,8 +119,8 @@
     function CancelProductionReturnGold: Integer; virtual;
     function CancelProductionReturnMana: Integer; virtual;
     procedure ExecuteCancelProduction; virtual;
-    procedure ExecuteAIProduction(A1: Integer; A2: Integer); virtual;  { +058 draft }
-    procedure ExecuteAIResearch(A1: Integer); virtual;  { +05C draft }
+    function ExecuteAIProduction(Index, GroupID: Integer): Boolean; virtual; { 5573B2D9/5573B33B }
+    function ExecuteAIResearch(Index: Integer): Boolean; virtual; { 5573B2D9/5573B33B }
     function ExecuteProduction(Item: TProductionItem): Boolean; virtual;
     procedure ExecuteAddProduction(Item: TProductionItem); virtual;
     procedure ExecuteDeleteProduction(Index: Integer); virtual; { $68 }

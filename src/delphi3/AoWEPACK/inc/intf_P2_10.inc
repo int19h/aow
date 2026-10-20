@@ -77,7 +77,7 @@ procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Sho
 procedure StrengthInfoMax(A1: Integer);  { draft }
 procedure InvertDamageTypes(A1: Word);  { draft }
 procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-procedure GetMovepathBattleFieldStrength(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
 procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
 procedure IgnitionChance(A1: Integer);  { draft }
 procedure CreateEnhancementAbility(A1: Integer; A2: Integer; A3: Integer);  { draft }

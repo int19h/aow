@@ -53,7 +53,7 @@ type
     F_FortifyAGC_170: array[0..15] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
     procedure Split; override;
     procedure FortifyCity;  { draft }
@@ -76,7 +76,7 @@ type
   TSuicidalAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
   end;
 
@@ -94,7 +94,7 @@ type
   TTransportAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
     procedure SetupME; override;
   end;
@@ -261,7 +261,7 @@ begin end;
 procedure TFortifyAGC.Split;
 begin end;
 
-procedure TFortifyAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TFortifyAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TFortifyAGC.GetSurroundingEnemyStrength(A1: Integer; A2: Integer);
@@ -295,7 +295,7 @@ begin Result := gbSuicidal; end;
 class function TSuicidalAG.GroupControlClass: TAIGroupControlClass;
 begin Result := TSuicidalAGC; end;
 
-procedure TSuicidalAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TSuicidalAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TSuicidalAGC.MoveExecuterDone;
@@ -331,7 +331,7 @@ begin Result := gbTransport; end;
 class function TTransportAG.GroupControlClass: TAIGroupControlClass;
 begin Result := TTransportAGC; end;
 
-procedure TTransportAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TTransportAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TTransportAGC.MoveExecuterDone;

@@ -6452,11 +6452,11 @@ begin
   EndUpdate;
 end;
 
-procedure TProductionControl.ExecuteAIProduction(A1: Integer; A2: Integer);
-begin end;
+function TProductionControl.ExecuteAIProduction(Index, GroupID: Integer): Boolean;
+begin Result := False; end;
 
-procedure TProductionControl.ExecuteAIResearch(A1: Integer);
-begin end;
+function TProductionControl.ExecuteAIResearch(Index: Integer): Boolean;
+begin Result := False; end;
 
 function TProductionControl.ExecuteProductionTE(Event: TProductionTE): TExecuteResult;
 begin Result := erRetry; end;
@@ -9380,8 +9380,8 @@ begin end;
 procedure ListMovementGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure GetMovepathBattleFieldStrength(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer;
+begin Result := 0; end;
 
 procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;

@@ -54,7 +54,7 @@
   TCombatPredictorUnitList = class(TList)
   public
     function GetUnits(A1: Integer): TCombatPredictorUnit;  { draft }
-    function IndexOfUnit(A1: Integer): Integer;  { draft }
+    function IndexOfUnit(A1: TAbstractUnit): Integer; { 5572B0BC }
     function IndexOfCPUID(A1: Integer): Integer;  { draft }
   end;
 
@@ -100,7 +100,7 @@
     function CanPassWall: Boolean;  { draft }
     procedure FinishCombat;  { draft }
     function Execute: TCombatResult;
-    procedure DeleteUnit(A1: Integer);  { draft }
+    procedure DeleteUnit(A1: TAbstractUnit); { 5573A91D }
     function AddUnitEx(A1: TAbstractUnit; A2: Byte; A3: Byte): TCombatPredictorUnit;
     procedure AddUnit(A1: TAbstractUnit);
     procedure AddUnits(A1: Integer);  { draft }

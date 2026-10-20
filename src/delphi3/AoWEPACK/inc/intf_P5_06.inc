@@ -230,7 +230,7 @@
     FStatus: TAIMoveTargetSelectorStatus; { $10; 557D790E }
     F_AIMoveTargetSelector_11: array[0..2] of Byte;
     F_AIMoveTargetSelector_14: Integer;
-    F_AIMoveTargetSelector_18: Byte;
+    FMode: TAIMoveTargetSelectorMode; { $18; 5573A32B }
     F_AIMoveTargetSelector_19: array[0..2] of Byte;
     F_AIMoveTargetSelector_1C: Integer;
     FOnTargetFound: TMoveTargetFoundEvent; { $20; 557D7656 }
@@ -244,7 +244,7 @@
     FMovePointsMax: Integer; { $23C; 557D7660 }
     FMovePointsMin: Integer; { $240; 557D766C }
     F_AIMoveTargetSelector_244: Integer;
-    F_AIMoveTargetSelector_248: Integer;
+    FUnits: TUnitUserList; { $248; 5573A2E6 }
     F_AIMoveTargetSelector_24C: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

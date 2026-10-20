@@ -3069,13 +3069,13 @@ begin if FHitPoints <= 0 then FStatus := FStatus + [usDestroyed]; end;
 function TCombatPredictorUnitList.GetUnits(A1: Integer): TCombatPredictorUnit;
 begin Result := TCombatPredictorUnit(List^[A1]); end;
 
-function TCombatPredictorUnitList.IndexOfUnit(A1: Integer): Integer;
+function TCombatPredictorUnitList.IndexOfUnit(A1: TAbstractUnit): Integer;
 begin
   Result := Count;
   while Result <> 0 do
   begin
     Dec(Result);
-    if Integer(TCombatPredictorUnit(List^[Result]).FUnit) = A1 then Exit;
+    if TCombatPredictorUnit(List^[Result]).FUnit = A1 then Exit;
   end;
   Result := -1;
 end;
@@ -3279,7 +3279,7 @@ begin
   FInvalid := 0;
 end;
 
-procedure TCombatPredictor.DeleteUnit(A1: Integer);
+procedure TCombatPredictor.DeleteUnit(A1: TAbstractUnit);
 var I, J: Integer; U: TCombatPredictorUnit; D: TDamageType;
 begin
   I := TCombatPredictorUnitList(FAllUnits).IndexOfUnit(A1);
@@ -3360,7 +3360,7 @@ begin
   Wall := TCombatPredictorUnit(FWall);
   if Wall <> nil then
   begin
-    DeleteUnit(Integer(Wall.FUnit));
+    DeleteUnit(Wall.FUnit);
     FWall := nil;
   end;
 end;
@@ -3369,14 +3369,14 @@ procedure TCombatPredictor.DeleteUnits;
 var I: Integer;
 begin
   for I := TList(FSides[0]).Count - 1 downto 0 do
-    DeleteUnit(Integer(TCombatPredictorUnitList(FSides[0]).GetUnits(I).FUnit));
+    DeleteUnit(TCombatPredictorUnitList(FSides[0]).GetUnits(I).FUnit);
 end;
 
 procedure TCombatPredictor.DeleteOpponents;
 var I: Integer;
 begin
   for I := TList(FSides[1]).Count - 1 downto 0 do
-    DeleteUnit(Integer(TCombatPredictorUnitList(FSides[1]).GetUnits(I).FUnit));
+    DeleteUnit(TCombatPredictorUnitList(FSides[1]).GetUnits(I).FUnit);
 end;
 
 procedure TCombatPredictor.InitAdjacentArmies(A1: TArmyHS; A2, A3, A4: Shortint);

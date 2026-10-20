@@ -53,7 +53,7 @@ type
   TGuardAreaAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
     procedure ProcessStatesLooped; override;
   end;
@@ -77,7 +77,7 @@ type
   TPatrolAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
     procedure ResetPatrolToLocation;  { draft }
   end;
@@ -109,7 +109,7 @@ type
   TRaidAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
   end;
 
@@ -126,7 +126,7 @@ type
   TScoutAGC = class(TAIGroupControl)
   public
     procedure MoveExecuterDone; override;
-    procedure TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates(A1: Integer; A2: Integer); override;
   end;
 
@@ -160,7 +160,7 @@ begin Result := nil; end;
 procedure TGuardAreaAG.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TGuardAreaAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TGuardAreaAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TGuardAreaAGC.MoveExecuterDone;
@@ -193,7 +193,7 @@ begin end;
 procedure TPatrolAGC.MoveExecuterDone;
 begin end;
 
-procedure TPatrolAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TPatrolAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TPatrolAGC.ProcessStates(A1: Integer; A2: Integer);
@@ -223,7 +223,7 @@ begin Result := gbNone; end;
 class function TRaidAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TRaidAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TRaidAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TRaidAGC.MoveExecuterDone;
@@ -244,7 +244,7 @@ begin Result := gbNone; end;
 class function TScoutAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TScoutAGC.TargetFoundEvent(A1: Integer; A2: Integer; A3: Integer);
+procedure TScoutAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
 procedure TScoutAGC.MoveExecuterDone;
