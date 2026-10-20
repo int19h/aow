@@ -143,9 +143,9 @@
     procedure InvalidateScannerIcons;  { draft }
     procedure TriggerScannerIconsChangedEvent(A1: Integer; A2: Integer);  { draft }
     procedure UpdateShowMessage;  { draft }
-    procedure FogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure UnFogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function FogArea(X, Y, Level: Integer; Range: Integer): Boolean;
+    function UnFogArea(X, Y, Level: Integer; Range: Integer): Boolean;
+    function ExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): Boolean;
     procedure UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure DrawGrid(A1: Integer);  { draft }
     procedure DrawFog(A1: Integer);  { draft }
@@ -394,7 +394,7 @@
     procedure OnStreamError(A1: Integer; A2: Integer);  { draft }
     procedure InitializeMapLevel(A1: Byte);  { draft }
     procedure NotifyPlayerChangedEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure UpdatePlayerSeen(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure UpdatePlayerSeen(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
     procedure NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
     procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }

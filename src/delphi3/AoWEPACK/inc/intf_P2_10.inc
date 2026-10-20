@@ -91,6 +91,8 @@ var
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
 
 resourcestring
+  NoUnitSelectedRStr = 'No unit selected'; { $55707A6C }
+  NotEnoughGoldRStr = 'Not enough gold.'; { $5570719C }
   StructureCapturedRStr = '%s captured';
   UnknownRStr = 'Unknown';
   NoneRStr = 'None';

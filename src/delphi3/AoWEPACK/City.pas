@@ -176,7 +176,7 @@ type
     procedure UpdateFlagID; override;
     function VisibilityRange: Integer; override;
     procedure FinalizeCombat(Combat: TCombat); override;
-    procedure GetCombatEventText(Combat: TCombat; var Text: string); override;
+    function GetCombatEventText(Combat: TCombat): string; override;
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); override;
     procedure GetMoveAction(A1: Integer; A2: Integer); override;
     function UpdatePlayer: Boolean; override;
@@ -2048,15 +2048,15 @@ begin
   Combat.InitDefaultArmies(Army.FArmy, Army.GetXhx, Army.GetYhx, Army.GetLhx);
 end;
 
-procedure TCity.GetCombatEventText(Combat: TCombat; var Text: string);
+function TCity.GetCombatEventText(Combat: TCombat): string;
 begin
   if not GetRazed then
     if (Combat.FCombatResult = crVictory) or (Combat.FCombatResult = crNoDefenders) then
-      Text := SysUtils.Format(TranslateRStr(LoadResString(CityBattleWonText)), [GetName])
+      Result := SysUtils.Format(TranslateRStr(LoadResString(CityBattleWonText)), [GetName])
     else if Combat.FCombatResult = crDefeat then
-      Text := SysUtils.Format(TranslateRStr(LoadResString(CityBattleLostText)), [GetName])
+      Result := SysUtils.Format(TranslateRStr(LoadResString(CityBattleLostText)), [GetName])
     else if Combat.FCombatResult <> crCannotBreachWall then
-      Text := SysUtils.Format(TranslateRStr(LoadResString(CityBattleDrawnText)), [GetName]);
+      Result := SysUtils.Format(TranslateRStr(LoadResString(CityBattleDrawnText)), [GetName]);
 end;
 
 procedure TCity.FinalizeCombat(Combat: TCombat);

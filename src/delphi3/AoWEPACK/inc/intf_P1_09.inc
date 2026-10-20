@@ -184,7 +184,7 @@
     F_StructureResource_50: Integer;
     F_StructureResource_54: Integer;
     FRazeable: Boolean;  { $58 }
-    F_StructureResource_59: Byte;
+    FCastsShadow: Boolean; { $59; $5575F6ED, $557D6C7F }
     FRebuildGold: Byte; { $5A }
     FRebuildDays: Byte; { $5B }
     FDefenders: TUnitIndexListCollection;  { $5C }
@@ -237,7 +237,7 @@
     F_PlayerStructure_32: Byte;
     F_PlayerStructure_33: array[0..0] of Byte;
     F_PlayerStructure_34: Integer;
-    F_PlayerStructure_38: Byte;
+    FUnfogRange: Byte; { $38; $557D50FC }
     F_PlayerStructure_39: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -269,7 +269,7 @@
     procedure UpdateUnfog; virtual;  { +204 draft }
     procedure UpdateExploration; virtual;  { +208 draft }
     procedure FinalizeCombat(Combat: TCombat); virtual;
-    procedure GetCombatEventText(Combat: TCombat; var Text: string); virtual;
+    function GetCombatEventText(Combat: TCombat): string; virtual; { +210; $557D066C }
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
     procedure GetMoveAction(A1: Integer; A2: Integer); virtual;  { +218 draft }
     function GetDefaultAITargetPriority: Integer; virtual;
@@ -278,7 +278,7 @@
     procedure SetVictoryLocation(A1: Integer; A2: Integer);  { draft }
     procedure RegisterVictoryLocations;  { draft }
     procedure UnregisterVictoryLocations;  { draft }
-    procedure TrueVisionRange;  { draft }
+    function TrueVisionRange: Integer;
     procedure UpdatePlayerSeen;  { draft }
   end;
 

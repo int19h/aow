@@ -32,7 +32,7 @@ type
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetIncome: Integer; override;
-    procedure GetCombatEventText(Combat: TCombat; var Text: string); override;
+    function GetCombatEventText(Combat: TCombat): string; override;
   end;
 
   { TMineResource (instance size 116, VMT 557B42A8) }
@@ -186,12 +186,12 @@ begin
   Stream.rwData(FState, 1, 20);
 end;
 
-procedure TMine.GetCombatEventText(Combat: TCombat; var Text: string);
+function TMine.GetCombatEventText(Combat: TCombat): string;
 begin
   if (Combat.FCombatResult = crVictory) or
     (Combat.FCombatResult = crNoDefenders) then
-    TranslateMineText(MineBattleWonRStr, Text)
-  else Text := '';
+    TranslateMineText(MineBattleWonRStr, Result)
+  else Result := '';
 end;
 
 constructor TMineResource.Create(AOwner: Engine.TECustomNode);

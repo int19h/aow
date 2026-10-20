@@ -117,9 +117,6 @@ resourcestring
   NotAllSkillPointsAssignedRStr = 'not all skill points assigned';
 
 resourcestring
-  NoUnitSelectedRStr = 'No unit selected';
-
-resourcestring
   WaterRStr = 'Water';
   GrassRStr = 'Grass';
   DesertRStr = 'Desert';
@@ -5310,8 +5307,8 @@ begin end;
 procedure TPlayerStructure.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 begin end;
 
-procedure TPlayerStructure.GetCombatEventText(Combat: TCombat; var Text: string);
-begin end;
+function TPlayerStructure.GetCombatEventText(Combat: TCombat): string;
+begin Result := ''; end;
 
 procedure TPlayerStructure.FinalizeCombat(Combat: TCombat);
 begin end;
@@ -5340,8 +5337,8 @@ begin end;
 procedure TPlayerStructure.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TPlayerStructure.TrueVisionRange;
-begin end;
+function TPlayerStructure.TrueVisionRange: Integer;
+begin Result := 0; end;
 
 function TPlayerStructure.VisibilityRange: Integer;
 begin Result := 0; end;
@@ -6010,14 +6007,14 @@ begin end;
 procedure TAbstractAoWHSMap.SetCurrentPlayer(A1: Byte);
 begin end;
 
-procedure TAbstractAoWHSMap.FogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAbstractAoWHSMap.FogArea(X, Y, Level: Integer; Range: Integer): Boolean;
+begin Result := False; end;
 
-procedure TAbstractAoWHSMap.UnFogArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAbstractAoWHSMap.UnFogArea(X, Y, Level: Integer; Range: Integer): Boolean;
+begin Result := False; end;
 
-procedure TAbstractAoWHSMap.ExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAbstractAoWHSMap.ExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAbstractAoWHSMap.UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
