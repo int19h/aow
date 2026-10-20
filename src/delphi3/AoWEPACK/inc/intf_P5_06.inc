@@ -69,11 +69,11 @@
     procedure UpdateSkirmishGroups;  { draft }
     procedure ActivateAction(A1: Integer);  { draft }
     procedure DeactivateAction;  { draft }
-    procedure ListPeaceWarUnknownPlayers(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ListIdealPeaceWarPlayers(A1: Integer; A2: Integer);  { draft }
-    procedure CanOfferPeace(A1: Integer);  { draft }
-    procedure CanDeclareWar(A1: Integer);  { draft }
-    procedure CanProposeAlliance(A1: Integer; A2: Integer);  { draft }
+    procedure ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList);
+    procedure ListIdealPeaceWarPlayers(Peace, War: TByteList);
+    function CanOfferPeace(Player: Byte): Boolean;
+    function CanDeclareWar(Player: Byte): Boolean;
+    function CanProposeAlliance(Player: Byte): Boolean;
     procedure Process(A1: Integer);  { draft }
   end;
 

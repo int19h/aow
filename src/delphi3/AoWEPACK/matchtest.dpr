@@ -3473,4 +3473,5 @@ begin
   Use(nil, @WizardsTower.RegisterWizardsTower);
   { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
   {$I hosts\P3.inc}
+  {$I hosts\P5.inc}
 end.

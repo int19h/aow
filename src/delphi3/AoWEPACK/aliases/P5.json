@@ -1,3 +1,8 @@
 {
-  "FUN_5572c924": "NegotiateArmy"
+  "FUN_5572c924": "NegotiateArmy",
+  "FUN_5572cb08": "BroadcastDiplomaticEvent",
+  "5572ceac:1540": "TDiplomaticAction.GetRelationModifier",
+  "5572ddb4:1294": "TDiplomaticAction.ExecuteAccept",
+  "5572ee44:77": "TDiplomaticActionEventLog.PlayLoggedSFX",
+  "5572d82c:1408": "TDiplomaticAction.ExecuteAI"
 }

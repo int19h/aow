@@ -1,6 +1,28 @@
 { P5: AI, diplomacy, campaign and turn movement. }
 
 type
+  { ABI views for the still-unmarked EventLog/P2 override declarations.
+    Never instantiated; EventLog size $18, JoinEventLog size $3C. }
+  TP5EventLogABI = class(TEObject)
+    FReserved: array[0..15] of Byte;
+    procedure Slot4C; virtual; abstract;
+    procedure Slot50; virtual; abstract;
+    procedure Slot54; virtual; abstract;
+    procedure Slot58; virtual; abstract;
+    procedure Slot5C; virtual; abstract;
+    procedure Slot60; virtual; abstract;
+    procedure Slot64; virtual; abstract;
+    procedure Slot68; virtual; abstract;
+    procedure Slot6C; virtual; abstract;
+    function Execute(Immediate, Auto: Boolean; Data, Done: Pointer): Boolean;
+      virtual; abstract; { $70 }
+  end;
+  TP5JoinAcceptABI = class(TEventLog)
+    FReserved: array[0..35] of Byte;
+    function Validate: Boolean; virtual; abstract; { $78 }
+    procedure ListUnits; virtual; abstract; { $7C }
+    function Accept(var ErrorText: string): Boolean; virtual; abstract; { $80 }
+  end;
   PP5String = ^string;
   { needs: P2 TAbstractUnit.GetJoinMessage has three omitted stack arguments.
     Local ABI view only, never instantiated: instance size $3C; inherited fields
@@ -79,12 +101,6 @@ type
       JoinMode: TJoinMode; Text: TStrings); virtual; abstract; { $1A0 }
   end;
 
-var
-  { needs: P1 shared AoWHSMap global (original 558FA040).
-    Temporary local storage until the shared global declaration is assembled. }
-  P5AoWHSMap: TAoWHSMap;
-  { needs: shared AoWEngine global (original 558FA048), used by Copy. }
-  P5AoWEngine: TEngine;
 
 resourcestring
   { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
@@ -121,7 +137,7 @@ asm
   JMP TPlayerList.GetPlayers
 end;
 
-function P5TranslateRStr(S: string): string;
+function P5TranslateRStr(const S: string): string;
 asm
   JMP TranslateRStr
 end;
@@ -197,7 +213,7 @@ begin
   begin
     Dec(I);
     AUnit := P5FindUnit(
-      TUnitControl(P5AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
+      TUnitControl(AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
     { Original behavior: missing and dead units do not invalidate the offer. }
     if (AUnit <> nil) and (AUnit.FPlayer = 0) then
     begin
@@ -216,7 +232,7 @@ var
 begin
   for I := 0 to FUnitIDs.Count - 1 do
   begin
-    AUnit := P5FindUnit(TUnitControl(P5AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
+    AUnit := P5FindUnit(TUnitControl(AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
     { needs: P2 AddUnit(AUnit: TAbstractUnit), VMT $AC at 5572C1AC. }
     Units.AddUnit(Integer(AUnit));
   end;
@@ -227,7 +243,7 @@ function P5AcceptJoinEventLog(Log: TJoinEventLog; var ErrorText: string): Boolea
 begin
   { needs: P1 GetPlayers(Index: Integer): TPlayer; Player.Gold at $C4,
     EventLog.Player is signed (movsx edx,[Self+$10], 5572C1E3). }
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+  if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
     Shortint(Log.F_EventLog_10)).F_Player_C4 >= Log.FGold then
     Result := True
   else
@@ -288,6 +304,7 @@ end;
 function P5CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath;
   MoveType: Byte; Mode: TArmyMoveMode): TMoveArmyTE;
 asm
+  POP EBP
   JMP CreateArmyMoveTE
 end;
 
@@ -345,7 +362,7 @@ begin
     Result := True;
   if Result and (FX <> $FF) then
     Result := Byte(P5GetFieldPlayer(TAoWMapField(
-      P5AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
+      AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
         Shortint(FL))))) = FOwnerPlayer
   else
     Result := False;
@@ -357,21 +374,21 @@ var
   Path: TMovepath;
   Move: TMoveArmyTE;
 begin
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+  if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
     Shortint(FPlayer)).F_Player_C4 >= FGold then
   begin
-    P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+    P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
       Shortint(FPlayer)).SetGems(
-      P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+      P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
         Shortint(FPlayer)).F_Player_C4 - FGold);
     if FEventLogID <> -1 then
     begin
       Log := P5FindEventLog(TEventLogbook(
-        P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+        P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
           Shortint(FPlayer)).FEventLogbook), FEventLogID);
       if Log <> nil then
         P5RemoveEventLog(TEventLogbook(
-          P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+          P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
             Shortint(FPlayer)).FEventLogbook), Log);
     end;
     if (FArmyHS <> nil) and (nmMoveOnAccept in FMode) then
@@ -382,7 +399,7 @@ begin
       Path.List^[0].Flag := Shortint(FMovePoints);
       Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 3,
         [mmSelectEndLocation]);
-      TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+      TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
       { Original bug: no nil check after CreateArmyMoveTE can return nil. }
       Move.Release;
       Path.Free;
@@ -404,7 +421,7 @@ begin
     Path.List^[0].Flag := Shortint(FMovePoints);
     Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 1,
       [mmSelectEndLocation]);
-    TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
     { Original bug: no nil check after CreateArmyMoveTE can return nil. }
     Move.Release;
     Path.Free;
@@ -420,7 +437,7 @@ begin
     Msg.MsgID := $110F;
     Msg.Param[0] := Integer(Self);
     Msg.Result := 0;
-    P5AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
+    AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
       Shortint(FL)).SendMapFieldMsg(Msg);
   end;
   Result := erDone;
@@ -479,7 +496,7 @@ begin
   ID := FArmyID;
   if ID <> nil then
   begin
-    Result.FArmyID := TArmyID(ID.Copy(P5AoWEngine));
+    Result.FArmyID := TArmyID(ID.Copy(AoWEngine));
     Result.FMovePoints := FMovePoints;
   end
   else
@@ -493,16 +510,16 @@ var
 begin
   Result := P5AcceptJoinEventLog(Log, ErrorText);
   if Result then
-    if (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+    if (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
       Shortint(Log.F_EventLog_10)).FPlayerType <> ptHuman) or
-      not P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+      not P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
         Shortint(Log.F_EventLog_10))) then
     begin
       TE := Log.CreateNegotiateTE;
       TE.FGold := Log.FGold;
       TE.FOffer := noOfferBribe;
       TE.FResult := nrAccept;
-      TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenControls[
+      TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[
         Shortint(Log.F_EventLog_10)].AddEvent(TE);
       TE.Release;
       Result := True;
@@ -522,15 +539,15 @@ begin
   Result := inherited Reject(ErrorText);
   if Result then
   begin
-    if (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+    if (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
       Shortint(F_EventLog_10)).FPlayerType = ptHuman) and
-      P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+      P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
         Shortint(F_EventLog_10))) then Exit;
     TE := CreateNegotiateTE;
     TE.FGold := 0;
     TE.FOffer := noForceOffer;
     TE.FResult := nrReject;
-    TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenControls[
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[
       Shortint(F_EventLog_10)].AddEvent(TE);
     TE.Release;
     Result := True;
@@ -551,7 +568,7 @@ asm
   PUSH EBX
   TEST CL, CL
   JNE @@Skip
-  MOV EBX, P5AoWHSMap
+  MOV EBX, AoWHSMap
   MOV BL, [EBX+$A5]
   CMP BL, [EAX+$10]
   JNE @@Skip
@@ -587,11 +604,11 @@ var
   ErrorText: string;
   Msg: TMapFieldMsg;
 begin
-  if P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+  if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
     Player).FPlayerType = ptHuman then
   begin
     { needs: P1 current-player byte at $A5, inside the draft $A4 field. }
-    if Player = P5AoWHSMap.FSeatedPlayer then
+    if Player = AoWHSMap.FSeatedPlayer then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
       Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
@@ -604,13 +621,13 @@ begin
       Msg.Param[0] := Integer(Log);
       Msg.Param[1] := 0;
       Msg.Result := 0;
-      P5AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
-      if Msg.Param[1] <> 0 then Log.Execute(1, 0, 0, 0);
+      AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
+      if Msg.Param[1] <> 0 then TP5EventLogABI(Log).Execute(True, False, nil, nil);
       Log.Release;
     end;
   end
   else
-    if P5PlayerLocal(P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+    if P5PlayerLocal(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
       Player)) then
     begin
       Log := TNegotiateRequestEventLog.Create(nil);
@@ -624,172 +641,1190 @@ begin
       Msg.Param[0] := Integer(Log);
       Msg.Param[1] := 0;
       Msg.Result := 0;
-      P5AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
+      AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
       if (Msg.Param[1] <> 0) and
-        (P5GetPlayers(TPlayerList(P5AoWHSMap.FPlayers),
+        (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers),
           Player).F_Player_C4 >= Log.FGold) then
-        Log.Accept(Integer(@ErrorText), 0)
+        TP5JoinAcceptABI(Log).Accept(ErrorText)
       else
         Log.Reject(ErrorText);
       Log.Release;
     end;
 end;
 
-constructor TDiplomaticAction.Create(AOwner: Engine.TECustomNode);
-begin end;
+{ needs: remaining P1 draft return types/parameters; typed tail adapters retain the register ABI. }
+procedure P5PlayerSeen(Player: TPlayer; Other: Byte);
+asm
+  JMP TPlayer.PlayerSeen
+end;
+
+function P5DiplomaticRelation(Players: TPlayerList; Source, Target: Byte): TDiplomaticRelation;
+asm
+  JMP TPlayerList.GetDiplomaticRelation
+end;
+
+function P5GetRace(Races: TRaceList; Index: Integer): TRace;
+asm
+  JMP TRaceList.GetRace
+end;
+
+function P5RaceRelation(Race: TRace; Other: Shortint): Integer;
+asm
+  JMP TRace.GetRelationValue
+end;
+
+function P5RacePlayerRelation(Race: TRace; Player: Byte): Integer;
+asm
+  JMP TRace.GetPlayerRelationValue
+end;
+
+function P5PlayerName(Player: TPlayer): string;
+asm
+  JMP TPlayer.GetName
+end;
+
+function P5FirstDaySeen(Player: TPlayer; Other: Byte): Integer;
+asm
+  JMP TPlayer.GetFirstDaySeen
+end;
+
+procedure P5AddEventLog(Book: TEventLogbook; Log: TEventLog);
+asm
+  JMP TEventLogbook.AddEvent
+end;
+
+function P5CreateDiplomaticAction(Player: TPlayer; Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
+asm
+  POP EBP
+  JMP TPlayer.CreateDiplomaticAction
+end;
+
+const P5DefaultMsgProc: Pointer = @RetrieveDefaultDiplomaticActionMessage;
+
+procedure P5DefaultDiplomaticMessage(Source, Target, Other: Byte; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
+asm
+  POP EBP
+  JMP DWORD PTR [P5DefaultMsgProc]
+end;
+
+function P5RelationCount(Players: TPlayerList; Player: Byte; Relations: TDiplomaticRelations): Integer;
+asm
+  JMP TPlayerList.GetDiplomaticRelationCount
+end;
+
+function P5MapRandom(Map: TAoWHSMap; Range: Integer): Integer;
+asm
+  JMP TAoWHSMap.Random
+end;
+
+function P5Format(S: string; const Args: array of const): string;
+asm
+  POP EBP
+  JMP Format
+end;
+
+resourcestring
+  P5DeclareWarRStr = 'Declare war';
+  P5OfferPeaceRStr = 'Offer peace';
+  P5ProposeAllianceRStr = 'Propose alliance';
+  P5SendMessageRStr = 'Send Message';
+  P5ThreatenToAttackRStr = 'Threaten to attack';
+  P5MakeTributeRStr = 'Make tribute';
+  P5BreakAllianceRStr = 'Break alliance';
+  P5SendMessageAsXRStr = 'Send message as %s';
+  P5SuggestAllianceBreakWithYRStr = 'Suggest alliance break with %s';
+  P5SuggestWarWithYRStr = 'Suggest war with %s';
+  P5NotEnoughManaRStr = 'Not enough mana.';
+  P5NoGoldManaSpecifiedRStr = 'No gold/mana specified';
+  P5WarDeclaredRStr = 'War declared';
+  P5AllianceBrokenRStr = 'Alliance broken';
+  P5MessageSentRStr = 'Message sent';
+
+{ Original unnamed helper 5572CB08: copy a diplomatic event to eligible players. }
+procedure BroadcastDiplomaticEvent(Log: TDiplomaticActionEventLog; Exclude: Shortint);
+var
+  CopyLog: TEventLog;
+  Player: TPlayer;
+  I: Integer;
+begin
+  for I := 0 to TPlayerList(AoWHSMap.FPlayers).Count - 1 do
+  begin
+    Player := P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), I);
+    if (Player.F_Player_45 = 1) and (I <> Exclude) and
+      ((I = Shortint(Log.FAction.FSource)) or
+       (I = Shortint(Log.FAction.FTarget)) or
+       ((P5FirstDaySeen(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), I),
+          Log.FAction.FSource) <> -1) and
+        (P5FirstDaySeen(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), I),
+          Log.FAction.FTarget) <> -1))) then
+    begin
+      CopyLog := TEventLog(Log.Copy(AoWEngine));
+      P5AddEventLog(TEventLogbook(Player.FEventLogbook), CopyLog);
+      CopyLog.Release;
+    end;
+  end;
+end;
+
+constructor TDiplomaticAction.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FMessage := TStringList.Create;
+end;
 
 destructor TDiplomaticAction.Destroy;
-begin end;
+begin
+  FMessage.Free;
+  inherited Destroy;
+end;
 
 class function TDiplomaticAction.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20252; end;
 
-procedure TDiplomaticAction.GetName(A1: Integer; A2: Integer);
-begin end;
+function TDiplomaticAction.GetName(Player: Shortint): string;
+begin
+  case FActionType of
+    daDeclareWar: Result := P5TranslateRStr(P5DeclareWarRStr);
+    daOfferPeace: Result := P5TranslateRStr(P5OfferPeaceRStr);
+    daProposeAlliance: Result := P5TranslateRStr(P5ProposeAllianceRStr);
+    daSendMessage: Result := P5TranslateRStr(P5SendMessageRStr);
+    daThreatenToAttack: Result := P5TranslateRStr(P5ThreatenToAttackRStr);
+    daMakeTribute: Result := P5TranslateRStr(P5MakeTributeRStr);
+    daBreakAlliance: Result := P5TranslateRStr(P5BreakAllianceRStr);
+    daBreakAllianceWithY: Result := P5Format(P5TranslateRStr(P5SuggestAllianceBreakWithYRStr), [P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)))]);
+    daDeclareWarToY: Result := P5Format(P5TranslateRStr(P5SuggestWarWithYRStr), [P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)))]);
+    daSendMessageAsY: Result := P5Format(P5TranslateRStr(P5SendMessageAsXRStr), [P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)))]);
+  else Result := '';
+  end;
+end;
 
-procedure TDiplomaticAction.GetRelationModifier(A1: Integer; A2: Byte);
-begin end;
+procedure P5SetDiplomaticRelation(Players: TPlayerList; Source, Target: Byte; Relation: TDiplomaticRelation);
+asm
+  POP EBP
+  JMP TPlayerList.SetDiplomaticRelation
+end;
+
+function TDiplomaticAction.GetRelationModifier(Player, Race: Shortint): Integer;
+var Modifier: Integer;
+begin
+  Result := 0;
+  case FActionType of
+    daBreakAlliance:
+      if (Player = Shortint(FSource)) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) = drAlliance) then
+        if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace <> Byte(Race) then
+          Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace)) - 50) * (-40) * 0.01)
+        else Result := -40;
+    daBreakAllianceWithY:
+      if (Player = Shortint(FTarget)) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drAlliance) then
+        if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)).FPlayerRace <> Byte(Race) then
+          Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)).FPlayerRace)) - 50) * (-40) * 0.01)
+        else Result := -40;
+    daDeclareWar:
+      if (Player = Shortint(FSource)) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drWar) then
+      begin
+        if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) = drAlliance then Modifier := -60 else Modifier := -20;
+        if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace <> Byte(Race) then
+          Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace)) - 50) * Modifier * 0.01)
+        else Result := Modifier;
+      end
+      else if (Player = Shortint(FTarget)) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drWar) and (P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FPlayerRace = Byte(Race)) then
+        Result := -20;
+    daDeclareWarToY:
+      if (Player = Shortint(FTarget)) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drWar) then
+      begin
+        if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drAlliance then Modifier := -60 else Modifier := -20;
+        if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)).FPlayerRace <> Byte(Race) then
+          Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)).FPlayerRace)) - 50) * Modifier * 0.01)
+        else Result := Modifier;
+      end;    daProposeAlliance:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drAlliance then
+      begin
+        if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) = drWar then Modifier := 30 else Modifier := 20;
+        if Player = Shortint(FSource) then
+          if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace <> Byte(Race) then
+            Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace)) - 50) * Modifier * 0.01)
+          else Result := Modifier
+        else if Player = Shortint(FTarget) then
+          if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FPlayerRace <> Byte(Race) then
+            Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FPlayerRace)) - 50) * Modifier * 0.01)
+          else Result := Modifier;
+      end;
+    daOfferPeace:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drPeace then
+        if Player = Shortint(FSource) then
+          if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace <> Byte(Race) then
+            Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FPlayerRace)) - 50) * 10 * 0.01)
+          else Result := 10
+        else if Player = Shortint(FTarget) then
+          if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FPlayerRace <> Byte(Race) then
+            Result := Round((P5RaceRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), Race), Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FPlayerRace)) - 50) * 10 * 0.01)
+          else Result := 10;
+
+  end;
+end;
 
 function TDiplomaticAction.AddRef: Integer;
-begin Result := 0; end;
+begin Inc(FRefCount); Result := FRefCount; end;
 
 function TDiplomaticAction.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
-procedure TDiplomaticAction.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TDiplomaticAction.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FSource, $14);
+  Stream.rwByte(FTarget, $15);
+  Stream.rwByte(FOtherPlayer, $16);
+  Stream.rwInteger(FGold, $17);
+  Stream.rwInteger(FMana, $18);
+  Stream.rwData(FActionType, SizeOf(FActionType), $19);
+  Stream.rwData(FReaction, SizeOf(FReaction), $1A);
+  Stream.rwStrings(FMessage, $1B);
+  Stream.rwInteger(FEscrowGold, $1C);
+  Stream.rwInteger(FEscrowMana, $1D);
+  Stream.rwInteger(FEventLogID, $1E);
+  Stream.rwInteger(FDay, $1F);
+end;
 
-procedure TDiplomaticAction.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TDiplomaticAction.MsgProc(var Msg: TEMsg; Sender: TEObject);
+var Ignore: Boolean; Log: TEventLog;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20020002) and (Integer(Msg.Engine) = Shortint(FSource)) and (FReaction = darNone) then
+  begin
+    Ignore := (FActionType = daOfferPeace) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drPeace);
+    Ignore := Ignore or ((FActionType = daBreakAllianceWithY) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drAlliance));
+    Ignore := Ignore or ((FActionType = daDeclareWarToY) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drWar));
+    Ignore := Ignore or ((FActionType = daProposeAlliance) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drAlliance));
+    Ignore := Ignore or (FActionType = daMakeTribute);
+    if Ignore and
+      ((AoWHSMap.F_AoWHSMap_239 <> 2) or (AoWHSMap.FDay > FDay + 1)) then
+    begin
+      FReaction := darIgnore;
+      Log := P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID);
+      Assert(Log is TDiplomaticActionEventLog);
+      P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
+      P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 + FEscrowGold);
+      TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+      FEscrowGold := 0;
+      FEscrowMana := 0;
+    end;
+  end;
+end;
 
-procedure TDiplomaticAction.CreateEventLog;
-begin end;
+function TDiplomaticAction.CreateEventLog: TDiplomaticActionEventLog;
+var Log: TDiplomaticActionEventLog;
+begin
+  Log := TDiplomaticActionEventLog.Create(nil);
+  Log.F_EventLog_08 := AoWHSMap.FDay;
+  Log.SetDiplomaticAction(Self);
+  Result := Log;
+end;
 
-procedure TDiplomaticAction.ExecuteAI(A1: Byte);
-begin end;
+function P5CreateDA(Player: TPlayer; Action: TDiplomaticActionType; Target, Other: Shortint): TDiplomaticAction;
+asm
+  POP EBP
+  JMP TPlayer.CreateDiplomaticAction
+end;
 
-procedure TDiplomaticAction.ExecuteAccept(A1: Integer; A2: Integer);
-begin end;
+procedure TDiplomaticAction.ExecuteAI(Player: Shortint);
+var
+  Peace, War, Unknown: TByteList;
+  IdealPeace, IdealWar: TByteList;
+  Relation: TDiplomaticRelation;
+  Reaction: TDiplomaticActionReaction;
+  Last: TDiplomaticAction;
+  Chance: Integer;
+  ErrorText: string;
+begin
+  Reaction := FReaction;
+  if Reaction = darNone then
+  begin
+    Relation := P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget);
+    IdealPeace := TByteList.Create;
+    IdealWar := TByteList.Create;
+    Peace := TByteList.Create;
+    War := TByteList.Create;
+    Unknown := TByteList.Create;
+    TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).ListPeaceWarUnknownPlayers(Peace, War, Unknown);
+    TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+    case FActionType of
+      daOfferPeace:
+      begin
+        Last := TDiplomaticActionList(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_90).FindLastAction(daOfferPeace, darNone, Shortint(FTarget), Shortint(FSource), -1);
+        if (IdealPeace.IndexOf(FSource) <> -1) or ((Last <> nil) and (AoWHSMap.FDay - Last.FDay <= 1)) then
+        begin
+          if TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).CanOfferPeace(FSource) then Accept(ErrorText) else Reject(ErrorText);
+        end
+        else if TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).CanOfferPeace(FSource) then
+        begin
+          if P5RelationCount(TPlayerList(AoWHSMap.FPlayers), FSource, [drPeace, drAlliance]) + 1 < P5RelationCount(TPlayerList(AoWHSMap.FPlayers), FSource, [drWar]) then
+          begin
+            Last := TDiplomaticActionList(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_90).FindLastAction(daOfferPeace, darReject, Shortint(FSource), Shortint(FTarget), -1);
+            if (Last = nil) or (AoWHSMap.FDay - Last.FDay > 8) then
+              if (P5MapRandom(AoWHSMap, 3) = 1) and (P5MapRandom(AoWHSMap, 250) + 100 < FEscrowGold + FEscrowGold) then Accept(ErrorText) else Reject(ErrorText)
+            else Reject(ErrorText);
+          end
+          else Reject(ErrorText);
+        end
+        else Reject(ErrorText);
+      end;
+      daProposeAlliance:
+        if TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).CanProposeAlliance(FSource) then
+        begin
+          RandSeed := (AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Shortint(FSource) + Shortint(FTarget)) shr 2;
+          Chance := (FEscrowGold + FEscrowMana) div 25 + 30;
+          if Chance > 60 then Chance := 60;
+          if System.Random(100) < Chance then Accept(ErrorText) else Reject(ErrorText);
+        end
+        else Reject(ErrorText);
+      daDeclareWarToY:
+        if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drWar then Accept(ErrorText)
+        else if IdealWar.IndexOf(FOtherPlayer) <> -1 then
+          if TAIPlayerControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_88).CanDeclareWar(FOtherPlayer) then
+            if (P5MapRandom(AoWHSMap, 5) = 1) and (P5MapRandom(AoWHSMap, 550) + 250 < FEscrowGold + FEscrowMana) then Accept(ErrorText) else Reject(ErrorText)
+          else Reject(ErrorText)
+        else Reject(ErrorText);
+      daMakeTribute:
+        if Relation in [drPeace, drAlliance] then Accept(ErrorText)
+        else if P5MapRandom(AoWHSMap, 200) + 50 < FGold + FMana then Accept(ErrorText) else Reject(ErrorText);
+      daBreakAllianceWithY:
+        if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drAlliance then Accept(ErrorText) else Reject(ErrorText);
+      daDeclareWar: UpdateAIDiplomaticActionsLog(Player);
+    end;
+    Peace.Free;
+    War.Free;
+    Unknown.Free;
+    IdealPeace.Free;
+    IdealWar.Free;
+  end
+  else if (FReaction in [darReject, darIgnore]) and (FActionType = daOfferPeace) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) > drWar) then
+  begin
+    Last := P5CreateDA(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)), daDeclareWar, Shortint(FTarget), -1);
+    if Last <> nil then
+    begin
+      Last.Send(ErrorText);
+      Last.Release;
+    end;
+  end;
+end;
 
-procedure TDiplomaticAction.CanAccept;
-begin end;
+procedure TDiplomaticAction.ExecuteAccept(TE: TDiplomaticActionTE);
+var
+  I: Integer;
+  Log: TDiplomaticActionEventLog;
+  Action: TDiplomaticAction;
+begin
+  FReaction := darAccept;
+  P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
+  P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_C4 + FEscrowGold);
+  FEscrowGold := 0;
+  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+  FEscrowMana := 0;
+  AoWHSMap.LockRelationsChanged;
+  for I := 0 to TRaceList(AoWHSMap.FRaces).Count - 1 do
+  begin
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FSource,
+      GetRelationModifier(Shortint(FSource), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FSource));
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FTarget,
+      GetRelationModifier(Shortint(FTarget), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FTarget));
+  end;
+  AoWHSMap.UnlockRelationsChanged;
+  case FActionType of
+    daOfferPeace:
+    begin
+      P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drPeace);
+      Log := CreateEventLog;
+      BroadcastDiplomaticEvent(Log, -1);
+      if Shortint(FSource) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+      Log.Release;
+      Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+      if Log <> nil then Log.SetOwner(nil);
+    end;
+    daProposeAlliance:
+    begin
+      P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drAlliance);
+      Log := CreateEventLog;
+      BroadcastDiplomaticEvent(Log, -1);
+      if Shortint(FSource) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+      Log.Release;
+      Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+      if Log <> nil then Log.SetOwner(nil);
+    end;
+    daDeclareWarToY:
+    begin
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drWar then
+      begin
+        P5PlayerSeen(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FOtherPlayer)), FTarget);
+        P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer, drWar);
+        Action := P5CreateDA(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)), daDeclareWar, Shortint(FOtherPlayer), -1);
+        if Action <> nil then
+        begin
+          Log := Action.CreateEventLog;
+          BroadcastDiplomaticEvent(Log, Shortint(FSource));
+          if Shortint(FOtherPlayer) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+          Log.Release;
+          Action.Release;
+        end;
+      end;
+      Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+      Log.SetDiplomaticAction(Self);
+      P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
+      if Shortint(FSource) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+    end;
+    daMakeTribute:
+    begin
+      Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+      Log.SetDiplomaticAction(Self);
+      P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
+      if Shortint(FSource) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+    end;
+    daBreakAllianceWithY:
+    begin
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drAlliance then
+      begin
+        P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer, drPeace);
+        Action := P5CreateDA(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)), daBreakAlliance, Shortint(FOtherPlayer), -1);
+        if Action <> nil then
+        begin
+          Log := Action.CreateEventLog;
+          BroadcastDiplomaticEvent(Log, Shortint(FSource));
+          if Shortint(FOtherPlayer) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+          Log.Release;
+          Action.Release;
+        end;
+      end;
+      Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+      Log.SetDiplomaticAction(Self);
+      P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
+      if Shortint(FSource) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+    end;
 
-procedure TDiplomaticAction.Accept(A1: Integer);
-begin end;
+  end;
+end;
 
-procedure TDiplomaticAction.UpdateAIDiplomaticActionsLog(A1: Byte; A2: Integer);
-begin end;
+function TDiplomaticAction.CanAccept(var ErrorText: string): Boolean;
+begin Result := True; end;
 
-procedure TDiplomaticAction.ExecuteReject;
-begin end;
+function TDiplomaticAction.Accept(var ErrorText: string): Boolean;
+var TE: TDiplomaticActionTE;
+begin
+  if CanAccept(ErrorText) and not P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget))) then
+  begin
+    TE := TDiplomaticActionTE.Create(nil);
+    TE.SetDiplomaticAction(Self);
+    TE.FOperation := 1;
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FTarget)].AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TDiplomaticAction.CanReject;
-begin end;
+procedure TDiplomaticAction.UpdateAIDiplomaticActionsLog(Player: Shortint);
+var Action: TDiplomaticAction;
+begin
+  if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerType in [ptCPU1..ptCPU3, ptCPU4..ptCPU5] then
+  begin
+    Action := TDiplomaticAction(Copy(AoWEngine));
+    Action.FMessage.Clear;
+    TEReferenceNode(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).F_Player_90).AddChild(Action);
+    Action.Release;
+  end;
+end;
 
-procedure TDiplomaticAction.Reject(A1: Integer);
-begin end;
+procedure TDiplomaticAction.ExecuteReject(TE: TDiplomaticActionTE);
+var Log: TDiplomaticActionEventLog;
+begin
+  case FActionType of
+    daOfferPeace:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drPeace then FReaction := darReject else FReaction := darIgnore;
+    daProposeAlliance:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drAlliance then FReaction := darReject else FReaction := darIgnore;
+    daDeclareWarToY:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) <> drWar then FReaction := darReject else FReaction := darIgnore;
+    daBreakAllianceWithY:
+      if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drAlliance then FReaction := darReject else FReaction := darIgnore;
+  else FReaction := darReject;
+  end;
+  P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 + FEscrowGold);
+  FEscrowGold := 0;
+  TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 + FEscrowMana);
+  FEscrowMana := 0;
+  P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
+  Log := TDiplomaticActionEventLog(P5FindEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), FEventLogID));
+  Log.SetDiplomaticAction(Self);
+  P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).FEventLogbook), Log);
+end;
 
-procedure TDiplomaticAction.ExecuteSend;
-begin end;
+function TDiplomaticAction.CanReject(var ErrorText: string): Boolean;
+begin Result := True; end;
 
-procedure TDiplomaticAction.CanSend(A1: Integer);
-begin end;
+function TDiplomaticAction.Reject(var ErrorText: string): Boolean;
+var TE: TDiplomaticActionTE;
+begin
+  if CanReject(ErrorText) and not P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget))) then
+  begin
+    TE := TDiplomaticActionTE.Create(nil);
+    TE.SetDiplomaticAction(Self);
+    TE.FOperation := 2;
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FTarget)].AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TDiplomaticAction.Send(A1: Integer);
-begin end;
+procedure TDiplomaticAction.ExecuteSend(TE: TDiplomaticActionTE);
+var I: Integer; Log: TDiplomaticActionEventLog;
+begin
+  if FReaction = darNone then
+  begin
+    FEscrowGold := FGold;
+    P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).SetGems(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 - FGold);
+    FEscrowMana := FMana;
+    TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).SetMana(TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 - FMana);
+    case FActionType of
+      daOfferPeace..daMakeTribute, daSendMessageAsY..daDeclareWarToY:
+      begin
+        P5PlayerSeen(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)), FSource);
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(P5TranslateRStr(P5MessageSentRStr))));
+        Log := CreateEventLog;
+        P5AddEventLog(TEventLogbook(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)).FEventLogbook), Log);
+        if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+        Log.Release;
+        TEventList(AoWHSMap.F_AoWHSMap_1E8).TriggerNotifyEvents(Self);
+      end;
 
-procedure TDiplomaticActionList.GetDiplomaticActions(A1: Integer);
-begin end;
+      daBreakAlliance:
+      begin
+  AoWHSMap.LockRelationsChanged;
+  for I := 0 to TRaceList(AoWHSMap.FRaces).Count - 1 do
+  begin
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FSource,
+      GetRelationModifier(Shortint(FSource), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FSource));
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FTarget,
+      GetRelationModifier(Shortint(FTarget), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FTarget));
+  end;
+  AoWHSMap.UnlockRelationsChanged;
+        P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drPeace);
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(P5TranslateRStr(P5AllianceBrokenRStr))));
+        Log := CreateEventLog;
+        BroadcastDiplomaticEvent(Log, -1);
+        if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+        Log.Release;
+      end;
 
-procedure TDiplomaticActionList.FindLastAction(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+      daDeclareWar:
+      begin
+  AoWHSMap.LockRelationsChanged;
+  for I := 0 to TRaceList(AoWHSMap.FRaces).Count - 1 do
+  begin
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FSource,
+      GetRelationModifier(Shortint(FSource), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FSource));
+    P5GetRace(TRaceList(AoWHSMap.FRaces), I).SetPlayerRelationValue(FTarget,
+      GetRelationModifier(Shortint(FTarget), Shortint(I)) + P5RacePlayerRelation(P5GetRace(TRaceList(AoWHSMap.FRaces), I), FTarget));
+  end;
+  AoWHSMap.UnlockRelationsChanged;
+        P5PlayerSeen(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FTarget)), FSource);
+        P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drWar);
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(P5TranslateRStr(P5WarDeclaredRStr))));
+        Log := CreateEventLog;
+        BroadcastDiplomaticEvent(Log, -1);
+        if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
+        Log.Release;
+      end;
+    end;
+  end;
+end;
+
+function TDiplomaticAction.CanSend(var ErrorText: string): Boolean;
+begin
+  if P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_C4 >= FGold then
+  begin
+    if TPlayerMagicControl(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource)).F_Player_54).F_PlayerMagicControl_24 >= FMana then
+    begin
+      Result := True;
+      if (FActionType = daMakeTribute) and (FGold = 0) and (FMana = 0) then
+      begin
+        ErrorText := P5TranslateRStr(P5NoGoldManaSpecifiedRStr);
+        Result := False;
+      end;
+    end
+    else
+    begin
+      Result := False;
+      ErrorText := P5TranslateRStr(P5NotEnoughManaRStr);
+    end;
+  end
+  else
+  begin
+    Result := False;
+    ErrorText := P5TranslateRStr(P5NotEnoughGoldRStr);
+  end;
+end;
+
+function TDiplomaticAction.Send(var ErrorText: string): Boolean;
+var TE: TDiplomaticActionTE;
+begin
+  if CanSend(ErrorText) and not P5PlayerBusy(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Shortint(FSource))) then
+  begin
+    FDay := AoWHSMap.FDay;
+    TE := TDiplomaticActionTE.Create(nil);
+    TE.SetDiplomaticAction(Self);
+    TE.FOperation := 0;
+    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FSource)].AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
+
+function TDiplomaticActionList.GetDiplomaticActions(Index: Integer): TDiplomaticAction;
+begin Result := TDiplomaticAction(FChildren.List^[Index]); end;
+
+function TDiplomaticActionList.FindLastAction(Action: TDiplomaticActionType;
+  Reaction: TDiplomaticActionReaction; Source, Target, Other: Shortint): TDiplomaticAction;
+var I: Integer; Candidate: TDiplomaticAction;
+begin
+  Result := nil;
+  I := Count;
+  while (Result = nil) and (I <> 0) do
+  begin
+    Dec(I);
+    Candidate := TDiplomaticAction(FChildren.List^[I]);
+    if (Candidate.FActionType = Action) and (Candidate.FReaction = Reaction) and
+      ((Source = Shortint(Candidate.FSource)) or (Source = -1)) and
+      ((Shortint(Candidate.FTarget) = Target) or (Target = -1)) and
+      ((Shortint(Candidate.FOtherPlayer) = Other) or (Other = -1)) then Result := Candidate;
+  end;
+end;
 
 destructor TDiplomaticActionTE.Destroy;
-begin end;
+var Action: TDiplomaticAction;
+begin
+  inherited Destroy;
+  Action := FAction;
+  if Action <> nil then Action.Release;
+end;
 
 class function TDiplomaticActionTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21108; end;
 
-procedure TDiplomaticActionTE.SetDiplomaticAction(A1: Integer);
-begin end;
+procedure TDiplomaticActionTE.SetDiplomaticAction(Action: TDiplomaticAction);
+var Old: TDiplomaticAction;
+begin
+  Old := FAction;
+  if Old <> Action then
+  begin
+    if Old <> nil then Old.Release;
+    FAction := Action;
+    if FAction <> nil then FAction.AddRef;
+  end;
+end;
 
-procedure TDiplomaticActionTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TDiplomaticActionTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwCreateEObject(TEObject(FAction), nil, $14);
+  Stream.rwInteger(FOperation, $15);
+end;
 
-function TDiplomaticActionTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TDiplomaticActionTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var ErrorText: string;
+begin
+  case FOperation of
+    0: if FAction.CanSend(ErrorText) then
+       begin
+         FAction.ExecuteSend(Self);
+         FAction.UpdateAIDiplomaticActionsLog(Shortint(FAction.FSource));
+       end;
+    1: if FAction.CanAccept(ErrorText) then
+       begin
+         FAction.ExecuteAccept(Self);
+         FAction.UpdateAIDiplomaticActionsLog(Shortint(FAction.FTarget));
+       end;
+    2: if FAction.CanReject(ErrorText) then
+       begin
+         FAction.ExecuteReject(Self);
+         FAction.UpdateAIDiplomaticActionsLog(Shortint(FAction.FTarget));
+       end;
+  end;
+  Result := erDone;
+end;
+
+const
+  P5RaceColors: array[0..12] of TColor = ($00E03430, $0066A4FF, $00AFCB2C, $00FEDA87, $0060EF41, $0015FDFD, $00A5C1E4, $00F7FFFD, $00B370BC, $005050E9, $004266BB, $00797898, $00A8A8A8);
+
+resourcestring
+  P5WarRStr = 'War';
+  P5PeaceOfferRStr = 'Peace offer';
+  P5XRejectedRStr = '%s rejected';
+  P5XAcceptedRStr = '%s accepted';
+  P5XIgnoredRStr = '%s ignored';
+  P5PeaceRStr = 'Peace';
+  P5AllianceProposalRStr = 'Alliance proposal';
+  P5MadeAllianceRStr = 'Made alliance';
+  P5MessageRStr = 'Message';
+  P5ThreatRStr = 'Threat';
+  P5TributeRStr = 'Tribute';
+  P5BreakAllianceSuggestionRStr = 'Break alliance suggestion';
+  P5DeclareWarSuggestionRStr = 'Declare war suggestion';
+
+{ needs: EventLog's unmarked result declarations. Typed helpers retain the
+  original EAX/EDX result ABI until those base declarations can be corrected. }
+function P5DiplomaticText(Log: TDiplomaticActionEventLog): string;
+var Action: TDiplomaticAction;
+begin
+  Action := Log.FAction;
+  case Action.FActionType of
+    daDeclareWar: Result := P5TranslateRStr(P5WarRStr);
+    daOfferPeace:
+    begin
+      case Action.FReaction of
+        darNone: Result := P5TranslateRStr(P5PeaceOfferRStr);
+        darReject: Result := P5Format(P5TranslateRStr(P5XRejectedRStr), [P5TranslateRStr(P5PeaceOfferRStr)]);
+        darAccept:
+          if Shortint(Action.FSource) = AoWHSMap.FSeatedPlayer then
+            Result := P5Format(P5TranslateRStr(P5XAcceptedRStr), [P5TranslateRStr(P5PeaceOfferRStr)])
+          else Result := P5TranslateRStr(P5PeaceRStr);
+        darIgnore: Result := P5Format(P5TranslateRStr(P5XIgnoredRStr), [P5TranslateRStr(P5PeaceOfferRStr)]);
+      end;
+    end;
+    daProposeAlliance:
+    begin
+      Result := P5TranslateRStr(P5AllianceProposalRStr);
+      case Action.FReaction of
+        darReject: Result := P5Format(P5TranslateRStr(P5XRejectedRStr), [P5TranslateRStr(P5AllianceProposalRStr)]);
+        darAccept:
+          if Shortint(Action.FSource) = AoWHSMap.FSeatedPlayer then
+            Result := P5Format(P5TranslateRStr(P5XAcceptedRStr), [P5TranslateRStr(P5AllianceProposalRStr)])
+          else Result := P5TranslateRStr(P5MadeAllianceRStr);
+        darIgnore: Result := P5Format(P5TranslateRStr(P5XIgnoredRStr), [P5TranslateRStr(P5AllianceProposalRStr)]);
+      end;
+    end;
+    daSendMessage: Result := P5TranslateRStr(P5MessageRStr);
+    daThreatenToAttack: Result := P5TranslateRStr(P5ThreatRStr);
+    daMakeTribute:
+    begin
+      case Action.FReaction of
+        darNone: Result := P5TranslateRStr(P5TributeRStr);
+        darReject: Result := P5Format(P5TranslateRStr(P5XRejectedRStr), [P5TranslateRStr(P5TributeRStr)]);
+        darAccept: Result := P5Format(P5TranslateRStr(P5XAcceptedRStr), [P5TranslateRStr(P5TributeRStr)]);
+        darIgnore: Result := P5Format(P5TranslateRStr(P5XIgnoredRStr), [P5TranslateRStr(P5TributeRStr)]);
+      end;
+    end;
+    daBreakAlliance: Result := P5TranslateRStr(P5AllianceBrokenRStr);
+    daSendMessageAsY: Result := P5TranslateRStr(P5MessageRStr);
+    daBreakAllianceWithY:
+    begin
+      case Action.FReaction of
+        darNone: Result := P5TranslateRStr(P5BreakAllianceSuggestionRStr);
+        darReject: Result := P5Format(P5TranslateRStr(P5XRejectedRStr), [P5TranslateRStr(P5BreakAllianceRStr)]);
+        darAccept: Result := P5Format(P5TranslateRStr(P5XAcceptedRStr), [P5TranslateRStr(P5BreakAllianceRStr)]);
+        darIgnore: Result := P5Format(P5TranslateRStr(P5XIgnoredRStr), [P5TranslateRStr(P5BreakAllianceRStr)]);
+      end;
+    end;
+    daDeclareWarToY:
+    begin
+      case Action.FReaction of
+        darNone: Result := P5TranslateRStr(P5DeclareWarSuggestionRStr);
+        darReject: Result := P5Format(P5TranslateRStr(P5XRejectedRStr), [P5TranslateRStr(P5DeclareWarRStr)]);
+        darAccept: Result := P5Format(P5TranslateRStr(P5XAcceptedRStr), [P5TranslateRStr(P5DeclareWarRStr)]);
+        darIgnore: Result := P5Format(P5TranslateRStr(P5XIgnoredRStr), [P5TranslateRStr(P5DeclareWarRStr)]);
+      end;
+    end;
+  else Result := 'TDiplomaticActionEventLog';
+  end;
+end;
+
+function P5DiplomaticLeftIcon(Log: TDiplomaticActionEventLog): Integer;
+var Action: TDiplomaticAction; Player: Shortint;
+begin
+  Action := Log.FAction;
+  if Action.FActionType = daSendMessageAsY then
+  begin
+    Player := Shortint(Action.FOtherPlayer);
+    if (Player > 0) and (Player < TPlayerList(AoWHSMap.FPlayers).Count) then
+      Result := Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)
+    else Result := -1;
+  end
+  else
+  begin
+    Player := Shortint(Action.FSource);
+    if (Player > 0) and (Player < TPlayerList(AoWHSMap.FPlayers).Count) then
+      Result := Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)
+    else Result := -1;
+  end;
+end;
+
+function P5DiplomaticRightIcon(Log: TDiplomaticActionEventLog): Integer;
+var Action: TDiplomaticAction; Player: Shortint;
+begin
+  Action := Log.FAction;
+  Player := Shortint(Action.FTarget);
+  if (Player > 0) and (Player < TPlayerList(AoWHSMap.FPlayers).Count) then
+    Result := Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)
+  else Result := -1;
+end;
+
+function P5DiplomaticColor(Log: TDiplomaticActionEventLog): TColor;
+var Action: TDiplomaticAction; Player: Shortint; Race: Integer;
+begin
+  Action := Log.FAction;
+  if Action.FActionType = daSendMessageAsY then Player := Shortint(Action.FOtherPlayer)
+  else if Action.FReaction = darAccept then Player := Shortint(Action.FTarget)
+  else if Shortint(Action.FSource) <> AoWHSMap.FSeatedPlayer then Player := Shortint(Action.FSource)
+  else Player := Shortint(Action.FTarget);
+  if (Player > 0) and (Player < TPlayerList(AoWHSMap.FPlayers).Count) then Race := Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)
+  else Race := 12;
+  Result := P5RaceColors[Race];
+end;
+
+function P5DiplomaticExecute(Log: TDiplomaticActionEventLog; Immediate: Boolean;
+  Trigger: TExecuteTrigger; Data, Done: Pointer): Boolean;
+begin
+  Result := Trigger = etUser;
+  if (Shortint(Log.FAction.FTarget) = AoWHSMap.FSeatedPlayer) or
+    (Shortint(Log.FAction.FSource) = AoWHSMap.FSeatedPlayer) then
+  begin
+    Result := Result or ((AoWHSMap.F_AoWHSMap_239 = 1) and
+      (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetClassicWindowPopupEvents) and (Trigger = etNewTurn));
+    Result := Result or ((AoWHSMap.F_AoWHSMap_239 = 2) and
+      (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetSimultaneousWindowPopupEvents));
+  end;
+  Result := Result and ((Trigger = etUser) or (Log.FAction.FReaction <> darIgnore));
+  if Result then
+  begin
+    AoWHSMap.TriggerExecuteEventLog(Integer(Log), Integer(Immediate), Integer(Data), Integer(Done));
+    Result := True;
+  end
+  else Result := False;
+end;
 
 destructor TDiplomaticActionEventLog.Destroy;
-begin end;
+var Action: TDiplomaticAction;
+begin
+  Action := FAction;
+  if Action <> nil then
+  begin
+    Action.Release;
+    FAction := nil;
+  end;
+  inherited Destroy;
+end;
 
-procedure TDiplomaticActionEventLog.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TDiplomaticActionEventLog.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  inherited MsgProc(Msg, Sender);
+  FAction.MsgProc(Msg, Sender);
+end;
 
-procedure TDiplomaticActionEventLog.SetDiplomaticAction(A1: Integer);
-begin end;
+procedure TDiplomaticActionEventLog.SetDiplomaticAction(Action: TDiplomaticAction);
+var Old: TDiplomaticAction;
+begin
+  Old := FAction;
+  if Old <> Action then
+  begin
+    if Old <> nil then Old.Release;
+    if Action <> nil then FAction := TDiplomaticAction(Action.Copy(AoWEngine)) else FAction := nil;
+  end;
+end;
 
 class function TDiplomaticActionEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20113; end;
 
-procedure TDiplomaticActionEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TDiplomaticActionEventLog.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwCreateEObject(TEObject(FAction), nil, $14);
+end;
 
 procedure TDiplomaticActionEventLog.PlayLoggedSFX(A1: Integer);
-begin end;
+begin
+  case FAction.FActionType of
+    daDeclareWar, daThreatenToAttack, daBreakAlliance: Sound.PlaySample('SFX\EVENTS\MESSAGE.WAV');
+    daOfferPeace, daProposeAlliance, daMakeTribute: Sound.PlaySample('SFX\EVENTS\MESSAGE2.WAV');
+  else Sound.PlaySample('SFX\EVENTS\MESSAGE.WAV');
+  end;
+end;
 
 procedure TDiplomaticActionEventLog.NotifyLogged(A1: Integer);
-begin end;
+var Action: TDiplomaticAction;
+begin
+  inherited NotifyLogged(A1);
+  Action := FAction;
+  if Action <> nil then Action.FEventLogID := F_EventLog_0C;
+end;
 
 procedure TDiplomaticActionEventLog.GetVisible;
-begin end;
+asm MOV AL, 1 end;
 
 procedure TDiplomaticActionEventLog.GetTextColor;
-begin end;
+asm
+  JMP P5DiplomaticColor
+end;
 
 procedure TDiplomaticActionEventLog.GetText(A1: Integer);
-begin end;
+asm
+  JMP P5DiplomaticText
+end;
 
 procedure TDiplomaticActionEventLog.GetLeftIcon;
-begin end;
+asm
+  JMP P5DiplomaticLeftIcon
+end;
 
 procedure TDiplomaticActionEventLog.GetMiddleIcon;
-begin end;
+asm
+  MOV EDX, [EAX+$18]
+  MOV CL, [EDX+$13]
+  SUB CL, 1
+  JB @@War
+  SUB CL, 8
+  JE @@SuggestedWar
+  JMP @@Message
+@@War:
+  MOV EAX, $15
+  RET
+@@SuggestedWar:
+  CMP BYTE PTR [EDX+$14], 1
+  JNE @@Rejected
+  MOV EAX, $15
+  { DCC32 folds JMP-to-RET; keep the original branch over the 11-byte arms. }
+  DB $EB, $0B
+@@Rejected:
+  MOV EAX, $16
+  RET
+@@Message:
+  MOV EAX, $16
+@@Done:
+end;
 
 procedure TDiplomaticActionEventLog.GetRightIcon;
-begin end;
+asm
+  JMP P5DiplomaticRightIcon
+end;
 
 procedure TDiplomaticActionEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+asm
+  POP EBP
+  JMP P5DiplomaticExecute
+end;
 
-constructor TDiplomacyAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+procedure P5BasePlayerProcess(Action: TAIPlayerAction);
+asm
+  JMP TAIPlayerAction.Process
+end;
+
+constructor TDiplomacyAIPA.Create(AOwner: TECustomNode);
+begin inherited Create(AOwner); end;
 
 destructor TDiplomacyAIPA.Destroy;
-begin end;
+begin inherited Destroy; end;
 
 procedure TDiplomacyAIPA.Priority;
-begin end;
+asm MOV EAX, 14 end;
 
 procedure TDiplomacyAIPA.Activate(A1: Integer; A2: Integer);
-begin end;
+begin inherited Activate(A1, A2); FNextPlayer := 0; end;
 
-procedure TDiplomacyAIPA.CreateDA(A1: Byte; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TDiplomacyAIPA.CreateDA(Action: TDiplomaticActionType;
+  Target, Other: Shortint; MinDays: Integer): TDiplomaticAction;
+var Player: Shortint; Last: TDiplomaticAction;
+begin
+  Player := Shortint(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08).F_Player_A6);
+  Last := TDiplomaticActionList(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).F_Player_90).FindLastAction(Action, darNone, Player, Target, Other);
+  if (Last = nil) or (AoWHSMap.FDay - Last.FDay >= MinDays) then
+    Result := P5CreateDA(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player), Action, Target, Other)
+  else Result := nil;
+end;
 
-procedure TDiplomacyAIPA.ExecuteDiplomacy(A1: Integer);
-begin end;
+function TDiplomacyAIPA.ExecuteDiplomacy(Player: Shortint): Boolean;
+var
+  Peace, War, Unknown: TByteList;
+  IdealPeace, IdealWar: TByteList;
+  Candidates: TDoubleItemList;
+  I, J, Index, Score: Integer;
+  Source, Candidate: Shortint;
+  ErrorText: string;
+  Action: TDiplomaticAction;
+begin
+  { Original bug: the result remains False even when an action is sent. }
+  Result := False;
+  Action := nil;
+  Source := Shortint(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08).F_Player_A6);
+  IdealPeace := TByteList.Create;
+  IdealWar := TByteList.Create;
+  Peace := TByteList.Create;
+  War := TByteList.Create;
+  Unknown := TByteList.Create;
+  TAIPlayerControl(F_AIPlayerAction_0C).ListPeaceWarUnknownPlayers(Peace, War, Unknown);
+  TAIPlayerControl(F_AIPlayerAction_0C).ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+  case P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), Byte(Source), Player) of
+    drUnknown:
+    begin
+      if IdealPeace.IndexOf(Player) <> -1 then
+        if TAIPlayerControl(F_AIPlayerAction_0C).CanOfferPeace(Player) then Action := CreateDA(daOfferPeace, Player, -1, 10)
+        else Action := CreateDA(daDeclareWar, Player, -1, -1);
+      if IdealWar.IndexOf(Player) <> -1 then
+        if TAIPlayerControl(F_AIPlayerAction_0C).CanDeclareWar(Player) then Action := CreateDA(daDeclareWar, Player, -1, -1)
+        else Action := CreateDA(daOfferPeace, Player, -1, 10);
+    end;
+    drPeace:
+      if not TAIPlayerControl(F_AIPlayerAction_0C).CanOfferPeace(Player) and (IdealWar.IndexOf(Player) <> -1) then
+      begin
+        RandSeed := AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source;
+        Index := System.Random(IdealWar.Count);
+        if IdealWar[Index] = Player then Action := CreateDA(daDeclareWar, Player, -1, -1);
+      end
+      else if TAIPlayerControl(F_AIPlayerAction_0C).CanProposeAlliance(Player) then
+      begin
+        RandSeed := (AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source) shr 2;
+        if System.Random(100) < 30 then Action := CreateDA(daProposeAlliance, Player, -1, 10);
+      end;
+    drAlliance:
+      if not TAIPlayerControl(F_AIPlayerAction_0C).CanOfferPeace(Player) and (IdealWar.IndexOf(Player) <> -1) then
+      begin
+        RandSeed := AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Source + 1;
+        Index := System.Random(IdealWar.Count);
+        if IdealWar[Index] = Player then Action := CreateDA(daBreakAlliance, Player, -1, -1);
+      end;
+    drWar:
+      if not TAIPlayerControl(F_AIPlayerAction_0C).CanDeclareWar(Player) then
+      begin
+        Candidates := TDoubleItemList.Create;
+        for I := 0 to IdealPeace.Count - 1 do
+        begin
+          Candidate := Shortint(IdealPeace[I]);
+          if (War.IndexOf(Byte(Candidate)) <> -1) and TAIPlayerControl(F_AIPlayerAction_0C).CanOfferPeace(Byte(Candidate)) then
+          begin
+            Action := TDiplomaticActionList(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Source).F_Player_90).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
+            if (Action = nil) or (AoWHSMap.FDay - Action.FDay > 12) then
+            begin
+              Score := -I;
+              Dec(Score, P5RelationCount(TPlayerList(AoWHSMap.FPlayers), Byte(Candidate), [drPeace]) * 5);
+              Dec(Score, P5RelationCount(TPlayerList(AoWHSMap.FPlayers), Byte(Candidate), [drAlliance]) * 10);
+              Candidates.AddAB(Candidate, Score);
+            end;
+            Action := nil;
+          end;
+        end;
+        if (Candidates.Count = 0) and (War.Count - Peace.Count > 2) then
+          for J := 0 to IdealWar.Count - 1 do
+          begin
+            Candidate := Shortint(IdealWar[J]);
+            if War.IndexOf(Byte(Candidate)) <> -1 then
+            begin
+              Action := TDiplomaticActionList(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Source).F_Player_90).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
+              if (Action = nil) or (AoWHSMap.FDay - Action.FDay > 12) then
+              begin
+                Score := J;
+                Dec(Score, P5RelationCount(TPlayerList(AoWHSMap.FPlayers), Byte(Candidate), [drPeace]) * 5);
+                Dec(Score, P5RelationCount(TPlayerList(AoWHSMap.FPlayers), Byte(Candidate), [drAlliance]) * 10);
+                Candidates.AddAB(Candidate, Score);
+              end;
+              Action := nil;
+            end;
+          end;
+        if Candidates.Count <> 0 then
+        begin
+          Candidates.SortDescendingItemB;
+          if Candidates[0].A = Player then Action := CreateDA(daOfferPeace, Shortint(Candidates[0].A), -1, -1);
+        end;
+        Candidates.Free;
+      end;
+  end;
+  if Action <> nil then
+  begin
+    Action.Send(ErrorText);
+    Action.Release;
+  end;
+  Peace.Free;
+  War.Free;
+  Unknown.Free;
+  IdealPeace.Free;
+  IdealWar.Free;
+end;
 
 procedure TDiplomacyAIPA.ListDebugInfo;
-begin end;
+var IdealPeace, IdealWar: TByteList; Player, I: Integer; S, Name: string;
+begin
+  IdealPeace := TByteList.Create;
+  IdealWar := TByteList.Create;
+  TAIPlayerControl(F_AIPlayerAction_0C).ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+  Player := Shortint(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08).F_Player_A6);
+  S := P5TranslateRStr(RaceNamesPluralRStr[Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)]);
+  Name := P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player));
+  S := Name + '/' + S;
+  Name := 'DIPLOMACY (' + S + ')';
+  AoWEngine.OutputDebugMessage(AIDID, Name);
+  AoWEngine.OutputDebugMessage(AIDID, 'IDEAL PEACE PLAYERS');
+  for I := 0 to IdealPeace.Count - 1 do
+  begin
+    S := P5TranslateRStr(RaceNamesPluralRStr[Shortint(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), IdealPeace[I]).FPlayerRace)]);
+    Name := P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), IdealPeace[I]));
+    S := Name + '/' + S;
+    AoWEngine.OutputDebugMessage(AIDID, S);
+  end;
+  AoWEngine.OutputDebugMessage(AIDID, 'IDEAL WAR PLAYERS');
+  for I := 0 to IdealWar.Count - 1 do
+  begin
+    Name := P5PlayerName(P5GetPlayers(TPlayerList(AoWHSMap.FPlayers), IdealWar[I]));
+    AoWEngine.OutputDebugMessage(AIDID, Name);
+  end;
+  IdealPeace.Free;
+  IdealWar.Free;
+end;
+
+
+function P5DiplomacyProcess(Action: TDiplomacyAIPA): Boolean;
+begin
+  P5BasePlayerProcess(Action);
+  with Action do
+    if TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08).F_Player_A6 <> 0 then
+    begin
+      while (FNextPlayer < TPlayerList(AoWHSMap.FPlayers).Count) and not P5PlayerBusy(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08)) do
+      begin
+        Inc(FNextPlayer);
+        while (FNextPlayer < TPlayerList(AoWHSMap.FPlayers).Count) and
+          ((P5FirstDaySeen(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08), Byte(FNextPlayer)) = -1) or (Shortint(TPlayer(TAIPlayerControl(F_AIPlayerAction_0C).F_AIPlayerControl_08).F_Player_A6) = FNextPlayer)) do Inc(FNextPlayer);
+        if FNextPlayer < TPlayerList(AoWHSMap.FPlayers).Count then ExecuteDiplomacy(FNextPlayer);
+      end;
+      Result := FNextPlayer < TPlayerList(AoWHSMap.FPlayers).Count;
+    end
+    else Result := False;
+end;
 
 procedure TDiplomacyAIPA.Process(A1: Integer; A2: Integer);
-begin end;
+asm
+  { needs: the base action's unmarked override families must return Boolean. }
+  JMP P5DiplomacyProcess
+end;
 
 constructor TAoWMapCampaignSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTransferPointsMax := 1000;
+  FTransferGoldMax := 100;
+  FTransferManaMax := 100;
+  FNextScenarioID := -1;
+  FFlag := False;
+end;
 
 procedure TAoWMapCampaignSettings.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FTransferPointsMax, $14);
+  Stream.rwInteger(FTransferGoldMax, $15);
+  Stream.rwInteger(FTransferManaMax, $16);
+  Stream.rwInteger(FNextScenarioID, $17);
+  Stream.rwBool(FFlag, $18);
+end;
 
 constructor TAoWCampaignTransferSettings.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -1058,20 +2093,20 @@ begin end;
 procedure TAIPlayerControl.DeactivateAction;
 begin end;
 
-procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(A1: Integer; A2: Integer; A3: Integer);
+procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList);
 begin end;
 
-procedure TAIPlayerControl.ListIdealPeaceWarPlayers(A1: Integer; A2: Integer);
+procedure TAIPlayerControl.ListIdealPeaceWarPlayers(Peace, War: TByteList);
 begin end;
 
-procedure TAIPlayerControl.CanOfferPeace(A1: Integer);
-begin end;
+function TAIPlayerControl.CanOfferPeace(Player: Byte): Boolean;
+begin Result := False; end;
 
-procedure TAIPlayerControl.CanDeclareWar(A1: Integer);
-begin end;
+function TAIPlayerControl.CanDeclareWar(Player: Byte): Boolean;
+begin Result := False; end;
 
-procedure TAIPlayerControl.CanProposeAlliance(A1: Integer; A2: Integer);
-begin end;
+function TAIPlayerControl.CanProposeAlliance(Player: Byte): Boolean;
+begin Result := False; end;
 
 procedure TAIPlayerControl.Process(A1: Integer);
 begin end;

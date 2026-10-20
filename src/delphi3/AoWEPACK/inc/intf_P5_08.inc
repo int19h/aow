@@ -1,13 +1,14 @@
 { Interface declaration run owned by P5. }
-  { TAoWMapCampaignSettings (instance size 28, VMT 55723A60) }
+  { TAoWMapCampaignSettings (instance size 28, VMT 55723A60).
+    $08 FFlag; $09 padding; $0C points; $10 gold; $14 mana; $18 next scenario. }
   TAoWMapCampaignSettings = class(TEObject)
   public
-    F_AoWMapCampaignSettings_08: Byte;
+    FFlag: Boolean;
     F_AoWMapCampaignSettings_09: array[0..2] of Byte;
-    F_AoWMapCampaignSettings_0C: Integer;
-    F_AoWMapCampaignSettings_10: Integer;
-    F_AoWMapCampaignSettings_14: Integer;
-    F_AoWMapCampaignSettings_18: Integer;
+    FTransferPointsMax: Integer;
+    FTransferGoldMax: Integer;
+    FTransferManaMax: Integer;
+    FNextScenarioID: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
@@ -75,7 +76,7 @@
     procedure FindID;  { draft }
   end;
 
-  { TAoWCampaign (instance size 52, VMT 55723E4C) }
+  { TAoWCampaign (instance size 52, VMT 55723F48) }
   TAoWCampaign = class(TEObject)
   public
     F_AoWCampaign_08: Integer;
@@ -109,23 +110,26 @@
     procedure GetContainsMap;  { draft }
   end;
 
-  { TDiplomaticAction (instance size 48, VMT 55723F48) }
+  { TDiplomaticAction (instance size $30, VMT 55723F48).
+    $08 RefCount, $0C Day, $10 Source, $11 Target, $12 OtherPlayer,
+    $13 ActionType, $14 Reaction, $18 Gold, $1C Mana, $20 Message,
+    $24 EscrowGold, $28 EscrowMana, $2C EventLogID. }
   TDiplomaticAction = class(TEObject)
   public
-    F_DiplomaticAction_08: Integer;
-    F_DiplomaticAction_0C: Integer;
-    F_DiplomaticAction_10: Byte;
-    F_DiplomaticAction_11: Byte;
-    F_DiplomaticAction_12: Byte;
-    F_DiplomaticAction_13: Byte;
-    F_DiplomaticAction_14: Byte;
-    F_DiplomaticAction_15: array[0..2] of Byte;
-    F_DiplomaticAction_18: Integer;
-    F_DiplomaticAction_1C: Integer;
-    F_DiplomaticAction_20: Integer;
-    F_DiplomaticAction_24: Integer;
-    F_DiplomaticAction_28: Integer;
-    F_DiplomaticAction_2C: Integer;
+    FRefCount: Integer;
+    FDay: Integer;
+    FSource: Byte;
+    FTarget: Byte;
+    FOtherPlayer: Byte;
+    FActionType: TDiplomaticActionType;
+    FReaction: TDiplomaticActionReaction;
+    FReserved: array[0..2] of Byte;
+    FGold: Integer;
+    FMana: Integer;
+    FMessage: TStringList;
+    FEscrowGold: Integer;
+    FEscrowMana: Integer;
+    FEventLogID: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -133,45 +137,45 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure ExecuteSend; virtual;  { +04C draft }
-    procedure ExecuteAccept(A1: Integer; A2: Integer); virtual;  { +050 draft }
-    procedure ExecuteReject; virtual;  { +054 draft }
-    procedure ExecuteAI(A1: Byte); virtual;  { +058 draft }
-    procedure CanSend(A1: Integer); virtual;  { +05C draft }
-    procedure Send(A1: Integer); virtual;  { +060 draft }
-    procedure CanAccept; virtual;  { +064 draft }
-    procedure Accept(A1: Integer); virtual;  { +068 draft }
-    procedure CanReject; virtual;  { +06C draft }
-    procedure Reject(A1: Integer); virtual;  { +070 draft }
-    procedure GetName(A1: Integer; A2: Integer);  { draft }
-    procedure GetRelationModifier(A1: Integer; A2: Byte);  { draft }
-    procedure CreateEventLog;  { draft }
-    procedure UpdateAIDiplomaticActionsLog(A1: Byte; A2: Integer);  { draft }
+    procedure ExecuteSend(TE: TDiplomaticActionTE); virtual; { $4C }
+    procedure ExecuteAccept(TE: TDiplomaticActionTE); virtual; { $50 }
+    procedure ExecuteReject(TE: TDiplomaticActionTE); virtual; { $54 }
+    procedure ExecuteAI(Player: Shortint); virtual; { $58 }
+    function CanSend(var ErrorText: string): Boolean; virtual; { $5C }
+    function Send(var ErrorText: string): Boolean; virtual; { $60 }
+    function CanAccept(var ErrorText: string): Boolean; virtual; { $64 }
+    function Accept(var ErrorText: string): Boolean; virtual; { $68 }
+    function CanReject(var ErrorText: string): Boolean; virtual; { $6C }
+    function Reject(var ErrorText: string): Boolean; virtual; { $70 }
+    function GetName(Player: Shortint): string;
+    function GetRelationModifier(Player, Race: Shortint): Integer;
+    function CreateEventLog: TDiplomaticActionEventLog;
+    procedure UpdateAIDiplomaticActionsLog(Player: Shortint);
   end;
 
   { TDiplomaticActionList (instance size 12, VMT 55724038) }
   TDiplomaticActionList = class(TEReferenceNode)
   public
-    procedure GetDiplomaticActions(A1: Integer);  { draft }
-    procedure FindLastAction(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function GetDiplomaticActions(Index: Integer): TDiplomaticAction;
+    function FindLastAction(Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Source, Target, Other: Shortint): TDiplomaticAction;
   end;
 
-  { TDiplomaticActionTE (instance size 24, VMT 55724144) }
+  { TDiplomaticActionTE (instance size $18, VMT 55724144): $10 Operation, $14 Action. }
   TDiplomaticActionTE = class(TTokenEvent)
   public
-    F_DiplomaticActionTE_10: Integer;
-    F_DiplomaticActionTE_14: Integer;
+    FOperation: Integer;
+    FAction: TDiplomaticAction;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure SetDiplomaticAction(A1: Integer);  { draft }
+    procedure SetDiplomaticAction(Action: TDiplomaticAction);
   end;
 
-  { TDiplomaticActionEventLog (instance size 28, VMT 55724214) }
+  { TDiplomaticActionEventLog (instance size $1C, VMT 55724214): $18 Action. }
   TDiplomaticActionEventLog = class(TEventLog)
   public
-    F_DiplomaticActionEventLog_18: Integer;
+    FAction: TDiplomaticAction;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -185,22 +189,22 @@
     procedure PlayLoggedSFX(A1: Integer); override;
     procedure NotifyLogged(A1: Integer); override;
     procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure SetDiplomaticAction(A1: Integer);  { draft }
+    procedure SetDiplomaticAction(Action: TDiplomaticAction);
   end;
 
   { TDiplomacyAIPA (instance size 24, VMT 55724318) }
   TDiplomacyAIPA = class(TAIPlayerAction)
   public
-    F_DiplomacyAIPA_14: Byte;
+    FNextPlayer: Shortint;
     F_DiplomacyAIPA_15: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
     procedure Activate(A1: Integer; A2: Integer); override;
     procedure Process(A1: Integer; A2: Integer); override;
-    procedure CreateDA(A1: Byte; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ExecuteDiplomacy(A1: Integer);  { draft }
-    procedure ListDebugInfo;  { draft }
+    function CreateDA(Action: TDiplomaticActionType; Target, Other: Shortint; MinDays: Integer): TDiplomaticAction;
+    function ExecuteDiplomacy(Player: Shortint): Boolean;
+    procedure ListDebugInfo;
   end;
 
   { TAoWDictionary (instance size 152, VMT 557243F4) }

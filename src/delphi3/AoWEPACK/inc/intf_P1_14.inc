@@ -12,3 +12,7 @@ var
   TAbilityTypeRStr: array[TAbilityType] of string;
   TCombatModeRStr: array[TCombatMode] of string;
   TDamageTypeRStr: array[TDamageType] of string;
+  { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo
+    ($55730868) reads its entries. AIDID $558FA050 goes to TEngine.OutputDebugMessage. (P5) }
+  RaceNamesPluralRStr: array[0..12] of string;
+  AIDID: Integer;
