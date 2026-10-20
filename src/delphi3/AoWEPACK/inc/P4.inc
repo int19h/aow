@@ -17,7 +17,9 @@ end;
   actions are recovered; healing token events and selectors are recovered.
   Dispel-magic token events/selectors, spellcasting, ranged/bolt/breath/flame
   attacks and command ability data/commanded abilities are recovered.
-  Draft recovery next resumes at TCommandCA (5576FBAC).
+  Command, dominate, charm, seduce, construction controls, spell-cast event logs,
+  unit-spell combat actions and unit-spell token events are recovered.
+  Draft recovery next resumes at TUnitSpell (5577AC34).
   The base spell, spell events/control/list/casters and power sources are recovered.
   Compatibility declarations preserve calls to other packages' draft APIs; these
   adapters never create instances of their declaration-only views. }
@@ -82,6 +84,7 @@ const
   P4LeadershipAttack: array[0..4] of Shortint = (0, 1, 1, 2, 2);
   P4LeadershipDefense: array[0..4] of Shortint = (2, 0, 1, 1, 2);
   { Class-reference constants used by the recovered multilevel implementation. }
+  P4CommandDataClass: TEObjectClass = TCommandAbilityData;
   P4CommandedDataClass: TEObjectClass = TCommandedAbilityData;
   P4PossessedDataClass: TEObjectClass = TPossessedAbilityData;
   P4DispelMagicDataClass: TEObjectClass = TDispelMagicAbilityData;
@@ -97,6 +100,23 @@ const
   P4UnitSelectionClass: TEObjectClass = TUnitUserList;
 
 resourcestring
+  P4CastXRStr = 'Cast %s';
+  P4XCastingReadyRStr = '%s ready';
+  P4RebuildXRStr = 'Rebuild %s';
+  P4StructureRStr = 'Structure';
+  P4NoRazedStructuresRStr = 'No razed structure found';
+  P4BuildRoadRStr = 'Build Roads';
+  P4CannotBuildUndergroundRStr = 'Cannot build %s underground';
+  P4RoadsRStr = 'Roads';
+  P4NotEnoughGoldRStr = 'Not enough gold.';
+  P4ConstructRStr = 'Construct';
+  P4AbilitiesRStr = 'Abilities';
+  DominatedRStr = 'Dominated';
+  DominateRStr = 'Dominate';
+  CharmedRStr = 'Charmed';
+  CharmRStr = 'Charm';
+  SeducedRStr = 'Seduced';
+  SeduceRStr = 'Seduce';
   PossessedRStr = 'Possessed';
   PossessRStr = 'Possess';
   WebRStr = 'Web';
@@ -5322,190 +5342,612 @@ begin
 end;
 
 class function TCommandCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202B3;
+end;
 
 procedure TCommandCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FAbilityID, 20);
+  Stream.rwBool(FSuccessful, 21);
+end;
 
-procedure TCommandCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
-begin end;
+procedure TCommandCA.Initialize(SourceID, TargetID: Byte; Successful: Boolean);
+begin
+  FSourceID := SourceID;
+  FTargetID := TargetID;
+  FSuccessful := Successful;
+end;
 
 procedure TCommandCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
-begin end;
+begin
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FImageSequences.Show(0,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
 procedure TCommandCA.Execute(A1: TCombat);
-begin end;
+var
+  Source, Target: TCombatUnit;
+  I: Integer;
+begin
+  if FSuccessful then
+  begin
+    Source := TCombatUnit(A1.FCombatData.FindID(FSourceID));
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    Source.SetExperience(Source.GetExperience + Target.GetLevel);
+    for I := 0 to 2 do
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).ResetCommandedUnits(Target);
+    for I := 0 to 2 do
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(P4CommandAbilityIDs[I])).Uncommand(Target);
+    if Source.GetSide <> Target.GetSide then
+      TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(FAbilityID)).Command(Source, Target);
+  end;
+end;
 
 function TCommandCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  if A1.FTime = 0 then
+    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FSFXLibrary.Play(0);
+  if A1.FDelay = A1.FTime then Execute(A1.FCombat);
+  Result := A1.FDelay * 2 > A1.FTime;
+end;
 
 constructor TCommandAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astUseItem];
+end;
 
 function TCommandAbility.AbilityDataClass: TEObjectClass;
-begin Result := nil; end;
+begin
+  Result := P4CommandDataClass;
+end;
 
 function TCommandAbility.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Remove(A1);
+  if Result then A1.RemoveAbilityDataID(FAbilityID);
+end;
 
 procedure TCommandAbility.CombatDone(A1: TCombatObject);
-begin end;
+begin
+  A1.GetAbilityOwner.RemoveAbilityDataID(FAbilityID);
+end;
 
 procedure TCommandAbility.CombatObjectDestroyed(A1: TCombatObject);
-begin end;
+begin
+  ResetCommandedUnits(TCombatUnit(A1));
+end;
 
-procedure TCommandAbility.Command(A1: Integer; A2: Integer);
-begin end;
+procedure TCommandAbility.Command(Source, Target: TCombatUnit);
+var
+  TargetData: TCommandedAbilityData;
+  SourceData: TCommandAbilityData;
+  DataClass: TEObjectClass;
+begin
+  Uncommand(Target);
+  DataClass := AoWHSSet.FAbilityControl.GetAbility(FCommandedAbilityID).AbilityDataClass;
+  TargetData := TCommandedAbilityData(DataClass.Create(nil));
+  TargetData.FAbilityID := FCommandedAbilityID;
+  TargetData.FCommandAbilityID := FAbilityID;
+  TargetData.FSourceID := Source.FID;
+  TargetData.FOriginalCombatPlayer := Target.FCombatPlayer;
+  SetAb(Target.FUnit, FCommandedAbilityID, 1);
+  Target.FUnit.AddAbilityData(TargetData);
+  Target.SetCombatPlayer(Source.FCombatPlayer);
+  SourceData := TCommandAbilityData(Source.FUnit.GetAbilityData(FAbilityID));
+  if SourceData = nil then
+  begin
+    SourceData := TCommandAbilityData.Create(nil);
+    SourceData.FAbilityID := FAbilityID;
+    Source.FUnit.AddAbilityData(SourceData);
+  end;
+  SourceData.FCommandedUnits.Add(Target.FID);
+end;
 
 procedure TCommandAbility.Uncommand(A1: TCombatUnit);
-begin end;
+var
+  UnitOwner: TAbstractUnit;
+  Data: TCommandedAbilityData;
+  Source: TCombatUnit;
+  SourceData: TCommandAbilityData;
+begin
+  UnitOwner := A1.FUnit;
+  if UnitOwner.GetAbilityEnabled(FCommandedAbilityID) then
+  begin
+    Data := TCommandedAbilityData(UnitOwner.GetAbilityData(FCommandedAbilityID));
+    { Original reads Data before checking it for nil. }
+    Source := TCombatUnit(A1.FCombat.FCombatData.FindID(Data.FSourceID));
+    if Data <> nil then A1.SetCombatPlayer(Data.FOriginalCombatPlayer);
+    AoWHSSet.FAbilityControl.GetAbility(FCommandedAbilityID).Remove(A1.FUnit);
+    if Source <> nil then
+    begin
+      SourceData := TCommandAbilityData(Source.FUnit.GetAbilityData(FAbilityID));
+      if SourceData <> nil then SourceData.FCommandedUnits.Remove(A1.FID);
+    end;
+  end;
+end;
 
 procedure TCommandAbility.ResetCommandedUnits(A1: TCombatUnit);
-begin end;
+var
+  UnitOwner: TAbstractUnit;
+  Data: TCommandAbilityData;
+  I: Integer;
+  Target: TCombatUnit;
+begin
+  UnitOwner := A1.FUnit;
+  if UnitOwner.GetAbilityEnabled(FAbilityID) then
+  begin
+    Data := TCommandAbilityData(UnitOwner.GetAbilityData(FAbilityID));
+    if Data <> nil then
+      for I := Data.FCommandedUnits.Count - 1 downto 0 do
+      begin
+        Target := TCombatUnit(A1.FCombat.FCombatData.FindID(Data.FCommandedUnits[I]));
+        if Target <> nil then Uncommand(Target);
+      end;
+  end;
+end;
 
 function TCommandAbility.CanTouch(A1, A2: TCombatObject): Boolean;
-begin Result := False; end;
+begin
+  if inherited CanTouch(A1, A2) then
+    Result := (A1 is TCombatUnit) and (A2 is TCombatUnit) and
+      (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) and
+      not A2.GetAbilityEnabled(107)
+  else Result := False;
+end;
 
 function TCommandAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin
+  if inherited CanTouchUnit(A1, A2) then
+    Result := A2.GetUnitType <> utMachine
+  else Result := False;
+end;
 
 function TCommandAbility.GetAbilityType: TAbilityType;
-begin Result := atEnhancement; end;
+begin
+  Result := atCombat;
+end;
 
 function TCommandAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
-begin Result := 0; end;
+var
+  Probability: Single;
+begin
+  if CanTouchUnit(A1, A2) then
+  begin
+    Probability := TouchRoleProbability(A1, A2);
+    Result := Round(A2.GetHitPoints * 200 * Probability);
+  end
+  else Result := 0;
+end;
 
 procedure TCommandAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
-begin end;
+begin
+  if A1 <> nil then
+  begin
+    A2 := Round(GetTouchAttack(GetLevel(A1)) * (TAbstractUnit(A1).GetAttack * 5) * 0.1);
+    A3 := [dtNone];
+  end;
+end;
 
 procedure TCommandAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+var
+  Probability: Single;
+begin
+  if (A3 = wsNone) and
+    (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) and
+    (A2.GetUnitType <> utMachine) then
+  begin
+    Probability := TouchRoleProbability(A1, A2);
+    A4.SourceDamage := Round(A2.GetHitPoints * 200 * Probability);
+    A4.SourceCost := A2.GetHitPoints * 2;
+    A4.TargetDamage := Round(P4UnitStrikeDV(A2, A1) * (1 - Probability));
+    A4.TargetCost := A2.GetDamage;
+    { Original leaves DamageTypes unchanged on this path. }
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
 procedure TCommandAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+var
+  Probability: Single;
+begin
+  if CanTouch(A1, A2) and not (TCombatUnit(A2).FUnit is TLeader) then
+  begin
+    Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
+    A4.SourceDamage := Round(A2.GetHitPoints * 200 * Probability);
+    A4.SourceCost := A2.GetHitPoints * 2;
+    A4.TargetDamage := Round(StrikeDV(A2, A1) * (1 - Probability));
+    A4.TargetCost := A2.GetDamage;
+    { Original leaves DamageTypes unchanged on this path. }
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
-procedure TCommandAbility.CreateCommandCA(A1: Integer; A2: Integer);
-begin end;
+function TCommandAbility.CreateCommandCA(Source, Target: TCombatUnit): TCommandCA;
+begin
+  Result := TCommandCA.Create(nil);
+  Result.Initialize(Source.FID, Target.FID,
+    not (Target.FUnit is TLeader) and CombatTouchRole(Source, Target));
+  Result.FAbilityID := FAbilityID;
+end;
 
 function TCommandAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+var
+  Target: TCombatObject;
+  Action: TCommandCA;
+  Strike: TStrikeCA;
+begin
+  Target := A2.FTarget;
+  fcValidateMoveOutsideWall(A1, Target);
+  Action := CreateCommandCA(TCombatUnit(A1), TCombatUnit(Target));
+  A1.FCombat.ExecuteCombatAction(Action);
+  if not Action.FSuccessful then
+  begin
+    Strike := AoWE.CreateStrikeCA(Target, A1, True);
+    if Strike <> nil then
+    begin
+      A1.FCombat.ExecuteCombatAction(Strike);
+      Strike.Release;
+    end;
+  end;
+  Action.Release;
+  Result := True;
+end;
 
 procedure TCommandAbility.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
-begin end;
+var
+  Distance, I: Integer;
+  Target: TCombatObject;
+  Values: TAbilityDamageValues;
+  Command: TFastCombatCommand;
+begin
+  Distance := A1.FCombat.GetRoundDistance;
+  if A1.FSource.GetMoves >= 32 then Inc(Distance, 2);
+  for I := 0 to A1.FTargetSide.GetCount - 1 do
+  begin
+    Target := A1.FTargetSide.GetObjects(I);
+    if Target.GetEnabled and (Target.fcRoundDistance <= Distance) and
+      CanTouch(A1.FSource, Target) then
+    begin
+      fcGetDamageValueEx(A1.FSource, Target, wsNone, Values);
+      if Values.SourceDamage <> 0 then
+      begin
+        Command := TFastCombatCommand.Create(FAbilityID);
+        Command.FTarget := A1.FTargetSide.GetObjects(I);
+        Command.FExpectedDV := DVtoDEV(Values.SourceDamage, Values.TargetDamage, A1.FSource, Target);
+        Command.FMoveCost := 0;
+        A1.Add(Command);
+      end;
+    end;
+  end;
+end;
 
 constructor TDominatedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 150;
+  FAbilityName := TranslateRStr(DominatedRStr);
+end;
 
 constructor TDominateAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 28;
+  FAbilityName := TranslateRStr(DominateRStr);
+  FCommandedAbilityID := 150;
+  FSelectionTypes := [astUnit];
+end;
 
 function TDominateAbility.GetTouchAttack(A1: Integer): Shortint;
-begin Result := 0; end;
+begin
+  Result := 6;
+end;
 
 constructor TCharmedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 149;
+  FAbilityName := TranslateRStr(CharmedRStr);
+end;
 
 constructor TCharmAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 148;
+  FAbilityName := TranslateRStr(CharmRStr);
+  FCommandedAbilityID := 149;
+end;
 
 function TCharmAbility.GetTouchAttack(A1: Integer): Shortint;
-begin Result := 0; end;
+begin
+  Result := 5;
+end;
 
 function TCharmAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanTouchUnit(A1, A2);
+  if Result then Result := (A2.GetUnitType = utHumanoid) and (Word(A2.GetRace) <> 11) and not A2.GetAbilityEnabled(129);
+end;
 
 function TCharmAbility.CanTouch(A1, A2: TCombatObject): Boolean;
-begin Result := False; end;
+var
+  Target: TCombatUnit;
+begin
+  Result := inherited CanTouch(A1, A2);
+  if Result then
+  begin
+    Target := TCombatUnit(A2);
+    Result := (Target.FUnit.GetUnitType = utHumanoid) and (Word(Target.FUnit.GetRace) <> 11) and not Target.FUnit.GetAbilityEnabled(129);
+  end;
+end;
 
 constructor TSeducedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 48;
+  FAbilityName := TranslateRStr(SeducedRStr);
+end;
 
 constructor TSeduceAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 29;
+  FAbilityName := TranslateRStr(SeduceRStr);
+  FCommandedAbilityID := 48;
+  FSelectionTypes := [astUnit];
+end;
 
 function TSeduceAbility.GetTouchAttack(A1: Integer): Shortint;
-begin Result := 0; end;
+begin
+  Result := 4;
+end;
 
 function TSeduceAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanTouchUnit(A1, A2);
+  if Result then Result := (A2.GetGender = ugMale) and (A2.GetUnitType = utHumanoid);
+end;
 
 function TSeduceAbility.CanTouch(A1, A2: TCombatObject): Boolean;
-begin Result := False; end;
+var
+  Target: TCombatUnit;
+begin
+  Result := inherited CanTouch(A1, A2);
+  if Result then
+  begin
+    Target := TCombatUnit(A2);
+    Result := (Target.FUnit.GetGender = ugMale) and (Target.FUnit.GetUnitType = utHumanoid);
+  end;
+end;
+
+function TRebuildConstructionControl.GetStructure(AUnit: TAbstractUnit): TStructure;
+var
+  X, Y, L: Shortint;
+begin
+  AUnit.GetLocation(X, Y, L);
+  Result := TStructure(AoWHSMap.MapContainer.GetField(X, Y, L).FindNoneTransparentHS(TStructure));
+  if Result <> nil then
+    if not Result.GetRazed or Result.GetBuilding then Result := nil;
+end;
 
 function TRebuildConstructionControl.ID: Integer;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 procedure TRebuildConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
-begin end;
+var
+  Structure: TStructure;
+begin
+  Structure := GetStructure(AUnit);
+  if Structure <> nil then
+  begin
+    Text := Format(TranslateRStr(P4RebuildXRStr), [Structure.EditName]);
+    Structure.GetRebuildInfo(Gold, Days);
+  end
+  else
+  begin
+    Text := Format(TranslateRStr(P4RebuildXRStr), [TranslateRStr(P4StructureRStr)]);
+    Gold := 0;
+    Days := 0;
+  end;
+end;
 
 function TRebuildConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+begin
+  if GetStructure(A1) <> nil then Result := inherited CanConstruct(A1, A2)
+  else
+  begin
+    A2 := TranslateRStr(P4NoRazedStructuresRStr);
+    Result := False;
+  end;
+end;
 
-procedure TRebuildConstructionControl.Construct(A1: Integer);
-begin end;
+function TRebuildConstructionControl.Construct(AUnit: TAbstractUnit): Boolean;
+var
+  Reason: string;
+begin
+  if CanConstruct(AUnit, Reason) then Result := GetStructure(AUnit).Rebuild(AUnit)
+  else Result := False;
+end;
 
 constructor TBuildRoadsControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 destructor TBuildRoadsControl.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 function TBuildRoadsControl.ID: Integer;
-begin Result := 0; end;
+begin
+  Result := 2;
+end;
 
 procedure TBuildRoadsControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
-begin end;
+begin
+  Text := TranslateRStr(P4BuildRoadRStr);
+  Gold := 0;
+  Days := 0;
+end;
 
 function TBuildRoadsControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  A1.GetLocation(X, Y, L);
+  if L = 0 then Result := inherited CanConstruct(A1, A2)
+  else
+  begin
+    Result := False;
+    A2 := Format(TranslateRStr(P4CannotBuildUndergroundRStr), [TranslateRStr(P4RoadsRStr)]);
+  end;
+end;
 
-procedure TBuildRoadsControl.Construct(A1: Integer);
-begin end;
+function TBuildRoadsControl.Construct(AUnit: TAbstractUnit): Boolean;
+var
+  Reason: string;
+begin
+  if CanConstruct(AUnit, Reason) then
+  begin
+    AoWHSMap.FSelectedArmy.SelectBuildRoad(AUnit);
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
-begin end;
+begin
+  Text := '';
+  Gold := 0;
+  Days := 0;
+end;
 
 function TConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+var
+  Gold, Days: Integer;
+  Text: string;
+begin
+  GetInfo(A1, Text, Gold, Days);
+  if AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FGems < Gold then
+  begin
+    A2 := TranslateRStr(P4NotEnoughGoldRStr);
+    Result := False;
+  end
+  else Result := True;
+end;
 
-procedure TConstructionControl.Construct(A1: Integer);
-begin end;
+function TConstructionControl.Construct(AUnit: TAbstractUnit): Boolean;
+begin
+  Result := False;
+end;
 
 function TConstructionControl.ID: Integer;
 begin Result := 0; end;
 
-procedure TConstructionControlList.GetConstructionControl(A1: Integer);
-begin end;
+function TConstructionControlList.GetConstructionControl(Index: Integer): TConstructionControl;
+begin
+  Result := TConstructionControl(FChildren.List^[Index]);
+end;
 
-procedure TConstructionControlList.FindID(A1: Integer);
-begin end;
+function TConstructionControlList.FindID(ID: Integer): TConstructionControl;
+var
+  I: Integer;
+  Control: TConstructionControl;
+begin
+  Result := nil;
+  I := GetCount;
+  while (Result = nil) and (I <> 0) do
+  begin
+    Dec(I);
+    Control := TConstructionControl(FChildren.List^[I]);
+    if Control.ID = ID then Result := TConstructionControl(FChildren.List^[I]);
+  end;
+end;
 
 constructor TConstructAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(P4ConstructRStr);
+  FAbilityID := 125;
+  FAbilityType := atEnhancement;
+  FSelectionTypes := [astUnit];
+  FConstructionControls := TConstructionControlList.Create(nil);
+  RegisterConstructionControl(TRebuildConstructionControl.Create(nil));
+  RegisterConstructionControl(TBuildRoadsControl.Create(nil));
+end;
 
 destructor TConstructAbility.Destroy;
-begin end;
+begin
+  FConstructionControls.Free;
+  inherited Destroy;
+end;
 
 function TConstructAbility.GetControlType: TAbilityControlType;
 begin Result := [acAction]; end;
 
 function TConstructAbility.CanActivate(A1: TAbilityOwner; var A2: string): Boolean;
-begin Result := False; end;
+begin
+  if A1 is TAbstractUnit then Result := True
+  else Result := False;
+end;
 
 procedure TConstructAbility.RegisterConstructionControl(Control: TConstructionControl);
-begin end;
+var
+  ControlID: Integer;
+begin
+  ControlID := Control.ID;
+  if FConstructionControls.FindID(ControlID) <> nil then
+    raise Exception.Create('Construction Control ID already used');
+  Control.SetOwner(FConstructionControls);
+end;
 
 function TAbilityPlugIn.Name: string;
-begin Result := ''; end;
+begin
+  Result := P4AbilitiesRStr;
+end;
 
 function TAbilityPlugIn.Initialize(AEngine: Engine.TEngine): Boolean;
-begin Result := False; end;
+begin
+  if AEngine is TAoWEngine then Result := inherited Initialize(AEngine)
+  else Result := False;
+end;
 
 function TAbilityPlugIn.Finalize(AEngine: Engine.TEngine): Boolean;
-begin Result := False; end;
+begin
+  AddRef;
+  Result := inherited Finalize(AEngine);
+  Release;
+end;
 
-procedure TSpellCC.GetName(A1: Integer);
-begin end;
+function TSpellCC.GetName: string;
+var
+  Target: TCombatObject;
+begin
+  Result := Format(TranslateRStr(P4CastXRStr), [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
+  Target := FTarget;
+  if Target <> nil then Result := Result + ' on ' + Target.IDStr;
+end;
 
 constructor TSpell.Create(AOwner: Engine.TECustomNode);
 begin
@@ -6394,19 +6836,54 @@ begin
 end;
 
 class function TSpellCastEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202EF;
+end;
 
 function TSpellCastEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var
+  Show: Boolean;
+  Hero: THero;
+  Reason: string;
+begin
+  Show := Trigger = etUser;
+  Show := Show or ((AoWHSMap.FPlayMode = pmTurn) and
+    (wpSpellReady in AoWEngine.FRegistry.GetClassicWindowPopupEvents));
+  Show := Show or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+    (wpSpellReady in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents));
+  if Show then
+  begin
+    Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+    if (Hero is THero) and (Hero.FCastingSpellID = FSpellID) and Hero.CastingReady then
+      AoWHSSet.FAbilityControl.GetAbility(52).Activate(Hero, Reason);
+  end;
+  Result := False;
+end;
 
 procedure TSpellCastEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitID, 20);
+  Stream.rwInteger(FSpellID, 21);
+end;
 
 procedure TSpellCastEventLog.ViewLocation;
-begin end;
+var
+  AUnit: TAbstractUnit;
+  X, Y, L: Shortint;
+begin
+  AUnit := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+  if AUnit <> nil then
+  begin
+    AUnit.GetLocation(X, Y, L);
+    CenterViewTo(X, Y, L);
+  end;
+end;
 
 function TSpellCastEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  Result := Format(TranslateRStr(P4XCastingReadyRStr), [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
+end;
 
 constructor TUnitSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin
@@ -6756,37 +7233,127 @@ begin
 end;
 
 class function TUnitSpellCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C3;
+end;
 
 procedure TUnitSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FSpellID, 20);
+  Stream.rwByte(FSourceID, 21);
+  Stream.rwByte(FTargetID, 22);
+  Stream.rwData(FSpellData, 8, 23);
+  Stream.rwInteger(FMana, 24);
+end;
 
 procedure TUnitSpellCA.Execute(A1: TCombat);
-begin end;
+begin
+  TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FSpellID)).ExecuteCA(A1, Self);
+end;
 
 function TUnitSpellCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  Execute(A1.FCombat);
+  Result := False;
+end;
 
 constructor TUnitSpellTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTargetUnitIDs := TIntegerList.Create;
+  FTargetUnits := TUnitUserList.Create(nil);
+end;
 
 destructor TUnitSpellTE.Destroy;
-begin end;
+begin
+  FTargetUnitIDs.Free;
+  FTargetUnits.Free;
+  inherited Destroy;
+end;
 
 class function TUnitSpellTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21308;
+end;
 
 procedure TUnitSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc(30, FTargetUnitIDs.LoadFromStream, FTargetUnitIDs.SaveToStream);
+  Stream.rwData(FSpellData, 8, 31);
+  Stream.rwByte(FTargetPlayer, 32);
+end;
 
 procedure TUnitSpellTE.Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
-begin end;
+var
+  I: Integer;
+begin
+  FEventSpellID := SpellID;
+  FEventPlayerIndex := Source.FPlayer;
+  FEventSourceID := Source.FUnitID;
+  FEventMana := Mana;
+  if (Targets <> nil) and (Targets.GetCount <> 0) then
+  begin
+    FTargetPlayer := Targets.GetUnit(0).FPlayer;
+    for I := 0 to Targets.GetCount - 1 do
+      FTargetUnitIDs.Add(Targets.GetUnit(I).FUnitID);
+  end
+  else FTargetPlayer := $FF;
+end;
 
 function TUnitSpellTE.Validate(A1: THero): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  Target: TAbstractUnit;
+  X, Y, L, TargetX, TargetY, TargetL: Shortint;
+begin
+  Result := inherited Validate(A1);
+  A1.GetLocation(X, Y, L);
+  I := FTargetUnitIDs.Count;
+  while Result and (I <> 0) do
+  begin
+    Dec(I);
+    Target := AoWHSMap.FUnitControl.FindUnit(FTargetUnitIDs[I]);
+    if Target <> nil then
+    begin
+      Target.GetLocation(TargetX, TargetY, TargetL);
+      Result := (Target.GetHitPoints <> 0) and (Byte(Target.FPlayer) = FTargetPlayer);
+      if Result then
+        if TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FEventSpellID)).FTargetRange <> -1 then
+          Result := dHXtoRad(X, Y, TargetX, TargetY) <=
+            TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FEventSpellID)).FTargetRange;
+      FTargetUnits.AddUnit(Target);
+    end
+    else Result := False;
+  end;
+end;
 
 function TUnitSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  Target: TAbstractUnit;
+  X, Y, L: Shortint;
+begin
+  inherited Process(A1, A2);
+  if FTargetUnits.GetCount <> 0 then
+  begin
+    FTargetUnits.GetUnit(0).GetLocation(X, Y, L);
+    AoWHSSet.FSpellControl.GetSpell(FEventSpellID).PlayDefaultCastEffects(A1.FPlayer, X, Y, L);
+    for I := 0 to FTargetUnits.GetCount - 1 do
+    begin
+      Target := FTargetUnits.GetUnit(I);
+      Target.AddRef;
+      if TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FEventSpellID)).ExecuteSpell(A1, Target, FEventMana, FSpellData) then
+      begin
+        AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
+        Target.Changed;
+      end;
+      Target.Release;
+    end;
+  end;
+  Result := False;
+end;
 
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -6839,7 +7406,7 @@ begin Result := nil; end;
 procedure TUnitSpell.CreateCAEx(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TUnitSpell.ExecuteCA(A1: Integer; A2: Integer);
+procedure TUnitSpell.ExecuteCA(Combat: TCombat; Action: TUnitSpellCA);
 begin end;
 
 procedure TUnitSpell.AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer);

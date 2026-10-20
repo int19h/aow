@@ -8487,8 +8487,8 @@ begin Result := False; end;
 function TStructureConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
 begin Result := False; end;
 
-procedure TStructureConstructionControl.Construct(A1: Integer);
-begin end;
+function TStructureConstructionControl.Construct(AUnit: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TStructureControl.Create(AOwner: Engine.TECustomNode);
 begin end;

@@ -3,7 +3,7 @@
   TStructureConstructionControl = class(TConstructionControl)
   public
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
-    procedure Construct(A1: Integer); override;
+    function Construct(AUnit: TAbstractUnit): Boolean; override;
     function ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean; virtual;  { +05C }
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; virtual;  { +060 }
     { conflict: function StructureResource: TStructureResource; virtual; }

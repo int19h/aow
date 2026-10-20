@@ -5,7 +5,7 @@
     FAbilityID: Integer;  { $04 }
     FSourceDV, FTargetDV, FExpectedDV, FMoveCost: Integer; { $08..$14 }
     FTarget: TCombatObject;  { $18 }
-    procedure GetName(A1: Integer); virtual;  { +000 draft }
+    function GetName: string; virtual; { +000; 557790CF..5577910F }
     constructor Create(A1: Integer);
   end;
 

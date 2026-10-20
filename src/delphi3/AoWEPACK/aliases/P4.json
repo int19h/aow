@@ -11,5 +11,6 @@
   "TBuildRoadsControl.vmt54": "TBuildRoadsControl.Construct",
   "5577a060:44": "P4CompareSpellNames",
   "5577a09c:42": "P4CompareSpellLevels",
-  "FUN_55766468": "P4UnitStrikeDV"
+  "FUN_55766468": "P4UnitStrikeDV",
+  "FUN_55770b58": "TRebuildConstructionControl.GetStructure"
 }

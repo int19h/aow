@@ -450,18 +450,18 @@
     function AbilityDataClass: TEObjectClass; override;
   end;
 
-  { TCommandCA (instance size 24, VMT 557203A0) }
+  { TCommandCA (instance size 24, VMT 557203A0; $10 ability ID, $14 success) }
   TCommandCA = class(TSingleTargetCA)
   public
-    F_CommandCA_10: Integer;
-    F_CommandCA_14: Byte;
+    FAbilityID: Integer; { $10 }
+    FSuccessful: Boolean; { $14 }
     F_CommandCA_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
-    procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    procedure Initialize(SourceID, TargetID: Byte; Successful: Boolean);
   end;
 
   { TCommandAbilityData (instance size 20, VMT 55720474;
@@ -479,10 +479,10 @@
     function CommandingTargetStrength(Combat: TCombat): Integer;
   end;
 
-  { TCommandAbility (instance size 44, VMT 55720544) }
+  { TCommandAbility (instance size 44, VMT 55720544; $28 commanded ability ID) }
   TCommandAbility = class(TTouchAbility)
   public
-    F_CommandAbility_28: Integer;
+    FCommandedAbilityID: Integer; { $28 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAbilityType: TAbilityType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
@@ -497,8 +497,8 @@
     function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
-    procedure Command(A1: Integer; A2: Integer); virtual;  { +124 draft }
-    procedure CreateCommandCA(A1: Integer; A2: Integer); virtual;  { +128 draft }
+    procedure Command(Source, Target: TCombatUnit); virtual; { +124 }
+    function CreateCommandCA(Source, Target: TCombatUnit): TCommandCA; virtual; { +128 }
     procedure ResetCommandedUnits(A1: TCombatUnit); virtual; { +12C }
     procedure Uncommand(A1: TCombatUnit); virtual; { +130 }
   end;
@@ -816,21 +816,21 @@
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); virtual;  { +04C }
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; virtual;
-    procedure Construct(A1: Integer); virtual;  { +054 draft }
+    function Construct(AUnit: TAbstractUnit): Boolean; virtual;  { +054 }
     function ID: Integer; virtual;  { +058 }
   end;
 
   { TConstructionControlList (instance size 12, VMT 557225EC) }
   TConstructionControlList = class(TENode)
   public
-    procedure GetConstructionControl(A1: Integer);  { draft }
-    procedure FindID(A1: Integer);  { draft }
+    function GetConstructionControl(Index: Integer): TConstructionControl;
+    function FindID(ID: Integer): TConstructionControl;
   end;
 
-  { TConstructAbility (instance size 44, VMT 55722700) }
+  { TConstructAbility (instance size 44, VMT 55722700; $28 construction controls) }
   TConstructAbility = class(TAdjustableAbility)
   public
-    F_ConstructAbility_28: Integer;
+    FConstructionControls: TConstructionControlList; { $28 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetControlType: TAbilityControlType; override;
@@ -876,7 +876,7 @@
   TSpellCC = class(TFastCombatCommand)
   public
     FSpellID: Integer; { $1C }
-    procedure GetName(A1: Integer); override;
+    function GetName: string; override;
   end;
 
   TUnitSpellData = array[0..1] of Integer;
@@ -1014,7 +1014,7 @@
     function Release: Integer; override;
   end;
 
-  { TSpellCastEventLog (instance size 32, VMT 55723220) }
+  { TSpellCastEventLog (instance size 32, VMT 55723220; $18 unit ID, $1C spell ID) }
   TSpellCastEventLog = class(TEventLog)
   public
     FUnitID: Integer; { $18 }
@@ -1043,12 +1043,13 @@
     function Valid: Boolean;
   end;
 
-  { TUnitSpellTE (instance size 52, VMT 557233E8) }
+  { TUnitSpellTE (instance size 52, VMT 557233E8;
+    $20 target IDs, $24 target users, $28 target player, $2C spell data) }
   TUnitSpellTE = class(TSpellTE)
   public
     FTargetUnitIDs: TIntegerList; { $20 }
     FTargetUnits: TUnitUserList; { $24 }
-    FTargetPlayer: Shortint; { $28 }
+    FTargetPlayer: Byte; { $28 }
     F_UnitSpellTE_29: array[0..2] of Byte;
     FSpellData: TUnitSpellData; { $2C }
     destructor Destroy; override;
@@ -1060,14 +1061,16 @@
     procedure Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
   end;
 
-  { TUnitSpellCA (instance size 32, VMT 557234B8) }
+  { TUnitSpellCA (instance size 32, VMT 557234B8;
+    $0C spell ID, $10/$11 source/target IDs, $14 spell data, $1C mana) }
   TUnitSpellCA = class(TCombatAction)
   public
-    F_UnitSpellCA_0C: Integer;
-    F_UnitSpellCA_10: Byte;
-    F_UnitSpellCA_11: Byte;
-    F_UnitSpellCA_12: array[0..9] of Byte;
-    F_UnitSpellCA_1C: Integer;
+    FSpellID: Integer; { $0C }
+    FSourceID: Byte; { $10 }
+    FTargetID: Byte; { $11 }
+    F_UnitSpellCA_12: array[0..1] of Byte;
+    FSpellData: TUnitSpellData; { $14 }
+    FMana: Integer; { $1C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
@@ -1098,7 +1101,7 @@
     procedure TargetPartySelected(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; virtual;  { +0B4 }
     procedure CreateCAEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0B8 draft }
-    procedure ExecuteCA(A1: Integer; A2: Integer); virtual;  { +0BC draft }
+    procedure ExecuteCA(Combat: TCombat; Action: TUnitSpellCA); virtual; { +0BC }
     procedure AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0C0 draft }
     procedure OnValidateTarget(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure OnTargetSelectionChange(A1: Integer; A2: Integer);  { draft }

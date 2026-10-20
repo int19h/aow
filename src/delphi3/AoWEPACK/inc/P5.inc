@@ -7121,8 +7121,8 @@ begin end;
 constructor TFastCombatCommand.Create(A1: Integer);
 begin end;
 
-procedure TFastCombatCommand.GetName(A1: Integer);
-begin end;
+function TFastCombatCommand.GetName: string;
+begin Result := ''; end;
 
 constructor TFastCombatCommandList.Create(A1: Integer; A2: Integer);
 begin end;
