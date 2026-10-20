@@ -50,14 +50,12 @@ local variable order, loop shape.
 | Network.dpl: NetworkE | 148 | 148 |
 | SoundP.dpl: Sound, GalSndS, SFXEdDlg, Galaxy, DSound | 176 | 176 |
 | aowInt.dpl: the 29 UI control units (`src/delphi3/aowInt/`) | 409 | 383 |
-| HSEPack.dpl: HSEngine (with `inc/` HXSPRITE, MAPOBJ, HSMAP, LibImgHS) and the 15 other hex map units | 816 | 778 |
+| HSEPack.dpl: HSEngine (with `inc/` HXSPRITE, MAPOBJ, HSMAP, LibImgHS) and the 15 other hex map units | 816 | 777 |
 
-Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
-identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
-written, plus the FMemStr unit. Five of the 23 that differ are `Assert`
-line numbers (the original counts them from the start of its Engine.pas: THashList.SetCapacity 7127,
-THashList.Delete 7137, TIntegerHashList.Add 7155, TStringHashList.Add 7282, TEChangeNotifyNode.
-EndUpdate 8215). The other 18 differ in one register choice each (below). `src/delphi3/matchpkg.dpk`
+Enginep.dpl as a whole: 893 functions, 871 identical (2026-10-20). The Engine unit alone: 735 functions,
+717 identical (51,385 of 54,872 bytes); the value lists are back in it since 2026-10-20: every method of every class of the original Engine unit is
+written, plus the FMemStr unit. The 18 that differ are one register choice each (below); the five `Assert` line numbers
+match since the unit has the original's layout. `src/delphi3/matchpkg.dpk`
 builds the same units as a package, the way the original was built; the package code is identical
 to the program code. The Delphi 3.0 compiler from the original release CD (March 1997) gives worse
 results (argument evaluation order differs in 20 more functions), and the 3.02 patch does not change

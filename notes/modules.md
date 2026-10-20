@@ -10,14 +10,14 @@ package it `requires`, which says nothing about real use. Function counts and si
 | Gfxepack.dpl | GFXE (236), GFXDiag (3) | - | done, 252/262 |
 | Dcpack.dpl | DisplayC (165), TWindows08DIBSurface (10) | GFXE | done, 169/174 |
 | Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | done, 684/709 (ImageLib + HashTabU 514/536, editors 170/173) |
-| Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | ImageLib | done, 865/892 |
+| Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | ImageLib | done, 871/893 |
 | aowDPlay.dpl | aowDPlayComp (35), DPlay, DPLobby | - | done, 39/39 |
 | VideoP.dpl | Video (30), VFW (4) | GFXE | done, 35/35 |
 | Network.dpl | NetworkE (149) | Engine | done, 148/148 |
 | SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Engine, SpinEdit | done, 176/176 |
 | Adcpack.dpl | ZoomControl (13), AdvancedDisplay (12) | GFXE | done, 25/25 |
 | aowFXpck.dpl | aowFX (17) | - | done, 18/18 |
-| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg, HSEdMod, HSEdData | DisplayC, Engine, GFXE, ImageLib, Sound | done, 778/816 |
+| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg, HSEdMod, HSEdData | DisplayC, Engine, GFXE, ImageLib, Sound | done, 777/816 |
 | aowInt.dpl | the AoW UI controls (AoWComp, AoWWindow, AoWMenu, ... 476) | DisplayC, GFXE, ImageLib | done, 383/409 |
 | AoWInterface.dpl | an older version of the same controls (375) | DisplayC, GFXE, ImageLib | not used by AoW.exe or AoWEd.exe |
 | Vcladdon.dpl | TB97 (114), SpinEdit (52), EStrGrid, FilCtl95 | - | third party (Toolbar97, SpinEdit) |
@@ -33,8 +33,7 @@ package it `requires`, which says nothing about real use. Function counts and si
 
 ## Layout of the recovered source
 
-- `src/delphi3/` holds the units of Enginep.dpl (Engine.pas with `inc/HashTab.PAS`, EngineLists.pas,
-  FMemStr.pas, zlib.pas with the zlib object files in `obj/`, EList.pas, PlugInM.pas, DebMDlg.pas,
+- `src/delphi3/` holds the units of Enginep.dpl (Engine.pas with `inc/HashTab.PAS`, FMemStr.pas, zlib.pas with the zlib object files in `obj/`, EList.pas, PlugInM.pas, DebMDlg.pas,
   ImgLComp.pas, EResGrid.pas), built against the recovered ImageLib in `src/delphi3/Ilpack`.
 - Every other package gets a directory `src/delphi3/<Package>/` with its units, its own host program
   `matchtest.dpr` and its own `match-aliases.json`. Units of other packages are found through
