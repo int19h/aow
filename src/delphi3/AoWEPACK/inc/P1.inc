@@ -6993,11 +6993,11 @@ begin end;
 procedure TAbstractAoWHSMap.UpdateFPS(A1: Integer);
 begin end;
 
-procedure TAbstractAoWHSMap.DropHeroItem(A1: Integer; A2: Integer);
+procedure TAbstractAoWHSMap.DropHeroItem(Hero: THero; Item: TItem);
 begin end;
 
-function TAbstractAoWHSMap.GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TAbstractAoWHSMap.GetHeroItemsOnGround(Hero: THero): TItemList;
+begin Result := nil; end;
 
 procedure TAbstractAoWHSMap.DrawSelectionRect(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;

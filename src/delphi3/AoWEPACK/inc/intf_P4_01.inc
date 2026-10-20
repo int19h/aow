@@ -133,7 +133,7 @@
     procedure UpdateEnemyEnchantments;
     procedure GetManaIncome;  { draft }
     procedure GetManaUpkeep;  { draft }
-    procedure SetMana(A1: Integer);  { draft }
+    procedure SetMana(A1: Integer);
     procedure GetPower;  { draft }
     procedure OutOfMana(A1: Integer);  { draft }
     procedure RemoveEnchantments;  { draft }
@@ -252,7 +252,7 @@
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure IncDoubleSphereManaCount(A1: Integer);  { draft }
     procedure DecDoubleSphereManaCount(A1: Integer);  { draft }
-    procedure GetSphereManaDoubled(A1: Integer);  { draft }
+    function GetSphereManaDoubled(A1: TMagicSphere): Boolean;
     procedure OutOfMana(A1: Byte; A2: Integer);  { draft }
     procedure RemovePlayerEnchantments(Player: Shortint);
     procedure BeginUpdate;  { draft }

@@ -125,8 +125,8 @@
     procedure SetCurrentPlayer(A1: Shortint); virtual; { $FC }
     procedure SetFogEnabled(A1: Byte); virtual;  { +100 draft }
     procedure SetExplorationEnabled(A1: Byte); virtual;  { +104 draft }
-    procedure DropHeroItem(A1: Integer; A2: Integer); virtual;  { +108 draft }
-    function GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer; virtual;  { +10C draft }
+    procedure DropHeroItem(Hero: THero; Item: TItem); virtual; { $108 }
+    function GetHeroItemsOnGround(Hero: THero): TItemList; virtual; { $10C }
     procedure ShowMessage(const A1: string); virtual;
     procedure ShowWarning(const Text: string); virtual;
     procedure PlayCenterAnimation(X, Y, L: Shortint);

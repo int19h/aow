@@ -65,14 +65,15 @@
     procedure Setup(Hero: THero);
   end;
 
-  { THeroUpdateTE (instance size 32, VMT 557119E8) }
+  { THeroUpdateTE (instance size 32, VMT 557119E8): +10 FUnitID;
+    +14 FMode; +18 FItemID (also spell ID); +1C FParameter. }
   THeroUpdateTE = class(TTokenEvent)
   public
-    F_HeroUpdateTE_10: Integer;
-    F_HeroUpdateTE_14: Byte;
+    FUnitID: Integer; { $10 }
+    FMode: THeroUpdateMode; { $14 }
     F_HeroUpdateTE_15: array[0..2] of Byte;
-    F_HeroUpdateTE_18: Integer;
-    F_HeroUpdateTE_1C: Integer;
+    FItemID: Integer; { $18 }
+    FParameter: Integer; { $1C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;

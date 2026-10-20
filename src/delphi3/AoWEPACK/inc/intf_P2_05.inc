@@ -94,9 +94,9 @@
     function CanAddToList(AList: TUnitList): Boolean; virtual;
     function GetWallCombatFeatures: TWallCombatFeatures; virtual;  { +120 draft }
     function GetCampaignTransferPoints: Integer; virtual;  { +124 draft }
-    function GetCastingPointsMax: Byte; virtual;  { +128 draft }
-    function GetCastingPoints: Byte; virtual;  { +12C draft }
-    procedure SetCastingPoints(A1: Integer); virtual;  { +130 draft }
+    function GetCastingPointsMax: Shortint; virtual; { $128 }
+    function GetCastingPoints: Shortint; virtual; { $12C }
+    procedure SetCastingPoints(Value: Shortint); virtual; { $130 }
     function GetPowerGeneration: Integer; virtual;  { +134 draft }
     procedure NewDay; virtual;  { +138 draft }
     procedure NewTurn(Player: Shortint); virtual;  { +13C draft }

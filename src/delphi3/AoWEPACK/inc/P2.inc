@@ -1367,17 +1367,17 @@ begin
   Result := 0;
 end;
 
-function TAbstractUnit.GetCastingPointsMax: Byte;
+function TAbstractUnit.GetCastingPointsMax: Shortint;
 begin
   Result := 0;
 end;
 
-function TAbstractUnit.GetCastingPoints: Byte;
+function TAbstractUnit.GetCastingPoints: Shortint;
 begin
   Result := 0;
 end;
 
-procedure TAbstractUnit.SetCastingPoints(A1: Integer);
+procedure TAbstractUnit.SetCastingPoints(Value: Shortint);
 begin end;
 
 procedure TAbstractUnit.CreateMovePointTable(var Table: TP2MovePointTable);
@@ -5418,199 +5418,906 @@ begin
 end;
 
 procedure THero.ExecuteUpgradeHeroAI;
-begin end;
+var
+  Choices: TDoubleItemList;
+  Points, Index: Integer;
+  Choice: TDoubleItem;
+begin
+  Choices := TDoubleItemList.Create;
+  repeat
+    Choices.Clear;
+    Points := GetSkillPoints;
+    if (Points >= 5) and (FUnitAttack + FHeroResource.FAttack < 10) then Choices.AddAB(0, 10);
+    if (Points >= 5) and (FUnitDefense + FHeroResource.FDefense < 10) then Choices.AddAB(1, 25);
+    if (Points >= 5) and (FUnitResistance + FHeroResource.FResistance < 10) then Choices.AddAB(2, 10);
+    if (Points >= 10) and (FUnitDamage + FHeroResource.FDamage < 10) then Choices.AddAB(3, 10);
+    if (Points >= 5) and (FUnitHits + FHeroResource.FHits < 30) then Choices.AddAB(4, 10);
+    if AoWHSSet.FAbilityControl.GetAbility(46).CanExpand(Self) and
+      (Points >= AoWHSSet.FAbilityControl.GetAbility(46).ExpandCost(Self)) then Choices.AddAB(5, 10);
+    if AoWHSSet.FAbilityControl.GetAbility(22).CanExpand(Self) and
+      (Points >= AoWHSSet.FAbilityControl.GetAbility(22).ExpandCost(Self)) then Choices.AddAB(6, 10);
+    if AoWHSSet.FAbilityControl.GetAbility(52).CanExpand(Self) then
+      if Points >= AoWHSSet.FAbilityControl.GetAbility(52).ExpandCost(Self) then Choices.AddAB(7, 9999)
+      else Choices.AddAB(7, 100);
+    if Choices.Count <> 0 then
+    begin
+      RandSeed := AoWHSMap.Random($FFFFFF);
+      Index := Choices.RandomChanceItemB(0);
+      Choice := Choices[Index];
+      case Choice.A of
+        0: SetUnitAttack(FUnitAttack + 1);
+        1: SetUnitDefense(FUnitDefense + 1);
+        2: SetUnitResistance(FUnitResistance + 1);
+        3: SetUnitDamage(FUnitDamage + 1);
+        4: SetUnitHits(FUnitHits + 1);
+        5: ExpandAbility(46);
+        6: ExpandAbility(22);
+        7: if Points >= AoWHSSet.FAbilityControl.GetAbility(52).ExpandCost(Self) then ExpandAbility(52)
+           else Points := 0;
+      end;
+    end;
+  until (Choices.Count = 0) or (GetSkillPoints = 0) or (Points = 0);
+  Choices.Free;
+end;
 
-procedure THero.ValidateHeroUpgrade(A1: Integer; A2: Integer);
-begin end;
+procedure THero.ValidateHeroUpgrade;
+var
+  X, Y, L: Shortint;
+  Level, OldLevel: Integer;
+  Log: THeroUpgradeEventLog;
+begin
+  GetLocation(X, Y, L);
+  if (FPlayer <> 0) and (X <> -1) then
+  begin
+    FUpgradePending := False;
+    Level := GetLevel;
+    if Level < GetLevelMax then
+    begin
+      if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU2) then
+        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 1))
+      else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU3) then
+        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 2))
+      else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU4) then
+        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 3))
+      else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU5) then
+        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 4))
+      else SetExperience(GetExperience + P2HeroLevels[Level div 5].Experience);
+      Level := GetLevel;
+    end;
+    if FLevel < Level then
+    begin
+      FUpgradePending := True;
+      OldLevel := FLevel;
+      FLevel := Level;
+      Log := THeroUpgradeEventLog.Create(nil);
+      Log.FOldLevel := OldLevel;
+      Log.FNewLevel := FLevel;
+      Log.FDay := AoWHSMap.FPlayers.GetPlayers(FPlayer).FDay;
+      Log.FPlayer := FPlayer;
+      Log.FUnitID := FUnitID;
+      DistributeLocationEventLog(Log, FPlayer, X, Y, L, 1);
+      Log.Release;
+      if AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman then ExecuteUpgradeHeroAI;
+    end;
+  end;
+end;
 
 procedure THero.NewTurn(Player: Shortint);
-begin end;
+var Log: TSpellCastEventLog;
+begin
+  inherited NewTurn(Player);
+  if Player = FPlayer then
+  begin
+    ValidateHeroUpgrade;
+    FCastingPoints := GetCastingPointsMax;
+    if (FCastingSpellID <> 0) and (FCastingMana < FCastingProgress) then
+    begin
+      Inc(FCastingMana, FCastingPoints);
+      FCastingPoints := 0;
+      if FCastingMana > FCastingProgress then
+      begin
+        FCastingPoints := FCastingMana - FCastingProgress;
+        FCastingMana := FCastingProgress;
+      end;
+      if FCastingMana = FCastingProgress then
+      begin
+        Log := TSpellCastEventLog.Create(nil);
+        Log.FPlayer := FPlayer;
+        Log.FUnitID := FUnitID;
+        Log.FSpellID := FCastingSpellID;
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FEventLogbook.AddEvent(Log);
+        if (AoWHSMap.FSeatedPlayer = FPlayer) and
+          (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptHuman) then
+          Log.Execute(False, etEvent, nil);
+        Log.Release;
+      end;
+    end;
+  end;
+end;
 
 procedure THero.SetAbSet(A1: Integer; A2: Byte);
-begin end;
+begin inherited SetAbSet(A1, A2); end;
 
 function THero.GetAbSet(A1: Integer): Boolean;
-begin Result := False; end;
+begin Result := inherited GetAbSet(A1); end;
 
-procedure THero.GetUnitAbilityEnabled;
-begin end;
+function THero.GetUnitAbilityEnabled(AbilityID: Integer): Boolean;
+begin Result := inherited GetAbilityEnabled(AbilityID); end;
 
 function THero.GetAbilityCount: Integer;
-begin end;
+var Count: Integer;
+begin
+  Result := GetAbCount;
+  Count := FHeroItems.GetAbilityCount;
+  if Count > Result then Result := Count;
+  Count := FInventory.GetAbilityCount;
+  if Count > Result then Result := Count;
+end;
 
-procedure THero.GetSuperlativeEnabledAbOwner(A1: Integer; A2: Integer);
-begin end;
+function THero.GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+var Candidate, Best: TAbilityOwner;
+begin
+  if GetAbEnabled(AbilityID) then Best := Self else Best := nil;
+  Candidate := FHeroItems.GetSuperlativeEnabledAbOwner(AbilityID);
+  if Candidate <> nil then
+    if (Best = nil) or (Candidate.GetAbLevel(AbilityID) > Best.GetAbLevel(AbilityID)) then
+      Best := Candidate;
+  Candidate := FInventory.GetSuperlativeEnabledAbOwner(AbilityID);
+  if Candidate <> nil then
+    if (Best = nil) or (Candidate.GetAbLevel(AbilityID) > Best.GetAbLevel(AbilityID)) then
+      Best := Candidate;
+  Result := Best;
+end;
 
-procedure THero.GetSuperlativeAbOwner(A1: Integer; A2: Integer);
-begin end;
+function THero.GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+var Candidate, Best: TAbilityOwner;
+begin
+  if GetAbSet(AbilityID) then Best := Self else Best := nil;
+  Candidate := FHeroItems.GetSuperlativeAbOwner(AbilityID);
+  if Candidate <> nil then
+    if (Best = nil) or (Candidate.GetAbLevel(AbilityID) > Best.GetAbLevel(AbilityID)) then
+      Best := Candidate;
+  Candidate := FInventory.GetSuperlativeAbOwner(AbilityID);
+  if Candidate <> nil then
+    if (Best = nil) or (Candidate.GetAbLevel(AbilityID) > Best.GetAbLevel(AbilityID)) then
+      Best := Candidate;
+  Result := Best;
+end;
 
 function THero.GetAbilityOwner(AbilityID: Integer): TAbilityOwner;
-begin end;
+begin Result := GetSuperlativeAbOwner(AbilityID); end;
 
 function THero.GetAbilityEnabled(AbilityID: Integer): Boolean;
-begin end;
+begin
+  Result := inherited GetAbilityEnabled(AbilityID);
+  if not Result then Result := FHeroItems.GetAbilityEnabled(AbilityID);
+  if not Result then Result := FInventory.GetAbilityEnabled(AbilityID);
+end;
 
 function THero.GetAbilitySet(AbilityID: Integer): Boolean;
-begin end;
+begin
+  Result := inherited GetAbilitySet(AbilityID);
+  if not Result then Result := FHeroItems.GetAbilitySet(AbilityID);
+  if not Result then Result := FInventory.GetAbilitySet(AbilityID);
+end;
 
 function THero.GetAbilityName(AbilityID: Integer): string;
-begin end;
+var AOwner: TAbilityOwner;
+begin
+  AOwner := GetSuperlativeAbOwner(AbilityID);
+  if AOwner = nil then AOwner := Self;
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetName(AOwner);
+end;
 
 function THero.GetAbilityLevel(AbilityID: Integer): Integer;
-begin end;
+var AOwner: TAbilityOwner;
+begin
+  AOwner := GetSuperlativeAbOwner(AbilityID);
+  if AOwner = nil then AOwner := Self;
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetLevel(AOwner);
+end;
 
 function THero.GetInherentAttack: Shortint;
-begin end;
+begin Result := FHeroResource.FAttack + FUnitAttack; end;
 
 function THero.GetAttack: Shortint;
-begin end;
+var AOwner: TAbilityOwner; I, Count: Integer;
+begin
+  Count := GetAbilityCount;
+  Result := 0;
+  { Original includes the ability-count index in the scan. }
+  for I := 0 to Count do
+  begin
+    AOwner := GetSuperlativeEnabledAbOwner(I);
+    if AOwner <> nil then Inc(Result, AOwner.GetAbAttack(I));
+  end;
+  Result := FHeroItems.GetAttack + (FUnitAttack + Result + FHeroResource.FAttack);
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
 function THero.GetInherentDefense: Shortint;
-begin end;
+begin Result := FHeroResource.FDefense + FUnitDefense; end;
 
 function THero.GetDefense: Shortint;
-begin end;
+var AOwner: TAbilityOwner; I, Count: Integer;
+begin
+  Count := GetAbilityCount;
+  Result := 0;
+  { Original includes the ability-count index in the scan. }
+  for I := 0 to Count do
+  begin
+    AOwner := GetSuperlativeEnabledAbOwner(I);
+    if AOwner <> nil then Inc(Result, AOwner.GetAbDefense(I));
+  end;
+  Result := FHeroItems.GetDefense + (FUnitDefense + Result + FHeroResource.FDefense) + P2MoraleDefense[GetMorale];
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
 function THero.GetInherentDamage: Shortint;
-begin end;
+begin Result := FHeroResource.FDamage + FUnitDamage; end;
 
 function THero.GetDamage: Shortint;
-begin end;
+var AOwner: TAbilityOwner; I, Count: Integer;
+begin
+  Count := GetAbilityCount;
+  Result := 0;
+  { Original includes the ability-count index in the scan. }
+  for I := 0 to Count do
+  begin
+    AOwner := GetSuperlativeEnabledAbOwner(I);
+    if AOwner <> nil then Inc(Result, AOwner.GetAbDamage(I));
+  end;
+  Result := FHeroItems.GetDamage + (FUnitDamage + Result + FHeroResource.FDamage);
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
 function THero.GetInherentResistance: Shortint;
-begin end;
+begin Result := FHeroResource.FResistance + FUnitResistance; end;
 
 function THero.GetResistance: Shortint;
-begin end;
+var AOwner: TAbilityOwner; I, Count: Integer;
+begin
+  Count := GetAbilityCount;
+  Result := 0;
+  { Original includes the ability-count index in the scan. }
+  for I := 0 to Count do
+  begin
+    AOwner := GetSuperlativeEnabledAbOwner(I);
+    if AOwner <> nil then Inc(Result, AOwner.GetAbResistance(I));
+  end;
+  Result := FHeroItems.GetResistance + (FUnitResistance + Result + FHeroResource.FResistance) + P2MoraleResistance[GetMorale];
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 10 then Result := 10;
+end;
 
 function THero.GetHits: Shortint;
-begin end;
+begin
+  Result := FHeroResource.FHits + FUnitHits;
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 30 then Result := 30;
+end;
 
 function THero.GetMoves: Shortint;
-begin end;
+begin
+  Result := FHeroResource.FMoves + FUnitMoves;
+  if Smallint(Result) < 1 then Result := 1;
+  if Smallint(Result) > 50 then Result := 50;
+end;
 
 function THero.GetPowerGeneration: Integer;
-begin end;
+begin
+  if GetAbilityEnabled(52) then Result := GetAbilityLevel(52) * 5
+  else Result := 0;
+end;
 
-function THero.GetCastingPointsMax: Byte;
-begin end;
+function THero.GetCastingPointsMax: Shortint;
+begin
+  if GetAbilityEnabled(52) then Result := GetAbilityLevel(52) * 10
+  else Result := 0;
+end;
 
-function THero.GetCastingPoints: Byte;
-begin end;
+function THero.GetCastingPoints: Shortint;
+begin Result := FCastingPoints; end;
 
-procedure THero.SetCastingPoints(A1: Integer);
-begin end;
+procedure THero.SetCastingPoints(Value: Shortint);
+begin
+  if Value > GetCastingPointsMax then Value := GetCastingPointsMax;
+  FCastingPoints := Value;
+  Changed;
+end;
 
 function THero.GetPreviewImage: TLibraryImage;
-begin end;
+begin
+  if FHeroResource <> nil then Result := FHeroResource.GetPreviewImage
+  else Result := nil;
+end;
 
 procedure THero.ResetSkillPoints;
-begin end;
+begin
+  AssignAb(FHeroResource.FAbilities);
+  FUnitAttack := 0;
+  FUnitDefense := 0;
+  FUnitDamage := 0;
+  FUnitHits := 0;
+  FUnitMoves := 0;
+  FUnitResistance := 0;
+end;
 
 procedure THero.ResetResourceSettings;
-begin end;
+begin
+  AssignAb(FHeroResource.FAbilities);
+  FUnitAttack := 0;
+  FUnitDefense := 0;
+  FUnitDamage := 0;
+  FUnitHits := 0;
+  FUnitMoves := 0;
+  FUnitResistance := 0;
+  FExperience := 0;
+  FRace := FHeroResource.FRace;
+  if (AoWHSMap <> nil) and (msEditting in AoWHSMap.Status) then FFaceIndex := FHeroResource.FFaceIndex;
+  Changed;
+end;
 
 procedure THero.UpdateSettings;
-begin end;
+begin
+  FMovePoints := GetMoves;
+  FHitPoints := GetHits;
+  FCastingPoints := GetCastingPointsMax;
+  FLevel := ExperienceToLevel(FExperience);
+  Changed;
+end;
 
-procedure THero.SetRace(A1: Byte; A2: Integer);
-begin end;
+procedure THero.SetRace(Value: Shortint);
+var Found: Boolean; Index: Integer; Resource: THeroResource;
+begin
+  if FRace <> Value then
+  begin
+    Found := False;
+    Index := AoWHSSet.FHeroResources.GetCount;
+    while not Found and (Index <> 0) do
+    begin
+      Dec(Index);
+      Resource := AoWHSSet.FHeroResources.GetHeroResource(Index);
+      Found := (Resource <> nil) and (Resource.FRace = Value) and (GetHeroType = Resource.FHeroType);
+    end;
+    if Found then SetHeroResourceIndex(Index);
+  end;
+end;
 
 function THero.GetFace: TLibraryImage;
-begin end;
+var Resource: TFaceResource; Index: Integer;
+begin
+  if not GetAbilityEnabled(126) then
+  begin
+    Resource := AoWHSSet.FFaceResources.GetFaceResource(FFaceIndex);
+    if Resource <> nil then Result := Resource.GetCellImage
+    else Result := nil;
+  end
+  else
+  begin
+    Index := TCosmeticSurgeryEnchantment(TUnitEnchantmentAbilityData(GetAbilityData(126)).FEnchantment).FFaceIndex;
+    Result := AoWHSSet.FFaceResources.GetFaceResource(Index).GetCellImage;
+  end;
+end;
 
-procedure THero.SetFaceIndex(A1: Integer);
-begin end;
+procedure THero.SetFaceIndex(Value: Integer);
+begin FFaceIndex := Value; end;
 
-procedure THero.SetHeroResourceIndex(A1: Integer);
-begin end;
+procedure THero.SetHeroResourceIndex(Value: Integer);
+begin
+  if (AoWHSSet.FHeroResources.GetHeroResource(Value) <> nil) and (Value <> FHeroResourceIndex) then
+  begin
+    FHeroResourceIndex := Value;
+    FHeroResource := AoWHSSet.FHeroResources.GetHeroResource(Value);
+    ResetResourceSettings;
+  end;
+end;
 
 procedure THero.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var Player: Shortint; OldExperience: Integer;
+begin
+  Player := FPlayer;
+  Stream.rwInteger(FHeroResourceIndex, 8);
+  if Stream.StorageMode * [smRead, smTextOnly, smSetupCompare, smCompare] = [smRead] then LinkToResource;
+  inherited ReadWrite(Stream);
+  if (Stream.StorageMode * [smRead, smTextOnly, smSetupCompare, smCompare] = [smRead]) and
+    (hmUpdatingFromLibrary in FMode) then FPlayer := Player;
+  Stream.rwInteger(FFaceIndex, 7);
+  if Stream.StorageMode * [smRead, smTextOnly, smSetupCompare, smCompare] = [smRead] then
+    Stream.rwInteger(OldExperience, 9)
+  else OldExperience := 0;
+  Stream.rwString(FHeroName, 10);
+  Stream.rwString(FNickname, 11);
+  Stream.rwByte(Byte(FRace), 12);
+  Stream.rwByte(Byte(FCastingPoints), 13);
+  Stream.rwInteger(FCastingSpellID, 14);
+  Stream.rwData(FGender, 1, 15);
+  Stream.rwByte(Byte(FUnitAttack), 16);
+  Stream.rwByte(Byte(FUnitDefense), 17);
+  Stream.rwByte(Byte(FUnitDamage), 18);
+  Stream.rwByte(Byte(FUnitHits), 19);
+  Stream.rwByte(Byte(FUnitMoves), 20);
+  Stream.rwByte(Byte(FUnitResistance), 21);
+  Stream.rwByte(FLevel, 22);
+  Stream.rwBool(FUpgradePending, 23);
+  Stream.rwInteger(FExperience, 24);
+  Stream.rwData(FHeroStatus, 1, 25);
+  Stream.rwInteger(FDeathDay, 26);
+  Stream.rwByte(Byte(FDeathPlayer), 27);
+  if (Stream.StorageMode * [smRead, smTextOnly, smCompare] = [smRead]) and (FExperience = 0) then
+    FExperience := LevelToExperience((OldExperience shr 5) + 1);
+  Stream.rwByte(Byte(FMovePoints), 29);
+  Stream.rwByte(Byte(FHitPoints), 30);
+  Stream.rwInteger(FCastingMana, 31);
+  Stream.rwBool(FCastSpellInstantly, 33);
+  Stream.rwInteger(FCastingProgress, 34);
+  Stream.rwIntegerEx(FLibraryID, -1, 35);
+  if not (hmUpdatingFromLibrary in FMode) then
+  begin
+    Stream.rwEObject(FInventory, 36);
+    Stream.rwEObject(FHeroItems, 37);
+  end;
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FLibraryName, 38);
+  Stream.rwInteger(FUsedSkillPoints, 39);
+  if Stream.StorageMode * [smRead, smTextOnly, smSetupCompare, smCompare] = [smRead] then Loaded;
+end;
 
-procedure THero.EditDropMsg(A1: Integer);
-begin end;
+procedure THero.EditDropMsg(var Msg: TEMsg);
+var Level: TMapLevel; L, X, Y, Player: Integer; Placed: Boolean;
+begin
+  Level := TMapLevel(Msg.Param[0]);
+  L := Msg.Data[1];
+  HPtoHX(Msg.Value, Msg.Data[0], X, Y);
+  if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
+  begin
+    if msEditting in AoWHSMap.Status then
+    begin
+      Player := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetPlayer;
+      if Player = -1 then Player := AoWHSMap.FEditorPlayer;
+    end
+    else Player := -1;
+    Placed := Place(X, Y, L, Player, []) <> nil;
+  end
+  else Placed := False;
+  if Placed then Msg.Result := 0 else Msg.Result := -1;
+end;
 
 procedure THero.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020005 then
+  begin
+    if (AoWHSMap.FPlayers.GetCount <= FPlayer) and (Owner = nil) then
+    begin
+      SetPlayer(-1);
+      Exit;
+    end;
+  end
+  else if Msg.MsgID = $10005 then EditDropMsg(Msg);
+end;
 
-procedure THero.CreateHeroUpdateTE;
-begin end;
+function THero.CreateHeroUpdateTE: THeroUpdateTE;
+begin
+  Result := THeroUpdateTE.Create(nil);
+  Result.FUnitID := FUnitID;
+end;
 
-procedure THero.GetItemsOnGround;
-begin end;
+function THero.GetItemsOnGround: TItemList;
+var Map: TAbstractAoWCombatMap;
+begin
+  Map := AoWHSMap.FCombatMap;
+  if Map <> nil then Result := Map.GetHeroItemsOnGround(Self)
+  else Result := AoWHSMap.GetHeroItemsOnGround(Self);
+end;
 
-procedure THero.CanUseItem(A1: Integer; A2: Integer);
-begin end;
+function THero.CanUseItem(ItemID: Integer; var Reason: string): Boolean;
+var Item: TItem;
+begin
+  Item := AoWHSMap.FItemControl.FindItem(ItemID);
+  if Item <> nil then Result := Item.CanUse(Self, Reason)
+  else
+  begin
+    Result := False;
+    Reason := '';
+  end;
+end;
 
-procedure THero.UseItem;
-begin end;
+function THero.UseItem(ItemID: Integer): Boolean;
+var Item: TItem;
+begin
+  Item := AoWHSMap.FItemControl.FindItem(ItemID);
+  if Item <> nil then Result := Item.Use(Self)
+  else Result := False;
+end;
 
-procedure THero.CanPlaceItem(A1: Integer; A2: Byte);
-begin end;
+function THero.CanPlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+var Item: TItem; IX, IY, IL, X, Y, L: Shortint;
+begin
+  Result := False;
+  Item := AoWHSMap.FItemControl.FindItem(ItemID);
+  if Item <> nil then
+  begin
+    GetLocation(X, Y, L);
+    Item.GetLocation(IX, IY, IL);
+    if (AoWHSMap.FCombatMap <> nil) or ((X = IX) and (Y = IY) and (L = IL)) then
+      if Position in [ipAttackSlot..ipRightRingSlot] then Result := FHeroItems.CanPlaceItem(Item, Position)
+      else if Position in [ipInventorySlot1..ipInventorySlot8] then Result := FInventory.GetSlot(Position) = nil
+      else Result := True;
+  end;
+end;
 
-procedure THero.CanSwapItem(A1: Integer; A2: Integer);
-begin end;
+function THero.CanSwapItem(ItemID1, ItemID2: Integer): Boolean;
+var Item1, Item2: TItem;
+begin
+  Result := True;
+  Item1 := AoWHSMap.FItemControl.FindItem(ItemID1);
+  Item2 := AoWHSMap.FItemControl.FindItem(ItemID2);
+  if (Item1 <> nil) and (Item2 <> nil) and (Item1 <> Item2) then
+  begin
+    if (FHeroItems = Item1.Owner) or (FHeroItems = Item2.Owner) then
+      Result := Item1.FItemType = Item2.FItemType;
+  end
+  else Result := False;
+end;
 
-procedure THero.SwapItem(A1: Integer; A2: Integer);
-begin end;
+function THero.SwapItem(ItemID1, ItemID2: Integer): Boolean;
+var TE: THeroUpdateTE;
+begin
+  if CanSwapItem(ItemID1, ItemID2) and not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy then
+  begin
+    TE := CreateHeroUpdateTE;
+    TE.FMode := hmSwapItem;
+    TE.FItemID := ItemID1;
+    TE.FParameter := ItemID2;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer).AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure THero.PlaceItem(A1: Integer; A2: Integer);
-begin end;
+function THero.PlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+var TE: THeroUpdateTE;
+begin
+  if CanPlaceItem(ItemID, Position) and not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy then
+  begin
+    TE := CreateHeroUpdateTE;
+    TE.FMode := hmPlaceItem;
+    TE.FItemID := ItemID;
+    TE.FParameter := Ord(Position);
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer).AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure THero.ExecuteSwapItem(A1: Integer; A2: Integer);
-begin end;
+function THero.ExecuteSwapItem(ItemID1, ItemID2: Integer): Boolean;
+var Item1, Item2: TItem; Owner1, Owner2: TItemList; Index1, Index2: Integer;
+begin
+  if CanSwapItem(ItemID1, ItemID2) then
+  begin
+    Item1 := AoWHSMap.FItemControl.FindItem(ItemID1);
+    Item2 := AoWHSMap.FItemControl.FindItem(ItemID2);
+    Owner1 := TItemList(Item1.Owner);
+    Owner2 := TItemList(Item2.Owner);
+    Owner1.BeginUpdate;
+    Owner2.BeginUpdate;
+    Index1 := Item1.Owner.FindChildIndex(Item1);
+    Index2 := Item2.Owner.FindChildIndex(Item2);
+    Item1.SetOwner(nil);
+    Item2.SetOwner(nil);
+    if csArrayMode in Owner1.GetControlStyle then Item2.SetArrayOwner(Owner1, Index1)
+    else Item2.SetOwner(Owner1);
+    if csArrayMode in Owner2.GetControlStyle then Item1.SetArrayOwner(Owner2, Index2)
+    else Item1.SetOwner(Owner2);
+    Owner2.EndUpdate;
+    Owner1.EndUpdate;
+    Changed;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function THero.AutoPlaceItem(Item: TItem): Boolean;
-begin Result := False; end;
+var Position: THeroItemPosition; Slot: Integer;
+begin
+  Result := False;
+  Position := FHeroItems.GetItemTypePosition(Item.FItemType);
+  if FHeroItems.CanPlaceItem(Item, Position) then
+  begin
+    FHeroItems.PlaceItem(Item, Position);
+    Result := True;
+  end
+  else
+  begin
+    Slot := FInventory.GetFreeSlot;
+    if Slot <> -1 then
+    begin
+      Item.SetArrayOwner(FInventory, Slot);
+      Result := True;
+    end;
+  end;
+end;
 
-procedure THero.ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition);
-begin end;
+function THero.ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+var Item: TItem; Map: TAbstractAoWCombatMap;
+begin
+  if CanPlaceItem(ItemID, Position) then
+  begin
+    Item := AoWHSMap.FItemControl.FindItem(ItemID);
+    case Position of
+      ipGround:
+        begin
+          Map := AoWHSMap.FCombatMap;
+          if Map <> nil then Map.DropHeroItem(Self, Item)
+          else AoWHSMap.DropHeroItem(Self, Item);
+          Changed;
+        end;
+      ipAttackSlot..ipRightRingSlot:
+        begin FHeroItems.PlaceItem(Item, Position); Changed; end;
+      ipInventorySlot1..ipInventorySlot8:
+        begin Item.SetArrayOwner(FInventory, Ord(Position) - 6); Changed; end;
+    end;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure THero.ExecuteStartCasting(A1: Integer);
-begin end;
+function THero.ExecuteStartCasting(SpellID: Integer): Boolean;
+var Spell: TSpell;
+begin
+  if FCastingSpellID <> 0 then ExecuteCancelCasting;
+  Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+  if (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana >= CastingMana(Spell)) and
+    (CastingMana(Spell) > FCastingPoints) then
+  begin
+    FCastingProgress := CastingMana(Spell);
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.SetMana(
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana - FCastingProgress);
+    FCastingMana := FCastingPoints;
+    FCastingPoints := 0;
+    if AoWHSMap.FSeatedPlayer = FPlayer then
+      AoWHSMap.ShowMessage(Format(TranslateRStr(CastingXInProgressRStr), [Spell.FSpellName]));
+    FCastingSpellID := SpellID;
+    Changed;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure THero.RemoveCastingReadyEventLog;
-begin end;
+var Logbook: TEventLogbook; I: Integer;
+begin
+  Logbook := AoWHSMap.FPlayers.GetPlayers(FPlayer).FEventLogbook;
+  for I := Logbook.GetCount - 1 downto 0 do
+    if (Logbook.GetLogs(I) is TSpellCastEventLog) and
+      (TSpellCastEventLog(Logbook.GetLogs(I)).FUnitID = FUnitID) then Logbook.GetLogs(I).SetOwner(nil);
+end;
 
-procedure THero.ExecuteCancelCasting;
-begin end;
+function THero.ExecuteCancelCasting: Boolean;
+begin
+  if FCastingSpellID <> 0 then
+  begin
+    RemoveCastingReadyEventLog;
+    if GetCastingPointsMax < FCastingPoints + FCastingMana then FCastingPoints := GetCastingPointsMax
+    else Inc(FCastingPoints, FCastingMana);
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.SetMana(
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana + FCastingProgress);
+    FCastingSpellID := 0;
+    FCastingMana := 0;
+    FCastingProgress := 0;
+    Changed;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure THero.CastingDone(A1: Integer; A2: Integer);
-begin end;
+procedure THero.CastingDone(SpellID, Mana: Integer);
+begin
+  if SpellID = FCastingSpellID then
+  begin
+    Assert(CastingReady);
+    FCastingMana := 0;
+    FCastingProgress := 0;
+    FCastingSpellID := 0;
+    RemoveCastingReadyEventLog;
+  end
+  else
+  begin
+    if FCastingSpellID <> 0 then ExecuteCancelCasting;
+    if not AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.SetMana(
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana - Mana);
+      Dec(FCastingPoints, Mana);
+    end;
+  end;
+end;
 
-procedure THero.CastingMana(A1: Integer);
-begin end;
+function THero.CastingMana(Spell: TSpell): Integer;
+begin
+  Result := Spell.FBaseManaCost;
+  if AoWHSMap.FGlobalMagicControl.GetSphereManaDoubled(Spell.FMagicSphere) then Result := Result * 2;
+end;
 
-procedure THero.CastingTurns;
-begin end;
+function THero.CastingTurns(Spell: TSpell): Integer;
+var Mana, Points: Integer;
+begin
+  Mana := CastingMana(Spell);
+  Points := FCastingPoints + FCastingMana;
+  if Points > GetCastingPointsMax then Points := GetCastingPointsMax;
+  if Mana > Points then
+  begin
+    Result := (Mana - Points) div GetCastingPointsMax;
+    if (Mana - Points) mod GetCastingPointsMax <> 0 then Inc(Result);
+  end
+  else Result := 0;
+end;
 
-procedure THero.Casting;
-begin end;
+function THero.Casting: Boolean;
+begin Result := FCastingSpellID <> 0; end;
 
-procedure THero.CastingReady;
-begin end;
+function THero.CastingReady: Boolean;
+begin Result := (FCastingSpellID <> 0) and (FCastingMana = FCastingProgress); end;
 
-procedure THero.CastingTurnsLeft;
-begin end;
+function THero.CastingTurnsLeft: Integer;
+begin
+  if (FCastingSpellID <> 0) and (GetCastingPointsMax <> 0) then
+    if FCastingProgress > FCastingMana then
+    begin
+      Result := (FCastingProgress - FCastingMana) div GetCastingPointsMax;
+      if (FCastingProgress - FCastingMana) mod GetCastingPointsMax <> 0 then Inc(Result);
+    end
+    else Result := 0
+  else Result := -1;
+end;
 
-function THero.CanCastSpellInstantly(A1, A2: Integer; var A3: string): Boolean;
-begin Result := False; end;
+function THero.CanCastSpellInstantly(SpellID, Mana: Integer; var Reason: string): Boolean;
+begin
+  if not AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+    if (Mana <= FCastingPoints) or ((SpellID = FCastingSpellID) and Casting and CastingReady) then
+      Result := CanCastSpell(SpellID, Reason)
+    else
+    begin
+      Result := False;
+      Reason := TranslateRStr(P2NotEnoughCastingPointsRStr);
+    end
+  else Result := True;
+end;
 
-function THero.CanCastSpell(A1: Integer; var A2: string): Boolean;
-begin Result := False; end;
+function THero.CanCastSpell(SpellID: Integer; var Reason: string): Boolean;
+var Spell: TSpell;
+begin
+  if FCastingSpellID = 0 then
+  begin
+    Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+    if (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana >= CastingMana(Spell)) or
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+      Result := Spell.CanActivate(Self, Reason)
+    else
+    begin
+      Result := False;
+      Reason := TranslateRStr(NotEnoughManaRStr);
+    end;
+  end
+  else
+  begin
+    Result := SpellID = FCastingSpellID;
+    if Result and (AoWHSSet.FSpellControl.GetSpell(SpellID).FSpellType = stGlobal) and
+      (AoWHSMap.FCombatMap <> nil) then
+    begin
+      Reason := TranslateRStr(CannotCastSpellInCombatRStr);
+      Result := False;
+    end;
+  end;
+end;
 
-procedure THero.CastSpell(A1: Integer; A2: Integer);
-begin end;
+function THero.CastSpell(SpellID: Integer; var Reason: string): Boolean;
+var Spell: TSpell; TE: THeroUpdateTE;
+begin
+  if CanCastSpell(SpellID, Reason) then
+  begin
+    if FCastingSpellID = 0 then
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+      if (CastingMana(Spell) <= FCastingPoints) or
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+      begin
+        Result := Spell.CanActivate(Self, Reason);
+        if Result then Result := Spell.Activate(Self);
+      end
+      else if not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy then
+      begin
+        if AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana >= CastingMana(Spell) then
+        begin
+          TE := CreateHeroUpdateTE;
+          TE.FMode := hmStartCasting;
+          TE.FItemID := SpellID;
+          AoWHSMap.FTokenManager.GetTokenControl(FPlayer).AddEvent(TE);
+          TE.Release;
+          Result := True;
+        end
+        else
+        begin
+          Result := False;
+          Reason := TranslateRStr(NotEnoughManaRStr);
+        end;
+      end
+      else Result := False;
+    end
+    else if CastingReady then
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+      Result := Spell.CanActivate(Self, Reason);
+      if Result then Result := Spell.Activate(Self);
+    end
+    else Result := True;
+  end
+  else Result := False;
+end;
 
-procedure THero.CanCastCombatSpell(A1: Integer; A2: Integer);
-begin end;
+function THero.CanCastCombatSpell(SpellID: Integer; var Reason: string): Boolean;
+var Spell: TSpell;
+begin
+  if FCastingSpellID = 0 then
+  begin
+    Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+    if (CastingMana(Spell) <= FCastingPoints) or
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+    begin
+      if (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FMana >= CastingMana(Spell)) or
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+        Result := Spell.CanActivateCombat(Self, Reason)
+      else
+      begin
+        Result := False;
+        Reason := TranslateRStr(NotEnoughManaRStr);
+      end;
+    end
+    else
+    begin
+      Result := False;
+      Reason := TranslateRStr(NotEnoughChannelingPointsRStr);
+    end;
+  end
+  else
+  begin
+    Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+    Result := (Spell.FSpellType in [stCombat, stUnit]) and
+      CanCastSpellInstantly(SpellID, CastingMana(Spell), Reason);
+  end;
+end;
 
-procedure THero.CastCombatSpell(A1: Integer; A2: Integer);
-begin end;
+function THero.CastCombatSpell(SpellID: Integer; var Reason: string): Boolean;
+var Spell: TSpell;
+begin
+  Spell := AoWHSSet.FSpellControl.GetSpell(SpellID);
+  if CanCastCombatSpell(SpellID, Reason) then
+  begin
+    Result := Spell.CanActivateCombat(Self, Reason);
+    if Result then Result := Spell.ActivateCombat(Self);
+  end
+  else Result := False;
+end;
 
-procedure THero.CancelCasting;
-begin end;
+function THero.CancelCasting: Boolean;
+var TE: THeroUpdateTE;
+begin
+  { Original tests -1 although zero is the idle spell ID. }
+  if (FCastingSpellID <> -1) and not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy then
+  begin
+    TE := CreateHeroUpdateTE;
+    TE.FMode := hmCancelCasting;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer).AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure THeroUpdateTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -5849,7 +6556,7 @@ begin end;
 function TLeader.GetEngine: Engine.TEngine;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TLeader.SetHeroResourceIndex(A1: Integer);
+procedure TLeader.SetHeroResourceIndex(Value: Integer);
 begin end;
 
 procedure TLeader.SetPlayer(Player: Shortint);
@@ -5867,7 +6574,7 @@ begin end;
 procedure TLeader.Deactivate;
 begin end;
 
-procedure TLeader.EditDropMsg(A1: Integer);
+procedure TLeader.EditDropMsg(var Msg: TEMsg);
 begin end;
 
 function TLeader.CanDisband(var Reason: string): Boolean;
@@ -6555,16 +7262,16 @@ begin end;
 procedure TItem.ExecuteUse(A1: Integer);
 begin end;
 
-procedure TItem.CanUse(A1: Integer; A2: Integer);
-begin end;
+function TItem.CanUse(Hero: THero; var Reason: string): Boolean;
+begin Result := False; end;
 
-procedure TItem.Use(A1: Integer);
-begin end;
+function TItem.Use(Hero: THero): Boolean;
+begin Result := False; end;
 
 procedure TItem.SetArrayOwner(AOwner: Engine.TECustomNode; Index: Integer);
 begin end;
 
-procedure TItem.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TItem.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 procedure TItem.Activate;
@@ -6687,8 +7394,8 @@ begin end;
 procedure TItemControl.GetCount;
 begin end;
 
-procedure TItemControl.FindItem(A1: Integer);
-begin end;
+function TItemControl.FindItem(ItemID: Integer): TItem;
+begin Result := nil; end;
 
 procedure TItemControl.ItemChanged;
 begin end;

@@ -914,8 +914,8 @@
     procedure GetEnabled; virtual;  { +064 draft }
     function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; virtual;  { +068 }
     function Activate(A1: TAbstractUnit): Boolean; virtual;  { +06C }
-    procedure CanActivateCombat(A1: Integer; A2: Integer); virtual;  { +070 draft }
-    procedure ActivateCombat(A1: Integer); virtual;  { +074 draft }
+    function CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean; virtual; { $070 }
+    function ActivateCombat(A1: TAbstractUnit): Boolean; virtual; { $074 }
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); virtual;  { +078 draft }
     procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); virtual; { +07C }
     procedure GetCombatDamageValue(A1: Integer; A2: Integer); virtual;  { +080 draft }
@@ -1011,8 +1011,8 @@
   { TSpellCastEventLog (instance size 32, VMT 55723220) }
   TSpellCastEventLog = class(TEventLog)
   public
-    F_SpellCastEventLog_18: Integer;
-    F_SpellCastEventLog_1C: Integer;
+    FUnitID: Integer; { $18 }
+    FSpellID: Integer; { $1C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
@@ -1081,7 +1081,7 @@
     procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
     function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
-    procedure CanActivateCombat(A1: Integer; A2: Integer); override;
+    function CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean; override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
     procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; virtual;  { +09C }

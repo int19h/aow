@@ -4305,14 +4305,14 @@ asm
   POP EBX
 end;
 
-procedure TSpell.CanActivateCombat(A1: Integer; A2: Integer);
+function TSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
 asm
   MOV EAX, [AoWHSMap]
   CMP DWORD PTR [EAX + $120], 0
   SETNE AL
 end;
 
-procedure TSpell.ActivateCombat(A1: Integer);
+function TSpell.ActivateCombat(A1: TAbstractUnit): Boolean;
 { AL is the Boolean result; EDX is a combat object. }
 asm
   PUSH EBP
@@ -5501,8 +5501,8 @@ begin end;
 function TUnitSpell.Activate(A1: TAbstractUnit): Boolean;
 begin Result := False; end;
 
-procedure TUnitSpell.CanActivateCombat(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure TUnitSpell.CreateCA(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -5921,8 +5921,8 @@ begin end;
 procedure TGlobalMagicControl.DecDoubleSphereManaCount(A1: Integer);
 begin end;
 
-procedure TGlobalMagicControl.GetSphereManaDoubled(A1: Integer);
-begin end;
+function TGlobalMagicControl.GetSphereManaDoubled(A1: TMagicSphere): Boolean;
+begin Result := False; end;
 
 procedure TGlobalMagicControl.OutOfMana(A1: Byte; A2: Integer);
 begin end;

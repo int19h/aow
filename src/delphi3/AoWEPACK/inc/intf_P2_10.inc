@@ -91,6 +91,10 @@ var
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
 
 resourcestring
+  CastingXInProgressRStr = 'Casting %s...'; { $55707454 }
+  P2NotEnoughCastingPointsRStr = 'Not enough channeling points'; { $557075E4 }
+  CannotCastSpellInCombatRStr = 'Cannot cast spell in combat'; { $5570826C }
+  NotEnoughChannelingPointsRStr = 'Not enough channeling points'; { $55708324 }
   NoUnitSelectedRStr = 'No unit selected'; { $55707A6C }
   NotEnoughGoldRStr = 'Not enough gold.'; { $5570719C }
   NotEnoughManaRStr = 'Not enough mana.';

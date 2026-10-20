@@ -31,8 +31,8 @@
   { THero (instance size 156, VMT 55711FEC): +54 FUpgradePending;
     +40 FHeroResource; +44 FHeroResourceIndex; +48 FExperience; +50 FUsedSkillPoints;
     +58 FDeathDay; +5C FDeathPlayer; +4C FLevel; +55 FHeroStatus; +60 FHeroName;
-    +64 FNickname; +68 FRace; +69 FGender; +6A..6F unit statistics; +79 FMovePoints; +7A FHitPoints; +7C FPowerSource;
-    +88 FCastingMana; +8C FCastingProgress; +90 FLibraryID; +94 FLibraryName; +98 FRegistered. }
+    +64 FNickname; +68 FRace; +69 FGender; +6A..6F unit statistics; +78 FCastSpellInstantly; +79 FMovePoints; +7A FHitPoints; +7C FPowerSource;
+    +80 FCastingPoints; +88 FCastingMana; +8C FCastingProgress; +90 FLibraryID; +94 FLibraryName; +98 FRegistered. }
   THero = class(TAbstractUnit)
   public
     FFaceIndex: Integer; { $3C }
@@ -61,12 +61,12 @@
     FUnitResistance: Shortint;  { $6F }
     FHeroItems: THeroItems; { $70 }
     FInventory: THeroInventory; { $74 }
-    F_Hero_78: Byte;
+    FCastSpellInstantly: Boolean; { $78 }
     FMovePoints: Shortint;  { $79 }
     FHitPoints: Shortint;  { $7A }
     F_Hero_7B: array[0..0] of Byte;
     FPowerSource: THeroPowerSource; { $7C }
-    F_Hero_80: Byte;
+    FCastingPoints: Shortint; { $80 }
     F_Hero_81: array[0..2] of Byte;
     FCastingSpellID: Integer; { $84 }
     FCastingMana: Integer;  { $88 }
@@ -114,9 +114,9 @@
     function GetUnitType: TUnitType; override;
     function GetUnitGFXResourceIndex: Integer; override;
     function GetCampaignTransferPoints: Integer; override;
-    function GetCastingPointsMax: Byte; override;
-    function GetCastingPoints: Byte; override;
-    procedure SetCastingPoints(A1: Integer); override;
+    function GetCastingPointsMax: Shortint; override;
+    function GetCastingPoints: Shortint; override;
+    procedure SetCastingPoints(Value: Shortint); override;
     function GetPowerGeneration: Integer; override;
     procedure NewDay; override;
     procedure NewTurn(Player: Shortint); override;
@@ -143,8 +143,8 @@
     procedure Animate; override;
     function GetNickname: string; virtual; { $1B8 }
     procedure SetNickname(Value: string); virtual; { $1BC }
-    procedure SetHeroResourceIndex(A1: Integer); virtual;  { +1C0 draft }
-    procedure EditDropMsg(A1: Integer); virtual;  { +1C4 draft }
+    procedure SetHeroResourceIndex(Value: Integer); virtual;  { $1C0 }
+    procedure EditDropMsg(var Msg: TEMsg); virtual;  { $1C4 }
     function GetLibraryName: string;
     procedure UpdateFromLibraryBegin;
     procedure UpdateFromLibraryEnd;
@@ -171,42 +171,42 @@
     procedure LinkToResource;
     procedure Loaded;
     procedure ListSpells(var List: TSpellList);
-    procedure ExecuteUpgradeHeroAI;  { draft }
-    procedure ValidateHeroUpgrade(A1: Integer; A2: Integer);  { draft }
-    procedure GetUnitAbilityEnabled;  { draft }
-    procedure GetSuperlativeEnabledAbOwner(A1: Integer; A2: Integer);  { draft }
-    procedure GetSuperlativeAbOwner(A1: Integer; A2: Integer);  { draft }
-    procedure ResetSkillPoints;  { draft }
-    procedure ResetResourceSettings;  { draft }
-    procedure UpdateSettings;  { draft }
-    procedure SetRace(A1: Byte; A2: Integer);  { draft }
-    procedure SetFaceIndex(A1: Integer);  { draft }
-    procedure CreateHeroUpdateTE;  { draft }
-    procedure GetItemsOnGround;  { draft }
-    procedure CanUseItem(A1: Integer; A2: Integer);  { draft }
-    procedure UseItem;  { draft }
-    procedure CanPlaceItem(A1: Integer; A2: Byte);  { draft }
-    procedure CanSwapItem(A1: Integer; A2: Integer);  { draft }
-    procedure SwapItem(A1: Integer; A2: Integer);  { draft }
-    procedure PlaceItem(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteSwapItem(A1: Integer; A2: Integer);  { draft }
+    procedure ExecuteUpgradeHeroAI;
+    procedure ValidateHeroUpgrade;
+    function GetUnitAbilityEnabled(AbilityID: Integer): Boolean;
+    function GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+    function GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+    procedure ResetSkillPoints;
+    procedure ResetResourceSettings;
+    procedure UpdateSettings;
+    procedure SetRace(Value: Shortint);
+    procedure SetFaceIndex(Value: Integer);
+    function CreateHeroUpdateTE: THeroUpdateTE;
+    function GetItemsOnGround: TItemList;
+    function CanUseItem(ItemID: Integer; var Reason: string): Boolean;
+    function UseItem(ItemID: Integer): Boolean;
+    function CanPlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+    function CanSwapItem(ItemID1, ItemID2: Integer): Boolean;
+    function SwapItem(ItemID1, ItemID2: Integer): Boolean;
+    function PlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+    function ExecuteSwapItem(ItemID1, ItemID2: Integer): Boolean;
     function AutoPlaceItem(Item: TItem): Boolean;
-    procedure ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition);
-    procedure ExecuteStartCasting(A1: Integer);  { draft }
-    procedure RemoveCastingReadyEventLog;  { draft }
-    procedure ExecuteCancelCasting;  { draft }
-    procedure CastingDone(A1: Integer; A2: Integer);  { draft }
-    procedure CastingMana(A1: Integer);  { draft }
-    procedure CastingTurns;  { draft }
-    procedure Casting;  { draft }
-    procedure CastingReady;  { draft }
-    procedure CastingTurnsLeft;  { draft }
-    function CanCastSpellInstantly(A1, A2: Integer; var A3: string): Boolean;
-    function CanCastSpell(A1: Integer; var A2: string): Boolean;
-    procedure CastSpell(A1: Integer; A2: Integer);  { draft }
-    procedure CanCastCombatSpell(A1: Integer; A2: Integer);  { draft }
-    procedure CastCombatSpell(A1: Integer; A2: Integer);  { draft }
-    procedure CancelCasting;  { draft }
+    function ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition): Boolean;
+    function ExecuteStartCasting(SpellID: Integer): Boolean;
+    procedure RemoveCastingReadyEventLog;
+    function ExecuteCancelCasting: Boolean;
+    procedure CastingDone(SpellID, Mana: Integer);
+    function CastingMana(Spell: TSpell): Integer;
+    function CastingTurns(Spell: TSpell): Integer;
+    function Casting: Boolean;
+    function CastingReady: Boolean;
+    function CastingTurnsLeft: Integer;
+    function CanCastSpellInstantly(SpellID, Mana: Integer; var Reason: string): Boolean;
+    function CanCastSpell(SpellID: Integer; var Reason: string): Boolean;
+    function CastSpell(SpellID: Integer; var Reason: string): Boolean;
+    function CanCastCombatSpell(SpellID: Integer; var Reason: string): Boolean;
+    function CastCombatSpell(SpellID: Integer; var Reason: string): Boolean;
+    function CancelCasting: Boolean;
   end;
 
   { TLeader (instance size 164, VMT 55712238) }
@@ -233,8 +233,8 @@
     procedure Killed; override;
     function GetNickname: string; override;
     procedure SetNickname(Value: string); override;
-    procedure SetHeroResourceIndex(A1: Integer); override;
-    procedure EditDropMsg(A1: Integer); override;
+    procedure SetHeroResourceIndex(Value: Integer); override;
+    procedure EditDropMsg(var Msg: TEMsg); override;
     function GetSpherePicks(Sphere: TMagicSphere): Byte;
     procedure GetSpheres(A1: Integer);  { draft }
     function GetSphereCount: Integer;
@@ -319,7 +319,7 @@
   end;
 
   { THeroResource (instance size 52, VMT 55712854): +20 FRace; +21 FHeroType;
-    +22 FAlignment; +24..29 base statistics; +2C FAbilities. }
+    +22 FAlignment; +24..29 base statistics; +2C FAbilities; +30 FFaceIndex. }
   THeroResource = class(TAbstractUnitResource)
   public
     F_HeroResource_1C: Integer;
@@ -335,7 +335,7 @@
     FResistance: Shortint;  { $29 }
     F_HeroResource_2A: array[0..1] of Byte;
     FAbilities: TAbilityOwner;  { $2C }
-    F_HeroResource_30: Integer;
+    FFaceIndex: Integer; { $30 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

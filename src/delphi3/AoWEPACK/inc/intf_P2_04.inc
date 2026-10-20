@@ -80,13 +80,13 @@
     function GetOwnerName: string; override;
     function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
-    procedure CanUse(A1: Integer; A2: Integer); virtual;  { +09C draft }
-    procedure Use(A1: Integer); virtual;  { +0A0 draft }
+    function CanUse(Hero: THero; var Reason: string): Boolean; virtual; { $09C }
+    function Use(Hero: THero): Boolean; virtual; { $0A0 }
     procedure ExecuteUse(A1: Integer); virtual;  { +0A4 draft }
     procedure Show(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A8 draft }
     procedure Activate; virtual;  { +0AC draft }
     procedure Deactivate; virtual;  { +0B0 draft }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure GetLocation(var X, Y, L: Shortint);
     function GetCampaignTransferPoints: Integer;
     procedure GetImage;  { draft }
     procedure GetLibraryItem;  { draft }
@@ -173,7 +173,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetItem(A1: Integer);  { draft }
     procedure GetCount;  { draft }
-    procedure FindItem(A1: Integer);  { draft }
+    function FindItem(ItemID: Integer): TItem;
     procedure ItemChanged;  { draft }
     procedure Changed;  { draft }
     procedure BeginUpdate;  { draft }
