@@ -14,10 +14,10 @@
     Side: TCombatSideIndex; { $0C }
     F_0D: array[0..6] of Byte;
   end;
-  { TEnchantment (instance size 24, VMT 5570A98C; $0C source, $14 dispel resistance) }
+  { TEnchantment (instance size 24, VMT 5570A98C; $08 ID, $0C source, $14 dispel resistance) }
   TEnchantment = class(TEObject)
   public
-    F_Enchantment_08: Integer;
+    FEnchantmentID: Integer; { $08 }
     FSource: Shortint;  { $0C }
     F_Enchantment_0D: array[0..2] of Byte;
     F_Enchantment_10: Integer;
@@ -34,15 +34,15 @@
     procedure CenterToLocation; virtual;  { +064 draft }
     function Dispel: Boolean; virtual;
     procedure Select; virtual;  { +06C draft }
-    procedure DispelChance(A1: Integer);  { draft }
+    function DispelChance(A1: Integer): Integer;
   end;
 
   { TEnchantmentList (instance size 12, VMT 5570AA70) }
   TEnchantmentList = class(TENode)
   public
-    procedure GetEnchantments(A1: Integer);  { draft }
+    function GetEnchantments(A1: Integer): TEnchantment;
     procedure IndexOfID(A1: Integer);  { draft }
-    procedure FindID;  { draft }
+    function FindID(A1: Integer): TEnchantment;
   end;
 
   { TChangePlayerMagicTE (instance size 28, VMT 5570ABDC) }

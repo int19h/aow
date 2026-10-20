@@ -886,7 +886,7 @@ begin
   else Result := True;
 end;
 
-procedure TUnitSelector.Select;
+function TUnitSelector.Select: Boolean;
 asm
   { needs: function Select: Boolean; P4 has unmarked procedure overrides. }
   PUSH EBX
@@ -909,7 +909,7 @@ begin
   if Assigned(FOnCancel) then FOnCancel(Self);
 end;
 
-procedure TUnitSelector.CanSelectUnit(A1: Integer);
+function TUnitSelector.CanSelectUnit(A1: TUnit): Boolean;
 asm
   { needs: function CanSelectUnit(Unit: TUnit): Boolean; unmarked P4 overrides. }
   MOV AL, 1
@@ -929,7 +929,7 @@ var
 begin
   if Source <> nil then
   begin
-    FSource := PSourceInfo(Source).Source;
+    FSourceUnitID := Integer(PSourceInfo(Source).Source);
     FPlayer := PSourceInfo(Source).Player;
   end;
   FUnits.Clear;
@@ -1800,9 +1800,9 @@ procedure TAbility.CombatDone(A1: TCombatObject);
 begin
 end;
 
-procedure TAbility.CanActivate(A1: Integer; A2: Integer);
+function TAbility.CanActivate(A1: TAbilityOwner; var A2: string): Boolean;
 begin
-  PString(A2)^ := '';
+  A2 := '';
   { needs: Boolean result; P4 overrides remain unmarked procedures. }
   asm
     MOV EDX,A1
@@ -1813,19 +1813,19 @@ begin
   end;
 end;
 
-procedure TAbility.Activate(A1: Integer; A2: Integer);
+function TAbility.Activate(A1: TAbilityOwner; var A2: string): Boolean;
 var
   Info: TActivateAbilityInfo;
 begin
   { needs: Boolean result; P4 has unmarked procedure overrides. }
-  if TP1AbilityView(Self).CanActivate(TAbilityOwner(A1), PString(A2)^) then
+  if CanActivate(A1, A2) then
   begin
     Info := TActivateAbilityInfo.Create(nil);
     Info.FAbilityID := FAbilityID;
     if TObject(A1) is TAbstractUnit then
       Info.FUnitID := TAbstractUnit(A1).FUnitID
     else Info.FUnitID := 0;
-    TEventList(AoWHSMap.F_AoWHSMap_1E4).TriggerNotifyEvents(Info);
+    TEventList(AoWHSMap.FOnActivateAbility).TriggerNotifyEvents(Info);
     Info.Release;
     asm MOV AL,1 end;
   end

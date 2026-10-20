@@ -60,8 +60,8 @@
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; virtual;
     procedure NewDay(A1: TAbilityOwner); virtual;  { +0A8 }
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); virtual;
-    procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
-    procedure Activate(A1: Integer; A2: Integer); virtual;  { +0B4 draft }
+    function CanActivate(A1: TAbilityOwner; var A2: string): Boolean; virtual; { +0B0 }
+    function Activate(A1: TAbilityOwner; var A2: string): Boolean; virtual; { +0B4 }
     procedure CanActivateCombat(A1: Integer; A2: Integer); virtual;  { +0B8 draft }
     function ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean; virtual;
     procedure ListSpells; virtual;  { +0C0 draft }

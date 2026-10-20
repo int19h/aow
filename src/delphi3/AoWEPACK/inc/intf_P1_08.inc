@@ -46,22 +46,21 @@
     FReferences: Integer;  { $04 }
     FPlayer: Shortint;  { $08 }
     F_UnitSelector_09: array[0..2] of Byte;
-    F_UnitSelector_0C: Byte;
-    F_UnitSelector_0D: array[0..2] of Byte;
+    FCaption: string; { $0C }
     FUnits: TUnitUserList;  { $10 }
     FSelection: Byte;  { $14 }
     FCanceled: Boolean;  { $15 }
     FSelectable: Byte;  { $16 }
     F_UnitSelector_17: array[0..0] of Byte;
-    FSource: Pointer;  { $18 }
+    FSourceUnitID: Integer; { $18 }
     FOnSelect: TUnitSelectorNotifyEvent;  { $1C }
     FOnCancel: TUnitSelectorNotifyEvent;  { $24 }
     destructor Destroy; override;
     procedure SetSelection(Value: Byte); virtual;
-    procedure CanSelectUnit(A1: Integer); virtual;  { +004 draft }
+    function CanSelectUnit(A1: TUnit): Boolean; virtual; { +004 }
     procedure Setup(Source: Pointer; Units: TUnitList); virtual;
     function CanSelect(var Error: string): Boolean; virtual;
-    procedure Select; virtual;  { +010 draft }
+    function Select: Boolean; virtual; { +010 }
     procedure Cancel; virtual;
     constructor Create;  { draft }
     function AddRef: Integer;

@@ -278,7 +278,7 @@
     FAILockCount: Integer; { $1D8 }
     F_AoWHSMap_1DC: Integer;
     FCosmeticSurgeryEvents: TEventList; { $1E0 }
-    F_AoWHSMap_1E4: Integer;
+    FOnActivateAbility: TEventList; { $1E4 }
     FDiplomaticRelationsChangedEvents: TEventList; { $1E8 }
     F_AoWHSMap_1EC: Integer;
     F_AoWHSMap_1F0: Integer;

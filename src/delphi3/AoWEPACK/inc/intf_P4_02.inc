@@ -343,17 +343,17 @@
     function CreateEntangleCA(A1, A2: TCombatObject): TEntangleCA;
   end;
 
-  { TInvokeDeathCA (instance size 20, VMT 5571FA98) }
+  { TInvokeDeathCA (instance size 20, VMT 5571FA98; $10 successful) }
   TInvokeDeathCA = class(TSingleTargetCA)
   public
-    F_InvokeDeathCA_10: Byte;
+    FSuccessful: Boolean; { $10 }
     F_InvokeDeathCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
-    procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    procedure Initialize(A1: Byte; A2: Byte; A3: Boolean);
   end;
 
   { TInvokeDeathAbility (instance size 40, VMT 5571FB74) }
@@ -369,7 +369,7 @@
     function GetTouchAttack(A1: Integer): Shortint; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
-    procedure CreateCA(A1: Integer; A2: Integer);  { draft }
+    function CreateCA(A1, A2: TCombatObject): TInvokeDeathCA;
   end;
 
   { TTurnUndeadCA (instance size 24, VMT 5571FD18) }
@@ -587,27 +587,27 @@
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
-    procedure Initialize(A1: Byte; A2: Byte);  { draft }
+    procedure Initialize(A1: Byte; A2: Byte);
   end;
 
-  { THealingAbilityData (instance size 16, VMT 55721590) }
+  { THealingAbilityData (instance size 16, VMT 55721590; $0C enabled) }
   THealingAbilityData = class(TAbilityData)
   public
-    F_HealingAbilityData_0C: Byte;
+    FEnabled: Boolean; { $0C }
     F_HealingAbilityData_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetAbilityID: Integer; override;
   end;
 
-  { THealingTE (instance size 32, VMT 55721660) }
+  { THealingTE (instance size 32, VMT 55721660; $10/$18 unit IDs, $14/$1C players) }
   THealingTE = class(TTokenEvent)
   public
-    F_HealingTE_10: Integer;
-    F_HealingTE_14: Byte;
+    FSourceID: Integer; { $10 }
+    FSourcePlayer: Byte; { $14 }
     F_HealingTE_15: array[0..2] of Byte;
-    F_HealingTE_18: Integer;
-    F_HealingTE_1C: Byte;
+    FTargetID: Integer; { $18 }
+    FTargetPlayer: Byte; { $1C }
     F_HealingTE_1D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -617,8 +617,8 @@
   { THealingUnitSelector (instance size 44, VMT 55721720) }
   THealingUnitSelector = class(TUnitSelector)
   public
-    procedure CanSelectUnit(A1: Integer); override;
-    procedure Select; override;
+    function CanSelectUnit(A1: TUnit): Boolean; override;
+    function Select: Boolean; override;
   end;
 
   { THealingAbility (instance size 40, VMT 557217BC) }
@@ -631,7 +631,7 @@
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function Activate(A1: TAbilityOwner; var A2: string): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
     function GetDamageValue(A1, A2: TAbstractUnit): Integer; override;
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
@@ -640,23 +640,23 @@
     function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
-    procedure SetEnabled(A1: Integer; A2: Integer);  { draft }
-    procedure GetHealHitPoints(A1: Integer);  { draft }
-    procedure CreateHealingCA(A1: Integer; A2: Integer);  { draft }
-    procedure HealUnit(A1: Integer);  { draft }
+    procedure SetEnabled(A1: TAbilityOwner; A2: Boolean);
+    function GetHealHitPoints(A1: TCombatObject): Integer;
+    function CreateHealingCA(A1, A2: TCombatObject): THealingCA;
+    function HealUnit(A1: TAbstractUnit): Boolean;
   end;
 
-  { TDispelMagicCA (instance size 20, VMT 55721958) }
+  { TDispelMagicCA (instance size 20, VMT 55721958; $10 dispelled enchantment IDs) }
   TDispelMagicCA = class(TSingleTargetCA)
   public
-    F_DispelMagicCA_10: Integer;
+    FEnchantmentIDs: TIntegerList; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
-    procedure Generate(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure Generate(A1, A2: TCombatObject; A3: Integer);
   end;
 
   { TDispelMagicAbilityCA (instance size 20, VMT 55721A34) }
@@ -680,11 +680,11 @@
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TDispelMagicAbilityData (instance size 16, VMT 55721BF0) }
+  { TDispelMagicAbilityData (instance size 16, VMT 55721BF0; $0C enabled, $0D level) }
   TDispelMagicAbilityData = class(TAbilityData)
   public
-    F_DispelMagicAbilityData_0C: Byte;
-    F_DispelMagicAbilityData_0D: Byte;
+    FEnabled: Boolean; { $0C }
+    FLevel: Byte; { $0D }
     F_DispelMagicAbilityData_0E: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -694,8 +694,8 @@
   { TDispelMagicAbilityUnitSelector (instance size 44, VMT 55721CC8) }
   TDispelMagicAbilityUnitSelector = class(TUnitSelector)
   public
-    procedure CanSelectUnit(A1: Integer); override;
-    procedure Select; override;
+    function CanSelectUnit(A1: TUnit): Boolean; override;
+    function Select: Boolean; override;
   end;
 
   { TDispelMagicAbility (instance size 40, VMT 55721D78) }
@@ -710,7 +710,7 @@
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function Activate(A1: TAbilityOwner; var A2: string): Boolean; override;
     function CanExpand(A1: TAbilityOwner): Boolean; override;
     function ExpandCost(A1: TAbilityOwner): Integer; override;
     function ExpandName(A1: TAbilityOwner): string; override;
@@ -723,10 +723,10 @@
     function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
-    procedure SetEnabled(A1: Integer; A2: Integer);  { draft }
-    procedure GetDispelMana(A1: Integer);  { draft }
-    procedure GetLevelName(A1: Integer; A2: Integer);  { draft }
-    procedure CreateCA(A1: Integer; A2: Integer);  { draft }
+    procedure SetEnabled(A1: TAbilityOwner; A2: Boolean);
+    function GetDispelMana(A1: TAbilityOwner): Integer;
+    function GetLevelName(A1: Integer): string;
+    function CreateCA(A1, A2: TCombatObject): TDispelMagicAbilityCA;
   end;
 
   { TLeadershipAbilityData (instance size 24, VMT 55721F1C; $10 external level, $14 source name) }
@@ -828,7 +828,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetControlType: TAbilityControlType; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbilityOwner; var A2: string): Boolean; override;
     procedure RegisterConstructionControl(Control: TConstructionControl);
   end;
 
@@ -856,7 +856,7 @@
     function GetControlType: TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbilityOwner; var A2: string): Boolean; override;
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;

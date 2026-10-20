@@ -13,7 +13,7 @@
   TFastCombatCommandList = class(TObject)
   public
     FSource: TCombatObject;  { $04 }
-    F_FastCombatCommandList_08: Integer;
+    FSourceSide: TCombatSide; { $08 }
     FTargetSide: TCombatSide;  { $0C }
     F_FastCombatCommandList_10: Integer;
     F_FastCombatCommandList_14: Integer;
