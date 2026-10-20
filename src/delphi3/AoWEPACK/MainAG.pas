@@ -56,6 +56,7 @@ type
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
     function Split: Boolean; override;
+    { conflict: procedure Split; override; }
     procedure FortifyCity;  { draft }
     procedure GetSurroundingEnemyStrength(A1: Integer; A2: Integer);  { draft }
     procedure UpdateRequiredStrength(A1: Integer; A2: Integer);  { draft }

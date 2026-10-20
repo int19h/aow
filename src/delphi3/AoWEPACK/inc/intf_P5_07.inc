@@ -328,7 +328,7 @@
     F_AIGroupDefenseControl_1C: Integer;
     F_AIGroupDefenseControl_20: Integer;
     F_AIGroupDefenseControl_24: Byte;
-    F_AIGroupDefenseControl_25: Byte;
+    FDefendOnly: Boolean; { $25; 557D9594 }
     F_AIGroupDefenseControl_26: array[0..1] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

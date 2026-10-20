@@ -9297,8 +9297,8 @@ begin end;
 procedure TMoveControlSettings.GetMovePointLevelData(A1: Integer);
 begin end;
 
-procedure TMoveControlSettings.GetMovePointsXYL(A1: Integer; A2: Integer);
-begin end;
+function TMoveControlSettings.GetMovePointsXYL(Location: Integer): Integer;
+begin Result := 0; end;
 
 procedure TMoveControlSettings.SetMovePointsXYL(A1: Integer; A2: Integer);
 begin end;

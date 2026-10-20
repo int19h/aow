@@ -72,7 +72,7 @@
     function GetMovePoints(A1: Integer; A2: Integer; A3: Integer): Integer;
     procedure SetMovePoints(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure GetMovePointLevelData(A1: Integer);  { draft }
-    procedure GetMovePointsXYL(A1: Integer; A2: Integer);  { draft }
+    function GetMovePointsXYL(Location: Integer): Integer;
     procedure SetMovePointsXYL(A1: Integer; A2: Integer);  { draft }
   end;
 
