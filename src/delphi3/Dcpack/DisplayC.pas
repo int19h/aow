@@ -227,7 +227,7 @@ type
     FOnSwapDC: TSwapDCEvent;
     FFrameRate: Integer;
     FFrameTime: Integer;
-    FCurrentFrameRate: Integer;
+  protected FCurrentFrameRate: Integer; private { HSMEdit uses it; one line keeps the Assert below on 1350 }
     FUpdateFrameThread: TUpdateFrameThread;
     FStatus: TDisplayStatus;
     FOptions: TDisplayOptions;
@@ -236,7 +236,7 @@ type
     FBufferingScheme: TBufferingScheme;
     FBackSurfaceWidth: Integer;
     FBackSurfaceHeight: Integer;
-    FSurfaceIndex: Integer;
+  protected FSurfaceIndex: Integer; private { HSMEdit uses it }
     FPauseCount: Integer;
     FMouseAboveSurface: Boolean;
     FPrimaryDC: TAbstractDC;
