@@ -84,7 +84,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAttack(A1: TAbilityOwner): Shortint; override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetResistance; override;
+    function GetResistance(A1: TAbilityOwner): Shortint; override;
     function Expand(A1: TAbilityOwner): Boolean; override;
   end;
 
@@ -93,7 +93,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetResistance; override;
+    function GetResistance(A1: TAbilityOwner): Shortint; override;
   end;
 
   { TCrusaderAbility (instance size 44, VMT 557B582C) }
@@ -111,7 +111,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAttack(A1: TAbilityOwner): Shortint; override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetDamage; override;
+    function GetDamage(A1: TAbilityOwner): Shortint; override;
   end;
 
   { TPoisonedAbility (instance size 44, VMT 557B5B58) }
@@ -120,8 +120,8 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAttack(A1: TAbilityOwner): Shortint; override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetResistance; override;
-    procedure GetDamage; override;
+    function GetResistance(A1: TAbilityOwner): Shortint; override;
+    function GetDamage(A1: TAbilityOwner): Shortint; override;
   end;
 
   { TDecayAbility (instance size 44, VMT 557B5CEC) }
@@ -170,7 +170,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetResistance; override;
+    function GetResistance(A1: TAbilityOwner): Shortint; override;
     function GetSourceName(A1: TAbilityOwner): string; override;
     function GetTotalDuration: Integer; override;
   end;
@@ -194,14 +194,14 @@ type
   TWallClimbingAbility = class(TAdjustableAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
   end;
 
   { TPassWallAbility (instance size 40, VMT 557B6AFC) }
   TPassWallAbility = class(TAdjustableAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
   end;
 
   { TResurrectedAbility (instance size 40, VMT 557B6C88) }
@@ -235,8 +235,8 @@ type
     F_MovementAbility_28: Byte;
     F_MovementAbility_29: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetMoveTypes; override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetMoveTypes(A1: TAbilityOwner): TMoveTypes; override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
   end;
 
   { TImmunityAbility (instance size 44, VMT 557B7468) }
@@ -245,8 +245,8 @@ type
     F_ImmunityAbility_28: Word;
     F_ImmunityAbility_2A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetMoveTypes; override;
-    procedure GetImmunityTypes; override;
+    function GetMoveTypes(A1: TAbilityOwner): TMoveTypes; override;
+    function GetImmunityTypes(A1: TAbilityOwner): TDamageTypes; override;
   end;
 
   { TProtectionAbility (instance size 44, VMT 557B75F4) }
@@ -255,7 +255,7 @@ type
     F_ProtectionAbility_28: Word;
     F_ProtectionAbility_2A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetProtectionTypes; override;
+    function GetProtectionTypes(A1: TAbilityOwner): TDamageTypes; override;
   end;
 
   { TEntangledAbility (instance size 40, VMT 557B7784) }
@@ -306,7 +306,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetAttack(A1: TAbilityOwner): Shortint; override;
-    procedure GetDamage; override;
+    function GetDamage(A1: TAbilityOwner): Shortint; override;
     function GetAIUpkeepPriority(A1: TAbilityOwner): Integer; override;
   end;
 
@@ -388,7 +388,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetDefense(A1: TAbilityOwner): Shortint; override;
-    procedure GetResistance; override;
+    function GetResistance(A1: TAbilityOwner): Shortint; override;
     function GetSourceName(A1: TAbilityOwner): string; override;
     function GetAIUpkeepPriority(A1: TAbilityOwner): Integer; override;
   end;
@@ -397,7 +397,7 @@ type
   TDarkGiftEnchantment = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetDamage; override;
+    function GetDamage(A1: TAbilityOwner): Shortint; override;
     function GetAIUpkeepPriority(A1: TAbilityOwner): Integer; override;
   end;
 
@@ -448,8 +448,8 @@ begin Result := 0; end;
 function TNaturesBlessingAbility.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TNaturesBlessingAbility.GetResistance;
-begin end;
+function TNaturesBlessingAbility.GetResistance(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 function TNaturesBlessingAbility.Expand(A1: TAbilityOwner): Boolean;
 begin Result := False; end;
@@ -463,8 +463,8 @@ begin Result := 0; end;
 function TBloodlustAbility.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TBloodlustAbility.GetDamage;
-begin end;
+function TBloodlustAbility.GetDamage(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 constructor TPoisonedAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -475,11 +475,11 @@ begin Result := 0; end;
 function TPoisonedAbility.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TPoisonedAbility.GetResistance;
-begin end;
+function TPoisonedAbility.GetResistance(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
-procedure TPoisonedAbility.GetDamage;
-begin end;
+function TPoisonedAbility.GetDamage(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 constructor TSlowEnchantmentAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -607,14 +607,14 @@ begin end;
 constructor TWallClimbingAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TWallClimbingAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TWallClimbingAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 constructor TPassWallAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TPassWallAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TPassWallAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 constructor TVertigoAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -640,8 +640,8 @@ begin Result := 0; end;
 function TCursedAbility.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TCursedAbility.GetResistance;
-begin end;
+function TCursedAbility.GetResistance(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 constructor THasteAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -667,8 +667,8 @@ begin end;
 function TEnchantedWeaponAbility.GetAttack(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TEnchantedWeaponAbility.GetDamage;
-begin end;
+function TEnchantedWeaponAbility.GetDamage(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 function TEnchantedWeaponAbility.GetAIUpkeepPriority(A1: TAbilityOwner): Integer;
 begin Result := 0; end;
@@ -718,8 +718,8 @@ begin end;
 function TBlessedEnchantment.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure TBlessedEnchantment.GetResistance;
-begin end;
+function TBlessedEnchantment.GetResistance(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 function TBlessedEnchantment.GetSourceName(A1: TAbilityOwner): string;
 begin Result := ''; end;
@@ -730,8 +730,8 @@ begin Result := 0; end;
 constructor TDarkGiftEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TDarkGiftEnchantment.GetDamage;
-begin end;
+function TDarkGiftEnchantment.GetDamage(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 function TDarkGiftEnchantment.GetAIUpkeepPriority(A1: TAbilityOwner): Integer;
 begin Result := 0; end;
@@ -742,8 +742,8 @@ begin end;
 function THighPrayerBlessingAbility.GetDefense(A1: TAbilityOwner): Shortint;
 begin Result := 0; end;
 
-procedure THighPrayerBlessingAbility.GetResistance;
-begin end;
+function THighPrayerBlessingAbility.GetResistance(A1: TAbilityOwner): Shortint;
+begin Result := 0; end;
 
 constructor TConcealmentEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -784,26 +784,26 @@ begin end;
 constructor TMovementAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TMovementAbility.GetMoveTypes;
-begin end;
+function TMovementAbility.GetMoveTypes(A1: TAbilityOwner): TMoveTypes;
+begin Result := []; end;
 
-procedure TMovementAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TMovementAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 constructor TImmunityAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TImmunityAbility.GetImmunityTypes;
-begin end;
+function TImmunityAbility.GetImmunityTypes(A1: TAbilityOwner): TDamageTypes;
+begin Result := []; end;
 
-procedure TImmunityAbility.GetMoveTypes;
-begin end;
+function TImmunityAbility.GetMoveTypes(A1: TAbilityOwner): TMoveTypes;
+begin Result := []; end;
 
 constructor TProtectionAbility.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TProtectionAbility.GetProtectionTypes;
-begin end;
+function TProtectionAbility.GetProtectionTypes(A1: TAbilityOwner): TDamageTypes;
+begin Result := []; end;
 
 procedure RegisterPassiveAbilities(A1: Integer);
 begin end;

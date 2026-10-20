@@ -37,8 +37,8 @@
     F_MoveControlSettings_65: Byte;
     F_MoveControlSettings_66: Byte;
     F_MoveControlSettings_67: array[0..0] of Byte;
-    F_MoveControlSettings_68: Integer;
-    F_MoveControlSettings_6C: Byte;
+    FPath: TMovepath;  { $68 }
+    FPlayer: Shortint;  { $6C }
     F_MoveControlSettings_6D: array[0..2] of Byte;
     F_MoveControlSettings_70: Integer;
     F_MoveControlSettings_74: Integer;
@@ -51,12 +51,11 @@
     F_MoveControlSettings_90: Integer;
     F_MoveControlSettings_94: array[0..3] of Byte;
     F_MoveControlSettings_98: Integer;
-    F_MoveControlSettings_9C: Integer;
-    F_MoveControlSettings_A0: Integer;
+    FArmyHS: TArmyHS;  { $9C }
+    FSelection: Integer;  { $A0 }
     F_MoveControlSettings_A4: array[0..3] of Byte;
     F_MoveControlSettings_A8: Integer;
-    F_MoveControlSettings_AC: Byte;
-    F_MoveControlSettings_AD: array[0..254] of Byte;
+    FMovePointTable: array[0..15, 0..15] of Shortint;  { $AC }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
@@ -64,8 +63,8 @@
     procedure Clear; override;
     procedure ResetState;  { draft }
     procedure Reset;  { draft }
-    procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
+    procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
     procedure SetupArmy(A1: Integer; A2: Integer);  { draft }
     procedure SetupLevel(A1: Integer);  { draft }
     procedure SetupMovePointData(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -118,7 +117,7 @@
     F_MoveControl_1DC: Integer;
     destructor Destroy; override;
     procedure SetupMove; virtual;  { +000 draft }
-    procedure ProcessMove(A1: Integer); virtual;  { +004 draft }
+    procedure ProcessMove(A1: TMoveControlSettings); virtual;  { +004 }
     constructor Create;  { draft }
     procedure Clear;  { draft }
     procedure SetMapL(A1: Integer);  { draft }

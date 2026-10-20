@@ -79,7 +79,7 @@
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetAbSet(A1: Integer): Boolean; override;
     procedure SetAbSet(A1: Integer; A2: Byte); override;
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
     function GetUpkeep: Shortint; override;
     function GetUnitLevel: Shortint; override;
@@ -490,7 +490,7 @@
     procedure SetPlayer(Player: Shortint);
     procedure ImmunityTypes(A1: Integer);  { draft }
     function ObtainValue(Player: Shortint): Integer;
-    procedure MovePoints(A1: Integer);  { draft }
+    function MovePoints(A1: Byte): Shortint;
     procedure Moves(A1: Integer);  { draft }
     procedure MoveTypes(A1: Integer; A2: Integer);  { draft }
     procedure GetPartyMoves(A1: Byte);  { draft }

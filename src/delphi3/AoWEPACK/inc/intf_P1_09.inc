@@ -32,7 +32,7 @@
     procedure ReleaseIL;  { draft }
     procedure SetImageLibraryName(A1: Integer; A2: Integer);  { draft }
     procedure GetCityImage(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetAlignment;  { draft }
+    function GetAlignment: TAlignment;
   end;
 
   { TRaceResourceList (instance size 20, VMT 55713938) }

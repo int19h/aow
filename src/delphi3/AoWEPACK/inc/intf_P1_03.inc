@@ -303,6 +303,7 @@
     procedure Assign(Source: Engine.TEObject; AEngine: Engine.TEngine); override;
     procedure GetDiplomaticRelationCount(A1: Integer; A2: Byte);  { draft }
     function GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
+    { conflict: function GetDiplomaticRelation(Source, Target: Shortint): TDiplomaticRelation; }
     procedure SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);  { draft }
     procedure GetActivePlayers(A1: Integer; A2: Integer);  { draft }
     procedure Update;  { draft }
@@ -346,7 +347,7 @@
     function GetMagicShieldActive: Boolean;
     procedure GetProductionControl;  { draft }
     procedure GetAITarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetMoveAction(A1: Byte);  { draft }
+    function GetMoveAction(A1: Byte): TMoveAction;
     procedure GetIndependentRelation;  { draft }
     procedure GetDefensePriority;  { draft }
     procedure GetDefenseRequirements(A1: Integer; A2: Integer);  { draft }

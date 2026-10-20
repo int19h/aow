@@ -2,13 +2,13 @@
   { TUnitResourceAbilityOwner (instance size 20, VMT 55784B80) }
   TUnitResourceAbilityOwner = class(TAbilityOwner)
   public
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
   end;
 
   { THeroResourceAbilityOwner (instance size 20, VMT 55789DE8) }
   THeroResourceAbilityOwner = class(TAbilityOwner)
   public
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
   end;
 
 function TranslateRStr(const S: string): string;
@@ -23,15 +23,16 @@ function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defe
 function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
 procedure DistributeCombatEvent(Logbook: TCombatLogbook; Execute: Boolean);
 function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensive: Boolean; DamageTypes: TDamageTypes): TDamageCA;
-procedure RetrieveDefaultDiplomaticActionMessage(A1: Integer; A2: Byte; A3: Byte);  { draft }
+procedure RetrieveDefaultDiplomaticActionMessage(Source, Target, Other: Shortint; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
 procedure MaximizeMovePointTable(var Table; const Other);
-procedure CreateArmyMoveTE(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-procedure CreateArmyMoveXYLTE(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
-procedure MoveArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-procedure MoveArmy;  { draft }
-procedure MoveArmyXYL(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
-procedure MoveArmyXYLEx(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
+function CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
+function CreateArmyMoveXYLTE(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
+function MoveArmyEx(Army: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode; Force: Boolean): Boolean;
+function MoveArmy(Army: TArmyHS; Selection: Byte; Path: TMovepath): Boolean;
+function MoveArmyXYL(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Force: Boolean): Boolean;
+function MoveArmyXYLEx(Player: Shortint; Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Force: Boolean): TMoveArmyTE;
 function Format(const S: string; const Args: array of const): string;
+{ conflict: function Format(const Fmt: string; const Args: array of const): string; }
 procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }

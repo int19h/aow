@@ -55,7 +55,7 @@
     function Release: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetOwnerName: string; override;
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
     function RemoveAbility(A1: Integer): Boolean; override;
     function GetUpkeep: Shortint; virtual;  { +09C draft }

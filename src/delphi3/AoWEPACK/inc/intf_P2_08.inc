@@ -27,7 +27,7 @@
     procedure TranslateEObject(A1: Integer; A2: Integer);  { draft }
     procedure TranslateEObjectFromFile(A1: Integer; A2: Integer);  { draft }
     procedure ExportTextToFile(A1: Integer; A2: Integer);  { draft }
-    procedure TranslateRStr(A1: Integer; A2: Integer);  { draft }
+    function TranslateRStr(const S: string): string;
     procedure GetMajorVersion;  { draft }
     procedure GetMinorVersion;  { draft }
     procedure GetBuildNumber;  { draft }

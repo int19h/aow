@@ -97,13 +97,6 @@ type
     function GetName(Owner: Pointer): string; virtual; abstract;
   end;
   TP1AbilityKinds = set of 0..15;
-  { ABI view: P2 has an unmarked procedure GetAbSet override at +$4C. }
-  TP1AbilityBitsView = class(TEObject)
-    function GetAbSet(Index: Integer): Boolean; virtual; abstract;
-    procedure SetAbSet(Index: Integer; Value: Byte); virtual; abstract;
-    function GetAbCount: Integer; virtual; abstract;
-  end;
-  TP1GetUnitResource = function(List: TUnitResourceList; Index: Integer): TUnitResource;
   { ABI-only view of TUnitSelector: Boolean CanSelectUnit at VMT +$04. }
   TSelectorView = class(TObject)
     procedure SetSelection; virtual; abstract;
@@ -163,61 +156,6 @@ const
     (sNeutral, sNeutral, sNeutral, sNeutral, sHostile, sHostile, sHostile, sHostile, sFriendly, sFriendly, sFriendly, sPolite),
     (sNeutral, sNeutral, sNeutral, sNeutral, sHostile, sHostile, sHostile, sHostile, sPolite, sFriendly, sFriendly, sPolite),
     (sWary, sWary, sWary, sWary, sHostile, sHostile, sHostile, sHostile, sPolite, sPolite, sPolite, sFriendly));
-
-type
-  { ABI-only view of TDamageCA ($18 bytes), inherited TEObject VMT through $48. }
-  TP1DamageActionView = class(TEObject)
-  public
-    procedure Slot4C; virtual; abstract;
-    procedure Slot50; virtual; abstract;
-    procedure Slot54; virtual; abstract;
-    procedure Slot58; virtual; abstract;
-    procedure Slot5C; virtual; abstract;
-    procedure Slot60; virtual; abstract;
-    procedure Slot64; virtual; abstract;
-    procedure Generate(Source, Target: TCombatObject; Damage: Shortint;
-      Defensive: Boolean; DamageTypes: TDamageTypes); virtual; abstract;
-  end;
-  { ABI-only view of the $4C-byte TCombatObject, VMT $58 priority / $88 HP. }
-  TP1CombatObjectView = class(TObject)
-  public
-    procedure Slot00; virtual; abstract;
-    procedure Slot04; virtual; abstract;
-    procedure Slot08; virtual; abstract;
-    procedure Slot0C; virtual; abstract;
-    procedure Slot10; virtual; abstract;
-    procedure Slot14; virtual; abstract;
-    procedure Slot18; virtual; abstract;
-    procedure Slot1C; virtual; abstract;
-    procedure Slot20; virtual; abstract;
-    procedure Slot24; virtual; abstract;
-    procedure Slot28; virtual; abstract;
-    procedure Slot2C; virtual; abstract;
-    procedure Slot30; virtual; abstract;
-    procedure Slot34; virtual; abstract;
-    procedure Slot38; virtual; abstract;
-    procedure Slot3C; virtual; abstract;
-    procedure Slot40; virtual; abstract;
-    procedure Slot44; virtual; abstract;
-    procedure Slot48; virtual; abstract;
-    procedure Slot4C; virtual; abstract;
-    procedure Slot50; virtual; abstract;
-    procedure Slot54; virtual; abstract;
-    function TargetPriority: Integer; virtual; abstract;
-    procedure Slot5C; virtual; abstract;
-    procedure Slot60; virtual; abstract;
-    procedure Slot64; virtual; abstract;
-    procedure Slot68; virtual; abstract;
-    procedure Slot6C; virtual; abstract;
-    procedure Slot70; virtual; abstract;
-    procedure Slot74; virtual; abstract;
-    procedure Slot78; virtual; abstract;
-    procedure Slot7C; virtual; abstract;
-    procedure Slot80; virtual; abstract;
-    procedure Slot84; virtual; abstract;
-    function HitPoints: Shortint; virtual; abstract;
-  end;
-  TP1CombatPlayerIndex = function(List: TCombatPlayerList; Player: Byte): Integer;
 
 type
   TP1DistanceCombatView = class(TObject)
@@ -949,7 +887,6 @@ type
     Reserved1C: array[$1C..$23] of Byte;
     Player: Shortint;
   end;
-  TGetUnit = function(List: TUnitList; Index: Integer): TUnit;
 var
   I: Integer;
 begin
@@ -964,8 +901,7 @@ begin
   { Original accumulates FSelectable rather than clearing it on a new setup. }
   for I := FUnits.GetCount - 1 downto 0 do
   begin
-    { needs: P2 GetUnit(Index: Integer): TUnit; current implementation is procedure. }
-    Source := Pointer(TGetUnit(@TUnitList.GetUnit)(FUnits, I));
+    Source := Pointer(FUnits.GetUnit(I));
     if TSelectorView(Self).CanSelectUnit(TUnit(Source)) then FSelectable := FSelectable or (Byte(1) shl I);
   end;
 end;
@@ -1034,21 +970,16 @@ begin
 end;
 
 procedure TUnitCategoryList.AddUnit(Category, UnitIndex: Integer);
-type
-  TCreateList = function(ListClass: TClass; Allocate: Byte): TUnitIndexList;
 begin
   while Category >= Count do Add(nil);
   { Original does not reject negative category indexes. }
   if List^[Category] = nil then
-    { needs: P2 TUnitIndexList.Create is a parameterless constructor. }
-    List^[Category] := TCreateList(@TUnitIndexList.Create)(TUnitIndexList, 1);
+      List^[Category] := TUnitIndexList.Create;
   if TUnitIndexList(List^[Category]).IndexOf(UnitIndex) = -1 then
     TUnitIndexList(List^[Category]).Add(UnitIndex);
 end;
 
 constructor TUnitSelectionControl.Create;
-type
-  TCreateList = function(ListClass: TClass; Allocate: Byte): TUnitIndexList;
 begin
   inherited Create;
   FRacesEnabled := TBitList.Create;
@@ -1057,8 +988,7 @@ begin
   with FTypesEnabled do Default := True;
   FRaceUnits := TUnitCategoryList.Create;
   FTypeUnits := TUnitCategoryList.Create;
-  { needs: P2 TUnitIndexList.Create is a parameterless constructor. }
-  FAllUnits := TCreateList(@TUnitIndexList.Create)(TUnitIndexList, 1);
+  FAllUnits := TUnitIndexList.Create;
   Reset;
 end;
 
@@ -1079,8 +1009,7 @@ var
 begin
   if AoWHSSet <> nil then
   begin
-    { needs: P2 GetUnitResource(Index: Integer): TUnitResource. }
-    Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(AoWHSSet.FUnitResources, Value);
+      Resource := AoWHSSet.FUnitResources.GetUnitResource(Value);
     if Resource <> nil then
       FSelectedUnitIndex := Value
     else FSelectedUnitIndex := -1;
@@ -1154,22 +1083,21 @@ begin
   FTypeUnits.Clear;
   FAllUnits.Clear;
   Resources := AoWHSSet.FUnitResources;
-  { needs: P2 GetUnitResource(Index: Integer): TUnitResource. }
   { Original intersects FAlignments with itself, ignoring the unit alignment. }
   if FShowAllCategory then
     for I := 0 to Resources.GetCount - 1 do
-      if TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I) <> nil then
+      if Resources.GetUnitResource(I) <> nil then
       begin
-        Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I);
+        Resource := Resources.GetUnitResource(I);
         if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
           (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
           (FAlignments * FAlignments <> []) then FAllUnits.Add(I);
       end;
   if FShowTypeCategories then
     for I := 0 to Resources.GetCount - 1 do
-      if TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I) <> nil then
+      if Resources.GetUnitResource(I) <> nil then
       begin
-        Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, I);
+        Resource := Resources.GetUnitResource(I);
         if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
           (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
           (FAlignments * FAlignments <> []) then FTypeUnits.AddUnit(Integer(Resource.FUnitType), I);
@@ -1183,7 +1111,7 @@ begin
           Index := AoWHSSet.FRaceResources.GetRaceResource(I).FUnitIndexes[J];
           if Index <> -1 then
           begin
-            Resource := TP1GetUnitResource(@TUnitResourceList.GetUnitResource)(Resources, Index);
+            Resource := Resources.GetUnitResource(Index);
             if (Smallint(Shortint(Resource.FLevel)) >= Smallint(FMinimumLevel)) and
               (Smallint(Shortint(Resource.FLevel)) <= Smallint(FMaximumLevel)) and
               (FAlignments * FAlignments <> []) then FRaceUnits.AddUnit(I, Index);
@@ -1311,8 +1239,8 @@ begin
   if Source.GetAbCount > GetAbCount then Count := Source.GetAbCount
   else Count := GetAbCount;
   for I := 0 to Count - 1 do
-    if TP1AbilityBitsView(Source).GetAbSet(I) <> TP1AbilityBitsView(Self).GetAbSet(I) then
-      SetAbSet(I, Ord(TP1AbilityBitsView(Source).GetAbSet(I)));
+    if Source.GetAbSet(I) <> GetAbSet(I) then
+      SetAbSet(I, Ord(Source.GetAbSet(I)));
 end;
 
 function TCustomAbilityList.CompareAb(Source: TCustomAbilityList): Boolean;
@@ -1327,7 +1255,7 @@ var
 begin
   Result := False;
   for I := 0 to Source.GetAbCount - 1 do
-    if TP1AbilityBitsView(Source).GetAbSet(I) and not TP1AbilityBitsView(Self).GetAbSet(I) then
+    if Source.GetAbSet(I) and not GetAbSet(I) then
     begin
       SetAbSet(I, 1);
       Result := True;
@@ -1354,7 +1282,7 @@ begin
   end;
   if not (smPreview in Stream.StorageMode) then
     for I := 0 to FAbilityCount - 1 do
-      if TP1AbilityBitsView(Self).GetAbSet(I) and (AoWHSSet.FAbilityControl.GetAbility(I) = nil) then
+      if GetAbSet(I) and (AoWHSSet.FAbilityControl.GetAbility(I) = nil) then
         SetAbSet(I, 0);
 end;
 
@@ -1364,7 +1292,7 @@ var
 begin
   Result := '';
   for I := 0 to FAbilityCount - 1 do
-    if TP1AbilityBitsView(Self).GetAbSet(I) then Result := Result + IntToStr(I) + ',';
+    if GetAbSet(I) then Result := Result + IntToStr(I) + ',';
   if Result <> '' then Result := System.Copy(Result, 1, Length(Result) - 1);
 end;
 
@@ -1392,19 +1320,19 @@ begin
   end;
 end;
 
-procedure TCustomAbilityList.ListAbilitiesEx(A1: Integer; A2: Word);
+procedure TCustomAbilityList.ListAbilitiesEx(A1: TStrings; A2: TAbilitySelectionTypes);
 var
   I: Integer;
   Ability: TAbility;
 begin
   TStrings(A1).Clear;
   for I := 0 to FAbilityCount - 1 do
-    if TP1AbilityBitsView(Self).GetAbSet(I) then
+    if GetAbSet(I) then
     begin
       Ability := AoWHSSet.FAbilityControl.GetAbility(I);
       if TP1AbilityKinds(Ability.FSelectionTypes) * TP1AbilityKinds(A2) <> [] then
         { needs: TAbility.GetName(Owner): string; unmarked overrides stay untouched. }
-        TStrings(A1).AddObject(TP1AbilityNameView(Ability).GetName(nil), TObject(I));
+        TStrings(A1).AddObject(Ability.GetName(nil), TObject(I));
     end;
 end;
 
@@ -1437,7 +1365,7 @@ end;
 
 procedure TAbility.ShowInfo(Owner: TAbilityOwner; Font: TImageLibraryFont; X, Y: Integer; const Surface: TSurfaceDesc);
 begin
-  Font.SetText(X, Y, TP1AbilityView(Self).GetName(Owner), Surface);
+  Font.SetText(X, Y, Self.GetName(Owner), Surface);
 end;
 
 function TAbility.GetSourceName(A1: TAbilityOwner): string;
@@ -1542,7 +1470,7 @@ begin
   end;
 end;
 
-procedure TAbility.GetWallCombatFeatures(A1: Integer);
+function TAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
 { needs: set result; preserve existing procedure-header return ABI. }
 asm
   MOV AL,P1EmptyWallFeatures
@@ -1591,8 +1519,8 @@ end;
 
 function TAbility.Expand(A1: TAbilityOwner): Boolean;
 begin
-  TP1OwnerView(A1).SetAbility(FAbilityID, 1);
-  asm MOV AL,1 end;
+  A1.SetAbSet(FAbilityID, 1);
+  Result := True;
 end;
 
 function TAbility.Remove(A1: TAbilityOwner): Boolean;
@@ -1683,19 +1611,19 @@ asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetResistance;
+function TAbility.GetResistance(A1: TAbilityOwner): Shortint;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetDamage;
+function TAbility.GetDamage(A1: TAbilityOwner): Shortint;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetMoveTypes;
+function TAbility.GetMoveTypes(A1: TAbilityOwner): TMoveTypes;
 { needs: set result; preserve existing procedure-header return ABI. }
 asm
   MOV AL,P1EmptyMoveTypes
@@ -1719,7 +1647,7 @@ begin
   A3 := P1EmptyDamageTypes;
 end;
 
-procedure TAbility.ListInfo(A1: Integer; A2: Byte);
+procedure TAbility.ListInfo(A1: TStrings; A2: TAbilityInfoMode);
 var
   Info: TP1CombatInfo;
   Strength: Integer;
@@ -1727,26 +1655,26 @@ var
   DamageNames: string;
   DamageType_: TDamageType;
 begin
-  TStrings(A1).Add('Name: ' + TP1AbilityView(Self).GetName(nil));
+  TStrings(A1).Add('Name: ' + Self.GetName(nil));
   TStrings(A1).Add('-------------------------------------------------');
-  if A2 and 1 <> 0 then TStrings(A1).Add('ID: ' + IntToStr(FAbilityID));
+  if aimID in A2 then TStrings(A1).Add('ID: ' + IntToStr(FAbilityID));
   TStrings(A1).Add('Type: ' + TranslateRStr(TAbilityTypeRStr[TP1AbilityView(Self).GetAbilityType]));
-  if TP1AbilityView(Self).GetAttack(nil) <> 0 then
-    TStrings(A1).Add('Attack modifier: ' + IntToStr(TP1AbilityView(Self).GetAttack(nil)));
-  if TP1AbilityView(Self).GetDefense(nil) <> 0 then
-    TStrings(A1).Add('Defense modifier: ' + IntToStr(TP1AbilityView(Self).GetDefense(nil)));
-  if TP1AbilityView(Self).GetDamage(nil) <> 0 then
-    TStrings(A1).Add('Damage modifier: ' + IntToStr(TP1AbilityView(Self).GetDamage(nil)));
-  if TP1AbilityView(Self).GetResistance(nil) <> 0 then
-    TStrings(A1).Add('Resistance modifier: ' + IntToStr(TP1AbilityView(Self).GetResistance(nil)));
-  if A2 and 2 <> 0 then
+  if Self.GetAttack(nil) <> 0 then
+    TStrings(A1).Add('Attack modifier: ' + IntToStr(Self.GetAttack(nil)));
+  if Self.GetDefense(nil) <> 0 then
+    TStrings(A1).Add('Defense modifier: ' + IntToStr(Self.GetDefense(nil)));
+  if Self.GetDamage(nil) <> 0 then
+    TStrings(A1).Add('Damage modifier: ' + IntToStr(Self.GetDamage(nil)));
+  if Self.GetResistance(nil) <> 0 then
+    TStrings(A1).Add('Resistance modifier: ' + IntToStr(Self.GetResistance(nil)));
+  if aimDescription in A2 then
   begin
     TStrings(A1).Add('Description: ');
     TStrings(A1).AddStrings(FDescription);
   end;
   if TP1AbilityView(Self).GetCombatMode(nil) <> cmNone then
     TStrings(A1).Add('Combat mode: ' + TranslateRStr(TCombatModeRStr[TP1AbilityView(Self).GetCombatMode(nil)]));
-  if A2 and 4 <> 0 then
+  if aimStatistics in A2 then
   begin
     TP1AbilityView(Self).GetCombatInfo(nil, Info);
     if Info.Attack <> -1 then TStrings(A1).Add('Attack: ' + IntToStr(Info.Attack));
@@ -1764,14 +1692,14 @@ begin
       TStrings(A1).Add('Damage Types: ' + DamageNames);
     end;
   end;
-  if A2 and 8 <> 0 then
+  if aimStrength in A2 then
   begin
     TP1AbilityView(Self).GetOffensiveStrength(nil, Strength, Types);
     if Strength <> 0 then TStrings(A1).Add('Strength: ' + IntToStr(Strength));
   end;
 end;
 
-procedure TAbility.GetEnabled(A1: Integer);
+function TAbility.GetEnabled(A1: TAbilityOwner): Boolean;
 asm
   MOV EAX,[EAX].FAbilityID
   XCHG EDX,EAX
@@ -1779,13 +1707,13 @@ asm
   CALL DWORD PTR [ECX+$4C]
 end;
 
-procedure TAbility.GetImmunityTypes;
+function TAbility.GetImmunityTypes(A1: TAbilityOwner): TDamageTypes;
 { needs: set result; preserve existing procedure-header return ABI. }
 asm
   MOV AX,P1EmptyDamageTypes
 end;
 
-procedure TAbility.GetProtectionTypes;
+function TAbility.GetProtectionTypes(A1: TAbilityOwner): TDamageTypes;
 { needs: set result; preserve existing procedure-header return ABI. }
 asm
   MOV AX,P1EmptyDamageTypes
@@ -1819,7 +1747,7 @@ procedure TAbility.Execute;
 begin
 end;
 
-procedure TAbility.NewDay(A1: Integer);
+procedure TAbility.NewDay(A1: TAbilityOwner);
 begin
 end;
 
@@ -1910,145 +1838,452 @@ begin
 end;
 
 constructor TAbilityOwner.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 procedure TAbilityOwner.Clear;
-begin end;
+begin
+  inherited Clear;
+  while FAbilityData <> nil do RemoveAbilityData(FAbilityData);
+end;
 
-procedure TAbilityOwner.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+function TAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+begin
+  Result := [];
+end;
 
 function TAbilityOwner.GetOwnerName: string;
 begin Result := ''; end;
 
 procedure TAbilityOwner.ValidateOwnerTypeAbilities;
-begin end;
+var
+  Types: TAbilitySelectionTypes;
+  I: Integer;
+begin
+  Types := GetAbilitySelectionTypes;
+  for I := GetAbCount - 1 downto 0 do
+    if GetAbSet(I) and (AoWHSSet.FAbilityControl.GetAbility(I).FSelectionTypes * Types = []) then
+      SetAbSet(I, 0);
+end;
 
 function TAbilityOwner.GetAbilityData(AbilityID: Integer): TAbilityData;
-begin end;
+var
+  Data: TAbilityData;
+begin
+  Data := FAbilityData;
+  while (Data <> nil) and (Data.GetAbilityID <> AbilityID) do Data := Data.FNext;
+  Result := Data;
+end;
 
-procedure TAbilityOwner.AssignAb(A1: Integer);
-begin end;
+procedure TAbilityOwner.AssignAb(Source: TAbilityOwner);
+var
+  I: Integer;
+  Data: TAbilityData;
+begin
+  while FAbilityData <> nil do RemoveAbilityData(FAbilityData);
+  SetAbCount(Source.GetAbCount);
+  for I := Source.GetAbCount - 1 downto 0 do
+    if Source.GetAbSet(I) <> GetAbSet(I) then SetAbSet(I, Ord(Source.GetAbSet(I)));
+  Data := Source.FAbilityData;
+  while Data <> nil do
+  begin
+    AddAbilityData(TAbilityData(Data.Copy(AoWEngine)));
+    Data := Data.FNext;
+  end;
+end;
 
-procedure TAbilityOwner.AddAbilityData(A1: TAbilityData);
-begin end;
+procedure TAbilityOwner.AddAbilityData(Data: TAbilityData);
+begin
+  Data.FNext := FAbilityData;
+  FAbilityData := Data;
+end;
 
-procedure TAbilityOwner.RemoveAbilityData(A1: TAbilityData);
-begin end;
+procedure TAbilityOwner.RemoveAbilityData(Data: TAbilityData);
+var
+  Current, Previous: TAbilityData;
+begin
+  Current := FAbilityData;
+  Previous := nil;
+  while (Current <> nil) and (Current <> Data) do
+  begin
+    Previous := Current;
+    Current := Current.FNext;
+  end;
+  if Current = Data then
+  begin
+    { Original dereferences nil when Data is nil. }
+    if Previous <> nil then Previous.FNext := Current.FNext
+    else FAbilityData := Current.FNext;
+    Current.Free;
+  end;
+end;
 
-procedure TAbilityOwner.RemoveAbilityDataID(A1: Integer);
-begin end;
+procedure TAbilityOwner.RemoveAbilityDataID(AbilityID: Integer);
+var
+  Current, Previous: TAbilityData;
+begin
+  Current := FAbilityData;
+  Previous := nil;
+  while (Current <> nil) and (Current.GetAbilityID <> AbilityID) do
+  begin
+    Previous := Current;
+    Current := Current.FNext;
+  end;
+  if (Current <> nil) and (Current.GetAbilityID = AbilityID) then
+  begin
+    if Previous <> nil then Previous.FNext := Current.FNext
+    else FAbilityData := Current.FNext;
+    Current.Free;
+  end;
+end;
 
 procedure TAbilityOwner.SetAbSet(A1: Integer; A2: Byte);
-begin end;
+begin
+  inherited SetAbSet(A1, A2);
+end;
 
-procedure TAbilityOwner.Execute;
-begin end;
+function TAbilityOwner.Execute: Integer;
+begin
+  Result := 1;
+end;
 
 procedure TAbilityOwner.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  Previous, Data: TAbilityData;
+  IDs: TIntegerList;
+  I: Integer;
+begin
+  inherited ReadWrite(Stream);
+  if Stream.StorageMode * [smRead, smCompare] = [smRead] then
+  begin
+    { Original tests property 3 before reading the data-ID list at $31. }
+    if Stream.PropertyTable.PropertyExist(3) then
+    begin
+      Previous := nil;
+      IDs := TIntegerList.Create;
+      Stream.rwStreamProc($31, IDs.LoadFromStream, IDs.SaveToStream);
+      for I := 0 to IDs.Count - 1 do
+      begin
+        Stream.rwCreateEObject(TEObject(Data), nil, IDs[I] + $32);
+        if Previous <> nil then Previous.FNext := Data;
+        Previous := Data;
+        if FAbilityData = nil then FAbilityData := Data;
+      end;
+      IDs.Free;
+    end;
+  end
+  else if Stream.StorageMode * [smWrite] = [smWrite] then
+  begin
+    if FAbilityData <> nil then
+    begin
+      IDs := TIntegerList.Create;
+      Data := FAbilityData;
+      while Data <> nil do
+      begin
+        IDs.Add(Data.GetAbilityID);
+        Data := Data.FNext;
+      end;
+      Stream.rwStreamProc($31, IDs.LoadFromStream, IDs.SaveToStream);
+      Data := FAbilityData;
+      while Data <> nil do
+      begin
+        Stream.rwCreateEObject(TEObject(Data), nil, Data.GetAbilityID + $32);
+        Data := Data.FNext;
+      end;
+      IDs.Free;
+    end;
+  end
+  else if Stream.StorageMode * [smCompare] = [smCompare] then
+  begin
+    Data := FAbilityData;
+    while Data <> nil do
+    begin
+      Stream.rwCreateEObject(TEObject(Data), nil, Data.GetAbilityID + $32);
+      Data := Data.FNext;
+    end;
+  end;
+end;
 
-procedure TAbilityOwner.UpdateDefaultAbilities(A1: Integer);
-begin end;
+procedure TAbilityOwner.UpdateDefaultAbilities(Source: TAbilityOwner);
+var
+  I: Integer;
+  Data: TAbilityData;
+begin
+  for I := Source.GetAbCount - 1 downto 0 do
+    if Source.GetAbSet(I) and (not GetAbSet(I) or (Source.GetAbLevel(I) > GetAbLevel(I))) then
+    begin
+      Data := Source.GetAbilityData(I);
+      if Data <> nil then
+      begin
+        RemoveAbilityDataID(I);
+        Data := TAbilityData(Data.Copy(AoWEngine));
+        AddAbilityData(Data);
+      end;
+      SetAbSet(I, 1);
+    end;
+end;
 
 procedure TAbilityOwner.Changed;
-begin end;
+begin
+end;
 
 function TAbilityOwner.ExpandAbility(AbilityID: Integer): Boolean;
-begin end;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).Expand(Self);
+  if Result then Changed;
+end;
 
 function TAbilityOwner.RemoveAbility(A1: Integer): Boolean;
-begin Result := False; end;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(A1).Remove(Self);
+  if Result then Changed;
+end;
 
-procedure TAbilityOwner.GetAbAttackAll;
-begin end;
+function TAbilityOwner.GetAbAttackAll: Shortint;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to GetAbCount - 1 do
+    if GetAbEnabled(I) then Result := Result + AoWHSSet.FAbilityControl.GetAbility(I).GetAttack(Self);
+end;
 
-procedure TAbilityOwner.GetAbDefenseAll;
-begin end;
+function TAbilityOwner.GetAbDefenseAll: Shortint;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to GetAbCount - 1 do
+    if GetAbEnabled(I) then Result := Result + AoWHSSet.FAbilityControl.GetAbility(I).GetDefense(Self);
+end;
 
-procedure TAbilityOwner.GetAbResistanceAll;
-begin end;
+function TAbilityOwner.GetAbResistanceAll: Shortint;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to GetAbCount - 1 do
+    if GetAbEnabled(I) then Result := Result + AoWHSSet.FAbilityControl.GetAbility(I).GetResistance(Self);
+end;
 
-procedure TAbilityOwner.GetAbDamageAll;
-begin end;
+function TAbilityOwner.GetAbDamageAll: Shortint;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to GetAbCount - 1 do
+    if GetAbEnabled(I) then Result := Result + AoWHSSet.FAbilityControl.GetAbility(I).GetDamage(Self);
+end;
 
-procedure TAbilityOwner.GetAbMoveTypesAll;
-begin end;
+function TAbilityOwner.GetAbMoveTypesAll: TMoveTypes;
+begin
+  Result := [];
+  if GetAbEnabled(0) then Result := Result + [mtWalking];
+  if GetAbEnabled(1) or GetAbEnabled(165) or GetAbEnabled(59) then Result := Result + [mtFlying];
+  if GetAbEnabled(2) or GetAbEnabled(23) or GetAbEnabled(164) or GetAbEnabled(166) then Result := Result + [mtSwimming];
+  if GetAbEnabled(3) or GetAbEnabled(157) then Result := Result + [mtForestry];
+  if GetAbEnabled(4) or GetAbEnabled(157) then Result := Result + [mtCaveCrawling];
+  if GetAbEnabled(5) or GetAbEnabled(157) then Result := Result + [mtMountaineering];
+  if GetAbEnabled(7) or GetAbEnabled(163) then Result := Result + [mtTunneling];
+  if GetAbEnabled(42) then Result := Result + [mtLavaCrossing];
+end;
 
-procedure TAbilityOwner.GetAbWallCombatFeatures;
-begin end;
+function TAbilityOwner.GetAbWallCombatFeatures: TWallCombatFeatures;
+var
+  I: Integer;
+begin
+  Result := [];
+  { Original intersects into an empty set, so the result is always empty. }
+  for I := GetAbCount - 1 downto 0 do
+    if GetAbEnabled(I) then Result := Result * AoWHSSet.FAbilityControl.GetAbility(I).GetWallCombatFeatures(Self);
+end;
 
-procedure TAbilityOwner.GetAbProtectionTypesAll;
-begin end;
+function TAbilityOwner.GetAbProtectionTypesAll: TDamageTypes;
+begin
+  Result := [];
+  if GetAbEnabled(77) or GetAbEnabled(166) then Result := Result + [dtPhysical];
+  if GetAbEnabled(71) or GetAbEnabled(167) then Result := Result + [dtFire];
+  if GetAbEnabled(75) then Result := Result + [dtMagic];
+  if GetAbEnabled(76) then Result := Result + [dtCold];
+  if GetAbEnabled(74) then Result := Result + [dtLightning];
+  if GetAbEnabled(73) then Result := Result + [dtPoison];
+  if GetAbEnabled(70) or GetAbEnabled(158) then Result := Result + [dtDeath];
+  if GetAbEnabled(72) then Result := Result + [dtHoly];
+end;
 
-procedure TAbilityOwner.GetAbImmunityTypesAll;
-begin end;
+function TAbilityOwner.GetAbImmunityTypesAll: TDamageTypes;
+begin
+  Result := [];
+  if GetAbEnabled(13) then Result := Result + [dtPhysical];
+  if GetAbEnabled(7) or GetAbEnabled(163) then Result := Result + [dtFire];
+  if GetAbEnabled(6) then Result := Result + [dtMagic];
+  if GetAbEnabled(8) then Result := Result + [dtCold];
+  if GetAbEnabled(9) then Result := Result + [dtLightning];
+  if GetAbEnabled(10) then Result := Result + [dtPoison];
+  if GetAbEnabled(11) then Result := Result + [dtDeath];
+  if GetAbEnabled(12) then Result := Result + [dtHoly];
+end;
 
-procedure TAbilityOwner.GetAbName(A1: Integer; A2: Integer);
-begin end;
+function TAbilityOwner.GetAbName(AbilityID: Integer): string;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetName(Self);
+end;
 
-procedure TAbilityOwner.GetAbAttack(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbAttack(AbilityID: Integer): Shortint;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetAttack(Self);
+end;
 
-procedure TAbilityOwner.GetAbDefense(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbDefense(AbilityID: Integer): Shortint;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetDefense(Self);
+end;
 
-procedure TAbilityOwner.GetAbResistance(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbResistance(AbilityID: Integer): Shortint;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetResistance(Self);
+end;
 
-procedure TAbilityOwner.GetAbDamage(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbDamage(AbilityID: Integer): Shortint;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetDamage(Self);
+end;
 
-procedure TAbilityOwner.GetAbMoveTypes(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbMoveTypes(AbilityID: Integer): TMoveTypes;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetMoveTypes(Self);
+end;
 
-procedure TAbilityOwner.GetAbProtectionTypes(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbProtectionTypes(AbilityID: Integer): TDamageTypes;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetProtectionTypes(Self);
+end;
 
-procedure TAbilityOwner.GetAbImmunityTypes(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbImmunityTypes(AbilityID: Integer): TDamageTypes;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetImmunityTypes(Self);
+end;
 
-procedure TAbilityOwner.GetAbLevel(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbLevel(AbilityID: Integer): Integer;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetLevel(Self);
+end;
 
-function TAbilityOwner.GetAbEnabled(A1: Integer): Boolean;
-begin Result := False; end;
+function TAbilityOwner.GetAbEnabled(AbilityID: Integer): Boolean;
+begin
+  Result := GetAbSet(AbilityID) and AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetEnabled(Self);
+end;
 
 procedure TAbilityOwner.TriggerNewDay;
-begin end;
+var
+  I: Integer;
+begin
+  try
+    for I := 0 to GetAbCount - 1 do
+      if GetAbSet(I) then AoWHSSet.FAbilityControl.GetAbility(I).NewDay(Self);
+  except
+  end;
+end;
 
-procedure TAbilityOwner.TriggerNewTurn(A1: Byte; A2: Integer);
-begin end;
+procedure TAbilityOwner.TriggerNewTurn(Player: Shortint);
+var
+  I: Integer;
+begin
+  for I := 0 to GetAbCount - 1 do
+    if GetAbSet(I) then AoWHSSet.FAbilityControl.GetAbility(I).NewTurn(Self, Player);
+end;
 
-procedure TAbilityOwner.TriggerNewCombatTurn(A1: Integer; A2: Byte);
-begin end;
+procedure TAbilityOwner.TriggerNewCombatTurn(Combat: TCombatObject; Player: Shortint);
+var
+  I: Integer;
+begin
+  for I := 0 to GetAbCount - 1 do
+    if GetAbSet(I) then AoWHSSet.FAbilityControl.GetAbility(I).NewCombatTurn(Combat, Player);
+end;
 
-procedure TAbilityOwner.TriggerCombatDone(A1: Integer);
-begin end;
+procedure TAbilityOwner.TriggerCombatDone(Combat: TCombatObject);
+var
+  I: Integer;
+begin
+  for I := 0 to GetAbCount - 1 do
+    if GetAbSet(I) then AoWHSSet.FAbilityControl.GetAbility(I).CombatDone(Combat);
+end;
 
 procedure TAbilityOwner.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020001 then TriggerNewDay
+  else if Msg.MsgID = $20020002 then TriggerNewTurn(Shortint(Msg.Value));
+end;
 
-procedure TAbilityOwner.ListAbilitiesEx(A1: Integer; A2: Word);
-begin end;
+procedure TAbilityOwner.ListAbilitiesEx(A1: TStrings; A2: TAbilitySelectionTypes);
+var
+  I: Integer;
+  Ability: TAbility;
+begin
+  A1.Clear;
+  for I := 0 to FAbilityCount - 1 do
+    if GetAbSet(I) then
+    begin
+      Ability := AoWHSSet.FAbilityControl.GetAbility(I);
+      if Ability.FSelectionTypes * A2 <> [] then
+        A1.AddObject(Ability.GetName(Self), TObject(I));
+    end;
+end;
 
-procedure TAbilityOwner.ListAbilities(A1: Integer);
-begin end;
+procedure TAbilityOwner.ListAbilities(Text: TStrings);
+var
+  I: Integer;
+  Ability: TAbility;
+  Name: string;
+begin
+  Text.Clear;
+  for I := 0 to FAbilityCount - 1 do
+    if GetAbSet(I) then
+    begin
+      Ability := AoWHSSet.FAbilityControl.GetAbility(I);
+      Name := Ability.GetName(Self);
+      if Name <> '' then Text.AddObject(Name, TObject(I));
+    end;
+end;
 
-procedure TAbilityTypeList.GetAbility(A1: Integer);
-begin end;
+function TAbilityTypeList.GetAbility(A1: Integer): TAbility;
+begin Result := TAbility(Items[A1]); end;
 
 constructor TAbilityControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  Kind: TAbilityType;
+begin
+  inherited Create(AOwner);
+  FAbilities := TList.Create;
+  for Kind := Low(TAbilityType) to High(TAbilityType) do
+    FAbilitiesByType[Kind] := TAbilityTypeList.Create;
+end;
 
 destructor TAbilityControl.Destroy;
-begin end;
+var
+  Kind: TAbilityType;
+begin
+  UnregisterAll;
+  for Kind := Low(TAbilityType) to High(TAbilityType) do FAbilitiesByType[Kind].Free;
+  FAbilities.Free;
+  inherited Destroy;
+end;
 
 procedure TAbilityControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  I: Integer;
+begin
+  inherited ReadWrite(Stream);
+  for I := 0 to FAbilities.Count - 1 do
+    if FAbilities[I] <> nil then Stream.rwEObject(TAbility(FAbilities[I]), I + 10);
+end;
 
-procedure TAbilityControl.GetCount;
-begin end;
+function TAbilityControl.GetCount: Integer;
+begin
+  Result := FAbilities.Count;
+end;
 
 function TAbilityControl.GetAbility(Index: Integer): TAbility;
 var
@@ -2063,23 +2298,94 @@ begin
   else Result := nil;
 end;
 
-procedure TAbilityControl.RegisterAbility(A1: Integer);
-begin end;
+procedure TAbilityControl.RegisterAbility(Ability: TAbility);
+var
+  ID: Integer;
+begin
+  ID := Ability.FAbilityID;
+  if ID <> -1 then
+  begin
+    with FAbilities do
+      if (ID < Count) and (Items[ID] <> nil) then
+        raise Exception.Create('Ability already registered (' + IntToStr(ID) + ')');
+    while ID >= FAbilities.Count do FAbilities.Add(nil);
+    FAbilities.List^[ID] := Ability;
+    FAbilitiesByType[Ability.GetAbilityType].Add(Ability);
+    Ability.FImageSequences.LinkToIL;
+  end
+  else raise Exception.Create('Invalid AbilityID (' + Ability.ClassName + ')');
+end;
 
-procedure TAbilityControl.UnregisterAbility(A1: Integer);
-begin end;
+procedure TAbilityControl.UnregisterAbility(Ability: TAbility);
+var
+  ID: Integer;
+begin
+  ID := Ability.FAbilityID;
+  if ID <> -1 then
+  begin
+    if (ID < 0) or (ID >= FAbilities.Count) or (FAbilities[ID] <> Ability) then
+      raise Exception.Create('Cannot Unregister Ability (' + IntToStr(ID) + ')');
+    if FAbilities.List^[ID] <> nil then
+    begin
+      FAbilitiesByType[Ability.GetAbilityType].Remove(Ability);
+      TAbility(FAbilities.List^[ID]).FImageSequences.ReleaseIL;
+      TObject(FAbilities.List^[ID]).Free;
+      FAbilities.List^[ID] := nil;
+    end;
+  end
+  else raise Exception.Create('Invalid AbilityID (' + Ability.ClassName + ')');
+end;
 
 procedure TAbilityControl.UnregisterAll;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FAbilities.Count - 1 downto 0 do
+    if FAbilities[I] <> nil then UnregisterAbility(FAbilities[I]);
+end;
 
-procedure TAbilityControl.UnregisterAbilityID(A1: Integer);
-begin end;
+procedure TAbilityControl.UnregisterAbilityID(ID: Integer);
+begin
+  if FAbilities.List^[ID] <> nil then UnregisterAbility(FAbilities.List^[ID]);
+end;
 
-procedure TAbilityControl.ListAbilities(A1: Integer; A2: Word);
-begin end;
+procedure TAbilityControl.ListAbilities(Text: TStrings; Types: TAbilitySelectionTypes);
+var
+  I: Integer;
+begin
+  Text.Clear;
+  with FAbilities do
+    for I := 0 to Count - 1 do
+      if List^[I] <> nil then
+        if (TAbility(List^[I]).FSelectionTypes * Types <> []) or
+          ((Types = [Low(TAbilitySelectionType)..High(TAbilitySelectionType)]) and
+          (TAbility(List^[I]).FSelectionTypes = [])) then
+          Text.AddObject(TAbility(List^[I]).GetName(nil), TObject(I));
+end;
 
-procedure TAbilityControl.ListAbilityInfo(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+function CompareAbilityNames(Item1, Item2: Pointer): Integer;
+begin
+  Result := CompareText(TAbility(Item1).GetName(nil), TAbility(Item2).GetName(nil));
+end;
+
+procedure TAbilityControl.ListAbilityInfo(Text: TStrings; SortByName: Boolean; Mode: TAbilityInfoMode);
+var
+  List: TList;
+  I: Integer;
+begin
+  List := TList.Create;
+  for I := 0 to FAbilities.Count - 1 do
+    if FAbilities.List^[I] <> nil then List.Add(FAbilities.List^[I]);
+  if SortByName then List.Sort(CompareAbilityNames);
+  { Original frees the temporary list only after all ability callbacks succeed. }
+  for I := 0 to List.Count - 1 do
+  begin
+    TAbility(List[I]).ListInfo(Text, Mode);
+    Text.Add('-------------------------------------------------');
+    Text.Add('');
+  end;
+  List.Free;
+end;
 
 procedure TPlayerStructureList.GetStructure(A1: Integer);
 begin end;
@@ -2379,6 +2685,7 @@ procedure TPlayerList.GetDiplomaticRelationCount(A1: Integer; A2: Byte);
 begin end;
 
 function TPlayerList.GetDiplomaticRelation(Player, OtherPlayer: Shortint): TDiplomaticRelation;
+{ conflict: function TPlayerList.GetDiplomaticRelation(Source, Target: Shortint): TDiplomaticRelation; }
 begin Result := drPeace; end;
 
 procedure TPlayerList.SetDiplomaticRelation(A1: Integer; A2: Byte; A3: Integer);
@@ -2771,8 +3078,8 @@ begin end;
 procedure TRaceResource.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TRaceResource.GetAlignment;
-begin end;
+function TRaceResource.GetAlignment: TAlignment;
+begin Result := alNone; end;
 
 constructor TRaceResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3750,8 +4057,8 @@ begin end;
 procedure TTargetSelectionControl.UnitChanged(A1: Integer);
 begin end;
 
-procedure TMovepath.MovePointsToPos(A1: Integer);
-begin end;
+function TMovepath.MovePointsToPos(A1: Integer): Integer;
+begin Result := 0; end;
 
 procedure TMovepath.PosToMovePoints(A1: Integer);
 begin end;
@@ -3870,7 +4177,7 @@ begin end;
 procedure TTextControl.IndexOf;
 begin end;
 
-procedure TTextControl.RetrieveText(A1: Integer; A2: Integer);
+procedure TTextControl.RetrieveText(ID: Integer; Text: TStrings);
 begin end;
 
 class function TFrozenWaterHS.ClassID: Integer;
@@ -3951,8 +4258,8 @@ begin end;
 procedure TAoWMapField.GetAITarget(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TAoWMapField.GetMoveAction(A1: Byte);
-begin end;
+function TAoWMapField.GetMoveAction(A1: Byte): TMoveAction;
+begin Result := maNormal; end;
 
 procedure TAoWMapField.GetIndependentRelation;
 begin end;
@@ -4558,9 +4865,7 @@ function TranslateRStr(const S: string): string;
 begin
   if AoWEngine <> nil then
   begin
-    { needs: TAoWEngine.TranslateRStr(const S: string): string; the P2 body
-      still has its draft header. Preserve its register ABI until assembled. }
-    AoWEngine.TranslateRStr(Integer(Pointer(S)), Integer(@Result));
+    Result := AoWEngine.TranslateRStr(S);
     Exit;
   end;
   Result := S;
@@ -4614,8 +4919,8 @@ begin
       Result := Damage + 1 + (18 - Threshold) +
         (((Damage - 1) * (18 - Threshold) + 1) shr 1);
       Threshold := -Threshold;
-      Threshold := ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
-        (Threshold + 19)) shr 1) + Threshold + 1;
+      Inc(Threshold, ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
+        (Threshold + 19)) shr 1) + 1);
       Result := Result - Threshold;
     end;
     Result := Result * 5;
@@ -4645,26 +4950,16 @@ begin
 end;
 
 function DVtoDEV(SourceDV, TargetDV: Integer; Source, Target: TCombatObject): Integer;
-var
-  SourceObject: TP1CombatObjectView;
 begin
-  SourceObject := TP1CombatObjectView(Source);
-  { needs: P3 TCombatObject.GetTargetPriority: Integer (+$58) and
-    GetHitPoints: Shortint (+$88). Their procedure bodies are still drafts;
-    the typed VMT view preserves the proven call ABI without editing P3 bodies. }
-  if TP1CombatObjectView(Target).TargetPriority <> 0 then
+  if Target.GetTargetPriority <> 0 then
   begin
-    Result := TP1CombatObjectView(Target).TargetPriority +
-      Round(TP1CombatObjectView(Target).TargetPriority *
-        (SourceDV / (TP1CombatObjectView(Target).HitPoints * 100)));
+    Result := Target.GetTargetPriority +
+      Round(Target.GetTargetPriority * (SourceDV / (Target.GetHitPoints * 100)));
     if TargetDV <> 0 then
-      Result := Result - (SourceObject.TargetPriority +
-        Round(SourceObject.TargetPriority *
-          (TargetDV / (SourceObject.HitPoints * 100))));
+      Result := Result - (Source.GetTargetPriority +
+        Round(Source.GetTargetPriority * (TargetDV / (Source.GetHitPoints * 100))));
   end
-  else
-    Result := SourceDV + (-99999) -
-      SourceObject.TargetPriority * TargetDV;
+  else Result := SourceDV + (-99999) - Source.GetTargetPriority * TargetDV;
 end;
 
 function StatisticsToMaxDamage(Damage: Integer; DamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
@@ -4702,8 +4997,7 @@ begin
     Attack := Attack - Defense;
     if DamageTypes - ProtectionTypes = [] then Damage := (Damage + 1) shr 1;
     Result := DMmaxDCtoDV(Damage, Attack, Limit);
-    Limit := Limit * 100;
-    if Result > Limit then Result := Limit;
+    if Limit * 100 < Result then Result := Limit * 100;
   end
   else Result := 0;
 end;
@@ -4716,15 +5010,12 @@ var
 begin
   Data := TCombatData(Logbook.F_CombatLogbook_10);
   for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
-    { needs: typed P3 IndexOfPlayer and the P1 VisibleForPlayer/GetPlayers
-      declarations; direct procedural casts preserve their existing draft ABI. }
     if AoWHSMap.VisibleForPlayer(
       Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10, I) or
-      (TP1CombatPlayerIndex(@TCombatPlayerList.IndexOfPlayer)(
-        TCombatPlayerList(TCombatData(Logbook.F_CombatLogbook_0C).F_CombatData_38), I) <> -1) then
+      (TCombatPlayerList(TCombatData(Logbook.F_CombatLogbook_0C).F_CombatData_38).IndexOfPlayer(I) <> -1) then
     begin
       Event := TCombatEventLog.Create(nil);
-      Event.SetCombatLogbook(Integer(Logbook));
+      Event.SetCombatLogbook(Logbook);
       AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Event);
       if Execute and (I = AoWHSMap.FSeatedPlayer) and
         (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
@@ -4736,18 +5027,132 @@ end;
 
 function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensive: Boolean; DamageTypes: TDamageTypes): TDamageCA;
 var
-  Action: TP1DamageActionView;
+  Action: TDamageCA;
 begin
-  Action := TP1DamageActionView(TDamageCA.Create(nil));
-  { needs: P3 TDamageCA.Generate(Source, Target: TCombatObject;
-    Damage: Shortint; Defensive: Boolean; DamageTypes: TDamageTypes), VMT +$68. }
-  Action.Generate(Source, Target,
-    Shortint(Damage), Defensive, DamageTypes);
-  Result := TDamageCA(Action);
+  Action := TDamageCA.Create(nil);
+  Action.Generate(Source, Target, Shortint(Damage), Shortint(Defensive), DamageTypes);
+  Result := Action;
 end;
 
-procedure RetrieveDefaultDiplomaticActionMessage(A1: Integer; A2: Byte; A3: Byte);
-begin end;
+procedure RetrieveDefaultDiplomaticActionMessage(Source, Target, Other: Shortint; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
+var
+  SourceRace, TargetRace, OtherRace: string;
+  Relation: TDiplomaticRelation;
+  TextControl: TTextControl;
+  Alignment: Integer;
+begin
+  Text.Clear;
+  TextControl := AoWHSSet.FTextControl;
+  Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(Source, Target);
+  SourceRace := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Source).FPlayerRace]);
+  TargetRace := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Target).FPlayerRace]);
+  if Other > 0 then
+    OtherRace := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Other).FPlayerRace])
+  else OtherRace := '';
+  if AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(Source).FPlayerRace).GetAlignment in [alPureGood, alGood] then Alignment := 0
+  else if AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(Source).FPlayerRace).GetAlignment in [alEvil, alPureEvil] then Alignment := 2
+  else Alignment := 1;
+  case Action of
+    daDeclareWar:
+      begin
+        if Relation = drUnknown then TextControl.RetrieveText(Alignment + 151, Text)
+        else TextControl.RetrieveText(Alignment + 100, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end;
+    daOfferPeace:
+      if Reaction = darNone then
+      begin
+        if Relation = drUnknown then TextControl.RetrieveText(Alignment + 103, Text)
+        else TextControl.RetrieveText(Alignment + 154, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end
+      else if Reaction = darAccept then
+      begin
+        TextControl.RetrieveText(Alignment + 127, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end
+      else if Reaction = darReject then
+      begin
+        TextControl.RetrieveText(Alignment + 130, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end;
+    daProposeAlliance:
+      if Reaction = darNone then
+      begin
+        TextControl.RetrieveText(Alignment + 106, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end
+      else if Reaction = darAccept then
+      begin
+        TextControl.RetrieveText(Alignment + 121, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end
+      else if Reaction = darReject then
+      begin
+        TextControl.RetrieveText(Alignment + 124, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end;
+    daBreakAlliance:
+      begin
+        TextControl.RetrieveText(Alignment + 109, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end;
+    daThreatenToAttack:
+      begin
+        TextControl.RetrieveText(Alignment + 112, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end;
+    daMakeTribute:
+      if Reaction = darNone then
+      begin
+        TextControl.RetrieveText(Alignment + 118, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace]);
+      end
+      else if Reaction = darAccept then
+      begin
+        TextControl.RetrieveText(Alignment + 133, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end
+      else if Reaction = darReject then
+      begin
+        TextControl.RetrieveText(Alignment + 136, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace]);
+      end;
+    daBreakAllianceWithY:
+      if Reaction = darNone then
+      begin
+        TextControl.RetrieveText(Alignment + 160, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace, OtherRace]);
+      end
+      else if Reaction = darAccept then
+      begin
+        TextControl.RetrieveText(Alignment + 139, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace, OtherRace]);
+      end
+      else if Reaction = darReject then
+      begin
+        TextControl.RetrieveText(Alignment + 142, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace, OtherRace]);
+      end;
+    daDeclareWarToY:
+      if Reaction = darNone then
+      begin
+        TextControl.RetrieveText(Alignment + 157, Text);
+        Text.Text := Format(Text.Text, [SourceRace, TargetRace, OtherRace]);
+      end
+      else if Reaction = darAccept then
+      begin
+        TextControl.RetrieveText(Alignment + 145, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace, OtherRace]);
+      end
+      else if Reaction = darReject then
+      begin
+        TextControl.RetrieveText(Alignment + 148, Text);
+        Text.Text := Format(Text.Text, [TargetRace, SourceRace, OtherRace]);
+      end;
+  end;
+end;
+
 
 procedure MaximizeMovePointTable(var Table; const Other);
 type
@@ -4768,26 +5173,138 @@ begin
     end;
 end;
 
-procedure CreateArmyMoveTE(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
+var
+  Move: TMoveArmyTE;
+begin
+  Result := nil;
+  case Action of
+    maNormal: Move := TArmyDefaultMoveTE.Create(nil);
+    maCombine: Move := TArmyCombineMoveTE.Create(nil);
+    maAttack: Move := TArmyCombatMoveTE.Create(nil);
+    maNegotiate: Move := TArmyNegotiateMoveTE.Create(nil);
+  else Move := nil;
+  end;
+  if Move <> nil then
+    if not Move.Setup(Army, Selection, Path, Mode) then
+    begin
+      Result := nil;
+      Move.Release;
+    end
+    else Result := Move;
+end;
 
-procedure CreateArmyMoveXYLTE(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+function CreateArmyMoveXYLTE(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
+var
+  Settings: TMoveControlSettings;
+begin
+  Settings := TMoveControlSettings.Create(nil);
+  Settings.SetSourcePos(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+  Settings.FPlayer := Army.FArmy.FPlayer;
+  Settings.FArmyHS := Army;
+  Settings.FSelection := Selection;
+  Settings.SetDestinationPos(X, Y, L);
+  Army.FArmy.CreateMovePointTable(Selection, Settings.FMovePointTable);
+  AoWHSMap.FMoveControl.ProcessMove(Settings);
+  if Settings.FPath.Count <> 0 then
+    Result := CreateArmyMoveTE(Army, Selection, Settings.FPath, Action, [])
+  else Result := nil;
+  Settings.Release;
+end;
 
-procedure MoveArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function MoveArmyEx(Army: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode; Force: Boolean): Boolean;
+var
+  Pos: Integer;
+  Move: TMoveArmyTE;
+  Action: TMoveAction;
+  Moved: Boolean;
+begin
+  Moved := False;
+  if Force or not AoWHSMap.FPlayers.GetPlayers(Army.FArmy.FPlayer).GetBusy then
+    if Path.Count > 1 then
+    begin
+      Pos := Path.MovePointsToPos(Army.FArmy.MovePoints(Selection));
+      if Pos = 0 then
+        Action := TAoWMapField(AoWHSMap.MapContainer.GetField(Path[Pos].X, Path[Pos].Y, Path[Pos].L)).GetMoveAction(Army.FArmy.FPlayer)
+      else Action := maNormal;
+      if (Action = maAttack) and
+        (AoWHSMap.FPlayers.GetPlayers(Army.FArmy.FPlayer).FPlayerType = ptHuman) and
+        not AoWHSMap.VisibleForPlayer(Path[0].X, Path[0].Y, Path[0].L, Army.FArmy.FPlayer) then
+        Action := maNormal;
+      Move := CreateArmyMoveTE(Army, Selection, Path, Action, Mode);
+      if Move <> nil then
+      begin
+        AoWHSMap.FTokenManager.GetTokenControl(Army.FArmy.FPlayer).AddEvent(Move);
+        Move.Release;
+        Moved := True;
+      end;
+    end;
+  Result := Moved;
+end;
 
-procedure MoveArmy;
-begin end;
+function MoveArmy(Army: TArmyHS; Selection: Byte; Path: TMovepath): Boolean;
+begin
+  Result := MoveArmyEx(Army, Selection, Path, [mmSelectEndLocation], False);
+end;
 
-procedure MoveArmyXYL(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+function MoveArmyXYL(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Force: Boolean): Boolean;
+var
+  Settings: TMoveControlSettings;
+begin
+  Settings := TMoveControlSettings.Create(nil);
+  Settings.SetSourcePos(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+  Settings.FPlayer := Army.FArmy.FPlayer;
+  Settings.FArmyHS := Army;
+  Settings.FSelection := Selection;
+  Settings.SetDestinationPos(X, Y, L);
+  Army.FArmy.CreateMovePointTable(Selection, Settings.FMovePointTable);
+  AoWHSMap.FMoveControl.ProcessMove(Settings);
+  if Settings.FPath.Count <> 0 then
+    Result := MoveArmyEx(Army, Selection, Settings.FPath, [], Force)
+  else Result := False;
+  Settings.Release;
+end;
 
-procedure MoveArmyXYLEx(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
-begin end;
+function MoveArmyXYLEx(Player: Shortint; Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Force: Boolean): TMoveArmyTE;
+var
+  Settings: TMoveControlSettings;
+begin
+  Settings := TMoveControlSettings.Create(nil);
+  Settings.SetSourcePos(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+  Settings.FPlayer := Army.FArmy.FPlayer;
+  Settings.FArmyHS := Army;
+  Settings.FSelection := Selection;
+  Settings.SetDestinationPos(X, Y, L);
+  Army.FArmy.CreateMovePointTable(Selection, Settings.FMovePointTable);
+  AoWHSMap.FMoveControl.ProcessMove(Settings);
+  if Settings.FPath.Count <> 0 then
+  begin
+    if (Force or AoWHSMap.FTokenManager.PlayerReady(Player)) and (Settings.FPath.Count > 1) then
+    begin
+      Result := CreateArmyMoveTE(Army, Selection, Settings.FPath, Action, []);
+      if Result <> nil then
+      begin
+        AoWHSMap.FTokenManager.GetTokenControl(Player).AddEvent(Result);
+        { Original returns the token-event pointer after releasing its reference. }
+        Result.Release;
+      end
+      else Result := nil;
+    end
+    else Result := nil;
+  end
+  else Result := nil;
+  Settings.Release;
+end;
 
 function Format(const S: string; const Args: array of const): string;
-begin Result := ''; end;
+{ conflict: function Format(const Fmt: string; const Args: array of const): string; }
+begin
+  try
+    Result := SysUtils.Format(S, Args);
+  except
+    Result := S;
+  end;
+end;
 
 procedure FmtTurnsStr(A1: Integer; A2: Integer);
 begin end;

@@ -193,7 +193,7 @@ begin
   Result := 3;
 end;
 
-procedure TDurationAbility.NewDay(A1: Integer);
+procedure TDurationAbility.NewDay(A1: TAbilityOwner);
 begin
   if AoWHSMap.FDay = 1 then
     TAbilityOwner(A1).RemoveAbility(FAbilityID);
@@ -1664,8 +1664,8 @@ begin end;
 procedure TWallCrushingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin end;
 
-procedure TWallCrushingAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TWallCrushingAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 function TWallCrushingAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 begin Result := False; end;
@@ -1703,8 +1703,8 @@ begin end;
 procedure TSelfDestructAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin end;
 
-procedure TSelfDestructAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TSelfDestructAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 procedure TSelfDestructAbility.CreateSelfDestructCA(A1: Integer; A2: Integer);
 begin end;
@@ -2069,8 +2069,8 @@ begin Result := [acAction, acCombatAction]; end;
 procedure THealingAbility.SetEnabled(A1: Integer; A2: Integer);
 begin end;
 
-procedure THealingAbility.GetEnabled(A1: Integer);
-begin end;
+function THealingAbility.GetEnabled(A1: TAbilityOwner): Boolean;
+begin Result := False; end;
 
 procedure THealingAbility.NewTurn(A1: TAbilityOwner; A2: Shortint);
 begin end;
@@ -2180,8 +2180,8 @@ begin Result := [acAction, acCombatAction]; end;
 procedure TDispelMagicAbility.SetEnabled(A1: Integer; A2: Integer);
 begin end;
 
-procedure TDispelMagicAbility.GetEnabled(A1: Integer);
-begin end;
+function TDispelMagicAbility.GetEnabled(A1: TAbilityOwner): Boolean;
+begin Result := False; end;
 
 procedure TDispelMagicAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin end;
@@ -2339,8 +2339,8 @@ begin end;
 function TRangedAttackAbility.GetCombatMode(A1: TAbilityOwner): TCombatMode;
 begin Result := cmNone; end;
 
-procedure TRangedAttackAbility.GetWallCombatFeatures(A1: Integer);
-begin end;
+function TRangedAttackAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
+begin Result := []; end;
 
 procedure TRangedAttackAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin end;

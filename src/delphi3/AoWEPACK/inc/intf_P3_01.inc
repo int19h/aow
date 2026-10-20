@@ -148,7 +148,7 @@
     procedure GetTargetCVDV(A1: Integer; A2: Integer; A3: Integer); virtual;  { +04C draft }
     procedure GetTargetWallCV(A1: Integer); virtual;  { +050 draft }
     procedure TargetsChanged; virtual;  { +054 draft }
-    procedure GetTargetPriority; virtual;  { +058 draft }
+    function GetTargetPriority: Integer; virtual;  { +058 }
     function GetTargetStrength: Integer; virtual;  { +05C draft }
     function GetEnabled: Boolean; virtual;  { +060 draft }
     function GetLocked: Boolean; virtual;  { +064 draft }
@@ -160,7 +160,7 @@
     function GetImmunityTypes: TDamageTypes; virtual;  { +07C draft }
     function GetProtectionTypes: TDamageTypes; virtual;  { +080 draft }
     function GetHits: Byte; virtual;  { +084 draft }
-    function GetHitPoints: Byte; virtual;  { +088 draft }
+    function GetHitPoints: Shortint; virtual;  { +088 }
     procedure SetHitPoints(A1: Byte); virtual;  { +08C draft }
     function GetAlignment: TAlignment; virtual;  { +090 draft }
     function GetMoves: Integer; virtual;  { +094 draft }
@@ -232,7 +232,7 @@
     class function ClassID: Integer; override;
     procedure GetTargetCVDV(A1: Integer; A2: Integer; A3: Integer); override;
     procedure GetTargetWallCV(A1: Integer); override;
-    procedure GetTargetPriority; override;
+    function GetTargetPriority: Integer; override;
     function GetTargetStrength: Integer; override;
     function GetEnabled: Boolean; override;
     function GetLocked: Boolean; override;
@@ -243,7 +243,7 @@
     function GetImmunityTypes: TDamageTypes; override;
     function GetProtectionTypes: TDamageTypes; override;
     function GetHits: Byte; override;
-    function GetHitPoints: Byte; override;
+    function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Byte); override;
     function GetAlignment: TAlignment; override;
     function GetMoves: Integer; override;
@@ -300,14 +300,14 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetTargetPriority; override;
+    function GetTargetPriority: Integer; override;
     function GetTargetStrength: Integer; override;
     function GetLocked: Boolean; override;
     function GetDefense: Shortint; override;
     function GetResistance: Shortint; override;
     function GetImmunityTypes: TDamageTypes; override;
     function GetHits: Byte; override;
-    function GetHitPoints: Byte; override;
+    function GetHitPoints: Shortint; override;
     procedure SetHitPoints(A1: Byte); override;
     procedure Activate(A1: Integer); override;
     procedure Deactivate; override;

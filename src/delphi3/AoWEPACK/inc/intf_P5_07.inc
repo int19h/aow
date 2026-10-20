@@ -753,7 +753,7 @@
     procedure SetupNextMove; virtual;  { +078 draft }
     procedure CanMoveNext; virtual;  { +07C draft }
     procedure ExecuteMove; virtual;  { +080 draft }
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +084 draft }
+    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; virtual;  { +084 }
     procedure GetNoneMovingArmyHS(A1: Integer);  { draft }
     procedure ObserveMove;  { draft }
     procedure MoveVisible(A1: Integer);  { draft }
@@ -763,7 +763,7 @@
   TArmyDefaultMoveTE = class(TMoveArmyTE)
   public
     class function ClassID: Integer; override;
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; override;
   end;
 
   { TArmyNegotiateMoveTE (instance size 56, VMT 5571C72C) }
@@ -799,7 +799,7 @@
     procedure Animating; override;
     procedure CanMoveNext; override;
     procedure ExecuteMove; override;
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; override;
     procedure RequestCombatTypeCallBack(A1: Integer);  { draft }
     procedure RestoreHotseatMode(A1: Integer);  { draft }
     procedure RestoreHotSeatModeCallBack;  { draft }
@@ -960,7 +960,7 @@
     class function ClassID: Integer; override;
     procedure GetTargetCVDV(A1: Integer; A2: Integer; A3: Integer); override;
     procedure GetTargetWallCV(A1: Integer); override;
-    procedure GetTargetPriority; override;
+    function GetTargetPriority: Integer; override;
     procedure SetCombatPlayer(A1: Integer; A2: Integer); override;
     procedure Activate(A1: Integer); override;
     procedure Deactivate; override;

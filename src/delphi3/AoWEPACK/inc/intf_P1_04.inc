@@ -76,7 +76,7 @@
     procedure FindID(A1: Integer);  { draft }
     procedure Sort;  { draft }
     procedure IndexOf;  { draft }
-    procedure RetrieveText(A1: Integer; A2: Integer);  { draft }
+    procedure RetrieveText(ID: Integer; Text: TStrings);
   end;
 
   { TNewTurnEventLog (instance size 36, VMT 5570D448) }
@@ -161,7 +161,7 @@
   { TMovepath (instance size 20, VMT 5570D9F0) }
   TMovepath = class(TXYLList)
   public
-    procedure MovePointsToPos(A1: Integer);  { draft }
+    function MovePointsToPos(A1: Integer): Integer;
     procedure PosToMovePoints(A1: Integer);  { draft }
     procedure GetMovePoints;  { draft }
   end;

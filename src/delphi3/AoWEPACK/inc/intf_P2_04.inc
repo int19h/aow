@@ -77,7 +77,7 @@
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure SetArrayOwner(AOwner: Engine.TECustomNode; Index: Integer); override;
     function GetOwnerName: string; override;
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
     procedure CanUse(A1: Integer; A2: Integer); virtual;  { +09C draft }
     procedure Use(A1: Integer); virtual;  { +0A0 draft }

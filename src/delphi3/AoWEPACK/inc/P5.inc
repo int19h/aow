@@ -3495,8 +3495,8 @@ begin end;
 procedure TFastCombatUnit.GetTargetWallCV(A1: Integer);
 begin end;
 
-procedure TFastCombatUnit.GetTargetPriority;
-begin end;
+function TFastCombatUnit.GetTargetPriority: Integer;
+begin Result := 0; end;
 
 procedure TFastCombatUnit.Initialize(A1: Integer);
 begin end;
@@ -3708,7 +3708,7 @@ begin end;
 procedure TMoveControl.Deactivate;
 begin end;
 
-procedure TMoveControl.ProcessMove(A1: Integer);
+procedure TMoveControl.ProcessMove(A1: TMoveControlSettings);
 begin end;
 
 procedure TMoveControl.CanMove(A1: Integer; A2: Integer);
@@ -3810,8 +3810,8 @@ begin end;
 procedure TMoveArmyTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TMoveArmyTE.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TMoveArmyTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
+begin Result := False; end;
 
 function TMoveArmyTE.Validate: Integer;
 begin Result := 0; end;
@@ -3849,8 +3849,8 @@ begin Result := 0; end;
 class function TArmyDefaultMoveTE.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TArmyDefaultMoveTE.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TArmyDefaultMoveTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
+begin Result := False; end;
 
 class function TArmyNegotiateMoveTE.ClassID: Integer;
 begin Result := 0; end;
@@ -3882,8 +3882,8 @@ begin end;
 class function TArmyCombatMoveTE.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TArmyCombatMoveTE.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TArmyCombatMoveTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
+begin Result := False; end;
 
 procedure TArmyCombatMoveTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;

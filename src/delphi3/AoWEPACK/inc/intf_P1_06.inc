@@ -1,8 +1,8 @@
 { Interface declaration run owned by P1. }
-  { TAbilityData (instance size 12, VMT 5570F05C) }
+  { TAbilityData (instance size $0C, +$08 FNext, VMT 5570F05C) }
   TAbilityData = class(TEObject)
   public
-    F_AbilityData_08: array[0..3] of Byte;
+    FNext: TAbilityData;  { $08 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     function GetAbilityID: Integer; virtual;
   end;
@@ -41,16 +41,16 @@
     function GetName(A1: TAbilityOwner): string; virtual;
     function GetAttack(A1: TAbilityOwner): Shortint; virtual;
     function GetDefense(A1: TAbilityOwner): Shortint; virtual;
-    procedure GetResistance; virtual;  { +064 draft }
-    procedure GetDamage; virtual;  { +068 draft }
-    procedure GetMoveTypes; virtual;  { +06C draft }
+    function GetResistance(A1: TAbilityOwner): Shortint; virtual;  { +064 }
+    function GetDamage(A1: TAbilityOwner): Shortint; virtual;  { +068 }
+    function GetMoveTypes(A1: TAbilityOwner): TMoveTypes; virtual;  { +06C }
     function GetLevel(A1: TAbilityOwner): Integer; virtual;
-    procedure GetEnabled(A1: Integer); virtual;  { +074 draft }
-    procedure GetImmunityTypes; virtual;  { +078 draft }
-    procedure GetProtectionTypes; virtual;  { +07C draft }
+    function GetEnabled(A1: TAbilityOwner): Boolean; virtual;  { +074 }
+    function GetImmunityTypes(A1: TAbilityOwner): TDamageTypes; virtual;  { +078 }
+    function GetProtectionTypes(A1: TAbilityOwner): TDamageTypes; virtual;  { +07C }
     procedure GetSkillPoints(A1: Integer); virtual;  { +080 draft }
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; virtual;
-    procedure GetWallCombatFeatures(A1: Integer); virtual;  { +088 draft }
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; virtual;  { +088 }
     function GetSourceName(A1: TAbilityOwner): string; virtual;
     function GetInherent(A1: TAbilityOwner): Boolean; virtual;
     procedure GetInherentLevel(A1: Integer); virtual;  { +094 draft }
@@ -58,7 +58,7 @@
     function fcValidRoundDistance(A1, A2: TCombatObject): Boolean; virtual;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); virtual;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; virtual;
-    procedure NewDay(A1: Integer); virtual;  { +0A8 draft }
+    procedure NewDay(A1: TAbilityOwner); virtual;  { +0A8 }
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); virtual;
     procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
     procedure Activate(A1: Integer; A2: Integer); virtual;  { +0B4 draft }
@@ -80,7 +80,7 @@
     procedure CombatObjectDestroyed(A1: Integer); virtual;  { +0F4 draft }
     procedure NewCombatTurn(A1: TCombatObject; A2: Shortint); virtual;
     procedure CombatDone(A1: TCombatObject); virtual;
-    procedure ListInfo(A1: Integer; A2: Byte); virtual;  { +100 draft }
+    procedure ListInfo(A1: TStrings; A2: TAbilityInfoMode); virtual;  { +100 }
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); virtual;
     function AbilityDataClass: TEObjectClass; virtual;
     procedure ShowInfo(Owner: TAbilityOwner; Font: TImageLibraryFont; X, Y: Integer; const Surface: TSurfaceDesc);
@@ -98,7 +98,7 @@
     function GetAbSet(A1: Integer): Boolean; virtual;
     procedure SetAbSet(Index: Integer; Value: Byte); virtual;
     function GetAbCount: Integer; virtual;
-    procedure ListAbilitiesEx(A1: Integer; A2: Word); virtual;  { +058 draft }
+    procedure ListAbilitiesEx(A1: TStrings; A2: TAbilitySelectionTypes); virtual;  { +058 draft }
     procedure SetAbCount(Value: Integer);
     procedure AssignAb(Source: TCustomAbilityList);
     function CompareAb(Source: TCustomAbilityList): Boolean;
@@ -112,76 +112,75 @@
   public
   end;
 
-  { TAbilityOwner (instance size 20, VMT 5570F588) }
+  { TAbilityOwner (instance size $14, +$10 FAbilityData, VMT 5570F588) }
   TAbilityOwner = class(TCustomAbilityList)
   public
-    F_AbilityOwner_10: Integer;
+    FAbilityData: TAbilityData;  { $10 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Clear; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure SetAbSet(A1: Integer; A2: Byte); override;
-    procedure ListAbilitiesEx(A1: Integer; A2: Word); override;
-    procedure Execute; virtual;  { +05C draft }
-    function GetOwnerName: string; virtual;
-    procedure GetAbName(A1: Integer; A2: Integer); virtual;  { +064 draft }
-    procedure GetAbAttack(A1: Integer); virtual;  { +068 draft }
-    procedure GetAbDefense(A1: Integer); virtual;  { +06C draft }
-    procedure GetAbResistance(A1: Integer); virtual;  { +070 draft }
-    procedure GetAbDamage(A1: Integer); virtual;  { +074 draft }
-    procedure GetAbMoveTypes(A1: Integer); virtual;  { +078 draft }
-    procedure GetAbProtectionTypes(A1: Integer); virtual;  { +07C draft }
-    procedure GetAbImmunityTypes(A1: Integer); virtual;  { +080 draft }
-    procedure GetAbLevel(A1: Integer); virtual;  { +084 draft }
-    function GetAbEnabled(A1: Integer): Boolean; virtual;
-    procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); virtual;  { +08C draft }
-    procedure Changed; virtual;  { +090 draft }
+    procedure ListAbilitiesEx(A1: TStrings; A2: TAbilitySelectionTypes); override;
+    function Execute: Integer; virtual;  { +05C }
+    function GetOwnerName: string; virtual;  { +060 }
+    function GetAbName(AbilityID: Integer): string; virtual;  { +064 }
+    function GetAbAttack(AbilityID: Integer): Shortint; virtual;  { +068 }
+    function GetAbDefense(AbilityID: Integer): Shortint; virtual;  { +06C }
+    function GetAbResistance(AbilityID: Integer): Shortint; virtual;  { +070 }
+    function GetAbDamage(AbilityID: Integer): Shortint; virtual;  { +074 }
+    function GetAbMoveTypes(AbilityID: Integer): TMoveTypes; virtual;  { +078 }
+    function GetAbProtectionTypes(AbilityID: Integer): TDamageTypes; virtual;  { +07C }
+    function GetAbImmunityTypes(AbilityID: Integer): TDamageTypes; virtual;  { +080 }
+    function GetAbLevel(AbilityID: Integer): Integer; virtual;  { +084 }
+    function GetAbEnabled(AbilityID: Integer): Boolean; virtual;  { +088 }
+    function GetAbilitySelectionTypes: TAbilitySelectionTypes; virtual;  { +08C }
+    procedure Changed; virtual;  { +090 }
     function ExpandAbility(AbilityID: Integer): Boolean; virtual;
-    function RemoveAbility(A1: Integer): Boolean; virtual;
-    procedure ValidateOwnerTypeAbilities;  { draft }
+    function RemoveAbility(A1: Integer): Boolean; virtual;  { +098 }
+    procedure ValidateOwnerTypeAbilities;
     function GetAbilityData(AbilityID: Integer): TAbilityData;
-    procedure AssignAb(A1: Integer);  { draft }
-    procedure AddAbilityData(A1: TAbilityData);
-    procedure RemoveAbilityData(A1: TAbilityData);
-    procedure RemoveAbilityDataID(A1: Integer);  { draft }
-    procedure UpdateDefaultAbilities(A1: Integer);  { draft }
-    procedure GetAbAttackAll;  { draft }
-    procedure GetAbDefenseAll;  { draft }
-    procedure GetAbResistanceAll;  { draft }
-    procedure GetAbDamageAll;  { draft }
-    procedure GetAbMoveTypesAll;  { draft }
-    procedure GetAbWallCombatFeatures;  { draft }
-    procedure GetAbProtectionTypesAll;  { draft }
-    procedure GetAbImmunityTypesAll;  { draft }
-    procedure TriggerNewDay;  { draft }
-    procedure TriggerNewTurn(A1: Byte; A2: Integer);  { draft }
-    procedure TriggerNewCombatTurn(A1: Integer; A2: Byte);  { draft }
-    procedure TriggerCombatDone(A1: Integer);  { draft }
-    procedure ListAbilities(A1: Integer);  { draft }
+    procedure AssignAb(Source: TAbilityOwner);
+    procedure AddAbilityData(Data: TAbilityData);
+    procedure RemoveAbilityData(Data: TAbilityData);
+    procedure RemoveAbilityDataID(AbilityID: Integer);
+    procedure UpdateDefaultAbilities(Source: TAbilityOwner);
+    function GetAbAttackAll: Shortint;
+    function GetAbDefenseAll: Shortint;
+    function GetAbResistanceAll: Shortint;
+    function GetAbDamageAll: Shortint;
+    function GetAbMoveTypesAll: TMoveTypes;
+    function GetAbWallCombatFeatures: TWallCombatFeatures;
+    function GetAbProtectionTypesAll: TDamageTypes;
+    function GetAbImmunityTypesAll: TDamageTypes;
+    procedure TriggerNewDay;
+    procedure TriggerNewTurn(Player: Shortint);
+    procedure TriggerNewCombatTurn(Combat: TCombatObject; Player: Shortint);
+    procedure TriggerCombatDone(Combat: TCombatObject);
+    procedure ListAbilities(Text: TStrings);
   end;
 
   { TAbilityTypeList (instance size 16, VMT 5570F698) }
   TAbilityTypeList = class(TList)
   public
-    procedure GetAbility(A1: Integer);  { draft }
+    function GetAbility(A1: Integer): TAbility;
   end;
 
-  { TAbilityControl (instance size 32, VMT 5570F71C) }
+  { TAbilityControl (instance size $20, +$08 FAbilities, +$0C..$1C FAbilitiesByType, VMT 5570F71C) }
   TAbilityControl = class(TEObject)
   public
     FAbilities: TList;  { $08 }
-    F_AbilityControl_0C: Byte;
-    F_AbilityControl_0D: array[0..18] of Byte;
+    FAbilitiesByType: array[TAbilityType] of TAbilityTypeList;  { $0C..$1C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetCount;  { draft }
+    function GetCount: Integer;
     function GetAbility(Index: Integer): TAbility;
-    procedure RegisterAbility(A1: Integer);  { draft }
-    procedure UnregisterAbility(A1: Integer);  { draft }
-    procedure UnregisterAll;  { draft }
-    procedure UnregisterAbilityID(A1: Integer);  { draft }
-    procedure ListAbilities(A1: Integer; A2: Word);  { draft }
-    procedure ListAbilityInfo(A1: Integer; A2: Byte; A3: Integer);  { draft }
+    procedure RegisterAbility(Ability: TAbility);
+    procedure UnregisterAbility(Ability: TAbility);
+    procedure UnregisterAll;
+    procedure UnregisterAbilityID(ID: Integer);
+    procedure ListAbilities(Text: TStrings; Types: TAbilitySelectionTypes);
+    procedure ListAbilityInfo(Text: TStrings; SortByName: Boolean; Mode: TAbilityInfoMode);
   end;
 

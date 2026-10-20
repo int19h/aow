@@ -208,7 +208,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetPlayers(A1: Shortint): TCombatPlayer;  { draft }
-    function IndexOfPlayer(A1: Byte): Integer;  { draft }
+    function IndexOfPlayer(A1: Byte): Integer;
     function IndexOf(A1: Byte; A2: Byte): Integer;  { draft }
     procedure Delete(A1: Integer);  { draft }
   end;
@@ -360,7 +360,7 @@
     procedure PlayLoggedSFX(A1: Integer); override;
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
-    procedure SetCombatLogbook(A1: Integer);  { draft }
+    procedure SetCombatLogbook(Logbook: TCombatLogbook);
   end;
 
   { TCombatTypeRequestEventLog (instance size $2C, VMT 557172EC):

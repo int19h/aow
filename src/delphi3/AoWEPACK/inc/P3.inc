@@ -185,7 +185,7 @@ var
 begin
   inherited NewTurn(A1);
   U := FUnit;
-  if U <> nil then U.TriggerNewCombatTurn(Integer(Self), A1);
+  if U <> nil then U.TriggerNewCombatTurn(Self, A1);
 end;
 
 procedure TCombatUnit.NewRound;
@@ -197,7 +197,7 @@ var
 begin
   inherited CombatDone;
   U := FUnit;
-  if U <> nil then U.TriggerCombatDone(Integer(Self));
+  if U <> nil then U.TriggerCombatDone(Self);
 end;
 
 function TCombatUnit.GetEnabled: Boolean;
@@ -284,7 +284,7 @@ begin
   if U <> nil then Result := U.Hits else Result := 0;
 end;
 
-function TCombatUnit.GetHitPoints: Byte;
+function TCombatUnit.GetHitPoints: Shortint;
 var U: TP3AbstractUnitAccess;
 begin
   U := TP3AbstractUnitAccess(FUnit);
@@ -370,8 +370,8 @@ begin end;
 procedure TCombatUnit.Surrender;
 begin end;
 
-procedure TCombatUnit.GetTargetPriority;
-begin end;
+function TCombatUnit.GetTargetPriority: Integer;
+begin Result := 0; end;
 
 function TCombatUnit.GetTargetStrength: Integer;
 begin Result := 0; end;
@@ -404,8 +404,8 @@ begin inherited Destroy; end;
 class function TCombatWall.ClassID: Integer;
 begin Result := $202AF; end;
 
-procedure TCombatWall.GetTargetPriority;
-begin end;
+function TCombatWall.GetTargetPriority: Integer;
+begin Result := 0; end;
 
 function TCombatWall.GetTargetStrength: Integer;
 begin
@@ -458,7 +458,7 @@ begin Result := 'Wall'; end;
 function TCombatWall.GetHits: Byte;
 begin if FWallType = 2 then Result := 10 else Result := 5; end;
 
-function TCombatWall.GetHitPoints: Byte;
+function TCombatWall.GetHitPoints: Shortint;
 begin Result := FHitPoints; end;
 
 function TCombatWall.GetImmunityTypes: TDamageTypes;
@@ -549,8 +549,8 @@ begin end;
 procedure TCombatObject.GetTargetWallCV(A1: Integer);
 begin end;
 
-procedure TCombatObject.GetTargetPriority;
-begin end;
+function TCombatObject.GetTargetPriority: Integer;
+begin Result := 0; end;
 
 function TCombatObject.GetTargetStrength: Integer;
 var I: Integer;
@@ -686,7 +686,7 @@ begin Result := 0; end;
 procedure TCombatObject.SetHitPoints(A1: Byte);
 begin end;
 
-function TCombatObject.GetHitPoints: Byte;
+function TCombatObject.GetHitPoints: Shortint;
 begin Result := 0; end;
 
 function TCombatObject.GetExperience: Integer;
@@ -1468,14 +1468,14 @@ end;
 class function TCombatEventLog.ClassID: Integer;
 begin Result := $202E2; end;
 
-procedure TCombatEventLog.SetCombatLogbook(A1: Integer);
+procedure TCombatEventLog.SetCombatLogbook(Logbook: TCombatLogbook);
 var Old: TCombatLogbook;
 begin
   Old := F_CombatEventLog_18;
-  if A1 <> Integer(Old) then
+  if Logbook <> Old then
   begin
     if Old <> nil then Old.Release;
-    F_CombatEventLog_18 := TCombatLogbook(A1);
+    F_CombatEventLog_18 := Logbook;
     if F_CombatEventLog_18 <> nil then F_CombatEventLog_18.AddRef;
   end;
 end;

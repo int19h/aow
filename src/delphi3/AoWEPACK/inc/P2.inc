@@ -624,7 +624,7 @@ begin
     ObtainValue := 0;
 end;
 
-procedure TAbstractUnit.GetAbilitySelectionTypes(A1: Word; A2: Integer);
+function TAbstractUnit.GetAbilitySelectionTypes: TAbilitySelectionTypes;
 const
   SelectionTypes: TAbilitySelectionTypes = [astUnit];
 asm
@@ -2481,7 +2481,7 @@ begin
   FExperience := Value;
   if GetRank <> OldRank then
     for Rank := Succ(OldRank) to GetRank do
-      UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+      UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
   Changed;
 end;
 
@@ -2596,7 +2596,7 @@ begin
     begin
       UpdateMoraleValue;
       for Rank := urNone to GetRank do
-        UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+        UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
       FHitPoints := GetHits;
       FMovePoints := GetMoves;
     end;
@@ -2627,7 +2627,7 @@ begin
   begin
     SetAbCount(0);
     for Rank := urNone to GetRank do
-      UpdateDefaultAbilities(TP2RankAbilityFields(FUnitResource).Abilities[Rank]);
+      UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
   end;
 end;
 
@@ -3400,8 +3400,8 @@ begin Result := ''; end;
 procedure TAbstractUnitResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TUnitResourceAbilityOwner.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+function TUnitResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+begin Result := []; end;
 
 constructor TUnitResource.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3676,8 +3676,8 @@ begin end;
 procedure THero.SetNickname(A1: Integer; A2: Integer);
 begin end;
 
-procedure THero.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+function THero.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+begin Result := []; end;
 
 function THero.GetEngine: Engine.TEngine;
 begin FillChar(Result, SizeOf(Result), 0); end;
@@ -4048,8 +4048,8 @@ begin Result := 0; end;
 function THeroUpdateTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure THeroResourceAbilityOwner.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+function THeroResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+begin Result := []; end;
 
 constructor THeroResource.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -4570,8 +4570,8 @@ begin end;
 function TArmy.ObtainValue(Player: Shortint): Integer;
 begin end;
 
-procedure TArmy.MovePoints(A1: Integer);
-begin end;
+function TArmy.MovePoints(A1: Byte): Shortint;
+begin Result := 0; end;
 
 procedure TArmy.Moves(A1: Integer);
 begin end;
@@ -5020,8 +5020,8 @@ begin end;
 function TItem.GetOwnerName: string;
 begin Result := ''; end;
 
-procedure TItem.GetAbilitySelectionTypes(A1: Word; A2: Integer);
-begin end;
+function TItem.GetAbilitySelectionTypes: TAbilitySelectionTypes;
+begin Result := []; end;
 
 procedure TItem.SetItemGFXIndex(A1: Integer);
 begin end;
@@ -5341,8 +5341,8 @@ begin end;
 procedure TAoWEngine.ExportTextToFile(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAoWEngine.TranslateRStr(A1: Integer; A2: Integer);
-begin end;
+function TAoWEngine.TranslateRStr(const S: string): string;
+begin Result := ''; end;
 
 function TAoWEngine.TranslateText(const Text: string): string;
 begin Result := ''; end;

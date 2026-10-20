@@ -114,7 +114,7 @@ begin
   AbilitiesMemo.Lines.Clear;
   AlignmentPnl.Caption := FormatABI(TranslateABI(AlignmentXRStr),
     [TranslateABI(AlignmentNames[TUnitView(AUnit).GetAlignment])]);
-  AUnit.ListAbilities(Integer(AbilitiesMemo.Lines));
+  AUnit.ListAbilities(AbilitiesMemo.Lines);
   MovesLbl.Caption := IntToStr(TUnitView(AUnit).GetMoves);
   Result := ShowModal;
 end;
@@ -131,7 +131,7 @@ begin
   AbilitiesMemo.Lines.Clear;
   AlignmentPnl.Caption := FormatABI(TranslateABI(AlignmentXRStr),
     [TranslateABI(AlignmentNames[TAlignment(PUnitResourceView(Resource)^.Alignment)])]);
-  PUnitResourceView(Resource)^.AbilityOwner.ListAbilities(Integer(AbilitiesMemo.Lines));
+  PUnitResourceView(Resource)^.AbilityOwner.ListAbilities(AbilitiesMemo.Lines);
   Result := ShowModal;
 end;
 

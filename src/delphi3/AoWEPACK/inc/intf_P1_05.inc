@@ -246,7 +246,7 @@
     F_AoWHSMap_17C: Integer;
     F_AoWHSMap_180: Byte;
     F_AoWHSMap_181: array[0..2] of Byte;
-    F_AoWHSMap_184: Integer;
+    FMoveControl: TMoveControl;  { $184 }
     FPlayerControl: TPlayerControl;  { $188 }
     F_AoWHSMap_18C: Integer;
     F_AoWHSMap_190: array[0..0] of Byte;
@@ -299,6 +299,7 @@
     F_AoWHSMap_239: Byte;
     F_AoWHSMap_23A: array[0..1] of Byte;
     FTokenManager: TTokenManager; { $23C }
+    { conflict: FTokenManager: TAoWTokenManager; }
     F_AoWHSMap_240: Integer;
     F_AoWHSMap_244: Integer;
     F_AoWHSMap_248: Byte;

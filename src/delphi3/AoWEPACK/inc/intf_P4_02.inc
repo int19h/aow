@@ -41,7 +41,7 @@
     FDurationPadding: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetName(A1: TAbilityOwner): string; override;
-    procedure NewDay(A1: Integer); override;
+    procedure NewDay(A1: TAbilityOwner); override;
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); override;
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
@@ -183,7 +183,7 @@
     F_RangedAttackAbility_2E: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
     function GetControlType: TAbilityControlType; override;
     function fcValidRoundDistance(A1, A2: TCombatObject): Boolean; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
@@ -552,7 +552,7 @@
   TSelfDestructAbility = class(TTouchAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     function GetDamageValue(A1, A2: TAbstractUnit): Integer; override;
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
@@ -568,7 +568,7 @@
   TWallCrushingAbility = class(TTouchAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetWallCombatFeatures(A1: Integer); override;
+    function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     function GetDamageValue(A1, A2: TAbstractUnit): Integer; override;
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
@@ -625,7 +625,7 @@
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetName(A1: TAbilityOwner): string; override;
-    procedure GetEnabled(A1: Integer); override;
+    function GetEnabled(A1: TAbilityOwner): Boolean; override;
     function GetControlType: TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
@@ -703,7 +703,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetName(A1: TAbilityOwner): string; override;
     function GetLevel(A1: TAbilityOwner): Integer; override;
-    procedure GetEnabled(A1: Integer); override;
+    function GetEnabled(A1: TAbilityOwner): Boolean; override;
     procedure GetSkillPoints(A1: Integer); override;
     function GetControlType: TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
