@@ -44,6 +44,7 @@ local variable order, loop shape.
 | ImgLComp (image grids and panels), EResGrid (resource grid) | 112 | 108 |
 | Gfxepack.dpl: GFXE (surfaces, blitters, DirectDraw, blend tables), GFXDiag (`src/delphi3/Gfxepack/`) | 262 | 252 |
 | aowDPlay.dpl: aowDPlayComp (DirectPlay component), DPlay, DPLobby; VideoP.dpl: Video, VFW | 74 | 74 |
+| Dcpack.dpl: DisplayC (windowed and full-screen DirectDraw display controllers, frame thread), TWindows08DIBSurface | 174 | 169 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
@@ -192,6 +193,19 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
   branch gets a jump table entry to the end of the statement.
 - `@S[1]` on a global string calls UniqueString; `Char + Char` builds short string temporaries.
 - Under `Q+`, `Inc(X)` gives `add [mem],1 / jno`.
+
+- `while Target - T > 0` compiles with the test only at the bottom; `D := Target - T; while D > 0
+  do ... D := Target - T` gives a test at the top and the bottom.
+- The order in which parameters move into registers at entry follows their uses.
+- A local that the optimizer removes still takes a callee-saved register (`D := GetDisplay;
+  D.ShowError(...)`).
+- A typecast of Self (`TX(Self).F`, `with TX(Self)`) gets its own register, so cracker classes
+  change the code: the original reached protected fields directly.
+- An `out` interface argument is cleared by the caller before the call, a `var` one is not, so the
+  call sites tell which one the declaration used.
+- A field used twice in a condition that contains a call goes into a callee-saved register.
+- Consecutive managed locals of one type are finalized together with one `FinalizeArray` or
+  `LStrArrayClr`.
 
 ## Compiler switches (sweep, 2026-10-19)
 

@@ -218,7 +218,7 @@ type
     function EnumAttachedSurfaces(lpContext: Pointer; lpEnumSurfacesCallback: Pointer): HResult; stdcall;
     function EnumOverlayZOrders(dwFlags: DWORD; lpContext: Pointer; lpfnCallback: Pointer): HResult; stdcall;
     function Flip(lpDDSurfaceTargetOverride: IDirectDrawSurface; dwFlags: DWORD): HResult; stdcall;
-    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; out lplpDDAttachedSurface: IDirectDrawSurface): HResult; stdcall;
+    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; var lplpDDAttachedSurface: IDirectDrawSurface): HResult; stdcall;
     function GetBltStatus(dwFlags: DWORD): HResult; stdcall;
     function GetCaps(var lpDDSCaps: TDDSCaps): HResult; stdcall;
     function GetClipper(out lplpDDClipper: IDirectDrawClipper): HResult; stdcall;
@@ -254,7 +254,7 @@ type
     function EnumAttachedSurfaces(lpContext: Pointer; lpEnumSurfacesCallback: Pointer): HResult; stdcall;
     function EnumOverlayZOrders(dwFlags: DWORD; lpContext: Pointer; lpfnCallback: Pointer): HResult; stdcall;
     function Flip(lpDDSurfaceTargetOverride: IDirectDrawSurface2; dwFlags: DWORD): HResult; stdcall;
-    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; out lplpDDAttachedSurface: IDirectDrawSurface2): HResult; stdcall;
+    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; var lplpDDAttachedSurface: IDirectDrawSurface2): HResult; stdcall;
     function GetBltStatus(dwFlags: DWORD): HResult; stdcall;
     function GetCaps(var lpDDSCaps: TDDSCaps): HResult; stdcall;
     function GetClipper(out lplpDDClipper: IDirectDrawClipper): HResult; stdcall;
@@ -293,7 +293,7 @@ type
     function EnumAttachedSurfaces(lpContext: Pointer; lpEnumSurfacesCallback: Pointer): HResult; stdcall;
     function EnumOverlayZOrders(dwFlags: DWORD; lpContext: Pointer; lpfnCallback: Pointer): HResult; stdcall;
     function Flip(lpDDSurfaceTargetOverride: IDirectDrawSurface3; dwFlags: DWORD): HResult; stdcall;
-    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; out lplpDDAttachedSurface: IDirectDrawSurface3): HResult; stdcall;
+    function GetAttachedSurface(var lpDDSCaps: TDDSCaps; var lplpDDAttachedSurface: IDirectDrawSurface3): HResult; stdcall;
     function GetBltStatus(dwFlags: DWORD): HResult; stdcall;
     function GetCaps(var lpDDSCaps: TDDSCaps): HResult; stdcall;
     function GetClipper(out lplpDDClipper: IDirectDrawClipper): HResult; stdcall;
@@ -616,7 +616,7 @@ type
     FPixelFormatID, +$10 FWidth, +$14 FHeight, +$18 FSurface, +$1C FCreationFlags, +$1D FStatus,
     +$20 FLockCount, +$24 FLockExCount, +$28 FSurfaceDesc (the description of the lock). }
   TDDrawSurface = class(TSurface)
-  private
+  protected
     FOnSurfaceLost: TNotifyEvent;
     FPixelFormatID: Integer;
     FWidth: Integer;

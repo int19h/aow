@@ -1,0 +1,13 @@
+{
+ "FUN_55106064": "TWindows08DIBSurface.Create",
+ "TWindows08DIBSurface.Destroy": "TWindows08DIBSurface.Destroy",
+ "TWindows08DIBSurface.vmt08": "TWindows08DIBSurface.GetWidth",
+ "TWindows08DIBSurface.vmt0C": "TWindows08DIBSurface.GetHeight",
+ "TWindows08DIBSurface.vmt28": "TWindows08DIBSurface.BltStretch",
+ "TWindows08DIBSurface.vmt24": "TWindows08DIBSurface.BltDC",
+ "TWindows08DIBSurface.vmt2C": "TWindows08DIBSurface.Lock",
+ "TWindows08DIBSurface.vmt30": "TWindows08DIBSurface.Unlock",
+ "TWindows08DIBSurface.vmt3C": "TWindows08DIBSurface.UpdatePalette",
+ "TWindows08DIBSurface.vmt44": "TWindows08DIBSurface.Cls",
+ "TWindows08DIBSurface.vmt40": "TWindows08DIBSurface.Resize"
+}
