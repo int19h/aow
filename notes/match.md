@@ -49,6 +49,7 @@ local variable order, loop shape.
 | Ilpack.dpl: ImageLib, HashTabU, the editors ILSpin, PerfDlg, ILEdGrid, ImgSetEd, SImgSEd, SubImgEd, ILEdForm (`src/delphi3/Ilpack/`) | 709 | 684 |
 | Network.dpl: NetworkE | 148 | 148 |
 | SoundP.dpl: Sound, GalSndS, SFXEdDlg, Galaxy, DSound | 176 | 176 |
+| aowInt.dpl: the 29 UI control units (`src/delphi3/aowInt/`) | 409 | 383 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
