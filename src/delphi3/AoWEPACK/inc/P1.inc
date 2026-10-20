@@ -9276,14 +9276,14 @@ begin end;
 procedure TMoveSelector.Unselect;
 begin end;
 
-procedure TMoveSelector.ValidateSelection(A1: Integer);
-begin end;
+function TMoveSelector.ValidateSelection(Field: TAoWMapField): Boolean;
+begin Result := False; end;
 
 procedure TMoveSelector.ExecuteMove;
 begin end;
 
-procedure TMoveSelector.AddMoveObject(A1: Integer);
-begin end;
+function TMoveSelector.AddMoveObject(Obj: THexagonSprite): Integer;
+begin Result := 0; end;
 
 procedure TMoveSelector.DeleteMoveObject(A1: Integer);
 begin end;
@@ -9297,22 +9297,22 @@ begin end;
 procedure TMoveSelector.MouseMoveEvent;
 begin end;
 
-procedure TMoveSelector.CalculateMovePath(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
+procedure TMoveSelector.CalculateMovePath(Index: Integer; X, Y, L: Shortint);
 begin end;
 
-procedure TMoveSelector.SelectPath(A1: Byte; A2: Integer; A3: Integer);
+procedure TMoveSelector.SelectPath(X, Y, L: Shortint);
 begin end;
 
-procedure TMoveSelector.MouseDownEvent(A1: Integer);
+procedure TMoveSelector.MouseDownEvent(Sender: TObject);
 begin end;
 
-procedure TMoveSelector.Activate(A1: Integer);
+procedure TMoveSelector.Activate(Map: TAoWHSMap);
 begin end;
 
 procedure TMoveSelector.Deactivate;
 begin end;
 
-procedure TMoveSelector.ShowMovePaths(A1: Integer);
+procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc);
 begin end;
 
 constructor TTextControlItem.Create(AOwner: Engine.TECustomNode);

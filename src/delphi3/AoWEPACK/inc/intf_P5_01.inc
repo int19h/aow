@@ -54,7 +54,7 @@
     FArmyHS: TArmyHS;  { $9C }
     FSelection: Integer;  { $A0 }
     F_MoveControlSettings_A4: array[0..3] of Byte;
-    FUnits: TUnitList; { $A8 }
+    FUnits: TUnitUserList; { $A8; AddUnitsEx at 557929AD }
     FMovePointTable: TMovePointTable;  { $AC }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

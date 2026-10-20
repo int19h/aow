@@ -7769,8 +7769,8 @@ begin Result := 0; end;
 function TArmy.SelectionCount(Selection: Byte): Integer;
 begin Result := 0; end;
 
-procedure TArmy.ValidateMoveSelection(A1: Integer; A2: Integer);
-begin end;
+function TArmy.ValidateMoveSelection(Selection: Byte): Byte;
+begin Result := 0; end;
 
 procedure TArmy.Select;
 begin end;
@@ -7805,11 +7805,11 @@ begin Result := 0; end;
 function TArmy.MovePoints(A1: Byte): Shortint;
 begin Result := 0; end;
 
-procedure TArmy.Moves(A1: Integer);
-begin end;
+function TArmy.Moves(Selection: Byte): Shortint;
+begin Result := 0; end;
 
-procedure TArmy.MoveTypes(A1: Integer; A2: Integer);
-begin end;
+function TArmy.MoveTypes(Selection: Byte): TMoveTypes;
+begin Result := []; end;
 
 procedure TArmy.GetPartyMoves(A1: Byte);
 begin end;
@@ -8089,247 +8089,1093 @@ function TArmyHS.GetMoveSteps: Integer;
 begin Result := 0; end;
 
 function TArmyHSList.GetArmyHS(Index: Integer): TArmyHS;
-begin Result := nil; end;
+begin
+  Result := TArmyHS(FChildren.List^[Index]);
+end;
+
+resourcestring
+  SelectRoadConstructionPathRStr = 'Select road construction path';
+  ArmyNotEnoughMovePointsRStr = 'Not enough move points';
+  ArmyRoadConstructionCostRStr = 'Constructing road will cost %s gold';
+  ArmyNotAtWarRStr = 'Not at war with the %s';
 
 constructor TSelectedArmy.Create;
-begin end;
+begin
+  inherited Create;
+  FSelectedUnitGFX := TIntegerList.Create;
+end;
 
 destructor TSelectedArmy.Destroy;
-begin end;
+begin
+  ResetSelectedUnitGFX;
+  FSelectedUnitGFX.Free;
+  inherited Destroy;
+end;
 
 procedure TSelectedArmy.SetCurrentMove(A1: Integer);
-begin end;
+begin
+  if (FCurrentMove <> -1) and (GetArmyHS <> nil) then
+    AoWHSMap.Selection.Unselect(GetArmyHS);
+  FCurrentMove := A1;
+  if (FCurrentMove <> -1) and (GetArmyHS <> nil) then
+    AoWHSMap.Selection.Select(GetArmyHS);
+  UpdateSelectedUnitGFX;
+end;
 
-procedure TSelectedArmy.AddMoveArmy(A1: Integer; A2: Integer);
-begin end;
+function TSelectedArmy.AddMoveArmy(ArmyHS: TArmyHS; Selection: Byte): Integer;
+var Index: Integer;
+begin
+  Index := AddMoveObject(ArmyHS);
+  FMoveSettingsList.GetMoveSettings(Index).FSelection := Selection;
+  FMoveSettingsList.GetMoveSettings(Index).FMovePoints := ArmyHS.FArmy.MovePoints(Selection);
+  FMoveSettingsList.GetMoveSettings(Index).FMoves := ArmyHS.FArmy.Moves(Selection);
+  Result := Index;
+end;
 
 function TSelectedArmy.GetArmyHS: TArmyHS;
-begin Result := nil; end;
+begin
+  if FCurrentMove <> -1 then
+    Result := TArmyHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject)
+  else Result := nil;
+end;
 
 function TSelectedArmy.GetSelection: Byte;
-begin Result := 0; end;
+begin
+  if FCurrentMove <> -1 then
+    Result := FMoveSettingsList.GetMoveSettings(FCurrentMove).FSelection
+  else Result := 0;
+end;
 
-procedure TSelectedArmy.SetSelection(A1: Integer);
-begin end;
+procedure TSelectedArmy.SetSelection(Selection: Byte);
+var Points, Moves: Integer;
+begin
+  if FCurrentMove <> -1 then
+  begin
+    Selection := GetArmyHS.FArmy.ValidateMoveSelection(Selection);
+    if FMode = samBuildRoads then
+      Selection := Selection or (1 shl GetArmyHS.FArmy.IndexOfID(FRoadBuilderID));
+    if Selection <> 0 then
+    begin
+      FMoveSettingsList.GetMoveSettings(FCurrentMove).FSelection := Selection;
+      Points := GetArmyHS.FArmy.MovePoints(Selection);
+      FMoveSettingsList.GetMoveSettings(FCurrentMove).FMovePoints := Points;
+      Moves := GetArmyHS.FArmy.Moves(Selection);
+      FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoves := Moves;
+    end;
+    Update;
+  end;
+end;
 
-procedure TSelectedArmy.GetMoveTypes;
-begin end;
+function TSelectedArmy.GetMoveTypes: TMoveTypes;
+begin
+  if FCurrentMove <> -1 then
+    Result := TArmyHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject).FArmy.MoveTypes(
+      FMoveSettingsList.GetMoveSettings(FCurrentMove).FSelection)
+  else Result := [];
+end;
 
-procedure TSelectedArmy.ShowMovePaths(A1: Integer);
-begin end;
+procedure TSelectedArmy.ShowMovePaths(const Surface: TSurfaceDesc);
+begin
+  if Self = AoWHSMap.Mouse.Capture then inherited ShowMovePaths(Surface);
+end;
 
 procedure TSelectedArmy.ResetSelectedUnitGFX;
-begin end;
+var I: Integer;
+begin
+  for I := FSelectedUnitGFX.Count - 1 downto 0 do
+  begin
+    AoWHSSet.FUnitGFXResources.GetUnitGFXResource(FSelectedUnitGFX[I]).Release;
+    FSelectedUnitGFX.Delete(I);
+  end;
+end;
 
-procedure TSelectedArmy.UpdateSelectedUnitGFX(A1: Integer; A2: Integer);
-begin end;
+procedure TSelectedArmy.UpdateSelectedUnitGFX;
+var I, Index: Integer; List: TIntegerList;
+begin
+  List := TIntegerList.Create;
+  if GetArmyHS <> nil then
+    for I := 0 to GetArmyHS.FArmy.Count - 1 do
+    begin
+      Index := GetArmyHS.FArmy.GetUnit(I).GetUnitGFXResourceIndex;
+      List.Add(Index);
+      AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Index).AddRef;
+    end;
+  ResetSelectedUnitGFX;
+  FSelectedUnitGFX.Assign(List);
+  List.Free;
+end;
 
 procedure TSelectedArmy.OnDestroyArmy(Sender: TObject);
-begin end;
+var Index: Integer;
+begin
+  if mssActivated in FStatus then
+    if TArmy(Sender) <> nil then
+    begin
+      Index := FMoveSettingsList.IndexOfMoveObject(TArmy(Sender).GetArmyHS);
+      if Index <> -1 then DeleteMoveObject(Index);
+    end
+    else Deactivate;
+end;
 
 procedure TSelectedArmy.RectangleSelectEvent(Sender: TObject);
-begin end;
+var
+  X1, Y1, X2, Y2, Xhp, Yhp: Integer;
+  X, Y: Integer;
+  Armies: TArmyHSList;
+  I: Integer;
+  R: TRect;
+  Level: TMapLevel;
+  ArmyHS: TArmyHS;
+begin
+  Armies := TArmyHSList.Create(nil);
+  R := TAbstractAoWHSMapMouse(Sender).FSelectionRectangle;
+  Level := AoWHSMap.MapContainer.GetMapLevel(AoWHSMap.ViewL);
+  HPtoHX(R.Left, R.Top, X1, Y1);
+  HPtoHX(R.Right, R.Bottom, X2, Y2);
+  for X := X1 - 1 to X2 + 1 do
+    for Y := Y1 - 1 to Y2 + 1 do
+    begin
+      HXtoHP(X, Y, Xhp, Yhp);
+      Inc(Xhp, 16);
+      Inc(Yhp, 16);
+      if (X >= 0) and (X < Level.Width) and (Y > 0) and (Y < Level.Height) and
+        (Xhp >= R.Left) and (Xhp < R.Right) and
+        (Yhp >= R.Top) and (Yhp < R.Bottom) then
+      begin
+        ArmyHS := TAoWMapField(Level.GetField(X, Y)).GetArmyHS;
+        if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+          Armies.AddChild(ArmyHS);
+      end;
+    end;
+  if Armies.Count <> 0 then
+  begin
+    Clear;
+    AoWHSMap.Selection.UnselectLocation;
+    for I := 0 to Armies.Count - 1 do
+    begin
+      AddMoveArmy(Armies.GetArmyHS(I), $FF);
+      AoWHSMap.Selection.SelectLocationHS(Armies.GetArmyHS(I));
+    end;
+    if Armies.Count = 1 then SetCurrentMove(0)
+    else SetCurrentMove(-1);
+    Update;
+  end;
+  Armies.Free;
+end;
 
-procedure TSelectedArmy.ValidMultiMoveSelection(A1: Integer);
-begin end;
+function TSelectedArmy.ValidMultiMoveSelection(Field: TAoWMapField): Boolean;
+var Player: Shortint; Valid: Boolean; ArmyHS: TArmyHS;
+begin
+  Player := Field.GetPlayer;
+  Valid := (Player = -1) or (Player = AoWHSMap.FSeatedPlayer);
+  ArmyHS := Field.GetArmyHS;
+  if ArmyHS <> nil then Valid := Valid and (ArmyHS.FArmy.Transporter($FF) = nil);
+  Valid := Valid and (FMode <> samBuildRoads);
+  Result := Valid;
+end;
 
-procedure TSelectedArmy.ValidateSelection(A1: Integer);
-begin end;
+function TSelectedArmy.ValidateSelection(Field: TAoWMapField): Boolean;
+begin
+  if FMoveSettingsList.Count > 1 then Result := ValidMultiMoveSelection(Field)
+  else Result := inherited ValidateSelection(Field);
+  if FMode = samBuildRoads then
+    if (Field.GetPlayer <> -1) and
+      (Field.GetPlayer <> GetArmyHS.FArmy.FPlayer) then Result := False;
+end;
 
-procedure TSelectedArmy.CalculateMovePath(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+procedure TSelectedArmy.CalculateMovePath(Index: Integer; X, Y, L: Shortint);
+var
+  Settings: TMoveSettings;
+  ArmyHS: TArmyHS;
+begin
+  if X <> -1 then
+  begin
+    Settings := FMoveSettingsList.GetMoveSettings(Index);
+    ArmyHS := TArmyHS(Settings.FMoveObject);
+    Settings.FPathMovePoints := 0;
+    FMoveControlSettings.Reset;
+    FMoveControlSettings.SetSourcePos(ArmyHS.GetXhx, ArmyHS.GetYhx, ArmyHS.GetLhx);
+    FMoveControlSettings.FPlayer := ArmyHS.FArmy.FPlayer;
+    FMoveControlSettings.FArmyHS := ArmyHS;
+    FMoveControlSettings.SetDestinationPos(X, Y, L);
+    FMoveControlSettings.FUnits.AddUnitsEx(ArmyHS.FArmy, Settings.FSelection);
+    if AoWHSMap.FExplorationEnabled then
+      FMoveControlSettings.FMode := FMoveControlSettings.FMode + [mmExploredTerrainOnly];
+    ArmyHS.FArmy.CreateMovePointTable(Settings.FSelection, FMoveControlSettings.FMovePointTable);
+    AoWHSMap.FMoveControl.ProcessMove(FMoveControlSettings);
+    if FMoveControlSettings.FPath.Count <> 0 then
+    begin
+      Settings.FPath.Assign(FMoveControlSettings.FPath);
+      Settings.FPathMovePoints := Settings.FPath.PosToMovePoints(0);
+      ArmyHS.FArmy.SetDestinationPos(Settings.FPath[0].X, Settings.FPath[0].Y, Settings.FPath[0].L);
+      FMoveControlSettings.FPath.Clear;
+      if FMode = samBuildRoads then
+        if Settings.FMovePoints < Settings.FPathMovePoints then
+        begin
+          Settings.FPath.Clear;
+          AoWHSMap.ShowMessage(TranslateRStr(ArmyNotEnoughMovePointsRStr));
+        end
+        else if Settings.FPath.Count <> 0 then
+          AoWHSMap.ShowMessage(Format(TranslateRStr(ArmyRoadConstructionCostRStr),
+            [IntToStr(RoadConstructionCost(GetArmyHS.FArmy.FPlayer, Settings.FPath, Settings.FMovePoints))]));
+    end
+    else
+    begin
+      FMoveSettingsList.GetMoveSettings(Index).FPath.Clear;
+      ArmyHS.FArmy.ResetDestinationPos;
+    end;
+  end;
+end;
 
-procedure TSelectedArmy.SelectPath(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+procedure TSelectedArmy.SelectPath(X, Y, L: Shortint);
+var
+  Valid: Boolean;
+  I: Integer;
+  Settings: TMoveSettings;
+begin
+  if (GetArmyHS <> nil) and (GetArmyHS.GetXhx = AoWHSMap.Mouse.Xhx) and
+    (GetArmyHS.GetYhx = AoWHSMap.Mouse.Yhx) and
+    (GetArmyHS.GetLhx = AoWHSMap.ViewL) then
+    AoWHSMap.Selection.SelectLocationHX(GetArmyHS.GetXhx, GetArmyHS.GetYhx, GetArmyHS.GetLhx)
+  else if (FMoveSettingsList.Count > 1) and (FCurrentMove = -1) then
+  begin
+    Valid := True;
+    I := FMoveSettingsList.Count;
+    while Valid and (I <> 0) do
+    begin
+      Dec(I);
+      Settings := FMoveSettingsList.GetMoveSettings(I);
+      with Settings do
+        Valid := (FPath.Count <> 0) and (FPath[0].X = X) and
+          (FPath[0].Y = Y) and (FPath[0].L = L);
+    end;
+    if not Valid then
+    begin
+      if ValidateSelection(TAoWMapField(FMap.MapContainer.GetField(X, Y, L))) then
+        for I := 0 to FMoveSettingsList.Count - 1 do
+          CalculateMovePath(I, X, Y, L)
+      else
+        for I := 0 to FMoveSettingsList.Count - 1 do
+          FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
+    end
+    else ExecuteMove;
+  end
+  else inherited SelectPath(X, Y, L);
+end;
 
 procedure TSelectedArmy.Unselect;
-begin end;
+begin
+  inherited Unselect;
+  Select(nil);
+end;
 
-procedure TSelectedArmy.MouseDownEvent(A1: Integer);
-begin end;
+procedure TSelectedArmy.MouseDownEvent(Sender: TObject);
+var
+  ArmyHS: TArmyHS;
+  Index: Integer;
+begin
+  if not FIgnoreMouseDown then
+    if ssShift in AoWHSMap.Mouse.Shift then
+    begin
+      if (FMoveSettingsList.Count = 1) and
+        (FMoveSettingsList.GetMoveSettings(0).FPath.Count <> 0) then
+        if not ValidMultiMoveSelection(TAoWMapField(FMap.MapContainer.GetField(
+          FMoveSettingsList.GetMoveSettings(0).FPath[0].X,
+          FMoveSettingsList.GetMoveSettings(0).FPath[0].Y,
+          FMoveSettingsList.GetMoveSettings(0).FPath[0].L))) then Exit;
+      if AoWHSMap.Mouse.Xhx <> -1 then
+      begin
+        ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(AoWHSMap.Mouse.Xhx,
+          AoWHSMap.Mouse.Yhx, AoWHSMap.ViewL).FindOwnedChild($20217));
+        if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+        begin
+          Index := FMoveSettingsList.IndexOfMoveObject(ArmyHS);
+          if Index = -1 then
+          begin
+            AddMoveArmy(ArmyHS, $FF);
+            Update;
+            AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+            SetCurrentMove(-1);
+          end
+          else
+          begin
+            ArmyHS.Unselect;
+            DeleteMoveObject(Index);
+            if FMoveSettingsList.Count = 1 then SetCurrentMove(0);
+          end;
+        end;
+      end;
+    end
+    else if ssCtrl in AoWHSMap.Mouse.Shift then
+    begin
+      if (FMoveSettingsList.Count > 1) and (AoWHSMap.Mouse.Xhx <> -1) then
+      begin
+        ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(AoWHSMap.Mouse.Xhx,
+          AoWHSMap.Mouse.Yhx, AoWHSMap.ViewL).FindOwnedChild($20217));
+        if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+        begin
+          Index := FMoveSettingsList.IndexOfMoveObject(ArmyHS);
+          if Index <> -1 then
+            if Index <> FCurrentMove then
+            begin
+              SetCurrentMove(Index);
+              Update;
+            end
+            else SetCurrentMove(-1);
+        end;
+      end;
+    end
+    else
+    begin
+      if (AoWHSMap.Mouse.Capture <> AoWHSMap.FTargetSelection) and
+        ((AoWHSMap.Mouse.Capture <> Self) or (FMap.Mouse.Button = mbRight)) then
+        Unselect
+      else if (AoWHSMap.Mouse.Capture = Self) and (AoWHSMap.Mouse.Button = mbLeft) then
+        SelectPath(FMap.Mouse.Xhx, FMap.Mouse.Yhx, FMap.ViewL);
+    end
+  else FIgnoreMouseDown := False;
+end;
 
 procedure TSelectedArmy.ExecuteMove;
-begin end;
+var
+  I: Integer;
+  ArmyHS: TArmyHS;
+  Field: TAoWMapField;
+  Cost: Integer;
+begin
+  if FMoveSettingsList.Count = 1 then
+  begin
+    with FMoveSettingsList.GetMoveSettings(FCurrentMove) do
+    if (FPath.Count > 1) and (GetArmyHS <> nil) then
+    begin
+      ArmyHS := GetArmyHS;
+      Field := TAoWMapField(AoWHSMap.MapContainer.GetField(FPath[0].X,
+        FPath[0].Y, FPath[0].L));
+      if (Field.GetMoveAction(ArmyHS.FArmy.FPlayer) <> maAttack) or (Field.GetPlayer <= 0) or
+        (AoWHSMap.FPlayers.GetDiplomaticRelation(ArmyHS.FArmy.FPlayer, Field.GetPlayer) in [drWar, drUnknown]) then
+      begin
+        if FMode = samBuildRoads then
+        begin
+          Cost := RoadConstructionCost(ArmyHS.FArmy.FPlayer, FPath, FMovePoints);
+          if Cost <= AoWHSMap.FPlayers.GetPlayers(ArmyHS.FArmy.FPlayer).FGems then
+          begin
+            if MoveArmyEx(ArmyHS, GetSelection, FPath, [mmSelectEndLocation, mmBuildRoads], False) then
+            begin
+              FPath.Clear;
+              if msEditting in AoWHSMap.Status then AoWHSMap.Selection.UnselectLocation;
+              DeactivateMoveSelection;
+            end;
+          end
+          else AoWHSMap.ShowWarning(TranslateRStr(NotEnoughGoldRStr));
+        end
+        else
+        begin
+          ArmyHS.FArmy.SetDestinationPos(FPath[0].X, FPath[0].Y, FPath[0].L);
+          if MoveArmy(ArmyHS, GetSelection, FPath) then
+          begin
+            if FPath.MovePointsToPos(ArmyHS.FArmy.MovePoints($FF)) > 0 then
+              with ArmyHS.FArmy do Include(TArmyUserMode(FMode), aumTurnDone);
+            FPath.Clear;
+            if msEditting in AoWHSMap.Status then AoWHSMap.Selection.UnselectLocation;
+            DeactivateMoveSelection;
+          end;
+        end;
+      end
+      else if (PByteArray(Field)^[26] <> 0) or (AoWHSMap.FFogEnabled = 0) then
+        AoWHSMap.ShowMessage(Format(TranslateRStr(ArmyNotAtWarRStr),
+          [TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerRace])]));
+    end;
+  end
+  else if (FMoveSettingsList.Count > 1) and ExecuteMultiArmyMove(FMoveSettingsList) then
+  begin
+    for I := 0 to FMoveSettingsList.Count - 1 do
+    begin
+      with FMoveSettingsList.GetMoveSettings(I) do
+      begin
+        TArmyHS(FMoveObject).FArmy.SetDestinationPos(FPath[0].X, FPath[0].Y, FPath[0].L);
+        FPath.Clear;
+      end;
+    end;
+    Deactivate;
+    AoWHSMap.Selection.UnselectLocation;
+    Clear;
+  end;
+end;
 
 procedure TSelectedArmy.UpdateMoveCursor;
-begin end;
+var Field: TAoWMapField; Cost: Integer;
+begin
+  if (AoWHSMap.Mouse.Xhx <> -1) and (AoWHSMap.Mouse.Yhx <> -1) and
+    (AoWHSMap.Mouse.Capture = Self) then
+  begin
+    Field := TAoWMapField(AoWHSMap.MapContainer.GetField(AoWHSMap.Mouse.Xhx,
+      AoWHSMap.Mouse.Yhx, AoWHSMap.ViewL));
+    if (FCurrentMove <> -1) and
+      (not AoWHSMap.FExplorationEnabled or Field.GetExplored(AoWHSMap.FSeatedPlayer)) and
+      ((AoWHSMap.FFogEnabled = 0) or (PByteArray(Field)^[26] <> 0)) then
+      case Field.GetMoveAction(GetArmyHS.FArmy.FPlayer) of
+        maAttack: AoWHSMap.Mouse.CursorMode := $102;
+        maNegotiate: AoWHSMap.Mouse.CursorMode := $103;
+      else
+        AoWHSMap.Mouse.CursorMode := $100;
+      end
+    else if FMoveSettingsList.Count <= 1 then AoWHSMap.Mouse.CursorMode := $100
+    else AoWHSMap.Mouse.CursorMode := 0;
+    if AoWHSMap.Mouse.CursorMode = $100 then
+    begin
+      if mtWalking in GetMoveTypes then AoWHSMap.Mouse.Cursor := $40
+      else if mtSwimming in GetMoveTypes then AoWHSMap.Mouse.Cursor := $42
+      else if mtFlying in GetMoveTypes then AoWHSMap.Mouse.Cursor := $44;
+      Cost := FMoveControlSettings.FMovePointTable[Field.TerrainType, Field.OverlayType + 1];
+      if (Cost = 0) or (AoWHSMap.FExplorationEnabled and
+        not Field.GetExplored(AoWHSMap.FSeatedPlayer)) then
+        with AoWHSMap.Mouse do Cursor := Cursor or 1;
+    end;
+  end;
+end;
 
 procedure TSelectedArmy.ActivateMoveSelection;
-begin end;
+begin
+  Activate(AoWHSMap);
+end;
 
 procedure TSelectedArmy.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  FMode := samDefault;
+end;
 
 procedure TSelectedArmy.DeactivateMoveSelection;
-begin end;
+begin
+  Deactivate;
+end;
 
 procedure TSelectedArmy.Update;
-begin end;
+var
+  Selection: Byte;
+  Field: TMapField;
+  Pos: TXYL;
+  I: Integer;
+  ArmyHS: TArmyHS;
+  Points: Integer;
+begin
+  UpdateSelectedUnitGFX;
+  if GetArmyHS <> nil then
+    GetArmyHS.FArmy.CreateMovePointTable(GetSelection, FMoveControlSettings.FMovePointTable);
+  for I := 0 to FMoveSettingsList.Count - 1 do
+  begin
+    Selection := FMoveSettingsList.GetMoveSettings(I).FSelection;
+    ArmyHS := TArmyHS(FMoveSettingsList.GetMoveSettings(I).FMoveObject);
+    Points := ArmyHS.FArmy.MovePoints(Selection);
+    FMoveSettingsList.GetMoveSettings(I).FMovePoints := Points;
+    Points := ArmyHS.FArmy.Moves(Selection);
+    FMoveSettingsList.GetMoveSettings(I).FMoves := Points;
+  end;
+  if mssActivated in FStatus then
+    for I := 0 to FMoveSettingsList.Count - 1 do
+    begin
+      ArmyHS := TArmyHS(FMoveSettingsList.GetMoveSettings(I).FMoveObject);
+      if ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer then
+        if (ArmyHS.FArmy.FDestinationX <> -1) and (ArmyHS.FArmy.FDestinationX <> 0) then
+        begin
+          with ArmyHS.FArmy do
+          begin
+            Field := AoWHSMap.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL);
+            if Self.ValidateSelection(TAoWMapField(Field)) then
+              CalculateMovePath(I, FDestinationX, FDestinationY, FDestinationL)
+            else ArmyHS.FArmy.ResetDestinationPos;
+          end;
+        end
+        else if FMoveSettingsList.GetMoveSettings(I).FPath.Count <> 0 then
+        begin
+          Pos := FMoveSettingsList.GetMoveSettings(I).FPath[0];
+          CalculateMovePath(I, Pos.X, Pos.Y, Pos.L);
+        end;
+    end;
+  UpdateMoveCursor;
+end;
 
 procedure TSelectedArmy.OutputGroupInfo;
-begin end;
+var
+  Text: string;
+  I: Integer;
+  Group: TAIGroup;
+begin
+  Text := '';
+  for I := 0 to GetArmyHS.FArmy.Count - 1 do
+  begin
+    Text := GetArmyHS.FArmy.GetUnit(I).GetName + '(ID:' +
+      IntToStr(GetArmyHS.FArmy.GetUnit(I).FUnitID) + ')';
+    Group := GetArmyHS.FArmy.GetUnit(I).FGroup;
+    if Group <> nil then
+    begin
+      Text := Text + TGroupBehaviorStr[Group.Behavior] + '(GID:' + IntToStr(Group.FGroupID) +
+        '/Target:' + IntToStr(Group.FTargetXYL.X) + ',' + IntToStr(Group.FTargetXYL.Y) +
+        ',' + IntToStr(Group.FTargetXYL.L) + '/Budget:' + IntToStr(Group.FGoldBudget) +
+        '/MP:' + IntToStr(Group.FTargetMovePoints) + ')';
+      if Group.FTargetType = gtsSetup then Text := Text + '-setup'
+      else if Group.FTargetType = gtsExecute then Text := Text + '-execute';
+      if Group.FLeader = GetArmyHS.FArmy.GetUnit(I) then Text := Text + '/Leader';
+    end;
+    AoWEngine.OutputDebugStr(Text);
+  end;
+  AoWEngine.OutputDebugStr('Army strength: ' + IntToStr(GetArmyHS.FArmy.GetStrengthMax(dtAll - [dtNone])));
+end;
 
-procedure TSelectedArmy.SetArmyHS(A1: Integer);
-begin end;
+procedure TSelectedArmy.SetArmyHS(ArmyHS: TArmyHS);
+begin
+  if (ArmyHS <> GetArmyHS) and not (msEditting in AoWHSMap.Status) and
+    (FMoveSettingsList.Count <= 1) then
+  begin
+    Clear;
+    FIgnoreMouseDown := False;
+    FMode := samDefault;
+    if ArmyHS <> nil then
+    begin
+      if ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer then ActivateMoveSelection;
+      AddMoveArmy(ArmyHS, $FF);
+      FCurrentMove := 0;
+      Update;
+    end
+    else
+    begin
+      DeactivateMoveSelection;
+      ResetSelectedUnitGFX;
+    end;
+    if (GetArmyHS <> nil) and AoWEngine.FRegistry.GetDebugMode then OutputGroupInfo;
+  end;
+end;
 
-procedure TSelectedArmy.Select(A1: Integer);
-begin end;
+procedure TSelectedArmy.Select(ArmyHS: TArmyHS);
+begin
+  AoWHSMap.Selection.UnselectLocation;
+  if ArmyHS <> nil then AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+end;
 
-procedure TSelectedArmy.SelectBuildRoad(A1: Integer);
-begin end;
+procedure TSelectedArmy.SelectBuildRoad(AUnit: TAbstractUnit);
+var Army: TECustomNode; ArmyHS: TArmyHS;
+begin
+  Army := AUnit.Owner;
+  if Army is TArmy then
+  begin
+    ArmyHS := TArmy(Army).GetArmyHS;
+    ArmyHS.FArmy.ResetDestinationPos;
+    if ArmyHS <> GetArmyHS then
+    begin
+      AoWHSMap.Selection.UnselectLocation;
+      AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+      SetSelection($FF);
+    end
+    else
+    begin
+      DeleteMoves;
+      AddMoveArmy(ArmyHS, $FF);
+      FCurrentMove := 0;
+    end;
+    AoWHSMap.ShowMessage(TranslateRStr(SelectRoadConstructionPathRStr));
+    FRoadBuilderID := AUnit.FUnitID;
+    FMode := samBuildRoads;
+  end;
+end;
 
 procedure TSelectedArmy.Center;
-begin end;
+begin
+  if GetArmyHS <> nil then
+    with AoWHSMap do
+      CenterViewTo(GetArmyHS.GetXhx, GetArmyHS.GetYhx, GetArmyHS.GetLhx);
+end;
 
 procedure TSelectedArmy.TurnDone;
-begin end;
+begin
+  if (GetArmyHS <> nil) and (GetArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+  begin
+    Include(TArmyUserMode(GetArmyHS.FArmy.FMode), aumTurnDone);
+    AoWHSMap.SelectNextArmy;
+  end;
+end;
 
 procedure TSelectedArmy.ToggleGuard;
-begin end;
+var ArmyHS: TArmyHS; Army: TArmy;
+begin
+  ArmyHS := GetArmyHS;
+  if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+  begin
+    Army := ArmyHS.FArmy;
+    if aumGuard in TArmyUserMode(Army.FMode) then
+    begin
+      Exclude(TArmyUserMode(Army.FMode), aumGuard);
+      Army.Update;
+    end
+    else
+    begin
+      Include(TArmyUserMode(Army.FMode), aumGuard);
+      AoWHSMap.SelectNextArmy;
+    end;
+  end;
+end;
+
+resourcestring
+  ItemSpellResearchedRStr = '%s researched';
+  ItemSpellAlreadyResearchedRStr = '%s already researched';
+  ItemNotUseableRStr = 'This is not an usable item';
+  ItemSystemLibraryRStr = 'System';
 
 class function TItemTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20272; end;
 
-procedure TItemTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TItemTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FItemID, $14);
+  Stream.rwData(FAction, 1, $15);
+  Stream.rwInteger(FHeroID, $16);
+end;
 
-function TItemTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TItemTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var Done: Boolean; Item: TItem; Hero: THero;
+begin
+  inherited Execute(TE);
+  Done := False;
+  Item := AoWHSMap.FItemControl.FindItem(FItemID);
+  if Item <> nil then
+    case FAction of
+      0:
+      begin
+        Hero := AoWHSMap.FHeroControl.FindID(FHeroID);
+        if Hero <> nil then Done := Item.ExecuteUse(Hero)
+        else Done := False;
+      end;
+    end;
+  if Done then Result := erDone else Result := erDoneHalt;
+end;
 
-constructor TItem.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TItem.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FItemGFXIndex := -1;
+  FDescription := TStringList.Create;
+  FLibraryID := -1;
+  FRefCount := 1;
+end;
 
 destructor TItem.Destroy;
-begin end;
+begin
+  AddRef;
+  if isActivated in FStatus then Deactivate;
+  if isRegistered in FStatus then AoWHSMap.FItemControl.UnRegisterItem(Self);
+  FDescription.Free;
+  inherited Destroy;
+end;
 
 function TItem.AddRef: Integer;
-begin Result := 0; end;
+begin Inc(FRefCount); Result := FRefCount; end;
 
 function TItem.Release: Integer;
-begin Result := 0; end;
+var Count: Integer;
+begin
+  Dec(FRefCount);
+  Count := FRefCount;
+  Result := Count;
+  if Count = 0 then Destroy;
+end;
 
-procedure TItem.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+procedure TItem.SetOwner(AOwner: TECustomNode);
+begin
+  if AOwner <> FOwner then
+  begin
+    AddRef;
+    if FOwner <> nil then FOwner.RemoveChild(Self);
+    FOwner := AOwner;
+    if FOwner <> nil then
+      if FOwner.AddChild(Self) = -1 then FOwner := nil;
+    Changed;
+    Release;
+  end;
+end;
 
-procedure TItem.ExecuteUse(A1: Integer);
-begin end;
+function TItem.ExecuteUse(Hero: THero): Boolean;
+var Reason: string;
+begin
+  Result := True; { Original reports success even when CanUse rejects the item. }
+  if CanUse(Hero, Reason) then
+    case FItemType of
+      itScroll:
+      begin
+        AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FMagicControl.ExecuteSpellResearched(FSpellID);
+        if AoWHSMap.FSeatedPlayer = Hero.FPlayer then
+        begin
+          PlaySample('SFX\ATTACK\MAGICB01.WAV');
+          AoWHSMap.ShowMessage(Format(TranslateRStr(ItemSpellResearchedRStr),
+            [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]));
+        end;
+        Destroy;
+        Hero.Changed;
+      end;
+    end;
+end;
 
 function TItem.CanUse(Hero: THero; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  if (FItemType = itScroll) and (FSpellID <> 0) then
+  begin
+    if AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FMagicControl.FSpells.IndexOf(FSpellID) = -1 then
+      Result := True
+    else
+    begin
+      Result := False;
+      Reason := Format(TranslateRStr(ItemSpellAlreadyResearchedRStr),
+        [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
+    end;
+  end
+  else
+  begin
+    Result := False;
+    Reason := TranslateRStr(ItemNotUseableRStr);
+  end;
+end;
 
 function TItem.Use(Hero: THero): Boolean;
-begin Result := False; end;
+var Reason: string; Event: TItemTE;
+begin
+  if CanUse(Hero, Reason) and not AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).GetBusy then
+  begin
+    Event := TItemTE.Create(nil);
+    Event.FItemID := FItemID;
+    Event.FHeroID := Hero.FUnitID;
+    AoWHSMap.FTokenManager.GetTokenControl(Hero.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TItem.SetArrayOwner(AOwner: Engine.TECustomNode; Index: Integer);
-begin end;
+procedure TItem.SetArrayOwner(AOwner: TECustomNode; Index: Integer);
+begin
+  AddRef;
+  inherited SetArrayOwner(AOwner, Index);
+  if FOwner <> nil then AddRef;
+  Changed;
+  Release;
+end;
 
 procedure TItem.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin
+  if (FOwner <> nil) and (FOwner is TItemList) then TItemList(FOwner).GetLocation(X, Y, L)
+  else
+  begin
+    X := -1;
+    Y := -1;
+    L := -1;
+  end;
+end;
 
 procedure TItem.Activate;
-begin end;
+begin
+  if not (isActivated in FStatus) then
+  begin
+    if (msEditting in AoWHSMap.Status) or (AoWHSMap.FDay = 0) then UpdateFromLibrary;
+    FStatus := FStatus + [isActivated];
+  end;
+end;
 
 procedure TItem.Deactivate;
-begin end;
+begin
+  if isActivated in FStatus then FStatus := FStatus - [isActivated];
+end;
 
 procedure TItem.Changed;
-begin end;
+begin
+  if isRegistered in FStatus then AoWHSMap.FItemControl.ItemChanged(Self);
+end;
 
 class function TItem.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20268; end;
 
 function TItem.GetCampaignTransferPoints: Integer;
-begin Result := 0; end;
+begin Result := GetObtainValue; end;
 
-procedure TItem.GetImage;
-begin end;
+function TItem.GetImage: TLibraryImage;
+var GFX: TItemGFX;
+begin
+  GFX := AoWHSSet.FItemGFXResources.GetItemGFX(FItemGFXIndex);
+  if GFX <> nil then
+  begin
+    GFX.AddRef;
+    Result := GFX.GetItemImage;
+    GFX.Release;
+  end
+  else Result := nil;
+end;
 
-procedure TItem.GetLibraryItem;
-begin end;
+function TItem.GetLibraryItem: Boolean;
+begin Result := FLibraryID <> -1; end;
 
-procedure TItem.GetLibraryName(A1: Integer);
-begin end;
+function TItem.GetLibraryName: string;
+begin
+  if FLibraryID <> -1 then
+  begin
+    Result := FLibraryName;
+    if Result = '' then Result := TranslateRStr(ItemSystemLibraryRStr);
+  end;
+end;
 
 procedure TItem.UpdateFromLibrary;
-begin end;
+var ID: Integer; Item: TItem;
+begin
+  if FLibraryID <> -1 then
+  begin
+    Item := AoWHSSet.FItemLibraries.FindItem(FLibraryName, FLibraryID);
+    if Item <> nil then
+    begin
+      ID := FItemID;
+      Assign(Item, AoWEngine);
+      FItemID := ID;
+      Changed;
+    end
+    else if FOwner = nil then Free
+    else FLibraryID := -1;
+  end;
+end;
 
 function TItem.GetOwnerName: string;
-begin Result := ''; end;
+begin Result := FOwnerName; end;
 
 function TItem.GetAbilitySelectionTypes: TAbilitySelectionTypes;
-begin Result := []; end;
+begin
+  case FItemType of
+    itHead: Result := [astHeadItem];
+    itTorso: Result := [astTorsoItem];
+    itAttack: Result := [astAttackItem];
+    itDefense: Result := [astDefenseItem];
+    itRing: Result := [astRingItem];
+    itUse: Result := [astUseItem];
+  else Result := [];
+  end;
+end;
 
 procedure TItem.SetItemGFXIndex(A1: Integer);
-begin end;
+begin FItemGFXIndex := A1; end;
 
-procedure TItem.Show(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TItem.Show(X, Y: Integer; const Surface: TSurfaceDesc);
+var GFX: TItemGFX;
+begin
+  GFX := AoWHSSet.FItemGFXResources.GetItemGFX(FItemGFXIndex);
+  if GFX <> nil then
+  begin
+    GFX.AddRef;
+    GFX.GetItemImage.Show(X, Y, Surface);
+    GFX.Release;
+  end;
+end;
 
-procedure TItem.SetItemType(A1: Integer);
-begin end;
+procedure TItem.SetItemType(Value: TItemType);
+var ItemType: TItemType;
+begin
+  FAttack := 0;
+  FDefense := 0;
+  FResistance := 0;
+  FDamage := 0;
+  ItemType := Value;
+  FItemType := ItemType;
+  FItemGFXIndex := AoWHSSet.FItemGFXResources.FindItemTypeGFX(ItemType);
+  inherited Clear;
+end;
 
-procedure TItem.GetObtainValue;
-begin end;
+function TItem.GetObtainValue: Integer;
+begin
+  if FObtainValue > 10 then Result := FObtainValue else Result := 10;
+end;
 
-procedure TItem.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TItem.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  if not (smText in Stream.StorageMode) or not GetLibraryItem then
+    Stream.rwInteger(FItemGFXIndex, 7);
+  if not (smText in Stream.StorageMode) or (FOwner is TItemLibrary) or not GetLibraryItem then
+    Stream.rwString(FOwnerName, 8);
+  if not (smText in Stream.StorageMode) or not GetLibraryItem then
+  begin
+    Stream.rwString(FName, 9);
+    Stream.rwData(FAvailability, 1, 10);
+    Stream.rwByte(Byte(FAttack), 11);
+    Stream.rwByte(Byte(FDefense), 12);
+    Stream.rwByte(Byte(FDamage), 13);
+    Stream.rwByte(Byte(FResistance), 14);
+    Stream.rwData(FItemType, 1, 15);
+    Stream.rwBool(FHidden, 16);
+    Stream.rwInteger(FItemID, 17);
+    Stream.rwStrings(FDescription, 18);
+    Stream.rwInteger(FObtainValue, 19);
+    Stream.rwInteger(FSpellID, 20);
+    Stream.rwIntegerEx(FLibraryID, -1, 21);
+    if not (smText in Stream.StorageMode) then Stream.rwString(FLibraryName, 22);
+  end;
+end;
 
 function TItem.PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
-begin Result := False; end;
+var HS: TItemHS;
+begin
+  if (X >= 0) and (Y >= 0) and (L >= 0) and (X < Map.MapContainer.Width) and
+    (Y < Map.MapContainer.Height) and (L < Map.MapContainer.LevelCount) and
+    (Map.MapContainer.GetField(X, Y, L).TerrainType <> 15) then
+  begin
+    HS := TItemHS(Map.MapContainer.GetField(X, Y, L).FindOwnedChild($20271));
+    if HS = nil then
+    begin
+      HS := TItemHS.Create(nil);
+      if not Map.PlaceHX(HS, X, Y, L) then
+      begin
+        HS.Free;
+        HS := nil;
+      end;
+    end;
+    if HS <> nil then
+    begin
+      SetOwner(HS.FItems);
+      Result := True;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-procedure TItem.EditDropMsg(A1: Integer);
-begin end;
+procedure TItem.EditDropMsg(var Msg: TItemDropMsg);
+var X, Y, L: Integer;
+begin
+  L := Msg.Lhp;
+  HPtoHX(Msg.Xhp, Msg.Yhp, X, Y);
+  if not PlaceOnMap(AoWHSMap, X, Y, L) then Msg.Result := -1
+  else Msg.Result := 0;
+end;
 
-procedure TItem.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TItem.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $10005 then EditDropMsg(TItemDropMsg(Msg));
+end;
 
-constructor TItemList.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TItemList.Create(AOwner: TECustomNode);
+begin inherited Create(AOwner); end;
 
-function TItemList.RemoveChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+function TItemList.RemoveChild(Child: TEObject): Integer;
+begin
+  Result := inherited RemoveChild(Child);
+  if Result <> -1 then Child.Release;
+end;
 
-function TItemList.AddChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+function TItemList.AddChild(Child: TEObject): Integer;
+begin
+  Result := inherited AddChild(Child);
+  if Result <> -1 then Child.AddRef;
+end;
 
 procedure TItemList.DestroyAllChildren;
-begin end;
+begin
+  Clear;
+  inherited DestroyAllChildren;
+end;
 
-procedure TItemList.MainReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TItemList.MainReadWrite(Stream: TEStorageStream);
+var I: Integer;
+begin
+  inherited MainReadWrite(Stream);
+  if Stream.StorageMode * [smRead, smText, smCompare] = [smRead] then
+    for I := 0 to FChildren.Count - 1 do
+      if FChildren.List^[I] <> nil then TEObject(FChildren.List^[I]).Release;
+end;
 
 procedure TItemList.Clear;
-begin end;
+var I: Integer; Child: TEObject;
+begin
+  for I := Count - 1 downto 0 do
+    if FChildren.List^[I] <> nil then
+    begin
+      Child := TEObject(FChildren.List^[I]);
+      if Child <> nil then
+        if Child.Owner <> Self then
+        begin
+          Child.Release;
+          FChildren.Delete(I);
+        end
+        else Child.SetOwner(nil);
+    end;
+  inherited Clear;
+end;
 
 procedure TItemList.Changed;
-begin end;
+begin
+  inherited Changed;
+  if Assigned(FOnChanged) then FOnChanged(Self);
+end;
 
-procedure TItemList.FindItem(A1: Integer; A2: Integer);
-begin end;
+function TItemList.FindItem(ItemID: Integer): TItem;
+var I: Integer; Item: TItem;
+begin
+  if Self <> nil then
+  begin
+    I := 0;
+    Result := nil;
+    while (I <> FChildren.Count) and (Result = nil) do
+    begin
+      Item := TItem(FChildren.List^[I]);
+      if (Item <> nil) and (ItemID = Item.FItemID) then Result := Item;
+      Inc(I);
+    end;
+  end
+  else Result := nil;
+end;
 
 function TItemList.GetItem(Index: Integer): TItem;
-begin Result := nil; end;
+begin
+  if (Index >= 0) and (Index < Count) then Result := TItem(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 procedure TItemList.Update;
-begin end;
+begin SortOnType; end;
 
 procedure TItemList.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin X := -1; Y := -1; L := -1; end;
+
+function CompareItemNames(Item1, Item2: Pointer): Integer;
+begin
+  if (Item1 <> nil) and (Item2 <> nil) then
+  begin
+    Result := CompareText(TItem(Item1).FOwnerName, TItem(Item2).FOwnerName);
+    if Result = 0 then Result := Integer(Item1) - Integer(Item2);
+  end
+  else Result := 0;
+end;
+
+function CompareItemTypes(Item1, Item2: Pointer): Integer;
+begin
+  { Original type comparison assumes both entries are non-nil. }
+  Result := Ord(TItem(Item1).FItemType) - Ord(TItem(Item2).FItemType);
+  if Result = 0 then Result := Integer(Item1) - Integer(Item2);
+end;
 
 procedure TItemList.SortOnName;
-begin end;
+begin FChildren.Sort(CompareItemNames); end;
 
 procedure TItemList.SortOnType;
-begin end;
+begin FChildren.Sort(CompareItemTypes); end;
 
 procedure TItemList.RegisterItems;
-begin end;
+var I: Integer; Item: TItem;
+begin
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and not (isRegistered in Item.FStatus) then
+      AoWHSMap.FItemControl.RegisterItem(Item);
+  end;
+end;
 
 procedure TItemList.LockChanged;
-begin end;
+begin BeginUpdate; end;
 
 procedure TItemList.UnlockChanged;
-begin end;
+begin EndUpdate; end;
 
 constructor TItemControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -8349,7 +9195,7 @@ begin end;
 function TItemControl.FindItem(ItemID: Integer): TItem;
 begin Result := nil; end;
 
-procedure TItemControl.ItemChanged;
+procedure TItemControl.ItemChanged(Item: TItem);
 begin end;
 
 procedure TItemControl.Changed;
@@ -8373,7 +9219,7 @@ begin end;
 procedure TItemControl.RegisterItem(Item: TItem);
 begin end;
 
-procedure TItemControl.UnRegisterItem(A1: Integer);
+procedure TItemControl.UnRegisterItem(Item: TItem);
 begin end;
 
 function TItemControl.GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
@@ -8439,8 +9285,8 @@ begin end;
 procedure TItemLibraryManager.IndexOfLibrary;
 begin end;
 
-procedure TItemLibraryManager.FindItem(A1: Integer; A2: Integer);
-begin end;
+function TItemLibraryManager.FindItem(const LibraryName: string; LibraryID: Integer): TItem;
+begin Result := nil; end;
 
 procedure TItemLibraryManager.CreateLibrary(A1: Integer);
 begin end;
@@ -8475,8 +9321,8 @@ begin Result := 0; end;
 function TItemGFX.GetCellImage: ImageLib.TLibraryImage;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TItemGFX.GetItemImage;
-begin end;
+function TItemGFX.GetItemImage: TLibraryImage;
+begin Result := nil; end;
 
 procedure TItemGFX.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
@@ -8484,11 +9330,11 @@ begin end;
 constructor TItemGFXList.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TItemGFXList.GetItemGFX(A1: Integer);
-begin end;
+function TItemGFXList.GetItemGFX(Index: Integer): TItemGFX;
+begin Result := nil; end;
 
-procedure TItemGFXList.FindItemTypeGFX(A1: Byte);
-begin end;
+function TItemGFXList.FindItemTypeGFX(ItemType: TItemType): Integer;
+begin Result := 0; end;
 
 procedure TItemHSList.SetOwner(AOwner: Engine.TECustomNode);
 begin end;

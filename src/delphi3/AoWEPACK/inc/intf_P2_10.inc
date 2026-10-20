@@ -26,6 +26,10 @@ function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensiv
 { conflict: function CreateDamageCA(Source, Target: TCombatObject; Attack, Damage: Integer; DamageTypes: TDamageTypes): TDamageCA; }
 procedure RetrieveDefaultDiplomaticActionMessage(Source, Target, Other: Shortint; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
 procedure MaximizeMovePointTable(var Table; const Other);
+{ Shared original helper declarations required by the selected-army calls. }
+function RoadConstructionCost(Player: Shortint; Path: TMovepath; MovePoints: Integer): Integer;
+function ExecuteMultiArmyMove(Moves: TMoveSettingsList): Boolean;
+
 function CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
 function CreateArmyMoveXYLTE(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
 function MoveArmyEx(Army: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode; Force: Boolean): Boolean;

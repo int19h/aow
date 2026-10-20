@@ -7709,3 +7709,7 @@ begin Result := False; end;
 function TPadControl.PlacePad(X, Y, L: Shortint; Size: Integer): TILTerrainMO;
 begin Result := nil; end;
 
+{ Unnamed shared helper at $5574AC68; body remains for its owning worker. }
+function ExecuteMultiArmyMove(Moves: TMoveSettingsList): Boolean;
+begin Result := False; end;
+

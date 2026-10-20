@@ -32,6 +32,7 @@ var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string;
   TCombatModeRStr: array[TCombatMode] of string;
+  TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
   TStatusRStr: TStatusNames;
   TDamageTypeRStr: array[TDamageType] of string;
   { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo

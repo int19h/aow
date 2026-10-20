@@ -7310,3 +7310,7 @@ begin end;
 function TChangeGlobalMagicTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
+{ Unnamed shared helper at $55771138; body remains for its owning worker. }
+function RoadConstructionCost(Player: Shortint; Path: TMovepath; MovePoints: Integer): Integer;
+begin Result := 0; end;
+

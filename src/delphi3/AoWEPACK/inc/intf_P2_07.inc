@@ -436,6 +436,7 @@
     FDestinationY: Shortint; { $26 }
     FDestinationL: Shortint; { $27 }
     FMode: TArmyMode; { $28; 5577602E }
+    { conflict: FUserMode: TArmyUserMode; }
     FVisibilityRanges: Byte; { $29 }
     FConcealedUnits: Byte; { $2A }
     F_Army_2B: array[0..0] of Byte;
@@ -494,7 +495,7 @@
     procedure Deactivate;
     function ValidateSelection(A1: Byte): Byte;
     function SelectionCount(Selection: Byte): Integer;
-    procedure ValidateMoveSelection(A1: Integer; A2: Integer);  { draft }
+    function ValidateMoveSelection(Selection: Byte): Byte;
     procedure Select;  { draft }
     procedure Unselect;  { draft }
     procedure GetUnitConcealed(A1: Integer);  { draft }
@@ -504,8 +505,8 @@
     function ObtainValue(Player: Shortint): Integer;
     { conflict: function ObtainValue(Selection: Byte): Integer; }
     function MovePoints(A1: Byte): Shortint;
-    procedure Moves(A1: Integer);  { draft }
-    procedure MoveTypes(A1: Integer; A2: Integer);  { draft }
+    function Moves(Selection: Byte): Shortint;
+    function MoveTypes(Selection: Byte): TMoveTypes;
     procedure GetPartyMoves(A1: Byte);  { draft }
     procedure MoveOnMovePoints(A1: Integer; A2: Byte; A3: Integer);  { draft }
     procedure CreateMovePointTable(A1: Byte; var Table);

@@ -310,7 +310,7 @@ begin
   begin
     Item := TItem(List[I]);
     Item.SetOwner(nil);
-    TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).UnRegisterItem(Integer(Item));
+    TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).UnRegisterItem(Item);
     FMap.SetModified;
   end;
   TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).EndUpdate;

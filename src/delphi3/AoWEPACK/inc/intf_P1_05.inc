@@ -59,10 +59,7 @@
   { TAbstractAoWHSMapMouse (instance size 80, VMT 5570E22C) }
   TAbstractAoWHSMapMouse = class(THSMapMouse)
   public
-    F_AbstractAoWHSMapMouse_3C: Integer;
-    F_AbstractAoWHSMapMouse_40: Integer;
-    F_AbstractAoWHSMapMouse_44: Integer;
-    F_AbstractAoWHSMapMouse_48: Integer;
+    FSelectionRectangle: TRect; { $3C..$48; 55792672 }
     FRectangleSelectEvents: TEventList; { $4C; 55774A94 }
     destructor Destroy; override;
     procedure Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;

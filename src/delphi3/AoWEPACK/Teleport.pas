@@ -266,7 +266,7 @@ begin
           Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         begin
           WorldMap^.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
-          TSelectedArmy(WorldMap^.FSelectedArmy).Select(Integer(ArmyHS));
+          TSelectedArmy(WorldMap^.FSelectedArmy).Select(ArmyHS);
         end;
       end
       else

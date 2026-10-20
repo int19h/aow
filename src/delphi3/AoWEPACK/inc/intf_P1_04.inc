@@ -170,6 +170,7 @@
   public
     function MovePointsToPos(MovePoints: Integer): Integer;
     function PosToMovePoints(Pos: Integer): Integer;
+    { conflict: function PosToMovePoints(Index: Integer): Integer; }
     function GetMovePoints: Integer;
   end;
 
@@ -180,11 +181,14 @@
   public
     FPath: TMovepath; { $08 }
     FPathMovePoints: Integer; { $0C }
+    { conflict: FMoveCost: Integer; }
     FMoveObject: TObject; { $10 }
+    { conflict: FMoveObject: THexagonSprite; }
     FMovePoints: Integer; { $14 }
-    FReserved18: array[0..3] of Byte;
+    FMoves: Integer; { $18 }
     FPriority: Integer; { $1C }
     FSelection: Byte; { $20 }
+    { conflict: FSelection: Integer; }
     FReserved21: array[0..2] of Byte;
     FMovePos: Integer; { $24 }
     FValid: Boolean; { $28 }
@@ -203,35 +207,36 @@
     function GetMoveSettings(Index: Integer): TMoveSettings;
     function GetNoneValidMove: Integer;
     function IndexOfMoveObject(MoveObject: TObject): Integer;
+    { conflict: function IndexOfMoveObject(Obj: THexagonSprite): Integer; }
     procedure CalculateMovePositions(Validate: TValidateMovePositionProc);
   end;
 
   { TMoveSelector (instance size 24, VMT 5570DC88) }
   TMoveSelector = class(TObject)
   public
-    F_MoveSelector_04: Integer;
+    FMoveControlSettings: TMoveControlSettings; { $04 }
     FMoveSettingsList: TMoveSettingsList; { $08; 5577468B }
-    F_MoveSelector_0C: Integer;
-    F_MoveSelector_10: Integer;
-    F_MoveSelector_14: Byte;
+    FCurrentMove: Integer; { $0C }
+    FMap: TAoWHSMap; { $10 }
+    FStatus: TMoveSelectorStatus; { $14 }
     F_MoveSelector_15: array[0..2] of Byte;
     destructor Destroy; override;
     procedure MouseMoveEvent; virtual;  { +000 draft }
-    procedure MouseDownEvent(A1: Integer); virtual;  { +004 draft }
-    procedure CalculateMovePath(A1: Integer; A2: Byte; A3: Integer; A4: Integer); virtual;  { +008 draft }
+    procedure MouseDownEvent(Sender: TObject); virtual; { $04 }
+    procedure CalculateMovePath(Index: Integer; X, Y, L: Shortint); virtual; { $08 }
     procedure UpdateMoveCursor; virtual;  { +00C draft }
     function CreateMCS: Integer; virtual;  { +010 draft }
     procedure SetCurrentMove(A1: Integer); virtual;  { +014 draft }
-    procedure SelectPath(A1: Byte; A2: Integer; A3: Integer); virtual;  { +018 draft }
+    procedure SelectPath(X, Y, L: Shortint); virtual; { $18 }
     procedure Unselect; virtual; { +01C }
-    procedure ValidateSelection(A1: Integer); virtual;  { +020 draft }
+    function ValidateSelection(Field: TAoWMapField): Boolean; virtual; { $20 }
     procedure ExecuteMove; virtual;  { +024 draft }
-    procedure Activate(A1: Integer); virtual;  { +028 draft }
+    procedure Activate(Map: TAoWHSMap); virtual; { $28 }
     procedure Deactivate; virtual;  { +02C draft }
-    procedure ShowMovePaths(A1: Integer); virtual;  { +030 draft }
+    procedure ShowMovePaths(const Surface: TSurfaceDesc); virtual; { $30 }
     constructor Create;  { draft }
     procedure Clear;  { draft }
-    procedure AddMoveObject(A1: Integer);  { draft }
+    function AddMoveObject(Obj: THexagonSprite): Integer;
     procedure DeleteMoveObject(A1: Integer);  { draft }
     procedure DeleteMoves;  { draft }
   end;

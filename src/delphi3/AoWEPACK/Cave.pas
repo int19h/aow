@@ -383,7 +383,7 @@ begin
         Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
       begin
         WorldMap^.ViewLevel(L);
-        TSelectedArmy(WorldMap^.FSelectedArmy).Select(Integer(ArmyHS));
+        TSelectedArmy(WorldMap^.FSelectedArmy).Select(ArmyHS);
       end;
     end
     else

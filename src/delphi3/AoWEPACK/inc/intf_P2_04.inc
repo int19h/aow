@@ -1,4 +1,11 @@
 { Interface declaration run owned by P2. }
+  { Editor drop message, size $30: screen X/Y at $18/$1C, level at $20, result at $2C. }
+  TItemDropMsg = record
+    MsgID, Seq: Integer;
+    Sender: TEObject;
+    Param: array[0..2] of Integer;
+    Xhp, Yhp, Lhp, Reserved0, Reserved1, Result: Integer;
+  end;
   { TItemGFX (instance size 48, VMT 5570F7E0) }
   TItemGFX = class(TEResource)
   public
@@ -20,49 +27,51 @@
     procedure LinkToIL;  { draft }
     procedure ReleaseIL;  { draft }
     procedure SetImageLibraryName(A1: Integer; A2: Integer);  { draft }
-    procedure GetItemImage;  { draft }
+    function GetItemImage: TLibraryImage;
   end;
 
   { TItemGFXList (instance size 20, VMT 5570F8C0) }
   TItemGFXList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetItemGFX(A1: Integer);  { draft }
-    procedure FindItemTypeGFX(A1: Byte);  { draft }
+    function GetItemGFX(Index: Integer): TItemGFX;
+    function FindItemTypeGFX(ItemType: TItemType): Integer;
   end;
 
-  { TItemTE (instance size 28, VMT 5570F9F0) }
+  { TItemTE (instance size $1C): $10 item ID, $14 action, $18 hero ID. }
   TItemTE = class(TTokenEvent)
   public
-    F_ItemTE_10: Integer;
-    F_ItemTE_14: Byte;
+    FItemID: Integer; { $10 }
+    FAction: Byte; { $14; 0 = use }
     F_ItemTE_15: array[0..2] of Byte;
-    F_ItemTE_18: Integer;
+    FHeroID: Integer; { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TItem (instance size 76, VMT 5570FAFC): +34 FItemType;
-    +46 FAttack; +47 FDefense; +48 FDamage; +49 FResistance. }
+  { TItem (instance size $4C): $14 ID, $18 owner name, $1C status, $20 references,
+    $24 library ID, $28 library name, $2C value, $30 name, $34 type, $38 spell ID,
+    $3C description, $40 graphics index, $44 hidden, $45 availability,
+    $46 attack, $47 defense, $48 damage, $49 resistance. }
   TItem = class(TAbilityOwner)
   public
     FItemID: Integer; { $14 }
-    F_Item_18: Integer;
-    F_Item_1C: Byte;
+    FOwnerName: string; { $18 }
+    FStatus: TItemStatus; { $1C }
     F_Item_1D: array[0..2] of Byte;
-    F_Item_20: Integer;
-    F_Item_24: Integer;
-    F_Item_28: Integer;
-    F_Item_2C: Integer;
-    F_Item_30: Integer;
+    FRefCount: Integer; { $20 }
+    FLibraryID: Integer; { $24 }
+    FLibraryName: string; { $28 }
+    FObtainValue: Integer; { $2C }
+    FName: string; { $30 }
     FItemType: TItemType;  { $34 }
     F_Item_35: array[0..2] of Byte;
-    F_Item_38: Integer;
-    F_Item_3C: Integer;
-    F_Item_40: Integer;
-    F_Item_44: Byte;
-    F_Item_45: Byte;
+    FSpellID: Integer; { $38 }
+    FDescription: TStringList; { $3C }
+    FItemGFXIndex: Integer; { $40 }
+    FHidden: Boolean; { $44 }
+    FAvailability: TItemAvailability; { $45 }
     FAttack: Shortint;  { $46 }
     FDefense: Shortint;  { $47 }
     FDamage: Shortint;  { $48 }
@@ -82,30 +91,28 @@
     procedure Changed; override;
     function CanUse(Hero: THero; var Reason: string): Boolean; virtual; { $09C }
     function Use(Hero: THero): Boolean; virtual; { $0A0 }
-    procedure ExecuteUse(A1: Integer); virtual;  { +0A4 draft }
-    procedure Show(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A8 draft }
+    function ExecuteUse(Hero: THero): Boolean; virtual; { $A4 }
+    procedure Show(X, Y: Integer; const Surface: TSurfaceDesc); virtual; { $A8 }
     procedure Activate; virtual;  { +0AC draft }
     procedure Deactivate; virtual;  { +0B0 draft }
     procedure GetLocation(var X, Y, L: Shortint);
     function GetCampaignTransferPoints: Integer;
-    procedure GetImage;  { draft }
-    procedure GetLibraryItem;  { draft }
-    procedure GetLibraryName(A1: Integer);  { draft }
+    function GetImage: TLibraryImage;
+    function GetLibraryItem: Boolean;
+    function GetLibraryName: string;
     procedure UpdateFromLibrary;  { draft }
     procedure SetItemGFXIndex(A1: Integer);  { draft }
-    procedure SetItemType(A1: Integer);  { draft }
-    procedure GetObtainValue;  { draft }
+    procedure SetItemType(Value: TItemType);
+    function GetObtainValue: Integer;
     function PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
-    procedure EditDropMsg(A1: Integer);  { draft }
+    procedure EditDropMsg(var Msg: TItemDropMsg);
   end;
 
-  { TItemList (instance size 24, VMT 5570FC34) }
+  { TItemList (instance size $18): inherited $08 children, $0C update lock;
+    $10..$17 change event. }
   TItemList = class(TEChangeNotifyNode)
   public
-    F_ItemList_10: Byte;
-    F_ItemList_11: array[0..0] of Byte;
-    F_ItemList_12: Word;
-    F_ItemList_14: Integer;
+    FOnChanged: TNotifyEvent; { $10 code, $14 data }
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Clear; override;
@@ -115,13 +122,13 @@
     procedure Changed; override;
     function GetItem(Index: Integer): TItem; virtual;
     procedure GetLocation(var X, Y, L: Shortint); virtual;
-    procedure FindItem(A1: Integer; A2: Integer);  { draft }
-    procedure Update;  { draft }
-    procedure SortOnName;  { draft }
-    procedure SortOnType;  { draft }
+    function FindItem(ItemID: Integer): TItem;
+    procedure Update;
+    procedure SortOnName;
+    procedure SortOnType;
     procedure RegisterItems;
-    procedure LockChanged;  { draft }
-    procedure UnlockChanged;  { draft }
+    procedure LockChanged;
+    procedure UnlockChanged;
   end;
 
   { TItemLibrary (instance size 32, VMT 5570FD34) }
@@ -153,7 +160,7 @@
     procedure WriteUserLibraries;  { draft }
     procedure IndexOfLibraryName(A1: Integer);  { draft }
     procedure IndexOfLibrary;  { draft }
-    procedure FindItem(A1: Integer; A2: Integer);  { draft }
+    function FindItem(const LibraryName: string; LibraryID: Integer): TItem;
     procedure CreateLibrary(A1: Integer);  { draft }
     procedure DeleteLibrary(A1: Integer);  { draft }
   end;
@@ -174,7 +181,7 @@
     procedure GetItem(A1: Integer);  { draft }
     procedure GetCount;  { draft }
     function FindItem(ItemID: Integer): TItem;
-    procedure ItemChanged;  { draft }
+    procedure ItemChanged(Item: TItem);
     procedure Changed;  { draft }
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
@@ -182,7 +189,7 @@
     procedure ValidateItem(A1: Integer);  { draft }
     procedure UpdateLibraryItems;  { draft }
     procedure RegisterItem(Item: TItem);
-    procedure UnRegisterItem(A1: Integer);  { draft }
+    procedure UnRegisterItem(Item: TItem);
     function GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
     procedure GenerateItems(A1: Byte; A2: Integer; A3: Integer);  { draft }
     procedure Activate;  { draft }
@@ -199,7 +206,7 @@
   { TItemHS (instance size 20, VMT 55710178) }
   TItemHS = class(TSingleHS)
   public
-    F_ItemHS_0C: Integer;
+    FItems: TItemHSList; { $0C }
     F_ItemHS_10: Byte;
     F_ItemHS_11: array[0..2] of Byte;
     destructor Destroy; override;
