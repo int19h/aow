@@ -16,6 +16,7 @@
     $2C/$30 leader/transporter IDs, $34 target status, $38 target location,
     $3C target type, $40/$44 budget, $48 move points, $4C mode, $4D/$4E priorities. }
   TAIGroupControlClass = class of TAIGroupControl;
+  TAIGroupClass = class of TAIGroup;
 
   TAIGroup = class(TUnitUserList)
   public
@@ -31,9 +32,11 @@
     FLeaderID: Integer; { $2C }
     FTransporterID: Integer; { $30 }
     FTargetStatus: TAIGroupTargetStatus; { $34 }
+    { conflict: FRelation: Shortint; }
     { conflict: FIndependentRelation: Shortint; }
     F_AIGroup_35: array[0..2] of Byte;
     FTargetXYL: TXYL; { $38 }
+    { conflict: FDefenseLocation: TXYL; }
     { conflict: FTargetLocation: Integer; }
     FTargetType: TAIGroupTargetType; { $3C }
     F_AIGroup_3D: array[0..2] of Byte;
@@ -42,8 +45,10 @@
     FManaBudget: Integer; { $44 }
     FTargetMovePoints: Integer; { $48 }
     FTargetMode: Byte; { $4C }
+    { conflict: FDefendMode: TGroupDefendMode; }
     FProcessPriority: Byte; { $4D }
     FRecruitmentPriority: Byte; { $4E }
+    { conflict: FRecruitPriority: Byte; }
     F_AIGroup_4F: array[0..0] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -59,14 +64,14 @@
     function AddUnits(Units: TUnitList): Boolean; override;
     function GetGoldBudget: Integer; virtual; { $B8 }
     function GetManaBudget: Integer; virtual; { $BC }
-    procedure GetLoc(A1: Integer; A2: Integer); virtual;  { +0C0 draft }
+    function GetLoc: Integer; virtual; { $C0 }
     class function GroupControlClass: TAIGroupControlClass; virtual; { $C4 }
     procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
     function CreateGroupControl: TAIGroupControl; virtual; { $CC }
     class function Behavior: TGroupBehavior; virtual;
     procedure DefendLocation(A1: Integer); virtual; { +0D4 }
     procedure CooperateWithGroup(A1: Integer); virtual;  { +0D8 draft }
-    procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0DC draft }
+    function GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean; virtual; { $DC }
     function GetProcessPriority: Integer;
     procedure GetAdjacent(A1: Integer; A2: Integer);  { draft }
     procedure SetLeader(A1: Integer);  { draft }
@@ -94,10 +99,9 @@
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure RegisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
+    procedure RegisterAIGroupClasses(Classes: array of TAIGroupClass);
     procedure UnregisterAIGroupClasses(A1: Integer; A2: Integer);  { draft }
-    function CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
-    { conflict: function CreateGroup(Player: Shortint; Priority: Byte; Behavior: TGroupBehavior): TAIGroup; }
+    function CreateGroup(Player, Relation: Shortint; Behavior: TGroupBehavior): TAIGroup;
     procedure CreateUniqueID;  { draft }
   end;
 
@@ -236,7 +240,7 @@
     F_AIGroupControl_160: Integer;
     F_AIGroupControl_164: Integer;
     F_AIGroupControl_168: Integer;
-    F_AIGroupControl_16C: Integer;
+    FState: Integer; { $16C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MoveExecuterDone; virtual;  { $4C }
@@ -251,7 +255,7 @@
     procedure Deactivate; virtual;  { +070 draft }
     procedure ResetME; virtual;  { +074 draft }
     procedure SetupME; virtual; { +078 }
-    procedure ExecuteME(A1, A2, A3: Shortint); virtual; { +07C }
+    procedure ExecuteME(X, Y, L: Shortint); virtual; { +07C }
     procedure Done;  { draft }
     procedure GetStrengthMax(A1: Word; A2: Integer);  { draft }
     procedure UpdateGroupChanges;  { draft }
@@ -292,15 +296,15 @@
   TGroupDefenseSelector = class(TObject)
   public
     F_GroupDefenseSelector_04: array[0..3] of Byte;
-    F_GroupDefenseSelector_08: Integer;
-    F_GroupDefenseSelector_0C: Integer;
+    FDefenders: TUnitList; { $08 }
+    FDefenseLocation: TXYL; { $0C }
     destructor Destroy; override;
-    procedure Create(A1: Byte); virtual;  { +000 draft }
+    constructor Create; virtual; { $00 }
     procedure GetDefenders(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure EnoughStrength(A1: Integer);  { draft }
     procedure UsefullUnit(A1: Integer; A2: Integer);  { draft }
     procedure UpdateDefenseLocation(A1: Integer);  { draft }
-    procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function Execute(Group: TAIGroup; X, Y, L: Shortint; Units: TUnitList): Boolean;
   end;
 
   { TAIGroupDefenseControl (instance size 40, VMT 5571ACDC) }

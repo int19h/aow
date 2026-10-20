@@ -1,60 +1,118 @@
 unit UnitTabC;
 
-{ Draft declarations of UnitTabC, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Unit selection tabs recovered from AoWEPACK.dpl. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, UnitIGrd;
 
 type
   TUnitTabControl = class;
+  TOnSelectUnitEvent = procedure(Sender: TObject; UnitIndex: Integer) of object;
 
 
-  { TUnitTabControl (instance size 336, VMT 55800EA4) }
+  { TUnitTabControl (instance size 336, VMT 55800EA4):
+    $140 selection control, $144 unit index grid, $148 selection event. }
   TUnitTabControl = class(TTabControl)
   public
-    F_UnitTabControl_140: array[0..3] of Byte;
-    F_UnitTabControl_144: Integer;
-    F_UnitTabControl_148: array[0..7] of Byte;
+    FSelectionControl: TUnitSelectionControl; { $140 }
+    FUnitIndexGrid: TUnitIndexGrid; { $144 }
+    FOnSelectUnit: TOnSelectUnitEvent; { $148 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure Change;  { draft }
-    procedure SetUnitIndexGrid(A1: Integer);  { draft }
-    procedure UnitIndexGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure UpdateUnitIndexGrid;  { draft }
-    procedure UpdateSelection;  { draft }
+    procedure Change; override;
+    procedure SetUnitIndexGrid(Value: TUnitIndexGrid);
+    procedure UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean);
+    procedure UpdateUnitIndexGrid;
+    procedure UpdateSelection;
   end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 
 implementation
 
 constructor TUnitTabControl.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  if not (csDesigning in ComponentState) then
+    FSelectionControl := TUnitSelectionControl.Create;
+end;
 
 destructor TUnitTabControl.Destroy;
-begin end;
+begin
+  FSelectionControl.Free;
+  inherited Destroy;
+end;
 
 procedure TUnitTabControl.Change;
-begin end;
+begin
+  UpdateUnitIndexGrid;
+  inherited Change;
+end;
 
-procedure TUnitTabControl.SetUnitIndexGrid(A1: Integer);
-begin end;
+procedure TUnitTabControl.SetUnitIndexGrid(Value: TUnitIndexGrid);
+begin
+  FUnitIndexGrid := Value;
+  if Value <> nil then
+  begin
+    FUnitIndexGrid.OnSelectCell := UnitIndexGridSelectCell;
+    FUnitIndexGrid.FSelectionControl := FSelectionControl;
+  end;
+end;
 
-procedure TUnitTabControl.UnitIndexGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TUnitTabControl.UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean);
+var
+  Index: Integer;
+  List: TUnitIndexList;
+begin
+  Index := FUnitIndexGrid.ImageIndex(ACol, ARow);
+  FUnitIndexGrid.SelectionEnabled := True;
+  List := FUnitIndexGrid.FUnitIndexList;
+  if List <> nil then FSelectionControl.SetSelectedUnitIndex(List[Index]);
+  if Assigned(FOnSelectUnit) then FOnSelectUnit(Self, FSelectionControl.FSelectedUnitIndex);
+end;
 
 procedure TUnitTabControl.UpdateUnitIndexGrid;
-begin end;
+var
+  Index: Integer;
+begin
+  if FUnitIndexGrid <> nil then
+  begin
+    if TabIndex >= 0 then
+    begin
+      Index := Integer(Tabs.Objects[TabIndex]);
+      FUnitIndexGrid.SetUnitIndexList(FSelectionControl.GetUnitCategoryList(Index));
+      if FSelectionControl.FSelectedUnitIndex <> -1 then
+      begin
+        Index := FUnitIndexGrid.FUnitIndexList.IndexOf(FSelectionControl.FSelectedUnitIndex);
+        if Index <> -1 then
+        begin
+          FUnitIndexGrid.Col := Index mod FUnitIndexGrid.ColCount;
+          FUnitIndexGrid.Row := Index div FUnitIndexGrid.ColCount;
+          FUnitIndexGrid.SelectionEnabled := True;
+        end
+        else FUnitIndexGrid.SelectionEnabled := False;
+      end;
+      if FSelectionControl.FSelectedUnitIndex = -1 then
+        FUnitIndexGrid.SelectionEnabled := False;
+    end
+    else FUnitIndexGrid.SetUnitIndexList(nil);
+    Invalidate;
+  end;
+end;
 
 procedure TUnitTabControl.UpdateSelection;
-begin end;
+begin
+  FSelectionControl.UpdateSelection;
+  Tabs := FSelectionControl;
+  UpdateUnitIndexGrid;
+end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin
+  RegisterComponents('AoWEngine', [TUnitTabControl]);
+end;
 
 
 initialization

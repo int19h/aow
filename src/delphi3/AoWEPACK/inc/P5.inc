@@ -2792,7 +2792,7 @@ begin
     Units.SortDescendingItemB;
     while (SkirmishCount < WantedCount) and (Units.Count <> 0) do
     begin
-      Group := AoWHSMap.FAIGroupManager.CreateGroup(FPlayer.FPlayerIndex, 0, Shortint(gbSkirmish));
+      Group := AoWHSMap.FAIGroupManager.CreateGroup(FPlayer.FPlayerIndex, 0, gbSkirmish);
       Item := Units[0];
       Group.AddUnit(TAbstractUnit(Item.A));
       Group.Release;
@@ -4628,8 +4628,8 @@ begin
   Result := Count + (Integer(FProcessPriority) shl 16);
 end;
 
-procedure TAIGroup.GetLoc(A1: Integer; A2: Integer);
-begin end;
+function TAIGroup.GetLoc: Integer;
+begin Result := 0; end;
 
 procedure TAIGroup.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin end;
@@ -4698,8 +4698,8 @@ begin end;
 procedure TAIGroup.DefendLocation(A1: Integer);
 begin end;
 
-procedure TAIGroup.GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAIGroup.GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean;
+begin Result := False; end;
 
 procedure TAIGroup.Activate;
 begin end;
@@ -4737,14 +4737,13 @@ begin end;
 procedure TAIGroupManager.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TAIGroupManager.RegisterAIGroupClasses(A1: Integer; A2: Integer);
+procedure TAIGroupManager.RegisterAIGroupClasses(Classes: array of TAIGroupClass);
 begin end;
 
 procedure TAIGroupManager.UnregisterAIGroupClasses(A1: Integer; A2: Integer);
 begin end;
 
-function TAIGroupManager.CreateGroup(Player, Relation, GroupType: Shortint): TAIGroup;
-{ conflict: function TAIGroupManager.CreateGroup(Player: Shortint; Priority: Byte; Behavior: TGroupBehavior): TAIGroup; }
+function TAIGroupManager.CreateGroup(Player, Relation: Shortint; Behavior: TGroupBehavior): TAIGroup;
 begin Result := nil; end;
 
 procedure TAIGroupManager.CreateUniqueID;
@@ -4897,7 +4896,7 @@ begin end;
 procedure TAIGroupControl.SetupME;
 begin end;
 
-procedure TAIGroupControl.ExecuteME(A1, A2, A3: Shortint);
+procedure TAIGroupControl.ExecuteME(X, Y, L: Shortint);
 begin end;
 
 procedure TAIGroupControl.ResetCP;
@@ -5050,7 +5049,7 @@ begin Result := 0; end;
 procedure TRefugeGC.Behavior;
 begin end;
 
-procedure TGroupDefenseSelector.Create(A1: Byte);
+constructor TGroupDefenseSelector.Create;
 begin end;
 
 destructor TGroupDefenseSelector.Destroy;
@@ -5068,8 +5067,8 @@ begin end;
 procedure TGroupDefenseSelector.UpdateDefenseLocation(A1: Integer);
 begin end;
 
-procedure TGroupDefenseSelector.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TGroupDefenseSelector.Execute(Group: TAIGroup; X, Y, L: Shortint; Units: TUnitList): Boolean;
+begin Result := False; end;
 
 constructor TAIGroupDefenseControl.Create(AOwner: Engine.TECustomNode);
 begin end;

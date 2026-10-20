@@ -7,7 +7,7 @@ unit UnitIGrd;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   TUnitIndexGrid = class;
@@ -16,19 +16,25 @@ type
   { TUnitIndexGrid (instance size 488, VMT 557FF7A8) }
   TUnitIndexGrid = class(TCustomImageDrawGrid)
   public
-    F_UnitIndexGrid_1DC: Integer;
-    F_UnitIndexGrid_1E0: array[0..7] of Byte;
+    FUnitIndexList: TUnitIndexList; { $1DC }
+    FSelectionControl: TUnitSelectionControl; { $1E0 }
+    F_UnitIndexGrid_1E4: array[0..3] of Byte;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;
     procedure SetShowUnitLevel(A1: Byte);  { draft }
     procedure GetUnitIndex;  { draft }
-    procedure SetUnitIndexList(A1: Integer);  { draft }
+    procedure SetUnitIndexList(Value: TUnitIndexList);
     procedure SetUnitIndex;  { draft }
     procedure AddUnit;  { draft }
     procedure DeleteUnit;  { draft }
     procedure GetUnit;  { draft }
     procedure GetSelectedUnit;  { draft }
     procedure DblClick;  { draft }
+    property SelectionEnabled; { $55801091 }
+    property OnSelectCell; { $5580104D }
+    property ColCount; { $55801165 }
+    property Col; { $55801175 }
+    property Row; { $55801194 }
   end;
 
 procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -44,7 +50,7 @@ begin end;
 procedure TUnitIndexGrid.GetUnitIndex;
 begin end;
 
-procedure TUnitIndexGrid.SetUnitIndexList(A1: Integer);
+procedure TUnitIndexGrid.SetUnitIndexList(Value: TUnitIndexList);
 begin end;
 
 procedure TUnitIndexGrid.SetUnitIndex;

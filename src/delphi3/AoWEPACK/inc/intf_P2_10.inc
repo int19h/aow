@@ -85,7 +85,7 @@ function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
 function StrikeDV(A1, A2: TCombatObject): Integer;
 function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
 procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure ValidateAoWEngine;  { draft }
+function ValidateAoWEngine: Boolean;
 
 var
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }

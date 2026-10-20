@@ -956,7 +956,7 @@ var Group: TAIGroup;
 begin
   if WorldMap^.Random(8) = 0 then
   begin
-    Group := WorldMap^.FAIGroupManager.CreateGroup(0, UnitsToIndependentRelation(Units, 5), 5);
+    Group := WorldMap^.FAIGroupManager.CreateGroup(0, UnitsToIndependentRelation(Units, 5), gbRefuge);
     Group.AddUnits(Units);
     Group.Release;
   end

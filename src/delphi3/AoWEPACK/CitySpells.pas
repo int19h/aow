@@ -759,7 +759,9 @@ end;
 function TTownQuake.ValidTargetCity(Source: TAbstractUnit; TargetCity: TCity): Boolean;
 begin
   Result := inherited ValidTargetCity(Source, TargetCity);
-  if Result then Result := not (ceiAntiMagicShell in TargetCity.FEnchantments);
+  if not Result or (ceiAntiMagicShell in TargetCity.FEnchantments) then
+    Result := False
+  else Result := True;
 end;
 
 function TTownQuake.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
@@ -803,8 +805,10 @@ end;
 function TAnarchy.ValidTargetCity(Source: TAbstractUnit; TargetCity: TCity): Boolean;
 begin
   Result := inherited ValidTargetCity(Source, TargetCity);
-  if Result then
-    Result := (TargetCity.FPlayer <> 0) and not (ceiAntiMagicShell in TargetCity.FEnchantments);
+  if not Result or (TargetCity.FPlayer = 0) or
+    (ceiAntiMagicShell in TargetCity.FEnchantments) then
+    Result := False
+  else Result := True;
 end;
 
 procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc);
@@ -867,7 +871,7 @@ end;
 function TAnimateRuins.ValidTargetCity(Source: TAbstractUnit; TargetCity: TCity): Boolean;
 begin
   Result := inherited ValidTargetCity(Source, TargetCity);
-  if Result then Result := TargetCity.GetRazed;
+  Result := Result and TargetCity.GetRazed;
 end;
 
 procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc);

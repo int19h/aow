@@ -8054,6 +8054,6 @@ begin Result := nil; end;
 procedure Register(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure ValidateAoWEngine;
-begin end;
+function ValidateAoWEngine: Boolean;
+begin Result := False; end;
 

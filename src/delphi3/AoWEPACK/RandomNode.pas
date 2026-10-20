@@ -1,13 +1,12 @@
 unit RandomNode;
 
-{ Draft declarations of RandomNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Random node specialization recovered from AoWEPACK.dpl.
+  Both classes retain their inherited layouts with no added fields. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace, AoWE;
 
 type
   TRandomNode = class;
@@ -29,27 +28,31 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterRandomNode;  { draft }
+procedure RegisterRandomNode(AEngine: TEngine);
 
 implementation
 
 class function TRandomNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20822; end;
 
 constructor TRandomNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 class function TRandomNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(RandomNodeRStr); end;
 
 class function TRandomNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20823; end;
 
 function TRandomNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20822; end;
 
-procedure RegisterRandomNode;
-begin end;
+procedure RegisterRandomNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TRandomNode, TRandomNodeResource]);
+end;
 
 
 initialization
