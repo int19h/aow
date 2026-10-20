@@ -58,9 +58,9 @@ type
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
     procedure PlayLoggedSFX(A1: Integer); virtual;  { +068 draft }
     procedure NotifyLogged(A1: Integer); virtual;  { +06C draft }
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; virtual;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; virtual;
     procedure ViewLocation(A1: Integer; A2: Integer); virtual;  { +074 draft }
-    procedure CenterViewTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure CenterViewTo(X, Y, L: Shortint);
   end;
 
   { TTextEventLog (instance size 28, VMT 557FC564) }
@@ -70,7 +70,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TLocationTextEventLog (instance size 32, VMT 557FC664) }
@@ -84,7 +84,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure SetLocation(X, Y, L: Shortint);
   end;
 
@@ -189,7 +189,7 @@ type
   public
     class function ClassID: Integer; override;
     function GetVisible: Boolean; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TShowMessageEventLog (instance size 28, VMT 557FC85C) }
@@ -212,7 +212,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure Handled;  { draft }
   end;
 
@@ -321,10 +321,10 @@ begin Result := 0; end;
 function TEventLog.GetRightIcon: Integer;
 begin Result := 0; end;
 
-function TEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
-procedure TEventLog.CenterViewTo(A1: Integer; A2: Integer; A3: Integer);
+procedure TEventLog.CenterViewTo(X, Y, L: Shortint);
 begin end;
 
 procedure TEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
@@ -432,7 +432,7 @@ begin end;
 function TTextEventLog.GetText: string;
 begin Result := ''; end;
 
-function TTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TTextEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TLocationTextEventLog.Create(AOwner: Engine.TECustomNode);
@@ -450,7 +450,7 @@ begin end;
 procedure TLocationTextEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-function TLocationTextEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TLocationTextEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 function TEndTurnEventLog.GetVisible: Boolean;
@@ -459,7 +459,7 @@ begin Result := False; end;
 class function TEndTurnEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-function TEndTurnEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TEndTurnEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TShowMessageEventLog.Create(AOwner: Engine.TECustomNode);
@@ -492,7 +492,7 @@ begin Result := ''; end;
 procedure TGameOverEventLog.Handled;
 begin end;
 
-function TGameOverEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 class function TNewDayEventLog.ClassID: Integer;

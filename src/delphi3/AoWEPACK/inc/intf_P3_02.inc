@@ -360,7 +360,7 @@
     function GetMiddleIcon: Integer; override;
     function GetRightIcon: Integer; override;
     procedure PlayLoggedSFX(A1: Integer); override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetCombatLogbook(Logbook: TCombatLogbook);
   end;
@@ -381,7 +381,7 @@
     F_CombatTypeRequestEventLog_25: array[0..2] of Byte;
     F_CombatTypeRequestEventLog_28: Integer;
     destructor Destroy; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure SetTokenEvent(A1: Integer);  { draft }
     procedure Select(A1: Byte);  { draft }
     procedure SetCenterLocation(A1: Byte; A2: Byte; A3: Integer);  { draft }

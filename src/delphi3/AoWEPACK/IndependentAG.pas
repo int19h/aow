@@ -30,7 +30,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TGuardAGC (instance size 368, VMT 557D7FB0) }
@@ -46,7 +46,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TGuardAreaAGC (instance size 368, VMT 557D8204) }
@@ -70,7 +70,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TPatrolAGC (instance size 368, VMT 557D845C) }
@@ -88,7 +88,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TRefugeAGC (instance size 368, VMT 557D86AC) }
@@ -102,7 +102,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TRaidAGC (instance size 368, VMT 557D88F4) }
@@ -119,7 +119,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TScoutAGC (instance size 368, VMT 557D8B3C) }
@@ -139,8 +139,8 @@ begin end;
 class function TGuardAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TGuardAG.Behavior;
-begin end;
+class function TGuardAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TGuardAG.GroupControlClass;
 begin end;
@@ -151,8 +151,8 @@ begin end;
 class function TGuardAreaAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TGuardAreaAG.Behavior;
-begin end;
+class function TGuardAreaAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TGuardAreaAG.GroupControlClass;
 begin end;
@@ -178,8 +178,8 @@ begin end;
 class function TPatrolAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPatrolAG.Behavior;
-begin end;
+class function TPatrolAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TPatrolAG.GroupControlClass;
 begin end;
@@ -205,8 +205,8 @@ begin end;
 class function TRefugeAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TRefugeAG.Behavior;
-begin end;
+class function TRefugeAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TRefugeAG.GroupControlClass;
 begin end;
@@ -217,8 +217,8 @@ begin end;
 class function TRaidAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TRaidAG.Behavior;
-begin end;
+class function TRaidAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TRaidAG.GroupControlClass;
 begin end;
@@ -238,8 +238,8 @@ begin end;
 class function TScoutAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TScoutAG.Behavior;
-begin end;
+class function TScoutAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TScoutAG.GroupControlClass;
 begin end;

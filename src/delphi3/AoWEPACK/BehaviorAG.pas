@@ -46,7 +46,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TSkirmishAGC (instance size 372, VMT 557DC690) }
@@ -61,7 +61,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TNormalAGC (instance size 372, VMT 557DC8E0) }
@@ -76,7 +76,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TDefenderAGC (instance size 372, VMT 557DCB28) }
@@ -91,7 +91,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TAggressorAGC (instance size 372, VMT 557DCD80) }
@@ -106,7 +106,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TExpanderAGC (instance size 372, VMT 557DCFD0) }
@@ -121,7 +121,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TScorcherAGC (instance size 372, VMT 557DD220) }
@@ -148,8 +148,8 @@ begin end;
 class function TNormalAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TNormalAG.Behavior;
-begin end;
+class function TNormalAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TNormalAG.GroupControlClass;
 begin end;
@@ -163,8 +163,8 @@ begin end;
 class function TDefenderAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDefenderAG.Behavior;
-begin end;
+class function TDefenderAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TDefenderAG.GroupControlClass;
 begin end;
@@ -178,8 +178,8 @@ begin end;
 class function TAggressorAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TAggressorAG.Behavior;
-begin end;
+class function TAggressorAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TAggressorAG.GroupControlClass;
 begin end;
@@ -193,8 +193,8 @@ begin end;
 class function TExpanderAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TExpanderAG.Behavior;
-begin end;
+class function TExpanderAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TExpanderAG.GroupControlClass;
 begin end;
@@ -208,8 +208,8 @@ begin end;
 class function TScorcherAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TScorcherAG.Behavior;
-begin end;
+class function TScorcherAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TScorcherAG.GroupControlClass;
 begin end;
@@ -223,8 +223,8 @@ begin end;
 class function TSkirmishAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSkirmishAG.Behavior;
-begin end;
+class function TSkirmishAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TSkirmishAG.GroupControlClass;
 begin end;

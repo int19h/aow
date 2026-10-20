@@ -195,7 +195,7 @@
     function GetVisible: Boolean; override;
     procedure PlayLoggedSFX(A1: Integer); override;
     procedure NotifyLogged(A1: Integer); override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure SetDiplomaticAction(Action: TDiplomaticAction);
   end;
 

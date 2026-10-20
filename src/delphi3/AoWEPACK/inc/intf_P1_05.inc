@@ -128,7 +128,7 @@
     procedure DropHeroItem(A1: Integer; A2: Integer); virtual;  { +108 draft }
     function GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer; virtual;  { +10C draft }
     procedure ShowMessage(const A1: string); virtual;
-    procedure ShowWarning(A1: Integer); virtual;  { +114 draft }
+    procedure ShowWarning(const Text: string); virtual;
     procedure PlayCenterAnimation(X, Y, L: Shortint);
     procedure LockMapChangedEvent;  { draft }
     procedure UnlockMapChangedEvent;  { draft }

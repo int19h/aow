@@ -274,7 +274,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 
@@ -326,7 +326,7 @@ type
   TCityProductionEventLog = class(TProductionEventLog)
   public
     class function ClassID: Integer; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure GetCity;  { draft }
   end;
 
@@ -1128,7 +1128,7 @@ begin Result := ''; end;
 procedure TCityRebellionEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-function TCityRebellionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TCityRebellionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TMigrationList.GetItems(A1: Integer);
@@ -1224,7 +1224,7 @@ begin Result := 0; end;
 procedure TCityProductionEventLog.GetCity;
 begin end;
 
-function TCityProductionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TCityProductionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 function ProductionIDToCityAction(ID: Integer): TCityAction;

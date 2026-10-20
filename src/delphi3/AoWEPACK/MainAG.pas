@@ -27,7 +27,7 @@ type
     class function ClassID: Integer; override;
     procedure GetLoc(A1: Integer; A2: Integer); override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
     procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); override;
   end;
 
@@ -44,7 +44,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TFortifyAGC (instance size 384, VMT 557DA268) }
@@ -69,7 +69,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TSuicidalAGC (instance size 368, VMT 557DA4A8) }
@@ -87,7 +87,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
   end;
 
   { TTransportAGC (instance size 368, VMT 557DA6F8) }
@@ -108,8 +108,8 @@ begin end;
 class function TPassiveAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TPassiveAG.Behavior;
-begin end;
+class function TPassiveAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TPassiveAG.GroupControlClass;
 begin end;
@@ -132,8 +132,8 @@ begin end;
 class function TFortifyAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFortifyAG.Behavior;
-begin end;
+class function TFortifyAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TFortifyAG.GroupControlClass;
 begin end;
@@ -174,8 +174,8 @@ begin end;
 class function TSuicidalAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSuicidalAG.Behavior;
-begin end;
+class function TSuicidalAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TSuicidalAG.GroupControlClass;
 begin end;
@@ -198,8 +198,8 @@ begin end;
 class function TTransportAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TTransportAG.Behavior;
-begin end;
+class function TTransportAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TTransportAG.GroupControlClass;
 begin end;

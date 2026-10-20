@@ -3,31 +3,33 @@
   THeroJoinEventLog = class(TJoinEventLog)
   public
     class function ClassID: Integer; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     function Accept(var ErrorText: string): Boolean; override;
-    procedure ExecuteAI;  { draft }
+    function ExecuteAI: Boolean;
   end;
 
-  { THeroEmergeEventLog (instance size 44, VMT 55711ED8) }
+  { THeroEmergeEventLog (instance size 44, VMT 55711ED8): +18 FUnitID; +1C FDay;
+    +20 FText; +24 FMode; +28 FLocationName. }
   THeroEmergeEventLog = class(TEventLog)
   public
-    F_HeroEmergeEventLog_18: Integer;
-    F_HeroEmergeEventLog_1C: Integer;
-    F_HeroEmergeEventLog_20: Integer;
-    F_HeroEmergeEventLog_24: Byte;
+    FUnitID: Integer;  { $18 }
+    FDay: Integer;  { $1C }
+    FText: string;  { $20 }
+    FMode: THeroJoinMode;  { $24 }
     F_HeroEmergeEventLog_25: array[0..2] of Byte;
-    F_HeroEmergeEventLog_28: Integer;
+    FLocationName: string;  { $28 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
-    procedure Setup(A1: Integer; A2: Byte);  { draft }
-    procedure CreateHeroJoinEventLog;  { draft }
-    procedure ExecuteAI;  { draft }
+    procedure Setup(Hero: THero; Player: Shortint; Mode: THeroJoinMode);
+    function CreateHeroJoinEventLog: THeroJoinEventLog;
+    function ExecuteAI: Boolean;
   end;
 
-  { THero (instance size 156, VMT 55711FEC) }
+  { THero (instance size 156, VMT 55711FEC): +54 FUpgradePending;
+    +60 FHeroName; +6A..6F unit attack, defense, damage, hits, moves, resistance. }
   THero = class(TAbstractUnit)
   public
     F_Hero_3C: Integer;
@@ -37,7 +39,7 @@
     F_Hero_4C: Byte;
     F_Hero_4D: array[0..2] of Byte;
     F_Hero_50: Integer;
-    F_Hero_54: Byte;
+    FUpgradePending: Boolean;  { $54 }
     F_Hero_55: Byte;
     F_Hero_56: array[0..1] of Byte;
     F_Hero_58: Integer;
@@ -48,12 +50,12 @@
     F_Hero_64: Integer;
     F_Hero_68: Byte;
     F_Hero_69: Byte;
-    F_Hero_6A: Byte;
-    F_Hero_6B: Byte;
-    F_Hero_6C: Byte;
-    F_Hero_6D: Byte;
-    F_Hero_6E: Byte;
-    F_Hero_6F: Byte;
+    FUnitAttack: Shortint;  { $6A }
+    FUnitDefense: Shortint;  { $6B }
+    FUnitDamage: Shortint;  { $6C }
+    FUnitHits: Shortint;  { $6D }
+    FUnitMoves: Shortint;  { $6E }
+    FUnitResistance: Shortint;  { $6F }
     FHeroItems: THeroItems; { $70 }
     FInventory: THeroInventory; { $74 }
     F_Hero_78: Byte;
@@ -157,12 +159,12 @@
     procedure GetLevel;  { draft }
     procedure SetLevel(A1: Integer);  { draft }
     procedure GetHeroType;  { draft }
-    procedure SetUnitAttack(A1: Integer);  { draft }
-    procedure SetUnitDefense(A1: Integer);  { draft }
-    procedure SetUnitDamage(A1: Integer);  { draft }
-    procedure SetUnitHits(A1: Integer);  { draft }
-    procedure SetUnitMoves(A1: Integer);  { draft }
-    procedure SetUnitResistance(A1: Integer);  { draft }
+    procedure SetUnitAttack(Value: Shortint);
+    procedure SetUnitDefense(Value: Shortint);
+    procedure SetUnitDamage(Value: Shortint);
+    procedure SetUnitHits(Value: Shortint);
+    procedure SetUnitMoves(Value: Shortint);
+    procedure SetUnitResistance(Value: Shortint);
     procedure LinkToResource;  { draft }
     procedure Loaded;  { draft }
     procedure ListSpells(A1: Integer);  { draft }
@@ -630,7 +632,7 @@
     class function ClassID: Integer; override;
     function GetText: string; override;
     function GetLeftIcon: Integer; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }
     procedure LeaderKilled;  { draft }
@@ -655,7 +657,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
     procedure SetArmyView;  { draft }
   end;

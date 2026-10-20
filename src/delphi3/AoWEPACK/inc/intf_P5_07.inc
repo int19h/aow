@@ -20,7 +20,7 @@
     F_AIGroup_18: array[0..3] of Byte;
     F_AIGroup_1C: Integer;
     F_AIGroup_20: Integer;
-    F_AIGroup_24: Integer;
+    FGroupID: Integer;  { $24; 5578305E }
     F_AIGroup_28: Byte;
     F_AIGroup_29: array[0..2] of Byte;
     F_AIGroup_2C: Integer;
@@ -55,7 +55,7 @@
     procedure GroupControlClass; virtual;  { +0C4 draft }
     procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
     procedure CreateGroupControl; virtual;  { +0CC draft }
-    procedure Behavior; virtual;  { +0D0 draft }
+    class function Behavior: TGroupBehavior; virtual;
     procedure DefendLocation(A1: Integer); virtual; { +0D4 }
     procedure CooperateWithGroup(A1: Integer); virtual;  { +0D8 draft }
     procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0DC draft }
@@ -595,7 +595,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure GroupControlClass; override;
-    procedure Behavior; override;
+    class function Behavior: TGroupBehavior; override;
     procedure HuntingPlayer(A1: Integer);  { draft }
   end;
 
@@ -815,7 +815,7 @@
   public
     F_CombatRestoreHotseatEventLog_18: Byte;
     F_CombatRestoreHotseatEventLog_19: array[0..2] of Byte;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TNegotiateTE (instance size $3C, VMT 5571CCFC).
@@ -873,7 +873,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     function Accept(var ErrorText: string): Boolean; override;
     function Cancel: Boolean; override;
     function Reject(var ErrorText: string): Boolean; override;

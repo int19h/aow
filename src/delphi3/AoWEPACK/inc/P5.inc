@@ -394,7 +394,7 @@ begin
   Result := True;
 end;
 
-function TNegotiateRequestEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TNegotiateRequestEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 asm
   { needs: EventLog.TEventLog.Execute returns Boolean; A2 is a Boolean in CL.
     Shared map's current-player byte is $A5 (5572C8FC..5572C90B). }
@@ -450,7 +450,7 @@ begin
       Msg.Param[1] := 0;
       Msg.Result := 0;
       AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
-      if Msg.Param[1] <> 0 then Log.Execute(1, etEvent, nil);
+      if Msg.Param[1] <> 0 then Log.Execute(True, etEvent, nil);
       Log.Release;
     end;
   end
@@ -1415,7 +1415,7 @@ begin
     else Result := -1;
 end;
 
-function TDiplomaticActionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TDiplomaticActionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 asm
   POP EBP
   JMP P5DiplomaticExecute
@@ -2338,7 +2338,7 @@ begin Result := $202F7; end;
 function TRestartGameEventLog.GetText: string;
 begin Result := TranslateRStr(GameRestartedRStr); end;
 
-function TRestartGameEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TRestartGameEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin
   if Trigger <> etNewTurn then Result := inherited Execute(Mode, Trigger, Done)
   else Result := False;
@@ -2870,11 +2870,11 @@ begin end;
 procedure TAIBudgetManager.ProductionExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TAIBudgetManager.RequestBudgetExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAIBudgetManager.RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+begin Result := False; end;
 
-procedure TAIBudgetManager.BudgetExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAIBudgetManager.BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
+begin Result := False; end;
 
 procedure TAIBudgetManager.RequestBudgetExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
 begin end;
@@ -2957,8 +2957,8 @@ begin Result := 0; end;
 procedure TAIGroup.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TAIGroup.Behavior;
-begin end;
+class function TAIGroup.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure TAIGroup.GroupControlClass;
 begin end;
@@ -3326,8 +3326,8 @@ begin end;
 class function THuntAG.ClassID: Integer;
 begin Result := 0; end;
 
-procedure THuntAG.Behavior;
-begin end;
+class function THuntAG.Behavior: TGroupBehavior;
+begin Result := gbNone; end;
 
 procedure THuntAG.GroupControlClass;
 begin end;
@@ -4601,7 +4601,7 @@ begin end;
 procedure TArmyCombineMoveTE.CanMoveNext;
 begin end;
 
-function TCombatRestoreHotseatEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TCombatRestoreHotseatEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 class function TArmyCombatMoveTE.ClassID: Integer;

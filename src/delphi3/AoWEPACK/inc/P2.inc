@@ -2673,7 +2673,12 @@ begin
 end;
 
 procedure TUnitList.Clear;
-begin end;
+var I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    TEObject(FChildren.List^[I]).SetOwner(nil);
+  FChildren.Clear;
+end;
 
 procedure TUnitList.DestroyAllChildren;
 begin
@@ -2715,37 +2720,156 @@ begin
 end;
 
 function TUnitList.IndexOf(AUnit: TAbstractUnit): Integer;
-begin Result := 0; end;
+begin
+  Result := FChildren.IndexOf(AUnit);
+end;
 
-procedure TUnitList.IndexOfID(A1: Integer);
-begin end;
+function TUnitList.IndexOfID(ID: Integer): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAbstractUnit(FChildren.List^[Result]).FUnitID = ID then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TUnitList.IndexOfBehavior(A1: Integer);
-begin end;
+function TUnitList.IndexOfBehavior(Behavior: TGroupBehavior): Integer;
+var Group: TAIGroup;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    Group := TAbstractUnit(FChildren.List^[Result]).FGroup;
+    if (Group <> nil) and (Group.Behavior = Behavior) then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TUnitList.IndexOfGroup(A1: Integer);
-begin end;
+function TUnitList.IndexOfGroup(Group: TAIGroup): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAbstractUnit(FChildren.List^[Result]).FGroup = Group then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TUnitList.IndexOfGroupID(A1: Integer);
-begin end;
+function TUnitList.IndexOfGroupID(ID: Integer): Integer;
+var Group: TAIGroup;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    Group := TAbstractUnit(FChildren.List^[Result]).FGroup;
+    if (Group <> nil) and (Group.FGroupID = ID) then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TUnitList.FindID(A1: Integer);
-begin end;
+function TUnitList.FindID(ID: Integer): TAbstractUnit;
+var I: Integer;
+begin
+  I := Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    Result := TAbstractUnit(FChildren.List^[I]);
+    if Result.FUnitID = ID then Exit;
+  end;
+  Result := nil;
+end;
 
 function TUnitList.GetUnit(A1: Integer): TAbstractUnit;
-begin Result := nil; end;
+begin
+  { Original accepts negative indexes and reads the backing array directly. }
+  if A1 < Count then
+  begin
+    Result := TAbstractUnit(FChildren.List^[A1]);
+    Exit;
+  end;
+  Result := nil;
+end;
 
-procedure TUnitList.SetUnit(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitList.SetUnit(Index: Integer; AUnit: TAbstractUnit);
+begin
+  while Index >= Count do FChildren.Add(nil);
+  if FChildren.List^[Index] <> nil then TEObject(FChildren.List^[Index]).Release;
+  FChildren.List^[Index] := AUnit;
+  if UpdateCount = 0 then Changed;
+end;
 
 procedure TUnitList.MainReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var I: Integer;
+begin
+  inherited MainReadWrite(Stream);
+  if Stream.StorageMode * [smRead, smTextOnly, smCompare] = [smRead] then
+    for I := 0 to FChildren.Count - 1 do TEObject(FChildren.List^[I]).Release;
+end;
+
+function P2CompareUnits(Item1, Item2: Pointer): Integer;
+var S1, S2: Integer;
+begin
+  with TAbstractUnit(Item1) do
+  begin
+    S1 := GetUnitLevel;
+    if GetTransporter then Inc(S1, 500);
+    if TAbstractUnit(Item1) is THero then
+    begin
+      Inc(S1, 50);
+      if TAbstractUnit(Item1) is TLeader then Inc(S1, 100);
+    end;
+  end;
+  with TAbstractUnit(Item2) do
+  begin
+    S2 := GetUnitLevel;
+    if GetTransporter then Inc(S2, 500);
+    if TAbstractUnit(Item2) is THero then
+    begin
+      Inc(S2, 50);
+      if TAbstractUnit(Item2) is TLeader then Inc(S2, 100);
+    end;
+  end;
+  Result := S2 - S1;
+  if Result = 0 then
+  begin
+    if usEnchanted in TAbstractUnit(Item1).FUnitStatus then S1 := 1 else S1 := 0;
+    if usEnchanted in TAbstractUnit(Item2).FUnitStatus then S2 := 1 else S2 := 0;
+    Result := S2 - S1;
+  end;
+  if Result = 0 then
+  begin
+    Result := TAbstractUnit(Item2).GetUnitGFXResourceIndex -
+      TAbstractUnit(Item1).GetUnitGFXResourceIndex;
+    if Result = 0 then Result := TAbstractUnit(Item2).FUnitID - TAbstractUnit(Item1).FUnitID;
+  end;
+end;
+
+function P2CompareUnitMoves(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAbstractUnit(Item2).GetMoves - TAbstractUnit(Item1).GetMoves;
+end;
 
 procedure TUnitList.SortUnits;
-begin end;
+begin
+  LockChanged;
+  FChildren.Pack;
+  FChildren.Sort(P2CompareUnits);
+  UnlockChanged;
+end;
 
 procedure TUnitList.SortOnMoves;
-begin end;
+begin
+  LockChanged;
+  FChildren.Pack;
+  FChildren.Sort(P2CompareUnitMoves);
+  UnlockChanged;
+end;
 
 procedure TUnitList.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin
@@ -2759,14 +2883,28 @@ begin
   Result := -1;
 end;
 
-procedure TUnitList.GetStrength(A1: Integer);
-begin end;
+function TUnitList.GetStrength(DamageType: TDamageType): Integer;
+var I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+    Inc(Result, TAbstractUnit(FChildren.List^[I]).GetStrength(DamageType));
+end;
 
-procedure TUnitList.GetStrengthMax(A1: Word; A2: Integer);
-begin end;
+function TUnitList.GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+var I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+    Inc(Result, TAbstractUnit(FChildren.List^[I]).GetStrengthMax(DamageTypes));
+end;
 
 procedure TUnitUserList.Clear;
-begin end;
+var I: Integer;
+begin
+  for I := Count - 1 downto 0 do TEObject(FChildren.List^[I]).Release;
+  FChildren.Clear;
+end;
 
 function TUnitUserList.AddUnit(AUnit: TAbstractUnit): Boolean;
 begin
@@ -3914,190 +4052,667 @@ end;
 
 
 constructor TUnitResourceList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+end;
 
 function TUnitResourceList.GetUnitResource(Index: Integer): TUnitResource;
-begin end;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := TUnitResource(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 constructor TUnitIndexList.Create;
-begin end;
+begin
+  inherited Create;
+  Default := -1;
+end;
 
-procedure TUnitIndexList.GetUnitIndex(A1: Integer);
-begin end;
+function TUnitIndexList.GetUnitIndex(Index: Integer): Integer;
+begin
+  if (Index < 0) or (Index >= Count) then Result := Default
+  else Result := List^[Index];
+end;
 
-procedure TUnitIndexList.VerifyUnits(A1: Byte);
-begin end;
+procedure TUnitIndexList.VerifyUnits(ShowErrors: Boolean);
+var I, U: Integer;
+begin
+  for I := Count - 1 downto 0 do
+  begin
+    U := List^[I];
+    if (U <> -1) and (AoWHSSet.FUnitResources.GetUnitResource(U) = nil) then
+    begin
+      if ShowErrors then ShowMessage('Used unit missing (unit index:' + IntToStr(U) + ')');
+      List^[I] := Default;
+    end;
+  end;
+end;
 
-procedure TUnitIndexList.SetUnitIndex(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitIndexList.SetUnitIndex(Index, Value: Integer);
+begin
+  Assert(Index >= 0, 'List index out of bounds (TUnitIndexList)');
+  if Index >= Count then Count := Index + 1;
+  List^[Index] := Value;
+end;
+
+function P2CompareUnitIndexes(Item1, Item2: Integer): Integer;
+begin
+  { Original checks Item1 twice before reading Item2. }
+  Assert((AoWHSSet.FUnitResources.GetUnitResource(Item1) <> nil) and
+    (AoWHSSet.FUnitResources.GetUnitResource(Item1) <> nil), 'Undefined UnitResource Used!');
+  Result := AoWHSSet.FUnitResources.GetUnitResource(Item2).FLevel -
+    AoWHSSet.FUnitResources.GetUnitResource(Item1).FLevel;
+end;
 
 procedure TUnitIndexList.SortUnits;
-begin end;
+begin
+  if AoWHSSet <> nil then
+  begin
+    Pack;
+    try
+      Sort(P2CompareUnitIndexes);
+    except
+    end;
+  end;
+end;
 
 constructor THeroUpgradeTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilities := TAbilityOwner.Create(nil);
+end;
 
 destructor THeroUpgradeTE.Destroy;
-begin end;
+begin
+  FAbilities.Free;
+  inherited Destroy;
+end;
 
 procedure THeroUpgradeTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FAttack), 30);
+  Stream.rwByte(Byte(FDefense), 31);
+  Stream.rwByte(Byte(FResistance), 32);
+  Stream.rwByte(Byte(FDamage), 33);
+  Stream.rwByte(Byte(FMoves), 34);
+  Stream.rwByte(Byte(FHits), 35);
+  Stream.rwEObject(FAbilities, 36);
+  Stream.rwInteger(FUnitID, 37);
+  Stream.rwByte(Byte(FPlayer), 38);
+end;
 
 class function THeroUpgradeTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2131D; end;
 
 function THeroUpgradeTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var Hero: THero;
+begin
+  Result := inherited Execute(TE);
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  if (Hero <> nil) and (Hero.GetHitPoints <> 0) and (Hero.FPlayer = FPlayer) then
+  begin
+    Hero.SetUnitAttack(Hero.FUnitAttack + FAttack);
+    Hero.SetUnitDefense(Hero.FUnitDefense + FDefense);
+    Hero.SetUnitResistance(Hero.FUnitResistance + FResistance);
+    Hero.SetUnitDamage(Hero.FUnitDamage + FDamage);
+    Hero.SetUnitMoves(Hero.FUnitMoves + FMoves);
+    Hero.SetUnitHits(Hero.FUnitHits + FHits);
+    Hero.UpdateDefaultAbilities(FAbilities);
+    Hero.FUpgradePending := False;
+  end;
+end;
 
-procedure THeroUpgradeTE.Setup(A1: Integer);
-begin end;
+procedure THeroUpgradeTE.Setup(Hero: THero);
+begin
+  FUnitID := Hero.FUnitID;
+  FPlayer := Hero.FPlayer;
+end;
+
+resourcestring
+  XMadeALevelRStr = '%s made a level';
+  XMadeYLevelsRStr = '%s made %d levels';
+  CanOnlyUpgradeHeroOnceRStr = 'Can only upgrade hero once';
+  CanOnlyUpgradeOnTheDayALevelIsMadeRStr = 'Can only upgrade on the day a level is made';
+  XOffersToJoinRStr = '%s offers to join!';
+  XAlreadyJoinedRStr = '%s already joined';
+  XDoesntWantToJoinAnymoreRStr = '%s doesn''t want to join anymore';
+  XEmergedAtYAndOffersToJoinYouForZgpRStr = '%0:s emerged at %1:s and offers to join you for %d gold';
+  XwasResurrectedAndOffersToJoinYouForZgpRStr = '%s was resurrected and offers to join you for %d gold';
 
 class function THeroUpgradeEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F1; end;
 
 procedure THeroUpgradeEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitID, 25);
+  Stream.rwByte(FOldLevel, 26);
+  Stream.rwByte(FNewLevel, 27);
+  Stream.rwInteger(FDay, 28);
+end;
 
 function THeroUpgradeEventLog.GetText: string;
-begin Result := ''; end;
+var Hero: THero;
+begin
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  if Hero <> nil then
+    if FNewLevel - FOldLevel = 1 then
+      Result := Format(TranslateRStr(XMadeALevelRStr), [Hero.GetName])
+    else Result := Format(TranslateRStr(XMadeYLevelsRStr), [Hero.GetName, FNewLevel - FOldLevel]);
+end;
 
-function THeroUpgradeEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+function THeroUpgradeEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+var Hero: THero;
+begin
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  if (Hero <> nil) and (AoWHSMap.FSeatedPlayer = Hero.FPlayer) then
+  begin
+    if Hero.FUpgradePending then
+    begin
+      Result := Trigger = etUser;
+      Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
+        (wpHeroUpgrade in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
+      Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+        (wpHeroUpgrade in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
+      if Result then Result := inherited Execute(Mode, Trigger, Done);
+    end
+    else
+    begin
+      if AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FDay = FDay then
+        AoWHSMap.ShowWarning(TranslateRStr(CanOnlyUpgradeHeroOnceRStr))
+      else AoWHSMap.ShowWarning(TranslateRStr(CanOnlyUpgradeOnTheDayALevelIsMadeRStr));
+      Result := False;
+    end;
+  end
+  else Result := False;
+end;
 
 procedure THeroUpgradeEventLog.ViewLocation(A1: Integer; A2: Integer);
-begin end;
+var U: TAbstractUnit; X, Y, L: Shortint;
+begin
+  U := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+  if U <> nil then
+  begin
+    U.GetLocation(X, Y, L);
+    if X <> -1 then CenterViewTo(X, Y, L);
+  end;
+end;
 
 class function THeroJoinEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F4; end;
 
-function THeroJoinEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+function THeroJoinEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+var Hero: THero;
+begin
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FFirstUnitID));
+  if (Hero <> nil) and (Hero.FPlayer = 0) and Hero.OfferToJoin(FPlayer) then
+  begin
+    Result := Trigger = etUser;
+    Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
+      (wpHeroJoin in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
+    Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+      (wpHeroJoin in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
+    if Result then Result := inherited Execute(Mode, Trigger, Done);
+  end
+  else Result := False;
+end;
 
-procedure THeroJoinEventLog.ExecuteAI;
-begin end;
+function THeroJoinEventLog.ExecuteAI: Boolean;
+var Hero: THero; ErrorText: string;
+begin
+  Result := False;
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FFirstUnitID));
+  if (Hero <> nil) and (Hero.FPlayer = 0) and Hero.OfferToJoin(FPlayer) then
+    if AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.RequestBudgetExpense(
+      FGold, 0, AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.FDefaultBudget, True) then
+    begin
+      if Accept(ErrorText) then
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.BudgetExpenseMade(
+          FGold, 0, AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIBudget.FDefaultBudget, bemBudgetThenPool);
+      Result := True;
+    end;
+end;
 
 function THeroJoinEventLog.Accept(var ErrorText: string): Boolean;
-begin Result := False; end;
+var TE: TNegotiateTE; U: TAbstractUnit; Location: TXYL;
+begin
+  Result := inherited Accept(ErrorText);
+  if Result and not AoWHSMap.FPlayers.GetPlayers(FPlayer).GetBusy then
+  begin
+    U := AoWHSMap.FUnitControl.FindUnit(FFirstUnitID);
+    U.GetLocation(Location.X, Location.Y, Location.L);
+    TE := TNegotiateTE.Create(nil);
+    TE.FPlayer := FPlayer;
+    TE.FObject := noArmy;
+    TE.FGold := FGold;
+    TE.FOffer := noOfferBribe;
+    TE.FX := Location.X;
+    TE.FY := Location.Y;
+    TE.FL := Location.L;
+    TE.FMode := [];
+    TE.FResult := nrAccept;
+    TE.FEventLogID := FJoinIndex;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer).AddEvent(TE);
+    TE.Release;
+  end;
+end;
 
 class function THeroEmergeEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F8; end;
 
-procedure THeroEmergeEventLog.Setup(A1: Integer; A2: Byte);
-begin end;
+procedure THeroEmergeEventLog.Setup(Hero: THero; Player: Shortint; Mode: THeroJoinMode);
+var Name: string;
+begin
+  FPlayer := Player;
+  FUnitID := Hero.FUnitID;
+  FDay := AoWHSMap.FDay;
+  FMode := Mode;
+  Name := Hero.FHeroName;
+  if Hero.GetNickname <> '' then Name := Name + ' ' + Hero.GetNickname;
+  { Original builds Name but formats the message from FHeroName instead. }
+  FText := Format(TranslateRStr(XOffersToJoinRStr), [Hero.FHeroName]);
+end;
 
 procedure THeroEmergeEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitID, 39);
+  Stream.rwInteger(FDay, 40);
+  Stream.rwString(FText, 41);
+  Stream.rwString(FLocationName, 42);
+  Stream.rwData(FMode, 1, 43);
+end;
 
 function THeroEmergeEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  Result := FText;
+end;
 
 procedure THeroEmergeEventLog.ViewLocation(A1: Integer; A2: Integer);
-begin end;
+var U: TAbstractUnit; X, Y, L: Shortint;
+begin
+  U := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+  if U <> nil then
+  begin
+    U.GetLocation(X, Y, L);
+    if X <> -1 then CenterViewTo(X, Y, L);
+  end;
+end;
 
-procedure THeroEmergeEventLog.CreateHeroJoinEventLog;
-begin end;
+function THeroEmergeEventLog.CreateHeroJoinEventLog: THeroJoinEventLog;
+var Hero: THero;
+begin
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  if (Hero <> nil) and (Hero.FPlayer = 0) and Hero.OfferToJoin(FPlayer) then
+  begin
+    Result := THeroJoinEventLog.Create(nil);
+    Result.FJoinIndex := F_EventLog_0C;
+    case FMode of
+    hjmEmerged:
+    begin
+      Result.SetupJoinArmy(TArmy(Hero.Owner), FPlayer, Result.FJoinMode);
+      Result.FFirstUnitID := Hero.FUnitID;
+      Result.FJoinMessage.Text := Format(TranslateRStr(XEmergedAtYAndOffersToJoinYouForZgpRStr),
+        [Hero.FHeroName, FLocationName, Result.FGold]);
+    end;
+    hjmResurrected:
+    begin
+      Result.SetupJoinArmy(TArmy(Hero.Owner), FPlayer, Result.FJoinMode);
+      Result.FFirstUnitID := Hero.FUnitID;
+      Result.FJoinMessage.Text := Format(TranslateRStr(XwasResurrectedAndOffersToJoinYouForZgpRStr),
+        [Hero.FHeroName, Result.FGold]);
+    end;
+    end;
+  end
+  else Result := nil;
+end;
 
-procedure THeroEmergeEventLog.ExecuteAI;
-begin end;
+function THeroEmergeEventLog.ExecuteAI: Boolean;
+var Log: THeroJoinEventLog;
+begin
+  Log := CreateHeroJoinEventLog;
+  if Log <> nil then
+  begin
+    Result := Log.ExecuteAI;
+    Log.Release;
+  end
+  else Result := False;
+end;
 
-function THeroEmergeEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+function THeroEmergeEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+var Log: THeroJoinEventLog; Hero: THero;
+begin
+  Log := CreateHeroJoinEventLog;
+  if Log <> nil then
+  begin
+    Result := Log.Execute(Mode, Trigger, Done);
+    Log.Release;
+  end
+  else
+  begin
+    Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+    if Hero <> nil then
+      if Hero.FPlayer = FPlayer then
+        AoWHSMap.ShowWarning(Format(TranslateRStr(XAlreadyJoinedRStr), [Hero.FHeroName]))
+      else AoWHSMap.ShowWarning(Format(TranslateRStr(XDoesntWantToJoinAnymoreRStr), [Hero.FHeroName]));
+    Result := False;
+  end;
+end;
 
 constructor THeroInventory.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(nil);
+  FOwner := AOwner;
+end;
 
 destructor THeroInventory.Destroy;
-begin end;
+begin
+  FOwner := nil;
+  inherited Destroy;
+end;
 
-procedure THeroInventory.GetFreeSlot(A1: Integer; A2: Integer);
-begin end;
+function THeroInventory.GetFreeSlot: Integer;
+begin
+  Result := 0;
+  while (Result < FChildren.Count) and (Result <> 8) do
+  begin
+    if FChildren.List^[Result] = nil then Exit;
+    Inc(Result);
+  end;
+  Result := -1;
+end;
 
 function THeroInventory.GetControlStyle: Engine.TEControlStyles;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := inherited GetControlStyle + [csArrayMode];
+end;
 
-procedure THeroInventory.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure THeroInventory.GetLocation(var X, Y, L: Shortint);
+begin
+  TAbstractUnit(FOwner).GetLocation(X, Y, L);
+end;
 
-procedure THeroInventory.GetAbilityCount(A1: Integer; A2: Integer);
-begin end;
+function THeroInventory.GetAbilityCount: Integer;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and (Result < Item.GetAbCount) then Result := Item.GetAbCount;
+  end;
+end;
 
-procedure THeroInventory.GetSuperlativeEnabledAbOwner(A1: Integer);
-begin end;
+function THeroInventory.GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+var I: Integer; Item: TItem;
+begin
+  Result := nil;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and Item.GetAbEnabled(AbilityID) and (Item.FItemType = itUse) then
+      if (Result = nil) or (Item.GetAbLevel(AbilityID) > Result.GetAbLevel(AbilityID)) then
+        Result := Item;
+  end;
+end;
 
-procedure THeroInventory.GetAbilityEnabled(A1: Integer);
-begin end;
+function THeroInventory.GetAbilityEnabled(AbilityID: Integer): Boolean;
+var I: Integer; Item: TItem;
+begin
+  Result := False;
+  I := 0;
+  while not Result and (I < Count) do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    Result := (Item <> nil) and (Item.FItemType = itUse) and Item.GetAbEnabled(AbilityID);
+    Inc(I);
+  end;
+end;
 
-procedure THeroInventory.GetAbilitySet(A1: Integer);
-begin end;
+function THeroInventory.GetAbilitySet(AbilityID: Integer): Boolean;
+var I: Integer; Item: TItem;
+begin
+  Result := False;
+  I := 0;
+  while not Result and (I < Count) do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    Result := (Item <> nil) and (Item.FItemType = itUse) and Item.GetAbSet(AbilityID);
+    Inc(I);
+  end;
+end;
 
-procedure THeroInventory.GetSuperlativeAbOwner(A1: Integer);
-begin end;
+function THeroInventory.GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+var I: Integer; Item: TItem;
+begin
+  Result := nil;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and Item.GetAbSet(AbilityID) and (Item.FItemType = itUse) then
+      if (Result = nil) or (Item.GetAbLevel(AbilityID) > Result.GetAbLevel(AbilityID)) then
+        Result := Item;
+  end;
+end;
 
-procedure THeroInventory.GetSlot(A1: Integer);
-begin end;
+function THeroInventory.GetSlot(Position: THeroItemPosition): TItem;
+var I: Integer;
+begin
+  case Position of
+    ipInventorySlot1..ipInventorySlot8:
+    begin
+      I := Ord(Position) - Ord(ipInventorySlot1);
+      if (I < Count) and (I >= 0) then Result := GetItem(I)
+      else
+      begin
+        Result := nil;
+        Exit;
+      end;
+    end;
+  else Result := nil;
+  end;
+end;
 
 constructor THeroItems.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(nil);
+  FOwner := AOwner;
+end;
 
 destructor THeroItems.Destroy;
-begin end;
+begin
+  FOwner := nil;
+  inherited Destroy;
+end;
 
 function THeroItems.GetControlStyle: Engine.TEControlStyles;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := inherited GetControlStyle + [csArrayMode];
+end;
 
-procedure THeroItems.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure THeroItems.GetLocation(var X, Y, L: Shortint);
+begin
+  TAbstractUnit(FOwner).GetLocation(X, Y, L);
+end;
 
-procedure THeroItems.GetAttack;
-begin end;
+function THeroItems.GetAttack: Shortint;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Inc(Result, Item.FAttack);
+  end;
+end;
 
-procedure THeroItems.GetDefense;
-begin end;
+function THeroItems.GetDefense: Shortint;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Inc(Result, Item.FDefense);
+  end;
+end;
 
-procedure THeroItems.GetDamage;
-begin end;
+function THeroItems.GetDamage: Shortint;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Inc(Result, Item.FDamage);
+  end;
+end;
 
-procedure THeroItems.GetResistance;
-begin end;
+function THeroItems.GetResistance: Shortint;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Inc(Result, Item.FResistance);
+  end;
+end;
 
-procedure THeroItems.GetMoveTypes(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetMoveTypes: TMoveTypes;
+var I: Integer; Item: TItem;
+begin
+  Result := [];
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Result := Result + Item.GetAbMoveTypesAll;
+  end;
+end;
 
-procedure THeroItems.GetImmunityTypes(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetImmunityTypes: TDamageTypes;
+var I: Integer; Item: TItem;
+begin
+  Result := [];
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Result := Result + Item.GetAbImmunityTypesAll;
+  end;
+end;
 
-procedure THeroItems.GetProtectionTypes(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetProtectionTypes: TDamageTypes;
+var I: Integer; Item: TItem;
+begin
+  Result := [];
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if Item <> nil then Result := Result + Item.GetAbProtectionTypesAll;
+  end;
+end;
 
-procedure THeroItems.GetAbilityCount(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetAbilityCount: Integer;
+var I: Integer; Item: TItem;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and (Result < Item.GetAbCount) then Result := Item.GetAbCount;
+  end;
+end;
 
-procedure THeroItems.GetSuperlativeEnabledAbOwner(A1: Integer);
-begin end;
+function THeroItems.GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+var I: Integer; Item: TItem;
+begin
+  Result := nil;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and Item.GetAbEnabled(AbilityID) then
+      if (Result = nil) or (Item.GetAbLevel(AbilityID) > Result.GetAbLevel(AbilityID)) then
+        Result := Item;
+  end;
+end;
 
-procedure THeroItems.GetSuperlativeAbOwner(A1: Integer);
-begin end;
+function THeroItems.GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+var I: Integer; Item: TItem;
+begin
+  Result := nil;
+  for I := 0 to Count - 1 do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    if (Item <> nil) and Item.GetAbSet(AbilityID) then
+      if (Result = nil) or (Item.GetAbLevel(AbilityID) > Result.GetAbLevel(AbilityID)) then
+        Result := Item;
+  end;
+end;
 
-procedure THeroItems.GetAbilityEnabled(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetAbilityEnabled(AbilityID: Integer): Boolean;
+var I: Integer; Item: TItem;
+begin
+  Result := False;
+  I := 0;
+  while not Result and (I < Count) do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    Result := (Item <> nil) and Item.GetAbEnabled(AbilityID);
+    Inc(I);
+  end;
+end;
 
-procedure THeroItems.GetAbilitySet(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.GetAbilitySet(AbilityID: Integer): Boolean;
+var I: Integer; Item: TItem;
+begin
+  Result := False;
+  I := 0;
+  while not Result and (I < Count) do
+  begin
+    Item := TItem(FChildren.List^[I]);
+    Result := (Item <> nil) and Item.GetAbSet(AbilityID);
+    Inc(I);
+  end;
+end;
 
-procedure THeroItems.GetPositionItem(A1: Integer);
-begin end;
+function THeroItems.GetPositionItem(Position: Integer): TItem;
+begin
+  Position := Position and $7F;
+  if Position < FChildren.Count then Result := TItem(FChildren.List^[Position])
+  else Result := nil;
+end;
 
-procedure THeroItems.GetPositionItemType(A1: Byte);
-begin end;
+function THeroItems.GetPositionItemType(Position: THeroItemPosition): TItemType;
+const Types: array[0..5] of TItemType = (itAttack, itHead, itDefense, itRing, itTorso, itRing);
+begin
+  Result := Types[Ord(Position)];
+end;
 
-procedure THeroItems.GetItemTypePosition(A1: Byte);
-begin end;
+function THeroItems.GetItemTypePosition(ItemType: TItemType): THeroItemPosition;
+const Positions: array[TItemType] of THeroItemPosition =
+  (ipHeadSlot, ipTorsoSlot, ipAttackSlot, ipDefenseSlot, ipLeftRingSlot, ipNone, ipNone);
+begin
+  Result := Positions[ItemType];
+end;
 
-procedure THeroItems.CanPlaceItem(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.CanPlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
+begin
+  Result := (Item <> nil) and (Ord(Position) < 6) and
+    (GetPositionItem(Ord(Position)) = nil) and (GetPositionItemType(Position) = Item.FItemType);
+end;
 
-procedure THeroItems.PlaceItem(A1: Integer; A2: Integer);
-begin end;
+function THeroItems.PlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
+begin
+  if CanPlaceItem(Item, Position) then
+  begin
+    Item.SetArrayOwner(Self, Ord(Position));
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure THeroPowerSource.Name(A1: Integer);
 begin end;
@@ -4285,22 +4900,22 @@ begin end;
 procedure THero.GetHeroType;
 begin end;
 
-procedure THero.SetUnitAttack(A1: Integer);
+procedure THero.SetUnitAttack(Value: Shortint);
 begin end;
 
-procedure THero.SetUnitDefense(A1: Integer);
+procedure THero.SetUnitDefense(Value: Shortint);
 begin end;
 
-procedure THero.SetUnitDamage(A1: Integer);
+procedure THero.SetUnitDamage(Value: Shortint);
 begin end;
 
-procedure THero.SetUnitHits(A1: Integer);
+procedure THero.SetUnitHits(Value: Shortint);
 begin end;
 
-procedure THero.SetUnitMoves(A1: Integer);
+procedure THero.SetUnitMoves(Value: Shortint);
 begin end;
 
-procedure THero.SetUnitResistance(A1: Integer);
+procedure THero.SetUnitResistance(Value: Shortint);
 begin end;
 
 procedure THero.LinkToResource;
@@ -4846,7 +5461,7 @@ begin end;
 procedure TArmyEventLog.ValidateGameOver;
 begin end;
 
-function TArmyEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TArmyEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TArmyEventLog.ViewLocation(A1: Integer; A2: Integer);
@@ -4873,7 +5488,7 @@ begin Result := ''; end;
 procedure TArmyInfoEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-function TArmyInfoEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TArmyInfoEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 constructor TArmy.Create(AOwner: Engine.TECustomNode);
@@ -5542,13 +6157,13 @@ begin end;
 procedure TItemList.FindItem(A1: Integer; A2: Integer);
 begin end;
 
-function TItemList.GetItem(A1: Integer): TItem;
+function TItemList.GetItem(Index: Integer): TItem;
 begin Result := nil; end;
 
 procedure TItemList.Update;
 begin end;
 
-procedure TItemList.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TItemList.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 procedure TItemList.SortOnName;
@@ -5728,7 +6343,7 @@ begin end;
 procedure TItemHSList.SetOwner(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TItemHSList.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TItemHSList.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 constructor TItemHS.Create(AOwner: Engine.TECustomNode);

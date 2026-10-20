@@ -1,65 +1,68 @@
 { Interface declaration run owned by P2. }
-  { THeroInventory (instance size 24, VMT 5571162C) }
+  { THeroInventory (instance size 24, VMT 5571162C): inherited +04 FOwner is the hero;
+    +08 FChildren holds inventory slots. }
   THeroInventory = class(TItemList)
   public
     destructor Destroy; override;
     function GetControlStyle: Engine.TEControlStyles; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetFreeSlot(A1: Integer; A2: Integer);  { draft }
-    procedure GetAbilityCount(A1: Integer; A2: Integer);  { draft }
-    procedure GetSuperlativeEnabledAbOwner(A1: Integer);  { draft }
-    procedure GetAbilityEnabled(A1: Integer);  { draft }
-    procedure GetAbilitySet(A1: Integer);  { draft }
-    procedure GetSuperlativeAbOwner(A1: Integer);  { draft }
-    procedure GetSlot(A1: Integer);  { draft }
+    procedure GetLocation(var X, Y, L: Shortint); override;
+    function GetFreeSlot: Integer;
+    function GetAbilityCount: Integer;
+    function GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+    function GetAbilityEnabled(AbilityID: Integer): Boolean;
+    function GetAbilitySet(AbilityID: Integer): Boolean;
+    function GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+    function GetSlot(Position: THeroItemPosition): TItem;
   end;
 
-  { THeroItems (instance size 24, VMT 55711738) }
+  { THeroItems (instance size 24, VMT 55711738): inherited +04 FOwner is the hero;
+    +08 FChildren holds six equipment slots. }
   THeroItems = class(TItemList)
   public
     destructor Destroy; override;
     function GetControlStyle: Engine.TEControlStyles; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetAttack;  { draft }
-    procedure GetDefense;  { draft }
-    procedure GetDamage;  { draft }
-    procedure GetResistance;  { draft }
-    procedure GetMoveTypes(A1: Integer; A2: Integer);  { draft }
-    procedure GetImmunityTypes(A1: Integer; A2: Integer);  { draft }
-    procedure GetProtectionTypes(A1: Integer; A2: Integer);  { draft }
-    procedure GetAbilityCount(A1: Integer; A2: Integer);  { draft }
-    procedure GetSuperlativeEnabledAbOwner(A1: Integer);  { draft }
-    procedure GetSuperlativeAbOwner(A1: Integer);  { draft }
-    procedure GetAbilityEnabled(A1: Integer; A2: Integer);  { draft }
-    procedure GetAbilitySet(A1: Integer; A2: Integer);  { draft }
-    procedure GetPositionItem(A1: Integer);  { draft }
-    procedure GetPositionItemType(A1: Byte);  { draft }
-    procedure GetItemTypePosition(A1: Byte);  { draft }
-    procedure CanPlaceItem(A1: Integer; A2: Integer);  { draft }
-    procedure PlaceItem(A1: Integer; A2: Integer);  { draft }
+    procedure GetLocation(var X, Y, L: Shortint); override;
+    function GetAttack: Shortint;
+    function GetDefense: Shortint;
+    function GetDamage: Shortint;
+    function GetResistance: Shortint;
+    function GetMoveTypes: TMoveTypes;
+    function GetImmunityTypes: TDamageTypes;
+    function GetProtectionTypes: TDamageTypes;
+    function GetAbilityCount: Integer;
+    function GetSuperlativeEnabledAbOwner(AbilityID: Integer): TAbilityOwner;
+    function GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
+    function GetAbilityEnabled(AbilityID: Integer): Boolean;
+    function GetAbilitySet(AbilityID: Integer): Boolean;
+    function GetPositionItem(Position: Integer): TItem;
+    function GetPositionItemType(Position: THeroItemPosition): TItemType;
+    function GetItemTypePosition(ItemType: TItemType): THeroItemPosition;
+    function CanPlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
+    function PlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
   end;
 
-  { THeroUpgradeTE (instance size 32, VMT 55711920) }
+  { THeroUpgradeTE (instance size 32, VMT 55711920): +10 FUnitID; +14 FPlayer;
+    +15..1A statistic upgrades; +1C FAbilities. }
   THeroUpgradeTE = class(TTokenEvent)
   public
-    F_HeroUpgradeTE_10: Integer;
-    F_HeroUpgradeTE_14: Byte;
-    F_HeroUpgradeTE_15: Byte;
-    F_HeroUpgradeTE_16: Byte;
-    F_HeroUpgradeTE_17: Byte;
-    F_HeroUpgradeTE_18: Byte;
-    F_HeroUpgradeTE_19: Byte;
-    F_HeroUpgradeTE_1A: Byte;
+    FUnitID: Integer;  { $10 }
+    FPlayer: Shortint;  { $14 }
+    FAttack: Shortint;  { $15 }
+    FDefense: Shortint;  { $16 }
+    FResistance: Shortint;  { $17 }
+    FDamage: Shortint;  { $18 }
+    FMoves: Shortint;  { $19 }
+    FHits: Shortint;  { $1A }
     F_HeroUpgradeTE_1B: array[0..0] of Byte;
-    F_HeroUpgradeTE_1C: Integer;
+    FAbilities: TAbilityOwner;  { $1C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure Setup(A1: Integer);  { draft }
+    procedure Setup(Hero: THero);
   end;
 
   { THeroUpdateTE (instance size 32, VMT 557119E8) }
@@ -85,18 +88,19 @@
     procedure Select(A1: Integer; A2: Integer); override;
   end;
 
-  { THeroUpgradeEventLog (instance size 36, VMT 55711B88) }
+  { THeroUpgradeEventLog (instance size 36, VMT 55711B88): +18 FUnitID;
+    +1C FOldLevel; +1D FNewLevel; +20 FDay. }
   THeroUpgradeEventLog = class(TEventLog)
   public
-    F_HeroUpgradeEventLog_18: Integer;
-    F_HeroUpgradeEventLog_1C: Byte;
-    F_HeroUpgradeEventLog_1D: Byte;
+    FUnitID: Integer;  { $18 }
+    FOldLevel: Byte;  { $1C }
+    FNewLevel: Byte;  { $1D }
     F_HeroUpgradeEventLog_1E: array[0..1] of Byte;
-    F_HeroUpgradeEventLog_20: Integer;
+    FDay: Integer;  { $20 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation(A1: Integer; A2: Integer); override;
   end;
 

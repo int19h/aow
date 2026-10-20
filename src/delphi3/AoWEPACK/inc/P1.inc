@@ -4921,7 +4921,7 @@ begin end;
 procedure TAbstractAoWHSMap.UpdateShowMessage;
 begin end;
 
-procedure TAbstractAoWHSMap.ShowWarning(A1: Integer);
+procedure TAbstractAoWHSMap.ShowWarning(const Text: string);
 begin end;
 
 procedure TAbstractAoWHSMap.ShowMessage(const A1: string);
@@ -5575,7 +5575,7 @@ begin
       if Execute and (I = AoWHSMap.FSeatedPlayer) and
         (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and
         (TCombatData(Logbook.FFinalData).F_CombatData_30 <> 6) then
-        Event.Execute(0, etEvent, nil);
+        Event.Execute(False, etEvent, nil);
       Event.Release;
     end;
 end;

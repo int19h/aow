@@ -198,7 +198,7 @@
     F_Player_51: array[0..2] of Byte;
     FMagicControl: TPlayerMagicControl;  { $54 }
     FLeaderSetup: TLeader; { $58 }
-    F_Player_5C: Integer;
+    FDay: Integer;  { $5C; 55785754 }
     FStatistics: TPlayerStatistics; { $60 }
     FIncomeSources: TIncomeSourceList; { $64 }
     FKnownStructures: TPlayerStructureList; { $68 }
@@ -211,6 +211,7 @@
     FAIGroups: TAIGroupList; { $84 }
     FAIControl: TAIPlayerControl; { $88 }
     FAIBudget: TAIBudgetManager; { $8C }
+    { conflict: FBudgetManager: TAIBudgetManager; }
     FDiplomaticActions: TDiplomaticActionList; { $90 }
     FAIValidAttackPlayers: TBitList; { $94 }
     FFirstDaySeen: TIntegerList; { $98 }

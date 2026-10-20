@@ -108,7 +108,7 @@ type
   TProductionPlaceEventLog = class(TProductionEventLog)
   public
     class function ClassID: Integer; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     function GetProductionPlace: TProductionPlace;
   end;
 
@@ -743,7 +743,7 @@ begin
   Result := TProductionPlace(AoWHSMap.MapContainer.GetField(FXhx, FYhx, FLhx).FindNoneTransparentHS(TProductionPlace));
 end;
 
-function TProductionPlaceEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TProductionPlaceEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 var
   Place: TProductionPlace;
 begin

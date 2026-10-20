@@ -43,7 +43,7 @@
   public
     class function ClassID: Integer; override;
     function GetText: string; override;
-    function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
+    function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
   { TSMTPEventLog (instance size $34, VMT 55714F58). $24 message. }

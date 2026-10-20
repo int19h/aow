@@ -43,7 +43,8 @@
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TItem (instance size 76, VMT 5570FAFC) }
+  { TItem (instance size 76, VMT 5570FAFC): +34 FItemType;
+    +46 FAttack; +47 FDefense; +48 FDamage; +49 FResistance. }
   TItem = class(TAbilityOwner)
   public
     FHeroID: Integer; { $14 }
@@ -55,17 +56,17 @@
     F_Item_28: Integer;
     F_Item_2C: Integer;
     F_Item_30: Integer;
-    F_Item_34: Byte;
+    FItemType: TItemType;  { $34 }
     F_Item_35: array[0..2] of Byte;
     F_Item_38: Integer;
     F_Item_3C: Integer;
     F_Item_40: Integer;
     F_Item_44: Byte;
     F_Item_45: Byte;
-    F_Item_46: Byte;
-    F_Item_47: Byte;
-    F_Item_48: Byte;
-    F_Item_49: Byte;
+    FAttack: Shortint;  { $46 }
+    FDefense: Shortint;  { $47 }
+    FDamage: Shortint;  { $48 }
+    FResistance: Shortint;  { $49 }
     F_Item_4A: array[0..1] of Byte;
     destructor Destroy; override;
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
@@ -112,8 +113,8 @@
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
     procedure Changed; override;
-    function GetItem(A1: Integer): TItem; virtual; { $8C }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +090 draft }
+    function GetItem(Index: Integer): TItem; virtual;
+    procedure GetLocation(var X, Y, L: Shortint); virtual;
     procedure FindItem(A1: Integer; A2: Integer);  { draft }
     procedure Update;  { draft }
     procedure SortOnName;  { draft }
@@ -192,7 +193,7 @@
   TItemHSList = class(TItemList)
   public
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure GetLocation(var X, Y, L: Shortint); override;
   end;
 
   { TItemHS (instance size 20, VMT 55710178) }

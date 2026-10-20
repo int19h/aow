@@ -586,7 +586,7 @@
     F_AIBudgetManager_2C: Integer;
     F_AIBudgetManager_30: Integer;
     F_AIBudgetManager_34: Integer;
-    F_AIBudgetManager_38: Integer;
+    FDefaultBudget: TAIBudget;  { $38; 55785970 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -610,8 +610,8 @@
     procedure RequestProductionExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure RequestProductionExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure ProductionExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure RequestBudgetExpense(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure BudgetExpenseMade(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function RequestBudgetExpense(Gold, Mana: Integer; Budget: TAIBudget; UsePool: Boolean): Boolean;
+    function BudgetExpenseMade(Gold, Mana: Integer; Budget: TAIBudget; Mode: TBudgetExpenseMode): Boolean;
     procedure RequestBudgetExpenseEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
     procedure BudgetExpenseMadeEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
     procedure RequestExpense(A1: Integer; A2: Integer);  { draft }

@@ -414,7 +414,7 @@ begin
       Log.FCave := Self;
       TStrings(Log.F_MessageEventLog_20).Text := TranslateCaveName(SplitOnEnterCaveWarningRStr);
       Log.F_MessageEventLog_25 := Ord(mebYesNo);
-      Log.Execute(1, etUser, nil);
+      Log.Execute(True, etUser, nil);
       Log.Release;
       Result := True;
     end

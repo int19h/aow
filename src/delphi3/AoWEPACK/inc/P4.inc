@@ -3936,7 +3936,7 @@ begin
     ShortInt(Source.FPlayer)).FAIBudget);
   if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
     ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
-    Result := P4RequestBudget(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 1)
+    Result := P4RequestBudget(Manager, 0, Budget, 0, Mana, Integer(Manager.FDefaultBudget), 1)
   else
     Result := True;
 end;
@@ -3951,7 +3951,7 @@ begin
       ShortInt(Source.FPlayer)).FAIBudget);
     if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
       ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
-      Result := P4BudgetMade(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 2)
+      Result := P4BudgetMade(Manager, 0, Budget, 0, Mana, Integer(Manager.FDefaultBudget), 2)
     else
       Result := True;
   end
@@ -4393,7 +4393,7 @@ end;
 class function TSpellCastEventLog.ClassID: Integer;
 begin Result := 0; end;
 
-function TSpellCastEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TSpellCastEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 procedure TSpellCastEventLog.ReadWrite(Stream: Engine.TEStorageStream);
@@ -5011,7 +5011,7 @@ begin end;
 procedure TPlayerMagicEventLog.ViewLocation(A1: Integer; A2: Integer);
 begin end;
 
-function TPlayerMagicEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TPlayerMagicEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
 function TPlayerMagicEventLog.GetText: string;

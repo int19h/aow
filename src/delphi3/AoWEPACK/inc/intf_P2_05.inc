@@ -29,14 +29,15 @@
   end;
 
   { TAbstractUnit (instance size 60, VMT 55710740):
-    +14 FRefCount; +18 FUnitID; +1C FGroupID; +25 FUnitStatus.
+    +14 FRefCount; +18 FUnitID; +1C FGroupID; +20 FGroup: TAIGroup;
+    +25 FUnitStatus.
     Other fields retain their offset names pending recovery. }
   TAbstractUnit = class(TAbilityOwner)
   public
     FRefCount: Integer;
     FUnitID: Integer;
     FGroupID: Integer;
-    FGroup: TUnitUserList;
+    FGroup: TAIGroup;  { $20; group VMT at 55782FF8 }
     FPlayer: Shortint;
     FUnitStatus: TUnitStatus;
     FMoraleValue: Shortint;
@@ -317,8 +318,8 @@
     procedure SetUnitResource(Resource: TUnitResource);
   end;
 
-  { TUnitList (instance size 16, VMT 55710EC8): inherited +08 child list, +0C update count.
-    Direct-list methods await protected visibility for Engine.TEChangeNotifyNode.FChildren. }
+  { TUnitList (instance size 16, VMT 55710EC8): inherited +08 FChildren,
+    +0C UpdateCount. }
   TUnitList = class(TEChangeNotifyNode)
   public
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
@@ -327,27 +328,27 @@
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
     function GetPlayer: Shortint; virtual;
-    procedure GetStrength(A1: Integer); virtual;  { +090 draft }
-    procedure GetStrengthMax(A1: Word; A2: Integer); virtual;  { +094 draft }
+    function GetStrength(DamageType: TDamageType): Integer; virtual;
+    function GetStrengthMax(DamageTypes: TDamageTypes): Integer; virtual;
     procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); virtual;
-    procedure SortUnits; virtual;  { +09C draft }
-    procedure SortOnMoves; virtual;  { +0A0 draft }
+    procedure SortUnits; virtual;
+    procedure SortOnMoves; virtual;
     function CanAddUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function CanDeleteUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function AddUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function DeleteUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function AddUnits(Units: TUnitList): Boolean; virtual;
     function IndexOf(AUnit: TAbstractUnit): Integer;
-    procedure IndexOfID(A1: Integer);  { draft }
-    procedure IndexOfBehavior(A1: Integer);  { draft }
-    procedure IndexOfGroup(A1: Integer);  { draft }
-    procedure IndexOfGroupID(A1: Integer);  { draft }
-    procedure FindID(A1: Integer);  { draft }
+    function IndexOfID(ID: Integer): Integer;
+    function IndexOfBehavior(Behavior: TGroupBehavior): Integer;
+    function IndexOfGroup(Group: TAIGroup): Integer;
+    function IndexOfGroupID(ID: Integer): Integer;
+    function FindID(ID: Integer): TAbstractUnit;
     function GetUnit(A1: Integer): TAbstractUnit;
-    procedure SetUnit(A1: Integer; A2: Integer);  { draft }
+    procedure SetUnit(Index: Integer; AUnit: TAbstractUnit);
   end;
 
-  { TUnitUserList (instance size 16, VMT 55710FEC) }
+  { TUnitUserList (instance size 16, VMT 55710FEC): inherited +08 FChildren. }
   TUnitUserList = class(TUnitList)
   public
     procedure Clear; override;
@@ -356,14 +357,15 @@
     procedure AddUnitsEx(Units: TUnitList; Selection: Byte);
   end;
 
-  { TUnitIndexList (instance size 20, VMT 55711118) }
+  { TUnitIndexList (instance size 20, VMT 55711118): inherited +04 List,
+    +08 Count, +10 Default. }
   TUnitIndexList = class(TIntegerList)
   public
     constructor Create;
-    procedure GetUnitIndex(A1: Integer);  { draft }
-    procedure VerifyUnits(A1: Byte);  { draft }
-    procedure SetUnitIndex(A1: Integer; A2: Integer);  { draft }
-    procedure SortUnits;  { draft }
+    function GetUnitIndex(Index: Integer): Integer;
+    procedure VerifyUnits(ShowErrors: Boolean);
+    procedure SetUnitIndex(Index, Value: Integer);
+    procedure SortUnits;
   end;
 
   { TUnitIndexListCollection (instance size 12, VMT 557111A4): +04 FCollectionSize; +08 FUnits. }
