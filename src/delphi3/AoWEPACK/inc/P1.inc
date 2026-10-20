@@ -781,7 +781,7 @@ var
   Developer: Boolean;
 begin
   Result := Index;
-  Developer := TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetDeveloper;
+  Developer := TAoWRegistry(AoWEngine.FRegistry).GetDeveloper;
   { Original assumes the list contains a selectable face. }
   repeat
     Dec(Result);
@@ -795,7 +795,7 @@ var
   Developer: Boolean;
 begin
   Result := Index;
-  Developer := TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetDeveloper;
+  Developer := TAoWRegistry(AoWEngine.FRegistry).GetDeveloper;
   { Original assumes the list contains a selectable face. }
   repeat
     Inc(Result);
@@ -4444,8 +4444,8 @@ begin end;
 destructor TStructureAIPA.Destroy;
 begin end;
 
-procedure TStructureAIPA.Activate(A1: Integer; A2: Integer);
-begin end;
+function TStructureAIPA.Activate: Boolean;
+begin Result := False; end;
 
 function TStructureAIPA.Process: Boolean;
 begin Result := False; end;
@@ -5305,7 +5305,7 @@ begin end;
 procedure TAoWHSMap.StartLoadedMap;
 begin end;
 
-procedure TAoWHSMap.SetupPlayerControl(A1: Integer; A2: Integer);
+procedure TAoWHSMap.SetupPlayerControl(Mode: TPlayMode; Connection: TPlayerConnectionType);
 begin end;
 
 procedure TAoWHSMap.Activate;

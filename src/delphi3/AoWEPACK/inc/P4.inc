@@ -3991,8 +3991,8 @@ begin end;
 procedure TCastSpellAIPA.Priority;
 begin end;
 
-procedure TCastSpellAIPA.Activate(A1: Integer; A2: Integer);
-begin end;
+function TCastSpellAIPA.Activate: Boolean;
+begin Result := False; end;
 
 procedure TCastSpellAIPA.PrefetchCastSpellActions(A1: Integer);
 begin end;

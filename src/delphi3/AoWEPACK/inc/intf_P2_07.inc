@@ -42,7 +42,7 @@
     F_Hero_56: array[0..1] of Byte;
     F_Hero_58: Integer;
     F_Hero_5C: Byte;
-    F_Hero_5D: Byte;
+    FMode: THeroMode; { $5D }
     F_Hero_5E: array[0..1] of Byte;
     FHeroName: string;  { $60 }
     F_Hero_64: Integer;
@@ -54,8 +54,8 @@
     F_Hero_6D: Byte;
     F_Hero_6E: Byte;
     F_Hero_6F: Byte;
-    F_Hero_70: Integer;
-    F_Hero_74: Integer;
+    FHeroItems: THeroItems; { $70 }
+    FInventory: THeroInventory; { $74 }
     F_Hero_78: Byte;
     F_Hero_79: Byte;
     F_Hero_7A: Byte;
@@ -185,7 +185,7 @@
     procedure SwapItem(A1: Integer; A2: Integer);  { draft }
     procedure PlaceItem(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteSwapItem(A1: Integer; A2: Integer);  { draft }
-    procedure AutoPlaceItem(A1: Integer; A2: Integer);  { draft }
+    function AutoPlaceItem(Item: TItem): Boolean;
     procedure ExecutePlaceItem(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteStartCasting(A1: Integer);  { draft }
     procedure RemoveCastingReadyEventLog;  { draft }
@@ -235,7 +235,7 @@
     function GetSphereCount: Integer;
     procedure SetSpherePicksMax(A1: Byte);  { draft }
     procedure CanAddSphere(A1: Integer);  { draft }
-    procedure AddSphere(A1: Byte; A2: Integer);  { draft }
+    function AddSphere(Sphere: TMagicSphere): Boolean;
     procedure DeleteSphereIndex(A1: Integer);  { draft }
     procedure DeleteSphere(A1: Byte; A2: Integer);  { draft }
     procedure ClearSpheres;  { draft }
@@ -245,7 +245,7 @@
   THeroList = class(TEReferenceNode)
   public
     procedure FindHero(A1: Integer);  { draft }
-    procedure GetHero(A1: Integer);  { draft }
+    function GetHero(A1: Integer): THero;
   end;
 
   { THeroControl (instance size 24, VMT 557125BC) }

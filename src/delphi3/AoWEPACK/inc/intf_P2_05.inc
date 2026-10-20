@@ -337,7 +337,7 @@
     function AddUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function DeleteUnit(AUnit: TAbstractUnit): Boolean; virtual;
     function AddUnits(Units: TUnitList): Boolean; virtual;
-    procedure IndexOf;  { draft }
+    function IndexOf(AUnit: TAbstractUnit): Integer;
     procedure IndexOfID(A1: Integer);  { draft }
     procedure IndexOfBehavior(A1: Integer);  { draft }
     procedure IndexOfGroup(A1: Integer);  { draft }

@@ -280,7 +280,7 @@ begin
   begin
     FStream.Clear;
     if ((PItemView(Item)^.Status and 2) = 0) and (FMap <> nil) then
-      TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).RegisterItem(Integer(Item));
+      TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).RegisterItem(Item);
   end;
   UpdateItems;
   Unselect;

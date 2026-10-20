@@ -22,6 +22,7 @@ type
 resourcestring
   { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
   P5NotEnoughGoldRStr = 'Not enough gold.';
+  GameRestartedRStr = 'Game Restarted';
 
 
 
@@ -1182,9 +1183,9 @@ begin
     (Shortint(Log.FAction.FSource) = AoWHSMap.FSeatedPlayer) then
   begin
     Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
-      (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetClassicWindowPopupEvents) and (Trigger = etNewTurn));
+      (wpDiplomacy in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents) and (Trigger = etNewTurn));
     Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
-      (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetSimultaneousWindowPopupEvents));
+      (wpDiplomacy in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
   end;
   Result := Result and ((Trigger = etUser) or (Log.FAction.FReaction <> darIgnore));
   if Result then
@@ -1430,8 +1431,8 @@ begin inherited Destroy; end;
 procedure TDiplomacyAIPA.Priority;
 asm MOV EAX, 14 end;
 
-procedure TDiplomacyAIPA.Activate(A1: Integer; A2: Integer);
-begin inherited Activate(A1, A2); FNextPlayer := 0; end;
+function TDiplomacyAIPA.Activate: Boolean;
+begin Result := inherited Activate; FNextPlayer := 0; end;
 
 function TDiplomacyAIPA.CreateDA(Action: TDiplomaticActionType;
   Target, Other: Shortint; MinDays: Integer): TDiplomaticAction;
@@ -1604,7 +1605,7 @@ begin
   FTransferGoldMax := 100;
   FTransferManaMax := 100;
   FNextScenarioID := -1;
-  FFlag := False;
+  FAlliedVictory := False;
 end;
 
 procedure TAoWMapCampaignSettings.ReadWrite(Stream: Engine.TEStorageStream);
@@ -1614,197 +1615,918 @@ begin
   Stream.rwInteger(FTransferGoldMax, $15);
   Stream.rwInteger(FTransferManaMax, $16);
   Stream.rwInteger(FNextScenarioID, $17);
-  Stream.rwBool(FFlag, $18);
+  Stream.rwBool(FAlliedVictory, $18);
 end;
 
 constructor TAoWCampaignTransferSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FHeroes := THeroList.Create(nil);
+  FItems := TItemList.Create(nil);
+  FUnits := TUnitList.Create(nil);
+  FSpells := TIntegerList.Create;
+  FResearchPercentage := 50;
+  FSelectedHeroes := TIntegerList.Create;
+  FSelectedItems := TIntegerList.Create;
+  FSelectedUnits := TIntegerList.Create;
+  FSelectedSpheres := TByteList.Create;
+end;
 
 destructor TAoWCampaignTransferSettings.Destroy;
-begin end;
+begin
+  Clear;
+  FHeroes.Free;
+  FItems.Free;
+  FUnits.Free;
+  FSelectedSpheres.Free;
+  FSpells.Free;
+  { Original bug: the three selected-index lists are never freed. }
+  inherited Destroy;
+end;
 
 procedure TAoWCampaignTransferSettings.Clear;
-begin end;
+begin
+  inherited Clear;
+  if FLeader <> nil then
+  begin
+    FLeader.Release;
+    FLeader := nil;
+  end;
+  FHeroes.Clear;
+  FItems.Clear;
+  FUnits.Clear;
+  FSpells.Clear;
+end;
 
 procedure TAoWCampaignTransferSettings.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var Leader: TLeader;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FHeroes, $14);
+  Stream.rwEObject(FItems, $15);
+  Stream.rwEObject(FUnits, $16);
+  Stream.rwStreamProc($17, FSpells.LoadFromStream, FSpells.SaveToStream);
+  Stream.rwInteger(FResearchSpellID, $18);
+  Stream.rwInteger(FResearchPointsLeft, $19);
+  Stream.rwInteger(FResearchPercentage, $1A);
+  if Stream.StorageMode * [smRead, smTextOnly, smTranslate] = [smRead] then
+  begin
+    Leader := nil;
+    Stream.rwCreateEObject(TEObject(Leader), nil, $1B);
+    SetLeader(Leader);
+    if Leader <> nil then Leader.Release;
+  end
+  else Stream.rwCreateEObject(TEObject(FLeader), nil, $1B);
+end;
 
-procedure TAoWCampaignTransferSettings.SetLeader(A1: Integer);
-begin end;
+procedure TAoWCampaignTransferSettings.SetLeader(Leader: TLeader);
+begin
+  if FLeader <> nil then FLeader.Release;
+  FLeader := Leader;
+  if FLeader <> nil then FLeader.AddRef;
+end;
 
-procedure TAoWCampaignTransferSettings.GenerateTransferUnits(A1: Integer);
-begin end;
+procedure TAoWCampaignTransferSettings.GenerateTransferUnits(Units: TUnitList);
+var
+  Level, I, Index, MaxUnits: Integer;
+  LevelCounts: array[1..4] of Integer;
+  Candidates: TList;
+  AUnit: TAbstractUnit;
+begin
+  FUnits.Clear;
+  Candidates := TList.Create;
+  MaxUnits := 10;
+  LevelCounts[1] := 8;
+  LevelCounts[2] := 4;
+  LevelCounts[3] := 1;
+  if AoWEngine.FCampaign.FRaceHistory.Count > 2 then
+    LevelCounts[4] := 1
+  else LevelCounts[4] := 0;
+  for Level := 4 downto 1 do
+    if LevelCounts[Level] <> 0 then
+    begin
+      Candidates.Clear;
+      for I := 0 to Units.Count - 1 do
+      begin
+        AUnit := Units.GetUnit(I);
+        if (AUnit.GetUnitLevel = Level) and (FUnits.IndexOf(AUnit) = -1) then
+          Candidates.Add(AUnit);
+      end;
+      { Original bug: the per-level quota is tested but never decremented. }
+      while (LevelCounts[Level] <> 0) and (Candidates.Count <> 0) and
+        (FUnits.Count <> MaxUnits) do
+      begin
+        Index := System.Random(Candidates.Count);
+        FUnits.AddUnit(Candidates[Index]);
+        Candidates.Delete(Index);
+      end;
+    end;
+  Candidates.Free;
+end;
 
 procedure TAoWCampaignTransferSettings.Retrieve;
-begin end;
+var
+  Units: TUnitUserList;
+  Player: Shortint;
+  I, J: Integer;
+  AUnit, NewUnit: TAbstractUnit;
+  Hero: THero;
+  Item: TItem;
+begin
+  Clear;
+  if AoWHSMap <> nil then
+  begin
+    Units := TUnitUserList.Create(nil);
+    Player := Shortint(TPlayerList(AoWHSMap.FPlayers).FLocalPlayers[0]);
+    FLeader := TLeader(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FLeader.Copy(AoWEngine));
+    FLeader.RemoveEnchantments;
+    FLeader.RemoveHandicaps;
+    FLeader.ExecuteCancelCasting;
+    for J := FLeader.FInventory.Count - 1 downto 0 do
+    begin
+      Item := FLeader.FInventory.GetItem(J);
+      if Item <> nil then
+      begin
+        Item := TItem(Item.Copy(AoWEngine));
+        Item.SetOwner(FItems);
+        Item.FHeroID := FLeader.FUnitID;
+        Item.Release;
+      end;
+    end;
+    FLeader.FInventory.Clear;
+    for J := FLeader.FHeroItems.Count - 1 downto 0 do
+    begin
+      Item := FLeader.FHeroItems.GetItem(J);
+      if Item <> nil then
+      begin
+        Item := TItem(Item.Copy(AoWEngine));
+        Item.SetOwner(FItems);
+        Item.FHeroID := FLeader.FUnitID;
+        Item.Release;
+      end;
+    end;
+    FLeader.FHeroItems.Clear;
+    for I := 0 to TUnitControl(AoWHSMap.FUnitControl).GetCount - 1 do
+    begin
+      AUnit := TUnitControl(AoWHSMap.FUnitControl).GetUnit(I);
+      if (AUnit.FPlayer = Player) and (AUnit.GetUnitType <> utMachine) and
+        (AUnit.GetMoveTypes * [mtWalking, mtFlying] <> []) and
+        not (AUnit is TLeader) and not AUnit.GetAbilityEnabled($9B) then
+      begin
+        if AUnit is THero then
+        begin
+          Hero := THero(AUnit.Copy(AoWEngine));
+          Hero.SetOwner(FHeroes);
+          Hero.RemoveEnchantments;
+          Hero.RemoveHandicaps;
+          Hero.ExecuteCancelCasting;
+          for J := Hero.FInventory.Count - 1 downto 0 do
+          begin
+            Item := Hero.FInventory.GetItem(J);
+            if Item <> nil then
+            begin
+              Item := TItem(Item.Copy(AoWEngine));
+              Item.SetOwner(FItems);
+              Item.FHeroID := Hero.FUnitID;
+              Item.Release;
+            end;
+          end;
+          Hero.FInventory.Clear;
+          for J := Hero.FHeroItems.Count - 1 downto 0 do
+          begin
+            Item := Hero.FHeroItems.GetItem(J);
+            if Item <> nil then
+            begin
+              Item := TItem(Item.Copy(AoWEngine));
+              Item.SetOwner(FItems);
+              Item.FHeroID := Hero.FUnitID;
+              Item.Release;
+            end;
+          end;
+          Hero.FHeroItems.Clear;
+          Hero.Release;
+        end
+        else
+        begin
+          NewUnit := TAbstractUnit(AUnit.Copy(AoWEngine));
+          NewUnit.RemoveEnchantments;
+          NewUnit.RemoveHandicaps;
+          Units.AddUnit(NewUnit);
+          NewUnit.Release;
+        end;
+      end;
+    end;
+    FResearchPercentage := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchPercentage;
+    FSpells.Assign(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FSpells);
+    FResearchSpellID := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchSpellID;
+    FResearchPointsLeft := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchPointsLeft;
+    RandSeed := AoWHSMap.Random($FFFFFF);
+    GenerateTransferUnits(Units);
+    Units.Free;
+  end;
+end;
 
 procedure TAoWCampaignTransferSettings.ClearSelection;
-begin end;
+begin
+  FSelectedHeroes.Clear;
+  FSelectedItems.Clear;
+  FSelectedUnits.Clear;
+  FTransferPointsLeft := FTransferPointsMax;
+  FSelectedTransferMana := 0;
+  FSelectedTransferGold := 0;
+  FSelectedSpheres.Clear;
+end;
 
-procedure TAoWCampaignTransferSettings.AddItem(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.AddItem(Index: Integer): Boolean;
+begin
+  if (Index >= 0) and (Index < FItems.Count) and
+    (FSelectedItems.IndexOf(Index) = -1) and
+    (FItems.GetItem(Index).GetCampaignTransferPoints <= FTransferPointsLeft) then
+  begin
+    Dec(FTransferPointsLeft, FItems.GetItem(Index).GetCampaignTransferPoints);
+    FSelectedItems.Add(Index);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.DeleteItem(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.DeleteItem(Index: Integer): Boolean;
+begin
+  if FSelectedItems.Remove(Index) <> -1 then
+  begin
+    Inc(FTransferPointsLeft, FItems.GetItem(Index).GetCampaignTransferPoints);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.AddHero(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.AddHero(Index: Integer): Boolean;
+begin
+  if (Index >= 0) and (Index < FHeroes.Count) and
+    (FSelectedHeroes.IndexOf(Index) = -1) and
+    (FHeroes.GetHero(Index).GetCampaignTransferPoints <= FTransferPointsLeft) then
+  begin
+    Dec(FTransferPointsLeft, FHeroes.GetHero(Index).GetCampaignTransferPoints);
+    FSelectedHeroes.Add(Index);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.DeleteHero(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.DeleteHero(Index: Integer): Boolean;
+begin
+  if FSelectedHeroes.Remove(Index) <> -1 then
+  begin
+    Inc(FTransferPointsLeft, FHeroes.GetHero(Index).GetCampaignTransferPoints);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.AddUnit(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.AddUnit(Index: Integer): Boolean;
+begin
+  if (Index >= 0) and (Index < FUnits.Count) and
+    (FSelectedUnits.IndexOf(Index) = -1) and
+    (FUnits.GetUnit(Index).GetCampaignTransferPoints <= FTransferPointsLeft) then
+  begin
+    Dec(FTransferPointsLeft, FUnits.GetUnit(Index).GetCampaignTransferPoints);
+    FSelectedUnits.Add(Index);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.DeleteUnit(A1: Integer);
-begin end;
+function TAoWCampaignTransferSettings.DeleteUnit(Index: Integer): Boolean;
+begin
+  if FSelectedUnits.Remove(Index) <> -1 then
+  begin
+    Inc(FTransferPointsLeft, FUnits.GetUnit(Index).GetCampaignTransferPoints);
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAoWCampaignTransferSettings.SetSelectedTransferGold(A1: Integer);
-begin end;
+procedure TAoWCampaignTransferSettings.SetSelectedTransferGold(Value: Integer);
+var Max: Integer;
+begin
+  Max := FSelectedTransferGold + FTransferPointsLeft;
+  if Max > FTransferGoldMax then Max := FTransferGoldMax;
+  if Value > Max then Value := Max;
+  Dec(FTransferPointsLeft, Value - FSelectedTransferGold);
+  FSelectedTransferGold := Value;
+end;
 
-procedure TAoWCampaignTransferSettings.SetSelectedTransferMana(A1: Integer);
-begin end;
+procedure TAoWCampaignTransferSettings.SetSelectedTransferMana(Value: Integer);
+var Max: Integer;
+begin
+  Max := FSelectedTransferMana + FTransferPointsLeft;
+  if Max > FTransferManaMax then Max := FTransferManaMax;
+  if Value > Max then Value := Max;
+  Dec(FTransferPointsLeft, Value - FSelectedTransferMana);
+  FSelectedTransferMana := Value;
+end;
 
-procedure TAoWCampaignTransferSettings.SetupSelection(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWCampaignTransferSettings.SetupSelection(const FileName: string);
+var Map: TAoWHSMap;
+begin
+  ClearSelection;
+  Map := TAoWHSMap(AoWEngine.CreatePreviewHSM(FileName));
+  FTransferPointsMax := Map.FCampaignSettings.FTransferPointsMax;
+  if AoWEngine.FCampaign.FDifficultyLevel = cdlEasy then
+    FTransferPointsMax := Round(FTransferPointsMax * 1.5);
+  if AoWEngine.FCampaign.FDifficultyLevel = cdlHard then
+    FTransferPointsMax := Round(FTransferPointsMax * 0.5);
+  FTransferGoldMax := Map.FCampaignSettings.FTransferGoldMax;
+  FTransferManaMax := Map.FCampaignSettings.FTransferManaMax;
+  FTransferPointsLeft := FTransferPointsMax;
+  Map.Free;
+end;
+
+function CompareCampaignTransfer(const Item1, Item2: TQuadItem): Integer;
+begin
+  Result := Item2.C - Item1.C;
+end;
 
 procedure TAoWCampaignTransferSettings.AutoSelect;
-begin end;
+var
+  I, Points: Integer;
+  Done: Boolean;
+  Candidates: TQuadItemList;
+begin
+  ClearSelection;
+  Candidates := TQuadItemList.Create;
+  Done := False;
+  while not Done do
+  begin
+    Candidates.Clear;
+    for I := 0 to FHeroes.Count - 1 do
+      if FSelectedHeroes.IndexOf(I) = -1 then
+      begin
+        Points := FHeroes.GetHero(I).GetCampaignTransferPoints;
+        if Points <= FTransferPointsLeft then Candidates.AddABCD(0, I, Points, 0);
+      end;
+    for I := 0 to FItems.Count - 1 do
+      if FSelectedItems.IndexOf(I) = -1 then
+      begin
+        Points := FItems.GetItem(I).GetCampaignTransferPoints;
+        if Points <= FTransferPointsLeft then Candidates.AddABCD(1, I, Points, 0);
+      end;
+    for I := 0 to FUnits.Count - 1 do
+      if FSelectedUnits.IndexOf(I) = -1 then
+      begin
+        Points := FUnits.GetUnit(I).GetCampaignTransferPoints;
+        if Points <= FTransferPointsLeft then Candidates.AddABCD(2, I, Points, 0);
+      end;
+    Candidates.Sort(CompareCampaignTransfer);
+    if Candidates.Count <> 0 then
+      case Candidates[0].A of
+        0: AddHero(Candidates[0].B);
+        1: AddItem(Candidates[0].B);
+        2: AddUnit(Candidates[0].B);
+      end
+    else Done := True;
+  end;
+  SetSelectedTransferGold(FTransferPointsMax);
+  SetSelectedTransferMana(FTransferPointsMax);
+  Candidates.Free;
+end;
 
 procedure TAoWCampaignTransferSettings.ExecuteSelection;
-begin end;
+var
+  Player: Shortint;
+  I, J: Integer;
+  X, Y, L: Shortint;
+  Leader: TLeader;
+  AUnit: TAbstractUnit;
+  Hero: THero;
+  Item: TItem;
+begin
+  if AoWHSMap <> nil then
+  begin
+    AoWHSMap.SynchroniseBegin;
+    TPlayerList(AoWHSMap.FPlayers).Update;
+    Player := TPlayerList(AoWHSMap.FPlayers).Count - 1;
+    while (Player > 1) and
+      (TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FPlayerType <> ptHuman) do
+      Dec(Player);
+    if AoWEngine.FCampaign.FCompletedScenarios.Count <> 0 then
+      TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchPercentage := FResearchPercentage;
+    TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchSpellID := FResearchSpellID;
+    TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchPointsLeft := FResearchPointsLeft;
+    TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FSpells.Assign(FSpells);
+    Inc(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FInitialGold, FSelectedTransferGold);
+    Inc(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FMana, FSelectedTransferMana);
+    Leader := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FLeader;
+    Leader.GetLocation(X, Y, L);
+    if FLeader <> nil then
+    begin
+      Leader.Deactivate;
+      Leader.Assign(FLeader, AoWEngine);
+      Leader.SetSpherePicksMax(Leader.GetSphereCount + FSelectedSpheres.Count);
+      for I := 0 to FSelectedSpheres.Count - 1 do
+        Leader.AddSphere(TMagicSphere(FSelectedSpheres[I]));
+      for J := FSelectedItems.Count - 1 downto 0 do
+      begin
+        Item := FItems.GetItem(FSelectedItems[J]);
+        if Leader.FUnitID = Item.FHeroID then
+        begin
+          Item := TItem(FItems.GetItem(FSelectedItems[J]).Copy(AoWEngine));
+          if Leader.AutoPlaceItem(Item) then FSelectedItems.Delete(J);
+          Item.Release;
+        end;
+      end;
+      Leader.FUnitID := -1;
+      Leader.SetPlayer(Player);
+      Leader.Activate;
+    end;
+    for I := FSelectedUnits.Count - 1 downto 0 do
+    begin
+      AUnit := TAbstractUnit(FUnits.GetUnit(FSelectedUnits[I]).Copy(AoWEngine));
+      AUnit.FUnitID := -1;
+      AUnit.Place(X, Y, L, Player, [pmScanArea]);
+      AUnit.Release;
+    end;
+    for I := FSelectedHeroes.Count - 1 downto 0 do
+    begin
+      Hero := THero(FHeroes.GetHero(FSelectedHeroes[I]).Copy(AoWEngine));
+      for J := FSelectedItems.Count - 1 downto 0 do
+      begin
+        Item := FItems.GetItem(FSelectedItems[J]);
+        if Hero.FUnitID = Item.FHeroID then
+        begin
+          Item := TItem(FItems.GetItem(FSelectedItems[J]).Copy(AoWEngine));
+          if Hero.AutoPlaceItem(Item) then FSelectedItems.Delete(J);
+          Item.Release;
+        end;
+      end;
+      Hero.FUnitID := -1;
+      Hero.FMode := Hero.FMode + [hmSkipLibraryUpdate];
+      Hero.Place(X, Y, L, Player, [pmScanArea]);
+      Hero.FMode := Hero.FMode - [hmSkipLibraryUpdate];
+      Hero.Release;
+    end;
+    for I := FSelectedItems.Count - 1 downto 0 do
+    begin
+      Item := TItem(FItems.GetItem(FSelectedItems[I]).Copy(AoWEngine));
+      AoWHSMap.FItemControl.RegisterItem(Item);
+      Item.PlaceOnMap(AoWHSMap, X, Y, L);
+      Item.Release;
+    end;
+    AoWHSMap.SynchroniseEnd;
+  end;
+end;
 
 constructor TAoWCampaignScenario.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); end;
 
 destructor TAoWCampaignScenario.Destroy;
-begin end;
+begin inherited Destroy; end;
 
 class function TAoWCampaignScenario.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20204; end;
 
 procedure TAoWCampaignScenario.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FID, 9);
+  if not (smTextOnly in Stream.StorageMode) then
+  begin
+    Stream.rwString(FName, 10);
+    Stream.rwString(FFileName, 11);
+  end;
+end;
 
-procedure TAoWCampaignScenarioList.GetScenario(A1: Integer);
-begin end;
+function TAoWCampaignScenarioList.GetScenario(Index: Integer): TAoWCampaignScenario;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := TAoWCampaignScenario(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure TAoWCampaignScenarioList.CreateUniqueID;
-begin end;
+function TAoWCampaignScenarioList.CreateUniqueID: Integer;
+begin
+  Result := 1;
+  while IndexOfID(Result) <> -1 do Inc(Result);
+end;
 
-procedure TAoWCampaignScenarioList.IndexOfID(A1: Integer);
-begin end;
+function TAoWCampaignScenarioList.IndexOfID(ID: Integer): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAoWCampaignScenario(FChildren.List^[Result]).FID = ID then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TAoWCampaignScenarioList.FindID;
-begin end;
+function TAoWCampaignScenarioList.FindID(ID: Integer): TAoWCampaignScenario;
+var Index: Integer;
+begin
+  Index := IndexOfID(ID);
+  if Index <> -1 then Result := TAoWCampaignScenario(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 constructor TAoWCampaign.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FStream := TMemoryStream.Create;
+  FTransferSettings := TAoWCampaignTransferSettings.Create(nil);
+  FScenarios := TAoWCampaignScenarioList.Create(nil);
+  FCompletedScenarios := TIntegerList.Create;
+  FRaceHistory := TByteList.Create;
+  FCurrentScenarioID := -1;
+  FNextScenarioID := -1;
+  FScenarioStarted := False;
+  FPlayMode := pmSimultaneous;
+  FDifficultyLevel := cdlNormal;
+end;
 
 destructor TAoWCampaign.Destroy;
-begin end;
+begin
+  FStream.Free;
+  FTransferSettings.Free;
+  FScenarios.Free;
+  FCompletedScenarios.Free;
+  FRaceHistory.Free;
+  inherited Destroy;
+end;
 
 procedure TAoWCampaign.Clear;
-begin end;
+begin
+  inherited Clear;
+  FStream.Clear;
+  FTransferSettings.Clear;
+  FScenarios.Clear;
+  FCurrentScenarioID := -1;
+  FCompletedScenarios.Clear;
+  FRaceHistory.Clear;
+end;
 
-procedure TAoWCampaign.CreateScenario;
-begin end;
+function TAoWCampaign.CreateScenario: TAoWCampaignScenario;
+begin Result := TAoWCampaignScenario.Create(nil); end;
 
-procedure TAoWCampaign.AddScenario;
-begin end;
+function TAoWCampaign.AddScenario: TAoWCampaignScenario;
+begin
+  Result := CreateScenario;
+  Result.FID := FScenarios.CreateUniqueID;
+  Result.SetOwner(FScenarios);
+end;
 
-procedure TAoWCampaign.GetContainsMap;
-begin end;
+function TAoWCampaign.GetContainsMap: Boolean;
+begin Result := FStream.Size <> 0; end;
 
 procedure TAoWCampaign.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var Size, I: Integer;
+begin
+  inherited ReadWrite(Stream);
+  if not (smTextOnly in Stream.StorageMode) then
+    if smRead in Stream.StorageMode then
+    begin
+      Stream.rwInteger(Size, 5);
+      FStream.Size := Size;
+      Stream.rwData(FStream.Memory^, Size, 6);
+    end
+    else
+    begin
+      Size := FStream.Size;
+      Stream.rwInteger(Size, 5);
+      Stream.rwData(FStream.Memory^, Size, 6);
+    end;
+  Stream.rwEObject(FTransferSettings, 7);
+  Stream.rwEObject(FScenarios, 10);
+  Stream.rwString(FName, 12);
+  Stream.rwInteger(FCurrentScenarioID, 13);
+  Stream.rwStreamProc(14, FCompletedScenarios.LoadFromStream, FCompletedScenarios.SaveToStream);
+  Stream.rwBool(FScenarioStarted, 15);
+  Stream.rwStreamProc(16, FRaceHistory.LoadFromStream, FRaceHistory.SaveToStream);
+  Stream.rwData(FPlayMode, SizeOf(FPlayMode), 17);
+  Stream.rwData(FDifficultyLevel, SizeOf(FDifficultyLevel), 19);
+  if not (smTextOnly in Stream.StorageMode) and (smRead in Stream.StorageMode) then
+    for I := 0 to FScenarios.Count - 1 do
+      if FScenarios.GetScenario(I).FID = 0 then
+        FScenarios.GetScenario(I).FID := FScenarios.CreateUniqueID;
+  if (smRead in Stream.StorageMode) and not (smTextOnly in Stream.StorageMode) and
+    (FCompletedScenarios.Count = 0) and not FScenarioStarted then
+    FPlayMode := pmSimultaneous;
+end;
 
-procedure TAoWCampaign.SelectNextScenario(A1: Integer);
-begin end;
+procedure TAoWCampaign.SelectNextScenario(ID: Integer);
+begin FNextScenarioID := ID; end;
 
 procedure TAoWCampaign.ResetNextScenario;
-begin end;
+begin FNextScenarioID := -1; end;
 
-procedure TAoWCampaign.StartScenario(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TAoWCampaign.StartScenario(ID: Integer; const FileName: string; Progress: TProgressEvent);
+begin
+  FStream.Clear;
+  FNextScenarioID := -1;
+  FCurrentScenarioID := ID;
+end;
 
 procedure TAoWCampaign.SetupScenario;
-begin end;
+var
+  Player: Shortint;
+  I, J, Level, R: Integer;
+  Spell: TSpell;
+  Race: TRace;
+  Relation: Byte;
+begin
+  Player := AoWHSMap.FPlayers.Count - 1;
+  while (Player > 1) and (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) do
+    Dec(Player);
+  Level := 1 + FCompletedScenarios.Count div 4;
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if I <> Player then
+      for J := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+      begin
+        Spell := AoWHSSet.FSpellControl.GetSpell(J);
+        if (Spell <> nil) and (Spell.FSpellLevel <= Level) and
+          (Spell.FSpellLevel <= AoWHSMap.FPlayers.GetPlayers(I).FLeader.GetSpherePicks(Spell.FMagicSphere)) then
+          if AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FSpells.IndexOf(J) = -1 then
+            AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FSpells.Add(J);
+      end;
+  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+    if (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptHuman) and
+      (AoWHSMap.FPlayers.GetDiplomaticRelation(I, Player) <> drAlliance) then
+    begin
+      if FDifficultyLevel = cdlEasy then
+        case AoWHSMap.FPlayers.GetPlayers(I).FPlayerType of
+          ptCPU2: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU1;
+          ptCPU3: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU2;
+          ptCPU4: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU3;
+          ptCPU5: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU3;
+        end;
+      if FDifficultyLevel = cdlHard then
+        case AoWHSMap.FPlayers.GetPlayers(I).FPlayerType of
+          ptCPU1: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU3;
+          ptCPU2: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU4;
+          ptCPU3: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU5;
+          ptCPU4: AoWHSMap.FPlayers.GetPlayers(I).FPlayerType := ptCPU5;
+        end;
+    end;
+  AoWHSMap.SetupPlayerControl(FPlayMode, pcLocal);
+  for R := 0 to AoWHSMap.FRaces.Count - 1 do
+    if AoWHSMap.FRaces.GetRace(R) <> nil then
+    begin
+      Race := AoWHSMap.FRaces.GetRace(R);
+      if Race <> nil then
+        for I := 0 to 11 do
+          if (((FRaceHistory.IndexOf(I) <> -1) or
+            (I = AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace)) and
+            (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace = R)) or
+            (((FRaceHistory.IndexOf(Byte(R)) <> -1) or
+            (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace = R)) and
+            (I = AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace)) then
+          begin
+            Relation := Race.FDefaultRelations[I];
+            case Relation of
+              0: Relation := 3;
+              1: Relation := 3;
+              2: Relation := 4;
+              3: Relation := 4;
+            end;
+            Race.FDefaultRelations[I] := Relation;
+          end;
+    end;
+  AoWHSMap.FAlliedVictory := AoWHSMap.FCampaignSettings.FAlliedVictory;
+  FTransferSettings.ExecuteSelection;
+  FScenarioStarted := True;
+end;
 
-procedure TAoWCampaign.GetAutoSaveFileName(A1: Integer; A2: Integer);
-begin end;
+function TAoWCampaign.GetAutoSaveFileName(Auto: TCampaignAutoSaveType): string;
+begin Result := AoWHSMap.FMapName + '.acg'; end;
 
 procedure TAoWCampaign.FinishScenario;
-begin end;
+var Player: Shortint; FileName: string;
+begin
+  FScenarioStarted := False;
+  FCompletedScenarios.Add(FCurrentScenarioID);
+  FTransferSettings.Retrieve;
+  FStream.Clear;
+  Player := AoWHSMap.FPlayers.Count - 1;
+  while (Player > 1) and (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) do
+    Dec(Player);
+  if FRaceHistory.IndexOf(Byte(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace)) = -1 then
+    FRaceHistory.Add(Byte(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace));
+  FileName := GetAutoSaveFileName(casScenarioFinished);
+  AoWEngine.SaveCampaign(AoWEngine.StartupDirectory + 'Save\' + FileName);
+end;
 
 procedure TAoWCampaign.RestartScenario;
-begin end;
+begin
+  if FCompletedScenarios.Count <> 0 then
+    FCurrentScenarioID := FCompletedScenarios[FCompletedScenarios.Count - 1]
+  else FCurrentScenarioID := 0;
+  FScenarioStarted := False;
+  FStream.Clear;
+end;
 
 constructor TSMTPEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMessage := TStringList.Create;
+end;
 
 destructor TSMTPEventLog.Destroy;
-begin end;
+begin FMessage.Free; inherited Destroy; end;
 
 class function TRestartGameEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F7; end;
 
 function TRestartGameEventLog.GetText: string;
-begin end;
+begin Result := TranslateRStr(GameRestartedRStr); end;
 
 function TRestartGameEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  if Trigger <> etNewTurn then Result := inherited Execute(Mode, Trigger, Done)
+  else Result := False;
+end;
 
 class function TEmailGame.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21700; end;
 
 procedure TEmailGame.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FName, $14);
+  Stream.rwInteger(FUniqueLocalID, $15);
+  Stream.rwInteger(FUniqueID, $16);
+  Stream.rwString(FEmailAddress, $17);
+  Stream.rwInteger(FSecurityID, $18);
+end;
 
-procedure TEmailGameList.GetEmailGames(A1: Integer);
-begin end;
+function TEmailGameList.GetEmailGames(Index: Integer): TEmailGame;
+begin Result := TEmailGame(FChildren.List^[Index]); end;
 
-procedure TEmailGameList.IndexOfUniqueLocalID(A1: Integer);
-begin end;
+function TEmailGameList.IndexOfUniqueLocalID(ID: Integer): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TEmailGame(FChildren.List^[Result]).FUniqueLocalID = ID then Exit;
+  end;
+  Result := -1;
+end;
 
 constructor TEmailGameControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FGames := TEmailGameList.Create(nil);
+end;
 
 destructor TEmailGameControl.Destroy;
-begin end;
+begin FGames.Free; inherited Destroy; end;
 
-procedure TEmailGameControl.CreateUniqueLocalID;
-begin end;
+function TEmailGameControl.CreateUniqueLocalID: Integer;
+begin
+  Result := 1;
+  while FGames.IndexOfUniqueLocalID(Result) <> -1 do Inc(Result);
+end;
 
 procedure TEmailGameControl.Load;
-begin end;
+var FileName: string;
+begin
+  FGames.Clear;
+  FileName := AoWEngine.StartupDirectory + 'EmailIn\' + 'egames.pfs';
+  if FileExists(FileName) then
+    if GetFileCRC32(FileName) = AoWEngine.FRegistry.GetEmailGamesCRC then
+      AoWEngine.ReadFromFile(FileName, FGames, nil);
+end;
 
 procedure TEmailGameControl.Save;
-begin end;
+var FileName: string;
+begin
+  try
+    FileName := AoWEngine.StartupDirectory + 'EmailIn\' + 'egames.pfs';
+    AoWEngine.WriteToFile(AoWEngine.StartupDirectory + 'EmailIn\' + 'egames.pfs', FGames, nil);
+    AoWEngine.FRegistry.SetEmailGamesCRC(GetFileCRC32(FileName));
+  except
+  end;
+end;
 
-procedure TEmailGameControl.FindEmailGame(A1: Integer);
-begin end;
+function TEmailGameControl.FindEmailGame(Game: TEmailGame): TEmailGame;
+var Index: Integer;
+begin
+  Index := FGames.IndexOfUniqueLocalID(Game.FUniqueLocalID);
+  if (Index <> -1) and (Game.FUniqueID <> 0) and
+    (FGames.GetEmailGames(Index).FUniqueID = Game.FUniqueID) then
+    Result := FGames.GetEmailGames(Index)
+  else Result := nil;
+end;
 
-procedure TEmailGameControl.EmailGameRestarted(A1: Integer);
-begin end;
+function TEmailGameControl.EmailGameRestarted(Game: TEmailGame): Boolean;
+var LocalGame: TEmailGame;
+begin
+  if Game.FSecurityID <> 0 then
+  begin
+    LocalGame := FindEmailGame(Game);
+    Result := (LocalGame = nil) or (Game.FSecurityID <> LocalGame.FSecurityID);
+  end
+  else Result := False;
+end;
 
-procedure TEmailGameControl.GenerateSecurityID;
-begin end;
+function TEmailGameControl.GenerateSecurityID: Integer;
+begin Result := System.Random(GetElapsedMilliSeconds and $FFFFFF) + 1; end;
 
-procedure TEmailGameControl.UpdateGame(A1: Integer);
-begin end;
+function TEmailGameControl.UpdateGame(Game: TEmailGame): Boolean;
+var LocalGame: TEmailGame;
+begin
+  LocalGame := FindEmailGame(Game);
+  if LocalGame <> nil then
+  begin
+    LocalGame.FLastDay := Game.FLastDay;
+    LocalGame.FSecurityID := GenerateSecurityID;
+    Game.FSecurityID := LocalGame.FSecurityID;
+    Save;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TEmailGameControl.CreateEmailGame(A1: Integer; A2: Integer);
-begin end;
+function TEmailGameControl.CreateEmailGame(Name, EmailAddress: string): TEmailGame;
+begin
+  Result := TEmailGame.Create(nil);
+  Result.FEmailAddress := EmailAddress;
+  Result.FUniqueLocalID := CreateUniqueLocalID;
+  Result.FUniqueID := System.Random(GetElapsedMilliSeconds and $FFFFFF) + 1;
+  Result.FSecurityID := GenerateSecurityID;
+  Result.FName := Name;
+  Result.SetOwner(FGames);
+  Save;
+end;
 
-procedure TEmailGameControl.ValidateIncommingGame(A1: Integer; A2: Integer);
-begin end;
+procedure TEmailGameControl.ValidateIncommingGame(const FileName: string; var Destination: string);
+var
+  Map, PreviousMap: TAoWHSMap;
+  LocalGame: TEmailGame;
+  Name: string;
+  I: Integer;
+  Overwrite: Boolean;
+begin
+  try
+    Destination := '';
+    Overwrite := False;
+    Map := TAoWHSMap(AoWEngine.CreatePreviewHSM(FileName));
+    if (Map <> nil) and (Map.FConnectionType = pcEmail) and
+      (Map.FCurrentPlayer > 0) and (Map.FCurrentPlayer < Map.FPlayers.Count) and
+      (pbsNewTurn in Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FStatus) then
+      if CompareText(Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FEmailAddress,
+        AoWEngine.FRegistry.GetLocalEmailAddress) = 0 then
+      begin
+        LocalGame := FindEmailGame(Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame);
+        if LocalGame <> nil then
+        begin
+          if LocalGame.FLastDay < Map.FDay then
+          begin
+            Name := Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FName;
+            if FileExists(AoWEngine.StartupDirectory + 'EmailIn\' + Name + '.asg') then
+            begin
+              PreviousMap := TAoWHSMap(AoWEngine.CreatePreviewHSM(
+                AoWEngine.StartupDirectory + 'EmailIn\' + Name + '.asg'));
+              if PreviousMap <> nil then
+              begin
+                { Original bug: the previous map's player is checked against the new map's count. }
+                if (PreviousMap.FCurrentPlayer > 0) and
+                  (PreviousMap.FCurrentPlayer < Map.FPlayers.Count) then
+                  if (PreviousMap.FPlayers.GetPlayers(PreviousMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FUniqueLocalID =
+                    Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FUniqueLocalID) and
+                    (PreviousMap.FPlayers.GetPlayers(PreviousMap.FCurrentPlayer).FPBEMSettings.FEmailGame.FUniqueID =
+                    Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FUniqueID) then
+                    Overwrite := True;
+                PreviousMap.Free;
+              end;
+            end;
+          end;
+        end
+        else Name := Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FName;
+        if Name <> '' then
+        begin
+          I := 0;
+          Destination := AoWEngine.StartupDirectory + 'EmailIn\' + Name + '.asg';
+          while not Overwrite and FileExists(Destination) do
+          begin
+            Inc(I);
+            Destination := AoWEngine.StartupDirectory + 'EmailIn\' + Name + IntToStr(I) + '.asg';
+          end;
+        end;
+      end;
+    Map.Free;
+  except
+  end;
+end;
 
-procedure TAIPlayerAction.SupportedPhases;
-begin end;
+class function TAIPlayerAction.SupportedPhases: TAIPlayerProcessPhases;
+begin Result := [appMain]; end;
 
-procedure TAIPlayerAction.Setup(A1: Integer; A2: Integer);
-begin end;
+function TAIPlayerAction.Setup(Control: TAIPlayerControl; Phase: TAIPlayerProcessPhase): Boolean;
+begin
+  FControl := Control;
+  FPhase := Phase;
+  Result := Phase in SupportedPhases;
+end;
 
 function TAIPlayerAction.Process: Boolean;
 begin
@@ -1812,8 +2534,11 @@ begin
   Result := False;
 end;
 
-procedure TAIPlayerAction.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAIPlayerAction.Activate: Boolean;
+begin
+  FProcessCycles := 0;
+  Result := True;
+end;
 
 procedure TAIPlayerAction.Deactivate;
 begin end;
@@ -1989,8 +2714,8 @@ begin end;
 procedure TGroupControlLoopAIPA.Priority;
 begin end;
 
-procedure TGroupControlLoopAIPA.SupportedPhases;
-begin end;
+class function TGroupControlLoopAIPA.SupportedPhases: TAIPlayerProcessPhases;
+begin Result := [appLoop]; end;
 
 procedure TGroupControlLoopAIPA.ActivateGroupControl(A1: Integer);
 begin end;
@@ -1998,8 +2723,8 @@ begin end;
 procedure TGroupControlLoopAIPA.DeactivateGroupControl;
 begin end;
 
-procedure TGroupControlLoopAIPA.Activate(A1: Integer; A2: Integer);
-begin end;
+function TGroupControlLoopAIPA.Activate: Boolean;
+begin Result := False; end;
 
 function TGroupControlLoopAIPA.Process: Boolean;
 begin Result := False; end;

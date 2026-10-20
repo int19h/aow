@@ -188,11 +188,11 @@
     F_AoWHSMap_DC: Byte;
     F_AoWHSMap_DD: array[0..2] of Byte;
     FTargetSelection: TTargetSelectionControl; { $E0 }
-    F_AoWHSMap_E4: Integer;
+    FMapName: string; { $E4 }
     F_AoWHSMap_E8: Integer;
     FSphereCount: Integer; { $EC }
     F_AoWHSMap_F0: Integer;
-    F_AoWHSMap_F4: Integer;
+    FItemControl: TItemControl; { $F4 }
     F_AoWHSMap_F8: Integer;
     FUnitControl: TUnitControl; { $FC }
     F_AoWHSMap_100: Integer;
@@ -216,7 +216,7 @@
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
     F_AoWHSMap_139: Byte;
-    F_AoWHSMap_13A: Byte;
+    FConnectionType: TPlayerConnectionType; { $13A }
     F_AoWHSMap_13B: array[0..0] of Byte;
     F_AoWHSMap_13C: Integer;
     FPlayers: TPlayerList;  { $140 }
@@ -224,7 +224,7 @@
     F_AoWHSMap_148: Byte;
     F_AoWHSMap_149: Byte;
     F_AoWHSMap_14A: Byte;
-    F_AoWHSMap_14B: Byte;
+    FAlliedVictory: Boolean; { $14B }
     F_AoWHSMap_14C: Byte;
     FVictoryCondition: TVictoryCondition; { $14D }
     F_AoWHSMap_14E: array[0..1] of Byte;
@@ -245,7 +245,8 @@
     F_AoWHSMap_181: array[0..2] of Byte;
     FMoveControl: TMoveControl;  { $184 }
     FGlobalMagicControl: TGlobalMagicControl; { $188 }
-    F_AoWHSMap_18C: Integer;
+    { conflict: FPlayerControl: TPlayerControl; }
+    FCampaignSettings: TAoWMapCampaignSettings; { $18C }
     FEditorPlayer: Shortint;  { $190, read at $55784FB4 }
     F_AoWHSMap_191: Byte;
     F_AoWHSMap_192: array[0..1] of Byte;
@@ -394,7 +395,7 @@
     procedure Select(A1: TArmyHS; A2: Boolean);
     procedure PlayerChanged;  { draft }
     procedure TokenControlActivatedEvent;  { draft }
-    procedure SetupPlayerControl(A1: Integer; A2: Integer);  { draft }
+    procedure SetupPlayerControl(Mode: TPlayMode; Connection: TPlayerConnectionType);
     procedure ActivateMsg;  { draft }
     function Random(Range: Integer): Integer;
     procedure GenerateNewTurnOrder;  { draft }

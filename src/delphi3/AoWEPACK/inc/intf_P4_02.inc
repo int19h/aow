@@ -1122,7 +1122,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function Activate: Boolean; override;
     function Process: Boolean; override;
     procedure PrefetchCastSpellActions(A1: Integer);  { draft }
     procedure CastingHeroesMax;  { draft }

@@ -2714,8 +2714,8 @@ begin
   else Result := False;
 end;
 
-procedure TUnitList.IndexOf;
-begin end;
+function TUnitList.IndexOf(AUnit: TAbstractUnit): Integer;
+begin Result := 0; end;
 
 procedure TUnitList.IndexOfID(A1: Integer);
 begin end;
@@ -4456,8 +4456,8 @@ begin end;
 procedure THero.ExecuteSwapItem(A1: Integer; A2: Integer);
 begin end;
 
-procedure THero.AutoPlaceItem(A1: Integer; A2: Integer);
-begin end;
+function THero.AutoPlaceItem(Item: TItem): Boolean;
+begin Result := False; end;
 
 procedure THero.ExecutePlaceItem(A1: Integer; A2: Integer);
 begin end;
@@ -4555,8 +4555,8 @@ begin end;
 procedure THeroList.FindHero(A1: Integer);
 begin end;
 
-procedure THeroList.GetHero(A1: Integer);
-begin end;
+function THeroList.GetHero(A1: Integer): THero;
+begin Result := nil; end;
 
 constructor THeroControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -4720,8 +4720,8 @@ begin end;
 procedure TLeader.CanAddSphere(A1: Integer);
 begin end;
 
-procedure TLeader.AddSphere(A1: Byte; A2: Integer);
-begin end;
+function TLeader.AddSphere(Sphere: TMagicSphere): Boolean;
+begin Result := False; end;
 
 procedure TLeader.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
@@ -5473,8 +5473,8 @@ begin end;
 class function TItem.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TItem.GetCampaignTransferPoints;
-begin end;
+function TItem.GetCampaignTransferPoints: Integer;
+begin Result := 0; end;
 
 procedure TItem.GetImage;
 begin end;
@@ -5509,8 +5509,8 @@ begin end;
 procedure TItem.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TItem.PlaceOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TItem.PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TItem.EditDropMsg(A1: Integer);
 begin end;
@@ -5542,8 +5542,8 @@ begin end;
 procedure TItemList.FindItem(A1: Integer; A2: Integer);
 begin end;
 
-procedure TItemList.GetItem(A1: Integer);
-begin end;
+function TItemList.GetItem(A1: Integer): TItem;
+begin Result := nil; end;
 
 procedure TItemList.Update;
 begin end;
@@ -5605,7 +5605,7 @@ begin end;
 procedure TItemControl.UpdateLibraryItems;
 begin end;
 
-procedure TItemControl.RegisterItem(A1: Integer);
+procedure TItemControl.RegisterItem(Item: TItem);
 begin end;
 
 procedure TItemControl.UnRegisterItem(A1: Integer);
@@ -5872,7 +5872,7 @@ begin end;
 procedure TAoWEngine.LoadCampaign(A1: Integer);
 begin end;
 
-procedure TAoWEngine.SaveCampaign(A1: Integer);
+procedure TAoWEngine.SaveCampaign(const FileName: string);
 begin end;
 
 procedure TAoWEngine.NewCampaign(A1: Integer);

@@ -3,7 +3,7 @@
   TAoWEngine = class(THSEngine)
   public
     F_AoWEngine_58: Integer;
-    F_AoWEngine_5C: Integer;
+    FRegistry: TAoWRegistry; { $5C }
     F_AoWEngine_60: Integer;
     FGameSet: TAoWHSSet; { $64 }
     { conflict: FHSSet: TAoWHSSet; }
@@ -40,7 +40,7 @@
     procedure CloseCampaign;  { draft }
     procedure LoadCampaignMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure LoadCampaign(A1: Integer);  { draft }
-    procedure SaveCampaign(A1: Integer);  { draft }
+    procedure SaveCampaign(const FileName: string);
     procedure NewCampaign(A1: Integer);  { draft }
   end;
 

@@ -155,6 +155,7 @@
     FStatus: TPBEMPlayerStatus; { $08 }
     F_PBEMPlayerSettings_09: array[0..2] of Byte;
     FEmailGame: TEmailGame; { $0C }
+    { conflict: FGame: TEmailGame; }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -223,6 +224,7 @@
     FParticipating: Boolean; { $A9 }
     F_Player_AA: array[0..1] of Byte;
     FInitialGold: Integer; { $AC }
+    { conflict: FGold: Integer; }
     FBaseIncome: Integer; { $B0 }
     FBaseHeroJoinDay: Integer; { $B4 }
     FHeroJoinDay: Integer; { $B8 }
@@ -302,7 +304,7 @@
   public
     F_PlayerList_10: Integer;
     F_PlayerList_14: Integer;
-    F_PlayerList_18: Integer;
+    FLocalPlayers: TByteList; { $18 }
     F_PlayerList_1C: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

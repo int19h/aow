@@ -2349,7 +2349,7 @@ begin
     HXtoHP(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,Xhp,Yhp);
     Dec(Xhp,XhpSurf);
     Dec(Yhp,YhpSurf);
-    case TAoWRegistry(SpellEngine^.F_AoWEngine_5C).GetDetailLevel of
+    case TAoWRegistry(SpellEngine^.FRegistry).GetDetailLevel of
       dtlLow: Count := 50;
       dtlHigh: Count := 160;
     else Count := 100;

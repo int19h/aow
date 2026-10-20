@@ -5,12 +5,12 @@
   public
     FProcessCycles: Integer; { $08 }
     FControl: TAIPlayerControl; { $0C }
-    F_AIPlayerAction_10: Byte;
+    FPhase: TAIPlayerProcessPhase; { $10 }
     F_AIPlayerAction_11: array[0..2] of Byte;
     procedure Priority; virtual; abstract;  { +04C draft }
-    procedure SupportedPhases; virtual;  { +050 draft }
-    procedure Setup(A1: Integer; A2: Integer); virtual;  { +054 draft }
-    procedure Activate(A1: Integer; A2: Integer); virtual;  { +058 draft }
+    class function SupportedPhases: TAIPlayerProcessPhases; virtual; { $50 }
+    function Setup(Control: TAIPlayerControl; Phase: TAIPlayerProcessPhase): Boolean; virtual; { $54 }
+    function Activate: Boolean; virtual; { $58 }
     procedure Deactivate; virtual;  { +05C draft }
     function Process: Boolean; virtual; { $60 }
   end;
@@ -521,8 +521,8 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Priority; override;
-    procedure SupportedPhases; override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    class function SupportedPhases: TAIPlayerProcessPhases; override;
+    function Activate: Boolean; override;
     function Process: Boolean; override;
     procedure ActivateGroupControl(A1: Integer);  { draft }
     procedure DeactivateGroupControl;  { draft }

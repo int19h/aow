@@ -5,5 +5,6 @@
   "5572ddb4:1294": "TDiplomaticAction.ExecuteAccept",
   "5572ee44:77": "TDiplomaticActionEventLog.PlayLoggedSFX",
   "5572d82c:1408": "TDiplomaticAction.ExecuteAI",
-  "5572f05c:1832": "TDiplomaticActionEventLog.GetText"
+  "5572f05c:1832": "TDiplomaticActionEventLog.GetText",
+  "557316cc:9": "CompareCampaignTransfer"
 }

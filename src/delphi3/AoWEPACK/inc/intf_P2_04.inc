@@ -46,7 +46,7 @@
   { TItem (instance size 76, VMT 5570FAFC) }
   TItem = class(TAbilityOwner)
   public
-    F_Item_14: Integer;
+    FHeroID: Integer; { $14 }
     F_Item_18: Integer;
     F_Item_1C: Byte;
     F_Item_1D: array[0..2] of Byte;
@@ -86,7 +86,7 @@
     procedure Activate; virtual;  { +0AC draft }
     procedure Deactivate; virtual;  { +0B0 draft }
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetCampaignTransferPoints;  { draft }
+    function GetCampaignTransferPoints: Integer;
     procedure GetImage;  { draft }
     procedure GetLibraryItem;  { draft }
     procedure GetLibraryName(A1: Integer);  { draft }
@@ -94,7 +94,7 @@
     procedure SetItemGFXIndex(A1: Integer);  { draft }
     procedure SetItemType(A1: Integer);  { draft }
     procedure GetObtainValue;  { draft }
-    procedure PlaceOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
     procedure EditDropMsg(A1: Integer);  { draft }
   end;
 
@@ -112,7 +112,7 @@
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
     procedure Changed; override;
-    procedure GetItem(A1: Integer); virtual;  { +08C draft }
+    function GetItem(A1: Integer): TItem; virtual; { $8C }
     procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +090 draft }
     procedure FindItem(A1: Integer; A2: Integer);  { draft }
     procedure Update;  { draft }
@@ -180,7 +180,7 @@
     procedure CreateUniqueID;  { draft }
     procedure ValidateItem(A1: Integer);  { draft }
     procedure UpdateLibraryItems;  { draft }
-    procedure RegisterItem(A1: Integer);  { draft }
+    procedure RegisterItem(Item: TItem);
     procedure UnRegisterItem(A1: Integer);  { draft }
     procedure GenerateItem(A1: Byte; A2: Integer; A3: Integer);  { draft }
     procedure GenerateItems(A1: Byte; A2: Integer; A3: Integer);  { draft }

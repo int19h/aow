@@ -6,7 +6,7 @@
     F_StructureAIPA_18: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function Activate: Boolean; override;
     function Process: Boolean; override;
   end;
 

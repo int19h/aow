@@ -107,16 +107,16 @@
     F_PlayerMagicControl_0D: array[0..2] of Byte;
     FPlayer: TPlayer; { $10 }
     F_PlayerMagicControl_14: Integer;
-    F_PlayerMagicControl_18: Integer;
+    FMana: Integer; { $18 }
     F_PlayerMagicControl_1C: Integer;
     F_PlayerMagicControl_20: Integer;
     F_PlayerMagicControl_24: Integer;
     F_PlayerMagicControl_28: Word;
     F_PlayerMagicControl_2A: array[0..1] of Byte;
-    F_PlayerMagicControl_2C: Integer;
-    F_PlayerMagicControl_30: Integer;
-    F_PlayerMagicControl_34: Integer;
-    F_PlayerMagicControl_38: Integer;
+    FResearchPercentage: Integer; { $2C }
+    FSpells: TIntegerList; { $30 }
+    FResearchSpellID: Integer; { $34 }
+    FResearchPointsLeft: Integer; { $38 }
     F_PlayerMagicControl_3C: Integer;
     F_PlayerMagicControl_40: Integer;
     F_PlayerMagicControl_44: Byte;

@@ -1,13 +1,15 @@
 { Interface declaration run owned by P5. }
-  { TEmailGame (instance size 32, VMT 55714BAC) }
+  { TEmailGame (instance size $20, VMT 55714BAC).
+    $08 name; $0C unique local ID; $10 unique ID; $14 security ID;
+    $18 email address; $1C last day (not serialized by the original). }
   TEmailGame = class(TEObject)
   public
-    F_EmailGame_08: Integer;
-    F_EmailGame_0C: Integer;
-    F_EmailGame_10: Integer;
-    F_EmailGame_14: Integer;
-    F_EmailGame_18: Integer;
-    F_EmailGame_1C: array[0..3] of Byte;
+    FName: string; { $08 }
+    FUniqueLocalID: Integer; { $0C }
+    FUniqueID: Integer; { $10 }
+    FSecurityID: Integer; { $14 }
+    FEmailAddress: string; { $18 }
+    FLastDay: Integer; { $1C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
   end;
@@ -15,25 +17,25 @@
   { TEmailGameList (instance size 12, VMT 55714C84) }
   TEmailGameList = class(TENode)
   public
-    procedure GetEmailGames(A1: Integer);  { draft }
-    procedure IndexOfUniqueLocalID(A1: Integer);  { draft }
+    function GetEmailGames(Index: Integer): TEmailGame;
+    function IndexOfUniqueLocalID(ID: Integer): Integer;
   end;
 
-  { TEmailGameControl (instance size 12, VMT 55714D84) }
+  { TEmailGameControl (instance size $0C, VMT 55714D84). $08 games. }
   TEmailGameControl = class(TEObject)
   public
-    F_EmailGameControl_08: Integer;
+    FGames: TEmailGameList; { $08 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CreateUniqueLocalID;  { draft }
-    procedure Load;  { draft }
-    procedure Save;  { draft }
-    procedure FindEmailGame(A1: Integer);  { draft }
-    procedure EmailGameRestarted(A1: Integer);  { draft }
-    procedure GenerateSecurityID;  { draft }
-    procedure UpdateGame(A1: Integer);  { draft }
-    procedure CreateEmailGame(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateIncommingGame(A1: Integer; A2: Integer);  { draft }
+    function CreateUniqueLocalID: Integer;
+    procedure Load;
+    procedure Save;
+    function FindEmailGame(Game: TEmailGame): TEmailGame;
+    function EmailGameRestarted(Game: TEmailGame): Boolean;
+    function GenerateSecurityID: Integer;
+    function UpdateGame(Game: TEmailGame): Boolean;
+    function CreateEmailGame(Name, EmailAddress: string): TEmailGame;
+    procedure ValidateIncommingGame(const FileName: string; var Destination: string);
   end;
 
   { TRestartGameEventLog (instance size 40, VMT 55714E4C) }
@@ -44,11 +46,11 @@
     function Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
-  { TSMTPEventLog (instance size 52, VMT 55714F58) }
+  { TSMTPEventLog (instance size $34, VMT 55714F58). $24 message. }
   TSMTPEventLog = class(TEventLog)
   public
     F_SMTPEventLog_18: array[0..11] of Byte;
-    F_SMTPEventLog_24: Integer;
+    FMessage: TStringList; { $24 }
     F_SMTPEventLog_28: array[0..11] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
