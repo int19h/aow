@@ -241,7 +241,7 @@
     F_CombatData_3C: Integer;
     F_CombatData_40: Integer;
     F_CombatData_44: Integer;
-    F_CombatData_48: string;
+    FHeader: string; { $48 }
     F_CombatData_4C: Byte;
     F_CombatData_4D: Boolean;
     F_CombatData_4E: array[0..1] of Byte;
@@ -292,9 +292,9 @@
     F_Combat_09: array[0..2] of Byte;
     FCombatData: TCombatData;  { $0C }
     F_Combat_10: Integer;
-    F_Combat_14: Byte;
+    FCombatResult: TCombatResult; { $14 }
     F_Combat_15: array[0..2] of Byte;
-    F_Combat_18: Integer;
+    FLogbook: TCombatLogbook; { $18 }
     FSides: array[csAttacker..csDefender] of TCombatSide;  { $1C..$20 }
     F_Combat_24: Integer;
     F_Combat_28: Integer;
@@ -302,7 +302,7 @@
     F_Combat_34: Boolean;
     F_Combat_35: array[0..2] of Byte;
     FOnTerminated: TCombatExecutedEvent;
-    F_Combat_40: Byte;
+    FExplorationSite: Byte; { $40 }
     F_Combat_41: array[0..2] of Byte;
     F_Combat_44: Byte;
     F_Combat_45: array[0..6] of Byte;
@@ -315,7 +315,7 @@
     procedure ObjectSideChanged(A1: Integer); virtual;  { +054 draft }
     function CreateCombatUnit: Integer; virtual;  { +058 draft }
     function CreateCombatPlayer: Integer; virtual;  { +05C draft }
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer); virtual;  { +060 draft }
+    procedure Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean); virtual;
     function Execute: Byte; virtual;  { +064 draft }
     procedure Initialize; virtual;  { +068 draft }
     procedure Finalize; virtual;  { +06C draft }
@@ -337,8 +337,8 @@
     procedure AddAdjacentArmies;  { draft }
     function GetPartyPosition(X, Y, Layer: Integer): Byte;
     procedure AddCombatPlayer(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure AddArmy(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure AddArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure AddArmy(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
+    procedure AddArmyEx(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Boolean);
     procedure AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure InitDefaultArmies(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure LockExecuted;  { draft }
@@ -369,9 +369,9 @@
     $18 selection; $1B/$1C/$1D location; $20 FTokenEvent; $28 owned object. }
   TCombatTypeRequestEventLog = class(TEventLog)
   public
-    F_CombatTypeRequestEventLog_18: Byte;
-    F_CombatTypeRequestEventLog_19: Byte;
-    F_CombatTypeRequestEventLog_1A: Byte;
+    FCombatType: TCombatType; { $18 }
+    FPlayer: Shortint; { $19 }
+    FAllowRetreat: Boolean; { $1A }
     F_CombatTypeRequestEventLog_1B: Byte;
     F_CombatTypeRequestEventLog_1C: Byte;
     F_CombatTypeRequestEventLog_1D: Byte;
@@ -383,7 +383,7 @@
     destructor Destroy; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure SetTokenEvent(A1: Integer);  { draft }
-    procedure Select(A1: Byte);  { draft }
+    procedure Select(A1: TCombatType);
     procedure SetCenterLocation(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;
 

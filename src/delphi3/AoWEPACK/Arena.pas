@@ -30,8 +30,8 @@ type
   TArena = class(TStructure)
   public
     class function ClassID: Integer; override;
-    procedure CreateTE; override;
-    procedure ExecuteTE(A1: Integer; A2: Integer); override;
+    function CreateTE: TStructureTE; override;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
     function CanDblClick: Boolean; override;
     procedure UnitTrainCost(A1: Integer);  { draft }
     procedure ExecuteTrainUnit(A1: Integer);  { draft }
@@ -97,8 +97,8 @@ begin end;
 procedure TArena.ExecuteTrainUnit(A1: Integer);
 begin end;
 
-procedure TArena.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+function TArena.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := erRetry; end;
 
 procedure TArena.CanTrainUnits(A1: Byte; A2: Integer);
 begin end;
@@ -106,8 +106,8 @@ begin end;
 procedure TArena.TrainUnits(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TArena.CreateTE;
-begin end;
+function TArena.CreateTE: TStructureTE;
+begin Result := nil; end;
 
 procedure TArena.CanEnter(A1: Integer);
 begin end;

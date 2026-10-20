@@ -809,7 +809,7 @@
   TConstructionControl = class(TEObject)
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); virtual;  { +04C }
-    procedure CanConstruct(A1: Integer; A2: Integer); virtual;  { +050 draft }
+    function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; virtual;
     procedure Construct(A1: Integer); virtual;  { +054 draft }
     function ID: Integer; virtual;  { +058 }
   end;

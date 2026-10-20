@@ -120,7 +120,7 @@
     F_PlayerMagicControl_3C: Integer;
     F_PlayerMagicControl_40: Integer;
     F_PlayerMagicControl_44: Byte;
-    F_PlayerMagicControl_45: Byte;
+    FEnemyEnchantments: Byte; { $45 }
     F_PlayerMagicControl_46: array[0..1] of Byte;
     F_PlayerMagicControl_48: Integer;
     destructor Destroy; override;

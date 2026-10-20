@@ -57,7 +57,7 @@ procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure CombatRangeToCombatMode(A1: Byte);  { draft }
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
-procedure FillWithRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+function FillWithRandomUnits(A1: TUnitIndexList; A2: TUnitList; A3: Integer; A4: Integer; A5: TUnitTypes): Integer;
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
 procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
 procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
@@ -158,6 +158,7 @@ resourcestring
   BloodlustRStr = 'Bloodlust';
   BribeRStr = 'Bribe';
   BuildXRStr = 'Build %s';
+  CannotBuildXInUndergroundRStr = 'Cannot build %s underground';
   BuildersGuildRStr = 'Builders Guild';
   BuildersGuildsRStr = 'Builder Guilds';
   BuildingWallsRStr = 'Building';

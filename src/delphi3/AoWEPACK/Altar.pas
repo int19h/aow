@@ -26,12 +26,12 @@ type
     class function ClassID: Integer; override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    procedure ExecuteTE(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
     procedure NewDay; override;
     function GetCurrentActivityText: string; override;
     procedure ExecuteAI(A1: Integer; A2: Integer); override;
     procedure SetPlayer(Player: Shortint); override;
-    procedure GetDefaultAITargetPriority; override;
+    function GetDefaultAITargetPriority: Integer; override;
     procedure CreateStorm; virtual;  { +224 draft }
     procedure StormTargetSelected(A1: Integer; A2: Byte); virtual;  { +228 draft }
     procedure GetRechargeDays; virtual;  { +22C draft }
@@ -62,14 +62,14 @@ begin Result := 0; end;
 procedure TAltar.CreateStorm;
 begin end;
 
-procedure TAltar.GetDefaultAITargetPriority;
-begin end;
+function TAltar.GetDefaultAITargetPriority: Integer;
+begin Result := 0; end;
 
 function TAltar.GetCurrentActivityText: string;
 begin end;
 
-procedure TAltar.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+function TAltar.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := erRetry; end;
 
 procedure TAltar.StormTargetSelected(A1: Integer; A2: Byte);
 begin end;

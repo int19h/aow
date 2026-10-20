@@ -416,7 +416,7 @@
     FX: Shortint; { $13 }
     FY: Shortint; { $14 }
     FL: Shortint; { $15 }
-    F_Army_16: Byte;
+    FRace: Byte; { $16 }
     F_Army_17: Byte;
     F_Army_18: Integer;
     F_Army_1C: Integer;
@@ -490,7 +490,7 @@
     procedure GetUnitConcealed(A1: Integer);  { draft }
     procedure GetUnitsConcealedForPlayer(A1: Integer; A2: Integer);  { draft }
     procedure SetPlayer(Player: Shortint);
-    procedure ImmunityTypes(A1: Integer);  { draft }
+    function ImmunityTypes(A1: Byte): TDamageTypes;
     function ObtainValue(Player: Shortint): Integer;
     function MovePoints(A1: Byte): Shortint;
     procedure Moves(A1: Integer);  { draft }
@@ -536,7 +536,7 @@
     procedure IncommingNegotiateOffer(A1: Integer);  { draft }
     procedure TriggerFireDamage;  { draft }
     procedure RetrieveStormDamageInfo(A1: Byte);  { draft }
-    procedure IncommingStorm(A1: Byte; A2: Integer);  { draft }
+    procedure IncommingStorm(A1: TStormType; A2: Integer; A3: Shortint);
     procedure UpdateAITarget(A1: Integer; A2: Integer);  { draft }
     procedure AIMovePriority;  { draft }
     procedure ResetMoveDone;  { draft }

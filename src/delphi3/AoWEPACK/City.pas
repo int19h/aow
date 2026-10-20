@@ -152,7 +152,7 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     procedure SetupRazeDefenderAG(A1: Integer; A2: Integer); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
     procedure GetDefenseRequirements(A1: Integer; A2: Integer); override;
     procedure GetDefensePriority; override;
     procedure NewDay; override;
@@ -170,7 +170,7 @@ type
     procedure GetRebuildInfo(A1: Integer; A2: Integer); override;
     procedure SetPlayer(Player: Shortint); override;
     procedure UpdateFlagID; override;
-    procedure VisibilityRange; override;
+    function VisibilityRange: Integer; override;
     procedure FinalizeCombat(A1: Integer); override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); override;
@@ -673,8 +673,8 @@ begin
   else Result := caNone;
 end;
 
-procedure TCity.ExecuteTE(A1: Integer; A2: Integer);
-begin inherited ExecuteTE(A1, A2); end;
+function TCity.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := inherited ExecuteTE(A1); end;
 
 procedure TCity.Update;
 begin
@@ -966,8 +966,8 @@ begin end;
 function TCity.GetValidTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
 begin Result := 0; end;
 
-procedure TCity.VisibilityRange;
-begin end;
+function TCity.VisibilityRange: Integer;
+begin Result := 0; end;
 
 procedure TCity.SetDefaultProductions;
 begin end;

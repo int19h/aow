@@ -999,7 +999,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function CreateCombatUnit: Integer; override;
-    procedure Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer); override;
+    procedure Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean); override;
     function Execute: Byte; override;
     procedure Initialize; override;
     procedure Activate; override;

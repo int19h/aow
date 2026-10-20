@@ -39,6 +39,7 @@ type
     function ID: Integer; override;
     function ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean; override;
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; override;
+    { conflict: function StructureResource: TStructureResource; override; }
   end;
 
 procedure RegisterShipyard(AEngine: TEngine);
@@ -78,6 +79,7 @@ function TShipyardConstructionControl.ID: Integer;
 begin Result := 4; end;
 
 function TShipyardConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
+{ conflict: function TShipyardConstructionControl.StructureResource: TStructureResource; }
 var
   X, Y, L: Shortint;
 begin
@@ -121,6 +123,7 @@ begin
 end;
 
 procedure RegisterShipyard(AEngine: TEngine);
+{ conflict: procedure RegisterShipyard; }
 begin
   AEngine.RegisterEClasses([TShipyard, TShipyardResource]);
   TConstructAbility(AoWHSSet.FAbilityControl.GetAbility(125)).

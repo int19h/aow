@@ -13,7 +13,7 @@ uses
 type
   { ILTer.TILTerrainMO (instance size 28): +$14 FImageIndex, +$18 FTerrainType }
   TILTerrainMO = class(TMultiHexMO)
-  private
+  protected
     FImageIndex: Integer;
     FTerrainType: ShortInt;
   public

@@ -3433,8 +3433,8 @@ begin Result := 0; end;
 procedure TRebuildConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
-procedure TRebuildConstructionControl.CanConstruct(A1: Integer; A2: Integer);
-begin end;
+function TRebuildConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure TRebuildConstructionControl.Construct(A1: Integer);
 begin end;
@@ -3451,8 +3451,8 @@ begin Result := 0; end;
 procedure TBuildRoadsControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
-procedure TBuildRoadsControl.CanConstruct(A1: Integer; A2: Integer);
-begin end;
+function TBuildRoadsControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure TBuildRoadsControl.Construct(A1: Integer);
 begin end;
@@ -3460,8 +3460,8 @@ begin end;
 procedure TConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
-procedure TConstructionControl.CanConstruct(A1: Integer; A2: Integer);
-begin end;
+function TConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure TConstructionControl.Construct(A1: Integer);
 begin end;

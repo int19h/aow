@@ -26,7 +26,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure ExecuteTE(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
     procedure NewDay; override;
     procedure ArmyPlaced(A1: Integer); override;
     procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
@@ -99,8 +99,8 @@ begin end;
 procedure TWizardsTower.Enter;
 begin end;
 
-procedure TWizardsTower.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+function TWizardsTower.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := erRetry; end;
 
 procedure TWizardsTower.BuyCost;
 begin end;

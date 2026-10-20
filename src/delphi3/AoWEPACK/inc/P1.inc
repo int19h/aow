@@ -3973,14 +3973,14 @@ begin end;
 procedure TStructure.Update;
 begin end;
 
-procedure TStructure.CreateTE;
+function TStructure.CreateTE: TStructureTE;
+begin Result := nil; end;
+
+procedure TStructure.SetupTE(A1: TStructureTE);
 begin end;
 
-procedure TStructure.SetupTE(A1: Integer);
-begin end;
-
-procedure TStructure.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+function TStructure.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := erRetry; end;
 
 function TStructure.ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
 begin Result := 0; end;
@@ -4267,8 +4267,8 @@ begin end;
 procedure TPlayerStructure.TrueVisionRange;
 begin end;
 
-procedure TPlayerStructure.VisibilityRange;
-begin end;
+function TPlayerStructure.VisibilityRange: Integer;
+begin Result := 0; end;
 
 procedure TPlayerStructure.UpdatePlayerSeen;
 begin end;
@@ -4300,8 +4300,8 @@ begin end;
 procedure TPlayerStructure.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin end;
 
-procedure TPlayerStructure.GetDefaultAITargetPriority;
-begin end;
+function TPlayerStructure.GetDefaultAITargetPriority: Integer;
+begin Result := 0; end;
 
 procedure TPlayerStructure.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
@@ -4394,13 +4394,14 @@ function TConstructStructureTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TE
 begin FillChar(Result, SizeOf(Result), 0); end;
 
 function TStructureConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
+{ conflict: function TStructureConstructionControl.StructureResource: TStructureResource; }
 begin Result := nil; end;
 
 function TStructureConstructionControl.ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean;
 begin Result := False; end;
 
-procedure TStructureConstructionControl.CanConstruct(A1: Integer; A2: Integer);
-begin end;
+function TStructureConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure TStructureConstructionControl.Construct(A1: Integer);
 begin end;
@@ -5353,8 +5354,8 @@ begin end;
 procedure TAoWHSMap.ReleaseCombatMap;
 begin end;
 
-procedure TAoWHSMap.CreateCombat(A1: Integer);
-begin end;
+function TAoWHSMap.CreateCombat(A1: Integer): TCombat;
+begin Result := nil; end;
 
 procedure TAoWHSMap.ShowSeatedPlayerCallBack;
 begin end;
@@ -5955,8 +5956,8 @@ begin end;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 begin end;
 
-procedure FillWithRandomUnits(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function FillWithRandomUnits(A1: TUnitIndexList; A2: TUnitList; A3: Integer; A4: Integer; A5: TUnitTypes): Integer;
+begin Result := 0; end;
 
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;

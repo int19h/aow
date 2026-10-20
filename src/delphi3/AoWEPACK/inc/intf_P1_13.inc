@@ -2,10 +2,11 @@
   { TStructureConstructionControl (instance size 8, VMT 557246C8) }
   TStructureConstructionControl = class(TConstructionControl)
   public
-    procedure CanConstruct(A1: Integer; A2: Integer); override;
+    function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     procedure Construct(A1: Integer); override;
     function ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean; virtual;  { +05C }
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; virtual;  { +060 }
+    { conflict: function StructureResource: TStructureResource; virtual; }
   end;
 
   { TConstructStructureTE (instance size 28, VMT 557247C0) }

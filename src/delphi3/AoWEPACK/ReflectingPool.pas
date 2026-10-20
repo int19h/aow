@@ -25,10 +25,10 @@ type
     procedure Activate; override;
     procedure Deactivate; override;
     procedure SetPlayer(Player: Shortint); override;
-    procedure VisibilityRange; override;
+    function VisibilityRange: Integer; override;
     procedure UpdateUnfog; override;
     procedure UpdateExploration; override;
-    procedure GetDefaultAITargetPriority; override;
+    function GetDefaultAITargetPriority: Integer; override;
     procedure ListReflectingPools(A1: Integer);  { draft }
     procedure NewFrame(A1: Integer; A2: Integer);  { draft }
     procedure ActivatePoolCentering;  { draft }
@@ -60,11 +60,11 @@ begin Result := 0; end;
 procedure TReflectingPool.ListReflectingPools(A1: Integer);
 begin end;
 
-procedure TReflectingPool.VisibilityRange;
-begin end;
+function TReflectingPool.VisibilityRange: Integer;
+begin Result := 0; end;
 
-procedure TReflectingPool.GetDefaultAITargetPriority;
-begin end;
+function TReflectingPool.GetDefaultAITargetPriority: Integer;
+begin Result := 0; end;
 
 procedure TReflectingPool.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;

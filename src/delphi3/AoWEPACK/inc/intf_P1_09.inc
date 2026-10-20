@@ -103,9 +103,9 @@
     procedure GetRazeable; virtual;  { +154 draft }
     procedure RazeEx(A1: Integer); virtual;  { +158 draft }
     procedure SetupRazeDefenderAG(A1: Integer; A2: Integer); virtual;  { +15C draft }
-    procedure CreateTE; virtual;  { +160 draft }
-    procedure SetupTE(A1: Integer); virtual;  { +164 draft }
-    procedure ExecuteTE(A1: Integer; A2: Integer); virtual;  { +168 draft }
+    function CreateTE: TStructureTE; virtual;
+    procedure SetupTE(A1: TStructureTE); virtual;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; virtual;
     procedure GetDefenseRequirements(A1: Integer; A2: Integer); virtual;  { +16C draft }
     procedure GetDefensePriority; virtual;  { +170 draft }
     procedure NewDay; virtual;  { +174 draft }
@@ -265,14 +265,14 @@
     function GetIncome: Integer; virtual;
     function GetPower: Integer; virtual;
     procedure UpdateFlagID; virtual;  { +1FC draft }
-    procedure VisibilityRange; virtual;  { +200 draft }
+    function VisibilityRange: Integer; virtual;
     procedure UpdateUnfog; virtual;  { +204 draft }
     procedure UpdateExploration; virtual;  { +208 draft }
     procedure FinalizeCombat(A1: Integer); virtual;  { +20C draft }
     procedure GetCombatEventText(A1: Integer; A2: Integer); virtual;  { +210 draft }
     procedure StructureCaptured(OldPlayer, NewPlayer: Shortint); virtual;
     procedure GetMoveAction(A1: Integer; A2: Integer); virtual;  { +218 draft }
-    procedure GetDefaultAITargetPriority; virtual;  { +21C draft }
+    function GetDefaultAITargetPriority: Integer; virtual;
     procedure UpdatePlayer; virtual;  { +220 draft }
     procedure GetVictoryLocation(A1: Byte);  { draft }
     procedure SetVictoryLocation(A1: Integer; A2: Integer);  { draft }
@@ -307,12 +307,12 @@
     F_StructureTE_10: Byte;
     F_StructureTE_11: Byte;
     F_StructureTE_12: Byte;
-    F_StructureTE_13: Byte;
+    FPlayer: Shortint; { $13 }
     F_StructureTE_14: Integer;
-    F_StructureTE_18: Integer;
+    FAction: Integer; { $18 }
     F_StructureTE_1C: Byte;
     F_StructureTE_1D: array[0..2] of Byte;
-    F_StructureTE_20: Integer;
+    FParam: Integer; { $20 }
     F_StructureTE_24: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

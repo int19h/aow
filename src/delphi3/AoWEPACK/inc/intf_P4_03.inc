@@ -3,7 +3,7 @@
   TRebuildConstructionControl = class(TConstructionControl)
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
-    procedure CanConstruct(A1: Integer; A2: Integer); override;
+    function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     procedure Construct(A1: Integer); override;
     function ID: Integer; override;
   end;
@@ -14,7 +14,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
-    procedure CanConstruct(A1: Integer; A2: Integer); override;
+    function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     procedure Construct(A1: Integer); override;
     function ID: Integer; override;
   end;

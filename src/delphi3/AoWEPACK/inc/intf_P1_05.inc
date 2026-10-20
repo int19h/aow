@@ -215,7 +215,7 @@
     F_AoWHSMap_130: Integer;
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
-    F_AoWHSMap_139: Byte;
+    FRequestCombatType: Boolean; { $139 }
     FConnectionType: TPlayerConnectionType; { $13A }
     F_AoWHSMap_13B: array[0..0] of Byte;
     F_AoWHSMap_13C: Integer;
@@ -291,7 +291,7 @@
     F_AoWHSMap_224: Integer;
     F_AoWHSMap_228: Integer;
     F_AoWHSMap_22C: Integer;
-    F_AoWHSMap_230: Integer;
+    FDefendersSeed: Integer; { $230 }
     F_AoWHSMap_234: Integer;
     F_AoWHSMap_238: Byte;
     FPlayMode: TPlayMode; { $239 }
@@ -408,7 +408,7 @@
     procedure ExecuteNegotiateMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure InitializeCombatMap(A1: Integer; A2: Integer);  { draft }
     procedure ReleaseCombatMap;  { draft }
-    procedure CreateCombat(A1: Integer);  { draft }
+    function CreateCombat(A1: Integer): TCombat;
     procedure ShowSeatedPlayerCallBack;  { draft }
     procedure DestroyCombat;  { draft }
     procedure RetrieveBattleFieldInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }

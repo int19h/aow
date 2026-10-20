@@ -54,7 +54,7 @@
     FArmyHS: TArmyHS;  { $9C }
     FSelection: Integer;  { $A0 }
     F_MoveControlSettings_A4: array[0..3] of Byte;
-    F_MoveControlSettings_A8: Integer;
+    FUnits: TUnitList; { $A8 }
     FMovePointTable: array[0..15, 0..15] of Shortint;  { $AC }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -114,7 +114,7 @@
     F_MoveControl_1D0: Integer;
     F_MoveControl_1D4: array[0..3] of Byte;
     F_MoveControl_1D8: Integer;
-    F_MoveControl_1DC: Integer;
+    FSettings: TMoveControlSettings; { $1DC }
     destructor Destroy; override;
     procedure SetupMove; virtual;  { +000 draft }
     procedure ProcessMove(A1: TMoveControlSettings); virtual;  { +004 }

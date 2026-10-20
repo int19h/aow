@@ -27,7 +27,7 @@ end;
 class function TCombatUnit.ClassID: Integer;
 begin Result := $202A1; end;
 
-procedure TCombatUnit.Setup(A1: Byte; A2: Integer; A3: Integer; A4: Byte; A5: Byte);
+procedure TCombatUnit.Setup(A1: Byte; A2: Integer; A3: TAbstractUnit; A4: Byte; A5: Byte);
 begin
   FID := A1;
   FPosition := A4;
@@ -48,7 +48,7 @@ begin
       Result := Level * 2 + 4
     else
       Result := 4;
-    if (TCombat(FCombat).F_Combat_40 = 1) and
+    if (TCombat(FCombat).FExplorationSite = 1) and
        not TAbstractUnit(FUnit).GetAbilityEnabled($27) then
       Result := (Result + 1) div 2;
   end
@@ -1264,7 +1264,7 @@ begin
   TCombatSide(FSides[csAttacker]).FOpponent := TCombatSide(FSides[csDefender]);
   TCombatSide(FSides[csDefender]).FOpponent := TCombatSide(FSides[csAttacker]);
   FCombatData := TCombatData.Create(nil);
-  F_Combat_18 := Integer(TCombatLogbook.Create(nil));
+  FLogbook := TCombatLogbook.Create(nil);
   Clear;
 end;
 
@@ -1276,7 +1276,7 @@ begin
   TObject(FSides[csAttacker]).Free;
   TObject(FSides[csDefender]).Free;
   TObject(FCombatData).Free;
-  TCombatLogbook(F_Combat_18).Release;
+  TCombatLogbook(FLogbook).Release;
   inherited Destroy;
 end;
 
@@ -1294,7 +1294,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwEObject(TEObject(FSides[csAttacker]), $0A);
   Stream.rwEObject(TEObject(FSides[csDefender]), $0B);
-  Stream.rwCreateEObject(TEObject(F_Combat_18), nil, $0C);
+  Stream.rwCreateEObject(TEObject(FLogbook), nil, $0C);
   Stream.rwEObject(TEObject(FCombatData), $0D);
 end;
 
@@ -1303,7 +1303,7 @@ begin Result := TCombatData(FCombatData).F_CombatData_44; end;
 
 procedure TCombat.ExecuteCombatAction(A1: TCombatAction);
 begin
-  if cLogCombatActions in FStatus then TCombatActionList(TCombatLogbook(F_Combat_18).FActions).AddChild(TCombatAction(A1));
+  if cLogCombatActions in FStatus then TCombatActionList(TCombatLogbook(FLogbook).FActions).AddChild(TCombatAction(A1));
   TCombatAction(A1).Execute(Self);
 end;
 
@@ -1323,13 +1323,13 @@ begin Result := F_Combat_10; Inc(F_Combat_10); end;
 procedure TCombat.Clear;
 begin
   inherited Clear;
-  TCombatLogbook(F_Combat_18).Clear;
+  TCombatLogbook(FLogbook).Clear;
   F_Combat_10 := 1;
   TCombatData(FCombatData).Clear;
   FStatus := [];
 end;
 
-procedure TCombat.Setup(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer);
+procedure TCombat.Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean);
 begin end;
 
 function TCombat.CreateCombatUnit: Integer;
@@ -1432,10 +1432,10 @@ begin Result := Integer(TCombatPlayer.Create(nil)); end;
 procedure TCombat.AddCombatPlayer(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TCombat.AddArmy(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
+procedure TCombat.AddArmy(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure TCombat.AddArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TCombat.AddArmyEx(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Boolean);
 begin end;
 
 procedure TCombat.AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
@@ -1538,8 +1538,8 @@ asm
   POP EBX
 end;
 
-procedure TCombatTypeRequestEventLog.Select(A1: Byte);
-begin F_CombatTypeRequestEventLog_18 := A1; end;
+procedure TCombatTypeRequestEventLog.Select(A1: TCombatType);
+begin FCombatType := A1; end;
 
 procedure TCombatTypeRequestEventLog.SetCenterLocation(A1: Byte; A2: Byte; A3: Integer);
 begin
@@ -1724,7 +1724,7 @@ begin
   Stream.rwEObject(TEObject(FPlayers), $12);
   Stream.rwEObject(TEObject(F_CombatData_34), $13);
   Stream.rwEObject(TEObject(F_CombatData_3C), $14);
-  Stream.rwString(F_CombatData_48, $15);
+  Stream.rwString(FHeader, $15);
   Stream.rwInteger(F_CombatData_14, $16);
   Stream.rwInteger(F_CombatData_18, $17);
   Stream.rwInteger(F_CombatData_1C, $18);
@@ -1911,7 +1911,7 @@ begin Result := 0; end;
 function TCombatEventLog.GetText: string;
 begin
   { needs: string result in EventLog's unmarked interface. }
-  Result := TCombatData(TCombatLogbook(F_CombatEventLog_18).FFinalData).F_CombatData_48;
+  Result := TCombatData(TCombatLogbook(F_CombatEventLog_18).FFinalData).FHeader;
 end;
 
 procedure TCombatEventLog.PlayLoggedSFX(A1: Integer);
@@ -2347,7 +2347,8 @@ begin
 end;
 
 procedure TUpdateHeaderCA.Execute(A1: TCombat);
-begin TCombatData(TCombat(A1).FCombatData).F_CombatData_48 := F_UpdateHeaderCA_0C; end;
+{ conflict: procedure TUpdateHeaderCA.Execute(A1: TCombat; A2: Integer); }
+begin TCombatData(TCombat(A1).FCombatData).FHeader := F_UpdateHeaderCA_0C; end;
 
 function TUpdateHeaderCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }

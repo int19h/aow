@@ -306,6 +306,7 @@
     F_PlayerList_10: Integer;
     F_PlayerList_14: Integer;
     FLocalPlayers: TByteList; { $18 }
+    { conflict: FActivePlayers: TIntegerList; }
     F_PlayerList_1C: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

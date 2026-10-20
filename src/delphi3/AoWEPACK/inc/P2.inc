@@ -1390,7 +1390,7 @@ begin
     if GetAbilityEnabled(23) or GetAbilityEnabled(1) or GetAbilityEnabled(165) then
     begin
       Faster := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 4 <> 0;
-      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 4 <> 0;
+      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 4 <> 0;
       if Faster and not Slower then
       begin
         for Overlay := -1 to 11 do
@@ -1793,7 +1793,7 @@ begin
   begin
     if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).F_PlayerMagicControl_44 and 16 = 0 then
       ResetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 16 = 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 = 0 then
       ResetLifeMasteryFear;
   end;
 end;
@@ -1817,7 +1817,7 @@ var
 begin
   Player := FPlayer;
   if Player > 0 then
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).F_PlayerMagicControl_45 and 32 = 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FEnemyEnchantments and 32 = 0 then
       if GetAbilityEnabled(93) then
         if TDurationAbilityData(P2AbilityData(Self,93)).F_DurationAbilityData_10 = 1 then
           RemoveAbility(93);
@@ -1854,9 +1854,9 @@ begin
       SetEarthMasteryStoneSkin;
     if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_44 and 16 <> 0 then
       SetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 16 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 <> 0 then
       ExecuteLifeMasteryFearRole;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 32 <> 0 then
+    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 32 <> 0 then
       ExecuteDeathMasteryCurseRole;
   end;
 end;
@@ -1871,7 +1871,7 @@ begin
   GetLocation(Xhx,Yhx,Lhx);
   if ((Lhx <> 0) and not GetAbilityEnabled(39)) or
      ((Lhx = 0) and (FPlayer > 0) and
-       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).F_PlayerMagicControl_45 and 8 <> 0)) then
+       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 8 <> 0)) then
     Result := (Result + 1) shr 1;
 end;
 
@@ -5647,8 +5647,8 @@ begin end;
 procedure TArmy.SetPlayer(Player: Shortint);
 begin end;
 
-procedure TArmy.ImmunityTypes(A1: Integer);
-begin end;
+function TArmy.ImmunityTypes(A1: Byte): TDamageTypes;
+begin Result := []; end;
 
 function TArmy.ObtainValue(Player: Shortint): Integer;
 begin end;
@@ -5812,7 +5812,7 @@ begin end;
 procedure TArmy.RetrieveStormDamageInfo(A1: Byte);
 begin end;
 
-procedure TArmy.IncommingStorm(A1: Byte; A2: Integer);
+procedure TArmy.IncommingStorm(A1: TStormType; A2: Integer; A3: Shortint);
 begin end;
 
 procedure TArmy.UpdateAITarget(A1: Integer; A2: Integer);

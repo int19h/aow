@@ -35,9 +35,9 @@ type
     procedure Activate; override;
     procedure Deactivate; override;
     procedure NewDay; override;
-    procedure GetExplored; override;
-    procedure SetupCombat(A1: Integer; A2: Integer); override;
-    procedure ExecuteSearchDone(A1: Integer; A2: Byte); override;
+    function GetExplored: Boolean; override;
+    procedure SetupCombat(A1: TCombat; A2: TArmyHS); override;
+    procedure ExecuteSearchDone(A1: TCombatType; A2: TCombatResult); override;
     procedure Generate; virtual;  { +204 draft }
   end;
 
@@ -85,16 +85,16 @@ begin end;
 procedure TItemExplorationSite.Deactivate;
 begin end;
 
-procedure TItemExplorationSite.GetExplored;
-begin end;
+function TItemExplorationSite.GetExplored: Boolean;
+begin Result := False; end;
 
 procedure TItemExplorationSite.Generate;
 begin end;
 
-procedure TItemExplorationSite.SetupCombat(A1: Integer; A2: Integer);
+procedure TItemExplorationSite.SetupCombat(A1: TCombat; A2: TArmyHS);
 begin end;
 
-procedure TItemExplorationSite.ExecuteSearchDone(A1: Integer; A2: Byte);
+procedure TItemExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
 begin end;
 
 procedure TItemExplorationSite.NewDay;

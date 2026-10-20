@@ -36,11 +36,11 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure ExecuteTE(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TStructureTE): TExecuteResult; override;
     procedure NewDay; override;
-    procedure GetExplored; override;
-    procedure SetupCombat(A1: Integer; A2: Integer); override;
-    procedure ExecuteSearchDone(A1: Integer; A2: Byte); override;
+    function GetExplored: Boolean; override;
+    procedure SetupCombat(A1: TCombat; A2: TArmyHS); override;
+    procedure ExecuteSearchDone(A1: TCombatType; A2: TCombatResult); override;
     procedure GeneratePrisoners(A1: Integer; A2: Integer);  { draft }
     procedure LiberatePrisoners(A1: Byte);  { draft }
   end;
@@ -84,16 +84,16 @@ begin end;
 class function TDungeon.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TDungeon.GetExplored;
-begin end;
+function TDungeon.GetExplored: Boolean;
+begin Result := False; end;
 
 procedure TDungeon.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TDungeon.SetupCombat(A1: Integer; A2: Integer);
+procedure TDungeon.SetupCombat(A1: TCombat; A2: TArmyHS);
 begin end;
 
-procedure TDungeon.ExecuteSearchDone(A1: Integer; A2: Byte);
+procedure TDungeon.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
 begin end;
 
 procedure TDungeon.GeneratePrisoners(A1: Integer; A2: Integer);
@@ -114,8 +114,8 @@ begin end;
 procedure TDungeon.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TDungeon.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+function TDungeon.ExecuteTE(A1: TStructureTE): TExecuteResult;
+begin Result := erRetry; end;
 
 constructor TDungeonResource.Create(AOwner: Engine.TECustomNode);
 begin end;

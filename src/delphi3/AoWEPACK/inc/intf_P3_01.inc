@@ -286,7 +286,7 @@
     function IDStr: string; override;
     procedure SetUnit(AUnit: TAbstractUnit); virtual;  { +134 }
     procedure KillUnit; virtual;  { +138 draft }
-    procedure Setup(A1: Byte; A2: Integer; A3: Integer; A4: Byte; A5: Byte);  { draft }
+    procedure Setup(A1: Byte; A2: Integer; A3: TAbstractUnit; A4: Byte; A5: Byte);
     procedure UpdateWallCombatFeatures;  { draft }
     procedure SetParty(Party: TCombatParty);
     procedure UpdateParty;  { draft }

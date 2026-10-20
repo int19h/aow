@@ -1,7 +1,6 @@
 unit Tower;
 
-{ Tower of AoWEPACK.dpl: original instance layouts; TTowerResource recovered.
-  TTower and TTowerConstructionControl remain draft bodies. }
+{ Watchtowers and their construction control in AoWEPACK.dpl. }
 
 interface
 
@@ -9,15 +8,16 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
+  TTowerState = set of (tsRazed);
   TTower = class;
   TTowerResource = class;
   TTowerConstructionControl = class;
 
 
-  { TTower (instance size 64, VMT 557C31A8) }
+  { TTower (instance size 64, VMT 557C31A8): $3C FState, bit 0 razed. }
   TTower = class(TPlayerStructure)
   public
-    F_Tower_3C: Byte;
+    FState: TTowerState;
     F_Tower_3D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -25,8 +25,8 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
-    procedure VisibilityRange; override;
-    procedure GetDefaultAITargetPriority; override;
+    function VisibilityRange: Integer; override;
+    function GetDefaultAITargetPriority: Integer; override;
   end;
 
   { TTowerResource (instance size 116, VMT 557C3434): no additional fields. }
@@ -42,38 +42,70 @@ type
   TTowerConstructionControl = class(TStructureConstructionControl)
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
-    procedure CanConstruct(A1: Integer; A2: Integer); override;
+    function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     function ID: Integer; override;
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; override;
+    { conflict: function StructureResource: TStructureResource; override; }
   end;
 
-procedure RegisterTower;  { draft }
+procedure RegisterTower(AEngine: TEngine);
 
 implementation
 
 class function TTower.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2043E; end;
 
-procedure TTower.VisibilityRange;
-begin end;
+function TTower.VisibilityRange: Integer;
+begin
+  if not GetBuilding then
+  begin
+    Result := 12;
+    if (GetLhx <> 0) or ((FPlayer > 0) and
+      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments and 8 <> 0)) then
+      Result := (Result + 1) shr 1;
+  end
+  else Result := 4;
+end;
 
-procedure TTower.GetDefaultAITargetPriority;
-begin end;
+function TTower.GetDefaultAITargetPriority: Integer;
+begin Result := 1; end;
 
 procedure TTower.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
-begin end;
+begin
+  inherited UpdateAITarget(Info, Priority);
+  if not (tsRazed in FState) then
+    case Info.Mode of
+      tmFortify: if Info.Player = FPlayer then Priority := 50;
+    end;
+end;
 
 function TTower.GetRazed: Boolean;
-begin end;
+begin Result := tsRazed in FState; end;
 
 procedure TTower.SetRazed(Value: Boolean);
-begin end;
+begin
+  if Value then
+  begin
+    SetPlayer(-1);
+    FState := FState + [tsRazed];
+  end
+  else FState := FState - [tsRazed];
+  FImageIndex := GetTerrainTypeImage(FTerrainType);
+end;
 
 procedure TTower.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FState, 1, 20);
+end;
 
 procedure TTower.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if (FResource.TerrainList.Overlay[Msg.HN] >= 0) and (Msg.MsgID = $1123) and
+    (TMapField(Msg.Param[0]).FindOwnedHS(TTower) = Self) and
+    not GetBuilding and not GetRazed then Msg.Result := 2;
+end;
 
 constructor TTowerResource.Create(AOwner: Engine.TECustomNode);
 begin
@@ -96,20 +128,40 @@ function TTowerResource.ResourceUserClassID: Integer;
 begin Result := $2043E; end;
 
 function TTowerConstructionControl.ID: Integer;
-begin Result := 0; end;
+begin Result := 3; end;
 
 function TTowerConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
-begin Result := nil; end;
+{ conflict: function TTowerConstructionControl.StructureResource: TStructureResource; }
+begin
+  Result := TStructureResource(AoWHSSet.MapObjectResourceList.FindChild($2043F));
+end;
 
 procedure TTowerConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
-begin end;
+begin
+  Text := Format(TranslateRStr(LoadResString(@BuildXRStr)), [TranslateRStr(LoadResString(@TowerRStr))]);
+  Gold := 50;
+  Days := 2;
+end;
 
-procedure TTowerConstructionControl.CanConstruct(A1: Integer; A2: Integer);
-begin end;
+function TTowerConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
+var Xhx, Yhx, Lhx: Shortint;
+begin
+  A1.GetLocation(Xhx, Yhx, Lhx);
+  if Lhx = 0 then Result := inherited CanConstruct(A1, A2)
+  else
+  begin
+    Result := False;
+    A2 := Format(TranslateRStr(LoadResString(@CannotBuildXInUndergroundRStr)),
+      [TranslateRStr(LoadResString(@TowerRStr))]);
+  end;
+end;
 
-procedure RegisterTower;
-begin end;
-
+procedure RegisterTower(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TTower, TTowerResource]);
+  TConstructAbility(AoWHSSet.FAbilityControl.GetAbility($7D)).RegisterConstructionControl(
+    TTowerConstructionControl.Create(nil));
+end;
 
 initialization
 finalization
