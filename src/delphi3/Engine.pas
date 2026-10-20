@@ -625,7 +625,7 @@ type
 
   { Engine.TENode (instance size 12): +8 FChildren }
   TENode = class(TECustomNode)
-  protected
+  public
     FChildren: TEObjectList;
   public
     constructor Create(AOwner: TECustomNode); override;

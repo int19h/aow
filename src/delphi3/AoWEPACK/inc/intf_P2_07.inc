@@ -136,8 +136,8 @@
     procedure Killed; override;
     procedure Resurrect; override;
     procedure Animate; override;
-    procedure GetNickname(A1: Integer); virtual;  { +1B8 draft }
-    procedure SetNickname(A1: Integer; A2: Integer); virtual;  { +1BC draft }
+    function GetNickname: string; virtual; { $1B8 }
+    procedure SetNickname(Value: string); virtual; { $1BC }
     procedure SetHeroResourceIndex(A1: Integer); virtual;  { +1C0 draft }
     procedure EditDropMsg(A1: Integer); virtual;  { +1C4 draft }
     procedure GetLibraryName(A1: Integer);  { draft }
@@ -149,7 +149,7 @@
     procedure EmergedToPlayer;  { draft }
     procedure DropItemsOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure CompatibleHero(A1: Integer; A2: Integer);  { draft }
-    procedure GetSkillPoints;  { draft }
+    function GetSkillPoints: Integer;
     procedure GetSkillPointsMax;  { draft }
     procedure GetLevelMax;  { draft }
     procedure LevelToExperience(A1: Integer);  { draft }
@@ -226,13 +226,13 @@
     procedure Deactivate; override;
     function CanDisband(var Reason: string): Boolean; override;
     procedure Killed; override;
-    procedure GetNickname(A1: Integer); override;
-    procedure SetNickname(A1: Integer; A2: Integer); override;
+    function GetNickname: string; override;
+    procedure SetNickname(Value: string); override;
     procedure SetHeroResourceIndex(A1: Integer); override;
     procedure EditDropMsg(A1: Integer); override;
     function GetSpherePicks(Sphere: TMagicSphere): Byte;
     procedure GetSpheres(A1: Integer);  { draft }
-    procedure GetSphereCount;  { draft }
+    function GetSphereCount: Integer;
     procedure SetSpherePicksMax(A1: Byte);  { draft }
     procedure CanAddSphere(A1: Integer);  { draft }
     procedure AddSphere(A1: Byte; A2: Integer);  { draft }

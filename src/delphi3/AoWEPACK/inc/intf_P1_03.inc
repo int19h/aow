@@ -40,19 +40,19 @@
     procedure Update;
   end;
 
-  { TDiplomaticRelationList (instance size 20, VMT 5570BA68) }
+  { TDiplomaticRelationList: size $14; inherited TByteList, $10 default relation }
   TDiplomaticRelationList = class(TByteList)
   public
-    procedure Create(A1: Byte);  { draft }
-    procedure GetDiplomaticRelation(A1: Integer);  { draft }
-    procedure SetDiplomaticRelation;  { draft }
+    constructor Create;
+    function GetDiplomaticRelation(Index: Integer): TDiplomaticRelation;
+    procedure SetDiplomaticRelation(Index: Integer; Value: TDiplomaticRelation);
   end;
 
-  { TDiplomaticRelationHistoryItem (instance size 16, VMT 5570BB04) }
+  { TDiplomaticRelationHistoryItem: size $10; $08 day, $0C relation }
   TDiplomaticRelationHistoryItem = class(TEObject)
   public
-    F_DiplomaticRelationHistoryItem_08: Integer;
-    F_DiplomaticRelationHistoryItem_0C: Byte;
+    FDay: Integer; { $08 }
+    FRelation: TDiplomaticRelation; { $0C }
     F_DiplomaticRelationHistoryItem_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -62,26 +62,26 @@
   TDiplomaticRelationHistoryList = class(TENode)
   public
     class function ClassID: Integer; override;
-    procedure GetItems(A1: Integer);  { draft }
-    procedure GetLastModifiedOnDay;  { draft }
-    procedure GetRelationOnDay(A1: Integer);  { draft }
-    procedure Add(A1: Integer; A2: Integer);  { draft }
+    function GetItems(Index: Integer): TDiplomaticRelationHistoryItem;
+    function GetLastModifiedOnDay: Integer;
+    function GetRelationOnDay(Day: Integer): TDiplomaticRelation;
+    procedure Add(Relation: TDiplomaticRelation; Day: Integer);
   end;
 
-  { TPlayerDiplomaticRelations (instance size 20, VMT 5570BD08) }
+  { TPlayerDiplomaticRelations: size $14; $08 player, $0C relations, $10 history }
   TPlayerDiplomaticRelations = class(TEObject)
   public
-    F_PlayerDiplomaticRelations_08: Integer;
-    F_PlayerDiplomaticRelations_0C: Integer;
-    F_PlayerDiplomaticRelations_10: Integer;
+    FPlayer: TPlayer; { $08 }
+    FRelations: TByteList; { $0C }
+    FHistory: TENode; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetDiplomaticRelation(A1: Byte);  { draft }
-    procedure SetDiplomaticRelation(A1: Integer; A2: Integer);  { draft }
-    procedure GetHistory(A1: Byte);  { draft }
-    procedure ValidateHistory;  { draft }
+    function GetDiplomaticRelation(Player: Shortint): TDiplomaticRelation;
+    procedure SetDiplomaticRelation(Player: Shortint; Value: TDiplomaticRelation);
+    function GetHistory(Player: Shortint): TDiplomaticRelationHistoryList;
+    procedure ValidateHistory;
   end;
 
   { TLeaderSetupControl (instance size 40, VMT 5570BE8C) }
@@ -103,32 +103,32 @@
     procedure Done; virtual;  { +04C draft }
   end;
 
-  { TTurnInfoItem (instance size 28, VMT 5570BF5C) }
+  { TTurnInfoItem: size $1C; $08 gold, $0C mana, $10 structures, $14 army strength, $18 heroes }
   TTurnInfoItem = class(TEObject)
   public
-    F_TurnInfoItem_08: Integer;
-    F_TurnInfoItem_0C: Integer;
-    F_TurnInfoItem_10: Integer;
-    F_TurnInfoItem_14: Integer;
-    F_TurnInfoItem_18: Byte;
+    FGold: Integer; { $08 }
+    FMana: Integer; { $0C }
+    FStructures: Integer; { $10 }
+    FArmyStrength: Integer; { $14 }
+    FHeroes: Byte; { $18 }
     F_TurnInfoItem_19: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure GetSuperiority;  { draft }
+    function GetSuperiority: Integer;
   end;
 
   { TTurnInfo (instance size 12, VMT 5570C01C) }
   TTurnInfo = class(TENode)
   public
-    procedure GetTurnInfo(A1: Integer);  { draft }
+    function GetTurnInfo(Index: Integer): TTurnInfoItem;
   end;
 
-  { TPlayerStatistics (instance size 20, VMT 5570C110) }
+  { TPlayerStatistics: size $14; $08 turn info, $0C units killed, $10 units lost }
   TPlayerStatistics = class(TEObject)
   public
-    F_PlayerStatistics_08: Integer;
-    F_PlayerStatistics_0C: Integer;
-    F_PlayerStatistics_10: Integer;
+    FTurnInfo: TTurnInfo; { $08 }
+    FUnitsKilled: Integer; { $0C }
+    FUnitsLost: Integer; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -137,95 +137,101 @@
   { TIncomeSource (instance size 8, VMT 5570C1D8) }
   TIncomeSource = class(TEObject)
   public
-    procedure Name(A1: Integer); virtual;  { +04C draft }
-    procedure Income; virtual;  { +050 draft }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +054 draft }
-    procedure CenterToLocation(A1: Integer; A2: Integer); virtual;  { +058 draft }
+    function Name: string; virtual; { $04C }
+    function Income: Integer; virtual; { $050 }
+    procedure GetLocation(var X, Y, L: Shortint); virtual; { $054 }
+    procedure CenterToLocation; virtual; { $058 }
   end;
 
   { TIncomeSourceList (instance size 12, VMT 5570C2A8) }
   TIncomeSourceList = class(TENode)
   public
-    procedure GetItems(A1: Integer);  { draft }
+    function GetItems(Index: Integer): TIncomeSource;
   end;
 
-  { TPBEMPlayerSettings (instance size 16, VMT 5570C400) }
+  { TPBEMPlayerSettings: size $10; $08 status, $0C email game }
   TPBEMPlayerSettings = class(TEObject)
   public
-    F_PBEMPlayerSettings_08: Byte;
+    FStatus: TPBEMPlayerStatus; { $08 }
     F_PBEMPlayerSettings_09: array[0..2] of Byte;
-    F_PBEMPlayerSettings_0C: Integer;
+    FEmailGame: TEmailGame; { $0C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure SetGame;  { draft }
+    procedure SetGame(Game: TEObject);
   end;
 
-  { TPlayer (instance size 220, VMT 5570C508) }
+  { TPlayer: size $DC; $08 update count, $0C..$18 events, $1C structures,
+    $20 victory locations, $28 armies, $34 messages, $38/$3C legacy relations,
+    $40 diplomacy, $44 game over, $45 end turn, $48 busy count, $58 leader setup,
+    $60 statistics, $64 income sources, $68 known structures, $80 heroes,
+    $84 groups, $88 AI control, $8C budget, $90 diplomatic actions, $94 attack players,
+    $98/$9C seen days, $A0 PBEM, $A4 emerging hero, $A9 participating,
+    $AC initial gold, $B0 base income, $B4/$B8 hero join days, $C8/$CC upkeep }
   TPlayer = class(TEObject)
   public
-    F_Player_08: Integer;
-    F_Player_0C: Integer;
-    F_Player_10: Integer;
-    F_Player_14: Integer;
-    F_Player_18: Integer;
-    F_Player_1C: Integer;
-    F_Player_20: Integer;
+    FUpdateCount: Integer; { $08 }
+    FGemsChangedEvents: TEventList; { $0C }
+    FIncomeChangedEvents: TEventList; { $10 }
+    FUpkeepChangedEvents: TEventList; { $14 }
+    FLogbookChangedEvents: TEventList; { $18 }
+    FStructures: TPlayerStructureList; { $1C }
+    FVictoryLocations: TPlayerStructureList; { $20 }
     FProductionControls: TProductionControlList;  { $24 }
-    F_Player_28: Integer;
+    FArmies: TArmyList; { $28 }
     F_Player_2C: Byte;
     F_Player_2D: Byte;
     F_Player_2E: Byte;
     F_Player_2F: Byte;
     F_Player_30: Integer;
-    F_Player_34: Integer;
-    F_Player_38: Integer;
-    F_Player_3C: Integer;
-    F_Player_40: Integer;
+    FMessages: TStringList; { $34 }
+    FLegacyRelations: TDiplomaticRelationList; { $38 }
+    FLegacyNewRelations: TDiplomaticRelationList; { $3C }
+    FDiplomaticRelations: TPlayerDiplomaticRelations; { $40 }
     FGameOverStatus: TGameOverStatus;  { $44 }
-    F_Player_45: Byte;
+    FEndTurn: Boolean; { $45 }
     F_Player_46: array[0..1] of Byte;
-    F_Player_48: Integer;
-    F_Player_4C: Integer;
+    FBusyCount: Integer; { $48 }
+    FName: string; { $4C }
     F_Player_50: Byte;
     F_Player_51: array[0..2] of Byte;
     FMagicControl: TPlayerMagicControl;  { $54 }
-    F_Player_58: Integer;
+    FLeaderSetup: TLeader; { $58 }
     F_Player_5C: Integer;
-    F_Player_60: Integer;
-    F_Player_64: Integer;
-    F_Player_68: Integer;
+    FStatistics: TPlayerStatistics; { $60 }
+    FIncomeSources: TIncomeSourceList; { $64 }
+    FKnownStructures: TPlayerStructureList; { $68 }
     F_Player_6C: Integer;
-    F_Player_70: Integer;
+    FLastHeroJoinDay: Integer; { $70 }
     F_Player_74: Integer;
-    F_Player_78: Integer;
+    FLastHeroEmergeDay: Integer; { $78 }
     F_Player_7C: Integer;
-    F_Player_80: Integer;
-    F_Player_84: Integer;
-    F_Player_88: Integer;
-    F_Player_8C: Integer;
-    F_Player_90: Integer;
-    F_Player_94: Integer;
-    F_Player_98: Integer;
-    F_Player_9C: Integer;
-    F_Player_A0: Integer;
-    F_Player_A4: Byte;
+    FHeroes: THeroList; { $80 }
+    FAIGroups: TAIGroupList; { $84 }
+    FAIControl: TAIPlayerControl; { $88 }
+    FAIBudget: TAIBudgetManager; { $8C }
+    FDiplomaticActions: TDiplomaticActionList; { $90 }
+    FAIValidAttackPlayers: TBitList; { $94 }
+    FFirstDaySeen: TIntegerList; { $98 }
+    FLastDaySeen: TIntegerList; { $9C }
+    FPBEMSettings: TPBEMPlayerSettings; { $A0 }
+    FHeroEmerging: Boolean; { $A4 }
     FPlayerRace: Shortint;  { $A5 }
     FPlayerIndex: Shortint; { $A6 }
     FPlayerType: TPlayerType;  { $A7 }
     F_Player_A8: Byte;
-    F_Player_A9: Byte;
+    FParticipating: Boolean; { $A9 }
     F_Player_AA: array[0..1] of Byte;
-    F_Player_AC: Integer;
-    F_Player_B0: Integer;
-    F_Player_B4: Integer;
-    F_Player_B8: Integer;
+    FInitialGold: Integer; { $AC }
+    FBaseIncome: Integer; { $B0 }
+    FBaseHeroJoinDay: Integer; { $B4 }
+    FHeroJoinDay: Integer; { $B8 }
     F_Player_BC: Integer;
     F_Player_C0: Integer;
     FGems: Integer; { $C4 }
     { conflict: FGems: Integer; $C4, read at $557A7E18 }
-    F_Player_C8: Integer;
-    F_Player_CC: Integer;
+    FArmyUpkeep: Integer; { $C8 }
+    FMagicUpkeep: Integer; { $CC }
     FIncome: Integer;  { $D0 }
     FLeader: TLeader;  { $D4 }
     FEventLogbook: TEventLogbook;  { $D8 }
@@ -235,34 +241,34 @@
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetBusy: Boolean;
-    procedure GetSuperiority;  { draft }
-    procedure GetUnitCount;  { draft }
-    procedure SetPlayerIndex(A1: Byte);  { draft }
-    procedure SetGameOverStatus(A1: Byte);  { draft }
-    procedure Surrender;  { draft }
-    procedure Win;  { draft }
-    procedure Validate(A1: Integer);  { draft }
-    procedure LockBusy;  { draft }
-    procedure UnlockBusy;  { draft }
-    procedure LogbookChangedEvent;  { draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
-    procedure ArmiesChanged;  { draft }
-    procedure SetGems(A1: Integer);  { draft }
+    function GetSuperiority: Integer;
+    function GetUnitCount: Integer;
+    procedure SetPlayerIndex(Value: Shortint);
+    procedure SetGameOverStatus(Value: TGameOverStatus);
+    function Surrender: Boolean;
+    function Win: Boolean;
+    function Validate(Errors: TStrings): Boolean;
+    procedure LockBusy;
+    procedure UnlockBusy;
+    procedure LogbookChangedEvent(Sender: TObject);
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure ArmiesChanged(Sender: TObject);
+    procedure SetGems(Value: Integer);
     procedure UpdateIncome;
     procedure RegisterIncomeSource(Source: TIncomeSource);
     procedure UnregisterIncomeSource(Source: TIncomeSource);
-    procedure GetUpkeep;  { draft }
-    procedure SetArmyUpkeep(A1: Integer);  { draft }
-    procedure SetMagicUpkeep(A1: Integer);  { draft }
+    function GetUpkeep: Integer;
+    procedure SetArmyUpkeep(Value: Integer);
+    procedure SetMagicUpkeep(Value: Integer);
     function GetName: string;
-    procedure GetNameEx(A1: Integer);  { draft }
-    procedure SetName(A1: Integer; A2: Integer);  { draft }
-    procedure GetFace;  { draft }
-    procedure GetHeroCountMax;  { draft }
-    procedure GetIdealHeroJoinDay;  { draft }
-    procedure GetIdealHeroEmergeDay;  { draft }
-    procedure ResetBaseHeroJoinDay;  { draft }
+    function GetNameEx: string;
+    procedure SetName(Value: string);
+    function GetFace: TLibraryImage;
+    function GetHeroCountMax: Integer;
+    function GetIdealHeroJoinDay: Integer;
+    function GetIdealHeroEmergeDay: Integer;
+    procedure ResetBaseHeroJoinDay;
     procedure MakeHeroEmerge(A1: Integer);  { draft }
     procedure UpdateHeroJoin;  { draft }
     procedure GetHeroJoinChance(A1: Integer);  { draft }
@@ -279,7 +285,7 @@
     procedure GetLastDaySeen(A1: Byte);  { draft }
     procedure PlayerSeen(A1: Integer);  { draft }
     procedure GetLeaderLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetLocal;  { draft }
+    function GetLocal: Boolean;
     procedure RegisterVictoryLocation;  { draft }
     procedure UnregisterVictoryLocation;  { draft }
     procedure CheckCaptureLocations;  { draft }
@@ -312,8 +318,8 @@
     function GetPlayers(Index: Integer): TPlayer;
     procedure GetActivePlayersAllied;  { draft }
     procedure GetAverageHeroLevel;  { draft }
-    procedure GetAverageHeroCount;  { draft }
-    procedure GetMaxHeroCount;  { draft }
+    function GetAverageHeroCount: Integer;
+    function GetMaxHeroCount: Integer;
     procedure GetNumberOfPlayers;  { draft }
     function RaceToPlayer(Race: Shortint): Integer;
     procedure SetNumberOfPlayers(A1: Integer);  { draft }

@@ -414,7 +414,7 @@ begin
     War := False;
     for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
       War := War or (GlobalDiplomaticRelation(TPlayerDiplomaticRelations(
-        TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).F_Player_40),Player) = 1);
+        TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).FDiplomaticRelations),Player) = 1);
     if not War then
     begin
       Message := SysUtils.Format(AoWE.TranslateRStr(AWarRelationIsRequiredForXRStr),

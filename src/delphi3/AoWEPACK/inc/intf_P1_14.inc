@@ -17,3 +17,6 @@ var
     ($55730868) reads its entries. AIDID $558FA050 goes to TEngine.OutputDebugMessage. (P5) }
   RaceNamesPluralRStr: array[0..12] of string;
   AIDID: Integer;
+
+var
+  RaceNamesRStr: array[0..12] of string;

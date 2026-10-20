@@ -196,7 +196,7 @@
   { TCombatPlayer (instance size 12, VMT 55716CE8) }
   TCombatPlayer = class(TEObject)
   public
-    F_CombatPlayer_08: Byte;
+    FPlayer: Shortint; { $08 }
     F_CombatPlayer_09: Byte;
     F_CombatPlayer_0A: Byte;
     F_CombatPlayer_0B: array[0..0] of Byte;
@@ -234,10 +234,10 @@
     F_CombatData_28: Integer;
     F_CombatData_2C: Integer;
     F_CombatData_30: Byte;
-    F_CombatData_31: Byte;
+    FCurrentPlayer: Shortint; { $31 }
     F_CombatData_32: array[0..1] of Byte;
     F_CombatData_34: Integer;
-    F_CombatData_38: Integer;
+    FPlayers: TCombatPlayerList; { $38 }
     F_CombatData_3C: Integer;
     F_CombatData_40: Integer;
     F_CombatData_44: Integer;

@@ -129,7 +129,7 @@
     function GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer; virtual;  { +10C draft }
     procedure ShowMessage(const A1: string); virtual;
     procedure ShowWarning(A1: Integer); virtual;  { +114 draft }
-    procedure PlayCenterAnimation(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure PlayCenterAnimation(X, Y, L: Shortint);
     procedure LockMapChangedEvent;  { draft }
     procedure UnlockMapChangedEvent;  { draft }
     procedure MapChanged(A1: Integer);  { draft }
@@ -190,7 +190,7 @@
     FTargetSelection: TTargetSelectionControl; { $E0 }
     F_AoWHSMap_E4: Integer;
     F_AoWHSMap_E8: Integer;
-    F_AoWHSMap_EC: Integer;
+    FSphereCount: Integer; { $EC }
     F_AoWHSMap_F0: Integer;
     F_AoWHSMap_F4: Integer;
     F_AoWHSMap_F8: Integer;
@@ -199,18 +199,18 @@
     F_AoWHSMap_104: Byte;
     F_AoWHSMap_105: array[0..2] of Byte;
     F_AoWHSMap_108: Integer;
-    F_AoWHSMap_10C: Byte;
+    FHeroCountMax: Shortint; { $10C }
     F_AoWHSMap_10D: array[0..2] of Byte;
     F_AoWHSMap_110: Integer;
     F_AoWHSMap_114: Integer;
-    F_AoWHSMap_118: Byte;
-    F_AoWHSMap_119: Byte;
-    F_AoWHSMap_11A: Byte;
+    FGameStatus: TGameStatus; { $118 }
+    FGameResult: TGameResult; { $119 }
+    FGameType: TGameType; { $11A }
     F_AoWHSMap_11B: array[0..0] of Byte;
     F_AoWHSMap_11C: Integer;
-    F_AoWHSMap_120: Integer;
+    FCombat: TCombat; { $120 }
     F_AoWHSMap_124: Integer;
-    F_AoWHSMap_128: Integer;
+    FAIExecuter: TAIExecuter; { $128 }
     F_AoWHSMap_12C: Integer;
     F_AoWHSMap_130: Integer;
     F_AoWHSMap_134: Integer;
@@ -226,10 +226,10 @@
     F_AoWHSMap_14A: Byte;
     F_AoWHSMap_14B: Byte;
     F_AoWHSMap_14C: Byte;
-    F_AoWHSMap_14D: Byte;
+    FVictoryCondition: TVictoryCondition; { $14D }
     F_AoWHSMap_14E: array[0..1] of Byte;
     F_AoWHSMap_150: Integer;
-    F_AoWHSMap_154: Integer;
+    FVictoryGold: Integer; { $154 }
     F_AoWHSMap_158: Integer;
     F_AoWHSMap_15C: Integer;
     F_AoWHSMap_160: Integer;
@@ -244,7 +244,7 @@
     F_AoWHSMap_180: Byte;
     F_AoWHSMap_181: array[0..2] of Byte;
     FMoveControl: TMoveControl;  { $184 }
-    FPlayerControl: TPlayerControl;  { $188 }
+    FGlobalMagicControl: TGlobalMagicControl; { $188 }
     F_AoWHSMap_18C: Integer;
     FEditorPlayer: Shortint;  { $190, read at $55784FB4 }
     F_AoWHSMap_191: Byte;
@@ -293,12 +293,12 @@
     F_AoWHSMap_230: Integer;
     F_AoWHSMap_234: Integer;
     F_AoWHSMap_238: Byte;
-    F_AoWHSMap_239: Byte;
+    FPlayMode: TPlayMode; { $239 }
     F_AoWHSMap_23A: array[0..1] of Byte;
     FTokenManager: TTokenManager; { $23C }
     { conflict: FTokenManager: TAoWTokenManager; }
     F_AoWHSMap_240: Integer;
-    F_AoWHSMap_244: Integer;
+    FPlayerControl: TPlayerControl; { $244 }
     F_AoWHSMap_248: Byte;
     FShowUnitShadows: Boolean;  { $249, tested at $55783E36 }
     F_AoWHSMap_24A: array[0..1] of Byte;
@@ -375,10 +375,10 @@
     procedure LockExecuteEventLog;  { draft }
     procedure UnlockExecuteEventLog;  { draft }
     procedure GameOverEventHandled;  { draft }
-    procedure ExecuteGameOverEvent(A1: Integer);  { draft }
+    procedure ExecuteGameOverEvent(Event: TGameOverEventLog);
     procedure UnlockGameOverEvent;  { draft }
     procedure LockGameOverEvent;  { draft }
-    procedure GameOver(A1: Byte; A2: Integer);  { draft }
+    procedure GameOver(Player: Shortint; Status: TGameOverStatus);
     procedure VerifyAddOnPacks;  { draft }
     procedure ValidateMap(A1: Integer);  { draft }
     procedure OnStreamError(A1: Integer; A2: Integer);  { draft }
@@ -416,8 +416,8 @@
     procedure UnlockRelationsChanged;  { draft }
     procedure UpdateTurnTimeBeep;  { draft }
     procedure ResetTurnTimer;  { draft }
-    procedure GetTurnTimeLeft;  { draft }
-    procedure GetTurnTimerEnabled;  { draft }
+    function GetTurnTimeLeft: Integer;
+    function GetTurnTimerEnabled: Boolean;
     procedure EnableTurnTimer;  { draft }
     procedure DisableTurnTimer;  { draft }
     procedure ZeroTurnTimer;  { draft }

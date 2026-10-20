@@ -212,9 +212,9 @@
   TPlayerStructureIncomeSource = class(TIncomeSource)
   public
     F_PlayerStructureIncomeSource_08: Integer;
-    procedure Name(A1: Integer); override;
-    procedure Income; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
+    function Name: string; override;
+    function Income: Integer; override;
+    procedure GetLocation(var X, Y, L: Shortint); override;
     procedure Setup(Structure: TPlayerStructure);
   end;
 

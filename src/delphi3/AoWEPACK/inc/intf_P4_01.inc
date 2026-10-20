@@ -105,7 +105,7 @@
     F_PlayerMagicControl_08: Integer;
     F_PlayerMagicControl_0C: Byte;
     F_PlayerMagicControl_0D: array[0..2] of Byte;
-    F_PlayerMagicControl_10: Integer;
+    FPlayer: TPlayer; { $10 }
     F_PlayerMagicControl_14: Integer;
     F_PlayerMagicControl_18: Integer;
     F_PlayerMagicControl_1C: Integer;
@@ -239,7 +239,7 @@
   public
     F_GlobalMagicControl_08: Integer;
     F_GlobalMagicControl_0C: Integer;
-    F_GlobalMagicControl_10: Byte;
+    FActiveEnchantments: TGlobalEnchantmentTypes; { $10 }
     F_GlobalMagicControl_11: array[0..2] of Byte;
     F_GlobalMagicControl_14: Integer;
     F_GlobalMagicControl_18: Byte;
@@ -253,7 +253,7 @@
     procedure DecDoubleSphereManaCount(A1: Integer);  { draft }
     procedure GetSphereManaDoubled(A1: Integer);  { draft }
     procedure OutOfMana(A1: Byte; A2: Integer);  { draft }
-    procedure RemovePlayerEnchantments(A1: Integer);  { draft }
+    procedure RemovePlayerEnchantments(Player: Shortint);
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
     procedure TriggerChangedEvent;  { draft }

@@ -103,7 +103,7 @@
     procedure GetProcessTimeElapsed;  { draft }
     procedure UseProcessTime(A1: Integer);  { draft }
     procedure ActivatePlayer(A1: Integer);  { draft }
-    procedure DeactivatePlayer(A1: Integer);  { draft }
+    procedure DeactivatePlayer(Player: Shortint);
     procedure TokenControlDoneEvent;  { draft }
     procedure Lock;  { draft }
     procedure Unlock;  { draft }
@@ -574,7 +574,7 @@
   { TAIBudgetManager (instance size 60, VMT 55719628) }
   TAIBudgetManager = class(TEObject)
   public
-    F_AIBudgetManager_08: Integer;
+    FPlayer: TPlayer; { $08 }
     F_AIBudgetManager_0C: Integer;
     F_AIBudgetManager_10: Integer;
     F_AIBudgetManager_14: Integer;

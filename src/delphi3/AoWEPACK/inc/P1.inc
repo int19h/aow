@@ -104,6 +104,19 @@ type
   end;
 
 resourcestring
+  PlayerRStr = 'Player';
+  IndependentsRStr = 'Independents';
+  PlayerNameExRStr = '%0:s of the %1:s';
+
+resourcestring
+  GameOverDefeatMessageRStr = 'On day %0:s, the empire of the %1:s, led by %2:s was defeated.';
+  GameOverVictoryMessageRStr = 'On day %0:s, the empire of the %1:s, led by %2:s was victorious.';
+  XLeaderRStr = '%s leader';
+  NotAllSpheresAssignedRStr = 'not all spheres assigned';
+  NotPlacedOnMapRStr = 'not placed on map';
+  NotAllSkillPointsAssignedRStr = 'not all skill points assigned';
+
+resourcestring
   NoUnitSelectedRStr = 'No unit selected';
 
 resourcestring
@@ -495,7 +508,7 @@ var
 begin
   if AoWHSMap.FDay <> 1 then
   begin
-    if TControlBits(AoWHSMap.FPlayerControl.F_PlayerControl_10) * [1, 2] = [] then
+    if AoWHSMap.FGlobalMagicControl.FActiveEnchantments * [getHatred, getHarmony] = [] then
       for I := 0 to FPlayerRelations.Count - 1 do
       begin
         DefaultValue := StatusToStatusValue(TStatus(FDefaultRelations[AoWHSMap.FPlayers.GetPlayers(I + 1).FPlayerRace]));
@@ -2388,209 +2401,750 @@ begin
   List.Free;
 end;
 
-procedure TPlayerStructureList.GetStructure(A1: Integer);
-begin end;
+function TPlayerStructureList.GetStructure(Index: Integer): TPlayerStructure;
+begin
+  Result := FChildren.List^[Index];
+end;
 
-procedure TArmyList.GetArmy(A1: Integer);
-begin end;
+function TArmyList.GetArmy(Index: Integer): TArmy;
+begin
+  Result := FChildren.List^[Index];
+end;
 
-procedure TDiplomaticRelationList.Create(A1: Byte);
-begin end;
+constructor TDiplomaticRelationList.Create;
+begin
+  inherited Create;
+  Default := Ord(drUnknown);
+end;
 
-procedure TDiplomaticRelationList.GetDiplomaticRelation(A1: Integer);
-begin end;
+function TDiplomaticRelationList.GetDiplomaticRelation(Index: Integer): TDiplomaticRelation;
+begin
+  if Index < Count then Result := TDiplomaticRelation(List^[Index])
+  else Result := drUnknown;
+end;
 
-procedure TDiplomaticRelationList.SetDiplomaticRelation;
-begin end;
+procedure TDiplomaticRelationList.SetDiplomaticRelation(Index: Integer; Value: TDiplomaticRelation);
+begin
+  Items[Index] := Ord(Value);
+end;
 
 class function TDiplomaticRelationHistoryItem.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2011A;
+end;
 
 procedure TDiplomaticRelationHistoryItem.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FDay, 20);
+  Stream.rwData(FRelation, 1, 21);
+end;
 
 class function TDiplomaticRelationHistoryList.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2011B;
+end;
 
-procedure TDiplomaticRelationHistoryList.GetItems(A1: Integer);
-begin end;
+function TDiplomaticRelationHistoryList.GetItems(Index: Integer): TDiplomaticRelationHistoryItem;
+begin
+  Result := TDiplomaticRelationHistoryItem(FChildren[Index]);
+end;
 
-procedure TDiplomaticRelationHistoryList.GetLastModifiedOnDay;
-begin end;
+function TDiplomaticRelationHistoryList.GetLastModifiedOnDay: Integer;
+begin
+  if Count <> 0 then Result := GetItems(Count - 1).FDay
+  else Result := 0;
+end;
 
-procedure TDiplomaticRelationHistoryList.GetRelationOnDay(A1: Integer);
-begin end;
+function TDiplomaticRelationHistoryList.GetRelationOnDay(Day: Integer): TDiplomaticRelation;
+var
+  I: Integer;
+begin
+  Result := drUnknown;
+  I := 0;
+  while (I < Count) and (GetItems(I).FDay <= Day) do
+  begin
+    Result := GetItems(I).FRelation;
+    Inc(I);
+  end;
+end;
 
-procedure TDiplomaticRelationHistoryList.Add(A1: Integer; A2: Integer);
-begin end;
+procedure TDiplomaticRelationHistoryList.Add(Relation: TDiplomaticRelation; Day: Integer);
+begin
+  with TDiplomaticRelationHistoryItem.Create(Self) do
+  begin
+    FDay := Day;
+    FRelation := Relation;
+  end;
+end;
 
 constructor TPlayerDiplomaticRelations.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRelations := TByteList.Create;
+  FHistory := TENode.Create(nil);
+end;
 
 destructor TPlayerDiplomaticRelations.Destroy;
-begin end;
+begin
+  FRelations.Free;
+  FHistory.Free;
+  inherited Destroy;
+end;
 
 procedure TPlayerDiplomaticRelations.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc(20, FRelations.LoadFromStream, FRelations.SaveToStream);
+  Stream.rwEObject(FHistory, 21);
+  if smRead in Stream.StorageMode then FRelations.Default := Ord(drUnknown);
+end;
 
-procedure TPlayerDiplomaticRelations.GetDiplomaticRelation(A1: Byte);
-begin end;
+function TPlayerDiplomaticRelations.GetDiplomaticRelation(Player: Shortint): TDiplomaticRelation;
+begin
+  if Player < FRelations.Count then
+    Result := TDiplomaticRelation(FRelations.List^[Player])
+  else Result := drUnknown;
+end;
 
-procedure TPlayerDiplomaticRelations.SetDiplomaticRelation(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerDiplomaticRelations.SetDiplomaticRelation(Player: Shortint; Value: TDiplomaticRelation);
+begin
+  FRelations[Player] := Ord(Value);
+  if not (msEditting in AoWHSMap.Status) and (AoWHSMap.FDay > 0) then
+    GetHistory(Player).Add(Value, AoWHSMap.FDay);
+end;
 
-procedure TPlayerDiplomaticRelations.GetHistory(A1: Byte);
-begin end;
+function TPlayerDiplomaticRelations.GetHistory(Player: Shortint): TDiplomaticRelationHistoryList;
+begin
+  Result := FHistory.FChildren.List^[Player - 1];
+end;
 
 procedure TPlayerDiplomaticRelations.ValidateHistory;
-begin end;
+begin
+  while FHistory.Count + 1 < AoWHSMap.FPlayers.Count do
+    TDiplomaticRelationHistoryList.Create(nil).Owner := FHistory;
+  while FHistory.Count + 1 > AoWHSMap.FPlayers.Count do
+    FHistory.Children[FHistory.Count - 1].Free;
+end;
 
 procedure TPlayerDiplomaticRelations.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+var
+  Player: Shortint;
+  I: Integer;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then
+  begin
+    ValidateHistory;
+    if FPlayer.FLegacyNewRelations.Count <> 0 then
+    begin
+      FRelations.Assign(FPlayer.FLegacyNewRelations);
+      FPlayer.FLegacyNewRelations.Clear;
+    end;
+    if (AoWHSMap.FDay = 0) and not (msEditting in AoWHSMap.Status) then
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+      begin
+        Player := I;
+        GetHistory(Player).Add(GetDiplomaticRelation(Player), 0);
+      end
+    else if FPlayer.FLegacyRelations.Count <> 0 then
+    begin
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        GetHistory(I).Add(FPlayer.FLegacyRelations.GetDiplomaticRelation(I), 0);
+      FPlayer.FLegacyRelations.Clear;
+    end;
+  end;
+end;
 
 class function TTurnInfoItem.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2029B;
+end;
 
 procedure TTurnInfoItem.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FGold, 25);
+  Stream.rwInteger(FMana, 26);
+  Stream.rwInteger(FStructures, 27);
+  Stream.rwInteger(FArmyStrength, 28);
+  Stream.rwByte(FHeroes, 29);
+end;
 
-procedure TTurnInfoItem.GetSuperiority;
-begin end;
+function TTurnInfoItem.GetSuperiority: Integer;
+begin
+  Result := FArmyStrength div 100 + FStructures * 10 +
+    (FGold shr 3) + (FMana shr 3) + FHeroes * 100;
+end;
 
-procedure TTurnInfo.GetTurnInfo(A1: Integer);
-begin end;
+function TTurnInfo.GetTurnInfo(Index: Integer): TTurnInfoItem;
+begin
+  Result := FChildren.List^[Index];
+end;
 
 constructor TPlayerStatistics.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTurnInfo := TTurnInfo.Create(nil);
+end;
 
 destructor TPlayerStatistics.Destroy;
-begin end;
+begin
+  FTurnInfo.Free;
+  inherited Destroy;
+end;
 
 procedure TPlayerStatistics.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FTurnInfo, 20);
+  Stream.rwInteger(FUnitsKilled, 21);
+  Stream.rwInteger(FUnitsLost, 22);
+end;
 
-procedure TIncomeSource.Name(A1: Integer);
-begin end;
+function TIncomeSource.Name: string;
+begin
+  Result := '';
+end;
 
-procedure TIncomeSource.Income;
-begin end;
+function TIncomeSource.Income: Integer;
+begin
+  Result := 0;
+end;
 
-procedure TIncomeSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TIncomeSource.GetLocation(var X, Y, L: Shortint);
+begin
+  X := -1;
+  Y := -1;
+  L := -1;
+end;
 
-procedure TIncomeSource.CenterToLocation(A1: Integer; A2: Integer);
-begin end;
+procedure TIncomeSource.CenterToLocation;
+var
+  X, Y, L: Shortint;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    AoWHSMap.CenterViewTo(X, Y, L);
+    AoWHSMap.PlayCenterAnimation(X, Y, L);
+  end;
+end;
 
-procedure TIncomeSourceList.GetItems(A1: Integer);
-begin end;
+function TIncomeSourceList.GetItems(Index: Integer): TIncomeSource;
+begin
+  Result := FChildren.List^[Index];
+end;
 
 constructor TPBEMPlayerSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FStatus := [];
+  FEmailGame := TEmailGame.Create(nil);
+end;
 
 destructor TPBEMPlayerSettings.Destroy;
-begin end;
+begin
+  FEmailGame.Free;
+  inherited Destroy;
+end;
 
 procedure TPBEMPlayerSettings.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FStatus, 1, 20);
+  Stream.rwEObject(FEmailGame, 21);
+end;
 
-procedure TPBEMPlayerSettings.SetGame;
-begin end;
+procedure TPBEMPlayerSettings.SetGame(Game: TEObject);
+begin
+  FEmailGame.Assign(Game, AoWEngine);
+end;
 
 constructor TPlayer.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FIncomeChangedEvents := TEventList.Create;
+  FGemsChangedEvents := TEventList.Create;
+  FUpkeepChangedEvents := TEventList.Create;
+  FStructures := TPlayerStructureList.Create(nil);
+  FStructures.FPlayer := Self;
+  FArmies := TArmyList.Create(nil);
+  FAIControl := TAIPlayerControl.Create(nil);
+  FAIControl.FPlayer := Self;
+  FAIBudget := TAIBudgetManager.Create(nil);
+  FAIBudget.FPlayer := Self;
+  FAIGroups := TAIGroupList.Create(nil);
+  FMagicControl := TPlayerMagicControl.Create(nil);
+  FMagicControl.FPlayer := Self;
+  FStatistics := TPlayerStatistics.Create(nil);
+  FArmies.FPlayer := Self;
+  FArmies.Events.Add(ArmiesChanged);
+  FHeroes := THeroList.Create(nil);
+  FInitialGold := 250;
+  FBaseIncome := 0;
+  FPlayerIndex := -1;
+  FParticipating := False;
+  FEventLogbook := TEventLogbook.Create(nil);
+  FEventLogbook.SetOnChanged(LogbookChangedEvent);
+  FLogbookChangedEvents := TEventList.Create;
+  FDiplomaticRelations := TPlayerDiplomaticRelations.Create(nil);
+  FDiplomaticRelations.FPlayer := Self;
+  FLegacyNewRelations := TDiplomaticRelationList.Create;
+  FProductionControls := TProductionControlList.Create;
+  FIncomeSources := TIncomeSourceList.Create(nil);
+  FLeaderSetup := TLeader.Create(nil);
+  FEndTurn := False;
+  FGameOverStatus := goNone;
+  FFirstDaySeen := TIntegerList.Create;
+  FFirstDaySeen.Default := -1;
+  FLastDaySeen := TIntegerList.Create;
+  FLastDaySeen.Default := -1;
+  FVictoryLocations := TPlayerStructureList.Create(nil);
+  FKnownStructures := TPlayerStructureList.Create(nil);
+  FMessages := TStringList.Create;
+  FDiplomaticActions := TDiplomaticActionList.Create(nil);
+  FAIValidAttackPlayers := TBitList.Create;
+  FPBEMSettings := TPBEMPlayerSettings.Create(nil);
+  FLegacyRelations := TDiplomaticRelationList.Create;
+  FHeroEmerging := False;
+  FBaseHeroJoinDay := -1;
+  FHeroJoinDay := -1;
+  FPlayerRace := -1;
+  F_Player_2D := $FF;
+  F_Player_2E := $FF;
+end;
 
 destructor TPlayer.Destroy;
-begin end;
+var
+  I: Integer;
+begin
+  try
+    FIncomeChangedEvents.Clear;
+    FGemsChangedEvents.Clear;
+    FUpkeepChangedEvents.Clear;
+    try
+      if (AoWHSMap <> nil) and (msDestroying in AoWHSMap.Status) then
+      begin
+        Assert(FVictoryLocations.Count = 0, 'Victory Locations not correctly cleared (TPlayer)');
+        Assert(FStructures.Count = 0, 'Registered Player Structures not correctly cleared (TPlayer)');
+        Assert(FArmies.Count = 0, 'Registered Player Armies not correctly cleared (TPlayer)');
+      end
+      else
+      begin
+        for I := FStructures.Count - 1 downto 0 do
+          FStructures.GetStructure(I).SetPlayer(0);
+        for I := FArmies.Count - 1 downto 0 do
+          FArmies.GetArmy(I).SetPlayer(0);
+      end;
+    except
+    end;
+    FMessages.Free;
+    FMessages := nil;
+    FDiplomaticActions.Free;
+    FDiplomaticActions := nil;
+    FAIValidAttackPlayers.Free;
+    FAIValidAttackPlayers := nil;
+    FLegacyRelations.Free;
+    try
+      FLogbookChangedEvents.Clear;
+      FEventLogbook.Free;
+      FLogbookChangedEvents.Free;
+    except
+    end;
+    try
+      FLegacyNewRelations.Free;
+      FDiplomaticRelations.Free;
+    except
+    end;
+    try FProductionControls.Free; except end;
+    try FAIControl.Free; except end;
+    try FStatistics.Free; except end;
+    try FMagicControl.Free; except end;
+    try FLeaderSetup.Free; except end;
+    try
+      FFirstDaySeen.Free;
+      FLastDaySeen.Free;
+    except
+    end;
+    try FHeroes.Free; except end;
+    try
+      FArmies.Free;
+      FAIGroups.Free;
+      FAIBudget.Free;
+      FStructures.Free;
+      FVictoryLocations.Free;
+      FIncomeSources.Free;
+      FKnownStructures.Free;
+    except
+    end;
+    try inherited Destroy; except end;
+    FPBEMSettings.Free;
+    FPBEMSettings := nil;
+    FIncomeChangedEvents.Free;
+    FIncomeChangedEvents := nil;
+    FGemsChangedEvents.Free;
+    FGemsChangedEvents := nil;
+    FUpkeepChangedEvents.Free;
+    FUpkeepChangedEvents := nil;
+  except
+  end;
+end;
 
 class function TPlayer.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20020;
+end;
 
 function TPlayer.GetBusy: Boolean;
-begin Result := False; end;
+begin
+  Result := (FBusyCount <> 0) or not AoWHSMap.FTokenManager.PlayerReady(FPlayerIndex);
+  Result := Result or ((AoWHSMap.FCombat = nil) and
+    (AoWHSMap.FPlayMode = pmTurn) and (AoWHSMap.FCurrentPlayer <> FPlayerIndex));
+  Result := Result or ((AoWHSMap.FCombat <> nil) and
+    (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(
+      AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer <> FPlayerIndex));
+  Result := Result or (FGameOverStatus <> goNone) or not GetLocal;
+  Result := Result or ((FPlayerType = ptHuman) and
+    AoWHSMap.GetTurnTimerEnabled and (AoWHSMap.GetTurnTimeLeft <= 0));
+end;
 
-procedure TPlayer.GetSuperiority;
-begin end;
+function TPlayer.GetSuperiority: Integer;
+begin
+  if FStatistics.FTurnInfo.Count <> 0 then
+    Result := FStatistics.FTurnInfo.GetTurnInfo(FStatistics.FTurnInfo.Count - 1).GetSuperiority
+  else Result := 0;
+end;
 
-procedure TPlayer.GetUnitCount;
-begin end;
+function TPlayer.GetUnitCount: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FArmies.Count - 1 downto 0 do
+    Inc(Result, FArmies.GetArmy(I).Count);
+end;
 
-procedure TPlayer.SetPlayerIndex(A1: Byte);
-begin end;
+procedure TPlayer.SetPlayerIndex(Value: Shortint);
+begin
+  FPlayerIndex := Value;
+  FEventLogbook.FPlayer := Value;
+end;
 
-procedure TPlayer.SetGameOverStatus(A1: Byte);
-begin end;
+procedure TPlayer.SetGameOverStatus(Value: TGameOverStatus);
+var
+  Text: string;
+  Event: TGameOverEventLog;
+  I: Integer;
+  Campaign: TAoWCampaign;
+begin
+  if (FGameOverStatus <> Value) and (FGameOverStatus = goNone) then
+  begin
+    FGameOverStatus := Value;
+    AoWHSMap.FAIExecuter.DeactivatePlayer(FPlayerIndex);
+    if (AoWHSMap.FGameType = gtCampaign) and (FPlayerType = ptHuman) then
+    begin
+      if FGameOverStatus = goLost then
+      begin
+        AoWHSMap.FGameResult := grFailed;
+        Campaign := AoWEngine.FCampaign;
+        if Campaign <> nil then Campaign.RestartScenario;
+      end
+      else if FGameOverStatus = goWon then
+      begin
+        AoWHSMap.FGameResult := grSucceeded;
+        Campaign := AoWEngine.FCampaign;
+        if Campaign <> nil then Campaign.FinishScenario;
+      end;
+    end;
+    if FGameOverStatus = goLost then
+    begin
+      BeginUpdate;
+      FMagicControl.RemoveEnchantments;
+      for I := FStructures.Count - 1 downto 0 do
+        FStructures.GetStructure(I).SetPlayer(0);
+      for I := FArmies.Count - 1 downto 0 do
+        FArmies.GetArmy(I).SetPlayer(0);
+      FMagicControl.SetMana(0);
+      FGems := 0;
+      EndUpdate;
+      AoWHSMap.FPlayers.Update;
+    end;
+    Event := TGameOverEventLog.Create(nil);
+    Event.FPlayer := FPlayerIndex;
+    if Value = goLost then
+    begin
+      Text := Format(TranslateRStr(GameOverDefeatMessageRStr),
+        [IntToStr(AoWHSMap.FDay), TranslateRStr(RaceNamesPluralRStr[FPlayerRace]), GetName]);
+      Event.FMessage.Text := Text;
+    end
+    else
+    begin
+      Text := Format(TranslateRStr(GameOverVictoryMessageRStr),
+        [IntToStr(AoWHSMap.FDay), TranslateRStr(RaceNamesPluralRStr[FPlayerRace]), GetName]);
+      Event.FMessage.Text := Text;
+    end;
+    AoWHSMap.ExecuteGameOverEvent(Event);
+    Event.Release;
+    if FGameOverStatus = goLost then
+      AoWHSMap.FGlobalMagicControl.RemovePlayerEnchantments(FPlayerIndex);
+  end;
+end;
 
-procedure TPlayer.Surrender;
-begin end;
+function TPlayer.Surrender: Boolean;
+var
+  TE: TGameOverTE;
+begin
+  if not GetBusy and (FGameOverStatus = goNone) then
+  begin
+    TE := TGameOverTE.Create(nil);
+    TE.FPlayer := FPlayerIndex;
+    TE.FGameOverStatus := goLost;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayerIndex).AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayer.Win;
-begin end;
+function TPlayer.Win: Boolean;
+var
+  TE: TGameOverTE;
+begin
+  if not GetBusy and (FGameOverStatus = goNone) then
+  begin
+    TE := TGameOverTE.Create(nil);
+    TE.FPlayer := FPlayerIndex;
+    TE.FGameOverStatus := goWon;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayerIndex).AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayer.Validate(A1: Integer);
-begin end;
+function TPlayer.Validate(Errors: TStrings): Boolean;
+var
+  S, LeaderName: string;
+begin
+  if FPlayerIndex > 0 then
+  begin
+    Result := True;
+    if FLeader.GetSphereCount <> AoWHSMap.FSphereCount then
+    begin
+      LeaderName := Format(XLeaderRStr, [TranslateRStr(RaceNamesRStr[FPlayerRace])]);
+      S := LeaderName + ': ' + TranslateRStr(NotAllSpheresAssignedRStr);
+      Errors.Add(S);
+      Result := False;
+    end;
+    if FLeader.Owner = nil then
+    begin
+      LeaderName := Format(XLeaderRStr, [TranslateRStr(RaceNamesRStr[FPlayerRace])]);
+      S := LeaderName + ': ' + TranslateRStr(NotPlacedOnMapRStr);
+      Errors.Add(S);
+      Result := False;
+    end;
+    if FLeader.GetSkillPoints <> 0 then
+    begin
+      LeaderName := Format(XLeaderRStr, [TranslateRStr(RaceNamesRStr[FPlayerRace])]);
+      S := LeaderName + ': ' + TranslateRStr(NotAllSkillPointsAssignedRStr);
+      Errors.Add(S);
+      { Original reports unassigned skill points without failing validation. }
+    end;
+  end
+  else Result := True;
+end;
 
 procedure TPlayer.LockBusy;
-begin end;
+begin
+  Inc(FBusyCount);
+end;
 
 procedure TPlayer.UnlockBusy;
-begin end;
+begin
+  Assert(FBusyCount <> 0, 'Invalid busy counter usage');
+  Dec(FBusyCount);
+end;
 
-procedure TPlayer.LogbookChangedEvent;
-begin end;
+procedure TPlayer.LogbookChangedEvent(Sender: TObject);
+begin
+  if FUpdateCount = 0 then FLogbookChangedEvents.TriggerNotifyEvents(Self);
+end;
 
 procedure TPlayer.BeginUpdate;
-begin end;
+begin
+  Inc(FUpdateCount);
+  FStructures.BeginUpdate;
+  FArmies.BeginUpdate;
+  FMagicControl.BeginUpdate;
+end;
 
 procedure TPlayer.EndUpdate;
-begin end;
+begin
+  Dec(FUpdateCount);
+  if FUpdateCount = 0 then
+  begin
+    FGemsChangedEvents.TriggerNotifyEvents(Self);
+    FUpkeepChangedEvents.TriggerNotifyEvents(Self);
+    UpdateIncome;
+    FLogbookChangedEvents.TriggerNotifyEvents(Self);
+  end;
+  FStructures.EndUpdate;
+  FArmies.EndUpdate;
+  FMagicControl.EndUpdate;
+end;
 
-procedure TPlayer.ArmiesChanged;
-begin end;
+procedure TPlayer.ArmiesChanged(Sender: TObject);
+begin
+  if FArmies.Count = 0 then AoWHSMap.GameOver(FPlayerIndex, goLost);
+end;
 
-procedure TPlayer.SetGems(A1: Integer);
-begin end;
+procedure TPlayer.SetGems(Value: Integer);
+begin
+  FGems := Value;
+  if FUpdateCount = 0 then FGemsChangedEvents.TriggerNotifyEvents(Self);
+  if (AoWHSMap.FVictoryCondition = vcAccumulateGold) and
+    (AoWHSMap.FVictoryGold <= FGems) then
+    AoWHSMap.GameOver(FPlayerIndex, goWon);
+end;
 
 procedure TPlayer.UpdateIncome;
-begin end;
+var
+  I: Integer;
+begin
+  FIncome := FBaseIncome;
+  for I := FIncomeSources.Count - 1 downto 0 do
+    Inc(FIncome, TIncomeSource(FIncomeSources.FChildren.List^[I]).Income);
+  if FPlayerType = ptCPU2 then FIncome := Round(FIncome * 1.0)
+  else if FPlayerType = ptCPU3 then FIncome := Round(FIncome * 2.0)
+  else if FPlayerType = ptCPU4 then FIncome := Round(FIncome * 2.5) + 50
+  else if FPlayerType = ptCPU5 then FIncome := Round(FIncome * 3) + 100;
+  if FUpdateCount = 0 then FIncomeChangedEvents.TriggerNotifyEvents(Self);
+end;
 
 procedure TPlayer.RegisterIncomeSource(Source: TIncomeSource);
-begin end;
+begin
+  if FIncomeSources.FChildren.IndexOf(Source) = -1 then
+  begin
+    FIncomeSources.FChildren.Add(Source);
+    if FUpdateCount = 0 then UpdateIncome;
+  end;
+end;
 
 procedure TPlayer.UnregisterIncomeSource(Source: TIncomeSource);
-begin end;
+begin
+  if (FIncomeSources.FChildren.Remove(Source) <> -1) and (FUpdateCount = 0) then
+    UpdateIncome;
+end;
 
-procedure TPlayer.GetUpkeep;
-begin end;
+function TPlayer.GetUpkeep: Integer;
+begin
+  Result := FArmyUpkeep + FMagicUpkeep;
+end;
 
-procedure TPlayer.SetArmyUpkeep(A1: Integer);
-begin end;
+procedure TPlayer.SetArmyUpkeep(Value: Integer);
+begin
+  FArmyUpkeep := Value;
+  if FUpdateCount = 0 then FUpkeepChangedEvents.TriggerNotifyEvents(Self);
+end;
 
-procedure TPlayer.SetMagicUpkeep(A1: Integer);
-begin end;
+procedure TPlayer.SetMagicUpkeep(Value: Integer);
+begin
+  FMagicUpkeep := Value;
+  if FUpdateCount = 0 then FUpkeepChangedEvents.TriggerNotifyEvents(Self);
+end;
 
 function TPlayer.GetName: string;
-begin Result := ''; end;
+begin
+  if FPlayerIndex <> 0 then
+  begin
+    if FLeader <> nil then
+    begin
+      Result := FLeader.FHeroName;
+      if FLeader.GetNickname <> '' then
+        Result := Result + ' ' + FLeader.GetNickname;
+    end
+    else Result := FName;
+    if Result = '' then
+      Result := TranslateRStr(PlayerRStr) + ' ' + IntToStr(FPlayerIndex);
+  end
+  else Result := TranslateRStr(IndependentsRStr);
+end;
 
-procedure TPlayer.GetNameEx(A1: Integer);
-begin end;
+function TPlayer.GetNameEx: string;
+begin
+  if FPlayerIndex <> 0 then
+    Result := Format(TranslateRStr(PlayerNameExRStr),
+      [GetName, TranslateRStr(RaceNamesPluralRStr[FPlayerRace])])
+  else Result := GetName;
+end;
 
-procedure TPlayer.SetName(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayer.SetName(Value: string);
+begin
+  if FPlayerIndex <> 0 then
+    if FLeader <> nil then
+    begin
+      FLeader.FHeroName := Value;
+      FLeader.SetNickname('');
+    end
+    else FName := Value;
+end;
 
-procedure TPlayer.GetFace;
-begin end;
+function TPlayer.GetFace: TLibraryImage;
+begin
+  if FLeader <> nil then Result := FLeader.GetFace
+  else Result := nil;
+end;
 
-procedure TPlayer.GetHeroCountMax;
-begin end;
+function TPlayer.GetHeroCountMax: Integer;
+var
+  Strength, Maximum: Integer;
+begin
+  Strength := FStatistics.FTurnInfo.GetTurnInfo(FStatistics.FTurnInfo.Count - 1).FArmyStrength;
+  if Strength < 10 then Result := 1
+  else if Strength < 40 then Result := 2
+  else if Strength < 80 then Result := 3
+  else if Strength < 120 then Result := 4
+  else if Strength < 200 then Result := 5
+  else Result := (Strength - 200) div 100 + 5;
+  Maximum := AoWHSMap.FHeroCountMax;
+  if Result > Maximum then Result := Maximum;
+end;
 
-procedure TPlayer.GetIdealHeroJoinDay;
-begin end;
+function TPlayer.GetIdealHeroJoinDay: Integer;
+var
+  Average, Maximum: Integer;
+begin
+  Result := FLastHeroJoinDay;
+  Average := AoWHSMap.FPlayers.GetAverageHeroCount;
+  Maximum := AoWHSMap.FPlayers.GetMaxHeroCount;
+  if (Average < Maximum) and (FHeroes.Count = Maximum) then
+    Inc(Result, 15)
+  else if (Average <= FHeroes.Count) and (FHeroes.Count <> 0) and (AoWHSMap.FDay > 15) then
+    Inc(Result, 10)
+  else Inc(Result, 5);
+end;
 
-procedure TPlayer.GetIdealHeroEmergeDay;
-begin end;
+function TPlayer.GetIdealHeroEmergeDay: Integer;
+var
+  Average, Maximum, Earliest: Integer;
+begin
+  Result := GetIdealHeroJoinDay;
+  Average := AoWHSMap.FPlayers.GetAverageHeroCount;
+  Maximum := AoWHSMap.FPlayers.GetMaxHeroCount;
+  if (Average < Maximum) and (FHeroes.Count = Maximum) then
+    Inc(Result, 15)
+  else if (Average < FHeroes.Count) and (FHeroes.Count <> 0) and (AoWHSMap.FDay > 10) then
+    Inc(Result, 10)
+  else Inc(Result, 5);
+  Earliest := FLastHeroEmergeDay + 5;
+  if Result < Earliest then Result := Earliest;
+end;
 
 procedure TPlayer.ResetBaseHeroJoinDay;
-begin end;
+begin
+  FLastHeroJoinDay := AoWHSMap.FDay;
+end;
 
 procedure TPlayer.MakeHeroEmerge(A1: Integer);
 begin end;
@@ -2646,8 +3200,8 @@ begin end;
 procedure TPlayer.GetLeaderLocation(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TPlayer.GetLocal;
-begin end;
+function TPlayer.GetLocal: Boolean;
+begin Result := False; end;
 
 procedure TPlayer.RegisterVictoryLocation;
 begin end;
@@ -2720,11 +3274,11 @@ begin end;
 procedure TPlayerList.GetAverageHeroLevel;
 begin end;
 
-procedure TPlayerList.GetAverageHeroCount;
-begin end;
+function TPlayerList.GetAverageHeroCount: Integer;
+begin Result := 0; end;
 
-procedure TPlayerList.GetMaxHeroCount;
-begin end;
+function TPlayerList.GetMaxHeroCount: Integer;
+begin Result := 0; end;
 
 procedure TPlayerList.GetNumberOfPlayers;
 begin end;
@@ -3788,13 +4342,13 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 procedure TPlayerStructureIncomeSource.Setup(Structure: TPlayerStructure);
 begin end;
 
-procedure TPlayerStructureIncomeSource.Name(A1: Integer);
-begin end;
+function TPlayerStructureIncomeSource.Name: string;
+begin Result := ''; end;
 
-procedure TPlayerStructureIncomeSource.Income;
-begin end;
+function TPlayerStructureIncomeSource.Income: Integer;
+begin Result := 0; end;
 
-procedure TPlayerStructureIncomeSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TPlayerStructureIncomeSource.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 procedure TPlayerStructurePowerSource.Setup(Structure: TPlayerStructure);
@@ -4322,7 +4876,7 @@ begin end;
 procedure TAbstractAoWHSMap.SetExplorationEnabled(A1: Byte);
 begin end;
 
-procedure TAbstractAoWHSMap.PlayCenterAnimation(A1: Integer; A2: Integer; A3: Integer);
+procedure TAbstractAoWHSMap.PlayCenterAnimation(X, Y, L: Shortint);
 begin end;
 
 procedure TAbstractAoWHSMap.LockMapChangedEvent;
@@ -4664,7 +5218,7 @@ begin end;
 procedure TAoWHSMap.GameOverEventHandled;
 begin end;
 
-procedure TAoWHSMap.ExecuteGameOverEvent(A1: Integer);
+procedure TAoWHSMap.ExecuteGameOverEvent(Event: TGameOverEventLog);
 begin end;
 
 procedure TAoWHSMap.UnlockGameOverEvent;
@@ -4673,7 +5227,7 @@ begin end;
 procedure TAoWHSMap.LockGameOverEvent;
 begin end;
 
-procedure TAoWHSMap.GameOver(A1: Byte; A2: Integer);
+procedure TAoWHSMap.GameOver(Player: Shortint; Status: TGameOverStatus);
 begin end;
 
 procedure TAoWHSMap.VerifyAddOnPacks;
@@ -4829,11 +5383,11 @@ begin end;
 procedure TAoWHSMap.ResetTurnTimer;
 begin end;
 
-procedure TAoWHSMap.GetTurnTimeLeft;
-begin end;
+function TAoWHSMap.GetTurnTimeLeft: Integer;
+begin Result := 0; end;
 
-procedure TAoWHSMap.GetTurnTimerEnabled;
-begin end;
+function TAoWHSMap.GetTurnTimerEnabled: Boolean;
+begin Result := False; end;
 
 procedure TAoWHSMap.EnableTurnTimer;
 begin end;
@@ -5013,7 +5567,7 @@ begin
   for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
     if AoWHSMap.VisibleForPlayer(
       Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10, I) or
-      (TCombatPlayerList(TCombatData(Logbook.FInitialData).F_CombatData_38).IndexOfPlayer(I) <> -1) then
+      (TCombatPlayerList(TCombatData(Logbook.FInitialData).FPlayers).IndexOfPlayer(I) <> -1) then
     begin
       Event := TCombatEventLog.Create(nil);
       Event.SetCombatLogbook(Logbook);

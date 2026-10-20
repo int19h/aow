@@ -12,7 +12,7 @@
     FAnimationDetail: Byte; { $6D }
     F_AoWEngine_6E: Byte;
     F_AoWEngine_6F: array[0..0] of Byte;
-    F_AoWEngine_70: Integer;
+    FCampaign: TAoWCampaign; { $70 }
     F_AoWEngine_74: Integer;
     F_AoWEngine_78: Integer;
     F_AoWEngine_7C: Byte;

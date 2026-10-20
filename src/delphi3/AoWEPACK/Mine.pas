@@ -224,9 +224,9 @@ begin
   begin
     P := TPlayerList(WorldMap^.FPlayers).GetPlayers(Player);
     Result := 0;
-    for I := 0 to TEObjectList(P.F_Player_1C).Count - 1 do
+    for I := 0 to TEObjectList(P.FStructures).Count - 1 do
     begin
-      S := MineStructure(TPlayerStructureList(P.F_Player_1C), I);
+      S := MineStructure(TPlayerStructureList(P.FStructures), I);
       if (S.ClassID = $2037A) and (Shortint(Byte(S.FPlayer)) = Player) then
         Inc(Result, S.GetIncome);
     end;

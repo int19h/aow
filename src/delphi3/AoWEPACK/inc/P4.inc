@@ -3055,7 +3055,7 @@ begin
       Mana := 0;
   end;
   Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
-    ShortInt(Source.FPlayer)).F_Player_8C);
+    ShortInt(Source.FPlayer)).FAIBudget);
   if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
     ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
     Result := P4RequestBudget(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 1)
@@ -3070,7 +3070,7 @@ begin
   if AIRequestCastSpellExpense(Source, Budget, Mana, Upkeep) then
   begin
     Manager := TAIBudgetManager(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
-      ShortInt(Source.FPlayer)).F_Player_8C);
+      ShortInt(Source.FPlayer)).FAIBudget);
     if not TPlayerMagicControl(P4GetPlayer(TPlayerList(AoWHSMap.FPlayers),
       ShortInt(Source.FPlayer)).FMagicControl).GetCheatEnabled then
       Result := P4BudgetMade(Manager, 0, Budget, 0, Mana, Manager.F_AIBudgetManager_38, 2)
@@ -4150,7 +4150,7 @@ begin end;
 
 function TPlayerMagicControl.GetCheatEnabled: Boolean;
 begin
-  if TPlayer(F_PlayerMagicControl_10).FPlayerType = ptHuman then
+  if TPlayer(FPlayer).FPlayerType = ptHuman then
     Result := Boolean(F_PlayerMagicControl_0C)
   else
     Result := False;
@@ -4375,7 +4375,7 @@ begin end;
 procedure TGlobalMagicControl.OutOfMana(A1: Byte; A2: Integer);
 begin end;
 
-procedure TGlobalMagicControl.RemovePlayerEnchantments(A1: Integer);
+procedure TGlobalMagicControl.RemovePlayerEnchantments(Player: Shortint);
 begin end;
 
 procedure TGlobalMagicControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);

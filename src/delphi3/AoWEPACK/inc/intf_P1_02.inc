@@ -2,16 +2,15 @@
   { TPlayerStructureList (instance size 24, VMT 55709EC8) }
   TPlayerStructureList = class(TEChangeNotifyEventList)
   public
-    F_PlayerStructureList_14: array[0..3] of Byte;
-    procedure GetStructure(A1: Integer);  { draft }
+    FPlayer: TPlayer; { $14 }
+    function GetStructure(Index: Integer): TPlayerStructure;
   end;
 
   { TArmyList (instance size 24, VMT 55709FD8) }
   TArmyList = class(TEChangeNotifyEventList)
   public
-    F_ArmyList_14: Byte;
-    F_ArmyList_15: array[0..2] of Byte;
-    procedure GetArmy(A1: Integer);  { draft }
+    FPlayer: TPlayer; { $14 }
+    function GetArmy(Index: Integer): TArmy;
   end;
 
   { TUnitProduction (instance size 16, VMT 5570A0D0) }

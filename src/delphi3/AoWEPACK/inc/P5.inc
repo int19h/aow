@@ -546,7 +546,7 @@ begin
   for I := 0 to TPlayerList(AoWHSMap.FPlayers).Count - 1 do
   begin
     Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(I);
-    if (Player.F_Player_45 = 1) and (I <> Exclude) and
+    if (Player.FEndTurn = True) and (I <> Exclude) and
       ((I = Shortint(Log.FAction.FSource)) or
        (I = Shortint(Log.FAction.FTarget)) or
        ((P5FirstDaySeen(TPlayerList(AoWHSMap.FPlayers).GetPlayers(I),
@@ -698,7 +698,7 @@ begin
     Ignore := Ignore or ((FActionType = daProposeAlliance) and (P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget) <> drAlliance));
     Ignore := Ignore or (FActionType = daMakeTribute);
     if Ignore and
-      ((AoWHSMap.F_AoWHSMap_239 <> 2) or (AoWHSMap.FDay > FDay + 1)) then
+      ((AoWHSMap.FPlayMode <> pmSimultaneous) or (AoWHSMap.FDay > FDay + 1)) then
     begin
       FReaction := darIgnore;
       Log := TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FEventLogbook).FindID(FEventLogID);
@@ -741,21 +741,21 @@ begin
     Peace := TByteList.Create;
     War := TByteList.Create;
     Unknown := TByteList.Create;
-    TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).ListPeaceWarUnknownPlayers(Peace, War, Unknown);
-    TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
+    TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).ListPeaceWarUnknownPlayers(Peace, War, Unknown);
+    TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).ListIdealPeaceWarPlayers(IdealPeace, IdealWar);
     case FActionType of
       daOfferPeace:
       begin
-        Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_90).FindLastAction(daOfferPeace, darNone, Shortint(FTarget), Shortint(FSource), -1);
+        Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FDiplomaticActions).FindLastAction(daOfferPeace, darNone, Shortint(FTarget), Shortint(FSource), -1);
         if (IdealPeace.IndexOf(FSource) <> -1) or ((Last <> nil) and (AoWHSMap.FDay - Last.FDay <= 1)) then
         begin
-          if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).CanOfferPeace(FSource) then Accept(ErrorText) else Reject(ErrorText);
+          if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).CanOfferPeace(FSource) then Accept(ErrorText) else Reject(ErrorText);
         end
-        else if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).CanOfferPeace(FSource) then
+        else if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).CanOfferPeace(FSource) then
         begin
           if P5RelationCount(TPlayerList(AoWHSMap.FPlayers), FSource, [drPeace, drAlliance]) + 1 < P5RelationCount(TPlayerList(AoWHSMap.FPlayers), FSource, [drWar]) then
           begin
-            Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_90).FindLastAction(daOfferPeace, darReject, Shortint(FSource), Shortint(FTarget), -1);
+            Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FDiplomaticActions).FindLastAction(daOfferPeace, darReject, Shortint(FSource), Shortint(FTarget), -1);
             if (Last = nil) or (AoWHSMap.FDay - Last.FDay > 8) then
               { Original bug: escrow gold is counted twice. }
               if (AoWHSMap.Random(3) = 1) and (AoWHSMap.Random(250) + 100 < FEscrowGold + FEscrowGold) then Accept(ErrorText) else Reject(ErrorText)
@@ -766,7 +766,7 @@ begin
         else Reject(ErrorText);
       end;
       daProposeAlliance:
-        if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).CanProposeAlliance(FSource) then
+        if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).CanProposeAlliance(FSource) then
         begin
           RandSeed := (AoWHSMap.F_AoWHSMap_22C + AoWHSMap.FDay + Shortint(FSource) + Shortint(FTarget)) shr 2;
           Chance := (FEscrowGold + FEscrowMana) div 25 + 30;
@@ -777,7 +777,7 @@ begin
       daDeclareWarToY:
         if P5DiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FTarget, FOtherPlayer) = drWar then Accept(ErrorText)
         else if IdealWar.IndexOf(FOtherPlayer) <> -1 then
-          if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).F_Player_88).CanDeclareWar(FOtherPlayer) then
+          if TAIPlayerControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FAIControl).CanDeclareWar(FOtherPlayer) then
             if (AoWHSMap.Random(5) = 1) and (AoWHSMap.Random(550) + 250 < FEscrowGold + FEscrowMana) then Accept(ErrorText) else Reject(ErrorText)
           else Reject(ErrorText)
         else Reject(ErrorText);
@@ -927,7 +927,7 @@ begin
   begin
     Action := TDiplomaticAction(Copy(AoWEngine));
     Action.FMessage.Clear;
-    TEReferenceNode(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).F_Player_90).AddChild(Action);
+    TEReferenceNode(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FDiplomaticActions).AddChild(Action);
     Action.Release;
   end;
 end;
@@ -1181,9 +1181,9 @@ begin
   if (Shortint(Log.FAction.FTarget) = AoWHSMap.FSeatedPlayer) or
     (Shortint(Log.FAction.FSource) = AoWHSMap.FSeatedPlayer) then
   begin
-    Result := Result or ((AoWHSMap.F_AoWHSMap_239 = 1) and
+    Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
       (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetClassicWindowPopupEvents) and (Trigger = etNewTurn));
-    Result := Result or ((AoWHSMap.F_AoWHSMap_239 = 2) and
+    Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
       (wpDiplomacy in TAoWRegistry(AoWEngine.F_AoWEngine_5C).GetSimultaneousWindowPopupEvents));
   end;
   Result := Result and ((Trigger = etUser) or (Log.FAction.FReaction <> darIgnore));
@@ -1438,7 +1438,7 @@ function TDiplomacyAIPA.CreateDA(Action: TDiplomaticActionType;
 var Player: Shortint; Last: TDiplomaticAction;
 begin
   Player := Shortint(TPlayer(TAIPlayerControl(FControl).FPlayer).FPlayerIndex);
-  Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).F_Player_90).FindLastAction(Action, darNone, Player, Target, Other);
+  Last := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FDiplomaticActions).FindLastAction(Action, darNone, Player, Target, Other);
   if (Last = nil) or (AoWHSMap.FDay - Last.FDay >= MinDays) then
     Result := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).CreateDiplomaticAction(Action, Target, Other)
   else Result := nil;
@@ -1503,7 +1503,7 @@ begin
           Candidate := Shortint(IdealPeace[I]);
           if (War.IndexOf(Byte(Candidate)) <> -1) and TAIPlayerControl(FControl).CanOfferPeace(Byte(Candidate)) then
           begin
-            Action := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Source).F_Player_90).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
+            Action := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Source).FDiplomaticActions).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
             if (Action = nil) or (AoWHSMap.FDay - Action.FDay > 12) then
             begin
               Score := -I;
@@ -1520,7 +1520,7 @@ begin
             Candidate := Shortint(IdealWar[J]);
             if War.IndexOf(Byte(Candidate)) <> -1 then
             begin
-              Action := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Source).F_Player_90).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
+              Action := TDiplomaticActionList(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Source).FDiplomaticActions).FindLastAction(daOfferPeace, darNone, Source, Candidate, -1);
               if (Action = nil) or (AoWHSMap.FDay - Action.FDay > 12) then
               begin
                 Score := J;
@@ -1926,7 +1926,7 @@ begin end;
 procedure TAIExecuter.ActivatePlayer(A1: Integer);
 begin end;
 
-procedure TAIExecuter.DeactivatePlayer(A1: Integer);
+procedure TAIExecuter.DeactivatePlayer(Player: Shortint);
 begin end;
 
 procedure TAIExecuter.TokenControlDoneEvent;

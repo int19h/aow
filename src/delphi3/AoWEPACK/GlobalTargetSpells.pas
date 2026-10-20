@@ -1489,7 +1489,7 @@ begin
     begin
       OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = I) or (SpellRelation(TPlayerDiplomaticRelations(
-        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40), I) = 2) then
+        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations), I) = 2) then
         SpellHSMap^.ExploreArea(Xhx,Yhx,Lhx,I,VisibilityRange);
     end;
   end;
@@ -1504,7 +1504,7 @@ begin
   begin
     OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
     if     ((OwnerPlayer = SpellHSMap^.FSeatedPlayer) or
-    (SpellRelation(TPlayerDiplomaticRelations(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
+    (SpellRelation(TPlayerDiplomaticRelations(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
       Byte(SpellHSMap^.FSeatedPlayer)) = 2)) and Activated then
       Radius := VisibilityRange
     else Radius := 0;
@@ -1634,7 +1634,7 @@ begin
     begin
       OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
-        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
+        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
         Param[1]) = 2) then
         if Param[0] <= VisibilityRange then Result := 1;
     end;
@@ -1643,7 +1643,7 @@ begin
     begin
       OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
-        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
+        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
         Param[1]) = 2) then
         if Param[0] <= VisibilityRange then Result := 1;
     end;

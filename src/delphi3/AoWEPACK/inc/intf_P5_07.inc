@@ -883,8 +883,8 @@
   { TGameOverTE (instance size 20, VMT 5571CEE8) }
   TGameOverTE = class(TTokenEvent)
   public
-    F_GameOverTE_10: Byte;
-    F_GameOverTE_11: Byte;
+    FPlayer: Shortint; { $10 }
+    FGameOverStatus: TGameOverStatus; { $11 }
     F_GameOverTE_12: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

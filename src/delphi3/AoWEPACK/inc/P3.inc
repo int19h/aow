@@ -423,7 +423,7 @@ begin Result := TAbstractUnit(FUnit).GetUnitLevel; end;
 
 function TCombatUnit.IDStr: string;
 begin
-  if TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_38).GetPlayers(Shortint(FCombatPlayer)).F_CombatPlayer_0A = 0 then Result := 'A'
+  if TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).FPlayers).GetPlayers(Shortint(FCombatPlayer)).F_CombatPlayer_0A = 0 then Result := 'A'
   else Result := 'D';
   if FUnit <> nil then Result := Result + '(' + IntToStr(FPosition) + ')=' + FUnit.GetName
   else Result := Result + '(' + IntToStr(FPosition) + ')';
@@ -903,7 +903,7 @@ var Player: Shortint;
 begin
   Player := Shortint(FCombatPlayer);
   if Player <> -1 then
-    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A)
+    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_0A)
   else Result := csNeutral;
 end;
 
@@ -912,7 +912,7 @@ var Player: Shortint;
 begin
   Player := Shortint(FCombatPlayer);
   if Player <> -1 then
-    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A xor 1)
+    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_0A xor 1)
   else Result := csNeutral;
 end;
 
@@ -943,7 +943,7 @@ begin
   if Player <> $FF then
   begin
     Combat := FCombat;
-    Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A)].AddChild(Self);
+    Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_0A)].AddChild(Self);
   end;
 end;
 
@@ -955,7 +955,7 @@ begin
   if Player <> $FF then
   begin
     Combat := FCombat;
-    Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A)].RemoveChild(Self);
+    Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_0A)].RemoveChild(Self);
   end;
 end;
 
@@ -977,17 +977,17 @@ begin
   if csActivated in FStatus then
   begin
     ChangedSide := (Player <> $FF) and
-      (TCombatSideIndex(TCombatPlayerList(TCombatData(FCombat.FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A) <> GetSide);
+      (TCombatSideIndex(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_0A) <> GetSide);
     if FCombatPlayer <> $FF then
     begin
       Combat := FCombat;
-      Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).F_CombatData_38).GetPlayers(FCombatPlayer).F_CombatPlayer_0A)].RemoveChild(Self);
+      Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(FCombatPlayer).F_CombatPlayer_0A)].RemoveChild(Self);
     end;
     FCombatPlayer := Player;
     if FCombatPlayer <> $FF then
     begin
       Combat := FCombat;
-      Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).F_CombatData_38).GetPlayers(FCombatPlayer).F_CombatPlayer_0A)].AddChild(Self);
+      Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(FCombatPlayer).F_CombatPlayer_0A)].AddChild(Self);
     end;
     if ChangedSide then
     begin
@@ -1063,7 +1063,7 @@ function TCombatObject.GetPlayer: Shortint;
 var Player: Byte;
 begin
   Player := FCombatPlayer;
-  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_08)
+  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).FPlayer)
   else Result := -1;
 end;
 
@@ -1071,7 +1071,7 @@ function TCombatObject.GetPlayerIR: Shortint;
 var Player: Byte;
 begin
   Player := FCombatPlayer;
-  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_09)
+  if Player <> $FF then Result := Shortint(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).F_CombatPlayer_09)
   else Result := -1;
 end;
 
@@ -1313,8 +1313,8 @@ begin
   Result := False;
   for I := 0 to TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).Count - 1 do
     if TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).GetParty(I) <> nil then
-      if AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(TCombatData(FCombatData).F_CombatData_38).GetPlayers(
-        Shortint(TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).GetParty(I).F_CombatParty_1A)).F_CombatPlayer_08)).FPlayerType in Types then Result := True;
+      if AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(TCombatData(FCombatData).FPlayers).GetPlayers(
+        Shortint(TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).GetParty(I).F_CombatParty_1A)).FPlayer)).FPlayerType in Types then Result := True;
 end;
 
 function TCombat.CreateUniqueCOID: Byte;
@@ -1364,7 +1364,7 @@ var I: Integer;
 begin
   if TByteList(TCombatData(FCombatData).F_CombatData_40).Count <> 0 then
   begin
-    I := TByteList(TCombatData(FCombatData).F_CombatData_40).IndexOf(TCombatData(FCombatData).F_CombatData_31) + 1;
+    I := TByteList(TCombatData(FCombatData).F_CombatData_40).IndexOf(TCombatData(FCombatData).FCurrentPlayer) + 1;
     if I >= TByteList(TCombatData(FCombatData).F_CombatData_40).Count then I := 0;
     NewTurn(TByteList(TCombatData(FCombatData).F_CombatData_40)[I]);
   end;
@@ -1506,7 +1506,7 @@ begin
   begin
     Obj := TCombatData(FCombatData).GetObjects(I);
     Result := (Obj.FCombatPlayer <> $FF) and
-      (TCombatPlayerList(TCombatData(FCombatData).F_CombatData_38).GetPlayers(Shortint(Obj.FCombatPlayer)).F_CombatPlayer_0A = 1) and
+      (TCombatPlayerList(TCombatData(FCombatData).FPlayers).GetPlayers(Shortint(Obj.FCombatPlayer)).F_CombatPlayer_0A = 1) and
       not (csDestroyed in Obj.FStatus);
     Inc(I);
   end;
@@ -1610,8 +1610,8 @@ begin
     P.SetArrayOwner(Self, A2);
     TArmy(P.F_CombatParty_08).SetXYL(Byte(A4), Byte(A5), A6);
     TArmy(P.F_CombatParty_08).SetPlayer(
-      TCombatPlayerList(TCombatData(TCombat(A1).FCombatData).F_CombatData_38).
-        GetPlayers(Shortint(A3)).F_CombatPlayer_08);
+      TCombatPlayerList(TCombatData(TCombat(A1).FCombatData).FPlayers).
+        GetPlayers(Shortint(A3)).FPlayer);
     if A7 <> 0 then TArmy(P.F_CombatParty_08).AssignSettings(A7);
     TArmy(P.F_CombatParty_08).Activate;
   end
@@ -1644,7 +1644,7 @@ begin Result := $202A0; end;
 procedure TCombatPlayer.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(F_CombatPlayer_08, $14);
+  Stream.rwByte(Byte(FPlayer), $14);
   Stream.rwByte(F_CombatPlayer_09, $15);
   Stream.rwData(F_CombatPlayer_0A, 1, $16);
 end;
@@ -1664,7 +1664,7 @@ begin
   while Result <> 0 do
   begin
     Dec(Result);
-    if TCombatPlayer(FChildren.List^[Result]).F_CombatPlayer_08 = A1 then Exit;
+    if TCombatPlayer(FChildren.List^[Result]).FPlayer = A1 then Exit;
   end;
   Result := -1;
 end;
@@ -1677,7 +1677,7 @@ begin
   begin
     Dec(Result);
     P := TCombatPlayer(FChildren.List^[Result]);
-    if (P.F_CombatPlayer_08 = A1) and (P.F_CombatPlayer_09 = A2) then Exit;
+    if (P.FPlayer = A1) and (P.F_CombatPlayer_09 = A2) then Exit;
   end;
   Result := -1;
 end;
@@ -1688,7 +1688,7 @@ begin GetPlayers(Shortint(A1)).Free; end;
 constructor TCombatData.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_CombatData_38 := Integer(TCombatPlayerList.Create(nil));
+  FPlayers := TCombatPlayerList.Create(nil);
   F_CombatData_3C := Integer(TCombatPartyList.Create(nil));
   F_CombatData_34 := Integer(TENode.Create(nil));
   F_CombatData_2C := Integer(TByteList.Create);
@@ -1699,7 +1699,7 @@ end;
 destructor TCombatData.Destroy;
 begin
   TObject(F_CombatData_3C).Free;
-  TObject(F_CombatData_38).Free;
+  TObject(FPlayers).Free;
   TObject(F_CombatData_34).Free;
   TObject(F_CombatData_2C).Free;
   TObject(F_CombatData_28).Free;
@@ -1721,7 +1721,7 @@ begin
   Stream.rwByte(F_CombatData_25, $0F);
   Stream.rwData(F_CombatData_30, 1, $10);
   Stream.rwInteger(F_CombatData_44, $11);
-  Stream.rwEObject(TEObject(F_CombatData_38), $12);
+  Stream.rwEObject(TEObject(FPlayers), $12);
   Stream.rwEObject(TEObject(F_CombatData_34), $13);
   Stream.rwEObject(TEObject(F_CombatData_3C), $14);
   Stream.rwString(F_CombatData_48, $15);
@@ -1743,7 +1743,7 @@ begin
   while not Result and (I <> 0) do
   begin
     Dec(I);
-    Result := TCombatPlayerList(F_CombatData_38).GetPlayers(Shortint(TByteList(F_CombatData_28)[I])).F_CombatPlayer_0A = A1;
+    Result := TCombatPlayerList(FPlayers).GetPlayers(Shortint(TByteList(F_CombatData_28)[I])).F_CombatPlayer_0A = A1;
   end;
 end;
 
@@ -1764,7 +1764,7 @@ procedure TCombatData.Clear;
 begin
   inherited Clear;
   TByteList(F_CombatData_40).Clear;
-  TCombatPlayerList(F_CombatData_38).Clear;
+  TCombatPlayerList(FPlayers).Clear;
   TENode(F_CombatData_34).Clear;
   TCombatPartyList(F_CombatData_3C).Clear;
 end;
@@ -2370,7 +2370,7 @@ end;
 procedure TNewCombatTurnCA.Execute(A1: TCombat);
 var I: Integer;
 begin
-  TCombatData(TCombat(A1).FCombatData).F_CombatData_31 := F_NewCombatTurnCA_0C;
+  TCombatData(TCombat(A1).FCombatData).FCurrentPlayer := F_NewCombatTurnCA_0C;
   for I := TCombatData(TCombat(A1).FCombatData).GetCount - 1 downto 0 do
     TCombatData(TCombat(A1).FCombatData).GetObjects(I).NewTurn(F_NewCombatTurnCA_0C);
 end;

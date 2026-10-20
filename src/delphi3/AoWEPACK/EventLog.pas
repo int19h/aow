@@ -157,7 +157,8 @@ type
   TEventLogbook = class(TEObject)
   public
     F_EventLogbook_08: Integer;
-    F_EventLogbook_0C: array[0..3] of Byte;
+    FPlayer: Shortint; { $0C }
+    FReserved0D: array[0..2] of Byte;
     F_EventLogbook_10: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -166,7 +167,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure GetCount;  { draft }
     procedure GetOnChanged(A1: Integer);  { draft }
-    procedure SetOnChanged(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure SetOnChanged(Value: TNotifyEvent);
     procedure ListEvents(A1: Integer);  { draft }
     procedure GetLogs(A1: Integer);  { draft }
     procedure CreateUniqueID;  { draft }
@@ -204,7 +205,7 @@ type
   { TGameOverEventLog (instance size 32, VMT 557FC95C) }
   TGameOverEventLog = class(TEventLog)
   public
-    F_GameOverEventLog_18: Integer;
+    FMessage: TStringList; { $18 }
     F_GameOverEventLog_1C: array[0..3] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -392,7 +393,7 @@ begin end;
 procedure TEventLogbook.GetOnChanged(A1: Integer);
 begin end;
 
-procedure TEventLogbook.SetOnChanged(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TEventLogbook.SetOnChanged(Value: TNotifyEvent);
 begin end;
 
 procedure TEventLogbook.ReadWrite(Stream: Engine.TEStorageStream);

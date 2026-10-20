@@ -1380,7 +1380,7 @@ var
   Faster, Slower: Boolean;
 begin
   Moves := GetMoveTypes;
-  if AoWHSMap.F_AoWHSMap_120 <> 0 then Moves := Moves - [mtTunneling];
+  if AoWHSMap.FCombat <> nil then Moves := Moves - [mtTunneling];
   Table := P2MovePointTables[P2MoveTypesToInt(Moves)];
   if FPlayer > 0 then
   begin
@@ -1478,7 +1478,7 @@ begin
       if Smallint(Field.TerrainType) <> Ord(ttBorder) then
         for Player := 1 to TPlayerList(AoWHSMap.FPlayers).Count - 1 do
           if (Player <> FPlayer) and
-             (P2DiplomaticRelation(TPlayerDiplomaticRelations(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).F_Player_40),Player) = drWar) and
+             (P2DiplomaticRelation(TPlayerDiplomaticRelations(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FDiplomaticRelations),Player) = drWar) and
              P2Explored(Field,Player) and
              not P2VisibleForPlayer(AoWHSMap,Walk.X,Walk.Y,MapField.Lhx,Player) then
             Field.SetExplored(Player,0);
@@ -4138,10 +4138,10 @@ begin end;
 procedure THero.SetOwner(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure THero.GetNickname(A1: Integer);
-begin end;
+function THero.GetNickname: string;
+begin Result := ''; end;
 
-procedure THero.SetNickname(A1: Integer; A2: Integer);
+procedure THero.SetNickname(Value: string);
 begin end;
 
 function THero.GetAbilitySelectionTypes: TAbilitySelectionTypes;
@@ -4252,8 +4252,8 @@ begin end;
 function THero.GetUnitGFXResourceIndex: Integer;
 begin end;
 
-procedure THero.GetSkillPoints;
-begin end;
+function THero.GetSkillPoints: Integer;
+begin Result := 0; end;
 
 procedure THero.GetSkillPointsMax;
 begin end;
@@ -4699,10 +4699,10 @@ begin Result := 0; end;
 function TLeader.GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer;
 begin end;
 
-procedure TLeader.GetNickname(A1: Integer);
-begin end;
+function TLeader.GetNickname: string;
+begin Result := ''; end;
 
-procedure TLeader.SetNickname(A1: Integer; A2: Integer);
+procedure TLeader.SetNickname(Value: string);
 begin end;
 
 function TLeader.GetSpherePicks(Sphere: TMagicSphere): Byte;
@@ -4711,8 +4711,8 @@ begin end;
 procedure TLeader.GetSpheres(A1: Integer);
 begin end;
 
-procedure TLeader.GetSphereCount;
-begin end;
+function TLeader.GetSphereCount: Integer;
+begin Result := 0; end;
 
 procedure TLeader.SetSpherePicksMax(A1: Byte);
 begin end;
