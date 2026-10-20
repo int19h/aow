@@ -2366,33 +2366,33 @@ begin
   end;
 end;
 
-procedure TCombatViewer.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TCombatViewer.ShowObject(A1: TCombatObject; A2: Integer; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
 begin
   if TCombatActionList(TCombatLogbook(FLogbook).FActions).Count >= FPosition then
     TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowObject(Self, TCombatObject(A1), A2, A3, A4, A5, A6)
-  else TCombatObject(A1).Show(A2, A3, A4, A5, TSurfaceDesc(Pointer(A6)^));
+  else TCombatObject(A1).Show(A2, A3, A4, A5, A6);
 end;
 
-procedure TCombatViewer.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TCombatViewer.ShowFieldObject(A1: TCombatObject; A2: Integer; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
 begin
   if (FPosition > 0) and (FPosition <= TCombatActionList(TCombatLogbook(FLogbook).FActions).Count) then
-    TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowFieldObject(Integer(Self), A1, A2, A3, A4, A5, A6)
-  else TCombatObject(A1).Show(A2, A3, A4, A5, TSurfaceDesc(Pointer(A6)^));
+    TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowFieldObject(Self, TCombatObject(A1), A2, A3, A4, A5, A6)
+  else TCombatObject(A1).Show(A2, A3, A4, A5, A6);
 end;
 
-procedure TCombatViewer.ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TCombatViewer.ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; const A4: TSurfaceDesc);
 begin
   if (FPosition > 0) and
     (FPosition <= TCombatActionList(TCombatLogbook(FLogbook).FActions).Count) then
     TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowFightingObjects(Self, A1, A2, A3, A4);
 end;
 
-procedure TCombatViewer.DefaultShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TCombatViewer.DefaultShowFightingObjects(A1: TCombatObject; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
 begin
-  if A2 <> 0 then
+  if A2 <> nil then
     if TCombatObject(A2).GetSide = csAttacker then ShowObject(A2, A3, 3, A4, A5, A6)
     else ShowObject(A2, A3, 5, A4 + 25, A5, A6);
-  if A1 <> 0 then
+  if A1 <> nil then
     if TCombatObject(A1).GetSide = csAttacker then ShowObject(A1, A3, 2, A4, A5 + 15, A6)
     else ShowObject(A1, A3, 6, A4 + 25, A5 + 15, A6);
 end;
@@ -2415,17 +2415,17 @@ end;
 function TCombatAction.GetName: string;
 begin Result := ClassName; end;
 
-procedure TCombatAction.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TCombatAction.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
-  TCombatObject(A2).Show(A3, A4, A5, A6, TSurfaceDesc(Pointer(A7)^));
+  TCombatObject(A2).Show(A3, A4, A5, A6, A7);
 end;
 
-procedure TCombatAction.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TCombatAction.ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
-  TCombatObject(A2).Show(A3, A4, A5, A6, TSurfaceDesc(Pointer(A7)^));
+  TCombatObject(A2).Show(A3, A4, A5, A6, A7);
 end;
 
-procedure TCombatAction.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TCombatAction.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
 begin end;
 
 function TCombatActionList.GetCombatActions(A1: Integer): TCombatAction;
@@ -2448,29 +2448,29 @@ begin
   else FMode := FMode - [smDefensive];
 end;
 
-procedure TSingleTargetCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TSingleTargetCA.ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   if not (smDefensive in FMode) then
   begin
-    if TCombatObject(A2).FID = FSourceID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
+    if TCombatObject(A2).FID = FSourceID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,A7);
   end
-  else if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
+  else if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,A7);
   ShowObject(TCombatViewer(A1),TCombatObject(A2),A3,A4,A5,A6,A7);
   if not (smDefensive in FMode) then
   begin
-    if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[3].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
+    if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[3].Show(A5+15,A6+18,A7);
   end
-  else if TCombatObject(A2).FID = FSourceID then AoWHSSet.FCombatImages[3].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
+  else if TCombatObject(A2).FID = FSourceID then AoWHSSet.FCombatImages[3].Show(A5+15,A6+18,A7);
 end;
 
-procedure TSingleTargetCA.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TSingleTargetCA.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
 var Source, Target: TCombatObject;
 begin
   Source := TCombatData(A1.FCombat.FCombatData).FindID(FSourceID);
   Target := TCombatData(A1.FCombat.FCombatData).FindID(FTargetID);
   if not (smDefensive in FMode) then
-    A1.DefaultShowFightingObjects(Integer(Source),Integer(Target),A2,A3,A4,A5)
-  else A1.DefaultShowFightingObjects(Integer(Target),Integer(Source),A2,A3,A4,A5);
+    A1.DefaultShowFightingObjects(Source,Target,A2,A3,A4,A5)
+  else A1.DefaultShowFightingObjects(Target,Source,A2,A3,A4,A5);
 end;
 
 class function TDamageCA.ClassID: Integer;
@@ -2547,22 +2547,22 @@ begin
   Result := Duration > A1.FTime;
 end;
 
-procedure TDamageCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TDamageCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 var HitFrame: Integer;
 begin
   if TCombatObject(A2).FID = FSourceID then
-    TCombatObject(A2).ShowAttackAnimation(TCombatViewer(A1).FTime, A4, A5, A6, TSurfaceDesc(Pointer(A7)^))
+    TCombatObject(A2).ShowAttackAnimation(TCombatViewer(A1).FTime, A4, A5, A6, A7)
   else
   begin
     if TCombatViewer(A1).FDelay < 5 then HitFrame := TCombatViewer(A1).FDelay else HitFrame := 5;
     if (TCombatObject(A2).FID = FTargetID) and (FDamageDone <> 0) and (HitFrame <= TCombatViewer(A1).FTime) then
     begin
-      TCombatObject(A2).Show(A3, A4, A5, A6, TSurfaceDesc(Pointer(A7)^));
+      TCombatObject(A2).Show(A3, A4, A5, A6, A7);
       if FEffects.Value <> [] then AoWE.ShowDamageEffects(PWord(@FEffects.Value)^, A5, A6, TCombatViewer(A1).FTime - HitFrame, A7);
       { needs: P1 ShowDamageIcon has five arguments; DamageTypesToDamageType returns TDamageType. }
-      AoWE.ShowDamageIcon(A5, A6, TSurfaceDesc(Pointer(A7)^), FDamageDone, AoWE.DamageTypesToDamageType(FDamageTypes.Value));
+      AoWE.ShowDamageIcon(A5, A6, A7, FDamageDone, AoWE.DamageTypesToDamageType(FDamageTypes.Value));
     end
-    else TCombatObject(A2).Show(A3, A4, A5, A6, TSurfaceDesc(Pointer(A7)^));
+    else TCombatObject(A2).Show(A3, A4, A5, A6, A7);
   end;
 end;
 
@@ -2616,38 +2616,38 @@ asm
   POP EBX
 end;
 
-procedure TDamageEffectCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TDamageEffectCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   if TCombatObject(A2).FID = FTargetID then
     case FDamageType of
       dtFire:
         begin
-          TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
-          AoWHSSet.FAbilityControl.GetAbility($7F).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,TSurfaceDesc(Pointer(A7)^));
+          TCombatObject(A2).Show(A3,A4,A5,A6,A7);
+          AoWHSSet.FAbilityControl.GetAbility($7F).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,A7);
         end;
       dtPoison:
         begin
-          TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
-          AoWHSSet.FAbilityControl.GetAbility($60).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,TSurfaceDesc(Pointer(A7)^));
+          TCombatObject(A2).Show(A3,A4,A5,A6,A7);
+          AoWHSSet.FAbilityControl.GetAbility($60).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,A7);
         end;
       dtCold:
         begin
-          TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
-          AoWHSSet.FAbilityControl.GetAbility($5F).FImageSequences.Show(1,A5+32,A6+32,TCombatViewer(A1).FTime,TSurfaceDesc(Pointer(A7)^));
+          TCombatObject(A2).Show(A3,A4,A5,A6,A7);
+          AoWHSSet.FAbilityControl.GetAbility($5F).FImageSequences.Show(1,A5+32,A6+32,TCombatViewer(A1).FTime,A7);
         end;
       dtDeath:
         begin
-          TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
-          AoWHSSet.FAbilityControl.GetAbility($5D).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,TSurfaceDesc(Pointer(A7)^));
+          TCombatObject(A2).Show(A3,A4,A5,A6,A7);
+          AoWHSSet.FAbilityControl.GetAbility($5D).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,A7);
         end;
       dtHoly:
         begin
-          TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
-          AoWHSSet.FAbilityControl.GetAbility($62).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,TSurfaceDesc(Pointer(A7)^));
+          TCombatObject(A2).Show(A3,A4,A5,A6,A7);
+          AoWHSSet.FAbilityControl.GetAbility($62).FImageSequences.Show(0,A5+32,A6+32,TCombatViewer(A1).FTime,A7);
         end;
-    else TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
+    else TCombatObject(A2).Show(A3,A4,A5,A6,A7);
     end
-  else TCombatObject(A2).Show(A3,A4,A5,A6,TSurfaceDesc(Pointer(A7)^));
+  else TCombatObject(A2).Show(A3,A4,A5,A6,A7);
 end;
 
 class function TUpdateHeaderCA.ClassID: Integer;

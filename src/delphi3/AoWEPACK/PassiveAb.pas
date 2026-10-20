@@ -2,7 +2,8 @@ unit PassiveAb;
 
 { Draft declarations of PassiveAb, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  The signature-order range TVisionAbility through TWebbedAbility is recovered;
+  later classes remain drafts. }
 
 interface
 
@@ -57,28 +58,33 @@ type
   TSlowEnchantmentAbility = class;
 
 
-  { TVisionAbility (instance size 48, VMT 557B502C) }
+  { TVisionAbility (instance size 48, VMT 557B502C):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type;
+    $28 maximum level, $2C level costs. }
   TVisionAbility = class(TMultiLevelAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetLevelName(A1: Integer): string; override;
   end;
 
-  { THolyChampionAbility (instance size 40, VMT 557B51B8) }
+  { THolyChampionAbility (instance size 40, VMT 557B51B8):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   THolyChampionAbility = class(TEnhancementAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CanExpand(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { TUnholyChampionAbility (instance size 40, VMT 557B534C) }
+  { TUnholyChampionAbility (instance size 40, VMT 557B534C):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   TUnholyChampionAbility = class(TEnhancementAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CanExpand(A1: TAbilityOwner): Boolean; override;
   end;
 
-  { TNaturesBlessingAbility (instance size 44, VMT 557B54E4) }
+  { TNaturesBlessingAbility (instance size 44, VMT 557B54E4):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type; $28 duration mode. }
   TNaturesBlessingAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -96,7 +102,9 @@ type
     function GetResistance(A1: TAbilityOwner): Shortint; override;
   end;
 
-  { TCrusaderAbility (instance size 44, VMT 557B582C) }
+  { TCrusaderAbility (instance size 44, VMT 557B582C):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type,
+    $28 duration mode; duration data $0C countdown, $0D player index. }
   TCrusaderAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -105,7 +113,8 @@ type
     function GetTotalDuration: Integer; override;
   end;
 
-  { TBloodlustAbility (instance size 44, VMT 557B59C0) }
+  { TBloodlustAbility (instance size 44, VMT 557B59C0):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type; $28 duration mode. }
   TBloodlustAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -114,7 +123,8 @@ type
     function GetDamage(A1: TAbilityOwner): Shortint; override;
   end;
 
-  { TPoisonedAbility (instance size 44, VMT 557B5B58) }
+  { TPoisonedAbility (instance size 44, VMT 557B5B58):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type; $28 duration mode. }
   TPoisonedAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -132,7 +142,9 @@ type
     procedure CombatDone(A1: TCombatObject); override;
   end;
 
-  { TWebbedAbility (instance size 44, VMT 557B5E7C) }
+  { TWebbedAbility (instance size 44, VMT 557B5E7C):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type,
+    $28 duration mode. }
   TWebbedAbility = class(TDurationAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -258,7 +270,8 @@ type
     function GetProtectionTypes(A1: TAbilityOwner): TDamageTypes; override;
   end;
 
-  { TEntangledAbility (instance size 40, VMT 557B7784) }
+  { TEntangledAbility (instance size 40, VMT 557B7784):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   TEntangledAbility = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -268,7 +281,8 @@ type
     function CreateEnchantment: TUnitEnchantment; override;
   end;
 
-  { TFrozenAbility (instance size 40, VMT 557B7928) }
+  { TFrozenAbility (instance size 40, VMT 557B7928):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   TFrozenAbility = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -278,7 +292,8 @@ type
     function CreateEnchantment: TUnitEnchantment; override;
   end;
 
-  { TTurnedUndeadAbility (instance size 40, VMT 557B7AC4) }
+  { TTurnedUndeadAbility (instance size 40, VMT 557B7AC4):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   TTurnedUndeadAbility = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -408,7 +423,8 @@ type
     function GetSourceName(A1: TAbilityOwner): string; override;
   end;
 
-  { TSlowEnchantmentAbility (instance size 40, VMT 557B96F8) }
+  { TSlowEnchantmentAbility (instance size 40, VMT 557B96F8):
+    inherited $08 name, $0C ability ID, $20 selection types, $24 ability type. }
   TSlowEnchantmentAbility = class(TUnitEnchantmentAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -422,136 +438,299 @@ procedure UnregisterPassiveAbilities(A1: Integer);  { draft }
 implementation
 
 constructor TVisionAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor];
+  FMaxLevel := 4;
+  FAbilityID := 64;
+  FLevelCosts[1] := 5;
+  FLevelCosts[2] := 5;
+  FLevelCosts[3] := 5;
+  FLevelCosts[4] := 5;
+end;
 
 function TVisionAbility.GetLevelName(A1: Integer): string;
-begin end;
+begin
+  case A1 of
+    0: Result := TranslateRStr(VisionRStr);
+    1: Result := TranslateRStr(VisionRStr) + ' I';
+    2: Result := TranslateRStr(VisionRStr) + ' II';
+    3: Result := TranslateRStr(VisionRStr) + ' III';
+    4: Result := TranslateRStr(VisionRStr) + ' IV';
+  end;
+end;
 
 constructor THolyChampionAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(HolyChampionRStr);
+  FAbilityID := 146;
+  FSelectionTypes := [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor];
+end;
 
 function THolyChampionAbility.CanExpand(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanExpand(A1);
+  if Result and (A1 is TAbstractUnit) then
+    Result := TAbstractUnit(A1).GetAlignment in alsPureGood;
+end;
 
 constructor TUnholyChampionAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(UnholyChampionRStr);
+  FAbilityID := 147;
+  FSelectionTypes := [astUnit, astHeadItem, astTorsoItem, astDefenseItem, astRingItem, astEditor];
+end;
 
 function TUnholyChampionAbility.CanExpand(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanExpand(A1);
+  if Result and (A1 is TAbstractUnit) then
+    Result := TAbstractUnit(A1).GetAlignment in alsPureEvil;
+end;
 
 constructor TNaturesBlessingAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(NaturesBlessingRStr);
+  FAbilityID := 99;
+  FAbilityType := atEnchantment;
+  FSelectionTypes := [];
+  FDurationMode := dmDay;
+end;
 
 function TNaturesBlessingAbility.GetAttack(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function TNaturesBlessingAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function TNaturesBlessingAbility.GetResistance(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function TNaturesBlessingAbility.Expand(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Expand(A1);
+  if A1 is TAbstractUnit then
+    with TAbstractUnit(A1) do SetHitPoints(GetHits);
+end;
 
 constructor TBloodlustAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(BloodlustRStr);
+  FAbilityID := 168;
+  FAbilityType := atEnchantment;
+  FSelectionTypes := [];
+  FDurationMode := dmDay;
+end;
 
 function TBloodlustAbility.GetAttack(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 function TBloodlustAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TBloodlustAbility.GetDamage(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := 2;
+end;
 
 constructor TPoisonedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(PoisonedRStr);
+  FAbilityID := 96;
+  FAbilityType := atHandicap;
+  FDurationMode := dmDay;
+  FSelectionTypes := [];
+end;
 
 function TPoisonedAbility.GetAttack(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TPoisonedAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TPoisonedAbility.GetResistance(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TPoisonedAbility.GetDamage(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 constructor TSlowEnchantmentAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(SlowRStr);
+  FAbilityID := 132;
+  FSelectionTypes := [];
+end;
 
 function TSlowEnchantmentAbility.CreateEnchantment: TUnitEnchantment;
-begin Result := nil; end;
+begin
+  Result := inherited CreateEnchantment;
+  Result.FDispelResistance := 3;
+end;
 
 procedure TSlowEnchantmentAbility.CombatDone(A1: TCombatObject);
-begin end;
+begin
+  A1.GetAbilityOwner.RemoveAbility(FAbilityID);
+end;
 
 constructor TEntangledAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(EntangledRStr);
+  FAbilityID := 94;
+  FSelectionTypes := [];
+end;
 
 function TEntangledAbility.GetDurationMode: TDurationMode;
-begin Result := dmNone; end;
+begin
+  Result := dmCombatTurn;
+end;
 
 function TEntangledAbility.GetTotalDuration: Shortint;
-begin Result := 0; end;
+begin
+  Result := 3;
+end;
 
 function TEntangledAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -2;
+end;
 
 function TEntangledAbility.CreateEnchantment: TUnitEnchantment;
-begin Result := nil; end;
+begin
+  Result := inherited CreateEnchantment;
+  Result.FDispelResistance := 3;
+end;
 
 constructor TFrozenAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(FrozenRStr);
+  FAbilityID := 95;
+  FAbilityType := atEnchantment;
+  FSelectionTypes := [];
+end;
 
 function TFrozenAbility.GetDurationMode: TDurationMode;
-begin Result := dmNone; end;
+begin
+  Result := dmCombatTurn;
+end;
 
 function TFrozenAbility.GetTotalDuration: Shortint;
-begin Result := 0; end;
+begin
+  Result := 2;
+end;
 
 function TFrozenAbility.CreateEnchantment: TUnitEnchantment;
-begin Result := nil; end;
+begin
+  Result := inherited CreateEnchantment;
+  Result.FDispelResistance := 3;
+end;
 
 function TFrozenAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -2;
+end;
 
 constructor TTurnedUndeadAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(TurnedUndeadRStr);
+  FAbilityID := 34;
+  FSelectionTypes := [];
+end;
 
 function TTurnedUndeadAbility.CreateEnchantment: TUnitEnchantment;
-begin Result := nil; end;
+begin
+  Result := inherited CreateEnchantment;
+  Result.FDispelResistance := 4;
+end;
 
 function TTurnedUndeadAbility.GetDurationMode: TDurationMode;
-begin Result := dmNone; end;
+begin
+  Result := dmCombatTurn;
+end;
 
 function TTurnedUndeadAbility.GetTotalDuration: Shortint;
-begin Result := 0; end;
+begin
+  Result := 3;
+end;
 
 constructor TCrusaderAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(CrusaderRStr);
+  FAbilityID := 101;
+  FAbilityType := atHandicap;
+  FDurationMode := dmDay;
+  FSelectionTypes := [];
+end;
 
 function TCrusaderAbility.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Remove(A1);
+  TAbstractUnit(A1).Killed;
+end;
 
 function TCrusaderAbility.GetTotalDuration: Integer;
-begin Result := 0; end;
+begin
+  Result := 3;
+end;
 
 procedure TCrusaderAbility.NewTurn(A1: TAbilityOwner; A2: Shortint);
-begin end;
+var
+  Data: TDurationAbilityData;
+begin
+  if FDurationMode = dmDay then
+  begin
+    Data := TDurationAbilityData(A1.GetAbilityData(FAbilityID));
+    if (Data <> nil) and (Data.FDuration <> 0) and (Data.FPlayerIndex = A2) then
+      Dec(Data.FDuration);
+  end;
+end;
 
 constructor TWebbedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityName := TranslateRStr(WebbedRStr);
+  FAbilityID := 97;
+  FAbilityType := atHandicap;
+  FDurationMode := dmCombatTurn;
+  FSelectionTypes := [];
+end;
 
 function TWebbedAbility.GetTotalDuration: Integer;
-begin Result := 0; end;
+begin
+  Result := 3;
+end;
 
 function TWebbedAbility.GetDefense(A1: TAbilityOwner): Shortint;
-begin Result := 0; end;
+begin
+  Result := -2;
+end;
 
 constructor TBurningAbility.Create(AOwner: Engine.TECustomNode);
 begin end;

@@ -72,18 +72,18 @@
     function GetDefense: Shortint; virtual;  { +0C4 draft }
     function GetDamage: Shortint; virtual;  { +0C8 draft }
     function GetResistance: Shortint; virtual;  { +0CC draft }
-    function GetHits: Shortint; virtual;  { +0D0 draft }
+    function GetHits: Shortint; virtual;  { +0D0 }
     function GetMoves: Shortint; virtual;  { +0D4 draft }
     function GetMovePoints: Shortint; virtual;  { +0D8 draft }
     procedure SetMovePoints(Value: Shortint); virtual;  { +0DC draft }
     function GetHitPoints: Shortint; virtual;  { +0E0 draft }
-    procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 draft }
+    procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 }
     function GetMoveTypes: TMoveTypes; virtual;  { +0E8 draft }
     function GetImmunityTypes: TDamageTypes; virtual;  { +0EC draft }
     function GetProtectionTypes: TDamageTypes; virtual;  { +0F0 draft }
     function GetFace: TLibraryImage; virtual;  { +0F4 draft }
     function GetName: string; virtual;
-    function GetAlignment: TAlignment; virtual;  { +0FC draft }
+    function GetAlignment: TAlignment; virtual;  { +0FC }
     function GetPreviewImage: TLibraryImage; virtual;  { +100 draft }
     function GetTransportCapacity: Byte; virtual;  { +104 draft }
     function GetTransporter: Boolean; virtual;  { +108 draft }

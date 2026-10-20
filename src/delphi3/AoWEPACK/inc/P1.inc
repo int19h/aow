@@ -5883,7 +5883,7 @@ begin end;
 procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
 begin end;
 
-procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
 begin end;
 
 function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;

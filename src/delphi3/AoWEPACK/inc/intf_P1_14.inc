@@ -6,6 +6,8 @@ var
 
 const
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
+  alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }
+  alsPureEvil: TAlignments = [alEvil, alPureEvil, alNone]; { $558E8060 }
   { Original alsAll at $558E8068 excludes alPureNeutral. }
   RaceTerrain: TRaceTerrainTable = (
     (Bonus: []; Penalty: []),

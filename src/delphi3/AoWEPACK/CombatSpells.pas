@@ -2,7 +2,7 @@ unit CombatSpells;
 
 { Draft declarations of CombatSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  The first three combat action classes are recovered; later classes remain drafts. }
 
 interface
 
@@ -56,54 +56,57 @@ type
   TAnimateDead = class;
 
 
-  { TCombatSpellCA (instance size 32, VMT 557F3CC8) }
+  { TCombatSpellCA (instance size 32, VMT 557F3CC8):
+    $18 spell ID, $1C casting mana; source and target IDs inherited at $0D/$0E. }
   TCombatSpellCA = class(TDamageCA)
   public
-    F_CombatSpellCA_18: Integer;
-    F_CombatSpellCA_1C: Integer;
+    FSpellID: Integer;
+    FManaCost: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
+    procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
   end;
 
-  { TExclusiveCombatSpellCA (instance size 28, VMT 557F3DB8) }
+  { TExclusiveCombatSpellCA (instance size 28, VMT 557F3DB8):
+    $0C source ID, $0D target ID, $10 casting mana, $14 success, $18 spell ID. }
   TExclusiveCombatSpellCA = class(TCombatAction)
   public
-    F_ExclusiveCombatSpellCA_0C: Byte;
-    F_ExclusiveCombatSpellCA_0D: Byte;
+    FSourceID: Byte;
+    FTargetID: Byte;
     F_ExclusiveCombatSpellCA_0E: array[0..1] of Byte;
-    F_ExclusiveCombatSpellCA_10: Integer;
-    F_ExclusiveCombatSpellCA_14: Byte;
+    FManaCost: Integer;
+    FSucceeded: Boolean;
     F_ExclusiveCombatSpellCA_15: array[0..2] of Byte;
-    F_ExclusiveCombatSpellCA_18: Integer;
+    FSpellID: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
+    procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
   end;
 
-  { TMultiTargetCombatSpellCA (instance size 32, VMT 557F3EAC) }
+  { TMultiTargetCombatSpellCA (instance size 32, VMT 557F3EAC):
+    $0C source ID, $10 target byte list, $14 casting mana, $18 success, $1C spell ID. }
   TMultiTargetCombatSpellCA = class(TCombatAction)
   public
-    F_MultiTargetCombatSpellCA_0C: Byte;
+    FSourceID: Byte;
     F_MultiTargetCombatSpellCA_0D: array[0..2] of Byte;
-    F_MultiTargetCombatSpellCA_10: Integer;
-    F_MultiTargetCombatSpellCA_14: Integer;
-    F_MultiTargetCombatSpellCA_18: Byte;
+    FTargetIDs: TByteList;
+    FManaCost: Integer;
+    FSucceeded: Boolean;
     F_MultiTargetCombatSpellCA_19: array[0..2] of Byte;
-    F_MultiTargetCombatSpellCA_1C: Integer;
+    FSpellID: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
+    procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
+    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc); override;
   end;
 
   { TCombatSpell (instance size 64, VMT 557F3FA4) }
@@ -414,61 +417,189 @@ procedure UnregisterCombatSpells(A1: Integer);  { draft }
 implementation
 
 class function TCombatSpellCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202C2;
+end;
 
 procedure TCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FSpellID, 30);
+  Stream.rwInteger(FManaCost, 31);
+end;
 
 procedure TCombatSpellCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+begin
+  inherited Execute(A1);
+  if (FManaCost <> 0) and (cExecuting in A1.FStatus) then
+  begin
+    Source := A1.FCombatData.FindID(FSourceID);
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, FManaCost);
+  end;
+end;
 
 function TCombatSpellCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  if A1.FTime = 0 then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  if A1.FDelay = A1.FTime then Execute(A1.FCombat);
+  Result := A1.FDelay * 2 > A1.FTime;
+end;
 
-procedure TCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if A2.FID = FTargetID then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
-procedure TCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TCombatSpellCA.ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  { Original calls ShowObject here, bypassing inherited field markers. }
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if A2.FID = FTargetID then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
 procedure TExclusiveCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FSourceID, 20);
+  Stream.rwByte(FTargetID, 21);
+  Stream.rwInteger(FManaCost, 22);
+  Stream.rwBool(FSucceeded, 23);
+  Stream.rwInteger(FSpellID, 24);
+end;
 
 procedure TExclusiveCombatSpellCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+begin
+  with A1 do
+  if (FManaCost <> 0) and (cExecuting in FStatus) then
+  begin
+    Source := FCombatData.FindID(FSourceID);
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, FManaCost);
+  end;
+end;
 
 function TExclusiveCombatSpellCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  if A1.FTime = 0 then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  if A1.FDelay = A1.FTime then Execute(A1.FCombat);
+  Result := A1.FDelay * 3 > A1.FTime;
+end;
 
-procedure TExclusiveCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TExclusiveCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  if A2.FID = FSourceID then
+    A2.ShowAttackAnimation(A1.FTime, A4, A5, A6, A7)
+  else inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if A2.FID = FTargetID then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
-procedure TExclusiveCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TExclusiveCombatSpellCA.ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  { Original calls ShowObject here, bypassing inherited field markers. }
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if A2.FID = FTargetID then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
 constructor TMultiTargetCombatSpellCA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTargetIDs := TByteList.Create;
+end;
 
 destructor TMultiTargetCombatSpellCA.Destroy;
-begin end;
+begin
+  FTargetIDs.Free;
+  inherited Destroy;
+end;
 
 procedure TMultiTargetCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FSourceID, 20);
+  Stream.rwStreamProc(21, FTargetIDs.LoadFromStream, FTargetIDs.SaveToStream);
+  Stream.rwInteger(FManaCost, 22);
+  Stream.rwBool(FSucceeded, 23);
+  Stream.rwInteger(FSpellID, 24);
+end;
 
 procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat);
-begin end;
+var
+  Source: TCombatObject;
+begin
+  with A1 do
+  if (FManaCost <> 0) and (cExecuting in FStatus) then
+  begin
+    Source := FCombatData.FindID(FSourceID);
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, FManaCost);
+  end;
+end;
 
 function TMultiTargetCombatSpellCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  if A1.FTime = 0 then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  if A1.FDelay = A1.FTime then Execute(A1.FCombat);
+  Result := A1.FDelay * 5 > A1.FTime;
+end;
 
-procedure TMultiTargetCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TMultiTargetCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  if A2.FID = FSourceID then
+    A2.ShowAttackAnimation(A1.FTime, A4, A5, A6, A7)
+  else inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if FTargetIDs.IndexOf(A2.FID) <> -1 then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
-procedure TMultiTargetCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+procedure TMultiTargetCombatSpellCA.ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+begin
+  { Original calls ShowObject here, bypassing inherited field markers. }
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if A2.FID = FSourceID then
+    AoWEngine.FCombatFont.SetTextCentered(A5 + 32, A6 + 32 + 8,
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName, A7)
+  else if FTargetIDs.IndexOf(A2.FID) <> -1 then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.Show(11,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
-procedure TMultiTargetCombatSpellCA.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TMultiTargetCombatSpellCA.ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
+var
+  Source: TCombatObject;
+begin
+  Source := A1.FCombat.FCombatData.FindID(FSourceID);
+  A1.DefaultShowFightingObjects(nil, Source, A2, A3, A4, A5);
+end;
 
 constructor TCombatSpell.Create(AOwner: Engine.TECustomNode);
 begin end;

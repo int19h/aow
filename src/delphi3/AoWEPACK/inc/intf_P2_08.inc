@@ -8,7 +8,7 @@
     F_AoWEngine_60: Integer;
     FGameSet: TAoWHSSet; { $64 }
     { conflict: FHSSet: TAoWHSSet; }
-    F_AoWEngine_68: array[0..3] of Byte;
+    FCombatFont: TImageLibraryFont; { $68 }
     F_AoWEngine_6C: Byte;
     FAnimationDetail: Byte; { $6D }
     F_AoWEngine_6E: Byte;

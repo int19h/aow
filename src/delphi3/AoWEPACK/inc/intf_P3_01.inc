@@ -184,7 +184,7 @@
     procedure SetAbilityEnabled(A1: Integer; A2: Boolean); virtual;  { +0AC draft }
     function GetAbilityLevel(A1: Integer): Integer; virtual;  { +0B0 draft }
     function GetAbilityCount: Integer; virtual;  { +0B4 draft }
-    function GetAbilityOwner: TAbilityOwner; virtual;  { +0B8 draft }
+    function GetAbilityOwner: TAbilityOwner; virtual;  { +0B8 }
     procedure Activate(A1: Integer); virtual;  { +0BC draft }
     procedure Deactivate; virtual;  { +0C0 draft }
     procedure ObjectDestroyed(A1: Integer); virtual;  { +0C4 draft }

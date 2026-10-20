@@ -25,10 +25,10 @@
     procedure Play;  { draft }
     procedure Pause;  { draft }
     procedure Update;  { draft }
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
-    procedure ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure DefaultShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+    procedure ShowObject(A1: TCombatObject; A2: Integer; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
+    procedure ShowFieldObject(A1: TCombatObject; A2: Integer; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
+    procedure ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; const A4: TSurfaceDesc);
+    procedure DefaultShowFightingObjects(A1: TCombatObject; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; const A6: TSurfaceDesc);
   end;
 
   { TCombatAction: instance size $0C, VMT 557160B4; $08 FRefCount. }
@@ -41,9 +41,9 @@
     function GetName: string; virtual;  { +04C }
     procedure Execute(A1: TCombat); virtual; abstract;  { +050 }
     function Play(A1: TCombatViewer): Boolean; virtual; abstract;  { +054 }
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +058 draft }
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +05C draft }
-    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +060 draft }
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); virtual;  { +058 }
+    procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); virtual;  { +05C }
+    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc); virtual;  { +060 }
   end;
 
   { TSingleTargetCA: instance size $10, VMT 557161CC;
@@ -55,8 +55,8 @@
     FTargetID: Byte;
     F_SingleTargetCA_0F: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
-    procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
+    procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
+    procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc); override;
     function GetDefensive: Boolean;  { draft }
     procedure SetDefensive(A1: Byte);  { draft }
   end;
@@ -76,7 +76,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
     procedure Setup(A1: Byte; A2: Byte; A3: Byte; A4: TDamageTypes; A5: TDamageTypes; A6: Boolean); virtual;  { +064 draft }
     procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); virtual;
     procedure GenerateEx(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes; A6: Byte); virtual; { +06C }
@@ -91,7 +91,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Byte; A4: Boolean);  { draft }
   end;
 

@@ -41,7 +41,7 @@ procedure FmtDaysLeftStr(A1: Integer; A2: Integer);  { draft }
 function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
 procedure ShowHitPcnt(A1: Integer; A2: Integer; const A3: TSurfaceDesc; A4: Integer);
 procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
-procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
 function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;
 function StatusToStatusValue(Status: TStatus): Integer;
 function StatusValueToStatus(Value: Integer): TStatus;

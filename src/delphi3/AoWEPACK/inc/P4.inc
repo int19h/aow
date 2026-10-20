@@ -2218,13 +2218,13 @@ begin
   Source.ExecuteDamage(Source.GetHitPoints);
 end;
 
-procedure TSelfDestructCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TSelfDestructCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if ((A2.FID = FTargetID) or (A2.FID = FSourceID)) and
     (A1.FTime >= A1.FDelay - 2) then
     AoWHSSet.FAbilityControl.GetAbility(65).FImageSequences.Show(40,
-      A5 + 32, A6 + 32, A1.FTime, PSurfaceDesc(A7)^);
+      A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 
 constructor TSelfDestructAbility.Create(AOwner: Engine.TECustomNode);
@@ -2627,12 +2627,12 @@ begin
   end;
 end;
 
-procedure TPossessCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TPossessCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if (A2.FID = FSourceID) or (A2.FID = FTargetID) then
     AoWHSSet.FAbilityControl.GetAbility(106).FImageSequences.Show(0,
-      A5 + 32, A6 + 32, A1.FTime, PSurfaceDesc(A7)^);
+      A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 
 function TPossessCA.Play(A1: TCombatViewer): Boolean;
@@ -2887,12 +2887,12 @@ begin
   end;
 end;
 
-procedure TWebCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TWebCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if A2.FID = FTargetID then
     AoWHSSet.FAbilityControl.GetAbility(27).FImageSequences.Show(0,
-      A5 + 32, A6 + 32, A1.FTime, PSurfaceDesc(A7)^);
+      A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 
 function TWebCA.Play(A1: TCombatViewer): Boolean;
@@ -3059,12 +3059,12 @@ begin
   end;
 end;
 
-procedure TEntangleCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TEntangleCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if A2.FID = FTargetID then
     AoWHSSet.FAbilityControl.GetAbility(40).FImageSequences.Show(0,
-      A5 + 32, A6 + 32, A1.FTime, PSurfaceDesc(A7)^);
+      A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 
 function TEntangleCA.Play(A1: TCombatViewer): Boolean;
@@ -3228,12 +3228,12 @@ begin
   end;
 end;
 
-procedure TTurnUndeadCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TTurnUndeadCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if A2.FID = FTargetID then
     AoWHSSet.FAbilityControl.GetAbility(38).FImageSequences.Show(0,
-      A5 + 32, A6 + 32, A1.FTime, PSurfaceDesc(A7)^);
+      A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 
 function TTurnUndeadCA.Play(A1: TCombatViewer): Boolean;
@@ -3546,7 +3546,7 @@ begin Result := 0; end;
 procedure TInvokeDeathCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TInvokeDeathCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TInvokeDeathCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin end;
 
 function TInvokeDeathCA.Play(A1: TCombatViewer): Boolean;
@@ -3600,7 +3600,7 @@ begin end;
 procedure THealingCA.Execute(A1: TCombat);
 begin end;
 
-procedure THealingCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure THealingCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin end;
 
 function THealingCA.Play(A1: TCombatViewer): Boolean;
@@ -3702,7 +3702,7 @@ begin end;
 procedure TDispelMagicCA.Execute(A1: TCombat);
 begin end;
 
-procedure TDispelMagicCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TDispelMagicCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin end;
 
 function TDispelMagicCA.Play(A1: TCombatViewer): Boolean;
@@ -3861,7 +3861,7 @@ begin Result := 0; end;
 procedure TRangedAttackCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TRangedAttackCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TRangedAttackCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin end;
 
 function TRangedAttackCA.GetName: string;
@@ -4002,7 +4002,7 @@ begin end;
 procedure TCommandCA.Initialize(A1: Byte; A2: Byte; A3: Integer);
 begin end;
 
-procedure TCommandCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TCommandCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
 begin end;
 
 procedure TCommandCA.Execute(A1: TCombat);
