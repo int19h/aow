@@ -28,7 +28,7 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetPower: Integer; override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
@@ -71,7 +71,7 @@ begin end;
 function TPowerNode.GetCurrentActivityText: string;
 begin end;
 
-procedure TPowerNode.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TPowerNode.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TPowerNode.SetPlayer(Player: Shortint);

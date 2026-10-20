@@ -3946,7 +3946,7 @@ begin end;
 procedure TStructure.ExecuteAI(A1: Integer; A2: Integer);
 begin end;
 
-procedure TStructure.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TStructure.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 function TStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
@@ -4303,7 +4303,7 @@ begin end;
 procedure TPlayerStructure.GetDefaultAITargetPriority;
 begin end;
 
-procedure TPlayerStructure.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TPlayerStructure.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TPlayerStructure.GetMoveAction(A1: Integer; A2: Integer);
@@ -4393,11 +4393,11 @@ begin end;
 function TConstructStructureTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
 begin FillChar(Result, SizeOf(Result), 0); end;
 
-procedure TStructureConstructionControl.StructureResource(A1: Integer; A2: Integer);
-begin end;
+function TStructureConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
+begin Result := nil; end;
 
-procedure TStructureConstructionControl.ValidateLocation(A1: Integer; A2: Integer);
-begin end;
+function TStructureConstructionControl.ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean;
+begin Result := False; end;
 
 procedure TStructureConstructionControl.CanConstruct(A1: Integer; A2: Integer);
 begin end;

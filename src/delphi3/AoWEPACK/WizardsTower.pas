@@ -29,7 +29,7 @@ type
     procedure ExecuteTE(A1: Integer; A2: Integer); override;
     procedure NewDay; override;
     procedure ArmyPlaced(A1: Integer); override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     function CanDblClick: Boolean; override;
     procedure ValidAITarget(A1: Integer);  { draft }
     procedure GenerateSettings;  { draft }
@@ -81,7 +81,7 @@ begin end;
 procedure TWizardsTower.ValidAITarget(A1: Integer);
 begin end;
 
-procedure TWizardsTower.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TWizardsTower.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TWizardsTower.ArmyPlaced(A1: Integer);

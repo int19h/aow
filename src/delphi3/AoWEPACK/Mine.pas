@@ -29,7 +29,7 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure SetPlayer(Player: Shortint); override;
     function GetIncome: Integer; override;
     procedure GetCombatEventText(A1: Integer; A2: Integer); override;
@@ -108,7 +108,7 @@ begin
     [IntToStr(GetIncome)]);
 end;
 
-procedure TMine.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TMine.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 var CandidatePriority: Integer;
 begin
   if not GetRazed or GetBuilding then

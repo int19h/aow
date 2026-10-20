@@ -2,10 +2,10 @@
   { TRebuildConstructionControl (instance size 8, VMT 55770A28) }
   TRebuildConstructionControl = class(TConstructionControl)
   public
-    procedure GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     procedure CanConstruct(A1: Integer; A2: Integer); override;
     procedure Construct(A1: Integer); override;
-    procedure ID; override;
+    function ID: Integer; override;
   end;
 
   { TBuildRoadsControl (instance size 8, VMT 55770AE0) }
@@ -13,9 +13,9 @@
   public
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     procedure CanConstruct(A1: Integer; A2: Integer); override;
     procedure Construct(A1: Integer); override;
-    procedure ID; override;
+    function ID: Integer; override;
   end;
 

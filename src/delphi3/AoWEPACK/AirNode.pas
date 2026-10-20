@@ -1,8 +1,8 @@
 unit AirNode;
 
-{ Draft declarations of AirNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AirNode specialization recovered from AoWEPACK.dpl.
+  Inherited resource fields: $44 terrain binding, $5A rebuild gold,
+  $5B rebuild days, $60 raze defender budget. }
 
 interface
 
@@ -14,14 +14,14 @@ type
   TAirNodeResource = class;
 
 
-  { TAirNode (instance size 76, VMT 557C0DF4) }
+  { TAirNode (instance size 76, no added fields, VMT 557C0DF4) }
   TAirNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
     function GetMagicSphere: TMagicSphere; override;
   end;
 
-  { TAirNodeResource (instance size 120, VMT 557C10A4) }
+  { TAirNodeResource (instance size 120, no added fields, VMT 557C10A4) }
   TAirNodeResource = class(TProductionPlaceResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -30,30 +30,38 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterAirNode;  { draft }
+procedure RegisterAirNode(AEngine: TEngine);
 
 implementation
 
 class function TAirNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2094E; end;
 
 function TAirNode.GetMagicSphere: TMagicSphere;
-begin end;
+begin Result := msAir; end;
 
 constructor TAirNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeDefenderBudget := 200;
+  FRebuildGold := 50;
+  FRebuildDays := 2;
+  FTerrainBound := False;
+end;
 
 class function TAirNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(AirNodeRStr); end;
 
 class function TAirNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2094F; end;
 
 function TAirNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2094E; end;
 
-procedure RegisterAirNode;
-begin end;
+procedure RegisterAirNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TAirNode, TAirNodeResource]);
+end;
 
 
 initialization

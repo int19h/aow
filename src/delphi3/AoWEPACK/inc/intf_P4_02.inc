@@ -808,10 +808,10 @@
   { TConstructionControl (instance size 8, VMT 5572250C) }
   TConstructionControl = class(TEObject)
   public
-    procedure GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +04C draft }
+    procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); virtual;  { +04C }
     procedure CanConstruct(A1: Integer; A2: Integer); virtual;  { +050 draft }
     procedure Construct(A1: Integer); virtual;  { +054 draft }
-    procedure ID; virtual;  { +058 draft }
+    function ID: Integer; virtual;  { +058 }
   end;
 
   { TConstructionControlList (instance size 12, VMT 557225EC) }
@@ -829,7 +829,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetControlType: TAbilityControlType; override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure RegisterConstructionControl(A1: Integer);  { draft }
+    procedure RegisterConstructionControl(Control: TConstructionControl);
   end;
 
   { TCosmeticSurgeryEnchantment (instance size 36, VMT 55722888) }

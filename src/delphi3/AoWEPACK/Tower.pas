@@ -24,7 +24,7 @@ type
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure VisibilityRange; override;
     procedure GetDefaultAITargetPriority; override;
   end;
@@ -41,10 +41,10 @@ type
   { TTowerConstructionControl (instance size 8, VMT 557C352C) }
   TTowerConstructionControl = class(TStructureConstructionControl)
   public
-    procedure GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     procedure CanConstruct(A1: Integer; A2: Integer); override;
-    procedure ID; override;
-    procedure StructureResource(A1: Integer; A2: Integer); override;
+    function ID: Integer; override;
+    function StructureResource(AUnit: TAbstractUnit): TStructureResource; override;
   end;
 
 procedure RegisterTower;  { draft }
@@ -60,7 +60,7 @@ begin end;
 procedure TTower.GetDefaultAITargetPriority;
 begin end;
 
-procedure TTower.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TTower.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 function TTower.GetRazed: Boolean;
@@ -95,13 +95,13 @@ begin Result := $2043F; end;
 function TTowerResource.ResourceUserClassID: Integer;
 begin Result := $2043E; end;
 
-procedure TTowerConstructionControl.ID;
-begin end;
+function TTowerConstructionControl.ID: Integer;
+begin Result := 0; end;
 
-procedure TTowerConstructionControl.StructureResource(A1: Integer; A2: Integer);
-begin end;
+function TTowerConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
+begin Result := nil; end;
 
-procedure TTowerConstructionControl.GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TTowerConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
 procedure TTowerConstructionControl.CanConstruct(A1: Integer; A2: Integer);

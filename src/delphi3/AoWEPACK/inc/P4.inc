@@ -3427,10 +3427,10 @@ begin Result := False; end;
 function TSeduceAbility.CanTouch(A1, A2: TCombatObject): Boolean;
 begin Result := False; end;
 
-procedure TRebuildConstructionControl.ID;
-begin end;
+function TRebuildConstructionControl.ID: Integer;
+begin Result := 0; end;
 
-procedure TRebuildConstructionControl.GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TRebuildConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
 procedure TRebuildConstructionControl.CanConstruct(A1: Integer; A2: Integer);
@@ -3445,10 +3445,10 @@ begin end;
 destructor TBuildRoadsControl.Destroy;
 begin end;
 
-procedure TBuildRoadsControl.ID;
-begin end;
+function TBuildRoadsControl.ID: Integer;
+begin Result := 0; end;
 
-procedure TBuildRoadsControl.GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TBuildRoadsControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
 procedure TBuildRoadsControl.CanConstruct(A1: Integer; A2: Integer);
@@ -3457,7 +3457,7 @@ begin end;
 procedure TBuildRoadsControl.Construct(A1: Integer);
 begin end;
 
-procedure TConstructionControl.GetInfo(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin end;
 
 procedure TConstructionControl.CanConstruct(A1: Integer; A2: Integer);
@@ -3466,8 +3466,8 @@ begin end;
 procedure TConstructionControl.Construct(A1: Integer);
 begin end;
 
-procedure TConstructionControl.ID;
-begin end;
+function TConstructionControl.ID: Integer;
+begin Result := 0; end;
 
 procedure TConstructionControlList.GetConstructionControl(A1: Integer);
 begin end;
@@ -3487,7 +3487,7 @@ begin Result := [acAction]; end;
 procedure TConstructAbility.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TConstructAbility.RegisterConstructionControl(A1: Integer);
+procedure TConstructAbility.RegisterConstructionControl(Control: TConstructionControl);
 begin end;
 
 function TAbilityPlugIn.Name: string;

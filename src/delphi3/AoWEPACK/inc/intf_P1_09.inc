@@ -128,7 +128,7 @@
     function ValidateMap(A1: Integer): Boolean; virtual;  { +1B8  }
     procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
     procedure ExecuteAI(A1: Integer; A2: Integer); virtual;  { +1C0 draft }
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); virtual;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); virtual;
     procedure Update; virtual;  { +1C8 draft }
     procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }
     function CanDblClick: Boolean; virtual;
@@ -259,7 +259,7 @@
     procedure BuildingDone; override;
     procedure ExecuteRebuild(A1: Integer); override;
     procedure ExecuteBuild(A1: Integer; A2: Byte); override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure CanRebuild(A1: Integer; A2: Integer); override;
     procedure SetPlayer(Player: Shortint); virtual;
     function GetIncome: Integer; virtual;

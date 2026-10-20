@@ -4,8 +4,8 @@
   public
     procedure CanConstruct(A1: Integer; A2: Integer); override;
     procedure Construct(A1: Integer); override;
-    procedure ValidateLocation(A1: Integer; A2: Integer); virtual;  { +05C draft }
-    procedure StructureResource(A1: Integer; A2: Integer); virtual;  { +060 draft }
+    function ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean; virtual;  { +05C }
+    function StructureResource(AUnit: TAbstractUnit): TStructureResource; virtual;  { +060 }
   end;
 
   { TConstructStructureTE (instance size 28, VMT 557247C0) }

@@ -164,7 +164,7 @@ type
     procedure ExecuteRaze(A1: Integer; A2: Integer); override;
     function GetCurrentActivityText: string; override;
     function ValidateMap(A1: Integer): Boolean; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure Update; override;
     function CanDblClick: Boolean; override;
     procedure GetRebuildInfo(A1: Integer; A2: Integer); override;
@@ -816,7 +816,7 @@ begin end;
 procedure TCity.GetDefenseRequirements(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCity.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TCity.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TCity.CropTrampled(Player: Shortint);

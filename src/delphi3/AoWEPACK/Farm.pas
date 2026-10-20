@@ -26,7 +26,7 @@ type
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     function CanPlaceCrop(Field: TMapField): Boolean; override;
     function CropsEnabled: Boolean; override;
     procedure UpdateCrops; override;
@@ -70,7 +70,7 @@ begin Result := False; end;
 procedure TFarm.UpdateCrops;
 begin end;
 
-procedure TFarm.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TFarm.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin end;
 
 procedure TFarm.TerrainChanged(const Info: HSEngine.THSTerrainInfo);

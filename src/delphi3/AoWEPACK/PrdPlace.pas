@@ -61,7 +61,7 @@ type
     procedure NewTurn(Player: Shortint); override;
     procedure BuildingDone; override;
     function GetCurrentActivityText: string; override;
-    procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
+    procedure UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); override;
     procedure Update; override;
     function CanDblClick: Boolean; override;
     procedure SetPlayer(Player: Shortint); override;
@@ -606,7 +606,7 @@ begin
   end;
 end;
 
-procedure TProductionPlace.UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer);
+procedure TProductionPlace.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer);
 begin
   if not GetRazed then
     case Info.Mode of

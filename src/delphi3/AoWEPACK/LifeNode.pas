@@ -1,8 +1,8 @@
 unit LifeNode;
 
-{ Draft declarations of LifeNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ LifeNode specialization recovered from AoWEPACK.dpl.
+  Inherited resource fields: $44 terrain binding, $5A rebuild gold,
+  $5B rebuild days, $60 raze defender budget. }
 
 interface
 
@@ -14,14 +14,14 @@ type
   TLifeNodeResource = class;
 
 
-  { TLifeNode (instance size 76, VMT 557C046C) }
+  { TLifeNode (instance size 76, no added fields, VMT 557C046C) }
   TLifeNode = class(TProductionPlace)
   public
     class function ClassID: Integer; override;
     function GetMagicSphere: TMagicSphere; override;
   end;
 
-  { TLifeNodeResource (instance size 120, VMT 557C071C) }
+  { TLifeNodeResource (instance size 120, no added fields, VMT 557C071C) }
   TLifeNodeResource = class(TProductionPlaceResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -30,30 +30,38 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterLifeNode;  { draft }
+procedure RegisterLifeNode(AEngine: TEngine);
 
 implementation
 
 class function TLifeNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20371; end;
 
 function TLifeNode.GetMagicSphere: TMagicSphere;
-begin end;
+begin Result := msLife; end;
 
 constructor TLifeNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeDefenderBudget := 200;
+  FTerrainBound := False;
+  FRebuildGold := 25;
+  FRebuildDays := 2;
+end;
 
 class function TLifeNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(LifeNodeRStr); end;
 
 class function TLifeNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20372; end;
 
 function TLifeNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20371; end;
 
-procedure RegisterLifeNode;
-begin end;
+procedure RegisterLifeNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TLifeNode, TLifeNodeResource]);
+end;
 
 
 initialization
