@@ -43,6 +43,7 @@ local variable order, loop shape.
 | zlib (Borland's unit from the Delphi 3 CD, with the CD's zlib 1.0.4 object files), EList, PlugInM, DebMDlg | 46 | 46 |
 | ImgLComp (image grids and panels), EResGrid (resource grid) | 112 | 108 |
 | Gfxepack.dpl: GFXE (surfaces, blitters, DirectDraw, blend tables), GFXDiag (`src/delphi3/Gfxepack/`) | 262 | 252 |
+| aowDPlay.dpl: aowDPlayComp (DirectPlay component), DPlay, DPLobby; VideoP.dpl: Video, VFW | 74 | 74 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
@@ -182,6 +183,16 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
 - Inline assembler compiles verbatim; Delphi 3's assembler has no MMX or CPUID mnemonics, so the
   original encodes them with `DB`.
 
+- Under `$O-` the stack frame holds the parameters, then Result, then the locals, in declaration
+  order going down; a parameter that is never read comes after the locals, and a local used in an
+  `asm` block gets the first slot.
+- Under `$O-` a nil test of a `const` record parameter's address gives `mov eax,[ebp+8]; test eax,eax`,
+  while `P = nil` and `Assigned(P)` on a pointer give `cmp [ebp+8],0`.
+- A one-label `case` on an enumeration gives `sub al,n / jne`, an `if` gives `cmp`. An empty case
+  branch gets a jump table entry to the end of the statement.
+- `@S[1]` on a global string calls UniqueString; `Char + Char` builds short string temporaries.
+- Under `Q+`, `Inc(X)` gives `add [mem],1 / jno`.
+
 ## Compiler switches (sweep, 2026-10-19)
 
 Every `-$` switch of DCC32 was flipped one at a time against the whole Engine unit (734 functions,
@@ -199,8 +210,11 @@ Every `-$` switch of DCC32 was flipped one at a time against the whole Engine un
 | `D-`, `L-`, `Y+`, `U+`, `I-`, `C-`, `T+`, `P-`, `V-`, `J-` | 711 | code byte-identical to the default build |
 | `Z2`, `Z4` | build fails | internal error C4436 |
 
-So the game was compiled with the default switches, and no switch explains the 18 register-choice
-leftovers. Delphi 3 has no optimization levels: `$O` is only on or off. `$L-` also drops private
+So Enginep.dpl was compiled with the default switches, and no switch explains the 18 register-choice
+leftovers. The switches differ per package, though: aowDPlay.dpl's aowDPlayComp was compiled with
+`{$O-,R+,Q+}` (range and overflow checks in the code) and VideoP.dpl with `{$O-}`; their units
+carry those directives. Check the switches of every new package first: no register variables means
+`$O-`, `bound` and `jno @IntOver` mean `R+` and `Q+`. Delphi 3 has no optimization levels: `$O` is only on or off. `$L-` also drops private
 methods and implementation-only routines from the `-GD` map, so a build with it hides functions
 from `match.py` instead of matching them. Not tested: the IDE's compiler (`BIN\DCC.DLL`, the same
 date and version as `DCC32.EXE`), and Delphi 3 builds other than 3.0 and 3.01.
