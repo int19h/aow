@@ -3177,7 +3177,7 @@ begin
   end;
 end;
 
-procedure TAIExecuter.TokenControlDoneEvent;
+procedure TAIExecuter.TokenControlDoneEvent(Sender: TObject);
 begin
   if (aesEnabled in FStatus) and (AoWHSMap.FPlayMode = pmSimultaneous) then
   begin
@@ -7346,7 +7346,7 @@ begin end;
 procedure TMoveControlSettings.SetMovePointsXYL(A1: Integer; A2: Integer);
 begin end;
 
-constructor TMoveControl.Create;
+constructor TMoveControl.Create(AOwner: TAoWHSMap);
 begin end;
 
 destructor TMoveControl.Destroy;

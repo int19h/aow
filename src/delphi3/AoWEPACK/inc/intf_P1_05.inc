@@ -40,6 +40,7 @@
     procedure Activate;
     procedure Deactivate;
     procedure UnitChanged(AUnit: TAbstractUnit);
+    { conflict: procedure UnitChanged(Sender: TObject); }
   end;
 
   { TAoWHSMapKeyboard (instance size 20, VMT 5570E11C) }
@@ -62,12 +63,12 @@
     F_AbstractAoWHSMapMouse_40: Integer;
     F_AbstractAoWHSMapMouse_44: Integer;
     F_AbstractAoWHSMapMouse_48: Integer;
-    F_AbstractAoWHSMapMouse_4C: Integer;
+    FRectangleSelectEvents: TEventList; { $4C; 55774A94 }
     destructor Destroy; override;
     procedure Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure Move(Shift: Classes.TShiftState; X, Y: Integer); override;
-    procedure Create(A1: Byte);  { draft }
+    constructor Create;
     procedure ResetRectangleSelection;  { draft }
     procedure GetSelectingRectangle;  { draft }
     procedure StartRectangleSelection(A1: Integer; A2: Integer);  { draft }
@@ -75,7 +76,7 @@
     procedure StopRectangleSelection(A1: Integer; A2: Integer);  { draft }
   end;
 
-  { TAoWHSMapMouse (instance size 80, VMT 5570E2DC) }
+  { TAoWHSMapMouse: size $50; no additional fields. VMT 5570E2DC. }
   TAoWHSMapMouse = class(TAbstractAoWHSMapMouse)
   public
     function GetCursor: Integer; override;
@@ -173,17 +174,18 @@
     procedure ShowMessage(A1: Integer; A2: Byte; A3: Integer);  { draft }
   end;
 
-  { TStartupSongList (instance size 16, VMT 5570E7AC) }
+  { TStartupSongList: instance size $10; inherited $08 Songs, $0C SongNames. VMT 5570E7AC. }
   TStartupSongList = class(TSonglist)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure OriginalSongsChanged;  { draft }
+    procedure OriginalSongsChanged(Sender: TObject);
   end;
 
   { TAoWHSMap: size $41C; $E4 map name, $F8 heroes, $139 game mode, $13A stream mode,
     $148 fixed leaders, $14B allied victory, $158 day limit, $16C turn order,
-    $19C/$1A0 day/turn events, $1D8 AI locks, $1E8 diplomacy events,
-    $22C initial seed, $230 random seed, $238 debug save, $240 communicator. VMT 5570E874. }
+    $19C/$1A0 day/turn events, $1D8 event-log locks, $1E8 diplomacy events,
+    $22C initial seed, $230 random seed, $238 debug save, $240 communicator,
+    $24C..$417 token log Text, $418 logging enabled. VMT 5570E874. }
   TAoWHSMap = class(TAbstractAoWHSMap)
   public
     FSelectedArmy: TSelectedArmy; { $D8 }
@@ -191,20 +193,20 @@
     F_AoWHSMap_DD: array[0..2] of Byte;
     FTargetSelection: TTargetSelectionControl; { $E0 }
     FMapName: string; { $E4 }
-    F_AoWHSMap_E8: Integer;
+    FAuthor: string; { $E8 }
     FSphereCount: Integer; { $EC }
-    F_AoWHSMap_F0: Integer;
+    FDescription: TStringList; { $F0 }
     FItemControl: TItemControl; { $F4 }
     FHeroControl: THeroControl; { $F8 }
     FUnitControl: TUnitControl; { $FC }
     FStructureControl: TStructureControl; { $100; 5575F6CF }
-    F_AoWHSMap_104: Byte;
+    FIndependentAIMode: TIndependentAIMode; { $104 }
     F_AoWHSMap_105: array[0..2] of Byte;
-    F_AoWHSMap_108: Integer;
+    FObjectives: TStringList; { $108 }
     FHeroCountMax: Shortint; { $10C }
     F_AoWHSMap_10D: array[0..2] of Byte;
-    F_AoWHSMap_110: Integer;
-    F_AoWHSMap_114: Integer;
+    FStartupSongs: TStartupSongList; { $110 }
+    FGameSongs: TSonglist; { $114 }
     FGameStatus: TGameStatus; { $118 }
     FGameResult: TGameResult; { $119 }
     FGameType: TGameType; { $11A }
@@ -224,7 +226,7 @@
     { conflict: FStreamMode: Byte; }
     { conflict: FTacticalCombatAvailability: TTacticalCombatAvailability; }
     F_AoWHSMap_13B: array[0..0] of Byte;
-    F_AoWHSMap_13C: Integer;
+    FTextControl: TTextControl; { $13C }
     FPlayers: TPlayerList;  { $140 }
     FRaces: TRaceList;  { $144 }
     FFixedLeaders: Boolean; { $148 }
@@ -234,18 +236,18 @@
     F_AoWHSMap_14C: Byte;
     FVictoryCondition: TVictoryCondition; { $14D }
     F_AoWHSMap_14E: array[0..1] of Byte;
-    F_AoWHSMap_150: Integer;
+    FVictoryMana: Integer; { $150 }
     FVictoryGold: Integer; { $154 }
     FDayLimit: Integer; { $158 }
     F_AoWHSMap_15C: Integer;
     F_AoWHSMap_160: Integer;
     F_AoWHSMap_164: Integer;
-    F_AoWHSMap_168: Integer;
+    FCampaignMapIndex: Integer; { $168 }
     FTurnOrderMode: TTurnOrderMode; { $16C }
     F_AoWHSMap_16D: array[0..2] of Byte;
     FTurnOrder: TByteList; { $170 }
     FDay: Integer;  { $174 }
-    F_AoWHSMap_178: Integer;
+    FSessionName: string; { $178 }
     FOnLeaderChanged: TEventList; { $17C; 5578B0B7 }
     FShowIndependentMoves: Boolean; { $180 }
     F_AoWHSMap_181: array[0..2] of Byte;
@@ -257,49 +259,49 @@
     F_AoWHSMap_191: Byte;
     F_AoWHSMap_192: array[0..1] of Byte;
     F_AoWHSMap_194: Integer;
-    F_AoWHSMap_198: Integer;
+    FPlayerChangedEvents: TEventList; { $198 }
     FNewDayEvents: TEventList; { $19C }
     FNewTurnEvents: TEventList; { $1A0 }
-    F_AoWHSMap_1A4: Integer;
-    F_AoWHSMap_1A8: Integer;
-    F_AoWHSMap_1AC: Integer;
-    F_AoWHSMap_1B0: Integer;
-    F_AoWHSMap_1B4: Integer;
-    F_AoWHSMap_1B8: Integer;
-    F_AoWHSMap_1BC: Integer;
-    F_AoWHSMap_1C0: Byte;
+    FEndTurnEvents: TEventList; { $1A4 }
+    FCurrentPlayerChangedEvents: TEventList; { $1A8 }
+    FSeatedPlayerChangedEvents: TEventList; { $1AC }
+    FCombatEvents: TEventList; { $1B0 }
+    FPlayerTerminatedEvents: TEventList; { $1B4 }
+    FGameOverEvents: TEventList; { $1B8 }
+    FGameTerminatedEvents: TEventList; { $1BC }
+    FExitPending: Boolean; { $1C0 }
     F_AoWHSMap_1C1: array[0..2] of Byte;
-    F_AoWHSMap_1C4: Integer;
-    F_AoWHSMap_1C8: Integer;
-    F_AoWHSMap_1CC: Integer;
-    F_AoWHSMap_1D0: Integer;
-    F_AoWHSMap_1D4: Integer;
+    FExitEvents: TEventList; { $1C4 }
+    FGameOverLockCount: Integer; { $1C8 }
+    FExecuteEventLogBuffer: TEventLogList; { $1CC }
+    FExecuteEventLogEvents: TEventList; { $1D0 }
+    FExecuteEventLogCallBacks: TExecuteEventLogCallBackList; { $1D4 }
     FAILockCount: Integer; { $1D8 }
-    F_AoWHSMap_1DC: Integer;
+    FExecuteEventLogDelay: Integer; { $1DC }
     FCosmeticSurgeryEvents: TEventList; { $1E0 }
     FOnActivateAbility: TEventList; { $1E4 }
     FDiplomaticRelationsChangedEvents: TEventList; { $1E8 }
-    F_AoWHSMap_1EC: Integer;
-    F_AoWHSMap_1F0: Integer;
+    FUpdateVisibilityEvents: TEventList; { $1EC }
+    FEffects: TList; { $1F0 }
     F_AoWHSMap_1F4: Integer;
     F_AoWHSMap_1F8: Byte;
     F_AoWHSMap_1F9: array[0..2] of Byte;
-    F_AoWHSMap_1FC: Integer;
-    F_AoWHSMap_200: Integer;
-    F_AoWHSMap_204: Integer;
-    F_AoWHSMap_208: Integer;
-    F_AoWHSMap_20C: Integer;
-    F_AoWHSMap_210: Integer;
-    F_AoWHSMap_214: Integer;
-    F_AoWHSMap_218: Integer;
-    F_AoWHSMap_21C: Integer;
-    F_AoWHSMap_220: Integer;
-    F_AoWHSMap_224: Integer;
-    F_AoWHSMap_228: Integer;
+    FArmyUpdateCount: Integer; { $1FC }
+    FStructureUpdateCount: Integer; { $200 }
+    FUnitUpdateCount: Integer; { $204 }
+    FUnitChangedEvents: TEventList; { $208 }
+    FArmyChangedEvents: TEventList; { $20C }
+    FStructureChangedEvents: TEventList; { $210 }
+    FUnitDestroyedEvents: TEventList; { $214 }
+    FArmyDestroyedEvents: TEventList; { $218 }
+    FStructureDestroyedEvents: TEventList; { $21C }
+    FTokenControlActivatedEvents: TEventList; { $220 }
+    FCombatMapCreatedEvents: TEventList; { $224 }
+    FCombatMapDestroyedEvents: TEventList; { $228 }
     FInitialRandomSeed: Integer; { $22C }
     { conflict: FRandomSeed: Integer; }
     FDefendersSeed: Integer; { $230 }
-    F_AoWHSMap_234: Integer;
+    FSynchroniseCount: Integer; { $234 }
     FDebugSave: Boolean; { $238 }
     FPlayMode: TPlayMode; { $239 }
     F_AoWHSMap_23A: array[0..1] of Byte;
@@ -307,12 +309,11 @@
     { conflict: FTokenManager: TAoWTokenManager; }
     FPlayerCommunicator: TPlayerCommunicator; { $240 }
     FPlayerControl: TPlayerControl; { $244 }
-    F_AoWHSMap_248: Byte;
+    FUseTurnTimer: Boolean; { $248 }
     FShowUnitShadows: Boolean;  { $249, tested at $55783E36 }
     F_AoWHSMap_24A: array[0..1] of Byte;
-    F_AoWHSMap_24C: Byte;
-    F_AoWHSMap_24D: array[0..458] of Byte;
-    F_AoWHSMap_418: Byte;
+    FTokenEventLog: Text; { $24C..$417 }
+    FTokenEventLogging: Boolean; { $418 }
     F_AoWHSMap_419: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -332,56 +333,56 @@
     procedure DrawDynamicScene(var SD: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;
     procedure SetSeatedPlayer(A1: Shortint); override;
-    procedure TriggerCombatEvent; virtual;  { +118 draft }
+    procedure TriggerCombatEvent(Combat: TCombat); virtual;
     procedure TriggerGameTerminatedEvent; virtual;  { +11C draft }
     procedure TriggerPlayerTerminatedEvent(Player: Integer); virtual; { $120 }
     procedure StartNewMap; virtual;  { +124 draft }
     procedure StartLoadedMap; virtual;  { +128 draft }
     procedure TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent); virtual;
-    procedure StartTokenEventLogging;  { draft }
-    procedure StopTokenEventLogging;  { draft }
-    procedure SynchroniseBegin;  { draft }
-    procedure SynchroniseEnd;  { draft }
-    procedure GetSynchronised;  { draft }
-    procedure OnExecuteTokenEvent(A1: Integer);  { draft }
-    procedure PlayerDisconnected;  { draft }
-    procedure PlayerConnectionLost;  { draft }
-    procedure OnTokenManagerMessage(A1: Integer; A2: Integer);  { draft }
+    procedure StartTokenEventLogging;
+    procedure StopTokenEventLogging;
+    procedure SynchroniseBegin;
+    procedure SynchroniseEnd;
+    function GetSynchronised: Boolean;
+    procedure OnExecuteTokenEvent(Event: TTokenEvent);
+    procedure PlayerDisconnected(Player: Shortint);
+    procedure PlayerConnectionLost;
+    procedure OnTokenManagerMessage(Sender: TObject; const Msg: string);
     function GetIndependentAIMode: TIndependentAIMode;
-    procedure SaveGame(A1: Integer);  { draft }
-    function TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-    function Visible(X, Y, L: Shortint; Mode: Integer): Boolean;
-    function WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-    function Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-    procedure ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
+    function SaveGame(FileName: string): Boolean;
+    function TerrainVisible(X, Y, L: Shortint; Radius: Integer): Boolean;
+    function Visible(X, Y, L: Shortint; Radius: Integer): Boolean;
+    function WatchingTerrain(X, Y, L: Shortint; Radius: Integer): Boolean;
+    function Watching(X, Y, L: Shortint; Radius: Integer): Boolean;
+    function ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
     function ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
-    procedure UnlockGameOverEventCallBack;  { draft }
-    procedure SelectNextHero;  { draft }
-    procedure SelectNextArmy;  { draft }
-    procedure SelectPrevArmy;  { draft }
-    procedure SeatedPlayerChanged;  { draft }
-    procedure BeginUnitUpdate;  { draft }
-    procedure EndUnitUpdate;  { draft }
-    procedure UnitChanged;  { draft }
-    procedure UnitDestroyed;  { draft }
-    procedure BeginArmyUpdate;  { draft }
-    procedure EndArmyUpdate;  { draft }
-    procedure ArmyChanged;  { draft }
-    procedure ArmyDestroyed;  { draft }
-    procedure BeginStructureUpdate;  { draft }
-    procedure EndStructureUpdate;  { draft }
+    procedure UnlockGameOverEventCallBack;
+    function SelectNextHero: Boolean;
+    function SelectNextArmy: Boolean;
+    function SelectPrevArmy: Boolean;
+    procedure SeatedPlayerChanged;
+    procedure BeginUnitUpdate;
+    procedure EndUnitUpdate;
+    procedure UnitChanged(AUnit: TAbstractUnit);
+    procedure UnitDestroyed(AUnit: TAbstractUnit);
+    procedure BeginArmyUpdate;
+    procedure EndArmyUpdate;
+    procedure ArmyChanged(Army: TArmyHS);
+    procedure ArmyDestroyed(Army: TArmyHS);
+    procedure BeginStructureUpdate;
+    procedure EndStructureUpdate;
     procedure StructureChanged(Structure: TStructure);
     procedure StructureDestroyed(Structure: TStructure);
-    procedure ExecuteExitGame;  { draft }
+    procedure ExecuteExitGame;
     procedure ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
-    procedure TriggerEndTurnEvent(A1: Byte);  { draft }
-    procedure ClearExecuteEventLogBuffer;  { draft }
-    procedure ExecuteNextEventLog;  { draft }
-    procedure SetExecuteEventLogDelay(A1: Integer);  { draft }
-    procedure UpdateExecuteEventLogDelay;  { draft }
-    procedure ExecuteEventLogDone(A1: Integer);  { draft }
-    procedure LockExecuteEventLog;  { draft }
-    procedure UnlockExecuteEventLog;  { draft }
+    procedure TriggerEndTurnEvent(Player: Shortint);
+    procedure ClearExecuteEventLogBuffer;
+    procedure ExecuteNextEventLog;
+    procedure SetExecuteEventLogDelay(Value: Integer);
+    procedure UpdateExecuteEventLogDelay;
+    procedure ExecuteEventLogDone(Log: TEventLog);
+    procedure LockExecuteEventLog;
+    procedure UnlockExecuteEventLog;
     procedure GameOverEventHandled;  { draft }
     procedure ExecuteGameOverEvent(Event: TGameOverEventLog);
     procedure UnlockGameOverEvent;  { draft }
@@ -397,12 +398,12 @@
     procedure NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
     procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure MouseMoved;  { draft }
+    procedure MouseMoved(Sender: TObject);
     procedure UpdateCursor;  { draft }
     procedure ResetSeatedPlayerView;
     procedure Select(A1: TArmyHS; A2: Boolean);
     procedure PlayerChanged;  { draft }
-    procedure TokenControlActivatedEvent;  { draft }
+    procedure TokenControlActivatedEvent(Sender: TObject);
     procedure SetupPlayerControl(Mode: TPlayMode; Connection: TPlayerConnectionType);
     procedure ActivateMsg;  { draft }
     function Random(Range: Integer): Integer;

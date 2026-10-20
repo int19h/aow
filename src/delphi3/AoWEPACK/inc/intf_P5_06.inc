@@ -112,7 +112,7 @@
     procedure UseProcessTime(Time: Integer);
     function ActivatePlayer(Player: Shortint): Boolean;
     procedure DeactivatePlayer(Player: Shortint);
-    procedure TokenControlDoneEvent;
+    procedure TokenControlDoneEvent(Sender: TObject);
     procedure Lock;
     procedure Unlock;
     procedure CaptureTokenCycles(Cycles: Integer);

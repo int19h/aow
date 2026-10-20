@@ -9621,7 +9621,7 @@ begin end;
 procedure TAoWHSMapKeyboard.KeyDown(A1: Integer; A2: Byte);
 begin end;
 
-procedure TAbstractAoWHSMapMouse.Create(A1: Byte);
+constructor TAbstractAoWHSMapMouse.Create;
 begin end;
 
 destructor TAbstractAoWHSMapMouse.Destroy;
@@ -9652,178 +9652,870 @@ procedure TAbstractAoWHSMapMouse.Move(Shift: Classes.TShiftState; X, Y: Integer)
 begin end;
 
 function TAoWHSMapMouse.GetCursor: Integer;
-begin Result := 0; end;
+var
+  CombatMap: TAbstractAoWCombatMap;
+begin
+  CombatMap := AoWHSMap.FCombatMap;
+  if CombatMap <> nil then Result := CombatMap.Mouse.GetCursor
+  else Result := inherited GetCursor;
+end;
 
 procedure TAoWHSMapMouse.Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin
+  if AoWHSMap.FCombatMap <> nil then
+    AoWHSMap.FCombatMap.Mouse.Down(Button, Shift, X, Y)
+  else
+    inherited Down(Button, Shift, X, Y);
+  if AoWEngine.FRegistry.GetDebugMode then
+    AoWEngine.OutputDebugStr('Location (' + IntToStr(Xhx) + ',' + IntToStr(Yhx) + ') selected');
+end;
 
 procedure TAoWHSMapMouse.Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin
+  if AoWHSMap.FCombatMap <> nil then
+    AoWHSMap.FCombatMap.Mouse.Up(Button, Shift, X, Y)
+  else
+    inherited Up(Button, Shift, X, Y);
+end;
 
 procedure TAoWHSMapMouse.Move(Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+var
+  CombatMap: TAbstractAoWCombatMap;
+begin
+  CombatMap := AoWHSMap.FCombatMap;
+  if CombatMap <> nil then CombatMap.Mouse.Move(Shift, X, Y)
+  else inherited Move(Shift, X, Y);
+end;
 
 procedure TAoWHSMapMouse.DblClick;
-begin end;
+var
+  CombatMap: TAbstractAoWCombatMap;
+  SelectStructure: Boolean;
+  Structure: TStructure;
+begin
+  CombatMap := AoWHSMap.FCombatMap;
+  if CombatMap <> nil then
+  begin
+    CombatMap.Mouse.DblClick;
+    Exit;
+  end;
+  SelectStructure := Capture = nil;
+  if Capture = AoWHSMap.FSelectedArmy then
+    SelectStructure := (AoWHSMap.FSelectedArmy.GetArmyHS <> nil) and
+      (AoWHSMap.FSelectedArmy.FMoveSettingsList.Count = 1) and
+      (AoWHSMap.FSelectedArmy.GetArmyHS.Xhx = Xhx) and
+      (AoWHSMap.FSelectedArmy.GetArmyHS.Yhx = Yhx) and
+      (AoWHSMap.FSelectedArmy.GetArmyHS.Lhx = AoWHSMap.ViewL);
+  if SelectStructure and (Xhx <> -1) then
+  begin
+    Structure := TStructure(AoWHSMap.MapContainer.GetField(Xhx, Yhx, AoWHSMap.ViewL).FindNoneTransparentHS(TStructure));
+    if (Structure <> nil) and Structure.CanDblClick then
+    begin
+      AoWHSMap.Selection.UnselectLocation;
+      AoWHSMap.Selection.SelectLocationHS(Structure);
+    end;
+  end;
+  inherited DblClick;
+end;
+
+resourcestring
+  FileNotFoundRStr = 'File not found'; { $557083A4 }
 
 constructor TStartupSongList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  Songs.OnChange := OriginalSongsChanged;
+end;
 
-procedure TStartupSongList.OriginalSongsChanged;
-begin end;
+procedure TStartupSongList.OriginalSongsChanged(Sender: TObject);
+var
+  I: Integer;
+  Name: string;
+begin
+  SongNames.Clear;
+  for I := Songs.Count - 1 downto 0 do
+  begin
+    try
+      Name := GetSongName(Songs[I]);
+    except
+      Name := TranslateRStr(FileNotFoundRStr);
+    end;
+    SongNames.Insert(0, Name);
+  end;
+end;
 
 constructor TAoWHSMap.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  UnitChangedEvent: TNotifyEvent;
+begin
+  inherited Create(AOwner);
+  FItemControl := TItemControl.Create(nil);
+  FTokenManager := TAoWTokenManager.Create(AoWEngine);
+  FTokenManager.TokenExecuter.OnActivateTC.Add(TokenControlActivatedEvent);
+  FTokenManager.TokenExecuter.OnExecuteTokenEvent := OnExecuteTokenEvent;
+  FTokenManager.OnMessage := OnTokenManagerMessage;
+  FPlayerCommunicator := TPlayerCommunicator.Create(nil);
+  FPlayerCommunicator.Engine := AoWEngine;
+  FConnectionType := pcLocal;
+  FAIExecuter := TAIExecuter.Create(nil);
+  FAIGroupManager := TAIGroupManager.Create(nil);
+  FAIPlayerActionManager := TAIPlayerActionManager.Create(nil);
+  FAIPlayerActionManager.RegisterClasses([TEndTurnAIPA, TGroupControlAIPA,
+    TGroupControlLoopAIPA, TInitializeAIPA, TBudgetManagerAIPA, TAutoProduceAIPA,
+    TDiplomacyAIPA, TProcessEventlogAIPA, TResearchSpellAIPA, TCastSpellAIPA,
+    TStructurePhase1AIPA, TStructurePhase2AIPA]);
+  FTokenManager.TokenExecuter.OnEventsExecuted.Add(FAIExecuter.TokenControlDoneEvent);
+  FAIGroupManager.RegisterAIGroupClasses([THuntAG]);
+  FPlayMode := pmNone;
+  FKeyboard := TAoWHSMapKeyboard.Create(nil);
+  FTargetSelection := TTargetSelectionControl.Create;
+  FEffects := TList.Create;
+  FDefendersSeed := 0;
+  FHeroCountMax := 5;
+  FSelectedArmy := TSelectedArmy.Create;
+  TAbstractAoWHSMapMouse(Mouse).FRectangleSelectEvents.Add(FSelectedArmy.RectangleSelectEvent);
+  FMoveControl := TMoveControl.Create(Self);
+  FGlobalMagicControl := TGlobalMagicControl.Create(nil);
+  FMapName := 'noname';
+  FAuthor := '';
+  FCampaignMapIndex := -1;
+  FSphereCount := 5;
+  FVictoryGold := 5000;
+  FVictoryMana := 5000;
+  FDescription := TStringList.Create;
+  FObjectives := TStringList.Create;
+  FIndependentAIMode := iaNormal;
+  FPlayers := TPlayerList.Create(nil);
+  FRaces := TRaceList.Create(nil);
+  FPlayerChangedEvents := TEventList.Create;
+  FFixedLeaders := True;
+  FAlliedVictory := False;
+  FCurrentPlayer := 0;
+  FUseTurnTimer := True;
+  FExecuteEventLogBuffer := TEventLogList.Create(nil);
+  FDebugSave := False;
+  FTutorialControl := TTutorialControl.Create(nil);
+  FTurnOrderMode := toFixed;
+  FTurnOrder := TByteList.Create;
+  FDay := 0;
+  FGameStatus := gsIdle;
+  FGameResult := grNone;
+  FSessionName := '';
+  FShowUnitShadows := AoWEngine.FRegistry.GetDetailLevel in [dtlNormal, dtlHigh];
+  FHeroControl := THeroControl.Create(nil);
+  FUnitControl := TUnitControl.Create(nil);
+  FStructureControl := TStructureControl.Create(nil);
+  FOnLeaderChanged := TEventList.Create;
+  FTextControl := TTextControl.Create(nil);
+  FNewDayEvents := TEventList.Create;
+  FNewTurnEvents := TEventList.Create;
+  FEndTurnEvents := TEventList.Create;
+  FCurrentPlayerChangedEvents := TEventList.Create;
+  FSeatedPlayerChangedEvents := TEventList.Create;
+  FArmyChangedEvents := TEventList.Create;
+  FStructureChangedEvents := TEventList.Create;
+  FTokenControlActivatedEvents := TEventList.Create;
+  FUnitChangedEvents := TEventList.Create;
+  TMethod(UnitChangedEvent).Code := @TTargetSelectionControl.UnitChanged;
+  TMethod(UnitChangedEvent).Data := FTargetSelection;
+  FUnitChangedEvents.Add(UnitChangedEvent);
+  FArmyDestroyedEvents := TEventList.Create;
+  FArmyDestroyedEvents.Add(FSelectedArmy.OnDestroyArmy);
+  FStructureDestroyedEvents := TEventList.Create;
+  FUnitDestroyedEvents := TEventList.Create;
+  FCombatEvents := TEventList.Create;
+  FExecuteEventLogEvents := TEventList.Create;
+  FExecuteEventLogCallBacks := TExecuteEventLogCallBackList.Create;
+  FCosmeticSurgeryEvents := TEventList.Create;
+  FOnActivateAbility := TEventList.Create;
+  FStartupSongs := TStartupSongList.Create(nil);
+  FGameSongs := TSonglist.Create(nil);
+  FPlayerTerminatedEvents := TEventList.Create;
+  FGameOverEvents := TEventList.Create;
+  FGameTerminatedEvents := TEventList.Create;
+  FDiplomaticRelationsChangedEvents := TEventList.Create;
+  FUpdateVisibilityEvents := TEventList.Create;
+  FCombatMapCreatedEvents := TEventList.Create;
+  FCombatMapDestroyedEvents := TEventList.Create;
+  FExitEvents := TEventList.Create;
+  FCampaignSettings := TAoWMapCampaignSettings.Create(nil);
+  Mouse.OnMove.Add(MouseMoved);
+end;
 
 destructor TAoWHSMap.Destroy;
-begin end;
+var
+  I: Integer;
+begin
+  StopTokenEventLogging;
+  LockMapChangedEvent;
+  OnViewLevel := nil;
+  OnCenterView := nil;
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'GENERAL.ILB');
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'CURSORS.ILB');
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'COMBAT.ILB');
+  FMoveControl.Free;
+  for I := FEffects.Count - 1 downto 0 do
+  begin
+    DynamicFixedVisibleHS.RemoveChild(TAnimation(FEffects[I]));
+    DynamicVisibleHS.RemoveChild(TAnimation(FEffects[I]));
+    TObject(FEffects[I]).Free;
+  end;
+  FEffects.Free;
+  FTutorialControl.Free;
+  FPlayers.BeginUpdate;
+  FArmyChangedEvents.Clear;
+  FStructureChangedEvents.Clear;
+  FUnitChangedEvents.Clear;
+  FSeatedPlayerChangedEvents.Clear;
+  FCurrentPlayerChangedEvents.Clear;
+  FNewTurnEvents.Clear;
+  FNewDayEvents.Clear;
+  FOnLeaderChanged.Clear;
+  FDescription.Clear;
+  FObjectives.Clear;
+  FTurnOrder.Clear;
+  FStructureDestroyedEvents.Clear;
+  FUnitDestroyedEvents.Clear;
+  FCombatMapCreatedEvents.Clear;
+  FCombatMapDestroyedEvents.Clear;
+  FUpdateVisibilityEvents.Clear;
+  FDiplomaticRelationsChangedEvents.Clear;
+  FCosmeticSurgeryEvents.Clear;
+  FOnActivateAbility.Clear;
+  FTokenControlActivatedEvents.Clear;
+  FPlayerChangedEvents.Clear;
+  FExitEvents.Clear;
+  Mouse.OnMove.Remove(MouseMoved);
+  if FCombat <> nil then DestroyCombat;
+  if FCombatMap <> nil then
+  begin
+    FCombatMap.Free;
+    FCombatMap := nil;
+  end;
+  inherited Destroy;
+  FItemControl.Deactivate;
+  FGlobalMagicControl.Free;
+  FGlobalMagicControl := nil;
+  FPlayerCommunicator.Free;
+  FTokenManager.Free;
+  FTokenManager := nil;
+  FCampaignSettings.Free;
+  FAIExecuter.Free;
+  FSelectedArmy.Free;
+  FSeatedPlayerChangedEvents.Free;
+  FExecuteEventLogBuffer.Free;
+  FNewTurnEvents.Free;
+  FEndTurnEvents.Free;
+  FCurrentPlayerChangedEvents.Free;
+  FNewDayEvents.Free;
+  FArmyChangedEvents.Free;
+  FStructureChangedEvents.Free;
+  FUnitChangedEvents.Free;
+  FArmyDestroyedEvents.Free;
+  FStructureDestroyedEvents.Free;
+  FUnitDestroyedEvents.Free;
+  FOnLeaderChanged.Free;
+  FDescription.Free;
+  FObjectives.Free;
+  FTurnOrder.Free;
+  FPlayerControl.Free;
+  FTextControl.Free;
+  FCombatEvents.Free;
+  FPlayerChangedEvents.Free;
+  FExecuteEventLogEvents.Free;
+  FExecuteEventLogCallBacks.Free;
+  FCosmeticSurgeryEvents.Free;
+  FOnActivateAbility.Free;
+  FGameSongs.Free;
+  FStartupSongs.Free;
+  FExitEvents.Free;
+  FItemControl.Free;
+  FItemControl := nil;
+  FHeroControl.Free;
+  FHeroControl := nil;
+  FUnitControl.Free;
+  FUnitControl := nil;
+  FStructureControl.Free;
+  FStructureControl := nil;
+  FAIGroupManager.Free;
+  FAIGroupManager := nil;
+  FAIPlayerActionManager.Free;
+  FPlayers.Free;
+  FRaces.Free;
+  FPlayerTerminatedEvents.Free;
+  FGameOverEvents.Free;
+  FGameTerminatedEvents.Free;
+  FTargetSelection.Free;
+  FCombatMapCreatedEvents.Free;
+  FCombatMapDestroyedEvents.Free;
+  FDiplomaticRelationsChangedEvents.Free;
+  FKeyboard.Free;
+  FUpdateVisibilityEvents.Free;
+  FTokenControlActivatedEvents.Free;
+  UnlockMapChangedEvent;
+end;
 
 procedure TAoWHSMap.StartTokenEventLogging;
-begin end;
+begin
+  if not FTokenEventLogging and not (msEditting in AoWHSMap.Status) then
+  try
+    {$I-}
+    AssignFile(FTokenEventLog, AoWEngine.StartupDirectory + 'Debug\' +
+      'SYNC_LOG' + IntToStr(GetElapsedMilliSeconds) + '.TXT');
+    Rewrite(FTokenEventLog);
+    WriteLn(FTokenEventLog, 'Map Session: ' + FMapName);
+    WriteLn(FTokenEventLog, 'Local Player: ' + IntToStr(AoWHSMap.FPlayers.FLocalHumanPlayers[0]));
+    WriteLn(FTokenEventLog, 'Local Race: ' + TranslateRStr(RaceNamesPluralRStr[
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FPlayers.FLocalHumanPlayers[0]).FPlayerRace]));
+    {$I+}
+    FTokenEventLogging := True;
+  except
+  end;
+end;
 
 procedure TAoWHSMap.StopTokenEventLogging;
-begin end;
+begin
+  if FTokenEventLogging then
+  begin
+    {$I-} CloseFile(FTokenEventLog); {$I+}
+    FTokenEventLogging := False;
+  end;
+end;
 
 procedure TAoWHSMap.SynchroniseBegin;
-begin end;
+begin
+  Inc(FSynchroniseCount);
+end;
 
 procedure TAoWHSMap.SynchroniseEnd;
-begin end;
+begin
+  Dec(FSynchroniseCount);
+end;
 
-procedure TAoWHSMap.GetSynchronised;
-begin end;
+function TAoWHSMap.GetSynchronised: Boolean;
+begin
+  if (FSynchroniseCount = 0) and not FTokenManager.TokenExecuter.Executing and
+    not (msEditting in Status) then Result := False
+  else Result := True;
+end;
 
-procedure TAoWHSMap.OnExecuteTokenEvent(A1: Integer);
-begin end;
+procedure TAoWHSMap.OnExecuteTokenEvent(Event: TTokenEvent);
+begin
+  if Event.ClassID <> $554 then SetModified;
+  if FTokenEventLogging and (FTokenManager.TokenExecuter.ExecuteCount = 0) then
+  begin
+    {$I-}
+    WriteLn(FTokenEventLog, Event.ClassName + ' (P:' +
+      IntToStr(FTokenManager.TokenExecuter.ActiveTCIndex) + '/T:' +
+      IntToStr(Event.TokenCounter) + '/S:' + IntToStr(FDefendersSeed) +
+      '/D:' + IntToStr(AoWHSMap.FDay) + '/AIPC:' +
+      IntToStr(AoWHSMap.FAIExecuter.FProcessCycles));
+    Flush(FTokenEventLog);
+    {$I+}
+  end;
+end;
 
-procedure TAoWHSMap.PlayerDisconnected;
-begin end;
+procedure TAoWHSMap.PlayerDisconnected(Player: Shortint);
+begin
+  FPlayerControl.PlayerDisconnected(Player);
+end;
 
 procedure TAoWHSMap.PlayerConnectionLost;
-begin end;
+begin
+  FPlayerControl.ConnectionLost;
+end;
 
-procedure TAoWHSMap.OnTokenManagerMessage(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWHSMap.OnTokenManagerMessage(Sender: TObject; const Msg: string);
+begin
+  {$I-} if FTokenEventLogging then WriteLn(FTokenEventLog, Msg); {$I+}
+  AoWEngine.OutputDebugStr(Msg);
+end;
 
 function TAoWHSMap.GetIndependentAIMode: TIndependentAIMode;
-begin Result := iaOff; end;
+begin
+  Result := FIndependentAIMode;
+  if not (msEditting in AoWHSMap.Status) and
+    (getFireMastery in AoWHSMap.FGlobalMagicControl.FActiveEnchantments) then
+    if Result = iaOff then Result := iaNormal
+    else Result := iaAggressive;
+end;
 
-procedure TAoWHSMap.SaveGame(A1: Integer);
-begin end;
+function TAoWHSMap.SaveGame(FileName: string): Boolean;
+var
+  Event: TSaveGameTE;
+begin
+  if AoWHSMap.FSeatedPlayer <> -1 then
+  begin
+    Event := TSaveGameTE.Create(nil);
+    Event.FFileName := ExpandFileName(FileName);
+    AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TAoWHSMap.CreateMouse: HSEngine.THSMapMouse;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := TAoWHSMapMouse.Create;
+end;
 
 procedure TAoWHSMap.SetSeatedPlayer(A1: Shortint);
-begin end;
+begin
+  FPlayerControl.SetSeatedPlayer(A1);
+end;
 
-function TAoWHSMap.TerrainVisible(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-begin Result := False; end;
+function TAoWHSMap.TerrainVisible(X, Y, L: Shortint; Radius: Integer): Boolean;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+begin
+  Result := AoWHSMap.FExplorationEnabled; { Original returns true immediately when exploration is enabled. }
+  MapLevel := MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Walk.Radius <= Radius) and not Result do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and
+      (Walk.Y < MapLevel.Height) then
+    begin
+      Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
+      Result := Field.GetExplored(AoWHSMap.FSeatedPlayer);
+    end;
+    if not Result then WalkToNextHN(Walk);
+  end;
+end;
 
-function TAoWHSMap.Visible(X, Y, L: Shortint; Mode: Integer): Boolean;
-begin Result := False; end;
+function TAoWHSMap.Visible(X, Y, L: Shortint; Radius: Integer): Boolean;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+begin
+  Result := False;
+  MapLevel := MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Walk.Radius <= Radius) and not Result do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and
+      (Walk.Y < MapLevel.Height) then
+    begin
+      Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
+      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+        (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled);
+    end;
+    if not Result then WalkToNextHN(Walk);
+  end;
+end;
 
-function TAoWHSMap.WatchingTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-begin Result := False; end;
+function TAoWHSMap.WatchingTerrain(X, Y, L: Shortint; Radius: Integer): Boolean;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+begin
+  Result := False;
+  MapLevel := MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Walk.Radius <= Radius) and not Result do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and
+      (Walk.Y < MapLevel.Height) then
+    begin
+      Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
+      Result := (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled) and
+        Viewing(Walk.X, Walk.Y, L);
+    end;
+    if not Result then WalkToNextHN(Walk);
+  end;
+end;
 
-function TAoWHSMap.Watching(A1: Shortint; A2: Shortint; A3: Shortint; A4: Integer): Boolean;
-begin Result := False; end;
+function TAoWHSMap.Watching(X, Y, L: Shortint; Radius: Integer): Boolean;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+begin
+  Result := False;
+  MapLevel := MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Walk.Radius <= Radius) and not Result do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and
+      (Walk.Y < MapLevel.Height) then
+    begin
+      Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
+      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+        (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled) and
+        Viewing(Walk.X, Walk.Y, L);
+    end;
+    if not Result then WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TAoWHSMap.ValidateTerrainObservation(A1: Byte; A2: Shortint; A3: Shortint; A4: Shortint; A5: Integer);
-begin end;
+function TAoWHSMap.ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+  WX: Integer;
+begin
+  if FShowIndependentMoves and (Player <> AoWHSMap.FSeatedPlayer) then
+  begin
+    Result := False;
+    MapLevel := MapContainer.GetMapLevel(L);
+    InitHNWalk(Walk, X, Y, 0);
+    while (Walk.Radius <= Radius) and not Result do
+    begin
+      WX := Walk.X;
+      if (WX >= 0) and (Walk.Y >= 0) and (WX < MapLevel.Width) and
+        (Walk.Y < MapLevel.Height) then
+      begin
+        Field := TAoWMapField(MapLevel.GetField(WX, Walk.Y));
+        Result := (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled);
+      end;
+      if not Result then WalkToNextHN(Walk);
+    end;
+    if Result then MakeVisible(Walk.X, Walk.Y, L, 3);
+  end
+  else Result := False;
+end;
 
 function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
-begin Result := False; end;
+var
+  MapLevel: TMapLevel;
+  Field: TAoWMapField;
+  Walk: THNWalkData;
+  WX: Integer;
+begin
+  if FShowIndependentMoves and (Player <> AoWHSMap.FSeatedPlayer) then
+  begin
+    Result := False;
+    MapLevel := MapContainer.GetMapLevel(L);
+    InitHNWalk(Walk, X, Y, 0);
+    while (Walk.Radius <= Radius) and not Result do
+    begin
+      WX := Walk.X;
+      if (WX >= 0) and (Walk.Y >= 0) and (WX < MapLevel.Width) and
+        (Walk.Y < MapLevel.Height) then
+      begin
+        Field := TAoWMapField(MapLevel.GetField(WX, Walk.Y));
+        Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+        (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled);
+      end;
+      if not Result then WalkToNextHN(Walk);
+    end;
+    if Result then MakeVisible(Walk.X, Walk.Y, L, 3);
+  end
+  else Result := False;
+end;
 
 procedure TAoWHSMap.UnlockGameOverEventCallBack;
-begin end;
+begin
+  UnlockGameOverEvent;
+end;
 
-procedure TAoWHSMap.SelectNextHero;
-begin end;
+function TAoWHSMap.SelectNextHero: Boolean;
+var
+  Player: TPlayer;
+  I, Left: Integer;
+  Army: TArmy;
+  Xhp, Yhp: Integer;
+begin
+  Player := FPlayers.GetPlayers(FSeatedPlayer);
+  if Player.FArmies.Count <> 0 then
+  begin
+    Left := Player.FArmies.Count;
+    I := Player.FHeroJoinDay;
+    if (I < 0) or (I >= Player.FArmies.Count) then I := 0;
+    repeat
+      Inc(I);
+      Dec(Left);
+      if I = Player.FArmies.Count then I := 0;
+    until (Left = 0) or (Player.FArmies.GetArmy(I).Hero($FF, [htHero, htLeader, htHeroLeader, htMerchant]) <> nil);
+    if Player.FArmies.GetArmy(I).Hero($FF, [htHero, htLeader, htHeroLeader, htMerchant]) <> nil then
+    begin
+      Army := FPlayers.GetPlayers(FSeatedPlayer).FArmies.GetArmy(I);
+      CenterViewTo(Army.FX, Army.FY, Army.FL);
+      Selection.UnselectLocation;
+      HXtoHP(Army.FX, Army.FY, Xhp, Yhp);
+      Selection.SelectLocation(Xhp, Yhp, Army.FL);
+      Player.FHeroJoinDay := I;
+    end
+    else Selection.UnselectLocation;
+  end;
+  Result := True;
+end;
 
-procedure TAoWHSMap.SelectNextArmy;
-begin end;
+function TAoWHSMap.SelectNextArmy: Boolean;
+var
+  Player: TPlayer;
+  I, Left: Integer;
+  Army: TArmy;
+  Xhp, Yhp: Integer;
+begin
+  Player := FPlayers.GetPlayers(FSeatedPlayer);
+  if Player.FArmies.Count <> 0 then
+  begin
+    Left := Player.FArmies.Count;
+    I := Player.FBaseHeroJoinDay;
+    if (I < 0) or (I >= Player.FArmies.Count) then I := 0;
+    repeat
+      Inc(I);
+      Dec(Left);
+      if I = Player.FArmies.Count then I := 0;
+    until (Left = 0) or ((Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
+          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []));
+    if (Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
+          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []) then
+    begin
+      Army := FPlayers.GetPlayers(FSeatedPlayer).FArmies.GetArmy(I);
+      CenterViewTo(Army.FX, Army.FY, Army.FL);
+      Selection.UnselectLocation;
+      HXtoHP(Army.FX, Army.FY, Xhp, Yhp);
+      Selection.SelectLocation(Xhp, Yhp, Army.FL);
+      Player.FBaseHeroJoinDay := I;
+    end
+    else Selection.UnselectLocation;
+  end;
+  Result := True;
+end;
 
-procedure TAoWHSMap.SelectPrevArmy;
-begin end;
+function TAoWHSMap.SelectPrevArmy: Boolean;
+var
+  Player: TPlayer;
+  I, Left: Integer;
+  Army: TArmy;
+  Xhp, Yhp: Integer;
+begin
+  Player := FPlayers.GetPlayers(FSeatedPlayer);
+  if Player.FArmies.Count <> 0 then
+  begin
+    I := Player.FBaseHeroJoinDay;
+    if (I < 0) or (I >= Player.FArmies.Count) then I := 0;
+    Left := Player.FArmies.Count;
+    repeat
+      Dec(I);
+      Dec(Left);
+      if I < 0 then I := Player.FArmies.Count - 1;
+    until (Left = 0) or ((Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
+          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []));
+    if (Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
+          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []) then
+    begin
+      Army := FPlayers.GetPlayers(FSeatedPlayer).FArmies.GetArmy(I);
+      CenterViewTo(Army.FX, Army.FY, Army.FL);
+      Selection.UnselectLocation;
+      HXtoHP(Army.FX, Army.FY, Xhp, Yhp);
+      Selection.SelectLocation(Xhp, Yhp, Army.FL);
+      Player.FBaseHeroJoinDay := I;
+    end
+    else Selection.UnselectLocation;
+  end;
+  Result := True;
+end;
 
 procedure TAoWHSMap.SeatedPlayerChanged;
-begin end;
+var
+  Msg: TEMsg;
+begin
+  Selection.UnselectAll;
+  InitMsg(Msg, $20020006, Self);
+  MapContainer.SendMsg(Msg, Self);
+  InitMsg(Msg, $20020009, Self);
+  MapContainer.SendMsg(Msg, Self);
+  FSeatedPlayerChangedEvents.TriggerNotifyEvents(AoWHSMap);
+  ShowMessage('');
+end;
 
 procedure TAoWHSMap.BeginUnitUpdate;
-begin end;
+begin
+  Inc(FUnitUpdateCount);
+end;
 
 procedure TAoWHSMap.EndUnitUpdate;
-begin end;
+begin
+  Dec(FUnitUpdateCount);
+  if FUnitUpdateCount = 0 then UnitChanged(nil);
+end;
 
-procedure TAoWHSMap.UnitChanged;
-begin end;
+procedure TAoWHSMap.UnitChanged(AUnit: TAbstractUnit);
+begin
+  if FUnitUpdateCount = 0 then FUnitChangedEvents.TriggerNotifyEvents(AUnit);
+end;
 
-procedure TAoWHSMap.UnitDestroyed;
-begin end;
+procedure TAoWHSMap.UnitDestroyed(AUnit: TAbstractUnit);
+begin
+  if not (msDestroying in AoWHSMap.Status) then
+  FUnitDestroyedEvents.TriggerNotifyEvents(AUnit);
+end;
 
 procedure TAoWHSMap.BeginArmyUpdate;
-begin end;
+begin
+  Inc(FArmyUpdateCount);
+end;
 
 procedure TAoWHSMap.EndArmyUpdate;
-begin end;
+begin
+  Dec(FArmyUpdateCount);
+  if FArmyUpdateCount = 0 then ArmyChanged(nil);
+end;
 
-procedure TAoWHSMap.ArmyChanged;
-begin end;
+procedure TAoWHSMap.ArmyChanged(Army: TArmyHS);
+begin
+  if FArmyUpdateCount = 0 then FArmyChangedEvents.TriggerNotifyEvents(Army);
+end;
 
-procedure TAoWHSMap.ArmyDestroyed;
-begin end;
+procedure TAoWHSMap.ArmyDestroyed(Army: TArmyHS);
+begin
+  FArmyDestroyedEvents.TriggerNotifyEvents(Army);
+end;
 
 procedure TAoWHSMap.BeginStructureUpdate;
-begin end;
+begin
+  Inc(FStructureUpdateCount);
+end;
 
 procedure TAoWHSMap.EndStructureUpdate;
-begin end;
+begin
+  Dec(FStructureUpdateCount);
+  if FStructureUpdateCount = 0 then StructureChanged(nil);
+end;
 
 procedure TAoWHSMap.StructureChanged(Structure: TStructure);
-begin end;
+begin
+  if FStructureUpdateCount = 0 then FStructureChangedEvents.TriggerNotifyEvents(Structure);
+end;
 
 procedure TAoWHSMap.StructureDestroyed(Structure: TStructure);
-begin end;
+begin
+  FStructureDestroyedEvents.TriggerNotifyEvents(Structure);
+end;
 
 procedure TAoWHSMap.TriggerCombatEvent;
-begin end;
+begin
+  FCombatEvents.TriggerNotifyEvents(Combat);
+end;
 
 procedure TAoWHSMap.TriggerGameTerminatedEvent;
-begin end;
+begin
+  FGameStatus := gsTerminated;
+  FGameOverEvents.TriggerNotifyEvents(Self); { Original dispatches through $1B8. }
+end;
 
 procedure TAoWHSMap.ExecuteExitGame;
-begin end;
+begin
+  FExitPending := True;
+  FExitEvents.TriggerNotifyEvents(Self);
+end;
 
 procedure TAoWHSMap.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
-begin end;
+var
+  PlayerControl: TPlayerControl;
+begin
+  if not FExitPending then
+  begin
+    PlayerControl := FPlayerControl;
+    if PlayerControl <> nil then PlayerControl.ExitGame(Mode, Done)
+    else
+    begin
+      ExecuteExitGame;
+      if Assigned(Done) then Done(Mode, True);
+    end;
+  end
+  else if Assigned(Done) then Done(Mode, True);
+end;
 
-procedure TAoWHSMap.TriggerEndTurnEvent(A1: Byte);
-begin end;
+procedure TAoWHSMap.TriggerEndTurnEvent(Player: Shortint);
+begin
+  FEndTurnEvents.TriggerNotifyEvents(TObject(Player));
+end;
 
 procedure TAoWHSMap.ClearExecuteEventLogBuffer;
-begin end;
+begin
+  while FExecuteEventLogCallBacks.GetCount > 0 do
+  begin
+    if Assigned(FExecuteEventLogCallBacks.GetItem(0)^.Done) then
+      FExecuteEventLogCallBacks.GetItem(0)^.Done(FExecuteEventLogCallBacks.GetItem(1)^.Log);
+      { Original passes the second record's log to the first callback, even for a one-item list. }
+    FExecuteEventLogCallBacks.Delete(0);
+  end;
+end;
 
 procedure TAoWHSMap.ExecuteNextEventLog;
-begin end;
+var
+  Info: TExecuteEventLogInfo;
+begin
+  if FExecuteEventLogCallBacks.GetCount <> 0 then
+  begin
+    Inc(FAILockCount);
+    Info := FExecuteEventLogCallBacks.GetItem(0)^;
+    Info.Done := ExecuteEventLogDone;
+    FExecuteEventLogEvents.TriggerNotifyEvents(TObject(@Info));
+  end;
+end;
 
-procedure TAoWHSMap.SetExecuteEventLogDelay(A1: Integer);
-begin end;
+procedure TAoWHSMap.SetExecuteEventLogDelay(Value: Integer);
+begin
+  if FExecuteEventLogDelay = 0 then
+  begin
+    FExecuteEventLogDelay := Value;
+    LockExecuteEventLog;
+  end
+  else if FExecuteEventLogDelay < Value then FExecuteEventLogDelay := Value;
+end;
 
 procedure TAoWHSMap.UpdateExecuteEventLogDelay;
-begin end;
+begin
+  if FExecuteEventLogDelay <> 0 then
+  begin
+    Dec(FExecuteEventLogDelay);
+    if FExecuteEventLogDelay = 0 then UnlockExecuteEventLog;
+  end;
+end;
 
-procedure TAoWHSMap.ExecuteEventLogDone(A1: Integer);
-begin end;
+procedure TAoWHSMap.ExecuteEventLogDone(Log: TEventLog);
+var
+  Info: TExecuteEventLogInfo;
+begin
+  if (FExecuteEventLogCallBacks.GetCount > 0) and
+    (Log = FExecuteEventLogCallBacks.GetItem(0)^.Log) then
+  begin
+    Info := FExecuteEventLogCallBacks.GetItem(0)^;
+    FExecuteEventLogCallBacks.Delete(0);
+    if Assigned(Info.Done) then Info.Done(Info.Log);
+    Info.Log.Release;
+  end;
+  SetExecuteEventLogDelay(2);
+  UnlockExecuteEventLog;
+end;
 
 procedure TAoWHSMap.LockExecuteEventLog;
-begin end;
+begin
+  Inc(FAILockCount);
+end;
 
 procedure TAoWHSMap.UnlockExecuteEventLog;
-begin end;
+begin
+  Dec(FAILockCount);
+  if FAILockCount = 0 then ExecuteNextEventLog;
+end;
 
 procedure TAoWHSMap.TriggerExecuteEventLog(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent);
-begin end;
+var
+  Info: TExecuteEventLogInfo;
+begin
+  Info.Log := Log;
+  Info.Done := Done;
+  Info.Immediate := Immediate;
+  if not Immediate then
+  begin
+    Log.AddRef;
+    FExecuteEventLogCallBacks.Add(Info);
+    if FAILockCount = 0 then ExecuteNextEventLog;
+  end
+  else FExecuteEventLogEvents.TriggerNotifyEvents(TObject(@Info));
+end;
 
 procedure TAoWHSMap.TriggerPlayerTerminatedEvent(Player: Integer);
 begin end;
@@ -9891,7 +10583,7 @@ begin Result := False; { draft body } end;
 procedure TAoWHSMap.FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TAoWHSMap.MouseMoved;
+procedure TAoWHSMap.MouseMoved(Sender: TObject);
 begin end;
 
 procedure TAoWHSMap.UpdateCursor;
@@ -9906,7 +10598,7 @@ begin end;
 procedure TAoWHSMap.PlayerChanged;
 begin end;
 
-procedure TAoWHSMap.TokenControlActivatedEvent;
+procedure TAoWHSMap.TokenControlActivatedEvent(Sender: TObject);
 begin end;
 
 procedure TAoWHSMap.NewFrame;

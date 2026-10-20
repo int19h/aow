@@ -210,7 +210,7 @@
   TMoveSelector = class(TObject)
   public
     F_MoveSelector_04: Integer;
-    F_MoveSelector_08: Integer;
+    FMoveSettingsList: TMoveSettingsList; { $08; 5577468B }
     F_MoveSelector_0C: Integer;
     F_MoveSelector_10: Integer;
     F_MoveSelector_14: Byte;

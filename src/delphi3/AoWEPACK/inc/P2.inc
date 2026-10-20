@@ -7577,7 +7577,7 @@ begin Result := 0; end;
 function TArmyHSList.GetArmyHS(Index: Integer): TArmyHS;
 begin Result := nil; end;
 
-procedure TSelectedArmy.Create(A1: Byte);
+constructor TSelectedArmy.Create;
 begin end;
 
 destructor TSelectedArmy.Destroy;
@@ -7610,10 +7610,10 @@ begin end;
 procedure TSelectedArmy.UpdateSelectedUnitGFX(A1: Integer; A2: Integer);
 begin end;
 
-procedure TSelectedArmy.OnDestroyArmy(A1: Integer);
+procedure TSelectedArmy.OnDestroyArmy(Sender: TObject);
 begin end;
 
-procedure TSelectedArmy.RectangleSelectEvent(A1: Integer);
+procedure TSelectedArmy.RectangleSelectEvent(Sender: TObject);
 begin end;
 
 procedure TSelectedArmy.ValidMultiMoveSelection(A1: Integer);

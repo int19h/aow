@@ -29,6 +29,12 @@ type
   TPasswordEventLog = class;
 
   TExecuteDoneEvent = procedure(Log: TEventLog) of object;
+  PExecuteEventLogInfo = ^TExecuteEventLogInfo;
+  TExecuteEventLogInfo = record
+    Log: TEventLog; { $00 }
+    Done: TExecuteDoneEvent; { $04 }
+    Immediate: Boolean; { $0C; size $10 }
+  end;
   TExecuteTrigger = (etEvent, etUser, etNewTurn);  { ot=1 }
   TExecuteTriggers = set of TExecuteTrigger; { ot=1 }
   TMessageEventLogButtons = (mebOk, mebOkCancel, mebYesNo, mebYesNoCancel);  { ot=1 }
@@ -118,17 +124,17 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TExecuteEventLogCallBackList (instance size 8, VMT 557FC130) }
+  { TExecuteEventLogCallBackList: size $08; $04 list of $10-byte callback records. VMT 557FC130. }
   TExecuteEventLogCallBackList = class(TObject)
   public
-    F_ExecuteEventLogCallBackList_04: Integer;
+    FList: TList; { $04 }
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure Clear;  { draft }
-    procedure GetCount;  { draft }
-    procedure GetItem(A1: Integer);  { draft }
-    procedure Add(A1: Integer);  { draft }
-    procedure Delete(A1: Integer);  { draft }
+    constructor Create;
+    procedure Clear;
+    function GetCount: Integer;
+    function GetItem(Index: Integer): PExecuteEventLogInfo;
+    procedure Add(const Info: TExecuteEventLogInfo);
+    procedure Delete(Index: Integer);
   end;
 
   { TEventLogList (instance size 24, VMT 557FC2B0) }
@@ -270,25 +276,50 @@ procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: 
 implementation
 
 constructor TExecuteEventLogCallBackList.Create;
-begin end;
+begin
+  inherited Create;
+  FList := TList.Create;
+end;
 
 destructor TExecuteEventLogCallBackList.Destroy;
-begin end;
+begin
+  Clear;
+  FList.Free;
+  inherited Destroy;
+end;
 
 procedure TExecuteEventLogCallBackList.Clear;
-begin end;
+begin
+  while FList.Count <> 0 do Delete(FList.Count - 1);
+end;
 
-procedure TExecuteEventLogCallBackList.GetCount;
-begin end;
+function TExecuteEventLogCallBackList.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
 
-procedure TExecuteEventLogCallBackList.GetItem(A1: Integer);
-begin end;
+function TExecuteEventLogCallBackList.GetItem(Index: Integer): PExecuteEventLogInfo;
+begin
+  Result := FList.List[Index];
+end;
 
-procedure TExecuteEventLogCallBackList.Add(A1: Integer);
-begin end;
+procedure TExecuteEventLogCallBackList.Add(const Info: TExecuteEventLogInfo);
+var
+  Item: PExecuteEventLogInfo;
+begin
+  New(Item);
+  Item^ := Info;
+  FList.Add(Item);
+end;
 
-procedure TExecuteEventLogCallBackList.Delete(A1: Integer);
-begin end;
+procedure TExecuteEventLogCallBackList.Delete(Index: Integer);
+begin
+  if Index < FList.Count then
+  begin
+    Dispose(PExecuteEventLogInfo(FList.List[Index]));
+    FList.Delete(Index);
+  end;
+end;
 
 constructor TEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;

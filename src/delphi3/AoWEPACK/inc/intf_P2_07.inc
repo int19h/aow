@@ -431,7 +431,7 @@
     F_Army_25: Byte;
     F_Army_26: Byte;
     F_Army_27: Byte;
-    F_Army_28: Byte;
+    FMode: TArmyMode; { $28; 5577602E }
     F_Army_29: Byte;
     F_Army_2A: Byte;
     F_Army_2B: array[0..0] of Byte;

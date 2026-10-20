@@ -118,7 +118,7 @@
     destructor Destroy; override;
     procedure SetupMove; virtual;  { +000 draft }
     procedure ProcessMove(A1: TMoveControlSettings); virtual;  { +004 }
-    constructor Create;  { draft }
+    constructor Create(AOwner: TAoWHSMap);
     procedure Clear;  { draft }
     procedure SetMapL(A1: Integer);  { draft }
     procedure DefaultMoveOnMovePointProc(A1: Integer; A2: Integer);  { draft }

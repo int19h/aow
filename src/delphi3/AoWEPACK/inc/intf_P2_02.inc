@@ -19,7 +19,7 @@
     procedure ExecuteMove; override;
     procedure Deactivate; override;
     procedure ShowMovePaths(A1: Integer); override;
-    procedure Create(A1: Byte);  { draft }
+    constructor Create;
     procedure AddMoveArmy(A1: Integer; A2: Integer);  { draft }
     function GetArmyHS: TArmyHS;
     function GetSelection: Byte;
@@ -27,8 +27,8 @@
     procedure GetMoveTypes;  { draft }
     procedure ResetSelectedUnitGFX;  { draft }
     procedure UpdateSelectedUnitGFX(A1: Integer; A2: Integer);  { draft }
-    procedure OnDestroyArmy(A1: Integer);  { draft }
-    procedure RectangleSelectEvent(A1: Integer);  { draft }
+    procedure OnDestroyArmy(Sender: TObject);
+    procedure RectangleSelectEvent(Sender: TObject);
     procedure ValidMultiMoveSelection(A1: Integer);  { draft }
     procedure ActivateMoveSelection;  { draft }
     procedure DeactivateMoveSelection;  { draft }

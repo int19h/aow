@@ -923,7 +923,7 @@
   { TSaveGameTE (instance size 20, VMT 5571CFA8) }
   TSaveGameTE = class(TTokenEvent)
   public
-    F_SaveGameTE_10: Integer;
+    FFileName: string; { $10; 557758D5 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
