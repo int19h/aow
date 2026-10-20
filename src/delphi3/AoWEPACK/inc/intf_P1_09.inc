@@ -174,7 +174,8 @@
   TStructureResource = class(TFixedILTerrainMOR)
   public
     FTerrainBound: Boolean; { $44 }
-    F_StructureResource_45: Byte;
+    { conflict: FUsePad: Boolean; }
+    FConnectRoads: Boolean; { $45 }
     F_StructureResource_46: Byte;
     F_StructureResource_47: array[0..0] of Byte;
     F_StructureResource_48: Integer;
@@ -188,6 +189,7 @@
     FRebuildDays: Byte; { $5B }
     FDefenders: TUnitIndexListCollection;  { $5C }
     FRazeDefenderBudget: Integer; { $60 }
+    { conflict: FRazeDefenderStrength: Integer; }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;

@@ -1,13 +1,12 @@
 unit Gems;
 
-{ Draft declarations of Gems, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Gems of AoWEPACK.dpl: original instance layouts; TGemsResource recovered.
+  TGems remains a draft. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   TGems = class;
@@ -32,7 +31,7 @@ type
     procedure ArmyEntered(A1: Integer);  { draft }
   end;
 
-  { TGemsResource (instance size 68, VMT 557C4EF0) }
+  { TGemsResource (instance size 68, VMT 557C4EF0): no additional fields. }
   TGemsResource = class(TILTerrainMOR)
   public
     class function ClassID: Integer; override;
@@ -72,13 +71,13 @@ procedure TGems.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
 class function TGemsResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(LoadResString(@GoldRStr)); end;
 
 class function TGemsResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203AF; end;
 
 function TGemsResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $203AE; end;
 
 procedure RegisterGems;
 begin end;

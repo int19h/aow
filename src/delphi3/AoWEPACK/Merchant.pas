@@ -1,8 +1,6 @@
 unit Merchant;
 
-{ Draft declarations of Merchant, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Merchant of AoWEPACK.dpl: recovered bodies and original instance layouts. }
 
 interface
 
@@ -30,30 +28,35 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterMerchant;  { draft }
+procedure RegisterMerchant(AEngine: TEngine);
 
 implementation
 
 constructor TMerchant.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); end;
 
 class function TMerchant.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2010A; end;
 
 constructor TMerchantResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTerrainBound := False;
+end;
 
 class function TMerchantResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2010B; end;
 
 class function TMerchantResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(LoadResString(@MerchantRStr)); end;
 
 function TMerchantResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2010A; end;
 
-procedure RegisterMerchant;
-begin end;
+procedure RegisterMerchant(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TMerchant, TMerchantResource]);
+end;
 
 
 initialization

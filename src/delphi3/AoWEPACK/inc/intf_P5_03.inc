@@ -8,8 +8,8 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure GetPadResource(A1: Integer);  { draft }
     procedure SetPadResource(A1: Integer; A2: Integer);  { draft }
-    procedure RegisterPadResource(A1: Integer; A2: Integer);  { draft }
-    procedure UnregisterPadResource(A1: Integer; A2: Integer);  { draft }
+    procedure RegisterPadResource(Resource: TMapObjectResource; Size: Integer);
+    procedure UnregisterPadResource(Resource: TMapObjectResource; Size: Integer);
     procedure CanPlacePad(A1: Byte; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure PlacePad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;

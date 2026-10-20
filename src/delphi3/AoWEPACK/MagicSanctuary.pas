@@ -1,8 +1,6 @@
 unit MagicSanctuary;
 
-{ Draft declarations of MagicSanctuary, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ MagicSanctuary of AoWEPACK.dpl: recovered bodies and original instance layouts. }
 
 interface
 
@@ -15,20 +13,22 @@ type
   TMagicSanctuaryResource = class;
 
 
-  { TMagicSanctuaryOverlayHS (instance size 20, VMT 557D404C) }
+  { TMagicSanctuaryOverlayHS (instance size 20, VMT 557D404C):
+    $0C FStructure; $10 FFadeEndFrame. }
   TMagicSanctuaryOverlayHS = class(TSingleHS)
   public
-    F_MagicSanctuaryOverlayHS_0C: array[0..7] of Byte;
+    FStructure: TMagicSanctuary; { $0C }
+    FFadeEndFrame: Integer; { $10 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure FadeUp;  { draft }
+    procedure FadeUp;
   end;
 
-  { TMagicSanctuary (instance size 52, VMT 557D41F4) }
+  { TMagicSanctuary (instance size 52, VMT 557D41F4): $30 FOverlayHS. }
   TMagicSanctuary = class(TStructure)
   public
-    F_MagicSanctuary_30: array[0..3] of Byte;
+    FOverlayHS: TMagicSanctuaryOverlayHS; { $30 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -46,54 +46,120 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterMagicSanctuary;  { draft }
+procedure RegisterMagicSanctuary(AEngine: TEngine);
 
 implementation
 
+type
+  PAoWHSMap = ^TAoWHSMap;
+  PBlendTables = ^TLookupBlendTableCollection100;
+const
+  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
+  BlendTables: PBlendTables = @GFXE.AlphaBlendTable;
+
 constructor TMagicSanctuaryOverlayHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FFadeEndFrame := -1;
+end;
 
 function TMagicSanctuaryOverlayHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := FStructure.GetShowPriority + $08000000;
+end;
 
 procedure TMagicSanctuaryOverlayHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  FrameIndex, Blend, Xhp, Yhp, FramesLeft: Integer;
+begin
+  HXtoHP(FStructure.FXhx, FStructure.FYhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  Sequence := FStructure.FResource.ImageSequenceList.GetImageSequence(19);
+  if Sequence <> nil then
+  begin
+    Blend := 50;
+    if (FFadeEndFrame <> -1) and (FFadeEndFrame > WorldMap^.Frame) then
+    begin
+      FramesLeft := FFadeEndFrame - WorldMap^.Frame;
+      if FramesLeft <= 20 then
+        Inc(Blend, (10 - Abs(FramesLeft - 10)) * 3)
+      else FFadeEndFrame := -1;
+    end
+    else FFadeEndFrame := -1;
+    FrameIndex := Sequence.GetFrameIndex(0, 0);
+    Sequence.ImageLibrary.Images[FrameIndex].ShowBlended(
+      XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift,
+      SurfaceDesc, BlendTables^.LookupTables[Blend]);
+  end;
+end;
 
 procedure TMagicSanctuaryOverlayHS.FadeUp;
-begin end;
+begin
+  FFadeEndFrame := WorldMap^.Frame + 20;
+end;
 
 constructor TMagicSanctuary.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FOverlayHS := TMagicSanctuaryOverlayHS.Create(nil);
+  FOverlayHS.FStructure := Self;
+end;
 
 destructor TMagicSanctuary.Destroy;
-begin end;
+begin
+  WorldMap^.DynamicVisibleHS.RemoveChild(FOverlayHS);
+  FOverlayHS.Free;
+  inherited Destroy;
+end;
 
 class function TMagicSanctuary.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2089A; end;
 
 procedure TMagicSanctuary.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+begin
+  if not (moVisible in FStatus) then
+  begin
+    inherited MakeVisible(VisibilityList);
+    FOverlayHS.MakeVisible(VisibilityList);
+  end;
+end;
 
 procedure TMagicSanctuary.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if FResource.TerrainList.GetTerrain(Msg.HN) >= 0 then
+    if Msg.MsgID = $1129 then Msg.Param[0] := 1;
+end;
 
 procedure TMagicSanctuary.ArmyPlaced(A1: Integer);
-begin end;
+begin
+  inherited ArmyPlaced(A1);
+  FOverlayHS.FadeUp;
+end;
 
 constructor TMagicSanctuaryResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTerrainBound := False;
+  FRazeable := False;
+  FConnectRoads := False;
+end;
 
 class function TMagicSanctuaryResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(LoadResString(@MagicSanctuaryRStr)); end;
 
 class function TMagicSanctuaryResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2089B; end;
 
 function TMagicSanctuaryResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2089A; end;
 
-procedure RegisterMagicSanctuary;
-begin end;
+procedure RegisterMagicSanctuary(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TMagicSanctuary, TMagicSanctuaryResource]);
+end;
 
 
 initialization

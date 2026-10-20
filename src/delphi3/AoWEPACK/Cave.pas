@@ -441,7 +441,7 @@ constructor TCaveResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FTerrainBound := False;
-  F_StructureResource_45 := 1;
+  FConnectRoads := True;
 end;
 
 class function TCaveResource.ResourceEditName: string;

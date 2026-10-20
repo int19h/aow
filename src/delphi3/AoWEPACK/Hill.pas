@@ -1,13 +1,11 @@
 unit Hill;
 
-{ Draft declarations of Hill, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Hill of AoWEPACK.dpl: recovered bodies and original instance layouts. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   THillMO = class;
@@ -28,24 +26,39 @@ type
     function CreateResourceUser: Engine.TEObject; override;
   end;
 
-procedure RegisterHill(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure RegisterHill(AEngine: TEngine);
 
 implementation
 
+resourcestring
+  HillNameRStr = 'Hill'; { original AoWE.HillRStr, RT_STRING $FFB8 }
+
+const
+  HillNameResource: PResStringRec = @HillNameRStr;
+
 class function THillMO.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20168; end;
 
 class function THillMOR.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20169; end;
 
 class function THillMOR.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(LoadResString(HillNameResource)); end;
 
 function THillMOR.CreateResourceUser: Engine.TEObject;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  MO: THillMO;
+begin
+  MO := THillMO.Create(nil);
+  MO.SetResource(Self);
+  MO.SetResourceLinked(True);
+  Result := MO;
+end;
 
-procedure RegisterHill(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure RegisterHill(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([THillMO]);
+end;
 
 
 initialization

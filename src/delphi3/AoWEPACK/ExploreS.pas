@@ -1,8 +1,7 @@
 unit ExploreS;
 
-{ Draft declarations of ExploreS, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ ExploreS of AoWEPACK.dpl: original instance layouts; TDefendersArmy and
+  TExplorationSiteResource recovered. TExplorationSite remains a draft. }
 
 interface
 
@@ -16,7 +15,7 @@ type
 
   TDefendersMode = (dmUserDefined, dmLow, dmNormal, dmHigh, dmRandom);  { ot=1 }
 
-  { TDefendersArmy (instance size 44, VMT 557C12B4) }
+  { TDefendersArmy (instance size 44, VMT 557C12B4): no additional fields. }
   TDefendersArmy = class(TArmy)
   public
     function CanAddUnit(AUnit: TAbstractUnit): Boolean; override;
@@ -51,10 +50,11 @@ type
     procedure GenerateDefenders;  { draft }
   end;
 
-  { TExplorationSiteResource (instance size 104, VMT 557C16C4) }
+  { TExplorationSiteResource (instance size 104, VMT 557C16C4):
+    $64 FDefenderCollections, the available defender army compositions. }
   TExplorationSiteResource = class(TStructureResource)
   public
-    F_ExplorationSiteResource_64: Integer;
+    FDefenderCollections: TUnitIndexListCollection; { $64 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -63,12 +63,15 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterExplorationSite;  { draft }
+procedure RegisterExplorationSite(AEngine: TEngine);
 
 implementation
 
 function TDefendersArmy.CanAddUnit(AUnit: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanAddUnit(AUnit);
+  Result := Result and not AUnit.GetTransporter and AUnit.ValidTerrain(1, 4);
+end;
 
 constructor TExplorationSite.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -134,25 +137,37 @@ procedure TExplorationSite.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObjec
 begin end;
 
 constructor TExplorationSiteResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDefenderCollections := TUnitIndexListCollection.Create;
+  FTerrainBound := False;
+end;
 
 destructor TExplorationSiteResource.Destroy;
-begin end;
+begin
+  FDefenderCollections.Free;
+  inherited Destroy;
+end;
 
 class function TExplorationSiteResource.ResourceEditName: string;
 begin Result := ''; end;
 
 class function TExplorationSiteResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203C2; end;
 
 procedure TExplorationSiteResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc(25, FDefenderCollections.LoadFromStream, FDefenderCollections.SaveToStream);
+end;
 
 function TExplorationSiteResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $203C1; end;
 
-procedure RegisterExplorationSite;
-begin end;
+procedure RegisterExplorationSite(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TExplorationSite, TExplorationSiteResource]);
+end;
 
 
 initialization

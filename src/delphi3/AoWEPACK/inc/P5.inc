@@ -4002,10 +4002,10 @@ begin end;
 procedure TPadControl.SetPadResource(A1: Integer; A2: Integer);
 begin end;
 
-procedure TPadControl.RegisterPadResource(A1: Integer; A2: Integer);
+procedure TPadControl.RegisterPadResource(Resource: TMapObjectResource; Size: Integer);
 begin end;
 
-procedure TPadControl.UnregisterPadResource(A1: Integer; A2: Integer);
+procedure TPadControl.UnregisterPadResource(Resource: TMapObjectResource; Size: Integer);
 begin end;
 
 procedure TPadControl.CanPlacePad(A1: Byte; A2: Integer; A3: Integer; A4: Integer);

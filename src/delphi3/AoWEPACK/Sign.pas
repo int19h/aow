@@ -152,7 +152,7 @@ end;
 constructor TSignResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_StructureResource_45 := 0;
+  FConnectRoads := False;
   FTerrainBound := False;
 end;
 

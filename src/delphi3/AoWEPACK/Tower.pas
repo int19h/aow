@@ -1,8 +1,7 @@
 unit Tower;
 
-{ Draft declarations of Tower, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Tower of AoWEPACK.dpl: original instance layouts; TTowerResource recovered.
+  TTower and TTowerConstructionControl remain draft bodies. }
 
 interface
 
@@ -30,7 +29,7 @@ type
     procedure GetDefaultAITargetPriority; override;
   end;
 
-  { TTowerResource (instance size 116, VMT 557C3434) }
+  { TTowerResource (instance size 116, VMT 557C3434): no additional fields. }
   TTowerResource = class(TPlayerStructureResource)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -77,16 +76,24 @@ procedure TTower.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
 constructor TTowerResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTerrainBound := True;
+  FClaimed := False;
+  FRazeable := True;
+  FRazeDefenderBudget := 50;
+  FRebuildGold := 25;
+  FRebuildDays := 2;
+end;
 
 class function TTowerResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(LoadResString(@TowerRStr)); end;
 
 class function TTowerResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2043F; end;
 
 function TTowerResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $2043E; end;
 
 procedure TTowerConstructionControl.ID;
 begin end;
