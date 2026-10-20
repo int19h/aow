@@ -145,6 +145,7 @@
     procedure RemoveAbilityData(Data: TAbilityData);
     procedure RemoveAbilityDataID(AbilityID: Integer);
     procedure UpdateDefaultAbilities(Source: TAbilityOwner);
+    { conflict: procedure UpdateDefaultAbilities(A1: TCustomAbilityList); }
     function GetAbAttackAll: Shortint;
     function GetAbDefenseAll: Shortint;
     function GetAbResistanceAll: Shortint;

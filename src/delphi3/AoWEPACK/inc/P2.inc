@@ -241,9 +241,6 @@ var
 function P2MoveTypesToInt(MoveTypes: TMoveTypes): Integer; assembler;
 asm JMP MoveTypesToInt end;
 
-function P2AbMoves(AOwner: TAbilityOwner): TMoveTypes; assembler;
-asm JMP TAbilityOwner.GetAbMoveTypesAll end;
-
 { needs: draft P1 return types; call sites 5578011B/5578012A/55780149. }
 function P2DiplomaticRelation(Relations: TPlayerDiplomaticRelations; Player: Integer): TDiplomaticRelation; assembler;
 asm JMP TPlayerDiplomaticRelations.GetDiplomaticRelation end;
@@ -448,10 +445,6 @@ type
   TP2FaceEnchantmentFields = class(TObject)
     Reserved: array[4..31] of Byte;
     FaceIndex: Integer;
-  end;
-  TP2RankAbilityFields = class(TObject)
-    Reserved: array[4..55] of Byte;
-    Abilities: array[TUnitRank] of Integer;
   end;
 
 constructor TUnitControl.Create(AOwner: Engine.TECustomNode);
@@ -1169,9 +1162,9 @@ begin
     end;
 end;
 
-function TAbstractUnit.GetDescription: Integer;
+function TAbstractUnit.GetDescription: TStrings;
 begin
-  Result := 0;
+  Result := nil;
 end;
 
 function TAbstractUnit.CanActivate: Boolean;
@@ -1432,7 +1425,7 @@ end;
 
 function TAbstractUnit.GetMoveTypes: TMoveTypes;
 begin
-  Result := P2AbMoves(Self);
+  Result := GetAbMoveTypesAll;
 end;
 
 function TAbstractUnit.GetFace: TLibraryImage;
@@ -2460,7 +2453,7 @@ var
 begin
   if not GetAbilityEnabled(126) then
   begin
-    Result := TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.F_AbstractUnitResource_18).GetFaceImage;
+    Result := TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.FUnitGFXResourceIndex).GetFaceImage;
     Exit;
   end;
   FaceIndex := TP2FaceEnchantmentFields(TUnitEnchantmentAbilityData(P2AbilityData(Self,126)).FEnchantment).FaceIndex;
@@ -2481,11 +2474,11 @@ begin
   FExperience := Value;
   if GetRank <> OldRank then
     for Rank := Succ(OldRank) to GetRank do
-      UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
+      UpdateDefaultAbilities(FUnitResource.FAbilities[Rank]);
   Changed;
 end;
 
-function TUnit.GetDescription: Integer;
+function TUnit.GetDescription: TStrings;
 begin Result := FUnitResource.FDescription; end;
 
 function TUnit.GetNextLevelExperience: Integer;
@@ -2596,7 +2589,7 @@ begin
     begin
       UpdateMoraleValue;
       for Rank := urNone to GetRank do
-        UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
+        UpdateDefaultAbilities(FUnitResource.FAbilities[Rank]);
       FHitPoints := GetHits;
       FMovePoints := GetMoves;
     end;
@@ -2604,7 +2597,7 @@ begin
 end;
 
 function TUnit.GetUnitGFXResourceIndex: Integer;
-begin Result := FUnitResource.F_AbstractUnitResource_18; end;
+begin Result := FUnitResource.FUnitGFXResourceIndex; end;
 
 procedure TUnit.Activate;
 begin
@@ -2627,7 +2620,7 @@ begin
   begin
     SetAbCount(0);
     for Rank := urNone to GetRank do
-      UpdateDefaultAbilities(TAbilityOwner(TP2RankAbilityFields(FUnitResource).Abilities[Rank]));
+      UpdateDefaultAbilities(FUnitResource.FAbilities[Rank]);
   end;
 end;
 
@@ -3215,235 +3208,710 @@ begin
 end;
 
 constructor TUnitHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMoveStep := -1;
+  FDirection := 3;
+  FShowPriority := $68000000;
+end;
+
 
 destructor TUnitHS.Destroy;
-begin end;
+begin
+  DestroyShadow;
+  SetUnitGFXResourceIndex(-1);
+  inherited Destroy;
+end;
+
 
 class function TUnitHS.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20214; end;
+
 
 procedure TUnitHS.CreateShadow;
-begin end;
+begin
+  if FShadow <> nil then DestroyShadow;
+  if AoWHSMap.FShowUnitShadows then
+  begin
+    FShadow := TUnitShadowHS.Create(nil);
+    with FShadow do FUnitHS := Self;
+  end;
+end;
+
 
 procedure TUnitHS.DestroyShadow;
-begin end;
+begin
+  if FShadow <> nil then
+  begin
+    if GetVisible then
+      TMapLevel(Owner.Owner).Map.DynamicVisibleHS.RemoveChild(FShadow);
+    FShadow.Free;
+    FShadow := nil;
+  end;
+end;
+
 
 procedure TUnitHS.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+var
+  Shadow: TUnitShadowHS;
+begin
+  if (FStatus and 1) = 0 then
+  begin
+    FStatus := FStatus or 1;
+    VisibilityList.AddSortChild(Self, FShowPriority);
+    Shadow := FShadow;
+    if Shadow <> nil then
+      VisibilityList.AddSortChild(Shadow, Shadow.GetShowPriority);
+  end;
+end;
+
 
 procedure TUnitHS.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FDirection, 9);
+  if not (smSetupCompare in Stream.StorageMode) and (FDirection = 0) then FDirection := 3;
+end;
+
 
 procedure TUnitHS.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  inherited TerrainChanged(Info);
+  CalcShowPriority;
+end;
+
 
 procedure TUnitHS.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  if AOwner <> FOwner then
+  begin
+    if FOwner <> nil then FOwner.RemoveChild(Self);
+    FOwner := AOwner;
+    if FOwner <> nil then FOwner.AddChild(Self);
+  end;
+end;
+
 
 function TUnitHS.GetXhx: Shortint;
-begin Result := 0; end;
+begin Result := TMapField(Owner).Xhx; end;
+
 
 function TUnitHS.GetYhx: Shortint;
-begin Result := 0; end;
+begin Result := TMapField(Owner).Yhx; end;
+
 
 function TUnitHS.GetLhx: Shortint;
-begin Result := 0; end;
+begin
+  Assert(Owner <> nil, 'Onwer isn''t defined');
+  Result := TMapField(Owner).Lhx;
+end;
+
 
 procedure TUnitHS.Select;
-begin end;
+begin FStatus := FStatus or 4; end;
+
 
 procedure TUnitHS.Unselect;
-begin end;
+begin
+  FStatus := FStatus and $FB;
+  inherited Unselect;
+end;
+
 
 function TUnitHS.GetSelected: Boolean;
-begin Result := False; end;
+begin Result := (FStatus and 4) <> 0; end;
+
 
 procedure TUnitHS.SetVisible(Value: Boolean);
-begin end;
+begin
+  if Value then FStatus := FStatus or 1
+  else FStatus := FStatus and $FE;
+end;
+
 
 function TUnitHS.GetVisible: Boolean;
-begin Result := False; end;
+begin Result := (FStatus and 1) <> 0; end;
+
 
 function TUnitHS.GetEditMode: Boolean;
-begin Result := False; end;
+begin Result := (FStatus and 2) <> 0; end;
+
 
 procedure TUnitHS.SetEditMode(Value: Boolean);
-begin end;
+begin
+  if Value then FStatus := FStatus or 2
+  else FStatus := FStatus and $FD;
+end;
 
-procedure TUnitHS.GetUnitGFXResourceIndex;
-begin end;
 
-procedure TUnitHS.SetUnitGFXResourceIndex(A1: Integer);
-begin end;
+function TUnitHS.GetUnitGFXResourceIndex: Integer;
+var
+  Resource: TUnitGFXResource;
+begin
+  Resource := FUnitGFXResource;
+  if Resource <> nil then begin Result := Resource.GetIndex; Exit; end;
+  Result := -1;
+end;
+
+
+procedure TUnitHS.SetUnitGFXResourceIndex(Value: Integer);
+var
+  Resource: TUnitGFXResource;
+begin
+  Resource := FUnitGFXResource;
+  if (Resource = nil) or (Value <> Resource.GetIndex) then
+  begin
+    Resource := FUnitGFXResource;
+    if Resource <> nil then Resource.Release;
+    Resource := AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Value);
+    FUnitGFXResource := Resource;
+    if Resource <> nil then Resource.AddRef;
+  end;
+end;
+
 
 procedure TUnitHS.TimerEvent(Tick: Integer; Sender: Engine.TEObject);
 begin end;
 
 function TUnitHS.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y: Integer;
+begin
+  if not Moving then
+  begin
+    HPtoHX(Xhp, Yhp, X, Y);
+    if (TMapField(Owner).Xhx <> X) or (TMapField(Owner).Yhx <> Y) then Result := False
+    else Result := True;
+  end
+  else Result := False;
+end;
+
 
 procedure TUnitHS.CalcShowPriority;
-begin end;
+var
+  Field: TMapField;
+  HS: THexagonSprite;
+  X, Y: Integer;
+begin
+  Field := TMapField(Owner);
+  if Moving and (FDirection in [3..5]) then
+  begin
+    CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FDirection, X, Y);
+    Field := TMapLevel(Owner.Owner).GetField(X, Y);
+    HXtoHP(X, Y, X, Y);
+  end
+  else HXtoHP(Field.Xhx, Field.Yhx, X, Y);
+  HS := Field.GetMaxLevelNoneTransparentHS;
+  FShowPriority := $68000000 + ((Y + 34 + 6) shl 13) + (X + 16);
+  if (HS <> Self) and (HS <> nil) and (HS.GetShowPriority >= FShowPriority) then
+    FShowPriority := HS.GetShowPriority + 2;
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  SortMapFieldEx(TMapLevel(Owner.Owner).Map.MapContainer, X - 18, Y - 32,
+    TMapField(Owner).Lhx, 64, 64);
+end;
+
 
 function TUnitHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin Result := FShowPriority; end;
+
 
 function TUnitHS.GetLevel: Byte;
-begin Result := 0; end;
+begin Result := 26; end;
+
 
 procedure TUnitHS.UpdateFlagID;
-begin end;
+begin FFlagID := 32; end;
+
 
 procedure TUnitHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  CreateShadow;
+  UpdateFlagID;
+end;
+
 
 procedure TUnitHS.Deactivate;
-begin end;
+begin
+  DestroyShadow;
+  inherited Deactivate;
+end;
+
 
 function TUnitHS.CanMoveOver(const Info: HSEngine.THSSenderInfo): Integer;
-begin Result := 0; end;
+begin
+  if Info.HN = 0 then begin Result := 0; Exit; end;
+  Result := 1;
+end;
+
 
 procedure TUnitHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if Info.HN <= 7 then TAoWMapField(Info.MapField).FFieldFlags :=
+    TAoWMapField(Info.MapField).FFieldFlags or $2000;
+end;
+
 
 procedure TUnitHS.Connect;
-begin end;
+var
+  Field: TMapField;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+begin
+  CalcShowPriority;
+  Field := TMapField(Owner);
+  Field.RemoveChild(Self);
+  Level := TMapLevel(Field.Owner);
+  InitHNWalk(Walk, Field.Xhx, Field.Yhx, 0);
+  while Walk.Radius <= 1 do
+  begin
+    if (Walk.X >= 0) and (Walk.X < Level.Width) and
+       (Walk.Y >= 0) and (Walk.Y < Level.Height) then
+    begin
+      Level.GetField(Walk.X, Walk.Y).AddHS(Self, Walk.HN);
+      Level.GetField(Walk.X, Walk.Y).UpdateMapField;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
+
 
 procedure TUnitHS.Disconnect;
-begin end;
+var
+  Field: TMapField;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+begin
+  if Owner <> nil then
+  begin
+    Field := TMapField(Owner);
+    Level := TMapLevel(Field.Owner);
+    InitHNWalk(Walk, Field.Xhx, Field.Yhx, 0);
+    while Walk.Radius <= 1 do
+    begin
+      if (Walk.X >= 0) and (Walk.X < Level.Width) and
+         (Walk.Y >= 0) and (Walk.Y < Level.Height) then
+      begin
+        Level.GetField(Walk.X, Walk.Y).RemoveHS(Self);
+        Level.GetField(Walk.X, Walk.Y).UpdateMapField;
+      end;
+      WalkToNextHN(Walk);
+    end;
+    SetOwner(nil);
+  end;
+end;
+
 
 function TUnitHS.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Connect;
+  TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).ScannerIconsChangedRad(
+    TMapField(Owner).Xhx, TMapField(Owner).Yhx, TMapField(Owner).Lhx, 0);
+  Result := True;
+end;
+
 
 procedure TUnitHS.RemoveFromMap;
-begin end;
+var
+  Field: TMapField;
+begin
+  if Owner <> nil then
+  begin
+    Field := TMapField(Owner);
+    if Moving then CancelMove;
+    Disconnect;
+    Field.UpdateMapField;
+    TAbstractAoWHSMap(TMapLevel(Field.Owner).Map).ScannerIconsChangedRad(Field.Xhx, Field.Yhx, Field.Lhx, 0);
+  end;
+end;
 
-procedure TUnitHS.MoveTo(A1: Integer; A2: Integer);
-begin end;
+
+function TUnitHS.MoveTo(Field: TMapField): Boolean;
+begin
+  if Owner <> nil then RemoveFromMap;
+  FOwner := Field;
+  CalcShowPriority;
+  PlaceOnMap;
+  Field.RemoveChild(Self);
+  FOwner := nil;
+  SetOwner(Field);
+  Result := True;
+end;
+
 
 procedure TUnitHS.Remove;
-begin end;
+var
+  Field: TMapField;
+begin
+  Field := TMapField(Owner);
+  RemoveFromMap;
+  if GetVisible then
+  begin
+    TMapLevel(Field.Owner).Map.DynamicVisibleHS.RemoveChild(Self);
+    SetVisible(False);
+  end;
+end;
 
-procedure TUnitHS.PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+
+function TUnitHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
+var
+  Field: TMapField;
+  Success: Boolean;
+begin
+  Field := Map.GetField(Xhx, Yhx, Lhx);
+  FOwner := Field;
+  CalcShowPriority;
+  Success := PlaceOnMap;
+  Field.RemoveChild(Self);
+  FOwner := nil;
+  SetOwner(Field);
+  Result := Success;
+end;
+
 
 function TUnitHS.Place(Map: HSEngine.TMapContainer; Xhp, Yhp, Lhx: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y: Integer;
+begin
+  HPtoHX(Xhp, Yhp, X, Y);
+  Result := PlaceHX(Map, X, Y, Lhx);
+end;
+
 
 procedure TUnitHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  Index: Integer;
+  Progress: Single;
+  Xhp, Yhp, DX, DY: Integer;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+  X := Xhp - X;
+  Y := Yhp - Y;
+  if FMoveStep <> -1 then
+  begin
+    HNtoHP(FDirection, DX, DY);
+    Progress := FMoveStep / GetMoveSteps;
+    Inc(X, Round(DX * Progress));
+    Inc(Y, Round(DY * Progress));
+  end;
+  if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.GetImageSequence(27)
+  else Sequence := FUnitGFXResource.FSequences.GetImageSequence(FDirection + 23);
+  while Sequence <> nil do
+  begin
+    Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+    Sequence.ImageLibrary[Index].Show(X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
+    Sequence := Sequence.Next;
+  end;
+end;
+
 
 procedure TUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure TUnitHS.SetDirection(A1: Integer);
-begin end;
+procedure TUnitHS.SetDirection(Value: Byte);
+begin
+  if Value <> FDirection then
+  begin
+    if Moving then CancelMove;
+    FDirection := Value;
+  end;
+end;
 
-procedure TUnitHS.MoveFirst(A1: Integer; A2: Integer);
-begin end;
 
-procedure TUnitHS.GetMoveStatus;
-begin end;
+function TUnitHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
+begin
+  if FMoveStep <> -1 then CancelMove;
+  FStatus := FStatus and $E7;
+  if Instant then FStatus := FStatus or $10;
+  FDirection := Direction;
+  FMoveStep := 0;
+  CalcShowPriority;
+  Result := 0;
+end;
 
-procedure TUnitHS.SetMoveStatus(A1: Integer);
-begin end;
 
-procedure TUnitHS.MoveNext;
-begin end;
+function TUnitHS.GetMoveStatus: Shortint;
+begin
+  if FMoveStep >= 0 then
+    if FMoveStep < GetMoveSteps then Result := Round(FMoveStep * 100 / GetMoveSteps)
+    else Result := 100
+  else Result := -1;
+end;
 
-procedure TUnitHS.Moving;
-begin end;
+
+procedure TUnitHS.SetMoveStatus(Value: Shortint);
+begin
+  if Value >= 0 then
+  begin
+    FMoveStep := (GetMoveSteps * Value + 50) div 100;
+    if FMoveStep > GetMoveSteps then begin FMoveStep := GetMoveSteps; Exit; end;
+  end
+  else FMoveStep := -1;
+end;
+
+
+function TUnitHS.MoveNext: Shortint;
+begin
+  if FMoveStep >= 0 then
+  begin
+    FStatus := FStatus and $F7;
+    if FMoveStep < GetMoveSteps then
+    begin
+      Inc(FMoveStep);
+      Result := Round(FMoveStep * 100 / GetMoveSteps);
+    end
+    else Result := 100;
+  end
+  else Result := -1;
+end;
+
+
+function TUnitHS.Moving: Boolean;
+begin Result := FMoveStep <> -1; end;
+
 
 procedure TUnitHS.PauseMove;
-begin end;
+begin FStatus := FStatus or 8; end;
+
 
 procedure TUnitHS.CancelMove;
-begin end;
+begin
+  if FMoveStep <> -1 then
+  begin
+    FMoveStep := -1;
+    FStatus := FStatus and $E7;
+  end;
+end;
+
 
 function TUnitHS.GetMoveSteps: Integer;
-begin Result := 0; end;
+begin
+  case FUnitGFXResource.F_UnitGFXResource_30 of
+    0: begin Result := 12; Exit; end;
+    1: begin Result := 10; Exit; end;
+    2: begin Result := 8; Exit; end;
+    3: begin Result := 6; Exit; end;
+  else Result := 8;
+  end;
+end;
+
 
 procedure TUnitHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if (Msg.MsgID = $10) and (Msg.HN = 0) and (msEditting in AoWHSMap.Status) then Destroy;
+end;
+
 
 function TAbstractUnitResource.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWEngine; end;
 
-procedure TAbstractUnitResource.GetObtainValue;
-begin end;
 
-procedure TAbstractUnitResource.GetFace;
-begin end;
+function TAbstractUnitResource.GetObtainValue: Integer;
+begin Result := 0; end;
+
+
+function TAbstractUnitResource.GetFace: TLibraryImage;
+var
+  Resource: TUnitGFXResource;
+begin
+  Resource := AoWHSSet.FUnitGFXResources.GetUnitGFXResource(FUnitGFXResourceIndex);
+  if Resource <> nil then begin Result := Resource.GetFaceImage; Exit; end;
+  Result := nil;
+end;
+
 
 function TAbstractUnitResource.GetPreviewImage: TLibraryImage;
-begin end;
+var
+  Resource: TUnitGFXResource;
+begin
+  Resource := AoWHSSet.FUnitGFXResources.GetUnitGFXResource(FUnitGFXResourceIndex);
+  if Resource <> nil then begin Result := Resource.GetCellImage; Exit; end;
+  Result := nil;
+end;
+
 
 function TAbstractUnitResource.GetCellImage: ImageLib.TLibraryImage;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := GetPreviewImage; end;
 
-procedure TAbstractUnitResource.SetUnitGFXResourceIndex(A1: Integer);
-begin end;
+
+procedure TAbstractUnitResource.SetUnitGFXResourceIndex(Value: Integer);
+begin FUnitGFXResourceIndex := Value; end;
+
 
 procedure TAbstractUnitResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FUnitGFXResourceIndex, 8);
+end;
 
-procedure TAbstractUnitResource.DropUnit(A1: Integer; A2: Integer; A3: Integer);
-begin end;
 
-procedure TAbstractUnitResource.EditDropMsg(A1: Integer);
-begin end;
+function TAbstractUnitResource.DropUnit(Xhx, Yhx, Lhx: Integer): Boolean;
+begin Result := False; end;
+
+
+procedure TAbstractUnitResource.EditDropMsg(var Msg: TEMsg);
+var
+  Map: TMapContainer;
+  Lhx, Xhx, Yhx: Integer;
+begin
+  Map := TMapContainer(Msg.Param[0]);
+  Lhx := Msg.Data[1];
+  HPtoHX(Integer(Msg.Engine), Msg.Data[0], Xhx, Yhx);
+  if (Xhx >= 0) and (Yhx >= 0) and (Xhx < Map.Width) and (Yhx < Map.Height) and
+     DropUnit(Xhx, Yhx, Lhx) then Msg.Result := 0
+  else Msg.Result := -1;
+end;
+
 
 class function TAbstractUnitResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Unit'; end;
+
 
 procedure TAbstractUnitResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $10005 then EditDropMsg(Msg);
+  if Msg.MsgID = $10055 then Msg.Result := 8;
+end;
+
 
 function TUnitResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
 begin Result := []; end;
 
 constructor TUnitResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  Rank: TUnitRank;
+begin
+  inherited Create(AOwner);
+  FDescription := TStringList.Create;
+  for Rank := Low(TUnitRank) to High(TUnitRank) do
+    FAbilities[Rank] := TUnitResourceAbilityOwner.Create(nil);
+  FMoves := 16;
+  FHits := 5;
+  FAttack := 3;
+  FDefense := 3;
+  FResistance := 3;
+  FDamage := 3;
+  FUnitSize := usMedium;
+  FBloodType := btRed;
+end;
+
 
 destructor TUnitResource.Destroy;
-begin end;
+var
+  Rank: TUnitRank;
+begin
+  FDescription.Free;
+  for Rank := Low(TUnitRank) to High(TUnitRank) do FAbilities[Rank].Free;
+  inherited Destroy;
+end;
 
-procedure TUnitResource.GetMoveTypes;
-begin end;
+
+function TUnitResource.GetMoveTypes: TMoveTypes;
+var
+  MoveTypes: TMoveTypes;
+begin
+  MoveTypes := FAbilities[urNone].GetAbMoveTypesAll;
+  Result := MoveTypes;
+end;
+
 
 function TUnitResource.GetTransportCapacity: Byte;
-begin end;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(50).GetLevel(FAbilities[urNone]);
+  if Result < FTransportCapacity then Result := FTransportCapacity;
+end;
 
-procedure TUnitResource.GetUpkeep;
-begin end;
 
-procedure TUnitResource.GetObtainValue;
-begin end;
+function TUnitResource.GetUpkeep: Shortint;
+begin Result := FLevel + 1; end;
 
-procedure TUnitResource.SetDescription;
-begin end;
+
+function TUnitResource.GetObtainValue: Integer;
+begin Result := FObtainValue; end;
+
+
+procedure TUnitResource.SetDescription(Value: TStrings);
+begin FDescription.Assign(Value); end;
+
 
 function TUnitResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $20214; end;
+
 
 function TUnitResource.CreateResourceUser: Engine.TEObject;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := inherited CreateResourceUser;
+  if Result <> nil then TUnitHS(Result).SetUnitGFXResourceIndex(FUnitGFXResourceIndex);
+end;
+
 
 function TUnitResource.UnitResourceIndex: Integer;
-begin end;
+begin Result := Owner.FindChildIndex(Self); end;
+
 
 class function TUnitResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20212; end;
+
 
 function TUnitResource.GetUnitName: string;
-begin end;
+begin
+  Result := FName;
+  if FNickname <> '' then Result := Result + ' ' + FNickname;
+end;
+
 
 procedure TUnitResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var
+  Rank: TUnitRank;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FName, 10);
+  Stream.rwString(FNickname, 11);
+  Stream.rwData(FAlignment, 1, 12);
+  Stream.rwByte(Byte(FRace), 13);
+  Stream.rwByte(Byte(FAttack), 14);
+  Stream.rwByte(Byte(FDefense), 15);
+  Stream.rwByte(Byte(FDamage), 16);
+  Stream.rwByte(Byte(FHits), 17);
+  Stream.rwByte(Byte(FMoves), 18);
+  Stream.rwByte(Byte(FResistance), 19);
+  Stream.rwByte(Byte(FLevel), 20);
+  Stream.rwData(FUnitType, 1, 21);
+  Stream.rwData(FChampion, 1, 22);
+  Stream.rwData(FGender, 1, 23);
+  Stream.rwByte(FTransportCapacity, 24);
+  Stream.rwEObject(FAbilities[urNone], 25);
+  Stream.rwStrings(FDescription, 26);
+  Stream.rwInteger(FObtainValue, 27);
+  Stream.rwData(FUnitSize, 1, 28);
+  Stream.rwData(FBloodType, 1, 29);
+  Stream.rwEObject(FAbilities[urSilver], 30);
+  Stream.rwEObject(FAbilities[urGold], 31);
+  if smRead in Stream.StorageMode then
+    for Rank := Low(TUnitRank) to High(TUnitRank) do FAbilities[Rank].ValidateOwnerTypeAbilities;
+end;
 
-procedure TUnitResource.DropUnit(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+
+function TUnitResource.DropUnit(Xhx, Yhx, Lhx: Integer): Boolean;
+var
+  Player: Shortint;
+  AUnit: TUnit;
+begin
+  if msEditting in AoWHSMap.Status then
+  begin
+    Player := TAoWMapField(AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx)).GetPlayer;
+    if Player = -1 then Player := AoWHSMap.FEditorPlayer;
+  end
+  else Player := -1;
+  AUnit := TUnit.Create(nil);
+  AUnit.SetUnitResource(Self);
+  Result := AUnit.Place(Xhx, Yhx, Lhx, Player, []) <> nil;
+  AUnit.Release;
+end;
+
 
 constructor TUnitResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3697,7 +4165,7 @@ begin Result := 0; end;
 function THero.GetObtainValue: Integer;
 begin end;
 
-function THero.GetDescription: Integer;
+function THero.GetDescription: TStrings;
 begin end;
 
 function THero.GetGender: TUnitGender;
@@ -4816,11 +5284,13 @@ begin end;
 procedure TArmyHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin end;
 
-procedure TArmyHS.MoveTo(A1: Integer; A2: Integer);
-begin end;
+function TArmyHS.MoveTo(Field: TMapField): Boolean;
+begin Result := False; end;
 
-procedure TArmyHS.PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+
+function TArmyHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
+begin Result := False; end;
+
 
 procedure TArmyHS.PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
@@ -4846,8 +5316,9 @@ begin end;
 procedure TArmyHS.PlaceEx(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
 begin end;
 
-procedure TArmyHS.MoveFirst(A1: Integer; A2: Integer);
-begin end;
+function TArmyHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
+begin Result := 0; end;
+
 
 function TArmyHS.GetMoveSteps: Integer;
 begin Result := 0; end;

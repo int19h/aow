@@ -333,6 +333,7 @@
   TAoWMapField = class(TMapField)
   public
     FFieldFlags: Integer;  { $18 }
+    { conflict: FMapFlags: Word; }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure UpdateMapField; override;

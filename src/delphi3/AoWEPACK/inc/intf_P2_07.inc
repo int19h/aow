@@ -124,7 +124,7 @@
     function GetExperience: Integer; override;
     procedure SetExperience(Value: Integer); override;
     function GetNextLevelExperience: Integer; override;
-    function GetDescription: Integer; override;
+    function GetDescription: TStrings; override;
     procedure SetPlayer(Player: Shortint); override;
     function GetObtainValue: Integer; override;
     function CanActivate: Boolean; override;
@@ -591,11 +591,11 @@
     procedure Select; override;
     procedure Unselect; override;
     function EditName: string; override;
-    procedure MoveTo(A1: Integer; A2: Integer); override;
-    procedure PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function MoveTo(Field: TMapField): Boolean; override;
+    function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; override;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); override;
     procedure UpdateFlagID; override;
-    procedure MoveFirst(A1: Integer; A2: Integer); override;
+    function MoveFirst(Direction: Byte; Instant: Boolean): Shortint; override;
     function GetMoveSteps: Integer; override;
     procedure GetFogEnabled;  { draft }
     function VisibleForSeatedPlayer: Boolean;

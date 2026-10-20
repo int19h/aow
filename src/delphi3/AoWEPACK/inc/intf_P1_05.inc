@@ -142,7 +142,7 @@
     procedure LockScannerIconsChangedEvent;  { draft }
     procedure UnlockScannerIconsChangedEvent;  { draft }
     procedure ScannerIconsChanged(A1: Integer; A2: Integer);  { draft }
-    procedure ScannerIconsChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ScannerIconsChangedRad(Xhx, Yhx, Lhx, Radius: Integer);
     procedure InvalidateScannerIcons;  { draft }
     procedure TriggerScannerIconsChangedEvent(A1: Integer; A2: Integer);  { draft }
     procedure UpdateShowMessage;  { draft }
@@ -249,7 +249,7 @@
     FMoveControl: TMoveControl;  { $184 }
     FPlayerControl: TPlayerControl;  { $188 }
     F_AoWHSMap_18C: Integer;
-    F_AoWHSMap_190: array[0..0] of Byte;
+    FEditorPlayer: Shortint;  { $190, read at $55784FB4 }
     F_AoWHSMap_191: Byte;
     F_AoWHSMap_192: array[0..1] of Byte;
     F_AoWHSMap_194: Integer;
@@ -303,7 +303,7 @@
     F_AoWHSMap_240: Integer;
     F_AoWHSMap_244: Integer;
     F_AoWHSMap_248: Byte;
-    F_AoWHSMap_249: Byte;
+    FShowUnitShadows: Boolean;  { $249, tested at $55783E36 }
     F_AoWHSMap_24A: array[0..1] of Byte;
     F_AoWHSMap_24C: Byte;
     F_AoWHSMap_24D: array[0..458] of Byte;

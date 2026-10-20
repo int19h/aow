@@ -1952,7 +1952,7 @@ begin
         if TArmy(Army.FArmy).ValidateSelection($FF) = Selection then
         begin
           MovedUnits.AddUnits(Army.FArmy);
-          Army.MoveTo(Integer(MapF),0);
+          Army.MoveTo(MapF);
         end
         else
           for I := TArmy(Army.FArmy).Count - 1 downto 0 do

@@ -52,18 +52,19 @@
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
   end;
 
-  { TUnitHS (instance size 28, VMT 5570EED0) }
+  { TUnitHS (instance size 28, VMT 5570EED0): +08 FStatus; +0C FShowPriority;
+    +10 FUnitGFXResource; +14 FDirection; +15 FMoveStep; +16 FFlagID; +18 FShadow. }
   TUnitHS = class(THexagonSprite)
   public
-    F_UnitHS_08: Byte;
+    FStatus: Byte;  { $08: visible, edit, selected, paused, instant move }
     F_UnitHS_09: array[0..2] of Byte;
-    F_UnitHS_0C: Integer;
-    F_UnitHS_10: Integer;
-    F_UnitHS_14: Byte;
-    F_UnitHS_15: Byte;
-    F_UnitHS_16: Byte;
+    FShowPriority: Integer;  { $0C }
+    FUnitGFXResource: TUnitGFXResource;  { $10 }
+    FDirection: Byte;  { $14 }
+    FMoveStep: Shortint;  { $15, -1 when idle }
+    FFlagID: Byte;  { $16 }
     F_UnitHS_17: array[0..0] of Byte;
-    F_UnitHS_18: Integer;
+    FShadow: TUnitShadowHS;  { $18 }
     destructor Destroy; override;
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -97,23 +98,23 @@
     function CanSelect(Xhp, Yhp: Integer): Boolean; override;
     procedure Select; override;
     procedure Unselect; override;
-    procedure CalcShowPriority; virtual;  { +108 draft }
-    procedure MoveTo(A1: Integer; A2: Integer); virtual;  { +10C draft }
-    procedure PlaceHX(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +110 draft }
+    procedure CalcShowPriority; virtual;
+    function MoveTo(Field: TMapField): Boolean; virtual;
+    function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; virtual;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); virtual;
-    procedure UpdateFlagID; virtual;  { +118 draft }
-    procedure MoveFirst(A1: Integer; A2: Integer); virtual;  { +11C draft }
-    function GetMoveSteps: Integer; virtual;  { +120 draft }
-    procedure CreateShadow;  { draft }
-    procedure DestroyShadow;  { draft }
-    procedure GetUnitGFXResourceIndex;  { draft }
-    procedure SetUnitGFXResourceIndex(A1: Integer);  { draft }
-    procedure SetDirection(A1: Integer);  { draft }
-    procedure GetMoveStatus;  { draft }
-    procedure SetMoveStatus(A1: Integer);  { draft }
-    procedure MoveNext;  { draft }
-    procedure Moving;  { draft }
-    procedure PauseMove;  { draft }
-    procedure CancelMove;  { draft }
+    procedure UpdateFlagID; virtual;
+    function MoveFirst(Direction: Byte; Instant: Boolean): Shortint; virtual;
+    function GetMoveSteps: Integer; virtual;
+    procedure CreateShadow;
+    procedure DestroyShadow;
+    function GetUnitGFXResourceIndex: Integer;
+    procedure SetUnitGFXResourceIndex(Value: Integer);
+    procedure SetDirection(Value: Byte);
+    function GetMoveStatus: Shortint;
+    procedure SetMoveStatus(Value: Shortint);
+    function MoveNext: Shortint;
+    function Moving: Boolean;
+    procedure PauseMove;
+    procedure CancelMove;
   end;
 

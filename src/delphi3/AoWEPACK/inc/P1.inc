@@ -2006,6 +2006,7 @@ begin
 end;
 
 procedure TAbilityOwner.UpdateDefaultAbilities(Source: TAbilityOwner);
+{ conflict: procedure TAbilityOwner.UpdateDefaultAbilities(A1: TCustomAbilityList); }
 var
   I: Integer;
   Data: TAbilityData;
@@ -4354,7 +4355,7 @@ begin end;
 procedure TAbstractAoWHSMap.ScannerIconsChanged(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAbstractAoWHSMap.ScannerIconsChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAbstractAoWHSMap.ScannerIconsChangedRad(Xhx, Yhx, Lhx, Radius: Integer);
 begin end;
 
 procedure TAbstractAoWHSMap.InvalidateScannerIcons;

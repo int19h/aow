@@ -109,7 +109,7 @@
     function GetExperience: Integer; virtual;  { +15C draft }
     procedure SetExperience(Value: Integer); virtual;  { +160 draft }
     function GetNextLevelExperience: Integer; virtual;  { +164 draft }
-    function GetDescription: Integer; virtual;  { +168 draft }
+    function GetDescription: TStrings; virtual;  { +168 draft }
     procedure SetPlayer(Player: Shortint); virtual;
     function GetIndependentRelation: Shortint; virtual;  { +170 draft }
     function GetObtainValue: Integer; virtual;  { +174 draft }
@@ -191,31 +191,33 @@
     function Disband: Boolean;
   end;
 
-  { TAbstractUnitResource (instance size 28, VMT 5571096C) }
+  { TAbstractUnitResource (instance size 28, VMT 5571096C): +18 FUnitGFXResourceIndex. }
   TAbstractUnitResource = class(TEResource)
   public
-    F_AbstractUnitResource_18: Integer;
+    FUnitGFXResourceIndex: Integer;  { $18 }
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetCellImage: ImageLib.TLibraryImage; override;
     class function ResourceEditName: string; override;
-    procedure DropUnit(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
+    function DropUnit(Xhx, Yhx, Lhx: Integer): Boolean; virtual;
     function GetPreviewImage: TLibraryImage; virtual;  { +068 draft }
-    procedure GetFace; virtual;  { +06C draft }
-    procedure GetObtainValue; virtual;  { +070 draft }
-    procedure SetUnitGFXResourceIndex(A1: Integer);  { draft }
-    procedure EditDropMsg(A1: Integer);  { draft }
+    function GetFace: TLibraryImage; virtual;
+    function GetObtainValue: Integer; virtual;
+    procedure SetUnitGFXResourceIndex(Value: Integer);
+    procedure EditDropMsg(var Msg: TEMsg);
   end;
 
-  { TUnitResource (instance size 84, VMT 55710A64) }
+  { TUnitResource (instance size 84, VMT 55710A64): +1C FName; +20 FRace;
+    +21 FChampion; +24 FNickname; +28..31 unit statistics; +38 FAbilities[rank];
+    +44 FTransportCapacity; +48 FDescription; +4C FObtainValue; +50 size; +51 blood. }
   TUnitResource = class(TAbstractUnitResource)
   public
-    F_UnitResource_1C: Integer;
+    FName: string;  { $1C }
     FRace: Shortint;
-    F_UnitResource_21: Byte;
+    FChampion: Boolean;  { $21 }
     F_UnitResource_22: array[0..1] of Byte;
-    F_UnitResource_24: Integer;
+    FNickname: string;  { $24 }
     FAlignment: TAlignment;
     FAttack: Shortint;
     FDefense: Shortint;
@@ -226,13 +228,11 @@
     FLevel: Shortint;
     FUnitType: TUnitType;
     FGender: TUnitGender;
-    F_UnitResource_32: array[0..5] of Byte;
-    F_UnitResource_38: Integer;
-    F_UnitResource_3C: Integer;
-    F_UnitResource_40: Integer;
-    F_UnitResource_44: Byte;
+    FReserved32: array[0..5] of Byte;
+    FAbilities: array[TUnitRank] of TAbilityOwner;  { $38..$40 }
+    FTransportCapacity: Byte;  { $44 }
     F_UnitResource_45: array[0..2] of Byte;
-    FDescription: Integer;
+    FDescription: TStringList;  { $48 }
     FObtainValue: Integer;
     FUnitSize: TUnitSize;
     FBloodType: TBloodType;
@@ -243,12 +243,12 @@
     class function ClassID: Integer; override;
     function ResourceUserClassID: Integer; override;
     function CreateResourceUser: Engine.TEObject; override;
-    procedure DropUnit(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure GetObtainValue; override;
-    procedure GetMoveTypes;  { draft }
+    function DropUnit(Xhx, Yhx, Lhx: Integer): Boolean; override;
+    function GetObtainValue: Integer; override;
+    function GetMoveTypes: TMoveTypes;
     function GetTransportCapacity: Byte;
-    procedure GetUpkeep;  { draft }
-    procedure SetDescription;  { draft }
+    function GetUpkeep: Shortint;
+    procedure SetDescription(Value: TStrings);
     function UnitResourceIndex: Integer;
     function GetUnitName: string;
   end;
@@ -305,7 +305,7 @@
     function GetExperience: Integer; override;
     procedure SetExperience(Value: Integer); override;
     function GetNextLevelExperience: Integer; override;
-    function GetDescription: Integer; override;
+    function GetDescription: TStrings; override;
     function GetObtainValue: Integer; override;
     function GetUnitSize: TUnitSize; override;
     procedure Activate; override;
