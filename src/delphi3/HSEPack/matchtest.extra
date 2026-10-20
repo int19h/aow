@@ -1,0 +1,9 @@
+{ matchtest.extra: routines that gen_host.py adds to the host, then the calls after "---" }
+procedure UsePut(L: TXYLList);
+var
+  X: TXYL;
+begin
+  L[0] := X;
+end;
+---
+  UsePut(nil);

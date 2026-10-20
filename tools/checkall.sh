@@ -42,7 +42,7 @@ check() {  # check <name> <dir> <dpr> <-U> <module> <units> <aliases...>
         notes/signatures/$mod.json $cl 2>&1 | tail -1
 }
 
-ALL=${*:-Gfxepack Dcpack Ilpack Enginep EngineGrids EngineSmall aowDPlay VideoP Network SoundP Adcpack aowFXpck aowInt}
+ALL=${*:-Gfxepack Dcpack Ilpack Enginep EngineGrids EngineSmall aowDPlay VideoP Network SoundP Adcpack aowFXpck aowInt HSEPack}
 for p in $ALL; do
   case $p in
     Gfxepack) check Gfxepack Gfxepack matchtest . Gfxepack.dpl GFXE,GFXDiag Gfxepack/match-aliases.json ;;
@@ -58,5 +58,6 @@ for p in $ALL; do
     Adcpack) check Adcpack Adcpack matchtest ..\\Gfxepack Adcpack.dpl ZoomControl,AdvancedDisplay Adcpack/match-aliases.json ;;
     aowFXpck) check aowFXpck aowFXpck matchtest . aowFXpck.dpl aowFX aowFXpck/match-aliases.json ;;
     aowInt) check aowInt aowInt matchtest "..\\Dcpack;..\\Gfxepack;..\\Ilpack" aowInt.dpl AoWComp,AOWInterfaceImgLib,AoWWinControl,AoWWinGeneric,AOWToolTip,AOWWinManager,AoWBaseWin,AoWControl,AoWVScroll,AoWHScroll,AOWMenu,AOWMenuBar,AoWMemo,AoWComboBox,AoWListBox,AoWPanel,AOWGauge,AoWTabPanel,AoWHTMLMemo,AoWButton,AoWEdit,AoWImage,AoWFrame,AoWDialogForm,AoWLabel,AoWWindow,aowUserDrawBox,AoWCheckBox,AOWInterfaceEditor aowInt/match-aliases.json ;;
+    HSEPack) check HSEPack HSEPack matchtest "..;..\Dcpack;..\Gfxepack;..\Ilpack;..\SoundP" HSEPack.dpl HSEngine,HSMEdit,IsoHex,ILTer,HSLib,Terrain,HSSEdit,Hexagon,Bridge,Road,BorderHx,TerCBox,RndHex,ProgDlg,HSEdMod,HSEdData HSEPack/match-aliases.json ;;
   esac
 done

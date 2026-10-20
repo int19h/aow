@@ -1,0 +1,18 @@
+{
+ "FUN_55605570": "ReturnAddr<TXYLList.Error",
+ "FUN_55605a7c": "QuickSortXYL",
+ "FUN_55605bdc": "DefaultRun<TXYLList.SaveToStream",
+ "FUN_5560e6b0": "Connect<LocationsConnected",
+ "556054f0:126": "TXYLList.Delete",
+ "55605574:55": "TXYLList.Error",
+ "556055ac:164": "TXYLList.Exchange",
+ "55605768:160": "TXYLList.Insert",
+ "55605820:139": "TXYLList.Move",
+ "556058ac:120": "TXYLList.Put",
+ "5560597c:116": "TXYLList.SetCapacity",
+ "556059f0:139": "TXYLList.SetCount",
+ "5560e08c:240": "HNtoHX",
+ "5560e17c:284": "CenterHNtoHX",
+ "FUN_5560f3c0": "Search<THSEngine.GetHSSetFiles",
+ "5560a020:276": "TMapObjectResource.ReadWrite"
+}

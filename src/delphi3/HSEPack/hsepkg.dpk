@@ -1,0 +1,27 @@
+package hsepkg;
+
+{ The units of HSEPack.dpl built as a package, in the order of the original: tools/exports.py
+  compares the export name hashes (class layouts, routine signatures) with the original module. }
+
+requires
+  vcl30;
+
+contains
+  HSEngine,
+  TerCBox,
+  HSLib,
+  ProgDlg,
+  Hexagon,
+  HSEdData,
+  HSEdMod,
+  HSMEdit,
+  HSSEdit,
+  Terrain,
+  Road,
+  BorderHx,
+  Bridge,
+  ILTer,
+  IsoHex,
+  RndHex;
+
+end.
