@@ -51,7 +51,7 @@ the other packages. `notes/match.md` has the workflow,
 the state table and what the comparisons taught about the compiler. Build and compare:
 
 ```bash
-cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Ilpack\stubs;Gfxepack" matchtest.dpr
+cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matchtest.dpr
 ```
 
 ```bash

@@ -3,7 +3,7 @@ program matchtest;
 { Host program for the byte-matching of SoundP.dpl: it only has to reference every class and
   every non-virtual method so that the linker keeps them. Build with the original compiler from
   this directory (Engine from src\delphi3, ImageLib from Ilpack, GFXE from Gfxepack):
-    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -Q "-U..;..\Ilpack;..\Ilpack\stubs;..\Gfxepack" -O..
+    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -Q "-U..;..\Ilpack;..\Gfxepack" -O..
       -E<outdir> -N<outdir> matchtest.dpr
   -GD writes matchtest.map with the address of every method; tools/match.py reads it. }
 

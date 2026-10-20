@@ -3,7 +3,7 @@ program matchtest;
 { Host program for the byte-matching experiment: it only has to reference every class so that the
   linker keeps them (every method of a class with a VMT is kept once the class is used). Build with
   the original compiler:
-    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Ilpack\stubs;Gfxepack" matchtest.dpr
+    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matchtest.dpr
   (ImageLib comes from Ilpack, which uses GFXE). The small units have their own hosts in hosts\.
   -GD writes matchtest.map with the address of every method; tools/match.py reads it. }
 

@@ -1,9 +1,10 @@
 program matchtest;
 
-{ Host program for the byte-matching of Ilpack.dpl (the ImageLib and HashTabU units): it only
-  has to reference every class and every non-virtual method so that the linker keeps them. Build
-  with the original compiler:
-    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -U..\Gfxepack;stubs -E<outdir> -N<outdir> matchtest.dpr
+{ Host program for the byte-matching of Ilpack.dpl (the ImageLib and HashTabU units and the
+  editor units ILSpin, PerfDlg, ILEdGrid, ImgSetEd, SImgSEd, SubImgEd, ILEdForm): it only has to
+  reference every class and every non-virtual method so that the linker keeps them. Build with
+  the original compiler:
+    C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -U..\Gfxepack -E<outdir> -N<outdir> matchtest.dpr
   -GD writes matchtest.map with the address of every method; tools/match.py reads it. }
 
 {$APPTYPE CONSOLE}
@@ -15,7 +16,14 @@ uses
   Graphics,
   GFXE,
   HashTabU in 'HashTabU.pas',
-  ImageLib in 'ImageLib.pas';
+  ImageLib in 'ImageLib.pas',
+  ILSpin in 'ILSpin.pas',
+  PerfDlg in 'PerfDlg.pas',
+  ILEdGrid in 'ILEdGrid.pas',
+  ImgSetEd in 'ImgSetEd.pas',
+  SImgSEd in 'SImgSEd.pas',
+  SubImgEd in 'SubImgEd.pas',
+  ILEdForm in 'ILEdForm.pas';
 
 var
   IHT: TIntegerHashTable256;
@@ -33,6 +41,98 @@ var
   Canvas: TCanvas;
   S: string;
   B: Boolean;
+
+{ The editor units }
+
+procedure HostE1;
+var
+  SB: TSpinButton;
+  SE: TILSpinEdit;
+  TB: TTimerSpeedButton;
+begin
+  SB := TSpinButton.Create(nil);
+  SB.Free;
+  SE := TILSpinEdit.Create(nil);
+  SE.Value := SE.Value;
+  SE.Free;
+  TB := TTimerSpeedButton.Create(nil);
+  TB.Free;
+end;
+
+procedure HostE2;
+var
+  PD: TPerformanceDlg;
+  PT: TPerformanceThread;
+begin
+  PD := TPerformanceDlg.CreateDialog(nil, nil);
+  PD.Free;
+  PT := TPerformanceThread.Create(nil, nil);
+  PT.Free;
+end;
+
+procedure HostE3;
+var
+  EG: TImageLibraryEditGrid;
+begin
+  EG := TImageLibraryEditGrid.Create(nil);
+  EG.ImageIndex := EG.ImageIndex;
+  Writeln(Integer(EG.SelectedImage[0]));
+  EG.SelectAll;
+  EG.UpdateSettings;
+  EG.Free;
+end;
+
+procedure HostE4;
+var
+  ISE: TImageSettingsEditor;
+begin
+  ISE := TImageSettingsEditor.Create(nil);
+  ISE.ImageLibrary := nil;
+  ISE.ImageIndex := 0;
+  ISE.UpdateSettings;
+  ISE.ReferenceValueUpdate(nil);
+  ISE.Free;
+end;
+
+procedure HostE5;
+var
+  SS: TSubImageSettingsEditor;
+begin
+  SS := TSubImageSettingsEditor.Create(nil);
+  SS.ImageLibrary := nil;
+  SS.ImageIndex := 0;
+  SS.SubImageIndex := 0;
+  SS.SelectImage(0, 0);
+  SS.Free;
+end;
+
+procedure HostE6;
+var
+  SL: TSubImageList;
+  SE: TSubImageEditor;
+begin
+  SL := TSubImageList.Create(nil);
+  SL.Free;
+  SE := TSubImageEditor.Create(nil);
+  SE.ImageLibrary := nil;
+  SE.ImageIndex := 0;
+  SE.SubImageIndex := 0;
+  Writeln(Integer(SE.SelectedImage));
+  SE.UpdateSettings;
+  SE.Free;
+end;
+
+procedure HostE7;
+var
+  EF: TImageLibraryEditForm;
+  ED: TImageLibraryEditor;
+begin
+  EF := TImageLibraryEditForm.Create(nil);
+  EF.ImageLibrary := nil;
+  EF.Free;
+  ED := TImageLibraryEditor.Create(nil, nil);
+  ED.Free;
+end;
 
 procedure HostG1;
 var
@@ -304,5 +404,12 @@ begin
   HostG2;
   HostG3;
   HostG4;
+  HostE1;
+  HostE2;
+  HostE3;
+  HostE4;
+  HostE5;
+  HostE6;
+  HostE7;
   M.Free;
 end.

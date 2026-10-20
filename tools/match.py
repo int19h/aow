@@ -206,6 +206,8 @@ def main():
 
     # (map name, original name) pairs to compare
     pairs = []
+    # an "address:size" alias for a function that also has a (too short) signature entry replaces it
+    alias_addrs = {int(k.split(':')[0], 16) for k in aliases if re.fullmatch(r'[0-9a-fA-F]{8}:\d+', k)}
     for spec in classes:
         oc, _, nc = spec.partition('=')
         nc = nc or oc
@@ -217,6 +219,8 @@ def main():
             for k in sigs:
                 if k.endswith('.' + oc + '.' + method):
                     orig_name = k
+            if orig_name is not None and sigs[orig_name][0] in alias_addrs:
+                continue
             pairs.append((name, orig_name))
     aliased = set(aliases.values())
     for unit in units:

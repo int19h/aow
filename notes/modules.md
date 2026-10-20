@@ -9,7 +9,7 @@ package it `requires`, which says nothing about real use. Function counts and si
 |---|---|---|---|
 | Gfxepack.dpl | GFXE (236), GFXDiag (3) | - | done, 252/262 |
 | Dcpack.dpl | DisplayC (165), TWindows08DIBSurface (10) | GFXE | done, 169/174 |
-| Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | ImageLib + HashTabU done, 513/536; editors to do (stubs in Ilpack/stubs) |
+| Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | done, 684/709 (ImageLib + HashTabU 514/536, editors 170/173) |
 | Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | ImageLib | done, 865/892 |
 | aowDPlay.dpl | aowDPlayComp (35), DPlay, DPLobby | - | done, 39/39 |
 | VideoP.dpl | Video (30), VFW (4) | GFXE | done, 35/35 |
