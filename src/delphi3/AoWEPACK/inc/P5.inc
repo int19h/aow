@@ -1,80 +1,639 @@
+{ P5: AI, diplomacy, campaign and turn movement. }
+
+type
+  PP5String = ^string;
+  { needs: P2 TAbstractUnit.GetJoinMessage has three omitted stack arguments.
+    Local ABI view only, never instantiated: instance size $3C; inherited fields
+    $00..$13, reserved fields $14..$3B, virtual prefix $9C..$19C unchanged.
+    Replace this cast with TAbstractUnit after its declaration is corrected. }
+  TP5JoinMessageUnit = class(TAbilityOwner)
+  private
+    FReserved: array[0..39] of Byte;
+  public
+    procedure GetUpkeep; virtual; abstract;
+    procedure GetUnitLevel; virtual; abstract;
+    procedure GetRace; virtual; abstract;
+    procedure GetInherentAttack; virtual; abstract;
+    procedure GetInherentDefense; virtual; abstract;
+    procedure GetInherentDamage; virtual; abstract;
+    procedure GetInherentResistance; virtual; abstract;
+    procedure GetInherentAbility(A1: Integer); virtual; abstract;
+    procedure GetInherentAbilityLevel(A1: Integer); virtual; abstract;
+    procedure GetAttack(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetDefense(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetDamage(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetResistance(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetHits; virtual; abstract;
+    procedure GetMoves; virtual; abstract;
+    procedure GetMovePoints; virtual; abstract;
+    procedure SetMovePoints(A1: Integer); virtual; abstract;
+    procedure GetHitPoints; virtual; abstract;
+    procedure SetHitPoints(A1: Integer); virtual; abstract;
+    procedure GetMoveTypes; virtual; abstract;
+    procedure GetImmunityTypes; virtual; abstract;
+    procedure GetProtectionTypes; virtual; abstract;
+    procedure GetFace; virtual; abstract;
+    procedure GetName(A1: Integer); virtual; abstract;
+    procedure GetAlignment; virtual; abstract;
+    procedure GetPreviewImage; virtual; abstract;
+    procedure GetTransportCapacity; virtual; abstract;
+    procedure GetTransporter; virtual; abstract;
+    procedure GetGender; virtual; abstract;
+    procedure GetBloodType; virtual; abstract;
+    procedure GetUnitType; virtual; abstract;
+    procedure GetUnitGFXResourceIndex; virtual; abstract;
+    procedure CanAddToList; virtual; abstract;
+    procedure GetWallCombatFeatures; virtual; abstract;
+    procedure GetCampaignTransferPoints; virtual; abstract;
+    procedure GetCastingPointsMax; virtual; abstract;
+    procedure GetCastingPoints; virtual; abstract;
+    procedure SetCastingPoints(A1: Integer); virtual; abstract;
+    procedure GetPowerGeneration; virtual; abstract;
+    procedure NewDay(A1: Integer; A2: Integer); virtual; abstract;
+    procedure NewTurn(A1: Integer; A2: Integer); virtual; abstract;
+    procedure NewTurnDone(A1: Byte); virtual; abstract;
+    procedure GetAbilityLevel(A1: Integer); virtual; abstract;
+    procedure GetAbilityEnabled(A1: Integer); virtual; abstract;
+    procedure GetAbilitySet(A1: Integer); virtual; abstract;
+    procedure GetAbilityName(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetAbilityOwner(A1: Integer); virtual; abstract;
+    procedure GetAbilityCount; virtual; abstract;
+    procedure GetExperience; virtual; abstract;
+    procedure SetExperience(A1: Integer; A2: Integer); virtual; abstract;
+    procedure GetNextLevelExperience; virtual; abstract;
+    procedure GetDescription; virtual; abstract;
+    procedure SetPlayer(A1: Integer); virtual; abstract;
+    procedure GetIndependentRelation; virtual; abstract;
+    procedure GetObtainValue; virtual; abstract;
+    procedure GetUnitSize; virtual; abstract;
+    procedure GetUnitMoraleValue(A1: Integer; A2: Byte); virtual; abstract;
+    procedure CanActivate; virtual; abstract;
+    procedure Activate(A1: Integer; A2: Integer); virtual; abstract;
+    procedure Deactivate; virtual; abstract;
+    procedure MovedTo(A1: Integer; A2: Integer; A3: Integer); virtual; abstract;
+    procedure CanDisband; virtual; abstract;
+    procedure CanJoin(A1: Byte; A2: Integer); virtual; abstract;
+    procedure JoinAmount(A1: Integer; A2: Integer); virtual; abstract;
+    procedure OfferToJoin(A1: Integer); virtual; abstract;
+    procedure GetJoinMessage(Player: Shortint; OtherUnits, Gold: Integer;
+      JoinMode: TJoinMode; Text: TStrings); virtual; abstract; { $1A0 }
+  end;
+
+var
+  { needs: P1 shared AoWHSMap global (original 558FA040).
+    Temporary local storage until the shared global declaration is assembled. }
+  P5AoWHSMap: TAoWHSMap;
+  { needs: shared AoWEngine global (original 558FA048), used by Copy. }
+  P5AoWEngine: TEngine;
+
+resourcestring
+  { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
+  P5NotEnoughGoldRStr = 'Not enough gold.';
+
+{ needs: typed tail-call adapters until P1/P2 declarations are corrected. }
+function P5GetJoinSelection(Army: TArmy; Player: Shortint): Byte;
+asm
+  JMP TArmy.GetJoinSelection
+end;
+
+function P5JoinAmount(Army: TArmy; Player: Shortint; Selection: Byte): Integer;
+asm
+  JMP TArmy.JoinAmount
+end;
+
+function P5SelectionCount(Army: TArmy; Selection: Byte): Integer;
+asm
+  JMP TArmy.SelectionCount
+end;
+
+function P5GetUnit(Units: TUnitList; Index: Integer): TAbstractUnit;
+asm
+  JMP TUnitList.GetUnit
+end;
+
+function P5FindUnit(Control: TUnitControl; ID: Integer): TAbstractUnit;
+asm
+  JMP TUnitControl.FindUnit
+end;
+
+function P5GetPlayers(Players: TPlayerList; Index: Integer): TPlayer;
+asm
+  JMP TPlayerList.GetPlayers
+end;
+
+function P5TranslateRStr(S: string): string;
+asm
+  JMP TranslateRStr
+end;
+
 constructor TJoinEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FUnitIDs := TIntegerList.Create;
+  FJoinMessage := TStringList.Create;
+  FLocation.X := -1;
+  FLocation.Y := -1;
+  FLocation.L := -1;
+  FJoinIndex := -1;
+end;
 
 destructor TJoinEventLog.Destroy;
-begin end;
+begin
+  FUnitIDs.Free;
+  FJoinMessage.Free;
+  inherited Destroy;
+end;
 
 procedure TJoinEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FFirstUnitID, $15);
+  Stream.rwStreamProc($16, FUnitIDs.LoadFromStream, FUnitIDs.SaveToStream);
+  Stream.rwByte(FSelection, $17);
+  Stream.rwStrings(FJoinMessage, $18);
+  Stream.rwInteger(FGold, $19);
+  Stream.rwInteger(Integer(FLocation), $1A);
+  Stream.rwData(FJoinMode, SizeOf(FJoinMode), $1B);
+  Stream.rwString(FText, $1C);
+  Stream.rwIntegerEx(FJoinIndex, -1, $1D);
+end;
 
-procedure TJoinEventLog.SetupJoinArmy(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+procedure TJoinEventLog.SetupJoinArmy(Army: TArmy; Player: Shortint;
+  JoinMode: TJoinMode);
+var
+  I: Integer;
+begin
+  FFirstUnitID := 0;
+  F_EventLog_10 := Byte(Player);
+  FSelection := P5GetJoinSelection(Army, Player);
+  FGold := P5JoinAmount(Army, Player, FSelection);
+  FJoinMode := JoinMode;
+  FUnitIDs.Clear;
+  for I := 0 to Army.Count - 1 do
+  begin
+    if (FFirstUnitID = 0) and ((1 shl I) and FSelection <> 0) then
+    begin
+      FFirstUnitID := P5GetUnit(Army, I).FUnitID;
+      { needs: P2 TAbstractUnit.GetJoinMessage(Player, OtherUnits, Gold,
+        JoinMode, Text), VMT $1A0 (5572C08E..5572C0B6). }
+      TP5JoinMessageUnit(P5GetUnit(Army, I)).GetJoinMessage(Player,
+        P5SelectionCount(Army, FSelection) - 1, FGold, JoinMode, FJoinMessage);
+    end;
+    FUnitIDs.Add(P5GetUnit(Army, I).FUnitID);
+  end;
+  FLocation := PackXYL(Shortint(Army.F_Army_13), Shortint(Army.F_Army_14),
+    Shortint(Army.F_Army_15));
+end;
 
-procedure TJoinEventLog.Validate(A1: Integer; A2: Integer);
-begin end;
+function TJoinEventLog.Validate: Boolean;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+  Location: TXYL;
+begin
+  Result := True;
+  I := FUnitIDs.Count;
+  while Result and (I <> 0) do
+  begin
+    Dec(I);
+    AUnit := P5FindUnit(
+      TUnitControl(P5AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
+    { Original behavior: missing and dead units do not invalidate the offer. }
+    if (AUnit <> nil) and (AUnit.F_AbstractUnit_24 = 0) then
+    begin
+      { needs: P2 GetLocation(var X, Y, L: Shortint), 5572C12B..5572C138. }
+      AUnit.GetLocation(Location.X, Location.Y, Location.L);
+      Result := (FLocation.X = Location.X) and
+        (FLocation.Y = Location.Y) and (FLocation.L = Location.L);
+    end;
+  end;
+end;
 
-procedure TJoinEventLog.ListJoinUnits(A1: Integer; A2: Integer);
-begin end;
+procedure TJoinEventLog.ListJoinUnits(Units: TUnitList; var Selection: Byte);
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  for I := 0 to FUnitIDs.Count - 1 do
+  begin
+    AUnit := P5FindUnit(TUnitControl(P5AoWHSMap.F_AoWHSMap_FC), FUnitIDs[I]);
+    { needs: P2 AddUnit(AUnit: TAbstractUnit), VMT $AC at 5572C1AC. }
+    Units.AddUnit(Integer(AUnit));
+  end;
+  Selection := FSelection;
+end;
+
+function P5AcceptJoinEventLog(Log: TJoinEventLog; var ErrorText: string): Boolean;
+begin
+  { needs: P1 GetPlayers(Index: Integer): TPlayer; Player.Gold at $C4,
+    EventLog.Player is signed (movsx edx,[Self+$10], 5572C1E3). }
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    Shortint(Log.F_EventLog_10)).F_Player_C4 >= Log.FGold then
+    Result := True
+  else
+  begin
+    Result := False;
+    { needs: P1 TranslateRStr(S: string): string, 5572C215..5572C225. }
+    ErrorText := P5TranslateRStr(P5NotEnoughGoldRStr);
+  end;
+end;
 
 procedure TJoinEventLog.Accept(A1: Integer; A2: Integer);
-begin end;
+begin
+  { needs: P2/P7 overrides must become Boolean functions with var ErrorText.
+    The typed body preserves AL through managed-string finalization. }
+  P5AcceptJoinEventLog(Self, PP5String(A1)^);
+end;
 
 procedure TJoinEventLog.Cancel;
-begin end;
+asm
+  { needs: Boolean result in AL; retained procedure for the P7 override. }
+  MOV AL, 1
+end;
 
-procedure TJoinEventLog.Reject;
-begin end;
+function TJoinEventLog.Reject(var ErrorText: string): Boolean;
+begin
+  Result := True;
+end;
+
+{ needs: P2 TArmyID.RetrieveArmy(var Army: TArmyHS; var Selection: Byte):
+  Boolean, proved by 5572C3DF..5572C3F1 and 5578B894..5578B930. }
+function P5RetrieveArmy(ID: TArmyID; var Army: TArmyHS;
+  var Selection: Byte): Boolean;
+asm
+  JMP TArmyID.RetrieveArmy
+end;
+
+{ needs: P1 TAoWMapField.GetPlayer: Shortint (5572C419..5572C421). }
+function P5GetFieldPlayer(Field: TAoWMapField): Shortint;
+asm
+  JMP TAoWMapField.GetPlayer
+end;
+
+{ needs: P1 EventLog.TEventLogbook.FindID(ID): TEventLog and
+  RemoveEvent(Log), proved by 5572C4AB..5572C4D5. }
+function P5FindEventLog(Book: TEventLogbook; ID: Integer): TEventLog;
+asm
+  JMP TEventLogbook.FindID
+end;
+
+procedure P5RemoveEventLog(Book: TEventLogbook; Log: TEventLog);
+asm
+  JMP TEventLogbook.RemoveEvent
+end;
+
+{ needs: P1 CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath;
+  MoveType: Byte; Mode: TArmyMoveMode): TMoveArmyTE.
+  5572C53A..5572C54A pushes MoveType before Mode; 5574A1B3 reads MoveType. }
+function P5CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath;
+  MoveType: Byte; Mode: TArmyMoveMode): TMoveArmyTE;
+asm
+  JMP CreateArmyMoveTE
+end;
 
 constructor TNegotiateTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FArmyID := nil;
+  FMode := [nmAttackOnReject, nmMoveOnAccept];
+  FEventLogID := -1;
+  FOwnerPlayer := 0;
+end;
 
 destructor TNegotiateTE.Destroy;
-begin end;
+var
+  ID: TArmyID;
+begin
+  ID := FArmyID;
+  if ID <> nil then ID.Free;
+  inherited Destroy;
+end;
 
 class function TNegotiateTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21107;
+end;
 
 procedure TNegotiateTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FGold, $1E);
+  Stream.rwData(FOffer, SizeOf(FOffer), $1F);
+  Stream.rwByte(FX, $20);
+  Stream.rwByte(FY, $21);
+  Stream.rwByte(FL, $22);
+  Stream.rwByte(FPlayer, $23);
+  Stream.rwByte(FOwnerPlayer, $24);
+  Stream.rwData(FObject, SizeOf(FObject), $25);
+  Stream.rwInteger(FMovePoints, $26);
+  Stream.rwInteger(FData1, $27);
+  Stream.rwInteger(FData2, $28);
+  Stream.rwData(FMode, SizeOf(FMode), $29);
+  Stream.rwData(FResult, SizeOf(FResult), $2A);
+  Stream.rwCreateEObject(TEObject(FArmyID), nil, $2B);
+  Stream.rwIntegerEx(FEventLogID, -1, $2C);
+end;
 
-procedure TNegotiateTE.Validate;
-begin end;
+function TNegotiateTE.Validate: Boolean;
+var
+  ID: TArmyID;
+begin
+  ID := FArmyID;
+  if ID <> nil then
+    Result := P5RetrieveArmy(ID, FArmyHS, FSelection)
+  else
+    Result := True;
+  if Result and (FX <> $FF) then
+    Result := Byte(P5GetFieldPlayer(TAoWMapField(
+      P5AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
+        Shortint(FL))))) = FOwnerPlayer
+  else
+    Result := False;
+end;
 
 procedure TNegotiateTE.Accept;
-begin end;
+var
+  Log: TEventLog;
+  Path: TMovepath;
+  Move: TMoveArmyTE;
+begin
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    Shortint(FPlayer)).F_Player_C4 >= FGold then
+  begin
+    P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+      Shortint(FPlayer)).SetGems(
+      P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+        Shortint(FPlayer)).F_Player_C4 - FGold);
+    if FEventLogID <> -1 then
+    begin
+      Log := P5FindEventLog(TEventLogbook(
+        P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+          Shortint(FPlayer)).F_Player_D8), FEventLogID);
+      if Log <> nil then
+        P5RemoveEventLog(TEventLogbook(
+          P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+            Shortint(FPlayer)).F_Player_D8), Log);
+    end;
+    if (FArmyHS <> nil) and (nmMoveOnAccept in FMode) then
+    begin
+      Path := TMovepath.Create;
+      Path.AddXYL(Shortint(FX), Shortint(FY), Shortint(FL));
+      Path.AddXYL(FArmyHS.Xhx, FArmyHS.Yhx, FArmyHS.Lhx);
+      Path.List^[0].Flag := Shortint(FMovePoints);
+      Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 3,
+        [mmSelectEndLocation]);
+      TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+      { Original bug: no nil check after CreateArmyMoveTE can return nil. }
+      Move.Release;
+      Path.Free;
+    end;
+  end;
+end;
 
 procedure TNegotiateTE.Reject;
-begin end;
+var
+  Path: TMovepath;
+  Move: TMoveArmyTE;
+begin
+  if (FOffer = noForceOffer) and (FArmyHS <> nil) and
+    (nmAttackOnReject in FMode) then
+  begin
+    Path := TMovepath.Create;
+    Path.AddXYL(Shortint(FX), Shortint(FY), Shortint(FL));
+    Path.AddXYL(FArmyHS.Xhx, FArmyHS.Yhx, FArmyHS.Lhx);
+    Path.List^[0].Flag := Shortint(FMovePoints);
+    Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 1,
+      [mmSelectEndLocation]);
+    TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+    { Original bug: no nil check after CreateArmyMoveTE can return nil. }
+    Move.Release;
+    Path.Free;
+  end;
+end;
 
 function TNegotiateTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  Msg: TMapFieldMsg;
+begin
+  if Validate then
+  begin
+    Msg.MsgID := $110F;
+    Msg.Param[0] := Integer(Self);
+    Msg.Result := 0;
+    P5AoWHSMap.MapContainer.GetField(Shortint(FX), Shortint(FY),
+      Shortint(FL)).SendMapFieldMsg(Msg);
+  end;
+  Result := erDone;
+end;
+
+{ needs: P1 TPlayer.GetBusy: Boolean, tested in AL at 5572C813..5572C81A. }
+function P5PlayerBusy(Player: TPlayer): Boolean;
+asm
+  JMP TPlayer.GetBusy
+end;
 
 constructor TNegotiateRequestEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FArmyID := nil;
+end;
 
 destructor TNegotiateRequestEventLog.Destroy;
-begin end;
+var
+  ID: TArmyID;
+begin
+  ID := FArmyID;
+  if ID <> nil then ID.Free;
+  inherited Destroy;
+end;
 
 class function TNegotiateRequestEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202E6;
+end;
 
 procedure TNegotiateRequestEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(FX, $28);
+  Stream.rwByte(FY, $29);
+  Stream.rwByte(FL, $2A);
+  Stream.rwData(FObject, SizeOf(FObject), $2B);
+  Stream.rwInteger(FData1, $2C);
+  Stream.rwInteger(FData2, $2D);
+  Stream.rwCreateEObject(TEObject(FArmyID), nil, $2E);
+end;
 
-procedure TNegotiateRequestEventLog.CreateNegotiateTE;
-begin end;
+function TNegotiateRequestEventLog.CreateNegotiateTE: TNegotiateTE;
+var
+  ID: TArmyID;
+begin
+  Result := TNegotiateTE.Create(nil);
+  Result.FPlayer := F_EventLog_10;
+  Result.FObject := FObject;
+  Result.FX := FX;
+  Result.FY := FY;
+  Result.FL := FL;
+  Result.FData1 := FData1;
+  Result.FData2 := FData2;
+  ID := FArmyID;
+  if ID <> nil then
+  begin
+    Result.FArmyID := TArmyID(ID.Copy(P5AoWEngine));
+    Result.FMovePoints := FMovePoints;
+  end
+  else
+    Result.FArmyID := nil;
+end;
+
+function P5AcceptNegotiateRequest(Log: TNegotiateRequestEventLog;
+  var ErrorText: string): Boolean;
+var
+  TE: TNegotiateTE;
+begin
+  Result := P5AcceptJoinEventLog(Log, ErrorText);
+  if Result then
+    if (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+      Shortint(Log.F_EventLog_10)).F_Player_A7 <> 0) or
+      not P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+        Shortint(Log.F_EventLog_10))) then
+    begin
+      TE := Log.CreateNegotiateTE;
+      TE.FGold := Log.FGold;
+      TE.FOffer := noOfferBribe;
+      TE.FResult := nrAccept;
+      TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenControls[
+        Shortint(Log.F_EventLog_10)].AddEvent(TE);
+      TE.Release;
+      Result := True;
+    end;
+end;
 
 procedure TNegotiateRequestEventLog.Accept(A1: Integer; A2: Integer);
-begin end;
+begin
+  { needs: same Boolean/var-string signature as the base Accept. }
+  P5AcceptNegotiateRequest(Self, PP5String(A1)^);
+end;
 
-procedure TNegotiateRequestEventLog.Reject;
-begin end;
+function TNegotiateRequestEventLog.Reject(var ErrorText: string): Boolean;
+var
+  TE: TNegotiateTE;
+begin
+  Result := inherited Reject(ErrorText);
+  if Result then
+  begin
+    if (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+      Shortint(F_EventLog_10)).F_Player_A7 = 0) and
+      P5PlayerBusy(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+        Shortint(F_EventLog_10))) then Exit;
+    TE := CreateNegotiateTE;
+    TE.FGold := 0;
+    TE.FOffer := noForceOffer;
+    TE.FResult := nrReject;
+    TTokenManager(P5AoWHSMap.F_AoWHSMap_23C).TokenControls[
+      Shortint(F_EventLog_10)].AddEvent(TE);
+    TE.Release;
+    Result := True;
+  end;
+end;
 
 procedure TNegotiateRequestEventLog.Cancel;
-begin end;
+asm
+  { needs: Boolean return, compatible with P7's procedure override. }
+  MOV AL, 1
+end;
 
-procedure TNegotiateRequestEventLog.Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TNegotiateRequestEventLog.Execute(A1: Integer; A2: Integer;
+  A3: Integer; A4: Integer);
+asm
+  { needs: EventLog.TEventLog.Execute returns Boolean; A2 is a Boolean in CL.
+    Shared map's current-player byte is $A5 (5572C8FC..5572C90B). }
+  PUSH EBX
+  TEST CL, CL
+  JNE @@Skip
+  MOV EBX, P5AoWHSMap
+  MOV BL, [EBX+$A5]
+  CMP BL, [EAX+$10]
+  JNE @@Skip
+  PUSH A3
+  PUSH A4
+  CALL TEventLog.Execute
+  JMP @@Done
+@@Skip:
+  XOR EAX, EAX
+@@Done:
+  POP EBX
+end;
+
+{ needs: P2 TArmy.CreateID(Selection: Byte): TArmyID (5572C98A..5572C995). }
+function P5CreateArmyID(Army: TArmy; Selection: Byte): TArmyID;
+asm
+  JMP TArmy.CreateID
+end;
+
+{ needs: P1 TPlayer.GetLocal: Boolean (5572CA17..5572CA23). }
+function P5PlayerLocal(Player: TPlayer): Boolean;
+asm
+  JMP TPlayer.GetLocal
+end;
+
+{ Original unnamed helper 5572C924, following TNegotiateRequestEventLog.
+  needs: P1 declare NegotiateArmy after all forward classes are defined, then
+  reference it from hosts/P5.inc. Splitting the earlier type block is illegal. }
+procedure NegotiateArmy(Player: Shortint; ArmyHS: TArmyHS; Selection: Byte;
+  X, Y, L: Shortint; MovePoints: Integer);
+var
+  Log: TNegotiateRequestEventLog;
+  ErrorText: string;
+  Msg: TMapFieldMsg;
+begin
+  if P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+    Player).F_Player_A7 = 0 then
+  begin
+    { needs: P1 current-player byte at $A5, inside the draft $A4 field. }
+    if Player = TXYL(P5AoWHSMap.F_AbstractAoWHSMap_A4).Y then
+    begin
+      Log := TNegotiateRequestEventLog.Create(nil);
+      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
+      Log.FMovePoints := MovePoints;
+      Log.FX := Byte(X);
+      Log.FY := Byte(Y);
+      Log.FL := Byte(L);
+      Log.F_EventLog_10 := Byte(Player);
+      Msg.MsgID := $110E;
+      Msg.Param[0] := Integer(Log);
+      Msg.Param[1] := 0;
+      Msg.Result := 0;
+      P5AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
+      if Msg.Param[1] <> 0 then Log.Execute(1, 0, 0, 0);
+      Log.Release;
+    end;
+  end
+  else
+    if P5PlayerLocal(P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+      Player)) then
+    begin
+      Log := TNegotiateRequestEventLog.Create(nil);
+      Log.FArmyID := P5CreateArmyID(TArmy(ArmyHS.F_ArmyHS_1C), Selection);
+      Log.FMovePoints := MovePoints;
+      Log.FX := Byte(X);
+      Log.FY := Byte(Y);
+      Log.FL := Byte(L);
+      Log.F_EventLog_10 := Byte(Player);
+      Msg.MsgID := $110E;
+      Msg.Param[0] := Integer(Log);
+      Msg.Param[1] := 0;
+      Msg.Result := 0;
+      P5AoWHSMap.MapContainer.GetField(X, Y, L).SendMapFieldMsg(Msg);
+      if (Msg.Param[1] <> 0) and
+        (P5GetPlayers(TPlayerList(P5AoWHSMap.F_AoWHSMap_140),
+          Player).F_Player_C4 >= Log.FGold) then
+        Log.Accept(Integer(@ErrorText), 0)
+      else
+        Log.Reject(ErrorText);
+      Log.Release;
+    end;
+end;
 
 constructor TDiplomaticAction.Create(AOwner: Engine.TECustomNode);
 begin end;

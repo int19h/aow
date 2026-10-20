@@ -1,26 +1,28 @@
 { Interface declaration run owned by P5. }
-  { TJoinEventLog (instance size 60, VMT 55711C84) }
+  { TJoinEventLog (instance size $3C, VMT 55711C84).
+    $18 FirstUnitID, $1C UnitIDs, $20 Location, $24 Selection,
+    $28 JoinIndex, $2C JoinMessage, $30 Gold, $34 JoinMode, $38 Text. }
   TJoinEventLog = class(TEventLog)
   public
-    F_JoinEventLog_18: Integer;
-    F_JoinEventLog_1C: Integer;
-    F_JoinEventLog_20: Integer;
-    F_JoinEventLog_24: Byte;
+    FFirstUnitID: Integer;
+    FUnitIDs: TIntegerList;
+    FLocation: TXYL;
+    FSelection: Byte;
     F_JoinEventLog_25: array[0..2] of Byte;
-    F_JoinEventLog_28: Integer;
-    F_JoinEventLog_2C: Integer;
-    F_JoinEventLog_30: Integer;
-    F_JoinEventLog_34: Byte;
+    FJoinIndex: Integer;
+    FJoinMessage: TStringList;
+    FGold: Integer;
+    FJoinMode: TJoinMode;
     F_JoinEventLog_35: array[0..2] of Byte;
-    F_JoinEventLog_38: Integer;
+    FText: string;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Validate(A1: Integer; A2: Integer); virtual;  { +078 draft }
-    procedure ListJoinUnits(A1: Integer; A2: Integer); virtual;  { +07C draft }
-    procedure Accept(A1: Integer; A2: Integer); virtual;  { +080 draft }
-    procedure Cancel; virtual;  { +084 draft }
-    procedure Reject; virtual;  { +088 draft }
-    procedure SetupJoinArmy(A1: Integer; A2: Byte; A3: Integer);  { draft }
+    function Validate: Boolean; virtual;  { +078 }
+    procedure ListJoinUnits(Units: TUnitList; var Selection: Byte); virtual;  { +07C }
+    procedure Accept(A1: Integer; A2: Integer); virtual;  { +080 needs: P2 THeroJoinEventLog.Accept must return Boolean, var ErrorText: string. }
+    procedure Cancel; virtual;  { +084 needs: P7 TPrisonersJoinEventLog.Cancel returns Boolean. }
+    function Reject(var ErrorText: string): Boolean; virtual;  { +088 }
+    procedure SetupJoinArmy(Army: TArmy; Player: Shortint; JoinMode: TJoinMode);
   end;
 

@@ -818,52 +818,57 @@
     procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
   end;
 
-  { TNegotiateTE (instance size 60, VMT 5571CCFC) }
+  { TNegotiateTE (instance size $3C, VMT 5571CCFC).
+    $10 Gold, $14 Offer, $15/$16/$17 X/Y/L, $18 ArmyID,
+    $1C Player, $1D OwnerPlayer, $20 ArmyHS, $24 Object, $28 MovePoints,
+    $2C Selection, $2D Mode, $2E Result, $30 EventLogID, $34/$38 Data1/Data2. }
   TNegotiateTE = class(TTokenEvent)
   public
-    F_NegotiateTE_10: Integer;
-    F_NegotiateTE_14: Byte;
-    F_NegotiateTE_15: Byte;
-    F_NegotiateTE_16: Byte;
-    F_NegotiateTE_17: Byte;
-    F_NegotiateTE_18: Integer;
-    F_NegotiateTE_1C: Byte;
-    F_NegotiateTE_1D: Byte;
+    FGold: Integer;
+    FOffer: TNegotiateOffer;
+    FX: Byte;
+    FY: Byte;
+    FL: Byte;
+    FArmyID: TArmyID;
+    FPlayer: Byte;
+    FOwnerPlayer: Byte;
     F_NegotiateTE_1E: array[0..1] of Byte;
-    F_NegotiateTE_20: Integer;
-    F_NegotiateTE_24: Byte;
+    FArmyHS: TArmyHS;
+    FObject: TNegotiateObject;
     F_NegotiateTE_25: array[0..2] of Byte;
-    F_NegotiateTE_28: Integer;
-    F_NegotiateTE_2C: Byte;
-    F_NegotiateTE_2D: Byte;
-    F_NegotiateTE_2E: Byte;
+    FMovePoints: Integer;
+    FSelection: Byte;
+    FMode: TNegotiateMode;
+    FResult: TNegotiateResult;
     F_NegotiateTE_2F: array[0..0] of Byte;
-    F_NegotiateTE_30: Integer;
-    F_NegotiateTE_34: Integer;
-    F_NegotiateTE_38: Integer;
+    FEventLogID: Integer;
+    FData1: Integer;
+    FData2: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure Validate; virtual;  { +050 draft }
-    procedure Accept; virtual;  { +054 draft }
-    procedure Reject; virtual;  { +058 draft }
+    function Validate: Boolean; virtual;  { +050 }
+    procedure Accept; virtual;  { +054 }
+    procedure Reject; virtual;  { +058 }
   end;
 
-  { TNegotiateRequestEventLog (instance size 84, VMT 5571CDCC) }
+  { TNegotiateRequestEventLog (instance size $54, VMT 5571CDCC).
+    $3C/$3D/$3E X/Y/L, $40 MovePoints, $44 ArmyID, $48 Object,
+    $4C/$50 Data1/Data2; inherited join fields $18..$3B. }
   TNegotiateRequestEventLog = class(TJoinEventLog)
   public
-    F_NegotiateRequestEventLog_3C: Byte;
-    F_NegotiateRequestEventLog_3D: Byte;
-    F_NegotiateRequestEventLog_3E: Byte;
+    FX: Byte;
+    FY: Byte;
+    FL: Byte;
     F_NegotiateRequestEventLog_3F: array[0..0] of Byte;
-    F_NegotiateRequestEventLog_40: Integer;
-    F_NegotiateRequestEventLog_44: Integer;
-    F_NegotiateRequestEventLog_48: Byte;
+    FMovePoints: Integer;
+    FArmyID: TArmyID;
+    FObject: TNegotiateObject;
     F_NegotiateRequestEventLog_49: array[0..2] of Byte;
-    F_NegotiateRequestEventLog_4C: Integer;
-    F_NegotiateRequestEventLog_50: Integer;
+    FData1: Integer;
+    FData2: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -871,8 +876,8 @@
     procedure Execute(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
     procedure Accept(A1: Integer; A2: Integer); override;
     procedure Cancel; override;
-    procedure Reject; override;
-    procedure CreateNegotiateTE; virtual;  { +08C draft }
+    function Reject(var ErrorText: string): Boolean; override;
+    function CreateNegotiateTE: TNegotiateTE; virtual;  { +08C }
   end;
 
   { TGameOverTE (instance size 20, VMT 5571CEE8) }
