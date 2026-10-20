@@ -833,9 +833,9 @@ begin
     if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
-      if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
+      if Shortint(TUnitEnchantment(Data.FEnchantment).FSource) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).FMagicControl).
+          Shortint(TUnitEnchantment(Data.FEnchantment).FSource)).FMagicControl).
           RegisterEnchantment(Data.FEnchantment);
     end;
   end;
@@ -855,9 +855,9 @@ begin
     if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
-      if Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C) > -1 then
+      if Shortint(TUnitEnchantment(Data.FEnchantment).FSource) > -1 then
         TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),
-          Shortint(TUnitEnchantment(Data.FEnchantment).F_Enchantment_0C)).FMagicControl).
+          Shortint(TUnitEnchantment(Data.FEnchantment).FSource)).FMagicControl).
           UnregisterEnchantment(Data.FEnchantment);
     end;
   end;
@@ -891,7 +891,7 @@ begin
   begin
     Dec(I);
     Enchantment := AbilityToEnchantment(P2TypeAbility(List, I).FAbilityID);
-    if (Enchantment = nil) or (Player = Shortint(Enchantment.F_Enchantment_0C)) then
+    if (Enchantment = nil) or (Player = Shortint(Enchantment.FSource)) then
       Result := False
     else Result := True;
   end;
@@ -1014,14 +1014,14 @@ begin
   Result := nil;
 end;
 
-procedure TAbstractUnit.GetOwnerName(A1: Integer);
+function TAbstractUnit.GetOwnerName: string;
 begin
   { needs: draft ancestor GetOwnerName is a string result; current A1 is its
     hidden result pointer, proved by EDX at 5577F6A2 and 5577F6C2. }
-  P2TranslateRStr(P2InherentRStr, TP2PString(A1)^);
+  P2TranslateRStr(P2InherentRStr, Result);
 end;
 
-procedure TAbstractUnit.RemoveAbility(A1: Integer);
+function TAbstractUnit.RemoveAbility(A1: Integer): Boolean;
 asm
   { needs: draft P1 TAbilityOwner.RemoveAbility(ID: Integer): Boolean.
     Preserve the returned EAX across Release, as at 5577F703..5577F70C. }
@@ -1709,7 +1709,7 @@ end;
 procedure TAbstractUnit.ResetEarthMasteryStoneSkin;
 begin
   if GetAbilityEnabled(153) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).FEnchantment).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).FEnchantment).FSource) = -2 then
       RemoveAbility(153);
 end;
 
@@ -1730,7 +1730,7 @@ end;
 procedure TAbstractUnit.ResetFireMasteryProtection;
 begin
   if GetAbilityEnabled(167) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).FEnchantment).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,167)).FEnchantment).FSource) = -2 then
       RemoveAbility(167);
 end;
 
@@ -1751,7 +1751,7 @@ end;
 procedure TAbstractUnit.ResetLifeMasteryBlessing;
 begin
   if GetAbilityEnabled(158) then
-    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).FEnchantment).F_Enchantment_0C) = -2 then
+    if Shortint(TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).FEnchantment).FSource) = -2 then
       RemoveAbility(158);
 end;
 
@@ -2212,14 +2212,14 @@ begin
     if (dtCold in Active) and TP2OwnerCalls(Self).Expand(95) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self,95));
-      if Data <> nil then Data.FEnchantmentPlayerIndex := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
+      if Data <> nil then Data.FEnchantmentPlayerIndex := TP2CombatTurnFields(Combat.FCombatData).Turn;
       RemoveAbility(127);
       Result := Result + [dtCold];
     end;
     if (dtLightning in Active) and TP2OwnerCalls(Self).Expand(92) then
     begin
       Data := TUnitEnchantmentAbilityData(P2AbilityData(Self,92));
-      if Data <> nil then TDurationAbilityData(Data).FPlayerIndex := TP2CombatTurnFields(Combat.F_Combat_0C).Turn;
+      if Data <> nil then TDurationAbilityData(Data).FPlayerIndex := TP2CombatTurnFields(Combat.FCombatData).Turn;
       Result := Result + [dtLightning];
     end;
     if (dtPoison in Active) and TP2OwnerCalls(Self).Expand(96) then
@@ -3856,8 +3856,8 @@ begin end;
 procedure THero.SetAbSet(A1: Integer; A2: Byte);
 begin end;
 
-procedure THero.GetAbSet(A1: Integer);
-begin end;
+function THero.GetAbSet(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure THero.GetUnitAbilityEnabled;
 begin end;
@@ -5017,8 +5017,8 @@ begin end;
 procedure TItem.UpdateFromLibrary;
 begin end;
 
-procedure TItem.GetOwnerName(A1: Integer);
-begin end;
+function TItem.GetOwnerName: string;
+begin Result := ''; end;
 
 procedure TItem.GetAbilitySelectionTypes(A1: Word; A2: Integer);
 begin end;

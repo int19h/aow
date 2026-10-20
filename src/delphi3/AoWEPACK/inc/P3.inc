@@ -172,7 +172,7 @@ begin
       Result := Level * 2 + 4
     else
       Result := 4;
-    if (TCombat(F_CombatObject_08).F_Combat_40 = 1) and
+    if (TCombat(FCombat).F_Combat_40 = 1) and
        not TP3AbstractUnitAccess(FUnit).GetAbilityEnabled($27) then
       Result := (Result + 1) div 2;
   end
@@ -224,7 +224,7 @@ begin
   { needs: P2 TAbstractUnit.ExecuteCombatDamageEffects(Combat, Effects): TDamageTypes;
     $55724C2F calls it with Self in EAX, combat in EDX, effects in CX. }
   Result := TP3ExecuteCombatDamageEffects(@TAbstractUnit.ExecuteCombatDamageEffects)(
-    FUnit, F_CombatObject_08, A1);
+    FUnit, Integer(FCombat), A1);
 end;
 
 function TCombatUnit.ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes;
@@ -338,7 +338,7 @@ function TCombatUnit.GetDamage: Shortint;
 begin Result := TP3AbstractUnitAccess(FUnit).Damage; end;
 
 function TCombatUnit.GetImmunityTypes: TDamageTypes;
-begin Result := TP3AbstractUnitAccess(FUnit).Immunities + TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_22; end;
+begin Result := TP3AbstractUnitAccess(FUnit).Immunities + TCombatData(TCombat(FCombat).FCombatData).F_CombatData_22; end;
 
 function TCombatUnit.GetProtectionTypes: TDamageTypes;
 begin Result := TP3AbstractUnitAccess(FUnit).Protections; end;
@@ -410,7 +410,7 @@ begin end;
 function TCombatWall.GetTargetStrength: Integer;
 begin
   if not FLocked then
-    if not TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_4D then Result := 10
+    if not TCombatData(TCombat(FCombat).FCombatData).F_CombatData_4D then Result := 10
     else Result := 1
   else Result := 0;
 end;
@@ -430,12 +430,12 @@ end;
 procedure TCombatWall.Activate(A1: Integer);
 begin
   inherited Activate(A1);
-  TCombatData(TCombat(A1).F_Combat_0C).F_CombatData_50 := Integer(Self);
+  TCombatData(TCombat(A1).FCombatData).F_CombatData_50 := Integer(Self);
 end;
 
 procedure TCombatWall.Deactivate;
 begin
-  TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_50 := 0;
+  TCombatData(TCombat(FCombat).FCombatData).F_CombatData_50 := 0;
   inherited Deactivate;
 end;
 
@@ -476,7 +476,7 @@ begin FHitPoints := A1; end;
 procedure TCombatWall.DestroyObject;
 begin
   inherited DestroyObject;
-  TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_4D := True;
+  TCombatData(TCombat(FCombat).FCombatData).F_CombatData_4D := True;
 end;
 
 procedure TCombatWall.Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
@@ -578,11 +578,11 @@ procedure TCombatObject.fcExecute(A1: Integer);
 { needs: result declaration also requires unmarked P5 overrides to change. }
 asm XOR EAX, EAX end;
 
-procedure TCombatObject.fcBehindWall;
+function TCombatObject.fcBehindWall: Boolean;
 { needs: result declaration also requires unmarked P5 overrides to change. }
 asm XOR EAX, EAX end;
 
-procedure TCombatObject.fcWallInBetween(A1: Integer);
+function TCombatObject.fcWallInBetween(A1: Byte): Boolean;
 { needs: result declaration also requires unmarked P5 overrides to change. }
 asm XOR EAX, EAX end;
 
@@ -607,7 +607,7 @@ var Player: Shortint;
 begin
   Player := Shortint(F_CombatObject_45);
   if Player <> -1 then
-    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A)
+    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A)
   else Result := csNeutral;
 end;
 
@@ -616,7 +616,7 @@ var Player: Shortint;
 begin
   Player := Shortint(F_CombatObject_45);
   if Player <> -1 then
-    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(F_CombatObject_08).F_Combat_0C).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A xor 1)
+    Result := TCombatSideIndex(TCombatPlayerList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_38).GetPlayers(Player).F_CombatPlayer_0A xor 1)
   else Result := csNeutral;
 end;
 
@@ -634,7 +634,7 @@ var A: TCombatObjectTurnDoneCA;
 begin
   A := TCombatObjectTurnDoneCA.Create(nil);
   A.F_CombatObjectTurnDoneCA_0C := FID;
-  TCombat(F_CombatObject_08).ExecuteCombatAction(Integer(A));
+  TCombat(FCombat).ExecuteCombatAction(A);
   A.Release;
 end;
 
@@ -767,7 +767,7 @@ begin Result := []; end;
 function TCombatObject.ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes;
 begin Result := []; end;
 
-function TCombatObject.DoDamage(A1: Integer; A2: Integer): Integer;
+function TCombatObject.DoDamage(A1: TCombatObject; A2: Integer): Integer;
 begin
   if (A2 <> 0) and TCombatObject(A1).GetEnabled then
   begin
@@ -867,7 +867,7 @@ begin
   TCombatSide(F_Combat_20).F_CombatSide_0C := 1;
   TCombatSide(F_Combat_1C).FOpponent := TCombatSide(F_Combat_20);
   TCombatSide(F_Combat_20).FOpponent := TCombatSide(F_Combat_1C);
-  F_Combat_0C := Integer(TCombatData.Create(nil));
+  FCombatData := TCombatData.Create(nil);
   F_Combat_18 := Integer(TCombatLogbook.Create(nil));
   Clear;
 end;
@@ -879,7 +879,7 @@ begin
   TObject(F_Combat_24).Free;
   TObject(F_Combat_1C).Free;
   TObject(F_Combat_20).Free;
-  TObject(F_Combat_0C).Free;
+  TObject(FCombatData).Free;
   TCombatLogbook(F_Combat_18).Release;
   inherited Destroy;
 end;
@@ -899,13 +899,13 @@ begin
   Stream.rwEObject(TEObject(F_Combat_1C), $0A);
   Stream.rwEObject(TEObject(F_Combat_20), $0B);
   Stream.rwCreateEObject(TEObject(F_Combat_18), nil, $0C);
-  Stream.rwEObject(TEObject(F_Combat_0C), $0D);
+  Stream.rwEObject(TEObject(FCombatData), $0D);
 end;
 
 function TCombat.GetRound: Integer;
-begin Result := TCombatData(F_Combat_0C).F_CombatData_44; end;
+begin Result := TCombatData(FCombatData).F_CombatData_44; end;
 
-procedure TCombat.ExecuteCombatAction(A1: Integer);
+procedure TCombat.ExecuteCombatAction(A1: TCombatAction);
 begin
   if cLogCombatActions in F_Combat_08 then TCombatActionList(TCombatLogbook(F_Combat_18).F_CombatLogbook_14).AddChild(TCombatAction(A1));
   TP3ActionPlayAccess(A1).Execute(Self);
@@ -922,7 +922,7 @@ begin
   inherited Clear;
   TCombatLogbook(F_Combat_18).Clear;
   F_Combat_10 := 1;
-  TCombatData(F_Combat_0C).Clear;
+  TCombatData(FCombatData).Clear;
   F_Combat_08 := [];
 end;
 
@@ -939,7 +939,7 @@ procedure TCombat.NewRound;
 var A: TNewCombatRoundCA;
 begin
   A := TNewCombatRoundCA.Create(nil);
-  ExecuteCombatAction(Integer(A));
+  ExecuteCombatAction(A);
   A.Release;
 end;
 
@@ -951,7 +951,7 @@ var A: TNewCombatTurnCA;
 begin
   A := TNewCombatTurnCA.Create(nil);
   A.F_NewCombatTurnCA_0C := A1;
-  ExecuteCombatAction(Integer(A));
+  ExecuteCombatAction(A);
   A.Release;
   UpdateSidesSettings;
 end;
@@ -959,11 +959,11 @@ end;
 procedure TCombat.NextTurn;
 var I: Integer;
 begin
-  if TByteList(TCombatData(F_Combat_0C).F_CombatData_40).Count <> 0 then
+  if TByteList(TCombatData(FCombatData).F_CombatData_40).Count <> 0 then
   begin
-    I := TByteList(TCombatData(F_Combat_0C).F_CombatData_40).IndexOf(TCombatData(F_Combat_0C).F_CombatData_31) + 1;
-    if I >= TByteList(TCombatData(F_Combat_0C).F_CombatData_40).Count then I := 0;
-    NewTurn(TByteList(TCombatData(F_Combat_0C).F_CombatData_40)[I]);
+    I := TByteList(TCombatData(FCombatData).F_CombatData_40).IndexOf(TCombatData(FCombatData).F_CombatData_31) + 1;
+    if I >= TByteList(TCombatData(FCombatData).F_CombatData_40).Count then I := 0;
+    NewTurn(TByteList(TCombatData(FCombatData).F_CombatData_40)[I]);
   end;
 end;
 
@@ -981,23 +981,23 @@ begin
   if not F_Combat_34 then
     if (TCombatSide(F_Combat_1C).GetUndestroyedConquerObjects = 0) or
       (TCombatSide(F_Combat_20).GetUndestroyedConquerObjects = 0) or
-      (TByteList(TCombatData(F_Combat_0C).F_CombatData_2C).Count <> 0) then Terminate;
+      (TByteList(TCombatData(FCombatData).F_CombatData_2C).Count <> 0) then Terminate;
 end;
 
 procedure TCombat.ObjectSideChanged(A1: Integer);
 var I: Integer;
 begin
-  for I := TCombatData(F_Combat_0C).GetCount - 1 downto 0 do
+  for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
     if not (csDestroyed in TCombatObject(A1).FStatus) then
-      TCombatData(F_Combat_0C).GetObjects(I).ObjectSideChanged(A1);
+      TCombatData(FCombatData).GetObjects(I).ObjectSideChanged(A1);
   CheckTerminate;
 end;
 
 procedure TCombat.ObjectDestroyed(A1: Integer);
 var I: Integer;
 begin
-  for I := TCombatData(F_Combat_0C).GetCount - 1 downto 0 do
-    TCombatData(F_Combat_0C).GetObjects(I).ObjectDestroyed(A1);
+  for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
+    TCombatData(FCombatData).GetObjects(I).ObjectDestroyed(A1);
   TEventList(F_Combat_24).TriggerNotifyEvents(Self);
   CheckTerminate;
 end;
@@ -1007,7 +1007,7 @@ var A: TUpdateHeaderCA;
 begin
   A := TUpdateHeaderCA.Create(nil);
   A.F_UpdateHeaderCA_0C := A1;
-  ExecuteCombatAction(Integer(A));
+  ExecuteCombatAction(A);
   A.Release;
 end;
 
@@ -1055,13 +1055,13 @@ var I: Integer;
 begin
   Assert(not (cActivated in F_Combat_08), 'Combat already activated');
   F_Combat_08 := F_Combat_08 + [cActivated];
-  TCombatPartyList(TCombatData(F_Combat_0C).F_CombatData_3C).Activate(Integer(Self));
-  for I := TCombatData(F_Combat_0C).GetCount - 1 downto 0 do
-    TCombatData(F_Combat_0C).GetObjects(I).Activate(Integer(Self));
+  TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).Activate(Integer(Self));
+  for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
+    TCombatData(FCombatData).GetObjects(I).Activate(Integer(Self));
   if cExecuting in F_Combat_08 then
   begin
-    for I := TCombatData(F_Combat_0C).GetCount - 1 downto 0 do
-      TCombatData(F_Combat_0C).GetObjects(I).SetupTargets;
+    for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
+      TCombatData(FCombatData).GetObjects(I).SetupTargets;
     UpdateSidesSettings;
   end;
 end;
@@ -1071,9 +1071,9 @@ var I: Integer;
 begin
   Assert(cActivated in F_Combat_08, 'Combat Failure during Deactivating');
   F_Combat_08 := F_Combat_08 - [cActivated];
-  for I := TCombatData(F_Combat_0C).GetCount - 1 downto 0 do
-    TCombatData(F_Combat_0C).GetObjects(I).Deactivate;
-  TCombatPartyList(TCombatData(F_Combat_0C).F_CombatData_3C).Deactivate(Integer(Self));
+  for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
+    TCombatData(FCombatData).GetObjects(I).Deactivate;
+  TCombatPartyList(TCombatData(FCombatData).F_CombatData_3C).Deactivate(Integer(Self));
 end;
 
 function TCombat.Execute: Byte;
@@ -1090,11 +1090,11 @@ var I: Integer; Obj: TCombatObject;
 begin
   Result := False;
   I := 0;
-  while not Result and (I <> TCombatData(F_Combat_0C).GetCount) do
+  while not Result and (I <> TCombatData(FCombatData).GetCount) do
   begin
-    Obj := TCombatData(F_Combat_0C).GetObjects(I);
+    Obj := TCombatData(FCombatData).GetObjects(I);
     Result := (Obj.F_CombatObject_45 <> $FF) and
-      (TCombatPlayerList(TCombatData(F_Combat_0C).F_CombatData_38).GetPlayers(Shortint(Obj.F_CombatObject_45)).F_CombatPlayer_0A = 1) and
+      (TCombatPlayerList(TCombatData(FCombatData).F_CombatData_38).GetPlayers(Shortint(Obj.F_CombatObject_45)).F_CombatPlayer_0A = 1) and
       not (csDestroyed in Obj.FStatus);
     Inc(I);
   end;
@@ -1198,7 +1198,7 @@ begin
     P.SetArrayOwner(Self, A2);
     TArmy(P.F_CombatParty_08).SetXYL(Byte(A4), Byte(A5), A6);
     TArmy(P.F_CombatParty_08).SetPlayer(
-      TCombatPlayerList(TCombatData(TCombat(A1).F_Combat_0C).F_CombatData_38).
+      TCombatPlayerList(TCombatData(TCombat(A1).FCombatData).F_CombatData_38).
         GetPlayers(Shortint(A3)).F_CombatPlayer_08);
     if A7 <> 0 then TArmy(P.F_CombatParty_08).AssignSettings(A7);
     TArmy(P.F_CombatParty_08).Activate;
@@ -1523,7 +1523,7 @@ end;
 constructor TCombatViewer.Create;
 begin
   inherited Create;
-  F_CombatViewer_08 := Integer(TCombat.Create(nil));
+  FCombat := TCombat.Create(nil);
   F_CombatViewer_14 := -1;
   FSpeed := 5;
   F_CombatViewer_0C := 5;
@@ -1532,7 +1532,7 @@ end;
 destructor TCombatViewer.Destroy;
 begin
   if vsInitialized in F_CombatViewer_04 then Finalize;
-  TObject(F_CombatViewer_08).Free;
+  TObject(FCombat).Free;
   inherited Destroy;
 end;
 
@@ -1543,8 +1543,8 @@ procedure TCombatViewer.Finalize;
 begin
   if vsInitialized in F_CombatViewer_04 then
   begin
-    TP3CombatDeactivateAccess(F_CombatViewer_08).Deactivate;
-    TCombat(F_CombatViewer_08).Clear;
+    TP3CombatDeactivateAccess(FCombat).Deactivate;
+    TCombat(FCombat).Clear;
     TCombatLogbook(F_CombatViewer_18).Release;
     F_CombatViewer_18 := 0;
     F_CombatViewer_04 := F_CombatViewer_04 - [vsInitialized];
@@ -1695,7 +1695,7 @@ begin Result := $202B1; end;
 procedure TDamageCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(F_DamageCA_10, $0F);
+  Stream.rwByte(FDamage, $0F);
   Stream.rwData(FEffects, 2, $10);
   Stream.rwData(FDamageTypes, 2, $11);
 end;
@@ -1704,19 +1704,19 @@ procedure TDamageCA.Setup(A1: Byte; A2: Byte; A3: Byte; A4: TDamageTypes; A5: TD
 begin
   F_SingleTargetCA_0D := A1;
   F_SingleTargetCA_0E := A2;
-  F_DamageCA_10 := A3;
+  FDamage := A3;
   FEffects.Value := A4;
   FDamageTypes.Value := A5;
   if A6 then F_SingleTargetCA_0C := F_SingleTargetCA_0C + [smDefensive];
 end;
 
-procedure TDamageCA.Generate(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
+procedure TDamageCA.Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes);
 var DamageTypes: TDamageTypes absolute A5;
 begin
   F_SingleTargetCA_0D := TCombatObject(A1).FID;
   F_SingleTargetCA_0E := TCombatObject(A2).FID;
-  F_DamageCA_10 := TCombatObject(A2).ExecuteDamageRole(Shortint(A3), Shortint(A4), DamageTypes);
-  if F_DamageCA_10 <> 0 then FEffects.Value := TCombatObject(A2).ExecuteDamageEffectsRole(DamageTypes)
+  FDamage := TCombatObject(A2).ExecuteDamageRole(Shortint(A3), Shortint(A4), DamageTypes);
+  if FDamage <> 0 then FEffects.Value := TCombatObject(A2).ExecuteDamageEffectsRole(DamageTypes)
   else FEffects.Value := [];
   FDamageTypes.Value := DamageTypes - TCombatObject(A2).GetImmunityTypes;
 end;
@@ -1726,30 +1726,30 @@ var DamageTypes: TDamageTypes absolute A5;
 begin
   F_SingleTargetCA_0D := TCombatObject(A1).FID;
   F_SingleTargetCA_0E := TCombatObject(A2).FID;
-  F_DamageCA_10 := TCombatObject(A2).ExecuteDamageRoleEx(Shortint(A3), Shortint(A4), DamageTypes, Byte(A6));
-  if F_DamageCA_10 <> 0 then FEffects.Value := TCombatObject(A2).ExecuteDamageEffectsRole(DamageTypes)
+  FDamage := TCombatObject(A2).ExecuteDamageRoleEx(Shortint(A3), Shortint(A4), DamageTypes, Byte(A6));
+  if FDamage <> 0 then FEffects.Value := TCombatObject(A2).ExecuteDamageEffectsRole(DamageTypes)
   else FEffects.Value := [];
   FDamageTypes.Value := DamageTypes - TCombatObject(A2).GetImmunityTypes;
 end;
 
-procedure TDamageCA.Execute(A1: Integer; A2: Integer);
+procedure TDamageCA.Execute(A1: TCombat; A2: Integer);
 var Target, Source: TCombatObject;
 begin
-  Source := TCombatData(TCombat(A1).F_Combat_0C).FindID(F_SingleTargetCA_0D);
-  Target := TCombatData(TCombat(A1).F_Combat_0C).FindID(F_SingleTargetCA_0E);
-  if F_DamageCA_10 <> 0 then F_DamageCA_15 := Source.DoDamage(Integer(Target), F_DamageCA_10);
+  Source := TCombatData(TCombat(A1).FCombatData).FindID(F_SingleTargetCA_0D);
+  Target := TCombatData(TCombat(A1).FCombatData).FindID(F_SingleTargetCA_0E);
+  if FDamage <> 0 then FDamageDone := Source.DoDamage(Target, FDamage);
   if FEffects.Value <> [] then Target.ExecuteDamageEffects(FEffects.Value);
 end;
 
-procedure TDamageCA.Play(A1: Integer);
+function TDamageCA.Play(A1: TCombatViewer): Boolean;
 var HitFrame, Duration, EffectFrames: Integer; Target: TCombatObject;
 begin
   if TCombatViewer(A1).F_CombatViewer_0C < 5 then HitFrame := TCombatViewer(A1).F_CombatViewer_0C else HitFrame := 5;
   if HitFrame = TCombatViewer(A1).F_CombatViewer_14 then
   begin
-    Execute(TCombatViewer(A1).F_CombatViewer_08, 0);
-    Target := TCombatData(TCombat(TCombatViewer(A1).F_CombatViewer_08).F_Combat_0C).FindID(F_SingleTargetCA_0E);
-    if F_DamageCA_15 <> 0 then
+    Execute(TCombatViewer(A1).FCombat, 0);
+    Target := TCombatData(TCombat(TCombatViewer(A1).FCombat).FCombatData).FindID(F_SingleTargetCA_0E);
+    if FDamageDone <> 0 then
       if not (csDestroyed in Target.FStatus) then Target.PlaySFX(2) else Target.PlaySFX(3);
   end;
   Duration := TCombatViewer(A1).F_CombatViewer_0C * 2;
@@ -1777,12 +1777,12 @@ begin
   else
   begin
     if TCombatViewer(A1).F_CombatViewer_0C < 5 then HitFrame := TCombatViewer(A1).F_CombatViewer_0C else HitFrame := 5;
-    if (TCombatObject(A2).FID = F_SingleTargetCA_0E) and (F_DamageCA_15 <> 0) and (HitFrame <= TCombatViewer(A1).F_CombatViewer_14) then
+    if (TCombatObject(A2).FID = F_SingleTargetCA_0E) and (FDamageDone <> 0) and (HitFrame <= TCombatViewer(A1).F_CombatViewer_14) then
     begin
       TCombatObject(A2).Show(A3, A4, A5, A6, A7);
       if FEffects.Value <> [] then AoWE.ShowDamageEffects(PWord(@FEffects.Value)^, A5, A6, TCombatViewer(A1).F_CombatViewer_14 - HitFrame, A7);
       { needs: P1 ShowDamageIcon has five arguments; DamageTypesToDamageType returns TDamageType. }
-      TP3DamageIcon(@AoWE.ShowDamageIcon)(A5, A6, A7, F_DamageCA_15, Ord(TP3DamageType(@AoWE.DamageTypesToDamageType)(FDamageTypes.Value)));
+      TP3DamageIcon(@AoWE.ShowDamageIcon)(A5, A6, A7, FDamageDone, Ord(TP3DamageType(@AoWE.DamageTypesToDamageType)(FDamageTypes.Value)));
     end
     else TCombatObject(A2).Show(A3, A4, A5, A6, A7);
   end;
@@ -1802,21 +1802,21 @@ begin
   if A4 then F_SingleTargetCA_0C := F_SingleTargetCA_0C + [smDefensive];
 end;
 
-procedure TDamageEffectCA.Execute(A1: Integer; A2: Integer);
+procedure TDamageEffectCA.Execute(A1: TCombat; A2: Integer);
 var Combat: TCombat; Target, Source: TCombatObject;
 begin
   Combat := TCombat(A1);
-  Target := TCombatData(Combat.F_Combat_0C).FindID(F_SingleTargetCA_0E);
+  Target := TCombatData(Combat.FCombatData).FindID(F_SingleTargetCA_0E);
   if not (csDestroyed in Target.FStatus) then
   begin
-    Source := TCombatData(Combat.F_Combat_0C).FindID(F_SingleTargetCA_0D);
+    Source := TCombatData(Combat.FCombatData).FindID(F_SingleTargetCA_0D);
     Target.ExecuteDamageEffects([TDamageType(F_DamageEffectCA_10)]);
     if csDestroyed in Target.FStatus then
       with Source do SetExperience(GetExperience + Target.GetLevel);
   end;
 end;
 
-procedure TDamageEffectCA.Play(A1: Integer);
+function TDamageEffectCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean Play result despite the unmarked P4 overrides. }
 asm
   PUSH EBX
@@ -1850,10 +1850,10 @@ begin
   Stream.rwString(F_UpdateHeaderCA_0C, $14);
 end;
 
-procedure TUpdateHeaderCA.Execute(A1: Integer; A2: Integer);
-begin TCombatData(TCombat(A1).F_Combat_0C).F_CombatData_48 := F_UpdateHeaderCA_0C; end;
+procedure TUpdateHeaderCA.Execute(A1: TCombat; A2: Integer);
+begin TCombatData(TCombat(A1).FCombatData).F_CombatData_48 := F_UpdateHeaderCA_0C; end;
 
-procedure TUpdateHeaderCA.Play(A1: Integer);
+function TUpdateHeaderCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }
 asm
   MOV EDX, [EDX+8]
@@ -1871,15 +1871,15 @@ begin
   Stream.rwByte(F_NewCombatTurnCA_0C, $14);
 end;
 
-procedure TNewCombatTurnCA.Execute(A1: Integer; A2: Integer);
+procedure TNewCombatTurnCA.Execute(A1: TCombat; A2: Integer);
 var I: Integer;
 begin
-  TCombatData(TCombat(A1).F_Combat_0C).F_CombatData_31 := F_NewCombatTurnCA_0C;
-  for I := TCombatData(TCombat(A1).F_Combat_0C).GetCount - 1 downto 0 do
-    TCombatData(TCombat(A1).F_Combat_0C).GetObjects(I).NewTurn(F_NewCombatTurnCA_0C);
+  TCombatData(TCombat(A1).FCombatData).F_CombatData_31 := F_NewCombatTurnCA_0C;
+  for I := TCombatData(TCombat(A1).FCombatData).GetCount - 1 downto 0 do
+    TCombatData(TCombat(A1).FCombatData).GetObjects(I).NewTurn(F_NewCombatTurnCA_0C);
 end;
 
-procedure TNewCombatTurnCA.Play(A1: Integer);
+function TNewCombatTurnCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean Play result despite the unmarked P4 overrides. }
 asm
   PUSH EBX
@@ -1902,15 +1902,15 @@ end;
 class function TNewCombatRoundCA.ClassID: Integer;
 begin Result := $202BB; end;
 
-procedure TNewCombatRoundCA.Execute(A1: Integer; A2: Integer);
+procedure TNewCombatRoundCA.Execute(A1: TCombat; A2: Integer);
 var I: Integer;
 begin
-  with TCombatData(TCombat(A1).F_Combat_0C) do Inc(F_CombatData_44);
-  for I := TCombatData(TCombat(A1).F_Combat_0C).GetCount - 1 downto 0 do
-    TCombatData(TCombat(A1).F_Combat_0C).GetObjects(I).NewRound;
+  with TCombatData(TCombat(A1).FCombatData) do Inc(F_CombatData_44);
+  for I := TCombatData(TCombat(A1).FCombatData).GetCount - 1 downto 0 do
+    TCombatData(TCombat(A1).FCombatData).GetObjects(I).NewRound;
 end;
 
-procedure TNewCombatRoundCA.Play(A1: Integer);
+function TNewCombatRoundCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }
 asm
   PUSH EBX
@@ -1937,14 +1937,14 @@ begin
   Stream.rwData(F_CombatObjectTurnDoneCA_0C, 1, $14);
 end;
 
-procedure TCombatObjectTurnDoneCA.Execute(A1: Integer; A2: Integer);
+procedure TCombatObjectTurnDoneCA.Execute(A1: TCombat; A2: Integer);
 var Obj: TCombatObject;
 begin
-  Obj := TCombatData(TCombat(A1).F_Combat_0C).FindID(F_CombatObjectTurnDoneCA_0C);
+  Obj := TCombatData(TCombat(A1).FCombatData).FindID(F_CombatObjectTurnDoneCA_0C);
   Obj.FStatus := Obj.FStatus + [csTurnDone];
 end;
 
-procedure TCombatObjectTurnDoneCA.Play(A1: Integer);
+function TCombatObjectTurnDoneCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }
 asm
   PUSH EBX
@@ -1972,15 +1972,15 @@ begin
   Stream.rwData(F_MoveWallCA_0D, 1, $15);
 end;
 
-procedure TMoveWallCA.Execute(A1: Integer; A2: Integer);
+procedure TMoveWallCA.Execute(A1: TCombat; A2: Integer);
 var Obj: TP3FastStateView;
 begin
-  Obj := TP3FastStateView(TCombatData(TCombat(A1).F_Combat_0C).FindID(F_MoveWallCA_0C));
+  Obj := TP3FastStateView(TCombatData(TCombat(A1).FCombatData).FindID(F_MoveWallCA_0C));
   if F_MoveWallCA_0D = 0 then Obj.State := Obj.State + [fsOutsideWall];
   if F_MoveWallCA_0D = 1 then Obj.State := Obj.State - [fsOutsideWall];
 end;
 
-procedure TMoveWallCA.Play(A1: Integer);
+function TMoveWallCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }
 asm
   MOV EDX, [EDX+8]
@@ -1998,14 +1998,14 @@ begin
   Stream.rwData(F_FleeCA_0C, 1, $14);
 end;
 
-procedure TFleeCA.Execute(A1: Integer; A2: Integer);
+procedure TFleeCA.Execute(A1: TCombat; A2: Integer);
 var Obj: TCombatObject;
 begin
-  Obj := TCombatData(TCombat(A1).F_Combat_0C).FindID(F_FleeCA_0C);
+  Obj := TCombatData(TCombat(A1).FCombatData).FindID(F_FleeCA_0C);
   Obj.FStatus := Obj.FStatus + [csFled];
 end;
 
-procedure TFleeCA.Play(A1: Integer);
+function TFleeCA.Play(A1: TCombatViewer): Boolean;
 { needs: Boolean result; unmarked P4 Play overrides retain procedure drafts. }
 asm
   MOV EDX, [EDX+8]

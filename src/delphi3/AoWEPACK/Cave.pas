@@ -391,7 +391,7 @@ begin
       MessageText := SysUtils.Format(TranslateCaveName(LoadResString(@CaveNoWarRStr)),
         [TranslateCaveName(RaceNameTable^[TCavePlayerFields(Pointer(CavePlayer(
           TPlayerList(WorldMap^.FPlayers), CaveFieldPlayer(Field)))^).Race])]);
-      TAbstractAoWHSMap(WorldMap^).ShowMessage(Integer(Pointer(MessageText)));
+      TAbstractAoWHSMap(WorldMap^).ShowMessage(MessageText);
       Result := False;
     end;
     { Original frees the path only on normal completion. }

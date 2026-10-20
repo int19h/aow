@@ -44,7 +44,7 @@
     F_Hero_5C: Byte;
     F_Hero_5D: Byte;
     F_Hero_5E: array[0..1] of Byte;
-    F_Hero_60: Integer;
+    FHeroName: string;  { $60 }
     F_Hero_64: Integer;
     F_Hero_68: Byte;
     F_Hero_69: Byte;
@@ -77,7 +77,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetAbSet(A1: Integer); override;
+    function GetAbSet(A1: Integer): Boolean; override;
     procedure SetAbSet(A1: Integer; A2: Byte); override;
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
     procedure Changed; override;

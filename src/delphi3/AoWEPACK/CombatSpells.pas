@@ -63,8 +63,8 @@ type
     F_CombatSpellCA_1C: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
@@ -80,8 +80,8 @@ type
     F_ExclusiveCombatSpellCA_15: array[0..2] of Byte;
     F_ExclusiveCombatSpellCA_18: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
@@ -99,8 +99,8 @@ type
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
@@ -133,7 +133,7 @@ type
   TTurnUndeadSpellCA = class(TCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TTurnUndead (instance size 64, VMT 557F42C8) }
@@ -148,7 +148,7 @@ type
   TFastCombatHighPrayerCA = class(TMultiTargetCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
     procedure Generate(A1: Integer);  { draft }
   end;
 
@@ -156,7 +156,7 @@ type
   TTacticalCombatHighPrayerCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { THighPrayer (instance size 64, VMT 557F45CC) }
@@ -186,7 +186,7 @@ type
   TMindDecayCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TMindDecay (instance size 64, VMT 557F49E8) }
@@ -212,7 +212,7 @@ type
   TSlowCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TSlow (instance size 64, VMT 557F4E00) }
@@ -227,7 +227,7 @@ type
   TEntangleSpellCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TEntangle (instance size 64, VMT 557F4FF0) }
@@ -328,7 +328,7 @@ type
   TFastCombatTerrorCA = class(TMultiTargetCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
     procedure Generate(A1: Integer);  { draft }
   end;
 
@@ -343,8 +343,8 @@ type
     F_TacticalCombatTerrorCA_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure Generate(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -382,7 +382,7 @@ type
   TRecallSpiritCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TRecallSpirit (instance size 64, VMT 557F6710) }
@@ -397,7 +397,7 @@ type
   TAnimateDeadCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
   end;
 
   { TAnimateDead (instance size 64, VMT 557F690C) }
@@ -419,11 +419,11 @@ begin Result := 0; end;
 procedure TCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TCombatSpellCA.Execute(A1: Integer; A2: Integer);
+procedure TCombatSpellCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
-procedure TCombatSpellCA.Play(A1: Integer);
-begin end;
+function TCombatSpellCA.Play(A1: TCombatViewer): Boolean;
+begin Result := False; end;
 
 procedure TCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
@@ -434,11 +434,11 @@ begin end;
 procedure TExclusiveCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TExclusiveCombatSpellCA.Execute(A1: Integer; A2: Integer);
+procedure TExclusiveCombatSpellCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
-procedure TExclusiveCombatSpellCA.Play(A1: Integer);
-begin end;
+function TExclusiveCombatSpellCA.Play(A1: TCombatViewer): Boolean;
+begin Result := False; end;
 
 procedure TExclusiveCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
@@ -455,11 +455,11 @@ begin end;
 procedure TMultiTargetCombatSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TMultiTargetCombatSpellCA.Execute(A1: Integer; A2: Integer);
+procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
-procedure TMultiTargetCombatSpellCA.Play(A1: Integer);
-begin end;
+function TMultiTargetCombatSpellCA.Play(A1: TCombatViewer): Boolean;
+begin Result := False; end;
 
 procedure TMultiTargetCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
@@ -500,7 +500,7 @@ begin end;
 class function TTurnUndeadSpellCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TTurnUndeadSpellCA.Execute(A1: Integer; A2: Integer);
+procedure TTurnUndeadSpellCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TTurnUndead.Create(AOwner: Engine.TECustomNode);
@@ -515,7 +515,7 @@ begin end;
 class function TFastCombatHighPrayerCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFastCombatHighPrayerCA.Execute(A1: Integer; A2: Integer);
+procedure TFastCombatHighPrayerCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 procedure TFastCombatHighPrayerCA.Generate(A1: Integer);
@@ -524,7 +524,7 @@ begin end;
 class function TTacticalCombatHighPrayerCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TTacticalCombatHighPrayerCA.Execute(A1: Integer; A2: Integer);
+procedure TTacticalCombatHighPrayerCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor THighPrayer.Create(AOwner: Engine.TECustomNode);
@@ -554,7 +554,7 @@ begin end;
 class function TMindDecayCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TMindDecayCA.Execute(A1: Integer; A2: Integer);
+procedure TMindDecayCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TMindDecay.Create(AOwner: Engine.TECustomNode);
@@ -572,7 +572,7 @@ begin end;
 class function TSlowCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TSlowCA.Execute(A1: Integer; A2: Integer);
+procedure TSlowCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TSlow.Create(AOwner: Engine.TECustomNode);
@@ -587,7 +587,7 @@ begin end;
 class function TEntangleSpellCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TEntangleSpellCA.Execute(A1: Integer; A2: Integer);
+procedure TEntangleSpellCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TEntangle.Create(AOwner: Engine.TECustomNode);
@@ -650,7 +650,7 @@ begin end;
 class function TFastCombatTerrorCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFastCombatTerrorCA.Execute(A1: Integer; A2: Integer);
+procedure TFastCombatTerrorCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 procedure TFastCombatTerrorCA.Generate(A1: Integer);
@@ -662,11 +662,11 @@ begin Result := 0; end;
 procedure TTacticalCombatTerrorCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TTacticalCombatTerrorCA.Execute(A1: Integer; A2: Integer);
+procedure TTacticalCombatTerrorCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
-procedure TTacticalCombatTerrorCA.Play(A1: Integer);
-begin end;
+function TTacticalCombatTerrorCA.Play(A1: TCombatViewer): Boolean;
+begin Result := False; end;
 
 procedure TTacticalCombatTerrorCA.Generate(A1: Integer; A2: Integer);
 begin end;
@@ -704,7 +704,7 @@ begin end;
 class function TRecallSpiritCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TRecallSpiritCA.Execute(A1: Integer; A2: Integer);
+procedure TRecallSpiritCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TRecallSpirit.Create(AOwner: Engine.TECustomNode);
@@ -719,7 +719,7 @@ begin end;
 class function TAnimateDeadCA.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TAnimateDeadCA.Execute(A1: Integer; A2: Integer);
+procedure TAnimateDeadCA.Execute(A1: TCombat; A2: Integer);
 begin end;
 
 constructor TAnimateDead.Create(AOwner: Engine.TECustomNode);

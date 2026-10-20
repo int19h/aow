@@ -1267,7 +1267,7 @@ asm
   JMP @@set
 end;
 
-procedure TCustomAbilityList.GetAbSet(A1: Integer);
+function TCustomAbilityList.GetAbSet(A1: Integer): Boolean;
 { needs: Boolean result; P2 has an unmarked procedure override. }
 asm
   CMP EDX,[EAX].FAbilityCount
@@ -1402,13 +1402,13 @@ begin
     if TP1AbilityBitsView(Self).GetAbSet(I) then
     begin
       Ability := AoWHSSet.FAbilityControl.GetAbility(I);
-      if TP1AbilityKinds(Ability.F_Ability_20) * TP1AbilityKinds(A2) <> [] then
+      if TP1AbilityKinds(Ability.FSelectionTypes) * TP1AbilityKinds(A2) <> [] then
         { needs: TAbility.GetName(Owner): string; unmarked overrides stay untouched. }
         TStrings(A1).AddObject(TP1AbilityNameView(Ability).GetName(nil), TObject(I));
     end;
 end;
 
-procedure TAbilityData.GetAbilityID;
+function TAbilityData.GetAbilityID: Integer;
 { needs: Integer result; unmarked overrides retain the draft procedure ABI. }
 asm
   OR EAX,-1
@@ -1440,9 +1440,9 @@ begin
   Font.SetText(X, Y, TP1AbilityView(Self).GetName(Owner), Surface);
 end;
 
-procedure TAbility.GetSourceName(A1: Integer; A2: Integer);
+function TAbility.GetSourceName(A1: TAbilityOwner): string;
 begin
-  TAbilityOwner(A1).GetOwnerName(A2);
+  Result := A1.GetOwnerName;
 end;
 
 procedure TAbility.SetAb(Owner: TAbilityOwner; Index: Integer; Value: Byte);
@@ -1450,27 +1450,27 @@ begin
   Owner.SetAbSet(Index, Value);
 end;
 
-procedure TAbility.GetControlType;
+function TAbility.GetControlType: TAbilityControlType;
 { needs: set result; preserve existing procedure-header return ABI. }
 asm
   MOV AL,P1EmptyControlType
 end;
 
-procedure TAbility.GetCombatMode(A1: Integer);
+function TAbility.GetCombatMode(A1: TAbilityOwner): TCombatMode;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetDamageValue(A1: Integer; A2: Integer);
+function TAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
 begin
-  with PP1DamageValues(A4)^ do
+  with PP1DamageValues(@A4)^ do
   begin
     Damage := 0;
     Experience := 0;
@@ -1480,9 +1480,9 @@ begin
   end;
 end;
 
-procedure TAbility.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
 begin
-  with PP1DamageValues(A4)^ do
+  with PP1DamageValues(@A4)^ do
   begin
     Damage := 0;
     Experience := 0;
@@ -1492,21 +1492,21 @@ begin
   end;
 end;
 
-procedure TAbility.fcValidRoundDistance(A1: Integer; A2: Integer);
+function TAbility.fcValidRoundDistance(A1, A2: TCombatObject): Boolean;
 var
   Distance: Integer;
   Value: Boolean;
 begin
   { needs: Boolean result; P4 has an unmarked procedure override. }
   { needs: P5 GetRoundDistance: Integer; P3 Speed/LastRound result signatures. }
-  Distance := TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).F_CombatObject_08));
+  Distance := TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).FCombat));
   if TP1DistanceCombatView(A1).Speed >= 32 then Inc(Distance, 2);
   Value := Distance >= TP1DistanceCombatView(A2).LastRound;
   if Value and (TCombatObject(A1) is TCombatUnit) and
     (TObject(TCombatUnit(A1).FUnit) is THero) then
     Value := Value and (((Byte(TCombatObject(A1).FStatus) and $10) <> 0) or
       (TP1DistanceCombatView(A1).LastRound <=
-       TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).F_CombatObject_08)) + 2));
+       TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).FCombat)) + 2));
   asm MOV AL,Value end;
 end;
 
@@ -1531,9 +1531,9 @@ begin
   Result := Values.Damage;
 end;
 
-procedure TAbility.GetCombatInfo(A1: Integer; A2: Integer);
+procedure TAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin
-  with PP1CombatInfo(A2)^ do
+  with PP1CombatInfo(@A2)^ do
   begin
     Attack := -1;
     Damage := -1;
@@ -1548,7 +1548,7 @@ asm
   MOV AL,P1EmptyWallFeatures
 end;
 
-procedure TAbility.CanExpand(A1: Integer);
+function TAbility.CanExpand(A1: TAbilityOwner): Boolean;
 { needs: Boolean result; preserve unmarked P4 procedure overrides. }
 asm
   PUSH EBX
@@ -1564,7 +1564,7 @@ asm
   MOV EAX,ESI
   MOV EDX,[EAX]
   CALL DWORD PTR [EDX+$8C]
-  AND AX,[EBX].F_Ability_20
+  AND AX,[EBX].FSelectionTypes
   MOV DX,P1EmptySelectionTypes
   CMP DX,AX
   JNZ @@yes
@@ -1589,13 +1589,13 @@ asm
   MOV EAX,[EAX].FSkillPointCost
 end;
 
-procedure TAbility.Expand(A1: Integer; A2: Integer);
+function TAbility.Expand(A1: TAbilityOwner): Boolean;
 begin
   TP1OwnerView(A1).SetAbility(FAbilityID, 1);
   asm MOV AL,1 end;
 end;
 
-procedure TAbility.Remove(A1: Integer; A2: Integer);
+function TAbility.Remove(A1: TAbilityOwner): Boolean;
 { needs: Boolean result; preserve unmarked P4 procedure overrides. }
 asm
   PUSH EBX
@@ -1623,7 +1623,7 @@ asm
   POP EBX
 end;
 
-procedure TAbility.GetInherent(A1: Integer);
+function TAbility.GetInherent(A1: TAbilityOwner): Boolean;
 asm
   MOV EAX,[EAX].FAbilityID
   XCHG EDX,EAX
@@ -1660,24 +1660,24 @@ asm
   POP EBX
 end;
 
-procedure TAbility.AbilityDataClass;
+function TAbility.AbilityDataClass: TEObjectClass;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetName(A1: Integer; A2: Integer);
+function TAbility.GetName(A1: TAbilityOwner): string;
 begin
-  PString(A2)^ := FAbilityName;
+  Result := FAbilityName;
 end;
 
-procedure TAbility.GetAttack;
+function TAbility.GetAttack(A1: TAbilityOwner): Shortint;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetDefense;
+function TAbility.GetDefense(A1: TAbilityOwner): Shortint;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
@@ -1707,16 +1707,16 @@ asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetLevel(A1: Integer);
+function TAbility.GetLevel(A1: TAbilityOwner): Integer;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetOffensiveStrength(A1: Integer; A2: Integer; A3: Integer);
+procedure TAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin
-  PInteger(A2)^ := 0;
-  PWord(A3)^ := Word(P1EmptyDamageTypes);
+  A2 := 0;
+  A3 := P1EmptyDamageTypes;
 end;
 
 procedure TAbility.ListInfo(A1: Integer; A2: Byte);
@@ -1795,7 +1795,7 @@ procedure TAbility.ListSpells;
 begin
 end;
 
-procedure TAbility.GetAbilityType;
+function TAbility.GetAbilityType: TAbilityType;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
@@ -1805,11 +1805,11 @@ procedure TAbility.CombatObjectDestroyed(A1: Integer);
 begin
 end;
 
-procedure TAbility.fcPrefetchCombatCommands(A1: Integer);
+procedure TAbility.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
 begin
 end;
 
-procedure TAbility.fcExecuteCombatCommand(A1: Integer; A2: Integer);
+function TAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 { needs: function result; existing unmarked derived procedure headers are retained. }
 asm
   XOR EAX,EAX
@@ -1823,15 +1823,15 @@ procedure TAbility.NewDay(A1: Integer);
 begin
 end;
 
-procedure TAbility.NewTurn(A1: Integer; A2: Integer);
+procedure TAbility.NewTurn(A1: TAbilityOwner; A2: Shortint);
 begin
 end;
 
-procedure TAbility.NewCombatTurn(A1: Integer; A2: Integer);
+procedure TAbility.NewCombatTurn(A1: TCombatObject; A2: Shortint);
 begin
 end;
 
-procedure TAbility.CombatDone(A1: Integer);
+procedure TAbility.CombatDone(A1: TCombatObject);
 begin
 end;
 
@@ -1906,7 +1906,7 @@ begin
   Stream.rwInteger(FSkillPointCost, 6);
   Stream.rwEObject(FSFXLibrary, 7);
   Stream.rwStreamProc(8, FImageSequences.LoadFromStream, FImageSequences.SaveToStream);
-  Stream.rwData(F_Ability_20, 2, 9);
+  Stream.rwData(FSelectionTypes, 2, 9);
 end;
 
 constructor TAbilityOwner.Create(AOwner: Engine.TECustomNode);
@@ -1918,8 +1918,8 @@ begin end;
 procedure TAbilityOwner.GetAbilitySelectionTypes(A1: Word; A2: Integer);
 begin end;
 
-procedure TAbilityOwner.GetOwnerName(A1: Integer);
-begin end;
+function TAbilityOwner.GetOwnerName: string;
+begin Result := ''; end;
 
 procedure TAbilityOwner.ValidateOwnerTypeAbilities;
 begin end;
@@ -1930,10 +1930,10 @@ begin end;
 procedure TAbilityOwner.AssignAb(A1: Integer);
 begin end;
 
-procedure TAbilityOwner.AddAbilityData(A1: Integer);
+procedure TAbilityOwner.AddAbilityData(A1: TAbilityData);
 begin end;
 
-procedure TAbilityOwner.RemoveAbilityData(A1: Integer);
+procedure TAbilityOwner.RemoveAbilityData(A1: TAbilityData);
 begin end;
 
 procedure TAbilityOwner.RemoveAbilityDataID(A1: Integer);
@@ -1957,8 +1957,8 @@ begin end;
 function TAbilityOwner.ExpandAbility(AbilityID: Integer): Boolean;
 begin end;
 
-procedure TAbilityOwner.RemoveAbility(A1: Integer);
-begin end;
+function TAbilityOwner.RemoveAbility(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAbilityOwner.GetAbAttackAll;
 begin end;
@@ -2011,8 +2011,8 @@ begin end;
 procedure TAbilityOwner.GetAbLevel(A1: Integer);
 begin end;
 
-procedure TAbilityOwner.GetAbEnabled(A1: Integer);
-begin end;
+function TAbilityOwner.GetAbEnabled(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAbilityOwner.TriggerNewDay;
 begin end;
@@ -4062,7 +4062,7 @@ begin end;
 procedure TAbstractAoWHSMap.ShowWarning(A1: Integer);
 begin end;
 
-procedure TAbstractAoWHSMap.ShowMessage(A1: Integer);
+procedure TAbstractAoWHSMap.ShowMessage(const A1: string);
 begin end;
 
 procedure TAbstractAoWHSMap.SetSeatedPlayer(A1: Byte);
@@ -4425,7 +4425,7 @@ begin end;
 procedure TAoWHSMap.ResetSeatedPlayerView(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAoWHSMap.Select(A1: Integer; A2: Integer);
+procedure TAoWHSMap.Select(A1: TArmyHS; A2: Boolean);
 begin end;
 
 procedure TAoWHSMap.PlayerChanged;
@@ -4786,8 +4786,8 @@ begin end;
 procedure MoveArmyXYLEx(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
 begin end;
 
-procedure Format(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function Format(const S: string; const Args: array of const): string;
+begin Result := ''; end;
 
 procedure FmtTurnsStr(A1: Integer; A2: Integer);
 begin end;

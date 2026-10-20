@@ -953,7 +953,7 @@
   TFastCombatUnit = class(TCombatUnit)
   public
     F_FastCombatUnit_5C: Integer;
-    F_FastCombatUnit_60: Byte;
+    FState: TFastCombatUnitState;  { $60 }
     F_FastCombatUnit_61: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -967,8 +967,8 @@
     procedure Initialize(A1: Integer); override;
     procedure fcRoundDistance; override;
     procedure fcExecute(A1: Integer); override;
-    procedure fcBehindWall; override;
-    procedure fcWallInBetween(A1: Integer); override;
+    function fcBehindWall: Boolean; override;
+    function fcWallInBetween(A1: Byte): Boolean; override;
     procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
     procedure ShowAttackAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
     procedure ShowHitAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;

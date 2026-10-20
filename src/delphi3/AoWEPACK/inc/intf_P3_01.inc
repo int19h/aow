@@ -119,7 +119,7 @@
     Other fields retain their offset names pending recovery. }
   TCombatObject = class(TEObject)
   public
-    F_CombatObject_08: Integer;
+    FCombat: TCombat;  { $08 }
     FID: Byte;
     F_CombatObject_0D: array[0..2] of Byte;
     F_CombatObject_10: Integer;
@@ -181,8 +181,8 @@
     procedure Finalize(A1: Integer); virtual;  { +0D0 draft }
     procedure fcRoundDistance; virtual;  { +0D4 draft }
     procedure fcExecute(A1: Integer); virtual;  { +0D8 draft }
-    procedure fcBehindWall; virtual;  { +0DC draft }
-    procedure fcWallInBetween(A1: Integer); virtual;  { +0E0 draft }
+    function fcBehindWall: Boolean; virtual;
+    function fcWallInBetween(A1: Byte): Boolean; virtual;
     procedure SupportCombatMode(A1: Byte; A2: Integer); virtual;  { +0E4 draft }
     function WallCombatFeatures: TWallCombatFeatures; virtual;  { +0E8 draft }
     procedure PlaySFX(A1: Byte); virtual;  { +0EC draft }
@@ -192,7 +192,7 @@
     procedure Show(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +0FC draft }
     procedure ShowAttackAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +100 draft }
     procedure ShowHitAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +104 draft }
-    function DoDamage(A1: Integer; A2: Integer): Integer; virtual;  { +108 draft }
+    function DoDamage(A1: TCombatObject; A2: Integer): Integer; virtual;
     procedure GetOptimalDamageType(A1: Word; A2: Integer); virtual;  { +10C draft }
     function ExecuteDamageRole(A1: Integer; A2: Integer; A3: TDamageTypes): Integer; virtual;  { +110 draft }
     function ExecuteDamageRoleEx(A1: Integer; A2: Integer; A3: TDamageTypes; A4: Byte): Integer; virtual;  { +114 draft }

@@ -8,7 +8,7 @@
   public
     F_CombatViewer_04: TCombatViewerStatus;
     F_CombatViewer_05: array[0..2] of Byte;
-    F_CombatViewer_08: Integer;
+    FCombat: TCombat;  { $08 }
     F_CombatViewer_0C: Byte;
     FSpeed: Byte;
     F_CombatViewer_0E: array[0..1] of Byte;
@@ -39,8 +39,8 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure GetName(A1: Integer); virtual;  { +04C draft }
-    procedure Execute(A1: Integer; A2: Integer); virtual; abstract;  { +050 draft }
-    procedure Play(A1: Integer); virtual; abstract;  { +054 draft }
+    procedure Execute(A1: TCombat; A2: Integer); virtual; abstract;
+    function Play(A1: TCombatViewer): Boolean; virtual; abstract;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +058 draft }
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +05C draft }
     procedure ShowFightingObjects(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +060 draft }
@@ -65,18 +65,18 @@
     The two damage sets are deliberately unaligned packed fields. }
   TDamageCA = class(TSingleTargetCA)
   public
-    F_DamageCA_10: Byte;
+    FDamage: Byte;  { $10 }
     FDamageTypes: TP3PackedDamageTypes;
     FEffects: TP3PackedDamageTypes;
-    F_DamageCA_15: Byte;
+    FDamageDone: Byte;  { $15 }
     F_DamageCA_16: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Setup(A1: Byte; A2: Byte; A3: Byte; A4: TDamageTypes; A5: TDamageTypes; A6: Boolean); virtual;  { +064 draft }
-    procedure Generate(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +068 draft }
+    procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); virtual;
     procedure GenerateEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer); virtual;  { +06C draft }
   end;
 
@@ -87,8 +87,8 @@
     F_DamageEffectCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
     procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Byte; A4: Boolean);  { draft }
   end;
@@ -99,8 +99,8 @@
     F_UpdateHeaderCA_0C: string;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TNewCombatTurnCA (instance size 16, VMT 5571659C) }
@@ -110,16 +110,16 @@
     F_NewCombatTurnCA_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TNewCombatRoundCA (instance size 12, VMT 5571667C) }
   TNewCombatRoundCA = class(TCombatAction)
   public
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TCombatObjectTurnDoneCA (instance size 16, VMT 5571675C) }
@@ -129,8 +129,8 @@
     F_CombatObjectTurnDoneCA_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TMoveWallCA (instance size 16, VMT 55716880) }
@@ -141,8 +141,8 @@
     F_MoveWallCA_0E: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TFleeCA (instance size 16, VMT 55716954) }
@@ -152,8 +152,8 @@
     F_FleeCA_0D: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Execute(A1: Integer; A2: Integer); override;
-    procedure Play(A1: Integer); override;
+    procedure Execute(A1: TCombat; A2: Integer); override;
+    function Play(A1: TCombatViewer): Boolean; override;
   end;
 
   { TCombatActionList (instance size 12, VMT 55716A20) }
@@ -287,7 +287,7 @@
   public
     F_Combat_08: TCombatStatus;
     F_Combat_09: array[0..2] of Byte;
-    F_Combat_0C: Integer;
+    FCombatData: TCombatData;  { $0C }
     F_Combat_10: Integer;
     F_Combat_14: Byte;
     F_Combat_15: array[0..2] of Byte;
@@ -324,7 +324,7 @@
     function GetLogCombatActions: Boolean;  { draft }
     procedure SetLogCombatActions(A1: Byte);  { draft }
     function GetRound: Integer;  { draft }
-    procedure ExecuteCombatAction(A1: Integer);  { draft }
+    procedure ExecuteCombatAction(A1: TCombatAction);
     procedure PlayerTypeInvolved(A1: Byte; A2: Integer);  { draft }
     function CreateUniqueCOID: Byte;  { draft }
     procedure UpdateSidesSettings;  { draft }

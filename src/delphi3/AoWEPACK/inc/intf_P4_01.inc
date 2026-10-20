@@ -1,23 +1,38 @@
 { Interface declaration run owned by P4. }
-  { TEnchantment (instance size 24, VMT 5570A98C) }
+  TAbilityDamageValues = record
+    SourceDamage, SourceCost, TargetDamage, TargetCost: Integer;
+    DamageTypes: TDamageTypes;
+  end;
+  TAbilityCombatInfo = packed record
+    Kind: Byte;
+    Attack, Damage: Shortint;
+    DamageTypes: TDamageTypes;
+    RepeatCount: Shortint;
+  end;
+  TMeleeStrike = record
+    F_00, F_04, F_08: Integer;
+    Side: TCombatSideIndex; { $0C }
+    F_0D: array[0..6] of Byte;
+  end;
+  { TEnchantment (instance size 24, VMT 5570A98C; $0C source, $14 dispel resistance) }
   TEnchantment = class(TEObject)
   public
     F_Enchantment_08: Integer;
-    F_Enchantment_0C: Byte;
+    FSource: Shortint;  { $0C }
     F_Enchantment_0D: array[0..2] of Byte;
     F_Enchantment_10: Integer;
     FDispelResistance: Byte;  { $14 }
     F_Enchantment_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetName(A1: Integer); virtual;  { +04C draft }
-    procedure GetBinding(A1: Integer); virtual;  { +050 draft }
+    function GetName: string; virtual;
+    function GetBinding: string; virtual;
     procedure SetUpkeep(A1: Integer); virtual;
     procedure SetSource(Player: Shortint); virtual;
-    procedure GetAIUpkeepPriority; virtual;  { +05C draft }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +060 draft }
+    function GetAIUpkeepPriority: Integer; virtual;
+    procedure GetLocation(var A1, A2, A3: Shortint); virtual;
     procedure CenterToLocation; virtual;  { +064 draft }
-    procedure Dispel; virtual;  { +068 draft }
+    function Dispel: Boolean; virtual;
     procedure Select; virtual;  { +06C draft }
     procedure DispelChance(A1: Integer);  { draft }
   end;

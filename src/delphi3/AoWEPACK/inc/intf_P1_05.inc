@@ -130,7 +130,7 @@
     procedure SetExplorationEnabled(A1: Byte); virtual;  { +104 draft }
     procedure DropHeroItem(A1: Integer; A2: Integer); virtual;  { +108 draft }
     function GetHeroItemsOnGround(A1: Integer; A2: Integer): Integer; virtual;  { +10C draft }
-    procedure ShowMessage(A1: Integer); virtual;  { +110 draft }
+    procedure ShowMessage(const A1: string); virtual;
     procedure ShowWarning(A1: Integer); virtual;  { +114 draft }
     procedure PlayCenterAnimation(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure LockMapChangedEvent;  { draft }
@@ -393,7 +393,7 @@
     procedure MouseMoved;  { draft }
     procedure UpdateCursor;  { draft }
     procedure ResetSeatedPlayerView(A1: Integer; A2: Integer);  { draft }
-    procedure Select(A1: Integer; A2: Integer);  { draft }
+    procedure Select(A1: TArmyHS; A2: Boolean);
     procedure PlayerChanged;  { draft }
     procedure TokenControlActivatedEvent;  { draft }
     procedure SetupPlayerControl(A1: Integer; A2: Integer);  { draft }

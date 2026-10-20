@@ -54,10 +54,10 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure GetOwnerName(A1: Integer); override;
+    function GetOwnerName: string; override;
     procedure GetAbilitySelectionTypes(A1: Word; A2: Integer); override;
     procedure Changed; override;
-    procedure RemoveAbility(A1: Integer); override;
+    function RemoveAbility(A1: Integer): Boolean; override;
     function GetUpkeep: Shortint; virtual;  { +09C draft }
     function GetUnitLevel: Shortint; virtual;
     function GetRace: Shortint; virtual;  { +0A4 draft }

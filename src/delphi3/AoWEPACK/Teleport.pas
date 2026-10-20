@@ -273,7 +273,7 @@ begin
       begin
         MessageText := SysUtils.Format(TranslateRStr(LoadResString(@TeleportNoWarRStr)),
           [TranslateRStr(RaceNameTable^[TPlayerList(WorldMap^.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
-        TAbstractAoWHSMap(WorldMap^).ShowMessage(Integer(Pointer(MessageText)));
+        TAbstractAoWHSMap(WorldMap^).ShowMessage(MessageText);
         Result := False;
       end;
       { Original frees the path only on normal completion. }

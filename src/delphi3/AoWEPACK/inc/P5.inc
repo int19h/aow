@@ -987,7 +987,7 @@ begin
       daOfferPeace..daMakeTribute, daSendMessageAsY..daDeclareWarToY:
       begin
         P5PlayerSeen(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)), FSource);
-        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(TranslateRStr(P5MessageSentRStr))));
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(TranslateRStr(P5MessageSentRStr));
         Log := CreateEventLog;
         TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FEventLogbook).AddEvent(Log);
         if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
@@ -1007,7 +1007,7 @@ begin
   end;
   AoWHSMap.UnlockRelationsChanged;
         P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drPeace);
-        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(TranslateRStr(P5AllianceBrokenRStr))));
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(TranslateRStr(P5AllianceBrokenRStr));
         Log := CreateEventLog;
         BroadcastDiplomaticEvent(Log, -1);
         if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
@@ -1027,7 +1027,7 @@ begin
   AoWHSMap.UnlockRelationsChanged;
         P5PlayerSeen(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)), FSource);
         P5SetDiplomaticRelation(TPlayerList(AoWHSMap.FPlayers), FSource, FTarget, drWar);
-        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(Integer(Pointer(TranslateRStr(P5WarDeclaredRStr))));
+        if Shortint(FSource) = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowMessage(TranslateRStr(P5WarDeclaredRStr));
         Log := CreateEventLog;
         BroadcastDiplomaticEvent(Log, -1);
         if Shortint(FTarget) = AoWHSMap.FSeatedPlayer then TP5EventLogABI(Log).Execute(False, False, nil, nil);
@@ -3423,7 +3423,7 @@ begin end;
 procedure TAIMoveTargetSelector.Search(A1: Integer);
 begin end;
 
-constructor TFastCombatCommand.Create;
+constructor TFastCombatCommand.Create(A1: Integer);
 begin end;
 
 procedure TFastCombatCommand.GetName(A1: Integer);
@@ -3444,7 +3444,7 @@ begin end;
 procedure TFastCombatCommandList.GetCount;
 begin end;
 
-procedure TFastCombatCommandList.Add;
+procedure TFastCombatCommandList.Add(A1: TFastCombatCommand);
 begin end;
 
 procedure TFastCombatCommandList.Delete(A1: Integer);
@@ -3510,11 +3510,11 @@ begin end;
 procedure TFastCombatUnit.DestroyObject;
 begin end;
 
-procedure TFastCombatUnit.fcWallInBetween(A1: Integer);
-begin end;
+function TFastCombatUnit.fcWallInBetween(A1: Byte): Boolean;
+begin Result := False; end;
 
-procedure TFastCombatUnit.fcBehindWall;
-begin end;
+function TFastCombatUnit.fcBehindWall: Boolean;
+begin Result := False; end;
 
 procedure TFastCombatUnit.fcExecute(A1: Integer);
 begin end;

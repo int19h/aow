@@ -31,7 +31,7 @@ procedure MoveArmyEx(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Intege
 procedure MoveArmy;  { draft }
 procedure MoveArmyXYL(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
 procedure MoveArmyXYLEx(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
-procedure Format(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function Format(const S: string; const Args: array of const): string;
 procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
 procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }
