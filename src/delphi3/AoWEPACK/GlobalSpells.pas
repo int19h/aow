@@ -2,7 +2,7 @@ unit GlobalSpells;
 
 { Draft declarations of GlobalSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TConcealAreaHS and TConcealArea are recovered; later classes remain drafts. }
 
 interface
 
@@ -25,20 +25,21 @@ type
   TCrusade = class;
 
 
-  { TConcealAreaHS (instance size 24, VMT 557E8FBC) }
+  { TConcealAreaHS (instance size 24, VMT 557E8FBC): $0C/$0D/$0E
+    X/Y/layer, $0F padding, $10 explored hexagons, $14 animation frame. }
   TConcealAreaHS = class(TFixedVisibleHS)
   public
-    F_ConcealAreaHS_0C: Byte;
-    F_ConcealAreaHS_0D: Byte;
-    F_ConcealAreaHS_0E: Byte;
+    FX: Shortint;
+    FY: Shortint;
+    FLayer: Shortint;
     F_ConcealAreaHS_0F: array[0..0] of Byte;
-    F_ConcealAreaHS_10: Integer;
-    F_ConcealAreaHS_14: Integer;
+    FHexagons: TIntegerList;
+    FFrame: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure StartAnimation(A1: Byte; A2: Byte; A3: Integer; A4: Integer);  { draft }
+    procedure StartAnimation(X,Y,Layer,Radius: Shortint);
     procedure StopAnimation;  { draft }
   end;
 
@@ -175,38 +176,318 @@ procedure UnregisterGlobalSpells(A1: Integer);  { draft }
 
 implementation
 
+uses EventLog;
+
+type
+  PGlobalSpellMap = ^TAoWHSMap;
+  PGlobalSpellSet = ^TAoWHSSet;
+  TGlobalSpellEngineFields = packed record
+    Reserved: array[0..$6C] of Byte;
+    Detail: Byte;
+  end;
+const
+  GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;
+  GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;
+
+{ needs: pointer and Boolean results on the shared procedure drafts. }
+function GlobalLookupSpell(Control: TSpellControl; ID: Integer): TSpell; assembler;
+asm JMP TSpellControl.GetSpell end;
+
+function GlobalExplored(MapF: TAoWMapField; Player: Byte): Boolean; assembler;
+asm JMP TAoWMapField.GetExplored end;
+
+procedure GlobalDegreesRadToCo(Degrees,Radius: Integer; var X,Y: Integer); assembler;
+asm POP EBP; JMP AoWE.DegreesRadToCo end;
+
 constructor TConcealAreaHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FHexagons := TIntegerList.Create;
+end;
 
 destructor TConcealAreaHS.Destroy;
-begin end;
+begin
+  FHexagons.Free;
+  inherited Destroy;
+end;
 
 function TConcealAreaHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin Result := $78000000; end;
 
-procedure TConcealAreaHS.StartAnimation(A1: Byte; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+procedure TConcealAreaHS.StartAnimation(X,Y,Layer,Radius: Shortint);
+var
+  Walk: THNWalkData;
+  Level: TMapLevel;
+begin
+  FX := X;
+  FY := Y;
+  FLayer := Layer;
+  FFrame := 0;
+  TSFXLibrary(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),1).
+    F_Spell_28).Play(0);
+  GlobalSpellMap^.DynamicFixedVisibleHS.AddChild(Self);
+  InitHNWalk(Walk,FX,FY,0);
+  Level := GlobalSpellMap^.MapContainer.MapLevels[FLayer];
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and
+      (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      if GlobalExplored(TAoWMapField(Level.GetField(Walk.X,Walk.Y)),
+        PByte(Integer(GlobalSpellMap^)+$A5)^) then FHexagons.Add(Walk.HN);
+    WalkToNextHN(Walk);
+  end;
+end;
 
 procedure TConcealAreaHS.StopAnimation;
-begin end;
+begin
+  GlobalSpellMap^.DynamicFixedVisibleHS.RemoveChild(Self);
+  GlobalSpellMap^.DynamicVisibleHS.RemoveChild(Self);
+  Destroy;
+end;
 
-procedure TConcealAreaHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+procedure TConcealAreaHS.Show(XhpSurf: Integer; YhpSurf: Integer;
+  const SurfaceDesc: GFXE.TSurfaceDesc);
+var
+  Xhp,Yhp,HX,HY,Intensity,Radius,Direction,X,Y: Integer;
+  I,Delay: Integer;
+begin
+  if GlobalSpellMap^.ViewL = FLayer then
+  begin
+    Inc(FFrame);
+    if (TGlobalSpellEngineFields(Pointer(GlobalSpellMap^.Engine)^).Detail = 2) and
+      (GlobalSpellMap^.ViewL = FLayer) then
+    begin
+      Intensity := 60-Abs(FFrame*3-60);
+      HXtoHP(FX,FY,Xhp,Yhp);
+      Xhp := Xhp-XhpSurf-8;
+      Dec(Yhp,YhpSurf);
+      for I := FHexagons.Count-1 downto 0 do
+      begin
+        HNtoHP(FHexagons[I],HX,HY);
+        Inc(HX,Xhp);
+        Inc(HY,Yhp);
+        TCustomImageLibrary(GlobalSpellSet^.FGeneralImages)[5].
+          ShowBlended(HX,HY,SurfaceDesc,AlphaBlendTable.LookupTables[Intensity]);
+      end;
+    end;
+    { Original bug: Xhp/Yhp are uninitialized outside high detail. }
+    RandSeed := GlobalSpellMap^.F_AoWHSMap_22C;
+    for I := 0 to 200 do
+    begin
+      Radius := Random(448);
+      Direction := Random(360);
+      Delay := Random(20);
+      if FFrame-Delay >= 0 then
+      begin
+        GlobalDegreesRadToCo(Direction,Radius,X,Y);
+        TImageSequenceList(GlobalLookupSpell(TSpellControl(GlobalSpellSet^.FSpellControl),
+          57).F_Spell_2C).Show(0,Xhp+X,Yhp+Y,FFrame-Delay,SurfaceDesc);
+      end;
+    end;
+    if FFrame = 40 then StopAnimation;
+  end;
+end;
+
+type
+  TGlobalSpellNameFields = packed record
+    Reserved: array[0..7] of Byte;
+    Name: string;
+  end;
+
+function GlobalTranslate(const Text: string): string; assembler;
+asm JMP AoWE.TranslateRStr end;
 
 constructor TConcealArea.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  TGlobalSpellNameFields(Pointer(Self)^).Name := GlobalTranslate(ConcealAreaRStr);
+  F_Spell_10 := 1;
+  F_Spell_22 := 2;
+  F_Spell_14 := 5;
+  F_Spell_21 := 1;
+  F_Spell_20 := 3;
+end;
 
 procedure TConcealArea.GetEnabled;
-begin end;
+asm
+  { needs: Boolean result on TSpell.GetEnabled. }
+  MOV EAX,[GlobalSpellMap]
+  MOV EAX,[EAX]
+  MOV AL,[EAX+$C9]
+end;
+
+type
+  PGlobalSpellString = ^string;
+resourcestring
+  GlobalSpellXCastRStr = '%s cast';
+
+procedure GlobalBaseExecute(Spell: TSpell; Event: TSpellTE; Caster: TAbstractUnit); assembler;
+asm JMP TSpell.ExecuteTE end;
+
+function GlobalPlayer(List: TPlayerList; Index: Integer): TPlayer; assembler;
+asm JMP TPlayerList.GetPlayers end;
+
+function GlobalPlayerRelation(List: TPlayerList; Player,Other: Byte): Byte; assembler;
+asm JMP TPlayerList.GetDiplomaticRelation end;
+
+function GlobalVisible(Map: TAoWHSMap; X,Y,Layer: Integer; Player: Byte): Boolean; assembler;
+asm POP EBP; JMP TAoWHSMap.VisibleForPlayer end;
+
+procedure GlobalSetExplored(MapF: TAoWMapField; Player: Byte; Explored: Boolean); assembler;
+asm JMP TAoWMapField.SetExplored end;
+
+function ExecuteConcealArea(Spell: TConcealArea; Event: TSpellTE;
+  Caster: TAbstractUnit): Boolean;
+var
+  MapF: TAoWMapField;
+  X,Y,Layer: Shortint;
+  Player: Integer;
+  Walk: THNWalkData;
+  Level: TMapLevel;
+  Log: TLocationTextEventLog;
+begin
+  GlobalBaseExecute(Spell,Event,Caster);
+  Spell.CastingDone(Integer(Caster),Spell.F_Spell_14);
+  Caster.GetLocation(X,Y,Layer);
+  if Caster.F_AbstractUnit_24 = PByte(Integer(GlobalSpellMap^)+$A5)^ then
+    TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
+  for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
+  begin
+    Level := GlobalSpellMap^.MapContainer.MapLevels[Layer];
+    if (GlobalPlayerRelation(TPlayerList(GlobalSpellMap^.FPlayers),
+      Caster.F_AbstractUnit_24,Player) = 1) and (Player <> Shortint(Caster.F_AbstractUnit_24)) then
+    begin
+      Log := nil;
+      InitHNWalk(Walk,X,Y,0);
+      while Walk.Radius < 15 do
+      begin
+        if (Walk.X >= 0) and (Walk.Y >= 0) and
+          (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        begin
+          MapF := TAoWMapField(Level.GetField(Walk.X,Walk.Y));
+          if GlobalExplored(MapF,Player) and
+            not GlobalVisible(GlobalSpellMap^,Walk.X,Walk.Y,Layer,Player) then
+          begin
+            GlobalSetExplored(MapF,Player,False);
+            if Log = nil then
+            begin
+              Log := TLocationTextEventLog.Create(nil);
+              Log.F_LocationTextEventLog_1C := Walk.X;
+              Log.F_LocationTextEventLog_1D := Walk.Y;
+              Log.F_LocationTextEventLog_1E := Layer;
+              Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+              PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
+                SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
+                  [GlobalTranslate(ConcealAreaRStr)]);
+              TEventLogbook(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
+                Player).FEventLogbook).AddEvent(Integer(Log));
+              Log.Release;
+            end;
+          end;
+        end;
+        WalkToNextHN(Walk);
+      end;
+    end
+    else if GlobalVisible(GlobalSpellMap^,X,Y,Layer,Player) then
+    begin
+      Log := TLocationTextEventLog.Create(nil);
+      Log.F_LocationTextEventLog_1C := X;
+      Log.F_LocationTextEventLog_1D := Y;
+      Log.F_LocationTextEventLog_1E := Layer;
+      Log.F_EventLog_10 := Caster.F_AbstractUnit_24;
+      PGlobalSpellString(@Log.F_TextEventLog_18)^ :=
+        SysUtils.Format(GlobalTranslate(GlobalSpellXCastRStr),
+          [GlobalTranslate(ConcealAreaRStr)]);
+      TEventLogbook(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
+        Player).FEventLogbook).AddEvent(Integer(Log));
+      Log.Release;
+    end;
+  end;
+  Result := False;
+end;
 
 procedure TConcealArea.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+asm
+  { needs: ExecuteTE(Event, Caster): Boolean; the shared draft adds a stack arg. }
+  POP EBP
+  JMP ExecuteConcealArea
+end;
+
+function GlobalBaseCanActivate(Spell: TSpell; Caster: TAbstractUnit;
+  var Message: string): Boolean; assembler;
+asm JMP TSpell.CanActivate end;
+
+function GlobalDiplomaticRelation(Relations: TPlayerDiplomaticRelations;
+  Player: Shortint): Byte; assembler;
+asm JMP TPlayerDiplomaticRelations.GetDiplomaticRelation end;
+
+function CanConcealArea(Spell: TConcealArea; Caster: TAbstractUnit;
+  var Message: string): Boolean;
+var
+  War: Boolean;
+  Player: Shortint;
+begin
+  Result := GlobalBaseCanActivate(Spell,Caster,Message);
+  if Result then
+  begin
+    War := False;
+    for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
+      War := War or (GlobalDiplomaticRelation(TPlayerDiplomaticRelations(
+        GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
+          Shortint(Caster.F_AbstractUnit_24)).F_Player_40),Player) = 1);
+    if not War then
+    begin
+      Message := SysUtils.Format(GlobalTranslate(AWarRelationIsRequiredForXRStr),
+        [GlobalTranslate(ConcealAreaRStr)]);
+      Result := False;
+    end;
+  end;
+end;
 
 procedure TConcealArea.CanActivate(A1: Integer; A2: Integer);
-begin end;
+asm
+  { needs: Boolean result and var string on the shared TSpell.CanActivate. }
+  JMP CanConcealArea
+end;
+
+procedure GlobalBaseActivate(Spell: TSpell; Caster: TAbstractUnit;
+  Activation: Integer); assembler;
+asm JMP TSpell.Activate end;
+
+function GlobalVirtualCanActivate(Spell: TSpell; Caster: TAbstractUnit;
+  var Message: string): Boolean; assembler;
+asm PUSH EBX; MOV EBX,[EAX]; CALL DWORD PTR [EBX+$68]; POP EBX end;
+
+function GlobalPlayerBusy(Player: TPlayer): Boolean; assembler;
+asm JMP TPlayer.GetBusy end;
+
+function ActivateConcealArea(Spell: TConcealArea; Caster: TAbstractUnit;
+  Activation: Integer): Boolean;
+var
+  Message: string;
+  Event: TSpellTE;
+begin
+  GlobalBaseActivate(Spell,Caster,Activation);
+  Result := False;
+  if GlobalVirtualCanActivate(Spell,Caster,Message) and
+    not GlobalPlayerBusy(GlobalPlayer(TPlayerList(GlobalSpellMap^.FPlayers),
+      Shortint(Caster.F_AbstractUnit_24))) then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(Spell.F_Spell_10,Caster.F_AbstractUnit_24,
+      Caster.FUnitID,Spell.F_Spell_14);
+    TTokenManager(GlobalSpellMap^.F_AoWHSMap_23C).
+      GetTokenControl(Shortint(Caster.F_AbstractUnit_24)).Add(Event);
+    Event.Release;
+    Result := True;
+  end;
+end;
 
 procedure TConcealArea.Activate(A1: Integer; A2: Integer);
-begin end;
+asm
+  { needs: Boolean result on the shared TSpell.Activate. }
+  JMP ActivateConcealArea
+end;
 
 constructor TBirdsViewHS.Create(AOwner: Engine.TECustomNode);
 begin end;
