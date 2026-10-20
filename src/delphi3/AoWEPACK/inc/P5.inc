@@ -5413,208 +5413,737 @@ begin
 end;
 
 function TAIGroupProductionLocationList.GetProductionLocation(Index: Integer): TAIGroupProductionLocation;
-begin Result := nil; end;
+begin
+  Assert((Index >= 0) and (Index < FChildren.Count));
+  Result := TAIGroupProductionLocation(FChildren.List^[Index]);
+end;
+
+function CompareAIProductionLocationMovePoints(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIGroupProductionLocation(Item2).FMovePoints -
+    TAIGroupProductionLocation(Item1).FMovePoints;
+end;
 
 procedure TAIGroupProductionLocationList.SortOnMovePoints;
-begin end;
+begin
+  FChildren.Sort(CompareAIProductionLocationMovePoints);
+end;
 
-procedure TAIGroupProductionLocationList.Add;
-begin end;
+procedure TAIGroupProductionLocationList.Add(Location: TAIGroupProductionLocation);
+begin
+  AddChild(Location);
+end;
 
-procedure TAIGroupProductionLocationList.Delete(A1: Integer);
-begin end;
+procedure TAIGroupProductionLocationList.Delete(Index: Integer);
+begin
+  RemoveChild(GetProductionLocation(Index));
+end;
 
 function TAIGroupProductionLocationList.IndexOfPC(Control: TProductionControl): Integer;
-begin Result := 0; end;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAIGroupProductionLocation(FChildren.List^[Result]).FProductionControl = Control then Exit;
+  end;
+  Result := -1;
+end;
 
 function TAIGroupProductionLocationList.FindPC(Control: TProductionControl): TAIGroupProductionLocation;
-begin Result := nil; end;
+var
+  I: Integer;
+begin
+  I := IndexOfPC(Control);
+  if I <> -1 then
+    Result := TAIGroupProductionLocation(FChildren.List^[I])
+  else
+    Result := nil;
+end;
 
 function TAIGroupProductionLocationList.Validate(Control: TAIGroupControl): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  Location: TAIGroupProductionLocation;
+begin
+  Result := True;
+  for I := Count - 1 downto 0 do
+  begin
+    Location := TAIGroupProductionLocation(FChildren.List^[I]);
+    if not Location.Validate(Control) then
+    begin
+      RemoveChild(Location);
+      Result := False;
+    end;
+  end;
+end;
 
 constructor TAIGroupControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTargets := TAIGroupControlTargetList.Create(nil);
+  FTargets.FControl := Self;
+  FRecruitmentGroups := TAIRecruitmentGroupList.Create(nil);
+  FProductionLocations := TAIGroupProductionLocationList.Create(nil);
+  FCombatPredictor := TCombatPredictor.Create;
+end;
 
 destructor TAIGroupControl.Destroy;
-begin end;
+begin
+  DeactivatePlugin;
+  FCombatPredictor.Free;
+  FTargets.Free;
+  FRecruitmentGroups.Free;
+  FProductionLocations.Free;
+  FGroup.Release;
+  inherited Destroy;
+end;
 
 procedure TAIGroupControl.Done;
-begin end;
+begin
+  FGroup.FStatus := FGroup.FStatus + [agsDone];
+  FState := -1;
+end;
 
-procedure TAIGroupControl.GetStrengthMax(A1: Word; A2: Integer);
-begin end;
+function TAIGroupControl.GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+var
+  DamageType: TDamageType;
+begin
+  Result := 0;
+  for DamageType := Low(TDamageType) to High(TDamageType) do
+    if (DamageType in DamageTypes) and (Result < FStrength[DamageType]) then
+      Result := FStrength[DamageType];
+end;
 
 procedure TAIGroupControl.UpdateGroupChanges;
-begin end;
+var
+  DamageType: TDamageType;
+  AUnit: TAbstractUnit;
+  I: Integer;
+  MovePointTable: TP2MovePointTable;
+begin
+  if (agsChanged in FGroup.FStatus) or (FProcessCycles = 1) then
+  begin
+    FImmunityTypes := dtAll;
+    FStrengthMax := 0;
+    FillChar(FStrength, SizeOf(FStrength), 0);
+    if FGroup.Count <> 0 then
+      FillChar(FMovePointTable, SizeOf(FMovePointTable), 1)
+    else
+      FillChar(FMovePointTable, SizeOf(FMovePointTable), -1);
+    for I := FGroup.Count - 1 downto 0 do
+    begin
+      AUnit := FGroup.GetUnit(I);
+      FImmunityTypes := AUnit.GetImmunityTypes * FImmunityTypes;
+      AUnit.CreateMovePointTable(MovePointTable);
+      MaximizeMovePointTable(FMovePointTable, MovePointTable);
+      for DamageType := Low(TDamageType) to High(TDamageType) do
+        Inc(FStrength[DamageType], AUnit.GetStrength(DamageType));
+      Inc(FStrengthMax, AUnit.GetStrengthMax(dtAll));
+    end;
+    FGroup.FStatus := FGroup.FStatus - [agsChanged];
+  end;
+end;
 
-procedure TAIGroupControl.RetrieveGroupArmy(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAIGroupControl.RetrieveGroupArmy(X, Y, L: Shortint; var Army: TArmy; var Selection: Byte): Boolean;
+var
+  ArmyHS: TArmyHS;
+begin
+  ArmyHS := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetArmyHS;
+  if ArmyHS <> nil then
+  begin
+    Army := ArmyHS.FArmy;
+    Selection := ArmyHS.FArmy.GetGroupSelection(FGroup.FGroupID);
+    Result := True;
+  end
+  else
+  begin
+    Selection := 0;
+    Army := nil;
+    Result := False;
+  end;
+end;
 
-procedure TAIGroupControl.CombineIdleGroups(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupControl.CombineIdleGroups;
+var
+  Player: TPlayer;
+  Group: TAIGroup;
+  I: Integer;
+  Location: TXYL;
+begin
+  Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(FGroup.FPlayer);
+  for I := Player.FAIGroups.Count - 1 downto 0 do
+  begin
+    Group := Player.FAIGroups.GetGroups(I);
+    if (Group <> FGroup) and (Group.ClassID = FGroup.ClassID) and
+      (agsDone in Group.FStatus) then
+      case Group.FTargetType of
+        gtsIdle:
+          begin
+            Integer(Location) := Group.GetLoc;
+            if (FLocation.L = Location.L) and
+              (dHXtoRad(Location.X, Location.Y, FLocation.X, FLocation.Y) <= 1) then
+              FGroup.AddUnits(Group);
+          end;
+      end;
+  end;
+end;
 
 procedure TAIGroupControl.MoveExecuterDone;
-begin end;
+begin
+  if (FGroup.FTransporter <> nil) and not FMoveExecuter.GetTransporting then
+    FGroup.DeleteUnit(FGroup.FTransporter);
+  if FMoveExecuter.FStatus = mesInvalidated then
+    FState := 0
+  else if FMoveExecuter.FStatus = mesFailed then
+  begin
+    if not (agsSplit in FGroup.FStatus) then
+    begin
+      if not Split then Done;
+    end
+    else
+      Done;
+  end;
+end;
 
 procedure TAIGroupControl.ResetME;
-begin end;
+begin
+  FMoveExecuter.Reset;
+  FMoveExecuter.FOnDone := MoveExecuterDone;
+end;
 
 procedure TAIGroupControl.SetupME;
-begin end;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  ResetME;
+  AUnit := FGroup.FLeader;
+  if AUnit <> nil then FMoveExecuter.AddUnit(AUnit);
+  for I := 0 to FGroup.Count - 1 do
+    if FGroup.GetUnit(I) <> FGroup.FLeader then
+      FMoveExecuter.AddUnit(FGroup.GetUnit(I));
+  if not FGroup.GetAdjacent then
+    FMoveExecuter.FMode := FMoveExecuter.FMode - [memAdjacent];
+  AUnit := FGroup.FTransporter;
+  if AUnit <> nil then FMoveExecuter.AddTransporter(AUnit);
+end;
 
 procedure TAIGroupControl.ExecuteME(X, Y, L: Shortint);
-begin end;
+var
+  Field: TAoWMapField;
+begin
+  Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L));
+  if (Field.GetPlayer <> -1) and (Field.GetPlayer <> FGroup.FPlayer) then
+    FMoveExecuter.FMode := FMoveExecuter.FMode + [memAdjacent, memAttack];
+  FMoveExecuter.ExecuteMove(X, Y, L);
+end;
 
 procedure TAIGroupControl.ResetCP;
-begin end;
+var
+  I: Integer;
+begin
+  FCombatPredictor.DeleteOpponents;
+  for I := FCombatPredictor.FSides[0].Count - 1 downto 0 do
+    if FGroup.IndexOf(FCombatPredictor.FSides[0].GetUnits(I).FUnit) = -1 then
+      FCombatPredictor.DeleteUnit(FCombatPredictor.FSides[0].GetUnits(I).FUnit);
+  for I := FGroup.Count - 1 downto 0 do
+    if FCombatPredictor.FSides[0].IndexOfUnit(FGroup.GetUnit(I)) = -1 then
+      FCombatPredictor.AddUnit(FGroup.GetUnit(I));
+end;
 
-procedure TAIGroupControl.SetupCP(A1: Integer);
-begin end;
+procedure TAIGroupControl.SetupCP(Target: TAIGroupControlTarget);
+begin
+  ResetCP;
+  if TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(Target.FLocation))).GetMoveAction(FGroup.FPlayer) <> maNegotiate then
+    FCombatPredictor.InitAdjacentOpponents(FGroup.FPlayer, FGroup.FIndependentRelation,
+      Target.FLocation.X, Target.FLocation.Y, Target.FLocation.L);
+end;
 
 procedure TAIGroupControl.RecruitmentGroupFoundEvent(Sender: TAIGroupControlPlugin; Group: TAIRecruitmentGroup; var SearchDone: Boolean);
-begin end;
+begin
+  FRecruitmentGroups.Add(Group);
+end;
 
 procedure TAIGroupControl.ProductionLocationFoundEvent(Sender: TAIGroupControlPlugin; Location: TAIGroupProductionLocation; var SearchDone: Boolean);
-begin end;
+begin
+  FProductionLocations.Add(Location);
+end;
 
 procedure TAIGroupControl.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
-begin end;
+begin
+  FTargets.Add(Target);
+end;
 
-procedure TAIGroupControl.Split;
-begin end;
+function TAIGroupControl.Split: Boolean;
+var
+  I: Integer;
+  Group: TAIGroup;
+  X, Y, L, UnitX, UnitY, UnitL: Shortint;
+  Finished, Found: Boolean;
+begin
+  Result := False;
+  Finished := False;
+  while not Finished do
+  begin
+    I := FGroup.Count;
+    Found := False;
+    while not Found and (I <> 0) do
+    begin
+      Dec(I);
+      FGroup.GetUnit(I).GetLocation(X, Y, L);
+      Found := (X <> FLocation.X) or (Y <> FLocation.Y) or
+        (L <> FLocation.L);
+    end;
+    if Found then
+    begin
+      Group := TAIGroupManager(AoWHSMap.FAIGroupManager).CreateGroup(
+        FGroup.FPlayer, FGroup.FIndependentRelation, FGroup.Behavior);
+      Group.FStatus := Group.FStatus + [agsSplit];
+      for I := FGroup.Count - 1 downto 0 do
+      begin
+        FGroup.GetUnit(I).GetLocation(UnitX, UnitY, UnitL);
+        if (X = UnitX) and (Y = UnitY) and
+          (L = UnitL) then
+          Group.AddUnit(FGroup.GetUnit(I));
+      end;
+      if Group.Count <> 0 then
+      begin
+        FGroup.FStatus := FGroup.FStatus + [agsSplit];
+        Result := True;
+      end;
+      Group.Release;
+    end
+    else
+      Finished := True;
+  end;
+end;
 
 procedure TAIGroupControl.Activate;
-begin end;
+begin
+  FState := 0;
+  FMoveExecuter := TPlayerList(AoWHSMap.FPlayers).GetPlayers(FGroup.FPlayer).FAIControl.FMoveExecuter;
+  TAIExecuter(AoWHSMap.FAIExecuter).UseProcessTime(100);
+  FStatus := FStatus + [gcsActivated];
+end;
 
 procedure TAIGroupControl.Deactivate;
-begin end;
+begin
+  FMoveExecuter.FOnDone := nil;
+  FStatus := FStatus - [gcsActivated];
+end;
 
-procedure TAIGroupControl.ActivatePlugin(A1: Integer);
-begin end;
+procedure TAIGroupControl.ActivatePlugin(Plugin: TAIGroupControlPlugin);
+begin
+  DeactivatePlugin;
+  FPlugin := Plugin;
+  FPlugin.AddRef;
+  FPlugin.Activate(Self);
+end;
 
 procedure TAIGroupControl.DeactivatePlugin;
-begin end;
+begin
+  with Self do
+    if FPlugin <> nil then
+    begin
+      FPlugin.Release;
+      FPlugin := nil;
+    end;
+end;
 
-procedure TAIGroupControl.ProcessStates(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupControl.ProcessStates;
+begin
+  Done;
+end;
 
 procedure TAIGroupControl.ProcessStatesLooped;
-begin end;
+begin
+  Done;
+end;
 
-procedure TAIGroupControl.MainProcessStates(A1: Integer);
-begin end;
+procedure TAIGroupControl.MainProcessStates(Looped: Boolean);
+begin
+  try
+    UpdateGroupChanges;
+    if Looped then ProcessStatesLooped else ProcessStates;
+  except
+    raise;
+  end;
+end;
 
-procedure TAIGroupControl.Validate;
-begin end;
+function TAIGroupControl.Validate: Boolean;
+begin
+  if not (agsDone in FGroup.FStatus) then
+  begin
+    FGroup.GetLocation(FLocation.X, FLocation.Y, FLocation.L);
+    if FLocation.X <> -1 then
+    begin
+      FArmyHS := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(FLocation))).GetArmyHS;
+      RetrieveGroupArmy(FLocation.X, FLocation.Y, FLocation.L, FArmy, FSelection);
+      UpdateGroupChanges;
+      Result := True;
+    end
+    else
+      Result := False;
+  end
+  else
+    Result := False;
+end;
 
 function TAIGroupControl.Process(Looped: Boolean): Boolean;
-begin Result := False; end;
+var
+  Busy: Boolean;
+begin
+  Inc(FProcessCycles);
+  if Validate then
+  begin
+    try
+      Busy := False;
+      while not Busy and not (agsDone in FGroup.FStatus) and
+        (TAIExecuter(AoWHSMap.FAIExecuter).GetProcessTimeLeft >= 0) and
+        (FMoveExecuter.FStatus <> mesBusy) do
+      begin
+        if FPlugin <> nil then
+        begin
+          Busy := FPlugin.MainProcess;
+          if not Busy then
+          begin
+            DeactivatePlugin;
+            if (TAIExecuter(AoWHSMap.FAIExecuter).GetProcessTimeLeft >= 0) and
+              not (agsDone in FGroup.FStatus) then MainProcessStates(Looped);
+          end;
+        end
+        else
+          MainProcessStates(Looped);
+      end;
+    except
+      Done;
+    end;
+    Result := not (agsDone in FGroup.FStatus);
+  end
+  else
+  begin
+    Done;
+    Result := False;
+  end;
+end;
 
-procedure TAIGroupControl.FindAvailableTransporter;
-begin end;
+function TAIGroupControl.FindAvailableTransporter: TAbstractUnit;
+var
+  I, Distance: Integer;
+  AUnit: TAbstractUnit;
+  List: TDoubleItemList;
+  Location: TXYL;
+  Player: TPlayer;
+begin
+  List := TDoubleItemList.Create;
+  Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(FGroup.FPlayer);
+  for I := 0 to Player.FArmies.Count - 1 do
+  begin
+    AUnit := Player.FArmies.GetArmy(I).Transporter($FF);
+    if (AUnit <> nil) and ((AUnit.FGroup = nil) or (AUnit.FGroup.ClassID = $21467)) then
+    begin
+      AUnit.GetLocation(Location.X, Location.Y, Location.L);
+      Distance := dHXtoRad(Location.X, Location.Y, FLocation.X, FLocation.Y);
+      if (FLocation.L = Location.L) and (Distance < 30) then
+        List.AddAB(Integer(AUnit), Distance);
+    end;
+  end;
+  if List.Count <> 0 then
+  begin
+    List.SortAscendingItemB;
+    Result := TAbstractUnit(List[0].A);
+  end
+  else
+    Result := nil;
+  List.Free;
+end;
 
 constructor TAIGroupControlPlugin.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FState := -1;
+end;
 
 function TAIGroupControlPlugin.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIGroupControlPlugin.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
 procedure TAIGroupControlPlugin.Validate;
-begin end;
+begin
+end;
 
 procedure TAIGroupControlPlugin.Done;
-begin end;
+begin
+  FState := -1;
+end;
 
 function TAIGroupControlPlugin.GetBusy: Boolean;
-begin Result := False; end;
+begin
+  Result := (gpsActivated in FStatus) and (FState <> -1);
+end;
 
 function TAIGroupControlPlugin.Activate(Control: TAIGroupControl): Boolean;
-begin Result := False; end;
+begin
+  FProcessCycles := 0;
+  FGroupControl := Control;
+  FStatus := FStatus + [gpsActivated];
+  FState := 0;
+  Result := True;
+end;
 
 procedure TAIGroupControlPlugin.Deactivate;
-begin end;
+begin
+  FStatus := FStatus - [gpsActivated];
+end;
 
 function TAIGroupControlPlugin.Process: Boolean;
-begin Result := False; end;
+begin
+  Done;
+  Result := False;
+end;
 
-procedure TAIGroupControlPlugin.MainProcess;
-begin end;
+function TAIGroupControlPlugin.MainProcess: Boolean;
+var
+  Busy: Boolean;
+  I: Integer;
+begin
+  try
+    Inc(FProcessCycles);
+    Validate;
+    Busy := False;
+    I := 0;
+    while not Busy and (FState <> -1) and
+      ((I = 0) or (TAIExecuter(AoWHSMap.FAIExecuter).GetProcessTimeLeft > 0)) do
+    begin
+      Inc(I);
+      Busy := Process;
+    end;
+  except
+    raise Exception.Create(ClassName + ' exception during state (' + IntToStr(FState) + ')');
+  end;
+  Result := FState <> -1;
+end;
 
 constructor THuntAG.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTargetUnitIDs := TIntegerList.Create;
+end;
 
 destructor THuntAG.Destroy;
-begin end;
+begin
+  FTargetUnitIDs.Free;
+  inherited Destroy;
+end;
 
 class function THuntAG.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21460;
+end;
 
 class function THuntAG.Behavior: TGroupBehavior;
-begin Result := gbNone; end;
+begin
+  Result := gbHunt;
+end;
 
 class function THuntAG.GroupControlClass: TAIGroupControlClass;
-begin Result := nil; end;
+begin
+  Result := THuntAGC;
+end;
 
-procedure THuntAG.HuntingPlayer(A1: Integer);
-begin end;
+function THuntAG.HuntingPlayer(Player: Shortint): Boolean;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  Result := False;
+  I := FTargetUnitIDs.Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    AUnit := TUnitControl(AoWHSMap.FUnitControl).FindUnit(FTargetUnitIDs.List^[I]);
+    { Original bug: each entry overwrites the result, including earlier matches. }
+    Result := (AUnit <> nil) and (Player = AUnit.FPlayer);
+  end;
+end;
 
 procedure THuntAG.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc($1E, FTargetUnitIDs.LoadFromStream, FTargetUnitIDs.SaveToStream);
+end;
 
 procedure THuntAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
-begin end;
+var
+  Field: TAoWMapField;
+  Army: TArmyHS;
+  I: Integer;
+  Group: THuntAG;
+  Found: Boolean;
+begin
+  Field := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(Target.FLocation)));
+  if Field.GetPlayer <> FGroup.FPlayer then
+  begin
+    Army := Field.GetArmyHS;
+    if Army <> nil then
+    begin
+      Group := THuntAG(FGroup);
+      Found := False;
+      I := Group.FTargetUnitIDs.Count;
+      while not Found and (I <> 0) do
+      begin
+        Dec(I);
+        Found := Army.FArmy.IndexOfID(Group.FTargetUnitIDs[I]) <> -1;
+      end;
+      if Found then
+      begin
+        SetupCP(Target);
+        if FCombatPredictor.Execute in [crVictory, crDefeat, crBothDefeated] then
+          if FCombatPredictor.GetEfficiency <> 0 then
+          begin
+            Target.FData.Priority := 1000 - Target.FMovePoints;
+            inherited TargetFoundEvent(Sender, Target, SearchDone);
+          end;
+      end;
+    end;
+  end;
+end;
 
-procedure THuntAGC.ProcessStates(A1: Integer; A2: Integer);
-begin end;
+procedure THuntAGC.ProcessStates;
+var
+  I: Integer;
+  Finder: TAIGroupTargetFinder;
+  Group: THuntAG;
+  AUnit: TAbstractUnit;
+  NewGroup: TAIGroup;
+begin
+  case FState of
+    0:
+      begin
+        Group := THuntAG(FGroup);
+        for I := Group.FTargetUnitIDs.Count - 1 downto 0 do
+        begin
+          AUnit := TUnitControl(AoWHSMap.FUnitControl).FindUnit(Group.FTargetUnitIDs[I]);
+          if (AUnit = nil) or (AUnit.FPlayer = 0) then Group.FTargetUnitIDs.Delete(I);
+        end;
+        if Group.FTargetUnitIDs.Count <> 0 then
+        begin
+          Finder := TAIGroupTargetFinder.Create(nil);
+          Finder.Setup(Self);
+          Finder.FSelector.FTargetInfo.Mode := tmHunt;
+          ActivatePlugin(Finder);
+          Finder.Release;
+          Inc(FState);
+        end
+        else
+        begin
+          NewGroup := TAIGroupManager(AoWHSMap.FAIGroupManager).CreateGroup(
+            FGroup.FPlayer, FGroup.FIndependentRelation, gbPatrol);
+          NewGroup.AddUnits(FGroup);
+          NewGroup.Release;
+          Done;
+        end;
+      end;
+    1:
+      begin
+        if FTargets.Count <> 0 then
+        begin
+          SetupME;
+          ExecuteME(FTargets.GetTargets(0).FLocation.X,
+            FTargets.GetTargets(0).FLocation.Y, FTargets.GetTargets(0).FLocation.L);
+          FTargets.Delete(0);
+        end
+        else
+          Done;
+      end;
+  end;
+end;
 
-procedure TGroupControl.Behavior;
-begin end;
+function TGroupControl.Behavior: TGroupBehavior;
+begin
+  Result := gbNone;
+end;
 
 class function TGuardGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21402;
+end;
 
-procedure TGuardGC.Behavior;
-begin end;
+function TGuardGC.Behavior: TGroupBehavior;
+begin
+  Result := gbGuard;
+end;
 
 class function TPassiveGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21407;
+end;
 
-procedure TPassiveGC.Behavior;
-begin end;
+function TPassiveGC.Behavior: TGroupBehavior;
+begin
+  Result := gbPassive;
+end;
 
 class function TGuardAreaGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21400;
+end;
 
-procedure TGuardAreaGC.Behavior;
-begin end;
+function TGuardAreaGC.Behavior: TGroupBehavior;
+begin
+  Result := gbGuardArea;
+end;
 
 class function TSuicidalGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21403;
+end;
 
-procedure TSuicidalGC.Behavior;
-begin end;
+function TSuicidalGC.Behavior: TGroupBehavior;
+begin
+  Result := gbSuicidal;
+end;
 
 class function TPatrolGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21401;
+end;
 
-procedure TPatrolGC.Behavior;
-begin end;
+function TPatrolGC.Behavior: TGroupBehavior;
+begin
+  Result := gbPatrol;
+end;
 
 class function TScoutGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21404;
+end;
 
-procedure TScoutGC.Behavior;
-begin end;
+function TScoutGC.Behavior: TGroupBehavior;
+begin
+  Result := gbScout;
+end;
 
 class function TRefugeGC.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21410;
+end;
 
-procedure TRefugeGC.Behavior;
-begin end;
+function TRefugeGC.Behavior: TGroupBehavior;
+begin
+  Result := gbRefuge;
+end;
 
 constructor TGroupDefenseSelector.Create;
 begin end;
@@ -7025,8 +7554,8 @@ begin end;
 procedure TAIMoveExecuter.Clear;
 begin end;
 
-procedure TAIMoveExecuter.AddUnit(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveExecuter.AddUnit(AUnit: TAbstractUnit): TAIMoveExecuterUnit;
+begin Result := nil; end;
 
 procedure TAIMoveExecuter.AddUnits(A1: Integer);
 begin end;
@@ -7034,7 +7563,7 @@ begin end;
 procedure TAIMoveExecuter.AddArmy(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIMoveExecuter.AddTransporter(A1: Integer; A2: Integer);
+procedure TAIMoveExecuter.AddTransporter(AUnit: TAbstractUnit);
 begin end;
 
 procedure TAIMoveExecuter.InvalidateMove;
@@ -7058,8 +7587,8 @@ begin end;
 procedure TAIMoveExecuter.UnitsMoveDone;
 begin end;
 
-procedure TAIMoveExecuter.GetTransporting;
-begin end;
+function TAIMoveExecuter.GetTransporting: Boolean;
+begin Result := False; end;
 
 procedure TAIMoveExecuter.UpdateMoveResult;
 begin end;
@@ -7076,7 +7605,7 @@ begin Result := False; end;
 procedure TAIMoveExecuter.SetupTransporter(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAIMoveExecuter.ExecuteMove(A1: Byte; A2: Integer; A3: Integer);
+procedure TAIMoveExecuter.ExecuteMove(X, Y, L: Shortint);
 begin end;
 
 constructor TAIMoveTargetSelector.Create(AOwner: Engine.TECustomNode);

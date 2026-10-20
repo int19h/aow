@@ -193,25 +193,26 @@
     function Validate(Control: TAIGroupControl): Boolean; virtual; { $4C }
   end;
 
-  { TAIGroupProductionLocationList (instance size 12, VMT 5571A728) }
+  { TAIGroupProductionLocationList (instance size $0C, VMT 5571A728). $08 children. }
   TAIGroupProductionLocationList = class(TEReferenceNode)
   public
     function GetProductionLocation(Index: Integer): TAIGroupProductionLocation;
-    procedure SortOnMovePoints;  { draft }
-    procedure Add;  { draft }
-    procedure Delete(A1: Integer);  { draft }
+    procedure SortOnMovePoints;
+    procedure Add(Location: TAIGroupProductionLocation);
+    procedure Delete(Index: Integer);
     function IndexOfPC(Control: TProductionControl): Integer; { 5573ACC8 }
     function FindPC(Control: TProductionControl): TAIGroupProductionLocation;
     function Validate(Control: TAIGroupControl): Boolean;
   end;
 
-  { TAIGroupControlPlugin (instance size 28, VMT 5571A894) }
+  { TAIGroupControlPlugin (instance size $1C, VMT 5571A894).
+    $08 references, $0C cycles, $10 control, $14 status, $18 state. }
   TAIGroupControlPlugin = class(TEObject)
   public
-    F_AIGroupControlPlugin_08: Integer;
-    F_AIGroupControlPlugin_0C: Integer;
-    F_AIGroupControlPlugin_10: Integer;
-    F_AIGroupControlPlugin_14: Byte;
+    FRefCount: Integer; { $08 }
+    FProcessCycles: Integer; { $0C }
+    FGroupControl: TAIGroupControl; { $10 }
+    FStatus: TAIGroupControlPluginStatus; { $14 }
     F_AIGroupControlPlugin_15: array[0..2] of Byte;
     FState: Integer; { $18; 557D7422 }
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -220,36 +221,39 @@
     procedure Validate; virtual;  { $4C }
     function GetBusy: Boolean; virtual; { $50; 5573A348 }
     function Activate(Control: TAIGroupControl): Boolean; virtual;
-    procedure Deactivate; virtual;  { +058 draft }
+    procedure Deactivate; virtual; { $58 }
     function Process: Boolean; virtual;
     procedure Done;
-    procedure MainProcess;  { draft }
+    function MainProcess: Boolean;
   end;
 
-  { TAIGroupControl (instance size $170, VMT 5571A978). $0C group. }
+  { TAIGroupControl (instance size $170, VMT 5571A978).
+    $08 cycles, $0C group, $10 status, $14 location, $18 army, $1C army sprite,
+    $20 selection, $24 targets, $28 strengths, $50 max strength, $54 move table,
+    $154 immunity, $158 predictor, $15C move executer, $160 recruitment,
+    $164 production locations, $168 plugin, $16C state. }
   TAIGroupControl = class(TEObject)
   public
-    F_AIGroupControl_08: Integer;
+    FProcessCycles: Integer; { $08 }
     FGroup: TAIGroup; { $0C }
-    F_AIGroupControl_10: Byte;
+    FStatus: TAIGroupControlStatus; { $10 }
     F_AIGroupControl_11: array[0..2] of Byte;
     FLocation: TXYL; { $14; 557D74F8 }
-    F_AIGroupControl_18: Integer;
+    FArmy: TArmy; { $18 }
     FArmyHS: TArmyHS; { $1C; 557D7B43 }
     FSelection: Byte; { $20; 557D7B4C }
     F_AIGroupControl_21: array[0..2] of Byte;
     FTargets: TAIGroupControlTargetList; { $24; 5573A36F }
-    F_AIGroupControl_28: Byte;
-    F_AIGroupControl_29: array[0..38] of Byte;
+    FStrength: array[TDamageType] of Integer; { $28 }
     FStrengthMax: Integer; { $50; 557D7805 }
     FMovePointTable: TMovePointTable; { $54; 557D7845 }
-    F_AIGroupControl_154: Word;
+    FImmunityTypes: TDamageTypes; { $154 }
     F_AIGroupControl_156: array[0..1] of Byte;
     FCombatPredictor: TCombatPredictor; { $158; 5573A7F5 }
     FMoveExecuter: TAIMoveExecuter; { $15C; 557D7974 }
     FRecruitmentGroups: TAIRecruitmentGroupList; { $160; 5573A6F4 }
     FProductionLocations: TAIGroupProductionLocationList; { $164; 5573ACC0 }
-    F_AIGroupControl_168: Integer;
+    FPlugin: TAIGroupControlPlugin; { $168 }
     FState: Integer; { $16C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -257,27 +261,27 @@
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); virtual; { $50; 5573A217 }
     procedure RecruitmentGroupFoundEvent(Sender: TAIGroupControlPlugin; Group: TAIRecruitmentGroup; var SearchDone: Boolean); virtual; { $54; 5573A4FA }
     procedure ProductionLocationFoundEvent(Sender: TAIGroupControlPlugin; Location: TAIGroupProductionLocation; var SearchDone: Boolean); virtual; { $58; 5573AD1E }
-    procedure Validate; virtual;  { +05C draft }
-    procedure ProcessStates(A1: Integer; A2: Integer); virtual;  { +060 draft }
-    procedure ProcessStatesLooped; virtual;  { +064 draft }
-    procedure Split; virtual;  { +068 draft }
-    procedure Activate; virtual;  { +06C draft }
-    procedure Deactivate; virtual;  { +070 draft }
-    procedure ResetME; virtual;  { +074 draft }
+    function Validate: Boolean; virtual; { $5C }
+    procedure ProcessStates; virtual;  { +060 }
+    procedure ProcessStatesLooped; virtual;  { +064 }
+    function Split: Boolean; virtual; { $68 }
+    procedure Activate; virtual;  { +06C }
+    procedure Deactivate; virtual;  { +070 }
+    procedure ResetME; virtual;  { +074 }
     procedure SetupME; virtual; { +078 }
     procedure ExecuteME(X, Y, L: Shortint); virtual; { +07C }
-    procedure Done;  { draft }
-    procedure GetStrengthMax(A1: Word; A2: Integer);  { draft }
-    procedure UpdateGroupChanges;  { draft }
-    procedure RetrieveGroupArmy(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure CombineIdleGroups(A1: Integer; A2: Integer);  { draft }
-    procedure ResetCP;  { draft }
-    procedure SetupCP(A1: Integer);  { draft }
-    procedure ActivatePlugin(A1: Integer);  { draft }
-    procedure DeactivatePlugin;  { draft }
-    procedure MainProcessStates(A1: Integer);  { draft }
+    procedure Done;
+    function GetStrengthMax(DamageTypes: TDamageTypes): Integer;
+    procedure UpdateGroupChanges;
+    function RetrieveGroupArmy(X, Y, L: Shortint; var Army: TArmy; var Selection: Byte): Boolean;
+    procedure CombineIdleGroups;
+    procedure ResetCP;
+    procedure SetupCP(Target: TAIGroupControlTarget);
+    procedure ActivatePlugin(Plugin: TAIGroupControlPlugin);
+    procedure DeactivatePlugin;
+    procedure MainProcessStates(Looped: Boolean);
     function Process(Looped: Boolean): Boolean;
-    procedure FindAvailableTransporter;  { draft }
+    function FindAvailableTransporter: TAbstractUnit;
   end;
 
   { TAIGroupTargetFinder (instance size 56, VMT 5571AAC4).
@@ -615,6 +619,7 @@
   end;
 
   { THuntAG (instance size 84, VMT 5571B8D0) }
+  { THuntAG (instance size $54). $50 hunted unit IDs. }
   THuntAG = class(TAIGroup)
   public
     FTargetUnitIDs: TIntegerList; { $50; 5575FE61 }
@@ -624,69 +629,69 @@
     class function ClassID: Integer; override;
     class function GroupControlClass: TAIGroupControlClass; override;
     class function Behavior: TGroupBehavior; override;
-    procedure HuntingPlayer(A1: Integer);  { draft }
+    function HuntingPlayer(Player: Shortint): Boolean;
   end;
 
   { THuntAGC (instance size 368, VMT 5571BA18) }
   THuntAGC = class(TAIGroupControl)
   public
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TGroupControl (instance size 8, VMT 5571BB04) }
   TGroupControl = class(TEObject)
   public
-    procedure Behavior; virtual;  { $4C }
+    function Behavior: TGroupBehavior; virtual;  { $4C }
   end;
 
   { TGuardGC (instance size 8, VMT 5571BBC8) }
   TGuardGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TPassiveGC (instance size 8, VMT 5571BC84) }
   TPassiveGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TGuardAreaGC (instance size 8, VMT 5571BD44) }
   TGuardAreaGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TSuicidalGC (instance size 8, VMT 5571BE08) }
   TSuicidalGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TPatrolGC (instance size 8, VMT 5571BEC8) }
   TPatrolGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TScoutGC (instance size 8, VMT 5571BF84) }
   TScoutGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TRefugeGC (instance size 8, VMT 5571C040) }
   TRefugeGC = class(TGroupControl)
   public
     class function ClassID: Integer; override;
-    procedure Behavior; override;
+    function Behavior: TGroupBehavior; override;
   end;
 
   { TEndTurnTE (instance size $1C, VMT 5571C138).

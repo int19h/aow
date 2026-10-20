@@ -54,7 +54,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
     procedure ProcessStatesLooped; override;
   end;
 
@@ -78,7 +78,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
     procedure ResetPatrolToLocation;  { draft }
   end;
 
@@ -110,7 +110,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TScoutAG (instance size 80, VMT 557D89E8) }
@@ -127,7 +127,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
 
@@ -166,7 +166,7 @@ begin end;
 procedure TGuardAreaAGC.MoveExecuterDone;
 begin end;
 
-procedure TGuardAreaAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TGuardAreaAGC.ProcessStates;
 begin end;
 
 procedure TGuardAreaAGC.ProcessStatesLooped;
@@ -196,7 +196,7 @@ begin end;
 procedure TPatrolAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
 
-procedure TPatrolAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TPatrolAGC.ProcessStates;
 begin end;
 
 constructor TRefugeAG.Create(AOwner: Engine.TECustomNode);
@@ -229,7 +229,7 @@ begin end;
 procedure TRaidAGC.MoveExecuterDone;
 begin end;
 
-procedure TRaidAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TRaidAGC.ProcessStates;
 begin end;
 
 constructor TScoutAG.Create(AOwner: Engine.TECustomNode);
@@ -250,7 +250,7 @@ begin end;
 procedure TScoutAGC.MoveExecuterDone;
 begin end;
 
-procedure TScoutAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TScoutAGC.ProcessStates;
 begin end;
 
 

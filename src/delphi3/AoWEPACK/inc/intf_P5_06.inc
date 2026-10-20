@@ -445,6 +445,8 @@
   end;
 
   { TAIMoveExecuter (instance size 60, VMT 55718E18) }
+  TAIMoveExecuterDoneEvent = procedure of object;
+
   TAIMoveExecuter = class(TEObject)
   public
     F_AIMoveExecuter_08: Integer;
@@ -461,31 +463,30 @@
     F_AIMoveExecuter_2D: Byte;
     F_AIMoveExecuter_2E: array[0..1] of Byte;
     F_AIMoveExecuter_30: Integer;
-    F_AIMoveExecuter_34: Integer;
-    F_AIMoveExecuter_38: Integer;
+    FOnDone: TAIMoveExecuterDoneEvent; { $34 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Clear; override;
     procedure ActivateMEC(A1: Integer);  { draft }
     procedure DeactivateMEC;  { draft }
-    procedure AddUnit(A1: Integer; A2: Integer);  { draft }
+    function AddUnit(AUnit: TAbstractUnit): TAIMoveExecuterUnit;
     procedure AddUnits(A1: Integer);  { draft }
     procedure AddArmy(A1: Integer; A2: Integer);  { draft }
-    procedure AddTransporter(A1: Integer; A2: Integer);  { draft }
+    procedure AddTransporter(AUnit: TAbstractUnit);
     procedure InvalidateMove;  { draft }
-    procedure Reset;  { draft }
+    procedure Reset;
     procedure Validate;  { draft }
     procedure CreateArmies(A1: Byte);  { draft }
     procedure FinishMoves;  { draft }
     procedure ExecuteMoves;  { draft }
     procedure UnitsMoveDone;  { draft }
-    procedure GetTransporting;  { draft }
+    function GetTransporting: Boolean;
     procedure UpdateMoveResult;  { draft }
     procedure ProcessExecuteMoves;  { draft }
     procedure ProcessMECS;  { draft }
     function Process: Boolean;
     procedure SetupTransporter(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteMove(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    procedure ExecuteMove(X, Y, L: Shortint);
   end;
 
   { TEndTurnAIPA (instance size 20, VMT 55718EDC) }

@@ -53,7 +53,7 @@
   { TCombatPredictorUnitList (instance size 16, VMT 55715700) }
   TCombatPredictorUnitList = class(TList)
   public
-    function GetUnits(A1: Integer): TCombatPredictorUnit;  { draft }
+    function GetUnits(A1: Integer): TCombatPredictorUnit;
     function IndexOfUnit(A1: TAbstractUnit): Integer; { 5572B0BC }
     function IndexOfCPUID(A1: Integer): Integer;  { draft }
   end;
@@ -89,7 +89,7 @@
     F_CombatPredictor_2D: array[0..2] of Byte;
     FWork: Integer;
     destructor Destroy; override;
-    constructor Create;  { draft }
+    constructor Create;
     procedure Reset;  { draft }
     function CreateUniqueCPUID: Integer;  { draft }
     procedure EnableAllUnits;  { draft }
@@ -109,11 +109,11 @@
     procedure AddWall(A1: TWallType);
     procedure DeleteWall;  { draft }
     procedure DeleteUnits;  { draft }
-    procedure DeleteOpponents;  { draft }
+    procedure DeleteOpponents;
     procedure InitAdjacentArmies(A1: TArmyHS; A2, A3, A4: Shortint);
     procedure InitAdjacentOpponents(A1, A2: Byte; A3, A4, A5: Shortint);
     function GetSuperiority: Integer;  { draft }
-    function GetEfficiency: Integer;  { draft }
+    function GetEfficiency: Integer;
     procedure ListRequiredUnitsEx(A1, A2, A3: TUnitList; A4: Integer);
     procedure ListRequiredUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListOptionalUnits(A1: Integer; A2: Integer);  { draft }

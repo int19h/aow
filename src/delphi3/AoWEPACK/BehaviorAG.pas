@@ -52,7 +52,7 @@ type
   { TSkirmishAGC (instance size 372, VMT 557DC690) }
   TSkirmishAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TNormalAG (instance size 80, VMT 557DC78C) }
@@ -67,7 +67,7 @@ type
   { TNormalAGC (instance size 372, VMT 557DC8E0) }
   TNormalAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TDefenderAG (instance size 80, VMT 557DC9D4) }
@@ -82,7 +82,7 @@ type
   { TDefenderAGC (instance size 372, VMT 557DCB28) }
   TDefenderAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TAggressorAG (instance size 80, VMT 557DCC24) }
@@ -97,7 +97,7 @@ type
   { TAggressorAGC (instance size 372, VMT 557DCD80) }
   TAggressorAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TExpanderAG (instance size 80, VMT 557DCE7C) }
@@ -112,7 +112,7 @@ type
   { TExpanderAGC (instance size 372, VMT 557DCFD0) }
   TExpanderAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TScorcherAG (instance size 80, VMT 557DD0CC) }
@@ -127,7 +127,7 @@ type
   { TScorcherAGC (instance size 372, VMT 557DD220) }
   TScorcherAGC = class(TAbstractBehaviorAGC)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
 
@@ -154,7 +154,7 @@ begin Result := gbNone; end;
 class function TNormalAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TNormalAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TNormalAGC.ProcessStates;
 begin end;
 
 constructor TDefenderAG.Create(AOwner: Engine.TECustomNode);
@@ -169,7 +169,7 @@ begin Result := gbNone; end;
 class function TDefenderAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TDefenderAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TDefenderAGC.ProcessStates;
 begin end;
 
 constructor TAggressorAG.Create(AOwner: Engine.TECustomNode);
@@ -184,7 +184,7 @@ begin Result := gbNone; end;
 class function TAggressorAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TAggressorAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TAggressorAGC.ProcessStates;
 begin end;
 
 constructor TExpanderAG.Create(AOwner: Engine.TECustomNode);
@@ -199,7 +199,7 @@ begin Result := gbNone; end;
 class function TExpanderAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TExpanderAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TExpanderAGC.ProcessStates;
 begin end;
 
 constructor TScorcherAG.Create(AOwner: Engine.TECustomNode);
@@ -214,7 +214,7 @@ begin Result := gbNone; end;
 class function TScorcherAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TScorcherAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TScorcherAGC.ProcessStates;
 begin end;
 
 constructor TSkirmishAG.Create(AOwner: Engine.TECustomNode);
@@ -229,7 +229,7 @@ begin Result := gbNone; end;
 class function TSkirmishAG.GroupControlClass: TAIGroupControlClass;
 begin Result := nil; end;
 
-procedure TSkirmishAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TSkirmishAGC.ProcessStates;
 begin end;
 
 

@@ -15,5 +15,6 @@
   "55737d54:46": "CompareAIGroupProcessPriority",
   "557381ac:9": "CompareAIGroupTargetPriority",
   "557381c8:9": "CompareAIGroupTargetDataB",
-  "55738418:9": "CompareAIRecruitmentGroupMovePoints"
+  "55738418:9": "CompareAIRecruitmentGroupMovePoints",
+  "557387f0:9": "CompareAIProductionLocationMovePoints"
 }

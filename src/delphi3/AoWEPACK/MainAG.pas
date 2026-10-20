@@ -34,7 +34,7 @@ type
   { TPassiveAGC (instance size 368, VMT 557DA028) }
   TPassiveAGC = class(TAIGroupControl)
   public
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
     procedure CombinePassiveGroups;
   end;
 
@@ -54,8 +54,8 @@ type
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
-    procedure Split; override;
+    procedure ProcessStates; override;
+    function Split: Boolean; override;
     procedure FortifyCity;  { draft }
     procedure GetSurroundingEnemyStrength(A1: Integer; A2: Integer);  { draft }
     procedure UpdateRequiredStrength(A1: Integer; A2: Integer);  { draft }
@@ -77,7 +77,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
   end;
 
   { TTransportAG (instance size 80, VMT 557DA5A0) }
@@ -95,7 +95,7 @@ type
   public
     procedure MoveExecuterDone; override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
-    procedure ProcessStates(A1: Integer; A2: Integer); override;
+    procedure ProcessStates; override;
     procedure SetupME; override;
   end;
 
@@ -192,7 +192,7 @@ begin
   end;
 end;
 
-procedure TPassiveAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TPassiveAGC.ProcessStates;
 var
   Location: TXYL;
   Selector: TGroupDefenseSelector;
@@ -258,8 +258,8 @@ begin end;
 procedure TFortifyAGC.FortifyCity;
 begin end;
 
-procedure TFortifyAGC.Split;
-begin end;
+function TFortifyAGC.Split: Boolean;
+begin Result := False; end;
 
 procedure TFortifyAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin end;
@@ -276,7 +276,7 @@ begin end;
 procedure TFortifyAGC.CanBreachWall;
 begin end;
 
-procedure TFortifyAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TFortifyAGC.ProcessStates;
 begin end;
 
 constructor TSuicidalAG.Create(AOwner: Engine.TECustomNode);
@@ -307,7 +307,7 @@ begin
   end;
 end;
 
-procedure TSuicidalAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TSuicidalAGC.ProcessStates;
 begin end;
 
 constructor TTransportAG.Create(AOwner: Engine.TECustomNode);
@@ -346,7 +346,7 @@ end;
 procedure TTransportAGC.SetupME;
 begin end;
 
-procedure TTransportAGC.ProcessStates(A1: Integer; A2: Integer);
+procedure TTransportAGC.ProcessStates;
 begin end;
 
 

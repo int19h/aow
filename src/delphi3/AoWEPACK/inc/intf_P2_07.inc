@@ -468,6 +468,7 @@
     function GetGroupSelection(GroupID: Integer): Byte;
     function GetBehavior(Selection: Byte): TGroupBehavior;
     procedure SetBehavior(Selection: Byte; Behavior: TGroupBehavior);
+    { conflict: procedure SetBehavior(Player: Shortint; Behavior: TGroupBehavior); }
     function GetOldAIBehavior: TGroupBehavior;
     procedure InitializeGroupBehavior;
     procedure UpdateGroupBehavior;
