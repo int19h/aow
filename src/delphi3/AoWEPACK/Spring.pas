@@ -64,7 +64,7 @@ end;
 procedure TSpringOfLifeAnimation.NewFrame;
 begin
   inherited NewFrame;
-  if F_Animation_10 > 20 then Destroy;
+  if FFrameCounter > 20 then Destroy;
 end;
 
 constructor TSpringOfLife.Create(AOwner: Engine.TECustomNode);
@@ -80,7 +80,7 @@ begin
   HXtoHP(FXhx, FYhx, Xhp, Yhp);
   Dec(Xhp, XhpSurf);
   Dec(Yhp, YhpSurf);
-  FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.F_Animation_10, SurfaceDesc);
+  FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.FFrameCounter, SurfaceDesc);
 end;
 
 procedure TSpringOfLife.ExecuteNaturesBlessing(ArmyHS: TArmyHS);

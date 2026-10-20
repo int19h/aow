@@ -132,12 +132,12 @@
     function GetPlayer: Shortint; virtual; abstract;
     procedure GetQueueSizeMax; virtual;  { +080 draft }
     procedure GetQueueLocked; virtual;  { +084 draft }
-    procedure LoopableProduction(A1: Integer); virtual;  { +088 draft }
-    procedure LockQueueProduction(A1: Integer); virtual;  { +08C draft }
+    function LoopableProduction(A1: Integer): Boolean; virtual;
+    function LockQueueProduction(A1: Integer): Boolean; virtual;
     function UnitProduced: Boolean; virtual;
     procedure UnitResearched; virtual;
     procedure Update; virtual;
-    procedure CreateUnitProduction(A1: Integer); virtual;  { +09C draft }
+    function CreateUnitProduction(A1: Integer): TUnit; virtual;
     procedure Activate; virtual;
     procedure Deactivate; virtual;
     procedure NewTurn(Player: Shortint); virtual;

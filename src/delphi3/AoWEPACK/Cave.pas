@@ -371,7 +371,7 @@ begin
         Event := CaveCreateMove(ArmyHS, Shortint(Selection), Path, [], 1);
         if Event <> nil then
         begin
-          TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(
+          TTokenManager(WorldMap^.FTokenManager).GetTokenControl(
             Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
           Event.Release;
           Result := True;

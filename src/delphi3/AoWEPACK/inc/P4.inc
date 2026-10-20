@@ -2634,7 +2634,7 @@ asm
   POP EBP
 end;
 
-procedure TSpellTE.Process(A1: Integer; A2: Integer);
+function TSpellTE.Process(A1: Integer; A2: Integer): Boolean;
 asm
   PUSH EBX
   PUSH ESI
@@ -3364,8 +3364,8 @@ begin end;
 procedure TUnitSpellTE.Validate(A1: Integer);
 begin end;
 
-procedure TUnitSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -3775,7 +3775,7 @@ begin end;
 procedure TGlobalEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TGlobalEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TGlobalEnchantment.CanDeactivate(A1: Integer; A2: Integer);
@@ -3811,8 +3811,8 @@ begin end;
 function TGlobalEnchantmentEventLog.GetLeftIcon: Integer;
 begin Result := 0; end;
 
-procedure TGlobalEnchantmentList.GetEnchantments(A1: Integer);
-begin end;
+function TGlobalEnchantmentList.GetEnchantments(A1: Integer): TGlobalEnchantment;
+begin Result := nil; end;
 
 constructor TGlobalMagicControl.Create(AOwner: Engine.TECustomNode);
 begin end;

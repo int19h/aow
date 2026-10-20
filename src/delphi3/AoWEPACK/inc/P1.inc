@@ -2952,8 +2952,8 @@ begin end;
 function TProductionControl.UnitProduced: Boolean;
 begin end;
 
-procedure TProductionControl.CreateUnitProduction(A1: Integer);
-begin end;
+function TProductionControl.CreateUnitProduction(A1: Integer): TUnit;
+begin Result := nil; end;
 
 function TProductionControl.UnitProductionGold(Index: Integer): Integer;
 begin end;
@@ -3024,11 +3024,11 @@ begin end;
 procedure TProductionControl.NewTurn(Player: Shortint);
 begin end;
 
-procedure TProductionControl.LockQueueProduction(A1: Integer);
-begin end;
+function TProductionControl.LockQueueProduction(A1: Integer): Boolean;
+begin Result := False; end;
 
-procedure TProductionControl.LoopableProduction(A1: Integer);
-begin end;
+function TProductionControl.LoopableProduction(A1: Integer): Boolean;
+begin Result := False; end;
 
 function TProductionControl.GetProductionName(Item: TProductionItem): string;
 begin end;
@@ -3246,8 +3246,8 @@ begin end;
 procedure TStructure.ListArmies(A1: Integer);
 begin end;
 
-procedure TStructure.ValidateMap(A1: Integer);
-begin end;
+function TStructure.ValidateMap(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TStructure.MainValidateMap(A1: Integer);
 begin end;
@@ -4545,7 +4545,7 @@ begin Result := 0; end;
 procedure TAoWHSMap.CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TAoWHSMap.PlaceTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
+procedure TAoWHSMap.PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);
 begin end;
 
 procedure TAoWHSMap.UpdateEffects;

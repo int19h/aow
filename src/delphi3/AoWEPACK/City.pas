@@ -34,20 +34,20 @@ type
   TMoveOutOfCitySelection = set of (msSkipOwnPlayer); { ot=1 }
   TDefendersGenerateMode = (dgNone, dgRandom, dgWeak, dgAverage, dgStrong);  { ot=1 }
 
-  { TCityProductionControl (instance size 44, VMT 557A6D34) }
+  { TCityProductionControl (instance size 44, VMT 557A6D34): $28 FCity. }
   TCityProductionControl = class(TProductionControl)
   public
-    F_CityProductionControl_28: Integer;
+    FCity: TCity; { $28 }
     procedure ExecuteCancelProduction; override;
     function ExecuteProduction(Item: TProductionItem): Boolean; override;
     procedure GetLocation(var X, Y, L: Shortint); override;
     function GetPlayer: Shortint; override;
-    procedure LoopableProduction(A1: Integer); override;
-    procedure LockQueueProduction(A1: Integer); override;
+    function LoopableProduction(A1: Integer): Boolean; override;
+    function LockQueueProduction(A1: Integer): Boolean; override;
     function UnitProduced: Boolean; override;
     procedure UnitResearched; override;
     procedure Update; override;
-    procedure CreateUnitProduction(A1: Integer); override;
+    function CreateUnitProduction(A1: Integer): TUnit; override;
     procedure NewTurn(Player: Shortint); override;
     function CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean; override;
     function GetProductionName(Item: TProductionItem): string; override;
@@ -55,20 +55,21 @@ type
     function UnitProductionTime(Index: Integer): Integer; override;
   end;
 
-  { TCityOverlayHS (instance size 28, VMT 557A6EFC) }
+  { TCityOverlayHS (instance size 28, VMT 557A6EFC): $0C FCity,
+    $10 FModeStartFrame, $14 FMode, $15 FShellAnimation, $18 FShellEndFrame. }
   TCityOverlayHS = class(TSingleHS)
   public
-    F_CityOverlayHS_0C: Integer;
-    F_CityOverlayHS_10: Integer;
-    F_CityOverlayHS_14: array[0..0] of Byte;
-    F_CityOverlayHS_15: Byte;
+    FCity: TCity; { $0C }
+    FModeStartFrame: Integer; { $10 }
+    FMode: TCityOverlayMode; { $14 }
+    FShellAnimation: (saSetup, saFade); { $15 }
     F_CityOverlayHS_16: array[0..1] of Byte;
-    F_CityOverlayHS_18: Integer;
+    FShellEndFrame: Integer; { $18 }
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure PlaySetupShellAnimation;  { draft }
-    procedure PlayFadeShellAnimation;  { draft }
-    procedure SetMode(A1: Byte);  { draft }
+    procedure PlaySetupShellAnimation;
+    procedure PlayFadeShellAnimation;
+    procedure SetMode(Mode: TCityOverlayMode);
   end;
 
   { TMigrationItem (instance size 20, VMT 557A7084) }
@@ -83,10 +84,10 @@ type
     procedure GetItems(A1: Integer);  { draft }
   end;
 
-  { TCityEnchantment (instance size 44, VMT 557A7294) }
+  { TCityEnchantment (instance size 44, VMT 557A7294): $24 FEnchantmentID. }
   TCityEnchantment = class(TGlobalEnchantment)
   public
-    F_CityEnchantment_24: Byte;
+    FEnchantmentID: TCityEnchantmentID; { $24 }
     F_CityEnchantment_25: array[0..2] of Byte;
     F_CityEnchantment_28: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -100,29 +101,32 @@ type
     procedure GetCity;  { draft }
   end;
 
-  { TCity (instance size 120, VMT 557A73F0) }
+  { TCity (instance size 120, VMT 557A73F0): $44 FMode, $45 FRace,
+    $48 FName, $4C FWallType, $4D FUpgradeLevel, $50 FProduction,
+    $58 FEnchantmentList, $5C FEnchantments, $60 FOverlay, $64 FEnchantmentsVisible,
+    $68 FWallBackImage, $6C FWallFrontImage, $70 FCityImage, $74 FCityAIMode. }
   TCity = class(TPlayerCropStructure)
   public
-    F_City_44: Byte;
-    F_City_45: Byte;
+    FMode: TCityMode; { $44 }
+    FRace: Shortint; { $45 }
     F_City_46: array[0..1] of Byte;
-    F_City_48: Integer;
-    F_City_4C: Byte;
-    F_City_4D: Byte;
+    FName: string; { $48 }
+    FWallType: Byte; { $4C }
+    FUpgradeLevel: Byte; { $4D }
     F_City_4E: array[0..1] of Byte;
-    F_City_50: Integer;
+    FProduction: TCityProductionControl; { $50 }
     F_City_54: Byte;
     F_City_55: array[0..2] of Byte;
-    F_City_58: Integer;
-    F_City_5C: Byte;
+    FEnchantmentList: TGlobalEnchantmentList; { $58 }
+    FEnchantments: TCityEnchantmentIDs; { $5C }
     F_City_5D: array[0..2] of Byte;
-    F_City_60: Integer;
-    F_City_64: Byte;
+    FOverlay: TCityOverlayHS; { $60 }
+    FEnchantmentsVisible: Boolean; { $64 }
     F_City_65: array[0..2] of Byte;
-    F_City_68: Integer;
-    F_City_6C: Integer;
-    F_City_70: Integer;
-    F_City_74: Byte;
+    FWallBackImage: TLibraryImage; { $68 }
+    FWallFrontImage: TLibraryImage; { $6C }
+    FCityImage: TLibraryImage; { $70 }
+    FCityAIMode: Byte; { $74 }
     F_City_75: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -158,7 +162,7 @@ type
     procedure GenerateRazeDefenders(A1: Integer; A2: Integer); override;
     procedure ExecuteRaze(A1: Integer; A2: Integer); override;
     function GetCurrentActivityText: string; override;
-    procedure ValidateMap(A1: Integer); override;
+    function ValidateMap(A1: Integer): Boolean; override;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); override;
     procedure Update; override;
     function CanDblClick: Boolean; override;
@@ -176,29 +180,29 @@ type
     function GetRace: Shortint; override;
     procedure CropTrampled(Player: Shortint); override;
     procedure SetRace(A1: Byte); virtual;  { +244 draft }
-    procedure GetActiveAction;  { draft }
-    procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
+    function GetActiveAction: TCityAction;
+    procedure UpdateActiveEnchantments;
     procedure RegisterEnchantments;  { draft }
     procedure UnregisterEnchantments;  { draft }
     procedure ResetEnchantments;  { draft }
-    procedure AICityEnchantmentUpkeepPriority(A1: Byte);  { draft }
-    procedure ActivateEnchantment(A1: Integer; A2: Integer);  { draft }
-    procedure DeactivateEnchantment(A1: Integer);  { draft }
-    procedure ListEnhancementsInfo(A1: Integer);  { draft }
+    function AICityEnchantmentUpkeepPriority(ID: TCityEnchantmentID): Integer;
+    procedure ActivateEnchantment(Enchantment: TCityEnchantment);
+    procedure DeactivateEnchantment(Enchantment: TCityEnchantment);
+    procedure ListEnhancementsInfo(List: TStrings);
     procedure StartTownQuake;  { draft }
     procedure StopTownQuake;  { draft }
     procedure ExecuteAnarchy;  { draft }
-    procedure ExecuteFountainOfLife(A1: Integer; A2: Integer);  { draft }
+    procedure ExecuteFountainOfLife;
     procedure UpdateAIMigration;  { draft }
     procedure ValidateAICityAction;  { draft }
     procedure MoveArmiesOutOfCity(A1: Byte);  { draft }
-    procedure GetSize;  { draft }
+    function GetSize: Integer;
     procedure GetObtainUnitsValue;  { draft }
-    procedure UpgradeCost;  { draft }
+    function UpgradeCost: Integer;
     procedure UpgradeTime;  { draft }
     procedure CanUpgrade(A1: Byte; A2: Integer);  { draft }
     procedure Upgrade(A1: Integer);  { draft }
-    procedure FortifyCost;  { draft }
+    function FortifyCost: Integer;
     procedure FortifyTime;  { draft }
     procedure CanFortify(A1: Byte; A2: Integer);  { draft }
     procedure Fortify(A1: Integer);  { draft }
@@ -213,10 +217,10 @@ type
     procedure CanTrade;  { draft }
     procedure Trade(A1: Integer);  { draft }
     procedure LootTime;  { draft }
-    procedure CanLoot;  { draft }
+    function CanLoot(var Reason: string): Boolean;
     procedure Loot;  { draft }
     procedure MigrationTime(A1: Byte);  { draft }
-    procedure CanMigrate(A1: Byte; A2: Integer);  { draft }
+    function CanMigrate(Race: Shortint; var Reason: string): Boolean;
     procedure Migrate(A1: Integer);  { draft }
     procedure CreateMigrationItem(A1: Integer);  { draft }
     procedure CreateMigrationSelection(A1: Integer; A2: Integer);  { draft }
@@ -245,10 +249,10 @@ type
     procedure GetBottomCityActionImage(A1: Integer);  { draft }
   end;
 
-  { TCityResource (instance size 124, VMT 557A76AC) }
+  { TCityResource (instance size 124, VMT 557A76AC): $78 FSize. }
   TCityResource = class(TPlayerCropStructureResource)
   public
-    F_CityResource_78: Byte;
+    FSize: Byte; { $78 }
     F_CityResource_79: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -330,8 +334,8 @@ type
   public
   end;
 
-procedure ProductionIDToCityAction(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure CityActionToProductionID(A1: Integer);  { draft }
+function ProductionIDToCityAction(ID: Integer): TCityAction;
+function CityActionToProductionID(Action: TCityAction): Integer;
 procedure RaceInCity(A1: Byte; A2: Byte; A3: Integer);  { draft }
 procedure UnitLevelToCityLevel;  { draft }
 procedure PlayerCities(A1: Byte);  { draft }
@@ -339,8 +343,54 @@ procedure CityIncome(A1: Byte);  { draft }
 
 implementation
 
+type
+  PAoWMap = ^TAoWHSMap;
+  PAoWSet = ^TAoWHSSet;
+  PRaceNames = ^TRaceNames;
+  TRaceNames = array[0..12] of string;
+const
+  WorldMap: PAoWMap = @AoWE.AoWHSMap;
+  WorldSet: PAoWSet = @AoWE.AoWHSSet;
+  RaceNames: PRaceNames = @AoWE.RaceNamesPluralRStr;
+  UpgradePrices: array[1..4] of Byte = (250, 250, 250, 250);
+  WoodWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
+  StoneWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
+resourcestring
+  CityNotEnoughGoldRStr = 'Not enough gold.';
+  CityWarningRStr = 'Warning';
+  CityWoodenWallRStr = 'Wooden Wall';
+  CityStoneWallRStr = 'Stone Wall';
+const
+  NotEnoughGold: PResStringRec = @CityNotEnoughGoldRStr;
+  WarningText: PResStringRec = @CityWarningRStr;
+  WoodenWallText: PResStringRec = @CityWoodenWallRStr;
+  StoneWallText: PResStringRec = @CityStoneWallRStr;
+
 function TCityProductionControl.CanExecuteProduction(Item: TProductionItem; var Reason: string): Boolean;
-begin end;
+begin
+  case ProductionIDToCityAction(Item.FProductionID) of
+    caTrade: Result := True;
+    caFortify:
+      if WorldMap^.FPlayers.GetPlayers(GetPlayer).FGems >= FCity.FortifyCost then
+        Result := True
+      else
+      begin
+        Result := False;
+        Reason := TranslateRStr(LoadResString(NotEnoughGold));
+      end;
+    caMigrate: Result := FCity.CanMigrate(Item.FParameter, Reason);
+    caLoot: Result := FCity.CanLoot(Reason);
+    caUpgrade:
+      if WorldMap^.FPlayers.GetPlayers(GetPlayer).FGems >= FCity.UpgradeCost then
+        Result := True
+      else
+      begin
+        Result := False;
+        Reason := TranslateRStr(LoadResString(NotEnoughGold));
+      end;
+  else Result := inherited CanExecuteProduction(Item, Reason);
+  end;
+end;
 
 function TCityProductionControl.ExecuteProduction(Item: TProductionItem): Boolean;
 begin end;
@@ -351,115 +401,397 @@ begin end;
 procedure TCityProductionControl.ExecuteCancelProduction;
 begin end;
 
-procedure TCityProductionControl.LockQueueProduction(A1: Integer);
-begin end;
+function TCityProductionControl.LockQueueProduction(A1: Integer): Boolean;
+begin
+  Result := inherited LockQueueProduction(A1);
+  case ProductionIDToCityAction(TProductionItem(A1).FProductionID) of
+    caMigrate: Result := True;
+    caLoot: Result := True;
+  end;
+end;
 
-procedure TCityProductionControl.LoopableProduction(A1: Integer);
-begin end;
+function TCityProductionControl.LoopableProduction(A1: Integer): Boolean;
+begin
+  Result := inherited LoopableProduction(A1);
+  case ProductionIDToCityAction(TProductionItem(A1).FProductionID) of
+    caMigrate: Result := False;
+    caLoot: Result := False;
+    caFortify: Result := False;
+    caUpgrade: Result := False;
+  end;
+end;
 
 function TCityProductionControl.GetProductionName(Item: TProductionItem): string;
-begin end;
+begin
+  Result := inherited GetProductionName(Item);
+  case ProductionIDToCityAction(Item.FProductionID) of
+    caTrade: Result := TranslateRStr(ProduceMerchandiseRStr);
+    caUpgrade: Result := TranslateRStr(UpgradeRStr);
+    caMigrate: Result := SysUtils.Format(TranslateRStr(MigrateToXRStr), [TranslateRStr(RaceNames^[Item.FParameter])]);
+    caLoot: Result := TranslateRStr(LootRStr);
+    caFortify: Result := TranslateRStr(FortifyRStr);
+  end;
+end;
 
 function TCityProductionControl.GetProductionNameProgressive(Item: TProductionItem): string;
-begin end;
+begin
+  Result := inherited GetProductionNameProgressive(Item);
+  case ProductionIDToCityAction(Item.FProductionID) of
+    caTrade: Result := TranslateRStr(ProducingMerchandiseRStr);
+    caUpgrade: Result := TranslateRStr(UpgradingRStr);
+    caMigrate: Result := SysUtils.Format(TranslateRStr(MigratingToXRStr), [TranslateRStr(RaceNames^[Item.FParameter])]);
+    caLoot: Result := TranslateRStr(LootingRStr);
+    caFortify: Result := TranslateRStr(FortifyingRStr);
+  end;
+end;
 
 procedure TCityProductionControl.Update;
-begin end;
+begin
+  inherited Update;
+  if FUpdateCount = 0 then FCity.Update;
+end;
 
 procedure TCityProductionControl.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin
+  X := FCity.GetXhx;
+  Y := FCity.GetYhx;
+  L := FCity.GetLhx;
+end;
 
-procedure TCityProductionControl.CreateUnitProduction(A1: Integer);
-begin end;
+function TCityProductionControl.CreateUnitProduction(A1: Integer): TUnit;
+var Unit_: TUnit;
+begin
+  Unit_ := inherited CreateUnitProduction(A1);
+  if (Unit_ <> nil) and (ceiWarmonger in FCity.FEnchantments) then Unit_.SetRank(urSilver);
+  Result := Unit_;
+end;
 
 procedure TCityProductionControl.UnitResearched;
-begin end;
+var
+  City: TCity;
+  Log: TCityProductionEventLog;
+begin
+  inherited UnitResearched;
+  City := FCity;
+  Log := TCityProductionEventLog.Create(nil);
+  Log.FPlayer := City.FPlayer;
+  Log.FText := SysUtils.Format(TranslateRStr(XInstalledAtYRStr),
+    [WorldSet^.FUnitResources.GetUnitResource(FUnitProductions.GetItem(FSettings.FUnitProductionIndex).FUnitIndex).GetUnitName,
+    FCity.GetName]);
+  Log.SetLocation(City.GetXhx, City.GetYhx, City.GetLhx);
+  WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+  Log.Release;
+end;
 
 function TCityProductionControl.UnitProduced: Boolean;
-begin end;
+var
+  City: TCity;
+  Valid: Boolean;
+  Count: Integer;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+  Log: TCityProductionEventLog;
+begin
+  City := FCity;
+  Valid := False;
+  Count := City.GetTerrainCount;
+  Level := TMapLevel(City.Owner.Owner);
+  InitHNWalk(Walk, City.GetXhx, City.GetYhx, 0);
+  while (Walk.HN < Count) and not Valid do
+  begin
+    if (City.FResource.TerrainList.Terrain[Walk.HN] >= 0) and
+      (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      Valid := FSettings.FUnit.Place(Walk.X, Walk.Y, City.GetLhx, City.FPlayer, []) <> nil;
+    WalkToNextHN(Walk);
+  end;
+  if not Valid then
+    Valid := FSettings.FUnit.Place(City.GetXhx, City.GetYhx, City.GetLhx, City.FPlayer, [pmScanArea]) <> nil;
+  Log := TCityProductionEventLog.Create(nil);
+  Log.FPlayer := City.FPlayer;
+  Log.FText := SysUtils.Format(TranslateRStr(XProducedAtYRStr), [FSettings.FUnit.GetName, FCity.GetName]);
+  Log.SetLocation(City.GetXhx, City.GetYhx, City.GetLhx);
+  WorldMap^.FPlayers.GetPlayers(Log.FPlayer).FEventLogbook.AddEvent(Log);
+  Log.Release;
+  Result := Valid;
+end;
 
 function TCityProductionControl.GetPlayer: Shortint;
-begin end;
+begin Result := FCity.FPlayer; end;
 
 function TCityProductionControl.UnitProductionTime(Index: Integer): Integer;
-begin end;
+var UnitIndex: Integer;
+begin
+  UnitIndex := FUnitProductions.GetItem(Index).FUnitIndex;
+  Result := WorldSet^.FUnitResources.GetUnitResource(UnitIndex).FLevel - FCity.GetSize div 2 + 1;
+  if Result < 1 then Result := 1;
+end;
 
 function TCityOverlayHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin Result := FCity.GetShowPriority + $8000000; end;
 
 procedure TCityOverlayHS.PlaySetupShellAnimation;
-begin end;
+begin
+  FShellAnimation := saSetup;
+  FShellEndFrame := WorldMap^.Frame + 50;
+end;
 
 procedure TCityOverlayHS.PlayFadeShellAnimation;
-begin end;
+begin
+  FShellAnimation := saFade;
+  FShellEndFrame := WorldMap^.Frame + 20;
+end;
 
-procedure TCityOverlayHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+procedure TCityOverlayHS.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  Xhp, Yhp, Intensity, Index, Frame: Integer;
+  Sequence: TImageSequence;
+begin
+  HXtoHP(FCity.FXhx, FCity.FYhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  if FCity.FEnchantmentsVisible then
+  begin
+    if ceiWarmonger in FCity.FEnchantments then
+    begin
+      Intensity := Abs(Integer((WorldMap^.Frame shr 1) mod 20) - 10) + 50;
+      Sequence := FCity.FResource.ImageSequenceList.ImageSequences[17];
+      while Sequence <> nil do
+      begin
+        Index := Sequence.GetFrameIndex(0, 0);
+        if Sequence = FCity.FResource.ImageSequenceList.ImageSequences[17] then
+          Sequence.ImageLibrary[Index].ShowBlended(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift, SurfaceDesc, IntensityBlendTable.LookupTables[Intensity])
+        else
+          Sequence.ImageLibrary[Index].ShowBlended(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift, SurfaceDesc, AlphaBlendTable.LookupTables[Intensity]);
+        Sequence := Sequence.Next;
+      end;
+    end;
+    if ceiGoldRush in FCity.FEnchantments then
+    begin
+      Intensity := Abs(Integer((WorldMap^.Frame shr 1) mod 20) - 10) + 70;
+      Sequence := FCity.FResource.ImageSequenceList.ImageSequences[18];
+      while Sequence <> nil do
+      begin
+        if Sequence = FCity.FResource.ImageSequenceList.ImageSequences[18] then
+        begin
+          Index := Sequence.GetFrameIndex(0, 0);
+          if Sequence.ImageLibrary.ImageExist(Index) then
+            Sequence.ImageLibrary[Index].ShowBlended(XhpSurf + Sequence.dXshift,
+              YhpSurf + Sequence.dYshift, SurfaceDesc, IntensityBlendTable.LookupTables[Intensity]);
+        end
+        else
+        begin
+          Index := Sequence.GetFrameIndex(0, WorldMap^.Frame);
+          if Sequence.ImageLibrary.ImageExist(Index) then
+            Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift,
+              YhpSurf + Sequence.dYshift, SurfaceDesc);
+        end;
+        Sequence := Sequence.Next;
+      end;
+    end;
+    if ceiAntiMagicShell in FCity.FEnchantments then
+    begin
+      Sequence := FCity.FResource.ImageSequenceList.ImageSequences[19];
+      if Sequence <> nil then
+      begin
+        Intensity := 50;
+        Index := Sequence.GetFrameIndex(0, 0);
+        if (FShellEndFrame <> -1) and (WorldMap^.Frame < FShellEndFrame) then
+        begin
+          case FShellAnimation of
+            saSetup:
+              begin
+                Frame := FShellEndFrame - WorldMap^.Frame;
+                if Frame <= 50 then Intensity := 50 - Frame else FShellEndFrame := -1;
+              end;
+            saFade:
+              begin
+                Frame := FShellEndFrame - WorldMap^.Frame;
+                if Frame <= 20 then Intensity := Intensity + (10 - Abs(Frame - 10)) * 3
+                else FShellEndFrame := -1;
+              end;
+          end;
+        end;
+        Sequence.ImageLibrary[Index].ShowBlended(XhpSurf + Sequence.dXshift,
+          YhpSurf + Sequence.dYshift, SurfaceDesc, IntensityBlendTable.LookupTables[Intensity]);
+      end;
+    end;
+    if FMode = omLooting then
+      FCity.FResource.ShowComplexImage(XhpSurf, YhpSurf, SurfaceDesc, 22,
+        TMapField(FCity.Owner).Xhx + TMapField(FCity.Owner).Yhx * 16);
+  end;
+end;
 
-procedure TCityOverlayHS.SetMode(A1: Byte);
-begin end;
+procedure TCityOverlayHS.SetMode(Mode: TCityOverlayMode);
+begin
+  if Mode <> FMode then
+  begin
+    FModeStartFrame := WorldMap^.Frame;
+    FMode := Mode;
+  end;
+end;
 
-constructor TCity.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TCity.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FProduction := TCityProductionControl.Create(nil);
+  FProduction.FCity := Self;
+  FCityAIMode := 3;
+  FRace := -1;
+  FName := TranslateRStr(NonameRStr);
+  FUpgradeLevel := 1;
+  FOverlay := TCityOverlayHS.Create(nil);
+  FOverlay.FCity := Self;
+  FEnchantmentList := TGlobalEnchantmentList.Create(nil);
+  FEnchantmentsVisible := False;
+end;
 
 destructor TCity.Destroy;
-begin end;
+begin
+  if GetVisible then WorldMap^.DynamicVisibleHS.RemoveChild(FOverlay);
+  FOverlay.Free;
+  inherited Destroy;
+  FProduction.Free;
+  FEnchantmentList.Free;
+  FEnchantmentList := nil;
+end;
 
 class function TCity.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20108; end;
 
 function TCity.CanDblClick: Boolean;
-begin end;
+begin
+  Result := (WorldMap^.FSeatedPlayer = FPlayer) and not GetRazed and not GetBuilding;
+end;
 
-procedure TCity.GetActiveAction;
-begin end;
+function TCity.GetActiveAction: TCityAction;
+begin
+  if FProduction.FStatus = pcsProducing then
+    Result := ProductionIDToCityAction(FProduction.FQueue.GetItem(0).FProductionID)
+  else Result := caNone;
+end;
 
 procedure TCity.ExecuteTE(A1: Integer; A2: Integer);
-begin end;
+begin inherited ExecuteTE(A1, A2); end;
 
 procedure TCity.Update;
-begin end;
+begin
+  if FUpdateCount = 0 then
+  begin
+    UpdateIncome;
+    inherited Update;
+  end;
+end;
 
-procedure TCity.ValidateMap(A1: Integer);
-begin end;
+function TCity.ValidateMap(A1: Integer): Boolean;
+begin
+  Result := inherited ValidateMap(A1);
+  if (CompareText(FName, TranslateRStr(NonameRStr)) = 0) or (FName = '') then
+  begin
+    TStrings(A1).Add(TranslateRStr(LoadResString(WarningText)) + ': ' + TranslateRStr(NoNameSpecifiedRStr));
+    Result := False;
+  end;
+end;
 
 procedure TCity.BuildingDone;
-begin end;
+begin
+  FUpgradeLevel := 1;
+  FWallType := 0;
+  SetRace(WorldMap^.FPlayers.GetPlayers(FBuildingPlayer).FPlayerRace);
+  inherited BuildingDone;
+end;
 
-procedure TCity.UpdateActiveEnchantments(A1: Integer; A2: Integer);
-begin end;
+procedure TCity.UpdateActiveEnchantments;
+var I: Integer;
+begin
+  FEnchantments := [];
+  for I := FEnchantmentList.Count - 1 downto 0 do
+    FEnchantments := FEnchantments + [TCityEnchantment(FEnchantmentList.GetEnchantments(I)).FEnchantmentID];
+end;
 
 procedure TCity.RegisterEnchantments;
-begin end;
+var I: Integer;
+begin
+  for I := FEnchantmentList.Count - 1 downto 0 do
+    FEnchantmentList.GetEnchantments(I).Activate(FEnchantmentList.GetEnchantments(I).FPlayerIndex);
+  UpdateActiveEnchantments;
+end;
 
 procedure TCity.UnregisterEnchantments;
-begin end;
+var I: Integer;
+begin
+  for I := FEnchantmentList.Count - 1 downto 0 do
+    FEnchantmentList.GetEnchantments(I).Deactivate(FEnchantmentList.GetEnchantments(I).FPlayerIndex);
+end;
 
 procedure TCity.ResetEnchantments;
-begin end;
+begin
+  UnregisterEnchantments;
+  FEnchantmentList.Clear;
+  FEnchantments := [];
+end;
 
-procedure TCity.AICityEnchantmentUpkeepPriority(A1: Byte);
-begin end;
+function TCity.AICityEnchantmentUpkeepPriority(ID: TCityEnchantmentID): Integer;
+begin
+  case ID of
+    ceiFountainOfLife: Result := GetSize * 25 + 600;
+    ceiGoldRush: Result := GetSize * 25 + 600;
+    ceiAntiMagicShell: Result := GetSize * 25 + 700;
+    ceiWarmonger: Result := GetSize * 25 + 600;
+  else Result := 0;
+  end;
+end;
 
-procedure TCity.ActivateEnchantment(A1: Integer; A2: Integer);
-begin end;
+procedure TCity.ActivateEnchantment(Enchantment: TCityEnchantment);
+begin
+  Enchantment.Owner := FEnchantmentList;
+  Enchantment.Activate(Enchantment.FPlayerIndex);
+  FEnchantments := FEnchantments + [Enchantment.FEnchantmentID];
+  if Enchantment.FEnchantmentID = ceiFountainOfLife then ExecuteFountainOfLife;
+  if Enchantment.FEnchantmentID = ceiGoldRush then UpdateIncome;
+  if Enchantment.FEnchantmentID = ceiAntiMagicShell then FOverlay.PlaySetupShellAnimation;
+end;
 
-procedure TCity.DeactivateEnchantment(A1: Integer);
-begin end;
+procedure TCity.DeactivateEnchantment(Enchantment: TCityEnchantment);
+begin
+  Enchantment.Owner := nil;
+  Enchantment.Deactivate(Enchantment.FPlayerIndex);
+  UpdateActiveEnchantments;
+  if Enchantment.FEnchantmentID = ceiGoldRush then UpdateIncome;
+  Enchantment.Release;
+  Update;
+end;
 
-procedure TCity.ListEnhancementsInfo(A1: Integer);
-begin end;
+procedure TCity.ListEnhancementsInfo(List: TStrings);
+begin
+  List.Add(SysUtils.Format(TranslateRStr(UpgradeLevelXRStr), [IntToStr(FUpgradeLevel)]));
+  if FWallType = 1 then List.Add(TranslateRStr(LoadResString(WoodenWallText)));
+  if FWallType = 2 then List.Add(TranslateRStr(LoadResString(StoneWallText)));
+  if ceiFountainOfLife in FEnchantments then
+    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(FountainOfLifeRStr));
+  if ceiGoldRush in FEnchantments then
+    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(GoldRushRStr));
+  if ceiAntiMagicShell in FEnchantments then
+    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(AntiMagicShellRStr));
+  if ceiWarmonger in FEnchantments then
+    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(WarmongerRStr));
+end;
 
 procedure TCity.StartTownQuake;
-begin end;
+begin FMode := FMode + [cmTownQuake]; end;
 
 procedure TCity.StopTownQuake;
-begin end;
+begin FMode := FMode - [cmTownQuake]; end;
 
 procedure TCity.ExecuteAnarchy;
-begin end;
+begin
+  FMode := FMode + [cmAnarchy];
+  CheckRebellion;
+  FMode := FMode - [cmAnarchy];
+end;
 
-procedure TCity.ExecuteFountainOfLife(A1: Integer; A2: Integer);
+procedure TCity.ExecuteFountainOfLife;
 begin end;
 
 procedure TCity.UpdateAIMigration;
@@ -495,8 +827,8 @@ begin end;
 procedure TCity.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
 begin end;
 
-procedure TCity.GetSize;
-begin end;
+function TCity.GetSize: Integer;
+begin Result := TCityResource(FResource).FSize; end;
 
 procedure TCity.GetObtainUnitsValue;
 begin end;
@@ -510,8 +842,8 @@ begin end;
 procedure TCity.ArmyRemoved;
 begin end;
 
-procedure TCity.UpgradeCost;
-begin end;
+function TCity.UpgradeCost: Integer;
+begin Result := UpgradePrices[GetSize]; end;
 
 procedure TCity.UpgradeTime;
 begin end;
@@ -522,8 +854,14 @@ begin end;
 procedure TCity.Upgrade(A1: Integer);
 begin end;
 
-procedure TCity.FortifyCost;
-begin end;
+function TCity.FortifyCost: Integer;
+begin
+  case FWallType of
+    0: Result := WoodWallPrices[GetSize];
+    1: Result := StoneWallPrices[GetSize];
+  else Result := -1;
+  end;
+end;
 
 procedure TCity.FortifyTime;
 begin end;
@@ -567,8 +905,8 @@ begin end;
 procedure TCity.LootTime;
 begin end;
 
-procedure TCity.CanLoot;
-begin end;
+function TCity.CanLoot(var Reason: string): Boolean;
+begin Result := not (cmRazed in FMode); end;
 
 procedure TCity.Loot;
 begin end;
@@ -576,8 +914,8 @@ begin end;
 procedure TCity.MigrationTime(A1: Byte);
 begin end;
 
-procedure TCity.CanMigrate(A1: Byte; A2: Integer);
-begin end;
+function TCity.CanMigrate(Race: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
 procedure TCity.Migrate(A1: Integer);
 begin end;
@@ -888,11 +1226,33 @@ begin end;
 function TCityProductionEventLog.Execute(Mode: Integer; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin end;
 
-procedure ProductionIDToCityAction(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function ProductionIDToCityAction(ID: Integer): TCityAction;
+begin
+  case ID of
+    10: Result := caTrade;
+    11: Result := caUpgrade;
+    12: Result := caFortify;
+    13: Result := caMigrate;
+    14: Result := caLoot;
+    1: Result := caProduce;
+    2: Result := caResearch;
+  else Result := caNone;
+  end;
+end;
 
-procedure CityActionToProductionID(A1: Integer);
-begin end;
+function CityActionToProductionID(Action: TCityAction): Integer;
+begin
+  case Action of
+    caTrade: Result := 10;
+    caUpgrade: Result := 11;
+    caFortify: Result := 12;
+    caMigrate: Result := 13;
+    caLoot: Result := 14;
+    caProduce: Result := 1;
+    caResearch: Result := 2;
+  else Result := 0;
+  end;
+end;
 
 procedure RaceInCity(A1: Byte; A2: Byte; A3: Integer);
 begin end;

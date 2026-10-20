@@ -968,7 +968,7 @@
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
     procedure Validate(A1: Integer); virtual;  { +050 draft }
-    procedure Process(A1: Integer; A2: Integer); virtual;  { +054 draft }
+    function Process(A1: Integer; A2: Integer): Boolean; virtual;  { +054  }
     procedure PlayDefaultCastEffects(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
     function GetSource: TAbstractUnit;
@@ -1040,7 +1040,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure Initialize(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
 

@@ -3,7 +3,7 @@
   TTargetSelectionControl = class(TObject)
   public
     F_TargetSelectionControl_04: Integer;
-    F_TargetSelectionControl_08: Integer;
+    FHNs: TShortIntList; { $08 }
     F_TargetSelectionControl_0C: Byte;
     F_TargetSelectionControl_0D: Byte;
     F_TargetSelectionControl_0E: array[0..1] of Byte;
@@ -298,7 +298,7 @@
     F_AoWHSMap_238: Byte;
     F_AoWHSMap_239: Byte;
     F_AoWHSMap_23A: array[0..1] of Byte;
-    F_AoWHSMap_23C: Integer;
+    FTokenManager: TTokenManager; { $23C }
     F_AoWHSMap_240: Integer;
     F_AoWHSMap_244: Integer;
     F_AoWHSMap_248: Byte;
@@ -424,7 +424,7 @@
     procedure DisableTurnTimer;  { draft }
     procedure ZeroTurnTimer;  { draft }
     procedure CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure PlaceTerrain(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);
     procedure UpdateEffects;  { draft }
     procedure AddEffect(A1: Integer);  { draft }
   end;

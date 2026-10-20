@@ -2379,7 +2379,7 @@ begin
     Event := TDisbandUnitTE.Create(nil);
     Event.F_DisbandUnitTE_10 := FUnitID;
     Event.F_DisbandUnitTE_14 := FPlayer;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).GetTokenControl(FPlayer).AddEvent(Event);
+    TTokenManager(AoWHSMap.FTokenManager).GetTokenControl(FPlayer).AddEvent(Event);
     Event.Release;
     Result := True;
   end

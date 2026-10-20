@@ -62,8 +62,8 @@
   TStructure = class(TFixedILTerrainMO)
   public
     F_Structure_1C: Integer;
-    F_Structure_20: Integer;
-    F_Structure_24: Byte;
+    FUpdateCount: Integer; { $20 }
+    FBuildingPlayer: Shortint; { $24 }
     F_Structure_25: Byte;
     F_Structure_26: array[0..1] of Byte;
     F_Structure_28: Integer;
@@ -125,7 +125,7 @@
     procedure PlaceRazeDefenders(A1: Byte); virtual;  { +1AC draft }
     procedure ExecuteRaze(A1: Integer; A2: Integer); virtual;  { +1B0 draft }
     function GetCurrentActivityText: string; virtual;
-    procedure ValidateMap(A1: Integer); virtual;  { +1B8 draft }
+    function ValidateMap(A1: Integer): Boolean; virtual;  { +1B8  }
     procedure MainValidateMap(A1: Integer); virtual;  { +1BC draft }
     procedure ExecuteAI(A1: Integer; A2: Integer); virtual;  { +1C0 draft }
     procedure UpdateAITarget(const Info: TAITargetInfo; var Priority: Integer); virtual;

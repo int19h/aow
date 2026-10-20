@@ -31,21 +31,15 @@ type
     F_Animation_0B: array[0..0] of Byte;
     F_Animation_0C: Byte;
     F_Animation_0D: array[0..2] of Byte;
-    F_Animation_10: Integer;
+    FFrameCounter: Integer; { $10 }
     F_Animation_14: Byte;
     F_Animation_15: array[0..2] of Byte;
     F_Animation_18: Integer;
     F_Animation_1C: Integer;
     F_Animation_20: Integer;
-    F_Animation_24: Byte;
-    F_Animation_25: array[0..0] of Byte;
-    F_Animation_26: Word;
-    F_Animation_28: Integer;
-    F_Animation_2C: Byte;
-    F_Animation_2D: array[0..0] of Byte;
-    F_Animation_2E: Word;
-    F_Animation_30: Integer;
-    F_Animation_34: Integer;
+    FOnShow: TShowAnimationEvent; { $24 }
+    FOnNewFrame: TNewFrameAnimationEvent; { $2C }
+    FTag: Integer; { $34 }
     F_Animation_38: Integer;
     destructor Destroy; override;
     function GetControlStyle: Engine.TEControlStyles; override;

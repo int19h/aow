@@ -32,7 +32,7 @@ type
     procedure UpdateMapField(const Info: HSEngine.THSMapFieldInfo); override;
     procedure SetRazed(Value: Boolean); override;
     function GetRazed: Boolean; override;
-    procedure ValidateMap(A1: Integer); override;
+    function ValidateMap(A1: Integer): Boolean; override;
     procedure ShowTeleportAnimations;
     function CanTeleportArmy(ArmyHS: TArmyHS): Boolean;
     function CanTeleport(Player: Shortint): Boolean;
@@ -253,7 +253,7 @@ begin
             Event := TeleportCreateMove(ArmyHS, -1, Path, [], 1);
             if Event <> nil then
             begin
-              TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(
+              TTokenManager(WorldMap^.FTokenManager).GetTokenControl(
                 Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
               Event.Release;
               Result := True;
@@ -284,7 +284,7 @@ begin
   else Result := False;
 end;
 
-procedure TTeleport.ValidateMap(A1: Integer);
+function TTeleport.ValidateMap(A1: Integer): Boolean;
 var
   Valid: Boolean;
 begin

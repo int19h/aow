@@ -35,7 +35,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TSummonSpell (instance size 60, VMT 557E3004) }
@@ -148,8 +148,8 @@ begin Result := 0; end;
 procedure TSummonSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TSummonSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TSummonSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TSummonSpell.Create(AOwner: Engine.TECustomNode);
 begin end;

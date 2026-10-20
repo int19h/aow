@@ -247,7 +247,7 @@ begin
       Path.List^[0].Flag := Shortint(FMovePoints);
       Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 3,
         [mmSelectEndLocation]);
-      TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+      TTokenManager(AoWHSMap.FTokenManager).TokenExecuter.InsertExecuteEvent(Move);
       { Original bug: no nil check after CreateArmyMoveTE can return nil. }
       Move.Release;
       Path.Free;
@@ -269,7 +269,7 @@ begin
     Path.List^[0].Flag := Shortint(FMovePoints);
     Move := P5CreateArmyMoveTE(FArmyHS, FSelection, Path, 1,
       [mmSelectEndLocation]);
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenExecuter.InsertExecuteEvent(Move);
+    TTokenManager(AoWHSMap.FTokenManager).TokenExecuter.InsertExecuteEvent(Move);
     { Original bug: no nil check after CreateArmyMoveTE can return nil. }
     Move.Release;
     Path.Free;
@@ -362,7 +362,7 @@ begin
     TE.FGold := FGold;
     TE.FOffer := noOfferBribe;
     TE.FResult := nrAccept;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[FPlayer].AddEvent(TE);
+    TTokenManager(AoWHSMap.FTokenManager).TokenControls[FPlayer].AddEvent(TE);
     TE.Release;
     Result := True;
   end;
@@ -381,7 +381,7 @@ begin
     TE.FGold := 0;
     TE.FOffer := noForceOffer;
     TE.FResult := nrReject;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[
+    TTokenManager(AoWHSMap.FTokenManager).TokenControls[
       Shortint(FPlayer)].AddEvent(TE);
     TE.Release;
     Result := True;
@@ -913,7 +913,7 @@ begin
     TE := TDiplomaticActionTE.Create(nil);
     TE.SetDiplomaticAction(Self);
     TE.FOperation := 1;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FTarget)].AddEvent(TE);
+    TTokenManager(AoWHSMap.FTokenManager).TokenControls[Shortint(FTarget)].AddEvent(TE);
     TE.Release;
     Result := True;
   end
@@ -967,7 +967,7 @@ begin
     TE := TDiplomaticActionTE.Create(nil);
     TE.SetDiplomaticAction(Self);
     TE.FOperation := 2;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FTarget)].AddEvent(TE);
+    TTokenManager(AoWHSMap.FTokenManager).TokenControls[Shortint(FTarget)].AddEvent(TE);
     TE.Release;
     Result := True;
   end
@@ -1072,7 +1072,7 @@ begin
     TE := TDiplomaticActionTE.Create(nil);
     TE.SetDiplomaticAction(Self);
     TE.FOperation := 0;
-    TTokenManager(AoWHSMap.F_AoWHSMap_23C).TokenControls[Shortint(FSource)].AddEvent(TE);
+    TTokenManager(AoWHSMap.FTokenManager).TokenControls[Shortint(FSource)].AddEvent(TE);
     TE.Release;
     Result := True;
   end

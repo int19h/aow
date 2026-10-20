@@ -91,7 +91,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TWarpParty (instance size 52, VMT 557E95CC) }
@@ -136,7 +136,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TDisjunctionSpellCaster (instance size 28, VMT 557E9B00) }
@@ -452,7 +452,7 @@ begin
     Event := TSpellTE.Create(nil);
     Event.Initialize(Spell.FSpellID,Caster.FPlayer,
       Caster.FUnitID,Spell.FBaseManaCost);
-    TTokenManager(GlobalSpellMap^.F_AoWHSMap_23C).
+    TTokenManager(GlobalSpellMap^.FTokenManager).
       GetTokenControl(Shortint(Caster.FPlayer)).Add(Event);
     Event.Release;
     Result := True;
@@ -578,8 +578,8 @@ begin end;
 procedure TWarpPartyTE.Validate(A1: Integer);
 begin end;
 
-procedure TWarpPartyTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TWarpPartyTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TWarpParty.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -602,8 +602,8 @@ begin end;
 procedure TDisjunctionTE.Validate(A1: Integer);
 begin end;
 
-procedure TDisjunctionTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TDisjunctionTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TDisjunctionSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin end;

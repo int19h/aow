@@ -47,7 +47,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TGlobalEnchantmentSpell (instance size 56, VMT 557EDA18) }
@@ -74,7 +74,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TEnchantedRoads (instance size 56, VMT 557EDC88) }
@@ -94,7 +94,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TAirMastery (instance size 56, VMT 557EDEE0) }
@@ -114,7 +114,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TWaterMastery (instance size 56, VMT 557EE138) }
@@ -135,7 +135,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
     procedure NewDay;  { draft }
   end;
 
@@ -157,7 +157,7 @@ type
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
     procedure NewDay;  { draft }
   end;
 
@@ -176,7 +176,7 @@ type
     class function ClassID: Integer; override;
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TPowerLeak (instance size 56, VMT 557EE814) }
@@ -221,7 +221,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure CanDeactivate(A1: Integer; A2: Integer); override;
     procedure Deactivate(A1: Byte); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
     procedure DaysBeforeActive;  { draft }
     procedure NewTurn;  { draft }
   end;
@@ -243,7 +243,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TLifeMastery (instance size 56, VMT 557EED74) }
@@ -263,7 +263,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
     procedure NewTurn(A1: Byte);  { draft }
   end;
 
@@ -285,7 +285,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
     procedure UpdateFire(A1: Integer; A2: Byte);  { draft }
   end;
 
@@ -306,7 +306,7 @@ type
     procedure GetAIUpkeepPriority; override;
     procedure Deactivate(A1: Byte); override;
     procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Byte; A2: Integer); override;
+    procedure Activate(A1: Byte); override;
   end;
 
   { TEarthMastery (instance size 56, VMT 557EF484) }
@@ -351,8 +351,8 @@ begin end;
 procedure TGlobalEnchantmentSpellTE.Validate(A1: Integer);
 begin end;
 
-procedure TGlobalEnchantmentSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantmentSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TGlobalEnchantmentSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -396,7 +396,7 @@ begin end;
 procedure TEnchantedRoadsEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TEnchantedRoadsEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TEnchantedRoadsEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TEnchantedRoadsEnchantment.Deactivate(A1: Byte);
@@ -426,7 +426,7 @@ begin end;
 procedure TAirMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAirMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TAirMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TAirMasteryEnchantment.Deactivate(A1: Byte);
@@ -456,7 +456,7 @@ begin end;
 procedure TWaterMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TWaterMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TWaterMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TWaterMasteryEnchantment.Deactivate(A1: Byte);
@@ -489,7 +489,7 @@ begin end;
 procedure THatredEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure THatredEnchantment.Activate(A1: Byte; A2: Integer);
+procedure THatredEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure THatredEnchantment.Deactivate(A1: Byte);
@@ -522,7 +522,7 @@ begin end;
 procedure THarmonyEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure THarmonyEnchantment.Activate(A1: Byte; A2: Integer);
+procedure THarmonyEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure THarmonyEnchantment.Deactivate(A1: Byte);
@@ -546,7 +546,7 @@ begin Result := 0; end;
 procedure TPowerLeakEnchantment.GetAIUpkeepPriority;
 begin end;
 
-procedure TPowerLeakEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TPowerLeakEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TPowerLeakEnchantment.Deactivate(A1: Byte);
@@ -609,7 +609,7 @@ begin end;
 procedure TFloodEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin end;
 
-procedure TFloodEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TFloodEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TFloodEnchantment.CanDeactivate(A1: Integer; A2: Integer);
@@ -642,7 +642,7 @@ begin end;
 procedure TLifeMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TLifeMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TLifeMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TLifeMasteryEnchantment.Deactivate(A1: Byte);
@@ -669,7 +669,7 @@ begin end;
 procedure TDeathMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TDeathMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TDeathMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TDeathMasteryEnchantment.Deactivate(A1: Byte);
@@ -705,7 +705,7 @@ begin end;
 procedure TFireMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TFireMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TFireMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TFireMasteryEnchantment.Deactivate(A1: Byte);
@@ -741,7 +741,7 @@ begin end;
 procedure TEarthMasteryEnchantment.CanActivate(A1: Integer; A2: Integer);
 begin end;
 
-procedure TEarthMasteryEnchantment.Activate(A1: Byte; A2: Integer);
+procedure TEarthMasteryEnchantment.Activate(A1: Byte);
 begin end;
 
 procedure TEarthMasteryEnchantment.Deactivate(A1: Byte);

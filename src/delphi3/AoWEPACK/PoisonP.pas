@@ -55,7 +55,7 @@ type
   TPoisonPlantSpellTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure CreatePoisonPlant(A1: Integer);  { draft }
   end;
 
@@ -64,9 +64,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
 procedure RegisterPoisonPlant(A1: Integer);  { draft }
@@ -143,23 +143,23 @@ begin Result := 0; end;
 procedure TPoisonPlantSpellTE.CreatePoisonPlant(A1: Integer);
 begin end;
 
-procedure TPoisonPlantSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TPoisonPlantSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TPoisonPlantSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TPoisonPlantSpell.ValidTargetMapF(A1: Integer);
-begin end;
+function TPoisonPlantSpell.ValidTargetMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
-procedure TPoisonPlantSpell.ValidTargetSelectionMapF(A1: Integer);
-begin end;
+function TPoisonPlantSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TPoisonPlantSpell.SetupTargetSelection(A1: Integer; A2: Integer);
 begin end;
 
-procedure TPoisonPlantSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TPoisonPlantSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+begin Result := False; end;
 
 procedure RegisterPoisonPlant(A1: Integer);
 begin end;

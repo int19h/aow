@@ -141,7 +141,7 @@ type
     F_StormSpellTE_27: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TStormSpell (instance size 60, VMT 557CBF48) }
@@ -383,8 +383,8 @@ begin Result := 0; end;
 procedure TStormSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TStormSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TStormSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TStormSpell.Create(AOwner: Engine.TECustomNode);
 begin end;

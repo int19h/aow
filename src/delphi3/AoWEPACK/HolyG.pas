@@ -53,7 +53,7 @@ type
   THolyGroundSpellTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure CreateHolyGround(A1: Integer);  { draft }
   end;
 
@@ -62,9 +62,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
 procedure RegisterHolyGround(A1: Integer);  { draft }
@@ -135,23 +135,23 @@ begin Result := 0; end;
 procedure THolyGroundSpellTE.CreateHolyGround(A1: Integer);
 begin end;
 
-procedure THolyGroundSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function THolyGroundSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor THolyGroundSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure THolyGroundSpell.ValidTargetMapF(A1: Integer);
-begin end;
+function THolyGroundSpell.ValidTargetMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
-procedure THolyGroundSpell.ValidTargetSelectionMapF(A1: Integer);
-begin end;
+function THolyGroundSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure THolyGroundSpell.SetupTargetSelection(A1: Integer; A2: Integer);
 begin end;
 
-procedure THolyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function THolyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+begin Result := False; end;
 
 procedure RegisterHolyGround(A1: Integer);
 begin end;

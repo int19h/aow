@@ -297,7 +297,7 @@ var
   Visible: Boolean;
 begin
   Visible := WorldMap^.Visible( GetXhx, GetYhx, GetLhx, 3) or
-    (FEnchantment.F_GlobalEnchantment_19 = TCloudMapFields(Pointer(WorldMap^)^).SeatedPlayer);
+    (FEnchantment.FPlayerIndex = TCloudMapFields(Pointer(WorldMap^)^).SeatedPlayer);
   if FVisibleForSeatedPlayer xor Visible then
   begin
     FVisibleForSeatedPlayer := Visible;
@@ -373,8 +373,8 @@ end;
 procedure TSmokeCloud.Deactivate;
 begin
   inherited Deactivate;
-  if Shortint(FEnchantment.F_GlobalEnchantment_19) > 0 then
-    FEnchantment.Deactivate(FEnchantment.F_GlobalEnchantment_19);
+  if Shortint(FEnchantment.FPlayerIndex) > 0 then
+    FEnchantment.Deactivate(FEnchantment.FPlayerIndex);
   UpdateConcealment(GetXhx, GetYhx, GetLhx);
 end;
 

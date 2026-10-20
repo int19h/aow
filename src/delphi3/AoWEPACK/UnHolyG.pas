@@ -53,7 +53,7 @@ type
   TUnholyGroundSpellTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure CreateUnholyGround(A1: Integer);  { draft }
   end;
 
@@ -62,9 +62,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
 procedure RegisterUnHolyGround(A1: Integer);  { draft }
@@ -135,23 +135,23 @@ begin Result := 0; end;
 procedure TUnholyGroundSpellTE.CreateUnholyGround(A1: Integer);
 begin end;
 
-procedure TUnholyGroundSpellTE.Process(A1: Integer; A2: Integer);
-begin end;
+function TUnholyGroundSpellTE.Process(A1: Integer; A2: Integer): Boolean;
+begin Result := False; end;
 
 constructor TUnholyGroundSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TUnholyGroundSpell.ValidTargetMapF(A1: Integer);
-begin end;
+function TUnholyGroundSpell.ValidTargetMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
-procedure TUnholyGroundSpell.ValidTargetSelectionMapF(A1: Integer);
-begin end;
+function TUnholyGroundSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TUnholyGroundSpell.SetupTargetSelection(A1: Integer; A2: Integer);
 begin end;
 
-procedure TUnholyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TUnholyGroundSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
+begin Result := False; end;
 
 procedure RegisterUnHolyGround(A1: Integer);
 begin end;

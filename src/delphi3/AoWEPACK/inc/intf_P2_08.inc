@@ -5,7 +5,7 @@
     F_AoWEngine_58: Integer;
     F_AoWEngine_5C: Integer;
     F_AoWEngine_60: Integer;
-    F_AoWEngine_64: Integer;
+    FGameSet: TAoWHSSet; { $64 }
     F_AoWEngine_68: array[0..3] of Byte;
     F_AoWEngine_6C: Byte;
     F_AoWEngine_6D: Byte;

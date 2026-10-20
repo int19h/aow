@@ -162,7 +162,7 @@
     F_GlobalEnchantment_12: array[0..1] of Byte;
     F_GlobalEnchantment_14: Integer;
     F_GlobalEnchantment_18: Byte;
-    F_GlobalEnchantment_19: Byte;
+    FPlayerIndex: Byte; { $19 }
     F_GlobalEnchantment_1A: array[0..1] of Byte;
     F_GlobalEnchantment_1C: Integer;
     F_GlobalEnchantment_20: Integer;
@@ -177,7 +177,7 @@
     procedure CanDeactivate(A1: Integer; A2: Integer); virtual;  { +05C draft }
     procedure Deactivate(A1: Byte); virtual;  { +060 draft }
     procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +064 draft }
-    procedure Activate(A1: Byte; A2: Integer); virtual;  { +068 draft }
+    procedure Activate(A1: Byte); virtual;
     procedure CanCast; virtual;  { +06C draft }
     procedure Cast(A1: Integer); virtual;  { +070 draft }
     procedure CanDispel; virtual;  { +074 draft }
@@ -202,7 +202,7 @@
   { TGlobalEnchantmentList (instance size 12, VMT 5570B5C0) }
   TGlobalEnchantmentList = class(TENode)
   public
-    procedure GetEnchantments(A1: Integer);  { draft }
+    function GetEnchantments(A1: Integer): TGlobalEnchantment;
   end;
 
   { TChangeGlobalMagicTE (instance size 28, VMT 5570B724) }

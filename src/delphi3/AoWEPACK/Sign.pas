@@ -142,7 +142,7 @@ begin
     Event.FYhx := GetYhx;
     Event.FLhx := GetLhx;
     Event.FText.Assign(Text);
-    TTokenManager(WorldMap^.F_AoWHSMap_23C).GetTokenControl(Player).AddEvent(Event);
+    TTokenManager(WorldMap^.FTokenManager).GetTokenControl(Player).AddEvent(Event);
     Event.Release;
     Result := True;
   end

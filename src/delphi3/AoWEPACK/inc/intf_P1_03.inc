@@ -223,6 +223,7 @@
     F_Player_BC: Integer;
     F_Player_C0: Integer;
     FGems: Integer; { $C4 }
+    { conflict: FGems: Integer; $C4, read at $557A7E18 }
     F_Player_C8: Integer;
     F_Player_CC: Integer;
     FIncome: Integer;  { $D0 }

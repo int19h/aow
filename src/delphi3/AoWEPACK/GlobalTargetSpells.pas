@@ -65,17 +65,17 @@ type
     procedure ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); virtual;  { +09C }
     procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
     procedure SetupTargetSelection(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0A8 draft }
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; virtual;  { +0A8  }
     procedure ValidTargetSelection(A1: Integer); virtual;  { +0AC draft }
-    procedure ValidTargetSelectionMapF(A1: Integer); virtual;  { +0B0 draft }
-    procedure ValidTargetMapF(A1: Integer); virtual;  { +0B4 draft }
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; virtual;  { +0B0  }
+    function ValidTargetMapF(A1: Integer): Boolean; virtual;  { +0B4  }
   end;
 
   { TFreezeWaterTE (instance size 36, VMT 5579CDE0) }
   TFreezeWaterTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ChangeTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
     procedure TerrainChanged(MapF: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
   end;
@@ -85,16 +85,16 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
   { TFireBarrierTE (instance size 36, VMT 5579CFFC) }
   TFireBarrierTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure CreateFireBarrier;  { draft }
   end;
 
@@ -103,16 +103,16 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
   { TLevelTerrainTE (instance size 36, VMT 5579D218) }
   TLevelTerrainTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure LevelTerrain;  { draft }
   end;
 
@@ -121,16 +121,16 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
   { TRejuvenateTE (instance size 36, VMT 5579D434) }
   TRejuvenateTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure RejuvenateTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
   end;
 
@@ -139,9 +139,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
   { TWatcherEnchantment (instance size 40, VMT 5579D648): $24 FWatcher. }
@@ -192,7 +192,7 @@ type
   TWatcherTE = class(TGlobalTargetSpellTE)
   public
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
   { TWatcher (instance size 60, VMT 5579DA04) }
@@ -200,7 +200,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
   end;
 
   { TTornadoTE (instance size 48, VMT 5579DB38): $24 angle,
@@ -215,7 +215,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
   end;
@@ -225,7 +225,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidWarpLocation(Army: TArmyHS; X, Y, Layer: Shortint): Boolean;
     function CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer;
   end;
@@ -242,7 +242,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure Validate(A1: Integer); override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
   end;
@@ -252,7 +252,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     procedure ValidTargetSelection(A1: Integer); override;
     procedure ValidateTargetEvent(Target: TTargetSelectionControl; X,Y,Layer: Shortint; var Valid: Boolean);
   end;
@@ -262,7 +262,7 @@ type
   public
     FAnimation: TAnimation;
     class function ClassID: Integer; override;
-    procedure Process(A1: Integer; A2: Integer); override;
+    function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
     procedure ChangeTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
@@ -273,9 +273,9 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
   { TSmokeCloudSpell (instance size 60, VMT 5579E16C) }
@@ -284,9 +284,9 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
-    procedure TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    procedure ValidTargetSelectionMapF(A1: Integer); override;
-    procedure ValidTargetMapF(A1: Integer); override;
+    function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
+    function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
+    function ValidTargetMapF(A1: Integer): Boolean; override;
   end;
 
 procedure RegisterGlobalTargetSpells(A1: Integer);  { draft }
@@ -460,22 +460,22 @@ begin
   end;
 end;
 
-procedure TGlobalTargetSpell.ValidTargetMapF(A1: Integer);
+function TGlobalTargetSpell.ValidTargetMapF(A1: Integer): Boolean;
 asm
   { needs: Boolean result, retained in AL for the existing procedure ABI. }
   MOV AL, 1
 end;
 
-procedure TGlobalTargetSpell.ValidTargetSelectionMapF(A1: Integer);
+function TGlobalTargetSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
 begin
   if (SpellHSMap^.F_AbstractAoWHSMap_C9 <> 0) and
     not TAoWMapField(A1).GetExplored(FCasterPlayer) then
   begin
     { needs: Boolean function declaration; preserve result for callers. }
-    asm XOR EAX, EAX end;
+    Result := False;
     Exit;
   end;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 procedure TGlobalTargetSpell.ValidTargetSelection(A1: Integer);
@@ -544,7 +544,7 @@ begin
   end;
 end;
 
-procedure TGlobalTargetSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TGlobalTargetSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 asm
   { needs: Boolean result; stack arguments require the normal EBP frame. }
   XOR EAX, EAX
@@ -657,7 +657,7 @@ begin
   end;
 end;
 
-procedure TFreezeWaterTE.Process(A1: Integer; A2: Integer);
+function TFreezeWaterTE.Process(A1: Integer; A2: Integer): Boolean;
 var
   Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
@@ -687,7 +687,7 @@ begin
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
     CastingDone(TAbstractUnit(A1), FEventMana);
   { needs: TSpellTE.Process returns a result in EAX (zero for this event). }
-  asm XOR EAX, EAX end;
+  Result := False;
 end;
 
 { needs: TArmyHS.VisibleForSeatedPlayer: Boolean; $5579EC2B tests AL. }
@@ -701,7 +701,7 @@ begin
   FMagicSphere := msWater;
 end;
 
-procedure TFreezeWater.ValidTargetMapF(A1: Integer);
+function TFreezeWater.ValidTargetMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -743,7 +743,7 @@ asm
   POP EBX
 end;
 
-procedure TFreezeWater.ValidTargetSelectionMapF(A1: Integer);
+function TFreezeWater.ValidTargetSelectionMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -799,12 +799,12 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
-procedure TFreezeWater.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TFreezeWater.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TFreezeWaterTE;
 begin
@@ -812,10 +812,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 { needs: TFireControl.PlaceFire(X,Y,Layer:Integer; Create:Boolean): TFire,
@@ -854,13 +854,13 @@ begin
   end;
 end;
 
-procedure TFireBarrierTE.Process(A1: Integer; A2: Integer);
+function TFireBarrierTE.Process(A1: Integer; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
   CreateFireBarrier;
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
     CastingDone(TAbstractUnit(A1), TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
-  asm XOR EAX, EAX end;
+  Result := False;
 end;
 
 constructor TFireBarrier.Create(AOwner: Engine.TECustomNode);
@@ -873,7 +873,7 @@ begin
   FMagicSphere := msFire;
 end;
 
-procedure TFireBarrier.ValidTargetMapF(A1: Integer);
+function TFireBarrier.ValidTargetMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -916,7 +916,7 @@ asm
   POP EBX
 end;
 
-procedure TFireBarrier.ValidTargetSelectionMapF(A1: Integer);
+function TFireBarrier.ValidTargetSelectionMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -973,12 +973,12 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
-procedure TFireBarrier.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TFireBarrier.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TFireBarrierTE;
 begin
@@ -986,10 +986,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 class function TLevelTerrainTE.ClassID: Integer;
@@ -1020,14 +1020,14 @@ begin
   end;
 end;
 
-procedure TLevelTerrainTE.Process(A1: Integer; A2: Integer);
+function TLevelTerrainTE.Process(A1: Integer; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X, TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   LevelTerrain;
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
     CastingDone(TAbstractUnit(A1), TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
-  asm XOR EAX, EAX end;
+  Result := False;
 end;
 
 constructor TLevelTerrain.Create(AOwner: Engine.TECustomNode);
@@ -1040,7 +1040,7 @@ begin
   FMagicSphere := msEarth;
 end;
 
-procedure TLevelTerrain.ValidTargetMapF(A1: Integer);
+function TLevelTerrain.ValidTargetMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -1085,7 +1085,7 @@ asm
   POP EBX
 end;
 
-procedure TLevelTerrain.ValidTargetSelectionMapF(A1: Integer);
+function TLevelTerrain.ValidTargetSelectionMapF(A1: Integer): Boolean;
 asm
   { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
   PUSH EBX
@@ -1144,12 +1144,12 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
-procedure TLevelTerrain.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TLevelTerrain.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TLevelTerrainTE;
 begin
@@ -1157,10 +1157,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 class function TRejuvenateTE.ClassID: Integer;
@@ -1171,7 +1171,7 @@ begin
   if TerrainType in [Ord(ttDesert)..Ord(ttWasteland)] then TerrainType := Ord(ttGrass);
 end;
 
-procedure TRejuvenateTE.Process(A1: Integer; A2: Integer);
+function TRejuvenateTE.Process(A1: Integer; A2: Integer): Boolean;
 var
   Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
@@ -1201,7 +1201,7 @@ begin
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
     CastingDone(TAbstractUnit(A1), TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
   { needs: TSpellTE.Process returns a result in EAX (zero for this event). }
-  asm XOR EAX, EAX end;
+  Result := False;
 end;
 
 constructor TRejuvenate.Create(AOwner: Engine.TECustomNode);
@@ -1215,7 +1215,7 @@ begin
   FAboveGroundOnly := True;
 end;
 
-procedure TRejuvenate.ValidTargetMapF(A1: Integer);
+function TRejuvenate.ValidTargetMapF(A1: Integer): Boolean;
 asm
   { Original result in AL, with two early returns. }
   PUSH EBX
@@ -1242,7 +1242,7 @@ asm
   POP EBX
 end;
 
-procedure TRejuvenate.ValidTargetSelectionMapF(A1: Integer);
+function TRejuvenate.ValidTargetSelectionMapF(A1: Integer): Boolean;
 asm
   { Original result in AL, with two early returns. }
   PUSH EBX
@@ -1276,12 +1276,12 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(3) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
-procedure TRejuvenate.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TRejuvenate.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TRejuvenateTE;
 begin
@@ -1289,10 +1289,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 constructor TWatcherEnchantment.Create(AOwner: Engine.TECustomNode);
@@ -1487,7 +1487,7 @@ begin
   begin
     for I := 1 to TPlayerList(SpellHSMap^.FPlayers).Count-1 do
     begin
-      OwnerPlayer := Shortint(FEnchantment.F_GlobalEnchantment_19);
+      OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = I) or (SpellRelation(TPlayerDiplomaticRelations(
         TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40), I) = 2) then
         SpellHSMap^.ExploreArea(Xhx,Yhx,Lhx,I,VisibilityRange);
@@ -1502,7 +1502,7 @@ var
 begin
   if Byte(SpellHSMap^.FSeatedPlayer) <> $FF then
   begin
-    OwnerPlayer := Shortint(FEnchantment.F_GlobalEnchantment_19);
+    OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
     if     ((OwnerPlayer = SpellHSMap^.FSeatedPlayer) or
     (SpellRelation(TPlayerDiplomaticRelations(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
       Byte(SpellHSMap^.FSeatedPlayer)) = 2)) and Activated then
@@ -1530,11 +1530,11 @@ var
 begin
   inherited Activate;
   TWatcherState(FWatcherState) := TWatcherState(FWatcherState) + [wsActive];
-  FEnchantment.Activate(FEnchantment.F_GlobalEnchantment_19,0);
+  FEnchantment.Activate(FEnchantment.FPlayerIndex);
   MapF := TMapField(Owner);
   SpellHSMap^.NotifyPlayerChanged(MapF.Xhx,MapF.Yhx,MapF.Lhx);
   MapF := TMapField(Owner);
-  SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.F_GlobalEnchantment_19),
+  SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.FPlayerIndex),
     MapF.Xhx,MapF.Yhx,MapF.Lhx,VisibilityRange,VisibilityRange);
   UpdateExploration;
   UpdateUnfog;
@@ -1545,7 +1545,7 @@ begin
   inherited Deactivate;
   TWatcherState(FWatcherState) := TWatcherState(FWatcherState) - [wsActive];
   if FEnchantment.F_GlobalEnchantment_10 and 1 <> 0 then
-    FEnchantment.Deactivate(FEnchantment.F_GlobalEnchantment_19);
+    FEnchantment.Deactivate(FEnchantment.FPlayerIndex);
   SpellHSMap^.NotifyPlayerChanged(TMapField(Owner).Xhx,TMapField(Owner).Yhx,TMapField(Owner).Lhx);
   UpdateUnfog;
 end;
@@ -1562,7 +1562,7 @@ begin
   end
   else
   begin
-    Player := Shortint(FEnchantment.F_GlobalEnchantment_19);
+    Player := Shortint(FEnchantment.FPlayerIndex);
     if (Player > 0) and (PByte(Integer(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Player).
       FMagicControl)+$45)^ and 8 <> 0) then
   begin
@@ -1632,7 +1632,7 @@ begin
   if MsgID = $110B then
     if Activated then
     begin
-      OwnerPlayer := Shortint(FEnchantment.F_GlobalEnchantment_19);
+      OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
         TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
         Param[1]) = 2) then
@@ -1641,7 +1641,7 @@ begin
   if MsgID = $110A then
     if Activated then
     begin
-      OwnerPlayer := Shortint(FEnchantment.F_GlobalEnchantment_19);
+      OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
         TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).F_Player_40),
         Param[1]) = 2) then
@@ -1652,7 +1652,7 @@ begin
     if VisibilityRange >= Param[0] then
     begin
       Range := Param[0];
-      SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.F_GlobalEnchantment_19),
+      SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.FPlayerIndex),
         TMapField(Owner).Xhx,TMapField(Owner).Yhx,TMapField(Owner).Lhx,Range,Range);
     end;
     UpdateVisibleForSeatedPlayer;
@@ -1663,14 +1663,14 @@ end;
 class function TWatcherTE.ClassID: Integer;
 begin Result := $2131B; end;
 
-procedure TWatcherTE.Process(A1: Integer; A2: Integer);
+function TWatcherTE.Process(A1: Integer; A2: Integer): Boolean;
 var
   Watcher: TWatcherHS;
 begin
   inherited Process(A1,A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   Watcher := TWatcherHS.Create(nil);
-  Watcher.FEnchantment.F_GlobalEnchantment_19 := TAbstractUnit(A1).FPlayer;
+  Watcher.FEnchantment.FPlayerIndex := TAbstractUnit(A1).FPlayer;
   Watcher.FEnchantment.F_GlobalEnchantment_20 :=
     TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57).F_Spell_1C;
   SpellHSMap^.PlaceHX(Watcher,TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
@@ -1678,7 +1678,7 @@ begin
     Watcher.StartAnimation(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
     CastingDone(TAbstractUnit(A1),TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
-  asm XOR EAX, EAX end;
+  Result := False;
 end;
 
 { needs: TPlayer.GetBusy: Boolean, tested at $557A0266. }
@@ -1690,7 +1690,7 @@ begin
   FAboveGroundOnly := False;
 end;
 
-procedure TWatcher.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TWatcher.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Busy: Boolean;
   Event: TWatcherTE;
@@ -1702,7 +1702,7 @@ begin
     Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
       TAbstractUnit(A1).FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
-    TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+    TTokenManager(SpellHSMap^.FTokenManager).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
@@ -1715,7 +1715,7 @@ begin
   inherited SetupTargetSelection(A1,A2);
   TTargetSelectionMode(TTargetSelectionControl(A2).F_TargetSelectionControl_0D) :=
     TTargetSelectionMode(TTargetSelectionControl(A2).F_TargetSelectionControl_0D) - [tmFixedLevel,tmValidateDistance];
-  TShortIntList(TTargetSelectionControl(A2).F_TargetSelectionControl_08).Clear;
+  TShortIntList(TTargetSelectionControl(A2).FHNs).Clear;
 end;
 
 { needs: the shared army and spell-event drafts do not declare results or
@@ -1798,17 +1798,17 @@ begin
     HXtoHP(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,Xhp,Yhp);
     Dec(Xhp,XhpSurf);
     Dec(Yhp,YhpSurf);
-    FAngle := FAngle + 20 + FAnimation.F_Animation_10 div 5;
+    FAngle := FAngle + 20 + FAnimation.FFrameCounter div 5;
     RandSeed := SpellHSMap^.F_AoWHSMap_22C;
     for I := 0 to 200 do
     begin
       Direction := Random(360);
-      if (Animation.F_Animation_10 >= I shr 2) and
-         (Animation.F_Animation_10 <= (I shr 4) + 68) then
+      if (Animation.FFrameCounter >= I shr 2) and
+         (Animation.FFrameCounter <= (I shr 4) + 68) then
       begin
         Radius := Round((2.997 - Ln(I * 19 * 0.005 + 1)) * 35) + 7;
         Height := 200 - I - 16;
-        XShift := Round(Sin(FAnimation.F_Animation_10 * 0.1 + I * 0.02) *
+        XShift := Round(Sin(FAnimation.FFrameCounter * 0.1 + I * 0.02) *
           (200-I) * 0.25) + 16;
         Angle := (Direction + FAngle) * Pi / 180;
         if SpellEngine^.F_AoWEngine_6D = 0 then
@@ -1877,7 +1877,7 @@ begin
     Event.FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
     Event.FAnimation.F_Animation_38 := Integer(SpellHSMap^);
-    Event.FAnimation.F_Animation_34 := (SpellHSMap^.ViewWidth and $FFFF) or
+    Event.FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     Event.FAnimation.Activate;
   end;
@@ -1979,7 +1979,7 @@ begin
   Result := False;
 end;
 
-procedure TTornadoTE.Process(A1: Integer; A2: Integer);
+function TTornadoTE.Process(A1: Integer; A2: Integer): Boolean;
 asm
   { needs: Boolean result on TSpellTE.Process; managed locals finalize in the helper. }
   JMP ProcessTornado
@@ -2052,7 +2052,7 @@ begin
   Locations.Free;
 end;
 
-procedure TTornado.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TTornado.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TTornadoTE;
   Army: TArmyHS;
@@ -2067,7 +2067,7 @@ begin
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
     if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
-    TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+    TTokenManager(SpellHSMap^.FTokenManager).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
@@ -2079,7 +2079,7 @@ var Target: TTargetSelectionControl;
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1,Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
 end;
 
 constructor TVortexTE.Create(AOwner: Engine.TECustomNode);
@@ -2146,13 +2146,13 @@ begin
     HXtoHP(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,Xhp,Yhp);
     Dec(Xhp,XhpSurf);
     Dec(Yhp,YhpSurf);
-    FAngle := FAngle + 20 + FAnimation.F_Animation_10 div 5;
+    FAngle := FAngle + 20 + FAnimation.FFrameCounter div 5;
     RandSeed := SpellHSMap^.F_AoWHSMap_22C;
     for I := 0 to 200 do
     begin
       Direction := Random(360);
-      if (Animation.F_Animation_10 >= (200-I) shr 2) and
-         (Animation.F_Animation_10 <= (I shr 4) + 68) then
+      if (Animation.FFrameCounter >= (200-I) shr 2) and
+         (Animation.FFrameCounter <= (I shr 4) + 68) then
       begin
         Radius := Round((2.997 - Ln(I * 19 * 0.005 + 1)) * 35) + 18;
         Height := -16;
@@ -2205,7 +2205,7 @@ begin
     Event.FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
     Event.FAnimation.F_Animation_38 := Integer(SpellHSMap^);
-    Event.FAnimation.F_Animation_34 := (SpellHSMap^.ViewWidth and $FFFF) or
+    Event.FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     Event.FAnimation.Activate;
   end;
@@ -2257,7 +2257,7 @@ begin
   Result := False;
 end;
 
-procedure TVortexTE.Process(A1: Integer; A2: Integer);
+function TVortexTE.Process(A1: Integer; A2: Integer): Boolean;
 asm JMP ProcessVortex end;
 
 constructor TVortex.Create(AOwner: Engine.TECustomNode);
@@ -2295,7 +2295,7 @@ begin
   end;
 end;
 
-procedure TVortex.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TVortex.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TVortexTE;
   Army: TArmyHS;
@@ -2310,7 +2310,7 @@ begin
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
     if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
-    TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+    TTokenManager(SpellHSMap^.FTokenManager).
       GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
     Event.Release;
   end;
@@ -2322,7 +2322,7 @@ var Target: TTargetSelectionControl;
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1,Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   TTargetSelectionView(Target).OnValidate := ValidateTargetEvent;
 end;
 
@@ -2360,7 +2360,7 @@ begin
       X := Random(100)-50;
       Y := Random(100)-50;
       Speed := Random(5)+5;
-      Frame := Animation.F_Animation_10-Random(30);
+      Frame := Animation.FFrameCounter-Random(30);
       if (Frame >= 0) and (Frame < 50) then
       begin
         Frame := Frame mod 30;
@@ -2387,7 +2387,7 @@ begin
   end;
 end;
 
-procedure THealingShowersTE.Process(A1: Integer; A2: Integer);
+function THealingShowersTE.Process(A1: Integer; A2: Integer): Boolean;
 var
   Level: TMapLevel;
   Walk: THNWalkData;
@@ -2411,7 +2411,7 @@ begin
     FAnimation.F_Animation_0B[0] := $1B;
     TSpellAnimationFields(Pointer(FAnimation)^).OnShow := ShowAnimation;
     FAnimation.F_Animation_38 := Integer(SpellHSMap^);
-    FAnimation.F_Animation_34 := (SpellHSMap^.ViewWidth and $FFFF) or
+    FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     FAnimation.Activate;
     TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
@@ -2484,12 +2484,12 @@ begin
   FMagicSphere := msWater;
 end;
 
-procedure THealingShowers.ValidTargetMapF(A1: Integer);
-begin inherited ValidTargetMapF(A1); end;
+function THealingShowers.ValidTargetMapF(A1: Integer): Boolean;
+begin Result := inherited ValidTargetMapF(A1); end;
 
 
-procedure THealingShowers.ValidTargetSelectionMapF(A1: Integer);
-begin inherited ValidTargetSelectionMapF(A1); end;
+function THealingShowers.ValidTargetSelectionMapF(A1: Integer): Boolean;
+begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
 procedure THealingShowers.SetupTargetSelection(A1: Integer; A2: Integer);
@@ -2499,13 +2499,13 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
 
-procedure THealingShowers.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function THealingShowers.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: THealingShowersTE;
 begin
@@ -2513,10 +2513,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 { needs: TFireControl.PlaceFire(X,Y,Layer:Integer; Create:Boolean): TFire,
@@ -2532,12 +2532,12 @@ begin
   FMagicSphere := msFire;
 end;
 
-procedure TSmokeCloudSpell.ValidTargetMapF(A1: Integer);
-begin inherited ValidTargetMapF(A1); end;
+function TSmokeCloudSpell.ValidTargetMapF(A1: Integer): Boolean;
+begin Result := inherited ValidTargetMapF(A1); end;
 
 
-procedure TSmokeCloudSpell.ValidTargetSelectionMapF(A1: Integer);
-begin inherited ValidTargetSelectionMapF(A1); end;
+function TSmokeCloudSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
+begin Result := inherited ValidTargetSelectionMapF(A1); end;
 
 
 procedure TSmokeCloudSpell.SetupTargetSelection(A1: Integer; A2: Integer);
@@ -2547,13 +2547,13 @@ var
 begin
   Target := TTargetSelectionControl(A2);
   inherited SetupTargetSelection(A1, Integer(Target));
-  TShortIntList(Target.F_TargetSelectionControl_08).Clear;
+  TShortIntList(Target.FHNs).Clear;
   for I := 0 to RadToHN(4) - 1 do
-    TShortIntList(Target.F_TargetSelectionControl_08).Add(0);
+    TShortIntList(Target.FHNs).Add(0);
 end;
 
 
-procedure TSmokeCloudSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+function TSmokeCloudSpell.TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
   Event: TGlobalTargetSpellTE;
 begin
@@ -2561,10 +2561,10 @@ begin
   Event.Initialize(FSpellID, TAbstractUnit(A1).FPlayer,
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
-  TTokenManager(SpellHSMap^.F_AoWHSMap_23C).
+  TTokenManager(SpellHSMap^.FTokenManager).
     GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
   Event.Release;
-  asm MOV AL, 1 end;
+  Result := True;
 end;
 
 { needs: TFireControl.PlaceFire(X,Y,Layer:Integer; Create:Boolean): TFire,
@@ -2587,7 +2587,7 @@ begin
     Cloud := TSmokeCloud(Resource.CreateResourceUser);
     Cloud.FPlayer := Caster.FPlayer;
     Cloud.FTurnsRemaining := -1;
-    TGlobalEnchantment(Cloud.FEnchantment).F_GlobalEnchantment_19 :=
+    TGlobalEnchantment(Cloud.FEnchantment).FPlayerIndex :=
       Caster.FPlayer;
     TGlobalEnchantment(Cloud.FEnchantment).F_GlobalEnchantment_20 := Spell.F_Spell_18;
     Cloud.FDrifting := False;
