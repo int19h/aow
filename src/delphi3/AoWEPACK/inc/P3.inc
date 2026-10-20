@@ -643,7 +643,7 @@ end;
 function TCombatWall.GetTargetStrength: Integer;
 begin
   if not FLocked then
-    if not TCombatData(TCombat(FCombat).FCombatData).F_CombatData_4D then Result := 10
+    if not TCombatData(TCombat(FCombat).FCombatData).FWallBreached then Result := 10
     else Result := 1
   else Result := 0;
 end;
@@ -708,7 +708,7 @@ begin FHitPoints := A1; end;
 procedure TCombatWall.DestroyObject;
 begin
   inherited DestroyObject;
-  TCombatData(TCombat(FCombat).FCombatData).F_CombatData_4D := True;
+  TCombatData(TCombat(FCombat).FCombatData).FWallBreached := True;
 end;
 
 procedure TCombatWall.Show(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc);
@@ -859,7 +859,7 @@ begin
     if not (csDestroyed in Target.FStatus) then
     begin
       GetTargetCVDV(Target, CV, DV);
-      if TCombatData(FCombat.FCombatData).F_CombatData_4C <> 0 then WallCV := GetTargetWallCV(Target)
+      if TCombatData(FCombat.FCombatData).FWallType <> 0 then WallCV := GetTargetWallCV(Target)
       else WallCV := 0;
       AddTarget(Target, CV, WallCV, DV);
     end;
@@ -872,7 +872,7 @@ begin
   if TCombatObject(A1).GetSide <> GetSide then
   begin
     GetTargetCVDV(TCombatObject(A1), CV, DV);
-    if TCombatData(FCombat.FCombatData).F_CombatData_4C <> 0 then WallCV := GetTargetWallCV(TCombatObject(A1))
+    if TCombatData(FCombat.FCombatData).FWallType <> 0 then WallCV := GetTargetWallCV(TCombatObject(A1))
     else WallCV := 0;
     AddTarget(TCombatObject(A1), CV, WallCV, DV);
   end
@@ -1623,7 +1623,7 @@ begin
     FCombatData.AddObject(Wall);
   end;
   if TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(0) <> nil then
-    FCombatData.F_CombatData_4C := TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(0).F_CombatParty_18;
+    FCombatData.FWallType := TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(0).F_CombatParty_18;
   TByteList(FCombatData.F_CombatData_40).Add(FCombatData.FDefenderPlayer);
   for I := 0 to TCombatPlayerList(FCombatData.FPlayers).Count - 1 do
   begin
@@ -1989,8 +1989,8 @@ begin
   Stream.rwInteger(F_CombatData_1C, $18);
   Stream.rwStreamProc($19, TByteList(F_CombatData_2C).LoadFromStream, TByteList(F_CombatData_2C).SaveToStream);
   Stream.rwStreamProc($1A, TByteList(F_CombatData_40).LoadFromStream, TByteList(F_CombatData_40).SaveToStream);
-  Stream.rwData(F_CombatData_4C, 1, $1B);
-  Stream.rwBool(F_CombatData_4D, $1C);
+  Stream.rwData(FWallType, 1, $1B);
+  Stream.rwBool(FWallBreached, $1C);
   Stream.rwStreamProc($1D, TByteList(F_CombatData_28).LoadFromStream, TByteList(F_CombatData_28).SaveToStream);
 end;
 

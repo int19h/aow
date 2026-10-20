@@ -119,7 +119,7 @@ type
     F_CombatSpell_3D: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
-    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
+    procedure GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); override;
     function GetCombatDamageValue(A1, A2: TCombatObject): Integer; override;
     procedure GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
@@ -613,7 +613,7 @@ begin
   FDamageMode := 0;
 end;
 
-procedure TCombatSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+procedure TCombatSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 begin
   Info := FCombatInfo;
 end;

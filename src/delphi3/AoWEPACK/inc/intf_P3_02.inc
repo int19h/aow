@@ -243,8 +243,8 @@
     F_CombatData_40: Integer;
     F_CombatData_44: Integer;
     FHeader: string; { $48 }
-    F_CombatData_4C: Byte;
-    F_CombatData_4D: Boolean;
+    FWallType: Byte; { $4C }
+    FWallBreached: Boolean; { $4D }
     F_CombatData_4E: array[0..1] of Byte;
     F_CombatData_50: Integer;
     destructor Destroy; override;

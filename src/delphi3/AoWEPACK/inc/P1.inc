@@ -1447,7 +1447,7 @@ asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
   with PP1DamageValues(@A4)^ do
   begin
@@ -1459,7 +1459,7 @@ begin
   end;
 end;
 
-procedure TAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
   with PP1DamageValues(@A4)^ do
   begin
@@ -9311,8 +9311,8 @@ begin end;
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure CombatRangeToCombatMode(A1: Byte);
-begin end;
+function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
+begin Result := cmNone; end;
 
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 begin end;

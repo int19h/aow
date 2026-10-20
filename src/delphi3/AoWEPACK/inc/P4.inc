@@ -15,7 +15,9 @@ end;
   Adjustable, duration, multilevel, unit-enchantment, cosmetic-surgery, leadership,
   strike, touch, invoke-death, healing and dispel-magic abilities and their combat
   actions are recovered; healing token events and selectors are recovered.
-  Dispel-magic token events/selectors and later draft bodies remain for recovery.
+  Dispel-magic token events/selectors, spellcasting, ranged/bolt/breath/flame
+  attacks and command ability data/commanded abilities are recovered.
+  Draft recovery next resumes at TCommandCA (5576FBAC).
   The base spell, spell events/control/list/casters and power sources are recovered.
   Compatibility declarations preserve calls to other packages' draft APIs; these
   adapters never create instances of their declaration-only views. }
@@ -80,6 +82,7 @@ const
   P4LeadershipAttack: array[0..4] of Shortint = (0, 1, 1, 2, 2);
   P4LeadershipDefense: array[0..4] of Shortint = (2, 0, 1, 1, 2);
   { Class-reference constants used by the recovered multilevel implementation. }
+  P4CommandedDataClass: TEObjectClass = TCommandedAbilityData;
   P4PossessedDataClass: TEObjectClass = TPossessedAbilityData;
   P4DispelMagicDataClass: TEObjectClass = TDispelMagicAbilityData;
   P4HealingDataClass: TEObjectClass = THealingAbilityData;
@@ -100,6 +103,10 @@ resourcestring
   InvokeDeathRStr = 'Invoke Death';
   HealingRStr = 'Healing';
   DispelMagicRStr = 'Dispel Magic';
+  DispelMagicFailedRStr = 'Dispel Magic failed';
+  XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled';
+  SpellCastingRStr = 'Spell Casting';
+  FlameThrowingRStr = 'Flame Throwing';
   UsedRStr = 'Used';
   SelectUnitForXRStr = 'Select unit for %s';
   EntangleRStr = 'Entangle';
@@ -1406,9 +1413,9 @@ begin
     Result := 0;
 end;
 
-procedure TStrikeAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TStrikeAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) then
+  if (A3 = wsNone) and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) then
   begin
     FMeleeRound.CalculateUnit(A1, A2);
     A4.SourceDamage := FMeleeRound.GetAttackerDV;
@@ -1426,9 +1433,9 @@ begin
   end;
 end;
 
-procedure TStrikeAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TStrikeAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) then
+  if (A3 = wsNone) and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) then
   begin
     FMeleeRound.Calculate(A1, A2);
     A4.SourceDamage := FMeleeRound.GetAttackerDV;
@@ -1556,7 +1563,7 @@ begin
     if Target.GetEnabled and fcValidRoundDistance(A1.FSource, Target) and
       CanExecuteMelee(A1.FSource, Target) then
     begin
-      fcGetDamageValueEx(A1.FSource, Target, False, Values);
+      fcGetDamageValueEx(A1.FSource, Target, wsNone, Values);
       if Values.SourceDamage <> 0 then
       begin
         Command := TFastCombatCommand.Create(FAbilityID);
@@ -2073,7 +2080,7 @@ begin
     if Target.GetEnabled and CanTouch(A1.FSource, Target) and
       fcValidRoundDistance(A1.FSource, Target) then
     begin
-      fcGetDamageValueEx(A1.FSource, Target, False, Values);
+      fcGetDamageValueEx(A1.FSource, Target, wsNone, Values);
       if Values.SourceDamage <> 0 then
       begin
         Command := TFastCombatCommand.Create(FAbilityID);
@@ -2104,9 +2111,9 @@ begin
     A2.GetDefense, A2.GetResistance, A2.GetImmunityTypes, A2.GetProtectionTypes);
 end;
 
-procedure TWallCrushingAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TWallCrushingAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 then
+  if (A3 = wsNone) then
   begin
     { Original leaves DamageTypes untouched on this successful path. }
     A4.SourceDamage := StatisticsToLimitedDV(6, 6, [dtWall], A2.GetHitPoints,
@@ -2125,7 +2132,7 @@ begin
   end;
 end;
 
-procedure TWallCrushingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TWallCrushingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
   if CanTouch(A1, A2) then
   begin
@@ -2252,9 +2259,9 @@ begin
     Result := 0;
 end;
 
-procedure TSelfDestructAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TSelfDestructAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and CanTouchUnit(A1, A2) then
+  if (A3 = wsNone) and CanTouchUnit(A1, A2) then
   begin
     A4.DamageTypes := [dtFire, dtWall];
     A4.SourceDamage := StatisticsToLimitedDV(8, 6, [dtFire, dtWall], A2.GetHitPoints,
@@ -2273,9 +2280,9 @@ begin
   end;
 end;
 
-procedure TSelfDestructAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TSelfDestructAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     A4.DamageTypes := [dtFire, dtWall];
     A4.SourceDamage := StatisticsToLimitedDV(8, 6, [dtFire, dtWall], A2.GetHitPoints,
@@ -2423,9 +2430,9 @@ begin
   end;
 end;
 
-procedure TRoundAttackAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TRoundAttackAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and CanTouchUnit(A1, A2) then
+  if (A3 = wsNone) and CanTouchUnit(A1, A2) then
   begin
     A4.SourceDamage := P4UnitStrikeDV(A1, A2) * 2;
     A4.SourceCost := 0;
@@ -2443,14 +2450,14 @@ begin
   end;
 end;
 
-procedure TRoundAttackAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TRoundAttackAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Count, I: Integer;
   DamageTypes: TDamageTypes;
   Combat: TFastCombat;
   Target: TCombatObject;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     DamageTypes := MeleeDamageTypes(A1);
     A4.SourceDamage := StrikeDV(A1, A2);
@@ -2791,11 +2798,11 @@ begin
     Result := 0;
 end;
 
-procedure TPossessAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TPossessAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and CanTouchUnit(A1, A2) and not (dtNone in A2.GetImmunityTypes) then
+  if (A3 = wsNone) and CanTouchUnit(A1, A2) and not (dtNone in A2.GetImmunityTypes) then
   begin
     Probability := TouchRoleProbability(A1, A2);
     A4.SourceDamage := Round(A2.GetHitPoints * Probability * 200);
@@ -2816,11 +2823,11 @@ begin
   end;
 end;
 
-procedure TPossessAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TPossessAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
     A4.SourceDamage := Round(A2.GetHitPoints * Probability * 200);
@@ -2961,11 +2968,11 @@ begin
     Result := 0;
 end;
 
-procedure TWebAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TWebAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) and
+  if (A3 = wsNone) and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) and
     not (dtNone in A2.GetImmunityTypes) then
   begin
     Probability := TouchRoleProbability(A1, A2);
@@ -2985,11 +2992,11 @@ begin
   end;
 end;
 
-procedure TWebAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TWebAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
     A4.SourceDamage := Round(A2.GetHitPoints * Probability * 100);
@@ -3133,11 +3140,11 @@ begin
     Result := 0;
 end;
 
-procedure TEntangleAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TEntangleAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and CanTouchUnit(A1, A2) and
+  if (A3 = wsNone) and CanTouchUnit(A1, A2) and
     not (dtNone in A2.GetImmunityTypes) then
   begin
     Probability := TouchRoleProbability(A1, A2);
@@ -3157,11 +3164,11 @@ begin
   end;
 end;
 
-procedure TEntangleAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TEntangleAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
     A4.SourceDamage := Round(A2.GetHitPoints * Probability * 100);
@@ -3452,12 +3459,12 @@ begin
     Result := 0;
 end;
 
-procedure TTurnUndeadAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TTurnUndeadAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
   HitPoints: Integer;
 begin
-  if not A3 and CanTouchUnit(A1, A2) and not (dtNone in A2.GetImmunityTypes) then
+  if (A3 = wsNone) and CanTouchUnit(A1, A2) and not (dtNone in A2.GetImmunityTypes) then
   begin
     Probability := TouchRoleProbability(A1, A2);
     HitPoints := A2.GetHitPoints;
@@ -3479,12 +3486,12 @@ begin
   end;
 end;
 
-procedure TTurnUndeadAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TTurnUndeadAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
   HitPoints: Integer;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
     HitPoints := A2.GetHitPoints;
@@ -3634,12 +3641,12 @@ begin
   else
     Result := 0;
 end;
-procedure TInvokeDeathAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TInvokeDeathAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
   HitPoints: Integer;
 begin
-  if not A3 and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) and not (dtNone in A2.GetImmunityTypes) then
+  if (A3 = wsNone) and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1)) and not (dtNone in A2.GetImmunityTypes) then
   begin
     Probability := TouchRoleProbability(A1, A2);
     HitPoints := A2.GetHitPoints;
@@ -3660,12 +3667,12 @@ begin
     A4.DamageTypes := [];
   end;
 end;
-procedure TInvokeDeathAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TInvokeDeathAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   Probability: Single;
   HitPoints: Integer;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     Probability := CombatTouchRoleProbability(TCombatUnit(A1), A2);
     HitPoints := A2.GetHitPoints;
@@ -3897,9 +3904,9 @@ begin
   Result := 0;
 end;
 
-procedure THealingAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure THealingAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and not (dtNone in A2.GetImmunityTypes) then
+  if (A3 = wsNone) and not (dtNone in A2.GetImmunityTypes) then
   begin
     A4.SourceCost := A2.GetHits - A2.GetHitPoints;
     if A4.SourceCost > 5 then A4.SourceCost := 5;
@@ -3918,11 +3925,11 @@ begin
   end;
 end;
 
-procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 var
   HitPoints: Integer;
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     HitPoints := GetHealHitPoints(A2);
     A4.SourceCost := HitPoints;
@@ -3996,7 +4003,7 @@ begin
     Target := A1.FSourceSide.GetObjects(I);
     if Target.GetEnabled and CanTouch(A1.FSource, Target) then
     begin
-      fcGetDamageValueEx(A1.FSource, Target, False, Values);
+      fcGetDamageValueEx(A1.FSource, Target, wsNone, Values);
       if Values.SourceDamage <> 0 then
       begin
         Command := TFastCombatCommand.Create(FAbilityID);
@@ -4429,10 +4436,10 @@ begin
   end;
   Result := 0;
 end;
-procedure TDispelMagicAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TDispelMagicAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
   { Original evaluates dispelling with the healing hit-point formula. }
-  if not A3 and not (dtNone in A2.GetImmunityTypes) then
+  if (A3 = wsNone) and not (dtNone in A2.GetImmunityTypes) then
   begin
     A4.SourceCost := A2.GetHits - A2.GetHitPoints;
     if A4.SourceCost > 5 then A4.SourceCost := 5;
@@ -4450,9 +4457,9 @@ begin
     A4.DamageTypes := [];
   end;
 end;
-procedure TDispelMagicAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TDispelMagicAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
-  if not A3 and CanTouch(A1, A2) then
+  if (A3 = wsNone) and CanTouch(A1, A2) then
   begin
     { Original assigns zero benefit, so its prefetch loop emits no commands. }
     A4.SourceCost := 0;
@@ -4497,7 +4504,7 @@ begin
     Target := A1.FSourceSide.GetObjects(I);
     if Target.GetEnabled and CanTouch(A1.FSource, Target) then
     begin
-      fcGetDamageValueEx(A1.FSource, Target, False, Values);
+      fcGetDamageValueEx(A1.FSource, Target, wsNone, Values);
       if Values.SourceDamage <> 0 then
       begin
         Command := TFastCombatCommand.Create(FAbilityID);
@@ -4545,193 +4552,774 @@ begin
   else Result := False;
 end;
 class function TDispelMagicAbilityTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202F3;
+end;
 
 procedure TDispelMagicAbilityTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FSourceID, 25);
+  Stream.rwByte(FSourcePlayer, 26);
+  Stream.rwInteger(FTargetID, 27);
+  Stream.rwByte(FTargetPlayer, 28);
+end;
 
 function TDispelMagicAbilityTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  Count, Mana: Integer;
+  Ability: TDispelMagicAbility;
+  Enchantments: TEnchantmentList;
+  Source, Target: TAbstractUnit;
+  X, Y, L: Shortint;
+  Success: Boolean;
+  I, Chance: Integer;
+  Anim: TImageSequenceAnimation;
+begin
+  inherited Execute(TE);
+  Enchantments := TEnchantmentList.Create(nil);
+  Source := AoWHSMap.FUnitControl.FindUnit(FSourceID);
+  Target := AoWHSMap.FUnitControl.FindUnit(FTargetID);
+  Ability := TDispelMagicAbility(AoWHSSet.FAbilityControl.GetAbility(60));
+  Success := (Source <> nil) and (Byte(Source.FPlayer) = FSourcePlayer) and
+    (Target <> nil) and (Byte(Target.FPlayer) = FTargetPlayer);
+  Success := Success and Ability.GetEnabled(Source);
+  if Success then
+  begin
+    Target.ListEnchantments(Enchantments);
+    Success := Enchantments.GetCount > 0;
+  end;
+  if Success then
+  begin
+    Count := 0;
+    Mana := TDispelMagicAbility(AoWHSSet.FAbilityControl.GetAbility(60)).GetDispelMana(Source);
+    for I := Enchantments.GetCount - 1 downto 0 do
+    begin
+      Chance := Enchantments.GetEnchantments(I).DispelChance(Mana);
+      if Chance > AoWHSMap.Random(100) then
+      begin
+        Inc(Count);
+        Enchantments.GetEnchantments(I).Dispel;
+      end;
+    end;
+    if Source.FPlayer = AoWHSMap.FSeatedPlayer then
+      if Count > 0 then
+        AoWHSMap.ShowMessage(Format(TranslateRStr(XSpellsSuccessfullyDispelledRStr), [IntToStr(Count)]))
+      else
+        AoWHSMap.ShowMessage(TranslateRStr(DispelMagicFailedRStr));
+    Ability.SetEnabled(Source, False);
+    Target.GetLocation(X, Y, L);
+    AoWHSMap.ValidateObservation(FSourcePlayer, X, Y, L, 0);
+    if AoWHSMap.Visible(X, Y, L, 0) then
+    begin
+      Anim := TImageSequenceAnimation.Create(nil);
+      Anim.SetImageSequence(Ability.FImageSequences.GetImageSequence(0));
+      AoWHSMap.PlaceHX(Anim, X, Y, L);
+    end;
+    if (Byte(AoWHSMap.FSeatedPlayer) = FSourcePlayer) or AoWHSMap.Watching(X, Y, L, 0) then
+      Ability.FSFXLibrary.Play(0);
+    Result := erDone;
+  end
+  else Result := erDoneHalt;
+  Enchantments.Free;
+end;
 
 function TDispelMagicAbilityUnitSelector.CanSelectUnit(A1: TUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := A1.CanDispelEnchantment(FPlayer);
+end;
 
 function TDispelMagicAbilityUnitSelector.Select: Boolean;
-begin Result := False; end;
+var
+  Source, Target: TAbstractUnit;
+  Error: string;
+  I: Integer;
+  Event: TDispelMagicAbilityTE;
+begin
+  Source := AoWHSMap.FUnitControl.FindUnit(FSourceUnitID);
+  if CanSelect(Error) and not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).GetBusy then
+  begin
+    I := 0;
+    Target := nil;
+    while (Target = nil) and (I <> FUnits.GetCount) do
+    begin
+      if (FSelection and (1 shl I)) <> 0 then Target := FUnits.GetUnit(I);
+      Inc(I);
+    end;
+    if Target <> nil then
+    begin
+      Event := TDispelMagicAbilityTE.Create(nil);
+      Event.FSourceID := Source.FUnitID;
+      Event.FSourcePlayer := Source.FPlayer;
+      Event.FTargetID := Target.FUnitID;
+      Event.FTargetPlayer := Target.FPlayer;
+      AoWHSMap.FTokenManager.GetTokenControl(Source.FPlayer).AddEvent(Event);
+      Event.Release;
+      Result := True;
+    end
+    else Result := False;
+  end
+  else Result := False;
+end;
 
 constructor TSpellCastingAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 52;
+  FAbilityName := TranslateRStr(SpellCastingRStr);
+  FAbilityType := atEnhancement;
+  FMaxLevel := 5;
+  FLevelCosts[1] := 20;
+  FLevelCosts[2] := 20;
+  FLevelCosts[3] := 20;
+  FLevelCosts[4] := 20;
+  FLevelCosts[5] := 20;
+end;
 
 function TSpellCastingAbility.GetLevelName(A1: Integer): string;
-begin end;
+begin
+  case A1 of
+    0: Result := TranslateRStr(SpellCastingRStr);
+    1: Result := TranslateRStr(SpellCastingRStr) + ' I';
+    2: Result := TranslateRStr(SpellCastingRStr) + ' II';
+    3: Result := TranslateRStr(SpellCastingRStr) + ' III';
+    4: Result := TranslateRStr(SpellCastingRStr) + ' IV';
+    5: Result := TranslateRStr(SpellCastingRStr) + ' V';
+  end;
+end;
 
 function TSpellCastingAbility.GetControlType: TAbilityControlType;
 begin Result := [acAction, acCombatAction]; end;
 
 function TSpellCastingAbility.Expand(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Expand(A1);
+  if Result then
+    if (A1 is TAbstractUnit) and (AoWHSMap <> nil) then
+      AoWHSMap.FPlayers.GetPlayers(TAbstractUnit(A1).FPlayer).FMagicControl.Update;
+end;
 
 function TSpellCastingAbility.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Remove(A1);
+  if Result then
+    if (A1 is TAbstractUnit) and (AoWHSMap <> nil) then
+      AoWHSMap.FPlayers.GetPlayers(TAbstractUnit(A1).FPlayer).FMagicControl.Update;
+end;
 
 function TSpellCastingAbility.CanActivate(A1: TAbilityOwner; var A2: string): Boolean;
-begin Result := False; end;
+begin
+  if A1 is THero then Result := True
+  else Result := False;
+end;
 
 function TSpellCastingAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+begin
+  Result := AoWHSSet.FSpellControl.GetSpell(TSpellCC(A2).FSpellID).fcExecuteCombatCommand(A1, A2);
+end;
 
 function TSpellCastingAbility.CanCastBreachWallSpell(AUnit: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  Spell: TSpell;
+  Info: TSpellCombatInfo;
+  Error: string;
+  Magic: TPlayerMagicControl;
+begin
+  if AUnit is THero then
+  begin
+    Magic := AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FMagicControl;
+    Result := Magic.GetCheatEnabled;
+    I := Magic.FSpells.Count;
+    while not Result and (I <> 0) do
+    begin
+      Dec(I);
+      Spell := AoWHSSet.FSpellControl.GetSpell(Magic.FSpells[I]);
+      if (Spell <> nil) and (Spell.FSpellType = stCombat) then
+      begin
+        Spell.GetCombatInfo(AUnit, Info);
+        Result := (dtWall in Info.DamageTypes) and
+          THero(AUnit).CanCastCombatSpell(Magic.FSpells[I], Error);
+      end;
+    end;
+  end
+  else Result := False;
+end;
 
-procedure TSpellCastingAbility.AICanCastCombatSpell(A1: Integer);
-begin end;
+function TSpellCastingAbility.AICanCastCombatSpell(A1: TCombatUnit): Boolean;
+var
+  Hero: THero;
+  SourceStrength, TargetStrength: Integer;
+  Ratio: Single;
+begin
+  Hero := THero(A1.FUnit);
+  Result := (AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FPlayerType <> ptHuman) or
+    (Hero.FCastingSpellID = 0);
+  if Result then
+  begin
+    SourceStrength := A1.FCombat.FSides[A1.GetSide].FStrength;
+    if SourceStrength <= 0 then SourceStrength := 0;
+    TargetStrength := A1.FCombat.FSides[A1.GetOpponentSide].FStrength;
+    if TargetStrength <= 0 then TargetStrength := 0;
+    { Original divides by zero when the opponent strength is zero. }
+    Ratio := SourceStrength / TargetStrength;
+    if ((Ratio >= 1.5) or (Hero.FCastingSpellID <> 0)) and
+      (Ratio >= 1) and (A1.GetHitPoints * Ratio >= 7) then
+      Result := False
+    else Result := True;
+  end;
+end;
 
-procedure TSpellCastingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
-begin end;
+procedure TSpellCastingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
+var
+  I: Integer;
+  Spell: TSpell;
+  Source: TAbstractUnit;
+  Magic: TPlayerMagicControl;
+  Values: TAbilityDamageValues;
+begin
+  FillChar(A4, 20, 0);
+  if A1 is TCombatUnit then
+  begin
+    Magic := AoWHSMap.FPlayers.GetPlayers(A1.GetPlayer).FMagicControl;
+    Source := TCombatUnit(A1).FUnit;
+    for I := Magic.FSpells.Count - 1 downto 0 do
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(Magic.FSpells[I]);
+      if (Spell <> nil) and (sctCombat in Spell.FSpellControlTypes) and
+        (Source.GetCastingPointsMax >= Spell.FBaseManaCost) then
+      begin
+        Spell.fcGetDamageValueEx(A1, A2, A3, Values);
+        if A4.SourceDamage < Values.SourceDamage then A4 := Values;
+      end;
+    end;
+  end;
+end;
 
 procedure TSpellCastingAbility.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+var
+  I: Integer;
+  Spell: TSpell;
+  Source: TAbstractUnit;
+  Magic: TPlayerMagicControl;
+  Values: TAbilityDamageValues;
+begin
+  FillChar(A3, 20, 0);
+  if A1 is TCombatUnit then
+  begin
+    Magic := AoWHSMap.FPlayers.GetPlayers(A1.GetPlayer).FMagicControl;
+    Source := TCombatUnit(A1).FUnit;
+    for I := Magic.FSpells.Count - 1 downto 0 do
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(Magic.FSpells[I]);
+      if (Spell <> nil) and (sctCombat in Spell.FSpellControlTypes) and
+        (Source.GetCastingPoints >= Spell.FBaseManaCost) then
+      begin
+        Spell.fcGetDamageValueEx(A1, A2, wsNone, Values);
+        if A3.SourceDamage < Values.SourceDamage then A3 := Values;
+      end;
+    end;
+  end;
+end;
 
 procedure TSpellCastingAbility.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
-begin end;
+var
+  Combat: TFastCombat;
+  Source: TCombatObject;
+  Error: string;
+  Magic: TPlayerMagicControl;
+  I: Integer;
+  Spell: TSpell;
+begin
+  Combat := A1.FCombat;
+  Source := A1.FSource;
+  if Source is TCombatUnit then
+    if (AoWHSMap.FPlayers.GetPlayers(Combat.FCombatData.FPlayers.GetPlayers(Source.FCombatPlayer).FPlayer).FPlayerType <> ptHuman) or
+      (THero(TCombatUnit(Source).FUnit).FCastingSpellID = 0) then
+      if (Combat.FSides[Source.GetSide].FStrength < Combat.FSides[Source.GetOpponentSide].FStrength * 2) or
+        (Source.GetHitPoints < 10) or
+        ((Combat.FCombatData.FWallType <> 0) and not Combat.FCombatData.FWallBreached and CanCastBreachWallSpell(TCombatUnit(Source).FUnit)) then
+      begin
+        Magic := AoWHSMap.FPlayers.GetPlayers(A1.FSource.GetPlayer).FMagicControl;
+        if not Magic.GetCheatEnabled then
+        begin
+          for I := Magic.FSpells.Count - 1 downto 0 do
+          begin
+            Spell := AoWHSSet.FSpellControl.GetSpell(Magic.FSpells[I]);
+            if (Spell <> nil) and (sctCombat in Spell.FSpellControlTypes) then
+              if TCombatUnit(A1.FSource).FUnit is THero then
+                if THero(TCombatUnit(A1.FSource).FUnit).CanCastSpellInstantly(Spell.FSpellID, Spell.FBaseManaCost, Error) then
+                  Spell.fcPrefetchCombatCommands(A1);
+          end;
+        end
+        else
+          for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+          begin
+            Spell := AoWHSSet.FSpellControl.GetSpell(I);
+            if (Spell <> nil) and (sctCombat in Spell.FSpellControlTypes) then
+              Spell.fcPrefetchCombatCommands(A1);
+          end;
+      end;
+end;
 
 class function TRangedAttackCA.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202A9;
+end;
 
 procedure TRangedAttackCA.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FAbilityID, 4, 20);
+end;
 
 procedure TRangedAttackCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
-begin end;
+begin
+  inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
+  if (A2.FID = FTargetID) and (A1.FTime <> 0) then
+    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FImageSequences.Show(40,
+      A5 + 32, A6 + 32, A1.FTime, A7);
+end;
 
 function TRangedAttackCA.GetName: string;
-begin Result := ''; end;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(FAbilityID).GetName(nil);
+end;
 
 function TRangedAttackCA.Play(A1: TCombatViewer): Boolean;
-begin Result := False; end;
+begin
+  if A1.FTime = 1 then
+    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FSFXLibrary.Play(0);
+  Result := inherited Play(A1);
+end;
 
 constructor TRangedAttackAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astUseItem];
+  FAbilityType := atCombat;
+end;
 
 function TRangedAttackAbility.GetControlType: TAbilityControlType;
 begin Result := [acCombatAction]; end;
 
-procedure TRangedAttackAbility.GetRangeRA;
-begin end;
+function TRangedAttackAbility.GetRangeRA(A1: TAbilityOwner): TCombatRange;
+begin
+  Result := FRangeRA;
+end;
 
-procedure TRangedAttackAbility.GetDamageRA(A1: Integer);
-begin end;
+function TRangedAttackAbility.GetDamageRA(A1: TAbilityOwner): Shortint;
+begin
+  Result := FDamageRA;
+  if (A1 <> nil) and A1.GetAbEnabled(32) then
+    case A1.GetAbLevel(32) of
+      2: Inc(Result);
+      3: Inc(Result);
+      4: Inc(Result, 2);
+    end;
+end;
 
-procedure TRangedAttackAbility.GetAttackRA(A1: Integer);
-begin end;
+function TRangedAttackAbility.GetAttackRA(A1: TAbilityOwner): Shortint;
+begin
+  Result := FAttackRA;
+  if (A1 <> nil) and A1.GetAbEnabled(32) then
+    case A1.GetAbLevel(32) of
+      1: Inc(Result);
+      2: Inc(Result);
+      3: Inc(Result, 2);
+      4: Inc(Result, 2);
+    end;
+end;
 
-procedure TRangedAttackAbility.GetAttackRepeatRA;
-begin end;
+function TRangedAttackAbility.GetAttackRepeatRA(A1: TAbilityOwner): Shortint;
+begin
+  Result := FAttackRepeatRA;
+end;
 
-procedure TRangedAttackAbility.GetDamageTypesRA;
-begin end;
+function TRangedAttackAbility.GetDamageTypesRA(A1: TAbilityOwner): TDamageTypes;
+begin
+  Result := FDamageTypesRA.Value;
+end;
 
 function TRangedAttackAbility.GetCombatMode(A1: TAbilityOwner): TCombatMode;
-begin Result := cmNone; end;
+begin
+  Result := CombatRangeToCombatMode(GetRangeRA(A1));
+end;
 
 function TRangedAttackAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
-begin Result := []; end;
+begin
+  if dtWall in GetDamageTypesRA(A1) then Result := [wcWallBreaching, wcParticipate]
+  else Result := [wcParticipate];
+end;
 
 procedure TRangedAttackAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
-begin end;
+begin
+  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A3 := GetDamageTypesRA(A1);
+end;
 
 function TRangedAttackAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
-begin Result := 0; end;
+var
+  Repeats: Integer;
+begin
+  Result := StatisticsToLimitedDV(GetAttackRA(A1), GetDamageRA(A1), GetDamageTypesRA(A1),
+    A2.GetHitPoints, A2.GetDefense, A2.GetResistance, A2.GetImmunityTypes, A2.GetProtectionTypes);
+  Repeats := GetAttackRepeatRA(A1);
+  Result := Result * Repeats;
+end;
 
-procedure TRangedAttackAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
-begin end;
+procedure TRangedAttackAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
+var
+  Defense, Damage, Repeats: Integer;
+begin
+  Defense := A2.GetDefense;
+  if A3 = wsTarget then Inc(Defense, 2);
+  Damage := StatisticsToLimitedDV(GetAttackRA(A1), GetDamageRA(A1), GetDamageTypesRA(A1),
+    A2.GetHitPoints, Defense, A2.GetResistance, A2.GetImmunityTypes, A2.GetProtectionTypes);
+  Repeats := GetAttackRepeatRA(A1);
+  Damage := Damage * Repeats;
+  A4.SourceDamage := Damage;
+  A4.TargetDamage := 0;
+  A4.DamageTypes := GetDamageTypesRA(A1);
+  { Original leaves both cost fields untouched. }
+end;
 
-procedure TRangedAttackAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
-begin end;
+procedure TRangedAttackAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
+var
+  DamageTypes, ProtectionTypes, ImmunityTypes: TDamageTypes;
+  Damage, Defense, Value, Repeats: Integer;
+  Range: TCombatRange;
+begin
+  Range := GetRangeRA(A1.GetAbilityOwner);
+  if (A3 = wsNone) or (Range in [crMedium, crLong]) or A1.GetAbilityEnabled(1) then
+  begin
+    ProtectionTypes := A2.GetProtectionTypes;
+    ImmunityTypes := A2.GetImmunityTypes;
+    DamageTypes := GetDamageTypesRA(A1.GetAbilityOwner);
+    Damage := GetDamageRA(A1.GetAbilityOwner);
+    Defense := A2.GetDefense;
+    if A3 = wsTarget then Inc(Defense, 2);
+    A4.DamageTypes := GetDamageTypesRA(A1.GetAbilityOwner);
+    Value := StatisticsToLimitedDV(GetAttackRA(A1.GetAbilityOwner), Damage, DamageTypes,
+      A2.GetHitPoints, Defense, A2.GetResistance, ImmunityTypes, ProtectionTypes);
+    Repeats := GetAttackRepeatRA(A1.GetAbilityOwner);
+    Value := Value * Repeats;
+    A4.SourceDamage := Value;
+    Value := StatisticsToMaxDamage(Damage, DamageTypes, ImmunityTypes, ProtectionTypes);
+    Repeats := GetAttackRepeatRA(A1.GetAbilityOwner);
+    Value := Value * Repeats;
+    A4.SourceCost := Value;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
 procedure TRangedAttackAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
-begin end;
+begin
+  A2.Attack := GetAttackRA(A1);
+  A2.Damage := GetDamageRA(A1);
+  A2.DamageTypes := GetDamageTypesRA(A1);
+  A2.RepeatCount := GetAttackRepeatRA(A1);
+  A2.Kind := [cmMelee];
+end;
 
-procedure TRangedAttackAbility.CreateRangedAttackCA(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TRangedAttackAbility.CreateRangedAttackCA(A1, A2: TCombatObject; A3: Integer): TRangedAttackCA;
+var
+  Action: TRangedAttackCA;
+begin
+  Action := TRangedAttackCA.Create(nil);
+  Action.Generate(A1, A2, GetAttackRA(A1.GetAbilityOwner) - A3,
+    GetDamageRA(A1.GetAbilityOwner), GetDamageTypesRA(A1.GetAbilityOwner));
+  Action.FAbilityID := FAbilityID;
+  Result := Action;
+end;
 
 function TRangedAttackAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+var
+  Target: TCombatObject;
+  Penalty, I: Integer;
+  Action: TRangedAttackCA;
+begin
+  Target := A2.FTarget;
+  if TFastCombat(A1.FCombat).GetWallSituation(A1, Target) = wsTarget then Penalty := 2
+  else Penalty := 0;
+  if Target.GetEnabled then
+  begin
+    for I := GetAttackRepeatRA(A1.GetAbilityOwner) - 1 downto 0 do
+    begin
+      Action := CreateRangedAttackCA(A1, Target, Penalty);
+      A1.FCombat.ExecuteCombatAction(Action);
+      Action.Release;
+    end;
+    TFastCombatUnit(A1).FState := TFastCombatUnit(A1).FState + [fsVulnerable];
+  end;
+  Result := True;
+end;
 
 procedure TRangedAttackAbility.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
-begin end;
+var
+  I: Integer;
+  Target: TCombatObject;
+  Values: TAbilityDamageValues;
+  Command: TFastCombatCommand;
+begin
+  for I := 0 to A1.FTargetSide.GetCount - 1 do
+  begin
+    Target := A1.FTargetSide.GetObjects(I);
+    if Target.GetEnabled and fcValidRoundDistance(A1.FSource, Target) then
+    begin
+      fcGetDamageValueEx(A1.FSource, Target, TFastCombat(A1.FSource.FCombat).GetWallSituation(A1.FSource, Target), Values);
+      if Values.SourceDamage <> 0 then
+      begin
+        Command := TFastCombatCommand.Create(FAbilityID);
+        Command.FTarget := A1.FTargetSide.GetObjects(I);
+        Command.FMoveCost := 1;
+        Command.FExpectedDV := DVtoDEV(Values.SourceDamage, Values.TargetDamage, A1.FSource, Target);
+        A1.Add(Command);
+      end;
+    end;
+  end;
+end;
 
 function TRangedAttackAbility.fcValidRoundDistance(A1, A2: TCombatObject): Boolean;
-begin Result := False; end;
+var
+  Distance: Integer;
+  Range: TCombatRange;
+begin
+  Distance := TFastCombat(A1.FCombat).GetRoundDistance;
+  Range := GetRangeRA(A1.GetAbilityOwner);
+  if Range = crLong then Inc(Distance, 4)
+  else if Range = crMedium then Inc(Distance, 2)
+  else if Range = crShort then Inc(Distance);
+  Result := Distance >= A2.fcRoundDistance;
+end;
 
 constructor TBoltsAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelectionTypes := [astUnit, astUseItem];
+  FAbilityType := atCombat;
+  FRangeRA := crMedium;
+  FAttackRepeatRA := 1;
+end;
 
 constructor TBreathAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRangeRA := crShort;
+  FAttackRepeatRA := 1;
+  FAttackRA := 7;
+  FDamageRA := 5;
+end;
 
 procedure TBreathAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
-begin end;
+begin
+  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A2 := A2 * 2;
+  A3 := GetDamageTypesRA(A1);
+end;
 
-procedure TBreathAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
-begin end;
+procedure TBreathAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
+var
+  Count: Integer;
+  Combat: TFastCombat;
+  I: Integer;
+  Target: TCombatObject;
+begin
+  inherited fcGetDamageValueEx(A1, A2, A3, A4);
+  if A4.SourceDamage <> 0 then
+  begin
+    Combat := TFastCombat(A1.FCombat);
+    Count := 0;
+    for I := Combat.FSides[A2.GetSide].GetCount - 1 downto 0 do
+    begin
+      Target := Combat.FSides[A2.GetSide].GetObjects(I);
+      if (Target <> A2) and Target.GetEnabled and
+        (Target.FPosition shr 4 = A2.FPosition shr 4) and
+        (Target.fcRoundDistance <= Combat.GetRoundDistance) and
+        (FDamageTypesRA.Value - Target.GetImmunityTypes <> []) then
+        Inc(Count);
+    end;
+    if Count <> 0 then
+    begin
+      if Count > 3 then Count := 3;
+      Inc(A4.SourceDamage, Round(A4.SourceDamage * Count / 3));
+    end;
+  end;
+end;
 
 function TBreathAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
-begin Result := False; end;
+var
+  Combat: TFastCombat;
+  Targets: TList;
+  Target, Other: TCombatObject;
+  I, Count: Integer;
+  Action: TRangedAttackCA;
+begin
+  Result := inherited fcExecuteCombatCommand(A1, A2);
+  if Result then
+  begin
+    Combat := TFastCombat(A1.FCombat);
+    Targets := TList.Create;
+    Target := A2.FTarget;
+    for I := Combat.FSides[Target.GetSide].GetCount - 1 downto 0 do
+    begin
+      Other := Combat.FSides[Target.GetSide].GetObjects(I);
+      if (Other <> Target) and Other.GetEnabled and
+        (Other.FPosition shr 4 = Target.FPosition shr 4) and
+        (Other.fcRoundDistance <= Combat.GetRoundDistance) and
+        (FDamageTypesRA.Value - Other.GetImmunityTypes <> []) then
+        Targets.Add(Other);
+    end;
+    Count := AoWHSMap.Random(2) + 1;
+    while (Count <> 0) and (Targets.Count <> 0) do
+    begin
+      Other := Targets[AoWHSMap.Random(Targets.Count)];
+      Action := CreateRangedAttackCA(A1, Other, 2);
+      A1.FCombat.ExecuteCombatAction(Action);
+      Action.Release;
+      Targets.Remove(Other);
+      Dec(Count);
+    end;
+    Targets.Free;
+  end;
+end;
 
 procedure TBreathAbility.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
-begin end;
+begin
+  inherited fcGetDamageValueEx(A1, A2, wsNone, A3);
+end;
 
 constructor TFlameThrowingAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityID := 30;
+  FAbilityName := TranslateRStr(FlameThrowingRStr);
+  FAttackRA := 4;
+  FDamageRA := 3;
+  FDamageTypesRA.Value := [dtFire];
+end;
 
 procedure TFlameThrowingAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
-begin end;
+begin
+  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A2 := A2 * 2;
+  A3 := GetDamageTypesRA(A1);
+end;
 
 constructor TCommandAbilityData.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FCommandedUnits := TByteList.Create;
+end;
 
 destructor TCommandAbilityData.Destroy;
-begin end;
+begin
+  FCommandedUnits.Free;
+  inherited Destroy;
+end;
 
 class function TCommandAbilityData.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202AB;
+end;
 
 function TCommandAbilityData.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure TCommandAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FAbilityID, 20);
+  Stream.rwStreamProc(21, FCommandedUnits.LoadFromStream, FCommandedUnits.SaveToStream);
+end;
 
 function TCommandAbilityData.CommandingTargetPriority(Combat: TCombat): Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+  Target: TCombatObject;
+begin
+  Result := 0;
+  for I := FCommandedUnits.Count - 1 downto 0 do
+  begin
+    Target := Combat.FCombatData.FindID(FCommandedUnits.List^[I]);
+    if Target <> nil then Inc(Result, Target.GetTargetPriority);
+  end;
+end;
 
 function TCommandAbilityData.CommandingTargetStrength(Combat: TCombat): Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+  Target: TCombatObject;
+begin
+  Result := 0;
+  for I := FCommandedUnits.Count - 1 downto 0 do
+  begin
+    Target := Combat.FCombatData.FindID(FCommandedUnits.List^[I]);
+    if Target <> nil then Inc(Result, Target.GetTargetStrength);
+  end;
+end;
 
 class function TCommandedAbilityData.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202AD;
+end;
 
 function TCommandedAbilityData.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure TCommandedAbilityData.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FAbilityID, 20);
+  Stream.rwInteger(FCommandAbilityID, 21);
+  Stream.rwByte(FSourceID, 22);
+  Stream.rwByte(FOriginalCombatPlayer, 23);
+end;
 
 constructor TCommandedAbility.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAbilityType := atHandicap;
+  FSelectionTypes := [];
+end;
 
 function TCommandedAbility.AbilityDataClass: TEObjectClass;
-begin Result := nil; end;
+begin
+  Result := P4CommandedDataClass;
+end;
 
 function TCommandedAbility.Remove(A1: TAbilityOwner): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Remove(A1);
+  if Result then A1.RemoveAbilityDataID(FAbilityID);
+end;
 
 procedure TCommandedAbility.CombatDone(A1: TCombatObject);
-begin end;
+begin
+  Remove(A1.GetAbilityOwner);
+end;
 
 procedure TCommandedAbility.CombatObjectDestroyed(A1: TCombatObject);
-begin end;
+var
+  Data: TCommandedAbilityData;
+begin
+  Data := TCommandedAbilityData(A1.GetAbilityOwner.GetAbilityData(FAbilityID));
+  if Data <> nil then
+    TCommandAbility(AoWHSSet.FAbilityControl.GetAbility(Data.FCommandAbilityID)).Uncommand(TCombatUnit(A1));
+end;
 
 class function TCommandCA.ClassID: Integer;
 begin Result := 0; end;
@@ -4790,10 +5378,10 @@ begin Result := 0; end;
 procedure TCommandAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin end;
 
-procedure TCommandAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TCommandAbility.GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin end;
 
-procedure TCommandAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues);
+procedure TCommandAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin end;
 
 procedure TCommandAbility.CreateCommandCA(A1: Integer; A2: Integer);
@@ -5127,7 +5715,7 @@ asm
   XOR EAX, EAX
 end;
 
-procedure TSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+procedure TSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 { ECX points to the eight-byte TSpellCombatInfo record. }
 asm
   PUSH EBX
@@ -6203,7 +6791,7 @@ begin Result := False; end;
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TUnitSpell.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 begin end;
 
 function TUnitSpell.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;

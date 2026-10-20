@@ -49,7 +49,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
-    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
+    procedure GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; override;
     procedure ValidTargetParty(A1: Integer; A2: Integer); override;
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; override;
@@ -201,7 +201,7 @@ type
   TCosmeticSurgery = class(TUnitSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); override;
+    procedure GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; override;
     function CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean; override;
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; override;
@@ -965,7 +965,7 @@ begin
     Result := False;
 end;
 
-procedure TCosmeticSurgery.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+procedure TCosmeticSurgery.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 { The original saves Self and Source as well as Info; this compiler saves only Info. }
 begin
   inherited;
@@ -1015,7 +1015,7 @@ begin Result := False; end;
 function TDispelMagic.ValidTargetUnit(Source, Target: TAbstractUnit): Boolean;
 begin Result := False; end;
 
-procedure TDispelMagic.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo);
+procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 begin end;
 
 procedure RegisterUnitSpells(A1: Integer; A2: Integer; A3: Integer);

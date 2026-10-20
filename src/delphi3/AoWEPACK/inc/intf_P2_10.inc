@@ -55,7 +55,7 @@ procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);  { draft }
 function Land(Terrain: Shortint): Boolean;
 procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
 procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure CombatRangeToCombatMode(A1: Byte);  { draft }
+function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
 procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }

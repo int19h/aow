@@ -71,9 +71,9 @@
     function Expand(A1: TAbilityOwner): Boolean; virtual;
     function Remove(A1: TAbilityOwner): Boolean; virtual;
     function GetDamageValue(A1, A2: TAbstractUnit): Integer; virtual;
-    procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); virtual;
+    procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues); virtual;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); virtual;
-    procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); virtual;
+    procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); virtual;
     function fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer; virtual;
     procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual; { +0EC }
     function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual;
