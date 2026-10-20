@@ -28,19 +28,21 @@ type
     F_Animation_08: Byte;
     F_Animation_09: Byte;
     F_Animation_0A: Byte;
-    F_Animation_0B: array[0..0] of Byte;
+    FAnimationLevel: Byte; { $0B }
     F_Animation_0C: Byte;
     F_Animation_0D: array[0..2] of Byte;
     FFrameCounter: Integer; { $10 }
+    { conflict: FFrame: Integer; }
     F_Animation_14: Byte;
     F_Animation_15: array[0..2] of Byte;
     F_Animation_18: Integer;
     F_Animation_1C: Integer;
     F_Animation_20: Integer;
     FOnShow: TShowAnimationEvent; { $24 }
+    { conflict: FOnShowAnimation: TShowAnimationEvent; }
     FOnNewFrame: TNewFrameAnimationEvent; { $2C }
     FTag: Integer; { $34 }
-    F_Animation_38: Integer;
+    FAnimationMap: THSMap; { $38 }
     destructor Destroy; override;
     function GetControlStyle: Engine.TEControlStyles; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -93,11 +95,11 @@ type
   { TImageSequenceAnimation (instance size 80, VMT 557FB13C) }
   TImageSequenceAnimation = class(TAnimation)
   public
-    F_ImageSequenceAnimation_3C: Integer;
-    F_ImageSequenceAnimation_40: Integer;
-    F_ImageSequenceAnimation_44: Integer;
-    F_ImageSequenceAnimation_48: Integer;
-    F_ImageSequenceAnimation_4C: Byte;
+    FImageSequence: TImageSequence; { $3C }
+    FXhpOffset: Integer; { $40 }
+    FYhpOffset: Integer; { $44 }
+    FFrameCount: Integer; { $48 }
+    FLooped: Boolean; { $4C }
     F_ImageSequenceAnimation_4D: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;

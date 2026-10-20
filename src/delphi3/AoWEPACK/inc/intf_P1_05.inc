@@ -5,32 +5,29 @@
     F_TargetSelectionControl_04: Integer;
     FHNs: TShortIntList; { $08 }
     F_TargetSelectionControl_0C: Byte;
-    F_TargetSelectionControl_0D: Byte;
+    FTargetMode: TTargetSelectionMode; { $0D }
     F_TargetSelectionControl_0E: array[0..1] of Byte;
     F_TargetSelectionControl_10: Integer;
     F_TargetSelectionControl_14: Integer;
-    F_TargetSelectionControl_18: Integer;
-    F_TargetSelectionControl_1C: Integer;
-    F_TargetSelectionControl_20: Integer;
-    F_TargetSelectionControl_24: Integer;
-    F_TargetSelectionControl_28: Integer;
-    F_TargetSelectionControl_2C: Integer;
+    FOnValidateTarget: TValidateTargetEvent; { $18 }
+    FRange: Integer; { $20 }
+    FSourceX: Integer; { $24 }
+    FSourceY: Integer; { $28 }
+    FSourceL: Integer; { $2C }
     F_TargetSelectionControl_30: Integer;
-    F_TargetSelectionControl_34: Integer;
-    F_TargetSelectionControl_38: Byte;
-    F_TargetSelectionControl_39: Byte;
-    F_TargetSelectionControl_3A: Byte;
-    F_TargetSelectionControl_3B: Byte;
-    F_TargetSelectionControl_3C: Integer;
-    F_TargetSelectionControl_40: Byte;
-    F_TargetSelectionControl_41: array[0..2] of Byte;
-    F_TargetSelectionControl_44: Byte;
-    F_TargetSelectionControl_45: array[0..2] of Byte;
+    FOnChange: TEventList; { $34 }
+    FChange: TTargetSelectionChange; { $38 }
+    FTargetX: Shortint; { $39 }
+    FTargetY: Shortint; { $3A }
+    FTargetL: Shortint; { $3B }
+    FText: TStrings; { $3C }
+    FTitle: string; { $40 }
+    FCancelText: string; { $44 }
     F_TargetSelectionControl_48: Integer;
     F_TargetSelectionControl_4C: array[0..3] of Byte;
-    F_TargetSelectionControl_50: Integer;
-    F_TargetSelectionControl_54: Integer;
-    F_TargetSelectionControl_58: Integer;
+    FSourceImage: TLibraryImage; { $50 }
+    FValidTargetImage: TLibraryImage; { $54 }
+    FInvalidTargetImage: TLibraryImage; { $58 }
     destructor Destroy; override;
     constructor Create;  { draft }
     procedure TriggerOnChangeEvent(A1: Byte);  { draft }
@@ -40,7 +37,7 @@
     procedure NewFrameEvent;  { draft }
     procedure MouseMoveEvent;  { draft }
     procedure ShowSelection(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure Initialize(A1: Integer);  { draft }
+    procedure Initialize(A1: TAbstractUnit);
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
     procedure UnitChanged(A1: Integer);  { draft }
@@ -105,7 +102,7 @@
     F_AbstractAoWHSMap_C0: Integer;
     F_AbstractAoWHSMap_C4: Integer;
     F_AbstractAoWHSMap_C8: Byte;
-    F_AbstractAoWHSMap_C9: Byte;
+    FExplorationEnabled: Boolean; { $C9 }
     F_AbstractAoWHSMap_CA: Byte;
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
     F_AbstractAoWHSMap_CC: Integer;
@@ -187,10 +184,10 @@
   { TAoWHSMap (instance size 1052, VMT 5570E874) }
   TAoWHSMap = class(TAbstractAoWHSMap)
   public
-    F_AoWHSMap_D8: Integer;
+    FSelectedArmy: TSelectedArmy; { $D8 }
     F_AoWHSMap_DC: Byte;
     F_AoWHSMap_DD: array[0..2] of Byte;
-    F_AoWHSMap_E0: Integer;
+    FTargetSelection: TTargetSelectionControl; { $E0 }
     F_AoWHSMap_E4: Integer;
     F_AoWHSMap_E8: Integer;
     F_AoWHSMap_EC: Integer;

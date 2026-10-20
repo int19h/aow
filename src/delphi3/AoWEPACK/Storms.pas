@@ -149,10 +149,10 @@ type
   public
     F_StormSpell_34: array[0..7] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure AIPrefetchCastSpellActions(A1: Integer; A2: Integer); override;
-    procedure AIExecuteCastSpellAction(A1: Integer); override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
+    function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure CreateStorm; virtual; abstract;  { +09C draft }
     procedure ExecuteStormSpell(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0A0 draft }
     procedure AICastSpellPriority(A1: Integer); virtual;  { +0A4 draft }
@@ -395,20 +395,20 @@ begin end;
 procedure TStormSpell.OnTargetSelectionChange(A1: Integer);
 begin end;
 
-procedure TStormSpell.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TStormSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
-procedure TStormSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+function TStormSpell.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TStormSpell.AICastSpellPriority(A1: Integer);
 begin end;
 
-procedure TStormSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
+procedure TStormSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
 
-procedure TStormSpell.AIExecuteCastSpellAction(A1: Integer);
-begin end;
+function TStormSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TFireStormSpell.Create(AOwner: Engine.TECustomNode);
 begin end;

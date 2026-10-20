@@ -266,7 +266,7 @@ begin
           Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         begin
           WorldMap^.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
-          TSelectedArmy(WorldMap^.F_AoWHSMap_D8).Select(Integer(ArmyHS));
+          TSelectedArmy(WorldMap^.FSelectedArmy).Select(Integer(ArmyHS));
         end;
       end
       else
@@ -302,10 +302,10 @@ end;
 constructor TTeleportResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_StructureResource_60 := 200;
+  FRazeDefenderBudget := 200;
   FRazeable := True;
-  F_StructureResource_5A := 25;
-  F_StructureResource_5B := 2;
+  FRebuildGold := 25;
+  FRebuildDays := 2;
 end;
 
 class function TTeleportResource.ClassID: Integer;

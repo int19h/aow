@@ -100,7 +100,7 @@ begin
     Anim := TSpringOfLifeAnimation.Create(nil);
     R := Rect(-16, -8, 32, 40);
     Anim.SetDimensions(R);
-    Anim.F_Animation_0B[0] := 27;
+    Anim.FAnimationLevel := 27;
     TSpringAnimationCallback(Pointer(Anim)^).OnShow := ShowBlessingAnimation;
     WorldMap^.PlaceHX(Anim, GetXhx, GetYhx, GetLhx);
   end;
@@ -115,7 +115,7 @@ end;
 constructor TSpringOfLifeResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_StructureResource_44 := 0;
+  FTerrainBound := False;
 end;
 
 class function TSpringOfLifeResource.ClassID: Integer;

@@ -63,7 +63,7 @@
     F_Hero_7C: Integer;
     F_Hero_80: Byte;
     F_Hero_81: array[0..2] of Byte;
-    F_Hero_84: Integer;
+    FCastingSpellID: Integer; { $84 }
     F_Hero_88: Integer;
     F_Hero_8C: Integer;
     F_Hero_90: Integer;
@@ -196,8 +196,8 @@
     procedure Casting;  { draft }
     procedure CastingReady;  { draft }
     procedure CastingTurnsLeft;  { draft }
-    procedure CanCastSpellInstantly(A1: Integer; A2: Integer);  { draft }
-    procedure CanCastSpell(A1: Integer; A2: Integer);  { draft }
+    function CanCastSpellInstantly(A1, A2: Integer; var A3: string): Boolean;
+    function CanCastSpell(A1: Integer; var A2: string): Boolean;
     procedure CastSpell(A1: Integer; A2: Integer);  { draft }
     procedure CanCastCombatSpell(A1: Integer; A2: Integer);  { draft }
     procedure CastCombatSpell(A1: Integer; A2: Integer);  { draft }
@@ -459,7 +459,7 @@
     procedure InitializeGroupBehavior;  { draft }
     procedure UpdateGroupBehavior(A1: Integer; A2: Integer);  { draft }
     function CreateID(A1: Byte): TArmyID;
-    procedure GetArmyHS(A1: Integer; A2: Integer);  { draft }
+    function GetArmyHS: TArmyHS;
     procedure AssignSettings(A1: Integer);  { draft }
     procedure SetFullyConcealed(A1: Byte);  { draft }
     procedure GetFullyConcealed;  { draft }
@@ -496,7 +496,7 @@
     procedure GetPartyMoves(A1: Byte);  { draft }
     procedure MoveOnMovePoints(A1: Integer; A2: Byte; A3: Integer);  { draft }
     procedure CreateMovePointTable(A1: Byte; var Table);
-    procedure ValidTerrainEx(A1: Byte; A2: Integer; A3: Integer);  { draft }
+    function ValidTerrainEx(A1: Byte; A2, A3: Shortint): Boolean;
     procedure ValidTerrain(A1: Byte; A2: Integer);  { draft }
     function CanPlace(A1: Shortint; A2: Shortint; A3: Shortint): Boolean;
     procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -513,7 +513,7 @@
     procedure UpdateExploration;  { draft }
     procedure UpdateUnfog;  { draft }
     procedure CanAddUnits(A1: Integer; A2: Integer);  { draft }
-    procedure CanAddUnitSelection(A1: Integer; A2: Integer);  { draft }
+    function CanAddUnitSelection(A1: TUnitList; A2: Byte): Boolean;
     procedure AddUnitSelection(A1: Integer; A2: Integer);  { draft }
     procedure SelectionUnit(A1: Byte; A2: Integer);  { draft }
     procedure MakeIndependent(A1: Integer; A2: Integer);  { draft }
@@ -556,7 +556,7 @@
     procedure GetLocation(var Xhx, Yhx, Lhx: Shortint); override;
     procedure GetUnitConcealedForPlayer(A1: Integer; A2: Integer); override;
     procedure GetConcealedForPlayer(A1: Byte); override;
-    procedure Setup(A1: Integer; A2: Byte); virtual;  { +0C0 draft }
+    procedure Setup(A1: TArmy; A2: Byte); virtual;  { +0C0 }
     procedure SetConcealedForPlayer(A1: Byte; A2: Integer);  { draft }
     procedure SetUnitConcealedForPlayer(A1: Integer; A2: Integer; A3: Integer);  { draft }
   end;
@@ -610,18 +610,18 @@
   { TArmyHSList (instance size 20, VMT 5571352C) }
   TArmyHSList = class(TEChangeNotifyEventList)
   public
-    procedure GetArmyHS(A1: Integer);  { draft }
+    function GetArmyHS(A1: Integer): TArmyHS;
   end;
 
   { TArmyEventLog (instance size 52, VMT 55713628) }
   TArmyEventLog = class(TEventLog)
   public
-    F_ArmyEventLog_18: Integer;
-    F_ArmyEventLog_1C: Integer;
-    F_ArmyEventLog_20: Integer;
-    F_ArmyEventLog_24: Integer;
-    F_ArmyEventLog_28: Integer;
-    F_ArmyEventLog_2C: Integer;
+    FArmyView: TArmyView; { $18 }
+    FArmyText: string; { $1C }
+    FArmyMessages: TStrings; { $20 }
+    FArmyIcon: Integer; { $24 }
+    FDamageValues: TByteList; { $28 }
+    FDamageTypes: TByteList; { $2C }
     F_ArmyEventLog_30: Byte;
     F_ArmyEventLog_31: array[0..2] of Byte;
     destructor Destroy; override;

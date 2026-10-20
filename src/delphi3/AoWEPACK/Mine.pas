@@ -197,12 +197,12 @@ end;
 constructor TMineResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_StructureResource_44 := 0;
+  FTerrainBound := False;
   FClaimed := False;
   FRazeable := True;
-  F_StructureResource_60 := 75;
-  F_StructureResource_5A := 25;
-  F_StructureResource_5B := 2;
+  FRazeDefenderBudget := 75;
+  FRebuildGold := 25;
+  FRebuildDays := 2;
 end;
 
 class function TMineResource.ResourceEditName: string;

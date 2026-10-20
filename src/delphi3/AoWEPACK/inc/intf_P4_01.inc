@@ -175,12 +175,13 @@
     F_GlobalEnchantment_10: Byte;
     F_GlobalEnchantment_11: Byte;
     F_GlobalEnchantment_12: array[0..1] of Byte;
-    F_GlobalEnchantment_14: Integer;
+    FEnchantmentSpellID: Integer; { $14 }
     F_GlobalEnchantment_18: Byte;
     FPlayerIndex: Byte; { $19 }
+    { conflict: FEnchantmentPlayer: Shortint; }
     F_GlobalEnchantment_1A: array[0..1] of Byte;
     F_GlobalEnchantment_1C: Integer;
-    F_GlobalEnchantment_20: Integer;
+    FEnchantmentManaUpkeep: Integer; { $20 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;

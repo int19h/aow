@@ -2654,13 +2654,13 @@ begin
   Stream.rwEObject(FCastSounds, 11);
   Stream.rwStreamProc(12, FCastImages.LoadFromStream, FCastImages.SaveToStream);
   Stream.rwInteger(FBaseManaCost, 13);
-  Stream.rwInteger(F_Spell_1C, 14);
+  Stream.rwInteger(FManaUpkeep, 14);
   Stream.rwInteger(F_Spell_18, 15);
   Stream.rwData(FMagicSphere, 1, 16);
   Stream.rwByte(FSpellLevel, 17);
 end;
 
-procedure TSpell.CanActivate(A1: Integer; A2: Integer);
+function TSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
 { Signature remains compatible with external draft overrides: AL is Boolean,
   EDX is the caster, ECX points to the reason string. }
 asm
@@ -2720,7 +2720,7 @@ asm
   POP EBP
 end;
 
-procedure TSpell.Activate(A1: Integer; A2: Integer);
+function TSpell.Activate(A1: TAbstractUnit): Boolean;
 { Original returns false after optionally centering on the seated player's unit. }
 asm
   PUSH EBX
@@ -2986,7 +2986,7 @@ asm
   POP ECX
 end;
 
-procedure TSpell.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
+function TSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 asm
   XOR EAX, EAX
 end;
@@ -3026,7 +3026,7 @@ asm
   POP EBX
 end;
 
-procedure TSpell.CreateCastSpellAction;
+function TSpell.CreateCastSpellAction: TAICastSpellAction;
 asm
   XOR ECX, ECX
   MOV DL, 1
@@ -3034,7 +3034,7 @@ asm
   CALL TEObject.Create
 end;
 
-procedure TSpell.SetupCastSpellAction(A1: Integer; A2: Integer);
+procedure TSpell.SetupCastSpellAction(A1: TAbstractUnit; A2: TAICastSpellAction);
 asm
   MOV EAX, [EAX].TSpell.FSpellID
   MOV [ECX + $0C], EAX
@@ -3081,10 +3081,10 @@ begin
     Result := False;
 end;
 
-procedure TSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
+procedure TSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
 
-procedure TSpell.AIExecuteCastSpellAction(A1: Integer);
+function TSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
 asm
   XOR EAX, EAX
 end;
@@ -3120,7 +3120,7 @@ asm
   CALL TUnitControl.FindUnit
 end;
 
-procedure TSpellTE.Validate(A1: Integer);
+function TSpellTE.Validate(A1: THero): Boolean;
 { AL is Boolean. The original assumes the source supports THero's instant-cast API. }
 asm
   PUSH EBP
@@ -3901,8 +3901,8 @@ begin end;
 procedure TUnitSpellTE.Initialize(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TUnitSpellTE.Validate(A1: Integer);
-begin end;
+function TUnitSpellTE.Validate(A1: THero): Boolean;
+begin Result := False; end;
 
 function TUnitSpellTE.Process(A1: Integer; A2: Integer): Boolean;
 begin Result := False; end;
@@ -3946,8 +3946,8 @@ begin end;
 procedure TUnitSpell.TargetPartySelected(A1: Integer; A2: Integer);
 begin end;
 
-procedure TUnitSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+function TUnitSpell.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TUnitSpell.CanActivateCombat(A1: Integer; A2: Integer);
 begin end;
@@ -3964,11 +3964,11 @@ begin end;
 procedure TUnitSpell.AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TUnitSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
+procedure TUnitSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
 
-procedure TUnitSpell.AIExecuteCastSpellAction(A1: Integer);
-begin end;
+function TUnitSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TResearchSpellAIPA.Priority;
 begin end;

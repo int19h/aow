@@ -60,8 +60,8 @@ type
     FAboveGroundOnly: Boolean;
     F_GlobalTargetSpell_3A: array[0..1] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); virtual;  { +09C }
     procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
     procedure SetupTargetSelection(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
@@ -214,7 +214,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
@@ -241,7 +241,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integer;
       const SurfaceDesc: TSurfaceDesc);
@@ -282,7 +282,7 @@ type
   TSmokeCloudSpell = class(TGlobalTargetSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure SetupTargetSelection(A1: Integer; A2: Integer); override;
     function TargetSelected(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
     function ValidTargetSelectionMapF(A1: Integer): Boolean; override;
@@ -442,8 +442,8 @@ var
   MapF: TAoWMapField;
   X, Y, Intensity, Radius: Integer;
 begin
-  Level := SpellHSMap^.MapContainer.MapLevels[Shortint(Target.F_TargetSelectionControl_3B)];
-  CenterHNtoHX(Shortint(Target.F_TargetSelectionControl_39), Shortint(Target.F_TargetSelectionControl_3A), HN, X, Y);
+  Level := SpellHSMap^.MapContainer.MapLevels[Shortint(Target.FTargetL)];
+  CenterHNtoHX(Shortint(Target.FTargetX), Shortint(Target.FTargetY), HN, X, Y);
   { Original accepts Width/Height themselves (strict > bounds test). }
   if (X >= 0) and (Y >= 0) and (X <= Level.Width) and (Y <= Level.Height) then
   begin
@@ -468,7 +468,7 @@ end;
 
 function TGlobalTargetSpell.ValidTargetSelectionMapF(A1: Integer): Boolean;
 begin
-  if (SpellHSMap^.F_AbstractAoWHSMap_C9 <> 0) and
+  if (SpellHSMap^.FExplorationEnabled) and
     not TAoWMapField(A1).GetExplored(FCasterPlayer) then
   begin
     { needs: Boolean function declaration; preserve result for callers. }
@@ -521,7 +521,7 @@ begin
   Target := TTargetSelectionView(A2);
   with Target do
   begin
-    TTargetSelectionControl(Target).Initialize(A1);
+    TTargetSelectionControl(Target).Initialize(TAbstractUnit(A1));
     Mode := [tmOwnerDraw, tmValidateDistance, tmExternalFloater] + Mode;
     TAbstractUnit(A1).GetLocation(UnitX, UnitY, UnitLayer);
     CenterX := UnitX;
@@ -569,7 +569,7 @@ begin
   end;
 end;
 
-procedure TGlobalTargetSpell.CanActivate(A1: Integer; A2: Integer);
+function TGlobalTargetSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
 asm
   JMP GlobalTargetCanActivate
 end;
@@ -599,15 +599,15 @@ begin
   begin
     Spell.FCasterID := TAbstractUnit(Caster).FUnitID;
     Spell.FCasterPlayer := Shortint(TAbstractUnit(Caster).FPlayer);
-    Spell.SetupTargetSelection(Caster, SpellHSMap^.F_AoWHSMap_E0);
-    TTargetSelectionControl(SpellHSMap^.F_AoWHSMap_E0).Activate;
+    Spell.SetupTargetSelection(Caster, Integer(SpellHSMap^.FTargetSelection));
+    TTargetSelectionControl(SpellHSMap^.FTargetSelection).Activate;
     Result := True;
   end
   else
     Result := False;
 end;
 
-procedure TGlobalTargetSpell.Activate(A1: Integer; A2: Integer);
+function TGlobalTargetSpell.Activate(A1: TAbstractUnit): Boolean;
 asm
   JMP GlobalTargetActivate
 end;
@@ -1300,7 +1300,7 @@ begin
   inherited Create(AOwner);
   TGlobalEnchantmentMode(F_GlobalEnchantment_11) :=
     TGlobalEnchantmentMode(F_GlobalEnchantment_11) - [gemTrueGlobal, gemOwned];
-  F_GlobalEnchantment_14 := 50;
+  FEnchantmentSpellID := 50;
 end;
 
 procedure TWatcherEnchantment.GetName(A1: Integer);
@@ -1409,7 +1409,7 @@ begin
   SpellHSMap^.DynamicFixedVisibleHS.AddChild(Self);
   TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57).FCastSounds).Play(0);
   FUnexplored.Clear;
-  if SpellHSMap^.F_AbstractAoWHSMap_C9 <> 0 then
+  if SpellHSMap^.FExplorationEnabled then
   begin
     InitHNWalk(Walk, X,Y,0);
     Level := SpellHSMap^.MapContainer.MapLevels[Layer];
@@ -1671,8 +1671,8 @@ begin
   PlayDefaultEffects(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   Watcher := TWatcherHS.Create(nil);
   Watcher.FEnchantment.FPlayerIndex := TAbstractUnit(A1).FPlayer;
-  Watcher.FEnchantment.F_GlobalEnchantment_20 :=
-    TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57).F_Spell_1C;
+  Watcher.FEnchantment.FEnchantmentManaUpkeep :=
+    TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57).FManaUpkeep;
   SpellHSMap^.PlaceHX(Watcher,TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   if Byte(SpellHSMap^.FSeatedPlayer) = FEventPlayerIndex then
     Watcher.StartAnimation(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
@@ -1713,8 +1713,8 @@ end;
 procedure TWatcher.SetupTargetSelection(A1: Integer; A2: Integer);
 begin
   inherited SetupTargetSelection(A1,A2);
-  TTargetSelectionMode(TTargetSelectionControl(A2).F_TargetSelectionControl_0D) :=
-    TTargetSelectionMode(TTargetSelectionControl(A2).F_TargetSelectionControl_0D) - [tmFixedLevel,tmValidateDistance];
+  TTargetSelectionMode(TTargetSelectionControl(A2).FTargetMode) :=
+    TTargetSelectionMode(TTargetSelectionControl(A2).FTargetMode) - [tmFixedLevel,tmValidateDistance];
   TShortIntList(TTargetSelectionControl(A2).FHNs).Clear;
 end;
 
@@ -1749,7 +1749,7 @@ end;
 class function TTornadoTE.ClassID: Integer;
 begin Result := $21324; end;
 
-procedure TTornadoTE.Validate(A1: Integer);
+function TTornadoTE.Validate(A1: THero): Boolean;
 asm
   { needs: Boolean result on the shared TSpellTE.Validate virtual. }
   PUSH EBX
@@ -1811,9 +1811,9 @@ begin
         XShift := Round(Sin(FAnimation.FFrameCounter * 0.1 + I * 0.02) *
           (200-I) * 0.25) + 16;
         Angle := (Direction + FAngle) * Pi / 180;
-        if SpellEngine^.F_AoWEngine_6D = 0 then
+        if SpellEngine^.FAnimationDetail = 0 then
           Count := 1
-        else if SpellEngine^.F_AoWEngine_6D = 1 then
+        else if SpellEngine^.FAnimationDetail = 1 then
           Count := (200-I) shr 5
         else Count := (200-I) shr 4;
         for Count := Count downto 0 do
@@ -1874,9 +1874,9 @@ begin
       SpellHSMap^.Watching(TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).FCastSounds).Play(0);
     Event.FAnimation := TAnimation.Create(nil);
-    Event.FAnimation.F_Animation_0B[0] := $1B;
+    Event.FAnimation.FAnimationLevel := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
-    Event.FAnimation.F_Animation_38 := Integer(SpellHSMap^);
+    Event.FAnimation.FAnimationMap := SpellHSMap^;
     Event.FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     Event.FAnimation.Activate;
@@ -1912,11 +1912,11 @@ begin
     begin
       Log := TArmyEventLog.Create(nil);
       Log.FPlayer := Caster.FPlayer;
-      PSpellString(@Log.F_ArmyEventLog_1C)^ :=
+      PSpellString(@Log.FArmyText)^ :=
         SysUtils.Format(AoWE.TranslateRStr(SpellXCastRStr),[AoWE.TranslateRStr(TornadoRStr)]);
-      TStrings(Log.F_ArmyEventLog_20).Add(AoWE.TranslateRStr(TornadoRStr));
-      Log.F_ArmyEventLog_24 := 2;
-      TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.FArmy)),Selection);
+      TStrings(Log.FArmyMessages).Add(AoWE.TranslateRStr(TornadoRStr));
+      Log.FArmyIcon := 2;
+      TArmyView(TUnitList(Log.FArmyView)).Setup(TArmy(Army.FArmy),Selection);
       DistributeLocationEventLog(Log,Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx,1);
       Log.Release;
       Location := TTornado(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(68)).
@@ -2097,7 +2097,7 @@ end;
 class function TVortexTE.ClassID: Integer;
 begin Result := $21325; end;
 
-procedure TVortexTE.Validate(A1: Integer);
+function TVortexTE.Validate(A1: THero): Boolean;
 asm
   { needs: Boolean result on the shared TSpellTE.Validate virtual. }
   PUSH EBX
@@ -2158,9 +2158,9 @@ begin
         Height := -16;
         XShift := 16;
         Angle := -(Direction + FAngle) * Pi / 180;
-        if SpellEngine^.F_AoWEngine_6D = 0 then
+        if SpellEngine^.FAnimationDetail = 0 then
           Count := 1
-        else if SpellEngine^.F_AoWEngine_6D = 1 then
+        else if SpellEngine^.FAnimationDetail = 1 then
           Count := (200-I) shr 5
         else Count := (200-I) shr 4;
         for Count := Count downto 0 do
@@ -2202,9 +2202,9 @@ begin
       SpellHSMap^.Watching(TSpellLocation(Event.FLocation).X,TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer,2) then
       TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(Event.FEventSpellID).FCastSounds).Play(0);
     Event.FAnimation := TAnimation.Create(nil);
-    Event.FAnimation.F_Animation_0B[0] := $1B;
+    Event.FAnimation.FAnimationLevel := $1B;
     TSpellAnimationFields(Pointer(Event.FAnimation)^).OnShow := Event.ShowAnimation;
-    Event.FAnimation.F_Animation_38 := Integer(SpellHSMap^);
+    Event.FAnimation.FAnimationMap := SpellHSMap^;
     Event.FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     Event.FAnimation.Activate;
@@ -2214,11 +2214,11 @@ begin
   if (Event.FArmyID <> nil) and Event.FArmyID.RetrieveArmy(Army,Selection) then
   begin
     Log := TArmyEventLog.Create(nil);
-    PSpellString(@Log.F_ArmyEventLog_1C)^ := AoWE.TranslateRStr(VortexDamageRStr);
+    PSpellString(@Log.FArmyText)^ := AoWE.TranslateRStr(VortexDamageRStr);
     Log.FPlayer := Caster.FPlayer;
-    TStrings(Log.F_ArmyEventLog_20).Add(AoWE.TranslateRStr(VortexRStr));
-    Log.F_ArmyEventLog_24 := 2;
-    TArmyView(TUnitList(Log.F_ArmyEventLog_18)).Setup(Integer(TArmy(Army.FArmy)),$FF);
+    TStrings(Log.FArmyMessages).Add(AoWE.TranslateRStr(VortexRStr));
+    Log.FArmyIcon := 2;
+    TArmyView(TUnitList(Log.FArmyView)).Setup(TArmy(Army.FArmy),$FF);
     TArmy(Army.FArmy).BeginUpdate;
     Damaged := False;
     for I := 0 to TArmy(Army.FArmy).Count - 1 do
@@ -2238,8 +2238,8 @@ begin
         end;
       end
       else Damage := 0;
-      TByteList(Log.F_ArmyEventLog_28).Add(Damage);
-      TByteList(Log.F_ArmyEventLog_2C).Add(7);
+      TByteList(Log.FDamageValues).Add(Damage);
+      TByteList(Log.FDamageTypes).Add(7);
     end;
     if Damaged then
     begin
@@ -2408,9 +2408,9 @@ begin
         TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer,2) then
       TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(73).FCastSounds).Play(0);
     FAnimation := TAnimation.Create(nil);
-    FAnimation.F_Animation_0B[0] := $1B;
+    FAnimation.FAnimationLevel := $1B;
     TSpellAnimationFields(Pointer(FAnimation)^).OnShow := ShowAnimation;
-    FAnimation.F_Animation_38 := Integer(SpellHSMap^);
+    FAnimation.FAnimationMap := SpellHSMap^;
     FAnimation.FTag := (SpellHSMap^.ViewWidth and $FFFF) or
       (SpellHSMap^.ViewHeight shl 16);
     FAnimation.Activate;
@@ -2457,7 +2457,7 @@ begin
                 SpellHSMap^.Watching(Army.Xhx,Army.Yhx,Army.Lhx,1);
               Anim := TImageSequenceAnimation.Create(nil);
               Anim.SetImageSequence(TImageSequenceList(TAbilityControl(SpellHSSet^.FAbilityControl).GetAbility(47).FImageSequences).ImageSequences[0]);
-              Anim.F_Animation_0B[0] := 27;
+              Anim.FAnimationLevel := 27;
               SpellHSMap^.PlaceHX(Anim,Army.Xhx,Army.Yhx,Army.Lhx);
             end;
           end;
@@ -2589,7 +2589,7 @@ begin
     Cloud.FTurnsRemaining := -1;
     TGlobalEnchantment(Cloud.FEnchantment).FPlayerIndex :=
       Caster.FPlayer;
-    TGlobalEnchantment(Cloud.FEnchantment).F_GlobalEnchantment_20 := Spell.F_Spell_18;
+    TGlobalEnchantment(Cloud.FEnchantment).FEnchantmentManaUpkeep := Spell.F_Spell_18;
     Cloud.FDrifting := False;
     if not SpellHSMap^.PlaceHX(Cloud,TSpellLocation(Event.FLocation).X,
       TSpellLocation(Event.FLocation).Y,TSpellLocation(Event.FLocation).Layer) then
@@ -2600,7 +2600,7 @@ begin
   Result := False;
 end;
 
-procedure TSmokeCloudSpell.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
+function TSmokeCloudSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 asm
   { needs: TSpell.ExecuteTE has only Event and Caster register arguments.
     Its shared draft adds a stack argument; remove that frame before dispatch. }

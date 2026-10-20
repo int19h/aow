@@ -3551,7 +3551,7 @@ begin end;
 procedure TStructure.ListUnits(A1: Integer);
 begin end;
 
-procedure TStructure.ListArmies(A1: Integer);
+procedure TStructure.ListArmies(A1: TArmyHSList);
 begin end;
 
 function TStructure.ValidateMap(A1: Integer): Boolean;
@@ -4046,7 +4046,7 @@ begin end;
 procedure TTargetSelectionControl.ShowSelection(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TTargetSelectionControl.Initialize(A1: Integer);
+procedure TTargetSelectionControl.Initialize(A1: TAbstractUnit);
 begin end;
 
 procedure TTargetSelectionControl.Activate;

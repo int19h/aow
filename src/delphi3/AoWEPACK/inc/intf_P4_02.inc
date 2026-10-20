@@ -883,7 +883,7 @@
     FSpellID: Integer;
     FBaseManaCost: Integer;
     F_Spell_18: Integer;
-    F_Spell_1C: Integer;
+    FManaUpkeep: Integer; { $1C }
     FMagicSphere: TMagicSphere; { $20 }
     FSpellLevel: Byte;
     FSpellType: TSpellType; { $22; stGlobal guard at 557792E8 }
@@ -892,19 +892,19 @@
     FCastSounds: TSFXLibrary; { $28 }
     FCastImages: TImageSequenceList; { $2C }
     { conflict: FImageSequences: TImageSequenceList; }
-    F_Spell_30: Integer;
+    FCastDuration: Integer; { $30 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure PlayDefaultCastEffects(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual; { +04C; byte coordinates, external overrides are draft }
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); virtual;  { +050 draft }
-    procedure CreateCastSpellAction; virtual;  { +054 draft }
-    procedure SetupCastSpellAction(A1: Integer; A2: Integer); virtual;  { +058 draft }
-    procedure AIPrefetchCastSpellActions(A1: Integer; A2: Integer); virtual;  { +05C draft }
-    procedure AIExecuteCastSpellAction(A1: Integer); virtual;  { +060 draft }
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; virtual;  { +050 }
+    function CreateCastSpellAction: TAICastSpellAction; virtual;  { +054 }
+    procedure SetupCastSpellAction(A1: TAbstractUnit; A2: TAICastSpellAction); virtual;  { +058 }
+    procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); virtual;  { +05C }
+    function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; virtual;  { +060 }
     procedure GetEnabled; virtual;  { +064 draft }
-    procedure CanActivate(A1: Integer; A2: Integer); virtual;  { +068 draft }
-    procedure Activate(A1: Integer; A2: Integer); virtual;  { +06C draft }
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; virtual;  { +068 }
+    function Activate(A1: TAbstractUnit): Boolean; virtual;  { +06C }
     procedure CanActivateCombat(A1: Integer; A2: Integer); virtual;  { +070 draft }
     procedure ActivateCombat(A1: Integer); virtual;  { +074 draft }
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); virtual;  { +078 draft }
@@ -967,7 +967,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure Validate(A1: Integer); virtual;  { +050 draft }
+    function Validate(A1: THero): Boolean; virtual;  { +050 }
     function Process(A1: Integer; A2: Integer): Boolean; virtual;  { +054  }
     procedure PlayDefaultCastEffects(A1: Integer; A2: Integer); virtual;  { +058 draft }
     procedure Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
@@ -1039,7 +1039,7 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
     procedure Initialize(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -1068,9 +1068,9 @@
     F_UnitSpell_3D: array[0..2] of Byte;
     F_UnitSpell_40: Integer;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure AIPrefetchCastSpellActions(A1: Integer; A2: Integer); override;
-    procedure AIExecuteCastSpellAction(A1: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
+    function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure CanActivateCombat(A1: Integer; A2: Integer); override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
     procedure GetCombatInfo(A1: Integer; A2: Integer); override;
@@ -1100,7 +1100,8 @@
   { TAICastSpellAction (instance size 28, VMT 557237A8) }
   TAICastSpellAction = class(TEObject)
   public
-    F_AICastSpellAction_08: array[0..19] of Byte;
+    F_AICastSpellAction_08: array[0..15] of Byte;
+    FPriority: Integer; { $18 }
   end;
 
   { TAICastSpellActionList (instance size 12, VMT 55723874) }

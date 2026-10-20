@@ -171,6 +171,8 @@ resourcestring
   CampaignMapRStr = 'Campaign map';
   CampaignRStr = 'Campaign';
   CanOnlyBuildNextToWaterRStr = 'Can only be built next to water';
+  XCastRStr = '%s cast'; { $557075B4, referenced at $557B2059 }
+  CancelRStr = 'Cancel'; { $558E9488, referenced at $557B0820 }
   CancelSpellResearchRStr = 'Cancels current spell research';
   CannotCastSpellInUndergoundRStr = 'Cannot cast spell underground';
   CannotDispelWhenSpellWardIsActiveRStr = 'Cannot dispel when Spell Ward is active';

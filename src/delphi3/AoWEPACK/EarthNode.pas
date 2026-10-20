@@ -1,8 +1,7 @@
 unit EarthNode;
 
-{ Draft declarations of EarthNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EarthNode specialization recovered from AoWEPACK.dpl.
+  Inherited resource fields: $5A rebuild gold, $5B rebuild days, $60 raze defender budget. }
 
 interface
 
@@ -30,30 +29,37 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterEarthNode;  { draft }
+procedure RegisterEarthNode(AEngine: TEngine);
 
 implementation
 
 class function TEarthNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $204CE; end;
 
 function TEarthNode.GetMagicSphere: TMagicSphere;
-begin end;
+begin Result := msEarth; end;
 
 constructor TEarthNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeDefenderBudget := 200;
+  FRebuildGold := 35;
+  FRebuildDays := 2;
+end;
 
 class function TEarthNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(EarthNodeRStr); end;
 
 class function TEarthNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $204CF; end;
 
 function TEarthNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $204CE; end;
 
-procedure RegisterEarthNode;
-begin end;
+procedure RegisterEarthNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TEarthNode, TEarthNodeResource]);
+end;
 
 
 initialization

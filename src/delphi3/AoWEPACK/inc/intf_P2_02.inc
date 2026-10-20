@@ -21,8 +21,8 @@
     procedure ShowMovePaths(A1: Integer); override;
     procedure Create(A1: Byte);  { draft }
     procedure AddMoveArmy(A1: Integer; A2: Integer);  { draft }
-    procedure GetArmyHS;  { draft }
-    procedure GetSelection;  { draft }
+    function GetArmyHS: TArmyHS;
+    function GetSelection: Byte;
     procedure SetSelection(A1: Integer);  { draft }
     procedure GetMoveTypes;  { draft }
     procedure ResetSelectedUnitGFX;  { draft }

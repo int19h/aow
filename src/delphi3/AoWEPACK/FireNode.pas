@@ -1,8 +1,7 @@
 unit FireNode;
 
-{ Draft declarations of FireNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ FireNode specialization recovered from AoWEPACK.dpl.
+  Inherited resource fields: $5A rebuild gold, $5B rebuild days, $60 raze defender budget. }
 
 interface
 
@@ -30,30 +29,37 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterFireNode;  { draft }
+procedure RegisterFireNode(AEngine: TEngine);
 
 implementation
 
 class function TFireNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203DE; end;
 
 function TFireNode.GetMagicSphere: TMagicSphere;
-begin end;
+begin Result := msFire; end;
 
 constructor TFireNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeDefenderBudget := 200;
+  FRebuildGold := 50;
+  FRebuildDays := 3;
+end;
 
 class function TFireNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(FireNodeRStr); end;
 
 class function TFireNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $203DF; end;
 
 function TFireNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $203DE; end;
 
-procedure RegisterFireNode;
-begin end;
+procedure RegisterFireNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TFireNode, TFireNodeResource]);
+end;
 
 
 initialization

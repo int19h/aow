@@ -46,7 +46,7 @@ type
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
@@ -55,11 +55,11 @@ type
   public
     F_GlobalEnchantmentSpell_34: Integer;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure AIPrefetchCastSpellActions(A1: Integer; A2: Integer); override;
-    procedure AIExecuteCastSpellAction(A1: Integer); override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
+    procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
+    function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure AICanCastSpell(A1: Integer); virtual;  { +09C draft }
     procedure CreateEnchantment; virtual;  { +0A0 draft }
     procedure SetupEnchantment(A1: Integer; A2: Integer); virtual;  { +0A4 draft }
@@ -81,7 +81,7 @@ type
   TEnchantedRoads = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -101,7 +101,7 @@ type
   TAirMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -121,7 +121,7 @@ type
   TWaterMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -143,7 +143,7 @@ type
   THatred = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -165,7 +165,7 @@ type
   THarmony = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -183,7 +183,7 @@ type
   TPowerLeak = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -230,7 +230,7 @@ type
   TFlood = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -250,7 +250,7 @@ type
   TLifeMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -271,7 +271,7 @@ type
   TDeathMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -293,7 +293,7 @@ type
   TFireMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -313,7 +313,7 @@ type
   TEarthMastery = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
     procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
   end;
@@ -330,7 +330,7 @@ type
   TSpellWard = class(TGlobalEnchantmentSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure CreateEnchantment; override;
   end;
 
@@ -348,8 +348,8 @@ begin Result := 0; end;
 procedure TGlobalEnchantmentSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TGlobalEnchantmentSpellTE.Validate(A1: Integer);
-begin end;
+function TGlobalEnchantmentSpellTE.Validate(A1: THero): Boolean;
+begin Result := False; end;
 
 function TGlobalEnchantmentSpellTE.Process(A1: Integer; A2: Integer): Boolean;
 begin Result := False; end;
@@ -363,14 +363,14 @@ begin end;
 procedure TGlobalEnchantmentSpell.SetupEnchantment(A1: Integer; A2: Integer);
 begin end;
 
-procedure TGlobalEnchantmentSpell.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TGlobalEnchantmentSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
-procedure TGlobalEnchantmentSpell.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantmentSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
-procedure TGlobalEnchantmentSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantmentSpell.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantmentSpell.AICanCastSpell(A1: Integer);
 begin end;
@@ -378,11 +378,11 @@ begin end;
 procedure TGlobalEnchantmentSpell.AIUpkeepPriority;
 begin end;
 
-procedure TGlobalEnchantmentSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
+procedure TGlobalEnchantmentSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
 
-procedure TGlobalEnchantmentSpell.AIExecuteCastSpellAction(A1: Integer);
-begin end;
+function TGlobalEnchantmentSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TEnchantedRoadsEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -408,8 +408,8 @@ begin end;
 procedure TEnchantedRoads.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TEnchantedRoads.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 procedure TEnchantedRoads.CreateEnchantment;
 begin end;
@@ -438,8 +438,8 @@ begin end;
 procedure TAirMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TAirMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 procedure TAirMastery.CreateEnchantment;
 begin end;
@@ -468,8 +468,8 @@ begin end;
 constructor TWaterMastery.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TWaterMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TWaterMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor THatredEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -501,8 +501,8 @@ begin end;
 constructor THatred.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure THatred.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function THatred.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor THarmonyEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -534,8 +534,8 @@ begin end;
 constructor THarmony.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure THarmony.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function THarmony.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TPowerLeakEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -558,8 +558,8 @@ begin end;
 constructor TPowerLeak.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TPowerLeak.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TPowerLeak.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TFloodControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -627,8 +627,8 @@ begin end;
 procedure TFlood.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TFlood.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TFlood.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TLifeMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -654,8 +654,8 @@ begin end;
 procedure TLifeMastery.CreateEnchantment;
 begin end;
 
-procedure TLifeMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TLifeMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TDeathMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -690,8 +690,8 @@ begin end;
 procedure TDeathMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TDeathMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TFireMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -726,8 +726,8 @@ begin end;
 procedure TFireMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TFireMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TEarthMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -753,8 +753,8 @@ begin end;
 procedure TEarthMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TEarthMastery.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TEarthMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 procedure TEarthMastery.CreateEnchantment;
 begin end;
@@ -771,8 +771,8 @@ begin end;
 constructor TSpellWard.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TSpellWard.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TSpellWard.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 procedure TSpellWard.CreateEnchantment;
 begin end;

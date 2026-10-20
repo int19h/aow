@@ -4489,11 +4489,11 @@ begin end;
 procedure THero.CastingTurnsLeft;
 begin end;
 
-procedure THero.CanCastSpellInstantly(A1: Integer; A2: Integer);
-begin end;
+function THero.CanCastSpellInstantly(A1, A2: Integer; var A3: string): Boolean;
+begin Result := False; end;
 
-procedure THero.CanCastSpell(A1: Integer; A2: Integer);
-begin end;
+function THero.CanCastSpell(A1: Integer; var A2: string): Boolean;
+begin Result := False; end;
 
 procedure THero.CastSpell(A1: Integer; A2: Integer);
 begin end;
@@ -4804,7 +4804,7 @@ begin end;
 procedure TArmyView.SetUnitConcealedForPlayer(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TArmyView.Setup(A1: Integer; A2: Byte);
+procedure TArmyView.Setup(A1: TArmy; A2: Byte);
 begin end;
 
 procedure TArmyView.ReadWrite(Stream: Engine.TEStorageStream);
@@ -4930,8 +4930,8 @@ begin Result := nil; end;
 class function TArmy.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TArmy.GetArmyHS(A1: Integer; A2: Integer);
-begin end;
+function TArmy.GetArmyHS: TArmyHS;
+begin Result := nil; end;
 
 function TArmy.GetEngine: Engine.TEngine;
 begin FillChar(Result, SizeOf(Result), 0); end;
@@ -5056,8 +5056,8 @@ begin end;
 procedure TArmy.CreateMovePointTable(A1: Byte; var Table);
 begin end;
 
-procedure TArmy.ValidTerrainEx(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TArmy.ValidTerrainEx(A1: Byte; A2, A3: Shortint): Boolean;
+begin Result := False; end;
 
 procedure TArmy.ValidTerrain(A1: Byte; A2: Integer);
 begin end;
@@ -5113,8 +5113,8 @@ begin end;
 function TArmy.AddUnits(Units: TUnitList): Boolean;
 begin Result := False; end;
 
-procedure TArmy.CanAddUnitSelection(A1: Integer; A2: Integer);
-begin end;
+function TArmy.CanAddUnitSelection(A1: TUnitList; A2: Byte): Boolean;
+begin Result := False; end;
 
 procedure TArmy.AddUnitSelection(A1: Integer; A2: Integer);
 begin end;
@@ -5323,8 +5323,8 @@ begin Result := 0; end;
 function TArmyHS.GetMoveSteps: Integer;
 begin Result := 0; end;
 
-procedure TArmyHSList.GetArmyHS(A1: Integer);
-begin end;
+function TArmyHSList.GetArmyHS(A1: Integer): TArmyHS;
+begin Result := nil; end;
 
 procedure TSelectedArmy.Create(A1: Byte);
 begin end;
@@ -5338,11 +5338,11 @@ begin end;
 procedure TSelectedArmy.AddMoveArmy(A1: Integer; A2: Integer);
 begin end;
 
-procedure TSelectedArmy.GetArmyHS;
-begin end;
+function TSelectedArmy.GetArmyHS: TArmyHS;
+begin Result := nil; end;
 
-procedure TSelectedArmy.GetSelection;
-begin end;
+function TSelectedArmy.GetSelection: Byte;
+begin Result := 0; end;
 
 procedure TSelectedArmy.SetSelection(A1: Integer);
 begin end;

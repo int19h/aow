@@ -93,7 +93,7 @@ begin
   inherited Create(AOwner);
   TCloudEnchantmentOptions(F_GlobalEnchantment_11) :=
     TCloudEnchantmentOptions(F_GlobalEnchantment_11) - [ce0, ce1];
-  F_GlobalEnchantment_14 := 25;
+  FEnchantmentSpellID := 25;
 end;
 
 class function TSmokeCloudEnchantment.ClassID: Integer;

@@ -383,7 +383,7 @@ begin
         Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
       begin
         WorldMap^.ViewLevel(L);
-        TSelectedArmy(WorldMap^.F_AoWHSMap_D8).Select(Integer(ArmyHS));
+        TSelectedArmy(WorldMap^.FSelectedArmy).Select(Integer(ArmyHS));
       end;
     end
     else
@@ -440,7 +440,7 @@ end;
 constructor TCaveResource.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_StructureResource_44 := 0;
+  FTerrainBound := False;
   F_StructureResource_45 := 1;
 end;
 

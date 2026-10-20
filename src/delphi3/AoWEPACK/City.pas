@@ -89,7 +89,7 @@ type
   public
     FEnchantmentID: TCityEnchantmentID; { $24 }
     F_CityEnchantment_25: array[0..2] of Byte;
-    F_CityEnchantment_28: Integer;
+    FEnchantmentLocation: TXYL; { $28 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -119,6 +119,7 @@ type
     F_City_55: array[0..2] of Byte;
     FEnchantmentList: TGlobalEnchantmentList; { $58 }
     FEnchantments: TCityEnchantmentIDs; { $5C }
+    { conflict: FEnchantmentIDs: TCityEnchantmentIDs; }
     F_City_5D: array[0..2] of Byte;
     FOverlay: TCityOverlayHS; { $60 }
     FEnchantmentsVisible: Boolean; { $64 }

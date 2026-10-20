@@ -47,10 +47,10 @@ type
   TConcealArea = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure GetEnabled; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
   { TBirdsViewHS (instance size 24, VMT 557E925C): $0C/$0D/$0E
@@ -75,10 +75,10 @@ type
   TBirdsView = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     procedure GetEnabled; override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
   { TWarpPartyTE (instance size 40, VMT 557E94F4) }
@@ -90,7 +90,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
@@ -98,7 +98,7 @@ type
   TWarpParty = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure ValidTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure CalculateWarpLocation(A1: Integer);  { draft }
   end;
@@ -107,24 +107,24 @@ type
   TResurrectHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
   { TAnimateHero (instance size 52, VMT 557E97FC) }
   TAnimateHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
   { TCallHero (instance size 52, VMT 557E9914) }
   TCallHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure FindCallHero(A1: Integer);  { draft }
   end;
 
@@ -135,7 +135,7 @@ type
     F_DisjunctionTE_24: Integer;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure Validate(A1: Integer); override;
+    function Validate(A1: THero): Boolean; override;
     function Process(A1: Integer; A2: Integer): Boolean; override;
   end;
 
@@ -159,16 +159,16 @@ type
   TDisjunction = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure CanActivate(A1: Integer; A2: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function CanActivate(A1: TAbstractUnit; var A2: string): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
   { TCrusade (instance size 52, VMT 557E9CFC) }
   TCrusade = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ExecuteTE(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure PlaceParty(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -247,7 +247,7 @@ begin
   if GlobalSpellMap^.ViewL = FLayer then
   begin
     Inc(FFrame);
-    if (GlobalSpellEngine^.F_AoWEngine_6D = 2) and
+    if (GlobalSpellEngine^.FAnimationDetail = 2) and
       (GlobalSpellMap^.ViewL = FLayer) then
     begin
       Intensity := 60-Abs(FFrame*3-60);
@@ -387,7 +387,7 @@ begin
   Result := False;
 end;
 
-procedure TConcealArea.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
+function TConcealArea.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 asm
   { needs: ExecuteTE(Event, Caster): Boolean; the shared draft adds a stack arg. }
   POP EBP
@@ -424,7 +424,7 @@ begin
   end;
 end;
 
-procedure TConcealArea.CanActivate(A1: Integer; A2: Integer);
+function TConcealArea.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
 asm
   { needs: Boolean result and var string on the shared TSpell.CanActivate. }
   JMP CanConcealArea
@@ -459,7 +459,7 @@ begin
   end;
 end;
 
-procedure TConcealArea.Activate(A1: Integer; A2: Integer);
+function TConcealArea.Activate(A1: TAbstractUnit): Boolean;
 asm
   { needs: Boolean result on the shared TSpell.Activate. }
   JMP ActivateConcealArea
@@ -554,14 +554,14 @@ begin end;
 procedure TBirdsView.GetEnabled;
 begin end;
 
-procedure TBirdsView.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TBirdsView.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
-procedure TBirdsView.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TBirdsView.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
-procedure TBirdsView.Activate(A1: Integer; A2: Integer);
-begin end;
+function TBirdsView.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TWarpPartyTE.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -575,8 +575,8 @@ begin Result := 0; end;
 procedure TWarpPartyTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TWarpPartyTE.Validate(A1: Integer);
-begin end;
+function TWarpPartyTE.Validate(A1: THero): Boolean;
+begin Result := False; end;
 
 function TWarpPartyTE.Process(A1: Integer; A2: Integer): Boolean;
 begin Result := False; end;
@@ -590,8 +590,8 @@ begin end;
 procedure TWarpParty.CalculateWarpLocation(A1: Integer);
 begin end;
 
-procedure TWarpParty.Activate(A1: Integer; A2: Integer);
-begin end;
+function TWarpParty.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 class function TDisjunctionTE.ClassID: Integer;
 begin Result := 0; end;
@@ -599,8 +599,8 @@ begin Result := 0; end;
 procedure TDisjunctionTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TDisjunctionTE.Validate(A1: Integer);
-begin end;
+function TDisjunctionTE.Validate(A1: THero): Boolean;
+begin Result := False; end;
 
 function TDisjunctionTE.Process(A1: Integer; A2: Integer): Boolean;
 begin Result := False; end;
@@ -635,41 +635,41 @@ begin end;
 constructor TDisjunction.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TDisjunction.CanActivate(A1: Integer; A2: Integer);
-begin end;
+function TDisjunction.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
+begin Result := False; end;
 
-procedure TDisjunction.Activate(A1: Integer; A2: Integer);
-begin end;
+function TDisjunction.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TResurrectHero.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TResurrectHero.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TResurrectHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
-procedure TResurrectHero.Activate(A1: Integer; A2: Integer);
-begin end;
+function TResurrectHero.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TAnimateHero.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TAnimateHero.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAnimateHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
-procedure TAnimateHero.Activate(A1: Integer; A2: Integer);
-begin end;
+function TAnimateHero.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TCallHero.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure TCallHero.Activate(A1: Integer; A2: Integer);
-begin end;
+function TCallHero.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TCallHero.FindCallHero(A1: Integer);
 begin end;
 
-procedure TCallHero.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TCallHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
 constructor TCrusade.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -677,11 +677,11 @@ begin end;
 procedure TCrusade.PlaceParty(A1: Integer; A2: Integer);
 begin end;
 
-procedure TCrusade.ExecuteTE(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TCrusade.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+begin Result := False; end;
 
-procedure TCrusade.Activate(A1: Integer; A2: Integer);
-begin end;
+function TCrusade.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure RegisterGlobalSpells(A1: Integer);
 begin end;

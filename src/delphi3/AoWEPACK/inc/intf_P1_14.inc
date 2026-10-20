@@ -5,6 +5,7 @@ var
   AoWHSSet: TAoWHSSet;  { $558FA044 }
 
 const
+  ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   { Original alsAll at $558E8068 excludes alPureNeutral. }
   alsAll: TAlignments = [alPureGood, alGood, alNeutral, alEvil, alPureEvil, alNone];
 var

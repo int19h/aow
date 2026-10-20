@@ -6,9 +6,10 @@
     F_AoWEngine_5C: Integer;
     F_AoWEngine_60: Integer;
     FGameSet: TAoWHSSet; { $64 }
+    { conflict: FHSSet: TAoWHSSet; }
     F_AoWEngine_68: array[0..3] of Byte;
     F_AoWEngine_6C: Byte;
-    F_AoWEngine_6D: Byte;
+    FAnimationDetail: Byte; { $6D }
     F_AoWEngine_6E: Byte;
     F_AoWEngine_6F: array[0..0] of Byte;
     F_AoWEngine_70: Integer;

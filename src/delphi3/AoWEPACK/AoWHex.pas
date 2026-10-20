@@ -342,7 +342,7 @@ begin
   Xhp := Xhp - XhpSurf - 8;
   Yhp := Yhp - YhpSurf;
   { needs: AoWE.AoWEngine global; its resource engine provides the same settings. }
-  if (TAoWEngine(FResource.Engine).F_AoWEngine_6D <> 0) and
+  if (TAoWEngine(FResource.Engine).FAnimationDetail <> 0) and
     ((TAoWMapField(Owner).FFieldFlags and $FF0000 <> 0) or
     (TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).F_AbstractAoWHSMap_C8 = 0)) then
   begin
@@ -378,7 +378,7 @@ begin
         end;
       end;
       if not Showing then
-        if TAoWEngine(FResource.Engine).F_AoWEngine_6D = 1 then
+        if TAoWEngine(FResource.Engine).FAnimationDetail = 1 then
           FAnimationFrame := -20 - Random(25)
         else FAnimationFrame := -10 - Random(25);
     end;

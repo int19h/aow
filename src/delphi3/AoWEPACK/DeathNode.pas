@@ -1,8 +1,8 @@
 unit DeathNode;
 
-{ Draft declarations of DeathNode, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ DeathNode specialization recovered from AoWEPACK.dpl.
+  Inherited resource fields: $44 terrain binding, $5A rebuild gold,
+  $5B rebuild days, $60 raze defender budget. }
 
 interface
 
@@ -30,30 +30,38 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterDeathNode;  { draft }
+procedure RegisterDeathNode(AEngine: TEngine);
 
 implementation
 
 class function TDeathNode.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $204AE; end;
 
 function TDeathNode.GetMagicSphere: TMagicSphere;
-begin end;
+begin Result := msDeath; end;
 
 constructor TDeathNodeResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRazeDefenderBudget := 200;
+  FRebuildGold := 25;
+  FRebuildDays := 2;
+  FTerrainBound := False;
+end;
 
 class function TDeathNodeResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := AoWE.TranslateRStr(DeathNodeRStr); end;
 
 class function TDeathNodeResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $204AF; end;
 
 function TDeathNodeResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $204AE; end;
 
-procedure RegisterDeathNode;
-begin end;
+procedure RegisterDeathNode(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TDeathNode, TDeathNodeResource]);
+end;
 
 
 initialization

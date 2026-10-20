@@ -44,9 +44,9 @@ type
     F_SummonSpell_34: array[0..7] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure AIPrefetchCastSpellActions(A1: Integer; A2: Integer); override;
-    procedure AIExecuteCastSpellAction(A1: Integer); override;
-    procedure Activate(A1: Integer; A2: Integer); override;
+    procedure AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList); override;
+    function AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean; override;
+    function Activate(A1: TAbstractUnit): Boolean; override;
     procedure SetupSummonSpellTE(A1: Integer); virtual;  { +09C draft }
     procedure GetDispelResistance(A1: Integer);  { draft }
     procedure GetAIUpkeepPriority;  { draft }
@@ -163,17 +163,17 @@ begin end;
 procedure TSummonSpell.SetupSummonSpellTE(A1: Integer);
 begin end;
 
-procedure TSummonSpell.Activate(A1: Integer; A2: Integer);
-begin end;
+function TSummonSpell.Activate(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 procedure TSummonSpell.GetAIUpkeepPriority;
 begin end;
 
-procedure TSummonSpell.AIPrefetchCastSpellActions(A1: Integer; A2: Integer);
+procedure TSummonSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
 
-procedure TSummonSpell.AIExecuteCastSpellAction(A1: Integer);
-begin end;
+function TSummonSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
+begin Result := False; end;
 
 constructor TSummonSyron.Create(AOwner: Engine.TECustomNode);
 begin end;

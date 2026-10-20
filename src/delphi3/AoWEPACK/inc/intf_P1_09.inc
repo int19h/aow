@@ -133,7 +133,7 @@
     procedure VisibleForPlayer(A1: Byte); virtual;  { +1CC draft }
     function CanDblClick: Boolean; virtual;
     procedure ListUnits(A1: Integer); virtual;  { +1D4 draft }
-    procedure ListArmies(A1: Integer); virtual;  { +1D8 draft }
+    procedure ListArmies(A1: TArmyHSList); virtual;  { +1D8 }
     procedure GetRebuildInfo(A1: Integer; A2: Integer); virtual;  { +1DC draft }
     procedure CanRebuild(A1: Integer; A2: Integer); virtual;  { +1E0 draft }
     procedure Rebuild(A1: Integer); virtual;  { +1E4 draft }
@@ -144,7 +144,7 @@
     procedure UpdateRoads(A1: Integer);  { draft }
     procedure GetPlayer;  { draft }
     procedure FogChanged;  { draft }
-    procedure ValidateObservation(A1: Byte);  { draft }
+    procedure ValidateObservation(A1: Byte);
     function GetBuilding: Boolean;
     procedure ShowBorderImage(A1: Integer; A2: Integer);  { draft }
     procedure ShowBorderImageDC(A1: Integer; A2: Integer);  { draft }
@@ -173,7 +173,7 @@
   { TStructureResource (instance size 100, VMT 55713F40) }
   TStructureResource = class(TFixedILTerrainMOR)
   public
-    F_StructureResource_44: Byte;
+    FTerrainBound: Boolean; { $44 }
     F_StructureResource_45: Byte;
     F_StructureResource_46: Byte;
     F_StructureResource_47: array[0..0] of Byte;
@@ -184,10 +184,10 @@
     F_StructureResource_54: Integer;
     FRazeable: Boolean;  { $58 }
     F_StructureResource_59: Byte;
-    F_StructureResource_5A: Byte;
-    F_StructureResource_5B: Byte;
+    FRebuildGold: Byte; { $5A }
+    FRebuildDays: Byte; { $5B }
     FDefenders: TUnitIndexListCollection;  { $5C }
-    F_StructureResource_60: Integer;
+    FRazeDefenderBudget: Integer; { $60 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
