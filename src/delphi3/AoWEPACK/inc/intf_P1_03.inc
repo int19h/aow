@@ -208,6 +208,7 @@
     FBaseHeroJoinLevel: Integer; { $6C }
     FLastHeroJoinDay: Integer; { $70 }
     FEmergingHeroID: Integer; { $74 }
+    { conflict: FHeroEmergeID: Integer; }
     FLastHeroEmergeDay: Integer; { $78 }
     FHighestHeroLevel: Integer; { $7C }
     FHeroes: THeroList; { $80 }

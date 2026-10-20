@@ -78,19 +78,19 @@
   { TPowerSource (instance size 8, VMT 5570AE18) }
   TPowerSource = class(TEObject)
   public
-    procedure Name(A1: Integer); virtual;  { +04C draft }
-    procedure Power; virtual;  { +050 draft }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +054 draft }
+    function Name: string; virtual;
+    function Power: Integer; virtual;
+    procedure GetLocation(var A1, A2, A3: Shortint); virtual;
     procedure CenterToLocation(A1: Integer; A2: Integer); virtual;  { +058 draft }
-    procedure Select(A1: Integer; A2: Integer); virtual;  { +05C draft }
+    procedure Select; virtual;
   end;
 
   { TExternalPowerSource (instance size 12, VMT 5570AEEC; $08 external power control) }
   TExternalPowerSource = class(TPowerSource)
   public
     FExternalPowerControl: Integer;
-    procedure Name(A1: Integer); override;
-    procedure Power; override;
+    function Name: string; override;
+    function Power: Integer; override;
   end;
 
   { TPowerSourceList (instance size 12, VMT 5570AFD0) }
@@ -149,7 +149,7 @@
     procedure GetResearchTurnsLeft;  { draft }
     procedure ValidResearchSpell(A1: Integer);  { draft }
     procedure ListResearchSpells(A1: Integer; A2: Byte);  { draft }
-    procedure ListSpells(A1: Integer; A2: Byte);  { draft }
+    procedure ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
     procedure Update;

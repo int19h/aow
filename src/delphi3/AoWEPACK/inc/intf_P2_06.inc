@@ -36,7 +36,7 @@
     function GetSuperlativeAbOwner(AbilityID: Integer): TAbilityOwner;
     function GetAbilityEnabled(AbilityID: Integer): Boolean;
     function GetAbilitySet(AbilityID: Integer): Boolean;
-    function GetPositionItem(Position: Integer): TItem;
+    function GetPositionItem(Position: THeroItemPosition): TItem;
     function GetPositionItemType(Position: THeroItemPosition): TItemType;
     function GetItemTypePosition(ItemType: TItemType): THeroItemPosition;
     function CanPlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
@@ -78,14 +78,14 @@
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { THeroPowerSource (instance size 12, VMT 55711AAC) }
+  { THeroPowerSource (instance size 12, VMT 55711AAC): +08 FHero. }
   THeroPowerSource = class(TPowerSource)
   public
-    F_HeroPowerSource_08: Integer;
-    procedure Name(A1: Integer); override;
-    procedure Power; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Select(A1: Integer; A2: Integer); override;
+    FHero: THero;  { $08 }
+    function Name: string; override;
+    function Power: Integer; override;
+    procedure GetLocation(var A1, A2, A3: Shortint); override;
+    procedure Select; override;
   end;
 
   { THeroUpgradeEventLog (instance size 36, VMT 55711B88): +18 FUnitID;

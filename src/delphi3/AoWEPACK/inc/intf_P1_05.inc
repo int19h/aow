@@ -229,7 +229,7 @@
     FPlayers: TPlayerList;  { $140 }
     FRaces: TRaceList;  { $144 }
     FFixedLeaders: Boolean; { $148 }
-    F_AoWHSMap_149: Byte;
+    FLeadersFixed: Boolean;  { $149; 55786C99 }
     F_AoWHSMap_14A: Byte;
     FAlliedVictory: Boolean; { $14B }
     F_AoWHSMap_14C: Byte;
@@ -298,8 +298,8 @@
     F_AoWHSMap_224: Integer;
     F_AoWHSMap_228: Integer;
     FInitialRandomSeed: Integer; { $22C }
-    FDefendersSeed: Integer; { $230 }
     { conflict: FRandomSeed: Integer; }
+    FDefendersSeed: Integer; { $230 }
     F_AoWHSMap_234: Integer;
     FDebugSave: Boolean; { $238 }
     FPlayMode: TPlayMode; { $239 }

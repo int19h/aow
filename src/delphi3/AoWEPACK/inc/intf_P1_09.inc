@@ -222,10 +222,10 @@
   TPlayerStructurePowerSource = class(TPowerSource)
   public
     F_PlayerStructurePowerSource_08: Integer;
-    procedure Name(A1: Integer); override;
-    procedure Power; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure Select(A1: Integer; A2: Integer); override;
+    function Name: string; override;
+    function Power: Integer; override;
+    procedure GetLocation(var A1, A2, A3: Shortint); override;
+    procedure Select; override;
     procedure Setup(Structure: TPlayerStructure);
   end;
 

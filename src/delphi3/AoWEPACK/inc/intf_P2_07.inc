@@ -29,27 +29,30 @@
   end;
 
   { THero (instance size 156, VMT 55711FEC): +54 FUpgradePending;
-    +60 FHeroName; +6A..6F unit attack, defense, damage, hits, moves, resistance. }
+    +40 FHeroResource; +44 FHeroResourceIndex; +48 FExperience; +50 FUsedSkillPoints;
+    +58 FDeathDay; +5C FDeathPlayer; +4C FLevel; +55 FHeroStatus; +60 FHeroName;
+    +64 FNickname; +68 FRace; +69 FGender; +6A..6F unit statistics; +79 FMovePoints; +7A FHitPoints; +7C FPowerSource;
+    +88 FCastingMana; +8C FCastingProgress; +90 FLibraryID; +94 FLibraryName; +98 FRegistered. }
   THero = class(TAbstractUnit)
   public
     FFaceIndex: Integer; { $3C }
-    F_Hero_40: Integer;
-    F_Hero_44: Integer;
-    F_Hero_48: Integer;
-    F_Hero_4C: Byte;
+    FHeroResource: THeroResource;  { $40 }
+    FHeroResourceIndex: Integer;  { $44 }
+    FExperience: Integer;  { $48 }
+    FLevel: Byte;  { $4C }
     F_Hero_4D: array[0..2] of Byte;
-    F_Hero_50: Integer;
+    FUsedSkillPoints: Integer;  { $50 }
     FUpgradePending: Boolean;  { $54 }
     FHeroStatus: THeroStatus; { $55 }
     F_Hero_56: array[0..1] of Byte;
-    F_Hero_58: Integer;
-    F_Hero_5C: Byte;
+    FDeathDay: Integer;  { $58 }
+    FDeathPlayer: Shortint;  { $5C }
     FMode: THeroMode; { $5D }
     F_Hero_5E: array[0..1] of Byte;
     FHeroName: string;  { $60 }
-    F_Hero_64: Integer;
+    FNickname: string;  { $64 }
     FRace: Shortint; { $68 }
-    F_Hero_69: Byte;
+    FGender: TUnitGender;  { $69 }
     FUnitAttack: Shortint;  { $6A }
     FUnitDefense: Shortint;  { $6B }
     FUnitDamage: Shortint;  { $6C }
@@ -59,18 +62,18 @@
     FHeroItems: THeroItems; { $70 }
     FInventory: THeroInventory; { $74 }
     F_Hero_78: Byte;
-    F_Hero_79: Byte;
-    F_Hero_7A: Byte;
+    FMovePoints: Shortint;  { $79 }
+    FHitPoints: Shortint;  { $7A }
     F_Hero_7B: array[0..0] of Byte;
     FPowerSource: THeroPowerSource; { $7C }
     F_Hero_80: Byte;
     F_Hero_81: array[0..2] of Byte;
     FCastingSpellID: Integer; { $84 }
-    F_Hero_88: Integer;
-    F_Hero_8C: Integer;
-    F_Hero_90: Integer;
-    F_Hero_94: Integer;
-    F_Hero_98: Byte;
+    FCastingMana: Integer;  { $88 }
+    FCastingProgress: Integer;  { $8C }
+    FLibraryID: Integer;  { $90 }
+    FLibraryName: string;  { $94 }
+    FRegistered: Boolean;  { $98 }
     F_Hero_99: array[0..2] of Byte;
     destructor Destroy; override;
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
@@ -142,22 +145,22 @@
     procedure SetNickname(Value: string); virtual; { $1BC }
     procedure SetHeroResourceIndex(A1: Integer); virtual;  { +1C0 draft }
     procedure EditDropMsg(A1: Integer); virtual;  { +1C4 draft }
-    procedure GetLibraryName(A1: Integer);  { draft }
-    procedure UpdateFromLibraryBegin;  { draft }
-    procedure UpdateFromLibraryEnd;  { draft }
-    procedure UpdateFromLibrary;  { draft }
-    procedure GetLibraryHero;  { draft }
-    procedure UsedSkillPoints;  { draft }
-    procedure EmergedToPlayer;  { draft }
-    procedure DropItemsOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure CompatibleHero(A1: Integer; A2: Integer);  { draft }
+    function GetLibraryName: string;
+    procedure UpdateFromLibraryBegin;
+    procedure UpdateFromLibraryEnd;
+    procedure UpdateFromLibrary;
+    function GetLibraryHero: Boolean;
+    function UsedSkillPoints: Integer;
+    function EmergedToPlayer: Shortint;
+    procedure DropItemsOnMap(Map: TAoWHSMap; X, Y, L: Shortint);
+    function CompatibleHero(Hero: THero): Boolean;
     function GetSkillPoints: Integer;
-    procedure GetSkillPointsMax;  { draft }
-    procedure GetLevelMax;  { draft }
-    procedure LevelToExperience(A1: Integer);  { draft }
-    procedure ExperienceToLevel(A1: Integer);  { draft }
+    function GetSkillPointsMax: Integer;
+    function GetLevelMax: Integer;
+    function LevelToExperience(Level: Integer): Integer;
+    function ExperienceToLevel(Experience: Integer): Shortint;
     function GetLevel: Shortint;
-    procedure SetLevel(A1: Integer);  { draft }
+    procedure SetLevel(Value: Shortint);
     function GetHeroType: THeroType;
     procedure SetUnitAttack(Value: Shortint);
     procedure SetUnitDefense(Value: Shortint);
@@ -165,9 +168,9 @@
     procedure SetUnitHits(Value: Shortint);
     procedure SetUnitMoves(Value: Shortint);
     procedure SetUnitResistance(Value: Shortint);
-    procedure LinkToResource;  { draft }
-    procedure Loaded;  { draft }
-    procedure ListSpells(A1: Integer);  { draft }
+    procedure LinkToResource;
+    procedure Loaded;
+    procedure ListSpells(var List: TSpellList);
     procedure ExecuteUpgradeHeroAI;  { draft }
     procedure ValidateHeroUpgrade(A1: Integer; A2: Integer);  { draft }
     procedure GetUnitAbilityEnabled;  { draft }
@@ -188,7 +191,7 @@
     procedure PlaceItem(A1: Integer; A2: Integer);  { draft }
     procedure ExecuteSwapItem(A1: Integer; A2: Integer);  { draft }
     function AutoPlaceItem(Item: TItem): Boolean;
-    procedure ExecutePlaceItem(A1: Integer; A2: Integer);  { draft }
+    procedure ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition);
     procedure ExecuteStartCasting(A1: Integer);  { draft }
     procedure RemoveCastingReadyEventLog;  { draft }
     procedure ExecuteCancelCasting;  { draft }
@@ -267,15 +270,15 @@
     procedure UpdateLibraryHeroes;  { draft }
     function GetHero(Index: Integer): THero;
     function GetCount: Integer;
-    procedure FindID;  { draft }
+    function FindID(ID: Integer): THero;
     procedure IndexOf;  { draft }
     procedure IndexOfLibraryEx(A1: Integer; A2: Integer);  { draft }
     procedure ValidateLibraryHeroes;  { draft }
     procedure Activate;  { draft }
     procedure Deactivate;  { draft }
     procedure RegisterHero(Hero: THero);
-    procedure UnRegisterHero(A1: Integer);  { draft }
-    procedure HeroChanged;  { draft }
+    procedure UnRegisterHero(Hero: THero);
+    procedure HeroChanged(Hero: THero);
     procedure GetAverageFreeHeroLevel(A1: Integer; A2: Integer);  { draft }
     function GetMinFreeHeroLevel: Integer;
     procedure ListDeadHeroes(A1: Integer);  { draft }
@@ -310,27 +313,28 @@
     procedure WriteUserLibraries;  { draft }
     procedure IndexOfLibraryName(A1: Integer);  { draft }
     procedure IndexOfLibrary;  { draft }
-    procedure FindHero(A1: Integer; A2: Integer);  { draft }
+    function FindHero(const LibraryName: string; LibraryID: Integer): THero;
     procedure CreateLibrary(A1: Integer);  { draft }
     procedure DeleteLibrary(A1: Integer);  { draft }
   end;
 
-  { THeroResource (instance size 52, VMT 55712854) }
+  { THeroResource (instance size 52, VMT 55712854): +20 FRace; +21 FHeroType;
+    +22 FAlignment; +24..29 base statistics; +2C FAbilities. }
   THeroResource = class(TAbstractUnitResource)
   public
     F_HeroResource_1C: Integer;
-    F_HeroResource_20: Byte;
-    F_HeroResource_21: Byte;
-    F_HeroResource_22: Byte;
+    FRace: Shortint;  { $20 }
+    FHeroType: THeroType;  { $21 }
+    FAlignment: TAlignment;  { $22 }
     F_HeroResource_23: Byte;
-    F_HeroResource_24: Byte;
-    F_HeroResource_25: Byte;
-    F_HeroResource_26: Byte;
-    F_HeroResource_27: Byte;
-    F_HeroResource_28: Byte;
-    F_HeroResource_29: Byte;
+    FAttack: Shortint;  { $24 }
+    FDefense: Shortint;  { $25 }
+    FDamage: Shortint;  { $26 }
+    FHits: Shortint;  { $27 }
+    FMoves: Shortint;  { $28 }
+    FResistance: Shortint;  { $29 }
     F_HeroResource_2A: array[0..1] of Byte;
-    F_HeroResource_2C: Integer;
+    FAbilities: TAbilityOwner;  { $2C }
     F_HeroResource_30: Integer;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -345,7 +349,7 @@
   THeroResourceList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetHeroResource(A1: Integer);  { draft }
+    function GetHeroResource(Index: Integer): THeroResource;
     procedure CreateHeroResourceStrings(A1: Byte);  { draft }
     function Find(Race: Integer; HeroType: THeroType): Integer;
   end;

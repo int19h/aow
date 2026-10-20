@@ -5604,21 +5604,21 @@ begin end;
 procedure TEnchantmentList.FindID;
 begin end;
 
-procedure TPowerSource.Name(A1: Integer);
+function TPowerSource.Name: string;
 begin
-  P4LongString(Pointer(A1))^ := '';
+  Result := '';
 end;
 
-procedure TPowerSource.Power;
+function TPowerSource.Power: Integer;
 asm
   XOR EAX, EAX
 end;
 
-procedure TPowerSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TPowerSource.GetLocation(var A1, A2, A3: Shortint);
 begin
-  P4ShortInt(Pointer(A1))^ := -1;
-  P4ShortInt(Pointer(A2))^ := -1;
-  P4ShortInt(Pointer(A3))^ := -1;
+  A1 := -1;
+  A2 := -1;
+  A3 := -1;
 end;
 
 procedure TPowerSource.CenterToLocation(A1: Integer; A2: Integer);
@@ -5652,7 +5652,7 @@ asm
   POP EBX
 end;
 
-procedure TPowerSource.Select(A1: Integer; A2: Integer);
+procedure TPowerSource.Select;
 begin end;
 
 procedure TPowerSourceList.GetItems(A1: Integer);
@@ -5662,12 +5662,12 @@ asm
   MOV EAX, [EAX + EDX * 4]
 end;
 
-procedure TExternalPowerSource.Name(A1: Integer);
+function TExternalPowerSource.Name: string;
 begin
-  P4TranslateInto(P4ExternalPowerRStr, P4LongString(Pointer(A1))^);
+  P4TranslateInto(P4ExternalPowerRStr, Result);
 end;
 
-procedure TExternalPowerSource.Power;
+function TExternalPowerSource.Power: Integer;
 { The external control's unmarked P1 fields retain their existing declaration. }
 asm
   MOV EAX, [EAX].TExternalPowerSource.FExternalPowerControl
@@ -5766,7 +5766,7 @@ begin end;
 procedure TPlayerMagicControl.ListResearchSpells(A1: Integer; A2: Byte);
 begin end;
 
-procedure TPlayerMagicControl.ListSpells(A1: Integer; A2: Byte);
+procedure TPlayerMagicControl.ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
 begin end;
 
 procedure TPlayerMagicControl.BeginUpdate;

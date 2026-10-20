@@ -1,4 +1,13 @@
 { P2 recovery in original code order. }
+type
+  TP2HeroLevel = record
+    Experience, Reserved: Integer;
+  end;
+const
+  P2HeroLevels: array[0..5] of TP2HeroLevel = (
+    (Experience: 15; Reserved: 1), (Experience: 15; Reserved: 1),
+    (Experience: 20; Reserved: 1), (Experience: 20; Reserved: 1),
+    (Experience: 25; Reserved: 1), (Experience: 25; Reserved: 29));
 var
   { needs: P1 shared AoWHSSet: TAoWHSSet, original global 558FA044. }
   P2AoWHSSet: TAoWHSSet;
@@ -3745,7 +3754,61 @@ end;
 
 
 procedure TUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  Index: Integer;
+  Xhp, Yhp, DX, DY: Integer;
+  Progress: Single;
+begin
+  Assert(FDirection < FUnitGFXResource.FSequences.Count, 'Invalid Unit Index');
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  if FMoveStep <> -1 then
+  begin
+    HNtoHP(FDirection, DX, DY);
+    if FStatus and $10 = 0 then
+    begin
+      Progress := FMoveStep / GetMoveSteps;
+      Inc(XhpSurf, Round(DX * Progress));
+      Inc(YhpSurf, Round(DY * Progress));
+    end;
+    if FStatus and 8 = 0 then
+    begin
+      Sequence := FUnitGFXResource.FSequences.List^[FDirection + 5];
+      if (Sequence <> nil) and GetSelected then
+      begin
+        Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+        { ImageLib's private speed counter at $30 gates the original footstep sound. }
+        asm
+          MOV EAX, Sequence
+          MOV DL, [EAX + $30]
+          CMP DL, [EAX + $18]
+          JNE @@NoStepSound
+          MOV EAX, Index
+          MOV ECX, 100
+          CDQ
+          IDIV ECX
+          MOV EAX, Self
+          MOV EAX, [EAX + $10]
+          MOV EAX, [EAX + $38]
+          CALL TSFXLibrary.Play
+        @@NoStepSound:
+        end;
+      end;
+    end
+    else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1];
+  end
+  else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1];
+  if not GetSelected or (AoWHSMap.Frame and 6 <> 6) then
+    while Sequence <> nil do
+    begin
+      Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+      if Index <> -1 then
+        Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+      Sequence := Sequence.Next;
+    end;
+end;
 
 procedure TUnitHS.SetDirection(Value: Byte);
 begin
@@ -4678,10 +4741,11 @@ begin
   end;
 end;
 
-function THeroItems.GetPositionItem(Position: Integer): TItem;
+function THeroItems.GetPositionItem(Position: THeroItemPosition): TItem;
+var Index: Integer;
 begin
-  Position := Position and $7F;
-  if Position < FChildren.Count then Result := TItem(FChildren.List^[Position])
+  Index := Ord(Position) and $7F;
+  if Index < FChildren.Count then Result := TItem(FChildren.List^[Index])
   else Result := nil;
 end;
 
@@ -4701,7 +4765,7 @@ end;
 function THeroItems.CanPlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
 begin
   Result := (Item <> nil) and (Ord(Position) < 6) and
-    (GetPositionItem(Ord(Position)) = nil) and (GetPositionItemType(Position) = Item.FItemType);
+    (GetPositionItem(Position) = nil) and (GetPositionItemType(Position) = Item.FItemType);
 end;
 
 function THeroItems.PlaceItem(Item: TItem; Position: THeroItemPosition): Boolean;
@@ -4714,218 +4778,644 @@ begin
   else Result := False;
 end;
 
-procedure THeroPowerSource.Name(A1: Integer);
-begin end;
+function THeroPowerSource.Name: string;
+begin
+  Result := FHero.FHeroName;
+end;
 
-procedure THeroPowerSource.Power;
-begin end;
+function THeroPowerSource.Power: Integer;
+begin
+  Result := FHero.GetPowerGeneration;
+end;
 
-procedure THeroPowerSource.Select(A1: Integer; A2: Integer);
-begin end;
+procedure THeroPowerSource.Select;
+var
+  X, Y, L: Shortint;
+  ArmyHS: TArmyHS;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    ArmyHS := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetArmyHS;
+    if ArmyHS <> nil then AoWHSMap.Select(ArmyHS, True);
+  end;
+end;
 
-procedure THeroPowerSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure THeroPowerSource.GetLocation(var A1, A2, A3: Shortint);
+begin
+  FHero.GetLocation(A1, A2, A3);
+end;
 
 constructor THero.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FHeroItems := THeroItems.Create(TECustomNode(Self));
+  FInventory := THeroInventory.Create(TECustomNode(Self));
+  FPowerSource := THeroPowerSource.Create(nil);
+  FPowerSource.FHero := Self;
+  FHeroResourceIndex := -1;
+  FHeroStatus := [];
+  FLevel := 1;
+  FCastingSpellID := 0;
+  FCastingMana := 0;
+  FCastingProgress := 0;
+  FLibraryID := -1;
+end;
 
 destructor THero.Destroy;
-begin end;
+begin
+  AddRef;
+  AddRef;
+  AddRef;
+  AddRef; { Original repeats the reference increment four times. }
+  if FRegistered and (AoWHSMap <> nil) then AoWHSMap.FHeroControl.UnRegisterHero(Self);
+  inherited Destroy;
+  FHeroItems.Free;
+  FInventory.Free;
+  FPowerSource.Free;
+end;
 
 function THero.GetCampaignTransferPoints: Integer;
-begin end;
+begin
+  Result := inherited GetCampaignTransferPoints;
+  Result := Result div 2;
+end;
 
-procedure THero.GetLibraryName(A1: Integer);
-begin end;
+function THero.GetLibraryName: string;
+begin
+  Result := FLibraryName;
+  if Result = '' then Result := TranslateRStr(DefaultRStr);
+end;
 
 procedure THero.UpdateFromLibraryBegin;
-begin end;
+begin FMode := FMode + [hmUpdatingFromLibrary]; end;
 
 procedure THero.UpdateFromLibraryEnd;
-begin end;
+begin FMode := FMode - [hmUpdatingFromLibrary]; end;
 
 procedure THero.UpdateFromLibrary;
-begin end;
+var Hero: THero; ID: Integer;
+begin
+  if FLibraryID <> -1 then
+  begin
+    Hero := AoWHSSet.FHeroLibraries.FindHero(FLibraryName, FLibraryID);
+    if Hero <> nil then
+    begin
+      ID := FUnitID;
+      FMode := FMode + [hmUpdatingFromLibrary];
+      Assign(Hero, AoWEngine);
+      FMode := FMode - [hmUpdatingFromLibrary];
+      FUnitID := ID;
+      Changed;
+    end;
+  end;
+end;
 
 function THero.GetUnitLevel: Shortint;
-begin end;
+begin Result := FLevel; end;
 
 procedure THero.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  AddRef;
+  inherited SetOwner(AOwner);
+  if usActivated in FUnitStatus then Changed;
+  Release;
+end;
 
 function THero.GetNickname: string;
-begin Result := ''; end;
+begin Result := FNickname; end;
 
 procedure THero.SetNickname(Value: string);
-begin end;
+begin FNickname := Value; end;
 
 function THero.GetAbilitySelectionTypes: TAbilitySelectionTypes;
-begin Result := []; end;
+begin Result := [astEditor]; end;
 
 function THero.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWEngine; end;
 
-procedure THero.GetLibraryHero;
-begin end;
+function THero.GetLibraryHero: Boolean;
+begin Result := FLibraryID <> -1; end;
 
 function THero.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer;
-begin end;
+begin
+  Result := inherited ShowEx(X, Y, SD, Info);
+  if uoRank in Info.Overlays then
+  begin
+    AoWEngine.FCombatFont.Color := $FFFFFF;
+    AoWEngine.FCombatFont.SetTextCentered(X + 43, Y + 12, IntToStr(GetLevel), SD);
+  end;
+end;
 
 procedure THero.Changed;
-begin end;
+begin
+  inherited Changed;
+  if (AoWHSMap <> nil) and not (msDestroying in AoWHSMap.Status) then
+    AoWHSMap.FHeroControl.HeroChanged(Self);
+end;
 
 class function THero.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20230; end;
 
 function THero.GetObtainValue: Integer;
-begin end;
+begin Result := GetLevel * 50 + 75; end;
 
 function THero.GetDescription: TStrings;
-begin end;
+begin Result := nil; end;
 
 function THero.GetGender: TUnitGender;
-begin end;
+begin Result := FGender; end;
 
 function THero.GetUnitType: TUnitType;
-begin end;
+begin Result := utHumanoid; end;
 
 procedure THero.NewDay;
-begin end;
+begin
+  inherited NewDay;
+  if AoWHSMap.FDay = 1 then
+  begin
+    if ((AoWEngine.FCampaign = nil) or (AoWHSMap.FPlayers.GetPlayers(FPlayer) = nil) or
+       (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman)) and
+       (not AoWHSMap.FLeadersFixed or not (Self is TLeader)) then
+      FUsedSkillPoints := GetSkillPoints;
+    UpdateSettings;
+  end;
+end;
 
-procedure THero.UsedSkillPoints;
-begin end;
+function THero.UsedSkillPoints: Integer;
+var I: Integer;
+begin
+  Result := FUnitAttack * 5 + FUnitDefense * 5 + FUnitDamage * 10 +
+    FUnitResistance * 5 + FUnitHits * 5 + FUnitMoves * 2;
+  for I := GetAbCount - 1 downto 0 do
+    if GetAbSet(I) then
+    begin
+      Inc(Result, AoWHSSet.FAbilityControl.GetAbility(I).GetSkillPoints(Self));
+      if FHeroResource.FAbilities.GetAbSet(I) then
+        Dec(Result, AoWHSSet.FAbilityControl.GetAbility(I).GetSkillPoints(FHeroResource.FAbilities));
+    end;
+end;
 
 function THero.CanJoin(Player: Shortint): Boolean;
-begin end;
+var Race: TRace; APlayer: TPlayer;
+begin
+  if FRace = -1 then Result := False
+  else
+  begin
+    APlayer := AoWHSMap.FPlayers.GetPlayers(Player);
+    Race := AoWHSMap.FRaces.GetRace(FRace);
+    Result := Race.GetPlayerRelation(Player) in [sPolite, sFriendly];
+    if Result and ((FGroup = nil) or (FGroup.Behavior <> gbRefuge)) and
+      (not GetAbilityEnabled(128) or (Player <> FDeathPlayer) or
+       (FDeathDay + 2 < AoWHSMap.FPlayers.GetPlayers(Player).FDay)) then
+      Result := (APlayer.FHeroes.Count < APlayer.GetHeroCountMax) and
+        (GetLevel <= APlayer.GetHeroJoinLevelMax);
+  end;
+end;
 
-procedure THero.EmergedToPlayer;
-begin end;
+function THero.EmergedToPlayer: Shortint;
+var I: Integer;
+begin
+  I := AoWHSMap.FPlayers.Count;
+  Result := -1;
+  while (I <> 1) and (Result = -1) do
+  begin
+    Dec(I);
+    if AoWHSMap.FPlayers.GetPlayers(I).FEmergingHeroID = FUnitID then Result := I;
+  end;
+end;
 
 function THero.OfferToJoin(Player: Shortint): Boolean;
-begin end;
+var APlayer: TPlayer; Chance, Seed: Integer;
+begin
+  if CanJoin(Player) then
+  begin
+  APlayer := AoWHSMap.FPlayers.GetPlayers(Player);
+  if EmergedToPlayer = -1 then
+  begin
+    if (not GetAbilityEnabled(128) or (Player <> FDeathPlayer)) and
+      ((FGroup = nil) or (FGroup.Behavior <> gbRefuge)) then
+    begin
+      Chance := APlayer.GetHeroJoinChance(GetLevel);
+      Seed := RandSeed;
+      RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + FUnitID * 16) and $FF8;
+      Result := Random(100) < Chance;
+      RandSeed := Seed;
+    end
+    else Result := True;
+  end
+  else Result := Player = EmergedToPlayer;
+  end
+  else Result := False;
+end;
 
 function THero.GetRace: Shortint;
-begin end;
+begin Result := FHeroResource.FRace; end;
 
 function THero.GetName: string;
-begin end;
+begin Result := FHeroName; end;
 
 function THero.GetMoveTypes: TMoveTypes;
-begin end;
+begin
+  Result := inherited GetMoveTypes;
+  Result := Result + FHeroItems.GetMoveTypes;
+end;
 
 function THero.GetImmunityTypes: TDamageTypes;
-begin end;
+begin
+  Result := inherited GetImmunityTypes;
+  Result := Result + FHeroItems.GetImmunityTypes;
+end;
 
 function THero.GetProtectionTypes: TDamageTypes;
-begin end;
+begin
+  Result := inherited GetProtectionTypes;
+  Result := Result + FHeroItems.GetProtectionTypes;
+end;
 
 function THero.GetMovePoints: Shortint;
-begin end;
+begin Result := FMovePoints; end;
 
 procedure THero.SetMovePoints(Value: Shortint);
-begin end;
+begin
+  if GetMoves < Value then Value := GetMoves;
+  FMovePoints := Value;
+end;
 
 function THero.GetHitPoints: Shortint;
-begin end;
+begin Result := FHitPoints; end;
 
 procedure THero.SetHitPoints(Value: Shortint);
-begin end;
+begin
+  if GetHits < Value then Value := GetHits;
+  if Value < 0 then Value := 0;
+  FHitPoints := Value;
+  UpdateDefensiveStrength;
+end;
 
 function THero.GetAlignment: TAlignment;
-begin end;
+var Race: Shortint;
+begin
+  if GetAbilityEnabled(107) then Result := alPureEvil
+  else
+  begin
+    Race := FRace;
+    if AoWHSSet.FRaceResources.GetRaceResource(Race) <> nil then
+      Result := AoWHSSet.FRaceResources.GetRaceResource(Race).GetAlignment
+    else Result := FHeroResource.FAlignment;
+  end;
+end;
 
-procedure THero.DropItemsOnMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure THero.DropItemsOnMap(Map: TAoWHSMap; X, Y, L: Shortint);
+var I: Integer; Position: THeroItemPosition;
+begin
+  for I := FInventory.Count - 1 downto 0 do
+    if FInventory.GetItem(I) <> nil then FInventory.GetItem(I).PlaceOnMap(Map, X, Y, L);
+  for Position := ipAttackSlot to ipRightRingSlot do
+    if FHeroItems.GetPositionItem(Position) <> nil then
+      FHeroItems.GetPositionItem(Position).PlaceOnMap(Map, X, Y, L);
+end;
 
 procedure THero.Killed;
-begin end;
+var I: Integer; Position: THeroItemPosition;
+begin
+  for I := FInventory.Count - 1 downto 0 do
+    if FInventory.GetItem(I) <> nil then
+      ExecutePlaceItem(FInventory.GetItem(I).FHeroID, ipGround);
+  for Position := ipAttackSlot to ipRightRingSlot do
+    if FHeroItems.GetPositionItem(Position) <> nil then
+      ExecutePlaceItem(FHeroItems.GetPositionItem(Position).FHeroID, ipGround);
+  FDeathDay := AoWHSMap.FPlayers.GetPlayers(FPlayer).FDay;
+  FDeathPlayer := FPlayer;
+  inherited Killed;
+  Include(FHeroStatus, hsDied);
+  SetPlayer(-1);
+  SetOwner(nil);
+end;
 
 procedure THero.Resurrect;
-begin end;
+begin
+  inherited Resurrect;
+  FHeroStatus := FHeroStatus - [hsDied];
+end;
 
 procedure THero.Animate;
-begin end;
+begin
+  inherited Animate;
+  FHeroStatus := FHeroStatus - [hsDied];
+end;
 
 function THero.CanActivate: Boolean;
-begin end;
+var Hero: THero;
+begin
+  Result := inherited CanActivate;
+  if Result and not FRegistered and (FUnitID <> -1) then
+  begin
+    Hero := AoWHSMap.FHeroControl.FindID(FUnitID);
+    if (Hero = nil) or (Hero = Self) then Result := True
+    else
+    begin
+      if (Hero.Owner = nil) and CompatibleHero(Hero) then Result := True
+      else Result := False;
+    end;
+  end;
+end;
 
 function THero.GetUpkeep: Shortint;
-begin end;
+begin Result := GetLevel * 2 + 5; end;
 
 procedure THero.SetPlayer(Player: Shortint);
-begin end;
+begin
+  if Player <> FPlayer then
+  begin
+    if (FPlayer <> -1) and (FPlayer < AoWHSMap.FPlayers.Count) then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.UnregisterPowerSource(FPowerSource);
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FHeroes.RemoveChild(Self);
+    end;
+    inherited SetPlayer(Player);
+    if FPlayer <> -1 then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FHeroes.AddChild(Self);
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.RegisterPowerSource(FPowerSource);
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).ResetBaseHeroJoinDay;
+    end;
+  end;
+end;
 
-procedure THero.CompatibleHero(A1: Integer; A2: Integer);
-begin end;
+function THero.CompatibleHero(Hero: THero): Boolean;
+var GroupID, OtherGroupID: Integer;
+begin
+  GroupID := FGroupID;
+  OtherGroupID := Hero.FGroupID;
+  Hero.FGroupID := 0;
+  FGroupID := 0;
+  Result := Hero.Compare(Self, AoWEngine);
+  Hero.FGroupID := OtherGroupID;
+  FGroupID := GroupID;
+end;
 
 procedure THero.Activate;
-begin end;
+var Hero: THero;
+begin
+  if FUnitID <> -1 then
+  begin
+    Hero := AoWHSMap.FHeroControl.FindID(FUnitID);
+    if (Hero <> nil) and (Hero <> Self) and (Hero.Owner = nil) and CompatibleHero(Hero) then
+      AoWHSMap.FHeroControl.UnRegisterHero(Hero);
+  end;
+  if msEditting in AoWHSMap.Status then FLevel := GetLevel;
+  if FHeroResourceIndex = -1 then SetHeroResourceIndex(0);
+  if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer) = nil) and (Owner = nil) then FPlayer := -1;
+  if (Owner = nil) and (FGroupID <> 0) then FGroupID := 0;
+  inherited Activate;
+  if AoWHSMap <> nil then
+  begin
+    if not (hmSkipLibraryUpdate in FMode) and
+       ((msEditting in AoWHSMap.Status) or (AoWHSMap.FDay = 0)) then UpdateFromLibrary;
+    if not FRegistered then AoWHSMap.FHeroControl.RegisterHero(Self);
+    if (FPlayer <> -1) and (Owner <> nil) then
+    begin
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.RegisterPowerSource(FPowerSource);
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).FHeroes.AddChild(Self);
+    end;
+    FInventory.RegisterItems;
+    FHeroItems.RegisterItems;
+  end;
+end;
 
 procedure THero.Deactivate;
-begin end;
+begin
+  if (FPlayer <> -1) and (FPlayer < AoWHSMap.FPlayers.Count) then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.UnregisterPowerSource(FPowerSource);
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FHeroes.RemoveChild(Self);
+  end;
+  inherited Deactivate;
+end;
 
 function THero.GetUnitGFXResourceIndex: Integer;
-begin end;
+begin Result := FHeroResource.FUnitGFXResourceIndex; end;
 
 function THero.GetSkillPoints: Integer;
-begin Result := 0; end;
+begin
+  if (AoWHSMap <> nil) and not (msEditting in AoWHSMap.Status) then
+    Result := FLevel * 10 + 15 - UsedSkillPoints - FUsedSkillPoints
+  else Result := FLevel * 10 + 15 - UsedSkillPoints;
+end;
 
-procedure THero.GetSkillPointsMax;
-begin end;
+function THero.GetSkillPointsMax: Integer;
+begin Result := FLevel * 10 + 15 - FUsedSkillPoints; end;
 
-procedure THero.GetLevelMax;
-begin end;
+function THero.GetLevelMax: Integer;
+var Maximum: Integer;
+begin
+  Result := 30;
+  if (AoWHSMap <> nil) and (AoWHSMap.FCampaignSettings <> nil) and
+    (AoWHSMap.FCampaignSettings.FHeroLevelMax > 0) then
+  begin
+    Maximum := AoWHSMap.FCampaignSettings.FHeroLevelMax;
+    if Result > Maximum then Result := Maximum;
+  end;
+end;
 
 function THero.GetExperience: Integer;
-begin end;
+begin Result := FExperience; end;
 
 procedure THero.SetExperience(Value: Integer);
-begin end;
+var Maximum: Integer;
+begin
+  FExperience := Value;
+  Maximum := LevelToExperience(GetLevelMax);
+  if Maximum < FExperience then FExperience := Maximum;
+  Changed;
+end;
 
-procedure THero.LevelToExperience(A1: Integer);
-begin end;
+function THero.LevelToExperience(Level: Integer): Integer;
+var I, Total: Integer;
+begin
+  Total := 0;
+  for I := 1 to Level - 1 do
+    if I div 5 <= 5 then Inc(Total, P2HeroLevels[I div 5].Experience);
+  Result := Total;
+end;
 
-procedure THero.ExperienceToLevel(A1: Integer);
-begin end;
+function THero.ExperienceToLevel(Experience: Integer): Shortint;
+var Level, Total, Maximum: Integer;
+begin
+  Level := 1;
+  Total := 0;
+  Maximum := GetLevelMax;
+  repeat
+    Inc(Total, P2HeroLevels[Level div 5].Experience);
+    if Experience < Total then Break;
+    Inc(Level);
+  until Level >= Maximum;
+  Result := Level;
+end;
 
 function THero.GetNextLevelExperience: Integer;
-begin end;
+var Level: Integer;
+begin
+  Level := GetLevel;
+  if GetLevelMax > Level then Result := LevelToExperience(Level + 1)
+  else Result := LevelToExperience(Level);
+end;
 
 function THero.GetLevel: Shortint;
-begin Result := 0; end;
+begin
+  with Self do Result := ExperienceToLevel(FExperience);
+end;
 
-procedure THero.SetLevel(A1: Integer);
-begin end;
+procedure THero.SetLevel(Value: Shortint);
+var Maximum, Level, Points: Integer;
+begin
+  Maximum := GetLevelMax;
+  if Value < 1 then Value := 1;
+  if Maximum < Value then Value := Maximum;
+  Level := GetLevel;
+  if Level > Value then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 10) and (Level <> Value) do
+    begin
+      Dec(Level);
+      Dec(Points, 10);
+    end;
+    Value := Level;
+  end;
+  FExperience := LevelToExperience(Value);
+  FLevel := Value;
+end;
 
 function THero.GetHeroType: THeroType;
-begin Result := htHero; end;
+begin Result := FHeroResource.FHeroType; end;
 
 procedure THero.SetUnitAttack(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FAttack > 10 then Value := 10 - FHeroResource.FAttack;
+  if Value > FUnitAttack then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 5) and (Value <> FUnitAttack) do
+    begin
+      Inc(FUnitAttack);
+      Dec(Points, 5);
+    end;
+  end
+  else FUnitAttack := Value;
+end;
 
 procedure THero.SetUnitDefense(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FDefense > 10 then Value := 10 - FHeroResource.FDefense;
+  if Value > FUnitDefense then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 5) and (Value <> FUnitDefense) do
+    begin
+      Inc(FUnitDefense);
+      Dec(Points, 5);
+    end;
+  end
+  else FUnitDefense := Value;
+end;
 
 procedure THero.SetUnitDamage(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FDamage > 10 then Value := 10 - FHeroResource.FDamage;
+  if Value > FUnitDamage then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 10) and (Value <> FUnitDamage) do
+    begin
+      Inc(FUnitDamage);
+      Dec(Points, 10);
+    end;
+  end
+  else FUnitDamage := Value;
+end;
 
 procedure THero.SetUnitHits(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FHits > 30 then Value := 30 - FHeroResource.FHits;
+  if Value > FUnitHits then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 5) and (Value <> FUnitHits) do
+    begin
+      Inc(FUnitHits);
+      Dec(Points, 5);
+    end;
+  end
+  else FUnitHits := Value;
+end;
 
 procedure THero.SetUnitMoves(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FMoves > 50 then Value := 50 - FHeroResource.FMoves;
+  if Value > FUnitMoves then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 2) and (Value <> FUnitMoves) do
+    begin
+      Inc(FUnitMoves);
+      Dec(Points, 2);
+    end;
+  end
+  else FUnitMoves := Value;
+end;
 
 procedure THero.SetUnitResistance(Value: Shortint);
-begin end;
+var Points: Integer;
+begin
+  if Value < 0 then Value := 0;
+  if Value + FHeroResource.FResistance > 10 then Value := 10 - FHeroResource.FResistance;
+  if Value > FUnitResistance then
+  begin
+    Points := GetSkillPoints;
+    while (Points >= 5) and (Value <> FUnitResistance) do
+    begin
+      Inc(FUnitResistance);
+      Dec(Points, 5);
+    end;
+  end
+  else FUnitResistance := Value;
+end;
 
 procedure THero.LinkToResource;
-begin end;
+begin
+  FHeroResource := AoWHSSet.FHeroResources.GetHeroResource(FHeroResourceIndex);
+end;
 
 procedure THero.Loaded;
-begin end;
+begin
+  if FHeroResource <> nil then
+  begin
+    UpdateDefaultAbilities(FHeroResource.FAbilities);
+    SetUnitAttack(FUnitAttack);
+    SetUnitDefense(FUnitDefense);
+    SetUnitResistance(FUnitResistance);
+    SetUnitDamage(FUnitDamage);
+    SetUnitHits(FUnitHits);
+    SetUnitMoves(FUnitMoves);
+  end;
+end;
 
-procedure THero.ListSpells(A1: Integer);
-begin end;
+procedure THero.ListSpells(var List: TSpellList);
+begin
+  AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.ListSpells(List, [stCombat, stUnit, stGlobal]);
+end;
 
 procedure THero.ExecuteUpgradeHeroAI;
 begin end;
@@ -5074,7 +5564,7 @@ begin end;
 function THero.AutoPlaceItem(Item: TItem): Boolean;
 begin Result := False; end;
 
-procedure THero.ExecutePlaceItem(A1: Integer; A2: Integer);
+procedure THero.ExecutePlaceItem(ItemID: Integer; Position: THeroItemPosition);
 begin end;
 
 procedure THero.ExecuteStartCasting(A1: Integer);
@@ -5158,8 +5648,8 @@ begin end;
 constructor THeroResourceList.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure THeroResourceList.GetHeroResource(A1: Integer);
-begin end;
+function THeroResourceList.GetHeroResource(Index: Integer): THeroResource;
+begin Result := nil; end;
 
 procedure THeroResourceList.CreateHeroResourceStrings(A1: Byte);
 begin end;
@@ -5200,8 +5690,8 @@ begin Result := nil; end;
 function THeroControl.GetCount: Integer;
 begin Result := 0; end;
 
-procedure THeroControl.FindID;
-begin end;
+function THeroControl.FindID(ID: Integer): THero;
+begin Result := nil; end;
 
 procedure THeroControl.IndexOf;
 begin end;
@@ -5221,10 +5711,10 @@ begin end;
 procedure THeroControl.RegisterHero(Hero: THero);
 begin end;
 
-procedure THeroControl.UnRegisterHero(A1: Integer);
+procedure THeroControl.UnRegisterHero(Hero: THero);
 begin end;
 
-procedure THeroControl.HeroChanged;
+procedure THeroControl.HeroChanged(Hero: THero);
 begin end;
 
 procedure THeroControl.GetAverageFreeHeroLevel(A1: Integer; A2: Integer);
@@ -5290,8 +5780,8 @@ begin end;
 procedure THeroLibraryManager.IndexOfLibrary;
 begin end;
 
-procedure THeroLibraryManager.FindHero(A1: Integer; A2: Integer);
-begin end;
+function THeroLibraryManager.FindHero(const LibraryName: string; LibraryID: Integer): THero;
+begin Result := nil; end;
 
 procedure THeroLibraryManager.CreateLibrary(A1: Integer);
 begin end;

@@ -1604,7 +1604,7 @@ begin
   FTransferPointsMax := 1000;
   FTransferGoldMax := 100;
   FTransferManaMax := 100;
-  FNextScenarioID := -1;
+  FHeroLevelMax := -1;
   FAlliedVictory := False;
 end;
 
@@ -1614,7 +1614,7 @@ begin
   Stream.rwInteger(FTransferPointsMax, $14);
   Stream.rwInteger(FTransferGoldMax, $15);
   Stream.rwInteger(FTransferManaMax, $16);
-  Stream.rwInteger(FNextScenarioID, $17);
+  Stream.rwInteger(FHeroLevelMax, $17);
   Stream.rwBool(FAlliedVictory, $18);
 end;
 

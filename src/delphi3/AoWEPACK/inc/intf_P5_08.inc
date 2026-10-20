@@ -8,7 +8,7 @@
     FTransferPointsMax: Integer;
     FTransferGoldMax: Integer;
     FTransferManaMax: Integer;
-    FNextScenarioID: Integer;
+    FHeroLevelMax: Integer; { $18; 55787651 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;

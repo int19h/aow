@@ -9,6 +9,7 @@
     FGameSet: TAoWHSSet; { $64 }
     { conflict: FHSSet: TAoWHSSet; }
     FCombatFont: TImageLibraryFont; { $68 }
+    { conflict: FUnitFont: TImageLibraryFont; }
     F_AoWEngine_6C: Byte;
     FAnimationDetail: Byte; { $6D }
     F_AoWEngine_6E: Byte;

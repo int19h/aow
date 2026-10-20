@@ -1579,7 +1579,7 @@ asm
 end;
 
 function TAbility.GetSkillPoints(A1: TAbilityOwner): Integer;
-{ needs: Integer result; preserve the unmarked P4 override's procedure header. }
+
 asm
   PUSH EBX
   PUSH ESI
@@ -5430,16 +5430,16 @@ begin end;
 procedure TPlayerStructurePowerSource.Setup(Structure: TPlayerStructure);
 begin end;
 
-procedure TPlayerStructurePowerSource.Name(A1: Integer);
+function TPlayerStructurePowerSource.Name: string;
+begin Result := ''; end;
+
+function TPlayerStructurePowerSource.Power: Integer;
+begin Result := 0; end;
+
+procedure TPlayerStructurePowerSource.GetLocation(var A1, A2, A3: Shortint);
 begin end;
 
-procedure TPlayerStructurePowerSource.Power;
-begin end;
-
-procedure TPlayerStructurePowerSource.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
-procedure TPlayerStructurePowerSource.Select(A1: Integer; A2: Integer);
+procedure TPlayerStructurePowerSource.Select;
 begin end;
 
 class function TStructureTE.ClassID: Integer;
