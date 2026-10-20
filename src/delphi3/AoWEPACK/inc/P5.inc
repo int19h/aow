@@ -4277,8 +4277,8 @@ begin end;
 procedure TFastCombat.GetWallSituation(A1: Integer; A2: Integer);
 begin end;
 
-procedure TFastCombat.Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean);
-begin end;
+function TFastCombat.Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean;
+begin Result := False; end;
 
 procedure TFastCombat.AttackerCanCrushWall;
 begin end;

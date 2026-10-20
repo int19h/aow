@@ -140,8 +140,8 @@ begin
   A1.FOnExecuted := CombatExecuted;
   A1.Setup(A2.FArmy.FPlayer, A2.FArmy.FRace, A2.GetXhx, A2.GetYhx, A2.GetLhx,
     FDefenders.FPlayer, FDefenders.FRace, GetXhx, GetYhx, GetLhx, True);
-  A1.AddArmy(A2.FArmy, 0, GetXhx, GetYhx, GetLhx);
-  A1.AddArmyEx(FDefenders, 1, -1, -1, -1, True);
+  A1.AddArmy(A2.FArmy, csAttacker, GetXhx, GetYhx, GetLhx);
+  A1.AddArmyEx(FDefenders, csDefender, -1, -1, -1, 1);
   A1.FExplorationSite := 1;
 end;
 

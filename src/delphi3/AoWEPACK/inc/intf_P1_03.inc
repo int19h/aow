@@ -359,7 +359,7 @@
     procedure GetProductionControl;  { draft }
     procedure GetAITarget(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function GetMoveAction(A1: Byte): TMoveAction;
-    procedure GetIndependentRelation;  { draft }
+    function GetIndependentRelation: Byte;
     procedure GetDefensePriority;  { draft }
     procedure GetDefenseRequirements(A1: Integer; A2: Integer);  { draft }
     procedure GetWallType;  { draft }

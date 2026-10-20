@@ -1905,7 +1905,7 @@ begin
         if Chance < SpellHSMap^.Random(100) then
           Selection := Selection and not (1 shl I);
       end;
-    if TArmy(Army.FArmy).Transporter(-1) <> nil then
+    if TArmy(Army.FArmy).Transporter($FF) <> nil then
       if TArmy(Army.FArmy).Transporter(Selection) <> nil then Selection := $FF
       else Selection := 0;
     if Selection <> 0 then

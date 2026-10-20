@@ -4817,8 +4817,8 @@ begin end;
 function TAoWMapField.GetMoveAction(A1: Byte): TMoveAction;
 begin Result := maNormal; end;
 
-procedure TAoWMapField.GetIndependentRelation;
-begin end;
+function TAoWMapField.GetIndependentRelation: Byte;
+begin Result := 0; end;
 
 procedure TAoWMapField.GetDefensePriority;
 begin end;
@@ -5974,8 +5974,8 @@ begin end;
 procedure StatusToDiplomaticRelation(A1: Byte);
 begin end;
 
-procedure GetCombatSide(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-begin end;
+function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;
+begin Result := csNeutral; end;
 
 procedure AlignmentToIR(A1: Byte);
 begin end;

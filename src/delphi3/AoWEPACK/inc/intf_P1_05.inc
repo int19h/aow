@@ -216,7 +216,9 @@
     F_AoWHSMap_134: Integer;
     F_AoWHSMap_138: Byte;
     FRequestCombatType: Boolean; { $139 }
+    { conflict: FTacticalCombatEnabled: Boolean; }
     FConnectionType: TPlayerConnectionType; { $13A }
+    { conflict: FTacticalCombatAvailability: TTacticalCombatAvailability; }
     F_AoWHSMap_13B: array[0..0] of Byte;
     F_AoWHSMap_13C: Integer;
     FPlayers: TPlayerList;  { $140 }
@@ -380,6 +382,7 @@
     procedure UnlockGameOverEvent;  { draft }
     procedure LockGameOverEvent;  { draft }
     procedure GameOver(Player: Shortint; Status: TGameOverStatus);
+    { conflict: procedure GameOver(A1: Byte; A2: TGameOverStatus); }
     procedure VerifyAddOnPacks;  { draft }
     procedure ValidateMap(A1: Integer);  { draft }
     procedure OnStreamError(A1: Integer; A2: Integer);  { draft }

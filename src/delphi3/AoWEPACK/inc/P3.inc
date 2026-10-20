@@ -1,7 +1,14 @@
 { P3 combat implementation. }
+resourcestring
+  BattleWonRStr = 'Battle Won';
+  BattleLostRStr = 'Battle Lost';
+  BattleDrawnRStr = 'Battle Drawn';
+  CannotBreachWallRStr = 'Cannot breach wall';
+  CannotInflictDamageRStr = 'Cannot inflict damage';
+const
+  RaceColors: array[0..12] of TColor = ($E03430, $66A4FF, $AFCB2C, $FEDA87,
+    $60EF41, $15FDFD, $A5C1E4, $F7FFFD, $B370BC, $5050E9, $4266BB, $797898, $A8A8A8);
 type
-  { P2 unmarked GetCombatValue mode is Boolean; original uses 0/1/2. }
-  TP3CombatValue = function(U: TAbstractUnit; Target: Integer; Mode: Byte): Integer;
   PP3String = ^string;
   TP3NodeAccess = class(TENode)
   public
@@ -27,7 +34,7 @@ end;
 class function TCombatUnit.ClassID: Integer;
 begin Result := $202A1; end;
 
-procedure TCombatUnit.Setup(A1: Byte; A2: Integer; A3: TAbstractUnit; A4: Byte; A5: Byte);
+procedure TCombatUnit.Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte);
 begin
   FID := A1;
   FPosition := A4;
@@ -140,12 +147,12 @@ begin
     TByteList(TCombatData(TCombat(A1).FCombatData).F_CombatData_28).Add(FCombatPlayer);
 end;
 
-procedure TCombatUnit.Finalize(A1: TCombatResult);
+procedure TCombatUnit.Finalize(A1: TFinalizeMode);
 var Party: TCombatParty; Placed: TArmyHS;
 begin
   if not (csDestroyed in FStatus) and not FUnit.GetAbilityEnabled($82) and not FUnit.GetAbilityEnabled($83) then
   begin
-    if A1 <> crCannotInflictDamage then
+    if A1 <> fmAll then
     begin
       if FPosition and $F <= 7 then
       begin
@@ -391,8 +398,13 @@ begin
 end;
 
 function TCombatUnit.GetTargetWallCV(Target: TCombatObject): Integer;
-{ P2 GetCombatValue has an unmarked Boolean mode; original passes 1/2 at $55725474/$55725483. }
-begin Result := 0; end;
+begin
+  if (Target is TCombatUnit) and not (csDestroyed in Target.FStatus) then
+    if TCombatPlayerList(FCombat.FCombatData.FPlayers).GetPlayers(FCombatPlayer).F_CombatPlayer_0A = 1 then
+      Result := FUnit.GetCombatValue(TCombatUnit(Target).FUnit, 1)
+    else Result := FUnit.GetCombatValue(TCombatUnit(Target).FUnit, 2)
+  else Result := 0;
+end;
 
 function TCombatUnit.GetAttack: Shortint;
 begin Result := TAbstractUnit(FUnit).GetAttack; end;
@@ -962,7 +974,7 @@ end;
 procedure TCombatObject.Initialize(A1: Integer);
 begin FCombat := TCombat(A1); end;
 
-procedure TCombatObject.Finalize(A1: TCombatResult);
+procedure TCombatObject.Finalize(A1: TFinalizeMode);
 begin Destroy; end;
 
 procedure TCombatObject.PlaySFX(A1: Byte);
@@ -1256,7 +1268,7 @@ end;
 constructor TCombat.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  F_Combat_24 := Integer(TEventList.Create);
+  FExecutedEvents := TEventList.Create;
   FSides[csAttacker] := TCombatSide.Create(nil);
   FSides[csDefender] := TCombatSide.Create(nil);
   TCombatSide(FSides[csAttacker]).FSideIndex := 0;
@@ -1272,7 +1284,7 @@ destructor TCombat.Destroy;
 begin
   if cActivated in FStatus then Deactivate;
   if cExecuting in FStatus then Finalize;
-  TObject(F_Combat_24).Free;
+  TObject(FExecutedEvents).Free;
   TObject(FSides[csAttacker]).Free;
   TObject(FSides[csDefender]).Free;
   TObject(FCombatData).Free;
@@ -1318,19 +1330,36 @@ begin
 end;
 
 function TCombat.CreateUniqueCOID: Byte;
-begin Result := F_Combat_10; Inc(F_Combat_10); end;
+begin Result := FNextCOID; Inc(FNextCOID); end;
 
 procedure TCombat.Clear;
 begin
   inherited Clear;
   TCombatLogbook(FLogbook).Clear;
-  F_Combat_10 := 1;
+  FNextCOID := 1;
   TCombatData(FCombatData).Clear;
   FStatus := [];
 end;
 
-procedure TCombat.Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean);
-begin end;
+function TCombat.Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean;
+var Data: TCombatData;
+begin
+  Clear;
+  if A11 then FStatus := FStatus + [cLogCombatActions]
+  else FStatus := FStatus - [cLogCombatActions];
+  Data := FCombatData;
+  Data.F_CombatData_08 := A8;
+  Data.F_CombatData_0C := A9;
+  Data.F_CombatData_10 := A10;
+  Data.F_CombatData_14 := A3;
+  Data.F_CombatData_18 := A4;
+  Data.F_CombatData_1C := A5;
+  Data.FAttackerPlayer := AddCombatPlayer(A1, A2, csAttacker);
+  Data.FDefenderPlayer := AddCombatPlayer(A6, A7, csDefender);
+  Data.F_CombatData_20[0] := AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).TerrainType;
+  Data.F_CombatData_20[1] := AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).OverlayType;
+  Result := True;
+end;
 
 function TCombat.CreateCombatUnit: Integer;
 begin
@@ -1372,16 +1401,16 @@ end;
 
 procedure TCombat.Terminate;
 begin
-  if not F_Combat_34 then
+  if not FTerminated then
   begin
-    F_Combat_34 := True;
+    FTerminated := True;
     if Assigned(FOnTerminated) then FOnTerminated(Self);
   end;
 end;
 
 procedure TCombat.CheckTerminate;
 begin
-  if not F_Combat_34 then
+  if not FTerminated then
     if (TCombatSide(FSides[csAttacker]).GetUndestroyedConquerObjects = 0) or
       (TCombatSide(FSides[csDefender]).GetUndestroyedConquerObjects = 0) or
       (TByteList(TCombatData(FCombatData).F_CombatData_2C).Count <> 0) then Terminate;
@@ -1401,7 +1430,7 @@ var I: Integer;
 begin
   for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
     TCombatData(FCombatData).GetObjects(I).ObjectDestroyed(A1);
-  TEventList(F_Combat_24).TriggerNotifyEvents(Self);
+  TEventList(FExecutedEvents).TriggerNotifyEvents(Self);
   CheckTerminate;
 end;
 
@@ -1415,7 +1444,39 @@ begin
 end;
 
 procedure TCombat.AddAdjacentArmies;
-begin end;
+var Data: TCombatData; Level: TMapLevel; Walk: THNWalkData;
+    ArmyHS: TArmyHS; Side: TCombatSideIndex;
+begin
+  Data := FCombatData;
+  Level := AoWHSMap.MapContainer.GetMapLevel(Data.F_CombatData_10);
+  InitHNWalk(Walk, Data.F_CombatData_08, Data.F_CombatData_0C, 0);
+  while Walk.Radius <= 1 do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      ArmyHS := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
+      if ArmyHS <> nil then
+      begin
+        if Walk.HN <> 0 then
+          Side := GetCombatSide(
+            TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer,
+            TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FIndependentRelation,
+            TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer,
+            TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FIndependentRelation,
+            ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace)
+        else Side := csDefender;
+        if Side <> csNeutral then
+          AddArmy(ArmyHS.FArmy, Side, Walk.X, Walk.Y, Data.F_CombatData_10);
+      end
+      else if Walk.HN = 0 then
+        AddEmptyArmy(
+          TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer,
+          TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FIndependentRelation,
+          Walk.X, Walk.Y, Data.F_CombatData_10);
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 function TCombat.GetPartyPosition(X, Y, Layer: Integer): Byte;
 var Data: TCombatData;
@@ -1429,34 +1490,216 @@ end;
 function TCombat.CreateCombatPlayer: Integer;
 begin Result := Integer(TCombatPlayer.Create(nil)); end;
 
-procedure TCombat.AddCombatPlayer(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TCombat.AddCombatPlayer(A1: Byte; A2: Byte; A3: TCombatSideIndex): Byte;
+var Player: TCombatPlayer;
+begin
+  Player := TCombatPlayer(CreateCombatPlayer);
+  Player.SetOwner(TCombatPlayerList(FCombatData.FPlayers));
+  Player.FPlayer := A1;
+  Player.FIndependentRelation := A2;
+  Player.F_CombatPlayer_0A := Ord(A3);
+  Result := TCombatPlayerList(FCombatData.FPlayers).Count - 1;
+end;
 
-procedure TCombat.AddArmy(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TCombat.AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty;
+var Party: TCombatParty; Valid, Transport: Boolean; Player, Position: Byte;
+    Index, I: Integer; UnitObj: TCombatUnit; Msg: TMapFieldMsg; Data: TCombatData;
+    Transporter: TAbstractUnit;
+begin
+  A1.BeginUpdate;
+  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FRace);
+  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FRace, A2);
+  Position := GetPartyPosition(A3, A4, A5);
+  Party := TCombatPartyList(FCombatData.F_CombatData_3C).CreateParty(Integer(Self), Position, Player, A3, A4, A5, Integer(A1));
+  Transporter := A1.Transporter($FF);
+  Transport := (Transporter <> nil) and Transporter.ValidTerrain(FCombatData.F_CombatData_20[0], FCombatData.F_CombatData_20[1]);
+  Index := 0;
+  for I := A1.Count - 1 downto 0 do
+  begin
+    Valid := A1.GetUnit(I).ValidTerrain(FCombatData.F_CombatData_20[0], FCombatData.F_CombatData_20[1]);
+    if Valid or Transport then
+    begin
+      UnitObj := TCombatUnit(CreateCombatUnit);
+      UnitObj.Setup(CreateUniqueCOID, Ord(A2), A1.GetUnit(I), (Position shl 4) + Index, Player);
+      if not Valid then
+      begin
+        UnitObj.FDisabled := True;
+        UnitObj.FControlMode := UnitObj.FControlMode - [cmConquerObject];
+      end;
+      FCombatData.AddObject(UnitObj);
+      Inc(Index);
+    end;
+  end;
+  if A3 <> -1 then
+  begin
+    Msg.MsgID := $1123;
+    Msg.Param[0] := Integer(AoWHSMap.MapContainer.GetField(A3, A4, A5));
+    Msg.Result := 0;
+    Data := FCombatData;
+    AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).SendMapFieldMsg(Msg);
+    if Msg.Result <> 0 then Party.F_CombatParty_18 := Msg.Result;
+  end;
+  A1.EndUpdate;
+  Result := Party;
+end;
 
-procedure TCombat.AddArmyEx(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Boolean);
-begin end;
+function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty;
+var Party: TCombatParty; Player: Byte; Index, I: Integer; UnitObj: TCombatUnit;
+begin
+  A1.BeginUpdate;
+  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FRace);
+  if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FRace, A2);
+  Party := TCombatPartyList(FCombatData.F_CombatData_3C).CreateParty(Integer(Self), A6, Player, A3, A4, A5, Integer(A1));
+  Index := 0;
+  for I := A1.Count - 1 downto 0 do
+  begin
+    UnitObj := TCombatUnit(CreateCombatUnit);
+    UnitObj.Setup(CreateUniqueCOID, Ord(A2), A1.GetUnit(I), (A6 shl 4) + Index, Player);
+    FCombatData.AddObject(UnitObj);
+    Inc(Index);
+  end;
+  A1.EndUpdate;
+  Result := Party;
+end;
 
 procedure TCombat.AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+var Data: TCombatData; Position, Player: Byte; Side: TCombatSideIndex; Party: TCombatParty; Msg: TMapFieldMsg;
+begin
+  Data := FCombatData;
+  Position := GetPartyPosition(A3, A4, A5);
+  Side := GetCombatSide(
+    TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer,
+    TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FIndependentRelation,
+    TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer,
+    TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FIndependentRelation,
+    A1, A2);
+  Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1, A2);
+  if Player = $FF then Player := AddCombatPlayer(A1, A2, Side);
+  Party := TCombatPartyList(FCombatData.F_CombatData_3C).CreateParty(Integer(Self), Position, Player, A3, A4, A5, 0);
+  Msg.MsgID := $1123;
+  Msg.Param[0] := Integer(AoWHSMap.MapContainer.GetField(A3, A4, A5));
+  Msg.Result := 0;
+  AoWHSMap.MapContainer.GetField(A3, A4, A5).SendMapFieldMsg(Msg);
+  if Msg.Result <> 0 then Party.F_CombatParty_18 := Msg.Result;
+end;
 
 procedure TCombat.InitDefaultArmies(Army: TArmy; X, Y, L: Integer);
-begin end;
+var Data: TCombatData; ArmyHS: TArmyHS;
+begin
+  Data := FCombatData;
+  if GetPartyPosition(X, Y, L) = 7 then
+  begin
+    FExplorationSite := 2;
+    AddArmy(Army, csAttacker, X, Y, L);
+    ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).FindOwnedChild($20217));
+    if ArmyHS <> nil then
+      AddArmy(ArmyHS.FArmy, csDefender, Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10)
+    else
+      AddEmptyArmy(
+        TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer,
+        TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FIndependentRelation,
+        Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10);
+  end
+  else AddAdjacentArmies;
+end;
 
 procedure TCombat.Initialize;
-begin end;
+var I, J: Integer; Wall: TCombatWall; WallType, Player: Byte;
+begin
+  LockExecuted;
+  FStatus := FStatus + [cExecuting];
+  WallType := 0;
+  J := 0;
+  while (WallType = 0) and (J <> TCombatPartyList(FCombatData.F_CombatData_3C).Count) do
+  begin
+    if TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(J) <> nil then
+      WallType := TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(J).F_CombatParty_18;
+    Inc(J);
+  end;
+  if WallType <> 0 then
+  begin
+    Wall := TCombatWall.Create(nil);
+    Wall.Setup(CreateUniqueCOID, WallType, FCombatData.FDefenderPlayer);
+    FCombatData.AddObject(Wall);
+  end;
+  if TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(0) <> nil then
+    FCombatData.F_CombatData_4C := TCombatPartyList(FCombatData.F_CombatData_3C).GetParty(0).F_CombatParty_18;
+  TByteList(FCombatData.F_CombatData_40).Add(FCombatData.FDefenderPlayer);
+  for I := 0 to TCombatPlayerList(FCombatData.FPlayers).Count - 1 do
+  begin
+    Player := I;
+    if (TByteList(FCombatData.F_CombatData_40).IndexOf(Player) = -1) and
+      (TCombatPlayerList(FCombatData.FPlayers).GetPlayers(Player).F_CombatPlayer_0A = 1) then
+      TByteList(FCombatData.F_CombatData_40).Add(Player);
+  end;
+  TByteList(FCombatData.F_CombatData_40).Add(FCombatData.FAttackerPlayer);
+  for I := 0 to TCombatPlayerList(FCombatData.FPlayers).Count - 1 do
+  begin
+    Player := I;
+    if (TByteList(FCombatData.F_CombatData_40).IndexOf(Player) = -1) and
+      (TCombatPlayerList(FCombatData.FPlayers).GetPlayers(Player).F_CombatPlayer_0A = 0) then
+      TByteList(FCombatData.F_CombatData_40).Add(Player);
+  end;
+  for I := FCombatData.GetCount - 1 downto 0 do FCombatData.GetObjects(I).Initialize(Integer(Self));
+  TCombatLogbook(FLogbook).SetInitialData(FCombatData);
+end;
 
 procedure TCombat.Finalize;
-begin end;
+var I, PlayerIndex, ArmyIndex, UnitIndex: Integer; Player: TPlayer;
+    Alive: Boolean; Mode: TFinalizeMode; Data: TCombatData; Msg: TMapFieldMsg;
+begin
+  Assert(FStatus * [cExecuting, cActivated] = [cExecuting], 'Combat Finalize Failure');
+  for I := 0 to TByteList(FCombatData.F_CombatData_2C).Count - 1 do
+  begin
+    Data := FCombatData;
+    AoWHSMap.GameOver(TCombatPlayerList(Data.FPlayers).GetPlayers(TByteList(Data.F_CombatData_2C)[I]).FPlayer, goLost);
+    TCombatLogbook(FLogbook).F_CombatLogbook_19 := True;
+  end;
+  TCombatLogbook(FLogbook).SetFinalData(FCombatData);
+  FStatus := FStatus - [cExecuting];
+  Data := FCombatData;
+  for I := Data.GetCount - 1 downto 0 do FCombatData.GetObjects(I).CombatDone;
+  for Mode := fmOriginal to fmAll do
+    for I := Data.GetCount - 1 downto 0 do FCombatData.GetObjects(I).Finalize(Mode);
+  TCombatLogbook(FLogbook).FFinalData.FHeader := GetCombatResultText;
+  TCombatLogbook(FLogbook).FFinalData.F_CombatData_30 := Ord(FCombatResult);
+  PlayerIndex := TCombatPlayerList(FCombatData.FPlayers).Count;
+  while (PlayerIndex <> 0) and not TCombatLogbook(FLogbook).F_CombatLogbook_19 do
+  begin
+    Dec(PlayerIndex);
+    Player := AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(FCombatData.FPlayers).GetPlayers(PlayerIndex).FPlayer));
+    ArmyIndex := Player.FArmies.Count;
+    Alive := False;
+    while (ArmyIndex <> 0) and not Alive do
+    begin
+      Dec(ArmyIndex);
+      UnitIndex := Player.FArmies.GetArmy(ArmyIndex).Count;
+      while not Alive and (UnitIndex <> 0) do
+      begin
+        Dec(UnitIndex);
+        Alive := Player.FArmies.GetArmy(ArmyIndex).GetUnit(UnitIndex).GetHitPoints <> 0;
+      end;
+    end;
+    TCombatLogbook(FLogbook).F_CombatLogbook_19 := not Alive;
+  end;
+  Data := FCombatData;
+  if Data.F_CombatData_08 <> -1 then
+  begin
+    Msg.MsgID := $1110;
+    Msg.Param[0] := Integer(Self);
+    Msg.Result := 0;
+    AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).SendMapFieldMsg(Msg);
+  end;
+  UnlockExecuted;
+end;
 
 procedure TCombat.LockExecuted;
-begin Inc(F_Combat_28); end;
+begin Inc(FExecutedLock); end;
 
 procedure TCombat.UnlockExecuted;
 begin
-  Dec(F_Combat_28);
-  if (F_Combat_28 = 0) and Assigned(FOnExecuted) then FOnExecuted(Self);
+  Dec(FExecutedLock);
+  if (FExecutedLock = 0) and Assigned(FOnExecuted) then FOnExecuted(Self);
 end;
 
 procedure TCombat.Activate;
@@ -1492,10 +1735,38 @@ begin
 end;
 
 procedure TCombat.UpdateStatus;
-begin end;
+var Attackers, Defenders, I: Integer;
+begin
+  Attackers := FSides[csAttacker].GetUndestroyedConquerObjects;
+  Defenders := FSides[csDefender].GetUndestroyedConquerObjects;
+  if (Attackers <> 0) and (Defenders = 0) then FCombatResult := crVictory
+  else if (Attackers = 0) and (Defenders <> 0) then FCombatResult := crDefeat
+  else if (Attackers = 0) and (Defenders = 0) then FCombatResult := crBothDefeated
+  else if (Attackers <> 0) and (Defenders <> 0) and (Ord(FCombatResult) <> 7) then
+    FCombatResult := crCannotInflictDamage;
+  case Ord(FCombatResult) of
+    4..5:
+      for I := FCombatData.GetCount - 1 downto 0 do
+        if csFled in FCombatData.GetObjects(I).FStatus then FCombatResult := crFled;
+  end;
+end;
 
-procedure TCombat.GetCombatResultText(A1: Integer);
-begin end;
+function TCombat.GetCombatResultText: string;
+var Data: TCombatData; Msg: TMapFieldMsg;
+begin
+  Result := '';
+  Msg.MsgID := $1109;
+  Msg.Result := Integer(@Result);
+  Msg.Param[0] := Integer(Self);
+  Data := FCombatData;
+  AoWHSMap.MapContainer.GetField(Data.F_CombatData_08, Data.F_CombatData_0C, Data.F_CombatData_10).SendMapFieldMsg(Msg);
+  if Result = '' then
+    if FCombatResult = crVictory then Result := TranslateRStr(BattleWonRStr)
+    else if FCombatResult = crDefeat then Result := TranslateRStr(BattleLostRStr)
+    else if FCombatResult = crCannotBreachWall then Result := TranslateRStr(CannotBreachWallRStr)
+    else if FCombatResult = crCannotInflictDamage then Result := TranslateRStr(CannotInflictDamageRStr)
+    else Result := TranslateRStr(BattleDrawnRStr);
+end;
 
 function TCombat.DefendersAvailable: Boolean;
 var I: Integer; Obj: TCombatObject;
@@ -1573,21 +1844,9 @@ begin
 end;
 
 procedure TCombatParty.Activate(A1: Integer);
-{ needs: P2 TArmy.SetPlayer(Byte), proven by MOV DL at $55728664. }
-asm
-  PUSH EBX
-  PUSH ESI
-  MOV ESI, EDX
-  MOV EBX, EAX
-  MOV EAX, [ESI+$0C]
-  MOV EAX, [EAX+$38]
-  MOV DL, [EBX+$1A]
-  CALL TCombatPlayerList.GetPlayers
-  MOV DL, [EAX+8]
-  MOV EAX, [EBX+8]
-  CALL TArmy.SetPlayer
-  POP ESI
-  POP EBX
+begin
+  TArmy(F_CombatParty_08).SetPlayer(
+    TCombatPlayerList(TCombat(A1).FCombatData.FPlayers).GetPlayers(F_CombatParty_1A).FPlayer);
 end;
 
 procedure TCombatParty.Deactivate(A1: Integer);
@@ -1596,7 +1855,7 @@ begin end;
 function TCombatPartyList.GetControlStyle: Engine.TEControlStyles;
 begin Result := [csSaveLoad, csArrayMode]; end;
 
-function TCombatPartyList.CreateParty(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer): TCombatParty;
+function TCombatPartyList.CreateParty(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer): TCombatParty;
 var P: TCombatParty;
 begin
   if GetParty(A2) = nil then
@@ -1793,17 +2052,16 @@ begin
 end;
 
 function TCombatData.FindPosition(A1: Byte): TCombatObject;
-var Obj, Found: TCombatObject; I: Integer;
+var I: Integer;
 begin
-  Found := nil;
+  Result := nil;
   I := TP3NodeAccess(F_CombatData_34).ChildrenList.Count;
-  while (I <> 0) and (Found = nil) do
+  while (I <> 0) and (Result = nil) do
   begin
     Dec(I);
-    Obj := TCombatObject(TP3NodeAccess(F_CombatData_34).ChildrenList.List^[I]);
-    if Obj.FPosition = A1 then Found := TCombatObject(TP3NodeAccess(F_CombatData_34).ChildrenList.List^[I]);
+    if A1 = TCombatObject(TP3NodeAccess(F_CombatData_34).ChildrenList.List^[I]).FPosition then
+      Result := TCombatObject(TP3NodeAccess(F_CombatData_34).ChildrenList.List^[I]);
   end;
-  Result := Found;
 end;
 
 procedure TCombatData.AddObject(A1: TCombatObject);
@@ -1872,8 +2130,8 @@ end;
 destructor TCombatEventLog.Destroy;
 var L: TCombatLogbook;
 begin
-  L := TCombatLogbook(F_CombatEventLog_18);
-  if L <> nil then begin L.Release; F_CombatEventLog_18 := nil; end;
+  L := TCombatLogbook(FLogbook);
+  if L <> nil then begin L.Release; FLogbook := nil; end;
   inherited Destroy;
 end;
 
@@ -1883,42 +2141,97 @@ begin Result := $202E2; end;
 procedure TCombatEventLog.SetCombatLogbook(Logbook: TCombatLogbook);
 var Old: TCombatLogbook;
 begin
-  Old := F_CombatEventLog_18;
-  if Logbook <> Old then
+  Old := FLogbook;
+  if Old <> Logbook then
   begin
     if Old <> nil then Old.Release;
-    F_CombatEventLog_18 := Logbook;
-    if F_CombatEventLog_18 <> nil then F_CombatEventLog_18.AddRef;
+    FLogbook := Logbook;
+    if FLogbook <> nil then FLogbook.AddRef;
   end;
 end;
 
 procedure TCombatEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin inherited ReadWrite(Stream); Stream.rwCreateEObject(TEObject(F_CombatEventLog_18), nil, $14); end;
+begin inherited ReadWrite(Stream); Stream.rwCreateEObject(TEObject(FLogbook), nil, $14); end;
 
 function TCombatEventLog.GetTextColor: TColor;
-begin Result := 0; end;
+var Data: TCombatData;
+begin
+  Data := FLogbook.FFinalData;
+  if TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer <> 0 then
+    Result := RaceColors[AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer)).FPlayerRace]
+  else Result := RaceColors[12];
+end;
 
 function TCombatEventLog.GetLeftIcon: Integer;
-begin Result := 0; end;
+var Data: TCombatData;
+begin
+  Data := FLogbook.FFinalData;
+  if TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer <> 0 then
+    Result := AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer)).FPlayerRace
+  else Result := 12;
+end;
 
 function TCombatEventLog.GetMiddleIcon: Integer;
-{ needs: Integer result in EventLog's unmarked interface. }
-asm MOV EAX, $0D end;
+begin Result := $0D; end;
 
 function TCombatEventLog.GetRightIcon: Integer;
-begin Result := 0; end;
+var Data: TCombatData;
+begin
+  Data := FLogbook.FFinalData;
+  if TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer <> 0 then
+    Result := AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FDefenderPlayer).FPlayer)).FPlayerRace
+  else Result := 12;
+end;
 
 function TCombatEventLog.GetText: string;
 begin
   { needs: string result in EventLog's unmarked interface. }
-  Result := TCombatData(TCombatLogbook(F_CombatEventLog_18).FFinalData).FHeader;
+  Result := TCombatData(TCombatLogbook(FLogbook).FFinalData).FHeader;
 end;
 
 procedure TCombatEventLog.PlayLoggedSFX(A1: Integer);
-begin end;
+begin
+  if TCombatPlayerList(FLogbook.FInitialData.FPlayers).IndexOfPlayer(AoWHSMap.FSeatedPlayer) <> -1 then
+    PlaySample('SFX\EVENTS\ROLL.WAV')
+  else PlaySample('SFX\EVENTS\NEWEVENT.WAV');
+end;
 
 function TCombatEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var ShowCombat: Boolean; Data: TCombatData;
+begin
+  Result := False;
+  case Trigger of
+    etUser:
+      begin
+        AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+        Result := True;
+      end;
+    etEvent, etNewTurn:
+      begin
+        if TCombatPlayerList(FLogbook.FInitialData.FPlayers).IndexOfPlayer(AoWHSMap.FSeatedPlayer) <> -1 then
+        begin
+          Data := FLogbook.FInitialData;
+          ShowCombat := TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer = Byte(AoWHSMap.FSeatedPlayer);
+          ShowCombat := ShowCombat or (AoWHSMap.FRequestCombatType and
+            (Ord(AoWHSMap.FConnectionType) = Ord(tcaAlways)) and
+            (TCombatPlayerList(FLogbook.FInitialData.FPlayers).GetPlayers(FLogbook.FInitialData.FDefenderPlayer).FPlayer = Byte(AoWHSMap.FSeatedPlayer)));
+          ShowCombat := ShowCombat or ((Trigger = etEvent) and (AoWHSMap.FPlayMode = pmTurn) and
+            (wpCombat in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
+          ShowCombat := ShowCombat or ((Trigger = etEvent) and (AoWHSMap.FPlayMode = pmSimultaneous) and
+            (wpCombat in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
+          ShowCombat := ShowCombat and (FLogbook.FCombatResult <> crNoDefenders);
+        end
+        else ShowCombat := False;
+        ShowCombat := ShowCombat or FLogbook.F_CombatLogbook_19;
+        if ShowCombat then
+        begin
+          AoWHSMap.TriggerExecuteEventLog(Self, False, Done);
+          Result := True;
+        end
+        else Result := False;
+      end;
+  end;
+end;
 
 procedure TCombatEventLog.ViewLocation(A1: Integer; A2: Integer);
 { needs: EventLog.TEventLog.CenterViewTo has three Byte arguments. }
@@ -2502,18 +2815,18 @@ asm
 end;
 
 constructor TCombatPredictorUnit.Create;
-begin inherited Create; F_CombatPredictorUnit_34 := Integer(TQuadItemList.Create); end;
+begin inherited Create; FRoundTargets := TQuadItemList.Create; end;
 
 destructor TCombatPredictorUnit.Destroy;
 var Obj: TObject; U: TAbstractUnit;
 begin
-  TObject(F_CombatPredictorUnit_34).Free;
-  Obj := TObject(F_CombatPredictorUnit_20);
-  if Obj <> nil then begin Obj.Free; F_CombatPredictorUnit_20 := 0; end;
-  Obj := TObject(F_CombatPredictorUnit_28);
-  if Obj <> nil then begin Obj.Free; F_CombatPredictorUnit_28 := 0; end;
-  U := TAbstractUnit(F_CombatPredictorUnit_04);
-  if U <> nil then begin U.Release; F_CombatPredictorUnit_04 := 0; end;
+  TObject(FRoundTargets).Free;
+  Obj := TObject(FTargets);
+  if Obj <> nil then begin Obj.Free; FTargets := nil; end;
+  Obj := TObject(FWallTargets);
+  if Obj <> nil then begin Obj.Free; FWallTargets := nil; end;
+  U := TAbstractUnit(FUnit);
+  if U <> nil then begin U.Release; FUnit := nil; end;
   inherited Destroy;
 end;
 
@@ -2521,177 +2834,179 @@ procedure TCombatPredictorUnit.Setup(A1: TAbstractUnit; A2: Integer; A3: Byte);
 var Predictor: TCombatPredictor absolute A2; P: TCombatPredictor; U: TAbstractUnit;
 begin
   U := TAbstractUnit(A1);
-  F_CombatPredictorUnit_04 := Integer(U);
+  FUnit := U;
   U.AddRef;
   P := Predictor;
-  F_CombatPredictorUnit_0C := Integer(P);
+  FPredictor := P;
   FCPUID := P.CreateUniqueCPUID;
-  F_CombatPredictorUnit_14 := A3;
+  FSide := A3;
   { needs: P2 GetHitPoints returns Shortint; MOVSX AL at $5572A61F. }
-  F_CombatPredictorUnit_10 := TAbstractUnit(F_CombatPredictorUnit_04).GetHitPoints * 100;
-  F_CombatPredictorUnit_1C := 1;
-  F_CombatPredictorUnit_30 := 1;
-  F_CombatPredictorUnit_31 := 1;
-  if F_CombatPredictorUnit_14 = 0 then F_CombatPredictorUnit_18 := TCombatPredictor(F_CombatPredictorUnit_0C).FSides[1]
-  else F_CombatPredictorUnit_18 := TCombatPredictor(F_CombatPredictorUnit_0C).FSides[0];
+  FInitialHitPoints := TAbstractUnit(FUnit).GetHitPoints * 100;
+  FEnabled := 1;
+  FTargetsInvalid := 1;
+  FWallTargetsInvalid := 1;
+  if FSide = 0 then FOpponents := TCombatPredictor(FPredictor).FSides[1]
+  else FOpponents := TCombatPredictor(FPredictor).FSides[0];
 end;
 
 procedure TCombatPredictorUnit.SetEnabled(A1: Byte);
 begin
-  if A1 <> F_CombatPredictorUnit_1C then
+  if A1 <> FEnabled then
   begin
-    F_CombatPredictorUnit_1C := A1;
-    TCombatPredictor(F_CombatPredictorUnit_0C).F_CombatPredictor_2C := 1;
+    FEnabled := A1;
+    TCombatPredictor(FPredictor).FInvalid := 1;
   end;
 end;
 
 procedure TCombatPredictorUnit.UpdateTargets;
 var I, J, V: Integer; U: TCombatPredictorUnit;
 begin
-  if F_CombatPredictorUnit_20 = 0 then F_CombatPredictorUnit_20 := Integer(TQuadItemList.Create);
-  for I := TQuadItemList(F_CombatPredictorUnit_20).Count - 1 downto 0 do
+  if FTargets = nil then FTargets := TQuadItemList.Create;
+  for I := TQuadItemList(FTargets).Count - 1 downto 0 do
   begin
-    J := TCombatPredictorUnitList(F_CombatPredictorUnit_18).IndexOfCPUID(TQuadItemList(F_CombatPredictorUnit_20).List^[I].C);
+    J := TCombatPredictorUnitList(FOpponents).IndexOfCPUID(TQuadItemList(FTargets).List^[I].C);
     if J = -1 then
     begin
-      TQuadItemList(F_CombatPredictorUnit_20).Delete(I);
+      TQuadItemList(FTargets).Delete(I);
       { Original reads the shifted entry after deletion. }
-      Dec(F_CombatPredictorUnit_24, TQuadItemList(F_CombatPredictorUnit_20).List^[I].B);
+      Dec(FCombatValue, TQuadItemList(FTargets).List^[I].B);
     end;
   end;
-  if TQuadItemList(F_CombatPredictorUnit_20).Count <> 0 then
-    for I := TCombatPredictorUnitList(F_CombatPredictorUnit_18).Count - 1 downto 0 do
+  if TQuadItemList(FTargets).Count <> 0 then
+    for I := TCombatPredictorUnitList(FOpponents).Count - 1 downto 0 do
     begin
-      U := TCombatPredictorUnitList(F_CombatPredictorUnit_18).GetUnits(I);
-      J := TQuadItemList(F_CombatPredictorUnit_20).IndexOfItemC(U.FCPUID);
+      U := TCombatPredictorUnitList(FOpponents).GetUnits(I);
+      J := TQuadItemList(FTargets).IndexOfItemC(U.FCPUID);
       if J = -1 then
       begin
-        Inc(TCombatPredictor(F_CombatPredictorUnit_0C).F_CombatPredictor_30);
-        V := TAbstractUnit(F_CombatPredictorUnit_04).GetCombatValue(TAbstractUnit(U.F_CombatPredictorUnit_04), False);
+        Inc(TCombatPredictor(FPredictor).FWork);
+        V := TAbstractUnit(FUnit).GetCombatValue(TAbstractUnit(U.FUnit), 0);
         if V < 0 then V := 0;
-        TQuadItemList(F_CombatPredictorUnit_20).AddABCD(Integer(U), V, U.FCPUID, 0);
-        Inc(F_CombatPredictorUnit_24, V);
+        TQuadItemList(FTargets).AddABCD(Integer(U), V, U.FCPUID, 0);
+        Inc(FCombatValue, V);
       end;
     end
   else
   begin
-    F_CombatPredictorUnit_24 := 0;
-    for I := TCombatPredictorUnitList(F_CombatPredictorUnit_18).Count - 1 downto 0 do
+    FCombatValue := 0;
+    for I := TCombatPredictorUnitList(FOpponents).Count - 1 downto 0 do
     begin
-      Inc(TCombatPredictor(F_CombatPredictorUnit_0C).F_CombatPredictor_30);
-      U := TCombatPredictorUnit(TCombatPredictorUnitList(F_CombatPredictorUnit_18).List^[I]);
-      V := TAbstractUnit(F_CombatPredictorUnit_04).GetCombatValue(TAbstractUnit(U.F_CombatPredictorUnit_04), False);
+      Inc(TCombatPredictor(FPredictor).FWork);
+      U := TCombatPredictorUnit(TCombatPredictorUnitList(FOpponents).List^[I]);
+      V := TAbstractUnit(FUnit).GetCombatValue(TAbstractUnit(U.FUnit), 0);
       if V < 0 then V := 0;
-      TQuadItemList(F_CombatPredictorUnit_20).AddABCD(Integer(U), V, U.FCPUID, 0);
-      Inc(F_CombatPredictorUnit_24, V);
+      TQuadItemList(FTargets).AddABCD(Integer(U), V, U.FCPUID, 0);
+      Inc(FCombatValue, V);
     end;
   end;
-  F_CombatPredictorUnit_30 := 0;
+  FTargetsInvalid := 0;
 end;
 
 procedure TCombatPredictorUnit.UpdateWallTargets;
 var I, J, V: Integer; U: TCombatPredictorUnit; Passing: Boolean; Mode: Byte;
 begin
-  Passing := wcWallPassing in TAbstractUnit(F_CombatPredictorUnit_04).GetWallCombatFeatures;
-  if F_CombatPredictorUnit_28 = 0 then F_CombatPredictorUnit_28 := Integer(TQuadItemList.Create);
-  for I := TQuadItemList(F_CombatPredictorUnit_28).Count - 1 downto 0 do
+  Passing := wcWallPassing in TAbstractUnit(FUnit).GetWallCombatFeatures;
+  if FWallTargets = nil then FWallTargets := TQuadItemList.Create;
+  for I := TQuadItemList(FWallTargets).Count - 1 downto 0 do
   begin
-    J := TCombatPredictorUnitList(F_CombatPredictorUnit_18).IndexOfCPUID(TQuadItemList(F_CombatPredictorUnit_28).List^[I].C);
+    J := TCombatPredictorUnitList(FOpponents).IndexOfCPUID(TQuadItemList(FWallTargets).List^[I].C);
     if J = -1 then
     begin
-      TQuadItemList(F_CombatPredictorUnit_28).Delete(I);
+      TQuadItemList(FWallTargets).Delete(I);
       { Original reads the shifted entry after deletion. }
-      Dec(F_CombatPredictorUnit_2C, TQuadItemList(F_CombatPredictorUnit_28).List^[I].B);
+      Dec(FWallCombatValue, TQuadItemList(FWallTargets).List^[I].B);
     end;
   end;
-  if TQuadItemList(F_CombatPredictorUnit_28).Count <> 0 then
-    for I := TCombatPredictorUnitList(F_CombatPredictorUnit_18).Count - 1 downto 0 do
+  if TQuadItemList(FWallTargets).Count <> 0 then
+    for I := TCombatPredictorUnitList(FOpponents).Count - 1 downto 0 do
     begin
-      U := TCombatPredictorUnit(TCombatPredictorUnitList(F_CombatPredictorUnit_18).List^[I]);
-      J := TQuadItemList(F_CombatPredictorUnit_28).IndexOfItemC(U.FCPUID);
+      U := TCombatPredictorUnit(TCombatPredictorUnitList(FOpponents).List^[I]);
+      J := TQuadItemList(FWallTargets).IndexOfItemC(U.FCPUID);
       if J = -1 then
       begin
-        if Passing then Mode := 0
-        else if F_CombatPredictorUnit_1D <> 0 then
-          if U.F_CombatPredictorUnit_1D = 0 then Mode := 1 else Mode := 0
-        else if U.F_CombatPredictorUnit_1D <> 0 then Mode := 2 else Mode := 0;
-        Inc(TCombatPredictor(F_CombatPredictorUnit_0C).F_CombatPredictor_30);
-        V := TP3CombatValue(@TAbstractUnit.GetCombatValue)(TAbstractUnit(F_CombatPredictorUnit_04), U.F_CombatPredictorUnit_04, Mode);
+        if not Passing then
+          if FBehindWall <> 0 then
+            if U.FBehindWall = 0 then Mode := 1 else Mode := 0
+          else if U.FBehindWall <> 0 then Mode := 2 else Mode := 0
+        else Mode := 0;
+        Inc(TCombatPredictor(FPredictor).FWork);
+        V := TAbstractUnit(FUnit).GetCombatValue(TAbstractUnit(U.FUnit), Mode);
         if V < 0 then V := 0;
-        TQuadItemList(F_CombatPredictorUnit_28).AddABCD(Integer(U), V, 0, 0);
-        Inc(F_CombatPredictorUnit_2C, V);
+        TQuadItemList(FWallTargets).AddABCD(Integer(U), V, 0, 0);
+        Inc(FWallCombatValue, V);
       end;
     end
   else
   begin
-    F_CombatPredictorUnit_2C := 0;
-    for I := TCombatPredictorUnitList(F_CombatPredictorUnit_18).Count - 1 downto 0 do
+    FWallCombatValue := 0;
+    for I := TCombatPredictorUnitList(FOpponents).Count - 1 downto 0 do
     begin
-      U := TCombatPredictorUnit(TCombatPredictorUnitList(F_CombatPredictorUnit_18).List^[I]);
-      if Passing then Mode := 0
-      else if F_CombatPredictorUnit_1D <> 0 then
-        if U.F_CombatPredictorUnit_1D = 0 then Mode := 1 else Mode := 0
-      else if U.F_CombatPredictorUnit_1D <> 0 then Mode := 2 else Mode := 0;
-      Inc(TCombatPredictor(F_CombatPredictorUnit_0C).F_CombatPredictor_30);
-      V := TP3CombatValue(@TAbstractUnit.GetCombatValue)(TAbstractUnit(F_CombatPredictorUnit_04), U.F_CombatPredictorUnit_04, Mode);
+      U := TCombatPredictorUnit(TCombatPredictorUnitList(FOpponents).List^[I]);
+      if not Passing then
+        if FBehindWall <> 0 then
+          if U.FBehindWall = 0 then Mode := 1 else Mode := 0
+        else if U.FBehindWall <> 0 then Mode := 2 else Mode := 0
+      else Mode := 0;
+      Inc(TCombatPredictor(FPredictor).FWork);
+      V := TAbstractUnit(FUnit).GetCombatValue(TAbstractUnit(U.FUnit), Mode);
       if V < 0 then V := 0;
       { Original initializes both C and D to zero in the wall cache. }
-      TQuadItemList(F_CombatPredictorUnit_28).AddABCD(Integer(U), V, 0, 0);
-      Inc(F_CombatPredictorUnit_2C, V);
+      TQuadItemList(FWallTargets).AddABCD(Integer(U), V, 0, 0);
+      Inc(FWallCombatValue, V);
     end;
   end;
-  F_CombatPredictorUnit_31 := 0;
+  FWallTargetsInvalid := 0;
 end;
 
 procedure TCombatPredictorUnit.InvalidateTargets;
-begin F_CombatPredictorUnit_30 := 1; F_CombatPredictorUnit_31 := 1; end;
+begin FTargetsInvalid := 1; FWallTargetsInvalid := 1; end;
 
 procedure TCombatPredictorUnit.ResetCombat;
 begin
-  F_CombatPredictorUnit_4C := F_CombatPredictorUnit_10;
-  F_CombatPredictorUnit_3C := 0;
-  F_CombatPredictorUnit_50 := [];
+  FHitPoints := FInitialHitPoints;
+  FCombatRounds := 0;
+  FStatus := [];
 end;
 
 procedure TCombatPredictorUnit.ResetRoundTargets;
 begin
-  TQuadItemList(F_CombatPredictorUnit_34).Clear;
-  F_CombatPredictorUnit_38 := 0;
-  F_CombatPredictorUnit_40 := 0;
-  F_CombatPredictorUnit_44 := 0;
+  TQuadItemList(FRoundTargets).Clear;
+  FCombatValueTotal := 0;
+  FIncomingCombatValue := 0;
+  FIneffectiveAttackers := 0;
 end;
 
 procedure TCombatPredictorUnit.SetupRoundTargets(A1: Byte);
 var I, V: Integer; U: TCombatPredictorUnit; Q: TQuadItemList;
 begin
-  if F_CombatPredictorUnit_1C <> 0 then
+  if FEnabled <> 0 then
   begin
     if A1 <> 0 then
     begin
-      if F_CombatPredictorUnit_31 <> 0 then UpdateWallTargets;
-      TQuadItemList(F_CombatPredictorUnit_34).Assign(TQuadItemList(F_CombatPredictorUnit_28));
+      if FWallTargetsInvalid <> 0 then UpdateWallTargets;
+      TQuadItemList(FRoundTargets).Assign(TQuadItemList(FWallTargets));
     end
     else
     begin
-      if F_CombatPredictorUnit_30 <> 0 then UpdateTargets;
-      TQuadItemList(F_CombatPredictorUnit_34).Assign(TQuadItemList(F_CombatPredictorUnit_20));
+      if FTargetsInvalid <> 0 then UpdateTargets;
+      TQuadItemList(FRoundTargets).Assign(TQuadItemList(FTargets));
     end;
-    for I := TQuadItemList(F_CombatPredictorUnit_34).Count - 1 downto 0 do
+    for I := TQuadItemList(FRoundTargets).Count - 1 downto 0 do
     begin
-      Q := TQuadItemList(F_CombatPredictorUnit_34);
+      Q := TQuadItemList(FRoundTargets);
       U := TCombatPredictorUnit(Q.List^[I].A);
-      if U.F_CombatPredictorUnit_1C <> 0 then
+      if U.FEnabled <> 0 then
       begin
-        V := TQuadItemList(F_CombatPredictorUnit_34).List^[I].B;
+        V := TQuadItemList(FRoundTargets).List^[I].B;
         if V > 0 then
         begin
-          Inc(U.F_CombatPredictorUnit_40, V);
-          Inc(F_CombatPredictorUnit_38, V);
+          Inc(U.FIncomingCombatValue, V);
+          Inc(FCombatValueTotal, V);
         end
         else
         begin
-          Inc(U.F_CombatPredictorUnit_44);
-          TQuadItemList(F_CombatPredictorUnit_34).Delete(I);
+          Inc(U.FIneffectiveAttackers);
+          TQuadItemList(FRoundTargets).Delete(I);
         end;
       end
       else Q.Delete(I);
@@ -2702,13 +3017,13 @@ end;
 procedure TCombatPredictorUnit.UpdateRoundTargetPriority;
 var I: Integer;
 begin
-  if F_CombatPredictorUnit_1C <> 0 then
+  if FEnabled <> 0 then
   begin
-    F_CombatPredictorUnit_48 := 0;
-    for I := TQuadItemList(F_CombatPredictorUnit_34).Count - 1 downto 0 do
-      Inc(F_CombatPredictorUnit_48, TCombatPredictorUnit(TQuadItemList(F_CombatPredictorUnit_34).List^[I].A).F_CombatPredictorUnit_44);
+    FTargetPriority := 0;
+    for I := TQuadItemList(FRoundTargets).Count - 1 downto 0 do
+      Inc(FTargetPriority, TCombatPredictorUnit(TQuadItemList(FRoundTargets).List^[I].A).FIneffectiveAttackers);
   end
-  else F_CombatPredictorUnit_48 := 0;
+  else FTargetPriority := 0;
 end;
 
 function P3CompareRoundTargets(const A, B: TQuadItem): Integer;
@@ -2717,39 +3032,39 @@ begin Result := A.D - B.D; end;
 procedure TCombatPredictorUnit.SortRoundTargets;
 var I, V, Priority: Integer; U: TCombatPredictorUnit;
 begin
-  for I := TQuadItemList(F_CombatPredictorUnit_34).Count - 1 downto 0 do
+  for I := TQuadItemList(FRoundTargets).Count - 1 downto 0 do
   begin
-    U := TCombatPredictorUnit(TQuadItemList(F_CombatPredictorUnit_34).List^[I].A);
-    V := TQuadItemList(F_CombatPredictorUnit_34).List^[I].B;
-    if U.F_CombatPredictorUnit_38 <> 0 then
-      Priority := (V * 100 * 1000) div U.F_CombatPredictorUnit_40 + U.F_CombatPredictorUnit_48 * 100 + V
+    U := TCombatPredictorUnit(TQuadItemList(FRoundTargets).List^[I].A);
+    V := TQuadItemList(FRoundTargets).List^[I].B;
+    if U.FCombatValueTotal <> 0 then
+      Priority := (V * 100 * 1000) div U.FIncomingCombatValue + U.FTargetPriority * 100 + V
     else Priority := 0;
-    TQuadItemList(F_CombatPredictorUnit_34).List^[I].D := Priority;
+    TQuadItemList(FRoundTargets).List^[I].D := Priority;
   end;
-  TQuadItemList(F_CombatPredictorUnit_34).Sort(P3CompareRoundTargets);
+  TQuadItemList(FRoundTargets).Sort(P3CompareRoundTargets);
 end;
 
 function TCombatPredictorUnit.ExecuteRound: Boolean;
 var I: Integer; U: TCombatPredictorUnit;
 begin
-  I := TQuadItemList(F_CombatPredictorUnit_34).Count;
+  I := TQuadItemList(FRoundTargets).Count;
   Result := False;
-  if I <> 0 then Inc(F_CombatPredictorUnit_3C);
+  if I <> 0 then Inc(FCombatRounds);
   while (I <> 0) and not Result do
   begin
     Dec(I);
-    U := TCombatPredictorUnit(TQuadItemList(F_CombatPredictorUnit_34).List^[I].A);
-    if U.F_CombatPredictorUnit_4C > 0 then
+    U := TCombatPredictorUnit(TQuadItemList(FRoundTargets).List^[I].A);
+    if U.FHitPoints > 0 then
     begin
-      Dec(U.F_CombatPredictorUnit_4C, TQuadItemList(F_CombatPredictorUnit_34).List^[I].B);
+      Dec(U.FHitPoints, TQuadItemList(FRoundTargets).List^[I].B);
       Result := True;
     end
-    else TQuadItemList(F_CombatPredictorUnit_34).Delete(I);
+    else TQuadItemList(FRoundTargets).Delete(I);
   end;
 end;
 
 procedure TCombatPredictorUnit.FinishCombat;
-begin if F_CombatPredictorUnit_4C <= 0 then F_CombatPredictorUnit_50 := F_CombatPredictorUnit_50 + [usDestroyed]; end;
+begin if FHitPoints <= 0 then FStatus := FStatus + [usDestroyed]; end;
 
 function TCombatPredictorUnitList.GetUnits(A1: Integer): TCombatPredictorUnit;
 begin Result := TCombatPredictorUnit(List^[A1]); end;
@@ -2760,7 +3075,7 @@ begin
   while Result <> 0 do
   begin
     Dec(Result);
-    if TCombatPredictorUnit(List^[Result]).F_CombatPredictorUnit_04 = A1 then Exit;
+    if Integer(TCombatPredictorUnit(List^[Result]).FUnit) = A1 then Exit;
   end;
   Result := -1;
 end;
@@ -2793,17 +3108,17 @@ end;
 constructor TCombatPredictor.Create;
 begin
   inherited Create;
-  F_CombatPredictor_04 := Integer(TCombatPredictorUnitList.Create);
-  F_CombatPredictor_08 := Integer(TCombatPredictorUnitList.Create);
-  FSides[0] := Integer(TCombatPredictorSide.Create);
-  FSides[1] := Integer(TCombatPredictorSide.Create);
+  FAllUnits := TCombatPredictorUnitList.Create;
+  FActiveUnits := TCombatPredictorUnitList.Create;
+  FSides[0] := TCombatPredictorSide.Create;
+  FSides[1] := TCombatPredictorSide.Create;
 end;
 
 destructor TCombatPredictor.Destroy;
 begin
   Reset;
-  TObject(F_CombatPredictor_04).Free;
-  TObject(F_CombatPredictor_08).Free;
+  TObject(FAllUnits).Free;
+  TObject(FActiveUnits).Free;
   TObject(FSides[0]).Free;
   TObject(FSides[1]).Free;
   inherited Destroy;
@@ -2812,48 +3127,48 @@ end;
 procedure TCombatPredictor.Reset;
 var I: Integer;
 begin
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do TObject(TList(F_CombatPredictor_04).List^[I]).Free;
-  F_CombatPredictor_20 := 0;
-  TList(F_CombatPredictor_04).Count := 0;
-  TList(F_CombatPredictor_08).Count := 0;
+  for I := TList(FAllUnits).Count - 1 downto 0 do TObject(TList(FAllUnits).List^[I]).Free;
+  FWall := nil;
+  TList(FAllUnits).Count := 0;
+  TList(FActiveUnits).Count := 0;
   TList(FSides[0]).Count := 0;
   TList(FSides[1]).Count := 0;
-  F_CombatPredictor_18 := -1;
-  F_CombatPredictor_1C := -1;
-  F_CombatPredictor_28 := 0;
+  FSuperiority := -1;
+  FEfficiency := -1;
+  FNextCPUID := 0;
 end;
 
 function TCombatPredictor.CreateUniqueCPUID: Integer;
-begin Result := F_CombatPredictor_28; Inc(F_CombatPredictor_28); end;
+begin Result := FNextCPUID; Inc(FNextCPUID); end;
 
 procedure TCombatPredictor.EnableAllUnits;
 var I: Integer;
 begin
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do
-    if TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).F_CombatPredictorUnit_1C = 0 then
+  for I := TList(FAllUnits).Count - 1 downto 0 do
+    if TCombatPredictorUnit(TList(FAllUnits).List^[I]).FEnabled = 0 then
     begin
-      TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).F_CombatPredictorUnit_1C := 1;
-      F_CombatPredictor_2C := 1;
+      TCombatPredictorUnit(TList(FAllUnits).List^[I]).FEnabled := 1;
+      FInvalid := 1;
     end;
 end;
 
 procedure TCombatPredictor.Validate;
-begin if F_CombatPredictor_2C <> 0 then Execute; end;
+begin if FInvalid <> 0 then Execute; end;
 
 procedure TCombatPredictor.ResetCombat;
 var I: Integer;
 begin
-  F_CombatPredictor_2C := 1;
-  F_CombatPredictor_18 := -1;
-  F_CombatPredictor_1C := -1;
-  F_CombatPredictor_24 := 0;
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).ResetCombat;
+  FInvalid := 1;
+  FSuperiority := -1;
+  FEfficiency := -1;
+  FRound := 0;
+  for I := TList(FAllUnits).Count - 1 downto 0 do TCombatPredictorUnit(TList(FAllUnits).List^[I]).ResetCombat;
 end;
 
 procedure TCombatPredictor.SetupCombat(A1: Byte);
 var I: Integer; U: TCombatPredictorUnit;
 begin
-  TList(F_CombatPredictor_08).Clear;
+  TList(FActiveUnits).Clear;
   if TCombatPredictorSide(FSides[0]).F_CombatPredictorSide_10[0] <> 0 then
   begin
     for I := TList(FSides[1]).Count - 1 downto 0 do TCombatPredictorUnit(TList(FSides[1]).List^[I]).InvalidateTargets;
@@ -2864,16 +3179,16 @@ begin
     for I := TList(FSides[0]).Count - 1 downto 0 do TCombatPredictorUnit(TList(FSides[0]).List^[I]).InvalidateTargets;
     TCombatPredictorSide(FSides[1]).F_CombatPredictorSide_10[0] := 0;
   end;
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).ResetRoundTargets;
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).SetupRoundTargets(Byte(A1));
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]).UpdateRoundTargetPriority;
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do
+  for I := TList(FAllUnits).Count - 1 downto 0 do TCombatPredictorUnit(TList(FAllUnits).List^[I]).ResetRoundTargets;
+  for I := TList(FAllUnits).Count - 1 downto 0 do TCombatPredictorUnit(TList(FAllUnits).List^[I]).SetupRoundTargets(Byte(A1));
+  for I := TList(FAllUnits).Count - 1 downto 0 do TCombatPredictorUnit(TList(FAllUnits).List^[I]).UpdateRoundTargetPriority;
+  for I := TList(FAllUnits).Count - 1 downto 0 do
   begin
-    U := TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]);
-    if (U.F_CombatPredictorUnit_1C <> 0) and (TQuadItemList(U.F_CombatPredictorUnit_34).Count <> 0) then
+    U := TCombatPredictorUnit(TList(FAllUnits).List^[I]);
+    if (U.FEnabled <> 0) and (TQuadItemList(U.FRoundTargets).Count <> 0) then
     begin
       U.SortRoundTargets;
-      TList(F_CombatPredictor_08).Add(U);
+      TList(FActiveUnits).Add(U);
     end;
   end;
 end;
@@ -2882,18 +3197,18 @@ function TCombatPredictor.ExecuteCombatRound: Boolean;
 var U: TCombatPredictorUnit; I: Integer;
 begin
   Result := False;
-  for I := TList(F_CombatPredictor_08).Count - 1 downto 0 do
+  for I := TList(FActiveUnits).Count - 1 downto 0 do
   begin
-    U := TCombatPredictorUnit(TList(F_CombatPredictor_08).List^[I]);
-    if U.ExecuteRound then Result := True
-    else TList(F_CombatPredictor_08).Delete(I);
+    U := TCombatPredictorUnit(TList(FActiveUnits).List^[I]);
+    if not U.ExecuteRound then TList(FActiveUnits).Delete(I)
+    else Result := True;
   end;
-  for I := TList(F_CombatPredictor_08).Count - 1 downto 0 do
+  for I := TList(FActiveUnits).Count - 1 downto 0 do
   begin
-    U := TCombatPredictorUnit(TList(F_CombatPredictor_08).List^[I]);
-    if U.F_CombatPredictorUnit_4C < 1 then TList(F_CombatPredictor_08).Delete(I);
+    U := TCombatPredictorUnit(TList(FActiveUnits).List^[I]);
+    if U.FHitPoints <= 0 then TList(FActiveUnits).Delete(I);
   end;
-  if Result then Inc(F_CombatPredictor_24);
+  if Result then Inc(FRound);
 end;
 
 function TCombatPredictor.CanPassWall: Boolean;
@@ -2901,12 +3216,12 @@ var I: Integer;
 begin
   try
     Result := False;
-    I := TList(F_CombatPredictor_04).Count;
+    I := TList(FAllUnits).Count;
     while not Result and (I <> 0) do
     begin
       Dec(I);
-      if TCombatPredictorUnitList(F_CombatPredictor_04).GetUnits(I).F_CombatPredictorUnit_04 <> 0 then
-        Result := wcWallPassing in TAbstractUnit(TCombatPredictorUnitList(F_CombatPredictor_04).GetUnits(I).F_CombatPredictorUnit_04).GetWallCombatFeatures;
+      if TCombatPredictorUnitList(FAllUnits).GetUnits(I).FUnit <> nil then
+        Result := wcWallPassing in TAbstractUnit(TCombatPredictorUnitList(FAllUnits).GetUnits(I).FUnit).GetWallCombatFeatures;
     end;
   except
     Result := False;
@@ -2918,48 +3233,71 @@ var Wall: TCombatPredictorUnit; I: Integer; Surviving, Hits: array[0..1] of Inte
 begin
   FillChar(Surviving, SizeOf(Surviving), 0);
   FillChar(Hits, SizeOf(Hits), 0);
-  for I := TList(F_CombatPredictor_04).Count - 1 downto 0 do
+  for I := TList(FAllUnits).Count - 1 downto 0 do
   begin
-    U := TCombatPredictorUnit(TList(F_CombatPredictor_04).List^[I]);
+    U := TCombatPredictorUnit(TList(FAllUnits).List^[I]);
     U.FinishCombat;
-    if not (usDestroyed in U.F_CombatPredictorUnit_50) then Inc(Surviving[U.F_CombatPredictorUnit_14]);
-    Inc(Hits[U.F_CombatPredictorUnit_14], U.F_CombatPredictorUnit_4C);
+    if not (usDestroyed in U.FStatus) then Inc(Surviving[U.FSide]);
+    Inc(Hits[U.FSide], U.FHitPoints);
   end;
   if (Surviving[1] = 0) and (Surviving[0] = 0) then
-    if Hits[0] >= Hits[1] then F_CombatPredictor_14 := 3 else F_CombatPredictor_14 := 4
-  else if Surviving[1] = 0 then F_CombatPredictor_14 := 3
+    if Hits[0] >= Hits[1] then FResult := 3 else FResult := 4
+  else if Surviving[1] = 0 then FResult := 3
   else
   begin
-    Wall := TCombatPredictorUnit(F_CombatPredictor_20);
-    if (Wall <> nil) and (Wall.F_CombatPredictorUnit_4C > 0) then
-      if (Surviving[1] = 1) and CanPassWall then F_CombatPredictor_14 := 3 else F_CombatPredictor_14 := 8
-    else if Surviving[0] = 0 then F_CombatPredictor_14 := 4 else F_CombatPredictor_14 := 2;
+    Wall := TCombatPredictorUnit(FWall);
+    if (Wall <> nil) and (Wall.FHitPoints > 0) then
+      if (Surviving[1] = 1) and CanPassWall then FResult := 3 else FResult := 8
+    else if Surviving[0] = 0 then FResult := 4 else FResult := 2;
   end;
-  TList(F_CombatPredictor_08).Clear;
+  TList(FActiveUnits).Clear;
 end;
 
 function TCombatPredictor.Execute: TCombatResult;
-begin Result := crIdle; end;
+begin
+  if FWall <> nil then
+  begin
+    ResetCombat;
+    SetupCombat(1);
+    while (TCombatPredictorUnit(FWall).FHitPoints > 0) and ExecuteCombatRound do;
+    if TCombatPredictorUnit(FWall).FHitPoints <= 0 then
+    begin
+      SetupCombat(0);
+      while ExecuteCombatRound do;
+    end;
+    FinishCombat;
+  end
+  else
+  begin
+    ResetCombat;
+    SetupCombat(0);
+    while ExecuteCombatRound do;
+    FinishCombat;
+  end;
+  AoWHSMap.FAIExecuter.UseProcessTime(FWork * 58);
+  Result := TCombatResult(FResult);
+  FInvalid := 0;
+end;
 
 procedure TCombatPredictor.DeleteUnit(A1: Integer);
 var I, J: Integer; U: TCombatPredictorUnit; D: TDamageType;
 begin
-  I := TCombatPredictorUnitList(F_CombatPredictor_04).IndexOfUnit(A1);
+  I := TCombatPredictorUnitList(FAllUnits).IndexOfUnit(A1);
   if I <> -1 then
   begin
-    U := TCombatPredictorUnitList(F_CombatPredictor_04).GetUnits(I);
-    J := TCombatPredictorUnitList(FSides[U.F_CombatPredictorUnit_14]).IndexOfUnit(A1);
+    U := TCombatPredictorUnitList(FAllUnits).GetUnits(I);
+    J := TCombatPredictorUnitList(FSides[U.FSide]).IndexOfUnit(A1);
     if J <> -1 then
     begin
-      if Integer(TCombatPredictorUnitList(FSides[U.F_CombatPredictorUnit_14]).GetUnits(J)) = F_CombatPredictor_20 then F_CombatPredictor_20 := 0;
-      TList(FSides[U.F_CombatPredictorUnit_14]).Delete(J);
-      TCombatPredictorSide(FSides[U.F_CombatPredictorUnit_14]).F_CombatPredictorSide_10[0] := 1;
+      if TCombatPredictorUnitList(FSides[U.FSide]).GetUnits(J) = FWall then FWall := nil;
+      TList(FSides[U.FSide]).Delete(J);
+      TCombatPredictorSide(FSides[U.FSide]).F_CombatPredictorSide_10[0] := 1;
       { Original adds strength when deleting a unit. }
       for D := Low(TDamageType) to High(TDamageType) do
-        Inc(TCombatPredictorSide(FSides[U.F_CombatPredictorUnit_14]).FStrength[D], TAbstractUnit(A1).GetStrength(D));
+        Inc(TCombatPredictorSide(FSides[U.FSide]).FStrength[D], TAbstractUnit(A1).GetStrength(D));
     end;
-    F_CombatPredictor_2C := 1;
-    TList(F_CombatPredictor_04).Delete(I);
+    FInvalid := 1;
+    TList(FAllUnits).Delete(I);
     U.Free;
   end;
 end;
@@ -2969,13 +3307,13 @@ var U: TCombatPredictorUnit; D: TDamageType;
 begin
   U := TCombatPredictorUnit.Create;
   U.Setup(A1, Integer(Self), A2);
-  U.F_CombatPredictorUnit_1D := A3;
-  TList(F_CombatPredictor_04).Add(U);
+  U.FBehindWall := A3;
+  TList(FAllUnits).Add(U);
   TList(FSides[A2]).Add(U);
   TCombatPredictorSide(FSides[A2]).F_CombatPredictorSide_10[0] := 1;
   for D := Low(TDamageType) to High(TDamageType) do
     Inc(TCombatPredictorSide(FSides[A2]).FStrength[D], TAbstractUnit(A1).GetStrength(D));
-  F_CombatPredictor_2C := 1;
+  FInvalid := 1;
   Result := U;
 end;
 
@@ -2999,17 +3337,31 @@ begin
     AddOpponent(TUnitList(A1).GetUnit(I), A2);
 end;
 
-procedure TCombatPredictor.AddWall(A1: Integer);
-begin end;
+procedure TCombatPredictor.AddWall(A1: TWallType);
+var Wall: TWallUnit; UnitObj: TCombatPredictorUnit;
+begin
+  Assert(A1 <> wtNone, 'Use DeleteWall instead!');
+  UnitObj := TCombatPredictorUnit(FWall);
+  if UnitObj = nil then
+  begin
+    Wall := TWallUnit.Create(nil);
+    Wall.SetWallType(A1);
+    Inc(Wall.FHits, 5);
+    Inc(Wall.FHitPoints, 5);
+    FWall := AddUnitEx(Wall, 1, 0);
+    Wall.Release;
+  end
+  else TWallUnit(UnitObj.FUnit).SetWallType(A1);
+end;
 
 procedure TCombatPredictor.DeleteWall;
 var Wall: TCombatPredictorUnit;
 begin
-  Wall := TCombatPredictorUnit(F_CombatPredictor_20);
+  Wall := TCombatPredictorUnit(FWall);
   if Wall <> nil then
   begin
-    DeleteUnit(Wall.F_CombatPredictorUnit_04);
-    F_CombatPredictor_20 := 0;
+    DeleteUnit(Integer(Wall.FUnit));
+    FWall := nil;
   end;
 end;
 
@@ -3017,63 +3369,153 @@ procedure TCombatPredictor.DeleteUnits;
 var I: Integer;
 begin
   for I := TList(FSides[0]).Count - 1 downto 0 do
-    DeleteUnit(TCombatPredictorUnitList(FSides[0]).GetUnits(I).F_CombatPredictorUnit_04);
+    DeleteUnit(Integer(TCombatPredictorUnitList(FSides[0]).GetUnits(I).FUnit));
 end;
 
 procedure TCombatPredictor.DeleteOpponents;
 var I: Integer;
 begin
   for I := TList(FSides[1]).Count - 1 downto 0 do
-    DeleteUnit(TCombatPredictorUnitList(FSides[1]).GetUnits(I).F_CombatPredictorUnit_04);
+    DeleteUnit(Integer(TCombatPredictorUnitList(FSides[1]).GetUnits(I).FUnit));
 end;
 
-procedure TCombatPredictor.InitAdjacentArmies(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+procedure TCombatPredictor.InitAdjacentArmies(A1: TArmyHS; A2, A3, A4: Shortint);
+var Level: TMapLevel; ArmyHS: TArmyHS; U: TAbstractUnit;
+    Defender, Player, Relation, DefenderRelation: Byte; Side: TCombatSideIndex;
+    Field: TMapField; I: Integer; Msg: TMapFieldMsg; Walk: THNWalkData;
+begin
+  AddUnits(Integer(A1.FArmy));
+  Level := AoWHSMap.MapContainer.GetMapLevel(A4);
+  with A1.FArmy do
+  begin
+    Player := FPlayer;
+    Relation := FRace;
+  end;
+  Defender := TAoWMapField(Level.GetField(A2, A3)).GetPlayer;
+  DefenderRelation := TAoWMapField(Level.GetField(A2, A3)).GetIndependentRelation;
+  if Defender <> $FF then
+  begin
+    Msg.MsgID := $1123;
+    Msg.Param[0] := Integer(Level.GetField(A2, A3));
+    Msg.Result := 0;
+    Level.GetField(A2, A3).SendMapFieldMsg(Msg);
+    if TWallType(Msg.Result) <> wtNone then AddWall(TWallType(Msg.Result));
+    InitHNWalk(Walk, A2, A3, 0);
+    while Walk.Radius <= 1 do
+    begin
+      if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      begin
+        ArmyHS := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
+        if (ArmyHS <> nil) and (ArmyHS <> A1) then
+        begin
+          Side := GetCombatSide(Player, Relation, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace);
+          if Side <> csNeutral then
+          begin
+            Field := Level.GetField(A2, A3);
+            Msg.MsgID := $1123;
+            Msg.Param[0] := Integer(Level.GetField(Walk.X, Walk.Y));
+            Msg.Result := 0;
+            Field.SendMapFieldMsg(Msg);
+            for I := 0 to ArmyHS.FArmy.Count - 1 do
+            begin
+              U := ArmyHS.FArmy.GetUnit(I);
+              if U.ValidTerrain(Field.TerrainType, Field.OverlayType) then
+                AddUnitEx(U, Ord(Side), Ord(TWallType(Msg.Result) <> wtNone));
+            end;
+          end;
+        end;
+      end;
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
-procedure TCombatPredictor.InitAdjacentOpponents(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TCombatPredictor.InitAdjacentOpponents(A1, A2: Byte; A3, A4, A5: Shortint);
+var Level: TMapLevel; ArmyHS: TArmyHS; U: TAbstractUnit;
+    DefenderRelation, Defender: Byte; Side: TCombatSideIndex;
+    Field: TMapField; I: Integer; Msg: TMapFieldMsg; Walk: THNWalkData;
+begin
+  Level := AoWHSMap.MapContainer.GetMapLevel(A5);
+  Defender := TAoWMapField(Level.GetField(A3, A4)).GetPlayer;
+  DefenderRelation := TAoWMapField(Level.GetField(A3, A4)).GetIndependentRelation;
+  if Defender <> $FF then
+  begin
+    Msg.MsgID := $1123;
+    Msg.Param[0] := Integer(Level.GetField(A3, A4));
+    Msg.Result := 0;
+    Level.GetField(A3, A4).SendMapFieldMsg(Msg);
+    if TWallType(Msg.Result) <> wtNone then AddWall(TWallType(Msg.Result));
+    InitHNWalk(Walk, A3, A4, 0);
+    while Walk.Radius <= 1 do
+    begin
+      if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      begin
+        ArmyHS := TArmyHS(Level.GetField(Walk.X, Walk.Y).FindOwnedChild($20217));
+        if ArmyHS <> nil then
+        begin
+          Side := GetCombatSide(A1, A2, Defender, DefenderRelation, ArmyHS.FArmy.FPlayer, ArmyHS.FArmy.FRace);
+          if Side = csDefender then
+          begin
+            Field := Level.GetField(A3, A4);
+            Msg.MsgID := $1123;
+            Msg.Param[0] := Integer(Level.GetField(Walk.X, Walk.Y));
+            Msg.Result := 0;
+            Field.SendMapFieldMsg(Msg);
+            for I := 0 to ArmyHS.FArmy.Count - 1 do
+            begin
+              U := ArmyHS.FArmy.GetUnit(I);
+              if U.ValidTerrain(Field.TerrainType, Field.OverlayType) then
+                AddUnitEx(U, Ord(Side), Ord(TWallType(Msg.Result) <> wtNone));
+            end;
+          end;
+        end;
+      end;
+      WalkToNextHN(Walk);
+    end;
+  end;
+end;
 
 function TCombatPredictor.GetSuperiority: Integer;
-var U, Opponent: TCombatPredictorUnit; Left, Total, I: Integer;
+var U: TCombatPredictorUnit; I, Total, Left, Value: Integer;
 begin
-  if F_CombatPredictor_18 = -1 then
-    case F_CombatPredictor_14 of
-      3:
-        begin
-          Total := 0; Left := 0;
-          for I := TList(FSides[0]).Count - 1 downto 0 do
-          begin
-            U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
-            Inc(Total, U.F_CombatPredictorUnit_38);
-            if U.F_CombatPredictorUnit_4C > 0 then Inc(Left, U.F_CombatPredictorUnit_4C * U.F_CombatPredictorUnit_38 div U.F_CombatPredictorUnit_10);
-          end;
-          if Total = Left then F_CombatPredictor_18 := 999
-          else if Left < 1 then F_CombatPredictor_18 := 100
-          else F_CombatPredictor_18 := Total * 100 div (Total - Left);
-        end;
-      2, 4, 8:
-        begin
-          Total := 0; Left := 0;
-          for I := TList(FSides[1]).Count - 1 downto 0 do
-          begin
-            Opponent := TCombatPredictorUnit(TList(FSides[1]).List^[I]);
-            Inc(Total, Opponent.F_CombatPredictorUnit_38);
-            if Opponent.F_CombatPredictorUnit_4C > 0 then Inc(Left, Opponent.F_CombatPredictorUnit_4C * Opponent.F_CombatPredictorUnit_38 div Opponent.F_CombatPredictorUnit_10);
-          end;
-          if Total = 0 then F_CombatPredictor_18 := 0
-          else if Left < 1 then F_CombatPredictor_18 := 100
-          else F_CombatPredictor_18 := (Total - Left) * 100 div Total;
-        end;
-      6: F_CombatPredictor_18 := 200;
-    else F_CombatPredictor_18 := 0;
-    end;
-  Result := F_CombatPredictor_18;
+  if FSuperiority = -1 then
+    if FResult = 3 then
+    begin
+      Total := 0; Left := 0;
+      for I := TList(FSides[0]).Count - 1 downto 0 do
+      begin
+        U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
+        Value := U.FCombatValueTotal;
+        Inc(Total, Value);
+        if U.FHitPoints > 0 then Inc(Left, U.FHitPoints * Value div U.FInitialHitPoints);
+      end;
+      if Total = Left then FSuperiority := 999
+      else if Left > 0 then FSuperiority := Total * 100 div (Total - Left)
+      else FSuperiority := 100;
+    end
+    else if FResult in [2, 4, 8] then
+    begin
+      Total := 0; Left := 0;
+      for I := TList(FSides[1]).Count - 1 downto 0 do
+      begin
+        U := TCombatPredictorUnit(TList(FSides[1]).List^[I]);
+        Value := U.FCombatValueTotal;
+        Inc(Total, Value);
+        if U.FHitPoints > 0 then Inc(Left, U.FHitPoints * Value div U.FInitialHitPoints);
+      end;
+      if Total = 0 then FSuperiority := 0
+      else if Left > 0 then FSuperiority := (Total - Left) * 100 div Total
+      else FSuperiority := 100;
+    end
+    else if FResult = 6 then FSuperiority := 200
+    else FSuperiority := 0;
+  Result := FSuperiority;
 end;
 
 function TCombatPredictor.GetEfficiency: Integer;
 var Lost: array[0..1] of Integer; Side: Byte; I: Integer; U: TCombatPredictorUnit;
 begin
-  if F_CombatPredictor_1C = -1 then
+  if FEfficiency = -1 then
   begin
     for Side := 0 to 1 do
     begin
@@ -3081,27 +3523,116 @@ begin
       for I := TList(FSides[Side]).Count - 1 downto 0 do
       begin
         U := TCombatPredictorUnit(TList(FSides[Side]).List^[I]);
-        if usDestroyed in U.F_CombatPredictorUnit_50 then
-          Inc(Lost[Side], TAbstractUnit(U.F_CombatPredictorUnit_04).GetObtainValue)
-        else if U.F_CombatPredictorUnit_4C < U.F_CombatPredictorUnit_10 then
-          Inc(Lost[Side], Round((TAbstractUnit(U.F_CombatPredictorUnit_04).GetObtainValue * U.F_CombatPredictorUnit_4C) / (U.F_CombatPredictorUnit_10 * 2)));
+        if usDestroyed in U.FStatus then
+          Inc(Lost[Side], TAbstractUnit(U.FUnit).GetObtainValue)
+        else if U.FHitPoints < U.FInitialHitPoints then
+          Inc(Lost[Side], Round((TAbstractUnit(U.FUnit).GetObtainValue * U.FHitPoints) / (U.FInitialHitPoints * 2)));
       end;
     end;
-    if Lost[0] <> 0 then F_CombatPredictor_1C := Lost[1] * 100 div Lost[0]
-    else if (Lost[1] <> 0) or (TList(FSides[1]).Count = 0) then F_CombatPredictor_1C := 999
-    else F_CombatPredictor_1C := 100;
+    if Lost[0] <> 0 then FEfficiency := Lost[1] * 100 div Lost[0]
+    else if (Lost[1] <> 0) or (TList(FSides[1]).Count = 0) then FEfficiency := 999
+    else FEfficiency := 100;
   end;
-  Result := F_CombatPredictor_1C;
+  Result := FEfficiency;
 end;
 
-procedure TCombatPredictor.ListRequiredUnitsEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function P3CompareRequiredUnits(const A, B: TDoubleItem): Integer;
+begin Result := B.B - A.B; end;
+
+procedure TCombatPredictor.ListRequiredUnitsEx(A1, A2, A3: TUnitList; A4: Integer);
+var List: TDoubleItemList; I, Total, Score, Budget: Integer; U: TCombatPredictorUnit;
+    Maximum, Minimum, Count, Previous: Integer; Done: Boolean;
+begin
+  EnableAllUnits;
+  Validate;
+  if (GetSuperiority > A4) and (TList(FSides[0]).Count <> 0) then
+  begin
+    List := TDoubleItemList.Create;
+    Total := 0;
+    for I := TList(FSides[0]).Count - 1 downto 0 do
+    begin
+      U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
+      if U.FIncomingCombatValue <> 0 then
+        Score := U.FCombatValueTotal * 100 div U.FIncomingCombatValue
+      else Score := 9999;
+      Inc(Total, U.FCombatValueTotal);
+      List.AddAB(Integer(U), Score);
+    end;
+    List.Sort(P3CompareRequiredUnits);
+    Minimum := 1;
+    Maximum := List.Count;
+    if (A4 <> 0) and (GetSuperiority <> 0) then
+    begin
+      Budget := Round((100 / A4 - 100 / GetSuperiority) * (Total * 0.65));
+      Count := List.Count;
+      while (Count > 1) and (Budget > 0) do
+      begin
+        Dec(Count);
+        Dec(Budget, TCombatPredictorUnit(List[Count].A).FCombatValueTotal);
+      end;
+      if Count < Minimum then Count := Minimum;
+      if Count >= Maximum then Count := Maximum - 1;
+    end
+    else Count := Maximum - 1;
+    Previous := Maximum;
+    Done := List.Count <= 1;
+    while not Done do
+    begin
+      for I := Count - 1 downto 0 do TCombatPredictorUnit(List.List^[I].A).SetEnabled(1);
+      for I := List.Count - 1 downto Count do TCombatPredictorUnit(List.List^[I].A).SetEnabled(0);
+      Execute;
+      if GetSuperiority >= A4 then
+      begin
+        Previous := Count;
+        Done := Minimum = Previous;
+        if not Done then
+        begin
+          Dec(Count);
+          if (Count > Minimum) and (GetSuperiority - A4 > 300 div List.Count) then Dec(Count);
+          if (Count > Minimum) and (GetSuperiority - A4 > 600 div List.Count) then Dec(Count);
+        end;
+      end
+      else if GetSuperiority < A4 then
+      begin
+        Minimum := Count + 1;
+        Done := Previous = Minimum;
+        if not Done then
+        begin
+          Inc(Count);
+          if (Count + 1 <> Previous) and (A4 - GetSuperiority > 300 div List.Count) then Inc(Count);
+          if (Count + 1 <> Previous) and (A4 - GetSuperiority > 600 div List.Count) then Inc(Count);
+        end;
+      end;
+    end;
+    if A1 <> nil then
+      for I := 0 to Minimum - 1 do A1.AddUnit(TAbstractUnit(TCombatPredictorUnit(List.List^[I].A).FUnit));
+    if A2 <> nil then
+      for I := List.Count - 1 downto Minimum do A2.AddUnit(TAbstractUnit(TCombatPredictorUnit(List.List^[I].A).FUnit));
+    if A3 <> nil then
+      for I := List.Count - 1 downto Minimum do
+      begin
+        U := TCombatPredictorUnit(List.List^[I].A);
+        if U.FCombatValueTotal <= 0 then A3.AddUnit(TAbstractUnit(U.FUnit));
+      end;
+    List.Free;
+  end
+  else
+    for I := TList(FSides[0]).Count - 1 downto 0 do
+    begin
+      U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
+      if U.FCombatValueTotal = 0 then
+      begin
+        if A3 <> nil then A3.AddUnit(TAbstractUnit(U.FUnit));
+      end
+      else if A1 <> nil then A1.AddUnit(TAbstractUnit(U.FUnit));
+    end;
+end;
 
 procedure TCombatPredictor.ListRequiredUnits(A1: Integer; A2: Integer);
-begin ListRequiredUnitsEx(A1, 0, 0, A2); end;
+begin ListRequiredUnitsEx(TUnitList(A1), nil, nil, A2); end;
 
 procedure TCombatPredictor.ListOptionalUnits(A1: Integer; A2: Integer);
-begin ListRequiredUnitsEx(0, A1, 0, A2); end;
+begin ListRequiredUnitsEx(nil, TUnitList(A1), nil, A2); end;
 
 procedure TCombatPredictor.ListUselessUnits(A1: Integer);
 var I: Integer; U: TCombatPredictorUnit;
@@ -3109,7 +3640,7 @@ begin
   for I := TList(FSides[0]).Count - 1 downto 0 do
   begin
     U := TCombatPredictorUnit(TList(FSides[0]).List^[I]);
-    if U.F_CombatPredictorUnit_38 <= 0 then TUnitList(A1).AddUnit(TAbstractUnit(U.F_CombatPredictorUnit_04));
+    if U.FCombatValueTotal <= 0 then TUnitList(A1).AddUnit(TAbstractUnit(U.FUnit));
   end;
 end;
 
@@ -3120,20 +3651,20 @@ begin
   Validate;
   U := TCombatPredictorUnit.Create;
   U.Setup(A1, Integer(Self), 0);
-  Wall := TCombatPredictorUnit(F_CombatPredictor_20);
-  if (Wall <> nil) and (Wall.F_CombatPredictorUnit_4C > 0) then
+  Wall := TCombatPredictorUnit(FWall);
+  if (Wall <> nil) and (Wall.FHitPoints > 0) then
   begin
     U.UpdateWallTargets;
-    Result := U.F_CombatPredictorUnit_2C;
+    Result := U.FWallCombatValue;
     Useful := False;
-    I := TQuadItemList(U.F_CombatPredictorUnit_28).Count;
+    I := TQuadItemList(U.FWallTargets).Count;
     while (I <> 0) and not Useful do
     begin
       Dec(I);
-      if TQuadItemList(U.F_CombatPredictorUnit_28).List^[I].B > 0 then
+      if TQuadItemList(U.FWallTargets).List^[I].B > 0 then
       begin
-        Target := TCombatPredictorUnit(TQuadItemList(U.F_CombatPredictorUnit_28).List^[I].A);
-        Useful := (Target = TCombatPredictorUnit(F_CombatPredictor_20)) and (Target.F_CombatPredictorUnit_4C > 0);
+        Target := TCombatPredictorUnit(TQuadItemList(U.FWallTargets).List^[I].A);
+        Useful := (Target = TCombatPredictorUnit(FWall)) and (Target.FHitPoints > 0);
       end;
     end;
     if Useful then Result := Result or $800000;
@@ -3141,24 +3672,24 @@ begin
   else
   begin
     U.UpdateTargets;
-    Result := U.F_CombatPredictorUnit_24;
+    Result := U.FCombatValue;
     I := TList(FSides[0]).Count;
     AllDead := True;
     while (I <> 0) and AllDead do
     begin
       Dec(I);
-      AllDead := usDestroyed in TCombatPredictorUnitList(FSides[0]).GetUnits(I).F_CombatPredictorUnit_50;
+      AllDead := usDestroyed in TCombatPredictorUnitList(FSides[0]).GetUnits(I).FStatus;
     end;
     Useful := False;
-    I := TQuadItemList(U.F_CombatPredictorUnit_20).Count;
+    I := TQuadItemList(U.FTargets).Count;
     while (I <> 0) and not Useful do
     begin
       Dec(I);
-      if TQuadItemList(U.F_CombatPredictorUnit_20).List^[I].B > 0 then
+      if TQuadItemList(U.FTargets).List^[I].B > 0 then
       begin
-        Target := TCombatPredictorUnit(TQuadItemList(U.F_CombatPredictorUnit_20).List^[I].A);
-        Useful := (Target <> TCombatPredictorUnit(F_CombatPredictor_20)) and
-          ((Target.F_CombatPredictorUnit_4C > 0) or (F_CombatPredictor_14 = 3) or AllDead);
+        Target := TCombatPredictorUnit(TQuadItemList(U.FTargets).List^[I].A);
+        Useful := (Target <> TCombatPredictorUnit(FWall)) and
+          ((Target.FHitPoints > 0) or (FResult = 3) or AllDead);
       end;
     end;
     if Useful then Result := Result or $800000;

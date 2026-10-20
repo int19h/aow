@@ -187,7 +187,7 @@
   TCombatPartyList = class(TENode)
   public
     function GetControlStyle: Engine.TEControlStyles; override;
-    function CreateParty(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer): TCombatParty;  { draft }
+    function CreateParty(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer): TCombatParty;  { draft }
     function GetParty(A1: Byte): TCombatParty;  { draft }
     procedure Activate(A1: Integer);  { draft }
     procedure Deactivate(A1: Integer);  { draft }
@@ -270,7 +270,7 @@
     FInitialData: TCombatData;  { $0C }
     FFinalData: TCombatData;  { $10 }
     FActions: TCombatActionList;  { $14 }
-    F_CombatLogbook_18: array[0..0] of Byte;
+    FCombatResult: TCombatResult;  { $18 }
     F_CombatLogbook_19: Boolean;
     F_CombatLogbook_1A: array[0..1] of Byte;
     destructor Destroy; override;
@@ -285,27 +285,31 @@
   end;
 
   { TCombat (instance size $4C, VMT 55717114):
-    $08 status; $0C data; $10 ID; $18 logbook; $1C/$20 sides; $24 events;
-    $28 lock count; $2C FOnExecuted; $34 terminated; $38 FOnTerminated. }
+    $08 FCombatStatus; $0C FCombatData; $10 FNextCOID; $14 FResult;
+    $18 FLogbook; $1C/$20 FSides; $24 FExecutedEvents; $28 FExecutedLock;
+    $2C FOnExecuted; $34 FTerminated; $38 FOnTerminated; $40 FVisibilityMode. }
   TCombat = class(TEObject)
   public
     FStatus: TCombatStatus; { $08 }
+    { conflict: FCombatStatus: TCombatStatus; }
     F_Combat_09: array[0..2] of Byte;
     FCombatData: TCombatData;  { $0C }
     { conflict: FData: TCombatData; }
-    F_Combat_10: Integer;
+    FNextCOID: Integer;
     FCombatResult: TCombatResult; { $14 }
+    { conflict: FResult: Byte; }
     { conflict: FResult: TCombatResult; }
     F_Combat_15: array[0..2] of Byte;
     FLogbook: TCombatLogbook; { $18 }
     FSides: array[csAttacker..csDefender] of TCombatSide;  { $1C..$20 }
-    F_Combat_24: Integer;
-    F_Combat_28: Integer;
+    FExecutedEvents: TEventList;  { $24 }
+    FExecutedLock: Integer;
     FOnExecuted: TCombatExecutedEvent;
-    F_Combat_34: Boolean;
+    FTerminated: Boolean;
     F_Combat_35: array[0..2] of Byte;
     FOnTerminated: TCombatExecutedEvent;
     FExplorationSite: Byte; { $40 }
+    { conflict: FVisibilityMode: Byte; }
     F_Combat_41: array[0..2] of Byte;
     F_Combat_44: Byte;
     F_Combat_45: array[0..6] of Byte;
@@ -318,42 +322,42 @@
     procedure ObjectSideChanged(A1: Integer); virtual;  { +054 draft }
     function CreateCombatUnit: Integer; virtual;  { +058 draft }
     function CreateCombatPlayer: Integer; virtual;  { +05C draft }
-    procedure Setup(A1: Shortint; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Shortint; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean); virtual;
+    function Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean; virtual;  { +060 }
     function Execute: Byte; virtual;  { +064 draft }
     procedure Initialize; virtual;  { +068 draft }
     procedure Finalize; virtual;  { +06C draft }
     procedure Activate; virtual;  { +070 draft }
     procedure Deactivate; virtual;  { +074 }
-    procedure NewTurn(A1: Byte); virtual;  { +078 draft }
-    procedure NewRound; virtual;  { +07C draft }
-    function GetLogCombatActions: Boolean;  { draft }
-    procedure SetLogCombatActions(A1: Byte);  { draft }
-    function GetRound: Integer;  { draft }
+    procedure NewTurn(A1: Byte); virtual;  { +078 }
+    procedure NewRound; virtual;  { +07C }
+    function GetLogCombatActions: Boolean;  { }
+    procedure SetLogCombatActions(A1: Byte);  { }
+    function GetRound: Integer;  { }
     procedure ExecuteCombatAction(A1: TCombatAction);
     function PlayerTypeInvolved(Types: TPlayerTypes): Boolean;
-    function CreateUniqueCOID: Byte;  { draft }
-    procedure UpdateSidesSettings;  { draft }
-    procedure NextTurn;  { draft }
-    procedure Terminate;  { draft }
-    procedure CheckTerminate;  { draft }
-    procedure SetLogbookHeader(A1: string);  { draft }
-    procedure AddAdjacentArmies;  { draft }
+    function CreateUniqueCOID: Byte;  { }
+    procedure UpdateSidesSettings;  { }
+    procedure NextTurn;  { }
+    procedure Terminate;  { }
+    procedure CheckTerminate;  { }
+    procedure SetLogbookHeader(A1: string);  { }
+    procedure AddAdjacentArmies;  { }
     function GetPartyPosition(X, Y, Layer: Integer): Byte;
-    procedure AddCombatPlayer(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure AddArmy(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-    procedure AddArmyEx(A1: TArmy; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Boolean);
-    procedure AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    function AddCombatPlayer(A1: Byte; A2: Byte; A3: TCombatSideIndex): Byte;
+    function AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty;
+    function AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty;
+    procedure AddEmptyArmy(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { }
     procedure InitDefaultArmies(Army: TArmy; X, Y, L: Integer);
-    procedure LockExecuted;  { draft }
-    procedure UnlockExecuted;  { draft }
-    procedure GetCombatResultText(A1: Integer);  { draft }
-    function DefendersAvailable: Boolean;  { draft }
+    procedure LockExecuted;  { }
+    procedure UnlockExecuted;  { }
+    function GetCombatResultText: string;
+    function DefendersAvailable: Boolean;  { }
   end;
 
-  { TCombatEventLog (instance size 28, VMT 557171FC) }
+  { TCombatEventLog: instance size $1C, VMT 557171FC; $18 FLogbook. }
   TCombatEventLog = class(TEventLog)
   public
-    F_CombatEventLog_18: TCombatLogbook;
+    FLogbook: TCombatLogbook;  { $18 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;

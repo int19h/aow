@@ -466,7 +466,7 @@
     procedure SetFullyConcealed(A1: Byte);  { draft }
     procedure GetFullyConcealed;  { draft }
     procedure UpdateConcealment(A1: Integer; A2: Integer);  { draft }
-    procedure SetXYL(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    procedure SetXYL(A1: Byte; A2: Byte; A3: Byte);
     procedure GetRace(A1: Integer);  { draft }
     procedure GetUpkeep;  { draft }
     procedure ResetDestinationPos;  { draft }
@@ -506,7 +506,7 @@
     procedure MaxSize(A1: Integer; A2: Integer);  { draft }
     procedure Hero(A1: Integer; A2: Byte);  { draft }
     procedure Leader(A1: Integer);  { draft }
-    function Transporter(Player: Shortint): TAbstractUnit;
+    function Transporter(Player: Byte): TAbstractUnit;
     procedure IndexOfTransporter(A1: Integer);  { draft }
     function UnitsInTransporter: Boolean;
     procedure UpdateVisibilityRanges(A1: Integer; A2: Integer);  { draft }

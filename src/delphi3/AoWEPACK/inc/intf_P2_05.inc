@@ -150,7 +150,7 @@
     procedure UpdateOffensiveStrength;  { draft }
     function GetStrength(DamageType: TDamageType): Integer;
     function GetStrengthMax(DamageTypes: TDamageTypes): Integer;
-    function GetCombatValue(Target: TAbstractUnit; Mode: Boolean): Integer;
+    function GetCombatValue(Target: TAbstractUnit; Mode: Byte): Integer;
     procedure ListAbilityInfo(Names, Types, Sources: TStrings);
     function GetManaUpkeep: Integer;
     function GetTransporting: Boolean;

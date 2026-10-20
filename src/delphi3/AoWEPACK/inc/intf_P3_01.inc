@@ -1,33 +1,38 @@
 { Interface declaration run owned by P3. }
   { TCombatPredictorUnit: instance size $54, VMT 5571567C;
-    $08 FCPUID, the unique key used by the target caches. }
+    $04 FUnit; $08 FCPUID; $0C FPredictor; $10 FInitialHitPoints;
+    $14 FSide; $18 FOpponents; $1C FEnabled; $1D FBehindWall;
+    $20 FTargets; $24 FCombatValue; $28 FWallTargets; $2C FWallCombatValue;
+    $30/$31 cache flags; $34 FRoundTargets; $38 FCombatValueTotal;
+    $3C FCombatRounds; $40 FIncomingCombatValue; $44 FIneffectiveAttackers;
+    $48 FTargetPriority; $4C FHitPoints; $50 FStatus. }
   TCombatPredictorUnit = class(TObject)
   public
-    F_CombatPredictorUnit_04: Integer;
+    FUnit: TAbstractUnit;  { $04 }
     FCPUID: Integer;  { $08 }
-    F_CombatPredictorUnit_0C: Integer;
-    F_CombatPredictorUnit_10: Integer;
-    F_CombatPredictorUnit_14: Byte;
+    FPredictor: TCombatPredictor;  { $0C }
+    FInitialHitPoints: Integer;
+    FSide: Byte;
     F_CombatPredictorUnit_15: array[0..2] of Byte;
-    F_CombatPredictorUnit_18: Integer;
-    F_CombatPredictorUnit_1C: Byte;
-    F_CombatPredictorUnit_1D: Byte;
+    FOpponents: TCombatPredictorSide;  { $18 }
+    FEnabled: Byte;
+    FBehindWall: Byte;
     F_CombatPredictorUnit_1E: array[0..1] of Byte;
-    F_CombatPredictorUnit_20: Integer;
-    F_CombatPredictorUnit_24: Integer;
-    F_CombatPredictorUnit_28: Integer;
-    F_CombatPredictorUnit_2C: Integer;
-    F_CombatPredictorUnit_30: Byte;
-    F_CombatPredictorUnit_31: Byte;
+    FTargets: TQuadItemList;  { $20 }
+    FCombatValue: Integer;
+    FWallTargets: TQuadItemList;  { $28 }
+    FWallCombatValue: Integer;
+    FTargetsInvalid: Byte;
+    FWallTargetsInvalid: Byte;
     F_CombatPredictorUnit_32: array[0..1] of Byte;
-    F_CombatPredictorUnit_34: Integer;
-    F_CombatPredictorUnit_38: Integer;
-    F_CombatPredictorUnit_3C: Integer;
-    F_CombatPredictorUnit_40: Integer;
-    F_CombatPredictorUnit_44: Integer;
-    F_CombatPredictorUnit_48: Integer;
-    F_CombatPredictorUnit_4C: Integer;
-    F_CombatPredictorUnit_50: TCombatPredictorUnitStatus;
+    FRoundTargets: TQuadItemList;  { $34 }
+    FCombatValueTotal: Integer;
+    FCombatRounds: Integer;
+    FIncomingCombatValue: Integer;
+    FIneffectiveAttackers: Integer;
+    FTargetPriority: Integer;
+    FHitPoints: Integer;
+    FStatus: TCombatPredictorUnitStatus;
     F_CombatPredictorUnit_51: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create;  { draft }
@@ -65,23 +70,24 @@
   end;
 
   { TCombatPredictor (instance size $34, VMT 55715820):
-    $04 all units; $08 active units; $0C/$10 FSides; $14 result;
-    $18/$1C metrics; $20 wall; $24 rounds; $28 unique ID; $2C dirty; $30 work. }
+    $04 FAllUnits; $08 FActiveUnits; $0C/$10 FSides; $14 FResult;
+    $18 FSuperiority; $1C FEfficiency; $20 FWall; $24 FRound;
+    $28 FNextCPUID; $2C FInvalid; $30 FWork. }
   TCombatPredictor = class(TObject)
   public
-    F_CombatPredictor_04: Integer;
-    F_CombatPredictor_08: Integer;
-    FSides: array[0..1] of Integer;
-    F_CombatPredictor_14: Byte;
+    FAllUnits: TCombatPredictorUnitList;  { $04 }
+    FActiveUnits: TCombatPredictorUnitList;  { $08 }
+    FSides: array[0..1] of TCombatPredictorSide;  { $0C }
+    FResult: Byte;
     F_CombatPredictor_15: array[0..2] of Byte;
-    F_CombatPredictor_18: Integer;
-    F_CombatPredictor_1C: Integer;
-    F_CombatPredictor_20: Integer;
-    F_CombatPredictor_24: Integer;
-    F_CombatPredictor_28: Integer;
-    F_CombatPredictor_2C: Byte;
+    FSuperiority: Integer;
+    FEfficiency: Integer;
+    FWall: TCombatPredictorUnit;  { $20 }
+    FRound: Integer;
+    FNextCPUID: Integer;
+    FInvalid: Byte;
     F_CombatPredictor_2D: array[0..2] of Byte;
-    F_CombatPredictor_30: Integer;
+    FWork: Integer;
     destructor Destroy; override;
     constructor Create;  { draft }
     procedure Reset;  { draft }
@@ -100,15 +106,15 @@
     procedure AddUnits(A1: Integer);  { draft }
     procedure AddOpponent(A1: TAbstractUnit; A2: Byte);
     procedure AddOpponents(A1: Integer; A2: Byte);  { draft }
-    procedure AddWall(A1: Integer);  { draft }
+    procedure AddWall(A1: TWallType);
     procedure DeleteWall;  { draft }
     procedure DeleteUnits;  { draft }
     procedure DeleteOpponents;  { draft }
-    procedure InitAdjacentArmies(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
-    procedure InitAdjacentOpponents(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure InitAdjacentArmies(A1: TArmyHS; A2, A3, A4: Shortint);
+    procedure InitAdjacentOpponents(A1, A2: Byte; A3, A4, A5: Shortint);
     function GetSuperiority: Integer;  { draft }
     function GetEfficiency: Integer;  { draft }
-    procedure ListRequiredUnitsEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ListRequiredUnitsEx(A1, A2, A3: TUnitList; A4: Integer);
     procedure ListRequiredUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListOptionalUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListUselessUnits(A1: Integer);  { draft }
@@ -184,7 +190,7 @@
     procedure ObjectDestroyed(A1: Integer); virtual;  { +0C4 draft }
     procedure ObjectSideChanged(A1: Integer); virtual;  { +0C8 draft }
     procedure Initialize(A1: Integer); virtual;  { +0CC draft }
-    procedure Finalize(A1: TCombatResult); virtual;  { +0D0 draft }
+    procedure Finalize(A1: TFinalizeMode); virtual;  { +0D0 draft }
     function fcRoundDistance: Integer; virtual;  { +0D4 }
     function fcExecute(A1: Integer): Boolean; virtual;  { +0D8 }
     function fcBehindWall: Boolean; virtual;
@@ -269,7 +275,7 @@
     procedure Deactivate; override;
     procedure ObjectDestroyed(A1: Integer); override;
     procedure Initialize(A1: Integer); override;
-    procedure Finalize(A1: TCombatResult); override;
+    procedure Finalize(A1: TFinalizeMode); override;
     function SupportCombatMode(Modes: TCombatModes): Boolean; override;
     function WallCombatFeatures: TWallCombatFeatures; override;
     procedure PlaySFX(A1: Byte); override;
@@ -286,7 +292,7 @@
     function IDStr: string; override;
     procedure SetUnit(AUnit: TAbstractUnit); virtual;  { +134 }
     procedure KillUnit; virtual;  { +138 draft }
-    procedure Setup(A1: Byte; A2: Integer; A3: TAbstractUnit; A4: Byte; A5: Byte);
+    procedure Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte);
     procedure UpdateWallCombatFeatures;  { draft }
     procedure SetParty(Party: TCombatParty);
     procedure UpdateParty;  { draft }

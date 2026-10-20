@@ -197,7 +197,7 @@ type
     procedure SlotD4; virtual; abstract;
     procedure SlotD8; virtual; abstract;
     procedure DamageValueEx(AOwner: TAbilityOwner; Target: TAbstractUnit;
-      Mode: Boolean; var Info: TP2DamageValue); virtual; abstract;
+      Mode: Byte; var Info: TP2DamageValue); virtual; abstract;
     procedure OffensiveStrength(AOwner: TAbilityOwner; var Strength: Integer;
       var DamageTypes: TDamageTypes); virtual; abstract;
   end;
@@ -1109,7 +1109,7 @@ begin
   else Result := 0;
 end;
 
-function TAbstractUnit.GetCombatValue(Target: TAbstractUnit; Mode: Boolean): Integer;
+function TAbstractUnit.GetCombatValue(Target: TAbstractUnit; Mode: Byte): Integer;
 var
   I, Value: Integer;
   Abilities: TAbilityTypeList;
@@ -1572,7 +1572,7 @@ begin
   if OldField <> nil then
   begin
     Army := TArmy(Owner);
-    if not ((Army is TArmy) and (Army.Transporter(-1) <> nil)) then
+    if not ((Army is TArmy) and (Army.Transporter($FF) <> nil)) then
     begin
       if OldField.Lhx = 0 then
       begin
@@ -5563,7 +5563,7 @@ begin end;
 procedure TArmy.UpdateConcealment(A1: Integer; A2: Integer);
 begin end;
 
-procedure TArmy.SetXYL(A1: Byte; A2: Byte; A3: Integer);
+procedure TArmy.SetXYL(A1: Byte; A2: Byte; A3: Byte);
 begin end;
 
 procedure TArmy.GetRace(A1: Integer);
@@ -5692,7 +5692,7 @@ begin end;
 procedure TArmy.Leader(A1: Integer);
 begin end;
 
-function TArmy.Transporter(Player: Shortint): TAbstractUnit;
+function TArmy.Transporter(Player: Byte): TAbstractUnit;
 begin end;
 
 procedure TArmy.IndexOfTransporter(A1: Integer);

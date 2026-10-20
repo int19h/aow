@@ -4,6 +4,7 @@
   public
     F_AoWEngine_58: Integer;
     FRegistry: TAoWRegistry; { $5C }
+    { conflict: FRegistry: TRegistry; }
     F_AoWEngine_60: Integer;
     FGameSet: TAoWHSSet; { $64 }
     { conflict: FHSSet: TAoWHSSet; }

@@ -63,7 +63,7 @@ procedure TriggerStormDamage(A1: Byte; A2: Byte; A3: Byte; A4: Integer; A5: Inte
 procedure RetrieveStormDamageInfo(A1: Integer; A2: Byte; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
 procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);  { draft }
 procedure StatusToDiplomaticRelation(A1: Byte);  { draft }
-procedure GetCombatSide(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Integer);  { draft }
+function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;
 procedure AlignmentToIR(A1: Byte);  { draft }
 procedure IRtoAlignment(A1: Integer);  { draft }
 procedure DiplomaticRelation(A1: Integer; A2: Byte; A3: Integer; A4: Integer);  { draft }
