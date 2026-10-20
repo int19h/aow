@@ -56,7 +56,7 @@
     procedure NewTurn(A1: Byte); virtual;  { +0C8 draft }
     procedure CreateGroupControl; virtual;  { +0CC draft }
     procedure Behavior; virtual;  { +0D0 draft }
-    procedure DefendLocation(A1: Integer); virtual;  { +0D4 draft }
+    procedure DefendLocation(A1: Integer); virtual; { +0D4 }
     procedure CooperateWithGroup(A1: Integer); virtual;  { +0D8 draft }
     procedure GetRecruitableUnits(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0DC draft }
     procedure GetProcessPriority;  { draft }
@@ -952,7 +952,7 @@
   { TFastCombatUnit (instance size 100, VMT 5571D4BC) }
   TFastCombatUnit = class(TCombatUnit)
   public
-    F_FastCombatUnit_5C: Integer;
+    FRoundDistance: Integer; { $5C }
     FState: TFastCombatUnitState;  { $60 }
     F_FastCombatUnit_61: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -1004,7 +1004,7 @@
     procedure Initialize; override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure GetRoundDistance;  { draft }
+    function GetRoundDistance: Integer;
     procedure GetRoundDistanceMax;  { draft }
     procedure GetWallInBetween(A1: Integer; A2: Integer);  { draft }
     procedure GetWallSituation(A1: Integer; A2: Integer);  { draft }

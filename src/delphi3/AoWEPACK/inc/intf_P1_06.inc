@@ -75,7 +75,7 @@
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); virtual;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); virtual;
     function fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer; virtual;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); virtual;  { +0EC }
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual; { +0EC }
     function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual;
     procedure CombatObjectDestroyed(A1: TCombatObject); virtual;  { +0F4 }
     procedure NewCombatTurn(A1: TCombatObject; A2: Shortint); virtual;

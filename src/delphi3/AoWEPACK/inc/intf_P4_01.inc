@@ -4,13 +4,13 @@
     DamageTypes: TDamageTypes;
   end;
   TAbilityCombatInfo = packed record
-    Kind: Byte;
+    Kind: TCombatModes;
     Attack, Damage: Shortint;
     DamageTypes: TDamageTypes;
     RepeatCount: Shortint;
   end;
   TMeleeStrike = record
-    F_00, F_04, F_08: Integer;
+    AttackBonus, DamageBonus, DamageValue: Integer;
     Side: TCombatSideIndex; { $0C }
     F_0D: array[0..6] of Byte;
   end;

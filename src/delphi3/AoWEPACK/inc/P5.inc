@@ -4253,8 +4253,8 @@ begin end;
 class function TFastCombat.ClassID: Integer;
 begin Result := 0; end;
 
-procedure TFastCombat.GetRoundDistance;
-begin end;
+function TFastCombat.GetRoundDistance: Integer;
+begin Result := 0; end;
 
 procedure TFastCombat.GetRoundDistanceMax;
 begin end;

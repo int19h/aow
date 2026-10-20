@@ -1459,9 +1459,9 @@ begin
   Result := Values.Damage;
 end;
 
-procedure TAbility.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
+procedure TAbility.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 begin
-  TP1AbilityView(Self).fcGetDamageValueEx(TCombatObject(A1), TCombatObject(A2), False, PP1DamageValues(A3)^);
+  TP1AbilityView(Self).fcGetDamageValueEx(A1, A2, False, TP1DamageValues(A3));
 end;
 
 function TAbility.tcGetDamageValue(Source, Target: TCombatObject): Integer;
@@ -5529,7 +5529,7 @@ begin
   else Result := 0;
 end;
 
-function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
 begin
   DamageTypes := DamageTypes - ImmunityTypes;
   if DamageTypes <> [] then
@@ -5541,7 +5541,7 @@ begin
   else Result := 0;
 end;
 
-function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
 var
   Limit: Integer;
 begin
@@ -6024,14 +6024,14 @@ begin end;
 procedure CreateEnhancementAbility(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure MeleeDamageTypes(A1: Integer);
-begin end;
+function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
+begin Result := []; end;
 
-procedure StrikeDV(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function StrikeDV(A1, A2: TCombatObject): Integer;
+begin Result := 0; end;
 
-procedure CreateStrikeCA(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
+begin Result := nil; end;
 
 procedure Register(A1: Integer; A2: Integer; A3: Integer);
 begin end;

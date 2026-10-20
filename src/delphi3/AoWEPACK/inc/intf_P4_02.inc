@@ -102,36 +102,37 @@
     procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); override;
   end;
 
-  { TMeleeRound (instance size 52, VMT 5571E460; $04 strike count, $30 attacker damage types) }
+  TMeleeStrikeArray = array[0..$7FFFFFF div SizeOf(TMeleeStrike)] of TMeleeStrike;
+  PMeleeStrikeArray = ^TMeleeStrikeArray;
+
+  { TMeleeRound (instance size 52, VMT 5571E460):
+    $04 count, $08 capacity, $0C strikes, $10/$14 combat objects,
+    $18/$1C cached damage values, $20/$24 units, $28/$2C strike counts,
+    $30/$32 attacker/defender damage types. }
   TMeleeRound = class(TObject)
   public
-    FCount: Integer;  { $04 }
-    F_MeleeRound_08: Integer;
-    F_MeleeRound_0C: Integer;
-    F_MeleeRound_10: Integer;
-    F_MeleeRound_14: Integer;
-    F_MeleeRound_18: Integer;
-    F_MeleeRound_1C: Integer;
-    F_MeleeRound_20: Integer;
-    F_MeleeRound_24: Integer;
-    F_MeleeRound_28: Integer;
-    F_MeleeRound_2C: Integer;
-    FAttackerDamageTypes: TDamageTypes;  { $30 }
-    F_MeleeRound_32: Word;
+    FCount: Integer; { $04 }
+    FCapacity: Integer; { $08 }
+    FStrikes: PMeleeStrikeArray; { $0C }
+    FAttacker, FDefender: TCombatObject; { $10/$14 }
+    FAttackerDV, FDefenderDV: Integer; { $18/$1C }
+    FAttackerUnit, FDefenderUnit: TAbstractUnit; { $20/$24 }
+    FAttackerStrikes, FDefenderStrikes: Integer; { $28/$2C }
+    FAttackerDamageTypes, FDefenderDamageTypes: TDamageTypes; { $30/$32 }
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure SetCapacity(A1: Integer);  { draft }
-    procedure SetCount(A1: Integer);  { draft }
+    constructor Create;
+    procedure SetCapacity(A1: Integer);
+    procedure SetCount(A1: Integer);
     procedure GetMeleeStrike(A1: Integer; var A2: TMeleeStrike);
-    procedure Reset;  { draft }
-    procedure CalculateUnitStrikes(A1: Byte);  { draft }
-    procedure CalculateFreeUnitSwing(A1: Integer; A2: Integer);  { draft }
+    procedure Reset;
+    procedure CalculateUnitStrikes(A1: TCombatSideIndex);
+    procedure CalculateFreeUnitSwing(A1, A2: TAbstractUnit);
     procedure CalculateUnit(A1, A2: TAbstractUnit);
-    procedure CalculateStrikes(A1: Byte);  { draft }
+    procedure CalculateStrikes(A1: TCombatSideIndex);
     procedure Calculate(A1, A2: TCombatObject);
-    procedure CalculateSingleSide(A1: Integer; A2: Integer);  { draft }
+    procedure CalculateSingleSide(A1, A2: TCombatObject);
     function CreateStrikeCA(A1: Integer): TStrikeCA;
-    procedure CalculateDV(A1: Integer; A2: Integer);  { draft }
+    procedure CalculateDV;
     function GetAttackerDV: Integer;
     function GetDefenderDV: Integer;
   end;
@@ -171,7 +172,7 @@
     class function ClassID: Integer; override;
     function GetName: string; override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
 
   { TRangedAttackAbility (instance size 48, VMT 5571E8D4) }
@@ -214,7 +215,7 @@
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
   end;
 
   { TFlameThrowingAbility (instance size 48, VMT 5571EDA4) }
@@ -232,26 +233,26 @@
     function GetControlType: TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    procedure GetTouchAttack(A1: Integer); virtual;  { +10C draft }
-    procedure CombatTouchRole(A1: Integer; A2: Integer); virtual;  { +110 draft }
-    procedure CombatTouchRoleProbability(A1: Integer; A2: Integer); virtual;  { +114 draft }
-    procedure TouchRoleProbability(A1: Integer; A2: Integer); virtual;  { +118 draft }
-    procedure CanTouch(A1: Integer; A2: Integer); virtual;  { +11C draft }
-    procedure CanTouchUnit(A1: Integer; A2: Integer); virtual;  { +120 draft }
-    procedure fcValidateMoveOutsideWall(A1: Integer; A2: Integer);  { draft }
+    function GetTouchAttack(A1: Integer): Shortint; virtual; { +10C }
+    function CombatTouchRole(A1: TCombatUnit; A2: TCombatObject): Boolean; virtual; { +110 }
+    function CombatTouchRoleProbability(A1: TCombatUnit; A2: TCombatObject): Single; virtual; { +114 }
+    function TouchRoleProbability(A1, A2: TAbstractUnit): Single; virtual; { +118 }
+    function CanTouch(A1, A2: TCombatObject): Boolean; virtual; { +11C }
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; virtual; { +120 }
+    procedure fcValidateMoveOutsideWall(A1, A2: TCombatObject);
   end;
 
-  { TPossessCA (instance size 20, VMT 5571F0E0) }
+  { TPossessCA (instance size 20, VMT 5571F0E0; $10 possession succeeded) }
   TPossessCA = class(TSingleTargetCA)
   public
-    F_PossessCA_10: Byte;
+    FSuccessful: Boolean; { $10 }
     F_PossessCA_11: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
-    procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure Initialize(A1, A2: Byte; A3: Boolean);
   end;
 
   { TPossessAbility (instance size 40, VMT 5571F1B4) }
@@ -263,16 +264,16 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure CreatePossessCA(A1: Integer; A2: Integer);  { draft }
   end;
 
-  { TPossessedAbilityData (instance size 16, VMT 5571F350) }
+  { TPossessedAbilityData (instance size 16, VMT 5571F350; $0C source experience) }
   TPossessedAbilityData = class(TAbilityData)
   public
-    F_PossessedAbilityData_0C: Integer;
+    FSourceExperience: Integer; { $0C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function GetAbilityID: Integer; override;
@@ -297,7 +298,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;
 
@@ -310,8 +311,8 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
     procedure CreateWebCA(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -324,7 +325,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;
 
@@ -337,8 +338,8 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
     procedure CreateEntangleCA(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -351,7 +352,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;
 
@@ -365,9 +366,9 @@
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure CreateCA(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -377,7 +378,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure GetSuccessfull;  { draft }
   end;
 
@@ -400,9 +401,9 @@
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
     function AbilityDataClass: TEObjectClass; override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure GetLevelName(A1: Integer; A2: Integer);  { draft }
     procedure GetTurnUndeadDamage(A1: Integer);  { draft }
     procedure CreateTurnUndeadCA(A1: Integer; A2: Integer);  { draft }
@@ -417,7 +418,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
   end;
 
@@ -455,7 +456,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;
 
@@ -489,12 +490,12 @@
     procedure CombatObjectDestroyed(A1: TCombatObject); override;
     procedure CombatDone(A1: TCombatObject); override;
     function AbilityDataClass: TEObjectClass; override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure Command(A1: Integer; A2: Integer); virtual;  { +124 draft }
     procedure CreateCommandCA(A1: Integer; A2: Integer); virtual;  { +128 draft }
-    procedure ResetCommandedUnits(A1: Integer; A2: Integer); virtual;  { +12C draft }
-    procedure Uncommand(A1: Integer); virtual;  { +130 draft }
+    procedure ResetCommandedUnits(A1: TCombatUnit); virtual; { +12C }
+    procedure Uncommand(A1: TCombatUnit); virtual; { +130 }
   end;
 
   { TDominatedAbility (instance size 40, VMT 557206F0) }
@@ -507,7 +508,7 @@
   TDominateAbility = class(TCommandAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetTouchAttack(A1: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
   end;
 
   { TCharmedAbility (instance size 40, VMT 55720A28) }
@@ -520,9 +521,9 @@
   TCharmAbility = class(TCommandAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
   end;
 
   { TSeducedAbility (instance size 40, VMT 55720D54) }
@@ -535,9 +536,9 @@
   TSeduceAbility = class(TCommandAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetTouchAttack(A1: Integer); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function GetTouchAttack(A1: Integer): Shortint; override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
   end;
 
   { TSelfDestructCA (instance size 24, VMT 55721084) }
@@ -545,7 +546,7 @@
   public
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
 
   { TSelfDestructAbility (instance size 40, VMT 5572116C) }
@@ -559,9 +560,9 @@
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
-    procedure CreateSelfDestructCA(A1: Integer; A2: Integer);  { draft }
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
+    function CreateSelfDestructCA(A1, A2: TCombatObject): TSelfDestructCA;
   end;
 
   { TWallCrushingAbility (instance size 40, VMT 55721314) }
@@ -574,9 +575,9 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
   end;
 
   { THealingCA (instance size 16, VMT 557214BC) }
@@ -585,7 +586,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte);  { draft }
   end;
 
@@ -637,8 +638,8 @@
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
     function AbilityDataClass: TEObjectClass; override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure SetEnabled(A1: Integer; A2: Integer);  { draft }
     procedure GetHealHitPoints(A1: Integer);  { draft }
     procedure CreateHealingCA(A1: Integer; A2: Integer);  { draft }
@@ -654,7 +655,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Generate(A1: Integer; A2: Integer; A3: Integer);  { draft }
   end;
 
@@ -720,8 +721,8 @@
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
     function AbilityDataClass: TEObjectClass; override;
-    procedure CanTouch(A1: Integer; A2: Integer); override;
-    procedure CanTouchUnit(A1: Integer; A2: Integer); override;
+    function CanTouch(A1, A2: TCombatObject): Boolean; override;
+    function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure SetEnabled(A1: Integer; A2: Integer);  { draft }
     procedure GetDispelMana(A1: Integer);  { draft }
     procedure GetLevelName(A1: Integer; A2: Integer);  { draft }
@@ -859,7 +860,7 @@
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: Boolean; var A4: TAbilityDamageValues); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     function GetLevelName(A1: Integer): string; override;
     function CanCastBreachWallSpell(AUnit: TAbstractUnit): Boolean;
     procedure AICanCastCombatSpell(A1: Integer);  { draft }
@@ -911,7 +912,7 @@
     procedure GetCombatInfo(A1: Integer; A2: Integer); virtual;  { +07C draft }
     procedure GetCombatDamageValue(A1: Integer; A2: Integer); virtual;  { +080 draft }
     procedure GetCombatDamageValueEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +084 draft }
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); virtual;  { +088 }
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +088 draft }
     procedure tcGetDamageValue; virtual;  { +08C draft }
     procedure fcPrefetchCombatCommands(A1: Integer); virtual;  { +090 draft }
     procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); virtual;  { +094 draft }

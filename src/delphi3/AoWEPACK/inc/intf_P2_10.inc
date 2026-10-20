@@ -19,10 +19,11 @@ function DMDCtoDV(Damage, AttackDefense: Integer): Integer;
 function ExecuteDamageRole(Damage, AttackDefense: Integer): Integer;
 function DVtoDEV(SourceDV, TargetDV: Integer; Source, Target: TCombatObject): Integer;
 function StatisticsToMaxDamage(Damage: Integer; DamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
-function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
-function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense: Integer; DefenseDamageTypes, ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
+function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
 procedure DistributeCombatEvent(Logbook: TCombatLogbook; Execute: Boolean);
 function CreateDamageCA(Source, Target: TCombatObject; Damage: Integer; Defensive: Boolean; DamageTypes: TDamageTypes): TDamageCA;
+{ conflict: function CreateDamageCA(Source, Target: TCombatObject; Attack, Damage: Integer; DamageTypes: TDamageTypes): TDamageCA; }
 procedure RetrieveDefaultDiplomaticActionMessage(Source, Target, Other: Shortint; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
 procedure MaximizeMovePointTable(var Table; const Other);
 function CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
@@ -79,9 +80,9 @@ procedure GetMovepathBattleFieldStrength(A1: Byte; A2: Integer; A3: Integer; A4:
 procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
 procedure IgnitionChance(A1: Integer);  { draft }
 procedure CreateEnhancementAbility(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure MeleeDamageTypes(A1: Integer);  { draft }
-procedure StrikeDV(A1: Integer; A2: Integer; A3: Integer);  { draft }
-procedure CreateStrikeCA(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
+function StrikeDV(A1, A2: TCombatObject): Integer;
+function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
 procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
 procedure ValidateAoWEngine;  { draft }
 

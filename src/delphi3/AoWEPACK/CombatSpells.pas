@@ -65,7 +65,7 @@ type
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
 
@@ -82,7 +82,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
   end;
 
@@ -101,7 +101,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); override;
   end;
@@ -164,7 +164,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     procedure fcPrefetchCombatCommands(A1: Integer); override;
     procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); override;
     procedure fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
@@ -353,7 +353,7 @@ type
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CreateCA(A1: Integer; A2: Integer; A3: Integer); override;
-    procedure tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer); override;
+    procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); override;
     procedure fcPrefetchCombatCommands(A1: Integer); override;
     procedure fcExecuteCombatCommand(A1: Integer; A2: Integer); override;
     procedure fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
@@ -425,7 +425,7 @@ begin end;
 function TCombatSpellCA.Play(A1: TCombatViewer): Boolean;
 begin Result := False; end;
 
-procedure TCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
 procedure TCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -440,7 +440,7 @@ begin end;
 function TExclusiveCombatSpellCA.Play(A1: TCombatViewer): Boolean;
 begin Result := False; end;
 
-procedure TExclusiveCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TExclusiveCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
 procedure TExclusiveCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -461,7 +461,7 @@ begin end;
 function TMultiTargetCombatSpellCA.Play(A1: TCombatViewer): Boolean;
 begin Result := False; end;
 
-procedure TMultiTargetCombatSpellCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TMultiTargetCombatSpellCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin end;
 
 procedure TMultiTargetCombatSpellCA.ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
@@ -542,7 +542,7 @@ begin end;
 procedure THighPrayer.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure THighPrayer.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
+procedure THighPrayer.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 begin end;
 
 constructor TDeathRay.Create(AOwner: Engine.TECustomNode);
@@ -686,7 +686,7 @@ begin end;
 procedure TTerror.fcGetDamageValueEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TTerror.tcGetDamageValueEx(A1, A2: TCombatObject; A3: Pointer);
+procedure TTerror.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 begin end;
 
 constructor TWindsOfFury.Create(AOwner: Engine.TECustomNode);

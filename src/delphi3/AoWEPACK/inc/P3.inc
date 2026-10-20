@@ -363,7 +363,7 @@ begin
       Ability := Abilities.GetAbility(I);
       if U.GetAbilityEnabled(Ability.FAbilityID) then
       begin
-        Ability.tcGetDamageValueEx(Self, Target, @Values);
+        Ability.tcGetDamageValueEx(Self, Target, TAbilityDamageValues(Values));
         if Values.Damage > 0 then
         begin
           V := (Values.Damage * Values.Damage) div (Values.Experience + Values.Damage);
@@ -376,7 +376,7 @@ begin
     if U.GetAbilityEnabled($34) then
     begin
       Ability := AoWHSSet.FAbilityControl.GetAbility($34);
-      Ability.tcGetDamageValueEx(Self, Target, @Values);
+      Ability.tcGetDamageValueEx(Self, Target, TAbilityDamageValues(Values));
       if Values.Damage > 0 then
       begin
         V := (Values.Damage * Values.Damage) div (Values.Experience + Values.Damage);
@@ -2056,7 +2056,7 @@ end;
 procedure TCombatViewer.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
 begin
   if TCombatActionList(TCombatLogbook(FLogbook).FActions).Count >= FPosition then
-    TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowObject(Integer(Self), A1, A2, A3, A4, A5, A6)
+    TCombatActionList(TCombatLogbook(FLogbook).FActions).GetCombatActions(FPosition - 1).ShowObject(Self, TCombatObject(A1), A2, A3, A4, A5, A6)
   else TCombatObject(A1).Show(A2, A3, A4, A5, TSurfaceDesc(Pointer(A6)^));
 end;
 
@@ -2102,7 +2102,7 @@ end;
 function TCombatAction.GetName: string;
 begin Result := ClassName; end;
 
-procedure TCombatAction.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TCombatAction.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin
   TCombatObject(A2).Show(A3, A4, A5, A6, TSurfaceDesc(Pointer(A7)^));
 end;
@@ -2142,7 +2142,7 @@ begin
     if TCombatObject(A2).FID = FSourceID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
   end
   else if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[2].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
-  ShowObject(A1,A2,A3,A4,A5,A6,A7);
+  ShowObject(TCombatViewer(A1),TCombatObject(A2),A3,A4,A5,A6,A7);
   if not (smDefensive in FMode) then
   begin
     if TCombatObject(A2).FID = FTargetID then AoWHSSet.FCombatImages[3].Show(A5+15,A6+18,TSurfaceDesc(Pointer(A7)^));
@@ -2234,7 +2234,7 @@ begin
   Result := Duration > A1.FTime;
 end;
 
-procedure TDamageCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TDamageCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 var HitFrame: Integer;
 begin
   if TCombatObject(A2).FID = FSourceID then
@@ -2303,7 +2303,7 @@ asm
   POP EBX
 end;
 
-procedure TDamageEffectCA.ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
+procedure TDamageEffectCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
 begin
   if TCombatObject(A2).FID = FTargetID then
     case FDamageType of

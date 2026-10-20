@@ -41,7 +41,7 @@
     function GetName: string; virtual;  { +04C }
     procedure Execute(A1: TCombat); virtual; abstract;  { +050 }
     function Play(A1: TCombatViewer): Boolean; virtual; abstract;  { +054 }
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +058 draft }
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +058 draft }
     procedure ShowFieldObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); virtual;  { +05C draft }
     procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); virtual;  { +060 draft }
   end;
@@ -76,7 +76,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Setup(A1: Byte; A2: Byte; A3: Byte; A4: TDamageTypes; A5: TDamageTypes; A6: Boolean); virtual;  { +064 draft }
     procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); virtual;
     procedure GenerateEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer); virtual;  { +06C draft }
@@ -91,7 +91,7 @@
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
     function Play(A1: TCombatViewer): Boolean; override;
-    procedure ShowObject(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
+    procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Initialize(A1: Byte; A2: Byte; A3: Byte; A4: Boolean);  { draft }
   end;
 
