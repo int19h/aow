@@ -133,7 +133,7 @@ type
     function SaveAs: Boolean;
     function Save: Boolean;
     function CanCloseMap: Boolean;
-    procedure ProgressEvent(Sender: TObject; const Msg: string; Percent: Integer);
+    procedure ProgressEvent(Sender: TEObject; const Msg: string; Percent: Integer);
     function LoadHSM(const FileName: string): Boolean;
     function Load: Boolean;
     function Close: Boolean;
@@ -1338,7 +1338,7 @@ begin
       Result := True;
 end;
 
-procedure THSMEdit.ProgressEvent(Sender: TObject; const Msg: string; Percent: Integer);
+procedure THSMEdit.ProgressEvent(Sender: TEObject; const Msg: string; Percent: Integer);
 begin
   if FProgressDlg <> nil then
   begin

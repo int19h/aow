@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  ComCtrls;
+  ComCtrls, Engine;
 
 type
   { ProgDlg.TProgressDlg (instance size 488): +$1DC the components. }
@@ -17,12 +17,12 @@ type
     ProgressMessage: TLabel;
     ProgressBar: TProgressBar;
   public
-    procedure ProgressEvent(Sender: TObject; const Msg: string; Percent: Integer);
+    procedure ProgressEvent(Sender: TEObject; const Msg: string; Percent: Integer);
   end;
 
 implementation
 
-procedure TProgressDlg.ProgressEvent(Sender: TObject; const Msg: string; Percent: Integer);
+procedure TProgressDlg.ProgressEvent(Sender: TEObject; const Msg: string; Percent: Integer);
 begin
   ProgressMessage.Caption := Msg;
   ProgressBar.Position := Percent;

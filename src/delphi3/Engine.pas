@@ -484,7 +484,7 @@ type
 
 
   TStorageStreamError = procedure(StorageStream: TEStorageStream; const Message: string; var Handled: Boolean) of object;
-  TProgressEvent = procedure(Sender: TObject; const Message: string; Progression: Integer) of object;
+  TProgressEvent = procedure(Sender: TEObject; const Message: string; Progression: Integer) of object;
 
   EDoublePrioriyID = class(Exception);
 
@@ -715,7 +715,7 @@ type
   TEditResult = (erOK, erCancel);
   TEditMode = set of (emEdit, emCut, emCopy, emPaste, emDelete);
 
-  TEditDoneEvent = procedure(EditResult: Boolean; EObject: TEResource) of object;
+  TEditDoneEvent = procedure(EditResult: TEditResult; EObject: TEObject) of object;
 
   { Engine.TEObjectEditor (instance size 8): editors are classes looked up by the class id of the
     object (TEObject.Editor); everything is called on the class. The base editor edits nothing:
@@ -1202,7 +1202,7 @@ type
     procedure rwWordEx(var W: Word; Default: Word; ID: Integer); virtual;
     procedure rwShortintEx(var S: Shortint; Default: Shortint; ID: Integer); virtual;
     constructor Create(AStream: TStream; AEngine: TEngine);
-    procedure ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
+    procedure ShowProgress(Sender: TEObject; const Msg: string; Percent: Integer);
     property Engine: TEngine read FEngine;
     property Stream: TStream read FStream;
     property PropertyTable: TPropertyTable read FPropertyTable;
@@ -3040,7 +3040,7 @@ end;
 
 class procedure TEObjectEditor.Edit(Obj: TEObject; AEngine: TEngine; Done: TEditDoneEvent);
 begin
-  Done(True, TEResource(Obj));
+  Done(erCancel, Obj);
 end;
 
 class procedure TEObjectEditor.UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
@@ -9494,7 +9494,7 @@ begin
   FErrorHandled := False;
 end;
 
-procedure TEStorageStream.ShowProgress(Sender: TObject; const Msg: string; Percent: Integer);
+procedure TEStorageStream.ShowProgress(Sender: TEObject; const Msg: string; Percent: Integer);
 begin
   if Assigned(FOnProgress) then FOnProgress(Sender, Msg, Percent);
 end;

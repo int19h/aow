@@ -55,7 +55,7 @@ type
     procedure SetResource(Index: Integer; R: TEResource);
     function GetResource(Index: Integer): TEResource;
     function CreateDefaultResource: TEResource;
-    procedure EditResourceDone(Cancel: Boolean; R: TEResource);
+    procedure EditResourceDone(EditResult: TEditResult; R: TEObject);
     procedure EditResource(Index: Integer);
     procedure DblClick; override;
     function SelectCell(ACol, ARow: Longint): Boolean; override;
@@ -296,12 +296,12 @@ begin
   else Result := nil;
 end;
 
-procedure TECustomResourceGrid.EditResourceDone(Cancel: Boolean; R: TEResource);
+procedure TECustomResourceGrid.EditResourceDone(EditResult: TEditResult; R: TEObject);
 var
   I: Integer;
   Old: TEResource;
 begin
-  if not Cancel then
+  if EditResult = erOK then
   begin
     I := GetEditIndex(Col, Row);
     if I < FResources.Count then Old := FResources[I] else Old := nil;
@@ -311,7 +311,7 @@ begin
       FEngine.ActivateEObject(Old);
       R.Free;
     end
-    else SetResource(I, R);
+    else SetResource(I, TEResource(R));
     UpdateResourceView;
   end
   else R.Free;
