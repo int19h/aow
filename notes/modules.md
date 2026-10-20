@@ -1,32 +1,35 @@
 # Modules of the game and the order to recover them
 
-The import tables of the shipped modules give the dependency order (bottom first). Function counts
-and code sizes come from `notes/signatures/*.json`; third-party packages are marked.
+The dependencies come from the import tables of the shipped modules, counting only imported code
+and data: every package also imports the initialization and finalization of each unit of every
+package it `requires`, which says nothing about real use. Function counts and sizes come from
+`notes/signatures/*.json`.
 
-| module | units (functions) | depends on | note |
+| module | units (functions) | uses code of | state |
 |---|---|---|---|
-| Gfxepack.dpl | GFXE (236), GFXDiag (3) | VCL | surfaces, blitters, DirectDraw; 40 KB |
-| Dcpack.dpl | DisplayC (165), TWindows08DIBSurface (10) | Gfxepack | display/DIB layer; 18 KB |
-| Ilpack.dpl | ImageLib (470), ILSpin, HashTabU, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | Gfxepack | image library + editors; 78 KB |
-| Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | Ilpack, Gfxepack | object model, persistence; done except the small units |
-| SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Enginep, Ilpack, Gfxepack, Vcladdon | 17 KB |
-| Network.dpl | NetworkE (149) | Enginep, Ilpack, Gfxepack | 7 KB |
-| aowFXpck.dpl | aowFX (17) | Ilpack, Gfxepack | 2 KB |
-| VideoP.dpl | Video (30), VFW (4) | Gfxepack | 6 KB |
-| aowDPlay.dpl | aowDPlayComp (35) | VCL, DirectPlay | 15 KB |
-| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg | Enginep, Ilpack, Gfxepack, Dcpack, SoundP | hex map engine; 73 KB |
-| aowInt.dpl, AoWInterface.dpl | the AoW UI controls (AoWComp, AoWWindow, AoWMenu, ...) (476 / 375) | Dcpack, Ilpack, Gfxepack | two versions of the same library; 105 KB each |
-| Vcladdon.dpl | TB97 (114), SpinEdit (52), EStrGrid, FilCtl95 | VCL | third party (Toolbar97, SpinEdit) |
-| Localize.dpl | Iv* units (1096) | VCL | third party (Multilizer); 150 KB |
-| ims.dpl | ag*/ms* units (605) | VCL | third party (Internet suite); 83 KB |
-| AoWEPACK.dpl | AoWE (4042), City (191), spells, abilities, events, AoWReg, AoWSetup, ... (6872) | HSEPack, Enginep, Ilpack, Gfxepack, SoundP, Network, Localize, aowFXpck | the game logic; 734 KB |
-| AoWTCPCK.dpl | AoWTC (174), CombatTE (38), combat map units (565) | AoWEPACK and the above | tactical combat; 174 KB |
-| AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWEPACK | 8 KB |
-| Adcpack.dpl | ZoomControl, AdvancedDisplay (34) | Gfxepack | 3 KB |
-| AOWTools.dpl | Scanner (42), AoWBookWindow, TurnButton, lines, StartMenu (109) | AoWEPACK, aowInt, Dcpack | 14 KB |
-| ILToolsP.dpl | ILTools, ILSeqEd, Str2Clip (68) | Dcpack, Ilpack, Vcladdon | 7 KB |
-| AoW.exe | the game's forms and main program (1371) | everything | 249 KB |
-| AoWEd.exe | the map editor's forms (892) | everything | 91 KB |
+| Gfxepack.dpl | GFXE (236), GFXDiag (3) | - | done, 252/262 |
+| Dcpack.dpl | DisplayC (165), TWindows08DIBSurface (10) | GFXE | done, 169/174 |
+| Ilpack.dpl | ImageLib (470), HashTabU (25), the editors ILSpin, SubImgEd, SImgSEd, ILEdGrid, ILEdForm, PerfDlg, ImgSetEd | GFXE | ImageLib, HashTabU in progress |
+| Enginep.dpl | Engine (680), ImgLComp (66), EResGrid (45), zlib (17), FMemStr (13), EList (11), DebMDlg (11), PlugInM (8) | ImageLib | done, 865/892 |
+| aowDPlay.dpl | aowDPlayComp (35), DPlay, DPLobby | - | done, 39/39 |
+| VideoP.dpl | Video (30), VFW (4) | GFXE | done, 35/35 |
+| Network.dpl | NetworkE (149) | Engine | in progress |
+| SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Engine, SpinEdit | in progress |
+| Adcpack.dpl | ZoomControl (13), AdvancedDisplay (12) | GFXE | in progress |
+| aowFXpck.dpl | aowFX (17) | - | in progress |
+| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg, HSEdMod, HSEdData | DisplayC, Engine, GFXE, ImageLib, Sound | next after ImageLib |
+| aowInt.dpl | the AoW UI controls (AoWComp, AoWWindow, AoWMenu, ... 476) | DisplayC, GFXE, ImageLib | after ImageLib |
+| AoWInterface.dpl | an older version of the same controls (375) | DisplayC, GFXE, ImageLib | not used by AoW.exe or AoWEd.exe |
+| Vcladdon.dpl | TB97 (114), SpinEdit (52), EStrGrid, FilCtl95 | - | third party (Toolbar97, SpinEdit) |
+| Localize.dpl | Iv* units (1096) | - | third party (Multilizer) |
+| ims.dpl | ag*/ms* units (605) | - | third party (an internet suite) |
+| AoWEPACK.dpl | AoWE (4042), City (191), spells, abilities, events, AoWReg, AoWSetup, ... (6872) | Engine, GFXE, HSEPack units, ImageLib, Localize, NetworkE, Sound, aowFX | the game logic, 734 KB |
+| AoWTCPCK.dpl | AoWTC (174), CombatTE (38), combat map units (565) | AoWEPACK units, Engine, GFXE, HSEPack units, ImageLib, NetworkE, Sound, aowFX | tactical combat |
+| AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWE, Engine | |
+| AOWTools.dpl | Scanner (42), AoWBookWindow, TurnButton, lines, StartMenu (109) | AoWE, PageTurnCtrl, GFXE, HSEngine, ImageLib, aowInt units | |
+| ILToolsP.dpl | ILTools, ILSeqEd, Str2Clip (68) | DisplayC, ImageLib, SpinEdit | editor tools |
+| AoW.exe | the game's forms and main program (1371) | everything above except AoWInterface, ILToolsP | |
+| AoWEd.exe | the map editor's forms (892) | the above plus ILToolsP, Vcladdon | |
 
 ## Layout of the recovered source
 
