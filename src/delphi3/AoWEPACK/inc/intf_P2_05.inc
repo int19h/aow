@@ -108,7 +108,7 @@
     function GetAbilityOwner(AbilityID: Integer): TAbilityOwner; virtual;  { +154 draft }
     function GetAbilityCount: Integer; virtual;  { +158 draft }
     function GetExperience: Integer; virtual;  { +15C draft }
-    procedure SetExperience(Value: Integer); virtual;  { +160 draft }
+    procedure SetExperience(Value: Integer); virtual;  { +160 }
     function GetNextLevelExperience: Integer; virtual;  { +164 draft }
     function GetDescription: TStrings; virtual;  { +168 draft }
     procedure SetPlayer(Player: Shortint); virtual;
@@ -127,7 +127,7 @@
     procedure GetJoinMessage(Player: Shortint; Count, Amount: Integer; Mode: TJoinMode; Messages: TStrings); virtual;  { +1A0 draft }
     function ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; virtual;  { +1A4 draft }
     procedure UnitKilled; virtual;  { +1A8 draft }
-    procedure Killed; virtual;  { +1AC draft }
+    procedure Killed; virtual;  { +1AC }
     procedure Resurrect; virtual;  { +1B0 draft }
     procedure Animate; virtual;  { +1B4 draft }
     procedure RetrieveDamageInfo(Attack, Damage: Shortint; DamageTypes: TDamageTypes;

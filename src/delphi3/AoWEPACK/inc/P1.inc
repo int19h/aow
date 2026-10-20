@@ -1520,12 +1520,12 @@ asm
   POP EBX
 end;
 
-procedure TAbility.ExpandName(A1: Integer; A2: Integer);
+function TAbility.ExpandName(A1: TAbilityOwner): string;
 begin
-  PString(A2)^ := FAbilityName;
+  Result := FAbilityName;
 end;
 
-procedure TAbility.ExpandCost;
+function TAbility.ExpandCost(A1: TAbilityOwner): Integer;
 asm
   MOV EAX,[EAX].FSkillPointCost
 end;
@@ -1578,7 +1578,7 @@ asm
   XOR EAX,EAX
 end;
 
-procedure TAbility.GetSkillPoints(A1: Integer);
+function TAbility.GetSkillPoints(A1: TAbilityOwner): Integer;
 { needs: Integer result; preserve the unmarked P4 override's procedure header. }
 asm
   PUSH EBX

@@ -79,7 +79,7 @@
     procedure ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer); override;
     procedure Setup(A1: Byte; A2: Byte; A3: Byte; A4: TDamageTypes; A5: TDamageTypes; A6: Boolean); virtual;  { +064 draft }
     procedure Generate(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes); virtual;
-    procedure GenerateEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer); virtual;  { +06C draft }
+    procedure GenerateEx(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes; A6: Byte); virtual; { +06C }
   end;
 
   { TDamageEffectCA: instance size $14, VMT 557163D0; $10 FDamageType. }

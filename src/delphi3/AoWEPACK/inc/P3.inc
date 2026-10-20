@@ -2192,7 +2192,7 @@ begin
   FDamageTypes.Value := DamageTypes - TCombatObject(A2).GetImmunityTypes;
 end;
 
-procedure TDamageCA.GenerateEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
+procedure TDamageCA.GenerateEx(A1, A2: TCombatObject; A3, A4: Shortint; A5: TDamageTypes; A6: Byte);
 var DamageTypes: TDamageTypes absolute A5;
 begin
   FSourceID := TCombatObject(A1).FID;

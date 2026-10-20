@@ -48,7 +48,7 @@
     function GetEnabled(A1: TAbilityOwner): Boolean; virtual;  { +074 }
     function GetImmunityTypes(A1: TAbilityOwner): TDamageTypes; virtual;  { +078 }
     function GetProtectionTypes(A1: TAbilityOwner): TDamageTypes; virtual;  { +07C }
-    procedure GetSkillPoints(A1: Integer); virtual;  { +080 draft }
+    function GetSkillPoints(A1: TAbilityOwner): Integer; virtual; { +080 }
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; virtual;
     function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; virtual;  { +088 }
     function GetSourceName(A1: TAbilityOwner): string; virtual;
@@ -66,8 +66,8 @@
     function ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean; virtual;
     procedure ListSpells; virtual;  { +0C0 draft }
     function CanExpand(A1: TAbilityOwner): Boolean; virtual;
-    procedure ExpandCost; virtual;  { +0C8 draft }
-    procedure ExpandName(A1: Integer; A2: Integer); virtual;  { +0CC draft }
+    function ExpandCost(A1: TAbilityOwner): Integer; virtual; { +0C8 }
+    function ExpandName(A1: TAbilityOwner): string; virtual; { +0CC }
     function Expand(A1: TAbilityOwner): Boolean; virtual;
     function Remove(A1: TAbilityOwner): Boolean; virtual;
     function GetDamageValue(A1, A2: TAbstractUnit): Integer; virtual;
