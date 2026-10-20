@@ -14,11 +14,11 @@ package it `requires`, which says nothing about real use. Function counts and si
 | aowDPlay.dpl | aowDPlayComp (35), DPlay, DPLobby | - | done, 39/39 |
 | VideoP.dpl | Video (30), VFW (4) | GFXE | done, 35/35 |
 | Network.dpl | NetworkE (149) | Engine | done, 148/148 |
-| SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Engine, SpinEdit | in progress |
+| SoundP.dpl | Sound (101), GalSndS (42), SFXEdDlg (17), Galaxy (5), DSound (5) | Engine, SpinEdit | done, 176/176 |
 | Adcpack.dpl | ZoomControl (13), AdvancedDisplay (12) | GFXE | done, 25/25 |
 | aowFXpck.dpl | aowFX (17) | - | done, 18/18 |
-| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg, HSEdMod, HSEdData | DisplayC, Engine, GFXE, ImageLib, Sound | next after ImageLib |
-| aowInt.dpl | the AoW UI controls (AoWComp, AoWWindow, AoWMenu, ... 476) | DisplayC, GFXE, ImageLib | after ImageLib |
+| HSEPack.dpl | HSEngine (547), HSMEdit (78), IsoHex (42), ILTer (31), HSLib (25), Terrain (20), HSSEdit (19), Hexagon, Bridge, Road, BorderHx, TerCBox, RndHex, ProgDlg, HSEdMod, HSEdData | DisplayC, Engine, GFXE, ImageLib, Sound | in progress |
+| aowInt.dpl | the AoW UI controls (AoWComp, AoWWindow, AoWMenu, ... 476) | DisplayC, GFXE, ImageLib | in progress |
 | AoWInterface.dpl | an older version of the same controls (375) | DisplayC, GFXE, ImageLib | not used by AoW.exe or AoWEd.exe |
 | Vcladdon.dpl | TB97 (114), SpinEdit (52), EStrGrid, FilCtl95 | - | third party (Toolbar97, SpinEdit) |
 | Localize.dpl | Iv* units (1096) | - | third party (Multilizer) |

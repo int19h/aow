@@ -46,6 +46,9 @@ local variable order, loop shape.
 | aowDPlay.dpl: aowDPlayComp (DirectPlay component), DPlay, DPLobby; VideoP.dpl: Video, VFW | 74 | 74 |
 | Dcpack.dpl: DisplayC (windowed and full-screen DirectDraw display controllers, frame thread), TWindows08DIBSurface | 174 | 169 |
 | Adcpack.dpl: ZoomControl, AdvancedDisplay (`{$O-,Q+}`); aowFXpck.dpl: aowFX (particle paths) | 43 | 43 |
+| Ilpack.dpl: ImageLib, HashTabU (`src/delphi3/Ilpack/`) | 536 | 513 |
+| Network.dpl: NetworkE | 148 | 148 |
+| SoundP.dpl: Sound, GalSndS, SFXEdDlg, Galaxy, DSound | 176 | 176 |
 
 Enginep.dpl as a whole: 892 functions, 865 identical. The Engine unit alone: 734 functions, 711
 identical (50,949 of 54,811 bytes): every method of every class of the original Engine unit is
@@ -216,6 +219,18 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
 - `case B of 0..89: ... else` compiles to `sub eax,90 / jae else`; a case on a two-value enumeration
   to `sub al,1 / jb / je`.
 - Division of a real by a constant becomes a multiplication by the reciprocal.
+
+## Checking declarations with export hashes
+
+A package exports every interface symbol as `Unit.Name@XXXXXXXX`; the suffix is a hash of the
+declaration (parameter and result types, calling convention, class layout, visibility and
+properties, not parameter names). `tools/exports.py <built.dpl> <original.dpl>` compares the
+exports of a package built from the recovered source with the original: equal hashes confirm a
+declaration the machine code cannot show (types, visibility, published properties), different ones
+point at a declaration to fix. Build the package with the `.dpk` of the package directory and
+`-LE<dir> -LN<dir>` (Windows paths). Enginep.dpl, first run (2026-10-19): 645 exports equal, 127
+different, 257 missing; the missing ones are the value lists, which the original declares in the
+Engine unit and Engine.pas keeps in EngineLists.pas.
 
 ## Compiler switches (sweep, 2026-10-19)
 
