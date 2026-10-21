@@ -151,7 +151,7 @@ resourcestring
   IndependentsAreMovingRStr = 'Independents are moving';
   PlayerIsMovingRStr = '%s is moving';
   AreMovingRStr = '%s are moving';
-  PlayerRStr = 'Player';
+  { PlayerRStr is declared in the interface; AoWEd 004289AF. }
   IndependentsRStr = 'Independents';
   PlayerNameExRStr = '%0:s of the %1:s';
 

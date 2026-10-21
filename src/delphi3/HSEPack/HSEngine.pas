@@ -741,7 +741,7 @@ type
     FStatus: THSSetStatus;
     FHexagonControl: THexagonControl;
     FRoadControl: TRoadControl;
-    FActivatedEngine: TEngine;
+    FActivatedEngine: TEngine; public property ActivatedEngine: TEngine read FActivatedEngine; private
     FMapObjectResourceList: TMapObjectResourceList;
     FResourceEditSettings: TEResourceEditSettings;
     FImageLibraryManager: TImageLibraryManager;

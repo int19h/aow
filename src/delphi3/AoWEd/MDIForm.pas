@@ -1,8 +1,10 @@
 unit MDIForm;
 
-{ Draft declarations of MDIForm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ MDIForm from AoWEd.exe. TMainForm is $6AC bytes; published controls occupy
+  $1DC..$69C, $6A0 message lifetime, $6A4 static timing dirty, $6A5 initial display,
+  $6A8 reserved. Unrecovered methods retain draft declarations. }
+
+{$R+,Q+}
 
 interface
 
@@ -323,378 +325,925 @@ type
     LeaderToolbar: TPanel; { +0698 }
     EditLeaderBtn: TSpeedButton; { +069C }
     public
-    F_MainForm_6A0: array[0..11] of Byte;
+    FMessageLifetime: Integer; { $6A0 }
+    FStaticTimingDirty: Boolean; { $6A4 }
+    FInitialDisplay: Boolean; { $6A5 }
+    F_MainForm_6A6: array[0..5] of Byte;
+    procedure UpdateDefaultPlayers;
+    procedure DefaultPlayerClick(Sender: TObject);
+    procedure ApplicationMessage(var Msg: TMsg; var Handled: Boolean);
+    procedure ApplicationException(Sender: TObject; E: Exception);
+    procedure ApplicationHint(Sender: TObject);
+    procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure FormCreate;  { draft }
-    procedure CutItemClick;  { draft }
-    procedure PasteItemClick;  { draft }
-    procedure CopyItemClick;  { draft }
-    procedure DeleteItemClick;  { draft }
-    procedure HSMEditUpdateFrame;  { draft }
-    procedure Brush1BtnClick;  { draft }
-    procedure Brush2BtnClick;  { draft }
-    procedure Brush3BtnClick;  { draft }
-    procedure OpenBtnClick;  { draft }
-    procedure SaveBtnClick;  { draft }
-    procedure CloseItemClick;  { draft }
-    procedure NewItemClick;  { draft }
-    procedure SaveAsItemClick;  { draft }
-    procedure ExitItemClick;  { draft }
-    procedure FormCloseQuery(A1: Integer; A2: Integer);  { draft }
-    procedure LevelDownBtnClick;  { draft }
-    procedure LevelUpBtnClick;  { draft }
-    procedure HSMEditDeactivate;  { draft }
-    procedure HSMEditActivate;  { draft }
-    procedure NewMapsetClick;  { draft }
-    procedure HSSEditActivate;  { draft }
-    procedure HSSEditDeactivate;  { draft }
-    procedure HSMEditUpdateCaption;  { draft }
-    procedure HSMEditShowMessage(A1: Integer; A2: Integer);  { draft }
-    procedure HSMEditStaticSceneUpdated;  { draft }
-    procedure DebugModeClick;  { draft }
-    procedure About1Click;  { draft }
-    procedure RaceGridLinkToResourceList(A1: Integer);  { draft }
-    procedure MapSettingsClick;  { draft }
-    procedure UnitGFXGridLinkToResourceList(A1: Integer);  { draft }
-    procedure UnitsGridLinkToResourceList(A1: Integer);  { draft }
-    procedure PreviewBtnClick;  { draft }
-    procedure N640x480Click;  { draft }
-    procedure N800x600Click;  { draft }
-    procedure N1024x768Click;  { draft }
-    procedure N1280x1024Click;  { draft }
-    procedure HSMEditMouseMove;  { draft }
-    procedure HeroGridLinkToResourceList(A1: Integer);  { draft }
-    procedure ItemResourceGridLinkToResourceList(A1: Integer);  { draft }
-    procedure FaceGridLinkToResourceList(A1: Integer);  { draft }
-    procedure UnitTabControlSelectUnit(A1: Integer; A2: Integer);  { draft }
-    procedure SortNameBtnClick;  { draft }
-    procedure SortLevelBtnClick;  { draft }
-    procedure OpenHeroLibraryClick;  { draft }
-    procedure SortItemsNameClick;  { draft }
-    procedure SortTypeBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure CutItemClick(Sender: TObject);
+    procedure PasteItemClick(Sender: TObject);
+    procedure CopyItemClick(Sender: TObject);
+    procedure DeleteItemClick(Sender: TObject);
+    procedure HSMEditUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
+    procedure Brush1BtnClick(Sender: TObject);
+    procedure Brush2BtnClick(Sender: TObject);
+    procedure Brush3BtnClick(Sender: TObject);
+    procedure OpenBtnClick(Sender: TObject);  { draft }
+    procedure SaveBtnClick(Sender: TObject);  { draft }
+    procedure CloseItemClick(Sender: TObject);
+    procedure NewItemClick(Sender: TObject);  { draft }
+    procedure SaveAsItemClick(Sender: TObject);  { draft }
+    procedure ExitItemClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure LevelDownBtnClick(Sender: TObject);
+    procedure LevelUpBtnClick(Sender: TObject);
+    procedure HSMEditDeactivate(Sender: TObject);
+    procedure HSMEditActivate(Sender: TObject);
+    procedure NewMapsetClick(Sender: TObject);  { draft }
+    procedure HSSEditActivate(Sender: TObject);
+    procedure HSSEditDeactivate(Sender: TObject);
+    procedure HSMEditUpdateCaption(Sender: TObject);  { draft }
+    procedure HSMEditShowMessage(S: string);
+    procedure HSMEditStaticSceneUpdated(Sender: TObject);
+    procedure DebugModeClick(Sender: TObject);
+    procedure About1Click(Sender: TObject);  { draft }
+    procedure RaceGridLinkToResourceList(Sender: TObject);
+    procedure MapSettingsClick(Sender: TObject);  { draft }
+    procedure UnitGFXGridLinkToResourceList(Sender: TObject);
+    procedure UnitsGridLinkToResourceList(Sender: TObject);
+    procedure PreviewBtnClick(Sender: TObject);
+    procedure N640x480Click(Sender: TObject);
+    procedure N800x600Click(Sender: TObject);
+    procedure N1024x768Click(Sender: TObject);
+    procedure N1280x1024Click(Sender: TObject);
+    procedure HSMEditMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure HeroGridLinkToResourceList(Sender: TObject);
+    procedure ItemResourceGridLinkToResourceList(Sender: TObject);
+    procedure FaceGridLinkToResourceList(Sender: TObject);
+    procedure UnitTabControlSelectUnit(Sender: TObject; Index: Integer);
+    procedure SortNameBtnClick(Sender: TObject);
+    procedure SortLevelBtnClick(Sender: TObject);
+    procedure OpenHeroLibraryClick(Sender: TObject);  { draft }
+    procedure SortItemsNameClick(Sender: TObject);
+    procedure SortTypeBtnClick(Sender: TObject);
     procedure HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure DeleteHeroBtnClick;  { draft }
-    procedure RemoveFromMapClick;  { draft }
-    procedure DeleteItemBtnClick;  { draft }
-    procedure RemoveItemClick;  { draft }
-    procedure RemoveLeaderFromMapClick;  { draft }
-    procedure OpenItemLibraryClick;  { draft }
-    procedure NewItemBtnClick;  { draft }
-    procedure EditItemClick;  { draft }
-    procedure NewHeroBtnClick;  { draft }
-    procedure WaterBtnClick(A1: Integer);  { draft }
-    procedure GrassBtnClick(A1: Integer);  { draft }
-    procedure SteppeBtnClick(A1: Integer);  { draft }
-    procedure DesertBtnClick(A1: Integer);  { draft }
-    procedure WastelandBtnClick(A1: Integer);  { draft }
-    procedure SnowBtnClick(A1: Integer);  { draft }
-    procedure IceBtnClick(A1: Integer);  { draft }
+    procedure DeleteHeroBtnClick(Sender: TObject);  { draft }
+    procedure RemoveFromMapClick(Sender: TObject);  { draft }
+    procedure DeleteItemBtnClick(Sender: TObject);  { draft }
+    procedure RemoveItemClick(Sender: TObject);  { draft }
+    procedure RemoveLeaderFromMapClick(Sender: TObject);  { draft }
+    procedure OpenItemLibraryClick(Sender: TObject);  { draft }
+    procedure NewItemBtnClick(Sender: TObject);  { draft }
+    procedure EditItemClick(Sender: TObject);  { draft }
+    procedure NewHeroBtnClick(Sender: TObject);  { draft }
+    procedure WaterBtnClick(Sender: TObject);
+    procedure GrassBtnClick(Sender: TObject);
+    procedure SteppeBtnClick(Sender: TObject);
+    procedure DesertBtnClick(Sender: TObject);
+    procedure WastelandBtnClick(Sender: TObject);
+    procedure SnowBtnClick(Sender: TObject);
+    procedure IceBtnClick(Sender: TObject);
     procedure RoadBtnClick(A1: Integer);  { draft }
-    procedure EraseBtnClick;  { draft }
-    procedure SelectHSBtnClick;  { draft }
-    procedure HSMEditSelectPlaceHS;  { draft }
-    procedure OverrideBtnClick;  { draft }
-    procedure ChangeTerrainBtnClick;  { draft }
-    procedure uWaterBtnClick;  { draft }
-    procedure DirtBtnClick;  { draft }
-    procedure LavaBtnClick;  { draft }
-    procedure uIceBtnClick;  { draft }
-    procedure EarthBtnClick;  { draft }
-    procedure RockBtnClick;  { draft }
+    procedure EraseBtnClick(Sender: TObject);  { draft }
+    procedure SelectHSBtnClick(Sender: TObject);  { draft }
+    procedure HSMEditSelectPlaceHS(Sender: TObject);  { draft }
+    procedure OverrideBtnClick(Sender: TObject);  { draft }
+    procedure ChangeTerrainBtnClick(Sender: TObject);  { draft }
+    procedure uWaterBtnClick(Sender: TObject);
+    procedure DirtBtnClick(Sender: TObject);
+    procedure LavaBtnClick(Sender: TObject);
+    procedure uIceBtnClick(Sender: TObject);
+    procedure EarthBtnClick(Sender: TObject);
+    procedure RockBtnClick(Sender: TObject);
     procedure ArmyBtnClick(A1: Integer);  { draft }
     procedure ItemBtnClick(A1: Integer);  { draft }
-    procedure EditHeroClick;  { draft }
+    procedure EditHeroClick(Sender: TObject);  { draft }
     procedure ItemControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure HSMEditDeselectPlaceHS;  { draft }
-    procedure OpenMapSetClick;  { draft }
-    procedure ExportTextClick;  { draft }
-    procedure ImportTextClick;  { draft }
+    procedure HSMEditDeselectPlaceHS(Sender: TObject);  { draft }
+    procedure OpenMapSetClick(Sender: TObject);  { draft }
+    procedure ExportTextClick(Sender: TObject);  { draft }
+    procedure ImportTextClick(Sender: TObject);  { draft }
     procedure MapSetSettingsClick(A1: Integer; A2: Integer);  { draft }
     procedure LeaderSelectionGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure FogofWarClick;  { draft }
-    procedure PlayerInfoClick;  { draft }
-    procedure RemoveMapLevelClick;  { draft }
-    procedure AddMapLevelClick;  { draft }
-    procedure FormShow;  { draft }
-    procedure SpellListBoxClick;  { draft }
-    procedure AbilityListBoxClick;  { draft }
+    procedure FogofWarClick(Sender: TObject);  { draft }
+    procedure PlayerInfoClick(Sender: TObject);  { draft }
+    procedure RemoveMapLevelClick(Sender: TObject);  { draft }
+    procedure AddMapLevelClick(Sender: TObject);  { draft }
+    procedure FormShow(Sender: TObject);  { draft }
+    procedure SpellListBoxClick(Sender: TObject);
+    procedure AbilityListBoxClick(Sender: TObject);
     procedure AbilitySelectionCLBClickCheck(A1: Integer; A2: Integer);  { draft }
-    procedure AbilityLevelPointsChange;  { draft }
-    procedure AbilityDescriptionChange;  { draft }
-    procedure EditAbilityTextClick;  { draft }
-    procedure SpellDescriptionChange;  { draft }
-    procedure EditSpellTextClick;  { draft }
-    procedure SphereEditChange;  { draft }
-    procedure SphereLevelEditChange;  { draft }
-    procedure SpellManaChange;  { draft }
-    procedure SpellResearchPointsChange;  { draft }
-    procedure SpellUpkeepChange;  { draft }
-    procedure EditAbilitySFXBtnClick;  { draft }
-    procedure EditSpellSFXClick;  { draft }
+    procedure AbilityLevelPointsChange(Sender: TObject);  { draft }
+    procedure AbilityDescriptionChange(Sender: TObject);  { draft }
+    procedure EditAbilityTextClick(Sender: TObject);  { draft }
+    procedure SpellDescriptionChange(Sender: TObject);  { draft }
+    procedure EditSpellTextClick(Sender: TObject);  { draft }
+    procedure SphereEditChange(Sender: TObject);  { draft }
+    procedure SphereLevelEditChange(Sender: TObject);  { draft }
+    procedure SpellManaChange(Sender: TObject);  { draft }
+    procedure SpellResearchPointsChange(Sender: TObject);  { draft }
+    procedure SpellUpkeepChange(Sender: TObject);  { draft }
+    procedure EditAbilitySFXBtnClick(Sender: TObject);  { draft }
+    procedure EditSpellSFXClick(Sender: TObject);  { draft }
     procedure GotoItemClick(A1: Integer; A2: Integer);  { draft }
-    procedure ItemControlGridUnselect;  { draft }
-    procedure HeroControlGridUnselect;  { draft }
+    procedure ItemControlGridUnselect(Sender: TObject);
+    procedure HeroControlGridUnselect(Sender: TObject);
     procedure GoToHeroClick(A1: Integer; A2: Integer);  { draft }
     procedure GoToLeaderClick(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateMapBtnClick;  { draft }
-    procedure NewCombatMapClick;  { draft }
+    procedure ValidateMapBtnClick(Sender: TObject);  { draft }
+    procedure NewCombatMapClick(Sender: TObject);  { draft }
     procedure LinkToCombatResources(A1: Integer);  { draft }
-    procedure UnitPositionBtnClick;  { draft }
-    procedure BorderBtnClick;  { draft }
-    procedure EditAnimationsClick;  { draft }
-    procedure AbGFXEditClick;  { draft }
-    procedure EditSpellGFXClick;  { draft }
-    procedure ScannerItemClick;  { draft }
-    procedure EditTextBtnClick;  { draft }
-    procedure EditLeaderClick;  { draft }
-    procedure HeroPopupMenuPopup;  { draft }
-    procedure ItemPopupMenuPopup;  { draft }
-    procedure GameSettingsClick;  { draft }
-    procedure ExportAbilityInfoClick;  { draft }
-    procedure HSMEditActivateDC;  { draft }
-    procedure RemoveLeadersMIClick;  { draft }
-    procedure MapTextEditorMIClick;  { draft }
-    procedure ExportForMultilizerClick;  { draft }
-    procedure HSMEditKeyDown;  { draft }
+    procedure UnitPositionBtnClick(Sender: TObject);  { draft }
+    procedure BorderBtnClick(Sender: TObject);  { draft }
+    procedure EditAnimationsClick(Sender: TObject);  { draft }
+    procedure AbGFXEditClick(Sender: TObject);  { draft }
+    procedure EditSpellGFXClick(Sender: TObject);  { draft }
+    procedure ScannerItemClick(Sender: TObject);  { draft }
+    procedure EditTextBtnClick(Sender: TObject);  { draft }
+    procedure EditLeaderClick(Sender: TObject);  { draft }
+    procedure HeroPopupMenuPopup(Sender: TObject);  { draft }
+    procedure ItemPopupMenuPopup(Sender: TObject);  { draft }
+    procedure GameSettingsClick(Sender: TObject);  { draft }
+    procedure ExportAbilityInfoClick(Sender: TObject);  { draft }
+    procedure HSMEditActivateDC(Sender: TObject);  { draft }
+    procedure RemoveLeadersMIClick(Sender: TObject);  { draft }
+    procedure MapTextEditorMIClick(Sender: TObject);  { draft }
+    procedure ExportForMultilizerClick(Sender: TObject);  { draft }
+    procedure HSMEditKeyDown(Sender: TObject);  { draft }
   end;
 
 
 implementation
 
-constructor TMainForm.Create(AOwner: Classes.TComponent);
-begin end;
+uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid;
 
-procedure TMainForm.FormCreate;
-begin end;
+procedure TMainForm.ApplicationMessage(var Msg: TMsg; var Handled: Boolean);
+var Key: Word;
+begin
+  if (Msg.Message >= WM_KEYFIRST) and (Msg.Message <= WM_KEYLAST) then
+    if Msg.Message = WM_KEYDOWN then
+    begin
+      Key := Word(Msg.wParam);
+      if (Key = VK_LEFT) or (Key = VK_RIGHT) or (Key = VK_UP) or (Key = VK_DOWN) then
+        if Screen.ActiveForm = Self then
+        begin
+          HSMEdit.KeyDown(Key, KeyDataToShiftState(Msg.lParam));
+          Handled := True;
+        end;
+    end;
+end;
+
+procedure TMainForm.ApplicationException(Sender: TObject; E: Exception);
+begin
+  if E is EAccessViolation then
+  begin
+    ShowMessage('Oh dear, it''s the end....');
+    if not Application.Terminated then Application.Terminate;
+  end
+  else Application.ShowException(E);
+end;
+
+procedure TMainForm.ApplicationHint(Sender: TObject);
+begin
+end;
+
+procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+var
+  AUnit: TAbstractUnit;
+  Grid: TDrawGrid;
+  Cell: TGridCoord;
+  Index: Integer;
+  Resource: TEResource;
+begin
+  Grid := TDrawGrid(HintInfo.HintControl);
+  if Grid is TCustomGrid then
+  begin
+    Cell := Grid.MouseCoord(HintInfo.CursorPos.X, HintInfo.CursorPos.Y);
+    HintInfo.CursorRect := Grid.CellRect(Cell.X, Cell.Y);
+    if (HintInfo.CursorPos.X > HintInfo.CursorRect.Left) and
+       (HintInfo.CursorPos.X < HintInfo.CursorRect.Right) and
+       (HintInfo.CursorPos.Y > HintInfo.CursorRect.Top) and
+       (HintInfo.CursorPos.Y < HintInfo.CursorRect.Bottom) then
+    begin
+      if HintInfo.HintControl is TUnitIndexGrid then
+      begin
+        Index := TUnitIndexGrid(Grid).GetUnit(Cell.X, Cell.Y);
+        if (Index <> -1) and (AoWHSSet <> nil) and
+           (AoWHSSet.FUnitResources.GetUnitResource(Index) <> nil) then
+          HintStr := AoWHSSet.FUnitResources.GetUnitResource(Index).GetUnitName
+        else CanShow := False;
+      end;
+      if HintInfo.HintControl is TEResourceGrid then
+      begin
+        Resource := TEResourceGrid(Grid).GetResourceColRow(Cell.X, Cell.Y);
+        if Resource <> nil then HintStr := Resource.ResourceEditName
+        else CanShow := False;
+      end;
+      if HintInfo.HintControl is TUnitGrid then
+      begin
+        AUnit := TUnitGrid(Grid).GetUnit(Cell.X, Cell.Y);
+        if AUnit <> nil then HintStr := AUnit.GetName
+        else CanShow := False;
+      end;
+    end
+    else CanShow := False;
+  end;
+end;
+
+procedure TMainForm.DefaultPlayerClick(Sender: TObject);
+begin
+  TMenuItem(Sender).Checked := True;
+  AoWHSMap.FEditorPlayer := TMenuItem(Sender).Tag;
+end;
+
+procedure TMainForm.UpdateDefaultPlayers;
+var I: Integer; Item: TMenuItem;
+begin
+  while DefaultPlayersMI.Count <> 0 do DefaultPlayersMI.Items[DefaultPlayersMI.Count - 1].Free;
+  if AoWHSMap <> nil then
+  begin
+    for I := 0 to AoWHSMap.FPlayers.Count - 1 do
+    begin
+      Item := TMenuItem.Create(DefaultPlayersMI);
+      if I > 0 then
+        Item.Caption := TranslateRStr(PlayerRStr) + ' ' + IntToStr(I) + ' (' +
+          TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(I).FPlayerRace]) + ')'
+      else Item.Caption := AoWHSMap.FPlayers.GetPlayers(I).GetName;
+      Item.RadioItem := True;
+      Item.GroupIndex := 99;
+      Item.Tag := I;
+      Item.OnClick := DefaultPlayerClick;
+      DefaultPlayersMI.Add(Item);
+    end;
+    if AoWHSMap.FEditorPlayer < DefaultPlayersMI.Count then
+      DefaultPlayersMI.Items[AoWHSMap.FEditorPlayer].Checked := True
+    else DefaultPlayersMI.Items[0].Checked := True;
+  end;
+end;
+
+constructor TMainForm.Create(AOwner: Classes.TComponent);
+begin
+  SetCurrentDir(ExtractFilePath(Application.ExeName));
+  inherited Create(AOwner);
+end;
+
+procedure TMainForm.FormCreate(Sender: TObject);
+var
+  I, Language: Integer;
+  Settings: TSoundSettings;
+begin
+  try
+    DeveloperItems.Visible := False;
+    DeveloperSheet.TabVisible := False;
+    uDeveloperSheet.TabVisible := False;
+    HSMEdit.LoadMapFileFilter := TranslateRStr(CustomMapRStr) + '|*.hsm';
+    AoWEdDictionary.FFileName := AoWEngine.StartupDirectory + 'Dict\' + 'AoWEd' + '.mld';
+    AoWEdDictionary.Open;
+    case AoWEngine.FRegistry.GetLanguage of
+      alAuto: AoWEdDictionary.SetLanguage(Language + 1); { Original uses an uninitialized language index. }
+      alEnglish: AoWEdDictionary.SetLanguage(1);
+      alGerman: AoWEdDictionary.SetLanguage(1);
+      alFrench: AoWEdDictionary.SetLanguage(1);
+      alItalian: AoWEdDictionary.SetLanguage(1);
+      alSpanish: AoWEdDictionary.SetLanguage(1);
+    end;
+    Translator.Translate;
+    AoWEngine.InitializeHSSet(AoWEngine.StartupDirectory + 'RELEASE\RELEASE.HSS', nil);
+    UnitSelectionGrid.ShowHint := True;
+    WindowState := wsMaximized;
+    Settings.OutputMode := [omMono, om16bit];
+    Settings.SampleRate := 22050;
+    Settings.SampleVoices := 8;
+    Settings.MusicEnabled := False;
+    Settings.SFXEnabled := True;
+    Settings.UseDirectSound := False;
+    AoWEngine.FRegistry.AssociateAoWMap(Application.ExeName);
+    Application.OnMessage := ApplicationMessage;
+    HSMEdit.HSEngine := AoWEngine;
+    HSSEdit.HSEngine := AoWEngine;
+    Caption := TranslateRStr(AoWEdRStr);
+    FInitialDisplay := True;
+    Application.OnException := ApplicationException;
+    with EditStatusBar do
+      for I := 0 to Panels.Count - 1 do Panels[I].Text := '';
+    MORPanel.Color := clAppWorkSpace;
+    MainPageControl.ActivePage := TileSheet;
+    MainPageControl.Visible := False;
+    SurfaceMORPage.ActivePage := StructuresSheet;
+    HexagonSheet.TabVisible := False;
+    uHexagonSheet.TabVisible := False;
+    HeroesSheet.TabVisible := False;
+    UnitSelectionSheet.TabVisible := False;
+    ItemSelectionSheet.TabVisible := False;
+    LeaderSelectionSheet.TabVisible := False;
+    Application.ShowHint := True;
+    Application.HintPause := 500;
+    Application.OnShowHint := ApplicationShowHint;
+    Application.OnHint := ApplicationHint;
+    DDrawFullScr16DC.DisplayWidth := 800;
+    DDrawFullScr16DC.DisplayHeight := 600;
+    SetCurrentDir(ExtractFilePath(Application.ExeName) + 'scenario\custom');
+  except
+    Application.Terminate;
+  end;
+end;
 
 destructor TMainForm.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TMainForm.CutItemClick(Sender: TObject);
+var
+  OldState, NewState: TKeyboardState;
+begin
+  if Screen.ActiveControl <> nil then
+  begin
+    GetKeyboardState(OldState);
+    NewState := OldState;
+    NewState[VK_CONTROL] := NewState[VK_CONTROL] or $80;
+    SetKeyboardState(NewState);
+    Screen.ActiveControl.Perform(WM_KEYDOWN, Ord('X'), 0);
+    SetKeyboardState(OldState);
+  end;
+end;
+
+procedure TMainForm.PasteItemClick(Sender: TObject);
+var
+  OldState, NewState: TKeyboardState;
+begin
+  if Screen.ActiveControl <> nil then
+  begin
+    GetKeyboardState(OldState);
+    NewState := OldState;
+    NewState[VK_CONTROL] := NewState[VK_CONTROL] or $80;
+    SetKeyboardState(NewState);
+    Screen.ActiveControl.Perform(WM_KEYDOWN, Ord('V'), 0);
+    SetKeyboardState(OldState);
+  end;
+end;
+
+procedure TMainForm.CopyItemClick(Sender: TObject);
+var
+  OldState, NewState: TKeyboardState;
+begin
+  if Screen.ActiveControl <> nil then
+  begin
+    GetKeyboardState(OldState);
+    NewState := OldState;
+    NewState[VK_CONTROL] := NewState[VK_CONTROL] or $80;
+    SetKeyboardState(NewState);
+    Screen.ActiveControl.Perform(WM_KEYDOWN, Ord('C'), 0);
+    SetKeyboardState(OldState);
+  end;
+end;
+
+procedure TMainForm.DeleteItemClick(Sender: TObject);
+begin
+  if Screen.ActiveControl <> nil then Screen.ActiveControl.Perform(WM_KEYDOWN, VK_DELETE, 0);
+end;
+
+procedure TMainForm.HSMEditUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
+var
+  X, Y: Integer;
+  TerrainType, OverlayType: Shortint;
+  S: string;
+  HSSet: THSSet;
+  SD: TSurfaceDesc;
+  HS: THexagonSprite;
+begin
+  Sleep(1);
+  if (AoWHSMap = nil) and (HSMEdit.HSEngine.HSMap <> nil) then
+    MainPageControl.ActivePage := CombatSheet;
+  with HSMEdit do
+  begin
+    ProcessSound;
+    if (msModified in HSEngine.HSMap.Status) and not SaveBtn.Enabled then
+      SaveBtn.Enabled := True;
+    if not (msModified in HSEngine.HSMap.Status) and SaveBtn.Enabled then
+      SaveBtn.Enabled := False;
+    if FMessageLifetime > 0 then
+    begin
+      Dec(FMessageLifetime);
+      if FMessageLifetime = 0 then EditStatusBar.Panels[4].Text := '';
+    end;
+    X := HSEngine.HSMap.Mouse.Xhx;
+    Y := HSEngine.HSMap.Mouse.Yhx;
+    if X <> -1 then
+    begin
+      EditStatusBar.Panels[0].Text := IntToStr(X) + ':' + IntToStr(Y);
+      TerrainType := HSEngine.HSMap.MapContainer.GetField(HSEngine.HSMap.Mouse.Xhx,
+        HSEngine.HSMap.Mouse.Yhx, HSEngine.HSMap.ViewL).TerrainType;
+      HSSet := HSEngine.HSSet;
+      if (TerrainType >= 0) and (TerrainType < HSSet.TerrainTypes.Count) then
+        S := HSSet.TerrainTypes[TerrainType]
+      else if TerrainType = -1 then S := TranslateRStr(TransparentRStr)
+      else S := TranslateRStr(UnknownRStr);
+      with THSEngine(HSSet.ActivatedEngine).HSMap do
+        OverlayType := MapContainer.GetField(X, Y, ViewL).OverlayType;
+      if OverlayType >= 0 then S := S + '/' + HSSet.OverlayTypes[OverlayType]
+      else S := S + '/' + TranslateRStr(TransparentRStr);
+      EditStatusBar.Panels[2].Text := S;
+    end
+    else
+    begin
+      EditStatusBar.Panels[0].Text := '';
+      EditStatusBar.Panels[2].Text := '';
+    end;
+    if HSEngine.HSMap.Selection.Count = 1 then
+    begin
+      HS := HSEngine.HSMap.Selection.HS[0];
+      S := AoWE.Format(TranslateRStr(XSelectedRStr), [HS.EditName]);
+      if AoWEngine.FRegistry.GetDeveloper then
+        S := S + ' (Level:' + IntToStr(HS.Level) + ')';
+      EditStatusBar.Panels[3].Text := S;
+    end
+    else if HSMEdit.HSPlaceControl is TMapObjectResource then
+      EditStatusBar.Panels[3].Text := AoWE.Format(TranslateRStr(XSelectedRStr),
+        [TMapObjectResource(HSMEdit.HSPlaceControl).ResourceEditName])
+    else EditStatusBar.Panels[3].Text := '';
+    if DebugMode.Checked then
+      if ActiveDC.GetSurface(1).Lock(SD) = 0 then
+      begin
+        FontModule.Age10.SetText(5, 5, 'Framerate: ' + IntToStr(CurrentFrameRate), SD);
+        FontModule.Age10.SetText(5, 20, 'Static Blt time: ' + IntToStr(HSMEdit.StaticBltTime) + ' ms', SD);
+        FontModule.Age10.SetText(5, 35, 'Dynamic Blt time: ' + IntToStr(HSMEdit.BltTime) + ' ms', SD);
+        FontModule.Age10.SetText(5, 50, 'Dynamic Update time: ' + IntToStr(HSMEdit.DynamicUpdateTime) + ' ms', SD);
+        FontModule.Age10.SetText(5, 65, 'Dynamic Draw time: ' + IntToStr(HSMEdit.DynamicDrawTime) + ' ms', SD);
+        FontModule.Age10.SetText(5, 80, 'Overhead: ' + IntToStr(HSMEdit.IdleTime) + ' ms', SD);
+        FontModule.Age10.SetText(5, 95, 'Ideal FPS: ' + IntToStr(HSMEdit.MaxFrameRate), SD);
+        FontModule.Age10.SetText(5, 110, 'HS on screen: ' +
+          IntToStr(HSEngine.HSMap.StaticVisibleHS.Count + HSEngine.HSMap.DynamicVisibleHS.Count), SD);
+        if FStaticTimingDirty then
+        begin
+          FontModule.Age10.SetText(5, 135, 'Static Update time: ' + IntToStr(HSMEdit.StaticUpdateTime) + ' ms', SD);
+          FontModule.Age10.SetText(5, 150, 'Static Draw time: ' + IntToStr(HSMEdit.StaticDrawTime) + ' ms', SD);
+          FStaticTimingDirty := False;
+        end;
+        ActiveDC.GetSurface(1).Unlock;
+      end;
+  end;
+end;
+
+procedure TMainForm.Brush1BtnClick(Sender: TObject);
+begin
+  HSMEdit.BrushSize := 1;
+end;
+
+procedure TMainForm.Brush2BtnClick(Sender: TObject);
+begin
+  HSMEdit.BrushSize := 2;
+end;
+
+procedure TMainForm.Brush3BtnClick(Sender: TObject);
+begin
+  HSMEdit.BrushSize := 3;
+end;
+
+procedure TMainForm.OpenBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.CutItemClick;
+procedure TMainForm.SaveBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.PasteItemClick;
+procedure TMainForm.CloseItemClick(Sender: TObject);
+begin
+  if HSMEdit.Activated then HSMEdit.Close;
+  if HSSEdit.Activated and HSSEdit.Edit then HSSEdit.Close;
+end;
+
+procedure TMainForm.NewItemClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.CopyItemClick;
+procedure TMainForm.SaveAsItemClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.DeleteItemClick;
+procedure TMainForm.ExitItemClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  CanClose := HSMEdit.Close and HSSEdit.Close;
+end;
+
+procedure TMainForm.LevelDownBtnClick(Sender: TObject);
+begin
+  if HSMEdit.Activated then
+    if HSMEdit.SceneLevel + 1 <> AoWHSMap.MapContainer.LevelCount then
+    begin
+      HSMEdit.SetSceneLevel(Smallint(HSMEdit.SceneLevel) + 1);
+      if Smallint(HSMEdit.SceneLevel) = 1 then HSMEdit.SelectEditResource(nil);
+      EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(HSMEdit.SceneLevel)]);
+      if HSMEdit.SceneLevel > 0 then MORPageControl.ActivePage := UndergroundMORSHeet;
+      ScannerFloater.UpdateLevel;
+    end;
+end;
+
+procedure TMainForm.LevelUpBtnClick(Sender: TObject);
+begin
+  if HSMEdit.Activated then
+    if HSMEdit.SceneLevel <> 0 then
+    begin
+      HSMEdit.SetSceneLevel(Smallint(HSMEdit.SceneLevel) - 1);
+      if Smallint(HSMEdit.SceneLevel) = 0 then HSMEdit.SelectEditResource(nil);
+      EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(HSMEdit.SceneLevel)]);
+      if Smallint(HSMEdit.SceneLevel) = 0 then MORPageControl.ActivePage := SurfaceSheet;
+      ScannerFloater.UpdateLevel;
+    end;
+end;
+
+procedure TMainForm.HSMEditDeactivate(Sender: TObject);
+begin
+  ScannerFloater.SetMap(nil);
+  UnitSelectionSheet.TabVisible := False;
+  HeroControlGrid.SetAoWHSMap(nil);
+  HeroesSheet.TabVisible := False;
+  LeaderSelectionSheet.TabVisible := False;
+  LeaderSelectionGrid.SetAoWHSMap(nil);
+  ItemSelectionSheet.TabVisible := False;
+  ItemControlGrid.SetAoWHSMap(nil);
+  OverrideBtn.Down := False;
+  OverrideBtn.Enabled := False;
+  CombatSheet.Visible := False;
+  EditStatusBar.Panels[1].Text := '';
+  EditStatusBar.Panels[0].Text := '';
+  EditStatusBar.Panels[2].Text := '';
+  EditStatusBar.Panels[3].Text := '';
+  LevelDownBtn.Enabled := False;
+  LevelUpBtn.Enabled := False;
+  Brush1Btn.Enabled := False;
+  Brush1Btn.Down := False;
+  Brush2Btn.Enabled := False;
+  Brush2Btn.Down := False;
+  Brush3Btn.Enabled := False;
+  Brush3Btn.Down := False;
+  SaveBtn.Enabled := False;
+  EraseBtn.Enabled := False;
+  PreviewBtn.Enabled := False;
+  SelectBtn.Enabled := False;
+  ValidateMapBtn.Enabled := False;
+  UnitSelectionSheet.Visible := False;
+  HSSEditDeactivate(Self);
+end;
+
+procedure TMainForm.HSMEditActivate(Sender: TObject);
+begin
+  if AoWHSMap <> nil then
+  begin
+    AoWHSMap.SetFogEnabled(False);
+    MainPageControl.ActivePage := TileSheet;
+    MORPageControl.ActivePage := SurfaceSheet;
+    LevelDownBtn.Enabled := AoWHSMap.MapContainer.LevelCount > 1;
+    LevelUpBtn.Enabled := LevelDownBtn.Enabled;
+    EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(HSMEdit.SceneLevel)]);
+    UnitTabControl.UpdateSelection;
+    UnitSelectionSheet.TabVisible := True;
+    LeaderSelectionSheet.TabVisible := True;
+    LeaderSelectionGrid.SetAoWHSMap(AoWHSMap);
+    HeroControlGrid.SetAoWHSMap(AoWHSMap);
+    HeroesSheet.TabVisible := True;
+    ItemSelectionSheet.TabVisible := True;
+    ItemControlGrid.SetAoWHSMap(AoWHSMap);
+    CombatSheet.TabVisible := False;
+    TileSheet.TabVisible := True;
+    SettingsSheet.TabVisible := False;
+    HSMEdit.RoadControl := AoWHSSet.RoadControl;
+    ScannerFloater.SetMap(AoWHSMap);
+    if ScannerItem.Checked then ScannerFloater.ShowScanner;
+    if PlayerInfo.Checked then UnitFloater.Show;
+  end
+  else
+  begin
+    SettingsSheet.TabVisible := False;
+    TileSheet.TabVisible := False;
+    CombatSheet.TabVisible := True;
+    MainPageControl.ActivePage := CombatSheet;
+    HSMEdit.RoadControl := AoWHSSet.FCombatRoads;
+  end;
+  UpdateDefaultPlayers;
+  OverrideBtn.Down := False;
+  OverrideBtn.Enabled := True;
+  HSMEdit.Overwrite := False;
+  SelectBtn.Enabled := True;
+  SelectBtn.Down := True;
+  HSMEdit.DeselectPlaceHS;
+  HSMEdit.BrushSize := 2;
+  Brush1Btn.Enabled := True;
+  Brush2Btn.Enabled := True;
+  Brush2Btn.Down := True;
+  Brush3Btn.Enabled := True;
+  EraseBtn.Enabled := True;
+  PreviewBtn.Enabled := True;
+  ValidateMapBtn.Enabled := True;
+  HSMEdit.SetFocus;
+end;
+
+procedure TMainForm.NewMapsetClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.HSMEditUpdateFrame;
+procedure TMainForm.HSSEditActivate(Sender: TObject);
+var I: Integer;
+begin
+  if FInitialDisplay then
+  begin
+    SaveBtn.Enabled := True;
+    for I := 0 to MORPageControl.PageCount - 1 do MORPageControl.Pages[I].TabVisible := HSSEdit.Edit;
+    if HSSEdit.Edit then
+    begin
+      SettingsSheet.TabVisible := True;
+      HexagonSheet.TabVisible := True;
+      uHexagonSheet.TabVisible := True;
+      TileSheet.TabVisible := True;
+    end;
+    MORPanel.Color := clBtnFace;
+    MainPageControl.ActivePage := TileSheet;
+    MainPageControl.Visible := True;
+    AoWHSSet.FAbilityControl.ListAbilities(AbilityListBox.Items, astAll);
+    AbilityListBox.ItemIndex := 0;
+    AbilityListBoxClick(Self);
+    AoWHSSet.FSpellControl.ListSpells(SpellListBox.Items, msAll);
+    SpellListBox.ItemIndex := 0;
+    SpellListBoxClick(Self);
+  end;
+end;
+
+procedure TMainForm.HSSEditDeactivate(Sender: TObject);
+var I: Integer;
+begin
+  SaveBtn.Enabled := False;
+  MORPanel.Color := clAppWorkSpace;
+  MainPageControl.Visible := False;
+  HexagonSheet.TabVisible := False;
+  uHexagonSheet.TabVisible := False;
+  for I := 0 to MORPageControl.PageCount - 1 do MORPageControl.Pages[I].TabVisible := False;
+end;
+
+procedure TMainForm.HSMEditUpdateCaption(Sender: TObject);
 begin end;
 
-procedure TMainForm.Brush1BtnClick;
+procedure TMainForm.HSMEditShowMessage(S: string);
+begin
+  EditStatusBar.Panels[4].Text := S;
+  FMessageLifetime := HSMEdit.CurrentFrameRate * 2 + 4;
+end;
+
+procedure TMainForm.HSMEditStaticSceneUpdated(Sender: TObject);
+begin
+  FStaticTimingDirty := True;
+end;
+
+procedure TMainForm.DebugModeClick(Sender: TObject);
+begin
+  DebugMode.Checked := not DebugMode.Checked;
+end;
+
+procedure TMainForm.About1Click(Sender: TObject);
 begin end;
 
-procedure TMainForm.Brush2BtnClick;
+procedure TMainForm.RaceGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FRaceResources;
+end;
+
+procedure TMainForm.MapSettingsClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.Brush3BtnClick;
+procedure TMainForm.UnitGFXGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FUnitGFXResources;
+end;
+
+procedure TMainForm.UnitsGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FUnitResources;
+end;
+
+procedure TMainForm.PreviewBtnClick(Sender: TObject);
+begin
+  HSMEdit.ShowPreview;
+end;
+
+procedure TMainForm.N640x480Click(Sender: TObject);
+begin
+  with DDrawFullScr16DC do
+  begin
+    DisplayWidth := 640;
+    DisplayHeight := 480;
+  end;
+  N640x480.Checked := True;
+end;
+
+procedure TMainForm.N800x600Click(Sender: TObject);
+begin
+  with DDrawFullScr16DC do
+  begin
+    DisplayWidth := 800;
+    DisplayHeight := 600;
+  end;
+  N800x600.Checked := True;
+end;
+
+procedure TMainForm.N1024x768Click(Sender: TObject);
+begin
+  with DDrawFullScr16DC do
+  begin
+    DisplayWidth := 1024;
+    DisplayHeight := 768;
+  end;
+  N1024x768.Checked := True;
+end;
+
+procedure TMainForm.N1280x1024Click(Sender: TObject);
+begin
+  with DDrawFullScr16DC do
+  begin
+    DisplayWidth := 1280;
+    DisplayHeight := 1024;
+  end;
+  N1280x1024.Checked := True;
+end;
+
+procedure TMainForm.HSMEditMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  if AoWEngine.FRegistry.GetDeveloper then
+    EditStatusBar.Panels[5].Text := 'Allocated Memory: ' + IntToStr(GetHeapStatus.TotalAllocated);
+end;
+
+procedure TMainForm.HeroGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FHeroResources;
+end;
+
+procedure TMainForm.ItemResourceGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FItemGFXResources;
+end;
+
+procedure TMainForm.FaceGridLinkToResourceList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWHSSet.FFaceResources;
+end;
+
+procedure TMainForm.UnitTabControlSelectUnit(Sender: TObject; Index: Integer);
+begin
+  if Index <> -1 then HSMEdit.SelectEditResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+end;
+
+procedure TMainForm.SortNameBtnClick(Sender: TObject);
+begin
+  HeroControlGrid.SortOnName;
+end;
+
+procedure TMainForm.SortLevelBtnClick(Sender: TObject);
+begin
+  HeroControlGrid.SortOnLevel;
+end;
+
+procedure TMainForm.OpenHeroLibraryClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.OpenBtnClick;
-begin end;
+procedure TMainForm.SortItemsNameClick(Sender: TObject);
+begin
+  ItemControlGrid.SortOnName;
+end;
 
-procedure TMainForm.SaveBtnClick;
-begin end;
-
-procedure TMainForm.CloseItemClick;
-begin end;
-
-procedure TMainForm.NewItemClick;
-begin end;
-
-procedure TMainForm.SaveAsItemClick;
-begin end;
-
-procedure TMainForm.ExitItemClick;
-begin end;
-
-procedure TMainForm.FormCloseQuery(A1: Integer; A2: Integer);
-begin end;
-
-procedure TMainForm.LevelDownBtnClick;
-begin end;
-
-procedure TMainForm.LevelUpBtnClick;
-begin end;
-
-procedure TMainForm.HSMEditDeactivate;
-begin end;
-
-procedure TMainForm.HSMEditActivate;
-begin end;
-
-procedure TMainForm.NewMapsetClick;
-begin end;
-
-procedure TMainForm.HSSEditActivate;
-begin end;
-
-procedure TMainForm.HSSEditDeactivate;
-begin end;
-
-procedure TMainForm.HSMEditUpdateCaption;
-begin end;
-
-procedure TMainForm.HSMEditShowMessage(A1: Integer; A2: Integer);
-begin end;
-
-procedure TMainForm.HSMEditStaticSceneUpdated;
-begin end;
-
-procedure TMainForm.DebugModeClick;
-begin end;
-
-procedure TMainForm.About1Click;
-begin end;
-
-procedure TMainForm.RaceGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.MapSettingsClick;
-begin end;
-
-procedure TMainForm.UnitGFXGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.UnitsGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.PreviewBtnClick;
-begin end;
-
-procedure TMainForm.N640x480Click;
-begin end;
-
-procedure TMainForm.N800x600Click;
-begin end;
-
-procedure TMainForm.N1024x768Click;
-begin end;
-
-procedure TMainForm.N1280x1024Click;
-begin end;
-
-procedure TMainForm.HSMEditMouseMove;
-begin end;
-
-procedure TMainForm.HeroGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.ItemResourceGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.FaceGridLinkToResourceList(A1: Integer);
-begin end;
-
-procedure TMainForm.UnitTabControlSelectUnit(A1: Integer; A2: Integer);
-begin end;
-
-procedure TMainForm.SortNameBtnClick;
-begin end;
-
-procedure TMainForm.SortLevelBtnClick;
-begin end;
-
-procedure TMainForm.OpenHeroLibraryClick;
-begin end;
-
-procedure TMainForm.SortItemsNameClick;
-begin end;
-
-procedure TMainForm.SortTypeBtnClick;
-begin end;
+procedure TMainForm.SortTypeBtnClick(Sender: TObject);
+begin
+  ItemControlGrid.SortOnType;
+end;
 
 procedure TMainForm.HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TMainForm.DeleteHeroBtnClick;
+procedure TMainForm.DeleteHeroBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.RemoveFromMapClick;
+procedure TMainForm.RemoveFromMapClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.DeleteItemBtnClick;
+procedure TMainForm.DeleteItemBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.RemoveItemClick;
+procedure TMainForm.RemoveItemClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.RemoveLeaderFromMapClick;
+procedure TMainForm.RemoveLeaderFromMapClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.OpenItemLibraryClick;
+procedure TMainForm.OpenItemLibraryClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.NewItemBtnClick;
+procedure TMainForm.NewItemBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditItemClick;
+procedure TMainForm.EditItemClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.NewHeroBtnClick;
+procedure TMainForm.NewHeroBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.WaterBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.WaterBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(0)
+  else HSMEdit.SelectClearTerrain(0);
+end;
 
-procedure TMainForm.GrassBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.GrassBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(1)
+  else HSMEdit.SelectClearTerrain(1);
+end;
 
-procedure TMainForm.SteppeBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.SteppeBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(4)
+  else HSMEdit.SelectClearTerrain(4);
+end;
 
-procedure TMainForm.DesertBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.DesertBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(2)
+  else HSMEdit.SelectClearTerrain(2);
+end;
 
-procedure TMainForm.WastelandBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.WastelandBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(5)
+  else HSMEdit.SelectClearTerrain(5);
+end;
 
-procedure TMainForm.SnowBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.SnowBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(3)
+  else HSMEdit.SelectClearTerrain(3);
+end;
 
-procedure TMainForm.IceBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.IceBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(6)
+  else HSMEdit.SelectClearTerrain(6);
+end;
 
 procedure TMainForm.RoadBtnClick(A1: Integer);
 begin end;
 
-procedure TMainForm.EraseBtnClick;
+procedure TMainForm.EraseBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.SelectHSBtnClick;
+procedure TMainForm.SelectHSBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.HSMEditSelectPlaceHS;
+procedure TMainForm.HSMEditSelectPlaceHS(Sender: TObject);
 begin end;
 
-procedure TMainForm.OverrideBtnClick;
+procedure TMainForm.OverrideBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ChangeTerrainBtnClick;
+procedure TMainForm.ChangeTerrainBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.uWaterBtnClick;
-begin end;
+procedure TMainForm.uWaterBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(10)
+  else HSMEdit.SelectClearTerrain(10);
+end;
 
-procedure TMainForm.DirtBtnClick;
-begin end;
+procedure TMainForm.DirtBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(12)
+  else HSMEdit.SelectClearTerrain(12);
+end;
 
-procedure TMainForm.LavaBtnClick;
-begin end;
+procedure TMainForm.LavaBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(9)
+  else HSMEdit.SelectClearTerrain(9);
+end;
 
-procedure TMainForm.uIceBtnClick;
-begin end;
+procedure TMainForm.uIceBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(13)
+  else HSMEdit.SelectClearTerrain(13);
+end;
 
-procedure TMainForm.EarthBtnClick;
-begin end;
+procedure TMainForm.EarthBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(7)
+  else HSMEdit.SelectClearTerrain(7);
+end;
 
-procedure TMainForm.RockBtnClick;
-begin end;
+procedure TMainForm.RockBtnClick(Sender: TObject);
+begin
+  if not OverrideBtn.Down then HSMEdit.SelectChangeTerrain(8)
+  else HSMEdit.SelectClearTerrain(8);
+end;
 
 procedure TMainForm.ArmyBtnClick(A1: Integer);
 begin end;
@@ -702,22 +1251,22 @@ begin end;
 procedure TMainForm.ItemBtnClick(A1: Integer);
 begin end;
 
-procedure TMainForm.EditHeroClick;
+procedure TMainForm.EditHeroClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.ItemControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TMainForm.HSMEditDeselectPlaceHS;
+procedure TMainForm.HSMEditDeselectPlaceHS(Sender: TObject);
 begin end;
 
-procedure TMainForm.OpenMapSetClick;
+procedure TMainForm.OpenMapSetClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ExportTextClick;
+procedure TMainForm.ExportTextClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ImportTextClick;
+procedure TMainForm.ImportTextClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.MapSetSettingsClick(A1: Integer; A2: Integer);
@@ -726,74 +1275,146 @@ begin end;
 procedure TMainForm.LeaderSelectionGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
-procedure TMainForm.FogofWarClick;
+procedure TMainForm.FogofWarClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.PlayerInfoClick;
+procedure TMainForm.PlayerInfoClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.RemoveMapLevelClick;
+procedure TMainForm.RemoveMapLevelClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.AddMapLevelClick;
+procedure TMainForm.AddMapLevelClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.FormShow;
+procedure TMainForm.FormShow(Sender: TObject);
 begin end;
 
-procedure TMainForm.SpellListBoxClick;
-begin end;
+procedure TMainForm.SpellListBoxClick(Sender: TObject);
+var
+  Change: TNotifyEvent;
+  Info: TSpellCombatInfo;
+  D: TDamageType;
+  DamageText: string;
+  ID: Integer;
+begin
+  { Original checks the ability list before reading the spell list. }
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+    with SpellDescription do
+    begin
+      Change := OnChange;
+      OnChange := nil;
+      Text := AoWHSSet.FSpellControl.GetSpell(ID).FSpellText.Text;
+      SpellMana.Value := AoWHSSet.FSpellControl.GetSpell(ID).FBaseManaCost;
+      SpellUpkeep.Value := AoWHSSet.FSpellControl.GetSpell(ID).FManaUpkeep;
+      SpellResearchPoints.Value := AoWHSSet.FSpellControl.GetSpell(ID).FResearchCost;
+      SphereEdit.ItemIndex := Ord(AoWHSSet.FSpellControl.GetSpell(ID).FMagicSphere);
+      SphereLevelEdit.Value := AoWHSSet.FSpellControl.GetSpell(ID).FSpellLevel;
+    end;
+    SpellDescription.OnChange := Change;
+    SpellInfoMemo.Lines.Clear;
+    FillChar(Info, SizeOf(Info), 0);
+    AoWHSSet.FSpellControl.GetSpell(ID).GetCombatInfo(nil, Info);
+    SpellInfoMemo.Lines.Add('Attack: ' + IntToStr(Info.Attack));
+    SpellInfoMemo.Lines.Add('Damage: ' + IntToStr(Info.Damage));
+    SpellInfoMemo.Lines.Add('Repeat: ' + IntToStr(Info.RepeatCount));
+    SpellInfoMemo.Lines.Add('Range: ' + IntToStr(Info.Range));
+    if Info.DamageTypes <> [] then
+    begin
+      for D := Low(TDamageType) to High(TDamageType) do
+        if D in Info.DamageTypes then
+        begin
+          if DamageText <> '' then DamageText := DamageText + ', ';
+          DamageText := DamageText + TranslateRStr(TDamageTypeRStr[D]);
+        end;
+      SpellInfoMemo.Lines.Add('Damage Types: ' + DamageText);
+    end;
+    SpellInfoMemo.Lines.Add('Avg. Targets(FC): ' + IntToStr(Info.Radius));
+  end;
+end;
 
-procedure TMainForm.AbilityListBoxClick;
-begin end;
+procedure TMainForm.AbilityListBoxClick(Sender: TObject);
+var
+  Change: TNotifyEvent;
+  ID: Integer;
+  T: TAbilitySelectionType;
+begin
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    with AbilityListBox do ID := Integer(Items.Objects[ItemIndex]);
+    with AbilityDescription do
+    begin
+      Change := OnChange;
+      OnChange := nil;
+      Text := AoWHSSet.FAbilityControl.GetAbility(ID).FDescription.Text;
+    end;
+    AbilityDescription.OnChange := Change;
+    AbilityLevelPointBox.Visible := True;
+    AbilityLevelPoints.Value := AoWHSSet.FAbilityControl.GetAbility(ID).FSkillPointCost;
+    AbilityInfoMemo.Lines.Clear;
+    AoWHSSet.FAbilityControl.GetAbility(ID).ListInfo(AbilityInfoMemo.Lines, [aimStatistics]);
+    AbilitySelectionCLB.Items.Clear;
+    for T := Low(TAbilitySelectionType) to High(TAbilitySelectionType) do
+    begin
+      AbilitySelectionCLB.Items.AddObject(TranslateRStr(TAbilitySelectionTypeRStr[T]), TObject(T));
+      AbilitySelectionCLB.Checked[Ord(T)] := T in AoWHSSet.FAbilityControl.GetAbility(ID).FSelectionTypes;
+    end;
+  end;
+end;
 
 procedure TMainForm.AbilitySelectionCLBClickCheck(A1: Integer; A2: Integer);
 begin end;
 
-procedure TMainForm.AbilityLevelPointsChange;
+procedure TMainForm.AbilityLevelPointsChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.AbilityDescriptionChange;
+procedure TMainForm.AbilityDescriptionChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditAbilityTextClick;
+procedure TMainForm.EditAbilityTextClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.SpellDescriptionChange;
+procedure TMainForm.SpellDescriptionChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditSpellTextClick;
+procedure TMainForm.EditSpellTextClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.SphereEditChange;
+procedure TMainForm.SphereEditChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.SphereLevelEditChange;
+procedure TMainForm.SphereLevelEditChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.SpellManaChange;
+procedure TMainForm.SpellManaChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.SpellResearchPointsChange;
+procedure TMainForm.SpellResearchPointsChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.SpellUpkeepChange;
+procedure TMainForm.SpellUpkeepChange(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditAbilitySFXBtnClick;
+procedure TMainForm.EditAbilitySFXBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditSpellSFXClick;
+procedure TMainForm.EditSpellSFXClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.GotoItemClick(A1: Integer; A2: Integer);
 begin end;
 
-procedure TMainForm.ItemControlGridUnselect;
-begin end;
+procedure TMainForm.ItemControlGridUnselect(Sender: TObject);
+begin
+  HSMEdit.DeselectPlaceHS;
+end;
 
-procedure TMainForm.HeroControlGridUnselect;
-begin end;
+procedure TMainForm.HeroControlGridUnselect(Sender: TObject);
+begin
+  HSMEdit.DeselectPlaceHS;
+end;
 
 procedure TMainForm.GoToHeroClick(A1: Integer; A2: Integer);
 begin end;
@@ -801,64 +1422,64 @@ begin end;
 procedure TMainForm.GoToLeaderClick(A1: Integer; A2: Integer);
 begin end;
 
-procedure TMainForm.ValidateMapBtnClick;
+procedure TMainForm.ValidateMapBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.NewCombatMapClick;
+procedure TMainForm.NewCombatMapClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.LinkToCombatResources(A1: Integer);
 begin end;
 
-procedure TMainForm.UnitPositionBtnClick;
+procedure TMainForm.UnitPositionBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.BorderBtnClick;
+procedure TMainForm.BorderBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditAnimationsClick;
+procedure TMainForm.EditAnimationsClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.AbGFXEditClick;
+procedure TMainForm.AbGFXEditClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditSpellGFXClick;
+procedure TMainForm.EditSpellGFXClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ScannerItemClick;
+procedure TMainForm.ScannerItemClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditTextBtnClick;
+procedure TMainForm.EditTextBtnClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.EditLeaderClick;
+procedure TMainForm.EditLeaderClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.HeroPopupMenuPopup;
+procedure TMainForm.HeroPopupMenuPopup(Sender: TObject);
 begin end;
 
-procedure TMainForm.ItemPopupMenuPopup;
+procedure TMainForm.ItemPopupMenuPopup(Sender: TObject);
 begin end;
 
-procedure TMainForm.GameSettingsClick;
+procedure TMainForm.GameSettingsClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ExportAbilityInfoClick;
+procedure TMainForm.ExportAbilityInfoClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.HSMEditActivateDC;
+procedure TMainForm.HSMEditActivateDC(Sender: TObject);
 begin end;
 
-procedure TMainForm.RemoveLeadersMIClick;
+procedure TMainForm.RemoveLeadersMIClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.MapTextEditorMIClick;
+procedure TMainForm.MapTextEditorMIClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ExportForMultilizerClick;
+procedure TMainForm.ExportForMultilizerClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.HSMEditKeyDown;
+procedure TMainForm.HSMEditKeyDown(Sender: TObject);
 begin end;
 
 

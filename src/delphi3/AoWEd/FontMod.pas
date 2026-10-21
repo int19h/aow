@@ -25,6 +25,9 @@ type
   end;
 
 
+var
+  FontModule: TFontModule;
+
 implementation
 
 procedure TFontModule.FontModuleCreate;

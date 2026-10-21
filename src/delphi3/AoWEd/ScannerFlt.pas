@@ -7,13 +7,14 @@ unit ScannerFlt;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWInterfaceImgLib, AOWWinManager, AoWWindow, MapCtrl, Scanner;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWInterfaceImgLib, AOWWinManager, AoWWindow, MapCtrl, Scanner, AoWE;
 
 type
   TScannerFloater = class;
 
 
-  { TScannerFloater (instance size 528, VMT 00420E84) }
+  { TScannerFloater: instance size $210, VMT 00420E84; published controls
+    $1DC..$208, $20C FMap is the editor map observed by the scanner. }
   TScannerFloater = class(TForm)
   public
     published
@@ -30,7 +31,10 @@ type
     ScanWin: TInterfaceIL; { +0204 }
     Translator: TIvTranslator; { +0208 }
     public
-    F_ScannerFloater_20C: Integer;
+    FMap: TAoWHSMap; { $20C }
+    procedure SetMap(Map: TAoWHSMap);
+    procedure UpdateLevel;
+    procedure ShowScanner;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DisplayResize;  { draft }
@@ -40,13 +44,65 @@ type
     procedure TheMapMapChanged(A1: Integer);  { draft }
     procedure DisplayBltSurface;  { draft }
     procedure FormClose;  { draft }
-    procedure TheMapViewPortChange;  { draft }
+    procedure TheMapViewPortChange(Sender: TObject);
     procedure ScannerChangeTileBox;  { draft }
     procedure TheMapScannerIconsChanged;  { draft }
   end;
 
 
+var
+  ScannerFloater: TScannerFloater;
+
 implementation
+
+{$R+,Q+}
+
+procedure TScannerFloater.SetMap(Map: TAoWHSMap);
+begin
+  FMap := Map;
+  if Map <> nil then
+  begin
+    Map.SetExplorationEnabled(False);
+    FMap.SetFogEnabled(False);
+    FMap.SetSeatedPlayer(0);
+    Scanner.SetMap(AoWHSMap);
+    with Manager do
+    begin
+      WinWidth := Display.BackSurfaceWidth;
+      WinHeight := Display.BackSurfaceHeight;
+      ReAlign;
+    end;
+    UpdateLevel;
+    TheMapViewPortChange(Self);
+  end
+  else Hide;
+  Display.Invalidate;
+end;
+
+procedure TScannerFloater.UpdateLevel;
+var Control: TScanner;
+begin
+  if AoWHSMap <> nil then
+  begin
+    Scanner.SetLevel(AoWHSMap.MapContainer.MapLevels[AoWHSMap.ViewL]);
+    Control := Scanner;
+    with Control do
+    begin
+      FPreviousWidth := 0;
+      FIncremental := False;
+      FDrawn := False;
+      SetSize;
+    end;
+    Scanner.FUpdateStep := -1;
+    Scanner.DrawMap(0, 0, 999, 999);
+    Display.Invalidate;
+  end;
+end;
+
+procedure TScannerFloater.ShowScanner;
+begin
+  if FMap <> nil then Show;
+end;
 
 constructor TScannerFloater.Create(AOwner: Classes.TComponent);
 begin end;
@@ -75,8 +131,18 @@ begin end;
 procedure TScannerFloater.FormClose;
 begin end;
 
-procedure TScannerFloater.TheMapViewPortChange;
-begin end;
+procedure TScannerFloater.TheMapViewPortChange(Sender: TObject);
+begin
+  if FMap <> nil then
+  begin
+    Scanner.SetTLeft(FMap.ViewXhx - 6);
+    Scanner.SetTTop(FMap.ViewYhx - 6);
+    Scanner.SetTWidth(FMap.ViewWidthHX);
+    Scanner.SetTHeight(FMap.ViewHeightHX);
+    if FMap.MapContainer.MapLevels[FMap.ViewL] <> Scanner.FLevel then UpdateLevel;
+  end;
+  Display.Invalidate;
+end;
 
 procedure TScannerFloater.ScannerChangeTileBox;
 begin end;

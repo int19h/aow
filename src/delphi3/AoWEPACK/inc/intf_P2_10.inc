@@ -113,7 +113,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   NotEnoughGoldRStr = 'Not enough gold.'; { $5570719C }
   NotEnoughManaRStr = 'Not enough mana.';
   StructureCapturedRStr = '%s captured';
-  UnknownRStr = 'Unknown';
+  UnknownRStr = 'Unknown'; PlayerRStr = 'Player'; { AoWEd 004289AF }
   NoneRStr = 'None';
   AWarRelationIsRequiredForXRStr = 'A state of WAR is required for %s';
   AcceptAllianceRStr = 'Accept alliance';

@@ -37,6 +37,9 @@ type
   end;
 
 
+var
+  UnitFloater: TUnitFloater;
+
 implementation
 
 constructor TUnitFloater.Create(AOwner: Classes.TComponent);

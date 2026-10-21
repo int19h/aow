@@ -789,4 +789,5 @@ begin
   Use(nil, @UnitFlt.TUnitFloater.FormShow);
   Use(nil, @UnitFlt.TUnitFloater.MapControlActivateHSM);
   Use(nil, @UnitFlt.TUnitFloater.MapControlDeactivateHSM);
+{$I hosts\D1.inc}
 end.

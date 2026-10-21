@@ -227,7 +227,7 @@ type
     FOnSwapDC: TSwapDCEvent;
     FFrameRate: Integer;
     FFrameTime: Integer;
-  protected FCurrentFrameRate: Integer; private { HSMEdit uses it; one line keeps the Assert below on 1350 }
+  protected FCurrentFrameRate: Integer; public property CurrentFrameRate: Integer read FCurrentFrameRate; private { $17C; AoWEd 0042914E }
     FUpdateFrameThread: TUpdateFrameThread;
     FStatus: TDisplayStatus;
     FOptions: TDisplayOptions;

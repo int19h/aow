@@ -52,7 +52,7 @@ type
     procedure Reserved_028; virtual; abstract; { unused slot }
     procedure Reserved_02C; virtual; abstract; { unused slot }
     procedure Reserved_030; virtual; abstract; { unused slot }
-    procedure Reserved_034; virtual; abstract; { unused slot }
+    procedure Translate; virtual; abstract; { $34; AoWEd 0042856F }
     procedure Reserved_038; virtual; abstract; { unused slot }
     procedure Reserved_03C; virtual; abstract; { unused slot }
   end;

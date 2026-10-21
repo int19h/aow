@@ -60,7 +60,7 @@ type
     FReserved: Integer;
     FPlaceHS: THexagonSprite;
     FPlaceDX, FPlaceDY: Integer;
-    FHSPlaceControl: TEObject;
+    FHSPlaceControl: TEObject; public property HSPlaceControl: TEObject read FHSPlaceControl; private
     FPlaceOptions: Integer;
     FOnShowMessage: TShowMessageEvent;
     FOnStaticSceneUpdated, FOnUpdateCaption: TNotifyEvent;
@@ -68,13 +68,13 @@ type
     FSceneLevel: Shortint;
     FOnActivate, FOnDeactivate, FOnSelectPlaceHS, FOnDeselectPlaceHS: TNotifyEvent;
     FPreviewX, FPreviewY: Integer;
-    FStaticDrawTime, FDynamicDrawTime, FStaticUpdateTime, FDynamicUpdateTime: Integer;
-    FStaticBltTime, FBltTime, FIdleTime, FMaxFrameRate: Integer;
+    FStaticDrawTime, FDynamicDrawTime, FStaticUpdateTime, FDynamicUpdateTime: Integer; public property StaticDrawTime: Integer read FStaticDrawTime; property DynamicDrawTime: Integer read FDynamicDrawTime; property StaticUpdateTime: Integer read FStaticUpdateTime; property DynamicUpdateTime: Integer read FDynamicUpdateTime; private
+    FStaticBltTime, FBltTime, FIdleTime, FMaxFrameRate: Integer; public property StaticBltTime: Integer read FStaticBltTime; property BltTime: Integer read FBltTime; property IdleTime: Integer read FIdleTime; property MaxFrameRate: Integer read FMaxFrameRate; private
     FOverwrite: Boolean;
     FProgressDlg: TProgressDlg;
     procedure CMWantSpecialKey(var Message: TCMWantSpecialKey); message CM_WANTSPECIALKEY;
   protected
-    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    public procedure KeyDown(var Key: Word; Shift: TShiftState); override; protected { AoWEd 0042813C }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
