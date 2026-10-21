@@ -5589,17 +5589,17 @@ begin
   end;
 end;
 
-procedure TCombatObject.ObjectSideChanged(A1: Integer);
+procedure TCombatObject.ObjectSideChanged(A1: TCombatObject);
 var CV, DV, WallCV: Integer;
 begin
-  if TCombatObject(A1).GetSide <> GetSide then
+  if A1.GetSide <> GetSide then
   begin
-    GetTargetCVDV(TCombatObject(A1), CV, DV);
-    if TCombatData(FCombat.FCombatData).FWallType <> 0 then WallCV := GetTargetWallCV(TCombatObject(A1))
+    GetTargetCVDV(A1, CV, DV);
+    if FCombat.FCombatData.FWallType <> 0 then WallCV := GetTargetWallCV(A1)
     else WallCV := 0;
-    AddTarget(TCombatObject(A1), CV, WallCV, DV);
+    AddTarget(A1, CV, WallCV, DV);
   end
-  else RemoveTarget(TCombatObject(A1));
+  else RemoveTarget(A1);
 end;
 
 function TCombatObject.fcExecute(A1: Integer): Boolean;
@@ -5728,7 +5728,7 @@ begin
     begin
       ResetTargets;
       SetupTargets;
-      FCombat.ObjectSideChanged(Integer(Self));
+      FCombat.ObjectSideChanged(Self);
     end;
   end
   else FCombatPlayer := Player;
@@ -6215,11 +6215,11 @@ begin
       (TByteList(TCombatData(FCombatData).F_CombatData_2C).Count <> 0) then Terminate;
 end;
 
-procedure TCombat.ObjectSideChanged(A1: Integer);
+procedure TCombat.ObjectSideChanged(A1: TCombatObject);
 var I: Integer;
 begin
   for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
-    if not (csDestroyed in TCombatObject(A1).FStatus) then
+    if not (csDestroyed in A1.FStatus) then
       TCombatData(FCombatData).GetObjects(I).ObjectSideChanged(A1);
   CheckTerminate;
 end;
@@ -7686,9 +7686,9 @@ begin Result := $202BB; end;
 procedure TNewCombatRoundCA.Execute(A1: TCombat);
 var I: Integer;
 begin
-  with TCombatData(TCombat(A1).FCombatData) do Inc(FRound);
-  for I := TCombatData(TCombat(A1).FCombatData).GetCount - 1 downto 0 do
-    TCombatData(TCombat(A1).FCombatData).GetObjects(I).NewRound;
+  with A1.FCombatData do Inc(FRound);
+  for I := A1.FCombatData.GetCount - 1 downto 0 do
+    A1.FCombatData.GetObjects(I).NewRound;
 end;
 
 function TNewCombatRoundCA.Play(A1: TCombatViewer): Boolean;
@@ -7974,8 +7974,8 @@ begin
     end;
     for I := TQuadItemList(FRoundTargets).Count - 1 downto 0 do
     begin
-      Q := TQuadItemList(FRoundTargets);
-      U := TCombatPredictorUnit(Q.List^[I].A);
+      { Read the round list directly. }
+      U := TCombatPredictorUnit(TQuadItemList(FRoundTargets).List^[I].A);
       if U.FEnabled <> 0 then
       begin
         V := TQuadItemList(FRoundTargets).List^[I].B;
@@ -7990,7 +7990,7 @@ begin
           TQuadItemList(FRoundTargets).Delete(I);
         end;
       end
-      else Q.Delete(I);
+      else TQuadItemList(FRoundTargets).Delete(I);
     end;
   end;
 end;
@@ -11997,8 +11997,8 @@ begin
       while not Done and (FActions.Count <> 0) and not FPlayer.GetBusy and
         AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex) do
       begin
-        if FMoveExecuter.FStatus = mesBusy then Done := FMoveExecuter.Process
-        else
+        if FMoveExecuter.FStatus <> mesBusy then
+        { Process queued player actions before continuing movement. }
         begin
           while (FAction = nil) and (FActions.Count <> 0) do
             if not ActivateAction(0) then FActions.GetActions(0).Free;
@@ -12012,7 +12012,7 @@ begin
               Action.Free;
             end;
           end;
-        end;
+        end else Done := FMoveExecuter.Process;
         if not Done and (Executer.GetProcessTimeLeft <= 0) then Done := True;
       end;
       if FActions.Count = 0 then SetupProcessPhase(appLoop);
@@ -12026,8 +12026,8 @@ begin
       while not Done and (I < FActions.Count) and not FPlayer.GetBusy and
         AoWHSMap.FTokenManager.PlayerReady(FPlayer.FPlayerIndex) do
       begin
-        if FMoveExecuter.FStatus = mesBusy then Done := FMoveExecuter.Process
-        else
+        if FMoveExecuter.FStatus <> mesBusy then
+        { Process queued player actions before continuing movement. }
         begin
           while (FAction = nil) and (I <> FActions.Count) do
           begin
@@ -12041,7 +12041,7 @@ begin
             Done := FAction.Process;
             if not Done then DeactivateAction;
           end;
-        end;
+        end else Done := FMoveExecuter.Process;
         if not Done and (Executer.GetProcessTimeLeft <= 0) then Done := True;
       end;
       Result := (FActions.Count <> 0) and not FPlayer.GetBusy and
@@ -13883,13 +13883,13 @@ function TAIGroup.GetAdjacent: Boolean;
 var
   Locations: TXYLList;
   I: Integer;
-  Location: TXYL;
+  X, Y, L: Shortint;
 begin
   Locations := TXYLList.Create;
   for I := Count - 1 downto 0 do
   begin
-    GetUnit(I).GetLocation(Location.X, Location.Y, Location.L);
-    Locations.Add(PackXYL(Location.X, Location.Y, Location.L));
+    GetUnit(I).GetLocation(X, Y, L);
+    Locations.Add(PackXYL(X, Y, L));
   end;
   Result := LocationsConnected(Locations);
   Locations.Free;
@@ -17007,7 +17007,7 @@ end;
 
 function TAIGroupTargetSelector.GetRequiredTargetStrength(Target: TAIGroupControlTarget): Integer;
 var
-  Strengths: TDamageStrengths;
+  Strengths: TDefenseRequirements;
   Info: TBattleFieldInfo;
 begin
   if Target.FData.TargetType <> attNegotiate then
@@ -17019,7 +17019,7 @@ begin
       Target.FLocation.L, 1, Info);
     Result := Round(GetRequiredSuperiority(Target) * Info.Strength);
     TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(Target.FLocation))).
-      GetDefenseRequirements(FGroupControl.FGroup.FPlayer, TDefenseRequirements(Strengths));
+      GetDefenseRequirements(FGroupControl.FGroup.FPlayer, Strengths);
     Inc(Result, StrengthInfoMax(Strengths) div 2);
   end
   else Result := 0;
@@ -18565,12 +18565,12 @@ end;
 function TAIMoveExecuterControl.CanMoveTo(Army: TAIMoveExecuterArmy;
   Selection: Byte; X, Y, L: Shortint): Byte;
 var
-  UnitCount, TransporterCount, Capacity, I, Index, Excess: Integer;
+  TransporterCount, UnitCount, Capacity, I, Index, Excess: Integer;
   AUnit: TAbstractUnit;
   Allowed: Boolean;
   ArmyHS: TArmyHS;
   MapF: TAoWMapField;
-  Move: TAIMoveExecuterMove;
+  Move: TAIMoveExecuterMove; ExistingArmy: TArmy;
   Transporter: TAIMoveExecuterUnit;
 begin
   UnitCount := 0;
@@ -18582,7 +18582,7 @@ begin
   Result := 0;
   if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = Army.FPlayer) then
   begin
-    for I := 0 to ArmyHS.FArmy.Count - 1 do
+    ExistingArmy := ArmyHS.FArmy; for I := 0 to ExistingArmy.Count - 1 do
     begin
       AUnit := ArmyHS.FArmy.GetUnit(I);
       Index := FExecuter.FUnits.IndexOfUnitID(AUnit.FUnitID);
@@ -20762,7 +20762,7 @@ var
   Commands: TFastCombatCommandList;
   AUnit: TAbstractUnit;
   I: Integer;
-  Ability: TAbility;
+  Ability: array[0..0] of TAbility; { Keep the selected ability in its original stack slot. }
   Action: TFleeCA;
   Executed: Boolean;
 begin
@@ -20772,8 +20772,8 @@ begin
   for I := AUnit.GetAbilityCount - 1 downto 0 do
     if AUnit.GetAbilityEnabled(I) then
     begin
-      Ability := AoWHSSet.FAbilityControl.GetAbility(I);
-      Ability.fcPrefetchCombatCommands(Commands);
+      Ability[0] := AoWHSSet.FAbilityControl.GetAbility(I);
+      Ability[0].fcPrefetchCombatCommands(Commands);
     end;
   if Commands.GetCount = 0 then
     if fcBehindWall then
@@ -20786,8 +20786,8 @@ begin
         for I := AUnit.GetAbilityCount - 1 downto 0 do
           if AUnit.GetAbilityEnabled(I) then
           begin
-            Ability := AoWHSSet.FAbilityControl.GetAbility(I);
-            Ability.fcPrefetchCombatCommands(Commands);
+            Ability[0] := AoWHSSet.FAbilityControl.GetAbility(I);
+            Ability[0].fcPrefetchCombatCommands(Commands);
           end;
         FState := FState - [fsOutsideWall];
       end;
@@ -23309,11 +23309,11 @@ begin
       FArmyHS := ArmyHS;
       if Selected then
       begin
-        AoWHSMap.FSelectedArmy.Select(FArmyHS);
+        AoWHSMap.FSelectedArmy.Select(ArmyHS);
         AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
       end;
     end;
-    Exclude(FArmyHS.FArmy.FMode, amMoving);
+    FArmyHS.FArmy.FMode := FArmyHS.FArmy.FMode - [amMoving];
     FArmyHS.CancelMove;
     if Selected then
     begin
@@ -23388,7 +23388,7 @@ begin
   Result := False;
   Stop := False;
   I := FMoveIndex;
-  while (I <> 0) and not Stop and not Result do
+  while (I <> 0) and not (Stop or Result) do
   begin
     Dec(I);
     Field := GetMapF(FPath[I]);
@@ -23398,10 +23398,10 @@ begin
       ArmyHS := GetNoneMovingArmyHS(Field);
       if ArmyHS <> nil then
       begin
-        if FArmyHS.FArmy.FPlayer = ArmyHS.FArmy.FPlayer then
+        if ArmyHS.FArmy.FPlayer = FArmyHS.FArmy.FPlayer then
           Result := FArmyHS.FArmy.CanCombine(ArmyHS.FArmy, $FF)
-        else if AoWHSMap.FPlayers.GetDiplomaticRelation(ArmyHS.FArmy.FPlayer,
-          FArmyHS.FArmy.FPlayer) <> drAlliance then Stop := True;
+        else if AoWHSMap.FPlayers.GetDiplomaticRelation(FArmyHS.FArmy.FPlayer, { Original queries the moving player toward the other army. }
+          ArmyHS.FArmy.FPlayer) <> drAlliance then Stop := True;
       end
       else Result := Field.GetPlayer = FArmyHS.FArmy.FPlayer;
     end;
@@ -23478,9 +23478,9 @@ var Field: TAoWMapField;
 begin
   if FMoveIndex = 1 then
   begin
-    Field := GetMapF(FPath[0]);
-    if Field.GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then Result := True
-    else Result := inherited CanMoveNext;
+    { Evaluate the map field directly. }
+    Result := GetMapF(FPath[0]).GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate; if not Result then Result := inherited CanMoveNext;
+    { Otherwise retain the successful negotiation test. }
   end
   else Result := inherited CanMoveNext;
 end;
@@ -23513,14 +23513,14 @@ var Field: TAoWMapField;
 begin
   if FMoveIndex = 1 then
   begin
-    if FArmyHS.GetMoveStatus = -1 then Result := False
-    else
+    if FArmyHS.GetMoveStatus <> -1 then
     begin
-      Field := GetMapF(FPath[0]);
-      if Field.GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then
+      { Process the negotiate or ordinary move animation. }
+      { Evaluate the map field directly. }
+      if GetMapF(FPath[0]).GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then
         Result := FArmyHS.GetMoveStatus < 50
       else Result := FArmyHS.GetMoveStatus < 100;
-    end;
+    end else Result := False;
   end
   else Result := inherited Animating;
 end;
@@ -23690,9 +23690,9 @@ begin
         if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
           ((Field.GetPlayer > 0) and
            (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
-          FCombatType := ctTactical
-        else FCombatType := ctFast;
-        FCombatMode := cmSetupReady;
+          begin FCombatType := ctTactical; FCombatMode := cmSetupReady; end
+        else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+        { Set the mode in both branches, as in the original. }
       end
       else FCombatMode := cmRequestingCombatType;
   end
@@ -23711,9 +23711,9 @@ begin
         if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
           ((Field.GetPlayer > 0) and
            (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
-          FCombatType := ctTactical
-        else FCombatType := ctFast;
-        FCombatMode := cmSetupReady;
+          begin FCombatType := ctTactical; FCombatMode := cmSetupReady; end
+        else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+        { Set the mode in both branches, as in the original. }
       end
       else FCombatMode := cmRequestingCombatType;
   end
@@ -23732,13 +23732,13 @@ begin
         if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
           ((Field.GetPlayer > 0) and
            (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
-          FCombatType := ctTactical
-        else FCombatType := ctFast;
-        FCombatMode := cmSetupReady;
+          begin FCombatType := ctTactical; FCombatMode := cmSetupReady; end
+        else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+        { Set the mode in both branches, as in the original. }
       end
       else FCombatMode := cmRequestingCombatType;
   end
-  else if AoWHSMap.FPlayMode = pmTurn then
+  else if AoWHSMap.FConnectionType = pcNetwork then { Original tests connection type here, not play mode. }
   begin
     if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
       ((Field.GetPlayer > 0) and
@@ -23746,13 +23746,13 @@ begin
     begin
       case AoWHSMap.FVictoryMode of
         0: begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
-        1:
+        2: FCombatMode := cmRequestingCombatType; 1:
           if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) and
             (Field.GetPlayer > 0) and
             (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman) then
             FCombatMode := cmRequestingCombatType
           else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
-        2: FCombatMode := cmRequestingCombatType;
+        { The original tests the always-available case before the human-only case. }
       else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
       end;
     end
@@ -23780,7 +23780,7 @@ begin
     begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
     Combat.Free;
   end;
-  if (AoWHSMap.FPlayMode = pmTurn) and (FCombatMode = cmRequestingCombatType) then
+  if (AoWHSMap.FConnectionType = pcNetwork) and (FCombatMode = cmRequestingCombatType) then { Original uses connection type here too. }
   begin
     AoWHSMap.DisableTurnTimer;
     AoWHSMap.FAIExecuter.Lock;
@@ -24117,8 +24117,8 @@ var Field: TAoWMapField;
 begin
   if FMoveIndex = 1 then
   begin
-    Field := GetMapF(FPath[0]);
-    if Field.GetPlayer <> FArmyHS.FArmy.FPlayer then
+    { Evaluate the field without retaining a second reference. }
+    if FArmyHS.FArmy.FPlayer <> GetMapF(FPath[0]).GetPlayer then
     begin
       Result := AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FGameOverStatus = goNone;
       Exit;
@@ -37188,15 +37188,15 @@ end;
 
 function TStrikeAbility.Remove(A1: TAbilityOwner): Boolean;
 var
-  I: Integer;
+  I: Integer; AbilitySet: ^TAoWHSSet;
 begin
-  if A1.GetAbEnabled(21) then
+  AbilitySet := @AoWHSSet; if A1.GetAbEnabled(21) then
   begin
     inherited Remove(A1);
     for I := A1.GetAbCount - 1 downto 0 do
       if A1.GetAbEnabled(I) then
-        if AoWHSSet.FAbilityControl.GetAbility(I) is TStrikeEnhancementAbility then
-          while AoWHSSet.FAbilityControl.GetAbility(I).Remove(A1) do;
+        if AbilitySet^.FAbilityControl.GetAbility(I) is TStrikeEnhancementAbility then
+          while AbilitySet^.FAbilityControl.GetAbility(I).Remove(A1) do;
     Result := True;
   end
   else
@@ -37358,9 +37358,9 @@ function TStrikeAbility.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastComba
 var
   Round: TMeleeRound;
   I: Integer;
-  Target: TCombatObject;
   Stop: Boolean;
-  Action: TCombatAction;
+  Target: TCombatObject;
+  Action: TCombatAction; MoveCA: TMoveWallCA;
   Strike: TMeleeStrike;
 begin
   Target := A2.FTarget;
@@ -37374,11 +37374,11 @@ begin
     if A1.fcBehindWall and A1.fcWallInBetween(Target.FPosition) and
       not (wcWallPassing in Target.WallCombatFeatures) then
     begin
-      Action := TMoveWallCA.Create(nil);
-      TMoveWallCA(Action).F_MoveWallCA_0C := A1.FID;
-      TMoveWallCA(Action).F_MoveWallCA_0D := 0;
-      A1.FCombat.ExecuteCombatAction(Action);
-      Action.Release;
+      MoveCA := TMoveWallCA.Create(nil);
+      with MoveCA do F_MoveWallCA_0C := A1.FID;
+      with MoveCA do F_MoveWallCA_0D := 0;
+      A1.FCombat.ExecuteCombatAction(MoveCA);
+      MoveCA.Release;
     end;
   end;
   while (I < Round.FCount) and not Stop do
@@ -39158,7 +39158,7 @@ begin
 end;
 function TTurnUndeadAbility.ExpandCost(A1: TAbilityOwner): Integer;
 begin
-  if GetLevel(A1) < 4 then Result := 5
+  Result := GetLevel(A1); if Result < 4 then Result := 5
   else Result := 0;
 end;
 function TTurnUndeadAbility.CanExpand(A1: TAbilityOwner): Boolean;
@@ -41124,11 +41124,11 @@ begin
   UnitOwner := A1.FUnit;
   if UnitOwner.GetAbilityEnabled(FAbilityID) then
   begin
-    Data := TCommandAbilityData(UnitOwner.GetAbilityData(FAbilityID));
+    Data := TCommandAbilityData(A1.FUnit.GetAbilityData(FAbilityID));
     if Data <> nil then
       for I := Data.FCommandedUnits.Count - 1 downto 0 do
       begin
-        Target := TCombatUnit(A1.FCombat.FCombatData.FindID(Data.FCommandedUnits[I]));
+        Target := TCombatUnit(A1.FCombat.FCombatData.FindID(Data.FCommandedUnits.List^[I]));
         if Target <> nil then Uncommand(Target);
       end;
   end;
@@ -41490,8 +41490,8 @@ begin
   while (Result = nil) and (I <> 0) do
   begin
     Dec(I);
-    Control := TConstructionControl(FChildren.List^[I]);
-    if Control.ID = ID then Result := TConstructionControl(FChildren.List^[I]);
+    { Read the list again after the virtual ID call. }
+    if TConstructionControl(FChildren.List^[I]).ID = ID then Result := TConstructionControl(FChildren.List^[I]);
   end;
 end;
 constructor TConstructAbility.Create(AOwner: Engine.TECustomNode);
@@ -45374,11 +45374,11 @@ begin
   Result := FRegisteredSpells.Count;
 end;
 function TSpellControl.GetSpell(Index: Integer): TSpell;
-{ conflict: function TSpellControl.GetSpell(SpellID: Integer): TSpell; }
+var P: Pointer;
 begin
   Assert(Index >= 0);
   if Index < FRegisteredSpells.Count then
-    Result := TSpell(FRegisteredSpells[Index])
+    begin P := FRegisteredSpells[Index]; Result := TSpell(P); end
   else
     Result := nil;
 end;
@@ -47025,13 +47025,13 @@ procedure TPlayerMagicControl.ValidateEnchantmentID(Enchantment: TEnchantment);
 var
   ID: Integer;
 begin
-  ID := Enchantment.FEnchantmentID;
-  if (ID = 0) or (ID shr 24 <> FPlayer.FPlayerIndex) then Enchantment.FEnchantmentID := 0
-  else
+  { Preserve a valid unused ID before allocating a new one. }
+  if (Enchantment.FEnchantmentID <> 0) and (Enchantment.FEnchantmentID shr 24 = FPlayer.FPlayerIndex) then
   begin
+    ID := Enchantment.FEnchantmentID;
     Enchantment.FEnchantmentID := 0;
     if FEnchantments.IndexOfID(ID) = -1 then Enchantment.FEnchantmentID := ID;
-  end;
+  end else Enchantment.FEnchantmentID := 0;
   if Enchantment.FEnchantmentID = 0 then
   begin
     if FNextEnchantmentID = 0 then FNextEnchantmentID := 1;

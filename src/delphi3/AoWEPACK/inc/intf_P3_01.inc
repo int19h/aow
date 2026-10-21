@@ -188,7 +188,7 @@
     procedure Activate(A1: Integer); virtual;  { +0BC draft }
     procedure Deactivate; virtual;  { +0C0 draft }
     procedure ObjectDestroyed(A1: TCombatObject); virtual;  { +0C4; 55726934 }
-    procedure ObjectSideChanged(A1: Integer); virtual;  { +0C8 draft }
+    procedure ObjectSideChanged(A1: TCombatObject); virtual;  { +0C8; 5572653C }
     procedure Initialize(A1: Integer); virtual;  { +0CC draft }
     procedure Finalize(A1: TFinalizeMode); virtual;  { +0D0 draft }
     function fcRoundDistance: Integer; virtual;  { +0D4 }
