@@ -42,7 +42,7 @@ class function TOverlayObjectResourceEditor.EditorClassID: Integer;
 begin Result := $2009D; end;
 
 class procedure TOverlayObjectResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TOverlayObjectResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 constructor TOverlayObjectResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
 begin

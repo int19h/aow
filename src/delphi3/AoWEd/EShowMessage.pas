@@ -36,10 +36,10 @@ type
 implementation
 
 class procedure TShowMessageEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TShowMessageEditForm.vmt90(Obj, Done); end;
 
 class procedure TShowMessageEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TShowMessageEditForm.OKBtnClick(Sender: TObject);
 begin

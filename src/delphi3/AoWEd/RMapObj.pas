@@ -649,10 +649,10 @@ end;
 
 procedure TMapObjectResourceEditForm.SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer);
 begin
-  with SequenceDisplayEditor do
+  with Self do
   begin
-    ImageCenterX := (BackSurfaceWidth shr 1) - 16;
-    ImageCenterY := (BackSurfaceHeight shr 1) - 16;
+    SequenceDisplayEditor.ImageCenterX := (SequenceDisplayEditor.BackSurfaceWidth shr 1) - 16;
+    SequenceDisplayEditor.ImageCenterY := (SequenceDisplayEditor.BackSurfaceHeight shr 1) - 16;
   end;
 end;
 

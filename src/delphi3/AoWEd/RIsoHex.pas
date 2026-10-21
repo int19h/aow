@@ -34,7 +34,7 @@ class function TIsometricHexagonResourceEditor.EditorClassID: Integer;
 begin Result := $2016E; end;
 
 class procedure TIsometricHexagonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TIsometricHexagonEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 procedure TIsometricHexagonEditForm.FormCreate(Sender: TObject);
 begin

@@ -55,10 +55,10 @@ implementation
 uses Dungeon, UnitFlt;
 
 class procedure TDungeonEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TDungeonEditForm.vmt90(Obj, Done); end;
 
 class procedure TDungeonEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TDungeonEditForm.MainPageControlChange(Sender: TObject);
 begin

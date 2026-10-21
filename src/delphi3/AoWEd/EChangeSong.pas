@@ -45,7 +45,7 @@ implementation
 uses MoveOnEvents;
 
 class procedure TChangeSongEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TChangeSongEditForm.FormCreate(Sender: TObject);
 begin

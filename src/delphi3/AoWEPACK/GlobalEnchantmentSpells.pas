@@ -1525,8 +1525,8 @@ end;
 
 procedure TDeathMasteryEnchantment.NewTurn(Player: Shortint);
 var
-  X, Y, L, Index, Mask: Integer;
-  Flags: PByteArray;
+  X, Y, L, Index: Integer;
+  Flags: PByteArray; Mask: Integer;
   MapLevel: TMapLevel;
   Walk: THNWalkData;
   Border: Boolean;
@@ -1573,7 +1573,7 @@ procedure TDeathMasteryEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020002 then
-    if Msg.Value <> 0 then
+    if LongBool(Msg.Value) then
       if petDeathMastery in WorldMap^.FPlayers.GetPlayers(Msg.Value).FMagicControl.FEnemyEnchantments then
         NewTurn(Msg.Value);
 end;
@@ -1728,7 +1728,7 @@ procedure TFireMasteryEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020003 then
-    if Msg.Value <> 0 then
+    if LongBool(Msg.Value) then
       if petFireMastery in WorldMap^.FPlayers.GetPlayers(Msg.Value).FMagicControl.FActiveEnchantments then
         UpdateFire(2, not WorldMap^.FRequestCombatType);
 end;

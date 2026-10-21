@@ -41,7 +41,7 @@ class procedure TFireEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; 
 begin end;
 
 class procedure TFireEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TFireEditForm.FormCreate(Sender: TObject);
 var

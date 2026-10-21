@@ -43,7 +43,7 @@ type
 implementation
 
 class procedure TCombatTerrainResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TCombatTerrainResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 procedure TCombatTerrainResourceEditForm.FormCreate(Sender: TObject);
 begin

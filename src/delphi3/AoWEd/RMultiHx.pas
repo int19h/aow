@@ -77,7 +77,7 @@ class function TMultiHexResourceEditor.EditorClassID: Integer;
 begin Result := $10155; end;
 
 class procedure TMultiHexResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TMultiHexResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 function TMultiHexResourceEditForm.vmt9C(Hexagon: Integer): Boolean;
 var

@@ -48,7 +48,7 @@ class function TDungeonResourceEditor.EditorClassID: Integer;
 begin Result := $2032B; end;
 
 class procedure TDungeonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TDungeonResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 procedure TDungeonResourceEditForm.MainPageControlChange(Sender: TObject);
 begin

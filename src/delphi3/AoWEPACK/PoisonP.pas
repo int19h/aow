@@ -208,12 +208,12 @@ end;
 
 function TPoisonPlant.CanMoveOver(const Info: HSEngine.THSSenderInfo): Integer;
 begin
-  if (FResource.TerrainList.GetTerrain(Info.HN) < 0) or not PoisonPlantActive or
-    not CanDoDamage(TMoveControl(Info.Sender).FSettings.FUnits) then
-    Result := 1
-  else
-    Result := 0;
+  if (FResource.TerrainList.GetTerrain(Info.HN) >= 0) and PoisonPlantActive then
+    if not CanDoDamage(TMoveControl(Info.Sender).FSettings.FUnits) then Result := 1
+    else Result := 0
+  else Result := 1;
 end;
+
 
 procedure TPoisonPlant.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin

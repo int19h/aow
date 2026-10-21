@@ -35,10 +35,10 @@ type
 implementation
 
 class procedure TFarmEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TFarmEditForm.vmt90(Obj, Done); end;
 
 class procedure TFarmEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TFarmEditForm.FormCreate(Sender: TObject);
 begin

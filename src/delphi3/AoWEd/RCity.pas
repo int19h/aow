@@ -34,7 +34,7 @@ type
 implementation
 
 class procedure TCityResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TCityResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 constructor TCityResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
 begin

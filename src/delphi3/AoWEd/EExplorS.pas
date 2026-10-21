@@ -61,10 +61,10 @@ class function TExplorationSiteEditor.EditorClassID: Integer;
 begin Result := $203C1; end;
 
 class procedure TExplorationSiteEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TExplorationSiteEditForm.vmt90(Obj, Done); end;
 
 class procedure TExplorationSiteEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TExplorationSiteEditForm.AddBtnClick(Sender: TObject);
 begin

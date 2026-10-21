@@ -2894,11 +2894,11 @@ begin
   if AoWCombatMap.MapContainer.MapLevels[0].Field[X, Y].TerrainType <> 15 then begin
     if UnitHS.FSelectedAbility = $34 then begin
       AoWHSSet.FSpellControl.GetSpell(UnitHS.FSelectedSpell).GetCombatInfo(UnitHS.FUnit.FUnit, Info);
-      if Info.Range < 1 then Range := 100 else Range := Info.Range;
+      if Info.Range > 0 then Range := Info.Range else Range := 100;
     end else if AoWHSSet.FAbilityControl.GetAbility(UnitHS.FSelectedAbility).GetCombatMode(GetTCUnitHS.FUnit.FUnit) = cmLongRange then Range := 12
     else if AoWHSSet.FAbilityControl.GetAbility(UnitHS.FSelectedAbility).GetCombatMode(GetTCUnitHS.FUnit.FUnit) = cmMediumRange then Range := 8 else Range := 4;
     if (UnitHS.FUnit.GetMoves = UnitHS.FUnit.FMovePoints) and (X > 0) and (dHXtoRad(X, Y, UnitHS.GetXhx, UnitHS.GetYhx) <= Range) then begin
-      GetTCUnitHS;
+      with GetTCUnitHS do begin { Original retains this unused with temporary. }
       FTargetX := X; FTargetY := Y;
       Direction := dHXtoHN(UnitHS.GetXhx, UnitHS.GetYhx, X, Y);
       NX := X; NY := Y;
@@ -2908,7 +2908,7 @@ begin
           CenterHNtoHX(UnitHS.GetXhx, UnitHS.GetYhx, BreathHN[BreathDirection[Direction] * 12 - 12], NX, NY);
       end;
       MakeAbilPath(GetTCUnitHS.FUnit.GetSide, GetTCUnitHS.FSelectedAbility, GetTCUnitHS.FSelectedSpell,
-        GetTCUnitHS.GetXhx, GetTCUnitHS.GetYhx, NX, NY, FRangedPath, FObstacles);
+        GetTCUnitHS.GetXhx, GetTCUnitHS.GetYhx, NX, NY, FRangedPath, FObstacles); end;
     end;
   end;
   FRangedPathHS.FSelection := Self;

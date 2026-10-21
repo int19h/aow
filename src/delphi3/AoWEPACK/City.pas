@@ -392,7 +392,7 @@ const
   CityBattleWonText: PResStringRec = @AoWE.CityBattleWonRStr;
   CityBattleLostText: PResStringRec = @AoWE.CityBattleLostRStr;
   CityBattleDrawnText: PResStringRec = @AoWE.CityBattleDrawnRStr;
-  NotEnoughGold: PResStringRec = @CityNotEnoughGoldRStr;
+  NotEnoughGold: PResStringRec = @AoWE.NotEnoughGoldRStr;
   WarningText: PResStringRec = @CityWarningRStr;
   WoodenWallText: PResStringRec = @CityWoodenWallRStr;
   StoneWallText: PResStringRec = @CityStoneWallRStr;
@@ -1074,15 +1074,15 @@ begin
   end;
 end;
 
-procedure TCity.ValidateAICityAction;
+procedure TCity.ValidateAICityAction; var Cancel: Boolean;
 begin
   if (FPlayer > 0) and (WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman) and
     ([cmWarmode, cmRazed] * FMode = []) and not (GetActiveAction in [caNone, caTrade]) then
-    if (WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(FPlayer) in [sHostile, sWary, sNeutral]) and
+    begin Cancel := (WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(FPlayer) in [sHostile, sWary, sNeutral]) and
       not ((GetActiveAction = caMigrate) and
         (WorldMap^.FRaces.GetRace(FProduction.FQueue.GetItem(0).FParameter).GetPlayerRelation(FPlayer)
-          in [sPolite, sFriendly])) then
-      FProduction.ExecuteDeleteProductions;
+          in [sPolite, sFriendly]));
+      if Cancel then FProduction.ExecuteDeleteProductions; end;
 end;
 
 procedure TCity.SetPlayer(Player: Shortint);
@@ -2199,8 +2199,8 @@ end;
 procedure TCity.InitCombat(Combat: TCombat; Army: TArmyHS);
 begin
   if FPlayer = 0 then
-    with Combat.FCombatData do
-      FPlayers.GetPlayers(FDefenderPlayer).FIndependentRelation := GetEnemiesIndependentRelation(Army.FArmy.FPlayer);
+    begin
+      Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FDefenderPlayer).FIndependentRelation := GetEnemiesIndependentRelation(Army.FArmy.FPlayer); end;
   Combat.InitDefaultArmies(Army.FArmy, Army.GetXhx, Army.GetYhx, Army.GetLhx);
 end;
 
@@ -2293,7 +2293,7 @@ begin
 end;
 
 function TCity.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
-var Amount, I: Integer; Armies: TArmyHSList; Log: TLocationTextEventLog;
+var Amount: Integer; Armies: TArmyHSList; I: Integer; Log: TLocationTextEventLog;
 begin
   if Offer.FObject = noCity then
   begin
@@ -2316,7 +2316,7 @@ begin
         Log.Release;
         Offer.Accept;
       end
-      else WorldMap^.ShowMessage(TranslateRStr(NotEnoughGoldRStr));
+      else WorldMap^.ShowMessage(TranslateRStr(LoadResString(NotEnoughGold)));
     end
     else Offer.Reject;
     Result := True;
@@ -3278,24 +3278,24 @@ var
   I: Integer;
   Structure: TPlayerStructure;
 begin
-  if WorldMap^ = nil then Result := -1
-  else
+  if AoWHSMap <> nil then
+
   begin
-    P := WorldMap^.FPlayers.GetPlayers(Player);
+    P := AoWHSMap.FPlayers.GetPlayers(Player);
     Result := 0;
     for I := 0 to P.FStructures.Count - 1 do
     begin
       Structure := P.FStructures.GetStructure(I);
       if (Structure.ClassID = $20108) and (Structure.FPlayer = Player) then Inc(Result, TCity(Structure).FIncome);
     end;
-  end;
+  end else Result := -1;
 end;
 
 
 class procedure TRegistrator.MapLoaded(Sender: TObject);
 begin
-  if Sender = WorldMap^ then
-    WorldMap^.FAIPlayerActionManager.RegisterClasses([TCityAIPA]);
+  if Sender = AoWHSMap then
+    AoWHSMap.FAIPlayerActionManager.RegisterClasses([TCityAIPA]);
 end;
 
 initialization

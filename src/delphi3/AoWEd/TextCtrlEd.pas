@@ -56,8 +56,8 @@ begin
   else TextScrollBar.Max := 0;
   if FText <> nil then
   begin
-    with TextScrollBar do
-      if FTextControl.IndexOf(FText) <> Position then Position := FTextControl.IndexOf(FText);
+    if FTextControl.IndexOf(FText) <> TextScrollBar.Position then
+      TextScrollBar.Position := FTextControl.IndexOf(FText);
   end
   else TextScrollBar.Position := 0;
 end;

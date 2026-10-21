@@ -94,10 +94,10 @@ end;
 
 
 class procedure TCityEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TCityEditForm.vmt90(Obj, Done); end;
 
 class procedure TCityEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TCityEditForm.FormCreate(Sender: TObject);
 begin

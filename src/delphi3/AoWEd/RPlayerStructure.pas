@@ -33,7 +33,7 @@ class function TPlayerStructureResourceEditor.EditorClassID: Integer;
 begin Result := $2034D; end;
 
 class procedure TPlayerStructureResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TPlayerStructureResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 
 end.

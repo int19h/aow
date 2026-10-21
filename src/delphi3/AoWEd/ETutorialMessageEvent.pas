@@ -40,10 +40,10 @@ class function TTutorialMessageEventEditor.EditorClassID: Integer;
 begin Result := $2056B; end;
 
 class procedure TTutorialMessageEventEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TTutorialMessageEventEditForm.vmt90(Obj, Done); end;
 
 class procedure TTutorialMessageEventEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TTutorialMessageEventEditForm.FormCreate(Sender: TObject);
 begin

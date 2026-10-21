@@ -73,10 +73,10 @@ class function TWizardsTowerEditor.EditorClassID: Integer;
 begin Result := $2089E; end;
 
 class procedure TWizardsTowerEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TWizardsTowerEditForm.vmt90(Obj, Done); end;
 
 class procedure TWizardsTowerEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin Handled := Handled + [emEdit]; end;
 
 procedure TWizardsTowerEditForm.FormCreate(Sender: TObject);
 var

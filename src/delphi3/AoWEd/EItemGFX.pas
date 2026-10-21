@@ -50,7 +50,7 @@ type
 implementation
 
 class procedure TItemGFXEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TItemGFXEditForm.vmt80(AEngine, TEResource(Obj), Done); end;
 
 constructor TItemGFXEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
 begin

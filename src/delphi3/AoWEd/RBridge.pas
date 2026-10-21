@@ -33,7 +33,7 @@ class function TBridgeResourceEditor.EditorClassID: Integer;
 begin Result := $20175; end;
 
 class procedure TBridgeResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TBridgeResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 
 end.

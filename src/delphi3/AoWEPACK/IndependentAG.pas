@@ -216,10 +216,10 @@ begin
           TGuardAreaAG(FGroup).FGuardLocation := FLocation;
         Finder := TAIGroupTargetFinder.Create(nil);
         Finder.Setup(Self);
-        with Finder.FSelector do
+        with Finder do
         begin
-          FSourceLocation := TGuardAreaAG(FGroup).FGuardLocation;
-          FTargetInfo.Mode := tmGuardArea;
+          FSelector.FSourceLocation := TGuardAreaAG(FGroup).FGuardLocation;
+          FSelector.FTargetInfo.Mode := tmGuardArea;
         end;
         Finder.FSelector.FMovePointsMax := FArmy.Moves(FSelection);
         ActivatePlugin(Finder);
@@ -268,7 +268,7 @@ begin
           if (MapF.GetPlayer = -1) or (MapF.GetPlayer = FGroup.FPlayer) then
           begin
             SetupME;
-            with TGuardAreaAG(FGroup).FGuardLocation do ExecuteME(X, Y, L);
+            with TGuardAreaAG(FGroup) do ExecuteME(FGuardLocation.X, FGuardLocation.Y, FGuardLocation.L);
           end
           else Done;
         end

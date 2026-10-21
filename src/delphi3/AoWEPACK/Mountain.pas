@@ -317,10 +317,10 @@ end;
 function TRaiseTerrainTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
-  RaiseTerrain(TAbstractUnit(A1));
-  WorldMap^.ValidateTerrainObservation(TAbstractUnit(A1).FPlayer,
+  RaiseTerrain(A1);
+  WorldMap^.ValidateTerrainObservation(A1.FPlayer,
     TLocation(FLocation).X, TLocation(FLocation).Y, TLocation(FLocation).Layer, 1);
-  WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(TAbstractUnit(A1), FEventMana);
+  WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
   Result := False;
 end;
 

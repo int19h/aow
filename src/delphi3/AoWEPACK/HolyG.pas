@@ -322,10 +322,10 @@ end;
 function THolyGroundSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 begin
   inherited Process(A1, A2);
-  CreateHolyGround(TAbstractUnit(A1));
-  WorldMap^.ValidateTerrainObservation(TAbstractUnit(A1).FPlayer,
+  CreateHolyGround(A1);
+  WorldMap^.ValidateTerrainObservation(A1.FPlayer,
     TXYL(FLocation).X, TXYL(FLocation).Y, TXYL(FLocation).L, 1);
-  WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(TAbstractUnit(A1), FEventMana);
+  WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
   Result := False;
 end;
 
