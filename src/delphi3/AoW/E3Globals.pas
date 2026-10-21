@@ -5,46 +5,46 @@ interface
 uses AoWE, aowIntGfxMod, FontMod, AoWUnit, AoWItemBanner, AoWSWindow,
   AOWMWindow, AoWTBWindow, AoWPInfoWin, AOWControlWin, AoWUnitSelDlg,
   AoWUnitWindow, AoWTargetSelection, AoWArmyInfoDlg, AoWDisjunctionDlg,
-  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow, AOWDialogWin, AoWProgressDialog, Forms, Controls, Classes, AoWWorldMap, AoWTitleScene, AoWVideoDlg, AoWSpellBook, AOWMultiWin, AoWResultsWin, AoWPOP3Dlg, AoWCastUnitSpellDlg, AoWDeformFaceDlg;
+  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow, AOWDialogWin, AoWProgressDialog, Forms, Controls, Classes, AoWWorldMap, AoWTitleScene, AoWVideoDlg, AoWSpellBook, AOWMultiWin, AoWResultsWin, AoWExeForms, E1Globals, E2Globals, AoWPOP3Dlg, AoWCastUnitSpellDlg, AoWDeformFaceDlg;
 var
-  IntGfxMod: TIntGfxMod;
-  FontModule: TFontModule;
-  MainForm: TMainForm;
+  IntGfxMod: TIntGfxMod absolute aowIntGfxMod.IntGfxMod; { $45B03C }
+  FontModule: TFontModule absolute AoWExeForms.FontModule; { $45B034 }
+  MainForm: TMainForm absolute AoWUnit.MainForm; { $45B2B0 }
   ItemBanner: TItemBanner absolute AoWItemBanner.ItemBanner; { $45B05C }
   { conflict: ItemBanner: TItemBanner; }
   ItemID: Integer absolute AoWItemBanner.ItemID; { $45B060 }
   { conflict: ItemID: Integer; }
   IWindow: TIWindow absolute AoWInfoWin.IWindow;
-  RealmWin: TRealmWin;
-  MagicWin: TMagicWin;
-  SWindow: TSWindow;
-  MWindow: TMWindow;
-  TBWindow: TTBWindow;
+  RealmWin: TRealmWin absolute AoWRealm.RealmWin; { $45B240 }
+  MagicWin: TMagicWin absolute AoWExeForms.MagicWin; { $45B180 }
+  SWindow: TSWindow absolute AoWSWindow.SWindow; { $45B2A0 }
+  MWindow: TMWindow absolute AOWMWindow.MWindow; { $45B298 }
+  TBWindow: TTBWindow absolute AoWExeForms.TBWindow; { $45B2C8 }
   PInfoW: TPInfoW absolute AoWPInfoWin.PInfoW;
   ControlWin: TControlWin absolute AOWControlWin.ControlWin; { $45B054; 00404F58 }
   UnitSelectionDlg: TUnitSelectionDlg;
-  UnitWindow: TUnitWindow;
+  UnitWindow: TUnitWindow absolute AoWUnitWindow.UnitWindow; { $45B070 }
   TargetSelectionDlg: TTargetSelectionDlg absolute AoWWorldMap.TargetSelectionDlg;
   ArmyInfoDlg: TArmyInfoDlg;
   DisjunctionDlg: TDisjunctionDlg;
-  ChatWindow: TChatWindow;
-  TCUnit: TTCUnit;
-  TCScanner: TTCScanner;
+  ChatWindow: TChatWindow absolute AoWExeForms.ChatWindow; { $45B0B0 }
+  TCUnit: TTCUnit absolute AoWExeForms.TCUnit; { $45B1A8 }
+  TCScanner: TTCScanner absolute AoWExeForms.TCScanner; { $45B290 }
   EmailSettingsDlg: TEmailSettingsDlg;
   EmailGameSettingsDlg: TEmailGameSettingsDlg;
-  TitleWindow: TTitleWindow;
-  DialogWin: TDWin;
-  ProgressDialog: TProgressDialog;
-  WorldMap: TWorldMap;
-  TitleScene: TTitleScene;
-  SpellBook: TSpellBook;
-  MultiWindow: TMultiWindow;
-  ResultsWin: TResultsWin;
+  TitleWindow: TTitleWindow absolute E2Globals.TitleWindow; { $45B15C }
+  DialogWin: TDWin absolute E2Globals.DialogWin; { $45B288 }
+  ProgressDialog: TProgressDialog absolute E2Globals.ProgressDialog; { $45B0B8 }
+  WorldMap: TWorldMap absolute E1Globals.WorldMap; { $45B0F8 }
+  TitleScene: TTitleScene absolute E2Globals.TitleScene; { $45B0E8 }
+  SpellBook: TSpellBook absolute AoWExeForms.SpellBook; { $45B188 }
+  MultiWindow: TMultiWindow absolute AoWExeForms.MultiWindow; { $45B16C }
+  ResultsWin: TResultsWin absolute AoWResultsWin.ResultsWin; { $45B14C }
   POP3Dlg: TPOP3Dlg;
   CastUnitSpellDlg: TCastUnitSpellDlg;
   DeformFaceDlg: TDeformFaceDlg;
-procedure RefreshCombatUnit(Window: TTCUnit);
-procedure ShowResults(Window: TResultsWin);
+
+
 procedure HideItemSelection(Window: TIWindow);
 procedure RefreshMagicWindow(Window: TMagicWin);
 procedure MagicPlayerChanged(Window: TMagicWin; Player: Shortint);
@@ -90,7 +90,7 @@ const
 
 implementation
 
-uses E1Resources, AoWComp, AoWExeForms, AoWWinMan, Sound, SysUtils, AoWCheckBox, AoWMessageDlg;
+uses E1Resources, AoWComp, AoWWinMan, Sound, SysUtils, AoWCheckBox, AoWMessageDlg;
 
 procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
 begin
@@ -196,28 +196,28 @@ begin
   if Window.Dlg.Visible then RefreshGlobalMagic(Window);
 end;
 
-procedure ShowResults(Window: TResultsWin);
-var I: Integer;
-begin
-  if AoWEngine.FDemo then PlaySongEx('Songs\Special\end2.s3m', 2, 2, True)
-  else PlaySongEx('Songs\Special\Sunset.it', 2, 2, True);
-  SetMusicVolume(0);
-  FadeMusicVolume(AoWExeForms.SoundDlg.MusicVolume.Position, 1);
-  Window.FPlayers.Clear;
-  for I := 1 to AoWHSMap.FPlayers.Count - 1 do
-    if AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptIndependent then Window.FPlayers.Add(I);
-  for I := 0 to 11 do
-  begin
-    TAOWCheckBox(Window.FControls[I]).Visible := I < Window.FPlayers.Count;
-    TAOWCheckBox(Window.FControls[I]).Checked := (I < Window.FPlayers.Count) and (Window.FPlayers[I] = AoWHSMap.FSeatedPlayer);
-  end;
-  if (AoWEngine.FCampaign <> nil) and
-    (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goLost) then
-  begin Window.ContinueBtn.Text := TranslateRStr(ReplayRStr); Window.ExitBtn.Visible := True; end
-  else
-  begin Window.ContinueBtn.Text := TranslateRStr(ContinueRStr); Window.ExitBtn.Visible := False; end;
-  ResultsWin.ResultsPnl.Visible := True;
-end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 procedure HideItemSelection(Window: TIWindow);
 begin
@@ -225,134 +225,134 @@ begin
   Window.FItemBag := nil;
 end;
 
-procedure RefreshCombatUnit(Window: TTCUnit);
-var
-  AbilityInfo: TAbilityCombatInfo;
-  SpellInfo: TSpellCombatInfo;
-  U: TAbstractUnit;
-  Hero: THero;
-begin
-  if General.FCombatUnit <> nil then
-  begin
-    U := General.FCombatUnit.FUnit.FUnit;
-    if U is THero then Hero := THero(U) else Hero := nil;
-    if not Window.TCUnitWin.Visible then
-    begin
-      Window.UnitMana.Visible := False;
-      AoWExeForms.TBWindow.TCUnitBtn.Visible := True;
-    end;
-    if Hero <> nil then
-    begin
-      if Hero.GetCastingPointsMax > 0 then
-      begin
-        Window.UnitMana.Visible := True;
-        Window.UnitMana.Max := Hero.GetCastingPointsMax;
-        Window.UnitMana.Position := Hero.GetCastingPoints;
-      end;
-      with Window.UnitFr do
-      begin
-        Alignment.TopOffset := 7;
-        WinHeight := 54;
-      end;
-    end
-    else
-      with Window.UnitFr do
-      begin
-        Alignment.TopOffset := 0;
-        WinHeight := 61;
-      end;
-    Window.UnitFr.FAligned := False;
-    if U <> nil then
-    begin
-      if General.FCombatUnit.FSelectedAbility = -1 then
-      begin
-        Window.TCUnitPnl.Visible := True;
-        Window.TCAbilPnl.Visible := False;
-        Window.TargetSelPnl.Visible := False;
-        Window.UHits.Text := IntToStr(U.GetHitPoints) + '/' + IntToStr(U.GetHits);
-        Window.UMoves.Text := IntToStr(General.FCombatUnit.FUnit.FMovePoints) + '/' + IntToStr(U.GetMoves);
-        Window.UAttack.Text := IntToStr(U.GetAttack);
-        Window.UDamage.Text := IntToStr(U.GetDamage);
-        Window.UDefense.Text := IntToStr(U.GetDefense);
-        Window.UResistance.Text := IntToStr(U.GetResistance);
-        Window.UMovesIcon.SetCurrent(General.MTtoInt(U.GetMoveTypes));
-        General.FCombatUnit.ListAbilities(Window.UAbilLB.Items, nil, nil);
-        Window.UAbilLB.Selected := -1;
-        Window.UAbilLB.F188 := -1;
-        Window.UAbilLB.ListOffset := 0;
-      end
-      else if (General.FCombatUnit.FSelectedAbility = $34) and (General.FCombatUnit.FSelectedSpell > -1) then
-      begin
-        Window.TCUnitPnl.Visible := False;
-        Window.TCAbilPnl.Visible := True;
-        Window.TargetSelPnl.Visible := False;
-        AoWHSSet.FSpellControl.GetSpell(General.FCombatUnit.FSelectedSpell).GetCombatInfo(
-          General.FCombatUnit.FUnit.FUnit, SpellInfo);
-        Window.AbilNameLbl.Text := AoWHSSet.FSpellControl.GetSpell(General.FCombatUnit.FSelectedSpell).FSpellName;
-        if SpellInfo.Attack > 0 then Window.AbilAttLbl.Text := IntToStr(SpellInfo.Attack)
-        else Window.AbilAttLbl.Text := '-';
-        if SpellInfo.Damage > 0 then Window.AbilDamLbl.Text := IntToStr(SpellInfo.Damage)
-        else Window.AbilDamLbl.Text := '-';
-        Window.AbilStat.Items.Clear;
-        if dtFire in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(FireRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtCold in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(ColdRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtLightning in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(LightningRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtMagic in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(MagicRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtPoison in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(PoisonRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtDeath in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(DeathRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtHoly in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(HolyRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtPhysical in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(PhysicalRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtWall in SpellInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(WallRStr) + ' ' + TranslateRStr(E1DamageRStr));
-      end
-      else
-      begin
-        Window.TCUnitPnl.Visible := False;
-        Window.TCAbilPnl.Visible := True;
-        Window.TargetSelPnl.Visible := False;
-        AoWHSSet.FAbilityControl.GetAbility(General.FCombatUnit.FSelectedAbility).GetCombatInfo(
-          General.FCombatUnit.FUnit.FUnit, AbilityInfo);
-        Window.AbilNameLbl.Text := AoWHSSet.FAbilityControl.GetAbility(General.FCombatUnit.FSelectedAbility).GetName(
-          General.FCombatUnit.FUnit.FUnit);
-        if AbilityInfo.Attack > 0 then Window.AbilAttLbl.Text := IntToStr(AbilityInfo.Attack)
-        else Window.AbilAttLbl.Text := '-';
-        if AbilityInfo.Damage > 0 then Window.AbilDamLbl.Text := IntToStr(AbilityInfo.Damage)
-        else Window.AbilDamLbl.Text := '-';
-        Window.AbilStat.Items.Clear;
-        if dtFire in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(FireRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtCold in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(ColdRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtLightning in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(LightningRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtMagic in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(MagicRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtPoison in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(PoisonRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtDeath in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(DeathRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtHoly in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(HolyRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtPhysical in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(PhysicalRStr) + ' ' + TranslateRStr(E1DamageRStr));
-        if dtWall in AbilityInfo.DamageTypes then
-          Window.AbilStat.Items.Add(TranslateRStr(WallRStr) + ' ' + TranslateRStr(E1DamageRStr));
-      end;
-      Window.UnitName.Items.Clear;
-      Window.UnitName.Items.Add(U.GetName);
-      Window.UnitHits.Max := U.GetHits;
-      Window.UnitHits.Position := U.GetHitPoints;
-    end;
-  end;
-  TCUnit.TCUnitWin.Visible := True;
-end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end.

@@ -84,10 +84,10 @@ type
 
 var
   ResultsWin: TResultsWin;
-
+procedure ShowResults(Window: TResultsWin);
 implementation
 
-uses E1Globals, E1GameFlow, AoWWinMan, AoWExeForms, E3Globals, AOWPyreScrn, aowIntGfxMod, AoWVideoDlg;
+uses E1Resources, E1Globals, E1GameFlow, AoWWinMan, AoWExeForms, E3Globals, AOWPyreScrn, aowIntGfxMod, AoWVideoDlg;
 
 
 procedure TResultsWin.UpdateSelection;
@@ -299,21 +299,21 @@ begin
   FadeMusicVolume(SoundDlg.MusicVolume.Position, 2);
   if AoWHSMap.FGameStatus = gsTerminated then
   begin
-    if AoWEngine.FCampaign = nil then ExitToTitle(General)
+    if AoWEngine.FCampaign = nil then General.ReturnToTitle
     else ShowCampaignMap(WorldMap);
   end
   else
   begin
     TitleWindow.TitleWin.Visible := False;
     SetVideoMode(VideoDialog, scmGame);
-    VideoDialog.ApplyBtnClick;
+    VideoDialog.ApplyMode;
   end;
 end;
 
 procedure TResultsWin.ExitBtnClick;
 begin
   ResultsPnl.Visible := False;
-  ExitToTitle(General);
+  General.ReturnToTitle;
 end;
 
 procedure TResultsWin.ResultsPnlUpdate;
@@ -365,6 +365,6 @@ begin
     ResValues.Items.Add('0%');
   end;
 end;
-
-
+procedure ShowResults(Window: TResultsWin); var I: Integer; begin if AoWEngine.FDemo then PlaySongEx('Songs\Special\end2.s3m', 2, 2, True) else PlaySongEx('Songs\Special\Sunset.it', 2, 2, True); SetMusicVolume(0); FadeMusicVolume(AoWExeForms.SoundDlg.MusicVolume.Position, 1); Window.FPlayers.Clear; for I := 1 to AoWHSMap.FPlayers.Count - 1 do if AoWHSMap.FPlayers.GetPlayers(I).FPlayerType <> ptIndependent then Window.FPlayers.Add(I); for I := 0 to 11 do begin TAOWCheckBox(Window.FControls[I]).Visible := I < Window.FPlayers.Count; TAOWCheckBox(Window.FControls[I]).Checked := (I < Window.FPlayers.Count) and (Window.FPlayers[I] = AoWHSMap.FSeatedPlayer); end; if (AoWEngine.FCampaign <> nil) and (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goLost) then begin Window.ContinueBtn.Text := TranslateRStr(ReplayRStr); Window.ExitBtn.Visible := True; end else begin Window.ContinueBtn.Text :=
+TranslateRStr(ContinueRStr); Window.ExitBtn.Visible := False; end; ResultsWin.ResultsPnl.Visible := True; end;
 end.

@@ -44,7 +44,7 @@ type
     FOnDone: TExecuteDoneEvent; { $A4 }
     FEvent: TItemExplorationSiteEventLog; { $AC }
     function GetHero: THero;
-    procedure Finish;
+    procedure Finish; procedure Reset;
     procedure DlgHide;
     procedure CloseBtn2Click;
     procedure Gnd3Draw(Sender: TObject; SD: TSurfaceDesc);
@@ -59,7 +59,7 @@ type
 implementation
 
 uses AoWWinMan, AoWExeForms, AoWItemBanner, E2CampaignSupport;
-
+procedure TItemsFoundDlg.Reset; begin FItemOffset := 0; PickupPnl.Visible := False; OKPnl.Visible := False; end;
 procedure TItemsFoundDlg.DlgHide;
 begin Finish; end;
 

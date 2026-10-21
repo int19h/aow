@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses AoWWinMan, AoWComp, E3Globals, aowMapEvents, E1Globals, E1GameFlow, E1TacticalSupport;
+uses AoWExeForms, AOWMWindow, AoWTCUnit, AoWWinMan, AoWComp, E3Globals, aowMapEvents, E1Globals, E1GameFlow, E1TacticalSupport;
 
 
 procedure TTCMapEvents.TCMapActivateMap;
@@ -50,8 +50,8 @@ begin
       1: PlaySongEx('Songs\Combat\Outnum.IT', 2, 0, True);
       2: PlaySongEx('Songs\Combat\Races.IT', 2, 0, True);
     end;
-  MWindow.MapViewer.HSMap := AoWCombatMap;
-  TCScanner.Scanner.SetMap(AoWCombatMap);
+  AOWMWindow.MWindow.MapViewer.HSMap := AoWCombatMap;
+  AoWExeForms.TCScanner.Scanner.SetMap(AoWCombatMap);
   with TCScanner do
   begin
     Scanner.FPreviousWidth := 0;
@@ -59,54 +59,54 @@ begin
     Scanner.FSized := False;
     Scanner.FUpdateStep := -1;
   end;
-  MWindow.MapWindow.Visible := True;
-  HideGameWindows(General);
+  AOWMWindow.MWindow.MapWindow.Visible := True;
+  General.HideWindows;
   AoWCombatMap := TAoWCombatMap(AoWHSMap.FCombatMap);
-  MWindow.MapWindow.Visible := AoWCombatMap.FPlaySounds;
-  MWindow.FWorldAlignWidth := MWindow.MapWindow.Alignment.AlignWidth;
-  MWindow.FWorldAlignHeight := MWindow.MapWindow.Alignment.AlignHeight;
-  MWindow.FWorldRect.Left := MWindow.MapWindow.Alignment.LeftOffset;
-  MWindow.FWorldRect.Top := MWindow.MapWindow.Alignment.TopOffset;
-  if MWindow.FWorldAlignWidth = awBoth then
-    MWindow.FWorldRect.Right := MWindow.MapWindow.Alignment.RightOffset
-  else MWindow.FWorldRect.Right := MWindow.MapWindow.WinWidth;
-  if MWindow.FWorldAlignHeight = ahBoth then
-    MWindow.FWorldRect.Bottom := MWindow.MapWindow.Alignment.BottomOffset
-  else MWindow.FWorldRect.Bottom := MWindow.MapWindow.WinHeight;
-  MWindow.MapWindow.Alignment.LeftOffset := MWindow.FMapRect.Left;
-  MWindow.MapWindow.Alignment.TopOffset := MWindow.FMapRect.Top;
-  MWindow.MapWindow.Alignment.RightOffset := MWindow.FMapRect.Right;
-  MWindow.MapWindow.Alignment.BottomOffset := MWindow.FMapRect.Bottom;
-  MWindow.MapWindow.WinWidth := MWindow.FMapRect.Right;
-  MWindow.MapWindow.WinHeight := MWindow.FMapRect.Bottom;
-  MWindow.MapWindow.Alignment.AlignWidth := MWindow.FMapAlignWidth;
-  MWindow.MapWindow.Alignment.AlignHeight := MWindow.FMapAlignHeight;
-  MWindow.MapWindow.FAligned := False;
-  TBWindow.TBWorld.Visible := False;
-  TBWindow.TBCombat.Visible := True;
-  TBWindow.TCCurPUpdate;
-  TBWindow.AutoBtn.Checked := False;
-  TBWindow.TCChatBtn.Visible := TBWindow.ChatBtn.Visible;
-  TBWindow.TCUnitBtn.Visible := False;
-  TBWindow.TaskWindow.FDrawn := False;
-  TCScanner.TCScannerWin.Visible := AoWCombatMap.FPlaySounds;
-  TBWindow.TCScannerBtn.Visible := AoWCombatMap.FPlaySounds;
-  TCUnit.TCUnitWin.Visible := False;
+  AOWMWindow.MWindow.MapWindow.Visible := AoWCombatMap.FPlaySounds;
+  AOWMWindow.MWindow.FWorldAlignWidth := AOWMWindow.MWindow.MapWindow.Alignment.AlignWidth;
+  AOWMWindow.MWindow.FWorldAlignHeight := AOWMWindow.MWindow.MapWindow.Alignment.AlignHeight;
+  AOWMWindow.MWindow.FWorldRect.Left := AOWMWindow.MWindow.MapWindow.Alignment.LeftOffset;
+  AOWMWindow.MWindow.FWorldRect.Top := AOWMWindow.MWindow.MapWindow.Alignment.TopOffset;
+  if AOWMWindow.MWindow.FWorldAlignWidth = awBoth then
+    AOWMWindow.MWindow.FWorldRect.Right := AOWMWindow.MWindow.MapWindow.Alignment.RightOffset
+  else AOWMWindow.MWindow.FWorldRect.Right := AOWMWindow.MWindow.MapWindow.WinWidth;
+  if AOWMWindow.MWindow.FWorldAlignHeight = ahBoth then
+    AOWMWindow.MWindow.FWorldRect.Bottom := AOWMWindow.MWindow.MapWindow.Alignment.BottomOffset
+  else AOWMWindow.MWindow.FWorldRect.Bottom := AOWMWindow.MWindow.MapWindow.WinHeight;
+  AOWMWindow.MWindow.MapWindow.Alignment.LeftOffset := AOWMWindow.MWindow.FMapRect.Left;
+  AOWMWindow.MWindow.MapWindow.Alignment.TopOffset := AOWMWindow.MWindow.FMapRect.Top;
+  AOWMWindow.MWindow.MapWindow.Alignment.RightOffset := AOWMWindow.MWindow.FMapRect.Right;
+  AOWMWindow.MWindow.MapWindow.Alignment.BottomOffset := AOWMWindow.MWindow.FMapRect.Bottom;
+  AOWMWindow.MWindow.MapWindow.WinWidth := AOWMWindow.MWindow.FMapRect.Right;
+  AOWMWindow.MWindow.MapWindow.WinHeight := AOWMWindow.MWindow.FMapRect.Bottom;
+  AOWMWindow.MWindow.MapWindow.Alignment.AlignWidth := AOWMWindow.MWindow.FMapAlignWidth;
+  AOWMWindow.MWindow.MapWindow.Alignment.AlignHeight := AOWMWindow.MWindow.FMapAlignHeight;
+  AOWMWindow.MWindow.MapWindow.FAligned := False;
+  AoWExeForms.TBWindow.TBWorld.Visible := False;
+  AoWExeForms.TBWindow.TBCombat.Visible := True;
+  AoWExeForms.TBWindow.TCCurPUpdate;
+  AoWExeForms.TBWindow.AutoBtn.Checked := False;
+  AoWExeForms.TBWindow.TCChatBtn.Visible := AoWExeForms.TBWindow.ChatBtn.Visible;
+  AoWExeForms.TBWindow.TCUnitBtn.Visible := False;
+  AoWExeForms.TBWindow.TaskWindow.FDrawn := False;
+  AoWExeForms.TCScanner.TCScannerWin.Visible := AoWCombatMap.FPlaySounds;
+  AoWExeForms.TBWindow.TCScannerBtn.Visible := AoWCombatMap.FPlaySounds;
+  AoWTCUnit.TCUnit.TCUnitWin.Visible := False;
   if not AoWCombatMap.FPlaySounds then
   begin
-    FChatHeight := ChatWindow.ChatWin.WinHeight;
-    ChatWindow.ChatWin.Alignment.AlignHeight := ahBoth;
+    FChatHeight := AoWExeForms.ChatWindow.ChatWin.WinHeight;
+    AoWExeForms.ChatWindow.ChatWin.Alignment.AlignHeight := ahBoth;
   end
   else FChatHeight := 0;
   if General.FChatVisible or not AoWCombatMap.FPlaySounds then
-    ChatWindow.ChatWin.Visible := True;
+    AoWExeForms.ChatWindow.ChatWin.Visible := True;
 end;
 
 procedure TTCMapEvents.TCMapDeActivateMap;
 begin
   StopSong;
   SongPlayer.Resume;
-  MWindow.MapViewer.HSMap := AoWHSMap;
+  AOWMWindow.MWindow.MapViewer.HSMap := AoWHSMap;
   SWindow.Scanner.SetMap(AoWHSMap);
   with SWindow do
   begin
@@ -115,39 +115,39 @@ begin
     Scanner.FSized := False;
     Scanner.FUpdateStep := -1;
   end;
-  if FChatHeight > 0 then ChatWindow.ChatWin.WinHeight := FChatHeight;
+  if FChatHeight > 0 then AoWExeForms.ChatWindow.ChatWin.WinHeight := FChatHeight;
   with ChatWindow do
   begin
     ChatWin.Alignment.AlignHeight := ahBottom;
     ChatWin.Visible := False;
   end;
-  ChatWindow.FScrollPending := True;
-  MWindow.FMapAlignWidth := MWindow.MapWindow.Alignment.AlignWidth;
-  MWindow.FMapAlignHeight := MWindow.MapWindow.Alignment.AlignHeight;
-  MWindow.FMapRect.Left := MWindow.MapWindow.Alignment.LeftOffset;
-  MWindow.FMapRect.Top := MWindow.MapWindow.Alignment.TopOffset;
-  if MWindow.FMapAlignWidth = awBoth then
-    MWindow.FMapRect.Right := MWindow.MapWindow.Alignment.RightOffset
-  else MWindow.FMapRect.Right := MWindow.MapWindow.WinWidth;
-  if MWindow.FMapAlignHeight = ahBoth then
-    MWindow.FMapRect.Bottom := MWindow.MapWindow.Alignment.BottomOffset
-  else MWindow.FMapRect.Bottom := MWindow.MapWindow.WinHeight;
-  MWindow.MapWindow.Alignment.LeftOffset := MWindow.FWorldRect.Left;
-  MWindow.MapWindow.Alignment.TopOffset := MWindow.FWorldRect.Top;
-  MWindow.MapWindow.Alignment.RightOffset := MWindow.FWorldRect.Right;
-  MWindow.MapWindow.Alignment.BottomOffset := MWindow.FWorldRect.Bottom;
-  MWindow.MapWindow.WinWidth := MWindow.FWorldRect.Right;
-  MWindow.MapWindow.WinHeight := MWindow.FWorldRect.Bottom;
-  MWindow.MapWindow.Alignment.AlignWidth := MWindow.FWorldAlignWidth;
-  MWindow.MapWindow.Alignment.AlignHeight := MWindow.FWorldAlignHeight;
-  RestoreGameWindows(General);
+  AoWExeForms.ChatWindow.FScrollPending := True;
+  AOWMWindow.MWindow.FMapAlignWidth := AOWMWindow.MWindow.MapWindow.Alignment.AlignWidth;
+  AOWMWindow.MWindow.FMapAlignHeight := AOWMWindow.MWindow.MapWindow.Alignment.AlignHeight;
+  AOWMWindow.MWindow.FMapRect.Left := AOWMWindow.MWindow.MapWindow.Alignment.LeftOffset;
+  AOWMWindow.MWindow.FMapRect.Top := AOWMWindow.MWindow.MapWindow.Alignment.TopOffset;
+  if AOWMWindow.MWindow.FMapAlignWidth = awBoth then
+    AOWMWindow.MWindow.FMapRect.Right := AOWMWindow.MWindow.MapWindow.Alignment.RightOffset
+  else AOWMWindow.MWindow.FMapRect.Right := AOWMWindow.MWindow.MapWindow.WinWidth;
+  if AOWMWindow.MWindow.FMapAlignHeight = ahBoth then
+    AOWMWindow.MWindow.FMapRect.Bottom := AOWMWindow.MWindow.MapWindow.Alignment.BottomOffset
+  else AOWMWindow.MWindow.FMapRect.Bottom := AOWMWindow.MWindow.MapWindow.WinHeight;
+  AOWMWindow.MWindow.MapWindow.Alignment.LeftOffset := AOWMWindow.MWindow.FWorldRect.Left;
+  AOWMWindow.MWindow.MapWindow.Alignment.TopOffset := AOWMWindow.MWindow.FWorldRect.Top;
+  AOWMWindow.MWindow.MapWindow.Alignment.RightOffset := AOWMWindow.MWindow.FWorldRect.Right;
+  AOWMWindow.MWindow.MapWindow.Alignment.BottomOffset := AOWMWindow.MWindow.FWorldRect.Bottom;
+  AOWMWindow.MWindow.MapWindow.WinWidth := AOWMWindow.MWindow.FWorldRect.Right;
+  AOWMWindow.MWindow.MapWindow.WinHeight := AOWMWindow.MWindow.FWorldRect.Bottom;
+  AOWMWindow.MWindow.MapWindow.Alignment.AlignWidth := AOWMWindow.MWindow.FWorldAlignWidth;
+  AOWMWindow.MWindow.MapWindow.Alignment.AlignHeight := AOWMWindow.MWindow.FWorldAlignHeight;
+  General.ShowWindows;
   General.Manager.FAligned := False;
-  TBWindow.TBWorld.Visible := True;
-  TBWindow.TBCombat.Visible := False;
-  TBWindow.TurnButton.FButtonChecked := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FSingleProcessCycle;
-  TCScanner.TCScannerWin.Visible := False;
-  TCUnit.TCUnitWin.Visible := False;
-  TCScanner.Scanner.SetMap(nil);
+  AoWExeForms.TBWindow.TBWorld.Visible := True;
+  AoWExeForms.TBWindow.TBCombat.Visible := False;
+  AoWExeForms.TBWindow.TurnButton.FButtonChecked := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FSingleProcessCycle;
+  AoWExeForms.TCScanner.TCScannerWin.Visible := False;
+  AoWTCUnit.TCUnit.TCUnitWin.Visible := False;
+  AoWExeForms.TCScanner.Scanner.SetMap(nil);
   General.Manager.OverlayPriority := 0;
   MapEvents.TheMapGemsChanged(AoWHSMap.FSeatedPlayer);
   MapEvents.TheMapIncomeChanged(AoWHSMap.FSeatedPlayer);
@@ -161,47 +161,47 @@ begin
     General.FCombatUnit := nil;
     General.FSelectedUnit := nil;
     UnitWindow.UnitWin.Visible := False;
-    TBWindow.TCUnitBtn.Visible := False;
-    TCUnit.TCUnitWin.Visible := False;
+    AoWExeForms.TBWindow.TCUnitBtn.Visible := False;
+    AoWTCUnit.TCUnit.TCUnitWin.Visible := False;
   end;
 end;
 
 procedure TTCMapEvents.TCMapMapChanged(const R: TMapChangedInfo);
 begin
-  TCScanner.Scanner.DrawMap(R.Bounds.Left - 8, R.Bounds.Top - 6, R.Bounds.Right - R.Bounds.Left, R.Bounds.Bottom - R.Bounds.Top);
+  AoWExeForms.TCScanner.Scanner.DrawMap(R.Bounds.Left - 8, R.Bounds.Top - 6, R.Bounds.Right - R.Bounds.Left, R.Bounds.Bottom - R.Bounds.Top);
 end;
 
 procedure TTCMapEvents.TCMapMouseOverTarget(HS: THexagonSprite);
 var
   U: TAbstractUnit;
 begin
-  if TCUnit.TCUnitWin.Visible then
+  if AoWTCUnit.TCUnit.TCUnitWin.Visible then
   begin
-    TCUnit.TargetSelPnl.Visible := HS <> nil;
-    TCUnit.NoTargetPnl.Visible := HS = nil;
+    AoWTCUnit.TCUnit.TargetSelPnl.Visible := HS <> nil;
+    AoWTCUnit.TCUnit.NoTargetPnl.Visible := HS = nil;
     if HS <> nil then
       if HS is TTacticalCombatUnitHS then
       begin
         U := TTacticalCombatUnitHS(HS).FUnit.FUnit;
-        TCUnit.TargetULbl.Text := U.GetName;
-        TCUnit.AHits.Text := IntToStr(U.GetHitPoints) + '/' + IntToStr(U.GetHits);
-        TCUnit.AMoves.Text := IntToStr(U.GetMovePoints) + '/' + IntToStr(U.GetMoves);
-        TCUnit.AAttack.Text := IntToStr(U.GetAttack);
-        TCUnit.ADamage.Text := IntToStr(U.GetDamage);
-        TCUnit.ADefense.Text := IntToStr(U.GetDefense);
-        TCUnit.AResistance.Text := IntToStr(U.GetResistance);
-        TCUnit.AMovesIcon.SetCurrent(General.MTtoInt(U.GetMoveTypes));
-        U.ListAbilities(TCUnit.USelAbilLb.Items);
+        AoWTCUnit.TCUnit.TargetULbl.Text := U.GetName;
+        AoWTCUnit.TCUnit.AHits.Text := IntToStr(U.GetHitPoints) + '/' + IntToStr(U.GetHits);
+        AoWTCUnit.TCUnit.AMoves.Text := IntToStr(U.GetMovePoints) + '/' + IntToStr(U.GetMoves);
+        AoWTCUnit.TCUnit.AAttack.Text := IntToStr(U.GetAttack);
+        AoWTCUnit.TCUnit.ADamage.Text := IntToStr(U.GetDamage);
+        AoWTCUnit.TCUnit.ADefense.Text := IntToStr(U.GetDefense);
+        AoWTCUnit.TCUnit.AResistance.Text := IntToStr(U.GetResistance);
+        AoWTCUnit.TCUnit.AMovesIcon.SetCurrent(General.MTtoInt(U.GetMoveTypes));
+        U.ListAbilities(AoWTCUnit.TCUnit.USelAbilLb.Items);
       end;
   end;
 end;
 
 procedure TTCMapEvents.TCMapSeatedPlayerChanged(Player: Shortint);
 begin
-  MWindow.MapWindow.Visible := AoWCombatMap.FPlaySounds;
-  TCScanner.TCScannerWin.Visible := AoWCombatMap.FPlaySounds;
-  if AoWCombatMap.FSeatedCombatPlayer = -1 then TBWindow.AutoBtn.Checked := False
-  else TBWindow.AutoBtn.Checked := AoWCombatMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedCombatPlayer).FAuto;
+  AOWMWindow.MWindow.MapWindow.Visible := AoWCombatMap.FPlaySounds;
+  AoWExeForms.TCScanner.TCScannerWin.Visible := AoWCombatMap.FPlaySounds;
+  if AoWCombatMap.FSeatedCombatPlayer = -1 then AoWExeForms.TBWindow.AutoBtn.Checked := False
+  else AoWExeForms.TBWindow.AutoBtn.Checked := AoWCombatMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedCombatPlayer).FAuto;
   MapEvents.TheMapGemsChanged(Player);
   MapEvents.TheMapIncomeChanged(Player);
   MapEvents.TheMapPlayerMagicChanged(Player);
@@ -212,24 +212,24 @@ begin
   if HS is TTacticalCombatUnitHS then
   begin
     General.FCombatUnit := TTacticalCombatUnitHS(HS);
-    RefreshCombatUnit(TCUnit);
+    AoWTCUnit.RefreshCombatUnit(TCUnit);
   end;
 end;
 
 procedure TTCMapEvents.TCMapShowMessage(const Info: TShowMessageInfo);
 begin
-  TBWindow.TCMsg.TextColor := Info.Color;
-  TBWindow.TCMsg.Text := Info.Text;
+  AoWExeForms.TBWindow.TCMsg.TextColor := Info.Color;
+  AoWExeForms.TBWindow.TCMsg.Text := Info.Text;
 end;
 
 procedure TTCMapEvents.TCMapUnitChanged(HS: TTacticalCombatUnitHS);
 begin
-  if (HS = General.FCombatUnit) and (HS <> nil) then RefreshCombatUnit(TCUnit);
+  if (HS = General.FCombatUnit) and (HS <> nil) then AoWTCUnit.RefreshCombatUnit(TCUnit);
 end;
 
 procedure TTCMapEvents.TCMapCastSpell(Caster: TCombatSpellCaster);
 begin
-  TCUnit.UAbilLB.Selected := General.FCombatUnit.SelectSpell(Caster.FCombatCasterSpellID);
+  AoWTCUnit.TCUnit.UAbilLB.Selected := General.FCombatUnit.SelectSpell(Caster.FCombatCasterSpellID);
 end;
 
 procedure TTCMapEvents.TCMapActivateAbility(Info: TActivateAbilityInfo);
@@ -246,7 +246,7 @@ begin
     TCTurnButton.FLastPlayer := -1;
   end;
   General.Manager.OverlayPriority := 49;
-  TBWindow.TCPInd.FDrawn := False;
+  AoWExeForms.TBWindow.TCPInd.FDrawn := False;
 end;
 
 end.

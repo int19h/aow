@@ -13,7 +13,7 @@ var
   TitleWindow: TTitleWindow;
   CampaignTransferDlg: TCampaignTransferDlg;
   TargetSelectionDlg: TTargetSelectionDlg absolute AoWWorldMap.TargetSelectionDlg;
-  LeaderSetupWin: TLeaderSetupWin;
+  LeaderSetupWin: TLeaderSetupWin absolute AoWLeaderSetup.LeaderSetupWin; { $45B0D0 }
   FileDlgWindow: TFileDlgWindow absolute AoWFileDialog.FileDlgWindow;
   IntroScene: TIntroScene;
   PowerDlg: TPowerDlg;

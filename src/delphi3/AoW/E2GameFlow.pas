@@ -49,7 +49,7 @@ var
   Index, I: Integer;
   Preview: TAoWHSMap;
 begin
-  InitializeCampaignJoin(Dialog);
+  Dialog.ResetCampaignJoin;
   Dialog.FFaction := Faction;
   Dialog.FStage := 0;
   Lines := TStringList.Create;
@@ -365,7 +365,7 @@ begin
       AoWEngine.OutputDebugStr('Joining session (DPID:' + IntToStr(Events.DPlay.PlayerID) + ')');
       Events.SetupControl.SetupUser(Events.DPlay.PlayerName, Events.DPlay.PlayerID);
     end;
-    InitializeScenarioSetup(ScenSetup, Events.SetupControl);
+    ScenSetup.Execute(Events.SetupControl);
     Events.FLobbyGame := True;
     Result := True;
   end
@@ -481,9 +481,9 @@ begin
     end;
   General.Manager.OverlayPriority := 0;
   Scene.TitleSceneIL.LoadDiscardableImageData;
-  SetSceneSize(VideoDialog, 640, 480);
+  VideoDialog.SetSceneSize(640, 480);
   SetVideoMode(VideoDialog, scmTitle);
-  ApplyVideoSettings(VideoDialog);
+  VideoDialog.ApplyMode;
   MainForm.Display.FrameRate := 30;
   MainForm.DXDC.UseVideoMemory := True;
   Scene.FRedrawBackground := True;

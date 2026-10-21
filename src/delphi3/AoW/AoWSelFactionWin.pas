@@ -217,7 +217,7 @@ begin
   TitleWindow.TitleWin.Visible := True;
   SelFactionWin.FactionPnl.Visible := True;
   Dialog.TopLbl.Visible := True;
-  Dialog.TopLbl.Text := TranslateRStr(E1FactionRStr);
+  Dialog.TopLbl.Text := TranslateRStr(E2Globals.ChooseFactionRStr);
   Dialog.LName.Visible := False;
   Dialog.LText.Visible := False;
   Dialog.LBack.Visible := False;

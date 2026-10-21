@@ -30,7 +30,7 @@ type
     public
     FDone: TExecuteDoneEvent; { $70 }
     FPasswordEvent: TPasswordEventLog; { $78 }
-    procedure Finish;
+    procedure Finish; procedure Reset;
     procedure DlgHide;
     procedure OKBtnClick(Sender: TObject);
     procedure CancelBtnClick(Sender: TObject);
@@ -39,7 +39,7 @@ type
 
 
 implementation
-
+procedure TPasswordDlg.Reset; begin end;
 procedure TPasswordDlg.Finish;
 var
   Done: TExecuteDoneEvent;

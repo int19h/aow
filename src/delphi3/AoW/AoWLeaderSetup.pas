@@ -263,7 +263,7 @@ var
 
 implementation
 
-uses AoWUnit, AoWExeForms, aowSetupEvents;
+uses AoWUnit, AoWExeForms, aowSetupEvents, AoWWinMan, E2Globals;
 
 
 procedure TLeaderSetupWin.LeaderSetupWinCreate;
@@ -280,7 +280,7 @@ procedure TLeaderSetupWin.AddAbilityClick;
 var
   AbilityID: Integer;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if AvailableAbilities.Selected <> -1 then
   begin
     AbilityID := Integer(AvailableAbilities.Items.Objects[AvailableAbilities.Selected]);
@@ -297,7 +297,7 @@ procedure TLeaderSetupWin.RemoveAbilityClick;
 var
   AbilityID: Integer;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if SelectedAbilities.Selected <> -1 then
   begin
     AbilityID := Integer(SelectedAbilities.Items.Objects[SelectedAbilities.Selected]);
@@ -344,21 +344,21 @@ end;
 
 procedure TLeaderSetupWin.FacePrevBtnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetFaceIndex(AoWHSSet.FFaceResources.PrevFace(FLeader.FFaceIndex));
-  ScenSetup.ChatMemo.FDrawn := False;
+  TitleWindow.TitleWin.FDrawn := False;
 end;
 
 procedure TLeaderSetupWin.FaceNextBtnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetFaceIndex(AoWHSSet.FFaceResources.NextFace(FLeader.FFaceIndex));
-  ScenSetup.ChatMemo.FDrawn := False;
+  TitleWindow.TitleWin.FDrawn := False;
 end;
 
 procedure TLeaderSetupWin.PrevBtnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   case FPhase of
     1: if lsmCampaign in FSetup.FMode then Cancel;
     2: begin
@@ -375,20 +375,20 @@ end;
 
 procedure TLeaderSetupWin.NextBtnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   case FPhase of
     1: begin
          SaveLeader;
          if lsmSettings in FSetup.FMode then SetPhase(2)
          else if lsmSpheres in FSetup.FMode then SetPhase(3)
          else Finish;
-         ScenSetup.ChatMemo.FDrawn := False;
+         TitleWindow.TitleWin.FDrawn := False;
        end;
     2: begin
          SaveLeader;
          if lsmSpheres in FSetup.FMode then SetPhase(3)
          else Finish;
-         ScenSetup.ChatMemo.FDrawn := False;
+         TitleWindow.TitleWin.FDrawn := False;
        end;
     3: if FLeader.GetSphereCount = FLeader.FSpherePicksMax then Finish
        else
@@ -458,91 +458,91 @@ end;
 
 procedure TLeaderSetupWin.AttUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitAttack(FLeader.FUnitAttack + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.AttDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitAttack(FLeader.FUnitAttack - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.DefUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitDefense(FLeader.FUnitDefense + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.DefDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitDefense(FLeader.FUnitDefense - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.DamUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitDamage(FLeader.FUnitDamage + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.DamDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitDamage(FLeader.FUnitDamage - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.ResUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitResistance(FLeader.FUnitResistance + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.ResDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitResistance(FLeader.FUnitResistance - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.HitUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitHits(FLeader.FUnitHits + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.HitDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitHits(FLeader.FUnitHits - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.MovUpClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitMoves(FLeader.FUnitMoves + 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.MovDnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetUnitMoves(FLeader.FUnitMoves - 1);
   UpdateStatistics;
 end;
 
 procedure TLeaderSetupWin.ClearBtnClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   case FPhase of
     1: with FLeader do
        begin
@@ -569,8 +569,8 @@ procedure TLeaderSetupWin.DefaultBtnClick;
 var
   I: Integer;
 begin
-  MainForm.PlayInterfaceSound(0);
-  ScenSetup.ChatMemo.FDrawn := False;
+  General.PlayButtonSound(0);
+  TitleWindow.TitleWin.FDrawn := False;
   case FPhase of
     1: with FLeader do
        begin
@@ -603,7 +603,7 @@ end;
 
 procedure TLeaderSetupWin.SelLifeClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msLife) then
   begin
     FLeader.AddSphere(msLife);
@@ -613,7 +613,7 @@ end;
 
 procedure TLeaderSetupWin.SelFireClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msFire) then
   begin
     FLeader.AddSphere(msFire);
@@ -623,7 +623,7 @@ end;
 
 procedure TLeaderSetupWin.SelDeathClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msDeath) then
   begin
     FLeader.AddSphere(msDeath);
@@ -633,7 +633,7 @@ end;
 
 procedure TLeaderSetupWin.SelWaterClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msWater) then
   begin
     FLeader.AddSphere(msWater);
@@ -643,7 +643,7 @@ end;
 
 procedure TLeaderSetupWin.SelAirClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msAir) then
   begin
     FLeader.AddSphere(msAir);
@@ -653,7 +653,7 @@ end;
 
 procedure TLeaderSetupWin.SelEarthClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FLeader.CanAddSphere(msEarth) then
   begin
     FLeader.AddSphere(msEarth);
@@ -663,7 +663,7 @@ end;
 
 procedure TLeaderSetupWin.DeleteSphereClick(Sender: TObject);
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if TComponent(Sender).Tag < FLeader.GetSphereCount then
     FLeader.DeleteSphereIndex(TComponent(Sender).Tag);
   UpdateSpheres;
@@ -671,13 +671,13 @@ end;
 
 procedure TLeaderSetupWin.RaceCBChange;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   FLeader.SetRace(Integer(RaceCB.Items.Objects[RaceCB.Selected]));
 end;
 
 procedure TLeaderSetupWin.SelectedAbilitiesSortClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FSelectedSort = 0 then FSelectedSort := 1
   else FSelectedSort := 0;
   SortSelectedAbilities;
@@ -685,7 +685,7 @@ end;
 
 procedure TLeaderSetupWin.SelectedAbilitiesCostSortClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FSelectedSort = 2 then FSelectedSort := 3
   else FSelectedSort := 2;
   SortSelectedAbilities;
@@ -693,7 +693,7 @@ end;
 
 procedure TLeaderSetupWin.AvailableAbilitiesSortClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FAvailableSort = 0 then FAvailableSort := 1
   else FAvailableSort := 0;
   SortAvailableAbilities;
@@ -701,7 +701,7 @@ end;
 
 procedure TLeaderSetupWin.AvailableAbilitiesCostSortClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
   if FAvailableSort = 2 then FAvailableSort := 3
   else FAvailableSort := 2;
   SortAvailableAbilities;
@@ -709,17 +709,17 @@ end;
 
 procedure TLeaderSetupWin.SBaseClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
 end;
 
 procedure TLeaderSetupWin.SExtraClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
 end;
 
 procedure TLeaderSetupWin.SFinalClick;
 begin
-  MainForm.PlayInterfaceSound(0);
+  General.PlayButtonSound(0);
 end;
 
 procedure TLeaderSetupWin.SelectedAbilitiesCostMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

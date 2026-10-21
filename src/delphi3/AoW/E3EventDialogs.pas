@@ -3,7 +3,7 @@ unit E3EventDialogs;
 { Event-log dialog routines called by TMapEvents in AoW.exe. }
 interface
 uses Classes, SysUtils, AoWE, EventLog, FastCombatWin, AoWRelations,
-  AoWWorldMap, AoWSMTPDlg, TCFCDlg, AoWNewTurnDialog, aowHelpWin, AoWSendEmailGameDlg, AoWPasswordDlg, AoWArmyEventDlg, AoWCityRebelDlg, AoWCityJoinDlg, AoWPartyJoin, AoWHeroJoinDlg, AoWMsgReceiveDlg, AoWTutorialWin, AoWHeroUpgradeDlg, AoWHeroInfoDlg, AoWWizardsTowerDlg, AoWArenaDlg, AoWItemsFoundDlg;
+  E2Globals, AoWWorldMap, AoWSMTPDlg, TCFCDlg, AoWNewTurnDialog, aowHelpWin, AoWSendEmailGameDlg, AoWPasswordDlg, AoWArmyEventDlg, AoWCityRebelDlg, AoWCityJoinDlg, AoWPartyJoin, AoWHeroJoinDlg, AoWMsgReceiveDlg, AoWTutorialWin, AoWHeroUpgradeDlg, AoWHeroInfoDlg, AoWWizardsTowerDlg, AoWArenaDlg, AoWItemsFoundDlg;
 
 procedure ShowCombatEvent(Dialog: TFastCombatWindow; Event: TCombatEventLog; Done: TExecuteDoneEvent);
 procedure ShowDiplomaticEvent(Dialog: TRelWindow; Event: TDiplomaticActionEventLog; Done: TExecuteDoneEvent);
@@ -11,14 +11,14 @@ procedure ShowInformationBook(Dialog: TWorldMap; Event: TShowBookEventLog; Done:
 procedure ShowCombatType(Dialog: TTCFCDialog; Event: TCombatTypeRequestEventLog; Done: TExecuteDoneEvent);
 procedure ShowSMTPEvent(Dialog: TSMTPDlg; Event: TSMTPEventLog; Done: TExecuteDoneEvent);
 var
-  HelpWindow: THelpWindow; SendEmailGameDlg: TSendEmailGameDlg; PasswordDlg: TPasswordDlg;
+  HelpWindow: THelpWindow absolute aowHelpWin.HelpWindow; { $45B04C } SendEmailGameDlg: TSendEmailGameDlg; PasswordDlg: TPasswordDlg;
   ArmyEventDlg: TArmyEventDlg;
   CityRebelDlg: TCityRebelDlg;
   CityJoinDlg: TCityJoinDlg;
   PartyJoinDlg: TPartyJoinDlg;
   HeroJoinDlg: THeroJoinDlg;
   MsgReceiveDlg: TMsgReceiveDlg;
-  TutorialWindow: TTutorialWindow;
+  TutorialWindow: TTutorialWindow absolute E2Globals.TutorialWindow; { $45B278 }
   HeroUpgradeDlg: THeroUpgradeDlg;
   HeroInfoDlg: THeroInfoDlg;
   WizardsTowerDlg: TWizardsTowerDlg;
@@ -29,7 +29,7 @@ var
   TCFCDialog: TTCFCDialog; { $45B1F0 }
 
 implementation
-uses AoWWinMan, E3Globals, E2Globals, AoWComp, AoWButton, AoWImage;
+uses AoWWinMan, E3Globals, AoWComp, AoWButton, AoWImage;
 procedure InitializeCombatDialog(Dialog: TFastCombatWindow; Logbook: TCombatLogbook);
 var
   RaceIndex, PartyRace: Integer;
@@ -760,7 +760,7 @@ begin
     MemoR.Items.Clear;
     if AoWHSMap.FVictoryCondition = TVictoryCondition(0) then
       MemoR.Items.Add(AoWE.Format(TranslateRStr(ObjectiveXRStr), [TranslateRStr(ConquerTheMapRStr)]))
-    else MemoR.Items.Add(AoWE.Format(TranslateRStr(ObjectiveXRStr), [TranslateRStr(TVictoryConditionRStr[AoWHSMap.FVictoryCondition])]));
+    else MemoR.Items.Add(AoWE.Format(TranslateRStr(ObjectiveXRStr), [TranslateRStr(AoWE.TVictoryConditionRStr[AoWHSMap.FVictoryCondition])]));
     if AoWHSMap.FDayLimit > 0 then MemoR.Items.Add(AoWE.Format(TranslateRStr(DayLimitXRStr), [IntToStr(AoWHSMap.FDayLimit)]));
     if AoWHSMap.FAlliedVictory then
       MemoR.Items.Add(AoWE.Format(TranslateRStr(AlliedVictoryXRStr), [TranslateRStr(EnabledRStr)]))
@@ -770,8 +770,8 @@ begin
     MemoR.Items.Add(AoWE.Format(TranslateRStr(MaximumPlayerHeroesXRStr), [IntToStr(AoWHSMap.FHeroCountMax)]));
     if (AoWHSMap.FConnectionType = TPlayerConnectionType(0)) and AoWHSMap.FRequestCombatType then
       MemoR.Items.Add(AoWE.Format(TranslateRStr(GametypeXRStr),
-        [TranslateRStr(TPlayerConnectionTypeRStr[AoWHSMap.FConnectionType]) + '/' + TranslateRStr(HotSeatRStr)]))
-    else MemoR.Items.Add(AoWE.Format(TranslateRStr(GametypeXRStr), [TranslateRStr(TPlayerConnectionTypeRStr[AoWHSMap.FConnectionType])]));
+        [TranslateRStr(AoWE.TPlayerConnectionTypeRStr[AoWHSMap.FConnectionType]) + '/' + TranslateRStr(HotSeatRStr)]))
+    else MemoR.Items.Add(AoWE.Format(TranslateRStr(GametypeXRStr), [TranslateRStr(AoWE.TPlayerConnectionTypeRStr[AoWHSMap.FConnectionType])]));
     MemoR.Items.Add(AoWE.Format(TranslateRStr(TurnModeXRStr), [TranslateRStr(TPlayModeRStr[AoWHSMap.FPlayMode])]));
     PicL.Visible := False; PicR.Visible := False; MemoL.Visible := True;
     MemoR.Visible := True; Back.Visible := False; Cancel.Visible := False;
@@ -785,7 +785,7 @@ procedure ShowSMTPEvent(Dialog: TSMTPDlg; Event: TSMTPEventLog; Done: TExecuteDo
 begin
   with Dialog do
   begin
-    FinishDialog;
+    ResetProgress;
     FDone := Done; with Event do begin FEvent := Event; AddRef; end;
     RecipientLbl.Text := AoWE.Format(TranslateRStr(RecipientXRStr), [Event.FToAddress]);
     try

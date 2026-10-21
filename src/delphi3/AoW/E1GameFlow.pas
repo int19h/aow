@@ -155,7 +155,7 @@ procedure ShowCampaignMap(Dialog: TWorldMap);
 var
   Song: string;
 begin
-  Dialog.BookClosed;
+  Dialog.ResetCampaign;
   AoWEngine.CloseHSM(nil);
   TitleWindow.TitleWin.Visible := True;
   TitleWindow.TitlePnl.Visible := False;
@@ -214,7 +214,7 @@ var
   Event: TGameOverEventLog;
 begin
   SetSFXVolume(SoundDlg.SFXVolume.Position);
-  ClearPyre(Dialog);
+  Dialog.ClearFire;
   if Dialog.FSavedSongStatus <> nil then
   begin
     RestoreSongStatus(Dialog.FSavedSongStatus);

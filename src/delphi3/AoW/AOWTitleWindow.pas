@@ -72,9 +72,9 @@ end;
 
 procedure TTitleWindow.InitializeSplash;
 begin
-  SetSceneSize(VideoDialog, 640, 480);
+  VideoDialog.SetSceneSize(640, 480);
   SetVideoMode(VideoDialog, scmTitle);
-  ApplyVideoSettings(VideoDialog);
+  VideoDialog.ApplyMode;
   TitleWin.Visible := True;
   TitlePnl.Visible := False;
   SplashPnl.ILTexture := DemoIL;

@@ -136,7 +136,7 @@ end;
 
 procedure TIntroScene.Execute;
 begin
-  SetSceneSize(VideoDialog, 640, 480);
+  VideoDialog.SetSceneSize(640, 480);
   SetVideoMode(VideoDialog, scmTitle);
   MainForm.DXDC.DisplayWidth := 640;
   MainForm.DXDC.DisplayHeight := 480;

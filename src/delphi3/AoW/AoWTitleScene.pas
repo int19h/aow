@@ -487,7 +487,7 @@ begin
       0: begin
         Window.Visible := False;
         General.PlayButtonSound(0);
-        ShowMultiplayer(MultiWindow, '');
+        MultiWindow.Execute( '');
       end;
       1: if not AoWEngine.FDemo then
         begin
@@ -513,7 +513,7 @@ begin
       4: begin
         Window.Visible := False;
         General.PlayButtonSound(0);
-        if AoWEngine.FDemo then ShowExitSplash(TitleWindow)
+        if AoWEngine.FDemo then TitleWindow.ShowExitSplash
         else MainForm.Close;
       end;
     end;

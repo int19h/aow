@@ -61,7 +61,7 @@ end;
 procedure TPopupWindows.SettingsMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
-    0: ShowVideoSettings(VideoDialog);
+    0: VideoDialog.ShowModes;
     1: ShowSoundSettings(SoundDlg);
     2: GamePlayDialog.GamePlayDlg.Visible := True;
     3: General.ResetLayout;
@@ -73,7 +73,7 @@ end;
 procedure TPopupWindows.EndMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
-    0: E2GameFlow.ConfirmDialog(E2Globals.DialogWin, TranslateRStr(E2Globals.ConfirmRStr),
+    0: E2Globals.DialogWin.Confirm( TranslateRStr(E2Globals.ConfirmRStr),
          TranslateRStr(SurrenderYourEmpireRStr), 4);
     1: AoWHSMap.ExitGame(egmTerminate, nil);
     2: if AoWEngine.FDemo then E2Globals.TitleWindow.ShowExitSplash else MainForm.Close;
@@ -92,14 +92,14 @@ procedure TPopupWindows.OverViewsMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
     0: E3EventDialogs.ShowInformationBook(E1Globals.WorldMap, nil, nil); { Original opens the information book. }
-    1: if AoWEngine.FCampaign <> nil then E1Globals.WorldMap.ShowSpheres;
+    1: if AoWEngine.FCampaign <> nil then E1Globals.WorldMap.ShowCampaignHistory;
   end;
 end;
 
 procedure TPopupWindows.TCEndMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
-    0: E2GameFlow.ConfirmDialog(E2Globals.DialogWin, TranslateRStr(E2Globals.ConfirmRStr),
+    0: E2Globals.DialogWin.Confirm( TranslateRStr(E2Globals.ConfirmRStr),
          TranslateRStr(E2Globals.QuitCombatRStr), 6);
   end;
 end;
@@ -111,7 +111,7 @@ begin
     1: ShowHelp(500);
     2: begin
          SetVideoMode(VideoDialog, scmWindowed);
-         ApplyVideoSettings(VideoDialog);
+         VideoDialog.ApplyMode;
          ShellExecute(Application.Handle, 'open', 'http://www.ageofwonders.com', nil, nil, 5);
        end;
   end;

@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses AoWMessageDlg, AoWSelFactionWin, E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, AoWScenSetup, ShellAPI, AoWPOP3Dlg;
+uses E2GameFlow, AoWMessageDlg, AoWSelFactionWin, E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, AoWScenSetup, ShellAPI, AoWPOP3Dlg;
 
 var
   SessionRefreshDelay: Integer; { $45B170 }
@@ -106,7 +106,7 @@ begin
   if SetupEvents.DPlay.Connected then SetupEvents.DPlay.DisConnect;
   TitleWindow.TitleWin.Visible := False;
   MultiPnl.Visible := False;
-  ShowTitleScene(TitleScene, True);
+  E2GameFlow.ShowTitleScene(TitleScene, True);
 end;
 
 procedure TMultiWindow.MultiWinUpdate;

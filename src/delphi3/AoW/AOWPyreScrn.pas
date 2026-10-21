@@ -43,7 +43,7 @@ var
 
 implementation
 
-uses E3Globals, AoWWinMan, E1Globals, AoWExeForms, AoWVideoDlg;
+uses AoWResultsWin, E3Globals, AoWWinMan, E1Globals, AoWExeForms, AoWVideoDlg;
 
 procedure TPyreScreen.DeadPnlUpdate;
 begin end;
@@ -121,7 +121,7 @@ begin
   ClearFire;
   IntGfxMod.PyreFrames.ReleaseDiscardableImageData;
   AOWPyreScrn.PyreScreen.DeadPnl.Visible := False;
-  ShowResults(ResultsWin);
+  AoWResultsWin.ShowResults(ResultsWin);
 end;
 
 procedure TPyreScreen.ShowGameOver(Event: TGameOverEventLog; Done: TExecuteDoneEvent);

@@ -192,7 +192,7 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan;
+uses AoWUnit, E3Globals, AoWWinMan;
 
 procedure TSpellBook.SpellBookCreate;
 var Defaults: TDoubleItem;
@@ -385,7 +385,7 @@ end;
 procedure TSpellBook.ShowBook;
 begin
   General.Manager.OverlayPriority := 49;
-  if (MainForm.DXDC = MainForm.Display.ActiveDC) and MainForm.DXDC.UseVideoMemory then
+  if (AoWUnit.MainForm.DXDC = AoWUnit.MainForm.Display.ActiveDC) and AoWUnit.MainForm.DXDC.UseVideoMemory then
     General.Manager.FDrawOverlay := False;
   Dlg.Visible := True;
 end;

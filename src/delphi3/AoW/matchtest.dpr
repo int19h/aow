@@ -177,7 +177,7 @@ begin
   Use(AoWTitleScene.TTitleScene, nil);
   Use(AOWTitleWindow.TTitleWindow, nil);
   Use(AoWTutorialWin.TTutorialWindow, nil);
-  Use(AoWUnit.TMainForm, nil);
+  Use(AoWUnit.TMainForm, @AoWUnit.TMainForm.PlayInterfaceSound);
   Use(AoWUnitBanner.TUnitBanner, nil);
   Use(AoWUnitSelDlg.TUnitSelectionDlg, nil);
   Use(AoWUnitWindow.TUnitWindow, nil);

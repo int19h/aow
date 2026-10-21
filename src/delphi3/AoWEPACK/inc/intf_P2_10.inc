@@ -94,7 +94,7 @@ function ValidateAoWEngine: Boolean;
 
 var
   MovePointTables: array[0..255] of TMovePointTable; { $558EA040 }
-  TTacticalCombatAvailabilityRStr: array[0..2] of string; TMagicSphereRStr: array[TMagicSphere] of string; TSpellTypeRStr: array[TSpellType] of string; { $558E8118, $558E81C0; 0042F009 }
+  TTacticalCombatAvailabilityRStr: array[0..2] of string; TVictoryConditionRStr: array[TVictoryCondition] of string; TPlayerConnectionTypeRStr: array[TPlayerConnectionType] of string; { $558E8240, $558E821C; 0041BCB4 } TMagicSphereRStr: array[TMagicSphere] of string; TSpellTypeRStr: array[TSpellType] of string; { $558E8118, $558E81C0; 0042F009 }
 
 const
   CommandAbilityIDs: array[0..2] of Integer = (29, 28, 148); { 557F8492 }

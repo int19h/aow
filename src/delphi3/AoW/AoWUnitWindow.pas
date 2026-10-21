@@ -195,7 +195,7 @@ var
 
 implementation
 
-uses AoWWinMan, E3Globals, AoWInfoBanner;
+uses E2Globals, AoWExeForms, AoWWinMan, E3Globals, AoWInfoBanner;
 
 
 
@@ -920,7 +920,7 @@ end;
 
 procedure TUnitWindow.DisbandBtnClick;
 begin
-  DialogWin.Confirm(TranslateRStr(ConfirmRStr), TranslateRStr(DisbandUnitRStr), 7);
+  DialogWin.Confirm(TranslateRStr(E2Globals.ConfirmRStr), TranslateRStr(DisbandUnitRStr), 7);
 end;
 
 procedure TUnitWindow.T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
@@ -930,7 +930,7 @@ begin
   if (Button = mbRight) and (General.FSelectedUnit <> nil) and (T1AbilityLB.Selected <> -1) then
   begin
     A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]));
-    if A <> nil then InfoBanner.ShowInfo(A.GetName(nil), A.FDescription);
+    if A <> nil then AoWExeForms.SetInfoBanner(InfoBanner, A.GetName(nil), A.FDescription);
   end;
 end;
 

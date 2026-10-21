@@ -544,7 +544,7 @@ begin
     TacticalCombatLbl.Visible := True;
     TacticalCombatCB.Items.Clear;
     for Availability := 0 to 2 do
-      TacticalCombatCB.Items.AddObject(TranslateRStr(TTacticalCombatAvailabilityRStr[Availability]), TObject(Availability));
+      TacticalCombatCB.Items.AddObject(TranslateRStr(AoWE.TTacticalCombatAvailabilityRStr[Availability]), TObject(Availability));
   end
   else
   begin

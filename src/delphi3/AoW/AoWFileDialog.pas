@@ -162,9 +162,9 @@ begin
       else
       begin
         TitleScene.HideScene;
-        HideGameWindows(General);
+        General.HideWindows;
         TBWindow.TaskWindow.Visible := False;
-        ShowMultiplayer(MultiWindow, ExtractRelativePath(AoWEngine.StartupDirectory, Name));
+        MultiWindow.Execute(ExtractRelativePath(AoWEngine.StartupDirectory, Name));
       end;
     finally
       Map.Free;
@@ -334,7 +334,7 @@ begin
       0: if (SFileName.Text <> '') and FileExists(SFileName.Text) then
         begin
           if AoWHSMap <> nil then
-            if AoWHSMap.FCombatMap <> nil then ExitToTitle(General)
+            if AoWHSMap.FCombatMap <> nil then General.ReturnToTitle
             else
               if AoWEngine.FCampaign <> nil then
               begin

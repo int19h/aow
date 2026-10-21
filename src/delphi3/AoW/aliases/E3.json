@@ -160,5 +160,9 @@
   "FUN_00444234": "UpdateStructureInfo",
   "FUN_00444280": "ShowItemSelection",
   "FUN_0044451c": "UpdateItemSelection",
-  "FUN_004353a8": "InitializeCombatDialog"
+  "FUN_004353a8": "InitializeCombatDialog",
+  "FUN_0041bbc4": "TWorldMap.ResetCampaign",
+  "FUN_0041c760": "TWorldMap.ShowCampaignHistory",
+  "FUN_0044cbac": "TItemsFoundDlg.Reset",
+  "FUN_0044e070": "TPasswordDlg.Reset"
 }

@@ -224,7 +224,7 @@ begin
     FLastCursorRect := R;
     DialogWin.FrameLbl.Text := IntToStr(Display.CurrentFrameRate);
   end;
-  if (AoWHSMap <> nil) and AoWHSMap.FExitPending then CloseGame(General);
+  if (AoWHSMap <> nil) and AoWHSMap.FExitPending then General.ReturnToTitle;
   ApplyVideoSettings(VideoDialog);
 end;
 
@@ -378,7 +378,7 @@ end;
 procedure TMainForm.FormDestroy;
 begin
   ReleaseSoundSystem;
-  SaveWindowLayout(General);
+  General.SaveLayout;
   AoWEngine.FRegistry.SetMainWindowState(WindowState);
   AoWEngine.FRegistry.SetString(0, MultiWindow.TCPName.Text);
   AoWEngine.FRegistry.SetString(1, MultiWindow.IPEdit.Text);
@@ -438,7 +438,7 @@ begin
     end
     else
     begin
-      ConfirmDialog(DialogWin, TranslateRStr(ConfirmRStr), TranslateRStr(QuitCombatRStr), 6);
+      DialogWin.Confirm( TranslateRStr(ConfirmRStr), TranslateRStr(QuitCombatRStr), 6);
       CanClose := False;
     end
   end

@@ -90,7 +90,7 @@ end;
 procedure TSetupEvents.SetupControlStart;
 begin
   SynchronizeDlg.Dlg.Visible := False;
-  HideScenarioSetup(ScenSetup);
+  ScenSetup.CloseSetup;
   StartGame(General);
   if DPlay.Connected then
   begin
@@ -256,7 +256,7 @@ begin
   AoWExeForms.MessageDlg.OKPnl.Visible := True;
   AoWExeForms.MessageDlg.Dlg.Visible := True;
   DPlay.CloseSession;
-  HideScenarioSetup(ScenSetup);
+  ScenSetup.CloseSetup;
   if SetupEvents.FLobbyGame then MainForm.Close else MultiWindow.Execute('');
 end;
 
@@ -271,7 +271,7 @@ begin
     AoWExeForms.MessageDlg.OKPnl.Visible := True;
     AoWExeForms.MessageDlg.Dlg.Visible := True;
     DPlay.Disconnect;
-    HideScenarioSetup(ScenSetup);
+    ScenSetup.CloseSetup;
     General.Manager.OverlayPriority := 0;
     ProgressDialog.ProgDlg.Visible := False;
     if SetupEvents.FLobbyGame then MainForm.Close else MultiWindow.Execute('');

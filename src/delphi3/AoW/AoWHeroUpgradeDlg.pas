@@ -166,7 +166,7 @@ type
 
 
 implementation
-
+uses AoWExeForms;
 procedure THeroUpgradeDlg.RefreshAbilities;
 var
   Name, Cost: string;
@@ -549,7 +549,7 @@ begin
   begin
     Ability := AoWHSSet.FAbilityControl.GetAbility(Integer(AvailableAbilities.Items.Objects[AvailableAbilities.Selected]));
     if Ability <> nil then
-      InfoBanner.ShowInfo(Ability.GetName(nil), Ability.FDescription);
+      AoWExeForms.SetInfoBanner(InfoBanner, Ability.GetName(nil), Ability.FDescription);
   end;
 end;
 
@@ -561,7 +561,7 @@ begin
   begin
     Ability := AoWHSSet.FAbilityControl.GetAbility(Integer(SelectedAbilities.Items.Objects[SelectedAbilities.Selected]));
     if Ability <> nil then
-      InfoBanner.ShowInfo(Ability.GetName(nil), Ability.FDescription);
+      AoWExeForms.SetInfoBanner(InfoBanner, Ability.GetName(nil), Ability.FDescription);
   end;
 end;
 

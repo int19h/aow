@@ -74,7 +74,7 @@ procedure StartGame(Controller: TGeneral);
 
 implementation
 
-uses aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow;
+uses E2Globals, AoWUnit, AoWRealm, aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow, E2GameFlow;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -171,7 +171,7 @@ begin
   if (Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) and
     ((Window = ChatWindow.ChatWin) or not ChatWindow.ChatWin.Visible or (ChatWindow.ChatWin.Alignment.AlignWidth <> awBoth)) and
     ((Window = MagicWin.Dlg) or not MagicWin.Dlg.Visible or (MagicWin.Dlg.Alignment.AlignWidth <> awBoth)) and
-    ((Window = RealmWin.Dlg) or not RealmWin.Dlg.Visible or (RealmWin.Dlg.Alignment.AlignWidth <> awBoth)) then
+    ((Window = AoWRealm.RealmWin.Dlg) or not AoWRealm.RealmWin.Dlg.Visible or (AoWRealm.RealmWin.Dlg.Alignment.AlignWidth <> awBoth)) then
   begin
     with MWindow.MapWindow do
     begin
@@ -267,7 +267,7 @@ begin
     WinWidth := SWindow.ScannerWindow.WinWidth;
     WinHeight := SWindow.ScannerWindow.WinHeight;
   end;
-  with RealmWin.Dlg do
+  with AoWRealm.RealmWin.Dlg do
   begin
     with Alignment do
     begin
@@ -341,11 +341,11 @@ end;
 procedure TGeneral.MapProgress(Sender: TEObject; const Message: string; Progression: Integer);
 { conflict: procedure TGeneral.MapProgress(Sender: TObject; const Text: string; Position: Integer); }
 begin
-  ProgressDialog.StatusLbl.Text := Message;
-  ProgressDialog.Bar.Position := Progression;
-  ProgressDialog.ProgDlg.FSurfaceValid := False;
-  General.Manager.DrawSurface(MainForm.Display.ActiveDC.GetSurface(1));
-  MainForm.Display.ActiveDC.BltSurface(MainForm.Display.FSurfaceIndex);
+  E2Globals.ProgressDialog.StatusLbl.Text := Message;
+  E2Globals.ProgressDialog.Bar.Position := Progression;
+  E2Globals.ProgressDialog.ProgDlg.FSurfaceValid := False;
+  General.Manager.DrawSurface(AoWUnit.MainForm.Display.ActiveDC.GetSurface(1));
+  AoWUnit.MainForm.Display.ActiveDC.BltSurface(AoWUnit.MainForm.Display.FSurfaceIndex);
 end;
 
 procedure TGeneral.ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -408,7 +408,7 @@ begin
         BannerPopup.Visible := True;
       end;
   with MWindow do MapWindow.DoubleBuffered := Manager.FOverlayPriority > MapWindow.Priority;
-  if MainForm.FCursorChanged then Manager.AddDrawRect(MainForm.FLastCursorRect, nil);
+  if AoWUnit.MainForm.FCursorChanged then Manager.AddDrawRect(AoWUnit.MainForm.FLastCursorRect, nil);
 end;
 
 
@@ -421,7 +421,7 @@ begin
     FInfoVisible := PInfoW.PInfoWin.Visible;
     FRealmVisible := ControlWin.ControlWindow.Visible;
     FMagicVisible := UnitWindow.UnitWin.Visible;
-    FUnitVisible := RealmWin.Dlg.Visible;
+    FUnitVisible := AoWRealm.RealmWin.Dlg.Visible;
     FTargetVisible := MagicWin.Dlg.Visible;
     FScannerVisible := SWindow.ScannerWindow.Visible;
     FControlVisible := IWindow.InfoWin.Visible;
@@ -444,7 +444,7 @@ begin
     SWindow.ScannerWindow.Visible := FScannerVisible;
     IWindow.InfoWin.Visible := FControlVisible;
     MWindow.MapWindow.Visible := FMapVisible;
-    RealmWin.Dlg.Visible := FUnitVisible;
+    AoWRealm.RealmWin.Dlg.Visible := FUnitVisible;
     MagicWin.Dlg.Visible := FTargetVisible;
     ChatWindow.ChatWin.Visible := FChatVisible;
   end;
@@ -471,7 +471,7 @@ begin
     if Alignment.AlignWidth = awCenter then AoWEngine.FRegistry.SetRectangle(2, Rect(0, 0, 0, 0))
     else
       AoWEngine.FRegistry.SetRectangle(2, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with RealmWin.Dlg do
+  with AoWRealm.RealmWin.Dlg do
     if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(5, Rect(0, 0, 0, 0))
     else
       AoWEngine.FRegistry.SetRectangle(5, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
@@ -508,25 +508,25 @@ begin
   SetCurrentDir(AoWEngine.StartupDirectory);
   General.HideWindows;
   TBWindow.TaskWindow.Visible := False; TitleWindow.TitleWin.Visible := False;
-  TitleScene.ResetScene; ShowTitleScene(TitleScene, True);
+  TitleScene.ResetScene; E2GameFlow.ShowTitleScene(TitleScene, True);
 end;
 
 procedure LoadGame(Controller: TGeneral; Name: string);
 begin
   if AoWHSMap <> nil then AoWEngine.CloseHSM(nil);
-  E1Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
-  E1Globals.ProgressDialog.StatusLbl.Text := '';
-  E1Globals.ProgressDialog.Bar.Position := 0;
-  E1Globals.ProgressDialog.Bar.Max := 100;
-  E1Globals.ProgressDialog.ProgDlg.Visible := True;
-  if not E1Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
+  E2Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
+  E2Globals.ProgressDialog.StatusLbl.Text := '';
+  E2Globals.ProgressDialog.Bar.Position := 0;
+  E2Globals.ProgressDialog.Bar.Max := 100;
+  E2Globals.ProgressDialog.ProgDlg.Visible := True;
+  if not E2Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
   SongPlayer.Stop(False);
   SongPlayer.Songs.Clear;
   FadeMusicVolume(0, 1);
   AoWEngine.LoadHSM(Name, False, Controller.MapProgress);
-  if AoWEngine.FDemo and (AoWHSMap <> nil) and not AoWHSMap.FShowAllPlayers then ExitToTitle(Controller);
+  if AoWEngine.FDemo and (AoWHSMap <> nil) and not AoWHSMap.FShowAllPlayers then Controller.ReturnToTitle;
   General.Manager.OverlayPriority := 0;
-  E1Globals.ProgressDialog.ProgDlg.Visible := False;
+  E2Globals.ProgressDialog.ProgDlg.Visible := False;
 end;
 
 procedure LoadCampaign(Controller: TGeneral; Name: string);
@@ -536,22 +536,22 @@ begin
   if AoWEngine.FCampaign <> nil then
     if AoWEngine.FCampaign.FScenarioStarted then
     begin
-      E1Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
-      E1Globals.ProgressDialog.StatusLbl.Text := '';
-      E1Globals.ProgressDialog.Bar.Position := 0;
-      E1Globals.ProgressDialog.Bar.Max := 100;
-      E1Globals.ProgressDialog.ProgDlg.Visible := True;
-      if not E1Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
+      E2Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
+      E2Globals.ProgressDialog.StatusLbl.Text := '';
+      E2Globals.ProgressDialog.Bar.Position := 0;
+      E2Globals.ProgressDialog.Bar.Max := 100;
+      E2Globals.ProgressDialog.ProgDlg.Visible := True;
+      if not E2Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
       SongPlayer.Stop(False);
       SongPlayer.Songs.Clear;
       FadeMusicVolume(0, 1);
       AoWEngine.LoadCampaignMap(Controller.MapProgress);
       General.Manager.OverlayPriority := 0;
-      E1Globals.ProgressDialog.ProgDlg.Visible := False;
+      E2Globals.ProgressDialog.ProgDlg.Visible := False;
     end
     else
     begin
-      E1Globals.TitleScene.HideScene;
+      E2Globals.TitleScene.HideScene;
       ShowCampaignMap(E1Globals.WorldMap);
     end;
 end;
@@ -579,7 +579,7 @@ begin
   E1Globals.PopupWindows.OverViewsMenu.Items.Clear;
   E1Globals.PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1BackgroundRStr));
   if AoWEngine.FCampaign <> nil then E1Globals.PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1CampaignRStr));
-  E1Globals.TitleScene.Window.Visible := False;
+  E2Globals.TitleScene.Window.Visible := False;
   E3Globals.TitleWindow.TitleWin.Visible := False;
   AoWExeForms.TBWindow.TaskWindow.Visible := True;
   E3Globals.MWindow.MapWindow.Visible := True;
@@ -613,7 +613,7 @@ begin
   E3Globals.MWindow.MapViewer.SceneWidth := E3Globals.MWindow.MapWindow.WinWidth - 24;
   E3Globals.MWindow.MapViewer.SceneHeight := E3Globals.MWindow.MapWindow.WinHeight - 24;
   AoWHSMap.Activate;
-  AoWExeForms.UnitWindow.UnitWin.Visible := False;
+  AoWExeForms.RealmWin.Dlg.Visible := False;
   E1Globals.MapEvents.TheMapArmyDeselected;
   E1Globals.MapEvents.TheMapStructureDeselected;
   AoWExeForms.TBWindow.CurPUpdate;
@@ -638,7 +638,7 @@ begin
   AoWExeForms.TBWindow.FWorldClockDelay := 0;
   AoWExeForms.TBWindow.ChatBtn.ILIndexUp := 14;
   AoWExeForms.TBWindow.FChatFlash := 0;
-  SetVideoSize(AoWExeForms.VideoDialog, AoWExeForms.VideoDialog.FDisplayWidth, AoWExeForms.VideoDialog.FDisplayHeight);
+  AoWExeForms.VideoDialog.SetSceneSize(AoWExeForms.VideoDialog.FDisplayWidth, AoWExeForms.VideoDialog.FDisplayHeight);
 end;
 
 end.

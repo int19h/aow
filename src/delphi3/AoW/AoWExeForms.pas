@@ -12,16 +12,16 @@ uses Classes, Windows, AoWScenSetup, aowIntGfxMod, AoWMessageDlg, AoWInfoBanner,
 
 var
   ScenSetup: TScenSetup;
-  IntGfxMod: TIntGfxMod;
+  IntGfxMod: TIntGfxMod absolute aowIntGfxMod.IntGfxMod; { $45B03C }
   MessageDlg: TMessageDlg absolute AoWMessageDlg.MessageDlg;
-  InfoBanner: TInfoBanner;
+  InfoBanner: TInfoBanner absolute AoWInfoBanner.InfoBanner; { $45B068 }
   SoundDlg: TSoundDlg;
-  VideoDialog: TVideoDialog;
+  VideoDialog: TVideoDialog absolute AoWVideoDlg.VideoDialog; { $45B07C }
   MultiWindow: TMultiWindow;
   SWindow: TSWindow absolute AoWSWindow.SWindow;
-  PInfoW: TPInfoW;
-  UnitWindow: TUnitWindow;
-  RealmWin: TRealmWin;
+  PInfoW: TPInfoW absolute AoWPInfoWin.PInfoW; { $45B134 }
+  UnitWindow: TUnitWindow absolute AoWUnitWindow.UnitWindow; { $45B070 }
+  RealmWin: TRealmWin absolute AoWRealm.RealmWin; { $45B240 }
   MagicWin: TMagicWin;
   ControlWin: TControlWin absolute AOWControlWin.ControlWin; { $45B054; 00404F58 }
   TBWindow: TTBWindow;
@@ -30,7 +30,7 @@ var
   ChatWindow: TChatWindow;
   { MWindow is declared in AOWMWindow. }
   FontModule: TFontModule;
-  TCUnit: TTCUnit;
+  TCUnit: TTCUnit absolute AoWTCUnit.TCUnit; { $45B1A8 }
   TCScanner: TTCScanner;
   ConstructDlg: TConstructDlg;
   DisjunctionDlg: TDisjunctionDlg;

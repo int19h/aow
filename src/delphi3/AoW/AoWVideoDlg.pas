@@ -130,15 +130,15 @@ var
 
 implementation
 
-uses AoWWinMan, E3Globals;
+uses AoWUnit, AoWWinMan, E3Globals;
 
 function TVideoDialog.CurrentMode: Integer;
 var
   W, H, I: Integer;
 begin
-  if MainForm.DXDC = MainForm.Display.ActiveDC then
+  if AoWUnit.MainForm.DXDC = AoWUnit.MainForm.Display.ActiveDC then
   begin
-    W := MainForm.DXDC.DisplayWidth; H := MainForm.DXDC.DisplayHeight;
+    W := AoWUnit.MainForm.DXDC.DisplayWidth; H := AoWUnit.MainForm.DXDC.DisplayHeight;
     I := FDisplayModes.Count - 1;
     while (I >= 0) and ((W <> FDisplayModes.Items[I].Width) or (H <> FDisplayModes.Items[I].Height)) do Dec(I);
     Result := DisplayModesLB.Items.IndexOfObject(TObject(I));
@@ -150,21 +150,21 @@ procedure TVideoDialog.ChangeResolution(W, H: Integer);
 begin
   if W <> 0 then
   begin
-    if MainForm.DXDC = MainForm.Display.ActiveDC then
+    if AoWUnit.MainForm.DXDC = AoWUnit.MainForm.Display.ActiveDC then
     begin
-      if (W <> MainForm.DXDC.DisplayWidth) or (H <> MainForm.DXDC.DisplayHeight) then
+      if (W <> AoWUnit.MainForm.DXDC.DisplayWidth) or (H <> AoWUnit.MainForm.DXDC.DisplayHeight) then
       begin
-        MainForm.DXDC.SwitchResolution(W, H); MWindow.MapViewer.ResetStaticSurface;
+        AoWUnit.MainForm.DXDC.SwitchResolution(W, H); MWindow.MapViewer.ResetStaticSurface;
         if Dlg.Visible then begin Dlg.FBackSurface.Free; Dlg.FBackSurface := nil; end;
       end;
     end
     else
     begin
-      MainForm.DXDC.DisplayWidth := W; MainForm.DXDC.DisplayHeight := H;
-      MainForm.Display.SwapDC;
+      AoWUnit.MainForm.DXDC.DisplayWidth := W; AoWUnit.MainForm.DXDC.DisplayHeight := H;
+      AoWUnit.MainForm.Display.SwapDC;
     end;
   end
-  else if MainForm.Display.ActiveDC = MainForm.DXDC then MainForm.Display.SwapDC;
+  else if AoWUnit.MainForm.Display.ActiveDC = AoWUnit.MainForm.DXDC then AoWUnit.MainForm.Display.SwapDC;
   UpdateModes; General.ResetLayout;
 end;
 
@@ -373,15 +373,15 @@ var DC: TAbstractDC;
 begin
   if FModeChanged then
   begin
-    DC := MainForm.Display.ActiveDC;
+    DC := AoWUnit.MainForm.Display.ActiveDC;
     if DC <> nil then
       case FFullScreen of
-        scmGame: if DC <> MainForm.WinDC then ChangeResolution(FDisplayWidth, FDisplayHeight)
+        scmGame: if DC <> AoWUnit.MainForm.WinDC then ChangeResolution(FDisplayWidth, FDisplayHeight)
           else ChangeResolution(0, 0);
-        scmTitle: if DC <> MainForm.WinDC then
+        scmTitle: if DC <> AoWUnit.MainForm.WinDC then
           begin
             if AoWEngine.FRegistry.GetAllowResolutionSwitches and
-              (MainForm.Display.ActiveDC <> MainForm.WinDC) then
+              (AoWUnit.MainForm.Display.ActiveDC <> AoWUnit.MainForm.WinDC) then
               ChangeResolution(FSceneWidth, FSceneHeight)
             else ChangeResolution(FDisplayWidth, FDisplayHeight);
           end
@@ -393,22 +393,22 @@ begin
         scmTitle:
           if AoWEngine.FRegistry.GetAllowResolutionSwitches then
           begin
-            with MainForm.DXDC do
+            with AoWUnit.MainForm.DXDC do
             begin
               DisplayWidth := FSceneWidth;
               DisplayHeight := FSceneHeight;
-              MainForm.Display.BackSurfaceWidth := DisplayWidth;
-              MainForm.Display.BackSurfaceHeight := DisplayHeight;
+              AoWUnit.MainForm.Display.BackSurfaceWidth := DisplayWidth;
+              AoWUnit.MainForm.Display.BackSurfaceHeight := DisplayHeight;
             end;
           end;
         scmGame:
           begin
-            with MainForm.DXDC do
+            with AoWUnit.MainForm.DXDC do
             begin
               DisplayWidth := Self.FDisplayWidth;
               DisplayHeight := Self.FDisplayHeight;
-              MainForm.Display.BackSurfaceWidth := DisplayWidth;
-              MainForm.Display.BackSurfaceHeight := DisplayHeight;
+              AoWUnit.MainForm.Display.BackSurfaceWidth := DisplayWidth;
+              AoWUnit.MainForm.Display.BackSurfaceHeight := DisplayHeight;
             end;
           end;
       end;

@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals, E1GameFlow;
+uses AoWExeForms, AoWTCUnit, AoWRealm, aowMapEvents, AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals, E1GameFlow;
 
 procedure TTBWindow.TurnButtonAnimDone;
 begin
@@ -134,8 +134,8 @@ end;
 procedure TTBWindow.OVButtonClick(A1: Integer);
 begin
   if A1 <> 0 then General.PlayButtonSound(0);
-  RealmWin.Dlg.Visible := not RealmWin.Dlg.Visible;
-  if RealmWin.Dlg.Visible then RealmWin.UpdateOverview;
+  AoWRealm.RealmWin.Dlg.Visible := not AoWRealm.RealmWin.Dlg.Visible;
+  if AoWRealm.RealmWin.Dlg.Visible then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TTBWindow.ConButtonClick;
@@ -182,7 +182,7 @@ end;
 procedure TTBWindow.ChatBtnClick;
 begin
   General.PlayButtonSound(0);
-  ChatWindow.ChatWin.Visible := not ChatWindow.ChatWin.Visible;
+  AoWExeForms.ChatWindow.ChatWin.Visible := not AoWExeForms.ChatWindow.ChatWin.Visible;
 end;
 
 procedure TTBWindow.TurnButtonChange;
@@ -273,7 +273,7 @@ end;
 procedure TTBWindow.TCScannerBtnClick;
 begin
   General.PlayButtonSound(0);
-  TCScanner.TCScannerWin.Visible := not TCScanner.TCScannerWin.Visible;
+  AoWExeForms.TCScanner.TCScannerWin.Visible := not AoWExeForms.TCScanner.TCScannerWin.Visible;
 end;
 
 procedure TTBWindow.TCNextBtnClick;
@@ -337,14 +337,14 @@ end;
 procedure TTBWindow.OV2BtnClick;
 begin
   General.PlayButtonSound(0);
-  if MagicWin.Dlg.Visible then HideMagic(MagicWin)
-  else ShowMagic(MagicWin);
+  if AoWExeForms.MagicWin.Dlg.Visible then HideMagic(MagicWin)
+  else aowMapEvents.ShowMagicWindow(MagicWin);
 end;
 
 procedure TTBWindow.TCUnitBtnClick;
 begin
   General.PlayButtonSound(0);
-  TCUnit.TCUnitWin.Visible := not TCUnit.TCUnitWin.Visible;
+  AoWTCUnit.TCUnit.TCUnitWin.Visible := not AoWTCUnit.TCUnit.TCUnitWin.Visible;
 end;
 
 procedure TTBWindow.StartMenuBarChange;

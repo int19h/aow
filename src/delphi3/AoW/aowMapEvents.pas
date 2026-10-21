@@ -88,7 +88,7 @@ var
 
 implementation
 
-uses AoWInfoWin, E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells, E3EventDialogs, E3StructureInfo, AoWNewTurnDialog, AoWSendEmailGameDlg, AoWSMTPDlg, TCFCDlg, AoWPInfoWin, aowHelpWin, AoWUnitWindow;
+uses AoWUnit, AoWRealm, AoWInfoWin, E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells, E3EventDialogs, E3StructureInfo, AoWNewTurnDialog, AoWSendEmailGameDlg, AoWSMTPDlg, TCFCDlg, AoWPInfoWin, aowHelpWin, AoWUnitWindow;
 
 procedure TMapEvents.TheMapActivateAbility(Request: TActivateAbilityInfo);
 begin
@@ -107,11 +107,11 @@ begin
       if UnitWindow.UnitWin.Visible then UnitWindow.ShowUnit;
       if UnitBanner.BannerPopup.Visible then UnitBanner.BannerPopupShow(Self);
     end;
-    if (AoWHSMap.FSeatedPlayer = Army.FPlayer) and RealmWin.Dlg.Visible and
-      (RealmWin.HeaderTab.Selected = 3) then RealmWin.UpdateOverview;
+    if (AoWHSMap.FSeatedPlayer = Army.FPlayer) and AoWRealm.RealmWin.Dlg.Visible and
+      (AoWRealm.RealmWin.HeaderTab.Selected = 3) then AoWRealm.RealmWin.UpdateOverview;
   end
   else
-    if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected = 3) then RealmWin.UpdateOverview;
+    if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapArmyDeselected;
@@ -144,7 +144,7 @@ end;
 procedure TMapEvents.TheMapArmyDestroyed(Army: TArmy);
 begin
   if (Army <> nil) and (Army = General.FUnitList) then TheMapArmyDeselected;
-  if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected = 3) then RealmWin.UpdateOverview;
+  if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapArmySelected(Army: TArmy);
@@ -170,7 +170,7 @@ begin
   PInfoW.Turn.Text := AoWE.Format(TranslateRStr(DayXRStr), [Day]);
   aowMapEvents.MapEvents.TheMapGemsChanged(AoWHSMap.FSeatedPlayer);
   aowMapEvents.MapEvents.TheMapIncomeChanged(AoWHSMap.FSeatedPlayer);
-  if RealmWin.Dlg.Visible then RealmWin.UpdateOverview;
+  if AoWRealm.RealmWin.Dlg.Visible then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapDeactivateHSM;
@@ -179,7 +179,7 @@ begin
     General.SaveLayout; General.HideWindows;
     MWindow.MapViewer.HSMap := nil;
     SetupEvents.DPlay.DisConnect;
-    if SetupEvents.FLobbyGame then MainForm.Close;
+    if SetupEvents.FLobbyGame then AoWUnit.MainForm.Close;
   except
   end;
 end;
@@ -309,7 +309,7 @@ begin
     else
     begin
       TBWindow.WGTLbl.Text := IntToStr(AoWHSMap.FPlayers.GetPlayers(Player).FGems);
-      if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected = 0) then RealmWin.UpdateOverview;
+      if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 0) then AoWRealm.RealmWin.UpdateOverview;
     end;
     TBWindow.TGTLbl.Text := TBWindow.WGTLbl.Text;
     TBWindow.TGSign.Text := TBWindow.WGSign.Text;
@@ -350,7 +350,7 @@ begin
         TBWindow.WGILbl.TextColor := $77;
       end;
       TBWindow.WGILbl.Text := IntToStr(Abs(NetIncome));
-      if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected = 0) then RealmWin.UpdateOverview;
+      if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 0) then AoWRealm.RealmWin.UpdateOverview;
     end;
     TBWindow.TGILbl.Text := TBWindow.WGILbl.Text;
     TBWindow.TGSign.Text := TBWindow.WGSign.Text;
@@ -430,7 +430,7 @@ begin
       end;
     TBWindow.CurP.Visible := AoWHSMap.FPlayMode = pmTurn;
     PInfoW.UpdatePlayer;
-    if RealmWin.Dlg.Visible then RealmWin.UpdateOverview;
+    if AoWRealm.RealmWin.Dlg.Visible then AoWRealm.RealmWin.UpdateOverview;
   end;
   TheMapGemsChanged(Player); TheMapIncomeChanged(Player); TheMapPlayerMagicChanged(Player);
   TBWindow.PInd.FDrawn := False;
@@ -451,7 +451,7 @@ begin
     CityScreen.CityChanged(Structure);
     ProductionScreen.PlaceChanged(Structure);
   end;
-  if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected < 3) then RealmWin.UpdateOverview;
+  if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected < 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapStructureDeselected;
@@ -467,7 +467,7 @@ end;
 procedure TMapEvents.TheMapStructureDestroyed(Structure: TStructure);
 begin
   if (Structure <> nil) and (Structure = General.FStructure) then TheMapStructureDeselected;
-  if RealmWin.Dlg.Visible then if (RealmWin.HeaderTab.Selected = 2) or (RealmWin.HeaderTab.Selected = 1) then RealmWin.UpdateOverview;
+  if AoWRealm.RealmWin.Dlg.Visible then if (AoWRealm.RealmWin.HeaderTab.Selected = 2) or (AoWRealm.RealmWin.HeaderTab.Selected = 1) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapStructureSelected(Structure: TStructure);
@@ -861,7 +861,7 @@ var
 begin
   with Dialog do
   begin
-    Finish;
+    Reset;
     FDone := Done; FPasswordEvent := Event; FPasswordEvent.AddRef;
     Log := FPasswordEvent;
     TitleLbl.Text := Log.FTitle;
@@ -1001,7 +1001,7 @@ var
 begin
   with Dialog do
   begin
-    Finish;
+    Reset;
     FOnDone := Done;
     FEvent := Event;
     FEvent.AddRef;

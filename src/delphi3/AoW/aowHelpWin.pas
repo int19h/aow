@@ -43,12 +43,12 @@ type
   end;
 
 
-procedure ShowHelp(HelpID: Integer); { draft; 0040471C }
+var HelpWindow: THelpWindow; procedure ShowHelp(HelpID: Integer); { 0040471C }
 
 implementation
 
-var
-  HelpWindow: THelpWindow;
+
+
 
 procedure THelpWindow.FinishDialog;
 var

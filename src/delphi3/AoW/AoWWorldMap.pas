@@ -96,7 +96,7 @@ type
     procedure ShowIntroPages(Index: Integer);
     procedure ShowSpheres;
     procedure SpheresDone(Sender: TObject);
-    procedure BookClosed;
+    procedure BookClosed; procedure ResetCampaign; procedure ShowCampaignHistory;
     procedure BackClick;
     procedure NextStartClick;
     procedure WorldPnlUpdate;
@@ -135,7 +135,7 @@ type
 
 function GetCampaignPage(Pages: TWMCampaignScenarioPageList; Index: Integer): TWMCampaignScenarioPage;
 
-var TargetSelectionDlg: TTargetSelectionDlg;
+var TargetSelectionDlg: TTargetSelectionDlg; WorldMap: TWorldMap; { $45B0F8 }
 
 implementation
 
@@ -143,12 +143,12 @@ uses AoWExeForms, AoWWinMan, E2CampaignSupport, PageTurnCtrl, E2Globals, E2GameF
 
 var
   BookStartVisible: Boolean;
-
+procedure TWorldMap.ResetCampaign; begin GetCampaign.FState := 0; GetCampaign.FPage := 0; InfoPnl.Visible := False; ShowBtn.Text := TranslateRStr(ShowInfoRStr); end;
 function GetCampaignPage(Pages: TWMCampaignScenarioPageList; Index: Integer): TWMCampaignScenarioPage;
 begin
   Result := TWMCampaignScenarioPage(Pages.FChildren.List^[Index]);
 end;
-
+procedure TWorldMap.ShowCampaignHistory; var Scenario: TWMCampaignScenario; begin GetCampaign.FState := 10; GetCampaign.FPage := 0; Scenario := GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID); while (Scenario.FIntroPages.Count > GetCampaign.FPage + 2) and ((GetCampaignPage(Scenario.FIntroPages, GetCampaign.FPage + 2).FImageLibrary <> '') or (GetCampaignPage(Scenario.FIntroPages, GetCampaign.FPage + 2).FText.Count > 0)) do Inc(GetCampaign.FPage, 2); ShowIntroPages(GetCampaign.FCurrentScenarioID); end;
 function TWorldMap.GetCampaign: TWMCampaign;
 begin
   Result := TWMCampaign(AoWEngine.FCampaign);
@@ -326,16 +326,16 @@ begin
           Inc(GetCampaign.FState);
           GetCampaign.StartScenario(GetCampaign.FNextScenarioID, nil);
           SetCurrentDir(AoWEngine.StartupDirectory + 'Scenario\Campaign\');
-          LoadGame(General, GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FFileName);
+          AoWWinMan.LoadGame(General, GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FFileName);
           TitleWindow.TitlePnl.Visible := True;
           WorldPnl.Visible := False;
           GetCampaign.SetupScenario;
-          StartGame(General);
-          TargetSelectionDlg.HeaderLbl.Text := '';
+          AoWWinMan.StartGame(General);
+          WorldMap.DescLbl.Text := '';
         end
         else
         begin
-          TargetSelectionDlg.HeaderLbl.Text := '';
+          WorldMap.DescLbl.Text := '';
           GetCampaign.FState := 0;
           UpdateCampaignState;
         end;
@@ -785,7 +785,7 @@ end;
 
 procedure TWorldMap.QuitBtnClick;
 begin
-  ConfirmDialog(DialogWin, TranslateRStr(ConfirmRStr), TranslateRStr(QuitCampaignRStr), 5);
+  DialogWin.Confirm( TranslateRStr(ConfirmRStr), TranslateRStr(QuitCampaignRStr), 5);
 end;
 
 procedure TWorldMap.StarImgUpdate;
