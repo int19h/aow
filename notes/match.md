@@ -294,3 +294,18 @@ date and version as `DCC32.EXE`), and Delphi 3 builds other than 3.0 and 3.01.
   `tools/checkall.sh`). `notes/handoff.md` (2026-10-20) has the per-package leftovers, the open
   declaration work (export hashes, the EngineLists fold, the access classes, the Assert layout)
   and the order of the remaining modules, AoWEPACK.dpl first.
+
+## AoWEPACK.dpl (2026-10-20)
+
+About 6,155 of 6,872 functions identical, recovered by Codex sessions (notes/model-comparison.md,
+notes/briefs/). The AoWE unit is one interface cut into per-package include runs and one
+implementation file `inc\AoWEimpl.inc` in the original's address order; 46 of its 52 Asserts are on
+the original lines (the other six need more lines than our code leaves between them). Of the roughly
+690 functions that differ, about 490 differ first in a register, a saved register or the frame size,
+the pattern no source variant changes in any package; the others were reviewed once
+(notes/briefs/review-differing.md) and the fixable causes fixed.
+
+New compiler observations from this package: moving whole routines within a unit can change the
+exception cleanup of an unrelated routine (`Format` lost its match when the implementation was put
+in address order); a stub override of a method that became a function must return
+`inherited` (a statement call keeps an extra register save).
