@@ -84,29 +84,33 @@
   end;
 
   { TAbstractAoWHSMap (instance size 216, VMT 5570E37C) }
+  { TAbstractAoWHSMap: size $D8; $A4/$A5 current/seated player, $A8 message events,
+    $AC message text, $B0 message frame, $B4 FPS, $B8 map-event lock, $BC map events,
+    $C0 scanner events, $C4 scanner lock, $C8/$C9 fog/exploration, $CC/$D0 selectors,
+    $D6 selector visibility. }
   TAbstractAoWHSMap = class(THSMap)
   public
     FCurrentPlayer: Shortint;  { $A4 }
     FSeatedPlayer: Shortint;  { $A5 }
     FReservedA6: array[0..1] of Byte;
-    F_AbstractAoWHSMap_A8: Integer;
-    F_AbstractAoWHSMap_AC: Integer;
-    F_AbstractAoWHSMap_B0: Byte;
+    FShowMessageEvents: TEventList; { $A8 }
+    FMessageText: string; { $AC }
+    FMessageFrame: Byte; { $B0 }
     F_AbstractAoWHSMap_B1: array[0..2] of Byte;
-    F_AbstractAoWHSMap_B4: Integer;
-    F_AbstractAoWHSMap_B8: Integer;
-    F_AbstractAoWHSMap_BC: Integer;
-    F_AbstractAoWHSMap_C0: Integer;
-    F_AbstractAoWHSMap_C4: Integer;
+    FFPS: Integer; { $B4 }
+    FMapChangedLockCount: Integer; { $B8 }
+    FMapChangedEvents: TEventList; { $BC }
+    FScannerIconsChangedEvents: TEventList; { $C0 }
+    FScannerIconsChangedLockCount: Integer; { $C4 }
     FFogEnabled: Byte; { $C8 }
     FExplorationEnabled: Boolean; { $C9 }
     F_AbstractAoWHSMap_CA: Byte;
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
-    F_AbstractAoWHSMap_CC: Integer;
-    F_AbstractAoWHSMap_D0: Integer;
+    FBackHexagonSelector: TCustomFixedVisibleHS; { $CC }
+    FFrontHexagonSelector: TCustomFixedVisibleHS; { $D0 }
     F_AbstractAoWHSMap_D4: Byte;
     F_AbstractAoWHSMap_D5: Byte;
-    F_AbstractAoWHSMap_D6: Byte;
+    FHexagonSelectorVisible: Boolean; { $D6 }
     F_AbstractAoWHSMap_D7: array[0..0] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -115,24 +119,24 @@
     procedure UpdateStaticScene; override;
     procedure UpdateDynamicScene; override;
     procedure NewFrame; override;
-    procedure ShowBackHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0EC draft }
-    procedure ShowFrontHexagonSelector(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0F0 draft }
+    procedure ShowBackHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $EC }
+    procedure ShowFrontHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $F0 }
     procedure UpdateHexagonSelector; virtual;  { +0F4 draft }
     procedure SetSeatedPlayer(A1: Shortint); virtual; { $F8 }
     procedure SetCurrentPlayer(A1: Shortint); virtual; { $FC }
-    procedure SetFogEnabled(A1: Byte); virtual;  { +100 draft }
-    procedure SetExplorationEnabled(A1: Byte); virtual;  { +104 draft }
+    procedure SetFogEnabled(Value: Byte); virtual; { $100 }
+    procedure SetExplorationEnabled(Value: Boolean); virtual; { $104 }
     procedure DropHeroItem(Hero: THero; Item: TItem); virtual; { $108 }
     function GetHeroItemsOnGround(Hero: THero): TItemList; virtual; { $10C }
     procedure ShowMessage(const A1: string); virtual;
     procedure ShowWarning(const Text: string); virtual;
     procedure PlayCenterAnimation(X, Y, L: Shortint);
-    procedure LockMapChangedEvent;  { draft }
-    procedure UnlockMapChangedEvent;  { draft }
-    procedure MapChanged(A1: Integer);  { draft }
-    procedure MapChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure InvalidateMap;  { draft }
-    procedure TriggerMapChangedEvent(A1: Integer; A2: Integer);  { draft }
+    procedure LockMapChangedEvent;
+    procedure UnlockMapChangedEvent;
+    procedure MapChanged(const R: TRect; L: Integer);
+    procedure MapChangedRad(X, Y, L, Radius: Integer);
+    procedure InvalidateMap;
+    procedure TriggerMapChangedEvent(const R: TRect; L: Integer);
     procedure LockScannerIconsChangedEvent;  { draft }
     procedure UnlockScannerIconsChangedEvent;  { draft }
     procedure ScannerIconsChanged(A1: Integer; A2: Integer);  { draft }
@@ -162,13 +166,14 @@
   end;
 
   { TTutorialControl (instance size 12, VMT 5570E6E4) }
+  { TTutorialControl: size $0C; +$08 list of shown message IDs. }
   TTutorialControl = class(TEObject)
   public
-    F_TutorialControl_08: Integer;
+    FShownMessages: TIntegerList; { $08 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure ShowMessage(A1: Integer; A2: Byte; A3: Integer);  { draft }
+    procedure ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean);
   end;
 
   { TStartupSongList: instance size $10; inherited $08 Songs, $0C SongNames. VMT 5570E7AC. }
@@ -325,7 +330,7 @@
     function AddMapLevel: Boolean; override;
     procedure Activate; override;
     function CreateNewMap(Settings: HSEngine.TNewHSMapSettings): Boolean; override;
-    function ChangeTerrain(MO: HSEngine.TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer; override;
+    function ChangeTerrain(MO: Engine.TEObject; X, Y, L, Radius, TerrainType: Integer): Integer; override;
     function ChangeTerrainEx(MO: Engine.TEObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer; override;
     procedure DrawDynamicScene(var SD: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;

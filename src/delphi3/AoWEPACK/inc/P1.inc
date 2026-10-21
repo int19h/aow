@@ -4857,7 +4857,7 @@ begin
       Log.Release;
       ReplayLogbook;
     end
-    else AoWHSMap.FTutorialControl.ShowMessage(50, 0, 1);
+    else AoWHSMap.FTutorialControl.ShowMessage(50, False, True);
   end;
   inherited NewTurn(Player);
   if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman) and
@@ -4895,7 +4895,7 @@ begin
         end;
         Spells.Free;
       end;
-      AoWHSMap.FTutorialControl.ShowMessage(52, 0, 1);
+      AoWHSMap.FTutorialControl.ShowMessage(52, False, True);
     end;
   end;
 end;
@@ -9841,201 +9841,657 @@ begin
 end;
 
 constructor TTextControlItem.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FText := TStringList.Create;
+end;
 
 destructor TTextControlItem.Destroy;
-begin end;
+begin
+  FText.Free;
+  inherited Destroy;
+end;
 
 class function TTextControlItem.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2029A;
+end;
 
 procedure TTextControlItem.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FID, 9);
+  Stream.rwStrings(FText, 10);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FName, 11);
+end;
 
-procedure TTextControl.GetItem(A1: Integer);
-begin end;
+function TTextControl.GetItem(Index: Integer): TTextControlItem;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := TTextControlItem(FChildren.List^[Index])
+  else Result := nil;
+end;
 
-procedure TTextControl.Delete(A1: Integer);
-begin end;
+procedure TTextControl.Delete(Index: Integer);
+begin
+  if GetItem(Index) <> nil then GetItem(Index).Free;
+end;
 
-procedure TTextControl.New;
-begin end;
+function TTextControl.New: TTextControlItem;
+begin
+  Result := TTextControlItem.Create(Self);
+end;
 
-procedure TTextControl.FindID(A1: Integer);
-begin end;
+function TTextControl.FindID(ID: Integer): TTextControlItem;
+var
+  I: Integer;
+begin
+  I := Count;
+  Result := nil;
+  while (Result = nil) and (I <> 0) do
+  begin
+    Dec(I);
+    if TTextControlItem(FChildren.List^[I]).FID = ID then
+      Result := TTextControlItem(FChildren.List^[I]);
+  end;
+end;
+
+function CompareTextControlItems(Item1, Item2: Pointer): Integer;
+begin
+  Result := TTextControlItem(Item1).FID - TTextControlItem(Item2).FID;
+  if Result = 0 then
+    Result := TTextControlItem(Item1).FText.Count - TTextControlItem(Item2).FText.Count;
+  if Result = 0 then Result := Integer(Item1) - Integer(Item2);
+end;
 
 procedure TTextControl.Sort;
-begin end;
+begin
+  FChildren.Sort(CompareTextControlItems);
+end;
 
-procedure TTextControl.IndexOf;
-begin end;
+function TTextControl.IndexOf(Item: TTextControlItem): Integer;
+begin
+  Result := FindChildIndex(Item);
+end;
 
 procedure TTextControl.RetrieveText(ID: Integer; Text: TStrings);
-begin end;
+var
+  Item: TTextControlItem;
+begin
+  Text.Clear;
+  Item := FindID(ID);
+  if Item <> nil then Text.Text := Item.FText.Text;
+end;
 
 class function TFrozenWaterHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2016C;
+end;
 
 function TFrozenWaterHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := $1C;
+end;
 
 procedure TFrozenWaterHS.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwShortint(FDaysRemaining, $1E);
+  Stream.rwShortint(FCasterPlayer, $1F);
+end;
 
 procedure TFrozenWaterHS.MeltIce;
-begin end;
+begin
+  if TMapField(Owner).TerrainType = 6 then
+    AoWHSMap.ChangeTerrain(Self, Xhx, Yhx, Lhx, 0, 0)
+  else if TMapField(Owner).TerrainType = 13 then
+    AoWHSMap.ChangeTerrain(Self, Xhx, Yhx, Lhx, 0, 10)
+  else Destroy;
+end;
 
 procedure TFrozenWaterHS.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  inherited TerrainChanged(Info);
+  if (Info.HN = 0) and not (Info.TerrainType in [6, 13]) then Destroy;
+end;
 
-procedure TFrozenWaterHS.NewTurn(A1: Byte);
-begin end;
+procedure TFrozenWaterHS.NewTurn(Player: Shortint);
+begin
+  if Player = FCasterPlayer then
+  begin
+    Dec(FDaysRemaining);
+    if FDaysRemaining <= 0 then MeltIce;
+  end;
+end;
 
 procedure TFrozenWaterHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020002 then NewTurn(Msg.Value);
+end;
 
 procedure TFrozenWaterHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  X, Y: Integer;
+begin
+  HXtoHP(Xhx, Yhx, X, Y);
+  X := X - XhpSurf + 16;
+  Y := Y - YhpSurf + 16;
+  AoWHSSet.FImageSequences.ShowLoopedEx(70, X, Y, AoWHSMap.Frame,
+    Xhx + Yhx + Yhx * 2, SurfaceDesc);
+end;
 
 constructor TTutorialControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FShownMessages := TIntegerList.Create;
+end;
 
 destructor TTutorialControl.Destroy;
-begin end;
+begin
+  FShownMessages.Free;
+  inherited Destroy;
+end;
 
 procedure TTutorialControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc($14, FShownMessages.LoadFromStream, FShownMessages.SaveToStream);
+end;
 
-procedure TTutorialControl.ShowMessage(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+procedure TTutorialControl.ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean);
+var
+  Log: TTutorialMessageEventLog;
+begin
+  if (AoWHSMap.FGameType = gtTutorial) and (AoWHSMap.FTextControl.FindID(ID) <> nil) then
+  begin
+    if OnceOnly and (FShownMessages.IndexOf(ID) <> -1) then Exit;
+    Log := TTutorialMessageEventLog.Create(nil);
+    Log.FMessage.Assign(AoWHSMap.FTextControl.FindID(ID).FText);
+    AoWHSMap.TriggerExecuteEventLog(Log, Immediate, nil);
+    Log.Release;
+    FShownMessages.Add(ID);
+  end;
+end;
 
 class function TAoWMapField.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20012;
+end;
 
-function TAoWMapField.GetExplored(A1: Integer): Boolean;
-begin Result := False; end;
+function TAoWMapField.GetExplored(Player: Integer): Boolean;
+asm
+  STC
+  MOV ECX, EDX
+  MOV EDX, [EAX].FFieldFlags
+  RCR EDX, CL
+  JC @@Explored
+  XOR AL, AL
+  RET
+@@Explored:
+  MOV AL, 1
+end;
 
-procedure TAoWMapField.SetExplored(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWMapField.SetExplored(Player: Integer; Value: Boolean);
+asm
+  { Original tests the entire ECX register for a Boolean passed in CL. }
+  TEST ECX, ECX
+  JZ @@Clear
+  LEA ECX, [EDX-1]
+  MOV EDX, 1
+  SHL EDX, CL
+  OR [EAX].FFieldFlags, EDX
+  RET
+@@Clear:
+  LEA ECX, [EDX-1]
+  MOV EDX, 1
+  SHL EDX, CL
+  NOT EDX
+  AND [EAX].FFieldFlags, EDX
+end;
 
 procedure TAoWMapField.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwWord(LongRec(FFieldFlags).Lo, 4);
+end;
 
 procedure TAoWMapField.FogChanged;
-begin end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1106;
+  SendMapFieldMsg(Msg);
+end;
 
-procedure TAoWMapField.SetFogCount(A1: Byte);
-begin end;
+procedure TAoWMapField.SetFogCount(Value: Byte);
+begin
+  if ((Value = 0) and (WordRec(LongRec(FFieldFlags).Hi).Lo <> 0)) or
+    ((Value <> 0) and (WordRec(LongRec(FFieldFlags).Hi).Lo = 0)) then
+  begin
+    WordRec(LongRec(FFieldFlags).Hi).Lo := Value;
+    FogChanged;
+  end
+  else WordRec(LongRec(FFieldFlags).Hi).Lo := Value;
+end;
 
 procedure TAoWMapField.UpdateMapField;
-begin end;
+begin
+  FFieldFlags := FFieldFlags and $FFFF1FFF;
+  inherited UpdateMapField;
+end;
 
 function TAoWMapField.GetPlayer: Shortint;
-begin Result := 0; end;
+var
+  Msg: TMapFieldMsg;
+begin
+  if FFieldFlags and $02000000 <> 0 then
+  begin
+    Msg.MsgID := $1100;
+    Msg.Result := -1;
+    SendMapFieldMsg(Msg);
+    Result := Msg.Result;
+  end
+  else Result := -1;
+end;
 
-procedure TAoWMapField.GetScannerIcon;
-begin end;
+function TAoWMapField.GetScannerIcon: Integer;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $110C;
+  Msg.Param[0] := 0;
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Param[0];
+end;
 
-procedure TAoWMapField.GetCombatTerrainTag;
-begin end;
+function TAoWMapField.GetCombatTerrainTag: Integer;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1122;
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Result;
+end;
 
-procedure TAoWMapField.GetConcealmentActive;
-begin end;
+function TAoWMapField.GetConcealmentActive: Boolean;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1128;
+  Msg.Result := 0;
+  Msg.Param[0] := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Param[0] <> 0;
+end;
 
 function TAoWMapField.GetMagicShieldActive: Boolean;
-begin Result := False; end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1129;
+  Msg.Result := 0;
+  Msg.Param[0] := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Param[0] <> 0;
+end;
 
 function TAoWMapField.GetProductionControl: TProductionControl;
-begin Result := nil; end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1201;
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := TProductionControl(Msg.Result);
+end;
 
 function TAoWMapField.GetAITarget(Control: TAIGroupControl; const Info: TAITargetInfo; var Data: TAITargetData): Boolean;
-begin Result := False; end;
+var
+  Msg: TMapFieldMsg;
+begin
+  FillChar(Data, SizeOf(Data), 0);
+  Data.TargetType := Low(TAITargetType);
+  Msg.MsgID := $1200;
+  Msg.Param[0] := Integer(@Info);
+  Msg.Param[1] := Integer(@Data);
+  Msg.Param[2] := Integer(Control);
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := Data.Priority <> 0;
+end;
 
-function TAoWMapField.GetMoveAction(A1: Byte): TMoveAction;
-begin Result := maNormal; end;
+function TAoWMapField.GetMoveAction(Player: Shortint): TMoveAction;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1101;
+  Msg.Param[0] := Player;
+  Msg.Param[1] := 0;
+  SendMapFieldMsg(Msg);
+  Result := TMoveAction(Msg.Param[1]);
+end;
 
 function TAoWMapField.GetIndependentRelation: Byte;
-begin Result := 0; end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1125;
+  Msg.Result := -1;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Result;
+end;
 
-procedure TAoWMapField.GetDefensePriority;
-begin end;
+function TAoWMapField.GetDefensePriority: Byte;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1126;
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Result;
+end;
 
-procedure TAoWMapField.GetDefenseRequirements(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWMapField.GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements);
+var
+  Msg: TMapFieldMsg;
+begin
+  FillChar(Requirements, SizeOf(Requirements), 0);
+  Msg.MsgID := $1127;
+  Msg.Param[0] := Player;
+  Msg.Param[1] := Integer(@Requirements);
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+end;
 
-procedure TAoWMapField.GetWallType;
-begin end;
+function TAoWMapField.GetWallType: TWallType;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1123;
+  Msg.Param[0] := Integer(Self);
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+  Result := TWallType(Msg.Result);
+end;
 
 function TAoWMapField.GetArmyHS: TArmyHS;
-begin Result := nil; end;
+begin
+  Result := TArmyHS(FindOwnedChild($20217));
+end;
 
 procedure TAoWMapField.RestoreTerrain;
-begin end;
+var
+  Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $1132;
+  Msg.Param[0] := Integer(Self);
+  Msg.Result := 0;
+  SendMapFieldMsg(Msg);
+end;
 
 class function TAoWMapLevel.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20013;
+end;
 
 function TAoWMapLevel.MapFieldClass: Engine.TEObjectClass;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := TAoWMapField;
+end;
 
-procedure TAoWMapLevel.FogArea(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAoWMapLevel.FogArea(X, Y, Radius: Integer): Boolean;
+var
+  Walk: THNWalkData;
+  Field: TAoWMapField;
+begin
+  Result := False;
+  InitHNWalk(Walk, X, Y, 0);
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
+    begin
+      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 1 then Result := True;
+      Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo - 1);
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TAoWMapLevel.UnFogArea(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAoWMapLevel.UnFogArea(X, Y, Radius: Integer): Boolean;
+var
+  Walk: THNWalkData;
+  Field: TAoWMapField;
+begin
+  Result := False;
+  InitHNWalk(Walk, X, Y, 0);
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
+    begin
+      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := True;
+      Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TAoWMapLevel.UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAoWMapLevel.UnFogExploreArea(X, Y: Integer; Player: Shortint; Radius: Integer): TFogExplorationChanged;
+var
+  Walk: THNWalkData;
+  Field: TAoWMapField;
+begin
+  Assert(Player >= 0, 'Invalid Player Index');
+  Result := [];
+  InitHNWalk(Walk, X, Y, 0);
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
+    begin
+      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := Result + [feFog];
+      Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
+      if not Field.GetExplored(Player) then
+      begin
+        Result := Result + [feExploration];
+        Field.SetExplored(Player, True);
+        if TAbstractAoWHSMap(FMap).FExplorationEnabled and
+          (TAbstractAoWHSMap(FMap).FSeatedPlayer = Player) then
+          FMap.InvalidateStaticScene(Walk.X, Walk.Y, FLhx);
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure TAoWMapLevel.ExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAoWMapLevel.ExploreArea(X, Y: Integer; Player: Shortint; Radius: Integer): Boolean;
+var
+  Walk: THNWalkData;
+  Field: TAoWMapField;
+begin
+  Result := False;
+  InitHNWalk(Walk, X, Y, 0);
+  while Walk.Radius <= Radius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
+    begin
+      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      if not Field.GetExplored(Player) then
+      begin
+        Field.SetExplored(Player, True);
+        if TAbstractAoWHSMap(FMap).FExplorationEnabled and
+          (TAbstractAoWHSMap(FMap).FSeatedPlayer = Player) then
+          FMap.InvalidateStaticScene(Walk.X, Walk.Y, FLhx);
+        Result := True;
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 procedure TAoWMapLevel.ResetFog;
-begin end;
+var
+  I, N: Integer;
+  Field: TAoWMapField;
+begin
+  N := Count - 1;
+  Field := FFields;
+  for I := 0 to N do
+  begin
+    Field.SetFogCount(0);
+    Field := Pointer(Integer(Field) + FFieldSize);
+  end;
+end;
 
 procedure TAoWMapLevel.ResetUnFog;
-begin end;
+var
+  I, N: Integer;
+  Field: TAoWMapField;
+begin
+  N := Count - 1;
+  Field := FFields;
+  for I := 0 to N do
+  begin
+    Field.SetFogCount(1);
+    Field := Pointer(Integer(Field) + FFieldSize);
+  end;
+end;
 
 procedure TAoWMapLevel.Reset;
-begin end;
+var
+  I, N: Integer;
+  Field: TAoWMapField;
+begin
+  N := Count - 1;
+  Field := FFields;
+  for I := 0 to N do
+  begin
+    Field.FFieldFlags := 0;
+    Field := Pointer(Integer(Field) + FFieldSize);
+  end;
+end;
 
 constructor TAbstractAoWHSMap.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FShowMessageEvents := TEventList.Create;
+  FMapChangedEvents := TEventList.Create;
+  FScannerIconsChangedEvents := TEventList.Create;
+  FBackHexagonSelector := TCustomFixedVisibleHS.Create(nil);
+  FBackHexagonSelector.OnShow := ShowBackHexagonSelector;
+  FFrontHexagonSelector := TCustomFixedVisibleHS.Create(nil);
+  FFrontHexagonSelector.OnShow := ShowFrontHexagonSelector;
+  FHexagonSelectorVisible := False;
+  FExplorationEnabled := True;
+  FFogEnabled := 1;
+  FSeatedPlayer := 1;
+  FFPS := 30;
+end;
 
 destructor TAbstractAoWHSMap.Destroy;
-begin end;
+begin
+  FShowMessageEvents.Clear;
+  FMapChangedEvents.Clear;
+  HideHexagonSelector;
+  FBackHexagonSelector.Free;
+  FFrontHexagonSelector.Free;
+  FScannerIconsChangedEvents.Free;
+  inherited Destroy;
+  FShowMessageEvents.Free;
+  FMapChangedEvents.Free;
+end;
 
 function TAbstractAoWHSMap.CreateMouse: HSEngine.THSMapMouse;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := TAbstractAoWHSMapMouse.Create;
+end;
 
-procedure TAbstractAoWHSMap.SetFogEnabled(A1: Byte);
-begin end;
+procedure TAbstractAoWHSMap.SetFogEnabled(Value: Byte);
+begin
+  if Value <> FFogEnabled then
+  begin
+    FFogEnabled := Value;
+    InvalidateMap;
+  end;
+end;
 
-procedure TAbstractAoWHSMap.SetExplorationEnabled(A1: Byte);
-begin end;
+procedure TAbstractAoWHSMap.SetExplorationEnabled(Value: Boolean);
+begin
+  if Value <> FExplorationEnabled then
+  begin
+    FExplorationEnabled := Value;
+    StaticSceneInvalid := True;
+    InvalidateMap;
+  end;
+end;
 
 procedure TAbstractAoWHSMap.PlayCenterAnimation(X, Y, L: Shortint);
-begin end;
+var
+  Animation: TImageSequenceAnimation;
+begin
+  Animation := TImageSequenceAnimation.Create(nil);
+  Animation.SetImageSequence(AoWHSSet.FImageSequences.GetImageSequence(11));
+  PlaceHX(Animation, X, Y, L);
+  PlaySample('SFX\INT\CENTER.WAV');
+end;
 
 procedure TAbstractAoWHSMap.LockMapChangedEvent;
-begin end;
+begin
+  Inc(FMapChangedLockCount);
+end;
 
 procedure TAbstractAoWHSMap.UnlockMapChangedEvent;
-begin end;
+begin
+  Assert(FMapChangedLockCount <> 0, 'Invalid MapChanged Lock usage');
+  Dec(FMapChangedLockCount);
+end;
 
 procedure TAbstractAoWHSMap.TriggerTerrainChangedEvent(const R: Windows.TRect; L: Shortint);
-begin end;
+begin
+  inherited TriggerTerrainChangedEvent(R, L);
+  if FMapChangedLockCount = 0 then TriggerMapChangedEvent(R, L);
+end;
 
-procedure TAbstractAoWHSMap.MapChanged(A1: Integer);
-begin end;
+procedure TAbstractAoWHSMap.MapChanged(const R: TRect; L: Integer);
+begin
+  if (FMapChangedLockCount = 0) and (msActivated in Status) then
+    TriggerTerrainChangedEvent(R, L);
+end;
 
-procedure TAbstractAoWHSMap.MapChangedRad(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TAbstractAoWHSMap.MapChangedRad(X, Y, L, Radius: Integer);
+var
+  R: TRect;
+  Level: TMapLevel;
+begin
+  Level := MapContainer.GetMapLevel(L);
+  R.Left := X - Radius;
+  if R.Left < 0 then R.Left := 0;
+  R.Right := X + Radius + 1;
+  if R.Right > Level.Width then R.Right := Level.Width;
+  R.Top := Y - Radius;
+  if R.Top < 0 then R.Top := 0;
+  R.Bottom := Y + Radius + 1;
+  if R.Bottom > Level.Height then R.Bottom := Level.Height;
+  TerrainChanged(R, L);
+end;
 
 procedure TAbstractAoWHSMap.InvalidateMap;
-begin end;
+var
+  R: TRect;
+  I: Integer;
+begin
+  R.Left := 0;
+  R.Right := MapContainer.Width;
+  R.Top := 0;
+  R.Bottom := MapContainer.Height;
+  for I := 0 to MapContainer.LevelCount - 1 do MapChanged(R, I);
+end;
 
-procedure TAbstractAoWHSMap.TriggerMapChangedEvent(A1: Integer; A2: Integer);
+procedure TAbstractAoWHSMap.TriggerMapChangedEvent(const R: TRect; L: Integer);
 begin end;
 
 procedure TAbstractAoWHSMap.LockScannerIconsChangedEvent;
@@ -10095,10 +10551,10 @@ begin end;
 procedure TAbstractAoWHSMap.HideHexagonSelector;
 begin end;
 
-procedure TAbstractAoWHSMap.ShowBackHexagonSelector(A1: Integer; A2: Integer; A3: Integer);
+procedure TAbstractAoWHSMap.ShowBackHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
-procedure TAbstractAoWHSMap.ShowFrontHexagonSelector(A1: Integer; A2: Integer; A3: Integer);
+procedure TAbstractAoWHSMap.ShowFrontHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 procedure TAbstractAoWHSMap.UpdateHexagonSelector;
@@ -11229,7 +11685,7 @@ begin end;
 procedure TAoWHSMap.ZeroTurnTimer;
 begin end;
 
-function TAoWHSMap.ChangeTerrain(MO: HSEngine.TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer;
+function TAoWHSMap.ChangeTerrain(MO: Engine.TEObject; X, Y, L, Radius, TerrainType: Integer): Integer;
 begin Result := 0; end;
 
 function TAoWHSMap.ChangeTerrainEx(MO: Engine.TEObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer;

@@ -281,7 +281,7 @@ end;
 
 { ChangeTerrain, ChangeTerrainEx and ClearTerrain clip the right edge of the changed rectangle
   into its Left (original slip). }
-function THSMap.ChangeTerrain(MO: TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer;
+function THSMap.ChangeTerrain(MO: TEObject; X, Y, L, Radius, TerrainType: Integer): Integer;
 var
   List: TShortIntList;
   Count: Integer;

@@ -327,10 +327,11 @@
   end;
 
   { TFrozenWaterHS (instance size 16, VMT 557147B4) }
+  { TFrozenWaterHS: size $10; +$0C signed days remaining, +$0D caster player. }
   TFrozenWaterHS = class(TSingleHS)
   public
-    FDaysRemaining: Byte; { $0C; 557CCEC1 }
-    FCasterPlayer: Byte; { $0D; 557CCEC7 }
+    FDaysRemaining: Shortint; { $0C; 557CCEC1 }
+    FCasterPlayer: Shortint; { $0D; 557CCEC7 }
     F_FrozenWaterHS_0E: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -338,7 +339,7 @@
     function GetLevel: Byte; override;
     procedure TerrainChanged(const Info: HSEngine.THSTerrainInfo); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure MeltIce;  { draft }
-    procedure NewTurn(A1: Byte);  { draft }
+    procedure MeltIce;
+    procedure NewTurn(Player: Shortint);
   end;
 

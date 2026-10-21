@@ -1490,7 +1490,7 @@ begin
              (P2DiplomaticRelation(TPlayerDiplomaticRelations(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FDiplomaticRelations),Player) = drWar) and
              P2Explored(Field,Player) and
              not P2VisibleForPlayer(AoWHSMap,Walk.X,Walk.Y,MapField.Lhx,Player) then
-            Field.SetExplored(Player,0);
+            Field.SetExplored(Player,False);
     end;
     WalkToNextHN(Walk);
   end;

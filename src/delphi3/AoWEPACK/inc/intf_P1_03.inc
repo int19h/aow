@@ -347,6 +347,7 @@
   end;
 
   { TAoWMapField (instance size 28, VMT 5570C764) }
+  { TAoWMapField: size $1C; +$18 flags, byte +$1A fog count, bit $02000000 owner query. }
   TAoWMapField = class(TMapField)
   public
     FFieldFlags: Integer;  { $18 }
@@ -354,38 +355,39 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     procedure UpdateMapField; override;
-    function GetExplored(A1: Integer): Boolean;
-    procedure SetExplored(A1: Integer; A2: Integer);  { draft }
-    procedure FogChanged;  { draft }
-    procedure SetFogCount(A1: Byte);  { draft }
+    function GetExplored(Player: Integer): Boolean;
+    procedure SetExplored(Player: Integer; Value: Boolean);
+    procedure FogChanged;
+    procedure SetFogCount(Value: Byte);
     function GetPlayer: Shortint;
-    procedure GetScannerIcon;  { draft }
-    procedure GetCombatTerrainTag;  { draft }
-    procedure GetConcealmentActive;  { draft }
+    function GetScannerIcon: Integer;
+    function GetCombatTerrainTag: Integer;
+    function GetConcealmentActive: Boolean;
     function GetMagicShieldActive: Boolean;
     function GetProductionControl: TProductionControl;
     function GetAITarget(Control: TAIGroupControl; const Info: TAITargetInfo; var Data: TAITargetData): Boolean; { 55737FF5 }
-    function GetMoveAction(A1: Byte): TMoveAction;
+    function GetMoveAction(Player: Shortint): TMoveAction;
     function GetIndependentRelation: Byte;
-    procedure GetDefensePriority;  { draft }
-    procedure GetDefenseRequirements(A1: Integer; A2: Integer);  { draft }
-    procedure GetWallType;  { draft }
+    function GetDefensePriority: Byte;
+    procedure GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements);
+    function GetWallType: TWallType;
     function GetArmyHS: TArmyHS;
     procedure RestoreTerrain;
   end;
 
   { TAoWMapLevel (instance size 128, VMT 5570C864) }
+  { TAoWMapLevel: size $80; inherited field table and coordinate offsets, reserved +$7C. }
   TAoWMapLevel = class(TMapLevel)
   public
     F_AoWMapLevel_7C: array[0..3] of Byte;
     class function ClassID: Integer; override;
     function MapFieldClass: Engine.TEObjectClass; override;
-    procedure FogArea(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure UnFogArea(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ResetFog;  { draft }
-    procedure ResetUnFog;  { draft }
-    procedure Reset;  { draft }
+    function FogArea(X, Y, Radius: Integer): Boolean;
+    function UnFogArea(X, Y, Radius: Integer): Boolean;
+    function UnFogExploreArea(X, Y: Integer; Player: Shortint; Radius: Integer): TFogExplorationChanged;
+    function ExploreArea(X, Y: Integer; Player: Shortint; Radius: Integer): Boolean;
+    procedure ResetFog;
+    procedure ResetUnFog;
+    procedure Reset;
   end;
 

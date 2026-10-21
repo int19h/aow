@@ -290,7 +290,7 @@ type
     size of MapFieldClass); field (X, Y) is at FYOffsets[Y] + FXOffsets[X], its neighbour in
     direction HN (1..6) FHNOffsets[X and 1, HN] bytes from it. The fields are the children. }
   TMapLevel = class(TECustomNode)
-  private
+  protected
     FLhx: Integer;
     FWidth: Integer;
     FHeight: Integer;
@@ -581,7 +581,7 @@ type
     procedure GetViewCenter(var Xhx, Yhx, Lhx: Integer); virtual;
     procedure MakeVisible(Xhx, Yhx, Lhx, Radius: Integer); virtual;
     function CreateNewMap(Settings: TNewHSMapSettings): Boolean; virtual;
-    function ChangeTerrain(MO: TMapObject; X, Y, L, Radius, TerrainType: Integer): Integer; virtual;
+    function ChangeTerrain(MO: TEObject; X, Y, L, Radius, TerrainType: Integer): Integer; virtual;
     function ChangeTerrainEx(MO: TEObject; X, Y, L, Radius: Integer;
       ChangeTerrainProc: TChangeTerrainProc; TerrainChangedProc: TTerrainChangedProc): Integer; virtual;
     procedure UpdateStaticScene; virtual;

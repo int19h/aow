@@ -480,7 +480,7 @@ type
     FriendlyStrength: Integer; { $10 }
     Strength: Integer; { $14 } Reserved18: Integer;
   end;
-  TDefenseRequirements = record Reserved00: array[0..27] of Byte; Strength: Integer; end;
+  TDefenseRequirements = record Reserved00: array[0..27] of Byte; Strength: Integer; Reserved20: array[0..7] of Byte; end; { $28; 55771E58 }
   TAITargetData = record Priority: Integer; TargetType: TAITargetType; Cost: Integer; Reserved0C: array[0..11] of Byte; end; { $18; 557D77C1 }
   TProductionControlStatus = (pcsIdle, pcsWaiting, pcsProducing);  { ot=1 }
   TProductionUpdateMode = (umProduce, umResearch, umCancel);  { ot=1 }

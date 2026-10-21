@@ -56,11 +56,12 @@
   end;
 
   { TTextControlItem (instance size 20, VMT 5570D198) }
+  { TTextControlItem: instance size $14; +$08 ID, +$0C Text, +$10 Name. }
   TTextControlItem = class(TEObject)
   public
-    F_TextControlItem_08: Integer;
-    F_TextControlItem_0C: Integer;
-    F_TextControlItem_10: Integer;
+    FID: Integer; { $08 }
+    FText: TStrings; { $0C }
+    FName: string; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -68,14 +69,15 @@
   end;
 
   { TTextControl (instance size 12, VMT 5570D270) }
+  { TTextControl: instance size $0C; inherits the children list at +$08. }
   TTextControl = class(TENode)
   public
-    procedure GetItem(A1: Integer);  { draft }
-    procedure Delete(A1: Integer);  { draft }
-    procedure New;  { draft }
-    procedure FindID(A1: Integer);  { draft }
-    procedure Sort;  { draft }
-    procedure IndexOf;  { draft }
+    function GetItem(Index: Integer): TTextControlItem;
+    procedure Delete(Index: Integer);
+    function New: TTextControlItem;
+    function FindID(ID: Integer): TTextControlItem;
+    procedure Sort;
+    function IndexOf(Item: TTextControlItem): Integer;
     procedure RetrieveText(ID: Integer; Text: TStrings);
   end;
 
