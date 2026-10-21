@@ -17,7 +17,7 @@ type
   { TSpringOfLifeAnimation (instance size 60, VMT 557A3858) }
   TSpringOfLifeAnimation = class(TAnimation)
   public
-    function AnimationControlMode: TAnimationControlMode; override;
+    class function AnimationControlMode: TAnimationControlMode; override;
     procedure NewFrame; override;
   end;
 
@@ -56,7 +56,7 @@ const
 
 { needs: AnimationControlMode returns TAnimationControlMode in AL. }
 
-function TSpringOfLifeAnimation.AnimationControlMode: TAnimationControlMode;
+class function TSpringOfLifeAnimation.AnimationControlMode: TAnimationControlMode;
 asm
   MOV AL,SpringMode
 end;

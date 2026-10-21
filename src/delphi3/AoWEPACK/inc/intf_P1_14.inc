@@ -5,6 +5,9 @@ var
   AoWHSSet: TAoWHSSet;  { $558FA044 }
 
 const
+  RaceColors: array[0..12] of TColor = ($00E03430, $0066A4FF, $00AFCB2C,
+    $00FEDA87, $0060EF41, $0015FDFD, $00A5C1E4, $00F7FFFD, $00B370BC,
+    $005050E9, $004266BB, $00797898, $00A8A8A8); { $558E8294 }
   dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }

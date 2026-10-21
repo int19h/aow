@@ -12285,7 +12285,13 @@ function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint)
 begin Result := 0; end;
 
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
-begin end;
+var
+  Radians: Single;
+begin
+  Radians := A1 * Pi / 180;
+  A3 := Round(Cos(Radians) * A2);
+  A4 := Round(Sin(Radians) * A2);
+end;
 
 function Encode(Text: string; Mode: Integer): string;
 var

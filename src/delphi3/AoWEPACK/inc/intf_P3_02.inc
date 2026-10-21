@@ -366,7 +366,7 @@
     function GetLeftIcon: Integer; override;
     function GetMiddleIcon: Integer; override;
     function GetRightIcon: Integer; override;
-    procedure PlayLoggedSFX(A1: Integer); override;
+    procedure PlayLoggedSFX(A1: TEventLogbook); override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure ViewLocation; override;
     procedure SetCombatLogbook(Logbook: TCombatLogbook);

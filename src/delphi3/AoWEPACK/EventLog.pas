@@ -42,14 +42,15 @@ type
   TMessageEventLogLayout = (melNormal, melHeader);  { ot=1 }
   TSaveGameEventLogMode = set of (sgmDisableCancel); { ot=1 }
 
-  { TEventLog: size $18; $08 day, $10 player. VMT 557FC1C8. }
+  { TEventLog: size $18; $08 day, $0C unique ID, $10 player,
+    $14 reference count. VMT 557FC1C8. }
   TEventLog = class(TEObject)
   public
     FDay: Integer; { $08 }
-    F_EventLog_0C: Integer;
+    FID: Integer; { $0C }
     FPlayer: Shortint;  { $10 }
     F_EventLog_11: array[0..2] of Byte;
-    F_EventLog_14: Integer;
+    FRefCount: Integer; { $14 }
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -61,9 +62,9 @@ type
     function GetMiddleIcon: Integer; virtual;  { $058 }
     function GetRightIcon: Integer; virtual;  { $05C }
     function GetVisible: Boolean; virtual;  { $060 }
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); virtual;  { +064 draft }
-    procedure PlayLoggedSFX(A1: Integer); virtual;  { +068 draft }
-    procedure NotifyLogged(A1: Integer); virtual;  { +06C draft }
+    procedure GetLocation(var X, Y, L: Shortint); virtual; { $064 }
+    procedure PlayLoggedSFX(A1: TEventLogbook); virtual; { $068 }
+    procedure NotifyLogged(A1: TEventLogbook); virtual; { $06C }
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; virtual;
     procedure ViewLocation; virtual; { +074 }
     procedure CenterViewTo(X, Y, L: Shortint);
@@ -89,7 +90,7 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    procedure GetLocation(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure GetLocation(var X, Y, L: Shortint); override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
     procedure SetLocation(X, Y, L: Shortint);
   end;
@@ -228,7 +229,7 @@ type
   public
     class function ClassID: Integer; override;
     function GetLeftIcon: Integer; override;
-    procedure PlayLoggedSFX(A1: Integer); override;
+    procedure PlayLoggedSFX(A1: TEventLogbook); override;
   end;
 
   { TShowBookEventLog (instance size 24, VMT 557FCB48) }
@@ -274,6 +275,8 @@ procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
 procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
 
 implementation
+
+uses AoWE;
 
 constructor TExecuteEventLogCallBackList.Create;
 begin
@@ -322,55 +325,137 @@ begin
 end;
 
 constructor TEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    FDay := AoWHSMap.FDay;
+    FPlayer := AoWHSMap.FCurrentPlayer;
+  end;
+  inherited Create(AOwner);
+  FRefCount := 1;
+end;
 
 procedure TEventLog.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  if FRefCount <> 0 then
+  begin
+    AddRef;
+    inherited SetOwner(AOwner);
+    Release;
+  end
+  else inherited SetOwner(AOwner);
+end;
 
 function TEventLog.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TEventLog.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if Result = 0 then Destroy;
+end;
 
 procedure TEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FDay, 10);
+  Stream.rwByte(Byte(FPlayer), 11);
+  Stream.rwInteger(FID, 12);
+end;
 
 function TEventLog.GetVisible: Boolean;
-begin Result := False; end;
+begin
+  Result := True;
+end;
 
 function TEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  Result := 'Default TEventLog';
+end;
 
 function TEventLog.GetTextColor: TColor;
-begin Result := 0; end;
+var
+  Index: Integer;
+begin
+  if (FPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FPlayer) then
+    Index := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
+  else Index := 12;
+  Result := RaceColors[Index];
+end;
 
 function TEventLog.GetLeftIcon: Integer;
-begin Result := 0; end;
+begin
+  if (FPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FPlayer) then
+    Result := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
+  else Result := 12;
+end;
 
 function TEventLog.GetMiddleIcon: Integer;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TEventLog.GetRightIcon: Integer;
-begin Result := 0; end;
+begin
+  Result := -1;
+end;
 
 function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  if (Trigger = etUser) or
+    (((Trigger = etEvent) or ((Trigger = etNewTurn) and AoWHSMap.FRequestCombatType)) and
+    (AoWHSMap.FSeatedPlayer = FPlayer)) then
+  begin
+    AoWHSMap.TriggerExecuteEventLog(Self, Mode, Done);
+    Result := True;
+  end
+  else
+  begin
+    if Trigger = etEvent then PlaySample('SFX\EVENTS\NEWEVENT.WAV');
+    Result := False;
+  end;
+end;
 
 procedure TEventLog.CenterViewTo(X, Y, L: Shortint);
-begin end;
+begin
+  AoWHSMap.CenterViewTo(X, Y, L);
+  AoWHSMap.PlayCenterAnimation(X, Y, L);
+end;
 
-procedure TEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TEventLog.GetLocation(var X, Y, L: Shortint);
+begin
+  X := -1;
+  Y := -1;
+  L := -1;
+end;
 
 procedure TEventLog.ViewLocation;
-begin end;
+var
+  X, Y, L: Shortint;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    AoWHSMap.CenterViewTo(X, Y, L);
+    AoWHSMap.PlayCenterAnimation(X, Y, L);
+  end;
+end;
 
-procedure TEventLog.PlayLoggedSFX(A1: Integer);
-begin end;
+procedure TEventLog.PlayLoggedSFX(A1: TEventLogbook);
+begin
+  PlaySample('SFX\EVENTS\NEWEVENT.WAV');
+end;
 
-procedure TEventLog.NotifyLogged(A1: Integer);
-begin end;
+procedure TEventLog.NotifyLogged(A1: TEventLogbook);
+begin
+  if (AoWHSMap.FSeatedPlayer = A1.FPlayer) and
+    (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) then
+    PlayLoggedSFX(A1);
+end;
 
 function TEventLogList.AddChild(Child: Engine.TEObject): Integer;
 begin Result := 0; end;
@@ -481,7 +566,7 @@ begin end;
 procedure TLocationTextEventLog.SetLocation(X, Y, L: Shortint);
 begin end;
 
-procedure TLocationTextEventLog.GetLocation(A1: Integer; A2: Integer; A3: Integer);
+procedure TLocationTextEventLog.GetLocation(var X, Y, L: Shortint);
 begin end;
 
 function TLocationTextEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
@@ -535,7 +620,7 @@ begin Result := 0; end;
 function TNewDayEventLog.GetLeftIcon: Integer;
 begin Result := 0; end;
 
-procedure TNewDayEventLog.PlayLoggedSFX(A1: Integer);
+procedure TNewDayEventLog.PlayLoggedSFX(A1: TEventLogbook);
 begin end;
 
 class function TShowBookEventLog.ClassID: Integer;

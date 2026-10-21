@@ -1,8 +1,6 @@
 unit Animation;
 
-{ Draft declarations of Animation, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Animation from AoWEPACK.dpl, recovered against Delphi 3.02. }
 
 interface
 
@@ -22,23 +20,18 @@ type
   TAnimationTEState = (atIdle, atPlaying, atDone);  { ot=1 }
   TTwinkleMode = set of (tmRotate, tmExpand, tmExplode, tmImplode); { ot=1 }
 
-  { TAnimation (instance size 60, VMT 557FAEA0) }
+  { TAnimation: size $3C; $08/$09/$0A hex position, $0B display level,
+    $0C state, $10 frame, $14..$23 dimensions, $24/$2C callbacks,
+    $34 tag, $38 map. VMT 557FAEA0. }
   TAnimation = class(THexagonSprite)
   public
-    F_Animation_08: Byte;
-    F_Animation_09: Byte;
-    F_Animation_0A: Byte;
+    FXhx: Shortint; { $08 }
+    FYhx: Shortint; { $09 }
+    FLhx: Shortint; { $0A }
     FAnimationLevel: Byte; { $0B }
-    { conflict: FLevel: Byte; }
-    F_Animation_0C: Byte;
-    F_Animation_0D: array[0..2] of Byte;
+    FState: TAnimationState; { $0C }
     FFrameCounter: Integer; { $10 }
-    { conflict: FFrame: Integer; }
-    F_Animation_14: Byte;
-    F_Animation_15: array[0..2] of Byte;
-    F_Animation_18: Integer;
-    F_Animation_1C: Integer;
-    F_Animation_20: Integer;
+    FDimensions: TRect; { $14 }
     FOnShow: TShowAnimationEvent; { $24 }
     { conflict: FOnShowAnimation: TShowAnimationEvent; }
     FOnNewFrame: TNewFrameAnimationEvent; { $2C }
@@ -69,31 +62,31 @@ type
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
     procedure Select; override;
     procedure Unselect; override;
-    function AnimationControlMode: TAnimationControlMode; virtual; { $108; 557E2BB4 }
-    procedure PlaceTE; virtual;  { +10C draft }
-    procedure RemoveTE; virtual;  { +110 draft }
-    procedure ExecuteTE; virtual;  { +114 draft }
-    procedure CanPlace(A1: Integer; A2: Byte; A3: Integer; A4: Integer); virtual;  { +118 draft }
+    class function AnimationControlMode: TAnimationControlMode; virtual; { $108; 557E2BB4 }
+    function PlaceTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean; virtual; { $10C }
+    function RemoveTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean; virtual; { $110 }
+    function ExecuteTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean; virtual; { $114 }
+    function CanPlace(Map: TMapContainer; X, Y, L: Shortint): Boolean; virtual; { $118 }
     function PlaceHX(Map: TMapContainer; X, Y, L: Shortint): Boolean; virtual; { +11C }
-    procedure NewFrame; virtual;  { +120 draft }
-    procedure DestroyEvent;  { draft }
-    procedure NewFrameEvent;  { draft }
-    procedure SetDimensions(const R: TRect);
+    procedure NewFrame; virtual; { $120 }
+    procedure DestroyEvent(Sender: TObject);
+    procedure NewFrameEvent(Sender: TObject);
+    procedure SetDimensions(R: TRect);
   end;
 
-  { TAnimationTE (instance size 24, VMT 557FB074) }
+  { TAnimationTE: size $18; $10 state, $14 animation. VMT 557FB074. }
   TAnimationTE = class(TTokenEvent)
   public
-    F_AnimationTE_10: Byte;
-    F_AnimationTE_11: array[0..2] of Byte;
-    F_AnimationTE_14: Integer;
+    FState: TAnimationTEState; { $10 }
+    FAnimation: TAnimation; { $14 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure Initialize(A1: Integer);  { draft }
+    procedure Initialize(Animation: TAnimation);
   end;
 
-  { TImageSequenceAnimation (instance size 80, VMT 557FB13C) }
+  { TImageSequenceAnimation: size $50; $3C sequence, $40/$44 pixel offsets,
+    $48 last frame, $4C loop flag. VMT 557FB13C. }
   TImageSequenceAnimation = class(TAnimation)
   public
     FImageSequence: TImageSequence; { $3C }
@@ -105,177 +98,489 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure NewFrame; override;
-    procedure UpdateDimensions;  { draft }
+    procedure UpdateDimensions;
     procedure SetImageSequence(Sequence: TImageSequence);
-    procedure SetXhpOffset(A1: Integer);  { draft }
-    procedure SetYhpOffset(A1: Integer);  { draft }
+    procedure SetXhpOffset(Value: Integer);
+    procedure SetYhpOffset(Value: Integer);
   end;
 
-  { TTwinkleAnimation (instance size 84, VMT 557FB340) }
+  { TTwinkleAnimation: size $54; $3C sequence, $40 particle count, $44 radius,
+    $48 lifetime, $4C random start delay, $50 mode. VMT 557FB340. }
   TTwinkleAnimation = class(TAnimation)
   public
-    F_TwinkleAnimation_3C: Integer;
-    F_TwinkleAnimation_40: Integer;
-    F_TwinkleAnimation_44: Integer;
-    F_TwinkleAnimation_48: Integer;
-    F_TwinkleAnimation_4C: Integer;
-    F_TwinkleAnimation_50: Byte;
-    F_TwinkleAnimation_51: array[0..2] of Byte;
+    FImageSequence: TImageSequence; { $3C }
+    FCount: Integer; { $40 }
+    FRadius: Integer; { $44 }
+    FDuration: Integer; { $48 }
+    FStartDelay: Integer; { $4C }
+    FMode: TTwinkleMode; { $50 }
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
-    procedure Setup(Sequence: TImageSequence; Mode: TTwinkleMode; StartFrame, Duration, Radius, Count: Integer);
+    procedure Setup(Sequence: TImageSequence; Mode: TTwinkleMode; Count, Radius, Duration, StartDelay: Integer);
   end;
 
 
 implementation
 
+uses AoWE;
+
 constructor TAnimation.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAnimationLevel := 26;
+end;
 
 destructor TAnimation.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
-procedure TAnimation.DestroyEvent;
-begin end;
+procedure TAnimation.DestroyEvent(Sender: TObject);
+begin
+  if Owner = nil then Destroy;
+end;
 
 class function TAnimation.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202E7;
+end;
 
-procedure TAnimation.NewFrameEvent;
-begin end;
+procedure TAnimation.NewFrameEvent(Sender: TObject);
+begin
+  NewFrame;
+end;
 
 function TAnimation.GetControlStyle: Engine.TEControlStyles;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  if amSaveable in AnimationControlMode then Result := [csSaveLoad]
+  else Result := [];
+end;
 
-function TAnimation.AnimationControlMode: TAnimationControlMode;
-begin Result := []; end;
+class function TAnimation.AnimationControlMode: TAnimationControlMode;
+begin
+  Result := [amLinkToNewFrame, amFixedVisible, amLinkToOnDestroy];
+end;
 
 procedure TAnimation.Activate;
-begin end;
+begin
+  inherited Activate;
+  FState := FState + [asActivated];
+  if amLinkToNewFrame in AnimationControlMode then
+    FAnimationMap.NewFrameEvents.Add(NewFrameEvent);
+  if amFixedVisible in AnimationControlMode then
+    FAnimationMap.DynamicFixedVisibleHS.AddChild(Self);
+  if amLinkToOnDestroy in AnimationControlMode then
+    FAnimationMap.DestroyEvents.Add(DestroyEvent);
+end;
 
 procedure TAnimation.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  if asActivated in FState then
+  begin
+    FState := FState - [asActivated];
+    if amFixedVisible in AnimationControlMode then
+    begin
+      FAnimationMap.DynamicFixedVisibleHS.RemoveChild(Self);
+      FAnimationMap.DynamicVisibleHS.RemoveChild(Self);
+    end;
+    if amLinkToNewFrame in AnimationControlMode then
+      FAnimationMap.NewFrameEvents.Remove(NewFrameEvent);
+    if amLinkToOnDestroy in AnimationControlMode then
+      FAnimationMap.DestroyEvents.Remove(DestroyEvent);
+  end;
+end;
 
 function TAnimation.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := FAnimationLevel;
+end;
 
 function TAnimation.GetShowPriority: Integer;
-begin Result := 0; end;
+var
+  X, Y: Integer;
+begin
+  HXtoHP(FXhx, FYhx, X, Y);
+  Result := (Integer(FAnimationLevel) shl 26) + ((Y + FDimensions.Bottom) shl 13) + X;
+end;
 
 procedure TAnimation.SetVisible(Value: Boolean);
-begin end;
+begin
+  if Value then FState := FState + [asVisible]
+  else FState := FState - [asVisible];
+end;
 
 function TAnimation.GetVisible: Boolean;
-begin Result := False; end;
+begin
+  Result := asVisible in FState;
+end;
 
 procedure TAnimation.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+begin
+  if not (asVisible in FState) then
+  begin
+    FState := FState + [asVisible];
+    VisibilityList.AddSortChild(Self, GetShowPriority);
+  end;
+end;
 
 function TAnimation.GetEditMode: Boolean;
-begin Result := False; end;
+begin
+  Result := asEditMode in FState;
+end;
 
 procedure TAnimation.SetEditMode(Value: Boolean);
-begin end;
+begin
+  if Value then FState := FState + [asEditMode]
+  else FState := FState - [asEditMode];
+end;
 
 procedure TAnimation.Select;
-begin end;
+begin
+  inherited Select;
+  FState := FState + [asSelected];
+end;
 
 procedure TAnimation.Unselect;
-begin end;
+begin
+  inherited Unselect;
+  FState := FState - [asSelected];
+end;
 
 function TAnimation.GetSelected: Boolean;
-begin Result := False; end;
+begin
+  Result := asSelected in FState;
+end;
 
-procedure TAnimation.SetDimensions(const R: TRect);
-begin end;
+procedure TAnimation.SetDimensions(R: TRect);
+begin
+  if not (asPlaced in FState) then FDimensions := R
+  else raise Exception.Create('Cannot change dimensions when object is places');
+end;
 
 function TAnimation.GetXhx: Shortint;
-begin Result := 0; end;
+begin
+  Result := FXhx;
+end;
 
 function TAnimation.GetYhx: Shortint;
-begin Result := 0; end;
+begin
+  Result := FYhx;
+end;
 
 function TAnimation.GetLhx: Shortint;
-begin Result := 0; end;
+begin
+  Result := FLhx;
+end;
 
 procedure TAnimation.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FDimensions, SizeOf(FDimensions), 10);
+  Stream.rwByte(Byte(FXhx), 11);
+  Stream.rwByte(Byte(FYhx), 12);
+  Stream.rwByte(Byte(FLhx), 13);
+  Stream.rwInteger(FFrameCounter, 14);
+end;
 
-procedure TAnimation.PlaceTE;
-begin end;
+function TAnimation.PlaceTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean;
+begin
+  Result := PlaceHX(FAnimationMap.MapContainer, FXhx, FYhx, FLhx);
+end;
 
-procedure TAnimation.RemoveTE;
-begin end;
+function TAnimation.RemoveTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean;
+begin
+  MainRemove;
+  Result := True;
+end;
 
-procedure TAnimation.ExecuteTE;
-begin end;
+function TAnimation.ExecuteTE(Event: TAnimationTE; Executer: TTokenExecuter): Boolean;
+begin
+  Result := False;
+end;
 
 procedure TAnimation.NewFrame;
-begin end;
+begin
+  Inc(FFrameCounter);
+  if Assigned(FOnNewFrame) then FOnNewFrame(Self, FFrameCounter);
+end;
 
-procedure TAnimation.CanPlace(A1: Integer; A2: Byte; A3: Integer; A4: Integer);
-begin end;
+function TAnimation.CanPlace(Map: TMapContainer; X, Y, L: Shortint): Boolean;
+begin
+  if (X < 0) or (Y < 0) or (L < 0) or (X >= Map.Width) or
+    (Y >= Map.Height) or (L >= Map.LevelCount) then Result := False
+  else Result := True;
+end;
 
 procedure TAnimation.Connect;
-begin end;
+var
+  X, Y: Integer;
+begin
+  if not (asPlaced in FState) then
+  begin
+    HXtoHP(FXhx, FYhx, X, Y);
+    if amOwnedByMap in AnimationControlMode then
+      PlaceOnMapEx(FAnimationMap.MapContainer, X + FDimensions.Left,
+        Y + FDimensions.Top, FLhx, X + FDimensions.Right, Y + FDimensions.Bottom)
+    else
+      PlaceUserOnMapEx(FAnimationMap.MapContainer, X + FDimensions.Left,
+        Y + FDimensions.Top, FLhx, X + FDimensions.Right, Y + FDimensions.Bottom);
+    FState := FState + [asPlaced];
+  end;
+end;
 
 procedure TAnimation.Disconnect;
-begin end;
+var
+  X, Y: Integer;
+begin
+  if asPlaced in FState then
+  begin
+    HXtoHP(FXhx, FYhx, X, Y);
+    if amOwnedByMap in AnimationControlMode then
+      RemoveFromMapEx(X + FDimensions.Left, Y + FDimensions.Top,
+        X + FDimensions.Right, Y + FDimensions.Bottom)
+    else
+      RemoveUserFromMapEx(FAnimationMap.MapContainer, X + FDimensions.Left,
+        Y + FDimensions.Top, FLhx, X + FDimensions.Right, Y + FDimensions.Bottom);
+    FState := FState - [asPlaced];
+  end;
+end;
 
 function TAnimation.Place(Map: HSEngine.TMapContainer; Xhp, Yhp, Lhx: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y: Integer;
+begin
+  HPtoHX(Xhp, Yhp, X, Y);
+  Result := PlaceHX(Map, X, Y, Lhx);
+end;
 
 function TAnimation.PlaceHX(Map: TMapContainer; X, Y, L: Shortint): Boolean;
-begin Result := False; end;
+begin
+  if GetEditMode or CanPlace(Map, X, Y, L) then
+  begin
+    FAnimationMap := Map.Map;
+    Remove;
+    FXhx := X;
+    FYhx := Y;
+    FLhx := L;
+    Connect;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TAnimation.Remove;
-begin end;
+begin
+  inherited Remove;
+  if GetVisible then
+  begin
+    if FAnimationLevel <= 15 then FAnimationMap.StaticVisibleHS.RemoveChild(Self)
+    else FAnimationMap.DynamicVisibleHS.RemoveChild(Self);
+    SetVisible(False);
+  end;
+end;
 
 procedure TAnimation.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  if Assigned(FOnShow) then FOnShow(Self, XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 class function TAnimationTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21109;
+end;
 
-procedure TAnimationTE.Initialize(A1: Integer);
-begin end;
+procedure TAnimationTE.Initialize(Animation: TAnimation);
+begin
+  if FAnimation <> nil then FAnimation.Free;
+  FAnimation := Animation;
+end;
 
 procedure TAnimationTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwCreateEObject(TEObject(FAnimation), nil, 15);
+end;
 
 function TAnimationTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := inherited Execute(TE);
+  if FAnimation <> nil then
+  begin
+    if FState = atIdle then
+      if FAnimation.PlaceTE(Self, TE) then FState := atPlaying
+      else Result := erDoneHalt;
+    if FState = atPlaying then
+      if not FAnimation.ExecuteTE(Self, TE) then
+      begin
+        FAnimation.RemoveTE(Self, TE);
+        FState := atDone;
+      end;
+    if FState = atDone then Result := erDone;
+  end
+  else Result := erDone;
+end;
 
 constructor TImageSequenceAnimation.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FFrameCount := -1;
+  FXhpOffset := 0;
+  FYhpOffset := 0;
+end;
 
 procedure TImageSequenceAnimation.UpdateDimensions;
-begin end;
+var
+  Sequence: TImageSequence;
+  R: TRect;
+begin
+  FDimensions.Left := 0;
+  FDimensions.Right := 0;
+  FDimensions.Top := 0;
+  FDimensions.Bottom := 0;
+  Sequence := FImageSequence;
+  while Sequence <> nil do
+  begin
+    Sequence.GetDimensions(R);
+    UnionRect(FDimensions, FDimensions, R);
+    Sequence := Sequence.Next;
+  end;
+  Inc(FDimensions.Left, 16);
+  Inc(FDimensions.Right, 16);
+  Inc(FDimensions.Top, 16);
+  Inc(FDimensions.Bottom, 16);
+end;
 
 procedure TImageSequenceAnimation.SetImageSequence(Sequence: TImageSequence);
-begin end;
+var
+  Current: TImageSequence;
+  Frames: Integer;
+begin
+  FImageSequence := Sequence;
+  UpdateDimensions;
+  if not FLooped then
+  begin
+    Current := FImageSequence;
+    FFrameCount := -1;
+    while Current <> nil do
+    begin
+      Frames := Current.GetTotalSequenceFrames;
+      if Frames > FFrameCount then FFrameCount := Frames;
+      Current := Current.Next;
+    end;
+    if FFrameCount <> -1 then Inc(FFrameCount);
+  end;
+end;
 
-procedure TImageSequenceAnimation.SetXhpOffset(A1: Integer);
-begin end;
+procedure TImageSequenceAnimation.SetXhpOffset(Value: Integer);
+begin
+  FXhpOffset := Value;
+  UpdateDimensions;
+end;
 
-procedure TImageSequenceAnimation.SetYhpOffset(A1: Integer);
-begin end;
+procedure TImageSequenceAnimation.SetYhpOffset(Value: Integer);
+begin
+  FYhpOffset := Value;
+  UpdateDimensions;
+end;
 
 procedure TImageSequenceAnimation.NewFrame;
-begin end;
+begin
+  inherited NewFrame;
+  if FFrameCounter = FFrameCount then Destroy;
+end;
 
 procedure TImageSequenceAnimation.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  X, Y, Index: Integer;
+begin
+  inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
+  if GetLhx = FAnimationMap.ViewL then
+  begin
+    HXtoHP(FXhx, FYhx, X, Y);
+    XhpSurf := X - XhpSurf + 16 + FXhpOffset;
+    YhpSurf := Y - YhpSurf + 16 + FYhpOffset;
+    if not FLooped then
+    begin
+      Sequence := FImageSequence;
+      while Sequence <> nil do
+      begin
+        Index := Sequence.GetUnloopedFrameIndex(FFrameCounter);
+        if Index <> -1 then
+          if Sequence.ImageLibrary.ImageExist(Index) then
+            Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift,
+              YhpSurf + Sequence.dYshift, SurfaceDesc);
+        Sequence := Sequence.Next;
+      end;
+    end
+    else
+    begin
+      Sequence := FImageSequence;
+      while Sequence <> nil do
+      begin
+        Index := Sequence.GetFrameIndex(0, FFrameCounter);
+        if Index <> -1 then
+          Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift, SurfaceDesc);
+        Sequence := Sequence.Next;
+      end;
+    end;
+  end;
+end;
 
 constructor TTwinkleAnimation.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAnimationLevel := 28;
+end;
 
 procedure TTwinkleAnimation.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  OldSeed, Delay, X, Y, DX, DY, I, Radius, Angle, Index: Integer;
+begin
+  OldSeed := RandSeed;
+  HXtoHP(FXhx, FYhx, X, Y);
+  XhpSurf := X - XhpSurf + 16;
+  YhpSurf := Y - YhpSurf + 16;
+  RandSeed := GetXhx + AoWHSMap.FInitialRandomSeed + GetYhx * 3;
+  for I := 0 to FCount - 1 do
+  begin
+    Radius := Random(FRadius);
+    Angle := Random(360);
+    Delay := Random(FStartDelay);
+    if FFrameCounter - Delay >= 0 then
+    begin
+      if tmExpand in FMode then Radius := Round(Radius * FFrameCounter / FDuration) + Radius div 2;
+      if tmExplode in FMode then Inc(Radius, Round((FFrameCounter - Delay) * (FFrameCounter - Delay)));
+      if tmImplode in FMode then Inc(Radius, Round(FDuration - (FFrameCounter - Delay)));
+      if tmRotate in FMode then Inc(Angle, FFrameCounter * 4);
+      DegreesRadToCo(Angle, Radius, DX, DY);
+      Sequence := FImageSequence;
+      while Sequence <> nil do
+      begin
+        Index := Sequence.GetUnloopedFrameIndex(FFrameCounter - Delay);
+        if Sequence.ImageLibrary.ImageExist(Index) then
+          Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift + DX,
+            YhpSurf + Sequence.dYshift + DY, SurfaceDesc);
+        Sequence := Sequence.Next;
+      end;
+    end;
+  end;
+  RandSeed := OldSeed;
+  if FFrameCounter >= FDuration then Destroy;
+end;
 
-procedure TTwinkleAnimation.Setup(Sequence: TImageSequence; Mode: TTwinkleMode; StartFrame, Duration, Radius, Count: Integer);
-begin end;
-
+procedure TTwinkleAnimation.Setup(Sequence: TImageSequence; Mode: TTwinkleMode; Count, Radius, Duration, StartDelay: Integer);
+begin
+  FImageSequence := Sequence;
+  FCount := Count;
+  FRadius := Radius;
+  FMode := Mode;
+  FStartDelay := StartDelay;
+  FDuration := Duration;
+end;
 
 initialization
 finalization

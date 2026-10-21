@@ -4412,7 +4412,7 @@ begin
   if (Hero <> nil) and (Hero.FPlayer = 0) and Hero.OfferToJoin(FPlayer) then
   begin
     Result := THeroJoinEventLog.Create(nil);
-    Result.FJoinIndex := F_EventLog_0C;
+    Result.FJoinIndex := FID;
     case FMode of
     hjmEmerged:
     begin

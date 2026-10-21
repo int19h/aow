@@ -1237,7 +1237,7 @@ begin
   Stream.rwCreateEObject(TEObject(FAction), nil, $14);
 end;
 
-procedure TDiplomaticActionEventLog.PlayLoggedSFX(A1: Integer);
+procedure TDiplomaticActionEventLog.PlayLoggedSFX(A1: TEventLogbook);
 begin
   case FAction.FActionType of
     daDeclareWar, daThreatenToAttack, daBreakAlliance: Sound.PlaySample('SFX\EVENTS\MESSAGE.WAV');
@@ -1246,12 +1246,12 @@ begin
   end;
 end;
 
-procedure TDiplomaticActionEventLog.NotifyLogged(A1: Integer);
+procedure TDiplomaticActionEventLog.NotifyLogged(A1: TEventLogbook);
 var Action: TDiplomaticAction;
 begin
   inherited NotifyLogged(A1);
   Action := FAction;
-  if Action <> nil then Action.FEventLogID := F_EventLog_0C;
+  if Action <> nil then Action.FEventLogID := FID;
 end;
 
 function TDiplomaticActionEventLog.GetVisible: Boolean;

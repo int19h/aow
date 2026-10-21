@@ -5,9 +5,6 @@ resourcestring
   BattleDrawnRStr = 'Battle Drawn';
   CannotBreachWallRStr = 'Cannot breach wall';
   CannotInflictDamageRStr = 'Cannot inflict damage';
-const
-  RaceColors: array[0..12] of TColor = ($E03430, $66A4FF, $AFCB2C, $FEDA87,
-    $60EF41, $15FDFD, $A5C1E4, $F7FFFD, $B370BC, $5050E9, $4266BB, $797898, $A8A8A8);
 type
   PP3String = ^string;
   TP3NodeAccess = class(TENode)
@@ -2189,7 +2186,7 @@ begin
   Result := TCombatData(TCombatLogbook(FLogbook).FFinalData).FHeader;
 end;
 
-procedure TCombatEventLog.PlayLoggedSFX(A1: Integer);
+procedure TCombatEventLog.PlayLoggedSFX(A1: TEventLogbook);
 begin
   if TCombatPlayerList(FLogbook.FInitialData.FPlayers).IndexOfPlayer(AoWHSMap.FSeatedPlayer) <> -1 then
     PlaySample('SFX\EVENTS\ROLL.WAV')

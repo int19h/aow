@@ -16,7 +16,7 @@ type
   { TBloodShrineAnimation: size $3C, VMT 557E26D0; no additional fields. }
   TBloodShrineAnimation = class(TAnimation)
   public
-    function AnimationControlMode: TAnimationControlMode; override;
+    class function AnimationControlMode: TAnimationControlMode; override;
     procedure NewFrame; override;
   end;
 
@@ -50,7 +50,7 @@ const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
   WorldSet: PAoWHSSet = @AoWE.AoWHSSet;
 
-function TBloodShrineAnimation.AnimationControlMode: TAnimationControlMode;
+class function TBloodShrineAnimation.AnimationControlMode: TAnimationControlMode;
 begin Result := [amLinkToNewFrame, amOwnedByMap]; end;
 
 procedure TBloodShrineAnimation.NewFrame;
