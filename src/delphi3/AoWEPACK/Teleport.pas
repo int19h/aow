@@ -146,8 +146,8 @@ end;
 procedure TTeleport.MoveExclusive(const Info: HSEngine.THSSenderInfo);
 begin
   if (Info.HN = 0) and not (tsRazed in FState) then
-    TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField),
-      Integer(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL)), 0);
+    TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField),
+      TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL)), 0);
 end;
 
 procedure TTeleport.ShowTeleportAnimations;

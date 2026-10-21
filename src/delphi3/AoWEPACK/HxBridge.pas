@@ -169,7 +169,7 @@ begin
       begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideB[I], Xhx, Yhx);
         MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
-        TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField), Integer(MapField),
+        TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField), TAoWMapField(MapField),
           TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
       end;
     end
@@ -178,7 +178,7 @@ begin
       begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideA[I], Xhx, Yhx);
         MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
-        TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField), Integer(MapField),
+        TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField), TAoWMapField(MapField),
           TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
       end;
 end;

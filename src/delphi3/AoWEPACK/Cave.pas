@@ -274,7 +274,7 @@ begin
     else Field := nil;
     end;
     { Original dereferences the destination even for an idle entrance. }
-    TMoveControl(Info.Sender).ExecuteExternalMove(Integer(Info.MapField), Integer(Field),
+    TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField), TAoWMapField(Field),
       TCaveMoveData(Pointer(Info.Sender)^).Costs[Field.TerrainType, Field.OverlayType]);
   end;
 end;

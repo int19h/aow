@@ -1308,7 +1308,7 @@ begin
 end;
 
 function TCombat.GetRound: Integer;
-begin Result := TCombatData(FCombatData).F_CombatData_44; end;
+begin Result := TCombatData(FCombatData).FRound; end;
 
 procedure TCombat.ExecuteCombatAction(A1: TCombatAction);
 begin
@@ -1358,9 +1358,9 @@ begin
   Result := True;
 end;
 
-function TCombat.CreateCombatUnit: Integer;
+function TCombat.CreateCombatUnit: TCombatUnit;
 begin
-  Result := Integer(TFastCombatUnit.Create(nil));
+  Result := TFastCombatUnit.Create(nil);
   TCombatUnit(Result).FID := CreateUniqueCOID;
 end;
 
@@ -1388,11 +1388,11 @@ end;
 procedure TCombat.NextTurn;
 var I: Integer;
 begin
-  if TByteList(TCombatData(FCombatData).F_CombatData_40).Count <> 0 then
+  if TByteList(TCombatData(FCombatData).FTurnOrder).Count <> 0 then
   begin
-    I := TByteList(TCombatData(FCombatData).F_CombatData_40).IndexOf(TCombatData(FCombatData).FCurrentPlayer) + 1;
-    if I >= TByteList(TCombatData(FCombatData).F_CombatData_40).Count then I := 0;
-    NewTurn(TByteList(TCombatData(FCombatData).F_CombatData_40)[I]);
+    I := TByteList(TCombatData(FCombatData).FTurnOrder).IndexOf(TCombatData(FCombatData).FCurrentPlayer) + 1;
+    if I >= TByteList(TCombatData(FCombatData).FTurnOrder).Count then I := 0;
+    NewTurn(TByteList(TCombatData(FCombatData).FTurnOrder)[I]);
   end;
 end;
 
@@ -1621,21 +1621,21 @@ begin
   end;
   if TCombatPartyList(FCombatData.FParties).GetParty(0) <> nil then
     FCombatData.FWallType := TCombatPartyList(FCombatData.FParties).GetParty(0).FWall;
-  TByteList(FCombatData.F_CombatData_40).Add(FCombatData.FDefenderPlayer);
+  TByteList(FCombatData.FTurnOrder).Add(FCombatData.FDefenderPlayer);
   for I := 0 to TCombatPlayerList(FCombatData.FPlayers).Count - 1 do
   begin
     Player := I;
-    if (TByteList(FCombatData.F_CombatData_40).IndexOf(Player) = -1) and
+    if (TByteList(FCombatData.FTurnOrder).IndexOf(Player) = -1) and
       (TCombatPlayerList(FCombatData.FPlayers).GetPlayers(Player).FSideIndex = 1) then
-      TByteList(FCombatData.F_CombatData_40).Add(Player);
+      TByteList(FCombatData.FTurnOrder).Add(Player);
   end;
-  TByteList(FCombatData.F_CombatData_40).Add(FCombatData.FAttackerPlayer);
+  TByteList(FCombatData.FTurnOrder).Add(FCombatData.FAttackerPlayer);
   for I := 0 to TCombatPlayerList(FCombatData.FPlayers).Count - 1 do
   begin
     Player := I;
-    if (TByteList(FCombatData.F_CombatData_40).IndexOf(Player) = -1) and
+    if (TByteList(FCombatData.FTurnOrder).IndexOf(Player) = -1) and
       (TCombatPlayerList(FCombatData.FPlayers).GetPlayers(Player).FSideIndex = 0) then
-      TByteList(FCombatData.F_CombatData_40).Add(Player);
+      TByteList(FCombatData.FTurnOrder).Add(Player);
   end;
   for I := FCombatData.GetCount - 1 downto 0 do FCombatData.GetObjects(I).Initialize(Integer(Self));
   TCombatLogbook(FLogbook).SetInitialData(FCombatData);
@@ -1948,7 +1948,7 @@ begin
   FParties := TCombatPartyList.Create(nil);
   F_CombatData_34 := Integer(TENode.Create(nil));
   F_CombatData_2C := Integer(TByteList.Create);
-  F_CombatData_40 := Integer(TByteList.Create);
+  FTurnOrder := TByteList.Create;
   F_CombatData_28 := Integer(TByteList.Create);
 end;
 
@@ -1959,7 +1959,7 @@ begin
   TObject(F_CombatData_34).Free;
   TObject(F_CombatData_2C).Free;
   TObject(F_CombatData_28).Free;
-  TObject(F_CombatData_40).Free;
+  TObject(FTurnOrder).Free;
   inherited Destroy;
 end;
 
@@ -1976,7 +1976,7 @@ begin
   Stream.rwByte(Byte(FAttackerPlayer), $0E);
   Stream.rwByte(Byte(FDefenderPlayer), $0F);
   Stream.rwData(F_CombatData_30, 1, $10);
-  Stream.rwInteger(F_CombatData_44, $11);
+  Stream.rwInteger(FRound, $11);
   Stream.rwEObject(TEObject(FPlayers), $12);
   Stream.rwEObject(TEObject(F_CombatData_34), $13);
   Stream.rwEObject(TEObject(FParties), $14);
@@ -1985,7 +1985,7 @@ begin
   Stream.rwInteger(F_CombatData_18, $17);
   Stream.rwInteger(F_CombatData_1C, $18);
   Stream.rwStreamProc($19, TByteList(F_CombatData_2C).LoadFromStream, TByteList(F_CombatData_2C).SaveToStream);
-  Stream.rwStreamProc($1A, TByteList(F_CombatData_40).LoadFromStream, TByteList(F_CombatData_40).SaveToStream);
+  Stream.rwStreamProc($1A, TByteList(FTurnOrder).LoadFromStream, TByteList(FTurnOrder).SaveToStream);
   Stream.rwData(FWallType, 1, $1B);
   Stream.rwBool(FWallBreached, $1C);
   Stream.rwStreamProc($1D, TByteList(F_CombatData_28).LoadFromStream, TByteList(F_CombatData_28).SaveToStream);
@@ -2019,7 +2019,7 @@ begin Result := TCombatObject(TP3NodeAccess(F_CombatData_34).ChildrenList.List^[
 procedure TCombatData.Clear;
 begin
   inherited Clear;
-  TByteList(F_CombatData_40).Clear;
+  TByteList(FTurnOrder).Clear;
   TCombatPlayerList(FPlayers).Clear;
   TENode(F_CombatData_34).Clear;
   TCombatPartyList(FParties).Clear;
@@ -2702,7 +2702,7 @@ begin Result := $202BB; end;
 procedure TNewCombatRoundCA.Execute(A1: TCombat);
 var I: Integer;
 begin
-  with TCombatData(TCombat(A1).FCombatData) do Inc(F_CombatData_44);
+  with TCombatData(TCombat(A1).FCombatData) do Inc(FRound);
   for I := TCombatData(TCombat(A1).FCombatData).GetCount - 1 downto 0 do
     TCombatData(TCombat(A1).FCombatData).GetObjects(I).NewRound;
 end;

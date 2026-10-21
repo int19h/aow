@@ -10253,7 +10253,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 1 then Result := True;
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo - 1);
     end;
@@ -10272,7 +10272,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := True;
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
     end;
@@ -10292,7 +10292,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := Result + [feFog];
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
       if not Field.GetExplored(Player) then
@@ -10319,7 +10319,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
+      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
       if not Field.GetExplored(Player) then
       begin
         Field.SetExplored(Player, True);

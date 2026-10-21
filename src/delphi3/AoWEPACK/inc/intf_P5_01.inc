@@ -1,59 +1,62 @@
 { Interface declaration run owned by P5. }
-  { TSubMove (instance size 20, VMT 5570CA40) }
+  { TSubMove: instance size $14; $08 location, $0C origin, $10 move point lines. }
   TSubMove = class(TEObject)
   public
-    F_SubMove_08: Integer;
-    F_SubMove_0C: Integer;
-    F_SubMove_10: Integer;
+    FLocation: TXYL; { $08 }
+    FOrigin: TXYL; { $0C }
+    FMovePointLines: TDoubleItemList; { $10 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure AddMovePointLine;  { draft }
+    procedure AddMovePointLine(Direction, Count: Integer);
   end;
 
   { TSubMoveList (instance size 12, VMT 5570CAF8) }
   TSubMoveList = class(TENode)
   public
-    procedure GetSubMove(A1: Integer);  { draft }
-    procedure DeleteXYL(A1: Integer);  { draft }
-    procedure Delete(A1: Integer);  { draft }
-    procedure IndexOfXYL(A1: Integer);  { draft }
+    function GetSubMove(Index: Integer): TSubMove;
+    function DeleteXYL(Location: Integer): Integer;
+    procedure Delete(Index: Integer);
+    function IndexOfXYL(Location: Integer): Integer;
   end;
 
-  { TMoveControlSettings (instance size 428, VMT 5570CC54) }
+  { TMoveControlSettings: instance size $1AC; $08 references, $10 submoves,
+    $18 processed fields, $1C row offsets, $20 level data, $24/$44 neighbor offsets,
+    $64 points clear, $70/$74/$78 map size, $7C source, $88 destination,
+    $98 move limit, $9C army, $A0 selection, $A8 units, $AC move point table. }
+  PMovePointLevelArray = ^TMovePointLevelArray;
+  TMovePointLevelArray = array[0..16383] of PIntegerArray;
   TMoveControlSettings = class(TEObject)
   public
-    F_MoveControlSettings_08: Integer;
-    F_MoveControlSettings_0C: Integer;
-    F_MoveControlSettings_10: Integer;
-    F_MoveControlSettings_14: array[0..3] of Byte;
+    FRefCount: Integer; { $08 }
+    FMovePointsLimit: Integer; { $0C }
+    FSubMoves: TSubMoveList; { $10 }
+    FSubMoveIndex: Integer; { $14 }
     FProcessedMapFields: TList; { $18; 557D7BF9 }
-    F_MoveControlSettings_1C: Integer;
-    F_MoveControlSettings_20: Integer;
-    F_MoveControlSettings_24: Byte;
-    F_MoveControlSettings_25: array[0..30] of Byte;
-    F_MoveControlSettings_44: Byte;
-    F_MoveControlSettings_45: array[0..30] of Byte;
-    F_MoveControlSettings_64: Byte;
+    FRowOffsets: PIntegerArray; { $1C }
+    FLevelData: PMovePointLevelArray; { $20 }
+    FEvenOffsets: array[0..7] of Integer; { $24 }
+    FOddOffsets: array[0..7] of Integer; { $44 }
+    FMovePointsClear: Boolean; { $64 }
     FStatus: TMoveControlSettingsStatus; { $65 }
     FMode: TMoveMode; { $66; 557D7B17 }
     F_MoveControlSettings_67: array[0..0] of Byte;
     FPath: TMovepath;  { $68 }
     FPlayer: Shortint;  { $6C }
     F_MoveControlSettings_6D: array[0..2] of Byte;
-    F_MoveControlSettings_70: Integer;
-    F_MoveControlSettings_74: Integer;
-    F_MoveControlSettings_78: Integer;
-    F_MoveControlSettings_7C: Integer;
-    F_MoveControlSettings_80: Integer;
-    F_MoveControlSettings_84: Integer;
-    F_MoveControlSettings_88: Integer;
-    F_MoveControlSettings_8C: Integer;
-    F_MoveControlSettings_90: Integer;
+    FWidth: Integer; { $70 }
+    FHeight: Integer; { $74 }
+    FLevelCount: Integer; { $78 }
+    FSourceX: Integer; { $7C }
+    FSourceY: Integer; { $80 }
+    FSourceL: Integer; { $84 }
+    FDestinationX: Integer; { $88 }
+    FDestinationY: Integer; { $8C }
+    FDestinationL: Integer; { $90 }
     F_MoveControlSettings_94: array[0..3] of Byte;
     FMovePointsMax: Integer; { $98; 557D7B3D }
     FArmyHS: TArmyHS;  { $9C }
     FSelection: Integer;  { $A0 }
-    F_MoveControlSettings_A4: array[0..3] of Byte;
+    FMoveData: Integer; { $A4 }
     FUnits: TUnitUserList; { $A8; AddUnitsEx at 557929AD }
     FMovePointTable: TMovePointTable;  { $AC }
     destructor Destroy; override;
@@ -61,85 +64,81 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure Clear; override;
-    procedure ResetState;  { draft }
+    procedure ResetState;
     procedure Reset;
-    procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
-    procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
+    procedure SetSourcePos(X, Y, L: Integer);
+    procedure SetDestinationPos(X, Y, L: Integer);
     procedure SetupArmy(Army: TArmyHS; Selection: Byte);
-    procedure SetupLevel(A1: Integer);  { draft }
-    procedure SetupMovePointData(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ClearMovePoints;  { draft }
-    function GetMovePoints(A1: Integer; A2: Integer; A3: Integer): Integer;
-    procedure SetMovePoints(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure GetMovePointLevelData(A1: Integer);  { draft }
+    procedure SetupLevel(Level: Integer);
+    procedure SetupMovePointData(Width, Height, LevelCount: Integer);
+    procedure ClearMovePoints;
+    function GetMovePoints(X, Y, L: Integer): Integer;
+    procedure SetMovePoints(X, Y, L, Value: Integer);
+    function GetMovePointLevelData(Level: Integer): PIntegerArray;
     function GetMovePointsXYL(Location: Integer): Integer;
-    procedure SetMovePointsXYL(A1: Integer; A2: Integer);  { draft }
+    procedure SetMovePointsXYL(Location, Value: Integer);
   end;
 
-  { TMoveControl (instance size 480, VMT 5570CDA8) }
+  { TMoveControl: instance size $1E0; $04 map, $08 status, $09 player, $0A mode,
+    $0C source, $18 destination, $24 map level, $28 processed count, $2C move limit,
+    $30 move table, $130 processed fields, $134 army, $138 selection, $13C move data,
+    $140 callback, $148 field offsets, $188 point offsets, $1C8/$1CC gap endpoints,
+    $1D0 direct route, $1D8 exploration mask, $1DC settings. }
   TMoveControl = class(TObject)
   public
-    F_MoveControl_04: Integer;
-    F_MoveControl_08: Byte;
+    FMap: TAoWHSMap; { $04 }
+    FStatus: TMoveControlStatus; { $08 }
     FPlayer: Shortint; { $09; 55761458 }
-    F_MoveControl_0A: Byte;
-    F_MoveControl_0B: array[0..0] of Byte;
-    F_MoveControl_0C: Integer;
-    F_MoveControl_10: Integer;
-    F_MoveControl_14: Integer;
-    F_MoveControl_18: Integer;
-    F_MoveControl_1C: Integer;
-    F_MoveControl_20: Integer;
-    F_MoveControl_24: Integer;
-    F_MoveControl_28: Integer;
-    F_MoveControl_2C: Integer;
-    F_MoveControl_30: Byte;
-    F_MoveControl_31: Byte;
-    F_MoveControl_32: array[0..253] of Byte;
-    F_MoveControl_130: Integer;
-    F_MoveControl_134: Integer;
-    F_MoveControl_138: Integer;
-    F_MoveControl_13C: Integer;
-    F_MoveControl_140: Byte;
-    F_MoveControl_141: array[0..2] of Byte;
-    F_MoveControl_144: Integer;
-    F_MoveControl_148: Byte;
-    F_MoveControl_149: array[0..2] of Byte;
-    F_MoveControl_14C: Byte;
-    F_MoveControl_14D: array[0..58] of Byte;
-    F_MoveControl_188: Byte;
-    F_MoveControl_189: array[0..62] of Byte;
-    F_MoveControl_1C8: Integer;
-    F_MoveControl_1CC: Integer;
-    F_MoveControl_1D0: Integer;
-    F_MoveControl_1D4: array[0..3] of Byte;
-    F_MoveControl_1D8: Integer;
+    FMode: TMoveMode; { $0A }
+    F_MoveControl_0B: Byte;
+    FSourceX: Integer; { $0C }
+    FSourceY: Integer; { $10 }
+    FSourceL: Integer; { $14 }
+    FDestinationX: Integer; { $18 }
+    FDestinationY: Integer; { $1C }
+    FDestinationL: Integer; { $20 }
+    FMapLevel: TMapLevel; { $24 }
+    FProcessedCount: Integer; { $28 }
+    FMovePointsLimit: Integer; { $2C }
+    FMovePointTable: TMovePointTable; { $30 }
+    FProcessedMapFields: TList; { $130 }
+    FArmyHS: TArmyHS; { $134 }
+    FSelection: Integer; { $138 }
+    FMoveData: Integer; { $13C }
+    FOnMovePoint: TMoveOnMovePointProc; { $140 }
+    FFieldOffsets: array[0..1, 0..7] of Integer; { $148 }
+    FPointOffsets: array[0..1, 0..7] of Integer; { $188 }
+    FGapStarts: TXYLList; { $1C8 }
+    FGapEnds: TXYLList; { $1CC }
+    FDirectRoute: TXYLList; { $1D0 }
+    F_MoveControl_1D4: Integer;
+    FExploredMask: Integer; { $1D8 }
     FSettings: TMoveControlSettings; { $1DC }
     destructor Destroy; override;
-    procedure SetupMove; virtual;  { +000 draft }
+    function SetupMove: Boolean; virtual; { +000 }
     procedure ProcessMove(A1: TMoveControlSettings); virtual;  { +004 }
     constructor Create(AOwner: TAoWHSMap);
-    procedure Clear;  { draft }
-    procedure SetMapL(A1: Integer);  { draft }
-    procedure DefaultMoveOnMovePointProc(A1: Integer; A2: Integer);  { draft }
-    procedure FindSubMoveOrigin(A1: Integer);  { draft }
-    procedure CalculateMovePointLine(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ProcessHexagon(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ValidLocation(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure ExecuteExternalMove(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure SetupSubMove(A1: Integer; A2: Integer);  { draft }
-    procedure ProcessSubMove(A1: Integer);  { draft }
+    procedure Clear;
+    procedure SetMapL(Level: TMapLevel);
+    function DefaultMoveOnMovePointProc(MapF: TAoWMapField; MoveOverCode: Integer): Integer;
+    function FindSubMoveOrigin(MapF: TAoWMapField): TAoWMapField;
+    function CalculateMovePointLine(MapF: TAoWMapField; Direction, MoveOverCode: Integer): Integer;
+    procedure ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer);
+    function ValidLocation(X, Y, L: Integer): Boolean;
+    procedure ExecuteExternalMove(Source, Target: TAoWMapField; MovePoints: Integer);
+    function SetupSubMove(MapF, Origin: TAoWMapField): TSubMove;
+    function ProcessSubMove(SubMove: TSubMove): Boolean;
     function Process: Boolean;
     procedure CalculatePathEx(Path: TMovepath; X, Y, L: Shortint);
-    procedure CalculatePath(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure ExploredOnlyMoveOnMovePointProc(A1: Integer; A2: Integer);  { draft }
-    procedure Activate(Settings: TMoveControlSettings);
-    procedure Deactivate;  { draft }
+    procedure CalculatePath(Settings: TMoveControlSettings; Path: TMovepath; X, Y, L: Shortint);
+    function ExploredOnlyMoveOnMovePointProc(MapF: TAoWMapField; MoveOverCode: Integer): Integer;
+    function Activate(Settings: TMoveControlSettings): Boolean;
+    procedure Deactivate;
     function CanMove(Settings: TMoveControlSettings; Mode: TCanMoveMode): Integer;
-    procedure ValidPath(A1: Integer; A2: Integer);  { draft }
-    procedure CalculateGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure CalculateTurnAroundMovePoints(A1: Integer);  { draft }
-    procedure GetMovePointsCostFast(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function ValidPath(Settings: TMoveControlSettings; Path: TMovepath): Boolean;
+    procedure CalculateGaps(SourceX, SourceY, DestinationX, DestinationY: Integer);
+    function CalculateTurnAroundMovePoints(var GapIndex: Integer): Integer;
+    function GetMovePointsCostFast(SourceX, SourceY, DestinationX, DestinationY: Integer): Integer;
   end;
 
   { TAoWTokenManager (instance size 28, VMT 5570CE24) }

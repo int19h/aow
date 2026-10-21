@@ -151,7 +151,7 @@ type
   { THexagonSprite.CanChangeTerrain, CanMoveOver, MoveExclusive (12 bytes): Sender is the object
     that asks (the sprite that changes the terrain, the mover) }
   THSSenderInfo = record
-    Sender: TEObject;
+    Sender: TObject;
     MapField: TMapField;
     HN: Shortint;
   end;
@@ -166,7 +166,7 @@ type
 
   { THexagonSprite.CanMoveOn (16 and 12 bytes) }
   THSMoveOnInfo = record
-    Sender: TEObject;
+    Sender: TObject;
     MapField: TMapField;
     MoveOverCode: Integer;
     HN: Shortint;
@@ -259,9 +259,9 @@ type
     function GetDecorationType: Shortint;
     procedure UpdateNeighbourTerrain;
     procedure Initialize;
-    function CanMoveOn(Sender: TEObject; DefaultCode: Integer; MoveOverCode: Integer): Integer;
-    function CanMoveOver(Sender: TEObject): Integer;
-    procedure MoveExclusive(Sender: TEObject);
+    function CanMoveOn(Sender: TObject; DefaultCode: Integer; MoveOverCode: Integer): Integer;
+    function CanMoveOver(Sender: TObject): Integer;
+    procedure MoveExclusive(Sender: TObject);
     function GetMaxLevelNoneTransparentHS: THexagonSprite;
     function GetMaxLevelTerrainHS: THexagonSprite;
     function GetMaxLevelOverlayHS: THexagonSprite;
@@ -302,7 +302,7 @@ type
     FFieldSize: Integer;
     FFields: Pointer;
     FFieldsSize: Integer;
-    FHNOffsets: array[0..1, 0..7] of Integer;
+  public FHNOffsets: array[0..1, 0..7] of Integer; private
     FXOffsets: PIntegerArray;
     FYOffsets: PIntegerArray;
   public
@@ -2656,7 +2656,7 @@ begin
   UpdateMapField;
 end;
 
-function TMapField.CanMoveOn(Sender: TEObject; DefaultCode: Integer;
+function TMapField.CanMoveOn(Sender: TObject; DefaultCode: Integer;
   MoveOverCode: Integer): Integer;
 var
   HNs: PHNList;
@@ -2681,7 +2681,7 @@ begin
   Result := Res.Code;
 end;
 
-function TMapField.CanMoveOver(Sender: TEObject): Integer;
+function TMapField.CanMoveOver(Sender: TObject): Integer;
 var
   HNs: PHNList;
   Info: THSSenderInfo;
@@ -2700,7 +2700,7 @@ begin
   end;
 end;
 
-procedure TMapField.MoveExclusive(Sender: TEObject);
+procedure TMapField.MoveExclusive(Sender: TObject);
 var
   HNs: PHNList;
   Info: THSSenderInfo;

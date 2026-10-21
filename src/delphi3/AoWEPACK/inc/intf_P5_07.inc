@@ -945,6 +945,7 @@
   end;
 
   { TSaveGameTE (instance size 20, VMT 5571CFA8) }
+  { TSaveGameTE: instance size $14; $10 save filename. }
   TSaveGameTE = class(TTokenEvent)
   public
     FFileName: string; { $10; 557758D5 }
@@ -1036,32 +1037,34 @@
   end;
 
   { TCombatObjectList (instance size 16, VMT 5571D738) }
+  { TCombatObjectList: instance size $10; inherited $04 list, $08 count. }
   TCombatObjectList = class(TList)
   public
-    procedure GetObject(A1: Integer);  { draft }
+    function GetObject(Index: Integer): TCombatObject;
   end;
 
   { TFastCombat (instance size 80, VMT 5571D7BC) }
+  { TFastCombat: instance size $50; $4C wall siege object count. }
   TFastCombat = class(TCombat)
   public
     FWallSiegeObjectCount: Integer; { $4C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    function CreateCombatUnit: Integer; override;
+    function CreateCombatUnit: TCombatUnit; override;
     function Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean; override;
     function Execute: Byte; override;
     procedure Initialize; override;
     procedure Activate; override;
     procedure Deactivate; override;
     function GetRoundDistance: Integer;
-    procedure GetRoundDistanceMax;  { draft }
+    function GetRoundDistanceMax: Integer;
     function GetWallInBetween(Source, Target: Byte): Boolean;
     function GetWallSituation(A1, A2: TCombatObject): TWallSituation;
     function AttackerCanCrushWall: Boolean;
     function GetAttackerBalisticCV: Integer;
     function GetDefenderBalisticCV: Integer;
-    procedure ValidateWallBreaching;  { draft }
-    procedure ExecuteCombatRound;  { draft }
+    function ValidateWallBreaching: Boolean;
+    procedure ExecuteCombatRound;
   end;
 

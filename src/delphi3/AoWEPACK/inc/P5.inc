@@ -10315,221 +10315,1338 @@ begin
   Result := Executed;
 end;
 
+resourcestring
+  P5RoundXRStr = 'Round: %s';
+
 constructor TFastCombat.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 destructor TFastCombat.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 class function TFastCombat.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $202B0;
+end;
 
 function TFastCombat.GetRoundDistance: Integer;
-begin Result := 0; end;
+var Distance: Integer;
+begin
+  Distance := (FCombatData.FRound - 1) * 2;
+  with FCombatData do
+  begin
+    if FPlayers.GetPlayers(FCurrentPlayer).FSideIndex = 0 then Inc(Distance);
+  end;
+  Result := Distance;
+end;
 
-procedure TFastCombat.GetRoundDistanceMax;
-begin end;
+function TFastCombat.GetRoundDistanceMax: Integer;
+var
+  I: Integer;
+  Obj: TCombatObject;
+begin
+  Result := 0;
+  I := FCombatData.GetCount;
+  while I <> 0 do
+  begin
+    Dec(I);
+    Obj := FCombatData.GetObjects(I);
+    if Obj.GetEnabled then
+      if Result < Obj.fcRoundDistance then Result := Obj.fcRoundDistance;
+  end;
+end;
 
 procedure TFastCombat.Initialize;
-begin end;
+begin
+  inherited Initialize;
+end;
 
 procedure TFastCombat.Activate;
-begin end;
+begin
+  inherited Activate;
+end;
 
 procedure TFastCombat.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+end;
 
-function TFastCombat.CreateCombatUnit: Integer;
-begin Result := 0; end;
+function TFastCombat.CreateCombatUnit: TCombatUnit;
+begin
+  Result := TFastCombatUnit.Create(nil);
+end;
 
 function TFastCombat.GetWallInBetween(Source, Target: Byte): Boolean;
-begin Result := False; end;
+begin
+  if ((Source and $F) <= 7) and ((Target and $F) <= 7) and
+    (FCombatData.FWall <> nil) and not (csDestroyed in FCombatData.FWall.FStatus) then
+  begin
+    Source := Source shr 4;
+    Target := Target shr 4;
+    if (Source < 7) and (Target < 7) then
+      Result := (FCombatData.FParties.GetParty(Source).FWall <> 0) xor
+        (FCombatData.FParties.GetParty(Target).FWall <> 0)
+    else Result := False;
+  end
+  else Result := False;
+end;
 
 function TFastCombat.GetWallSituation(A1, A2: TCombatObject): TWallSituation;
-begin Result := wsNone; end;
+begin
+  if GetWallInBetween(A1.FPosition, A2.FPosition) then
+    if A1.GetSide = csDefender then Result := wsSource
+    else Result := wsTarget
+  else Result := wsNone;
+end;
 
 function TFastCombat.Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited Setup(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11);
+end;
 
 function TFastCombat.AttackerCanCrushWall: Boolean;
-begin Result := False; end;
+var
+  Side: TCombatSide;
+  I: Integer;
+  CanCrush: Boolean;
+begin
+  Side := FSides[csAttacker];
+  I := Side.Count;
+  CanCrush := False;
+  while (I <> 0) and not CanCrush do
+  begin
+    Dec(I);
+    CanCrush := not (csDestroyed in Side.GetObjects(I).FStatus) and
+      (wcWallBreaching in Side.GetObjects(I).WallCombatFeatures);
+  end;
+  Result := CanCrush;
+end;
 
 function TFastCombat.GetAttackerBalisticCV: Integer;
-begin Result := 0; end;
+var
+  CV: Integer;
+  Side: TCombatSide;
+  I: Integer;
+begin
+  CV := 0;
+  Side := FSides[csAttacker];
+  for I := 0 to Side.Count - 1 do
+    if not (csDestroyed in Side.GetObjects(I).FStatus) and
+      Side.GetObjects(I).SupportCombatMode([cmMediumRange, cmLongRange]) then
+      Inc(CV, Side.GetObjects(I).FCombatValue);
+  Result := CV;
+end;
 
 function TFastCombat.GetDefenderBalisticCV: Integer;
-begin Result := 0; end;
+var
+  CV: Integer;
+  Side: TCombatSide;
+  I: Integer;
+begin
+  CV := 0;
+  Side := FSides[csDefender];
+  for I := 0 to Side.Count - 1 do
+    if not (csDestroyed in Side.GetObjects(I).FStatus) and
+      Side.GetObjects(I).SupportCombatMode([cmMediumRange, cmLongRange]) then
+      Inc(CV, Side.GetObjects(I).FCombatValue);
+  Result := CV;
+end;
 
-procedure TFastCombat.ValidateWallBreaching;
-begin end;
+function TFastCombat.ValidateWallBreaching: Boolean;
+var Wall: TCombatWall;
+begin
+  Wall := FCombatData.FWall;
+  if (Wall <> nil) and not (csDestroyed in Wall.FStatus) and (FWallSiegeObjectCount = 0) then
+  begin
+    FCombatResult := crCannotBreachWall;
+    Result := False;
+  end
+  else Result := True;
+end;
 
 procedure TFastCombat.ExecuteCombatRound;
-begin end;
+var
+  Idle: Boolean;
+  PlayerIndex, I, MoveCost: Integer;
+  Objects: TCombatObjectList;
+  Obj: TCombatObject;
+begin
+  NewRound;
+  Idle := True;
+  Objects := TCombatObjectList.Create;
+  SetLogbookHeader(Format(TranslateRStr(P5RoundXRStr), [IntToStr(GetRound)]));
+  for PlayerIndex := 0 to FCombatData.FTurnOrder.Count - 1 do
+  begin
+    NewTurn(FCombatData.FTurnOrder[PlayerIndex]);
+    Objects.Clear;
+    for I := FCombatData.GetCount - 1 downto 0 do
+    begin
+      Obj := FCombatData.GetObjects(I);
+      if (Obj.FCombatPlayer = FCombatData.FCurrentPlayer) and Obj.GetEnabled and
+        not Obj.GetLocked and not (csTurnDone in Obj.FStatus) then Objects.Add(Obj);
+    end;
+    MoveCost := 0;
+    repeat
+      I := Objects.Count;
+      while I <> 0 do
+      begin
+        Dec(I);
+        if Objects.GetObject(I).GetEnabled then
+          if Objects.GetObject(I).fcExecute(MoveCost) then
+          begin
+            Idle := False;
+            Objects.Delete(I);
+          end;
+      end;
+      Inc(MoveCost);
+    until MoveCost >= 3;
+  end;
+  if Idle then
+    if GetRound > GetRoundDistanceMax then Terminate;
+  Objects.Free;
+end;
 
 function TFastCombat.Execute: Byte;
-begin Result := 0; end;
+var
+  Header: string;
+  Side: TCombatSide;
+begin
+  inherited Execute;
+  FCombatResult := crBusy;
+  if ValidateWallBreaching then
+  begin
+    if FSides[csDefender].GetUndestroyedConquerObjects <> 0 then
+    begin
+      Side := FSides[csDefender];
+      if Side.Count > Side.FConquerCount then
+      begin
+        while not FTerminated do
+        begin
+          if ValidateWallBreaching then ExecuteCombatRound
+          else Terminate;
+          CheckTerminate;
+        end;
+        UpdateStatus;
+        Header := GetCombatResultText;
+        SetLogbookHeader(Header);
+      end
+      else
+      begin
+        FCombatResult := crCannotInflictDamage;
+        Header := TranslateRStr(CannotInflictDamageRStr);
+        SetLogbookHeader(Header);
+      end;
+    end
+    else FCombatResult := crNoDefenders;
+  end
+  else
+  begin
+    Header := TranslateRStr(CannotBreachWallRStr);
+    SetLogbookHeader(Header);
+    FCombatResult := crCannotBreachWall;
+  end;
+  Result := Byte(FCombatResult);
+end;
 
-procedure TCombatObjectList.GetObject(A1: Integer);
-begin end;
+function TCombatObjectList.GetObject(Index: Integer): TCombatObject;
+begin
+  Result := List^[Index];
+end;
 
 constructor TSubMove.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMovePointLines := TDoubleItemList.Create;
+  FOrigin.XYL := $FFFFFF;
+  FLocation.XYL := $FFFFFF;
+end;
 
 destructor TSubMove.Destroy;
-begin end;
+begin
+  FMovePointLines.Free;
+  inherited Destroy;
+end;
 
-procedure TSubMove.AddMovePointLine;
-begin end;
+procedure TSubMove.AddMovePointLine(Direction, Count: Integer);
+begin
+  FMovePointLines.AddAB(Direction, Count);
+end;
 
-procedure TSubMoveList.GetSubMove(A1: Integer);
-begin end;
+function TSubMoveList.GetSubMove(Index: Integer): TSubMove;
+begin
+  Result := FChildren.List^[Index];
+end;
 
-procedure TSubMoveList.DeleteXYL(A1: Integer);
-begin end;
+function TSubMoveList.DeleteXYL(Location: Integer): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FChildren.Count - 1 downto 0 do
+    if Location = TSubMove(FChildren.List^[I]).FLocation.XYL then
+    begin
+      TSubMove(FChildren.List^[I]).Free;
+      Inc(Result);
+    end;
+end;
 
-procedure TSubMoveList.Delete(A1: Integer);
-begin end;
+procedure TSubMoveList.Delete(Index: Integer);
+begin
+  TSubMove(FChildren.List^[Index]).Free;
+end;
 
-procedure TSubMoveList.IndexOfXYL(A1: Integer);
-begin end;
+function TSubMoveList.IndexOfXYL(Location: Integer): Integer;
+begin
+  Result := FChildren.Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Location = TSubMove(FChildren.List^[Result]).FLocation.XYL then Exit;
+  end;
+  Result := -1;
+end;
 
 constructor TMoveControlSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FProcessedMapFields := TList.Create;
+  FPath := TMovepath.Create;
+  FSubMoves := TSubMoveList.Create(nil);
+  FUnits := TUnitUserList.Create(nil);
+  Reset;
+end;
 
 destructor TMoveControlSettings.Destroy;
-begin end;
+begin
+  Clear;
+  FProcessedMapFields.Free;
+  FSubMoves.Free;
+  FPath.Free;
+  FUnits.Free;
+  inherited Destroy;
+end;
 
 procedure TMoveControlSettings.Clear;
-begin end;
+var I: Integer;
+begin
+  FPath.Clear;
+  FProcessedMapFields.Clear;
+  for I := 0 to FLevelCount - 1 do ReallocMem(FLevelData^[I], 0);
+  ReallocMem(FRowOffsets, 0);
+  ReallocMem(FLevelData, 0);
+  FWidth := 0;
+  FHeight := 0;
+  FLevelCount := 0;
+end;
 
 function TMoveControlSettings.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TMoveControlSettings.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
 procedure TMoveControlSettings.ResetState;
-begin end;
+begin
+  FStatus := mcssIdle;
+end;
 
 procedure TMoveControlSettings.Reset;
-begin end;
+var I: Integer;
+begin
+  FPath.Clear;
+  FSubMoves.Clear;
+  FProcessedMapFields.Clear;
+  FMovePointsMax := $FFF;
+  FillChar(FMovePointTable, SizeOf(FMovePointTable), -1);
+  for I := 0 to FLevelCount - 1 do
+    if FLevelData^[I] <> nil then
+      FillInt(FLevelData^[I]^, FWidth * FHeight, $FFFFFF);
+  FMode := [];
+  FPlayer := -1;
+  FSourceX := -1;
+  FSourceY := -1;
+  FSourceL := -1;
+  FDestinationX := -1;
+  FDestinationY := -1;
+  FDestinationL := -1;
+  FStatus := mcssIdle;
+  FUnits.Clear;
+end;
 
-procedure TMoveControlSettings.SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TMoveControlSettings.SetSourcePos(X, Y, L: Integer);
+begin
+  FSourceX := X;
+  FSourceY := Y;
+  FSourceL := L;
+end;
 
-procedure TMoveControlSettings.SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TMoveControlSettings.SetDestinationPos(X, Y, L: Integer);
+begin
+  FDestinationX := X;
+  FDestinationY := Y;
+  FDestinationL := L;
+end;
 
 procedure TMoveControlSettings.SetupArmy(Army: TArmyHS; Selection: Byte);
-begin end;
+begin
+  FArmyHS := Army;
+  FSelection := Selection;
+  FUnits.AddUnitsEx(Army.FArmy, Selection);
+  FSourceX := Army.Xhx;
+  FSourceY := Army.Yhx;
+  FSourceL := Army.Lhx;
+  FPlayer := Army.FArmy.FPlayer;
+  Army.FArmy.CreateMovePointTable(Selection, FMovePointTable);
+  if AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman then FMode := FMode + [mmAI];
+end;
 
-procedure TMoveControlSettings.SetupLevel(A1: Integer);
-begin end;
+procedure TMoveControlSettings.SetupLevel(Level: Integer);
+begin
+  if FLevelData^[Level] = nil then
+  begin
+    ReallocMem(FLevelData^[Level], FWidth * FHeight * 4);
+    FillInt(FLevelData^[Level]^, FWidth * FHeight, $FFFFFF);
+  end;
+end;
 
-procedure TMoveControlSettings.SetupMovePointData(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TMoveControlSettings.SetupMovePointData(Width, Height, LevelCount: Integer);
+var
+  I, RowSize, Offset: Integer;
+begin
+  if (Width <> FWidth) or (Height <> FHeight) or (LevelCount <> FLevelCount) then
+  begin
+    Clear;
+    FWidth := Width;
+    FHeight := Height;
+    FLevelCount := LevelCount;
+    FMovePointsClear := True;
+    Offset := 0;
+    RowSize := Width * 4;
+    ReallocMem(FRowOffsets, Height * 4);
+    for I := 0 to Height - 1 do
+    begin
+      FRowOffsets^[I] := Offset;
+      Inc(Offset, RowSize);
+    end;
+    ReallocMem(FLevelData, LevelCount * 4);
+    FillChar(FLevelData^, LevelCount * 4, 0);
+    for I := 1 to 6 do
+    begin
+      FEvenOffsets[I] := HNtoXYTable[0, I].X * 4 + HNtoXYTable[0, I].Y * (Width * 4);
+      FOddOffsets[I] := HNtoXYTable[1, I].X * 4 + HNtoXYTable[1, I].Y * (Width * 4);
+    end;
+  end
+  else ClearMovePoints;
+end;
 
 procedure TMoveControlSettings.ClearMovePoints;
-begin end;
+var I: Integer;
+begin
+  if not FMovePointsClear then
+  begin
+    for I := 0 to FLevelCount - 1 do
+      if FLevelData^[I] <> nil then
+        FillInt(FLevelData^[I]^, FWidth * FHeight, $FFFFFF);
+    FMovePointsClear := True;
+  end;
+end;
 
-function TMoveControlSettings.GetMovePoints(A1: Integer; A2: Integer; A3: Integer): Integer;
-begin Result := 0; end;
+function TMoveControlSettings.GetMovePoints(X, Y, L: Integer): Integer;
+begin
+  if FLevelData^[L] <> nil then
+    Result := PInteger(FRowOffsets^[Y] + X * 4 + Integer(FLevelData^[L]))^
+  else Result := $FFFFFF;
+end;
 
-procedure TMoveControlSettings.SetMovePoints(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMoveControlSettings.SetMovePoints(X, Y, L, Value: Integer);
+begin
+  PInteger(FRowOffsets^[Y] + X * 4 + Integer(FLevelData^[L]))^ := Value;
+end;
 
-procedure TMoveControlSettings.GetMovePointLevelData(A1: Integer);
-begin end;
+function TMoveControlSettings.GetMovePointLevelData(Level: Integer): PIntegerArray;
+begin
+  Result := FLevelData^[Level];
+end;
 
 function TMoveControlSettings.GetMovePointsXYL(Location: Integer): Integer;
-begin Result := 0; end;
+begin
+  if FLevelData^[TXYL(Location).L] <> nil then
+    Result := PInteger(FRowOffsets^[TXYL(Location).Y] + TXYL(Location).X * 4 +
+      Integer(FLevelData^[TXYL(Location).L]))^
+  else Result := $FFFFFF;
+end;
 
-procedure TMoveControlSettings.SetMovePointsXYL(A1: Integer; A2: Integer);
-begin end;
+procedure TMoveControlSettings.SetMovePointsXYL(Location, Value: Integer);
+begin
+  PInteger(FRowOffsets^[TXYL(Location).Y] + TXYL(Location).X * 4 +
+    Integer(FLevelData^[TXYL(Location).L]))^ := Value;
+end;
+
+const
+  P5OppositeDirections: array[0..6] of Integer = (0,4,5,6,1,2,3);
+  P5SideDirections: array[0..6, 0..1] of Integer =
+    ((-1,-1),(6,2),(1,3),(2,4),(3,5),(4,6),(5,1));
+  P5OddDirections: array[1..6, 0..2] of Byte =
+    ((1,3,5),(3,1,5),(3,5,1),(5,3,1),(5,1,3),(1,5,3));
+  P5EvenDirections: array[1..6, 0..2] of Byte =
+    ((2,4,6),(4,2,6),(4,6,2),(6,4,2),(6,2,4),(2,6,4));
 
 constructor TMoveControl.Create(AOwner: TAoWHSMap);
-begin end;
+begin
+  inherited Create;
+  FMap := AOwner;
+  FGapStarts := TXYLList.Create;
+  FGapEnds := TXYLList.Create;
+  FDirectRoute := TXYLList.Create;
+end;
 
 destructor TMoveControl.Destroy;
-begin end;
+begin
+  FGapStarts.Free;
+  FGapEnds.Free;
+  FDirectRoute.Free;
+  inherited Destroy;
+end;
 
 procedure TMoveControl.Clear;
-begin end;
+begin
+  Deactivate;
+  FPlayer := -1;
+  FMapLevel := nil;
+  FSourceX := -1;
+  FSourceY := -1;
+  FSourceL := -1;
+  FDestinationX := -1;
+  FDestinationY := -1;
+  FDestinationL := -1;
+  FProcessedCount := 0;
+  FOnMovePoint := DefaultMoveOnMovePointProc;
+  FProcessedMapFields := nil;
+end;
 
-procedure TMoveControl.SetMapL(A1: Integer);
-begin end;
+procedure TMoveControl.SetMapL(Level: TMapLevel);
+begin
+  if Level <> FMapLevel then
+  begin
+    FMapLevel := Level;
+    System.Move(FMapLevel.FHNOffsets, FFieldOffsets, SizeOf(FFieldOffsets));
+  end;
+end;
 
-procedure TMoveControl.DefaultMoveOnMovePointProc(A1: Integer; A2: Integer);
-begin end;
+function TMoveControl.DefaultMoveOnMovePointProc(MapF: TAoWMapField; MoveOverCode: Integer): Integer;
+var Overlay, Points: Integer;
+begin
+  Overlay := MapF.OverlayType;
+  Points := FMovePointTable[MapF.TerrainType][Overlay];
+  if MapF.FFieldFlags and $4000 <> 0 then Points := MapF.CanMoveOn(Self, Points, MoveOverCode);
+  Result := Points;
+end;
 
-procedure TMoveControl.FindSubMoveOrigin(A1: Integer);
-begin end;
+function TMoveControl.FindSubMoveOrigin(MapF: TAoWMapField): TAoWMapField;
+var
+  Best, Points, I: Integer;
+  SubMove: TSubMove;
+  Settings: TMoveControlSettings;
+begin
+  Best := $FFFFFF;
+  Result := nil;
+  I := 0;
+  Settings := FSettings;
+  while I < Settings.FSubMoves.Count do
+  begin
+    SubMove := Settings.FSubMoves.GetSubMove(I);
+    if (MapF.Xhx = SubMove.FLocation.X) and (MapF.Yhx = SubMove.FLocation.Y) and
+      (MapF.Lhx = SubMove.FLocation.L) then
+    begin
+      Points := Settings.GetMovePoints(SubMove.FOrigin.X, SubMove.FOrigin.Y, SubMove.FOrigin.L);
+      if Points <= Best then
+      begin
+        { Original bug: the map is read through the nil result instead of Self. }
+        Result := TAoWMapField(TMoveControl(Result).FMap.MapContainer.GetField(
+          SubMove.FOrigin.X, SubMove.FOrigin.Y, SubMove.FOrigin.L));
+        Best := Points;
+      end;
+    end;
+    Inc(I);
+  end;
+end;
 
-procedure TMoveControl.CalculateMovePointLine(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TMoveControl.CalculateMovePointLine(MapF: TAoWMapField; Direction, MoveOverCode: Integer): Integer;
+var
+  Count, Points, OverCode: Integer;
+  Data: PInteger;
+  Field: TAoWMapField;
+  ContinueMove: Boolean;
+  Cost: Integer;
+begin
+  Count := 0;
+  ContinueMove := True;
+  Field := MapF;
+  Data := PInteger(Integer(FSettings.FLevelData^[Field.Lhx]) +
+    FSettings.FRowOffsets^[Field.Yhx] + Field.Xhx * 4);
+  Points := Data^;
+  OverCode := MoveOverCode;
+  while ContinueMove do
+  begin
+    Data := PInteger(FPointOffsets[Integer(Field.Xhx) and 1, Direction] + Integer(Data));
+    Field := TAoWMapField(FFieldOffsets[Integer(Field.Xhx) and 1, Direction] + Integer(Field));
+    Cost := FOnMovePoint(Field, OverCode);
+    if Cost >= 0 then
+    begin
+      Inc(Points, Cost);
+      if (Data^ > Points) and (Points <= FMovePointsLimit) then
+      begin
+        if (mmLogProcessedMapFields in FMode) and (Data^ = $FFFFFF) then FProcessedMapFields.Add(Field);
+        if (Field.Xhx = FDestinationX) and (Field.Yhx = FDestinationY) and
+          (Field.Lhx = FDestinationL) then FMovePointsLimit := Points;
+        Data^ := Points;
+        if Field.FFieldFlags and $2000 = 0 then
+        begin
+          ContinueMove := True;
+          OverCode := 1;
+        end
+        else
+        begin
+          OverCode := Field.CanMoveOver(Self);
+          ContinueMove := OverCode <> 0;
+        end;
+        if ContinueMove then Inc(Count);
+      end
+      else ContinueMove := False;
+    end
+    else ContinueMove := False;
+  end;
+  Result := Count;
+end;
 
-procedure TMoveControl.ProcessHexagon(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TMoveControl.ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer);
+var
+  LeftCount, RightCount, OverCode, HT: Integer;
+  Next: TAoWMapField;
+begin
+  Inc(FProcessedCount);
+  if MapF.FFieldFlags and $2000 = 0 then OverCode := 1
+  else OverCode := MapF.CanMoveOver(Self);
+  LeftCount := CalculateMovePointLine(MapF, P5SideDirections[Direction, 0], OverCode);
+  RightCount := CalculateMovePointLine(MapF, P5SideDirections[Direction, 1], OverCode);
+  if Count and $FF <> 0 then
+  begin
+    Next := TAoWMapField(FFieldOffsets[Integer(MapF.Xhx) and 1, Direction] + Integer(MapF));
+    if OverCode = 2 then ProcessHexagon(Next, Direction, Count + $FF)
+    else ProcessHexagon(Next, Direction, Count - 1);
+  end;
+  if LeftCount <> 0 then
+  begin
+    HT := P5SideDirections[Direction, 0];
+    Next := TAoWMapField(FFieldOffsets[Integer(MapF.Xhx) and 1, HT] + Integer(MapF));
+    if OverCode = 2 then ProcessHexagon(Next, HT, LeftCount + $FF)
+    else ProcessHexagon(Next, HT, LeftCount - 1);
+  end;
+  if RightCount <> 0 then
+  begin
+    HT := P5SideDirections[Direction, 1];
+    Next := TAoWMapField(FFieldOffsets[Integer(MapF.Xhx) and 1, HT] + Integer(MapF));
+    if OverCode = 2 then ProcessHexagon(Next, HT, RightCount + $FF)
+    else ProcessHexagon(Next, HT, RightCount - 1);
+  end;
+  if Count and $100 <> 0 then
+  begin
+    HT := P5OppositeDirections[Direction];
+    LeftCount := CalculateMovePointLine(MapF, P5SideDirections[HT, 0], OverCode);
+    RightCount := CalculateMovePointLine(MapF, P5SideDirections[HT, 1], OverCode);
+    if LeftCount <> 0 then
+      ProcessHexagon(TAoWMapField(FFieldOffsets[Integer(MapF.Xhx) and 1, P5SideDirections[HT, 0]] + Integer(MapF)),
+        P5SideDirections[HT, 0], LeftCount - 1);
+    if RightCount <> 0 then
+      ProcessHexagon(TAoWMapField(FFieldOffsets[Integer(MapF.Xhx) and 1, P5SideDirections[HT, 1]] + Integer(MapF)),
+        P5SideDirections[HT, 1], RightCount - 1);
+  end;
+  if MapF.FFieldFlags and $8000 <> 0 then MapF.MoveExclusive(Self);
+end;
 
-procedure TMoveControl.ValidLocation(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TMoveControl.ValidLocation(X, Y, L: Integer): Boolean;
+var Field: TAoWMapField;
+begin
+  Field := TAoWMapField(FMap.MapContainer.GetField(X, Y, L));
+  Result := FOnMovePoint(Field, 1) >= 0;
+end;
 
-procedure TMoveControl.ExecuteExternalMove(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TMoveControl.ExecuteExternalMove(Source, Target: TAoWMapField; MovePoints: Integer);
+var
+  Points, Previous, Index: Integer;
+  SubMove: TSubMove;
+begin
+  Points := FOnMovePoint(Target, Source.CanMoveOver(Self));
+  if Points >= 0 then
+  begin
+    FSettings.SetupLevel(Target.Lhx);
+    if MovePoints = -1 then Inc(Points, FSettings.GetMovePoints(Source.Xhx, Source.Yhx, Source.Lhx))
+    else Points := FSettings.GetMovePoints(Source.Xhx, Source.Yhx, Source.Lhx) + MovePoints;
+    Previous := FSettings.GetMovePoints(Target.Xhx, Target.Yhx, Target.Lhx);
+    if (Points < Previous) and (Points <= FMovePointsLimit) then
+    begin
+      Index := FSettings.FSubMoves.IndexOfXYL(Target.GetXYL);
+      if Index > FSettings.FSubMoveIndex then FSettings.FSubMoves.Delete(Index);
+      if (mmLogProcessedMapFields in FMode) and (Previous = $FFFFFF) then FProcessedMapFields.Add(Target);
+      FSettings.SetMovePoints(Target.Xhx, Target.Yhx, Target.Lhx, Points);
+      if (Target.Xhx = FDestinationX) and (Target.Yhx = FDestinationY) and
+        (Target.Lhx = FDestinationL) then FMovePointsLimit := Points;
+      if (Target.FFieldFlags and $2000 = 0) or (Target.CanMoveOver(Self) <> 0) then
+      begin
+        SubMove := SetupSubMove(Target, Source);
+        if Target.FFieldFlags and $8000 <> 0 then Target.MoveExclusive(Self);
+        SubMove.Owner := FSettings.FSubMoves;
+      end
+      else
+      begin
+        SubMove := TSubMove.Create(nil);
+        SubMove.FLocation.XYL := Target.GetXYL;
+        SubMove.FOrigin.XYL := Source.GetXYL;
+        SubMove.Owner := FSettings.FSubMoves;
+      end;
+    end;
+  end;
+end;
 
-procedure TMoveControl.SetupMove;
-begin end;
+function TMoveControl.SetupMove: Boolean;
+var
+  Field: TAoWMapField;
+  SubMove: TSubMove;
+begin
+  FProcessedCount := 0;
+  FSettings.ClearMovePoints;
+  FSettings.FSubMoves.Clear;
+  FSettings.FSubMoveIndex := 0;
+  FSettings.FPath.Clear;
+  if mmLogProcessedMapFields in FMode then
+  begin
+    FSettings.FProcessedMapFields.Count := 0;
+    FSettings.FProcessedMapFields.Capacity := $1000;
+  end;
+  { Original bug: the Y bound also uses the map width. }
+  Assert((FMapLevel <> nil) and (FSourceX >= 0) and (FSourceX < FMapLevel.Width) and
+    (FSourceY >= 0) and (FSourceY < FMapLevel.Width), 'Invalid settings (TMoveControl)');
+  if ((FSettings.FSourceX <> FSettings.FDestinationX) or
+    (FSettings.FSourceY <> FSettings.FDestinationY) or
+    (FSettings.FSourceL <> FSettings.FDestinationL)) and
+    ((FDestinationX = -1) or ValidLocation(FDestinationX, FDestinationY, FDestinationL)) then
+  begin
+    FSettings.SetupLevel(FSettings.FSourceL);
+    if FSettings.FDestinationL <> -1 then FSettings.SetupLevel(FSettings.FDestinationL);
+    if (FSourceL = FDestinationL) and (FMovePointsLimit > 40) and (FDestinationX <> -1) then
+    begin
+      FMovePointsLimit := GetMovePointsCostFast(FSourceX, FSourceY, FDestinationX, FDestinationY);
+      if (FMovePointsLimit = -1) or (FMovePointsLimit > FSettings.FMovePointsMax) then
+        FMovePointsLimit := FSettings.FMovePointsMax;
+      AoWHSMap.FAIExecuter.UseProcessTime(FMovePointsLimit);
+    end;
+    FSettings.SetMovePoints(FSourceX, FSourceY, FSourceL, 0);
+    Field := TAoWMapField(FMapLevel.GetField(FSourceX, FSourceY));
+    if mmLogProcessedMapFields in FMode then FProcessedMapFields.Add(Field);
+    SubMove := SetupSubMove(Field, nil);
+    if Field.FFieldFlags and $8000 <> 0 then Field.MoveExclusive(Self);
+    SubMove.Owner := FSettings.FSubMoves;
+    AoWHSMap.FAIExecuter.UseProcessTime(100);
+  end
+  else
+  begin
+    FSettings.SetupLevel(FSettings.FSourceL);
+    FSettings.SetMovePoints(FSourceX, FSourceY, FSourceL, 0);
+    FSettings.FStatus := mcssProcessed;
+  end;
+  Result := True;
+end;
 
-procedure TMoveControl.SetupSubMove(A1: Integer; A2: Integer);
-begin end;
+function TMoveControl.SetupSubMove(MapF, Origin: TAoWMapField): TSubMove;
+var
+  SubMove: TSubMove;
+  OverCode, Direction, I, Count, HT: Integer;
+begin
+  SubMove := TSubMove.Create(nil);
+  SubMove.FLocation.XYL := MapF.GetXYL;
+  if Origin <> nil then
+  begin
+    SubMove.FOrigin.XYL := Origin.GetXYL;
+    if MapF.FFieldFlags and $2000 = 0 then OverCode := 1
+    else OverCode := MapF.CanMoveOver(Self);
+  end
+  else OverCode := 1;
+  if OverCode <> 0 then
+  begin
+    if FSettings.FDestinationX <> -1 then
+    begin
+      Direction := dHXtoHT(MapF.Xhx, MapF.Yhx, FSettings.FDestinationX, FSettings.FDestinationY);
+      if Direction = 0 then Direction := 1;
+    end
+    else Direction := 1;
+    for I := 0 to 2 do
+    begin
+      HT := P5OddDirections[Direction, I];
+      Count := CalculateMovePointLine(MapF, HT, OverCode);
+      if Count <> 0 then SubMove.AddMovePointLine(HT, Count);
+    end;
+    for I := 0 to 2 do
+    begin
+      HT := P5EvenDirections[Direction, I];
+      Count := CalculateMovePointLine(MapF, HT, OverCode);
+      if Count <> 0 then SubMove.AddMovePointLine(HT, Count);
+    end;
+  end;
+  Result := SubMove;
+end;
 
-procedure TMoveControl.ProcessSubMove(A1: Integer);
-begin end;
+function TMoveControl.ProcessSubMove(SubMove: TSubMove): Boolean;
+var
+  X, Y, Count, Direction, Processed: Integer;
+begin
+  if SubMove.FMovePointLines.Count <> 0 then
+  begin
+    FSettings.SetupLevel(SubMove.FLocation.L);
+    SetMapL(FMap.MapContainer.GetMapLevel(SubMove.FLocation.L));
+    Direction := SubMove.FMovePointLines[0].A;
+    Count := SubMove.FMovePointLines[0].B;
+    CenterHNtoHX(SubMove.FLocation.X, SubMove.FLocation.Y, Direction, X, Y);
+    SubMove.FMovePointLines.Delete(0);
+    Processed := FProcessedCount;
+    ProcessHexagon(TAoWMapField(FMapLevel.GetField(X, Y)), Direction, Count - 1);
+    Processed := FProcessedCount - Processed;
+    AoWHSMap.FAIExecuter.UseProcessTime(Round(Processed / 430 * 1000));
+  end;
+  Result := SubMove.FMovePointLines.Count = 0;
+end;
 
 function TMoveControl.Process: Boolean;
-begin Result := False; end;
+begin
+  Assert(mcsActivated in FStatus);
+  case FSettings.FStatus of
+    mcssIdle:
+      begin
+        SetupMove;
+        FSettings.FStatus := mcssProcessing;
+      end;
+    mcssProcessing:
+      begin
+        if FSettings.FSubMoveIndex < FSettings.FSubMoves.Count then
+          if ProcessSubMove(FSettings.FSubMoves.GetSubMove(FSettings.FSubMoveIndex)) then
+            Inc(FSettings.FSubMoveIndex);
+        if FSettings.FSubMoveIndex >= FSettings.FSubMoves.Count then FSettings.FStatus := mcssProcessed;
+      end;
+  end;
+  Result := (FSettings.FStatus <> mcssProcessed) and (FSettings.FStatus <> mcssFailed);
+end;
 
 procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint);
-begin end;
+var
+  Field, Previous, Neighbor: TAoWMapField;
+  Points, Cost, OverCode, Parity, Direction: Integer;
+  Failed, Found: Boolean;
+begin
+  Assert(mcsActivated in FStatus);
+  Path.Clear;
+  Neighbor := nil;
+  Failed := False;
+  if L < FMap.MapContainer.LevelCount then
+  begin
+    SetMapL(FMap.MapContainer.GetMapLevel(L));
+    Field := TAoWMapField(FMapLevel.GetField(X, Y));
+    Points := FSettings.GetMovePoints(Field.Xhx, Field.Yhx, Field.Lhx);
+    if Points <> $FFFFFF then
+    begin
+      while (Field <> nil) and
+        ((Field.Xhx <> FSourceX) or (Field.Yhx <> FSourceY) or (Field.Lhx <> FSourceL)) and not Failed do
+      begin
+        Path.AddXYL(Field.Xhx, Field.Yhx, Field.Lhx);
+        Parity := Field.Xhx and 1;
+        Cost := FOnMovePoint(Field, 1);
+        Found := False;
+        Direction := 0;
+        while not Found and (Direction <> 6) do
+        begin
+          Inc(Direction);
+          Neighbor := TAoWMapField(FFieldOffsets[Parity, Direction] + Integer(Field));
+          if FSettings.GetMovePoints(Neighbor.Xhx, Neighbor.Yhx, Neighbor.Lhx) = Points - Cost then
+          begin
+            if (Neighbor.Xhx = FSourceX) and (Neighbor.Yhx = FSourceY) and
+              (Neighbor.Lhx = FSourceL) then OverCode := 1
+            else if Neighbor.FFieldFlags and $2000 = 0 then OverCode := 1
+            else OverCode := Neighbor.CanMoveOver(Self);
+            if (OverCode <> 0) and ((Field.FFieldFlags and $4000 = 0) or
+              (Field.CanMoveOn(Self, Cost, OverCode) <> -1)) then Found := True;
+          end;
+        end;
+        if Found then
+        begin
+          Points := FSettings.GetMovePoints(Neighbor.Xhx, Neighbor.Yhx, Neighbor.Lhx);
+          Previous := Neighbor;
+        end
+        else
+        begin
+          Previous := FindSubMoveOrigin(Field);
+          if Previous <> nil then
+            if Path.IndexOfXYL(Previous.Xhx, Previous.Yhx, Previous.Lhx) = -1 then
+            begin
+              Points := FSettings.GetMovePoints(Previous.Xhx, Previous.Yhx, Previous.Lhx);
+              SetMapL(TMapLevel(Previous.Owner));
+              Found := True;
+            end;
+        end;
+        if (Previous <> nil) and Found then
+          Path.List^[Path.Count - 1].Flag :=
+            FSettings.GetMovePoints(Field.Xhx, Field.Yhx, Field.Lhx) - Points;
+        Field := Previous;
+        if not Found then Failed := True;
+      end;
+    end
+    else Failed := True;
+    if Failed then Path.Clear
+    else if (Field <> nil) and (Points = 0) then Path.AddXYL(Field.Xhx, Field.Yhx, Field.Lhx);
+    if aesExecuting in AoWHSMap.FAIExecuter.FStatus then AoWHSMap.FAIExecuter.UseProcessTime(Path.Count);
+  end;
+end;
 
-procedure TMoveControl.CalculatePath(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TMoveControl.CalculatePath(Settings: TMoveControlSettings; Path: TMovepath; X, Y, L: Shortint);
+begin
+  Activate(Settings);
+  CalculatePathEx(Path, X, Y, L);
+  Deactivate;
+end;
 
-procedure TMoveControl.ExploredOnlyMoveOnMovePointProc(A1: Integer; A2: Integer);
-begin end;
+function TMoveControl.ExploredOnlyMoveOnMovePointProc(MapF: TAoWMapField; MoveOverCode: Integer): Integer;
+var Points: Integer;
+begin
+  if MapF.FFieldFlags and FExploredMask <> 0 then
+  begin
+    Points := FMovePointTable[MapF.TerrainType][MapF.OverlayType];
+    if MapF.FFieldFlags and $4000 <> 0 then Points := MapF.CanMoveOn(Self, Points, MoveOverCode);
+  end
+  else Points := -1;
+  Result := Points;
+end;
 
-procedure TMoveControl.Activate(Settings: TMoveControlSettings);
-begin end;
+function TMoveControl.Activate(Settings: TMoveControlSettings): Boolean;
+begin
+  Assert(not (mcsActivated in FStatus));
+  Assert((Settings.FSourceX <> -1) and (Settings.FSourceY <> -1) and (Settings.FSourceL <> -1));
+  if Settings.FStatus <> mcssFailed then
+  begin
+    FStatus := FStatus + [mcsActivated];
+    FSettings := Settings;
+    FSettings.AddRef;
+    case FSettings.FStatus of
+      mcssIdle:
+        begin
+          with FMap.MapContainer do FSettings.SetupMovePointData(Width, Height, LevelCount);
+          FMovePointsLimit := FSettings.FMovePointsMax;
+        end;
+      mcssProcessing: FMovePointsLimit := FSettings.FMovePointsLimit;
+      mcssProcessed: FMovePointsLimit := FSettings.FMovePointsLimit;
+    end;
+    System.Move(FSettings.FEvenOffsets, FPointOffsets, SizeOf(FPointOffsets));
+    FPlayer := FSettings.FPlayer;
+    FSourceX := FSettings.FSourceX;
+    FSourceY := FSettings.FSourceY;
+    FSourceL := FSettings.FSourceL;
+    FDestinationX := FSettings.FDestinationX;
+    FDestinationY := FSettings.FDestinationY;
+    FDestinationL := FSettings.FDestinationL;
+    FMovePointTable := FSettings.FMovePointTable;
+    FMode := FSettings.FMode;
+    FArmyHS := FSettings.FArmyHS;
+    FSelection := FSettings.FSelection;
+    FMoveData := FSettings.FMoveData;
+    FProcessedMapFields := FSettings.FProcessedMapFields;
+    SetMapL(FMap.MapContainer.GetMapLevel(FSourceL));
+    if (mmExploredTerrainOnly in FMode) and (FPlayer <> -1) then
+    begin
+      FOnMovePoint := ExploredOnlyMoveOnMovePointProc;
+      FExploredMask := 1 shl (FPlayer - 1);
+    end
+    else FOnMovePoint := DefaultMoveOnMovePointProc;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TMoveControl.Deactivate;
-begin end;
+begin
+  if mcsActivated in FStatus then
+  begin
+    FStatus := FStatus - [mcsActivated];
+    if FSettings.FStatus = mcssProcessing then FSettings.FMovePointsLimit := FMovePointsLimit;
+    FSettings.Release;
+    FSettings := nil;
+  end;
+end;
 
 procedure TMoveControl.ProcessMove(A1: TMoveControlSettings);
-begin end;
+begin
+  if (A1.FSourceX <> A1.FDestinationX) or (A1.FSourceY <> A1.FDestinationY) or
+    (A1.FSourceL <> A1.FDestinationL) then
+  begin
+    if Activate(A1) then
+    begin
+      Assert(AoWEngine.FDemo or (A1.FStatus <> mcssProcessed));
+      repeat until not Process;
+      if FDestinationX <> -1 then
+      begin
+        CalculatePathEx(A1.FPath, FDestinationX, FDestinationY, FDestinationL);
+        if A1.FPath.Count = 0 then A1.FStatus := mcssFailed;
+      end;
+      Deactivate;
+    end;
+  end
+  else
+  begin
+    A1.FPath.Clear;
+    A1.FPath.AddXYL(A1.FSourceX, A1.FSourceY, A1.FSourceL);
+    A1.FStatus := mcssProcessed;
+  end;
+end;
 
 function TMoveControl.CanMove(Settings: TMoveControlSettings; Mode: TCanMoveMode): Integer;
-begin Result := 0; end;
+var Points: Integer;
+begin
+  if (Settings.FSourceX <> Settings.FDestinationX) or
+    (Settings.FSourceY <> Settings.FDestinationY) or
+    (Settings.FSourceL <> Settings.FDestinationL) then
+  begin
+    Settings.ResetState;
+    if Activate(Settings) then
+    begin
+      Points := -1;
+      if (FDestinationX = -1) or ValidLocation(FDestinationX, FDestinationY, FDestinationL) then
+      begin
+        if (FSourceL = FDestinationL) and (mmFast in Mode) then
+          Points := GetMovePointsCostFast(FSourceX, FSourceY, FDestinationX, FDestinationY);
+        if (Points = -1) and (mmExact in Mode) then
+        begin
+          repeat until not Process;
+          Points := FSettings.GetMovePoints(FDestinationX, FDestinationY, FDestinationL);
+          if Points = $FFFFFF then Points := -1;
+        end;
+      end;
+      Deactivate;
+    end
+    else Points := -1;
+  end
+  else Points := 0;
+  Result := Points;
+end;
 
-procedure TMoveControl.ValidPath(A1: Integer; A2: Integer);
-begin end;
+function TMoveControl.ValidPath(Settings: TMoveControlSettings; Path: TMovepath): Boolean;
+var
+  Valid: Boolean;
+  I, Points: Integer;
+begin
+  Valid := True;
+  I := Path.Count - 2;
+  Points := 0;
+  Settings.FMovePointsMax := Path.PosToMovePoints(0);
+  ProcessMove(Settings);
+  while (I > 0) and Valid do
+  begin
+    Inc(Points, Path[I].Flag);
+    Valid := Points = Settings.GetMovePoints(Path[I].X, Path[I].Y, Path[I].L);
+    Dec(I);
+  end;
+  Result := Valid;
+end;
 
-procedure TMoveControl.CalculateGaps(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMoveControl.CalculateGaps(SourceX, SourceY, DestinationX, DestinationY: Integer);
+var
+  X, Y, Direction, OverCode: Integer;
+  Field: TAoWMapField;
+  Clear: Boolean;
+  Points: Integer;
+begin
+  Clear := True;
+  FGapStarts.Count := 0;
+  FGapEnds.Count := 0;
+  FDirectRoute.Count := 0;
+  OverCode := 1;
+  FDirectRoute.AddXYL(SourceX, SourceY, 0);
+  X := 0;
+  Y := 0;
+  Direction := 0;
+  while (SourceX <> DestinationX) or (SourceY <> DestinationY) do
+  begin
+    if SourceX = DestinationX then
+    begin
+      if SourceY > DestinationY then
+      begin Direction := 1; X := SourceX; Y := SourceY - 1; end
+      else if SourceY < DestinationY then
+      begin Direction := 4; X := SourceX; Y := SourceY + 1; end;
+    end
+    else if SourceX and 1 = 0 then
+    begin
+      if SourceX > DestinationX then
+        if SourceY > DestinationY then
+        begin Direction := 6; X := SourceX - 1; Y := SourceY - 1; end
+        else begin Direction := 5; X := SourceX - 1; Y := SourceY; end
+      else if SourceY > DestinationY then
+        begin Direction := 2; X := SourceX + 1; Y := SourceY - 1; end
+      else begin Direction := 3; X := SourceX + 1; Y := SourceY; end;
+    end
+    else
+    begin
+      if SourceX > DestinationX then
+        if SourceY < DestinationY then
+        begin Direction := 5; X := SourceX - 1; Y := SourceY + 1; end
+        else begin Direction := 6; X := SourceX - 1; Y := SourceY; end
+      else if SourceY < DestinationY then
+        begin Direction := 3; X := SourceX + 1; Y := SourceY + 1; end
+      else begin Direction := 2; X := SourceX + 1; Y := SourceY; end;
+    end;
+    Field := TAoWMapField(FMapLevel.GetField(X, Y));
+    Points := FOnMovePoint(Field, OverCode);
+    if Points >= 0 then
+      if (Field.FFieldFlags and $2000 <> 0) and ((X <> DestinationX) or (Y <> DestinationY)) then
+      begin
+        OverCode := Field.CanMoveOver(Self);
+        if OverCode = 0 then
+        begin
+          Points := -1;
+          OverCode := 1;
+        end;
+      end
+      else OverCode := 1;
+    if Points < 0 then
+    begin
+      if Clear then
+      begin
+        FGapStarts.AddXYL(SourceX, SourceY, Direction);
+        Clear := False;
+        OverCode := 1;
+      end;
+    end
+    else if not Clear then
+    begin
+      FGapEnds.AddXYL(X, Y, -1);
+      Clear := True;
+    end;
+    SourceX := X;
+    SourceY := Y;
+    FDirectRoute.AddXYL(SourceX, SourceY, Points);
+  end;
+  if not Clear then FGapEnds.AddXYL(DestinationX, DestinationY, -1);
+end;
 
-procedure TMoveControl.CalculateTurnAroundMovePoints(A1: Integer);
-begin end;
+function TMoveControl.CalculateTurnAroundMovePoints(var GapIndex: Integer): Integer;
+var
+  LeftFound, RightFound, LeftActive, RightActive, Done: Boolean;
+  StartX, StartY: Shortint;
+  LeftField, RightField, Next: TAoWMapField;
+  LeftDirection, RightDirection, LeftOver, RightOver: Integer;
+  LeftPoints, RightPoints, Attempts, Points, OverCode, Index: Integer;
+  Parity: Integer;
+begin
+  LeftFound := False;
+  RightFound := False;
+  LeftActive := True;
+  RightActive := True;
+  StartX := FGapStarts[GapIndex].X;
+  StartY := FGapStarts[GapIndex].Y;
+  RightField := TAoWMapField(FMapLevel.GetField(FGapStarts[GapIndex].X, FGapStarts[GapIndex].Y));
+  RightDirection := FGapStarts[GapIndex].L;
+  LeftPoints := 0;
+  RightPoints := 0;
+  Done := False;
+  RightOver := RightField.CanMoveOver(Self);
+  LeftOver := RightOver;
+  LeftField := RightField;
+  LeftDirection := RightDirection;
+  while not Done do
+  begin
+    if RightActive then
+    begin
+      Attempts := 0;
+      Parity := RightField.Xhx and 1;
+      repeat
+        Next := TAoWMapField(FFieldOffsets[Parity, RightDirection] + Integer(RightField));
+        Points := FOnMovePoint(Next, RightOver);
+        if Points >= 0 then
+          if (Next.FFieldFlags and $2000 = 0) or
+            ((Next.Xhx = FDestinationX) and (Next.Yhx = FDestinationY)) then OverCode := 1
+          else
+          begin
+            OverCode := Next.CanMoveOver(Self);
+            if OverCode = 0 then Points := -1;
+          end
+        else OverCode := 1;
+        Inc(RightDirection);
+        if RightDirection > 6 then RightDirection := 1;
+        Inc(Attempts);
+      until (Points >= 0) or (Attempts >= 7);
+      if RightOver = 2 then Dec(RightDirection, 3)
+      else Dec(RightDirection, 2);
+      if RightDirection < 1 then Inc(RightDirection, 6);
+      if OverCode = 2 then RightOver := 2 else RightOver := 1;
+      Inc(RightPoints, Points);
+      RightField := Next;
+      if (RightPoints > FMovePointsLimit) or (Points < 0) then
+      begin
+        RightActive := False;
+        if not LeftActive then Done := True;
+      end
+      else
+      begin
+        Index := FGapEnds.IndexOfXY(Next.Xhx, Next.Yhx);
+        if (Index <> -1) and (Index >= GapIndex) then
+        begin
+          GapIndex := Index;
+          RightFound := True;
+          Done := True;
+          RightActive := False;
+        end;
+        if (Next.Xhx = StartX) and (Next.Yhx = StartY) then
+        begin
+          RightActive := False;
+          if not LeftActive then Done := True;
+        end;
+      end;
+    end;
+    if LeftActive then
+    begin
+      Attempts := 0;
+      Parity := LeftField.Xhx and 1;
+      repeat
+        Next := TAoWMapField(FFieldOffsets[Parity, LeftDirection] + Integer(LeftField));
+        Points := FOnMovePoint(Next, LeftOver);
+        if Points >= 0 then
+          if (Next.FFieldFlags and $2000 = 0) or
+            ((Next.Xhx = FDestinationX) and (Next.Yhx = FDestinationY)) then OverCode := 1
+          else
+          begin
+            OverCode := Next.CanMoveOver(Self);
+            if OverCode = 0 then Points := -1;
+          end
+        else OverCode := 1;
+        Dec(LeftDirection);
+        if LeftDirection = 0 then LeftDirection := 6;
+        Inc(Attempts);
+      until (Points >= 0) or (Attempts >= 7);
+      if LeftOver = 2 then Inc(LeftDirection, 3)
+      else Inc(LeftDirection, 2);
+      if LeftDirection > 6 then Dec(LeftDirection, 6);
+      if OverCode = 2 then LeftOver := 2 else LeftOver := 1;
+      Inc(LeftPoints, Points);
+      LeftField := Next;
+      if (LeftPoints < FMovePointsLimit) and (Points >= 0) then
+      begin
+        Index := FGapEnds.IndexOfXY(Next.Xhx, Next.Yhx);
+        if (Index <> -1) and (Index >= GapIndex) then
+        begin
+          GapIndex := Index;
+          LeftFound := True;
+          Done := True;
+          LeftActive := False;
+        end;
+        if (Next.Xhx = StartX) and (Next.Yhx = StartY) then
+        begin
+          LeftActive := False;
+          if not RightActive then Done := True;
+        end;
+      end
+      else
+      begin
+        LeftActive := False;
+        if not RightActive then Done := True;
+      end;
+    end;
+  end;
+  if LeftFound then Result := LeftPoints
+  else if RightFound then Result := RightPoints
+  else Result := -1;
+end;
 
-procedure TMoveControl.GetMovePointsCostFast(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TMoveControl.GetMovePointsCostFast(SourceX, SourceY, DestinationX, DestinationY: Integer): Integer;
+var
+  I, Points, GapIndex, Cost: Integer;
+begin
+  I := 1;
+  GapIndex := 0;
+  Points := 0;
+  CalculateGaps(SourceX, SourceY, DestinationX, DestinationY);
+  while (I < FDirectRoute.Count) and (Points <> -1) do
+  begin
+    Cost := FDirectRoute[I].L;
+    if Cost < 0 then
+    begin
+      GapIndex := FGapStarts.IndexOfXY(FDirectRoute[I - 1].X, FDirectRoute[I - 1].Y);
+      Cost := CalculateTurnAroundMovePoints(GapIndex);
+      if Cost <> -1 then
+      begin
+        Inc(Points, Cost);
+        I := FDirectRoute.IndexOfXY(FGapEnds[GapIndex].X, FGapEnds[GapIndex].Y);
+      end
+      else Points := -1;
+    end
+    else Inc(Points, Cost);
+    Inc(I);
+  end;
+  Result := Points;
+end;
+
+resourcestring
+  P5SavingGameRStr = 'saving: %s';
+  P5ErrorSavingRStr = 'Error saving: %s';
 
 class function TSaveGameTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21114;
+end;
 
 procedure TSaveGameTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FFileName, $F);
+end;
 
 function TSaveGameTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  inherited Execute(TE);
+  if AoWHSMap.FSeatedPlayer = TE.ActiveTCIndex then
+    if TE.ExecuteCount = 0 then
+    begin
+      AoWHSMap.ShowMessage(Format(TranslateRStr(P5SavingGameRStr), [ExtractFileName(FFileName)]));
+      Result := erRetry;
+    end
+    else
+    begin
+      AoWHSMap.ShowMessage(Format(TranslateRStr(GameSavedRStr), [ExtractFileName(FFileName)]));
+      try
+        AoWHSMap.DisableTurnTimer;
+        if AoWEngine.FCampaign <> nil then
+        begin
+          AoWEngine.SaveCampaign(FFileName);
+          AoWEngine.FCampaign.FFileName := FFileName;
+        end
+        else
+        begin
+          AoWEngine.SaveHSM(FFileName, nil);
+          AoWHSMap.FileName := FFileName;
+        end;
+        AoWHSMap.EnableTurnTimer;
+      except
+        { Original leaves the turn timer disabled after a save failure. }
+        AoWHSMap.ShowMessage(Format(TranslateRStr(P5ErrorSavingRStr), [FFileName]));
+      end;
+      Result := erDone;
+    end
+  else Result := erDone;
+end;
 
 class function TChangePlayerSettingsTE.ClassID: Integer;
 begin Result := 0; end;

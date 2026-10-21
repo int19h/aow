@@ -235,13 +235,13 @@
     F_CombatData_28: Integer;
     F_CombatData_2C: Integer;
     F_CombatData_30: Byte;
-    FCurrentPlayer: Shortint; { $31 }
+    FCurrentPlayer: Byte; { $31; 5574491F }
     F_CombatData_32: array[0..1] of Byte;
     F_CombatData_34: Integer;
     FPlayers: TCombatPlayerList; { $38 }
     FParties: TCombatPartyList; { $3C }
-    F_CombatData_40: Integer;
-    F_CombatData_44: Integer;
+    FTurnOrder: TByteList; { $40; 557448C1 }
+    FRound: Integer; { $44; 55744564 }
     FHeader: string; { $48 }
     FWallType: Byte; { $4C }
     FWallBreached: Boolean; { $4D }
@@ -320,7 +320,7 @@
     procedure UpdateStatus; virtual;  { +04C draft }
     procedure ObjectDestroyed(A1: Integer); virtual;  { +050 draft }
     procedure ObjectSideChanged(A1: Integer); virtual;  { +054 draft }
-    function CreateCombatUnit: Integer; virtual;  { +058 draft }
+    function CreateCombatUnit: TCombatUnit; virtual; { +058; 557445F0 }
     function CreateCombatPlayer: Integer; virtual;  { +05C draft }
     function Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean; virtual;  { +060 }
     function Execute: Byte; virtual;  { +064 draft }
