@@ -1,20 +1,21 @@
 unit AoWSendEmailGameDlg;
 
-{ Draft declarations of AoWSendEmailGameDlg, from AoW.exe.
+{ Partly recovered AoWSendEmailGameDlg handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWButton, AoWCheckBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
 
 type
   TSendEmailGameDlg = class;
   TIMSSendThread = class;
 
 
-  { TSendEmailGameDlg (instance size 172, VMT 0044D054) }
+  { TSendEmailGameDlg: callback $A0, send event $A8.
+    (instance size 172, VMT 0044D054) }
   TSendEmailGameDlg = class(TDataModule)
   public
     published
@@ -42,13 +43,15 @@ type
     Close: TAOWButton; { +0098 }
     Translator: TIvTranslator; { +009C }
     public
-    F_SendEmailGameDlg_A0: array[0..7] of Byte;
-    F_SendEmailGameDlg_A8: Integer;
+    FDone: TExecuteDoneEvent; { $A0 }
+    FSendEvent: TSendEmailGameEventLog; { $A8 }
+    procedure FinishDialog;
+    procedure ShowSendDialog(Event: TSendEmailGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
     procedure DlgHide;  { draft }
     procedure OKBtnClick;  { draft }
     procedure ExitBtnClick;  { draft }
     procedure EmailAddressEditChange;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
   { TIMSSendThread (instance size 44, VMT 0044D5D8) }
@@ -62,20 +65,73 @@ type
 
 implementation
 
+procedure TSendEmailGameDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Event: TEventLog;
+begin
+  Dlg.Visible := False;
+  Done := FDone;
+  Event := FSendEvent;
+  FDone := nil;
+  FSendEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+procedure TSendEmailGameDlg.ShowSendDialog(Event: TSendEmailGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+var
+  S: string;
+begin
+  FDone := Done;
+  FSendEvent := Event;
+  Event.AddRef;
+  with FSendEvent do
+  begin
+    EmailAddressEdit.Text := AoWHSMap.FPlayers.GetPlayers(FSendPlayer).FPBEMSettings.FEmailGame.FEmailAddress;
+    S := AoWE.Format(TranslateRStr(NextPlayerXRStr), [AoWHSMap.FPlayers.GetPlayers(FSendPlayer).GetNameEx]);
+    RecipientNameLbl.Text := S;
+    if FMode = 2 then
+    begin
+      AutomatedChk.Checked := AoWEngine.FRegistry.GetSMTPServer <> '';
+      ManualChk.Checked := AoWEngine.FRegistry.GetSMTPServer = '';
+    end
+    else
+    begin
+      AutomatedChk.Checked := FMode = 0;
+      ManualChk.Checked := FMode = 1;
+    end;
+  end;
+  Dlg.Visible := True;
+end;
+
 procedure TSendEmailGameDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure TSendEmailGameDlg.OKBtnClick;
-begin end;
+begin
+  if AutomatedChk.Checked then FSendEvent.FMode := 0;
+  if ManualChk.Checked then FSendEvent.FMode := 1;
+  Dlg.Visible := False;
+end;
 
 procedure TSendEmailGameDlg.ExitBtnClick;
-begin end;
+begin
+  FSendEvent.FMode := 2;
+  Dlg.Visible := False;
+end;
 
 procedure TSendEmailGameDlg.EmailAddressEditChange;
-begin end;
+begin
+  AoWHSMap.FPlayers.GetPlayers(FSendEvent.FSendPlayer).FPBEMSettings.FEmailGame.FEmailAddress := EmailAddressEdit.Text;
+end;
 
-procedure TSendEmailGameDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TSendEmailGameDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 27 then Dlg.Visible := False;
+end;
 
 procedure TIMSSendThread.Execute;
 begin end;

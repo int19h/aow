@@ -1,13 +1,13 @@
 unit AoWRelations;
 
-{ Draft declarations of AoWRelations, from AoW.exe.
+{ Partly recovered AoWRelations handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TRelWindow = class;
@@ -159,52 +159,106 @@ type
     OfTheLbl: TAOWLabel; { +0270 }
     PRaceLbl: TAOWLabel; { +0274 }
     public
-    F_RelWindow_278: Integer;
-    F_RelWindow_27C: Integer;
+    FSelectedIndex: Integer; { $278 }
+    FAction: TDiplomaticAction; { $27C }
     FActions: TDiplomaticActionList; { $280 }
     F_RelWindow_284: array[0..1] of Byte;
-    F_RelWindow_286: Byte;
-    F_RelWindow_287: Byte;
+    FSelectedPlayer: Shortint; { $286 }
+    FSelectedRace: Shortint; { $287 }
     FPlayers: TIntegerList; { $288 }
     FRaces: TIntegerList; { $28C }
     FControls: TList; { $290 }
-    F_RelWindow_294: array[0..7] of Byte;
-    F_RelWindow_29C: Integer;
-    F_RelWindow_2A0: Integer;
-    F_RelWindow_2A4: Byte;
+    FDone: TExecuteDoneEvent; { $294 }
+    FEvent: TDiplomaticActionEventLog; { $29C }
+    FGlowIntensity: Integer; { $2A0 }
+    FGlowIncreasing: Boolean; { $2A4 }
     F_RelWindow_2A5: array[0..2] of Byte;
+    procedure SetAction(Action: TDiplomaticAction);
+    procedure FinishEvent;
+    procedure FinishDialog;
+    procedure ClearActions;
     procedure RelWindowCreate;  { draft }
     procedure RelWindowDestroy;  { draft }
     procedure ExitClick;  { draft }
     procedure P1CBChange(A1: Integer);  { draft }
     procedure R1CBChange(A1: Integer);  { draft }
-    procedure P1CBPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure R1CBPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure P1IDraw(A1: Integer; A2: Integer);  { draft }
-    procedure R1IDraw(A1: Integer; A2: Integer);  { draft }
+    procedure P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+    procedure R1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure R1IDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
     procedure MAcceptBtnClick;  { draft }
     procedure MRejectBtnClick;  { draft }
     procedure PlyrGlowUpdate;  { draft }
-    procedure PlyrGlowDraw(A1: Integer; A2: Integer);  { draft }
-    procedure FaceFrPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure SBGoldSlidChange;  { draft }
-    procedure SBManaSlidChange;  { draft }
+    procedure PlyrGlowDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure FaceFrPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure SBGoldSlidChange(Sender: TObject);  { draft }
+    procedure SBManaSlidChange(Sender: TObject);  { draft }
     procedure RelWinHide;  { draft }
     procedure ASelectClick;  { draft }
-    procedure ActionsLBChange;  { draft }
+    procedure ActionsLBChange(Sender: TObject);  { draft }
     procedure CancelSelectedAction;  { draft }
-    procedure ChangeActionMessage(A1: Integer);  { draft }
+    procedure ChangeActionMessage(Sender: TAOWMemo);
     procedure MsgSendActionBtn;  { draft }
     procedure ReplyBtnClick;  { draft }
     procedure RMCancelBtnClick;  { draft }
     procedure IIOkBtnClick;  { draft }
-    procedure RelWinKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure RelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-uses AoWWinMan;
+uses AoWWinMan, aowIntGfxMod, E3Globals;
+
+procedure TRelWindow.SetAction(Action: TDiplomaticAction);
+begin
+  if Action <> FAction then
+  begin
+    if FAction <> nil then FAction.Release;
+    FAction := Action;
+    if FAction <> nil then FAction.AddRef;
+  end;
+end;
+
+procedure TRelWindow.FinishEvent;
+var
+  Event: TDiplomaticActionEventLog;
+  Done: TExecuteDoneEvent;
+begin
+  Event := FEvent;
+  if Event <> nil then
+  begin
+    Done := FDone;
+    FDone := nil;
+    FEvent := nil;
+    if Assigned(Done) then Done(Event);
+    if Event <> nil then Event.Release;
+  end;
+end;
+
+procedure TRelWindow.FinishDialog;
+begin
+  SetAction(nil);
+  General.Manager.OverlayPriority := 0;
+  FinishEvent;
+  AoWHSMap.FTutorialControl.ShowMessage(71, True, True);
+end;
+
+procedure TRelWindow.ClearActions;
+begin
+  SetAction(nil);
+  RNewActionPnl.Visible := True;
+  RIncomingPnl.Visible := False;
+  RMsgEditPnl.Visible := False;
+  RSBribePnl.Visible := False;
+  RMsgRecPnl.Visible := False;
+  IncommingInfoPnl.Visible := False;
+  FActions.Clear;
+  ActionsLB.Items.Clear;
+  SMemo.Items.Clear;
+  MMemo.Items.Clear;
+  ActionsLBChange(Self);
+end;
 
 procedure TRelWindow.RelWindowCreate;
 begin
@@ -282,17 +336,89 @@ begin end;
 procedure TRelWindow.R1CBChange(A1: Integer);
 begin end;
 
-procedure TRelWindow.P1CBPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+var
+  Player: Shortint;
+  R: TRect;
+begin
+  with Sender do
+    if Tag < FPlayers.Count then
+    begin
+      Player := FPlayers[Tag];
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+      begin
+        R := Rect(WinLeft + 1, WinTop + 1, WinLeft + WinWidth - 1, WinTop + WinHeight - 1);
+        if AoWHSMap.FPlayers.GetPlayers(Player).GetFace <> nil then
+          AoWHSMap.FPlayers.GetPlayers(Player).GetFace.ShowStretched(R, Surface);
+      end
+      else IntGfxMod.RelWin[28].ShowClipped(WinLeft, WinTop, Surface);
+      IntGfxMod.RelWin[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 16].ShowClipped(WinLeft, WinTop, Surface);
+    end;
+end;
 
-procedure TRelWindow.R1CBPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.R1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  Control: TAoWComponent;
+  Race: Shortint;
+  R: TRect;
+  Action: TDiplomaticAction;
+  Modifier: Integer;
+begin
+  Control := TAoWComponent(Sender);
+  with Control do
+    if Tag - 20 < FRaces.Count then
+    begin
+      Race := FRaces[Tag - 20];
+      R := Rect(WinLeft + 1, WinTop + 1, WinLeft + WinWidth - 1, WinTop + WinHeight - 1);
+      AoWHSSet.FRaceResources.GetRaceResource(Race).GetFace.ShowStretched(R, Surface);
+      Action := FAction;
+      if (Action = nil) and RNewActionPnl.Visible and (ActionsLB.Selected <> -1) then
+        Action := TDiplomaticAction(ActionsLB.Items.Objects[ActionsLB.Selected]);
+      if Action <> nil then
+      begin
+        Modifier := Action.GetRelationModifier(AoWHSMap.FSeatedPlayer, Race);
+        if Modifier <> 0 then
+        begin
+          FontModule.Age10.Color := $FFFFFF;
+          FontModule.Age10.SetTextCentered(R.Left + (R.Right - R.Left) div 2, R.Top + 50, IntToStr(Modifier), Surface);
+        end;
+      end;
+    end;
+end;
 
-procedure TRelWindow.P1IDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  Player: Shortint;
+  Relation: TDiplomaticRelation;
+  Image: Integer;
+begin
+  with TAoWComponent(Sender) do
+    if (Tag < FPlayers.Count) and (Tag <> FSelectedIndex) then
+    begin
+      Player := FPlayers[Tag];
+      if FSelectedPlayer = -1 then
+      begin
+        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+          IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(Player)) + 11].ShowClipped(WinLeft, WinTop + 8, Surface);
+      end
+      else if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+          if AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).GetFirstDaySeen(Player) <> -1 then
+          begin
+            Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, Player);
+            if Relation = drUnknown then Image := 50 else Image := Ord(Relation) + 8;
+            IntGfxMod.RelWin[Image].Show(WinLeft, WinTop + 8, Surface);
+          end;
+    end;
+end;
 
-procedure TRelWindow.R1IDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.R1IDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+begin
+  with Sender do
+    if (FSelectedPlayer <> -1) and (Tag - 20 < FRaces.Count) then
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+        IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(FRaces[Tag - 20]).GetPlayerRelation(FSelectedPlayer)) + 11].ShowClipped(WinLeft, WinTop + 15, Surface);
+end;
 
 procedure TRelWindow.MAcceptBtnClick;
 begin end;
@@ -301,34 +427,120 @@ procedure TRelWindow.MRejectBtnClick;
 begin end;
 
 procedure TRelWindow.PlyrGlowUpdate;
-begin end;
+begin
+  if FGlowIncreasing then Inc(FGlowIntensity) else Dec(FGlowIntensity);
+  if FGlowIntensity = 20 then FGlowIncreasing := True
+  else if FGlowIntensity = 50 then FGlowIncreasing := False;
+  PlyrGlow.FDrawn := False;
+end;
 
-procedure TRelWindow.PlyrGlowDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.PlyrGlowDraw(Sender: TObject; Surface: TSurfaceDesc);
+begin
+  IntGfxMod.RelWin[44].ShowBlended(PlyrGlow.WinLeft, PlyrGlow.WinTop, Surface, IntensityBlendTable.LookupTables[FGlowIntensity]);
+end;
 
-procedure TRelWindow.FaceFrPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRelWindow.FaceFrPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  with FaceFr do R := Rect(WinLeft + 1, WinTop, WinLeft + WinWidth, WinTop + WinHeight);
+  if FAction <> nil then
+  begin
+    if (FEvent <> nil) and (FEvent.FAction.FActionType = daSendMessageAsY) then
+      AoWHSMap.FPlayers.GetPlayers(FEvent.FAction.FOtherPlayer).FLeader.ShowFace(R, Surface)
+    else if FAction.FSource = AoWHSMap.FSeatedPlayer then
+      AoWHSMap.FPlayers.GetPlayers(FAction.FTarget).FLeader.ShowFace(R, Surface)
+    else if FAction.FReaction = darNone then
+      AoWHSMap.FPlayers.GetPlayers(FAction.FSource).FLeader.ShowFace(R, Surface)
+    else AoWHSMap.FPlayers.GetPlayers(FAction.FTarget).FLeader.ShowFace(R, Surface);
+  end
+  else if FSelectedPlayer = -1 then
+    AoWHSSet.FRaceResources.GetRaceResource(FSelectedRace).GetFace.Show(FaceFr.WinLeft + 1, FaceFr.WinTop + 3, Surface)
+  else if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+    AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).FLeader.ShowFace(R, Surface);
+end;
 
-procedure TRelWindow.SBGoldSlidChange;
-begin end;
+procedure TRelWindow.SBGoldSlidChange(Sender: TObject);
+begin
+  if FAction <> nil then FAction.FGold := SBGoldSlid.Position;
+  SBGoldV.Text := IntToStr(SBGoldSlid.Position);
+end;
 
-procedure TRelWindow.SBManaSlidChange;
-begin end;
+procedure TRelWindow.SBManaSlidChange(Sender: TObject);
+begin
+  if FAction <> nil then FAction.FMana := SBManaSlid.Position;
+  SBManaV.Text := IntToStr(SBManaSlid.Position);
+end;
 
 procedure TRelWindow.RelWinHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure TRelWindow.ASelectClick;
-begin end;
+var
+  Reason: string;
+begin
+  if ActionsLB.Selected <> -1 then
+  begin
+    SetAction(TDiplomaticAction(ActionsLB.Items.Objects[ActionsLB.Selected]));
+    case FAction.FActionType of
+      daDeclareWar, daThreatenToAttack, daBreakAlliance:
+        if not FAction.Send(Reason) then AoWHSMap.ShowMessage(Reason);
+      daOfferPeace, daProposeAlliance, daMakeTribute, daBreakAllianceWithY, daDeclareWarToY:
+      begin
+        RNewActionPnl.Visible := False;
+        SBIcon.Visible := True;
+        RSBribePnl.Visible := True;
+        SBGoldSlid.Position := 0;
+        SBManaSlid.Position := 0;
+        SBGoldSlid.Max := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGems;
+        SBManaSlid.Max := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FMana;
+        SBManaSlidChange(nil);
+        SBGoldSlidChange(nil);
+        BribeHeaderLbl.Text := FAction.GetName(AoWHSMap.FSeatedPlayer);
+        case FAction.FActionType of
+          daOfferPeace: SBIcon.CurrentImage := 8;
+          daProposeAlliance: SBIcon.CurrentImage := 10;
+          daMakeTribute: SBIcon.CurrentImage := 48;
+          daDeclareWarToY: SBIcon.CurrentImage := 47;
+          daBreakAllianceWithY: SBIcon.CurrentImage := 47;
+        else SBIcon.Visible := False;
+        end;
+      end;
+      daSendMessage, daSendMessageAsY:
+      begin
+        RNewActionPnl.Visible := False;
+        RMsgEditPnl.Visible := True;
+      end;
+    end;
+  end;
+end;
 
-procedure TRelWindow.ActionsLBChange;
-begin end;
+procedure TRelWindow.ActionsLBChange(Sender: TObject);
+begin
+  RelPnl.FDrawn := False;
+  if ActionsLB.Selected <> -1 then
+  begin
+    ASelect.ILIndexDown := 37;
+    ASelect.ILIndexLit := 40;
+    ASelect.ILIndexUp := 34;
+  end
+  else
+  begin
+    ASelect.ILIndexDown := 46;
+    ASelect.ILIndexLit := 49;
+    ASelect.ILIndexUp := 43;
+  end;
+end;
 
 procedure TRelWindow.CancelSelectedAction;
 begin end;
 
-procedure TRelWindow.ChangeActionMessage(A1: Integer);
-begin end;
+procedure TRelWindow.ChangeActionMessage(Sender: TAOWMemo);
+begin
+  if FAction <> nil then FAction.FMessage.Text := Sender.Items.Text;
+end;
 
 procedure TRelWindow.MsgSendActionBtn;
 begin end;
@@ -342,8 +554,10 @@ begin end;
 procedure TRelWindow.IIOkBtnClick;
 begin end;
 
-procedure TRelWindow.RelWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TRelWindow.RelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 27 then RelWin.Visible := False;
+end;
 
 
 end.

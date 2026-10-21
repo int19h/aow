@@ -1,19 +1,20 @@
 unit AoWPartyJoin;
 
-{ Draft declarations of AoWPartyJoin, from AoW.exe.
+{ Partly recovered AoWPartyJoin handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
 
 type
   TPartyJoinDlg = class;
 
 
-  { TPartyJoinDlg (instance size 188, VMT 00437734) }
+  { TPartyJoinDlg: done callback $A4, join event $AC, details flag $B0, selection mask, unit list $B4, face unit $B8.
+    (instance size 188, VMT 00437734) }
   TPartyJoinDlg = class(TDataModule)
   public
     published
@@ -42,62 +43,197 @@ type
     Close: TAOWButton; { +009C }
     Translator: TIvTranslator; { +00A0 }
     public
-    F_PartyJoinDlg_A4: array[0..7] of Byte;
-    F_PartyJoinDlg_AC: Byte;
-    F_PartyJoinDlg_AD: array[0..2] of Byte;
-    F_PartyJoinDlg_B0: Byte;
-    F_PartyJoinDlg_B1: array[0..2] of Byte;
-    F_PartyJoinDlg_B4: Integer;
-    F_PartyJoinDlg_B8: Byte;
-    F_PartyJoinDlg_B9: array[0..2] of Byte;
+    FDone: TExecuteDoneEvent; { $A4 }
+    FJoinEvent: TJoinEventLog; { $AC }
+    FDetailsOpen: Boolean; { $B0 }
+    FSelection: Byte; FReserved: array[0..1] of Byte; { $B1 }
+    FUnits: TUnitUserList; { $B4 }
+    FFaceUnit: TAbstractUnit; { $B8 }
+    function ValidateJoin: Boolean;
+    procedure FinishDialog;
+    procedure DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
     procedure PartyJoinDlgCreate;  { draft }
     procedure PartyJoinDlgDestroy;  { draft }
     procedure LeftBtnClick;  { draft }
     procedure MiddleBtnClick;  { draft }
     procedure RightBtnClick;  { draft }
     procedure CloseClick;  { draft }
-    procedure FaceFramePreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure U1PreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);  { draft }
+    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);  { draft }
+    procedure U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);  { draft }
     procedure DlgHide;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);  { draft }
   end;
 
 
 implementation
 
+uses AoWWinMan, aowIntGfxMod, E3Globals;
+
+function TPartyJoinDlg.ValidateJoin: Boolean;
+begin
+  Result := FJoinEvent.Validate;
+  if not Result then Dlg.Visible := False;
+end;
+
+procedure TPartyJoinDlg.FinishDialog;
+var
+  Event: TEventLog;
+  Done: TExecuteDoneEvent;
+begin
+  FUnits.Clear;
+  if FDetailsOpen then
+  begin
+    FDetailsOpen := False;
+    UnitWindow.UnitWin.Priority := ControlWin.ControlWindow.Priority;
+    UnitWindow.UnitWin.Visible := False;
+  end;
+  Done := FDone;
+  Event := FJoinEvent;
+  FDone := nil;
+  FJoinEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+procedure TPartyJoinDlg.DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
+var
+  X, Y: Integer;
+  OldClip: TRect;
+  Info: TP2UnitShowInfo;
+begin
+  if Index < FUnits.GetCount then
+  begin
+    OldClip := Surface.ClipRect;
+    Surface.ClipRect := R;
+    X := (R.Right + R.Left) div 2;
+    Y := (R.Top + R.Bottom) div 2;
+    with FUnits.GetUnit(Index) do
+      if Ord(GetAlignment) < IntGfxMod.UnitBGs.Count then
+        with IntGfxMod.UnitBGs[Ord(GetAlignment) and $7F] do
+          ShowClipped(X - Width div 2, Y - Height div 2, Surface);
+    FillChar(Info, SizeOf(Info), 0);
+    Info.Direction := 3;
+    Info.Overlays := [uoHitPoints, uoRank];
+    FUnits.GetUnit(Index).ShowEx(X - 33, Y - 35, Surface, Info);
+    if (FSelection shr Index) and 1 = 0 then
+      with IntGfxMod.UnitBGs[7] do
+        ShowClipped(X - Width div 2, Y - Height div 2, Surface);
+    Surface.ClipRect := OldClip;
+  end;
+end;
+
 procedure TPartyJoinDlg.PartyJoinDlgCreate;
-begin end;
+begin
+  FUnits := TUnitUserList.Create(nil);
+end;
 
 procedure TPartyJoinDlg.PartyJoinDlgDestroy;
-begin end;
+begin
+  FUnits.Free;
+end;
 
 procedure TPartyJoinDlg.LeftBtnClick;
-begin end;
+var
+  Reason: string;
+begin
+  if ValidateJoin then
+  begin
+    General.PlayButtonSound(0);
+    if not FJoinEvent.Accept(Reason) then AoWHSMap.ShowWarning(Reason)
+    else Dlg.Visible := False;
+  end;
+end;
 
 procedure TPartyJoinDlg.MiddleBtnClick;
-begin end;
+var
+  Reason: string;
+begin
+  if ValidateJoin then
+  begin
+    General.PlayButtonSound(0);
+    if not FJoinEvent.Reject(Reason) then AoWHSMap.ShowWarning(Reason)
+    else Dlg.Visible := False;
+  end;
+end;
 
 procedure TPartyJoinDlg.RightBtnClick;
-begin end;
+begin
+  if ValidateJoin then
+  begin
+    General.PlayButtonSound(0);
+    Dlg.Visible := False;
+  end;
+end;
 
 procedure TPartyJoinDlg.CloseClick;
-begin end;
+begin
+  if ValidateJoin then
+  begin
+    General.PlayButtonSound(0);
+    Dlg.Visible := False;
+  end;
+end;
 
-procedure TPartyJoinDlg.FaceFramePreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TPartyJoinDlg.FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if ValidateJoin then
+  begin
+    with FaceFrame do
+    begin
+      R.Left := Dlg.WinLeft + WinLeft;
+      R.Right := WinWidth + R.Left;
+      R.Top := WinTop + Dlg.WinTop;
+      R.Bottom := WinHeight + R.Top;
+    end;
+    if FFaceUnit <> nil then
+      if FFaceUnit.GetFace <> nil then FFaceUnit.GetFace.ShowStretched(R, Surface);
+  end;
+end;
 
-procedure TPartyJoinDlg.U1PreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TPartyJoinDlg.U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if ValidateJoin then
+  begin
+    with TAoWComponent(Sender) do
+    begin
+      R.Left := WinLeft + UnitPnl.WinLeft + 1;
+      R.Right := WinWidth + R.Left;
+      R.Top := WinTop + UnitPnl.WinTop;
+      R.Bottom := WinHeight + R.Top;
+    end;
+    DrawUnit(TAoWComponent(Sender).Tag, R, Surface);
+  end;
+end;
 
-procedure TPartyJoinDlg.U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TPartyJoinDlg.U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if ValidateJoin then
+    if Sender.Tag < FUnits.GetCount then
+    begin
+      General.FSelectedUnit := FUnits.GetUnit(Sender.Tag);
+      if Button = mbLeft then
+      begin
+        FDetailsOpen := True;
+        UnitWindow.ShowUnit;
+        UnitWindow.UnitWin.Priority := Dlg.Priority + 1;
+      end;
+    end;
+end;
 
 procedure TPartyJoinDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
-procedure TPartyJoinDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TPartyJoinDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 27 then Dlg.Visible := False;
+end;
 
 
 end.

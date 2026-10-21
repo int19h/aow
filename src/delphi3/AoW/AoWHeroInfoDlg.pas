@@ -1,19 +1,20 @@
 unit AoWHeroInfoDlg;
 
-{ Draft declarations of AoWHeroInfoDlg, from AoW.exe.
+{ Partly recovered AoWHeroInfoDlg handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
 
 type
   THeroInfoDlg = class;
 
 
-  { THeroInfoDlg (instance size 156, VMT 00447CEC) }
+  { THeroInfoDlg: done callback $8C, army event $94, unit-details flag $98.
+    (instance size 156, VMT 00447CEC) }
   THeroInfoDlg = class(TDataModule)
   public
     published
@@ -36,38 +37,140 @@ type
     Message: TAOWMemo; { +0084 }
     Translator: TIvTranslator; { +0088 }
     public
-    F_HeroInfoDlg_8C: array[0..7] of Byte;
-    F_HeroInfoDlg_94: Integer;
-    F_HeroInfoDlg_98: Byte;
+    FDone: TExecuteDoneEvent; { $8C }
+    FArmyInfo: TArmyInfoEventLog; { $94 }
+    FDetailsOpen: Boolean; { $98 }
     F_HeroInfoDlg_99: array[0..2] of Byte;
+    procedure FinishDialog;
+    procedure DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
     procedure CloseBtnClick;  { draft }
-    procedure FaceFramePreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure U1PreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DlgHide;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, aowIntGfxMod, E3Globals;
+
+const
+  AllHeroTypes: THeroTypes = [htHero, htLeader, htHeroLeader, htMerchant];
+
+procedure THeroInfoDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Event: TEventLog;
+begin
+  if FDetailsOpen then
+  begin
+    FDetailsOpen := False;
+    UnitWindow.UnitWin.Priority := ControlWin.ControlWindow.Priority;
+    UnitWindow.UnitWin.Visible := False;
+  end;
+  Done := FDone;
+  Event := FArmyInfo;
+  FDone := nil;
+  FArmyInfo := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+procedure THeroInfoDlg.DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
+var
+  X, Y: Integer;
+  OldClip: TRect;
+  Info: TP2UnitShowInfo;
+begin
+  if Index < FArmyInfo.FArmyView.GetCount then
+  begin
+    OldClip := Surface.ClipRect;
+    Surface.ClipRect := R;
+    X := (R.Right + R.Left) div 2;
+    Y := (R.Top + R.Bottom) div 2;
+    with FArmyInfo.FArmyView.GetUnit(Index) do
+      if Ord(GetAlignment) < IntGfxMod.UnitBGs.Count then
+        with IntGfxMod.UnitBGs[Ord(GetAlignment) and $7F] do
+          ShowClipped(X - Width div 2, Y - Height div 2, Surface);
+    FillChar(Info, SizeOf(Info), 0);
+    Info.Direction := 3;
+    Info.Overlays := [uoHitPoints, uoRank];
+    FArmyInfo.FArmyView.GetUnit(Index).ShowEx(X - 33, Y - 35, Surface, Info);
+    if (FArmyInfo.FSelection shr Index) and 1 = 0 then
+      with IntGfxMod.UnitBGs[7] do
+        ShowClipped(X - Width div 2, Y - Height div 2, Surface);
+    Surface.ClipRect := OldClip;
+  end;
+end;
+
 procedure THeroInfoDlg.CloseBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
-procedure THeroInfoDlg.FaceFramePreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure THeroInfoDlg.FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+  Hero: THero;
+  I: Integer;
+begin
+  with FaceFrame do
+  begin
+    R.Left := WinLeft + Dlg.WinLeft;
+    R.Right := WinWidth + R.Left;
+    R.Top := WinTop + Dlg.WinTop;
+    R.Bottom := WinHeight + R.Top;
+  end;
+  Hero := FArmyInfo.FArmyView.Hero(FArmyInfo.FSelection, AllHeroTypes);
+  if Hero.GetFace <> nil then Hero.ShowFace(R, Surface)
+  else
+  begin
+    I := 0;
+    while ((1 shl I) and FArmyInfo.FSelection = 0) and (I <> FArmyInfo.FArmyView.GetCount) do Inc(I);
+    if I < FArmyInfo.FArmyView.GetCount then FArmyInfo.FArmyView.GetUnit(I).ShowFace(R, Surface);
+  end;
+end;
 
-procedure THeroInfoDlg.U1PreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure THeroInfoDlg.U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  with TAoWComponent(Sender) do
+  begin
+    R.Left := WinLeft + UnitPnl.WinLeft + 1;
+    R.Right := WinWidth + R.Left;
+    R.Top := WinTop + UnitPnl.WinTop;
+    R.Bottom := WinHeight + R.Top;
+  end;
+  DrawUnit(TAoWComponent(Sender).Tag, R, Surface);
+end;
 
-procedure THeroInfoDlg.U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure THeroInfoDlg.U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if TAoWComponent(Sender).Tag < FArmyInfo.FArmyView.GetCount then
+  begin
+    General.FSelectedUnit := FArmyInfo.FArmyView.GetUnit(TAoWComponent(Sender).Tag);
+    if Button = mbLeft then
+    begin
+      FDetailsOpen := True;
+      UnitWindow.ShowUnit;
+      UnitWindow.UnitWin.Priority := Dlg.Priority + 1;
+    end;
+  end;
+end;
 
 procedure THeroInfoDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
-procedure THeroInfoDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure THeroInfoDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = 27) or (Key = 32) then Dlg.Visible := False;
+end;
 
 
 end.

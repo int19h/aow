@@ -1,19 +1,20 @@
 unit AoWNewTurnDialog;
 
-{ Draft declarations of AoWNewTurnDialog, from AoW.exe.
+{ Partly recovered AoWNewTurnDialog handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWFrame, AoWImage, AoWLabel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWTC, AoWFrame, AoWImage, AoWLabel, AoWWindow;
 
 type
   TNewTurnDlg = class;
 
 
-  { TNewTurnDlg (instance size 132, VMT 004391B0) }
+  { TNewTurnDlg: done callback $78, new-turn event $80.
+    (instance size 132, VMT 004391B0) }
   TNewTurnDlg = class(TDataModule)
   public
     published
@@ -31,28 +32,110 @@ type
     TCeltLineR: TAOWImage; { +0070 }
     FaceFrame: TAOWImage; { +0074 }
     public
-    F_NewTurnDlg_78: array[0..7] of Byte;
-    F_NewTurnDlg_80: Integer;
-    procedure NewTDlgMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure NewTDlgKeyPress(A1: Integer; A2: Integer);  { draft }
-    procedure FaceFramePreDraw(A1: Integer; A2: Integer);  { draft }
+    FDone: TExecuteDoneEvent; { $78 }
+    FNewTurn: TNewTurnEventLog; { $80 }
+    procedure FinishDialog;
+    procedure ShowNewTurn(Event: TNewTurnEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure NewTDlgMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure NewTDlgKeyPress(Sender: TObject; var Key: Char);
+    procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure NewTDlgHide;  { draft }
   end;
 
 
 implementation
 
-procedure TNewTurnDlg.NewTDlgMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+uses AoWWinMan, E3Globals;
 
-procedure TNewTurnDlg.NewTDlgKeyPress(A1: Integer; A2: Integer);
-begin end;
+procedure TNewTurnDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Event: TNewTurnEventLog;
+begin
+  General.Manager.OverlayPriority := 0;
+  if FNewTurn = nil then
+  begin
+    AoWHSMap.SetSeatedPlayer(AoWHSMap.FCurrentPlayer);
+    if AoWHSMap.FSeatedPlayer > -1 then PInfoW.UpdateEvents;
+  end;
+  Done := FDone;
+  Event := FNewTurn;
+  FDone := nil;
+  FNewTurn := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
 
-procedure TNewTurnDlg.FaceFramePreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TNewTurnDlg.ShowNewTurn(Event: TNewTurnEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+var
+  Race: Shortint;
+  Day: Integer;
+begin
+  case Event.FMode of
+    ntDialog:
+    begin
+      if FNewTurn <> nil then
+      begin
+        FNewTurn.Release;
+        FNewTurn := nil;
+      end;
+      FDone := Done;
+      FNewTurn := Event;
+      FNewTurn.AddRef;
+      TurnMsg.Text := Event.FText;
+      PlayerName.Text := AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).GetName;
+      if Event.FTurnPlayer = 0 then PlayerRace.Text := ''
+      else PlayerRace.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace]);
+      Day := AoWHSMap.FDay;
+      if Day < 1 then Day := 1;
+      Turn.Text := TranslateRStr(DayRStr) + ' ' + IntToStr(Day);
+      Race := AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace;
+      if Race = -1 then Race := 12;
+      LShield.CurrentImage := Race + 26;
+      RShield.CurrentImage := Race + 26;
+      NewTDlg.FDrawn := False;
+      NewTDlg.Visible := True;
+      if not (nsCloseable in FNewTurn.FDialogStyle) then ClickMsg.Text := TranslateRStr(HiddenmovementPleaseWaitRStr)
+      else ClickMsg.Text := TranslateRStr(ClickToBeginRStr);
+    end;
+    ntClose: NewTDlg.Visible := False;
+  end;
+end;
+
+procedure TNewTurnDlg.NewTDlgMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if (AoWCombatMap = nil) and (nsCloseable in FNewTurn.FDialogStyle) then NewTDlg.Visible := False;
+end;
+
+procedure TNewTurnDlg.NewTDlgKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (nsCloseable in FNewTurn.FDialogStyle) and ((Key = #32) or (Key = #13) or (Key = #27)) then NewTDlg.Visible := False;
+end;
+
+procedure TNewTurnDlg.FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if AoWCombatMap <> nil then
+  begin
+    if AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader <> nil then
+    begin
+      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 291, WinTop + 168);
+      AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader.ShowFace(R, Surface);
+    end;
+  end
+  else
+    if AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader <> nil then
+    begin
+      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 291, WinTop + 168);
+      AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader.ShowFace(R, Surface);
+    end;
+end;
 
 procedure TNewTurnDlg.NewTDlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 
 end.

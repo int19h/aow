@@ -23,7 +23,7 @@ type
     InfoMemoSB: TAOWVScrollBar; { +0050 }
     public
     procedure ShowInfo(const Header: string; Description: TStrings); { 0040701C }
-    procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure BannerPopupMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   end;
 
 
@@ -38,8 +38,10 @@ begin
   InfoMemo.Items.Text := Description.Text;
 end;
 
-procedure TInfoBanner.BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TInfoBanner.BannerPopupMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbRight then BannerPopup.Visible := False;
+end;
 
 
 end.

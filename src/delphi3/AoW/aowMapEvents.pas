@@ -34,7 +34,7 @@ type
     procedure TheMapIncomeChanged(Player: Shortint);
     procedure TheMapMapChanged(var Info: TMapChangedInfo);
     procedure TheMapScannerIconsChanged(var Info: TMapChangedInfo);
-    procedure TheMapPlayerMagicChanged(A1: Integer);  { draft }
+    procedure TheMapPlayerMagicChanged(A1: Shortint); { $44FA8D }
     procedure TheMapSeatedPlayerChanged(A1: Integer);  { draft }
     procedure TheMapShowMessage(var Info: TShowMessageInfo);
     procedure TheMapStructureChanged(A1: Integer);  { draft }
@@ -199,7 +199,7 @@ begin
   if Info.MapLevel = SWindow.Scanner.FLevel then SWindow.Scanner.SetObDrawn(False);
 end;
 
-procedure TMapEvents.TheMapPlayerMagicChanged(A1: Integer);
+procedure TMapEvents.TheMapPlayerMagicChanged(A1: Shortint);
 begin end;
 
 procedure TMapEvents.TheMapSeatedPlayerChanged(A1: Integer);

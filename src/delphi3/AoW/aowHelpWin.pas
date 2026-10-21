@@ -1,19 +1,20 @@
 unit aowHelpWin;
 
-{ Draft declarations of aowHelpWin, from AoW.exe.
+{ Partly recovered aowHelpWin handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWImage, AoWLabel, AoWMemo, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWImage, AoWLabel, AoWMemo, AoWVScroll, AoWWindow;
 
 type
   THelpWindow = class;
 
 
-  { THelpWindow (instance size 136, VMT 004043F0) }
+  { THelpWindow: done callback $7C, help event $84.
+    (instance size 136, VMT 004043F0) }
   THelpWindow = class(TDataModule)
   public
     published
@@ -32,7 +33,10 @@ type
     HelpMemo: TAOWMemo; { +0074 }
     Translator: TIvTranslator; { +0078 }
     public
-    F_HelpWindow_7C: array[0..11] of Byte;
+    FDone: TExecuteDoneEvent; { $7C }
+    FHelpEvent: THelpMessageEventLog; { $84 }
+    procedure FinishDialog;
+    procedure ShowHelpEvent(Event: THelpMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
     procedure CloseBtnClick;  { draft }
     procedure HelpWinHide;  { draft }
     procedure HelpWinResize;  { draft }
@@ -43,17 +47,76 @@ procedure ShowHelp(HelpID: Integer); { draft; 0040471C }
 
 implementation
 
+var
+  HelpWindow: THelpWindow;
+
+procedure THelpWindow.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Event: THelpMessageEventLog;
+begin
+  Done := FDone;
+  Event := FHelpEvent;
+  FDone := nil;
+  FHelpEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+procedure THelpWindow.ShowHelpEvent(Event: THelpMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+begin
+  FinishDialog;
+  FHelpEvent := Event;
+  FHelpEvent.AddRef;
+  HeaderMemo.Items.Clear;
+  if Event.FMessage.Count > 0 then HeaderMemo.Items.Add(Event.FMessage[0]);
+  HelpMemo.Items.Clear;
+  HelpMemo.Items.AddStrings(Event.FMessage);
+  if HelpMemo.Items.Count > 0 then HelpMemo.Items.Delete(0);
+  if (HelpMemo.Items.Count > 0) and (HelpMemo.Items[0] = '') then HelpMemo.Items.Delete(0);
+  if Event.FMode <> 0 then FDone := Done
+  else if Assigned(Done) then Done(FHelpEvent);
+  HelpWin.Visible := True;
+end;
+
 procedure ShowHelp(HelpID: Integer);
-begin end;
+var
+  Lines: TStringList;
+begin
+  if HelpWindow.HelpWin.Visible then HelpWindow.FinishDialog;
+  Lines := TStringList.Create;
+  AoWHSSet.FTextControl.RetrieveText(HelpID, Lines);
+  HelpWindow.HelpSB.Position := 0;
+  HelpWindow.HeaderMemo.Items.Clear;
+  if Lines.Count > 0 then HelpWindow.HeaderMemo.Items.Add(Lines[0]);
+  HelpWindow.HelpMemo.Items.Clear;
+  HelpWindow.HelpMemo.Items.AddStrings(Lines);
+  if HelpWindow.HelpMemo.Items.Count > 0 then HelpWindow.HelpMemo.Items.Delete(0);
+  if (HelpWindow.HelpMemo.Items.Count > 0) and (HelpWindow.HelpMemo.Items[0] = '') then HelpWindow.HelpMemo.Items.Delete(0);
+  HelpWindow.HelpWin.Visible := True;
+  Lines.Free;
+end;
 
 procedure THelpWindow.CloseBtnClick;
-begin end;
+begin
+  HelpWin.Visible := False;
+end;
 
 procedure THelpWindow.HelpWinHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure THelpWindow.HelpWinResize;
-begin end;
+begin
+  with HelpWin do
+  begin
+    Alignment.LeftOffset := WinLeft;
+    Alignment.TopOffset := WinTop;
+    Alignment.AlignHeight := ahTop;
+    Alignment.AlignWidth := awLeft;
+  end;
+end;
 
 
 end.

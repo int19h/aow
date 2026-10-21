@@ -79,7 +79,9 @@ procedure TSMTPDlg.DlgHide;
 begin end;
 
 procedure TSMTPDlg.ExitBtnClick;
-begin end;
+begin
+  Dlg.Visible := False;
+end;
 
 procedure TSMTPDlg.IMSSMTPProgress(A1: Integer; A2: Integer; A3: Integer);
 begin end;

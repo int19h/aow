@@ -163,7 +163,11 @@ begin
 end;
 
 procedure TTBWindow.InfoBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if PInfoW.PInfoWin.Visible then PInfoW.PInfoWin.Visible := False
+  else PInfoW.UpdatePlayer;
+end;
 
 procedure TTBWindow.ProdBtnClick;
 begin

@@ -1,19 +1,19 @@
 unit AoWResultsWin;
 
-{ Draft declarations of AoWResultsWin, from AoW.exe.
+{ Partly recovered AoWResultsWin handlers, from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Any remaining stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWImage, AoWLabel, AoWMemo, AoWPanel;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWButton, AoWCheckBox, AoWImage, AoWLabel, AoWMemo, AoWPanel;
 
 type
   TResultsWin = class;
 
 
-  { TResultsWin (instance size 264, VMT 004279A8) }
+  { TResultsWin (size $108, VMT 004279A8): $100 player indices, $104 checkbox controls. }
   TResultsWin = class(TDataModule)
   public
     published
@@ -58,8 +58,8 @@ type
     Translator: TIvTranslator; { +00DC }
     public
     F_ResultsWin_E0: array[0..31] of Byte;
-    F_ResultsWin_100: Integer;
-    F_ResultsWin_104: Integer;
+    FPlayers: TByteList; { $100 }
+    FControls: TList; { $104 }
     procedure ResultsWinCreate;  { draft }
     procedure ResultsWinDestroy;  { draft }
     procedure ContinueBtnClick;  { draft }
@@ -68,18 +68,39 @@ type
     procedure AxisDraw(A1: Integer; A2: Integer);  { draft }
     procedure AgendaChange;  { draft }
     procedure ResultsPnlShow;  { draft }
-    procedure P1CBPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure P1CBChange(A1: Integer);  { draft }
+    procedure P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+    procedure P1CBChange(Sender: TObject);
   end;
 
 
 implementation
 
+uses AoWWinMan, E3Globals, AOWPyreScrn, aowIntGfxMod, E1Globals;
+
+
 procedure TResultsWin.ResultsWinCreate;
-begin end;
+begin
+  FPlayers := TByteList.Create;
+  FControls := TList.Create;
+  FControls.Add(P1CB);
+  FControls.Add(P2CB);
+  FControls.Add(P3CB);
+  FControls.Add(P4CB);
+  FControls.Add(P5CB);
+  FControls.Add(P6CB);
+  FControls.Add(P7CB);
+  FControls.Add(P8CB);
+  FControls.Add(P9CB);
+  FControls.Add(P10CB);
+  FControls.Add(P11CB);
+  FControls.Add(P12CB);
+end;
 
 procedure TResultsWin.ResultsWinDestroy;
-begin end;
+begin
+  FPlayers.Free;
+  FControls.Free;
+end;
 
 procedure TResultsWin.ContinueBtnClick;
 begin end;
@@ -88,22 +109,50 @@ procedure TResultsWin.ExitBtnClick;
 begin end;
 
 procedure TResultsWin.ResultsPnlUpdate;
-begin end;
+begin
+  PyreScreen.DeadPnlUpdate;
+end;
 
 procedure TResultsWin.AxisDraw(A1: Integer; A2: Integer);
 begin end;
 
 procedure TResultsWin.AgendaChange;
-begin end;
+begin
+  ResultsPnl.FDrawn := False;
+end;
 
 procedure TResultsWin.ResultsPnlShow;
 begin end;
 
-procedure TResultsWin.P1CBPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TResultsWin.P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  with TAoWComponent(Sender) do
+    if Tag < FPlayers.Count then
+    begin
+      R := Rect(WinLeft + ResultsPnl.WinLeft + 1, WinTop + ResultsPnl.WinTop + 1,
+        WinLeft + WinWidth + ResultsPnl.WinLeft - 1, WinTop + WinHeight + ResultsPnl.WinTop - 1);
+      if AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).GetFace <> nil then
+        AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).FLeader.ShowFace(R, Surface);
+      IntGfxMod.RelWin[AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).FPlayerRace + 16].ShowClipped(
+        WinLeft + ResultsPnl.WinLeft, WinTop + ResultsPnl.WinTop, Surface);
+    end;
+end;
 
-procedure TResultsWin.P1CBChange(A1: Integer);
-begin end;
+procedure TResultsWin.P1CBChange(Sender: TObject);
+begin
+  with TAOWCheckBox(Sender) do
+  if Checked then
+  begin
+    if Tag < FPlayers.Count then SideLbl.Text := AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).GetNameEx;
+    ResValues.Items.Clear;
+    ResValues.Items.Add('00');
+    ResValues.Items.Add('00');
+    ResValues.Items.Add('00');
+    ResValues.Items.Add('00');
+  end;
+end;
 
 
 end.
