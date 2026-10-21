@@ -141,7 +141,12 @@ def generate(unit, output):
     if G.MOD.lower() == 'localize.dpl':
         uses = ['Windows','Messages','SysUtils','Classes','Graphics','Controls','Forms']
     for n,p,*_ in own:
-        if p in G.owners and G.owners[p] != unit: imports.add(G.owners[p])
+        owner = G.owners.get(p) or G.type_unit.get(p.lower())
+        if owner and owner != unit: imports.add(owner)
+    for row in own:
+        for decl in row[-1]:
+            imports.update(re.findall(r'\b(\w+)\.\w+', decl))
+    imports.discard(unit)
     uses = [u for u in uses if u != unit]
     uses += sorted(imports-set(uses))
     types = [l for l in capture('typeinfo.py',unit) if ' = ' in l]

@@ -8,6 +8,15 @@ from entry import analyze, sigs
 classes = json.load(open(opts.classes))['classes']
 UNIT = opts.unit
 MOD = opts.module.name
+# AbilityP repeats class names whose global class-db entries belong to AoWEPACK.
+if MOD.lower() == 'abilityp.dpl':
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from build_classdb import scan_module
+    local_classes = {}
+    scan_module(str(opts.module), MOD, local_classes, [])
+    for name, layout in local_classes.items():
+        if name not in classes or classes[name]['module'].lower() != MOD.lower():
+            classes[name] = layout
 # base declarations from Engine.pas (and a few VCL ones)
 base_decl = {}
 base_unit = {}
@@ -16,6 +25,11 @@ source_types = {}
 source_uses = {}
 def parse_pas(path):
     txt = open(path, encoding='latin1').read()
+    def include(m):
+        inc = path.parent / m.group(1).replace('\\', '/')
+        return open(inc, encoding='latin1').read() if inc.exists() else ''
+    # AoWEPACK's recovered interface is split into include files.
+    txt = re.sub(r'\{\$I\s+([^}]+)\}', include, txt, flags=re.I)
     unit = re.search(r'\bunit\s+(\w+)', txt, re.I)
     if not unit: return
     unit = unit.group(1)
@@ -96,7 +110,7 @@ def find_base(cls, name):
                     for u in reversed(visible):
                         if token.lower() in source_types.get(u,set()): return u+'.'+token
                     return token
-                decl = re.sub(r'\b[TP][A-Z]\w*\b', qualify, decl)
+                decl = re.sub(r'(?<![\w.])[TP][A-Z]\w*\b', qualify, decl)
             return decl
         c = classes[c]['parent'] if c in classes else None
     return None
