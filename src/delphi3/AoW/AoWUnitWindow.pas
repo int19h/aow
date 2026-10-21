@@ -471,8 +471,8 @@ end;
 
 procedure TUnitWindow.PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
 var
-  A: TAbility;
   Enabled: Boolean;
+  A: TAbility;
 begin
   A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem]));
   if AoWHSMap.FCombatMap = nil then
@@ -481,23 +481,23 @@ begin
       (acAction in A.GetControlType(General.FSelectedUnit))
   else
   begin
-    if (A <> nil) and (General.FCombatUnit <> nil) and
+    Enabled := (A <> nil) and (General.FCombatUnit <> nil) and
       (acCombatAction in AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem])).GetControlType(General.FCombatUnit.FUnit.FUnit)) and
       (General.FCombatUnit.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer) and
-      (General.FCombatUnit.FUnit.FMovePoints > 0) then
-    begin
-      if (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
+      (General.FCombatUnit.FUnit.FMovePoints > 0) and
+      (not ((AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
         [cmShortRange, cmMediumRange, cmLongRange]) or
-        (Integer(T1AbilityLB.Items.Objects[DrawItem]) = 52) then
-        Enabled := General.FCombatUnit.FUnit.FUnit.GetMoves = General.FCombatUnit.FUnit.FMovePoints
-      else
-        Enabled := True;
-    end
-    else
-      Enabled := False;
+        (Integer(T1AbilityLB.Items.Objects[DrawItem]) = 52)) or
+        (General.FCombatUnit.FUnit.FUnit.GetMoves = General.FCombatUnit.FUnit.FMovePoints));
   end;
   if Enabled then Sender.TextColor := $DFFEFF else Sender.TextColor := $8FA9A0;
 end;
+
+
+
+
+
+
 
 procedure TUnitWindow.HelpClick(Sender: TObject);
 begin
@@ -538,26 +538,26 @@ begin
     if (T1AbilityLB.Selected > -1) and (General.FCombatUnit <> nil) and
       (acCombatAction in AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetControlType(General.FCombatUnit.FUnit.FUnit)) and
       (General.FCombatUnit.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer) and
-      (General.FCombatUnit.FUnit.FMovePoints > 0) then
-    begin
-      if (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
+      (General.FCombatUnit.FUnit.FMovePoints > 0) and
+      (not ((AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
         [cmShortRange, cmMediumRange, cmLongRange]) or
-        (Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]) = 52) then
-      begin
-        if General.FCombatUnit.FUnit.FUnit.GetMoves <> General.FCombatUnit.FUnit.FMovePoints then
-        begin
-          T1UseBut.Visible := False;
-          Exit;
-        end;
-      end;
-      T1UseBut.Visible := True;
-      T1UseBut.Text := AoWE.Format(TranslateRStr(UseXRStr),
-        [AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetName(General.FCombatUnit.FUnit.FUnit)]);
+        (Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]) = 52)) or
+        (General.FCombatUnit.FUnit.FUnit.GetMoves = General.FCombatUnit.FUnit.FMovePoints)) then
+    begin
+        T1UseBut.Visible := True;
+        T1UseBut.Text := AoWE.Format(TranslateRStr(UseXRStr),
+          [AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetName(General.FCombatUnit.FUnit.FUnit)]);
     end
     else
       T1UseBut.Visible := False;
   end;
 end;
+
+
+
+
+
+
 
 procedure TUnitWindow.T1SbarChange(Sender: TObject);
 begin

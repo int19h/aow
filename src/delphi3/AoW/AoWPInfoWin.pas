@@ -140,7 +140,7 @@ var
 begin
   if AoWHSMap.FSeatedPlayer > -1 then
   begin
-    with FaceFr do R := Rect(WinLeft + 3, WinTop + 3, WinLeft + WinWidth - 3, WinTop + WinHeight - 3);
+    R := Rect(FaceFr.WinLeft + 3, FaceFr.WinTop + 3, FaceFr.WinLeft + FaceFr.WinWidth - 3, FaceFr.WinTop + FaceFr.WinHeight - 3);
     if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFace <> nil then
       AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFace.ShowStretched(R, SD);
   end;

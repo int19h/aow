@@ -217,8 +217,8 @@ begin
       if I > 1 then
       begin
         Separator := ' ';
-        if GetDriveType(PChar(Drive)) = DRIVE_REMOTE then Separator := #0
-        else GetVolumeInformation(PChar(Drive), Volume, 25, nil, Maximum, Flags, nil, 0);
+        if GetDriveType(PChar(Pointer(Drive))) <> DRIVE_REMOTE then GetVolumeInformation(PChar(Pointer(Drive)), Volume, 25, nil, Flags, Maximum, nil, 0)
+        else Separator := #0;
       end
       else Separator := #0;
       Drives.Add(TVolumeName(Volume) + Separator + '(' + Drive + ')');

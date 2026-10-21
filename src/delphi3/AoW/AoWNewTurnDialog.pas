@@ -121,14 +121,14 @@ begin
   begin
     if AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader <> nil then
     begin
-      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 188 + 103, WinTop + 40 + 128);
+      R := Rect(NewTDlg.WinLeft + 188, NewTDlg.WinTop + 40, NewTDlg.WinLeft + 188 + 103, NewTDlg.WinTop + 40 + 128);
       AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader.ShowFace(R, Surface);
     end;
   end
   else
     if AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader <> nil then
     begin
-      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 188 + 103, WinTop + 40 + 128);
+      R := Rect(NewTDlg.WinLeft + 188, NewTDlg.WinTop + 40, NewTDlg.WinLeft + 188 + 103, NewTDlg.WinTop + 40 + 128);
       AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader.ShowFace(R, Surface);
     end;
 end;

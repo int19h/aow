@@ -86,15 +86,15 @@ end;
 
 procedure TWizardsTowerDlg.SpellIcnDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 var
-  S: TSpell;
+  S: TSpell; X, Y: Integer;
 begin
-  if FEvent.FTower.FSpellID <> 0 then
+  with FEvent.FTower do if FSpellID <> 0 then
   begin
-    S := AoWHSSet.FSpellControl.GetSpell(FEvent.FTower.FSpellID);
+    S := AoWHSSet.FSpellControl.GetSpell(FSpellID);
     if S <> nil then
       if S.FCastImages.GetImageSequence(10) <> nil then
-        S.FCastImages.Show(10, Sender.WinLeft + TAOWImage(Sender).AOWWindow.WinLeft,
-          TAOWImage(Sender).AOWWindow.WinTop + Sender.WinTop, 0, SD);
+        with TAOWImage(Sender) do begin X := AOWWindow.WinLeft; Y := AOWWindow.WinTop; S.FCastImages.Show(10, WinLeft + X,
+          WinTop + Y, 0, SD); end;
   end;
 end;
 

@@ -186,14 +186,14 @@ end;
 
 procedure TMapEvents.TheMapEndTurn(Player: Shortint; Cancelled: Boolean);
 begin
-  if AoWHSMap.FSeatedPlayer = Player then
-    if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone then
-      if not Cancelled then General.HideTransientWindows
-      else
-        with TBWindow.TurnButton do
-        begin FDrawn := False; FButtonChecked := False; end;
+  if (AoWHSMap.FSeatedPlayer = Player) and
+    (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) then
+      if Cancelled then
+        begin TBWindow.TurnButton.FDrawn := False; TBWindow.TurnButton.FButtonChecked := False; end
+      else General.HideTransientWindows;
   TBWindow.PInd.FDrawn := False;
 end;
+
 
 procedure TMapEvents.TheMapExecuteEventLog(Event: TEventLog; Mode: Boolean; Done: TExecuteDoneEvent);
 var
@@ -202,7 +202,7 @@ var
 begin
   if not Mode then General.HideTransientWindows;
   if Event is TCombatEventLog then
-    ShowCombatEvent(FastCombatWindow, TCombatEventLog(Event), Done)
+    FastCombatWin.ShowCombatEvent(FastCombatWindow, TCombatEventLog(Event), Done)
   else if Event is TArmyEventLog then
     ShowArmyEvent(ArmyEventDlg, TArmyEventLog(Event), Done)
   else if Event is TCityRebellionEventLog then

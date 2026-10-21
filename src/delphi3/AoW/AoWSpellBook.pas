@@ -171,7 +171,7 @@ type
     procedure CancelClick;
     procedure NextBtnClick;
     procedure PrevBtnClick;
-    procedure SpellIconDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure SpellIconDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure SelectSpellBtnClick(Sender: TObject);
     procedure GlobalBtnClick(Sender: TObject);
     procedure UnitBtnClick;
@@ -179,7 +179,7 @@ type
     procedure InfoBtnClick(Sender: TObject);
     procedure CastingBtnClick;
     procedure CancelCastingBtnClick;
-    procedure FaceDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure FaceDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
     procedure CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
     procedure CancelResearchBtnClick;
@@ -233,16 +233,16 @@ begin
   PlaySample('Sfx\Int\Pagef1.wav');
 end;
 
-procedure TSpellBook.SpellIconDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+procedure TSpellBook.SpellIconDraw(Sender: TObject; SD: TSurfaceDesc);
 var Index, X, Y: Integer;
 begin
-  Index := FPage * 8 + (Sender.Tag and $F);
+  Index := FPage * 8 + (TComponent(Sender).Tag and $F);
   if (Index >= 0) and (Index < FSpells.GetCount) then
     if FSpells.GetSpell(Index).FCastImages.GetImageSequence(10) <> nil then
     begin
-      X := Sender.WinLeft + Sender.FAOWWindow.WinLeft;
-      Y := Sender.WinTop + Sender.FAOWWindow.WinTop;
-      FSpells.GetSpell(Index).FCastImages.Show(10, X, Y, 0, SD);
+      with TAOWImage(Sender) do begin X := FAOWWindow.WinLeft;
+      Y := FAOWWindow.WinTop;
+      FSpells.GetSpell(Index).FCastImages.Show(10, WinLeft + X, WinTop + Y, 0, SD); end;
     end;
 end;
 
@@ -312,10 +312,10 @@ begin
   if ValidateHero then FHero.CancelCasting;
 end;
 
-procedure TSpellBook.FaceDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+procedure TSpellBook.FaceDraw(Sender: TObject; SD: TSurfaceDesc);
 var R: TRect;
 begin
-  with Sender do
+  with TAOWImage(Sender) do
     R := Rect(LeftInfoPage.WinLeft + WinLeft, LeftInfoPage.WinTop + WinTop,
       LeftInfoPage.WinLeft + WinLeft + WinWidth,
       LeftInfoPage.WinTop + WinTop + WinHeight);

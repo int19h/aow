@@ -427,10 +427,10 @@ end;
 
 procedure TScenSetup.RacePlayerCBChange(Sender: TObject);
 var
-  Behavior: TSetupPlayerBehavior;
+  Behavior: TSetupPlayerBehavior; Combo: TAOWComboBox;
 begin
-  if FSetupControl.PlayerNameToPlayerID(TAOWComboBox(Sender).Items[TAOWComboBox(Sender).Selected], Behavior) then
-    FSetupControl.hSetPlayerID(FSetupControl.FSettings.IndexOfRace(Byte(TComponent(Sender).Tag)), Behavior, True);
+  Combo := TAOWComboBox(Sender); if FSetupControl.PlayerNameToPlayerID(Combo.Items[Combo.Selected], Behavior) then
+    FSetupControl.hSetPlayerID(FSetupControl.FSettings.IndexOfRace(Byte(Combo.Tag)), Behavior, True);
   E3Globals.TitleWindow.TitleWin.FDrawn := False;
 end;
 

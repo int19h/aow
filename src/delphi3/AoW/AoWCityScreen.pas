@@ -210,7 +210,7 @@ type
     procedure ProductionChange(Sender: TObject);
     procedure ProductionDoubleClick(Sender: TObject);
     procedure ProductionsUpdate(Sender: TObject);
-    procedure ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc);
+    procedure ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure CityBtn1Click(Sender: TObject);
     procedure CityBtn2Click;
     procedure CityBtn3Click;
@@ -345,10 +345,10 @@ begin
   TAOWCheckBox(Sender).CaptureInput := FCity.FProduction.FUnitProductions.GetItem(TAOWCheckBox(Sender).Tag) <> nil;
 end;
 
-procedure TCityScreen.ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc);
-begin
-  IntGfxMod.CityWin[ActivityImage(TCityAction(Byte(TAoWComponent(Sender).Tag) + 1))].Show(
-    ActivityPnl2.WinLeft + TAoWComponent(Sender).WinLeft + 2, ActivityPnl2.WinTop + TAoWComponent(Sender).WinTop + 2, SD);
+procedure TCityScreen.ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+var Image: Integer; begin
+  Image := ActivityImage(TCityAction(Byte(Sender.Tag) + 1)); IntGfxMod.CityWin[Image].Show(
+    ActivityPnl2.WinLeft + Sender.WinLeft + 2, ActivityPnl2.WinTop + Sender.WinTop + 2, SD);
 end;
 
 procedure TCityScreen.CityBtn1Click(Sender: TObject);

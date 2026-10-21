@@ -471,8 +471,7 @@ end;
 
 procedure ShowTitleScene(Scene: TTitleScene; Music: Boolean);
 begin
-  if Music then
-    if not ((SongPlayer.CurrentIndex <> -1) and (SongPlayer.CurrentIndex < SongPlayer.Songs.Count) and
+  if Music and not ((SongPlayer.CurrentIndex <> -1) and (SongPlayer.CurrentIndex < SongPlayer.Songs.Count) and
       (SongPlayer.Songs[SongPlayer.CurrentIndex] = 'SONGS\TITLE.IT')) then
     begin
       SongPlayer.Songs.Clear;
@@ -485,7 +484,7 @@ begin
   SetVideoMode(VideoDialog, scmTitle);
   VideoDialog.ApplyMode;
   MainForm.Display.FrameRate := 30;
-  MainForm.DXDC.UseVideoMemory := True;
+  MainForm.DXDC.UseVerticalBlank := True; { Original enables vertical blank synchronization. }
   Scene.FRedrawBackground := True;
   Scene.FPressedButton := -1;
   Scene.FHoverButton := -1;
@@ -494,6 +493,7 @@ begin
   Scene.Window.WinManager.ILIndexTBack := 4;
   Scene.Window.Visible := True;
 end;
+
 
 procedure LoadGame(Controller: TGeneral; FileName: string);
 begin

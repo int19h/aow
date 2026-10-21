@@ -112,10 +112,120 @@ type
     procedure FCWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
+procedure ShowCombatEvent(Dialog: TFastCombatWindow; Event: TCombatEventLog; Done: TExecuteDoneEvent);
 
 implementation
 
-uses AoWWinMan, aowIntGfxMod;
+uses AoWWinMan, aowIntGfxMod, E2Globals, E3Globals;
+
+
+procedure InitializeCombatDialog(Dialog: TFastCombatWindow; Logbook: TCombatLogbook); forward;
+
+procedure ShowCombatEvent(Dialog: TFastCombatWindow; Event: TCombatEventLog; Done: TExecuteDoneEvent);
+begin
+  with Dialog do
+  begin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Assert(FEvent = nil);
+    General.Manager.OverlayPriority := 49;
+    FEvent := Event; FEvent.AddRef;
+    FDone := Done;
+    FLogbook := Event.FLogbook;
+    InitializeCombatDialog(Dialog, FLogbook);
+    FCWin.Visible := True;
+  end;
+end;
+
+procedure InitializeCombatDialog(Dialog: TFastCombatWindow; Logbook: TCombatLogbook);
+var
+  RaceIndex, PartyRace: Integer;
+  PlayerIndex: Shortint;
+  Combat: TCombat;
+  Party: TCombatParty;
+  Image: TAOWImage;
+  I: Integer;
+begin
+  with Dialog do
+  begin
+    FViewer.Initialize(Logbook);
+    Combat := FViewer.FCombat;
+    FAnimationFrame := 0;
+    for I := 0 to 7 do
+    begin
+      case I of
+        0: Image := Party1Bg;
+        1: Image := Party2Bg;
+        2: Image := Party3Bg;
+        3: Image := Party4Bg;
+        4: Image := Party5Bg;
+        5: Image := Party6Bg;
+        6: Image := Party7Bg;
+        7: Image := Party2Bg; { Original reuses the second background for the eighth party. }
+      else Image := nil;
+      end;
+      Party := Combat.FCombatData.FParties.GetParty(I);
+      if Party <> nil then
+      begin
+        PlayerIndex := Combat.FCombatData.FPlayers.GetPlayers(Party.FPlayerIndex).FPlayer;
+        if PlayerIndex <> 0 then PartyRace := AoWHSMap.FPlayers.GetPlayers(PlayerIndex).FPlayerRace
+        else PartyRace := 12;
+        Image.CurrentImage := PartyRace + 21;
+        Image.Visible := True;
+      end
+      else if I <> 7 then Image.Visible := False;
+      { Original refreshes both side labels inside the party loop. }
+      if Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FAttackerPlayer).FPlayer = 0 then
+        LSideLbl.Text := TranslateRStr(IndependentsRStr)
+      else
+      begin
+        RaceIndex := AoWHSMap.FPlayers.GetPlayers(Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FAttackerPlayer).FPlayer).FPlayerRace;
+        LSideLbl.Text := AoWHSSet.FRaceResources.GetRaceResource(RaceIndex).FRaceName;
+      end;
+      if Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FDefenderPlayer).FPlayer = 0 then
+        RSideLbl.Text := TranslateRStr(IndependentsRStr)
+      else
+      begin
+        RaceIndex := AoWHSMap.FPlayers.GetPlayers(Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FDefenderPlayer).FPlayer).FPlayerRace;
+        RSideLbl.Text := AoWHSSet.FRaceResources.GetRaceResource(RaceIndex).FRaceName;
+      end;
+    end;
+    FViewer.Play;
+    FCWin.FDrawn := False;
+    SequencePositionSld.Max := FViewer.GetEndPosition;
+    SequenceSpeedSld.Position := 20 - FViewer.FDelay;
+    if FViewer.GetEndPosition <> -1 then SetPhase(0) else SetPhase(3);
+  end;
+end;
 
 
 procedure TFastCombatWindow.GetPartyPosition(Index: Integer; var X, Y: Integer);
@@ -411,19 +521,19 @@ end;
 procedure TFastCombatWindow.LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
 begin
   if FLeftOpacity = 100 then
-    IntGfxMod.Shields[FLeftShield].ShowClipped(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
+    IntGfxMod.Shields[FLeftShield].Show(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
   else
     IntGfxMod.Shields[FLeftShield].ShowBlended(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface,
-      AlphaBlendTable.Lookup[FLeftOpacity]);
+      AlphaBlendTable.LookupTables[FLeftOpacity]);
 end;
 
 procedure TFastCombatWindow.RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
 begin
   if FRightOpacity = 100 then
-    IntGfxMod.Shields[FRightShield].ShowClipped(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
+    IntGfxMod.Shields[FRightShield].Show(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
   else
     IntGfxMod.Shields[FRightShield].ShowBlended(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface,
-      AlphaBlendTable.Lookup[FRightOpacity]);
+      AlphaBlendTable.LookupTables[FRightOpacity]);
 end;
 
 procedure TFastCombatWindow.FCWinHide;

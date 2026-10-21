@@ -74,7 +74,7 @@ end;
 procedure TMWindow.MapWindowMouseUp(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if InsideMap(X, Y) then
-    with MapWindow do AoWHSMap.Mouse.Up(Button, Shift, X - 12 - WinLeft, Y - 12 - WinTop)
+    begin X := X - 12 - MapWindow.WinLeft; with MapWindow do AoWHSMap.Mouse.Up(Button, Shift, X, Y - 12 - WinTop); end
   else
     AoWHSMap.Mouse.Up(Button, Shift, -1, -1);
 end;

@@ -103,7 +103,7 @@ type
     procedure CWMinIconClick;  { draft }
     procedure CloseClick(Sender: TObject);
     procedure ControlWindowResize;  { draft }
-    procedure Unit1FrameMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Unit1FrameMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Unit1ChkChange(Sender: TObject);
     procedure CheckStart;  { draft }
     procedure CheckEnd;  { draft }
@@ -330,20 +330,20 @@ begin
     end;
 end;
 
-procedure TControlWin.Unit1FrameMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TControlWin.Unit1FrameMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   U: TAbstractUnit;
 begin
-  if (General.FUnitList <> nil) and (General.FSelectedUnits[TComponent(Sender).Tag] > -1) then
+  if (General.FUnitList <> nil) and (General.FSelectedUnits[Sender.Tag] > -1) and
+    (General.FUnitList.GetUnit(General.FSelectedUnits[Sender.Tag]) <> nil) then
   begin
-    U := General.FUnitList.GetUnit(General.FSelectedUnits[TComponent(Sender).Tag]);
-    if U <> nil then
     begin
-      General.FSelectedUnit := General.FUnitList.GetUnit(General.FSelectedUnits[TComponent(Sender).Tag]);
+      General.FSelectedUnit := General.FUnitList.GetUnit(General.FSelectedUnits[Sender.Tag]);
       if Button = mbLeft then UnitWindow.ShowUnit;
     end;
   end;
 end;
+
 
 procedure TControlWin.Unit1ChkChange(Sender: TObject);
 begin
