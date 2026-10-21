@@ -468,7 +468,7 @@ begin
           Log.FPlayer := GetPlayer;
           Log.FText := SysUtils.Format(TranslateRStr(CityLootingRStr), [FCity.GetName]);
           Log.SetLocation(FCity.GetXhx, FCity.GetYhx, FCity.GetLhx);
-          DistributeLocationEventLog(Log, GetPlayer, FCity.GetXhx, FCity.GetYhx, FCity.GetLhx, 0);
+          DistributeLocationEventLog(Log, GetPlayer, FCity.GetXhx, FCity.GetYhx, FCity.GetLhx, False);
           Log.Release;
           FCity.FOverlay.SetMode(omLooting);
           FStatus := pcsProducing;
@@ -1069,7 +1069,7 @@ begin
     Log.FXhx := GetXhx;
     Log.FYhx := GetYhx;
     Log.FLhx := GetLhx;
-    DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+    DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, False);
     Log.Release;
   end;
 end;
@@ -1659,7 +1659,7 @@ begin
         Log.FXhx := GetXhx;
         Log.FYhx := GetYhx;
         Log.FLhx := GetLhx;
-        DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+        DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, False);
         Log.Release;
         SetPlayer(0);
         Units := TUnitList.Create(nil);
@@ -1691,7 +1691,7 @@ begin
       RandomSeed^ := WorldMap^.Random($FFFFF);
       PlaceRandomUnits(GetXhx, GetYhx, GetLhx, 0,
         WorldSet^.FRaceResources.GetRaceResource(FRace).FUnitIndexes,
-        FUpgradeLevel, Value, [pmScanArea, pmNeglectEmptyPlayerLocation]);
+        FUpgradeLevel, Value, [utHumanoid, utCreature]);
     end;
     Armies.Free;
   end;
@@ -2312,7 +2312,7 @@ begin
         Log.FPlayer := FPlayer;
         Log.FText := SysUtils.Format(TranslateRStr(XOverthrownRStr), [GetName]);
         Log.SetLocation(GetXhx, GetYhx, GetLhx);
-        DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+        DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, False);
         Log.Release;
         Offer.Accept;
       end

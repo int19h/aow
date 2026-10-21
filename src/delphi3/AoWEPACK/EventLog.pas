@@ -1,8 +1,8 @@
 unit EventLog;
 
-{ Draft declarations of EventLog, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EventLog from AoWEPACK.dpl, recovered against Delphi 3.02.
+  Instance layouts and callback signatures follow the original code.
+  Remaining byte differences are register, branch, and Assert layout choices. }
 
 interface
 
@@ -70,7 +70,7 @@ type
     procedure CenterViewTo(X, Y, L: Shortint);
   end;
 
-  { TTextEventLog (instance size 28, VMT 557FC564) }
+  { TTextEventLog: size $1C; $18 text. VMT 557FC564. }
   TTextEventLog = class(TEventLog)
   public
     FText: string;  { $18 }
@@ -80,7 +80,7 @@ type
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
-  { TLocationTextEventLog (instance size 32, VMT 557FC664) }
+  { TLocationTextEventLog: size $20; $1C/$1D/$1E location. VMT 557FC664. }
   TLocationTextEventLog = class(TTextEventLog)
   public
     FXhx: Shortint;  { $1C }
@@ -108,18 +108,18 @@ type
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure OK; virtual;  { +078 draft }
-    procedure Cancel; virtual;  { +07C draft }
+    function OK: Boolean; virtual; { $078; 557FE1A8 }
+    function Cancel: Boolean; virtual; { $07C; 557FE1B0 }
     function Yes: Boolean; virtual;
     function No: Boolean; virtual;
   end;
 
-  { THelpMessageEventLog (instance size 36, VMT 557FCE44) }
+  { THelpMessageEventLog: size $24; $18 message, $1C help title, $20 mode. VMT 557FCE44. }
   THelpMessageEventLog = class(TEventLog)
   public
     FMessage: TStringList; { $18 }
     FHelpFileName: string; { $1C }
-    F_HelpMessageEventLog_20: Byte;
+    FMode: Byte; { $20 }
     F_HelpMessageEventLog_21: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -138,48 +138,45 @@ type
     procedure Delete(Index: Integer);
   end;
 
-  { TEventLogList (instance size 24, VMT 557FC2B0) }
+  { TEventLogList: size $18; $0C update count, $10 changed callback. VMT 557FC2B0. }
   TEventLogList = class(TENode)
   public
-    F_EventLogList_0C: Integer;
-    F_EventLogList_10: Byte;
-    F_EventLogList_11: array[0..0] of Byte;
-    F_EventLogList_12: Word;
-    F_EventLogList_14: Integer;
+    FUpdateCount: Integer; { $0C }
+    FOnChanged: TNotifyEvent; { $10 }
     procedure MainReadWrite(Stream: Engine.TEStorageStream); override;
     procedure Clear; override;
     procedure DestroyAllChildren; override;
     function RemoveChild(Child: Engine.TEObject): Integer; override;
     function AddChild(Child: Engine.TEObject): Integer; override;
-    procedure Changed;  { draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
+    procedure Changed;
+    procedure BeginUpdate;
+    procedure EndUpdate;
     function GetEvents(Index: Integer): TEventLog;
     procedure AddEvent(Event: TEventLog);
     procedure RemoveEvent(Event: TEventLog);
-    procedure FindID(A1: Integer);  { draft }
+    function FindID(ID: Integer): TEventLog;
   end;
 
-  { TEventLogbook (instance size 20, VMT 557FC3B0) }
+  { TEventLogbook: size $14; $08 events, $0C player, $10 next ID. VMT 557FC3B0. }
   TEventLogbook = class(TEObject)
   public
-    F_EventLogbook_08: Integer;
+    FEvents: TEventLogList; { $08 }
     FPlayer: Shortint; { $0C }
     FReserved0D: array[0..2] of Byte;
-    F_EventLogbook_10: Integer;
+    FNextID: Integer; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function GetCount: Integer;
-    procedure GetOnChanged(A1: Integer);  { draft }
+    function GetOnChanged: TNotifyEvent;
     procedure SetOnChanged(Value: TNotifyEvent);
-    procedure ListEvents(A1: Integer);  { draft }
+    procedure ListEvents(Strings: TStrings);
     function GetLogs(Index: Integer): TEventLog;
-    procedure CreateUniqueID;  { draft }
+    function CreateUniqueID: Integer;
     function FindID(ID: Integer): TEventLog;
-    procedure FindFirstLog(A1: Integer; A2: Integer);  { draft }
+    function FindFirstLog(Player, Day: Integer): Integer;
     function FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
     { conflict: function FindFirstLogEx(ClassID, Player, Day: Integer): Integer; }
     procedure AddEvent(Event: TEventLog);
@@ -192,7 +189,7 @@ type
     F_UserEventLog_18: array[0..7] of Byte;
   end;
 
-  { TEndTurnEventLog (instance size 24, VMT 557FC764) }
+  { TEndTurnEventLog: size $18; no additional fields. VMT 557FC764. }
   TEndTurnEventLog = class(TEventLog)
   public
     class function ClassID: Integer; override;
@@ -200,17 +197,17 @@ type
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
-  { TShowMessageEventLog (instance size 28, VMT 557FC85C) }
+  { TShowMessageEventLog: size $1C; $18 message. VMT 557FC85C. }
   TShowMessageEventLog = class(TEventLog)
   public
-    F_ShowMessageEventLog_18: Integer;
+    FMessage: TStringList; { $18 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
   end;
 
-  { TGameOverEventLog (instance size 32, VMT 557FC95C) }
+  { TGameOverEventLog: size $20; $18 message, inherited $10 player. VMT 557FC95C. }
   TGameOverEventLog = class(TEventLog)
   public
     FMessage: TStringList; { $18 }
@@ -222,10 +219,10 @@ type
     class function ClassID: Integer; override;
     function GetText: string; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure Handled;  { draft }
+    procedure Handled;
   end;
 
-  { TNewDayEventLog (instance size 28, VMT 557FCA54) }
+  { TNewDayEventLog: size $1C; inherited $18 text. VMT 557FCA54. }
   TNewDayEventLog = class(TTextEventLog)
   public
     class function ClassID: Integer; override;
@@ -233,14 +230,14 @@ type
     procedure PlayLoggedSFX(A1: TEventLogbook); override;
   end;
 
-  { TShowBookEventLog (instance size 24, VMT 557FCB48) }
+  { TShowBookEventLog: size $18; no additional fields. VMT 557FCB48. }
   TShowBookEventLog = class(TEventLog)
   public
     class function ClassID: Integer; override;
     function GetVisible: Boolean; override;
   end;
 
-  { TTutorialMessageEventLog (instance size 36, VMT 557FCF54) }
+  { TTutorialMessageEventLog: size $24; inherited $18 message and $1C title. VMT 557FCF54. }
   TTutorialMessageEventLog = class(THelpMessageEventLog)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -249,7 +246,7 @@ type
   { TSaveGameEventLog: size $2C; $1C directory, $20 default name, $24 file name, $28 title. VMT 557FD0A4. }
   TSaveGameEventLog = class(TEventLog)
   public
-    F_SaveGameEventLog_18: Byte;
+    FMode: TSaveGameEventLogMode; { $18 }
     FReserved19: array[0..2] of Byte;
     FDirectory: string; { $1C }
     FDefaultName: string; { $20 }
@@ -258,14 +255,12 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TPasswordEventLog (instance size 40, VMT 557FD1C4) }
+  { TPasswordEventLog: size $28; $18 password, $1C title, $20 prompt, $24 button. VMT 557FD1C4. }
   TPasswordEventLog = class(TEventLog)
   public
     FPassword: string; { $18; 557563E0 }
-    F_PasswordEventLog_1C: Byte;
-    F_PasswordEventLog_1D: array[0..2] of Byte;
-    F_PasswordEventLog_20: Byte;
-    F_PasswordEventLog_21: array[0..2] of Byte;
+    FTitle: string; { $1C }
+    FPrompt: string; { $20 }
     FPressedButton: TPressedEventLogButton; { $24; 557563EA }
     F_PasswordEventLog_25: array[0..2] of Byte;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -273,7 +268,7 @@ type
 
 procedure RegisterEventLog(AEngine: TEngine);
 procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
-procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean);
 
 implementation
 
@@ -459,191 +454,288 @@ begin
 end;
 
 function TEventLogList.AddChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+begin
+  FChildren.Add(Child);
+  if Child.AddRef = -1 then raise Exception.Create('EObject doesn''t support ReferenceCounting');
+  Result := FChildren.Count - 1;
+  Changed;
+end;
 
 function TEventLogList.RemoveChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+begin
+  Result := FChildren.Remove(Child);
+  if Result <> -1 then
+  begin Child.SetOwner(nil); Child.Release; Changed; end;
+end;
 
 procedure TEventLogList.Clear;
-begin end;
+var I: Integer;
+begin
+  for I := GetCount - 1 downto 0 do TEObject(FChildren.List^[I]).Release;
+  FChildren.Clear;
+end;
 
 procedure TEventLogList.DestroyAllChildren;
-begin end;
+begin Clear; end;
 
 procedure TEventLogList.MainReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var I: Integer;
+begin
+  if smRead in Stream.StorageMode then BeginUpdate;
+  inherited MainReadWrite(Stream);
+  if smRead in Stream.StorageMode then
+  begin
+    if Stream.StorageMode * [smRead, smCompare, smTranslate] = [smRead] then
+      for I := 0 to FChildren.Count - 1 do TEObject(FChildren.List^[I]).Release;
+    EndUpdate;
+  end;
+end;
 
 procedure TEventLogList.Changed;
-begin end;
+begin
+  if (FUpdateCount = 0) and Assigned(FOnChanged) then FOnChanged(Self);
+end;
 
 procedure TEventLogList.BeginUpdate;
-begin end;
+begin Inc(FUpdateCount); end;
 
 procedure TEventLogList.EndUpdate;
-begin end;
+begin Dec(FUpdateCount); if FUpdateCount = 0 then Changed; end;
 
 function TEventLogList.GetEvents(Index: Integer): TEventLog;
-begin Result := nil; end;
+begin Result := FChildren.List^[Index]; end;
 
 procedure TEventLogList.AddEvent(Event: TEventLog);
-begin end;
+begin AddChild(Event); end;
 
 procedure TEventLogList.RemoveEvent(Event: TEventLog);
-begin end;
+begin RemoveChild(Event); end;
 
-procedure TEventLogList.FindID(A1: Integer);
-begin end;
+function TEventLogList.FindID(ID: Integer): TEventLog;
+var I: Integer; Log: TEventLog;
+begin
+  I := GetCount;
+  while I <> 0 do
+  begin
+    Dec(I); Log := FChildren.List^[I];
+    if Log.FID = ID then begin Result := Log; Exit; end;
+  end;
+  Result := nil;
+end;
 
 constructor TEventLogbook.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FEvents := TEventLogList.Create(nil); end;
 
 destructor TEventLogbook.Destroy;
-begin end;
+begin FEvents.Free; inherited Destroy; end;
 
 class function TEventLogbook.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E0; end;
 
 procedure TEventLogbook.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin inherited MsgProc(Msg, Sender); FEvents.MsgProc(Msg, Sender); end;
 
 function TEventLogbook.GetCount: Integer;
-begin Result := 0; end;
+begin Result := FEvents.GetCount; end;
 
-procedure TEventLogbook.GetOnChanged(A1: Integer);
-begin end;
+function TEventLogbook.GetOnChanged: TNotifyEvent;
+begin Result := FEvents.FOnChanged; end;
 
 procedure TEventLogbook.SetOnChanged(Value: TNotifyEvent);
-begin end;
+begin FEvents.FOnChanged := Value; end;
 
 procedure TEventLogbook.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin inherited ReadWrite(Stream); Stream.rwEObject(FEvents, 10); Stream.rwInteger(FNextID, 11); end;
 
-procedure TEventLogbook.ListEvents(A1: Integer);
-begin end;
+procedure TEventLogbook.ListEvents(Strings: TStrings);
+var I: Integer;
+begin
+  for I := 0 to FEvents.FChildren.Count - 1 do
+    if TEventLog(FEvents.FChildren.List^[I]).GetVisible then
+      Strings.AddObject(TEventLog(FEvents.FChildren.List^[I]).GetText, TObject(I));
+end;
 
 function TEventLogbook.GetLogs(Index: Integer): TEventLog;
-begin Result := nil; end;
+begin Result := FEvents.FChildren.List^[Index]; end;
 
-procedure TEventLogbook.CreateUniqueID;
-begin end;
+function TEventLogbook.CreateUniqueID: Integer;
+begin
+  Inc(FNextID);
+  while FindID(FNextID) <> nil do
+  begin
+    Inc(FNextID);
+    if FNextID > $FFFFFF then FNextID := 1;
+  end;
+  Result := FNextID;
+end;
 
 function TEventLogbook.FindID(ID: Integer): TEventLog;
-begin Result := nil; end;
+begin Result := FEvents.FindID(ID); end;
 
-procedure TEventLogbook.FindFirstLog(A1: Integer; A2: Integer);
-begin end;
+function TEventLogbook.FindFirstLog(Player, Day: Integer): Integer;
+begin
+  Result := 0;
+  while (Result <> FEvents.FChildren.Count) and
+    ((TEventLog(FEvents.FChildren.List^[Result]).FPlayer <> Player) or
+     (TEventLog(FEvents.FChildren.List^[Result]).FDay <> Day)) do Inc(Result);
+  if Result = FEvents.FChildren.Count then Result := -1;
+end;
 
 function TEventLogbook.FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
-{ conflict: function TEventLogbook.FindFirstLogEx(ClassID, Player, Day: Integer): Integer; }
-begin Result := 0; end;
+begin
+  Result := 0;
+  while (Result <> FEvents.FChildren.Count) and
+    ((TEventLog(FEvents.FChildren.List^[Result]).FPlayer <> Player) or
+     (TEventLog(FEvents.FChildren.List^[Result]).FDay <> Day) or
+     (TEventLog(FEvents.FChildren.List^[Result]).ClassID <> ClassID)) do Inc(Result);
+  if Result = FEvents.FChildren.Count then Result := -1;
+end;
 
 procedure TEventLogbook.AddEvent(Event: TEventLog);
-begin end;
+begin
+  Assert(AoWHSMap.GetSynchronised);
+  Event.SetOwner(FEvents);
+  Event.FID := CreateUniqueID;
+  Event.NotifyLogged(Self);
+end;
 
 procedure TEventLogbook.RemoveEvent(Event: TEventLog);
-begin end;
+begin FEvents.RemoveChild(Event); end;
 
 class function TTextEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E1; end;
 
 procedure TTextEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin inherited ReadWrite(Stream); Stream.rwString(FText, 15); end;
 
 function TTextEventLog.GetText: string;
-begin Result := ''; end;
+begin Result := FText; end;
 
 function TTextEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin Result := False; end;
 
 constructor TLocationTextEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FXhx := -1; FYhx := -1; FLhx := -1; end;
 
 class function TLocationTextEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E8; end;
 
 procedure TLocationTextEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FXhx), 20); Stream.rwByte(Byte(FYhx), 21); Stream.rwByte(Byte(FLhx), 22);
+end;
 
 procedure TLocationTextEventLog.SetLocation(X, Y, L: Shortint);
-begin end;
+begin FXhx := X; FYhx := Y; FLhx := L; end;
 
 procedure TLocationTextEventLog.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin X := FXhx; Y := FYhx; L := FLhx; end;
 
 function TLocationTextEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  inherited Execute(Mode, Trigger, Done);
+  if Trigger = etUser then ViewLocation;
+  Result := False;
+end;
 
 function TEndTurnEventLog.GetVisible: Boolean;
 begin Result := False; end;
 
 class function TEndTurnEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E3; end;
 
 function TEndTurnEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin Result := False; end;
 
 constructor TShowMessageEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FMessage := TStringList.Create; end;
 
 destructor TShowMessageEventLog.Destroy;
-begin end;
+begin FMessage.Free; inherited Destroy; end;
 
 class function TShowMessageEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F6; end;
 
 procedure TShowMessageEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin inherited ReadWrite(Stream); Stream.rwStrings(FMessage, 20); end;
 
 constructor TGameOverEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FMessage := TStringList.Create; end;
 
 destructor TGameOverEventLog.Destroy;
-begin end;
+begin FMessage.Free; inherited Destroy; end;
 
 class function TGameOverEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E4; end;
 
 procedure TGameOverEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin inherited ReadWrite(Stream); Stream.rwStrings(FMessage, 20); end;
 
 function TGameOverEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  case AoWHSMap.FPlayers.GetPlayers(FPlayer).FGameOverStatus of
+    goWon: Result := SysUtils.Format(TranslateRStr(GameOverVictoryEventLogRStr), [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
+    goLost: Result := SysUtils.Format(TranslateRStr(GameOverDefeatEventLogRStr), [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
+  end;
+end;
 
 procedure TGameOverEventLog.Handled;
-begin end;
+begin AoWHSMap.GameOverEventHandled(FPlayer); end;
 
 function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  case Trigger of
+    etUser:
+      if AoWHSMap.FSeatedPlayer <> FPlayer then
+      begin AoWHSMap.TriggerExecuteEventLog(Self, Mode, Done); Result := True; end
+      else Result := False;
+    etEvent:
+      begin AoWHSMap.TriggerExecuteEventLog(Self, Mode, Done); Result := True; end;
+    etNewTurn:
+      begin AoWHSMap.TriggerExecuteEventLog(Self, Mode, Done); Result := True; end;
+  else Result := False;
+  end;
+end;
 
 class function TNewDayEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202E5; end;
 
 function TNewDayEventLog.GetLeftIcon: Integer;
-begin Result := 0; end;
+begin Result := 18; end;
 
 procedure TNewDayEventLog.PlayLoggedSFX(A1: TEventLogbook);
-begin end;
+begin if AoWHSMap.FDay > 1 then inherited PlayLoggedSFX(A1); end;
 
 class function TShowBookEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202EA; end;
 
 function TShowBookEventLog.GetVisible: Boolean;
 begin Result := False; end;
 
 constructor TMessageEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMessage := TStringList.Create;
+  FTitle := TranslateRStr(MessageRStr);
+  FButtons := mebOk; FPressedButton := pebNone; FLayout := melNormal;
+end;
 
 destructor TMessageEventLog.Destroy;
-begin end;
+begin FMessage.Free; inherited Destroy; end;
 
 procedure TMessageEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FMessage, 30); Stream.rwData(FLayout, 1, 31);
+  Stream.rwData(FButtons, 1, 32); Stream.rwString(FTitle, 33);
+end;
 
-procedure TMessageEventLog.OK;
-begin end;
+function TMessageEventLog.OK: Boolean;
+begin FPressedButton := pebOk; Result := True; end;
 
-procedure TMessageEventLog.Cancel;
-begin end;
+function TMessageEventLog.Cancel: Boolean;
+begin FPressedButton := pebCancel; Result := True; end;
 
 function TMessageEventLog.Yes: Boolean;
 begin
@@ -658,28 +750,67 @@ begin
 end;
 
 constructor THelpMessageEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMessage := TStringList.Create;
+  FHelpFileName := TranslateRStr(HelpRStr);
+  FMode := 0;
+end;
 
 destructor THelpMessageEventLog.Destroy;
-begin end;
+begin FMessage.Free; inherited Destroy; end;
 
 constructor TTutorialMessageEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FHelpFileName := TranslateRStr(TutorialRStr); end;
 
 constructor TSaveGameEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin inherited Create(AOwner); FTitle := TranslateRStr(SaveRStr); FMode := []; end;
 
 constructor TPasswordEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPassword := '';
+  FPrompt := TranslateRStr(EnterPasswordRStr);
+  FTitle := TranslateRStr(PasswordVerificationRStr);
+  FPressedButton := pebNone;
+end;
 
 procedure RegisterEventLog(AEngine: TEngine);
-begin end;
+begin AEngine.RegisterEClasses([TTextEventLog, TEndTurnEventLog, TGameOverEventLog, TLocationTextEventLog]); end;
 
 procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
-begin end;
+var I: Integer; Player: TPlayer; CopyLog: TEventLog;
+begin
+  for I := 0 to AoWHSMap.FPlayers.GetCount - 1 do
+  begin
+    Player := AoWHSMap.FPlayers.GetPlayers(I);
+    if Player.FStatus = psPlaying then
+    begin
+      CopyLog := TEventLog(Log.Copy(AoWEngine));
+      Player.FEventLogbook.AddEvent(CopyLog);
+      if (I = AoWHSMap.FSeatedPlayer) and Execute then CopyLog.Execute(False, etEvent, nil);
+      CopyLog.Release;
+    end;
+  end;
+end;
 
-procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
-begin end;
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean);
+var I: Integer; TargetPlayer: TPlayer; CopyLog: TEventLog;
+begin
+  for I := 0 to AoWHSMap.FPlayers.GetCount - 1 do
+  begin
+    TargetPlayer := AoWHSMap.FPlayers.GetPlayers(I);
+    if (TargetPlayer.FStatus = psPlaying) and
+      ((I = Player) or not AoWHSMap.FoggedForPlayer(X, Y, L, I)) then
+    begin
+      CopyLog := TEventLog(Log.Copy(AoWEngine));
+      TargetPlayer.FEventLogbook.AddEvent(CopyLog);
+      if (I = AoWHSMap.FSeatedPlayer) and
+        (AoWHSMap.FPlayers.GetPlayers(I).FPlayerType = ptHuman) and Execute then CopyLog.Execute(False, etEvent, nil);
+      CopyLog.Release;
+    end;
+  end;
+end;
 
 
 initialization

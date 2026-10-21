@@ -556,7 +556,7 @@ begin
     Log.FXhx := Xhx;
     Log.FYhx := Yhx;
     Log.FLhx := Lhx;
-    DistributeLocationEventLog(Log, FPlayer, Xhx, Yhx, Lhx, 0);
+    DistributeLocationEventLog(Log, FPlayer, Xhx, Yhx, Lhx, False);
     Log.Release;
   end;
 end;
@@ -645,7 +645,7 @@ begin
         Units := TUnitIndexList.Create;
         with TStructureResource(Resource).FDefenders do
           for I := GetCollectionCount(Collection) - 1 downto 0 do Units.Add(GetU(Collection, I));
-        PlaceRandomUnits(Xhx, Yhx, Lhx, 0, Units, 4, Budget, [pmScanArea, pmNeglectEmptyPlayerLocation]);
+        PlaceRandomUnits(Xhx, Yhx, Lhx, 0, Units, 4, Budget, [utHumanoid, utCreature]);
         ArmyHS := TAoWMapField(FOwner).GetArmyHS;
         if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = 0) then ArmyHS.FArmy.SetBehavior($FF, gbGuard);
         Units.Free;

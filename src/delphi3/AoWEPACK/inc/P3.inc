@@ -2439,9 +2439,9 @@ end;
 function TSingleTargetCA.GetDefensive: Boolean;
 begin Result := smDefensive in FMode; end;
 
-procedure TSingleTargetCA.SetDefensive(A1: Byte);
+procedure TSingleTargetCA.SetDefensive(A1: Boolean);
 begin
-  if A1 <> 0 then FMode := FMode + [smDefensive]
+  if A1 then FMode := FMode + [smDefensive]
   else FMode := FMode - [smDefensive];
 end;
 

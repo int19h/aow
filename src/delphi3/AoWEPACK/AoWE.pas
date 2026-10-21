@@ -50,6 +50,8 @@ uses
 
 implementation
 
+uses ExptIntf;
+
 
 {$I inc\P1.inc}
 {$I inc\P2.inc}

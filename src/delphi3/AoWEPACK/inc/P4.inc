@@ -1906,7 +1906,7 @@ begin
         if not FDefender.GetLocked then
         begin
           Result := TStrikeCA.Create(nil);
-          Result.SetDefensive(1);
+          Result.SetDefensive(True);
           Result.Generate(FDefender, FAttacker,
             FDefender.GetAttack + Strike^.AttackBonus,
             FDefender.GetDamage + Strike^.DamageBonus, FDefenderDamageTypes);

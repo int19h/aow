@@ -124,7 +124,7 @@ begin
     end;
   Log.ValidateGameOver;
   if Damaged <> 0 then
-    DistributeLocationEventLog(Log, Log.FPlayer, GetXhx, GetYhx, GetLhx, 1);
+    DistributeLocationEventLog(Log, Log.FPlayer, GetXhx, GetYhx, GetLhx, True);
   Log.Release;
   Army.FArmy.Validate;
 end;

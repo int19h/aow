@@ -160,7 +160,7 @@ begin
   end;
   Log.ValidateGameOver;
   if Count <> 0 then
-    DistributeLocationEventLog(Log, Log.FPlayer, GetXhx, GetYhx, GetLhx, 1);
+    DistributeLocationEventLog(Log, Log.FPlayer, GetXhx, GetYhx, GetLhx, True);
   ArmyHS.FArmy.Validate;
   Log.Release;
 end;

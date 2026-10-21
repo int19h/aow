@@ -179,7 +179,7 @@ begin
   LocationLog.FPlayer := GetPlayer;
   LocationLog.FText := SysUtils.Format(TranslateRStr(XExploredRStr), [GetName]);
   LocationLog.SetLocation(GetXhx, GetYhx, GetLhx);
-  DistributeLocationEventLog(LocationLog, Player, GetXhx, GetYhx, GetLhx, 0);
+  DistributeLocationEventLog(LocationLog, Player, GetXhx, GetYhx, GetLhx, False);
   LocationLog.Release;
   ArmyLog := TArmyInfoEventLog.Create(nil);
   ArmyLog.FArmyView.Setup(FPrisoners, $FF);
@@ -210,7 +210,7 @@ begin
     ArmyLog.FMessages.Text := SysUtils.Format(TranslateRStr(AfterLiberationXJoinedTheForcesOfYRStr),
       [Hero.FHeroName, WorldMap^.FPlayers.GetPlayers(Player).GetName]);
   end;
-  DistributeLocationEventLog(ArmyLog, -1, GetXhx, GetYhx, GetLhx, 0);
+  DistributeLocationEventLog(ArmyLog, -1, GetXhx, GetYhx, GetLhx, False);
   ArmyLog.Release;
   Army := TArmyHS.Create(nil);
   Army.FArmy.BeginUpdate;

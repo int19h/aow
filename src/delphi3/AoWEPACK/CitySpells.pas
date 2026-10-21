@@ -800,7 +800,7 @@ begin
   begin
     Log.ValidateGameOver;
     DistributeLocationEventLog(Log, Army.FArmy.FPlayer,
-      Army.GetXhx, Army.GetYhx, Army.GetLhx, 1);
+      Army.GetXhx, Army.GetYhx, Army.GetLhx, True);
   end;
   Log.Release;
   Army.FArmy.Validate;
@@ -950,7 +950,7 @@ begin
     Log.FPlayer := A2.FPlayer;
     Log.FText := SysUtils.Format(AoWE.TranslateRStr(XCastRStr), [AoWE.TranslateRStr(AnimateRuinsRStr)]);
     Log.SetLocation(TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx);
-    DistributeLocationEventLog(Log, A2.FPlayer, TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx, 0);
+    DistributeLocationEventLog(Log, A2.FPlayer, TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx, False);
     Log.Release;
     PlayDefaultCityEffects(A2, TargetCity);
     TargetCity.ValidateObservation(A2.FPlayer);

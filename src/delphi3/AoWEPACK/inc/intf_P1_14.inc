@@ -83,3 +83,6 @@ resourcestring
   NotEnoughForcesRStr = 'Your forces aren''t sufficient';
   RazeStructureWarningRStr = 'You''re about to raze this structure.';
   DoYouWishToContinueRStr = 'Do you wish to continue?';
+
+resourcestring
+  MessageRStr = 'Message';

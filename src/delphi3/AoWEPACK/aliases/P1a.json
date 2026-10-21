@@ -1,4 +1,6 @@
 {
   "557506a0:108": "CompareAbilityNames",
-  "5575c65c:123": "CompareUnitProductionLevel"
+  "5575c65c:123": "CompareUnitProductionLevel",
+  "FUN_5575b104": "CanUse<FillWithRandomUnits",
+  "FUN_5575b310": "CanUse<FillWithRandomUnitIndexes"
 }

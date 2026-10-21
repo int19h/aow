@@ -117,7 +117,6 @@ resourcestring
   ConfirmRStr = 'Confirm';
   YourAboutToExitAMultiPlayerGameRStr = 'You''re about to exit a multi-player game!';
   DoYouWantToContinueExitingRStr = 'Do you want to continue exiting?';
-  MessageRStr = 'Message';
   PleaseWaitTillItIsYourTurnRStr = 'Please, wait till it is your turn.';
   SaveGameToXRStr = 'Save game to %s?';
   DoYouWantToSaveThisGameRStr = 'Do you want to save this game?';
@@ -7397,7 +7396,7 @@ begin
   if GetRazed then Log.FText := Format(TranslateRStr(StructureRebuiltRStr), [EditName])
   else Log.FText := Format(TranslateRStr(StructureBuiltRStr), [EditName]);
   Log.SetLocation(GetXhx, GetYhx, GetLhx);
-  DistributeLocationEventLog(Log, FBuildingPlayer, GetXhx, GetYhx, GetLhx, 0);
+  DistributeLocationEventLog(Log, FBuildingPlayer, GetXhx, GetYhx, GetLhx, False);
   Log.Release;
   SetRazed(False);
   FBuildingPlayer := -1;
@@ -7788,7 +7787,7 @@ begin
     Log.FPlayer := Player;
     Log.FText := Format(TranslateRStr(StructureRazedRStr), [EditName]);
     Log.SetLocation(GetXhx, GetYhx, GetLhx);
-    DistributeLocationEventLog(Log, Player, GetXhx, GetYhx, GetLhx, 0);
+    DistributeLocationEventLog(Log, Player, GetXhx, GetYhx, GetLhx, False);
     Log.Release;
     if FResource.ImageSequenceList.GetImageSequence(20) <> nil then
     begin
@@ -8084,7 +8083,7 @@ begin
     Log.FXhx := GetXhx;
     Log.FYhx := GetYhx;
     Log.FLhx := GetLhx;
-    DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, 0);
+    DistributeLocationEventLog(Log, FPlayer, GetXhx, GetYhx, GetLhx, False);
     Log.Release;
   end;
 end;
@@ -13958,47 +13957,360 @@ begin
 end;
 
 
-procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
-begin end;
+function PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Level, Value: Integer; Types: TUnitTypes): Integer;
+var Index, Tries, Difference, BestIndex, I, Delta: Integer; Unit_: TUnit;
+begin
+  Result := 0; Tries := 50;
+  if Units.Count <> 0 then
+    while (Result < Value) and (Tries <> 0) do
+    begin
+      Dec(Tries);
+      Index := Units[Random(Units.Count)];
+      if (Index <> -1) and (AoWHSSet.FUnitResources.GetUnitResource(Index).FUnitType in Types) and
+        (AoWHSSet.FUnitResources.GetUnitResource(Index).GetObtainValue + Result > Value) and
+        (AoWHSSet.FUnitResources.GetUnitResource(Index).FLevel <= Level) then
+      begin
+        BestIndex := Index; I := 20;
+        Difference := Abs(AoWHSSet.FUnitResources.GetUnitResource(Index).GetObtainValue - (Value - Result));
+        repeat
+          Index := Units[Random(Units.Count)];
+          if (Index <> -1) and (AoWHSSet.FUnitResources.GetUnitResource(Index).FUnitType in Types) then
+          begin
+            Delta := Abs(AoWHSSet.FUnitResources.GetUnitResource(Index).GetObtainValue - (Value - Result));
+            if Delta < Difference then begin Difference := Delta; BestIndex := Index; end;
+          end;
+          Dec(I);
+        until I = 0;
+        Index := BestIndex;
+      end;
+      if (Index <> -1) and (AoWHSSet.FUnitResources.GetUnitResource(Index).FUnitType in Types) and
+        (AoWHSSet.FUnitResources.GetUnitResource(Index).FLevel <= Level) then
+      begin
+        Unit_ := TUnit.Create(nil);
+        Unit_.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+        if Unit_.Place(X, Y, L, Player, []) <> nil then
+        begin Inc(Result, Unit_.GetObtainValue); Tries := 50; end;
+        Unit_.Release;
+      end;
+    end;
+end;
 
 function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
-begin Result := 0; end;
+var TestUnit: TUnit; Index, Tries, I, Difference, BestIndex, Delta: Integer; Unit_: TUnit;
+  function CanUse(Unit_: TUnit): Boolean;
+  begin
+    Result := (Unit_.FUnitResource <> nil) and (Unit_.GetUnitType in Types) and
+      (Unit_.GetUnitLevel <= Level) and Units.CanAddUnit(Unit_);
+  end;
+begin
+  TestUnit := TUnit.Create(nil); Result := 0; Tries := 50;
+  Units.BeginUpdate;
+  while (Result < Value) and (Tries <> 0) do
+  begin
+    Dec(Tries);
+    Index := Indexes[Random(Indexes.Count)];
+    if Index <> -1 then
+    begin
+      TestUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+      if CanUse(TestUnit) then
+      begin
+        if TestUnit.GetObtainValue + Result > Value then
+        begin
+          BestIndex := Index; I := 20;
+          Difference := Abs(TestUnit.GetObtainValue - (Value - Result));
+          repeat
+            Index := Indexes[Random(Indexes.Count)];
+            if (Index <> -1) and (Index <> BestIndex) then
+            begin
+              TestUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+              if CanUse(TestUnit) then
+              begin
+                Delta := Abs(TestUnit.GetObtainValue - (Value - Result));
+                if Delta < Difference then begin BestIndex := Index; Difference := Delta; end;
+              end;
+            end;
+            Dec(I);
+          until I = 0;
+          Index := BestIndex;
+        end;
+        Unit_ := TUnit.Create(nil);
+        Unit_.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+        Units.AddUnit(Unit_);
+        Inc(Result, Unit_.GetObtainValue);
+        Tries := 50;
+        Unit_.Release;
+      end;
+    end;
+  end;
+  Units.EndUpdate;
+  TestUnit.Release;
+end;
 
-procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function FillWithRandomUnitIndexes(Indexes, Units: TIntegerList; Level, Value: Integer; Types: TUnitTypes): Integer;
+var TestUnit: TUnit; Index, Tries, I, Difference, BestIndex, Delta: Integer;
+  function CanUse(Unit_: TUnit): Boolean;
+  begin
+    Result := (Unit_.FUnitResource <> nil) and (Unit_.GetUnitType in Types) and
+      (Unit_.GetUnitLevel <= Level);
+  end;
+begin
+  TestUnit := TUnit.Create(nil); Result := 0; Tries := 50;
+
+  while (Result < Value) and (Tries <> 0) do
+  begin
+    Dec(Tries);
+    Index := Indexes[Random(Indexes.Count)];
+    if Index <> -1 then
+    begin
+      TestUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+      if CanUse(TestUnit) then
+      begin
+        if TestUnit.GetObtainValue + Result > Value then
+        begin
+          BestIndex := Index; I := 20;
+          Difference := Abs(TestUnit.GetObtainValue - (Value - Result));
+          repeat
+            Index := Indexes[Random(Indexes.Count)];
+            if (Index <> -1) and (Index <> BestIndex) then
+            begin
+              TestUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(Index));
+              if CanUse(TestUnit) then
+              begin
+                Delta := Abs(TestUnit.GetObtainValue - (Value - Result));
+                if Delta < Difference then begin BestIndex := Index; Difference := Delta; end;
+              end;
+            end;
+            Dec(I);
+          until I = 0;
+          Index := BestIndex;
+        end;
+        Units.Add(Index);
+        Inc(Result, AoWHSSet.FUnitResources.GetUnitResource(Index).FObtainValue);
+        Tries := 50;
+      end;
+    end;
+  end;
+
+  TestUnit.Release;
+end;
 
 procedure TriggerStormDamage(Storm: TStormType; X, Y, L, InnerRadius, OuterRadius, Player: Shortint);
-begin end;
+var Msg: TMapFieldMsg; Walk: THNWalkData; Level: TMapLevel;
+begin
+
+  Level := AoWHSMap.MapContainer.MapLevels[L];
+  Msg.MsgID := $1150;
+  Msg.Param[0] := Ord(Storm);
+  Msg.Param[2] := Player;
+  InitHNWalk(Walk, X, Y, InnerRadius);
+  while Walk.Radius <= OuterRadius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Msg.Param[1] := Walk.Radius;
+      Level.Field[Walk.X, Walk.Y].SendMapFieldMsg(Msg);
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 procedure RetrieveStormDamageInfo(Player: Shortint; Storm: TStormType; X, Y, L, InnerRadius, OuterRadius: Shortint; var Info: TStormDamageInfo);
-begin end;
+var Msg: TMapFieldMsg; Walk: THNWalkData; Level: TMapLevel;
+begin
+  FillChar(Info, SizeOf(Info), 0);
+  Info.Player := Player;
+  Info.FriendlyRelations := [0, 2];
+  Info.EnemyRelations := [1, 3];
+  Level := AoWHSMap.MapContainer.MapLevels[L];
+  Msg.MsgID := $1151;
+  Msg.Param[0] := Ord(Storm);
+  Msg.Param[2] := Integer(@Info);
+  Msg.Param[3] := 0;
+  InitHNWalk(Walk, X, Y, InnerRadius);
+  while Walk.Radius <= OuterRadius do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Msg.Param[1] := Walk.Radius;
+      Level.Field[Walk.X, Walk.Y].SendMapFieldMsg(Msg);
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
-procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);
-begin end;
+function dAlignmentToDiplomaticRelation(A, B: TAlignment): TDiplomaticRelation;
+begin
+  case A of
+    alPureGood, alGood:
+      case B of
+        alPureGood, alGood: Result := drPeace;
+        alPureNeutral, alNeutral, alNone: Result := drUnknown;
+      else Result := drWar; end;
+    alEvil, alPureEvil:
+      case B of
+        alEvil, alPureEvil: Result := drPeace;
+        alPureNeutral, alNeutral, alNone: Result := drUnknown;
+      else Result := drWar; end;
+  else
+    if (A = alPureNeutral) and (B = alPureNeutral) then Result := drPeace
+    else Result := drUnknown;
+  end;
+end;
 
-procedure StatusToDiplomaticRelation(A1: Byte);
-begin end;
+function StatusToDiplomaticRelation(Status: TStatus): TDiplomaticRelation;
+begin
+  case Status of
+    sPolite, sFriendly: Result := drPeace;
+    sNeutral: Result := drUnknown;
+    sHostile, sWary: Result := drWar;
+  else Result := drUnknown; end;
+end;
 
-function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;
-begin Result := csNeutral; end;
+function GetCombatSide(Attacker, AttackerRelation, Defender, DefenderRelation, Player, Relation: Shortint): TCombatSideIndex;
+begin
+  if (Player <> 0) and (Attacker = 0) and (Defender = 0) then Result := csNeutral
+  else if (Player = Attacker) and ((Player <> 0) or (AttackerRelation = Relation)) then Result := csAttacker
+  else if (Player = Defender) and ((Player <> 0) or (DefenderRelation = Relation)) then Result := csDefender
+  else if Player = 0 then
+  begin
+    if (Attacker <> 0) and (DiplomaticRelation(Attacker, AttackerRelation, Player, Relation) = drPeace) and
+      (DiplomaticRelation(Defender, DefenderRelation, Player, Relation) <> drPeace) then Result := csAttacker
+    else if (Defender <> 0) and (DiplomaticRelation(Defender, DefenderRelation, Player, Relation) = drPeace) and
+      (DiplomaticRelation(Attacker, AttackerRelation, Player, Relation) <> drPeace) then Result := csDefender
+    else Result := csNeutral;
+  end
+  else
+  begin
+    if (Attacker <> 0) and (DiplomaticRelation(Attacker, AttackerRelation, Player, Relation) = drAlliance) and
+      (DiplomaticRelation(Defender, DefenderRelation, Player, Relation) <> drAlliance) then Result := csAttacker
+    else if (Defender <> 0) and (DiplomaticRelation(Defender, DefenderRelation, Player, Relation) = drAlliance) and
+      (DiplomaticRelation(Attacker, AttackerRelation, Player, Relation) <> drAlliance) then Result := csDefender
+    else Result := csNeutral;
+  end;
+end;
 
-procedure AlignmentToIR(A1: Byte);
-begin end;
+function AlignmentToIR(Alignment: TAlignment): Shortint;
+begin
+  case Alignment of
+    alPureGood, alGood: Result := -2;
+    alEvil, alPureEvil: Result := -4;
+    alPureNeutral, alNeutral: Result := -3;
+  else Result := -1; end;
+end;
 
-procedure IRtoAlignment(A1: Integer);
-begin end;
+function IRtoAlignment(Relation: Shortint): TAlignment;
+begin
+  if Relation < 0 then
+    case Relation of
+      -2: Result := alGood;
+      -4: Result := alEvil;
+      -3: Result := alNeutral;
+    else Result := alNeutral; end
+  else Result := AoWHSSet.FRaceResources.GetRaceResource(Relation).GetAlignment;
+end;
 
 function DiplomaticRelation(Player, IndependentRelation, OtherPlayer, OtherIndependentRelation: Shortint): TDiplomaticRelation;
-begin Result := drPeace; end;
+var Race, OtherRace: Shortint; Alignment, OtherAlignment: TAlignment;
+begin
+  if (Player = 0) or (OtherPlayer = 0) then
+  begin
+    if Player <> 0 then Race := AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace
+    else if IndependentRelation < 0 then Race := -1 else Race := IndependentRelation;
+    if OtherPlayer <> 0 then OtherRace := AoWHSMap.FPlayers.GetPlayers(OtherPlayer).FPlayerRace
+    else if OtherIndependentRelation < 0 then OtherRace := -1 else OtherRace := OtherIndependentRelation;
+    if (Race = -1) or (OtherRace = -1) then
+    begin
+      if Race = -1 then Alignment := IRtoAlignment(IndependentRelation)
+      else Alignment := AoWHSSet.FRaceResources.GetRaceResource(Race).GetAlignment;
+      if OtherRace = -1 then OtherAlignment := IRtoAlignment(OtherIndependentRelation)
+      else OtherAlignment := AoWHSSet.FRaceResources.GetRaceResource(OtherRace).GetAlignment;
+      Result := dAlignmentToDiplomaticRelation(Alignment, OtherAlignment);
+    end
+    else Result := StatusToDiplomaticRelation(AoWHSMap.FRaces.GetRace(Race).GetRelation(OtherRace));
+  end
+  else if Player = OtherPlayer then Result := drAlliance
+  else Result := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, OtherPlayer);
+end;
 
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
-begin Result := False; end;
+begin
+  if Player = 0 then
+    if TargetPlayer <> 0 then
+      Result := DiplomaticRelation(Player, IndependentRelation, TargetPlayer, TargetRace) in [drWar, drUnknown]
+    else Result := False
+  else Result := AoWHSMap.FPlayers.GetPlayers(Player).ValidAttackRelation(TargetPlayer, TargetRace);
+end;
 
 function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: Shortint): Integer;
-begin Result := 0; end;
+var Resource: TUnitResource; Value: Integer; Unit_: TUnit; DefaultUnit: TAdjustableUnit;
+begin
+  Resource := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex);
+  if (Resource = nil) or (Resource.GetTransportCapacity <> 0) then Result := -1
+  else
+  begin
+    if Player = 0 then Value := dAlignmentToStatusValue[Resource.FAlignment, IRtoAlignment(Relation)]
+    else if Resource.FRace = -1 then
+      Value := dAlignmentToStatusValue[Resource.FAlignment, AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace).GetAlignment]
+    else Value := AoWHSMap.FRaces.GetRace(Resource.FRace).GetPlayerRelationValue(Player);
+    if Value >= 50 then
+    begin
+      Unit_ := TUnit.Create(nil); Unit_.SetUnitResource(Resource);
+      DefaultUnit := TAdjustableUnit.Create(nil); DefaultUnit.MakeDefaultLevelUnit(1);
+      if Unit_.GetCombatValue(DefaultUnit, 0) > 0 then
+      begin
+        Result := Unit_.GetStrengthMax(dtAll - [dtWall]) div 100 + Resource.FLevel * 100 + Resource.FMoves * 10 + Value div 2;
+        if Resource.FAbilities[urNone].GetAbSet(57) or Resource.FAbilities[urNone].GetAbSet(58) then Inc(Result, 100);
+        if Resource.FAbilities[urNone].GetAbSet(13) then Inc(Result, 150);
+        if (AoWHSMap <> nil) and (AoWHSMap.FDay > 20) and
+          (Resource.FAbilities[urNone].GetAbSet(20) or Resource.FAbilities[urNone].GetAbSet(19) or
+           Resource.FAbilities[urNone].GetAbSet(18) or Resource.FAbilities[urNone].GetAbSet(121) or
+           Resource.FAbilities[urNone].GetAbSet(88) or Resource.FAbilities[urNone].GetAbSet(89)) then Inc(Result, 100);
+        if Resource.FAbilities[urNone].GetAbSet(1) or Resource.FAbilities[urNone].GetAbSet(36) or
+          Resource.FAbilities[urNone].GetAbSet(66) or Resource.FAbilities[urNone].GetAbSet(24) or
+          Resource.FAbilities[urNone].GetAbSet(44) or
+          (Resource.FAbilities[urNone].GetAbSet(117) and Resource.FAbilities[urNone].GetAbSet(21)) then Inc(Result, 100);
+        if Resource.FAbilities[urNone].GetAbSet(65) then Result := Result div 2;
+      end
+      else Result := -1;
+      DefaultUnit.Free; Unit_.Free;
+    end
+    else Result := -1;
+  end;
+end;
 
 function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
-begin Result := 0; end;
+var SameRace, Evil, Good, Neutral: Boolean; I: Integer; Race: Shortint; Unit_: TAbstractUnit; Alignment: TAlignment;
+begin
+  SameRace := True; I := Units.GetCount; Result := -1;
+  while SameRace and (I <> 0) do
+  begin
+    Dec(I); Race := Units.GetUnit(I).GetRace;
+    if (Race <> -1) and (Race <> Result) then
+      if Result = -1 then Result := Race else SameRace := False;
+  end;
+  if SameRace and (Result = -1) then Result := DefaultRelation;
+  if Result = -1 then SameRace := False;
+  I := Units.GetCount;
+  while SameRace and (I <> 0) do
+  begin
+    Dec(I);
+    SameRace := (Result = Units.GetUnit(I).GetRace) or
+      (Units.GetUnit(I).GetAlignment in AoWHSSet.FRaceResources.GetRaceResource(Result).FAlignments);
+  end;
+  if not SameRace then
+  begin
+    Evil := True; Good := True; Neutral := True;
+    for I := 0 to Units.GetCount - 1 do
+    begin
+      Unit_ := Units.GetUnit(I); Alignment := Unit_.GetAlignment;
+      Evil := Evil and (Alignment in alsEvil) and ((Unit_.GetRace = -1) or (Alignment in [alEvil, alPureEvil]));
+      Good := Good and (Alignment in alsGood) and ((Unit_.GetRace = -1) or (Alignment in [alPureGood, alGood]));
+      Neutral := Neutral and (Alignment in alsNeutral);
+    end;
+    if Good and not Evil then Result := -2
+    else if Evil and not Good then Result := -4 else Result := -3;
+  end;
+end;
 
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 var
@@ -14019,41 +14331,212 @@ begin
 end;
 
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
-begin end;
+begin
+  FillChar(Info, SizeOf(Info), 0);
+  Info.Player := Player;
+  { Original ignores the independent relation parameter. }
+  Info.Requests := Requests;
+  Info.DamageTypes := DamageTypes;
+  Info.FriendlyRelations := [2];
+  Info.EnemyRelations := [1, 3];
+end;
 
 function StrengthInfoMax(const Strengths): Integer;
-begin Result := 0; end;
+type TStrengthInfo = array[TDamageType] of Integer;
+var DamageType: TDamageType;
+begin
+  Result := 0;
+  for DamageType := Low(TDamageType) to High(TDamageType) do
+    if TStrengthInfo(Strengths)[DamageType] > Result then Result := TStrengthInfo(Strengths)[DamageType];
+end;
 
-procedure InvertDamageTypes(A1: Word);
-begin end;
+function InvertDamageTypes(Types: TDamageTypes): TDamageTypes;
+var DamageType: TDamageType;
+begin
+  Result := [];
+  for DamageType := Low(TDamageType) to High(TDamageType) do
+    if not (DamageType in Types) then Result := Result + [DamageType];
+end;
 
 function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
-begin Result := 0; end;
+var I: Integer; Gap: Boolean; Field: TMapField;
+begin
+  I := Path.Count - 1; Result := 0; Gap := False;
+  while I > 1 do
+  begin
+    Dec(I);
+    Field := Map.MapContainer.GetField(Path[I].X, Path[I].Y, Path[I].L);
+    if Table[Field.TerrainType, Field.OverlayType] = -1 then
+    begin
+      if not Gap then
+      begin
+        Inc(Result);
+        if Starts <> nil then Starts.Add(I);
+        Gap := True;
+      end;
+    end
+    else if Gap then
+    begin
+      if Ends <> nil then Ends.Add(I);
+      Gap := False;
+    end;
+  end;
+  if Gap and (Ends <> nil) then Ends.Add(1);
+end;
 
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer;
-begin Result := 0; end;
+var Units: TUnitUserList; I, J, Distance: Integer; Walk: THNWalkData; Info: TBattleFieldInfo; Level: TMapLevel; Field: TAoWMapField; Army: TArmyHS;
+begin
+  if (Movepath <> nil) and (Movepath.Count > 0) then
+  begin
+    Distance := Round(Range * 0.5);
+    Result := 0;
+    I := Movepath.Count - 1;
+    Units := nil;
+    if Movepath.Count - TargetRange < I then I := Movepath.Count - TargetRange;
+    SetupBattleFieldInfo(Info, Player, IndependentRelation, [], dtAll - [dtWall]);
+    Info.FriendlyRelations := [];
+    Info.Requests := Info.Requests + [bfrIgnorePassiveIndependents, bfrEffectiveStrength];
+    if Step > 0 then
+    begin
+      Units := TUnitUserList.Create(nil);
+      Level := AoWHSMap.MapContainer.MapLevels[Movepath[Movepath.Count - 1].L];
+      InitHNWalk(Walk, Movepath[Movepath.Count - 1].X, Movepath[Movepath.Count - 1].Y, 0);
+      while Walk.Radius <= Step do
+      begin
+        if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+        begin
+          Field := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+          if Field.FFieldFlags and $04000000 <> 0 then
+          begin
+            Army := Field.GetArmyHS;
+            if (Army <> nil) and (Army.FArmy.FPlayer <> Player) then Units.AddUnits(Army.FArmy);
+          end;
+        end;
+        WalkToNextHN(Walk);
+      end;
+      Info.Units := Units;
+    end;
+    while I >= 0 do
+    begin
+      Info.Strength := 0;
+      AoWHSMap.RetrieveBattleFieldInfo(Movepath[I].X, Movepath[I].Y, Movepath[I].L, Range, Info);
+      if Info.Strength > Result then Result := Info.Strength;
+      J := I;
+      while (J >= 0) and (Movepath[J].L = Movepath[I].L) and (J > I - Distance) do Dec(J);
+      if (J = 0) or (Movepath[I].L <> Movepath[J].L) then
+        if J - 1 <> I then
+        begin
+          Info.Strength := 0;
+          AoWHSMap.RetrieveBattleFieldInfo(Movepath[J + 1].X, Movepath[J + 1].Y, Movepath[J + 1].L, Range, Info);
+          if Info.Strength > Result then Result := Info.Strength;
+        end;
+      I := J;
+    end;
+    if Units <> nil then Units.Free;
+    AoWHSMap.FAIExecuter.UseProcessTime(50);
+  end
+  else Result := 0;
+end;
 
 function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
-begin Result := 0; end;
+var Info: TBattleFieldInfo;
+begin
+  SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
+  Info.EnemyRelations := [];
+  Info.Units := Units;
+  Include(Info.Requests, bfrIgnorePassiveIndependents);
+  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, EnemyRadius, Info);
+  Result := Info.FriendlyStrength;
+  SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
+  Info.FriendlyRelations := [];
+  Info.Units := Units;
+  Include(Info.Requests, bfrIgnorePassiveIndependents);
+  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, FriendlyRadius, Info);
+  Result := Result - Info.Strength;
+end;
 
 function IgnitionChance(MapField: TAoWMapField): Integer;
-begin Result := 0; end;
+begin
+  if (MapField.TerrainType in [1..5, 12]) and (MapField.FindOwnedChild($2077E) = nil) and not MapField.GetMagicShieldActive then
+  begin
+    if MapField.OverlayType = 1 then
+      if MapField.TerrainType = 3 then Result := 40
+      else if MapField.TerrainType = 2 then Result := 80 else Result := 60
+    else if MapField.OverlayType = 3 then
+      if MapField.TerrainType = 3 then Result := 10
+      else if MapField.TerrainType = 2 then Result := 30 else Result := 20
+    else if MapField.TerrainType = 3 then Result := 1 else Result := 5;
+    if MapField.FindNoneTransparentHS(TStructure) <> nil then
+    begin
+      Inc(Result, 5);
+      if (AoWHSMap <> nil) and (getFireMastery in AoWHSMap.FGlobalMagicControl.FActiveEnchantments) then Inc(Result, 5);
+    end;
+  end
+  else Result := 0;
+end;
 
 function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
-begin Result := nil; end;
+var Ability: TEnhancementAbility;
+begin
+  Ability := TEnhancementAbility.Create(nil);
+  Ability.FAbilityID := ID;
+  Ability.FAbilityName := Name;
+  Ability.FSelectionTypes := SelectionTypes;
+  Result := Ability;
+end;
 
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
-begin Result := []; end;
+begin
+  if A1 is TCombatUnit then
+    Result := TStrikeAbility(AoWHSSet.FAbilityControl.GetAbility(21)).GetDamageTypes(TCombatUnit(A1).FUnit)
+  else Result := [];
+end;
 
 function StrikeDV(A1, A2: TCombatObject): Integer;
-begin Result := 0; end;
+var Attack, Damage: Shortint; Types: TDamageTypes;
+begin
+  if A1.GetAbilityEnabled(21) then
+  begin
+    Attack := A1.GetAttack; Damage := A1.GetDamage; Types := MeleeDamageTypes(A1);
+    if (A1.GetAbilityEnabled(146) or A1.GetAbilityEnabled(160)) and (A2.GetAlignment in [alEvil, alPureEvil]) then
+    begin Inc(Attack, 2); Inc(Damage, 2); end;
+    if (A1.GetAbilityEnabled(147) or A1.GetAbilityEnabled(161)) and (A2.GetAlignment in [alPureGood, alGood]) then
+    begin Inc(Attack, 2); Inc(Damage, 2); end;
+    if A1.GetAbilityEnabled(112) and A2.GetAbilityEnabled(63) then
+    begin Inc(Attack, 3); Inc(Damage, 3); end;
+    Result := StatisticsToLimitedDV(Attack, Damage, Types, A2.GetHitPoints, A2.GetDefense, A2.GetResistance, A2.GetImmunityTypes, A2.GetProtectionTypes);
+  end
+  else Result := 0;
+end;
 
 function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
-begin Result := nil; end;
+var Attack, Damage: Shortint; Types: TDamageTypes;
+begin
+  if A1.GetAbilityEnabled(21) then
+  begin
+    Attack := A1.GetAttack; Damage := A1.GetDamage; Types := MeleeDamageTypes(A1);
+    if (A1.GetAbilityEnabled(146) or A1.GetAbilityEnabled(160)) and (A2.GetAlignment in [alEvil, alPureEvil]) then
+    begin Inc(Attack, 2); Inc(Damage, 2); end;
+    if (A1.GetAbilityEnabled(147) or A1.GetAbilityEnabled(161)) and (A2.GetAlignment in [alPureGood, alGood]) then
+    begin Inc(Attack, 2); Inc(Damage, 2); end;
+    if A1.GetAbilityEnabled(112) and A2.GetAbilityEnabled(63) then
+    begin Inc(Attack, 3); Inc(Damage, 3); end;
+    Result := TStrikeCA.Create(nil);
+    Result.Generate(A1, A2, Attack, Damage, Types);
+    Result.SetDefensive(A3);
+  end
+  else Result := nil;
+end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin
+  RegisterComponents('AoWEngine', [TAgeOfWondersEngine]);
+end;
 
 function ValidateAoWEngine: Boolean;
-begin Result := False; end;
+begin
+  if (AoWEngine = nil) and (ToolServices = nil) then TAoWEngine.Create(nil);
+  Result := AoWEngine <> nil;
+end;
 

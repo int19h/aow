@@ -359,8 +359,7 @@ begin
   if PMapView(AoWHSMap)^.SeatedPlayer = Player then
   begin
     Log := TShowMessageEventLog.Create(nil);
-    { needs: EventLog +$18 is TStrings; the unmarked draft field is Integer. }
-    TStrings(Log.F_ShowMessageEventLog_18).Text := FMessage.Text;
+    Log.FMessage.Text := FMessage.Text;
     AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
     Log.Release;
   end;

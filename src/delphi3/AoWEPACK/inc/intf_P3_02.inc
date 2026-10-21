@@ -58,7 +58,7 @@
     procedure ShowFieldObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); override;
     procedure ShowFightingObjects(A1: TCombatViewer; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc); override;
     function GetDefensive: Boolean;  { draft }
-    procedure SetDefensive(A1: Byte);  { draft }
+    procedure SetDefensive(A1: Boolean); { 557299E4; 557666F6 }
   end;
 
   { TDamageCA (instance size $18, VMT 557162F4):

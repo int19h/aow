@@ -1028,7 +1028,7 @@ begin
       Log.FPlayer := A2.FPlayer;
       Log.FText := Format(TranslateRStr(XResurrectedRStr), [Hero.FHeroName]);
       Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
-      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, 0);
+      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, False);
       Log.Release;
       if Hero.OfferToJoin(A2.FPlayer) then
       begin
@@ -1128,7 +1128,7 @@ begin
       Log.FPlayer := A2.FPlayer;
       Log.FText := Format(TranslateRStr(XAnimatedRStr), [Hero.FHeroName]);
       Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
-      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, 0);
+      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, False);
       Log.Release;
       if Hero.OfferToJoin(A2.FPlayer) then
       begin

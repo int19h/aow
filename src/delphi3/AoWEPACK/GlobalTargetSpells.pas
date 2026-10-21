@@ -1917,7 +1917,7 @@ begin
       TStrings(Log.FArmyMessages).Add(AoWE.TranslateRStr(TornadoRStr));
       Log.FArmyIcon := 2;
       TArmyView(TUnitList(Log.FArmyView)).Setup(TArmy(Army.FArmy),Selection);
-      DistributeLocationEventLog(Log,Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx,1);
+      DistributeLocationEventLog(Log,Event.FEventPlayerIndex,Army.Xhx,Army.Yhx,Army.Lhx, True);
       Log.Release;
       Location := TTornado(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(68)).
         CalculateWarpLocation(Army,Selection);
@@ -2245,7 +2245,7 @@ begin
     begin
       Log.ValidateGameOver;
       DistributeLocationEventLog(Log,TArmy(Army.FArmy).FPlayer,
-        Army.Xhx,Army.Yhx,Army.Lhx,1);
+        Army.Xhx,Army.Yhx,Army.Lhx, True);
     end;
     Log.Release;
     TArmy(Army.FArmy).Validate;

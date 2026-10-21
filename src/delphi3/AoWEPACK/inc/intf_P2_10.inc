@@ -61,16 +61,16 @@ function MoveTypesToInt(Types: TMoveTypes): Integer;
 { conflict: function MoveTypesToInt(MoveTypes: TMoveTypes): Integer; }
 function IntToMoveTypes(Value: Integer): TMoveTypes;
 function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
-procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
+function PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Level, Value: Integer; Types: TUnitTypes): Integer;
 function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;
-procedure FillWithRandomUnitIndexes(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+function FillWithRandomUnitIndexes(Indexes, Units: TIntegerList; Level, Value: Integer; Types: TUnitTypes): Integer;
 procedure TriggerStormDamage(Storm: TStormType; X, Y, L, InnerRadius, OuterRadius, Player: Shortint);
 procedure RetrieveStormDamageInfo(Player: Shortint; Storm: TStormType; X, Y, L, InnerRadius, OuterRadius: Shortint; var Info: TStormDamageInfo);
-procedure dAlignmentToDiplomaticRelation(A1: Integer; A2: Integer);  { draft }
-procedure StatusToDiplomaticRelation(A1: Byte);  { draft }
-function GetCombatSide(A1: Byte; A2: Byte; A3: Byte; A4: Byte; A5: Byte; A6: Byte): TCombatSideIndex;
-procedure AlignmentToIR(A1: Byte);  { draft }
-procedure IRtoAlignment(A1: Integer);  { draft }
+function dAlignmentToDiplomaticRelation(A, B: TAlignment): TDiplomaticRelation;
+function StatusToDiplomaticRelation(Status: TStatus): TDiplomaticRelation;
+function GetCombatSide(Attacker, AttackerRelation, Defender, DefenderRelation, Player, Relation: Shortint): TCombatSideIndex;
+function AlignmentToIR(Alignment: TAlignment): Shortint;
+function IRtoAlignment(Relation: Shortint): TAlignment;
 function DiplomaticRelation(Player, IndependentRelation, OtherPlayer, OtherIndependentRelation: Shortint): TDiplomaticRelation;
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
 { conflict: function ValidAttackRelation(Player, IndependentRelation, TargetPlayer: Shortint; Mode: Boolean): Boolean; }
@@ -80,7 +80,7 @@ procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Inte
 function Encode(Text: string; Mode: Integer): string;
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 function StrengthInfoMax(const Strengths): Integer;
-procedure InvertDamageTypes(A1: Word);  { draft }
+function InvertDamageTypes(Types: TDamageTypes): TDamageTypes;
 function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
 function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
@@ -89,7 +89,7 @@ function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionType
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;
 function StrikeDV(A1, A2: TCombatObject): Integer;
 function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 function ValidateAoWEngine: Boolean;
 
 var

@@ -5490,7 +5490,7 @@ begin
       Log.FDay := AoWHSMap.FPlayers.GetPlayers(FPlayer).FDay;
       Log.FPlayer := FPlayer;
       Log.FUnitID := FUnitID;
-      DistributeLocationEventLog(Log, FPlayer, X, Y, L, 1);
+      DistributeLocationEventLog(Log, FPlayer, X, Y, L, True);
       Log.Release;
       if AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman then ExecuteUpgradeHeroAI;
     end;
@@ -7800,7 +7800,7 @@ begin
         end;
       end;
       Log.ValidateGameOver;
-      DistributeLocationEventLog(Log, FPlayer, FX, FY, FL, 1);
+      DistributeLocationEventLog(Log, FPlayer, FX, FY, FL, True);
       Log.Release;
       EndUpdate;
     end;
@@ -8860,7 +8860,7 @@ begin
     else Log.FMessages.Text := TranslateRStr(DesertUnitsLowMoraleRStr)
   else if Count = 1 then Log.FMessages.Text := TranslateRStr(DesertUnitLowMoraleSplitRStr)
   else Log.FMessages.Text := TranslateRStr(DesertUnitsLowMoraleSplitRStr);
-  DistributeLocationEventLog(Log, -1, FX, FY, FL, 1);
+  DistributeLocationEventLog(Log, -1, FX, FY, FL, True);
   Log.Release;
   for I := GetCount - 1 downto 0 do
   begin
@@ -9163,7 +9163,7 @@ begin
           Log.FMessages.Add(Format(TranslateRStr(P2XJoinedTheForcesOfYRStr),
             [AHero.FHeroName, AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
         end;
-        DistributeLocationEventLog(Log, -1, FX, FY, FL, 0);
+        DistributeLocationEventLog(Log, -1, FX, FY, FL, False);
         Log.Release;
         if ValidateSelection($FF) <> Selection then
         begin
@@ -9253,7 +9253,7 @@ begin
     end;
   end;
   Log.ValidateGameOver;
-  if Damaged then DistributeLocationEventLog(Log, -1, FX, FY, FL, 1);
+  if Damaged then DistributeLocationEventLog(Log, -1, FX, FY, FL, True);
   Log.Release;
   Validate;
   EndUpdate;
@@ -9311,7 +9311,7 @@ begin
   if Damaged then
   begin
     Log.ValidateGameOver;
-    DistributeLocationEventLog(Log, FPlayer, FX, FY, FL, 1);
+    DistributeLocationEventLog(Log, FPlayer, FX, FY, FL, True);
   end;
   Log.Release;
   Validate;
