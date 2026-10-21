@@ -76,13 +76,19 @@ uses UnitFlt, MDIForm, EHero;
 var SavedPosition: TPoint;
 
 class function TArmyHSEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20217;
+end;
 
 class procedure TArmyHSEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TArmyEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TArmyHSEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TArmyEditForm.FormCreate(Sender: TObject);
 var CanSelect: Boolean;

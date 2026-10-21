@@ -39,7 +39,9 @@ type
 implementation
 
 class procedure TPlaySampleEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TPlaySampleEditForm.FormCreate(Sender: TObject);
 begin

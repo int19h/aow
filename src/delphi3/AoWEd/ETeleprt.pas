@@ -46,13 +46,19 @@ type
 implementation
 
 class function TTeleportEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20104;
+end;
 
 class procedure TTeleportEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TTeleportEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TTeleportEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TTeleportEditForm.FormCreate;
 begin

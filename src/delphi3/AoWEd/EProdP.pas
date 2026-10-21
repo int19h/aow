@@ -38,13 +38,19 @@ type
 implementation
 
 class function TProductionPlaceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $203BA;
+end;
 
 class procedure TProductionPlaceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TProductionPlaceEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TProductionPlaceEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TProductionPlaceEditForm.FormCreate;
 begin end;

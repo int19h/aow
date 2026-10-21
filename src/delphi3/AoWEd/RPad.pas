@@ -30,10 +30,14 @@ type
 implementation
 
 class function TPadResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20107;
+end;
 
 class procedure TPadResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TPadEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 
 end.

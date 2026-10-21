@@ -48,10 +48,14 @@ type
 implementation
 
 class procedure TGemsEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TGemsEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TGemsEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TGemsEditForm.GemsSpinChange(Sender: TObject);
 begin

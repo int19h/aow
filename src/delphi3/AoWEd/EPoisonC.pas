@@ -37,10 +37,14 @@ type
 implementation
 
 class procedure TPoisonCloudEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TPoisonCloudEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TPoisonCloudEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TPoisonCloudEditForm.FormCreate;
 begin end;

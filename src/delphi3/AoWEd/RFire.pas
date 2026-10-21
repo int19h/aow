@@ -36,7 +36,9 @@ type
 implementation
 
 class procedure TFireResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TFireResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 procedure TFireResourceEditForm.FireTypeBoxChange;
 begin end;

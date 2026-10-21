@@ -46,10 +46,14 @@ type
 implementation
 
 class function TCombatILTerrainResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220137;
+end;
 
 class procedure TCombatILTerrainResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TCombatILTerrainResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 procedure TCombatILTerrainResourceEditForm.FormCreate(Sender: TObject);
 begin

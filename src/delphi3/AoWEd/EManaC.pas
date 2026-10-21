@@ -45,10 +45,14 @@ type
 implementation
 
 class procedure TManaCrystalsEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TManaCrystalsEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TManaCrystalsEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TManaCrystalsEditForm.ManaSpinChange;
 begin end;

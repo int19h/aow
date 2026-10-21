@@ -41,10 +41,14 @@ type
 implementation
 
 class procedure TUnitPositionEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TTCUnitPositionEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TUnitPositionEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TTCUnitPositionEditForm.FormCreate;
 begin end;

@@ -45,10 +45,14 @@ implementation
 uses UnitFlt;
 
 class function TProductionPlaceResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $203BB;
+end;
 
 class procedure TProductionPlaceResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TProdPlaceResEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 procedure TProdPlaceResEditForm.FormCreate(Sender: TObject);
 begin

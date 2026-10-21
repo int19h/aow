@@ -42,10 +42,14 @@ type
 implementation
 
 class function TExplorationSiteResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $203C2;
+end;
 
 class procedure TExplorationSiteResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TExplorationSiteResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 procedure TExplorationSiteResourceEditForm.FormCreate;
 begin end;

@@ -136,10 +136,14 @@ const
   ActionNames: array[0..4] of string = ('Stand Still', 'Move', 'Attack', 'Hit', 'Shadow');
 
 class function TUnitGFXResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20210;
+end;
 
 class procedure TUnitGFXResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TUnitGFXResourceEditForm.vmt80(AEngine, TEResource(Obj), Done);
+end;
 
 destructor TUnitGFXResourceEditForm.Destroy;
 begin

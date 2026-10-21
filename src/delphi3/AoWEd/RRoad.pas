@@ -30,10 +30,14 @@ type
 implementation
 
 class function TRoadResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20165;
+end;
 
 class procedure TRoadResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TRoadResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 
 end.

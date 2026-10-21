@@ -40,13 +40,19 @@ type
 implementation
 
 class function TFlagMessageEventEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2056D;
+end;
 
 class procedure TFlagMessageEventEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TFlagMessageEventEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TFlagMessageEventEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TFlagMessageEventEditForm.FormCreate(Sender: TObject);
 begin

@@ -90,7 +90,9 @@ implementation
 uses SelAbDlg;
 
 class procedure TUnitResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TUnitResourceEditForm.vmt80(AEngine, TEResource(Obj), Done);
+end;
 
 procedure TUnitResourceEditForm.FormCreate(Sender: TObject);
 begin

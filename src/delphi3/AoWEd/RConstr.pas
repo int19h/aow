@@ -61,10 +61,14 @@ implementation
 uses UnitFlt;
 
 class function TConstructionResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2034B;
+end;
 
 class procedure TConstructionResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TConstructionResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 constructor TConstructionResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
 begin

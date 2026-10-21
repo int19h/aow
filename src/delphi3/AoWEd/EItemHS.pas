@@ -92,13 +92,19 @@ end;
 
 
 class function TItemHSEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20271;
+end;
 
 class procedure TItemHSEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TItemHSEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TItemHSEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TItemHSEditForm.FormCreate(Sender: TObject);
 begin

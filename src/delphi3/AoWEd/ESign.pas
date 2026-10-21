@@ -36,10 +36,14 @@ type
 implementation
 
 class procedure TSignEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TSignEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TSignEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TSignEditForm.FormCreate;
 begin end;

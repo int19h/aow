@@ -56,13 +56,19 @@ implementation
 uses ItemFlt, UnitFlt;
 
 class function TItemExplorationSiteEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $203F3;
+end;
 
 class procedure TItemExplorationSiteEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TItemExplorationSiteEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TItemExplorationSiteEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TItemExplorationSiteEditForm.FormCreate(Sender: TObject);
 begin

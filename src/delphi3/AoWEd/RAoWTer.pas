@@ -37,10 +37,14 @@ type
 implementation
 
 class function TAoWTerrainResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20167;
+end;
 
 class procedure TAoWTerrainResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TAoWTerrainResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
+end;
 
 procedure TAoWTerrainResourceEditForm.FormCreate;
 begin end;

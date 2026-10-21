@@ -44,10 +44,14 @@ type
 implementation
 
 class procedure TPlayerConstructionEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TPlayerConstructionEditForm.vmt90(Obj, Done);
+end;
 
 class procedure TPlayerConstructionEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
-begin end;
+begin
+  Handled := Handled + [emEdit];
+end;
 
 procedure TPlayerConstructionEditForm.FormCreate(Sender: TObject);
 var I: Integer;
