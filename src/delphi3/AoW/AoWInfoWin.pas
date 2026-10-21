@@ -547,8 +547,8 @@ begin
       if Structure.GetMagicSphere = msNone then
       begin
         ActiveActionMemo.Items.Add('');
-        if Structure.GetBaseIncome <> 0 then ActiveActionMemo.Items.Add(TranslateRStr(NoneRStr))
-        else ActiveActionMemo.Items.Add(TranslateRStr(ProducingMerchandiseRStr)); { Original reverses the income test. }
+        if Structure.GetBaseIncome = 0 then ActiveActionMemo.Items.Add(TranslateRStr(NoneRStr))
+        else ActiveActionMemo.Items.Add(TranslateRStr(ProducingMerchandiseRStr));
       end
       else ActiveActionMemo.Items.Add(TranslateRStr(GeneratingExtraPowerRStr));
     RazePnl.Visible := True;
