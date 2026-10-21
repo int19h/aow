@@ -54,10 +54,10 @@ type
   { TCombatTerrainResource (instance size 76, VMT 0040FE54) }
   TCombatTerrainResource = class(TTerrainMOR)
   public
-    F_CombatTerrainResource_48: Byte;
+    FBurnValue: Shortint; { $48; AoWEd 0040B0AB }
     FDefense: Shortint; { $49 }
-    F_CombatTerrainResource_4A: Byte;
-    F_CombatTerrainResource_4B: Boolean;
+    FHitPoints: Byte; { $4A; AoWEd 0040B0C2 }
+    FMeleeTarget: Boolean; { $4B; AoWEd 0040B0D6 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     class function ResourceEditName: string; override;
@@ -310,9 +310,9 @@ procedure TCombatTerrainResource.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(Byte(FDefense), 20);
-  Stream.rwByte(F_CombatTerrainResource_48, 21);
-  Stream.rwByte(F_CombatTerrainResource_4A, 22);
-  Stream.rwBool(F_CombatTerrainResource_4B, 23);
+  Stream.rwByte(Byte(FBurnValue), 21);
+  Stream.rwByte(FHitPoints, 22);
+  Stream.rwBool(FMeleeTarget, 23);
 end;
 
 procedure RegisterCombatTerrain(AEngine: TEngine);

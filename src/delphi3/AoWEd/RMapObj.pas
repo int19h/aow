@@ -103,8 +103,8 @@ type
     FFrame: Integer; { $314 }
     FUpdating: Boolean; { $318 }
     F_MapObjectResourceEditForm_319: array[0..2] of Byte;
-    F_MapObjectResourceEditForm_31C: Integer;
-    F_MapObjectResourceEditForm_320: Integer;
+    FDragX: Integer; { $31C, 004067A0 }
+    FDragY: Integer; { $320, 004067A9 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure WndProc(var Message: TMessage); override;

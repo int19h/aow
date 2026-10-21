@@ -329,6 +329,9 @@ type
     FStaticTimingDirty: Boolean; { $6A4 }
     FInitialDisplay: Boolean; { $6A5 }
     F_MainForm_6A6: array[0..5] of Byte;
+    function LoadMap(const FileName: string): Boolean;
+    procedure ClearMouseMessages;
+    procedure EditMapSettings(AllowCancel: Boolean);
     procedure UpdateDefaultPlayers;
     procedure DefaultPlayerClick(Sender: TObject);
     procedure ApplicationMessage(var Msg: TMsg; var Handled: Boolean);
@@ -346,11 +349,11 @@ type
     procedure Brush1BtnClick(Sender: TObject);
     procedure Brush2BtnClick(Sender: TObject);
     procedure Brush3BtnClick(Sender: TObject);
-    procedure OpenBtnClick(Sender: TObject);  { draft }
-    procedure SaveBtnClick(Sender: TObject);  { draft }
+    procedure OpenBtnClick(Sender: TObject);
+    procedure SaveBtnClick(Sender: TObject);
     procedure CloseItemClick(Sender: TObject);
-    procedure NewItemClick(Sender: TObject);  { draft }
-    procedure SaveAsItemClick(Sender: TObject);  { draft }
+    procedure NewItemClick(Sender: TObject);
+    procedure SaveAsItemClick(Sender: TObject);
     procedure ExitItemClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure LevelDownBtnClick(Sender: TObject);
@@ -360,7 +363,7 @@ type
     procedure NewMapsetClick(Sender: TObject);  { draft }
     procedure HSSEditActivate(Sender: TObject);
     procedure HSSEditDeactivate(Sender: TObject);
-    procedure HSMEditUpdateCaption(Sender: TObject);  { draft }
+    procedure HSMEditUpdateCaption(Sender: TObject);
     procedure HSMEditShowMessage(S: string);
     procedure HSMEditStaticSceneUpdated(Sender: TObject);
     procedure DebugModeClick(Sender: TObject);
@@ -387,7 +390,7 @@ type
     procedure HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure DeleteHeroBtnClick(Sender: TObject);  { draft }
     procedure RemoveFromMapClick(Sender: TObject);  { draft }
-    procedure DeleteItemBtnClick(Sender: TObject);  { draft }
+    procedure DeleteItemBtnClick(Sender: TObject);
     procedure RemoveItemClick(Sender: TObject);  { draft }
     procedure RemoveLeaderFromMapClick(Sender: TObject);  { draft }
     procedure OpenItemLibraryClick(Sender: TObject);  { draft }
@@ -419,23 +422,23 @@ type
     procedure ItemControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure HSMEditDeselectPlaceHS(Sender: TObject);  { draft }
     procedure OpenMapSetClick(Sender: TObject);  { draft }
-    procedure ExportTextClick(Sender: TObject);  { draft }
-    procedure ImportTextClick(Sender: TObject);  { draft }
+    procedure ExportTextClick(Sender: TObject);
+    procedure ImportTextClick(Sender: TObject);
     procedure MapSetSettingsClick(A1: Integer; A2: Integer);  { draft }
     procedure LeaderSelectionGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure FogofWarClick(Sender: TObject);  { draft }
     procedure PlayerInfoClick(Sender: TObject);  { draft }
-    procedure RemoveMapLevelClick(Sender: TObject);  { draft }
-    procedure AddMapLevelClick(Sender: TObject);  { draft }
-    procedure FormShow(Sender: TObject);  { draft }
+    procedure RemoveMapLevelClick(Sender: TObject);
+    procedure AddMapLevelClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure SpellListBoxClick(Sender: TObject);
     procedure AbilityListBoxClick(Sender: TObject);
-    procedure AbilitySelectionCLBClickCheck(A1: Integer; A2: Integer);  { draft }
+    procedure AbilitySelectionCLBClickCheck(Sender: TObject);
     procedure AbilityLevelPointsChange(Sender: TObject);  { draft }
-    procedure AbilityDescriptionChange(Sender: TObject);  { draft }
-    procedure EditAbilityTextClick(Sender: TObject);  { draft }
-    procedure SpellDescriptionChange(Sender: TObject);  { draft }
-    procedure EditSpellTextClick(Sender: TObject);  { draft }
+    procedure AbilityDescriptionChange(Sender: TObject);
+    procedure EditAbilityTextClick(Sender: TObject);
+    procedure SpellDescriptionChange(Sender: TObject);
+    procedure EditSpellTextClick(Sender: TObject);
     procedure SphereEditChange(Sender: TObject);  { draft }
     procedure SphereLevelEditChange(Sender: TObject);  { draft }
     procedure SpellManaChange(Sender: TObject);  { draft }
@@ -449,7 +452,7 @@ type
     procedure GoToHeroClick(A1: Integer; A2: Integer);  { draft }
     procedure GoToLeaderClick(A1: Integer; A2: Integer);  { draft }
     procedure ValidateMapBtnClick(Sender: TObject);  { draft }
-    procedure NewCombatMapClick(Sender: TObject);  { draft }
+    procedure NewCombatMapClick(Sender: TObject);
     procedure LinkToCombatResources(A1: Integer);  { draft }
     procedure UnitPositionBtnClick(Sender: TObject);  { draft }
     procedure BorderBtnClick(Sender: TObject);  { draft }
@@ -462,18 +465,87 @@ type
     procedure HeroPopupMenuPopup(Sender: TObject);  { draft }
     procedure ItemPopupMenuPopup(Sender: TObject);  { draft }
     procedure GameSettingsClick(Sender: TObject);  { draft }
-    procedure ExportAbilityInfoClick(Sender: TObject);  { draft }
+    procedure ExportAbilityInfoClick(Sender: TObject);
     procedure HSMEditActivateDC(Sender: TObject);  { draft }
     procedure RemoveLeadersMIClick(Sender: TObject);  { draft }
     procedure MapTextEditorMIClick(Sender: TObject);  { draft }
-    procedure ExportForMultilizerClick(Sender: TObject);  { draft }
-    procedure HSMEditKeyDown(Sender: TObject);  { draft }
+    procedure ExportForMultilizerClick(Sender: TObject);
+    procedure HSMEditKeyDown(Sender: TObject);
   end;
 
 var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
-uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid;
+uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog;
+
+
+resourcestring
+  DeleteSelectedItemsRStr = 'Do you want to delete the selected items?';
+  CannotRemoveSurfaceRStr = 'Cannot Remove Surface Level';
+  RemoveCurrentLevelRStr = 'Are you sure you want to remove the current map level?';
+
+procedure TMainForm.ClearMouseMessages;
+var
+  Msg: TMsg;
+begin
+  while PeekMessage(Msg, Handle, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE) do;
+end;
+
+function TMainForm.LoadMap(const FileName: string): Boolean;
+var
+  Cancel: Boolean;
+  Dlg: TPasswordDlg;
+begin
+  Cancel := False;
+  Result := HSMEdit.LoadHSM(FileName);
+  if (AoWHSMap = nil) or (AoWHSMap.FDay <> 0) or
+     (AoWHSMap.FGameType = gtCampaign) or AoWHSMap.FShowAllPlayers then Cancel := True;
+  if Result and not Cancel then
+    if (AoWHSMap <> nil) and (AoWHSMap.FAuthor <> '') then
+    begin
+      Dlg := TPasswordDlg.Create(Self);
+      if Dlg.ShowModal = mrOK then
+      begin
+        Cancel := Encode(Dlg.PasswordEdit.Text, 0) <> AoWHSMap.FAuthor;
+        if Cancel then
+        begin
+          ShowMessage(TranslateRStr(InvalidPasswordRStr));
+          Result := False;
+        end;
+      end
+      else Cancel := True;
+      Dlg.Free;
+    end;
+  if Cancel then
+  begin
+    HSMEdit.Close;
+    Result := False;
+  end;
+  if Result then
+  begin
+    HSMEdit.Activate;
+    HSSEdit.Activate(False);
+  end;
+end;
+
+procedure TMainForm.EditMapSettings(AllowCancel: Boolean);
+var
+  Dlg: TMapSettingsDlg;
+begin
+  if HSMEdit.Activated and (AoWHSMap <> nil) then
+  begin
+    HSMEdit.PauseFrameUpdateLoop;
+    Dlg := TMapSettingsDlg.Create(Self);
+    try
+      Dlg.CancelBtn.Enabled := AllowCancel;
+      Dlg.ShowModal;
+    finally
+      Dlg.Destroy;
+    end;
+    UpdateDefaultPlayers;
+    HSMEdit.ResumeFrameUpdateLoop;
+  end;
+end;
 
 procedure TMainForm.ApplicationMessage(var Msg: TMsg; var Handled: Boolean);
 var Key: Word;
@@ -799,10 +871,35 @@ begin
 end;
 
 procedure TMainForm.OpenBtnClick(Sender: TObject);
-begin end;
+var
+  Dlg: TOpenDialog;
+begin
+  Dlg := TOpenDialog.Create(Self);
+  Dlg.Filter := HSMEdit.LoadMapFileFilter;
+  if Dlg.Execute and HSMEdit.Close then
+  begin
+    UpdateWindow(Handle);
+    UpdateWindow(GetDesktopWindow);
+    Repaint;
+    LoadMap(Dlg.FileName);
+  end;
+  ClearMouseMessages;
+  { Original leaves the open dialog owned by the main form. }
+end;
 
 procedure TMainForm.SaveBtnClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    if AoWHSMap.FGameType = gtCustom then
+      HSMEdit.SaveMapFileFilter := TranslateRStr(CustomMapRStr) + '|*.hsm'
+    else HSMEdit.SaveMapFileFilter := TranslateRStr(CampaignMapRStr) + '|*.csm';
+  end
+  else if AoWCombatMap <> nil then
+    HSMEdit.SaveMapFileFilter := TranslateRStr(CustomMapRStr) + '|*.hsm';
+  HSMEdit.Save;
+  HSSEdit.Save;
+end;
 
 procedure TMainForm.CloseItemClick(Sender: TObject);
 begin
@@ -811,10 +908,42 @@ begin
 end;
 
 procedure TMainForm.NewItemClick(Sender: TObject);
-begin end;
+var
+  Dlg: TNewMapDlg;
+begin
+  if HSMEdit.Close then
+    if HSSEdit.Close then
+    begin
+      Dlg := TNewMapDlg.Create(Self);
+      if Dlg.ShowModal = mrOK then
+      begin
+        HSSEdit.Activate(False);
+        UpdateWindow(Handle);
+        FInitialDisplay := True;
+        HSMEdit.HSMapFileName := 'noname.hsm';
+        HSMEdit.Activate;
+        HSSEditActivate(Self);
+        HSMEdit.UpdateFrame;
+        HSMEdit.ExecuteBltSurfaceEvent;
+        EditMapSettings(False);
+      end;
+      Dlg.Free;
+    end;
+end;
 
 procedure TMainForm.SaveAsItemClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    if AoWHSMap.FGameType = gtCustom then
+      HSMEdit.SaveMapFileFilter := TranslateRStr(CustomMapRStr) + '|*.hsm'
+    else HSMEdit.SaveMapFileFilter := TranslateRStr(CampaignMapRStr) + '|*.csm';
+  end
+  else if AoWCombatMap <> nil then
+    HSMEdit.SaveMapFileFilter := TranslateRStr(CustomMapRStr) + '|*.hsm';
+  HSMEdit.SaveAs;
+  HSSEdit.SaveAs;
+end;
 
 procedure TMainForm.ExitItemClick(Sender: TObject);
 begin
@@ -979,7 +1108,13 @@ begin
 end;
 
 procedure TMainForm.HSMEditUpdateCaption(Sender: TObject);
-begin end;
+begin
+  if HSMEdit.Activated then
+    Caption := TranslateRStr(AoWEdRStr) + ' [' + HSMEdit.HSMapFileName + ']'
+  else if HSSEdit.Activated and HSSEdit.Edit then
+    Caption := TranslateRStr(AoWEdRStr) + ' [' + AoWEngine.HSSFileName + ']'
+  else Caption := TranslateRStr(AoWEdRStr);
+end;
 
 procedure TMainForm.HSMEditShowMessage(S: string);
 begin
@@ -1122,7 +1257,15 @@ procedure TMainForm.RemoveFromMapClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.DeleteItemBtnClick(Sender: TObject);
-begin end;
+begin
+  if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
+  if MessageDlg(DeleteSelectedItemsRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+  begin
+    HSMEdit.DeselectPlaceHS;
+    ItemControlGrid.DeleteItem;
+  end;
+  if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
+end;
 
 procedure TMainForm.RemoveItemClick(Sender: TObject);
 begin end;
@@ -1264,10 +1407,29 @@ procedure TMainForm.OpenMapSetClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.ExportTextClick(Sender: TObject);
-begin end;
+var
+  Dlg: TSaveDialog;
+begin
+  Dlg := TSaveDialog.Create(Self);
+  Dlg.Filter := 'Text file (*.txt)|*.txt';
+  Dlg.DefaultExt := 'txt';
+  if Dlg.Execute then
+    if HSMEdit.Activated then AoWEngine.WriteTextToFile(Dlg.FileName, AoWHSMap)
+    else if HSSEdit.Activated then AoWEngine.WriteTextToFile(Dlg.FileName, AoWHSSet);
+  Dlg.Free;
+end;
 
 procedure TMainForm.ImportTextClick(Sender: TObject);
-begin end;
+var
+  Dlg: TOpenDialog;
+begin
+  Dlg := TOpenDialog.Create(Self);
+  Dlg.Filter := 'Text file (*.txt)|*.txt';
+  if Dlg.Execute then
+    if HSMEdit.Activated then AoWEngine.ReadTextFromFile(Dlg.FileName, AoWHSMap)
+    else if HSSEdit.Activated then AoWEngine.ReadTextFromFile(Dlg.FileName, AoWHSSet);
+  Dlg.Free;
+end;
 
 procedure TMainForm.MapSetSettingsClick(A1: Integer; A2: Integer);
 begin end;
@@ -1282,13 +1444,47 @@ procedure TMainForm.PlayerInfoClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.RemoveMapLevelClick(Sender: TObject);
-begin end;
+var
+  Level: Shortint;
+begin
+  if AoWHSMap <> nil then
+    if HSMEdit.SceneLevel = 0 then ShowMessage(CannotRemoveSurfaceRStr)
+    else if MessageDlg(RemoveCurrentLevelRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+    begin
+      Level := HSMEdit.SceneLevel;
+      HSMEdit.SceneLevel := 0;
+      AoWHSMap.RemoveMapLevel(Level);
+      LevelDownBtn.Enabled := AoWHSMap.MapContainer.LevelCount > 1;
+      LevelUpBtn.Enabled := LevelDownBtn.Enabled;
+      MORPageControl.ActivePage := SurfaceSheet;
+      AoWHSMap.SetModified;
+    end;
+end;
 
 procedure TMainForm.AddMapLevelClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+    if AoWHSMap.AddMapLevel then
+    begin
+      HSMEdit.SceneLevel := AoWHSMap.MapContainer.LevelCount - 1;
+      LevelDownBtn.Enabled := AoWHSMap.MapContainer.LevelCount > 1;
+      LevelUpBtn.Enabled := LevelDownBtn.Enabled;
+      if HSMEdit.SceneLevel > 0 then MORPageControl.ActivePage := UndergroundMORSheet
+      else MORPageControl.ActivePage := SurfaceSheet;
+      AoWHSMap.SetModified;
+    end;
+end;
 
 procedure TMainForm.FormShow(Sender: TObject);
-begin end;
+begin
+  if ParamStr(1) <> '' then
+    if FileExists(ParamStr(1)) then
+      if CompareText(ExtractFileExt(ParamStr(1)), '.hsm') = 0 then
+      begin
+        Application.ProcessMessages;
+        LoadMap(ParamStr(1));
+      end;
+end;
 
 procedure TMainForm.SpellListBoxClick(Sender: TObject);
 var
@@ -1364,23 +1560,88 @@ begin
   end;
 end;
 
-procedure TMainForm.AbilitySelectionCLBClickCheck(A1: Integer; A2: Integer);
-begin end;
+procedure TMainForm.AbilitySelectionCLBClickCheck(Sender: TObject);
+var
+  Index: Integer;
+begin
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    with AbilityListBox do Index := Integer(Items.Objects[ItemIndex]);
+    with AbilitySelectionCLB do
+    begin
+      AoWHSSet.FAbilityControl.GetAbility(Index).FSelectionTypes :=
+        AoWHSSet.FAbilityControl.GetAbility(Index).FSelectionTypes -
+        [TAbilitySelectionType(Items.Objects[ItemIndex])];
+      if Checked[ItemIndex] then
+        AoWHSSet.FAbilityControl.GetAbility(Index).FSelectionTypes :=
+          AoWHSSet.FAbilityControl.GetAbility(Index).FSelectionTypes +
+          [TAbilitySelectionType(Items.Objects[ItemIndex])];
+    end;
+  end;
+end;
 
 procedure TMainForm.AbilityLevelPointsChange(Sender: TObject);
 begin end;
 
 procedure TMainForm.AbilityDescriptionChange(Sender: TObject);
-begin end;
+var
+  Index: Integer;
+begin
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    with AbilityListBox do Index := Integer(Items.Objects[ItemIndex]);
+    AoWHSSet.FAbilityControl.GetAbility(Index).FDescription.Text := AbilityDescription.Text;
+  end;
+end;
 
 procedure TMainForm.EditAbilityTextClick(Sender: TObject);
-begin end;
+var
+  Index: Integer;
+  Dlg: TTextEditDlg;
+begin
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    with AbilityListBox do Index := Integer(Items.Objects[ItemIndex]);
+    Dlg := TTextEditDlg.Create(Self);
+    Dlg.Memo.Text := AoWHSSet.FAbilityControl.GetAbility(Index).FDescription.Text;
+    if Dlg.ShowModal = mrOK then
+    begin
+      AoWHSSet.FAbilityControl.GetAbility(Index).FDescription.Text := Dlg.Memo.Text;
+      AbilityDescription.Text := Dlg.Memo.Text;
+    end;
+    Dlg.Free;
+  end;
+end;
 
 procedure TMainForm.SpellDescriptionChange(Sender: TObject);
-begin end;
+var
+  Index: Integer;
+begin
+  if (AoWHSSet <> nil) and (SpellListBox.ItemIndex <> -1) then
+  begin
+    with SpellListBox do Index := Integer(Items.Objects[ItemIndex]);
+    AoWHSSet.FSpellControl.GetSpell(Index).FSpellText.Text := SpellDescription.Text;
+  end;
+end;
 
 procedure TMainForm.EditSpellTextClick(Sender: TObject);
-begin end;
+var
+  Index: Integer;
+  Dlg: TTextEditDlg;
+begin
+  if (AoWHSSet <> nil) and (SpellListBox.ItemIndex <> -1) then
+  begin
+    with SpellListBox do Index := Integer(Items.Objects[ItemIndex]);
+    Dlg := TTextEditDlg.Create(Self);
+    Dlg.Memo.Text := AoWHSSet.FSpellControl.GetSpell(Index).FSpellText.Text;
+    if Dlg.ShowModal = mrOK then
+    begin
+      AoWHSSet.FSpellControl.GetSpell(Index).FSpellText.Text := Dlg.Memo.Text;
+      SpellDescription.Text := Dlg.Memo.Text;
+    end;
+    Dlg.Free;
+  end;
+end;
 
 procedure TMainForm.SphereEditChange(Sender: TObject);
 begin end;
@@ -1426,7 +1687,22 @@ procedure TMainForm.ValidateMapBtnClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.NewCombatMapClick(Sender: TObject);
-begin end;
+var
+  Map: THSMap;
+begin
+  if HSMEdit.Close and HSSEdit.Close then
+  begin
+    FInitialDisplay := False;
+    AoWEngine.InitializeHSSet(AoWEngine.StartupDirectory + 'RELEASE\RELEASE.HSS', nil);
+    Map := AoWEngine.NewHSM($220100);
+    Map.CreateNewMap(TAoWNewCombatMapSettings.Create);
+    HSSEdit.Activate(False);
+    FInitialDisplay := True;
+    HSMEdit.HSMapFileName := 'noname.hsm';
+    HSMEdit.Activate;
+    HSSEditActivate(Self);
+  end;
+end;
 
 procedure TMainForm.LinkToCombatResources(A1: Integer);
 begin end;
@@ -1465,7 +1741,22 @@ procedure TMainForm.GameSettingsClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.ExportAbilityInfoClick(Sender: TObject);
-begin end;
+var
+  Dlg: TSaveDialog;
+  List: TStringList;
+begin
+  Dlg := TSaveDialog.Create(Self);
+  Dlg.Filter := 'Text files|*.txt';
+  if Dlg.Execute then
+  begin
+    List := TStringList.Create;
+    AoWHSSet.FAbilityControl.ListAbilityInfo(List, True, [aimDescription, aimStatistics]);
+    if Pos('.', Dlg.FileName) = 0 then List.SaveToFile(Dlg.FileName + '.txt')
+    else List.SaveToFile(Dlg.FileName);
+    List.Free;
+  end;
+  Dlg.Free;
+end;
 
 procedure TMainForm.HSMEditActivateDC(Sender: TObject);
 begin end;
@@ -1477,10 +1768,42 @@ procedure TMainForm.MapTextEditorMIClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.ExportForMultilizerClick(Sender: TObject);
-begin end;
+var
+  FileName: string;
+begin
+  if HSMEdit.Activated then
+  begin
+    FileName := AoWHSMap.FileName;
+    if Pos('.', FileName) <> 0 then FileName := Copy(FileName, 1, Pos('.', FileName) - 1);
+    FileName := FileName + '.txt';
+    AoWEngine.ExportTextToFile(FileName, AoWHSMap);
+    ShowMessage('text successfully exported to: ' + FileName);
+  end
+  else
+  begin
+    FileName := AoWEngine.StartupDirectory + 'Release\' + 'release.txt';
+    AoWEngine.ExportTextToFile(FileName, AoWHSSet);
+    ShowMessage('text successfully exported to: ' + FileName);
+  end;
+end;
 
 procedure TMainForm.HSMEditKeyDown(Sender: TObject);
-begin end;
+var
+  I, J, Count: Integer;
+begin
+  if AoWHSMap <> nil then
+    for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+    begin
+      Count := 0;
+      for J := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+        if AoWHSMap.FHeroControl.GetHero(J) is TLeader then
+          if AoWHSMap.FHeroControl.GetHero(J).FPlayer = I then
+          begin
+            Inc(Count);
+            if Count > 1 then ShowMessage('Double leaders defined (Player:' + IntToStr(I) + ')');
+          end;
+    end;
+end;
 
 
 end.

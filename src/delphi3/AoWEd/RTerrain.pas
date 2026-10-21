@@ -4,6 +4,8 @@ unit RTerrain;
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
+{$R+,Q+}
+
 interface
 
 uses
@@ -21,22 +23,40 @@ type
     Label10: TLabel; { +0340 }
     DecorationComboBox: TComboBox; { +0344 }
     public
-    procedure TerrainComboBoxChange;  { draft }
-    procedure FormCreate;  { draft }
-    procedure DecorationComboBoxChange;  { draft }
+    procedure TerrainComboBoxChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure DecorationComboBoxChange(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TTerrainResourceEditForm.TerrainComboBoxChange;
-begin end;
+procedure TTerrainResourceEditForm.TerrainComboBoxChange(Sender: TObject);
+var
+  List: TTerrainList;
+  I: Integer;
+begin
+  inherited TerrainComboBoxChange(Sender);
+  if TerrainComboBox.TerrainType >= 0 then
+  begin
+    List := FResource.TerrainList;
+    for I := 0 to List.Count - 1 do
+      if List.Terrain[I] >= 0 then List.Terrain[I] := TerrainComboBox.TerrainType;
+    TTerrainMOR(FResource).TerrainType := Byte(TerrainComboBox.TerrainType);
+  end;
+end;
 
-procedure TTerrainResourceEditForm.FormCreate;
-begin end;
+procedure TTerrainResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  DecorationComboBox.Items := FEngine.HSSet.DecorationTypes;
+  DecorationComboBox.ItemIndex := TTerrainMOR(FResource).DecorationType;
+end;
 
-procedure TTerrainResourceEditForm.DecorationComboBoxChange;
-begin end;
+procedure TTerrainResourceEditForm.DecorationComboBoxChange(Sender: TObject);
+begin
+  TTerrainMOR(FResource).DecorationType := DecorationComboBox.ItemIndex;
+end;
 
 
 end.

@@ -8,3 +8,13 @@
   Use(nil, @ScannerFlt.TScannerFloater.SetMap);
   Use(nil, @ScannerFlt.TScannerFloater.UpdateLevel);
   Use(nil, @ScannerFlt.TScannerFloater.ShowScanner);
+  Use(nil, @RMultiHx.TMultiHexResourceEditForm.SetTool);
+  Use(nil, @RMultiHx.TMultiHexResourceEditForm.ShowHexagonText);
+  Use(nil, @GameSDlg.TGameSettingsDlg.UpdateGameType);
+  Use(nil, @EWizardsTower.TWizardsTowerEditForm.UpdateControls);
+  Use(nil, @SelAbDlg.TAbilitySelectionDlg.CreateSelection);
+  Use(nil, @SelAbDlg.TAbilitySelectionDlg.UpdateAddButton);
+  Use(nil, @SelAbDlg.TAbilitySelectionDlg.UpdateDeleteButton);
+  Use(nil, @MDIForm.TMainForm.LoadMap);
+  Use(nil, @MDIForm.TMainForm.ClearMouseMessages);
+  Use(nil, @MDIForm.TMainForm.EditMapSettings);

@@ -63,5 +63,15 @@
   "004280cc:128": "TMainForm.ApplicationMessage",
   "004281dc:73": "TMainForm.ApplicationException",
   "0042824c:1": "TMainForm.ApplicationHint",
-  "00428250:444": "TMainForm.ApplicationShowHint"
+  "00428250:444": "TMainForm.ApplicationShowHint",
+  "004060c8:48": "TMultiHexResourceEditForm.SetTool",
+  "00406190:258": "TMultiHexResourceEditForm.ShowHexagonText",
+  "0041cabc:238": "TWizardsTowerEditForm.UpdateControls",
+  "0042dbc8:341": "TGameSettingsDlg.UpdateGameType",
+  "00410244:80": "TAbilitySelectionDlg.CreateSelection",
+  "004105d0:86": "TAbilitySelectionDlg.UpdateAddButton",
+  "00410628:86": "TAbilitySelectionDlg.UpdateDeleteButton",
+  "0042889c:45": "TMainForm.ClearMouseMessages",
+  "00429634:389": "TMainForm.LoadMap",
+  "0042a8fc:173": "TMainForm.EditMapSettings"
 }

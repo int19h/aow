@@ -679,7 +679,7 @@ type
     procedure WndProc(var Message: TMessage); override;
     procedure Paint; override;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); override; property Canvas; { AoWEd 0041CBCB }
   published
     property Color;
     property Align;

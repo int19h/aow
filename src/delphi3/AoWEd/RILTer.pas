@@ -19,8 +19,8 @@ type
   public
     procedure vmt84; override;
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
-    procedure vmt98(A1: Integer); override;
-    function vmt9C(A1: Integer): Integer; override;
+    procedure vmt98(const SD: TSurfaceDesc); override;
+    function vmt9C(A1: Integer): Boolean; override;
   end;
 
   { TILTerrainResourceEditor (instance size 8, VMT 00406EB4) }
@@ -41,11 +41,11 @@ begin end;
 procedure TILTerrainResourceEditForm.vmt84;
 begin end;
 
-procedure TILTerrainResourceEditForm.vmt98(A1: Integer);
+procedure TILTerrainResourceEditForm.vmt98(const SD: TSurfaceDesc);
 begin end;
 
-function TILTerrainResourceEditForm.vmt9C(A1: Integer): Integer;
-begin Result := 0; end;
+function TILTerrainResourceEditForm.vmt9C(A1: Integer): Boolean;
+begin Result := False; end;
 
 
 end.

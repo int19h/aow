@@ -35,8 +35,8 @@ type
     DeleteRazeDefender: TButton; { +0374 }
     public
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
-    procedure vmt98(A1: Integer); override;
-    function vmt9C(A1: Integer): Integer; override;
+    procedure vmt98(const SD: TSurfaceDesc); override;
+    function vmt9C(A1: Integer): Boolean; override;
     procedure LoopBoxClick;  { draft }
     procedure PlaySampleClick;  { draft }
     procedure SFXManagerBoxChange;  { draft }
@@ -67,11 +67,11 @@ begin end;
 constructor TConstructionResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
 begin end;
 
-procedure TConstructionResourceEditForm.vmt98(A1: Integer);
+procedure TConstructionResourceEditForm.vmt98(const SD: TSurfaceDesc);
 begin end;
 
-function TConstructionResourceEditForm.vmt9C(A1: Integer): Integer;
-begin Result := 0; end;
+function TConstructionResourceEditForm.vmt9C(A1: Integer): Boolean;
+begin Result := False; end;
 
 procedure TConstructionResourceEditForm.LoopBoxClick;
 begin end;

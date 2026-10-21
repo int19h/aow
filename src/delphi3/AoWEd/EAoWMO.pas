@@ -20,7 +20,7 @@ type
     MainPageControl: TPageControl; { +0204 }
     GeneralSheet: TTabSheet; { +0208 }
     public
-    F_AoWMapObjEditForm_20C: Integer;
+    FMapObject: TMapObject; { $20C; 0041C745 }
     procedure vmt84; override;
     procedure vmt8C; override;
     function vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer; override;

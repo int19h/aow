@@ -37,7 +37,7 @@ type
     function vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer; virtual;  { +090 draft }
     procedure FormClose(A1: Integer; A2: Integer);  { draft }
     procedure FormShow;  { draft }
-    procedure OKBtnClick;  { draft }
+    procedure OKBtnClick(Sender: TObject);
   end;
 
 
@@ -70,7 +70,7 @@ begin end;
 procedure TAoWMapEditForm.FormShow;
 begin end;
 
-procedure TAoWMapEditForm.OKBtnClick;
+procedure TAoWMapEditForm.OKBtnClick(Sender: TObject);
 begin end;
 
 
