@@ -40,7 +40,7 @@ var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string; TAbilitySelectionTypeRStr: array[TAbilitySelectionType] of string; { AoWEd 0042C336 }
   TPlayerTypeRStr: array[0..7] of string; { $558E81A0 }
-  TCombatModeRStr: array[TCombatMode] of string;
+  TCombatModeRStr: array[TCombatMode] of string; TCombatResolveModeRStr: array[TCombatResolveMode] of string; { $558E81DC; AoW 00422576 }
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
   TStatusRStr: TStatusNames;
   TDamageTypeRStr: array[TDamageType] of string; astAll: TAbilitySelectionTypes = [astUnit..astEditor]; msAll: TMagicSpheres = [msCosmos..msNone]; { AoWEd 0042A5A4 / 0042A5E1 }

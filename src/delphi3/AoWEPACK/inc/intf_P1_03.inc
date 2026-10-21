@@ -302,7 +302,7 @@
     function DiplomaticActionAleadySend(Action: TDiplomaticActionType; Target, Other: Shortint): Boolean;
     function ListDiplomaticActions(Player: Shortint; var Actions: TDiplomaticActionList): Integer;
     function ValidAttackRelation(Player, IndependentRelation: Shortint): Boolean;
-    function ChangePlayerSettings(const Settings: string): Boolean;
+    function ChangePlayerSettings(const Settings: string; var Error: string): Boolean;
   end;
 
   { TPlayerList: size $20; $10 active, $14 local, $18 human, $1C local human lists. VMT 5570C5E8. }

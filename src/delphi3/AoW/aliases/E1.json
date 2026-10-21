@@ -18,5 +18,13 @@
   "FUN_00447064": "THeroUpgradeDlg.CanAddAbility",
   "FUN_0040701c": "TInfoBanner.ShowInfo",
   "FUN_00449b30": "TRealmWin.UpdateOverview",
-  "FUN_0044a030": "TRealmWin.DrawArmyUnit"
+  "FUN_0044a030": "TRealmWin.DrawArmyUnit",
+  "FUN_00419488": "TTitleScene.HitTest",
+  "FUN_0041a128": "TTitleScene.ResetScene",
+  "FUN_00419fdc": "TTitleScene.AdvanceFrame",
+  "FUN_00420b80": "CompareFileDates",
+  "FUN_0041f0ec": "TFileDlgWindow.FinishDialog",
+  "FUN_0042278c": "TGamePlayDlg.PasswordEntered",
+  "0042287c:238": "TGamePlayDlg.PasswordConfirmed",
+  "FUN_004352dc": "TFastCombatWindow.SetPhase"
 }

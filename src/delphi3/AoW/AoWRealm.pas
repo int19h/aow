@@ -105,7 +105,7 @@ type
     Translator: TIvTranslator; { +0198 }
     public
     procedure UpdateOverview; { draft; 00449B30 }
-    procedure DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); { draft; 0044A030 }
+    procedure DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); { 0044A030 }
     procedure OWMinIconClick;
     procedure T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
     procedure Unit1LBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
@@ -172,7 +172,41 @@ procedure TRealmWin.UpdateOverview;
 begin end;
 
 procedure TRealmWin.DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-begin end;
+var
+  U: TAbstractUnit;
+  OldClip: TRect;
+begin
+  if Column < AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(DrawItem).GetCount then
+  begin
+    OldClip := SurfDesc.ClipRect;
+    SurfDesc.ClipRect.Left := DrawRect.Left + 2;
+    SurfDesc.ClipRect.Top := DrawRect.Top + 1;
+    SurfDesc.ClipRect.Right := DrawRect.Right - 2;
+    SurfDesc.ClipRect.Bottom := DrawRect.Top + Unit1LB.ItemHeight - 6;
+    if DrawRect.Bottom - DrawRect.Top < Unit1LB.ItemHeight - 6 then SurfDesc.ClipRect.Bottom := DrawRect.Bottom;
+    U := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(DrawItem).GetUnit(Column);
+    if (Ord(U.GetAlignment) and $7F) < IntGfxMod.UnitBGs.Count then
+      IntGfxMod.UnitBGs[Ord(U.GetAlignment)].ShowClipped(
+        DrawRect.Left - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Width - (DrawRect.Right - DrawRect.Left)) div 2,
+        DrawRect.Top - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Height - (DrawRect.Bottom - DrawRect.Top - 10)) div 2,
+        SurfDesc);
+    U.ShowEx(DrawRect.Left - (U.GetPreviewImage.Width - (DrawRect.Right - DrawRect.Left)) div 2,
+      DrawRect.Top - (U.GetPreviewImage.Height - (Unit1LB.ItemHeight - 10)) div 2, SurfDesc, General.FUnitShowInfo);
+    with UnitGg do
+    begin
+      Visible := True;
+      Max := U.GetHits;
+      Position := U.GetHitPoints;
+      WinLeft := DrawRect.Left - T4LBPnl.WinLeft + 5;
+      WinWidth := DrawRect.Right - DrawRect.Left - 10;
+      WinTop := DrawRect.Top + Unit1LB.ItemHeight - T4LBPnl.WinTop - 9;
+      ReAlign;
+      DrawSurfDesc(SurfDesc);
+      Visible := False;
+    end;
+    SurfDesc.ClipRect := OldClip;
+  end;
+end;
 
 procedure TRealmWin.OWMinIconClick;
 begin

@@ -28308,7 +28308,7 @@ begin
       [drWar, drUnknown];
 end;
 
-function TPlayer.ChangePlayerSettings(const Settings: string): Boolean;
+function TPlayer.ChangePlayerSettings(const Settings: string; var Error: string): Boolean;
 var
   Event: TChangePlayerSettingsTE;
 begin

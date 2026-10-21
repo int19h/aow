@@ -124,7 +124,7 @@ type
   { TFileTime (instance size 12, VMT 0041EB14) }
   TFileTime = class(TObject)
   public
-    F_FileTime_04: array[0..7] of Byte;
+    FTime: TDateTime; { $04; 0041F71B }
   end;
 
 

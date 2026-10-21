@@ -7,13 +7,13 @@ unit AoWRelations;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TRelWindow = class;
 
 
-  { TRelWindow (instance size 680, VMT 00423988) }
+  { TRelWindow (size $2A8, VMT 00423988): $280 diplomatic actions, $288 player indices, $28C race indices, $290 controls. }
   TRelWindow = class(TDataModule)
   public
     published
@@ -161,13 +161,13 @@ type
     public
     F_RelWindow_278: Integer;
     F_RelWindow_27C: Integer;
-    F_RelWindow_280: Integer;
+    FActions: TDiplomaticActionList; { $280 }
     F_RelWindow_284: array[0..1] of Byte;
     F_RelWindow_286: Byte;
     F_RelWindow_287: Byte;
-    F_RelWindow_288: Integer;
-    F_RelWindow_28C: Integer;
-    F_RelWindow_290: Integer;
+    FPlayers: TIntegerList; { $288 }
+    FRaces: TIntegerList; { $28C }
+    FControls: TList; { $290 }
     F_RelWindow_294: array[0..7] of Byte;
     F_RelWindow_29C: Integer;
     F_RelWindow_2A0: Integer;
@@ -204,14 +204,77 @@ type
 
 implementation
 
+uses AoWWinMan;
+
 procedure TRelWindow.RelWindowCreate;
-begin end;
+begin
+  FActions := TDiplomaticActionList.Create(nil);
+  FRaces := TIntegerList.Create;
+  FPlayers := TIntegerList.Create;
+  FControls := TList.Create;
+  FControls.Add(P1I);
+  FControls.Add(P2I);
+  FControls.Add(P3I);
+  FControls.Add(P4I);
+  FControls.Add(P5I);
+  FControls.Add(P6I);
+  FControls.Add(P7I);
+  FControls.Add(P8I);
+  FControls.Add(P9I);
+  FControls.Add(P10I);
+  FControls.Add(P11I);
+  FControls.Add(P12I);
+  FControls.Add(R1I);
+  FControls.Add(R2I);
+  FControls.Add(R3I);
+  FControls.Add(R4I);
+  FControls.Add(R5I);
+  FControls.Add(R6I);
+  FControls.Add(R7I);
+  FControls.Add(R8I);
+  FControls.Add(R9I);
+  FControls.Add(R10I);
+  FControls.Add(R11I);
+  FControls.Add(R12I);
+  FControls.Add(P1CB);
+  FControls.Add(P2CB);
+  FControls.Add(P3CB);
+  FControls.Add(P4CB);
+  FControls.Add(P5CB);
+  FControls.Add(P6CB);
+  FControls.Add(P7CB);
+  FControls.Add(P8CB);
+  FControls.Add(P9CB);
+  FControls.Add(P10CB);
+  FControls.Add(P11CB);
+  FControls.Add(P12CB);
+  FControls.Add(R1CB);
+  FControls.Add(R2CB);
+  FControls.Add(R3CB);
+  FControls.Add(R4CB);
+  FControls.Add(R5CB);
+  FControls.Add(R6CB);
+  FControls.Add(R7CB);
+  FControls.Add(R8CB);
+  FControls.Add(R9CB);
+  FControls.Add(R10CB);
+  FControls.Add(R11CB);
+  FControls.Add(R12CB);
+end;
 
 procedure TRelWindow.RelWindowDestroy;
-begin end;
+begin
+  FActions.Free;
+  FControls.Free;
+  FPlayers.Free;
+  FRaces.Free;
+end;
 
 procedure TRelWindow.ExitClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  RelWin.Visible := False;
+end;
 
 procedure TRelWindow.P1CBChange(A1: Integer);
 begin end;

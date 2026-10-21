@@ -22,9 +22,9 @@ type
     ToolTip: TAOWToolTip; { +0048 }
     public
     F_General_4C: array[0..27] of Byte;
-    F_General_68: Byte;
-    F_General_69: Byte;
-    F_General_6A: array[0..13] of Byte;
+    FUnitShowInfo: TP2UnitShowInfo; { $68; 0044A1E5 }
+    { $69..$73 are part of FUnitShowInfo. }
+    FReserved74: Integer; { $74 }
     F_General_78: Integer;
     F_General_7C: array[0..7] of Byte;
     FSelectedUnits: array[0..7] of Integer; { $84 }

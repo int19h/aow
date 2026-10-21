@@ -7,13 +7,13 @@ unit FastCombatWin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWHScroll, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWCheckBox, AoWHScroll, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
 
 type
   TFastCombatWindow = class;
 
 
-  { TFastCombatWindow (instance size 340, VMT 00434CD4) }
+  { TFastCombatWindow (size $154, VMT 00434CD4): $124 phase, $128 phase frame, $144 combat viewer. }
   TFastCombatWindow = class(TDataModule)
   public
     published
@@ -74,9 +74,9 @@ type
     RShieldUser: TaowUserDrawBox; { +011C }
     Translator: TIvTranslator; { +0120 }
     public
-    F_FastCombatWindow_124: Byte;
+    FPhase: Byte; { $124 }
     F_FastCombatWindow_125: array[0..2] of Byte;
-    F_FastCombatWindow_128: Integer;
+    FPhaseFrame: Integer; { $128 }
     F_FastCombatWindow_12C: Integer;
     F_FastCombatWindow_130: array[0..3] of Byte;
     F_FastCombatWindow_134: Integer;
@@ -85,13 +85,14 @@ type
     F_FastCombatWindow_13C: Integer;
     F_FastCombatWindow_140: Byte;
     F_FastCombatWindow_141: array[0..2] of Byte;
-    F_FastCombatWindow_144: Integer;
+    FViewer: TCombatViewer; { $144 }
     F_FastCombatWindow_148: array[0..11] of Byte;
-    procedure FastCombatWindowCreate;  { draft }
-    procedure FastCombatWindowDestroy;  { draft }
+    procedure SetPhase(Phase: Byte);
+    procedure FastCombatWindowCreate;
+    procedure FastCombatWindowDestroy;
     procedure CloseButClick;  { draft }
     procedure FCWinDrawSurface(A1: Integer; A2: Integer);  { draft }
-    procedure FCWinUpdate;  { draft }
+    procedure FCWinUpdate(Sender: TObject);
     procedure InitialViewClick;  { draft }
     procedure FinalViewClick;  { draft }
     procedure PauseBtnClick;  { draft }
@@ -107,11 +108,17 @@ type
 
 implementation
 
+uses AoWWinMan;
+
 procedure TFastCombatWindow.FastCombatWindowCreate;
-begin end;
+begin
+  FViewer := TCombatViewer.Create;
+end;
 
 procedure TFastCombatWindow.FastCombatWindowDestroy;
-begin end;
+begin
+  FViewer.Free;
+end;
 
 procedure TFastCombatWindow.CloseButClick;
 begin end;
@@ -119,8 +126,47 @@ begin end;
 procedure TFastCombatWindow.FCWinDrawSurface(A1: Integer; A2: Integer);
 begin end;
 
-procedure TFastCombatWindow.FCWinUpdate;
-begin end;
+procedure TFastCombatWindow.FCWinUpdate(Sender: TObject);
+var
+  Image: Integer;
+begin
+  try
+    case FPhase of
+      0: begin
+        Image := FPhaseFrame div 2;
+        if Image > 9 then Image := 9;
+        with GlowImage do if Image <> CurrentImage then CurrentImage := Image + 20;
+        if not GlowImage.Visible then GlowImage.Visible := True;
+        if FPhaseFrame > 20 then SetPhase(1);
+      end;
+      1: begin
+        if GlowImage.CurrentImage <> 29 then GlowImage.CurrentImage := 29;
+        if not GlowImage.Visible then GlowImage.Visible := True;
+        with FViewer do if FPosition >= GetEndPosition then SetPhase(2);
+      end;
+      2: begin
+        Image := 9 - FPhaseFrame div 2;
+        if Image < 0 then Image := 0;
+        with GlowImage do if Image <> CurrentImage then CurrentImage := Image + 20;
+        if not GlowImage.Visible then GlowImage.Visible := True;
+        if FPhaseFrame > 20 then
+        begin
+          SetPhase(3);
+          FPhaseFrame := 21;
+        end;
+      end;
+      3: if GlowImage.Visible then
+        begin
+          GlowImage.Visible := False;
+          FCWin.FDrawn := False;
+        end;
+    end;
+    FCWin.FSurfaceValid := False;
+    Inc(FPhaseFrame);
+  except
+    raise Exception.Create('Exception during FastCombatWin.Update');
+  end;
+end;
 
 procedure TFastCombatWindow.InitialViewClick;
 begin end;
@@ -152,5 +198,10 @@ begin end;
 procedure TFastCombatWindow.FCWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
+procedure TFastCombatWindow.SetPhase(Phase: Byte);
+begin
+  FPhase := Phase;
+  FPhaseFrame := 0;
+end;
 
 end.

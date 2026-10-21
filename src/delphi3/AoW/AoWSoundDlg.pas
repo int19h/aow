@@ -7,13 +7,13 @@ unit AoWSoundDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWCheckBox, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
 
 type
   TSoundDlg = class;
 
 
-  { TSoundDlg (instance size 300, VMT 00420E44) }
+  { TSoundDlg (size $12C, VMT 00420E44): $110 sound quality, $114 sound settings ($118 rate, $11C music, $11D DirectSound, $120 window, $124 SFX, $128 voices). }
   TSoundDlg = class(TDataModule)
   public
     published
@@ -69,111 +69,289 @@ type
     PlayPnl: TAOWPanel; { +0108 }
     Translator: TIvTranslator; { +010C }
     public
-    F_SoundDlg_110: Integer;
-    F_SoundDlg_114: Byte;
-    F_SoundDlg_115: array[0..2] of Byte;
-    F_SoundDlg_118: Integer;
-    F_SoundDlg_11C: Byte;
-    F_SoundDlg_11D: Byte;
-    F_SoundDlg_11E: array[0..5] of Byte;
-    F_SoundDlg_124: Byte;
-    F_SoundDlg_125: array[0..6] of Byte;
-    procedure CloseClick;  { draft }
-    procedure MusicVolumeChange;  { draft }
-    procedure SFXVolumeChange;  { draft }
-    procedure RemoveBtnClick;  { draft }
-    procedure SoundSetup;  { draft }
-    procedure PlayBtnClick;  { draft }
-    procedure SongChange;  { draft }
-    procedure FindFiles;  { draft }
-    procedure SongLBChange;  { draft }
-    procedure AddBtnClick;  { draft }
-    procedure SoundDlgWindowCreate;  { draft }
-    procedure SoundDlgWindowDestroy;  { draft }
-    procedure PlayLBChange;  { draft }
-    procedure SQCB1Change(A1: Integer);  { draft }
-    procedure SQCB2Change(A1: Integer);  { draft }
-    procedure SQCB3Change(A1: Integer);  { draft }
-    procedure SQCB4Change(A1: Integer);  { draft }
-    procedure PlayLBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure MusicEnabledChkChange(A1: Integer);  { draft }
-    procedure SFXEnabledChkChange(A1: Integer);  { draft }
-    procedure DirectSoundEnabledChkChange(A1: Integer);  { draft }
-    procedure SoundTabChange;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FSoundQuality: Integer; { $110 }
+    FSettings: TSoundSettings; { $114..$12B }
+    procedure CloseClick;
+    procedure MusicVolumeChange;
+    procedure SFXVolumeChange;
+    procedure RemoveBtnClick(Sender: TObject);
+    procedure SoundSetup;
+    procedure PlayBtnClick;
+    procedure SongChange(Sender: TObject);
+    procedure FindFiles;
+    procedure SongLBChange;
+    procedure AddBtnClick(Sender: TObject);
+    procedure SoundDlgWindowCreate;
+    procedure SoundDlgWindowDestroy;
+    procedure PlayLBChange;
+    procedure SQCB1Change(Sender: TObject);
+    procedure SQCB2Change(Sender: TObject);
+    procedure SQCB3Change(Sender: TObject);
+    procedure SQCB4Change(Sender: TObject);
+    procedure PlayLBDrawItem(Sender: TObject; const R: TRect; Index: Integer; var SurfDesc: TSurfaceDesc);
+    procedure MusicEnabledChkChange(Sender: TObject);
+    procedure SFXEnabledChkChange(Sender: TObject);
+    procedure DirectSoundEnabledChkChange(Sender: TObject);
+    procedure SoundTabChange;
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, aowIntGfxMod;
+
+var
+  SongFiles: TStringList;
+
 procedure TSoundDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TSoundDlg.MusicVolumeChange;
-begin end;
+begin
+  SetMusicVolume(MusicVolume.Position);
+end;
 
 procedure TSoundDlg.SFXVolumeChange;
-begin end;
+begin
+  SetSFXVolume(SFXVolume.Position);
+end;
 
-procedure TSoundDlg.RemoveBtnClick;
-begin end;
+procedure TSoundDlg.RemoveBtnClick(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+  SongPlayer.Songs.Delete(PlayLB.Selected);
+  if SongPlayer.CurrentIndex = -1 then
+    if PlayLB.Selected < SongPlayer.Songs.Count then SongPlayer.Play(PlayLB.Selected)
+    else if SongPlayer.Songs.Count <> 0 then SongPlayer.Play(SongPlayer.Songs.Count - 1);
+  SoundSetup;
+end;
 
 procedure TSoundDlg.SoundSetup;
-begin end;
+var
+  I: Integer;
+begin
+  PlayLB.Items.Clear;
+  for I := 0 to SongPlayer.SongNames.Count - 1 do PlayLB.Items.Add(SongPlayer.SongNames[I]);
+  PlayLB.Selected := SongPlayer.CurrentIndex;
+  PlayLB.FSized := False;
+  if PlayLB.Selected = -1 then
+  begin
+    RemoveBtn.Visible := False;
+    PlayBtn.Visible := False;
+    CurrentSongLbl.Text := '';
+  end
+  else
+  begin
+    RemoveBtn.Visible := True;
+    PlayBtn.Visible := True;
+    CurrentSongLbl.Text := SongPlayer.SongNames[PlayLB.Selected];
+  end;
+  MainPnl.FDrawn := False;
+  PlayListPnl.FDrawn := False;
+  MusicEnabledChk.Checked := FSettings.MusicEnabled;
+  SFXEnabledChk.Checked := FSettings.SFXEnabled;
+  DirectSoundEnabledChk.Checked := FSettings.UseDirectSound;
+  SQCB1.Checked := FSoundQuality = 0;
+  SQCB2.Checked := FSoundQuality = 1;
+  SQCB3.Checked := FSoundQuality = 2;
+  SQCB4.Checked := FSoundQuality = 3;
+end;
 
 procedure TSoundDlg.PlayBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  PlayLB.FDrawn := False;
+  SongPlayer.Play(PlayLB.Selected);
+end;
 
-procedure TSoundDlg.SongChange;
-begin end;
+procedure TSoundDlg.SongChange(Sender: TObject);
+begin
+  CurrentSongLbl.Text := SongPlayer.SongNames[SongPlayer.CurrentIndex];
+  MainPnl.FDrawn := False;
+  PlayLB.FDrawn := False;
+end;
 
 procedure TSoundDlg.FindFiles;
-begin end;
+var
+  Directory: string;
+  Search: TSearchRec;
+begin
+  SongLB.Items.Clear;
+  SongFiles.Clear;
+  SetCurrentDir(AoWEngine.StartupDirectory + '\Songs');
+  Directory := GetCurrentDir;
+  if Copy(Directory, Length(Directory), 1) = '\' then Directory := Copy(Directory, 1, Length(Directory) - 1);
+  if FindFirst(Directory + '\*.*', faDirectory, Search) = 0 then
+    repeat
+      if (Search.Name <> '.') and (Search.Name <> '..') then
+        if (UpperCase(Copy(Search.Name, Length(Search.Name) - 3, 4)) = '.S3M') or
+          (UpperCase(Copy(Search.Name, Length(Search.Name) - 2, 3)) = '.IT') then
+        begin
+          SongFiles.Add('Songs\' + Search.Name);
+          SongLB.Items.Add(GetSongName('Songs\' + Search.Name));
+        end;
+    until FindNext(Search) <> 0;
+  FindClose(Search);
+  SortStringsAscending(SongLB.Items, [SongFiles]);
+  SongLB.Selected := -1;
+  SongLB.ListOffset := 0;
+  SongSB.Position := 0;
+end;
 
 procedure TSoundDlg.SongLBChange;
-begin end;
+begin
+  if SongLB.Selected > -1 then AddBtn.Visible := True;
+end;
 
-procedure TSoundDlg.AddBtnClick;
-begin end;
+procedure TSoundDlg.AddBtnClick(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+  SongPlayer.Songs.Add(SongFiles[SongLB.Selected]);
+  SoundSetup;
+end;
 
 procedure TSoundDlg.SoundDlgWindowCreate;
-begin end;
+begin
+  SongFiles := TStringList.Create;
+end;
 
 procedure TSoundDlg.SoundDlgWindowDestroy;
-begin end;
+begin
+  SongFiles.Free;
+end;
 
 procedure TSoundDlg.PlayLBChange;
-begin end;
+begin
+  if PlayLB.Selected > -1 then
+  begin
+    RemoveBtn.Visible := True;
+    PlayBtn.Visible := True;
+  end;
+end;
 
-procedure TSoundDlg.SQCB1Change(A1: Integer);
-begin end;
+procedure TSoundDlg.SQCB1Change(Sender: TObject);
+begin
+  if SQCB1.Checked then
+  begin
+    ReleaseSoundSystem;
+    FSoundQuality := 0;
+    CurrentSongLbl.Text := '';
+    PlayLB.FDrawn := False;
+    MainPnl.FDrawn := False;
+  end;
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.SQCB2Change(A1: Integer);
-begin end;
+procedure TSoundDlg.SQCB2Change(Sender: TObject);
+begin
+  if SQCB2.Checked then
+  begin
+    FSoundQuality := 1;
+    if Sound.ssActivated in SoundSystemStatus then
+    begin
+      FSettings.OutputMode := [omMono, om8bit];
+      FSettings.SampleRate := 22050;
+      SetSoundSettings(FSettings);
+    end
+    else
+    begin
+      FSettings.OutputMode := [omMono, om8bit];
+      FSettings.SampleRate := 22050;
+      InitializeSoundSystem('Galaxy', FSettings);
+    end;
+  end;
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.SQCB3Change(A1: Integer);
-begin end;
+procedure TSoundDlg.SQCB3Change(Sender: TObject);
+begin
+  if SQCB3.Checked then
+  begin
+    FSoundQuality := 2;
+    if Sound.ssActivated in SoundSystemStatus then
+    begin
+      FSettings.OutputMode := [omStereo, om16bit];
+      FSettings.SampleRate := 44100;
+      SetSoundSettings(FSettings);
+    end
+    else
+    begin
+      FSettings.OutputMode := [omStereo, om16bit];
+      FSettings.SampleRate := 44100;
+      InitializeSoundSystem('Galaxy', FSettings);
+    end;
+  end;
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.SQCB4Change(A1: Integer);
-begin end;
+procedure TSoundDlg.SQCB4Change(Sender: TObject);
+begin
+  if SQCB4.Checked then
+  begin
+    FSoundQuality := 3;
+    if Sound.ssActivated in SoundSystemStatus then
+    begin
+      FSettings.OutputMode := [omStereo, om16bit, omHighQuality];
+      FSettings.SampleRate := 44100;
+      SetSoundSettings(FSettings);
+    end
+    else
+    begin
+      FSettings.OutputMode := [omStereo, om16bit, omHighQuality];
+      FSettings.SampleRate := 44100;
+      InitializeSoundSystem('Galaxy', FSettings);
+    end;
+  end;
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.PlayLBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TSoundDlg.PlayLBDrawItem(Sender: TObject; const R: TRect; Index: Integer; var SurfDesc: TSurfaceDesc);
+begin
+  if SongPlayer.CurrentIndex = Index then IntGfxMod.SoundWin[2].ShowClipped(R.Left, R.Top, SurfDesc);
+end;
 
-procedure TSoundDlg.MusicEnabledChkChange(A1: Integer);
-begin end;
+procedure TSoundDlg.MusicEnabledChkChange(Sender: TObject);
+begin
+  FSettings.MusicEnabled := MusicEnabledChk.Checked;
+  SetMusicEnabled(FSettings.MusicEnabled);
+  if FSettings.MusicEnabled and (FSoundQuality <> 0) then SongPlayer.Play(0);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.SFXEnabledChkChange(A1: Integer);
-begin end;
+procedure TSoundDlg.SFXEnabledChkChange(Sender: TObject);
+begin
+  FSettings.SFXEnabled := SFXEnabledChk.Checked;
+  SetSFXEnabled(FSettings.SFXEnabled);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
-procedure TSoundDlg.DirectSoundEnabledChkChange(A1: Integer);
-begin end;
+procedure TSoundDlg.DirectSoundEnabledChkChange(Sender: TObject);
+begin
+  FSettings.UseDirectSound := DirectSoundEnabledChk.Checked;
+  if Sound.ssActivated in SoundSystemStatus then SetSoundSettings(FSettings);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1)
+  else General.PlayButtonSound(2);
+end;
 
 procedure TSoundDlg.SoundTabChange;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TSoundDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TSoundDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 27 then Dlg.Visible := False;
+end;
 
 
 end.

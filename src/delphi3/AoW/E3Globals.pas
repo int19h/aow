@@ -7,7 +7,7 @@ var
   IntGfxMod: TIntGfxMod;
   FontModule: TFontModule;
   MainForm: TMainForm;
-  ItemBanner: TItemBanner;
-  ItemID: Integer;
+  ItemBanner: TItemBanner absolute AoWItemBanner.ItemBanner; { $45B05C }
+  ItemID: Integer absolute AoWItemBanner.ItemID; { $45B060 }
 implementation
 end.
