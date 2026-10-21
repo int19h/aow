@@ -56,10 +56,11 @@ type
     F_TCAbility_04: array[0..7] of Byte;
   end;
 
-  { TROb (instance size 12, VMT 00411AD0) }
+  { TROb (instance size 12, VMT 00411AD0): $04 PathIndex; $08 Chance. }
   TROb = class(TObject)
   public
-    F_ROb_04: array[0..7] of Byte;
+    PathIndex: Integer; { $04 }
+    Chance: Integer; { $08 }
   end;
 
   { TAoWNewCombatMapSettings (instance size 32, VMT 00411B34)
@@ -87,10 +88,11 @@ type
   end;
 
   { TCAI (instance size 56, VMT 00411C28)
-    $08 Units; $0C Allies; $10 Enemies; $14 Moves; $18 Walls; $1C CurrentMove; $36 Status. }
+    $04 FSide; $08 Units; $0C Allies; $10 Enemies; $14 Moves; $18 Walls;
+    $1C CurrentMove; $34 FIgnoreWalls; $36 Status. }
   TCAI = class(TObject)
   public
-    F_CAI_04: Byte;
+    FSide: TCombatSideIndex; { $04 }
     F_CAI_05: array[0..2] of Byte;
     Units: TList; { $08 }
     Allies: TList; { $0C }
@@ -103,7 +105,7 @@ type
     F_CAI_28: Integer;
     F_CAI_2C: Integer;
     F_CAI_30: Integer;
-    F_CAI_34: Byte;
+    FIgnoreWalls: Boolean; { $34 }
     F_CAI_35: Byte;
     Status: TaiStatus; { $36 }
     F_CAI_37: array[0..0] of Byte;
@@ -114,15 +116,20 @@ type
     procedure ContinueTurn;
     procedure CreateMove(MoveType: TaiMoveType; Value, Cost: Integer; Ability: TAbility; X, Y: Integer; U: TTacticalCombatUnit; Path: TXYLList);
     function tcDVtoDEV(DV1, DV2: Integer; Source, Target: TCombatObject): Integer;
-    function ChargeFromPos(A1: Integer): Byte;  { draft }
-    function UnitSafe(A1: Integer; A2: Integer; A3: Integer): Integer;  { draft }
-    function MakeTerrainPath(A1: Integer; A2: Integer): Integer;  { draft }
+    function ChargeFromPos(Position: Integer): Boolean;
+    function UnitSafe(U: TTacticalCombatUnit; X, Y: Integer): Integer;
+    function MakeTerrainPath(MCS: TCombatMoveControlSettings; var Path: TXYLList;
+      var Value: Integer; U, Ignore: TTacticalCombatUnit; FreeStrikes, FindWalls: Boolean; Cost: Integer): Integer;
     function MultDEV(Value, Multiplier, Divider: Integer): Integer;
-    procedure EvalAll(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure EvalHex(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer);  { draft }
-    procedure EvalArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer);  { draft }
-    function EvalPath(A1: Integer; A2: Integer): Integer;  { draft }
-    function EvalBreath(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer): Integer;  { draft }
+    procedure EvalAll(var Value: Integer; List: TList; Ignore: TCombatObject;
+      Spell: Integer; U: TTacticalCombatUnit);
+    procedure EvalHex(Ignore: TCombatObject; Ability, Spell, X, Y: Integer; var Value: Integer;
+      HitWalls, Friendly: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject);
+    procedure EvalArea(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X, Y: Integer;
+      HitWalls, IncludeCenter, Friendly: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject);
+    function EvalPath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer;
+      HitWalls: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject): Integer;
+    function EvalBreath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer; U: TTacticalCombatUnit): Integer;
     procedure CheckUnit(A1: Integer; A2: Integer);  { draft }
     procedure EvalBattle;  { draft }
   end;
@@ -146,11 +153,11 @@ type
   { TRangedPathHS (instance size 32, VMT 00411EA8) }
   TRangedPathHS = class(TFixedVisibleHS)
   public
-    F_RangedPathHS_0C: Integer;
-    F_RangedPathHS_10: Integer;
+    FMiscImages: TCustomImageLibrary; { $0C }
+    FTargetImages: TCustomImageLibrary; { $10 }
     F_RangedPathHS_14: Word;
     F_RangedPathHS_16: Word;
-    F_RangedPathHS_18: Integer;
+    FPath: TXYZList; { $18 }
     F_RangedPathHS_1C: Word;
     F_RangedPathHS_1E: array[0..1] of Byte;
     class function ClassID: Integer; override;
@@ -176,7 +183,7 @@ type
     F_fxHS_28: Integer;
     F_fxHS_2C: Integer;
     F_fxHS_30: array[0..3] of Byte;
-    F_fxHS_34: Byte;
+    FEffectType: TfxType; { $34 }
     F_fxHS_35: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -279,10 +286,11 @@ type
     function ValidatePosition(var Position, Index: Shortint): Boolean;
   end;
 
-  { TCombatMoveControlSettings (instance size 432, VMT 004129E8) }
+  { TCombatMoveControlSettings (instance size 432, VMT 004129E8): $1AC FMoveFlags. }
   TCombatMoveControlSettings = class(TMoveControlSettings)
   public
-    F_CombatMoveControlSettings_1AC: array[0..3] of Byte;
+    FMoveFlags: Byte; { $1AC }
+    F_CombatMoveControlSettings_1AD: array[0..2] of Byte;
   end;
 
   { TCombatMoveControl (instance size 488, VMT 00412AC4) }
@@ -295,7 +303,7 @@ type
   end;
 
   { TTacticalCombatUnit (instance size 104, VMT 00412B4C)
-    $60 FUnitHS; other added fields remain unrecovered. }
+    $5C FMovePoints; $60 FUnitHS; $64..$67 remain unrecovered. }
   TTacticalCombatUnit = class(TCombatUnit)
   public
     FMovePoints: Integer; { $5C }
@@ -311,7 +319,9 @@ type
     procedure MovedTo(OldField, NewField: TAoWMapField; MoveCost: Integer);
   end;
 
-  { TTacticalCombatUnitHS (instance size 72, VMT 00412D08) }
+  { TTacticalCombatUnitHS (instance size 72, VMT 00412D08): $1C FUnit;
+    $24 FAction; $25 FActionDone; $26 FActionFrame; $34 FSelectedAbility;
+    $38 FSelectedSpell; $3C FCombatAbilityCount; $40 FAbilities. }
   TTacticalCombatUnitHS = class(TUnitHS)
   public
     FUnit: TTacticalCombatUnit; { $1C }
@@ -320,14 +330,14 @@ type
     F_TacticalCombatUnitHS_22: Word;
     FAction: TTCAction; { $24 }
     FActionDone: Boolean; { $25 }
-    F_TacticalCombatUnitHS_26: Word;
+    FActionFrame: Word; { $26 }
     F_TacticalCombatUnitHS_28: array[0..3] of Byte;
     F_TacticalCombatUnitHS_2C: Integer;
     F_TacticalCombatUnitHS_30: Integer;
-    F_TacticalCombatUnitHS_34: Integer;
-    F_TacticalCombatUnitHS_38: Integer;
-    F_TacticalCombatUnitHS_3C: Integer;
-    F_TacticalCombatUnitHS_40: Integer;
+    FSelectedAbility: Integer; { $34 }
+    FSelectedSpell: Integer; { $38 }
+    FCombatAbilityCount: Integer; { $3C }
+    FAbilities: TList; { $40 }
     F_TacticalCombatUnitHS_44: Byte;
     F_TacticalCombatUnitHS_45: array[0..2] of Byte;
     class function ClassID: Integer; override;
@@ -342,32 +352,33 @@ type
     procedure Unselect; override;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     function GetMoveSteps: Integer; override;
-    procedure Initialize(A1: Integer);  { draft }
-    procedure NewFrame(A1: Integer; A2: Integer);  { draft }
-    function MeleeMoveTC(A1: Integer): Byte;  { draft }
+    procedure Initialize(U: TTacticalCombatUnit);
+    procedure NewFrame(Sender: TObject);
+    function MeleeMoveTC(Path: TMovepath): Boolean;
     function SelectAbility(A1: Integer): Integer;  { draft }
     function SelectSpell(A1: Integer): Integer;  { draft }
     procedure CreateTCAbList;  { draft }
     procedure ListAbilities(A1: Integer; A2: Integer);  { draft }
     procedure SetAction(Action: TTCAction);
     function AbTouchMoveTC(A1: Integer): Byte;  { draft }
-    function AbRangedTC(A1: Word; A2: Word): Byte;  { draft }
+    function AbRangedTC(X, Y: Word): Boolean;
   end;
 
-  { TCombatUnitSelectionControl (instance size 60, VMT 00412EB4) }
+  { TCombatUnitSelectionControl (instance size 60, VMT 00412EB4): $18 FPathInvalid;
+    $1C FTargetImages; $20 FRangedPathHS; $34 FRangedPath; $38 FObstacles. }
   TCombatUnitSelectionControl = class(TMoveSelector)
   public
-    F_CombatUnitSelectionControl_18: Byte;
+    FPathInvalid: set of (piMove, piRanged); { $18 }
     F_CombatUnitSelectionControl_19: array[0..2] of Byte;
-    F_CombatUnitSelectionControl_1C: Integer;
-    F_CombatUnitSelectionControl_20: Integer;
+    FTargetImages: TCustomImageLibrary; { $1C }
+    FRangedPathHS: TRangedPathHS; { $20 }
     F_CombatUnitSelectionControl_24: Integer;
     F_CombatUnitSelectionControl_28: Integer;
     F_CombatUnitSelectionControl_2C: Word;
     F_CombatUnitSelectionControl_2E: Word;
     F_CombatUnitSelectionControl_30: Integer;
-    F_CombatUnitSelectionControl_34: Integer;
-    F_CombatUnitSelectionControl_38: Integer;
+    FRangedPath: TXYZList; { $34 }
+    FObstacles: TList; { $38 }
     destructor Destroy; override;
     procedure MouseDownEvent(Sender: TObject); override;
     procedure CalculateMovePath(Index: Integer; X, Y, L: Shortint); override;
@@ -376,33 +387,33 @@ type
     procedure SetCurrentMove(A1: Integer); override;
     procedure Unselect; override;
     procedure ShowMovePaths(const Surface: GFXE.TSurfaceDesc); override;
-    function Create(A1: Byte): Integer;  { draft }
-    function AddUnit(A1: Integer): Integer;  { draft }
-    function GetTCUnitHS: Integer;  { draft }
-    function GetMoveTypes: Byte;  { draft }
-    procedure RectangleSelectEvent(A1: Integer);  { draft }
+    constructor Create;
+    function AddUnit(U: TTacticalCombatUnitHS): Integer;
+    function GetTCUnitHS: TTacticalCombatUnitHS;
+    function GetMoveTypes: TMoveTypes;
+    procedure RectangleSelectEvent(Sender: TObject);
     procedure MoveSelectionEvent(A1: Integer);  { draft }
     procedure CalculateRangedPath(A1: Byte; A2: Byte);  { draft }
     procedure MoveSelectedRoute;  { draft }
     procedure MoveUnits;  { draft }
     procedure ExecuteMoveSelection;  { draft }
-    function ValidMultiMoveSelection(A1: Integer): Byte;  { draft }
-    procedure ActivateMoveSelection(A1: Integer; A2: Integer);  { draft }
-    procedure DeactivateMoveSelection(A1: Integer; A2: Integer);  { draft }
-    procedure Update(A1: Integer; A2: Integer);  { draft }
-    procedure SetTCUnitHS(A1: Integer);  { draft }
-    procedure Select(A1: Integer);  { draft }
-    procedure DeactivateRangedPath(A1: Integer; A2: Integer);  { draft }
+    function ValidMultiMoveSelection(Field: TAoWMapField): Boolean;
+    procedure ActivateMoveSelection;
+    procedure DeactivateMoveSelection;
+    procedure Update;
+    procedure SetTCUnitHS(U: TTacticalCombatUnitHS);
+    procedure Select(U: TTacticalCombatUnitHS);
+    procedure DeactivateRangedPath;
   end;
 
   { TTacticalCombatPlayer (instance size 28, VMT 00412F78)
-    $0C FAuto; $0E FIndex. }
+    $0C FAuto; $0D FEndTurn; $0E FIndex; $10 FLastX; $14 FLastY; $18 FLastUnit. }
   TTacticalCombatPlayer = class(TCombatPlayer)
   public
     FAuto: Boolean; { $0C }
-    F_TacticalCombatPlayer_0D: array[0..0] of Byte;
-    FIndex: Byte; { $0E }
-    FReserved0F: Byte; FLastX, FLastY, FReserved18: Integer; { $10, $14, $18 }
+    FEndTurn: Boolean; { $0D }
+    FIndex: Shortint; { $0E }
+    FReserved0F: Byte; FLastX, FLastY: Integer; FLastUnit: TTacticalCombatUnit; { $10, $14, $18 }
     procedure SetAuto(Value: Boolean);
   end;
 
@@ -422,36 +433,39 @@ type
   end;
 
   { TAoWCombatMap (instance size 312, VMT 00413184)
-    $E8 FUnitPositions; $EC FSeatedCombatPlayer; $ED FCurrentCombatPlayer; $118 FAI. }
+    $E0 FPlayers; $E4 FCombat; $E8 FUnitPositions; $EC FSeatedCombatPlayer;
+    $ED FCurrentCombatPlayer; $F0..$F8 turn/player events; $FC FMoveControl;
+    $100 FUnitSelection; $104..$114 selection/unit events; $118 FAI; $11C FEffects;
+    $120 FWalls; $124 FFires; $128 FEndTurnPending; $129 FPlaySounds;
+    $12A FPositionStatus; $134 FRound. }
   TAoWCombatMap = class(TAbstractAoWCombatMap)
   public
     FPlayers: TTacticalCombatPlayerList; { $E0 }
     FCombat: TTacticalCombat; { $E4 }
     FUnitPositions: TUnitPositionControl; { $E8 }
-    FSeatedCombatPlayer: Byte; { $EC }
-    FCurrentCombatPlayer: Byte; { $ED }
+    FSeatedCombatPlayer: Shortint; { $EC }
+    FCurrentCombatPlayer: Shortint; { $ED }
     { conflict: FCurrentCombatPlayer: Shortint; }
     F_AoWCombatMap_EE: array[0..1] of Byte;
-    F_AoWCombatMap_F0: Integer;
-    F_AoWCombatMap_F4: Integer;
-    F_AoWCombatMap_F8: Integer;
-    F_AoWCombatMap_FC: Integer;
+    FChangeTurnEvents: TEventList; { $F0 }
+    FPlayerChangedEvents: TEventList; { $F4 }
+    FSeatedPlayerChangedEvents: TEventList; { $F8 }
+    FMoveControl: TCombatMoveControl; { $FC }
     FUnitSelection: TCombatUnitSelectionControl; { $100 }
-    F_AoWCombatMap_104: Integer;
-    F_AoWCombatMap_108: Integer;
+    FSelectEvents: TEventList; { $104 }
+    FDeselectEvents: TEventList; { $108 }
     F_AoWCombatMap_10C: array[0..3] of Byte;
-    F_AoWCombatMap_110: Integer;
-    F_AoWCombatMap_114: Integer;
+    FUnitChangedEvents: TEventList; { $110 }
+    FMouseOverTargetEvents: TEventList; { $114 }
     FAI: TCAI; { $118 }
-    F_AoWCombatMap_11C: Integer;
+    FEffects: TList; { $11C }
     FWalls: TList; { $120; $405741 }
-    F_AoWCombatMap_124: Integer;
-    F_AoWCombatMap_128: Byte;
+    FFires: TList; { $124 }
+    FEndTurnPending: Boolean; { $128 }
     FPlaySounds: Boolean; { $129; $405B38 }
-    F_AoWCombatMap_12A: Byte;
-    F_AoWCombatMap_12B: array[0..8] of Byte;
-    F_AoWCombatMap_134: Byte;
-    F_AoWCombatMap_135: array[0..2] of Byte;
+    FPositionStatus: array[0..7] of Byte; { $12A }
+    F_AoWCombatMap_132: array[0..1] of Byte;
+    FRound: Integer; { $134 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -462,22 +476,22 @@ type
     procedure NewFrame; override;
     procedure DropHeroItem(Hero: AoWE.THero; Item: AoWE.TItem); override;
     function GetHeroItemsOnGround(Hero: AoWE.THero): AoWE.TItemList; override;
-    procedure SetCombat(A1: Integer);  { draft }
-    procedure MouseMoveEvent(A1: Integer);  { draft }
-    procedure SetSeatedCombatPlayer(A1: Byte);  { draft }
+    procedure SetCombat(Combat: TTacticalCombat);
+    procedure MouseMoveEvent(Sender: TObject);
+    procedure SetSeatedCombatPlayer(Player: Shortint);
     procedure NewTurn(Player: Shortint);
-    procedure DrawMoveRoute(A1: Integer);  { draft }
-    function EndTurn(A1: Byte): Byte;  { draft }
-    procedure CancelEndTurn(A1: Integer; A2: Integer);  { draft }
-    function GetEndTurnStatus: Byte;  { draft }
-    function GetNextUnit(A1: Integer; A2: Byte; A3: Integer): Integer;  { draft }
+    procedure DrawMoveRoute(const SD: TSurfaceDesc);
+    function EndTurn(Automatic: Boolean): Boolean;
+    procedure CancelEndTurn;
+    function GetEndTurnStatus: Boolean;
+    function GetNextUnit(U: TTacticalCombatUnit; AllUnits, Forward: Boolean): TTacticalCombatUnit;
     function AddEffect(EffectType: TfxType): TfxHS;
     { conflict: function AddEffect(Effect: Byte): TfxHS; }
-    procedure UpdateCursor(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateCursor;
     procedure EndCombat(A1: Integer);  { draft }
-    procedure SelectNextUnit(A1: Byte);  { draft }
-    procedure GetUnitLocation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure Surrender(A1: Byte);  { draft }
+    procedure SelectNextUnit(Forward: Boolean);
+    procedure GetUnitLocation(U: TAbstractUnit; var X, Y, L: Shortint);
+    procedure Surrender(Mode: Boolean);
   end;
 
   { TTacticalCombat (instance size 80, VMT 00413314)
@@ -738,8 +752,11 @@ type
     procedure InitTables(A1: Integer; A2: Integer);  { draft }
   end;
 
-procedure MakeAbilPath(A1: Byte; A2: Word; A3: Word);  { draft }
-procedure MakeRangedPath(A1: Byte; A2: Word; A3: Word; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer; A12: Integer; A13: Integer);  { draft }
+procedure MakeAbilPath(Side: TCombatSideIndex; Ability, Spell: Smallint;
+  X1, Y1, X2, Y2: Smallint; var Path: TXYZList; var Obstacles: TList);
+procedure MakeRangedPath(Side: TCombatSideIndex; Height, Step, Arc: Smallint;
+  X1, Y1, X2, Y2: Smallint; Ignore: TMapObject; Mode: Boolean;
+  Z: Smallint; var Path: TXYZList; var Obstacles: TList);
 procedure RegisterAoWTCClasses(A1: Integer);  { draft }
 function GetMeleeDirIndex(A1: Integer; A2: Integer; A3: Integer): Word;  { draft }
 function GetRangedDirIndex(A1: Integer; A2: Integer): Integer;  { draft }
@@ -751,10 +768,53 @@ var
   { conflict: const TCAttack: array[0..1] of Integer = (6, 10); }
   { conflict: const TCDamage: array[0..1] of Integer = (6, 1); }
 const
+  AbilTypes: array[0..169] of TfxType = (
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxArrow, fxNone,
+    fxRock, fxRock, fxNone, fxTouch, fxTouch, fxTouch, fxBreath, fxEffect, fxNone, fxNone, fxNone, fxTouch,
+    fxNone, fxNone, fxTouch, fxNone, fxTouch, fxNone, fxNone, fxNone, fxRock, fxRock, fxNone, fxTouch,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxRay, fxNone, fxArrow, fxArrow, fxNone,
+    fxTouch, fxArrow, fxComet, fxNone, fxNone, fxTouch, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxBreath, fxBreath, fxBreath, fxBreath, fxBreath, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxTouch, fxTouch,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxTouch, fxNone, fxNone, fxTouch, fxNone, fxNone,
+    fxComet, fxComet, fxComet, fxComet, fxComet, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxTouch, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone);
+  SpellTypes: array[0..130] of TfxType = (
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxEffect, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxEffect, fxEffect, fxEffect, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxEffect, fxEffect, fxNone, fxEffect,
+    fxEffect, fxEffect, fxNone, fxEffect, fxEffect, fxEffect, fxEffect, fxEffect, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxEffect, fxNone, fxNone, fxNone, fxNone, fxNone, fxEffect, fxEffect, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxEffect, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
+    fxNone, fxNone, fxNone, fxNone, fxCometBall, fxEffect, fxHighPrayer, fxRay, fxCloud, fxScreenNESW, fxMindDecay, fxChain,
+    fxBreath, fxNone, fxEffect, fxEffect, fxTremors, fxEffect, fxBreath, fxScreenSwarm, fxScreenNS, fxRock, fxGeyser, fxAltArrow,
+    fxFrostBeam, fxEffect, fxRock, fxCometBall, fxScreenNS, fxSacredWrath, fxWinds, fxShockWave, fxSacFlame, fxResurrect, fxResurrect);
+  BreathHN: array[0..71] of Integer = (
+    1, 18, 7, 8, 36, 19, 20, 59, 60, 37, 38, 39,
+    2, 8, 9, 10, 21, 22, 23, 39, 40, 41, 42, 43,
+    3, 10, 11, 12, 24, 25, 26, 43, 44, 45, 46, 47,
+    4, 12, 13, 14, 27, 28, 29, 47, 48, 49, 50, 51,
+    5, 14, 15, 16, 30, 31, 32, 51, 52, 53, 54, 55,
+    6, 16, 17, 18, 33, 34, 35, 55, 56, 57, 58, 59);
+  BreathDirection: array[1..60] of Integer = (
+    1, 2, 3, 4, 5, 6, 1, 1, 2, 2, 3, 3,
+    4, 4, 5, 5, 6, 6, 1, 1, 2, 2, 2, 3,
+    3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 1,
+    1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4,
+    4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 1);
   WallISIndex: array[0..1] of Integer = (30, 0);
   WallMaxHP: array[0..1] of Integer = (7, 13);
 
 implementation
+
+uses CityWall, CombatTE, CombatFire, AoWReg;
 constructor TCAI.Create;
 begin
   inherited Create;
@@ -826,14 +886,135 @@ begin
   Result := Result div 100;
 end;
 
-function TCAI.ChargeFromPos(A1: Integer): Byte;
-begin Result := 0; end;
+function TCAI.ChargeFromPos(Position: Integer): Boolean;
+var
+  I, J, Empty: Integer;
+begin
+  if Position = 0 then begin
+    Result := False;
+    Empty := 0;
+    if (FSide = csDefender) and (AoWCombatMap.FCombat.FCombatData.FWallType <> 0) and
+       not AoWCombatMap.FCombat.FCombatData.FWallBreached then
+      Result := True
+    else begin
+      for I := 1 to 6 do begin
+        if AoWCombatMap.FPositionStatus[I] = 1 then begin
+          J := I - 1;
+          if J = 0 then J := 6;
+          if AoWCombatMap.FPositionStatus[J] = 0 then Result := True;
+          J := I + 1;
+          if J = 7 then J := 1;
+          if AoWCombatMap.FPositionStatus[J] = 0 then Result := True;
+        end else if AoWCombatMap.FPositionStatus[I] = 0 then Inc(Empty);
+      end;
+      if Empty > 1 then Result := True;
+    end;
+  end else Result := True;
+end;
 
-function TCAI.UnitSafe(A1: Integer; A2: Integer; A3: Integer): Integer;
-begin Result := 0; end;
+function TCAI.UnitSafe(U: TTacticalCombatUnit; X, Y: Integer): Integer;
+var
+  I, Distance: Integer;
+begin
+  if not (U.FUnit is THero) or ((Units.Count = 1) and (FSide = csDefender)) then
+    Result := 0
+  else begin
+    Result := U.GetTargetStrength * 20 * U.GetHitPoints div U.GetHits;
+    if U.FUnit is TLeader then Result := Result div 2;
+    for I := 0 to Enemies.Count - 1 do begin
+      Distance := dHXtoRad(X, Y, TTacticalCombatUnit(Enemies[I]).FUnitHS.GetXhx,
+        TTacticalCombatUnit(Enemies[I]).FUnitHS.GetYhx);
+      if (Distance < 15) and (TTacticalCombatUnit(Enemies[I]).GetTargetStrength > 0) then
+        Result := Result - TTacticalCombatUnit(Enemies[I]).GetTargetStrength * (15 - Distance);
+    end;
+    for I := 0 to Units.Count - 1 do
+      if TTacticalCombatUnit(Units[I]) <> U then begin
+        Distance := dHXtoRad(X, Y, TTacticalCombatUnit(Units[I]).FUnitHS.GetXhx,
+          TTacticalCombatUnit(Units[I]).FUnitHS.GetYhx);
+        if (Distance < 15) and (TTacticalCombatUnit(Units[I]).GetTargetStrength > 0) then
+          Result := Result + TTacticalCombatUnit(Units[I]).GetTargetStrength * (15 - Distance);
+      end;
+    for I := 0 to Allies.Count - 1 do begin
+      Distance := dHXtoRad(X, Y, TTacticalCombatUnit(Allies[I]).FUnitHS.GetXhx,
+        TTacticalCombatUnit(Allies[I]).FUnitHS.GetYhx);
+      if (Distance < 15) and (TTacticalCombatUnit(Allies[I]).GetTargetStrength > 0) then
+        Result := Result + TTacticalCombatUnit(Allies[I]).GetTargetStrength * (15 - Distance);
+    end;
+  end;
+end;
 
-function TCAI.MakeTerrainPath(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TCAI.MakeTerrainPath(MCS: TCombatMoveControlSettings; var Path: TXYLList;
+  var Value: Integer; U, Ignore: TTacticalCombatUnit; FreeStrikes, FindWalls: Boolean; Cost: Integer): Integer;
+var
+  I, J, X, Y: Integer;
+  HS: TTacticalCombatUnitHS;
+  Wall: TCityWall;
+  NewWall: Boolean;
+begin
+  if Path.Count < 2 then Result := -1 else Result := 0;
+  try
+    Value := 0;
+    if Result <> -1 then
+      for I := 0 to Path.Count - 1 do begin
+        HS := TTacticalCombatUnitHS(AoWCombatMap.MapContainer.MapLevels[0].
+          Field[Path.List[I].X, Path.List[I].Y].FindOwnedChild($220104));
+        if FreeStrikes and ((HS = nil) or ((HS = U.FUnitHS) and (I - 1 >= 0) and
+          (AoWCombatMap.MapContainer.MapLevels[0].Field[Path.List[I - 1].X,
+            Path.List[I - 1].Y].FindOwnedChild($220104) = nil))) then
+          for J := 1 to 6 do begin
+            CenterHNtoHX(Path.List[I].X, Path.List[I].Y, J, X, Y);
+            HS := TTacticalCombatUnitHS(AoWCombatMap.MapContainer.MapLevels[0].
+              Field[X, Y].FindOwnedChild($220104));
+            if (HS <> nil) and (HS.FUnit <> Ignore) and
+              (HS.FUnit.GetSide <> U.GetSide) and (MeleeDamageTypes(HS.FUnit) <> []) and
+              not HS.FUnit.GetLocked and (HS.FUnit.GetAbilityEnabled(1) = U.GetAbilityEnabled(1)) then
+              Value := Value - tcDVtoDEV(StrikeDV(HS.FUnit, U), 0, HS.FUnit, U) * 10;
+          end;
+        if I < Path.Count - 1 then begin
+          if AoWCombatMap.FCombat.FCombatData.FWallType = 0 then Wall := nil
+          else begin
+            Wall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].
+              Field[Path[I].X, Path[I].Y].FindOwnedChild($220504));
+            if Wall = nil then
+              Wall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].
+                Field[Path[I].X, Path[I].Y].FindOwnedChild($220506));
+          end;
+          Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
+            Field[Path[I].X, Path[I].Y].TerrainType * 2,
+            AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].OverlayType + 1];
+          if Wall <> nil then begin
+            { Original bug: the next terrain lookup uses Path[0].Y. }
+            if (FSide = csAttacker) and (U.GetAbilityEnabled($41) or
+              U.GetAbilityEnabled($75)) and (I = 0) then
+              Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
+                Field[Path[I].X, Path[0].Y].TerrainType * 2, 0]
+            else if ((FSide = csAttacker) or AoWCombatMap.FCombat.FCombatData.FWallBreached or FIgnoreWalls) and
+              ((Wall.FHitPoints = 0) or ((FSide = csDefender) and (Wall is TCityWallDoor)) or
+              AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled(1) or
+              AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled($42) or
+              AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled($24)) then
+              Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
+                Field[Path[I].X, Path[I].Y].TerrainType * 2, 0]
+            else Path.List[I].Flag := 100;
+            if FindWalls and (Wall.FHitPoints > 0) then begin
+              NewWall := True;
+              J := 0;
+              while NewWall and (J < Walls.Count) do
+                if Walls[J] = Wall then NewWall := False else Inc(J);
+              if NewWall then Walls.Add(Wall);
+            end;
+          end;
+          if AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].
+            FindOwnedChild($220104) <> nil then
+            Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
+              Field[Path[I].X, Path[I].Y].TerrainType * 2, 0];
+        end;
+        Result := Result + Path.List[I].Flag;
+      end;
+  except
+    MessageBox(0, 'Error during Eval Movepath', PChar('Error - TCAI ' + U.FUnit.GetName), 0);
+  end;
+end;
 
 function TCAI.MultDEV(Value, Multiplier, Divider: Integer): Integer;
 begin
@@ -863,20 +1044,174 @@ begin
   if Result < -1000000 then Result := -1000000;
 end;
 
-procedure TCAI.EvalAll(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TCAI.EvalAll(var Value: Integer; List: TList; Ignore: TCombatObject;
+  Spell: Integer; U: TTacticalCombatUnit);
+var
+  I: Integer;
+  Target: TCombatObject;
+  DV: TAbilityDamageValues;
+begin
+  for I := 0 to List.Count - 1 do
+    if TCombatObject(List[I]) <> Ignore then begin
+      Target := TCombatObject(List[I]);
+      AoWHSSet.FSpellControl.GetSpell(Spell).tcGetDamageValueEx(U, Target, DV);
+      if DV.SourceDamage > 0 then
+        case Spell of
+          $66:
+            if Target.GetSide <> FSide then
+              Value := Value - tcDVtoDEV(DV.SourceDamage, 0, U, Target)
+            else Value := Value + tcDVtoDEV(DV.SourceDamage, 0, U, Target);
+        else
+          if Target.GetSide <> FSide then
+            Value := Value + MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, Target),
+              Target.GetHits, Target.GetHitPoints)
+          else Value := Value - MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, Target),
+              Target.GetHits, Target.GetHitPoints);
+        end;
+    end;
+end;
 
-procedure TCAI.EvalHex(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer);
-begin end;
+procedure TCAI.EvalHex(Ignore: TCombatObject; Ability, Spell, X, Y: Integer; var Value: Integer;
+  HitWalls, Friendly: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject);
+var
+  HS: TTacticalCombatUnitHS;
+  Wall: TCityWall;
+  DV: TAbilityDamageValues;
+begin
+  HS := TTacticalCombatUnitHS(AoWCombatMap.MapContainer.MapLevels[0].
+    Field[X, Y].FindOwnedChild($220104));
+  if (HS <> nil) and (HS.FUnit <> Ignore) and
+    (Friendly or (HS.FUnit.GetSide <> U.GetSide)) then begin
+    if Ability = $34 then
+      AoWHSSet.FSpellControl.GetSpell(Spell).tcGetDamageValueEx(U, HS.FUnit, DV)
+    else if AbilTypes[Ability] = fxTouch then
+      AoWHSSet.FAbilityControl.GetAbility(Ability).tcGetDamageValueEx(U, HS.FUnit, DV)
+    else AoWHSSet.FAbilityControl.GetAbility(Ability).tcGetDamageValueEx(U, HS.FUnit, DV);
+    if Ability = $41 then DV.TargetDamage := 0;
+    if DV.SourceDamage > 0 then begin
+      case Ability of
+        $34: begin
+        case Spell of
+          $6A:
+            if HS.FUnit.GetSide <> U.GetSide then
+              Value := Value + tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit)
+            else Value := Value - tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit);
+        else
+          if HS.FUnit.GetSide <> U.GetSide then
+            Value := Value + MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit),
+              HS.FUnit.GetHits, HS.FUnit.GetHitPoints)
+          else Value := Value - MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit),
+              HS.FUnit.GetHits, HS.FUnit.GetHitPoints);
+        end;
+      end;
+      else
+        if HS.FUnit.GetSide <> U.GetSide then
+          Value := Value + MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit),
+            HS.FUnit.GetHits, HS.FUnit.GetHitPoints)
+        else Value := Value - MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, HS.FUnit),
+            HS.FUnit.GetHits, HS.FUnit.GetHitPoints);
+      end;
+    end;
+  end;
+  if HitWalls and (AoWCombatMap.FCombat.FCombatData.FWallType <> 0) then begin
+    Wall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[X, Y].FindOwnedChild($220504));
+    if Wall = nil then
+      Wall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[X, Y].FindOwnedChild($220506));
+    if not AoWCombatMap.FCombat.FCombatData.FWallBreached and (IgnoreWall <> nil) and
+      (Wall <> nil) and ((Ignore = nil) or not (Ignore is TCombatWall) or
+      ((Ignore is TCombatWall) and (IgnoreWall <> Wall))) then begin
+      if Ability = $34 then
+        AoWHSSet.FSpellControl.GetSpell(Spell).tcGetDamageValueEx(U, AoWCombatMap.FCombat.FCombatData.FWall, DV)
+      else if AbilTypes[Ability] = fxTouch then
+        AoWHSSet.FAbilityControl.GetAbility(Ability).tcGetDamageValueEx(U, AoWCombatMap.FCombat.FCombatData.FWall, DV)
+      else AoWHSSet.FAbilityControl.GetAbility(Ability).tcGetDamageValueEx(U, AoWCombatMap.FCombat.FCombatData.FWall, DV);
+      if Ability = $41 then DV.TargetDamage := 0;
+      if DV.SourceDamage > 0 then
+        if U.GetSide = csAttacker then
+          Value := Value + MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, AoWCombatMap.FCombat.FCombatData.FWall),
+            WallMaxHP[Wall.FWallType - 1], Wall.FHitPoints)
+        else Value := Value - MultDEV(tcDVtoDEV(DV.SourceDamage, 0, U, AoWCombatMap.FCombat.FCombatData.FWall),
+            WallMaxHP[Wall.FWallType - 1], Wall.FHitPoints);
+    end;
+  end;
+end;
 
-procedure TCAI.EvalArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer);
-begin end;
+procedure TCAI.EvalArea(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X, Y: Integer;
+  HitWalls, IncludeCenter, Friendly: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject);
+var
+  I, X1, Y1: Integer;
+begin
+  for I := 0 to 6 do begin
+    CenterHNtoHX(X, Y, I, X1, Y1);
+    if IncludeCenter or (U.FUnitHS.GetXhx <> X1) or (U.FUnitHS.GetYhx <> Y1) then
+      EvalHex(Ignore, Ability, Spell, X1, Y1, Value, HitWalls, Friendly, U, IgnoreWall);
+  end;
+end;
 
-function TCAI.EvalPath(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TCAI.EvalPath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer;
+  HitWalls: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject): Integer;
+var
+  Path: TXYZList;
+  Obstacles: TList;
+  I, X, Y, V, Total, Original, Chance: Integer;
+  FX: TfxType;
+begin
+  if Ability = $34 then FX := SpellTypes[Spell] else FX := AbilTypes[Ability];
+  case FX of
+    fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxRay, fxAltArrow:
+      begin
+        Path := TXYZList.Create;
+        Obstacles := TList.Create;
+        if FX = fxBreath then
+          MakeRangedPath(U.GetSide, 50, 20, 50, X1, Y1, X2, Y2, nil, False, 0, Path, Obstacles)
+        else MakeAbilPath(U.GetSide, Ability, Spell, X1, Y1, X2, Y2, Path, Obstacles);
+        Total := 0;
+        Original := Value;
+        Chance := 100;
+        for I := 0 to Obstacles.Count - 1 do begin
+          HPtoHX(Path[TROb(Obstacles[I]).PathIndex].X, Path[TROb(Obstacles[I]).PathIndex].Y, X, Y);
+          V := 0;
+          EvalHex(Ignore, Ability, Spell, X, Y, V, HitWalls, True, U, IgnoreWall);
+          try
+            Total := Total + (V * Chance div 100) * TROb(Obstacles[I]).Chance div 100;
+          except
+            Total := Total + TROb(Obstacles[I]).Chance * (V div 100 * Chance div 100);
+          end;
+          Chance := (100 - TROb(Obstacles[I]).Chance) * Chance div 100;
+        end;
+        try
+          Value := Value * Chance div 100;
+        except
+          Value := Value div 100 * Chance;
+        end;
+        Value := Value + Total;
+        Path.Free;
+        for I := 0 to Obstacles.Count - 1 do TObject(Obstacles[I]).Free;
+        Obstacles.Free;
+        Result := Original - Value;
+      end;
+  else Result := 0;
+  end;
+end;
 
-function TCAI.EvalBreath(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer): Integer;
-begin Result := 0; end;
+function TCAI.EvalBreath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer;
+  U: TTacticalCombatUnit): Integer;
+var
+  I, V, X, Y: Integer;
+begin
+  Result := EvalPath(Value, Ignore, Ability, Spell, U.FUnitHS.GetXhx,
+    U.FUnitHS.GetYhx, X2, Y2, False, U, nil);
+  for I := 0 to 11 do begin
+    V := 0;
+    CenterHNtoHX(X1, Y1, BreathHN[BreathDirection[dHXtoHN(X1, Y1, X2, Y2)] * 12 + I - 12], X, Y);
+    EvalHex(Ignore, Ability, Spell, X, Y, V, True, True, U, nil);
+    if V <> 0 then
+      EvalPath(V, Ignore, Ability, Spell, U.FUnitHS.GetXhx, U.FUnitHS.GetYhx,
+        X, Y, False, U, nil);
+    Value := Value + V;
+    Result := Result - V;
+  end;
+end;
 
 procedure TCAI.CheckUnit(A1: Integer; A2: Integer);
 begin end;
@@ -921,123 +1256,427 @@ begin
 end;
 
 class function TAoWCombatMap.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220100; end;
 
-constructor TAoWCombatMap.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TAoWCombatMap.Create(AOwner: TECustomNode);
+var I: Integer;
+begin
+  AoWCombatMap := Self;
+  inherited Create(AOwner);
+  FUnitPositions := TUnitPositionControl.Create(nil);
+  FChangeTurnEvents := TEventList.Create;
+  FPlayerChangedEvents := TEventList.Create;
+  FSeatedPlayerChangedEvents := TEventList.Create;
+  FMoveControl := TCombatMoveControl.Create(Self);
+  FSelectEvents := TEventList.Create;
+  FDeselectEvents := TEventList.Create;
+  FUnitChangedEvents := TEventList.Create;
+  FMouseOverTargetEvents := TEventList.Create;
+  FPlayers := TTacticalCombatPlayerList.Create;
+  FUnitSelection := TCombatUnitSelectionControl.Create;
+  TAoWCombatMapMouse(Mouse).FRectangleSelectEvents.Add(FUnitSelection.RectangleSelectEvent);
+  FEffects := TList.Create;
+  FWalls := TList.Create;
+  FFires := TList.Create;
+  FAI := TCAI.Create;
+  Mouse.SetCapture(Self);
+  Mouse.OnMove.Add(MouseMoveEvent);
+  Mouse.CursorMode := $100;
+  for I := 0 to 7 do FPositionStatus[I] := 2;
+end;
 
 destructor TAoWCombatMap.Destroy;
-begin end;
+begin
+  while FEffects.Count > 0 do begin
+    DynamicFixedVisibleHS.RemoveChild(THexagonSprite(FEffects[0]));
+    DynamicVisibleHS.RemoveChild(THexagonSprite(FEffects[0]));
+    TObject(FEffects[0]).Free;
+    FEffects.Delete(0);
+  end;
+  inherited Destroy;
+  AoWCombatMap := nil;
+  FUnitPositions.Free;
+  FChangeTurnEvents.Free;
+  FPlayerChangedEvents.Free;
+  FSeatedPlayerChangedEvents.Free;
+  FSelectEvents.Free;
+  FDeselectEvents.Free;
+  FUnitChangedEvents.Free;
+  FMouseOverTargetEvents.Free;
+  FMoveControl.Free;
+  FPlayers.Free;
+  FUnitSelection.Free;
+  FEffects.Free;
+  FWalls.Free;
+  FFires.Free;
+  FAI.Free;
+end;
 
-function TAoWCombatMap.CreateMouse: HSEngine.THSMapMouse;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TAoWCombatMap.CreateMouse: THSMapMouse;
+begin Result := TAoWCombatMapMouse.Create; end;
 
-procedure TAoWCombatMap.SetCombat(A1: Integer);
-begin end;
+procedure TAoWCombatMap.SetCombat(Combat: TTacticalCombat);
+begin
+  FCombat := Combat;
+  if FCombat <> nil then FPlayers.FPlayers := FCombat.FCombatData.FPlayers;
+end;
 
-procedure TAoWCombatMap.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TAoWCombatMap.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  if (Msg.MsgID = $20000008) and not (msEditting in Status) then
+    SetCombat(TTacticalCombat(AoWHSMap.FCombat));
+  inherited MsgProc(Msg, Sender);
+end;
 
-procedure TAoWCombatMap.MouseMoveEvent(A1: Integer);
-begin end;
+procedure TAoWCombatMap.MouseMoveEvent(Sender: TObject);
+var HS: TTacticalCombatUnitHS;
+begin
+  if not (msEditting in AoWCombatMap.Status) and not FPlayers.GetPlayers(FCurrentCombatPlayer).FAuto and
+    (Mouse.Xhx <> -1) and (Mouse.Yhx <> -1) and (Mouse.Capture = nil) then begin
+    Mouse.CursorMode := 0;
+    HS := TTacticalCombatUnitHS(MapContainer.MapLevels[0].Field[Mouse.Xhx, Mouse.Yhx].FindOwnedChild($220104));
+    if HS <> nil then Mouse.CursorMode := $101;
+  end;
+end;
 
 procedure TAoWCombatMap.InitializeNewMap;
-begin end;
+var
+  Control: THexagonControl;
+  X, Y: Integer;
+begin
+  for X := 6 to MapContainer.Width - 7 do
+    for Y := 6 to MapContainer.Height - 7 do
+      AoWHSSet.FCombatHexagons.Place(MapContainer, X, Y, 0, 1);
+  Control := Engine.HSSet.HexagonControl;
+  with Control do begin
+    for X := 0 to MapContainer.Width - 1 do begin
+      for Y := 0 to 5 do Place(MapContainer, X, Y, 0, 15);
+      for Y := MapContainer.Height - 6 to MapContainer.Height - 1 do Place(MapContainer, X, Y, 0, 15);
+    end;
+    for Y := 6 to MapContainer.Height - 7 do begin
+      for X := 0 to 5 do Place(MapContainer, X, Y, 0, 15);
+      for X := MapContainer.Width - 6 to MapContainer.Width - 1 do Place(MapContainer, X, Y, 0, 15);
+    end;
+  end;
+end;
 
-procedure TAoWCombatMap.SetSeatedCombatPlayer(A1: Byte);
-begin end;
+procedure TAoWCombatMap.SetSeatedCombatPlayer(Player: Shortint);
+begin
+  FSeatedCombatPlayer := Player;
+  if Player = -1 then SetSeatedPlayer(-1)
+  else SetSeatedPlayer(FCombat.FCombatData.FPlayers.GetPlayers(FSeatedCombatPlayer).FPlayer);
+  FSeatedPlayerChangedEvents.TriggerNotifyEvents(TObject(FCurrentCombatPlayer));
+end;
 
 procedure TAoWCombatMap.NewTurn(Player: Shortint);
 begin end;
 
-procedure TAoWCombatMap.DrawDynamicScene(var SD: GFXE.TSurfaceDesc);
-begin end;
+procedure TAoWCombatMap.DrawDynamicScene(var SD: TSurfaceDesc);
+begin
+  inherited DrawDynamicScene(SD);
+  if AoWHSMap <> nil then DrawFog(SD);
+  if FShowGrid then DrawGrid(SD);
+  DrawMoveRoute(SD);
+  if TAoWCombatMapMouse(Mouse).FSelectionRectangle.Left <> -1 then
+    DrawSelectionRect(ViewXhp, ViewYhp, TAoWCombatMapMouse(Mouse).FSelectionRectangle, SD);
+end;
 
-procedure TAoWCombatMap.DrawMoveRoute(A1: Integer);
-begin end;
+procedure TAoWCombatMap.DrawMoveRoute(const SD: TSurfaceDesc);
+begin FUnitSelection.ShowMovePaths(SD); end;
 
-function TAoWCombatMap.EndTurn(A1: Byte): Byte;
-begin Result := 0; end;
+function TAoWCombatMap.EndTurn(Automatic: Boolean): Boolean;
+var TE: TCEndTurnTE;
+begin
+  Result := False;
+  if not Automatic then begin
+    if AoWHSMap.FPlayers.GetPlayers(FCurrentPlayer).FPlayerType <> ptHuman then Exit;
+    if AoWCombatMap.FSeatedCombatPlayer <> AoWCombatMap.FCurrentCombatPlayer then Exit;
+  end;
+  if AoWHSMap.FTokenManager.PlayerReady(FCurrentPlayer) then begin
+    TE := CreateTCEndTurnTE(FCurrentPlayer);
+    if TE <> nil then begin
+      AoWHSMap.FTokenManager.GetTokenControl(FCurrentPlayer).AddEvent(TE);
+      TE.Release;
+      Result := True;
+      FEndTurnPending := False;
+    end;
+  end;
+end;
 
-procedure TAoWCombatMap.CancelEndTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWCombatMap.CancelEndTurn;
+begin { Intentionally empty in the original. } end;
 
-function TAoWCombatMap.GetEndTurnStatus: Byte;
-begin Result := 0; end;
+function TAoWCombatMap.GetEndTurnStatus: Boolean;
+var I: Integer;
+begin
+  Result := True;
+  for I := 0 to FPlayers.GetCount - 1 do
+    Result := Result and FPlayers.GetPlayers(I).FEndTurn;
+end;
 
-function TAoWCombatMap.GetNextUnit(A1: Integer; A2: Byte; A3: Integer): Integer;
-begin Result := 0; end;
+function TAoWCombatMap.GetNextUnit(U: TTacticalCombatUnit; AllUnits, Forward: Boolean): TTacticalCombatUnit;
+var
+  Index, I, Start, Step: Integer;
+begin
+  if (U <> nil) and not U.GetEnabled then U := nil;
+  Result := U;
+  if Forward then Step := 1 else Step := -1;
+  with FCombat do begin
+    Index := 0;
+    I := 0;
+    Start := 0;
+    if U <> nil then
+      while I < FCombatData.GetCount do begin
+        if FCombatData.GetObjects(I) = U then begin
+          Index := I + Step;
+          Start := I;
+          I := FCombatData.GetCount;
+        end;
+        Inc(I);
+      end;
+    while (Index < FCombatData.GetCount) and (Index > -1) do begin
+      if (FCombatData.GetObjects(Index) <> nil) and
+        (FCombatData.GetObjects(Index) is TCombatUnit) and
+        (AllUnits or (TTacticalCombatUnit(FCombatData.GetObjects(Index)).FMovePoints > 0)) and
+        FCombatData.GetObjects(Index).GetEnabled and
+        (FCombatData.GetObjects(Index).FCombatPlayer = FCurrentCombatPlayer) then begin
+        Result := TTacticalCombatUnit(FCombatData.GetObjects(Index));
+        Index := -10;
+      end;
+      Index := Index + Step;
+    end;
+    if Result = U then begin
+      if Forward then Index := 0 else Index := FCombatData.GetCount - 1;
+      while (Index <> Start) and (Index > -1) and (Index < FCombatData.GetCount) do begin
+        if (FCombatData.GetObjects(Index) <> nil) and
+          (FCombatData.GetObjects(Index) is TCombatUnit) and
+          (AllUnits or (TTacticalCombatUnit(FCombatData.GetObjects(Index)).FMovePoints > 0)) and
+          FCombatData.GetObjects(Index).GetEnabled and
+          (FCombatData.GetObjects(Index).FCombatPlayer = FCurrentCombatPlayer) then begin
+          Result := TTacticalCombatUnit(FCombatData.GetObjects(Index));
+          Index := -10;
+        end;
+        Index := Index + Step;
+      end;
+    end;
+  end;
+end;
 
 procedure TAoWCombatMap.NewFrame;
 begin end;
 
 function TAoWCombatMap.AddEffect(EffectType: TfxType): TfxHS;
-begin Result := nil; end;
+begin
+  Result := TfxHS.Create(nil);
+  FEffects.Add(Result);
+  Result.Activate;
+  Result.FEffectType := EffectType;
+  DynamicFixedVisibleHS.AddChild(Result);
+end;
 
-procedure TAoWCombatMap.UpdateCursor(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWCombatMap.UpdateCursor;
+begin
+  if ((FSeatedPlayer = -1) or AoWHSMap.FTokenManager.PlayerReady(FSeatedPlayer)) and
+    (FSeatedPlayer = FCurrentPlayer) and not FPlayers.GetPlayers(FCurrentCombatPlayer).FAuto and
+    (AoWCombatMap.FSeatedCombatPlayer = AoWCombatMap.FCurrentCombatPlayer) then begin
+    if FUnitSelection.GetTCUnitHS <> nil then FUnitSelection.UpdateMoveCursor;
+    case Mouse.CursorMode of
+      0: Mouse.Cursor := 0;
+      $101: Mouse.Cursor := (Frame div 4) mod 4 + $34;
+      $102: Mouse.Cursor := (Frame div 4) mod 2 + $31;
+    end;
+  end else Mouse.Cursor := (Frame div 4) mod 4 + 6;
+end;
 
 procedure TAoWCombatMap.EndCombat(A1: Integer);
-begin end;
+var TE: TTerminateCombatTE;
+begin
+  TE := TTerminateCombatTE.Create(nil);
+  AoWHSMap.FTokenManager.TokenExecuter.AddSystemEvent(TE);
+  TE.Release;
+end;
 
-procedure TAoWCombatMap.SelectNextUnit(A1: Byte);
-begin end;
+procedure TAoWCombatMap.SelectNextUnit(Forward: Boolean);
+var
+  U: TTacticalCombatUnit;
+  X, Y: Integer;
+begin
+  if FSeatedCombatPlayer = FCurrentCombatPlayer then begin
+    U := GetNextUnit(FPlayers.GetPlayers(FSeatedCombatPlayer).FLastUnit, False, Forward);
+    if U <> nil then
+      if FUnitSelection.GetTCUnitHS <> U.FUnitHS then begin
+        FPlayers.GetPlayers(FSeatedCombatPlayer).FLastUnit := U;
+        CenterViewTo(U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, 0);
+        Selection.UnselectLocation;
+        HXtoHP(U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, X, Y);
+        Selection.SelectLocation(X, Y, 0);
+      end;
+  end;
+end;
 
-procedure TAoWCombatMap.DropHeroItem(Hero: AoWE.THero; Item: AoWE.TItem);
-begin end;
+procedure TAoWCombatMap.DropHeroItem(Hero: THero; Item: TItem);
+var
+  X, Y, L: Shortint;
+  HS: TItemHS;
+  I: Integer;
+begin
+  X := -1;
+  Y := -1;
+  L := -1;
+  I := FCombat.FCombatData.GetCount;
+  while (I <> 0) and (X = -1) do begin
+    Dec(I);
+    if (FCombat.FCombatData.GetObjects(I) is TTacticalCombatUnit) and
+      (TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnit = Hero) then begin
+      X := TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnitHS.GetXhx;
+      Y := TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnitHS.GetYhx;
+      L := 0;
+    end;
+  end;
+  if X > -1 then begin
+    HS := TItemHS(MapContainer.GetField(X, Y, L).FindOwnedChild($20271));
+    if HS = nil then begin
+      HS := TCItemHS.Create(nil);
+      { Original bug: a failed placement leaves the new item sprite allocated. }
+      if AoWCombatMap.PlaceHX(HS, X, Y, L) then Item.SetOwner(HS.FItems);
+    end else Item.SetOwner(HS.FItems);
+  end;
+end;
 
-function TAoWCombatMap.GetHeroItemsOnGround(Hero: AoWE.THero): AoWE.TItemList;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TAoWCombatMap.GetHeroItemsOnGround(Hero: THero): TItemList;
+var
+  HS: TItemHS;
+  X, Y, L: Shortint;
+begin
+  Result := nil;
+  GetUnitLocation(Hero, X, Y, L);
+  if X > -1 then begin
+    HS := TItemHS(MapContainer.GetField(X, Y, L).FindOwnedChild($20271));
+    if HS <> nil then Result := HS.FItems;
+  end;
+end;
 
-procedure TAoWCombatMap.GetUnitLocation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TAoWCombatMap.GetUnitLocation(U: TAbstractUnit; var X, Y, L: Shortint);
+var I: Integer;
+begin
+  X := -1;
+  I := 0;
+  while I < FCombat.FCombatData.GetCount do
+    if (TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnit = U) and
+      FCombat.FCombatData.GetObjects(I).GetEnabled then begin
+      X := TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnitHS.GetXhx;
+      Y := TTacticalCombatUnit(FCombat.FCombatData.GetObjects(I)).FUnitHS.GetYhx;
+      L := 0;
+      I := FCombat.FCombatData.GetCount;
+    end else Inc(I);
+end;
 
-procedure TAoWCombatMap.Surrender(A1: Byte);
-begin end;
+procedure TAoWCombatMap.Surrender(Mode: Boolean);
+var TE: TCEndCombatTE;
+begin
+  if AoWHSMap.FTokenManager.PlayerReady(AoWCombatMap.FCurrentPlayer) and
+    (FCurrentCombatPlayer = FSeatedCombatPlayer) then begin
+    FUnitSelection.Unselect;
+    TE := CreateTCEndCombatTE;
+    if TE <> nil then begin
+      AoWHSMap.FTokenManager.GetTokenControl(FCurrentPlayer).AddEvent(TE);
+      TE.Release;
+    end;
+  end;
+end;
 
 procedure TCItemHS.Deactivate;
 begin end;
 
 function TTacticalCombatUnit.GetPosValue: Integer;
-begin Result := 0; end;
+begin
+  Result := GetAttack + GetDamage + GetDefense + GetMoves div 3;
+  if SupportCombatMode([cmMediumRange]) then Result := Result - 100;
+  if SupportCombatMode([cmLongRange]) then Result := Result - 200;
+end;
 
 procedure TTacticalCombatUnit.NewTurn(A1: Byte);
-begin end;
+begin
+  inherited NewTurn(A1);
+  if (A1 = Byte(FCombatPlayer)) and GetEnabled then FMovePoints := GetMoves;
+end;
 
 procedure TTacticalCombatUnit.MovedTo(OldField, NewField: TAoWMapField; MoveCost: Integer);
-begin end;
+begin
+  FMovePoints := FMovePoints - MoveCost;
+  if FMovePoints < 0 then FMovePoints := 0;
+  if GetAbilityEnabled($2B) then CreateFire(0, 50, FUnitHS.GetXhx, FUnitHS.GetYhx);
+  AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FUnitHS);
+end;
 
-procedure TTacticalCombatUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TTacticalCombatUnit.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin inherited MsgProc(Msg, Sender); end;
 
 function TTacticalCombatUnit.ExecuteDamage(A1: Integer): Integer;
 begin Result := 0; end;
 
-procedure TCombatMoveControl.ProcessMove(A1: AoWE.TMoveControlSettings);
-begin end;
+procedure TCombatMoveControl.ProcessMove(A1: TMoveControlSettings);
+begin
+  FUnitHS := TTacticalCombatUnitHS(A1.FArmyHS);
+  FMoveFlags := TCombatMoveControlSettings(A1).FMoveFlags;
+  inherited ProcessMove(A1);
+end;
 
-function TCombatUnitSelectionControl.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TCombatUnitSelectionControl.Create;
+begin
+  inherited Create;
+  FRangedPath := TXYZList.Create;
+  FObstacles := TList.Create;
+  FRangedPathHS := TRangedPathHS.Create(nil);
+  FRangedPathHS.Activate;
+  FTargetImages := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'TargHex.ILB');
+end;
 
 destructor TCombatUnitSelectionControl.Destroy;
-begin end;
+var I: Integer;
+begin
+  for I := 0 to FObstacles.Count - 1 do TObject(FObstacles[I]).Free;
+  FObstacles.Free;
+  FRangedPath.Free;
+  FRangedPathHS.Free;
+  AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'TargHex.ILB');
+  inherited Destroy;
+end;
 
-function TCombatUnitSelectionControl.CreateMCS: AoWE.TMoveControlSettings;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TCombatUnitSelectionControl.CreateMCS: TMoveControlSettings;
+begin Result := TCombatMoveControlSettings.Create(nil); end;
 
-function TCombatUnitSelectionControl.AddUnit(A1: Integer): Integer;
-begin Result := 0; end;
+function TCombatUnitSelectionControl.AddUnit(U: TTacticalCombatUnitHS): Integer;
+begin
+  Result := AddMoveObject(U);
+  FMoveSettingsList.GetMoveSettings(Result).FMovePoints := U.FUnit.FMovePoints;
+  FMoveSettingsList.GetMoveSettings(Result).FMoves := U.FUnit.GetMoves;
+end;
 
 procedure TCombatUnitSelectionControl.SetCurrentMove(A1: Integer);
-begin end;
+begin
+  if (FCurrentMove <> -1) and (GetTCUnitHS <> nil) then
+    AoWCombatMap.Selection.TriggerDeselectEvent(GetTCUnitHS);
+  inherited SetCurrentMove(A1);
+  if (FCurrentMove <> -1) and (GetTCUnitHS <> nil) then
+    AoWCombatMap.Selection.TriggerSelectEvent(GetTCUnitHS);
+end;
 
-function TCombatUnitSelectionControl.GetTCUnitHS: Integer;
-begin Result := 0; end;
+function TCombatUnitSelectionControl.GetTCUnitHS: TTacticalCombatUnitHS;
+begin
+  if FCurrentMove <> -1 then
+    Result := TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject)
+  else Result := nil;
+end;
 
-function TCombatUnitSelectionControl.GetMoveTypes: Byte;
-begin Result := 0; end;
+function TCombatUnitSelectionControl.GetMoveTypes: TMoveTypes;
+begin
+  if FCurrentMove <> -1 then
+    Result := TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject).FUnit.FUnit.GetMoveTypes
+  else Result := [];
+end;
 
-procedure TCombatUnitSelectionControl.RectangleSelectEvent(A1: Integer);
+procedure TCombatUnitSelectionControl.RectangleSelectEvent(Sender: TObject);
 begin end;
 
 procedure TCombatUnitSelectionControl.MoveSelectionEvent(A1: Integer);
@@ -1058,8 +1697,12 @@ begin end;
 procedure TCombatUnitSelectionControl.ExecuteMoveSelection;
 begin end;
 
-function TCombatUnitSelectionControl.ValidMultiMoveSelection(A1: Integer): Byte;
-begin Result := 0; end;
+function TCombatUnitSelectionControl.ValidMultiMoveSelection(Field: TAoWMapField): Boolean;
+var Player: Shortint;
+begin
+  Player := Field.GetPlayer;
+  Result := Player = -1;
+end;
 
 procedure TCombatUnitSelectionControl.MouseDownEvent(Sender: TObject);
 begin end;
@@ -1067,71 +1710,191 @@ begin end;
 procedure TCombatUnitSelectionControl.UpdateMoveCursor;
 begin end;
 
-procedure TCombatUnitSelectionControl.ActivateMoveSelection(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.ActivateMoveSelection;
+begin
+  if not (mssActivated in FStatus) then Activate(AoWCombatMap);
+end;
 
-procedure TCombatUnitSelectionControl.DeactivateMoveSelection(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.DeactivateMoveSelection;
+begin
+  if mssActivated in FStatus then begin
+    Deactivate;
+    FRangedPath.Clear;
+    FMoveSettingsList.Clear;
+    AoWCombatMap.MouseMoveEvent(Self);
+  end;
+end;
 
-procedure TCombatUnitSelectionControl.ShowMovePaths(const Surface: GFXE.TSurfaceDesc);
-begin end;
+procedure TCombatUnitSelectionControl.ShowMovePaths(const Surface: TSurfaceDesc);
+var
+  I, X, Y, Xhp, Yhp: Integer;
+begin
+  inherited ShowMovePaths(Surface);
+  if GetTCUnitHS <> nil then begin
+    if (GetTCUnitHS.FSelectedAbility <> $41) and (GetTCUnitHS.FSelectedAbility <> $72) then Exit;
+    if (FMoveSettingsList.GetCount = 1) and
+      (FMoveSettingsList.GetMoveSettings(0).FPath.Count > 1) then
+      for I := 1 to 6 do begin
+        CenterHNtoHX(FMoveSettingsList.GetMoveSettings(0).FPath[1].X,
+          FMoveSettingsList.GetMoveSettings(0).FPath[1].Y, I, X, Y);
+        HXtoHP(X, Y, Xhp, Yhp);
+        FTargetImages[0].Show(Xhp - AoWCombatMap.ViewXhp - 8,
+          Yhp - AoWCombatMap.ViewYhp + 2, Surface);
+      end;
+  end;
+end;
 
-procedure TCombatUnitSelectionControl.Update(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.Update;
+begin
+  if GetTCUnitHS <> nil then
+    GetTCUnitHS.FUnit.FUnit.CreateMovePointTable(FMoveControlSettings.FMovePointTable);
+  FPathInvalid := [piRanged];
+end;
 
-procedure TCombatUnitSelectionControl.SetTCUnitHS(A1: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.SetTCUnitHS(U: TTacticalCombatUnitHS);
+begin
+  if GetTCUnitHS <> U then
+    if FMoveSettingsList.GetCount <= 1 then begin
+      Clear;
+      if (U <> nil) and (U.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer) then begin
+        ActivateMoveSelection;
+        AddUnit(U);
+        SetCurrentMove(0);
+        Update;
+      end else DeactivateMoveSelection;
+      FRangedPath.Clear;
+      UpdateMoveCursor;
+    end;
+end;
 
 procedure TCombatUnitSelectionControl.Unselect;
-begin end;
+begin
+  DeactivateRangedPath;
+  if GetTCUnitHS <> nil then GetTCUnitHS.FSelectedAbility := -1;
+  AoWCombatMap.Selection.UnselectLocation;
+  DeactivateMoveSelection;
+  inherited Unselect;
+end;
 
-procedure TCombatUnitSelectionControl.Select(A1: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.Select(U: TTacticalCombatUnitHS);
+begin
+  AoWCombatMap.Selection.UnselectLocation;
+  if U <> nil then AoWCombatMap.Selection.SelectLocationHS(U);
+end;
 
-procedure TCombatUnitSelectionControl.DeactivateRangedPath(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatUnitSelectionControl.DeactivateRangedPath;
+begin
+  if FRangedPathHS.FPath <> nil then begin
+    AoWCombatMap.DynamicFixedVisibleHS.RemoveChild(FRangedPathHS);
+    FRangedPathHS.FPath := nil;
+  end;
+end;
 
 procedure TTacticalCombatUnitHS.Deactivate;
-begin end;
+var I: Integer;
+begin
+  if AoWCombatMap <> nil then AoWCombatMap.NewFrameEvents.Remove(NewFrame);
+  for I := 0 to FAbilities.Count - 1 do TObject(FAbilities[I]).Free;
+  FAbilities.Free;
+  inherited Deactivate;
+end;
 
 class function TTacticalCombatUnitHS.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220104; end;
 
-procedure TTacticalCombatUnitHS.Initialize(A1: Integer);
-begin end;
+procedure TTacticalCombatUnitHS.Initialize(U: TTacticalCombatUnit);
+begin
+  FUnit := U;
+  FUnit.FUnitHS := Self;
+end;
 
 function TTacticalCombatUnitHS.GetMoveSteps: Integer;
-begin Result := 0; end;
+begin
+  case AoWEngine.FRegistry.GetMovementSpeed of
+    mmsFast:
+      begin
+        Result := inherited GetMoveSteps;
+        if Result > 8 then Result := Result - 4 else Result := 4;
+      end;
+    mmsTurbo: Result := 2;
+  else Result := inherited GetMoveSteps;
+  end;
+end;
 
 procedure TTacticalCombatUnitHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
 begin end;
 
-procedure TTacticalCombatUnitHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+procedure TTacticalCombatUnitHS.UpdateMapField(const Info: THSMapFieldInfo);
+begin
+  if Info.HN = 0 then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $4000 or $2000 or $2000000
+  else if Info.HN <= 6 then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $4000;
+end;
 
 procedure TTacticalCombatUnitHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  SetUnitGFXResourceIndex(FUnit.FUnit.GetUnitGFXResourceIndex);
+  FAbilities := TList.Create;
+  CreateTCAbList;
+  AoWCombatMap.NewFrameEvents.Add(NewFrame);
+  if AoWCombatMap.FExplorationEnabled then
+    AoWCombatMap.ExploreArea(GetXhx, GetYhx, 0, FUnit.GetPlayer, FUnit.GetVisibilityRange);
+  FActionFrame := $FFFF;
+  FSelectedAbility := -1;
+  FSelectedSpell := -1;
+end;
 
 procedure TTacticalCombatUnitHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
-procedure TTacticalCombatUnitHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+procedure TTacticalCombatUnitHS.MsgProc(var Msg: TEMsg; Sender: TEObject);
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID <> $20010017) and (Msg.MsgID and $40000000 = 0) and (FUnit <> nil) then
+    FUnit.MsgProc(Msg, Sender);
+end;
 
-procedure TTacticalCombatUnitHS.NewFrame(A1: Integer; A2: Integer);
+procedure TTacticalCombatUnitHS.NewFrame(Sender: TObject);
 begin end;
 
 procedure TTacticalCombatUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
 procedure TTacticalCombatUnitHS.Select;
-begin end;
+begin
+  inherited Select;
+  CreateTCAbList;
+  FSelectedAbility := -1;
+  if AoWCombatMap.FUnitSelection.GetTCUnitHS <> Self then
+    AoWCombatMap.FUnitSelection.SetTCUnitHS(Self);
+  FUnitGFXResource.FSFXLibraries[0].Play(0);
+  if AoWCombatMap.FSeatedCombatPlayer = FUnit.FCombatPlayer then
+    AoWCombatMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedCombatPlayer).FLastUnit := FUnit;
+end;
 
 procedure TTacticalCombatUnitHS.Unselect;
-begin end;
+begin
+  inherited Unselect;
+  if AoWCombatMap <> nil then
+    if AoWCombatMap.FUnitSelection.GetTCUnitHS = Self then
+      AoWCombatMap.FUnitSelection.Unselect;
+end;
 
-function TTacticalCombatUnitHS.MeleeMoveTC(A1: Integer): Byte;
-begin Result := 0; end;
+function TTacticalCombatUnitHS.MeleeMoveTC(Path: TMovepath): Boolean;
+var TE: TCMeleeMoveTE;
+begin
+  Result := False;
+  if AoWHSMap.FTokenManager.PlayerReady(FUnit.GetPlayer) and (Path.Count > 1) then begin
+    TE := CreateTCMeleeMoveTE(FUnit, Path);
+    if TE <> nil then begin
+      AoWHSMap.FTokenManager.GetTokenControl(FUnit.GetPlayer).AddEvent(TE);
+      TE.Release;
+      Result := True;
+    end;
+  end;
+end;
 
 procedure TTacticalCombatUnitHS.ShowShadow(X, Y: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
@@ -1149,13 +1912,33 @@ procedure TTacticalCombatUnitHS.ListAbilities(A1: Integer; A2: Integer);
 begin end;
 
 procedure TTacticalCombatUnitHS.SetAction(Action: TTCAction);
-begin end;
+begin
+  FActionDone := False;
+  case Action of
+    caStepUp, caStepBack: FActionFrame := 0;
+    caRoundAttack, caRoundAttackHit:
+      if (FAction <> caRoundAttack) and (FAction <> caRoundAttackHit) then FActionFrame := $FFFF;
+  else FActionFrame := $FFFF;
+  end;
+  FAction := Action;
+end;
 
 function TTacticalCombatUnitHS.AbTouchMoveTC(A1: Integer): Byte;
 begin Result := 0; end;
 
-function TTacticalCombatUnitHS.AbRangedTC(A1: Word; A2: Word): Byte;
-begin Result := 0; end;
+function TTacticalCombatUnitHS.AbRangedTC(X, Y: Word): Boolean;
+var TE: TCAbRangedTE;
+begin
+  Result := False;
+  if AoWHSMap.FTokenManager.PlayerReady(FUnit.GetPlayer) then begin
+    TE := CreateTCAbRangedTE(FUnit, X, Y, FSelectedAbility, FSelectedSpell);
+    if TE <> nil then begin
+      AoWHSMap.FTokenManager.GetTokenControl(FUnit.GetPlayer).AddEvent(TE);
+      TE.Release;
+      Result := True;
+    end;
+  end;
+end;
 
 procedure TCCorpseHS.Deactivate;
 begin
@@ -1556,10 +2339,13 @@ begin
   Result := TTacticalCombatPlayer(FPlayers.GetPlayers(Index));
 end;
 
-procedure MakeAbilPath(A1: Byte; A2: Word; A3: Word);
+procedure MakeAbilPath(Side: TCombatSideIndex; Ability, Spell: Smallint;
+  X1, Y1, X2, Y2: Smallint; var Path: TXYZList; var Obstacles: TList);
 begin end;
 
-procedure MakeRangedPath(A1: Byte; A2: Word; A3: Word; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer; A12: Integer; A13: Integer);
+procedure MakeRangedPath(Side: TCombatSideIndex; Height, Step, Arc: Smallint;
+  X1, Y1, X2, Y2: Smallint; Ignore: TMapObject; Mode: Boolean;
+  Z: Smallint; var Path: TXYZList; var Obstacles: TList);
 begin end;
 
 procedure RegisterAoWTCClasses(A1: Integer);

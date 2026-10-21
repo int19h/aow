@@ -21329,7 +21329,7 @@ begin
     Integer(FLevelData^[TXYL(Location).L]))^ := Value;
 end;
 
-constructor TMoveControl.Create(AOwner: TAoWHSMap);
+constructor TMoveControl.Create(AOwner: THSMap);
 begin
   inherited Create;
   FMap := AOwner;
@@ -35653,7 +35653,7 @@ begin
           SelectPath(Xhx, FMap.Mouse.Yhx, FMap.ViewL);
 end;
 
-procedure TMoveSelector.Activate(Map: TAoWHSMap);
+procedure TMoveSelector.Activate(Map: TAbstractAoWHSMap);
 begin
   if mssActivated in FStatus then Deactivate;
   FMap := Map;

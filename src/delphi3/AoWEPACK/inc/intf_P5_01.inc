@@ -86,7 +86,7 @@
     $1D0 direct route, $1D8 exploration mask, $1DC settings. }
   TMoveControl = class(TObject)
   public
-    FMap: TAoWHSMap; { $04 }
+    FMap: THSMap; { $04; AoWTCPCK 0041B428 }
     FStatus: TMoveControlStatus; { $08 }
     FPlayer: Shortint; { $09; 55761458 }
     FMode: TMoveMode; { $0A }
@@ -117,7 +117,7 @@
     destructor Destroy; override;
     function SetupMove: Boolean; virtual; { +000 }
     procedure ProcessMove(A1: TMoveControlSettings); virtual;  { +004 }
-    constructor Create(AOwner: TAoWHSMap);
+    constructor Create(AOwner: THSMap);
     procedure Clear;
     procedure SetMapL(Level: TMapLevel);
     function DefaultMoveOnMovePointProc(MapF: TAoWMapField; MoveOverCode: Integer): Integer;

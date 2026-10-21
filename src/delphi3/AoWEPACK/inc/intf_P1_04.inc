@@ -217,7 +217,7 @@
     FMoveControlSettings: TMoveControlSettings; { $04 }
     FMoveSettingsList: TMoveSettingsList; { $08; 5577468B }
     FCurrentMove: Integer; { $0C }
-    FMap: TAoWHSMap; { $10 }
+    FMap: TAbstractAoWHSMap; { $10; AoWTCPCK 0041FD22 }
     FStatus: TMoveSelectorStatus; { $14 }
     F_MoveSelector_15: array[0..2] of Byte;
     destructor Destroy; override;
@@ -231,7 +231,7 @@
     procedure Unselect; virtual; { +01C }
     function ValidateSelection(Field: TAoWMapField): Boolean; virtual; { $20 }
     procedure ExecuteMove; virtual; { $024 }
-    procedure Activate(Map: TAoWHSMap); virtual; { $28 }
+    procedure Activate(Map: TAbstractAoWHSMap); virtual; { $28 }
     procedure Deactivate; virtual; { $02C }
     procedure ShowMovePaths(const Surface: TSurfaceDesc); virtual; { $30 }
     constructor Create;
