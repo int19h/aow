@@ -69,9 +69,9 @@ type
     procedure SetMapHeight(A1: Integer);
     function GetTerrain(A1: Integer; A2: Integer): Byte;
     procedure SetTerrain(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    function GetOverlay(A1: Integer; A2: Integer): Integer;  { draft }
+    function GetOverlay(X, Y: Integer): Integer;
     procedure SetOverlay(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    function GetExplored(A1: Integer; A2: Integer): Integer;  { draft }
+    function GetExplored(X, Y: Integer): Byte;
     procedure SetExplored(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function GetObject(X, Y: Integer): Integer;
     function GetObjectSize: Byte;
@@ -204,14 +204,56 @@ end;
 procedure TScanner.SetTerrain(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-function TScanner.GetOverlay(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TScanner.GetOverlay(X, Y: Integer): Integer;
+begin
+  if AoWHSMap.FCombatMap <> nil then
+    case FLevel.GetField(X + 8, Y + 6).GetDecorationType of
+      1, 2, 3, 9: Result := 1;
+      4, 5: Result := 9;
+      6, 7, 8, 14..18: Result := 8;
+      10: Result := 3;
+      11, 12: Result := 6;
+      13: Result := 2;
+    else
+      Result := FLevel.GetField(X + 8, Y + 6).OverlayType;
+    end
+  else
+    Result := FLevel.GetField(X + 6, Y + 6).OverlayType;
+end;
 
 procedure TScanner.SetOverlay(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-function TScanner.GetExplored(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TScanner.GetExplored(X, Y: Integer): Byte;
+var Field: TAoWMapField;
+begin
+  if AoWHSMap.FCombatMap <> nil then
+    Field := TAoWMapField(FLevel.GetField(X + 8, Y + 6))
+  else
+    Field := TAoWMapField(FLevel.GetField(X + 6, Y + 6));
+  if FMap.FExplorationEnabled then
+  begin
+    if Field.GetExplored(FMap.FSeatedPlayer) then
+    begin
+      if FMap.FFogEnabled then
+      begin
+        if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := 2
+        else Result := 1;
+      end
+      else Result := 1;
+    end
+    else Result := 0;
+  end
+  else
+  begin
+    if FMap.FFogEnabled then
+    begin
+      if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := 2
+      else Result := 1;
+    end
+    else Result := 1;
+  end;
+end;
 
 procedure TScanner.SetExplored(A1: Integer; A2: Integer; A3: Integer);
 begin end;

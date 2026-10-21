@@ -139,11 +139,9 @@ begin
 end;
 
 procedure TImageSequenceEditor.LayerSpinUpdate(Sender: TObject);
-var Sequence: TImageSequence;
 begin
-  Sequence := ImageSequencer.CurrentImageSequence;
-  if Sequence <> nil then
-    with Sequence do
+  if ImageSequencer.CurrentImageSequence <> nil then
+    with ImageSequencer.CurrentImageSequence do
     begin
       if LayerSpin.Value < Layer then
       begin
@@ -169,11 +167,9 @@ begin
 end;
 
 procedure TImageSequenceEditor.SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer);
-var Display: TSequenceDisplayEditor;
 begin
-  Display := SequenceDisplayEditor;
-  Display.ImageCenterX := Display.BackSurfaceWidth shr 1;
-  Display.ImageCenterY := Display.BackSurfaceHeight shr 1;
+  SequenceDisplayEditor.ImageCenterX := SequenceDisplayEditor.BackSurfaceWidth shr 1;
+  SequenceDisplayEditor.ImageCenterY := SequenceDisplayEditor.BackSurfaceHeight shr 1;
 end;
 
 procedure TImageSequenceEditor.SequenceDisplayEditorUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
@@ -206,11 +202,9 @@ begin
 end;
 
 procedure TImageSequenceEditor.ImageSequencerChange(Sender: TObject);
-var Sequence: TImageSequence;
 begin
-  Sequence := ImageSequencer.CurrentImageSequence;
-  if Sequence <> nil then
-    with Sequence do
+  if ImageSequencer.CurrentImageSequence <> nil then
+    with ImageSequencer.CurrentImageSequence do
     begin
       if SequenceMode in [smFrameTable, smRndFrameTable] then
       begin

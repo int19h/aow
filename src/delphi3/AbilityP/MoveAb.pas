@@ -1,14 +1,15 @@
 unit MoveAb;
 
 { MoveAb from AbilityP.dpl: the ability class is recovered and byte-matched.
-  Registration routines remain draft because the imported AoWE API is an older ABI. }
+  Registration remains blocked by the older imported AoWE ABI.
+  Unregistration uses the recovered control directly; its offset changed from $74 to $80. }
 
 {$O-}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AbilPack;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AbilPack;
 
 type
   TMoveAbility = class;
@@ -22,8 +23,8 @@ type
     constructor Create(AbilityID: Integer; AName: string; MoveTypes: TAbilityKinds);
   end;
 
-procedure RegisterMoveAbilities(A1: Integer);  { draft }
-procedure UnRegisterMoveAbilities(A1: Integer);  { draft }
+procedure RegisterMoveAbilities(GameSet: TAoWHSSet);
+procedure UnRegisterMoveAbilities(GameSet: TAoWHSSet);
 
 implementation
 
@@ -42,11 +43,23 @@ begin
   Result := FAbilityID;
 end;
 
-procedure RegisterMoveAbilities(A1: Integer);
-begin end;
+procedure RegisterMoveAbilities(GameSet: TAoWHSSet);
+begin
+  { Blocked: the legacy TAbility and resource-string imports are absent from current AoWEPACK. }
+end;
 
-procedure UnRegisterMoveAbilities(A1: Integer);
-begin end;
+procedure UnRegisterMoveAbilities(GameSet: TAoWHSSet);
+var Control: TAbilityControl;
+begin
+  Control := GameSet.FAbilityControl;
+  Control.UnregisterAbility(Control.GetAbility(0));
+  Control.UnregisterAbility(Control.GetAbility(1));
+  Control.UnregisterAbility(Control.GetAbility(2));
+  Control.UnregisterAbility(Control.GetAbility(3));
+  Control.UnregisterAbility(Control.GetAbility(4));
+  Control.UnregisterAbility(Control.GetAbility(5));
+  Control.UnregisterAbility(Control.GetAbility(6));
+end;
 
 
 initialization

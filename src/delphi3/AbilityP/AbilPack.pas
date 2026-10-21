@@ -1,15 +1,14 @@
 unit AbilPack;
 
-{ Draft declarations of AbilPack, from AbilityP.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AbilityP.dpl plug-in recovered from the original machine code.
+  The legacy ability layout below predates the shipped AoWEPACK ABI. }
 
 {$O-}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   { Legacy AoWE.TAbility imported by AbilityP (instance size 20, five VMT slots).
@@ -47,19 +46,52 @@ type
 
 implementation
 
+uses MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb;
+
+var AbilityPlugIn: TAbililtyPlugIn;
+
 function TAbililtyPlugIn.Name: string;
 begin
   Result := 'Abilities';
 end;
 
 function TAbililtyPlugIn.Initialize(AEngine: Engine.TEngine): Boolean;
-begin Result := False; end;
+begin
+  if AEngine is TAoWEngine then
+  begin
+    Result := inherited Initialize(AEngine);
+    if Result then
+    begin
+      RegisterMoveAbilities(TAoWEngine(AEngine).FGameSet);
+      RegisterImmunityAbilities(TAoWEngine(AEngine).FGameSet);
+      RegisterStrikeAbilities(TAoWEngine(AEngine).FGameSet);
+      RegisterShootAbilities(TAoWEngine(AEngine).FGameSet);
+      RegisterUnitAbilities(TAoWEngine(AEngine).FGameSet);
+    end;
+  end
+  else
+    Result := False;
+end;
 
 function TAbililtyPlugIn.Finalize(AEngine: Engine.TEngine): Boolean;
-begin Result := False; end;
+begin
+  AddRef;
+  Result := inherited Finalize(AEngine);
+  if Result then
+  begin
+    UnRegisterMoveAbilities(TAoWEngine(AEngine).FGameSet);
+    UnRegisterImmunityAbilities(TAoWEngine(AEngine).FGameSet);
+    UnRegisterStrikeAbilities(TAoWEngine(AEngine).FGameSet);
+    UnRegisterShootAbilities(TAoWEngine(AEngine).FGameSet);
+    UnRegisterUnitAbilities(TAoWEngine(AEngine).FGameSet);
+  end;
+  Release;
+end;
 
 
 initialization
+  AbilityPlugIn := TAbililtyPlugIn.Create;
 finalization
+  AbilityPlugIn.Release;
 
 end.
