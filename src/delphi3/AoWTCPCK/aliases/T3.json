@@ -1,3 +1,22 @@
 {
-  "00405d04:1528": "TCityWall.MapFieldMsgProc"
+  "00405d04:1528": "TCityWall.MapFieldMsgProc",
+  "00432aa8:1825": "TCombatStructure.MapFieldMsgProc",
+  "00436910:99": "TAoWCombatMapControl.MapChanged",
+  "004369c0:98": "TAoWCombatMapControl.SelectHS",
+  "00436a6c:98": "TAoWCombatMapControl.DeselectHS",
+  "00436b1c:110": "TAoWCombatMapControl.MouseOverTarget",
+  "00436be0:114": "TAoWCombatMapControl.UnitChanged",
+  "00436ca0:98": "TAoWCombatMapControl.PlayerChanged",
+  "00436d54:98": "TAoWCombatMapControl.SeatedPlayerChanged",
+  "00436e08:94": "TAoWCombatMapControl.GemsChanged",
+  "00436eb4:94": "TAoWCombatMapControl.IncomeChanged",
+  "00436f64:94": "TAoWCombatMapControl.UpkeepChanged",
+  "00437014:90": "TAoWCombatMapControl.ShowMessage",
+  "004370bc:99": "TAoWCombatMapControl.ChangeTurn",
+  "0043716c:103": "TAoWCombatMapControl.LogbookChanged",
+  "00437224:102": "TAoWCombatMapControl.ExecuteEventLog",
+  "004372e0:97": "TAoWCombatMapControl.ActivateMap",
+  "00437394:97": "TAoWCombatMapControl.DeactivateMap",
+  "00437448:97": "TAoWCombatMapControl.CastSpell",
+  "004374f8:97": "TAoWCombatMapControl.ActivateAbility"
 }

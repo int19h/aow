@@ -1,8 +1,8 @@
 unit Townhall;
 
-{ Draft declarations of Townhall, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Combat town hall, recovered from AoWTCPCK.dpl. }
+
+{$O-,R+,Q+}
 
 interface
 
@@ -28,24 +28,26 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterTownhall(A1: Integer);  { draft }
+procedure RegisterTownhall(AEngine: TEngine);
 
 implementation
 
 class function TTownhall.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220510; end;
 
 class function TTownhallResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220511; end;
 
 class function TTownhallResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat Townhall'; end;
 
 function TTownhallResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220510; end;
 
-procedure RegisterTownhall(A1: Integer);
-begin end;
+procedure RegisterTownhall(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TTownhall, TTownhallResource]);
+end;
 
 
 initialization

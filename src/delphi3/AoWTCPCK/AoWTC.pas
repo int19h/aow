@@ -376,7 +376,7 @@ type
     F_CombatUnitSelectionControl_28: Integer;
     F_CombatUnitSelectionControl_2C: Word;
     F_CombatUnitSelectionControl_2E: Word;
-    F_CombatUnitSelectionControl_30: Integer;
+    FMouseOverTarget: THexagonSprite; { $30; $436B53 }
     FRangedPath: TXYZList; { $34 }
     FObstacles: TList; { $38 }
     destructor Destroy; override;
@@ -444,19 +444,25 @@ type
     FCombat: TTacticalCombat; { $E4 }
     FUnitPositions: TUnitPositionControl; { $E8 }
     FSeatedCombatPlayer: Shortint; { $EC }
+    { conflict: FSeatedCombatPlayer: Byte; }
     FCurrentCombatPlayer: Shortint; { $ED }
     { conflict: FCurrentCombatPlayer: Shortint; }
     F_AoWCombatMap_EE: array[0..1] of Byte;
     FChangeTurnEvents: TEventList; { $F0 }
+    { conflict: FTurnChangedEvents: TEventList; }
     FPlayerChangedEvents: TEventList; { $F4 }
     FSeatedPlayerChangedEvents: TEventList; { $F8 }
     FMoveControl: TCombatMoveControl; { $FC }
     FUnitSelection: TCombatUnitSelectionControl; { $100 }
     FSelectEvents: TEventList; { $104 }
+    { conflict: FDeactivateMapEvents: TEventList; }
     FDeselectEvents: TEventList; { $108 }
+    { conflict: FActivateMapEvents: TEventList; }
     F_AoWCombatMap_10C: array[0..3] of Byte;
     FUnitChangedEvents: TEventList; { $110 }
+    { conflict: FMouseOverTargetEvents: TEventList; }
     FMouseOverTargetEvents: TEventList; { $114 }
+    { conflict: FUnitChangedEvents: TEventList; }
     FAI: TCAI; { $118 }
     FEffects: TList; { $11C }
     FWalls: TList; { $120; $405741 }
@@ -1605,7 +1611,7 @@ procedure TTacticalCombatUnit.MovedTo(OldField, NewField: TAoWMapField; MoveCost
 begin
   FMovePoints := FMovePoints - MoveCost;
   if FMovePoints < 0 then FMovePoints := 0;
-  if GetAbilityEnabled($2B) then CreateFire(0, 50, FUnitHS.GetXhx, FUnitHS.GetYhx);
+  if GetAbilityEnabled($2B) then CreateFire(False, 50, FUnitHS.GetXhx, FUnitHS.GetYhx);
   AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FUnitHS);
 end;
 

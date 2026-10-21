@@ -1,8 +1,8 @@
 unit House;
 
-{ Draft declarations of House, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Combat houses, recovered from AoWTCPCK.dpl. }
+
+{$O-,R+,Q+}
 
 interface
 
@@ -17,8 +17,8 @@ type
   { THouse (instance size 48, VMT 00434584) }
   THouse = class(TCombatStructure)
   public
-    F_House_28: Integer;
-    F_House_2C: Integer;
+    FRace: Integer; { $28 }
+    FFlagID: Integer; { $2C }
     class function ClassID: Integer; override;
     procedure Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure Activate; override;
@@ -33,34 +33,128 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterHouse(A1: Integer);  { draft }
+procedure RegisterHouse(AEngine: TEngine);
 
 implementation
 
+uses AoWE, AoWTC, City;
+
 class function THouse.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220512; end;
 
 procedure THouse.Activate;
-begin end;
+var
+  Structure: TPlayerStructure;
+begin
+  inherited Activate;
+  if not (msEditting in AoWCombatMap.Status) then
+  begin
+    Structure := TPlayerStructure(AoWHSMap.MapContainer.GetMapLevel(CombatLLoc).
+      GetField(CombatXLoc, CombatYLoc).FindNoneTransparentHS(TPlayerStructure));
+    if Structure <> nil then
+    begin
+      if Structure is TCity then FRace := TCity(Structure).FRace
+      else FRace := 0;
+      if Structure.FPlayer = -1 then FFlagID := -1
+      else FFlagID := AoWHSMap.FPlayers.GetPlayers(Structure.FPlayer).FPlayerRace;
+      if FFlagID = -1 then FFlagID := 32;
+    end;
+  end;
+end;
 
 procedure THouse.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  ImageIndex, Xhp, Yhp, TerrainOffset: Integer;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  if FHitPoints = 0 then
+  begin
+    Sequence := AoWHSSet.FImageSequences.GetImageSequence(50);
+    case AoWCombatMap.MapContainer.GetMapLevel(0).GetField(GetXhx, GetYhx).TerrainType of
+      3: TerrainOffset := 1;
+      5, 7, 12: TerrainOffset := 2;
+    else TerrainOffset := 0;
+    end;
+    if Sequence <> nil then
+      repeat
+        ImageIndex := Sequence.GetUnloopedFrameIndex(Integer(Self) mod 3 + TerrainOffset * 3);
+        if ImageIndex <> -1 then
+          Sequence.ImageLibrary[ImageIndex].Show(
+            XhpSurf + Sequence.dXshift + 16, YhpSurf + Sequence.dYshift + 16, SurfaceDesc);
+        Sequence := Sequence.Next;
+      until Sequence = nil;
+  end
+  else
+  begin
+    case AoWCombatMap.MapContainer.GetMapLevel(0).GetField(GetXhx, GetYhx).TerrainType of
+      3: TerrainOffset := 20;
+      5, 7, 12: TerrainOffset := 40;
+    else TerrainOffset := 0;
+    end;
+    Sequence := FResource.ImageSequenceList.GetImageSequence(TerrainOffset + FRace);
+    if Sequence <> nil then
+      repeat
+        case Sequence.Layer of
+          7:
+            begin
+              ImageIndex := Sequence.GetFrameIndex(AoWCombatMap.Frame, (Integer(Self) shr 2) and $FFFF);
+              if ImageIndex <> -1 then
+                if not (msEditting in AoWCombatMap.Status) then
+                  AoWHSSet.FFlagControl.ShowFlagEx(
+                    XhpSurf + 21 + Sequence.dXshift, YhpSurf + Sequence.dYshift + 16,
+                    GetXhx + AoWHSMap.Frame + GetYhx * 100, FFlagID, SurfaceDesc, False);
+            end;
+        else
+          begin
+            ImageIndex := Sequence.GetFrameIndex(AoWCombatMap.Frame, (Integer(Self) shr 2) and $FFFF);
+            if ImageIndex <> -1 then
+              Sequence.ImageLibrary[ImageIndex].Show(
+                XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+          end;
+        end;
+        Sequence := Sequence.Next;
+      until Sequence = nil;
+  end;
+end;
 
 procedure THouse.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
-begin end;
+var
+  Sequence: TImageSequence;
+  ImageIndex, Xhp, Yhp: Integer;
+begin
+  if FHitPoints > 0 then
+  begin
+    HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+    XhpSurf := Xhp - XhpSurf;
+    YhpSurf := Yhp - YhpSurf;
+    Sequence := FResource.ImageSequenceList.GetImageSequence(FRace + 60);
+    if Sequence <> nil then
+      repeat
+        ImageIndex := Sequence.GetFrameIndex(AoWCombatMap.Frame, (Integer(Self) shr 2) and $FFFF);
+        if ImageIndex <> -1 then
+          Sequence.ImageLibrary[ImageIndex].Show(
+            XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+        Sequence := Sequence.Next;
+      until Sequence = nil;
+  end;
+end;
 
 class function THouseResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220513; end;
 
 class function THouseResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat House'; end;
 
 function THouseResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220512; end;
 
-procedure RegisterHouse(A1: Integer);
-begin end;
-
+procedure RegisterHouse(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([THouse, THouseResource]);
+end;
 
 initialization
 finalization
