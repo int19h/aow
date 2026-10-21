@@ -33,14 +33,35 @@ type
 
 implementation
 
+uses AoWE, AoWWinMan, E3Globals;
+
 procedure TTCScanner.ScannerChangeTileBox;
-begin end;
+begin
+  MWindow.MapViewer.SceneX := (Scanner.FTLeft + 6) * 33;
+  MWindow.MapViewer.SceneY := (Scanner.FTTop + 6) * 33;
+  if AoWHSMap.FSeatedPlayer <> -1 then
+  begin
+    Scanner.SetTWidth(MWindow.MapViewer.SceneWidth div 32);
+    Scanner.SetTHeight(MWindow.MapViewer.SceneHeight div 32);
+    Scanner.SetTLeft(MWindow.MapViewer.SceneX div 32 - 6);
+    Scanner.SetTTop(MWindow.MapViewer.SceneY div 32 - 6);
+  end;
+end;
 
 procedure TTCScanner.TCScannerWinDrag;
-begin end;
+begin
+  with TCScannerWin do
+  begin
+    Alignment.RightOffset := WinManager.WinWidth - WinLeft - WinWidth;
+    Alignment.TopOffset := WinTop;
+  end;
+end;
 
 procedure TTCScanner.SMinIconClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  TCScannerWin.Visible := False;
+end;
 
 
 end.

@@ -7,13 +7,13 @@ unit FastCombatWin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWCheckBox, AoWHScroll, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, EventLog, AoWComp, AoWE, AoWButton, AoWCheckBox, AoWHScroll, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
 
 type
   TFastCombatWindow = class;
 
 
-  { TFastCombatWindow (size $154, VMT 00434CD4): $124 phase, $128 phase frame, $144 combat viewer. }
+  { TFastCombatWindow (size $154, VMT 00434CD4): $124 phase, $128 phase frame, $12C animation frame, $134/$138 and $13C/$140 shield indices/opacities, $144 combat viewer, $148 completion event, $150 retained event. }
   TFastCombatWindow = class(TDataModule)
   public
     published
@@ -77,16 +77,18 @@ type
     FPhase: Byte; { $124 }
     F_FastCombatWindow_125: array[0..2] of Byte;
     FPhaseFrame: Integer; { $128 }
-    F_FastCombatWindow_12C: Integer;
+    FAnimationFrame: Integer; { $12C }
     F_FastCombatWindow_130: array[0..3] of Byte;
-    F_FastCombatWindow_134: Integer;
-    F_FastCombatWindow_138: Byte;
+    FLeftShield: Integer; { $134 }
+    FLeftOpacity: Byte; { $138 }
     F_FastCombatWindow_139: array[0..2] of Byte;
-    F_FastCombatWindow_13C: Integer;
-    F_FastCombatWindow_140: Byte;
+    FRightShield: Integer; { $13C }
+    FRightOpacity: Byte; { $140 }
     F_FastCombatWindow_141: array[0..2] of Byte;
     FViewer: TCombatViewer; { $144 }
-    F_FastCombatWindow_148: array[0..11] of Byte;
+    FDone: TExecuteDoneEvent; { $148 }
+    FEvent: TEventLog; { $150 }
+    procedure FinishDialog; { 00435268 }
     procedure SetPhase(Phase: Byte);
     procedure FastCombatWindowCreate;
     procedure FastCombatWindowDestroy;
@@ -99,16 +101,32 @@ type
     procedure PlayBtnClick;  { draft }
     procedure SequencePositionSldChange;  { draft }
     procedure SequenceSpeedSldChange;  { draft }
-    procedure LShieldUserDraw(A1: Integer; A2: Integer);  { draft }
-    procedure RShieldUserDraw(A1: Integer; A2: Integer);  { draft }
+    procedure LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+    procedure RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
     procedure FCWinHide;  { draft }
-    procedure FCWinKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure FCWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-uses AoWWinMan;
+uses AoWWinMan, aowIntGfxMod;
+
+procedure TFastCombatWindow.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Log: TEventLog;
+begin
+  FViewer.Finalize;
+  General.Manager.OverlayPriority := 0;
+  Done := FDone;
+  Log := FEvent;
+  FDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Log);
+  if Log <> nil then Log.Release;
+end;
+
 
 procedure TFastCombatWindow.FastCombatWindowCreate;
 begin
@@ -121,7 +139,10 @@ begin
 end;
 
 procedure TFastCombatWindow.CloseButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FCWin.Visible := False;
+end;
 
 procedure TFastCombatWindow.FCWinDrawSurface(A1: Integer; A2: Integer);
 begin end;
@@ -169,34 +190,81 @@ begin
 end;
 
 procedure TFastCombatWindow.InitialViewClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  with FViewer do
+    if (FViewer <> nil) and (vsInitialized in FStatus) then
+    begin
+      SetPosition(0);
+      SetPhase(1);
+    end;
+end;
 
 procedure TFastCombatWindow.FinalViewClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  with FViewer do
+    if (FViewer <> nil) and (vsInitialized in FStatus) then
+    begin
+      SetPosition(GetEndPosition + 1);
+      SetPhase(3);
+    end;
+end;
 
 procedure TFastCombatWindow.PauseBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if (FViewer <> nil) and (vsInitialized in FViewer.FStatus) then FViewer.Pause;
+end;
 
 procedure TFastCombatWindow.PlayBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if (FViewer <> nil) and (vsInitialized in FViewer.FStatus) then FViewer.Play;
+end;
 
 procedure TFastCombatWindow.SequencePositionSldChange;
-begin end;
+begin
+  with FViewer do
+    if (FViewer <> nil) and (vsInitialized in FStatus) then
+    begin
+      SetPosition(SequencePositionSld.Position);
+      SetPhase(1);
+    end;
+end;
 
 procedure TFastCombatWindow.SequenceSpeedSldChange;
-begin end;
+begin
+  if FViewer <> nil then FViewer.SetSpeed(20 - SequenceSpeedSld.Position);
+end;
 
-procedure TFastCombatWindow.LShieldUserDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TFastCombatWindow.LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+begin
+  if FLeftOpacity = 100 then
+    IntGfxMod.Shields[FLeftShield].ShowClipped(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
+  else
+    IntGfxMod.Shields[FLeftShield].ShowBlended(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface,
+      AlphaBlendTable.Lookup[FLeftOpacity]);
+end;
 
-procedure TFastCombatWindow.RShieldUserDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TFastCombatWindow.RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+begin
+  if FRightOpacity = 100 then
+    IntGfxMod.Shields[FRightShield].ShowClipped(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
+  else
+    IntGfxMod.Shields[FRightShield].ShowBlended(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface,
+      AlphaBlendTable.Lookup[FRightOpacity]);
+end;
 
 procedure TFastCombatWindow.FCWinHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
-procedure TFastCombatWindow.FCWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TFastCombatWindow.FCWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = 27) or (Key = 32) then FCWin.Visible := False;
+end;
 
 procedure TFastCombatWindow.SetPhase(Phase: Byte);
 begin

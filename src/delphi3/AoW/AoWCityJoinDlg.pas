@@ -7,13 +7,13 @@ unit AoWCityJoinDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWArnoLine, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWArnoLine, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWWindow;
 
 type
   TCityJoinDlg = class;
 
 
-  { TCityJoinDlg (instance size 144, VMT 004371B4) }
+  { TCityJoinDlg (size $90, VMT 004371B4): $80 race, $84 completion event, $8C retained negotiation event. }
   TCityJoinDlg = class(TDataModule)
   public
     published
@@ -33,42 +33,87 @@ type
     CloseBtn: TAOWButton; { +0078 }
     Translator: TIvTranslator; { +007C }
     public
-    F_CityJoinDlg_80: Byte;
-    F_CityJoinDlg_81: array[0..10] of Byte;
-    F_CityJoinDlg_8C: Byte;
-    F_CityJoinDlg_8D: array[0..2] of Byte;
+    FRace: Shortint; { $80 }
+    FReserved81: array[0..2] of Byte;
+    FDone: TExecuteDoneEvent; { $84 }
+    FEvent: TNegotiateRequestEventLog; { $8C }
+    procedure FinishDialog; { 004373A8 }
     procedure AcceptBtnClick;  { draft }
     procedure AttackBtnClick;  { draft }
     procedure CancelBtnClick;  { draft }
-    procedure DlgDrawBack(A1: Integer; A2: Integer);  { draft }
+    procedure DlgDrawBack(Sender: TObject; Surface: TSurfaceDesc);
     procedure DlgHide;  { draft }
     procedure CloseBtnClick;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan;
+
+procedure TCityJoinDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Log: TNegotiateRequestEventLog;
+begin
+  Done := FDone;
+  Log := FEvent;
+  FDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Log);
+  if Log <> nil then Log.Release;
+end;
+
+
 procedure TCityJoinDlg.AcceptBtnClick;
-begin end;
+var
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if not FEvent.Accept(Reason) then AoWHSMap.ShowWarning(Reason)
+  else Dlg.Visible := False;
+end;
 
 procedure TCityJoinDlg.AttackBtnClick;
-begin end;
+var
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if not FEvent.Reject(Reason) then AoWHSMap.ShowWarning(Reason)
+  else Dlg.Visible := False;
+end;
 
 procedure TCityJoinDlg.CancelBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
-procedure TCityJoinDlg.DlgDrawBack(A1: Integer; A2: Integer);
-begin end;
+procedure TCityJoinDlg.DlgDrawBack(Sender: TObject; Surface: TSurfaceDesc);
+var
+  Face: TLibraryImage;
+begin
+  Face := AoWHSSet.FRaceResources.GetRaceResource(FRace).GetFace;
+  with Face do
+    if Face <> nil then ShowClipped(CeltFrame.WinLeft + 10, CeltFrame.WinTop + 28, Surface);
+end;
 
 procedure TCityJoinDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure TCityJoinDlg.CloseBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
-procedure TCityJoinDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TCityJoinDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 27 then Dlg.Visible := False;
+end;
 
 
 end.

@@ -318,25 +318,45 @@ end;
 
 
 constructor TWMCampaign.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+end;
 
 destructor TWMCampaign.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 class function TWMCampaign.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $225000; end;
 
 procedure TWMCampaign.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FFaction, 30);
+end;
 
 function TWMCampaign.CreateScenario: AoWE.TAoWCampaignScenario;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := TWMCampaignScenario.Create(nil);
+end;
 
 procedure TWMCampaign.Clear;
-begin end;
+begin
+  inherited Clear;
+end;
 
 function TWMCampaign.GetAutoSaveFileName(Auto: AoWE.TCampaignAutoSaveType): string;
-begin Result := ''; end;
+begin
+  if Auto = casScenarioFinished then
+  begin
+    Result := AoWHSMap.FMapName;
+    if FFaction = 0 then Result := Result + '_' + TranslateRStr(WonRStr)
+    else Result := Result + '-' + TranslateRStr(WonRStr); { Original uses Won for both factions. }
+    Result := Result + '.acg';
+  end
+  else Result := inherited GetAutoSaveFileName(Auto);
+end;
 
 
 end.

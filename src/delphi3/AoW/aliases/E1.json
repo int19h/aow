@@ -26,5 +26,10 @@
   "FUN_0041f0ec": "TFileDlgWindow.FinishDialog",
   "FUN_0042278c": "TGamePlayDlg.PasswordEntered",
   "0042287c:238": "TGamePlayDlg.PasswordConfirmed",
-  "FUN_004352dc": "TFastCombatWindow.SetPhase"
+  "FUN_004352dc": "TFastCombatWindow.SetPhase",
+  "FUN_00432174": "TCastUnitSpellDlg.ClearCaster",
+  "FUN_0043222c": "TCastUnitSpellDlg.DrawUnit",
+  "FUN_004373a8": "TCityJoinDlg.FinishDialog",
+  "FUN_0040e780": "TMessageDlg.FinishDialog",
+  "FUN_00435268": "TFastCombatWindow.FinishDialog"
 }

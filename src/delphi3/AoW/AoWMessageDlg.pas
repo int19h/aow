@@ -7,13 +7,13 @@ unit AoWMessageDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, EventLog, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TMessageDlg = class;
 
 
-  { TMessageDlg (instance size 188, VMT 0040E4E8) }
+  { TMessageDlg (size $BC, VMT 0040E4E8): $B0 completion event, $B8 retained message event. }
   TMessageDlg = class(TDataModule)
   public
     published
@@ -45,9 +45,9 @@ type
     HeaderLbl: TAOWLabel; { +00A8 }
     Translator: TIvTranslator; { +00AC }
     public
-    F_MessageDlg_B0: array[0..7] of Byte;
-    F_MessageDlg_B8: Byte;
-    F_MessageDlg_B9: array[0..2] of Byte;
+    FDone: TExecuteDoneEvent; { $B0 }
+    FEvent: TMessageEventLog; { $B8 }
+    procedure FinishDialog; { 0040E780 }
     procedure DlgHide;  { draft }
     procedure YesBtnClick;  { draft }
     procedure NoBtnClick;  { draft }
@@ -59,23 +59,52 @@ type
 
 implementation
 
+procedure TMessageDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Log: TMessageEventLog;
+begin
+  Dlg.Visible := False;
+  Done := FDone;
+  Log := FEvent;
+  FDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Log);
+  if Log <> nil then Log.Release;
+end;
+
+
 procedure TMessageDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure TMessageDlg.YesBtnClick;
-begin end;
+begin
+  if FEvent.Yes then Dlg.Visible := False;
+end;
 
 procedure TMessageDlg.NoBtnClick;
-begin end;
+begin
+  if FEvent.No then Dlg.Visible := False;
+end;
 
 procedure TMessageDlg.OKBtnClick;
-begin end;
+begin
+  if FEvent <> nil then
+    if not FEvent.OK then Exit;
+  Dlg.Visible := False;
+end;
 
 procedure TMessageDlg.OKBtn2Click;
-begin end;
+begin
+  if FEvent.OK then Dlg.Visible := False;
+end;
 
 procedure TMessageDlg.CancelBtnClick;
-begin end;
+begin
+  if FEvent.Cancel then Dlg.Visible := False;
+end;
 
 
 end.
