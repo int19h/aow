@@ -36,7 +36,7 @@ type
     PicPnl: TAOWPanel; { +0080 }
     Translator: TIvTranslator; { +0084 }
     public
-    FOnClose: TNotifyEvent; { $88 }
+    FOnClose: TExecuteDoneEvent; { $88 }
     FEvent: TEnterWizardsTowerEventLog; { $90 }
     procedure ClearEvent;
     procedure CancelBtnClick;  { draft }
@@ -54,7 +54,7 @@ uses AoWWinMan, E3Globals;
 procedure TWizardsTowerDlg.ClearEvent;
 var
   Event: TEnterWizardsTowerEventLog;
-  Notify: TNotifyEvent;
+  Notify: TExecuteDoneEvent;
 begin
   Dlg.Visible := False;
   Notify := FOnClose; Event := FEvent;

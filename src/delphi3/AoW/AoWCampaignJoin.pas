@@ -33,6 +33,10 @@ type
     FScrollDelay: Integer; { $74 }
     FScrollPosition: Integer; { $78 }
     FScrollText: TStringList; { $7C }
+    procedure CustomizeLeader;
+    procedure LeaderCustomized(Sender: TObject);
+    procedure ResetCampaignJoin;
+    procedure FinishSelection;
     procedure ShowLeaderChoices;
     procedure CampaignJoinDlgCreate;
     procedure CampaignJoinDlgDestroy;
@@ -48,7 +52,7 @@ type
 
 implementation
 
-uses E3Globals;
+uses E3Globals, E2Globals, E1GameFlow, AoWExeForms;
 
 procedure TCampaignJoinDlg.CampaignJoinDlgCreate;
 begin
@@ -82,10 +86,13 @@ end;
 
 
 procedure TCampaignJoinDlg.CustomBtnClick;
-begin end;
+begin CustomizeLeader; end;
 
 procedure TCampaignJoinDlg.DefaultBtnClick;
-begin end;
+begin
+  E3Globals.WorldMap.GetCampaign.FTransferSettings.SetLeader(FLeader);
+  FinishSelection;
+end;
 
 procedure TCampaignJoinDlg.ScrollTextDBUpdate;
 begin
@@ -133,6 +140,67 @@ begin
   LeaderTypePnl.Visible := True;
   ScrollTextDB.Visible := False;
   CharGenPnl.Visible := True;
+end;
+
+procedure TCampaignJoinDlg.LeaderCustomized(Sender: TObject);
+var
+  Leader: TLeader;
+begin
+  with TLeaderSetupControl(Sender) do
+  if FStatus = lssDone then
+  begin
+    Leader := TLeader(FOriginalLeader.Copy(AoWEngine));
+    E3Globals.WorldMap.GetCampaign.FTransferSettings.SetLeader(Leader);
+    Leader.Release;
+    FinishSelection;
+  end
+  else ShowLeaderChoices;
+end;
+
+procedure TCampaignJoinDlg.CustomizeLeader;
+var
+  Control: TLeaderSetupControl;
+begin
+  FStage := 2;
+  CharGenPnl.Visible := False;
+  Control := TLeaderSetupControl.Create(nil);
+  Control.FLeader.Assign(FLeader, AoWEngine);
+  Control.FOriginalLeader.Assign(FLeader, AoWEngine);
+  Control.FMode := Control.FMode + [lsmCampaign];
+  case FFaction of
+    0:
+    begin
+    Control.FItems.Add(4); Control.FItems.Add(6); Control.FItems.Add(5);
+    Control.FItems.Add(2); Control.FItems.Add(1); Control.FItems.Add(3);
+    end;
+    1:
+    begin
+    Control.FItems.Add(8); Control.FItems.Add(9); Control.FItems.Add(10);
+    Control.FItems.Add(2); Control.FItems.Add(1); Control.FItems.Add(3);
+    end;
+  end;
+  LeaderSetupWin.Execute(Control);
+  Control.FOnDone := LeaderCustomized;
+  Control.Release;
+  LeaderSetupWin.LeaderPnl.ILTexture := IntGfxMod.FactionWin;
+  LeaderSetupWin.LeaderPnl.ILIndexTexture := FFaction + 10;
+end;
+
+procedure TCampaignJoinDlg.ResetCampaignJoin;
+begin
+  CharGenPnl.Visible := True;
+  LeaderTypePnl.Visible := False;
+  E3Globals.TitleWindow.TitleWin.Visible := True;
+  ScrollTextDB.Visible := True;
+  FScrollDelay := 0;
+  FScrollPosition := 0;
+  FScrollText.Clear;
+end;
+
+procedure TCampaignJoinDlg.FinishSelection;
+begin
+  CharGenPnl.Visible := False;
+  ShowCampaignMap(E3Globals.WorldMap, nil, nil);
 end;
 
 end.

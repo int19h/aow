@@ -50,6 +50,7 @@ type
     { conflict: FHeight: Integer; }
     procedure SetSceneSize(W, H: Integer);
     procedure ApplyMode;
+    procedure ShowModes;
     function CurrentMode: Integer;
     procedure ChangeResolution(W, H: Integer);
     procedure UpdateModes;
@@ -147,11 +148,8 @@ end;
 
 procedure TVideoDialog.ChangeResolution(W, H: Integer);
 begin
-  if W = 0 then
+  if W <> 0 then
   begin
-    if MainForm.Display.ActiveDC = MainForm.DXDC then MainForm.Display.SwapDC;
-  end
-  else
     if MainForm.DXDC = MainForm.Display.ActiveDC then
     begin
       if (W <> MainForm.DXDC.DisplayWidth) or (H <> MainForm.DXDC.DisplayHeight) then
@@ -165,6 +163,8 @@ begin
       MainForm.DXDC.DisplayWidth := W; MainForm.DXDC.DisplayHeight := H;
       MainForm.Display.SwapDC;
     end;
+  end
+  else if MainForm.Display.ActiveDC = MainForm.DXDC then MainForm.Display.SwapDC;
   UpdateModes; General.ResetLayout;
 end;
 
@@ -374,35 +374,49 @@ begin
   if FModeChanged then
   begin
     DC := MainForm.Display.ActiveDC;
-    if DC = nil then
-    begin
-      if FFullScreen = scmGame then
-      begin
-        MainForm.DXDC.DisplayWidth := FDisplayWidth;
-        MainForm.DXDC.DisplayHeight := FDisplayHeight;
-        MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
-        MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
-      end
-      else if (FFullScreen = scmTitle) and AoWEngine.FRegistry.GetAllowResolutionSwitches then
-      begin
-        MainForm.DXDC.DisplayWidth := FSceneWidth; MainForm.DXDC.DisplayHeight := FSceneHeight;
-        MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
-        MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
-      end;
-    end
-    else
+    if DC <> nil then
       case FFullScreen of
         scmWindowed: ChangeResolution(0, 0);
         scmGame: if DC = MainForm.WinDC then ChangeResolution(0, 0)
-           else ChangeResolution(FDisplayWidth, FDisplayHeight);
+          else ChangeResolution(FDisplayWidth, FDisplayHeight);
         scmTitle: if DC = MainForm.WinDC then ChangeResolution(0, 0)
-           else if not AoWEngine.FRegistry.GetAllowResolutionSwitches or
-             (MainForm.Display.ActiveDC = MainForm.WinDC) then
-             ChangeResolution(FDisplayWidth, FDisplayHeight)
-           else ChangeResolution(FSceneWidth, FSceneHeight);
+          else if not AoWEngine.FRegistry.GetAllowResolutionSwitches or
+            (MainForm.Display.ActiveDC = MainForm.WinDC) then
+            ChangeResolution(FDisplayWidth, FDisplayHeight)
+          else ChangeResolution(FSceneWidth, FSceneHeight);
+      end
+    else
+      case FFullScreen of
+        scmGame:
+          begin
+            with MainForm.DXDC do
+            begin
+              DisplayWidth := Self.FDisplayWidth;
+              DisplayHeight := Self.FDisplayHeight;
+            end;
+            MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
+            MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
+          end;
+        scmTitle:
+          if AoWEngine.FRegistry.GetAllowResolutionSwitches then
+          begin
+            with MainForm.DXDC do
+            begin
+              DisplayWidth := FSceneWidth;
+              DisplayHeight := FSceneHeight;
+            end;
+            MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
+            MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
+          end;
       end;
     FModeChanged := False;
   end;
+end;
+
+procedure TVideoDialog.ShowModes;
+begin
+  Dlg.Visible := True;
+  UpdateModes;
 end;
 
 end.

@@ -931,9 +931,9 @@
     $4C/$50 Data1/Data2; inherited join fields $18..$3B. }
   TNegotiateRequestEventLog = class(TJoinEventLog)
   public
-    FX: Byte;
-    FY: Byte;
-    FL: Byte;
+    FX: Shortint; { $3C; 0044F009 }
+    FY: Shortint; { $3D; 0044F009 }
+    FL: Shortint; { $3E; 0044F009 }
     F_NegotiateRequestEventLog_3F: array[0..0] of Byte;
     FMovePoints: Integer;
     FArmyID: TArmyID;

@@ -23,7 +23,7 @@ var
   UnitWindow: TUnitWindow;
   RealmWin: TRealmWin;
   MagicWin: TMagicWin;
-  ControlWin: TControlWin;
+  ControlWin: TControlWin absolute AOWControlWin.ControlWin; { $45B054; 00404F58 }
   TBWindow: TTBWindow;
   IWindow: TIWindow;
   SpellBook: TSpellBook;

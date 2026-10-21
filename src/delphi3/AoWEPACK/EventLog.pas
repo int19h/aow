@@ -99,7 +99,7 @@ type
   TMessageEventLog = class(TEventLog)
   public
     FTitle: string; { $18 }
-    F_MessageEventLog_1C: array[0..3] of Byte;
+    FHeader: string; { $1C; 0040E89C }
     FMessage: TStrings; { $20 }
     FLayout: TMessageEventLogLayout; { $24 }
     FButtons: TMessageEventLogButtons; { $25 }

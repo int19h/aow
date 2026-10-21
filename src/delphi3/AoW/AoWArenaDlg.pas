@@ -45,7 +45,7 @@ type
     Translator: TIvTranslator; { +00A4 }
     public
     FEvent: TEnterArenaEventLog; { $A8 }
-    FOnClose: TNotifyEvent; { $AC }
+    FOnClose: TExecuteDoneEvent; { $AC }
     procedure DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
     procedure ClearEvent;
     procedure CloseClick;  { draft }
@@ -60,9 +60,46 @@ type
   end;
 
 
+procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ResetArena(Dialog: TArenaDlg);
+
 implementation
 
 uses AoWWinMan, E3Globals;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+begin
+  with Dialog do
+  begin
+    Assert(FEvent = nil);
+    ResetArena(Dialog);
+    FOnClose := Done;
+    FEvent := Event;
+    FEvent.AddRef;
+    General.Manager.OverlayPriority := 49;
+    Dlg.Visible := True;
+  end;
+end;
 
 procedure TArenaDlg.DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
 var
@@ -76,7 +113,7 @@ begin
     U := FEvent.GetUnit(Index);
     SaveRect := SD.ClipRect;
     SD.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
-    if Byte(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
+    if Ord(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
     begin
       Img := IntGfxMod.UnitBGs[Ord(U.GetAlignment)];
       Img.ShowClipped(X + 25 - Img.Width div 2, Y + 30 - Img.Height div 2, SD);
@@ -101,7 +138,7 @@ end;
 procedure TArenaDlg.ClearEvent;
 var
   Event: TEnterArenaEventLog;
-  Notify: TNotifyEvent;
+  Notify: TExecuteDoneEvent;
 begin
   General.Manager.OverlayPriority := 0;
   Notify := FOnClose; Event := FEvent;
@@ -195,5 +232,15 @@ begin
   if Key = VK_ESCAPE then Dlg.Visible := False;
 end;
 
+
+procedure ResetArena(Dialog: TArenaDlg);
+begin
+  with Dialog do
+  begin
+    U1.Checked := False; U2.Checked := False; U3.Checked := False; U4.Checked := False;
+    U5.Checked := False; U6.Checked := False; U7.Checked := False; U8.Checked := False;
+    SelectionInfoLbl.Text := '';
+  end;
+end;
 
 end.

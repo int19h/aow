@@ -5,7 +5,7 @@ interface
 uses aowIntGfxMod, FontMod, AoWUnit, AoWItemBanner, AoWSWindow,
   AOWMWindow, AoWTBWindow, AoWPInfoWin, AOWControlWin, AoWUnitSelDlg,
   AoWUnitWindow, AoWTargetSelection, AoWArmyInfoDlg, AoWDisjunctionDlg,
-  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow, AOWDialogWin, AoWProgressDialog, Forms, Controls, Classes, AoWWorldMap, AoWTitleScene, AoWVideoDlg, AoWSpellBook, AOWMultiWin, AoWResultsWin;
+  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow, AOWDialogWin, AoWProgressDialog, Forms, Controls, Classes, AoWWorldMap, AoWTitleScene, AoWVideoDlg, AoWSpellBook, AOWMultiWin, AoWResultsWin, AoWPOP3Dlg, AoWCastUnitSpellDlg, AoWDeformFaceDlg;
 var
   IntGfxMod: TIntGfxMod;
   FontModule: TFontModule;
@@ -21,7 +21,7 @@ var
   MWindow: TMWindow;
   TBWindow: TTBWindow;
   PInfoW: TPInfoW absolute AoWPInfoWin.PInfoW;
-  ControlWin: TControlWin;
+  ControlWin: TControlWin absolute AOWControlWin.ControlWin; { $45B054; 00404F58 }
   UnitSelectionDlg: TUnitSelectionDlg;
   UnitWindow: TUnitWindow;
   TargetSelectionDlg: TTargetSelectionDlg;
@@ -40,6 +40,9 @@ var
   SpellBook: TSpellBook;
   MultiWindow: TMultiWindow;
   ResultsWin: TResultsWin;
+  POP3Dlg: TPOP3Dlg;
+  CastUnitSpellDlg: TCastUnitSpellDlg;
+  DeformFaceDlg: TDeformFaceDlg;
 procedure ShowResults(Window: TResultsWin);
 procedure HideItemSelection(Window: TIWindow);
 procedure RefreshMagicWindow(Window: TMagicWin);
@@ -54,6 +57,27 @@ procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
 resourcestring
   DisbandUnitRStr = 'Disband this unit?';
   ConfirmRStr = 'Confirm';
+
+resourcestring
+  PartyActionRStr = 'Party Action:';
+  PatrollingRStr = 'Patrolling';
+  GuardingRStr = 'Guarding';
+  ScoutingRStr = 'Scouting';
+  SeekingRefugeRStr = 'Seeking Refuge';
+  RaidingRStr = 'Raiding';
+  HuntingRStr = 'Hunting';
+  ProtectingRStr = 'Protecting';
+  FortifiedRStr = 'Fortified';
+  BerserkRStr = 'Berserk';
+  WanderingRStr = 'Wandering';
+
+resourcestring
+  PartyJoinRStr = 'Party Join';
+  XMadeALevelRStr = '%s made a level';
+  XMadeYLevelsRStr = '%s made %d levels';
+
+const
+  TTacticalCombatAvailabilityRStr: array[0..2] of string = ('Never', 'Between Humans', 'Always');
 
 implementation
 

@@ -6,8 +6,8 @@ interface
 uses aowMapEvents, AOWPyreScrn, AoWTitleScene, AoWIntroScene, AoWProgressDialog, AoWSelFactionWin, AoWWorldMap, AoWRelations, AoWResultsWin, AoWPWindows;
 
 var
-  MapEvents: TMapEvents;
-  PyreScreen: TPyreScreen;
+  MapEvents: TMapEvents absolute aowMapEvents.MapEvents; { $45B280; 0044ED77 }
+  PyreScreen: TPyreScreen absolute AOWPyreScrn.PyreScreen; { $45B154; 0042945C }
   TitleScene: TTitleScene;
   IntroScene: TIntroScene;
   ProgressDialog: TProgressDialog;

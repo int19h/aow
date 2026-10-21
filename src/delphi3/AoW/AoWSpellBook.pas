@@ -437,19 +437,19 @@ begin
   LeftInfoPage.Visible := Kind = 0;
   RightInfoPage.Visible := Kind = 0;
   case Kind of
-    0: begin NextBtn.Visible := False; PrevBtn.Visible := False; end;
     1: begin
       NextBtn.Visible := FSpells.GetCount - (FPage + 1) * 8 > 0;
       PrevBtn.Visible := FPage <> 0;
     end;
+    0: begin NextBtn.Visible := False; PrevBtn.Visible := False; end;
   end;
 end;
 
 procedure TSpellBook.SelectSpell(Spell: TSpell);
 var Reason: string;
 begin
-  if not ValidateHero then Dlg.Visible := False
-  else
+  if ValidateHero then
+  begin
     if FMode = 0 then
     begin
       if (FHero.GetCastingPoints >= Spell.FBaseManaCost) or
@@ -471,6 +471,8 @@ begin
       if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ResearchSpell(Spell.FSpellID) then
         if (FEvent <> nil) and (FEvent.FMode = pmemStartResearch) then Dlg.Visible := False
         else begin FMode := 2; InfoBtnClick(Self); end;
+  end
+  else Dlg.Visible := False;
 end;
 
 procedure TSpellBook.ShowResearch;
@@ -479,8 +481,8 @@ begin
   CastingPointsMaxLbl.Visible := False; CurrentPointsLbl.Visible := False; Line.Visible := False;
   GlobalBtn.ILIndexDown := 14; GlobalBtn.ILIndexLit := 15; GlobalBtn.ILIndexUp := 13;
   CombatBtn.Visible := False; UnitBtn.Visible := False;
-  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
-    SetPageKind(1) else SetPageKind(0);
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID <> 0 then
+    SetPageKind(0) else SetPageKind(1);
   FMode := 2; FSpellType := stGlobal; FPage := 0;
   FHero := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader;
   UpdateSpellPages; UpdateInfoPages; ShowBook;
@@ -488,7 +490,7 @@ end;
 
 procedure TSpellBook.ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
 begin
-  FEvent := Event; Event.AddRef; FDone := Done;
+  FEvent := Event; FEvent.AddRef; FDone := Done;
   if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
   begin
     Reset;
@@ -505,7 +507,7 @@ end;
 
 procedure TSpellBook.ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
 begin
-  FEvent := Event; Event.AddRef; FDone := Done;
+  FEvent := Event; FEvent.AddRef; FDone := Done;
   if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
   begin
     Reset; FResearchedSpell := Event.FSpellID; SetPageKind(0);
@@ -518,8 +520,9 @@ end;
 
 procedure TSpellBook.ShowCasting(Activation: TActivateAbilityInfo);
 begin
-  Reset; FActivation := Activation; Activation.AddRef; FMode := 0;
-  if not ValidateHero then begin Reset; Exit; end;
+  Reset; FActivation := Activation; FActivation.AddRef; FMode := 0;
+  if ValidateHero then
+  begin
   FSpellType := TSpellType(FPlayerPages[AoWHSMap.FSeatedPlayer].A);
   FPage := FPlayerPages[AoWHSMap.FSeatedPlayer].B;
   if FHero.Casting then SetPageKind(0)
@@ -539,13 +542,14 @@ begin
     SetPageKind(1);
   end;
   UpdateSpellPages; UpdateInfoPages; ShowBook;
+  end
+  else Reset;
 end;
 
 procedure TSpellBook.ShowCombatCasting(Activation: TActivateAbilityInfo);
 begin
-  Reset; FActivation := Activation; Activation.AddRef; FMode := 1;
-  if not ValidateHero then Reset
-  else
+  Reset; FActivation := Activation; FActivation.AddRef; FMode := 1;
+  if ValidateHero then
   begin
     GlobalBtn.Visible := True;
     if FHero.Casting then SetPageKind(0)
@@ -561,7 +565,8 @@ begin
     end;
     FSpellType := stCombat; FPage := 0;
     UpdateSpellPages; UpdateInfoPages; ShowBook;
-  end;
+  end
+  else Reset;
 end;
 
 procedure TSpellBook.UpdateSpellPages;
@@ -690,13 +695,13 @@ begin
       if I < Leader.GetSphereCount then
       begin
         Button.Visible := True;
-        case Ord(Leader.GetSpheres(I)) and $7F of
+        case Integer(Leader.GetSpheres(I)) and $7F of
           1: begin Button.ILIndexDown := 28; Button.ILIndexLit := 29; Button.ILIndexUp := 27; end;
-          2: begin Button.ILIndexDown := 31; Button.ILIndexLit := 32; Button.ILIndexUp := 30; end;
+          5: begin Button.ILIndexDown := 43; Button.ILIndexLit := 44; Button.ILIndexUp := 42; end;
           3: begin Button.ILIndexDown := 34; Button.ILIndexLit := 35; Button.ILIndexUp := 33; end;
           4: begin Button.ILIndexDown := 37; Button.ILIndexLit := 38; Button.ILIndexUp := 36; end;
-          5: begin Button.ILIndexDown := 43; Button.ILIndexLit := 44; Button.ILIndexUp := 42; end;
           6: begin Button.ILIndexDown := 40; Button.ILIndexLit := 41; Button.ILIndexUp := 39; end;
+          2: begin Button.ILIndexDown := 31; Button.ILIndexLit := 32; Button.ILIndexUp := 30; end;
         end;
       end
       else Button.Visible := False;

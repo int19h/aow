@@ -103,8 +103,8 @@ end;
 procedure TDWin.DialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
-    VK_RETURN: if FAction <> 0 then yesBtnClick(Self) else DButtonClick(Self);
     VK_ESCAPE: DButtonClick(Self);
+    VK_RETURN: if yesPnl.Visible then yesBtnClick(Self) else DButtonClick(Self);
   end;
 end;
 

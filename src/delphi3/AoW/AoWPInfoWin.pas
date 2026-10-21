@@ -100,10 +100,9 @@ end;
 procedure TPInfoW.PInfoWinResize;
 begin
   with PInfoWin do
-    with Alignment do
     begin
-      RightOffset := WinManager.WinWidth - WinWidth - WinLeft;
-      BottomOffset := General.Manager.WinHeight - WinTop - WinHeight;
+      Alignment.RightOffset := WinManager.WinWidth - WinLeft - WinWidth;
+      Alignment.BottomOffset := General.Manager.WinHeight - WinTop - WinHeight;
     end;
 end;
 

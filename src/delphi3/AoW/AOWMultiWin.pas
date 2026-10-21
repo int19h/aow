@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, ShellAPI;
+uses E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, AoWScenSetup, ShellAPI, AoWPOP3Dlg;
 
 var
   SessionRefreshDelay: Integer; { $45B170 }
@@ -140,7 +140,19 @@ end;
 
 
 procedure TMultiWindow.JoinBtnClick;
-begin end;
+var
+  Index: Integer;
+begin
+  General.PlayButtonSound(0);
+  Index := GamesLB.Selected;
+  if Index > -1 then
+    if (SetupEvents.DPlay.JoinSession(Index) = 0) and SetupEvents.DPlay.InSession then
+    begin
+      MultiPnl.Visible := False;
+      SetupEvents.SetupControl.SetupUser(SetupEvents.DPlay.PlayerName, SetupEvents.DPlay.PlayerID);
+      ScenSetup.Execute(SetupEvents.SetupControl);
+    end;
+end;
 
 procedure TMultiWindow.GamesLBChange;
 begin
@@ -201,7 +213,21 @@ end;
 
 
 procedure TMultiWindow.HostClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if ConnectProvider(conTCP) = 0 then
+  begin
+    SetupEvents.DPlay.PlayerName := TCPName.Text;
+    SetupEvents.DPlay.SessionName := AoWE.Format(TranslateRStr(XsGameRStr), [TCPName.Text]);
+    if SetupEvents.DPlay.CreateSession = 0 then
+    begin
+      MultiPnl.Visible := False;
+      SetupEvents.SetupControl.SetupHost(SetupEvents.DPlay.PlayerName, 1, SetupEvents.DPlay.PlayerID);
+      if FPendingMap <> '' then SetupEvents.SetupControl.hPickMap(FPendingMap);
+      ScenSetup.Execute(SetupEvents.SetupControl);
+    end;
+  end;
+end;
 
 procedure TMultiWindow.IPXNameChange;
 begin
@@ -231,10 +257,30 @@ end;
 
 
 procedure TMultiWindow.LANHostClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if ConnectProvider(conIPX) = 0 then
+  begin
+    SetupEvents.DPlay.PlayerName := TCPName.Text;
+    SetupEvents.DPlay.SessionName := AoWE.Format(TranslateRStr(XsGameRStr), [TCPName.Text]);
+    if SetupEvents.DPlay.CreateSession = 0 then
+    begin
+      MultiPnl.Visible := False;
+      SetupEvents.SetupControl.SetupHost(SetupEvents.DPlay.PlayerName, 1, SetupEvents.DPlay.PlayerID);
+      if FPendingMap <> '' then SetupEvents.SetupControl.hPickMap(FPendingMap);
+      ScenSetup.Execute(SetupEvents.SetupControl);
+    end;
+  end;
+end;
 
 procedure TMultiWindow.SingleBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  MultiPnl.Visible := False;
+  SetupEvents.SetupControl.SetupHost('', 0, 0);
+  if FPendingMap <> '' then SetupEvents.SetupControl.hPickMap(FPendingMap);
+  ScenSetup.Execute(SetupEvents.SetupControl);
+end;
 
 procedure TMultiWindow.ModemBtnClick;
 begin
@@ -270,10 +316,20 @@ end;
 
 
 procedure TMultiWindow.CheckEmailBtnClick;
-begin end;
+begin
+  if ValidateEmail then POP3Dlg.ShowDialog;
+end;
 
 procedure TMultiWindow.NewPBEMGameBtnClick;
-begin end;
+begin
+  if ValidateEmail then
+  begin
+    MultiPnl.Visible := False;
+    SetupEvents.SetupControl.SetupHost('', 2, 0);
+    if FPendingMap <> '' then SetupEvents.SetupControl.hPickMap(FPendingMap);
+    ScenSetup.Execute(SetupEvents.SetupControl);
+  end;
+end;
 
 procedure TMultiWindow.LoadPBEMGameBtnClick;
 begin

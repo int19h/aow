@@ -9145,9 +9145,9 @@ end;
 procedure TNegotiateRequestEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(FX, $28);
-  Stream.rwByte(FY, $29);
-  Stream.rwByte(FL, $2A);
+  Stream.rwByte(Byte(FX), $28);
+  Stream.rwByte(Byte(FY), $29);
+  Stream.rwByte(Byte(FL), $2A);
   Stream.rwData(FObject, SizeOf(FObject), $2B);
   Stream.rwInteger(FData1, $2C);
   Stream.rwInteger(FData2, $2D);

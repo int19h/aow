@@ -32,7 +32,7 @@ type
     AoWFrame1: TAoWFrame; { +0070 }
     Translator: TIvTranslator; { +0074 }
     public
-    FOnClose: TNotifyEvent; { $78 }
+    FOnClose: TExecuteDoneEvent; { $78 }
     FEvent: TCityRebellionEventLog; { $80 }
     procedure ClearEvent;
     procedure CloseClick;  { draft }
@@ -49,7 +49,7 @@ uses AoWWinMan, E3Globals;
 procedure TCityRebelDlg.ClearEvent;
 var
   Event: TCityRebellionEventLog;
-  Notify: TNotifyEvent;
+  Notify: TExecuteDoneEvent;
 begin
   Notify := FOnClose; Event := FEvent;
   FOnClose := nil; FEvent := nil;

@@ -42,7 +42,7 @@ type
     Translator: TIvTranslator; { +0098 }
     public
     FUnitInfoShown: Boolean; { $9C }
-    F_ArmyInfoDlg_9D: array[0..2] of Byte; FOnClose: TNotifyEvent; { $A0 }
+    F_ArmyInfoDlg_9D: array[0..2] of Byte; FOnClose: TExecuteDoneEvent; { $A0 }
     FEvent: TArmyInfoEventLog; { $A8 }
     procedure DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc);
     procedure ClearEvent;
@@ -71,7 +71,7 @@ begin
   begin
     SaveRect := SD.ClipRect; SD.ClipRect := R;
     X := (R.Right + R.Left) div 2; Y := (R.Top + R.Bottom) div 2;
-    if Byte(FEvent.FArmyView.GetUnit(Index).GetAlignment) < IntGfxMod.UnitBGs.Count then
+    if Ord(FEvent.FArmyView.GetUnit(Index).GetAlignment) < IntGfxMod.UnitBGs.Count then
     begin
       Img := IntGfxMod.UnitBGs[Ord(FEvent.FArmyView.GetUnit(Index).GetAlignment)];
       Img.ShowClipped(X - Img.Width div 2, Y - Img.Height div 2, SD);
@@ -90,7 +90,7 @@ end;
 procedure TArmyInfoDlg.ClearEvent;
 var
   Event: TArmyInfoEventLog;
-  Notify: TNotifyEvent;
+  Notify: TExecuteDoneEvent;
 begin
   if FUnitInfoShown then
   begin

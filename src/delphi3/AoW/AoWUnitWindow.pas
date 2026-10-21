@@ -567,19 +567,17 @@ end;
 
 procedure TUnitWindow.ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  with TAOWCheckBox(Sender) do
-    ItemID := Tag;
+  ItemID := TAOWCheckBox(Sender).Tag;
 end;
 
 procedure TUnitWindow.UnitWinResize(Sender: TObject);
 begin
   with UnitWin do
-    with Alignment do
     begin
-      LeftOffset := WinLeft;
-      TopOffset := WinTop;
-      AlignHeight := ahTop;
-      AlignWidth := awLeft;
+      Alignment.LeftOffset := WinLeft;
+      Alignment.TopOffset := WinTop;
+      Alignment.AlignHeight := ahTop;
+      Alignment.AlignWidth := awLeft;
     end;
 end;
 

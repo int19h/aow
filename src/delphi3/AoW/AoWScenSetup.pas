@@ -213,6 +213,7 @@ type
     FPingDelay: Integer; { $340 }
     FChatScrollPending: Boolean; { $344 }
     F_ScenSetup_345: array[0..2] of Byte;
+    procedure Execute(Control: TSetupControl);
     procedure CloseSetup;
     procedure PickMap;
     procedure ExitGameClick(Sender: TObject);
@@ -251,7 +252,7 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms, AoWFileDialog;
+uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms, AoWFileDialog, E2GameFlow;
 
 procedure TScenSetup.ExitGameClick(Sender: TObject);
 { conflict: procedure TScenSetup.ExitGameClick; }
@@ -333,7 +334,7 @@ begin
           750..999: FontModule.Age8s.Color := $80FF;
         else FontModule.Age8s.Color := $FF;
         end;
-        if P.FPing <= 999 then Text := IntToStr(P.FPing) else Text := '999';
+        if P.FPing > 999 then Text := '999' else Text := IntToStr(P.FPing);
         FontModule.Age8s.SetTextCentered((DrawRect.Left + DrawRect.Right) div 2, DrawRect.Top + 4, Text, SD);
       end;
     end;
@@ -520,6 +521,59 @@ begin
     PlayerList.Selected := -1; PingList.Selected := -1; PreferredRaceList.Selected := -1;
     EjectBtn.Visible := False; MakeHostBtn.Visible := False;
   end;
+end;
+
+procedure TScenSetup.Execute(Control: TSetupControl);
+var
+  Availability: Byte;
+begin
+  FSetupControl := Control;
+  TitleWindow.TitleWin.Visible := True;
+  ScenSetupPnl.Visible := True;
+  ChatMemo.Items.Clear;
+  ChatEdit.Text := '';
+  FValidateDelay := 100;
+  FPingDelay := 15;
+  ChatFogPnl.Visible := not FSetupControl.GetRemote;
+  ChatMemo.FCaptureInput := FSetupControl.GetRemote;
+  ChatEdit.FCaptureInput := FSetupControl.GetRemote;
+  if FSetupControl.GetHost and (FSetupControl.FSettings.FMapName = '') then PickMap;
+  if FSetupControl.GetRemote then
+  begin
+    TacticalCombatCB.Visible := True;
+    TacticalCombatLbl.Visible := True;
+    TacticalCombatCB.Items.Clear;
+    for Availability := 0 to 2 do
+      TacticalCombatCB.Items.AddObject(TranslateRStr(TTacticalCombatAvailabilityRStr[Availability]), TObject(Availability));
+  end
+  else
+  begin
+    TacticalCombatCB.Visible := False;
+    TacticalCombatLbl.Visible := False;
+  end;
+  if FSetupControl.FSettings.FConnectionType = 2 then
+  begin
+    CustomizeLeadersLbl.TextColor := $808080;
+    CustomizeLeaders.FCaptureInput := False;
+    PlayModeCB.Items.Clear;
+    PlayModeCB.Items.AddObject(TranslateRStr(ClassicRStr), TObject(1));
+  end
+  else
+  begin
+    CustomizeLeadersLbl.TextColor := AlliedVictoryLbl.TextColor;
+    CustomizeLeaders.FCaptureInput := True;
+    PlayModeCB.Items.Clear;
+    PlayModeCB.Items.AddObject(TranslateRStr(SimultaneousRStr), TObject(2));
+    PlayModeCB.Items.AddObject(TranslateRStr(ClassicRStr), TObject(1));
+  end;
+  if (SongPlayer.CurrentIndex = -1) or (SongPlayer.CurrentIndex >= SongPlayer.Songs.Count) or
+    (SongPlayer.Songs[SongPlayer.CurrentIndex] <> 'SONGS\TITLE.IT') then
+  begin
+    SongPlayer.Songs.Clear;
+    SongPlayer.Songs.Add('SONGS\TITLE.IT');
+    SongPlayer.Play(0);
+  end;
+  UpdateScenarioSetup(Self);
 end;
 
 procedure TScenSetup.CloseSetup;

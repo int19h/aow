@@ -7,7 +7,7 @@ unit AoWHeroUpgradeDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWWinMan, AoWInfoBanner, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWWinMan, AoWInfoBanner, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   THeroUpgradeDlg = class;
@@ -115,8 +115,8 @@ type
     SkillPoints: TAOWLabel; { +01BC }
     Translator: TIvTranslator; { +01C0 }
     public
-    FOnClose: TNotifyEvent; { $1C4 }
-    FReferencedHero: THero; { $1CC }
+    FOnClose: TExecuteDoneEvent; { $1C4 }
+    FReferencedHero: THeroUpgradeEventLog; { $1CC }
     FSelectedSort: Integer; { $1D0 }
     FAvailableSort: Integer; { $1D4 }
     FHero: THero; { $1D8 }
@@ -286,8 +286,8 @@ end;
 
 procedure THeroUpgradeDlg.ClearHero;
 var
-  OnClose: TNotifyEvent;
-  Hero: THero;
+  OnClose: TExecuteDoneEvent;
+  Hero: THeroUpgradeEventLog;
 begin
   OnClose := FOnClose;
   Hero := FReferencedHero;

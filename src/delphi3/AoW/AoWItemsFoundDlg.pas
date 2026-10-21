@@ -41,7 +41,7 @@ type
     RightBtn: TAOWButton; { +009C }
     public
     FItemOffset: Integer; { $A0 }
-    FOnDone: TNotifyEvent; { $A4 }
+    FOnDone: TExecuteDoneEvent; { $A4 }
     FEvent: TItemExplorationSiteEventLog; { $AC }
     function GetHero: THero;
     procedure Finish;
@@ -65,7 +65,7 @@ begin Finish; end;
 
 procedure TItemsFoundDlg.Finish;
 var
-  Done: TNotifyEvent;
+  Done: TExecuteDoneEvent;
   Event: TItemExplorationSiteEventLog;
 begin
   Dlg.Visible := False;

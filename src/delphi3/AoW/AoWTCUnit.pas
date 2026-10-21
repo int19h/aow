@@ -177,7 +177,7 @@ begin
         GetCombatMode(General.FCombatUnit.FUnit.FUnit) in [cmShortRange..cmLongRange]) and
         (TTCAbility(General.FCombatUnit.FAbilities[UAbilLB.F188]).Ability <> $34) then Exit;
       with General.FCombatUnit.FUnit do
-        if FUnit.GetMoves <= General.FCombatUnit.FUnit.FMovePoints then Exit;
+        if FUnit.GetMoves <= FMovePoints then Exit;
     end;
     UAbilLB.F188 := -1;
   end;

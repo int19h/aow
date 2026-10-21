@@ -31,7 +31,7 @@ type
     FAbilities: TList; { $78 }
     FActiveAbilityCount: Integer; { $7C } F_General_80: Integer;
     FSelectedUnits: array[0..7] of Integer; { $84 }
-    FUnitList: TUnitList; { $A4 }
+    FUnitList: TArmy; { $A4 }
     FStructure: TStructure; { $A8; 00442354 } FPreviousStructure: TStructure; { $AC } FCity: TCity; { $B0 } FProductionPlace: TProductionPlace; { $B4 } FExplorationSite: TExplorationSite; { $B8 } FSign: TSign; { $BC }
     FSelectedUnit: TAbstractUnit; { $C0; 00449DCD }
     { conflict: FUnit: TAbstractUnit; }
@@ -58,7 +58,7 @@ type
     procedure ManagerDebugMessage(Text: string);
     procedure MapProgress(Sender: TEObject; const Message: string; Progression: Integer); { 00454CA7 }
     { conflict: procedure MapProgress(Sender: TObject; const Text: string; Position: Integer); }
-    procedure ManagerKeyDown(A1: Integer; A2: Integer);  { draft }
+    procedure ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ManagerUpdate;  { draft }
   end;
 
@@ -68,7 +68,7 @@ var
 
 implementation
 
-uses E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms;
+uses E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -105,7 +105,7 @@ begin
       A := TTCAbility.Create;
       A.Ability := I;
       if General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer then
-        if AoWHSSet.FAbilityControl.GetAbility(I).GetControlType(General.FSelectedUnit) * [acAction] = [acAction] then
+        if AoWHSSet.FAbilityControl.GetAbility(I).GetControlType(General.FSelectedUnit) * [acAction] <> [] then
         begin
           FAbilities.Insert(FActiveAbilityCount, A);
           Inc(FActiveAbilityCount);
@@ -342,26 +342,66 @@ begin
   MainForm.Display.ActiveDC.BltSurface(MainForm.Display.FSurfaceIndex);
 end;
 
-procedure TGeneral.ManagerKeyDown(A1: Integer; A2: Integer);
-begin end;
+procedure TGeneral.ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  Player: TPlayer;
+  S: string;
+begin
+  if AoWEngine.FDebug then
+  begin
+    if (AoWHSMap <> nil) and
+      ((AoWHSMap.FPlayMode <> pmSimultaneous) or (AoWHSMap.FPlayers.FLocalPlayers.Count = 1)) and
+      (Key in [Ord('1')..Ord('9')]) and (AoWCombatMap = nil) and
+      (AoWHSMap.FPlayers.GetCount > Key - Ord('0')) and AoWEngine.FRegistry.GetDebugMode then
+    begin
+      Player := AoWHSMap.FPlayers.GetPlayers(Key - Ord('0'));
+      if Player.FPlayerType = ptCPU5 then Player.FPlayerType := ptHuman
+      else Inc(Player.FPlayerType);
+      S := 'Player ' + IntToStr(Key - Ord('0')) + ' set to: ' + TranslateRStr(TPlayerTypeRStr[Ord(Player.FPlayerType)]);
+      AoWHSMap.ShowMessage(S);
+      AoWHSMap.FPlayers.Update;
+      AoWHSMap.FRequestCombatType := AoWHSMap.FPlayers.FLocalHumanPlayers.Count > 1;
+    end;
+    case Key of
+      VK_F11:
+        begin
+          S := ExtractFileDir(Application.ExeName);
+          S := S + '\Scenario\Custom';
+          SetCurrentDir(S);
+          LoadGame(Self, 'Crap.hsm');
+          StartGame(Self);
+        end;
+      VK_F12:
+        begin
+          S := ExtractFileDir(Application.ExeName);
+          S := S + '\Scenario\Custom';
+          SetCurrentDir(S);
+          LoadGame(Self, 'demomap.hsm');
+          StartGame(Self);
+        end;
+    end;
+  end;
+end;
 
 procedure TGeneral.ManagerUpdate;
 begin
-  with UnitBanner.BannerPopup do
-    if FShowPending and not Visible then
-    begin
-      WinLeft := FMenuLeft;
-      with UnitBanner.BannerPopup do WinTop := FMenuTop;
-      UnitBanner.BannerPopup.Visible := True;
-    end;
-  with AoWInfoBanner.InfoBanner.BannerPopup do
-    if FShowPending and not Visible then
-    begin
-      WinLeft := FMenuLeft;
-      with AoWInfoBanner.InfoBanner.BannerPopup do WinTop := FMenuTop;
-      AoWInfoBanner.InfoBanner.BannerPopup.Visible := True;
-    end;
-  MWindow.MapWindow.DoubleBuffered := Manager.FOverlayPriority > MWindow.MapWindow.Priority;
+  with UnitBanner do
+    with BannerPopup do
+      if FShowPending and not BannerPopup.Visible then
+      begin
+        BannerPopup.WinLeft := FMenuLeft;
+        with BannerPopup do WinTop := FMenuTop;
+        BannerPopup.Visible := True;
+      end;
+  with AoWInfoBanner.InfoBanner do
+    with BannerPopup do
+      if FShowPending and not BannerPopup.Visible then
+      begin
+        BannerPopup.WinLeft := FMenuLeft;
+        with BannerPopup do WinTop := FMenuTop;
+        BannerPopup.Visible := True;
+      end;
+  with MWindow do MapWindow.DoubleBuffered := Manager.FOverlayPriority > MapWindow.Priority;
   if MainForm.FCursorChanged then Manager.AddDrawRect(MainForm.FLastCursorRect, nil);
 end;
 

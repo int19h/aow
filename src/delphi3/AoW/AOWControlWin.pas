@@ -98,6 +98,7 @@ type
     public
     FSelection: Byte; { $178 }
     F_ControlWin_179: array[0..2] of Byte;
+    procedure UpdateArmy;
     procedure DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc); { 00405D98 }
     procedure CWMinIconClick;  { draft }
     procedure CloseClick(Sender: TObject);
@@ -117,10 +118,178 @@ type
   end;
 
 
+var
+  ControlWin: TControlWin; { $45B054 }
+
 implementation
 
 uses AoWWinMan, E3Globals, aowHelpWin;
 
+
+procedure TControlWin.UpdateArmy;
+var
+  ReadOnly: Boolean;
+begin
+  Unit1Chk.Checked := False;
+  Unit2Chk.Checked := False;
+  Unit3Chk.Checked := False;
+  Unit4Chk.Checked := False;
+  Unit5Chk.Checked := False;
+  Unit6Chk.Checked := False;
+  Unit7Chk.Checked := False;
+  Unit8Chk.Checked := False;
+  Emp1Fr.Visible := True;
+  Emp1Chk.Visible := True;
+  Emp2Fr.Visible := True;
+  Emp2Chk.Visible := True;
+  Emp3Fr.Visible := True;
+  Emp3Chk.Visible := True;
+  Emp4Fr.Visible := True;
+  Emp4Chk.Visible := True;
+  Emp5Fr.Visible := True;
+  Emp5Chk.Visible := True;
+  Emp6Fr.Visible := True;
+  Emp6Chk.Visible := True;
+  Emp7Fr.Visible := True;
+  Emp7Chk.Visible := True;
+  Emp8Fr.Visible := True;
+  Emp8Chk.Visible := True;
+  Unit1Frame.ILIndexFrame := 12;
+  Unit2Frame.ILIndexFrame := 12;
+  Unit3Frame.ILIndexFrame := 12;
+  Unit4Frame.ILIndexFrame := 12;
+  Unit5Frame.ILIndexFrame := 12;
+  Unit6Frame.ILIndexFrame := 12;
+  Unit7Frame.ILIndexFrame := 12;
+  Unit8Frame.ILIndexFrame := 12;
+  PartyActionLbl1.Visible := False;
+  PartyActionLbl2.Visible := False;
+  if General.FUnitList.FPlayer = 0 then
+  begin
+    PartyBPnl.Visible := False;
+    PartyIPnl.Visible := True;
+    PartyILbl.Text := '';
+    ReadOnly := True;
+    PartyActionLbl1.Visible := True;
+    PartyActionLbl2.Visible := True;
+    PartyActionLbl1.Text := TranslateRStr(PartyActionRStr);
+    case Integer(General.FUnitList.GetBehavior($FF)) and $7F of
+      1: PartyActionLbl2.Text := TranslateRStr(PatrollingRStr);
+      2, 3: PartyActionLbl2.Text := TranslateRStr(GuardingRStr);
+      4: PartyActionLbl2.Text := TranslateRStr(ScoutingRStr);
+      5: PartyActionLbl2.Text := TranslateRStr(SeekingRefugeRStr);
+      6: PartyActionLbl2.Text := TranslateRStr(RaidingRStr);
+      7: PartyActionLbl2.Text := TranslateRStr(HuntingRStr);
+      8: PartyActionLbl2.Text := TranslateRStr(ProtectingRStr);
+      9: PartyActionLbl2.Text := TranslateRStr(FortifiedRStr);
+      10: PartyActionLbl2.Text := TranslateRStr(BerserkRStr);
+    else PartyActionLbl2.Text := TranslateRStr(WanderingRStr);
+    end;
+  end
+  else if General.FUnitList.FPlayer <> AoWHSMap.FSeatedPlayer then
+  begin
+    PartyBPnl.Visible := False;
+    PartyIPnl.Visible := True;
+    ReadOnly := True;
+    PartyILbl.Text := AoWE.Format(TranslateRStr(PartyOwnerXRStr),
+      [TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(General.FUnitList.FPlayer).FPlayerRace])]);
+    PControlPnl.Visible := False;
+  end
+  else
+  begin
+    PartyBPnl.Visible := True;
+    PartyIPnl.Visible := False;
+    ReadOnly := False;
+    MoveIcon.Visible := True;
+    MoveIcon.CurrentImage := General.MTtoInt(General.FUnitList.GetPartyMoves($FF));
+    MovesLbl.Text := IntToStr(General.FUnitList.MovePoints($FF));
+    AOWControlWin.ControlWin.CheckEnd;
+    PControlPnl.Visible := True;
+    PGuard.Checked := aumGuard in General.FUnitList.FUserMode;
+  end;
+  if General.FSelectedUnits[0] <> -1 then
+  begin
+    U1MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[0]));
+    Unit1Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[0]).GetHits;
+    Unit1Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[0]).GetHitPoints;
+    Unit1Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[0]));
+    Emp1Fr.Visible := False;
+    Unit1Chk.Visible := not ReadOnly;
+    Emp1Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[1] <> -1 then
+  begin
+    U2MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[1]));
+    Unit2Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[1]).GetHits;
+    Unit2Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[1]).GetHitPoints;
+    Unit2Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[1]));
+    Emp2Fr.Visible := False;
+    Unit2Chk.Visible := not ReadOnly;
+    Emp2Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[2] <> -1 then
+  begin
+    U3MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[2]));
+    Unit3Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[2]).GetHits;
+    Unit3Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[2]).GetHitPoints;
+    Unit3Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[2]));
+    Emp3Fr.Visible := False;
+    Unit3Chk.Visible := not ReadOnly;
+    Emp3Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[3] <> -1 then
+  begin
+    U4MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[3]));
+    Unit4Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[3]).GetHits;
+    Unit4Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[3]).GetHitPoints;
+    Unit4Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[3]));
+    Emp4Fr.Visible := False;
+    Unit4Chk.Visible := not ReadOnly;
+    Emp4Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[4] <> -1 then
+  begin
+    U5MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[4]));
+    Unit5Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[4]).GetHits;
+    Unit5Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[4]).GetHitPoints;
+    Unit5Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[4]));
+    Emp5Fr.Visible := False;
+    Unit5Chk.Visible := not ReadOnly;
+    Emp5Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[5] <> -1 then
+  begin
+    U6MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[5]));
+    Unit6Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[5]).GetHits;
+    Unit6Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[5]).GetHitPoints;
+    Unit6Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[5]));
+    Emp6Fr.Visible := False;
+    Unit6Chk.Visible := not ReadOnly;
+    Emp6Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[6] <> -1 then
+  begin
+    U7MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[6]));
+    Unit7Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[6]).GetHits;
+    Unit7Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[6]).GetHitPoints;
+    Unit7Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[6]));
+    Emp7Fr.Visible := False;
+    Unit7Chk.Visible := not ReadOnly;
+    Emp7Chk.Visible := ReadOnly;
+  end;
+  if General.FSelectedUnits[7] <> -1 then
+  begin
+    U8MIcon.CurrentImage := General.MTtoInt(General.FUnitList.MoveTypes(1 shl General.FSelectedUnits[7]));
+    Unit8Gge.Max := General.FUnitList.GetUnit(General.FSelectedUnits[7]).GetHits;
+    Unit8Gge.Position := General.FUnitList.GetUnit(General.FSelectedUnits[7]).GetHitPoints;
+    Unit8Chk.Text := ' ' + IntToStr(General.FUnitList.MovePoints(1 shl General.FSelectedUnits[7]));
+    Emp8Fr.Visible := False;
+    Unit8Chk.Visible := not ReadOnly;
+    Emp8Chk.Visible := ReadOnly;
+  end;
+  if not TBWindow.ConButton.Visible then ControlWindow.Visible := True;
+  TBWindow.ConButton.Visible := True;
+end;
 
 procedure TControlWin.DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc);
 begin
@@ -155,10 +324,9 @@ end;
 procedure TControlWin.ControlWindowResize;
 begin
   with ControlWindow do
-    with Alignment do
     begin
-      RightOffset := WinManager.WinWidth - WinLeft - WinWidth;
-      TopOffset := WinTop;
+      Alignment.RightOffset := WinManager.WinWidth - WinLeft - WinWidth;
+      Alignment.TopOffset := WinTop;
     end;
 end;
 
@@ -231,8 +399,8 @@ begin
   if Unit6Chk.Checked then Unit6Frame.ILIndexFrame := 26 else Unit6Frame.ILIndexFrame := 12;
   if Unit7Chk.Checked then Unit7Frame.ILIndexFrame := 26 else Unit7Frame.ILIndexFrame := 12;
   if Unit8Chk.Checked then Unit8Frame.ILIndexFrame := 26 else Unit8Frame.ILIndexFrame := 12;
-  MoveIcon.CurrentImage := General.MTtoInt(TArmy(General.FUnitList).GetPartyMoves(AoWHSMap.FSelectedArmy.GetSelection));
-  MovesLbl.Text := IntToStr(TArmy(General.FUnitList).MovePoints(AoWHSMap.FSelectedArmy.GetSelection));
+  MoveIcon.CurrentImage := General.MTtoInt(General.FUnitList.GetPartyMoves(AoWHSMap.FSelectedArmy.GetSelection));
+  MovesLbl.Text := IntToStr(General.FUnitList.MovePoints(AoWHSMap.FSelectedArmy.GetSelection));
   PartyStatusLbl.Text := TranslateRStr(TPartyStatusRStr[AoWHSMap.FSelectedArmy.GetArmyHS.FArmy.GetPartyStatus(AoWHSMap.FSelectedArmy.GetSelection)]);
 end;
 
@@ -247,8 +415,8 @@ end;
 procedure TControlWin.CenterClick;
 begin
   General.PlayButtonSound(0);
-  with TArmy(General.FUnitList) do AoWHSMap.CenterViewTo(FX, FY, FL);
-  with TArmy(General.FUnitList) do AoWHSMap.PlayCenterAnimation(FX, FY, FL);
+  with General.FUnitList do AoWHSMap.CenterViewTo(FX, FY, FL);
+  with General.FUnitList do AoWHSMap.PlayCenterAnimation(FX, FY, FL);
 end;
 
 procedure TControlWin.Unit1FramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
@@ -290,12 +458,12 @@ procedure TControlWin.PGuardChange;
 begin
   if PGuard.Checked then
   begin
-    if TArmy(General.FUnitList).FUserMode * [aumGuard] = [] then
-      TArmy(General.FUnitList).FUserMode := TArmy(General.FUnitList).FUserMode + [aumGuard];
+    if not (aumGuard in General.FUnitList.FUserMode) then
+      General.FUnitList.FUserMode := General.FUnitList.FUserMode + [aumGuard];
   end
   else
-    if TArmy(General.FUnitList).FUserMode * [aumGuard] <> [] then
-      TArmy(General.FUnitList).FUserMode := TArmy(General.FUnitList).FUserMode - [aumGuard];
+    if aumGuard in General.FUnitList.FUserMode then
+      General.FUnitList.FUserMode := General.FUnitList.FUserMode - [aumGuard];
 end;
 
 

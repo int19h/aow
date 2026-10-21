@@ -185,7 +185,7 @@ procedure TUnitSelectionDlg.Execute(Request: TUnitSelectorAAI);
 var U: TAbstractUnit;
 begin
   ResetSelection;
-  FEventLog := Request; Request.AddRef;
+  FEventLog := Request; FEventLog.AddRef;
   FEvent := Request.FUnitSelector; FEvent.AddRef;
   U := AoWHSMap.FUnitControl.FindUnit(FEvent.FSourceUnitID);
   if U <> nil then

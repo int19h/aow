@@ -7,7 +7,7 @@ unit AoWArmyEventDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
 
 type
   TArmyEventDlg = class;
@@ -32,7 +32,7 @@ type
     DecoR: TAOWImage; { +0070 }
     Translator: TIvTranslator; { +0074 }
     public
-    FOnClose: TNotifyEvent; { $78 } FEvent: TArmyEventLog; { $80 }
+    FOnClose: TExecuteDoneEvent; { $78 } FEvent: TArmyEventLog; { $80 }
     FFrame: Integer; { $84 }
     FUnits: TByteList; { $88 }
     procedure DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
@@ -48,9 +48,67 @@ type
   end;
 
 
+procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+
 implementation
 
 uses AoWWinMan;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+var
+  Log: TArmyEventLog;
+  Army: TArmyView;
+  I, Image: Integer;
+begin
+  with Dialog do
+  begin
+    Assert(FEvent = nil);
+    FOnClose := Done;
+    FEvent := Event;
+    FEvent.AddRef;
+    Log := FEvent;
+    DamagePic.CurrentImage := Log.FArmyIcon;
+    EventText.Text := Log.FArmyMessages.Text;
+    Army := Log.FArmyView;
+    FUnits.Clear;
+    for I := 0 to Army.GetCount - 1 do
+      if not Army.GetUnitConcealedForPlayer(I, AoWHSMap.FSeatedPlayer) or (Log.FDamageValues[I] <> 0) then
+      begin
+        FUnits.Add(I);
+        Image := Log.FArmyView.GetUnit(I).GetUnitGFXResourceIndex;
+        if Image <> -1 then AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Image).AddRef;
+      end;
+    ArmyEventWin.Visible := True;
+    FFrame := 0;
+  end;
+end;
 
 procedure TArmyEventDlg.DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
 var
@@ -67,9 +125,7 @@ var
   Info: TP2UnitShowInfo;
 begin
   Event := FEvent;
-  if Event.FDamageValues[FUnits[Index]] = 0 then
-    Event.FArmyView.GetUnit(FUnits[Index]).Show(X, Y, SD)
-  else
+  if Event.FDamageValues[FUnits[Index]] <> 0 then
   begin
     { The original staggers animation by bits of the unit object's address. }
     Frame := FFrame - ((Integer(Event.FArmyView.GetUnit(FUnits[Index])) shr 3) and 7);
@@ -77,10 +133,10 @@ begin
     Info.Frame := (Frame shr 1) - 1; Info.Direction := 3; Info.Animation := uaHit;
     Event.FArmyView.GetUnit(FUnits[Index]).ShowEx(X, Y, SD, Info);
     if Frame = 5 then
-      if Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints = 0 then
-        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[4].Play(0)
+      if Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints <> 0 then
+        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[3].Play(0)
       else
-        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[3].Play(0);
+        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[4].Play(0);
     if Frame < 6 then
       ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints,
         Event.FArmyView.GetUnit(FUnits[Index]).GetHits))
@@ -90,13 +146,14 @@ begin
       ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Byte(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints - Event.FDamageValues[FUnits[Index]]),
         Event.FArmyView.GetUnit(FUnits[Index]).GetHits));
     end;
-  end;
+  end
+  else Event.FArmyView.GetUnit(FUnits[Index]).Show(X, Y, SD);
 end;
 
 procedure TArmyEventDlg.ClearEvent;
 var
   Event: TArmyEventLog;
-  Notify: TNotifyEvent;
+  Notify: TExecuteDoneEvent;
   I, Resource: Integer;
 begin
   General.Manager.OverlayPriority := 0;

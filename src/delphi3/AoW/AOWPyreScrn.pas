@@ -38,6 +38,9 @@ type
   end;
 
 
+var
+  PyreScreen: TPyreScreen;
+
 implementation
 
 uses E3Globals, AoWWinMan, E1Globals, AoWExeForms, AoWVideoDlg;
@@ -117,28 +120,28 @@ procedure TPyreScreen.FinishScreen;
 begin
   ClearFire;
   IntGfxMod.PyreFrames.ReleaseDiscardableImageData;
-  E1Globals.PyreScreen.DeadPnl.Visible := False;
+  AOWPyreScrn.PyreScreen.DeadPnl.Visible := False;
   ShowResults(ResultsWin);
 end;
 
 procedure TPyreScreen.ShowGameOver(Event: TGameOverEventLog; Unused: Integer; Done: TExecuteDoneEvent);
 begin
   FAnimationFrame := 0;
-  FGameOverEvent := Event; Event.AddRef; FDone := Done;
+  FGameOverEvent := Event; FGameOverEvent.AddRef; FDone := Done;
   FSavedSongStatus := BackupSongStatus;
   FadeMusicVolume(0, 1);
   General.Manager.OverlayPriority := 249;
   case AoWHSMap.FPlayers.GetPlayers(Event.FPlayer).FGameOverStatus of
-    goWon: AoWHSMap.FTutorialControl.ShowMessage(67, True, True);
     goLost:
       begin
         FAnimation := PlaySampleEx('Sfx\Attack\Fireloop.wav', 64, True, 0, spCenter, nil);
         AoWHSMap.FTutorialControl.ShowMessage(68, True, True);
       end;
+    goWon: AoWHSMap.FTutorialControl.ShowMessage(67, True, True);
   end;
   IntGfxMod.PyreFrames.LoadDiscardableImageData;
   TitleWindow.TitlePnl.Visible := False;
-  E1Globals.PyreScreen.DeadPnl.Visible := True;
+  AOWPyreScrn.PyreScreen.DeadPnl.Visible := True;
   AoWExeForms.VideoDialog.SetSceneSize(640, 480);
   SetVideoMode(AoWExeForms.VideoDialog, scmTitle);
   AoWExeForms.VideoDialog.ApplyMode;
