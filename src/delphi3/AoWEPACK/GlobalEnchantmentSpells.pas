@@ -549,7 +549,7 @@ begin
   Result := inherited CanActivate(Player, Reason);
   if Result and (petEnchantedRoads in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments) then
   begin
-    Text := AoWE.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
+    Text := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
     Reason := Text;
     Result := False;
   end;
@@ -1980,7 +1980,7 @@ var
   Control: TSpellControl;
 begin
   Control := AEngine.FGameSet.FSpellControl;
-  AEngine.RegisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantment]);
+  AEngine.RegisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantmentEventLog]);
   AEngine.RegisterEClasses([TWaterMasteryEnchantment, THatredEnchantment, THarmonyEnchantment, TPowerLeakEnchantment, TFloodEnchantment, TAirMasteryEnchantment]);
   AEngine.RegisterEClasses([TLifeMasteryEnchantment, TDeathMasteryEnchantment, TFireMasteryEnchantment, TEarthMasteryEnchantment, TSpellWardEnchantment]);
   Control.RegisterSpell(TEnchantedRoads.Create(nil));
@@ -2014,7 +2014,7 @@ begin
   Control.UnregisterSpellID(64);
   Control.UnregisterSpellID(45);
   Control.UnregisterSpellID(65);
-  AEngine.UnregisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantment]);
+  AEngine.UnregisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantmentEventLog]);
   AEngine.UnregisterEClasses([TWaterMasteryEnchantment, THatredEnchantment, THarmonyEnchantment, TPowerLeakEnchantment, TFloodEnchantment, TAirMasteryEnchantment]);
   AEngine.UnregisterEClasses([TLifeMasteryEnchantment, TDeathMasteryEnchantment, TFireMasteryEnchantment, TEarthMasteryEnchantment, TSpellWardEnchantment]);
 end;

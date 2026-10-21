@@ -384,7 +384,7 @@ begin
   Result := inherited ValidTargetMapF(A1) and (A1.TerrainType in [1..5, 12]);
   { Original precedence also accepts these overlays without the terrain test. }
   Result := Result and (A1.OverlayType = -1) or (A1.OverlayType in [1..4, 9]);
-  Result := Result and (A1.FindHS(TStructure) = nil) and (TAoWMapField(A1).GetArmyHS = nil);
+  Result := Result and (A1.FindNoneTransparentHS(TStructure) = nil) and (TAoWMapField(A1).GetArmyHS = nil);
 end;
 
 function TPoisonPlantSpell.ValidTargetSelectionMapF(A1: TMapField): Boolean;
@@ -394,7 +394,7 @@ begin
   Result := inherited ValidTargetSelectionMapF(A1) and (A1.TerrainType in [1..5, 12]);
   { Original precedence also accepts these overlays without the terrain test. }
   Result := Result and (A1.OverlayType = -1) or (A1.OverlayType in [1..4, 9]);
-  Result := Result and (A1.FindHS(TStructure) = nil) and (TAoWMapField(A1).GetArmyHS = nil);
+  Result := Result and (A1.FindNoneTransparentHS(TStructure) = nil) and (TAoWMapField(A1).GetArmyHS = nil);
   if Result then
   begin
     ArmyHS := TAoWMapField(A1).GetArmyHS;

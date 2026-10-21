@@ -103,7 +103,7 @@ procedure TTower.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin
   inherited MapFieldMsgProc(Msg);
   if (FResource.TerrainList.Overlay[Msg.HN] >= 0) and (Msg.MsgID = $1123) and
-    (TMapField(Msg.Param[0]).FindOwnedHS(TTower) = Self) and
+    (TMapField(Msg.Param[0]).FindNoneTransparentHS(TTower) = Self) and
     not GetBuilding and not GetRazed then Msg.Result := 2;
 end;
 
@@ -138,7 +138,7 @@ end;
 
 procedure TTowerConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin
-  Text := Format(TranslateRStr(LoadResString(@BuildXRStr)), [TranslateRStr(LoadResString(@TowerRStr))]);
+  Text := SysUtils.Format(TranslateRStr(LoadResString(@BuildXRStr)), [TranslateRStr(LoadResString(@TowerRStr))]);
   Gold := 50;
   Days := 2;
 end;
@@ -151,7 +151,7 @@ begin
   else
   begin
     Result := False;
-    A2 := Format(TranslateRStr(LoadResString(@CannotBuildXInUndergroundRStr)),
+    A2 := SysUtils.Format(TranslateRStr(LoadResString(@CannotBuildXInUndergroundRStr)),
       [TranslateRStr(LoadResString(@TowerRStr))]);
   end;
 end;

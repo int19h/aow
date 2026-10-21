@@ -952,13 +952,13 @@ begin
   if FWallType = 1 then List.Add(TranslateRStr(LoadResString(WoodenWallText)));
   if FWallType = 2 then List.Add(TranslateRStr(LoadResString(StoneWallText)));
   if ceiFountainOfLife in FEnchantments then
-    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(FountainOfLifeRStr));
+    List.Add(TranslateRStr(FountainOfLifeRStr) + ': ' + TranslateRStr(EnchantmentRStr));
   if ceiGoldRush in FEnchantments then
-    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(GoldRushRStr));
+    List.Add(TranslateRStr(GoldRushRStr) + ': ' + TranslateRStr(EnchantmentRStr));
   if ceiAntiMagicShell in FEnchantments then
-    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(AntiMagicShellRStr));
+    List.Add(TranslateRStr(AntiMagicShellRStr) + ': ' + TranslateRStr(EnchantmentRStr));
   if ceiWarmonger in FEnchantments then
-    List.Add(TranslateRStr(EnchantmentRStr) + ': ' + TranslateRStr(WarmongerRStr));
+    List.Add(TranslateRStr(WarmongerRStr) + ': ' + TranslateRStr(EnchantmentRStr));
 end;
 
 procedure TCity.StartTownQuake;

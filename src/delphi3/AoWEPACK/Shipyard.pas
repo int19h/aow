@@ -92,7 +92,7 @@ end;
 
 procedure TShipyardConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin
-  Text := Format(TranslateRStr(BuildXRStr), [TranslateRStr(ShipyardRStr)]);
+  Text := SysUtils.Format(TranslateRStr(BuildXRStr), [TranslateRStr(ShipyardRStr)]);
   Gold := 50;
   Days := 2;
 end;

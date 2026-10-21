@@ -60,6 +60,11 @@ uses ExptIntf;
 {$I inc\AoWEimpl.inc}
 
 initialization
+  TAbilityTypeRStr[atEnhancement] := EnhancementRStr;
+  TAbilityTypeRStr[atHandicap] := HandicapRStr;
+  TAbilityTypeRStr[atMovement] := MovementRStr;
+  TAbilityTypeRStr[atCombat] := CombatRStr;
+  TAbilityTypeRStr[atEnchantment] := EnchantmentRStr;
   TPlayerTypeRStr[0] := HumanRStr;
   TPlayerTypeRStr[1] := CPUWarriorRStr;
   TPlayerTypeRStr[2] := CPUKnightRStr;

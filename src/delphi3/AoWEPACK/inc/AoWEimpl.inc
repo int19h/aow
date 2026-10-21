@@ -298,9 +298,9 @@ const
     (Experience: 15; Reserved: 1), (Experience: 15; Reserved: 1),
     (Experience: 20; Reserved: 1), (Experience: 20; Reserved: 1),
     (Experience: 25; Reserved: 1), (Experience: 25; Reserved: 29));
-var
-  { needs: P1 shared AoWHSSet: TAoWHSSet, original global 558FA044. }
-  P2AoWHSSet: TAoWHSSet;
+{ Use the P1 shared AoWHSSet at $558FA044. }
+
+
 
 const
   { needs: P1 shared dAlignmentToStatusValue, original 558E8480. }
@@ -604,8 +604,8 @@ resourcestring
   P2XJoinedTheForcesOfYRStr = '%0:s joined the forces of %1:s';
   P2FireDamageRStr = 'Fire damage';
 const
-  P2StormNames: array[TStormType] of string =
-    ('None', 'Fire', 'Death', 'Life', 'Ice', 'Lightning', 'Pestilence');
+  TStormTypeRStr: array[TStormType] of string =
+    (NoneRStr, FireStormRStr, DeathStormRStr, DivineStormRStr, IceStormRStr, LightningStormRStr, PestilenceStormRStr);
 
 resourcestring
   P2ArmyRStr = 'Army';
@@ -9692,7 +9692,7 @@ var
   Action: TDiplomaticAction;
 begin
   FReaction := darAccept;
-  P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
+  RetrieveDefaultDiplomaticActionMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).SetGems(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FGems + FEscrowGold);
   FEscrowGold := 0;
   TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FMagicControl).FMana + FEscrowMana);
@@ -9827,7 +9827,7 @@ begin
   FEscrowGold := 0;
   TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).SetMana(TPlayerMagicControl(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FMagicControl).FMana + FEscrowMana);
   FEscrowMana := 0;
-  P5DefaultDiplomaticMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
+  RetrieveDefaultDiplomaticActionMessage(FSource, FTarget, FOtherPlayer, FActionType, FReaction, FMessage);
   Log := TDiplomaticActionEventLog(TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FTarget)).FEventLogbook).FindID(FEventLogID));
   Log.SetDiplomaticAction(Self);
   TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Shortint(FSource)).FEventLogbook).AddEvent(Log);
@@ -19956,8 +19956,8 @@ begin
     begin
       case FControlQueue[FControlQueue.Count - 1] of
         0: ActivateMEC(TDefaultMEC);
-        1: ActivateMEC(TTransportMEC);
-        2: ActivateMEC(TAdjacentMEC);
+        1: ActivateMEC(TAdjacentMEC);
+        2: ActivateMEC(TTransportMEC);
       end;
       FControlQueue.Delete(FControlQueue.Count - 1);
     end;
@@ -24022,7 +24022,7 @@ begin
       AoWHSMap.VisibleForPlayer(FPath[0].X, FPath[0].Y, FPath[0].L, AoWHSMap.FSeatedPlayer) then
     begin
       Anim := TImageSequenceAnimation.Create(nil);
-      Anim.SetImageSequence(AoWHSSet.FImageSequences[$16]);
+      Anim.SetImageSequence(AoWHSSet.FImageSequences.ImageSequences[$16]);
       AoWHSMap.PlaceHX(Anim, FPath[0].X, FPath[0].Y, FPath[0].L);
     end;
     AoWHSMap.DestroyCombat;
@@ -26885,7 +26885,7 @@ end;
 
 function CompareAbilityNames(Item1, Item2: Pointer): Integer;
 begin
-  Result := CompareText(TAbility(Item1).GetName(nil), TAbility(Item2).GetName(nil));
+  Result := CompareStr(TAbility(Item1).GetName(nil), TAbility(Item2).GetName(nil));
 end;
 
 procedure TAbilityControl.ListAbilityInfo(Text: TStrings; SortByName: Boolean; Mode: TAbilityInfoMode);
@@ -26953,7 +26953,7 @@ end;
 
 function TDiplomaticRelationHistoryList.GetItems(Index: Integer): TDiplomaticRelationHistoryItem;
 begin
-  Result := TDiplomaticRelationHistoryItem(FChildren[Index]);
+  Result := TDiplomaticRelationHistoryItem(FChildren.EObjects[Index]);
 end;
 
 function TDiplomaticRelationHistoryList.GetLastModifiedOnDay: Integer;
@@ -37241,7 +37241,7 @@ begin
       Attack := GetAttack;
       Damage := GetDamage;
       if GetAbilityEnabled(115) then Inc(Repeats);
-      A2 := P4OffensiveStrength(Attack, Damage, Repeats);
+      A2 := P3LimitedDamage(Attack, Damage, Repeats);
       A3 := GetDamageTypes(TAbstractUnit(A1));
     end;
   end
@@ -38055,7 +38055,7 @@ procedure TWallCrushingAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: I
 begin
   if A1 <> nil then
   begin
-    A2 := P4OffensiveStrength(TAbstractUnit(A1).GetAttack, 6, 1);
+    A2 := P3LimitedDamage(TAbstractUnit(A1).GetAttack, 6, 1);
     A3 := [dtWall];
   end;
 end;
@@ -38162,7 +38162,7 @@ end;
 
 procedure TSelfDestructAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin
-  A2 := P4OffensiveStrength(8, 6, 1);
+  A2 := P3LimitedDamage(8, 6, 1);
   A3 := [dtFire, dtWall];
 end;
 
@@ -38236,7 +38236,7 @@ begin
       Attack := GetAttack;
       Damage := GetDamage;
     end;
-    A2 := P4OffensiveStrength(Attack, Damage, 1) * 3;
+    A2 := P3LimitedDamage(Attack, Damage, 1) * 3;
     A3 := TStrikeAbility(AoWHSSet.FAbilityControl.GetAbility(21)).GetDamageTypes(A1);
   end;
 end;
@@ -38608,7 +38608,7 @@ begin
     Result := (A1 is TCombatUnit) and (A2 is TCombatUnit) and
       not A2.GetAbilityEnabled(106) and
       (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) and
-      not (TCombatUnit(A2).FUnit is THero);
+      not (TCombatUnit(A2).FUnit is TLeader);
 end;
 
 function TPossessAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
@@ -38616,7 +38616,7 @@ begin
   Result := inherited CanTouchUnit(A1, A2);
   { Original excludes humanoids here, but machines in CanTouch. }
   Result := Result and not A2.GetAbilityEnabled(106) and
-    (A2.GetUnitType <> utHumanoid) and not (A2 is THero);
+    (A2.GetUnitType <> utHumanoid) and not (A2 is TLeader);
 end;
 
 procedure TPossessAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
@@ -40662,7 +40662,7 @@ begin
 end;
 procedure TRangedAttackAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin
-  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A2 := P3LimitedDamage(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
   A3 := GetDamageTypesRA(A1);
 end;
 function TRangedAttackAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
@@ -40819,7 +40819,7 @@ begin
 end;
 procedure TBreathAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin
-  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A2 := P3LimitedDamage(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
   A2 := A2 * 2;
   A3 := GetDamageTypesRA(A1);
 end;
@@ -40902,7 +40902,7 @@ begin
 end;
 procedure TFlameThrowingAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
 begin
-  A2 := P4OffensiveStrength(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
+  A2 := P3LimitedDamage(GetAttackRA(A1), GetDamageRA(A1), GetAttackRepeatRA(A1));
   A2 := A2 * 2;
   A3 := GetDamageTypesRA(A1);
 end;
@@ -41445,7 +41445,7 @@ begin
   else Result := False;
 end;
 function CanConstructRoad(Player: Shortint; Field: TAoWMapField): Boolean;
-begin Result := (Player = Field.GetPlayer) or (Field.GetPlayer = -1); Result := Result and (Field.TerrainType in [1..5]); Result := Result and not (Field.OverlayType in [0, 2, 4, 5]); Result := Result and (Field.FindHS(TStructure) = nil); end; { Original shared helper at $55771138. }
+begin Result := (Player = Field.GetPlayer) or (Field.GetPlayer = -1); Result := Result and (Field.TerrainType in [1..5]); Result := Result and not (Field.OverlayType in [0, 2, 4, 5]); Result := Result and (Field.FindNoneTransparentHS(TStructure) = nil); end; { Original shared helper at $55771138. }
 { Shared helper declaration required by TMoveArmyTE; original $55771068. }
 function ConstructRoad(Player: Shortint; Field: TAoWMapField): Boolean;
 begin Result := False; end;
@@ -45849,138 +45849,138 @@ begin
 end;
 
 function TUnitSpellCaster.CanCast(var Reason: string): Boolean;
-{ Compatibility body: Boolean result in AL; source/selection validation and casting. }
-asm
-  PUSH ebp
-  MOV ebp, esp
-  PUSH 0
-  PUSH 0
-  PUSH 0
-  PUSH ebx
-  PUSH esi
-  PUSH edi
-  MOV dword ptr [ebp - 4], edx
-  MOV esi, eax
-  XOR eax, eax
-  PUSH ebp
-  PUSH OFFSET @@L170
-  PUSH dword ptr fs:[eax]
-  MOV dword ptr fs:[eax], esp
-  MOV eax, dword ptr [AoWHSMap]
-  MOV eax, dword ptr [eax + $FC]
-  MOV edx, dword ptr [esi].TSpellCaster.FCasterSourceID
-  CALL TUnitControl.FindUnit
-  MOV ebx, eax
-  TEST ebx, ebx
-  JE @@L153
-  TEST byte ptr [ebx + $25], $10
-  JNE @@L153
-  CMP byte ptr [esi].TUnitSpellCaster.FSelectionMask, 0
-  JE @@L12C
-  MOVSX edx, byte ptr [ebx + $24]
-  MOV eax, dword ptr [AoWHSMap]
-  MOV eax, dword ptr [eax + $140]
-  CALL TPlayerList.GetPlayers
-  MOV eax, dword ptr [eax + $54]
-  CALL TPlayerMagicControl.GetCheatEnabled
-  TEST al, al
-  JNE @@L128
-  MOV eax, esi
-  CALL TUnitSpellCaster.GetRequiredMana
-  MOV edi, eax
-  MOV eax, ebx
-  CALL THero.CastingReady
-  TEST al, al
-  JE @@LA9
-  MOV eax, dword ptr [ebx + $84]
-  CMP eax, dword ptr [esi].TSpellCaster.FCasterSpellID
-  JNE @@LA9
-  MOV eax, dword ptr [AoWHSSet]
-  MOV eax, dword ptr [eax + $84]
-  MOV edx, dword ptr [esi].TSpellCaster.FCasterSpellID
-  CALL TSpellControl.GetSpell
-  SUB EDI, [EAX].TSpell.FBaseManaCost
-@@LA9:
-  MOV eax, ebx
-  MOV edx, dword ptr [eax]
-  CALL dword ptr [edx + $12C]
-  MOVSX eax, al
-  CMP edi, eax
-  JG @@L101
-  MOVSX edx, byte ptr [ebx + $24]
-  MOV eax, dword ptr [AoWHSMap]
-  MOV eax, dword ptr [eax + $140]
-  CALL TPlayerList.GetPlayers
-  MOV eax, dword ptr [eax + $54]
-  CMP edi, dword ptr [eax + $24]
-  JG @@LDA
-  MOV bl, 1
-  JMP @@L155
-@@LDA:
-  XOR ebx, ebx
-  LEA edx, [ebp - $C]
-  MOV eax, OFFSET NotEnoughManaRStr
-  CALL System.LoadResString
-  MOV eax, dword ptr [ebp - $C]
-  LEA edx, [ebp - 8]
-  CALL TranslateRStr
-  MOV edx, dword ptr [ebp - 8]
-  MOV eax, dword ptr [ebp - 4]
-  CALL System.@LStrAsg
-  JMP @@L155
-@@L101:
-  XOR ebx, ebx
-  LEA edx, [ebp - $C]
-  MOV eax, OFFSET NotEnoughCastingPointsRStr
-  CALL System.LoadResString
-  MOV eax, dword ptr [ebp - $C]
-  LEA edx, [ebp - 8]
-  CALL TranslateRStr
-  MOV edx, dword ptr [ebp - 8]
-  MOV eax, dword ptr [ebp - 4]
-  CALL System.@LStrAsg
-  JMP @@L155
-@@L128:
-  MOV bl, 1
-  JMP @@L155
-@@L12C:
-  XOR ebx, ebx
-  LEA edx, [ebp - $C]
-  MOV eax, OFFSET NoUnitSelectedRStr
-  CALL System.LoadResString
-  MOV eax, dword ptr [ebp - $C]
-  LEA edx, [ebp - 8]
-  CALL TranslateRStr
-  MOV edx, dword ptr [ebp - 8]
-  MOV eax, dword ptr [ebp - 4]
-  CALL System.@LStrAsg
-  JMP @@L155
-@@L153:
-  XOR ebx, ebx
-@@L155:
-  XOR eax, eax
-  POP edx
-  POP ecx
-  POP ecx
-  MOV dword ptr fs:[eax], edx
-  PUSH OFFSET @@L177
-@@L162:
-  LEA eax, [ebp - $C]
-  MOV edx, 2
-  CALL System.@LStrArrayClr
-  RET
-@@L170:
-  JMP System.@HandleFinally
-  JMP @@L162
-@@L177:
-  MOV eax, ebx
-  POP edi
-  POP esi
-  POP ebx
-  MOV esp, ebp
-  POP ebp
-  RET
+var Hero: THero; Mana: Integer;
+begin
+  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FCasterSourceID));
+  if (Hero <> nil) and not (usKilled in Hero.FUnitStatus) then
+    if FSelectionMask <> 0 then
+      if not AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FMagicControl.GetCheatEnabled then
+      begin
+        Mana := GetRequiredMana;
+        if Hero.CastingReady and (Hero.FCastingSpellID = FCasterSpellID) then
+          Dec(Mana, AoWHSSet.FSpellControl.GetSpell(FCasterSpellID).FBaseManaCost);
+        if Mana <= Hero.GetCastingPoints then
+          if Mana <= AoWHSMap.FPlayers.GetPlayers(Hero.FPlayer).FMagicControl.FMana then
+            Result := True
+          else
+          begin
+            Result := False;
+            Reason := TranslateRStr(NotEnoughManaRStr);
+          end
+        else
+        begin
+          Result := False;
+          Reason := TranslateRStr(NotEnoughCastingPointsRStr);
+        end;
+      end
+      else Result := True
+    else
+    begin
+      Result := False;
+      Reason := TranslateRStr(NoUnitSelectedRStr);
+    end
+  else Result := False;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function TUnitSpellCaster.Cast: Boolean;
 { Compatibility body: Boolean result in AL; source/selection validation and casting. }
@@ -48063,7 +48063,7 @@ begin
     else
     begin
       Result := P2AlignmentToStatusValue[GetAlignment, P2GetRaceAlignment(P2GetRaceResource(
-        TRaceResourceList(P2AoWHSSet.FRaceResources),
+        TRaceResourceList(AoWHSSet.FRaceResources),
         Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers), Player).FPlayerRace)))];
     end;
   end
@@ -48183,7 +48183,7 @@ var
   List: TAbilityTypeList;
   Enchanted: Boolean;
 begin
-  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  List := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   Enchanted := False;
   I := List.Count;
   while not Enchanted and (I <> 0) do
@@ -48201,7 +48201,7 @@ var
   List: TAbilityTypeList;
 begin
   AddRef;
-  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  List := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
@@ -48229,7 +48229,7 @@ var
   List: TAbilityTypeList;
   Data: TUnitEnchantmentAbilityData;
 begin
-  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  List := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
@@ -48250,7 +48250,7 @@ var
   List: TAbilityTypeList;
   Data: TUnitEnchantmentAbilityData;
 begin
-  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  List := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   for I := List.Count - 1 downto 0 do
   begin
     Ability := P2TypeAbility(List, I);
@@ -48273,7 +48273,7 @@ var
   Ability: TAbility;
   Data: TUnitEnchantmentAbilityData;
 begin
-  Ability := P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID);
+  Ability := P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID);
   if (Ability is TUnitEnchantmentAbility) and GetAbilityEnabled(Ability.FAbilityID) then
   begin
     Data := TUnitEnchantmentAbilityData(P2AbilityData(Self, Ability.FAbilityID));
@@ -48288,7 +48288,7 @@ var
   List: TAbilityTypeList;
   Enchantment: TUnitEnchantment;
 begin
-  List := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  List := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   I := List.Count;
   Result := False;
   while not Result and (I <> 0) do
@@ -48306,7 +48306,7 @@ var
   Abilities: TAbilityTypeList;
   Enchantment: TUnitEnchantment;
 begin
-  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).Enchantments;
+  Abilities := TP2AbilityControlFields(AoWHSSet.FAbilityControl).Enchantments;
   for I := Abilities.Count - 1 downto 0 do
   begin
     Enchantment := AbilityToEnchantment(P2TypeAbility(Abilities, I).FAbilityID);
@@ -48357,7 +48357,7 @@ function TAbstractUnit.GetInherentAbility(AbilityID: Integer): Boolean;
 begin
   if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
   begin
-    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityInherent(Self);
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID)).AbilityInherent(Self);
     Exit;
   end;
   Result := False;
@@ -48366,7 +48366,7 @@ function TAbstractUnit.GetInherentAbilityLevel(AbilityID: Integer): Integer;
 begin
   if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
   begin
-    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityInherentLevel(Self);
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID)).AbilityInherentLevel(Self);
     Exit;
   end;
   Result := 0;
@@ -48375,7 +48375,7 @@ function TAbstractUnit.GetAbilityEnabled(AbilityID: Integer): Boolean;
 begin
   if GetAbilitySet(AbilityID) then
   begin
-    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityEnabled(Self);
+    Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID)).AbilityEnabled(Self);
     Exit;
   end;
   Result := False;
@@ -48395,11 +48395,11 @@ asm
 end;
 function TAbstractUnit.GetAbilityName(AbilityID: Integer): string;
 begin
-  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityName(Self);
+  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID)).AbilityName(Self);
 end;
 function TAbstractUnit.GetAbilityLevel(AbilityID: Integer): Integer;
 begin
-  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), AbilityID)).AbilityLevel(Self);
+  Result := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), AbilityID)).AbilityLevel(Self);
 end;
 function TAbstractUnit.GetAbilityOwner(AbilityID: Integer): TAbilityOwner;
 begin
@@ -48454,7 +48454,7 @@ var
   I, Strength: Integer;
   Abilities: TAbilityTypeList;
 begin
-  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).CombatAbilities;
+  Abilities := TP2AbilityControlFields(AoWHSSet.FAbilityControl).CombatAbilities;
   FMaxOffensiveStrength := 0;
   FillChar(FOffensiveStrength, SizeOf(FOffensiveStrength), 0);
   for I := Abilities.Count - 1 downto 0 do
@@ -48515,7 +48515,7 @@ var
   Info: TP2DamageValue;
 begin
   Result := 0;
-  Abilities := TP2AbilityControlFields(P2AoWHSSet.FAbilityControl).CombatAbilities;
+  Abilities := TP2AbilityControlFields(AoWHSSet.FAbilityControl).CombatAbilities;
   for I := Abilities.Count - 1 downto 0 do
   begin
     Ability := P2VMTAbility(Abilities, I);
@@ -48546,12 +48546,12 @@ begin
     if GetAbilitySet(I) then
     begin
       AOwner := GetAbilityOwner(I);
-      Ability := TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), I));
+      Ability := TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), I));
       Name := Ability.AbilityName(AOwner);
       if Name <> '' then Names.AddObject(Name, TObject(I));
       if Types <> nil then
       begin
-        P2TranslateRStr(P2AbilityTypeNames[TP2AbilityCalls(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl), I)).AbilityType], TypeName);
+        P2TranslateRStr(TAbilityTypeRStr[TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), I)).AbilityType], TypeName);
         Types.AddObject(TypeName, TObject(I));
       end;
       Source := Ability.SourceName(AOwner);
@@ -49075,7 +49075,7 @@ begin
       Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,153)).FEnchantment);
       Enchantment.SetUpkeep(0);
       Enchantment.SetSource(-2);
-      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),17)).Duration;
+      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(AoWHSSet.FSpellControl),17)).Duration;
     end;
 end;
 procedure TAbstractUnit.ResetFireMasteryProtection;
@@ -49113,7 +49113,7 @@ begin
       Enchantment := TP2EnchantmentCalls(TUnitEnchantmentAbilityData(P2AbilityData(Self,158)).FEnchantment);
       Enchantment.SetUpkeep(0);
       Enchantment.SetSource(-2);
-      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(P2AoWHSSet.FSpellControl),56)).Duration;
+      Enchantment.Duration := TP2SpellFields(P2Spell(TSpellControl(AoWHSSet.FSpellControl),56)).Duration;
     end;
 end;
 procedure TAbstractUnit.ResetLifeMasteryFear;
@@ -49345,10 +49345,10 @@ var
 begin
   Result := 0;
   ResourceIndex := GetUnitGFXResourceIndex;
-  TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).AddRef;
+  TUnitGFXResourceList(AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).AddRef;
   if Info.Animation <> uaNone then
   begin
-    Sequence := TImageSequence(TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).FSequences.List^[Ord(Info.Animation) * 6 + Info.Direction - 1]);
+    Sequence := TImageSequence(TUnitGFXResourceList(AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).FSequences.List^[Ord(Info.Animation) * 6 + Info.Direction - 1]);
     if Sequence <> nil then
     begin
       if not Info.Looped then
@@ -49358,7 +49358,7 @@ begin
         if Frame >= 0 then
           Sequence.ImageLibrary[Frame].Show(X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD)
         else
-          TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Show(Info.Direction,X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD);
+          TUnitGFXResourceList(AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Show(Info.Direction,X + Sequence.dXshift + 16,Y + Sequence.dYshift + 20,SD);
         if TotalFrames - Info.Frame > Result then Result := TotalFrames - Info.Frame;
       end
       else
@@ -49382,52 +49382,52 @@ begin
   else Result := -1;
   if GetAbilityEnabled(96) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),96).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),96).FImageSequences).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),96).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if GetAbilityEnabled(98) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),98).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),98).FImageSequences).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),98).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if GetAbilityEnabled(93) then
     if Info.Looped then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),93).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),93).FImageSequences).Show(0,X+32,Y+32,4,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),93).FImageSequences).Show(0,X+32,Y+32,4,SD);
   if uoHitPoints in Info.Overlays then
     P2ShowHitPercent(X,Y,SD,P2HitPercent(GetHitPoints,GetHits));
   if uoCombat in Info.Overlays then
   begin
     if GetHitPoints = 0 then
-      TCustomImageLibrary(P2AoWHSSet.FCombatImages)[4].Show(X+18,Y+10,SD);
+      TCustomImageLibrary(AoWHSSet.FCombatImages)[4].Show(X+18,Y+10,SD);
     if GetAbilityEnabled(48) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),48).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),48).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(150) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),150).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),150).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(149) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),149).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),149).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(97) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),97).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),97).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(92) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),92).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),92).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(95) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),95).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),95).FImageSequences).ShowLooped(0,X+32,Y+32,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(94) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),94).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),94).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(127) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),127).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),127).FImageSequences).ShowLooped(0,X+32,Y+35,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(107) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),107).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),107).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
     if GetAbilityEnabled(34) then
-      TImageSequenceList(P2ControlAbility(TAbilityControl(P2AoWHSSet.FAbilityControl),34).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
+      TImageSequenceList(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl),34).FImageSequences).ShowLooped(0,X+32,Y+40,AoWHSMap.Frame,SD);
   end;
   if usEnchanted in FUnitStatus then
     if Info.Looped then
-      TImageSequenceList(P2AoWHSSet.FImageSequences).ShowLooped(70,X+32,Y+40,AoWHSMap.Frame,SD)
+      TImageSequenceList(AoWHSSet.FImageSequences).ShowLooped(70,X+32,Y+40,AoWHSMap.Frame,SD)
     else
-      TImageSequenceList(P2AoWHSSet.FImageSequences).Show(70,X+32,Y+40,5,SD);
-  TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Release;
+      TImageSequenceList(AoWHSSet.FImageSequences).Show(70,X+32,Y+40,5,SD);
+  TUnitGFXResourceList(AoWHSSet.FUnitGFXResources).GetUnitGFXResource(ResourceIndex).Release;
 end;
 procedure TAbstractUnit.ShowFace(const R: TRect; const SD: TSurfaceDesc);
 var
@@ -49437,8 +49437,8 @@ begin
   if Image <> nil then Image.ShowStretched(R,SD);
   if GetAbilityEnabled(129) then
     if AoWHSMap <> nil then
-      if TCustomImageLibrary(P2AoWHSSet.FGeneralImages)[45] <> nil then
-        TCustomImageLibrary(P2AoWHSSet.FGeneralImages)[45].ShowStretched(R,SD);
+      if TCustomImageLibrary(AoWHSSet.FGeneralImages)[45] <> nil then
+        TCustomImageLibrary(AoWHSSet.FGeneralImages)[45].ShowStretched(R,SD);
 end;
 function P2DamageRole(Damage, DC: Integer): Integer; assembler;
 asm JMP ExecuteDamageRole end;
@@ -49627,7 +49627,7 @@ begin
   begin
     if GetRace = -1 then
     begin
-      Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),
+      Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(AoWHSSet.FRaceResources),
         Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FPlayerRace)));
       if GetAlignment <> alNone then
       begin
@@ -49640,7 +49640,7 @@ begin
           begin
             Dec(I);
             Result := (P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),I),Player) >= sPolite) and
-              (TIntegerList(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),I).FUnitIndexes).
+              (TIntegerList(P2GetRaceResource(TRaceResourceList(AoWHSSet.FRaceResources),I).FUnitIndexes).
                 IndexOf(TUnitResource(TUnit(Self).FUnitResource).UnitResourceIndex) <> -1);
           end;
         end
@@ -49675,7 +49675,7 @@ begin
       Group := FGroup;
       if (Group <> nil) and (TP2AbilityCalls(Group).GroupBehavior = gbRefuge) then
       begin
-        Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(P2AoWHSSet.FRaceResources),
+        Alignment := P2GetRaceAlignment(P2GetRaceResource(TRaceResourceList(AoWHSSet.FRaceResources),
           Shortint(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FPlayerRace)));
         if ((GetAlignment <> alNone) or (GetUnitType = utMachine)) and
           (P2AlignmentDiplomaticRelation(GetAlignment,Alignment) <> drPeace) then Result := False
@@ -49743,8 +49743,8 @@ begin
   Result := inherited ShowEx(X,Y,SD,Info);
   if uoRank in Info.Overlays then
     case GetRank of
-      urSilver: TCustomImageLibrary(P2AoWHSSet.FCombatImages)[5].Show(X+33,Y+12,SD);
-      urGold: TCustomImageLibrary(P2AoWHSSet.FCombatImages)[6].Show(X+33,Y+12,SD);
+      urSilver: TCustomImageLibrary(AoWHSSet.FCombatImages)[5].Show(X+33,Y+12,SD);
+      urGold: TCustomImageLibrary(AoWHSSet.FCombatImages)[6].Show(X+33,Y+12,SD);
     end;
 end;
 function TUnit.GetObtainValue: Integer;
@@ -49797,12 +49797,12 @@ var
 begin
   if not GetAbilityEnabled(126) then
   begin
-    Result := TUnitGFXResourceList(P2AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.FUnitGFXResourceIndex).GetFaceImage;
+    Result := TUnitGFXResourceList(AoWHSSet.FUnitGFXResources).GetUnitGFXResource(FUnitResource.FUnitGFXResourceIndex).GetFaceImage;
     Exit;
   end;
   FaceIndex := TP2FaceEnchantmentFields(TUnitEnchantmentAbilityData(P2AbilityData(Self,126)).FEnchantment).FaceIndex;
-  if P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex) <> nil then
-    Result := P2FaceResource(TFaceResourceList(P2AoWHSSet.FFaceResources),FaceIndex).GetCellImage
+  if P2FaceResource(TFaceResourceList(AoWHSSet.FFaceResources),FaceIndex) <> nil then
+    Result := P2FaceResource(TFaceResourceList(AoWHSSet.FFaceResources),FaceIndex).GetCellImage
   else Result := nil;
 end;
 function TUnit.GetExperience: Integer;
@@ -49969,7 +49969,7 @@ begin
     else if smRead in Stream.StorageMode then
     begin
       Stream.rwWord(Word(ResourceIndex),10);
-      Resource := TUnitResourceList(P2AoWHSSet.FUnitResources).GetUnitResource(ResourceIndex);
+      Resource := TUnitResourceList(AoWHSSet.FUnitResources).GetUnitResource(ResourceIndex);
       FUnitResource := Resource;
       if Resource = nil then raise Exception.Create('unit resource missing (' + IntToStr(ResourceIndex) + ')');
     end
@@ -50159,10 +50159,10 @@ begin
 end;
 procedure TUnitList.SortUnits;
 begin
-  LockChanged;
+  BeginUpdate;
   FChildren.Pack;
   FChildren.Sort(P2CompareUnits);
-  UnlockChanged;
+  EndUpdate;
 end;
 function P2CompareUnitMoves(Item1, Item2: Pointer): Integer;
 begin
@@ -50170,10 +50170,10 @@ begin
 end;
 procedure TUnitList.SortOnMoves;
 begin
-  LockChanged;
+  BeginUpdate;
   FChildren.Pack;
   FChildren.Sort(P2CompareUnitMoves);
-  UnlockChanged;
+  EndUpdate;
 end;
 procedure TUnitList.GetLocation(var Xhx, Yhx, Lhx: Shortint);
 begin
@@ -51236,7 +51236,7 @@ begin
   if Result <> nil then TUnitHS(Result).SetUnitGFXResourceIndex(FUnitGFXResourceIndex);
 end;
 
-
+procedure UnregisterEnhancementAbilities(Control:TAbilityControl);begin with Control do begin UnregisterAbilityID(120);UnregisterAbilityID(121);UnregisterAbilityID(122);UnregisterAbilityID(123);UnregisterAbilityID(124);UnregisterAbilityID(86);UnregisterAbilityID(87);UnregisterAbilityID(88);UnregisterAbilityID(89);UnregisterAbilityID(90);UnregisterAbilityID(24);UnregisterAbilityID(25);UnregisterAbilityID(30);UnregisterAbilityID(31);UnregisterAbilityID(44);UnregisterAbilityID(45);UnregisterAbilityID(55);UnregisterAbilityID(57);UnregisterAbilityID(58);UnregisterAbilityID(61);UnregisterAbilityID(62);end;end; { $5576F82C }
 function TUnitResource.UnitResourceIndex: Integer;
 begin Result := Owner.FindChildIndex(Self); end;
 
@@ -51251,7 +51251,7 @@ begin
   if FNickname <> '' then Result := Result + ' ' + FNickname;
 end;
 
-
+procedure UnregisterTouchAbilities(Control:TAbilityControl);begin with Control do begin UnregisterAbilityID(21);UnregisterAbilityID(118);UnregisterAbilityID(111);UnregisterAbilityID(112);UnregisterAbilityID(113);UnregisterAbilityID(115);UnregisterAbilityID(116);UnregisterAbilityID(119);UnregisterAbilityID(14);UnregisterAbilityID(15);UnregisterAbilityID(16);UnregisterAbilityID(17);UnregisterAbilityID(18);UnregisterAbilityID(19);UnregisterAbilityID(20);end;end; { $55767600 }
 procedure TUnitResource.ReadWrite(Stream: Engine.TEStorageStream);
 var
   Rank: TUnitRank;
@@ -51283,7 +51283,7 @@ begin
     for Rank := Low(TUnitRank) to High(TUnitRank) do FAbilities[Rank].ValidateOwnerTypeAbilities;
 end;
 
-
+procedure UnregisterCoreSpells(AEngine:TAoWEngine);var Control:TSpellControl;begin Control:=AEngine.FGameSet.FSpellControl;AEngine.UnregisterEClasses([TSpellTE]);AEngine.UnregisterEClasses([TSpellCastEventLog]);AEngine.UnregisterEClasses([TUnitSpellTE,TUnitSpellCA]);Control.UnregisterAll;end; { $5577BE44 }
 function TUnitResource.DropUnit(Xhx, Yhx, Lhx: Integer): Boolean;
 var
   Player: Shortint;
@@ -51300,8 +51300,8 @@ begin
   Result := AUnit.Place(Xhx, Yhx, Lhx, Player, []) <> nil;
   AUnit.Release;
 end;
-
-
+procedure UnregisterCoreAbilities(Control:TAbilityControl);begin with Control do begin AoWEngine.UnregisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData]);AoWEngine.UnregisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA, TDispelMagicAbilityCA]);AoWEngine.UnregisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE]);AoWEngine.UnregisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]);AoWEngine.UnregisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TInvokeDeathCA]);UnregisterAbilityID(86);UnregisterAbilityID(87);UnregisterAbilityID(88);UnregisterAbilityID(89);UnregisterAbilityID(90);UnregisterAbilityID(114);UnregisterAbilityID(40);UnregisterAbilityID(27);UnregisterAbilityID(65);UnregisterAbilityID(148);UnregisterAbilityID(149);UnregisterAbilityID(28);UnregisterAbilityID(150);UnregisterAbilityID(29);
+UnregisterAbilityID(48);UnregisterAbilityID(22);UnregisterAbilityID(47);UnregisterAbilityID(46);UnregisterAbilityID(52);UnregisterAbilityID(38);UnregisterAbilityID(35);UnregisterAbilityID(146);UnregisterAbilityID(147);UnregisterAbilityID(125);UnregisterAbilityID(60);UnregisterAbilityID(117);UnregisterAbilityID(50);UnregisterAbilityID(106);UnregisterAbilityID(107);UnregisterEnhancementAbilities(Control);UnregisterTouchAbilities(Control);end;end; { $557717A4 }
 constructor TUnitResourceList.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
@@ -56892,9 +56892,9 @@ var Log: TArmyEventLog; I, Damage: Integer; Damaged: Boolean;
 begin
   RandSeed := AoWHSMap.Random($FFFFFF);
   Log := TArmyEventLog.Create(nil);
-  Log.FArmyText := TranslateRStr(P2StormNames[A1]);
+  Log.FArmyText := TranslateRStr(TStormTypeRStr[A1]);
   Log.FPlayer := A3;
-  Log.FArmyMessages.Text := TranslateRStr(P2StormNames[A1]);
+  Log.FArmyMessages.Text := TranslateRStr(TStormTypeRStr[A1]);
   Log.FArmyIcon := 2;
   Log.FArmyView.Setup(Self, $FF);
   BeginUpdate;
@@ -60206,44 +60206,44 @@ destructor TAoWEngine.Destroy;
 begin
   CloseCampaign;
   CloseHSM(nil);
-  UnregisterEClasses([TSpellTE]);
-  UnregisterEClasses([TSpellCastEventLog]);
-  UnregisterEClasses([TUnitSpellTE, TUnitSpellCA]);
-  FGameSet.FSpellControl.UnregisterAll;
-  UnregisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData]);
-  UnregisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA, TDispelMagicAbilityCA]);
-  UnregisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE]);
-  UnregisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]);
-  UnregisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TInvokeDeathCA]);
-  FGameSet.FAbilityControl.UnregisterAbilityID(86);
-  FGameSet.FAbilityControl.UnregisterAbilityID(87);
-  FGameSet.FAbilityControl.UnregisterAbilityID(88);
-  FGameSet.FAbilityControl.UnregisterAbilityID(89);
-  FGameSet.FAbilityControl.UnregisterAbilityID(90);
-  FGameSet.FAbilityControl.UnregisterAbilityID(114);
-  FGameSet.FAbilityControl.UnregisterAbilityID(40);
-  FGameSet.FAbilityControl.UnregisterAbilityID(27);
-  FGameSet.FAbilityControl.UnregisterAbilityID(65);
-  FGameSet.FAbilityControl.UnregisterAbilityID(148);
-  FGameSet.FAbilityControl.UnregisterAbilityID(149);
-  FGameSet.FAbilityControl.UnregisterAbilityID(28);
-  FGameSet.FAbilityControl.UnregisterAbilityID(150);
-  FGameSet.FAbilityControl.UnregisterAbilityID(29);
-  FGameSet.FAbilityControl.UnregisterAbilityID(48);
-  FGameSet.FAbilityControl.UnregisterAbilityID(22);
-  FGameSet.FAbilityControl.UnregisterAbilityID(47);
-  FGameSet.FAbilityControl.UnregisterAbilityID(46);
-  FGameSet.FAbilityControl.UnregisterAbilityID(52);
-  FGameSet.FAbilityControl.UnregisterAbilityID(38);
-  FGameSet.FAbilityControl.UnregisterAbilityID(35);
-  FGameSet.FAbilityControl.UnregisterAbilityID(146);
-  FGameSet.FAbilityControl.UnregisterAbilityID(147);
-  FGameSet.FAbilityControl.UnregisterAbilityID(125);
-  FGameSet.FAbilityControl.UnregisterAbilityID(60);
-  FGameSet.FAbilityControl.UnregisterAbilityID(117);
-  FGameSet.FAbilityControl.UnregisterAbilityID(50);
-  FGameSet.FAbilityControl.UnregisterAbilityID(106);
-  FGameSet.FAbilityControl.UnregisterAbilityID(107);
+  UnregisterCoreSpells(Self);
+  UnregisterCoreAbilities(FGameSet.FAbilityControl);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   inherited Destroy;
   FDictionary.Free;
   FEmailGames.Free;

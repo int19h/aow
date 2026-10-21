@@ -379,7 +379,7 @@ begin
         (AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Player) = drWar);
     if not War then
     begin
-      A2 := Format(TranslateRStr(AWarRelationIsRequiredForXRStr), [TranslateRStr(ConcealAreaRStr)]);
+      A2 := SysUtils.Format(TranslateRStr(AWarRelationIsRequiredForXRStr), [TranslateRStr(ConcealAreaRStr)]);
       Result := False;
     end;
   end;
@@ -605,16 +605,16 @@ begin
     AoWHSMap.VisibleForPlayer(X, Y, Layer, AoWHSMap.FSeatedPlayer);
   ShowTarget := (AoWHSMap.FSeatedPlayer = A1.FPlayer) or
     AoWHSMap.VisibleForPlayer(Field.Xhx, Field.Yhx, Field.Lhx, AoWHSMap.FSeatedPlayer);
-  if ShowSource and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0] <> nil) then
+  if ShowSource and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0] <> nil) then
   begin
     Animation := TImageSequenceAnimation.Create(nil);
-    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0]);
+    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0]);
     AoWHSMap.PlaceHX(Animation, X, Y, Layer);
   end;
-  if ShowTarget and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0] <> nil) then
+  if ShowTarget and (AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0] <> nil) then
   begin
     Animation := TImageSequenceAnimation.Create(nil);
-    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages[0]);
+    Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0]);
     AoWHSMap.PlaceHX(Animation, Field.Xhx, Field.Yhx, Field.Lhx);
   end;
   if A1.FPlayer = AoWHSMap.FSeatedPlayer then
@@ -783,7 +783,7 @@ begin
   A1.GetLocation(X, Y, Layer);
   AoWHSMap.ValidateObservation(A1.FPlayer, X, Y, Layer, 0);
   Twinkle := TTwinkleAnimation.Create(nil);
-  Twinkle.Setup(AoWHSSet.FSpellControl.GetSpell(51).FCastImages[0],
+  Twinkle.Setup(AoWHSSet.FSpellControl.GetSpell(51).FCastImages.ImageSequences[0],
     [tmExpand, tmExplode], FEventMana + 50, 192, 50, 30);
   AoWHSMap.PlaceHX(Twinkle, X, Y, Layer);
   AoWHSSet.FSpellControl.GetSpell(FEventSpellID).FCastSounds.Play(0);
@@ -793,12 +793,12 @@ begin
   if AoWHSMap.Random(100) < FDispelChance then
   begin
     if AoWHSMap.FSeatedPlayer = A1.FPlayer then
-      AoWHSMap.ShowMessage(Format(TranslateRStr(XSuccessfullyDispelledRStr), [Enchantment.GetName]));
+      AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr(XSuccessfullyDispelledRStr), [Enchantment.GetName]));
     AoWHSMap.FGlobalMagicControl.ExecuteDispelEnchantment(A1.FPlayer, FEnchantmentID);
   end
   else if AoWHSMap.FSeatedPlayer = A1.FPlayer then
     { Original formats this message with an unused enchantment-name argument. }
-    AoWHSMap.ShowMessage(Format(TranslateRStr('Dispel Magic failed'), [Enchantment.GetName]));
+    AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr('Dispel Magic failed'), [Enchantment.GetName]));
   AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
   Result := False;
 end;
@@ -1026,7 +1026,7 @@ begin
       Army := Hero.Place(X, Y, Layer, 0, [pmScanArea, pmCreateNewArmy]);
       Log := TLocationTextEventLog.Create(nil);
       Log.FPlayer := A2.FPlayer;
-      Log.FText := Format(TranslateRStr(XResurrectedRStr), [Hero.FHeroName]);
+      Log.FText := SysUtils.Format(TranslateRStr(XResurrectedRStr), [Hero.FHeroName]);
       Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
       DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, False);
       Log.Release;
@@ -1126,7 +1126,7 @@ begin
       Army := Hero.Place(X, Y, Layer, 0, [pmScanArea, pmCreateNewArmy]);
       Log := TLocationTextEventLog.Create(nil);
       Log.FPlayer := A2.FPlayer;
-      Log.FText := Format(TranslateRStr(XAnimatedRStr), [Hero.FHeroName]);
+      Log.FText := SysUtils.Format(TranslateRStr(XAnimatedRStr), [Hero.FHeroName]);
       Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
       DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, False);
       Log.Release;

@@ -152,7 +152,7 @@ begin
       if AoWHSMap.FSeatedPlayer = A1.FParam then
         with TArenaTE(A1) do
           if FUnitIDs.Count = 1 then AoWHSMap.ShowMessage(TranslateRStr(OneUnitTrainedRStr))
-          else AoWHSMap.ShowMessage(Format(TranslateRStr(XUnitsTrainedRStr), [IntToStr(FUnitIDs.Count)]));
+          else AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr(XUnitsTrainedRStr), [IntToStr(FUnitIDs.Count)]));
     end;
 end;
 
@@ -311,7 +311,7 @@ begin
       AUnit := AoWHSMap.FUnitControl.FindUnit(FUnitIDs[I]);
       if AUnit <> nil then Inc(Total, FArena.UnitTrainCost(AUnit));
     end;
-  if Total <> 0 then Result := Format(TranslateRStr(TotalCostXRStr), [IntToStr(Total)])
+  if Total <> 0 then Result := SysUtils.Format(TranslateRStr(TotalCostXRStr), [IntToStr(Total)])
   else Result := '';
 end;
 

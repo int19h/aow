@@ -1055,7 +1055,7 @@ begin
     end;
     if Source.FPlayer = AoWHSMap.FSeatedPlayer then
       if Count > 0 then
-        AoWHSMap.ShowMessage(Format(TranslateRStr('%s spell(s) dispelled'), [IntToStr(Count)]))
+        AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr('%s spell(s) dispelled'), [IntToStr(Count)]))
       else
         AoWHSMap.ShowMessage(TranslateRStr('Dispel Magic failed'));
     Result := Enchantments.GetCount > 0;

@@ -344,29 +344,29 @@ var
 begin
   Strength1 := TAbstractUnit(Item1).GetStrengthMax(dtAll - [dtWall]);
   Strength2 := TAbstractUnit(Item2).GetStrengthMax(dtAll - [dtWall]);
-  if TObject(Item1) is THero then Strength1 := Strength2 + $FFFFFF; { Original uses Strength2. }
-  if TObject(Item2) is THero then Inc(Strength2, $FFFFFF);
+  if TObject(Item1) is TLeader then Strength1 := Strength2 + $FFFFFF; { Original uses Strength2. }
+  if TObject(Item2) is TLeader then Inc(Strength2, $FFFFFF);
   Result := Strength2 - Strength1;
 end;
 
 procedure TFortifyAGC.MakeUselessUnitsPassive;
 var
   Excess, I: Integer;
-  Units, Passive: TUnitList;
+  Units, Passive: TUnitUserList;
   Group: TAIGroup;
 begin
   Excess := FStrengthMax - FRequiredStrength;
   if Excess > 0 then
   begin
-    Units := TUnitList.Create(nil);
-    Passive := TUnitList.Create(nil);
+    Units := TUnitUserList.Create(nil);
+    Passive := TUnitUserList.Create(nil);
     Units.AddUnits(FGroup);
     Units.FChildren.Sort(CompareFortifyUnits);
     I := Units.Count;
     while (I <> 0) and (Excess > 0) do
     begin
       Dec(I);
-      if not (Units.GetUnit(I) is THero) then
+      if not (Units.GetUnit(I) is TLeader) then
       begin
         Dec(Excess, Units.GetUnit(I).GetStrengthMax(dtAll - [dtWall]));
         if Excess >= 0 then

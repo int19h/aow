@@ -462,7 +462,7 @@ begin
   AEngine.RegisterEClasses([TAoWHexagon, TAoWHexagonResource]);
   AEngine.RegisterEClasses([TAoWBorderHexagon, TBorderHexagonResource]);
   AEngine.RegisterEClasses([TAoWWaterHexagon, TAoWWaterHexagonResource]);
-  AEngine.RegisterEClasses([TLowerIsometricHexagon, TLowerIsometricHexagonResource]);
+  AEngine.RegisterEClasses([TUpperIsometricHexagon, TUpperIsometricHexagonResource]);
 end;
 
 

@@ -108,7 +108,7 @@ begin
       SetGems(FGems + FAmount);
     Event := TLocationTextEventLog.Create(nil);
     Event.FPlayer := ArmyHS.FArmy.FPlayer;
-    Event.FText := Format(TranslateRStr(LoadResString(@GoldFoundRStr)), [IntToStr(FAmount)]);
+    Event.FText := SysUtils.Format(TranslateRStr(LoadResString(@GoldFoundRStr)), [IntToStr(FAmount)]);
     Event.SetLocation(GetXhx, GetYhx, GetLhx);
     AoWHSMap.FPlayers.GetPlayers(ArmyHS.FArmy.FPlayer).FEventLogbook.AddEvent(Event);
     Event.Release;

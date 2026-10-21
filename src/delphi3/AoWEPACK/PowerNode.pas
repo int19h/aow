@@ -91,7 +91,7 @@ begin
 end;
 
 function TPowerNode.GetCurrentActivityText: string;
-begin Result := Format(TranslateRStr(GeneratingXPowerRStr), [IntToStr(GetPower)]); end;
+begin Result := SysUtils.Format(TranslateRStr(GeneratingXPowerRStr), [IntToStr(GetPower)]); end;
 
 procedure TPowerNode.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
 { conflict: procedure TPowerNode.UpdateAITarget(var Info: TAITargetInfo; var Priority: Integer); }

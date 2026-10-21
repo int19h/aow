@@ -206,7 +206,7 @@ begin
     Player.FMagicControl.FSpells.Add(FSpellID);
     if WorldMap^.FSeatedPlayer = A1.FParam then
     begin
-      Text := Format(TranslateRStr(LoadResString(@TheyTaughtYouTheSpellXRStr)),
+      Text := SysUtils.Format(TranslateRStr(LoadResString(@TheyTaughtYouTheSpellXRStr)),
         [WorldSet^.FSpellControl.GetSpell(FSpellID).FSpellName]);
       WorldMap^.ShowMessage(Text);
     end;

@@ -431,9 +431,9 @@ begin
   if ArmyHS <> nil then
   begin
     if FEntrance = ceDown then L := GetLhx + 1 else L := GetLhx - 1;
-    TCaveLevel(WorldMap^.MapContainer.GetMapLevel(L)).Explore(
-      ArmyHS.GetXhx, ArmyHS.GetYhx, CaveVisibility(TArmy(ArmyHS.FArmy)),
-      Byte(TArmy(ArmyHS.FArmy).FPlayer));
+    TAoWMapLevel(WorldMap^.MapContainer.GetMapLevel(L)).ExploreArea(
+      ArmyHS.GetXhx, ArmyHS.GetYhx, TArmy(ArmyHS.FArmy).FPlayer,
+      TArmy(ArmyHS.FArmy).VisibilityRange);
   end;
 end;
 
