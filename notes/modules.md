@@ -28,8 +28,8 @@ package it `requires`, which says nothing about real use. Function counts and si
 | AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWE, Engine | legacy, not used by v1.36: built against an older AoWE (its TAbility parent is 24 bytes with GetAbilityID at VMT +$04, the shipped one 36 bytes; it reads FAbilityControl at $74, the shipped AoWE has it at $80); neither executable imports it. Drafted, 13 of 23 identical; not pursued |
 | AOWTools.dpl | Scanner (42), AoWBookWindow, TurnButton, lines, StartMenu (109) | AoWE, PageTurnCtrl, GFXE, HSEngine, ImageLib, aowInt units | |
 | ILToolsP.dpl | ILTools, ILSeqEd, Str2Clip (68) | DisplayC, ImageLib, SpinEdit | editor tools |
-| AoW.exe | the game's forms and main program (1371) | everything above except AoWInterface, ILToolsP | |
-| AoWEd.exe | the map editor's forms (892) | the above plus ILToolsP, Vcladdon | |
+| AoW.exe | the game's forms and main program (1371) | everything above except AoWInterface, ILToolsP | done, 1180/1330 (the rest are register, spill and scheduling choices) |
+| AoWEd.exe | the map editor's forms (892) | the above plus ILToolsP, Vcladdon | done, 773/864 (the rest are register, spill and scheduling choices) |
 
 ## Layout of the recovered source
 
