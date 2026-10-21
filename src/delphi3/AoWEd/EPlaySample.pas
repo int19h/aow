@@ -32,13 +32,13 @@ type
   { TPlaySampleEditor (instance size 8, VMT 0041F020) }
   TPlaySampleEditor = class(TAoWMapObjectEditor)
   public
-    class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu); override;
+    class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
 
 
 implementation
 
-class procedure TPlaySampleEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
+class procedure TPlaySampleEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
 begin end;
 
 procedure TPlaySampleEditForm.FormCreate(Sender: TObject);

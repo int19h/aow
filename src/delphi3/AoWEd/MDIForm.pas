@@ -331,6 +331,8 @@ type
     F_MainForm_6A6: array[0..5] of Byte;
     function LoadMap(const FileName: string): Boolean;
     procedure SetMapLevel(Level: Integer);
+    procedure ClearSelectionButtons;
+    procedure ResetToolButtons;
     procedure ClearMouseMessages;
     procedure EditMapSettings(AllowCancel: Boolean);
     procedure UpdateDefaultPlayers;
@@ -361,7 +363,7 @@ type
     procedure LevelUpBtnClick(Sender: TObject);
     procedure HSMEditDeactivate(Sender: TObject);
     procedure HSMEditActivate(Sender: TObject);
-    procedure NewMapsetClick(Sender: TObject);  { draft }
+    procedure NewMapsetClick(Sender: TObject);
     procedure HSSEditActivate(Sender: TObject);
     procedure HSSEditDeactivate(Sender: TObject);
     procedure HSMEditUpdateCaption(Sender: TObject);
@@ -370,7 +372,7 @@ type
     procedure DebugModeClick(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure RaceGridLinkToResourceList(Sender: TObject);
-    procedure MapSettingsClick(Sender: TObject);  { draft }
+    procedure MapSettingsClick(Sender: TObject);
     procedure UnitGFXGridLinkToResourceList(Sender: TObject);
     procedure UnitsGridLinkToResourceList(Sender: TObject);
     procedure PreviewBtnClick(Sender: TObject);
@@ -385,7 +387,7 @@ type
     procedure UnitTabControlSelectUnit(Sender: TObject; Index: Integer);
     procedure SortNameBtnClick(Sender: TObject);
     procedure SortLevelBtnClick(Sender: TObject);
-    procedure OpenHeroLibraryClick(Sender: TObject);  { draft }
+    procedure OpenHeroLibraryClick(Sender: TObject);
     procedure SortItemsNameClick(Sender: TObject);
     procedure SortTypeBtnClick(Sender: TObject);
     procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -394,10 +396,10 @@ type
     procedure DeleteItemBtnClick(Sender: TObject);
     procedure RemoveItemClick(Sender: TObject);  { draft }
     procedure RemoveLeaderFromMapClick(Sender: TObject);  { draft }
-    procedure OpenItemLibraryClick(Sender: TObject);  { draft }
-    procedure NewItemBtnClick(Sender: TObject);  { draft }
-    procedure EditItemClick(Sender: TObject);  { draft }
-    procedure NewHeroBtnClick(Sender: TObject);  { draft }
+    procedure OpenItemLibraryClick(Sender: TObject);
+    procedure NewItemBtnClick(Sender: TObject);
+    procedure EditItemClick(Sender: TObject);
+    procedure NewHeroBtnClick(Sender: TObject);
     procedure WaterBtnClick(Sender: TObject);
     procedure GrassBtnClick(Sender: TObject);
     procedure SteppeBtnClick(Sender: TObject);
@@ -405,30 +407,30 @@ type
     procedure WastelandBtnClick(Sender: TObject);
     procedure SnowBtnClick(Sender: TObject);
     procedure IceBtnClick(Sender: TObject);
-    procedure RoadBtnClick(A1: Integer);  { draft }
-    procedure EraseBtnClick(Sender: TObject);  { draft }
-    procedure SelectHSBtnClick(Sender: TObject);  { draft }
-    procedure HSMEditSelectPlaceHS(Sender: TObject);  { draft }
-    procedure OverrideBtnClick(Sender: TObject);  { draft }
-    procedure ChangeTerrainBtnClick(Sender: TObject);  { draft }
+    procedure RoadBtnClick(Sender: TObject);
+    procedure EraseBtnClick(Sender: TObject);
+    procedure SelectHSBtnClick(Sender: TObject);
+    procedure HSMEditSelectPlaceHS(Sender: TObject);
+    procedure OverrideBtnClick(Sender: TObject);
+    procedure ChangeTerrainBtnClick(Sender: TObject);
     procedure uWaterBtnClick(Sender: TObject);
     procedure DirtBtnClick(Sender: TObject);
     procedure LavaBtnClick(Sender: TObject);
     procedure uIceBtnClick(Sender: TObject);
     procedure EarthBtnClick(Sender: TObject);
     procedure RockBtnClick(Sender: TObject);
-    procedure ArmyBtnClick(A1: Integer);  { draft }
-    procedure ItemBtnClick(A1: Integer);  { draft }
-    procedure EditHeroClick(Sender: TObject);  { draft }
+    procedure ArmyBtnClick(Sender: TObject);
+    procedure ItemBtnClick(Sender: TObject);
+    procedure EditHeroClick(Sender: TObject);
     procedure ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure HSMEditDeselectPlaceHS(Sender: TObject);  { draft }
-    procedure OpenMapSetClick(Sender: TObject);  { draft }
+    procedure HSMEditDeselectPlaceHS(Sender: TObject);
+    procedure OpenMapSetClick(Sender: TObject);
     procedure ExportTextClick(Sender: TObject);
     procedure ImportTextClick(Sender: TObject);
-    procedure MapSetSettingsClick(A1: Integer; A2: Integer);  { draft }
+    procedure MapSetSettingsClick(Sender: TObject);
     procedure LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure FogofWarClick(Sender: TObject);  { draft }
-    procedure PlayerInfoClick(Sender: TObject);  { draft }
+    procedure FogofWarClick(Sender: TObject);
+    procedure PlayerInfoClick(Sender: TObject);
     procedure RemoveMapLevelClick(Sender: TObject);
     procedure AddMapLevelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -452,32 +454,34 @@ type
     procedure HeroControlGridUnselect(Sender: TObject);
     procedure GoToHeroClick(Sender: TObject);
     procedure GoToLeaderClick(Sender: TObject);
-    procedure ValidateMapBtnClick(Sender: TObject);  { draft }
+    procedure ValidateMapBtnClick(Sender: TObject);
     procedure NewCombatMapClick(Sender: TObject);
-    procedure LinkToCombatResources(A1: Integer);  { draft }
-    procedure UnitPositionBtnClick(Sender: TObject);  { draft }
-    procedure BorderBtnClick(Sender: TObject);  { draft }
-    procedure EditAnimationsClick(Sender: TObject);  { draft }
+    procedure LinkToCombatResources(Sender: TObject);
+    procedure UnitPositionBtnClick(Sender: TObject);
+    procedure BorderBtnClick(Sender: TObject);
+    procedure EditAnimationsClick(Sender: TObject);
     procedure AbGFXEditClick(Sender: TObject);
     procedure EditSpellGFXClick(Sender: TObject);
-    procedure ScannerItemClick(Sender: TObject);  { draft }
-    procedure EditTextBtnClick(Sender: TObject);  { draft }
-    procedure EditLeaderClick(Sender: TObject);  { draft }
+    procedure ScannerItemClick(Sender: TObject);
+    procedure EditTextBtnClick(Sender: TObject);
+    procedure EditLeaderClick(Sender: TObject);
     procedure HeroPopupMenuPopup(Sender: TObject);  { draft }
     procedure ItemPopupMenuPopup(Sender: TObject);  { draft }
     procedure GameSettingsClick(Sender: TObject);
     procedure ExportAbilityInfoClick(Sender: TObject);
-    procedure HSMEditActivateDC(Sender: TObject);  { draft }
+    procedure HSMEditActivateDC(Sender: TObject);
     procedure RemoveLeadersMIClick(Sender: TObject);  { draft }
-    procedure MapTextEditorMIClick(Sender: TObject);  { draft }
+    procedure MapTextEditorMIClick(Sender: TObject);
     procedure ExportForMultilizerClick(Sender: TObject);
     procedure HSMEditKeyDown(Sender: TObject);
   end;
 
+function GetEditorVersion: string;
+
 var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
-uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog, SFXEdDlg, ILSeqEd, AboutDialog, GameSDlg;
+uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog, SFXEdDlg, ILSeqEd, AboutDialog, GameSDlg, HeroLibF, ItemLibF, EItem, EHero, TextCtrlEd, PlInfFlt, EArmy, EItemHS, HSSetDlg, ValidateMapDlg;
 
 
 resourcestring
@@ -488,6 +492,43 @@ resourcestring
   DeleteSelectedItemsRStr = 'Do you want to delete the selected items?';
   CannotRemoveSurfaceRStr = 'Cannot Remove Surface Level';
   RemoveCurrentLevelRStr = 'Are you sure you want to remove the current map level?';
+
+function GetEditorVersion: string;
+begin
+  Result := AoWE.Format(TranslateRStr(VersionXRStr),
+    [IntToStr(1) + '.' + IntToStr(36) + '.' + IntToStr(AoWEngine.GetBuildNumber)]);
+end;
+
+procedure TMainForm.ClearSelectionButtons;
+begin
+  if EraseBtn.Down then EraseBtn.Down := False;
+  if SelectBtn.Down then SelectBtn.Down := False;
+end;
+
+procedure TMainForm.ResetToolButtons;
+begin
+  ArmyBtn.AllowAllUp := True;
+  ArmyBtn.Down := False;
+  ItemBtn.Down := False;
+  RoadBtn.Down := False;
+  WaterBtn.Down := False;
+  GrassBtn.Down := False;
+  SteppeBtn.Down := False;
+  DesertBtn.Down := False;
+  WastelandBtn.Down := False;
+  SnowBtn.Down := False;
+  IceBtn.Down := False;
+  uArmyBtn.AllowAllUp := False;
+  uArmyBtn.Down := False;
+  uItemBtn.Down := False;
+  uBridgeBtn.Down := False;
+  uWaterBtn.Down := False;
+  DirtBtn.Down := False;
+  LavaBtn.Down := False;
+  uIceBtn.Down := False;
+  EarthBtn.Down := False;
+  RockBtn.Down := False;
+end;
 
 procedure TMainForm.SetMapLevel(Level: Integer);
 begin
@@ -1086,7 +1127,9 @@ begin
 end;
 
 procedure TMainForm.NewMapsetClick(Sender: TObject);
-begin end;
+begin
+  if HSMEdit.Close then HSSEdit.NewSet($20010);
+end;
 
 procedure TMainForm.HSSEditActivate(Sender: TObject);
 var I: Integer;
@@ -1167,7 +1210,9 @@ begin
 end;
 
 procedure TMainForm.MapSettingsClick(Sender: TObject);
-begin end;
+begin
+  EditMapSettings(True);
+end;
 
 procedure TMainForm.UnitGFXGridLinkToResourceList(Sender: TObject);
 begin
@@ -1261,7 +1306,14 @@ begin
 end;
 
 procedure TMainForm.OpenHeroLibraryClick(Sender: TObject);
-begin end;
+var Dlg: THeroLibraryEditForm;
+begin
+  with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;
+  Dlg := THeroLibraryEditForm.Create(Self);
+  Dlg.ShowModal;
+  Dlg.Free;
+  with HSMEdit do if HSMEdit.Activated then ResumeFrameUpdateLoop;
+end;
 
 procedure TMainForm.SortItemsNameClick(Sender: TObject);
 begin
@@ -1342,16 +1394,48 @@ end;
 
 
 procedure TMainForm.OpenItemLibraryClick(Sender: TObject);
-begin end;
+var Dlg: TItemLibraryEditForm;
+begin
+  with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;
+  Dlg := TItemLibraryEditForm.Create(Self);
+  Dlg.ShowModal;
+  Dlg.Free;
+  with HSMEdit do if HSMEdit.Activated then ResumeFrameUpdateLoop;
+end;
 
 procedure TMainForm.NewItemBtnClick(Sender: TObject);
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := TItem.Create(nil);
+  Item.Activate;
+  Dlg := TItemEditForm.Create(Application);
+  if Dlg.EditItem(Item) then AoWHSMap.FItemControl.RegisterItem(Item)
+  else Item.Free;
+  Dlg.Free;
+end;
 
 procedure TMainForm.EditItemClick(Sender: TObject);
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := ItemControlGrid.GetSelectedItem;
+  if Item <> nil then
+  begin
+    Dlg := TItemEditForm.Create(Application);
+    if Item.GetLibraryItem then Dlg.EditLibraryItem(Item)
+    else Dlg.EditItem(Item);
+    Dlg.Free;
+  end;
+end;
 
 procedure TMainForm.NewHeroBtnClick(Sender: TObject);
-begin end;
+var Hero: THero; Dlg: THeroEditForm;
+begin
+  Hero := THero.Create(nil);
+  Hero.Activate;
+  Dlg := THeroEditForm.Create(Application);
+  if not Dlg.EditHero(Hero) then Hero.Free;
+  Dlg.Free;
+end;
 
 procedure TMainForm.WaterBtnClick(Sender: TObject);
 begin
@@ -1402,23 +1486,47 @@ begin
   else HSMEdit.SelectClearTerrain(6);
 end;
 
-procedure TMainForm.RoadBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.RoadBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  HSMEdit.SelectRoad;
+  if AoWCombatMap <> nil then HSMEdit.PlaceOptions := 5;
+end;
 
 procedure TMainForm.EraseBtnClick(Sender: TObject);
-begin end;
+begin
+  if EraseBtn.Down then
+  begin
+    HSMEdit.SelectEraser;
+    SelectBtn.Down := False;
+    EraseBtn.Down := True;
+  end;
+end;
 
 procedure TMainForm.SelectHSBtnClick(Sender: TObject);
-begin end;
+begin
+  HSMEdit.SelectEditResource(nil);
+  ResetToolButtons;
+end;
 
 procedure TMainForm.HSMEditSelectPlaceHS(Sender: TObject);
-begin end;
+var Control: TEObject;
+begin
+  Control := HSMEdit.HSPlaceControl;
+  if (Control is THSMPlaceControl) or (Control = nil) then ResetToolButtons;
+  ClearSelectionButtons;
+  if HSMEdit.HSPlaceControl = nil then SelectBtn.Down := True;
+end;
 
 procedure TMainForm.OverrideBtnClick(Sender: TObject);
-begin end;
+begin
+  HSMEdit.Overwrite := OverrideBtn.Down;
+end;
 
 procedure TMainForm.ChangeTerrainBtnClick(Sender: TObject);
-begin end;
+begin
+  HSMEdit.SelectChangeTerrain(0);
+end;
 
 procedure TMainForm.uWaterBtnClick(Sender: TObject);
 begin
@@ -1456,14 +1564,33 @@ begin
   else HSMEdit.SelectClearTerrain(8);
 end;
 
-procedure TMainForm.ArmyBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.ArmyBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  HSMEdit.SelectPlaceHS(ArmyPlaceControl, EditBrushes.CreateHS(0), $28, 0, 0);
+  ToolbarPnl.Repaint;
+end;
 
-procedure TMainForm.ItemBtnClick(A1: Integer);
-begin end;
+procedure TMainForm.ItemBtnClick(Sender: TObject);
+begin
+  TSpeedButton(Sender).AllowAllUp := False;
+  HSMEdit.SelectPlaceHS(ItemPlaceControl, EditBrushes.CreateHS(1), $28, 0, 0);
+  ToolbarPnl.Repaint;
+end;
 
 procedure TMainForm.EditHeroClick(Sender: TObject);
-begin end;
+var Hero: THero; Dlg: THeroEditForm;
+begin
+  Hero := HeroControlGrid.GetSelectedHero;
+  if Hero <> nil then
+  begin
+    Dlg := THeroEditForm.Create(Application);
+    if Hero.GetLibraryHero then Dlg.EditLibraryHero(Hero)
+    else Dlg.EditHero(Hero);
+    Dlg.Free;
+  end;
+  HSMEdit.DeselectPlaceHS;
+end;
 
 procedure TMainForm.ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
@@ -1483,10 +1610,17 @@ end;
 
 
 procedure TMainForm.HSMEditDeselectPlaceHS(Sender: TObject);
-begin end;
+begin
+  HeroControlGrid.SelectionEnabled := False;
+  ItemControlGrid.SelectionEnabled := False;
+  UnitSelectionGrid.SelectionEnabled := False;
+  LeaderSelectionGrid.SelectionEnabled := False;
+end;
 
 procedure TMainForm.OpenMapSetClick(Sender: TObject);
-begin end;
+begin
+  if HSMEdit.Close then HSSEdit.Load(True);
+end;
 
 procedure TMainForm.ExportTextClick(Sender: TObject);
 var
@@ -1513,8 +1647,16 @@ begin
   Dlg.Free;
 end;
 
-procedure TMainForm.MapSetSettingsClick(A1: Integer; A2: Integer);
-begin end;
+procedure TMainForm.MapSetSettingsClick(Sender: TObject);
+var Dlg: THSSetDialog;
+begin
+  Dlg := THSSetDialog.Create(Application);
+  try
+    Dlg.ShowModal;
+  finally
+    Dlg.Free;
+  end;
+end;
 
 procedure TMainForm.LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
@@ -1533,10 +1675,20 @@ end;
 
 
 procedure TMainForm.FogofWarClick(Sender: TObject);
-begin end;
+begin
+  FogofWar.Checked := not FogofWar.Checked;
+  if AoWHSMap <> nil then AoWHSMap.SetFogEnabled(FogofWar.Checked);
+end;
 
 procedure TMainForm.PlayerInfoClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    PlayerInfo.Checked := not PlayerInfo.Checked;
+    if PlayerInfo.Checked then PlayerInfoFloater.Show
+    else PlayerInfoFloater.Hide;
+  end;
+end;
 
 procedure TMainForm.RemoveMapLevelClick(Sender: TObject);
 var
@@ -1895,7 +2047,16 @@ begin
 end;
 
 procedure TMainForm.ValidateMapBtnClick(Sender: TObject);
-begin end;
+var Dlg: TMapValidationDlg;
+begin
+  if AoWHSMap <> nil then
+  begin
+    Dlg := TMapValidationDlg.Create(Self);
+    AoWHSMap.ValidateMap(Dlg.Memo.Lines);
+    Dlg.ShowModal;
+    Dlg.Free;
+  end;
+end;
 
 procedure TMainForm.NewCombatMapClick(Sender: TObject);
 var
@@ -1915,17 +2076,29 @@ begin
   end;
 end;
 
-procedure TMainForm.LinkToCombatResources(A1: Integer);
-begin end;
+procedure TMainForm.LinkToCombatResources(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWEngine.FGameSet.FCombatResources;
+end;
 
 procedure TMainForm.UnitPositionBtnClick(Sender: TObject);
-begin end;
+begin
+  HSMEdit.SelectPlaceHS(AoWCombatMap.FUnitPositions, EditBrushes.CreateHS(1), $28, 0, 0);
+end;
 
 procedure TMainForm.BorderBtnClick(Sender: TObject);
-begin end;
+begin
+  HSMEdit.SelectChangeTerrain(15);
+end;
 
 procedure TMainForm.EditAnimationsClick(Sender: TObject);
-begin end;
+var Editor: TImageSequenceEditor;
+begin
+  Editor := TImageSequenceEditor.Create(Self);
+  Editor.SetImageSequenceList(AoWHSSet.FImageSequences);
+  Editor.ShowModal;
+  Editor.Free;
+end;
 
 procedure TMainForm.AbGFXEditClick(Sender: TObject);
 var
@@ -1960,13 +2133,36 @@ begin
 end;
 
 procedure TMainForm.ScannerItemClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    ScannerItem.Checked := not ScannerItem.Checked;
+    if ScannerItem.Checked then ScannerFloater.ShowScanner
+    else ScannerFloater.Hide;
+    ScannerItem.Checked := ScannerFloater.Visible;
+  end;
+end;
 
 procedure TMainForm.EditTextBtnClick(Sender: TObject);
-begin end;
+var Dlg: TTextControlEditForm;
+begin
+  Dlg := TTextControlEditForm.Create(Self);
+  Dlg.EditTextControl(AoWHSSet.FTextControl);
+  Dlg.Free;
+end;
 
 procedure TMainForm.EditLeaderClick(Sender: TObject);
-begin end;
+var Hero: THero; Dlg: THeroEditForm;
+begin
+  Hero := LeaderSelectionGrid.GetSelectedLeader;
+  if (Hero <> nil) and LeaderSelectionGrid.SelectionEnabled then
+  begin
+    Dlg := THeroEditForm.Create(Application);
+    Dlg.EditHero(Hero);
+    Dlg.Free;
+  end;
+  HSMEdit.DeselectPlaceHS;
+end;
 
 procedure TMainForm.HeroPopupMenuPopup(Sender: TObject);
 begin
@@ -2041,7 +2237,13 @@ begin
 end;
 
 procedure TMainForm.HSMEditActivateDC(Sender: TObject);
-begin end;
+begin
+  if HSMEdit.Activated then HSMEdit.RebuildScene;
+  SetWindowPos(ScannerFloater.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+    SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+  SetWindowPos(PlayerInfoFloater.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+    SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+end;
 
 procedure TMainForm.RemoveLeadersMIClick(Sender: TObject);
 var I: Integer;
@@ -2059,7 +2261,19 @@ end;
 
 
 procedure TMainForm.MapTextEditorMIClick(Sender: TObject);
-begin end;
+var
+  Dlg: TTextControlEditForm;
+begin
+  if AoWHSMap <> nil then
+  begin
+    with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;
+    Dlg := TTextControlEditForm.Create(Self);
+    Dlg.EditTextControl(AoWHSMap.FTextControl);
+    Dlg.Free;
+    AoWHSMap.SetModified;
+    with HSMEdit do if HSMEdit.Activated then ResumeFrameUpdateLoop;
+  end;
+end;
 
 procedure TMainForm.ExportForMultilizerClick(Sender: TObject);
 var

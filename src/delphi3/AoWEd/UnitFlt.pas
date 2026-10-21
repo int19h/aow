@@ -7,7 +7,7 @@ unit UnitFlt;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, HeroCtrl, MapCtrl, UnitIGrd, UnitTabC;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, HeroCtrl, MapCtrl, UnitIGrd, UnitTabC;
 
 type
   TUnitFloater = class;
@@ -32,11 +32,11 @@ type
     procedure ResetSelection;
     procedure SetShowHeroes(Value: Boolean);
     procedure SetShowUnits(Value: Boolean);
-    procedure HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure HeroSelectionSheetEnter;  { draft }
-    procedure FormShow;  { draft }
-    procedure MapControlActivateHSM;  { draft }
-    procedure MapControlDeactivateHSM;  { draft }
+    procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure HeroSelectionSheetEnter;
+    procedure FormShow;
+    procedure MapControlActivateHSM;
+    procedure MapControlDeactivateHSM;
   end;
 
 
@@ -46,22 +46,36 @@ var
 implementation
 
 constructor TUnitFloater.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  ResetSelection;
+end;
 
-procedure TUnitFloater.HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TUnitFloater.HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  UnitTabControl.FSelectionControl.SetSelectedHero(HeroControlGrid.GetHero(HeroControlGrid.ImageIndex(ACol, ARow)));
+  HeroControlGrid.SelectionEnabled := True;
+end;
 
 procedure TUnitFloater.HeroSelectionSheetEnter;
-begin end;
+begin
+  HeroControlGrid.SelectionEnabled := UnitTabControl.FSelectionControl.FSelectedHero <> nil;
+end;
 
 procedure TUnitFloater.FormShow;
-begin end;
+begin
+  if FShowHeroes then HeroControlGrid.SetAoWHSMap(AoWHSMap);
+end;
 
 procedure TUnitFloater.MapControlActivateHSM;
-begin end;
+begin
+  HeroControlGrid.SetAoWHSMap(AoWHSMap);
+end;
 
 procedure TUnitFloater.MapControlDeactivateHSM;
-begin end;
+begin
+  HeroControlGrid.SetAoWHSMap(nil);
+end;
 
 
 procedure TUnitFloater.ResetSelection;
@@ -81,8 +95,8 @@ begin
   if not Value then
     if FShowUnits then MainPageControl.ActivePage := UnitSelectionSheet
     else MainPageControl.ActivePage := nil
-  else if not FShowUnits then MainPageControl.ActivePage := HeroSelectionSheet
-  else MainPageControl.ActivePage := UnitSelectionSheet;
+  else if FShowUnits then MainPageControl.ActivePage := UnitSelectionSheet
+  else MainPageControl.ActivePage := HeroSelectionSheet;
 end;
 
 procedure TUnitFloater.SetShowUnits(Value: Boolean);

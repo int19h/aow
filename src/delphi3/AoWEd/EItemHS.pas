@@ -53,7 +53,7 @@ type
   public
     class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
-    class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu); override;
+    class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
 
   { TItemPlaceControl (instance size 8, VMT 004179CC) }
@@ -63,9 +63,11 @@ type
   end;
 
 
+var ItemPlaceControl: TItemPlaceControl; { AoWEd 0042B68C }
+
 implementation
 
-uses ItemFlt;
+uses EItem, ItemFlt;
 
 procedure TItemHSEditForm.SetItemsMode(Mode: Integer);
 begin
@@ -95,7 +97,7 @@ begin Result := 0; end;
 class procedure TItemHSEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-class procedure TItemHSEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
+class procedure TItemHSEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
 begin end;
 
 procedure TItemHSEditForm.FormCreate(Sender: TObject);
@@ -181,7 +183,17 @@ end;
 
 
 procedure TItemHSEditForm.ItemGridDblClick;
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := ItemGrid.GetSelectedItem;
+  if Item <> nil then
+  begin
+    Dlg := TItemEditForm.Create(Application);
+    if Item.GetLibraryItem then Dlg.EditLibraryItem(Item)
+    else Dlg.EditItem(Item);
+    Dlg.Free;
+  end;
+end;
 
 procedure TItemPlaceControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 var

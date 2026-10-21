@@ -66,6 +66,8 @@ type
   end;
 
 
+var PlayerInfoFloater: TPlayerInfoFloater; { AoWEd 0042BB4E }
+
 implementation
 
 procedure TPlayerInfoFloater.PlayerInfoMapControlActivateHSM;

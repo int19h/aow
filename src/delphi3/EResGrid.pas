@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Menus,
-  Grids, ImageLib, Engine, ImgLComp;
+  Grids, ImageLib, ImgLComp, Engine;
 
 type
   TECustomResourceGrid = class;
@@ -599,7 +599,7 @@ end;
 procedure TECustomResourceGrid.ShowEditPopupMenu(R: TEResource; X, Y: Integer);
 var
   M: TMenuItem;
-  Handled: Boolean;
+  Handled: TEditMode;
 begin
   ClearPopupMenu;
   if (RowCount < MaxRowCount) or (MaxRowCount = 0) then
@@ -641,7 +641,7 @@ end;
 procedure TECustomResourceGrid.ShowEditMultiPopupMenu(L: TEObjectList; X, Y: Integer);
 var
   M: TMenuItem;
-  Handled: Boolean;
+  Handled: TEditMode;
 begin
   ClearPopupMenu;
   if (RowCount < MaxRowCount) or (MaxRowCount = 0) then

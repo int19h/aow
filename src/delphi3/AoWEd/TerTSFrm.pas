@@ -24,6 +24,7 @@ type
     Label2: TLabel; { +01EC }
     TerrainComboBox: TTerrainComboBox; { +01F0 }
     public
+    function GetTerrainType: Shortint;
     constructor CreateSelection(AOwner: TComponent; AEngine: THSEngine; TerrainType: Shortint; Mode: TTerrainComboBoxMode); virtual; { +080 }
   end;
 
@@ -38,5 +39,10 @@ begin
   TerrainComboBox.Mode := Mode;
 end;
 
+
+function TTerrainTypeSelectionForm.GetTerrainType: Shortint;
+begin
+  Result := TerrainComboBox.TerrainType;
+end;
 
 end.

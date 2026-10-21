@@ -30,7 +30,7 @@ type
     function GetLeader(Player: Shortint): TLeader;
     function GetSelectedLeader: TLeader;
     procedure SetSelectedLeader(Value: TLeader);
-    procedure RemoveFromMap;
+    procedure RemoveFromMap; property SelectionEnabled; { AoWEd 0042D0F8 }
   end;
 
 procedure Register;

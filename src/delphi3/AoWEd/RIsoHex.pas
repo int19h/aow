@@ -17,7 +17,7 @@ type
   { TIsometricHexagonEditForm (instance size 804, VMT 00407FB0) }
   TIsometricHexagonEditForm = class(TMapObjectResourceEditForm)
   public
-    procedure FormCreate;  { draft }
+    procedure FormCreate(Sender: TObject);
   end;
 
   { TIsometricHexagonResourceEditor (instance size 8, VMT 004080EC) }
@@ -36,8 +36,11 @@ begin Result := 0; end;
 class procedure TIsometricHexagonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-procedure TIsometricHexagonEditForm.FormCreate;
-begin end;
+procedure TIsometricHexagonEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  vmt84;
+end;
 
 
 end.

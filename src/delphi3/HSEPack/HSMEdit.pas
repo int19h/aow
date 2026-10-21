@@ -61,7 +61,7 @@ type
     FPlaceHS: THexagonSprite;
     FPlaceDX, FPlaceDY: Integer;
     FHSPlaceControl: TEObject; public property HSPlaceControl: TEObject read FHSPlaceControl; private
-    FPlaceOptions: Integer;
+    FPlaceOptions: Integer; public property PlaceOptions: Integer read FPlaceOptions write FPlaceOptions; private { AoWEd 0042B2EF }
     FOnShowMessage: TShowMessageEvent;
     FOnStaticSceneUpdated, FOnUpdateCaption: TNotifyEvent;
     FSceneValid: Boolean;
@@ -614,7 +614,7 @@ begin
     begin
       Items := [piCut, piCopy, piPaste, piDelete];
       TEObjectEditorClass(FHSEngine.HSMap.Selection.GetHS(0).Editor).UpdatePopupMenu(
-        FHSEngine.HSMap.Selection.GetHS(0), FHSEngine, Boolean(Items), FPopupMenu);
+        FHSEngine.HSMap.Selection.GetHS(0), FHSEngine, Engine.TEditMode(Items), FPopupMenu);
       if (Items <> []) and (FPopupMenu.Items.Count <> 0) then
         FPopupMenu.Items.Add(NewLine);
     end
@@ -1081,7 +1081,7 @@ begin
     if HS.CanSelect(Xhp, Yhp) then
     begin
       Items := [];
-      TEObjectEditorClass(HS.Editor).UpdatePopupMenu(HS, MapField.GetEngine, Boolean(Items), FPopupMenu);
+      TEObjectEditorClass(HS.Editor).UpdatePopupMenu(HS, MapField.GetEngine, Engine.TEditMode(Items), FPopupMenu);
       Found := piEdit in Items;
     end;
     Dec(I);

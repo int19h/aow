@@ -724,9 +724,9 @@ type
   public
     class function EditorClassID: Integer; virtual;
     class procedure Edit(Obj: TEObject; AEngine: TEngine; Done: TEditDoneEvent); virtual;
-    class procedure UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+    class procedure UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: TEditMode;
       Menu: TPopupMenu; Objects: TEObjectList); virtual;
-    class procedure UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+    class procedure UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: TEditMode;
       Menu: TPopupMenu); virtual;
   end;
 
@@ -3043,12 +3043,12 @@ begin
   Done(erCancel, Obj);
 end;
 
-class procedure TEObjectEditor.UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+class procedure TEObjectEditor.UpdateMultiPopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: TEditMode;
   Menu: TPopupMenu; Objects: TEObjectList);
 begin
 end;
 
-class procedure TEObjectEditor.UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: Boolean;
+class procedure TEObjectEditor.UpdatePopupMenu(Obj: TEObject; AEngine: TEngine; var Handled: TEditMode;
   Menu: TPopupMenu);
 begin
 end;

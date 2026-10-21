@@ -21,3 +21,7 @@
   Use(nil, @Ecity.TCityEditForm.UpdateControls);
   Use(nil, @EItemHS.TItemHSEditForm.SetItemsMode);
   Use(nil, @MDIForm.TMainForm.SetMapLevel);
+  Use(nil, @MDIForm.TMainForm.ClearSelectionButtons);
+  Use(nil, @MDIForm.TMainForm.ResetToolButtons);
+  Use(nil, @TerTSFrm.TTerrainTypeSelectionForm.GetTerrainType);
+  Use(nil, @MDIForm.GetEditorVersion);

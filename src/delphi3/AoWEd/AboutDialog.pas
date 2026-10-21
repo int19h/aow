@@ -26,14 +26,18 @@ type
     Bevel1: TBevel; { +01F4 }
     Translator: TIvTranslator; { +01F8 }
     public
-    procedure FormCreate;  { draft }
+    procedure FormCreate(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TAboutDlg.FormCreate;
-begin end;
+uses MDIForm;
+
+procedure TAboutDlg.FormCreate(Sender: TObject);
+begin
+  VersionLbl.Caption := GetEditorVersion;
+end;
 
 
 end.

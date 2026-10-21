@@ -36,6 +36,8 @@ type
 
 implementation
 
+uses OverlayObject;
+
 class function TOverlayObjectResourceEditor.EditorClassID: Integer;
 begin Result := 0; end;
 
@@ -43,10 +45,15 @@ class procedure TOverlayObjectResourceEditor.Edit(Obj: Engine.TEObject; AEngine:
 begin end;
 
 constructor TOverlayObjectResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
-begin end;
+begin
+  inherited CreateForm(AEngine, Resource, Done);
+  CombatTerrainTagEdit.Value := TOverlayObjectResource(FResource).FOverlayType;
+end;
 
 procedure TOverlayObjectResourceEditForm.CombatTerrainTagEditChange;
-begin end;
+begin
+  TOverlayObjectResource(FResource).FOverlayType := CombatTerrainTagEdit.Value;
+end;
 
 
 end.

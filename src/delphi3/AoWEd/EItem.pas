@@ -63,6 +63,7 @@ type
     FReserved281: array[0..2] of Byte;
     procedure UpdateControls; { draft: Spin value accessor is not recovered }
     procedure EditLibraryItem(Item: TItem);
+    { conflict: function EditLibraryItem(Item: TItem): Boolean; }
     function EditItem(Item: TItem): Boolean;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy;

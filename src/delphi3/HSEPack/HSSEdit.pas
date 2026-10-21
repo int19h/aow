@@ -50,7 +50,7 @@ type
     function LoadHSSFile(FileName: string; Edit: Boolean): Boolean;
     function Load(Edit: Boolean): Boolean;
     function Close: Boolean;
-    function NewSet: Boolean;
+    function NewSet(ClassID: Integer): Boolean;
     procedure Activate(Edit: Boolean);
     procedure DeActivate;
     property HSEngine: THSEngine read FHSEngine write SetHSEngine;
@@ -223,7 +223,7 @@ begin
     DeActivate;
 end;
 
-function THSSEdit.NewSet: Boolean;
+function THSSEdit.NewSet(ClassID: Integer): Boolean;
 begin
   Result := Close;
   if Result and (FHSEngine <> nil) then

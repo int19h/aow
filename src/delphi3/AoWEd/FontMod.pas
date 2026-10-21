@@ -30,8 +30,12 @@ var
 
 implementation
 
+uses HSEdMod;
+
 procedure TFontModule.FontModuleCreate;
-begin end;
+begin
+  HSEditModule.HSEditFont := SmallFont;
+end;
 
 
 end.

@@ -42,7 +42,7 @@ type
     procedure Unselect;
     procedure EditItemDone(ResultCode: TEditResult; Obj: TEObject);
     procedure DeleteItem;  { draft }
-    procedure RemoveItemFromMap;
+    procedure RemoveItemFromMap; property SelectionEnabled; { AoWEd 0042B7C6 }
   end;
 
 procedure Register;

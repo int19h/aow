@@ -50,7 +50,9 @@ uses AoWE, MDIForm;
 var EditFormPosition: TPoint;
 
 constructor TAoWMapEditForm.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  raise Exception.Create('Use CreateForm instead of Create (TAoWMapObjEditForm)');
+end;
 
 procedure TAoWMapEditForm.vmt80;
 begin

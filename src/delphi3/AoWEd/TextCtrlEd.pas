@@ -7,7 +7,7 @@ unit TextCtrlEd;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, SpinEdit, AoWE;
 
 type
   TTextControlEditForm = class;
@@ -31,7 +31,7 @@ type
     DescriptionEdit: TEdit; { +0208 }
     public
     F_TextControlEditForm_20C: Integer;
-    F_TextControlEditForm_210: Integer;
+    F_TextControlEditForm_210: Integer; procedure EditTextControl(TextControl: TTextControl);
     procedure TextIDEditChange;  { draft }
     procedure NewTextClick;  { draft }
     procedure DeleteTextClick;  { draft }
@@ -43,6 +43,8 @@ type
 
 
 implementation
+
+procedure TTextControlEditForm.EditTextControl(TextControl: TTextControl); begin end;
 
 procedure TTextControlEditForm.TextIDEditChange;
 begin end;
