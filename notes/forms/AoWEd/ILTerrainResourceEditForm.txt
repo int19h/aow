@@ -1,0 +1,84 @@
+inherited ILTerrainResourceEditForm: TILTerrainResourceEditForm
+  Left = 279
+  Top = 51
+  Caption = 'ILTerrainResourceEditForm'
+  ClientHeight = 551
+  ClientWidth = 543
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited BottomPanel: TPanel
+    Top = 512
+    Width = 543
+    inherited BottomBevel: TBevel
+      Width = 543
+    end
+  end
+  inherited MainPageControl: TPageControl
+    Width = 543
+    Height = 512
+    ActivePage = SettingsSheet
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        Width = 535
+        Height = 481
+        inherited Panel5: TPanel
+          Left = 401
+          Height = 450
+          inherited BtnPanel: TPanel
+            Top = 409
+          end
+          inherited LoadPanel: TPanel
+            Visible = True
+          end
+        end
+        inherited Panel2: TPanel
+          Width = 533
+        end
+        inherited Panel1: TPanel
+          Width = 400
+          Height = 450
+          inherited Display: TDisplay
+            Width = 400
+            Height = 348
+          end
+          inherited ImageLibraryGrid: TImageLibraryGrid
+            Width = 400
+          end
+          inherited Panel9: TPanel
+            Width = 400
+          end
+        end
+      end
+    end
+    inherited AniSheet: TTabSheet
+      inherited Panel4: TPanel
+        Width = 477
+        Height = 481
+        inherited SequenceLayerSelector: TSequenceLayerSelector
+          Width = 475
+          Height = 479
+          inherited PreviewILGrid: TImageLibraryGrid
+            Width = 467
+          end
+          inherited Panel6: TPanel
+            Left = 286
+            Height = 342
+          end
+          inherited SequenceDisplayEditor: TSequenceDisplayEditor
+            Width = 282
+            Height = 342
+          end
+          inherited ILPanelLarge: TPanel
+            Width = 467
+          end
+        end
+      end
+      inherited Panel7: TPanel
+        Height = 481
+        inherited ImageIndexSelector: TDrawGrid
+          Height = 452
+        end
+      end
+    end
+  end
+end

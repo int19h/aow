@@ -1,0 +1,72 @@
+object TerrainTypeSelectionForm: TTerrainTypeSelectionForm
+  Left = 245
+  Top = 108
+  BorderStyle = bsDialog
+  Caption = 'Terrain selection'
+  ClientHeight = 118
+  ClientWidth = 210
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object OKBtn: TButton
+    Left = 23
+    Top = 92
+    Width = 75
+    Height = 25
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object CancelBtn: TButton
+    Left = 107
+    Top = 92
+    Width = 75
+    Height = 25
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object Panel1: TPanel
+    Left = 4
+    Top = 4
+    Width = 201
+    Height = 85
+    TabOrder = 2
+    object Label1: TLabel
+      Left = 1
+      Top = 14
+      Width = 199
+      Height = 13
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'Select terrain type:'
+    end
+    object Label2: TLabel
+      Left = 1
+      Top = 1
+      Width = 199
+      Height = 13
+      Align = alTop
+      Caption = ' '
+    end
+    object TerrainComboBox: TTerrainComboBox
+      Left = 40
+      Top = 32
+      Width = 121
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 0
+      Mode = tmTerrain
+      TerrainType = -1
+      TransparentTerrainEnabled = False
+    end
+  end
+end

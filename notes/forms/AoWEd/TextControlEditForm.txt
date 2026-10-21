@@ -1,0 +1,119 @@
+object TextControlEditForm: TTextControlEditForm
+  Left = 607
+  Top = 156
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Ingame Text Editor'
+  ClientHeight = 332
+  ClientWidth = 359
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  PrintScale = poNone
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel10: TPanel
+    Left = 16
+    Top = 12
+    Width = 329
+    Height = 261
+    BevelOuter = bvLowered
+    TabOrder = 0
+    object Label7: TLabel
+      Left = 96
+      Top = 228
+      Width = 45
+      Height = 16
+      Caption = 'Text ID:'
+    end
+    object Label1: TLabel
+      Left = 12
+      Top = 60
+      Width = 60
+      Height = 16
+      Caption = 'Message:'
+    end
+    object Label2: TLabel
+      Left = 12
+      Top = 8
+      Width = 196
+      Height = 16
+      Caption = 'Description (developer info only):'
+    end
+    object TextIDEdit: TSpin
+      Left = 148
+      Top = 223
+      Width = 101
+      Height = 26
+      MaxValue = 268435455
+      MinValue = 0
+      TabOrder = 0
+      Value = 0
+      OnChange = TextIDEditChange
+    end
+    object TextMemo: TMemo
+      Left = 8
+      Top = 80
+      Width = 313
+      Height = 137
+      TabOrder = 1
+      OnChange = TextMemoChange
+    end
+    object DescriptionEdit: TEdit
+      Left = 8
+      Top = 28
+      Width = 313
+      Height = 24
+      TabOrder = 2
+      OnChange = DescriptionEditChange
+    end
+  end
+  object NewText: TButton
+    Left = 16
+    Top = 300
+    Width = 73
+    Height = 25
+    Caption = 'New'
+    TabOrder = 1
+    OnClick = NewTextClick
+  end
+  object DeleteText: TButton
+    Left = 101
+    Top = 300
+    Width = 73
+    Height = 25
+    Caption = 'Delete'
+    TabOrder = 2
+    OnClick = DeleteTextClick
+  end
+  object FindText: TButton
+    Left = 187
+    Top = 300
+    Width = 73
+    Height = 25
+    Caption = 'Goto'
+    TabOrder = 3
+    OnClick = FindTextClick
+  end
+  object TextScrollBar: TScrollBar
+    Left = 16
+    Top = 272
+    Width = 329
+    Height = 20
+    LargeChange = 10
+    TabOrder = 4
+    OnChange = TextScrollBarChange
+  end
+  object CloseBtn: TButton
+    Left = 272
+    Top = 300
+    Width = 73
+    Height = 25
+    Caption = 'Close'
+    ModalResult = 1
+    TabOrder = 5
+  end
+end

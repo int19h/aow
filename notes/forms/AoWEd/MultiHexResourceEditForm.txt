@@ -1,0 +1,61 @@
+inherited MultiHexResourceEditForm: TMultiHexResourceEditForm
+  Left = 326
+  Caption = 'MultiHexResourceEditForm'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          object BtnPanel: TPanel [4]
+            Left = 0
+            Top = 407
+            Width = 133
+            Height = 41
+            Align = alBottom
+            BevelOuter = bvLowered
+            TabOrder = 4
+            object SelectBtn: TSpeedButton
+              Left = 6
+              Top = 8
+              Width = 41
+              Height = 26
+              GroupIndex = 1
+              Down = True
+              Caption = 'Select'
+              OnClick = SelectBtnClick
+            end
+            object DragBtn: TSpeedButton
+              Left = 46
+              Top = 8
+              Width = 41
+              Height = 26
+              GroupIndex = 1
+              Caption = 'Drag'
+              OnClick = DragBtnClick
+            end
+            object MainPBtn: TSpeedButton
+              Left = 88
+              Top = 8
+              Width = 37
+              Height = 26
+              GroupIndex = 1
+              Caption = 'MainP'
+              OnClick = MainPBtnClick
+            end
+          end
+          inherited LoadPanel: TPanel
+            TabOrder = 6
+          end
+        end
+        inherited Panel1: TPanel
+          inherited Display: TDisplay
+            OnMouseDown = DisplayMouseDown
+            OnMouseMove = DisplayMouseMove
+            OnMouseUp = DisplayMouseUp
+          end
+        end
+      end
+    end
+  end
+end

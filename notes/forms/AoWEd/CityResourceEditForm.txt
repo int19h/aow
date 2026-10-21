@@ -1,0 +1,29 @@
+inherited CityResourceEditForm: TCityResourceEditForm
+  Left = 514
+  Top = 48
+  Caption = ''
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited AnimationPanel: TPanel
+            Visible = False
+          end
+          inherited LoadPanel: TPanel
+            Visible = True
+          end
+        end
+      end
+    end
+    inherited RazeDefendersSheet: TTabSheet
+      TabVisible = False
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Filter = 'Image Library|*.ILB'
+    Left = 396
+    Top = 129
+  end
+end

@@ -1,0 +1,285 @@
+object IntGfxMod: TIntGfxMod
+  Left = 254
+  Top = 161
+  Height = 444
+  Width = 610
+  object GenericT: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericT.ilb'
+    Left = 32
+    Top = 8
+  end
+  object GenericF: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericF.ILB'
+    Left = 96
+    Top = 8
+  end
+  object CeltDeco: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\CeltDeco.ILB'
+    Left = 488
+    Top = 8
+  end
+  object Cursors: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'IMAGES\Cursors.ilb'
+    Left = 152
+    Top = 8
+  end
+  object ScanTiles: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanTile.ilb'
+    Left = 32
+    Top = 160
+  end
+  object ScanFog: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanFog.ilb'
+    Left = 96
+    Top = 160
+  end
+  object ScanHiLites: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanHiLi.ilb'
+    Left = 168
+    Top = 160
+  end
+  object PyreAnim: TInterfaceIL
+    LoadOnDemand = True
+    Left = 96
+    Top = 208
+    Data = {
+      04494C4200CD5D030000804018000000200000002000000000000000FFFFFFFF}
+  end
+  object UnitBGs: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\UnitBgs.ILB'
+    Left = 168
+    Top = 208
+  end
+  object FCWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\FCWin.ILB'
+    Left = 96
+    Top = 64
+  end
+  object Menus: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Menus.ILB'
+    Left = 240
+    Top = 64
+  end
+  object DragonMenu: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\DragMenu.ILB'
+    Left = 264
+    Top = 160
+  end
+  object ScanWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanWin.ilb'
+    Left = 304
+    Top = 64
+  end
+  object GenericI: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericI.ILB'
+    Left = 216
+    Top = 8
+  end
+  object UnitWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\UnitWin.ILB'
+    Left = 360
+    Top = 64
+  end
+  object UnitIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Icons.ILB'
+    Left = 32
+    Top = 304
+  end
+  object TurnButton: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\TBTurnBt.ILB'
+    Left = 352
+    Top = 160
+  end
+  object TBWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\TBWin.ILB'
+    Left = 416
+    Top = 64
+  end
+  object BookPL: TInterfaceIL
+    LoadOnDemand = True
+    Left = 32
+    Top = 256
+    Data = {
+      04494C4200CD5D030000804018000000200000002000000000000000FFFFFFFF}
+  end
+  object BookPR: TInterfaceIL
+    LoadOnDemand = True
+    Left = 96
+    Top = 256
+    Data = {
+      04494C4200CD5D030000804018000000200000002000000000000000FFFFFFFF}
+  end
+  object FactionWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\FactionS.ILB'
+    Left = 32
+    Top = 112
+  end
+  object RelWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\RelFr.ILB'
+    Left = 96
+    Top = 112
+  end
+  object WorldMap: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\WMBackg.ILB'
+    Left = 304
+    Top = 112
+  end
+  object BookWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\BookWin.ILB'
+    Left = 168
+    Top = 112
+  end
+  object TitleScreen: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\TitleM.ILB'
+    Left = 376
+    Top = 112
+  end
+  object Shields: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ShieldsM.ILB'
+    Left = 296
+    Top = 208
+  end
+  object ProdWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ProdWin.ILB'
+    Left = 240
+    Top = 112
+  end
+  object FireLg: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'IMAGES\Effects\FireLg.ILB'
+    Left = 168
+    Top = 256
+  end
+  object MiscArt: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\MiscArt.ILB'
+    Left = 424
+    Top = 208
+  end
+  object Units: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Units.ILB'
+    Left = 416
+    Top = 160
+  end
+  object SoundWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\AudioImg.ILB'
+    Left = 440
+    Top = 112
+  end
+  object TitleIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\WinTIcon.ilb'
+    Left = 96
+    Top = 304
+  end
+  object MoveIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\IconMove.ILB'
+    Left = 168
+    Top = 304
+  end
+  object LBIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\LBIcon.ILB'
+    Left = 232
+    Top = 304
+  end
+  object EventIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\EventIcn.ILB'
+    Left = 296
+    Top = 304
+  end
+  object ProdIcons: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ProdIcon.ILB'
+    Left = 352
+    Top = 304
+  end
+  object GenericB: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericB.ILB'
+    Left = 280
+    Top = 8
+  end
+  object GenericE: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericE.ILB'
+    Left = 344
+    Top = 8
+  end
+  object GenericS: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\GenericS.ilb'
+    Left = 416
+    Top = 8
+  end
+  object VictoryFrames: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'INT\Scenes\Victory.ILB'
+    Left = 424
+    Top = 304
+  end
+  object EndScene: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'INT\Scenes\EndScene.ILB'
+    Left = 480
+    Top = 304
+  end
+  object PyreFrames: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'INT\Scenes\PyreFrm.ILB'
+    Left = 536
+    Top = 304
+  end
+  object CityWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'INT\Scenes\CityWin.ILB'
+    Left = 232
+    Top = 256
+  end
+  object CampaignTrans: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'INT\Scenes\CTrans.ILB'
+    Left = 32
+    Top = 352
+  end
+  object ScanObj: TImageLibrary
+    LoadOnDemand = True
+    FileName = 'Int\ScanObj.ilb'
+    Left = 476
+    Top = 64
+  end
+  object PlyrIcns: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\Scenes\PlyrIcns.ILB'
+    Left = 512
+    Top = 112
+  end
+end

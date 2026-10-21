@@ -1,0 +1,7 @@
+object AoWEngineModule: TAoWEngineModule
+  OnCreate = AoWEngineModuleCreate
+  Left = 679
+  Top = 151
+  Height = 118
+  Width = 140
+end

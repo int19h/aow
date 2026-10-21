@@ -1,0 +1,203 @@
+object ScannerFloater: TScannerFloater
+  Left = 437
+  Top = 232
+  Width = 236
+  Height = 271
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSizeToolWin
+  Caption = 'Scanner'
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  PrintScale = poNone
+  OnClose = FormClose
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Display: TDisplay
+    Left = 0
+    Top = 0
+    Width = 228
+    Height = 240
+    Align = alClient
+    Color = clBlack
+    OnMouseDown = DisplayMouseDown
+    OnMouseMove = DisplayMouseMove
+    OnMouseUp = DisplayMouseUp
+    Options = [doAutoResizeBackSurface, doAutoSwapDC, doAutoActivatePrimaryDC, doBltOnWMPAINT]
+    BufferingScheme = bsDouble
+    BackSurfaceControlMode = bmBltSurface
+    BackSurfaceWidth = 165
+    BackSurfaceHeight = 165
+    FrameRate = 1
+    PrimaryDC = WindowsDC
+    UpdateFrameMode = umSynchrone
+    OnResize = DisplayResize
+    OnBltSurface = DisplayBltSurface
+  end
+  object WindowsDC: TWindows16DC
+    PixelFormat = pfAuto
+    Left = 112
+    Top = 16
+  end
+  object Manager: TAOWWinManager
+    Cursor = crDefault
+    WinLeft = 0
+    WinTop = 0
+    WinWidth = 300
+    WinHeight = 300
+    BackgroundTexture = ScanFog
+    ILIndexTBack = 0
+    ILIndexTFore = 0
+    OverlayPriority = 0
+    BorderLeft = 0
+    BorderRight = 0
+    BorderTop = 0
+    BorderBottom = 0
+    DrawOverlay = True
+    Left = 24
+    Top = 16
+  end
+  object Dlg: TAOWWindow
+    Priority = 0
+    WinLeft = 0
+    WinTop = 0
+    WinWidth = 300
+    Masked = False
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    WinManager = Manager
+    UseVMem = False
+    BorderWidth = 0
+    BorderHeight = 0
+    OverlapTopCorners = False
+    Cursor = crDefault
+    DoubleBuffered = True
+    MaskColor = clBlack
+    FreeSurfaceOnHide = False
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    DragHeight = 0
+    Draggable = False
+    Resizable = False
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    UseManagerBorders = True
+    Modal = False
+    WinHeight = 300
+    Dockable = False
+    Left = 24
+    Top = 56
+  end
+  object Scanner: TScanner
+    Priority = 600
+    WinLeft = 0
+    WinTop = 0
+    AOWWindow = Dlg
+    CaptureInput = True
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    Masked = False
+    WinWidth = 200
+    WinHeight = 200
+    TilesImageLib = ScanTiles
+    HiLightsImageLib = ScanHiLites
+    FogImageLib = ScanFog
+    ILObjects = ScanObj
+    TileBoxTop = -1
+    TileBoxLeft = -1
+    TileBoxWidth = -1
+    TileBoxHeight = -1
+    HighLights = True
+    Buildings = True
+    Armies = True
+    Naturals = True
+    OnChangeTileBox = ScannerChangeTileBox
+    MapDrawSteps = 1
+    ILFrame = ScanWin
+    ILIndexFrame = 20
+    Left = 72
+    Top = 56
+  end
+  object TheMap: TAoWMapControl
+    OnMapChanged = TheMapMapChanged
+    OnScannerIconsChanged = TheMapScannerIconsChanged
+    OnViewPortChange = TheMapViewPortChange
+    Left = 112
+    Top = 56
+  end
+  object ScanTiles: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanTile.ilb'
+    Left = 32
+    Top = 160
+  end
+  object ScanFog: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanFog.ilb'
+    Left = 96
+    Top = 160
+  end
+  object ScanHiLites: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanHiLi.ilb'
+    Left = 140
+    Top = 160
+  end
+  object ScanObj: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanObj.ilb'
+    Left = 176
+    Top = 156
+  end
+  object ScanWin: TInterfaceIL
+    LoadOnDemand = True
+    FileName = 'Int\ScanWin.ilb'
+    Left = 64
+    Top = 160
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 152
+    Top = 20
+    TargetsData = (
+      1
+      3
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0)
+      (
+        ''
+        'Tabs'
+        0))
+  end
+end

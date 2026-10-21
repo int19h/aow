@@ -1,0 +1,24 @@
+inherited ShowMessageEditForm: TShowMessageEditForm
+  Left = 607
+  Top = 107
+  Caption = 'Show Message Event'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    inherited MainPageControl: TPageControl
+      object TextSheet: TTabSheet
+        Caption = 'Message'
+        object MessageMemo: TMemo
+          Left = 0
+          Top = 0
+          Width = 306
+          Height = 160
+          Align = alClient
+          MaxLength = 1000
+          ScrollBars = ssVertical
+          TabOrder = 0
+        end
+      end
+    end
+  end
+end

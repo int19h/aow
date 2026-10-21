@@ -1,0 +1,66 @@
+inherited FireEditForm: TFireEditForm
+  Left = 632
+  Top = 254
+  Caption = 'Fire Properties'
+  ClientHeight = 172
+  ClientWidth = 264
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 13
+  inherited ClientPnl: TPanel
+    Width = 264
+    Height = 136
+    inherited MainPageControl: TPageControl
+      Width = 249
+      Height = 125
+      inherited GeneralSheet: TTabSheet
+        object Label1: TLabel
+          Left = 16
+          Top = 36
+          Width = 65
+          Height = 13
+          Caption = 'Day(s) active:'
+        end
+        object DaysActiveEdit: TComboBox
+          Left = 113
+          Top = 32
+          Width = 113
+          Height = 21
+          ItemHeight = 13
+          Items.Strings = (
+            'unlimited'
+            '1'
+            '2'
+            '3'
+            '4'
+            '5'
+            '6'
+            '7'
+            '8'
+            '9'
+            '10')
+          TabOrder = 0
+        end
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 136
+    Width = 264
+    inherited OKBtn: TButton
+      Left = 69
+    end
+    inherited CancelBtn: TButton
+      Left = 167
+    end
+  end
+  inherited Translator: TIvTranslator
+    TargetsData = (
+      1
+      1
+      (
+        'TComboBox'
+        'Items'
+        0))
+  end
+end

@@ -223,7 +223,7 @@ def main():
                 continue
             orig_name = None
             for k in sigs:
-                if k.endswith('.' + oc + '.' + method):
+                if k == oc + '.' + method or k.endswith('.' + oc + '.' + method):
                     orig_name = k
             if orig_name is not None and sigs[orig_name][0] in alias_addrs:
                 continue

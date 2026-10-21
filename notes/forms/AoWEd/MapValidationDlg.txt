@@ -1,0 +1,68 @@
+object MapValidationDlg: TMapValidationDlg
+  Left = 475
+  Top = 269
+  BorderStyle = bsDialog
+  Caption = 'Map Validation'
+  ClientHeight = 229
+  ClientWidth = 326
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Memo: TMemo
+    Left = 0
+    Top = 0
+    Width = 326
+    Height = 188
+    Align = alClient
+    Color = clBtnFace
+    ReadOnly = True
+    ScrollBars = ssBoth
+    TabOrder = 0
+  end
+  object ButtonPnl: TPanel
+    Left = 0
+    Top = 188
+    Width = 326
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 1
+    object OKBtn: TButton
+      Left = 111
+      Top = 8
+      Width = 105
+      Height = 27
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 0
+    end
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 12
+    Top = 12
+    TargetsData = (
+      1
+      4
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0)
+      (
+        ''
+        'Lines'
+        0)
+      (
+        ''
+        'Items'
+        0))
+  end
+end

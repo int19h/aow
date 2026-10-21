@@ -1,0 +1,156 @@
+inherited ItemGFXEditForm: TItemGFXEditForm
+  Left = 555
+  Top = 17
+  Caption = 'Item Resource Editor:'
+  ClientHeight = 328
+  ClientWidth = 383
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited Bevel2: TBevel
+    Top = 293
+    Width = 383
+  end
+  inherited Panel1: TPanel
+    Top = 298
+    Width = 383
+    inherited CancelBtn: TButton
+      Left = 194
+    end
+    inherited OKBtn: TButton
+      Left = 114
+      OnClick = OKBtnClick
+    end
+  end
+  object MainPageControl: TPageControl
+    Left = 0
+    Top = 0
+    Width = 383
+    Height = 293
+    ActivePage = ImageSheet
+    Align = alClient
+    TabOrder = 1
+    object ImageSheet: TTabSheet
+      Caption = 'Image'
+      object GroupBox4: TGroupBox
+        Left = 17
+        Top = 5
+        Width = 352
+        Height = 244
+        Caption = 'Item Image:'
+        TabOrder = 0
+        object Label1: TLabel
+          Left = 108
+          Top = 112
+          Width = 85
+          Height = 16
+          Caption = 'Image Library:'
+        end
+        object Label2: TLabel
+          Left = 108
+          Top = 148
+          Width = 76
+          Height = 16
+          Caption = 'Image Index:'
+        end
+        object Label3: TLabel
+          Left = 108
+          Top = 184
+          Width = 72
+          Height = 16
+          Caption = 'Item Usage:'
+        end
+        object ImagePanel: TImageLibraryPanel
+          Left = 16
+          Top = 108
+          Width = 85
+          Height = 81
+          BevelOuter = bvLowered
+          ImageIndex = 0
+          BltMode = bmStretchToFit
+          ScaleX = 100
+          ScaleY = 100
+          Color = clBlack
+        end
+        object ImageLibraryPreviewGrid: TImageLibraryGrid
+          Left = 16
+          Top = 27
+          Width = 321
+          Height = 73
+          SelectionEnabled = False
+          FocusColor = clRed
+          BltMode = bmStretchToFit
+          ScaleX = 100
+          ScaleY = 100
+          Color = clBtnFace
+          DefaultRowHeight = 50
+          DefaultColWidth = 50
+          GridLineWidth = 4
+          ColCount = 10
+          RowCount = 1
+          EditMode = []
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected]
+          GrowDirection = ilHorizontal
+          MinRowCount = 0
+          MinColCount = 8
+          MaxRowCount = 1
+          MaxColCount = 0
+          ShowGridIndex = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+        end
+        object ILManagerComboBox: TILManagerComboBox
+          Left = 200
+          Top = 108
+          Width = 133
+          Height = 24
+          Style = csDropDownList
+          ItemHeight = 16
+          TabOrder = 2
+          OnChange = ILManagerComboBoxChange
+          Category = [icDisk]
+          SubDirectory = 'ITEMS\'
+        end
+        object ImageIndexSpin: TSpin
+          Left = 200
+          Top = 144
+          Width = 77
+          Height = 26
+          OnUpdate = ImageIndexSpinUpdate
+          MaxValue = 268435455
+          MinValue = 0
+          TabOrder = 3
+          Value = 0
+        end
+        object ItemTypeBox: TComboBox
+          Left = 200
+          Top = 180
+          Width = 125
+          Height = 24
+          ItemHeight = 16
+          Items.Strings = (
+            'Head'
+            'Body'
+            'Attack'
+            'Defense'
+            'Ring'
+            'Scroll'
+            'Use')
+          TabOrder = 4
+          Text = 'ItemTypeBox'
+        end
+        object DesignerOnlyBox: TCheckBox
+          Left = 200
+          Top = 212
+          Width = 133
+          Height = 17
+          Caption = 'Designer Only'
+          TabOrder = 5
+        end
+      end
+    end
+  end
+end

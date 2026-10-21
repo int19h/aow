@@ -1,0 +1,303 @@
+object PlayerInfoFloater: TPlayerInfoFloater
+  Left = 702
+  Top = 328
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsToolWindow
+  Caption = 'Player Info:'
+  ClientHeight = 289
+  ClientWidth = 225
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  Position = poDefault
+  PrintScale = poNone
+  Scaled = False
+  OnClose = FormClose
+  OnShow = FormShow
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 225
+    Height = 36
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 8
+      Top = 8
+      Width = 42
+      Height = 16
+      Caption = 'Player:'
+    end
+    object PlayerComboBox: TPlayerComboBox
+      Left = 88
+      Top = 5
+      Width = 113
+      Height = 24
+      ItemHeight = 16
+      TabOrder = 0
+      OnChange = PlayerComboBoxChange
+      AllowIndependents = True
+      AllowNoPlayer = False
+      AllowRandom = False
+    end
+  end
+  object PlayerPageControl: TPageControl
+    Left = 0
+    Top = 36
+    Width = 225
+    Height = 253
+    ActivePage = IncomeSheet
+    Align = alClient
+    TabOrder = 1
+    object IncomeSheet: TTabSheet
+      Caption = 'Income'
+      object Label7: TLabel
+        Left = 12
+        Top = 140
+        Width = 52
+        Height = 16
+        Caption = 'Upkeep:'
+      end
+      object CityIncomeLab: TLabel
+        Left = 12
+        Top = 43
+        Width = 36
+        Height = 16
+        Caption = 'Cities:'
+      end
+      object MinesLbl: TLabel
+        Left = 12
+        Top = 75
+        Width = 39
+        Height = 16
+        Caption = 'Mines:'
+      end
+      object FarmLbl: TLabel
+        Left = 12
+        Top = 108
+        Width = 41
+        Height = 16
+        Caption = 'Farms:'
+      end
+      object ExternalLbl: TLabel
+        Left = 12
+        Top = 10
+        Width = 51
+        Height = 16
+        Caption = 'External:'
+      end
+      object Label6: TLabel
+        Left = 12
+        Top = 184
+        Width = 71
+        Height = 16
+        Caption = 'Net income:'
+      end
+      object Bevel1: TBevel
+        Left = 8
+        Top = 168
+        Width = 205
+        Height = 2
+      end
+      object ExternalIncomeEdit: TPanel
+        Left = 140
+        Top = 8
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 0
+      end
+      object MineIncomeEdit: TPanel
+        Left = 140
+        Top = 72
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 1
+      end
+      object FarmIncomeEdit: TPanel
+        Left = 140
+        Top = 104
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 2
+      end
+      object UpkeepEdit: TPanel
+        Left = 140
+        Top = 136
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 3
+      end
+      object NetIncomeEdit: TPanel
+        Left = 140
+        Top = 176
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 4
+      end
+      object CityIncomeEdit: TPanel
+        Left = 140
+        Top = 40
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 5
+      end
+    end
+    object StructureSheet: TTabSheet
+      Caption = 'Structures'
+      object StructureGrid: TStringGrid
+        Left = 0
+        Top = 0
+        Width = 217
+        Height = 222
+        Align = alClient
+        ColCount = 2
+        DefaultRowHeight = 20
+        FixedCols = 0
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
+        ScrollBars = ssVertical
+        TabOrder = 0
+        OnDblClick = StructureGridDblClick
+        ColWidths = (
+          96
+          136)
+      end
+    end
+    object PowerSheet: TTabSheet
+      Caption = 'Power'
+      object Label2: TLabel
+        Left = 4
+        Top = 44
+        Width = 62
+        Height = 16
+        Caption = 'Structures:'
+      end
+      object Label3: TLabel
+        Left = 4
+        Top = 80
+        Width = 48
+        Height = 16
+        Caption = 'Heroes:'
+      end
+      object Bevel2: TBevel
+        Left = 8
+        Top = 168
+        Width = 205
+        Height = 2
+      end
+      object Label4: TLabel
+        Left = 12
+        Top = 184
+        Width = 34
+        Height = 16
+        Caption = 'Total:'
+      end
+      object ExternalPwrLbl: TLabel
+        Left = 4
+        Top = 12
+        Width = 51
+        Height = 16
+        Caption = 'External:'
+      end
+      object PowerNodePowerEdit: TPanel
+        Left = 140
+        Top = 40
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 0
+      end
+      object HeroPowerEdit: TPanel
+        Left = 140
+        Top = 72
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 1
+      end
+      object TotalPowerEdit: TPanel
+        Left = 140
+        Top = 176
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 2
+      end
+      object ExternalPowerEdit: TPanel
+        Left = 140
+        Top = 8
+        Width = 69
+        Height = 25
+        BevelOuter = bvLowered
+        TabOrder = 3
+      end
+    end
+    object VictoryLocationsSheet: TTabSheet
+      Caption = 'Victory'
+      object VictoryGrid: TStringGrid
+        Left = 0
+        Top = 0
+        Width = 204
+        Height = 214
+        Align = alClient
+        ColCount = 2
+        DefaultRowHeight = 20
+        FixedCols = 0
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
+        ScrollBars = ssVertical
+        TabOrder = 0
+        OnDblClick = StructureGridDblClick
+        ColWidths = (
+          96
+          136)
+      end
+    end
+  end
+  object PlayerInfoMapControl: TAoWMapControl
+    OnStructureChanged = PlayerInfoMapControlStructureChanged
+    OnStructureDestroyed = PlayerInfoMapControlStructureChanged
+    OnActivateHSM = PlayerInfoMapControlActivateHSM
+    OnDeactivateHSM = PlayerInfoMapControlDeactivateHSM
+    OnGemsChanged = PlayerInfoMapControlGemsChanged
+    OnIncomeChanged = PlayerInfoMapControlIncomeChanged
+    OnUpkeepChanged = PlayerInfoMapControlUpkeepChanged
+    OnMapSettingsChanged = PlayerInfoMapControlMapSettingsChanged
+    Left = 12
+    Top = 192
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 60
+    Top = 191
+    TargetsData = (
+      1
+      4
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0)
+      (
+        ''
+        'Items'
+        0)
+      (
+        ''
+        'Cells'
+        0))
+  end
+end

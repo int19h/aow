@@ -1,0 +1,23 @@
+inherited TutorialMessageEventEditForm: TTutorialMessageEventEditForm
+  Caption = 'Flag Message Properties'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    inherited MainPageControl: TPageControl
+      ActivePage = MessageSheet
+      object MessageSheet: TTabSheet
+        Caption = 'Message'
+        object MessageMemo: TMemo
+          Left = 0
+          Top = 0
+          Width = 301
+          Height = 194
+          Align = alClient
+          MaxLength = 1000
+          ScrollBars = ssVertical
+          TabOrder = 0
+        end
+      end
+    end
+  end
+end

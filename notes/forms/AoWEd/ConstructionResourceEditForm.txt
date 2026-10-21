@@ -1,0 +1,172 @@
+inherited ConstructionResourceEditForm: TConstructionResourceEditForm
+  Left = 477
+  Top = 165
+  Caption = 'ConstructionResourceEditForm'
+  OnHide = FormHide
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    ActivePage = SettingsSheet
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited Panel3: TPanel
+            Visible = False
+          end
+          object CombatTerrainTagPanel: TPanel
+            Left = 0
+            Top = 261
+            Width = 133
+            Height = 64
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 7
+            object CTTLabel: TLabel
+              Left = 8
+              Top = 6
+              Width = 118
+              Height = 16
+              Caption = 'CombatTerrainTag:'
+            end
+            object CombatTerrainTagEdit: TSpin
+              Left = 40
+              Top = 26
+              Width = 57
+              Height = 26
+              MaxValue = 268435455
+              MinValue = 0
+              TabOrder = 0
+              Value = 0
+              OnChange = CombatTerrainTagEditChange
+            end
+          end
+        end
+      end
+    end
+    object TabSheet1: TTabSheet
+      Caption = 'SFX'
+      object SelectSampleBox: TGroupBox
+        Left = 80
+        Top = 120
+        Width = 337
+        Height = 89
+        TabOrder = 0
+        object PlaySample: TSpeedButton
+          Left = 296
+          Top = 33
+          Width = 21
+          Height = 21
+          Flat = True
+          Glyph.Data = {
+            76010000424D7601000000000000760000002800000020000000100000000100
+            0400000000000001000000000000000000001000000010000000000000000000
+            800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+            33333333333FFF3333F333333300033339333333337773F33733333330008033
+            933333333737F7F37333333307078733333933337337373F3337333077088803
+            33933337F37F337F3373333077088803393333F7337FF37F3733300777008803
+            9333377F33773F7F733307088808087333337F7F337F7F7F3FFF070777080873
+            99997F7F337F7F7F77770808880808733333737F337F737F3F33300888008803
+            93333773F377337F73F333308807880339333337F37F337F373F333088077803
+            339333373F73F37333733333087777333339333373F7F7F33F37333330807033
+            933333333737F73373F333333300033339333333337773333733}
+          NumGlyphs = 2
+          OnClick = PlaySampleClick
+        end
+        object Label10: TLabel
+          Left = 16
+          Top = 36
+          Width = 91
+          Height = 16
+          Caption = 'Select Sample:'
+        end
+        object SFXManagerBox: TSFXManagerComboBox
+          Left = 120
+          Top = 32
+          Width = 169
+          Height = 24
+          Style = csDropDownList
+          ItemHeight = 0
+          TabOrder = 0
+          OnChange = SFXManagerBoxChange
+          EmptySFXName = '(none)'
+        end
+        object LoopBox: TCheckBox
+          Left = 120
+          Top = 60
+          Width = 81
+          Height = 21
+          Caption = 'Loop'
+          TabOrder = 1
+          OnClick = LoopBoxClick
+        end
+      end
+    end
+    object DescriptionSheet: TTabSheet
+      Caption = 'Description'
+      object DescriptionMemo: TMemo
+        Left = 128
+        Top = 88
+        Width = 225
+        Height = 225
+        Lines.Strings = (
+          'DescriptionMemo')
+        TabOrder = 0
+      end
+    end
+    object RazeDefendersSheet: TTabSheet
+      Caption = 'Raze Defenders'
+      object RazeDefendersGrid: TUnitIndexGrid
+        Left = 32
+        Top = 32
+        Width = 425
+        Height = 257
+        ShowUnitLevel = True
+        DoubleUnitsEnabled = False
+        Sorted = True
+        SelectionEnabled = True
+        FocusColor = clRed
+        BltMode = bmStretchToFit
+        ScaleX = 100
+        ScaleY = 100
+        Color = clBtnFace
+        DefaultRowHeight = 48
+        DefaultColWidth = 48
+        GridLineWidth = 2
+        ColCount = 8
+        RowCount = 8
+        EditMode = []
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected]
+        GrowDirection = ilVertical
+        MinRowCount = 8
+        MinColCount = 8
+        MaxRowCount = 0
+        MaxColCount = 0
+        ShowGridIndex = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+      end
+      object AddRazeDefender: TButton
+        Left = 296
+        Top = 304
+        Width = 65
+        Height = 25
+        Caption = 'Add'
+        TabOrder = 1
+        OnClick = AddRazeDefenderClick
+      end
+      object DeleteRazeDefender: TButton
+        Left = 368
+        Top = 304
+        Width = 57
+        Height = 25
+        Caption = 'Delete'
+        TabOrder = 2
+        OnClick = DeleteRazeDefenderClick
+      end
+    end
+  end
+end

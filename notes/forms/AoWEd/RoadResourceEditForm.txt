@@ -1,0 +1,30 @@
+inherited RoadResourceEditForm: TRoadResourceEditForm
+  Left = 445
+  Top = 47
+  Caption = 'Road'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited MainPageControl: TPageControl
+    ActivePage = SettingsSheet
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited Panel3: TPanel
+            Visible = False
+          end
+          inherited AnimationPanel: TPanel
+            Visible = False
+          end
+          inherited OverlayTerrainPanel: TPanel
+            inherited OverlayComboBox: TTerrainComboBox
+              Color = clWhite
+            end
+          end
+          inherited LoadPanel: TPanel
+            Visible = True
+          end
+        end
+      end
+    end
+  end
+end

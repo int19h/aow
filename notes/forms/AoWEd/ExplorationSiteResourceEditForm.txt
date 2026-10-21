@@ -1,0 +1,101 @@
+inherited ExplorationSiteResourceEditForm: TExplorationSiteResourceEditForm
+  Left = 534
+  Top = 98
+  Caption = 'Exploration Site Resource'
+  OnDestroy = FormDestroy
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    ActivePage = DefendersSheet
+    inherited AniSheet: TTabSheet
+      inherited Panel4: TPanel
+        Height = 482
+        inherited SequenceLayerSelector: TSequenceLayerSelector
+          Height = 480
+          inherited Panel6: TPanel
+            Height = 343
+            inherited GroupBox1: TGroupBox
+              inherited FrameTableEdit: TEdit
+                Height = 21
+              end
+            end
+            inherited GroupBox3: TGroupBox
+              inherited LayerSpin: TSpin
+                Height = 22
+              end
+            end
+          end
+          inherited SequenceDisplayEditor: TSequenceDisplayEditor
+            Height = 343
+          end
+        end
+      end
+      inherited Panel7: TPanel
+        inherited ImageIndexSelector: TDrawGrid
+          Height = 453
+        end
+      end
+    end
+    object DefendersSheet: TTabSheet
+      Caption = 'Defenders'
+      object Label11: TLabel
+        Left = 32
+        Top = 8
+        Width = 131
+        Height = 16
+        Caption = 'Default Defender Sets'
+      end
+      object DefendersGrid: TUnitIndexGrid
+        Left = 32
+        Top = 32
+        Width = 425
+        Height = 257
+        ShowUnitLevel = True
+        DoubleUnitsEnabled = False
+        Sorted = True
+        SelectionEnabled = True
+        FocusColor = clRed
+        BltMode = bmStretchToFit
+        ScaleX = 100
+        ScaleY = 100
+        Color = clBtnFace
+        DefaultRowHeight = 48
+        DefaultColWidth = 48
+        GridLineWidth = 2
+        ColCount = 8
+        RowCount = 8
+        EditMode = []
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected]
+        GrowDirection = ilVertical
+        MinRowCount = 8
+        MinColCount = 8
+        MaxRowCount = 0
+        MaxColCount = 0
+        ShowGridIndex = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+      end
+      object AddDefender: TButton
+        Left = 296
+        Top = 304
+        Width = 65
+        Height = 25
+        Caption = 'Add'
+        TabOrder = 1
+        OnClick = AddDefenderClick
+      end
+      object DeleteDefender: TButton
+        Left = 368
+        Top = 304
+        Width = 57
+        Height = 25
+        Caption = 'Delete'
+        TabOrder = 2
+        OnClick = DeleteDefenderClick
+      end
+    end
+  end
+end

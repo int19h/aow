@@ -1,0 +1,24 @@
+inherited HexagonResourceEditForm: THexagonResourceEditForm
+  Left = 88
+  Top = 80
+  Caption = 'Hexagon Edit Form'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited Panel3: TPanel
+            Visible = False
+          end
+          inherited AnimationPanel: TPanel
+            Visible = False
+          end
+          inherited OverlayTerrainPanel: TPanel
+            Visible = False
+          end
+        end
+      end
+    end
+  end
+end

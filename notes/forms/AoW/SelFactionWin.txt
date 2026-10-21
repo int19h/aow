@@ -1,0 +1,491 @@
+object SelFactionWin: TSelFactionWin
+  Left = 633
+  Top = 279
+  Height = 353
+  Width = 398
+  object FactionPnl: TAOWPanel
+    OnMouseMove = FactionPnlMouseMove
+    OnKeyDown = FactionPnlKeyDown
+    OnUpdate = FactionPnlUpdate
+    Visible = False
+    Priority = 5
+    WinLeft = 0
+    WinTop = 0
+    WinWidth = 640
+    Masked = False
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahCenter
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    WinHeight = 480
+    AOWWindow = TitleWindow.TitleWin
+    ILTexture = IntGfxMod.FactionWin
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    OwnerItem = 0
+    MinWidth = 640
+    MinHeight = 480
+    Left = 96
+    Top = 8
+  end
+  object TopLbl: TAOWLabel
+    Priority = 1000
+    WinLeft = 256
+    WinTop = 12
+    AOWWindow = FactionPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 12
+    Alignment.BottomOffset = 0
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    Text = 'Choose a Faction'
+    TextColor = clBlack
+    Left = 96
+    Top = 56
+  end
+  object LightPnl: TAOWPanel
+    OnMouseDown = LightPnlMouseDown
+    OnMouseMove = LightPnlMouseMove
+    Priority = 5
+    WinLeft = 352
+    WinTop = 0
+    WinWidth = 288
+    Masked = True
+    Alignment.AlignWidth = awNone
+    Alignment.AlignHeight = ahNone
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    WinHeight = 480
+    AOWWindow = FactionPnl
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    OwnerItem = 0
+    MinWidth = 0
+    MinHeight = 0
+    Left = 48
+    Top = 168
+  end
+  object LText: TAOWMemo
+    Visible = False
+    Priority = 0
+    WinLeft = 0
+    WinTop = 140
+    AOWWindow = LightPnl
+    CaptureInput = False
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 140
+    Alignment.BottomOffset = 80
+    Masked = False
+    WinWidth = 288
+    WinHeight = 260
+    AOWFont = FontModule.AoW15WhiteGrey
+    Items.Strings = (
+      #183' Preserve harmony over the earth and its inhabitants.'
+      ''
+      #183' Accept the Humans and their presence.'
+      ''
+      #183' Actively oppose the Cult of Storms.'
+      ''
+      #183' Avoid bloodshed and conflict when possible.'
+      '')
+    BorderWidth = 20
+    BorderHeight = 20
+    TextColor = clWhite
+    CursorChar = '|'
+    BlinkDelay = 0
+    Editable = False
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    ItemHeight = 20
+    ColorChangeChar = #0
+    TextAlign = taCenter
+    Left = 152
+    Top = 168
+  end
+  object LStart: TAOWButton
+    Visible = False
+    Priority = 0
+    WinLeft = 149
+    WinTop = 450
+    AOWWindow = LightPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBottom
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 52
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 30
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 30
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    BorderHeight = 3
+    BorderHeightSelected = 4
+    ILButton = IntGfxMod.GenericB
+    ILIndexDown = 3
+    ILIndexLit = 0
+    ILIndexUp = 0
+    Text = 'Join!'
+    TextColor = clBlack
+    TextSelColor = clBlack
+    WinWidth = 109
+    OnClick = LStartClick
+    Left = 248
+    Top = 168
+  end
+  object LBack: TAOWButton
+    Visible = False
+    Priority = 0
+    WinLeft = 30
+    WinTop = 450
+    AOWWindow = LightPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBottom
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 52
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 30
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 30
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    BorderHeight = 3
+    BorderHeightSelected = 4
+    ILButton = IntGfxMod.GenericB
+    ILIndexDown = 3
+    ILIndexLit = 0
+    ILIndexUp = 0
+    Text = 'Back'
+    TextColor = clBlack
+    TextSelColor = clBlack
+    WinWidth = 109
+    OnClick = LBackClick
+    Left = 200
+    Top = 168
+  end
+  object LSphere: TAOWImage
+    Visible = False
+    Priority = 10
+    WinLeft = 271
+    WinTop = 32
+    AOWWindow = FactionPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awLeft
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 271
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 32
+    Alignment.BottomOffset = 0
+    Masked = False
+    ImageLib = IntGfxMod.FactionWin
+    AnimStart = 0
+    CurrentImage = 3
+    AnimEnd = 4
+    WinWidth = 100
+    WinHeight = 100
+    Animate = False
+    AnimFrameDelay = 0
+    Left = 152
+    Top = 56
+  end
+  object DarkPnl: TAOWPanel
+    OnMouseDown = DarkPnlMouseDown
+    OnMouseMove = DarkPnlMouseMove
+    Priority = 5
+    WinLeft = 0
+    WinTop = 0
+    WinWidth = 288
+    Masked = True
+    Alignment.AlignWidth = awNone
+    Alignment.AlignHeight = ahNone
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    WinHeight = 480
+    AOWWindow = FactionPnl
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    OwnerItem = 0
+    MinWidth = 0
+    MinHeight = 0
+    Left = 48
+    Top = 240
+  end
+  object DStart: TAOWButton
+    Visible = False
+    Priority = 0
+    WinLeft = 149
+    WinTop = 450
+    AOWWindow = DarkPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBottom
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 52
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 30
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 30
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    BorderHeight = 3
+    BorderHeightSelected = 4
+    ILButton = IntGfxMod.GenericB
+    ILIndexDown = 3
+    ILIndexLit = 0
+    ILIndexUp = 0
+    Text = 'Join!'
+    TextColor = clBlack
+    TextSelColor = clBlack
+    WinWidth = 109
+    OnClick = LStartClick
+    Left = 248
+    Top = 240
+  end
+  object DBack: TAOWButton
+    Visible = False
+    Priority = 0
+    WinLeft = 30
+    WinTop = 450
+    AOWWindow = DarkPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBottom
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 52
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 30
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 30
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    BorderHeight = 3
+    BorderHeightSelected = 4
+    ILButton = IntGfxMod.GenericB
+    ILIndexDown = 3
+    ILIndexLit = 0
+    ILIndexUp = 0
+    Text = 'Back'
+    TextColor = clBlack
+    TextSelColor = clBlack
+    WinWidth = 109
+    OnClick = DBackClick
+    Left = 200
+    Top = 240
+  end
+  object LName: TAOWLabel
+    Visible = False
+    Priority = 0
+    WinLeft = 97
+    WinTop = 110
+    AOWWindow = LightPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 110
+    Alignment.BottomOffset = 0
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    Text = 'The Keepers'
+    TextColor = clBlack
+    Left = 104
+    Top = 168
+  end
+  object DText: TAOWMemo
+    Visible = False
+    Priority = 0
+    WinLeft = 0
+    WinTop = 140
+    AOWWindow = DarkPnl
+    CaptureInput = False
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 140
+    Alignment.BottomOffset = 80
+    Masked = False
+    WinWidth = 288
+    WinHeight = 260
+    AOWFont = FontModule.AoW15WhiteGrey
+    Items.Strings = (
+      #183' Rid the world of both the Humans and Keepers.'
+      ''
+      #183' Rebuild the Elven Court in the Valley of Storms.'
+      ''
+      #183' Resurrect the greatest Elven Lord, Inioch.'
+      ''
+      #183' Restore order under their own law and power.'
+      ''
+      '')
+    BorderWidth = 20
+    BorderHeight = 20
+    TextColor = clWhite
+    CursorChar = '|'
+    BlinkDelay = 0
+    Editable = False
+    ILIndexFrame = 0
+    ILIndexTexture = 0
+    ItemHeight = 20
+    ColorChangeChar = #0
+    TextAlign = taCenter
+    Left = 152
+    Top = 240
+  end
+  object DName: TAOWLabel
+    Visible = False
+    Priority = 0
+    WinLeft = 97
+    WinTop = 110
+    AOWWindow = DarkPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 110
+    Alignment.BottomOffset = 0
+    Masked = False
+    AOWFont = FontModule.AoW15WhiteGrey
+    Text = 'The Cult of Storms'
+    TextColor = clBlack
+    Left = 104
+    Top = 240
+  end
+  object DSphere: TAOWImage
+    Visible = False
+    Priority = 10
+    WinLeft = 271
+    WinTop = 32
+    AOWWindow = FactionPnl
+    CaptureInput = True
+    Alignment.AlignWidth = awLeft
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 271
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 32
+    Alignment.BottomOffset = 0
+    Masked = False
+    ImageLib = IntGfxMod.FactionWin
+    AnimStart = 0
+    CurrentImage = 4
+    AnimEnd = 4
+    WinWidth = 100
+    WinHeight = 100
+    Animate = False
+    AnimFrameDelay = 0
+    Left = 216
+    Top = 56
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoW'
+    Left = 264
+    Top = 16
+    TargetsData = (
+      1
+      3
+      (
+        ''
+        'Items'
+        0)
+      (
+        ''
+        'Text'
+        0)
+      (
+        ''
+        'ToolTipText'
+        0))
+  end
+end

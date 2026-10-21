@@ -1,0 +1,76 @@
+inherited MoveOnEventForm: TMoveOnEventForm
+  Left = 586
+  Top = 222
+  Caption = 'Move On Event'
+  ClientHeight = 224
+  ClientWidth = 314
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    Width = 314
+    Height = 188
+    inherited MainPageControl: TPageControl
+      Left = 0
+      Top = 0
+      Width = 314
+      Height = 188
+      ActivePage = TriggerSheet
+      Align = alClient
+      object TriggerSheet: TTabSheet
+        Caption = 'Triggers'
+        object Label1: TLabel
+          Left = 96
+          Top = 124
+          Width = 46
+          Height = 16
+          Caption = 'Radius:'
+        end
+        object PlayersGroupBox: TGroupBox
+          Left = 56
+          Top = 8
+          Width = 201
+          Height = 97
+          Caption = 'Players'
+          TabOrder = 0
+          object TriggerPlayersLB: TCheckListBox
+            Left = 16
+            Top = 24
+            Width = 169
+            Height = 63
+            BorderStyle = bsNone
+            Color = clBtnFace
+            ItemHeight = 16
+            Items.Strings = (
+              ''
+              ''
+              ''
+              ''
+              '')
+            TabOrder = 0
+          end
+        end
+        object RadiusEdit: TSpin
+          Left = 156
+          Top = 119
+          Width = 53
+          Height = 26
+          MaxValue = 10
+          MinValue = 0
+          TabOrder = 1
+          Value = 1
+        end
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 188
+    Width = 314
+    inherited OKBtn: TButton
+      Left = 80
+    end
+    inherited CancelBtn: TButton
+      Left = 160
+    end
+  end
+end

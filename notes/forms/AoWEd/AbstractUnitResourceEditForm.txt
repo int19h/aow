@@ -1,0 +1,70 @@
+inherited AbstractUnitResourceEditForm: TAbstractUnitResourceEditForm
+  Left = 461
+  Top = 7
+  Caption = 'Unit Editor:'
+  ClientHeight = 253
+  ClientWidth = 382
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited Bevel2: TBevel
+    Top = 218
+    Width = 382
+  end
+  inherited Panel1: TPanel
+    Top = 223
+    Width = 382
+    inherited CancelBtn: TButton
+      Left = 194
+    end
+    inherited OKBtn: TButton
+      Left = 114
+    end
+  end
+  object MainPageControl: TPageControl
+    Left = 0
+    Top = 0
+    Width = 382
+    Height = 218
+    ActivePage = GFXSFXSheet
+    Align = alClient
+    TabOrder = 1
+    object GFXSFXSheet: TTabSheet
+      Caption = 'GFX/SFX'
+      object GFXGroupBox: TGroupBox
+        Left = 141
+        Top = 56
+        Width = 229
+        Height = 65
+        Caption = 'GFX:'
+        TabOrder = 0
+        object Label1: TLabel
+          Left = 12
+          Top = 24
+          Width = 55
+          Height = 16
+          Caption = 'Unit GFX:'
+        end
+        object UnitGFXBox: TComboBox
+          Left = 72
+          Top = 20
+          Width = 133
+          Height = 24
+          ItemHeight = 16
+          TabOrder = 0
+          Text = 'UnitGFXBox'
+          OnChange = UnitGFXBoxChange
+        end
+      end
+      object PreviewImagePanel: TDrawPanel
+        Left = 12
+        Top = 36
+        Width = 121
+        Height = 109
+        Color = clBlack
+        OnDraw = PreviewImagePanelDraw
+        EraseBkgndEnabled = True
+      end
+    end
+  end
+end

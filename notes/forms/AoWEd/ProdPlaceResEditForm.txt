@@ -1,0 +1,81 @@
+inherited ProdPlaceResEditForm: TProdPlaceResEditForm
+  Left = 468
+  Top = 55
+  Caption = 'Production Place Resource Editor:'
+  OnDestroy = FormDestroy
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited BottomPanel: TPanel
+    inherited CloseBtn: TButton
+      Left = 197
+    end
+    inherited CancelBtn: TButton
+      Left = 273
+    end
+  end
+  inherited MainPageControl: TPageControl
+    object ProductionSheet: TTabSheet
+      Caption = 'Productions'
+      object GroupBox4: TGroupBox
+        Left = 52
+        Top = 32
+        Width = 373
+        Height = 245
+        Caption = 'Productions:'
+        TabOrder = 0
+        object ProductionGrid: TUnitIndexGrid
+          Left = 32
+          Top = 24
+          Width = 321
+          Height = 173
+          ShowUnitLevel = True
+          DoubleUnitsEnabled = False
+          Sorted = True
+          SelectionEnabled = True
+          FocusColor = clRed
+          BltMode = bmStretchToFit
+          ScaleX = 100
+          ScaleY = 100
+          Color = clBtnFace
+          ScrollBars = ssVertical
+          DefaultRowHeight = 54
+          DefaultColWidth = 48
+          GridLineWidth = 2
+          ColCount = 6
+          RowCount = 4
+          EditMode = []
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected]
+          GrowDirection = ilVertical
+          MinRowCount = 4
+          MinColCount = 6
+          MaxRowCount = 0
+          MaxColCount = 0
+          ShowGridIndex = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+        end
+        object AddBtn: TButton
+          Left = 32
+          Top = 205
+          Width = 45
+          Height = 25
+          Caption = 'Add'
+          TabOrder = 1
+          OnClick = AddBtnClick
+        end
+        object DeleteBtn: TButton
+          Left = 76
+          Top = 205
+          Width = 45
+          Height = 25
+          Caption = 'Delete'
+          TabOrder = 2
+          OnClick = DeleteBtnClick
+        end
+      end
+    end
+  end
+end

@@ -14,7 +14,7 @@ for t in getattr(getattr(pe, 'DIRECTORY_ENTRY_RESOURCE', None), 'entries', []):
             for i in range(16):
                 n = struct.unpack_from('<H', raw, p)[0]; p += 2
                 strings[(b.id - 1) * 16 + i] = raw[p:p + 2 * n].decode('utf-16-le'); p += 2 * n
-for e in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+for e in getattr(getattr(pe, 'DIRECTORY_ENTRY_EXPORT', None), 'symbols', []):
     if e.name and e.name.decode().endswith('@04ECFCC5') and (len(sys.argv)<3 or e.name.decode().startswith(sys.argv[2]+'.')):
         va = base + e.address
         ident = struct.unpack_from('<i', img, va - base + 4)[0]

@@ -1,0 +1,83 @@
+inherited FlagEventEditForm: TFlagEventEditForm
+  Left = 691
+  Top = 289
+  Caption = 'Flag Event Properties'
+  ClientHeight = 273
+  ClientWidth = 326
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 13
+  inherited ClientPnl: TPanel
+    Width = 326
+    Height = 237
+    inherited MainPageControl: TPageControl
+      Width = 309
+      Height = 225
+      inherited GeneralSheet: TTabSheet
+        Caption = 'Triggers'
+        object Label1: TLabel
+          Left = 56
+          Top = 160
+          Width = 65
+          Height = 13
+          Caption = 'Trigger mode:'
+        end
+        object PlayersGroupBox: TGroupBox
+          Left = 24
+          Top = 8
+          Width = 249
+          Height = 137
+          Caption = 'Players'
+          TabOrder = 0
+          object TriggerPlayersLB: TCheckListBox
+            Left = 16
+            Top = 24
+            Width = 217
+            Height = 97
+            BorderStyle = bsNone
+            Color = clBtnFace
+            ItemHeight = 13
+            Items.Strings = (
+              ''
+              ''
+              ''
+              ''
+              '')
+            TabOrder = 0
+          end
+        end
+        object TriggerModeCB: TComboBox
+          Left = 144
+          Top = 156
+          Width = 105
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          Items.Strings = (
+            'Instant'
+            'New Turn')
+          TabOrder = 1
+        end
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 237
+    Width = 326
+    inherited OKBtn: TButton
+      Left = 127
+    end
+    inherited CancelBtn: TButton
+      Left = 227
+    end
+  end
+  inherited Translator: TIvTranslator
+    TargetsData = (
+      1
+      1
+      (
+        'TComboBox'
+        'Items'
+        0))
+  end
+end

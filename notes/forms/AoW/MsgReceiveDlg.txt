@@ -1,0 +1,296 @@
+object MsgReceiveDlg: TMsgReceiveDlg
+  Left = 387
+  Top = 201
+  Height = 403
+  Width = 319
+  object MsgReceiveWin: TAOWWindow
+    Visible = False
+    Priority = 300
+    WinLeft = 128
+    WinTop = 85
+    WinWidth = 384
+    Masked = True
+    OnHide = MsgReceiveWinHide
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahCenter
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    WinManager = General.Manager
+    UseVMem = False
+    BorderWidth = 0
+    BorderHeight = 0
+    OverlapTopCorners = False
+    Cursor = crDefault
+    DoubleBuffered = True
+    MaskColor = 5808200
+    FreeSurfaceOnHide = False
+    ILFrame = IntGfxMod.GenericF
+    ILIndexFrame = 80
+    ILIndexTexture = 7
+    ILTexture = IntGfxMod.GenericT
+    DragHeight = 0
+    Draggable = False
+    Resizable = False
+    MinWidth = 0
+    MinHeight = 0
+    MaxWidth = 0
+    MaxHeight = 0
+    UseManagerBorders = True
+    Modal = True
+    WinHeight = 262
+    Dockable = False
+    Left = 48
+    Top = 16
+  end
+  object MessageMemo: TAOWMemo
+    Priority = 200
+    WinLeft = 47
+    WinTop = 100
+    AOWWindow = MsgReceiveWin
+    CaptureInput = False
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 47
+    Alignment.RightOffset = 47
+    Alignment.TopOffset = 100
+    Alignment.BottomOffset = 80
+    Masked = True
+    WinWidth = 290
+    WinHeight = 82
+    AOWFont = FontModule.AoW15BlackBrown
+    Items.Strings = (
+      '##############'
+      '##############')
+    BorderWidth = 10
+    BorderHeight = 5
+    VScrollBar = MessageSB
+    TextColor = clBlack
+    CursorChar = '|'
+    BlinkDelay = 0
+    Editable = False
+    ILFrame = IntGfxMod.GenericF
+    ILIndexFrame = 40
+    ILIndexTexture = 0
+    ItemHeight = 20
+    ColorChangeChar = #0
+    TextAlign = taCenter
+    Left = 104
+    Top = 64
+  end
+  object Close: TAOWButton
+    Priority = 0
+    WinLeft = 122
+    WinTop = 211
+    AOWWindow = MsgReceiveWin
+    CaptureInput = True
+    Alignment.AlignWidth = awCenter
+    Alignment.AlignHeight = ahBottom
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 1
+    Alignment.BottomOffset = 25
+    Masked = True
+    AOWFont = FontModule.Age10b
+    BorderHeight = 8
+    BorderHeightSelected = 8
+    ILButton = IntGfxMod.CampaignTrans
+    ILIndexDown = 6
+    ILIndexLit = 3
+    ILIndexUp = 0
+    Text = 'Close'
+    TextColor = 855324
+    TextSelColor = clWhite
+    WinWidth = 140
+    OnClick = CloseClick
+    Left = 80
+    Top = 136
+  end
+  object MessageSB: TAOWVScrollBar
+    Visible = False
+    Priority = 200
+    WinLeft = 301
+    WinTop = 45
+    AOWWindow = MsgReceiveWin
+    CaptureInput = True
+    Alignment.AlignWidth = awNone
+    Alignment.AlignHeight = ahNone
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 0
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 0
+    Alignment.BottomOffset = 0
+    Masked = True
+    Min = 0
+    Max = 0
+    SmallChange = 1
+    LargeChange = 5
+    Position = 0
+    WinHeight = 137
+    WinWidth = 13
+    NumberVisible = 1
+    VanishWhenFull = True
+    ILIInc = IntGfxMod.GenericS
+    ILIDec = IntGfxMod.GenericS
+    ILTBack = IntGfxMod.GenericS
+    ILLTab = IntGfxMod.GenericS
+    ILIndexIncUp = 42
+    ILIndexIncDown = 43
+    ILIndexDecUp = 40
+    ILIndexDecDown = 41
+    ILIndexBack = 47
+    ILIndexTab = 44
+    Left = 167
+    Top = 60
+  end
+  object LShield: TAOWImage
+    Priority = 1000
+    WinLeft = 45
+    WinTop = 40
+    AOWWindow = MsgReceiveWin
+    ToolTip = General.ToolTip
+    ToolTipText.Strings = (
+      'Player''s Shield')
+    CaptureInput = False
+    Alignment.AlignWidth = awLeft
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 45
+    Alignment.RightOffset = 0
+    Alignment.TopOffset = 40
+    Alignment.BottomOffset = 0
+    Masked = True
+    ImageLib = IntGfxMod.Shields
+    AnimStart = 0
+    CurrentImage = 22
+    AnimEnd = 38
+    WinWidth = 40
+    WinHeight = 53
+    Animate = False
+    AnimFrameDelay = 0
+    Left = 24
+    Top = 136
+  end
+  object RShield: TAOWImage
+    Priority = 1000
+    WinLeft = 299
+    WinTop = 45
+    AOWWindow = MsgReceiveWin
+    ToolTip = General.ToolTip
+    ToolTipText.Strings = (
+      'Player''s Shield')
+    CaptureInput = False
+    Alignment.AlignWidth = awRight
+    Alignment.AlignHeight = ahTop
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 80
+    Alignment.RightOffset = 45
+    Alignment.TopOffset = 45
+    Alignment.BottomOffset = 0
+    Masked = True
+    ImageLib = IntGfxMod.Shields
+    AnimStart = 0
+    CurrentImage = 16
+    AnimEnd = 38
+    WinWidth = 40
+    WinHeight = 53
+    Animate = False
+    AnimFrameDelay = 0
+    Left = 136
+    Top = 136
+  end
+  object HeaderMemo: TAOWMemo
+    Priority = 200
+    WinLeft = 70
+    WinTop = 45
+    AOWWindow = MsgReceiveWin
+    CaptureInput = False
+    Alignment.AlignWidth = awBoth
+    Alignment.AlignHeight = ahBoth
+    Alignment.HeightPercent = 0
+    Alignment.WidthPercent = 0
+    Alignment.LeftOffPercent = 0
+    Alignment.RightOffPercent = 0
+    Alignment.TopOffPercent = 0
+    Alignment.BottomOffPercent = 0
+    Alignment.LeftOffset = 70
+    Alignment.RightOffset = 70
+    Alignment.TopOffset = 45
+    Alignment.BottomOffset = 80
+    Masked = True
+    WinWidth = 244
+    WinHeight = 137
+    AOWFont = FontModule.AoW15BlackBrown
+    Items.Strings = (
+      '##############')
+    BorderWidth = 10
+    BorderHeight = 5
+    VScrollBar = MessageSB
+    TextColor = clBlack
+    CursorChar = '|'
+    BlinkDelay = 0
+    Editable = False
+    ILFrame = IntGfxMod.GenericF
+    ILIndexFrame = 40
+    ILIndexTexture = 0
+    ItemHeight = 20
+    ColorChangeChar = #0
+    TextAlign = taCenter
+    Left = 104
+    Top = 16
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoW'
+    Left = 8
+    Top = 16
+    TargetsData = (
+      1
+      3
+      (
+        ''
+        'Items'
+        0)
+      (
+        ''
+        'Text'
+        0)
+      (
+        ''
+        'ToolTipText'
+        0))
+  end
+end

@@ -1,0 +1,95 @@
+inherited ItemSelectionDlg: TItemSelectionDlg
+  Left = 521
+  Top = 129
+  Caption = 'Item Image Selection'
+  ClientHeight = 300
+  ClientWidth = 267
+  OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel1: TPanel
+    Left = 0
+    Top = 264
+    Width = 267
+    Height = 36
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 0
+    object CancelBtn: TButton
+      Left = 171
+      Top = 6
+      Width = 90
+      Height = 27
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object OKBtn: TButton
+      Left = 75
+      Top = 6
+      Width = 90
+      Height = 27
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+      OnClick = OKBtnClick
+    end
+  end
+  object ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 253
+    Height = 253
+    BevelOuter = bvNone
+    TabOrder = 1
+    object MainPageControl: TPageControl
+      Left = 0
+      Top = 0
+      Width = 253
+      Height = 253
+      ActivePage = GeneralSheet
+      Align = alClient
+      TabOrder = 0
+      object GeneralSheet: TTabSheet
+        TabVisible = False
+        object Label1: TLabel
+          Left = 12
+          Top = 4
+          Width = 82
+          Height = 16
+          Caption = 'Select image:'
+        end
+        object ItemGrid: TImageDrawGrid
+          Left = 8
+          Top = 24
+          Width = 225
+          Height = 205
+          SelectionEnabled = True
+          FocusColor = clRed
+          BltMode = bmStretchToFit
+          OnCellUpdated = ItemGridCellUpdated
+          ScaleX = 100
+          ScaleY = 100
+          Color = clBtnFace
+          ScrollBars = ssVertical
+          DefaultRowHeight = 48
+          DefaultColWidth = 48
+          GridLineWidth = 2
+          ColCount = 4
+          RowCount = 5
+          EditMode = []
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected]
+          GrowDirection = ilVertical
+          MinRowCount = 5
+          MinColCount = 0
+          MaxRowCount = 0
+          MaxColCount = 0
+          ShowGridIndex = False
+        end
+      end
+    end
+  end
+end

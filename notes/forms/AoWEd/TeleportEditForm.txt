@@ -1,0 +1,123 @@
+inherited TeleportEditForm: TTeleportEditForm
+  Left = 409
+  Top = 124
+  Caption = 'Teleport Properties'
+  ClientHeight = 227
+  ClientWidth = 370
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 353
+    Height = 177
+    Align = alNone
+    inherited MainPageControl: TPageControl
+      Left = 61
+      Top = 0
+      Width = 292
+      Height = 177
+      Align = alClient
+      inherited GeneralSheet: TTabSheet
+        object GroupBox1: TGroupBox
+          Left = 20
+          Top = 20
+          Width = 241
+          Height = 77
+          Caption = 'Teleport position'
+          TabOrder = 0
+          object Label1: TLabel
+            Left = 8
+            Top = 32
+            Width = 11
+            Height = 16
+            Caption = 'X:'
+          end
+          object Label2: TLabel
+            Left = 84
+            Top = 32
+            Width = 12
+            Height = 16
+            Caption = 'Y:'
+          end
+          object Label3: TLabel
+            Left = 164
+            Top = 32
+            Width = 10
+            Height = 16
+            Caption = 'L:'
+          end
+          object XtoEdit: TSpin
+            Left = 24
+            Top = 28
+            Width = 45
+            Height = 26
+            MaxValue = 268435455
+            MinValue = 0
+            TabOrder = 0
+            Value = 0
+          end
+          object YtoEdit: TSpin
+            Left = 100
+            Top = 28
+            Width = 45
+            Height = 26
+            MaxValue = 268435455
+            MinValue = 0
+            TabOrder = 1
+            Value = 0
+          end
+          object LtoEdit: TSpin
+            Left = 180
+            Top = 28
+            Width = 45
+            Height = 26
+            MaxValue = 268435455
+            MinValue = 0
+            TabOrder = 2
+            Value = 0
+          end
+        end
+        object RazedCB: TCheckBox
+          Left = 20
+          Top = 105
+          Width = 105
+          Height = 25
+          Caption = 'Razed'
+          TabOrder = 1
+        end
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Top = 0
+      Width = 61
+      Height = 177
+      Align = alLeft
+      BevelInner = bvLowered
+      BevelOuter = bvLowered
+      TabOrder = 1
+      object BorderPanel: TDrawPanel
+        Left = 2
+        Top = 2
+        Width = 57
+        Height = 173
+        Color = clBlack
+        Align = alClient
+        OnDraw = BorderPanelDraw
+        EraseBkgndEnabled = True
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 191
+    Width = 370
+    inherited OKBtn: TButton
+      Left = 170
+    end
+    inherited CancelBtn: TButton
+      Left = 270
+    end
+  end
+end

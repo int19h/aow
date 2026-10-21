@@ -1,0 +1,76 @@
+inherited DungeonResourceEditForm: TDungeonResourceEditForm
+  Left = 388
+  Top = 97
+  Caption = 'Dungeon Resource Editor'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited MainPageControl: TPageControl
+    ActivePage = PrisonersSheet
+    inherited DefendersSheet: TTabSheet
+      inherited DefendersGrid: TUnitIndexGrid
+        RowCount = 80
+      end
+    end
+    object PrisonersSheet: TTabSheet
+      Caption = 'Prisoners'
+      object Label12: TLabel
+        Left = 32
+        Top = 8
+        Width = 104
+        Height = 13
+        Caption = 'Default Prisoners Sets'
+      end
+      object PrisonersGrid: TUnitIndexGrid
+        Left = 32
+        Top = 32
+        Width = 425
+        Height = 257
+        ShowUnitLevel = True
+        DoubleUnitsEnabled = False
+        Sorted = True
+        SelectionEnabled = True
+        FocusColor = clRed
+        BltMode = bmStretchToFit
+        ScaleX = 100
+        ScaleY = 100
+        Color = clBtnFace
+        DefaultRowHeight = 48
+        DefaultColWidth = 48
+        GridLineWidth = 2
+        ColCount = 8
+        RowCount = 80
+        EditMode = []
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected]
+        GrowDirection = ilVertical
+        MinRowCount = 8
+        MinColCount = 8
+        MaxRowCount = 0
+        MaxColCount = 0
+        ShowGridIndex = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+      end
+      object AddPrisoner: TButton
+        Left = 296
+        Top = 304
+        Width = 65
+        Height = 25
+        Caption = 'Add'
+        TabOrder = 1
+        OnClick = AddPrisonerClick
+      end
+      object DeletePrisoners: TButton
+        Left = 368
+        Top = 304
+        Width = 57
+        Height = 25
+        Caption = 'Delete'
+        TabOrder = 2
+        OnClick = DeletePrisonersClick
+      end
+    end
+  end
+end

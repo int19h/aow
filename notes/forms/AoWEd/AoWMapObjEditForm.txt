@@ -1,0 +1,37 @@
+inherited AoWMapObjEditForm: TAoWMapObjEditForm
+  Left = 752
+  Top = 309
+  Caption = 'Map Object Edit Form'
+  ClientWidth = 278
+  Position = poScreenCenter
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    Width = 278
+    Height = 138
+    object MainPageControl: TPageControl
+      Left = 8
+      Top = 8
+      Width = 253
+      Height = 121
+      ActivePage = GeneralSheet
+      TabOrder = 0
+      object GeneralSheet: TTabSheet
+        Caption = 'General'
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 138
+    Width = 278
+    Height = 36
+    inherited OKBtn: TButton
+      Left = 79
+      Top = 4
+    end
+    inherited CancelBtn: TButton
+      Left = 179
+      Top = 4
+    end
+  end
+end

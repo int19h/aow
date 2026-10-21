@@ -1,0 +1,118 @@
+inherited CombatILTerrainResourceEditForm: TCombatILTerrainResourceEditForm
+  Top = 118
+  Caption = ''
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited OverlayTerrainPanel: TPanel
+            Visible = True
+          end
+          object CityWallPanel: TPanel
+            Left = 0
+            Top = 261
+            Width = 133
+            Height = 52
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 7
+            object Label10: TLabel
+              Left = 8
+              Top = 16
+              Width = 56
+              Height = 16
+              Caption = 'Direction:'
+            end
+            object CityWallDirectionEdit: TSpin
+              Left = 72
+              Top = 8
+              Width = 49
+              Height = 26
+              OnUpdate = CityWallDirectionEditUpdate
+              MaxValue = 255
+              MinValue = 0
+              TabOrder = 0
+              Value = 0
+            end
+          end
+        end
+      end
+    end
+    inherited AniSheet: TTabSheet
+      inherited Panel4: TPanel
+        Width = 477
+        Height = 481
+        inherited SequenceLayerSelector: TSequenceLayerSelector
+          Width = 475
+          Height = 479
+          inherited PreviewILGrid: TImageLibraryGrid
+            Width = 467
+          end
+          inherited Panel6: TPanel
+            Left = 286
+            Height = 342
+          end
+          inherited SequenceDisplayEditor: TSequenceDisplayEditor
+            Width = 282
+            Height = 342
+          end
+          inherited ILPanelLarge: TPanel
+            Width = 467
+          end
+        end
+      end
+      inherited Panel7: TPanel
+        inherited ImageIndexSelector: TDrawGrid
+          Height = 452
+        end
+      end
+    end
+    object CombatSettings: TTabSheet
+      Caption = 'Combat Settings'
+      object CPanel: TPanel
+        Left = 136
+        Top = 40
+        Width = 241
+        Height = 113
+        BevelOuter = bvLowered
+        TabOrder = 0
+        object DefenseValue: TLabel
+          Left = 24
+          Top = 32
+          Width = 92
+          Height = 16
+          Caption = 'Defense Value:'
+        end
+        object BurnValue: TLabel
+          Left = 24
+          Top = 64
+          Width = 68
+          Height = 16
+          Caption = 'Burn Value:'
+        end
+        object DefenseValueEdit: TSpin
+          Left = 128
+          Top = 24
+          Width = 73
+          Height = 26
+          MaxValue = 100
+          MinValue = 0
+          TabOrder = 0
+          Value = 0
+        end
+        object BurnValueEdit: TSpin
+          Left = 128
+          Top = 56
+          Width = 73
+          Height = 26
+          MaxValue = 100
+          MinValue = 0
+          TabOrder = 1
+          Value = 0
+        end
+      end
+    end
+  end
+end

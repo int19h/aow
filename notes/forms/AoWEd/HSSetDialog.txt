@@ -1,0 +1,75 @@
+inherited HSSetDialog: THSSetDialog
+  Left = 692
+  Top = 74
+  Caption = 'HSS Settings:'
+  ClientWidth = 323
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 323
+    Height = 258
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 0
+    object GroupBox1: TGroupBox
+      Left = 8
+      Top = 4
+      Width = 301
+      Height = 217
+      TabOrder = 0
+      object Label1: TLabel
+        Left = 20
+        Top = 24
+        Width = 40
+        Height = 16
+        Caption = 'Name:'
+      end
+      object Label2: TLabel
+        Left = 20
+        Top = 52
+        Width = 75
+        Height = 16
+        Caption = 'Use Plugins:'
+      end
+      object HSSNameEdit: TEdit
+        Left = 60
+        Top = 20
+        Width = 213
+        Height = 24
+        TabOrder = 0
+      end
+      object PlugInListBox: TCheckListBox
+        Left = 20
+        Top = 72
+        Width = 257
+        Height = 129
+        Color = clBtnFace
+        ItemHeight = 15
+        Style = lbOwnerDrawFixed
+        TabOrder = 1
+      end
+    end
+    object OKBtn: TButton
+      Left = 100
+      Top = 228
+      Width = 57
+      Height = 25
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 1
+      OnClick = OKBtnClick
+    end
+    object CancelBtn: TButton
+      Left = 164
+      Top = 228
+      Width = 57
+      Height = 25
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 2
+    end
+  end
+end

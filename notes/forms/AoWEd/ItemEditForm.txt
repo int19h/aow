@@ -1,0 +1,493 @@
+object ItemEditForm: TItemEditForm
+  Left = 504
+  Top = 152
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Item Properties'
+  ClientHeight = 400
+  ClientWidth = 442
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  Scaled = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel1: TPanel
+    Left = 0
+    Top = 364
+    Width = 442
+    Height = 36
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 0
+    object OKBtn: TButton
+      Left = 249
+      Top = 4
+      Width = 90
+      Height = 27
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object CancelBtn: TButton
+      Left = 347
+      Top = 4
+      Width = 90
+      Height = 27
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 429
+    Height = 353
+    BevelOuter = bvNone
+    TabOrder = 1
+    object MainPageControl: TPageControl
+      Left = 0
+      Top = 0
+      Width = 429
+      Height = 353
+      ActivePage = GeneralSheet
+      Align = alClient
+      TabOrder = 0
+      object GeneralSheet: TTabSheet
+        Caption = 'General'
+        object Label4: TLabel
+          Left = 108
+          Top = 8
+          Width = 40
+          Height = 16
+          Caption = 'Name:'
+        end
+        object Label3: TLabel
+          Left = 108
+          Top = 60
+          Width = 57
+          Height = 16
+          Caption = 'Item type:'
+        end
+        object AvailabilityLabel: TLabel
+          Left = 276
+          Top = 8
+          Width = 68
+          Height = 16
+          Caption = 'Availability:'
+        end
+        object Label1: TLabel
+          Left = 276
+          Top = 60
+          Width = 32
+          Height = 16
+          Caption = 'Gold:'
+        end
+        object SourceLibraryLbl: TLabel
+          Left = 108
+          Top = 116
+          Width = 305
+          Height = 16
+          AutoSize = False
+        end
+        object Bevel1: TBevel
+          Left = 14
+          Top = 144
+          Width = 393
+          Height = 9
+          Shape = bsTopLine
+        end
+        object ScrollPnl: TPanel
+          Left = 4
+          Top = 156
+          Width = 397
+          Height = 157
+          BevelOuter = bvNone
+          TabOrder = 7
+          object Label11: TLabel
+            Left = 20
+            Top = 8
+            Width = 69
+            Height = 16
+            Caption = 'Scroll spell:'
+          end
+          object SpellComboBox: TComboBox
+            Left = 20
+            Top = 33
+            Width = 217
+            Height = 24
+            Style = csDropDownList
+            ItemHeight = 16
+            TabOrder = 0
+            OnChange = SpellComboBoxChange
+          end
+        end
+        object StatisticsPnl: TPanel
+          Left = 20
+          Top = 156
+          Width = 397
+          Height = 161
+          BevelOuter = bvNone
+          TabOrder = 6
+          object Label2: TLabel
+            Left = 28
+            Top = 28
+            Width = 40
+            Height = 16
+            Caption = 'Attack:'
+          end
+          object Label5: TLabel
+            Left = 28
+            Top = 92
+            Width = 54
+            Height = 16
+            Caption = 'Defense:'
+          end
+          object Label7: TLabel
+            Left = 28
+            Top = 60
+            Width = 56
+            Height = 16
+            Caption = 'Damage:'
+          end
+          object Label6: TLabel
+            Left = 28
+            Top = 124
+            Width = 71
+            Height = 16
+            Caption = 'Resistance:'
+          end
+          object Image8: TImage
+            Left = 4
+            Top = 126
+            Width = 17
+            Height = 16
+            Picture.Data = {
+              07544269746D617036030000424D360300000000000036000000280000001000
+              0000100000000100180000000000000300000000000000000000000000000000
+              0000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF000D3B010F3E01124401134C01134A011546001E67BFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00257161C0DBCEFEFCCAFEFCD2FEFD
+              86EFFC003994BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBF0D385680F1FAECFEFE96F4FB02366BBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF032F5969D5E9D8FEFD6BD7EB
+              002970BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBF0030623695C3D5FEFD3D9FCB002159BFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBF0025641A558013487A14527F1D79B5CFFEFC2486C3
+              034E95145487296596001651BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF003D92BBFE
+              FBC1FEFAC6FEFACCFCF8E5FEFED7FEFCC5FCFCC3FDFC94F9FA002F61BFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBF00194819435C062C5D001E4E6DC0D5CCFEFC4499BE
+              00428800369557B5D900266ABFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBF002F7AB2FBFBD0FFFCA0F9FB001F55002465BFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00306493F5FBC3FFFB367BB0E5FFFE
+              A9F7FC000926BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF00286BDDFFFEDBFFFD00458EE5FFFED6FFFD000F3DBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF001D5F9FF6FBDAFFFD378FBCE0FFFE
+              A0FAFB001861BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBF002B7793F2FAD6FFFEAAFAFB083D7EBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF00174A00206D00184B
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBF}
+          end
+          object Image7: TImage
+            Left = 4
+            Top = 60
+            Width = 17
+            Height = 17
+            Picture.Data = {
+              07544269746D617036030000424D360300000000000036000000280000001000
+              0000100000000100180000000000000300000000000000000000000000000000
+              0000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF2B2D992B2D
+              99BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF7D9BE12B2D99BFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBF33247E392880BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF5970
+              D77D9BE1292484BFBFBFBFBFBFBFBFBF301F777D9BE1392880BFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF2924847D9BE17D9BE1262179BFBFBF2E1961
+              7D9BE1392880BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF526AD67D9BE17D9BE14A5DD27D9BE1526AD6BFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF2D46917D9BE17D9BE17895E07D9BE1
+              35247EBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF2A20747D9BE17D9BE17D9BE16580DB211759BFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF362276526AD67D9BE17D9BE17D9BE17D9BE1
+              6079DA2B1E74BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF2E217B7D9B
+              E17D9BE17D9BE17D9BE17D9BE16580DB7D9BE1576FD72E207EBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBF2E217B7D9BE17D9BE1556DD7313AB3556DD77D9BE1344CCA
+              344CCA7D9BE1687DDC2C1F7BBFBFBFBFBFBFBFBFBF2E217B7D9BE1BFBFBFBFBF
+              BFBFBFBFBFBFBF313AB37D9BE1262886BFBFBFBFBFBF687DDC2B2684BFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF2E207E7D9BE12E207E
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBF7D9BE1BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF2E207EBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBF}
+          end
+          object Image10: TImage
+            Left = 4
+            Top = 94
+            Width = 17
+            Height = 17
+            Picture.Data = {
+              07544269746D617036030000424D360300000000000036000000280000001000
+              0000100000000100180000000000000300000000000000000000000000000000
+              0000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBF2D511FBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF274B1D9CC197295220BFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF1D381668A15FDCF0DCB0CFAB1D3515BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF2942226FA96B90C691FEFFFFE8F5E78FB587
+              355430BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF3D573E4669
+              4191C69081BD81FEFFFFFBFFFAC3E0C2648F5D30432FBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBF2C4D227BA77F90C58F79BA78FEFFFFE9F7E9CBE4CA
+              B7DBB7567253BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF203F185D915480AA
+              8487C18773B773FEFFFFDEF2DEDCEFDBCDE8CC7FA8792A4626BFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBF1E3B175F98587CA88086C18570B671FEFFFFD7EFD7DDF1DB
+              C0E0BE8FB7891E3817BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF1E3A1769A56783B1
+              8687C18771B771FEFFFFD9F0D8E0F2DECCE8CA91B98B1C3515BFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBF1F3B177EB27C84B6868CC48C80BC7EF0FDF0DDF3DBE7F6E6
+              BFE1BF96BE921A3313BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF1F3D178EBD8D95C3
+              969CCC9D94C894F5FEF6F0F9EFF1FAF0BDDDBBA8CAA61E3915BFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBF203E1882B08493C194B2D8B2B4D8B4FEFFFFFDFFFEFEFFFF
+              CBE4CAC9DFC7254919BFBFBFBFBFBFBFBFBFBFBFBFBFBFBF3A593F446949476D
+              4E42614A3D5B433E5B4545644C3C5843426048405D463E5C43BFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBF}
+          end
+          object Image6: TImage
+            Left = 4
+            Top = 28
+            Width = 17
+            Height = 17
+            Picture.Data = {
+              07544269746D617036030000424D360300000000000036000000280000001000
+              0000100000000100180000000000000300000000000000000000000000000000
+              0000BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF030320101044BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF121248D0C7F25B55C70F0F41BFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0303
+              20E7E0FCF0EAFE2E2E71BFBFBF504F8434337524236BBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF202164F2ECFFDAD4F6504E737F7C9C
+              D5D0F224236BBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BF1515379C99B0E3DEEEDFDBE8EDE9FE24236BBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBF0C0C3154547CEAE7F4F8F5FFF2ECFE36356A
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0404237A79
+              9AFAF8FCC8C4EFDDD8F7F4EEFF8684D8BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBF030320EFEDFC5959870D0E3BDAD6F6EFE9FDE1D9F9
+              171853BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBF131349F4EEFFF4EEFF3C3BABBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF181955C9C2F0F4EEFF
+              CAC4F115154FBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBF0E0E3FF4EEFFF4EEFF181856BFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF181954CBC3F2
+              F4EEFFCDCAF21F2063BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBF090933E9E4FDE7E0FC13134BBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              1313491112452B2B7ABFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF
+              BFBF}
+          end
+          object Label8: TLabel
+            Left = 4
+            Top = 0
+            Width = 56
+            Height = 16
+            Caption = 'Statistics:'
+          end
+          object Bevel2: TBevel
+            Left = 200
+            Top = 0
+            Width = 5
+            Height = 157
+            Shape = bsLeftLine
+          end
+          object Label9: TLabel
+            Left = 212
+            Top = 0
+            Width = 50
+            Height = 16
+            Caption = 'Abilities:'
+          end
+          object AttackEdit: TSpin
+            Left = 124
+            Top = 24
+            Width = 50
+            Height = 26
+            EditorEnabled = False
+            MaxValue = 10
+            MinValue = 0
+            TabOrder = 0
+            Value = 0
+            OnChange = AttackChange
+          end
+          object DefenseEdit: TSpin
+            Left = 124
+            Top = 88
+            Width = 50
+            Height = 26
+            EditorEnabled = False
+            MaxValue = 10
+            MinValue = 0
+            TabOrder = 1
+            Value = 0
+            OnChange = DefenseChange
+          end
+          object ResistanceEdit: TSpin
+            Left = 124
+            Top = 120
+            Width = 50
+            Height = 26
+            EditorEnabled = False
+            MaxValue = 10
+            MinValue = 0
+            TabOrder = 2
+            Value = 0
+            OnChange = ResistanceChange
+          end
+          object DamageEdit: TSpin
+            Left = 124
+            Top = 56
+            Width = 50
+            Height = 26
+            EditorEnabled = False
+            MaxValue = 10
+            MinValue = 0
+            TabOrder = 3
+            Value = 0
+            OnChange = DamageChange
+          end
+          object AbilityListBox: TListBox
+            Left = 212
+            Top = 24
+            Width = 161
+            Height = 89
+            ItemHeight = 16
+            TabOrder = 4
+          end
+          object ChangeAbilities: TButton
+            Left = 215
+            Top = 120
+            Width = 73
+            Height = 27
+            Caption = 'Change'
+            TabOrder = 5
+            OnClick = AbilityBtnClick
+          end
+        end
+        object Panel3: TPanel
+          Left = 16
+          Top = 8
+          Width = 77
+          Height = 97
+          BevelInner = bvLowered
+          BevelOuter = bvLowered
+          TabOrder = 0
+          object PreviewImagePanel: TDrawPanel
+            Left = 2
+            Top = 2
+            Width = 73
+            Height = 93
+            Color = clBlack
+            Align = alClient
+            OnDraw = PreviewImagePanelDraw
+            EraseBkgndEnabled = True
+          end
+        end
+        object EditBtn: TButton
+          Left = 16
+          Top = 112
+          Width = 77
+          Height = 27
+          Caption = 'Change'
+          TabOrder = 1
+          OnClick = EditBtnClick
+        end
+        object ItemNameEdit: TEdit
+          Left = 108
+          Top = 28
+          Width = 137
+          Height = 24
+          MaxLength = 20
+          TabOrder = 2
+          OnChange = ItemNameEditChange
+        end
+        object ItemTypeBox: TComboBox
+          Left = 108
+          Top = 79
+          Width = 137
+          Height = 24
+          Style = csDropDownList
+          ItemHeight = 16
+          Items.Strings = (
+            'Head'
+            'Torso'
+            'Attack'
+            'Defense'
+            'Ring'
+            'Scroll'
+            'Use')
+          TabOrder = 3
+          OnChange = ItemTypeBoxChange
+        end
+        object AvailabilityBox: TComboBox
+          Left = 276
+          Top = 29
+          Width = 117
+          Height = 24
+          Style = csDropDownList
+          ItemHeight = 16
+          Items.Strings = (
+            'Exceptional'
+            'Rare'
+            'Common'
+            'Frequent')
+          TabOrder = 4
+          OnChange = AvailabilityBoxChange
+        end
+        object CostEdit: TSpinEdit
+          Left = 276
+          Top = 80
+          Width = 117
+          Height = 26
+          MaxValue = 1000
+          MinValue = 1
+          TabOrder = 5
+          Value = 1
+          OnChange = CostEditChange
+        end
+      end
+    end
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 8
+    Top = 364
+    TargetsData = (
+      1
+      3
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0)
+      (
+        ''
+        'Items'
+        0))
+  end
+end

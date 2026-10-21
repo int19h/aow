@@ -1,0 +1,34 @@
+inherited PadEditForm: TPadEditForm
+  Left = 105
+  Top = 31
+  Caption = 'Pad'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        Height = 365
+        inherited Panel5: TPanel
+          Height = 334
+          inherited Panel3: TPanel
+            Visible = False
+          end
+          inherited BtnPanel: TPanel
+            Top = 293
+          end
+        end
+        inherited Panel1: TPanel
+          Height = 334
+          inherited Display: TDisplay
+            Height = 232
+          end
+        end
+      end
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Filter = 'Image Library|*.ILB'
+    Left = 8
+    Top = 93
+  end
+end

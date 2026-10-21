@@ -1,0 +1,181 @@
+object NewMapDlg: TNewMapDlg
+  Left = 577
+  Top = 189
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'New map'
+  ClientHeight = 232
+  ClientWidth = 447
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  PrintScale = poNone
+  Scaled = False
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Panel1: TPanel
+    Left = 0
+    Top = 196
+    Width = 447
+    Height = 36
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 0
+    object CancelBtn: TButton
+      Left = 352
+      Top = 4
+      Width = 90
+      Height = 27
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object OKBtn: TButton
+      Left = 244
+      Top = 4
+      Width = 97
+      Height = 27
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 1
+      OnClick = OKBtnClick
+    end
+  end
+  object ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 433
+    Height = 185
+    BevelOuter = bvNone
+    TabOrder = 1
+    object MainPageControl: TPageControl
+      Left = 0
+      Top = 0
+      Width = 433
+      Height = 185
+      ActivePage = GeneralSheet
+      Align = alClient
+      TabOrder = 0
+      object GeneralSheet: TTabSheet
+        Caption = 'General'
+        TabVisible = False
+        object Bevel1: TBevel
+          Left = 192
+          Top = 20
+          Width = 9
+          Height = 137
+          Shape = bsLeftLine
+        end
+        object MapLevelPnl: TPanel
+          Left = 196
+          Top = 0
+          Width = 229
+          Height = 165
+          BevelOuter = bvNone
+          TabOrder = 1
+          object Label2: TLabel
+            Left = 12
+            Top = 16
+            Width = 69
+            Height = 16
+            Caption = 'Map levels:'
+          end
+          object OneLevel: TRadioButton
+            Left = 12
+            Top = 48
+            Width = 217
+            Height = 17
+            Caption = 'Surface only'
+            Checked = True
+            TabOrder = 0
+            TabStop = True
+          end
+          object TwoLevels: TRadioButton
+            Left = 12
+            Top = 88
+            Width = 217
+            Height = 13
+            Caption = 'Surface + underground'
+            TabOrder = 1
+          end
+          object ThreeLevels: TRadioButton
+            Left = 12
+            Top = 128
+            Width = 217
+            Height = 17
+            Caption = 'Surface + 2x underground'
+            TabOrder = 2
+          end
+        end
+        object MapSizePnl: TPanel
+          Left = 0
+          Top = 0
+          Width = 189
+          Height = 165
+          BevelOuter = bvNone
+          TabOrder = 0
+          object Label1: TLabel
+            Left = 12
+            Top = 16
+            Width = 57
+            Height = 16
+            Caption = 'Map size:'
+          end
+          object ExtraLargeRB: TRadioButton
+            Left = 12
+            Top = 128
+            Width = 185
+            Height = 17
+            Caption = 'Extra large (128x128)'
+            TabOrder = 0
+          end
+          object LargeRB: TRadioButton
+            Left = 12
+            Top = 101
+            Width = 185
+            Height = 17
+            Caption = 'Large (96x96)'
+            TabOrder = 1
+          end
+          object MediumRB: TRadioButton
+            Left = 12
+            Top = 75
+            Width = 185
+            Height = 17
+            Caption = 'Medium (64x64)'
+            Checked = True
+            TabOrder = 2
+            TabStop = True
+          end
+          object SmallRB: TRadioButton
+            Left = 12
+            Top = 48
+            Width = 177
+            Height = 17
+            Caption = 'Small (48x48)'
+            TabOrder = 3
+          end
+        end
+      end
+    end
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 8
+    Top = 196
+    TargetsData = (
+      1
+      2
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0))
+  end
+end

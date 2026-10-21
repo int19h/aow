@@ -1,0 +1,79 @@
+inherited PoisonCloudEditForm: TPoisonCloudEditForm
+  Left = 709
+  Top = 50
+  Caption = 'Pestilence Storm Editor'
+  ClientHeight = 168
+  ClientWidth = 271
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 13
+  inherited ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 257
+    Height = 121
+    Align = alNone
+    inherited MainPageControl: TPageControl
+      Left = 0
+      Top = 0
+      Width = 257
+      Align = alClient
+      inherited GeneralSheet: TTabSheet
+        object Label1: TLabel
+          Left = 12
+          Top = 24
+          Width = 65
+          Height = 13
+          Caption = 'Day(s) active:'
+        end
+        object MoveableCheck: TCheckBox
+          Left = 120
+          Top = 56
+          Width = 113
+          Height = 17
+          Caption = 'Moveable'
+          TabOrder = 0
+        end
+        object DaysActiveEdit: TComboBox
+          Left = 120
+          Top = 20
+          Width = 113
+          Height = 21
+          ItemHeight = 13
+          Items.Strings = (
+            'unlimited'
+            '1'
+            '2'
+            '3'
+            '4'
+            '5'
+            '6'
+            '7'
+            '8'
+            '9'
+            '10')
+          TabOrder = 1
+        end
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 132
+    Width = 271
+    inherited OKBtn: TButton
+      Left = 75
+    end
+    inherited CancelBtn: TButton
+      Left = 175
+    end
+  end
+  inherited Translator: TIvTranslator
+    TargetsData = (
+      1
+      1
+      (
+        'TComboBox'
+        'Items'
+        0))
+  end
+end

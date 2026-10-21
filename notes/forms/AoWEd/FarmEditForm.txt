@@ -1,0 +1,75 @@
+inherited FarmEditForm: TFarmEditForm
+  Left = 336
+  Top = 140
+  Caption = 'Farm Properties'
+  ClientHeight = 205
+  ClientWidth = 315
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    Width = 298
+    Height = 157
+    inherited MainPageControl: TPageControl
+      Width = 237
+      Height = 157
+      inherited GeneralSheet: TTabSheet
+        inherited Label1: TLabel
+          Left = 12
+          Top = 24
+        end
+        object Label2: TLabel [1]
+          Left = 12
+          Top = 84
+          Width = 47
+          Height = 16
+          Caption = 'Income:'
+        end
+        inherited PlayerComboBox: TPlayerComboBox
+          Left = 96
+          Top = 20
+          Width = 121
+        end
+        inherited RazedBox: TCheckBox
+          Left = 96
+          Top = 48
+          TabOrder = 2
+        end
+        object IncomeLabel: TPanel
+          Left = 96
+          Top = 80
+          Width = 121
+          Height = 25
+          BevelOuter = bvLowered
+          TabOrder = 1
+        end
+      end
+      inherited VictorySheet: TTabSheet
+        inherited Memo1: TMemo
+          Lines.Strings = (
+            'Select the '
+            'players that '
+            'need to conquer '
+            'this location to '
+            'fulfill their '
+            'mission.')
+        end
+      end
+    end
+    inherited Panel3: TPanel
+      Height = 157
+      inherited BorderPanel: TDrawPanel
+        Height = 153
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 169
+    Width = 315
+    inherited OKBtn: TButton
+      Left = 120
+    end
+    inherited CancelBtn: TButton
+      Left = 216
+    end
+  end
+end

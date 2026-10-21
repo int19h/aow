@@ -1,0 +1,103 @@
+inherited AoWTerrainResourceEditForm: TAoWTerrainResourceEditForm
+  Caption = 'AoWTerrain Resource Editor'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          Left = 392
+          Width = 143
+          inherited Panel3: TPanel
+            Width = 143
+          end
+          inherited AnimationPanel: TPanel
+            Width = 143
+          end
+          inherited TerrainPanel: TPanel
+            Width = 143
+          end
+          inherited OverlayTerrainPanel: TPanel
+            Width = 143
+          end
+          inherited BtnPanel: TPanel
+            Width = 143
+          end
+          inherited LoadPanel: TPanel
+            Width = 143
+          end
+          inherited PreviewImagePanel: TPanel
+            Width = 143
+          end
+          inherited Panel10: TPanel
+            Width = 143
+          end
+          object CombatTerrainTagPanel: TPanel
+            Left = 0
+            Top = 281
+            Width = 143
+            Height = 64
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 8
+            object Label11: TLabel
+              Left = 8
+              Top = 6
+              Width = 118
+              Height = 16
+              Caption = 'CombatTerrainTag:'
+            end
+            object CombatTerrainTagBox: TComboBox
+              Left = 16
+              Top = 24
+              Width = 113
+              Height = 24
+              Style = csDropDownList
+              ItemHeight = 16
+              Items.Strings = (
+                'wdtNone'
+                'wdtPine'
+                'wdtOak'
+                'wdtWillow'
+                'wdtFlower'
+                'wdtToad'
+                'wdtDeadTree'
+                'wdtRock'
+                'wdtBones'
+                'wdtBrush'
+                '10'
+                '11'
+                '12'
+                '13'
+                '14'
+                '15'
+                '16'
+                '17'
+                '18'
+                '19'
+                '20')
+              TabOrder = 0
+              OnChange = CombatTerrainTagBoxChange
+            end
+          end
+        end
+        inherited Panel1: TPanel
+          Width = 391
+          inherited Display: TDisplay
+            Width = 391
+          end
+          inherited ImageLibraryGrid: TImageLibraryGrid
+            Width = 391
+          end
+          inherited Panel9: TPanel
+            Width = 391
+          end
+        end
+      end
+    end
+  end
+  inherited ColorDialog: TColorDialog
+    Left = 502
+    Top = 425
+  end
+end

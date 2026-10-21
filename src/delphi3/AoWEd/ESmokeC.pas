@@ -1,0 +1,52 @@
+unit ESmokeC;
+
+{ Draft declarations of ESmokeC, from AoWEd.exe.
+  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Stub bodies are placeholders for source recovery. }
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO;
+
+type
+  TSmokeCloudEditForm = class;
+  TSmokeCloudEditor = class;
+
+
+  { TSmokeCloudEditForm (instance size 540, VMT 0041CC60) }
+  TSmokeCloudEditForm = class(TAoWMapObjEditForm)
+  public
+    published
+    MoveableCheck: TCheckBox; { +0210 }
+    DaysActiveEdit: TComboBox; { +0214 }
+    Label1: TLabel; { +0218 }
+    public
+    procedure FormCreate;  { draft }
+    procedure OKBtnClick;  { draft }
+  end;
+
+  { TSmokeCloudEditor (instance size 8, VMT 0041CDE8) }
+  TSmokeCloudEditor = class(TAoWMapObjectEditor)
+  public
+    class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
+    class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu); override;
+  end;
+
+
+implementation
+
+class procedure TSmokeCloudEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
+begin end;
+
+class procedure TSmokeCloudEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
+begin end;
+
+procedure TSmokeCloudEditForm.FormCreate;
+begin end;
+
+procedure TSmokeCloudEditForm.OKBtnClick;
+begin end;
+
+
+end.

@@ -5,7 +5,7 @@ from config import parser, configure
 opts = parser(__doc__).parse_args()
 configure(opts)
 from entry import analyze, sigs
-classes = json.load(open(opts.classes))['classes']
+classes = opts.layouts
 UNIT = opts.unit
 MOD = opts.module.name
 # AbilityP repeats class names whose global class-db entries belong to AoWEPACK.
@@ -33,8 +33,8 @@ def parse_pas(path):
     unit = re.search(r'\bunit\s+(\w+)', txt, re.I)
     if not unit: return
     unit = unit.group(1)
-    txt = re.split(r'^\s*implementation\b', txt, flags=re.I|re.M)[0]
     txt = re.sub(r'\{[^}]*\}|\(\*.*?\*\)|//[^\n]*', '', txt, flags=re.S)
+    txt = re.split(r'^\s*implementation\b', txt, flags=re.I|re.M)[0]
     source_uses[unit] = re.findall(r'\w+', (re.search(r'\buses\s+(.*?);',txt,re.S|re.I).group(1) if re.search(r'\buses\s+(.*?);',txt,re.S|re.I) else ''))
     source_types[unit] = set()
     for name in re.findall(r'^\s*(\w+)\s*=\s*(?!class;)', txt, re.M):
@@ -47,7 +47,7 @@ def parse_pas(path):
             base_decl[key] = re.sub(r'\s+', ' ', d.group(0)).strip()
             base_unit[key] = unit
 for path in sorted(opts.source_root.rglob('*.pas')):
-    if path.parent.name.lower() == opts.module.stem.lower(): continue
+    if path.parent.name.lower() in ('aow', 'aowed') or path.parent.name.lower() == opts.module.stem.lower(): continue
     parse_pas(path)
 if opts.vcl_source:
     for path in sorted(opts.vcl_source.rglob('*.pas')): parse_pas(path)
@@ -56,8 +56,8 @@ try:
 except ImportError:  # the Codex sandbox cannot see the user's site-packages
     import sys as _s; _s.path.append(r'C:\Tools\pylib'); import pefile
 pe = pefile.PE(str(opts.module))
-owners = {}
-for e in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+owners = dict(opts.rtti_units)
+for e in getattr(getattr(pe, 'DIRECTORY_ENTRY_EXPORT', None), 'symbols', []):
     if not e.name: continue
     m = re.match(r'(\w+)\.\.(\w+)@', e.name.decode())
     if m and m.group(2) in classes: owners[m.group(2)] = m.group(1)
@@ -70,7 +70,7 @@ for n,c in classes.items():
 module_sigs = sigs(MOD)
 for va,fn in module_sigs.items():
     parts = fn['name'].split('@')[0].split('.')
-    if len(parts) >= 2 and parts[1] in classes: owners[parts[1]] = parts[0]
+    if len(parts) == 3 and parts[1] in classes: owners[parts[1]] = parts[0]
 for n,c in classes.items():
     if c['module'].lower() != MOD.lower(): continue
     for v in list(c['fixed'].values()) + c['vmt']:
@@ -87,6 +87,27 @@ for n,c in sorted(classes.items(), key=lambda kv: kv[1].get('vmt_va','')):
     if n in owners: previous = owners[n]
     elif previous: owners[n] = previous
 if MOD.lower() == 'aowepack.dpl': owners['TRegistrator'] = 'City'
+if MOD.lower().endswith('.exe'):
+    # Non-published helper classes have no unit RTTI; their VMTs follow the unit's forms.
+    from config import inherited_slot
+    for fn in module_sigs.values():
+        parts = fn['name'].split('@')[0].split('.')
+        if len(parts) == 2 and parts[0] in owners:
+            fn['name'] = owners[parts[0]] + '.' + fn['name']
+    for n, c in classes.items():
+        if c['module'].lower() != MOD.lower(): continue
+        for v in list(c['fixed'].values()) + c['vmt']:
+            fn = module_sigs.get(int(v['target'], 16))
+            if fn and fn['name'].split('.')[:2] == [owners.get(n), n]:
+                v['symbol'] = fn['name'].split('@')[0]
+                if 'own' in v:
+                    v['name'] = v['symbol'].split('.')[-1]
+                    v['own'] = True
+            if 'offset' in v:
+                real = inherited_slot(classes, n, v['offset'])
+                if real and (not v['name'] or re.fullmatch(r'vmt[0-9A-Fa-f]+', v['name'])):
+                    v['name'] = real
+
 VCL = {
  'Loaded': 'procedure Loaded; override;',
  'Notification': 'procedure Notification(AComponent: TComponent; Operation: TOperation); override;',

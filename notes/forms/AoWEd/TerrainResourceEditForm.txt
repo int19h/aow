@@ -1,0 +1,66 @@
+inherited TerrainResourceEditForm: TTerrainResourceEditForm
+  Left = 543
+  Top = 24
+  Caption = 'Terrain'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited Panel3: TPanel
+            Top = 145
+          end
+          inherited AnimationPanel: TPanel
+            Top = 176
+          end
+          inherited TerrainPanel: TPanel
+            Height = 49
+          end
+          inherited OverlayTerrainPanel: TPanel
+            Top = 49
+            Height = 48
+          end
+          inherited LoadPanel: TPanel
+            Top = 204
+            Height = 29
+            inherited LoadImageSetBtn: TButton
+              Top = 4
+              Height = 21
+            end
+          end
+          inherited PreviewImagePanel: TPanel
+            Top = 233
+            Height = 48
+          end
+          object Panel10: TPanel
+            Left = 0
+            Top = 97
+            Width = 133
+            Height = 48
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 7
+            object Label10: TLabel
+              Left = 6
+              Top = 4
+              Width = 104
+              Height = 16
+              Caption = 'Decoration Type:'
+            end
+            object DecorationComboBox: TComboBox
+              Left = 8
+              Top = 20
+              Width = 113
+              Height = 24
+              ItemHeight = 16
+              TabOrder = 0
+              Text = 'DecorationComboBox'
+              OnChange = DecorationComboBoxChange
+            end
+          end
+        end
+      end
+    end
+  end
+end

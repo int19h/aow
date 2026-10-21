@@ -1,0 +1,55 @@
+inherited FireResourceEditForm: TFireResourceEditForm
+  Left = 347
+  Top = 236
+  Caption = 'Fire Resource Editor'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          inherited Panel3: TPanel
+            Visible = False
+          end
+          inherited LoadPanel: TPanel
+            Top = 205
+            Visible = False
+          end
+          inherited PreviewImagePanel: TPanel
+            Top = 246
+            Visible = False
+          end
+          object Panel10: TPanel
+            Left = 0
+            Top = 164
+            Width = 133
+            Height = 41
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 7
+            object Label10: TLabel
+              Left = 4
+              Top = 12
+              Width = 47
+              Height = 13
+              Caption = 'Fire Type:'
+            end
+            object FireTypeBox: TComboBox
+              Left = 56
+              Top = 8
+              Width = 69
+              Height = 21
+              Style = csDropDownList
+              ItemHeight = 13
+              Items.Strings = (
+                'Small'
+                'Large')
+              TabOrder = 0
+              OnChange = FireTypeBoxChange
+            end
+          end
+        end
+      end
+    end
+  end
+end

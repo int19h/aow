@@ -1,0 +1,43 @@
+inherited FlagMessageEventEditForm: TFlagMessageEventEditForm
+  Caption = 'Flag Message Properties'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    inherited MainPageControl: TPageControl
+      ActivePage = MessageSheet
+      object MessageSheet: TTabSheet
+        Caption = 'Message'
+        object MessageLbl: TLabel
+          Left = 8
+          Top = 64
+          Width = 60
+          Height = 16
+          Caption = 'Message:'
+        end
+        object TitleLbl: TLabel
+          Left = 8
+          Top = 8
+          Width = 29
+          Height = 16
+          Caption = 'Title:'
+        end
+        object MessageMemo: TMemo
+          Left = 8
+          Top = 84
+          Width = 285
+          Height = 101
+          MaxLength = 1000
+          ScrollBars = ssVertical
+          TabOrder = 0
+        end
+        object TitleEdit: TEdit
+          Left = 8
+          Top = 28
+          Width = 285
+          Height = 24
+          TabOrder = 1
+        end
+      end
+    end
+  end
+end

@@ -33,7 +33,7 @@ def enum_values(va):
     for i in range(mx-mn+1):
         v,q = ss(q); vals.append(v)
     return '(' + ', '.join(vals) + ')'
-for e in sorted(pe.DIRECTORY_ENTRY_EXPORT.symbols, key=lambda e: e.address):
+for e in sorted(getattr(getattr(pe, 'DIRECTORY_ENTRY_EXPORT', None), 'symbols', []), key=lambda e: e.address):
     if not e.name: continue
     s = e.name.decode()
     if s.endswith('@23EDC2EF'): continue

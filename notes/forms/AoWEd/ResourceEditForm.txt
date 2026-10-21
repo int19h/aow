@@ -1,0 +1,56 @@
+object ResourceEditForm: TResourceEditForm
+  Left = 245
+  Top = 136
+  BorderStyle = bsDialog
+  Caption = 'ResourceEditForm'
+  ClientHeight = 214
+  ClientWidth = 313
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  PrintScale = poNone
+  Scaled = False
+  OnClose = FormClose
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Bevel2: TBevel
+    Left = 0
+    Top = 179
+    Width = 313
+    Height = 5
+    Align = alBottom
+    Shape = bsTopLine
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 184
+    Width = 313
+    Height = 30
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 0
+    object CancelBtn: TButton
+      Left = 159
+      Top = 2
+      Width = 75
+      Height = 25
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object OKBtn: TButton
+      Left = 79
+      Top = 2
+      Width = 75
+      Height = 25
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+    end
+  end
+end

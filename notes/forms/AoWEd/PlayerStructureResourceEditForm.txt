@@ -1,0 +1,5 @@
+inherited PlayerStructureResourceEditForm: TPlayerStructureResourceEditForm
+  Caption = 'PlayerStructure Resource Editor'
+  PixelsPerInch = 120
+  TextHeight = 16
+end

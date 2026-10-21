@@ -1,0 +1,45 @@
+inherited OverlayObjectResourceEditForm: TOverlayObjectResourceEditForm
+  Caption = 'Overlay Object'
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited MainPageControl: TPageControl
+    inherited SettingsSheet: TTabSheet
+      inherited SettingsPanel: TPanel
+        inherited Panel5: TPanel
+          object CombatTerrainTagPanel: TPanel
+            Left = 0
+            Top = 261
+            Width = 133
+            Height = 64
+            Align = alTop
+            BevelOuter = bvLowered
+            TabOrder = 7
+            object CTTLabel: TLabel
+              Left = 8
+              Top = 6
+              Width = 118
+              Height = 16
+              Caption = 'CombatTerrainTag:'
+            end
+            object CombatTerrainTagEdit: TSpin
+              Left = 40
+              Top = 26
+              Width = 57
+              Height = 26
+              MaxValue = 268435455
+              MinValue = 0
+              TabOrder = 0
+              Value = 0
+              OnChange = CombatTerrainTagEditChange
+            end
+          end
+        end
+      end
+    end
+    inherited AniSheet: TTabSheet
+      inherited Panel7: TPanel
+        Height = 0
+      end
+    end
+  end
+end

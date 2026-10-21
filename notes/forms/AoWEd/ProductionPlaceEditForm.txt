@@ -1,0 +1,71 @@
+inherited ProductionPlaceEditForm: TProductionPlaceEditForm
+  Top = 312
+  Caption = 'Production Place Editor'
+  ClientHeight = 220
+  ClientWidth = 346
+  PixelsPerInch = 120
+  TextHeight = 13
+  inherited ClientPnl: TPanel
+    Width = 329
+    inherited MainPageControl: TPageControl
+      Width = 268
+      inherited GeneralSheet: TTabSheet
+        inherited Label1: TLabel
+          Left = 8
+          Top = 28
+        end
+        object Label2: TLabel [1]
+          Left = 8
+          Top = 64
+          Width = 52
+          Height = 13
+          Caption = 'Defenders:'
+        end
+        inherited PlayerComboBox: TPlayerComboBox
+          Left = 116
+          Top = 24
+          Width = 129
+          OnChange = PlayerComboBoxChange
+        end
+        inherited RazedBox: TCheckBox
+          Left = 116
+          Top = 92
+        end
+        object DefendersModeBox: TComboBox
+          Left = 116
+          Top = 60
+          Width = 129
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          Items.Strings = (
+            'None'
+            'Weak'
+            'Average'
+            'Strong'
+            'Random')
+          TabOrder = 2
+        end
+      end
+      inherited VictorySheet: TTabSheet
+        inherited Memo1: TMemo
+          Lines.Strings = (
+            'Select the players '
+            'that need to conquer '
+            'this location to fulfill '
+            'their mission.')
+        end
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 184
+    Width = 346
+    inherited OKBtn: TButton
+      Left = 147
+    end
+    inherited CancelBtn: TButton
+      Left = 247
+    end
+  end
+end

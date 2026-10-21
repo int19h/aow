@@ -1,0 +1,132 @@
+inherited PlayerConstructionEditForm: TPlayerConstructionEditForm
+  Left = 467
+  Top = 215
+  Caption = 'PlayerConstructionEditForm'
+  ClientHeight = 219
+  ClientWidth = 334
+  OnCreate = FormCreate
+  PixelsPerInch = 120
+  TextHeight = 16
+  inherited ClientPnl: TPanel
+    Left = 8
+    Top = 8
+    Width = 318
+    Height = 173
+    Align = alNone
+    inherited MainPageControl: TPageControl
+      Left = 61
+      Top = 0
+      Width = 257
+      Height = 173
+      Align = alClient
+      TabOrder = 1
+      inherited GeneralSheet: TTabSheet
+        object Label1: TLabel
+          Left = 4
+          Top = 44
+          Width = 42
+          Height = 16
+          Caption = 'Player:'
+        end
+        object PlayerComboBox: TPlayerComboBox
+          Left = 88
+          Top = 40
+          Width = 141
+          Height = 24
+          Style = csDropDownList
+          ItemHeight = 16
+          TabOrder = 0
+          AllowIndependents = True
+          AllowNoPlayer = False
+          AllowRandom = False
+        end
+        object RazedBox: TCheckBox
+          Left = 88
+          Top = 73
+          Width = 157
+          Height = 25
+          Caption = 'Razed'
+          TabOrder = 1
+          OnClick = RazedBoxClick
+        end
+      end
+      object VictorySheet: TTabSheet
+        Caption = 'Victory'
+        object Memo1: TMemo
+          Left = 0
+          Top = 0
+          Width = 249
+          Height = 57
+          Align = alTop
+          Alignment = taCenter
+          BorderStyle = bsNone
+          Color = clBtnFace
+          Lines.Strings = (
+            'Select the players that need to conquer '
+            'this location to fulfill their mission.')
+          ReadOnly = True
+          TabOrder = 0
+          WantReturns = False
+        end
+        object VictoryListBox: TCheckListBox
+          Left = 32
+          Top = 52
+          Width = 169
+          Height = 78
+          BorderStyle = bsNone
+          Color = clBtnFace
+          ItemHeight = 16
+          Items.Strings = (
+            ''
+            ''
+            ''
+            '')
+          TabOrder = 1
+        end
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Top = 0
+      Width = 61
+      Height = 173
+      Align = alLeft
+      BevelInner = bvLowered
+      BevelOuter = bvLowered
+      TabOrder = 0
+      object BorderPanel: TDrawPanel
+        Left = 2
+        Top = 2
+        Width = 57
+        Height = 169
+        Color = clBlack
+        Align = alClient
+        OnDraw = BorderPanelDraw
+        EraseBkgndEnabled = True
+      end
+    end
+  end
+  inherited ButtonPnl: TPanel
+    Top = 183
+    Width = 334
+    inherited OKBtn: TButton
+      Left = 140
+    end
+    inherited CancelBtn: TButton
+      Left = 236
+    end
+  end
+  inherited Translator: TIvTranslator
+    TargetsData = (
+      1
+      2
+      (
+        ''
+        'Items'
+        0)
+      (
+        ''
+        'Lines'
+        0))
+  end
+end

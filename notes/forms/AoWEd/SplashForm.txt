@@ -1,0 +1,78 @@
+object SplashForm: TSplashForm
+  Left = 435
+  Top = 117
+  BorderIcons = []
+  BorderStyle = bsNone
+  Caption = 'SplashForm'
+  ClientHeight = 280
+  ClientWidth = 324
+  Color = clBlack
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  Position = poScreenCenter
+  PrintScale = poNone
+  Scaled = False
+  OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  PixelsPerInch = 120
+  TextHeight = 16
+  object Image1: TImage
+    Left = 2
+    Top = 2
+    Width = 320
+    Height = 276
+    AutoSize = True
+    OnClick = Image1Click
+  end
+  object VersionLbl: TLabel
+    Left = 71
+    Top = 236
+    Width = 229
+    Height = 16
+    AutoSize = False
+    Transparent = True
+  end
+  object StatusLabel: TLabel
+    Left = 68
+    Top = 192
+    Width = 201
+    Height = 13
+    Alignment = taCenter
+    AutoSize = False
+    Transparent = True
+  end
+  object Label1: TLabel
+    Left = 68
+    Top = 252
+    Width = 209
+    Height = 16
+    Caption = '(C) 1999,2000 Triumph Studios'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Transparent = True
+  end
+  object Translator: TIvTranslator
+    DictionaryName = 'AoWEdDictionary'
+    Left = 292
+    Top = 248
+    TargetsData = (
+      1
+      2
+      (
+        ''
+        'Hint'
+        0)
+      (
+        ''
+        'Caption'
+        0))
+  end
+end

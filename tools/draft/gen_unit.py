@@ -13,7 +13,7 @@ parser_.add_argument('--all', action='store_true', help='write all module units 
 args = parser_.parse_args()
 argv = [str(Path(__file__).with_name('gen_draft.py')), str(args.module), str(args.signatures), args.unit,
         '--classes', str(args.classes), '--source-root', str(args.source_root)]
-for flag, value in (('--decomp',args.decomp),('--vcl-source',args.vcl_source)):
+for flag, value in (('--decomp',args.decomp),('--vcl-source',args.vcl_source),('--rtti',args.rtti)):
     if value: argv += [flag,str(value)]
 saved = sys.argv
 sys.argv = argv
@@ -53,10 +53,17 @@ def fields_for(n):
         if off % w: w = 1
         if off + w > hi: w = 1
         if off > pos: res.append('F_%s_%02X: array[0..%d] of Byte;' % (short, pos, off - pos - 1))
-        res.append('F_%s_%02X: %s;' % (short, off, {1: 'Byte', 2: 'Word', 4: 'Integer'}[w]))
+        field = G.classes[n].get('fields', {}).get(str(off), {})
+        if G.MOD.lower().endswith('.exe') and field.get('src') == 'rtti':
+            res += ['published', '%s: %s; { +%04X }' % (field['name'], field['type'], off), 'public']
+        else:
+            res.append('F_%s_%02X: %s;' % (short, off, {1: 'Byte', 2: 'Word', 4: 'Integer'}[w]))
         pos = off + w
     if pos < hi:
         res.append('F_%s_%02X: array[0..%d] of Byte;' % (short, pos, hi - pos - 1))
+    if G.MOD.lower().endswith('.exe'):
+        text = '\n'.join(res).replace('public\npublished\n', '')
+        return text.splitlines()
     return res
 
 def impl_header(cls, decl):
@@ -143,6 +150,12 @@ def generate(unit, output):
     for n,p,*_ in own:
         owner = G.owners.get(p) or G.type_unit.get(p.lower())
         if owner and owner != unit: imports.add(owner)
+    if G.MOD.lower().endswith('.exe'):
+        for n, *_ in own:
+            for field in G.classes[n]['fields'].values():
+                if field.get('src') == 'rtti':
+                    owner = G.owners.get(field['type']) or G.type_unit.get(field['type'].lower())
+                    if owner and owner != unit: imports.add(owner)
     for row in own:
         for decl in row[-1]:
             imports.update(re.findall(r'\b(\w+)\.\w+', decl))
@@ -153,6 +166,22 @@ def generate(unit, output):
     if G.MOD.lower() == 'localize.dpl': types = []
     # RTTI is in declaration order. Class forwards precede callbacks that use them.
     declarations = []
+    if G.MOD.lower().endswith('.exe'):
+        # Unrecovered third-party components need their type and size for published fields.
+        missing = {f['type'] for n, *_ in own for f in G.classes[n]['fields'].values()
+                   if f.get('src') == 'rtti' and f['type'] not in G.owners
+                   and f['type'].lower() not in G.type_unit}
+        for typ in sorted(missing):
+            layout = G.classes[typ]
+            parent = layout['parent']
+            while parent in G.classes and parent.lower() not in G.type_unit:
+                parent = G.classes[parent]['parent']
+            parent = parent or 'TComponent'
+            padding = layout['size'] - size_of(parent)
+            declarations += ['  { Declaration-only field type from %s (instance size %d). }' %
+                             (layout['module'], layout['size']), '  %s = class(%s)' % (typ, parent)]
+            if padding: declarations += ['  private', '    F_External: array[0..%d] of Byte;' % (padding - 1)]
+            declarations += ['  end;', '']
     implementations = collections.defaultdict(list)
     for n in [r[0] for r in own]: declarations.append('  %s = class;' % n)
     declarations += [''] + ['  '+t for t in types] + ['']
@@ -217,7 +246,7 @@ def generate(unit, output):
     write(output,src)
 
 if args.all:
-    units = sorted({s['name'].split('.')[0] for s in sigs(G.MOD).values() if '.' in s['name']})
+    units = sorted(set(G.owners.values()) if G.MOD.lower().endswith('.exe') else {s['name'].split('.')[0] for s in sigs(G.MOD).values() if '.' in s['name']})
     if G.MOD.lower() == 'localize.dpl': units = ['IvDictio','IvAMulti','IvBinDic','IvMulti']
     for unit in units: generate(unit,args.output.parent/(unit+'.pas'))
     print('written %d units' % len(units))
