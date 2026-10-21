@@ -35,7 +35,7 @@ type
     AbLB: TAOWListBox; { +007C }
     AbVSB: TAOWVScrollBar; { +0080 }
     public
-    procedure BannerPopupShow;  { draft }
+    procedure BannerPopupShow(Sender: TObject);  { draft }
     procedure AbLBUpdate;  { draft }
     procedure AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
@@ -50,7 +50,7 @@ implementation
 
 uses AoWWinMan;
 
-procedure TUnitBanner.BannerPopupShow;
+procedure TUnitBanner.BannerPopupShow(Sender: TObject);
 var
   I: Integer;
   A: TTCAbility;

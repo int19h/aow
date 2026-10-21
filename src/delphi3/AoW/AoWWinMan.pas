@@ -7,7 +7,7 @@ unit AoWWinMan;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWWindow, AoWTC, AOWToolTip, AOWWinManager;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWWindow, AoWTC, City, PrdPlace, ExploreS, Sign, AOWToolTip, AOWWinManager;
 
 type
   TGeneral = class;
@@ -24,6 +24,7 @@ type
     public
     FWindowsHidden: Boolean; FReserved4D: array[0..10] of Byte; FInfoVisible, FRealmVisible, FMagicVisible, FReserved5B, FReserved5C, FUnitVisible, FScannerVisible, FControlVisible, FChatVisible, FMapVisible, FReserved62, FReserved63, FReserved64, FTargetVisible: Boolean; FReserved66: array[0..1] of Byte; { $4C..$67; 00455A34 }
     { conflict: FSavedWindowVisibility: array[0..15] of Boolean; }
+    { conflict: FPInfoVisible, FControlVisible, FUnitVisible: Boolean; FReserved5B: array[0..1] of Byte; FRealmVisible, FScannerVisible, FInfoVisible, FChatVisible, FMapVisible: Boolean; FReserved62: array[0..2] of Byte; FMagicVisible: Boolean; }
     FUnitShowInfo: TP2UnitShowInfo; { $68; 0044A1E5 }
     { $69..$73 are part of FUnitShowInfo. }
     FReserved74: Integer; { $74 }
@@ -31,11 +32,16 @@ type
     FActiveAbilityCount: Integer; { $7C } F_General_80: Integer;
     FSelectedUnits: array[0..7] of Integer; { $84 }
     FUnitList: TUnitList; { $A4 }
-    FStructure: TStructure; { $A8; 00442354 } F_General_AC: array[0..19] of Byte;
+    FStructure: TStructure; { $A8; 00442354 } FPreviousStructure: TStructure; { $AC } FCity: TCity; { $B0 } FProductionPlace: TProductionPlace; { $B4 } FExplorationSite: TExplorationSite; { $B8 } FSign: TSign; { $BC }
     FSelectedUnit: TAbstractUnit; { $C0; 00449DCD }
     { conflict: FUnit: TAbstractUnit; }
     FCombatUnit: TTacticalCombatUnitHS; { $C4 }
     F_General_C8: array[0..3] of Byte;
+    procedure ReturnToTitle;
+    procedure HideWindows;
+    procedure ShowWindows;
+    procedure HideTransientWindows;
+    procedure SaveLayout;
     procedure PlayButtonSound(Kind: Byte); { draft; 00455DFC }
     { conflict: procedure ButtonSound(Index: Byte); }
     procedure SortLists(var Lists: TList; Order: Byte); { draft; 00455744 }
@@ -49,8 +55,9 @@ type
     procedure GeneralCreate;  { draft }
     procedure GeneralDestroy;  { draft }
     procedure ResetLayout;  { draft }
-    procedure ManagerDebugMessage(A1: Integer; A2: Integer);  { draft }
+    procedure ManagerDebugMessage(Text: string);
     procedure MapProgress(Sender: TEObject; const Message: string; Progression: Integer); { 00454CA7 }
+    { conflict: procedure MapProgress(Sender: TObject; const Text: string; Position: Integer); }
     procedure ManagerKeyDown(A1: Integer; A2: Integer);  { draft }
     procedure ManagerUpdate;  { draft }
   end;
@@ -61,7 +68,7 @@ var
 
 implementation
 
-uses E3Globals, AoWListBox;
+uses E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -196,7 +203,9 @@ begin
 end;
 
 procedure TGeneral.ManagerChangeCursor;
-begin end;
+begin
+  SetMainCursor(MainForm, Manager.Cursor);
+end;
 
 procedure TGeneral.GeneralCreate;
 begin
@@ -318,17 +327,142 @@ begin
   Manager.FAligned := False;
 end;
 
-procedure TGeneral.ManagerDebugMessage(A1: Integer; A2: Integer);
-begin end;
+procedure TGeneral.ManagerDebugMessage(Text: string);
+begin
+  DialogWin.AddDebugMessage(Text);
+end;
 
 procedure TGeneral.MapProgress(Sender: TEObject; const Message: string; Progression: Integer);
-begin end;
+{ conflict: procedure TGeneral.MapProgress(Sender: TObject; const Text: string; Position: Integer); }
+begin
+  ProgressDialog.StatusLbl.Text := Message;
+  ProgressDialog.Bar.Position := Progression;
+  ProgressDialog.ProgDlg.FSurfaceValid := False;
+  General.Manager.DrawSurface(MainForm.Display.ActiveDC.GetSurface(1));
+  MainForm.Display.ActiveDC.BltSurface(MainForm.Display.FSurfaceIndex);
+end;
 
 procedure TGeneral.ManagerKeyDown(A1: Integer; A2: Integer);
 begin end;
 
 procedure TGeneral.ManagerUpdate;
-begin end;
+begin
+  with UnitBanner.BannerPopup do
+    if FShowPending and not Visible then
+    begin
+      WinLeft := FMenuLeft;
+      with UnitBanner.BannerPopup do WinTop := FMenuTop;
+      UnitBanner.BannerPopup.Visible := True;
+    end;
+  with AoWInfoBanner.InfoBanner.BannerPopup do
+    if FShowPending and not Visible then
+    begin
+      WinLeft := FMenuLeft;
+      with AoWInfoBanner.InfoBanner.BannerPopup do WinTop := FMenuTop;
+      AoWInfoBanner.InfoBanner.BannerPopup.Visible := True;
+    end;
+  MWindow.MapWindow.DoubleBuffered := Manager.FOverlayPriority > MWindow.MapWindow.Priority;
+  if MainForm.FCursorChanged then Manager.AddDrawRect(MainForm.FLastCursorRect, nil);
+end;
 
+
+procedure TGeneral.HideWindows;
+var I: Integer;
+begin
+  if not FWindowsHidden then
+  begin
+    FWindowsHidden := True;
+    FInfoVisible := PInfoW.PInfoWin.Visible;
+    FRealmVisible := ControlWin.ControlWindow.Visible;
+    FMagicVisible := UnitWindow.UnitWin.Visible;
+    FUnitVisible := RealmWin.Dlg.Visible;
+    FTargetVisible := MagicWin.Dlg.Visible;
+    FScannerVisible := SWindow.ScannerWindow.Visible;
+    FControlVisible := IWindow.InfoWin.Visible;
+    FChatVisible := ChatWindow.ChatWin.Visible;
+    FMapVisible := MWindow.MapWindow.Visible;
+    for I := 0 to General.Manager.FChildren.Count - 1 do
+      if TAoWComponent(General.Manager.FChildren[I]) <> TBWindow.TaskWindow then
+        TAoWComponent(General.Manager.FChildren[I]).Visible := False;
+  end;
+end;
+
+procedure TGeneral.ShowWindows;
+begin
+  if FWindowsHidden then
+  begin
+    FWindowsHidden := False;
+    PInfoW.PInfoWin.Visible := FInfoVisible;
+    ControlWin.ControlWindow.Visible := FRealmVisible;
+    UnitWindow.UnitWin.Visible := FMagicVisible;
+    SWindow.ScannerWindow.Visible := FScannerVisible;
+    IWindow.InfoWin.Visible := FControlVisible;
+    MWindow.MapWindow.Visible := FMapVisible;
+    RealmWin.Dlg.Visible := FUnitVisible;
+    MagicWin.Dlg.Visible := FTargetVisible;
+    ChatWindow.ChatWin.Visible := FChatVisible;
+  end;
+end;
+
+procedure TGeneral.HideTransientWindows;
+var I: Integer; Window: TAOWWindow;
+begin
+  for I := 0 to Manager.FChildren.Count - 1 do
+  begin
+    Window := TAOWWindow(Manager.FChildren[I]);
+    if (Window <> MWindow.MapWindow) and Window.Modal and Window.Visible then
+      Window.Visible := False;
+  end;
+end;
+
+procedure TGeneral.SaveLayout;
+begin
+  with PInfoW.PInfoWin do
+      AoWEngine.FRegistry.SetRectangle(0, Rect(Alignment.RightOffset, Alignment.BottomOffset, WinWidth, WinHeight));
+  with ControlWin.ControlWindow do
+      AoWEngine.FRegistry.SetRectangle(1, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with UnitWindow.UnitWin do
+    if Alignment.AlignWidth = awCenter then AoWEngine.FRegistry.SetRectangle(2, Rect(0, 0, 0, 0))
+    else
+      AoWEngine.FRegistry.SetRectangle(2, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with RealmWin.Dlg do
+    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(5, Rect(0, 0, 0, 0))
+    else
+      AoWEngine.FRegistry.SetRectangle(5, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with MagicWin.Dlg do
+    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(13, Rect(0, 0, 0, 0))
+    else
+      AoWEngine.FRegistry.SetRectangle(13, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with SWindow.ScannerWindow do
+      AoWEngine.FRegistry.SetRectangle(6, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with IWindow.InfoWin do
+      AoWEngine.FRegistry.SetRectangle(7, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with ChatWindow.ChatWin do
+    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(8, Rect(0, 0, 0, 0))
+    else
+      AoWEngine.FRegistry.SetRectangle(8, Rect(Alignment.LeftOffset, Alignment.BottomOffset, WinWidth, WinHeight));
+  with MWindow.MapWindow do
+    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(9, Rect(0, 0, 0, 0))
+    else
+      AoWEngine.FRegistry.SetRectangle(9, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with TCScanner.TCScannerWin do
+      AoWEngine.FRegistry.SetRectangle(12, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
+  with TCUnit.TCUnitWin do
+      AoWEngine.FRegistry.SetRectangle(10, Rect(Alignment.RightOffset, Alignment.BottomOffset, WinWidth, WinHeight));
+  if MWindow.FMapAlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(11, Rect(0, 0, 0, 0))
+  else AoWEngine.FRegistry.SetRectangle(11, Rect(MWindow.FMapRect.Left, MWindow.FMapRect.Top,
+    MWindow.FMapRect.Right, MWindow.FMapRect.Bottom));
+end;
+
+procedure TGeneral.ReturnToTitle;
+begin
+  AoWEngine.CloseHSM(nil); AoWEngine.CloseCampaign;
+  SWindow.Scanner.SetMap(nil); TCScanner.Scanner.SetMap(nil);
+  SongPlayer.Stop(False); SongPlayer.Songs.Clear;
+  SetCurrentDir(AoWEngine.StartupDirectory);
+  General.HideWindows;
+  TBWindow.TaskWindow.Visible := False; TitleWindow.TitleWin.Visible := False;
+  TitleScene.ResetScene; ShowTitleScene(TitleScene, True);
+end;
 
 end.

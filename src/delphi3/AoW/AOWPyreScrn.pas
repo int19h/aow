@@ -23,26 +23,30 @@ type
     PyreAnimation: TaowUserDrawBox; { +0050 }
     public
     FAnimation: TObject; FSavedSongStatus: TSongStatus; FDone: TExecuteDoneEvent; { $54, $58, $5C; 004293AC }
+    { conflict: FFire: TSample; FSongStatus: TSongStatus; }
     FGameOverEvent: TGameOverEventLog; { $64 }
     FAnimationFrame: Integer; { $68 }
+    procedure ClearFire;
+    procedure FinishScreen;
+    procedure ShowGameOver(Event: TGameOverEventLog; Unused: Integer; Done: TExecuteDoneEvent);
     procedure DeadPnlUpdate;  { draft }
-    procedure DeadPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure DeadPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure LeaderFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure PyreAnimationUpdate;  { draft }
     procedure PyreAnimationDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DeadPnlKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DeadPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-uses E3Globals;
+uses E3Globals, AoWWinMan, E1Globals, AoWExeForms, AoWVideoDlg;
 
 procedure TPyreScreen.DeadPnlUpdate;
 begin end;
 
-procedure TPyreScreen.DeadPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TPyreScreen.DeadPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin FinishScreen; end;
 
 procedure TPyreScreen.LeaderFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc);
 var
@@ -60,7 +64,12 @@ end;
 
 
 procedure TPyreScreen.PyreAnimationUpdate;
-begin end;
+begin
+  PyreAnimation.FDrawn := False; DeadPnl.FDrawn := False;
+  Inc(FAnimationFrame);
+  if FAnimationFrame > 450 then FinishScreen;
+  if FAnimationFrame > $FFFFFF then FAnimationFrame := 0;
+end;
 
 procedure TPyreScreen.PyreAnimationDraw(Sender: TObject; SD: TSurfaceDesc);
 var
@@ -95,8 +104,46 @@ begin
 end;
 
 
-procedure TPyreScreen.DeadPnlKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TPyreScreen.DeadPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin case Key of VK_RETURN, VK_ESCAPE: FinishScreen; end; end;
 
+
+procedure TPyreScreen.ClearFire;
+begin
+  if FAnimation <> nil then begin FAnimation.Free; FAnimation := nil; end;
+end;
+
+procedure TPyreScreen.FinishScreen;
+begin
+  ClearFire;
+  IntGfxMod.PyreFrames.ReleaseDiscardableImageData;
+  E1Globals.PyreScreen.DeadPnl.Visible := False;
+  ShowResults(ResultsWin);
+end;
+
+procedure TPyreScreen.ShowGameOver(Event: TGameOverEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+begin
+  FAnimationFrame := 0;
+  FGameOverEvent := Event; Event.AddRef; FDone := Done;
+  FSavedSongStatus := BackupSongStatus;
+  FadeMusicVolume(0, 1);
+  General.Manager.OverlayPriority := 249;
+  case AoWHSMap.FPlayers.GetPlayers(Event.FPlayer).FGameOverStatus of
+    goWon: AoWHSMap.FTutorialControl.ShowMessage(67, True, True);
+    goLost:
+      begin
+        FAnimation := PlaySampleEx('Sfx\Attack\Fireloop.wav', 64, True, 0, spCenter, nil);
+        AoWHSMap.FTutorialControl.ShowMessage(68, True, True);
+      end;
+  end;
+  IntGfxMod.PyreFrames.LoadDiscardableImageData;
+  TitleWindow.TitlePnl.Visible := False;
+  E1Globals.PyreScreen.DeadPnl.Visible := True;
+  AoWExeForms.VideoDialog.SetSceneSize(640, 480);
+  SetVideoMode(AoWExeForms.VideoDialog, scmTitle);
+  AoWExeForms.VideoDialog.ApplyMode;
+  TitleWindow.TitleWin.Visible := True;
+  SetCurrentDir(ExtractFileDir(Application.ExeName));
+end;
 
 end.

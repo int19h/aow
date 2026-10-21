@@ -21,13 +21,16 @@ type
     DXDC: TDDrawFullScr16DC; { +01E4 }
     public
     FCursor: Smallint; FCursorPad: Word; { $1E8; 00452938 }
+    { conflict: FCursorIndex: Smallint; }
     FDebugWindow: TDebugMessageDlg; { $1EC }
     F_MainForm_1F0: array[0..7] of Byte; FCursorImage: TLibraryImage; { $1F8; 0040A0E4 }
     FLastCursorRect: TRect; { $1FC; 0045309A }
+    { conflict: FCursorRect: TRect; }
     { $200 is FLastCursorRect.Top. }
     { $204 is FLastCursorRect.Right. }
     { $208 is FLastCursorRect.Bottom. }
     FCursorChanged: Boolean; { $20C }
+    { conflict: FCursorDrawn: Boolean; }
     F_MainForm_20D: array[0..2] of Byte;
     procedure PlayInterfaceSound(Kind: Byte);
     procedure GetCursorRect(X, Y: Integer; var R: TRect);

@@ -48,6 +48,8 @@ type
     { conflict: FWidth: Integer; }
     FDisplayHeight: Integer; { $A0; 0040B04C }
     { conflict: FHeight: Integer; }
+    procedure SetSceneSize(W, H: Integer);
+    procedure ApplyMode;
     function CurrentMode: Integer;
     procedure ChangeResolution(W, H: Integer);
     procedure UpdateModes;
@@ -359,5 +361,48 @@ begin
   else Result := inherited GetAutoSaveFileName(Auto);
 end;
 
+
+procedure TVideoDialog.SetSceneSize(W, H: Integer);
+begin
+  FSceneWidth := W; FSceneHeight := H;
+  if FFullScreen = scmTitle then FModeChanged := True;
+end;
+
+procedure TVideoDialog.ApplyMode;
+var DC: TAbstractDC;
+begin
+  if FModeChanged then
+  begin
+    DC := MainForm.Display.ActiveDC;
+    if DC = nil then
+    begin
+      if FFullScreen = scmGame then
+      begin
+        MainForm.DXDC.DisplayWidth := FDisplayWidth;
+        MainForm.DXDC.DisplayHeight := FDisplayHeight;
+        MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
+        MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
+      end
+      else if (FFullScreen = scmTitle) and AoWEngine.FRegistry.GetAllowResolutionSwitches then
+      begin
+        MainForm.DXDC.DisplayWidth := FSceneWidth; MainForm.DXDC.DisplayHeight := FSceneHeight;
+        MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
+        MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
+      end;
+    end
+    else
+      case FFullScreen of
+        scmWindowed: ChangeResolution(0, 0);
+        scmGame: if DC = MainForm.WinDC then ChangeResolution(0, 0)
+           else ChangeResolution(FDisplayWidth, FDisplayHeight);
+        scmTitle: if DC = MainForm.WinDC then ChangeResolution(0, 0)
+           else if not AoWEngine.FRegistry.GetAllowResolutionSwitches or
+             (MainForm.Display.ActiveDC = MainForm.WinDC) then
+             ChangeResolution(FDisplayWidth, FDisplayHeight)
+           else ChangeResolution(FSceneWidth, FSceneHeight);
+      end;
+    FModeChanged := False;
+  end;
+end;
 
 end.

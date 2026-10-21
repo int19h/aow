@@ -39,6 +39,7 @@ type
     F_TitleScene_96: array[0..1] of Byte;
     FCredits: TList; { $98 }
     FCreditPage: Integer; FCreditFrame: Integer; FShowIntro: Boolean; FPadA5: array[0..2] of Byte; FIntroFrame: Integer; FFont: TImageLibraryFont; FCreditsFont: TImageLibraryFont; { $9C, $A0, $A4, $A8, $AC, $B0 }
+    { conflict: FShadowFont: TImageLibraryFont; }
     procedure DrawCredits(var Surface: TSurfaceDesc);
     procedure DrawIntro(var Surface: TSurfaceDesc);
     procedure DrawScene(var Surface: TSurfaceDesc);

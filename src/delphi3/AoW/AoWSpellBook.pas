@@ -7,13 +7,13 @@ unit AoWSpellBook;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWBookWindow, AoWButton, AoWImage, AoWLabel, AoWMemo, AoWPanel;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWTC, EventLog, AoWComp, PageTurnCtrl, AoWBookWindow, AoWButton, AoWImage, AoWLabel, AoWMemo, AoWPanel;
 
 type
   TSpellBook = class;
 
 
-  { TSpellBook (instance size 584, VMT 0042DDA8) }
+  { TSpellBook (instance size $248, VMT 0042DDA8): $220 mode, $221 page kind, $222 spell type, $224 spells, $228 page, $22C hero, $230 activation, $234 researched spell, $238 callback, $240 event, $244 saved player pages. }
   TSpellBook = class(TDataModule)
   public
     published
@@ -137,106 +137,648 @@ type
     CancelCastingBtn: TAOWButton; { +0218 }
     Translator: TIvTranslator; { +021C }
     public
-    F_SpellBook_220: Byte;
-    F_SpellBook_221: Byte;
-    F_SpellBook_222: Byte;
-    F_SpellBook_223: array[0..0] of Byte;
-    F_SpellBook_224: Integer;
-    F_SpellBook_228: Integer;
-    F_SpellBook_22C: Integer;
-    F_SpellBook_230: Integer;
-    F_SpellBook_234: Integer;
-    F_SpellBook_238: array[0..7] of Byte;
-    F_SpellBook_240: Integer;
-    F_SpellBook_244: Integer;
-    procedure SpellBookCreate;  { draft }
-    procedure SpellBookDestroy;  { draft }
-    procedure CancelClick(A1: Integer);  { draft }
-    procedure NextBtnClick;  { draft }
-    procedure PrevBtnClick;  { draft }
-    procedure SpellIconDraw(A1: Integer; A2: Integer);  { draft }
-    procedure SelectSpellBtnClick(A1: Integer);  { draft }
-    procedure GlobalBtnClick;  { draft }
-    procedure UnitBtnClick;  { draft }
-    procedure CombatBtnClick;  { draft }
-    procedure InfoBtnClick;  { draft }
-    procedure CastingBtnClick;  { draft }
-    procedure CancelCastingBtnClick;  { draft }
-    procedure FaceDraw(A1: Integer; A2: Integer);  { draft }
-    procedure ResearchIcnDraw(A1: Integer; A2: Integer);  { draft }
-    procedure CastingIcnDraw(A1: Integer; A2: Integer);  { draft }
-    procedure CancelResearchBtnClick;  { draft }
-    procedure Sel1Click;  { draft }
-    procedure DlgHide;  { draft }
-    procedure DlgUpdate;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FMode: Byte; { $220: world casting, combat casting, research, researched }
+    FPageKind: Byte; { $221: information or spell list }
+    FSpellType: TSpellType; { $222 }
+    FReserved223: Byte;
+    FSpells: TSpellList; { $224 }
+    FPage: Integer; { $228 }
+    FHero: THero; { $22C }
+    FActivation: TActivateAbilityInfo; { $230 }
+    FResearchedSpell: Integer; { $234 }
+    FDone: TExecuteDoneEvent; { $238 }
+    FEvent: TPlayerMagicEventLog; { $240 }
+    FPlayerPages: TDoubleItemList; { $244 }
+    procedure ShowBook;
+    procedure FinishDialog;
+    function ValidateHero: Boolean;
+    procedure Reset;
+    procedure SetPageKind(Kind: Byte);
+    procedure UpdateSpellPages;
+    procedure UpdateInfoPages;
+    procedure ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Icon: TAOWImage;
+      Memo: TAOWMemo; Cost, SpellClass, Name: TAOWLabel; Button: TAOWButton);
+    procedure SelectSpell(Spell: TSpell);
+    procedure PlayerChanged(Player: Shortint);
+    procedure UnitChanged(U: TAbstractUnit);
+    procedure ShowResearch;
+    procedure ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowCasting(Activation: TActivateAbilityInfo);
+    procedure ShowCombatCasting(Activation: TActivateAbilityInfo; Unused: Integer);
+    procedure SpellBookCreate;
+    procedure SpellBookDestroy;
+    procedure CancelClick;
+    procedure NextBtnClick;
+    procedure PrevBtnClick;
+    procedure SpellIconDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure SelectSpellBtnClick(Sender: TObject);
+    procedure GlobalBtnClick(Sender: TObject);
+    procedure UnitBtnClick;
+    procedure CombatBtnClick;
+    procedure InfoBtnClick(Sender: TObject);
+    procedure CastingBtnClick;
+    procedure CancelCastingBtnClick;
+    procedure FaceDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+    procedure CancelResearchBtnClick;
+    procedure Sel1Click;
+    procedure DlgHide;
+    procedure DlgUpdate;
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses E3Globals, AoWWinMan;
+
 procedure TSpellBook.SpellBookCreate;
-begin end;
+var Defaults: TDoubleItem;
+begin
+  FSpells := TSpellList.Create;
+  Defaults.A := 2; Defaults.B := 0;
+  FPlayerPages := TDoubleItemList.Create;
+  FPlayerPages.Default := Defaults;
+end;
 
 procedure TSpellBook.SpellBookDestroy;
-begin end;
+begin
+  if FActivation <> nil then
+  begin FActivation.Release; FActivation := nil; end;
+  FPlayerPages.Free;
+  FSpells.Free;
+end;
 
-procedure TSpellBook.CancelClick(A1: Integer);
-begin end;
+procedure TSpellBook.CancelClick;
+begin
+  if (AoWHSMap.FCombatMap <> nil) and (General.FCombatUnit <> nil) then
+    General.FCombatUnit.SelectAbility(-1);
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TSpellBook.NextBtnClick;
-begin end;
+begin
+  Inc(FPage); UpdateSpellPages; Dlg.StartAnim(ptLeft);
+  Dlg.FPageTurn.FSpeed := 25;
+  PlaySample('Sfx\Int\Pagef1.wav');
+end;
 
 procedure TSpellBook.PrevBtnClick;
-begin end;
+begin
+  Dec(FPage); UpdateSpellPages; Dlg.StartAnim(ptRight);
+  Dlg.FPageTurn.FSpeed := 25;
+  PlaySample('Sfx\Int\Pagef1.wav');
+end;
 
-procedure TSpellBook.SpellIconDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TSpellBook.SpellIconDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+var Index, X, Y: Integer;
+begin
+  Index := FPage * 8 + (Sender.Tag and $F);
+  if (Index >= 0) and (Index < FSpells.GetCount) then
+    if FSpells.GetSpell(Index).FCastImages.GetImageSequence(10) <> nil then
+    begin
+      X := Sender.WinLeft + Sender.FAOWWindow.WinLeft;
+      Y := Sender.WinTop + Sender.FAOWWindow.WinTop;
+      FSpells.GetSpell(Index).FCastImages.Show(10, X, Y, 0, SD);
+    end;
+end;
 
-procedure TSpellBook.SelectSpellBtnClick(A1: Integer);
-begin end;
+procedure TSpellBook.SelectSpellBtnClick(Sender: TObject);
+begin
+  SelectSpell(FSpells.GetSpell(FPage * 8 + TComponent(Sender).Tag));
+end;
 
-procedure TSpellBook.GlobalBtnClick;
-begin end;
+procedure TSpellBook.GlobalBtnClick(Sender: TObject);
+begin
+  if (FSpellType <> stGlobal) or (FPage <> 0) or (FPageKind <> 1) then
+  begin
+    if FPageKind = 0 then Dlg.StartAnim(ptLeft) else Dlg.StartAnim(ptRight);
+    PlaySample('Sfx\Int\Pagef1.wav');
+    FSpellType := stGlobal; FPage := 0; UpdateSpellPages; SetPageKind(1);
+  end;
+end;
 
 procedure TSpellBook.UnitBtnClick;
-begin end;
+begin
+  if (FSpellType <> stUnit) or (FPage <> 0) or (FPageKind <> 1) then
+  begin
+    if (FPageKind = 0) or (FSpellType = stGlobal) then Dlg.StartAnim(ptLeft)
+    else Dlg.StartAnim(ptRight);
+    PlaySample('Sfx\Int\Pagef1.wav');
+    FSpellType := stUnit; FPage := 0; UpdateSpellPages; SetPageKind(1);
+  end;
+end;
 
 procedure TSpellBook.CombatBtnClick;
-begin end;
+begin
+  if (FSpellType <> stCombat) or (FPage <> 0) or (FPageKind <> 1) then
+  begin
+    Dlg.StartAnim(ptLeft);
+    PlaySample('Sfx\Int\Pagef1.wav');
+    FSpellType := stCombat; FPage := 0; UpdateSpellPages; SetPageKind(1);
+  end;
+end;
 
-procedure TSpellBook.InfoBtnClick;
-begin end;
+procedure TSpellBook.InfoBtnClick(Sender: TObject);
+begin
+  if FPageKind <> 0 then
+  begin
+    Dlg.StartAnim(ptRight);
+    PlaySample('Sfx\Int\Pagef1.wav');
+    SetPageKind(0);
+  end;
+end;
 
 procedure TSpellBook.CastingBtnClick;
-begin end;
+var Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if ValidateHero then
+  begin
+    case FMode of
+      0: if FHero.CastSpell(FHero.FCastingSpellID, Reason) then Dlg.Visible := False
+         else AoWHSMap.ShowWarning(Reason);
+      1: SelectSpell(AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID));
+    end;
+  end;
+end;
 
 procedure TSpellBook.CancelCastingBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if ValidateHero then FHero.CancelCasting;
+end;
 
-procedure TSpellBook.FaceDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TSpellBook.FaceDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+var R: TRect;
+begin
+  R := Rect(LeftInfoPage.WinLeft + Sender.WinLeft, LeftInfoPage.WinTop + Sender.WinTop,
+    LeftInfoPage.WinLeft + Sender.WinLeft + Sender.WinWidth,
+    LeftInfoPage.WinTop + Sender.WinTop + Sender.WinHeight);
+  FHero.GetFace.ShowStretched(R, SD);
+end;
 
-procedure TSpellBook.ResearchIcnDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TSpellBook.ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+var Spell: TSpell;
+begin
+  Spell := AoWHSSet.FSpellControl.GetSpell(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID);
+  if (Spell = nil) and (FMode = 3) then Spell := AoWHSSet.FSpellControl.GetSpell(FResearchedSpell);
+  if Spell <> nil then Spell.FCastImages.Show(10, Sender.FAOWWindow.WinLeft + Sender.WinLeft,
+    Sender.FAOWWindow.WinTop + Sender.WinTop, 0, SD);
+end;
 
-procedure TSpellBook.CastingIcnDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TSpellBook.CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+var Spell: TSpell;
+begin
+  if FHero <> nil then
+    if FHero.Casting then
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID);
+      if Spell <> nil then Spell.FCastImages.Show(10, Sender.FAOWWindow.WinLeft + Sender.WinLeft,
+        Sender.FAOWWindow.WinTop + Sender.WinTop, 0, SD);
+    end;
+end;
 
 procedure TSpellBook.CancelResearchBtnClick;
-begin end;
+var Control: TPlayerMagicControl;
+begin
+  General.PlayButtonSound(0);
+  if ValidateHero then
+  begin
+    Control := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl;
+    if Control.FResearchSpellID <> 0 then Control.ResearchSpell(0) else GlobalBtnClick(Self);
+  end;
+end;
 
 procedure TSpellBook.Sel1Click;
-begin end;
+begin General.PlayButtonSound(0); end;
 
 procedure TSpellBook.DlgHide;
-begin end;
+begin FinishDialog; end;
 
 procedure TSpellBook.DlgUpdate;
-begin end;
+begin
+  if Dlg.Visible then
+    if not ValidateHero then Dlg.Visible := False;
+end;
 
-procedure TSpellBook.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TSpellBook.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then
+  begin
+    if (AoWHSMap.FCombatMap <> nil) and (General.FCombatUnit <> nil) then
+      General.FCombatUnit.SelectAbility(-1);
+    Dlg.Visible := False;
+  end;
+end;
 
+procedure TSpellBook.ShowBook;
+begin
+  General.Manager.OverlayPriority := 49;
+  if (MainForm.DXDC = MainForm.Display.ActiveDC) and MainForm.DXDC.UseVideoMemory then
+    General.Manager.FDrawOverlay := False;
+  Dlg.Visible := True;
+end;
+
+procedure TSpellBook.FinishDialog;
+var Done: TExecuteDoneEvent; Event: TPlayerMagicEventLog;
+begin
+  PlaySample('SFX\INT\BOOKCLSE.WAV');
+  Done := FDone; Event := FEvent; FDone := nil; FEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+  General.Manager.OverlayPriority := 0;
+  General.Manager.FDrawOverlay := True;
+  MagicWin.Dlg.FDrawn := False;
+end;
+
+function TSpellBook.ValidateHero: Boolean;
+begin
+  if FActivation <> nil then
+  begin
+    FHero := THero(AoWHSMap.FUnitControl.FindUnit(FActivation.FUnitID));
+    Result := (FHero <> nil) and (FHero.FUnitStatus * [usKilled] = []);
+  end
+  else Result := True;
+end;
+
+procedure TSpellBook.PlayerChanged(Player: Shortint);
+begin
+  if Dlg.Visible and (Player = AoWHSMap.FSeatedPlayer) then
+  begin UpdateSpellPages; UpdateInfoPages; end;
+end;
+
+procedure TSpellBook.UnitChanged(U: TAbstractUnit);
+begin
+  if Dlg.Visible and ((U = nil) or ((FMode in [0, 1]) and (U = FHero))) then
+  begin UpdateSpellPages; UpdateInfoPages; end;
+end;
+
+procedure TSpellBook.Reset;
+begin
+  if FActivation <> nil then
+  begin FActivation.Release; FActivation := nil; end;
+  FSpells.Clear; FPage := 0; FHero := nil;
+  ResearchPage.Visible := True; CastingPage.Visible := True;
+  GlobalBtn.Visible := True;
+  GlobalBtn.ILIndexDown := 17; GlobalBtn.ILIndexLit := 18; GlobalBtn.ILIndexUp := 16;
+  CombatBtn.Visible := True; UnitBtn.Visible := True; InfoBtn.Visible := True;
+  CurrentPointsLbl.Visible := True; CastingPointsMaxLbl.Visible := True; Line.Visible := True;
+end;
+
+procedure TSpellBook.SetPageKind(Kind: Byte);
+begin
+  FPageKind := Kind;
+  LeftSpellPage.Visible := Kind = 1;
+  RightSpellPage.Visible := Kind = 1;
+  LeftInfoPage.Visible := Kind = 0;
+  RightInfoPage.Visible := Kind = 0;
+  case Kind of
+    0: begin NextBtn.Visible := False; PrevBtn.Visible := False; end;
+    1: begin
+      NextBtn.Visible := FSpells.GetCount - (FPage + 1) * 8 > 0;
+      PrevBtn.Visible := FPage <> 0;
+    end;
+  end;
+end;
+
+procedure TSpellBook.SelectSpell(Spell: TSpell);
+var Reason: string;
+begin
+  if not ValidateHero then Dlg.Visible := False
+  else
+    if FMode = 0 then
+    begin
+      if (FHero.GetCastingPoints >= Spell.FBaseManaCost) or
+        AoWHSMap.FPlayers.GetPlayers(FHero.FPlayer).FMagicControl.GetCheatEnabled then
+      begin
+        if FHero.CastSpell(Spell.FSpellID, Reason) then Dlg.Visible := False
+        else AoWHSMap.ShowWarning(Reason);
+      end
+      else
+        if FHero.CastSpell(Spell.FSpellID, Reason) then InfoBtnClick(Self)
+        else AoWHSMap.ShowWarning(Reason);
+    end
+    else if FMode = 1 then
+    begin
+      if FHero.CastCombatSpell(Spell.FSpellID, Reason) then Dlg.Visible := False
+      else AoWCombatMap.ShowWarning(Reason);
+    end
+    else if FMode in [2, 3] then
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ResearchSpell(Spell.FSpellID) then
+        if (FEvent <> nil) and (FEvent.FMode = pmemStartResearch) then Dlg.Visible := False
+        else begin FMode := 2; InfoBtnClick(Self); end;
+end;
+
+procedure TSpellBook.ShowResearch;
+begin
+  Reset;
+  CastingPointsMaxLbl.Visible := False; CurrentPointsLbl.Visible := False; Line.Visible := False;
+  GlobalBtn.ILIndexDown := 14; GlobalBtn.ILIndexLit := 15; GlobalBtn.ILIndexUp := 13;
+  CombatBtn.Visible := False; UnitBtn.Visible := False;
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
+    SetPageKind(1) else SetPageKind(0);
+  FMode := 2; FSpellType := stGlobal; FPage := 0;
+  FHero := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader;
+  UpdateSpellPages; UpdateInfoPages; ShowBook;
+end;
+
+procedure TSpellBook.ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+begin
+  FEvent := Event; Event.AddRef; FDone := Done;
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
+  begin
+    Reset;
+    GlobalBtn.ILIndexDown := 14; GlobalBtn.ILIndexLit := 15; GlobalBtn.ILIndexUp := 13;
+    CombatBtn.Visible := False; UnitBtn.Visible := False;
+    FResearchedSpell := 0; SetPageKind(1);
+    FMode := 2; FSpellType := stGlobal; FPage := 0;
+    FHero := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader;
+    UpdateSpellPages; UpdateInfoPages; ShowBook;
+    AoWHSMap.FTutorialControl.ShowMessage(51, True, True);
+  end
+  else ShowResearch;
+end;
+
+procedure TSpellBook.ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+begin
+  FEvent := Event; Event.AddRef; FDone := Done;
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
+  begin
+    Reset; FResearchedSpell := Event.FSpellID; SetPageKind(0);
+    FMode := 3; FSpellType := stGlobal; FPage := 0;
+    FHero := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader;
+    UpdateSpellPages; UpdateInfoPages; ShowBook;
+  end
+  else ShowResearch;
+end;
+
+procedure TSpellBook.ShowCasting(Activation: TActivateAbilityInfo);
+begin
+  Reset; FActivation := Activation; Activation.AddRef; FMode := 0;
+  if not ValidateHero then begin Reset; Exit; end;
+  FSpellType := TSpellType(FPlayerPages[AoWHSMap.FSeatedPlayer].A);
+  FPage := FPlayerPages[AoWHSMap.FSeatedPlayer].B;
+  if FHero.Casting then SetPageKind(0)
+  else
+  begin
+    FSpells.Clear;
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+    if (FSpells.GetCount = 0) or (FSpells.GetCount <= FPage * 8) then
+    begin
+      FSpells.Clear; FSpellType := TSpellType(3);
+      while (FSpells.GetCount = 0) and (Ord(FSpellType) <> 0) do
+      begin
+        Dec(FSpellType);
+        AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      end;
+    end;
+    SetPageKind(1);
+  end;
+  UpdateSpellPages; UpdateInfoPages; ShowBook;
+end;
+
+procedure TSpellBook.ShowCombatCasting(Activation: TActivateAbilityInfo; Unused: Integer);
+begin
+  Reset; FActivation := Activation; Activation.AddRef; FMode := 1;
+  if not ValidateHero then Reset
+  else
+  begin
+    GlobalBtn.Visible := True;
+    if FHero.Casting then SetPageKind(0)
+    else
+    begin
+      FSpells.Clear; FSpellType := TSpellType(3);
+      while (FSpells.GetCount = 0) and (Ord(FSpellType) <> 0) do
+      begin
+        Dec(FSpellType);
+        AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      end;
+      SetPageKind(1);
+    end;
+    FSpellType := stCombat; FPage := 0;
+    UpdateSpellPages; UpdateInfoPages; ShowBook;
+  end;
+end;
+
+procedure TSpellBook.UpdateSpellPages;
+var I: Integer;
+begin
+  if not ValidateHero then Dlg.Visible := False
+  else
+  begin
+    if FMode = 0 then
+    begin
+      FSpells.Clear;
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      FSpells.SortOnLevel;
+      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+    end
+    else if FMode = 1 then
+    begin
+      FSpells.Clear;
+      AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      FSpells.SortOnLevel;
+      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+    end
+    else if FMode in [2, 3] then
+    begin
+      FSpells.Clear;
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListResearchSpells(FSpells, [stCombat, stUnit, stGlobal]);
+      FSpells.SortOnLevel;
+      LeftHeader.Text := AoWE.Format(TranslateRStr(ResearchXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      RightHeader.Text := AoWE.Format(TranslateRStr(ResearchXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      LeftHeader.Text := TranslateRStr(ResearchSpellRStr); { Original overwrites the type-specific headers. }
+      RightHeader.Text := TranslateRStr(ResearchSpellRStr);
+    end;
+    for I := FSpells.GetCount - 1 downto 0 do
+      if (FSpells.GetSpell(I).FSpellID > 99) and (SpellTypes[FSpells.GetSpell(I).FSpellID] = fxNone) then FSpells.Delete(I);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8), S1Pnl, S1Icn, S1Memo, S1Cost, S1Class, S1Spell, S1Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 1), S2Pnl, S2Icn, S2Memo, S2Cost, S2Class, S2Spell, S2Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 2), S3Pnl, S3Icn, S3Memo, S3Cost, S3Class, S3Spell, S3Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 3), S4Pnl, S4Icn, S4Memo, S4Cost, S4Class, S4Spell, S4Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 4), S5Pnl, S5Icn, S5Memo, S5Cost, S5Class, S5Spell, S5Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 5), S6Pnl, S6Icn, S6Memo, S6Cost, S6Class, S6Spell, S6Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 6), S7Pnl, S7Icn, S7Memo, S7Cost, S7Class, S7Spell, S7Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 7), S8Pnl, S8Icn, S8Memo, S8Cost, S8Class, S8Spell, S8Btn);
+    if FMode = 0 then
+    begin
+      FPlayerPages.Count := AoWHSMap.FSeatedPlayer + 1;
+      FPlayerPages.List^[AoWHSMap.FSeatedPlayer].A := Ord(FSpellType);
+      FPlayerPages.List^[AoWHSMap.FSeatedPlayer].B := FPage;
+    end;
+    if FPageKind = 1 then
+    begin
+      NextBtn.Visible := FSpells.GetCount - (FPage + 1) * 8 > 0;
+      PrevBtn.Visible := FPage <> 0;
+    end;
+  end;
+end;
+
+procedure TSpellBook.ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Icon: TAOWImage;
+  Memo: TAOWMemo; Cost, SpellClass, Name: TAOWLabel; Button: TAOWButton);
+var Reason: string; Turns: Integer; Control: TPlayerMagicControl;
+begin
+  if Spell = nil then Panel.Visible := False
+  else
+  begin
+    Panel.Visible := True;
+    Name.Text := Spell.FSpellName;
+    SpellClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
+      TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
+    if FMode = 2 then
+    begin
+      if Spell.FSpellControlTypes = [sctGlobal] then SpellClass.Text := SpellClass.Text + ', ' + TranslateRStr(GlobalRStr)
+      else if Spell.FSpellControlTypes = [sctCombat] then SpellClass.Text := SpellClass.Text + ', ' + TranslateRStr(CombatRStr)
+      else if Spell.FSpellControlTypes = [sctGlobal, sctCombat] then
+        SpellClass.Text := SpellClass.Text + ', ' + TranslateRStr(GlobalRStr) + '/' + TranslateRStr(CombatRStr);
+    end;
+    Memo.Items := Spell.FSpellText;
+    if FHero = nil then Cost.Text := AoWE.Format(TranslateRStr(CostXRStr), [Spell.FBaseManaCost])
+    else Cost.Text := AoWE.Format(TranslateRStr(CostXRStr), [FHero.CastingMana(Spell)]);
+    if ((FMode = 0) and ((Spell.FSpellControlTypes * [sctGlobal] = []) or FHero.Casting)) or
+      ((FMode = 1) and ((Spell.FSpellControlTypes * [sctCombat] = []) or FHero.Casting or
+      not FHero.CanCastSpellInstantly(Spell.FSpellID, Spell.FBaseManaCost, Reason))) or
+      ((FMode = 2) and (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID <> 0)) then
+    begin
+      Memo.TextColor := $4C4C4C; Name.TextColor := $4C4C4C; SpellClass.TextColor := $4C4C4C; Cost.TextColor := $4C4C4C;
+      Button.Visible := False; Icon.Tag := Icon.Tag or $10;
+    end
+    else
+    begin
+      Memo.TextColor := $13243C; Name.TextColor := $13243C; SpellClass.TextColor := $5A2734; Cost.TextColor := $5A2734;
+      Button.Visible := True; Icon.Tag := Icon.Tag and $F;
+    end;
+    if Spell.FManaUpkeep > 0 then
+      Cost.Text := Cost.Text + ' ' + AoWE.Format(TranslateRStr(UpkeepXRStr), [Spell.FManaUpkeep]);
+    if FMode in [0, 1] then
+    begin
+      Turns := FHero.CastingTurns(Spell);
+      if Turns = 0 then Reason := TranslateRStr(InstantRStr)
+      else Reason := AoWE.Format(TranslateRStr(TurnsXRStr), [IntToStr(Turns)]);
+      Cost.Text := Cost.Text + ' ' + Reason;
+    end
+    else if (FMode = 2) or (FMode = 3) then
+    begin
+      Control := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl;
+      Turns := Control.ResearchTurns(Control.GetNetPowerToResearch, Spell.FResearchCost);
+      if Turns < 999 then Cost.Text := Cost.Text + ' ' + AoWE.Format(TranslateRStr(TurnsXRStr), [IntToStr(Turns)])
+      else Cost.Text := Cost.Text + ' ' + AoWE.Format(TranslateRStr(XTurnsRStr), ['?']);
+    end;
+  end;
+end;
+
+procedure TSpellBook.UpdateInfoPages;
+var Player: Shortint; Leader: TLeader; I: Integer; Button: TAOWButton;
+  Control: TPlayerMagicControl; Spell: TSpell;
+begin
+  if ValidateHero then
+  begin
+    if FMode = 1 then Player := AoWCombatMap.FSeatedPlayer else Player := AoWHSMap.FSeatedPlayer;
+    Leader := AoWHSMap.FPlayers.GetPlayers(Player).FLeader;
+    for I := 0 to 6 do
+    begin
+      case I of
+        0: Button := Sel1; 1: Button := Sel2; 2: Button := Sel3; 3: Button := Sel4;
+        4: Button := Sel5; 5: Button := Sel6; 6: Button := Sel7;
+      else Button := nil; end;
+      if I < Leader.GetSphereCount then
+      begin
+        Button.Visible := True;
+        case Ord(Leader.GetSpheres(I)) and $7F of
+          1: begin Button.ILIndexDown := 28; Button.ILIndexLit := 29; Button.ILIndexUp := 27; end;
+          2: begin Button.ILIndexDown := 31; Button.ILIndexLit := 32; Button.ILIndexUp := 30; end;
+          3: begin Button.ILIndexDown := 34; Button.ILIndexLit := 35; Button.ILIndexUp := 33; end;
+          4: begin Button.ILIndexDown := 37; Button.ILIndexLit := 38; Button.ILIndexUp := 36; end;
+          5: begin Button.ILIndexDown := 43; Button.ILIndexLit := 44; Button.ILIndexUp := 42; end;
+          6: begin Button.ILIndexDown := 40; Button.ILIndexLit := 41; Button.ILIndexUp := 39; end;
+        end;
+      end
+      else Button.Visible := False;
+    end;
+    NameLbl.Text := FHero.FHeroName;
+    ManaPoolLbl.Text := TranslateRStr(ManaPoolRStr) + ': ' + IntToStr(AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.FMana);
+    CastingPointsLbl.Text := TranslateRStr(CastingPointsRStr) + ': ' + IntToStr(FHero.GetCastingPoints) + '/' + IntToStr(FHero.GetCastingPointsMax);
+    ResearchManaPoolLbl.Text := ManaPoolLbl.Text;
+    ResearchPointsLbl.Text := TranslateRStr(ResearchPointsRStr) + ': ' +
+      IntToStr(AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.GetNetPowerToResearch);
+    if FMode in [2, 3] then
+    begin
+      CurrentPointsLbl.Text := ''; CastingPointsMaxLbl.Text := '';
+      SpellBookLbl.Visible := False; ResearchBookLbl.Visible := True; CastingPage.Visible := False;
+      Control := AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl;
+      if Control.FResearchSpellID = 0 then
+      begin
+        if FMode = 3 then
+        begin
+          ResearchPnl.Visible := True; ResearchNone.Visible := False;
+          Spell := AoWHSSet.FSpellControl.GetSpell(FResearchedSpell);
+          ResearchLbl.Text := TranslateRStr(ResearchedRStr) + ':';
+          ResearchMemo.Items := Spell.FSpellText;
+          ResearchName.Text := Spell.FSpellName;
+          ResearchClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
+            TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
+          ResearchCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(Spell.FBaseManaCost) + ' ' + TranslateRStr(ManaRStr);
+          ResearchStatus.Visible := False;
+          CancelResearchBtn.Text := TranslateRStr(ResearchRStr);
+          CancelResearchBtn.ToolTipText.Text := TranslateRStr(ResearchNewSpellRStr);
+        end
+        else
+        begin
+          ResearchPnl.Visible := False; ResearchNone.Visible := True;
+          CancelResearchBtn.Text := TranslateRStr(ResearchRStr);
+          CancelResearchBtn.ToolTipText.Text := TranslateRStr(CancelSpellResearchRStr);
+        end;
+      end
+      else
+      begin
+        ResearchPnl.Visible := True; ResearchNone.Visible := False;
+        Spell := AoWHSSet.FSpellControl.GetSpell(Control.FResearchSpellID);
+        ResearchLbl.Text := TranslateRStr(CurrentlyResearchingRStr) + ':';
+        ResearchMemo.Items := Spell.FSpellText; ResearchName.Text := Spell.FSpellName;
+        ResearchClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
+          TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
+        ResearchCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(FHero.CastingMana(Spell)) + ' ' + TranslateRStr(ManaRStr);
+        if Control.GetResearchTurnsLeft >= 999 then
+          ResearchStatus.Text := AoWE.Format(TranslateRStr(XTurnsRStr), ['?'])
+        else ResearchStatus.Text := FmtTurnsLeftStr(Control.GetResearchTurnsLeft);
+        CancelResearchBtn.Text := TranslateRStr(CancelRStr);
+        ResearchStatus.Visible := True;
+      end;
+    end
+    else if FMode in [0, 1] then
+    begin
+      CurrentPointsLbl.Text := IntToStr(FHero.GetCastingPoints);
+      CastingPointsMaxLbl.Text := IntToStr(FHero.GetCastingPointsMax);
+      SpellBookLbl.Visible := True; ResearchBookLbl.Visible := False; ResearchPage.Visible := False;
+      if not FHero.Casting then
+      begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end
+      else
+      begin
+        NoneCastingLbl.Visible := False;
+        Spell := AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID);
+        CastingSpell.Text := Spell.FSpellName;
+        CastingClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
+          TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
+        CastingCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(FHero.FCastingProgress) + ' ' + TranslateRStr(ManaRStr);
+        CastingMemo.Items := Spell.FSpellText;
+        CastingStatus.Text := '(' + FmtTurnsLeftStr(FHero.CastingTurnsLeft) + ')';
+        CastingPnl.Visible := True;
+        if FHero.CastingReady then
+        begin CastingBtn.Visible := True; CastingStatus.Text := TranslateRStr(CastingReadyRStr); end
+        else
+        begin
+          CastingBtn.Visible := False;
+          CastingStatus.Text := '(' + FmtTurnsLeftStr(FHero.CastingTurnsLeft) + ')';
+        end;
+      end;
+    end;
+  end;
+end;
 
 end.

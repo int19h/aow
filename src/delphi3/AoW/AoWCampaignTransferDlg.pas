@@ -171,10 +171,21 @@ implementation
 uses E3Globals;
 
 procedure TCampaignTransferDlg.BookStartClick(Sender: TObject);
-begin end;
+begin
+  TransBookWin.Visible := False;
+  PlaySample('Sfx\Int\BookClse.wav');
+  Inc(WorldMap.GetCampaign.FState);
+  WorldMap.UpdateCampaignState;
+end;
 
 procedure TCampaignTransferDlg.CancelClick;
-begin end;
+begin
+  TransBookWin.Visible := False;
+  AoWEngine.FCampaign.ResetNextScenario;
+  PlaySample('Sfx\Int\BookClse.wav');
+  WorldMap.GetCampaign.FState := 1;
+  WorldMap.UpdateCampaignState;
+end;
 
 procedure TCampaignTransferDlg.GoldSliderChange(Sender: TObject);
 begin

@@ -213,7 +213,10 @@ type
     FPingDelay: Integer; { $340 }
     FChatScrollPending: Boolean; { $344 }
     F_ScenSetup_345: array[0..2] of Byte;
+    procedure CloseSetup;
+    procedure PickMap;
     procedure ExitGameClick(Sender: TObject);
+    { conflict: procedure ExitGameClick; }
     procedure ChatEditReturn;
     procedure PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
     procedure PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
@@ -248,10 +251,31 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms;
+uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms, AoWFileDialog;
 
 procedure TScenSetup.ExitGameClick(Sender: TObject);
-begin end;
+{ conflict: procedure TScenSetup.ExitGameClick; }
+var I: Integer; Settings: TSetupSettings;
+begin
+  try
+    General.PlayButtonSound(0);
+    if FSetupControl.GetRemote then
+    begin
+      if FSetupControl.GetHost then
+      begin
+        Settings := FSetupControl.FSettings; I := 0;
+        while (I <> Settings.FRemotePlayers.Count) and
+          (Settings.FRemotePlayers.GetPlayers(I).FRemoteID = Settings.FHostRemoteID) do Inc(I);
+        if I <> Settings.FRemotePlayers.Count then
+          FSetupControl.hSetHostRemoteID(Settings.FRemotePlayers.GetPlayers(I).FRemoteID);
+      end;
+      if SetupEvents.DPlay.Connected then SetupEvents.DPlay.CloseSession;
+    end;
+    SetupEvents.DPlay.DisConnect; CloseSetup;
+    if SetupEvents.FLobbyGame then MainForm.Close else MultiWindow.Execute('');
+  except
+  end;
+end;
 
 procedure TScenSetup.ChatEditReturn;
 var
@@ -331,7 +355,10 @@ begin
 end;
 
 procedure TScenSetup.PickScenarioBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  PickMap;
+end;
 
 procedure TScenSetup.PreferredRaceCBChange;
 begin
@@ -493,6 +520,17 @@ begin
     PlayerList.Selected := -1; PingList.Selected := -1; PreferredRaceList.Selected := -1;
     EjectBtn.Visible := False; MakeHostBtn.Visible := False;
   end;
+end;
+
+procedure TScenSetup.CloseSetup;
+begin
+  ScenSetupPnl.Visible := False; FSetupControl := nil;
+end;
+
+procedure TScenSetup.PickMap;
+begin
+  FileDlgWindow.FMode := 2;
+  FileDlgWindow.FileDialog.Visible := True;
 end;
 
 end.

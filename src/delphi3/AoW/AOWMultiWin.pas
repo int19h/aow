@@ -62,6 +62,7 @@ type
     public
     FPendingMap: string; { $EC }
     FMenuHeight: Integer; { $F0 }
+    procedure Execute(const MapName: string);
     function ConnectProvider(Kind: TConnectionType): Integer;
     function ValidateEmail: Boolean;
     procedure CloseBtnClick;  { draft }
@@ -100,7 +101,13 @@ var
   SessionRefreshDelay: Integer; { $45B170 }
 
 procedure TMultiWindow.CloseBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if SetupEvents.DPlay.Connected then SetupEvents.DPlay.DisConnect;
+  TitleWindow.TitleWin.Visible := False;
+  MultiPnl.Visible := False;
+  ShowTitleScene(TitleScene, True);
+end;
 
 procedure TMultiWindow.MultiWinUpdate;
 begin
@@ -331,6 +338,25 @@ begin
     Result := False;
   end
   else Result := True;
+end;
+
+procedure TMultiWindow.Execute(const MapName: string);
+var I: Integer;
+begin
+  if (SongPlayer.CurrentIndex = -1) or (SongPlayer.CurrentIndex >= SongPlayer.Songs.Count) or
+    (SongPlayer.Songs[SongPlayer.CurrentIndex] <> 'SONGS\TITLE.IT') then
+  begin SongPlayer.Songs.Clear; SongPlayer.Songs.Add('SONGS\TITLE.IT'); SongPlayer.Play(0); end;
+  VideoDialog.SetSceneSize(640, 480);
+  FPendingMap := MapName;
+  if SetupEvents.DPlay.Connected then SetupEvents.DPlay.DisConnect;
+  TitleWindow.TitleWin.Visible := True; TitleWindow.TitlePnl.Visible := False;
+  MultiPnl.Visible := True; GamePanel.Visible := True; TCPPnl.Visible := False;
+  LanPnl.Visible := False; JoinPnl.Visible := False; TCPBtn.Visible := False;
+  IPXBtn.Visible := False; PBEMPnl.Visible := False;
+  if SetupEvents.DPlay.GetConnections = 0 then
+    for I := 0 to SetupEvents.DPlay.ConnectionItems.Count - 1 do
+      if TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType = conTCP then TCPBtn.Visible := True
+      else if TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType = conIPX then IPXBtn.Visible := True;
 end;
 
 end.

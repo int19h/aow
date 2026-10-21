@@ -42,20 +42,22 @@ type
     SIcon: TAOWImage; { +009C }
     Translator: TIvTranslator; { +00A0 }
     public
-    F_DWin_A4: Byte;
+    FAction: Byte; { $A4; 004506E7 }
     F_DWin_A5: array[0..10] of Byte;
-    procedure DButtonClick;
+    procedure Confirm(Title, Text: string; Action: Byte);
+    procedure AddDebugMessage(const Text: string);
+    procedure DButtonClick(Sender: TObject);
     procedure DebugDOkBtnClick;  { draft }
-    procedure yesBtnClick(A1: Integer; A2: Integer);  { draft }
-    procedure DialogKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure yesBtnClick(Sender: TObject);
+    procedure DialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-uses AoWWinMan;
+uses AoWWinMan, E3Globals, AoWE, AoWTC, E1Globals;
 
-procedure TDWin.DButtonClick;
+procedure TDWin.DButtonClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   Dialog.Visible := False;
@@ -63,13 +65,63 @@ end;
 
 
 procedure TDWin.DebugDOkBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  DebugWin.Visible := False;
+end;
 
-procedure TDWin.yesBtnClick(A1: Integer; A2: Integer);
-begin end;
+procedure TDWin.yesBtnClick(Sender: TObject);
+var Reason: string; Structure: TStructure;
+begin
+  General.PlayButtonSound(0);
+  case FAction of
+    2: General.FCity.Loot;
+    3:
+      if General.FCity.CanRaze(AoWHSMap.FSeatedPlayer, Reason) then
+      begin
+        if General.FCity.Raze(AoWHSMap.FSeatedPlayer) then
+        begin
+          Structure := General.FStructure;
+          MapEvents.TheMapStructureDeselected;
+          MapEvents.TheMapStructureSelected(Integer(Structure));
+        end;
+      end
+      else AoWHSMap.ShowWarning(Reason);
+    4: AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).Surrender;
+    5: begin WorldMap.WorldPnl.Visible := False; General.ReturnToTitle; end;
+    6: if AoWCombatMap <> nil then AoWCombatMap.Surrender(AoWCombatMap.FSeatedCombatPlayer);
+    7: if General.FSelectedUnit <> nil then
+      if General.FSelectedUnit.CanDisband(Reason) then
+      begin
+        if General.FSelectedUnit.Disband then UnitWindow.UnitWin.Visible := False;
+      end
+      else AoWHSMap.ShowWarning(Reason);
+  end;
+  Dialog.Visible := False;
+end;
 
-procedure TDWin.DialogKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TDWin.DialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_RETURN: if FAction <> 0 then yesBtnClick(Self) else DButtonClick(Self);
+    VK_ESCAPE: DButtonClick(Self);
+  end;
+end;
 
+
+procedure TDWin.AddDebugMessage(const Text: string);
+begin
+  DebugMemo.Items.Add(Text);
+  if DebugMemo.Items.Count > 99 then DebugMemo.Items.Delete(0);
+  DebugMemo.FSized := False;
+  DMemoScroll.Position := DMemoScroll.Max;
+end;
+
+procedure TDWin.Confirm(Title, Text: string; Action: Byte);
+begin
+  FAction := Action;
+  DTitle.Text := Title; DMessage.Text := Text;
+  yesPnl.Visible := True; okPnl.Visible := False; Dialog.Visible := True;
+end;
 
 end.

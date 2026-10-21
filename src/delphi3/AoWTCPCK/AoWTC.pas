@@ -505,7 +505,7 @@ type
     procedure EndCombat(Sender: TObject);
     procedure SelectNextUnit(Forward: Boolean);
     procedure GetUnitLocation(U: TAbstractUnit; var X, Y, L: Shortint);
-    procedure Surrender(Mode: Boolean);
+    procedure Surrender(Mode: Shortint);
   end;
 
   { TTacticalCombat (instance size 80, VMT 00413314)
@@ -2569,7 +2569,7 @@ begin
     end else Inc(I);
 end;
 
-procedure TAoWCombatMap.Surrender(Mode: Boolean);
+procedure TAoWCombatMap.Surrender(Mode: Shortint);
 var TE: TCEndCombatTE;
 begin
   if AoWHSMap.FTokenManager.PlayerReady(AoWCombatMap.FCurrentPlayer) and

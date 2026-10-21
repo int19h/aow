@@ -45,8 +45,10 @@ type
     Translator: TIvTranslator; { +00A4 }
     public
     FEvent: TUnitSelector; { $A8 }
-    FEventLog: TEventLog; { $AC }
+    FEventLog: TUnitSelectorAAI; { $AC }
     procedure DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
+    procedure ResetSelection;
+    procedure Execute(Request: TUnitSelectorAAI);
     procedure ClearEvent;
     procedure CloseClick;  { draft }
     procedure SelectBtnClick;  { draft }
@@ -169,5 +171,28 @@ begin
   ClearEvent;
 end;
 
+
+procedure TUnitSelectionDlg.ResetSelection;
+begin
+  if FEvent <> nil then begin FEvent.Release; FEvent := nil; end;
+  if FEventLog <> nil then begin FEventLog.Release; FEventLog := nil; end;
+  U1.Checked := False; U2.Checked := False; U3.Checked := False; U4.Checked := False;
+  U5.Checked := False; U6.Checked := False; U7.Checked := False; U8.Checked := False;
+  SelectionInfoLbl.Text := '';
+end;
+
+procedure TUnitSelectionDlg.Execute(Request: TUnitSelectorAAI);
+var U: TAbstractUnit;
+begin
+  ResetSelection;
+  FEventLog := Request; Request.AddRef;
+  FEvent := Request.FUnitSelector; FEvent.AddRef;
+  U := AoWHSMap.FUnitControl.FindUnit(FEvent.FSourceUnitID);
+  if U <> nil then
+  begin SourcePnl.Visible := True; SourceNameLbl.Text := U.GetName; end
+  else SourcePnl.Visible := False;
+  SelectionLbl.Text := FEvent.FCaption;
+  Dlg.Visible := True;
+end;
 
 end.

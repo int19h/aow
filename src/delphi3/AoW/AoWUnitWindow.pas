@@ -197,6 +197,8 @@ implementation
 
 uses AoWWinMan, E3Globals, AoWInfoBanner;
 
+
+
 var
   SelectedItem: TAOWCheckBox;
 
@@ -917,7 +919,9 @@ begin
 end;
 
 procedure TUnitWindow.DisbandBtnClick;
-begin end;
+begin
+  DialogWin.Confirm(TranslateRStr(ConfirmRStr), TranslateRStr(DisbandUnitRStr), 7);
+end;
 
 procedure TUnitWindow.T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
 var

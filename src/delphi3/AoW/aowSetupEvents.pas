@@ -20,6 +20,7 @@ type
     SetupControl: TSetupControl; { +0048 }
     public
     FLobbyGame: Boolean; FReserved4D: array[0..2] of Byte; { $4C }
+    { conflict: FCommandLineLaunch: Boolean; FSetupPad: array[0..2] of Byte; }
     procedure ClearChat;
     procedure UpdateChatPlayers;
     procedure UpdatePlayerName(Name: string);

@@ -279,7 +279,7 @@ end;
 
 procedure ConfirmDialog(Dialog: TDWin; Title, Message: string; Kind: Byte);
 begin
-  Dialog.F_DWin_A4 := Kind;
+  Dialog.FAction := Kind;
   Dialog.DTitle.Text := Title;
   Dialog.DMessage.Text := Message;
   Dialog.yesPnl.Visible := True;

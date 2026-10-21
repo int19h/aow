@@ -236,7 +236,7 @@ type
     FBufferingScheme: TBufferingScheme;
     FBackSurfaceWidth: Integer;
     FBackSurfaceHeight: Integer;
-  protected FSurfaceIndex: Integer; private { HSMEdit uses it }
+  public FSurfaceIndex: Integer; private { $194; direct frame blit at 00455483 }
     FPauseCount: Integer;
     FMouseAboveSurface: Boolean;
     FPrimaryDC: TAbstractDC;
