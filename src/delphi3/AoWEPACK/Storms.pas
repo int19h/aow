@@ -393,7 +393,7 @@ var
 begin
   { Original sends terrain 13 to the default branch before the ice refresh test. }
   if Smallint(TerrainType) = 0 then TerrainType := 6
-  else if Smallint(TerrainType) = 6 then
+  else if Smallint(TerrainType) <> 6 then TerrainType := 3 else begin
       if TerrainType in [6, 13] then
       begin
         Ice := TFrozenWaterHS(MapF.FindOwnedHS(TFrozenWaterHS));
@@ -403,7 +403,7 @@ begin
           Ice.FCasterPlayer := FPlayer;
         end;
       end
-  else TerrainType := 3;
+  end;
 end;
 
 function TIceStorm.StormFileName: string;

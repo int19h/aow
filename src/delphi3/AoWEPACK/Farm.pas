@@ -112,7 +112,7 @@ procedure TFarm.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetDat
 var Priority: Integer;
 begin
   if not GetRazed or GetBuilding then
-    if Info.Mode in [tmAttack..tmAttack] then
+    case Info.Mode of tmAttack:
       if (Info.Player <> FPlayer) and not GetRazed then
       begin
         Priority := Data.Priority;
@@ -124,7 +124,7 @@ begin
           if Priority > 75 then Priority := 75;
         end;
         if Priority > Data.Priority then Data.Priority := Priority;
-      end;
+      end; end;
 end;
 
 procedure TFarm.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
@@ -161,7 +161,7 @@ end;
 function FarmIncome(Player: Shortint): Integer;
 var P: TPlayer; I: Integer; Structure: TPlayerStructure;
 begin
-  if WorldMap^ <> nil then
+  if TAoWHSMap(Pointer(WorldMap)^) <> nil then
   begin
     P := WorldMap^.FPlayers.GetPlayers(Player);
     Result := 0;

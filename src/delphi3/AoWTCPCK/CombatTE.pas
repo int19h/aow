@@ -320,8 +320,8 @@ var
         begin
           FNeighbour := HN;
           FFreeStrikeUnit := HS.FUnit;
-          for NY := 0 to FObjects.Count - 1 do
-            if FObjects[NY] = FFreeStrikeUnit then FFreeStrikeUnit := nil;
+          for NX := 0 to FObjects.Count - 1 do
+            if FObjects[NX] = FFreeStrikeUnit then FFreeStrikeUnit := nil;
           if FFreeStrikeUnit <> nil then
           begin
             HN := 6;

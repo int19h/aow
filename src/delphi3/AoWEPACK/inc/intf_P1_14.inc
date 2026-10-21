@@ -13,7 +13,7 @@ const
     (30,40,70,50,40,30,50), (40,50,50,50,50,40,50),
     (10,10,40,50,90,90,50), (0,10,30,40,90,100,50),
     (50,50,50,50,50,50,50)); { $558E8480 }
-  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
+  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 } itAll: TItemTypes = [itHead..itUse]; { $558E803C; ItemExpS 557C2996 }
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }
   alsGood: TAlignments = [alPureGood, alGood, alNeutral, alNone]; { $558E8054 }

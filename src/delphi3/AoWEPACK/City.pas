@@ -1012,7 +1012,7 @@ var
   I, Value, BestIndex, BestValue: Integer;
   Item: TProductionItem;
 begin
-  if (WorldMap^.FDay <> 0) and not (msEditting in WorldMap^.Status) then
+  if (WorldMap^.FDay <> 0) and not (msEditting in TAoWHSMap(Pointer(WorldMap)^).Status) then
     if FPlayer > 0 then
     begin
       if (WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman) and
@@ -1801,7 +1801,7 @@ end;
 procedure TCity.GenerateRebelUnits(Units: TUnitList);
 var SavedSeed: Integer;
 begin
-  SavedSeed := RandomSeed^;
+  SavedSeed := Integer(RandomSeed); SavedSeed := PInteger(SavedSeed)^;
   RandomSeed^ := GetXhx * 10 + WorldMap^.FInitialRandomSeed + GetYhx;
   FillWithRandomUnits(WorldSet^.FRaceResources.GetRaceResource(FRace).FUnitIndexes,
     Units, 2, GetSize * 25, [utHumanoid, utCreature]);
@@ -2110,7 +2110,7 @@ begin
   UpdateVisibleForSeatedPlayer;
   FProduction.Activate;
   if FPlayer <> -1 then WorldMap^.FPlayers.GetPlayers(FPlayer).FProductionControls.Add(FProduction);
-  if (msEditting in WorldMap^.Status) and (WorldMap^.FDay = 0) then SetUpgradeLevel(FUpgradeLevel);
+  if (msEditting in WorldMap^.Status) and (TAoWHSMap(Pointer(WorldMap)^).FDay = 0) then SetUpgradeLevel(FUpgradeLevel);
   UpdateImages;
 end;
 
@@ -2129,7 +2129,7 @@ begin
   XhpSurf := X - XhpSurf;
   YhpSurf := Y - YhpSurf;
   if not (cmRazed in FMode) or GetBuilding then
-    if ((msEditting in WorldMap^.Status) or not FFogged or (not WorldMap^.FFogEnabled)) and
+    if ((msEditting in WorldMap^.Status) or not FFogged or (not TAoWHSMap(Pointer(WorldMap)^).FFogEnabled)) and
       (FFlagID <> 63) and (TCityResource(FResource).FClaimed or (FFlagID and $20 = 0)) then
       with TCityResource(FResource) do
         if FFlagType <= 1 then
@@ -2701,7 +2701,7 @@ end;
 
 function TMigrationList.GetItems(Index: Integer): TMigrationItem;
 begin
-  Result := TMigrationItem(Children[Index]);
+  Result := TMigrationItem(FChildren.List^[Index]);
 end;
 
 constructor TCityEnchantment.Create(AOwner: Engine.TECustomNode);
@@ -2819,14 +2819,14 @@ begin
     Budget.FGold := 0;
     Budget.FMana := 0;
     Budget.FRequiredGold := 0;
-    Budget.FPriority := 7;
+    Budget.FDays := 7; { Original limits days, not priority. }
   end
   else
   begin
     Budget.FRequiredGold := 125;
     Priority := 7 - (Count * Total) div 3;
     if Priority < 3 then Priority := 3;
-    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+    if Priority < Budget.FDays then Budget.FDays := Priority;
   end;
 end;
 
@@ -2972,14 +2972,14 @@ begin
     Budget.FGold := 0;
     Budget.FMana := 0;
     Budget.FRequiredGold := 0;
-    Budget.FPriority := 7;
+    Budget.FDays := 7; { Original limits days, not priority. }
   end
   else
   begin
     Budget.FRequiredGold := 250;
     Priority := 8 - Count div 2;
     if Priority < 5 then Priority := 5;
-    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+    if Priority < Budget.FDays then Budget.FDays := Priority;
   end;
 end;
 
@@ -3060,14 +3060,14 @@ begin
     Budget.FGold := 0;
     Budget.FMana := 0;
     Budget.FRequiredGold := 0;
-    Budget.FPriority := 7;
+    Budget.FDays := 7; { Original limits days, not priority. }
   end
   else
   begin
     Budget.FRequiredGold := 80;
     Priority := 8 - Count div 2;
     if Priority < 4 then Priority := 4;
-    if Priority < Budget.FPriority then Budget.FPriority := Priority;
+    if Priority < Budget.FDays then Budget.FDays := Priority;
   end;
 end;
 

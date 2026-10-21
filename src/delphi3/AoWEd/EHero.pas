@@ -386,7 +386,7 @@ end;
 procedure THeroEditForm.MovesEditChange;
 begin
   { Original truncates to a byte before the signed range check. }
-  FHero.SetUnitMoves(Byte(MovesEdit.Value) and $FF);
+  FHero.SetUnitMoves(Byte(Integer(MovesEdit.Value) and $FF));
   MovesEdit.Value := FHero.FUnitMoves;
   UpdateSkillPoints;
   UpdateStatistics;
@@ -510,16 +510,16 @@ end;
 
 
 procedure THeroEditForm.UpdateAddButton;
-begin
+var AbilityID: Integer; begin
   with AvailableAbBox do
-    if ItemIndex <> -1 then AddBtn.Enabled := vmt94(Integer(Items.Objects[ItemIndex]))
+    if ItemIndex <> -1 then begin AbilityID := Integer(Items.Objects[ItemIndex]); AddBtn.Enabled := vmt94(AbilityID); end
     else AddBtn.Enabled := False;
 end;
 
 procedure THeroEditForm.UpdateDeleteButton;
-begin
+var AbilityID: Integer; begin
   with SelectedAbBox do
-    if ItemIndex <> -1 then DeleteBtn.Enabled := vmt90(Integer(Items.Objects[ItemIndex]))
+    if ItemIndex <> -1 then begin AbilityID := Integer(Items.Objects[ItemIndex]); DeleteBtn.Enabled := vmt90(AbilityID); end
     else DeleteBtn.Enabled := False;
 end;
 

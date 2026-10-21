@@ -96,7 +96,7 @@ end;
 
 procedure TUnitResourceEditForm.FormCreate(Sender: TObject);
 begin
-  inherited FormCreate(Sender);
+  inherited FormCreate;
   MainPageControl.ActivePage := GeneralSheet;
   FRaces := TRaceList.Create(nil);
   FRaces.Update;

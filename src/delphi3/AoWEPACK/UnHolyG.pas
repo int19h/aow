@@ -228,7 +228,7 @@ begin
     if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
       if CanDoDamage(TArmyHS(Msg.Param[0]).FArmy) then Msg.Result := 1;
   end
-  else if Msg.MsgID = $1132 then
+  else if TMapFieldMsg(Pointer(@Msg)^).MsgID = $1132 then
     if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and (FPlayer > 0) and
       (FDuration > 0) then RestoreTerrain;
 end;

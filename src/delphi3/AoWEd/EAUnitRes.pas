@@ -25,7 +25,7 @@ type
     PreviewImagePanel: TDrawPanel; { +0210 }
     public
     FUnitResource: TAbstractUnitResource; { $214 }
-    procedure FormCreate(Sender: TObject);
+    procedure FormCreate;
     procedure UnitGFXBoxChange(Sender: TObject);
     procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
   end;
@@ -33,7 +33,7 @@ type
 
 implementation
 
-procedure TAbstractUnitResourceEditForm.FormCreate(Sender: TObject);
+procedure TAbstractUnitResourceEditForm.FormCreate;
 begin
   FUnitResource := TAbstractUnitResource(FEditResource);
   AoWHSSet.FUnitGFXResources.CreateUnitGFXSelectionList(UnitGFXBox.Items);

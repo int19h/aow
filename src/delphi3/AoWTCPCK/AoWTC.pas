@@ -467,10 +467,10 @@ type
     FDeselectEvents: TEventList; { $108 }
     { conflict: FActivateMapEvents: TEventList; }
     FCenterViewLocation: TMapObject; { $10C; $435a3e }
-    FUnitChangedEvents: TEventList; { $110 }
-    { conflict: FMouseOverTargetEvents: TEventList; }
-    FMouseOverTargetEvents: TEventList; { $114 }
+    FMouseOverTargetEvents: TEventList; { $110; CMapCtrl 004364E4 }
     { conflict: FUnitChangedEvents: TEventList; }
+    FUnitChangedEvents: TEventList; { $114; CMapCtrl 004364FF }
+    { conflict: FMouseOverTargetEvents: TEventList; }
     FAI: TCAI; { $118 }
     FEffects: TList; { $11C }
     FWalls: TList; { $120; $405741 }
@@ -2195,8 +2195,8 @@ begin
   FMoveControl := TCombatMoveControl.Create(Self);
   FSelectEvents := TEventList.Create;
   FDeselectEvents := TEventList.Create;
-  FUnitChangedEvents := TEventList.Create;
   FMouseOverTargetEvents := TEventList.Create;
+  FUnitChangedEvents := TEventList.Create;
   FPlayers := TTacticalCombatPlayerList.Create;
   FUnitSelection := TCombatUnitSelectionControl.Create;
   TAoWCombatMapMouse(Mouse).FRectangleSelectEvents.Add(FUnitSelection.RectangleSelectEvent);
@@ -2226,8 +2226,8 @@ begin
   FSeatedPlayerChangedEvents.Free;
   FSelectEvents.Free;
   FDeselectEvents.Free;
-  FUnitChangedEvents.Free;
   FMouseOverTargetEvents.Free;
+  FUnitChangedEvents.Free;
   FMoveControl.Free;
   FPlayers.Free;
   FUnitSelection.Free;
@@ -2620,7 +2620,7 @@ begin
   FMovePoints := FMovePoints - MoveCost;
   if FMovePoints < 0 then FMovePoints := 0;
   if GetAbilityEnabled($2B) then CreateFire(False, 50, FUnitHS.GetXhx, FUnitHS.GetYhx);
-  AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FUnitHS);
+  AoWCombatMap.FUnitChangedEvents.TriggerNotifyEvents(FUnitHS);
 end;
 
 procedure TTacticalCombatUnit.MsgProc(var Msg: TEMsg; Sender: TEObject);
@@ -2814,14 +2814,14 @@ begin
         else begin
           FRangedPath.Clear;
           FMouseOverTarget := nil;
-          AoWCombatMap.FUnitChangedEvents.TriggerNotifyEvents(FMouseOverTarget);
+          AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FMouseOverTarget);
         end
       else if (AoWCombatMap.Mouse.Capture = Self) and (AoWCombatMap.Mouse.Button = mbLeft) then ExecuteMoveSelection;
     end;
 end;
 
 procedure TCombatUnitSelectionControl.CalculateMovePath(Index: Integer; X, Y, L: Shortint);
-var
+const ClimbFlag: Byte = 1; var
   UnitHS: TTacticalCombatUnitHS;
   I: Integer;
   Temporary: TList;
@@ -2848,7 +2848,7 @@ begin
   FPathMovePoints := 0;
   UnitHS := TTacticalCombatUnitHS(FMoveObject);
   if (GetTCUnitHS <> nil) and ((GetTCUnitHS.FSelectedAbility = $75) or (GetTCUnitHS.FSelectedAbility = $41)) then
-    TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := Byte(FPathInvalid) or 1
+    TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := ClimbFlag or Byte(FPathInvalid)
   else TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := Byte(FPathInvalid);
   FMoveControlSettings.Reset;
   FMoveControlSettings.SetSourcePos(UnitHS.GetXhx, UnitHS.GetYhx, UnitHS.GetLhx);
@@ -3018,7 +3018,7 @@ begin
               if FRangedPath.Count > 0 then begin
                 FMouseOverTarget := THexagonSprite(AoWCombatMap.MapContainer.MapLevels[0].Field[AoWCombatMap.Mouse.Xhx,
                   AoWCombatMap.Mouse.Yhx].FindOwnedChild($220104));
-                AoWCombatMap.FUnitChangedEvents.TriggerNotifyEvents(FMouseOverTarget);
+                AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FMouseOverTarget);
               end;
             end;
           end;
@@ -3864,7 +3864,7 @@ begin
     with AoWCombatMap.FUnitSelection.FMoveSettingsList.GetMoveSettings(I) do FPath.Clear;
   AoWCombatMap.FUnitSelection.FRangedPath.Clear;
   AoWCombatMap.FUnitSelection.UpdateMoveCursor;
-  AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(Self);
+  AoWCombatMap.FUnitChangedEvents.TriggerNotifyEvents(Self);
 end;
 
 function TTacticalCombatUnitHS.SelectSpell(A1: Integer): Integer;
@@ -3889,7 +3889,7 @@ begin
     end;
   end;
   AoWCombatMap.FUnitSelection.UpdateMoveCursor;
-  AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(Self);
+  AoWCombatMap.FUnitChangedEvents.TriggerNotifyEvents(Self);
 end;
 
 procedure TTacticalCombatUnitHS.CreateTCAbList;
@@ -6622,7 +6622,7 @@ begin
     end;
   end;
   if A2 > 0 then Result := 12 - Result;
-  if (A1 < 0) and (Result <> 0) then Result := 24 - Result;
+  if (A1 < 0) and (Result > 0) then Result := 24 - Result;
 end;
 
 

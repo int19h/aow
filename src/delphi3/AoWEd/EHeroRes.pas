@@ -137,7 +137,7 @@ end;
 
 procedure THeroResourceEditForm.FormCreate;
 begin
-  inherited FormCreate(Self);
+  inherited FormCreate;
   FUpdating := False;
   FHeroResource := THeroResource(FUnitResource);
   MainPageControl.ActivePage := GeneralSheet;

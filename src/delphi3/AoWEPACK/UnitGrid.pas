@@ -71,10 +71,10 @@ begin
 end;
 
 procedure TUnitGrid.SetUnits(Value: TUnitList);
-begin
-  FUnits := Value;
+var Units: TUnitList; begin
+  Units := Value; FUnits := Units;
   { Original assumes Value is non-nil. }
-  Count := Value.Count;
+  Count := Units.Count;
   Invalidate;
 end;
 

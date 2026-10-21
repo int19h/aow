@@ -71,7 +71,7 @@ const
   RandomSeed: ^Integer = @System.RandSeed;
   ItemsFoundText: PResStringRec = @AoWE.ItemsFoundRStr;
   ItemsExploredText: PResStringRec = @AoWE.ItemsExploredRStr;
-  AllItemTypes: TItemTypes = [itHead, itTorso, itAttack, itDefense, itRing, itScroll, itUse];
+  AllItemTypes: ^TItemTypes = @AoWE.itAll;
 
 destructor TExplorationSiteItemList.Destroy;
 begin
@@ -130,7 +130,7 @@ begin
     FItems.Clear;
     for I := 1 to FItemCount do
     begin
-      Item := WorldMap^.FItemControl.GenerateItem(AllItemTypes, 0, $FFFF);
+      Item := WorldMap^.FItemControl.GenerateItem(AllItemTypes^, 0, $FFFF);
       if Item <> nil then Item.Owner := FItems;
     end;
   end;
@@ -164,7 +164,7 @@ begin
       Log.FItemIDs.Add(Item.FItemID);
       Item.PlaceOnMap(WorldMap^, GetXhx, GetYhx, GetLhx);
     end;
-    Log.FMessages.Text := SysUtils.Format(TranslateRStr(LoadResString(ItemsExploredText)), [FResource.ResourceEditName]);
+    Log.FMessages.CommaText := { Original parses the formatted text as CSV. } SysUtils.Format(TranslateRStr(LoadResString(ItemsExploredText)), [FResource.ResourceEditName]);
     Log.Execute(False, etEvent, nil);
     Log.Release;
     Update;

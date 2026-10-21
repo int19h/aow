@@ -87,7 +87,7 @@ begin
 end;
 
 procedure TConstructionResourceEditForm.vmt98(const SD: TSurfaceDesc);
-var I: Integer; OverlayType: Shortint;
+var I: Integer; OverlayType: Shortint; Text: string;
 begin
   for I := FResource.TerrainList.Count - 1 downto 0 do
     if FResource.TerrainList.Terrain[I] >= -1 then
@@ -96,7 +96,7 @@ begin
         ShowHexagonText(I, 0, -3, 'Used', 1, SD);
       OverlayType := FResource.TerrainList.Overlay[I];
       if OverlayType >= 0 then
-        ShowHexagonText(I, 0, 5, FEngine.HSSet.OverlayTypes[OverlayType], 1, SD);
+        begin Text := FEngine.HSSet.OverlayTypes[OverlayType]; ShowHexagonText(I, 0, 5, Text, 1, SD); end;
     end;
 end;
 
