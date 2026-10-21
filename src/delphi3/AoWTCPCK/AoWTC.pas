@@ -553,10 +553,12 @@ procedure MakeAbilPath(Side: TCombatSideIndex; Ability, Spell: Smallint;
 procedure MakeRangedPath(Side: TCombatSideIndex; Speed, Arc, UnusedHeight: Smallint;
   X1, Y1, X2, Y2, OffsetX, OffsetY: Smallint; IncludeUnits: Boolean;
   var Path: TXYZList; var Obstacles: TList);
+{ conflict: procedure MakeRangedPath(Side: TCombatSideIndex; Height, Step, Arc: Smallint; X1, Y1, X2, Y2: Smallint; Ignore: TMapObject; Mode: Boolean; Z: Smallint; var Path: TXYZList; var Obstacles: TList); }
 { conflict: procedure MakeRangedPath(Side: TCombatSideIndex; Height, Step, Arc: Smallint; X1, Y1, X2, Y2: Smallint; OffsetX, OffsetY: Smallint; Mode: Boolean; var Path: TXYZList; var Obstacles: TList); }
 procedure RegisterAoWTCClasses(AEngine: TEngine);
 function GetMeleeDirIndex(A1: Integer; A2: Integer; A3: Integer): Word;
 function GetRangedDirIndex(A1: Integer; A2: Integer): Word;
+{ conflict: function GetRangedDirIndex(A1: Integer; A2: Integer): Integer; }
 
 var
   AoWCombatMap: TAoWCombatMap;
