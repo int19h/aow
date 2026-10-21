@@ -2,12 +2,14 @@ unit EPoisonC;
 
 { Draft declarations of EPoisonC, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Poison cloud settings use inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, PoisonC;
 
 type
   TPoisonCloudEditForm = class;
@@ -22,8 +24,8 @@ type
     DaysActiveEdit: TComboBox; { +0214 }
     Label1: TLabel; { +0218 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TPoisonCloudEditor (instance size 8, VMT 0041E008) }
@@ -46,11 +48,22 @@ begin
   Handled := Handled + [emEdit];
 end;
 
-procedure TPoisonCloudEditForm.FormCreate;
-begin end;
+procedure TPoisonCloudEditForm.FormCreate(Sender: TObject);
+begin
+  if TPoisonCloud(FMapObject).FTurnsRemaining = 0 then DaysActiveEdit.ItemIndex := 0
+  else DaysActiveEdit.Text := IntToStr(TPoisonCloud(FMapObject).FTurnsRemaining);
+  MoveableCheck.Checked := TPoisonCloud(FMapObject).FDrifting;
+end;
 
-procedure TPoisonCloudEditForm.OKBtnClick;
-begin end;
-
+procedure TPoisonCloudEditForm.OKBtnClick(Sender: TObject);
+begin
+  inherited OKBtnClick(Sender);
+  try
+    TPoisonCloud(FMapObject).FTurnsRemaining := StrToInt(DaysActiveEdit.Text);
+  except
+    TPoisonCloud(FMapObject).FTurnsRemaining := 0;
+  end;
+  TPoisonCloud(FMapObject).FDrifting := MoveableCheck.Checked;
+end;
 
 end.

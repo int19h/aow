@@ -2,7 +2,9 @@ unit RCity;
 
 { Draft declarations of RCity, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  No added fields; resource and preview state are inherited. }
+
+{$R+,Q+}
 
 interface
 
@@ -19,7 +21,7 @@ type
   public
     procedure vmt90(Index, X, Y: Integer; SD: TSurfaceDesc); override;
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
-    procedure ComplexBoxClick;  { draft }
+    procedure ComplexBoxClick(Sender: TObject);
   end;
 
   { TCityResourceEditor (instance size 8, VMT 00409BDC) }
@@ -35,12 +37,19 @@ class procedure TCityResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.T
 begin end;
 
 constructor TCityResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
-begin end;
+begin
+  inherited CreateForm(AEngine, Resource, Done);
+  ComplexBox.Checked := True;
+  vmt84;
+end;
 
 procedure TCityResourceEditForm.vmt90(Index, X, Y: Integer; SD: TSurfaceDesc);
-begin end;
+begin
+  if MainPageControl.ActivePage = SettingsSheet then vmt88(Index, X, Y, SD)
+  else inherited vmt90(Index, X, Y, SD);
+end;
 
-procedure TCityResourceEditForm.ComplexBoxClick;
+procedure TCityResourceEditForm.ComplexBoxClick(Sender: TObject);
 begin end;
 
 

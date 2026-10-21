@@ -2,7 +2,9 @@ unit RAoWTer;
 
 { Draft declarations of RAoWTer, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Terrain response tag uses the inherited $308 resource. }
+
+{$R+,Q+}
 
 interface
 
@@ -22,8 +24,8 @@ type
     Label11: TLabel; { +034C }
     CombatTerrainTagBox: TComboBox; { +0350 }
     public
-    procedure FormCreate;  { draft }
-    procedure CombatTerrainTagBoxChange;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure CombatTerrainTagBoxChange(Sender: TObject);
   end;
 
   { TAoWTerrainResourceEditor (instance size 8, VMT 004083EC) }
@@ -36,6 +38,8 @@ type
 
 implementation
 
+uses AoWTer;
+
 class function TAoWTerrainResourceEditor.EditorClassID: Integer;
 begin
   Result := $20167;
@@ -46,11 +50,17 @@ begin
   TAoWTerrainResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
 end;
 
-procedure TAoWTerrainResourceEditForm.FormCreate;
-begin end;
+procedure TAoWTerrainResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  CombatTerrainTagPanel.Visible := FResource is TAoWTerrainResource;
+  if CombatTerrainTagPanel.Visible then
+    CombatTerrainTagBox.ItemIndex := TAoWTerrainResource(FResource).FMapFieldResponse;
+end;
 
-procedure TAoWTerrainResourceEditForm.CombatTerrainTagBoxChange;
-begin end;
-
+procedure TAoWTerrainResourceEditForm.CombatTerrainTagBoxChange(Sender: TObject);
+begin
+  TAoWTerrainResource(FResource).FMapFieldResponse := CombatTerrainTagBox.ItemIndex;
+end;
 
 end.

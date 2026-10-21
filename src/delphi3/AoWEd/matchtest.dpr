@@ -790,4 +790,5 @@ begin
   Use(nil, @UnitFlt.TUnitFloater.MapControlActivateHSM);
   Use(nil, @UnitFlt.TUnitFloater.MapControlDeactivateHSM);
 {$I hosts\D1.inc}
+{$I hosts\D2.inc}
 end.

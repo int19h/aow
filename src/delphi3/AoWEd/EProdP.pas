@@ -2,7 +2,9 @@ unit EProdP;
 
 { Draft declarations of EProdP, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Defender level uses TProductionPlace at inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
@@ -21,9 +23,9 @@ type
     DefendersModeBox: TComboBox; { +0230 }
     Label2: TLabel; { +0234 }
     public
-    procedure FormCreate;  { draft }
-    procedure PlayerComboBoxChange;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure PlayerComboBoxChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TProductionPlaceEditor (instance size 8, VMT 0041D880) }
@@ -36,6 +38,13 @@ type
 
 
 implementation
+
+uses PrdPlace;
+
+function DefendersEnabled: Boolean;
+begin
+  Result := True;
+end;
 
 class function TProductionPlaceEditor.EditorClassID: Integer;
 begin
@@ -52,14 +61,31 @@ begin
   Handled := Handled + [emEdit];
 end;
 
-procedure TProductionPlaceEditForm.FormCreate;
-begin end;
+procedure TProductionPlaceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  DefendersModeBox.ItemIndex := TProductionPlace(FMapObject).FDefenderLevel;
+  PlayerComboBoxChange(Self);
+end;
 
-procedure TProductionPlaceEditForm.PlayerComboBoxChange;
-begin end;
+procedure TProductionPlaceEditForm.PlayerComboBoxChange(Sender: TObject);
+begin
+  if (PlayerComboBox.ItemIndex = 0) and DefendersEnabled then
+  begin
+    DefendersModeBox.Color := clWindow;
+    DefendersModeBox.Enabled := True;
+  end
+  else
+  begin
+    DefendersModeBox.Color := clBtnFace;
+    DefendersModeBox.Enabled := False;
+  end;
+end;
 
-procedure TProductionPlaceEditForm.OKBtnClick(A1: Integer);
-begin end;
-
+procedure TProductionPlaceEditForm.OKBtnClick(Sender: TObject);
+begin
+  TProductionPlace(FMapObject).FDefenderLevel := DefendersModeBox.ItemIndex;
+  inherited OKBtnClick(Sender);
+end;
 
 end.

@@ -2,7 +2,9 @@ unit TextCtrlEd;
 
 { Draft declarations of TextCtrlEd, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  $20C text control, $210 selected text control item. }
+
+{$R+,Q+}
 
 interface
 
@@ -30,42 +32,122 @@ type
     Label2: TLabel; { +0204 }
     DescriptionEdit: TEdit; { +0208 }
     public
-    F_TextControlEditForm_20C: Integer;
-    F_TextControlEditForm_210: Integer; procedure EditTextControl(TextControl: TTextControl);
-    procedure TextIDEditChange;  { draft }
-    procedure NewTextClick;  { draft }
-    procedure DeleteTextClick;  { draft }
-    procedure FindTextClick;  { draft }
-    procedure TextMemoChange;  { draft }
-    procedure TextScrollBarChange;  { draft }
-    procedure DescriptionEditChange;  { draft }
+    FTextControl: TTextControl; { $20C }
+    FText: TTextControlItem; { $210 }
+    procedure UpdateScrollBar;
+    procedure SetText(Item: TTextControlItem);
+    procedure EditTextControl(TextControl: TTextControl);
+    procedure TextIDEditChange;
+    procedure NewTextClick;
+    procedure DeleteTextClick;
+    procedure FindTextClick;
+    procedure TextMemoChange;
+    procedure TextScrollBarChange;
+    procedure DescriptionEditChange;
   end;
 
 
 implementation
 
-procedure TTextControlEditForm.EditTextControl(TextControl: TTextControl); begin end;
+procedure TTextControlEditForm.UpdateScrollBar;
+begin
+  FTextControl.Sort;
+  if FTextControl.Count <> 0 then TextScrollBar.Max := FTextControl.Count - 1
+  else TextScrollBar.Max := 0;
+  if FText <> nil then
+  begin
+    with TextScrollBar do
+      if FTextControl.IndexOf(FText) <> Position then Position := FTextControl.IndexOf(FText);
+  end
+  else TextScrollBar.Position := 0;
+end;
+
+procedure TTextControlEditForm.SetText(Item: TTextControlItem);
+begin
+  FText := Item;
+  with FText do
+    if Item <> nil then
+    begin
+      TextMemo.Lines.Text := FText.Text;
+      DescriptionEdit.Text := Self.FText.FName;
+      TextIDEdit.Value := Item.FID;
+      TextMemo.Enabled := True;
+      TextIDEdit.Enabled := True;
+      DeleteText.Enabled := True;
+    end
+    else
+    begin
+      TextMemo.Enabled := False;
+      TextIDEdit.Enabled := False;
+      DeleteText.Enabled := False;
+    end;
+  UpdateScrollBar;
+end;
+
+procedure TTextControlEditForm.EditTextControl(TextControl: TTextControl);
+begin
+  FTextControl := TextControl;
+  SetText(TextControl.GetItem(0));
+  ShowModal;
+end;
 
 procedure TTextControlEditForm.TextIDEditChange;
-begin end;
+begin
+  if FText <> nil then
+  begin
+    FText.FID := TextIDEdit.Value;
+    UpdateScrollBar;
+  end;
+end;
 
 procedure TTextControlEditForm.NewTextClick;
-begin end;
+begin
+  SetText(FTextControl.New);
+end;
 
 procedure TTextControlEditForm.DeleteTextClick;
-begin end;
+var Index: Integer;
+begin
+  Index := FTextControl.IndexOf(FText);
+  if Index <> -1 then
+  begin
+    FTextControl.Delete(Index);
+    if Index = FTextControl.Count then Index := FTextControl.Count - 1;
+    SetText(FTextControl.GetItem(Index));
+  end;
+end;
 
 procedure TTextControlEditForm.FindTextClick;
-begin end;
+var S: string; Item: TTextControlItem;
+begin
+  S := InputBox('ID search form', 'Type ID', '');
+  try
+    if S <> '' then
+    begin
+      Item := FTextControl.FindID(StrToInt(S));
+      if Item <> nil then SetText(Item)
+      else ShowMessage('ID not found');
+    end;
+  except
+  end;
+end;
 
 procedure TTextControlEditForm.TextMemoChange;
-begin end;
+var Item: TTextControlItem;
+begin
+  Item := FText;
+  if Item <> nil then Item.FText.Text := TextMemo.Lines.Text;
+end;
 
 procedure TTextControlEditForm.TextScrollBarChange;
-begin end;
+begin
+  if FTextControl.GetItem(TextScrollBar.Position) <> FText then
+    SetText(FTextControl.GetItem(TextScrollBar.Position));
+end;
 
 procedure TTextControlEditForm.DescriptionEditChange;
-begin end;
-
+begin
+  if FText <> nil then FText.FName := DescriptionEdit.Text;
+end;
 
 end.

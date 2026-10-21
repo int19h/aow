@@ -2,12 +2,14 @@ unit ETCUnitPos;
 
 { Draft declarations of ETCUnitPos, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Direction uses inherited $1FC FEditObject and $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, AoWTC;
 
 type
   TTCUnitPositionEditForm = class;
@@ -26,8 +28,8 @@ type
     Dir3: TRadioButton; { +0224 }
     Dir4: TRadioButton; { +0228 }
     public
-    procedure FormCreate;  { draft }
-    procedure DirectionChanged;  { draft }
+    procedure FormCreate;
+    procedure DirectionChanged;
   end;
 
   { TUnitPositionEditor (instance size 8, VMT 0041DC1C) }
@@ -51,10 +53,28 @@ begin
 end;
 
 procedure TTCUnitPositionEditForm.FormCreate;
-begin end;
+begin
+  case TUnitPositionHS(FEditObject).FDirection of
+    1: Dir1.Checked := True;
+    2: Dir2.Checked := True;
+    3: Dir3.Checked := True;
+    4: Dir4.Checked := True;
+    5: Dir5.Checked := True;
+    6: Dir6.Checked := True;
+  end;
+end;
 
 procedure TTCUnitPositionEditForm.DirectionChanged;
-begin end;
-
+var Direction: Integer;
+begin
+  if Dir1.Checked then Direction := 1
+  else if Dir2.Checked then Direction := 2
+  else if Dir3.Checked then Direction := 3
+  else if Dir4.Checked then Direction := 4
+  else if Dir5.Checked then Direction := 5
+  else if Dir6.Checked then Direction := 6
+  else Direction := 2;
+  TUnitPositionHS(FMapObject).FDirection := Direction;
+end;
 
 end.

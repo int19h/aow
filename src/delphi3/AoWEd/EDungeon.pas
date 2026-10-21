@@ -2,7 +2,9 @@ unit EDungeon;
 
 { Draft declarations of EDungeon, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Prisoner controls bind TDungeon at inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
@@ -29,15 +31,15 @@ type
     AddPrisBtn: TButton; { +0260 }
     UserDefinedPrisBtn: TRadioButton; { +0264 }
     public
-    procedure MainPageControlChange;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure PrisonersModeBoxChange;  { draft }
-    procedure AutoGeneratePrisBtnClick;  { draft }
-    procedure UserDefinedPrisBtnClick;  { draft }
-    procedure AddPrisBtnClick;  { draft }
-    procedure DeletePrisBtnClick;  { draft }
-    procedure FormCreate;  { draft }
-    procedure FormShow;  { draft }
+    procedure MainPageControlChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure PrisonersModeBoxChange(Sender: TObject);
+    procedure AutoGeneratePrisBtnClick(Sender: TObject);
+    procedure UserDefinedPrisBtnClick(Sender: TObject);
+    procedure AddPrisBtnClick(Sender: TObject);
+    procedure DeletePrisBtnClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   end;
 
   { TDungeonEditor (instance size 8, VMT 0041B568) }
@@ -50,38 +52,81 @@ type
 
 implementation
 
+uses Dungeon, UnitFlt;
+
 class procedure TDungeonEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
 class procedure TDungeonEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TDungeonEditForm.MainPageControlChange;
-begin end;
+procedure TDungeonEditForm.MainPageControlChange(Sender: TObject);
+begin
+  inherited MainPageControlChange(Sender);
+  if MainPageControl.ActivePage = PrisonersSheet then
+    if UserDefinedPrisBtn.Checked then UnitFloater.Show else UnitFloater.Hide;
+end;
 
-procedure TDungeonEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TDungeonEditForm.OKBtnClick(Sender: TObject);
+begin
+  if AutoGeneratePrisBtn.Checked then TDungeon(FMapObject).FPrisoners.Clear
+  else TDungeon(FMapObject).FPrisonersMode := pmUserDefined;
+  inherited OKBtnClick(Sender);
+end;
 
-procedure TDungeonEditForm.PrisonersModeBoxChange;
-begin end;
+procedure TDungeonEditForm.PrisonersModeBoxChange(Sender: TObject);
+begin
+  TDungeon(FMapObject).FPrisonersMode := TPrisonersMode(PrisonersModeBox.ItemIndex + 1);
+end;
 
-procedure TDungeonEditForm.AutoGeneratePrisBtnClick;
-begin end;
+procedure TDungeonEditForm.AutoGeneratePrisBtnClick(Sender: TObject);
+begin
+  UserDefinedPrisPanel.Enabled := False;
+  AutoGeneratePrisPanel.Enabled := True;
+  TDungeon(FMapObject).FPrisonersMode := TPrisonersMode(PrisonersModeBox.ItemIndex + 1);
+  UnitFloater.Hide;
+end;
 
-procedure TDungeonEditForm.UserDefinedPrisBtnClick;
-begin end;
+procedure TDungeonEditForm.UserDefinedPrisBtnClick(Sender: TObject);
+begin
+  UserDefinedPrisPanel.Enabled := True;
+  AutoGeneratePrisPanel.Enabled := False;
+  TDungeon(FMapObject).FPrisonersMode := pmUserDefined;
+  UnitFloater.Show;
+end;
 
-procedure TDungeonEditForm.AddPrisBtnClick;
-begin end;
+procedure TDungeonEditForm.AddPrisBtnClick(Sender: TObject);
+begin
+  PrisonersGrid.AddUnit;
+end;
 
-procedure TDungeonEditForm.DeletePrisBtnClick;
-begin end;
+procedure TDungeonEditForm.DeletePrisBtnClick(Sender: TObject);
+begin
+  PrisonersGrid.DeleteUnit;
+end;
 
-procedure TDungeonEditForm.FormCreate;
-begin end;
+procedure TDungeonEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  PrisonersGrid.SetUnits(TDungeon(FMapObject).FPrisoners);
+  PrisonersGrid.FSelectionControl := UnitFloater.UnitTabControl.FSelectionControl;
+end;
 
-procedure TDungeonEditForm.FormShow;
-begin end;
-
+procedure TDungeonEditForm.FormShow(Sender: TObject);
+begin
+  inherited FormShow(Sender);
+  if TDungeon(FMapObject).FPrisonersMode = pmUserDefined then
+  begin
+    UserDefinedPrisBtnClick(Self);
+    PrisonersModeBox.ItemIndex := 1;
+    UserDefinedPrisBtn.Checked := True;
+  end
+  else
+  begin
+    PrisonersModeBox.ItemIndex := Ord(TDungeon(FMapObject).FPrisonersMode) - 1;
+    AutoGeneratePrisBtnClick(Self);
+    AutoGeneratePrisBtn.Checked := True;
+  end;
+end;
 
 end.

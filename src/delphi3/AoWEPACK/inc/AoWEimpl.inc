@@ -185,7 +185,7 @@ resourcestring
   RoadRStr = 'Road';
   BridgeRStr = 'Bridge';
   RubbleRStr = 'Rubble';
-  StructureRStr = 'Structure';
+  { StructureRStr is public in the interface; AoWEd 00425694. }
   { ObstacleRStr is exported in the interface. }
   LightVegetationRStr = 'Light Vegetation';
   SolidRStr = 'Solid';

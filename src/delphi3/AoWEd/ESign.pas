@@ -2,7 +2,9 @@ unit ESign;
 
 { Draft declarations of ESign, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Sign text uses TSign at inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
@@ -21,8 +23,8 @@ type
     Label1: TLabel; { +0210 }
     SignText: TMemo; { +0214 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TSignEditor (instance size 8, VMT 00418280) }
@@ -35,6 +37,8 @@ type
 
 implementation
 
+uses Sign;
+
 class procedure TSignEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin
   TSignEditForm.vmt90(Obj, Done);
@@ -45,11 +49,15 @@ begin
   Handled := Handled + [emEdit];
 end;
 
-procedure TSignEditForm.FormCreate;
-begin end;
+procedure TSignEditForm.FormCreate(Sender: TObject);
+begin
+  SignText.Lines.Text := TSign(FMapObject).FText.Text;
+end;
 
-procedure TSignEditForm.OKBtnClick(A1: Integer);
-begin end;
-
+procedure TSignEditForm.OKBtnClick(Sender: TObject);
+begin
+  TSign(FMapObject).FText.Text := SignText.Lines.Text;
+  inherited OKBtnClick(Sender);
+end;
 
 end.

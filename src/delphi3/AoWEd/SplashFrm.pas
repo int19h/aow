@@ -2,7 +2,9 @@ unit SplashFrm;
 
 { Draft declarations of SplashFrm, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  No added instance fields; image and labels occupy $1DC through $1EC. }
+
+{$R+,Q+}
 
 interface
 
@@ -23,22 +25,30 @@ type
     Label1: TLabel; { +01E8 }
     Translator: TIvTranslator; { +01EC }
     public
-    procedure FormKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure Image1Click;  { draft }
-    procedure FormCreate;  { draft }
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure Image1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TSplashForm.FormKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+uses AoWE, MDIForm;
 
-procedure TSplashForm.Image1Click;
-begin end;
+procedure TSplashForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  ModalResult := mrOK;
+end;
 
-procedure TSplashForm.FormCreate;
-begin end;
+procedure TSplashForm.Image1Click(Sender: TObject);
+begin
+  ModalResult := mrOK;
+end;
 
+procedure TSplashForm.FormCreate(Sender: TObject);
+begin
+  VersionLbl.Caption := GetEditorVersion;
+  Image1.Picture.LoadFromFile(AoWEngine.StartupDirectory + 'EDIMAGES\SPLASH.BMP');
+end;
 
 end.

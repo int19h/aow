@@ -2,7 +2,9 @@ unit EChangeSong;
 
 { Draft declarations of EChangeSong, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  $238 song list; the song filename is in inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
@@ -24,11 +26,11 @@ type
     SongNameLabel: TLabel; { +0230 }
     PlaySong: TSpeedButton; { +0234 }
     public
-    F_ChangeSongEditForm_238: Integer;
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure SongCBChange;  { draft }
-    procedure PlaySongClick;  { draft }
+    FSongList: TSongList; { $238 }
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure SongCBChange(Sender: TObject);
+    procedure PlaySongClick(Sender: TObject);
   end;
 
   { TChangeSongEditor (instance size 8, VMT 0041E868) }
@@ -40,20 +42,35 @@ type
 
 implementation
 
+uses MoveOnEvents;
+
 class procedure TChangeSongEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TChangeSongEditForm.FormCreate;
-begin end;
+procedure TChangeSongEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  FSongList := TSongList.Create(nil);
+  FSongList.Search('SONGS\', 'S3M');
+  FSongList.Search('SONGS\', 'IT');
+  SongCB.Items.Assign(FSongList.SongNames);
+  SongCB.ItemIndex := FSongList.Songs.IndexOf(TChangeSongMoveOnEvent(FMapObject).FSongFileName);
+end;
 
-procedure TChangeSongEditForm.FormDestroy;
-begin end;
+procedure TChangeSongEditForm.FormDestroy(Sender: TObject);
+begin
+  FSongList.Free;
+  StopSong;
+end;
 
-procedure TChangeSongEditForm.SongCBChange;
-begin end;
+procedure TChangeSongEditForm.SongCBChange(Sender: TObject);
+begin
+  TChangeSongMoveOnEvent(FMapObject).FSongFileName := FSongList.Songs[SongCB.ItemIndex];
+end;
 
-procedure TChangeSongEditForm.PlaySongClick;
-begin end;
-
+procedure TChangeSongEditForm.PlaySongClick(Sender: TObject);
+begin
+  Sound.PlaySong(TChangeSongMoveOnEvent(FMapObject).FSongFileName);
+end;
 
 end.

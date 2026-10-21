@@ -23,7 +23,7 @@ type
     FEditable: Boolean; { $1EC; AoWEd 00420664 }
     FShowAvailability: Boolean; { $1ED }
     FSort: Byte; { +$1EE }
-    FReserved1EF: Byte; published property SelectionEnabled; public { AoWEd 004164F4 }
+    FReserved1EF: Byte; published property SelectionEnabled; property Col; property Row; public { AoWEd 004164F4, 0041638B }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;

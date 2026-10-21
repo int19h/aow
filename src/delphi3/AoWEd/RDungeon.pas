@@ -2,7 +2,9 @@ unit RDungeon;
 
 { Draft declarations of RDungeon, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Resource and animation fields are inherited; the grids bind the resource collections. }
+
+{$R+,Q+}
 
 interface
 
@@ -24,10 +26,10 @@ type
     AddPrisoner: TButton; { +0398 }
     DeletePrisoners: TButton; { +039C }
     public
-    procedure MainPageControlChange;  { draft }
-    procedure AddPrisonerClick;  { draft }
-    procedure DeletePrisonersClick;  { draft }
-    procedure FormCreate;  { draft }
+    procedure MainPageControlChange(Sender: TObject);
+    procedure AddPrisonerClick(Sender: TObject);
+    procedure DeletePrisonersClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   end;
 
   { TDungeonResourceEditor (instance size 8, VMT 0040AB60) }
@@ -40,23 +42,55 @@ type
 
 implementation
 
+uses AoWE, ExploreS, Dungeon, UnitFlt;
+
 class function TDungeonResourceEditor.EditorClassID: Integer;
 begin Result := 0; end;
 
 class procedure TDungeonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-procedure TDungeonResourceEditForm.MainPageControlChange;
-begin end;
+procedure TDungeonResourceEditForm.MainPageControlChange(Sender: TObject);
+begin
+  inherited MainPageControlChange(Self);
+  if MainPageControl.ActivePage = PrisonersSheet then
+  begin
+    UnitFloater.ResetSelection;
+    with UnitFloater.UnitTabControl.FSelectionControl do
+    begin
+      FShowAllCategory := True;
+      FShowRaceCategories := True;
+      FShowTypeCategories := True;
+      FMinimumLevel := 1;
+      FMaximumLevel := 4;
+    end;
+    UnitFloater.UnitTabControl.UpdateSelection;
+    UnitFloater.Show;
+  end;
+end;
 
-procedure TDungeonResourceEditForm.AddPrisonerClick;
-begin end;
+procedure TDungeonResourceEditForm.AddPrisonerClick(Sender: TObject);
+var Index: Integer;
+begin
+  Index := UnitFloater.UnitTabControl.FSelectionControl.FSelectedUnitIndex;
+  if Index <> -1 then
+  begin
+    TDungeonResource(FResource).FPrisonerCollections.AddUnit(PrisonersGrid.Row, Index);
+    PrisonersGrid.Invalidate;
+  end
+  else MessageBeep(0);
+end;
 
-procedure TDungeonResourceEditForm.DeletePrisonersClick;
-begin end;
+procedure TDungeonResourceEditForm.DeletePrisonersClick(Sender: TObject);
+begin
+  TDungeonResource(FResource).FPrisonerCollections.DeleteUnit(PrisonersGrid.Row, PrisonersGrid.Col);
+  PrisonersGrid.Invalidate;
+end;
 
-procedure TDungeonResourceEditForm.FormCreate;
-begin end;
-
+procedure TDungeonResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  PrisonersGrid.SetUnitIndexList(TDungeonResource(FResource).FPrisonerCollections.FUnits);
+end;
 
 end.

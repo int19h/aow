@@ -714,7 +714,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   SolarBlastRStr = 'Solar Blast';
   SolarFlareRStr = 'Solar Flare';
   SoundFXRStr = 'Sound FX';
-  SourceLibraryXRStr = 'Source Library: %s';
+  SourceLibraryXRStr = 'Source Library: %s'; StructureRStr = 'Structure'; { public resource, AoWEd 00425694 }
   SpecialThanksRStr = 'Special Thanks';
   SpellIsAlreadyResearchedRStr = 'Spell already researched';
   SpellRStr = 'Spell';

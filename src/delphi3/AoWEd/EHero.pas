@@ -147,8 +147,8 @@ type
     procedure FormCreate;  { }
     procedure FormDestroy;  { }
     procedure HeroResourceComboBoxChange;  { }
-    procedure EditFaceBtnClick;  { draft }
-    procedure PreviewImagePanelDraw(Sender: TObject; R: TRect);  { draft }
+    procedure EditFaceBtnClick;
+    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
     procedure OKBtnClick;  { }
     procedure ResetBtnClick;  { }
     procedure HeroLevelEditChange;  { }
@@ -162,22 +162,22 @@ type
     procedure DeleteBtnClick;  { }
     procedure AvailableAbBoxClick;  { }
     procedure SelectedAbBoxClick;  { }
-    procedure AddItemBtnClick;  { draft }
-    procedure DeleteItemBtnClick;  { draft }
+    procedure AddItemBtnClick;
+    procedure DeleteItemBtnClick;
     procedure MainPageControlChange;  { }
     procedure NicknameEditChange;  { }
     procedure NameEditChange;  { }
     procedure ItemGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
     procedure BodyGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
-    procedure BodyGridDblClick;  { draft }
-    procedure ItemGridDblClick;  { draft }
+    procedure BodyGridDblClick;
+    procedure ItemGridDblClick;
     procedure SphereEditChange(Sender: TObject);  { }
   end;
 
 
 implementation
 
-uses MDIForm;
+uses MDIForm, FaceSel, EItem;
 
 procedure THeroEditForm.vmt80;
 var
@@ -291,10 +291,27 @@ begin
 end;
 
 procedure THeroEditForm.EditFaceBtnClick;
-begin end;
+var Dlg: TFaceSelectionDlg;
+begin
+  Dlg := TFaceSelectionDlg.Create(Self);
+  Dlg.SetFaceIndex(FHero.FFaceIndex);
+  with Dlg do
+    if (ShowModal = mrOK) and (FSelectedIndex <> -1) then
+    begin
+      FHero.SetFaceIndex(FSelectedIndex);
+      PreviewImagePanel.Invalidate;
+    end;
+  Dlg.Free;
+end;
 
-procedure THeroEditForm.PreviewImagePanelDraw(Sender: TObject; R: TRect);
-begin end;
+procedure THeroEditForm.PreviewImagePanelDraw(Sender: TObject; const R: TRect);
+var DrawRect: TRect;
+begin
+  with PreviewImagePanel do
+    if AoWHSSet.FFaceResources.GetFaceResource(FHero.FFaceIndex) <> nil then
+      BltLibraryImage(Canvas, AoWHSSet.FFaceResources.GetFaceResource(FHero.FFaceIndex).GetCellImage,
+        R, bmCenter, 100, 100, 0, Color, False, DrawRect);
+end;
 
 procedure THeroEditForm.OKBtnClick;
 begin
@@ -403,10 +420,23 @@ begin
 end;
 
 procedure THeroEditForm.AddItemBtnClick;
-begin end;
+begin
+  with ItemGrid do
+    if SelectionEnabled then
+    begin
+      AddItem(ItemFloater.ItemControlGrid.GetSelectedItem);
+      Exit;
+    end;
+  if FHero.FHeroItems.CanPlaceItem(ItemFloater.ItemControlGrid.GetSelectedItem,
+    THeroItemPosition(BodyGrid.ImageIndex(BodyGrid.Col, BodyGrid.Row))) then
+    BodyGrid.AddItem(ItemFloater.ItemControlGrid.GetSelectedItem);
+end;
 
 procedure THeroEditForm.DeleteItemBtnClick;
-begin end;
+begin
+  if ItemGrid.SelectionEnabled then ItemGrid.DeleteItem
+  else BodyGrid.DeleteItem;
+end;
 
 procedure THeroEditForm.MainPageControlChange;
 begin
@@ -435,10 +465,30 @@ begin
 end;
 
 procedure THeroEditForm.BodyGridDblClick;
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := BodyGrid.GetSelectedItem;
+  if Item <> nil then
+  begin
+    Dlg := TItemEditForm.Create(Application);
+    if Item.GetLibraryItem then Dlg.EditLibraryItem(Item)
+    else Dlg.EditItem(Item);
+    Dlg.Free;
+  end;
+end;
 
 procedure THeroEditForm.ItemGridDblClick;
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := ItemGrid.GetSelectedItem;
+  if Item <> nil then
+  begin
+    Dlg := TItemEditForm.Create(Application);
+    if Item.GetLibraryItem then Dlg.EditLibraryItem(Item)
+    else Dlg.EditItem(Item);
+    Dlg.Free;
+  end;
+end;
 
 procedure THeroEditForm.SphereEditChange(Sender: TObject);
 var

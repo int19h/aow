@@ -94,5 +94,14 @@
   "THeroResourceEditor.vmt4C": "THeroResourceEditor.EditorClassID",
   "THeroResourceEditor.vmt50": "THeroResourceEditor.Edit",
   "004124d4:239": "THeroResourceEditForm.LoadSettings",
-  "004125c4:272": "THeroResourceEditForm.SaveSettings"
+  "004125c4:272": "THeroResourceEditForm.SaveSettings",
+  "004219e4:162": "TTextControlEditForm.UpdateScrollBar",
+  "00421a88:228": "TTextControlEditForm.SetText",
+  "00421b74:40": "TTextControlEditForm.EditTextControl",
+  "0041dcdc:134": "TTCUnitPositionEditForm.FormCreate",
+  "004255d8:110": "CompareStructures",
+  "00425648:483": "TPlayerInfoFloater.UpdateStructureGrid",
+  "00425844:592": "TPlayerInfoFloater.LoadPlayer",
+  "00425a9c:164": "TPlayerInfoFloater.UpdatePlayer",
+  "0041d944:3": "DefendersEnabled"
 }

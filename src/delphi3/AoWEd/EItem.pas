@@ -61,7 +61,7 @@ type
     FItem: TItem; { $27C }
     FReadOnly: Boolean; { $280 }
     FReserved281: array[0..2] of Byte;
-    procedure UpdateControls; { draft: Spin value accessor is not recovered }
+    procedure UpdateControls;
     procedure EditLibraryItem(Item: TItem);
     { conflict: function EditLibraryItem(Item: TItem): Boolean; }
     function EditItem(Item: TItem): Boolean;
@@ -78,8 +78,8 @@ type
     procedure AvailabilityBoxChange;
     procedure AbilityBtnClick;
     procedure DescriptionEditChange;
-    procedure CostEditChange; { draft: Spin value accessor is not recovered }
-    procedure SpellComboBoxChange;
+    procedure CostEditChange;
+    procedure SpellComboBoxChange(Sender: TObject);
   end;
 
 
@@ -89,6 +89,80 @@ uses MDIForm, SelAbDlg;
 
 procedure TItemEditForm.UpdateControls;
 begin
+  ItemNameEdit.Text := FItem.FOwnerName;
+  ItemTypeBox.ItemIndex := Ord(FItem.FItemType);
+  PreviewImagePanel.Invalidate;
+  AvailabilityBox.ItemIndex := Ord(FItem.FAvailability);
+  CostEdit.Value := FItem.FObtainValue;
+  ScrollPnl.Visible := FItem.FItemType = itScroll;
+  StatisticsPnl.Visible := not (FItem.FItemType in [itScroll]);
+  with FItem do
+    if FItemGFXIndex = -1 then SetItemGFXIndex(AoWHSSet.FItemGFXResources.FindItemTypeGFX(FItemType));
+  if FItem.GetLibraryItem then
+  begin
+    SourceLibraryLbl.Visible := True;
+    SourceLibraryLbl.Caption := AoWE.Format(TranslateRStr(SourceLibraryXRStr), [FItem.GetLibraryName]);
+  end
+  else SourceLibraryLbl.Visible := False;
+  with FItem do
+  begin
+    DamageEdit.Value := FDamage;
+    AttackEdit.Value := FAttack;
+    DefenseEdit.Value := FDefense;
+    ResistanceEdit.Value := FResistance;
+  end;
+  FItem.ListAbilities(AbilityListBox.Items);
+  if FReadOnly then
+  begin
+    AttackEdit.Color := clBtnFace;
+    DefenseEdit.Color := clBtnFace;
+    ResistanceEdit.Color := clBtnFace;
+    DamageEdit.Color := clBtnFace;
+    ItemNameEdit.Color := clBtnFace;
+    ItemTypeBox.Color := clBtnFace;
+    AvailabilityBox.Color := clBtnFace;
+    AbilityListBox.Color := clBtnFace;
+    GeneralSheet.Enabled := False;
+    CostEdit.Color := clBtnFace;
+    SpellComboBox.Color := clBtnFace;
+    SpellComboBox.Enabled := False;
+  end
+  else
+  begin
+    if FItem.FItemType <> itUse then
+    begin
+      AttackEdit.Color := clWindow;
+      DefenseEdit.Color := clWindow;
+      ResistanceEdit.Color := clWindow;
+      DamageEdit.Color := clWindow;
+    end
+    else
+    begin
+      AttackEdit.Color := clBtnFace;
+      DefenseEdit.Color := clBtnFace;
+      ResistanceEdit.Color := clBtnFace;
+      DamageEdit.Color := clBtnFace;
+    end;
+    ItemNameEdit.Color := clWindow;
+    ItemTypeBox.Color := clWindow;
+    AvailabilityBox.Color := clWindow;
+    AbilityListBox.Color := clWindow;
+    CostEdit.Color := clWindow;
+    SpellComboBox.Color := clWindow;
+    SpellComboBox.Enabled := True;
+    with FItem do
+      if FItemType = itScroll then
+      begin
+        with SpellComboBox do
+          ItemIndex := Items.IndexOfObject(AoWHSSet.FSpellControl.GetSpell(FSpellID));
+        if SpellComboBox.ItemIndex = -1 then
+        begin
+          SpellComboBox.ItemIndex := 0;
+          SpellComboBoxChange(Self);
+        end;
+      end;
+    GeneralSheet.Enabled := True;
+  end;
 end;
 
 procedure TItemEditForm.EditLibraryItem(Item: TItem);
@@ -215,9 +289,11 @@ procedure TItemEditForm.DescriptionEditChange;
 begin end;
 
 procedure TItemEditForm.CostEditChange;
-begin end;
+begin
+  FItem.FObtainValue := CostEdit.Value;
+end;
 
-procedure TItemEditForm.SpellComboBoxChange;
+procedure TItemEditForm.SpellComboBoxChange(Sender: TObject);
 begin
   if SpellComboBox.ItemIndex <> -1 then
     with SpellComboBox do FItem.FSpellID := TSpell(Items.Objects[ItemIndex]).FSpellID
