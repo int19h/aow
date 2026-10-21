@@ -453,7 +453,7 @@ begin
         if TPatrolAG(FGroup).FPatrolStrength = 0 then
           TPatrolAG(FGroup).FPatrolStrength := FStrengthMax;
         Defense := TAIGroupDefenseControl.Create(nil);
-        Defense.FDefendOnly := True;
+        Defense.FDefendMode := gdmWait;
         ActivatePlugin(Defense);
         Defense.Release;
         FState := 1;

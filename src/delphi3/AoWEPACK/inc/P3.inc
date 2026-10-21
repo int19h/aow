@@ -3317,7 +3317,7 @@ end;
 procedure TCombatPredictor.AddUnit(A1: TAbstractUnit);
 begin AddUnitEx(A1, 0, 0); end;
 
-procedure TCombatPredictor.AddUnits(A1: Integer);
+procedure TCombatPredictor.AddUnits(A1: TUnitList);
 var I: Integer;
 begin
   for I := 0 to TUnitList(A1).Count - 1 do
@@ -3381,7 +3381,7 @@ var Level: TMapLevel; ArmyHS: TArmyHS; U: TAbstractUnit;
     Defender, Player, Relation, DefenderRelation: Byte; Side: TCombatSideIndex;
     Field: TMapField; I: Integer; Msg: TMapFieldMsg; Walk: THNWalkData;
 begin
-  AddUnits(Integer(A1.FArmy));
+  AddUnits(A1.FArmy);
   Level := AoWHSMap.MapContainer.GetMapLevel(A4);
   with A1.FArmy do
   begin
@@ -3625,7 +3625,7 @@ begin
     end;
 end;
 
-procedure TCombatPredictor.ListRequiredUnits(A1: Integer; A2: Integer);
+procedure TCombatPredictor.ListRequiredUnits(A1: TUnitList; A2: Integer);
 begin ListRequiredUnitsEx(TUnitList(A1), nil, nil, A2); end;
 
 procedure TCombatPredictor.ListOptionalUnits(A1: Integer; A2: Integer);

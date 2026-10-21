@@ -369,7 +369,9 @@
     function GetMoveAction(Player: Shortint): TMoveAction;
     function GetIndependentRelation: Byte;
     function GetDefensePriority: Byte;
+    { conflict: function GetDefensePriority: TDefensePriority; }
     procedure GetDefenseRequirements(Player: Shortint; var Requirements: TDefenseRequirements);
+    { conflict: procedure GetDefenseRequirements(Player: Shortint; var Requirements); }
     function GetWallType: TWallType;
     function GetArmyHS: TArmyHS;
     procedure RestoreTerrain;

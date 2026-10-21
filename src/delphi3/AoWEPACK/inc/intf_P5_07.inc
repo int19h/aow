@@ -68,8 +68,8 @@
     procedure NewTurn(Player: Shortint); virtual; { $C8 }
     function CreateGroupControl: TAIGroupControl; virtual; { $CC }
     class function Behavior: TGroupBehavior; virtual;
-    function DefendLocation(Location: Integer): Boolean; virtual; { $D4 }
-    function CooperateWithGroup(Group: TAIGroup): Boolean; virtual; { $D8 }
+    function DefendLocation(Location: Integer; Priority: TDefensePriority): Boolean; virtual; { $D4 }
+    function CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean; virtual; { $D8 }
     function GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean; virtual; { $DC }
     { conflict: function GetRecruitableUnits(Group: TAIGroup; Units, Recruitable: TUnitList): Boolean; virtual; }
     function GetProcessPriority: Integer;
@@ -307,7 +307,10 @@
     procedure TargetFoundEvent(Target: TMoveTarget; var SearchDone: Boolean);
   end;
 
-  { TGroupDefenseSelector (instance size 16, VMT 5571ABB0) }
+  TDamageStrengths = array[TDamageType] of Integer;
+
+  { TGroupDefenseSelector: instance size $10, VMT 5571ABB0.
+    $08 defenders, $0C selected defense location. }
   TGroupDefenseSelector = class(TObject)
   public
     F_GroupDefenseSelector_04: array[0..3] of Byte;
@@ -315,20 +318,21 @@
     FDefenseLocation: TXYL; { $0C }
     destructor Destroy; override;
     constructor Create; virtual; { $00 }
-    procedure GetDefenders(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure EnoughStrength(A1: Integer);  { draft }
-    procedure UsefullUnit(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateDefenseLocation(A1: Integer);  { draft }
+    function GetDefenders(Player, X, Y, L: Shortint; Units: TUnitList): Boolean;
+    function EnoughStrength(var Strengths: TDamageStrengths): Boolean;
+    function UsefullUnit(AUnit: TAbstractUnit; var Strengths: TDamageStrengths): Boolean;
+    procedure UpdateDefenseLocation(MapF: TAoWMapField);
     function Execute(Group: TAIGroup; X, Y, L: Shortint; Units: TUnitList): Boolean;
   end;
 
-  { TAIGroupDefenseControl (instance size 40, VMT 5571ACDC) }
+  { TAIGroupDefenseControl: instance size $28, VMT 5571ACDC.
+    $1C selector, $20 custom state, $24 mode, $25 defend mode. }
   TAIGroupDefenseControl = class(TAIGroupControlPlugin)
   public
-    F_AIGroupDefenseControl_1C: Integer;
-    F_AIGroupDefenseControl_20: Integer;
-    F_AIGroupDefenseControl_24: Byte;
-    FDefendOnly: Boolean; { $25; 557D9594 }
+    FSelector: TGroupDefenseSelector; { $1C }
+    FCustomState: Integer; { $20 }
+    FMode: TGroupDefenseControlMode; { $24 }
+    FDefendMode: TGroupDefendMode; { $25; 55739FC0, 557D9594 }
     F_AIGroupDefenseControl_26: array[0..1] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -387,7 +391,7 @@
     function GetBusy: Boolean; override;
     function Activate(Control: TAIGroupControl): Boolean; override;
     function Process: Boolean; override;
-    function Setup: Boolean; virtual; { $60 }
+    function Setup(Control: TAIGroupControl): Boolean; virtual; { $60 }
     function GetRecruitedStrength: Integer;
     function GetRecruitStrengthEx(DamageType: TDamageType): Integer;
     procedure SetRecruitStrengthEx(DamageType: TDamageType; Value: Integer);
@@ -402,41 +406,42 @@
     procedure Reset;
   end;
 
-  { TAIGroupCooperationControl (instance size 148, VMT 5571B0C8) }
+  { TAIGroupCooperationControl: instance size $94, VMT 5571B0C8.
+    $1C completion, $20 control, $24 groups, $28 mode, $2C remaining strength,
+    $30 remaining strengths, $58 path factor, $5C target, $60 strength,
+    $64 damage types, $68 strengths, $90 required superiority. }
   TAIGroupCooperationControl = class(TAIGroupControlPlugin)
   public
-    F_AIGroupCooperationControl_1C: Byte;
+    FComplete: Boolean; { $1C }
     F_AIGroupCooperationControl_1D: array[0..2] of Byte;
-    F_AIGroupCooperationControl_20: Integer;
-    F_AIGroupCooperationControl_24: Integer;
-    F_AIGroupCooperationControl_28: Byte;
+    FControl: TAIGroupControl; { $20 }
+    FGroups: TAIRecruitmentGroupList; { $24 }
+    FMode: TAIGroupCooperateControlMode; { $28 }
     F_AIGroupCooperationControl_29: array[0..2] of Byte;
-    F_AIGroupCooperationControl_2C: Integer;
-    F_AIGroupCooperationControl_30: Byte;
-    F_AIGroupCooperationControl_31: array[0..38] of Byte;
-    F_AIGroupCooperationControl_58: Integer;
-    F_AIGroupCooperationControl_5C: Integer;
-    F_AIGroupCooperationControl_60: Integer;
-    F_AIGroupCooperationControl_64: Word;
+    FRemainingStrength: Integer; { $2C }
+    FRemainingStrengths: array[TDamageType] of Integer; { $30 }
+    FPathStrengthFactor: Single; { $58 }
+    FTarget: TAIGroupControlTarget; { $5C }
+    FCooperateStrength: Integer; { $60 }
+    FDamageTypes: TDamageTypes; { $64 }
     F_AIGroupCooperationControl_66: array[0..1] of Byte;
-    F_AIGroupCooperationControl_68: Byte;
-    F_AIGroupCooperationControl_69: array[0..38] of Byte;
-    F_AIGroupCooperationControl_90: Integer;
+    FCooperateStrengths: array[TDamageType] of Integer; { $68 }
+    FSuperiority: Integer; { $90 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetBusy: Boolean; override;
     function Activate(Control: TAIGroupControl): Boolean; override;
     function Process: Boolean; override;
-    procedure Setup(A1: Integer; A2: Integer); virtual;  { +060 draft }
-    procedure GetCooperateMoveDays(A1: Integer; A2: Integer);  { draft }
-    procedure GetCooperatedStrength;  { draft }
-    procedure GetCooperateStrengthEx(A1: Integer);  { draft }
-    procedure SetCooperateStrengthEx(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateCompletion;  { draft }
-    procedure Reset;  { draft }
-    procedure AddCooperationGroup(A1: Integer; A2: Integer);  { draft }
-    procedure ValidCooperationGroup(A1: Integer);  { draft }
-    procedure ExecuteCooperation(A1: Integer; A2: Integer);  { draft }
+    function Setup(Control: TAIGroupControl; Target: TAIGroupControlTarget): Boolean; virtual; { $60 }
+    function GetCooperateMoveDays: Integer;
+    function GetCooperatedStrength: Integer;
+    function GetCooperateStrengthEx(DamageType: TDamageType): Integer;
+    procedure SetCooperateStrengthEx(DamageType: TDamageType; Value: Integer);
+    procedure UpdateCompletion;
+    procedure Reset;
+    procedure AddCooperationGroup(Group: TAIRecruitmentGroup);
+    function ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean;
+    procedure ExecuteCooperation;
   end;
 
   { TAIProductionLocationFinder: instance size $34, VMT 5571B218.
@@ -550,72 +555,86 @@
     procedure UpdateProduceableUnits;
   end;
 
-  { TAIGroupTargetPrioritySettings (instance size 60, VMT 5571B750) }
+  { TAIGroupTargetPrioritySettings: instance size $3C, VMT 5571B750.
+    $04 target factor, $08 immediate bonus, $0C transport penalty,
+    $10/$14 overlap penalties, $18/$1C existing-target bonuses,
+    $20/$24 cooperation penalties, $28/$2C recruitment penalties,
+    $30 move-day penalty, $34/$38 production penalties. }
   TAIGroupTargetPrioritySettings = class(TObject)
   public
-    F_AIGroupTargetPrioritySettings_04: array[0..55] of Byte;
+    FTargetFactor: Single; { $04 }
+    FImmediateBonus: Integer; { $08 }
+    FTransportPenalty: Integer; { $0C }
+    FFarOverlapPenalty, FNearOverlapPenalty: Integer; { $10, $14 }
+    FSetupBonus, FExecuteBonus: Integer; { $18, $1C }
+    FCompleteCooperationPenalty, FPartialCooperationPenalty: Integer; { $20, $24 }
+    FPartialRecruitmentPenalty, FCompleteRecruitmentPenalty: Integer; { $28, $2C }
+    FMoveDayPenalty: Integer; { $30 }
+    FPartialProductionPenalty, FProductionDayPenalty: Integer; { $34, $38 }
   end;
 
-  { TAIGroupTargetSelector (instance size 136, VMT 5571B7E8) }
+  { TAIGroupTargetSelector: instance size $88, VMT 5571B7E8.
+    $1C status, $20 plugin, $24 recruitment, $28 production, $2C cooperation,
+    $30 mode, $34 minimum moves, $38 target, $3C priority, $40 spare units,
+    $44 next target, $48..$50 battlefield factors, $54 radius, $58 damage types,
+    $5C/$60 superiority, $64 move-day factor, $68 minimum strength, $6C split factor,
+    $70/$74 path factors, $78 target limit, $7C transport, $80 valid limit,
+    $84 priority settings. }
   TAIGroupTargetSelector = class(TAIGroupControlPlugin)
   public
-    F_AIGroupTargetSelector_1C: Byte;
+    FTargetStatus: TAIGroupTargetSelectorStatus; { $1C }
     F_AIGroupTargetSelector_1D: array[0..2] of Byte;
-    F_AIGroupTargetSelector_20: Integer;
-    F_AIGroupTargetSelector_24: Integer;
-    F_AIGroupTargetSelector_28: Integer;
-    F_AIGroupTargetSelector_2C: Integer;
-    F_AIGroupTargetSelector_30: Byte;
+    FPlugin: TAIGroupControlPlugin; { $20 }
+    FRecruitment: TAIGroupRecruitControl; { $24 }
+    FProduction: TAIGroupProductionControl; { $28 }
+    FCooperation: TAIGroupCooperationControl; { $2C }
+    FMode: TAIGroupTargetSelectorMode; { $30 }
     F_AIGroupTargetSelector_31: array[0..2] of Byte;
-    F_AIGroupTargetSelector_34: Integer;
-    F_AIGroupTargetSelector_38: Integer;
-    F_AIGroupTargetSelector_3C: Integer;
-    F_AIGroupTargetSelector_40: Integer;
-    F_AIGroupTargetSelector_44: Integer;
-    F_AIGroupTargetSelector_48: Integer;
-    F_AIGroupTargetSelector_4C: Integer;
-    F_AIGroupTargetSelector_50: Integer;
-    F_AIGroupTargetSelector_54: Integer;
-    F_AIGroupTargetSelector_58: Word;
+    FMovesMin: Integer; { $34 }
+    FTarget: TAIGroupControlTarget; { $38 }
+    FPriority: Integer; { $3C }
+    FSpareUnits: TUnitUserList; { $40 }
+    FNextTarget: TAIGroupControlTarget; { $44 }
+    FBattleFieldFactor, FCurrentBattleFieldFactor, FBattleFieldMoveFactor: Single; { $48..$50 }
+    FBattleFieldRadius: Integer; { $54 }
+    FDamageTypes: TDamageTypes; { $58 }
     F_AIGroupTargetSelector_5A: array[0..1] of Byte;
-    F_AIGroupTargetSelector_5C: Integer;
-    F_AIGroupTargetSelector_60: Integer;
-    F_AIGroupTargetSelector_64: Integer;
-    F_AIGroupTargetSelector_68: Integer;
-    F_AIGroupTargetSelector_6C: Integer;
-    F_AIGroupTargetSelector_70: Integer;
-    F_AIGroupTargetSelector_74: Integer;
-    F_AIGroupTargetSelector_78: Integer;
-    F_AIGroupTargetSelector_7C: Byte;
+    FSuperiority, FNearSuperiority, FMoveDayFactor: Single; { $5C..$64 }
+    FMinimumStrength: Integer; { $68 }
+    FMultiTargetFactor, FPathStrengthFactor, FCurrentPathStrengthFactor: Single; { $6C..$74 }
+    FTargetLimit: Integer; { $78 }
+    FAllowTransport: Boolean; { $7C }
     F_AIGroupTargetSelector_7D: array[0..2] of Byte;
-    F_AIGroupTargetSelector_80: Integer;
-    F_AIGroupTargetSelector_84: Integer;
+    FValidTargetLimit: Integer; { $80 }
+    FPrioritySettings: TAIGroupTargetPrioritySettings; { $84 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Validate; override;
     function GetBusy: Boolean; override;
     function Activate(Control: TAIGroupControl): Boolean; override;
     function Process: Boolean; override;
-    procedure TargetOverlapFound(A1: Integer; A2: Integer);  { draft }
-    procedure ValidateTargetOverlap(A1: Integer; A2: Integer);  { draft }
-    procedure GetValidTargets;  { draft }
-    procedure Reset;  { draft }
-    procedure ActivatePlugin(A1: Integer);  { draft }
-    procedure DeactivatePlugin;  { draft }
-    procedure GetTargetSetupPriority(A1: Integer; A2: Integer);  { draft }
-    procedure Setup(A1: Integer);  { draft }
-    procedure TargetProcessed;  { draft }
-    procedure GetRequiredSuperiority(A1: Integer);  { draft }
-    procedure GetRequiredCombatPredictorSuperiority(A1: Integer);  { draft }
-    procedure GetRequiredTargetStrength(A1: Integer);  { draft }
-    procedure GetRequiredBattleFieldSuperiority(A1: Integer);  { draft }
-    procedure GetRequiredBattleFieldStrength(A1: Integer);  { draft }
-    procedure GetRequiredStrength(A1: Integer);  { draft }
-    procedure ValidateTargetRequirements(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure ValidMultiTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ShowTargetInfo;  { draft }
-    procedure NoTargetsFound;  { draft }
-    procedure AllowMultiTargets(A1: Integer; A2: Integer);  { draft }
+    function TargetOverlapFound(Target: TAIGroupControlTarget; IgnoreGroup: TAIGroup): Boolean;
+    function ValidateTargetOverlap(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean;
+    function GetValidTargets: Integer;
+    procedure Reset;
+    procedure ActivatePlugin(Plugin: TAIGroupControlPlugin);
+    procedure DeactivatePlugin;
+    function GetTargetSetupPriority(Target: TAIGroupControlTarget): Integer;
+    function Setup(Control: TAIGroupControl): Boolean;
+    procedure TargetProcessed;
+    function GetRequiredSuperiority(Target: TAIGroupControlTarget): Single;
+    function GetRequiredCombatPredictorSuperiority(Target: TAIGroupControlTarget): Integer;
+    function GetRequiredTargetStrength(Target: TAIGroupControlTarget): Integer;
+    function GetRequiredBattleFieldSuperiority(Target: TAIGroupControlTarget): Single;
+    function GetRequiredBattleFieldStrength(Target: TAIGroupControlTarget): Integer;
+    function GetRequiredStrength(Target: TAIGroupControlTarget): Integer;
+    function ValidateTargetRequirements(Units: TUnitList; Target: TAIGroupControlTarget;
+      Required, Optional: TUnitList; MinimumStrength: Integer): Boolean;
+    function ValidMultiTarget(Units: TUnitList; Target: TAIGroupControlTarget;
+      Required, Optional: TUnitList): Boolean;
+    procedure ShowTargetInfo;
+    procedure NoTargetsFound;
+    function AllowMultiTargets(Target: TAIGroupControlTarget): Boolean;
   end;
 
   { THuntAG (instance size 84, VMT 5571B8D0) }

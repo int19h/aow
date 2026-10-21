@@ -103,7 +103,7 @@
     procedure DeleteUnit(A1: TAbstractUnit); { 5573A91D }
     function AddUnitEx(A1: TAbstractUnit; A2: Byte; A3: Byte): TCombatPredictorUnit;
     procedure AddUnit(A1: TAbstractUnit);
-    procedure AddUnits(A1: Integer);  { draft }
+    procedure AddUnits(A1: TUnitList);
     procedure AddOpponent(A1: TAbstractUnit; A2: Byte);
     procedure AddOpponents(A1: Integer; A2: Byte);  { draft }
     procedure AddWall(A1: TWallType);
@@ -115,7 +115,7 @@
     function GetSuperiority: Integer;
     function GetEfficiency: Integer;
     procedure ListRequiredUnitsEx(A1, A2, A3: TUnitList; A4: Integer);
-    procedure ListRequiredUnits(A1: Integer; A2: Integer);  { draft }
+    procedure ListRequiredUnits(A1: TUnitList; A2: Integer);
     procedure ListOptionalUnits(A1: Integer; A2: Integer);  { draft }
     procedure ListUselessUnits(A1: Integer);  { draft }
     function Usefullness(A1: TAbstractUnit): Integer;

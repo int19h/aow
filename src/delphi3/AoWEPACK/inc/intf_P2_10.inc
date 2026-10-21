@@ -78,11 +78,11 @@ function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint)
 procedure DegreesRadToCo(A1: Integer; A2: Integer; var A3: Integer; var A4: Integer);
 function Encode(Text: string; Mode: Integer): string;
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
-procedure StrengthInfoMax(A1: Integer);  { draft }
+function StrengthInfoMax(const Strengths): Integer;
 procedure InvertDamageTypes(A1: Word);  { draft }
 function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
-procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);  { draft }
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
 function IgnitionChance(MapField: TAoWMapField): Integer; { 55762E4D }
 function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;

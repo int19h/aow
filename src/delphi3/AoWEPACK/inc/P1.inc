@@ -12305,8 +12305,8 @@ end;
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 begin end;
 
-procedure StrengthInfoMax(A1: Integer);
-begin end;
+function StrengthInfoMax(const Strengths): Integer;
+begin Result := 0; end;
 
 procedure InvertDamageTypes(A1: Word);
 begin end;
@@ -12317,8 +12317,8 @@ begin Result := 0; end;
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer;
 begin Result := 0; end;
 
-procedure GetBattleFieldStrengthAdvantage(A1: Integer; A2: Integer; A3: Byte; A4: Integer; A5: Integer; A6: Integer; A7: Integer);
-begin end;
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
+begin Result := 0; end;
 
 function IgnitionChance(MapField: TAoWMapField): Integer;
 begin Result := 0; end;

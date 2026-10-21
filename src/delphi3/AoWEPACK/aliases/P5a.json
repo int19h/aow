@@ -16,5 +16,7 @@
   "557381ac:9": "CompareAIGroupTargetPriority",
   "557381c8:9": "CompareAIGroupTargetDataB",
   "55738418:9": "CompareAIRecruitmentGroupMovePoints",
-  "557387f0:9": "CompareAIProductionLocationMovePoints"
+  "557387f0:9": "CompareAIProductionLocationMovePoints",
+  "55739b08:179": "CompareDefenseUnits",
+  "5573c63c:9": "CompareTargetSetupPriority"
 }

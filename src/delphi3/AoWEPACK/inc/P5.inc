@@ -4959,18 +4959,20 @@ begin
   end;
 end;
 
-function TAIGroup.CooperateWithGroup(Group: TAIGroup): Boolean;
+function TAIGroup.CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean;
 begin
   Result := Group.Behavior = Behavior;
 end;
 
-function TAIGroup.DefendLocation(Location: Integer): Boolean;
+function TAIGroup.DefendLocation(Location: Integer; Priority: TDefensePriority): Boolean;
 var
   GroupLocation: TXYL;
 begin
   GroupLocation.XYL := GetLoc;
-  Result := (TXYL(Location).L = GroupLocation.L) and
-    (dHXtoRad(TXYL(Location).X, TXYL(Location).Y, GroupLocation.X, GroupLocation.Y) <= 1);
+  if (TXYL(Location).L = GroupLocation.L) and
+    (dHXtoRad(TXYL(Location).X, TXYL(Location).Y, GroupLocation.X, GroupLocation.Y) <= 1) then
+    Result := True
+  else Result := False;
 end;
 
 function TAIGroup.GetRecruitableUnits(Phase: Integer; Units, Recruitable: TUnitList): Boolean;
@@ -6145,41 +6147,258 @@ begin
   Result := gbRefuge;
 end;
 
+var
+  DefenseSortGroupID: Integer; { $558FA0B4 }
+  DefenseSortUnits: TUnitList; { $558FA0B0 }
+
 constructor TGroupDefenseSelector.Create;
-begin end;
+begin
+  inherited Create;
+  FDefenders := TUnitUserList.Create(nil);
+end;
 
 destructor TGroupDefenseSelector.Destroy;
-begin end;
+begin
+  FDefenders.Free;
+  inherited Destroy;
+end;
 
-procedure TGroupDefenseSelector.GetDefenders(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TGroupDefenseSelector.GetDefenders(Player, X, Y, L: Shortint;
+  Units: TUnitList): Boolean;
+var
+  Priority: TDefensePriority;
+  Location: Integer;
+  P: TPlayer;
+  I: Integer;
+  Group: TAIGroup;
+begin
+  Result := False;
+  Location := Integer(HSEngine.PackXYL(X, Y, L));
+  Priority := TDefensePriority(TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetDefensePriority);
+  P := AoWHSMap.FPlayers.GetPlayers(Player);
+  for I := P.FAIGroups.Count - 1 downto 0 do
+  begin
+    Group := P.FAIGroups.GetGroups(I);
+    if Group.DefendLocation(Location, Priority) then
+    begin
+      Units.AddUnits(Group);
+      Result := True;
+    end;
+  end;
+end;
 
-procedure TGroupDefenseSelector.EnoughStrength(A1: Integer);
-begin end;
+function CompareDefenseUnits(Item1, Item2: Pointer): Integer;
+var
+  In1, In2: Boolean;
+begin
+  Result := TAbstractUnit(Item1).FGroup.FRecruitmentPriority -
+    TAbstractUnit(Item2).FGroup.FRecruitmentPriority;
+  if Result = 0 then
+    Result := TAbstractUnit(Item1).FGroupID - TAbstractUnit(Item2).FGroupID;
+  if (Result = 0) and (TAbstractUnit(Item1).FGroupID = DefenseSortGroupID) then
+  begin
+    if DefenseSortUnits <> nil then
+    begin
+      In1 := DefenseSortUnits.FChildren.IndexOf(Item1) <> -1;
+      In2 := DefenseSortUnits.FChildren.IndexOf(Item2) <> -1;
+      if In1 and not In2 then Result := 1
+      else if In2 and not In1 then Result := -1;
+    end;
+    if Result = 0 then
+      Result := TAbstractUnit(Item1).GetStrengthMax(dtAll) -
+        TAbstractUnit(Item2).GetStrengthMax(dtAll);
+  end;
+end;
 
-procedure TGroupDefenseSelector.UsefullUnit(A1: Integer; A2: Integer);
-begin end;
+function TGroupDefenseSelector.EnoughStrength(var Strengths: TDamageStrengths): Boolean;
+var
+  DamageType: TDamageType;
+begin
+  for DamageType := Low(TDamageType) to High(TDamageType) do
+  begin
+    Result := Strengths[DamageType] <= 0;
+    if not Result then Break;
+  end;
+end;
 
-procedure TGroupDefenseSelector.UpdateDefenseLocation(A1: Integer);
-begin end;
+function TGroupDefenseSelector.UsefullUnit(AUnit: TAbstractUnit;
+  var Strengths: TDamageStrengths): Boolean;
+var
+  DamageType: TDamageType;
+begin
+  for DamageType := Low(TDamageType) to High(TDamageType) do
+  begin
+    Result := (Strengths[DamageType] > 0) and (AUnit.GetStrength(DamageType) > 0);
+    if Result then Break;
+  end;
+end;
 
-function TGroupDefenseSelector.Execute(Group: TAIGroup; X, Y, L: Shortint; Units: TUnitList): Boolean;
-begin Result := False; end;
+procedure TGroupDefenseSelector.UpdateDefenseLocation(MapF: TAoWMapField);
+begin
+  if (Integer(FDefenseLocation) = $FFFFFF) or (MapF.FindHS(TStructure) <> nil) then
+    FDefenseLocation.XYL := MapF.GetXYL;
+end;
+
+function TGroupDefenseSelector.Execute(Group: TAIGroup; X, Y, L: Shortint;
+  Units: TUnitList): Boolean;
+var
+  Candidates: TUnitUserList;
+  Start, I: Integer;
+  Level: TMapLevel;
+  AUnit: TAbstractUnit;
+  MapF: TAoWMapField;
+  DamageType: TDamageType;
+  Strengths: TDamageStrengths;
+  Walk: THNWalkData;
+begin
+  FDefenders.Clear;
+  Level := AoWHSMap.MapContainer.GetMapLevel(L);
+  FDefenseLocation.XYL := $FFFFFF;
+  Candidates := TUnitUserList.Create(nil);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Walk.Radius <= 1) and (FDefenders.Count <> Group.Count) do
+  begin
+    MapF := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+    if MapF.GetPlayer = Group.FPlayer then
+    begin
+      Candidates.Clear;
+      MapF.GetDefenseRequirements(Group.FPlayer, TDefenseRequirements(Strengths));
+      if not EnoughStrength(Strengths) then
+      begin
+        UpdateDefenseLocation(MapF);
+        GetDefenders(Group.FPlayer, Walk.X, Walk.Y, L, Candidates);
+        DefenseSortGroupID := Group.FGroupID;
+        DefenseSortUnits := Units;
+        Candidates.FChildren.Sort(CompareDefenseUnits);
+        I := 0;
+        while (Candidates.Count <> I) and
+          (Candidates.GetUnit(I).FGroupID <> Group.FGroupID) do
+        begin
+          AUnit := Candidates.GetUnit(I);
+          for DamageType := Low(TDamageType) to High(TDamageType) do
+            Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+          Inc(I);
+        end;
+        Start := I;
+        for I := 0 to FDefenders.Count - 1 do
+        begin
+          AUnit := FDefenders.GetUnit(I);
+          for DamageType := Low(TDamageType) to High(TDamageType) do
+            Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+        end;
+        I := Start;
+        while not EnoughStrength(Strengths) and (Candidates.Count > I) and
+          (Candidates.GetUnit(I).FGroupID = Group.FGroupID) do
+        begin
+          AUnit := Candidates.GetUnit(I);
+          if (FDefenders.FChildren.IndexOf(AUnit) = -1) and UsefullUnit(AUnit, Strengths) then
+          begin
+            FDefenders.AddUnit(AUnit);
+            for DamageType := Low(TDamageType) to High(TDamageType) do
+              Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+          end;
+          Inc(I);
+        end;
+      end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+  Candidates.Free;
+  if Units <> nil then
+  begin
+    Result := True;
+    I := Units.Count;
+    while Result and (I <> 0) do
+    begin
+      Dec(I);
+      if FDefenders.IndexOf(Units.GetUnit(I)) <> -1 then Result := False;
+    end;
+  end
+  else Result := FDefenders.Count = 0;
+  AoWHSMap.FAIExecuter.UseProcessTime(30);
+end;
 
 constructor TAIGroupDefenseControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSelector := TGroupDefenseSelector.Create;
+  FMode := [];
+  FDefendMode := gdmWait;
+  FState := 0;
+end;
 
 destructor TAIGroupDefenseControl.Destroy;
-begin end;
+begin
+  FSelector.Free;
+  inherited Destroy;
+end;
 
 function TAIGroupDefenseControl.GetBusy: Boolean;
-begin Result := False; end;
+begin
+  Result := (FState <> -1) and (gpsActivated in FStatus);
+end;
 
 function TAIGroupDefenseControl.Activate(Control: TAIGroupControl): Boolean;
-begin Result := False; end;
+begin
+  FGroupControl := Control;
+  FState := 0;
+  Result := True;
+end;
 
 function TAIGroupDefenseControl.Process: Boolean;
-begin Result := False; end;
+var
+  Units: TUnitUserList;
+  Index: Integer;
+  Group: TAIGroup;
+begin
+  case FState of
+    0:
+      begin
+        with FGroupControl do
+          FSelector.Execute(FGroup, FLocation.X, FLocation.Y, FLocation.L, nil);
+        if FSelector.FDefenders.Count <> 0 then
+        begin
+          case FDefendMode of
+            gdmSplit:
+              begin
+                Units := TUnitUserList.Create(nil);
+                with FGroupControl do
+                  FSelector.GetDefenders(FGroup.FPlayer, FLocation.X, FLocation.Y, FLocation.L, Units);
+                Index := Units.IndexOfBehavior(gbPassive);
+                if Index = -1 then
+                begin
+                  Group := AoWHSMap.FAIGroupManager.CreateGroup(FGroupControl.FGroup.FPlayer,
+                    FGroupControl.FGroup.FIndependentRelation, gbPassive);
+                  Group.AddUnits(FSelector.FDefenders);
+                  Group.SetupTargetEx(FGroupControl.FLocation, 0, gtsNone, 2, -1, 0, 0);
+                  Group.Release;
+                end
+                else
+                begin
+                  Group := Units.GetUnit(Index).FGroup;
+                  Group.AddUnits(FSelector.FDefenders);
+                end;
+                Units.Free;
+                Done;
+              end;
+            gdmWait:
+              begin
+                FGroupControl.Done;
+                if gdmProduce in FMode then FState := 1;
+              end;
+            gdmCustom:
+              begin
+                FGroupControl.FState := FCustomState;
+                Done;
+              end;
+          end;
+        end
+        else Done;
+      end;
+    1: Done;
+  end;
+  Result := False;
+end;
 
 constructor TAIGroupTargetFinder.Create(AOwner: Engine.TECustomNode);
 begin
@@ -6554,7 +6773,7 @@ begin
   FMode := rcmAutoRecruit;
 end;
 
-function TAIGroupRecruitControl.Setup: Boolean;
+function TAIGroupRecruitControl.Setup(Control: TAIGroupControl): Boolean;
 begin
   Reset;
   Result := True;
@@ -7132,151 +7351,1076 @@ begin
 end;
 
 constructor TAIGroupCooperationControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FGroups := TAIRecruitmentGroupList.Create(nil);
+end;
 
 destructor TAIGroupCooperationControl.Destroy;
-begin end;
+begin
+  FGroups.Free;
+  inherited Destroy;
+end;
 
-procedure TAIGroupCooperationControl.GetCooperateMoveDays(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupCooperationControl.GetCooperateMoveDays: Integer;
+var
+  I, Moves, Days: Integer;
+begin
+  Result := -1;
+  { Original bug: the first cooperation group is skipped. }
+  for I := 1 to FGroups.Count - 1 do
+  begin
+    Moves := FGroups.GetRecruitmentGroups(I).FGroup.GetMovesMin;
+    if Moves > 0 then
+    begin
+      Days := (FGroups.GetRecruitmentGroups(I).FMovePoints - 1) div Moves;
+      if Result < Days then Result := Days;
+    end;
+  end;
+end;
 
-procedure TAIGroupCooperationControl.GetCooperatedStrength;
-begin end;
+function TAIGroupCooperationControl.GetCooperatedStrength: Integer;
+begin
+  Result := FCooperateStrength - FRemainingStrength;
+end;
 
-procedure TAIGroupCooperationControl.GetCooperateStrengthEx(A1: Integer);
-begin end;
+function TAIGroupCooperationControl.GetCooperateStrengthEx(DamageType: TDamageType): Integer;
+begin
+  Result := FCooperateStrengths[DamageType];
+end;
 
-procedure TAIGroupCooperationControl.SetCooperateStrengthEx(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupCooperationControl.SetCooperateStrengthEx(DamageType: TDamageType; Value: Integer);
+begin
+  FCooperateStrengths[DamageType] := Value;
+end;
 
 procedure TAIGroupCooperationControl.UpdateCompletion;
-begin end;
+var
+  D: TDamageType;
+begin
+  FComplete := FRemainingStrength <= 0;
+  if FComplete then
+  begin
+    for D := Low(TDamageType) to High(TDamageType) do
+      if FRemainingStrengths[D] > 0 then
+      begin
+        FComplete := False;
+        Exit;
+      end;
+    if FSuperiority <> -1 then
+    begin
+      FControl.FCombatPredictor.Execute;
+      if FControl.FCombatPredictor.GetSuperiority < FSuperiority then
+        FComplete := False;
+    end;
+  end;
+end;
 
 procedure TAIGroupCooperationControl.Reset;
-begin end;
+begin
+  FGroups.Clear;
+  FComplete := False;
+  FMode := ccmNone;
+  FTarget := nil;
+  FCooperateStrength := 0;
+  FDamageTypes := dtAll - [dtWall];
+  FillChar(FCooperateStrengths, SizeOf(FCooperateStrengths), 0);
+  FSuperiority := 120;
+  FPathStrengthFactor := 0.8;
+  FState := 0;
+end;
 
 function TAIGroupCooperationControl.GetBusy: Boolean;
-begin Result := False; end;
+begin
+  Result := FState <> -1;
+end;
 
-procedure TAIGroupCooperationControl.Setup(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupCooperationControl.Setup(Control: TAIGroupControl;
+  Target: TAIGroupControlTarget): Boolean;
+begin
+  Reset;
+  FTarget := Target;
+  Result := True;
+end;
 
 function TAIGroupCooperationControl.Activate(Control: TAIGroupControl): Boolean;
-begin Result := False; end;
+begin
+  FControl := Control;
+  FRemainingStrength := FCooperateStrength;
+  UpdateCompletion;
+  Result := True;
+end;
 
-procedure TAIGroupCooperationControl.AddCooperationGroup(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupCooperationControl.AddCooperationGroup(Group: TAIRecruitmentGroup);
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+  D: TDamageType;
+begin
+  FGroups.AddChild(Group);
+  for I := Group.FGroup.Count - 1 downto 0 do
+  begin
+    AUnit := Group.FGroup.GetUnit(I);
+    Dec(FRemainingStrength, AUnit.GetStrengthMax(FDamageTypes));
+    for D := Low(TDamageType) to High(TDamageType) do
+      Dec(FRemainingStrengths[D], AUnit.GetStrength(D));
+    if FSuperiority <> -1 then FControl.FCombatPredictor.AddUnit(AUnit);
+  end;
+  UpdateCompletion;
+end;
 
-procedure TAIGroupCooperationControl.ValidCooperationGroup(A1: Integer);
-begin end;
+function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean;
+var
+  Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves: Integer;
+begin
+  if (Group.FGroup.FTransporterID = -1) and
+    (((Integer(Group.FGroup.FTargetXYL) = Integer(FTarget.FLocation)) and
+      (Group.FGroup.FTargetType = gtsSetup)) or
+      (Group.FGroup.FTargetType in [gtsNone, gtsIdle])) and
+    Group.FGroup.CooperateWithGroup(FControl.FGroup, FTarget) then
+  begin
+    if Group.FPathStrength <> 0 then
+    begin
+      Location := Group.FGroup.GetLoc;
+      Strength1 := Group.FGroup.GetStrengthMax(dtAll - [dtWall]);
+      with Group.FGroup do
+        Advantage1 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
+          FIndependentRelation, dtAll - [dtWall], 10, 1, Group.FGroup);
+      Location := FControl.FGroup.GetLoc;
+      Strength2 := FControl.FGroup.GetStrengthMax(dtAll - [dtWall]);
+      with FControl.FGroup do
+        Advantage2 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
+          FIndependentRelation, dtAll - [dtWall], 10, 1, FControl.FGroup);
+      if Strength1 < Strength2 then Strength := Strength1 else Strength := Strength2;
+      { Original bug: compares the first advantage with itself. }
+      if Advantage1 < Advantage1 then Advantage1 := Advantage1 else Advantage1 := Advantage2;
+      if (Strength < Round(Group.FPathStrength * FPathStrengthFactor)) and
+        (Strength >= Advantage1) then
+      begin
+        Moves := Group.FGroup.GetMovePointsMin;
+        if Moves > FControl.FGroup.GetMovePointsMin then
+          Moves := FControl.FGroup.GetMovePointsMin;
+        Result := Moves >= Group.FMovePoints;
+      end
+      else Result := True;
+    end
+    else Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TAIGroupCooperationControl.ExecuteCooperation(A1: Integer; A2: Integer);
-begin end;
+procedure TAIGroupCooperationControl.ExecuteCooperation;
+var
+  I, J: Integer;
+  Group: TAIGroup;
+  Leader: TAbstractUnit;
+begin
+  for I := FGroups.Count - 1 downto 0 do
+  begin
+    Group := FGroups.GetRecruitmentGroups(I).FGroup;
+    if (Group.FTargetType = gtsSetup) and (FTarget.FMovePoints > Group.FTargetMovePoints) then
+      Leader := Group.FLeader
+    else Leader := FControl.FGroup.FLeader;
+    for J := Group.FProductions.Count - 1 downto 0 do
+      Group.FProductions.ChangeGroup(J, FControl.FGroup);
+    FControl.FGroup.AddUnits(Group);
+    FControl.FGroup.SetLeader(Leader);
+  end;
+end;
 
 function TAIGroupCooperationControl.Process: Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+begin
+  case FState of
+    0:
+      begin
+        AoWHSMap.FAIExecuter.UseProcessTime(500);
+        FControl.FRecruitmentGroups.Validate(FControl);
+        I := 0;
+        while not FComplete and (I <> FControl.FRecruitmentGroups.Count) do
+        begin
+          if ValidCooperationGroup(FControl.FRecruitmentGroups.GetRecruitmentGroups(I)) then
+            AddCooperationGroup(FControl.FRecruitmentGroups.GetRecruitmentGroups(I));
+          Inc(I);
+        end;
+        if ((FGroups.Count <> 0) and (FMode = ccmAutoCooperate)) or
+          ((FMode = ccmCompleteCooperateOnly) and FComplete) then ExecuteCooperation;
+        Done;
+      end;
+  end;
+  Result := False;
+end;
 
 constructor TAIGroupTargetSelector.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRecruitment := TAIGroupRecruitControl.Create(nil);
+  FProduction := TAIGroupProductionControl.Create(nil);
+  FCooperation := TAIGroupCooperationControl.Create(nil);
+  FPrioritySettings := TAIGroupTargetPrioritySettings.Create;
+  FSpareUnits := TUnitUserList.Create(nil);
+end;
 
 destructor TAIGroupTargetSelector.Destroy;
-begin end;
+begin
+  DeactivatePlugin;
+  FPrioritySettings.Free;
+  FRecruitment.Release;
+  FProduction.Release;
+  FCooperation.Release;
+  FSpareUnits.Free;
+  inherited Destroy;
+end;
 
 function TAIGroupTargetSelector.GetBusy: Boolean;
-begin Result := False; end;
+begin
+  Result := FState <> -1;
+end;
 
-procedure TAIGroupTargetSelector.TargetOverlapFound(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.TargetOverlapFound(Target: TAIGroupControlTarget;
+  IgnoreGroup: TAIGroup): Boolean;
+var
+  Player: TPlayer;
+  I: Integer;
+  Group: TAIGroup;
+begin
+  Player := AoWHSMap.FPlayers.GetPlayers(FGroupControl.FGroup.FPlayer);
+  I := Player.FAIGroups.Count;
+  Result := False;
+  while (I <> 0) and not Result do
+  begin
+    Dec(I);
+    Group := Player.FAIGroups.GetGroups(I);
+    Result := (Group <> IgnoreGroup) and (Group.FTargetType = gtsExecute) and
+      (Target.FLocation.L = Group.FTargetXYL.L) and
+      (dHXtoRad(Group.FTargetXYL.X, Group.FTargetXYL.Y, Target.FLocation.X,
+        Target.FLocation.Y) <= 1);
+  end;
+end;
 
-procedure TAIGroupTargetSelector.ValidateTargetOverlap(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.ValidateTargetOverlap(Group: TAIGroup;
+  Target: TAIGroupControlTarget): Boolean;
+var
+  I, Moves, Points, OtherDays, Days: Integer;
+  Player: TPlayer;
+  Other: TAIGroup;
+begin
+  Player := AoWHSMap.FPlayers.GetPlayers(FGroupControl.FGroup.FPlayer);
+  I := Player.FAIGroups.Count;
+  Result := True;
+  while (I <> 0) and Result do
+  begin
+    Dec(I);
+    Other := Player.FAIGroups.GetGroups(I);
+    if (Other <> Group) and (Other.FTargetType = gtsExecute) and
+      (Other.FTargetXYL.L = Target.FLocation.L) and
+      (dHXtoRad(Other.FTargetXYL.X, Other.FTargetXYL.Y,
+        Target.FLocation.X, Target.FLocation.Y) <= 1) then
+    begin
+      Moves := Other.GetMovesMin;
+      Points := Other.FTargetMovePoints;
+      if not (agsDone in Other.FStatus) then Dec(Points, Other.GetMovePointsMin);
+      OtherDays := Points div Moves;
+      if Points mod Moves <> 0 then Inc(OtherDays);
+      Moves := Group.GetMovesMin;
+      Points := Target.FMovePoints - Group.GetMovePointsMin;
+      if Points > 0 then
+      begin
+        Days := Points div Moves;
+        if Points mod Moves <> 0 then Inc(Days);
+      end
+      else Days := 0;
+      Result := Days + 1 <= OtherDays;
+    end;
+  end;
+end;
 
-procedure TAIGroupTargetSelector.GetValidTargets;
-begin end;
+function TAIGroupTargetSelector.GetValidTargets: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FGroupControl.FTargets.Count - 1 downto 0 do
+    if gtsValid in FGroupControl.FTargets.GetTargets(I).FStatus then Inc(Result);
+end;
 
 procedure TAIGroupTargetSelector.Reset;
-begin end;
+begin
+  FState := 0;
+  FTargetStatus := tssIdle;
+  FSuperiority := 1.5;
+  FNearSuperiority := 1.25;
+  FMultiTargetFactor := 1.25;
+  FMoveDayFactor := 0.1;
+  FSpareUnits.Clear;
+  FMode := [tsmMultiTargets, tsmCooperate, tsmRecruit, tsmProduce];
+  FDamageTypes := dtAll - [dtWall];
+  FBattleFieldFactor := 1;
+  FCurrentBattleFieldFactor := 0.8;
+  FBattleFieldMoveFactor := 0;
+  FBattleFieldRadius := 10;
+  FValidTargetLimit := 5;
+  FPathStrengthFactor := 1;
+  FCurrentPathStrengthFactor := 0.8;
+  FAllowTransport := False;
+  FTargetLimit := 100;
+  with FPrioritySettings do
+  begin
+    FTargetFactor := 1;
+    FImmediateBonus := 500;
+    FSetupBonus := 25;
+    FExecuteBonus := 75;
+    FTransportPenalty := -100;
+    FPartialRecruitmentPenalty := 0;
+    FCompleteRecruitmentPenalty := -50;
+    FCompleteCooperationPenalty := -25;
+    FPartialCooperationPenalty := -50;
+    FMoveDayPenalty := -25;
+    FProductionDayPenalty := -25;
+    FPartialProductionPenalty := -10;
+    FFarOverlapPenalty := -199;
+    FNearOverlapPenalty := -50;
+  end;
+end;
 
-procedure TAIGroupTargetSelector.ActivatePlugin(A1: Integer);
-begin end;
+procedure TAIGroupTargetSelector.ActivatePlugin(Plugin: TAIGroupControlPlugin);
+begin
+  DeactivatePlugin;
+  FPlugin := Plugin;
+  FPlugin.AddRef;
+  FPlugin.Activate(FGroupControl);
+end;
 
 procedure TAIGroupTargetSelector.DeactivatePlugin;
-begin end;
+begin
+  if FPlugin <> nil then
+  begin
+    FPlugin.Release;
+    FPlugin := nil;
+  end;
+end;
 
-procedure TAIGroupTargetSelector.GetTargetSetupPriority(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.GetTargetSetupPriority(Target: TAIGroupControlTarget): Integer;
+var
+  Group: TAIGroup;
+  Days, Priority: Integer;
+begin
+  Priority := Round(Target.FData.Priority * FPrioritySettings.FTargetFactor);
+  Days := (Target.FMovePoints - 1) div FGroupControl.FGroup.GetMovesMin;
+  if Days > 0 then Inc(Priority, Round(FPrioritySettings.FMoveDayPenalty * Days));
+  if Target.FTransporterID <> -1 then Inc(Priority, FPrioritySettings.FTransportPenalty);
+  Group := FGroupControl.FGroup;
+  if Integer(Group.FTargetXYL) = Integer(Target.FLocation) then
+  begin
+    if Group.FTargetType = gtsExecute then Inc(Priority, FPrioritySettings.FExecuteBonus)
+    else if Group.FTargetType = gtsSetup then Inc(Priority, FPrioritySettings.FSetupBonus);
+  end;
+  if TargetOverlapFound(Target, Group) then
+    if Target.FMovePoints <= FMovesMin then Inc(Priority, FPrioritySettings.FNearOverlapPenalty)
+    else Inc(Priority, FPrioritySettings.FFarOverlapPenalty);
+  Result := Priority;
+end;
 
-procedure TAIGroupTargetSelector.Setup(A1: Integer);
-begin end;
+function CompareTargetSetupPriority(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIGroupControlTarget(Item2).FDataA - TAIGroupControlTarget(Item1).FDataA;
+end;
+
+function TAIGroupTargetSelector.Setup(Control: TAIGroupControl): Boolean;
+begin
+  Reset;
+  case Ord(AoWHSMap.FPlayers.GetPlayers(Control.FGroup.FPlayer).FPlayerType) of
+    Ord(ptCPU1): FValidTargetLimit := 5;
+    Ord(ptCPU2): FValidTargetLimit := 7;
+    Ord(ptCPU3), Ord(ptCPU4), Ord(ptCPU5): FValidTargetLimit := 10;
+  else FValidTargetLimit := 5;
+  end;
+  Result := True;
+end;
 
 function TAIGroupTargetSelector.Activate(Control: TAIGroupControl): Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+  Target: TAIGroupControlTarget;
+  Valid: Boolean;
+begin
+  FGroupControl := Control;
+  FGroupControl.FTargets.Validate;
+  FMovesMin := 50;
+  for I := FGroupControl.FGroup.Count - 1 downto 0 do
+    if FGroupControl.FGroup.GetUnit(I).GetMoves < FMovesMin then
+      FMovesMin := FGroupControl.FGroup.GetUnit(I).GetMoves;
+  for I := FGroupControl.FTargets.Count - 1 downto 0 do
+  begin
+    Target := FGroupControl.FTargets.GetTargets(I);
+    Valid := ValidateTargetOverlap(FGroupControl.FGroup, Target) and
+      ((Target.FData.TargetType <> attNegotiate) or
+        FGroupControl.FGroup.RequestTargetExpense(Target.GetTargetGold, Target.GetTargetMana));
+    Valid := Valid and ((Target.GetTargetGold <= 0) or
+      (AoWHSMap.FPlayers.GetPlayers(FGroupControl.FGroup.FPlayer).FGems >= Target.GetTargetGold));
+    Valid := Valid and ((Target.GetTargetMana <= 0) or
+      (AoWHSMap.FPlayers.GetPlayers(FGroupControl.FGroup.FPlayer).FMagicControl.FMana >= Target.GetTargetMana));
+    if Valid then
+    begin
+      Target.FDataA := GetTargetSetupPriority(FGroupControl.FTargets.GetTargets(I));
+      Target.FStatus := [];
+    end
+    else Target.FStatus := [gtsDone];
+  end;
+  FGroupControl.FTargets.FChildren.Sort(CompareTargetSetupPriority);
+  for I := FGroupControl.FTargets.Count - 1 downto FTargetLimit + 1 do
+    FGroupControl.FTargets.Delete(I);
+  FTarget := nil;
+  FTargetStatus := tssBusy;
+  Result := True;
+end;
 
 procedure TAIGroupTargetSelector.TargetProcessed;
-begin end;
+begin
+  FTarget.FDataA := FPriority;
+  FTarget.FStatus := FTarget.FStatus + [gtsDone];
+  FTarget := nil;
+  FState := 0;
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredSuperiority(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredSuperiority(Target: TAIGroupControlTarget): Single;
+var
+  Days: Integer;
+begin
+  if Target.FData.TargetType <> attNegotiate then
+  begin
+    with FGroupControl.FGroup do
+      if ((Integer(FTargetXYL) = Integer(Target.FLocation)) and (FTargetType = gtsExecute)) or
+        (GetMovesMin >= Target.FMovePoints) then Result := FNearSuperiority
+      else Result := FSuperiority;
+    if FGroupControl.FGroup.GetMovesMin > 0 then
+    begin
+      Days := (Target.FMovePoints - 1) div FGroupControl.FGroup.GetMovesMin;
+      Result := Result + Round(Days * FMoveDayFactor);
+    end;
+  end
+  else Result := 0;
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredCombatPredictorSuperiority(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredCombatPredictorSuperiority(Target: TAIGroupControlTarget): Integer;
+begin
+  Result := Round(GetRequiredSuperiority(Target) * 100);
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredTargetStrength(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredTargetStrength(Target: TAIGroupControlTarget): Integer;
+var
+  Strengths: TDamageStrengths;
+  Info: TBattleFieldInfo;
+begin
+  if Target.FData.TargetType <> attNegotiate then
+  begin
+    SetupBattleFieldInfo(Info, FGroupControl.FGroup.FPlayer,
+      FGroupControl.FGroup.FIndependentRelation, [], FDamageTypes);
+    Info.FriendlyRelations := [];
+    AoWHSMap.RetrieveBattleFieldInfo(Target.FLocation.X, Target.FLocation.Y,
+      Target.FLocation.L, 1, Info);
+    Result := Round(GetRequiredSuperiority(Target) * Info.Strength);
+    TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(Target.FLocation))).
+      GetDefenseRequirements(FGroupControl.FGroup.FPlayer, TDefenseRequirements(Strengths));
+    Inc(Result, StrengthInfoMax(Strengths) div 2);
+  end
+  else Result := 0;
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredBattleFieldSuperiority(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredBattleFieldSuperiority(Target: TAIGroupControlTarget): Single;
+begin
+  if (Integer(Target.FLocation) = Integer(FGroupControl.FGroup.FTargetXYL)) and
+    (FGroupControl.FGroup.FTargetType = gtsExecute) then Result := FCurrentBattleFieldFactor
+  else Result := FBattleFieldFactor;
+  Result := Result + Round(Target.FMovePoints * FBattleFieldMoveFactor);
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredBattleFieldStrength(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredBattleFieldStrength(Target: TAIGroupControlTarget): Integer;
+var
+  Info: TBattleFieldInfo;
+  PathStrength: Integer;
+begin
+  if ((FBattleFieldFactor > 0) or (FCurrentBattleFieldFactor > 0)) and
+    (Target.FData.TargetType <> attNegotiate) then
+  begin
+    SetupBattleFieldInfo(Info, FGroupControl.FGroup.FPlayer,
+      FGroupControl.FGroup.FIndependentRelation, [], FDamageTypes);
+    Info.Units := FGroupControl.FGroup;
+    Info.Requests := Info.Requests + [bfrIgnorePassiveIndependents];
+    AoWHSMap.RetrieveBattleFieldInfo(Target.FLocation.X, Target.FLocation.Y,
+      Target.FLocation.L, FBattleFieldRadius, Info);
+    Result := Round(GetRequiredBattleFieldSuperiority(Target) * (Info.Strength - Info.FriendlyStrength));
+  end
+  else Result := 0;
+  with FGroupControl.FGroup do
+    if (Integer(FTargetXYL) = Integer(Target.FLocation)) and (FTargetType = gtsExecute) then
+      PathStrength := Round(Target.FPathStrength * FCurrentPathStrengthFactor)
+    else PathStrength := Round(Target.FPathStrength * FPathStrengthFactor);
+  if Result < PathStrength then Result := PathStrength;
+end;
 
-procedure TAIGroupTargetSelector.GetRequiredStrength(A1: Integer);
-begin end;
+function TAIGroupTargetSelector.GetRequiredStrength(Target: TAIGroupControlTarget): Integer;
+var
+  BattleFieldStrength: Integer;
+begin
+  Result := GetRequiredTargetStrength(Target);
+  BattleFieldStrength := GetRequiredBattleFieldStrength(Target);
+  if BattleFieldStrength > Result then Result := BattleFieldStrength;
+  AoWHSMap.FAIExecuter.UseProcessTime(250);
+end;
 
-procedure TAIGroupTargetSelector.ValidateTargetRequirements(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAIGroupTargetSelector.ValidateTargetRequirements(Units: TUnitList;
+  Target: TAIGroupControlTarget; Required, Optional: TUnitList;
+  MinimumStrength: Integer): Boolean;
+var
+  Strength: Integer;
+  Predictor: TCombatPredictor;
+  RequiredUnits, OptionalUnits: TUnitUserList;
+  I, Superiority: Integer;
+  AUnit: TAbstractUnit;
+begin
+  Predictor := TCombatPredictor.Create;
+  RequiredUnits := TUnitUserList.Create(nil);
+  OptionalUnits := TUnitUserList.Create(nil);
+  Predictor.AddUnits(Units);
+  if TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(Target.FLocation))).
+    GetMoveAction(FGroupControl.FGroup.FPlayer) <> maNegotiate then
+    Predictor.InitAdjacentOpponents(FGroupControl.FGroup.FPlayer,
+      FGroupControl.FGroup.FIndependentRelation, Target.FLocation.X,
+      Target.FLocation.Y, Target.FLocation.L);
+  Superiority := GetRequiredCombatPredictorSuperiority(Target);
+  Predictor.Execute;
+  Result := Predictor.GetSuperiority > Superiority;
+  Predictor.ListRequiredUnits(RequiredUnits, Superiority);
+  if RequiredUnits.Count <> Units.Count then
+    for I := Units.Count - 1 downto 0 do
+      if RequiredUnits.IndexOf(Units.GetUnit(I)) = -1 then OptionalUnits.AddUnit(Units.GetUnit(I));
+  if (OptionalUnits.Count <> 0) or Result then
+  begin
+    Strength := GetRequiredStrength(Target);
+    if Strength < MinimumStrength then Strength := MinimumStrength;
+    Dec(Strength, RequiredUnits.GetStrengthMax(FDamageTypes));
+    while (Strength > 0) and (OptionalUnits.Count <> 0) do
+    begin
+      AUnit := OptionalUnits.GetUnit(OptionalUnits.Count - 1);
+      Dec(Strength, AUnit.GetStrengthMax(FDamageTypes));
+      RequiredUnits.AddUnit(AUnit);
+      OptionalUnits.DeleteUnit(AUnit);
+    end;
+    Result := Result and (Strength <= 0);
+  end;
+  if Required <> nil then Required.AddUnits(RequiredUnits);
+  if Optional <> nil then Optional.AddUnits(OptionalUnits);
+  OptionalUnits.Free;
+  RequiredUnits.Free;
+  Predictor.Free;
+end;
 
-procedure TAIGroupTargetSelector.ValidMultiTarget(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TAIGroupTargetSelector.ValidMultiTarget(Units: TUnitList;
+  Target: TAIGroupControlTarget; Required, Optional: TUnitList): Boolean;
+begin
+  if not TargetOverlapFound(FNextTarget, nil) and
+    ((FTarget.FLocation.L <> Target.FLocation.L) or
+      (dHXtoRad(FTarget.FLocation.X, FTarget.FLocation.Y,
+        Target.FLocation.X, Target.FLocation.Y) > 1)) then
+  begin
+    Result := ValidateTargetRequirements(FSpareUnits, FNextTarget, Required, Optional, FMinimumStrength);
+    Result := Result and FGroupControl.FGroup.RequestTargetExpense(
+      FTarget.GetTargetGold + Target.GetTargetGold, FTarget.GetTargetMana + Target.GetTargetMana);
+  end
+  else Result := False;
+end;
 
 procedure TAIGroupTargetSelector.Validate;
-begin end;
+var
+  I: Integer;
+  AUnit: TAbstractUnit;
+begin
+  for I := FSpareUnits.Count - 1 downto 0 do
+  begin
+    AUnit := FSpareUnits.GetUnit(I);
+    if FGroupControl.FGroup.IndexOf(AUnit) = -1 then FSpareUnits.DeleteUnit(AUnit);
+  end;
+  FGroupControl.FTargets.Validate;
+  if (FState <> 21) and (FTarget <> nil) then
+    if FGroupControl.FTargets.FChildren.IndexOf(FTarget) = -1 then
+    begin
+      FTarget := nil;
+      if (FState > 0) and (FState < 10) then FState := 0;
+      if FState > 10 then FState := 10;
+    end;
+end;
 
 procedure TAIGroupTargetSelector.ShowTargetInfo;
-begin end;
+var
+  Text: string;
+  I: Integer;
+  Target: TAIGroupControlTarget;
+begin
+  AoWEngine.OutputDebugMessage(AIDID,
+    'Targets for Group (ID:' + IntToStr(FGroupControl.FGroup.FGroupID) + ')');
+  for I := 0 to FGroupControl.FTargets.Count - 1 do
+  begin
+    Target := FGroupControl.FTargets.GetTargets(I);
+    Target.GetDebugInfo(Text);
+    Text := Text + '/TS_Prio:' + IntToStr(Target.FDataA);
+    Text := Text + '/MPBFS:' + IntToStr(Target.FPathStrength);
+    Text := Text + '/TG:' + IntToStr(Target.GetTargetGold);
+    Text := Text + '/MP:' + IntToStr(Target.FMovePoints);
+    Text := Text + '/Status:';
+    if gtsCooperate in Target.FStatus then Text := Text + 'c';
+    if gtsRecruit in Target.FStatus then Text := Text + 'r';
+    if gtsProduce in Target.FStatus then Text := Text + 'p';
+    if gtsValid in Target.FStatus then Text := Text + 'v';
+    if gtsDone in Target.FStatus then Text := Text + 'd';
+    AoWEngine.OutputDebugMessage(AIDID, Text);
+  end;
+end;
 
 procedure TAIGroupTargetSelector.NoTargetsFound;
-begin end;
+begin
+  FTargetStatus := tssNoTargetsFound;
+  FGroupControl.FGroup.FTargetXYL.XYL := -1;
+  FGroupControl.FGroup.FTargetType := gtsNone;
+  if FGroupControl.FGroup.FTransporter <> nil then
+    FGroupControl.FGroup.DeleteUnit(FGroupControl.FGroup.FTransporter);
+end;
 
-procedure TAIGroupTargetSelector.AllowMultiTargets(A1: Integer; A2: Integer);
-begin end;
+function TAIGroupTargetSelector.AllowMultiTargets(Target: TAIGroupControlTarget): Boolean;
+begin
+  Result := tsmMultiTargets in FMode;
+  Result := Result and (Target.FStatus * [gtsRecruit, gtsProduce] = []);
+  Result := Result and
+    (FGroupControl.FStrengthMax >= GetRequiredStrength(Target) * FMultiTargetFactor);
+  Result := Result and (FGroupControl.FStrengthMax >= FMinimumStrength);
+  Result := Result and ((Target.FData.TargetType <> attNegotiate) or
+    (Target.FMovePoints >= FGroupControl.FGroup.GetMovePointsMin));
+end;
 
 function TAIGroupTargetSelector.Process: Boolean;
-begin Result := False; end;
+var
+  I, Strength, Superiority, Time: Integer;
+  Busy: Boolean;
+  Plugin: TAIGroupControlPlugin;
+  Optional, Required: TUnitUserList;
+  Group: TAIGroup;
+  Location: TXYL;
+begin
+  Plugin := FPlugin;
+  if Plugin <> nil then
+  begin
+    Busy := Plugin.MainProcess;
+    if not Busy then DeactivatePlugin;
+  end
+  else Busy := False;
+  if not Busy then
+  begin
+    Result := False;
+    case FState of
+      0:
+        begin
+          I := 0;
+          while (I <> FGroupControl.FTargets.Count) and
+            (gtsDone in FGroupControl.FTargets.GetTargets(I).FStatus) do Inc(I);
+          if (I < FGroupControl.FTargets.Count) and
+            (GetValidTargets < FValidTargetLimit) then
+          begin
+            FTarget := FGroupControl.FTargets.GetTargets(I);
+            FPriority := FTarget.FDataA;
+            Strength := GetRequiredStrength(FTarget);
+            Superiority := GetRequiredCombatPredictorSuperiority(FTarget);
+            AoWHSMap.FAIExecuter.UseProcessTime(100);
+            Busy := FGroupControl.FStrengthMax < Strength;
+            if not Busy then
+            begin
+              FGroupControl.SetupCP(FTarget);
+              FGroupControl.FCombatPredictor.Execute;
+              Busy := Busy or
+                (FGroupControl.FCombatPredictor.FResult in [2, 4, 8]);
+              Busy := Busy or
+                (FGroupControl.FCombatPredictor.GetSuperiority < Superiority);
+            end;
+            if Busy then
+            begin
+              if FMode * [tsmCooperate, tsmRecruit, tsmProduce] <> [] then
+              begin
+                FGroupControl.SetupCP(FTarget);
+                if tsmCooperate in FMode then
+                begin
+                  FCooperation.Setup(FGroupControl, FTarget);
+                  FCooperation.FSuperiority := Superiority;
+                  FCooperation.FCooperateStrength := Strength - FGroupControl.FStrengthMax;
+                  FCooperation.FMode := ccmNone;
+                  ActivatePlugin(FCooperation);
+                  FState := 1;
+                end
+                else if tsmRecruit in FMode then FState := 2
+                else if tsmProduce in FMode then FState := 4
+                else TargetProcessed;
+              end
+              else TargetProcessed;
+            end
+            else
+            begin
+              FTarget.FStatus := FTarget.FStatus + [gtsValid];
+              if FTarget.FMovePoints < FGroupControl.FGroup.GetMovePointsMin then
+                Inc(FPriority, FPrioritySettings.FImmediateBonus);
+              TargetProcessed;
+            end;
+          end
+          else
+          begin
+            FGroupControl.FTargets.FChildren.Sort(CompareTargetSetupPriority);
+            FState := 10;
+          end;
+        end;
+      1:
+        if FCooperation.FComplete then
+        begin
+          FTarget.FStatus := FTarget.FStatus + [gtsValid, gtsCooperate];
+          Inc(FPriority, FPrioritySettings.FCompleteCooperationPenalty);
+          if (FCooperation.GetCooperateMoveDays = 0) and
+            (FTarget.FMovePoints < FGroupControl.FGroup.GetMovePointsMin) then
+            Inc(FPriority, FPrioritySettings.FImmediateBonus);
+          TargetProcessed;
+        end
+        else
+        begin
+          if FCooperation.FGroups.Count <> 0 then
+          begin
+            FTarget.FStatus := FTarget.FStatus + [gtsValid, gtsCooperate];
+            Inc(FPriority, FPrioritySettings.FPartialCooperationPenalty);
+          end;
+          if tsmRecruit in FMode then FState := 2
+          else if tsmProduce in FMode then FState := 4
+          else TargetProcessed;
+        end;
+      2:
+        begin
+          FRecruitment.Setup(FGroupControl);
+          FRecruitment.FSuperiority := GetRequiredCombatPredictorSuperiority(FTarget);
+          FRecruitment.FRecruitStrength := GetRequiredStrength(FTarget) - FGroupControl.FStrengthMax;
+          if gtsCooperate in FTarget.FStatus then
+            Dec(FRecruitment.FRecruitStrength, FCooperation.GetCooperatedStrength);
+          FRecruitment.FMode := rcmNone;
+          ActivatePlugin(FRecruitment);
+          FState := 3;
+        end;
+      3:
+        if FRecruitment.FComplete then
+        begin
+          FTarget.FStatus := FTarget.FStatus + [gtsValid, gtsRecruit];
+          Inc(FPriority, FPrioritySettings.FCompleteRecruitmentPenalty);
+          TargetProcessed;
+        end
+        else
+        begin
+          if FRecruitment.FUnits.Count <> 0 then
+          begin
+            FTarget.FStatus := FTarget.FStatus + [gtsRecruit];
+            Inc(FPriority, FPrioritySettings.FPartialRecruitmentPenalty);
+          end;
+          if tsmProduce in FMode then FState := 4 else TargetProcessed;
+        end;
+      4:
+        begin
+          FProduction.Setup(FGroupControl);
+          FProduction.FSuperiority := GetRequiredCombatPredictorSuperiority(FTarget);
+          FProduction.FProduceStrength := GetRequiredStrength(FTarget) - FGroupControl.FStrengthMax;
+          if gtsCooperate in FTarget.FStatus then
+            Dec(FProduction.FProduceStrength, FCooperation.GetCooperatedStrength);
+          if gtsRecruit in FTarget.FStatus then
+            Dec(FProduction.FProduceStrength, FRecruitment.GetRecruitedStrength);
+          FProduction.FMode := pcmNone;
+          ActivatePlugin(FProduction);
+          FState := 5;
+        end;
+      5:
+        begin
+          if FProduction.FComplete then
+          begin
+            FTarget.FStatus := FTarget.FStatus + [gtsValid, gtsProduce];
+            Time := FProduction.GetCompleteProductionTime;
+            if Time > 0 then Inc(FPriority, Round(FPrioritySettings.FProductionDayPenalty * Time));
+          end
+          else if FProduction.FProductions.Count <> 0 then
+          begin
+            FTarget.FStatus := FTarget.FStatus + [gtsValid, gtsProduce];
+            Inc(FPriority, FPrioritySettings.FPartialProductionPenalty);
+            Time := FProduction.GetCompleteProductionTime;
+            if Time > 0 then Inc(FPriority, FPrioritySettings.FProductionDayPenalty * Time);
+          end;
+          TargetProcessed;
+        end;
+      10:
+        begin
+          I := 0;
+          while (I <> FGroupControl.FTargets.Count) and
+            not (gtsValid in FGroupControl.FTargets.GetTargets(I).FStatus) do Inc(I);
+          if I = FGroupControl.FTargets.Count then
+          begin
+            NoTargetsFound;
+            Done;
+          end
+          else
+          begin
+            FTarget := FGroupControl.FTargets.GetTargets(I);
+            if FTarget.FStatus * [gtsRecruit, gtsProduce, gtsCooperate] <> [] then
+            begin
+              FGroupControl.SetupCP(FTarget);
+              if gtsCooperate in FTarget.FStatus then
+              begin
+                FCooperation.Setup(FGroupControl, FTarget);
+                FCooperation.FSuperiority := GetRequiredCombatPredictorSuperiority(FTarget);
+                FCooperation.FCooperateStrength := GetRequiredStrength(FTarget) - FGroupControl.FStrengthMax;
+                FCooperation.FMode := ccmAutoCooperate;
+                ActivatePlugin(FCooperation);
+                FState := 11;
+              end
+              else if gtsRecruit in FTarget.FStatus then FState := 12
+              else if gtsProduce in FTarget.FStatus then FState := 14
+              else FState := 20;
+            end
+            else
+            begin
+              FTarget.FStatus := FTarget.FStatus + [gtsReady];
+              FState := 20;
+            end;
+          end;
+        end;
+      11:
+        if FCooperation.FComplete then
+        begin
+          FTarget.FStatus := FTarget.FStatus + [gtsReady];
+          FState := 20;
+        end
+        else
+          if gtsRecruit in FTarget.FStatus then FState := 12
+          else if gtsProduce in FTarget.FStatus then FState := 14
+          else FState := 20;
+      12:
+        begin
+          FRecruitment.Setup(FGroupControl);
+          FRecruitment.FSuperiority := GetRequiredCombatPredictorSuperiority(FTarget);
+          FRecruitment.FRecruitStrength := GetRequiredStrength(FTarget) - FGroupControl.FStrengthMax;
+          FRecruitment.FMode := rcmAutoRecruit;
+          ActivatePlugin(FRecruitment);
+          Inc(FState);
+        end;
+      13:
+        if FRecruitment.FComplete then
+        begin
+          FTarget.FStatus := FTarget.FStatus + [gtsReady];
+          FState := 20;
+        end
+        else if gtsProduce in FTarget.FStatus then FState := 14
+        else FState := 20;
+      14:
+        begin
+          FProduction.Setup(FGroupControl);
+          FProduction.FSuperiority := GetRequiredCombatPredictorSuperiority(FTarget);
+          FProduction.FProduceStrength := GetRequiredStrength(FTarget) - FGroupControl.FStrengthMax;
+          FProduction.FMode := pcmAutoProduce;
+          ActivatePlugin(FProduction);
+          FState := 20;
+        end;
+      20:
+        if gtsReady in FTarget.FStatus then
+        begin
+          if FTarget.FTransporterID <> -1 then
+            FGroupControl.FGroup.AddTransporter(AoWHSMap.FUnitControl.FindUnit(FTarget.FTransporterID))
+          else
+            with FGroupControl.FGroup do
+              if FTransporter <> nil then DeleteUnit(FTransporter);
+          if AllowMultiTargets(FTarget) then FState := 30
+          else
+          begin
+            FGroupControl.FGroup.SetupTarget(FTarget, gtsExecute, 0);
+            FGroupControl.SetupME;
+            FGroupControl.ExecuteME(FTarget.FLocation.X, FTarget.FLocation.Y, FTarget.FLocation.L);
+            Result := True;
+            FState := 21;
+          end;
+        end
+        else if FGroupControl.FGroup.FProductions.Count <> 0 then
+        begin
+          FGroupControl.FGroup.FProductions.GetProductions(0).FControl.GetLocation(
+            Location.X, Location.Y, Location.L);
+          FGroupControl.SetupME;
+          FGroupControl.ExecuteME(Location.X, Location.Y, Location.L);
+          Result := True;
+          FState := 22;
+        end
+        else
+        begin
+          FGroupControl.FProductionLocations.SortOnMovePoints;
+          if (FGroupControl.FProductionLocations.Count = 0) or
+            (FGroupControl.FProductionLocations.GetProductionLocation(0).FMovePoints > 31) then
+          begin
+            FGroupControl.SetupME;
+            FGroupControl.ExecuteME(FGroupControl.FLocation.X,
+              FGroupControl.FLocation.Y, FGroupControl.FLocation.L);
+            Result := True;
+            FState := 22;
+          end
+          else
+          begin
+            FGroupControl.SetupME;
+            FGroupControl.ExecuteME(
+              FGroupControl.FProductionLocations.GetProductionLocation(0).FLocation.X,
+              FGroupControl.FProductionLocations.GetProductionLocation(0).FLocation.Y,
+              FGroupControl.FProductionLocations.GetProductionLocation(0).FLocation.L);
+            Result := True;
+            FState := 22;
+          end;
+        end;
+      21:
+        begin
+          if FGroupControl.FTargets.FChildren.IndexOf(FTarget) = -1 then
+          begin
+            FGroupControl.FGroup.ResetTargetExpense;
+            FTargetStatus := tssTargetConquered;
+            Done;
+          end
+          else
+          begin
+            FTargetStatus := tssExecutingTarget;
+            Done;
+          end;
+        end;
+      22:
+        begin
+          FGroupControl.FGroup.SetupTarget(FTarget, gtsSetup, 0);
+          FTargetStatus := tssSettingupTarget;
+          Done;
+        end;
+      30:
+        begin
+          ValidateTargetRequirements(FGroupControl.FGroup, FTarget, nil, FSpareUnits, FMinimumStrength);
+          if FSpareUnits.Count <> 0 then
+          begin
+            FTarget.FStatus := FTarget.FStatus - [gtsValid];
+            FNextTarget := nil;
+            FState := 31;
+          end
+          else FState := 32;
+        end;
+      31:
+        begin
+          I := FGroupControl.FTargets.FChildren.IndexOf(FNextTarget);
+          while (I < FGroupControl.FTargets.Count) and
+            ((I = -1) or (FGroupControl.FTargets.GetTargets(I).FTransporterID <> -1) or
+              not (gtsValid in FGroupControl.FTargets.GetTargets(I).FStatus)) do Inc(I);
+          if I < FGroupControl.FTargets.Count then
+          begin
+            Required := TUnitUserList.Create(nil);
+            Optional := TUnitUserList.Create(nil);
+            FNextTarget := FGroupControl.FTargets.GetTargets(I);
+            if ValidMultiTarget(FSpareUnits, FNextTarget, Required, Optional) then
+            begin
+              with FGroupControl.FGroup do
+                Group := AoWHSMap.FAIGroupManager.CreateGroup(FPlayer, FIndependentRelation, Behavior);
+              Group.AddUnits(Required);
+              Group.SetupTarget(FNextTarget, gtsExecute, 0);
+              Group.Release;
+              FSpareUnits.Clear;
+              FSpareUnits.AddUnits(Optional);
+              if FSpareUnits.Count = 0 then FState := 32;
+            end;
+            FNextTarget.FStatus := FNextTarget.FStatus - [gtsValid];
+            Optional.Free;
+            Required.Free;
+          end
+          else FState := 32;
+        end;
+      32:
+        begin
+          FGroupControl.FGroup.SetupTarget(FTarget, gtsExecute, 0);
+          FGroupControl.SetupME;
+          FGroupControl.ExecuteME(FTarget.FLocation.X, FTarget.FLocation.Y, FTarget.FLocation.L);
+          FState := 21;
+          Result := True;
+        end;
+      40:
+        begin
+          NoTargetsFound;
+          Done;
+        end;
+    end;
+  end
+  else Result := True;
+end;
 
 constructor TAIMoveControlSettings.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FTransportPath := TMovepath.Create;
+  FRefCount := 1;
+  Clear;
+end;
 
 destructor TAIMoveControlSettings.Destroy;
-begin end;
+begin
+  FTransportPath.Free;
+  inherited Destroy;
+end;
 
 procedure TAIMoveControlSettings.Clear;
-begin end;
+begin
+  inherited Clear;
+  FMovePointsMax := 175;
+  FQuickMovePointsMax := 300;
+  FBoardingPoint.X := -1;
+  FArrivalPoint.X := -1;
+  FTransportSource.X := -1;
+  { Original bug: clears the destination Y coordinate instead of X. }
+  FTransportDestination.Y := -1;
+  FMovePoints := -1;
+  FTransportPath.Clear;
+  FDestinationX := -1;
+  FDestinationY := -1;
+  FDestinationL := -1;
+  FSelection := 0;
+  FProcessCycles := 0;
+end;
 
 function TAIMoveControlSettings.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TAIMoveControlSettings.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if FRefCount = 0 then Destroy;
+end;
 
-procedure TAIMoveControlSettings.SetSourcePos(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAIMoveControlSettings.SetSourcePos(X, Y, L: Integer);
+begin
+  FSourceX := X;
+  FSourceY := Y;
+  FSourceL := L;
+end;
 
-procedure TAIMoveControlSettings.SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAIMoveControlSettings.SetDestinationPos(X, Y, L: Integer);
+begin
+  FDestinationX := X;
+  FDestinationY := Y;
+  FDestinationL := L;
+end;
 
 procedure TAIMoveControlSettings.Setup(Army: TArmyHS; Selection: Byte; X, Y, L: Integer);
-begin end;
+begin
+  SetSourcePos(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+  SetDestinationPos(X, Y, L);
+  FArmyHS := Army;
+  FSelection := Selection;
+  FPlayer := Army.FArmy.FPlayer;
+  Army.FArmy.CreateMovePointTable(Selection, FMovePointTable);
+end;
 
 constructor TAIMoveControl.Create(AOwner: Engine.TECustomNode);
 begin end;

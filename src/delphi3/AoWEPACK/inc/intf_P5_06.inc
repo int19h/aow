@@ -120,32 +120,32 @@
     procedure Process;
   end;
 
-  { TAIMoveControlSettings (instance size 360, VMT 55717A78) }
+  { TAIMoveControlSettings: instance size $168, VMT 55717A78.
+    $08 references, $0C player, $10..$18 source, $1C..$24 destination,
+    $28 move table, $128 completion event, $130 transporter,
+    $134/$138 search limits, $13C mode, $140 army, $144 selection,
+    $148 cycles, $14C status, $150 cost, $154 path, $158..$164 transport locations. }
   TAIMoveControlSettings = class(TEObject)
   public
-    F_AIMoveControlSettings_08: Integer;
-    F_AIMoveControlSettings_0C: Byte;
+    FRefCount: Integer; { $08 }
+    FPlayer: Shortint; { $0C }
     F_AIMoveControlSettings_0D: array[0..2] of Byte;
-    F_AIMoveControlSettings_10: Integer;
-    F_AIMoveControlSettings_14: Integer;
-    F_AIMoveControlSettings_18: Integer;
-    F_AIMoveControlSettings_1C: Integer;
-    F_AIMoveControlSettings_20: Integer;
-    F_AIMoveControlSettings_24: Integer;
-    F_AIMoveControlSettings_28: Byte;
-    F_AIMoveControlSettings_29: array[0..254] of Byte;
+    FSourceX, FSourceY, FSourceL: Integer; { $10..$18 }
+    FDestinationX, FDestinationY, FDestinationL: Integer; { $1C..$24 }
+    FMovePointTable: TMovePointTable; { $28 }
     FOnDone: TNotifyEvent; { $128 }
     FTransporter: TAbstractUnit; { $130 }
-    F_AIMoveControlSettings_134: Integer;
-    F_AIMoveControlSettings_138: Integer;
+    FMovePointsMax: Integer; { $134 }
+    FQuickMovePointsMax: Integer; { $138 }
     FMoveMode: TMoveMode; { $13C }
     F_AIMoveControlSettings_13D: array[0..2] of Byte;
     FArmyHS: TArmyHS; { $140 }
     FSelection: Integer; { $144 }
-    F_AIMoveControlSettings_148: Integer;
-    F_AIMoveControlSettings_14C: array[0..3] of Byte;
+    FProcessCycles: Integer; { $148 }
+    FStatus: TAIMoveControlStatus; { $14C }
+    F_AIMoveControlSettings_14D: array[0..2] of Byte;
     FMovePoints: Integer; { $150 }
-    FTransportPath: TXYLList; { $154 }
+    FTransportPath: TMovepath; { $154 }
     FBoardingPoint: TXYL; { $158 }
     FArrivalPoint: TXYL; { $15C }
     FTransportSource: TXYL; { $160 }
@@ -155,8 +155,8 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     procedure Clear; override;
-    procedure SetSourcePos(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure SetDestinationPos(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure SetSourcePos(X, Y, L: Integer);
+    procedure SetDestinationPos(X, Y, L: Integer);
     procedure Setup(Army: TArmyHS; Selection: Byte; X, Y, L: Integer);
   end;
 

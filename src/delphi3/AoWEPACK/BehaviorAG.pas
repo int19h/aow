@@ -29,7 +29,7 @@ type
   { TAbstractBehaviorAG (instance size 80, VMT 557DC2CC) }
   TAbstractBehaviorAG = class(TAIGroup)
   public
-    function CooperateWithGroup(Group: TAIGroup): Boolean; override;
+    function CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean; override;
   end;
 
   { TAbstractBehaviorAGC (instance size 372, VMT 557DC430) }
@@ -133,7 +133,7 @@ type
 
 implementation
 
-function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup): Boolean;
+function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean;
 begin Result := False; end;
 
 constructor TAbstractBehaviorAGC.Create(AOwner: Engine.TECustomNode);
