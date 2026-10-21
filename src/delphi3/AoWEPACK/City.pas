@@ -184,7 +184,7 @@ type
     procedure UpdateCrops; override;
     function GetRace: Shortint; override;
     procedure CropTrampled(Player: Shortint); override;
-    procedure SetRace(Race: Byte); virtual;
+    procedure SetRace(Race: Shortint); virtual;
     function GetActiveAction: TCityAction;
     procedure UpdateActiveEnchantments;
     procedure RegisterEnchantments;
@@ -2087,7 +2087,7 @@ begin
   UpdateImages;
 end;
 
-procedure TCity.SetRace(Race: Byte);
+procedure TCity.SetRace(Race: Shortint);
 begin
   if Shortint(Race) <> FRace then
   begin

@@ -25,7 +25,7 @@ type
     function GetValue: Longint;
     procedure SetValue(NewValue: Longint);
   public
-    property Value: Longint read GetValue write SetValue; property Color; { AoWEd 0041581A }
+    property Value: Longint read GetValue write SetValue; property Color; property MaxValue: Longint read FMaxValue write FMaxValue; { AoWEd 0041581A, 00419059 }
   end;
 
 implementation

@@ -2,12 +2,14 @@ unit EExplorS;
 
 { Draft declarations of EExplorS, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Defender controls at $210..$23C edit the inherited $20C map object. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, UnitGrid;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, ExploreS, UnitFlt, EAoWMO, UnitGrid;
 
 type
   TExplorationSiteEditForm = class;
@@ -31,17 +33,17 @@ type
     Panel3: TPanel; { +0238 }
     BorderPanel: TDrawPanel; { +023C }
     public
-    procedure AddBtnClick;  { draft }
-    procedure DeleteBtnClick;  { draft }
-    procedure MainPageControlChange;  { draft }
-    procedure FormCreate;  { draft }
-    procedure UserDefinedBtnClick;  { draft }
-    procedure AutoGenerateBtnClick;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure DefendersModeBoxChange;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure FormShow;  { draft }
-    procedure BorderPanelDraw(A1: Integer; A2: Integer);  { draft }
+    procedure AddBtnClick(Sender: TObject);
+    procedure DeleteBtnClick(Sender: TObject);
+    procedure MainPageControlChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure UserDefinedBtnClick(Sender: TObject);
+    procedure AutoGenerateBtnClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure DefendersModeBoxChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
   end;
 
   { TExplorationSiteEditor (instance size 8, VMT 0041AE5C) }
@@ -64,38 +66,103 @@ begin end;
 class procedure TExplorationSiteEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TExplorationSiteEditForm.AddBtnClick;
-begin end;
+procedure TExplorationSiteEditForm.AddBtnClick(Sender: TObject);
+begin
+  DefendersGrid.AddUnit;
+end;
 
-procedure TExplorationSiteEditForm.DeleteBtnClick;
-begin end;
 
-procedure TExplorationSiteEditForm.MainPageControlChange;
-begin end;
+procedure TExplorationSiteEditForm.DeleteBtnClick(Sender: TObject);
+begin
+  DefendersGrid.DeleteUnit;
+end;
 
-procedure TExplorationSiteEditForm.FormCreate;
-begin end;
 
-procedure TExplorationSiteEditForm.UserDefinedBtnClick;
-begin end;
+procedure TExplorationSiteEditForm.MainPageControlChange(Sender: TObject);
+begin
+  if MainPageControl.ActivePage = DefendersSheet then
+    if UserDefinedBtn.Checked then UnitFloater.Show else UnitFloater.Hide;
+end;
 
-procedure TExplorationSiteEditForm.AutoGenerateBtnClick;
-begin end;
 
-procedure TExplorationSiteEditForm.FormDestroy;
-begin end;
+procedure TExplorationSiteEditForm.FormCreate(Sender: TObject);
+begin
+  MainPageControl.ActivePage := DefendersSheet;
+  DefendersGrid.SetUnits(TExplorationSite(FMapObject).FDefenders);
+  DefendersGrid.FSelectionControl := UnitFloater.UnitTabControl.FSelectionControl;
+  UnitFloater.ResetSelection;
+  UnitFloater.SetShowHeroes(True);
+  UnitFloater.UnitTabControl.UpdateSelection;
+  Caption := FMapObject.EditName;
+end;
 
-procedure TExplorationSiteEditForm.DefendersModeBoxChange;
-begin end;
 
-procedure TExplorationSiteEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TExplorationSiteEditForm.UserDefinedBtnClick(Sender: TObject);
+begin
+  DefendersGrid.SelectionEnabled := True;
+  UserDefinedPanel.Enabled := True;
+  AutoGeneratePanel.Enabled := False;
+  TExplorationSite(FMapObject).FDefendersMode := dmUserDefined;
+  UnitFloater.Show;
+end;
 
-procedure TExplorationSiteEditForm.FormShow;
-begin end;
 
-procedure TExplorationSiteEditForm.BorderPanelDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TExplorationSiteEditForm.AutoGenerateBtnClick(Sender: TObject);
+begin
+  DefendersGrid.SelectionEnabled := False;
+  UserDefinedPanel.Enabled := False;
+  AutoGeneratePanel.Enabled := True;
+  TExplorationSite(FMapObject).FDefendersMode := TDefendersMode(DefendersModeBox.ItemIndex + 1);
+  UnitFloater.Hide;
+end;
+
+
+procedure TExplorationSiteEditForm.FormDestroy(Sender: TObject);
+begin
+  UnitFloater.Hide;
+end;
+
+
+procedure TExplorationSiteEditForm.DefendersModeBoxChange(Sender: TObject);
+begin
+  TExplorationSite(FMapObject).FDefendersMode := TDefendersMode(DefendersModeBox.ItemIndex + 1);
+end;
+
+
+procedure TExplorationSiteEditForm.OKBtnClick(Sender: TObject);
+begin
+  if AutoGenerateBtn.Checked then TExplorationSite(FMapObject).FDefenders.Clear
+  else TExplorationSite(FMapObject).FDefendersMode := dmUserDefined;
+  TExplorationSite(FMapObject).Update;
+  inherited OKBtnClick(Sender);
+end;
+
+
+procedure TExplorationSiteEditForm.FormShow(Sender: TObject);
+begin
+  inherited FormShow;
+  if TExplorationSite(FMapObject).FDefendersMode = dmUserDefined then
+  begin
+    UserDefinedBtn.Checked := True;
+    UserDefinedBtnClick(Self);
+    DefendersModeBox.ItemIndex := 1;
+  end
+  else
+  begin
+    AutoGenerateBtn.Checked := True;
+    DefendersModeBox.ItemIndex := Ord(TExplorationSite(FMapObject).FDefendersMode) - 1;
+    AutoGenerateBtnClick(Self);
+  end;
+end;
+
+
+procedure TExplorationSiteEditForm.BorderPanelDraw(Sender: TObject; const R: TRect);
+var S: TStructure;
+begin
+  S := TStructure(FMapObject);
+  if S <> nil then S.ShowBorderImageDC(BorderPanel.Canvas.Handle, R);
+end;
+
 
 
 end.

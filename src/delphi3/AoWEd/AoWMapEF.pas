@@ -2,7 +2,9 @@ unit AoWMapEF;
 
 { Draft declarations of AoWMapEF, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Position $1F0, completion event $1F4, object $1FC, rollback stream $200. }
+
+{$R+,Q+}
 
 interface
 
@@ -24,55 +26,113 @@ type
     Translator: TIvTranslator; { +01EC }
     public
     FPositionInfo: PPoint; { $1F0 }
-    F_AoWMapEditForm_1F4: Integer;
-    F_AoWMapEditForm_1F8: Integer;
+    FOnEditDone: TEditDoneEvent; { $1F4 }
     FEditObject: TEObject; { $1FC }
-    F_AoWMapEditForm_200: Integer;
+    FEditStream: TMemoryStream; { $200 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure SetPositionInfo(Info: PPoint);
-    procedure vmt80; virtual;  { +080 draft }
-    procedure vmt84; virtual;  { +084 draft }
-    procedure vmt88; virtual;  { +088 draft }
-    procedure vmt8C; virtual;  { +08C draft }
-    function vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer; virtual;  { +090 draft }
-    procedure FormClose(A1: Integer; A2: Integer);  { draft }
-    procedure FormShow;  { draft }
+    procedure vmt80; virtual;  { +080 }
+    procedure vmt84; virtual;  { +084 }
+    procedure vmt88; virtual;  { +088 }
+    procedure vmt8C; virtual;  { +08C }
+    constructor vmt90(Obj: TEObject; Done: TEditDoneEvent); virtual; { +090 }
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow;
     procedure OKBtnClick(Sender: TObject);
   end;
 
 
 implementation
 
+uses AoWE, MDIForm;
+
+var EditFormPosition: TPoint;
+
 constructor TAoWMapEditForm.Create(AOwner: Classes.TComponent);
 begin end;
 
 procedure TAoWMapEditForm.vmt80;
-begin end;
+begin
+  AoWEngine.WriteEObject(FEditStream, FEditObject, nil);
+end;
+
 
 procedure TAoWMapEditForm.vmt84;
-begin end;
+begin
+  FEditStream.Position := 0;
+  AoWEngine.ReadEObject(FEditStream, FEditObject, nil);
+end;
 
-function TAoWMapEditForm.vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer;
-begin Result := 0; end;
+
+constructor TAoWMapEditForm.vmt90(Obj: TEObject; Done: TEditDoneEvent);
+begin
+  FEditStream := TMemoryStream.Create;
+  FPositionInfo := @EditFormPosition;
+  FOnEditDone := Done;
+  FEditObject := Obj;
+  vmt80;
+  vmt88;
+  inherited Create(MainForm);
+  MainForm.HSMEdit.PauseFrameUpdateLoop;
+  ShowModal;
+end;
+
 
 destructor TAoWMapEditForm.Destroy;
-begin end;
+var Position: PPoint;
+begin
+  Position := FPositionInfo;
+  if Position <> nil then
+  begin
+    Position^.X := Left;
+    Position^.Y := Top;
+  end;
+  MainForm.HSMEdit.ResumeFrameUpdateLoop;
+  if ModalResult = mrCancel then vmt84;
+  FEditStream.Free;
+  vmt8C;
+  inherited Destroy;
+end;
+
 
 procedure TAoWMapEditForm.vmt88;
 begin end;
 
 procedure TAoWMapEditForm.vmt8C;
-begin end;
+begin
+  if Assigned(FOnEditDone) then
+    if ModalResult = mrCancel then FOnEditDone(erCancel, FEditObject)
+    else FOnEditDone(erOK, FEditObject);
+end;
 
-procedure TAoWMapEditForm.FormClose(A1: Integer; A2: Integer);
-begin end;
+
+procedure TAoWMapEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
 
 procedure TAoWMapEditForm.FormShow;
-begin end;
+begin
+  if (FPositionInfo <> nil) and (FPositionInfo^.X <> 0) and (FPositionInfo^.Y <> 0) then
+  begin
+    Left := FPositionInfo^.X;
+    Top := FPositionInfo^.Y;
+  end
+  else
+  begin
+    Left := (Screen.Width - Width) shr 1;
+    Top := (Screen.Height - Height) shr 1;
+  end;
+end;
+
 
 procedure TAoWMapEditForm.OKBtnClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then AoWHSMap.SetModified;
+end;
+
 
 
 procedure TAoWMapEditForm.SetPositionInfo(Info: PPoint);

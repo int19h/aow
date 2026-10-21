@@ -2,7 +2,7 @@ unit ScannerFlt;
 
 { Draft declarations of ScannerFlt, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Scanner input and invalidation follow the original viewport calculations. }
 
 interface
 
@@ -37,16 +37,16 @@ type
     procedure ShowScanner;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure DisplayResize;  { draft }
-    procedure DisplayMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure DisplayMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure DisplayMouseUp(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure TheMapMapChanged(A1: Integer);  { draft }
-    procedure DisplayBltSurface;  { draft }
-    procedure FormClose;  { draft }
+    procedure DisplayResize(Sender: TObject);
+    procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure TheMapMapChanged(const Info: TMapChangedInfo);
+    procedure DisplayBltSurface(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TheMapViewPortChange(Sender: TObject);
-    procedure ScannerChangeTileBox;  { draft }
-    procedure TheMapScannerIconsChanged;  { draft }
+    procedure ScannerChangeTileBox(Sender: TObject);
+    procedure TheMapScannerIconsChanged(Sender: TObject);
   end;
 
 
@@ -54,6 +54,8 @@ var
   ScannerFloater: TScannerFloater;
 
 implementation
+
+uses MDIForm;
 
 {$R+,Q+}
 
@@ -105,31 +107,75 @@ begin
 end;
 
 constructor TScannerFloater.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  Left := 0;
+  Top := 90;
+  Width := 170;
+  Height := 200;
+end;
+
 
 destructor TScannerFloater.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
-procedure TScannerFloater.DisplayResize;
-begin end;
 
-procedure TScannerFloater.DisplayMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TScannerFloater.DisplayResize(Sender: TObject);
+begin
+  with Manager do
+  begin
+    WinWidth := Display.BackSurfaceWidth;
+    WinHeight := Display.BackSurfaceHeight;
+    ReAlign;
+  end;
+  UpdateLevel;
+end;
 
-procedure TScannerFloater.DisplayMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
 
-procedure TScannerFloater.DisplayMouseUp(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TScannerFloater.DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  Manager.CheckMouseDown(Button, Shift, X, Y);
+end;
 
-procedure TScannerFloater.TheMapMapChanged(A1: Integer);
-begin end;
 
-procedure TScannerFloater.DisplayBltSurface;
-begin end;
+procedure TScannerFloater.DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  Manager.CheckMouseMove(Shift, X, Y);
+end;
 
-procedure TScannerFloater.FormClose;
-begin end;
+
+procedure TScannerFloater.DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  Manager.CheckMouseUp(Button, Shift, X, Y);
+end;
+
+
+procedure TScannerFloater.TheMapMapChanged(const Info: TMapChangedInfo);
+begin
+  if Info.MapLevel = Scanner.FLevel then
+    Scanner.DrawMap(Info.Bounds.Left - 6,
+      Info.Bounds.Top - 6,
+      Info.Bounds.Right - Info.Bounds.Left,
+      Info.Bounds.Bottom - Info.Bounds.Top);
+  Display.Invalidate;
+end;
+
+
+procedure TScannerFloater.DisplayBltSurface(Sender: TObject);
+var DC: TAbstractDC;
+begin
+  DC := Display.ActiveDC;
+  if DC <> nil then with DC do Manager.DrawSurface(GetSurface(1));
+end;
+
+
+procedure TScannerFloater.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if FMap <> nil then MainForm.ScannerItem.Checked := False;
+end;
+
 
 procedure TScannerFloater.TheMapViewPortChange(Sender: TObject);
 begin
@@ -144,11 +190,23 @@ begin
   Display.Invalidate;
 end;
 
-procedure TScannerFloater.ScannerChangeTileBox;
-begin end;
+procedure TScannerFloater.ScannerChangeTileBox(Sender: TObject);
+begin
+  if FMap <> nil then
+  begin
+    MainForm.HSMEdit.CenterView(Scanner.FTLeft + Scanner.FTWidth div 2 + 6,
+      Scanner.FTTop + Scanner.FTHeight div 2 + 6, FMap.ViewL);
+    Display.ExecuteBltSurfaceEvent;
+  end;
+end;
 
-procedure TScannerFloater.TheMapScannerIconsChanged;
-begin end;
+
+procedure TScannerFloater.TheMapScannerIconsChanged(Sender: TObject);
+begin
+  Scanner.SetObDrawn(False);
+  Display.Invalidate;
+end;
+
 
 
 end.

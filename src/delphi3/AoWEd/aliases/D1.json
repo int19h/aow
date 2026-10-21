@@ -73,5 +73,11 @@
   "00410628:86": "TAbilitySelectionDlg.UpdateDeleteButton",
   "0042889c:45": "TMainForm.ClearMouseMessages",
   "00429634:389": "TMainForm.LoadMap",
-  "0042a8fc:173": "TMainForm.EditMapSettings"
+  "0042a8fc:173": "TMainForm.EditMapSettings",
+  "FUN_00418eac": "TCityEditForm.UpdateControls",
+  "TILTerrainResourceEditForm.vmt94": "TILTerrainResourceEditForm.CreateForm",
+  "00407024:246": "TILTerrainResourceEditForm.vmt98",
+  "TScannerFloater.vmt24": "TScannerFloater.Create",
+  "FUN_00417a7c": "TItemHSEditForm.SetItemsMode",
+  "TItemPlaceControl.vmt44": "TItemPlaceControl.MsgProc"
 }

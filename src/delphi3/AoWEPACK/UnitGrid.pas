@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;
-    procedure SetShowUnitLevel(Value: Boolean);
+    procedure SetShowUnitLevel(Value: Boolean); property SelectionEnabled; { AoWEd 0041B03F }
     procedure SetUnits(Value: TUnitList);
     function GetUnit(ACol, ARow: Integer): TAbstractUnit;
     function GetSelectedUnit: TAbstractUnit;

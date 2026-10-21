@@ -2,12 +2,14 @@ unit ItemSel;
 
 { Draft declarations of ItemSel, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Selection fields: $200 item type, $204 filtered GFX indexes, $208 selected index. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWDlg;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWDlg;
 
 type
   TItemSelectionDlg = class;
@@ -26,30 +28,62 @@ type
     ItemGrid: TImageDrawGrid; { +01F8 }
     Label1: TLabel; { +01FC }
     public
-    F_ItemSelectionDlg_200: Byte;
+    FItemType: TItemType; { $200 }
     F_ItemSelectionDlg_201: array[0..2] of Byte;
-    F_ItemSelectionDlg_204: Integer;
-    F_ItemSelectionDlg_208: Integer;
-    procedure ItemGridCellUpdated(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure FormCreate;  { draft }
-    procedure FormDeactivate;  { draft }
-    procedure OKBtnClick;  { draft }
+    FItemIndexes: TIntegerList; { $204 }
+    FSelectedIndex: Integer; { $208 }
+    procedure ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TItemSelectionDlg.ItemGridCellUpdated(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TItemSelectionDlg.ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+var
+  Index: Integer;
+  DrawRect: TRect;
+begin
+  Index := ItemGrid.ImageIndex(ACol, ARow);
+  if Index < FItemIndexes.Count then
+    with ItemGrid do
+      BltLibraryImage(Canvas, AoWHSSet.FItemGFXResources.GetItemGFX(FItemIndexes[Index]).GetCellImage,
+        R, bmStretch, 50, 50, 0, Color, False, DrawRect)
+  else with ItemGrid do
+  begin
+    Canvas.Brush.Color := clBtnFace;
+    Canvas.FillRect(R);
+  end;
+end;
 
-procedure TItemSelectionDlg.FormCreate;
-begin end;
 
-procedure TItemSelectionDlg.FormDeactivate;
-begin end;
+procedure TItemSelectionDlg.FormCreate(Sender: TObject);
+var I: Integer;
+begin
+  FItemIndexes := TIntegerList.Create;
+  FItemIndexes.Default := -1;
+  with AoWHSSet.FItemGFXResources do
+    for I := 0 to GetCount - 1 do
+      if (GetItemGFX(I) <> nil) and (GetItemGFX(I).FItemType = FItemType) and
+         (not GetItemGFX(I).FHidden or (euDesigner in AoWEngine.FUser)) then
+        FItemIndexes.Add(I);
+  ItemGrid.Count := FItemIndexes.Count;
+end;
 
-procedure TItemSelectionDlg.OKBtnClick;
-begin end;
+
+procedure TItemSelectionDlg.FormDeactivate(Sender: TObject);
+begin
+  FItemIndexes.Free;
+end;
+
+
+procedure TItemSelectionDlg.OKBtnClick(Sender: TObject);
+begin
+  with ItemGrid do FSelectedIndex := FItemIndexes[ImageIndex(Col, Row)];
+end;
+
 
 
 end.

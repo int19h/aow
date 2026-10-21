@@ -4,10 +4,12 @@ unit HSSetDlg;
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
+{$R+,Q+}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWDlg, checklst;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWDlg, checklst;
 
 type
   THSSetDialog = class;
@@ -26,18 +28,46 @@ type
     OKBtn: TButton; { +01F8 }
     CancelBtn: TButton; { +01FC }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
 
 implementation
 
-procedure THSSetDialog.FormCreate;
-begin end;
+procedure THSSetDialog.FormCreate(Sender: TObject);
+var
+  I: Integer;
+  PlugIn: TPlugIn;
+begin
+  HSSNameEdit.Text := AoWHSSet.Name;
+  with PlugInListBox do
+  begin
+    Items.Clear;
+    I := 0;
+    PlugIn := GetPlugIn(I);
+    while PlugIn <> nil do
+    begin
+      Checked[Items.Add(PlugIn.Name)] := AoWHSSet.PlugInControl.UsedPlugIns.IndexOf(PlugIn.Name) <> -1;
+      Inc(I);
+      PlugIn := GetPlugIn(I);
+    end;
+  end;
+end;
 
-procedure THSSetDialog.OKBtnClick;
-begin end;
+
+procedure THSSetDialog.OKBtnClick(Sender: TObject);
+var I: Integer;
+begin
+  AoWHSSet.Name := HSSNameEdit.Text;
+  with PlugInListBox do
+  begin
+    for I := Items.Count - 1 downto 0 do
+      if not Checked[I] then Items.Delete(I);
+    AoWHSSet.PlugInControl.UsedPlugIns := Items;
+  end;
+end;
+
 
 
 end.

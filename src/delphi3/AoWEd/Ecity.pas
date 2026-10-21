@@ -2,12 +2,14 @@ unit Ecity;
 
 { Draft declarations of Ecity, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  City controls at $230..$25C edit the inherited $20C map object. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EConstr, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, City, EConstr, UnitFlt, SpinEdit;
 
 type
   TCityEditForm = class;
@@ -31,13 +33,14 @@ type
     Label9: TLabel; { +0258 }
     RaceCB: TComboBox; { +025C }
     public
-    procedure FormCreate;  { draft }
-    procedure RaceCBChange;  { draft }
-    procedure RazedBoxClick;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure FormClose(A1: Integer; A2: Integer);  { draft }
-    procedure PlayerComboBoxChange;  { draft }
-    procedure DefendersCBChange;  { draft }
+    procedure UpdateControls;
+    procedure FormCreate(Sender: TObject);
+    procedure RaceCBChange(Sender: TObject);
+    procedure RazedBoxClick(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure PlayerComboBoxChange;
+    procedure DefendersCBChange(Sender: TObject);
   end;
 
   { TCityEditor (instance size 8, VMT 00418DE0) }
@@ -50,32 +53,118 @@ type
 
 implementation
 
+procedure TCityEditForm.UpdateControls;
+var
+  C: TCity;
+  I: Integer;
+begin
+  C := TCity(FMapObject);
+  NameEdit.Text := C.GetName;
+  PlayerComboBox.SetPlayerIndex(C.FPlayer);
+  if AoWHSMap.FGameType = gtCampaign then
+  begin
+    RaceCB.Items.AddObject('Ally 1', TObject(-3));
+    RaceCB.Items.AddObject('Ally 2', TObject(-4));
+    RaceCB.Items.AddObject('Ally 3', TObject(-5));
+  end;
+  RaceCB.Items.AddObject('Random', TObject(-1));
+  for I := 0 to AoWHSMap.FRaces.GetCount - 1 do
+    if (AoWHSMap.FRaces.GetRace(I) <> nil) and AoWHSMap.FRaces.GetRace(I).FEnabled then
+      RaceCB.Items.AddObject(TranslateRStr(RaceNamesPluralRStr[I]), TObject(I));
+  RaceCB.ItemIndex := RaceCB.Items.IndexOfObject(TObject(C.FRace));
+  WallComboBox.ItemIndex := C.FWallType;
+  LevelEdit.Value := C.FUpgradeLevel;
+  LevelEdit.MaxValue := C.GetSize;
+  IncomeLabel.Caption := IntToStr(C.FIncome);
+  if (C.FPlayer <= 0) or
+     ((AoWHSMap.FPlayers.GetPlayers(C.FPlayer).FPlayerType <> ptHuman) and
+       AoWHSMap.FPlayers.GetPlayers(C.FPlayer).FParticipating) then
+  begin
+    DefendersCB.Color := clWindow;
+    DefendersCB.Enabled := True;
+  end
+  else
+  begin
+    DefendersCB.Color := clBtnFace;
+    DefendersCB.Enabled := False;
+  end;
+  DefendersCB.ItemIndex := Ord(C.FDefendersMode);
+  MainPageControl.ActivePage := MainPageControl.Pages[0];
+end;
+
+
 class procedure TCityEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
 class procedure TCityEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TCityEditForm.FormCreate;
-begin end;
+procedure TCityEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  UpdateControls;
+end;
 
-procedure TCityEditForm.RaceCBChange;
-begin end;
 
-procedure TCityEditForm.RazedBoxClick;
-begin end;
+procedure TCityEditForm.RaceCBChange(Sender: TObject);
+begin
+  with RaceCB do TCity(FMapObject).SetRace(Integer(Items.Objects[ItemIndex]));
+  BorderPanel.Refresh;
+end;
 
-procedure TCityEditForm.OKBtnClick(A1: Integer);
-begin end;
 
-procedure TCityEditForm.FormClose(A1: Integer; A2: Integer);
-begin end;
+procedure TCityEditForm.RazedBoxClick(Sender: TObject);
+begin
+  inherited RazedBoxClick(Sender);
+  if RazedBox.Checked then
+  begin
+    WallComboBox.Color := clBtnFace;
+    WallComboBox.Enabled := False;
+    LevelEdit.Color := clBtnFace;
+    LevelEdit.Enabled := False;
+  end
+  else
+  begin
+    WallComboBox.Color := clWindow;
+    WallComboBox.Enabled := True;
+    LevelEdit.Color := clWindow;
+    LevelEdit.Enabled := True;
+  end;
+  TCity(FMapObject).SetRazed(RazedBox.Checked);
+  BorderPanel.Refresh;
+end;
+
+
+procedure TCityEditForm.OKBtnClick(Sender: TObject);
+var C: TCity;
+begin
+  C := TCity(FMapObject);
+  C.SetName(NameEdit.Text);
+  C.SetUpgradeLevel(LevelEdit.Value);
+  with RaceCB do C.SetRace(Integer(Items.Objects[ItemIndex]));
+  C.SetWallType(Byte(WallComboBox.ItemIndex));
+  inherited OKBtnClick(Sender);
+end;
+
+
+procedure TCityEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  UnitFloater.Hide;
+  inherited FormClose(Sender, Action);
+end;
+
 
 procedure TCityEditForm.PlayerComboBoxChange;
-begin end;
+begin
+  TPlayerStructure(FMapObject).SetPlayer(PlayerComboBox.FPlayerIndex);
+end;
 
-procedure TCityEditForm.DefendersCBChange;
-begin end;
+
+procedure TCityEditForm.DefendersCBChange(Sender: TObject);
+begin
+  TCity(FMapObject).FDefendersMode := TDefendersGenerateMode(DefendersCB.ItemIndex);
+end;
+
 
 
 end.

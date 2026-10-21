@@ -387,7 +387,7 @@ type
     procedure OpenHeroLibraryClick(Sender: TObject);  { draft }
     procedure SortItemsNameClick(Sender: TObject);
     procedure SortTypeBtnClick(Sender: TObject);
-    procedure HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure DeleteHeroBtnClick(Sender: TObject);  { draft }
     procedure RemoveFromMapClick(Sender: TObject);  { draft }
     procedure DeleteItemBtnClick(Sender: TObject);
@@ -419,13 +419,13 @@ type
     procedure ArmyBtnClick(A1: Integer);  { draft }
     procedure ItemBtnClick(A1: Integer);  { draft }
     procedure EditHeroClick(Sender: TObject);  { draft }
-    procedure ItemControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure HSMEditDeselectPlaceHS(Sender: TObject);  { draft }
     procedure OpenMapSetClick(Sender: TObject);  { draft }
     procedure ExportTextClick(Sender: TObject);
     procedure ImportTextClick(Sender: TObject);
     procedure MapSetSettingsClick(A1: Integer; A2: Integer);  { draft }
-    procedure LeaderSelectionGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure FogofWarClick(Sender: TObject);  { draft }
     procedure PlayerInfoClick(Sender: TObject);  { draft }
     procedure RemoveMapLevelClick(Sender: TObject);
@@ -476,10 +476,14 @@ type
 var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
-uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog;
+uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog, SFXEdDlg;
 
 
 resourcestring
+  DeleteSelectedHeroesRStr = 'Do you want to delete the selected heroes?';
+  RemoveSelectedHeroesRStr = 'Do you want to remove the selected heroes from the map?';
+  RemoveSelectedItemsRStr = 'Do you want to remove the selected items from the map?';
+  RemoveLeaderRStr = 'Do you want to remove this Leader from the map?';
   DeleteSelectedItemsRStr = 'Do you want to delete the selected items?';
   CannotRemoveSurfaceRStr = 'Cannot Remove Surface Level';
   RemoveCurrentLevelRStr = 'Are you sure you want to remove the current map level?';
@@ -1247,14 +1251,43 @@ begin
   ItemControlGrid.SortOnType;
 end;
 
-procedure TMainForm.HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMainForm.HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+var
+  Hero: THero;
+  HS: TUnitHS;
+begin
+  Hero := HeroControlGrid.GetHero(HeroControlGrid.ImageIndex(ACol, ARow));
+  if (Hero <> nil) and (Hero.Owner = nil) then
+  begin
+    HS := TUnitHS.Create(nil);
+    HS.SetUnitGFXResourceIndex(Hero.GetUnitGFXResourceIndex);
+    HSMEdit.SelectPlaceHS(Hero, HS, 24, 0, 0);
+  end
+  else HSMEdit.DeselectPlaceHS;
+end;
+
 
 procedure TMainForm.DeleteHeroBtnClick(Sender: TObject);
-begin end;
+var S: string;
+begin
+  if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
+  S := DeleteSelectedHeroesRStr;
+  if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+    HeroControlGrid.DeleteHero;
+  if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
+end;
+
 
 procedure TMainForm.RemoveFromMapClick(Sender: TObject);
-begin end;
+var S: string;
+begin
+  if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
+  S := RemoveSelectedHeroesRStr;
+  if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+    HeroControlGrid.RemoveFromMap;
+  if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
+end;
+
 
 procedure TMainForm.DeleteItemBtnClick(Sender: TObject);
 begin
@@ -1268,10 +1301,23 @@ begin
 end;
 
 procedure TMainForm.RemoveItemClick(Sender: TObject);
-begin end;
+var S: string;
+begin
+  if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
+  S := RemoveSelectedItemsRStr;
+  if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+    ItemControlGrid.RemoveItemFromMap;
+  if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
+end;
+
 
 procedure TMainForm.RemoveLeaderFromMapClick(Sender: TObject);
-begin end;
+begin
+  if (LeaderSelectionGrid.GetSelectedLeader <> nil) and (LeaderSelectionGrid.GetSelectedLeader.Owner <> nil) then
+      if MessageDlg(RemoveLeaderRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+        LeaderSelectionGrid.RemoveFromMap;
+end;
+
 
 procedure TMainForm.OpenItemLibraryClick(Sender: TObject);
 begin end;
@@ -1397,8 +1443,22 @@ begin end;
 procedure TMainForm.EditHeroClick(Sender: TObject);
 begin end;
 
-procedure TMainForm.ItemControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMainForm.ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+var
+  Item: TItem;
+  HS: TLibraryImageHS;
+begin
+  Item := ItemControlGrid.GetItem(ItemControlGrid.ImageIndex(ACol, ARow));
+  if (Item <> nil) and (Item.Owner = nil) then
+  begin
+    HS := TLibraryImageHS.Create(nil);
+    if Item.FItemGFXIndex <> -1 then
+      HS.SetImage(AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex).GetCellImage);
+    HSMEdit.SelectPlaceHS(Item, HS, 56, -5, -5);
+  end
+  else HSMEdit.DeselectPlaceHS;
+end;
+
 
 procedure TMainForm.HSMEditDeselectPlaceHS(Sender: TObject);
 begin end;
@@ -1434,8 +1494,21 @@ end;
 procedure TMainForm.MapSetSettingsClick(A1: Integer; A2: Integer);
 begin end;
 
-procedure TMainForm.LeaderSelectionGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMainForm.LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+var
+  Hero: TLeader;
+  HS: TUnitHS;
+begin
+  Hero := LeaderSelectionGrid.GetLeader(LeaderSelectionGrid.ImageIndex(ACol, ARow) + 1);
+  if (Hero <> nil) and (Hero.Owner = nil) then
+  begin
+    HS := TUnitHS.Create(nil);
+    HS.SetUnitGFXResourceIndex(Hero.GetUnitGFXResourceIndex);
+    HSMEdit.SelectPlaceHS(Hero, HS, 24, 0, 0);
+  end
+  else HSMEdit.DeselectPlaceHS;
+end;
+
 
 procedure TMainForm.FogofWarClick(Sender: TObject);
 begin end;
@@ -1497,7 +1570,7 @@ begin
   { Original checks the ability list before reading the spell list. }
   if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
   begin
-    with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+    ID := Integer(SpellListBox.Items.Objects[SpellListBox.ItemIndex]);
     with SpellDescription do
     begin
       Change := OnChange;
@@ -1539,7 +1612,7 @@ var
 begin
   if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
   begin
-    with AbilityListBox do ID := Integer(Items.Objects[ItemIndex]);
+    ID := Integer(AbilityListBox.Items.Objects[AbilityListBox.ItemIndex]);
     with AbilityDescription do
     begin
       Change := OnChange;
@@ -1659,10 +1732,30 @@ procedure TMainForm.SpellUpkeepChange(Sender: TObject);
 begin end;
 
 procedure TMainForm.EditAbilitySFXBtnClick(Sender: TObject);
-begin end;
+var Dlg: TSFXLibraryEditDlg; ID: Integer;
+begin
+  if (AoWHSSet <> nil) and (AbilityListBox.ItemIndex <> -1) then
+  begin
+    Dlg := TSFXLibraryEditDlg.Create(Self);
+    ID := Integer(AbilityListBox.Items.Objects[AbilityListBox.ItemIndex]);
+    Dlg.Edit(AoWEngine, AoWHSSet.FAbilityControl.GetAbility(ID).FSFXLibrary, AoWHSSet.SFXManager);
+    Dlg.Free;
+  end;
+end;
+
 
 procedure TMainForm.EditSpellSFXClick(Sender: TObject);
-begin end;
+var Dlg: TSFXLibraryEditDlg; ID: Integer;
+begin
+  if (AoWHSSet <> nil) and (SpellListBox.ItemIndex <> -1) then
+  begin
+    Dlg := TSFXLibraryEditDlg.Create(Self);
+    ID := Integer(SpellListBox.Items.Objects[SpellListBox.ItemIndex]);
+    Dlg.Edit(AoWEngine, AoWHSSet.FSpellControl.GetSpell(ID).FCastSounds, AoWHSSet.SFXManager);
+    Dlg.Free;
+  end;
+end;
+
 
 procedure TMainForm.GotoItemClick(A1: Integer; A2: Integer);
 begin end;
@@ -1732,10 +1825,44 @@ procedure TMainForm.EditLeaderClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.HeroPopupMenuPopup(Sender: TObject);
-begin end;
+begin
+  with HeroControlGrid.Selection do
+    if (Left = Right) and (Top = Bottom) then
+  begin
+    N13.Visible := True;
+    N8.Visible := True;
+    EditHero.Visible := True;
+    GoToHero.Visible := True;
+  end
+  else
+  begin
+    N13.Visible := False;
+    N8.Visible := False;
+    EditHero.Visible := False;
+    GoToHero.Visible := False;
+  end;
+end;
+
 
 procedure TMainForm.ItemPopupMenuPopup(Sender: TObject);
-begin end;
+begin
+  with ItemControlGrid.Selection do
+    if (Left = Right) and (Top = Bottom) then
+  begin
+    MenuItem2.Visible := True;
+    MenuItem4.Visible := True;
+    EditItemItem.Visible := True;
+    GotoItem.Visible := True;
+  end
+  else
+  begin
+    MenuItem2.Visible := False;
+    MenuItem4.Visible := False;
+    EditItemItem.Visible := False;
+    GotoItem.Visible := False;
+  end;
+end;
+
 
 procedure TMainForm.GameSettingsClick(Sender: TObject);
 begin end;
@@ -1762,7 +1889,19 @@ procedure TMainForm.HSMEditActivateDC(Sender: TObject);
 begin end;
 
 procedure TMainForm.RemoveLeadersMIClick(Sender: TObject);
-begin end;
+var I: Integer;
+begin
+  if AoWHSMap <> nil then
+    for I := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+      if AoWHSMap.FHeroControl.GetHero(I) is TLeader then
+        with AoWHSMap.FHeroControl.GetHero(I) do
+        begin
+          SetOwner(nil);
+          Deactivate;
+          Release;
+        end;
+end;
+
 
 procedure TMainForm.MapTextEditorMIClick(Sender: TObject);
 begin end;

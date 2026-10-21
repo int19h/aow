@@ -18,3 +18,5 @@
   Use(nil, @MDIForm.TMainForm.LoadMap);
   Use(nil, @MDIForm.TMainForm.ClearMouseMessages);
   Use(nil, @MDIForm.TMainForm.EditMapSettings);
+  Use(nil, @Ecity.TCityEditForm.UpdateControls);
+  Use(nil, @EItemHS.TItemHSEditForm.SetItemsMode);

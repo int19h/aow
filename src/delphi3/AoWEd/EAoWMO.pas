@@ -24,14 +24,14 @@ type
     { conflict: FMapObject: THexagonSprite; }
     procedure vmt84; override;
     procedure vmt8C; override;
-    function vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer; override;
+    constructor vmt90(Obj: TEObject; Done: TEditDoneEvent); override;
   end;
 
 
 implementation
 
-function TAoWMapObjEditForm.vmt90(A1: Byte; A2: Integer; A3: Integer; A4: Integer): Integer;
-begin Result := 0; end;
+constructor TAoWMapObjEditForm.vmt90(Obj: TEObject; Done: TEditDoneEvent);
+begin end;
 
 procedure TAoWMapObjEditForm.vmt84;
 begin end;

@@ -817,7 +817,7 @@ type
     function ImageIndex(ACol, ARow: Integer): Integer; virtual;
     procedure IndexToCell(Index: Integer; var ACol, ARow: Integer); virtual;
     procedure SelectIndex(Index: Integer);
-    property Count: Integer read FCount write SetCount;
+    property Count: Integer read FCount write SetCount; property Selection; { AoWEd 0042D13C }
   end;
 
   { ImageLib.TImageDrawGrid (instance size 476) }
@@ -830,12 +830,12 @@ type
     property OnCellUpdated;
     property ScaleX;
     property ScaleY;
-    property Color;
+    property Color; property Canvas; { AoWEd 00412B83 }
     property ScrollBars;
     property DefaultRowHeight;
     property DefaultColWidth;
     property GridLineWidth;
-    property ColCount;
+    property ColCount; property Col; property Row; { AoWEd 00412C80 }
     property RowCount;
     property PopupMenu;
     property EditMode;
