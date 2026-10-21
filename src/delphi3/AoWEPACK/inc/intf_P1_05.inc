@@ -437,6 +437,6 @@
     procedure CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);  { draft }
     procedure PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);
     procedure UpdateEffects;  { draft }
-    procedure AddEffect(A1: Integer);  { draft }
+    function AddEffect(EffectType: TworldFXType): TWorldFXHS; { 557ED3A5 }
   end;
 

@@ -2,8 +2,7 @@ unit CombatSpells;
 
 { Draft declarations of CombatSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  The combat action bases and spell classes through TTerror are recovered;
-  TWindsOfFury and later classes remain drafts. }
+  All class bodies and registration routines are recovered below. }
 
 interface
 
@@ -390,33 +389,33 @@ type
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
   end;
 
-  { TWindsOfFury (instance size 64, VMT 557F62E0) }
+  { TWindsOfFury (instance size 64, VMT 557F62E0): inherited $10 spell ID, $34 combat statistics, $3C damage mode. }
   TWindsOfFury = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
   end;
 
-  { TShockwave (instance size 64, VMT 557F63F8) }
+  { TShockwave (instance size 64, VMT 557F63F8): inherited $10 spell ID, $34 combat statistics, $3C damage mode. }
   TShockwave = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TSacrificialFlame (instance size 64, VMT 557F650C) }
+  { TSacrificialFlame (instance size 64, VMT 557F650C): inherited $10 spell ID, $34 combat statistics, $3C damage mode. }
   TSacrificialFlame = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-  { TRecallSpiritCA (instance size 28, VMT 557F662C) }
+  { TRecallSpiritCA (instance size 28, VMT 557F662C): inherited $0C source ID, $0D target ID, $10 mana, $14 success, $18 spell ID. }
   TRecallSpiritCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TRecallSpirit (instance size 64, VMT 557F6710) }
+  { TRecallSpirit (instance size 64, VMT 557F6710): inherited $10 spell ID, $34 combat statistics, $3C damage mode. }
   TRecallSpirit = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -424,14 +423,14 @@ type
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
   end;
 
-  { TAnimateDeadCA (instance size 28, VMT 557F6828) }
+  { TAnimateDeadCA (instance size 28, VMT 557F6828): inherited $0C source ID, $0D target ID, $10 mana, $14 success, $18 spell ID. }
   TAnimateDeadCA = class(TExclusiveCombatSpellCA)
   public
     class function ClassID: Integer; override;
     procedure Execute(A1: TCombat); override;
   end;
 
-  { TAnimateDead (instance size 64, VMT 557F690C) }
+  { TAnimateDead (instance size 64, VMT 557F690C): inherited $10 spell ID, $34 combat statistics, $3C damage mode. }
   TAnimateDead = class(TCombatSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -439,8 +438,8 @@ type
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
   end;
 
-procedure RegisterCombatSpells(A1: Integer);  { draft }
-procedure UnregisterCombatSpells(A1: Integer);  { draft }
+procedure RegisterCombatSpells(Engine: TAoWEngine);
+procedure UnregisterCombatSpells(Engine: TAoWEngine);
 
 implementation
 
@@ -1888,52 +1887,283 @@ end;
 
 
 constructor TWindsOfFury.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(WindsOfFuryRStr);
+  FSpellID := 126;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 5;
+    DamageTypes := [dtPhysical];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
 
 function TWindsOfFury.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TCombatSpellCA;
+begin
+  Action := TCombatSpellCA.Create(nil);
+  Action.FSpellID := FSpellID;
+  if A2.GetAbilityEnabled(1) or A2.GetAbilityEnabled(59) then
+    Action.Generate(A1, A2, FCombatInfo.Attack + 2, FCombatInfo.Damage, FCombatInfo.DamageTypes)
+  else
+    Action.Generate(A1, A2, FCombatInfo.Attack, FCombatInfo.Damage, FCombatInfo.DamageTypes);
+  if A3 then
+    Action.FManaCost := THero(TCombatUnit(A1).FUnit).CastingMana(Self);
+  Result := Action;
+end;
 
 constructor TShockwave.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(ShockwaveRStr);
+  FSpellID := 127;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 5;
+    DamageTypes := [dtPhysical, dtWall];
+    RepeatCount := 1;
+    Range := 12;
+  end;
+end;
 
 constructor TSacrificialFlame.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(SacrificialFlameRStr);
+  FSpellID := 128;
+  with FCombatInfo do
+  begin
+    Attack := 8;
+    Damage := 5;
+    DamageTypes := [dtFire];
+    RepeatCount := 1;
+    Range := 12;
+    Radius := 3;
+  end;
+end;
 
 class function TRecallSpiritCA.ClassID: Integer;
-begin Result := 0; end;
+begin Result := 131781; end;
 
 procedure TRecallSpiritCA.Execute(A1: TCombat);
-begin end;
+var
+  Source, Target: TCombatUnit;
+  NewUnit: TUnit;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Source := TCombatUnit(A1.FCombatData.FindID(FSourceID));
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    NewUnit := TUnit.Create(nil);
+    NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(130));
+    NewUnit.SetPlayer(Source.FUnit.FPlayer);
+    NewUnit.ExpandAbility(130);
+    NewUnit.Activate;
+    Target.SetUnit(NewUnit);
+    NewUnit.Release;
+    Target.SetStatus(Target.FStatus - [csDestroyed]);
+    Target.SetCombatPlayer(Source.FCombatPlayer);
+  end;
+end;
 
 constructor TRecallSpirit.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(RecallSpiritRStr);
+  FSpellID := 129;
+  with FCombatInfo do
+  begin
+    Attack := 0;
+    Damage := 0;
+    DamageTypes := [];
+    RepeatCount := 1;
+    Range := -1;
+  end;
+end;
 
 procedure TRecallSpirit.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+begin
+  if csDestroyed in A2.FStatus then
+  begin
+    { Original leaves the other damage-value fields unchanged on success. }
+    A4.SourceDamage := 200;
+    A4.DamageTypes := [];
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
 function TRecallSpirit.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TRecallSpiritCA;
+begin
+  Action := TRecallSpiritCA.Create(nil);
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSucceeded := csDestroyed in A2.FStatus;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  Result := Action;
+end;
 
 class function TAnimateDeadCA.ClassID: Integer;
-begin Result := 0; end;
+begin Result := 131782; end;
 
 procedure TAnimateDeadCA.Execute(A1: TCombat);
-begin end;
+var
+  Source, Target: TCombatUnit;
+  NewUnit: TUnit;
+begin
+  inherited Execute(A1);
+  if FSucceeded then
+  begin
+    Source := TCombatUnit(A1.FCombatData.FindID(FSourceID));
+    Target := TCombatUnit(A1.FCombatData.FindID(FTargetID));
+    NewUnit := TUnit.Create(nil);
+    NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(201));
+    NewUnit.SetPlayer(Source.FUnit.FPlayer);
+    NewUnit.ExpandAbility(130);
+    NewUnit.Activate;
+    Target.SetUnit(NewUnit);
+    NewUnit.Release;
+    Target.SetStatus(Target.FStatus - [csDestroyed]);
+    Target.SetCombatPlayer(Source.FCombatPlayer);
+  end;
+end;
 
 constructor TAnimateDead.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(AnimateDeadRStr);
+  FSpellID := 130;
+  with FCombatInfo do
+  begin
+    Attack := 0;
+    Damage := 0;
+    DamageTypes := [];
+    RepeatCount := 1;
+    Range := -1;
+  end;
+end;
 
 procedure TAnimateDead.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
-begin end;
+begin
+  if csDestroyed in A2.FStatus then
+  begin
+    { Original leaves the other damage-value fields unchanged on success. }
+    A4.SourceDamage := 200;
+    A4.DamageTypes := [];
+  end
+  else
+  begin
+    A4.SourceDamage := 0;
+    A4.SourceCost := 0;
+    A4.TargetDamage := 0;
+    A4.TargetCost := 0;
+    A4.DamageTypes := [];
+  end;
+end;
 
 function TAnimateDead.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TAnimateDeadCA;
+begin
+  Action := TAnimateDeadCA.Create(nil);
+  Action.FSourceID := A1.FID;
+  Action.FTargetID := A2.FID;
+  Action.FSucceeded := csDestroyed in A2.FStatus;
+  Action.FSpellID := FSpellID;
+  if A3 then Action.FManaCost := FBaseManaCost;
+  Result := Action;
+end;
 
-procedure RegisterCombatSpells(A1: Integer);
-begin end;
+procedure RegisterCombatSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Engine.RegisterEClasses([TCombatSpellCA, TFastCombatTerrorCA, TTacticalCombatTerrorCA, TRecallSpiritCA, TAnimateDeadCA, TFastCombatHighPrayerCA, TTacticalCombatHighPrayerCA, TEntangleSpellCA, TMindDecayCA, TTurnUndeadSpellCA, TSlowCA]);
+  Control.RegisterSpell(TSolarFlare.Create(nil));
+  Control.RegisterSpell(TTurnUndead.Create(nil));
+  Control.RegisterSpell(THighPrayer.Create(nil));
+  Control.RegisterSpell(TDeathRay.Create(nil));
+  Control.RegisterSpell(TDiseaseCloud.Create(nil));
+  Control.RegisterSpell(TTerror.Create(nil));
+  Control.RegisterSpell(TMindDecay.Create(nil));
+  Control.RegisterSpell(TChainLightning.Create(nil));
+  Control.RegisterSpell(TColdBreath.Create(nil));
+  Control.RegisterSpell(TSlow.Create(nil));
+  Control.RegisterSpell(TEntangle.Create(nil));
+  Control.RegisterSpell(TTremors.Create(nil));
+  Control.RegisterSpell(TCallFlames.Create(nil));
+  Control.RegisterSpell(TFireBreath.Create(nil));
+  Control.RegisterSpell(TSwarm.Create(nil));
+  Control.RegisterSpell(TGreatHail.Create(nil));
+  Control.RegisterSpell(TFireBall.Create(nil));
+  Control.RegisterSpell(TGeyser.Create(nil));
+  Control.RegisterSpell(TIceShards.Create(nil));
+  Control.RegisterSpell(TFrostBeams.Create(nil));
+  Control.RegisterSpell(TVaporize.Create(nil));
+  Control.RegisterSpell(TStoning.Create(nil));
+  Control.RegisterSpell(TFlamingArrow.Create(nil));
+  Control.RegisterSpell(TOoze.Create(nil));
+  Control.RegisterSpell(TSacredWrath.Create(nil));
+  Control.RegisterSpell(TAnimateDead.Create(nil));
+  Control.RegisterSpell(TRecallSpirit.Create(nil));
+  Control.RegisterSpell(TWindsOfFury.Create(nil));
+  Control.RegisterSpell(TShockwave.Create(nil));
+  Control.RegisterSpell(TSacrificialFlame.Create(nil));
+end;
 
-procedure UnregisterCombatSpells(A1: Integer);
-begin end;
+procedure UnregisterCombatSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Engine.UnregisterEClasses([TCombatSpellCA, TFastCombatTerrorCA, TTacticalCombatTerrorCA, TRecallSpiritCA, TAnimateDeadCA, TFastCombatHighPrayerCA, TTacticalCombatHighPrayerCA, TEntangleSpellCA, TMindDecayCA, TTurnUndeadSpellCA, TSlowCA]);
+  Control.UnregisterSpellID(100);
+  Control.UnregisterSpellID(101);
+  Control.UnregisterSpellID(102);
+  Control.UnregisterSpellID(103);
+  Control.UnregisterSpellID(104);
+  Control.UnregisterSpellID(105);
+  Control.UnregisterSpellID(106);
+  Control.UnregisterSpellID(107);
+  Control.UnregisterSpellID(108);
+  Control.UnregisterSpellID(110);
+  Control.UnregisterSpellID(111);
+  Control.UnregisterSpellID(112);
+  Control.UnregisterSpellID(113);
+  Control.UnregisterSpellID(114);
+  Control.UnregisterSpellID(115);
+  Control.UnregisterSpellID(116);
+  Control.UnregisterSpellID(117);
+  Control.UnregisterSpellID(118);
+  Control.UnregisterSpellID(119);
+  Control.UnregisterSpellID(120);
+  Control.UnregisterSpellID(121);
+  Control.UnregisterSpellID(122);
+  Control.UnregisterSpellID(123);
+  Control.UnregisterSpellID(124);
+  Control.UnregisterSpellID(125);
+  Control.UnregisterSpellID(130);
+  Control.UnregisterSpellID(129);
+  Control.UnregisterSpellID(126);
+  Control.UnregisterSpellID(127);
+  Control.UnregisterSpellID(128);
+end;
 
 
 initialization

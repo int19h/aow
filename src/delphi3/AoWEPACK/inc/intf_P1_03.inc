@@ -357,6 +357,7 @@
     procedure UpdateMapField; override;
     function GetExplored(Player: Integer): Boolean;
     procedure SetExplored(Player: Integer; Value: Boolean);
+    { conflict: procedure SetExplored(Player: Integer; Explored: LongBool); }
     procedure FogChanged;
     procedure SetFogCount(Value: Byte);
     function GetPlayer: Shortint;

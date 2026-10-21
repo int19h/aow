@@ -203,7 +203,7 @@
     function Activate(Player: Shortint): Boolean; virtual;
     function CanCast(Player: Shortint; var Reason: string): Boolean; virtual; { +06C }
     function Cast(Player: Shortint): Boolean; virtual; { +070 }
-    procedure CanDispel; virtual;  { +074 draft }
+    function CanDispel(Player: Shortint; var Reason: string): Boolean; virtual; { +074; 557EBE5C }
     procedure Dispel(A1: Byte); virtual;  { +078 draft }
     procedure CanRemove(A1: Byte; A2: Integer); virtual;  { +07C draft }
     procedure Remove(A1: Byte); virtual;  { +080 draft }

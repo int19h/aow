@@ -2,8 +2,7 @@ unit GlobalSpells;
 
 { Draft declarations of GlobalSpells, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  TConcealAreaHS through TDisjunctionSpellCaster are recovered;
-  TDisjunction and the hero spells remain drafts. }
+  All class bodies and registration routines are recovered below. }
 
 interface
 
@@ -44,7 +43,7 @@ type
     procedure StopAnimation;  { draft }
   end;
 
-  { TConcealArea (instance size 52, VMT 557E9144) }
+  { TConcealArea (instance size 52, VMT 557E9144): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type. }
   TConcealArea = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -106,7 +105,7 @@ type
     function CalculateWarpLocation(Army: TArmyHS): Integer;
   end;
 
-  { TResurrectHero (instance size 52, VMT 557E96E0) }
+  { TResurrectHero (instance size 52, VMT 557E96E0): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type, $28 sounds, $2C images. }
   TResurrectHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -114,7 +113,7 @@ type
     function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
-  { TAnimateHero (instance size 52, VMT 557E97FC) }
+  { TAnimateHero (instance size 52, VMT 557E97FC): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type, $28 sounds, $2C images. }
   TAnimateHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -122,13 +121,13 @@ type
     function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
-  { TCallHero (instance size 52, VMT 557E9914) }
+  { TCallHero (instance size 52, VMT 557E9914): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type, $28 sounds, $2C images. }
   TCallHero = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
-    procedure FindCallHero(A1: Integer);  { draft }
+    function FindCallHero(Source: TAbstractUnit): THero;
   end;
 
   { TDisjunctionTE (instance size 40, VMT 557E9A24): $20 dispel chance, $24 enchantment ID. }
@@ -159,7 +158,7 @@ type
     function GetEnoughMana: Boolean;
   end;
 
-  { TDisjunction (instance size 52, VMT 557E9BE4) }
+  { TDisjunction (instance size 52, VMT 557E9BE4): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type, $28 sounds, $2C images. }
   TDisjunction = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -167,17 +166,17 @@ type
     function Activate(A1: TAbstractUnit): Boolean; override;
   end;
 
-  { TCrusade (instance size 52, VMT 557E9CFC) }
+  { TCrusade (instance size 52, VMT 557E9CFC): inherited $08 name, $10 spell ID, $14 mana, $20 sphere, $21 level, $22 type, $28 sounds, $2C images. }
   TCrusade = class(TSpell)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     function Activate(A1: TAbstractUnit): Boolean; override;
-    procedure PlaceParty(A1: Integer; A2: Integer);  { draft }
+    function PlaceParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
   end;
 
-procedure RegisterGlobalSpells(A1: Integer);  { draft }
-procedure UnregisterGlobalSpells(A1: Integer);  { draft }
+procedure RegisterGlobalSpells(Engine: TAoWEngine);
+procedure UnregisterGlobalSpells(Engine: TAoWEngine);
 
 implementation
 
@@ -284,16 +283,10 @@ begin
   end;
 end;
 
-type
-  TGlobalSpellNameFields = packed record
-    Reserved: array[0..7] of Byte;
-    Name: string;
-  end;
-
 constructor TConcealArea.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  TGlobalSpellNameFields(Pointer(Self)^).Name := AoWE.TranslateRStr(ConcealAreaRStr);
+  FSpellName := TranslateRStr(ConcealAreaRStr);
   FSpellID := 1;
   FSpellType := stGlobal;
   FBaseManaCost := 5;
@@ -302,29 +295,11 @@ begin
 end;
 
 function TConcealArea.GetEnabled: Boolean;
-asm
-  { needs: Boolean result on TSpell.GetEnabled. }
-  MOV EAX,[GlobalSpellMap]
-  MOV EAX,[EAX]
-  MOV AL,[EAX+$C9]
+begin
+  Result := AoWHSMap.FExplorationEnabled;
 end;
 
-type
-  PGlobalSpellString = ^string;
-resourcestring
-  GlobalSpellXCastRStr = '%s cast';
-
-procedure GlobalBaseExecute(Spell: TSpell; Event: TSpellTE; Caster: TAbstractUnit); assembler;
-asm JMP TSpell.ExecuteTE end;
-
-function GlobalPlayerRelation(List: TPlayerList; Player,Other: Byte): Byte; assembler;
-asm JMP TPlayerList.GetDiplomaticRelation end;
-
-procedure GlobalSetExplored(MapF: TAoWMapField; Player: Byte; Explored: Boolean); assembler;
-asm JMP TAoWMapField.SetExplored end;
-
-function ExecuteConcealArea(Spell: TConcealArea; Event: TSpellTE;
-  Caster: TAbstractUnit): Boolean;
+function TConcealArea.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 var
   MapF: TAoWMapField;
   X,Y,Layer: Shortint;
@@ -333,40 +308,39 @@ var
   Level: TMapLevel;
   Log: TLocationTextEventLog;
 begin
-  GlobalBaseExecute(Spell,Event,Caster);
-  Spell.CastingDone(Caster,Spell.FBaseManaCost);
-  Caster.GetLocation(X,Y,Layer);
-  if Caster.FPlayer = GlobalSpellMap^.FSeatedPlayer then
+  inherited ExecuteTE(A1, A2, A3);
+  CastingDone(A2, A1.FEventMana);
+  A2.GetLocation(X,Y,Layer);
+  if A2.FPlayer = AoWHSMap.FSeatedPlayer then
     TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
-  for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
+  for Player := 1 to TPlayerList(AoWHSMap.FPlayers).Count-1 do
   begin
-    Level := GlobalSpellMap^.MapContainer.MapLevels[Layer];
-    if (GlobalPlayerRelation(TPlayerList(GlobalSpellMap^.FPlayers),
-      Caster.FPlayer,Player) = 1) and (Player <> Shortint(Caster.FPlayer)) then
+    Level := AoWHSMap.MapContainer.MapLevels[Layer];
+    if (AoWHSMap.FPlayers.GetDiplomaticRelation(A2.FPlayer,Player) = drWar) and (Player <> Shortint(A2.FPlayer)) then
     begin
       Log := nil;
       InitHNWalk(Walk,X,Y,0);
-      while Walk.Radius < 15 do
+      while Walk.Radius <= 14 do
       begin
         if (Walk.X >= 0) and (Walk.Y >= 0) and
           (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
         begin
           MapF := TAoWMapField(Level.GetField(Walk.X,Walk.Y));
           if MapF.GetExplored(Player) and
-            not GlobalSpellMap^.VisibleForPlayer(Walk.X,Walk.Y,Layer,Player) then
+            not AoWHSMap.VisibleForPlayer(Walk.X,Walk.Y,Layer,Player) then
           begin
-            GlobalSetExplored(MapF,Player,False);
+            MapF.SetExplored(Player, False);
             if Log = nil then
             begin
               Log := TLocationTextEventLog.Create(nil);
               Log.FXhx := Walk.X;
               Log.FYhx := Walk.Y;
               Log.FLhx := Layer;
-              Log.FPlayer := Caster.FPlayer;
-              PGlobalSpellString(@Log.FText)^ :=
-                SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
+              Log.FPlayer := A2.FPlayer;
+              Log.FText :=
+                SysUtils.Format(AoWE.TranslateRStr(XCastRStr),
                   [AoWE.TranslateRStr(ConcealAreaRStr)]);
-              TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
+              TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
               Log.Release;
             end;
           end;
@@ -374,99 +348,59 @@ begin
         WalkToNextHN(Walk);
       end;
     end
-    else if GlobalSpellMap^.VisibleForPlayer(X,Y,Layer,Player) then
+    else if AoWHSMap.VisibleForPlayer(X,Y,Layer,Player) then
     begin
       Log := TLocationTextEventLog.Create(nil);
       Log.FXhx := X;
       Log.FYhx := Y;
       Log.FLhx := Layer;
-      Log.FPlayer := Caster.FPlayer;
-      PGlobalSpellString(@Log.FText)^ :=
-        SysUtils.Format(AoWE.TranslateRStr(GlobalSpellXCastRStr),
+      Log.FPlayer := A2.FPlayer;
+      Log.FText :=
+        SysUtils.Format(AoWE.TranslateRStr(XCastRStr),
           [AoWE.TranslateRStr(ConcealAreaRStr)]);
-      TEventLogbook(TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
+      TEventLogbook(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FEventLogbook).AddEvent(Log);
       Log.Release;
     end;
   end;
   Result := False;
 end;
 
-function TConcealArea.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-asm
-  { needs: ExecuteTE(Event, Caster): Boolean; the shared draft adds a stack arg. }
-  POP EBP
-  JMP ExecuteConcealArea
-end;
-
-function GlobalBaseCanActivate(Spell: TSpell; Caster: TAbstractUnit;
-  var Message: string): Boolean; assembler;
-asm JMP TSpell.CanActivate end;
-
-function GlobalDiplomaticRelation(Relations: TPlayerDiplomaticRelations;
-  Player: Shortint): Byte; assembler;
-asm JMP TPlayerDiplomaticRelations.GetDiplomaticRelation end;
-
-function CanConcealArea(Spell: TConcealArea; Caster: TAbstractUnit;
-  var Message: string): Boolean;
+function TConcealArea.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
 var
   War: Boolean;
-  Player: Shortint;
+  Player: Integer;
 begin
-  Result := GlobalBaseCanActivate(Spell,Caster,Message);
+  Result := inherited CanActivate(A1, A2);
   if Result then
   begin
     War := False;
-    for Player := 1 to TPlayerList(GlobalSpellMap^.FPlayers).Count-1 do
-      War := War or (GlobalDiplomaticRelation(TPlayerDiplomaticRelations(
-        TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).FDiplomaticRelations),Player) = 1);
+    for Player := 1 to AoWHSMap.FPlayers.Count - 1 do
+      War := War or
+        (AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Player) = drWar);
     if not War then
     begin
-      Message := SysUtils.Format(AoWE.TranslateRStr(AWarRelationIsRequiredForXRStr),
-        [AoWE.TranslateRStr(ConcealAreaRStr)]);
+      A2 := Format(TranslateRStr(AWarRelationIsRequiredForXRStr), [TranslateRStr(ConcealAreaRStr)]);
       Result := False;
     end;
   end;
 end;
 
-function TConcealArea.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-asm
-  { needs: Boolean result and var string on the shared TSpell.CanActivate. }
-  JMP CanConcealArea
-end;
-
-procedure GlobalBaseActivate(Spell: TSpell; Caster: TAbstractUnit;
-  Activation: Integer); assembler;
-asm JMP TSpell.Activate end;
-
-function GlobalVirtualCanActivate(Spell: TSpell; Caster: TAbstractUnit;
-  var Message: string): Boolean; assembler;
-asm PUSH EBX; MOV EBX,[EAX]; CALL DWORD PTR [EBX+$68]; POP EBX end;
-
-function ActivateConcealArea(Spell: TConcealArea; Caster: TAbstractUnit;
-  Activation: Integer): Boolean;
+function TConcealArea.Activate(A1: TAbstractUnit): Boolean;
 var
-  Message: string;
+  Reason: string;
   Event: TSpellTE;
 begin
-  GlobalBaseActivate(Spell,Caster,Activation);
-  Result := False;
-  if GlobalVirtualCanActivate(Spell,Caster,Message) and
-    not TPlayerList(GlobalSpellMap^.FPlayers).GetPlayers(Shortint(Caster.FPlayer)).GetBusy() then
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
   begin
     Event := TSpellTE.Create(nil);
-    Event.Initialize(Spell.FSpellID,Caster.FPlayer,
-      Caster.FUnitID,Spell.FBaseManaCost);
-    TTokenManager(GlobalSpellMap^.FTokenManager).
-      GetTokenControl(Shortint(Caster.FPlayer)).Add(Event);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
     Event.Release;
     Result := True;
-  end;
-end;
-
-function TConcealArea.Activate(A1: TAbstractUnit): Boolean;
-asm
-  { needs: Boolean result on the shared TSpell.Activate. }
-  JMP ActivateConcealArea
+  end
+  else
+    Result := False;
 end;
 
 constructor TBirdsViewHS.Create(AOwner: Engine.TECustomNode);
@@ -995,61 +929,540 @@ begin
 end;
 
 constructor TDisjunction.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(DisjunctionRStr);
+  FSpellID := 51;
+  FSpellType := stGlobal;
+  FBaseManaCost := 0;
+  FSpellLevel := 2;
+  FMagicSphere := msCosmos;
+end;
 
 function TDisjunction.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+var
+  Count, I: Integer;
+  Reason: string;
+begin
+  Count := 0;
+  for I := 0 to AoWHSMap.FGlobalMagicControl.FEnchantments.Count - 1 do
+    if (AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I).FPlayerIndex <> A1.FPlayer) and
+      AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I).VisibleForPlayer(A1.FPlayer) and
+      AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I).CanDispel(A1.FPlayer, Reason) then
+      Inc(Count);
+  if Count = 0 then
+  begin
+    A2 := TranslateRStr(NoGlobalOpponentEnchantmentsActiveRStr);
+    Result := False;
+  end
+  else
+    Result := True;
+end;
 
 function TDisjunction.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Caster: TDisjunctionSpellCaster;
+begin
+  if CanActivate(A1, Reason) then
+  begin
+    Caster := TDisjunctionSpellCaster.Create(nil);
+    Caster.FCasterSpellID := FSpellID;
+    Caster.FCasterSourceID := A1.FUnitID;
+    AoWHSMap.FCosmeticSurgeryEvents.TriggerNotifyEvents(Caster);
+    Caster.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 constructor TResurrectHero.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(ResurrectHeroRStr);
+  FSpellID := 66;
+  FSpellType := stGlobal;
+  FBaseManaCost := 0;
+  FSpellLevel := 2;
+  FMagicSphere := msCosmos;
+end;
 
 function TResurrectHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, Layer: Shortint;
+  Animation: TTwinkleAnimation;
+  Heroes: THeroList;
+  I: Integer;
+  Hero: THero;
+  Army: TArmyHS;
+  Log: TLocationTextEventLog;
+  EmergeLog: THeroEmergeEventLog;
+  InfoLog: TArmyInfoEventLog;
+begin
+  if A3 = 0 then
+  begin
+    A2.GetLocation(X, Y, Layer);
+    AoWHSMap.ValidateObservation(A2.FPlayer, X, Y, Layer, 0);
+    Animation := TTwinkleAnimation.Create(nil);
+    Animation.Setup(FCastImages.GetImageSequence(0), [tmRotate], 50, 64, 50, 30);
+    AoWHSMap.PlaceHX(Animation, X, Y, Layer);
+    if (A2.FPlayer = AoWHSMap.FSeatedPlayer) or AoWHSMap.Watching(X, Y, Layer, 0) then
+      FCastSounds.Play(0);
+  end;
+  if A3 = 20 then
+  begin
+    Heroes := THeroList.Create(nil);
+    AoWHSMap.FHeroControl.ListDeadHeroes(Heroes);
+    for I := Heroes.Count - 1 downto 0 do
+      if (Heroes.GetHero(I) is TLeader) or
+        (Heroes.GetHero(I).GetLevel > AoWHSMap.FPlayers.GetPlayers(A2.FPlayer).FBaseHeroJoinLevel + 2) then
+        Heroes.RemoveChild(Heroes.GetHero(I));
+    if Heroes.Count <> 0 then
+    begin
+      A2.GetLocation(X, Y, Layer);
+      Hero := Heroes.GetHero(AoWHSMap.Random(Heroes.Count));
+      Hero.Resurrect;
+      Army := Hero.Place(X, Y, Layer, 0, [pmScanArea, pmCreateNewArmy]);
+      Log := TLocationTextEventLog.Create(nil);
+      Log.FPlayer := A2.FPlayer;
+      Log.FText := Format(TranslateRStr(XResurrectedRStr), [Hero.FHeroName]);
+      Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, 0);
+      Log.Release;
+      if Hero.OfferToJoin(A2.FPlayer) then
+      begin
+        EmergeLog := THeroEmergeEventLog.Create(nil);
+        EmergeLog.Setup(Hero, A2.FPlayer, hjmResurrected);
+        EmergeLog.Execute(True, etEvent, nil);
+        EmergeLog.Release;
+      end
+      else
+      begin
+        InfoLog := TArmyInfoEventLog.Create(nil);
+        InfoLog.FArmyView.Setup(Army.FArmy, Byte(1) shl Army.FArmy.IndexOf(Hero));
+        InfoLog.FSelection := $FF;
+        InfoLog.FPlayer := A2.FPlayer;
+        InfoLog.FMessages.Text := TranslateRStr(NoJoinResurrectionRStr);
+        InfoLog.FTriggers := [etEvent];
+        InfoLog.Execute(True, etEvent, nil);
+        InfoLog.Release;
+      end;
+    end
+    else
+      AoWHSMap.ShowMessage(TranslateRStr(NoHeroAnswersYourCallRStr));
+    CastingDone(A2, A1.FEventMana);
+    Heroes.Free;
+    Result := False;
+  end
+  else
+    Result := True;
+end;
 
 function TResurrectHero.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TSpellTE;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 constructor TAnimateHero.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(AnimateHeroRStr);
+  FSpellID := 67;
+  FSpellType := stGlobal;
+  FBaseManaCost := 0;
+  FSpellLevel := 2;
+  FMagicSphere := msCosmos;
+end;
 
 function TAnimateHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, Layer: Shortint;
+  Animation: TTwinkleAnimation;
+  Heroes: THeroList;
+  I: Integer;
+  Hero: THero;
+  Army: TArmyHS;
+  Log: TLocationTextEventLog;
+  EmergeLog: THeroEmergeEventLog;
+  InfoLog: TArmyInfoEventLog;
+begin
+  if A3 = 0 then
+  begin
+    A2.GetLocation(X, Y, Layer);
+    AoWHSMap.ValidateObservation(A2.FPlayer, X, Y, Layer, 0);
+    Animation := TTwinkleAnimation.Create(nil);
+    Animation.Setup(FCastImages.GetImageSequence(0), [tmRotate], 50, 64, 50, 30);
+    AoWHSMap.PlaceHX(Animation, X, Y, Layer);
+    if (A2.FPlayer = AoWHSMap.FSeatedPlayer) or AoWHSMap.Watching(X, Y, Layer, 0) then
+      FCastSounds.Play(0);
+  end;
+  if A3 = 20 then
+  begin
+    Heroes := THeroList.Create(nil);
+    AoWHSMap.FHeroControl.ListDeadHeroes(Heroes);
+    for I := Heroes.Count - 1 downto 0 do
+      if (Heroes.GetHero(I) is TLeader) or
+        (Heroes.GetHero(I).GetLevel > AoWHSMap.FPlayers.GetPlayers(A2.FPlayer).FBaseHeroJoinLevel + 2) then
+        Heroes.RemoveChild(Heroes.GetHero(I));
+    if Heroes.Count <> 0 then
+    begin
+      A2.GetLocation(X, Y, Layer);
+      Hero := Heroes.GetHero(AoWHSMap.Random(Heroes.Count));
+      Hero.Animate;
+      Army := Hero.Place(X, Y, Layer, 0, [pmScanArea, pmCreateNewArmy]);
+      Log := TLocationTextEventLog.Create(nil);
+      Log.FPlayer := A2.FPlayer;
+      Log.FText := Format(TranslateRStr(XAnimatedRStr), [Hero.FHeroName]);
+      Log.SetLocation(Army.GetXhx, Army.GetYhx, Army.GetLhx);
+      DistributeLocationEventLog(Log, A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, 0);
+      Log.Release;
+      if Hero.OfferToJoin(A2.FPlayer) then
+      begin
+        EmergeLog := THeroEmergeEventLog.Create(nil);
+        EmergeLog.Setup(Hero, A2.FPlayer, hjmResurrected);
+        EmergeLog.Execute(True, etEvent, nil);
+        EmergeLog.Release;
+      end
+      else
+      begin
+        InfoLog := TArmyInfoEventLog.Create(nil);
+        InfoLog.FArmyView.Setup(Army.FArmy, Byte(1) shl Army.FArmy.IndexOf(Hero));
+        InfoLog.FSelection := $FF;
+        InfoLog.FPlayer := A2.FPlayer;
+        InfoLog.FMessages.Text := TranslateRStr(NoJoinAnimateRStr);
+        InfoLog.FTriggers := [etEvent];
+        InfoLog.Execute(True, etEvent, nil);
+        InfoLog.Release;
+      end;
+    end
+    else
+      if A2.FPlayer = AoWHSMap.FSeatedPlayer then
+      begin
+        AoWHSMap.ShowMessage(TranslateRStr(NoHeroAnswersYourCallRStr));
+        AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+      end;
+    CastingDone(A2, A1.FEventMana);
+    Heroes.Free;
+    Result := False;
+  end
+  else
+    Result := True;
+end;
 
 function TAnimateHero.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TSpellTE;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 constructor TCallHero.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(CallHeroRStr);
+  FSpellID := 69;
+  FSpellType := stGlobal;
+  FBaseManaCost := 0;
+  FSpellLevel := 2;
+  FMagicSphere := msCosmos;
+end;
 
 function TCallHero.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TSpellTE;
+begin
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
-procedure TCallHero.FindCallHero(A1: Integer);
-begin end;
+function TCallHero.FindCallHero(Source: TAbstractUnit): THero;
+var
+  Hero: THero;
+  I: Integer;
+  Heroes: TDoubleItemList;
+  Index: Integer;
+begin
+  Heroes := TDoubleItemList.Create;
+  for I := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+  begin
+    Hero := AoWHSMap.FHeroControl.GetHero(I);
+    if (Hero.FPlayer = 0) and (Hero.Owner is TArmy) and (TArmy(Hero.Owner).FX <> -1) then
+      if Hero.OfferToJoin(Source.FPlayer) then
+        Heroes.AddAB(Integer(Hero), 10)
+      else
+        Heroes.AddAB(Integer(Hero), 1);
+  end;
+  if Heroes.Count = 0 then
+    for I := AoWHSMap.FHeroControl.GetCount - 1 downto 0 do
+    begin
+      Hero := AoWHSMap.FHeroControl.GetHero(I);
+      if not (usKilled in Hero.FUnitStatus) and (Hero.FPlayer <= 0) and (Hero.Owner = nil) then
+        if Hero.OfferToJoin(Source.FPlayer) then
+          Heroes.AddAB(Integer(Hero), 10)
+        else
+          Heroes.AddAB(Integer(Hero), 1);
+    end;
+  if Heroes.Count <> 0 then
+  begin
+    RandSeed := AoWHSMap.Random($FFFFFF);
+    Index := Heroes.RandomChanceItemB(0);
+    Result := THero(Heroes[Index].A);
+  end
+  else
+    Result := nil;
+  Heroes.Free;
+end;
 
 function TCallHero.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  ShowSource, ShowTarget: Boolean;
+  X, Y, Layer: Shortint;
+  Hero: THero;
+  Army: TArmyHS;
+  Animation: TImageSequenceAnimation;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  A2.GetLocation(X, Y, Layer);
+  Hero := FindCallHero(A2);
+  if Hero <> nil then
+  begin
+    if Hero.Owner = nil then Hero.SetHitPoints(Hero.GetHits);
+    Army := Hero.Place(X, Y, Layer, 0, [pmScanArea, pmCreateNewArmy]);
+    ShowSource := (AoWHSMap.FSeatedPlayer = A2.FPlayer) or
+      AoWHSMap.VisibleForPlayer(X, Y, Layer, AoWHSMap.FSeatedPlayer);
+    ShowTarget := (AoWHSMap.FSeatedPlayer = A2.FPlayer) or
+      AoWHSMap.VisibleForPlayer(Army.GetXhx, Army.GetYhx, Army.GetLhx, AoWHSMap.FSeatedPlayer);
+    if ShowSource then
+      if AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0) <> nil then
+      begin
+        Animation := TImageSequenceAnimation.Create(nil);
+        Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0));
+        AoWHSMap.PlaceHX(Animation, X, Y, Layer);
+      end;
+    if ShowTarget then
+      if AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0) <> nil then
+      begin
+        Animation := TImageSequenceAnimation.Create(nil);
+        Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0));
+        AoWHSMap.PlaceHX(Animation, Army.GetXhx, Army.GetYhx, Army.GetLhx);
+      end;
+    if AoWHSMap.FSeatedPlayer = A2.FPlayer then
+      AoWHSMap.CenterViewTo(Army.GetXhx, Army.GetYhx, Army.GetLhx)
+    else
+      AoWHSMap.ValidateObservation(A2.FPlayer, Army.GetXhx, Army.GetYhx, Army.GetLhx, 0);
+    if (AoWHSMap.FSeatedPlayer = A2.FPlayer) or AoWHSMap.Watching(X, Y, Layer, 0) or
+      AoWHSMap.Watching(Army.GetXhx, Army.GetYhx, Army.GetLhx, 0) then
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  end
+  else
+    if AoWHSMap.FSeatedPlayer = A2.FPlayer then
+    begin
+      AoWHSMap.ShowMessage(TranslateRStr(NoHeroAnsweredYourCallRStr));
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+    end;
+  AoWHSSet.FSpellControl.GetSpell(FSpellID).CastingDone(A2,
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FBaseManaCost);
+  Result := False;
+end;
 
 constructor TCrusade.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(CrusadeRStr);
+  FSpellID := 75;
+  FSpellType := stGlobal;
+  FBaseManaCost := 0;
+  FSpellLevel := 4;
+  FMagicSphere := msLife;
+end;
 
-procedure TCrusade.PlaceParty(A1: Integer; A2: Integer);
-begin end;
+function TCrusade.PlaceParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
+var
+  TargetX, TargetY: Integer;
+  X, Y, Layer: Shortint;
+  Animation: TImageSequenceAnimation;
+begin
+  Source.GetLocation(X, Y, Layer);
+  CenterHNtoHX(X, Y, AoWHSMap.Random(RadToHN(5)), TargetX, TargetY);
+  if Party.PlaceEx(TargetX, TargetY, Layer, [apSafe, apScanArea]) then
+  begin
+    Party.Activate;
+    Party.FArmy.SetBehavior($FF, gbSuicidal);
+    if AoWHSMap.Watching(Party.GetXhx, Party.GetYhx, Party.GetLhx, 0) then
+      if AoWHSSet.FSpellControl.GetSpell(34).FCastImages.GetImageSequence(0) <> nil then
+      begin
+        { Original uses Warp Party's images for Crusade parties. }
+        Animation := TImageSequenceAnimation.Create(nil);
+        Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(34).FCastImages.GetImageSequence(0));
+        Animation.FAnimationLevel := 28;
+        AoWHSMap.PlaceHX(Animation, Party.GetXhx, Party.GetYhx, Party.GetLhx);
+      end;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
 function TCrusade.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+const
+  LargeUnits: array[0..0] of Integer = (133);
+  MountedUnits: array[0..2] of Integer = (132, 134, 128);
+  FootUnits: array[0..1] of Integer = (129, 126);
+var
+  I, J, Count, UnitIndex, Xhp, Yhp: Integer;
+  X, Y, Layer: Shortint;
+  Party: TArmyHS;
+  NewUnit: TUnit;
+begin
+  if A3 = 0 then
+  begin
+    A2.GetLocation(X, Y, Layer);
+    AoWHSMap.ValidateObservation(A2.FPlayer, X, Y, Layer, 0);
+    HXtoHP(X, Y, Xhp, Yhp);
+    with AoWHSMap.AddEffect(fxCrusade) do
+    begin
+      FX := Xhp + 16;
+      FY := Yhp + 16;
+      FLayer := Layer;
+    end;
+    if AoWHSMap.Random(100) < 20 then
+    begin
+      Party := TArmyHS.Create(nil);
+      Party.FArmy.SetPlayer(0);
+      Count := 1;
+      UnitIndex := AoWHSMap.Random(1);
+      for J := 0 to Count - 1 do
+      begin
+        NewUnit := TUnit.Create(nil);
+        NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(LargeUnits[UnitIndex]));
+        NewUnit.ExpandAbility(101);
+        Party.FArmy.AddUnit(NewUnit);
+        NewUnit.Release;
+      end;
+      if not PlaceParty(A2, Party) then Party.Free;
+    end
+    else
+    begin
+      for I := 0 to 1 do
+      begin
+        Party := TArmyHS.Create(nil);
+        Party.FArmy.SetPlayer(0);
+        Count := AoWHSMap.Random(3) + 4;
+        for J := 0 to Count - 1 do
+        begin
+          NewUnit := TUnit.Create(nil);
+          UnitIndex := AoWHSMap.Random(2);
+          NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(FootUnits[UnitIndex]));
+          NewUnit.ExpandAbility(101);
+          Party.FArmy.AddUnit(NewUnit);
+          NewUnit.Release;
+        end;
+        if not PlaceParty(A2, Party) then Party.Free;
+      end;
+      Party := TArmyHS.Create(nil);
+      Party.FArmy.SetPlayer(0);
+      UnitIndex := AoWHSMap.Random(3);
+      Count := 2;
+      if UnitIndex = 2 then Inc(Count);
+      for J := 0 to Count - 1 do
+      begin
+        NewUnit := TUnit.Create(nil);
+        NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(MountedUnits[UnitIndex]));
+        NewUnit.ExpandAbility(101);
+        Party.FArmy.AddUnit(NewUnit);
+        NewUnit.Release;
+      end;
+      if not PlaceParty(A2, Party) then Party.Free;
+    end;
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).CastingDone(A2, FBaseManaCost);
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  end;
+  Result := False;
+end;
 
 function TCrusade.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Event: TSpellTE;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) and not AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
+  begin
+    Event := TSpellTE.Create(nil);
+    Event.Initialize(FSpellID, A1.FPlayer, A1.FUnitID, FBaseManaCost);
+    AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
 
-procedure RegisterGlobalSpells(A1: Integer);
-begin end;
+procedure RegisterGlobalSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Engine.RegisterEClasses([TWarpPartyTE, TDisjunctionTE]);
+  Control.RegisterSpell(TConcealArea.Create(nil));
+  Control.RegisterSpell(TBirdsView.Create(nil));
+  Control.RegisterSpell(TWarpParty.Create(nil));
+  Control.RegisterSpell(TDisjunction.Create(nil));
+  Control.RegisterSpell(TResurrectHero.Create(nil));
+  Control.RegisterSpell(TAnimateHero.Create(nil));
+  Control.RegisterSpell(TCallHero.Create(nil));
+  Control.RegisterSpell(TCrusade.Create(nil));
+end;
 
-procedure UnregisterGlobalSpells(A1: Integer);
-begin end;
+procedure UnregisterGlobalSpells(Engine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := Engine.FGameSet.FSpellControl;
+  Engine.UnregisterEClasses([TWarpPartyTE, TDisjunctionTE]);
+  Control.UnregisterSpellID(1);
+  Control.UnregisterSpellID(2);
+  Control.UnregisterSpellID(34);
+  Control.UnregisterSpellID(51);
+  Control.UnregisterSpellID(66);
+  Control.UnregisterSpellID(67);
+  Control.UnregisterSpellID(69);
+  Control.UnregisterSpellID(75);
+end;
 
 
 initialization

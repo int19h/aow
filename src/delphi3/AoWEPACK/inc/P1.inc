@@ -11700,8 +11700,8 @@ begin end;
 procedure TAoWHSMap.UpdateEffects;
 begin end;
 
-procedure TAoWHSMap.AddEffect(A1: Integer);
-begin end;
+function TAoWHSMap.AddEffect(EffectType: TworldFXType): TWorldFXHS;
+begin Result := nil; end;
 
 function TranslateRStr(const S: string): string;
 begin

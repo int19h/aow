@@ -8522,8 +8522,8 @@ begin Result := False; end;
 function TGlobalEnchantment.Cast(Player: Shortint): Boolean;
 begin Result := False; end;
 
-procedure TGlobalEnchantment.CanDispel;
-begin end;
+function TGlobalEnchantment.CanDispel(Player: Shortint; var Reason: string): Boolean;
+begin Result := False; end;
 
 procedure TGlobalEnchantment.Dispel(A1: Byte);
 begin end;
