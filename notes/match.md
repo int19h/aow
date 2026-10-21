@@ -341,5 +341,11 @@ address check stays clean for it.
 
 The original's Assert filenames show AoWE's original layout: one include file per topic under
 `D:\AoWDev\AoWE\inc\` (`AoWHSMap.PAS`, `Ability.PAS`, `Combat.pas`, `CombatPredictor.pas`,
-`UnitHS.PAS`, `AoWAb.PAS`, `AIGroup.pas`, `MoveT.PAS`, ...). Our build has all of it in
-`inc/AoWEimpl.inc`, so those Assert messages differ.
+`UnitHS.PAS`, `AoWAb.PAS`, `AIGroup.pas`, `MoveT.PAS`, ...). Since 13be695 our AoWE has the same 19 include files in address order
+(Combat.pas, Combat2.pas, CombatPredictor.pas, Diplomacy.pas, AI.pas, AIGroup.pas, MoveT.PAS,
+Ability.PAS, Player.PAS, PlayerC.PAS, Structur.PAS, AoWAb.PAS, AoWHSMap.PAS, Spells.PAS, Unit.PAS,
+UnitHS.PAS, UnitRes.PAS, Hero.PAS, Army.PAS), and all 52 Asserts pass the original file name. The
+boundaries are certain only where an Assert anchors them; functions between anchors went to the
+neighboring file by topic. Delphi 3 passes the include's name but counts the Assert line through
+the whole unit, include lines included. AoWTCPCK names `D:\AoWDev\AoWTC\inc\TCUnitHS.pas` the
+same way, and AoW.exe's Asserts name its form files in `D:\AoWDev\`.
