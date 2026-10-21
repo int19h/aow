@@ -1,48 +1,54 @@
 unit Scanner;
 
-{ Draft declarations of Scanner, from AOWTools.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Scanner from AOWTools.dpl. Map and object drawing routines remain draft. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWControl;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWControl, AOWInterfaceImgLib, AoWE;
 
 type
   TScanner = class;
 
   TOType = (otBuilding, otArmy, otNatural);  { ot=1 }
 
-  { TScanner (instance size 388, VMT 5970213C) }
+  { TScanner: instance size $184; $114 half-row inset, $118/$11C/$120 libraries,
+    $124 icons, $128..$134 viewport, $13C change event, $144 update steps,
+    $148 map, $14C frame library, $150 frame index, $154/$158 map dimensions,
+    $15C level, $160 icons drawn, $164/$168 previous size,
+    $170 drawable height, $174/$178 terrain/icon surfaces, $17C update step, $180 incremental. }
   TScanner = class(TAOWControl)
   public
-    F_Scanner_114: Integer;
-    F_Scanner_118: array[0..31] of Byte;
-    F_Scanner_138: Byte;
-    F_Scanner_139: Byte;
-    F_Scanner_13A: Byte;
-    F_Scanner_13B: Byte;
-    F_Scanner_13C: array[0..3] of Byte;
-    F_Scanner_140: Integer;
-    F_Scanner_144: array[0..3] of Byte;
-    F_Scanner_148: Integer;
-    F_Scanner_14C: array[0..7] of Byte;
-    F_Scanner_154: Integer;
-    F_Scanner_158: Integer;
-    F_Scanner_15C: Integer;
-    F_Scanner_160: Byte;
-    F_Scanner_161: array[0..2] of Byte;
-    F_Scanner_164: Byte;
-    F_Scanner_165: array[0..2] of Byte;
-    F_Scanner_168: Byte;
-    F_Scanner_169: array[0..6] of Byte;
-    F_Scanner_170: Integer;
-    F_Scanner_174: Integer;
-    F_Scanner_178: Integer;
-    F_Scanner_17C: Integer;
-    F_Scanner_180: Byte;
-    F_Scanner_181: array[0..2] of Byte;
+    FHalfRowInset: Integer; { $114 }
+    FTilesImageLib: TImageLibrary; { $118 }
+    FHighlightImageLib: TImageLibrary; { $11C }
+    FFogImageLib: TImageLibrary; { $120 }
+    FObjectsImageLib: TImageLibrary; { $124 }
+    FTTop: Integer; { $128 }
+    FTHeight: Integer; { $12C }
+    FTLeft: Integer; { $130 }
+    FTWidth: Integer; { $134 }
+    FReserved138: Byte;
+    FBuildings: Boolean; { $139 }
+    FArmies: Boolean; { $13A }
+    FNaturals: Boolean; { $13B }
+    FOnMapPositionChange: TNotifyEvent; { $13C }
+    FSteps: Integer; { $144 }
+    FMap: TAoWHSMap; { $148 }
+    FILFrame: TInterfaceIL; { $14C }
+    FILIndexFrame: Integer; { $150 }
+    FMapWidth: Integer; { $154 }
+    FMapHeight: Integer; { $158 }
+    FLevel: TMapLevel; { $15C }
+    FObjectsDrawn: Boolean; { $160 }
+    FPreviousWidth: Integer; { $164 }
+    FPreviousHeight: Integer; { $168 }
+    FReserved16C: Integer;
+    FDrawableHeight: Integer; { $170 }
+    FMapSurface: TSurface; { $174 }
+    FObjectSurface: TSurface; { $178 }
+    FUpdateStep: Integer; { $17C }
+    FIncremental: Boolean; { $180 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure Validate; override;
@@ -52,35 +58,35 @@ type
     procedure CheckMouseDown(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure CheckMouseUp(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure CheckMouseMove(Shift: Classes.TShiftState; X, Y: Integer); override;
-    procedure SetILFrame(A1: Integer); virtual;  { +098 draft }
-    procedure SetILFIndex(A1: Integer);  { draft }
-    procedure SetObjIL(A1: Integer);  { draft }
-    procedure SetArmies(A1: Byte);  { draft }
-    procedure SetBuildings(A1: Byte);  { draft }
-    procedure SetNaturals(A1: Byte);  { draft }
-    procedure SetLevel(A1: Integer);  { draft }
-    procedure SetMapWidth(A1: Integer);  { draft }
-    procedure SetMapHeight(A1: Integer);  { draft }
-    function GetTerrain(A1: Integer; A2: Integer): Byte;  { draft }
+    procedure SetILFrame(Value: TInterfaceIL); virtual;
+    procedure SetILFIndex(A1: Integer);
+    procedure SetObjIL(Value: TImageLibrary);
+    procedure SetArmies(Value: Boolean);
+    procedure SetBuildings(Value: Boolean);
+    procedure SetNaturals(Value: Boolean);
+    procedure SetLevel(Value: TMapLevel);
+    procedure SetMapWidth(A1: Integer);
+    procedure SetMapHeight(A1: Integer);
+    function GetTerrain(A1: Integer; A2: Integer): Byte;
     procedure SetTerrain(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function GetOverlay(A1: Integer; A2: Integer): Integer;  { draft }
     procedure SetOverlay(A1: Integer; A2: Integer; A3: Integer);  { draft }
     function GetExplored(A1: Integer; A2: Integer): Integer;  { draft }
     procedure SetExplored(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetObject(A1: Integer; A2: Integer);  { draft }
-    function GetObjectSize: Byte;  { draft }
+    function GetObject(X, Y: Integer): Integer;
+    function GetObjectSize: Byte;
     procedure SetObjectSize(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure SetImgLib(A1: Integer);  { draft }
-    procedure SetHimgLib(A1: Integer);  { draft }
-    procedure SetFogimgLib(A1: Integer);  { draft }
-    procedure SetSteps(A1: Integer);  { draft }
-    procedure SetObDrawn(A1: Integer);  { draft }
-    procedure SetTLeft(A1: Integer);  { draft }
-    procedure SetTTop(A1: Integer);  { draft }
-    procedure SetTWidth(A1: Integer);  { draft }
-    procedure SetTHeight(A1: Integer);  { draft }
-    procedure SetMap(A1: Integer);  { draft }
-    procedure DrawMap(A1: Integer; A2: Integer);  { draft }
+    procedure SetImgLib(Value: TImageLibrary);
+    procedure SetHimgLib(Value: TImageLibrary);
+    procedure SetFogimgLib(Value: TImageLibrary);
+    procedure SetSteps(A1: Integer);
+    procedure SetObDrawn(Value: Boolean);
+    procedure SetTLeft(A1: Integer);
+    procedure SetTTop(A1: Integer);
+    procedure SetTWidth(A1: Integer);
+    procedure SetTHeight(A1: Integer);
+    procedure SetMap(Value: TAoWHSMap);
+    procedure DrawMap(X, Y, Width, Height: Integer); { draft body }
     procedure DrawObjects;  { draft }
   end;
 
@@ -89,40 +95,111 @@ procedure Register;
 implementation
 
 constructor TScanner.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSteps := 1;
+  FTLeft := -1;
+  FTTop := -1;
+  FTWidth := -1;
+  FTHeight := -1;
+end;
 
 destructor TScanner.Destroy;
-begin end;
+begin
+  if FMapSurface <> nil then FMapSurface.Destroy;
+  if FObjectSurface <> nil then FObjectSurface.Destroy;
+  inherited Destroy;
+end;
 
 procedure TScanner.SetILFIndex(A1: Integer);
-begin end;
+begin
+  if A1 <> FILIndexFrame then
+  begin
+    FILIndexFrame := A1;
+    FValid := False;
+  end;
+end;
 
-procedure TScanner.SetILFrame(A1: Integer);
-begin end;
+procedure TScanner.SetILFrame(Value: TInterfaceIL);
+begin
+  if Value <> FILFrame then
+  begin
+    FValid := False;
+    FILFrame := Value;
+  end;
+end;
 
-procedure TScanner.SetObjIL(A1: Integer);
-begin end;
+procedure TScanner.SetObjIL(Value: TImageLibrary);
+begin
+  if Value <> FObjectsImageLib then
+  begin
+    FValid := False;
+    FObjectsImageLib := Value;
+  end;
+end;
 
-procedure TScanner.SetArmies(A1: Byte);
-begin end;
+procedure TScanner.SetArmies(Value: Boolean);
+begin
+  if Value <> FArmies then
+  begin
+    FArmies := Value;
+    SetObDrawn(False);
+    FDrawn := False;
+  end;
+end;
 
-procedure TScanner.SetBuildings(A1: Byte);
-begin end;
+procedure TScanner.SetBuildings(Value: Boolean);
+begin
+  if Value <> FBuildings then
+  begin
+    FBuildings := Value;
+    SetObDrawn(False);
+    FDrawn := False;
+  end;
+end;
 
-procedure TScanner.SetNaturals(A1: Byte);
-begin end;
+procedure TScanner.SetNaturals(Value: Boolean);
+begin
+  if Value <> FNaturals then
+  begin
+    FNaturals := Value;
+    SetObDrawn(False);
+    FDrawn := False;
+  end;
+end;
 
-procedure TScanner.SetLevel(A1: Integer);
-begin end;
+procedure TScanner.SetLevel(Value: TMapLevel);
+begin
+  FLevel := Value;
+  if AoWHSMap.FCombatMap <> nil then
+  begin
+    FMapWidth := FLevel.Width - 16;
+    FMapHeight := FLevel.Height - 12;
+  end
+  else
+  begin
+    FMapWidth := FLevel.Width - 12;
+    FMapHeight := FLevel.Height - 12;
+  end;
+end;
 
 procedure TScanner.SetMapWidth(A1: Integer);
-begin end;
+begin
+  if AoWHSMap.FCombatMap <> nil then FMapWidth := A1 - 16
+  else FMapWidth := A1 - 12;
+end;
 
 procedure TScanner.SetMapHeight(A1: Integer);
-begin end;
+begin
+  if AoWHSMap.FCombatMap <> nil then FMapHeight := A1 - 12
+  else FMapHeight := A1 - 12; { Both original branches subtract 12. }
+end;
 
 function TScanner.GetTerrain(A1: Integer; A2: Integer): Byte;
-begin Result := 0; end;
+begin
+  if AoWHSMap.FCombatMap <> nil then Result := FLevel.GetField(A1 + 8, A2 + 6).TerrainType
+  else Result := FLevel.GetField(A1 + 6, A2 + 6).TerrainType;
+end;
 
 procedure TScanner.SetTerrain(A1: Integer; A2: Integer; A3: Integer);
 begin end;
@@ -139,55 +216,167 @@ begin Result := 0; end;
 procedure TScanner.SetExplored(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TScanner.GetObject(A1: Integer; A2: Integer);
-begin end;
+function TScanner.GetObject(X, Y: Integer): Integer;
+begin
+  if AoWHSMap.FCombatMap <> nil then
+    Result := TAoWMapField(FLevel.GetField(X + 8, Y + 6)).GetScannerIcon
+  else Result := TAoWMapField(FLevel.GetField(X + 6, Y + 6)).GetScannerIcon;
+end;
 
 function TScanner.GetObjectSize: Byte;
-begin Result := 0; end;
+begin
+  Result := 1;
+end;
 
 procedure TScanner.SetObjectSize(A1: Integer; A2: Integer; A3: Integer);
 begin end;
 
-procedure TScanner.SetImgLib(A1: Integer);
-begin end;
+procedure TScanner.SetImgLib(Value: TImageLibrary);
+begin
+  FTilesImageLib := Value;
+  FValid := False;
+end;
 
-procedure TScanner.SetHimgLib(A1: Integer);
-begin end;
+procedure TScanner.SetHimgLib(Value: TImageLibrary);
+begin
+  FHighlightImageLib := Value;
+  FValid := False;
+end;
 
-procedure TScanner.SetFogimgLib(A1: Integer);
-begin end;
+procedure TScanner.SetFogimgLib(Value: TImageLibrary);
+begin
+  FFogImageLib := Value;
+  FValid := False;
+end;
 
 procedure TScanner.SetSteps(A1: Integer);
-begin end;
+begin
+  FSteps := A1;
+  if FSteps < 1 then FSteps := 1;
+end;
 
-procedure TScanner.SetObDrawn(A1: Integer);
-begin end;
+procedure TScanner.SetObDrawn(Value: Boolean);
+begin
+  FObjectsDrawn := Value;
+  if not FObjectsDrawn then FDrawn := False;
+end;
 
 procedure TScanner.Update;
-begin end;
+begin
+  inherited Update;
+  if FVisible and (FMapSurface <> nil) then
+  begin
+    if not FIncremental then FIncremental := True;
+    if FUpdateStep < FSteps then
+    begin
+      if FUpdateStep > -1 then
+        DrawMap(0, FMapHeight * FUpdateStep div FSteps,
+          FMapWidth, FMapHeight div FSteps + 1);
+      Inc(FUpdateStep);
+    end;
+  end;
+end;
 
 procedure TScanner.SetTLeft(A1: Integer);
-begin end;
+begin
+  if A1 <> FTLeft then
+  begin
+    FDrawn := False;
+    FTLeft := A1;
+  end;
+end;
 
 procedure TScanner.SetTTop(A1: Integer);
-begin end;
+begin
+  if A1 <> FTTop then
+  begin
+    FDrawn := False;
+    FTTop := A1;
+  end;
+end;
 
 procedure TScanner.SetTWidth(A1: Integer);
-begin end;
+begin
+  if A1 <> FTWidth then
+  begin
+    FDrawn := False;
+    FTWidth := A1;
+  end;
+end;
 
 procedure TScanner.SetTHeight(A1: Integer);
-begin end;
+begin
+  if A1 <> FTHeight then
+  begin
+    FDrawn := False;
+    FTHeight := A1;
+  end;
+end;
 
-procedure TScanner.SetMap(A1: Integer);
-begin end;
+procedure TScanner.SetMap(Value: TAoWHSMap);
+begin
+  FMap := Value;
+  if FMap <> nil then
+  begin
+    FLevel := FMap.MapContainer.GetMapLevel(0);
+    if AoWHSMap.FCombatMap <> nil then
+    begin
+      FMapWidth := FLevel.Width - 16;
+      FMapHeight := FLevel.Height - 12;
+    end
+    else
+    begin
+      FMapWidth := FLevel.Width - 12;
+      FMapHeight := FLevel.Height - 12;
+    end;
+    FIncremental := False;
+    FSized := False;
+  end;
+end;
 
 procedure TScanner.Validate;
-begin end;
+var Frame: TInterfaceIL;
+begin
+  Frame := FILFrame;
+  if Frame <> nil then FILFrame := Frame.CheckIL(FILIndexFrame, 8, Self);
+  if (FILFrame <> nil) and (FTilesImageLib <> nil) and (FObjectsImageLib <> nil) and
+    (FMap <> nil) and (FFogImageLib <> nil) and (FHighlightImageLib <> nil) then
+    FValid := True;
+  inherited Validate;
+end;
 
 procedure TScanner.SetSize;
-begin end;
+var X, Y: Integer; SD: TSurfaceDesc;
+begin
+  if ((FWinWidth <> FPreviousWidth) or (FWinHeight <> FPreviousHeight)) and
+    (FWinWidth > 0) and (FWinHeight > 0) then
+  begin
+    FHalfRowInset := FWinHeight div FMapHeight div 2;
+    FDrawableHeight := FWinHeight - FHalfRowInset;
+    if FMapSurface <> nil then
+    begin
+      FObjectSurface.Resize(FWinWidth, FWinHeight);
+      FObjectSurface.Cls($FF00);
+      FMapSurface.Resize(FWinWidth, FWinHeight);
+      FMapSurface.Lock(SD);
+      for X := 0 to FWinWidth div FFogImageLib[0].Width do
+        for Y := 0 to FWinHeight div FFogImageLib[0].Height do
+          FFogImageLib[0].ShowClipped(X * FFogImageLib[0].Width, Y * FFogImageLib[0].Height, SD);
+      FMapSurface.Unlock;
+      if not FIncremental then
+      begin
+        DrawMap(0, 0, FMapWidth, FMapHeight);
+        FUpdateStep := FSteps;
+      end
+      else FUpdateStep := -1;
+    end;
+    FPreviousWidth := FWinWidth;
+    FPreviousHeight := FWinHeight;
+  end;
+  inherited SetSize;
+end;
 
-procedure TScanner.DrawMap(A1: Integer; A2: Integer);
+procedure TScanner.DrawMap(X, Y, Width, Height: Integer);
 begin end;
 
 procedure TScanner.DrawObjects;
