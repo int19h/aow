@@ -298,7 +298,7 @@ begin
   FadeMusicVolume(SoundDlg.MusicVolume.Position, 2);
   if AoWHSMap.FGameStatus = gsTerminated then
   begin
-    if AoWEngine.FCampaign <> nil then ShowCampaignMap(WorldMap)
+    if AoWEngine.FCampaign <> nil then ShowCampaignMap(WorldMap, nil, nil)
     else ExitToTitle(General);
   end
   else

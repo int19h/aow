@@ -4,7 +4,7 @@ unit E1GameFlow;
 
 interface
 
-uses AoWWinMan, AoWScenSetup, AoWSelFactionWin, AoWWorldMap, AOWMultiWin, AOWTitleWindow, AOWPyreScrn, AoWMagic;
+uses Classes, AoWWinMan, AoWScenSetup, AoWSelFactionWin, AoWWorldMap, AOWMultiWin, AOWTitleWindow, AOWPyreScrn, AoWMagic;
 
 procedure ShowMagic(Window: TMagicWin);
 procedure HideMagic(Window: TMagicWin);
@@ -20,12 +20,12 @@ procedure LoadGame(Controller: TGeneral; Name: string);
 procedure LoadCampaign(Controller: TGeneral; Name: string);
 procedure StartGame(Controller: TGeneral);
 procedure ShowMultiplayer(Dialog: TMultiWindow; const Name: string);
-procedure ShowCampaignMap(Dialog: TWorldMap);
+procedure ShowCampaignMap(Dialog: TWorldMap; Context: TObject; Done: TNotifyEvent);
 procedure ShowFactionSelection(Dialog: TSelFactionWin);
 
 implementation
 
-uses SysUtils, Classes, HSEngine, EventLog, AoWE, AoWWindow, E3Globals, AoWExeForms, AoWFileDialog,
+uses SysUtils, HSEngine, EventLog, AoWE, AoWWindow, E3Globals, AoWExeForms, AoWFileDialog,
   AoWTitleScene, Sound, E1Globals, E1Resources, AoWComp, AoWVideoDlg, E2CampaignSupport, AoWUnit, AoWReg, aowSetupEvents, aowDPlayComp;
 
 procedure ShowMagic(Window: TMagicWin);
@@ -159,7 +159,7 @@ begin
     else
     begin
       TitleScene.HideScene;
-      ShowCampaignMap(WorldMap);
+      ShowCampaignMap(WorldMap, nil, nil);
     end;
 end;
 
@@ -281,7 +281,7 @@ begin
     end;
 end;
 
-procedure ShowCampaignMap(Dialog: TWorldMap);
+procedure ShowCampaignMap(Dialog: TWorldMap; Context: TObject; Done: TNotifyEvent);
 var
   Song: string;
 begin
@@ -337,7 +337,7 @@ begin
   Dialog.SplashPnl.ILTexture := Dialog.DemoIL;
   Dialog.SplashPnl.ILIndexTexture := 0;
   Dialog.SplashPnl.Visible := True;
-  Dialog.F_TitleWindow_54 := 450;
+  Dialog.FSplashTimer := 450;
   Dialog.FSplashStage := 0;
 end;
 
@@ -346,7 +346,7 @@ begin
   ShowSplash(Dialog);
   Dialog.SplashPnl.ILIndexTexture := 2;
   Dialog.FSplashStage := 10;
-  Dialog.F_TitleWindow_54 := 300;
+  Dialog.FSplashTimer := 300;
 end;
 
 

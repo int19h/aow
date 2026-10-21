@@ -1,8 +1,6 @@
 unit AoWPWindows;
 
-{ Draft declarations of AoWPWindows, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Strategic and tactical popup menus, recovered from AoW.exe. }
 
 interface
 
@@ -13,7 +11,7 @@ type
   TPopupWindows = class;
 
 
-  { TPopupWindows (instance size 120, VMT 00427450) }
+  { TPopupWindows: size $78; $44..$74 published menu components. VMT 00427450. }
   TPopupWindows = class(TDataModule)
   public
     published
@@ -31,34 +29,92 @@ type
     TCSettingsMenu: TAOWMenu; { +0070 }
     TCEndMenu: TAOWMenu; { +0074 }
     public
-    procedure SettingsMenuSelect(A1: Integer; A2: Byte);  { draft }
-    procedure EndMenuSelect(A1: Integer);  { draft }
-    procedure DiskMenuSelect(A1: Integer);  { draft }
-    procedure OverViewsMenuSelect(A1: Integer);  { draft }
-    procedure TCEndMenuSelect(A1: Integer);  { draft }
-    procedure HelpMenuSelect(A1: Integer);  { draft }
+    procedure SettingsMenuSelect(Sender: TAOWMenu);
+    procedure EndMenuSelect(Sender: TAOWMenu);
+    procedure DiskMenuSelect(Sender: TAOWMenu);
+    procedure OverViewsMenuSelect(Sender: TAOWMenu);
+    procedure TCEndMenuSelect(Sender: TAOWMenu);
+    procedure HelpMenuSelect(Sender: TAOWMenu);
   end;
 
 
 implementation
 
-procedure TPopupWindows.SettingsMenuSelect(A1: Integer; A2: Byte);
-begin end;
+uses ShellAPI, AoWE, AoWUnit, AoWWinMan, AoWVideoDlg, AoWSoundDlg,
+  AoWExeForms, E2Globals, E2GameFlow, E1Globals, E1GameFlow, E3Globals, aowHelpWin,
+  AoWGamePlayDlg, AoWFileDialog;
 
-procedure TPopupWindows.EndMenuSelect(A1: Integer);
-begin end;
+procedure ShowVideoSettings(Dialog: TVideoDialog);
+begin
+  Dialog.Dlg.Visible := True;
+  Dialog.UpdateModes;
+end;
 
-procedure TPopupWindows.DiskMenuSelect(A1: Integer);
-begin end;
+procedure ShowSoundSettings(Dialog: TSoundDlg);
+begin
+  Dialog.AddBtn.Visible := False;
+  Dialog.FindFiles;
+  Dialog.SoundSetup;
+  Dialog.Dlg.Visible := True;
+end;
 
-procedure TPopupWindows.OverViewsMenuSelect(A1: Integer);
-begin end;
+procedure TPopupWindows.SettingsMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: ShowVideoSettings(VideoDialog);
+    1: ShowSoundSettings(SoundDlg);
+    2: GamePlayDialog.GamePlayDlg.Visible := True;
+    3: General.ResetLayout;
+    4: E3Globals.ShowEmailSettings(E3Globals.EmailSettingsDlg);
+    5: E2Globals.DialogWin.DebugWin.Visible := True;
+  end;
+end;
 
-procedure TPopupWindows.TCEndMenuSelect(A1: Integer);
-begin end;
+procedure TPopupWindows.EndMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: E2GameFlow.ConfirmDialog(E2Globals.DialogWin, TranslateRStr(E2Globals.ConfirmRStr),
+         TranslateRStr(SurrenderYourEmpireRStr), 4);
+    1: AoWHSMap.ExitGame(egmTerminate, nil);
+    2: if AoWEngine.FDemo then E2Globals.TitleWindow.ShowExitSplash else MainForm.Close;
+  end;
+end;
 
-procedure TPopupWindows.HelpMenuSelect(A1: Integer);
-begin end;
+procedure TPopupWindows.DiskMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: begin AoWFileDialog.FileDlgWindow.FMode := 0; AoWFileDialog.FileDlgWindow.FileDialog.Visible := True; end;
+    1: begin AoWFileDialog.FileDlgWindow.FMode := 1; AoWFileDialog.FileDlgWindow.FileDialog.Visible := True; end;
+  end;
+end;
 
+procedure TPopupWindows.OverViewsMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: E1GameFlow.ShowCampaignMap(E1Globals.WorldMap, nil, nil);
+    1: if AoWEngine.FCampaign <> nil then E1Globals.WorldMap.ShowSpheres;
+  end;
+end;
+
+procedure TPopupWindows.TCEndMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: E2GameFlow.ConfirmDialog(E2Globals.DialogWin, TranslateRStr(E2Globals.ConfirmRStr),
+         TranslateRStr(E2Globals.QuitCombatRStr), 6);
+  end;
+end;
+
+procedure TPopupWindows.HelpMenuSelect(Sender: TAOWMenu);
+begin
+  case Sender.FSelectedItem of
+    0: ShowHelp(507);
+    1: ShowHelp(500);
+    2: begin
+         SetVideoMode(VideoDialog, scmWindowed);
+         ApplyVideoSettings(VideoDialog);
+         ShellExecute(Application.Handle, 'open', 'http://www.ageofwonders.com', nil, nil, 5);
+       end;
+  end;
+end;
 
 end.

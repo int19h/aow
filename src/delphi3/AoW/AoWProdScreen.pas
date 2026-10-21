@@ -816,11 +816,11 @@ function SphereImage(Sphere: TMagicSphere): Integer;
 begin
   case Sphere of
     TMagicSphere(1): Result := 27;
-    TMagicSphere(2): Result := 30;
+    TMagicSphere(5): Result := 42;
     TMagicSphere(3): Result := 33;
     TMagicSphere(4): Result := 36;
-    TMagicSphere(5): Result := 42;
     TMagicSphere(6): Result := 39;
+    TMagicSphere(2): Result := 30;
   else Result := -1;
   end;
 end;

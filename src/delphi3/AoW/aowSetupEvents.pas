@@ -257,7 +257,7 @@ begin
   AoWExeForms.MessageDlg.Dlg.Visible := True;
   DPlay.CloseSession;
   HideScenarioSetup(ScenSetup);
-  if SetupEvents.FLobbyGame then MainForm.Close else ShowMultiplayer(MultiWindow, '');
+  if SetupEvents.FLobbyGame then MainForm.Close else MultiWindow.Execute('');
 end;
 
 procedure TSetupEvents.DPlaySessionLost;
@@ -274,7 +274,7 @@ begin
     HideScenarioSetup(ScenSetup);
     General.Manager.OverlayPriority := 0;
     ProgressDialog.ProgDlg.Visible := False;
-    if SetupEvents.FLobbyGame then MainForm.Close else ShowMultiplayer(MultiWindow, '');
+    if SetupEvents.FLobbyGame then MainForm.Close else MultiWindow.Execute('');
   end
   else AoWHSMap.PlayerConnectionLost;
 end;

@@ -371,31 +371,6 @@ begin
         end
         else AoWHSMap.ShowWarning(Reason);
       end;
-      caUpgrade: begin
-        if FCity.CanUpgrade(False, Reason) then
-        begin
-          FCity.Upgrade(False);
-          SetMode(0);
-        end
-        else AoWHSMap.ShowWarning(Reason);
-      end;
-      caFortify: begin
-        if FCity.CanFortify(False, Reason) then
-        begin
-          FCity.Fortify(False);
-          SetMode(0);
-        end
-        else AoWHSMap.ShowWarning(Reason);
-      end;
-      caMigrate: begin
-        Race := TMigrationItem(MigrationRaceLB.Items.Objects[MigrationRaceLB.Selected]).FRace;
-        if FCity.CanMigrate(Race, Reason) then
-        begin
-          AoWHSMap.FTutorialControl.ShowMessage($42, True, True);
-          FCity.Migrate(Race);
-          SetMode(0);
-        end;
-      end;
       caLoot: begin
         if FCity.CanLoot(Reason) then
         begin
@@ -412,10 +387,18 @@ begin
         end
         else AoWHSMap.ShowWarning(Reason);
       end;
-      caResearch: begin
-        if FCity.CanResearch(FProductionIndex, False, Reason) then
+      caUpgrade: begin
+        if FCity.CanUpgrade(False, Reason) then
         begin
-          FCity.Research(FProductionIndex, False);
+          FCity.Upgrade(False);
+          SetMode(0);
+        end
+        else AoWHSMap.ShowWarning(Reason);
+      end;
+      caFortify: begin
+        if FCity.CanFortify(False, Reason) then
+        begin
+          FCity.Fortify(False);
           SetMode(0);
         end
         else AoWHSMap.ShowWarning(Reason);
@@ -428,7 +411,24 @@ begin
           SetMode(0);
         end
         else AoWHSMap.ShowWarning(Reason);
+      end;      caResearch: begin
+        if FCity.CanResearch(FProductionIndex, False, Reason) then
+        begin
+          FCity.Research(FProductionIndex, False);
+          SetMode(0);
+        end
+        else AoWHSMap.ShowWarning(Reason);
       end;
+      caMigrate: begin
+        Race := TMigrationItem(MigrationRaceLB.Items.Objects[MigrationRaceLB.Selected]).FRace;
+        if FCity.CanMigrate(Race, Reason) then
+        begin
+          AoWHSMap.FTutorialControl.ShowMessage($42, True, True);
+          FCity.Migrate(Race);
+          SetMode(0);
+        end;
+      end;
+
     end;
     2: if FQueueIndex <> -1 then FCity.FProduction.DeleteProduction(FQueueIndex);
   end;
@@ -449,12 +449,12 @@ begin
       caFortify:
         if FCity.CanFortify(True, Reason) then FCity.Fortify(True)
         else AoWHSMap.ShowWarning(Reason);
-      caResearch:
-        if FCity.CanResearch(FProductionIndex, True, Reason) then FCity.Research(FProductionIndex, True)
-        else AoWHSMap.ShowWarning(Reason);
       caProduce:
         if FCity.CanProduce(FProductionIndex, True, Reason) then FCity.Produce(FProductionIndex, True)
+        else AoWHSMap.ShowWarning(Reason);      caResearch:
+        if FCity.CanResearch(FProductionIndex, True, Reason) then FCity.Research(FProductionIndex, True)
         else AoWHSMap.ShowWarning(Reason);
+
     end;
     2: if FQueueIndex = 0 then
       if FCity.FProduction.RetryProductionExecution(Reason) then SetMode(0)
@@ -668,11 +668,11 @@ end;
 procedure TCityScreen.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
-    VK_ESCAPE: Dlg.Visible := False;
     VK_LEFT: begin Dec(FViewX, 16); MapView.FDrawn := False; end;
     VK_UP: begin Dec(FViewY, 16); MapView.FDrawn := False; end;
     VK_RIGHT: begin Inc(FViewX, 16); MapView.FDrawn := False; end;
     VK_DOWN: begin Inc(FViewY, 16); MapView.FDrawn := False; end;
+    VK_ESCAPE: Dlg.Visible := False;
   end;
 end;
 
@@ -910,8 +910,8 @@ begin
     caMigrate: Result := 44;
     caLoot: Result := 45;
     caRaze: Result := 46;
-    caResearch: Result := 5;
     caProduce: Result := 4;
+    caResearch: Result := 5;
   else Result := 40;
   end;
 end;

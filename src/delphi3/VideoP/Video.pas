@@ -58,7 +58,7 @@ type
     FVideoInfo: TAVIStreamInfo;
     FFrameCount: Integer;
     FFrameRate: Single;
-    FVideoFormat: PBitmapInfoHeader;
+    FVideoFormat: PBitmapInfoHeader; public property VideoFormat: PBitmapInfoHeader read FVideoFormat; private
     FCurrentFrame: Integer;
     FFrameBuffer: Pointer;
     FFrameBufferSize: Integer;
@@ -72,7 +72,7 @@ type
     FSoundStream: IAVIStream;
     FSoundInfo: TAVIStreamInfo;
     FSoundLength: Integer;
-    FSoundFormat: PWaveFormatEx;
+    FSoundFormat: PWaveFormatEx; public property SoundFormat: PWaveFormatEx read FSoundFormat; private
     FSamplesPerSec: Single;
     FOnStreamSound: TStreamSoundEvent;
     FSoundBuffer: Pointer;

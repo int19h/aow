@@ -13,3 +13,4 @@
   Use(nil, @AoWDeformFaceDlg.TDeformFaceDlg.Execute);
   Use(nil, @AoWConstructDlg.TConstructDlg.Execute);
   Use(nil, @AoWPowerDlg.TPowerDlg.Execute);
+  Use(nil, @AOWTitleWindow.TTitleWindow.ShowExitSplash);

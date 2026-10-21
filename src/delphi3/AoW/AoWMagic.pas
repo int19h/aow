@@ -281,7 +281,7 @@ end;
 procedure TMagicWin.ResearchBtnClick;
 begin
   General.PlayButtonSound(0);
-  ShowResearch(SpellBook);
+  SpellBook.ShowResearch;
 end;
 
 procedure TMagicWin.ChangePowerButClick;
