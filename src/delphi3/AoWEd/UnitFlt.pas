@@ -13,7 +13,7 @@ type
   TUnitFloater = class;
 
 
-  { TUnitFloater (instance size 512, VMT 00408588) }
+  { TUnitFloater (instance size 512, VMT 00408588; $1FC FShowHeroes, $1FD FShowUnits) }
   TUnitFloater = class(TForm)
   public
     published
@@ -26,9 +26,12 @@ type
     MapControl: TAoWMapControl; { +01F4 }
     Translator: TIvTranslator; { +01F8 }
     public
-    F_UnitFloater_1FC: Byte;
-    F_UnitFloater_1FD: array[0..2] of Byte;
+    FShowHeroes: Boolean; { $1FC }
+    FShowUnits: Boolean; F_UnitFloater_1FE: array[0..1] of Byte; { $1FD }
     constructor Create(AOwner: Classes.TComponent); override;
+    procedure ResetSelection;
+    procedure SetShowHeroes(Value: Boolean);
+    procedure SetShowUnits(Value: Boolean);
     procedure HeroControlGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure HeroSelectionSheetEnter;  { draft }
     procedure FormShow;  { draft }
@@ -60,5 +63,37 @@ begin end;
 procedure TUnitFloater.MapControlDeactivateHSM;
 begin end;
 
+
+procedure TUnitFloater.ResetSelection;
+begin
+  SetShowHeroes(False);
+  SetShowUnits(True);
+  HeroControlGrid.SelectionEnabled := False;
+  UnitSelectionGrid.SelectionEnabled := False;
+  UnitTabControl.FSelectionControl.Reset;
+end;
+
+procedure TUnitFloater.SetShowHeroes(Value: Boolean);
+begin
+  FShowHeroes := Value;
+  HeroSelectionSheet.TabVisible := Value and FShowUnits;
+  UnitSelectionSheet.TabVisible := Value and FShowUnits;
+  if not Value then
+    if FShowUnits then MainPageControl.ActivePage := UnitSelectionSheet
+    else MainPageControl.ActivePage := nil
+  else if not FShowUnits then MainPageControl.ActivePage := HeroSelectionSheet
+  else MainPageControl.ActivePage := UnitSelectionSheet;
+end;
+
+procedure TUnitFloater.SetShowUnits(Value: Boolean);
+begin
+  FShowUnits := Value;
+  UnitSelectionSheet.TabVisible := Value and FShowHeroes;
+  HeroSelectionSheet.TabVisible := Value and FShowHeroes;
+  if not Value then
+    if FShowHeroes then MainPageControl.ActivePage := HeroSelectionSheet
+    else MainPageControl.ActivePage := nil
+  else MainPageControl.ActivePage := UnitSelectionSheet;
+end;
 
 end.

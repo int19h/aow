@@ -1,8 +1,8 @@
 unit EConstr;
 
-{ Draft declarations of EConstr, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Player construction property form recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
@@ -27,10 +27,10 @@ type
     Memo1: TMemo; { +0228 }
     VictoryListBox: TCheckListBox; { +022C }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure BorderPanelDraw(A1: Integer; A2: Integer);  { draft }
-    procedure RazedBoxClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
+    procedure RazedBoxClick(Sender: TObject);
   end;
 
   { TPlayerConstructionEditor (instance size 8, VMT 004186BC) }
@@ -49,17 +49,57 @@ begin end;
 class procedure TPlayerConstructionEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TPlayerConstructionEditForm.FormCreate;
-begin end;
+procedure TPlayerConstructionEditForm.FormCreate(Sender: TObject);
+var I: Integer;
+begin
+  MainPageControl.ActivePage := GeneralSheet;
+  PlayerComboBox.SetPlayerIndex(TPlayerStructure(FMapObject).FPlayer);
+  if AoWHSMap.FVictoryCondition = vcCaptureLocations then
+  begin
+    VictoryListBox.Items.Clear;
+    VictorySheet.TabVisible := True;
+    for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+    begin
+      VictoryListBox.Items.Add('Player ' + IntToStr(I) + ' (' + AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(I).FPlayerRace).FName + ')');
+      VictoryListBox.Checked[I - 1] := TPlayerStructure(FMapObject).GetVictoryLocation(I);
+    end;
+  end
+  else VictorySheet.TabVisible := False;
+  RazedBox.Visible := TPlayerStructure(FMapObject).GetRazeable;
+  RazedBox.Checked := TPlayerStructure(FMapObject).GetRazed;
+  RazedBoxClick(Self);
+  Caption := FMapObject.EditName + ' ' + TranslateRStr(PropertiesRStr);
+end;
 
-procedure TPlayerConstructionEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TPlayerConstructionEditForm.OKBtnClick(Sender: TObject);
+var I: Integer;
+begin
+  TPlayerStructure(FMapObject).SetPlayer(PlayerComboBox.FPlayerIndex);
+  TPlayerStructure(FMapObject).SetRazed(RazedBox.Checked);
+  if VictorySheet.TabVisible then
+    for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+      TPlayerStructure(FMapObject).SetVictoryLocation(I, VictoryListBox.Checked[I - 1]);
+  inherited OKBtnClick(Sender);
+end;
 
-procedure TPlayerConstructionEditForm.BorderPanelDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TPlayerConstructionEditForm.BorderPanelDraw(Sender: TObject; const R: TRect);
+var Structure: TStructure;
+begin
+  Structure := TStructure(FMapObject);
+  if Structure <> nil then Structure.ShowBorderImageDC(BorderPanel.Canvas.Handle, R);
+end;
 
-procedure TPlayerConstructionEditForm.RazedBoxClick;
-begin end;
+procedure TPlayerConstructionEditForm.RazedBoxClick(Sender: TObject);
+begin
+  if RazedBox.Checked then
+  begin
+    PlayerComboBox.Color := clBtnFace;
+    PlayerComboBox.Enabled := False;
+    Exit;
+  end;
+  PlayerComboBox.Color := clWindow;
+  PlayerComboBox.Enabled := True;
+end;
 
 
 end.

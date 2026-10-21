@@ -1,8 +1,8 @@
 unit AoWDlg;
 
-{ Draft declarations of AoWDlg, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Editor dialog positioning recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
@@ -13,26 +13,47 @@ type
   TAoWDialog = class;
 
 
-  { TAoWDialog (instance size 480, VMT 0040D824) }
+  { TAoWDialog (instance size 480, VMT 0040D824; $1DC FPositionInfo) }
   TAoWDialog = class(TForm)
   public
-    F_AoWDialog_1DC: Integer;
+    FPositionInfo: PPoint; { $1DC }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure FormShow;  { draft }
+    procedure FormShow(Sender: TObject);
   end;
 
 
 implementation
 
+var SavedPosition: TPoint;
+
 constructor TAoWDialog.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  FPositionInfo := @SavedPosition;
+  inherited Create(AOwner);
+end;
 
 destructor TAoWDialog.Destroy;
-begin end;
+begin
+  if FPositionInfo <> nil then
+  begin
+    FPositionInfo.X := Left;
+    FPositionInfo.Y := Top;
+  end;
+  inherited Destroy;
+end;
 
-procedure TAoWDialog.FormShow;
-begin end;
+procedure TAoWDialog.FormShow(Sender: TObject);
+begin
+  if (FPositionInfo <> nil) and (FPositionInfo.X <> 0) and (FPositionInfo.Y <> 0) then
+  begin
+    Left := FPositionInfo.X;
+    Top := FPositionInfo.Y;
+    Exit;
+  end;
+  Left := (Screen.Width - Width) shr 1;
+  Top := (Screen.Height - Height) shr 1;
+end;
 
 
 end.

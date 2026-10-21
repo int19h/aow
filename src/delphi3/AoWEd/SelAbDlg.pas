@@ -15,7 +15,7 @@ type
   TAbilitySelectionDlg = class;
 
 
-  { TAbilitySelectionDlg (instance size 536, VMT 00410004) }
+  { TAbilitySelectionDlg (instance size 536, VMT 00410004; $214 FAbilities) }
   TAbilitySelectionDlg = class(TAoWDialog)
   public
     published
@@ -34,7 +34,9 @@ type
     Translator: TIvTranslator; { +0210 }
     public
     FAbilityOwner: TAbilityOwner; { $214, owned working copy }
+    { conflict: FAbilities: TAbilityOwner; }
     constructor CreateSelection(AbilityOwner: TAbilityOwner; AOwner: TComponent);
+    { conflict: constructor CreateForAbilities(Abilities: TAbilityOwner; AOwner: Classes.TComponent); }
     procedure UpdateAddButton;
     procedure UpdateDeleteButton;
     destructor Destroy; override;
@@ -169,7 +171,7 @@ end;
 
 procedure TAbilitySelectionDlg.FormShow(Sender: TObject);
 begin
-  inherited FormShow;
+  inherited FormShow(Sender);
   vmt80;
   vmt84;
   UpdateAddButton;
@@ -185,6 +187,7 @@ procedure TAbilitySelectionDlg.SelectedAbBoxClick(Sender: TObject);
 begin
   UpdateDeleteButton;
 end;
+
 
 
 end.

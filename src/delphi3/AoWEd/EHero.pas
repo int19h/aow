@@ -141,6 +141,9 @@ type
     procedure UpdateLeader;
     procedure UpdateControls;
     procedure UpdateSkillPoints;
+    procedure SetHero(Hero: THero);
+    function EditLibraryHero(Hero: THero): Boolean;
+    function EditHero(Hero: THero): Boolean;
     procedure FormCreate;  { }
     procedure FormDestroy;  { }
     procedure HeroResourceComboBoxChange;  { }
@@ -585,6 +588,79 @@ end;
 procedure THeroEditForm.UpdateSkillPoints;
 begin
   SkillPoints.Caption := TranslateRStr(SkillPointsRStr) + ' ' + IntToStr(FHero.GetSkillPoints) + '/' + IntToStr(FHero.GetSkillPointsMax);
+end;
+
+procedure THeroEditForm.SetHero(Hero: THero);
+var Types: THeroTypes; List: TStringList; Saved: THero; Index: Integer;
+begin
+  Saved := FSavedHero;
+  if Saved <> nil then Saved.Free;
+  ItemSheet.TabVisible := usActivated in Hero.FUnitStatus;
+  SpheresSheet.TabVisible := (usActivated in Hero.FUnitStatus) and (Hero is TLeader);
+  FHero := Hero;
+  FSavedHero := THero(Hero.Copy(AoWEngine));
+  ItemGrid.SetItems(FHero.FInventory);
+  BodyGrid.SetItems(FHero.FHeroItems);
+  { Original includes the type in an uninitialized local set. }
+  Include(Types, FHero.GetHeroType);
+  List := AoWHSSet.FHeroResources.CreateHeroResourceStrings(Types);
+  HeroResourceComboBox.Items := List;
+  List.Free;
+  Index := FHero.FHeroResourceIndex;
+  if Index = -1 then
+  begin
+    HeroResourceComboBox.ItemIndex := 0;
+    HeroResourceComboBoxChange;
+  end
+  else HeroResourceComboBox.ItemIndex := Index;
+end;
+
+function THeroEditForm.EditLibraryHero(Hero: THero): Boolean;
+var Accepted, Active: Boolean;
+begin
+  MainPageControl.ActivePage := GeneralSheet;
+  if usActivated in Hero.FUnitStatus then
+  begin
+    OKBtn.Visible := True;
+    CancelBtn.Caption := TranslateRStr(CancelRStr);
+  end
+  else
+  begin
+    CancelBtn.Caption := TranslateRStr(CloseRStr);
+    OKBtn.Visible := False;
+  end;
+  FReadOnly := True;
+  SetHero(Hero);
+  UpdateControls;
+  Accepted := ShowModal = mrOK;
+  if not Accepted then
+  begin
+    Active := usActivated in Hero.FUnitStatus;
+    if Active then Hero.Deactivate;
+    Hero.Assign(FSavedHero, AoWEngine);
+    if Active then Hero.Activate;
+  end;
+  Result := Accepted;
+end;
+
+function THeroEditForm.EditHero(Hero: THero): Boolean;
+var Accepted, Active: Boolean;
+begin
+  MainPageControl.ActivePage := GeneralSheet;
+  CancelBtn.Caption := TranslateRStr(CancelRStr);
+  OKBtn.Visible := True;
+  FReadOnly := False;
+  SetHero(Hero);
+  UpdateControls;
+  Accepted := ShowModal = mrOK;
+  if not Accepted then
+  begin
+    Active := usActivated in Hero.FUnitStatus;
+    if Active then Hero.Deactivate;
+    Hero.Assign(FSavedHero, AoWEngine);
+    if Active then Hero.Activate;
+  end;
+  Result := Accepted;
 end;
 
 end.

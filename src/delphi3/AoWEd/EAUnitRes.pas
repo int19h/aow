@@ -7,13 +7,13 @@ unit EAUnitRes;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWREFrm;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWREFrm;
 
 type
   TAbstractUnitResourceEditForm = class;
 
 
-  { TAbstractUnitResourceEditForm (instance size 536, VMT 0040FCC4) }
+  { TAbstractUnitResourceEditForm (instance size 536, VMT 0040FCC4; $214 FUnitResource) }
   TAbstractUnitResourceEditForm = class(TAoWResourceEditForm)
   public
     published
@@ -24,7 +24,7 @@ type
     UnitGFXBox: TComboBox; { +020C }
     PreviewImagePanel: TDrawPanel; { +0210 }
     public
-    F_AbstractUnitResourceEditForm_214: Integer;
+    FUnitResource: TAbstractUnitResource; { $214 }
     procedure FormCreate;  { draft }
     procedure UnitGFXBoxChange;  { draft }
     procedure PreviewImagePanelDraw(A1: Integer; A2: Integer);  { draft }

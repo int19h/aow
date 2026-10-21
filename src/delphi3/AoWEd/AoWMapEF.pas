@@ -13,7 +13,7 @@ type
   TAoWMapEditForm = class;
 
 
-  { TAoWMapEditForm (instance size 516, VMT 00417174) }
+  { TAoWMapEditForm (instance size 516, VMT 00417174; $1F0 FPositionInfo, $1FC FEditObject) }
   TAoWMapEditForm = class(TForm)
   public
     published
@@ -23,13 +23,14 @@ type
     CancelBtn: TButton; { +01E8 }
     Translator: TIvTranslator; { +01EC }
     public
-    F_AoWMapEditForm_1F0: Integer;
+    FPositionInfo: PPoint; { $1F0 }
     F_AoWMapEditForm_1F4: Integer;
     F_AoWMapEditForm_1F8: Integer;
-    F_AoWMapEditForm_1FC: Integer;
+    FEditObject: TEObject; { $1FC }
     F_AoWMapEditForm_200: Integer;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
+    procedure SetPositionInfo(Info: PPoint);
     procedure vmt80; virtual;  { +080 draft }
     procedure vmt84; virtual;  { +084 draft }
     procedure vmt88; virtual;  { +088 draft }
@@ -73,5 +74,10 @@ begin end;
 procedure TAoWMapEditForm.OKBtnClick(Sender: TObject);
 begin end;
 
+
+procedure TAoWMapEditForm.SetPositionInfo(Info: PPoint);
+begin
+  FPositionInfo := Info;
+end;
 
 end.

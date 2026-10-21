@@ -41,7 +41,7 @@ type
     procedure SortOnName;
     procedure SortOnLevel;
     procedure DeleteHero;
-    procedure RemoveFromMap;
+    procedure RemoveFromMap; property SelectionEnabled;
   end;
 
 procedure Register;

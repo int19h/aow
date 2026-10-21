@@ -1,20 +1,20 @@
 unit EUnitRes;
 
-{ Draft declarations of EUnitRes, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Unit resource property form recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AlgnmBox, EAUnitRes, RaceBox, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AlgnmBox, EAUnitRes, RaceBox, SpinEdit;
 
 type
   TUnitResourceEditForm = class;
   TUnitResourceEditor = class;
 
 
-  { TUnitResourceEditForm (instance size 732, VMT 004107E0) }
+  { TUnitResourceEditForm (instance size $2DC, VMT 004107E0; $2D4 FRaces, $2D8 FRank) }
   TUnitResourceEditForm = class(TAbstractUnitResourceEditForm)
   public
     published
@@ -66,15 +66,16 @@ type
     AbilityListBox: TListBox; { +02CC }
     AbilityBtn: TButton; { +02D0 }
     public
-    F_UnitResourceEditForm_2D4: Integer;
-    F_UnitResourceEditForm_2D8: Byte;
+    FRaces: TRaceList; { $2D4 }
+    FRank: TUnitRank; { $2D8 }
     F_UnitResourceEditForm_2D9: array[0..2] of Byte;
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure RaceBoxChange;  { draft }
-    procedure AbilityBtnClick;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure AbilityRankTabsChange;  { draft }
+    procedure SetRank(Rank: TUnitRank);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure RaceBoxChange(Sender: TObject);
+    procedure AbilityBtnClick(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure AbilityRankTabsChange(Sender: TObject);
   end;
 
   { TUnitResourceEditor (instance size 8, VMT 00410CAC) }
@@ -86,26 +87,103 @@ type
 
 implementation
 
+uses SelAbDlg;
+
 class procedure TUnitResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-procedure TUnitResourceEditForm.FormCreate;
-begin end;
+procedure TUnitResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate;
+  MainPageControl.ActivePage := GeneralSheet;
+  FRaces := TRaceList.Create(nil);
+  FRaces.Update;
+  RaceBox.SetRaces(FRaces);
+  with TUnitResource(FUnitResource) do
+  begin
+    UnitNameEdit.Text := FName;
+    RaceBox.SetRace(FRace);
+    FRace := RaceBox.FRace;
+    RaceBoxChange(Self);
+    ClassNameEdit.Text := FNickname;
+    AlignmentBox.SetAlignment(FAlignment);
+    FAlignment := AlignmentBox.FAlignment;
+    UnitTypeBox.ItemIndex := Ord(FUnitType);
+    GenderBox.ItemIndex := Ord(FGender);
+    UnitLevelEdit.Value := FLevel;
+    AttackEdit.Value := FAttack;
+    DefenseEdit.Value := FDefense;
+    ResistanceEdit.Value := FResistance;
+    DamageEdit.Value := FDamage;
+    HitsEdit.Value := FHits;
+    MovesEdit.Value := FMoves;
+    TransportCapacityEdit.Value := GetTransportCapacity;
+    DescriptionMemo.Text := FDescription.Text;
+    CostEdit.Value := FObtainValue;
+    UnitSizeBox.ItemIndex := Ord(FUnitSize);
+    BloodTypeBox.ItemIndex := Ord(FBloodType);
+  end;
+  SetRank(urNone);
+end;
 
-procedure TUnitResourceEditForm.FormDestroy;
-begin end;
+procedure TUnitResourceEditForm.FormDestroy(Sender: TObject);
+begin
+  FRaces.Free;
+end;
 
-procedure TUnitResourceEditForm.RaceBoxChange;
-begin end;
+procedure TUnitResourceEditForm.RaceBoxChange(Sender: TObject);
+var Race: Shortint;
+begin
+  Race := RaceBox.FRace;
+  if (Race >= 0) and (TUnitResource(FUnitResource).FName = '') then
+    UnitNameEdit.Text := AoWHSSet.FRaceResources.GetRaceResource(Race).FName;
+end;
 
-procedure TUnitResourceEditForm.AbilityBtnClick;
-begin end;
+procedure TUnitResourceEditForm.AbilityBtnClick(Sender: TObject);
+var Dlg: TAbilitySelectionDlg;
+begin
+  Dlg := TAbilitySelectionDlg.CreateSelection(TUnitResource(FUnitResource).FAbilities[FRank], Self);
+  if Dlg.ShowModal = mrOK then TUnitResource(FUnitResource).FAbilities[FRank].AssignAb(Dlg.FAbilityOwner);
+  Dlg.Free;
+  TUnitResource(FUnitResource).FAbilities[FRank].ListAbilities(AbilityListBox.Items);
+end;
 
-procedure TUnitResourceEditForm.OKBtnClick;
-begin end;
+procedure TUnitResourceEditForm.OKBtnClick(Sender: TObject);
+begin
+  with TUnitResource(FUnitResource) do
+  begin
+    FName := UnitNameEdit.Text;
+    FRace := RaceBox.FRace;
+    FNickname := ClassNameEdit.Text;
+    FAlignment := AlignmentBox.FAlignment;
+    FUnitType := TUnitType(UnitTypeBox.ItemIndex);
+    FLevel := UnitLevelEdit.Value;
+    FAttack := AttackEdit.Value;
+    FDefense := DefenseEdit.Value;
+    FResistance := ResistanceEdit.Value;
+    FDamage := DamageEdit.Value;
+    FHits := HitsEdit.Value;
+    FMoves := MovesEdit.Value;
+    FGender := TUnitGender(GenderBox.ItemIndex);
+    FTransportCapacity := TransportCapacityEdit.Value;
+    FDescription.Text := DescriptionMemo.Text;
+    FObtainValue := CostEdit.Value;
+    FUnitSize := TUnitSize(UnitSizeBox.ItemIndex);
+    FBloodType := TBloodType(BloodTypeBox.ItemIndex);
+  end;
+end;
 
-procedure TUnitResourceEditForm.AbilityRankTabsChange;
-begin end;
+procedure TUnitResourceEditForm.AbilityRankTabsChange(Sender: TObject);
+begin
+  SetRank(TUnitRank(AbilityRankTabs.TabIndex));
+end;
 
+
+procedure TUnitResourceEditForm.SetRank(Rank: TUnitRank);
+begin
+  AbilityRankTabs.TabIndex := Ord(Rank);
+  FRank := Rank;
+  TUnitResource(FUnitResource).FAbilities[Rank].ListAbilities(AbilityListBox.Items);
+end;
 
 end.
