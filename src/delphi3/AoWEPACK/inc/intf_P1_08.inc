@@ -58,7 +58,7 @@
     destructor Destroy; override;
     procedure SetSelection(Value: Byte); virtual;
     function CanSelectUnit(A1: TUnit): Boolean; virtual; { +004 }
-    procedure Setup(Source: Pointer; Units: TUnitList); virtual;
+    procedure Setup(Source: TAbstractUnit; Units: TUnitList); virtual; { 5574D804: Source+$18/$24. }
     function CanSelect(var Error: string): Boolean; virtual;
     function Select: Boolean; virtual; { +010 }
     procedure Cancel; virtual;

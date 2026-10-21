@@ -39,8 +39,8 @@
     procedure Initialize(A1: TObject);
     procedure Activate;
     procedure Deactivate;
-    procedure UnitChanged(AUnit: TAbstractUnit);
-    { conflict: procedure UnitChanged(Sender: TObject); }
+    procedure UnitChanged(AUnit: TObject);
+    { TNotifyEvent target passed directly at 55774D17. }
   end;
 
   { TAoWHSMapKeyboard: size $14; $08 cheat text, $0C mode, $10 lock count. VMT 5570E11C. }

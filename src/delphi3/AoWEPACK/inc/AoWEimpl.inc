@@ -25401,22 +25401,22 @@ asm
   MOV AL, 1
 end;
 
-procedure TUnitSelector.Setup(Source: Pointer; Units: TUnitList);
-type
-  PSourceInfo = ^TSourceInfo;
-  TSourceInfo = record
-    Reserved00: array[0..$17] of Byte;
-    Source: Pointer;
-    Reserved1C: array[$1C..$23] of Byte;
-    Player: Shortint;
-  end;
+procedure TUnitSelector.Setup(Source: TAbstractUnit; Units: TUnitList);
+
+
+
+
+
+
+
+
 var
   I: Integer;
 begin
   if Source <> nil then
   begin
-    FSourceUnitID := Integer(PSourceInfo(Source).Source);
-    FPlayer := PSourceInfo(Source).Player;
+    FSourceUnitID := Source.FUnitID;
+    FPlayer := Source.FPlayer;
   end;
   FUnits.Clear;
   FUnits.AddUnits(Units);
@@ -25424,8 +25424,8 @@ begin
   { Original accumulates FSelectable rather than clearing it on a new setup. }
   for I := FUnits.GetCount - 1 downto 0 do
   begin
-    Source := Pointer(FUnits.GetUnit(I));
-    if TSelectorView(Self).CanSelectUnit(TUnit(Source)) then FSelectable := FSelectable or (Byte(1) shl I);
+
+    if CanSelectUnit(TUnit(FUnits.GetUnit(I))) then FSelectable := FSelectable or (Byte(1) shl I);
   end;
 end;
 
@@ -26337,14 +26337,14 @@ end;
 function TAbility.CanActivate(A1: TAbilityOwner; var A2: string): Boolean;
 begin
   A2 := '';
-  { needs: Boolean result; P4 overrides remain unmarked procedures. }
-  asm
-    MOV EDX,A1
-    MOV EAX,Self
-    MOV ECX,[EAX]
-    CALL DWORD PTR [ECX+$98]
-    AND EAX,1
-  end;
+  Result := acAction in GetControlType(A1);
+
+
+
+
+
+
+
 end;
 function TAbility.Activate(A1: TAbilityOwner; var A2: string): Boolean;
 var
@@ -26364,18 +26364,18 @@ begin
   end
   else Result := False;
 end;
-procedure TAbility.CanActivateCombat(A1: Integer; A2: Integer);
+function TAbility.CanActivateCombat(A1: TAbilityOwner; var A2: string): Boolean;
 begin
-  PString(A2)^ := '';
-  { needs: Boolean result; P4 overrides remain unmarked procedures. }
-  asm
-    MOV EDX,A1
-    MOV EAX,Self
-    MOV ECX,[EAX]
-    CALL DWORD PTR [ECX+$98]
-    AND EAX,2
-    SHR EAX,1
-  end;
+  A2 := '';
+  Result := acCombatAction in GetControlType(A1);
+
+
+
+
+
+
+
+
 end;
 function TAbility.ActivateCombat(Owner: TAbilityOwner; var Reason: string): Boolean;
 var
@@ -27223,7 +27223,7 @@ end;
 
 destructor TPlayer.Destroy;
 var
-  I: Integer;
+  I: Integer; Structures: TPlayerStructureList; Armies: TArmyList;
 begin
   try
     FIncomeChangedEvents.Clear;
@@ -27239,9 +27239,9 @@ begin
       end
       else
       begin
-        for I := FStructures.Count - 1 downto 0 do
+        Structures := FStructures; for I := Structures.Count - 1 downto 0 do
           FStructures.GetStructure(I).SetPlayer(0);
-        for I := FArmies.Count - 1 downto 0 do
+        Armies := FArmies; for I := Armies.Count - 1 downto 0 do
           FArmies.GetArmy(I).SetPlayer(0);
       end;
     except
@@ -28053,7 +28053,7 @@ begin
   end;
 end;
 
-function TPlayer.GetLocal: Boolean;
+function TPlayer.GetLocal: Boolean; { Near miss: Self and control registers differ after three variants. }
 var
   Control: TPlayerCommunicationControl;
 begin
@@ -29553,7 +29553,7 @@ begin
   end;
 end;
 
-procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus);
+procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); { Near miss: player/status parameter spill differs after three variants. }
 begin
   inherited SetPlayerGameOverStatus(Player, Status);
   if not AoWHSMap.FRequestCombatType or (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) then
@@ -29576,8 +29576,8 @@ end;
 
 procedure TTurnPlayerControl.ValidateTurnTiming;
 begin
-  if AoWHSMap.GetTurnTimerEnabled and (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) and
-    (AoWHSMap.GetTurnTimeLeft <= 0) then
+  if AoWHSMap.GetTurnTimerEnabled then if AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer then
+    if AoWHSMap.GetTurnTimeLeft <= 0 then
     if (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) and
       (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FSingleProcessCycle = False) then
       if AoWHSMap.FTokenManager.PlayerReady(AoWHSMap.FSeatedPlayer) then EndPlayerTurn(AoWHSMap.FSeatedPlayer);
@@ -31404,7 +31404,7 @@ begin
   else Result := 0;
 end;
 
-function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer; { Near miss: set/arithmetic register allocation differs after three variants. }
 var Info: TBattleFieldInfo;
 begin
   SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
@@ -32027,7 +32027,7 @@ end;
 function TProductionControl.CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
 begin Result := True; end;
 
-function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean;
+function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean; { Near miss: Self/event/item registers differ after three variants. }
 var
   Event: TProductionTE;
   Reason: string;
@@ -32090,7 +32090,7 @@ begin
   end;
 end;
 
-function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean;
+function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean; { Near miss: Self/event/item registers differ after three variants. }
 var
   Event: TProductionTE;
   Reason: string;
@@ -32805,19 +32805,19 @@ end;
 
 function TStructure.ExecuteRebuild(AUnit: TAbstractUnit): Boolean;
 var
-  Cost, Time: Integer;
+  Time, Cost: Integer;
   Reason: string;
 begin
-  Result := CanRebuild(AUnit, Reason);
-  if Result then
+  if CanRebuild(AUnit, Reason) then
   begin
     GetRebuildInfo(Cost, Time);
+
     AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).SetGems(AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FGems - Cost);
     FBuildingDays := Time;
     FBuildingPlayer := AUnit.FPlayer;
     ValidateObservation(AUnit.FPlayer);
-    FImageIndex := GetTerrainTypeImage(FTerrainType);
-  end;
+    FImageIndex := GetTerrainTypeImage(FTerrainType); Result := True;
+  end else Result := False;
 end;
 
 function TStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Integer): Boolean;
@@ -33049,14 +33049,14 @@ begin
     end;
 end;
 
-procedure TStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
+procedure TStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Near miss: message fields fixed; Self/Msg registers differ after three variants. }
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020001 then NewDay
-  else if Msg.MsgID = $20020002 then NewTurn(Msg.Data[0])
+  else if Msg.MsgID = $20020002 then NewTurn(Shortint(Msg.Value))
   else if Msg.MsgID = $20020006 then SeatedPlayerChanged
   else if Msg.MsgID = $20020103 then
-    if not MainValidateMap(TStrings(Msg.Data[0])) then Msg.Result := 1;
+    if not MainValidateMap(TStrings(Msg.Value)) then Msg.Data[0] := 1;
 end;
 
 procedure TStructure.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
@@ -33517,7 +33517,7 @@ end;
 procedure TPlayerStructure.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 var
   Log: TLocationTextEventLog;
-  Text: string;
+
 begin
   if not GetRazed and not GetBuilding and (OldPlayer = 0) and
     not (msEditting in AoWHSMap.Status) and (moActivated in FStatus) and
@@ -33525,8 +33525,8 @@ begin
   begin
     Log := TLocationTextEventLog.Create(nil);
     Log.FPlayer := NewPlayer;
-    Text := Format(TranslateRStr(StructureCapturedRStr), [EditName]);
-    Log.FText := Text;
+    Log.FText := Format(TranslateRStr(StructureCapturedRStr), [EditName]);
+
     Log.FXhx := GetXhx;
     Log.FYhx := GetYhx;
     Log.FLhx := GetLhx;
@@ -33766,7 +33766,7 @@ end;
 procedure TPlayerStructure.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin
   if FResource.TerrainList.Terrain[Info.HN] >= 0 then
-    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $0B007000;
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $1000 or $2000 or $4000 or $2000000 or $1000000 or $8000000;
 end;
 
 function TPlayerStructure.GetDefaultAITargetPriority: Integer;
@@ -35395,10 +35395,10 @@ begin
   end;
 end;
 
-procedure TTargetSelectionControl.UnitChanged(AUnit: TAbstractUnit);
+procedure TTargetSelectionControl.UnitChanged(AUnit: TObject);
 begin
   if (tsActivated in FStatus) and (FSource <> nil) and (AUnit = FSource) and
-    (usKilled in AUnit.FUnitStatus) then Deactivate;
+    (usKilled in TAbstractUnit(AUnit).FUnitStatus) then Deactivate;
 end;
 
 { TMovepath (instance size 20): inherited $04 locations and $08 count. }
@@ -39797,7 +39797,7 @@ begin
     else Info.FUnitID := 0;
     Selector := THealingUnitSelector.Create;
     Selector.FCaption := Format(TranslateRStr(SelectUnitForXRStr), [TranslateRStr(HealingRStr)]);
-    Selector.Setup(A1, TUnitList(A1.Owner));
+    Selector.Setup(TAbstractUnit(A1), TUnitList(A1.Owner));
     Info.SetUnitSelector(Selector);
     { Original omits Selector.Release here. }
     AoWHSMap.FOnActivateAbility.TriggerNotifyEvents(Info);
@@ -40281,7 +40281,7 @@ begin
     else Info.FUnitID := 0;
     Selector := TDispelMagicAbilityUnitSelector.Create;
     Selector.FCaption := Format(TranslateRStr(SelectUnitForXRStr), [TranslateRStr(DispelMagicRStr)]);
-    Selector.Setup(A1, TUnitList(A1.Owner));
+    Selector.Setup(TAbstractUnit(A1), TUnitList(A1.Owner));
     Info.SetUnitSelector(Selector);
     Selector.Release;
     AoWHSMap.FOnActivateAbility.TriggerNotifyEvents(Info);
@@ -41556,7 +41556,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwStreamProc($14, FShownMessages.LoadFromStream, FShownMessages.SaveToStream);
 end;
-procedure TTutorialControl.ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean);
+procedure TTutorialControl.ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean); { Near miss: Self and event-log allocation differs after three variants. }
 var
   Log: TTutorialMessageEventLog;
 begin
@@ -41786,7 +41786,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
+      Field := TAoWMapField(FXOffsets[Walk.X] + FYOffsets[Walk.Y]);
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 1 then Result := True;
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo - 1);
     end;
@@ -41804,7 +41804,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
+      Field := TAoWMapField(FXOffsets[Walk.X] + FYOffsets[Walk.Y]);
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := True;
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
     end;
@@ -42162,23 +42162,23 @@ begin
   end
   else Result := False;
 end;
-function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged;
-begin
-  Assert(Range <= 15, 'Invalid Unfog Range');
+function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged; var Radius: Integer; { Near miss: only the Assert line number differs; include lines must stay fixed. }
+begin Radius := Range;
+  Assert(Radius <= 15, 'Invalid Unfog Range');
   { Original leaves Result undefined when a fog-only operation changes nothing. }
   if not (msEditting in Status) then
   begin
     if Player >= 0 then
-      Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogExploreArea(X, Y, Player, Range)
-    else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range) then
+      Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogExploreArea(X, Y, Player, Radius)
+    else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Radius) then
       Result := [feFog];
   end
-  else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range) then
+  else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Radius) then
     Result := [feFog];
   if (FMapChangedLockCount = 0) and
     (((feFog in Result) and (FFogEnabled)) or
      ((feExploration in Result) and FExplorationEnabled and (Player = FSeatedPlayer))) then
-    MapChangedRad(X, Y, Level, Range);
+    MapChangedRad(X, Y, Level, Radius);
 end;
 procedure TAbstractAoWHSMap.DrawGrid(const SurfaceDesc: TSurfaceDesc);
 var
@@ -42779,8 +42779,8 @@ begin
 end;
 
 constructor TAoWHSMap.Create(AOwner: Engine.TECustomNode);
-var
-  UnitChangedEvent: TNotifyEvent;
+
+
 begin
   inherited Create(AOwner);
   FItemControl := TItemControl.Create(nil);
@@ -42850,9 +42850,9 @@ begin
   FStructureChangedEvents := TEventList.Create;
   FTokenControlActivatedEvents := TEventList.Create;
   FUnitChangedEvents := TEventList.Create;
-  TMethod(UnitChangedEvent).Code := @TTargetSelectionControl.UnitChanged;
-  TMethod(UnitChangedEvent).Data := FTargetSelection;
-  FUnitChangedEvents.Add(UnitChangedEvent);
+
+
+  FUnitChangedEvents.Add(FTargetSelection.UnitChanged);
   FArmyDestroyedEvents := TEventList.Create;
   FArmyDestroyedEvents.Add(FSelectedArmy.OnDestroyArmy);
   FStructureDestroyedEvents := TEventList.Create;
@@ -43659,7 +43659,7 @@ end;
 procedure TAoWHSMap.NotifyProgress(const Progress: HSEngine.TMapProgress);
 var
   DefaultText, Text: string;
-  Percent: Integer;
+  Percent, Total: Integer;
 begin
   if Assigned(OnProgress) then
   begin
@@ -43667,28 +43667,28 @@ begin
     case Progress.ProgressType of
       ptLoading:
         begin
-          Percent := Round((Progress.Percent + Progress.Level * 100) / 3 / MapContainer.LevelCount);
+          Total := Progress.Percent + Progress.Level * 100; Percent := Round((Total) / 3 / MapContainer.LevelCount);
           if AoWEngine.FDebug then Text := TranslateRStr(LoadingLevelRStr) + IntToStr(Progress.Level)
           else Text := DefaultText;
           OnProgress(Self, Text, Percent);
         end;
       ptInitializing:
         begin
-          Percent := Round((Progress.Percent + Progress.Level * 100) / 4.5 / MapContainer.LevelCount + 100 / 3);
+          Total := Progress.Percent + Progress.Level * 100; Percent := Round((Total) / 4.5 / MapContainer.LevelCount + 100 / 3);
           if AoWEngine.FDebug then Text := TranslateRStr(InitializingLevelRStr) + IntToStr(Progress.Level)
           else Text := DefaultText;
           OnProgress(Self, Text, Percent);
         end;
       ptUpdatingTerrain:
         begin
-          Percent := Round((Progress.Percent + Progress.Level * 100) / 4.5 / MapContainer.LevelCount + 500 / 9);
+          Total := Progress.Percent + Progress.Level * 100; Percent := Round((Total) / 4.5 / MapContainer.LevelCount + 500 / 9);
           if AoWEngine.FDebug then Text := TranslateRStr(UpdatingTerrainLevelRStr) + IntToStr(Progress.Level)
           else Text := DefaultText;
           OnProgress(Self, Text, Percent);
         end;
       ptActivating:
         begin
-          Percent := Round((Progress.Percent + Progress.Level * 100) / 4.5 / MapContainer.LevelCount + 700 / 9);
+          Total := Progress.Percent + Progress.Level * 100; Percent := Round((Total) / 4.5 / MapContainer.LevelCount + 700 / 9);
           if AoWEngine.FDebug then Text := TranslateRStr(ActivatingLevelRStr) + IntToStr(Progress.Level)
           else Text := DefaultText;
           OnProgress(Self, Text, Percent);
@@ -43875,8 +43875,8 @@ end;
 procedure TAoWHSMap.NotifyPlayerChangedEx(X, Y, L, Radius: Integer);
 var
   MapLevel: TMapLevel;
-  Walk: THNWalkData;
   Msg: TMapFieldMsg;
+  Walk: THNWalkData;
   Field: TAoWMapField;
 begin
   MapLevel := MapContainer.GetMapLevel(L);
@@ -43902,8 +43902,8 @@ end;
 procedure TAoWHSMap.UpdatePlayerSeen(Player, X, Y, L, SightRadius, Radius: Integer);
 var
   MapLevel: TMapLevel;
-  Walk: THNWalkData;
   Msg: TMapFieldMsg;
+  Walk: THNWalkData;
   Field: TAoWMapField;
   I: Integer;
 begin
@@ -43944,8 +43944,8 @@ end;
 function TAoWHSMap.VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
 var
   MapLevel: TMapLevel;
-  Walk: THNWalkData;
   Msg: TMapFieldMsg;
+  Walk: THNWalkData;
   Field: TAoWMapField;
 begin
   MapLevel := MapContainer.GetMapLevel(Level);
@@ -44265,8 +44265,8 @@ end;
 
 procedure TAoWHSMap.GenerateNewTurnOrder;
 var
+  I, Index: Integer;
   List: TByteList;
-  I: Integer;
 begin
   List := TByteList.Create;
   for I := 1 to FPlayers.Count - 1 do List.Add(I);
@@ -44274,9 +44274,9 @@ begin
   FTurnOrder.Add(0);
   while List.Count <> 0 do
   begin
-    I := Random(List.Count);
-    FTurnOrder.Add(List[I]);
-    List.Delete(I);
+    Index := Random(List.Count);
+    FTurnOrder.Add(List[Index]);
+    List.Delete(Index);
   end;
   List.Free;
 end;
@@ -48506,7 +48506,7 @@ function P2Explored(MapField: TAoWMapField; Player: Integer): Boolean; assembler
 asm JMP TAoWMapField.GetExplored end;
 function P2VisibleForPlayer(Map: TAoWHSMap; X,Y,L,Player: Integer): Boolean; assembler;
 asm POP EBP; JMP TAoWHSMap.VisibleForPlayer end;
-procedure TAbstractUnit.ExecuteTrailOfDarkness(MapField: TMapField);
+procedure TAbstractUnit.ExecuteTrailOfDarkness(MapField: TMapField); { Near miss: Self/field allocation differs after three variants. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;
@@ -48989,7 +48989,7 @@ begin
   if Data <> nil then
     if Data.FDuration <= 0 then Killed;
 end;
-procedure TAbstractUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
+procedure TAbstractUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Near miss: Self/Msg registers differ after three variants. }
 begin
   inherited MsgProc(Msg,Sender);
   if Msg.MsgID = $20020002 then
@@ -49295,11 +49295,11 @@ function TAbstractUnit.CanJoin(Player: Shortint): Boolean;
 var
   Alignment: TAlignment;
   Relation: TDiplomaticRelation;
+
   I: Integer;
-  Group: TUnitUserList;
 begin
-  Group := FGroup;
-  if (Group = nil) or not (TP2AbilityCalls(Group).GroupBehavior in [gbGuard,gbGuardArea]) then
+
+  if (FGroup = nil) or not (FGroup.Behavior in [gbGuard,gbGuardArea]) then
   begin
     if GetRace = -1 then
     begin
@@ -49325,7 +49325,7 @@ begin
       else Result := True;
     end
     else Result := P2RacePlayerRelation(P2GetRace(TRaceList(AoWHSMap.FRaces),GetRace),Player) >= sPolite;
-    if Result and (FGroup <> nil) and (TP2AbilityCalls(FGroup).GroupBehavior = gbHunt) and
+    if Result and (FGroup <> nil) and (FGroup.Behavior = gbHunt) and
       P2HuntingPlayer(THuntAG(FGroup),Player) then Result := False;
   end
   else Result := False;
@@ -50897,7 +50897,7 @@ begin
 end;
 
 
-function TUnitHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
+function TUnitHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Near miss: Self/field/result allocation differs after three variants. }
 var
   Field: TMapField;
   Success: Boolean;
@@ -52138,18 +52138,18 @@ end;
 function THero.CanJoin(Player: Shortint): Boolean;
 var Race: TRace; APlayer: TPlayer;
 begin
-  if FRace = -1 then Result := False
-  else
+  if FRace <> -1 then
+
   begin
     APlayer := AoWHSMap.FPlayers.GetPlayers(Player);
-    Race := AoWHSMap.FRaces.GetRace(FRace);
-    Result := Race.GetPlayerRelation(Player) in [sPolite, sFriendly];
-    if Result and ((FGroup = nil) or (FGroup.Behavior <> gbRefuge)) and
+    Result := AoWHSMap.FRaces.GetRace(FRace).GetPlayerRelation(Player) in [sPolite, sFriendly];
+
+    if Result then if ((FGroup = nil) or (FGroup.Behavior <> gbRefuge)) and
       (not GetAbilityEnabled(128) or (Player <> FDeathPlayer) or
        (FDeathDay + 2 < AoWHSMap.FPlayers.GetPlayers(Player).FDay)) then
-      Result := (APlayer.FHeroes.Count < APlayer.GetHeroCountMax) and
+      Result := Result and (APlayer.FHeroes.Count < APlayer.GetHeroCountMax) and
         (GetLevel <= APlayer.GetHeroJoinLevelMax);
-  end;
+  end else Result := False;
 end;
 
 function THero.EmergedToPlayer: Shortint;
@@ -55053,14 +55053,14 @@ begin
   end;
 end;
 
-procedure TArmy.UpdateUpkeep;
-var Upkeep: Byte; I: Integer;
+procedure TArmy.UpdateUpkeep; { Near miss: comparison operand order differs after three variants. }
+var Upkeep, Previous: Byte; I, Delta: Integer;
 begin
   Upkeep := 0;
   for I := 0 to GetCount - 1 do Inc(Upkeep, TAbstractUnit(FChildren.List^[I]).GetUpkeep);
-  if (Upkeep <> FUpkeep) and (asActivated in FStatus) then
-    AoWHSMap.FPlayers.GetPlayers(FPlayer).SetArmyUpkeep(Upkeep - FUpkeep +
-      AoWHSMap.FPlayers.GetPlayers(FPlayer).FArmyUpkeep);
+  Previous := FUpkeep; if (Upkeep <> Previous) and (asActivated in FStatus) then begin Delta := Integer(Upkeep) - Integer(Previous);
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).SetArmyUpkeep(AoWHSMap.FPlayers.GetPlayers(FPlayer).FArmyUpkeep +
+      Delta); end;
   FUpkeep := Upkeep;
 end;
 
@@ -57556,7 +57556,7 @@ begin
 end;
 
 procedure TArmyHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
-var Sequence: TImageSequence; Xhp, Yhp, DX, DY: Integer; Part: Single;
+var Sequence: TImageSequence; Part: Single; Xhp, Yhp, DX, DY, Frame: Integer;
 begin
   if ((WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled)) and
     not (asFullyConcealed in FArmy.FStatus) then
@@ -57578,7 +57578,7 @@ begin
     else Sequence := FUnitGFXResource.FSequences.GetImageSequence(FDirection + 23);
     while Sequence <> nil do
     begin
-      Sequence.ImageLibrary[Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF)].Show(
+      Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF); Sequence.ImageLibrary[Frame].Show(
         X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
       Sequence := Sequence.Next;
     end;
@@ -57866,7 +57866,7 @@ begin
   end;
 end;
 
-function TArmyHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint;
+function TArmyHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint; { Near miss: Instant parameter spill differs after three variants. }
 var Level: TMapLevel; X, Y, DX, DY: Integer; Animation: TImageSequenceAnimation;
 begin
   Result := inherited MoveFirst(Direction, Instant);
@@ -58511,21 +58511,21 @@ begin
   end;
 end;
 
-procedure TSelectedArmy.ToggleGuard;
+procedure TSelectedArmy.ToggleGuard; { Near miss: guard field fixed; set/register form differs after three variants. }
 var ArmyHS: TArmyHS; Army: TArmy;
 begin
   ArmyHS := GetArmyHS;
   if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
   begin
     Army := ArmyHS.FArmy;
-    if aumGuard in TArmyUserMode(Army.FMode) then
+    if aumGuard in ArmyHS.FArmy.FUserMode then
     begin
-      Exclude(TArmyUserMode(Army.FMode), aumGuard);
+      Army.FUserMode := ArmyHS.FArmy.FUserMode - [aumGuard];
       Army.Update;
     end
     else
     begin
-      Include(TArmyUserMode(Army.FMode), aumGuard);
+      Army.FUserMode := ArmyHS.FArmy.FUserMode + [aumGuard];
       AoWHSMap.SelectNextArmy;
     end;
   end;
@@ -60250,7 +60250,7 @@ begin
   FRegistry.Free;
 end;
 
-procedure TAoWEngine.UpdateStartupDirectory;
+procedure TAoWEngine.UpdateStartupDirectory; { Near miss: Self register differs after three source variants. }
 begin
   if FRegistry.GetStartupDirectory <> '' then SetStartupDirectory(FRegistry.GetStartupDirectory)
   else SetStartupDirectory(ExtractFilePath(Application.ExeName));

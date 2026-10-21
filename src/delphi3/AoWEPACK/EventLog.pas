@@ -177,7 +177,7 @@ type
     function CreateUniqueID: Integer;
     function FindID(ID: Integer): TEventLog;
     function FindFirstLog(Player, Day: Integer): Integer;
-    function FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
+    function FindFirstLogEx(AClassID: Integer; Player: Integer; Day: Integer): Integer;
     { conflict: function FindFirstLogEx(ClassID, Player, Day: Integer): Integer; }
     procedure AddEvent(Event: TEventLog);
     procedure RemoveEvent(Event: TEventLog);
@@ -400,7 +400,7 @@ begin
   Result := -1;
 end;
 
-function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Near miss: Self/global register allocation differs after three variants. }
 begin
   if (Trigger = etUser) or
     (((Trigger = etEvent) or ((Trigger = etNewTurn) and AoWHSMap.FRequestCombatType)) and
@@ -584,7 +584,7 @@ begin
   end;
 end;
 
-function TEventLogbook.FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
+function TEventLogbook.FindFirstLogEx(AClassID: Integer; Player: Integer; Day: Integer): Integer;
 begin
   with FEvents do
   begin
@@ -592,7 +592,7 @@ begin
   while (Result <> FChildren.Count) and
     ((TEventLog(FChildren.List^[Result]).FPlayer <> Player) or
      (TEventLog(FChildren.List^[Result]).FDay <> Day) or
-     (TEventLog(FChildren.List^[Result]).ClassID <> ClassID)) do Inc(Result);
+     (TEventLog(FChildren.List^[Result]).ClassID <> AClassID)) do Inc(Result);
   if Result = FChildren.Count then Result := -1;
   end;
 end;
@@ -902,7 +902,7 @@ begin
   end;
 end;
 
-procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean);
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean); { Near miss: loop count/player registers differ after three variants. }
 var I: Integer; TargetPlayer: TPlayer; CopyLog: TEventLog;
 begin
   for I := 0 to AoWHSMap.FPlayers.GetCount - 1 do
