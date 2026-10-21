@@ -343,20 +343,16 @@ begin
 end;
 
 procedure TLeaderSetupWin.FacePrevBtnClick;
-var Leader: TLeader;
 begin
   MainForm.PlayInterfaceSound(0);
-  Leader := FLeader;
-  Leader.SetFaceIndex(AoWHSSet.FFaceResources.PrevFace(Leader.FFaceIndex));
+  FLeader.SetFaceIndex(AoWHSSet.FFaceResources.PrevFace(FLeader.FFaceIndex));
   ScenSetup.ChatMemo.FDrawn := False;
 end;
 
 procedure TLeaderSetupWin.FaceNextBtnClick;
-var Leader: TLeader;
 begin
   MainForm.PlayInterfaceSound(0);
-  Leader := FLeader;
-  Leader.SetFaceIndex(AoWHSSet.FFaceResources.NextFace(Leader.FFaceIndex));
+  FLeader.SetFaceIndex(AoWHSSet.FFaceResources.NextFace(FLeader.FFaceIndex));
   ScenSetup.ChatMemo.FDrawn := False;
 end;
 

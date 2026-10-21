@@ -46862,8 +46862,8 @@ begin
   A3 := -1;
 end;
 
-procedure TPowerSource.CenterToLocation(A1: Integer; A2: Integer);
-{ A1 and A2 are unused draft parameters; the original takes no explicit arguments. }
+procedure TPowerSource.CenterToLocation;
+{ No explicit arguments, as confirmed by AoW.exe 0042D9D8. }
 asm
   PUSH EBX
   PUSH ECX

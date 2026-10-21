@@ -45,6 +45,7 @@ var
   Done: TExecuteDoneEvent;
   Event: TPasswordEventLog;
 begin
+  Dlg.Visible := False;
   Done := FDone; Event := FPasswordEvent;
   FDone := nil; FPasswordEvent := nil;
   if Assigned(Done) then Done(Event);

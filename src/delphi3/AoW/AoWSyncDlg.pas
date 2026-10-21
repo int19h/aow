@@ -59,7 +59,7 @@ begin
   Settings := GetPlayerSetup;
   if Settings <> nil then
   begin
-    R := Rect(Dlg.WinLeft + 188, Dlg.WinTop + 40, Dlg.WinLeft + 291, Dlg.WinTop + 168);
+    R := Rect(Dlg.WinLeft + 188, Dlg.WinTop + 40, Dlg.WinLeft + 291, Dlg.WinTop + 40 + 128);
     Settings.FLeader.ShowFace(R, Surface);
   end;
 end;
@@ -75,8 +75,8 @@ begin
     if not SetupEvents.SetupControl.FSettings.FCustomizeLeaders then
     begin
       I := SetupEvents.SetupControl.FSettings.FRemotePlayers.IndexOfRemoteID(SetupEvents.SetupControl.FRemotePlayer.FRemoteID);
-      if I = -1 then PlayerName.Text := Settings.FLeader.FHeroName
-      else PlayerName.Text := SetupEvents.SetupControl.FSettings.FRemotePlayers.GetPlayers(I).FName;
+      if I <> -1 then PlayerName.Text := SetupEvents.SetupControl.FSettings.FRemotePlayers.GetPlayers(I).FName
+      else PlayerName.Text := Settings.FLeader.FHeroName;
     end
     else PlayerName.Text := Settings.FLeader.FHeroName;
     PlayerRace.Text := TranslateRStr(RaceNamesPluralRStr[Settings.FRace]);

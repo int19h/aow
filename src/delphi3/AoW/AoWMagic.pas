@@ -103,7 +103,7 @@ type
     procedure PowerValueListChange;
     procedure ResearchBtnClick;
     procedure ChangePowerButClick;
-    procedure SpellIcnDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+    procedure SpellIcnDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure PowerSourceListDoubleClick;
     procedure PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure PowerSBChange;
@@ -142,14 +142,17 @@ end;
 procedure TMagicWin.SelectGlobalEnchantment(Index: Integer);
 var
   Reason: string;
+  Enchantment: TGlobalEnchantment;
 begin
   if Index >= GlobalEnchantmentList.Items.Count then Index := GlobalEnchantmentList.Items.Count - 1;
   GlobalEnchantmentList.Selected := Index;
   GlobalNameList.Selected := Index;
   GlobalUpkeepList.Selected := Index;
   if Index <> -1 then
-    GlobalDispelBtn.Visible := TGlobalEnchantment(GlobalEnchantmentList.Items.Objects[Index]).CanRemove(
-      AoWHSMap.FSeatedPlayer, Reason)
+  begin
+    Enchantment := TGlobalEnchantment(GlobalEnchantmentList.Items.Objects[Index]);
+    GlobalDispelBtn.Visible := Enchantment.CanRemove(AoWHSMap.FSeatedPlayer, Reason);
+  end
   else
     GlobalDispelBtn.Visible := False;
 end;
@@ -290,19 +293,20 @@ begin
   PowerDlg.Execute;
 end;
 
-procedure TMagicWin.SpellIcnDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+procedure TMagicWin.SpellIcnDraw(Sender: TObject; Surface: TSurfaceDesc);
 var
-  Player: TPlayer;
+  Magic: TPlayerMagicControl;
   Spell: TSpell;
 begin
-  Player := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer);
-  if Player.FMagicControl.FResearchSpellID <> 0 then
+  Magic := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl;
+  if Magic.FResearchSpellID <> 0 then
   begin
-    Spell := AoWHSSet.FSpellControl.GetSpell(Player.FMagicControl.FResearchSpellID);
+    Spell := AoWHSSet.FSpellControl.GetSpell(Magic.FResearchSpellID);
     if Spell <> nil then
       if Spell.FCastImages.GetImageSequence(10) <> nil then
-        Spell.FCastImages.Show(10, Sender.WinLeft + Sender.FAOWOwner.WinLeft,
-          Sender.WinTop + Sender.FAOWOwner.WinTop, 0, Surface);
+        with TAOWImage(Sender) do
+          Spell.FCastImages.Show(10, FAOWWindow.WinLeft + WinLeft,
+            FAOWWindow.WinTop + WinTop, 0, Surface);
   end;
 end;
 
@@ -315,9 +319,10 @@ end;
 
 procedure TMagicWin.PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  if (Button = mbRight) and (PowerSourceList.Selected > -1) then
+  if Button = mbRight then
+    if PowerSourceList.Selected >= 0 then
     if PowerSourceList.Selected < PowerSourceList.Items.Count then
-      TPowerSource(PowerSourceList.Items.Objects[PowerSourceList.Selected]).Select;
+      TPowerSource(PowerSourceList.Items.Objects[PowerSourceList.Selected]).CenterToLocation;
 end;
 
 procedure TMagicWin.PowerSBChange;

@@ -18,7 +18,7 @@ var
   SoundDlg: TSoundDlg;
   VideoDialog: TVideoDialog;
   MultiWindow: TMultiWindow;
-  SWindow: TSWindow;
+  SWindow: TSWindow absolute AoWSWindow.SWindow;
   PInfoW: TPInfoW;
   UnitWindow: TUnitWindow;
   RealmWin: TRealmWin;
@@ -42,7 +42,7 @@ procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
 
 { Shared unnamed routines called by the leader setup window. }
 procedure ResetMessageDialog(Dialog: TMessageDlg);
-procedure SetInfoBanner(Banner: TInfoBanner; Caption: string; Description: TStrings);
+procedure SetInfoBanner(Banner: TInfoBanner; const Caption: string; Description: TStrings);
 
 implementation
 
@@ -60,7 +60,7 @@ begin
   Dialog.TitleLbl.Text := TranslateRStr(MessageRStr);
 end;
 
-procedure SetInfoBanner(Banner: TInfoBanner; Caption: string; Description: TStrings);
+procedure SetInfoBanner(Banner: TInfoBanner; const Caption: string; Description: TStrings);
 begin
   Banner.HeaderLbl.Text := Caption;
   Banner.InfoMemo.Items.Text := Description.Text;

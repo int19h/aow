@@ -83,7 +83,7 @@
     function Name: string; virtual;
     function Power: Integer; virtual;
     procedure GetLocation(var A1, A2, A3: Shortint); virtual;
-    procedure CenterToLocation(A1: Integer; A2: Integer); virtual;  { +058 draft }
+    procedure CenterToLocation; virtual; { $058; AoW.exe 0042D9D8 }
     procedure Select; virtual;
   end;
 

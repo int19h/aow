@@ -63,7 +63,7 @@ type
   public
     FBehavior: TSetupPlayerBehavior; { +$08 }
     FOriginalBehavior: TSetupPlayerBehavior; { +$10 }
-    FRace: Byte; { +$18 }
+    FRace: Shortint; { $18; AoW.exe 00413613 }
     FStatus: TPlayerSetupStatus; { +$19 }
     F_PlayerSetupSettings_1A: array[0..1] of Byte;
     FLeader: TLeader; { +$1C }
@@ -316,7 +316,7 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwByte(FPlayerID, 10);
   Stream.rwData(FBehavior, SizeOf(FBehavior), 11);
-  Stream.rwByte(FRace, 12);
+  Stream.rwByte(Byte(FRace), 12);
   Stream.rwData(FBehaviorMode, SizeOf(FBehaviorMode), 13);
   Stream.rwEObject(FLeader, 14);
   Stream.rwData(FStatus, SizeOf(FStatus), 15);

@@ -23,7 +23,7 @@ type
     { conflict: FCommandLineLaunch: Boolean; FSetupPad: array[0..2] of Byte; }
     procedure ClearChat;
     procedure UpdateChatPlayers;
-    procedure UpdatePlayerName(Name: string);
+    procedure UpdatePlayerName(const Name: string);
     procedure SetupControlStart;
     procedure SetupControlSendMap(Control: TSetupControl; Data: Pointer; Size, Recipient: Integer);
     procedure DPlayFileStartMessage(ID: Integer; var Name: string; Size: Integer; var Response: Byte);
@@ -81,7 +81,7 @@ begin
       end;
 end;
 
-procedure TSetupEvents.UpdatePlayerName(Name: string);
+procedure TSetupEvents.UpdatePlayerName(const Name: string);
 begin
   if SetupControl.GetRemote and DPlay.Connected then
     DPlay.PlayerName := Name;

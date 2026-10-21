@@ -87,24 +87,13 @@ var
 begin
   R.Left := 0; R.Right := 0; R.Top := 0; R.Bottom := 0;
   if X <> -1 then
-    if AoWHSMap = nil then
-    begin
-      if FCursor <> 1 then
-        if IntGfxMod.Cursors.ImageExist(FCursor) then
-        begin
-          IntGfxMod.Cursors[FCursor].GetVisualDimensions(Bounds);
-          Bounds.Left := Bounds.Left + X - 25; Bounds.Right := X + Bounds.Right - 25;
-          Bounds.Top := Bounds.Top + Y - 25; Bounds.Bottom := Bounds.Bottom + Y - 25;
-          UnionRect(R, R, Bounds);
-        end;
-    end
-    else
+    if AoWHSMap <> nil then
     begin
       if FCursorImage <> nil then
       begin
         FCursorImage.GetVisualDimensions(Bounds);
-        Bounds.Left := Bounds.Left + X - 15; Bounds.Right := Bounds.Right + X - 15;
-        Bounds.Top := Bounds.Top + Y - 20; Bounds.Bottom := Bounds.Bottom + Y - 20;
+        Bounds.Left := Bounds.Left + X + (-15); Bounds.Right := Bounds.Right + X + (-15);
+        Bounds.Top := Bounds.Top + Y + (-20); Bounds.Bottom := Bounds.Bottom + Y + (-20);
         UnionRect(R, R, Bounds);
       end;
       Cursor := FCursor;
@@ -113,8 +102,19 @@ begin
         if AoWHSSet.FCursorImages[Cursor] <> nil then
         begin
           AoWHSSet.FCursorImages[Cursor].GetVisualDimensions(Bounds);
-          Bounds.Left := Bounds.Left + X - 25; Bounds.Right := X + Bounds.Right - 25;
-          Bounds.Top := Bounds.Top + Y - 25; Bounds.Bottom := Bounds.Bottom + Y - 25;
+          Bounds.Left := Bounds.Left + X + (-25); Bounds.Right := X + Bounds.Right + (-25);
+          Bounds.Top := Bounds.Top + Y + (-25); Bounds.Bottom := Bounds.Bottom + Y + (-25);
+          UnionRect(R, R, Bounds);
+        end;
+    end
+    else
+    begin
+      if FCursor <> 1 then
+        if IntGfxMod.Cursors.ImageExist(FCursor) then
+        begin
+          IntGfxMod.Cursors[FCursor].GetVisualDimensions(Bounds);
+          Bounds.Left := Bounds.Left + X + (-25); Bounds.Right := X + Bounds.Right + (-25);
+          Bounds.Top := Bounds.Top + Y + (-25); Bounds.Bottom := Bounds.Bottom + Y + (-25);
           UnionRect(R, R, Bounds);
         end;
     end;
@@ -125,29 +125,29 @@ var
   Cursor: Integer;
 begin
   if X <> -1 then
-    if (AoWHSMap = nil) or not (msActivated in AoWHSMap.Status) then
+    if (AoWHSMap <> nil) and (msActivated in AoWHSMap.Status) then
     begin
-      if (FCursor <> 1) and IntGfxMod.Cursors.ImageExist(FCursor) then
-        IntGfxMod.Cursors[FCursor].ShowClipped(X - 25, Y - 25, Surface);
-    end
-    else
-    begin
-      if FCursorImage <> nil then FCursorImage.Show(X - 15, Y - 20, Surface);
+      if FCursorImage <> nil then FCursorImage.Show(X + (-15), Y + (-20), Surface);
       Cursor := FCursor;
       if (Cursor = 9999) and (AoWHSMap <> nil) then Cursor := AoWHSMap.Mouse.Cursor;
       if (Cursor <> 1) and (AoWHSSet.FCursorImages[Cursor] <> nil) then
       begin
         if (AoWHSMap.FSeatedPlayer <> -1) and (AoWHSMap.FCombatMap = nil) then
           if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetBusy and
-            (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerType = ptHuman) then
+            (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGameOverStatus = goNone) then
           begin
-            AoWHSSet.FCursorImages[Cursor].ShowBlended(X - 25, Y - 25, Surface,
+            AoWHSSet.FCursorImages[Cursor].ShowBlended(X + (-25), Y + (-25), Surface,
               AlphaBlendTable.LookupTables[Abs((AoWHSMap.Frame shl 2) mod 100 - 50) + 30]);
             FCursorChanged := True;
             Exit;
           end;
-        AoWHSSet.FCursorImages[Cursor].Show(X - 25, Y - 25, Surface);
+        AoWHSSet.FCursorImages[Cursor].Show(X + (-25), Y + (-25), Surface);
       end;
+    end
+    else
+    begin
+      if (FCursor <> 1) and IntGfxMod.Cursors.ImageExist(FCursor) then
+        IntGfxMod.Cursors[FCursor].ShowClipped(X + (-25), Y + (-25), Surface);
     end;
 end;
 
@@ -155,7 +155,7 @@ procedure TMainForm.ScrollMap(X, Y: Integer);
 begin
   if not HasModalWindow(General) and (X <> -1) and Application.Active then
   begin
-    if X < 2 then
+    if X <= 1 then
     begin
       MWindow.MapViewer.SceneX := MWindow.MapViewer.SceneX - 16;
       SWindow.Scanner.SetTLeft(MWindow.MapViewer.SceneX div 32 - 6);
@@ -165,7 +165,7 @@ begin
       MWindow.MapViewer.SceneX := MWindow.MapViewer.SceneX + 16;
       SWindow.Scanner.SetTLeft(MWindow.MapViewer.SceneX div 32 - 6);
     end;
-    if Y < 2 then
+    if Y <= 1 then
     begin
       MWindow.MapViewer.SceneY := MWindow.MapViewer.SceneY - 16;
       SWindow.Scanner.SetTTop(MWindow.MapViewer.SceneY div 32 - 6);
@@ -195,11 +195,12 @@ begin
          OpenSelectedGame(FileDlgWindow);
        end;
   end;
-  if SetupEvents.DPlay.Session <> nil then SetupEvents.DPlay.CheckMessages;
+  if SetupEvents.DPlay.DPlay <> nil then SetupEvents.DPlay.CheckMessages;
   ProcessSound;
   try
     if AoWHSMap <> nil then AoWHSMap.NewFrame;
   except
+    ShowMessage('Exception during AoWHSMap.NewFrame');
   end;
   if (DC <> nil) and (DC.GetSurface(1) <> nil) then
   begin
@@ -212,9 +213,10 @@ begin
     try
       General.Manager.DrawSurface(DC.GetSurface(1));
     except
+      ShowMessage('Exception during WinManager DrawSurface');
     end;
     if X <> -1 then
-      if Succeeded(DC.GetSurface(1).Lock(Surface)) then
+      if DC.GetSurface(1).Lock(Surface) >= 0 then
       begin
         DrawCursor(X, Y, Surface);
         DC.GetSurface(1).Unlock;
@@ -404,19 +406,19 @@ begin
   AoWEngine.OutputDebugStr('ParamStr: ' + ParamStr(1));
   if (CompareText(ParamStr(1), 'dplobby') = 0) or (CompareText(ParamStr(1), 'dblobby') = 0) then
     if StartLobby(SetupEvents) then Exit;
-  if (ParamStr(1) <> '') and FileExists(ParamStr(1)) then
-    if (CompareText(ExtractFileExt(ParamStr(1)), '.asg') = 0) or
-      (CompareText(ExtractFileExt(ParamStr(1)), '.acg') = 0) then
+  if (ParamStr(1) <> '') and FileExists(ParamStr(1)) and
+    ((CompareText(ExtractFileExt(ParamStr(1)), '.asg') = 0) or
+      (CompareText(ExtractFileExt(ParamStr(1)), '.acg') = 0)) then
     begin
       ShowTitleScene(TitleScene, False);
       DeferredSetupAction := 2;
       FileDlgWindow.FLastFileName := ParamStr(1);
       Exit;
     end;
-  if not AoWEngine.FDemo then
+  if AoWEngine.FDemo then TitleWindow.ShowSplash
+  else
     if not AoWEngine.FDebug and not AoWEngine.FRegistry.GetSkipIntro then IntroScene.Execute
-    else ShowTitleScene(TitleScene, True)
-  else TitleWindow.ShowSplash;
+    else ShowTitleScene(TitleScene, True);
 end;
 
 procedure TMainForm.DisplayKeyPress(Sender: TObject; var Key: Char);
@@ -427,8 +429,8 @@ end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if AoWHSMap = nil then CanClose := True
-  else
+  if AoWHSMap <> nil then
+  begin
     if AoWHSMap.FCombatMap = nil then
     begin
       AoWHSMap.ExitGame(egmTerminate, ExitGameDone);
@@ -438,7 +440,9 @@ begin
     begin
       ConfirmDialog(DialogWin, TranslateRStr(ConfirmRStr), TranslateRStr(QuitCombatRStr), 6);
       CanClose := False;
-    end;
+    end
+  end
+  else CanClose := True;
 end;
 
 procedure TMainForm.DisplaySwapDC(DC: TAbstractDC);

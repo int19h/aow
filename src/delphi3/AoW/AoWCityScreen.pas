@@ -312,7 +312,7 @@ end;
 
 procedure TCityScreen.ActivityDoubleClick(Sender: TObject);
 begin
-  if Byte(TAOWCheckBox(Sender).Tag) <> 3 then
+  if TCityAction(Byte(TAOWCheckBox(Sender).Tag) + 1) <> caMigrate then
   begin
     ResetChecks;
     SelectAction(TCityAction(Byte(TAOWCheckBox(Sender).Tag) + 1));
@@ -596,8 +596,8 @@ end;
 
 procedure TCityScreen.CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
 var
-  R: TRect;
   Info: TP2UnitShowInfo;
+  R: TRect;
   U: TUnit;
 begin
   if FCity.FProduction.FQueue.GetCount <> 0 then
@@ -669,8 +669,8 @@ procedure TCityScreen.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftSt
 begin
   case Key of
     VK_LEFT: begin Dec(FViewX, 16); MapView.FDrawn := False; end;
-    VK_UP: begin Dec(FViewY, 16); MapView.FDrawn := False; end;
     VK_RIGHT: begin Inc(FViewX, 16); MapView.FDrawn := False; end;
+    VK_UP: begin Dec(FViewY, 16); MapView.FDrawn := False; end;
     VK_DOWN: begin Inc(FViewY, 16); MapView.FDrawn := False; end;
     VK_ESCAPE: Dlg.Visible := False;
   end;
@@ -851,7 +851,7 @@ begin
       QueueLB.Selected := -1;
       LPillar.Visible := True;
       RPillar.Visible := True;
-      with MapView do WinHeight := InfoPnl.WinTop - WinTop;
+      MapView.WinHeight := InfoPnl.WinTop - MapView.WinTop;
     end;
     1: begin
       QueueLB.Selected := -1;
@@ -863,7 +863,7 @@ begin
       CityBtn3.Text := TranslateRStr(DoneRStr);
       LPillar.Visible := False;
       RPillar.Visible := False;
-      with MapView do WinHeight := ActivityPnl.WinTop - WinTop;
+      MapView.WinHeight := ActivityPnl.WinTop - MapView.WinTop;
       MigrationRaceLB.CaptureInput := True;
       MigrationTurnsLB.CaptureInput := True;
       MigrationRelationLB.CaptureInput := True;
@@ -1152,12 +1152,7 @@ begin
   if FCity.GetActiveAction <> caNone then
   begin
     ActiveAction.Text := FCity.FProduction.FQueue.GetItem(0).GetNameProgressive;
-    if FCity.FProduction.FSettings.FTurnsLeft = -1 then
-    begin
-      ActiveActionTurns.Visible := False;
-      ActiveActionTurnsBar.Visible := False;
-    end
-    else
+    if FCity.FProduction.FSettings.FTurnsLeft <> -1 then
     begin
       ActiveActionTurns.Text := FmtTurnsLeftStr(FCity.FProduction.FSettings.FTurnsLeft);
       ActiveActionTurns.Visible := True;
@@ -1169,6 +1164,11 @@ begin
         Position := FCity.FProduction.FSettings.FTurnsTotal - FCity.FProduction.FSettings.FTurnsLeft;
       end;
       ActiveActionTurnsBar.Visible := True;
+    end
+    else
+    begin
+      ActiveActionTurns.Visible := False;
+      ActiveActionTurnsBar.Visible := False;
     end;
     CurrentActionImage.CurrentImage := ActivityImage(FCity.GetActiveAction);
   end

@@ -134,5 +134,6 @@
   "0043f184:83": "SphereImage",
   "0043d37c:896": "TCityScreen.CityBtn1Click",
   "0043d6fc:519": "TCityScreen.CityBtn2Click",
-  "0043e290:171": "TCityScreen.DlgKeyDown"
+  "0043e290:171": "TCityScreen.DlgKeyDown",
+  "00441550:171": "TProductionScreen.DlgKeyDown"
 }

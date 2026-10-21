@@ -227,7 +227,7 @@ begin
         if AoWCombatMap <> nil then AoWCombatMap.FShowGrid := not AoWCombatMap.FShowGrid
         else AoWHSMap.FShowGrid := not AoWHSMap.FShowGrid;
       VK_F6:
-        if AoWEngine.FDebug and (Ord(AoWHSMap.FConnectionType) <> 1) then
+        if AoWEngine.FDebug and (AoWHSMap.FConnectionType <> pcNetwork) then
           if AoWCombatMap <> nil then
           begin
             AoWCombatMap.SetFogEnabled(not AoWCombatMap.FFogEnabled);
@@ -241,7 +241,7 @@ begin
             else AoWHSMap.ShowMessage('Fog Disabled');
           end;
       VK_F7:
-        if AoWEngine.FDebug and (Ord(AoWHSMap.FConnectionType) <> 1) then
+        if AoWEngine.FDebug and (AoWHSMap.FConnectionType <> pcNetwork) then
           if AoWCombatMap <> nil then
           begin
             AoWCombatMap.SetExplorationEnabled(not AoWCombatMap.FExplorationEnabled);

@@ -41,6 +41,9 @@ type
   end;
 
 
+var
+  SWindow: TSWindow; { $45B2A0 }
+
 implementation
 
 uses AoWE, AoWWinMan, AoWExeForms, AOWMWindow, aowHelpWin;
@@ -77,7 +80,7 @@ procedure TSWindow.ScannerWindowResize;
 begin
   with ScannerWindow do
   begin
-    Alignment.RightOffset := FWinManager.WinWidth - WinWidth - WinLeft;
+    Alignment.RightOffset := FWinManager.WinWidth - WinLeft - WinWidth;
     Alignment.TopOffset := WinTop;
   end;
 end;

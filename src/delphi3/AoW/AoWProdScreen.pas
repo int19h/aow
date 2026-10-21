@@ -154,7 +154,7 @@ type
     procedure MainBtn2Click;
     procedure MainBtn3Click;
     procedure UFaceDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure QueueLBChange;
+    procedure QueueLBChange(Sender: TObject);
     procedure B4CBUpdate(Sender: TObject);
     procedure LoopQueueBoxChange;
     procedure CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
@@ -403,7 +403,7 @@ begin
   end;
 end;
 
-procedure TProductionScreen.QueueLBChange;
+procedure TProductionScreen.QueueLBChange(Sender: TObject);
 begin
   if (QueueLB.Selected < FPlace.FProductionControl.FQueue.GetCount) and (FMode <> 0) then
   begin
@@ -449,17 +449,22 @@ end;
 
 procedure TProductionScreen.CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
 var
-  R: TRect;
   Info: TP2UnitShowInfo;
+  R: TRect;
   U: TUnit;
 begin
   if FPlace.FProductionControl.FQueue.GetCount <> 0 then
-    if FPlace.FProductionControl.FQueue.GetItem(0).FProductionID = 1 then
+    if (FPlace.FProductionControl.FQueue.GetItem(0).FProductionID = 1) or
+      (FPlace.FProductionControl.FQueue.GetItem(0).FProductionID = 2) then
+    begin
+      R := Rect(ActiveActionPnl.WinLeft + TAoWComponent(Sender).WinLeft,
+        ActiveActionPnl.WinTop + TAoWComponent(Sender).WinTop,
+        ActiveActionPnl.WinLeft + TAoWComponent(Sender).WinLeft + TAoWComponent(Sender).WinWidth,
+        ActiveActionPnl.WinTop + TAoWComponent(Sender).WinTop + TAoWComponent(Sender).WinHeight);
+      with FPlace.FProductionControl do
+      if FUnitProductions.GetItem(FSettings.FUnitProductionIndex) <> nil then
       begin
-        R := Rect(ActiveActionPnl.WinLeft + TAoWComponent(Sender).WinLeft, ActiveActionPnl.WinTop + TAoWComponent(Sender).WinTop,
-          ActiveActionPnl.WinLeft + TAoWComponent(Sender).WinLeft + TAoWComponent(Sender).WinWidth,
-          ActiveActionPnl.WinTop + TAoWComponent(Sender).WinTop + TAoWComponent(Sender).WinHeight);
-        U := FPlace.FProductionControl.CreateUnitProduction(FPlace.FProductionControl.FQueue.GetItem(0).FParameter);
+        U := FPlace.FProductionControl.CreateUnitProduction(FPlace.FProductionControl.FSettings.FUnitProductionIndex);
         if U <> nil then
         begin
           Info.Direction := 3;
@@ -467,13 +472,13 @@ begin
           Info.Animation := TUnitAnimation(0);
           Info.Frame := 0;
           Info.Looped := False;
-          if not FPlace.FProductionControl.FUnitProductions.GetItem(FPlace.FProductionControl.FQueue.GetItem(0).FParameter).FResearched then
-            Info.Direction := 5;
-          U.ShowEx(R.Left - 8, R.Top - 5, SD, Info);
+          U.ShowEx(R.Left - 12, R.Top - 5, SD, Info);
           U.Release;
         end;
       end;
+    end;
 end;
+
 
 procedure TProductionScreen.MapViewDraw(Sender: TObject; SD: TSurfaceDesc);
 var
@@ -505,11 +510,11 @@ end;
 procedure TProductionScreen.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
-    VK_ESCAPE: Dlg.Visible := False;
     VK_LEFT: begin Dec(FViewX, 16); MapView.FDrawn := False; end;
-    VK_UP: begin Dec(FViewY, 16); MapView.FDrawn := False; end;
     VK_RIGHT: begin Inc(FViewX, 16); MapView.FDrawn := False; end;
+    VK_UP: begin Dec(FViewY, 16); MapView.FDrawn := False; end;
     VK_DOWN: begin Inc(FViewY, 16); MapView.FDrawn := False; end;
+    VK_ESCAPE: Dlg.Visible := False;
   end;
 end;
 
@@ -713,13 +718,12 @@ end;
 
 function TProductionScreen.ActivityImage(Item: TProductionItem) : Integer;
 begin
-  if Item.FProductionID = 1 then Result := 4
-  else if Item.FProductionID = 10 then
-  begin
-    if FPlace.GetMagicSphere = msNone then Result := 47
-    else Result := 48;
-  end
+  case Item.FProductionID of
+    1: Result := 4;
+    10: if FPlace.GetMagicSphere <> msNone then Result := 48
+        else Result := 47;
   else Result := 4;
+  end;
 end;
 
 procedure TProductionScreen.SelectProduction(Index: Integer);
@@ -795,8 +799,8 @@ begin
       if FPlace.GetMagicSphere = msNone then UpgradeMemo.Items.Text := TranslateRStr(ProduceMerchandiseTextRStr)
       else UpgradeMemo.Items.Text := TranslateRStr(GenerateExtraPowerTextRStr);
       UpgradePnl.Visible := True;
-      if FPlace.GetMagicSphere = msNone then UpgradePic.CurrentImage := 27
-      else UpgradePic.CurrentImage := 28;
+      if FPlace.GetMagicSphere <> msNone then UpgradePic.CurrentImage := 28
+      else UpgradePic.CurrentImage := 27;
       UpgradeLbl.Text := MainBtn1.Text;
     end;
     5: begin
@@ -838,7 +842,14 @@ begin
     IncomeHdr.Items.Add(AoWE.Format(' ' + TranslateRStr(XPowerRStr), [IntToStr(FPlace.GetPower)]));
   if FPlace.GetIncome <> 0 then
     IncomeHdr.Items.Add(AoWE.Format(' ' + TranslateRStr(XGoldRStr), [IntToStr(FPlace.GetIncome)]));
-  if FPlace.GetMagicSphere = msNone then
+  if FPlace.GetMagicSphere <> msNone then
+  begin
+    IncomePicture.ILIndexTexture := 64;
+    IPPicFr.ILTexture := nil;
+    Sphere.SetILUIndex(SphereImage(FPlace.GetMagicSphere));
+    Sphere.Visible := True;
+  end
+  else
   begin
     if FPlace is TShipyard then
     begin
@@ -850,13 +861,6 @@ begin
     if FPlace is TShipyard then IPPicFr.ILIndexTexture := 67
     else IPPicFr.ILIndexTexture := 66;
     Sphere.Visible := False;
-  end
-  else
-  begin
-    IncomePicture.ILIndexTexture := 64;
-    IPPicFr.ILTexture := nil;
-    Sphere.SetILUIndex(SphereImage(FPlace.GetMagicSphere));
-    Sphere.Visible := True;
   end;
   IncomeMemo.Items.Clear;
   IncomeValuesMemo.Items.Clear;
@@ -872,15 +876,10 @@ begin
     FQueueIndex := QueueLB.Selected;
   end;
   LoopQueueBox.Checked := FPlace.FProductionControl.FLoopQueue;
-  case FPlace.FProductionControl.FStatus of
-    pcsProducing: begin
+  if FPlace.FProductionControl.FStatus = pcsProducing then
+  begin
     ActiveAction.Text := FPlace.FProductionControl.FQueue.GetItem(0).GetNameProgressive;
-    if FPlace.FProductionControl.FSettings.FTurnsLeft = -1 then
-    begin
-      ActiveActionTurns.Visible := False;
-      ActiveActionTurnsBar.Visible := False;
-    end
-    else
+    if FPlace.FProductionControl.FSettings.FTurnsLeft <> -1 then
     begin
       ActiveActionTurns.Text := FmtTurnsLeftStr(FPlace.FProductionControl.FSettings.FTurnsLeft);
       ActiveActionTurns.Visible := True;
@@ -892,42 +891,48 @@ begin
         Position := FPlace.FProductionControl.FSettings.FTurnsTotal - FPlace.FProductionControl.FSettings.FTurnsLeft;
       end;
       ActiveActionTurnsBar.Visible := True;
-    end;
-      CurrentActionImage.CurrentImage := ActivityImage(FPlace.FProductionControl.FQueue.GetItem(0));
-    end;
-    pcsIdle: begin
-      ActiveAction.Text := FPlace.GetCurrentActivityText;
-      ActiveActionTurns.Text := '(' + LowerCase(TranslateRStr(DefaultRStr)) + ')';
-      ActiveActionTurns.TextColor := $678376;
-      if CompareText(ActiveAction.Text, TranslateRStr(NoneRStr)) = 0 then
-      begin
-        ActiveActionTurns.Visible := False;
-        CurrentActionImage.CurrentImage := 62;
-      end
-      else
-      begin
-        ActiveActionTurns.Visible := True;
-        Item := TProductionItem.Create(nil);
-        Item.FProductionID := 10;
-        CurrentActionImage.CurrentImage := ActivityImage(Item);
-        Item.Free;
-      end;
+    end
+    else
+    begin
+      ActiveActionTurns.Visible := False;
       ActiveActionTurnsBar.Visible := False;
     end;
-    pcsWaiting: begin
-      Reason := '';
-      ActiveAction.Text := FPlace.FProductionControl.FQueue.GetItem(0).GetNameProgressive;
-      FPlace.FProductionControl.CanExecuteProduction(FPlace.FProductionControl.FQueue.GetItem(0), Reason);
-      ActiveActionTurns.Text := Reason;
-      ActiveActionTurns.TextColor := $FF;
+    CurrentActionImage.CurrentImage := ActivityImage(FPlace.FProductionControl.FQueue.GetItem(0));
+  end
+  else if FPlace.FProductionControl.FStatus = pcsIdle then
+  begin
+    ActiveAction.Text := FPlace.GetCurrentActivityText;
+    ActiveActionTurns.Text := '(' + LowerCase(TranslateRStr(DefaultRStr)) + ')';
+    ActiveActionTurns.TextColor := $678376;
+    if CompareText(ActiveAction.Text, TranslateRStr(NoneRStr)) <> 0 then
+    begin
       ActiveActionTurns.Visible := True;
-      ActiveActionTurnsBar.Visible := False;
-      CurrentActionImage.CurrentImage := ActivityImage(FPlace.FProductionControl.FQueue.GetItem(0));
+      Item := TProductionItem.Create(nil);
+      Item.FProductionID := 10;
+      CurrentActionImage.CurrentImage := ActivityImage(Item);
+      Item.Free;
+    end
+    else
+    begin
+      ActiveActionTurns.Visible := False;
+      CurrentActionImage.CurrentImage := 62;
     end;
+    ActiveActionTurnsBar.Visible := False;
+  end
+  else if FPlace.FProductionControl.FStatus = pcsWaiting then
+  begin
+    Reason := '';
+    ActiveAction.Text := FPlace.FProductionControl.FQueue.GetItem(0).GetNameProgressive;
+    FPlace.FProductionControl.CanExecuteProduction(FPlace.FProductionControl.FQueue.GetItem(0), Reason);
+    ActiveActionTurns.Text := Reason;
+    ActiveActionTurns.TextColor := $FF;
+    ActiveActionTurns.Visible := True;
+    ActiveActionTurnsBar.Visible := False;
+    CurrentActionImage.CurrentImage := ActivityImage(FPlace.FProductionControl.FQueue.GetItem(0));
   end;
   case FMode of
     1: if FProductionIndex <> -1 then SelectProduction(FProductionIndex);
-    2: QueueLBChange;
+    2: QueueLBChange(Self);
   end;
   Dlg.FDrawn := False;
 end;
