@@ -57,7 +57,25 @@ implementation
 uses ExptIntf;
 
 
-{$I inc\AoWEimpl.inc}
+{$I inc\Combat.pas}
+{$I inc\Combat2.pas}
+{$I inc\CombatPredictor.pas}
+{$I inc\Diplomacy.pas}
+{$I inc\AI.pas}
+{$I inc\AIGroup.pas}
+{$I inc\MoveT.PAS}
+{$I inc\Ability.PAS}
+{$I inc\Player.PAS}
+{$I inc\PlayerC.PAS}
+{$I inc\Structur.PAS}
+{$I inc\AoWAb.PAS}
+{$I inc\AoWHSMap.PAS}
+{$I inc\Spells.PAS}
+{$I inc\Unit.PAS}
+{$I inc\UnitHS.PAS}
+{$I inc\UnitRes.PAS}
+{$I inc\Hero.PAS}
+{$I inc\Army.PAS}
 
 initialization
   TAbilityTypeRStr[atEnhancement] := EnhancementRStr;
