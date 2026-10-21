@@ -7,14 +7,15 @@ unit AoWWinMan;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWWindow, AoWTC, AOWToolTip, AOWWinManager;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWWindow, AoWTC, AOWToolTip, AOWWinManager;
 
 type
   TGeneral = class;
 
 
   { TGeneral (instance size $CC, VMT 00453FC4).
-    $84 selected unit indices; $A4 unit list; $C0 current unit; $C4 combat unit sprite. }
+    $68 preview settings; $78 abilities; $7C active ability count;
+    $84 selected indices; $A4 unit list; $C0 selected unit; $C4 combat sprite. }
   TGeneral = class(TDataModule)
   public
     published
@@ -25,8 +26,8 @@ type
     FUnitShowInfo: TP2UnitShowInfo; { $68; 0044A1E5 }
     { $69..$73 are part of FUnitShowInfo. }
     FReserved74: Integer; { $74 }
-    F_General_78: Integer;
-    F_General_7C: array[0..7] of Byte;
+    FAbilities: TList; { $78 }
+    FActiveAbilityCount: Integer; { $7C } F_General_80: Integer;
     FSelectedUnits: array[0..7] of Integer; { $84 }
     FUnitList: TUnitList; { $A4 }
     F_General_A8: array[0..23] of Byte;
@@ -40,7 +41,8 @@ type
     procedure RegisterDialog(Window: TAOWWindow); { draft; 00456AAC }
     procedure UnregisterDialog(Window: TAOWWindow); { draft; 00456B34 }
     function IndexOfUnit(U: TAbstractUnit): Integer;
-    procedure MTtoInt(A1: Byte; A2: Integer);  { draft }
+    procedure BuildAbilities; { 00455D10 }
+    function MTtoInt(MoveTypes: TMoveTypes): Integer;
     procedure ManagerChangeCursor;  { draft }
     procedure GeneralCreate;  { draft }
     procedure GeneralDestroy;  { draft }
@@ -56,6 +58,8 @@ var
   General: TGeneral;
 
 implementation
+
+uses E3Globals, AoWListBox;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -78,29 +82,227 @@ begin
         if U = FUnitList.GetUnit(FSelectedUnits[I]) then Result := I;
 end;
 
+procedure TGeneral.BuildAbilities;
+var
+  I: Integer;
+  A: TTCAbility;
+begin
+  FActiveAbilityCount := 0;
+  for I := 0 to FAbilities.Count - 1 do TObject(FAbilities[I]).Free;
+  FAbilities.Clear;
+  for I := 0 to 169 do
+    if FSelectedUnit.GetAbilityEnabled(I) then
+    begin
+      A := TTCAbility.Create;
+      A.Ability := I;
+      if General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer then
+        if AoWHSSet.FAbilityControl.GetAbility(I).GetControlType(General.FSelectedUnit) * [acAction] = [acAction] then
+        begin
+          FAbilities.Insert(FActiveAbilityCount, A);
+          Inc(FActiveAbilityCount);
+        end
+        else FAbilities.Add(A)
+      else FAbilities.Add(A);
+    end;
+end;
+
 procedure TGeneral.SortLists(var Lists: TList; Order: Byte);
-begin end;
+var
+  L: TAOWListBox;
+  I, J, InsertAt: Integer;
+begin
+  L := TAOWListBox(Lists[0]);
+  for I := 1 to L.Items.Count - 1 do
+  begin
+    J := I - 1; InsertAt := -1;
+    while J > -1 do
+    begin
+      case Order of
+        0: if CompareStr(UpperCase(L.Items[I]), UpperCase(L.Items[J])) < 0 then InsertAt := J;
+        1: if CompareStr(UpperCase(L.Items[I]), UpperCase(L.Items[J])) > 0 then InsertAt := J;
+        2: try if StrToInt(L.Items[I]) > StrToInt(L.Items[J]) then InsertAt := J; except end;
+        3: try if StrToInt(L.Items[I]) < StrToInt(L.Items[J]) then InsertAt := J; except end;
+      end;
+      Dec(J);
+    end;
+    if InsertAt > -1 then
+      for J := 0 to Lists.Count - 1 do TAOWListBox(Lists[J]).Items.Move(I, InsertAt);
+  end;
+  for I := 0 to Lists.Count - 1 do
+  begin
+    L := TAOWListBox(Lists[I]); L.ListOffset := 0; L.Selected := -1; L.FSized := False;
+  end;
+  Lists.Free;
+end;
 
 procedure TGeneral.RegisterDialog(Window: TAOWWindow);
-begin end;
+begin
+  with MWindow.MapWindow.Alignment do
+    if (AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) then
+    begin
+      with MWindow.MapWindow do
+      begin
+        Alignment.BottomOffset := TBWindow.TaskWindow.WinHeight + Window.WinHeight;
+        FAligned := False;
+        if Visible then Window.Alignment.RightOffset := Alignment.RightOffset
+        else Window.Alignment.RightOffset := 0;
+      end;
+      Window.FAligned := False;
+    end;
+end;
 
 procedure TGeneral.UnregisterDialog(Window: TAOWWindow);
-begin end;
+begin
+  if (MWindow.MapWindow.Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) and
+    ((Window = ChatWindow.ChatWin) or not ChatWindow.ChatWin.Visible or (ChatWindow.ChatWin.Alignment.AlignWidth <> awBoth)) and
+    ((Window = MagicWin.Dlg) or not MagicWin.Dlg.Visible or (MagicWin.Dlg.Alignment.AlignWidth <> awBoth)) and
+    ((Window = RealmWin.Dlg) or not RealmWin.Dlg.Visible or (RealmWin.Dlg.Alignment.AlignWidth <> awBoth)) then
+  begin
+    with MWindow.MapWindow do
+    begin
+      Alignment.BottomOffset := TBWindow.TaskWindow.WinHeight; FAligned := False;
+      Window.Alignment.RightOffset := Alignment.RightOffset;
+    end;
+    Window.FAligned := False;
+  end;
+end;
 
-procedure TGeneral.MTtoInt(A1: Byte; A2: Integer);
-begin end;
+function TGeneral.MTtoInt(MoveTypes: TMoveTypes): Integer;
+begin
+  Result := 0;
+  if MoveTypes * [mtForestry] = [mtForestry] then Result := 2;
+  if MoveTypes * [mtMountaineering] = [mtMountaineering] then Result := 4;
+  if MoveTypes * [mtSwimming] = [mtSwimming] then Result := 6;
+  if MoveTypes * [mtWalking, mtSwimming] = [mtWalking, mtSwimming] then Result := 8;
+  if MoveTypes * [mtSwimming, mtForestry] = [mtSwimming, mtForestry] then Result := 10;
+  if MoveTypes * [mtSwimming, mtMountaineering] = [mtSwimming, mtMountaineering] then Result := 12;
+  if MoveTypes * [mtForestry, mtMountaineering] = [mtForestry, mtMountaineering] then Result := 14;
+  if MoveTypes * [mtSwimming, mtForestry, mtMountaineering] = [mtSwimming, mtForestry, mtMountaineering] then Result := 16;
+  if MoveTypes * [mtFlying] = [mtFlying] then Result := 18;
+end;
 
 procedure TGeneral.ManagerChangeCursor;
 begin end;
 
 procedure TGeneral.GeneralCreate;
-begin end;
+begin
+  FUnitShowInfo.Direction := 3;
+  FUnitShowInfo.Overlays := [uoRank];
+  FAbilities := TList.Create;
+end;
 
 procedure TGeneral.GeneralDestroy;
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to FAbilities.Count - 1 do TObject(FAbilities[I]).Free;
+  FAbilities.Free;
+end;
 
 procedure TGeneral.ResetLayout;
-begin end;
+begin
+  with SWindow.ScannerWindow do
+  begin
+    with Alignment do begin TopOffset := 0; RightOffset := 0; end;
+    if General.Manager.WinHeight > 700 then
+      WinHeight := (General.Manager.WinHeight - TBWindow.TaskWindow.WinHeight) div 3
+    else
+      WinHeight := (General.Manager.WinHeight - TBWindow.TaskWindow.WinHeight) div 2;
+    WinWidth := (WinHeight * 200) div 216;
+    if AoWHSMap <> nil then Visible := (AoWHSMap.FCombatMap = nil) and MWindow.MapWindow.Visible;
+  end;
+  with PInfoW.PInfoWin do
+  begin
+    with Alignment do begin BottomOffset := 0; RightOffset := 0; end;
+    WinWidth := SWindow.ScannerWindow.WinWidth;
+    WinHeight := SWindow.ScannerWindow.WinHeight;
+    if AoWHSMap <> nil then Visible := (AoWHSMap.FCombatMap = nil) and MWindow.MapWindow.Visible;
+  end;
+  with ControlWin.ControlWindow do
+  begin
+    with Alignment do begin TopOffset := SWindow.ScannerWindow.WinHeight; RightOffset := 0; end;
+    WinWidth := SWindow.ScannerWindow.WinWidth;
+    WinHeight := SWindow.ScannerWindow.WinHeight;
+    Visible := False;
+  end;
+  with IWindow.InfoWin do
+  begin
+    with Alignment do begin TopOffset := SWindow.ScannerWindow.WinHeight; RightOffset := 0; end;
+    WinWidth := SWindow.ScannerWindow.WinWidth;
+    WinHeight := SWindow.ScannerWindow.WinHeight;
+    Visible := False;
+  end;
+  with TargetSelectionDlg.Dlg do
+  begin
+    with Alignment do begin TopOffset := SWindow.ScannerWindow.WinHeight; RightOffset := 0; end;
+    WinWidth := SWindow.ScannerWindow.WinWidth;
+    WinHeight := SWindow.ScannerWindow.WinHeight;
+  end;
+  with RealmWin.Dlg do
+  begin
+    with Alignment do
+    begin
+      BottomOffset := TBWindow.TaskWindow.WinHeight;
+      LeftOffset := 0; RightOffset := SWindow.ScannerWindow.WinWidth;
+      AlignWidth := awBoth; AlignHeight := ahBottom;
+    end;
+    WinWidth := MinWidth; WinHeight := MinHeight; Visible := False;
+  end;
+  with MagicWin.Dlg do
+  begin
+    with Alignment do
+    begin
+      BottomOffset := TBWindow.TaskWindow.WinHeight;
+      LeftOffset := 0; RightOffset := SWindow.ScannerWindow.WinWidth;
+      AlignWidth := awBoth; AlignHeight := ahBottom;
+    end;
+    WinWidth := MinWidth; WinHeight := MinHeight; Visible := False;
+  end;
+  with UnitWindow.UnitWin do
+  begin
+    with Alignment do begin AlignWidth := awCenter; AlignHeight := ahCenter; end;
+    WinWidth := MinWidth; WinHeight := MinHeight; Visible := False;
+  end;
+  with ChatWindow.ChatWin do
+  begin
+    with Alignment do
+    begin
+      BottomOffset := TBWindow.TaskWindow.WinHeight;
+      LeftOffset := 0; RightOffset := SWindow.ScannerWindow.WinWidth;
+      AlignWidth := awBoth; AlignHeight := ahBottom;
+    end;
+    WinWidth := MinWidth; WinHeight := MinHeight; Visible := False;
+  end;
+  with TCScanner.TCScannerWin do
+  begin
+    with Alignment do begin TopOffset := 0; RightOffset := 0; end;
+    WinHeight := ((General.Manager.WinHeight - TBWindow.TaskWindow.WinHeight) * 170) div 432;
+    WinWidth := (WinHeight * 150) div 170;
+    if AoWHSMap <> nil then Visible := (AoWHSMap.FCombatMap <> nil) and MWindow.MapWindow.Visible;
+  end;
+  with TCUnit.TCUnitWin do
+  begin
+    with Alignment do begin BottomOffset := 0; RightOffset := 0; end;
+    WinHeight := General.Manager.WinHeight - TBWindow.TaskWindow.WinHeight - TCScanner.TCScannerWin.WinHeight;
+    WinWidth := TCScanner.TCScannerWin.WinWidth; Visible := False;
+  end;
+  with MWindow.MapWindow.Alignment do
+  begin
+    AlignHeight := ahBoth; AlignWidth := awBoth; TopOffset := 0; LeftOffset := 0;
+  end;
+  MWindow.FWorldAlignHeight := ahBoth; MWindow.FWorldAlignWidth := awBoth;
+  MWindow.FWorldRect := Rect(0, 0, SWindow.ScannerWindow.WinWidth, TBWindow.TaskWindow.WinHeight);
+  MWindow.FMapAlignHeight := ahBoth; MWindow.FMapAlignWidth := awBoth;
+  MWindow.FMapRect := Rect(0, 0, TCScanner.TCScannerWin.WinWidth, TBWindow.TaskWindow.WinHeight);
+  if AoWHSMap <> nil then
+    if AoWHSMap.FCombatMap = nil then
+      MWindow.MapWindow.Alignment.RightOffset := SWindow.ScannerWindow.WinWidth
+    else
+      MWindow.MapWindow.Alignment.RightOffset := TCScanner.TCScannerWin.WinWidth;
+  MWindow.MapWindow.Alignment.BottomOffset := TBWindow.TaskWindow.WinHeight;
+  if ChatWindow.ChatWin.Visible then RegisterDialog(ChatWindow.ChatWin);
+  Manager.FAligned := False;
+end;
 
 procedure TGeneral.ManagerDebugMessage(A1: Integer; A2: Integer);
 begin end;

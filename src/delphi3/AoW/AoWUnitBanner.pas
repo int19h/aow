@@ -7,13 +7,14 @@ unit AoWUnitBanner;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWMenu, AoWImage, AoWLabel, AoWListBox, AoWVScroll;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWTC, AoWComp, AOWMenu, AoWImage, AoWLabel, AoWListBox, AoWVScroll;
 
 type
   TUnitBanner = class;
 
 
-  { TUnitBanner (instance size 132, VMT 00403D84) }
+  { TUnitBanner (instance size $84, VMT 00403D84).
+    $44..80 published labels, popup and ability-list controls. }
   TUnitBanner = class(TDataModule)
   public
     published
@@ -36,7 +37,7 @@ type
     public
     procedure BannerPopupShow;  { draft }
     procedure AbLBUpdate;  { draft }
-    procedure AbLBMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure AbLBMouseDown;  { draft }
   end;
@@ -47,20 +48,62 @@ var
 
 implementation
 
+uses AoWWinMan;
+
 procedure TUnitBanner.BannerPopupShow;
-begin end;
+var
+  I: Integer;
+  A: TTCAbility;
+begin
+  if General.FSelectedUnit <> nil then
+  begin
+    UnitNameLbl.Text := General.FSelectedUnit.GetName;
+    BannerPopup.FAligned := False;
+    Hits.Text := IntToStr(General.FSelectedUnit.GetHitPoints) + '/' + IntToStr(General.FSelectedUnit.GetHits);
+    Moves.Text := IntToStr(General.FSelectedUnit.GetMovePoints) + '/' + IntToStr(General.FSelectedUnit.GetMoves);
+    Attack.Text := IntToStr(General.FSelectedUnit.GetAttack);
+    Damage.Text := IntToStr(General.FSelectedUnit.GetDamage);
+    Defense.Text := IntToStr(General.FSelectedUnit.GetDefense);
+    Resistance.Text := IntToStr(General.FSelectedUnit.GetResistance);
+    MovesIcon.CurrentImage := General.MTtoInt(General.FSelectedUnit.GetMoveTypes);
+    AbLB.Items.Clear; General.BuildAbilities;
+    for I := 0 to General.FAbilities.Count - 1 do
+    begin
+      A := General.FAbilities[I];
+      AbLB.Items.Add(AoWHSSet.FAbilityControl.GetAbility(A.Ability).GetName(General.FSelectedUnit));
+    end;
+    AbLB.Selected := -1;
+    with AbLB do begin F188 := -1; ListOffset := 0; end;
+  end;
+end;
 
 procedure TUnitBanner.AbLBUpdate;
-begin end;
+begin
+  if AbLB.F188 <> AbLB.Selected then AbLB.Selected := AbLB.F188;
+end;
 
-procedure TUnitBanner.AbLBMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TUnitBanner.AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  if (General.FSelectedUnit <> nil) and (AbLB.F188 >= General.FActiveAbilityCount) then AbLB.F188 := -1;
+end;
 
 procedure TUnitBanner.BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+begin
+  if A2 = 1 then UnitBanner.BannerPopup.Visible := False;
+end;
 
 procedure TUnitBanner.AbLBMouseDown;
-begin end;
+var
+  Reason: string;
+begin
+  if General.FSelectedUnit <> nil then
+    if (AbLB.Selected > -1) and (AbLB.Selected < General.FActiveAbilityCount) then
+    begin
+      AoWHSSet.FAbilityControl.GetAbility(TTCAbility(General.FAbilities[AbLB.Selected]).Ability).Activate(General.FSelectedUnit, Reason);
+      BannerPopup.Visible := False;
+    end
+    else AbLB.Selected := -1;
+end;
 
 
 end.

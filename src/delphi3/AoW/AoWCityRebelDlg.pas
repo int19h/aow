@@ -7,13 +7,14 @@ unit AoWCityRebelDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, City, WizardsTower, EventLog, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWWindow;
 
 type
   TCityRebelDlg = class;
 
 
-  { TCityRebelDlg (instance size 132, VMT 00436E98) }
+  { TCityRebelDlg (instance size $84, VMT 00436E98).
+    $78 completion callback; $80 city-rebellion event. }
   TCityRebelDlg = class(TDataModule)
   public
     published
@@ -31,28 +32,52 @@ type
     AoWFrame1: TAoWFrame; { +0070 }
     Translator: TIvTranslator; { +0074 }
     public
-    F_CityRebelDlg_78: array[0..7] of Byte;
-    F_CityRebelDlg_80: Integer;
+    FOnClose: TNotifyEvent; { $78 }
+    FEvent: TCityRebellionEventLog; { $80 }
+    procedure ClearEvent;
     procedure CloseClick;  { draft }
     procedure CenterButClick;  { draft }
     procedure RebelWinHide;  { draft }
-    procedure RebelWinKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure RebelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, E3Globals;
+
+procedure TCityRebelDlg.ClearEvent;
+var
+  Event: TCityRebellionEventLog;
+  Notify: TNotifyEvent;
+begin
+  Notify := FOnClose; Event := FEvent;
+  FOnClose := nil; FEvent := nil;
+  if Assigned(Notify) then Notify(Event);
+  if Event <> nil then Event.Release;
+end;
+
 procedure TCityRebelDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  RebelWin.Visible := False;
+end;
 
 procedure TCityRebelDlg.CenterButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  with FEvent do AoWHSMap.CenterViewTo(FXhx, FYhx, FLhx);
+end;
 
 procedure TCityRebelDlg.RebelWinHide;
-begin end;
+begin
+  ClearEvent;
+end;
 
-procedure TCityRebelDlg.RebelWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TCityRebelDlg.RebelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) or (Key = VK_SPACE) then RebelWin.Visible := False;
+end;
 
 
 end.

@@ -20,10 +20,15 @@ type
     MapWindow: TAOWWindow; { +0044 }
     MapViewer: THSMapViewer; { +0048 }
     public
-    F_MWindow_4C: array[0..15] of Byte; FMapRect: TRect; { $5C } F_MWindow_6C: Byte;
+    FWorldRect: TRect; { $4C }
+    FMapRect: TRect; { $5C }
+    { conflict: FCombatRect: TRect; }
+    FWorldAlignWidth: TAOWAlignWidth; { $6C }
     FMapAlignWidth: AoWComp.TAOWAlignWidth; { $6D }
-    F_MWindow_6E: array[0..0] of Byte;
+    { conflict: FCombatAlignWidth: TAOWAlignWidth; }
+    FWorldAlignHeight: TAOWAlignHeight; { $6E }
     FMapAlignHeight: AoWComp.TAOWAlignHeight; { $6F }
+    { conflict: FCombatAlignHeight: TAOWAlignHeight; }
     procedure MWindowCreate;  { draft }
     procedure MapWindowMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure MapWindowMouseUp(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }

@@ -7,13 +7,14 @@ unit AoWArmyEventDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
 
 type
   TArmyEventDlg = class;
 
 
-  { TArmyEventDlg (instance size 140, VMT 004365E4) }
+  { TArmyEventDlg (instance size $8C, VMT 004365E4).
+    $78 completion callback; $80 army event; $84 frame; $88 visible unit indices. }
   TArmyEventDlg = class(TDataModule)
   public
     published
@@ -31,41 +32,121 @@ type
     DecoR: TAOWImage; { +0070 }
     Translator: TIvTranslator; { +0074 }
     public
-    F_ArmyEventDlg_78: array[0..11] of Byte;
-    F_ArmyEventDlg_84: Integer;
-    F_ArmyEventDlg_88: Integer;
+    FOnClose: TNotifyEvent; { $78 } FEvent: TArmyEventLog; { $80 }
+    FFrame: Integer; { $84 }
+    FUnits: TByteList; { $88 }
+    procedure DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
+    procedure DrawUnit(Index, X, Y: Integer; SD: TSurfaceDesc);
+    procedure ClearEvent;
     procedure ArmyEventDlgCreate;  { draft }
     procedure ArmyEventDlgDestroy;  { draft }
     procedure CloseClick;  { draft }
-    procedure UnitPnlDrawBack(A1: Integer; A2: Integer);  { draft }
+    procedure UnitPnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure UnitPnlUpdate;  { draft }
     procedure ArmyEventWinHide;  { draft }
-    procedure ArmyEventWinKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ArmyEventWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan;
+
+procedure TArmyEventDlg.DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
+var
+  Offset, I: Integer;
+begin
+  Offset := FUnits.Count * -16;
+  for I := 0 to FUnits.Count - 1 do DrawUnit(I, I * 32 + X + Offset, Y, SD);
+end;
+
+procedure TArmyEventDlg.DrawUnit(Index, X, Y: Integer; SD: TSurfaceDesc);
+var
+  Event: TArmyEventLog;
+  Frame: Integer;
+  Info: TP2UnitShowInfo;
+begin
+  Event := FEvent;
+  if Event.FDamageValues[FUnits[Index]] = 0 then
+    Event.FArmyView.GetUnit(FUnits[Index]).Show(X, Y, SD)
+  else
+  begin
+    { The original staggers animation by bits of the unit object's address. }
+    Frame := FFrame - ((Integer(Event.FArmyView.GetUnit(FUnits[Index])) shr 3) and 7);
+    FillChar(Info, SizeOf(Info), 0);
+    Info.Frame := (Frame shr 1) - 1; Info.Direction := 3; Info.Animation := uaHit;
+    Event.FArmyView.GetUnit(FUnits[Index]).ShowEx(X, Y, SD, Info);
+    if Frame = 5 then
+      if Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints = 0 then
+        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[4].Play(0)
+      else
+        AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[3].Play(0);
+    if Frame < 6 then
+      ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints,
+        Event.FArmyView.GetUnit(FUnits[Index]).GetHits))
+    else
+    begin
+      ShowDamageIcon(X, Y + 8, SD, Event.FDamageValues[FUnits[Index]], TDamageType(Event.FDamageTypes[FUnits[Index]]));
+      ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Byte(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints - Event.FDamageValues[FUnits[Index]]),
+        Event.FArmyView.GetUnit(FUnits[Index]).GetHits));
+    end;
+  end;
+end;
+
+procedure TArmyEventDlg.ClearEvent;
+var
+  Event: TArmyEventLog;
+  Notify: TNotifyEvent;
+  I, Resource: Integer;
+begin
+  General.Manager.OverlayPriority := 0;
+  for I := 0 to FUnits.Count - 1 do
+  begin
+    Resource := FEvent.FArmyView.GetUnit(FUnits[I]).GetUnitGFXResourceIndex;
+    if Resource <> -1 then AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Resource).Release;
+  end;
+  Notify := FOnClose; Event := FEvent;
+  FOnClose := nil; FEvent := nil;
+  if Assigned(Notify) then Notify(Event);
+  if Event <> nil then Event.Release;
+end;
+
 procedure TArmyEventDlg.ArmyEventDlgCreate;
-begin end;
+begin
+  FUnits := TByteList.Create;
+end;
 
 procedure TArmyEventDlg.ArmyEventDlgDestroy;
-begin end;
+begin
+  FUnits.Free;
+end;
 
 procedure TArmyEventDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  ArmyEventWin.Visible := False;
+end;
 
-procedure TArmyEventDlg.UnitPnlDrawBack(A1: Integer; A2: Integer);
-begin end;
+procedure TArmyEventDlg.UnitPnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+begin
+  if FFrame < 1000 then Inc(FFrame);
+  DrawUnits(ArmyEventWin.WinLeft + 203, ArmyEventWin.WinTop + 100, SD);
+end;
 
 procedure TArmyEventDlg.UnitPnlUpdate;
-begin end;
+begin
+  UnitPnl.FDrawn := False; ArmyEventWin.FDrawn := False;
+end;
 
 procedure TArmyEventDlg.ArmyEventWinHide;
-begin end;
+begin
+  ClearEvent;
+end;
 
-procedure TArmyEventDlg.ArmyEventWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TArmyEventDlg.ArmyEventWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) or (Key = VK_SPACE) then ArmyEventWin.Visible := False;
+end;
 
 
 end.

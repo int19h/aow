@@ -7,13 +7,14 @@ unit AoWArmyInfoDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, City, WizardsTower, EventLog, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
 
 type
   TArmyInfoDlg = class;
 
 
-  { TArmyInfoDlg (instance size 172, VMT 004475A0) }
+  { TArmyInfoDlg (instance size $AC, VMT 004475A0).
+    $9C unit-info window open; $A0 completion callback; $A8 army-info event. }
   TArmyInfoDlg = class(TDataModule)
   public
     published
@@ -40,41 +41,127 @@ type
     HeaderLbl: TAOWLabel; { +0094 }
     Translator: TIvTranslator; { +0098 }
     public
-    F_ArmyInfoDlg_9C: Byte;
-    F_ArmyInfoDlg_9D: array[0..10] of Byte;
-    F_ArmyInfoDlg_A8: Integer;
+    FUnitInfoShown: Boolean; { $9C }
+    F_ArmyInfoDlg_9D: array[0..2] of Byte; FOnClose: TNotifyEvent; { $A0 }
+    FEvent: TArmyInfoEventLog; { $A8 }
+    procedure DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc);
+    procedure ClearEvent;
     procedure CloseBtnClick;  { draft }
     procedure CloseClick;  { draft }
-    procedure U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure U1PreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure FaceFramePreDraw(A1: Integer; A2: Integer);  { draft }
+    procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure DlgHide;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, E3Globals;
+
+procedure TArmyInfoDlg.DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc);
+var
+  SaveRect: TRect;
+  Info: TP2UnitShowInfo;
+  Img: TLibraryImage;
+  X, Y: Integer;
+begin
+  if Index < FEvent.FArmyView.GetCount then
+  begin
+    SaveRect := SD.ClipRect; SD.ClipRect := R;
+    X := (R.Right + R.Left) div 2; Y := (R.Top + R.Bottom) div 2;
+    if Byte(FEvent.FArmyView.GetUnit(Index).GetAlignment) < IntGfxMod.UnitBGs.Count then
+    begin
+      Img := IntGfxMod.UnitBGs[Ord(FEvent.FArmyView.GetUnit(Index).GetAlignment)];
+      Img.ShowClipped(X - Img.Width div 2, Y - Img.Height div 2, SD);
+    end;
+    FillChar(Info, SizeOf(Info), 0); Info.Direction := 3; Info.Overlays := [uoHitPoints, uoRank];
+    FEvent.FArmyView.GetUnit(Index).ShowEx(X - 33, Y - 35, SD, Info);
+    if ((FEvent.FSelection shr Index) and 1) = 0 then
+    begin
+      Img := IntGfxMod.UnitBGs[7];
+      Img.ShowClipped(X - Img.Width div 2, Y - Img.Height div 2, SD);
+    end;
+    SD.ClipRect := SaveRect;
+  end;
+end;
+
+procedure TArmyInfoDlg.ClearEvent;
+var
+  Event: TArmyInfoEventLog;
+  Notify: TNotifyEvent;
+begin
+  if FUnitInfoShown then
+  begin
+    FUnitInfoShown := False;
+    UnitWindow.UnitWin.Priority := ControlWin.ControlWindow.Priority;
+    UnitWindow.UnitWin.Visible := False;
+  end;
+  Notify := FOnClose; Event := FEvent;
+  FOnClose := nil; FEvent := nil;
+  if Assigned(Notify) then Notify(Event);
+  if Event <> nil then Event.Release;
+end;
+
 procedure TArmyInfoDlg.CloseBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TArmyInfoDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
-procedure TArmyInfoDlg.U1MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TArmyInfoDlg.U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if TComponent(Sender).Tag < FEvent.FArmyView.GetCount then
+  begin
+    General.FSelectedUnit := FEvent.FArmyView.GetUnit(TComponent(Sender).Tag);
+    if Button = mbLeft then
+    begin
+      FUnitInfoShown := True; UnitWindow.ShowUnit;
+      UnitWindow.UnitWin.Priority := Dlg.Priority + 1;
+    end;
+  end;
+end;
 
-procedure TArmyInfoDlg.U1PreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TArmyInfoDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  R.Left := UnitPnl.WinLeft + Sender.WinLeft + 1; R.Right := Sender.WinWidth + R.Left;
+  R.Top := Sender.WinTop + UnitPnl.WinTop; R.Bottom := Sender.WinHeight + R.Top;
+  DrawUnit(Sender.Tag, R, SD);
+end;
 
-procedure TArmyInfoDlg.FaceFramePreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TArmyInfoDlg.FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+var
+  R: TRect;
+  I: Integer;
+begin
+  with FaceFrame do
+  begin
+    R.Left := WinLeft + Dlg.WinLeft; R.Right := WinWidth + R.Left;
+    R.Top := WinTop + Dlg.WinTop; R.Bottom := WinHeight + R.Top;
+  end;
+  I := 0;
+  while ((FEvent.FSelection and (1 shl I)) = 0) and (I <> FEvent.FArmyView.GetCount) do Inc(I);
+  if I < FEvent.FArmyView.GetCount then FEvent.FArmyView.GetUnit(I).ShowFace(R, SD);
+end;
 
 procedure TArmyInfoDlg.DlgHide;
-begin end;
+begin
+  ClearEvent;
+end;
 
-procedure TArmyInfoDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TArmyInfoDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) or (Key = VK_SPACE) then Dlg.Visible := False;
+end;
 
 
 end.

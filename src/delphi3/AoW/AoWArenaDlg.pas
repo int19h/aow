@@ -7,13 +7,14 @@ unit AoWArenaDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, Arena, EventLog, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow, aowUserDrawBox;
 
 type
   TArenaDlg = class;
 
 
-  { TArenaDlg (instance size 180, VMT 0044BDA8) }
+  { TArenaDlg (instance size $B4, VMT 0044BDA8).
+    $A8 arena event; $AC completion callback. }
   TArenaDlg = class(TDataModule)
   public
     published
@@ -43,48 +44,156 @@ type
     InfoSep: TAOWImage; { +00A0 }
     Translator: TIvTranslator; { +00A4 }
     public
-    F_ArenaDlg_A8: Integer;
-    F_ArenaDlg_AC: array[0..7] of Byte;
+    FEvent: TEnterArenaEventLog; { $A8 }
+    FOnClose: TNotifyEvent; { $AC }
+    procedure DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
+    procedure ClearEvent;
     procedure CloseClick;  { draft }
     procedure SelectBtnClick;  { draft }
-    procedure U1Change(A1: Integer);  { draft }
-    procedure U1PreDraw(A1: Integer; A2: Integer);  { draft }
+    procedure U1Change(Sender: TObject);
+    procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure DlgHide;  { draft }
-    procedure MapViewDraw(A1: Integer; A2: Integer);  { draft }
+    procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure MapViewUpdate;  { draft }
     procedure DlgDrawBack;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, E3Globals;
+
+procedure TArenaDlg.DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
+var
+  SaveRect: TRect;
+  Info: TP2UnitShowInfo;
+  Img: TLibraryImage;
+  U: TAbstractUnit;
+begin
+  if Index < FEvent.GetCount then
+  begin
+    U := FEvent.GetUnit(Index);
+    SaveRect := SD.ClipRect;
+    SD.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
+    if Byte(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
+    begin
+      Img := IntGfxMod.UnitBGs[Ord(U.GetAlignment)];
+      Img.ShowClipped(X + 25 - Img.Width div 2, Y + 30 - Img.Height div 2, SD);
+    end;
+    FillChar(Info, SizeOf(Info), 0);
+    Info.Direction := 3; Info.Overlays := [uoHitPoints, uoRank];
+    U.ShowEx(X - 8, Y - 5, SD, Info);
+    if ((FEvent.FTrainable shr Index) and 1) = 0 then
+    begin
+      Img := IntGfxMod.UnitBGs[7];
+      Img.ShowClipped(X + 25 - Img.Width div 2, Y + 30 - Img.Height div 2, SD);
+    end;
+    SD.ClipRect := SaveRect;
+    if ((FEvent.FTrainable shr Index) and 1) <> 0 then
+    begin
+      FontModule.Age8.Color := 0;
+      FontModule.Age8.SetTextCentered(X + 25, Y + 62, IntToStr(FEvent.FArena.UnitTrainCost(U)), SD);
+    end;
+  end;
+end;
+
+procedure TArenaDlg.ClearEvent;
+var
+  Event: TEnterArenaEventLog;
+  Notify: TNotifyEvent;
+begin
+  General.Manager.OverlayPriority := 0;
+  Notify := FOnClose; Event := FEvent;
+  FOnClose := nil; FEvent := nil;
+  if Assigned(Notify) then Notify(Event);
+  if Event <> nil then Event.Release;
+end;
+
 procedure TArenaDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TArenaDlg.SelectBtnClick;
-begin end;
+var
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if FEvent.Train(Reason) then
+  begin
+    Dlg.Visible := False;
+  end
+  else AoWHSMap.ShowWarning(Reason);
+end;
 
-procedure TArenaDlg.U1Change(A1: Integer);
-begin end;
+procedure TArenaDlg.U1Change(Sender: TObject);
+var
+  Reason: string;
+begin
+  if TAOWCheckBox(Sender).Checked then
+    FEvent.SetSelection(FEvent.FSelection or (1 shl TComponent(Sender).Tag))
+  else FEvent.SetSelection(FEvent.FSelection and not (1 shl TComponent(Sender).Tag));
+  U1.Checked := (FEvent.FSelection and 1) <> 0;
+  U2.Checked := (FEvent.FSelection and 2) <> 0;
+  U3.Checked := (FEvent.FSelection and 4) <> 0;
+  U4.Checked := (FEvent.FSelection and 8) <> 0;
+  U5.Checked := (FEvent.FSelection and 16) <> 0;
+  U6.Checked := (FEvent.FSelection and 32) <> 0;
+  U7.Checked := (FEvent.FSelection and 64) <> 0;
+  U8.Checked := (FEvent.FSelection and 128) <> 0;
+  if (FEvent.FTrainable and (1 shl TComponent(Sender).Tag)) <> 0 then
+    if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  if FEvent.FSelection <> 0 then
+  begin
+    if FEvent.CanTrain(Reason) then SelectionInfoLbl.TextColor := 0
+    else SelectionInfoLbl.TextColor := $95;
+    SelectionInfoLbl.Text := FEvent.GetSelectionInfo;
+  end
+  else SelectionInfoLbl.Text := '';
+end;
 
-procedure TArenaDlg.U1PreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TArenaDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+begin
+  DrawUnit(Sender.Tag, UnitPnl.WinLeft + Sender.WinLeft, UnitPnl.WinTop + Sender.WinTop, SD);
+end;
 
 procedure TArenaDlg.DlgHide;
-begin end;
+begin
+  ClearEvent;
+end;
 
-procedure TArenaDlg.MapViewDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TArenaDlg.MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+var
+  R: TRect;
+  MapSD: TSurfaceDesc;
+  X, Y: Integer;
+begin
+  R := Rect(Dlg.WinLeft + Sender.WinLeft, Dlg.WinTop + Sender.WinTop,
+    Dlg.WinLeft + Sender.WinWidth + Sender.WinLeft, Dlg.WinTop + Sender.WinHeight + Sender.WinTop);
+  HXtoHP(FEvent.FArena.GetXhx, FEvent.FArena.GetYhx, X, Y);
+  X := X + 16 - ((R.Right - R.Left) shr 1);
+  Y := Y + 16 - ((R.Bottom - R.Top) shr 1);
+  if X < 16 then X := 16; if Y < 16 then Y := 16;
+  CreateSDfromSD(SD, R, MapSD);
+  AoWHSMap.SetViewPort(X, Y, FEvent.FArena.GetLhx, R.Right - R.Left, R.Bottom - R.Top);
+  AoWHSMap.UpdateStaticScene; AoWHSMap.UpdateDynamicScene;
+  AoWHSMap.DrawStaticScene(MapSD); AoWHSMap.DrawDynamicScene(MapSD);
+end;
 
 procedure TArenaDlg.MapViewUpdate;
-begin end;
+begin
+  MapView.FDrawn := MapView.FDrawn and ((AoWHSMap.Frame and 1) <> 0);
+end;
 
 procedure TArenaDlg.DlgDrawBack;
 begin end;
 
-procedure TArenaDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TArenaDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then Dlg.Visible := False;
+end;
 
 
 end.

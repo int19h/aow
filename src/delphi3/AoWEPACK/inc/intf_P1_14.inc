@@ -42,7 +42,7 @@ var
   TPlayerTypeRStr: array[0..7] of string; { $558E81A0 }
   TCombatModeRStr: array[TCombatMode] of string; TCombatResolveModeRStr: array[TCombatResolveMode] of string; { $558E81DC; AoW 00422576 }
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
-  TStatusRStr: TStatusNames;
+  TStatusRStr: TStatusNames; TPartyStatusRStr: array[TPartyStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful'); { 0040667C }
   TDamageTypeRStr: array[TDamageType] of string; astAll: TAbilitySelectionTypes = [astUnit..astEditor]; msAll: TMagicSpheres = [msCosmos..msNone]; { AoWEd 0042A5A4 / 0042A5E1 }
   { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo
     ($55730868) reads its entries. AIDID $558FA050 goes to TEngine.OutputDebugMessage. (P5) }

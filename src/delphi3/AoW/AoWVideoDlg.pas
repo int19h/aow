@@ -40,17 +40,22 @@ type
     VideoSB: TAOWVScrollBar; { +0084 }
     Translator: TIvTranslator; { +0088 }
     public
-    F_VideoDialog_8C: Integer;
+    FDisplayModes: TDisplayModeList; { $8C }
     FFullScreen: Boolean; { $90; 0040B034 }
     FModeChanged: Boolean; { $91; 0040B034 } F_VideoDialog_92: array[0..9] of Byte;
     FDisplayWidth: Integer; { $9C; 0040B04C }
+    { conflict: FWidth: Integer; }
     FDisplayHeight: Integer; { $A0; 0040B04C }
+    { conflict: FHeight: Integer; }
+    function CurrentMode: Integer;
+    procedure ChangeResolution(W, H: Integer);
+    procedure UpdateModes;
     procedure VideoDlgWindowCreate;  { draft }
     procedure VideoDlgWindowDestroy;  { draft }
     procedure CloseButClick;  { draft }
     procedure ApplyBtnClick;  { draft }
-    procedure ResCBChange(A1: Integer);  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ResCBChange(Sender: TObject);
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DlgShow;  { draft }
   end;
 
@@ -116,28 +121,127 @@ type
   end;
 
 
+var
+  VideoDialog: TVideoDialog;
+
 implementation
 
+uses AoWWinMan, E3Globals;
+
+function TVideoDialog.CurrentMode: Integer;
+var
+  W, H, I: Integer;
+begin
+  if MainForm.DXDC = MainForm.Display.ActiveDC then
+  begin
+    W := MainForm.DXDC.DisplayWidth; H := MainForm.DXDC.DisplayHeight;
+    I := FDisplayModes.Count - 1;
+    while (I >= 0) and ((W <> FDisplayModes.Items[I].Width) or (H <> FDisplayModes.Items[I].Height)) do Dec(I);
+    Result := DisplayModesLB.Items.IndexOfObject(TObject(I));
+  end
+  else Result := 0;
+end;
+
+procedure TVideoDialog.ChangeResolution(W, H: Integer);
+begin
+  if W = 0 then
+  begin
+    if MainForm.Display.ActiveDC = MainForm.DXDC then MainForm.Display.SwapDC;
+  end
+  else
+    if MainForm.DXDC = MainForm.Display.ActiveDC then
+    begin
+      if (W <> MainForm.DXDC.DisplayWidth) or (H <> MainForm.DXDC.DisplayHeight) then
+      begin
+        MainForm.DXDC.SwitchResolution(W, H); MWindow.MapViewer.ResetStaticSurface;
+        if Dlg.Visible then begin Dlg.FBackSurface.Free; Dlg.FBackSurface := nil; end;
+      end;
+    end
+    else
+    begin
+      MainForm.DXDC.DisplayWidth := W; MainForm.DXDC.DisplayHeight := H;
+      MainForm.Display.SwapDC;
+    end;
+  UpdateModes; General.ResetLayout;
+end;
+
+procedure TVideoDialog.UpdateModes;
+var
+  I: Integer;
+  Mode: TDisplayModeItem;
+  S: string;
+begin
+  DisplayModesLB.Items.Clear;
+  DisplayModesLB.Items.AddObject(TranslateRStr(DesktopWindowRStr), TObject(-1));
+  for I := 0 to FDisplayModes.Count - 1 do
+  begin
+    Mode := FDisplayModes.Items[I];
+    if (Mode.Width >= 640) and (Mode.Height >= 480) then
+      DisplayModesLB.Items.AddObject(TranslateRStr(FullScreenRStr) + ':' + IntToStr(Mode.Width) + 'x' + IntToStr(Mode.Height), TObject(I));
+  end;
+  DisplayModesLB.Selected := CurrentMode;
+  if DisplayModesLB.Selected <> -1 then
+  begin
+    S := DisplayModesLB.Items[DisplayModesLB.Selected];
+    S := S + ' (' + LowerCase(TranslateRStr(CurrentRStr)) + ')';
+    DisplayModesLB.Items[DisplayModesLB.Selected] := S;
+  end;
+end;
+
 procedure TVideoDialog.VideoDlgWindowCreate;
-begin end;
+begin
+  FDisplayModes := TDisplayModeList.Create;
+  ListDisplayModes(FDisplayModes, 0, 0, 16);
+end;
 
 procedure TVideoDialog.VideoDlgWindowDestroy;
-begin end;
+begin
+  FDisplayModes.Free;
+end;
 
 procedure TVideoDialog.CloseButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TVideoDialog.ApplyBtnClick;
-begin end;
+var
+  I: Integer;
+begin
+  General.PlayButtonSound(0);
+  if DisplayModesLB.Selected <> -1 then
+  begin
+    I := Integer(DisplayModesLB.Items.Objects[DisplayModesLB.Selected]);
+    if I <> -1 then
+    begin
+      FDisplayWidth := FDisplayModes.Items[I].Width;
+      FDisplayHeight := FDisplayModes.Items[I].Height;
+      ChangeResolution(FDisplayWidth, FDisplayHeight); FFullScreen := True;
+    end
+    else
+    begin
+      FFullScreen := False; ChangeResolution(0, 0);
+    end;
+  end;
+end;
 
-procedure TVideoDialog.ResCBChange(A1: Integer);
-begin end;
+procedure TVideoDialog.ResCBChange(Sender: TObject);
+begin
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  AoWEngine.FRegistry.SetAllowResolutionSwitches(ResCB.Checked);
+end;
 
-procedure TVideoDialog.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TVideoDialog.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  General.Manager.FAligned := False;
+  if Key = VK_ESCAPE then Dlg.Visible := False;
+end;
 
 procedure TVideoDialog.DlgShow;
-begin end;
+begin
+  VideoDialog.ResCB.Checked := AoWEngine.FRegistry.GetAllowResolutionSwitches;
+end;
 
 constructor TWMCampaignScenarioPage.Create(AOwner: Engine.TECustomNode);
 begin
