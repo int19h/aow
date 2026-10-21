@@ -14,5 +14,8 @@
   "55734f40:9": "CompareAutoProductions",
   "5573eb4c:7": "CompareMoveTargets",
   "5573f4ec:32": "CompareExecuterArmies",
-  "55740668:2067": "TAdjacentMEC.CalculateMoves"
+  "55740668:2067": "TAdjacentMEC.CalculateMoves",
+  "5574aa40:97": "AddArmy<ValidateMultiArmyMove",
+  "5574aaa4:451": "ValidateMultiArmyMove",
+  "5574ac68:581": "ExecuteMultiArmyMove"
 }

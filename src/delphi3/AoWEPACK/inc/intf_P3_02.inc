@@ -224,9 +224,9 @@
     FX: Integer; { $08 }
     FY: Integer; { $0C }
     FL: Integer; { $10 }
-    F_CombatData_14: Integer;
-    F_CombatData_18: Integer;
-    F_CombatData_1C: Integer;
+    FAttackerX: Integer; { $14; 557496FD }
+    FAttackerY: Integer; { $18; 557496FD }
+    FAttackerL: Integer; { $1C; 557496FD }
     F_CombatData_20: array[0..1] of Byte;
     F_CombatData_22: TDamageTypes;
     FAttackerPlayer: Shortint; { $24 }
@@ -378,18 +378,18 @@
   public
     FCombatType: TCombatType; { $18 }
     FPlayer: Shortint; { $19 }
-    FAllowRetreat: Boolean; { $1A }
-    F_CombatTypeRequestEventLog_1B: Byte;
-    F_CombatTypeRequestEventLog_1C: Byte;
-    F_CombatTypeRequestEventLog_1D: Byte;
+    FDefenderPlayer: Shortint; { $1A }
+    FX: Shortint; { $1B }
+    FY: Shortint; { $1C }
+    FL: Shortint; { $1D }
     F_CombatTypeRequestEventLog_1E: array[0..1] of Byte;
     FTokenEvent: TEObject;
-    F_CombatTypeRequestEventLog_24: Byte;
+    FCreateNewMove: Boolean; { $24 }
     F_CombatTypeRequestEventLog_25: array[0..2] of Byte;
-    F_CombatTypeRequestEventLog_28: Integer;
+    FArmyID: TArmyID; { $28 }
     destructor Destroy; override;
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
-    procedure SetTokenEvent(A1: Integer);  { draft }
+    procedure SetTokenEvent(A1: TTokenEvent);
     procedure Select(A1: TCombatType);
     procedure SetCenterLocation(A1: Byte; A2: Byte; A3: Integer);  { draft }
   end;

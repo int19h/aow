@@ -741,6 +741,7 @@
   end;
 
   { TChangePlayerSettingsTE (instance size 24, VMT 5571C1F8) }
+  { TChangePlayerSettingsTE: $10 player, $14 settings string; size $18. }
   TChangePlayerSettingsTE = class(TTokenEvent)
   public
     FPlayer: Shortint; { $10 }
@@ -752,33 +753,35 @@
   end;
 
   { TMoveTE (instance size 28, VMT 5571C330) }
+  { TMoveTE: $10 status, $14 path, $18 move index; size $1C. }
   TMoveTE = class(TTokenEvent)
   public
-    F_MoveTE_10: Byte;
+    FStatus: TMoveStatus; { $10 }
     F_MoveTE_11: array[0..2] of Byte;
-    F_MoveTE_14: Integer;
-    F_MoveTE_18: Integer;
+    FPath: TMovepath; { $14 }
+    FMoveIndex: Integer; { $18 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    function GetMapF(A1: Integer; A2: Integer): Integer; virtual;  { +050 draft }
-    procedure ProcessMove; virtual;  { +054 draft }
-    function Validate: Integer; virtual;  { +058 draft }
-    procedure InitializeMove; virtual;  { +05C draft }
-    procedure FinishMove; virtual;  { +060 draft }
-    procedure Move; virtual;  { +064 draft }
-    function LastMove(A1: Integer; A2: Byte): Byte; virtual;  { +068 draft }
-    function DefaultMove: Byte; virtual;  { +06C draft }
-    procedure GetDirection(A1: Integer);  { draft }
-    procedure GetHT(A1: Integer);  { draft }
+    function GetMapF(Location: TXYL): TAoWMapField; virtual; { $50 }
+    function ProcessMove: TMoveStatus; virtual;  { $54 }
+    function Validate: Boolean; virtual;  { $58 }
+    procedure InitializeMove; virtual;  { $5C }
+    procedure FinishMove; virtual;  { $60 }
+    function Move: TMoveStatus; virtual; { $64 }
+    function LastMove: TMoveStatus; virtual; { $68 }
+    function DefaultMove: TMoveStatus; virtual;  { +06C draft }
+    function GetDirection(Index: Integer): Integer;
+    function GetHT(Index: Integer): Integer;
   end;
 
   { TMultiMoveTE (instance size 24, VMT 5571C408) }
+  { TMultiMoveTE: $10 events, $14 simultaneous; size $18. }
   TMultiMoveTE = class(TTokenEvent)
   public
     FEvents: TTokenEventList; { $10 }
-    FMoveMode: Byte; { $14 }
+    FSimultaneous: Boolean; { $14 }
     F_MultiMoveTE_15: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -788,99 +791,102 @@
   end;
 
   { TMoveArmyTE (instance size 56, VMT 5571C52C) }
+  { TMoveArmyTE: $1C mode, $20 unit IDs, $24 selection, $28 army sprite,
+    $2C/$2D moving/target player, $2E..$30 target, $31..$33 destination, $34 animate; size $38. }
   TMoveArmyTE = class(TMoveTE)
   public
-    F_MoveArmyTE_1C: Byte;
+    FMode: TArmyMoveMode; { $1C }
     F_MoveArmyTE_1D: array[0..2] of Byte;
-    F_MoveArmyTE_20: Integer;
-    F_MoveArmyTE_24: Byte;
+    FUnitIDs: TIntegerList; { $20 }
+    FSelection: Byte; { $24 }
     F_MoveArmyTE_25: array[0..2] of Byte;
-    F_MoveArmyTE_28: Integer;
-    F_MoveArmyTE_2C: Byte;
-    F_MoveArmyTE_2D: Byte;
-    F_MoveArmyTE_2E: Byte;
-    F_MoveArmyTE_2F: Byte;
-    F_MoveArmyTE_30: Byte;
-    F_MoveArmyTE_31: Byte;
-    F_MoveArmyTE_32: Byte;
-    F_MoveArmyTE_33: Byte;
-    F_MoveArmyTE_34: Byte;
+    FArmyHS: TArmyHS; { $28 }
+    FPlayer: Shortint; { $2C }
+    FTargetPlayer: Shortint; { $2D }
+    FTargetX: Shortint; { $2E }
+    FTargetY: Shortint; { $2F }
+    FTargetL: Shortint; { $30 }
+    FDestinationX: Shortint; { $31 }
+    FDestinationY: Shortint; { $32 }
+    FDestinationL: Shortint; { $33 }
+    FAnimate: Boolean; { $34 }
     F_MoveArmyTE_35: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
-    function Validate: Integer; override;
+    function Validate: Boolean; override;
     procedure InitializeMove; override;
     procedure FinishMove; override;
-    function DefaultMove: Byte; override;
-    procedure Animating; virtual;  { +070 draft }
-    procedure UpdateAnimation; virtual;  { +074 draft }
-    procedure SetupNextMove; virtual;  { +078 draft }
-    procedure CanMoveNext; virtual;  { +07C draft }
-    procedure ExecuteMove; virtual;  { +080 draft }
-    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; virtual;  { +084 }
-    procedure GetNoneMovingArmyHS(A1: Integer);  { draft }
-    procedure ObserveMove;  { draft }
-    procedure MoveVisible(A1: Integer);  { draft }
+    function DefaultMove: TMoveStatus; override;
+    function Animating: Boolean; virtual;  { $70 }
+    procedure UpdateAnimation; virtual;  { $74 }
+    procedure SetupNextMove; virtual;  { $78 }
+    function CanMoveNext: Boolean; virtual;  { $7C }
+    function ExecuteMove: TMoveStatus; virtual;  { $80 }
+    function Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean; virtual;  { +084 }
+    function GetNoneMovingArmyHS(Field: TMapField): TArmyHS;
+    function ObserveMove(Index: Integer): Boolean;
+    function MoveVisible(Index: Integer): Boolean;
   end;
 
   { TArmyDefaultMoveTE (instance size 56, VMT 5571C624) }
   TArmyDefaultMoveTE = class(TMoveArmyTE)
   public
     class function ClassID: Integer; override;
-    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; override;
+    function Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean; override;
   end;
 
   { TArmyNegotiateMoveTE (instance size 56, VMT 5571C72C) }
   TArmyNegotiateMoveTE = class(TMoveArmyTE)
   public
     class function ClassID: Integer; override;
-    function Validate: Integer; override;
-    procedure Animating; override;
-    procedure CanMoveNext; override;
-    procedure ExecuteMove; override;
+    function Validate: Boolean; override;
+    function Animating: Boolean; override;
+    function CanMoveNext: Boolean; override;
+    function ExecuteMove: TMoveStatus; override;
   end;
 
   { TArmyCombineMoveTE (instance size 56, VMT 5571C838) }
   TArmyCombineMoveTE = class(TMoveArmyTE)
   public
     class function ClassID: Integer; override;
-    procedure CanMoveNext; override;
-    procedure ShowCombineFailure(A1: Byte);  { draft }
+    function CanMoveNext: Boolean; override;
+    procedure ShowCombineFailure(Reason: TAddUnitsResult);
   end;
 
   { TArmyCombatMoveTE (instance size 60, VMT 5571C9D4) }
+  { TArmyCombatMoveTE: $38 combat mode, $39 combat type, $3A ignore defenders; size $3C. }
   TArmyCombatMoveTE = class(TMoveArmyTE)
   public
-    F_ArmyCombatMoveTE_38: Byte;
-    F_ArmyCombatMoveTE_39: Byte;
-    F_ArmyCombatMoveTE_3A: Byte;
+    FCombatMode: TCombatMoveMode; { $38 }
+    FCombatType: TCombatType; { $39 }
+    FIgnoreDefenders: Boolean; { $3A }
     F_ArmyCombatMoveTE_3B: array[0..0] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
-    procedure ProcessMove; override;
-    function Validate: Integer; override;
+    function ProcessMove: TMoveStatus; override;
+    function Validate: Boolean; override;
     procedure InitializeMove; override;
-    procedure Animating; override;
-    procedure CanMoveNext; override;
-    procedure ExecuteMove; override;
-    function Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean; override;
-    procedure RequestCombatTypeCallBack(A1: Integer);  { draft }
-    procedure RestoreHotseatMode(A1: Integer);  { draft }
-    procedure RestoreHotSeatModeCallBack;  { draft }
-    procedure ShowHotSeatPlayerCallBack(A1: Integer);  { draft }
-    procedure SetupCombat;  { draft }
-    procedure CombatExecuted(A1: Integer);  { draft }
-    procedure ExecuteCombat;  { draft }
-    procedure ExecuteLastMove;  { draft }
+    function Animating: Boolean; override;
+    function CanMoveNext: Boolean; override;
+    function ExecuteMove: TMoveStatus; override;
+    function Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean; override;
+    procedure RequestCombatTypeCallBack(Log: TEventLog);
+    procedure RestoreHotseatMode;
+    procedure RestoreHotSeatModeCallBack(Log: TEventLog);
+    procedure ShowHotSeatPlayerCallBack(Log: TEventLog);
+    procedure SetupCombat;
+    procedure CombatExecuted(Combat: TCombat);
+    procedure ExecuteCombat;
+    function ExecuteLastMove: TMoveStatus;
   end;
 
   { TCombatRestoreHotseatEventLog (instance size 28, VMT 5571CAD8) }
+  { TCombatRestoreHotseatEventLog: $18 combat-move token; size $1C. }
   TCombatRestoreHotseatEventLog = class(TEventLog)
   public
-    F_CombatRestoreHotseatEventLog_18: Byte;
-    F_CombatRestoreHotseatEventLog_19: array[0..2] of Byte;
+    FCombatMove: TArmyCombatMoveTE; { $18 }
     function Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; override;
   end;
 
@@ -979,10 +985,11 @@
   end;
 
   { TDisbandUnitTE (instance size 24, VMT 5571D138) }
+  { TDisbandUnitTE: $10 unit ID, $14 player; size $18. }
   TDisbandUnitTE = class(TTokenEvent)
   public
-    F_DisbandUnitTE_10: Integer;
-    F_DisbandUnitTE_14: Byte;
+    FUnitID: Integer; { $10 }
+    FPlayer: Shortint; { $14 }
     F_DisbandUnitTE_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -990,11 +997,12 @@
   end;
 
   { TCombatFlowControlTE (instance size 24, VMT 5571D2A8) }
+  { TCombatFlowControlTE: $10 flow mode, $14 player; size $18. }
   TCombatFlowControlTE = class(TTokenEvent)
   public
-    F_CombatFlowControlTE_10: Byte;
+    FMode: TCombatFlowControlMode; { $10 }
     F_CombatFlowControlTE_11: array[0..2] of Byte;
-    F_CombatFlowControlTE_14: Integer;
+    FPlayer: Integer; { $14 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;

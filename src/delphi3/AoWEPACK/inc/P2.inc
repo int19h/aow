@@ -2374,8 +2374,8 @@ begin
   if CanDisband(Reason) and not P2PlayerBusy(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer)) then
   begin
     Event := TDisbandUnitTE.Create(nil);
-    Event.F_DisbandUnitTE_10 := FUnitID;
-    Event.F_DisbandUnitTE_14 := FPlayer;
+    Event.FUnitID := FUnitID;
+    Event.FPlayer := FPlayer;
     TTokenManager(AoWHSMap.FTokenManager).GetTokenControl(FPlayer).AddEvent(Event);
     Event.Release;
     Result := True;

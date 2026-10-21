@@ -25,6 +25,21 @@ resourcestring
   { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
   P5NotEnoughGoldRStr = 'Not enough gold.';
   GameRestartedRStr = 'Game Restarted';
+  P5FinishedTheirTurnRStr = 'finished their turn';
+  P5CannotCombineArmiesRStr = 'Cannot combine armies';
+  P5CannotCombineTransportersRStr = 'Cannot combine two transporters';
+  P5IndependentsAreMovingRStr = 'Independents are moving';
+  P5PlayerIsMovingRStr = '%s is moving';
+  P5YouAreBeingAttackedRStr = 'You''re being attacked!';
+  P5XLeftTheGameRStr = '%s left the game!';
+  P5ExplorationEnabledRStr = 'Exploration Enabled';
+  P5ExplorationDisabledRStr = 'Exploration Disabled';
+  P5FogEnabledRStr = 'Fog Enabled';
+  P5FogDisabledRStr = 'Fog Disabled';
+  P5SpellCheatEnabledRStr = 'All spells enabled';
+  P5SpellCheatDisabledRStr = 'All spells disabled';
+  P5FreeMovementEnabledRStr = 'Free movement enabled';
+  P5FreeMovementDisabledRStr = 'Free movement disabled';
 
 
 
@@ -10712,7 +10727,7 @@ begin
     if (FMoves.Count > 1) and (memSimultaneous in FMode) then
     begin
       MultiMove := TMultiMoveTE.Create(nil);
-      MultiMove.FMoveMode := 0;
+      MultiMove.FSimultaneous := False;
       for I := FMoves.Count - 1 downto 0 do
         if FMoves.GetMoves(I).RetrieveArmy(Army, Selection) then
         begin
@@ -12962,285 +12977,1642 @@ begin
 end;
 
 class function TChangePlayerSettingsTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21326; end;
 
-procedure TChangePlayerSettingsTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TChangePlayerSettingsTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), $1E);
+  Stream.rwString(FSettings, $1F);
+end;
 
-function TChangePlayerSettingsTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TChangePlayerSettingsTE.Execute(TE: TTokenExecuter): TExecuteResult;
+begin
+  AoWHSMap.FPlayers.GetPlayers(FPlayer).FSettings := FSettings;
+  Result := erDone;
+end;
 
 class function TEndTurnTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21101; end;
 
-procedure TEndTurnTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TEndTurnTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FDay, $14);
+  Stream.rwByte(Byte(FPlayer), $15);
+  Stream.rwData(FMode, SizeOf(FMode), $16);
+end;
 
-function TEndTurnTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TEndTurnTE.Execute(TE: TTokenExecuter): TExecuteResult;
+begin
+  inherited Execute(TE);
+  if AoWHSMap.FDay = FDay then
+  begin
+    if (FMode = emEndTurn) and
+      not AoWHSMap.FPlayers.GetPlayers(FPlayer).FSingleProcessCycle then
+    begin
+      AoWHSMap.FPlayerControl.EndTurn(FPlayer);
+      if (AoWHSMap.FPlayMode = pmSimultaneous) and
+        (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace <> -1) then
+        AoWHSMap.ShowMessage(TranslateRStr(RaceNamesPluralRStr[
+          AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace]) + ' ' +
+          TranslateRStr(P5FinishedTheirTurnRStr));
+    end;
+    if FMode = emCancelEndTurn then
+      AoWHSMap.FPlayers.GetPlayers(FPlayer).SetEndTurn(False);
+    Result := erDone;
+  end
+  else Result := erDoneHalt;
+end;
 
-constructor TMoveTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TMoveTE.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FPath := TMovepath.Create;
+  FMoveIndex := 0;
+  FStatus := msIdle;
+end;
 
 destructor TMoveTE.Destroy;
-begin end;
+begin
+  FPath.Free;
+  inherited Destroy;
+end;
 
-procedure TMoveTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TMoveTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc($14, FPath.LoadFromStream, FPath.SaveToStream);
+end;
 
-function TMoveTE.GetMapF(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TMoveTE.GetMapF(Location: TXYL): TAoWMapField;
+begin
+  Result := TAoWMapField(AoWHSMap.MapContainer.GetField(Location.X, Location.Y, Location.L));
+end;
 
-procedure TMoveTE.GetDirection(A1: Integer);
-begin end;
+function TMoveTE.GetDirection(Index: Integer): Integer;
+begin
+  if (Index > 0) and (Index < FPath.Count) then
+  begin
+    if (FPath[Index].L = FPath[Index - 1].L) and
+      (dHXtoRad(FPath[Index].X, FPath[Index].Y,
+        FPath[Index - 1].X, FPath[Index - 1].Y) = 1) then
+      Result := dHXtoHNfast(FPath[Index].X, FPath[Index].Y,
+        FPath[Index - 1].X, FPath[Index - 1].Y)
+    else Result := 0;
+  end
+  else Result := 0;
+end;
 
-procedure TMoveTE.GetHT(A1: Integer);
-begin end;
+function TMoveTE.GetHT(Index: Integer): Integer;
+begin
+  if (Index > 0) and (Index < FPath.Count) then
+    Result := dHXtoHT(FPath[Index].X, FPath[Index].Y,
+      FPath[Index - 1].X, FPath[Index - 1].Y)
+  else Result := 0;
+end;
 
-procedure TMoveTE.Move;
-begin end;
+function TMoveTE.Move: TMoveStatus;
+begin
+  Dec(FMoveIndex);
+  if FMoveIndex = 0 then Result := msDone
+  else Result := msMoving;
+end;
 
-function TMoveTE.Validate: Integer;
-begin Result := 0; end;
+function TMoveTE.Validate: Boolean;
+begin Result := True; end;
 
 procedure TMoveTE.InitializeMove;
-begin end;
+begin FMoveIndex := FPath.Count - 1; end;
 
 procedure TMoveTE.FinishMove;
-begin end;
+begin FStatus := msFinished; end;
 
-function TMoveTE.DefaultMove: Byte;
-begin Result := 0; end;
+function TMoveTE.DefaultMove: TMoveStatus;
+begin Result := Move; end;
 
-function TMoveTE.LastMove(A1: Integer; A2: Byte): Byte;
-begin Result := 0; end;
+function TMoveTE.LastMove: TMoveStatus;
+begin Result := DefaultMove; end;
 
-procedure TMoveTE.ProcessMove;
-begin end;
+function TMoveTE.ProcessMove: TMoveStatus;
+begin
+  if FMoveIndex = 1 then Result := LastMove
+  else if (FMoveIndex > 1) and (FMoveIndex < FPath.Count) then
+    Result := DefaultMove
+  else Result := msDone;
+end;
 
-function TMoveTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TMoveTE.Execute(TE: TTokenExecuter): TExecuteResult;
+begin
+  inherited Execute(TE);
+  if FStatus = msIdle then
+  begin
+    if Validate then
+    begin
+      FStatus := msMoving;
+      InitializeMove;
+      AoWHSMap.Random($FFFFF);
+      case FPath.Count of
+        0..1: FStatus := msDone;
+        2: FStatus := LastMove;
+      else FStatus := DefaultMove;
+      end;
+    end
+    else FStatus := msFailed;
+  end
+  else if FStatus = msMoving then FStatus := ProcessMove;
+  if FStatus = msDone then
+  begin
+    FinishMove;
+    Result := erDone;
+  end
+  else if FStatus = msFailed then
+  begin
+    FinishMove;
+    Result := erDoneHalt;
+  end
+  else if FStatus = msFinished then Result := erDone
+  else Result := erRetry;
+end;
 
-constructor TMoveArmyTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TMoveArmyTE.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FUnitIDs := TIntegerList.Create;
+end;
 
 destructor TMoveArmyTE.Destroy;
-begin end;
+begin
+  FUnitIDs.Free;
+  inherited Destroy;
+end;
 
 class function TMoveArmyTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21100; end;
 
-procedure TMoveArmyTE.GetNoneMovingArmyHS(A1: Integer);
-begin end;
+function TMoveArmyTE.GetNoneMovingArmyHS(Field: TMapField): TArmyHS;
+var
+  I: Integer;
+  ArmyHS: TArmyHS;
+begin
+  Result := nil;
+  for I := Field.Count - 1 downto 0 do
+  begin
+    ArmyHS := TArmyHS(Field.HSList^[I]);
+    if (ArmyHS.ClassID = $20217) and (ArmyHS.Owner = Field) and
+      not (amMoving in ArmyHS.FArmy.FMode) then
+    begin
+      Result := ArmyHS;
+      Break;
+    end;
+  end;
+end;
 
-procedure TMoveArmyTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TMoveArmyTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStreamProc($1E, FUnitIDs.LoadFromStream, FUnitIDs.SaveToStream);
+  Stream.rwByte(Byte(FPlayer), $1F);
+  Stream.rwByte(Byte(FTargetX), $20);
+  Stream.rwByte(Byte(FTargetY), $21);
+  Stream.rwByte(Byte(FTargetL), $22);
+  Stream.rwByte(Byte(FTargetPlayer), $23);
+  Stream.rwData(FMode, SizeOf(FMode), $24);
+  Stream.rwByte(Byte(FDestinationX), $25);
+  Stream.rwByte(Byte(FDestinationY), $26);
+  Stream.rwByte(Byte(FDestinationL), $27);
+end;
 
-function TMoveArmyTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
-begin Result := False; end;
+function TMoveArmyTE.Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean;
+var
+  First, Last, I: Integer;
+begin
+  FPath.Clear;
+  First := Path.MovePointsToPos(ArmyHS.FArmy.MovePoints(Selection));
+  Last := Path.Count - 1;
+  if First < Last then
+  begin
+    for I := First to Last do FPath.Add(Path[I]);
+    FArmyHS := ArmyHS;
+    FPlayer := ArmyHS.FArmy.FPlayer;
+    FMode := Mode;
+    FTargetPlayer := GetMapF(Path[0]).GetPlayer;
+    FTargetX := Path[0].X;
+    FTargetY := Path[0].Y;
+    FTargetL := Path[0].L;
+    FSelection := ArmyHS.FArmy.ValidateSelection(Selection);
+    for I := 0 to ArmyHS.FArmy.Count - 1 do
+      if (1 shl I) and Selection <> 0 then
+        FUnitIDs.Add(ArmyHS.FArmy.GetUnit(I).FUnitID);
+    FDestinationX := FArmyHS.FArmy.FDestinationX;
+    FDestinationY := FArmyHS.FArmy.FDestinationY;
+    FDestinationL := FArmyHS.FArmy.FDestinationL;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-function TMoveArmyTE.Validate: Integer;
-begin Result := 0; end;
+function TMoveArmyTE.Validate: Boolean;
+var
+  I, UnitIndex: Integer;
+  Settings: TMoveControlSettings;
+  TargetPlayer: Shortint;
+begin
+  I := FPath.Count - 1;
+  Result := True;
+  if I < 1 then Result := False
+  else
+  begin
+    FArmyHS := TArmyHS(GetMapF(FPath[I]).FindChild($20217));
+    if FArmyHS = nil then Result := False
+    else
+    begin
+      I := FUnitIDs.Count;
+      FSelection := 0;
+      while (I <> 0) and Result do
+      begin
+        Dec(I);
+        UnitIndex := FArmyHS.FArmy.IndexOfID(FUnitIDs[I]);
+        if UnitIndex <> -1 then FSelection := FSelection or (1 shl UnitIndex);
+        Result := FArmyHS.FArmy.IndexOfID(FUnitIDs[I]) <> -1;
+      end;
+      Settings := TMoveControlSettings.Create(nil);
+      Settings.SetupArmy(FArmyHS, FSelection);
+      Include(Settings.FMode, mmAI);
+      if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman)
+        and AoWHSMap.FExplorationEnabled then Include(Settings.FMode, mmExploredTerrainOnly);
+      Result := Result and AoWHSMap.FMoveControl.ValidPath(Settings, FPath);
+      Result := Result and (FArmyHS.FArmy.FPlayer = FPlayer);
+      TargetPlayer := TAoWMapField(AoWHSMap.MapContainer.GetField(
+        FTargetX, FTargetY, FTargetL)).GetPlayer;
+      Result := Result and ((TargetPlayer = FTargetPlayer) or
+        (TargetPlayer = FArmyHS.FArmy.FPlayer));
+      if mmBuildRoads in FMode then
+        Result := Result and (RoadConstructionCost(FPlayer, FPath,
+          FArmyHS.FArmy.MovePoints(FSelection)) <= AoWHSMap.FPlayers.GetPlayers(FPlayer).FGems);
+      Settings.Release;
+    end;
+  end;
+  if not Result and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman) and
+    (AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.FStatus = mesBusy) then
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.InvalidateMove;
+end;
 
 procedure TMoveArmyTE.InitializeMove;
-begin end;
+var
+  Last: Integer;
+  ArmyHS: TArmyHS;
+begin
+  inherited InitializeMove;
+  FAnimate := False;
+  Last := FPath.Count - 1;
+  FSelection := FArmyHS.FArmy.ValidateSelection(FSelection);
+  if FSelection = FArmyHS.FArmy.ValidateSelection($FF) then
+  begin
+    if FArmyHS.GetSelected then AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
+  end
+  else
+  begin
+    ArmyHS := TArmyHS.Create(nil);
+    ArmyHS.FArmy.SetPlayer(FArmyHS.FArmy.FPlayer);
+    ArmyHS.FArmy.AddUnitSelection(FArmyHS.FArmy, FSelection);
+    ArmyHS.PlacePrivate(AoWHSMap.MapContainer, FPath[Last].X, FPath[Last].Y, FPath[Last].L);
+    FArmyHS.FArmy.ResetDestinationPos;
+    if FArmyHS.GetSelected then
+    begin
+      AoWHSMap.Selection.UnselectLocation;
+      AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+      AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
+    end;
+    FArmyHS := ArmyHS;
+    FSelection := $FF;
+  end;
+  with FArmyHS.FArmy do
+  begin
+    Include(FMode, amMoving);
+    FDestinationX := Self.FDestinationX;
+    FDestinationY := Self.FDestinationY;
+    FDestinationL := Self.FDestinationL;
+  end;
+end;
 
 procedure TMoveArmyTE.FinishMove;
-begin end;
+var
+  Selected: Boolean;
+  Field: TMapField;
+  ArmyHS: TArmyHS;
+begin
+  inherited FinishMove;
+  if FArmyHS <> nil then
+  begin
+    Selected := FArmyHS.GetSelected;
+    Field := TMapField(FArmyHS.Owner);
+    FArmyHS.SetOwner(nil);
+    ArmyHS := GetNoneMovingArmyHS(Field);
+    FArmyHS.SetOwner(Field);
+    if ArmyHS <> nil then
+    begin
+      FArmyHS.FArmy.FUserMode := FArmyHS.FArmy.FUserMode * ArmyHS.FArmy.FUserMode;
+      ArmyHS.FArmy.AssignSettings(FArmyHS.FArmy);
+      ArmyHS.FArmy.AddUnitSelection(FArmyHS.FArmy, $FF);
+      FArmyHS := ArmyHS;
+      if Selected then
+      begin
+        AoWHSMap.FSelectedArmy.Select(FArmyHS);
+        AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
+      end;
+    end;
+    Exclude(FArmyHS.FArmy.FMode, amMoving);
+    FArmyHS.CancelMove;
+    if Selected then
+    begin
+      AoWHSMap.FSelectedArmy.ActivateMoveSelection;
+      AoWHSMap.FSelectedArmy.Update;
+      if mmSelectEndLocation in FMode then
+        AoWHSMap.Selection.SelectLocationHX(FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx);
+    end;
+  end;
+end;
 
-procedure TMoveArmyTE.ObserveMove;
-begin end;
+function TMoveArmyTE.ObserveMove(Index: Integer): Boolean;
+begin
+  Result := MoveVisible(Index) and AoWHSMap.FShowIndependentMoves and
+    ((AoWHSMap.FSeatedPlayer <> FArmyHS.FArmy.FPlayer) or
+     (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerType <> ptHuman));
+  if Result and (AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent is TMultiMoveTE) and
+    TMultiMoveTE(AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent).FSimultaneous then
+    Result := Self = TMultiMoveTE(AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent).FEvents[0];
+end;
 
-procedure TMoveArmyTE.MoveVisible(A1: Integer);
-begin end;
+function TMoveArmyTE.MoveVisible(Index: Integer): Boolean;
+begin
+  if AoWHSMap.FSeatedPlayer = -1 then Result := False
+  else
+  begin
+    Result := AoWHSMap.Visible(FPath[Index].X, FPath[Index].Y, FPath[Index].L, 0);
+    if Result and (asFullyConcealed in FArmyHS.FArmy.FStatus) then Result := False;
+  end;
+end;
 
-procedure TMoveArmyTE.ExecuteMove;
-begin end;
+function TMoveArmyTE.ExecuteMove: TMoveStatus;
+var
+  Field: TAoWMapField;
+  Direction: Integer;
+begin
+  if mmBuildRoads in FMode then ConstructRoad(FArmyHS.FArmy.FPlayer, GetMapF(FPath[FMoveIndex]));
+  Dec(FMoveIndex);
+  Field := GetMapF(FPath[FMoveIndex]);
+  FArmyHS.MoveTo(Field, FPath[FMoveIndex].Flag);
+  if Field.FindChildIndex(FArmyHS) = -1 then
+  begin
+    FArmyHS := nil;
+    Result := msDone;
+  end
+  else
+  begin
+    Direction := GetDirection(FMoveIndex + 1);
+    if Direction = 0 then Direction := GetHT(FMoveIndex + 1);
+    if (Direction >= 1) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
+    else FArmyHS.SetDirection(0);
+    if mmBuildRoads in FMode then ConstructRoad(FArmyHS.FArmy.FPlayer, Field);
+    Result := ProcessMove;
+  end;
+end;
 
-procedure TMoveArmyTE.Animating;
-begin end;
+function TMoveArmyTE.Animating: Boolean;
+begin
+  Result := (FArmyHS.GetMoveStatus < 100) and (FArmyHS.GetMoveStatus <> -1);
+end;
 
 procedure TMoveArmyTE.UpdateAnimation;
-begin end;
+begin FArmyHS.MoveNext; end;
 
-procedure TMoveArmyTE.CanMoveNext;
-begin end;
+function TMoveArmyTE.CanMoveNext: Boolean;
+var
+  Stop: Boolean;
+  I: Integer;
+  Field: TAoWMapField;
+  ArmyHS: TArmyHS;
+begin
+  Result := False;
+  Stop := False;
+  I := FMoveIndex;
+  while (I <> 0) and not Stop and not Result do
+  begin
+    Dec(I);
+    Field := GetMapF(FPath[I]);
+    Result := Field.GetPlayer = -1;
+    if not Result then
+    begin
+      ArmyHS := GetNoneMovingArmyHS(Field);
+      if ArmyHS = nil then Result := Field.GetPlayer = FArmyHS.FArmy.FPlayer
+      else if FArmyHS.FArmy.FPlayer = ArmyHS.FArmy.FPlayer then
+        Result := FArmyHS.FArmy.CanCombine(ArmyHS.FArmy, $FF)
+      else if AoWHSMap.FPlayers.GetDiplomaticRelation(FArmyHS.FArmy.FPlayer,
+        ArmyHS.FArmy.FPlayer) <> drAlliance then Stop := True;
+    end;
+  end;
+end;
 
 procedure TMoveArmyTE.SetupNextMove;
-begin end;
+var
+  Direction: Integer;
+  Instant: Boolean;
+  Field: TAoWMapField;
+begin
+  if (MoveVisible(FMoveIndex) or FAnimate) and
+    ((FPath[FMoveIndex].L = AoWHSMap.ViewL) or AoWHSMap.FShowIndependentMoves) then
+  begin
+    FAnimate := True;
+    Direction := GetDirection(FMoveIndex);
+    if Direction = 0 then
+    begin
+      Direction := GetHT(FMoveIndex);
+      Instant := True;
+    end
+    else Instant := False;
+    FArmyHS.MoveFirst(Direction, Instant);
+    if ObserveMove(FMoveIndex - 1) then
+    begin
+      Field := GetMapF(FPath[FMoveIndex - 1]);
+      AoWHSMap.ValidateObservation(FArmyHS.FArmy.FPlayer, Field.Xhx, Field.Yhx, Field.Lhx, 0);
+    end;
+  end;
+end;
 
-function TMoveArmyTE.DefaultMove: Byte;
-begin Result := 0; end;
+function TMoveArmyTE.DefaultMove: TMoveStatus;
+begin
+  if not FArmyHS.Moving then
+  begin
+    if not CanMoveNext then Result := msFailed
+    else
+    begin
+      SetupNextMove;
+      if not Animating then Result := ExecuteMove
+      else Result := msMoving;
+    end;
+  end
+  else if not Animating then Result := msFailed
+  else
+  begin
+    UpdateAnimation;
+    if (FArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) or
+      AoWHSMap.Watching(FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx, 0) then FArmyHS.PlayMoveSFX;
+    if not Animating then Result := ExecuteMove
+    else Result := msMoving;
+  end;
+end;
 
 class function TArmyDefaultMoveTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21104; end;
 
-function TArmyDefaultMoveTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
-begin Result := False; end;
+function TArmyDefaultMoveTE.Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean;
+begin Result := inherited Setup(ArmyHS, Selection, Path, Mode); end;
 
 class function TArmyNegotiateMoveTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21106; end;
 
-function TArmyNegotiateMoveTE.Validate: Integer;
-begin Result := 0; end;
+function TArmyNegotiateMoveTE.Validate: Boolean;
+begin
+  Result := inherited Validate and
+    (TAoWMapField(AoWHSMap.MapContainer.GetField(FTargetX, FTargetY, FTargetL)).
+      GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate);
+end;
 
-procedure TArmyNegotiateMoveTE.CanMoveNext;
-begin end;
+function TArmyNegotiateMoveTE.CanMoveNext: Boolean;
+var Field: TAoWMapField;
+begin
+  if FMoveIndex = 1 then
+  begin
+    Field := GetMapF(FPath[0]);
+    if Field.GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then Result := True
+    else Result := inherited CanMoveNext;
+  end
+  else Result := inherited CanMoveNext;
+end;
 
-procedure TArmyNegotiateMoveTE.ExecuteMove;
-begin end;
+function TArmyNegotiateMoveTE.ExecuteMove: TMoveStatus;
+var
+  Field: TAoWMapField;
+  Direction: Integer;
+begin
+  if FMoveIndex = 1 then
+  begin
+    Field := GetMapF(FPath[0]);
+    if Field.GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then
+    begin
+      Direction := GetDirection(1);
+      if Direction = 0 then Direction := GetHT(1);
+      if (Direction > 0) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
+      else FArmyHS.SetDirection(0);
+      NegotiateArmy(FArmyHS.FArmy.FPlayer, FArmyHS, FSelection,
+        FPath[0].X, FPath[0].Y, FPath[0].L, FPath[0].Flag);
+      Result := msDone;
+    end
+    else Result := inherited ExecuteMove;
+  end
+  else Result := inherited ExecuteMove;
+end;
 
-procedure TArmyNegotiateMoveTE.Animating;
-begin end;
+function TArmyNegotiateMoveTE.Animating: Boolean;
+var Field: TAoWMapField;
+begin
+  if FMoveIndex = 1 then
+  begin
+    if FArmyHS.GetMoveStatus = -1 then Result := False
+    else
+    begin
+      Field := GetMapF(FPath[0]);
+      if Field.GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate then
+        Result := FArmyHS.GetMoveStatus < 50
+      else Result := FArmyHS.GetMoveStatus < 100;
+    end;
+  end
+  else Result := inherited Animating;
+end;
 
 class function TArmyCombineMoveTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21103; end;
 
-procedure TArmyCombineMoveTE.ShowCombineFailure(A1: Byte);
-begin end;
+procedure TArmyCombineMoveTE.ShowCombineFailure(Reason: TAddUnitsResult);
+begin
+  case Reason of
+    arInvalidMoveType: AoWHSMap.ShowMessage(TranslateRStr(P5CannotCombineArmiesRStr));
+    arTooManyUnits: AoWHSMap.ShowMessage(TranslateRStr(P5CannotCombineArmiesRStr));
+    arMultipleTransporters: AoWHSMap.ShowMessage(TranslateRStr(P5CannotCombineTransportersRStr));
+  end;
+end;
 
-procedure TArmyCombineMoveTE.CanMoveNext;
-begin end;
+function TArmyCombineMoveTE.CanMoveNext: Boolean;
+var
+  ArmyHS: TArmyHS;
+  CombineResult: TAddUnitsResult;
+begin
+  if (FMoveIndex = 1) and (FPath[0].X = FTargetX) and
+    (FPath[0].Y = FTargetY) and (FPath[0].L = FTargetL) and
+    (FArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+  begin
+    ArmyHS := GetMapF(FPath[0]).GetArmyHS;
+    if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = FArmyHS.FArmy.FPlayer) then
+    begin
+      CombineResult := ArmyHS.FArmy.CanAddUnitSelection(FArmyHS.FArmy, $FF);
+      if CombineResult <> arOK then
+      begin
+        ShowCombineFailure(CombineResult);
+        Exclude(FMode, mmSelectEndLocation);
+      end;
+    end;
+  end;
+  Result := inherited CanMoveNext;
+end;
 
 function TCombatRestoreHotseatEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+begin
+  FCombatMove.FCombatMode := cmMoving;
+  FCombatMove.RestoreHotseatMode;
+  Result := False;
+end;
 
 class function TArmyCombatMoveTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21102; end;
 
-function TArmyCombatMoveTE.Setup(A1: TArmyHS; A2: Byte; A3: TMovepath; A4: TArmyMoveMode): Boolean;
-begin Result := False; end;
+function TArmyCombatMoveTE.Setup(ArmyHS: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode): Boolean;
+begin
+  Result := inherited Setup(ArmyHS, Selection, Path, Mode);
+  if Result and (ArmyHS.FArmy.FPlayer = FTargetPlayer) then Result := False;
+  if Result and (ArmyHS.FArmy.FPlayer > 0) and (FTargetPlayer > 0) and
+    (AoWHSMap.FPlayers.GetPlayers(ArmyHS.FArmy.FPlayer).FDiplomaticRelations.
+      GetDiplomaticRelation(FTargetPlayer) in [drPeace, drAlliance]) then Result := False;
+end;
 
-procedure TArmyCombatMoveTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TArmyCombatMoveTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FCombatType, SizeOf(FCombatType), $32);
+end;
 
-function TArmyCombatMoveTE.Validate: Integer;
-begin Result := 0; end;
+function TArmyCombatMoveTE.Validate: Boolean;
+begin Result := inherited Validate; end;
 
 procedure TArmyCombatMoveTE.InitializeMove;
-begin end;
+begin inherited InitializeMove; end;
 
-procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(A1: Integer);
-begin end;
+procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog);
+var
+  Request: TCombatTypeRequestEventLog;
+  Flow: TCombatFlowControlTE;
+  Move: TArmyCombatMoveTE;
+begin
+  Request := TCombatTypeRequestEventLog(Log);
+  FCombatType := Request.FCombatType;
+  if not Request.FCreateNewMove then FCombatMode := cmSetupReady
+  else if FCombatType = ctNone then
+  begin
+    if AoWHSMap.FPlayMode = pmSimultaneous then
+    begin
+      Flow := TCombatFlowControlTE.Create(nil);
+      Flow.FMode := [cfmSetAutoSwitch, cfmUnlockAIExecuter, cfmEnableTurnTimer];
+      AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Flow);
+      Flow.Release;
+    end;
+  end
+  else
+  begin
+    Flow := TCombatFlowControlTE.Create(nil);
+    Flow.FMode := [cfmUnlockAIExecuter, cfmActivateTC, cfmEnableTurnTimer];
+    if AoWHSMap.FPlayMode = pmSimultaneous then Include(Flow.FMode, cfmSetAutoSwitch);
+    Flow.FPlayer := Request.FPlayer;
+    AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Flow);
+    Flow.Release;
+    if Request.FArmyID.RetrieveArmy(FArmyHS, FSelection) then
+    begin
+      while FPath.Count > 2 do FPath.Delete(2);
+      if FPath.Count = 2 then FPath.List^[1].Flag := 0;
+      Move := TArmyCombatMoveTE(CreateArmyMoveTE(FArmyHS, FSelection, FPath, maNormal, [mmSelectEndLocation]));
+      if Move = nil then AoWEngine.OutputDebugStr('Cannot create CombatMoveTE')
+      else
+      begin
+        Move.FCombatType := Request.FCombatType;
+        AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Move);
+        Move.Release;
+      end;
+    end;
+  end;
+end;
 
-procedure TArmyCombatMoveTE.RestoreHotseatMode(A1: Integer);
-begin end;
+procedure TArmyCombatMoveTE.RestoreHotseatMode;
+var
+  Log: TNewTurnEventLog;
+begin
+  AoWHSMap.SetSeatedPlayer(-1);
+  Log := TNewTurnEventLog.Create(nil);
+  Log.FTurnPlayer := AoWHSMap.FCurrentPlayer;
+  Log.FMode := ntDialog;
+  Log.FDialogStyle := [];
+  if AoWHSMap.FCurrentPlayer = 0 then Log.FText := TranslateRStr(P5IndependentsAreMovingRStr)
+  else Log.FText := Format(TranslateRStr(P5PlayerIsMovingRStr),
+    [AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FCurrentPlayer).GetName]);
+  AoWHSMap.TriggerExecuteEventLog(Log, True, nil);
+  Log.Release;
+end;
 
-procedure TArmyCombatMoveTE.RestoreHotSeatModeCallBack;
-begin end;
+procedure TArmyCombatMoveTE.RestoreHotSeatModeCallBack(Log: TEventLog);
+begin
+  AoWHSMap.SynchroniseBegin;
+  RestoreHotseatMode;
+  AoWHSMap.FAIExecuter.Unlock;
+  AoWHSMap.UnlockGameOverEvent;
+  FCombatMode := cmMoving;
+  AoWHSMap.SynchroniseEnd;
+end;
 
-procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(A1: Integer);
-begin end;
+procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(Log: TEventLog);
+begin
+  AoWHSMap.SetSeatedPlayer(TNewTurnEventLog(Log).FTurnPlayer);
+  if FCombatMode = cmSetupHotseat then FCombatMode := cmSetupReady;
+end;
 
 procedure TArmyCombatMoveTE.SetupCombat;
-begin end;
+var
+  Field: TAoWMapField;
+  Player: Shortint;
+  Combat: TCombat;
+  Msg: TMapFieldMsg;
+  Request: TCombatTypeRequestEventLog;
+  Log: TNewTurnEventLog;
+begin
+  Field := GetMapF(FPath[0]);
+  if FCombatType <> ctNone then FCombatMode := cmSetupReady
+  else if AoWHSMap.FRequestCombatType and (AoWHSMap.FPlayMode = pmNone) then
+  begin
+    if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysFC then
+      begin
+        FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysTC then
+      begin
+        if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
+          ((Field.GetPlayer > 0) and
+           (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
+          FCombatType := ctTactical
+        else FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else FCombatMode := cmRequestingCombatType;
+  end
+  else if (AoWHSMap.FPlayMode = pmNone) and
+    ((not AoWHSMap.FRequestCombatType and (AoWHSMap.FPlayers.FLocalPlayers.Count = 1)) or
+     (AoWHSMap.FRequestCombatType and
+      (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman))) then
+  begin
+    if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysFC then
+      begin
+        FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysTC then
+      begin
+        if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
+          ((Field.GetPlayer > 0) and
+           (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
+          FCombatType := ctTactical
+        else FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else FCombatMode := cmRequestingCombatType;
+  end
+  else if (AoWHSMap.FPlayMode = pmSimultaneous) and
+    (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) and
+    (Field.GetPlayer >= 0) and
+    (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType <> ptHuman) then
+  begin
+    if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysFC then
+      begin
+        FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysTC then
+      begin
+        if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
+          ((Field.GetPlayer > 0) and
+           (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
+          FCombatType := ctTactical
+        else FCombatType := ctFast;
+        FCombatMode := cmSetupReady;
+      end
+      else FCombatMode := cmRequestingCombatType;
+  end
+  else if AoWHSMap.FPlayMode = pmTurn then
+  begin
+    if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) or
+      ((Field.GetPlayer > 0) and
+       (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman)) then
+    begin
+      case AoWHSMap.FVictoryMode of
+        0: begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+        1:
+          if (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) and
+            (Field.GetPlayer > 0) and
+            (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType = ptHuman) then
+            FCombatMode := cmRequestingCombatType
+          else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+        2: FCombatMode := cmRequestingCombatType;
+      else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+      end;
+    end
+    else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+  end
+  else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
 
-procedure TArmyCombatMoveTE.CombatExecuted(A1: Integer);
-begin end;
+  if (FCombatMode = cmRequestingCombatType) or
+    ((FCombatType = ctTactical) and (FCombatMode = cmSetupReady)) then
+  begin
+    Combat := TCombat.Create(nil);
+    Combat.Setup(FArmyHS.FArmy.FPlayer, FArmyHS.FArmy.FIndependentRelation,
+      FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx,
+      Field.GetPlayer, Field.GetIndependentRelation, FPath[0].X, FPath[0].Y, FPath[0].L, False);
+    Msg.MsgID := $1107;
+    Msg.Param[0] := Integer(Combat);
+    Msg.Param[1] := Integer(FArmyHS);
+    Msg.Result := 0;
+    Field.SendMapFieldMsg(Msg);
+    if Msg.Result = 0 then
+      Combat.InitDefaultArmies(FArmyHS.FArmy, FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx);
+    if not Combat.DefendersAvailable or not Combat.PlayerTypeInvolved([ptHuman]) then
+    begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+    Combat.Free;
+  end;
+  if (AoWHSMap.FPlayMode = pmTurn) and (FCombatMode = cmRequestingCombatType) then
+  begin
+    AoWHSMap.DisableTurnTimer;
+    AoWHSMap.FAIExecuter.Lock;
+    if AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman then
+      Player := FArmyHS.FArmy.FPlayer
+    else Player := Field.GetPlayer;
+    if AoWHSMap.FTokenManager.GetTokenControl(Player).Local then
+      AoWHSMap.FTokenManager.GetTokenControl(Player).ClearEvents;
+    AoWHSMap.FTokenManager.TokenExecuter.HoldTC := True;
+    AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(Player);
+    if AoWHSMap.FSeatedPlayer = Player then
+    begin
+      Request := TCombatTypeRequestEventLog.Create(nil);
+      Request.FPlayer := FArmyHS.FArmy.FPlayer;
+      Request.FDefenderPlayer := Field.GetPlayer;
+      Request.FX := Field.Xhx;
+      Request.FY := Field.Yhx;
+      Request.FL := Field.Lhx;
+      Request.SetTokenEvent(Self);
+      Request.FCreateNewMove := True;
+      Request.FArmyID := FArmyHS.FArmy.CreateID(FSelection);
+      if AoWEngine.FRegistry.GetCombatResolveMode = crmChoose then
+      begin
+        if AoWHSMap.FSeatedPlayer <> Request.FPlayer then
+          AoWHSMap.CenterViewTo(FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx);
+        FinishMove;
+        FArmyHS := nil;
+        AoWHSMap.TriggerExecuteEventLog(Request, False, RequestCombatTypeCallBack);
+      end
+      else
+      begin
+        FinishMove;
+        FArmyHS := nil;
+        if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysTC then Request.Select(ctTactical)
+        else Request.Select(ctFast);
+        RequestCombatTypeCallBack(Request);
+      end;
+      Request.Release;
+    end
+    else
+    begin
+      FinishMove;
+      FArmyHS := nil;
+    end;
+    FCombatMode := cmCancelCombat;
+  end;
+  if (FCombatMode = cmRequestingCombatType) and AoWHSMap.FRequestCombatType and
+    (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType <> ptHuman) then
+  begin
+    Log := TNewTurnEventLog.Create(nil);
+    Log.FTurnPlayer := Field.GetPlayer;
+    Log.FMode := ntDialog;
+    Log.FDialogStyle := [nsCloseable];
+    Log.FText := TranslateRStr(P5YouAreBeingAttackedRStr);
+    AoWHSMap.TriggerExecuteEventLog(Log, False, ShowHotSeatPlayerCallBack);
+    Log.Release;
+  end
+  else if (FCombatMode = cmSetupReady) and (FCombatType = ctTactical) and
+    AoWHSMap.FRequestCombatType and
+    (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType <> ptHuman) then
+  begin
+    FCombatMode := cmSetupHotseat;
+    Log := TNewTurnEventLog.Create(nil);
+    Log.FTurnPlayer := Field.GetPlayer;
+    Log.FMode := ntDialog;
+    Log.FDialogStyle := [nsCloseable];
+    Log.FText := TranslateRStr(P5YouAreBeingAttackedRStr);
+    AoWHSMap.TriggerExecuteEventLog(Log, False, ShowHotSeatPlayerCallBack);
+    Log.Release;
+  end;
+  if FCombatMode = cmRequestingCombatType then
+  begin
+    FArmyHS.PauseMove;
+    Request := TCombatTypeRequestEventLog.Create(nil);
+    Request.FPlayer := FArmyHS.FArmy.FPlayer;
+    Request.FDefenderPlayer := Field.GetPlayer;
+    Request.FX := Field.Xhx;
+    Request.FY := Field.Yhx;
+    Request.FL := Field.Lhx;
+    if AoWHSMap.FSeatedPlayer <> Request.FPlayer then
+      AoWHSMap.CenterViewTo(FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx);
+    AoWHSMap.TriggerExecuteEventLog(Request, False, RequestCombatTypeCallBack);
+    Request.Release;
+  end;
+end;
+
+procedure TArmyCombatMoveTE.CombatExecuted(Combat: TCombat);
+var
+  ArmyHS: TArmyHS;
+  Army: TArmy;
+  I: Integer;
+  Selection: Byte;
+  Move: TMoveArmyTE;
+  Field: TAoWMapField;
+begin
+  if not (Combat is TFastCombat) then
+  begin
+    if Combat.FCombatResult = crVictory then
+    begin
+      ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Combat.FCombatData.FAttackerX,
+        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindChild($20217));
+      if ArmyHS <> nil then
+      begin
+        Army := ArmyHS.FArmy;
+        Selection := 0;
+        for I := Army.Count - 1 downto 0 do
+        begin
+          Selection := Selection shl 1;
+          if usMoving in Army.GetUnit(I).FUnitStatus then
+          begin
+            Selection := Selection or 1;
+            Army.GetUnit(I).FUnitStatus := Army.GetUnit(I).FUnitStatus - [usMoving];
+          end;
+        end;
+        if Selection <> 0 then
+        begin
+          Field := TAoWMapField(AoWHSMap.MapContainer.GetField(
+            Combat.FCombatData.FX, Combat.FCombatData.FY, Combat.FCombatData.FL));
+          if Field.GetPlayer = ArmyHS.FArmy.FPlayer then
+            Move := CreateArmyMoveXYLTE(ArmyHS, Selection, Combat.FCombatData.FX,
+              Combat.FCombatData.FY, Combat.FCombatData.FL, maNormal, [])
+          else
+          begin
+            Move := CreateArmyMoveXYLTE(ArmyHS, Selection, Combat.FCombatData.FX,
+              Combat.FCombatData.FY, Combat.FCombatData.FL, maAttack, []);
+            if Move <> nil then TArmyCombatMoveTE(Move).FIgnoreDefenders := True;
+          end;
+          if Move <> nil then
+          begin
+            AoWHSMap.FTokenManager.TokenExecuter.AddSystemEvent(Move);
+            Move.Release;
+          end;
+        end;
+      end;
+    end
+    else
+    begin
+      ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Combat.FCombatData.FAttackerX,
+        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindChild($20217));
+      if ArmyHS <> nil then
+      begin
+        for I := ArmyHS.FArmy.Count - 1 downto 0 do
+          ArmyHS.FArmy.GetUnit(I).FUnitStatus := ArmyHS.FArmy.GetUnit(I).FUnitStatus - [usMoving];
+        if ArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer then AoWHSMap.FSelectedArmy.Select(ArmyHS);
+      end;
+    end;
+    if AoWHSMap.FRequestCombatType and
+      (Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FAttackerPlayer).FPlayer <>
+       AoWHSMap.FSeatedPlayer) then RestoreHotseatMode;
+    AoWHSMap.SynchroniseBegin;
+    DistributeCombatEvent(Combat.FLogbook, False);
+    AoWHSMap.SynchroniseEnd;
+  end;
+end;
 
 procedure TArmyCombatMoveTE.ExecuteCombat;
-begin end;
+var
+  Field, Source: TAoWMapField;
+  Defender: Shortint;
+  OtherArmyHS, ArmyHS: TArmyHS;
+  I: Integer;
+  Combat: TCombat;
+  CombatResult: Byte;
+  Msg: TMapFieldMsg;
+  Log: TUserEventLog;
+  Anim: TImageSequenceAnimation;
+  AUnit: TAbstractUnit;
+begin
+  Field := GetMapF(FPath[0]);
+  Defender := Field.GetPlayer;
+  Source := TAoWMapField(FArmyHS.Owner);
+  FArmyHS.SetOwner(nil);
+  OtherArmyHS := Source.GetArmyHS;
+  FArmyHS.SetOwner(Source);
+  for I := 0 to FArmyHS.FArmy.Count - 1 do
+  begin
+    if FSelection and 1 <> 0 then
+      FArmyHS.FArmy.GetUnit(I).FUnitStatus := FArmyHS.FArmy.GetUnit(I).FUnitStatus + [usMoving]
+    else FArmyHS.FArmy.GetUnit(I).FUnitStatus := FArmyHS.FArmy.GetUnit(I).FUnitStatus - [usMoving];
+    FSelection := FSelection shr 1;
+  end;
+  if OtherArmyHS <> nil then
+  begin
+    FArmyHS.FArmy.BeginUpdate;
+    Include(FArmyHS.FArmy.FMode, amDisableTerrainValidation);
+    for I := OtherArmyHS.FArmy.Count - 1 downto 0 do
+    begin
+      AUnit := OtherArmyHS.FArmy.GetUnit(I);
+      Exclude(AUnit.FUnitStatus, usMoving);
+      FArmyHS.FArmy.AddChild(AUnit);
+    end;
+    Exclude(FArmyHS.FArmy.FMode, amDisableTerrainValidation);
+    FArmyHS.FArmy.EndUpdate;
+  end;
+  FArmyHS.CancelMove;
+  AoWHSMap.LockGameOverEvent;
+  if FCombatType = ctFast then Combat := AoWHSMap.CreateCombat($202B0)
+  else Combat := AoWHSMap.CreateCombat($220110);
+  Combat.Setup(FArmyHS.FArmy.FPlayer, FArmyHS.FArmy.FIndependentRelation,
+    FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx, Field.GetPlayer,
+    Field.GetIndependentRelation, FPath[0].X, FPath[0].Y, FPath[0].L, FCombatType = ctFast);
+  Combat.FOnExecuted := CombatExecuted;
+  Msg.MsgID := $1107;
+  Msg.Param[0] := Integer(Combat);
+  Msg.Param[1] := Integer(FArmyHS);
+  Msg.Result := 0;
+  Field.SendMapFieldMsg(Msg);
+  if Msg.Result = 0 then
+    Combat.InitDefaultArmies(FArmyHS.FArmy, FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx);
+  Combat.Initialize;
+  Combat.Activate;
+  CombatResult := Combat.Execute;
+  FCombatMode := cmCombatExecuted;
+  if CombatResult = Ord(crBusy) then
+  begin
+    AoWHSMap.UnlockGameOverEvent;
+    FArmyHS := nil;
+    FinishMove;
+  end
+  else
+  begin
+    Combat.Deactivate;
+    Combat.Finalize;
+    if Combat is TFastCombat then
+    begin
+      DistributeCombatEvent(Combat.FLogbook, True);
+      if AoWHSMap.FRequestCombatType and (AoWHSMap.FSeatedPlayer = Defender) then
+      begin
+        Log := TUserEventLog.Create(nil);
+        Log.FData := Self;
+        AoWHSMap.TriggerExecuteEventLog(Log, False, RestoreHotSeatModeCallBack);
+        Log.Release;
+        AoWHSMap.FAIExecuter.Lock;
+        AoWHSMap.LockGameOverEvent;
+        FCombatMode := cmRestoringHotseat;
+      end;
+    end;
+    if (CombatResult <> Ord(crNoDefenders)) and
+      AoWHSMap.VisibleForPlayer(FPath[0].X, FPath[0].Y, FPath[0].L, AoWHSMap.FSeatedPlayer) then
+    begin
+      Anim := TImageSequenceAnimation.Create(nil);
+      Anim.SetImageSequence(AoWHSSet.FImageSequences[$16]);
+      AoWHSMap.PlaceHX(Anim, FPath[0].X, FPath[0].Y, FPath[0].L);
+    end;
+    AoWHSMap.DestroyCombat;
+    AoWHSMap.UnlockGameOverEvent;
+    FArmyHS := TArmyHS(GetMapF(FPath[FMoveIndex]).FindChild($20217));
+    if (FArmyHS <> nil) and (CombatResult in [Ord(crCannotInflictDamage), Ord(crUndecided),
+      Ord(crCannotBreachWall), Ord(crFled)]) then
+    begin
+      FinishMove;
+      FArmyHS := nil;
+    end;
+    if FArmyHS <> nil then
+    begin
+      FArmyHS.CancelMove;
+      FArmyHS.FArmy.BeginUpdate;
+      ArmyHS := TArmyHS.Create(nil);
+      ArmyHS.FArmy.BeginUpdate;
+      ArmyHS.FArmy.AssignSettings(FArmyHS.FArmy);
+      ArmyHS.FDirection := FArmyHS.FDirection;
+      ArmyHS.FArmy.SetPlayer(FArmyHS.FArmy.FPlayer);
+      for I := FArmyHS.FArmy.Count - 1 downto 0 do
+        if usMoving in FArmyHS.FArmy.GetUnit(I).FUnitStatus then
+        begin
+          FArmyHS.FArmy.GetUnit(I).FUnitStatus := FArmyHS.FArmy.GetUnit(I).FUnitStatus - [usMoving];
+          ArmyHS.FArmy.AddChild(FArmyHS.FArmy.GetUnit(I));
+        end;
+      ArmyHS.FArmy.EndUpdate;
+      if ArmyHS.FArmy.Count = 0 then
+      begin
+        { The original drops the empty new army without freeing it. }
+        Exclude(FArmyHS.FArmy.FMode, amMoving);
+        FArmyHS.FArmy.EndUpdate;
+        FArmyHS := nil;
+      end
+      else
+      begin
+        ArmyHS.PlacePrivate(AoWHSMap.MapContainer, FPath[FMoveIndex].X,
+          FPath[FMoveIndex].Y, FPath[FMoveIndex].L);
+        if FArmyHS.GetSelected then
+        begin
+          AoWHSMap.Selection.UnselectLocation;
+          AoWHSMap.Selection.SelectLocationHS(ArmyHS);
+        end;
+        Exclude(FArmyHS.FArmy.FMode, amMoving);
+        FArmyHS.FArmy.EndUpdate;
+        FArmyHS := ArmyHS;
+        Include(ArmyHS.FArmy.FMode, amMoving);
+        FSelection := $FF;
+        if (CombatResult <> Ord(crVictory)) and (CombatResult <> Ord(crNoDefenders)) and
+          not inherited CanMoveNext then
+        begin
+          FinishMove;
+          FArmyHS := nil;
+          Exit;
+        end;
+        FArmyHS.MoveFirst(GetDirection(FMoveIndex), False);
+        FArmyHS.SetMoveStatus(50);
+      end;
+    end;
+  end;
+end;
 
-procedure TArmyCombatMoveTE.ExecuteLastMove;
-begin end;
+function TArmyCombatMoveTE.ExecuteLastMove: TMoveStatus;
+begin
+  if GetMapF(FPath[FMoveIndex - 1]).FindChild($20217) = nil then
+  begin
+    FArmyHS.MoveTo(GetMapF(FPath[FMoveIndex - 1]), FPath[FMoveIndex - 1].Flag);
+    FArmyHS := nil;
+  end
+  else FArmyHS.CancelMove;
+  Result := msDone;
+end;
 
-procedure TArmyCombatMoveTE.Animating;
-begin end;
+function TArmyCombatMoveTE.Animating: Boolean;
+var Field: TAoWMapField;
+begin
+  if (FMoveIndex = 1) and (FCombatMode <> cmCombatExecuted) then
+  begin
+    if FArmyHS.GetMoveStatus = -1 then Result := False
+    else
+    begin
+      Field := GetMapF(FPath[FMoveIndex - 1]);
+      if Field.GetPlayer = -1 then Result := FArmyHS.GetMoveStatus < 100
+      else Result := FArmyHS.GetMoveStatus < 50;
+    end;
+  end
+  else Result := inherited Animating;
+end;
 
-procedure TArmyCombatMoveTE.CanMoveNext;
-begin end;
+function TArmyCombatMoveTE.CanMoveNext: Boolean;
+var Field: TAoWMapField;
+begin
+  if FMoveIndex = 1 then
+  begin
+    Field := GetMapF(FPath[0]);
+    if Field.GetPlayer <> FArmyHS.FArmy.FPlayer then
+    begin
+      Result := AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FGameOverStatus = goNone;
+      Exit;
+    end;
+  end;
+  Result := inherited CanMoveNext;
+end;
 
-procedure TArmyCombatMoveTE.ExecuteMove;
-begin end;
+function TArmyCombatMoveTE.ExecuteMove: TMoveStatus;
+var
+  Field: TAoWMapField;
+  Player: Shortint;
+  Direction: Integer;
+begin
+  if (FMoveIndex = 1) and (FCombatMode = cmMoving) then
+  begin
+    Field := GetMapF(FPath[0]);
+    Player := Field.GetPlayer;
+    if (Player = -1) or (Player = FArmyHS.FArmy.FPlayer) or FIgnoreDefenders then
+      Result := inherited ExecuteMove
+    else
+    begin
+      Direction := GetDirection(FMoveIndex + 1);
+      if Direction = 0 then Direction := GetHT(FMoveIndex + 1);
+      if (Direction >= 1) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
+      else FArmyHS.SetDirection(0);
+      SetupCombat;
+      Result := msMoving;
+    end;
+  end
+  else Result := inherited ExecuteMove;
+end;
 
-procedure TArmyCombatMoveTE.ProcessMove;
-begin end;
+function TArmyCombatMoveTE.ProcessMove: TMoveStatus;
+begin
+  Result := msMoving;
+  if FCombatMode = cmRestoringHotseat then Exit;
+  if FCombatMode = cmSetupHotseat then Result := msMoving
+  else if FCombatMode = cmCancelCombat then Result := msDone
+  else if FCombatMode <> cmRequestingCombatType then
+  begin
+    if FCombatMode <> cmSetupReady then Result := inherited ProcessMove;
+    if FCombatMode = cmSetupReady then
+    begin
+      if FCombatType = ctNone then Result := msDone
+      else
+      begin
+        ExecuteCombat;
+        if FArmyHS = nil then Result := msDone
+        else Result := msMoving;
+      end;
+    end;
+  end;
+end;
 
 class function TGameOverTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21111; end;
 
-procedure TGameOverTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TGameOverTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), $14);
+  Stream.rwData(FGameOverStatus, SizeOf(FGameOverStatus), $15);
+end;
 
-function TGameOverTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TGameOverTE.Execute(TE: TTokenExecuter): TExecuteResult;
+begin
+  AoWHSMap.FPlayerControl.GameOver(FPlayer, FGameOverStatus);
+  Result := erDone;
+end;
 
 class function TTerminatePlayerTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202FC; end;
 
-procedure TTerminatePlayerTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TTerminatePlayerTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), $14);
+end;
 
-function TTerminatePlayerTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TTerminatePlayerTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var
+  Log: TMessageEventLog;
+begin
+  AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType := ptCPU3;
+  with TRemotePCC(AoWHSMap.FPlayerCommunicator.PCC) do
+  begin
+    SetConnectionMode(FPlayer, cmGlobal);
+    SetSystemID(FPlayer, 0);
+  end;
+  if not AoWHSMap.FPlayers.GetPlayers(FPlayer).FSingleProcessCycle then
+    AoWHSMap.FPlayerControl.EndTurn(FPlayer);
+  AoWHSMap.FPlayers.Update;
+  if AoWHSMap.FSeatedPlayer = FPlayer then
+  begin
+    AoWHSMap.ExecuteExitGame;
+    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
+  end
+  else
+  begin
+    Log := TMessageEventLog.Create(nil);
+    Log.FButtons := mebOk;
+    Log.FLayout := melNormal;
+    Log.FMessage.Text := Format(TranslateRStr(P5XLeftTheGameRStr),
+      [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
+    AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
+    Log.Release;
+  end;
+  Result := erDone;
+end;
 
-constructor TMultiMoveTE.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TMultiMoveTE.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FEvents := TTokenEventList.Create(nil);
+  FSimultaneous := True;
+end;
 
 destructor TMultiMoveTE.Destroy;
-begin end;
+begin
+  FEvents.Free;
+  inherited Destroy;
+end;
 
 class function TMultiMoveTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21112; end;
 
-procedure TMultiMoveTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TMultiMoveTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FEvents, $14);
+  Stream.rwBool(FSimultaneous, $15);
+end;
 
-function TMultiMoveTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TMultiMoveTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var
+  I: Integer;
+  Valid: Boolean;
+  MoveResult: TExecuteResult;
+  Events: TTokenEventList;
+begin
+  Events := FEvents;
+  if TE.ExecuteCount = 0 then
+  begin
+    I := Events.Count;
+    Valid := True;
+    while I <> 0 do
+    begin
+      Dec(I);
+      { The original retains only the final validation result. }
+      Valid := TMoveTE(Events[I]).Validate;
+    end;
+  end
+  else Valid := True;
+  if Valid then
+  begin
+    if FSimultaneous then
+    begin
+      for I := Events.Count - 1 downto 0 do
+      begin
+        MoveResult := Events[I].Execute(TE);
+        if MoveResult in [erDone, erDoneHalt] then Events.Delete(I);
+      end;
+    end
+    else
+    begin
+      MoveResult := erDone;
+      while (MoveResult in [erDone, erDoneHalt]) and (FEvents.Count > 0) do
+      begin
+        MoveResult := Events[0].Execute(TE);
+        if MoveResult in [erDone, erDoneHalt] then Events.Delete(0);
+      end;
+    end;
+  end;
+  if not Valid or (FEvents.Count = 0) then Result := erDone
+  else Result := erRetry;
+end;
 
 class function TCheatTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F5; end;
 
-procedure TCheatTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TCheatTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), $14);
+  Stream.rwInteger(FCheatID, $15);
+end;
 
-function TCheatTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TCheatTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var
+  I, J: Integer;
+begin
+  inherited Execute(TE);
+  case FCheatID of
+    0:
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        AoWHSMap.FPlayers.GetPlayers(I).SetGems(AoWHSMap.FPlayers.GetPlayers(I).FGems + 1000);
+    1:
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+        AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.SetMana(
+          AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FMana + 1000);
+    2:
+      begin
+        AoWHSMap.SetExplorationEnabled(not AoWHSMap.FExplorationEnabled);
+        if AoWHSMap.FExplorationEnabled then
+          AoWHSMap.ShowMessage(TranslateRStr(P5ExplorationEnabledRStr))
+        else AoWHSMap.ShowMessage(TranslateRStr(P5ExplorationDisabledRStr));
+      end;
+    3:
+      begin
+        AoWHSMap.SetFogEnabled(AoWHSMap.FFogEnabled xor 1);
+        if AoWHSMap.FFogEnabled <> 0 then AoWHSMap.ShowMessage(TranslateRStr(P5FogEnabledRStr))
+        else AoWHSMap.ShowMessage(TranslateRStr(P5FogDisabledRStr));
+      end;
+    4:
+      begin
+        AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FCheatEnabled :=
+          not AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled;
+        if AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled then
+          AoWHSMap.ShowMessage(TranslateRStr(P5SpellCheatEnabledRStr))
+        else AoWHSMap.ShowMessage(TranslateRStr(P5SpellCheatDisabledRStr));
+        for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+          AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FCheatEnabled :=
+            AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.GetCheatEnabled;
+      end;
+    5: AoWHSMap.FPlayerControl.GameOver(FPlayer, goWon);
+    6:
+      begin
+        AoWHSMap.FUnlimitedMoves := not AoWHSMap.FUnlimitedMoves;
+        if AoWHSMap.FUnlimitedMoves then AoWHSMap.ShowMessage(TranslateRStr(P5FreeMovementEnabledRStr))
+        else AoWHSMap.ShowMessage(TranslateRStr(P5FreeMovementDisabledRStr));
+      end;
+    7:
+      for I := AoWHSMap.FPlayers.GetPlayers(0).FStructures.Count - 1 downto 0 do
+        if AoWHSMap.FPlayers.GetPlayers(0).FStructures.GetStructure(I).ClassID = $20108 then
+          AoWHSMap.FPlayers.GetPlayers(0).FStructures.GetStructure(I).SetPlayer(FPlayer);
+    8: AoWHSMap.FPlayerControl.GameOver(FPlayer, goLost);
+    9:
+      for I := 1 to AoWHSMap.FPlayers.Count - 1 do
+      begin
+        AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FSpells.Clear;
+        for J := 1 to AoWHSSet.FSpellControl.GetCount - 1 do
+          if AoWHSSet.FSpellControl.GetSpell(J) <> nil then
+            AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.FSpells.Add(J);
+      end;
+  end;
+  PlaySample('SFX\ATTACK\MAGICB01.WAV');
+  Result := erDone;
+end;
 
 class function TDisbandUnitTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21117; end;
 
-procedure TDisbandUnitTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TDisbandUnitTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPlayer), $14);
+  Stream.rwInteger(FUnitID, $15);
+end;
 
-function TDisbandUnitTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TDisbandUnitTE.Execute(TE: TTokenExecuter): TExecuteResult;
+var
+  AUnit: TAbstractUnit;
+  Structure: TPlayerStructure;
+  ArmyHS: TArmyHS;
+  Behavior: TGroupBehavior;
+  I, N: Integer;
+  X, Y, L: Shortint;
+begin
+  AUnit := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+  if (AUnit <> nil) and (AUnit.FPlayer = FPlayer) then
+  begin
+    AUnit.AddRef;
+    if (AUnit.GetRace = 5) and (AUnit.FPlayer > 0) and
+      (AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FPlayerRace = 5) and
+      (AUnit.GetAbilityEnabled($A2) or AUnit.GetAbilityEnabled($A4) or AUnit.GetAbilityEnabled($A5)) then
+      AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FHeroEmerging := True;
+    if AUnit.GetAbilityEnabled($9B) then AUnit.Killed
+    else
+    begin
+      AUnit.GetLocation(X, Y, L);
+      Structure := TPlayerStructure(AoWHSMap.MapContainer.GetField(X, Y, L).
+        FindNoneTransparentHS(TPlayerStructure));
+      if not (AUnit.Owner is TArmy) or (TArmy(AUnit.Owner).Count > 1) or
+        ((Structure <> nil) and (Structure.FPlayer > 0)) then
+      begin
+        AUnit.GetLocation(X, Y, L);
+        AUnit.SetOwner(nil);
+        ArmyHS := AUnit.Place(X, Y, L, 0, [pmScanArea]);
+      end
+      else
+      begin
+        TArmy(AUnit.Owner).SetPlayer(0);
+        ArmyHS := TArmy(AUnit.Owner).GetArmyHS;
+      end;
+      if ArmyHS <> nil then
+      begin
+        N := AoWHSMap.Random(10);
+        if N = 0 then Behavior := gbGuardArea
+        else if N < 7 then Behavior := gbScout
+        else Behavior := gbRaid;
+        I := ArmyHS.FArmy.IndexOfBehavior(Behavior);
+        if I = -1 then ArmyHS.FArmy.SetBehavior(1 shl ArmyHS.FArmy.IndexOf(AUnit), Behavior)
+        else ArmyHS.FArmy.SetGroup(1 shl ArmyHS.FArmy.IndexOf(AUnit), ArmyHS.FArmy.GetUnit(I).FGroup);
+      end;
+    end;
+    AUnit.RemoveEnchantments;
+    AUnit.Release;
+    if AoWHSMap.FSeatedPlayer = FPlayer then AoWHSMap.FSelectedArmy.Unselect;
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).UpdateIncome;
+  end;
+  Result := erDone;
+end;
 
 class function TCombatFlowControlTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21118; end;
 
-procedure TCombatFlowControlTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+procedure TCombatFlowControlTE.ReadWrite(Stream: TEStorageStream);
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FMode, SizeOf(FMode), $1E);
+  Stream.rwInteger(FPlayer, $1F);
+end;
 
-function TCombatFlowControlTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+function TCombatFlowControlTE.Execute(TE: TTokenExecuter): TExecuteResult;
+begin
+  if cfmSetAutoSwitch in FMode then AoWHSMap.FTokenManager.TokenExecuter.HoldTC := False;
+  if cfmLockAIExecuter in FMode then AoWHSMap.FAIExecuter.Lock;
+  if cfmUnlockAIExecuter in FMode then AoWHSMap.FAIExecuter.Unlock;
+  if cfmActivateTC in FMode then AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(FPlayer);
+  if cfmEnableTurnTimer in FMode then AoWHSMap.EnableTurnTimer;
+  if cfmDisableTurnTimer in FMode then AoWHSMap.DisableTurnTimer;
+  Result := erDone;
+end;
 
-constructor TPadControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+constructor TPadControl.Create(AOwner: TECustomNode);
+begin
+  inherited Create(AOwner);
+  FTerrainTypes := TBitList.Create;
+  FPadResources := TList.Create;
+  SetControlStyle([csFixedChild]);
+end;
 
 destructor TPadControl.Destroy;
-begin end;
+begin
+  FTerrainTypes.Free;
+  FPadResources.Free;
+  inherited Destroy;
+end;
 
-procedure TPadControl.GetPadResource(A1: Integer);
-begin end;
+function TPadControl.GetPadResource(Size: Integer): TMapObjectResource;
+begin
+  if Size < FPadResources.Count then Result := FPadResources.List^[Size]
+  else Result := nil;
+end;
 
-procedure TPadControl.SetPadResource(A1: Integer; A2: Integer);
-begin end;
+procedure TPadControl.SetPadResource(Size: Integer; Resource: TMapObjectResource);
+begin
+  while FPadResources.Count <= Size do FPadResources.Add(nil);
+  FPadResources.List^[Size] := Resource;
+end;
 
 procedure TPadControl.RegisterPadResource(Resource: TMapObjectResource; Size: Integer);
-begin end;
+begin
+  if GetPadResource(Size) = nil then SetPadResource(Size, Resource);
+end;
 
 procedure TPadControl.UnregisterPadResource(Resource: TMapObjectResource; Size: Integer);
-begin end;
+begin
+  if Resource = GetPadResource(Size) then SetPadResource(Size, nil);
+end;
 
 function TPadControl.CanPlacePad(X, Y, L: Shortint; Size: Integer): Boolean;
-begin Result := False; end;
+var
+  Resource: TMapObjectResource;
+  Pad: TILTerrainMO;
+begin
+  Resource := GetPadResource(Size);
+  if Resource <> nil then
+  begin
+    Pad := TILTerrainMO(Resource.CreateResourceUser);
+    Result := Pad.CanPlace(AoWHSMap.MapContainer, X, Y, L);
+    Pad.Free;
+  end
+  else Result := False;
+end;
 
 function TPadControl.PlacePad(X, Y, L: Shortint; Size: Integer): TILTerrainMO;
-begin Result := nil; end;
+var Resource: TMapObjectResource;
+begin
+  Resource := GetPadResource(Size);
+  if Resource <> nil then Result := TILTerrainMO(Resource.PlaceResourceUser(AoWHSMap, X, Y, L))
+  else Result := nil;
+end;
 
-{ Unnamed shared helper at $5574AC68; body remains for its owning worker. }
+function ValidateMultiArmyMove(Moves: TMoveSettingsList; Index: Integer): Boolean;
+var
+  UnitCount, Transporters, Capacity: Integer;
+  Player: Shortint;
+  Settings: TMoveSettings;
+  I: Integer;
+  Field: TAoWMapField;
+  OwnerPlayer: Shortint;
+  Location: TXYL;
+  ArmyHS: TArmyHS;
+
+  procedure AddArmy(ArmyHS: TArmyHS; Selection: Byte);
+  var Transporter: TAbstractUnit;
+  begin
+    Inc(UnitCount, ArmyHS.FArmy.SelectionCount(Selection));
+    Transporter := ArmyHS.FArmy.Transporter(Selection);
+    if Transporter <> nil then
+    begin
+      Inc(Transporters);
+      if Transporter.GetTransportCapacity + 1 < Capacity then
+        Capacity := Transporter.GetTransportCapacity + 1;
+    end;
+  end;
+
+begin
+  Result := True;
+  Player := TArmyHS(Moves.GetMoveSettings(Index).FMoveObject).FArmy.FPlayer;
+  Settings := Moves.GetMoveSettings(Index);
+  I := Settings.FMovePos;
+  while Result and (I <> Settings.FPath.Count) do
+  begin
+    Field := TAoWMapField(AoWHSMap.MapContainer.GetField(
+      Settings.FPath[I].X, Settings.FPath[I].Y, Settings.FPath[I].L));
+    OwnerPlayer := Field.GetPlayer;
+    Result := (OwnerPlayer = -1) or (OwnerPlayer = Player);
+    Inc(I);
+  end;
+  if Result then
+  begin
+    UnitCount := 0;
+    Transporters := 0;
+    Capacity := 8;
+    AddArmy(TArmyHS(Moves.GetMoveSettings(Index).FMoveObject), Moves.GetMoveSettings(Index).FSelection);
+    Location := Moves.GetMoveSettings(Index).GetMoveLoc;
+    Field := TAoWMapField(AoWHSMap.MapContainer.GetField(Location.X, Location.Y, Location.L));
+    ArmyHS := TArmyHS(Field.FindChild($20217));
+    if ArmyHS <> nil then AddArmy(ArmyHS, $FF);
+    for I := Moves.Count - 1 downto 0 do
+      if I <> Index then
+      begin
+        Settings := Moves.GetMoveSettings(I);
+        if Settings.FValid and
+          (Moves.GetMoveSettings(Index).GetMovePrio >= Settings.GetMovePrio) and
+          (Integer(Settings.GetMoveLoc) = Integer(Moves.GetMoveSettings(Index).GetMoveLoc)) then
+          AddArmy(TArmyHS(Settings.FMoveObject), Settings.FSelection);
+      end;
+    Result := (UnitCount <= Capacity) and (Transporters <= 1);
+  end;
+end;
+
 function ExecuteMultiArmyMove(Moves: TMoveSettingsList): Boolean;
-begin Result := False; end;
+var
+  Multi: TMultiMoveTE;
+  Path: TMovepath;
+  I, J: Integer;
+  Settings: TMoveSettings;
+  Move: TArmyDefaultMoveTE;
+begin
+  if (Moves.Count <> 0) and AoWHSMap.FTokenManager.PlayerReady(
+    TArmyHS(Moves.GetMoveSettings(0).FMoveObject).FArmy.FPlayer) then
+  begin
+    Path := TMovepath.Create;
+    Multi := TMultiMoveTE.Create(nil);
+    Multi.FSimultaneous := False;
+    Moves.CalculateMovePositions(ValidateMultiArmyMove);
+    for I := 0 to Moves.Count - 1 do
+    begin
+      Settings := Moves.GetMoveSettings(I);
+      if Settings.FMovePos < Settings.FPath.Count - 1 then
+      begin
+        Path.Clear;
+        for J := Settings.FMovePos to Settings.FPath.Count - 1 do Path.Add(Settings.FPath[J]);
+        Move := TArmyDefaultMoveTE.Create(nil);
+        AoWEngine.OutputDebugStr('Moving to: ' + IntToStr(Path[0].X) + ',' +
+          IntToStr(Path[0].Y) + ',' + IntToStr(Path[0].L));
+        if Move.Setup(TArmyHS(Settings.FMoveObject), Settings.FSelection, Path, []) then
+          Multi.FEvents.Add(Move);
+        Move.Release;
+      end;
+    end;
+    Result := Multi.FEvents.Count <> 0;
+    if Result then AoWHSMap.FTokenManager.GetTokenControl(
+      TArmyHS(Moves.GetMoveSettings(0).FMoveObject).FArmy.FPlayer).AddEvent(Multi);
+    Multi.Release;
+    Path.Free;
+  end
+  else Result := False;
+end;
 

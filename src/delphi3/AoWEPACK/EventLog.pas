@@ -186,7 +186,7 @@ type
   { TUserEventLog (instance size 32, VMT 557FC474) }
   TUserEventLog = class(TEventLog)
   public
-    F_UserEventLog_18: array[0..7] of Byte;
+    FData: TObject; FReserved1C: array[0..3] of Byte; { $18; 55749C0D }
   end;
 
   { TEndTurnEventLog: size $18; no additional fields. VMT 557FC764. }

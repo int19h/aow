@@ -9028,3 +9028,7 @@ begin FillChar(Result, SizeOf(Result), 0); end;
 function RoadConstructionCost(Player: Shortint; Path: TMovepath; MovePoints: Integer): Integer;
 begin Result := 0; end;
 
+
+{ Shared helper declaration required by TMoveArmyTE; original $55771068. }
+function ConstructRoad(Player: Shortint; Field: TAoWMapField): Boolean;
+begin Result := False; end;

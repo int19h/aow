@@ -270,7 +270,7 @@ begin
       Request := TCombatTypeRequestEventLog.Create(nil);
       Request.SetCenterLocation(GetXhx, GetYhx, GetLhx);
       Request.FPlayer := ArmyHS.FArmy.FPlayer;
-      Request.FAllowRetreat := False;
+      Request.FDefenderPlayer := 0;
       AoWHSMap.TriggerExecuteEventLog(Request, True, RequestCombatTypeCallBack);
       Request.Release;
       Result := True;

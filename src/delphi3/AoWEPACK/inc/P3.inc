@@ -1348,9 +1348,9 @@ begin
   Data.FX := A8;
   Data.FY := A9;
   Data.FL := A10;
-  Data.F_CombatData_14 := A3;
-  Data.F_CombatData_18 := A4;
-  Data.F_CombatData_1C := A5;
+  Data.FAttackerX := A3;
+  Data.FAttackerY := A4;
+  Data.FAttackerL := A5;
   Data.FAttackerPlayer := AddCombatPlayer(A1, A2, csAttacker);
   Data.FDefenderPlayer := AddCombatPlayer(A6, A7, csDefender);
   Data.F_CombatData_20[0] := AoWHSMap.MapContainer.GetField(Data.FX, Data.FY, Data.FL).TerrainType;
@@ -1783,13 +1783,13 @@ end;
 destructor TCombatTypeRequestEventLog.Destroy;
 var Obj: TObject;
 begin
-  SetTokenEvent(0);
-  Obj := TObject(F_CombatTypeRequestEventLog_28);
+  SetTokenEvent(nil);
+  Obj := TObject(FArmyID);
   if Obj <> nil then Obj.Free;
   inherited Destroy;
 end;
 
-procedure TCombatTypeRequestEventLog.SetTokenEvent(A1: Integer);
+procedure TCombatTypeRequestEventLog.SetTokenEvent(A1: TTokenEvent);
 begin
   { Original releases the old token before retaining its replacement. }
   if FTokenEvent <> nil then FTokenEvent.Release;
@@ -1811,9 +1811,9 @@ begin FCombatType := A1; end;
 
 procedure TCombatTypeRequestEventLog.SetCenterLocation(A1: Byte; A2: Byte; A3: Integer);
 begin
-  F_CombatTypeRequestEventLog_1B := A1;
-  F_CombatTypeRequestEventLog_1C := A2;
-  F_CombatTypeRequestEventLog_1D := A3;
+  FX := A1;
+  FY := A2;
+  FL := A3;
 end;
 
 constructor TCombatParty.Create(AOwner: Engine.TECustomNode);
@@ -1981,9 +1981,9 @@ begin
   Stream.rwEObject(TEObject(F_CombatData_34), $13);
   Stream.rwEObject(TEObject(FParties), $14);
   Stream.rwString(FHeader, $15);
-  Stream.rwInteger(F_CombatData_14, $16);
-  Stream.rwInteger(F_CombatData_18, $17);
-  Stream.rwInteger(F_CombatData_1C, $18);
+  Stream.rwInteger(FAttackerX, $16);
+  Stream.rwInteger(FAttackerY, $17);
+  Stream.rwInteger(FAttackerL, $18);
   Stream.rwStreamProc($19, TByteList(F_CombatData_2C).LoadFromStream, TByteList(F_CombatData_2C).SaveToStream);
   Stream.rwStreamProc($1A, TByteList(FTurnOrder).LoadFromStream, TByteList(FTurnOrder).SaveToStream);
   Stream.rwData(FWallType, 1, $1B);
