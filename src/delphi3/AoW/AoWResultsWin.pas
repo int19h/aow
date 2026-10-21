@@ -359,10 +359,10 @@ begin
   begin
     if Tag < FPlayers.Count then SideLbl.Text := AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).GetNameEx;
     ResValues.Items.Clear;
-    ResValues.Items.Add('00');
-    ResValues.Items.Add('00');
-    ResValues.Items.Add('00');
-    ResValues.Items.Add('00');
+    ResValues.Items.Add('0%');
+    ResValues.Items.Add('0%');
+    ResValues.Items.Add('0%');
+    ResValues.Items.Add('0%');
   end;
 end;
 
