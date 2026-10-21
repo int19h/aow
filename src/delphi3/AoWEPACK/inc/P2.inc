@@ -10268,214 +10268,698 @@ procedure TItemList.UnlockChanged;
 begin EndUpdate; end;
 
 constructor TItemControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FItems := TList.Create;
+  FOnChanged := TEventList.Create;
+  FOnItemChanged := TEventList.Create;
+end;
 
 destructor TItemControl.Destroy;
-begin end;
+var I: Integer;
+begin
+  BeginUpdate;
+  for I := FItems.Count - 1 downto 0 do UnRegisterItem(TItem(FItems.List^[I]));
+  FItems.Clear;
+  Changed;
+  FItems.Free;
+  FOnItemChanged.Free;
+  FOnChanged.Free;
+  inherited Destroy;
+end;
 
 procedure TItemControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var ID, I: Integer; Item: TItem;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FLastID, 9);
+  if smCompare in Stream.StorageMode then
+  begin
+    ID := 10;
+    for I := 0 to FItems.Count - 1 do
+    begin
+      Item := TItem(FItems[I]);
+      if Item.Owner = nil then
+      begin
+        Stream.rwCreateEObject(TEObject(Item), nil, ID);
+        Inc(ID);
+      end;
+    end;
+  end
+  else if Stream.StorageMode * [smTextOnly, smPreview, smCompare] = [] then
+  begin
+    if smRead in Stream.StorageMode then
+    begin
+      ID := 10;
+      repeat
+        Stream.rwCreateEObject(TEObject(Item), nil, ID);
+        if Item <> nil then
+        begin
+          ValidateItem(Item);
+          FItems.Add(Item);
+          Item.FStatus := Item.FStatus + [isRegistered];
+        end;
+        Inc(ID);
+      until Item = nil;
+    end;
+    if (smTextOnly in Stream.StorageMode) or (smWrite in Stream.StorageMode) then
+    begin
+      ID := 10;
+      for I := 0 to FItems.Count - 1 do
+        if TItem(FItems.List^[I]).Owner = nil then
+        begin
+          Stream.rwCreateEObject(TEObject(FItems.List^[I]), nil, ID);
+          Inc(ID);
+        end;
+    end;
+  end;
+end;
 
-procedure TItemControl.GetItem(A1: Integer);
-begin end;
+function TItemControl.GetItem(Index: Integer): TItem;
+begin
+  Result := TItem(FItems.List^[Index]);
+end;
 
-procedure TItemControl.GetCount;
-begin end;
+function TItemControl.GetCount: Integer;
+begin
+  Result := FItems.Count;
+end;
 
 function TItemControl.FindItem(ItemID: Integer): TItem;
-begin Result := nil; end;
+var I: Integer;
+begin
+  I := FItems.Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    if TItem(FItems.List^[I]).FItemID = ItemID then
+    begin
+      Result := TItem(FItems.List^[I]);
+      Exit;
+    end;
+  end;
+  Result := nil;
+end;
 
 procedure TItemControl.ItemChanged(Item: TItem);
-begin end;
+begin
+  FOnItemChanged.TriggerNotifyEvents(Item);
+end;
 
 procedure TItemControl.Changed;
-begin end;
+begin
+  if FUpdateLock = 0 then FOnChanged.TriggerNotifyEvents(Self);
+end;
 
 procedure TItemControl.BeginUpdate;
-begin end;
+begin
+  Inc(FUpdateLock);
+end;
 
 procedure TItemControl.EndUpdate;
-begin end;
+begin
+  Dec(FUpdateLock);
+  if FUpdateLock = 0 then Changed;
+end;
 
-procedure TItemControl.CreateUniqueID;
-begin end;
+function TItemControl.CreateUniqueID: Integer;
+var I: Integer;
+begin
+  repeat
+    I := 0;
+    Inc(FLastID);
+    if FLastID > $FFFFFFF then FLastID := 0;
+    while (I <> FItems.Count) and (TItem(FItems.List^[I]).FItemID <> FLastID) do Inc(I);
+  until I = FItems.Count;
+  Result := FLastID;
+end;
 
-procedure TItemControl.ValidateItem(A1: Integer);
-begin end;
+procedure TItemControl.ValidateItem(Item: TItem);
+begin
+  if FindItem(Item.FItemID) <> nil then Item.FItemID := CreateUniqueID;
+end;
 
 procedure TItemControl.UpdateLibraryItems;
-begin end;
+var I: Integer;
+begin
+  BeginUpdate;
+  for I := GetCount - 1 downto 0 do TItem(FItems.List^[I]).UpdateFromLibrary;
+  EndUpdate;
+end;
 
 procedure TItemControl.RegisterItem(Item: TItem);
-begin end;
+var Existing: TItem;
+begin
+  if not (isRegistered in Item.FStatus) then
+  begin
+    Existing := FindItem(Item.FItemID);
+    if (Existing <> nil) and Existing.Compare(Item, AoWEngine) and
+      (Existing.FRefCount = 1) then UnRegisterItem(Existing);
+    ValidateItem(Item);
+    Item.FStatus := Item.FStatus + [isRegistered];
+    FItems.Add(Item);
+    Item.AddRef;
+    if (icsActivated in FStatus) and not (isActivated in Item.FStatus) then Item.Activate;
+    Changed;
+  end;
+end;
 
 procedure TItemControl.UnRegisterItem(Item: TItem);
-begin end;
+begin
+  if isRegistered in Item.FStatus then
+  begin
+    FItems.Remove(Item);
+    Item.FStatus := Item.FStatus - [isRegistered];
+    Item.Release;
+    Changed;
+  end;
+end;
 
 function TItemControl.GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
-begin Result := nil; end;
+var List: TDoubleItemList; I, Value: Integer; Item: TItem;
+begin
+  List := TDoubleItemList.Create;
+  for I := 0 to GetCount - 1 do
+  begin
+    Item := TItem(FItems.List^[I]);
+    if (Item.FRefCount = 1) and (Item.FItemType in Types) then
+    begin
+      Value := Item.GetObtainValue;
+      if (Value >= MinValue) and (Value <= MaxValue) then
+        List.AddAB(Integer(Item), Ord(Item.FAvailability));
+    end;
+  end;
+  if List.Count <> 0 then Result := TItem(List[List.RandomChanceItemB(1)].A)
+  else Result := nil;
+  List.Free;
+end;
 
-procedure TItemControl.GenerateItems(A1: Byte; A2: Integer; A3: Integer);
-begin end;
+function TItemControl.GenerateItems(Types: TItemTypes; Owner: TECustomNode; Value: Integer): Integer;
+var
+  List: TDoubleItemList;
+  I, Difference, Attempts, ItemValue, Distance: Integer;
+  Done: Boolean;
+  Item, Candidate: TItem;
+begin
+  Result := 0;
+  List := TDoubleItemList.Create;
+  for I := 0 to GetCount - 1 do
+  begin
+    Item := TItem(FItems.List^[I]);
+    if (Item.FItemType in Types) and (Item.FRefCount = 1) then
+      List.AddAB(Integer(Item), Ord(Item.FAvailability));
+  end;
+  Done := False;
+  while not Done and (List.Count <> 0) do
+  begin
+    Candidate := TItem(List[List.RandomChanceItemB(1)].A);
+    ItemValue := Candidate.GetObtainValue;
+    if ItemValue > Value then
+    begin
+      Attempts := 10;
+      Difference := Abs(ItemValue - Value);
+      repeat
+        Item := TItem(List[List.RandomChanceItemB(1)].A);
+        Distance := Abs(Item.GetObtainValue - Value);
+        if Distance < Difference then
+        begin
+          Difference := Distance;
+          Candidate := Item;
+        end;
+        Dec(Attempts);
+      until Attempts = 0;
+      if Value < Difference then
+      begin
+        Candidate := nil;
+        Done := True;
+      end;
+    end;
+    if Candidate <> nil then
+    begin
+      Candidate.SetOwner(Owner);
+      List.Delete(List.IndexOfItemA(Integer(Candidate)));
+      Dec(Value, Candidate.GetObtainValue);
+      Inc(Result);
+    end;
+  end;
+  List.Free;
+end;
 
 procedure TItemControl.Activate;
-begin end;
+var I: Integer;
+begin
+  if not (icsActivated in FStatus) then
+  begin
+    FStatus := FStatus + [icsActivated];
+    for I := FItems.Count - 1 downto 0 do TItem(FItems.List^[I]).Activate;
+  end;
+end;
 
 procedure TItemControl.Deactivate;
-begin end;
+var I: Integer;
+begin
+  if icsActivated in FStatus then
+  begin
+    FStatus := FStatus - [icsActivated];
+    for I := FItems.Count - 1 downto 0 do TItem(FItems.List^[I]).Deactivate;
+  end;
+end;
 
-procedure TItemLibrary.CreateUniqueLibraryID;
-begin end;
+resourcestring
+  SystemItemLibraryRStr = 'System';
+
+function TItemLibrary.CreateUniqueLibraryID: Integer;
+var I: Integer;
+begin
+  repeat
+    I := 0;
+    Inc(FLastID);
+    if FLastID > $FFFFFFF then FLastID := 0;
+    while (I <> FChildren.Count) and (TItem(FChildren.List^[I]).FLibraryID <> FLastID) do Inc(I);
+  until I = FChildren.Count;
+  Result := FLastID;
+end;
 
 function TItemLibrary.AddChild(Child: Engine.TEObject): Integer;
-begin Result := 0; end;
+begin
+  with TItem(Child) do
+    { Original checks the world item ID, not the library ID. }
+    if (FLibraryID <= 0) or (FindItem(FLibraryID) <> nil) then FLibraryID := CreateUniqueLibraryID;
+  Result := inherited AddChild(Child);
+end;
 
-procedure TItemLibrary.FindLibraryID(A1: Integer);
-begin end;
+function TItemLibrary.FindLibraryID(LibraryID: Integer): TItem;
+var I: Integer;
+begin
+  I := FChildren.Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    if TItem(FChildren.List^[I]).FLibraryID = LibraryID then
+    begin
+      Result := TItem(FChildren.List^[I]);
+      Exit;
+    end;
+  end;
+  Result := nil;
+end;
 
 procedure TItemLibrary.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwString(FName, 20);
+  Stream.rwInteger(FLastID, 21);
+end;
 
-procedure TItemLibrary.GetName(A1: Integer);
-begin end;
+function TItemLibrary.GetName: string;
+begin
+  Result := FName;
+  if Result = '' then Result := TranslateRStr(SystemItemLibraryRStr);
+end;
 
-procedure TItemLibrary.CreateItem;
-begin end;
+function TItemLibrary.CreateItem: TItem;
+var Item: TItem;
+begin
+  Item := TItem.Create(nil);
+  Item.FLibraryID := CreateUniqueLibraryID;
+  Item.FLibraryName := FName;
+  Item.SetOwner(Self);
+  Item.Release;
+  Result := Item;
+end;
 
-procedure TItemLibrary.LoadFromFile;
-begin end;
+procedure TItemLibrary.LoadFromFile(const FileName: string);
+begin
+  AoWEngine.ReadFromFile(FileName, Self, nil);
+end;
 
-procedure TItemLibrary.SaveToFile;
-begin end;
+procedure TItemLibrary.SaveToFile(const FileName: string);
+begin
+  AoWEngine.WriteToFile(FileName, Self, nil);
+end;
 
 constructor TItemLibraryManager.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSystemLibrary := TItemLibrary.Create(nil);
+  FLibraries := TENode.Create(nil);
+end;
 
 destructor TItemLibraryManager.Destroy;
-begin end;
+begin
+  FLibraries.Free;
+  FSystemLibrary.Free;
+  inherited Destroy;
+end;
 
 procedure TItemLibraryManager.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+var Directory: string;
+begin
+  inherited ReadWrite(Stream);
+  if Stream.StorageMode * [smTextOnly, smCompare] = [] then
+  begin
+    Directory := ExtractFilePath(AoWEngine.HSSFileName);
+    if smRead in Stream.StorageMode then
+    begin
+      ReadUserLibraries;
+      AoWEngine.ReadFromFile(Directory + 'ITEMS.PFS', FSystemLibrary, nil);
+    end
+    else
+    begin
+      AoWEngine.WriteToFile(Directory + 'ITEMS.PFS', FSystemLibrary, nil);
+      WriteUserLibraries;
+    end;
+  end
+  else Stream.rwEObject(FSystemLibrary, 20);
+end;
 
-procedure TItemLibraryManager.GetLibrary(A1: Integer);
-begin end;
+function TItemLibraryManager.GetLibrary(Index: Integer): TItemLibrary;
+begin
+  Result := TItemLibrary(FLibraries.FChildren.EObjects[Index]);
+end;
 
-procedure TItemLibraryManager.GetCount;
-begin end;
+function TItemLibraryManager.GetCount: Integer;
+begin
+  Result := FLibraries.Count;
+end;
 
 procedure TItemLibraryManager.ReadUserLibraries;
-begin end;
+var Search: TSearchRec; ItemLibrary: TItemLibrary; Found: Boolean;
+begin
+  FLibraries.Clear;
+  FLibraries.AddChild(FSystemLibrary);
+  Found := FindFirst(AoWEngine.StartupDirectory + 'User\' + '*' + '.ail',
+    faAnyFile and not faDirectory, Search) = 0;
+  while Found do
+  begin
+    ItemLibrary := TItemLibrary.Create(nil);
+    try
+      ItemLibrary.LoadFromFile(AoWEngine.StartupDirectory + 'User\' + Search.Name);
+      ItemLibrary.SetOwner(FLibraries);
+    except
+      ItemLibrary.Free;
+    end;
+    Found := FindNext(Search) = 0;
+  end;
+  FindClose(Search);
+end;
 
 procedure TItemLibraryManager.WriteUserLibraries;
-begin end;
+var I: Integer; ItemLibrary: TItemLibrary;
+begin
+  for I := 1 to FLibraries.Count - 1 do
+  begin
+    ItemLibrary := GetLibrary(I);
+    ItemLibrary.SaveToFile(AoWEngine.StartupDirectory + 'User\' + ItemLibrary.GetName + '.ail');
+  end;
+end;
 
-procedure TItemLibraryManager.IndexOfLibraryName(A1: Integer);
-begin end;
+function TItemLibraryManager.IndexOfLibraryName(const Name: string): Integer;
+begin
+  Result := FLibraries.Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if CompareText(Name, TItemLibrary(FLibraries.FChildren.List^[Result]).FName) = 0 then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TItemLibraryManager.IndexOfLibrary;
-begin end;
+function TItemLibraryManager.IndexOfLibrary(ItemLibrary: TItemLibrary): Integer;
+begin
+  Result := FLibraries.FChildren.IndexOf(ItemLibrary);
+end;
 
 function TItemLibraryManager.FindItem(const LibraryName: string; LibraryID: Integer): TItem;
-begin Result := nil; end;
+var Index: Integer;
+begin
+  Index := IndexOfLibraryName(LibraryName);
+  if Index <> -1 then
+    Result := TItemLibrary(FLibraries.FChildren.List^[Index]).FindLibraryID(LibraryID)
+  else Result := nil;
+end;
 
-procedure TItemLibraryManager.CreateLibrary(A1: Integer);
-begin end;
+function TItemLibraryManager.CreateLibrary(const Name: string): TItemLibrary;
+var LibraryName: string;
+begin
+  LibraryName := Name;
+  { Original retains the period when stripping the extension. }
+  if Pos('.', LibraryName) <> 0 then LibraryName := System.Copy(LibraryName, 1, Pos('.', LibraryName));
+  if (LibraryName <> '') and (IndexOfLibraryName(LibraryName) = -1) then
+  begin
+    Result := TItemLibrary.Create(FLibraries);
+    Result.FName := LibraryName;
+    { Original creates in Release while reading and deleting from User. }
+    Result.SaveToFile(AoWEngine.StartupDirectory + 'Release\' + LibraryName + '.ail');
+  end
+  else Result := nil;
+end;
 
-procedure TItemLibraryManager.DeleteLibrary(A1: Integer);
-begin end;
+procedure TItemLibraryManager.DeleteLibrary(Index: Integer);
+begin
+  if (Index < FLibraries.Count) and (Index > 0) then
+  begin
+    Windows.DeleteFile(PChar(AoWEngine.StartupDirectory + 'User\' + GetLibrary(Index).GetName + '.ail'));
+    GetLibrary(Index).Free;
+  end;
+end;
 
 function TItemGFX.GetEngine: Engine.TEngine;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := AoWEngine;
+end;
 
 class function TItemGFX.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20269;
+end;
 
-procedure TItemGFX.ItemGFXIndex;
-begin end;
+function TItemGFX.ItemGFXIndex: Integer;
+begin
+  Result := Owner.FindChildIndex(Self);
+end;
 
 procedure TItemGFX.LinkToIL;
-begin end;
+begin
+  ReleaseIL;
+  if FImageLibraryName <> '' then
+    FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], FImageLibraryName)
+  else FImageLibrary := nil;
+end;
 
 procedure TItemGFX.ReleaseIL;
-begin end;
+begin
+  if FImageLibrary <> nil then
+  begin
+    if FImageLibraryName <> '' then
+      AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], FImageLibraryName);
+    FImageLibrary := nil;
+  end;
+end;
 
-procedure TItemGFX.SetImageLibraryName(A1: Integer; A2: Integer);
-begin end;
+procedure TItemGFX.SetImageLibraryName(Value: string);
+begin
+  if FImageLibraryName <> '' then
+  begin
+    AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], FImageLibraryName);
+    FImageLibrary := nil;
+  end;
+  FImageLibraryName := Value;
+  if (FImageLibraryName <> '') and (FRefCount <> 0) then
+    FImageLibrary := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], FImageLibraryName);
+end;
 
 function TItemGFX.AddRef: Integer;
-begin Result := 0; end;
+begin
+  if FRefCount = 0 then LinkToIL;
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TItemGFX.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  if FRefCount = 0 then ReleaseIL;
+  Result := FRefCount;
+end;
 
 function TItemGFX.GetCellImage: ImageLib.TLibraryImage;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var Image: TLibraryImage;
+begin
+  AddRef;
+  Image := FImageLibrary[FImageIndex];
+  Release;
+  Result := Image;
+end;
 
 function TItemGFX.GetItemImage: TLibraryImage;
-begin Result := nil; end;
+begin
+  if FImageLibrary <> nil then Result := FImageLibrary[FImageIndex]
+  else Result := nil;
+end;
 
 procedure TItemGFX.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FImageLibraryName, 6);
+  Stream.rwInteger(FImageIndex, 7);
+  Stream.rwData(FItemType, 1, 8);
+  Stream.rwBool(FHidden, 9);
+end;
 
 constructor TItemGFXList.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
+end;
 
 function TItemGFXList.GetItemGFX(Index: Integer): TItemGFX;
-begin Result := nil; end;
+begin
+  if (Index >= 0) and (Index < FChildren.Count) then
+    Result := TItemGFX(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 function TItemGFXList.FindItemTypeGFX(ItemType: TItemType): Integer;
-begin Result := 0; end;
+var I: Integer;
+begin
+  Result := -1;
+  I := 0;
+  while (Result = -1) and (I <> FChildren.Count) do
+  begin
+    if (FChildren.List^[I] <> nil) and
+      (TItemGFX(FChildren.List^[I]).FItemType = ItemType) then Result := I;
+    Inc(I);
+  end;
+end;
 
 procedure TItemHSList.SetOwner(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  FOwner := AOwner;
+end;
 
 procedure TItemHSList.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin
+  X := TItemHS(Owner).Xhx;
+  Y := TItemHS(Owner).Yhx;
+  L := TItemHS(Owner).Lhx;
+end;
+
+resourcestring
+  ItemBagRStr = 'Item Bag';
 
 constructor TItemHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FItems := TItemHSList.Create(TECustomNode(Self));
+  FItems.FOnChanged := ItemsChanged;
+end;
 
 destructor TItemHS.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FItems.Free;
+  FItems := nil;
+end;
 
-procedure TItemHS.ItemsChanged;
-begin end;
+procedure TItemHS.ItemsChanged(Sender: TObject);
+begin
+  if (FItems.Count = 0) and ((FGenerateMode = igUserDefined) or (AoWHSMap.FDay > 0)) then
+    Destroy
+  else Changed;
+end;
 
 function TItemHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := 26;
+end;
 
 function TItemHS.GetShowPriority: Integer;
-begin Result := 0; end;
+var Xhp, Yhp: Integer; HS: THexagonSprite;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+  Result := $68000000 + (Yhp + 33) * $2000 + (Xhp + 16);
+  HS := TMapField(Owner).GetMaxLevelNoneTransparentHS;
+  if (Self <> HS) and (HS <> nil) then
+    if Result <= HS.GetShowPriority then Result := HS.GetShowPriority + 1;
+end;
 
 class function TItemHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20271;
+end;
 
 function TItemHS.EditName: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(ItemBagRStr);
+end;
 
 function TItemHS.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+begin
+  if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo = 0) and
+    (AoWHSMap.FFogEnabled <> 0) then Result := False
+  else Result := True;
+end;
 
 procedure TItemHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  FItems.RegisterItems;
+end;
 
 procedure TItemHS.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+end;
 
 procedure TItemHS.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  FItems.BeginUpdate;
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FItems, 4);
+  Stream.rwData(FGenerateMode, 1, 5);
+  FItems.EndUpdate;
+end;
 
 procedure TItemHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Xhp, Yhp: Integer;
+begin
+  if not GetSelected or (AoWHSMap.Frame and 6 <> 6) then
+  begin
+    HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+    AoWHSSet.FGeneralImages[0].Show(Xhp - XhpSurf, Yhp - YhpSurf, SurfaceDesc);
+  end;
+end;
 
 function TItemHS.CanPlace(Map: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanPlace(Map, Xhx, Yhx, Lhx);
+end;
 
 procedure TItemHS.GenerateItems;
-begin end;
+var I: Byte; Item: TItem;
+begin
+  if FGenerateMode <> igUserDefined then
+  begin
+    RandSeed := AoWHSMap.Random($FFFFFF);
+    FItems.FOnChanged := nil;
+    if FGenerateMode = igRandom then FGenerateMode := TItemGenerateMode(AoWHSMap.Random(3) + 1);
+    FItems.Clear;
+    for I := 1 to Ord(FGenerateMode) do
+    begin
+      Item := AoWHSMap.FItemControl.GenerateItem([itHead, itTorso, itAttack, itDefense, itRing, itUse], 0, $FFFF);
+      if Item <> nil then Item.SetOwner(FItems);
+    end;
+    FItems.FOnChanged := ItemsChanged;
+    ItemsChanged(FItems);
+  end;
+end;
 
 procedure TItemHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20020001) and (AoWHSMap.FDay = 1) then GenerateItems;
+end;
 
 procedure TWorldFXHS.Deactivate;
 begin end;

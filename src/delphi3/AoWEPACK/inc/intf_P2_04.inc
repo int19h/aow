@@ -6,16 +6,17 @@
     Param: array[0..2] of Integer;
     Xhp, Yhp, Lhp, Reserved0, Reserved1, Result: Integer;
   end;
-  { TItemGFX (instance size 48, VMT 5570F7E0) }
+  { TItemGFX (instance size $30): $18 library name, $1C image index,
+    $20 item type, $24 library, $28 references, $2C hidden. }
   TItemGFX = class(TEResource)
   public
-    F_ItemGFX_18: Integer;
-    F_ItemGFX_1C: Integer;
-    F_ItemGFX_20: Byte;
+    FImageLibraryName: string; { $18 }
+    FImageIndex: Integer; { $1C }
+    FItemType: TItemType; { $20 }
     F_ItemGFX_21: array[0..2] of Byte;
-    F_ItemGFX_24: Integer;
-    F_ItemGFX_28: Integer;
-    F_ItemGFX_2C: Byte;
+    FImageLibrary: TCustomImageLibrary; { $24 }
+    FRefCount: Integer; { $28 }
+    FHidden: Boolean; { $2C }
     F_ItemGFX_2D: array[0..2] of Byte;
     function GetEngine: Engine.TEngine; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -23,14 +24,14 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     function GetCellImage: ImageLib.TLibraryImage; override;
-    procedure ItemGFXIndex;  { draft }
-    procedure LinkToIL;  { draft }
-    procedure ReleaseIL;  { draft }
-    procedure SetImageLibraryName(A1: Integer; A2: Integer);  { draft }
+    function ItemGFXIndex: Integer;
+    procedure LinkToIL;
+    procedure ReleaseIL;
+    procedure SetImageLibraryName(Value: string);
     function GetItemImage: TLibraryImage;
   end;
 
-  { TItemGFXList (instance size 20, VMT 5570F8C0) }
+  { TItemGFXList (instance size $14): inherited $08 children, $0C engine, $10 control style. }
   TItemGFXList = class(TEResourceList)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -131,83 +132,84 @@
     procedure UnlockChanged;
   end;
 
-  { TItemLibrary (instance size 32, VMT 5570FD34) }
+  { TItemLibrary (instance size $20): $18 name, $1C last library ID. }
   TItemLibrary = class(TItemList)
   public
-    F_ItemLibrary_18: Integer;
-    F_ItemLibrary_1C: Integer;
+    FName: string; { $18 }
+    FLastID: Integer; { $1C }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     function AddChild(Child: Engine.TEObject): Integer; override;
-    procedure GetName(A1: Integer); virtual;  { +094 draft }
-    procedure CreateUniqueLibraryID;  { draft }
-    procedure FindLibraryID(A1: Integer);  { draft }
-    procedure CreateItem;  { draft }
-    procedure LoadFromFile;  { draft }
-    procedure SaveToFile;  { draft }
+    function GetName: string; virtual; { $94 }
+    function CreateUniqueLibraryID: Integer;
+    function FindLibraryID(LibraryID: Integer): TItem;
+    function CreateItem: TItem;
+    procedure LoadFromFile(const FileName: string);
+    procedure SaveToFile(const FileName: string);
   end;
 
-  { TItemLibraryManager (instance size 16, VMT 5570FE50) }
+  { TItemLibraryManager (instance size $10): $08 system library, $0C libraries. }
   TItemLibraryManager = class(TEObject)
   public
-    F_ItemLibraryManager_08: Integer;
-    F_ItemLibraryManager_0C: Integer;
+    FSystemLibrary: TItemLibrary; { $08 }
+    FLibraries: TENode; { $0C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetLibrary(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
-    procedure ReadUserLibraries;  { draft }
-    procedure WriteUserLibraries;  { draft }
-    procedure IndexOfLibraryName(A1: Integer);  { draft }
-    procedure IndexOfLibrary;  { draft }
+    function GetLibrary(Index: Integer): TItemLibrary;
+    function GetCount: Integer;
+    procedure ReadUserLibraries;
+    procedure WriteUserLibraries;
+    function IndexOfLibraryName(const Name: string): Integer;
+    function IndexOfLibrary(ItemLibrary: TItemLibrary): Integer;
     function FindItem(const LibraryName: string; LibraryID: Integer): TItem;
-    procedure CreateLibrary(A1: Integer);  { draft }
-    procedure DeleteLibrary(A1: Integer);  { draft }
+    function CreateLibrary(const Name: string): TItemLibrary;
+    procedure DeleteLibrary(Index: Integer);
   end;
 
-  { TItemControl (instance size 32, VMT 5570FF60) }
+  { TItemControl (instance size $20): $08 items, $0C change events,
+    $10 update lock, $14 item change events, $18 last ID, $1C status. }
   TItemControl = class(TEObject)
   public
-    F_ItemControl_08: Integer;
-    F_ItemControl_0C: Integer;
-    F_ItemControl_10: Integer;
-    F_ItemControl_14: Integer;
-    F_ItemControl_18: Integer;
-    F_ItemControl_1C: Byte;
+    FItems: TList; { $08 }
+    FOnChanged: TEventList; { $0C }
+    FUpdateLock: Integer; { $10 }
+    FOnItemChanged: TEventList; { $14 }
+    FLastID: Integer; { $18 }
+    FStatus: TItemControlStatus; { $1C }
     F_ItemControl_1D: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetItem(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
+    function GetItem(Index: Integer): TItem;
+    function GetCount: Integer;
     function FindItem(ItemID: Integer): TItem;
     procedure ItemChanged(Item: TItem);
-    procedure Changed;  { draft }
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
-    procedure CreateUniqueID;  { draft }
-    procedure ValidateItem(A1: Integer);  { draft }
-    procedure UpdateLibraryItems;  { draft }
+    procedure Changed;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    function CreateUniqueID: Integer;
+    procedure ValidateItem(Item: TItem);
+    procedure UpdateLibraryItems;
     procedure RegisterItem(Item: TItem);
     procedure UnRegisterItem(Item: TItem);
     function GenerateItem(Types: TItemTypes; MinValue, MaxValue: Integer): TItem;
-    procedure GenerateItems(A1: Byte; A2: Integer; A3: Integer);  { draft }
-    procedure Activate;  { draft }
-    procedure Deactivate;  { draft }
+    function GenerateItems(Types: TItemTypes; Owner: TECustomNode; Value: Integer): Integer;
+    procedure Activate;
+    procedure Deactivate;
   end;
 
-  { TItemHSList (instance size 24, VMT 55710020) }
+  { TItemHSList (instance size $18): inherited $08 children, $0C update lock, $10 change event. }
   TItemHSList = class(TItemList)
   public
     procedure SetOwner(AOwner: Engine.TECustomNode); override;
     procedure GetLocation(var X, Y, L: Shortint); override;
   end;
 
-  { TItemHS (instance size 20, VMT 55710178) }
+  { TItemHS (instance size $14): $0C items, $10 generation mode. }
   TItemHS = class(TSingleHS)
   public
     FItems: TItemHSList; { $0C }
-    F_ItemHS_10: Byte;
+    FGenerateMode: TItemGenerateMode; { $10 }
     F_ItemHS_11: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -222,7 +224,7 @@
     function CanSelect(Xhp, Yhp: Integer): Boolean; override;
     function EditName: string; override;
     function CanPlace(Map: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; override;
-    procedure ItemsChanged;  { draft }
-    procedure GenerateItems;  { draft }
+    procedure ItemsChanged(Sender: TObject);
+    procedure GenerateItems;
   end;
 
