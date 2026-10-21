@@ -635,7 +635,7 @@ begin
     if FDefenderLevel = 4 then FDefenderLevel := AoWHSMap.Random(3) + 1;
     Budget := (FDefenderLevel - 2) * 25 + 25;
     ArmyHS := TArmyHS(FOwner.FindOwnedChild($20217));
-    if ArmyHS <> nil then Dec(Budget, ArmyHS.FArmy.ObtainValue(-1));
+    if ArmyHS <> nil then Dec(Budget, ArmyHS.FArmy.ObtainValue($FF));
     if Budget > 0 then
     begin
       RandSeed := AoWHSMap.Random($FFFFF);

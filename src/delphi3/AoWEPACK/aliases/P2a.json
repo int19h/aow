@@ -3,5 +3,6 @@
   "55783298:40": "P2CompareUnitMoves",
   "55785234:110": "P2CompareUnitIndexes",
   "AoWE.TArmyView.GetConcealedforPlayer": "TArmyView.GetConcealedForPlayer",
-  "AoWE.TArmyView.GetUnitConcealedforPlayer": "TArmyView.GetUnitConcealedForPlayer"
+  "AoWE.TArmyView.GetUnitConcealedforPlayer": "TArmyView.GetUnitConcealedForPlayer",
+  "FUN_5578e9e0": "PlaceIndependentArmy<TArmy.MakeIndependent"
 }

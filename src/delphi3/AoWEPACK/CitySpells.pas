@@ -437,9 +437,9 @@ begin
   Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L));
   Result := (Field.GetPlayer = -1) or (Field.GetPlayer = Army.FArmy.FPlayer);
   Result := Result and Army.FArmy.ValidTerrainEx(Selection, Field.TerrainType, Field.OverlayType);
-  { Original rejects a destination army that can accept the selection. }
+  { CanAddUnitSelection returns arOK (zero) when the destination accepts the selection. }
   Result := Result and ((Field.GetArmyHS = nil) or
-    not Field.GetArmyHS.FArmy.CanAddUnitSelection(Army.FArmy, Selection));
+    (Field.GetArmyHS.FArmy.CanAddUnitSelection(Army.FArmy, Selection) = arOK));
 end;
 
 function TTownGate.CreateTE: TCityTargetSpellTE;

@@ -414,20 +414,20 @@
     function RetrieveArmy(var ArmyHS: TArmyHS; var Selection: Byte): Boolean;
   end;
 
-  { TArmy (instance size 44, VMT 557130EC): +10 FStatus; +12 FPlayer;
-    +13..15 location; +16 FIndependentRelation; +18 FUpkeep; +1C FOnUpdate;
-    +24 FOldAIBehavior; +25..27 destination;
+  { TArmy (instance size 44, VMT 557130EC): +10 FStatus; +11 FMode; +12 FPlayer;
+    +13..15 location; +16 FIndependentRelation; +17 FUnfogRange; +18 FUpkeep; +1C FOnUpdate;
+    +24 FOldAIBehavior; +25..27 destination; +28 FUserMode;
     +29 FVisibilityRanges; +2A FConcealedUnits. }
   TArmy = class(TUnitList)
   public
     FStatus: TArmyStatus; { $10 }
-    F_Army_11: Byte;
+    FMode: TArmyMode; { $11 }
     FPlayer: Shortint;  { $12 }
     FX: Shortint; { $13 }
     FY: Shortint; { $14 }
     FL: Shortint; { $15 }
     FIndependentRelation: Shortint; { $16 }
-    F_Army_17: Byte;
+    FUnfogRange: Byte; { $17 }
     FUpkeep: Byte; { $18 }
     F_Army_19: array[0..2] of Byte;
     FOnUpdate: TNotifyEvent; { $1C }
@@ -435,8 +435,7 @@
     FDestinationX: Shortint; { $25 }
     FDestinationY: Shortint; { $26 }
     FDestinationL: Shortint; { $27 }
-    FMode: TArmyMode; { $28; 5577602E }
-    { conflict: FUserMode: TArmyUserMode; }
+    FUserMode: TArmyUserMode; { $28; 5578E986 }
     FVisibilityRanges: Byte; { $29 }
     FConcealedUnits: Byte; { $2A }
     F_Army_2B: array[0..0] of Byte;
@@ -486,61 +485,59 @@
     function ConcealedUnitsCount: Integer;
     procedure UpdateConcealedUnits;
     procedure UpdateUpkeep;
-    procedure ValidateTerrainEx(A1: Byte; A2: Byte);  { draft }
+    procedure ValidateTerrainEx(TerrainType, OverlayType, Player: Shortint);
     procedure ValidateTerrain(TerrainType, OverlayType: Shortint);
     procedure Validate;
-    procedure UpdateFormation;  { draft }
-    procedure Update;  { draft }
-    procedure TriggerOnUpdateEvent;  { draft }
+    procedure UpdateFormation;
+    procedure Update;
+    procedure TriggerOnUpdateEvent;
     procedure Activate;
     procedure Deactivate;
-    function ValidateSelection(A1: Byte): Byte;
+    function ValidateSelection(Selection: Byte): Byte;
     function SelectionCount(Selection: Byte): Integer;
     function ValidateMoveSelection(Selection: Byte): Byte;
-    procedure Select;  { draft }
-    procedure Unselect;  { draft }
-    procedure GetUnitConcealed(A1: Integer);  { draft }
-    procedure GetUnitsConcealedForPlayer(A1: Integer; A2: Integer);  { draft }
+    procedure Select;
+    procedure Unselect;
+    function GetUnitConcealed(Index: Integer): Boolean;
+    function GetUnitsConcealedForPlayer(Selection: Byte; Player: Shortint): Boolean;
     procedure SetPlayer(Player: Shortint);
-    function ImmunityTypes(A1: Byte): TDamageTypes;
-    function ObtainValue(Player: Shortint): Integer;
-    { conflict: function ObtainValue(Selection: Byte): Integer; }
-    function MovePoints(A1: Byte): Shortint;
+    function ImmunityTypes(Selection: Byte): TDamageTypes;
+    function ObtainValue(Selection: Byte): Integer;
+    function MovePoints(Selection: Byte): Shortint;
     function Moves(Selection: Byte): Shortint;
     function MoveTypes(Selection: Byte): TMoveTypes;
-    procedure GetPartyMoves(A1: Byte);  { draft }
-    procedure MoveOnMovePoints(A1: Integer; A2: Byte; A3: Integer);  { draft }
-    procedure CreateMovePointTable(A1: Byte; var Table);
-    function ValidTerrainEx(A1: Byte; A2, A3: Shortint): Boolean;
-    procedure ValidTerrain(A1: Byte; A2: Integer);  { draft }
-    function CanPlace(A1: Shortint; A2: Shortint; A3: Shortint): Boolean;
-    procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure MaxSize(A1: Integer; A2: Integer);  { draft }
+    function GetPartyMoves(Selection: Byte): TMoveTypes;
+    function MoveOnMovePoints(Selection: Byte; TerrainType, OverlayType: Shortint): Integer;
+    procedure CreateMovePointTable(Selection: Byte; var Table);
+    function ValidTerrainEx(Selection: Byte; TerrainType, OverlayType: Shortint): Boolean;
+    function ValidTerrain(TerrainType, OverlayType: Shortint): Boolean;
+    function CanPlace(X, Y, L: Shortint): Boolean;
+    procedure MovedTo(OldField, NewField: TMapField; MaxCost: Integer);
+    function MaxSize: Integer;
     function Hero(Selection: Byte; Types: THeroTypes): THero;
     function Leader(Selection: Byte): TLeader;
-    function Transporter(Player: Byte): TAbstractUnit;
-    { conflict: function Transporter(Selection: Byte): TAbstractUnit; }
+    function Transporter(Selection: Byte): TAbstractUnit;
     function IndexOfTransporter(Selection: Byte): Integer;
-    function UnitsInTransporter: Boolean;
-    procedure UpdateVisibilityRanges(A1: Integer; A2: Integer);  { draft }
-    procedure VisibilityRange;  { draft }
-    procedure TrueVisionRange;  { draft }
-    procedure TurnUnFogOff;  { draft }
-    procedure UpdateExploration;  { draft }
-    procedure UpdateUnfog;  { draft }
-    procedure CanAddUnits(A1: Integer; A2: Integer);  { draft }
-    function CanAddUnitSelection(A1: TUnitList; A2: Byte): Boolean;
-    procedure AddUnitSelection(A1: Integer; A2: Integer);  { draft }
-    procedure SelectionUnit(A1: Byte; A2: Integer);  { draft }
-    procedure MakeIndependent(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateIndependentRelation;  { draft }
-    procedure Desert(A1: Byte);  { draft }
-    procedure GetPartyStatus(A1: Integer);  { draft }
-    procedure UpdateDesertion;  { draft }
-    procedure ValidateCrusaders;  { draft }
-    procedure NewTurn(A1: Byte);  { draft }
-    procedure NewTurnDone(A1: Byte);  { draft }
-    procedure NewDay;  { draft }
+    function UnitsInTransporter: Byte;
+    procedure UpdateVisibilityRanges;
+    function VisibilityRange: Byte;
+    function TrueVisionRange: Byte;
+    procedure TurnUnFogOff;
+    procedure UpdateExploration;
+    procedure UpdateUnfog;
+    function CanAddUnits(Units: TUnitList): TAddUnitsResult;
+    function CanAddUnitSelection(Units: TUnitList; Selection: Byte): TAddUnitsResult;
+    function AddUnitSelection(Units: TUnitList; Selection: Byte): TAddUnitsResult;
+    function SelectionUnit(Selection: Byte; Index: Integer): TAbstractUnit;
+    procedure MakeIndependent(Selection: Byte; var Armies: TArmyHSList);
+    procedure UpdateIndependentRelation;
+    procedure Desert(Selection: Byte);
+    function GetPartyStatus(Selection: Byte): TPartyStatus;
+    procedure UpdateDesertion;
+    function ValidateCrusaders: Boolean;
+    procedure NewTurn(Player: Shortint);
+    procedure NewTurnDone(Player: Shortint);
+    procedure NewDay;
     procedure CanActivate;  { draft }
     procedure GetMoveAction(A1: Byte; A2: Integer);  { draft }
     function GetCanJoinSelection(Player: Shortint): Byte;

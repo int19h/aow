@@ -112,7 +112,7 @@
     procedure DeleteOpponents;
     procedure InitAdjacentArmies(A1: TArmyHS; A2, A3, A4: Shortint);
     procedure InitAdjacentOpponents(A1, A2: Byte; A3, A4, A5: Shortint);
-    function GetSuperiority: Integer;  { draft }
+    function GetSuperiority: Integer;
     function GetEfficiency: Integer;
     procedure ListRequiredUnitsEx(A1, A2, A3: TUnitList; A4: Integer);
     procedure ListRequiredUnits(A1: Integer; A2: Integer);  { draft }

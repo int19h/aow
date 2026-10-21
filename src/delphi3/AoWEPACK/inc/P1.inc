@@ -11246,9 +11246,9 @@ begin
       Dec(Left);
       if I = Player.FArmies.Count then I := 0;
     until (Left = 0) or ((Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
-          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []));
+          (Player.FArmies.GetArmy(I).FUserMode * [aumGuard, aumTurnDone] = []));
     if (Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
-          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []) then
+          (Player.FArmies.GetArmy(I).FUserMode * [aumGuard, aumTurnDone] = []) then
     begin
       Army := FPlayers.GetPlayers(FSeatedPlayer).FArmies.GetArmy(I);
       CenterViewTo(Army.FX, Army.FY, Army.FL);
@@ -11280,9 +11280,9 @@ begin
       Dec(Left);
       if I < 0 then I := Player.FArmies.Count - 1;
     until (Left = 0) or ((Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
-          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []));
+          (Player.FArmies.GetArmy(I).FUserMode * [aumGuard, aumTurnDone] = []));
     if (Smallint(Player.FArmies.GetArmy(I).MovePoints($FF)) > 1) and
-          (Player.FArmies.GetArmy(I).FMode * [amFixedBehavior, amAIMoveDone] = []) then
+          (Player.FArmies.GetArmy(I).FUserMode * [aumGuard, aumTurnDone] = []) then
     begin
       Army := FPlayers.GetPlayers(FSeatedPlayer).FArmies.GetArmy(I);
       CenterViewTo(Army.FX, Army.FY, Army.FL);
@@ -11342,7 +11342,7 @@ begin
   if FArmyUpdateCount = 0 then ArmyChanged(nil);
 end;
 
-procedure TAoWHSMap.ArmyChanged(Army: TArmyHS);
+procedure TAoWHSMap.ArmyChanged(Army: TArmy);
 begin
   if FArmyUpdateCount = 0 then FArmyChangedEvents.TriggerNotifyEvents(Army);
 end;

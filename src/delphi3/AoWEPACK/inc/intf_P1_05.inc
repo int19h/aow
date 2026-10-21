@@ -369,7 +369,7 @@
     procedure UnitDestroyed(AUnit: TAbstractUnit);
     procedure BeginArmyUpdate;
     procedure EndArmyUpdate;
-    procedure ArmyChanged(Army: TArmyHS);
+    procedure ArmyChanged(Army: TArmy);
     procedure ArmyDestroyed(Army: TArmyHS);
     { conflict: procedure ArmyDestroyed(Army: TArmy); }
     procedure BeginStructureUpdate;
@@ -388,8 +388,8 @@
     procedure UnlockExecuteEventLog;
     procedure GameOverEventHandled;  { draft }
     procedure ExecuteGameOverEvent(Event: TGameOverEventLog);
-    procedure UnlockGameOverEvent;  { draft }
-    procedure LockGameOverEvent;  { draft }
+    procedure UnlockGameOverEvent;
+    procedure LockGameOverEvent;
     procedure GameOver(Player: Shortint; Status: TGameOverStatus);
     { conflict: procedure GameOver(A1: Byte; A2: TGameOverStatus); }
     procedure VerifyAddOnPacks;  { draft }

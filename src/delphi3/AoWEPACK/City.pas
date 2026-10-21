@@ -1270,7 +1270,7 @@ begin
         (X < MapLevel.Width) and (Y < MapLevel.Height) then
       begin
         Army := TArmyHS(MapLevel.GetField(X, Y).FindOwnedChild($20217));
-        if Army <> nil then Inc(Result, Army.FArmy.ObtainValue(-1));
+        if Army <> nil then Inc(Result, Army.FArmy.ObtainValue($FF));
       end;
       WalkToNextHN(Walk);
     end;
@@ -1684,7 +1684,7 @@ begin
     if FDefendersMode = dgRandom then FDefendersMode := TDefendersGenerateMode(System.Random(3) + 2);
     Value := (Ord(FDefendersMode) - 2) * 25 + 25;
     Inc(Value, (GetSize - 1) * Value div 2);
-    for I := 0 to Armies.Count - 1 do Dec(Value, Armies.GetArmyHS(I).FArmy.ObtainValue(-1));
+    for I := 0 to Armies.Count - 1 do Dec(Value, Armies.GetArmyHS(I).FArmy.ObtainValue($FF));
     if Value > 0 then
     begin
       RandomSeed^ := WorldMap^.Random($FFFFF);
