@@ -9,6 +9,9 @@ uses Engine, AoWE, AoWVideoDlg;
 function GetCampaignScenario(Campaign: TWMCampaign; Index: Integer): TWMCampaignScenario;
 procedure SelectCampaignPath(Campaign: TWMCampaign; Index: Integer);
 
+var
+  AllHeroTypes: THeroTypes = [htHero, htLeader, htHeroLeader, htMerchant]; { AoWE.htAll }
+
 implementation
 
 function GetCampaignScenario(Campaign: TWMCampaign; Index: Integer): TWMCampaignScenario;

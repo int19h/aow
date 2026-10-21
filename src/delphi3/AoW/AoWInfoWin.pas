@@ -1,19 +1,18 @@
 unit AoWInfoWin;
 
-{ Draft declarations of AoWInfoWin, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Information-window actions, drawing and alignment recovered from AoW.exe.
+  Layouts and field offsets follow the original executable. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWArnoLine, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AOWGauge, AoWArnoLine, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TIWindow = class;
 
 
-  { TIWindow (instance size 436, VMT 00441930) }
+  { TIWindow: size $1B4; $1B0 item bag. VMT 00441930. }
   TIWindow = class(TDataModule)
   public
     published
@@ -109,31 +108,46 @@ type
     PopulationLbl: TAOWLabel; { +01A8 }
     Translator: TIvTranslator; { +01AC }
     public
-    F_IWindow_1B0: Integer;
-    procedure InfoWinResize;  { draft }
-    procedure MinClick;  { draft }
-    procedure CloseClick(A1: Integer);  { draft }
-    procedure ProdOrb2Draw;  { draft }
-    procedure ProdOrb1Draw;  { draft }
-    procedure CenterClick;  { draft }
-    procedure RazeBtnClick;  { draft }
-    procedure MainBtnClick;  { draft }
-    procedure ItembagLBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure HelpClick;  { draft }
-    procedure ESSBChange;  { draft }
+    FItemBag: TItemHS; { $1B0; 0044252F }
+    procedure InfoWinResize;
+    procedure MinClick;
+    procedure CloseClick(Sender: TObject);
+    procedure ProdOrb2Draw;
+    procedure ProdOrb1Draw;
+    procedure CenterClick;
+    procedure RazeBtnClick;
+    procedure MainBtnClick;
+    procedure ItembagLBDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const Surface: TSurfaceDesc);
+    procedure HelpClick;
+    procedure ESSBChange;
   end;
 
 
 implementation
 
+uses AoWWinMan, AoWExeForms, AoWCityScreen, AoWProdScreen, City, PrdPlace, Cave, Teleport, ExploreS, WizardsTower, Arena, Altar, aowHelpWin, E2CampaignSupport;
+
 procedure TIWindow.InfoWinResize;
-begin end;
+begin
+  with InfoWin do
+  begin
+    Alignment.RightOffset := FWinManager.WinWidth - WinLeft - WinWidth;
+    Alignment.TopOffset := WinTop;
+  end;
+end;
 
 procedure TIWindow.MinClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  InfoWin.Visible := False;
+end;
 
-procedure TIWindow.CloseClick(A1: Integer);
-begin end;
+procedure TIWindow.CloseClick(Sender: TObject);
+begin
+  if Sender <> nil then General.PlayButtonSound(0);
+  InfoWin.Visible := False;
+  TBWindow.StructButton.Visible := False;
+end;
 
 procedure TIWindow.ProdOrb2Draw;
 begin end;
@@ -142,22 +156,80 @@ procedure TIWindow.ProdOrb1Draw;
 begin end;
 
 procedure TIWindow.CenterClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FItemBag <> nil then
+  begin
+    with FItemBag do AoWHSMap.CenterViewTo(Xhx, FItemBag.Yhx, FItemBag.Lhx);
+    AoWHSMap.PlayCenterAnimation(FItemBag.Xhx, FItemBag.Yhx, FItemBag.Lhx);
+  end
+  else
+  begin
+    AoWHSMap.CenterViewTo(General.FStructure.Xhx, General.FStructure.Yhx, General.FStructure.Lhx);
+    AoWHSMap.PlayCenterAnimation(General.FStructure.Xhx, General.FStructure.Yhx, General.FStructure.Lhx);
+  end;
+end;
 
 procedure TIWindow.RazeBtnClick;
-begin end;
+var Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if General.FStructure <> nil then
+    if General.FStructure.CanRaze(AoWHSMap.FSeatedPlayer, Reason) then
+      General.FStructure.Raze(AoWHSMap.FSeatedPlayer)
+    else AoWHSMap.ShowWarning(Reason);
+end;
 
 procedure TIWindow.MainBtnClick;
-begin end;
+var
+  Army: TArmyHS;
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if General.FStructure <> nil then
+  begin
+    if General.FStructure is TCity then CityScreen.ShowCity(TCity(General.FStructure))
+    else if General.FStructure is TProductionPlace then ProductionScreen.ShowPlace(TProductionPlace(General.FStructure))
+    else if General.FStructure is TCave then TCave(General.FStructure).Enter(AoWHSMap.FSeatedPlayer)
+    else if General.FStructure is TTeleport then TTeleport(General.FStructure).Teleport(AoWHSMap.FSeatedPlayer)
+    else if General.FStructure is TExplorationSite then TExplorationSite(General.FStructure).Search
+    else if General.FStructure is TWizardsTower then TWizardsTower(General.FStructure).Enter
+    else if General.FStructure is TArena then TArena(General.FStructure).Enter
+    else if General.FStructure is TAltar then
+      if not TAltar(General.FStructure).GetTargeting then
+      begin
+        if TAltar(General.FStructure).CanTarget(Reason) then TAltar(General.FStructure).Target
+        else AoWHSMap.ShowWarning(Reason);
+      end
+      else TAltar(General.FStructure).CancelTargeting;
+  end
+  else if FItemBag <> nil then
+  begin
+    Army := TAoWMapField(FItemBag.Owner).GetArmyHS;
+    if (Army <> nil) and (Army.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+      if Army.FArmy.Hero($FF, AllHeroTypes) <> nil then
+      begin
+        General.FSelectedUnit := Army.FArmy.Hero($FF, AllHeroTypes);
+        UnitWindow.ShowUnit;
+        UnitWindow.UnitTab.Selected := 2;
+      end;
+  end;
+end;
 
-procedure TIWindow.ItembagLBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TIWindow.ItembagLBDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const Surface: TSurfaceDesc);
+begin
+  if FItemBag <> nil then
+    if FItemBag.FItems.Count > ItembagLB.ListOffset then { Original uses the scroll offset for every row. }
+      FItemBag.FItems.GetItem(ItembagLB.ListOffset).Show(DrawRect.Left + 10, DrawRect.Top + 10, Surface);
+end;
 
 procedure TIWindow.HelpClick;
-begin end;
+begin ShowHelp(504); end;
 
 procedure TIWindow.ESSBChange;
-begin end;
-
+begin
+  ESMemo.FDrawn := False;
+  InfoWin.FDrawn := False;
+end;
 
 end.

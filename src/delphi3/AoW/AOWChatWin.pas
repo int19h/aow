@@ -1,19 +1,18 @@
 unit AOWChatWin;
 
-{ Draft declarations of AOWChatWin, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Chat input, scrolling, alignment and player colors recovered from AoW.exe.
+  Layouts and field offsets follow the original executable. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWButton, AoWEdit, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TChatWindow = class;
 
 
-  { TChatWindow (instance size 116, VMT 00412D5C) }
+  { TChatWindow: size $74; $70 pending scroll to the newest message. VMT 00412D5C. }
   TChatWindow = class(TDataModule)
   public
     published
@@ -29,40 +28,82 @@ type
     ChatSB: TAOWVScrollBar; { +0068 }
     Translator: TIvTranslator; { +006C }
     public
-    F_ChatWindow_70: Byte;
+    FScrollPending: Boolean; { $70 }
     F_ChatWindow_71: array[0..2] of Byte;
-    procedure MinClick;  { draft }
-    procedure ChatEditReturn;  { draft }
-    procedure ChatWinResize;  { draft }
-    procedure ChatWinShow;  { draft }
-    procedure ChatWinHide;  { draft }
-    procedure ChatMemoUpdate;  { draft }
-    procedure PlayerListPreDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure MinClick;
+    procedure ChatEditReturn;
+    procedure ChatWinResize;
+    procedure ChatWinShow;
+    procedure ChatWinHide;
+    procedure ChatMemoUpdate;
+    procedure PlayerListPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const SD: TSurfaceDesc);
   end;
 
 
 implementation
 
+uses AoWWinMan, aowSetupEvents;
+
 procedure TChatWindow.MinClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  ChatWin.Visible := False;
+end;
 
 procedure TChatWindow.ChatEditReturn;
-begin end;
+var Text: string;
+begin
+  if (ChatEdit.Text <> '') and (PlayerList.Selected > -1) then
+  begin
+    Text := SetupEvents.DPlay.PlayerName + ': ' + ChatEdit.Text;
+    SetupEvents.DPlay.SendChatMessage(Integer(PlayerList.Items.Objects[PlayerList.Selected]), Text);
+    ChatMemo.Items.Add(Text);
+    FScrollPending := True;
+    ChatEdit.Text := '';
+  end;
+  ChatEdit.FRedraw := True;
+end;
 
 procedure TChatWindow.ChatWinResize;
-begin end;
+begin
+  with ChatWin do
+    with Alignment do
+    begin
+      LeftOffset := WinLeft;
+      BottomOffset := FWinManager.WinHeight - WinTop - WinHeight;
+      AlignWidth := awLeft;
+    end;
+  FScrollPending := True;
+end;
 
 procedure TChatWindow.ChatWinShow;
-begin end;
+begin
+  General.RegisterDialog(ChatWin);
+  FScrollPending := True;
+end;
 
 procedure TChatWindow.ChatWinHide;
-begin end;
+begin General.UnregisterDialog(ChatWin); end;
 
 procedure TChatWindow.ChatMemoUpdate;
-begin end;
+begin
+  if FScrollPending then
+  begin
+    with ChatSB do Position := Max + 1 - NumberVisible;
+    FScrollPending := False;
+  end;
+end;
 
-procedure TChatWindow.PlayerListPreDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
-
+procedure TChatWindow.PlayerListPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const SD: TSurfaceDesc);
+var Player: Shortint;
+begin
+  if DrawItem <> 0 then
+  begin
+    Player := AoWHSMap.FPlayerCommunicator.PCC.IndexOfSystemID(Integer(PlayerList.Items.Objects[DrawItem]));
+    if (Player > 0) and { Original leaves player zero without a race color. } (Player < AoWHSMap.FPlayers.Count) then
+      PlayerList.TextColor := RaceColors[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace];
+  end
+  else PlayerList.TextColor := $8FA9A0;
+end;
 
 end.

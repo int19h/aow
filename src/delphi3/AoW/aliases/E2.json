@@ -74,5 +74,16 @@
   "FUN_0043f574": "TProductionScreen.UpdateInfo",
   "FUN_0043fd4c": "TProductionScreen.SetMode",
   "FUN_0043ffa8": "TProductionScreen.SelectProduction",
-  "FUN_0043f184": "SphereImage"
+  "FUN_0043f184": "SphereImage",
+  "FUN_00439a74": "TTCFCDialog.Finish",
+  "FUN_00445564": "TDeformFaceDlg.Execute",
+  "FUN_004455fc": "TDeformFaceDlg.Finish",
+  "FUN_0044cb48": "TItemsFoundDlg.Finish",
+  "FUN_0044cbd0": "TItemsFoundDlg.GetHero",
+  "00431834:54": "TConstructDlg.Execute",
+  "FUN_00431680": "TConstructDlg.Finish",
+  "FUN_0043169c": "TConstructDlg.UpdateConstructions",
+  "FUN_0043188c": "TConstructDlg.SelectConstruction",
+  "FUN_0042bc20": "TPowerDlg.Execute",
+  "FUN_0042bcb8": "TPowerDlg.UpdatePower"
 }

@@ -10,3 +10,6 @@
   Use(nil, @AoWCityScreen.TCityScreen.CityChanged);
   Use(nil, @AoWProdScreen.TProductionScreen.ProductionEvent);
   Use(nil, @AoWProdScreen.TProductionScreen.PlaceChanged);
+  Use(nil, @AoWDeformFaceDlg.TDeformFaceDlg.Execute);
+  Use(nil, @AoWConstructDlg.TConstructDlg.Execute);
+  Use(nil, @AoWPowerDlg.TPowerDlg.Execute);

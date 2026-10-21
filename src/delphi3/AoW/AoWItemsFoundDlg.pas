@@ -1,19 +1,18 @@
 unit AoWItemsFoundDlg;
 
-{ Draft declarations of AoWItemsFoundDlg, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Found-item display, hero selection and completion recovered from AoW.exe.
+  Layouts and field offsets follow the original executable. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, ItemExpS, EventLog, AoWComp, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TItemsFoundDlg = class;
 
 
-  { TItemsFoundDlg (instance size 176, VMT 0044C8D0) }
+  { TItemsFoundDlg: size $B0; $A0 item offset, $A4 completion event, $AC item event. VMT 0044C8D0. }
   TItemsFoundDlg = class(TDataModule)
   public
     published
@@ -41,45 +40,136 @@ type
     LeftBtn: TAOWButton; { +0098 }
     RightBtn: TAOWButton; { +009C }
     public
-    F_ItemsFoundDlg_A0: Integer;
-    F_ItemsFoundDlg_A4: array[0..7] of Byte;
-    F_ItemsFoundDlg_AC: Integer;
-    procedure DlgHide;  { draft }
-    procedure CloseBtn2Click;  { draft }
-    procedure Gnd3Draw(A1: Integer; A2: Integer);  { draft }
-    procedure PickupBtnClick;  { draft }
-    procedure Gnd3MouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure LeftBtnClick;  { draft }
-    procedure RightBtnClick;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FItemOffset: Integer; { $A0 }
+    FOnDone: TNotifyEvent; { $A4 }
+    FEvent: TItemExplorationSiteEventLog; { $AC }
+    function GetHero: THero;
+    procedure Finish;
+    procedure DlgHide;
+    procedure CloseBtn2Click;
+    procedure Gnd3Draw(Sender: TObject; SD: TSurfaceDesc);
+    procedure PickupBtnClick;
+    procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure LeftBtnClick;
+    procedure RightBtnClick;
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan, AoWExeForms, AoWItemBanner, E2CampaignSupport;
+
 procedure TItemsFoundDlg.DlgHide;
-begin end;
+begin Finish; end;
+
+procedure TItemsFoundDlg.Finish;
+var
+  Done: TNotifyEvent;
+  Event: TItemExplorationSiteEventLog;
+begin
+  Dlg.Visible := False;
+  Done := FOnDone;
+  Event := FEvent;
+  FOnDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+function TItemsFoundDlg.GetHero: THero;
+var Army: TArmyHS;
+begin
+  Result := nil;
+  if FEvent <> nil then
+  begin
+    Army := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Integer(FEvent.FLocation))).GetArmyHS;
+    if (Army <> nil) and (Army.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
+      Result := Army.FArmy.Hero($FF, AllHeroTypes);
+  end;
+end;
 
 procedure TItemsFoundDlg.CloseBtn2Click;
-begin end;
+begin Dlg.Visible := False; end;
 
-procedure TItemsFoundDlg.Gnd3Draw(A1: Integer; A2: Integer);
-begin end;
+procedure TItemsFoundDlg.Gnd3Draw(Sender: TObject; SD: TSurfaceDesc);
+var
+  Event: TItemExplorationSiteEventLog;
+  Item: TItem;
+begin
+  Event := FEvent;
+  if Event <> nil then
+    if TComponent(Sender).Tag + FItemOffset < Event.FItemIDs.Count then
+    begin
+      Item := AoWHSMap.FItemControl.FindItem(FEvent.FItemIDs[TComponent(Sender).Tag + FItemOffset]);
+      if Item <> nil then Item.Show(Dlg.WinLeft + TAoWComponent(Sender).WinLeft,
+        Dlg.WinTop + TAoWComponent(Sender).WinTop, SD);
+    end;
+end;
 
 procedure TItemsFoundDlg.PickupBtnClick;
-begin end;
+var
+  Hero: THero;
+  Event: TTutorialMessageEventLog;
+begin
+  Hero := GetHero;
+  if Hero <> nil then
+  begin
+    General.FSelectedUnit := Hero;
+    UnitWindow.ShowUnit;
+    UnitWindow.UnitTab.Selected := 2;
+    if AoWHSMap.FGameType = gtTutorial then
+    begin
+      Event := TTutorialMessageEventLog.Create(nil);
+      Event.FHelpFileName := TranslateRStr(TutorialRStr);
+      if AoWHSMap.FTextControl.FindID(55) <> nil then
+      begin
+        Event.FMessage.Assign(AoWHSMap.FTextControl.FindID(55).FText);
+        AoWHSMap.TriggerExecuteEventLog(Event, True, nil);
+      end;
+      Event.Release;
+    end;
+  end;
+  Dlg.Visible := False;
+end;
 
-procedure TItemsFoundDlg.Gnd3MouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TItemsFoundDlg.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var Item: TItem;
+begin
+  if Button = mbRight then
+  begin
+    TAOWCheckBox(Sender).PopupMenu := nil;
+    if FItemOffset + TComponent(Sender).Tag < FEvent.FItemIDs.Count then
+    begin
+      Item := AoWHSMap.FItemControl.FindItem(FEvent.FItemIDs[FItemOffset + TComponent(Sender).Tag]);
+      if Item <> nil then
+      begin
+        TAOWCheckBox(Sender).PopupMenu := ItemBanner.IBannerPopup;
+        ItemID := Item.FItemID;
+      end;
+    end;
+  end;
+end;
 
 procedure TItemsFoundDlg.LeftBtnClick;
-begin end;
+begin
+  if FItemOffset > 0 then
+  begin
+    Dec(FItemOffset);
+    Dlg.FDrawn := False;
+  end;
+end;
 
 procedure TItemsFoundDlg.RightBtnClick;
-begin end;
+begin
+  if FItemOffset + 5 < FEvent.FItemIDs.Count then
+  begin
+    Inc(FItemOffset);
+    Dlg.FDrawn := False;
+  end;
+end;
 
-procedure TItemsFoundDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
+procedure TItemsFoundDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin if Key = VK_ESCAPE then Dlg.Visible := False; end;
 
 end.

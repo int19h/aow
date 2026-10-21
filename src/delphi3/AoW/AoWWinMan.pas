@@ -30,7 +30,7 @@ type
     FActiveAbilityCount: Integer; { $7C } F_General_80: Integer;
     FSelectedUnits: array[0..7] of Integer; { $84 }
     FUnitList: TUnitList; { $A4 }
-    F_General_A8: array[0..23] of Byte;
+    FStructure: TStructure; { $A8; 00442354 } F_General_AC: array[0..19] of Byte;
     FSelectedUnit: TAbstractUnit; { $C0; 00449DCD }
     { conflict: FUnit: TAbstractUnit; }
     FCombatUnit: TTacticalCombatUnitHS; { $C4 }

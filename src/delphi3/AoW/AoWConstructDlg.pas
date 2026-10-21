@@ -1,19 +1,18 @@
 unit AoWConstructDlg;
 
-{ Draft declarations of AoWConstructDlg, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Construction selection, costs and activation recovered from AoW.exe.
+  Layouts and field offsets follow the original executable. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TConstructDlg = class;
 
 
-  { TConstructDlg (instance size 152, VMT 00431368) }
+  { TConstructDlg: size $98; $94 activation request. VMT 00431368. }
   TConstructDlg = class(TDataModule)
   public
     published
@@ -38,51 +37,136 @@ type
     T4VSB: TAOWVScrollBar; { +008C }
     Translator: TIvTranslator; { +0090 }
     public
-    F_ConstructDlg_94: Integer;
-    procedure CancelBtnClick;  { draft }
-    procedure ConstructionListChange;  { draft }
-    procedure ConstructionCostListChange;  { draft }
-    procedure ConstructionTurnsListChange;  { draft }
-    procedure ConstructBtnClick;  { draft }
-    procedure SortConstructionsBtnClick;  { draft }
-    procedure SortConstructionCostBtnClick;  { draft }
-    procedure SortConstructionTurnsBtnClick;  { draft }
-    procedure DlgHide;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FRequest: TActivateAbilityInfo; { $94 }
+    procedure Execute(Request: TActivateAbilityInfo);
+    procedure Finish;
+    procedure UpdateConstructions;
+    procedure SelectConstruction(Index: Integer);
+    procedure CancelBtnClick;
+    procedure ConstructionListChange;
+    procedure ConstructionCostListChange;
+    procedure ConstructionTurnsListChange;
+    procedure ConstructBtnClick(Sender: TObject);
+    procedure SortConstructionsBtnClick;
+    procedure SortConstructionCostBtnClick;
+    procedure SortConstructionTurnsBtnClick;
+    procedure DlgHide;
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+uses AoWWinMan;
+
 procedure TConstructDlg.CancelBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
 procedure TConstructDlg.ConstructionListChange;
-begin end;
+begin SelectConstruction(ConstructionList.Selected); end;
 
 procedure TConstructDlg.ConstructionCostListChange;
-begin end;
+begin SelectConstruction(ConstructionCostList.Selected); end;
 
 procedure TConstructDlg.ConstructionTurnsListChange;
-begin end;
+begin SelectConstruction(ConstructionTurnsList.Selected); end;
 
-procedure TConstructDlg.ConstructBtnClick;
-begin end;
+procedure TConstructDlg.ConstructBtnClick(Sender: TObject);
+var
+  Reason: string;
+  U: TAbstractUnit;
+  Control: TConstructionControl;
+begin
+  General.PlayButtonSound(0);
+  if (ConstructionList.Selected >= 0) and (ConstructionList.Selected < ConstructionList.Items.Count) then
+  begin
+    U := AoWHSMap.FUnitControl.FindUnit(FRequest.FUnitID);
+    Control := TConstructionControl(ConstructionList.Items.Objects[ConstructionList.Selected]);
+    if Control.CanConstruct(U, Reason) then
+    begin
+      if Control.Construct(U) then Dlg.Visible := False;
+    end
+    else AoWHSMap.ShowWarning(Reason);
+  end;
+end;
 
 procedure TConstructDlg.SortConstructionsBtnClick;
-begin end;
+begin General.PlayButtonSound(0); end;
 
 procedure TConstructDlg.SortConstructionCostBtnClick;
-begin end;
+begin General.PlayButtonSound(0); end;
 
 procedure TConstructDlg.SortConstructionTurnsBtnClick;
-begin end;
+begin General.PlayButtonSound(0); end;
 
 procedure TConstructDlg.DlgHide;
-begin end;
+begin Finish; end;
 
-procedure TConstructDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TConstructDlg.Finish;
+begin
+  if FRequest <> nil then
+  begin
+    FRequest.Release;
+    FRequest := nil;
+  end;
+end;
 
+procedure TConstructDlg.Execute(Request: TActivateAbilityInfo);
+begin
+  if FRequest <> nil then FRequest.Release;
+  FRequest := Request;
+  FRequest.AddRef;
+  UpdateConstructions;
+  Dlg.Visible := True;
+end;
+
+procedure TConstructDlg.SelectConstruction(Index: Integer);
+begin
+  if (Index >= 0) and (Index < ConstructionList.Items.Count) then
+  begin
+    ConstructionList.Selected := Index;
+    ConstructionCostList.Selected := Index;
+    ConstructionTurnsList.Selected := Index;
+  end
+  else
+  begin
+    ConstructionList.Selected := -1;
+    ConstructionCostList.Selected := -1;
+    ConstructionTurnsList.Selected := -1;
+  end;
+end;
+
+procedure TConstructDlg.UpdateConstructions;
+var
+  Days, Gold: Integer;
+  U: TAbstractUnit;
+  Name: string;
+  I: Integer;
+  Ability: TConstructAbility;
+  Control: TConstructionControl;
+begin
+  Dlg.FDrawn := False;
+  U := AoWHSMap.FUnitControl.FindUnit(FRequest.FUnitID);
+  ConstructionList.Items.Clear;
+  ConstructionCostList.Items.Clear;
+  ConstructionTurnsList.Items.Clear;
+  Ability := TConstructAbility(AoWHSSet.FAbilityControl.GetAbility(125));
+  for I := 0 to Ability.FConstructionControls.Count - 1 do
+  begin
+    Control := Ability.FConstructionControls.GetConstructionControl(I);
+    Control.GetInfo(U, Name, Gold, Days);
+    ConstructionList.Items.AddObject(Name, Control);
+    if Gold <> 0 then ConstructionCostList.Items.Add(IntToStr(Gold))
+    else ConstructionCostList.Items.Add('-');
+    if Days <> 0 then ConstructionTurnsList.Items.Add(IntToStr(Days))
+    else ConstructionTurnsList.Items.Add('-');
+  end;
+end;
+
+procedure TConstructDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin if Key = VK_ESCAPE then Dlg.Visible := False; end;
 
 end.
