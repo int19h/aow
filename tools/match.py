@@ -281,4 +281,5 @@ def main():
     print('%d of %d functions match, %d of %d bytes' % (ident, total, ident_bytes, total_bytes))
 
 
-main()
+if __name__ == '__main__':
+    main()
