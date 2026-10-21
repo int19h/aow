@@ -1,14 +1,10 @@
 unit AoWSetup;
-
 { Draft declarations of AoWSetup, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
-
+  Setup, synchronization and map selection bodies are recovered. }
 interface
-
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
-
 type
   TSetupPackage = class;
   TSetupPlayerBehavior = record
@@ -22,7 +18,6 @@ type
   TSetupSettings = class;
   TCustomizeLeaderControl = class;
   TSetupControl = class;
-
   TSetupStatus = set of (ssBusy, ssAborted, ssRemote); { ot=1 }
   TSetupPhase = (spIdle, spSetupPlayers, spCustomizeLeaders, spSendMap, spLoadMap, spSynchronize, spSetupMap);  { ot=1 }
   TMapValidationInfo = (mviUnknown, mviInvalid, mviInvalidMap, mviValid);  { ot=1 }
@@ -33,7 +28,6 @@ type
   TEjectPlayerEvent = procedure(SetupControl: TSetupControl; RemoteID: Integer) of object;
   TIncompatibleVersionEvent = procedure(SetupControl: TSetupControl; MajorVersion: Integer; MinorVersion: Integer) of object;
   TSendMapEvent = procedure(SetupControl: TSetupControl; Data: Pointer; Size: Integer; Recipient: Integer) of object;
-
   { TSetupPackage (instance size 24, VMT 557DE814) }
   TSetupPackage = class(TEObject)
   public
@@ -46,7 +40,6 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
   end;
-
   { TRemotePlayer (instance size 24, VMT 557DE92C) }
   TRemotePlayer = class(TEObject)
   public
@@ -59,15 +52,13 @@ type
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
   end;
-
   { TRemotePlayerList (instance size 12, VMT 557DEA00) }
   TRemotePlayerList = class(TENode)
   public
     function GetPlayers(Index: Integer): TRemotePlayer;
     function IndexOfRemoteID(RemoteID: Integer): Integer;
   end;
-
-  { TPlayerSetupSettings (instance size 40, VMT 557DEB70) }
+  { TPlayerSetupSettings (instance size 40, VMT 557DEB70); $08/$10 behaviors, $18 race, $19 status, $1C leader, $20 player, $21 behavior, $24 email. }
   TPlayerSetupSettings = class(TEObject)
   public
     FBehavior: TSetupPlayerBehavior; { +$08 }
@@ -78,39 +69,39 @@ type
     FLeader: TLeader; { +$1C }
     FPlayerID: Byte; { +$20 }
     FBehaviorMode: Byte; { +$21 }
-    F_PlayerSetupSettings_22: array[0..5] of Byte;
+    F_PlayerSetupSettings_22: array[0..1] of Byte;
+    FEmailAddress: string; { $24; 557E0C29 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
   end;
-
-  { TSetupSettings (instance size 68, VMT 557DEC54) }
+  { TSetupSettings (instance size 68, VMT 557DEC54); $18/$1C CRCs, $20 day, $24 play mode, $28 victory, $29 independent AI, $2C seed, $30/$34 limits, $38 players, $3C connection, $3D tactical combat, $40 email game name. }
   TSetupSettings = class(TENode)
   public
     FHostRemoteID: Integer;
     FFileName: string; { +$10 }
     FMapName: string; { +$14 }
-    F_SetupSettings_18: Integer;
-    F_SetupSettings_1C: Integer;
-    F_SetupSettings_20: Integer;
-    F_SetupSettings_24: Byte;
+    FMapCRC: Integer; { $18 }
+    FSetCRC: Integer; { $1C }
+    FMapDay: Integer; { $20 }
+    FPlayMode: Byte; { $24 }
     FExplorationEnabled: Boolean; { +$25 }
     FLeadersOnMap: Boolean; { +$26 }
     FAlliedVictory: Boolean; { +$27 }
-    F_SetupSettings_28: Byte;
-    F_SetupSettings_29: Byte;
+    FVictoryCondition: Byte; { $28 }
+    FIndependentAIMode: Byte; { $29 }
     FCustomizeLeaders: Boolean; { +$2A }
     F_SetupSettings_2B: array[0..0] of Byte;
-    F_SetupSettings_2C: Integer;
-    F_SetupSettings_30: Integer;
-    F_SetupSettings_34: Integer;
+    FRandomSeed: Integer; { $2C }
+    FDayLimit: Integer; { $30 }
+    FTurnTime: Integer; { $34 }
     FRemotePlayers: TRemotePlayerList; { +$38 }
-    F_SetupSettings_3C: Byte;
-    F_SetupSettings_3D: Byte;
+    FConnectionType: Byte; { $3C }
+    FTacticalCombatAvailability: Byte; { $3D }
     FAlwaysViewTC: Boolean; { +$3E }
     F_SetupSettings_3F: array[0..0] of Byte;
-    F_SetupSettings_40: Integer;
+    FEmailGameName: string; { $40; 557E0C66 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -121,7 +112,6 @@ type
     function IndexOfRemoteID(RemoteID: Integer): Integer;
     function IndexOfRace(Race: Byte): Integer;
   end;
-
   { TCustomizeLeaderControl (instance size 48, VMT 557DED7C) }
   TCustomizeLeaderControl = class(TLeaderSetupControl)
   public
@@ -129,7 +119,6 @@ type
     FPlayerIndex: Integer; { +$2C }
     function Done: Boolean; override;
   end;
-
   { TSetupControl (instance size 160, VMT 557DF040) }
   TSetupControl = class(TComponent)
   public
@@ -178,8 +167,8 @@ type
     function CustomizeLeaders: Boolean;
     procedure LeaderCustomized(Control: TCustomizeLeaderControl);
     procedure ListPCCInfo(PCC: TPlayerCommunicationControl);
-    procedure RemoveIndependentPlayers;  { draft }
-    procedure SetupMap;  { draft }
+    procedure RemoveIndependentPlayers;
+    procedure SetupMap;
     function hValidateSetupMap: Boolean;
     procedure UpdateSettings;
     procedure BeginUpdate;
@@ -212,17 +201,14 @@ type
     procedure hSetPlayerID(Index: Integer; const Behavior: TSetupPlayerBehavior; Forced: Boolean);
     procedure hSetPlayMode(Value: Byte);
     procedure hSetIndependentAIMode(Value: Byte);
-    procedure hPickMap(A1: Integer);  { draft }
+    function hPickMap(const FileName: string): Boolean;
     procedure hEjectPlayer(RemoteID: Integer);
     function SetupHost(const Name: string; Mode: Byte; RemoteID: Integer): Boolean;
     function SetupUser(const Name: string; RemoteID: Integer): Boolean;
   end;
-
 procedure RegisterSetupClasses(AEngine: TEngine);
 procedure Register;
-
 implementation
-
 type
   TLeaderSetupView = class(TObject)
     Reserved04: array[4..$B] of Byte;
@@ -232,12 +218,10 @@ type
     Leader: TLeader;
     Races: TIntegerList;
   end;
-
   TSetupHeroView = class(TObject)
     Reserved: array[4..$5F] of Byte;
     Name: string;
   end;
-
 const
   CPUBehavior: TSetupPlayerBehavior = (PlayerType: 1; Reserved: (0,0,0); Flags: 0);
   FreeBehavior: TSetupPlayerBehavior = (PlayerType: 5; Reserved: (0,0,0); Flags: 0);
@@ -365,11 +349,11 @@ end;
 procedure TSetupSettings.Reset;
 begin
   Clear;
-  F_SetupSettings_3D := 1;
+  FTacticalCombatAvailability := 1;
   FCustomizeLeaders := False;
-  F_SetupSettings_34 := 0;
-  F_SetupSettings_30 := 0;
-  F_SetupSettings_24 := 2;
+  FTurnTime := 0;
+  FDayLimit := 0;
+  FPlayMode := 2;
   FExplorationEnabled := True;
   FLeadersOnMap := True;
   FRemotePlayers.Clear;
@@ -428,24 +412,24 @@ procedure TSetupSettings.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwString(FFileName, 10);
-  Stream.rwData(F_SetupSettings_24, 1, 11);
+  Stream.rwData(FPlayMode, 1, 11);
   Stream.rwBool(FExplorationEnabled, 12);
   Stream.rwString(FMapName, 13);
-  Stream.rwData(F_SetupSettings_28, 1, 14);
-  Stream.rwData(F_SetupSettings_29, 1, 15);
+  Stream.rwData(FVictoryCondition, 1, 14);
+  Stream.rwData(FIndependentAIMode, 1, 15);
   Stream.rwBool(FCustomizeLeaders, 16);
-  Stream.rwInteger(F_SetupSettings_2C, 17);
+  Stream.rwInteger(FRandomSeed, 17);
   Stream.rwBool(FLeadersOnMap, 18);
-  Stream.rwInteger(F_SetupSettings_30, 19);
-  Stream.rwInteger(F_SetupSettings_34, 20);
+  Stream.rwInteger(FDayLimit, 19);
+  Stream.rwInteger(FTurnTime, 20);
   Stream.rwEObject(FRemotePlayers, 21);
   Stream.rwInteger(FHostRemoteID, 22);
-  Stream.rwInteger(F_SetupSettings_20, 23);
+  Stream.rwInteger(FMapDay, 23);
   Stream.rwBool(FAlliedVictory, 24);
-  Stream.rwData(F_SetupSettings_3C, 1, 25);
-  Stream.rwInteger(F_SetupSettings_18, 26);
-  Stream.rwInteger(F_SetupSettings_1C, 27);
-  Stream.rwData(F_SetupSettings_3D, 1, 28);
+  Stream.rwData(FConnectionType, 1, 25);
+  Stream.rwInteger(FMapCRC, 26);
+  Stream.rwInteger(FSetCRC, 27);
+  Stream.rwData(FTacticalCombatAvailability, 1, 28);
   Stream.rwBool(FAlwaysViewTC, 29);
 end;
 
@@ -631,16 +615,16 @@ var FileName: string; Validation: TMapValidationInfo;
 begin
   if (FSettings.FMapName <> '') and (FRemotePlayer.FMapValidation <> mviValid) then
   begin
-    if AoWHSSet.FHSSCRC = FSettings.F_SetupSettings_1C then
+    if AoWHSSet.FHSSCRC = FSettings.FSetCRC then
     begin
       FileName := AoWEngine.StartupDirectory + FSettings.FMapName;
       if FileExists(FileName) then
-        if GetFileCRC32(FileName) = FSettings.F_SetupSettings_18 then Validation := mviValid
+        if GetFileCRC32(FileName) = FSettings.FMapCRC then Validation := mviValid
         else Validation := mviInvalidMap
       else Validation := mviInvalidMap;
     end else Validation := mviInvalid;
     if (Validation = mviInvalidMap) and (FStream.Size <> 0) and
-      (GetCRC32(FStream.Memory, FStream.Size) = FSettings.F_SetupSettings_18) then Validation := mviValid;
+      (GetCRC32(FStream.Memory, FStream.Size) = FSettings.FMapCRC) then Validation := mviValid;
     if Validation <> FRemotePlayer.FMapValidation then
     begin
       FRemotePlayer.FMapValidation := Validation;
@@ -772,7 +756,7 @@ end;
 procedure TSetupControl.MapLoaded;
 var I: Integer;
 begin
-  if (FSettings.F_SetupSettings_20 <> 0) or not FSettings.FCustomizeLeaders then
+  if (FSettings.FMapDay <> 0) or not FSettings.FCustomizeLeaders then
   begin
     FPhase := spSynchronize;
     if Assigned(FOnSynchronize) then FOnSynchronize(Self);
@@ -788,7 +772,7 @@ begin
         FSettings.GetSettings(I).FStatus := FSettings.GetSettings(I).FStatus + [pssLoaded];
     if not hValidateSetupMap then UpdateSettings;
   end;
-  if (FSettings.F_SetupSettings_20 = 0) and FSettings.FCustomizeLeaders then CustomizeLeaders;
+  if (FSettings.FMapDay = 0) and FSettings.FCustomizeLeaders then CustomizeLeaders;
 end;
 procedure TSetupControl.hLeaderCustomized(Index: Integer; Leader: TLeader);
 begin
@@ -867,9 +851,19 @@ begin
   end;
 end;
 procedure TSetupControl.RemoveIndependentPlayers;
-begin end;
+var I, J: Integer; Player: TPlayer; begin for I := AoWHSMap.FPlayers.GetCount - 1 downto 1 do begin Player := AoWHSMap.FPlayers.GetPlayers(I); if Player.FPlayerType = ptIndependent then begin for J := Player.FStructures.GetCount - 1 downto 0 do Player.FStructures.GetStructure(J).SetPlayer(0); for J := Player.FArmies.GetCount - 1 downto 0 do Player.FArmies.GetArmy(J).SetPlayer(0); Player.FLeader.SetOwner(nil); Player.FStatus := psTerminated; end; end; end;
+
 procedure TSetupControl.SetupMap;
-begin end;
+var I, Index: Integer; Player: TPlayer; RemotePCC: TRemotePCC; LocalPCC: TLocalPCC; begin FPhase := spSetupMap; for I := 0 to FSettings.GetCount - 1 do begin Player := AoWHSMap.FPlayers.GetPlayers(Shortint(FSettings.GetSettings(I).FPlayerID)); Player.FPlayerType := TPlayerType(FSettings.GetSettings(I).FBehavior.PlayerType); Player.FBehavior := TPlayerBehavior(FSettings.GetSettings(I).FBehaviorMode); if FSettings.FConnectionType = 2 then begin if
+CompareText(FSettings.GetSettings(I).FEmailAddress, AoWEngine.FRegistry.GetLocalEmailAddress) <> 0 then begin Player.FPBEMSettings.FEmailGame.FEmailAddress := FSettings.GetSettings(I).FEmailAddress; Player.FPBEMSettings.FEmailGame.FName := FSettings.FEmailGameName; end else Player.FPBEMSettings.SetGame(AoWEngine.FEmailGames.CreateEmailGame( FSettings.FEmailGameName, FSettings.GetSettings(I).FEmailAddress)); end; if FSettings.FMapDay = 0 then begin Player.FLeader.UpdateFromLibraryBegin;
+Player.FLeader.Assign(FSettings.GetSettings(I).FLeader, AoWEngine); Player.FLeader.UpdateFromLibraryEnd; end; if GetRemote then if (FSettings.GetSettings(I).FBehavior.PlayerType = 0) and ((FSettings.FMapDay <> 0) or not FSettings.FCustomizeLeaders) then begin Index := FSettings.FRemotePlayers.IndexOfRemoteID(FSettings.GetSettings(I).FBehavior.Flags); if Index <> -1 then Player.FLeader.FHeroName := FSettings.FRemotePlayers.GetPlayers(Index).FName; end; end; AoWHSMap.FConnectionType :=
+TPlayerConnectionType(FSettings.FConnectionType); if GetRemote then begin RemotePCC := TRemotePCC.Create; RemotePCC.Setup(AoWHSMap.FPlayers.GetCount, FRemotePlayer.FRemoteID); RemotePCC.SetConnectionMode(0, cmGlobal); RemotePCC.SetSystemID(0, FRemotePlayer.FRemoteID); for I := 0 to FSettings.GetCount - 1 do if FSettings.GetSettings(I).FBehavior.PlayerType <> 0 then begin RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmGlobal);
+RemotePCC.SetSystemID(Shortint(FSettings.GetSettings(I).FPlayerID), FRemotePlayer.FRemoteID); end else begin if FSettings.GetSettings(I).FBehavior.Flags = FRemotePlayer.FRemoteID then RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmLocal) else RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmRemote); RemotePCC.SetSystemID(Shortint(FSettings.GetSettings(I).FPlayerID), FSettings.GetSettings(I).FBehavior.Flags); end;
+AoWHSMap.FPlayerCommunicator.ActivatePCC(RemotePCC); RemotePCC.OnSendData := FOnSendData; ListPCCInfo(RemotePCC); RemotePCC.Release; end else begin LocalPCC := TLocalPCC.Create; LocalPCC.Setup(AoWHSMap.FPlayers.GetCount); LocalPCC.SetConnectionMode(0, cmGlobal); for I := 0 to FSettings.GetCount - 1 do if FSettings.GetSettings(I).FBehavior.PlayerType = 0 then LocalPCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmLocal) else
+LocalPCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmGlobal); AoWHSMap.FPlayerCommunicator.ActivatePCC(LocalPCC); ListPCCInfo(LocalPCC); LocalPCC.Release; end; if FSettings.FMapDay = 0 then begin AoWHSMap.FInitialRandomSeed := FSettings.FRandomSeed; AoWHSMap.FFixedLeaders := FSettings.FLeadersOnMap; AoWHSMap.FAlliedVictory := FSettings.FAlliedVictory; AoWHSMap.SetExplorationEnabled(FSettings.FExplorationEnabled); AoWHSMap.SetFogEnabled(1); end; AoWHSMap.FDayLimit :=
+FSettings.FDayLimit; AoWHSMap.FTurnTime := FSettings.FTurnTime; AoWHSMap.FVictoryMode := FSettings.FTacticalCombatAvailability; AoWHSMap.FLeadersFixed := FSettings.FCustomizeLeaders; AoWHSMap.FStartingGame := FSettings.FAlwaysViewTC; RemoveIndependentPlayers; AoWHSMap.SetupPlayerControl(TPlayMode(FSettings.FPlayMode), TPlayerConnectionType(FSettings.FConnectionType)); if Assigned(FOnSetupMap) then try FOnSetupMap(Self); except end; Reset; if Assigned(FOnStart) then try FOnStart(Self); except
+end; end;
+
 function TSetupControl.hValidateSetupMap: Boolean;
 var I: Integer;
 begin
@@ -1097,7 +1091,7 @@ begin
 end;
 procedure TSetupControl.hSetExplorationEnabled(Value: Boolean);
 begin
-  if GetHost and (Value <> FSettings.FExplorationEnabled) and (FSettings.F_SetupSettings_20 = 0) then
+  if GetHost and (Value <> FSettings.FExplorationEnabled) and (FSettings.FMapDay = 0) then
   begin
     FSettings.FExplorationEnabled := Value;
     UpdateSettings;
@@ -1105,7 +1099,7 @@ begin
 end;
 procedure TSetupControl.hSetLeadersOnMap(Value: Boolean);
 begin
-  if GetHost and (Value <> FSettings.FLeadersOnMap) and (FSettings.F_SetupSettings_20 = 0) then
+  if GetHost and (Value <> FSettings.FLeadersOnMap) and (FSettings.FMapDay = 0) then
   begin
     FSettings.FLeadersOnMap := Value;
     UpdateSettings;
@@ -1113,9 +1107,9 @@ begin
 end;
 procedure TSetupControl.hSetTacticalCombatAvailability(Value: Byte);
 begin
-  if GetHost and (Value <> FSettings.F_SetupSettings_3D) then
+  if GetHost and (Value <> FSettings.FTacticalCombatAvailability) then
   begin
-    FSettings.F_SetupSettings_3D := Value;
+    FSettings.FTacticalCombatAvailability := Value;
     UpdateSettings;
   end;
 end;
@@ -1129,7 +1123,7 @@ begin
 end;
 procedure TSetupControl.hSetAlliedVictory(Value: Boolean);
 begin
-  if GetHost and (Value <> FSettings.FAlliedVictory) and (FSettings.F_SetupSettings_20 = 0) then
+  if GetHost and (Value <> FSettings.FAlliedVictory) and (FSettings.FMapDay = 0) then
   begin
     FSettings.FAlliedVictory := Value;
     UpdateSettings;
@@ -1137,7 +1131,7 @@ begin
 end;
 procedure TSetupControl.hSetCustomizeLeaders(Value: Boolean);
 begin
-  if GetHost and (Value <> FSettings.FCustomizeLeaders) and (FSettings.F_SetupSettings_20 = 0) then
+  if GetHost and (Value <> FSettings.FCustomizeLeaders) and (FSettings.FMapDay = 0) then
   begin
     FSettings.FCustomizeLeaders := Value;
     UpdateSettings;
@@ -1145,17 +1139,17 @@ begin
 end;
 procedure TSetupControl.hSetTurnLimitation(Value: Integer);
 begin
-  if GetHost and (Value <> FSettings.F_SetupSettings_30) then
+  if GetHost and (Value <> FSettings.FDayLimit) then
   begin
-    FSettings.F_SetupSettings_30 := Value;
+    FSettings.FDayLimit := Value;
     UpdateSettings;
   end;
 end;
 procedure TSetupControl.hSetTurnTimeLimitation(Value: Integer);
 begin
-  if GetHost and (Value <> FSettings.F_SetupSettings_34) then
+  if GetHost and (Value <> FSettings.FTurnTime) then
   begin
-    FSettings.F_SetupSettings_34 := Value;
+    FSettings.FTurnTime := Value;
     UpdateSettings;
   end;
 end;
@@ -1167,7 +1161,7 @@ begin
     if (FSettings.GetSettings(Index).FBehavior.PlayerType = Behavior.PlayerType) and
       (FSettings.GetSettings(Index).FBehavior.Flags = Behavior.Flags) then Exit;
     if (Behavior.Flags <> 0) and (FSettings.FRemotePlayers.IndexOfRemoteID(Behavior.Flags) = -1) then Exit;
-    if not GetRemote and (FSettings.F_SetupSettings_24 = 2) and (Behavior.PlayerType = 0) then
+    if not GetRemote and (FSettings.FPlayMode = 2) and (Behavior.PlayerType = 0) then
       for I := 0 to FSettings.Count - 1 do
         if FSettings.GetSettings(I).FBehavior.PlayerType = 0 then ResetPlayerSettings(I);
     if GetRemote and (Behavior.PlayerType = 0) and (Behavior.Flags <> 0) then
@@ -1187,9 +1181,9 @@ end;
 procedure TSetupControl.hSetPlayMode(Value: Byte);
 var I: Integer; First: Boolean;
 begin
-  if GetHost and (Value <> FSettings.F_SetupSettings_24) then
+  if GetHost and (Value <> FSettings.FPlayMode) then
   begin
-    FSettings.F_SetupSettings_24 := Value;
+    FSettings.FPlayMode := Value;
     if not GetRemote and (Value = 2) then
     begin
       First := True;
@@ -1205,14 +1199,20 @@ begin
 end;
 procedure TSetupControl.hSetIndependentAIMode(Value: Byte);
 begin
-  if GetHost and (Value <> FSettings.F_SetupSettings_29) then
+  if GetHost and (Value <> FSettings.FIndependentAIMode) then
   begin
-    FSettings.F_SetupSettings_29 := Value;
+    FSettings.FIndependentAIMode := Value;
     UpdateSettings;
   end;
 end;
-procedure TSetupControl.hPickMap(A1: Integer);
-begin end;
+function TSetupControl.hPickMap(const FileName: string): Boolean;
+var FirstHuman: Boolean; Settings: TPlayerSetupSettings; Preview: TAoWHSMap; I: Integer; Player: TPlayer; begin Preview := TAoWHSMap(AoWEngine.CreatePreviewHSM(AoWEngine.StartupDirectory + FileName)); if GetHost and (Preview <> nil) and (not AoWEngine.FDemo or Preview.FShowAllPlayers) and (Preview.FConnectionType <> pcEmail) then begin AoWEngine.InitializeHSSet(AoWEngine.StartupDirectory + Preview.HSSFileName, nil); Randomize; FSettings.Clear; FSettings.FMapName := FileName; FSettings.FMapDay
+:= Preview.FDay; FSettings.FFileName := Preview.FMapName; FSettings.FMapCRC := GetFileCRC32(AoWEngine.StartupDirectory + FileName); FSettings.FSetCRC := AoWHSSet.FHSSCRC; FSettings.FRandomSeed := RandSeed; FSettings.FVictoryCondition := Ord(Preview.FVictoryCondition); if Preview.FDay <> 0 then begin FSettings.FLeadersOnMap := Preview.FFixedLeaders; FSettings.FAlliedVictory := Preview.FAlliedVictory; FSettings.FTurnTime := Preview.FTurnTime; FSettings.FDayLimit := Preview.FDayLimit;
+FSettings.FAlwaysViewTC := Preview.FStartingGame; FSettings.FTacticalCombatAvailability := Preview.FVictoryMode; end; FirstHuman := True; FRemotePlayer.FPreferredRace := $FF; FRemotePlayer.FMapValidation := mviValid; for I := 0 to FSettings.FRemotePlayers.GetCount - 1 do begin FSettings.FRemotePlayers.GetPlayers(I).FPreferredRace := $FF; if FSettings.FRemotePlayers.GetPlayers(I).FRemoteID = FRemotePlayer.FRemoteID then FSettings.FRemotePlayers.GetPlayers(I).FMapValidation := mviValid else
+FSettings.FRemotePlayers.GetPlayers(I).FMapValidation := mviUnknown; end; for I := 1 to Preview.FPlayers.GetCount - 1 do begin Player := Preview.FPlayers.GetPlayers(I); if Player.FStatus <> psTerminated then begin Settings := TPlayerSetupSettings.Create(FSettings); Settings.FPlayerID := I; Settings.FRace := Player.FPlayerRace; Settings.FLeader.Assign(Player.FLeaderSetup, AoWEngine); Settings.FBehaviorMode := Ord(Player.FBehavior); if Player.FParticipating then Settings.FStatus :=
+Settings.FStatus + [pssFixed]; if GetRemote and not Player.FParticipating then begin Settings.FBehavior.PlayerType := 5; Settings.FOriginalBehavior.PlayerType := 5; end else begin Settings.FBehavior.PlayerType := Ord(Player.FPlayerType); Settings.FOriginalBehavior.PlayerType := Ord(Player.FPlayerType); if Player.FPlayerType = ptHuman then begin if not FirstHuman then Settings.FBehavior.PlayerType := 1; FirstHuman := False; end; end; end; end; UpdateSettings; Preview.Free; Result := True; end
+else Result := False; { Original leaks a rejected preview map. } end;
+
 procedure TSetupControl.hEjectPlayer(RemoteID: Integer);
 var I, J: Integer;
 begin
@@ -1240,10 +1240,10 @@ begin
   with FSettings do
   begin
     FHostRemoteID := RemoteID;
-    F_SetupSettings_3C := Mode;
+    FConnectionType := Mode;
     case Mode of
-      2: F_SetupSettings_24 := 1;
-      else F_SetupSettings_24 := 2;
+      2: FPlayMode := 1;
+      else FPlayMode := 2;
     end;
   end;
   FRemotePlayer.FName := ValidatePlayerName(Name);

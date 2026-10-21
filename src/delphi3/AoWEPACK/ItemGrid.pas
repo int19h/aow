@@ -2,7 +2,7 @@ unit ItemGrid;
 
 { Draft declarations of ItemGrid, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  List management and selection recovered; remaining rendering/editor stubs are unfinished. }
+  List management, selection and cell rendering are recovered. }
 
 interface
 
@@ -13,14 +13,15 @@ type
   TItemGrid = class;
 
 
-  { TItemGrid (instance size 496, VMT 55802170) }
+  { TItemGrid (instance size 496, VMT 55802170); $1E0 indices, $1E4 items, $1E8 stream, $1ED show availability, $1EE sort. }
   TItemGrid = class(TCustomImageDrawGrid)
   public
     FDisplayOptions: array[0..3] of Byte; { +$1DC }
     FIndices: TIntegerList; { +$1E0 }
     FItems: TItemList; { +$1E4 }
     FStream: TMemoryStream; { +$1E8 }
-    FOptions: array[0..1] of Byte; { +$1EC }
+    FReserved1EC: Byte; { $1EC }
+    FShowAvailability: Boolean; { $1ED }
     FSort: Byte; { +$1EE }
     FReserved1EF: Byte;
     destructor Destroy; override;
@@ -42,6 +43,11 @@ type
 procedure Register;
 
 implementation
+
+const
+  ItemAvailabilityRStr: array[TItemAvailability] of string =
+    ('Exceptional', 'Rare', 'Common', 'Frequent');
+
 
 type
   { needs: TItemList.GetItem returns TItem at VMT +$8C. This ABI view
@@ -182,7 +188,54 @@ begin
 end;
 
 procedure TItemGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
-begin end;
+var
+  Index, H: Integer;
+  Text: string;
+  R, DrawR: TRect;
+  Item: TItem;
+  Image: TLibraryImage;
+begin
+  if not (csDesigning in ComponentState) and (FItems <> nil) then
+  begin
+    H := ARect.Bottom - ARect.Top;
+    Index := ImageIndex(ACol, ARow);
+    if (Index < FIndices.Count) and (FItems.GetItem(FIndices[Index]) <> nil) then
+    begin
+      Item := FItems.GetItem(FIndices[Index]);
+      R := ARect;
+      R.Right := R.Left + H - 6;
+      if AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex) <> nil then
+        Image := AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex).GetCellImage
+      else Image := nil;
+      BltLibraryImage(Canvas, Image, R, bmCenter, 100, 100, clBtnFace, Color, False, DrawR);
+      R := ARect;
+      R.Left := R.Left + H - 6;
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(R);
+      Text := Item.FOwnerName;
+      Canvas.Brush.Style := bsClear;
+      Canvas.Font.Color := Font.Color;
+      R := ARect;
+      R.Left := R.Left + H - 2;
+      Inc(R.Top);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      if FShowAvailability then
+      begin
+        Text := AoWE.TranslateRStr(ItemAvailabilityRStr[Item.FAvailability]);
+        R := ARect;
+        Inc(R.Top, 28);
+        R.Left := R.Left + H - 2;
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      end;
+    end
+    else
+    begin
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(ARect);
+    end;
+  end;
+  inherited DrawCell(ACol, ARow, ARect, AState);
+end;
 
 procedure TItemGrid.EditItemDone(ResultCode: TEditResult; Obj: TEObject);
 begin

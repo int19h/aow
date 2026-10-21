@@ -13,5 +13,17 @@
   "5577a09c:42": "P4CompareSpellLevels",
   "FUN_55766468": "P4UnitStrikeDV",
   "FUN_55770b58": "TRebuildConstructionControl.GetStructure",
-  "5577b8e0:9": "P4CompareCastSpellPriority"
+  "5577b8e0:9": "P4CompareCastSpellPriority",
+  "FUN_55770ff0": "CanConstructRoad",
+  "FUN_55771138": "RoadConstructionCost",
+  "AlgnmBox.Register": "Register<AlgnmBox",
+  "AoWSetup.Register": "Register<AoWSetup",
+  "HeroCtrl.Register": "Register<HeroCtrl",
+  "HeroGrid.Register": "Register<HeroGrid",
+  "ItemCtrl.Register": "Register<ItemCtrl",
+  "ItemGrid.Register": "Register<ItemGrid",
+  "LeadrGrd.Register": "Register<LeadrGrd",
+  "MapCtrl.Register": "Register<MapCtrl",
+  "PlayerBox.Register": "Register<PlayerBox",
+  "RaceBox.Register": "Register<RaceBox"
 }

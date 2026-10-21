@@ -2,7 +2,7 @@ unit HeroGrid;
 
 { Draft declarations of HeroGrid, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  List management and selection recovered; remaining rendering/editor stubs are unfinished. }
+  List management, selection and cell rendering are recovered. }
 
 interface
 
@@ -13,12 +13,14 @@ type
   THeroGrid = class;
 
 
-  { THeroGrid (instance size 496, VMT 558012E8) }
+  { THeroGrid (instance size 496, VMT 558012E8); $1DC indices, $1E0 heroes, $1E4 show level, $1E6 show status, $1E8 stream, $1EC sort. }
   THeroGrid = class(TCustomImageDrawGrid)
   public
     FIndices: TIntegerList; { +$1DC }
     FHeroes: THeroList; { +$1E0 }
-    FDisplayOptions: array[0..2] of Byte; { +$1E4 }
+    FShowLevel: Boolean; { $1E4 }
+    FReservedDisplay: Byte;
+    FShowStatus: Boolean; { $1E6 }
     FUnplacedOnly: Boolean; { +$1E7 }
     FStream: TMemoryStream; { +$1E8 }
     FSort: Byte; { +$1EC }
@@ -44,6 +46,9 @@ type
 procedure Register;
 
 implementation
+
+resourcestring
+  GridUsedRStr = 'Used';
 
 type
   TRawView = record Fields: array[0..511] of Pointer; end;
@@ -219,7 +224,85 @@ begin
 end;
 
 procedure THeroGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
-begin end;
+var
+  Index, H: Integer;
+  Text: string;
+  R, ClipR, SourceR, DrawR: TRect;
+  Hero: THero;
+  Image: TLibraryImage;
+  Region: HRGN;
+begin
+  if not (csDesigning in ComponentState) and (FHeroes <> nil) then
+  begin
+    H := ARect.Bottom - ARect.Top;
+    Index := ImageIndex(ACol, ARow);
+    if Index < FIndices.Count then
+    begin
+      Hero := FHeroes.GetHero(FIndices[Index]);
+      R := ARect;
+      R.Right := R.Left + H - 6;
+      if Hero.GetFace <> nil then
+        BltLibraryImage(Canvas, Hero.GetFace, R, bmStretch, 100, 100, 0, Color, False, DrawR);
+      R := ARect;
+      R.Left := R.Left + H - 6;
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(R);
+      Image := Hero.GetPreviewImage;
+      if Image <> nil then
+      begin
+        R := ARect;
+        R.Left := R.Right - H - 5;
+        Dec(R.Top, 5);
+        R.Right := Image.Width + R.Left;
+        Inc(R.Bottom, 5);
+        ClipR := Canvas.ClipRect;
+        IntersectClipRect(Canvas.Handle, ARect.Left, ARect.Top, ARect.Right, ARect.Bottom);
+        SourceR.Left := 0;
+        SourceR.Top := 0;
+        SourceR.Bottom := Image.Height;
+        SourceR.Right := Image.Width;
+        BltLibraryImage(Canvas, Image, R, bmCenter, 100, 100, clBtnFace, clBtnFace, False, DrawR);
+        Region := CreateRectRgnIndirect(ClipR);
+        SelectObject(Canvas.Handle, Region);
+        if not DeleteObject(Region) then raise Exception.Create('Ooohps');
+      end;
+      if FShowLevel then
+      begin
+        Canvas.Brush.Style := bsClear;
+        Canvas.Font.Color := clRed;
+        R := ARect;
+        R.Left := R.Right - 15;
+        Inc(R.Top, 2);
+        Text := IntToStr(Hero.GetLevel);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      end;
+      Text := Hero.FHeroName;
+      Canvas.Brush.Style := bsClear;
+      Canvas.Font.Color := Font.Color;
+      R := ARect;
+      R.Left := R.Left + H - 2;
+      Inc(R.Top);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      Text := Hero.GetNickname;
+      Inc(R.Top, 13);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      if FShowStatus then
+      begin
+        Inc(R.Top, 13);
+        if Hero.Owner = nil then
+          Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      end;
+    end
+    else
+    begin
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(ARect);
+    end;
+  end;
+  inherited DrawCell(ACol, ARow, ARect, AState);
+end;
 
 procedure THeroGrid.DeleteHero(Index: Integer);
 var

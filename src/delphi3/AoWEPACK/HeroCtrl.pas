@@ -2,7 +2,7 @@ unit HeroCtrl;
 
 { Draft declarations of HeroCtrl, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  List management and selection recovered; remaining rendering/editor stubs are unfinished. }
+  List management, selection and cell rendering are recovered. }
 
 interface
 
@@ -13,11 +13,13 @@ type
   THeroControlGrid = class;
 
 
-  { THeroControlGrid (instance size 504, VMT 55808AFC) }
+  { THeroControlGrid (instance size 504, VMT 55808AFC); $1DC indices, $1E0 show level, $1E2 show status, $1E4 stream, $1E8 map, $1EC sort, $1F0 unselect event. }
   THeroControlGrid = class(TCustomImageDrawGrid)
   public
     FIndices: TIntegerList; { +$1DC }
-    FDisplayOptions: array[0..2] of Byte; { +$1E0 }
+    FShowLevel: Boolean; { $1E0 }
+    FReservedDisplay: Byte;
+    FShowStatus: Boolean; { $1E2 }
     FUnplacedOnly: Boolean; { +$1E3 }
     FStream: TMemoryStream; { +$1E4 }
     FMap: TAoWHSMap; { +$1E8 }
@@ -45,6 +47,9 @@ type
 procedure Register;
 
 implementation
+
+resourcestring
+  GridUsedRStr = 'Used';
 
 type
   TGridMapView = class(TObject)
@@ -256,7 +261,96 @@ begin
 end;
 
 procedure THeroControlGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
-begin end;
+var
+  Index, H: Integer;
+  Text: string;
+  R, ClipR, SourceR, DrawR: TRect;
+  Hero: THero;
+  Image: TLibraryImage;
+  Region: HRGN;
+begin
+  if not (csDesigning in ComponentState) and (FMap <> nil) then
+  begin
+    H := ARect.Bottom - ARect.Top;
+    Index := ImageIndex(ACol, ARow);
+    if Index < FIndices.Count then
+    begin
+      Hero := FMap.FHeroControl.GetHero(FIndices[Index]);
+      R := ARect;
+      R.Right := R.Left + H - 6;
+      if Hero.GetFace <> nil then
+        BltLibraryImage(Canvas, Hero.GetFace, R, bmStretch, 100, 100, 0, Color, False, DrawR);
+      R := ARect;
+      R.Left := R.Left + H - 6;
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(R);
+      Image := Hero.GetPreviewImage;
+      if Image <> nil then
+      begin
+        R := ARect;
+        R.Left := R.Right - H - 5;
+        Dec(R.Top, 5);
+        R.Right := Image.Width + R.Left;
+        Inc(R.Bottom, 5);
+        ClipR := Canvas.ClipRect;
+        IntersectClipRect(Canvas.Handle, ARect.Left, ARect.Top, ARect.Right, ARect.Bottom);
+        SourceR.Left := 0;
+        SourceR.Top := 0;
+        SourceR.Bottom := Image.Height;
+        SourceR.Right := Image.Width;
+        BltLibraryImage(Canvas, Image, R, bmCenter, 100, 100, clBtnFace, clBtnFace, False, DrawR);
+        Region := CreateRectRgnIndirect(ClipR);
+        SelectObject(Canvas.Handle, Region);
+        if not DeleteObject(Region) then raise Exception.Create('Ooohps');
+      end;
+      if not Hero.GetLibraryHero then
+      begin
+        Canvas.Font.Color := clRed;
+        Canvas.Brush.Style := bsClear;
+        R := ARect;
+        R.Left := ARect.Left + 6;
+        Inc(R.Top, 30);
+        Text := UserStr;
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        Canvas.Font.Color := Font.Color;
+      end;
+      if FShowLevel then
+      begin
+        Canvas.Brush.Style := bsClear;
+        Canvas.Font.Color := clRed;
+        R := ARect;
+        R.Left := R.Right - 15;
+        Inc(R.Top, 2);
+        Text := IntToStr(Hero.GetLevel);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      end;
+      Text := Hero.FHeroName;
+      Canvas.Brush.Style := bsClear;
+      Canvas.Font.Color := Font.Color;
+      R := ARect;
+      R.Left := R.Left + H - 2;
+      Inc(R.Top);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      Text := Hero.GetNickname;
+      Inc(R.Top, 13);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      if FShowStatus then
+      begin
+        Inc(R.Top, 13);
+        if Hero.Owner = nil then
+          Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      end;
+    end
+    else
+    begin
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(ARect);
+    end;
+  end;
+  inherited DrawCell(ACol, ARow, ARect, AState);
+end;
 
 procedure THeroControlGrid.DeleteHero;
 var List: TList; X, Y, I: Integer; Hero: THero;

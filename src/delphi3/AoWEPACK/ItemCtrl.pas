@@ -2,7 +2,7 @@ unit ItemCtrl;
 
 { Draft declarations of ItemCtrl, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  List management and selection recovered; remaining rendering/editor stubs are unfinished. }
+  List management, selection and cell rendering are recovered. }
 
 interface
 
@@ -13,14 +13,15 @@ type
   TItemControlGrid = class;
 
 
-  { TItemControlGrid (instance size 504, VMT 5580795C) }
+  { TItemControlGrid (instance size 504, VMT 5580795C); $1DC indices, $1E0 stream, $1E6 show status, $1E8 map, $1EC sort, $1F0 unselect event. }
   TItemControlGrid = class(TCustomImageDrawGrid)
   public
     FIndices: TIntegerList; { +$1DC }
     FStream: TMemoryStream; { +$1E0 }
     FDisplayMode: Byte; { +$1E4 }
     FUnplacedOnly: Boolean; { +$1E5 }
-    FDisplayOptions: array[0..1] of Byte; { +$1E6 }
+    FShowStatus: Boolean; { $1E6 }
+    FReserved1E7: Byte;
     FMap: TAoWHSMap; { +$1E8 }
     FSort: Byte; { +$1EC }
     FReserved1ED: array[0..2] of Byte;
@@ -47,6 +48,9 @@ type
 procedure Register;
 
 implementation
+
+resourcestring
+  GridUsedRStr = 'Used';
 
 type
   TGridMapView = class(TObject)
@@ -256,7 +260,69 @@ begin
 end;
 
 procedure TItemControlGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
-begin end;
+var
+  Index, H: Integer;
+  Text: string;
+  R, DrawR: TRect;
+  Item: TItem;
+  Image: TLibraryImage;
+begin
+  if not (csDesigning in ComponentState) and (FMap <> nil) then
+  begin
+    H := ARect.Bottom - ARect.Top;
+    Index := ImageIndex(ACol, ARow);
+    if Index < FIndices.Count then
+    begin
+      Item := FMap.FItemControl.GetItem(FIndices[Index]);
+      R := ARect;
+      R.Right := R.Left + H - 6;
+      if AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex) <> nil then
+        Image := AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex).GetCellImage
+      else Image := nil;
+      BltLibraryImage(Canvas, Image, R, BltMode, 100, 100, clBtnFace, Color, False, DrawR);
+      if not Item.GetLibraryItem then
+      begin
+        Canvas.Font.Color := clRed;
+        Canvas.Brush.Style := bsClear;
+        R := ARect;
+        R.Left := ARect.Left + 6;
+        Inc(R.Top, 30);
+        Text := UserStr;
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        Canvas.Font.Color := Font.Color;
+      end;
+      R := ARect;
+      R.Left := R.Left + H - 6;
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(R);
+      Text := Item.FOwnerName;
+      Canvas.Brush.Style := bsClear;
+      Canvas.Font.Color := Font.Color;
+      R := ARect;
+      R.Left := R.Left + H - 2;
+      Inc(R.Top);
+      if FShowStatus then
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_NOPREFIX)
+      else DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      if FShowStatus then
+      begin
+        if Item.Owner = nil then
+          Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
+        R := ARect;
+        Inc(R.Top, 28);
+        R.Left := R.Left + H - 2;
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_NOPREFIX);
+      end;
+    end
+    else
+    begin
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.FillRect(ARect);
+    end;
+  end;
+  inherited DrawCell(ACol, ARow, ARect, AState);
+end;
 
 procedure TItemControlGrid.Unselect;
 begin

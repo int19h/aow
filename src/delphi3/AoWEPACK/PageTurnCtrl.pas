@@ -2,7 +2,7 @@ unit PageTurnCtrl;
 
 { Draft declarations of PageTurnCtrl, from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  All page-turn geometry and rendering bodies are recovered. }
 
 interface
 
@@ -214,7 +214,113 @@ begin
 end;
 
 procedure TPageTurnControl.RenderLeftRightScene(X, Y: Integer; const Dest: TSurfaceDesc);
-begin end;
+var
+  OriginalLength, Offset, BaseX, Span: Integer;
+  Step, Angle, CosValue, Height, Width, RadiusFactor: Single;
+  ArcLength, SourceBase, Limit: Integer;
+  R: TRect;
+  SourceOffset, I: Integer;
+begin
+  if FRadius >= 1.0 then
+  begin
+    Height := FShadow * FScale;
+    Width := FRadius * FScale;
+    R.Left := FSourceX1;
+    R.Top := FSourceY1;
+    R.Right := FSourceX1 + FWidth + FPosition;
+    R.Bottom := FSourceY1 + FHeight;
+    BltSDRectClipped(FSource1, R, Dest, X, Y);
+    R.Left := FSourceX2 + FWidth + FPosition;
+    R.Top := FSourceY2;
+    R.Right := FWidth * 2 + FSourceX2;
+    R.Bottom := FSourceY2 + FHeight;
+    BltSDRectClipped(FSource2, R, Dest, X + FWidth + FPosition, Y);
+    OriginalLength := Round(Pi * FRadius * 0.25);
+    ArcLength := Round(Pi * FRadius * 0.25);
+    SourceBase := FWidth + FPosition;
+    RadiusFactor := (2 / Pi) * ArcLength;
+    BaseX := X + FWidth + FPosition;
+    Span := Round(FShadow);
+    Limit := FWidth - FPosition;
+    Step := 1 / FShadow;
+    CosValue := 0;
+    SourceOffset := 0;
+    I := 0;
+    while (SourceOffset < Limit) and (I < Span) do
+    begin
+      Angle := GetInvCos(CosValue);
+      SourceOffset := ArcLength - Round(RadiusFactor * Angle);
+      Offset := Round(Height - Sin(Angle) * Height);
+      if SourceOffset < Limit then
+        if ArcLength - SourceOffset + ArcLength < Limit then
+          BltVerticalScanLine(SourceBase + SourceOffset, X + FWidth + FPosition + I,
+            Y - Offset, Dest, FHeight - Round(Width), FHeight)
+        else
+          BltVerticalScanLine(SourceBase + SourceOffset, BaseX + I, Y - Offset, Dest, 0, FHeight);
+      CosValue := CosValue + Step;
+      Inc(I);
+    end;
+    ArcLength := Round(Pi * FRadius * 0.25);
+    SourceBase := FWidth * 3 - FPosition - ArcLength;
+    RadiusFactor := (2 / Pi) * ArcLength;
+    BaseX := X + FWidth + FPosition;
+    Span := Round(FShadow);
+    I := Span;
+    CosValue := 1;
+    Limit := FWidth * 2 - SourceBase;
+    while (SourceOffset >= Limit) and (I >= 0) do
+    begin
+      Angle := GetInvCos(CosValue);
+      SourceOffset := -Round(RadiusFactor * Angle);
+      Offset := Round(Sin(Angle) * Height + Height);
+      if SourceOffset >= Limit then
+        BltVerticalScanLine(SourceBase + SourceOffset, BaseX + I, Y - Offset, Dest, 0, FHeight);
+      CosValue := CosValue - Step;
+      Dec(I);
+    end;
+    ArcLength := Round(Pi * FRadius * 0.25 * FShade);
+    SourceBase := FWidth * 3 - FPosition - OriginalLength * 2 - ArcLength;
+    Span := Round(FShadow * FShade);
+    BaseX := X + FWidth + FPosition - Span;
+    Height := FShadow * FScale * 3.4142;
+    Width := FRadius * FScale * 0.707;
+    Limit := FWidth * 2 - SourceBase;
+    SourceOffset := Round(ArcLength);
+    I := Span;
+    CosValue := 0;
+    Step := 0.707 / (FShadow * FShade);
+    if Step > 1.0 then Step := 1.0;
+    while (SourceOffset >= Limit) and (I >= 0) do
+    begin
+      Angle := GetInvCos(CosValue);
+      SourceOffset := Round(ArcLength * (Angle - Pi / 4) * (4 / Pi));
+      Offset := Round(Sin(Angle) * Height - Width);
+      if SourceOffset >= Limit then
+        BltVerticalScanLine(SourceBase + SourceOffset, BaseX + I, Y - Offset, Dest, 0, FHeight);
+      CosValue := CosValue + Step;
+      Dec(I);
+    end;
+    BaseX := X + FWidth + FPosition - Span * 2;
+    SourceOffset := 0;
+    I := Span;
+    while (SourceOffset >= Limit) and (I >= 0) and (CosValue > 0) do
+    begin
+      CosValue := CosValue - Step;
+      Angle := GetInvCos(CosValue);
+      SourceOffset := -Round(ArcLength * (4 / Pi) * (Angle - Pi / 4));
+      Offset := Round((1 - Sin(Angle)) * Height);
+      if SourceOffset >= Limit then
+        BltVerticalScanLine(SourceBase + SourceOffset, BaseX + I, Y - Offset, Dest, 0, FHeight);
+      Dec(I);
+    end;
+    R.Left := FSourceX2;
+    R.Top := FSourceY2;
+    R.Right := FSourceX2 + FWidth - FPosition - Round(OriginalLength * (2 * FShade + 2));
+    R.Bottom := FSourceY2 + FHeight;
+    if R.Left < R.Right then
+      BltSDRectClipped(FSource2, R, Dest, BaseX - (R.Right - R.Left), Y);
+  end;
+end;
 
 procedure TPageTurnControl.RenderOpenCloseScene(X, Y: Integer; const Dest: TSurfaceDesc);
 var BaseX, Height, Width: Integer; Step, SourceX: Single; Offset: Integer; R: TRect; I, PageWidth: Integer;

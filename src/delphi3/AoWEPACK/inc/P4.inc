@@ -22,7 +22,7 @@ end;
   Unit spells, research/casting AI, enchantments and player-magic logs are recovered.
   Player-magic control is recovered through GetNetPowerToResearch.
   Player-magic control, its token event, global enchantments and their logs/list
-  are recovered. Draft recovery next resumes at TGlobalMagicControl.Create (5577E148).
+  and global-magic control and token events are recovered.
   The base spell, spell events/control/list/casters and power sources are recovered.
   Compatibility declarations preserve calls to other packages' draft APIs; these
   adapters never create instances of their declaration-only views. }
@@ -8949,84 +8949,85 @@ end;
 function TGlobalEnchantmentList.GetEnchantments(A1: Integer): TGlobalEnchantment;
 begin Result := FChildren.List^[A1]; end;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 constructor TGlobalMagicControl.Create(AOwner: Engine.TECustomNode);
-begin end;
-
+begin inherited Create(AOwner); FEnchantments := TGlobalEnchantmentList.Create(nil); FChangedEvents := TEventList.Create; FNextEnchantmentID := 1; end;
 destructor TGlobalMagicControl.Destroy;
-begin end;
-
+begin inherited Destroy; FEnchantments.Free; FChangedEvents.Free; end;
 procedure TGlobalMagicControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
-
+begin inherited ReadWrite(Stream); Stream.rwEObject(FEnchantments, 10); Stream.rwInteger(FNextEnchantmentID, 11); Stream.rwData(FDoubleSphereManaCount, SizeOf(FDoubleSphereManaCount), 0); UpdateActiveEnchantments; end;
 procedure TGlobalMagicControl.IncDoubleSphereManaCount(A1: TMagicSphere);
-begin end;
-
+begin Inc(FDoubleSphereManaCount[A1]); end;
 procedure TGlobalMagicControl.DecDoubleSphereManaCount(A1: TMagicSphere);
-begin end;
-
+begin Dec(FDoubleSphereManaCount[A1]); end;
 function TGlobalMagicControl.GetSphereManaDoubled(A1: TMagicSphere): Boolean;
-begin Result := False; end;
-
-procedure TGlobalMagicControl.OutOfMana(A1: Byte; A2: Integer);
-begin end;
-
+begin Result := FDoubleSphereManaCount[A1] <> 0; end;
+procedure TGlobalMagicControl.OutOfMana(Player: Shortint; Mana: Integer);
+var Index, I: Integer; Enchantment: TGlobalEnchantment; Log: TPlayerMagicEventLog; begin Index := 0; while (Index <> -1) and (Mana > 0) and (FEnchantments.GetCount <> 0) do begin I := FEnchantments.GetCount; Index := I - 1; { Original may select the last enchantment of another player. } while I <> 0 do begin Dec(I); if (FEnchantments.GetEnchantments(I).FPlayerIndex = Player) and (FEnchantments.GetEnchantments(I).GetUpkeep < FEnchantments.GetEnchantments(Index).GetUpkeep) then Index := I; end; if Index <> -1 then begin Enchantment := FEnchantments.GetEnchantments(Index); Dec(Mana, Enchantment.GetUpkeep); Log := TPlayerMagicEventLog.Create(nil); Log.FPlayer := Player; Log.FMode := pmemOutOfMana; Log.FEnchantmentName :=
+FEnchantments.GetEnchantments(Index).GetName; DistributeEventLog(Log, False); Log.Release; Enchantment.AddRef; Enchantment.Deactivate(Player); Enchantment.Release; end; end; end;
 procedure TGlobalMagicControl.RemovePlayerEnchantments(Player: Shortint);
-begin end;
-
+var I: Integer; begin for I := FEnchantments.GetCount - 1 downto 0 do if Player = FEnchantments.GetEnchantments(I).FPlayerIndex then FEnchantments.GetEnchantments(I).Remove(Player); end;
 procedure TGlobalMagicControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
-
+begin inherited MsgProc(Msg, Sender); FEnchantments.MsgProc(Msg, Sender); end;
 procedure TGlobalMagicControl.BeginUpdate;
-begin end;
-
+begin Inc(FUpdateCount); end;
 procedure TGlobalMagicControl.EndUpdate;
-begin end;
-
+begin Dec(FUpdateCount); if FUpdateCount = 0 then Update; end;
 procedure TGlobalMagicControl.TriggerChangedEvent;
-begin end;
-
+begin if FUpdateCount = 0 then FChangedEvents.TriggerNotifyEvents(Self); end;
 procedure TGlobalMagicControl.Update;
-begin end;
-
+begin UpdateActiveEnchantments; FChangedEvents.TriggerNotifyEvents(Self); end;
 function TGlobalMagicControl.GetEnchantmentUpkeep(Player: Shortint): Integer;
-begin Result := 0; end;
-
-procedure TGlobalMagicControl.UpdateActiveEnchantments(A1: Integer; A2: Integer);
-begin end;
-
+var I: Integer; begin Result := 0; for I := FEnchantments.GetCount - 1 downto 0 do if Player = FEnchantments.GetEnchantments(I).FPlayerIndex then Inc(Result, FEnchantments.GetEnchantments(I).GetUpkeep); end;
+procedure TGlobalMagicControl.UpdateActiveEnchantments;
+var I: Integer; begin FActiveEnchantments := []; for I := FEnchantments.GetCount - 1 downto 0 do FActiveEnchantments := FActiveEnchantments + [FEnchantments.GetEnchantments(I).FEnchantmentType]; end;
 function TGlobalMagicControl.IndexOfID(A1: Integer): Integer;
-begin Result := 0; end;
-
-procedure TGlobalMagicControl.ValidateEnchantmentID(Enchantment: TGlobalEnchantment);
-begin end;
-
-procedure TGlobalMagicControl.CreateChangeMagicTE;
-begin end;
-
+var I: Integer; begin I := FEnchantments.GetCount; while I <> 0 do begin Dec(I); if A1 = FEnchantments.GetEnchantments(I).FEnchantmentID then begin Result := I; Exit; end; end; Result := -1; end;
+function TGlobalMagicControl.ValidateEnchantmentID(Enchantment: TGlobalEnchantment): Boolean;
+var ID: Integer; begin ID := Enchantment.FEnchantmentID; if ID > 0 then begin Enchantment.FEnchantmentID := 0; if IndexOfID(ID) <> -1 then ID := 0; end; if ID <= 0 then begin ID := FNextEnchantmentID; Inc(FNextEnchantmentID); if FNextEnchantmentID > $FFFFFFF then FNextEnchantmentID := 1; while IndexOfID(ID) <> -1 do begin ID := FNextEnchantmentID; Inc(FNextEnchantmentID); if FNextEnchantmentID > $FFFFFFF then FNextEnchantmentID := 1; end; end; Enchantment.FEnchantmentID := ID; Result := True; end;
+function TGlobalMagicControl.CreateChangeMagicTE: TChangeGlobalMagicTE;
+begin Result := TChangeGlobalMagicTE.Create(nil); end;
 function TGlobalMagicControl.ExecuteDispelEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
-begin Result := False; end;
-
-procedure TGlobalMagicControl.DispelEnchantment(A1: Integer; A2: Integer);
-begin end;
-
-procedure TGlobalMagicControl.ExecuteRemoveEnchantment(A1: Integer; A2: Integer);
-begin end;
-
-procedure TGlobalMagicControl.RemoveEnchantment(A1: Integer; A2: Integer);
-begin end;
-
+var Index: Integer; begin Index := IndexOfID(EnchantmentID); if Index <> -1 then Result := FEnchantments.GetEnchantments(Index).Dispel(Player) else Result := False; end;
+function TGlobalMagicControl.DispelEnchantment(Player: Shortint; Enchantment: TGlobalEnchantment): Boolean;
+var Event: TChangeGlobalMagicTE; Reason: string; begin if not AoWHSMap.FPlayers.GetPlayers(Player).GetBusy and (IndexOfID(Enchantment.FEnchantmentID) <> -1) then begin if Enchantment.CanDispel(Player, Reason) then begin Event := CreateChangeMagicTE; Event.FMode := cgmDispelEnchantment; Event.FEnchantmentID := Enchantment.FEnchantmentID; Event.FPlayerIndex := Player; AoWHSMap.FTokenManager.GetTokenControl(Player).AddEvent(Event); Event.Release; Result := True; end else begin if Player = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowWarning(Reason); Result := False; end; end else Result := False; end;
+function TGlobalMagicControl.ExecuteRemoveEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
+var Index: Integer; begin Index := IndexOfID(EnchantmentID); if Index <> -1 then Result := FEnchantments.GetEnchantments(Index).Remove(Player) else Result := False; end;
+function TGlobalMagicControl.RemoveEnchantment(Player: Shortint; Enchantment: TGlobalEnchantment): Boolean;
+var Event: TChangeGlobalMagicTE; Reason: string; begin if not AoWHSMap.FPlayers.GetPlayers(Player).GetBusy and (IndexOfID(Enchantment.FEnchantmentID) <> -1) then begin if Enchantment.CanRemove(Player, Reason) then begin Event := CreateChangeMagicTE; Event.FMode := cgmRemoveEnchantment; Event.FEnchantmentID := Enchantment.FEnchantmentID; Event.FPlayerIndex := Player; AoWHSMap.FTokenManager.GetTokenControl(Player).AddEvent(Event); Event.Release; Result := True; end else begin if Player = AoWHSMap.FSeatedPlayer then AoWHSMap.ShowWarning(Reason); Result := False; end; end else Result := False; end;
 class function TChangeGlobalMagicTE.ClassID: Integer;
-begin Result := 0; end;
-
+begin Result := $21116; end;
 procedure TChangeGlobalMagicTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
-
+begin inherited ReadWrite(Stream); Stream.rwData(FMode, SizeOf(FMode), 20); Stream.rwByte(FPlayerIndex, 21); Stream.rwInteger(FEnchantmentID, 22); Stream.rwInteger(FValue, 23); end;
 function TChangeGlobalMagicTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
-
-{ Unnamed shared helper at $55771138; body remains for its owning worker. }
+var Success: Boolean; begin inherited Execute(TE); Success := False; case FMode of cgmDispelEnchantment: Success := AoWHSMap.FGlobalMagicControl.ExecuteDispelEnchantment(FPlayerIndex, FEnchantmentID); cgmRemoveEnchantment: Success := AoWHSMap.FGlobalMagicControl.ExecuteRemoveEnchantment(FPlayerIndex, FEnchantmentID); end; if Success then Result := erDone else Result := erDoneHalt; end; { Original road-construction predicate, $55770FF0. }
+function CanConstructRoad(Player: Shortint; Field: TAoWMapField): Boolean;
+begin Result := (Player = Field.GetPlayer) or (Field.GetPlayer = -1); Result := Result and (Field.TerrainType in [1..5]); Result := Result and not (Field.OverlayType in [0, 2, 4, 5]); Result := Result and (Field.FindHS(TStructure) = nil); end; { Original shared helper at $55771138. }
 function RoadConstructionCost(Player: Shortint; Path: TMovepath; MovePoints: Integer): Integer;
-begin Result := 0; end;
+var I, Points: Integer; Field: TAoWMapField; begin Result := 0; I := Path.Count; Points := 0; while (I <> 0) and (MovePoints >= Points) do begin Dec(I); Inc(Points, Path[I].Flag); if MovePoints >= Points then begin Field := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Path[I].XYL)); if CanConstructRoad(Player, Field) then Inc(Result, 10); end; end; end;
 
 
 { Shared helper declaration required by TMoveArmyTE; original $55771068. }

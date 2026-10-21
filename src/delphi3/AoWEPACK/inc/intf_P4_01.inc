@@ -229,30 +229,30 @@
     function GetEnchantments(A1: Integer): TGlobalEnchantment;
   end;
 
-  { TChangeGlobalMagicTE (instance size 28, VMT 5570B724) }
+  { TChangeGlobalMagicTE (instance size 28, VMT 5570B724):
+    $10 mode, $11 player, $14 enchantment ID, $18 value. }
   TChangeGlobalMagicTE = class(TTokenEvent)
   public
-    F_ChangeGlobalMagicTE_10: Byte;
-    F_ChangeGlobalMagicTE_11: Byte;
+    FMode: TChangeGlobalMagicMode; { $10 }
+    FPlayerIndex: Byte; { $11 }
     F_ChangeGlobalMagicTE_12: array[0..1] of Byte;
-    F_ChangeGlobalMagicTE_14: Integer;
-    F_ChangeGlobalMagicTE_18: Integer;
+    FEnchantmentID: Integer; { $14 }
+    FValue: Integer; { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TGlobalMagicControl (instance size 64, VMT 5570B7F8) }
+  { TGlobalMagicControl: size $40, VMT 5570B7F8; $08 next ID, $0C update count, $10 active types, $14 enchantments, $18..38 double-mana counters, $3C changed events. }
   TGlobalMagicControl = class(TEObject)
   public
-    F_GlobalMagicControl_08: Integer;
-    F_GlobalMagicControl_0C: Integer;
+    FNextEnchantmentID: Integer; { $08 }
+    FUpdateCount: Integer; { $0C }
     FActiveEnchantments: TGlobalEnchantmentTypes; { $10 }
     F_GlobalMagicControl_11: array[0..2] of Byte;
     FEnchantments: TGlobalEnchantmentList; { $14 }
-    F_GlobalMagicControl_18: Byte;
-    F_GlobalMagicControl_19: array[0..34] of Byte;
-    F_GlobalMagicControl_3C: Integer;
+    FDoubleSphereManaCount: array[TMagicSphere] of Integer; { $18 }
+    FChangedEvents: TEventList; { $3C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -260,20 +260,20 @@
     procedure IncDoubleSphereManaCount(A1: TMagicSphere);
     procedure DecDoubleSphereManaCount(A1: TMagicSphere);
     function GetSphereManaDoubled(A1: TMagicSphere): Boolean;
-    procedure OutOfMana(A1: Byte; A2: Integer);  { draft }
+    procedure OutOfMana(Player: Shortint; Mana: Integer);
     procedure RemovePlayerEnchantments(Player: Shortint);
-    procedure BeginUpdate;  { draft }
-    procedure EndUpdate;  { draft }
+    procedure BeginUpdate;
+    procedure EndUpdate;
     procedure TriggerChangedEvent;
-    procedure Update;  { draft }
+    procedure Update;
     function GetEnchantmentUpkeep(Player: Shortint): Integer; { 5577C9A0 }
-    procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateActiveEnchantments;
     function IndexOfID(A1: Integer): Integer;
-    procedure ValidateEnchantmentID(Enchantment: TGlobalEnchantment); { 5577E4EC }
-    procedure CreateChangeMagicTE;  { draft }
+    function ValidateEnchantmentID(Enchantment: TGlobalEnchantment): Boolean; { 5577E4EC }
+    function CreateChangeMagicTE: TChangeGlobalMagicTE;
     function ExecuteDispelEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
-    procedure DispelEnchantment(A1: Integer; A2: Integer);  { draft }
-    procedure ExecuteRemoveEnchantment(A1: Integer; A2: Integer);  { draft }
-    procedure RemoveEnchantment(A1: Integer; A2: Integer);  { draft }
+    function DispelEnchantment(Player: Shortint; Enchantment: TGlobalEnchantment): Boolean;
+    function ExecuteRemoveEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
+    function RemoveEnchantment(Player: Shortint; Enchantment: TGlobalEnchantment): Boolean;
   end;
 
