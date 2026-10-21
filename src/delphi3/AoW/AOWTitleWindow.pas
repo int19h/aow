@@ -23,7 +23,7 @@ type
     DemoIL: TInterfaceIL; { +0050 }
     public
     F_TitleWindow_54: Integer;
-    F_TitleWindow_58: array[0..3] of Byte;
+    FSplashStage: Integer; { $58; 00429C2C }
     procedure TitleWinDrawSurface(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure TitlePnlDrawBack(A1: Integer; A2: Integer);  { draft }
     procedure SplashPnlUpdate;  { draft }

@@ -84,8 +84,9 @@ begin
       FNewTurn.AddRef;
       TurnMsg.Text := Event.FText;
       PlayerName.Text := AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).GetName;
-      if Event.FTurnPlayer = 0 then PlayerRace.Text := ''
-      else PlayerRace.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace]);
+      if Event.FTurnPlayer <> 0 then
+        PlayerRace.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace])
+      else PlayerRace.Text := '';
       Day := AoWHSMap.FDay;
       if Day < 1 then Day := 1;
       Turn.Text := TranslateRStr(DayRStr) + ' ' + IntToStr(Day);

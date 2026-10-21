@@ -167,7 +167,7 @@
   { TCombatParty (instance size 28, VMT 55716B24) }
   TCombatParty = class(TEObject)
   public
-    F_CombatParty_08: Integer;
+    FArmy: TArmy; { $08; 00435D7C }
     F_CombatParty_0C: Integer;
     F_CombatParty_10: Integer;
     F_CombatParty_14: Integer;

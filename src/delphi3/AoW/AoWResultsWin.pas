@@ -57,15 +57,24 @@ type
     ManaLbl: TAOWLabel; { +00D8 }
     Translator: TIvTranslator; { +00DC }
     public
-    F_ResultsWin_E0: array[0..31] of Byte;
+    FMaxTurns, FMaxGold, FMaxMana, FMaxArmies, FReservedF0, FMaxHeroes, FMaxStructures, FMaxStrength: Integer; { $E0..$FC }
     FPlayers: TByteList; { $100 }
     FControls: TList; { $104 }
+    procedure UpdateSelection;
+    procedure DrawGraphs(const Surface: TSurfaceDesc);
+    procedure DrawGraph(Image: TLibraryImage; Values: TIntegerList; Turns, Maximum: Integer; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawGold(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawMana(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawHeroes(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawArmies(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawStructures(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+    procedure DrawStrength(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
     procedure ResultsWinCreate;  { draft }
     procedure ResultsWinDestroy;  { draft }
     procedure ContinueBtnClick;  { draft }
     procedure ExitBtnClick;  { draft }
     procedure ResultsPnlUpdate;  { draft }
-    procedure AxisDraw(A1: Integer; A2: Integer);  { draft }
+    procedure AxisDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure AgendaChange;  { draft }
     procedure ResultsPnlShow;  { draft }
     procedure P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
@@ -73,10 +82,189 @@ type
   end;
 
 
+var
+  ResultsWin: TResultsWin;
+
 implementation
 
-uses AoWWinMan, E3Globals, AOWPyreScrn, aowIntGfxMod, E1Globals;
+uses E1Globals, E1GameFlow, AoWWinMan, AoWExeForms, E3Globals, AOWPyreScrn, aowIntGfxMod, AoWVideoDlg;
 
+
+procedure TResultsWin.UpdateSelection;
+var
+  I, J: Integer;
+  Stats: TPlayerStatistics;
+begin
+  FMaxTurns := 1;
+  FMaxGold := 1;
+  FMaxMana := 1;
+  FMaxArmies := 1;
+  FReservedF0 := 1;
+  FMaxHeroes := 1;
+  FMaxStructures := 1;
+  FMaxStrength := 1;
+  for I := 0 to FPlayers.Count - 1 do
+  begin
+    Stats := AoWHSMap.FPlayers.GetPlayers(FPlayers[I]).FStatistics;
+    if FMaxTurns < Stats.FTurnInfo.GetCount then FMaxTurns := Stats.FTurnInfo.GetCount;
+    for J := 0 to Stats.FTurnInfo.GetCount - 1 do
+    begin
+      if FMaxArmies < Stats.FTurnInfo.GetTurnInfo(J).FArmyStrength then FMaxArmies := Stats.FTurnInfo.GetTurnInfo(J).FArmyStrength;
+      if FMaxGold < Stats.FTurnInfo.GetTurnInfo(J).FGold then FMaxGold := Stats.FTurnInfo.GetTurnInfo(J).FGold;
+      if FMaxMana < Stats.FTurnInfo.GetTurnInfo(J).FMana then FMaxMana := Stats.FTurnInfo.GetTurnInfo(J).FMana;
+      if FMaxHeroes < Stats.FTurnInfo.GetTurnInfo(J).FHeroes then FMaxHeroes := Stats.FTurnInfo.GetTurnInfo(J).FHeroes;
+      if FMaxStructures < Stats.FTurnInfo.GetTurnInfo(J).FStructures then FMaxStructures := Stats.FTurnInfo.GetTurnInfo(J).FStructures;
+      if FMaxStrength < Stats.FTurnInfo.GetTurnInfo(J).GetSuperiority then FMaxStrength := Stats.FTurnInfo.GetTurnInfo(J).GetSuperiority;
+    end;
+  end;
+  TurnLbl.Text := TranslateRStr(TurnRStr) + ' ' + IntToStr(FMaxTurns);
+end;
+
+procedure TResultsWin.DrawGraph(Image: TLibraryImage; Values: TIntegerList; Turns, Maximum: Integer; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Width, LastY, Y1, X2, I: Integer;
+  XStep, YStep: Single;
+  X1, NextY, Y2, Height: Integer;
+begin
+  if Values.Count <> 0 then
+  begin
+    Width := R.Right - R.Left;
+    Height := R.Bottom - R.Top;
+    if Turns >= 2 then XStep := Width / (Turns - 1)
+    else XStep := Width;
+    YStep := Height / Maximum;
+    LastY := Values[0];
+    for I := 1 to Values.Count - 1 do
+    begin
+      NextY := Values[I];
+      X1 := Round((I - 1) * XStep);
+      Y1 := Round(LastY * YStep);
+      X2 := Round(X1 + XStep); { Original advances from the rounded previous x coordinate. }
+      Y2 := Round(NextY * YStep);
+      DrawImageLine(Image, X1 + R.Left, R.Bottom - Y1, R.Left + X2, R.Bottom - Y2, 1, Surface);
+      LastY := NextY;
+    end;
+    if Values.Count = 1 then
+    begin
+      X1 := 0;
+      NextY := Round(LastY * YStep);
+      Y1 := NextY;
+      X2 := Width - 1;
+      Y2 := Round(LastY * YStep); { Original repeats the rounding and discards its result. }
+      DrawImageLine(Image, X1 + R.Left, R.Bottom - Y1, R.Left + X2, R.Bottom - NextY, 1, Surface);
+    end;
+  end;
+end;
+
+procedure TResultsWin.DrawGold(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).FGold);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxGold, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxGold);
+end;
+
+procedure TResultsWin.DrawMana(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).FMana);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxMana, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxMana);
+end;
+
+procedure TResultsWin.DrawHeroes(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).FHeroes);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxHeroes, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxHeroes);
+end;
+
+procedure TResultsWin.DrawArmies(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).FArmyStrength);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxArmies, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxArmies);
+end;
+
+procedure TResultsWin.DrawStructures(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).FStructures);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxStructures, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxStructures);
+end;
+
+procedure TResultsWin.DrawStrength(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
+var
+  Values: TIntegerList;
+  Info: TTurnInfo;
+  I: Integer;
+begin
+  Values := TIntegerList.Create;
+  Info := AoWHSMap.FPlayers.GetPlayers(Player).FStatistics.FTurnInfo;
+  for I := 0 to Info.GetCount - 1 do Values.Add(Info.GetTurnInfo(I).GetSuperiority);
+  DrawGraph(IntGfxMod.EndScene[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 13],
+    Values, FMaxTurns, FMaxStrength, R, Surface);
+  Values.Free;
+  KeyMax.Text := IntToStr(FMaxStructures); { Original strength graph labels the structures maximum. }
+end;
+
+procedure TResultsWin.DrawGraphs(const Surface: TSurfaceDesc);
+var
+  Bounds: TRect;
+  I: Integer;
+begin
+  Bounds.Left := ResultsPnl.WinLeft + Axis.WinLeft + 5;
+  Bounds.Top := ResultsPnl.WinTop + Axis.WinTop + 4;
+  Bounds.Right := ResultsPnl.WinLeft + Axis.WinLeft + 338;
+  Bounds.Bottom := ResultsPnl.WinTop + Axis.WinTop + 117;
+  for I := 0 to FPlayers.Count - 1 do
+  begin
+    if GoldCB.Checked then DrawGold(FPlayers[I], Bounds, Surface);
+    if ManaCB.Checked then DrawMana(FPlayers[I], Bounds, Surface);
+    if HeroesCB.Checked then DrawHeroes(FPlayers[I], Bounds, Surface);
+    if StructuresCB.Checked then DrawStructures(FPlayers[I], Bounds, Surface);
+    if ArmiesCB.Checked then DrawArmies(FPlayers[I], Bounds, Surface);
+    if StrengthCB.Checked then DrawStrength(FPlayers[I], Bounds, Surface);
+  end;
+end;
 
 procedure TResultsWin.ResultsWinCreate;
 begin
@@ -103,18 +291,39 @@ begin
 end;
 
 procedure TResultsWin.ContinueBtnClick;
-begin end;
+begin
+  FinishPyre(PyreScreen);
+  General.PlayButtonSound(0);
+  ResultsWin.ResultsPnl.Visible := False;
+  FadeMusicVolume(SoundDlg.MusicVolume.Position, 2);
+  if AoWHSMap.FGameStatus = gsTerminated then
+  begin
+    if AoWEngine.FCampaign <> nil then ShowCampaignMap(WorldMap)
+    else ExitToTitle(General);
+  end
+  else
+  begin
+    TitleWindow.TitleWin.Visible := False;
+    SetVideoMode(VideoDialog, scmGame);
+    VideoDialog.ApplyBtnClick;
+  end;
+end;
 
 procedure TResultsWin.ExitBtnClick;
-begin end;
+begin
+  ResultsPnl.Visible := False;
+  ExitToTitle(General);
+end;
 
 procedure TResultsWin.ResultsPnlUpdate;
 begin
   PyreScreen.DeadPnlUpdate;
 end;
 
-procedure TResultsWin.AxisDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TResultsWin.AxisDraw(Sender: TObject; Surface: TSurfaceDesc);
+begin
+  DrawGraphs(Surface);
+end;
 
 procedure TResultsWin.AgendaChange;
 begin
@@ -122,7 +331,9 @@ begin
 end;
 
 procedure TResultsWin.ResultsPnlShow;
-begin end;
+begin
+  UpdateSelection;
+end;
 
 procedure TResultsWin.P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
 var

@@ -51,7 +51,7 @@
   public
     FToAddress: string; { $18 } FFileName: string; { $1C } FSubject: string; { $20 }
     FMessage: TStringList; { $24 }
-    FSuccess: Boolean; { $28 } FReserved29: array[0..2] of Byte; FFromAddress: string; { $2C } F_SMTPEventLog_30: Integer;
+    FSuccess: Boolean; { $28 } FReserved29: array[0..2] of Byte; FFromAddress: string; { $2C } FError: string; { $30; 0044DD66 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;

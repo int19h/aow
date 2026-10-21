@@ -7,7 +7,7 @@ unit AoWSMTPDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow, AoWE, EventLog;
 
 type
   { Declaration-only field type from ims.dpl (instance size 588). }
@@ -18,8 +18,20 @@ type
 
   { Declaration-only field type from ims.dpl (instance size 636). }
   TmsSMTP = class(TComponent)
-  private
-    F_External: array[0..599] of Byte;
+  public
+    FHost: string; { $24 }
+    FReserved28: array[0..583] of Byte;
+    FMessage: TmsMessage; { $270 }
+    FReserved274: array[0..7] of Byte;
+    procedure Send;
+  end;
+
+  { TIMSSendThread (instance size 44, VMT 0044D5D8) }
+  TIMSSendThread = class(TThread)
+  public
+    FSuccess: Boolean; { $28 }
+    F_IMSSendThread_29: array[0..2] of Byte;
+    procedure Execute; override;
   end;
 
   TSMTPDlg = class;
@@ -52,54 +64,147 @@ type
     IMSSMTP: TmsSMTP; { +0094 }
     Translator: TIvTranslator; { +0098 }
     public
-    F_SMTPDlg_9C: Integer;
-    F_SMTPDlg_A0: array[0..7] of Byte;
-    F_SMTPDlg_A8: Integer;
-    F_SMTPDlg_AC: Integer;
-    F_SMTPDlg_B0: Byte;
+    FThread: TIMSSendThread; { $9C }
+    FDone: TExecuteDoneEvent; { $A0 }
+    FEvent: TSMTPEventLog; { $A8 }
+    FProgress: Integer; { $AC }
+    FFinished: Boolean; { $B0 }
     F_SMTPDlg_B1: array[0..2] of Byte;
-    procedure IMSThreadTerminatedEvent;  { draft }
+    procedure FinishDialog;
+    procedure ResetProgress;
+    procedure StartSending;
+    procedure IMSThreadTerminatedEvent(Sender: TObject);
     procedure DlgHide;  { draft }
     procedure ExitBtnClick;  { draft }
-    procedure IMSSMTPProgress(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure IMSSMTPProgress(Sender: TObject; Progress, Total: Integer);
     procedure ProgressBarUpdate;  { draft }
-    procedure IMSSMTPError(A1: Integer; A2: Integer);  { draft }
+    procedure IMSSMTPError(Sender: TObject; var Error: string);
     procedure DlgUpdate;  { draft }
     procedure RetryBtnClick;  { draft }
     procedure SettingsBtnClick;  { draft }
   end;
 
 
+var
+  SMTPDlg: TSMTPDlg;
+
 implementation
 
-procedure TSMTPDlg.IMSThreadTerminatedEvent;
-begin end;
+uses E3Globals;
+
+procedure TmsSMTP.Send; external 'ims.dpl' name 'mssmtp.TmsSMTP.Send@23EDC2EF';
+
+
+procedure TIMSSendThread.Execute;
+begin
+  try
+    SMTPDlg.IMSSMTP.Send;
+    FSuccess := True;
+  except
+    FSuccess := False;
+  end;
+end;
+
+procedure TSMTPDlg.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Event: TSMTPEventLog;
+begin
+  Dlg.Visible := False;
+  if FThread <> nil then
+  begin
+    FThread.Destroy;
+    FThread := nil;
+  end;
+  Done := FDone;
+  Event := FEvent;
+  FDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
+procedure TSMTPDlg.ResetProgress;
+begin
+  FFinished := False;
+  ProgressBar.Position := 0;
+  SendingGameLbl.Text := TranslateRStr(SendingEmailGameRStr);
+  FailedPnl.Visible := False;
+  SendPnl.Visible := True;
+  FProgress := 0;
+  ExitBtn.Visible := False;
+end;
+
+procedure TSMTPDlg.StartSending;
+begin
+  ResetProgress;
+  IMSSMTP.FHost := AoWEngine.FRegistry.GetSMTPServer;
+  FThread := TIMSSendThread.Create(True);
+  FThread.OnTerminate := IMSThreadTerminatedEvent;
+  FThread.Resume;
+end;
+
+procedure TSMTPDlg.IMSThreadTerminatedEvent(Sender: TObject);
+begin
+  FEvent.FSuccess := FThread.FSuccess;
+  FFinished := True;
+  if FEvent.FSuccess then FProgress := 100;
+end;
 
 procedure TSMTPDlg.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
 
 procedure TSMTPDlg.ExitBtnClick;
 begin
   Dlg.Visible := False;
 end;
 
-procedure TSMTPDlg.IMSSMTPProgress(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TSMTPDlg.IMSSMTPProgress(Sender: TObject; Progress, Total: Integer);
+begin
+  if Progress > FProgress then FProgress := Progress;
+end;
 
 procedure TSMTPDlg.ProgressBarUpdate;
-begin end;
+begin
+  if ProgressBar.Position <> FProgress then
+  begin
+    ProgressBar.Position := FProgress;
+    ProgressBar.FDrawn := False;
+  end;
+end;
 
-procedure TSMTPDlg.IMSSMTPError(A1: Integer; A2: Integer);
-begin end;
+procedure TSMTPDlg.IMSSMTPError(Sender: TObject; var Error: string);
+begin
+  if FEvent <> nil then FEvent.FError := Error;
+end;
 
 procedure TSMTPDlg.DlgUpdate;
-begin end;
+begin
+  if FFinished then
+    if FEvent.FSuccess then
+    begin
+      SendingGameLbl.Text := TranslateRStr(GameSuccessfullySentRStr);
+      ExitBtn.Visible := True;
+    end
+    else
+      with FailedPnl do
+        if not Visible then
+        begin
+          Visible := True;
+          SendPnl.Visible := False;
+        end;
+end;
 
 procedure TSMTPDlg.RetryBtnClick;
-begin end;
+begin
+  StartSending;
+end;
 
 procedure TSMTPDlg.SettingsBtnClick;
-begin end;
-
+begin
+  ShowEmailSettings(EmailSettingsDlg);
+end;
 
 end.

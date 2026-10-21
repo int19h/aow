@@ -202,8 +202,7 @@ var
   Password: TPasswordEventLog;
 begin
   if TPasswordEventLog(Log).FPressedButton = pebOk then
-    if TPasswordEventLog(Log).FPassword = '' then PasswordEdit.Text := ''
-    else
+    if TPasswordEventLog(Log).FPassword <> '' then
     begin
       FNewPassword := TPasswordEventLog(Log).FPassword;
       Password := TPasswordEventLog.Create(nil);
@@ -211,7 +210,8 @@ begin
       Password.FPrompt := TranslateRStr(ReenterNewPasswordRStr);
       AoWHSMap.TriggerExecuteEventLog(Password, True, PasswordConfirmed);
       Password.Release;
-    end;
+    end
+    else PasswordEdit.Text := '';
 end;
 
 procedure TGamePlayDlg.PasswordConfirmed(Log: TEventLog);

@@ -420,16 +420,13 @@ begin
 end;
 
 procedure TRealmWin.OverWindowResize;
-var
-  Window: TAOWWindow;
 begin
-  Window := Dlg;
-  with Window.Alignment do
+  with Dlg do
   begin
-    AlignWidth := awLeft;
-    AlignHeight := ahTop;
-    LeftOffset := Window.WinLeft;
-    TopOffset := Window.WinTop;
+    Alignment.AlignWidth := awLeft;
+    Alignment.AlignHeight := ahTop;
+    Alignment.LeftOffset := WinLeft;
+    Alignment.TopOffset := WinTop;
   end;
 end;
 

@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses AoWE, AoWTC, AoWWinMan, E3Globals;
+uses AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals;
 
 procedure TTBWindow.TurnButtonAnimDone;
 begin
@@ -349,7 +349,12 @@ begin
 end;
 
 procedure TTBWindow.RelationsBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  with RelWindow.RelWin do
+    if Visible then Visible := False
+    else RelWindow.ShowRelations(AoWHSMap.FSeatedPlayer);
+end;
 
 procedure TTBWindow.ChatBtnUpdate(Sender: TAOWButton);
 var

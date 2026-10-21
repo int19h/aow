@@ -22,7 +22,7 @@ type
     LeaderFaceFr: TAOWImage; { +004C }
     PyreAnimation: TaowUserDrawBox; { +0050 }
     public
-    F_PyreScreen_54: array[0..15] of Byte;
+    FAnimation: TObject; FSavedSongStatus: TSongStatus; FDone: TExecuteDoneEvent; { $54, $58, $5C; 004293AC }
     FGameOverEvent: TGameOverEventLog; { $64 }
     FAnimationFrame: Integer; { $68 }
     procedure DeadPnlUpdate;  { draft }

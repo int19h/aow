@@ -1310,8 +1310,8 @@ begin
     P := FParty;
     if (P <> nil) and (FUnit <> nil) then
     begin
-      FUnit.SetOwner(TArmy(P.F_CombatParty_08));
-      TArmy(FParty.F_CombatParty_08).UpdateFormation;
+      FUnit.SetOwner(TArmy(P.FArmy));
+      TArmy(FParty.FArmy).UpdateFormation;
     end;
   end;
 end;
@@ -1364,7 +1364,7 @@ begin
     if U <> nil then
     begin
       Party := FParty;
-      if (Party <> nil) and (FUnit.Owner = TArmy(Party.F_CombatParty_08)) then FUnit.SetOwner(nil);
+      if (Party <> nil) and (FUnit.Owner = TArmy(Party.FArmy)) then FUnit.SetOwner(nil);
       FUnit.Release;
     end;
     FUnit := AUnit;
@@ -1373,7 +1373,7 @@ begin
     begin
       U.AddRef;
       Party := FParty;
-      if (Party <> nil) and not (csDestroyed in FStatus) then TArmy(Party.F_CombatParty_08).AddUnit(FUnit);
+      if (Party <> nil) and not (csDestroyed in FStatus) then TArmy(Party.FArmy).AddUnit(FUnit);
     end;
   end;
   if csActivated in FStatus then UpdateUnitGFXResource;
@@ -6708,12 +6708,12 @@ begin
 end;
 
 constructor TCombatParty.Create(AOwner: Engine.TECustomNode);
-begin inherited Create(AOwner); F_CombatParty_08 := Integer(TArmy.Create(nil)); end;
+begin inherited Create(AOwner); FArmy := TArmy.Create(nil); end;
 
 destructor TCombatParty.Destroy;
 begin
-  TArmy(F_CombatParty_08).Deactivate;
-  TArmy(F_CombatParty_08).Free;
+  FArmy.Deactivate;
+  FArmy.Free;
   inherited Destroy;
 end;
 
@@ -6733,7 +6733,7 @@ end;
 
 procedure TCombatParty.Activate(A1: Integer);
 begin
-  TArmy(F_CombatParty_08).SetPlayer(
+  FArmy.SetPlayer(
     TCombatPlayerList(TCombat(A1).FCombatData.FPlayers).GetPlayers(F_CombatParty_1A).FPlayer);
 end;
 
@@ -6755,12 +6755,12 @@ begin
     P.F_CombatParty_10 := A5;
     P.F_CombatParty_14 := A6;
     P.SetArrayOwner(Self, A2);
-    TArmy(P.F_CombatParty_08).SetXYL(Byte(A4), Byte(A5), A6);
-    TArmy(P.F_CombatParty_08).SetPlayer(
+    TArmy(P.FArmy).SetXYL(Byte(A4), Byte(A5), A6);
+    TArmy(P.FArmy).SetPlayer(
       TCombatPlayerList(TCombatData(TCombat(A1).FCombatData).FPlayers).
         GetPlayers(Shortint(A3)).FPlayer);
-    if A7 <> 0 then TArmy(P.F_CombatParty_08).AssignSettings(TArmy(A7));
-    TArmy(P.F_CombatParty_08).Activate;
+    if A7 <> 0 then TArmy(P.FArmy).AssignSettings(TArmy(A7));
+    TArmy(P.FArmy).Activate;
   end
   else raise Exception.Create('CombatParty already exists!');
   Result := P;

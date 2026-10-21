@@ -54,7 +54,7 @@ var
 
 implementation
 
-uses AoWExeForms, AoWWinMan, AoWComp, E2WindowLayout;
+uses AoWExeForms, AoWWinMan, AoWComp, E2WindowLayout, AoWVideoDlg;
 
 procedure TMainForm.PlayInterfaceSound(Kind: Byte);
 begin
@@ -136,11 +136,11 @@ begin
     SetSFXVolume(AoWEngine.FRegistry.GetSFXVolume);
   end;
   SetVideoSize(VideoDialog, AoWEngine.FRegistry.GetDisplayWidth, AoWEngine.FRegistry.GetDisplayHeight);
-  SetVideoMode(VideoDialog, Boolean(AoWEngine.FRegistry.GetDisplayMode));
-  if VideoDialog.FFullScreen then
+  SetVideoMode(VideoDialog, TScreenMode(AoWEngine.FRegistry.GetDisplayMode));
+  if VideoDialog.FFullScreen <> scmWindowed then
   begin
     WindowState := wsNormal;
-    SetVideoMode(VideoDialog, True);
+    SetVideoMode(VideoDialog, scmGame);
     DXDC.DisplayWidth := AoWEngine.FRegistry.GetDisplayWidth;
     DXDC.DisplayHeight := AoWEngine.FRegistry.GetDisplayHeight;
     Display.PrimaryDC := DXDC;

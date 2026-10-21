@@ -85,6 +85,8 @@ type
     { $144 is the data pointer of FDone. }
     FMode: Integer; { $148; 0 load, 1 save, 2 select map }
     procedure FinishDialog;
+    procedure ExitForLoad(Mode: TExitGameMode; Success: Boolean);
+    procedure LoadSelectedGame(const Name: string);
     procedure CloseClick;  { draft }
     procedure FindDrives;
     procedure FindFiles;
@@ -111,7 +113,7 @@ var
 
 implementation
 
-uses AoWWorldMap, AoWWinMan;
+uses AoWWorldMap, AoWWinMan, E1GameFlow, AoWExeForms, E1Globals;
 
 var
   Drives, Directories, Files: TStringList;
@@ -126,6 +128,49 @@ begin
   else Result := 0;
 end;
 
+
+procedure TFileDlgWindow.ExitForLoad(Mode: TExitGameMode; Success: Boolean);
+begin
+  if Success then ExitState := 2;
+end;
+
+procedure TFileDlgWindow.LoadSelectedGame(const Name: string);
+var
+  Map: TAoWHSMap;
+begin
+  AoWEngine.CloseCampaign;
+  AoWEngine.CloseHSM(nil);
+  if LowerCase(ExtractFileExt(Name)) = '.acg' then
+  begin
+    if not AoWEngine.FDemo then
+    begin
+      LoadCampaign(General, Name);
+      if AoWHSMap <> nil then StartGame(General);
+    end;
+  end
+  else
+  begin
+    AoWEngine.CloseCampaign;
+    Map := TAoWHSMap(AoWEngine.CreatePreviewHSM(Name));
+    if Map <> nil then
+    try
+      if Map.FConnectionType <> pcNetwork then
+      begin
+        LoadGame(General, Name);
+        if AoWHSMap <> nil then StartGame(General);
+      end
+      else
+      begin
+        TitleScene.HideScene;
+        HideGameWindows(General);
+        TBWindow.TaskWindow.Visible := False;
+        ShowMultiplayer(MultiWindow, ExtractRelativePath(AoWEngine.StartupDirectory, Name));
+      end;
+    finally
+      Map.Free;
+    end;
+  end;
+end;
 
 procedure TFileDlgWindow.FinishDialog;
 var
@@ -269,7 +314,82 @@ begin
 end;
 
 procedure TFileDlgWindow.OpenbutClick(Sender: TObject);
-begin end;
+var
+  Path, Directory: string;
+begin
+  General.PlayButtonSound(0);
+  if (FileLB.Selected < Directories.Count) and (FileLB.Selected > -1) then
+  begin
+    Directory := GetCurrentDir;
+    if Copy(Directory, Length(Directory), 1) = '\' then
+      Directory := Copy(Directory, 1, Length(Directory) - 1);
+    if SetCurrentDir(Directory + '\' + FileLB.Items[FileLB.Selected]) then FindFiles;
+    FileLB.Selected := -1;
+  end
+  else
+  begin
+    Path := GetCurrentDir;
+    if (Length(Path) > 0) and (Path[Length(Path)] <> '\') then Path := Path + '\';
+    case FMode of
+      0: if (SFileName.Text <> '') and FileExists(SFileName.Text) then
+        begin
+          if AoWHSMap <> nil then
+            if AoWHSMap.FCombatMap <> nil then ExitToTitle(General)
+            else
+              if AoWEngine.FCampaign <> nil then
+              begin
+                if CompareText(AoWEngine.FCampaign.FFileName, FDirectory + SFileName.Text) = 0 then
+                  AoWHSMap.ExitGame(egmReload, ExitForLoad)
+                else AoWHSMap.ExitGame(egmLoad, ExitForLoad);
+              end
+              else
+              begin
+                if CompareText(AoWHSMap.FileName, FDirectory + SFileName.Text) = 0 then
+                  AoWHSMap.ExitGame(egmReload, ExitForLoad)
+                else AoWHSMap.ExitGame(egmLoad, ExitForLoad);
+              end;
+          if (AoWHSMap = nil) or AoWHSMap.FExitPending then
+          begin
+            FileDialog.Visible := False;
+            LoadSelectedGame(Path + SFileName.Text);
+          end;
+          FLastFileName := Path + SFileName.Text;
+          FDirectory := Path;
+        end;
+      1: if SFileName.Text <> '' then
+        begin
+          FDirectory := Path;
+          if Pos('.', SFileName.Text) <> 0 then
+            SFileName.Text := Copy(SFileName.Text, 1, Pos('.', SFileName.Text) - 1);
+          if AoWEngine.FCampaign <> nil then
+          begin
+            FileDialog.Visible := False;
+            SFileName.Text := SFileName.Text + '.acg';
+            SaveCampaign(General, SFileName.Text);
+          end
+          else
+            if FSaveEvent <> nil then
+            begin
+              FSaveEvent.FFileName := SFileName.Text + '.asg';
+              FileDialog.Visible := False;
+            end
+            else
+            begin
+              FileDialog.Visible := False;
+              SFileName.Text := SFileName.Text + '.asg';
+              SaveGame(General, SFileName.Text);
+            end;
+          FLastFileName := SFileName.Text;
+          FDirectory := Path;
+        end;
+      2: if (FileName.Text <> '') and FileExists(FileName.Text) then
+        begin
+          PickScenarioMap(ScenSetup, FileName.Text);
+          FLastFileName := FileName.Text;
+        end;
+    end;
+  end;
+end;
 
 procedure TFileDlgWindow.UpDirBtnClick;
 begin

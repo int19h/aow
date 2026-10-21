@@ -34,7 +34,7 @@ type
     FNaturals: Boolean; { $13B }
     FOnMapPositionChange: TNotifyEvent; { $13C }
     FSteps: Integer; { $144 }
-    FMap: TAoWHSMap; { $148 }
+    FMap: TAbstractAoWHSMap; { $148 }
     FILFrame: TInterfaceIL; { $14C }
     FILIndexFrame: Integer; { $150 }
     FMapWidth: Integer; { $154 }
@@ -85,7 +85,7 @@ type
     procedure SetTTop(A1: Integer);
     procedure SetTWidth(A1: Integer);
     procedure SetTHeight(A1: Integer);
-    procedure SetMap(Value: TAoWHSMap);
+    procedure SetMap(Value: TAbstractAoWHSMap);
     procedure DrawMap(X, Y, Width, Height: Integer); { draft body }
     procedure DrawObjects;  { draft }
   end;
@@ -355,7 +355,7 @@ begin
   end;
 end;
 
-procedure TScanner.SetMap(Value: TAoWHSMap);
+procedure TScanner.SetMap(Value: TAbstractAoWHSMap);
 begin
   FMap := Value;
   if FMap <> nil then

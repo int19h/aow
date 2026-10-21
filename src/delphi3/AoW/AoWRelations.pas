@@ -162,7 +162,7 @@ type
     FSelectedIndex: Integer; { $278 }
     FAction: TDiplomaticAction; { $27C }
     FActions: TDiplomaticActionList; { $280 }
-    F_RelWindow_284: array[0..1] of Byte;
+    FInfoPlayer, FInfoRace: Shortint; { $284, $285 }
     FSelectedPlayer: Shortint; { $286 }
     FSelectedRace: Shortint; { $287 }
     FPlayers: TIntegerList; { $288 }
@@ -173,6 +173,14 @@ type
     FGlowIntensity: Integer; { $2A0 }
     FGlowIncreasing: Boolean; { $2A4 }
     F_RelWindow_2A5: array[0..2] of Byte;
+    procedure FillPlayers;
+    procedure ShowRelations(Player: Integer);
+    procedure ResetChecks;
+    procedure ShowPlayerActions(Player: Shortint);
+    procedure ShowPlayerInformation(Player: Shortint);
+    procedure HighlightPlayer(Player: Shortint);
+    procedure ShowRaceInformation(Race: Byte);
+    procedure HighlightRace(Race: Shortint);
     procedure SetAction(Action: TDiplomaticAction);
     procedure FinishEvent;
     procedure FinishDialog;
@@ -180,8 +188,8 @@ type
     procedure RelWindowCreate;  { draft }
     procedure RelWindowDestroy;  { draft }
     procedure ExitClick;  { draft }
-    procedure P1CBChange(A1: Integer);  { draft }
-    procedure R1CBChange(A1: Integer);  { draft }
+    procedure P1CBChange(Sender: TObject);
+    procedure R1CBChange(Sender: TObject);
     procedure P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
     procedure R1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
@@ -209,6 +217,265 @@ type
 implementation
 
 uses AoWWinMan, aowIntGfxMod, E3Globals;
+
+procedure TRelWindow.FillPlayers;
+var
+  I, Index: Integer;
+begin
+  FPlayers.Clear;
+  for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+    if (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(I) <> -1) and
+      (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) then FPlayers.Add(I);
+  for I := 1 to 12 do
+    if I <= FPlayers.Count then
+    begin
+      TAOWCheckBox(FControls[I + 23]).Visible := True;
+      TAOWCheckBox(FControls[I + 23]).ToolTipText.Clear;
+      TAOWCheckBox(FControls[I + 23]).ToolTipText.Add(AoWHSMap.FPlayers.GetPlayers(FPlayers[I - 1]).GetName);
+    end
+    else TAOWCheckBox(FControls[I + 23]).Visible := False;
+  Index := FPlayers.IndexOf(AoWHSMap.FSeatedPlayer);
+  with PlyrGlow do
+  begin
+    Alignment.LeftOffset := Index * 51 + 14;
+    FAligned := False;
+  end;
+end;
+
+procedure TRelWindow.ShowRelations(Player: Integer);
+var
+  I, Index: Integer;
+begin
+  ClearActions;
+  ResetChecks;
+  General.Manager.OverlayPriority := 49;
+  FRaces.Clear;
+  for I := 0 to AoWHSMap.FRaces.GetCount - 1 do
+    if AoWHSMap.FRaces.GetRace(I).FEnabled then FRaces.Add(I);
+  for I := 0 to 11 do
+    if I < FRaces.Count then
+    begin
+      TAOWCheckBox(FControls[I + 36]).Visible := True;
+      TAOWCheckBox(FControls[I + 36]).ToolTipText.Clear;
+      TAOWCheckBox(FControls[I + 36]).ToolTipText.Add(TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FRaces.GetRace(FRaces[I]).FRace]));
+    end
+    else TAOWCheckBox(FControls[I + 36]).Visible := False;
+  FillPlayers;
+  FGlowIntensity := 50;
+  FGlowIncreasing := False;
+  RelWin.Visible := True;
+  TAOWCheckBox(FControls[Player + 23]).Checked := True;
+  Index := FPlayers.IndexOf(AoWHSMap.FSeatedPlayer);
+  TAOWCheckBox(FControls[Index + 24]).Checked := True;
+  P1CBChange(TAOWCheckBox(FControls[Index + 24]));
+  AoWHSMap.FTutorialControl.ShowMessage(65, True, True);
+end;
+
+procedure TRelWindow.ResetChecks;
+var
+  I: Integer;
+  Check: TAOWCheckBox;
+begin
+  FSelectedIndex := -1;
+  RelPnl.FAligned := False;
+  RelWin.FDrawn := False;
+  PlyrGlow.Alignment.TopOffset := 10;
+  for I := 24 to 35 do
+  begin
+    Check := TAOWCheckBox(FControls[I]);
+    Check.Checked := False;
+    Check.Alignment.TopOffset := 10;
+  end;
+  for I := 36 to 47 do
+  begin
+    Check := TAOWCheckBox(FControls[I]);
+    Check.Checked := False;
+    Check.Alignment.TopOffset := 185;
+  end;
+end;
+
+procedure TRelWindow.ShowPlayerActions(Player: Shortint);
+var
+  Selected, I: Integer;
+begin
+  ClearActions;
+  HighlightPlayer(Player);
+  ShowPlayerInformation(Player);
+  Selected := ActionsLB.Selected;
+  AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).ListDiplomaticActions(Player, FActions);
+  for I := 0 to FActions.GetCount - 1 do
+    ActionsLB.Items.AddObject(FActions.GetDiplomaticActions(I).GetName(AoWHSMap.FSeatedPlayer), FActions.GetDiplomaticActions(I));
+  ActionsLB.Selected := Selected;
+  ActionsLBChange(Self);
+  ActionPnl.Visible := True;
+end;
+
+procedure TRelWindow.ShowPlayerInformation(Player: Shortint);
+var
+  Relation: TDiplomaticRelation;
+begin
+  FInfoPlayer := Player;
+  FInfoRace := -1;
+  FaceShadow.Visible := True;
+  NoContact.Visible := False;
+  PlStatV.Visible := True;
+  PlStatIcn.Visible := True;
+  PlStatLbl.Visible := True;
+  LInfoPlayerPnl.Visible := True;
+  LInfoRacePnl.Visible := False;
+  LShield.CurrentImage := AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 26;
+  LShield.Visible := True;
+  RShield.CurrentImage := LShield.CurrentImage;
+  RShield.Visible := True;
+  NoContact.Visible := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) = -1;
+  APlayer.Visible := not NoContact.Visible;
+  OfTheLbl.Visible := APlayer.Visible;
+  PRaceLbl.Visible := APlayer.Visible;
+  if AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(AoWHSMap.FSeatedPlayer) = -1 then
+  begin
+    PlStatIcn.Visible := False;
+    PlStatV.Text := TranslateRStr(NoContactRStr);
+  end
+  else
+    if Player = AoWHSMap.FSeatedPlayer then
+    begin
+      PlStatIcn.Visible := False;
+      PlStatLbl.Visible := False;
+      PlStatV.Visible := False;
+    end
+    else
+    begin
+      Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, AoWHSMap.FSeatedPlayer);
+      PlStatV.Text := TranslateRStr(TDiplomaticRelationRStr[Relation]);
+      if Ord(Relation) = 3 then PlStatIcn.CurrentImage := 50
+      else PlStatIcn.CurrentImage := Ord(Relation) + 8;
+    end;
+  APlayer.Text := AoWHSMap.FPlayers.GetPlayers(Player).GetName;
+  OfTheLbl.Text := PInfoW.LeadL.Text;
+  PRaceLbl.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace]);
+  if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType in [ptHuman, ptCPU1, ptCPU2, ptCPU3, ptCPU4, ptCPU5] then
+  begin
+    case AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType of
+      ptCPU1: APlyrIcon.CurrentImage := 1;
+      ptCPU2: APlyrIcon.CurrentImage := 2;
+      ptCPU3: APlyrIcon.CurrentImage := 3;
+      ptCPU4: APlyrIcon.CurrentImage := 4;
+      ptCPU5: APlyrIcon.CurrentImage := 5;
+    else APlyrIcon.CurrentImage := 0;
+    end;
+    APlyrIcon.Visible := True;
+  end
+  else APlyrIcon.Visible := False;
+  APlyrType.Text := TranslateRStr(TPlayerTypeRStr[Ord(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType)]);
+end;
+
+procedure TRelWindow.HighlightPlayer(Player: Shortint);
+var
+  I: Integer;
+  Check: TAOWCheckBox;
+begin
+  ResetChecks;
+  FSelectedPlayer := Player;
+  FSelectedRace := -1;
+  FSelectedIndex := FPlayers.IndexOf(Player);
+  if FSelectedIndex <> -1 then
+  begin
+    Check := TAOWCheckBox(FControls[FSelectedIndex + 24]);
+    Check.Alignment.TopOffset := 20;
+    Check.Checked := True;
+    if AoWHSMap.FSeatedPlayer = Player then PlyrGlow.Alignment.TopOffset := Check.Alignment.TopOffset;
+  end;
+  for I := 0 to 11 do
+  begin
+    if I < FPlayers.Count then
+    begin
+      TAOWImage(FControls[I]).Visible := True;
+      if FPlayers[I] = Player then TAOWImage(FControls[I]).CurrentImage := 2
+      else if I > FRaces.Count then TAOWImage(FControls[I]).CurrentImage := 0
+      else TAOWImage(FControls[I]).CurrentImage := 1;
+    end
+    else TAOWImage(FControls[I]).CurrentImage := 2;
+    TAOWImage(FControls[I]).ToolTipText.Clear;
+    if TAOWImage(FControls[I]).CurrentImage = 1 then
+      if FSelectedPlayer <> -1 then
+        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+          if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
+            if AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
+              TAOWImage(FControls[I]).ToolTipText.Add(TDiplomaticRelationRStr[
+                TDiplomaticRelation(Ord(AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, FPlayers[I])) and $7F)]);
+  end;
+  for I := 0 to 11 do
+  begin
+    if I < FRaces.Count then TAOWImage(FControls[I + 12]).CurrentImage := 4
+    else TAOWImage(FControls[I + 12]).CurrentImage := 5;
+    TAOWImage(FControls[I + 12]).ToolTipText.Clear;
+    if TAOWImage(FControls[I + 12]).CurrentImage = 4 then
+      if FSelectedPlayer <> -1 then
+        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+          TAOWImage(FControls[I + 12]).ToolTipText.Add(
+            TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelation(FSelectedPlayer)) and $7F)]) +
+            ' (' + IntToStr(AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelationValue(FSelectedPlayer)) + ')');
+  end;
+end;
+
+procedure TRelWindow.ShowRaceInformation(Race: Byte);
+begin
+  FInfoPlayer := -1;
+  FInfoRace := Race;
+  LShield.Visible := False;
+  RShield.Visible := False;
+  FaceShadow.Visible := True;
+  ActionPnl.Visible := True;
+  LInfoPlayerPnl.Visible := False;
+  LInfoRacePnl.Visible := True;
+  RlRelIcn.CurrentImage := Ord(AoWHSMap.FRaces.GetRace(Shortint(Race)).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) + 11;
+  RlRelV.Text := TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(Shortint(Race)).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) and $7F)]);
+  ARace2.Text := TranslateRStr(RaceNamesPluralRStr[Shortint(Race)]);
+  case Race of
+    0..3: begin
+      AAlignmentLbl.Text := AoWE.Format(TranslateRStr(AlignmentXRStr), [TranslateRStr(NeutralRStr)]);
+      AAlignment.CurrentImage := 33;
+    end;
+    4..7: begin
+      AAlignmentLbl.Text := AoWE.Format(TranslateRStr(AlignmentXRStr), [TranslateRStr(GoodRStr)]);
+      AAlignment.CurrentImage := 31;
+    end;
+    8..11: begin
+      AAlignmentLbl.Text := AoWE.Format(TranslateRStr(AlignmentXRStr), [TranslateRStr(EvilRStr)]);
+      AAlignment.CurrentImage := 35;
+    end;
+  end;
+end;
+
+procedure TRelWindow.HighlightRace(Race: Shortint);
+var
+  I: Integer;
+  Check: TAOWCheckBox;
+begin
+  ResetChecks;
+  FSelectedPlayer := -1;
+  FSelectedRace := Race;
+  Check := TAOWCheckBox(FControls[FRaces.IndexOf(Race) + 36]);
+  Check.Alignment.TopOffset := 175;
+  Check.Checked := True;
+  FSelectedIndex := Check.Tag;
+  for I := 0 to 11 do
+  begin
+    if I < FPlayers.Count then TAOWImage(FControls[I]).CurrentImage := 1
+    else TAOWImage(FControls[I]).CurrentImage := 2;
+    TAOWImage(FControls[I]).ToolTipText.Clear;
+    if TAOWImage(FControls[I]).CurrentImage = 1 then
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
+        TAOWImage(FControls[I]).ToolTipText.Add(
+          TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(FPlayers[I])) and $7F)]) +
+          ' (' + IntToStr(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelationValue(FPlayers[I])) + ')');
+  end;
+  for I := 0 to 11 do
+  begin
+    TAOWImage(FControls[I + 12]).CurrentImage := 5;
+    TAOWImage(FControls[I + 12]).ToolTipText.Clear;
+  end;
+end;
 
 procedure TRelWindow.SetAction(Action: TDiplomaticAction);
 begin
@@ -330,11 +597,34 @@ begin
   RelWin.Visible := False;
 end;
 
-procedure TRelWindow.P1CBChange(A1: Integer);
-begin end;
+procedure TRelWindow.P1CBChange(Sender: TObject);
+begin
+  with TAOWCheckBox(Sender) do
+  begin
+  if Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  RelPnl.FAligned := False;
+  RelWin.FDrawn := False;
+  if Checked then
+    if FAction = nil then ShowPlayerActions(FPlayers[Tag])
+    else HighlightPlayer(FPlayers[Tag]);
+  end;
+end;
 
-procedure TRelWindow.R1CBChange(A1: Integer);
-begin end;
+procedure TRelWindow.R1CBChange(Sender: TObject);
+begin
+  with TAOWCheckBox(Sender) do
+  begin
+  if Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  RelPnl.FAligned := False;
+  if FAction = nil then
+  begin
+    ClearActions;
+    HighlightRace(FRaces[Tag - 20]);
+    ShowRaceInformation(FRaces[Tag - 20]);
+  end
+  else HighlightRace(FRaces[Tag - 20]);
+  end;
+end;
 
 procedure TRelWindow.P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
 var
@@ -421,10 +711,36 @@ begin
 end;
 
 procedure TRelWindow.MAcceptBtnClick;
-begin end;
+var
+  Reason: string;
+  Action: TDiplomaticAction;
+begin
+  General.PlayButtonSound(0);
+  Action := FAction;
+  if Action <> nil then
+    if not Action.Accept(Reason) then AoWHSMap.ShowMessage(Reason)
+    else
+    begin
+      FinishEvent;
+      ShowPlayerActions(FAction.FSource);
+    end;
+end;
 
 procedure TRelWindow.MRejectBtnClick;
-begin end;
+var
+  Reason: string;
+  Action: TDiplomaticAction;
+begin
+  General.PlayButtonSound(0);
+  Action := FAction;
+  if Action <> nil then
+    if not Action.Reject(Reason) then AoWHSMap.ShowMessage(Reason)
+    else
+    begin
+      FinishEvent;
+      ShowPlayerActions(FAction.FSource);
+    end;
+end;
 
 procedure TRelWindow.PlyrGlowUpdate;
 begin
@@ -535,7 +851,13 @@ begin
 end;
 
 procedure TRelWindow.CancelSelectedAction;
-begin end;
+begin
+  if FEvent <> nil then FinishEvent;
+  ShowPlayerActions(FAction.FTarget);
+  RNewActionPnl.Visible := True;
+  RSBribePnl.Visible := False;
+  RMsgEditPnl.Visible := False;
+end;
 
 procedure TRelWindow.ChangeActionMessage(Sender: TAOWMemo);
 begin
@@ -543,16 +865,47 @@ begin
 end;
 
 procedure TRelWindow.MsgSendActionBtn;
-begin end;
+var
+  Reason: string;
+  Player: Shortint;
+  Action: TDiplomaticAction;
+begin
+  Action := FAction;
+  if Action <> nil then
+    if not Action.Send(Reason) then AoWHSMap.ShowMessage(Reason)
+    else
+    begin
+      Player := FAction.FTarget;
+      if (FEvent <> nil) and (FEvent.FAction.FActionType = daSendMessageAsY) then
+        Player := FEvent.FAction.FOtherPlayer;
+      FinishEvent;
+      ShowPlayerActions(Player);
+    end;
+end;
 
 procedure TRelWindow.ReplyBtnClick;
-begin end;
+var
+  Action: TDiplomaticAction;
+begin
+  Action := AoWHSMap.FPlayers.GetPlayers(FAction.FTarget).CreateDiplomaticAction(daSendMessage, FAction.FSource, -1);
+  ClearActions;
+  SetAction(Action);
+  RNewActionPnl.Visible := False;
+  RMsgEditPnl.Visible := True;
+end;
 
 procedure TRelWindow.RMCancelBtnClick;
-begin end;
+begin
+  if FEvent <> nil then FinishEvent;
+  ShowPlayerActions(FAction.FSource);
+end;
 
 procedure TRelWindow.IIOkBtnClick;
-begin end;
+begin
+  FinishEvent;
+  if FAction.FSource = AoWHSMap.FSeatedPlayer then ShowPlayerActions(FAction.FTarget)
+  else ShowPlayerActions(FAction.FSource);
+end;
 
 procedure TRelWindow.RelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin

@@ -10,7 +10,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWE, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
-  TVideoDialog = class;
+  TVideoDialog = class; TScreenMode = (scmWindowed, scmGame, scmTitle); { 0040B034 }
   TWMCampaignScenarioPage = class;
   TWMCampaignScenarioPageList = class;
   TWMCampaignScenario = class;
@@ -41,7 +41,7 @@ type
     Translator: TIvTranslator; { +0088 }
     public
     FDisplayModes: TDisplayModeList; { $8C }
-    FFullScreen: Boolean; { $90; 0040B034 }
+    FFullScreen: TScreenMode; { $90; 0040B034 }
     FModeChanged: Boolean; { $91; 0040B034 } F_VideoDialog_92: array[0..9] of Byte;
     FDisplayWidth: Integer; { $9C; 0040B04C }
     { conflict: FWidth: Integer; }
@@ -217,11 +217,11 @@ begin
     begin
       FDisplayWidth := FDisplayModes.Items[I].Width;
       FDisplayHeight := FDisplayModes.Items[I].Height;
-      ChangeResolution(FDisplayWidth, FDisplayHeight); FFullScreen := True;
+      ChangeResolution(FDisplayWidth, FDisplayHeight); FFullScreen := scmGame;
     end
     else
     begin
-      FFullScreen := False; ChangeResolution(0, 0);
+      FFullScreen := scmWindowed; ChangeResolution(0, 0);
     end;
   end;
 end;

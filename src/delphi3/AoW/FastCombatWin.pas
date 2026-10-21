@@ -88,12 +88,17 @@ type
     FViewer: TCombatViewer; { $144 }
     FDone: TExecuteDoneEvent; { $148 }
     FEvent: TEventLog; { $150 }
+    procedure GetPartyPosition(Index: Integer; var X, Y: Integer);
+    procedure DrawParties(X, Y: Integer; const Surface: TSurfaceDesc);
+    procedure DrawWalls(X, Y: Integer; const Surface: TSurfaceDesc);
+    procedure DrawCombat(X, Y: Integer; var Surface: TSurfaceDesc);
+    procedure UpdateShields;
     procedure FinishDialog; { 00435268 }
     procedure SetPhase(Phase: Byte);
     procedure FastCombatWindowCreate;
     procedure FastCombatWindowDestroy;
     procedure CloseButClick;  { draft }
-    procedure FCWinDrawSurface(A1: Integer; A2: Integer);  { draft }
+    procedure FCWinDrawSurface(Sender: TObject; Surface: TSurface);
     procedure FCWinUpdate(Sender: TObject);
     procedure InitialViewClick;  { draft }
     procedure FinalViewClick;  { draft }
@@ -111,6 +116,143 @@ type
 implementation
 
 uses AoWWinMan, aowIntGfxMod;
+
+
+procedure TFastCombatWindow.GetPartyPosition(Index: Integer; var X, Y: Integer);
+begin
+  case Index of
+    0: with Party1Pnl do begin X := WinLeft; Y := WinTop; end;
+    1, 7: with Party2Pnl do begin X := WinLeft; Y := WinTop; end;
+    2: with Party3Pnl do begin X := WinLeft; Y := WinTop; end;
+    3: with Party4Pnl do begin X := WinLeft; Y := WinTop; end;
+    4: with Party5Pnl do begin X := WinLeft; Y := WinTop; end;
+    5: with Party6Pnl do begin X := WinLeft; Y := WinTop; end;
+    6: with Party7Pnl do begin X := WinLeft; Y := WinTop; end;
+  end;
+end;
+
+procedure TFastCombatWindow.DrawParties(X, Y: Integer; const Surface: TSurfaceDesc);
+var
+  Combat: TCombat;
+  Obj: TCombatObject;
+  I, PX, PY, Position: Integer;
+begin
+  if vsInitialized in FViewer.FStatus then
+  begin
+    Combat := FViewer.FCombat;
+    for I := 0 to Combat.FCombatData.GetCount - 1 do
+    begin
+      Obj := Combat.FCombatData.GetObjects(I);
+      if Obj.FPosition <> $80 then
+      begin
+        GetPartyPosition(Obj.FPosition shr 4, PX, PY);
+        PY := PY + Y - 32;
+        Position := Obj.FPosition and $F;
+        PX := PX + X - 15 + (Position mod 4) * 40;
+        if Position > 3 then Inc(PY, 38);
+        FViewer.ShowFieldObject(Combat.FCombatData.GetObjects(I), FAnimationFrame, 3, PX, PY, Surface);
+      end;
+    end;
+  end;
+end;
+
+procedure TFastCombatWindow.DrawWalls(X, Y: Integer; const Surface: TSurfaceDesc);
+var
+  Image: Integer;
+  Wall: TCombatWall;
+  function HasWall(A, B: Integer): Boolean;
+  var
+    PA, PB: TCombatParty;
+    WA, WB: Boolean;
+  begin
+    PA := FViewer.FCombat.FCombatData.FParties.GetParty(A);
+    PB := FViewer.FCombat.FCombatData.FParties.GetParty(B);
+    WA := (PA <> nil) and (PA.FWall <> 0);
+    WB := (PB <> nil) and (PB.FWall <> 0);
+    Result := WA xor WB;
+  end;
+begin
+  if FViewer.FCombat.FCombatData.FWallType = 2 then Image := 80
+  else Image := 60;
+  if FViewer.FCombat.FCombatData.FWallBreached then Inc(Image, 10);
+  if HasWall(1, 6) then AoWHSSet.FCombatImages[Image].ShowClipped(X + 180, Y + 149, Surface);
+  if HasWall(1, 2) then AoWHSSet.FCombatImages[Image].ShowClipped(X + 372, Y + 149, Surface);
+  if HasWall(0, 1) then AoWHSSet.FCombatImages[Image + 4].ShowClipped(X + 180, Y + 199, Surface);
+  if HasWall(0, 6) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 180, Y + 199, Surface);
+  if HasWall(0, 2) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 372, Y + 199, Surface);
+  if HasWall(5, 6) then AoWHSSet.FCombatImages[Image + 3].ShowClipped(X + 0, Y + 256, Surface);
+  if HasWall(2, 3) then AoWHSSet.FCombatImages[Image + 2].ShowClipped(X + 374, Y + 256, Surface);
+  if HasWall(0, 5) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 180, Y + 256, Surface);
+  if HasWall(0, 3) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 372, Y + 256, Surface);
+  if HasWall(0, 4) then AoWHSSet.FCombatImages[Image + 4].ShowClipped(X + 180, Y + 313, Surface);
+  if HasWall(4, 5) then AoWHSSet.FCombatImages[Image + 1].ShowClipped(X + 180, Y + 323, Surface);
+  if HasWall(4, 3) then AoWHSSet.FCombatImages[Image + 1].ShowClipped(X + 372, Y + 323, Surface);
+
+  with FViewer.FCombat.FCombatData do
+    if (FWallType <> 0) and (FWall <> nil) then
+    begin
+      Wall := FWall;
+      if HasWall(0, 4) then
+        ShowHitPcnt(X + 250, Y + 268, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits))
+      else ShowHitPcnt(X + 250, Y + 154, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits));
+    end;
+end;
+
+procedure TFastCombatWindow.DrawCombat(X, Y: Integer; var Surface: TSurfaceDesc);
+var
+  Combat: TCombat;
+  I, Glow, PX, PY: Integer;
+begin
+  Combat := FViewer.FCombat;
+  UpdateShields;
+  if ModeLbl.Text <> Combat.FCombatData.FHeader then ModeLbl.Text := Combat.FCombatData.FHeader;
+  DrawParties(X, Y + 20, Surface);
+  if Combat.FCombatData.FWallType <> 0 then DrawWalls(X, Y + 20, Surface);
+  FViewer.ShowFightingObjects(FAnimationFrame, X + 234, Y + 15, Surface);
+  if (FPhase = 2) or (FPhase = 3) then
+    for I := 0 to 7 do
+      if Combat.FCombatData.FParties.GetParty(I) <> nil then
+        if Combat.FCombatData.FParties.GetParty(I).FArmy.GetCount = 0 then
+          if not (FViewer.FLogbook.FFinalData.F_CombatData_30 in [2, 7, 8]) then
+          begin
+            Glow := Abs((FPhaseFrame div 2 + 7) mod 15 - 7);
+            GetPartyPosition(I, PX, PY);
+            AoWHSSet.FCombatImages[Glow + 100].ShowClipped(PX + X - 10, PY + Y - 9, Surface);
+          end;
+end;
+
+procedure TFastCombatWindow.UpdateShields;
+var
+  Data: TCombatData;
+  Left, Right: Integer;
+  LeftOpacity, RightOpacity: Byte;
+begin
+  Data := FViewer.FCombat.FCombatData;
+  if Data.FPlayers.GetPlayers(Data.FAttackerPlayer).FPlayer = 0 then Left := 12
+  else Left := AoWHSMap.FPlayers.GetPlayers(Data.FPlayers.GetPlayers(Data.FAttackerPlayer).FPlayer).FPlayerRace;
+  if (Data.FCurrentPlayer = $FF) or
+    (Data.FPlayers.GetPlayers(Data.FCurrentPlayer).FSideIndex <> 0) then LeftOpacity := 60
+  else LeftOpacity := 100;
+  if FPhase = 3 then LeftOpacity := 100;
+  if Data.FPlayers.GetPlayers(Data.FDefenderPlayer).FPlayer = 0 then Right := 12
+  else Right := AoWHSMap.FPlayers.GetPlayers(Data.FPlayers.GetPlayers(Data.FDefenderPlayer).FPlayer).FPlayerRace;
+  if (Data.FCurrentPlayer <> $FF) and
+    (Data.FPlayers.GetPlayers(Data.FCurrentPlayer).FSideIndex = 1) then RightOpacity := 100
+  else RightOpacity := 60;
+  if FPhase = 3 then RightOpacity := 100;
+  if (Left <> FLeftShield) or (LeftOpacity <> FLeftOpacity) then
+  begin
+    FLeftShield := Left;
+    FLeftOpacity := LeftOpacity;
+    LShieldUser.FDrawn := False;
+  end;
+  if (Right <> FRightShield) or (RightOpacity <> FRightOpacity) then
+  begin
+    FRightShield := Right;
+    FRightOpacity := RightOpacity;
+    RShieldUser.FDrawn := False;
+  end;
+end;
 
 procedure TFastCombatWindow.FinishDialog;
 var
@@ -144,8 +286,24 @@ begin
   FCWin.Visible := False;
 end;
 
-procedure TFastCombatWindow.FCWinDrawSurface(A1: Integer; A2: Integer);
-begin end;
+procedure TFastCombatWindow.FCWinDrawSurface(Sender: TObject; Surface: TSurface);
+var
+  SD: TSurfaceDesc;
+begin
+  try
+    if not (vsPaused in FViewer.FStatus) then Inc(FAnimationFrame);
+    if FPhase = 1 then FViewer.Update;
+    if Surface.Lock(SD) >= 0 then
+    begin
+      if SequencePositionSld.Position <> FViewer.FPosition then SequencePositionSld.Position := FViewer.FPosition;
+      SD.ClipRect.Top := FCWin.WinTop + 24;
+      DrawCombat(FCWin.WinLeft + 10, FCWin.WinTop + 10, SD);
+      Surface.Unlock;
+    end;
+  except
+    raise;
+  end;
+end;
 
 procedure TFastCombatWindow.FCWinUpdate(Sender: TObject);
 var
@@ -190,25 +348,29 @@ begin
 end;
 
 procedure TFastCombatWindow.InitialViewClick;
+var
+  Viewer: TCombatViewer;
 begin
   General.PlayButtonSound(0);
-  with FViewer do
-    if (FViewer <> nil) and (vsInitialized in FStatus) then
-    begin
-      SetPosition(0);
+  Viewer := FViewer;
+  if (Viewer <> nil) and (vsInitialized in Viewer.FStatus) then
+  begin
+    Viewer.SetPosition(0);
       SetPhase(1);
-    end;
+  end;
 end;
 
 procedure TFastCombatWindow.FinalViewClick;
+var
+  Viewer: TCombatViewer;
 begin
   General.PlayButtonSound(0);
-  with FViewer do
-    if (FViewer <> nil) and (vsInitialized in FStatus) then
-    begin
-      SetPosition(GetEndPosition + 1);
+  Viewer := FViewer;
+  if (Viewer <> nil) and (vsInitialized in Viewer.FStatus) then
+  begin
+    Viewer.SetPosition(Viewer.GetEndPosition + 1);
       SetPhase(3);
-    end;
+  end;
 end;
 
 procedure TFastCombatWindow.PauseBtnClick;
@@ -224,13 +386,15 @@ begin
 end;
 
 procedure TFastCombatWindow.SequencePositionSldChange;
+var
+  Viewer: TCombatViewer;
 begin
-  with FViewer do
-    if (FViewer <> nil) and (vsInitialized in FStatus) then
-    begin
-      SetPosition(SequencePositionSld.Position);
+  Viewer := FViewer;
+  if (Viewer <> nil) and (vsInitialized in Viewer.FStatus) then
+  begin
+    Viewer.SetPosition(SequencePositionSld.Position);
       SetPhase(1);
-    end;
+  end;
 end;
 
 procedure TFastCombatWindow.SequenceSpeedSldChange;

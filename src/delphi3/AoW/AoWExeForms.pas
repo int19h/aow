@@ -35,7 +35,7 @@ var
   ConstructDlg: TConstructDlg;
   DisjunctionDlg: TDisjunctionDlg;
 
-procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Boolean);
+procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: TScreenMode);
 procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
 
 
@@ -65,7 +65,7 @@ begin
   Banner.InfoMemo.Items.Text := Description.Text;
 end;
 
-procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Boolean);
+procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: TScreenMode);
 begin
   if FullScreen <> Dialog.FFullScreen then
   begin
@@ -78,7 +78,7 @@ procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
 begin
   Dialog.FDisplayWidth := Width;
   Dialog.FDisplayHeight := Height;
-  if Dialog.FFullScreen = True then Dialog.FModeChanged := True;
+  if Dialog.FFullScreen = scmGame then Dialog.FModeChanged := True;
 end;
 
 end.

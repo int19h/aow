@@ -7,11 +7,10 @@ unit AoWSendEmailGameDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWButton, AoWCheckBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWButton, AoWCheckBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow, AoWSMTPDlg;
 
 type
   TSendEmailGameDlg = class;
-  TIMSSendThread = class;
 
 
   { TSendEmailGameDlg: callback $A0, send event $A8.
@@ -54,16 +53,12 @@ type
     procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
-  { TIMSSendThread (instance size 44, VMT 0044D5D8) }
-  TIMSSendThread = class(TThread)
-  public
-    F_IMSSendThread_28: Byte;
-    F_IMSSendThread_29: array[0..2] of Byte;
-    procedure Execute; override;
-  end;
+  TIMSSendThread = AoWSMTPDlg.TIMSSendThread;
+
 
 
 implementation
+
 
 procedure TSendEmailGameDlg.FinishDialog;
 var
@@ -133,8 +128,6 @@ begin
   if Key = 27 then Dlg.Visible := False;
 end;
 
-procedure TIMSSendThread.Execute;
-begin end;
 
 
 end.
