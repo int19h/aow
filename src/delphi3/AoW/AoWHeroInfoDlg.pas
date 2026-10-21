@@ -52,9 +52,49 @@ type
   end;
 
 
+procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
+
 implementation
 
 uses AoWWinMan, aowIntGfxMod, E3Globals, E2CampaignSupport;
+
+procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
+var
+  Hero: THero;
+begin
+  with Dialog do
+  begin
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Assert(FArmyInfo = nil);
+    FDone := Done;
+    FArmyInfo := Event; FArmyInfo.AddRef;
+    Message.Items.Text := Event.FMessages.Text;
+    Hero := FArmyInfo.FArmyView.Hero(FArmyInfo.FSelection, AllHeroTypes);
+    if Hero <> nil then
+    begin
+      HeroName.Text := Hero.FHeroName;
+      HeroLevel.Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(Hero.GetLevel)]);
+    end
+    else
+    begin
+      HeroName.Text := ''; HeroLevel.Text := '';
+    end;
+    Dlg.Visible := True;
+    FDetailsOpen := False;
+  end;
+end;
 
 procedure THeroInfoDlg.FinishDialog;
 var

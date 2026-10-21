@@ -182,13 +182,10 @@ var
 begin
   if ValidateJoin then
   begin
-    with FaceFrame do
-    begin
-      R.Left := Dlg.WinLeft + WinLeft;
-      R.Right := WinWidth + R.Left;
-      R.Top := WinTop + Dlg.WinTop;
-      R.Bottom := WinHeight + R.Top;
-    end;
+    R.Left := FaceFrame.WinLeft + Dlg.WinLeft;
+    R.Right := FaceFrame.WinWidth + R.Left;
+    R.Top := FaceFrame.WinTop + Dlg.WinTop;
+    R.Bottom := FaceFrame.WinHeight + R.Top;
     if FFaceUnit <> nil then
       if FFaceUnit.GetFace <> nil then FFaceUnit.GetFace.ShowStretched(R, Surface);
   end;

@@ -66,9 +66,15 @@ type
 var
   General: TGeneral;
 
+procedure LoadGame(Controller: TGeneral; Name: string);
+
+procedure LoadCampaign(Controller: TGeneral; Name: string);
+
+procedure StartGame(Controller: TGeneral);
+
 implementation
 
-uses E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow;
+uses aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -503,6 +509,136 @@ begin
   General.HideWindows;
   TBWindow.TaskWindow.Visible := False; TitleWindow.TitleWin.Visible := False;
   TitleScene.ResetScene; ShowTitleScene(TitleScene, True);
+end;
+
+procedure LoadGame(Controller: TGeneral; Name: string);
+begin
+  if AoWHSMap <> nil then AoWEngine.CloseHSM(nil);
+  E1Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
+  E1Globals.ProgressDialog.StatusLbl.Text := '';
+  E1Globals.ProgressDialog.Bar.Position := 0;
+  E1Globals.ProgressDialog.Bar.Max := 100;
+  E1Globals.ProgressDialog.ProgDlg.Visible := True;
+  if not E1Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
+  SongPlayer.Stop(False);
+  SongPlayer.Songs.Clear;
+  FadeMusicVolume(0, 1);
+  AoWEngine.LoadHSM(Name, False, Controller.MapProgress);
+  if AoWEngine.FDemo and (AoWHSMap <> nil) and not AoWHSMap.FShowAllPlayers then ExitToTitle(Controller);
+  General.Manager.OverlayPriority := 0;
+  E1Globals.ProgressDialog.ProgDlg.Visible := False;
+end;
+
+procedure LoadCampaign(Controller: TGeneral; Name: string);
+begin
+  if AoWHSMap <> nil then AoWEngine.CloseHSM(nil);
+  AoWEngine.LoadCampaign(Name);
+  if AoWEngine.FCampaign <> nil then
+    if AoWEngine.FCampaign.FScenarioStarted then
+    begin
+      E1Globals.ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
+      E1Globals.ProgressDialog.StatusLbl.Text := '';
+      E1Globals.ProgressDialog.Bar.Position := 0;
+      E1Globals.ProgressDialog.Bar.Max := 100;
+      E1Globals.ProgressDialog.ProgDlg.Visible := True;
+      if not E1Globals.TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
+      SongPlayer.Stop(False);
+      SongPlayer.Songs.Clear;
+      FadeMusicVolume(0, 1);
+      AoWEngine.LoadCampaignMap(Controller.MapProgress);
+      General.Manager.OverlayPriority := 0;
+      E1Globals.ProgressDialog.ProgDlg.Visible := False;
+    end
+    else
+    begin
+      E1Globals.TitleScene.HideScene;
+      ShowCampaignMap(E1Globals.WorldMap);
+    end;
+end;
+
+procedure StartGame(Controller: TGeneral);
+var
+  I: Integer;
+begin
+  Controller.FWindowsHidden := False;
+  SongPlayer.Songs.Clear;
+  if AoWHSMap.FGameSongs.Songs.Count <> 0 then
+    SongPlayer.Songs.AddStrings(AoWHSMap.FGameSongs.Songs)
+  else
+  begin
+    if AoWHSMap.FStartupSongs.Songs.Count <> 0 then
+    begin
+      for I := 0 to AoWHSMap.FStartupSongs.Songs.Count - 1 do
+        if CompareText(AoWHSMap.FStartupSongs.SongNames[I], TranslateRStr(E1FileNotFoundRStr)) <> 0 then
+          SongPlayer.Songs.Add(AoWHSMap.FStartupSongs.Songs[I]);
+    end
+    else SongPlayer.Songs.Add('Songs\Heartwoo.it');
+  end;
+  SongPlayer.Play(0);
+  SetMusicVolume(AoWExeForms.SoundDlg.MusicVolume.Position);
+  E1Globals.PopupWindows.OverViewsMenu.Items.Clear;
+  E1Globals.PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1BackgroundRStr));
+  if AoWEngine.FCampaign <> nil then E1Globals.PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1CampaignRStr));
+  E1Globals.TitleScene.Window.Visible := False;
+  E3Globals.TitleWindow.TitleWin.Visible := False;
+  AoWExeForms.TBWindow.TaskWindow.Visible := True;
+  E3Globals.MWindow.MapWindow.Visible := True;
+  AoWExeForms.SWindow.ScannerWindow.Visible := True;
+  E3Globals.MWindow.MapViewer.HSMap := AoWHSMap;
+  AoWExeForms.SWindow.Scanner.SetMap(AoWHSMap);
+  AoWExeForms.SWindow.Scanner.SetLevel(AoWHSMap.MapContainer.GetMapLevel(0));
+  AoWExeForms.TBWindow.TurnButton.FButtonChecked := False;
+  AoWExeForms.TBWindow.ChatBtn.Visible := SetupEvents.DPlay.Connected;
+  General.Manager.FAligned := False;
+  with AoWExeForms.SWindow.Scanner do
+  begin
+    FPreviousWidth := 0;
+    FIncremental := False;
+    FSized := False;
+  end;
+  AoWExeForms.SWindow.ScannerTab.Items.Clear;
+  AoWExeForms.SWindow.ScannerTab.Items.Add(TranslateRStr(E1SurfaceRStr));
+  if AoWHSMap.MapContainer.LevelCount > 1 then AoWExeForms.SWindow.ScannerTab.Items.Add(TranslateRStr(E1CavernsRStr));
+  if AoWHSMap.MapContainer.LevelCount > 2 then AoWExeForms.SWindow.ScannerTab.Items.Add(TranslateRStr(E1DepthsRStr));
+  AoWExeForms.SWindow.ScannerTab.Selected := 0;
+  AoWExeForms.SWindow.ScannerTab.FSized := False;
+  AoWExeForms.SWindow.Scanner.SetTWidth(0);
+  AoWExeForms.SWindow.Scanner.SetTHeight(0);
+  AoWExeForms.SWindow.Scanner.SetTLeft(-1);
+  AoWExeForms.SWindow.Scanner.SetTTop(-1);
+  AoWExeForms.SWindow.Scanner.FUpdateStep := -1;
+  AoWExeForms.SWindow.Scanner.SetMap(AoWHSMap);
+  AoWExeForms.SWindow.Scanner.SetLevel(AoWHSMap.MapContainer.GetMapLevel(0));
+  E3Globals.MWindow.MapViewer.HSMap := AoWHSMap;
+  E3Globals.MWindow.MapViewer.SceneWidth := E3Globals.MWindow.MapWindow.WinWidth - 24;
+  E3Globals.MWindow.MapViewer.SceneHeight := E3Globals.MWindow.MapWindow.WinHeight - 24;
+  AoWHSMap.Activate;
+  AoWExeForms.UnitWindow.UnitWin.Visible := False;
+  E1Globals.MapEvents.TheMapArmyDeselected;
+  E1Globals.MapEvents.TheMapStructureDeselected;
+  AoWExeForms.TBWindow.CurPUpdate;
+  AoWExeForms.PInfoW.UpdatePlayer;
+  if msActivated in AoWHSMap.Status then
+    with AoWExeForms.TBWindow.TurnButton do
+      if AoWHSMap.FSeatedPlayer <> -1 then
+      begin
+        FLastPlayer := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerRace;
+        if FLastPlayer = -1 then FLastPlayer := 12;
+        FCurPlayer := FLastPlayer;
+        FAnimationFrame := FCurPlayer * 7;
+        AoWExeForms.TBWindow.CurP.Visible := AoWHSMap.FPlayMode = pmTurn;
+      end
+      else
+      begin
+        FCurPlayer := 12;
+        FLastPlayer := FCurPlayer;
+        FAnimationFrame := FCurPlayer * 7;
+        AoWExeForms.TBWindow.CurP.Visible := False;
+      end;
+  AoWExeForms.TBWindow.FWorldClockDelay := 0;
+  AoWExeForms.TBWindow.ChatBtn.ILIndexUp := 14;
+  AoWExeForms.TBWindow.FChatFlash := 0;
+  SetVideoSize(AoWExeForms.VideoDialog, AoWExeForms.VideoDialog.FDisplayWidth, AoWExeForms.VideoDialog.FDisplayHeight);
 end;
 
 end.

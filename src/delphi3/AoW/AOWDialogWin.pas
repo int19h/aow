@@ -75,6 +75,7 @@ var Reason: string; Structure: TStructure;
 begin
   General.PlayButtonSound(0);
   case FAction of
+    0, 1: ;
     2: General.FCity.Loot;
     3:
       if General.FCity.CanRaze(AoWHSMap.FSeatedPlayer, Reason) then

@@ -137,15 +137,15 @@ begin
         AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[3].Play(0)
       else
         AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Event.FArmyView.GetUnit(FUnits[Index]).GetUnitGFXResourceIndex).FSFXLibraries[4].Play(0);
-    if Frame < 6 then
-      ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints,
-        Event.FArmyView.GetUnit(FUnits[Index]).GetHits))
-    else
+    if Frame > 5 then
     begin
       ShowDamageIcon(X, Y + 8, SD, Event.FDamageValues[FUnits[Index]], TDamageType(Event.FDamageTypes[FUnits[Index]]));
       ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Byte(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints - Event.FDamageValues[FUnits[Index]]),
         Event.FArmyView.GetUnit(FUnits[Index]).GetHits));
-    end;
+    end
+    else
+      ShowHitPcnt(X, Y, SD, HitPointsToHitPcnt(Event.FArmyView.GetUnit(FUnits[Index]).GetHitPoints,
+        Event.FArmyView.GetUnit(FUnits[Index]).GetHits));
   end
   else Event.FArmyView.GetUnit(FUnits[Index]).Show(X, Y, SD);
 end;

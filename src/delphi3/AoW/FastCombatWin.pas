@@ -191,12 +191,15 @@ begin
   if HasWall(4, 3) then AoWHSSet.FCombatImages[Image + 1].Show(X + 372, Y + 342, Surface);
 
   with FViewer.FCombat.FCombatData do
-    if (FWallType <> 0) and (FWall <> nil) then
+    if FWallType <> 0 then
     begin
       Wall := FWall;
+      if Wall <> nil then
+      begin
       if HasWall(0, 4) then
         ShowHitPcnt(X + 250, Y + 332 - 45, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits))
       else ShowHitPcnt(X + 250, Y + 218 - 45, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits));
+      end;
     end;
 end;
 

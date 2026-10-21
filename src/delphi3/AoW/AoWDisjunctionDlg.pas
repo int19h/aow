@@ -152,7 +152,7 @@ var
   X, Y: Integer;
 begin
   R := Rect(Dlg.WinLeft + Sender.WinLeft + 1, Dlg.WinTop + Sender.WinTop + 1,
-    Dlg.WinLeft + Sender.WinWidth + Sender.WinLeft - 2, Dlg.WinTop + Sender.WinHeight + Sender.WinTop - 2);
+    Dlg.WinLeft + Sender.WinLeft + Sender.WinWidth - 2, Dlg.WinTop + Sender.WinTop + Sender.WinHeight - 2);
   HXtoHP(FMapX, FMapY, X, Y);
   X := X + 16 - ((R.Right - R.Left) shr 1);
   Y := Y + 16 - ((R.Bottom - R.Top) shr 1);

@@ -13,7 +13,7 @@ uses Classes, Windows, AoWScenSetup, aowIntGfxMod, AoWMessageDlg, AoWInfoBanner,
 var
   ScenSetup: TScenSetup;
   IntGfxMod: TIntGfxMod;
-  MessageDlg: TMessageDlg;
+  MessageDlg: TMessageDlg absolute AoWMessageDlg.MessageDlg;
   InfoBanner: TInfoBanner;
   SoundDlg: TSoundDlg;
   VideoDialog: TVideoDialog;
@@ -25,7 +25,7 @@ var
   MagicWin: TMagicWin;
   ControlWin: TControlWin absolute AOWControlWin.ControlWin; { $45B054; 00404F58 }
   TBWindow: TTBWindow;
-  IWindow: TIWindow;
+  IWindow: TIWindow absolute AoWInfoWin.IWindow;
   SpellBook: TSpellBook;
   ChatWindow: TChatWindow;
   { MWindow is declared in AOWMWindow. }

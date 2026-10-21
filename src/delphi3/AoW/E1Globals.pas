@@ -11,7 +11,7 @@ var
   TitleScene: TTitleScene;
   IntroScene: TIntroScene;
   ProgressDialog: TProgressDialog;
-  SelFactionWin: TSelFactionWin;
+  SelFactionWin: TSelFactionWin absolute AoWSelFactionWin.SelFactionWin;
   WorldMap: TWorldMap;
   RelWindow: TRelWindow;
   PopupWindows: TPopupWindows;

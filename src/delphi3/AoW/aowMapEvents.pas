@@ -5,6 +5,7 @@ unit aowMapEvents;
 
 interface
 
+
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, MapCtrl, AoWE, EventLog, City, WizardsTower, Arena, FlagEvents, Dungeon, ItemExpS,
   AoWArmyEventDlg, AoWCityRebelDlg, AoWMsgReceiveDlg, AoWTutorialWin, AoWArmyInfoDlg, AoWWizardsTowerDlg, AoWArenaDlg, FastCombatWin, AoWPartyJoin, AoWHeroJoinDlg, AoWHeroInfoDlg, AoWHeroUpgradeDlg, AoWMessageDlg, AoWFileDialog, AoWPasswordDlg, AoWMagic, AoWRelations, AoWCastUnitSpellDlg, AoWTargetSelection, AoWCityJoinDlg, AoWItemsFoundDlg;
@@ -75,7 +76,6 @@ procedure ShowPrisonersJoin(Dialog: TPartyJoinDlg; Event: TPrisonersJoinEventLog
 procedure ShowHeroJoin(Dialog: THeroJoinDlg; Event: THeroJoinEventLog; Done: TExecuteDoneEvent);
 procedure ShowHeroNegotiation(Dialog: THeroJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
 procedure ShowPrisonerHero(Dialog: THeroJoinDlg; Event: TPrisonersJoinEventLog; Done: TExecuteDoneEvent);
-procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
 procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Completed: TExecuteDoneEvent);
 procedure ShowMessageEvent(Dialog: TMessageDlg; Event: TMessageEventLog; Done: TExecuteDoneEvent);
 procedure ShowSaveGameEvent(Dialog: TFileDlgWindow; Event: TSaveGameEventLog; Done: TExecuteDoneEvent);
@@ -88,7 +88,7 @@ var
 
 implementation
 
-uses E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells, E3EventDialogs, E3StructureInfo, AoWNewTurnDialog, AoWSendEmailGameDlg, AoWSMTPDlg, TCFCDlg, AoWPInfoWin, aowHelpWin, AoWUnitWindow;
+uses AoWInfoWin, E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells, E3EventDialogs, E3StructureInfo, AoWNewTurnDialog, AoWSendEmailGameDlg, AoWSMTPDlg, TCFCDlg, AoWPInfoWin, aowHelpWin, AoWUnitWindow;
 
 procedure TMapEvents.TheMapActivateAbility(Request: TActivateAbilityInfo);
 begin
@@ -619,15 +619,7 @@ begin
     FEvent := Event;
     FEvent.AddRef;
     Tower := FEvent.FTower;
-    if Tower.FSpellID = 0 then
-    begin
-      PriceLbl.Text := '';
-      SpellName.Text := TranslateRStr(NoneRStr);
-      SpellClass.Text := '';
-      SpellCost.Text := '';
-      ResearchMemo.Items.Text := '';
-    end
-    else
+    if Tower.FSpellID <> 0 then
     begin
       PriceLbl.Text := AoWE.Format(TranslateRStr(ForXGoldRStr), [IntToStr(FEvent.FTower.BuyCost)]) + '.';
       Spell := AoWHSSet.FSpellControl.GetSpell(Tower.FSpellID);
@@ -636,6 +628,14 @@ begin
         TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
       SpellCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(Spell.FBaseManaCost) + ' ' + TranslateRStr(ManaRStr);
       ResearchMemo.Items.Text := Spell.FSpellText.Text;
+    end
+    else
+    begin
+      PriceLbl.Text := '';
+      SpellName.Text := TranslateRStr(NoneRStr);
+      SpellClass.Text := '';
+      SpellCost.Text := '';
+      ResearchMemo.Items.Text := '';
     end;
     Dlg.Visible := True;
   end;
@@ -761,30 +761,30 @@ begin
   end;
 end;
 
-procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
-var
-  Hero: THero;
-begin
-  with Dialog do
-  begin
-    Assert(FArmyInfo = nil);
-    FDone := Done;
-    FArmyInfo := Event; FArmyInfo.AddRef;
-    Message.Items.Text := Event.FMessages.Text;
-    Hero := FArmyInfo.FArmyView.Hero(FArmyInfo.FSelection, AllHeroTypes);
-    if Hero <> nil then
-    begin
-      HeroName.Text := Hero.FHeroName;
-      HeroLevel.Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(Hero.GetLevel)]);
-    end
-    else
-    begin
-      HeroName.Text := ''; HeroLevel.Text := '';
-    end;
-    Dlg.Visible := True;
-    FDetailsOpen := False;
-  end;
-end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Completed: TExecuteDoneEvent);
 begin
@@ -798,11 +798,11 @@ begin
       RefreshAbilities;
       UnitName.Text := FHero.FHeroName;
       LevelLbl.Text := TranslateRStr(LevelRStr) + ' ' + IntToStr(FHero.GetLevel);
-      if FReferencedHero.FNewLevel - FReferencedHero.FOldLevel < 2 then
-        HeaderLbl.Text := AoWE.Format(TranslateRStr(XMadeALevelRStr), [FHero.FHeroName]) + '!'
-      else
+      if FReferencedHero.FNewLevel - FReferencedHero.FOldLevel > 1 then
         HeaderLbl.Text := AoWE.Format(TranslateRStr(XMadeYLevelsRStr),
-          [FHero.FHeroName, FReferencedHero.FNewLevel - FReferencedHero.FOldLevel]) + '!';
+          [FHero.FHeroName, FReferencedHero.FNewLevel - FReferencedHero.FOldLevel]) + '!'
+      else
+        HeaderLbl.Text := AoWE.Format(TranslateRStr(XMadeALevelRStr), [FHero.FHeroName]) + '!';
       Dlg.Visible := True;
     end;
   end;

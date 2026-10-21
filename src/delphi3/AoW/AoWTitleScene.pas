@@ -61,7 +61,7 @@ type
 
 implementation
 
-uses AoWUnit, E1Globals, E1GameFlow, AoWWinMan, AoWExeForms, E3Globals, AoWFileDialog, AoWVideoDlg;
+uses AoWMessageDlg, AoWSelFactionWin, AoWUnit, E1Globals, E1GameFlow, AoWWinMan, AoWExeForms, E3Globals, AoWFileDialog, AoWVideoDlg;
 
 
 resourcestring

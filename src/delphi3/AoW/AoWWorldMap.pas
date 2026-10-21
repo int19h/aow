@@ -6,7 +6,7 @@ unit AoWWorldMap;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWVideoDlg, AoWComp, AoWBookWindow, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWVideoDlg, AoWComp, AoWBookWindow, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWVScroll, AoWTargetSelection;
 
 type
   TWorldMap = class;
@@ -134,6 +134,8 @@ type
 
 
 function GetCampaignPage(Pages: TWMCampaignScenarioPageList; Index: Integer): TWMCampaignScenarioPage;
+
+var TargetSelectionDlg: TTargetSelectionDlg;
 
 implementation
 
@@ -322,7 +324,7 @@ begin
         if GetCampaignScenario(GetCampaign, GetCampaign.FNextScenarioID).FFileName <> '' then
         begin
           Inc(GetCampaign.FState);
-          GetCampaign.StartScenario(GetCampaign.FNextScenarioID, '', nil);
+          GetCampaign.StartScenario(GetCampaign.FNextScenarioID, nil);
           SetCurrentDir(AoWEngine.StartupDirectory + 'Scenario\Campaign\');
           LoadGame(General, GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FFileName);
           TitleWindow.TitlePnl.Visible := True;

@@ -11195,7 +11195,7 @@ begin FNextScenarioID := ID; end;
 procedure TAoWCampaign.ResetNextScenario;
 begin FNextScenarioID := -1; end;
 
-procedure TAoWCampaign.StartScenario(ID: Integer; const FileName: string; Progress: TProgressEvent);
+procedure TAoWCampaign.StartScenario(ID: Integer; Progress: TProgressEvent);
 begin
   FStream.Clear;
   FNextScenarioID := -1;

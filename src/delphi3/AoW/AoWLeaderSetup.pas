@@ -1052,7 +1052,7 @@ var
   I: Integer;
 begin
   Reset;
-  with FSetup do if Self.FSetup <> nil then Release;
+  if FSetup <> nil then FSetup.Release;
   FSetup := Control;
   FSetup.AddRef;
   FSelectedSort := 0;

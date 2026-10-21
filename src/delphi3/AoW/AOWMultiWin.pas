@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, AoWScenSetup, ShellAPI, AoWPOP3Dlg;
+uses AoWMessageDlg, AoWSelFactionWin, E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, AoWScenSetup, ShellAPI, AoWPOP3Dlg;
 
 var
   SessionRefreshDelay: Integer; { $45B170 }

@@ -57,7 +57,13 @@ type
   end;
 
 
+procedure ShowDemoMessage;
+
+var MessageDlg: TMessageDlg;
+
 implementation
+
+uses AoWE, AoWExeForms;
 
 procedure TMessageDlg.FinishDialog;
 var
@@ -106,5 +112,14 @@ begin
   if FEvent.Cancel then Dlg.Visible := False;
 end;
 
+
+procedure ShowDemoMessage;
+begin
+  ResetMessageDialog(MessageDlg);
+  MessageDlg.MessageMemo.Items.Add('');
+  MessageDlg.MessageMemo.Items.Add(TranslateRStr(DemoVersionMessageRStr));
+  MessageDlg.OKPnl.Visible := True;
+  MessageDlg.Dlg.Visible := True;
+end;
 
 end.

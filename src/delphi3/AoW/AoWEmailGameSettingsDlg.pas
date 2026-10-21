@@ -78,12 +78,9 @@ type
   end;
 
 
-var
-  EmailSettingsAccepted: Boolean;
-
 implementation
 
-uses E3Globals, AoWExeForms;
+uses E3Globals, AoWExeForms, AoWUnit;
 
 procedure TEmailGameSettingsDlg.EmailGameSettingsDlgCreate;
 begin
@@ -122,7 +119,7 @@ begin
       FSetupControl.FSettings.GetSettings(Index).FEmailAddress := FEmailAddresses[I];
     end;
     FSetupControl.FSettings.FEmailGameName := EmailGameNameEdit.Text;
-    EmailSettingsAccepted := True;
+    AoWUnit.DeferredSetupAction := 1;
     Dlg.Visible := False;
     end;
   end

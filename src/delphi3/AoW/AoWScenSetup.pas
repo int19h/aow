@@ -241,7 +241,7 @@ type
     procedure ExplorationChange(Sender: TObject);
     procedure AlwaysViewTCCBChange;
     procedure SettingsClick;
-    procedure RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
     procedure ChatSBUpdate;
     procedure TacticalCombatCBChange;
     procedure UpdateTurnTime;
@@ -252,7 +252,7 @@ type
 
 implementation
 
-uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms, AoWFileDialog, E2GameFlow;
+uses AoWUnit, E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms, AoWFileDialog, E2GameFlow;
 
 procedure TScenSetup.ExitGameClick(Sender: TObject);
 { conflict: procedure TScenSetup.ExitGameClick; }
@@ -372,7 +372,7 @@ begin
   General.PlayButtonSound(0);
   if FSetupControl.FSettings.FConnectionType = 2 then
     EmailGameSettingsDlg.Execute(FSetupControl)
-  else EmailSettingsAccepted := True;
+  else AoWUnit.DeferredSetupAction := 1;
 end;
 
 procedure TScenSetup.EjectBtnClick;
@@ -475,9 +475,9 @@ begin
   General.PlayButtonSound(0);
 end;
 
-procedure TScenSetup.RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+procedure TScenSetup.RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
 begin
-  IntGfxMod.Shields[Sender.Tag].Show(Sender.WinLeft + 5, Sender.WinTop + 5, SD);
+  with TAOWImage(Sender) do IntGfxMod.Shields[Tag].Show(WinLeft + 5, WinTop + 5, SD);
 end;
 
 procedure TScenSetup.ChatSBUpdate;

@@ -75,8 +75,8 @@ var
   Reason: string;
 begin
   General.PlayButtonSound(0);
-  if FEvent.FTower.Buy(AoWHSMap.FSeatedPlayer, Reason) then Dlg.Visible := False
-  else AoWHSMap.ShowWarning(Reason);
+  if not FEvent.FTower.Buy(AoWHSMap.FSeatedPlayer, Reason) then AoWHSMap.ShowWarning(Reason)
+  else Dlg.Visible := False;
 end;
 
 procedure TWizardsTowerDlg.DlgHide;

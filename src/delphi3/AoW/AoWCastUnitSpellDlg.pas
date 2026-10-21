@@ -64,7 +64,7 @@ type
     procedure CastButClick;  { draft }
     procedure U1Change(Sender: TAOWCheckBox);
     procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure U1PreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure U1Draw;  { draft }
     procedure SpellFrPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
     procedure DlgHide;  { draft }
@@ -180,9 +180,9 @@ begin
     end;
 end;
 
-procedure TCastUnitSpellDlg.U1PreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+procedure TCastUnitSpellDlg.U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
 begin
-  with Sender do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, Surface);
+  with TAOWImage(Sender) do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, Surface);
 end;
 
 procedure TCastUnitSpellDlg.U1Draw;

@@ -16,12 +16,9 @@ procedure ExitToTitle(Controller: TGeneral);
 procedure SaveGame(Controller: TGeneral; Name: string);
 procedure SaveCampaign(Controller: TGeneral; Name: string);
 procedure PickScenarioMap(Dialog: TScenSetup; Name: string);
-procedure LoadGame(Controller: TGeneral; Name: string);
-procedure LoadCampaign(Controller: TGeneral; Name: string);
-procedure StartGame(Controller: TGeneral);
+
 procedure ShowMultiplayer(Dialog: TMultiWindow; const Name: string);
 procedure ShowCampaignMap(Dialog: TWorldMap);
-procedure ShowFactionSelection(Dialog: TSelFactionWin);
 
 implementation
 
@@ -118,136 +115,6 @@ begin
 end;
 
 
-procedure LoadGame(Controller: TGeneral; Name: string);
-begin
-  if AoWHSMap <> nil then AoWEngine.CloseHSM(nil);
-  ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
-  ProgressDialog.StatusLbl.Text := '';
-  ProgressDialog.Bar.Position := 0;
-  ProgressDialog.Bar.Max := 100;
-  ProgressDialog.ProgDlg.Visible := True;
-  if not TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
-  SongPlayer.Stop(False);
-  SongPlayer.Songs.Clear;
-  FadeMusicVolume(0, 1);
-  AoWEngine.LoadHSM(Name, False, Controller.MapProgress);
-  if AoWEngine.FDemo and (AoWHSMap <> nil) and not AoWHSMap.FShowAllPlayers then ExitToTitle(Controller);
-  General.Manager.OverlayPriority := 0;
-  ProgressDialog.ProgDlg.Visible := False;
-end;
-
-procedure LoadCampaign(Controller: TGeneral; Name: string);
-begin
-  if AoWHSMap <> nil then AoWEngine.CloseHSM(nil);
-  AoWEngine.LoadCampaign(Name);
-  if AoWEngine.FCampaign <> nil then
-    if AoWEngine.FCampaign.FScenarioStarted then
-    begin
-      ProgressDialog.Title.Text := TranslateRStr(E1LoadingRStr) + ' ' + ExtractFileName(Name) + '...';
-      ProgressDialog.StatusLbl.Text := '';
-      ProgressDialog.Bar.Position := 0;
-      ProgressDialog.Bar.Max := 100;
-      ProgressDialog.ProgDlg.Visible := True;
-      if not TitleScene.Window.Visible then General.Manager.OverlayPriority := 5000;
-      SongPlayer.Stop(False);
-      SongPlayer.Songs.Clear;
-      FadeMusicVolume(0, 1);
-      AoWEngine.LoadCampaignMap(Controller.MapProgress);
-      General.Manager.OverlayPriority := 0;
-      ProgressDialog.ProgDlg.Visible := False;
-    end
-    else
-    begin
-      TitleScene.HideScene;
-      ShowCampaignMap(WorldMap);
-    end;
-end;
-
-procedure StartGame(Controller: TGeneral);
-var
-  I: Integer;
-begin
-  Controller.FWindowsHidden := False;
-  SongPlayer.Songs.Clear;
-  if AoWHSMap.FGameSongs.Songs.Count <> 0 then
-    SongPlayer.Songs.AddStrings(AoWHSMap.FGameSongs.Songs)
-  else
-  begin
-    if AoWHSMap.FStartupSongs.Songs.Count <> 0 then
-    begin
-      for I := 0 to AoWHSMap.FStartupSongs.Songs.Count - 1 do
-        if CompareText(AoWHSMap.FStartupSongs.SongNames[I], TranslateRStr(E1FileNotFoundRStr)) <> 0 then
-          SongPlayer.Songs.Add(AoWHSMap.FStartupSongs.Songs[I]);
-    end
-    else SongPlayer.Songs.Add('Songs\Heartwoo.it');
-  end;
-  SongPlayer.Play(0);
-  SetMusicVolume(SoundDlg.MusicVolume.Position);
-  PopupWindows.OverViewsMenu.Items.Clear;
-  PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1BackgroundRStr));
-  if AoWEngine.FCampaign <> nil then PopupWindows.OverViewsMenu.Items.Add(TranslateRStr(E1CampaignRStr));
-  TitleScene.Window.Visible := False;
-  TitleWindow.TitleWin.Visible := False;
-  TBWindow.TaskWindow.Visible := True;
-  MWindow.MapWindow.Visible := True;
-  SWindow.ScannerWindow.Visible := True;
-  MWindow.MapViewer.HSMap := AoWHSMap;
-  SWindow.Scanner.SetMap(AoWHSMap);
-  SWindow.Scanner.SetLevel(AoWHSMap.MapContainer.GetMapLevel(0));
-  TBWindow.TurnButton.FButtonChecked := False;
-  TBWindow.ChatBtn.Visible := SetupEvents.DPlay.Connected;
-  General.Manager.FAligned := False;
-  with SWindow.Scanner do
-  begin
-    FPreviousWidth := 0;
-    FIncremental := False;
-    FSized := False;
-  end;
-  SWindow.ScannerTab.Items.Clear;
-  SWindow.ScannerTab.Items.Add(TranslateRStr(E1SurfaceRStr));
-  if AoWHSMap.MapContainer.LevelCount > 1 then SWindow.ScannerTab.Items.Add(TranslateRStr(E1CavernsRStr));
-  if AoWHSMap.MapContainer.LevelCount > 2 then SWindow.ScannerTab.Items.Add(TranslateRStr(E1DepthsRStr));
-  SWindow.ScannerTab.Selected := 0;
-  SWindow.ScannerTab.FSized := False;
-  SWindow.Scanner.SetTWidth(0);
-  SWindow.Scanner.SetTHeight(0);
-  SWindow.Scanner.SetTLeft(-1);
-  SWindow.Scanner.SetTTop(-1);
-  SWindow.Scanner.FUpdateStep := -1;
-  SWindow.Scanner.SetMap(AoWHSMap);
-  SWindow.Scanner.SetLevel(AoWHSMap.MapContainer.GetMapLevel(0));
-  MWindow.MapViewer.HSMap := AoWHSMap;
-  MWindow.MapViewer.SceneWidth := MWindow.MapWindow.WinWidth - 24;
-  MWindow.MapViewer.SceneHeight := MWindow.MapWindow.WinHeight - 24;
-  AoWHSMap.Activate;
-  UnitWindow.UnitWin.Visible := False;
-  MapEvents.TheMapArmyDeselected;
-  MapEvents.TheMapStructureDeselected;
-  TBWindow.CurPUpdate;
-  PInfoW.UpdatePlayer;
-  if msActivated in AoWHSMap.Status then
-    with TBWindow.TurnButton do
-      if AoWHSMap.FSeatedPlayer = -1 then
-      begin
-        FCurPlayer := 12;
-        FLastPlayer := 12;
-        FAnimationFrame := FCurPlayer * 7;
-        TBWindow.CurP.Visible := False;
-      end
-      else
-      begin
-        FLastPlayer := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerRace;
-        if FLastPlayer = -1 then FLastPlayer := 12;
-        FCurPlayer := FLastPlayer;
-        FAnimationFrame := FLastPlayer * 7;
-        TBWindow.CurP.Visible := AoWHSMap.FPlayMode = pmTurn;
-      end;
-  TBWindow.FWorldClockDelay := 0;
-  TBWindow.ChatBtn.ILIndexUp := 14;
-  TBWindow.FChatFlash := 0;
-  SetVideoSize(VideoDialog, VideoDialog.FDisplayWidth, VideoDialog.FDisplayHeight);
-end;
-
 procedure ShowMultiplayer(Dialog: TMultiWindow; const Name: string);
 var
   I: Integer;
@@ -306,27 +173,6 @@ begin
   Dialog.PPawn.CurrentImage := Dialog.GetCampaign.FFaction + 7;
   Dialog.EPawn.CurrentImage := 8 - Dialog.GetCampaign.FFaction;
   Dialog.UpdateCampaignState;
-end;
-
-procedure ShowFactionSelection(Dialog: TSelFactionWin);
-begin
-  TitleWindow.TitleWin.Visible := True;
-  Dialog.FactionPnl.Visible := True;
-  Dialog.TopLbl.Visible := True;
-  Dialog.TopLbl.Text := TranslateRStr(E1FactionRStr);
-  Dialog.LName.Visible := False;
-  Dialog.LText.Visible := False;
-  Dialog.LBack.Visible := False;
-  Dialog.LStart.Visible := False;
-  Dialog.LSphere.Visible := False;
-  Dialog.DName.Visible := False;
-  Dialog.DText.Visible := False;
-  Dialog.DBack.Visible := False;
-  Dialog.DStart.Visible := False;
-  Dialog.DSphere.Visible := False;
-  Dialog.FFade := -1;
-  Dialog.FactionPnl.ILIndexTexture := 0;
-  Dialog.F_SelFactionWin_8C[0] := 0;
 end;
 
 

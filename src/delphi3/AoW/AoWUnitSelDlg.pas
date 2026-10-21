@@ -53,7 +53,7 @@ type
     procedure CloseClick;  { draft }
     procedure SelectBtnClick;  { draft }
     procedure U1Change(Sender: TObject);
-    procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure SourceFacePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure DlgHide;  { draft }
   end;
@@ -141,9 +141,9 @@ begin
   else SelectionInfoLbl.Text := '';
 end;
 
-procedure TUnitSelectionDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+procedure TUnitSelectionDlg.U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
 begin
-  with Sender do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
+  with TAOWImage(Sender) do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
 end;
 
 procedure TUnitSelectionDlg.SourceFacePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);

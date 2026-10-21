@@ -49,7 +49,7 @@ type
     procedure CloseBtnClick;  { draft }
     procedure CloseClick;  { draft }
     procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure DlgHide;  { draft }
     procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -129,13 +129,13 @@ begin
   end;
 end;
 
-procedure TArmyInfoDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+procedure TArmyInfoDlg.U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
 var
   R: TRect;
 begin
-  with Sender do
+  with TAOWImage(Sender) do
   begin
-    R.Left := UnitPnl.WinLeft + WinLeft + 1; R.Right := WinWidth + R.Left;
+    R.Left := WinLeft + UnitPnl.WinLeft + 1; R.Right := WinWidth + R.Left;
     R.Top := WinTop + UnitPnl.WinTop; R.Bottom := WinHeight + R.Top;
     DrawUnit(Tag, R, SD);
   end;

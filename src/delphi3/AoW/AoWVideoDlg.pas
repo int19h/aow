@@ -376,27 +376,20 @@ begin
     DC := MainForm.Display.ActiveDC;
     if DC <> nil then
       case FFullScreen of
+        scmGame: if DC <> MainForm.WinDC then ChangeResolution(FDisplayWidth, FDisplayHeight)
+          else ChangeResolution(0, 0);
+        scmTitle: if DC <> MainForm.WinDC then
+          begin
+            if AoWEngine.FRegistry.GetAllowResolutionSwitches and
+              (MainForm.Display.ActiveDC <> MainForm.WinDC) then
+              ChangeResolution(FSceneWidth, FSceneHeight)
+            else ChangeResolution(FDisplayWidth, FDisplayHeight);
+          end
+          else ChangeResolution(0, 0);
         scmWindowed: ChangeResolution(0, 0);
-        scmGame: if DC = MainForm.WinDC then ChangeResolution(0, 0)
-          else ChangeResolution(FDisplayWidth, FDisplayHeight);
-        scmTitle: if DC = MainForm.WinDC then ChangeResolution(0, 0)
-          else if not AoWEngine.FRegistry.GetAllowResolutionSwitches or
-            (MainForm.Display.ActiveDC = MainForm.WinDC) then
-            ChangeResolution(FDisplayWidth, FDisplayHeight)
-          else ChangeResolution(FSceneWidth, FSceneHeight);
       end
     else
       case FFullScreen of
-        scmGame:
-          begin
-            with MainForm.DXDC do
-            begin
-              DisplayWidth := Self.FDisplayWidth;
-              DisplayHeight := Self.FDisplayHeight;
-            end;
-            MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
-            MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
-          end;
         scmTitle:
           if AoWEngine.FRegistry.GetAllowResolutionSwitches then
           begin
@@ -404,9 +397,19 @@ begin
             begin
               DisplayWidth := FSceneWidth;
               DisplayHeight := FSceneHeight;
+              MainForm.Display.BackSurfaceWidth := DisplayWidth;
+              MainForm.Display.BackSurfaceHeight := DisplayHeight;
             end;
-            MainForm.Display.BackSurfaceWidth := MainForm.DXDC.DisplayWidth;
-            MainForm.Display.BackSurfaceHeight := MainForm.DXDC.DisplayHeight;
+          end;
+        scmGame:
+          begin
+            with MainForm.DXDC do
+            begin
+              DisplayWidth := Self.FDisplayWidth;
+              DisplayHeight := Self.FDisplayHeight;
+              MainForm.Display.BackSurfaceWidth := DisplayWidth;
+              MainForm.Display.BackSurfaceHeight := DisplayHeight;
+            end;
           end;
       end;
     FModeChanged := False;

@@ -54,9 +54,11 @@ type
 var
   SelFactionWin: TSelFactionWin;
 
+procedure ShowFactionSelection(Dialog: TSelFactionWin);
+
 implementation
 
-uses AoWE, AoWExeForms, AoWWinMan, E2Globals, E2GameFlow;
+uses E1Resources, AoWE, AoWExeForms, AoWWinMan, E2Globals, E2GameFlow;
 
 procedure TSelFactionWin.CloseSelection;
 begin
@@ -209,5 +211,27 @@ procedure TSelFactionWin.FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift
 begin
   case Key of VK_ESCAPE: CloseSelection; end;
 end;
+
+procedure ShowFactionSelection(Dialog: TSelFactionWin);
+begin
+  TitleWindow.TitleWin.Visible := True;
+  SelFactionWin.FactionPnl.Visible := True;
+  Dialog.TopLbl.Visible := True;
+  Dialog.TopLbl.Text := TranslateRStr(E1FactionRStr);
+  Dialog.LName.Visible := False;
+  Dialog.LText.Visible := False;
+  Dialog.LBack.Visible := False;
+  Dialog.LStart.Visible := False;
+  Dialog.LSphere.Visible := False;
+  Dialog.DName.Visible := False;
+  Dialog.DText.Visible := False;
+  Dialog.DBack.Visible := False;
+  Dialog.DStart.Visible := False;
+  Dialog.DSphere.Visible := False;
+  Dialog.FFade := -1;
+  Dialog.FactionPnl.ILIndexTexture := 0;
+  Dialog.F_SelFactionWin_8C[0] := 0;
+end;
+
 
 end.

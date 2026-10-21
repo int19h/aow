@@ -51,7 +51,7 @@ type
     procedure CloseClick;  { draft }
     procedure SelectBtnClick;  { draft }
     procedure U1Change(Sender: TObject);
-    procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure DlgHide;  { draft }
     procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
     procedure MapViewUpdate;  { draft }
@@ -107,15 +107,17 @@ var
   Info: TP2UnitShowInfo;
   Img: TLibraryImage;
   U: TAbstractUnit;
+  Alignment: AoWE.TAlignment;
 begin
   if Index < FEvent.GetCount then
   begin
     U := FEvent.GetUnit(Index);
     SaveRect := SD.ClipRect;
     SD.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
-    if Ord(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
+    Alignment := U.GetAlignment;
+    if Byte(Alignment) < IntGfxMod.UnitBGs.Count then
     begin
-      Img := IntGfxMod.UnitBGs[Ord(U.GetAlignment)];
+      Img := IntGfxMod.UnitBGs[Integer(Alignment)];
       Img.ShowClipped(X + 25 - Img.Width div 2, Y + 30 - Img.Height div 2, SD);
     end;
     FillChar(Info, SizeOf(Info), 0);
@@ -191,9 +193,9 @@ begin
   else SelectionInfoLbl.Text := '';
 end;
 
-procedure TArenaDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+procedure TArenaDlg.U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
 begin
-  with Sender do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
+  with TAOWImage(Sender) do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
 end;
 
 procedure TArenaDlg.DlgHide;
@@ -208,7 +210,7 @@ var
   X, Y: Integer;
 begin
   R := Rect(Dlg.WinLeft + Sender.WinLeft, Dlg.WinTop + Sender.WinTop,
-    Dlg.WinLeft + Sender.WinWidth + Sender.WinLeft, Dlg.WinTop + Sender.WinHeight + Sender.WinTop);
+    Dlg.WinLeft + Sender.WinLeft + Sender.WinWidth, Dlg.WinTop + Sender.WinTop + Sender.WinHeight);
   HXtoHP(FEvent.FArena.GetXhx, FEvent.FArena.GetYhx, X, Y);
   X := X + 16 - ((R.Right - R.Left) shr 1);
   Y := Y + 16 - ((R.Bottom - R.Top) shr 1);

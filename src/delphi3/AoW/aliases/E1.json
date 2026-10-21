@@ -61,7 +61,7 @@
   "FUN_0041fa60": "TFileDlgWindow.LoadSelectedGame",
   "FUN_00454b70": "LoadGame<LoadCampaign",
   "FUN_00454940": "LoadCampaign",
-  "FUN_00454d2c": "StartGame<ShowMultiplayer",
+  "FUN_00454d2c": "StartGame<AoWWinMan",
   "FUN_0042abf0": "ShowMultiplayer<ShowCampaignMap",
   "FUN_0041de44": "ShowCampaignMap",
   "FUN_00419158": "ShowFactionSelection",

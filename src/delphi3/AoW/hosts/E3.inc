@@ -100,7 +100,7 @@
   Use(nil, @aowMapEvents.ShowHeroJoin);
   Use(nil, @aowMapEvents.ShowHeroNegotiation);
   Use(nil, @aowMapEvents.ShowPrisonerHero);
-  Use(nil, @aowMapEvents.ShowHeroInfo);
+  Use(nil, @AoWHeroInfoDlg.ShowHeroInfo);
   Use(nil, @aowMapEvents.ShowHeroUpgrade);
   Use(nil, @aowMapEvents.ShowMessageEvent);
   Use(nil, @aowMapEvents.ShowSaveGameEvent);

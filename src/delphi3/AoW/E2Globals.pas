@@ -2,7 +2,7 @@ unit E2Globals;
 
 { Form references and resource strings accessed by executable E2 routines. }
 interface
-uses AoWTutorialWin, AoWUnit, AoWCampaignJoin, AoWProgressDialog, AoWSyncDlg, AoWWindow, AoWLabel, AOWGauge, AoWTitleScene, AOWTitleWindow,
+uses AoWWorldMap, AoWTutorialWin, AoWUnit, AoWCampaignJoin, AoWProgressDialog, AoWSyncDlg, AoWWindow, AoWLabel, AOWGauge, AoWTitleScene, AOWTitleWindow,
   AoWCampaignTransferDlg, AoWTargetSelection, AoWLeaderSetup, AoWFileDialog, AoWGamePlayDlg,
   AoWPowerDlg, AoWIntroScene, AOWDialogWin, AoWCampaignSettings;
 var
@@ -12,7 +12,7 @@ var
   TutorialWindow: TTutorialWindow;
   TitleWindow: TTitleWindow;
   CampaignTransferDlg: TCampaignTransferDlg;
-  TargetSelectionDlg: TTargetSelectionDlg;
+  TargetSelectionDlg: TTargetSelectionDlg absolute AoWWorldMap.TargetSelectionDlg;
   LeaderSetupWin: TLeaderSetupWin;
   FileDlgWindow: TFileDlgWindow absolute AoWFileDialog.FileDlgWindow;
   IntroScene: TIntroScene;

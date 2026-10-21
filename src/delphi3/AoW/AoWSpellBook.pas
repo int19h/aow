@@ -323,23 +323,29 @@ begin
 end;
 
 procedure TSpellBook.ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
-var Spell: TSpell;
+var Spell: TSpell; X: Integer;
 begin
   Spell := AoWHSSet.FSpellControl.GetSpell(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID);
   if (Spell = nil) and (FMode = 3) then Spell := AoWHSSet.FSpellControl.GetSpell(FResearchedSpell);
-  if Spell <> nil then with Sender do with FAOWWindow do
-    Spell.FCastImages.Show(10, WinLeft + Sender.WinLeft, WinTop + Sender.WinTop, 0, SD);
+  if Spell <> nil then with Sender do
+  begin
+    X := FAOWWindow.WinLeft;
+    Spell.FCastImages.Show(10, WinLeft + X, FAOWWindow.WinTop + WinTop, 0, SD);
+  end;
 end;
 
 procedure TSpellBook.CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
-var Spell: TSpell;
+var Spell: TSpell; X: Integer;
 begin
   if FHero <> nil then
     if FHero.Casting then
     begin
       Spell := AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID);
-      if Spell <> nil then with Sender do with FAOWWindow do
-        Spell.FCastImages.Show(10, WinLeft + Sender.WinLeft, WinTop + Sender.WinTop, 0, SD);
+      if Spell <> nil then with Sender do
+      begin
+        X := FAOWWindow.WinLeft;
+        Spell.FCastImages.Show(10, WinLeft + X, FAOWWindow.WinTop + WinTop, 0, SD);
+      end;
     end;
 end;
 
@@ -452,6 +458,11 @@ begin
   if ValidateHero then
   begin
     case FMode of
+    2, 3:
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ResearchSpell(Spell.FSpellID) then
+        if (FEvent = nil) or (FEvent.FMode <> pmemStartResearch) then
+        begin FMode := 2; InfoBtnClick(Self); end
+        else Dlg.Visible := False;
     0:
     begin
       if (FHero.GetCastingPoints >= Spell.FBaseManaCost) or
@@ -469,10 +480,6 @@ begin
       if FHero.CastCombatSpell(Spell.FSpellID, Reason) then Dlg.Visible := False
       else AoWCombatMap.ShowWarning(Reason);
     end;
-    2, 3:
-      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ResearchSpell(Spell.FSpellID) then
-        if (FEvent <> nil) and (FEvent.FMode = pmemStartResearch) then Dlg.Visible := False
-        else begin FMode := 2; InfoBtnClick(Self); end;
     end;
   end
   else Dlg.Visible := False;
@@ -764,9 +771,7 @@ begin
       CurrentPointsLbl.Text := IntToStr(FHero.GetCastingPoints);
       CastingPointsMaxLbl.Text := IntToStr(FHero.GetCastingPointsMax);
       SpellBookLbl.Visible := True; ResearchBookLbl.Visible := False; ResearchPage.Visible := False;
-      if not FHero.Casting then
-      begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end
-      else
+      if FHero.Casting then
       begin
         NoneCastingLbl.Visible := False;
         Spell := AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID);
@@ -784,7 +789,9 @@ begin
           CastingBtn.Visible := False;
           CastingStatus.Text := '(' + FmtTurnsLeftStr(FHero.CastingTurnsLeft) + ')';
         end;
-      end;
+      end
+      else
+      begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
     end;
   end;
 end;

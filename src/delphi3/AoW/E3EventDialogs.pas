@@ -32,7 +32,7 @@ implementation
 uses AoWWinMan, E3Globals, E2Globals, AoWComp, AoWButton, AoWImage;
 procedure InitializeCombatDialog(Dialog: TFastCombatWindow; Logbook: TCombatLogbook);
 var
-  RaceIndex: Integer;
+  RaceIndex, PartyRace: Integer;
   PlayerIndex: Shortint;
   Combat: TCombat;
   Party: TCombatParty;
@@ -61,9 +61,9 @@ begin
       if Party <> nil then
       begin
         PlayerIndex := Combat.FCombatData.FPlayers.GetPlayers(Party.FPlayerIndex).FPlayer;
-        if PlayerIndex = 0 then RaceIndex := 12
-        else RaceIndex := AoWHSMap.FPlayers.GetPlayers(PlayerIndex).FPlayerRace;
-        Image.CurrentImage := RaceIndex + 21;
+        if PlayerIndex <> 0 then PartyRace := AoWHSMap.FPlayers.GetPlayers(PlayerIndex).FPlayerRace
+        else PartyRace := 12;
+        Image.CurrentImage := PartyRace + 21;
         Image.Visible := True;
       end
       else if I <> 7 then Image.Visible := False;
@@ -84,10 +84,10 @@ begin
       end;
     end;
     FViewer.Play;
-    FCWin.Priority := 0;
+    FCWin.FDrawn := False;
     SequencePositionSld.Max := FViewer.GetEndPosition;
     SequenceSpeedSld.Position := 20 - FViewer.FDelay;
-    if FViewer.GetEndPosition = -1 then SetPhase(3) else SetPhase(0);
+    if FViewer.GetEndPosition <> -1 then SetPhase(0) else SetPhase(3);
   end;
 end;
 
@@ -181,7 +181,7 @@ begin
       General.Manager.OverlayPriority := 49;
       if TCchk.Checked then Event.Select(TCombatType(2)) else Event.Select(TCombatType(1));
       if AoWHSMap.FPlayers.GetPlayers(FRequest.FPlayer).FPlayerType = ptHuman then
-      begin CancelBtn.Visible := True; FightBtn.Alignment.AlignWidth := awRight; end
+      begin CancelBtn.Visible := True; FightBtn.Alignment.AlignWidth := awLeft; end
       else
       begin CancelBtn.Visible := False; FightBtn.Alignment.AlignWidth := awCenter; end;
       Dlg.ReAlign;
@@ -668,55 +668,6 @@ begin
       ShowRelations(Event.FAction.FTarget);
       SetAction(Event.FAction);
       case FAction.FActionType of
-        daDeclareWar, daBreakAlliance:
-          if AoWHSMap.FSeatedPlayer = FAction.FSource then
-          begin FinishEvent; ShowPlayerActions(FAction.FTarget); end
-          else if AoWHSMap.FSeatedPlayer = FAction.FTarget then
-          begin
-            HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
-            RNewActionPnl.Visible := False; IncommingInfoPnl.Visible := True;
-            IIMemo.Items.Text := FAction.FMessage.Text;
-            if FAction.FActionType = daDeclareWar then IIIcon.CurrentImage := 9
-            else if FAction.FActionType = daBreakAlliance then IIIcon.CurrentImage := 8;
-          end
-          else begin FinishEvent; ShowPlayerActions(FAction.FSource); end;
-        daOfferPeace, daProposeAlliance, daMakeTribute, daBreakAllianceWithY, daDeclareWarToY:
-          begin
-            RNewActionPnl.Visible := False;
-            if FAction.FReaction = darNone then
-            begin
-              HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
-              RIncomingPnl.Visible := True;
-              MBGoldBribeV.Text := IntToStr(FAction.FGold); MBManaBribeV.Text := IntToStr(FAction.FMana);
-              MMemo.Items.Text := FAction.FMessage.Text;
-              case FAction.FActionType of
-                daOfferPeace: MIcon.CurrentImage := 8;
-                daProposeAlliance: MIcon.CurrentImage := 10;
-                daMakeTribute: MIcon.CurrentImage := 48;
-                daBreakAllianceWithY: MIcon.CurrentImage := 47;
-                daDeclareWarToY: MIcon.CurrentImage := 47;
-              end;
-            end
-            else if (AoWHSMap.FSeatedPlayer = FAction.FSource) and (FAction.FReaction <> TDiplomaticActionReaction(3)) then
-            begin
-              HighlightPlayer(FAction.FTarget); ShowPlayerInformation(FAction.FTarget);
-              RNewActionPnl.Visible := False; IncommingInfoPnl.Visible := True;
-              IIMemo.Items.Text := FAction.FMessage.Text;
-              case FAction.FActionType of
-                daOfferPeace: IIIcon.CurrentImage := 8;
-                daProposeAlliance: IIIcon.CurrentImage := 10;
-                daMakeTribute: IIIcon.CurrentImage := 48;
-                daBreakAllianceWithY: IIIcon.CurrentImage := 47;
-                daDeclareWarToY: IIIcon.CurrentImage := 47;
-              end;
-            end
-            else
-            begin
-              FinishEvent;
-              if FAction.FReaction = TDiplomaticActionReaction(3) then ShowPlayerActions(FAction.FTarget)
-              else ShowPlayerActions(FAction.FSource);
-            end;
-          end;
         daSendMessage:
           begin
             HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
@@ -733,6 +684,55 @@ begin
             RMHeaderLbl.Text := AoWE.Format(TranslateRStr(MessageFromXRStr),
               [AoWHSMap.FPlayers.GetPlayers(FAction.FOtherPlayer).GetName]);
           end;
+        daOfferPeace, daProposeAlliance, daMakeTribute, daBreakAllianceWithY, daDeclareWarToY:
+          begin
+            RNewActionPnl.Visible := False;
+            if FAction.FReaction = darNone then
+            begin
+              HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
+              RIncomingPnl.Visible := True;
+              MBGoldBribeV.Text := IntToStr(FAction.FGold); MBManaBribeV.Text := IntToStr(FAction.FMana);
+              MMemo.Items.Text := FAction.FMessage.Text;
+              case FAction.FActionType of
+                daOfferPeace: MIcon.CurrentImage := 8;
+                daProposeAlliance: MIcon.CurrentImage := 10;
+                daDeclareWarToY: MIcon.CurrentImage := 47;
+                daBreakAllianceWithY: MIcon.CurrentImage := 47;
+                daMakeTribute: MIcon.CurrentImage := 48;
+              end;
+            end
+            else if (AoWHSMap.FSeatedPlayer = FAction.FSource) and (FAction.FReaction <> TDiplomaticActionReaction(3)) then
+            begin
+              HighlightPlayer(FAction.FTarget); ShowPlayerInformation(FAction.FTarget);
+              RNewActionPnl.Visible := False; IncommingInfoPnl.Visible := True;
+              IIMemo.Items.Text := FAction.FMessage.Text;
+              case FAction.FActionType of
+                daOfferPeace: IIIcon.CurrentImage := 8;
+                daProposeAlliance: IIIcon.CurrentImage := 10;
+                daDeclareWarToY: IIIcon.CurrentImage := 47;
+                daBreakAllianceWithY: IIIcon.CurrentImage := 47;
+                daMakeTribute: IIIcon.CurrentImage := 48;
+              end;
+            end
+            else
+            begin
+              FinishEvent;
+              if FAction.FReaction = TDiplomaticActionReaction(3) then ShowPlayerActions(FAction.FTarget)
+              else ShowPlayerActions(FAction.FSource);
+            end;
+          end;
+        daDeclareWar, daBreakAlliance:
+          if AoWHSMap.FSeatedPlayer = FAction.FSource then
+          begin FinishEvent; ShowPlayerActions(FAction.FTarget); end
+          else if AoWHSMap.FSeatedPlayer = FAction.FTarget then
+          begin
+            HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
+            RNewActionPnl.Visible := False; IncommingInfoPnl.Visible := True;
+            IIMemo.Items.Text := FAction.FMessage.Text;
+            if FAction.FActionType = daDeclareWar then IIIcon.CurrentImage := 9
+            else if FAction.FActionType = daBreakAlliance then IIIcon.CurrentImage := 8;
+          end
+          else begin FinishEvent; ShowPlayerActions(FAction.FSource); end;
         daThreatenToAttack:
           begin
             HighlightPlayer(FAction.FSource); ShowPlayerInformation(FAction.FSource);
@@ -762,9 +762,9 @@ begin
       MemoR.Items.Add(AoWE.Format(TranslateRStr(ObjectiveXRStr), [TranslateRStr(ConquerTheMapRStr)]))
     else MemoR.Items.Add(AoWE.Format(TranslateRStr(ObjectiveXRStr), [TranslateRStr(TVictoryConditionRStr[AoWHSMap.FVictoryCondition])]));
     if AoWHSMap.FDayLimit > 0 then MemoR.Items.Add(AoWE.Format(TranslateRStr(DayLimitXRStr), [IntToStr(AoWHSMap.FDayLimit)]));
-    if not AoWHSMap.FAlliedVictory then
-      MemoR.Items.Add(AoWE.Format(TranslateRStr(AlliedVictoryXRStr), [TranslateRStr(DisabledRStr)]))
-    else MemoR.Items.Add(AoWE.Format(TranslateRStr(AlliedVictoryXRStr), [TranslateRStr(EnabledRStr)]));
+    if AoWHSMap.FAlliedVictory then
+      MemoR.Items.Add(AoWE.Format(TranslateRStr(AlliedVictoryXRStr), [TranslateRStr(EnabledRStr)]))
+    else MemoR.Items.Add(AoWE.Format(TranslateRStr(AlliedVictoryXRStr), [TranslateRStr(DisabledRStr)]));
     MemoR.Items.Add(AoWE.Format(TranslateRStr(PlayersOnMapXRStr), [IntToStr(AoWHSMap.FPlayers.GetCount - 1)]));
     MemoR.Items.Add(AoWE.Format(TranslateRStr(MaximumSphereLevelXRStr), [IntToStr(AoWHSMap.FSphereCount)]));
     MemoR.Items.Add(AoWE.Format(TranslateRStr(MaximumPlayerHeroesXRStr), [IntToStr(AoWHSMap.FHeroCountMax)]));
@@ -774,8 +774,8 @@ begin
     else MemoR.Items.Add(AoWE.Format(TranslateRStr(GametypeXRStr), [TranslateRStr(TPlayerConnectionTypeRStr[AoWHSMap.FConnectionType])]));
     MemoR.Items.Add(AoWE.Format(TranslateRStr(TurnModeXRStr), [TranslateRStr(TPlayModeRStr[AoWHSMap.FPlayMode])]));
     PicL.Visible := False; PicR.Visible := False; MemoL.Visible := True;
-    MemoR.Visible := True; Back.Visible := False; Next.Visible := False;
-    BookWin.Visible := False; BookWin.Visible := True;
+    MemoR.Visible := True; Back.Visible := False; Cancel.Visible := False;
+    Next.Visible := False; BookWin.Visible := True;
     if BookWin.FBackSurface <> nil then BookWin.FBackSurface.Cls(BookWin.FMaskColor);
     General.Manager.OverlayPriority := 49;
   end;

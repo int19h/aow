@@ -110,7 +110,7 @@
     function GetAutoSaveFileName(Auto: TCampaignAutoSaveType): string; virtual; { $50 }
     procedure SelectNextScenario(ID: Integer); virtual; { $54 }
     procedure ResetNextScenario; virtual; { $058 }
-    procedure StartScenario(ID: Integer; const FileName: string; Progress: TProgressEvent); virtual; { $5C }
+    procedure StartScenario(ID: Integer; Progress: TProgressEvent); virtual; { $5C }
     procedure SetupScenario; virtual; { $060 }
     procedure FinishScenario; virtual; { $064 }
     procedure RestartScenario; virtual; { $068 }

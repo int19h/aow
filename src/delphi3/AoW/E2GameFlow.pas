@@ -522,12 +522,13 @@ begin
   if AoWHSMap.FGameSongs.Songs.Count <> 0 then
     SongPlayer.Songs.AddStrings(AoWHSMap.FGameSongs.Songs)
   else
-    if AoWHSMap.FStartupSongs.Songs.Count = 0 then
-      SongPlayer.Songs.Add('Songs\Heartwoo.it')
-    else
+    if AoWHSMap.FStartupSongs.Songs.Count <> 0 then
+    begin
       for I := 0 to AoWHSMap.FStartupSongs.Songs.Count - 1 do
         if CompareText(AoWHSMap.FStartupSongs.SongNames[I], TranslateRStr(FileNotFoundRStr)) <> 0 then
           SongPlayer.Songs.Add(AoWHSMap.FStartupSongs.Songs[I]);
+    end
+    else SongPlayer.Songs.Add('Songs\Heartwoo.it');
   SongPlayer.Play(0);
   SetMusicVolume(SoundDlg.MusicVolume.Position);
   TBWindow.StartMenuBar.Items.Clear;
