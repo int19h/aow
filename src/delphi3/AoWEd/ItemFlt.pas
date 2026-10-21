@@ -1,13 +1,13 @@
 unit ItemFlt;
 
-{ Draft declarations of ItemFlt, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ ItemFlt editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, ItemCtrl;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, ItemCtrl, AoWE;
 
 type
   TItemFloater = class;
@@ -20,23 +20,41 @@ type
     ItemControlGrid: TItemControlGrid; { +01DC }
     Translator: TIvTranslator; { +01E0 }
     public
-    procedure FormShow;  { draft }
-    procedure FormHide;  { draft }
-    procedure ItemControlGridDblClick;  { draft }
+    procedure FormShow;
+    procedure FormHide;
+    procedure ItemControlGridDblClick;
   end;
 
 
 var ItemFloater: TItemFloater; { AoWEd 00415D8C }
 implementation
 
+uses EItem;
+
 procedure TItemFloater.FormShow;
-begin end;
+begin
+  ItemControlGrid.SetAoWHSMap(AoWHSMap);
+end;
+
 
 procedure TItemFloater.FormHide;
-begin end;
+begin
+  ItemControlGrid.SetAoWHSMap(nil);
+end;
+
 
 procedure TItemFloater.ItemControlGridDblClick;
-begin end;
+var Item: TItem; Dlg: TItemEditForm;
+begin
+  Item := ItemControlGrid.GetSelectedItem;
+  if Item <> nil then
+  begin
+    Dlg := TItemEditForm.Create(Application);
+    if Item.GetLibraryItem then Dlg.EditLibraryItem(Item) else Dlg.EditItem(Item);
+    Dlg.Free;
+  end;
+end;
+
 
 
 end.

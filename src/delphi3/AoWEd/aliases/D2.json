@@ -82,5 +82,17 @@
   "0042490c:64": "THeroLibraryEditForm.EditHero",
   "0042494c:65": "THeroLibraryEditForm.EditSelectedHero",
   "00424990:241": "THeroLibraryEditForm.UpdateLibraries",
-  "00424a88:285": "THeroLibraryEditForm.SetLibraryIndex"
+  "00424a88:285": "THeroLibraryEditForm.SetLibraryIndex",
+  "0041320c:1037": "TItemEditForm.UpdateControls",
+  "00413740:185": "TItemEditForm.EditLibraryItem",
+  "00413800:269": "TItemEditForm.EditItem",
+  "004203c8:64": "TItemLibraryEditForm.EditItem",
+  "004205d0:285": "TItemLibraryEditForm.SetLibraryIndex",
+  "004206f0:257": "TItemLibraryEditForm.UpdateLibraries",
+  "004209d8:65": "TItemLibraryEditForm.EditSelectedItem",
+  "00411c6c:89": "TFaceSelectionDlg.SetFaceIndex",
+  "THeroResourceEditor.vmt4C": "THeroResourceEditor.EditorClassID",
+  "THeroResourceEditor.vmt50": "THeroResourceEditor.Edit",
+  "004124d4:239": "THeroResourceEditForm.LoadSettings",
+  "004125c4:272": "THeroResourceEditForm.SaveSettings"
 }

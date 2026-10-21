@@ -1,20 +1,21 @@
 unit EHeroRes;
 
-{ Draft declarations of EHeroRes, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EHeroRes editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AlgnmBox, EAUnitRes, RaceBox, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AlgnmBox, EAUnitRes, RaceBox, SpinEdit, AoWE;
 
 type
   THeroResourceEditForm = class;
   THeroResourceEditor = class;
 
 
-  { THeroResourceEditForm (instance size 688, VMT 00411EDC) }
+  { THeroResourceEditForm: size $2B0; $2A0 races, $2A4 hero resource,
+    $2A8 skill caption, $2AC updating. VMT 00411EDC. }
   THeroResourceEditForm = class(TAbstractUnitResourceEditForm)
   public
     published
@@ -53,18 +54,20 @@ type
     FaceDrawPanel: TDrawPanel; { +0298 }
     SelectFaceBtn: TButton; { +029C }
     public
-    F_HeroResourceEditForm_2A0: Integer;
-    F_HeroResourceEditForm_2A4: Integer;
-    F_HeroResourceEditForm_2A8: Integer;
-    F_HeroResourceEditForm_2AC: Byte;
+    FRaces: TRaceList; { $2A0 }
+    FHeroResource: THeroResource; { $2A4 }
+    FPointsCaption: string; { $2A8 }
+    FUpdating: Boolean; { $2AC }
     F_HeroResourceEditForm_2AD: array[0..2] of Byte;
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure AbilityBtnClick;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure LevelPointsChanged;  { draft }
-    procedure SelectFaceBtnClick;  { draft }
-    procedure FaceDrawPanelDraw(A1: Integer; A2: Integer);  { draft }
+    procedure LoadSettings;
+    procedure SaveSettings;
+    procedure FormCreate;
+    procedure FormDestroy;
+    procedure AbilityBtnClick;
+    procedure OKBtnClick;
+    procedure LevelPointsChanged(Sender: TObject);
+    procedure SelectFaceBtnClick;
+    procedure FaceDrawPanelDraw(Sender: TObject; const R: TRect);
   end;
 
   { THeroResourceEditor (instance size 8, VMT 004122F8) }
@@ -77,32 +80,132 @@ type
 
 implementation
 
+uses FaceSel, SelAbDlg;
+
+
+procedure THeroResourceEditForm.LoadSettings;
+begin
+  with FHeroResource do
+  begin
+    FUpdating := True;
+    NameEdit.Text := FName;
+    RaceBox.SetRace(FRace);
+    FRace := RaceBox.FRace;
+    HeroTypeBox.ItemIndex := Ord(FHeroType);
+    AlignmentBox.SetAlignment(FAlignment);
+    FAlignment := AlignmentBox.FAlignment;
+    AttackEdit.Value := FAttack;
+    DefenseEdit.Value := FDefense;
+    ResistanceEdit.Value := FResistance;
+    DamageEdit.Value := FDamage;
+    HitsEdit.Value := FHits;
+    MovesEdit.Value := FMoves;
+    DesignerOnlyBox.Checked := FHidden;
+    FAbilities.ListAbilities(AbilityListBox.Items);
+    FUpdating := False;
+  end;
+end;
+
+procedure THeroResourceEditForm.SaveSettings;
+begin
+  if not FUpdating then
+    with FHeroResource do
+    begin
+      FName := NameEdit.Text;
+      FRace := RaceBox.FRace;
+      FHeroType := THeroType(HeroTypeBox.ItemIndex);
+      FAlignment := AlignmentBox.FAlignment;
+      FAttack := AttackEdit.Value;
+      FDefense := DefenseEdit.Value;
+      FResistance := ResistanceEdit.Value;
+      FDamage := DamageEdit.Value;
+      FHits := HitsEdit.Value;
+      FMoves := MovesEdit.Value;
+      FHidden := DesignerOnlyBox.Checked;
+    end;
+end;
+
 class function THeroResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $20231; end;
+
 
 class procedure THeroResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  THeroResourceEditForm.vmt80(AEngine, TEResource(Obj), Done);
+end;
+
 
 procedure THeroResourceEditForm.FormCreate;
-begin end;
+begin
+  inherited FormCreate(Self);
+  FUpdating := False;
+  FHeroResource := THeroResource(FUnitResource);
+  MainPageControl.ActivePage := GeneralSheet;
+  FRaces := TRaceList.Create(nil);
+  FRaces.Update;
+  RaceBox.SetRaces(FRaces);
+  FPointsCaption := LevelPointsUsed.Caption;
+  LoadSettings;
+end;
+
 
 procedure THeroResourceEditForm.FormDestroy;
-begin end;
+begin
+  FRaces.Free;
+end;
+
 
 procedure THeroResourceEditForm.AbilityBtnClick;
-begin end;
+var Dlg: TAbilitySelectionDlg;
+begin
+  Dlg := TAbilitySelectionDlg.CreateSelection(FHeroResource.FAbilities, Self);
+  if Dlg.ShowModal = mrOK then FHeroResource.FAbilities.Assign(Dlg.FAbilityOwner, AoWEngine);
+  Dlg.Free;
+  FHeroResource.FAbilities.ListAbilities(AbilityListBox.Items);
+  LevelPointsChanged(Self);
+end;
+
 
 procedure THeroResourceEditForm.OKBtnClick;
-begin end;
+begin
+  SaveSettings;
+end;
 
-procedure THeroResourceEditForm.LevelPointsChanged;
-begin end;
+
+procedure THeroResourceEditForm.LevelPointsChanged(Sender: TObject);
+begin
+  SaveSettings;
+  LevelPointsUsed.Caption := ReplaceText(FPointsCaption, '$', IntToStr(FHeroResource.UsedSkillPoints));
+end;
+
 
 procedure THeroResourceEditForm.SelectFaceBtnClick;
-begin end;
+var Dlg: TFaceSelectionDlg; Index: Integer;
+begin
+  Dlg := TFaceSelectionDlg.Create(Self);
+  Dlg.SetFaceIndex(FHeroResource.FFaceIndex);
+  if Dlg.ShowModal = mrOK then
+  begin
+    Index := Dlg.FSelectedIndex;
+    if Index <> -1 then
+    begin
+    FHeroResource.FFaceIndex := Index;
+    FaceDrawPanel.Invalidate;
+    end;
+  end;
+  Dlg.Free;
+end;
 
-procedure THeroResourceEditForm.FaceDrawPanelDraw(A1: Integer; A2: Integer);
-begin end;
+
+procedure THeroResourceEditForm.FaceDrawPanelDraw(Sender: TObject; const R: TRect);
+var DrawRect: TRect;
+begin
+  with FaceDrawPanel do
+    if AoWHSSet.FFaceResources.GetFaceResource(FHeroResource.FFaceIndex) <> nil then
+      BltLibraryImage(Canvas, AoWHSSet.FFaceResources.GetFaceResource(FHeroResource.FFaceIndex).GetCellImage,
+        R, bmStretch, 100, 100, 0, Color, False, DrawRect);
+end;
+
 
 
 end.

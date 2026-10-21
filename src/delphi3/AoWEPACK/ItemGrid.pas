@@ -20,7 +20,7 @@ type
     FIndices: TIntegerList; { +$1E0 }
     FItems: TItemList; { +$1E4 }
     FStream: TMemoryStream; { +$1E8 }
-    FReserved1EC: Byte; { $1EC }
+    FEditable: Boolean; { $1EC; AoWEd 00420664 }
     FShowAvailability: Boolean; { $1ED }
     FSort: Byte; { +$1EE }
     FReserved1EF: Byte; published property SelectionEnabled; public { AoWEd 004164F4 }

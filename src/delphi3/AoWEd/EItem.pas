@@ -1,19 +1,19 @@
 unit EItem;
 
-{ Draft declarations of EItem, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EItem editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Spin, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Spin, SpinEdit, AoWE;
 
 type
   TItemEditForm = class;
 
 
-  { TItemEditForm (instance size 644, VMT 00412D30) }
+  { TItemEditForm: size $284; $27C working item, $280 read-only mode. VMT 00412D30. }
   TItemEditForm = class(TForm)
   public
     published
@@ -58,63 +58,157 @@ type
     SpellComboBox: TComboBox; { +0274 }
     Translator: TIvTranslator; { +0278 }
     public
-    F_ItemEditForm_27C: Integer;
-    F_ItemEditForm_280: array[0..3] of Byte;
-    procedure FormCreate(A1: Integer; A2: Integer);  { draft }
-    procedure FormDestroy;  { draft }
-    procedure EditBtnClick;  { draft }
-    procedure PreviewImagePanelDraw(A1: Integer; A2: Integer);  { draft }
-    procedure ItemTypeBoxChange;  { draft }
-    procedure ItemNameEditChange;  { draft }
-    procedure DefenseChange(A1: Integer);  { draft }
-    procedure ResistanceChange(A1: Integer);  { draft }
-    procedure AttackChange(A1: Integer);  { draft }
-    procedure DamageChange(A1: Integer);  { draft }
-    procedure AvailabilityBoxChange;  { draft }
-    procedure AbilityBtnClick;  { draft }
-    procedure DescriptionEditChange;  { draft }
-    procedure CostEditChange;  { draft }
-    procedure SpellComboBoxChange;  { draft }
+    FItem: TItem; { $27C }
+    FReadOnly: Boolean; { $280 }
+    FReserved281: array[0..2] of Byte;
+    procedure UpdateControls; { draft: Spin value accessor is not recovered }
+    procedure EditLibraryItem(Item: TItem);
+    function EditItem(Item: TItem): Boolean;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy;
+    procedure EditBtnClick; { draft: ItemSel selection constructor is not recovered }
+    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
+    procedure ItemTypeBoxChange;
+    procedure ItemNameEditChange;
+    procedure DefenseChange(Sender: TObject);
+    procedure ResistanceChange(Sender: TObject);
+    procedure AttackChange(Sender: TObject);
+    procedure DamageChange(Sender: TObject);
+    procedure AvailabilityBoxChange;
+    procedure AbilityBtnClick;
+    procedure DescriptionEditChange;
+    procedure CostEditChange; { draft: Spin value accessor is not recovered }
+    procedure SpellComboBoxChange;
   end;
 
 
 implementation
 
-procedure TItemEditForm.FormCreate(A1: Integer; A2: Integer);
-begin end;
+uses MDIForm, SelAbDlg;
+
+procedure TItemEditForm.UpdateControls;
+begin
+end;
+
+procedure TItemEditForm.EditLibraryItem(Item: TItem);
+begin
+  if FItem <> nil then FItem.Free;
+  MainPageControl.ActivePage := GeneralSheet;
+  CancelBtn.Caption := TranslateRStr(CloseRStr);
+  OKBtn.Visible := False;
+  FReadOnly := True;
+  FItem := TItem(Item.Copy(AoWEngine));
+  UpdateControls;
+  ShowModal;
+end;
+
+function TItemEditForm.EditItem(Item: TItem): Boolean;
+var Activated: Boolean;
+begin
+  if FItem <> nil then FItem.Free;
+  MainPageControl.ActivePage := GeneralSheet;
+  CancelBtn.Caption := TranslateRStr(CancelRStr);
+  OKBtn.Visible := True;
+  FReadOnly := False;
+  FItem := TItem(Item.Copy(AoWEngine));
+  UpdateControls;
+  Result := ShowModal = mrOK;
+  if Result then
+  begin
+    Activated := isActivated in Item.FStatus;
+    if Activated then Item.Deactivate;
+    Item.Assign(FItem, AoWEngine);
+    if Activated then Item.Activate;
+    Item.Changed;
+  end;
+end;
+
+procedure TItemEditForm.FormCreate(Sender: TObject);
+var List: TStringList; I: Integer;
+begin
+  with MainForm.HSMEdit do if Activated then PauseFrameUpdateLoop;
+  List := TStringList.Create;
+  for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+    if AoWHSSet.FSpellControl.GetSpell(I) <> nil then
+      List.AddObject(AoWHSSet.FSpellControl.GetSpell(I).FSpellName, AoWHSSet.FSpellControl.GetSpell(I));
+  List.Sort;
+  SpellComboBox.Items.Assign(List);
+  List.Free;
+end;
+
 
 procedure TItemEditForm.FormDestroy;
-begin end;
+begin
+  with MainForm.HSMEdit do if Activated then ResumeFrameUpdateLoop;
+  if FItem <> nil then begin FItem.Free; FItem := nil; end;
+end;
+
 
 procedure TItemEditForm.EditBtnClick;
 begin end;
 
-procedure TItemEditForm.PreviewImagePanelDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TItemEditForm.PreviewImagePanelDraw(Sender: TObject; const R: TRect);
+var DrawRect: TRect;
+begin
+  with PreviewImagePanel do
+    if AoWHSSet.FItemGFXResources.GetItemGFX(FItem.FItemGFXIndex) <> nil then
+      BltLibraryImage(Canvas, AoWHSSet.FItemGFXResources.GetItemGFX(FItem.FItemGFXIndex).GetCellImage,
+        R, bmCenter, 100, 100, 0, Color, False, DrawRect);
+end;
+
 
 procedure TItemEditForm.ItemTypeBoxChange;
-begin end;
+begin
+  FItem.SetItemType(TItemType(ItemTypeBox.ItemIndex));
+  UpdateControls;
+end;
+
 
 procedure TItemEditForm.ItemNameEditChange;
-begin end;
+begin
+  FItem.FOwnerName := ItemNameEdit.Text;
+end;
 
-procedure TItemEditForm.DefenseChange(A1: Integer);
-begin end;
 
-procedure TItemEditForm.ResistanceChange(A1: Integer);
-begin end;
+procedure TItemEditForm.DefenseChange(Sender: TObject);
+begin
+  FItem.FDefense := TSpin(Sender).Value;
+end;
 
-procedure TItemEditForm.AttackChange(A1: Integer);
-begin end;
 
-procedure TItemEditForm.DamageChange(A1: Integer);
-begin end;
+procedure TItemEditForm.ResistanceChange(Sender: TObject);
+begin
+  FItem.FResistance := TSpin(Sender).Value;
+end;
+
+
+procedure TItemEditForm.AttackChange(Sender: TObject);
+begin
+  FItem.FAttack := TSpin(Sender).Value;
+end;
+
+
+procedure TItemEditForm.DamageChange(Sender: TObject);
+begin
+  FItem.FDamage := TSpin(Sender).Value;
+end;
+
 
 procedure TItemEditForm.AvailabilityBoxChange;
-begin end;
+begin
+  FItem.FAvailability := TItemAvailability(AvailabilityBox.ItemIndex);
+end;
+
 
 procedure TItemEditForm.AbilityBtnClick;
-begin end;
+var Dlg: TAbilitySelectionDlg;
+begin
+  Dlg := TAbilitySelectionDlg.CreateSelection(FItem, Self);
+  if Dlg.ShowModal = mrOK then FItem.AssignAb(Dlg.FAbilityOwner);
+  UpdateControls;
+  Dlg.Free;
+end;
+
 
 procedure TItemEditForm.DescriptionEditChange;
 begin end;
@@ -123,7 +217,12 @@ procedure TItemEditForm.CostEditChange;
 begin end;
 
 procedure TItemEditForm.SpellComboBoxChange;
-begin end;
+begin
+  if SpellComboBox.ItemIndex <> -1 then
+    with SpellComboBox do FItem.FSpellID := TSpell(Items.Objects[ItemIndex]).FSpellID
+  else FItem.FSpellID := 0;
+end;
+
 
 
 end.

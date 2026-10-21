@@ -1,19 +1,19 @@
 unit FaceSel;
 
-{ Draft declarations of FaceSel, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ FaceSel editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWDlg;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWDlg, AoWE;
 
 type
   TFaceSelectionDlg = class;
 
 
-  { TFaceSelectionDlg (instance size 524, VMT 00411AA4) }
+  { TFaceSelectionDlg: size $20C; $204 filtered face indices, $208 selected face. VMT 00411AA4. }
   TFaceSelectionDlg = class(TAoWDialog)
   public
     published
@@ -27,28 +27,68 @@ type
     Label1: TLabel; { +01FC }
     Translator: TIvTranslator; { +0200 }
     public
-    F_FaceSelectionDlg_204: Integer;
-    F_FaceSelectionDlg_208: Integer;
-    procedure FacesGridCellUpdated(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure FormCreate;  { draft }
-    procedure FormDeactivate;  { draft }
-    procedure OKBtnClick;  { draft }
+    FFaceIndexes: TIntegerList; { $204 }
+    FSelectedIndex: Integer; { $208 }
+    procedure SetFaceIndex(Index: Integer);
+    procedure FacesGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+    procedure FormCreate;
+    procedure FormDeactivate;
+    procedure OKBtnClick;
   end;
 
 
 implementation
 
-procedure TFaceSelectionDlg.FacesGridCellUpdated(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TFaceSelectionDlg.SetFaceIndex(Index: Integer);
+begin
+  FSelectedIndex := Index;
+  Index := FFaceIndexes.IndexOf(Index);
+  if Index <> -1 then
+    with FacesGrid do
+    begin
+      Col := Index mod ColCount;
+      Row := Index div ColCount;
+    end;
+end;
+
+
+procedure TFaceSelectionDlg.FacesGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+var Index: Integer; DrawRect: TRect;
+begin
+  Index := FacesGrid.ImageIndex(ACol, ARow);
+  with FacesGrid do
+    if Index < FFaceIndexes.Count then
+      BltLibraryImage(Canvas, AoWHSSet.FFaceResources.GetFaceResource(FFaceIndexes[Index]).GetCellImage,
+        R, bmStretch, 50, 50, 0, Color, False, DrawRect)
+    else begin Canvas.Brush.Color := clBtnFace; Canvas.FillRect(R); end;
+end;
+
 
 procedure TFaceSelectionDlg.FormCreate;
-begin end;
+var I: Integer;
+begin
+  FFaceIndexes := TIntegerList.Create;
+  FFaceIndexes.Default := -1;
+  with AoWHSSet.FFaceResources do
+    for I := 0 to GetCount - 1 do
+      if (GetFaceResource(I) <> nil) and
+        (not GetFaceResource(I).FDeveloperOnly or AoWEngine.FRegistry.GetDeveloper) then
+        FFaceIndexes.Add(I);
+  FacesGrid.Count := FFaceIndexes.Count;
+end;
+
 
 procedure TFaceSelectionDlg.FormDeactivate;
-begin end;
+begin
+  FFaceIndexes.Free;
+end;
+
 
 procedure TFaceSelectionDlg.OKBtnClick;
-begin end;
+begin
+  with FacesGrid do FSelectedIndex := FFaceIndexes[ImageIndex(Col, Row)];
+end;
+
 
 
 end.

@@ -1,20 +1,20 @@
 unit EFaceRes;
 
-{ Draft declarations of EFaceRes, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EFaceRes editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWREFrm, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWREFrm, SpinEdit, AoWE;
 
 type
   TFaceResourceEditForm = class;
   TFaceResourceEditor = class;
 
 
-  { TFaceResourceEditForm (instance size 556, VMT 00416C1C) }
+  { TFaceResourceEditForm: size $22C; $228 edited face resource. VMT 00416C1C. }
   TFaceResourceEditForm = class(TAoWResourceEditForm)
   public
     published
@@ -30,13 +30,13 @@ type
     ImageIndexSpin: TSpin; { +0220 }
     DesignerOnlyBox: TCheckBox; { +0224 }
     public
-    F_FaceResourceEditForm_228: Integer;
+    FFaceResource: TFaceResource; { $228 }
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure ILManagerComboBoxChange;  { draft }
-    procedure ImageIndexSpinUpdate;  { draft }
-    procedure FormClose(A1: Integer; A2: Integer);  { draft }
+    procedure FormCreate;
+    procedure OKBtnClick;
+    procedure ILManagerComboBoxChange;
+    procedure ImageIndexSpinUpdate;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   end;
 
   { TFaceResourceEditor (instance size 8, VMT 00416E98) }
@@ -50,28 +50,69 @@ type
 implementation
 
 class function TFaceResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $20270; end;
+
 
 class procedure TFaceResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin
+  TFaceResourceEditForm.vmt80(AEngine, TEResource(Obj), Done);
+end;
+
 
 constructor TFaceResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
-begin end;
+begin
+  FFaceResource := TFaceResource(Resource);
+  inherited vmt80(AEngine, Resource, Done);
+end;
+
 
 procedure TFaceResourceEditForm.FormCreate;
-begin end;
+begin
+  MainPageControl.ActivePage := ImageSheet;
+  with FFaceResource do
+  begin
+    AddRef;
+    DesignerOnlyBox.Checked := FDeveloperOnly;
+    ILManagerComboBox.ILManager := AoWHSSet.ImageLibraryManager;
+    ILManagerComboBox.ImageLibraryName := FImageLibraryName;
+    ImagePanel.ImageLibrary := FImageLibrary;
+    ImagePanel.ImageIndex := FImageIndex;
+    ImageLibraryPreviewGrid.ImageLibrary := FImageLibrary;
+    ImageIndexSpin.Value := FImageIndex;
+  end;
+end;
+
 
 procedure TFaceResourceEditForm.OKBtnClick;
-begin end;
+begin
+  with FFaceResource do FDeveloperOnly := DesignerOnlyBox.Checked;
+end;
+
 
 procedure TFaceResourceEditForm.ILManagerComboBoxChange;
-begin end;
+begin
+  with FFaceResource do
+  begin
+    SetImageLibraryName(ILManagerComboBox.ImageLibraryName);
+    ImagePanel.ImageLibrary := FImageLibrary;
+    ImageLibraryPreviewGrid.ImageLibrary := FImageLibrary;
+  end;
+end;
+
 
 procedure TFaceResourceEditForm.ImageIndexSpinUpdate;
-begin end;
+begin
+  with FFaceResource do FImageIndex := ImageIndexSpin.Value;
+  ImagePanel.ImageIndex := ImageIndexSpin.Value;
+end;
 
-procedure TFaceResourceEditForm.FormClose(A1: Integer; A2: Integer);
-begin end;
+
+procedure TFaceResourceEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  FFaceResource.Release;
+  inherited FormClose(Sender, Action);
+end;
+
 
 
 end.

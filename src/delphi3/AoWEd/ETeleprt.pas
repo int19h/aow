@@ -1,13 +1,13 @@
 unit ETeleprt;
 
-{ Draft declarations of ETeleprt, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ ETeleprt editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, SpinEdit, Teleport;
 
 type
   TTeleportEditForm = class;
@@ -29,9 +29,9 @@ type
     BorderPanel: TDrawPanel; { +0230 }
     RazedCB: TCheckBox; { +0234 }
     public
-    procedure FormCreate;  { draft }
-    procedure BorderPanelDraw(A1: Integer; A2: Integer);  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
+    procedure FormCreate;
+    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TTeleportEditor (instance size 8, VMT 00419648) }
@@ -55,13 +55,38 @@ class procedure TTeleportEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: E
 begin end;
 
 procedure TTeleportEditForm.FormCreate;
-begin end;
+begin
+  with AoWHSMap.MapContainer do
+  begin
+    XtoEdit.MaxValue := Width - 1;
+    YtoEdit.MaxValue := Height - 1;
+    LtoEdit.MaxValue := LevelCount - 1;
+    LtoEdit.Enabled := LevelCount > 1;
+  end;
+  XtoEdit.Value := TTeleport(FMapObject).FDestinationX;
+  YtoEdit.Value := TTeleport(FMapObject).FDestinationY;
+  LtoEdit.Value := TTeleport(FMapObject).FDestinationL;
+  RazedCB.Checked := TTeleport(FMapObject).GetRazed;
+end;
 
-procedure TTeleportEditForm.BorderPanelDraw(A1: Integer; A2: Integer);
-begin end;
 
-procedure TTeleportEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TTeleportEditForm.BorderPanelDraw(Sender: TObject; const R: TRect);
+var Structure: TStructure;
+begin
+  Structure := TStructure(FMapObject);
+  if Structure <> nil then Structure.ShowBorderImageDC(BorderPanel.Canvas.Handle, R);
+end;
+
+
+procedure TTeleportEditForm.OKBtnClick(Sender: TObject);
+begin
+  TTeleport(FMapObject).FDestinationX := XtoEdit.Value;
+  TTeleport(FMapObject).FDestinationY := YtoEdit.Value;
+  TTeleport(FMapObject).FDestinationL := LtoEdit.Value;
+  TTeleport(FMapObject).SetRazed(RazedCB.Checked);
+  inherited OKBtnClick(Sender);
+end;
+
 
 
 end.

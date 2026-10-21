@@ -1,8 +1,8 @@
 unit EAoWMO;
 
-{ Draft declarations of EAoWMO, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ EAoWMO editor routines recovered from AoWEd.exe. Remaining stubs are marked draft. }
+
+{$R+,Q+}
 
 interface
 
@@ -31,13 +31,26 @@ type
 implementation
 
 constructor TAoWMapObjEditForm.vmt90(Obj: TEObject; Done: TEditDoneEvent);
-begin end;
+begin
+  if not (Obj is THexagonSprite) then raise Exception.Create('EditObject needs to be a THexagonSprite descendant');
+  FMapObject := TMapObject(Obj);
+  inherited vmt90(Obj, Done);
+end;
+
 
 procedure TAoWMapObjEditForm.vmt84;
-begin end;
+begin
+  FMapObject.Deactivate;
+  inherited vmt84;
+  FMapObject.Activate;
+end;
+
 
 procedure TAoWMapObjEditForm.vmt8C;
-begin end;
+begin
+  inherited vmt8C;
+end;
+
 
 
 end.

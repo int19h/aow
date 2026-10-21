@@ -29,6 +29,7 @@ type
     constructor Create(AOwner: Classes.TComponent); override;
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); virtual;  { +080; AoWEd 0040BB30 }
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    { conflict: procedure FormClose(Sender: TObject; var Action: TCloseAction); (* AoWEd 004170EC *) }
   end;
 
 
