@@ -32,7 +32,7 @@ type
     DesignerOnlyBox: TCheckBox; { +0228 }
     public
     F_ItemGFXEditForm_22C: Integer;
-    function vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
     procedure FormCreate;  { draft }
     procedure OKBtnClick;  { draft }
     procedure ILManagerComboBoxChange;  { draft }
@@ -52,8 +52,8 @@ implementation
 class procedure TItemGFXEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TItemGFXEditForm.vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TItemGFXEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
+begin end;
 
 procedure TItemGFXEditForm.FormCreate;
 begin end;

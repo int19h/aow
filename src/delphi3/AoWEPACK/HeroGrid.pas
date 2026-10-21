@@ -19,7 +19,7 @@ type
     FIndices: TIntegerList; { +$1DC }
     FHeroes: THeroList; { +$1E0 }
     FShowLevel: Boolean; { $1E4 }
-    FReservedDisplay: Byte;
+    FEditable: Boolean; { $1E5; AoWEd 00424B1C/00424BEA }
     FShowStatus: Boolean; { $1E6 }
     FUnplacedOnly: Boolean; { +$1E7 }
     FStream: TMemoryStream; { +$1E8 }
@@ -40,7 +40,7 @@ type
     procedure HeroesUpdated(Sender: TObject);
     procedure SetHeroes(Value: THeroList);
     procedure DeleteHero(Index: Integer);
-    procedure DeleteSelectedHero;
+    procedure DeleteSelectedHero; property Selection; { AoWEd 00424BEA }
   end;
 
 procedure Register;

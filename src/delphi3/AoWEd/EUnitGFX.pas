@@ -152,7 +152,7 @@ var I, Direction: Integer;
 begin
   SequenceModeBox.ItemIndex := 0;
   SequenceSpeedBox.ItemIndex := 0;
-  FResource := TUnitGFXResource(F_ResourceEditForm_1F8);
+  FResource := TUnitGFXResource(FEditResource);
   FResource.AddRef;
   with ImageIndexSelector do
   begin

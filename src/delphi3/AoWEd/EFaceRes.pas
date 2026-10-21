@@ -31,7 +31,7 @@ type
     DesignerOnlyBox: TCheckBox; { +0224 }
     public
     F_FaceResourceEditForm_228: Integer;
-    function vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
     procedure FormCreate;  { draft }
     procedure OKBtnClick;  { draft }
     procedure ILManagerComboBoxChange;  { draft }
@@ -55,8 +55,8 @@ begin Result := 0; end;
 class procedure TFaceResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TFaceResourceEditForm.vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TFaceResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
+begin end;
 
 procedure TFaceResourceEditForm.FormCreate;
 begin end;

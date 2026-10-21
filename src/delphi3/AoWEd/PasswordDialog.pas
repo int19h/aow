@@ -26,6 +26,9 @@ type
   end;
 
 
+resourcestring
+  UniqueRacesRStr = 'Please make sure that all players have an unique race!';
+
 implementation
 
 

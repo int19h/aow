@@ -25,10 +25,10 @@ type
     F_ResourceEditForm_1EC: Integer;
     F_ResourceEditForm_1F0: Integer;
     F_ResourceEditForm_1F4: Integer;
-    F_ResourceEditForm_1F8: Integer;
+    FEditResource: TEResource; { $1F8; AoWEd 0040BB4E }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    function vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; virtual;  { +080 draft }
+    constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); virtual;  { +080; AoWEd 0040BB30 }
     procedure FormClose(A1: Integer; A2: Integer);  { draft }
   end;
 
@@ -38,8 +38,8 @@ implementation
 constructor TResourceEditForm.Create(AOwner: Classes.TComponent);
 begin end;
 
-function TResourceEditForm.vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
+begin end;
 
 destructor TResourceEditForm.Destroy;
 begin end;

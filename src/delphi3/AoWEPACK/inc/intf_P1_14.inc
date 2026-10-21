@@ -39,7 +39,9 @@ const
 var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string; TAbilitySelectionTypeRStr: array[TAbilitySelectionType] of string; { AoWEd 0042C336 }
-  TPlayerTypeRStr: array[0..7] of string; { $558E81A0 } TCampaignDifficultyLevelRStr: array[TCampaignDifficultyLevel] of string = ('Easy', 'Normal', 'Hard'); TPlayModeRStr: array[TPlayMode] of string = ('None', 'Classic', 'Simultaneous'); { AoW 0041B3CA / 0041B43B }
+  TPlayerTypeRStr: array[0..7] of string; { $558E81A0 }
+  TCampaignDifficultyLevelRStr: array[TCampaignDifficultyLevel] of string = ('Easy', 'Normal', 'Hard'); TPlayModeRStr: array[TPlayMode] of string = ('None', 'Classic', 'Simultaneous'); { AoW 0041B3CA / 0041B43B }
+  TPlayerBehaviorRStr: array[TPlayerBehavior] of string; TDiplomaticRelationRStr: array[TDiplomaticRelation] of string; { $558E813C; $558E81CC, AoWEd 0042307B/00423DFF }
   TCombatModeRStr: array[TCombatMode] of string; TCombatResolveModeRStr: array[TCombatResolveMode] of string; { $558E81DC; AoW 00422576 }
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
   TAlignmentRStr: array[TAlignment] of string = ('Pure Good', 'Good', 'Pure Neutral', 'Neutral', 'Evil', 'Pure Evil', 'None'); { export $558E80E4; AoW 0043C43C } TStatusRStr: TStatusNames; TPartyStatusRStr: array[TPartyStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful'); { 0040667C }

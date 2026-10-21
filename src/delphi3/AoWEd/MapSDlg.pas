@@ -1,19 +1,20 @@
 unit MapSDlg;
 
-{ Draft declarations of MapSDlg, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Map settings editor recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RaceBox, SpinEdit, checklst;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RaceBox, SpinEdit, checklst, AoWE, PasswordDialog;
 
 type
   TMapSettingsDlg = class;
 
 
-  { TMapSettingsDlg (instance size 768, VMT 004220D8) }
+  { TMapSettingsDlg: size $300; $2F4 players, $2F8 races, $2FC available songs.
+    VMT 004220D8. }
   TMapSettingsDlg = class(TForm)
   public
     published
@@ -88,109 +89,389 @@ type
     AccumulateGoldEdit: TSpin; { +02EC }
     Translator: TIvTranslator; { +02F0 }
     public
-    F_MapSettingsDlg_2F4: Integer;
-    F_MapSettingsDlg_2F8: Integer;
-    F_MapSettingsDlg_2FC: Integer;
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure RaceListCheckBoxClickCheck;  { draft }
-    procedure PlayerCBChange;  { draft }
-    procedure ObjectiveMemoChange;  { draft }
-    procedure ExternalGoldIncomeEditChange;  { draft }
-    procedure StartGoldEditChange;  { draft }
-    procedure PlayerFixedClick;  { draft }
-    procedure PlayerRaceBoxChange;  { draft }
-    procedure PlayerTypeBoxChange;  { draft }
-    procedure BehaviorCBChange;  { draft }
-    procedure StartManaEditChange;  { draft }
-    procedure ExternalPowerIncomeEditChange;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure AddSongClick;  { draft }
-    procedure DeleteSongClick;  { draft }
-    procedure ObjectiveBoxooClick;  { draft }
-    procedure NumberOfPlayersEditChange;  { draft }
-    procedure RelationGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure RelationGridDrawCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure RelationGridMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure ChangePasswordBtnClick;  { draft }
-    procedure VictoryConditionClick;  { draft }
-    procedure FormCloseQuery(A1: Integer; A2: Integer);  { draft }
+    FPlayers: TPlayerList; { $2F4 }
+    FRaces: TRaceList; { $2F8 }
+    FSongs: TSonglist; { $2FC }
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure RaceListCheckBoxClickCheck(Sender: TObject);
+    procedure PlayerCBChange(Sender: TObject);
+    procedure ObjectiveMemoChange(Sender: TObject);
+    procedure ExternalGoldIncomeEditChange(Sender: TObject);
+    procedure StartGoldEditChange(Sender: TObject);
+    procedure PlayerFixedClick(Sender: TObject);
+    procedure PlayerRaceBoxChange(Sender: TObject);
+    procedure PlayerTypeBoxChange(Sender: TObject);
+    procedure BehaviorCBChange(Sender: TObject);
+    procedure StartManaEditChange(Sender: TObject);
+    procedure ExternalPowerIncomeEditChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure AddSongClick(Sender: TObject);
+    procedure DeleteSongClick(Sender: TObject);
+    procedure ObjectiveBoxooClick(Sender: TObject);
+    procedure NumberOfPlayersEditChange(Sender: TObject);
+    procedure RelationGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure RelationGridDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+    procedure RelationGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure ChangePasswordBtnClick(Sender: TObject);
+    procedure VictoryConditionClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure LoadSettings;
+    procedure SaveSettings;
+    procedure UpdateRaceList;
+    procedure UpdatePlayerList;
+    procedure UpdateVictoryCondition;
+    procedure UpdateRelationHint(X, Y: Integer);
   end;
 
 
 implementation
 
-procedure TMapSettingsDlg.FormCreate;
-begin end;
+procedure TMapSettingsDlg.LoadSettings;
+begin
+  if AoWHSMap <> nil then
+  begin
+    FRaces.Assign(AoWHSMap.FRaces, AoWEngine);
+    PlayListBox.Items.Assign(AoWHSMap.FStartupSongs.SongNames);
+    FPlayers.Assign(AoWHSMap.FPlayers, AoWEngine);
+    NumberOfPlayersEdit.Value := AoWHSMap.FPlayers.GetNumberOfPlayers;
+    PlayerTypeBox.Items.Clear;
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptHuman)]), TObject(Ord(ptHuman)));
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptCPU1)]), TObject(Ord(ptCPU1)));
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptCPU2)]), TObject(Ord(ptCPU2)));
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptCPU3)]), TObject(Ord(ptCPU3)));
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptCPU4)]), TObject(Ord(ptCPU4)));
+    PlayerTypeBox.Items.AddObject(TranslateRStr(TPlayerTypeRStr[Ord(ptCPU5)]), TObject(Ord(ptCPU5)));
+    UpdatePlayerList;
+    MapnameEdit.Text := AoWHSMap.FMapName;
+    PasswordEdit.Text := Encode(AoWHSMap.FAuthor, 0);
+    MapIntroductionMemo.Lines.Text := AoWHSMap.FDescription.Text;
+    NumberOfHeroesEdit.Value := AoWHSMap.FHeroCountMax;
+    MaxSpherePicksEdit.Value := AoWHSMap.FSphereCount;
+    IndependantAIGroup.ItemIndex := Ord(AoWHSMap.GetIndependentAIMode);
+    case AoWHSMap.FVictoryCondition of
+      vcNone: NoneRB.Checked := True;
+      vcCaptureLocations: CaptureLocationsRB.Checked := True;
+      vcAccumulateGold: AccumulateGoldRB.Checked := True;
+      vcAccumulateMana: AccumulateManaRB.Checked := True;
+    end;
+    AccumulateGoldEdit.Value := AoWHSMap.FVictoryGold;
+    AccumulateManaEdit.Value := AoWHSMap.FVictoryMana;
+  end;
+end;
 
-procedure TMapSettingsDlg.FormDestroy;
-begin end;
+procedure TMapSettingsDlg.SaveSettings;
+var I, Index: Integer; Songs: TStringList;
+begin
+  Songs := AoWHSMap.FStartupSongs.Songs;
+  Songs.BeginUpdate;
+  Songs.Clear;
+  for I := 0 to PlayListBox.Items.Count - 1 do
+  begin
+    Index := FSongs.SongNames.IndexOf(PlayListBox.Items[I]);
+    Songs.Add(FSongs.Songs[Index]);
+  end;
+  Songs.EndUpdate;
+  AoWHSMap.FGameSongs.Songs.Clear;
+  AoWHSMap.FPlayers.Assign(FPlayers, AoWEngine);
+  AoWHSMap.FRaces.Assign(FRaces, AoWEngine);
+  AoWHSMap.FMapName := MapnameEdit.Text;
+  AoWHSMap.FAuthor := Encode(PasswordEdit.Text, 0);
+  AoWHSMap.FDescription.Text := MapIntroductionMemo.Lines.Text;
+  AoWHSMap.FHeroCountMax := NumberOfHeroesEdit.Value;
+  AoWHSMap.FSphereCount := MaxSpherePicksEdit.Value;
+  AoWHSMap.FIndependentAIMode := TIndependentAIMode(IndependantAIGroup.ItemIndex);
+  if NoneRB.Checked then AoWHSMap.FVictoryCondition := vcNone
+  else if CaptureLocationsRB.Checked then AoWHSMap.FVictoryCondition := vcCaptureLocations
+  else if AccumulateGoldRB.Checked then AoWHSMap.FVictoryCondition := vcAccumulateGold
+  else if AccumulateManaRB.Checked then AoWHSMap.FVictoryCondition := vcAccumulateMana;
+  AoWHSMap.FVictoryGold := AccumulateGoldEdit.Value;
+  AoWHSMap.FVictoryMana := AccumulateManaEdit.Value;
+end;
 
-procedure TMapSettingsDlg.RaceListCheckBoxClickCheck;
-begin end;
+procedure TMapSettingsDlg.UpdateRaceList;
+var I: Integer;
+begin
+  RaceListCheckBox.Items.Clear;
+  for I := 0 to FRaces.Count - 1 do
+    if FRaces.GetRace(I) <> nil then
+    begin
+      RaceListCheckBox.Items.AddObject(AoWHSSet.FRaceResources.GetRaceResource(I).FName, TObject(I));
+      RaceListCheckBox.Checked[RaceListCheckBox.Items.Count - 1] := FRaces.GetRace(I).FEnabled;
+    end;
+end;
 
-procedure TMapSettingsDlg.PlayerCBChange;
-begin end;
+procedure TMapSettingsDlg.FormCreate(Sender: TObject);
+var SongList: TSonglist; Behavior: TPlayerBehavior;
+begin
+  SongList := TSonglist.Create(nil);
+  with SongList do
+  begin
+    Self.FSongs := SongList;
+    Search('SONGS\', 'S3M');
+  end;
+  FSongs.Search('SONGS\', 'IT');
+  AvailableSongsBox.Items.Assign(FSongs.SongNames);
+  FPlayers := TPlayerList.Create(nil);
+  FRaces := TRaceList.Create(nil);
+  BehaviorCB.Items.Clear;
+  for Behavior := Low(TPlayerBehavior) to High(TPlayerBehavior) do
+    BehaviorCB.Items.Add(TranslateRStr(TPlayerBehaviorRStr[Behavior]));
+  MainPageControl.ActivePage := GeneralSheet;
+  LoadSettings;
+  FPlayers.SetNumberOfPlayers(NumberOfPlayersEdit.Value);
+  UpdateRaceList;
+end;
 
-procedure TMapSettingsDlg.ObjectiveMemoChange;
-begin end;
+procedure TMapSettingsDlg.FormDestroy(Sender: TObject);
+begin
+  FSongs.Free;
+  FPlayers.Free;
+  FRaces.Free;
+end;
 
-procedure TMapSettingsDlg.ExternalGoldIncomeEditChange;
-begin end;
+procedure TMapSettingsDlg.RaceListCheckBoxClickCheck(Sender: TObject);
+var Race: Integer;
+begin
+  with RaceListCheckBox do
+  begin
+    Race := Integer(Items.Objects[ItemIndex]);
+    FRaces.GetRace(Race).SetEnabled(Checked[ItemIndex]);
+  end;
+  FPlayers.ValidateRaces(FRaces);
+  UpdatePlayerList;
+end;
 
-procedure TMapSettingsDlg.StartGoldEditChange;
-begin end;
+procedure TMapSettingsDlg.PlayerCBChange(Sender: TObject);
+var Player: TPlayer;
+begin
+  Player := FPlayers.GetPlayers(PlayerCB.ItemIndex + 1);
+  PlayerRaceBox.SetRace(Player.FPlayerRace);
+  PlayerTypeBox.ItemIndex := PlayerTypeBox.Items.IndexOfObject(TObject(Player.FPlayerType));
+  StartGoldEdit.Value := Player.FInitialGold;
+  ExternalGoldIncomeEdit.Value := Player.FBaseIncome;
+  StartManaEdit.Value := Player.FMagicControl.FExternalMana;
+  ExternalPowerIncomeEdit.Value := Player.FMagicControl.FExternalPower;
+  PlayerFixed.Checked := Player.FParticipating;
+  BehaviorCB.ItemIndex := Ord(Player.FBehavior);
+  ObjectiveMemo.Text := Player.FMessages.Text;
+end;
 
-procedure TMapSettingsDlg.PlayerFixedClick;
-begin end;
+procedure TMapSettingsDlg.UpdatePlayerList;
+var Index, I: Integer;
+begin
+  Index := PlayerCB.ItemIndex;
+  PlayerCB.Items.Clear;
+  for I := 1 to NumberOfPlayersEdit.Value do
+    PlayerCB.Items.Add(TranslateRStr(PlayerRStr) + ' ' + IntToStr(I) + ' (' +
+      TranslateRStr(RaceNamesRStr[FPlayers.GetPlayers(I).FPlayerRace]) + ')');
+  PlayerCB.ItemIndex := Index;
+  if PlayerCB.ItemIndex = -1 then PlayerCB.ItemIndex := 0;
+  PlayerRaceBox.SetRaces(FRaces);
+  PlayerCBChange(Self);
+end;
 
-procedure TMapSettingsDlg.PlayerRaceBoxChange;
-begin end;
+procedure TMapSettingsDlg.ObjectiveMemoChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FMessages.Text := ObjectiveMemo.Lines.Text;
+end;
 
-procedure TMapSettingsDlg.PlayerTypeBoxChange;
-begin end;
+procedure TMapSettingsDlg.ExternalGoldIncomeEditChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FBaseIncome := ExternalGoldIncomeEdit.Value;
+end;
 
-procedure TMapSettingsDlg.BehaviorCBChange;
-begin end;
+procedure TMapSettingsDlg.StartGoldEditChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FInitialGold := StartGoldEdit.Value;
+end;
 
-procedure TMapSettingsDlg.StartManaEditChange;
-begin end;
+procedure TMapSettingsDlg.PlayerFixedClick(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FParticipating := PlayerFixed.Checked;
+end;
 
-procedure TMapSettingsDlg.ExternalPowerIncomeEditChange;
-begin end;
+procedure TMapSettingsDlg.PlayerRaceBoxChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).SetRace(PlayerRaceBox.FRace);
+  UpdatePlayerList;
+end;
 
-procedure TMapSettingsDlg.OKBtnClick;
-begin end;
+procedure TMapSettingsDlg.PlayerTypeBoxChange(Sender: TObject);
+begin
+  with PlayerTypeBox do
+    FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FPlayerType := TPlayerType(Items.Objects[ItemIndex]);
+end;
 
-procedure TMapSettingsDlg.AddSongClick;
-begin end;
+procedure TMapSettingsDlg.BehaviorCBChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FBehavior := TPlayerBehavior(BehaviorCB.ItemIndex);
+end;
 
-procedure TMapSettingsDlg.DeleteSongClick;
-begin end;
+procedure TMapSettingsDlg.StartManaEditChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FMagicControl.FExternalMana := StartManaEdit.Value;
+end;
 
-procedure TMapSettingsDlg.ObjectiveBoxooClick;
-begin end;
+procedure TMapSettingsDlg.ExternalPowerIncomeEditChange(Sender: TObject);
+begin
+  FPlayers.GetPlayers(PlayerCB.ItemIndex + 1).FMagicControl.FExternalPower := ExternalPowerIncomeEdit.Value;
+end;
 
-procedure TMapSettingsDlg.NumberOfPlayersEditChange;
-begin end;
+procedure TMapSettingsDlg.OKBtnClick(Sender: TObject);
+var Valid: Boolean; Msg: TEMsg;
+begin
+  Valid := FPlayers.VerifyRaces(FRaces) = 0;
+  if not Valid then MessageDlg(UniqueRacesRStr, mtWarning, [mbOK], 0);
+  if Valid then
+  begin
+    Hide;
+    SaveSettings;
+    AoWHSMap.SetModified;
+    InitMsg(Msg, $20020005, AoWEngine);
+    AoWHSMap.MsgProc(Msg, AoWEngine);
+    ModalResult := mrOK;
+  end;
+end;
 
-procedure TMapSettingsDlg.RelationGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMapSettingsDlg.UpdateVictoryCondition;
+begin
+  if AccumulateGoldRB.Checked then
+  begin
+    AccumulateGoldEdit.Color := clWindow;
+    AccumulateGoldEdit.Enabled := True;
+  end
+  else
+  begin
+    AccumulateGoldEdit.Color := clBtnFace;
+    AccumulateGoldEdit.Enabled := False;
+  end;
+  if AccumulateManaRB.Checked then
+  begin
+    AccumulateManaEdit.Color := clWindow;
+    AccumulateManaEdit.Enabled := True;
+  end
+  else
+  begin
+    AccumulateManaEdit.Color := clBtnFace;
+    AccumulateManaEdit.Enabled := False;
+  end;
+end;
 
-procedure TMapSettingsDlg.RelationGridDrawCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TMapSettingsDlg.AddSongClick(Sender: TObject);
+begin
+  with AvailableSongsBox do
+    if ItemIndex <> -1 then PlayListBox.Items.Add(Items[ItemIndex]);
+end;
 
-procedure TMapSettingsDlg.RelationGridMouseMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMapSettingsDlg.DeleteSongClick(Sender: TObject);
+begin
+  with PlayListBox do
+    if ItemIndex <> -1 then Self.PlayListBox.Items.Delete(ItemIndex);
+end;
 
-procedure TMapSettingsDlg.ChangePasswordBtnClick;
-begin end;
+procedure TMapSettingsDlg.ObjectiveBoxooClick(Sender: TObject);
+begin
+end;
 
-procedure TMapSettingsDlg.VictoryConditionClick;
-begin end;
+procedure TMapSettingsDlg.NumberOfPlayersEditChange(Sender: TObject);
+begin
+  FPlayers.SetNumberOfPlayers(NumberOfPlayersEdit.Value);
+  FPlayers.ValidateRaces(FRaces);
+  UpdatePlayerList;
+end;
 
-procedure TMapSettingsDlg.FormCloseQuery(A1: Integer; A2: Integer);
-begin end;
+procedure TMapSettingsDlg.RelationGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  if (ACol <> 0) and (ARow <> 0) and (ACol < FPlayers.Count) and (ARow < FPlayers.Count) then
+  begin
+    case FPlayers.GetDiplomaticRelation(ARow, ACol) of
+      drPeace: FPlayers.SetDiplomaticRelation(ARow, ACol, drWar);
+      drWar: FPlayers.SetDiplomaticRelation(ARow, ACol, drAlliance);
+      drAlliance: FPlayers.SetDiplomaticRelation(ARow, ACol, drUnknown);
+      drUnknown: FPlayers.SetDiplomaticRelation(ARow, ACol, drPeace);
+    end;
+    RelationGrid.Invalidate;
+  end;
+end;
 
+procedure TMapSettingsDlg.RelationGridDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
+begin
+  with RelationGrid do
+    if ACol = 0 then
+    begin
+      DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_BOTTOM);
+      DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_TOP);
+      if (ARow > 0) and (ARow < FPlayers.Count) then
+        DiplomaticIcons.Draw(Canvas, R.Left, R.Top, FPlayers.GetPlayers(ARow).FPlayerRace + 4);
+    end
+    else if ARow = 0 then
+    begin
+      DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_BOTTOM);
+      DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_TOP);
+      if (ACol > 0) and (ACol < FPlayers.Count) then
+        DiplomaticIcons.Draw(Canvas, R.Left, R.Top, FPlayers.GetPlayers(ACol).FPlayerRace + 4);
+    end
+    else if ACol = ARow then DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_RECT)
+    else if (ACol < FPlayers.Count) and (ARow < FPlayers.Count) then
+      DiplomaticIcons.Draw(Canvas, R.Left, R.Top, Ord(FPlayers.GetDiplomaticRelation(ARow, ACol)))
+    else DrawEdge(Canvas.Handle, R, BDR_RAISEDINNER, BF_RECT);
+end;
+
+procedure TMapSettingsDlg.UpdateRelationHint(X, Y: Integer);
+var Coord: TGridCoord;
+begin
+  RelationGrid.Hint := '';
+  Coord := RelationGrid.MouseCoord(X, Y);
+  if Coord.X = 0 then
+  begin
+    if (Coord.Y > 0) and (Coord.Y < FPlayers.Count) then
+      RelationGrid.Hint := TranslateRStr(RaceNamesRStr[FPlayers.GetPlayers(Coord.Y).FPlayerRace]);
+  end
+  else if Coord.Y = 0 then
+  begin
+    if (Coord.X > 0) and (Coord.X < FPlayers.Count) then
+      RelationGrid.Hint := TranslateRStr(RaceNamesRStr[FPlayers.GetPlayers(Coord.X).FPlayerRace]);
+  end
+  else if (Coord.X < FPlayers.Count) and (Coord.Y < FPlayers.Count) and (Coord.X <> Coord.Y) then
+    RelationGrid.Hint := TranslateRStr(RaceNamesRStr[FPlayers.GetPlayers(Coord.Y).FPlayerRace]) + ' ' +
+      TranslateRStr(VersusRStr) + ' ' + TranslateRStr(RaceNamesRStr[FPlayers.GetPlayers(Coord.X).FPlayerRace]) + ': ' +
+      TranslateRStr(TDiplomaticRelationRStr[FPlayers.GetDiplomaticRelation(Coord.X, Coord.Y)]);
+end;
+
+procedure TMapSettingsDlg.RelationGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  UpdateRelationHint(X, Y);
+end;
+
+procedure TMapSettingsDlg.ChangePasswordBtnClick(Sender: TObject);
+var Password: string; Dlg: TPasswordDlg;
+begin
+  Dlg := TPasswordDlg.Create(Self);
+  Dlg.Caption := TranslateRStr(ChangePasswordRStr);
+  Dlg.EnterPasswordLbl.Caption := TranslateRStr(EnterNewPasswordRStr);
+  if Dlg.ShowModal = mrOK then
+  begin
+    Sleep(250);
+    Password := Dlg.PasswordEdit.Text;
+    Dlg.PasswordEdit.Text := '';
+    Dlg.EnterPasswordLbl.Caption := TranslateRStr(ReenterNewPasswordRStr);
+    Dlg.Caption := TranslateRStr(ConfirmPasswordRStr);
+    if Dlg.ShowModal = mrOK then
+      if Dlg.PasswordEdit.Text = Password then PasswordEdit.Text := Password
+      else ShowMessage(TranslateRStr(ConfirmationFailedRStr));
+  end;
+  Dlg.Free;
+end;
+
+procedure TMapSettingsDlg.VictoryConditionClick(Sender: TObject);
+begin
+  UpdateVictoryCondition;
+end;
+
+procedure TMapSettingsDlg.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  CanClose := CancelBtn.Enabled or (ModalResult = mrOK);
+end;
 
 end.

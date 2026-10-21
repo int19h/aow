@@ -1,8 +1,8 @@
 unit AoWREFrm;
 
-{ Draft declarations of AoWREFrm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoW resource modal editor, instance size $1FC, inherited fields only. }
+
+{$R+,Q+}
 
 interface
 
@@ -17,17 +17,28 @@ type
   TAoWResourceEditForm = class(TResourceEditForm)
   public
     destructor Destroy; override;
-    function vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
   end;
 
 
 implementation
 
-function TAoWResourceEditForm.vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+uses MDIForm;
+
+constructor TAoWResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
+begin
+  inherited vmt80(AEngine, Resource, Done);
+  with MainForm do
+    if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
+  ShowModal;
+end;
 
 destructor TAoWResourceEditForm.Destroy;
-begin end;
+begin
+  with MainForm do
+    if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
+  inherited Destroy;
+end;
 
 
 end.

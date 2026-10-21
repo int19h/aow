@@ -5470,8 +5470,6 @@ begin
 
 
 
-
-
   Assert(FTargets.IndexOfItemA(Integer(Target)) = -1, 'target already exists use update target');
   Inc(FCombatValue, CV);
   Inc(FWallCombatValue, WallCV);
@@ -33354,7 +33352,7 @@ end;
 procedure TStructureResource.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwBool(F_StructureResource_4C, 20);
+  Stream.rwBool(FSelectSFXLooped, 20);
   if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FSelectSFX, 21);
   Stream.rwStrings(FDescription, 22);
   Stream.rwInteger(FScannerIcon, 23);

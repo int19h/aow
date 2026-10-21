@@ -1,13 +1,13 @@
 unit EFlagMsgEvent;
 
-{ Draft declarations of EFlagMsgEvent, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Flag message form, size $234, inherited $20C map object. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EFlagEvent;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EFlagEvent, FlagEvents;
 
 type
   TFlagMessageEventEditForm = class;
@@ -24,8 +24,8 @@ type
     TitleLbl: TLabel; { +022C }
     TitleEdit: TEdit; { +0230 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TFlagMessageEventEditor (instance size 8, VMT 0041FB7C) }
@@ -48,11 +48,19 @@ begin end;
 class procedure TFlagMessageEventEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TFlagMessageEventEditForm.FormCreate;
-begin end;
+procedure TFlagMessageEventEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  MessageMemo.Lines.Text := TFlagMessageEvent(FMapObject).FMessage.Text;
+  TitleEdit.Text := TFlagMessageEvent(FMapObject).FHelpFileName;
+end;
 
-procedure TFlagMessageEventEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TFlagMessageEventEditForm.OKBtnClick(Sender: TObject);
+begin
+  TFlagMessageEvent(FMapObject).FMessage.Text := MessageMemo.Text;
+  TFlagMessageEvent(FMapObject).FHelpFileName := TitleEdit.Text;
+  inherited OKBtnClick(Sender);
+end;
 
 
 end.

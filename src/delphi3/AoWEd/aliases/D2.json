@@ -72,5 +72,15 @@
   "0041a46c:67": "TArmyEditForm.EditHero",
   "TArmyPlaceControl.vmt44": "TArmyPlaceControl.MsgProc",
   "00410244:80": "TAbilitySelectionDlg.CreateForAbilities",
-  "00410f30:62": "TUnitResourceEditForm.SetRank"
+  "00410f30:62": "TUnitResourceEditForm.SetRank",
+  "00422988:711": "TMapSettingsDlg.LoadSettings",
+  "00422c58:695": "TMapSettingsDlg.SaveSettings",
+  "00422f20:172": "TMapSettingsDlg.UpdateRaceList",
+  "004232d0:329": "TMapSettingsDlg.UpdatePlayerList",
+  "00423790:155": "TMapSettingsDlg.UpdateVictoryCondition",
+  "00423c14:564": "TMapSettingsDlg.UpdateRelationHint",
+  "0042490c:64": "THeroLibraryEditForm.EditHero",
+  "0042494c:65": "THeroLibraryEditForm.EditSelectedHero",
+  "00424990:241": "THeroLibraryEditForm.UpdateLibraries",
+  "00424a88:285": "THeroLibraryEditForm.SetLibraryIndex"
 }

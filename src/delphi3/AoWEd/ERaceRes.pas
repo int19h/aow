@@ -1,20 +1,20 @@
 unit ERaceRes;
 
-{ Draft declarations of ERaceRes, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Race resource editor recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AlgnmBox, AoWREFrm, UnitIGrd;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AlgnmBox, AoWREFrm, UnitIGrd, AoWE;
 
 type
   TRaceResourceEditForm = class;
   TRaceResourceEditor = class;
 
 
-  { TRaceResourceEditForm (instance size 632, VMT 00411264) }
+  { TRaceResourceEditForm: size $278, inherited $1F8 resource. VMT 00411264. }
   TRaceResourceEditForm = class(TAoWResourceEditForm)
   public
     published
@@ -50,15 +50,15 @@ type
     Panel8: TPanel; { +0270 }
     DescriptionMemo: TMemo; { +0274 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure AddBtnClick;  { draft }
-    procedure DeleteBtnClick;  { draft }
-    procedure FormShow;  { draft }
-    procedure AddProdBtnClick;  { draft }
-    procedure DeleteProdBtnClick(A1: Integer; A2: Integer);  { draft }
-    procedure RaceColorBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure AddBtnClick(Sender: TObject);
+    procedure DeleteBtnClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure AddProdBtnClick(Sender: TObject);
+    procedure DeleteProdBtnClick(Sender: TObject);
+    procedure RaceColorBtnClick(Sender: TObject);
   end;
 
   { TRaceResourceEditor (instance size 8, VMT 0041167C) }
@@ -71,38 +71,101 @@ type
 
 implementation
 
+uses UnitFlt;
+
 class function TRaceResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20201;
+end;
 
-class procedure TRaceResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+class procedure TRaceResourceEditor.Edit(Obj: TEObject; AEngine: TEngine; Done: TEditDoneEvent);
+begin
+  TRaceResourceEditForm.vmt80(AEngine, TEResource(Obj), Done);
+end;
 
-procedure TRaceResourceEditForm.FormCreate;
-begin end;
+procedure TRaceResourceEditForm.FormCreate(Sender: TObject);
+var Resource: TRaceResource;
+begin
+  Resource := TRaceResource(FEditResource);
+  ColorBox.Brush.Color := Resource.FHeroUnitIndex;
+  AlignmentBox.SetAlignments(Resource.FAlignments);
+  RaceNameEdit.Text := Resource.FName;
+  RaceNamePluralEdit.Text := Resource.FRaceName;
+  RaceNameAdjectiveEdit.Text := Resource.FDescription;
+  ILManagerComboBox.ILManager := AoWHSSet.ImageLibraryManager;
+  ILManagerComboBox.ImageLibraryName := Resource.FImageLibraryName;
+  UnitFloater.ResetSelection;
+  with UnitFloater.UnitTabControl.FSelectionControl do
+  begin
+    FShowAllCategory := True;
+    FShowRaceCategories := False;
+    FShowTypeCategories := False;
+  end;
+  UnitFloater.UnitTabControl.UpdateSelection;
+  UnitIndexGrid.FSelectionControl := UnitFloater.UnitTabControl.FSelectionControl;
+  UnitIndexGrid.SetUnitIndexList(Resource.FUnitIndexes);
+  DefaultUnitProdGrid.SetUnitIndexList(Resource.FSpecialUnitIndexes);
+  DescriptionMemo.Text := Resource.FHeroNames.Text;
+end;
 
-procedure TRaceResourceEditForm.OKBtnClick;
-begin end;
+procedure TRaceResourceEditForm.OKBtnClick(Sender: TObject);
+var Resource: TRaceResource;
+begin
+  Resource := TRaceResource(FEditResource);
+  Resource.FAlignments := AlignmentBox.FAlignments;
+  Resource.FName := RaceNameEdit.Text;
+  Resource.FRaceName := RaceNamePluralEdit.Text;
+  Resource.FDescription := RaceNameAdjectiveEdit.Text;
+  Resource.SetImageLibraryName(ILManagerComboBox.ImageLibraryName);
+  Resource.FHeroUnitIndex := ColorBox.Brush.Color;
+  Resource.FHeroNames.Text := DescriptionMemo.Text;
+end;
 
-procedure TRaceResourceEditForm.FormDestroy;
-begin end;
+procedure TRaceResourceEditForm.FormDestroy(Sender: TObject);
+begin
+  UnitFloater.Hide;
+end;
 
-procedure TRaceResourceEditForm.AddBtnClick;
-begin end;
+procedure TRaceResourceEditForm.AddBtnClick(Sender: TObject);
+begin
+  UnitIndexGrid.AddUnit;
+end;
 
-procedure TRaceResourceEditForm.DeleteBtnClick;
-begin end;
+procedure TRaceResourceEditForm.DeleteBtnClick(Sender: TObject);
+begin
+  UnitIndexGrid.DeleteUnit;
+end;
 
-procedure TRaceResourceEditForm.FormShow;
-begin end;
+procedure TRaceResourceEditForm.FormShow(Sender: TObject);
+begin
+  UnitFloater.Show;
+end;
 
-procedure TRaceResourceEditForm.AddProdBtnClick;
-begin end;
+procedure TRaceResourceEditForm.AddProdBtnClick(Sender: TObject);
+begin
+  with DefaultUnitProdGrid do
+  begin
+    TRaceResource(FEditResource).FSpecialUnitIndexes[Col] := UnitFloater.UnitTabControl.FSelectionControl.FSelectedUnitIndex;
+    Invalidate;
+  end;
+end;
 
-procedure TRaceResourceEditForm.DeleteProdBtnClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRaceResourceEditForm.DeleteProdBtnClick(Sender: TObject);
+begin
+  with DefaultUnitProdGrid do
+  begin
+    TRaceResource(FEditResource).FSpecialUnitIndexes[Col] := -1;
+    Invalidate;
+  end;
+end;
 
-procedure TRaceResourceEditForm.RaceColorBtnClick;
-begin end;
-
+procedure TRaceResourceEditForm.RaceColorBtnClick(Sender: TObject);
+begin
+  ColorDialog.Color := ColorBox.Brush.Color;
+  with ColorDialog do
+  begin
+    if Execute then ColorBox.Brush.Color := ColorDialog.Color;
+  end;
+end;
 
 end.

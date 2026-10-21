@@ -1,19 +1,19 @@
 unit HeroLibF;
 
-{ Draft declarations of HeroLibF, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Hero library editor recovered from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, HeroGrid;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, HeroGrid, AoWE;
 
 type
   THeroLibraryEditForm = class;
 
 
-  { THeroLibraryEditForm (instance size 564, VMT 004245B4) }
+  { THeroLibraryEditForm: size $234; $230 selected library index. VMT 004245B4. }
   THeroLibraryEditForm = class(TForm)
   public
     published
@@ -39,59 +39,205 @@ type
     LibraryCB: TComboBox; { +0228 }
     Translator: TIvTranslator; { +022C }
     public
-    F_HeroLibraryEditForm_230: Integer;
-    procedure FormShow;  { draft }
-    procedure AddBtnClick;  { draft }
-    procedure CopyBtnClick;  { draft }
-    procedure LibraryCBChange;  { draft }
-    procedure SortOnNameBtnClick;  { draft }
-    procedure SortOnLevelClick;  { draft }
-    procedure NewHeroClick;  { draft }
-    procedure NewLibraryClick;  { draft }
-    procedure DeleteLibraryClick;  { draft }
-    procedure CloseBtnClick;  { draft }
-    procedure EditHeroBtnClick;  { draft }
-    procedure DeleteHeroClick;  { draft }
+    FLibraryIndex: Integer; { $230 }
+    procedure EditHero(Hero: THero; ReadOnly: Boolean);
+    procedure EditSelectedHero;
+    procedure UpdateLibraries;
+    procedure SetLibraryIndex(Index: Integer);
+    procedure FormShow(Sender: TObject);
+    procedure AddBtnClick(Sender: TObject);
+    procedure CopyBtnClick(Sender: TObject);
+    procedure LibraryCBChange(Sender: TObject);
+    procedure SortOnNameBtnClick(Sender: TObject);
+    procedure SortOnLevelClick(Sender: TObject);
+    procedure NewHeroClick(Sender: TObject);
+    procedure NewLibraryClick(Sender: TObject);
+    procedure DeleteLibraryClick(Sender: TObject);
+    procedure CloseBtnClick(Sender: TObject);
+    procedure EditHeroBtnClick(Sender: TObject);
+    procedure DeleteHeroClick(Sender: TObject);
   end;
 
 
 implementation
 
-procedure THeroLibraryEditForm.FormShow;
-begin end;
+uses EHero;
 
-procedure THeroLibraryEditForm.AddBtnClick;
-begin end;
+procedure THeroLibraryEditForm.EditHero(Hero: THero; ReadOnly: Boolean);
+var Dlg: THeroEditForm;
+begin
+  Dlg := THeroEditForm.Create(Application);
+  if ReadOnly then Dlg.EditLibraryHero(Hero) else Dlg.EditHero(Hero);
+  Dlg.Free;
+end;
 
-procedure THeroLibraryEditForm.CopyBtnClick;
-begin end;
+procedure THeroLibraryEditForm.EditSelectedHero;
+begin
+  if LibraryHeroGrid.GetSelectedHero <> nil then
+    EditHero(LibraryHeroGrid.GetSelectedHero, (AoWHSMap <> nil) and (FLibraryIndex = 0));
+end;
 
-procedure THeroLibraryEditForm.LibraryCBChange;
-begin end;
+procedure THeroLibraryEditForm.UpdateLibraries;
+var Manager: THeroLibraryManager; I: Integer;
+begin
+  LibraryCB.Items.Clear;
+  if AoWHSSet <> nil then
+  begin
+    Manager := AoWHSSet.FHeroLibraries;
+    for I := 0 to Manager.GetCount - 1 do LibraryCB.Items.Add(Manager.GetLibrary(I).GetName);
+  end
+  else FLibraryIndex := -1;
+  LibraryCB.ItemIndex := FLibraryIndex;
+  CopyBtn.Enabled := AoWHSMap <> nil;
+  AddBtn.Enabled := AoWHSMap <> nil;
+end;
 
-procedure THeroLibraryEditForm.SortOnNameBtnClick;
-begin end;
+procedure THeroLibraryEditForm.SetLibraryIndex(Index: Integer);
+begin
+  if (Index >= 0) and (Index < LibraryCB.Items.Count) then FLibraryIndex := Index
+  else FLibraryIndex := 0;
+  LibraryCB.ItemIndex := FLibraryIndex;
+  if (AoWHSSet <> nil) and (FLibraryIndex <> -1) then
+  begin
+    LibraryHeroGrid.SetHeroes(AoWHSSet.FHeroLibraries.GetLibrary(FLibraryIndex));
+    LibraryHeroGrid.FEditable := (FLibraryIndex <> 0) or (AoWHSMap = nil);
+  end
+  else
+  begin
+    LibraryHeroGrid.SetHeroes(nil);
+    LibraryHeroGrid.FEditable := False;
+  end;
+  if (FLibraryIndex = 0) and (AoWHSMap <> nil) then
+  begin
+    DeleteLibrary.Enabled := False;
+    NewHero.Enabled := False;
+    DeleteHero.Enabled := False;
+  end
+  else
+  begin
+    DeleteLibrary.Enabled := True;
+    NewHero.Enabled := True;
+    DeleteHero.Enabled := True;
+  end;
+end;
 
-procedure THeroLibraryEditForm.SortOnLevelClick;
-begin end;
+procedure THeroLibraryEditForm.FormShow(Sender: TObject);
+begin
+  UpdateLibraries;
+  SetLibraryIndex(FLibraryIndex);
+end;
 
-procedure THeroLibraryEditForm.NewHeroClick;
-begin end;
+procedure THeroLibraryEditForm.AddBtnClick(Sender: TObject);
+var X, Y, Index: Integer; Hero: THero;
+begin
+  with LibraryHeroGrid do
+    for Y := Selection.Top to Selection.Bottom do
+      for X := Selection.Left to Selection.Right do
+      begin
+        Index := ImageIndex(X, Y);
+        if (GetHero(Index) <> nil) and
+          (AoWHSMap.FHeroControl.IndexOfLibraryEx(GetHero(Index).GetLibraryName, GetHero(Index).FLibraryID) = -1) then
+        begin
+          Hero := THero(GetHero(Index).Copy(AoWEngine));
+          Hero.Activate;
+          Hero.Release;
+          AoWHSMap.SetModified;
+        end
+        else Beep;
+      end;
+end;
 
-procedure THeroLibraryEditForm.NewLibraryClick;
-begin end;
+procedure THeroLibraryEditForm.CopyBtnClick(Sender: TObject);
+var X, Y, Index: Integer; Hero: THero;
+begin
+  with LibraryHeroGrid do
+    for Y := Selection.Top to Selection.Bottom do
+      for X := Selection.Left to Selection.Right do
+      begin
+        Index := ImageIndex(X, Y);
+        if GetHero(Index) <> nil then
+        begin
+          Hero := THero(GetHero(Index).Copy(AoWEngine));
+          Hero.FLibraryID := -1;
+          Hero.Activate;
+          Hero.Release;
+          AoWHSMap.SetModified;
+        end;
+      end;
+end;
 
-procedure THeroLibraryEditForm.DeleteLibraryClick;
-begin end;
+procedure THeroLibraryEditForm.LibraryCBChange(Sender: TObject);
+begin
+  SetLibraryIndex(LibraryCB.ItemIndex);
+end;
 
-procedure THeroLibraryEditForm.CloseBtnClick;
-begin end;
+procedure THeroLibraryEditForm.SortOnNameBtnClick(Sender: TObject);
+begin
+  LibraryHeroGrid.SortOnName;
+end;
 
-procedure THeroLibraryEditForm.EditHeroBtnClick;
-begin end;
+procedure THeroLibraryEditForm.SortOnLevelClick(Sender: TObject);
+begin
+  LibraryHeroGrid.SortOnLevel;
+end;
 
-procedure THeroLibraryEditForm.DeleteHeroClick;
-begin end;
+procedure THeroLibraryEditForm.NewHeroClick(Sender: TObject);
+var Dlg: THeroEditForm; Hero: THero;
+begin
+  if (FLibraryIndex <> 0) or (AoWHSMap = nil) then
+  begin
+    Hero := AoWHSSet.FHeroLibraries.GetLibrary(FLibraryIndex).CreateHero;
+    Dlg := THeroEditForm.Create(Application);
+    if Dlg.EditHero(Hero) then LibraryHeroGrid.UpdateHeroes else Hero.Free;
+    Dlg.Free;
+  end;
+end;
 
+procedure THeroLibraryEditForm.NewLibraryClick(Sender: TObject);
+var Name: string; Lib: THeroLibrary;
+begin
+  Name := InputBox(TranslateRStr(CreateNewLibraryRStr), TranslateRStr(EnterLibraryNameRStr), '');
+  if Name <> '' then
+  begin
+    Lib := AoWHSSet.FHeroLibraries.CreateLibrary(Name);
+    if Lib <> nil then
+    begin
+      UpdateLibraries;
+      SetLibraryIndex(AoWHSSet.FHeroLibraries.IndexOfLibrary(Lib));
+    end
+    else ShowMessage(AoWE.Format(TranslateRStr(XAlreadyExistsRStr), [Name]));
+  end;
+end;
+
+procedure THeroLibraryEditForm.DeleteLibraryClick(Sender: TObject);
+begin
+  if (FLibraryIndex <> 0) or (AoWHSMap = nil) then
+    if MessageDlg('Are you sure you want to delete libary X ?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+    begin
+      { Original bug: deleting a hero library calls the item library manager. }
+      AoWHSSet.FItemLibraries.DeleteLibrary(FLibraryIndex);
+      UpdateLibraries;
+      SetLibraryIndex(FLibraryIndex);
+    end;
+end;
+
+procedure THeroLibraryEditForm.CloseBtnClick(Sender: TObject);
+begin
+  if AoWHSMap <> nil then
+  begin
+    AoWHSMap.FHeroControl.UpdateLibraryHeroes;
+    AoWHSSet.FHeroLibraries.WriteUserLibraries;
+  end;
+end;
+
+procedure THeroLibraryEditForm.EditHeroBtnClick(Sender: TObject);
+begin
+  EditSelectedHero;
+end;
+
+procedure THeroLibraryEditForm.DeleteHeroClick(Sender: TObject);
+begin
+  if (FLibraryIndex <> 0) or (AoWHSMap = nil) then LibraryHeroGrid.DeleteSelectedHero;
+end;
 
 end.

@@ -184,7 +184,7 @@
     FFlagType: Byte; { $46 }
     F_StructureResource_47: array[0..0] of Byte;
     FSelectSFX: string; { $48; 5575EA18 }
-    F_StructureResource_4C: Boolean; { $4C; stored as rwBool at 55760564 }
+    FSelectSFXLooped: Boolean; { $4C; AoWEd 00408F6D }
     F_StructureResource_4D: array[0..2] of Byte;
     FDescription: TStrings; { $50; 5575E988 }
     FScannerIcon: Integer; { $54; 5575F817 }
