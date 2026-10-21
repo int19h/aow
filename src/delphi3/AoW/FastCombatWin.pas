@@ -121,21 +121,21 @@ uses AoWWinMan, aowIntGfxMod;
 procedure TFastCombatWindow.GetPartyPosition(Index: Integer; var X, Y: Integer);
 begin
   case Index of
-    0: with Party1Pnl do begin X := WinLeft; Y := WinTop; end;
-    1, 7: with Party2Pnl do begin X := WinLeft; Y := WinTop; end;
-    2: with Party3Pnl do begin X := WinLeft; Y := WinTop; end;
-    3: with Party4Pnl do begin X := WinLeft; Y := WinTop; end;
-    4: with Party5Pnl do begin X := WinLeft; Y := WinTop; end;
-    5: with Party6Pnl do begin X := WinLeft; Y := WinTop; end;
-    6: with Party7Pnl do begin X := WinLeft; Y := WinTop; end;
+    0: begin X := Party1Pnl.WinLeft; Y := Party1Pnl.WinTop; end;
+    1, 7: begin X := Party2Pnl.WinLeft; Y := Party2Pnl.WinTop; end;
+    2: begin X := Party3Pnl.WinLeft; Y := Party3Pnl.WinTop; end;
+    3: begin X := Party4Pnl.WinLeft; Y := Party4Pnl.WinTop; end;
+    4: begin X := Party5Pnl.WinLeft; Y := Party5Pnl.WinTop; end;
+    5: begin X := Party6Pnl.WinLeft; Y := Party6Pnl.WinTop; end;
+    6: begin X := Party7Pnl.WinLeft; Y := Party7Pnl.WinTop; end;
   end;
 end;
 
 procedure TFastCombatWindow.DrawParties(X, Y: Integer; const Surface: TSurfaceDesc);
 var
+  I, PX, PY, Position: Integer;
   Combat: TCombat;
   Obj: TCombatObject;
-  I, PX, PY, Position: Integer;
 begin
   if vsInitialized in FViewer.FStatus then
   begin
@@ -146,10 +146,11 @@ begin
       if Obj.FPosition <> $80 then
       begin
         GetPartyPosition(Obj.FPosition shr 4, PX, PY);
+        PX := PX + X - 15;
         PY := PY + Y - 32;
         Position := Obj.FPosition and $F;
-        PX := PX + X - 15 + (Position mod 4) * 40;
-        if Position > 3 then Inc(PY, 38);
+        Inc(PX, (Position mod 4) * 40);
+        if Position >= 4 then Inc(PY, 38);
         FViewer.ShowFieldObject(Combat.FCombatData.GetObjects(I), FAnimationFrame, 3, PX, PY, Surface);
       end;
     end;
@@ -172,36 +173,37 @@ var
     Result := WA xor WB;
   end;
 begin
+  Dec(Y, 19);
   if FViewer.FCombat.FCombatData.FWallType = 2 then Image := 80
   else Image := 60;
   if FViewer.FCombat.FCombatData.FWallBreached then Inc(Image, 10);
-  if HasWall(1, 6) then AoWHSSet.FCombatImages[Image].ShowClipped(X + 180, Y + 149, Surface);
-  if HasWall(1, 2) then AoWHSSet.FCombatImages[Image].ShowClipped(X + 372, Y + 149, Surface);
-  if HasWall(0, 1) then AoWHSSet.FCombatImages[Image + 4].ShowClipped(X + 180, Y + 199, Surface);
-  if HasWall(0, 6) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 180, Y + 199, Surface);
-  if HasWall(0, 2) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 372, Y + 199, Surface);
-  if HasWall(5, 6) then AoWHSSet.FCombatImages[Image + 3].ShowClipped(X + 0, Y + 256, Surface);
-  if HasWall(2, 3) then AoWHSSet.FCombatImages[Image + 2].ShowClipped(X + 374, Y + 256, Surface);
-  if HasWall(0, 5) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 180, Y + 256, Surface);
-  if HasWall(0, 3) then AoWHSSet.FCombatImages[Image + 5].ShowClipped(X + 372, Y + 256, Surface);
-  if HasWall(0, 4) then AoWHSSet.FCombatImages[Image + 4].ShowClipped(X + 180, Y + 313, Surface);
-  if HasWall(4, 5) then AoWHSSet.FCombatImages[Image + 1].ShowClipped(X + 180, Y + 323, Surface);
-  if HasWall(4, 3) then AoWHSSet.FCombatImages[Image + 1].ShowClipped(X + 372, Y + 323, Surface);
+  if HasWall(1, 6) then AoWHSSet.FCombatImages[Image].Show(X + 180, Y + 218 - 50, Surface);
+  if HasWall(1, 2) then AoWHSSet.FCombatImages[Image].Show(X + 372, Y + 218 - 50, Surface);
+  if HasWall(0, 1) then AoWHSSet.FCombatImages[Image + 4].Show(X + 180, Y + 218, Surface);
+  if HasWall(0, 6) then AoWHSSet.FCombatImages[Image + 5].Show(X + 180, Y + 218, Surface);
+  if HasWall(0, 2) then AoWHSSet.FCombatImages[Image + 5].Show(X + 372, Y + 218, Surface);
+  if HasWall(5, 6) then AoWHSSet.FCombatImages[Image + 3].Show(X + 0, Y + 275, Surface);
+  if HasWall(2, 3) then AoWHSSet.FCombatImages[Image + 2].Show(X + 374, Y + 275, Surface);
+  if HasWall(0, 5) then AoWHSSet.FCombatImages[Image + 5].Show(X + 180, Y + 275, Surface);
+  if HasWall(0, 3) then AoWHSSet.FCombatImages[Image + 5].Show(X + 372, Y + 275, Surface);
+  if HasWall(0, 4) then AoWHSSet.FCombatImages[Image + 4].Show(X + 180, Y + 332, Surface);
+  if HasWall(4, 5) then AoWHSSet.FCombatImages[Image + 1].Show(X + 180, Y + 342, Surface);
+  if HasWall(4, 3) then AoWHSSet.FCombatImages[Image + 1].Show(X + 372, Y + 342, Surface);
 
   with FViewer.FCombat.FCombatData do
     if (FWallType <> 0) and (FWall <> nil) then
     begin
       Wall := FWall;
       if HasWall(0, 4) then
-        ShowHitPcnt(X + 250, Y + 268, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits))
-      else ShowHitPcnt(X + 250, Y + 154, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits));
+        ShowHitPcnt(X + 250, Y + 332 - 45, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits))
+      else ShowHitPcnt(X + 250, Y + 218 - 45, Surface, HitPointsToHitPcnt(Wall.GetHitPoints, Wall.GetHits));
     end;
 end;
 
 procedure TFastCombatWindow.DrawCombat(X, Y: Integer; var Surface: TSurfaceDesc);
 var
   Combat: TCombat;
-  I, Glow, PX, PY: Integer;
+  I, PX, PY, Glow: Integer;
 begin
   Combat := FViewer.FCombat;
   UpdateShields;
@@ -215,7 +217,8 @@ begin
         if Combat.FCombatData.FParties.GetParty(I).FArmy.GetCount = 0 then
           if not (FViewer.FLogbook.FFinalData.F_CombatData_30 in [2, 7, 8]) then
           begin
-            Glow := Abs((FPhaseFrame div 2 + 7) mod 15 - 7);
+            Glow := FPhaseFrame div 2;
+            Glow := Abs((Glow + 7) mod 15 - 7);
             GetPartyPosition(I, PX, PY);
             AoWHSSet.FCombatImages[Glow + 100].ShowClipped(PX + X - 10, PY + Y - 9, Surface);
           end;
@@ -225,7 +228,7 @@ procedure TFastCombatWindow.UpdateShields;
 var
   Data: TCombatData;
   Left, Right: Integer;
-  LeftOpacity, RightOpacity: Byte;
+  LeftOpacity, RightOpacity: Integer;
 begin
   Data := FViewer.FCombat.FCombatData;
   if Data.FPlayers.GetPlayers(Data.FAttackerPlayer).FPlayer = 0 then Left := 12
@@ -236,9 +239,9 @@ begin
   if FPhase = 3 then LeftOpacity := 100;
   if Data.FPlayers.GetPlayers(Data.FDefenderPlayer).FPlayer = 0 then Right := 12
   else Right := AoWHSMap.FPlayers.GetPlayers(Data.FPlayers.GetPlayers(Data.FDefenderPlayer).FPlayer).FPlayerRace;
-  if (Data.FCurrentPlayer <> $FF) and
-    (Data.FPlayers.GetPlayers(Data.FCurrentPlayer).FSideIndex = 1) then RightOpacity := 100
-  else RightOpacity := 60;
+  if (Data.FCurrentPlayer = $FF) or
+    (Data.FPlayers.GetPlayers(Data.FCurrentPlayer).FSideIndex <> 1) then RightOpacity := 60
+  else RightOpacity := 100;
   if FPhase = 3 then RightOpacity := 100;
   if (Left <> FLeftShield) or (LeftOpacity <> FLeftOpacity) then
   begin

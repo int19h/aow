@@ -132,7 +132,7 @@ begin
     for X := 1 to 169 do
       if Item.GetAbEnabled(X) then
         AbLB.Items.AddObject(AoWHSSet.FAbilityControl.GetAbility(X).GetName(Item), TObject(X));
-    IBannerPopup.WinHeight := AbLB.Items.Count * AbLB.ItemHeight + Y + 50;
+    IBannerPopup.WinHeight := AbLB.Items.Count * AbLB.ItemHeight + (Y + 50);
     if IBannerPopup.WinHeight > 200 then IBannerPopup.WinHeight := 200;
   end;
 end;

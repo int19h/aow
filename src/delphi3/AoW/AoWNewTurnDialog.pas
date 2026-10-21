@@ -87,8 +87,8 @@ begin
       if Event.FTurnPlayer <> 0 then
         PlayerRace.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace])
       else PlayerRace.Text := '';
-      Day := AoWHSMap.FDay;
-      if Day < 1 then Day := 1;
+      if AoWHSMap.FDay > 0 then Day := AoWHSMap.FDay
+      else Day := 1;
       Turn.Text := TranslateRStr(DayRStr) + ' ' + IntToStr(Day);
       Race := AoWHSMap.FPlayers.GetPlayers(Event.FTurnPlayer).FPlayerRace;
       if Race = -1 then Race := 12;
@@ -96,8 +96,8 @@ begin
       RShield.CurrentImage := Race + 26;
       NewTDlg.FDrawn := False;
       NewTDlg.Visible := True;
-      if not (nsCloseable in FNewTurn.FDialogStyle) then ClickMsg.Text := TranslateRStr(HiddenmovementPleaseWaitRStr)
-      else ClickMsg.Text := TranslateRStr(ClickToBeginRStr);
+      if nsCloseable in FNewTurn.FDialogStyle then ClickMsg.Text := TranslateRStr(ClickToBeginRStr)
+      else ClickMsg.Text := TranslateRStr(HiddenmovementPleaseWaitRStr);
     end;
     ntClose: NewTDlg.Visible := False;
   end;
@@ -121,14 +121,14 @@ begin
   begin
     if AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader <> nil then
     begin
-      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 291, WinTop + 168);
+      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 188 + 103, WinTop + 40 + 128);
       AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FLeader.ShowFace(R, Surface);
     end;
   end
   else
     if AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader <> nil then
     begin
-      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 291, WinTop + 168);
+      with NewTDlg do R := Rect(WinLeft + 188, WinTop + 40, WinLeft + 188 + 103, WinTop + 40 + 128);
       AoWHSMap.FPlayers.GetPlayers(FNewTurn.FTurnPlayer).FLeader.ShowFace(R, Surface);
     end;
 end;

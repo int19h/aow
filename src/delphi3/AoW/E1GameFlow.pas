@@ -20,7 +20,7 @@ procedure LoadGame(Controller: TGeneral; Name: string);
 procedure LoadCampaign(Controller: TGeneral; Name: string);
 procedure StartGame(Controller: TGeneral);
 procedure ShowMultiplayer(Dialog: TMultiWindow; const Name: string);
-procedure ShowCampaignMap(Dialog: TWorldMap; Context: TObject; Done: TNotifyEvent);
+procedure ShowCampaignMap(Dialog: TWorldMap);
 procedure ShowFactionSelection(Dialog: TSelFactionWin);
 
 implementation
@@ -159,7 +159,7 @@ begin
     else
     begin
       TitleScene.HideScene;
-      ShowCampaignMap(WorldMap, nil, nil);
+      ShowCampaignMap(WorldMap);
     end;
 end;
 
@@ -169,15 +169,18 @@ var
 begin
   Controller.FWindowsHidden := False;
   SongPlayer.Songs.Clear;
-  if AoWHSMap.FGameSongs.Songs.Count = 0 then
+  if AoWHSMap.FGameSongs.Songs.Count <> 0 then
+    SongPlayer.Songs.AddStrings(AoWHSMap.FGameSongs.Songs)
+  else
   begin
-    if AoWHSMap.FStartupSongs.Songs.Count = 0 then SongPlayer.Songs.Add('Songs\Heartwoo.it')
-    else
+    if AoWHSMap.FStartupSongs.Songs.Count <> 0 then
+    begin
       for I := 0 to AoWHSMap.FStartupSongs.Songs.Count - 1 do
         if CompareText(AoWHSMap.FStartupSongs.SongNames[I], TranslateRStr(E1FileNotFoundRStr)) <> 0 then
           SongPlayer.Songs.Add(AoWHSMap.FStartupSongs.Songs[I]);
-  end
-  else SongPlayer.Songs.AddStrings(AoWHSMap.FGameSongs.Songs);
+    end
+    else SongPlayer.Songs.Add('Songs\Heartwoo.it');
+  end;
   SongPlayer.Play(0);
   SetMusicVolume(SoundDlg.MusicVolume.Position);
   PopupWindows.OverViewsMenu.Items.Clear;
@@ -281,7 +284,7 @@ begin
     end;
 end;
 
-procedure ShowCampaignMap(Dialog: TWorldMap; Context: TObject; Done: TNotifyEvent);
+procedure ShowCampaignMap(Dialog: TWorldMap);
 var
   Song: string;
 begin

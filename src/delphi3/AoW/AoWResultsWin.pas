@@ -124,7 +124,7 @@ procedure TResultsWin.DrawGraph(Image: TLibraryImage; Values: TIntegerList; Turn
 var
   Width, LastY, Y1, X2, I: Integer;
   XStep, YStep: Single;
-  X1, NextY, Y2, Height: Integer;
+  NextY, X1, Y2, Height: Integer;
 begin
   if Values.Count <> 0 then
   begin
@@ -151,7 +151,8 @@ begin
       Y1 := NextY;
       X2 := Width - 1;
       Y2 := Round(LastY * YStep); { Original repeats the rounding and discards its result. }
-      DrawImageLine(Image, X1 + R.Left, R.Bottom - Y1, R.Left + X2, R.Bottom - NextY, 1, Surface);
+      Y2 := NextY;
+      DrawImageLine(Image, X1 + R.Left, R.Bottom - Y1, R.Left + X2, R.Bottom - Y2, 1, Surface);
     end;
   end;
 end;
@@ -298,8 +299,8 @@ begin
   FadeMusicVolume(SoundDlg.MusicVolume.Position, 2);
   if AoWHSMap.FGameStatus = gsTerminated then
   begin
-    if AoWEngine.FCampaign <> nil then ShowCampaignMap(WorldMap, nil, nil)
-    else ExitToTitle(General);
+    if AoWEngine.FCampaign = nil then ExitToTitle(General)
+    else ShowCampaignMap(WorldMap);
   end
   else
   begin

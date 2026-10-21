@@ -200,7 +200,7 @@ end;
 procedure TCampaignJoinDlg.FinishSelection;
 begin
   CharGenPnl.Visible := False;
-  ShowCampaignMap(E3Globals.WorldMap, nil, nil);
+  ShowCampaignMap(E3Globals.WorldMap);
 end;
 
 end.

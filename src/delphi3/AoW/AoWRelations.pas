@@ -327,25 +327,27 @@ begin
   APlayer.Visible := not NoContact.Visible;
   OfTheLbl.Visible := APlayer.Visible;
   PRaceLbl.Visible := APlayer.Visible;
-  if AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(AoWHSMap.FSeatedPlayer) = -1 then
+  if AoWHSMap.FPlayers.GetPlayers(Player).GetFirstDaySeen(AoWHSMap.FSeatedPlayer) <> -1 then
   begin
-    PlStatIcn.Visible := False;
-    PlStatV.Text := TranslateRStr(NoContactRStr);
-  end
-  else
-    if Player = AoWHSMap.FSeatedPlayer then
+    if Player <> AoWHSMap.FSeatedPlayer then
+    begin
+      Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, AoWHSMap.FSeatedPlayer);
+      PlStatV.Text := TranslateRStr(TDiplomaticRelationRStr[Relation]);
+      if Relation <> drUnknown then PlStatIcn.CurrentImage := Ord(Relation) + 8
+      else PlStatIcn.CurrentImage := 50;
+    end
+    else
     begin
       PlStatIcn.Visible := False;
       PlStatLbl.Visible := False;
       PlStatV.Visible := False;
-    end
-    else
-    begin
-      Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, AoWHSMap.FSeatedPlayer);
-      PlStatV.Text := TranslateRStr(TDiplomaticRelationRStr[Relation]);
-      if Ord(Relation) = 3 then PlStatIcn.CurrentImage := 50
-      else PlStatIcn.CurrentImage := Ord(Relation) + 8;
     end;
+  end
+  else
+  begin
+    PlStatIcn.Visible := False;
+    PlStatV.Text := TranslateRStr(NoContactRStr);
+  end;
   APlayer.Text := AoWHSMap.FPlayers.GetPlayers(Player).GetName;
   OfTheLbl.Text := PInfoW.LeadL.Text;
   PRaceLbl.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace]);
@@ -391,26 +393,34 @@ begin
       else TAOWImage(FControls[I]).CurrentImage := 1;
     end
     else TAOWImage(FControls[I]).CurrentImage := 2;
-    TAOWImage(FControls[I]).ToolTipText.Clear;
-    if TAOWImage(FControls[I]).CurrentImage = 1 then
+    case TAOWImage(FControls[I]).CurrentImage of
+    1: begin
+      TAOWImage(FControls[I]).ToolTipText.Clear;
       if FSelectedPlayer <> -1 then
         if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
           if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
             if AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
               TAOWImage(FControls[I]).ToolTipText.Add(TDiplomaticRelationRStr[
-                TDiplomaticRelation(Ord(AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, FPlayers[I])) and $7F)]);
+                AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, FPlayers[I])]);
+    end;
+    else TAOWImage(FControls[I]).ToolTipText.Clear;
+    end;
   end;
   for I := 0 to 11 do
   begin
     if I < FRaces.Count then TAOWImage(FControls[I + 12]).CurrentImage := 4
     else TAOWImage(FControls[I + 12]).CurrentImage := 5;
-    TAOWImage(FControls[I + 12]).ToolTipText.Clear;
-    if TAOWImage(FControls[I + 12]).CurrentImage = 4 then
+    case TAOWImage(FControls[I + 12]).CurrentImage of
+    4: begin
+      TAOWImage(FControls[I + 12]).ToolTipText.Clear;
       if FSelectedPlayer <> -1 then
         if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
           TAOWImage(FControls[I + 12]).ToolTipText.Add(
-            TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelation(FSelectedPlayer)) and $7F)]) +
+            TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelation(FSelectedPlayer)]) +
             ' (' + IntToStr(AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelationValue(FSelectedPlayer)) + ')');
+    end;
+    else TAOWImage(FControls[I + 12]).ToolTipText.Clear;
+    end;
   end;
 end;
 
@@ -425,7 +435,7 @@ begin
   LInfoPlayerPnl.Visible := False;
   LInfoRacePnl.Visible := True;
   RlRelIcn.CurrentImage := Ord(AoWHSMap.FRaces.GetRace(Shortint(Race)).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) + 11;
-  RlRelV.Text := TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(Shortint(Race)).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) and $7F)]);
+  RlRelV.Text := TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(Shortint(Race)).GetPlayerRelation(AoWHSMap.FSeatedPlayer)]);
   ARace2.Text := TranslateRStr(RaceNamesPluralRStr[Shortint(Race)]);
   case Race of
     0..3: begin
@@ -451,7 +461,8 @@ begin
   ResetChecks;
   FSelectedPlayer := -1;
   FSelectedRace := Race;
-  Check := TAOWCheckBox(FControls[FRaces.IndexOf(Race) + 36]);
+  I := FRaces.IndexOf(Race);
+  Check := TAOWCheckBox(FControls[I + 36]);
   Check.Alignment.TopOffset := 175;
   Check.Checked := True;
   FSelectedIndex := Check.Tag;
@@ -459,12 +470,16 @@ begin
   begin
     if I < FPlayers.Count then TAOWImage(FControls[I]).CurrentImage := 1
     else TAOWImage(FControls[I]).CurrentImage := 2;
-    TAOWImage(FControls[I]).ToolTipText.Clear;
-    if TAOWImage(FControls[I]).CurrentImage = 1 then
+    case TAOWImage(FControls[I]).CurrentImage of
+    1: begin
+      TAOWImage(FControls[I]).ToolTipText.Clear;
       if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FPlayers[I]) <> -1 then
         TAOWImage(FControls[I]).ToolTipText.Add(
-          TranslateRStr(TStatusRStr[TStatus(Ord(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(FPlayers[I])) and $7F)]) +
+          TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(FPlayers[I])]) +
           ' (' + IntToStr(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelationValue(FPlayers[I])) + ')');
+    end;
+    else TAOWImage(FControls[I]).ToolTipText.Clear;
+    end;
   end;
   for I := 0 to 11 do
   begin
@@ -674,27 +689,27 @@ end;
 
 procedure TRelWindow.P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
 var
-  Player: Shortint;
+  Player: Integer;
   Relation: TDiplomaticRelation;
   Image: Integer;
 begin
   with TAoWComponent(Sender) do
-    if (Tag < FPlayers.Count) and (Tag <> FSelectedIndex) then
+    if (FPlayers.Count > Tag) and (Tag <> FSelectedIndex) then
     begin
       Player := FPlayers[Tag];
-      if FSelectedPlayer = -1 then
+      if FSelectedPlayer <> -1 then
       begin
-        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
-          IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(Player)) + 11].ShowClipped(WinLeft, WinTop + 8, Surface);
+        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+          if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+            if AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).GetFirstDaySeen(Player) <> -1 then
+            begin
+              Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, Player);
+              if Relation <> drUnknown then Image := Ord(Relation) + 8 else Image := 50;
+              IntGfxMod.RelWin[Image].Show(WinLeft, WinTop + 8, Surface);
+            end;
       end
-      else if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
-        if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
-          if AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).GetFirstDaySeen(Player) <> -1 then
-          begin
-            Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FSelectedPlayer, Player);
-            if Relation = drUnknown then Image := 50 else Image := Ord(Relation) + 8;
-            IntGfxMod.RelWin[Image].Show(WinLeft, WinTop + 8, Surface);
-          end;
+      else if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+        IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(FSelectedRace).GetPlayerRelation(Player)) + 11].ShowClipped(WinLeft, WinTop + 8, Surface);
     end;
 end;
 
@@ -755,8 +770,17 @@ procedure TRelWindow.FaceFrPreDraw(Sender: TObject; Surface: TSurfaceDesc);
 var
   R: TRect;
 begin
-  with FaceFr do R := Rect(WinLeft + 1, WinTop, WinLeft + WinWidth, WinTop + WinHeight);
-  if FAction <> nil then
+  R := Rect(FaceFr.WinLeft + 1, FaceFr.WinTop, FaceFr.WinLeft + FaceFr.WinWidth, FaceFr.WinTop + FaceFr.WinHeight);
+  if FAction = nil then
+  begin
+    if FSelectedPlayer <> -1 then
+    begin
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
+        AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).FLeader.ShowFace(R, Surface);
+    end
+    else AoWHSSet.FRaceResources.GetRaceResource(FSelectedRace).GetFace.Show(FaceFr.WinLeft + 1, FaceFr.WinTop + 3, Surface);
+  end
+  else
   begin
     if (FEvent <> nil) and (FEvent.FAction.FActionType = daSendMessageAsY) then
       AoWHSMap.FPlayers.GetPlayers(FEvent.FAction.FOtherPlayer).FLeader.ShowFace(R, Surface)
@@ -765,11 +789,7 @@ begin
     else if FAction.FReaction = darNone then
       AoWHSMap.FPlayers.GetPlayers(FAction.FSource).FLeader.ShowFace(R, Surface)
     else AoWHSMap.FPlayers.GetPlayers(FAction.FTarget).FLeader.ShowFace(R, Surface);
-  end
-  else if FSelectedPlayer = -1 then
-    AoWHSSet.FRaceResources.GetRaceResource(FSelectedRace).GetFace.Show(FaceFr.WinLeft + 1, FaceFr.WinTop + 3, Surface)
-  else if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
-    AoWHSMap.FPlayers.GetPlayers(FSelectedPlayer).FLeader.ShowFace(R, Surface);
+  end;
 end;
 
 procedure TRelWindow.SBGoldSlidChange(Sender: TObject);

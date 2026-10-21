@@ -213,14 +213,14 @@ begin
     if I in Mask then
     begin
       Volume := '';
-      Drive := Chr(Ord('A') + I) + ':\';
-      if I < 2 then Separator := #0
-      else
+      Drive := Char(Ord('A') + I) + ':\';
+      if I > 1 then
       begin
         Separator := ' ';
         if GetDriveType(PChar(Drive)) = DRIVE_REMOTE then Separator := #0
         else GetVolumeInformation(PChar(Drive), Volume, 25, nil, Maximum, Flags, nil, 0);
-      end;
+      end
+      else Separator := #0;
       Drives.Add(TVolumeName(Volume) + Separator + '(' + Drive + ')');
       if Drive = ExtractFileDrive(GetCurrentDir) + '\' then Selected := Drives.Count - 1;
     end;

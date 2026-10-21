@@ -181,14 +181,14 @@ begin
   if (Frame > 45) and (Frame < 130) then
     case Page of
       0: begin
-        if TitleSceneIL[4] <> nil then TitleSceneIL[4].ShowClipped(X - 75 - TitleSceneIL[4].Width div 2, Y - TitleSceneIL[4].Height div 2, Surface);
-        if TitleSceneIL[5] <> nil then TitleSceneIL[5].ShowClipped(X + 75 - TitleSceneIL[5].Width div 2, Y - TitleSceneIL[5].Height div 2, Surface);
+        if TitleSceneIL[4] <> nil then TitleSceneIL[4].Show(X - 75 - TitleSceneIL[4].Width div 2, Y - TitleSceneIL[4].Height div 2, Surface);
+        if TitleSceneIL[5] <> nil then TitleSceneIL[5].Show(X + 75 - TitleSceneIL[5].Width div 2, Y - TitleSceneIL[5].Height div 2, Surface);
       end;
       1: begin
         FCreditsFont.SetTextCentered(X - 75, Y - TitleSceneIL[6].Height div 2 - 20, TranslateRStr(NorthAmericaRStr), Surface);
         FCreditsFont.SetTextCentered(X + 90, Y - TitleSceneIL[6].Height div 2 - 20, TranslateRStr(EuropeRStr), Surface);
-        if TitleSceneIL[6] <> nil then TitleSceneIL[6].ShowClipped(X - 75 - TitleSceneIL[6].Width div 2, Y - TitleSceneIL[6].Height div 2 + 20, Surface);
-        if TitleSceneIL[2] <> nil then TitleSceneIL[2].ShowClipped(X + 90 - TitleSceneIL[2].Width div 2, Y - TitleSceneIL[2].Height div 2 + 20, Surface);
+        if TitleSceneIL[6] <> nil then TitleSceneIL[6].Show(X - 75 - TitleSceneIL[6].Width div 2, Y - TitleSceneIL[6].Height div 2 + 20, Surface);
+        if TitleSceneIL[2] <> nil then TitleSceneIL[2].Show(X + 90 - TitleSceneIL[2].Width div 2, Y - TitleSceneIL[2].Height div 2 + 20, Surface);
       end;
       2: begin
         case Frame of
@@ -217,7 +217,7 @@ begin
   FSceneRect.Left := 0;
   FSceneRect.Right := Surface.Width;
   FSceneRect.Top := Surface.Height div 2 - 240;
-  FSceneRect.Bottom := Surface.Height div 2 + 240;
+  FSceneRect.Bottom := FSceneRect.Top + 480;
   if FRedrawBackground then
   begin
     R := FSceneRect;
@@ -227,18 +227,17 @@ begin
   Y := FSceneRect.Top;
   Frame := FFrame - 25;
   if Frame < 0 then Frame := 0;
-  X := -((Frame + 490) mod TitleSceneIL[0].Width);
-  TitleSceneIL[0].ShowClipped(X, Y, Surface);
-  X := X + TitleSceneIL[0].Width;
-  TitleSceneIL[0].ShowClipped(X, Y, Surface);
+  Frame := -((Frame + 490) mod TitleSceneIL[0].Width);
+  TitleSceneIL[0].Show(Frame, Y, Surface);
+  TitleSceneIL[0].Show(Frame + TitleSceneIL[0].Width, Y, Surface);
   if not FShowCredits and (FFrame > 25) then
   begin
-    if FFrame < 75 then Image := (FFrame - 25) * 2
-    else if FTotalFrame < 731 then Image := 100
-    else Image := (750 - FTotalFrame) * 5;
+    if FFrame < 75 then Frame := (FFrame - 25) * 2
+    else if FTotalFrame <= 730 then Frame := 100
+    else Frame := (750 - FTotalFrame) * 5;
     X := (FSceneRect.Right - FSceneRect.Left - TitleSceneIL[1].Width) div 2;
-    if Image < 100 then TitleSceneIL[1].ShowBlended(X, Y + 10, Surface, AlphaBlendTable.Lookup[Image])
-    else TitleSceneIL[3].ShowClipped(X, Y + 10, Surface);
+    if Frame < 100 then TitleSceneIL[1].ShowBlended(X, Y + 10, Surface, AlphaBlendTable.Lookup[Frame])
+    else TitleSceneIL[3].Show(X, Y + 10, Surface);
   end;
   Spacing := 120;
   X := (TitleSceneIL[10].Width + FSceneRect.Left + FSceneRect.Right) div 2 - 320;
@@ -247,13 +246,13 @@ begin
     if (I = FPressedButton) and (I = HitTest) then Image := 2
     else if (FPressedButton = -1) and (I = FHoverButton) then Image := 1
     else Image := 0;
-    TitleSceneIL[I * 3 + 10 + Image].ShowClipped(X + Spacing * I, Y + 355, Surface);
+    TitleSceneIL[I * 3 + 10 + Image].Show(X + Spacing * I, Y + 355, Surface);
     if I = HitTest then
     begin
       FFont.Color := $FFFFFF;
       FFont.SetTextCentered(X + Spacing * I + TitleSceneIL[10].Width div 2, Y + 445, TranslateRStr(TitleButtons[I]), Surface);
     end;
-    if AoWEngine.FAnimationDetail = 2 then TitleSceneIL[25].ShowClipped(X + Spacing * I, Y + 355, Surface);
+    if AoWEngine.FAnimationDetail = 2 then TitleSceneIL[25].Show(X + Spacing * I, Y + 355, Surface);
   end;
   if FShowCredits then DrawCredits(Surface);
   if FShowIntro then DrawIntro(Surface);

@@ -356,7 +356,7 @@ begin
     SurfDesc.ClipRect.Bottom := DrawRect.Top + Unit1LB.ItemHeight - 6;
     if DrawRect.Bottom - DrawRect.Top < Unit1LB.ItemHeight - 6 then SurfDesc.ClipRect.Bottom := DrawRect.Bottom;
     U := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(DrawItem).GetUnit(Column);
-    if (Ord(U.GetAlignment) and $7F) < IntGfxMod.UnitBGs.Count then
+    if Integer(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
       IntGfxMod.UnitBGs[Ord(U.GetAlignment)].ShowClipped(
         DrawRect.Left - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Width - (DrawRect.Right - DrawRect.Left)) div 2,
         DrawRect.Top - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Height - (DrawRect.Bottom - DrawRect.Top - 10)) div 2,

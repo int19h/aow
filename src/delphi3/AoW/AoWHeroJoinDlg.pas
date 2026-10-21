@@ -106,7 +106,7 @@ begin
     Y := (R.Top + R.Bottom) div 2;
     Alignment := FUnits.GetUnit(Index).GetAlignment;
     if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
-      with IntGfxMod.UnitBGs[Integer(Alignment) and $7F] do
+      with IntGfxMod.UnitBGs[Integer(Alignment)] do
         ShowClipped(X - Width div 2, Y - Height div 2, Surface);
     FillChar(Info, SizeOf(Info), 0);
     Info.Direction := 3;

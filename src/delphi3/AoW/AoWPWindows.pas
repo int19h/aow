@@ -91,7 +91,7 @@ end;
 procedure TPopupWindows.OverViewsMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
-    0: E1GameFlow.ShowCampaignMap(E1Globals.WorldMap, nil, nil);
+    0: E1GameFlow.ShowCampaignMap(E1Globals.WorldMap);
     1: if AoWEngine.FCampaign <> nil then E1Globals.WorldMap.ShowSpheres;
   end;
 end;

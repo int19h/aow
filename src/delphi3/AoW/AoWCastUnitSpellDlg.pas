@@ -94,7 +94,7 @@ begin
     Surface.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
     Alignment := FCaster.FTargetUnits.GetUnit(Index).GetAlignment;
     if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
-      with IntGfxMod.UnitBGs[Integer(Alignment) and $7F] do
+      with IntGfxMod.UnitBGs[Integer(Alignment)] do
         ShowClipped(X + 25 - Width div 2, Y + 30 - Height div 2, Surface);
     FillChar(Info, SizeOf(Info), 0);
     Info.Direction := 3;

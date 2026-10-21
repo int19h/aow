@@ -51,7 +51,7 @@
   "FUN_0040471c": "ShowHelp",
   "FUN_0044d2c8": "TSendEmailGameDlg.FinishDialog",
   "FUN_0044d32c": "TSendEmailGameDlg.ShowSendDialog",
-  "FUN_00455a34": "HideGameWindows",
+  "FUN_00455a34": "HideGameWindows<RestoreGameWindows",
   "FUN_00455b3c": "RestoreGameWindows",
   "FUN_0045530c": "ExitToTitle",
   "FUN_004553c0": "SaveGame",
@@ -59,9 +59,9 @@
   "00454b24:73": "SaveCampaign",
   "0041fc14:13": "TFileDlgWindow.ExitForLoad",
   "FUN_0041fa60": "TFileDlgWindow.LoadSelectedGame",
-  "FUN_00454b70": "LoadGame",
+  "FUN_00454b70": "LoadGame<LoadCampaign",
   "FUN_00454940": "LoadCampaign",
-  "FUN_00454d2c": "StartGame",
+  "FUN_00454d2c": "StartGame<ShowMultiplayer",
   "FUN_0042abf0": "ShowMultiplayer<ShowCampaignMap",
   "FUN_0041de44": "ShowCampaignMap",
   "FUN_00419158": "ShowFactionSelection",
@@ -80,7 +80,6 @@
   "FUN_0044da6c": "TSMTPDlg.StartSending",
   "FUN_004293ac": "FinishPyre",
   "FUN_00429444": "ClearPyre",
-  "FUN_004356a0": "TFastCombatWindow.GetPartyPosition",
   "FUN_00435798": "TFastCombatWindow.DrawParties",
   "FUN_004358f8": "TFastCombatWindow.DrawWalls",
   "FUN_00435ce4": "TFastCombatWindow.DrawCombat",
@@ -112,5 +111,6 @@
   "00449230:1240": "TRealmWin.UpdateCities",
   "FUN_0042d4a0": "ShowMagic",
   "FUN_0042d4c8": "HideMagic",
-  "00433a1c:3285": "RefreshCombatUnit"
+  "00433a1c:3285": "RefreshCombatUnit",
+  "004356a0:247": "TFastCombatWindow.GetPartyPosition"
 }

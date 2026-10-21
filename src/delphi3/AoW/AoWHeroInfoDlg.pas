@@ -54,10 +54,7 @@ type
 
 implementation
 
-uses AoWWinMan, aowIntGfxMod, E3Globals;
-
-const
-  AllHeroTypes: THeroTypes = [htHero, htLeader, htHeroLeader, htMerchant];
+uses AoWWinMan, aowIntGfxMod, E3Globals, E2CampaignSupport;
 
 procedure THeroInfoDlg.FinishDialog;
 var
@@ -93,7 +90,7 @@ begin
     Y := (R.Top + R.Bottom) div 2;
     Alignment := FArmyInfo.FArmyView.GetUnit(Index).GetAlignment;
     if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
-      with IntGfxMod.UnitBGs[Integer(Alignment) and $7F] do
+      with IntGfxMod.UnitBGs[Integer(Alignment)] do
         ShowClipped(X - Width div 2, Y - Height div 2, Surface);
     FillChar(Info, SizeOf(Info), 0);
     Info.Direction := 3;

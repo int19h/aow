@@ -89,12 +89,14 @@ var
   Name, Destination: string;
   Search: TSearchRec;
   Handle: THandle;
+  Found: Boolean;
 begin
   Result := 0;
   if AoWEngine.FRegistry.GetAttachmentDirectory <> '' then
   begin
-    if FindFirst(AoWEngine.FRegistry.GetAttachmentDirectory + '\*.asg', faDirectory, Search) = 0 then
-    repeat
+    Found := FindFirst(AoWEngine.FRegistry.GetAttachmentDirectory + '\*.asg', faDirectory, Search) = 0;
+    while Found do
+    begin
       Name := AoWEngine.FRegistry.GetAttachmentDirectory + '\' + Search.Name;
       Handle := CreateFile(PChar(Name), GENERIC_READ or GENERIC_WRITE, 0, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
       if Handle <> INVALID_HANDLE_VALUE then
@@ -110,7 +112,8 @@ begin
             Inc(Result);
           end;
       end;
-    until FindNext(Search) <> 0;
+      Found := FindNext(Search) = 0;
+    end;
     FindClose(Search);
   end;
 end;
