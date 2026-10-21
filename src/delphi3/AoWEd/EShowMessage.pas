@@ -2,12 +2,12 @@ unit EShowMessage;
 
 { Draft declarations of EShowMessage, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TShowMessageEditForm edits the inherited $20C map object. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EMoveOnEvent;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, MoveOnEvents, AoWE, EMoveOnEvent;
 
 type
   TShowMessageEditForm = class;
@@ -21,8 +21,8 @@ type
     TextSheet: TTabSheet; { +0224 }
     MessageMemo: TMemo; { +0228 }
     public
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure FormCreate;  { draft }
+    procedure OKBtnClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   end;
 
   { TShowMessageEditor (instance size 8, VMT 0041EC50) }
@@ -41,11 +41,17 @@ begin end;
 class procedure TShowMessageEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TShowMessageEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TShowMessageEditForm.OKBtnClick(Sender: TObject);
+begin
+  TShowMessageMoveOnEvent(FMapObject).FMessage.Text := MessageMemo.Text;
+  inherited OKBtnClick(Sender);
+end;
 
-procedure TShowMessageEditForm.FormCreate;
-begin end;
+procedure TShowMessageEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  MessageMemo.Lines.Text := TShowMessageMoveOnEvent(FMapObject).FMessage.Text;
+end;
 
 
 end.

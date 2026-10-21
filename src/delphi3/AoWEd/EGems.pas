@@ -2,12 +2,14 @@ unit EGems;
 
 { Draft declarations of EGems, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TGemsEditForm $230 bytes, inherited $20C FMapObject. }
+
+{$R-,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Gems, AoWE, EAoWMO, SpinEdit;
 
 type
   TGemsEditForm = class;
@@ -27,12 +29,12 @@ type
     Label1: TLabel; { +0228 }
     GemsSpin: TSpin; { +022C }
     public
-    procedure GemsSpinChange;  { draft }
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure AutoGenerateClick;  { draft }
-    procedure UserDefinedClick;  { draft }
-    procedure GenerateModeBoxChange;  { draft }
+    procedure GemsSpinChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure AutoGenerateClick(Sender: TObject);
+    procedure UserDefinedClick(Sender: TObject);
+    procedure GenerateModeBoxChange(Sender: TObject);
   end;
 
   { TGemsEditor (instance size 8, VMT 0041A898) }
@@ -51,23 +53,55 @@ begin end;
 class procedure TGemsEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TGemsEditForm.GemsSpinChange;
-begin end;
+procedure TGemsEditForm.GemsSpinChange(Sender: TObject);
+begin
+  TGems(FMapObject).FAmount := GemsSpin.Value;
+end;
 
-procedure TGemsEditForm.FormCreate;
-begin end;
+procedure TGemsEditForm.FormCreate(Sender: TObject);
+begin
+  GemsSpin.Value := TGems(FMapObject).FAmount;
+  if TGems(FMapObject).FGenerateMode = gmUserDefined then
+  begin
+    UserDefined.Checked := True;
+    UserDefinedClick(Self);
+    GenerateModeBox.ItemIndex := 1;
+  end
+  else
+  begin
+    AutoGenerate.Checked := True;
+    AutoGenerateClick(Self);
+    GenerateModeBox.ItemIndex := Ord(TGems(FMapObject).FGenerateMode) - 1;
+  end;
+end;
 
-procedure TGemsEditForm.OKBtnClick;
-begin end;
+procedure TGemsEditForm.OKBtnClick(Sender: TObject);
+begin
+  inherited OKBtnClick(Sender);
+  if AutoGenerate.Checked then TGems(FMapObject).FAmount := 0
+  else TGems(FMapObject).FGenerateMode := gmUserDefined;
+end;
 
-procedure TGemsEditForm.AutoGenerateClick;
-begin end;
+procedure TGemsEditForm.AutoGenerateClick(Sender: TObject);
+begin
+  AutoGeneratePanel.Enabled := True;
+  UserDefinedPanel.Enabled := False;
+  GenerateModeBox.Color := clWindow;
+  GemsSpin.Color := clBtnFace;
+end;
 
-procedure TGemsEditForm.UserDefinedClick;
-begin end;
+procedure TGemsEditForm.UserDefinedClick(Sender: TObject);
+begin
+  AutoGeneratePanel.Enabled := False;
+  UserDefinedPanel.Enabled := True;
+  GenerateModeBox.Color := clBtnFace;
+  GemsSpin.Color := clWindow;
+end;
 
-procedure TGemsEditForm.GenerateModeBoxChange;
-begin end;
+procedure TGemsEditForm.GenerateModeBoxChange(Sender: TObject);
+begin
+  TGems(FMapObject).FGenerateMode := TGemsGenerateMode(GenerateModeBox.ItemIndex + 1);
+end;
 
 
 end.

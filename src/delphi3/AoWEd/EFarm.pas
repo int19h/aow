@@ -2,12 +2,12 @@ unit EFarm;
 
 { Draft declarations of EFarm, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TFarmEditForm $238 bytes; inherited $20C is the farm. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EConstr;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, Farm, AoWE, EConstr;
 
 type
   TFarmEditForm = class;
@@ -21,7 +21,7 @@ type
     Label2: TLabel; { +0230 }
     IncomeLabel: TPanel; { +0234 }
     public
-    procedure FormCreate;  { draft }
+    procedure FormCreate(Sender: TObject);
   end;
 
   { TFarmEditor (instance size 8, VMT 0041D55C) }
@@ -40,8 +40,11 @@ begin end;
 class procedure TFarmEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TFarmEditForm.FormCreate;
-begin end;
+procedure TFarmEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  IncomeLabel.Caption := IntToStr(TFarm(FMapObject).FIncome);
+end;
 
 
 end.

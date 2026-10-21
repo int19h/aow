@@ -20,3 +20,4 @@
   Use(nil, @MDIForm.TMainForm.EditMapSettings);
   Use(nil, @Ecity.TCityEditForm.UpdateControls);
   Use(nil, @EItemHS.TItemHSEditForm.SetItemsMode);
+  Use(nil, @MDIForm.TMainForm.SetMapLevel);

@@ -25,17 +25,18 @@ type
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
   end;
 
-  { TSpinEdit (instance size 324, VMT 0040C300) }
+  { TSpinEdit (instance size $144, VMT 0040C300): $140 FEditorEnabled. }
   TSpinEdit = class(TCustomEdit)
   public
     F_SpinEdit_130: array[0..11] of Byte;
     F_SpinEdit_13C: Integer;
-    F_SpinEdit_140: array[0..3] of Byte;
+    FEditorEnabled: Boolean; { $140 }
+    F_SpinEdit_141: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure CreateParams(var Params: Controls.TCreateParams); override;
     procedure CreateWnd; override;
-    function vmt9C(A1: Integer): Byte; virtual;  { +09C draft }
+    function IsValidChar(Key: Char): Boolean; virtual; { +09C }
     procedure vmtA0; virtual;  { +0A0 draft }
     procedure vmtA4; virtual;  { +0A4 draft }
   end;
@@ -69,8 +70,14 @@ begin end;
 destructor TSpinEdit.Destroy;
 begin end;
 
-function TSpinEdit.vmt9C(A1: Integer): Byte;
-begin Result := 0; end;
+function TSpinEdit.IsValidChar(Key: Char): Boolean;
+begin
+  Result := (Key in [DecimalSeparator, '+', '-', '0'..'9']) or
+    ((Key < #32) and (Key <> Chr(VK_RETURN)));
+  if not FEditorEnabled and Result and ((Key >= #32) or
+      (Key = Char(VK_BACK)) or (Key = Char(VK_DELETE))) then
+    Result := False;
+end;
 
 procedure TSpinEdit.CreateParams(var Params: Controls.TCreateParams);
 begin end;

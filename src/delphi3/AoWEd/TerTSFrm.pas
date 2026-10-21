@@ -2,7 +2,7 @@ unit TerTSFrm;
 
 { Draft declarations of TerTSFrm, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TTerrainTypeSelectionForm $1F4 bytes; $1F0 is the terrain selector. }
 
 interface
 
@@ -24,14 +24,19 @@ type
     Label2: TLabel; { +01EC }
     TerrainComboBox: TTerrainComboBox; { +01F0 }
     public
-    function vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; virtual;  { +080 draft }
+    constructor CreateSelection(AOwner: TComponent; AEngine: THSEngine; TerrainType: Shortint; Mode: TTerrainComboBoxMode); virtual; { +080 }
   end;
 
 
 implementation
 
-function TTerrainTypeSelectionForm.vmt80(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TTerrainTypeSelectionForm.CreateSelection(AOwner: TComponent; AEngine: THSEngine; TerrainType: Shortint; Mode: TTerrainComboBoxMode);
+begin
+  inherited Create(AOwner);
+  TerrainComboBox.HexagonSpriteEngine := THexagonSpriteEngine(AEngine.FComponent);
+  TerrainComboBox.TerrainType := TerrainType;
+  TerrainComboBox.Mode := Mode;
+end;
 
 
 end.

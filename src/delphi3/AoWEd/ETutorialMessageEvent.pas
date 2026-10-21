@@ -2,12 +2,12 @@ unit ETutorialMessageEvent;
 
 { Draft declarations of ETutorialMessageEvent, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TTutorialMessageEventEditForm edits the inherited $20C map object. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EFlagEvent;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, FlagEvents, AoWE, EFlagEvent;
 
 type
   TTutorialMessageEventEditForm = class;
@@ -21,8 +21,8 @@ type
     MessageSheet: TTabSheet; { +0220 }
     MessageMemo: TMemo; { +0224 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TTutorialMessageEventEditor (instance size 8, VMT 0041F7B8) }
@@ -45,11 +45,17 @@ begin end;
 class procedure TTutorialMessageEventEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TTutorialMessageEventEditForm.FormCreate;
-begin end;
+procedure TTutorialMessageEventEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  MessageMemo.Lines.Text := TTutorialMessageEvent(FMapObject).FMessage.Text;
+end;
 
-procedure TTutorialMessageEventEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TTutorialMessageEventEditForm.OKBtnClick(Sender: TObject);
+begin
+  TTutorialMessageEvent(FMapObject).FMessage.Text := MessageMemo.Text;
+  inherited OKBtnClick(Sender);
+end;
 
 
 end.

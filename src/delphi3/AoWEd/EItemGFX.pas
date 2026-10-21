@@ -2,12 +2,12 @@ unit EItemGFX;
 
 { Draft declarations of EItemGFX, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TItemGFXEditForm $230 bytes; $22C FItemGFX is the edited resource. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWREFrm, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWREFrm, SpinEdit;
 
 type
   TItemGFXEditForm = class;
@@ -31,13 +31,13 @@ type
     ItemTypeBox: TComboBox; { +0224 }
     DesignerOnlyBox: TCheckBox; { +0228 }
     public
-    F_ItemGFXEditForm_22C: Integer;
+    FItemGFX: TItemGFX; { $22C }
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
     procedure FormCreate;  { draft }
     procedure OKBtnClick;  { draft }
     procedure ILManagerComboBoxChange;  { draft }
     procedure ImageIndexSpinUpdate;  { draft }
-    procedure FormClose(A1: Integer; A2: Integer);  { draft }
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);  { draft }
   end;
 
   { TItemGFXEditor (instance size 8, VMT 00416934) }
@@ -53,22 +53,60 @@ class procedure TItemGFXEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngin
 begin end;
 
 constructor TItemGFXEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
-begin end;
+begin
+  FItemGFX := TItemGFX(Resource);
+  inherited vmt80(AEngine, Resource, Done);
+end;
 
 procedure TItemGFXEditForm.FormCreate;
-begin end;
+begin
+  with FItemGFX do
+  begin
+    AddRef;
+    ItemTypeBox.ItemIndex := Ord(FItemType);
+    DesignerOnlyBox.Checked := FHidden;
+    ILManagerComboBox.ILManager := AoWHSSet.ImageLibraryManager;
+    ILManagerComboBox.ImageLibraryName := FImageLibraryName;
+    ImagePanel.ImageLibrary := FImageLibrary;
+    ImagePanel.ImageIndex := FImageIndex;
+    ImageLibraryPreviewGrid.ImageLibrary := FImageLibrary;
+    ImageIndexSpin.Value := FImageIndex;
+  end;
+end;
 
 procedure TItemGFXEditForm.OKBtnClick;
-begin end;
+begin
+  with FItemGFX do
+  begin
+    FItemType := TItemType(ItemTypeBox.ItemIndex);
+    FHidden := DesignerOnlyBox.Checked;
+  end;
+end;
 
 procedure TItemGFXEditForm.ILManagerComboBoxChange;
-begin end;
+begin
+  with FItemGFX do
+  begin
+    SetImageLibraryName(ILManagerComboBox.ImageLibraryName);
+    ImagePanel.ImageLibrary := FImageLibrary;
+    ImageLibraryPreviewGrid.ImageLibrary := FImageLibrary;
+  end;
+end;
 
 procedure TItemGFXEditForm.ImageIndexSpinUpdate;
-begin end;
+begin
+  with FItemGFX do
+  begin
+    FImageIndex := ImageIndexSpin.Value;
+    ImagePanel.ImageIndex := ImageIndexSpin.Value;
+  end;
+end;
 
-procedure TItemGFXEditForm.FormClose(A1: Integer; A2: Integer);
-begin end;
+procedure TItemGFXEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  FItemGFX.Release;
+  inherited FormClose(Sender, Action);
+end;
 
 
 end.

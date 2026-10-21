@@ -34826,7 +34826,7 @@ end;
 procedure TFire.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
-  Stream.rwByte(FTurnsLeft, 5);
+  Stream.rwByte(Byte(FTurnsLeft), 5);
   Stream.rwData(FMode, 1, 6);
   Stream.rwByte(Byte(FPlayer), 7);
   Stream.rwByte(FAge, 8);

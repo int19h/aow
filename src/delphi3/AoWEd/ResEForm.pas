@@ -2,7 +2,7 @@ unit ResEForm;
 
 { Draft declarations of ResEForm, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  $1EC engine, $1F0 completion event, $1F8 resource. }
 
 interface
 
@@ -22,30 +22,43 @@ type
     OKBtn: TButton; { +01E4 }
     Bevel2: TBevel; { +01E8 }
     public
-    F_ResourceEditForm_1EC: Integer;
-    F_ResourceEditForm_1F0: Integer;
-    F_ResourceEditForm_1F4: Integer;
+    FEngine: TEngine; { $1EC }
+    FOnEditDone: TEditDoneEvent; { $1F0 }
     FEditResource: TEResource; { $1F8; AoWEd 0040BB4E }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); virtual;  { +080; AoWEd 0040BB30 }
-    procedure FormClose(A1: Integer; A2: Integer);  { draft }
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   end;
 
 
 implementation
 
 constructor TResourceEditForm.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  raise Exception.Create('Use CreateForm instead of Create (TResourceEditForm)');
+end;
 
 constructor TResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
-begin end;
+begin
+  FEngine := AEngine;
+  FEditResource := Resource;
+  FOnEditDone := Done;
+  inherited Create(Application.MainForm);
+end;
 
 destructor TResourceEditForm.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  if Assigned(FOnEditDone) then
+    if ModalResult = mrOK then FOnEditDone(erOK, FEditResource)
+    else FOnEditDone(erCancel, FEditResource);
+end;
 
-procedure TResourceEditForm.FormClose(A1: Integer; A2: Integer);
-begin end;
+procedure TResourceEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
 
 
 end.

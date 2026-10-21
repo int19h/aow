@@ -2,12 +2,12 @@ unit RProdP;
 
 { Draft declarations of RProdP, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TProdPlaceResEditForm $38C bytes; inherited $308 is the resource. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RPlayerStructure, UnitIGrd;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, PrdPlace, RPlayerStructure, UnitIGrd;
 
 type
   TProdPlaceResEditForm = class;
@@ -24,12 +24,12 @@ type
     AddBtn: TButton; { +0384 }
     DeleteBtn: TButton; { +0388 }
     public
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure AddBtnClick;  { draft }
-    procedure DeleteBtnClick;  { draft }
-    procedure MainPageControlChange;  { draft }
-    procedure CloseBtnClick(A1: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure AddBtnClick(Sender: TObject);
+    procedure DeleteBtnClick(Sender: TObject);
+    procedure MainPageControlChange(Sender: TObject);
+    procedure CloseBtnClick(Sender: TObject);
   end;
 
   { TProductionPlaceResourceEditor (instance size 8, VMT 00409FC8) }
@@ -42,29 +42,57 @@ type
 
 implementation
 
+uses UnitFlt;
+
 class function TProductionPlaceResourceEditor.EditorClassID: Integer;
 begin Result := 0; end;
 
 class procedure TProductionPlaceResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-procedure TProdPlaceResEditForm.FormCreate;
-begin end;
+procedure TProdPlaceResEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  UnitFloater.ResetSelection;
+  with UnitFloater.UnitTabControl.FSelectionControl do
+  begin
+    FShowAllCategory := True;
+    FShowRaceCategories := True;
+    FShowTypeCategories := True;
+    FMinimumLevel := 1;
+    FMaximumLevel := 4;
+  end;
+  UnitFloater.UnitTabControl.UpdateSelection;
+  ProductionGrid.FSelectionControl := UnitFloater.UnitTabControl.FSelectionControl;
+  ProductionGrid.SetUnitIndexList(TProductionPlaceResource(FResource).FUnits);
+end;
 
-procedure TProdPlaceResEditForm.FormDestroy;
-begin end;
+procedure TProdPlaceResEditForm.FormDestroy(Sender: TObject);
+begin
+  UnitFloater.Hide;
+end;
 
-procedure TProdPlaceResEditForm.AddBtnClick;
-begin end;
+procedure TProdPlaceResEditForm.AddBtnClick(Sender: TObject);
+begin
+  ProductionGrid.AddUnit;
+end;
 
-procedure TProdPlaceResEditForm.DeleteBtnClick;
-begin end;
+procedure TProdPlaceResEditForm.DeleteBtnClick(Sender: TObject);
+begin
+  ProductionGrid.DeleteUnit;
+end;
 
-procedure TProdPlaceResEditForm.MainPageControlChange;
-begin end;
+procedure TProdPlaceResEditForm.MainPageControlChange(Sender: TObject);
+begin
+  inherited MainPageControlChange(Sender);
+  if MainPageControl.ActivePage = ProductionSheet then UnitFloater.Show;
+end;
 
-procedure TProdPlaceResEditForm.CloseBtnClick(A1: Integer);
-begin end;
+procedure TProdPlaceResEditForm.CloseBtnClick(Sender: TObject);
+begin
+  TProductionPlaceResource(FResource).FUnits.SortUnits;
+  inherited CloseBtnClick(Sender);
+end;
 
 
 end.

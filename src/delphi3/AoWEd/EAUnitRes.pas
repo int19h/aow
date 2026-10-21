@@ -2,7 +2,7 @@ unit EAUnitRes;
 
 { Draft declarations of EAUnitRes, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  $214 FUnitResource is the selected abstract unit resource. }
 
 interface
 
@@ -25,22 +25,42 @@ type
     PreviewImagePanel: TDrawPanel; { +0210 }
     public
     FUnitResource: TAbstractUnitResource; { $214 }
-    procedure FormCreate;  { draft }
-    procedure UnitGFXBoxChange;  { draft }
-    procedure PreviewImagePanelDraw(A1: Integer; A2: Integer);  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure UnitGFXBoxChange(Sender: TObject);
+    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
   end;
 
 
 implementation
 
-procedure TAbstractUnitResourceEditForm.FormCreate;
-begin end;
+procedure TAbstractUnitResourceEditForm.FormCreate(Sender: TObject);
+begin
+  FUnitResource := TAbstractUnitResource(FEditResource);
+  AoWHSSet.FUnitGFXResources.CreateUnitGFXSelectionList(UnitGFXBox.Items);
+  UnitGFXBox.ItemIndex := UnitGFXBox.Items.IndexOfObject(TObject(FUnitResource.FUnitGFXResourceIndex));
+  if UnitGFXBox.ItemIndex = -1 then UnitGFXBox.ItemIndex := 0;
+  UnitGFXBoxChange(Self);
+end;
 
-procedure TAbstractUnitResourceEditForm.UnitGFXBoxChange;
-begin end;
+procedure TAbstractUnitResourceEditForm.UnitGFXBoxChange(Sender: TObject);
+begin
+  with UnitGFXBox do
+    if ItemIndex <> -1 then
+      FUnitResource.SetUnitGFXResourceIndex(Integer(Items.Objects[ItemIndex]))
+    else FUnitResource.SetUnitGFXResourceIndex(-1);
+  PreviewImagePanel.Invalidate;
+end;
 
-procedure TAbstractUnitResourceEditForm.PreviewImagePanelDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractUnitResourceEditForm.PreviewImagePanelDraw(Sender: TObject; const R: TRect);
+var
+  Image: TLibraryImage;
+  DrawRect: TRect;
+begin
+  Image := FUnitResource.GetCellImage;
+  if Image <> nil then
+    BltLibraryImage(PreviewImagePanel.Canvas, Image, R, bmCenter, 100, 100,
+      0, Color, False, DrawRect);
+end;
 
 
 end.

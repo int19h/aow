@@ -330,6 +330,7 @@ type
     FInitialDisplay: Boolean; { $6A5 }
     F_MainForm_6A6: array[0..5] of Byte;
     function LoadMap(const FileName: string): Boolean;
+    procedure SetMapLevel(Level: Integer);
     procedure ClearMouseMessages;
     procedure EditMapSettings(AllowCancel: Boolean);
     procedure UpdateDefaultPlayers;
@@ -367,7 +368,7 @@ type
     procedure HSMEditShowMessage(S: string);
     procedure HSMEditStaticSceneUpdated(Sender: TObject);
     procedure DebugModeClick(Sender: TObject);
-    procedure About1Click(Sender: TObject);  { draft }
+    procedure About1Click(Sender: TObject);
     procedure RaceGridLinkToResourceList(Sender: TObject);
     procedure MapSettingsClick(Sender: TObject);  { draft }
     procedure UnitGFXGridLinkToResourceList(Sender: TObject);
@@ -434,37 +435,37 @@ type
     procedure SpellListBoxClick(Sender: TObject);
     procedure AbilityListBoxClick(Sender: TObject);
     procedure AbilitySelectionCLBClickCheck(Sender: TObject);
-    procedure AbilityLevelPointsChange(Sender: TObject);  { draft }
+    procedure AbilityLevelPointsChange(Sender: TObject);
     procedure AbilityDescriptionChange(Sender: TObject);
     procedure EditAbilityTextClick(Sender: TObject);
     procedure SpellDescriptionChange(Sender: TObject);
     procedure EditSpellTextClick(Sender: TObject);
-    procedure SphereEditChange(Sender: TObject);  { draft }
-    procedure SphereLevelEditChange(Sender: TObject);  { draft }
-    procedure SpellManaChange(Sender: TObject);  { draft }
-    procedure SpellResearchPointsChange(Sender: TObject);  { draft }
-    procedure SpellUpkeepChange(Sender: TObject);  { draft }
+    procedure SphereEditChange(Sender: TObject);
+    procedure SphereLevelEditChange(Sender: TObject);
+    procedure SpellManaChange(Sender: TObject);
+    procedure SpellResearchPointsChange(Sender: TObject);
+    procedure SpellUpkeepChange(Sender: TObject);
     procedure EditAbilitySFXBtnClick(Sender: TObject);  { draft }
     procedure EditSpellSFXClick(Sender: TObject);  { draft }
-    procedure GotoItemClick(A1: Integer; A2: Integer);  { draft }
+    procedure GotoItemClick(Sender: TObject);
     procedure ItemControlGridUnselect(Sender: TObject);
     procedure HeroControlGridUnselect(Sender: TObject);
-    procedure GoToHeroClick(A1: Integer; A2: Integer);  { draft }
-    procedure GoToLeaderClick(A1: Integer; A2: Integer);  { draft }
+    procedure GoToHeroClick(Sender: TObject);
+    procedure GoToLeaderClick(Sender: TObject);
     procedure ValidateMapBtnClick(Sender: TObject);  { draft }
     procedure NewCombatMapClick(Sender: TObject);
     procedure LinkToCombatResources(A1: Integer);  { draft }
     procedure UnitPositionBtnClick(Sender: TObject);  { draft }
     procedure BorderBtnClick(Sender: TObject);  { draft }
     procedure EditAnimationsClick(Sender: TObject);  { draft }
-    procedure AbGFXEditClick(Sender: TObject);  { draft }
-    procedure EditSpellGFXClick(Sender: TObject);  { draft }
+    procedure AbGFXEditClick(Sender: TObject);
+    procedure EditSpellGFXClick(Sender: TObject);
     procedure ScannerItemClick(Sender: TObject);  { draft }
     procedure EditTextBtnClick(Sender: TObject);  { draft }
     procedure EditLeaderClick(Sender: TObject);  { draft }
     procedure HeroPopupMenuPopup(Sender: TObject);  { draft }
     procedure ItemPopupMenuPopup(Sender: TObject);  { draft }
-    procedure GameSettingsClick(Sender: TObject);  { draft }
+    procedure GameSettingsClick(Sender: TObject);
     procedure ExportAbilityInfoClick(Sender: TObject);
     procedure HSMEditActivateDC(Sender: TObject);  { draft }
     procedure RemoveLeadersMIClick(Sender: TObject);  { draft }
@@ -476,7 +477,7 @@ type
 var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
-uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog, SFXEdDlg;
+uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid, TextEdDlg, PasswordDialog, MapSDlg, NewMapDialog, SFXEdDlg, ILSeqEd, AboutDialog, GameSDlg;
 
 
 resourcestring
@@ -487,6 +488,19 @@ resourcestring
   DeleteSelectedItemsRStr = 'Do you want to delete the selected items?';
   CannotRemoveSurfaceRStr = 'Cannot Remove Surface Level';
   RemoveCurrentLevelRStr = 'Are you sure you want to remove the current map level?';
+
+procedure TMainForm.SetMapLevel(Level: Integer);
+begin
+  if Level <> HSMEdit.SceneLevel then
+  begin
+    HSMEdit.SetSceneLevel(Level);
+    HSMEdit.SelectEditResource(nil);
+    EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(Level)]);
+    if Level > 0 then MORPageControl.ActivePage := UndergroundMORSheet
+    else MORPageControl.ActivePage := SurfaceSheet;
+    ScannerFloater.UpdateLevel;
+  end;
+end;
 
 procedure TMainForm.ClearMouseMessages;
 var
@@ -1137,7 +1151,15 @@ begin
 end;
 
 procedure TMainForm.About1Click(Sender: TObject);
-begin end;
+begin
+  with HSMEdit do if Activated then PauseFrameUpdateLoop;
+  with TAboutDlg.Create(Application) do
+  begin
+    ShowModal;
+    Free;
+  end;
+  with HSMEdit do if Activated then ResumeFrameUpdateLoop;
+end;
 
 procedure TMainForm.RaceGridLinkToResourceList(Sender: TObject);
 begin
@@ -1654,7 +1676,16 @@ begin
 end;
 
 procedure TMainForm.AbilityLevelPointsChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if AbilityListBox.ItemIndex <> -1 then
+    begin
+      with AbilityListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FAbilityControl.GetAbility(ID).FSkillPointCost := AbilityLevelPoints.Value;
+    end;
+end;
 
 procedure TMainForm.AbilityDescriptionChange(Sender: TObject);
 var
@@ -1717,19 +1748,64 @@ begin
 end;
 
 procedure TMainForm.SphereEditChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FSpellControl.GetSpell(ID).FMagicSphere := TMagicSphere(SphereEdit.ItemIndex);
+    end;
+end;
 
 procedure TMainForm.SphereLevelEditChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FSpellControl.GetSpell(ID).FSpellLevel := SphereLevelEdit.Value;
+    end;
+end;
 
 procedure TMainForm.SpellManaChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FSpellControl.GetSpell(ID).FBaseManaCost := SpellMana.Value;
+    end;
+end;
 
 procedure TMainForm.SpellResearchPointsChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FSpellControl.GetSpell(ID).FResearchCost := SpellResearchPoints.Value;
+    end;
+end;
 
 procedure TMainForm.SpellUpkeepChange(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      AoWHSSet.FSpellControl.GetSpell(ID).FManaUpkeep := SpellUpkeep.Value;
+    end;
+end;
 
 procedure TMainForm.EditAbilitySFXBtnClick(Sender: TObject);
 var Dlg: TSFXLibraryEditDlg; ID: Integer;
@@ -1757,8 +1833,22 @@ begin
 end;
 
 
-procedure TMainForm.GotoItemClick(A1: Integer; A2: Integer);
-begin end;
+procedure TMainForm.GotoItemClick(Sender: TObject);
+var
+  X, Y, L: Shortint;
+begin
+  with ItemControlGrid do
+    if (GetSelectedItem <> nil) and (GetSelectedItem.Owner <> nil) then
+    begin
+      GetSelectedItem.GetLocation(X, Y, L);
+      if X <> -1 then
+      begin
+        SetMapLevel(L);
+        HSMEdit.CenterView(X, Y, L);
+        FMap.PlayCenterAnimation(X, Y, L);
+      end;
+    end;
+end;
 
 procedure TMainForm.ItemControlGridUnselect(Sender: TObject);
 begin
@@ -1770,11 +1860,39 @@ begin
   HSMEdit.DeselectPlaceHS;
 end;
 
-procedure TMainForm.GoToHeroClick(A1: Integer; A2: Integer);
-begin end;
+procedure TMainForm.GoToHeroClick(Sender: TObject);
+var
+  X, Y, L: Shortint;
+begin
+  with HeroControlGrid do
+    if (GetSelectedHero <> nil) and (GetSelectedHero.Owner <> nil) then
+    begin
+      GetSelectedHero.GetLocation(X, Y, L);
+      if X <> -1 then
+      begin
+        SetMapLevel(L);
+        HSMEdit.CenterView(X, Y, L);
+        FMap.PlayCenterAnimation(X, Y, L);
+      end;
+    end;
+end;
 
-procedure TMainForm.GoToLeaderClick(A1: Integer; A2: Integer);
-begin end;
+procedure TMainForm.GoToLeaderClick(Sender: TObject);
+var
+  X, Y, L: Shortint;
+begin
+  with LeaderSelectionGrid do
+    if (GetSelectedLeader <> nil) and (GetSelectedLeader.Owner <> nil) then
+    begin
+      GetSelectedLeader.GetLocation(X, Y, L);
+      if X <> -1 then
+      begin
+        SetMapLevel(L);
+        HSMEdit.CenterView(X, Y, L);
+        FMap.PlayCenterAnimation(X, Y, L);
+      end;
+    end;
+end;
 
 procedure TMainForm.ValidateMapBtnClick(Sender: TObject);
 begin end;
@@ -1810,10 +1928,36 @@ procedure TMainForm.EditAnimationsClick(Sender: TObject);
 begin end;
 
 procedure TMainForm.AbGFXEditClick(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+  Editor: TImageSequenceEditor;
+begin
+  if AoWHSSet <> nil then
+    if AbilityListBox.ItemIndex <> -1 then
+    begin
+      with AbilityListBox do ID := Integer(Items.Objects[ItemIndex]);
+      Editor := TImageSequenceEditor.Create(Self);
+      Editor.SetImageSequenceList(AoWHSSet.FAbilityControl.GetAbility(ID).FImageSequences);
+      Editor.ShowModal;
+      Editor.Free;
+    end;
+end;
 
 procedure TMainForm.EditSpellGFXClick(Sender: TObject);
-begin end;
+var
+  ID: Integer;
+  Editor: TImageSequenceEditor;
+begin
+  if AoWHSSet <> nil then
+    if SpellListBox.ItemIndex <> -1 then
+    begin
+      with SpellListBox do ID := Integer(Items.Objects[ItemIndex]);
+      Editor := TImageSequenceEditor.Create(Self);
+      Editor.SetImageSequenceList(AoWHSSet.FSpellControl.GetSpell(ID).FCastImages);
+      Editor.ShowModal;
+      Editor.Free;
+    end;
+end;
 
 procedure TMainForm.ScannerItemClick(Sender: TObject);
 begin end;
@@ -1865,7 +2009,18 @@ end;
 
 
 procedure TMainForm.GameSettingsClick(Sender: TObject);
-begin end;
+begin
+  if AoWHSMap <> nil then
+  begin
+    with HSMEdit do if Activated then PauseFrameUpdateLoop;
+    with TGameSettingsDlg.Create(Self) do
+    begin
+      ShowModal;
+      Free;
+    end;
+    with HSMEdit do if Activated then ResumeFrameUpdateLoop;
+  end;
+end;
 
 procedure TMainForm.ExportAbilityInfoClick(Sender: TObject);
 var

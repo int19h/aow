@@ -5,7 +5,7 @@
   TFire = class(TILTerrainMO)
   public
     FMode: TFireMode; { $1C }
-    FTurnsLeft: Byte; { $1D }
+    FTurnsLeft: Shortint; { $1D; AoWEd 0041D2AE, 0041D336 }
     FAge: Byte; { $1E }
     F_Fire_1F: array[0..0] of Byte;
     FShowPriority: Integer; { $20 }

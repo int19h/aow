@@ -2,7 +2,9 @@ unit EFire;
 
 { Draft declarations of EFire, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TFireEditForm $218 bytes, inherited $20C FMapObject. }
+
+{$R+,Q+}
 
 interface
 
@@ -21,8 +23,8 @@ type
     DaysActiveEdit: TComboBox; { +0210 }
     Label1: TLabel; { +0214 }
     public
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
   end;
 
   { TFireEditor (instance size 8, VMT 0041D1C0) }
@@ -41,11 +43,24 @@ begin end;
 class procedure TFireEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TFireEditForm.FormCreate;
-begin end;
+procedure TFireEditForm.FormCreate(Sender: TObject);
+var
+  Days: Shortint;
+begin
+  Days := TFire(FMapObject).FTurnsLeft;
+  if Days = 0 then DaysActiveEdit.ItemIndex := 0
+  else DaysActiveEdit.Text := IntToStr(Days);
+end;
 
-procedure TFireEditForm.OKBtnClick;
-begin end;
+procedure TFireEditForm.OKBtnClick(Sender: TObject);
+begin
+  inherited OKBtnClick(Sender);
+  try
+    TFire(FMapObject).FTurnsLeft := StrToInt(DaysActiveEdit.Text);
+  except
+    TFire(FMapObject).FTurnsLeft := 0;
+  end;
+end;
 
 
 end.

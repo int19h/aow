@@ -79,5 +79,9 @@
   "00407024:246": "TILTerrainResourceEditForm.vmt98",
   "TScannerFloater.vmt24": "TScannerFloater.Create",
   "FUN_00417a7c": "TItemHSEditForm.SetItemsMode",
-  "TItemPlaceControl.vmt44": "TItemPlaceControl.MsgProc"
+  "TItemPlaceControl.vmt44": "TItemPlaceControl.MsgProc",
+  "TResourceEditForm.vmt24": "TResourceEditForm.Create",
+  "00429c04:268": "TMainForm.SetMapLevel",
+  "TSpinEdit.vmt9C": "TSpinEdit.IsValidChar",
+  "TTerrainTypeSelectionForm.vmt80": "TTerrainTypeSelectionForm.CreateSelection"
 }

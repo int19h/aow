@@ -2,12 +2,14 @@ unit RCILTer;
 
 { Draft declarations of RCILTer, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TCombatILTerrainResourceEditForm $360 bytes; inherited $308 resource. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RILTer, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, CombatILTer, CityWall, RILTer, SpinEdit;
 
 type
   TCombatILTerrainResourceEditForm = class;
@@ -28,9 +30,9 @@ type
     Label10: TLabel; { +0358 }
     CityWallDirectionEdit: TSpin; { +035C }
     public
-    procedure FormCreate;  { draft }
-    procedure CloseBtnClick(A1: Integer);  { draft }
-    procedure CityWallDirectionEditUpdate;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure CloseBtnClick(Sender: TObject);
+    procedure CityWallDirectionEditUpdate(Sender: TObject);
   end;
 
   { TCombatILTerrainResourceEditor (instance size 8, VMT 0040B780) }
@@ -49,14 +51,28 @@ begin Result := 0; end;
 class procedure TCombatILTerrainResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-procedure TCombatILTerrainResourceEditForm.FormCreate;
-begin end;
+procedure TCombatILTerrainResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  DefenseValueEdit.Value := TCombatILTerrainResource(FResource).FDefense;
+  BurnValueEdit.Value := TCombatILTerrainResource(FResource).FBurnValue;
+  CityWallPanel.Visible := FResource is TCityWallResource;
+  if CityWallPanel.Visible then
+    CityWallDirectionEdit.Value := TCityWallResource(FResource).FDirection;
+end;
 
-procedure TCombatILTerrainResourceEditForm.CloseBtnClick(A1: Integer);
-begin end;
+procedure TCombatILTerrainResourceEditForm.CloseBtnClick(Sender: TObject);
+begin
+  TCombatILTerrainResource(FResource).FDefense := DefenseValueEdit.Value;
+  TCombatILTerrainResource(FResource).FBurnValue := BurnValueEdit.Value;
+  inherited CloseBtnClick(Sender);
+end;
 
-procedure TCombatILTerrainResourceEditForm.CityWallDirectionEditUpdate;
-begin end;
+procedure TCombatILTerrainResourceEditForm.CityWallDirectionEditUpdate(Sender: TObject);
+begin
+  { Original truncates the direction to a byte before its redundant range check. }
+  TCityWallResource(FResource).FDirection := Byte(CityWallDirectionEdit.Value);
+end;
 
 
 end.

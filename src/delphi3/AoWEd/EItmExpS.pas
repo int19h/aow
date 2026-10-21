@@ -2,12 +2,14 @@ unit EItmExpS;
 
 { Draft declarations of EItmExpS, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TItemExplorationSiteEditForm $268 bytes, inherited $20C FMapObject. }
+
+{$R-,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, EExplorS, ItemGrid;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, ItemExpS, EExplorS, ItemGrid;
 
 type
   TItemExplorationSiteEditForm = class;
@@ -29,15 +31,15 @@ type
     Label1: TLabel; { +0260 }
     GenerateItemBox: TComboBox; { +0264 }
     public
-    procedure FormCreate;  { draft }
-    procedure FormDestroy(A1: Integer);  { draft }
-    procedure MainPageControlChange;  { draft }
-    procedure OKBtnClick(A1: Integer);  { draft }
-    procedure GenerateItemBoxChange;  { draft }
-    procedure AutoGenerateItemsBtnClick;  { draft }
-    procedure UserDefinedItemsBtnClick;  { draft }
-    procedure AddItemBtnClick;  { draft }
-    procedure DeleteItemBtnClick;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure MainPageControlChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure GenerateItemBoxChange(Sender: TObject);
+    procedure AutoGenerateItemsBtnClick(Sender: TObject);
+    procedure UserDefinedItemsBtnClick(Sender: TObject);
+    procedure AddItemBtnClick(Sender: TObject);
+    procedure DeleteItemBtnClick(Sender: TObject);
   end;
 
   { TItemExplorationSiteEditor (instance size 8, VMT 0041BB94) }
@@ -51,6 +53,8 @@ type
 
 implementation
 
+uses ItemFlt, UnitFlt;
+
 class function TItemExplorationSiteEditor.EditorClassID: Integer;
 begin Result := 0; end;
 
@@ -60,32 +64,78 @@ begin end;
 class procedure TItemExplorationSiteEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Boolean; Menu: Menus.TPopupMenu);
 begin end;
 
-procedure TItemExplorationSiteEditForm.FormCreate;
-begin end;
+procedure TItemExplorationSiteEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  ItemGrid.SetItems(TItemExplorationSite(FMapObject).FItems);
+  if TItemExplorationSite(FMapObject).FItemCount = 0 then
+  begin
+    UserDefinedItemsBtnClick(Self);
+    GenerateItemBox.ItemIndex := 1;
+    UserDefinedItemsBtn.Checked := True;
+  end
+  else
+  begin
+    AutoGenerateItemsBtn.Checked := True;
+    GenerateItemBox.ItemIndex := TItemExplorationSite(FMapObject).FItemCount - 1;
+    AutoGenerateItemsBtnClick(Self);
+  end;
+end;
 
-procedure TItemExplorationSiteEditForm.FormDestroy(A1: Integer);
-begin end;
+procedure TItemExplorationSiteEditForm.FormDestroy(Sender: TObject);
+begin
+  ItemFloater.Hide;
+  inherited FormDestroy(Sender);
+end;
 
-procedure TItemExplorationSiteEditForm.MainPageControlChange;
-begin end;
+procedure TItemExplorationSiteEditForm.MainPageControlChange(Sender: TObject);
+begin
+  inherited MainPageControlChange(Sender);
+  if MainPageControl.ActivePage = ItemsSheet then
+  begin
+    if UserDefinedItemsBtn.Checked then ItemFloater.Show else ItemFloater.Hide;
+    UnitFloater.Hide;
+  end
+  else ItemFloater.Hide;
+end;
 
-procedure TItemExplorationSiteEditForm.OKBtnClick(A1: Integer);
-begin end;
+procedure TItemExplorationSiteEditForm.OKBtnClick(Sender: TObject);
+begin
+  if AutoGenerateItemsBtn.Checked then TItemExplorationSite(FMapObject).FItems.Clear
+  else TItemExplorationSite(FMapObject).FItemCount := 0;
+  inherited OKBtnClick(Sender);
+end;
 
-procedure TItemExplorationSiteEditForm.GenerateItemBoxChange;
-begin end;
+procedure TItemExplorationSiteEditForm.GenerateItemBoxChange(Sender: TObject);
+begin
+  TItemExplorationSite(FMapObject).FItemCount := GenerateItemBox.ItemIndex + 1;
+end;
 
-procedure TItemExplorationSiteEditForm.AutoGenerateItemsBtnClick;
-begin end;
+procedure TItemExplorationSiteEditForm.AutoGenerateItemsBtnClick(Sender: TObject);
+begin
+  ItemGrid.SelectionEnabled := False;
+  UserDefinedItemsPanel.Enabled := False;
+  AutoGenerateItemsPanel.Enabled := True;
+  ItemFloater.Hide;
+end;
 
-procedure TItemExplorationSiteEditForm.UserDefinedItemsBtnClick;
-begin end;
+procedure TItemExplorationSiteEditForm.UserDefinedItemsBtnClick(Sender: TObject);
+begin
+  ItemGrid.SelectionEnabled := True;
+  UserDefinedItemsPanel.Enabled := True;
+  AutoGenerateItemsPanel.Enabled := False;
+  if MainPageControl.ActivePage = ItemsSheet then ItemFloater.Show;
+end;
 
-procedure TItemExplorationSiteEditForm.AddItemBtnClick;
-begin end;
+procedure TItemExplorationSiteEditForm.AddItemBtnClick(Sender: TObject);
+begin
+  ItemGrid.AddItem(ItemFloater.ItemControlGrid.GetSelectedItem);
+end;
 
-procedure TItemExplorationSiteEditForm.DeleteItemBtnClick;
-begin end;
+procedure TItemExplorationSiteEditForm.DeleteItemBtnClick(Sender: TObject);
+begin
+  ItemGrid.DeleteItem;
+end;
 
 
 end.
