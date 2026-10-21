@@ -211,10 +211,10 @@ end;
 
 function THeroUpgradeDlg.CanAddAbility(AbilityID: Integer): Boolean;
 begin
-  Result := False;
-  if AoWHSSet.FAbilityControl.GetAbility(AbilityID).CanExpand(FEditedHero) then
-    if AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandCost(FEditedHero) <= FEditedHero.GetSkillPoints then
-      Result := True;
+  if not AoWHSSet.FAbilityControl.GetAbility(AbilityID).CanExpand(FEditedHero) or
+    (AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandCost(FEditedHero) > FEditedHero.GetSkillPoints) then
+    Result := False
+  else Result := True;
 end;
 
 procedure THeroUpgradeDlg.SetSelectedIndex(Index: Integer);
@@ -280,8 +280,8 @@ end;
 function THeroUpgradeDlg.ValidateHero: Boolean;
 begin
   FHero := THero(AoWHSMap.FUnitControl.FindUnit(FReferencedHero.FUnitID));
-  if FHero = nil then Dlg.Visible := False;
   Result := FHero <> nil;
+  if not Result then Dlg.Visible := False;
 end;
 
 procedure THeroUpgradeDlg.ClearHero;
@@ -311,10 +311,11 @@ var
 begin
   if ValidateHero then
   begin
-    R := Rect(TopPnl.WinLeft + Sender.WinLeft + 2,
-      TopPnl.WinTop + Sender.WinTop,
-      TopPnl.WinLeft + Sender.WinLeft + Sender.WinWidth - 2,
-      TopPnl.WinTop + Sender.WinTop + Sender.WinHeight - 2);
+    with TAOWImage(Sender) do
+      R := Rect(TopPnl.WinLeft + WinLeft + 2,
+        TopPnl.WinTop + WinTop,
+        TopPnl.WinLeft + WinLeft + WinWidth - 2,
+        TopPnl.WinTop + WinTop + WinHeight - 2);
     FHero.GetFace.ShowStretched(R, SurfDesc);
   end;
 end;
@@ -443,13 +444,15 @@ end;
 
 procedure THeroUpgradeDlg.AddAbilityBtnClick;
 var
+  List: TAOWListBox;
   Index, AbilityID: Integer;
 begin
   General.PlayButtonSound(0);
-  Index := AvailableAbilities.Selected;
+  List := AvailableAbilities;
+  Index := List.Selected;
   if Index <> -1 then
   begin
-    AbilityID := Integer(AvailableAbilities.Items.Objects[Index]);
+    AbilityID := Integer(List.Items.Objects[Index]);
     if CanAddAbility(AbilityID) then
     begin
       FEditedHero.ExpandAbility(AbilityID);
@@ -461,13 +464,15 @@ end;
 
 procedure THeroUpgradeDlg.RemoveBtnClick;
 var
+  List: TAOWListBox;
   Index, AbilityID: Integer;
 begin
   General.PlayButtonSound(0);
-  Index := SelectedAbilities.Selected;
+  List := SelectedAbilities;
+  Index := List.Selected;
   if Index <> -1 then
   begin
-    AbilityID := Integer(SelectedAbilities.Items.Objects[Index]);
+    AbilityID := Integer(List.Items.Objects[Index]);
     if FHero.GetInherentAbility(AbilityID) then
       if FHero.GetInherentAbilityLevel(AbilityID) =
         FEditedHero.GetInherentAbilityLevel(AbilityID) then Exit;

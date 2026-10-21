@@ -244,7 +244,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   CoPublishedByRStr = '                ';
   ColdImmunityRStr = 'Cold Immunity';
   ColdProtectionRStr = 'Cold Protection';
-  ColdRStr = 'Cold'; ColdBreathRStr = 'Cold Breath'; { 557F8758 }
+  ColdRStr = 'Cold'; ColdBreathRStr = 'Cold Breath'; FireRStr = 'Fire'; { 557F8758 }
   CombatRStr = 'Combat';
   CommonRStr = 'Common';
   ConcealAreaRStr = 'Conceal Area';

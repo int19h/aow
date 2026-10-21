@@ -73,7 +73,7 @@
     function GetName(A1: TAbilityOwner): string; override;
     function GetLevel(A1: TAbilityOwner): Integer; override;
     function GetSkillPoints(A1: TAbilityOwner): Integer; override;
-    procedure GetInherentLevel(A1: Integer); override;
+    function GetInherentLevel(Owner: TAbilityOwner): Integer; override;
     function CanExpand(A1: TAbilityOwner): Boolean; override;
     function ExpandCost(A1: TAbilityOwner): Integer; override;
     function ExpandName(A1: TAbilityOwner): string; override;

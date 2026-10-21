@@ -165,7 +165,7 @@ type
     procedure ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
     procedure ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
     procedure ShowCasting(Activation: TActivateAbilityInfo);
-    procedure ShowCombatCasting(Activation: TActivateAbilityInfo; Unused: Integer);
+    procedure ShowCombatCasting(Activation: TActivateAbilityInfo);
     procedure SpellBookCreate;
     procedure SpellBookDestroy;
     procedure CancelClick;
@@ -541,7 +541,7 @@ begin
   UpdateSpellPages; UpdateInfoPages; ShowBook;
 end;
 
-procedure TSpellBook.ShowCombatCasting(Activation: TActivateAbilityInfo; Unused: Integer);
+procedure TSpellBook.ShowCombatCasting(Activation: TActivateAbilityInfo);
 begin
   Reset; FActivation := Activation; Activation.AddRef; FMode := 1;
   if not ValidateHero then Reset

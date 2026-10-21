@@ -53,7 +53,7 @@
     function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; virtual;  { +088 }
     function GetSourceName(A1: TAbilityOwner): string; virtual;
     function GetInherent(A1: TAbilityOwner): Boolean; virtual;
-    procedure GetInherentLevel(A1: Integer); virtual;  { +094 draft }
+    function GetInherentLevel(Owner: TAbilityOwner): Integer; virtual; { $094; AoW 0044719D }
     function GetControlType(Owner: TAbilityOwner): TAbilityControlType; virtual;
     function fcValidRoundDistance(A1, A2: TCombatObject): Boolean; virtual;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); virtual;

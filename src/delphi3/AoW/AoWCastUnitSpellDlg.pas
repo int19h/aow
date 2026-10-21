@@ -84,6 +84,7 @@ end;
 
 procedure TCastUnitSpellDlg.DrawUnit(Index, X, Y: Integer; var Surface: TSurfaceDesc);
 var
+  Alignment: AoWE.TAlignment;
   Info: TP2UnitShowInfo;
   OldClip: TRect;
 begin
@@ -91,10 +92,10 @@ begin
   begin
     OldClip := Surface.ClipRect;
     Surface.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
-    with FCaster.FTargetUnits.GetUnit(Index) do
-      if Ord(GetAlignment) < IntGfxMod.UnitBGs.Count then
-        with IntGfxMod.UnitBGs[Ord(GetAlignment) and $7F] do
-          ShowClipped(X + 25 - Width div 2, Y + 30 - Height div 2, Surface);
+    Alignment := FCaster.FTargetUnits.GetUnit(Index).GetAlignment;
+    if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
+      with IntGfxMod.UnitBGs[Integer(Alignment) and $7F] do
+        ShowClipped(X + 25 - Width div 2, Y + 30 - Height div 2, Surface);
     FillChar(Info, SizeOf(Info), 0);
     Info.Direction := 3;
     Info.Overlays := [uoHitPoints, uoRank];

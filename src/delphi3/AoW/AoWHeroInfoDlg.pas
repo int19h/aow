@@ -80,6 +80,7 @@ end;
 
 procedure THeroInfoDlg.DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
 var
+  Alignment: AoWE.TAlignment;
   X, Y: Integer;
   OldClip: TRect;
   Info: TP2UnitShowInfo;
@@ -90,10 +91,10 @@ begin
     Surface.ClipRect := R;
     X := (R.Right + R.Left) div 2;
     Y := (R.Top + R.Bottom) div 2;
-    with FArmyInfo.FArmyView.GetUnit(Index) do
-      if Ord(GetAlignment) < IntGfxMod.UnitBGs.Count then
-        with IntGfxMod.UnitBGs[Ord(GetAlignment) and $7F] do
-          ShowClipped(X - Width div 2, Y - Height div 2, Surface);
+    Alignment := FArmyInfo.FArmyView.GetUnit(Index).GetAlignment;
+    if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
+      with IntGfxMod.UnitBGs[Integer(Alignment) and $7F] do
+        ShowClipped(X - Width div 2, Y - Height div 2, Surface);
     FillChar(Info, SizeOf(Info), 0);
     Info.Direction := 3;
     Info.Overlays := [uoHitPoints, uoRank];

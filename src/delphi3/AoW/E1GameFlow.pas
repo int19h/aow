@@ -4,8 +4,10 @@ unit E1GameFlow;
 
 interface
 
-uses AoWWinMan, AoWScenSetup, AoWSelFactionWin, AoWWorldMap, AOWMultiWin, AOWTitleWindow, AOWPyreScrn;
+uses AoWWinMan, AoWScenSetup, AoWSelFactionWin, AoWWorldMap, AOWMultiWin, AOWTitleWindow, AOWPyreScrn, AoWMagic;
 
+procedure ShowMagic(Window: TMagicWin);
+procedure HideMagic(Window: TMagicWin);
 procedure FinishPyre(Dialog: TPyreScreen);
 procedure ShowExitSplash(Dialog: TTitleWindow);
 procedure HideGameWindows(Controller: TGeneral);
@@ -25,6 +27,21 @@ implementation
 
 uses SysUtils, Classes, HSEngine, EventLog, AoWE, AoWWindow, E3Globals, AoWExeForms, AoWFileDialog,
   AoWTitleScene, Sound, E1Globals, E1Resources, AoWComp, AoWVideoDlg, E2CampaignSupport, AoWUnit, AoWReg, aowSetupEvents, aowDPlayComp;
+
+procedure ShowMagic(Window: TMagicWin);
+begin
+  if not Window.Dlg.Visible then
+  begin
+    RefreshMagicWindow(Window);
+    RefreshGlobalMagic(Window);
+  end;
+  Window.Dlg.Visible := True;
+end;
+
+procedure HideMagic(Window: TMagicWin);
+begin
+  if Window.Dlg.Visible then Window.Dlg.Visible := False;
+end;
 
 procedure HideGameWindows(Controller: TGeneral);
 var

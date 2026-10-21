@@ -67,7 +67,7 @@
     function GetInherentDamage: Shortint; virtual;  { +0B0 draft }
     function GetInherentResistance: Shortint; virtual;  { +0B4 draft }
     function GetInherentAbility(AbilityID: Integer): Boolean; virtual;  { +0B8 draft }
-    function GetInherentAbilityLevel(AbilityID: Integer): Shortint; virtual;  { +0BC draft }
+    function GetInherentAbilityLevel(AbilityID: Integer): Integer; virtual; { $0BC; AoW 0044719D }
     function GetAttack: Shortint; virtual;  { +0C0 draft }
     function GetDefense: Shortint; virtual;  { +0C4 draft }
     function GetDamage: Shortint; virtual;  { +0C8 draft }

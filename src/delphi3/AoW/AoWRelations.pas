@@ -220,7 +220,7 @@ uses AoWWinMan, aowIntGfxMod, E3Globals;
 
 procedure TRelWindow.FillPlayers;
 var
-  I, Index: Integer;
+  I: Integer;
 begin
   FPlayers.Clear;
   for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
@@ -234,12 +234,8 @@ begin
       TAOWCheckBox(FControls[I + 23]).ToolTipText.Add(AoWHSMap.FPlayers.GetPlayers(FPlayers[I - 1]).GetName);
     end
     else TAOWCheckBox(FControls[I + 23]).Visible := False;
-  Index := FPlayers.IndexOf(AoWHSMap.FSeatedPlayer);
-  with PlyrGlow do
-  begin
-    Alignment.LeftOffset := Index * 51 + 14;
-    FAligned := False;
-  end;
+  PlyrGlow.Alignment.LeftOffset := FPlayers.IndexOf(AoWHSMap.FSeatedPlayer) * 51 - 37 + 51;
+  PlyrGlow.FAligned := False;
 end;
 
 procedure TRelWindow.ShowRelations(Player: Integer);
@@ -598,32 +594,32 @@ begin
 end;
 
 procedure TRelWindow.P1CBChange(Sender: TObject);
+var
+  Check: TAOWCheckBox;
 begin
-  with TAOWCheckBox(Sender) do
-  begin
-  if Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  Check := TAOWCheckBox(Sender);
+  if Check.Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
   RelPnl.FAligned := False;
   RelWin.FDrawn := False;
-  if Checked then
-    if FAction = nil then ShowPlayerActions(FPlayers[Tag])
-    else HighlightPlayer(FPlayers[Tag]);
-  end;
+  if Check.Checked then
+    if FAction = nil then ShowPlayerActions(FPlayers[Check.Tag])
+    else HighlightPlayer(FPlayers[Check.Tag]);
 end;
 
 procedure TRelWindow.R1CBChange(Sender: TObject);
+var
+  Check: TAOWCheckBox;
 begin
-  with TAOWCheckBox(Sender) do
-  begin
-  if Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+  Check := TAOWCheckBox(Sender);
+  if Check.Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
   RelPnl.FAligned := False;
   if FAction = nil then
   begin
     ClearActions;
-    HighlightRace(FRaces[Tag - 20]);
-    ShowRaceInformation(FRaces[Tag - 20]);
+    HighlightRace(FRaces[Check.Tag - 20]);
+    ShowRaceInformation(FRaces[Check.Tag - 20]);
   end
-  else HighlightRace(FRaces[Tag - 20]);
-  end;
+  else HighlightRace(FRaces[Check.Tag - 20]);
 end;
 
 procedure TRelWindow.P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
@@ -718,12 +714,12 @@ begin
   General.PlayButtonSound(0);
   Action := FAction;
   if Action <> nil then
-    if not Action.Accept(Reason) then AoWHSMap.ShowMessage(Reason)
-    else
+    if Action.Accept(Reason) then
     begin
       FinishEvent;
       ShowPlayerActions(FAction.FSource);
-    end;
+    end
+    else AoWHSMap.ShowMessage(Reason);
 end;
 
 procedure TRelWindow.MRejectBtnClick;
@@ -734,12 +730,12 @@ begin
   General.PlayButtonSound(0);
   Action := FAction;
   if Action <> nil then
-    if not Action.Reject(Reason) then AoWHSMap.ShowMessage(Reason)
-    else
+    if Action.Reject(Reason) then
     begin
       FinishEvent;
       ShowPlayerActions(FAction.FSource);
-    end;
+    end
+    else AoWHSMap.ShowMessage(Reason);
 end;
 
 procedure TRelWindow.PlyrGlowUpdate;
@@ -872,15 +868,15 @@ var
 begin
   Action := FAction;
   if Action <> nil then
-    if not Action.Send(Reason) then AoWHSMap.ShowMessage(Reason)
-    else
+    if Action.Send(Reason) then
     begin
       Player := FAction.FTarget;
       if (FEvent <> nil) and (FEvent.FAction.FActionType = daSendMessageAsY) then
         Player := FEvent.FAction.FOtherPlayer;
       FinishEvent;
       ShowPlayerActions(Player);
-    end;
+    end
+    else AoWHSMap.ShowMessage(Reason);
 end;
 
 procedure TRelWindow.ReplyBtnClick;

@@ -2,7 +2,7 @@ unit AoWRealm;
 
 { AoWRealm handlers recovered from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Overview pages and handlers use the original layouts and control offsets. }
 
 interface
 
@@ -104,7 +104,12 @@ type
     Help: TAOWButton; { +0194 }
     Translator: TIvTranslator; { +0198 }
     public
-    procedure UpdateOverview; { draft; 00449B30 }
+    procedure UpdateIncome; { 00448EB4 }
+    procedure UpdateCities; { 00449230 }
+    procedure UpdatePlaces; { 0044975C }
+    procedure UpdateHeroes; { 00449894 }
+    procedure UpdateOther; { 00449B2C }
+    procedure UpdateOverview; { 00449B30 }
     procedure DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); { 0044A030 }
     procedure OWMinIconClick;
     procedure T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
@@ -168,8 +173,174 @@ var
 
 implementation
 
+uses Farm, Mine, BldGuild;
+
+procedure TRealmWin.UpdateCities;
+var
+  I: Integer;
+  Structure: TPlayerStructure;
+  C: TCity;
+begin
+  T2NameLB.Items.Clear;
+  T2RaceLB.Items.Clear;
+  T2IncomeLB.Items.Clear;
+  T2LevelLB.Items.Clear;
+  T2WallLB.Items.Clear;
+  T2SizeLB.Items.Clear;
+  T2MorLB.Items.Clear;
+  T2RelLB.Items.Clear;
+  T2ActLB.Items.Clear;
+  T2EncLB.Items.Clear;
+  for I := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FStructures.GetCount - 1 do
+  begin
+    Structure := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FStructures.GetStructure(I);
+    if Structure is TCity then
+    begin
+      C := TCity(Structure);
+      T2NameLB.Items.AddObject(C.GetName, C);
+      T2RaceLB.Items.Add(TranslateRStr(RaceNamesPluralRStr[C.FRace]));
+      T2IncomeLB.Items.Add(IntToStr(C.FIncome));
+      T2LevelLB.Items.Add(IntToStr(C.FUpgradeLevel));
+      case C.FWallType of
+        1: T2WallLB.Items.Add('1');
+        2: T2WallLB.Items.Add('2');
+      else T2WallLB.Items.Add('-');
+      end;
+      case C.GetCivilStatus of
+        csUnrest: T2MorLB.Items.Add('1');
+        csStable: T2MorLB.Items.Add('2');
+        csContent: T2MorLB.Items.Add('3');
+        csCheerful: T2MorLB.Items.Add('4');
+      else T2MorLB.Items.Add('-');
+      end;
+      case Integer(AoWHSMap.FRaces.GetRace(C.FRace).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) and $7F of
+        0: T2RelLB.Items.Add('0');
+        1: T2RelLB.Items.Add('1');
+        2: T2RelLB.Items.Add('2');
+        3: T2RelLB.Items.Add('3');
+        4: T2RelLB.Items.Add('4');
+      else T2RelLB.Items.Add('-');
+      end;
+      case Integer(C.GetActiveAction) and $7F of
+        3: if C.FWallType = 1 then T2ActLB.Items.Add('1') else T2ActLB.Items.Add('0');
+        2: T2ActLB.Items.Add('2');
+        5: T2ActLB.Items.Add('3');
+        4: T2ActLB.Items.Add('4');
+        7, 8: T2ActLB.Items.Add('5');
+      else T2ActLB.Items.Add('-');
+      end;
+      T2EncLB.Items.Add('-');
+      T2SizeLB.Items.Add(IntToStr(C.GetSize));
+    end;
+  end;
+end;
+
+procedure TRealmWin.UpdateIncome;
+var
+  Value: Integer;
+begin
+  Treasury.Text := IntToStr(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FGems);
+  NetInc.Text := IntToStr(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FIncome -
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetUpkeep);
+  Income.Text := IntToStr(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FIncome);
+  Upkeep.Text := IntToStr(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetUpkeep);
+  IncomeMem.Items.Clear;
+  IncomeValue.Items.Clear;
+  UpkeepValue.Items.Clear;
+  Value := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FBaseIncome;
+  if Value <> 0 then
+  begin
+    IncomeMem.Items.Add(TranslateRStr(ExternalIncomeRStr));
+    IncomeValue.Items.Add(IntToStr(Value));
+  end;
+  Value := CityIncome(AoWHSMap.FSeatedPlayer);
+  if Value <> 0 then
+  begin
+    IncomeMem.Items.Add(TranslateRStr(CitiesRStr));
+    IncomeValue.Items.Add(IntToStr(Value));
+  end;
+  Value := FarmIncome(AoWHSMap.FSeatedPlayer);
+  if Value <> 0 then
+  begin
+    IncomeMem.Items.Add(TranslateRStr(FarmsRStr));
+    IncomeValue.Items.Add(IntToStr(Value));
+  end;
+  Value := MineIncome(AoWHSMap.FSeatedPlayer);
+  if Value <> 0 then
+  begin
+    IncomeMem.Items.Add(TranslateRStr(MinesRStr));
+    IncomeValue.Items.Add(IntToStr(Value));
+  end;
+  Value := BuildersGuildIncome(AoWHSMap.FSeatedPlayer);
+  if Value <> 0 then
+  begin
+    IncomeMem.Items.Add(TranslateRStr(BuildersGuildsRStr));
+    IncomeValue.Items.Add(IntToStr(Value));
+  end;
+  UpkeepValue.Items.Add(IntToStr(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmyUpkeep));
+end;
+
+procedure TRealmWin.UpdateHeroes;
+var
+  I, J: Integer;
+  U: TAbstractUnit;
+begin
+  T5Name.Items.Clear;
+  T5Health.Items.Clear;
+  T5Level.Items.Clear;
+  for I := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetCount - 1 do
+    for J := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetCount - 1 do
+    begin
+      U := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetUnit(J);
+      if U is THero then
+      begin
+        T5Name.Items.AddObject(U.GetName, AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I));
+        T5Health.Items.AddObject(IntToStr(U.GetHitPoints) + '/' + IntToStr(U.GetHits), U);
+        T5Level.Items.Add(IntToStr(THero(U).GetLevel));
+      end;
+    end;
+  if (T5Name.Items.Count > 0) and (T5Name.Selected = -1) then
+  begin
+    T5Name.Selected := 0;
+    HeroListChange(T5Name);
+  end;
+end;
+
+procedure TRealmWin.UpdatePlaces;
+var
+  I: Integer;
+  Place: TPlayerStructure;
+begin
+  T3Name.Items.Clear;
+  T3ActLB.Items.Clear;
+  for I := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FStructures.GetCount - 1 do
+  begin
+    Place := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FStructures.GetStructure(I);
+    if not (Place is TCity) then
+    begin
+      T3Name.Items.AddObject(Place.EditName, Place);
+      T3ActLB.Items.Add(Place.GetCurrentActivityText);
+    end;
+  end;
+end;
+
+procedure TRealmWin.UpdateOther;
+begin
+end;
+
 procedure TRealmWin.UpdateOverview;
-begin end;
+begin
+  if AoWHSMap.FSeatedPlayer = -1 then Dlg.Visible := False
+  else
+    case HeaderTab.Selected of
+      0: UpdateIncome;
+      1: UpdateCities;
+      2: UpdatePlaces;
+      3: UpdateHeroes;
+      4: UpdateHeroes;
+      5: UpdateOther;
+    end;
+end;
 
 procedure TRealmWin.DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
 var
@@ -350,16 +521,15 @@ end;
 
 procedure TRealmWin.HeroListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
+  List: TAOWListBox;
   Sprite: THexagonSprite;
 begin
-  with TAOWListBox(Sender) do
+  List := TAOWListBox(Sender);
+  if List.Selected <> -1 then
   begin
-  if Selected <> -1 then
-  begin
-    Sprite := TArmy(T5Name.Items.Objects[Selected]).GetArmyHS;
+    Sprite := TArmy(T5Name.Items.Objects[List.Selected]).GetArmyHS;
     AoWHSMap.CenterViewTo(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
     AoWHSMap.PlayCenterAnimation(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
-  end;
   end;
 end;
 
@@ -444,12 +614,12 @@ begin
 end;
 
 procedure TRealmWin.T3NameChange(Sender: TObject);
+var
+  List: TAOWListBox;
 begin
-  with TAOWListBox(Sender) do
-  begin
-  T3Name.Selected := Selected;
-  T3ActLB.Selected := Selected;
-  end;
+  List := TAOWListBox(Sender);
+  T3Name.Selected := List.Selected;
+  T3ActLB.Selected := List.Selected;
 end;
 
 procedure TRealmWin.T3SBChange;
@@ -659,13 +829,13 @@ begin
 end;
 
 procedure TRealmWin.HeroListChange(Sender: TObject);
+var
+  List: TAOWListBox;
 begin
-  with TAOWListBox(Sender) do
-  begin
-  T5Name.Selected := Selected;
-  T5Health.Selected := Selected;
-  T5Level.Selected := Selected;
-  end;
+  List := TAOWListBox(Sender);
+  T5Name.Selected := List.Selected;
+  T5Health.Selected := List.Selected;
+  T5Level.Selected := List.Selected;
 end;
 
 procedure TRealmWin.HeroVSBChange;

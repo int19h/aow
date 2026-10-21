@@ -17,7 +17,6 @@
   "FUN_00446c7c": "THeroUpgradeDlg.SetSelectedIndex",
   "FUN_00447064": "THeroUpgradeDlg.CanAddAbility",
   "FUN_0040701c": "TInfoBanner.ShowInfo",
-  "FUN_00449b30": "TRealmWin.UpdateOverview",
   "FUN_0044a030": "TRealmWin.DrawArmyUnit",
   "FUN_00419488": "TTitleScene.HitTest",
   "FUN_0041a128": "TTitleScene.ResetScene",
@@ -63,7 +62,7 @@
   "FUN_00454b70": "LoadGame",
   "FUN_00454940": "LoadCampaign",
   "FUN_00454d2c": "StartGame",
-  "FUN_0042abf0": "ShowMultiplayer",
+  "FUN_0042abf0": "ShowMultiplayer<ShowCampaignMap",
   "FUN_0041de44": "ShowCampaignMap",
   "FUN_00419158": "ShowFactionSelection",
   "FUN_00419528": "TTitleScene.DrawCredits",
@@ -104,5 +103,14 @@
   "FUN_00425a28": "TRelWindow.HighlightRace",
   "FUN_00424a24": "TRelWindow.FillPlayers",
   "FUN_00424bbc": "TRelWindow.ShowRelations",
-  "FUN_0041a304": "TTitleScene.HideScene"
+  "FUN_0041a304": "TTitleScene.HideScene",
+  "FUN_00448eb4": "TRealmWin.UpdateIncome",
+  "FUN_0044975c": "TRealmWin.UpdatePlaces",
+  "FUN_00449894": "TRealmWin.UpdateHeroes",
+  "FUN_00449b2c": "TRealmWin.UpdateOther",
+  "00449b30:114": "TRealmWin.UpdateOverview",
+  "00449230:1240": "TRealmWin.UpdateCities",
+  "FUN_0042d4a0": "ShowMagic",
+  "FUN_0042d4c8": "HideMagic",
+  "00433a1c:3285": "RefreshCombatUnit"
 }

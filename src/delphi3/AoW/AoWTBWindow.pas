@@ -91,7 +91,7 @@ type
     procedure StructButtonClick;  { draft }
     procedure TBNextButtonClick;  { draft }
     procedure UnitBtnClick;  { draft }
-    procedure InfoBtnClick;  { draft }
+    procedure InfoBtnClick(Sender: TObject);
     procedure ProdBtnClick;  { draft }
     procedure COBtnClick;  { draft }
     procedure ChatBtnClick;  { draft }
@@ -104,20 +104,20 @@ type
     procedure TCCurPUpdate;  { draft }
     procedure TCScannerBtnClick;  { draft }
     procedure TCNextBtnClick;  { draft }
-    procedure TBWorldUpdate;  { draft }
-    procedure TBCombatUpdate;  { draft }
+    procedure TBWorldUpdate(Sender: TObject);
+    procedure TBCombatUpdate(Sender: TObject);
     procedure OV2BtnClick;  { draft }
     procedure TCUnitBtnClick;  { draft }
     procedure StartMenuBarChange;  { draft }
-    procedure RelationsBtnClick;  { draft }
-    procedure ChatBtnUpdate(Sender: TAOWButton);
+    procedure RelationsBtnClick(Sender: TObject);
+    procedure ChatBtnUpdate(Sender: TObject);
     procedure AutoBtn2Click;  { draft }
   end;
 
 
 implementation
 
-uses AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals;
+uses AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals, E1GameFlow;
 
 procedure TTBWindow.TurnButtonAnimDone;
 begin
@@ -162,7 +162,7 @@ begin
   UnitWindow.UnitWin.Visible := True;
 end;
 
-procedure TTBWindow.InfoBtnClick;
+procedure TTBWindow.InfoBtnClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   if PInfoW.PInfoWin.Visible then PInfoW.PInfoWin.Visible := False
@@ -282,7 +282,7 @@ begin
   AoWCombatMap.SelectNextUnit(True);
 end;
 
-procedure TTBWindow.TBWorldUpdate;
+procedure TTBWindow.TBWorldUpdate(Sender: TObject);
 var
   Hour, Minute, Second, Millisecond: Word;
 begin
@@ -290,7 +290,18 @@ begin
   begin
     Dec(FWorldClockDelay);
     if FWorldClockDelay < 0 then
-      if AoWHSMap.FTurnTime = 0 then
+      if AoWHSMap.FTurnTime <> 0 then
+      begin
+        FWorldClockDelay := 10;
+        Minute := AoWHSMap.GetTurnTimeLeft div 60000;
+        Second := (AoWHSMap.GetTurnTimeLeft mod 60000) div 1000;
+        if (Minute = 0) and (Second > 0) and (Second <= 10) then TimeLbl.TextColor := $FF
+        else TimeLbl.TextColor := 0;
+        TimeLbl.Text := IntToStr(Minute) + ':';
+        if Second < 10 then TimeLbl.Text := TimeLbl.Text + '0';
+        TimeLbl.Text := TimeLbl.Text + IntToStr(Second);
+      end
+      else
       begin
         FWorldClockDelay := 900;
         DecodeTime(Time, Hour, Minute, Second, Millisecond);
@@ -299,22 +310,11 @@ begin
         TimeLbl.Text := IntToStr(Hour) + ':';
         if Minute < 10 then TimeLbl.Text := TimeLbl.Text + '0';
         TimeLbl.Text := TimeLbl.Text + IntToStr(Minute);
-      end
-      else
-      begin
-        FWorldClockDelay := 10;
-        Minute := AoWHSMap.GetTurnTimeLeft div 60000;
-        Second := (AoWHSMap.GetTurnTimeLeft mod 60000) div 1000;
-        if (Minute = 0) and (Second <> 0) and (Second < 11) then TimeLbl.TextColor := $FF
-        else TimeLbl.TextColor := 0;
-        TimeLbl.Text := IntToStr(Minute) + ':';
-        if Second < 10 then TimeLbl.Text := TimeLbl.Text + '0';
-        TimeLbl.Text := TimeLbl.Text + IntToStr(Second);
       end;
   end;
 end;
 
-procedure TTBWindow.TBCombatUpdate;
+procedure TTBWindow.TBCombatUpdate(Sender: TObject);
 var
   Hour, Minute, Second, Millisecond: Word;
 begin
@@ -335,7 +335,11 @@ begin
 end;
 
 procedure TTBWindow.OV2BtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if MagicWin.Dlg.Visible then HideMagic(MagicWin)
+  else ShowMagic(MagicWin);
+end;
 
 procedure TTBWindow.TCUnitBtnClick;
 begin
@@ -348,7 +352,7 @@ begin
   General.PlayButtonSound(3);
 end;
 
-procedure TTBWindow.RelationsBtnClick;
+procedure TTBWindow.RelationsBtnClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   with RelWindow.RelWin do
@@ -356,17 +360,18 @@ begin
     else RelWindow.ShowRelations(AoWHSMap.FSeatedPlayer);
 end;
 
-procedure TTBWindow.ChatBtnUpdate(Sender: TAOWButton);
-var
-  Button: TAOWButton;
+procedure TTBWindow.ChatBtnUpdate(Sender: TObject);
 begin
-  if FChatFlash < 1 then Exit;
-  Button := Sender;
-  case FChatFlash of
-    1, 31, 61, 91, 121: begin Button.FDrawn := False; Button.ILIndexUp := 14; end;
-    16, 46, 76, 106, 136: begin Button.FDrawn := False; Button.ILIndexUp := 20; end;
+  if FChatFlash > 0 then
+  begin
+    case FChatFlash of
+      1, 31, 61, 91, 121:
+        with TAOWButton(Sender) do begin FDrawn := False; ILIndexUp := 14; end;
+      16, 46, 76, 106, 136:
+        with TAOWButton(Sender) do begin FDrawn := False; ILIndexUp := 20; end;
+    end;
+    Dec(FChatFlash);
   end;
-  Dec(FChatFlash);
 end;
 
 procedure TTBWindow.AutoBtn2Click;

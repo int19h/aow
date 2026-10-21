@@ -216,7 +216,7 @@ begin
   ControlWin.ControlWindow.Visible := False;
   MapEvents.TheMapArmyDeselected;
   MapEvents.TheMapStructureDeselected;
-  TBWindow.TBWorldUpdate;
+  TBWindow.TBWorldUpdate(nil);
   PInfoW.UpdatePlayer;
   if msActivated in AoWHSMap.Status then
     with TBWindow.TurnButton do

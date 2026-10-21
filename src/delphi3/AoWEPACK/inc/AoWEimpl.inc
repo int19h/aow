@@ -58,7 +58,7 @@ type
     function GetWallCombatFeatures(Owner: TAbilityOwner): TWallCombatFeatures; virtual; abstract;
     function GetSourceName(Owner: TAbilityOwner): string; virtual; abstract;
     function GetInherent(Owner: TAbilityOwner): Boolean; virtual; abstract;
-    function GetInherentLevel(Owner: TAbilityOwner): Shortint; virtual; abstract;
+    function GetInherentLevel(Owner: TAbilityOwner): Integer; virtual; abstract;
     function GetControlType(Owner: TAbilityOwner): TAbilityControlType; virtual; abstract;
     function fcValidRoundDistance(Source, Target: TCombatObject): Boolean; virtual; abstract;
     procedure fcPrefetchCombatCommands(Owner: TAbilityOwner); virtual; abstract;
@@ -276,8 +276,8 @@ type
 resourcestring
   CannotBuildOnCurrentLocationRStr = 'Cannot build on current location';
 
-resourcestring
-    FireRStr = 'Fire';
+{ Exported resourcestring declaration recovered from AoW 00433E4D. }
+    { FireRStr is exported from the interface; AoW 00433E4D. }
 
 resourcestring
   ObserveEnabledRStr = 'Observe enabled';
@@ -389,7 +389,7 @@ type
     procedure Slot88; virtual; abstract;
     function SourceName(AOwner: TAbilityOwner): string; virtual; abstract;
     function AbilityInherent(AOwner: TAbilityOwner): Boolean; virtual; abstract;
-    function AbilityInherentLevel(AOwner: TAbilityOwner): Shortint; virtual; abstract;
+    function AbilityInherentLevel(AOwner: TAbilityOwner): Integer; virtual; abstract;
     procedure Slot98; virtual; abstract;
     procedure Slot9C; virtual; abstract;
     procedure SlotA0; virtual; abstract;
@@ -26160,7 +26160,7 @@ asm
   MOV ECX,[EAX]
   CALL DWORD PTR [ECX+$4C]
 end;
-procedure TAbility.GetInherentLevel(A1: Integer);
+function TAbility.GetInherentLevel(Owner: TAbilityOwner): Integer;
 asm
   XOR EAX,EAX
 end;
@@ -36244,7 +36244,7 @@ asm
   POP EBX
 end;
 
-procedure TMultiLevelAbility.GetInherentLevel(A1: Integer);
+function TMultiLevelAbility.GetInherentLevel(Owner: TAbilityOwner): Integer;
 { needs: P1 inherited declaration returns Integer for TAbilityOwner in EDX. }
 asm
   PUSH EBX
@@ -48362,7 +48362,7 @@ begin
   end;
   Result := False;
 end;
-function TAbstractUnit.GetInherentAbilityLevel(AbilityID: Integer): Shortint;
+function TAbstractUnit.GetInherentAbilityLevel(AbilityID: Integer): Integer;
 begin
   if TP2AbilityCalls(Self).GetAbSet(AbilityID) then
   begin

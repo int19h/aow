@@ -3,6 +3,7 @@ unit E1Resources;
 interface
 
 resourcestring
+  E1DamageRStr = 'Damage';
   E1FileNotFoundRStr = 'File not found';
   E1LoadingRStr = 'Loading';
   E1BackgroundRStr = 'Background';
