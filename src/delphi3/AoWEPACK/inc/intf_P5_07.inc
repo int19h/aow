@@ -564,12 +564,17 @@
   public
     FTargetFactor: Single; { $04 }
     FImmediateBonus: Integer; { $08 }
+    { conflict: FMaximumPriority: Integer; }
     FTransportPenalty: Integer; { $0C }
+    { conflict: FTransporterPriority: Integer; }
     FFarOverlapPenalty, FNearOverlapPenalty: Integer; { $10, $14 }
     FSetupBonus, FExecuteBonus: Integer; { $18, $1C }
+    { conflict: FSetupTargetPriority: Integer; }
+    { conflict: FExecuteTargetPriority: Integer; }
     FCompleteCooperationPenalty, FPartialCooperationPenalty: Integer; { $20, $24 }
     FPartialRecruitmentPenalty, FCompleteRecruitmentPenalty: Integer; { $28, $2C }
     FMoveDayPenalty: Integer; { $30 }
+    { conflict: FMoveTurnPriority: Integer; }
     FPartialProductionPenalty, FProductionDayPenalty: Integer; { $34, $38 }
   end;
 
@@ -583,6 +588,7 @@
   TAIGroupTargetSelector = class(TAIGroupControlPlugin)
   public
     FTargetStatus: TAIGroupTargetSelectorStatus; { $1C }
+    { conflict: FStatus: TAIGroupTargetSelectorStatus; }
     F_AIGroupTargetSelector_1D: array[0..2] of Byte;
     FPlugin: TAIGroupControlPlugin; { $20 }
     FRecruitment: TAIGroupRecruitControl; { $24 }
@@ -596,12 +602,19 @@
     FSpareUnits: TUnitUserList; { $40 }
     FNextTarget: TAIGroupControlTarget; { $44 }
     FBattleFieldFactor, FCurrentBattleFieldFactor, FBattleFieldMoveFactor: Single; { $48..$50 }
+    { conflict: FBattleFieldSuperiority: Single; }
+    { conflict: FCurrentBattleFieldSuperiority: Single; }
     FBattleFieldRadius: Integer; { $54 }
     FDamageTypes: TDamageTypes; { $58 }
     F_AIGroupTargetSelector_5A: array[0..1] of Byte;
     FSuperiority, FNearSuperiority, FMoveDayFactor: Single; { $5C..$64 }
+    { conflict: FCurrentSuperiority: Single; }
+    { conflict: FStrengthFactor: Single; }
     FMinimumStrength: Integer; { $68 }
     FMultiTargetFactor, FPathStrengthFactor, FCurrentPathStrengthFactor: Single; { $6C..$74 }
+    { conflict: FMovePointSuperiority: Single; }
+    { conflict: FStrengthRatio: Single; }
+    { conflict: FCurrentStrengthRatio: Single; }
     FTargetLimit: Integer; { $78 }
     FAllowTransport: Boolean; { $7C }
     F_AIGroupTargetSelector_7D: array[0..2] of Byte;

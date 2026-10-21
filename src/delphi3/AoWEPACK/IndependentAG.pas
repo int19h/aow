@@ -1,7 +1,7 @@
 unit IndependentAG;
 
 { IndependentAG, from AoWEPACK.dpl. Guard and patrol groups recovered at the
-  original instance layouts; later groups still retain draft bodies. }
+  original instance layouts, including raid and scout controllers. }
 
 interface
 
@@ -131,6 +131,8 @@ type
 
 
 implementation
+
+uses AGCPlugins;
 
 constructor TGuardAG.Create(AOwner: Engine.TECustomNode);
 begin
@@ -557,46 +559,168 @@ class function TRefugeAG.GroupControlClass: TAIGroupControlClass;
 begin Result := TRefugeAGC; end;
 
 constructor TRaidAG.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FProcessPriority := 1;
+  FRecruitmentPriority := 2;
+end;
 
 class function TRaidAG.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21465; end;
 
 class function TRaidAG.Behavior: TGroupBehavior;
-begin Result := gbNone; end;
+begin Result := gbRaid; end;
 
 class function TRaidAG.GroupControlClass: TAIGroupControlClass;
-begin Result := nil; end;
+begin Result := TRaidAGC; end;
 
 procedure TRaidAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
-begin end;
+begin
+  SetupCP(Target);
+  { Original also accepts crDefeat when the efficiency test passes. }
+  if FCombatPredictor.Execute in [crVictory, crDefeat, crNoDefenders] then
+    if FCombatPredictor.GetEfficiency > 0 then
+    begin
+      Target.FData.Priority := FCombatPredictor.GetEfficiency div 10 +
+        (Target.FData.Priority * 100 - Target.FMovePoints * 5);
+      inherited TargetFoundEvent(Sender, Target, SearchDone);
+    end;
+end;
 
 procedure TRaidAGC.MoveExecuterDone;
-begin end;
+begin
+  case FState of
+    1:
+      if FMoveExecuter.FStatus = mesOutOfMovePoints then Done
+      else if FMoveExecuter.FStatus = mesInvalidated then Done;
+  end;
+end;
 
 procedure TRaidAGC.ProcessStates;
-begin end;
+var
+  Finder: TAIGroupTargetFinder;
+  Raze: TAIGroupRazeControl;
+begin
+  case FState of
+    0:
+      begin
+        Finder := TAIGroupTargetFinder.Create(nil);
+        Finder.Setup(Self);
+        with Finder.FSelector do
+        begin
+          FMovePointsMax := 100;
+          FTargetInfo.Mode := tmRaid;
+        end;
+        ActivatePlugin(Finder);
+        Finder.Release;
+        Inc(FState);
+      end;
+    1:
+      begin
+        FTargets.Validate;
+        if FTargets.Count <> 0 then
+        begin
+          FTargets.SortOnPriority;
+          SetupME;
+          ExecuteME(FTargets.GetTargets(0).FLocation.X, FTargets.GetTargets(0).FLocation.Y,
+            FTargets.GetTargets(0).FLocation.L);
+          FTargets.Delete(0);
+          Inc(FState);
+        end
+        else Done;
+      end;
+    2:
+      begin
+        Raze := TAIGroupRazeControl.Create(nil);
+        Raze.Setup(Self);
+        Raze.FMode := [];
+        ActivatePlugin(Raze);
+        Raze.Release;
+        FState := 1;
+      end;
+  end;
+end;
 
 constructor TScoutAG.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FProcessPriority := 10;
+  FRecruitmentPriority := 10;
+end;
 
 class function TScoutAG.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21455; end;
 
 class function TScoutAG.Behavior: TGroupBehavior;
-begin Result := gbNone; end;
+begin Result := gbScout; end;
 
 class function TScoutAG.GroupControlClass: TAIGroupControlClass;
-begin Result := nil; end;
+begin Result := TScoutAGC; end;
 
 procedure TScoutAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
-begin end;
+begin
+  SetupCP(Target);
+  if FCombatPredictor.Execute in [crVictory, crNoDefenders] then
+    if FCombatPredictor.GetEfficiency > 50 then
+    begin
+      Target.FData.Priority := FCombatPredictor.GetEfficiency +
+        (Target.FData.Priority * 100 - Target.FMovePoints * 5);
+      inherited TargetFoundEvent(Sender, Target, SearchDone);
+    end;
+end;
 
 procedure TScoutAGC.MoveExecuterDone;
-begin end;
+begin
+  case FState of
+    1:
+      if FMoveExecuter.FStatus = mesOutOfMovePoints then Done
+      else if FMoveExecuter.FStatus = mesInvalidated then Done;
+  end;
+end;
 
 procedure TScoutAGC.ProcessStates;
-begin end;
+var
+  Finder: TAIGroupTargetFinder;
+  Wander: TAIGroupWanderControl;
+begin
+  case FState of
+    0:
+      if (FGroup.FPlayer <> 0) or
+        (AoWHSMap.Random(3) < Ord(AoWHSMap.GetIndependentAIMode)) then
+      begin
+        Finder := TAIGroupTargetFinder.Create(nil);
+        Finder.Setup(Self);
+        Finder.FSelector.FMovePointsMax := FGroup.GetMovePointsMin;
+        ActivatePlugin(Finder);
+        Finder.Release;
+        Inc(FState);
+      end
+      else Done;
+    1:
+      begin
+        FTargets.Validate;
+        if FTargets.Count <> 0 then
+        begin
+          FTargets.SortOnPriority;
+          SetupME;
+          ExecuteME(FTargets.GetTargets(0).FLocation.X, FTargets.GetTargets(0).FLocation.Y,
+            FTargets.GetTargets(0).FLocation.L);
+          FTargets.Delete(0);
+        end
+        else Inc(FState);
+      end;
+    2:
+      begin
+        Wander := TAIGroupWanderControl.Create(nil);
+        Wander.Setup(Self);
+        Wander.FMovePointsMax := 125;
+        ActivatePlugin(Wander);
+        Wander.Release;
+        Inc(FState);
+      end;
+    3: Done;
+  end;
+end;
 
 
 initialization

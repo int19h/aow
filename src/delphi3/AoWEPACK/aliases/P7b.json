@@ -1,4 +1,10 @@
 {
   "557d90a8:9": "ComparePatrolFields",
-  "FUN_557d90b4": "PatrolHeadingDistance"
+  "FUN_557d90b4": "PatrolHeadingDistance",
+  "557dd3c8:748": "TNormalAGC.ProcessStates",
+  "557dd700:731": "TDefenderAGC.ProcessStates",
+  "557dda28:720": "TAggressorAGC.ProcessStates",
+  "557ddd44:746": "TExpanderAGC.ProcessStates",
+  "557de07c:732": "TScorcherAGC.ProcessStates",
+  "557de3a8:491": "TSkirmishAGC.ProcessStates"
 }

@@ -29,7 +29,7 @@ type
     function Activate(Control: TAIGroupControl): Boolean; override;
     function Process: Boolean; override;
     procedure Reset;
-    function Setup: Boolean;
+    function Setup(Control: TAIGroupControl): Boolean;
     procedure ExecuteRaze(Structure: TStructure);
     function ValidateRazeCity(City: TCity; const Info: TBattleFieldInfo): Boolean;
     function ValidateRazeStructure(Structure: TStructure; const Info: TBattleFieldInfo): Boolean;
@@ -73,7 +73,7 @@ type
     function Activate(Control: TAIGroupControl): Boolean; override;
     function Process: Boolean; override;
     procedure Reset;
-    function Setup: Boolean;
+    function Setup(Control: TAIGroupControl): Boolean;
   end;
 
 
@@ -95,7 +95,7 @@ begin
   FStructureStrengthFactor := 2;
 end;
 
-function TAIGroupRazeControl.Setup: Boolean;
+function TAIGroupRazeControl.Setup(Control: TAIGroupControl): Boolean;
 begin Reset; Result := True; end;
 
 function TAIGroupRazeControl.Activate(Control: TAIGroupControl): Boolean;
@@ -316,7 +316,7 @@ begin
   FMoveSettings.Reset;
 end;
 
-function TAIGroupWanderControl.Setup: Boolean;
+function TAIGroupWanderControl.Setup(Control: TAIGroupControl): Boolean;
 begin Reset; Result := True; end;
 
 function TAIGroupWanderControl.Activate(Control: TAIGroupControl): Boolean;
