@@ -1321,7 +1321,7 @@ type
   TEWriteTextStorageStream = class(TEStorageStream)
   private
     FPath: string;
-    FBuffer: TEBufferStream;
+  protected FBuffer: TEBufferStream; private { $28; 557977DF }
     procedure WriteTextBuffer(Stream: TStream);
   public
     constructor Create(AStream: TStream; AEngine: TEngine);

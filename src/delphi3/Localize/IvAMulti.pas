@@ -16,7 +16,7 @@ type
   { TIvCustomFileDictionary (instance size 136, VMT 00419CE0) }
   TIvCustomFileDictionary = class(TIvDictionary)
   public
-    F_IvCustomFileDictionary_7C: array[0..11] of Byte;
+    FFileName: string; { $7C; 5579767D } F_IvCustomFileDictionary_80: array[0..7] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: TComponent); override;
     function GetTranslationCount: Integer; override;

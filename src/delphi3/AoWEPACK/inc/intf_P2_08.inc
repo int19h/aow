@@ -1,24 +1,29 @@
 { Interface declaration run owned by P2. }
-  { TAoWEngine (instance size 128, VMT 557244F0): +6E FDemo. }
+  { TAoWEngine (instance size $80, VMT 557244F0): $58 FVersion, $5C FRegistry,
+    $60 FGameMap, $64 FGameSet, $68 FCombatFont, $6C FDebugMode, $6D FAnimationDetail,
+    $6E FDemo, $70 FCampaign, $74 FEmailGames, $78 FDictionary, $7C FLanguage. }
   TAoWEngine = class(THSEngine)
   public
-    F_AoWEngine_58: Integer;
+    FVersion: Integer; { $58 }
     FRegistry: TAoWRegistry; { $5C }
     { conflict: FRegistry: TRegistry; }
-    F_AoWEngine_60: Integer;
+    FGameMap: TAoWHSMap; { $60 }
     FGameSet: TAoWHSSet; { $64 }
     { conflict: FHSSet: TAoWHSSet; }
     FCombatFont: TImageLibraryFont; { $68 }
     { conflict: FUnitFont: TImageLibraryFont; }
     FDebug: Boolean; { $6C; 55773E51 }
+    { conflict: FDebugMode: Boolean; }
     { conflict: FDeveloper: Boolean; }
     FAnimationDetail: Byte; { $6D }
+    { conflict: FAnimationDetail: TDetailLevel; }
     FDemo: Boolean; { $6E; 5578B227 }
     F_AoWEngine_6F: array[0..0] of Byte;
     FCampaign: TAoWCampaign; { $70 }
     FEmailGames: TEmailGameControl; { $74 }
-    F_AoWEngine_78: Integer;
+    FDictionary: TAoWDictionary; { $78 }
     FLanguage: Byte; { $7C; 55773B82 }
+    { conflict: FLanguage: TAoWLanguage; }
     F_AoWEngine_7D: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -28,29 +33,29 @@
     procedure CreateHSSet; override;
     procedure SetHSMap(Value: HSEngine.THSMap); override;
     procedure CloseHSM(AProgress: Engine.TProgressEvent); override;
-    procedure TranslateEObject(A1: Integer; A2: Integer);  { draft }
+    procedure TranslateEObject(Obj: TEObject; Dictionary: TIvDictionary);
     procedure TranslateEObjectFromFile(Obj: TEObject; const FileName: string);
-    procedure ExportTextToFile(A1: Integer; A2: Integer);  { draft }
+    procedure ExportTextToFile(const FileName: string; Obj: TEObject);
     function TranslateRStr(const S: string): string;
-    procedure GetMajorVersion;  { draft }
-    procedure GetMinorVersion;  { draft }
-    procedure GetBuildNumber;  { draft }
-    procedure SetVersion(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure GetVersionStr(A1: Integer);  { draft }
-    procedure RegisteredVersion;  { draft }
-    procedure RegisteredTo(A1: Integer);  { draft }
-    procedure RequestAccess(A1: Integer; A2: Integer);  { draft }
-    procedure CloseCampaign;  { draft }
-    procedure LoadCampaignMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure LoadCampaign(A1: Integer);  { draft }
+    function GetMajorVersion: Integer;
+    function GetMinorVersion: Integer;
+    function GetBuildNumber: Integer;
+    procedure SetVersion(Major, Minor, Build: Integer);
+    function GetVersionStr: string;
+    function RegisteredVersion: Boolean;
+    function RegisteredTo: string;
+    function RequestAccess(const Name, Code: string): Boolean;
+    procedure CloseCampaign;
+    procedure LoadCampaignMap(AProgress: Engine.TProgressEvent);
+    procedure LoadCampaign(const FileName: string);
     procedure SaveCampaign(const FileName: string);
-    procedure NewCampaign(A1: Integer);  { draft }
+    procedure NewCampaign(AClassID: Integer);
   end;
 
-  { TAgeOfWondersEngine (instance size 64, VMT 55724618) }
+  { TAgeOfWondersEngine (instance size $40, VMT 55724618): $3C FGameEngine. }
   TAgeOfWondersEngine = class(THexagonSpriteEngine)
   public
-    F_AgeOfWondersEngine_3C: array[0..3] of Byte;
+    FGameEngine: THSEngine; { $3C }
     destructor Destroy; override;
     procedure SetHSEngine(Value: HSEngine.THSEngine); override;
     procedure CreateEngine; override;

@@ -17,7 +17,7 @@ type
   { TIvDictionary (instance size 124, VMT 0040508C) }
   TIvDictionary = class(TComponent)
   public
-    F_IvDictionary_24: array[0..87] of Byte;
+    F_IvDictionary_24: array[0..31] of Byte; FLanguage: Integer; { $44; 55797B4F } F_IvDictionary_48: array[0..51] of Byte;
     destructor Destroy; override;
     procedure DefineProperties(Filer: TFiler); override;
     constructor Create(AOwner: TComponent); override;
@@ -28,8 +28,8 @@ type
     function GetTranslationCount: Integer; virtual;  { +038 draft }
     procedure LanguageChanged(A1: Integer; A2: Integer); virtual;  { +03C draft }
     function TranslateContextString(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Integer; virtual; abstract;  { +040 draft }
-    procedure Open; virtual;  { +044 draft }
-    procedure Close(A1: Integer; A2: Integer); virtual;  { +048 draft }
+    procedure Open; virtual; { +044; 55797684 }
+    procedure Close; virtual; { +048; 55797724 }
     function CanBeOpened: Byte; virtual;  { +04C draft }
     procedure GetLanguageDatas(A1: Integer; A2: Integer); virtual;  { +050 draft }
     procedure GetLocaleDatas(A1: Integer); virtual;  { +054 draft }
@@ -40,9 +40,9 @@ type
     procedure SynchronizeLanguage; virtual;  { +068 draft }
     procedure GetPrimaryLanguages(A1: Integer; A2: Byte); virtual;  { +06C draft }
     function IsLocaleSupported(A1: Integer; A2: Integer): Byte; virtual;  { +070 draft }
-    procedure SetDictionaryName(A1: Integer);  { draft }
-    procedure SetLanguage(A1: Integer);  { draft }
-    procedure Translate(A1: Integer; A2: Integer);  { draft }
+    procedure SetDictionaryName(const Name: string);
+    procedure SetLanguage(A1: Integer);
+    function Translate(const S: string): string;
   end;
 
   { TIvCustomTranslator (instance size 84, VMT 00405464) }
@@ -66,7 +66,7 @@ begin end;
 destructor TIvDictionary.Destroy;
 begin end;
 
-procedure TIvDictionary.SetDictionaryName(A1: Integer);
+procedure TIvDictionary.SetDictionaryName(const Name: string);
 begin end;
 
 procedure TIvDictionary.DefineProperties(Filer: TFiler);
@@ -105,11 +105,11 @@ begin Result := 0; end;
 procedure TIvDictionary.Open;
 begin end;
 
-procedure TIvDictionary.Close(A1: Integer; A2: Integer);
+procedure TIvDictionary.Close;
 begin end;
 
-procedure TIvDictionary.Translate(A1: Integer; A2: Integer);
-begin end;
+function TIvDictionary.Translate(const S: string): string;
+begin Result := ''; end;
 
 procedure TIvDictionary.GetLanguageDatas(A1: Integer; A2: Integer);
 begin end;

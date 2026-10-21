@@ -250,7 +250,7 @@ begin
   if GlobalSpellMap^.ViewL = FLayer then
   begin
     Inc(FFrame);
-    if (GlobalSpellEngine^.FAnimationDetail = 2) and
+    if (Ord(GlobalSpellEngine^.FAnimationDetail) = 2) and
       (GlobalSpellMap^.ViewL = FLayer) then
     begin
       Intensity := 60-Abs(FFrame*3-60);

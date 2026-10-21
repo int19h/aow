@@ -13,7 +13,7 @@ type
   end;
 var
   P3HitProbabilities: array[0..19] of Single;
-  CombatDID: Integer; { $558FA04C }
+  { CombatDID is declared with the shared engine globals. }
 
 constructor TCombatUnit.Create(AOwner: Engine.TECustomNode);
 begin

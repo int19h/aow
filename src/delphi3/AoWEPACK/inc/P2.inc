@@ -9025,158 +9025,1011 @@ begin
   else if (Msg.MsgID = $20020003) and (Msg.Value = FPlayer) then ValidateCrusaders;
 end;
 
-procedure TArmy.CanActivate;
-begin end;
+resourcestring
+  P2PartyJoinHeaderRStr = 'The leader of the party steps forward:';
+  P2PartyJoinRStr = 'Party Join';
+  P2OneUnitJoinedRStr = '1 unit joined';
+  P2AUnitJoinedTheForcesofYRStr = 'A unit joined the forces of %s';
+  P2XUnitsJoinedRStr = '%s units joined';
+  P2XUnitsJoinedTheForcesofYRStr = '%d units joined the forces of %s';
+  P2XJoinedRStr = '%s joined';
+  P2XJoinedTheForcesOfYRStr = '%0:s joined the forces of %1:s';
+  P2FireDamageRStr = 'Fire damage';
+const
+  P2StormNames: array[TStormType] of string =
+    ('None', 'Fire', 'Death', 'Life', 'Ice', 'Lightning', 'Pestilence');
 
-procedure TArmy.GetMoveAction(A1: Byte; A2: Integer);
-begin end;
+function TArmy.CanActivate: Boolean;
+begin
+  Result := True;
+end;
+
+function TArmy.GetMoveAction(Player: Shortint): TMoveAction;
+begin
+  Result := maNormal;
+  if Player <> FPlayer then
+  begin
+    if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman then
+    begin
+      if not (asFullyConcealed in FStatus) then
+        if (FPlayer = 0) and (GetJoinSelection(Player) <> 0) then Result := maNegotiate
+        else Result := maAttack;
+    end
+    else
+      if (FPlayer = 0) and (GetJoinSelection(Player) <> 0) then Result := maNegotiate
+      else Result := maAttack;
+  end
+  else Result := maCombine;
+end;
 
 function TArmy.GetCanJoinSelection(Player: Shortint): Byte;
-begin Result := 0; end;
+var I: Integer; AUnit: TAbstractUnit;
+begin
+  if Player > 0 then
+  begin
+    Result := 0;
+    for I := Count - 1 downto 0 do
+    begin
+      Result := Result shl 1;
+      AUnit := TAbstractUnit(FChildren.List^[I]);
+      if AUnit.CanJoin(Player) then Result := Result or 1;
+    end;
+    if IndexOfTransporter($FF) <> -1 then
+      if Result <> ValidateSelection($FF) then Result := 0;
+  end
+  else Result := 0;
+end;
 
 function TArmy.GetJoinSelection(Player: Shortint): Byte;
-begin Result := 0; end;
+var WantsJoin: Boolean; I: Integer;
+begin
+  Result := 0;
+  if Player > 0 then
+  begin
+    WantsJoin := False;
+    I := Count;
+    while not WantsJoin and (I <> 0) do
+    begin
+      Dec(I);
+      WantsJoin := TAbstractUnit(FChildren.List^[I]).OfferToJoin(Player);
+    end;
+    if WantsJoin then Result := GetCanJoinSelection(Player);
+  end;
+end;
 
 function TArmy.JoinAmount(Player: Shortint; Selection: Byte): Integer;
-begin Result := 0; end;
+var I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      Inc(Result, TAbstractUnit(FChildren.List^[I]).JoinAmount(Player));
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TArmy.IncommingNegotiateRequest(A1: Integer);
-begin end;
+function TArmy.IncommingNegotiateRequest(Log: TNegotiateRequestEventLog): Boolean;
+begin
+  Result := False;
+  if FPlayer = 0 then
+  begin
+    Log.SetupJoinArmy(Self, Log.FPlayer, jmDefault);
+    Log.FObject := noArmy;
+    Log.FText := TranslateRStr(P2PartyJoinHeaderRStr);
+    Result := Log.FSelection <> 0;
+  end;
+end;
 
-procedure TArmy.IncommingNegotiateOffer(A1: Integer);
-begin end;
+function TArmy.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
+var
+  Log: TArmyInfoEventLog;
+  Selection: Byte;
+  AHero: THero;
+  Locations: TXYLList;
+  I, J, Direction, X, Y, JoinCount: Integer;
+  Placed: Boolean;
+begin
+  if Offer.FObject = noArmy then
+  begin
+    if Offer.FResult = nrAccept then
+    begin
+      Selection := GetJoinSelection(Offer.FPlayer);
+      JoinCount := SelectionCount(Selection);
+      if (nmPrisonerJoin in Offer.FMode) or (JoinAmount(Offer.FPlayer, Selection) <= Offer.FGold) then
+      begin
+        BeginUpdate;
+        Offer.FMode := Offer.FMode + [nmMoveOnAccept];
+        Log := TArmyInfoEventLog.Create(nil);
+        Log.FArmyView.Setup(Self, Selection);
+        Log.FSelection := $FF;
+        Log.FDescription := '';
+        Log.FTitle := TranslateRStr(P2PartyJoinRStr);
+        Log.FTriggers := [etEvent];
+        AHero := Hero(Selection, [htHero]);
+        if AHero = nil then
+        begin
+          if JoinCount = 1 then
+          begin
+            Log.FText := TranslateRStr(P2OneUnitJoinedRStr);
+            Log.FMessages.Add(Format(TranslateRStr(P2AUnitJoinedTheForcesofYRStr),
+              [AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+          end
+          else
+          begin
+            Log.FText := Format(TranslateRStr(P2XUnitsJoinedRStr), [IntToStr(JoinCount)]);
+            Log.FMessages.Add(Format(TranslateRStr(P2XUnitsJoinedTheForcesofYRStr),
+              [SelectionCount(Selection), AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+          end;
+        end
+        else
+        begin
+          Log.FText := Format(TranslateRStr(P2XJoinedRStr), [AHero.FHeroName]);
+          Log.FMessages.Add(Format(TranslateRStr(P2XJoinedTheForcesOfYRStr),
+            [AHero.FHeroName, AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+        end;
+        DistributeLocationEventLog(Log, -1, FX, FY, FL, 0);
+        Log.Release;
+        if ValidateSelection($FF) <> Selection then
+        begin
+          Locations := TXYLList.Create;
+          if Offer.FArmyHS <> nil then
+          begin
+            Direction := dHXtoHNfast(FX, FY, Offer.FArmyHS.GetXhx, Offer.FArmyHS.GetYhx);
+            if (Direction > 0) and (Direction <= 6) then
+            begin
+              Locations.AddXYL(FX, FY, FL);
+              J := Direction + 1;
+              if J > 6 then J := 1;
+              CenterHNtoHX(Offer.FX, Offer.FY, J, X, Y);
+              Locations.AddXYL(X, Y, FL);
+              Dec(Direction);
+              if Direction = 0 then Direction := 6;
+              CenterHNtoHX(Offer.FX, Offer.FY, Direction, X, Y);
+              Locations.AddXYL(X, Y, FL);
+            end;
+          end;
+          J := 0;
+          I := Count;
+          while I <> 0 do
+          begin
+            Dec(I);
+            if (Selection and (1 shl I)) <> 0 then
+            begin
+              Placed := False;
+              while not Placed and (J < Locations.Count) do
+              begin
+                Placed := GetUnit(I).Place(Locations[J].X, Locations[J].Y, Locations[J].L,
+                  Offer.FPlayer, []) <> nil;
+                if not Placed then Inc(J);
+              end;
+              if not Placed then GetUnit(I).Place(FX, FY, FL, Offer.FPlayer, [pmScanArea]);
+            end;
+          end;
+          Locations.Free;
+        end
+        else SetPlayer(Offer.FPlayer);
+        EndUpdate;
+        Offer.Accept;
+      end
+      else
+      begin
+        Offer.FMode := [nmAttackOnReject];
+        Offer.Reject;
+      end;
+    end
+    else if (Offer.FResult = nrReject) and not (nmPrisonerJoin in Offer.FMode) then Offer.Reject;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TArmy.TriggerFireDamage;
-begin end;
+var Log: TArmyEventLog; AUnit: TAbstractUnit; Damage, I: Integer; Damaged: Boolean;
+begin
+  RandSeed := AoWHSMap.Random($FFFFFF);
+  Log := TArmyEventLog.Create(nil);
+  Log.FArmyText := TranslateRStr(P2FireDamageRStr);
+  Log.FPlayer := GetArmyHS.FArmy.FPlayer;
+  Log.FArmyMessages.Add(TranslateRStr(P2FireDamageRStr));
+  Log.FArmyIcon := 0;
+  Log.FArmyView.Setup(GetArmyHS.FArmy, $FF);
+  BeginUpdate;
+  Damaged := False;
+  for I := 0 to Count - 1 do
+  begin
+    AUnit := GetUnit(I);
+    if not (dtFire in AUnit.GetImmunityTypes) then
+    begin
+      Damage := AUnit.ExecuteDamageRole(4, 4, [dtFire]);
+      if Damage > AUnit.GetHitPoints then Damage := AUnit.GetHitPoints;
+      if Damage <> 0 then
+      begin
+        Damaged := True;
+        AUnit.SetHitPoints(AUnit.GetHitPoints - Shortint(Damage));
+      end;
+      Log.FDamageValues.Add(Damage);
+      Log.FDamageTypes.Add(Ord(dtFire));
+    end
+    else
+    begin
+      Log.FDamageValues.Add(0);
+      Log.FDamageTypes.Add(Ord(dtNone));
+    end;
+  end;
+  Log.ValidateGameOver;
+  if Damaged then DistributeLocationEventLog(Log, -1, FX, FY, FL, 1);
+  Log.Release;
+  Validate;
+  EndUpdate;
+end;
 
-procedure TArmy.RetrieveStormDamageInfo(A1: Byte);
-begin end;
+procedure TArmy.RetrieveStormDamageInfo(Storm: TStormType; Distance: Integer; var Info: TStormDamageInfo);
+var I, Attack, Damage, Value, Amount: Integer; AUnit: TAbstractUnit; Relation: TDiplomaticRelation;
+begin
+  Relation := DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation);
+  if (Ord(Relation) in Info.FriendlyRelations) or (Ord(Relation) in Info.EnemyRelations) then
+  begin
+    case Storm of
+      stIce: begin Attack := 7; Damage := 5; end;
+      stLightning: begin Attack := 8; Damage := 7; end;
+      stDeath: begin Attack := 7; Damage := 4; end;
+      stHoly: begin Attack := 7; Damage := 5; end;
+      stFire: begin Attack := 7; Damage := 5; end;
+      stPestilence: begin Attack := 4; Damage := 3; end;
+    else Attack := 0; Damage := 0;
+    end;
+    for I := Count - 1 downto 0 do
+    begin
+      AUnit := GetUnit(I);
+      if (AUnit.FPlayer <> 0) or ((AUnit.FGroup <> nil) and (AUnit.FGroup.Behavior <> gbRefuge)) then
+      begin
+        AUnit.RetrieveDamageInfo(Attack, Damage, [P2StormDamageType[Storm]], Value, Amount);
+        if Ord(Relation) in Info.FriendlyRelations then
+        begin Inc(Info.FriendlyDamage, Value); Inc(Info.FriendlyValue, Amount); end;
+        if Ord(Relation) in Info.EnemyRelations then
+        begin Inc(Info.EnemyDamage, Value); Inc(Info.EnemyValue, Amount); end;
+      end;
+    end;
+  end;
+end;
 
 procedure TArmy.IncommingStorm(A1: TStormType; A2: Integer; A3: Shortint);
-begin end;
+var Log: TArmyEventLog; I, Damage: Integer; Damaged: Boolean;
+begin
+  RandSeed := AoWHSMap.Random($FFFFFF);
+  Log := TArmyEventLog.Create(nil);
+  Log.FArmyText := TranslateRStr(P2StormNames[A1]);
+  Log.FPlayer := A3;
+  Log.FArmyMessages.Text := TranslateRStr(P2StormNames[A1]);
+  Log.FArmyIcon := 2;
+  Log.FArmyView.Setup(Self, $FF);
+  BeginUpdate;
+  Damaged := False;
+  for I := 0 to Count - 1 do
+  begin
+    Damage := TAbstractUnit(FChildren.List^[I]).ExecuteStormDamage(A1);
+    if Damage <> 0 then Damaged := True;
+    Log.FDamageValues.Add(Damage);
+    Log.FDamageTypes.Add(Ord(P2StormDamageType[A1]));
+  end;
+  if Damaged then
+  begin
+    Log.ValidateGameOver;
+    DistributeLocationEventLog(Log, FPlayer, FX, FY, FL, 1);
+  end;
+  Log.Release;
+  Validate;
+  EndUpdate;
+end;
 
-procedure TArmy.UpdateAITarget(A1: Integer; A2: Integer);
-begin end;
+procedure TArmy.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
+var Selection: Byte;
+begin
+  case Info.Mode of
+    tmAttack, tmRaid, tmAttackArmies:
+      if not GetUnitsConcealedForPlayer($FF, Info.Player) and (Info.Player <> FPlayer) then
+      begin
+        if FPlayer > 0 then
+        begin
+          if ValidAttackRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation) or (Info.Mode = tmRaid) then
+            if (Info.Player <> 0) and (Leader($FF) <> nil) then Data.Priority := 300
+            else if (Info.Player <> 0) and (Hero($FF, [htHero]) <> nil) then Data.Priority := 100
+            else Data.Priority := 50
+          else Data.Priority := 0;
+        end
+        else if FPlayer = 0 then
+        begin
+          Selection := GetJoinSelection(Info.Player);
+          if Selection <> 0 then
+          begin
+            Data.Cost := JoinAmount(Info.Player, Selection);
+            Data.TargetType := attNegotiate;
+          end
+          else if ValidAttackRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation) then
+            Data.Priority := 50;
+        end;
+      end;
+    tmGuardArea:
+      if not GetUnitsConcealedForPlayer($FF, Info.Player) and (Info.Player <> FPlayer) then Data.Priority := 50
+      else Data.Priority := 0;
+    tmHunt: Data.Priority := 10;
+    tmRecruit:
+      if (Info.Player = FPlayer) and ((FPlayer <> 0) or
+        (DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation) <> drWar)) then
+        Data.Priority := Data.Priority or 1;
+  end;
+end;
 
-procedure TArmy.AIMovePriority;
-begin end;
+function TArmy.AIMovePriority: Integer;
+begin
+  Result := 0;
+  if Leader($FF) <> nil then Inc(Result, 50000);
+  if Hero($FF, [htHero, htHeroLeader]) <> nil then Inc(Result, 10000);
+  Inc(Result, ObtainValue($FF));
+end;
 
 procedure TArmy.ResetMoveDone;
-begin end;
+var I: Integer; AUnit: TAbstractUnit;
+begin
+  for I := FChildren.Count - 1 downto 0 do
+  begin
+    AUnit := TAbstractUnit(FChildren.List^[I]);
+    AUnit.FUnitStatus := AUnit.FUnitStatus - [usMoveDone];
+  end;
+end;
 
-procedure TArmy.CanCombine(A1: Integer; A2: Integer);
-begin end;
+function TArmy.CanCombine(Army: TArmy; Selection: Byte): Boolean;
+var I, MaxCount: Integer; Temp: Byte; OwnTransporter, OtherTransporter: TAbstractUnit;
+begin
+  Selection := Army.ValidateSelection(Selection);
+  I := 0;
+  Temp := Selection;
+  while Temp <> 0 do
+  begin
+    if Temp and 1 <> 0 then Inc(I);
+    Temp := Temp shr 1;
+  end;
+  OwnTransporter := Transporter($FF);
+  if OwnTransporter <> nil then MaxCount := OwnTransporter.GetTransportCapacity + 1
+  else MaxCount := 8;
+  Inc(I, Count);
+  if I <= MaxCount then
+  begin
+    OtherTransporter := Army.Transporter(Selection);
+    if (OtherTransporter <> nil) and ((I > OtherTransporter.GetTransportCapacity + 1) or (OwnTransporter <> nil)) then
+      Result := False
+    else Result := True;
+  end
+  else Result := False;
+end;
+
+resourcestring
+  P2ArmyRStr = 'Army';
 
 constructor TArmyHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FArmy := TArmy.Create(nil);
+end;
 
 destructor TArmyHS.Destroy;
-begin end;
+begin
+  FArmy.FOnUpdate := nil;
+  inherited Destroy;
+  FArmy.Free;
+  FArmy := nil;
+end;
 
 class function TArmyHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $20217;
+end;
 
-procedure TArmyHS.GetFogEnabled;
-begin end;
+function TArmyHS.GetFogEnabled: Boolean;
+begin
+  Result := (AoWHSMap.FFogEnabled <> 0) and
+    (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo = 0);
+end;
 
 function TArmyHS.VisibleForSeatedPlayer: Boolean;
-begin Result := False; end;
+begin
+  Result := ((AoWHSMap.FFogEnabled = 0) or
+    (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0)) and not FArmy.GetFullyConcealed;
+end;
 
 function TArmyHS.EditName: string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(P2ArmyRStr);
+end;
 
 procedure TArmyHS.Clear;
-begin end;
+begin
+  inherited Clear;
+  FArmy.Clear;
+end;
 
 function TArmyHS.PlaceOnMap: Boolean;
-begin Result := False; end;
+var Msg: TMapFieldMsg;
+begin
+  Result := inherited PlaceOnMap;
+  if Result then
+  begin
+    FArmy.BeginUpdate;
+    with TMapField(Owner) do FArmy.SetXYL(Xhx, Yhx, Lhx);
+    FArmy.UpdateUnfog;
+    FArmy.UpdateExploration;
+    Msg.MsgID := $1102;
+    Msg.Param[0] := Integer(Self);
+    TMapField(Owner).SendMapFieldMsg(Msg);
+    FArmy.EndUpdate;
+  end;
+end;
 
 procedure TArmyHS.RemoveFromMap;
-begin end;
+var Field: TMapField; Msg: TMapFieldMsg;
+begin
+  Field := TMapField(Owner);
+  if Field <> nil then FArmy.TurnUnFogOff;
+  inherited RemoveFromMap;
+  if (Field <> nil) and (AoWHSMap <> nil) and not (msDestroying in AoWHSMap.Status) then
+  begin
+    Msg.MsgID := $1103;
+    Msg.Param[0] := Integer(Self);
+    Field.SendMapFieldMsg(Msg);
+  end;
+end;
 
 procedure TArmyHS.Select;
-begin end;
+begin
+  FArmy.Select;
+  if Self <> AoWHSMap.FSelectedArmy.GetArmyHS then AoWHSMap.FSelectedArmy.SetArmyHS(Self);
+end;
 
 procedure TArmyHS.Unselect;
-begin end;
+begin
+  inherited Unselect;
+  FArmy.Unselect;
+  if Self = AoWHSMap.FSelectedArmy.GetArmyHS then AoWHSMap.FSelectedArmy.SetArmyHS(nil);
+end;
 
 function TArmyHS.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+begin
+  Result := not GetFogEnabled and (AoWHSMap.FSeatedPlayer <> -1) and
+    not (asFullyConcealed in FArmy.FStatus) and inherited CanSelect(Xhp, Yhp);
+end;
 
 function TArmyHS.GetSelected: Boolean;
-begin Result := False; end;
+begin
+  Result := asSelected in FArmy.FStatus;
+end;
 
-procedure TArmyHS.ArmyUpdated(A1: Integer);
-begin end;
+procedure TArmyHS.ArmyUpdated(Sender: TObject);
+var Msg: TMapFieldMsg;
+begin
+  if FArmy.Count <> 0 then
+  begin
+    Msg.MsgID := $1124;
+    Msg.Param[0] := Integer(Self);
+    TMapField(Owner).SendMapFieldMsg(Msg);
+    UpdateUnitGFXResource;
+    if FArmy.FPlayer <> 0 then FFlagID := AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FPlayerRace
+    else FFlagID := $20;
+  end
+  else if Sender = FArmy then Destroy;
+end;
 
 procedure TArmyHS.UpdateFlagID;
-begin end;
+begin
+  if FArmy.FPlayer > 0 then
+  begin
+    FFlagID := AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FPlayerRace;
+    Exit;
+  end;
+  FFlagID := $20;
+end;
 
 procedure TArmyHS.UpdateUnitGFXResource;
-begin end;
+var I: Integer;
+begin
+  if asConcealed in FArmy.FStatus then
+  begin
+    I := 0;
+    while ((FArmy.FConcealedUnits shr I) and 1) = 1 do Inc(I);
+    if I >= FArmy.Count then I := 0;
+  end
+  else I := 0;
+  FUnitIndex := I;
+  SetUnitGFXResourceIndex(FArmy.GetUnit(I).GetUnitGFXResourceIndex);
+  if mtFlying in FArmy.GetUnit(I).GetMoveTypes then FUnitYOffset := -8
+  else FUnitYOffset := 0;
+  Assert(FUnitGFXResource <> nil);
+end;
 
 procedure TArmyHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  FArmy.SetXYL(GetXhx, GetYhx, GetLhx);
+  FArmy.Activate;
+  FArmy.FOnUpdate := ArmyUpdated;
+  if Self = TAoWMapField(Owner).GetArmyHS then
+  begin
+    if FArmy.Count <> 0 then UpdateUnitGFXResource
+    else if not (msEditting in AoWHSMap.Status) then
+    begin
+      Destroy;
+      Exit;
+    end;
+  end
+  else Destroy;
+end;
 
 procedure TArmyHS.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  FArmy.Deactivate;
+end;
 
 procedure TArmyHS.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwEObject(FArmy, 10);
+end;
 
 function TArmyHS.CanChangeTerrain(const Info: HSEngine.THSSenderInfo): Boolean;
-begin Result := False; end;
+begin
+  if Info.HN = 0 then
+    Result := ((Info.MapField.TerrainType = 0) and (Info.Sender <> nil) and
+      ((TEObject(Info.Sender).ClassID = $2123E) or (TEObject(Info.Sender).ClassID = $2016C))) or
+      FArmy.ValidTerrain(Info.MapField.TerrainType, Info.MapField.OverlayType)
+  else Result := True;
+end;
 
 procedure TArmyHS.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  inherited TerrainChanged(Info);
+  if (Info.HN = 0) and (asActivated in FArmy.FStatus) then
+  begin
+    FArmy.BeginUpdate;
+    FArmy.ValidateTerrain(Info.TerrainType, Info.OverlayType);
+    FArmy.EndUpdate;
+  end;
+end;
 
 function TArmyHS.CanMoveOver(const Info: HSEngine.THSSenderInfo): Integer;
-begin Result := 0; end;
+begin
+  if Info.HN = 0 then
+  begin
+    if not (mmAI in TMoveControl(Info.Sender).FMode) and
+      (GetFogEnabled or (asFullyConcealed in FArmy.FStatus) or (mmIgnoreArmies in TMoveControl(Info.Sender).FMode)) then
+    begin Result := 1; Exit; end;
+    if FArmy.FPlayer = TMoveControl(Info.Sender).FPlayer then
+    begin
+      if not (mmAvoidArmies in TMoveControl(Info.Sender).FMode) or (Integer(Self) = TMoveControl(Info.Sender).FMoveData) then
+      begin
+        if FArmy.FPlayer = 0 then Result := 2
+        else
+        begin
+          if (mmAI in TMoveControl(Info.Sender).FMode) and (FArmy.IndexOfTransporter($FF) <> -1) then
+          begin Result := 2; Exit; end;
+          if (TMoveControl(Info.Sender).FArmyHS <> nil) and
+            FArmy.CanCombine(TMoveControl(Info.Sender).FArmyHS.FArmy, TMoveControl(Info.Sender).FSelection) then Result := 1
+          else Result := 2;
+        end;
+      end
+      else Result := 0;
+    end
+    else if AoWHSMap.FPlayers.GetDiplomaticRelation(TMoveControl(Info.Sender).FPlayer, FArmy.FPlayer) = drAlliance then
+    begin
+      if (Info.MapField.OverlayType = 7) and (Info.MapField.FindNoneTransparentHS(TPlayerStructure) <> nil) then
+      begin Result := 0; Exit; end;
+      Result := 2;
+    end
+    else Result := 0;
+  end
+  else Result := 1;
+end;
 
 procedure TArmyHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
-begin end;
+begin
+  if Info.HN = 0 then
+  begin
+    if FArmy.FPlayer = TMoveControl(Info.Sender).FPlayer then
+    begin
+      if (mmSurround in TMoveControl(Info.Sender).FMode) and (Info.MoveOverCode <> 1) and
+        (TMapField(Owner).Xhx = TMoveControl(Info.Sender).FDestinationX) and
+        (TMapField(Owner).Yhx = TMoveControl(Info.Sender).FDestinationY) and
+        (TMapField(Owner).Lhx = TMoveControl(Info.Sender).FDestinationL) and
+        not FArmy.CanCombine(TMoveControl(Info.Sender).FArmyHS.FArmy, TMoveControl(Info.Sender).FSelection) then
+      begin MoveResult.Code := -1; MoveResult.Done := True; Exit; end;
+      if (TMoveControl(Info.Sender).FArmyHS <> nil) and (FArmy.IndexOfTransporter($FF) <> -1) and
+        (TMoveControl(Info.Sender).FArmyHS.FArmy.Transporter(TMoveControl(Info.Sender).FSelection) = nil) then
+      begin MoveResult.Code := 4; MoveResult.Done := True; end;
+    end
+    else if Info.MoveOverCode <> 1 then
+    begin MoveResult.Code := -1; MoveResult.Done := True; end;
+  end;
+end;
 
 procedure TArmyHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  if Info.HN = 0 then TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $0F007000;
+end;
 
 function TArmyHS.MoveTo(Field: TMapField; MoveCost: Integer): Boolean;
-begin Result := False; end;
-
+var OldField: TMapField; Msg: TMapFieldMsg;
+begin
+  FArmy.BeginUpdate;
+  OldField := TMapField(Owner);
+  if OldField <> nil then
+  begin
+    Msg.MsgID := $1140;
+    Msg.Param[0] := Integer(Self);
+    Msg.Param[1] := Integer(Field);
+    Msg.Result := 0;
+    OldField.SendMapFieldMsg(Msg);
+  end;
+  if (OldField = nil) or (Msg.Result = 0) then
+  begin
+    Msg.MsgID := $1141;
+    Msg.Param[0] := Integer(Self);
+    Msg.Param[1] := Integer(OldField);
+    Msg.Result := 0;
+    Field.SendMapFieldMsg(Msg);
+    if Msg.Result = 0 then
+    begin
+      inherited MoveTo(Field, MoveCost);
+      if (OldField <> nil) and ((Field.Lhx <> OldField.Lhx) or
+        not ConnectingHX(OldField.Xhx, OldField.Yhx, Field.Xhx, Field.Yhx)) then
+      begin
+        AoWHSMap.NotifyPlayerChanged(OldField.Xhx, OldField.Yhx, OldField.Lhx);
+        AoWHSMap.NotifyPlayerChanged(Field.Xhx, Field.Yhx, Field.Lhx);
+      end
+      else AoWHSMap.NotifyPlayerChangedEx(Field.Xhx, Field.Yhx, Field.Lhx, $D);
+      FArmy.Validate;
+      FArmy.MovedTo(OldField, Field, MoveCost);
+      Msg.MsgID := $1142;
+      Msg.Param[0] := Integer(Self);
+      Msg.Param[1] := Integer(OldField);
+      Msg.Result := 0;
+      Field.SendMapFieldMsg(Msg);
+      if FArmy.FPlayer > 0 then AoWHSMap.UpdatePlayerSeen(FArmy.FPlayer, Field.Xhx,
+        Field.Yhx, Field.Lhx, FArmy.VisibilityRange, FArmy.TrueVisionRange);
+      Result := True;
+    end
+    else Result := False;
+  end
+  else Result := False;
+  FArmy.EndUpdate;
+end;
 
 function TArmyHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
-begin Result := False; end;
+var Field: TMapField; Army: TEObject;
+begin
+  if FArmy.CanPlace(Xhx, Yhx, Lhx) then
+  begin
+    Field := Map.GetField(Xhx, Yhx, Lhx);
+    Army := Field.FindOwnedChild($20217);
+    if (Army = nil) or GetEditMode then Result := inherited PlaceHX(Map, Xhx, Yhx, Lhx)
+    else Result := False;
+  end
+  else Result := False;
+end;
 
-
-procedure TArmyHS.PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TArmyHS.PlacePrivate(Map: TMapContainer; X, Y, L: Shortint): Boolean;
+begin
+  Result := inherited PlaceHX(Map, X, Y, L);
+  if Result then Activate;
+end;
 
 procedure TArmyHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
-begin end;
+var Sequence: TImageSequence; Xhp, Yhp, DX, DY: Integer; Part: Single;
+begin
+  if ((WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+    not (asFullyConcealed in FArmy.FStatus) then
+  begin
+    HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+    X := Xhp - X;
+    Y := Yhp - Y;
+    if FMoveStep <> -1 then
+    begin
+      HNtoHP(FDirection, DX, DY);
+      if FStatus and $10 = 0 then
+      begin
+        Part := FMoveStep / GetMoveSteps;
+        Inc(X, Round(Part * DX));
+        Inc(Y, Round(Part * DY));
+      end;
+    end;
+    if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.GetImageSequence(27)
+    else Sequence := FUnitGFXResource.FSequences.GetImageSequence(FDirection + 23);
+    while Sequence <> nil do
+    begin
+      Sequence.ImageLibrary[Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF)].Show(
+        X + Sequence.dXshift, Y + Sequence.dYshift, SurfaceDesc);
+      Sequence := Sequence.Next;
+    end;
+  end;
+end;
 
 procedure TArmyHS.PlayMoveSFX;
-begin end;
+var Sequence: TImageSequence; Frame: Integer;
+begin
+  if (FMoveStep <> -1) and (FStatus and 8 = 0) then
+  begin
+    if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[9]
+    else Sequence := FUnitGFXResource.FSequences.List^[FDirection + 5];
+    if Sequence <> nil then
+    begin
+      Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+      if Sequence.SpeedCount = Sequence.SequenceSpeed then
+        FUnitGFXResource.FSFXLibraries[1].Play(Frame mod 100);
+    end;
+  end;
+end;
 
-procedure TArmyHS.ShowEnchantments(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TArmyHS.ShowEnchantments(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
+var Info: TP2UnitShowInfo;
+begin
+  if FArmy.Count > FUnitIndex then
+  begin
+    Info.Overlays := [];
+    Info.Animation := uaNone;
+    Info.Frame := AoWHSMap.Frame + ((X + Y * 2) shr 4);
+    Info.Looped := True;
+    FArmy.GetUnit(FUnitIndex).ShowEx(X - 16, Y - 20, SurfaceDesc, Info);
+  end;
+end;
 
 procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Sequence: TImageSequence; Frame, Xhp, Yhp, DX, DY: Integer; Part: Real;
+begin
+  if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0) then
+  begin
+    Assert(FUnitGFXResource.FSequences.Count > FDirection, 'Invalid Unit Index');
+    HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
+    XhpSurf := Xhp - XhpSurf;
+    YhpSurf := Yhp - YhpSurf;
+    if FMoveStep = -1 then
+      if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[3]
+      else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1]
+    else
+    begin
+      HNtoHP(FDirection, DX, DY);
+      if FStatus and $10 = 0 then
+      begin
+        Part := FMoveStep / GetMoveSteps;
+        Inc(XhpSurf, Round(Part * DX));
+        Inc(YhpSurf, Round(Part * DY));
+      end;
+      if FStatus and 8 = 0 then
+        if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[9]
+        else Sequence := FUnitGFXResource.FSequences.List^[FDirection + 5]
+      else
+        if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[3]
+        else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1];
+    end;
+    if not (asConcealed in FArmy.FStatus) then
+    begin
+      if not (msEditting in AoWHSMap.Status) and (AoWHSMap.FSeatedPlayer = FArmy.FPlayer) and
+        (FArmy.Count = FArmy.ConcealedUnitsCount) then
+      begin
+        while Sequence <> nil do
+        begin
+          Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+          if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift + FUnitYOffset, SurfaceDesc);
+          Sequence := Sequence.Next;
+        end;
+        ShowEnchantments(XhpSurf, YhpSurf + FUnitYOffset, SurfaceDesc);
+        if asSelected in FArmy.FStatus then
+        begin
+          if AoWHSMap.Frame and 6 <> 6 then
+            if FFlagID <> $20 then
+            begin
+              AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count + 29].ShowBlended(
+                XhpSurf - 5, YhpSurf - 12, SurfaceDesc, AlphaBlendTable.LookupTables[50]);
+              if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(
+                XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
+            end
+            else AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].ShowBlended(XhpSurf - 5, YhpSurf - 12,
+              SurfaceDesc, AlphaBlendTable.LookupTables[50]);
+        end
+        else if FFlagID <> $20 then
+        begin
+          AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count + 29].ShowBlended(
+            XhpSurf - 5, YhpSurf - 12, SurfaceDesc, AlphaBlendTable.LookupTables[Abs((AoWHSMap.Frame shl 2) mod 60 - 30) + 40]);
+          if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(
+            XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
+        end
+        else AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].ShowBlended(XhpSurf - 5, YhpSurf - 12,
+          SurfaceDesc, AlphaBlendTable.LookupTables[Abs((AoWHSMap.Frame shl 2) mod 60 - 30) + 40]);
+      end
+      else
+      begin
+        while Sequence <> nil do
+        begin
+          Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+          if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift + FUnitYOffset, SurfaceDesc);
+          Sequence := Sequence.Next;
+        end;
+        ShowEnchantments(XhpSurf, YhpSurf + FUnitYOffset, SurfaceDesc);
+        if not (asSelected in FArmy.FStatus) or (AoWHSMap.Frame and 6 <> 6) then
+          if FFlagID = $20 then AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc)
+          else
+          begin
+            AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count + 29].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc);
+            if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
+          end;
+      end;
+    end
+    else if not (asFullyConcealed in FArmy.FStatus) then
+    begin
+      while Sequence <> nil do
+      begin
+        Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+        if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + Sequence.dXshift,
+          YhpSurf + Sequence.dYshift + FUnitYOffset, SurfaceDesc);
+        Sequence := Sequence.Next;
+      end;
+      if not (asSelected in FArmy.FStatus) or (AoWHSMap.Frame and 6 <> 6) then
+        if FFlagID = $20 then AoWHSSet.FFlagControl.FFlags[FArmy.Count - FArmy.ConcealedUnitsCount + 39].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc)
+        else
+        begin
+          AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count - FArmy.ConcealedUnitsCount + 29].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc);
+          if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
+        end;
+    end;
+  end;
+end;
 
 procedure TArmyHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID and $40000000 = 0) and (FArmy <> nil) then FArmy.MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020005 then UpdateFlagID;
+end;
 
 procedure TArmyHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if Msg.HN = 0 then
+    if Msg.MsgID = $110C then
+    begin
+      if not (asFullyConcealed in FArmy.FStatus) and ((AoWHSMap.FFogEnabled = 0) or
+        (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0)) then
+        if FArmy.FPlayer = 0 then Msg.Param[0] := Msg.Param[0] or $D
+        else Msg.Param[0] := Msg.Param[0] or (AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FPlayerRace + 1);
+    end
+    else if Msg.MsgID = $1200 then
+    begin
+      FArmy.UpdateAITarget(TAITargetInfo(Pointer(Msg.Param[0])^), TAITargetData(Pointer(Msg.Param[1])^));
+      if TAITargetData(Pointer(Msg.Param[1])^).Priority < 0 then Msg.Result := 1;
+    end
+    else if Msg.MsgID = $1108 then FArmy.ReturnBattleFieldInfo(TBattleFieldInfo(Pointer(Msg.Param[0])^))
+    else if Msg.MsgID = $1101 then Msg.Param[1] := Ord(FArmy.GetMoveAction(Msg.Param[0]))
+    else if Msg.MsgID = $1100 then Msg.Result := FArmy.FPlayer
+    else if Msg.MsgID = $1125 then
+    begin
+      if FArmy.FPlayer = 0 then Msg.Result := FArmy.FIndependentRelation;
+    end
+    else if Msg.MsgID = $1130 then
+    begin
+      if Msg.Param[1] = 1 then Msg.Result := FArmy.FPlayer
+      else if FArmy.FConcealedUnits <> ArmySelectionMasks[FArmy.FChildren.Count] then Msg.Result := FArmy.FPlayer;
+    end
+    else if Msg.MsgID = $110A then
+    begin
+      if (FArmy.FPlayer = Msg.Param[1]) or
+        (AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Msg.Param[1]) = drAlliance) then
+        if Msg.Param[0] <= FArmy.VisibilityRange then Msg.Result := 1;
+    end
+    else if Msg.MsgID = $110B then
+    begin
+      if (FArmy.FPlayer = Msg.Param[1]) or
+        (AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FDiplomaticRelations.GetDiplomaticRelation(Msg.Param[1]) = drAlliance) then
+        if Msg.Param[0] <= FArmy.TrueVisionRange then Msg.Result := 1;
+    end
+    else if Msg.MsgID = $110D then
+    begin
+      if Msg.Param[0] < 9 then FArmy.UpdateConcealment;
+      if (FArmy.FPlayer > 0) and (Msg.Param[0] <= FArmy.VisibilityRange) then
+        AoWHSMap.UpdatePlayerSeen(FArmy.FPlayer, Msg.MapField.Xhx, Msg.MapField.Yhx, Msg.MapField.Lhx,
+          Msg.Param[0], FArmy.TrueVisionRange);
+    end
+    else if Msg.MsgID = $110E then
+    begin
+      if FArmy.IncommingNegotiateRequest(TNegotiateRequestEventLog(Msg.Param[0])) then Msg.Param[1] := 1;
+    end
+    else if Msg.MsgID = $110F then
+    begin
+      if FArmy.IncommingNegotiateOffer(TNegotiateTE(Msg.Param[0])) then Msg.Result := 1;
+    end
+    else if (Msg.MsgID = $1150) and not TAoWMapField(Msg.MapField).GetMagicShieldActive then
+    begin
+      FArmy.IncommingStorm(TStormType(Msg.Param[0]), Msg.Param[1], Msg.Param[2]);
+      Exit;
+    end
+    else if (Msg.MsgID = $1151) and not TAoWMapField(Msg.MapField).GetMagicShieldActive then
+    begin
+      FArmy.RetrieveStormDamageInfo(TStormType(Msg.Param[0]), Msg.Param[1], TStormDamageInfo(Pointer(Msg.Param[2])^));
+      Exit;
+    end
+    else if Msg.MsgID = $1105 then FArmy.TriggerFireDamage;
+end;
 
 function TArmyHS.PlaceEx(X, Y, L: Shortint; Mode: TArmyPlaceMode): Boolean;
-begin Result := False; end;
+var Level: TMapLevel; Field: TAoWMapField; Walk: THNWalkData; Msg: TMapFieldMsg;
+begin
+  Result := False;
+  Level := AoWHSMap.MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while not Result and ((Walk.Radius = 0) or (apScanArea in Mode)) and (Walk.Radius < 30) do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+    begin
+      Field := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+      if Field.FindOwnedChild($20217) = nil then
+        if (Field.GetPlayer = -1) or ((Field.GetPlayer = FArmy.FPlayer) and (apEnableOwnPlayerLocation in Mode)) then
+        begin
+          Msg.MsgID := $1120;
+          Msg.Param[0] := Integer(Self);
+          Msg.Result := 0;
+          Field.SendMapFieldMsg(Msg);
+          if Msg.Result = 0 then
+            if FArmy.CanPlace(Walk.X, Walk.Y, L) then
+            begin MoveTo(Field, 0); Result := True; end;
+        end;
+    end;
+    WalkToNextHN(Walk);
+  end;
+end;
 
 function TArmyHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
-begin Result := 0; end;
-
+var Level: TMapLevel; X, Y, DX, DY: Integer; Animation: TImageSequenceAnimation;
+begin
+  Result := inherited MoveFirst(Direction, Instant);
+  case AoWEngine.FRegistry.GetMovementSpeed of
+    mmsNormal: FMoveSteps := inherited GetMoveSteps;
+    mmsFast:
+      begin
+        FMoveSteps := inherited GetMoveSteps;
+        if FMoveSteps < 9 then FMoveSteps := 4 else Dec(FMoveSteps, 4);
+      end;
+    mmsTurbo: FMoveSteps := 2;
+  end;
+  if AoWHSMap.FFPS > 0 then
+  begin
+    if AoWHSMap.FFPS < 15 then FMoveSteps := FMoveSteps div 2
+    else if AoWHSMap.FFPS < 25 then Dec(FMoveSteps, 2);
+    if FMoveSteps < 2 then FMoveSteps := 2;
+  end;
+  if GetLhx > 0 then
+  begin
+    Level := TMapLevel(Owner.Owner);
+    CenterHNtoHX(GetXhx, GetYhx, Direction, X, Y);
+    if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
+      if Level.GetField(X, Y).TerrainType = 7 then
+        if AoWHSSet.FAbilityControl.GetAbility(42).FImageSequences.GetImageSequence(0) <> nil then
+        begin
+          Animation := TImageSequenceAnimation.Create(nil);
+          Animation.SetImageSequence(AoWHSSet.FAbilityControl.GetAbility(42).FImageSequences.GetImageSequence(0));
+          Animation.FAnimationLevel := 27;
+          HNtoHP(Direction, DX, DY);
+          Animation.SetXhpOffset(DX div 2);
+          Animation.SetYhpOffset(DY div 2);
+          AoWHSMap.PlaceHX(Animation, GetXhx, GetYhx, GetLhx);
+        end;
+  end;
+end;
 
 function TArmyHS.GetMoveSteps: Integer;
-begin Result := 0; end;
+begin
+  if Moving then
+  begin Result := FMoveSteps; Exit; end;
+  Result := inherited GetMoveSteps;
+end;
 
 function TArmyHSList.GetArmyHS(Index: Integer): TArmyHS;
 begin
@@ -10962,122 +11815,939 @@ begin
 end;
 
 procedure TWorldFXHS.Deactivate;
-begin end;
+begin
+  AoWHSMap.NewFrameEvents.Remove(NewFrame);
+  inherited Deactivate;
+end;
 
 constructor TWorldFXHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPath := TXYZList.Create;
+  FFrame := -1;
+end;
 
 destructor TWorldFXHS.Destroy;
-begin end;
+begin
+  FPath.Free;
+  inherited Destroy;
+end;
 
 procedure TWorldFXHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  AoWHSMap.NewFrameEvents.Add(NewFrame);
+  FFrame := -1;
+end;
 
 function TWorldFXHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := $6C000000;
+end;
 
-procedure TWorldFXHS.NewFrame(A1: Integer);
-begin end;
+procedure TWorldFXHS.NewFrame(Sender: TObject);
+var Effect: TWorldFXHS; I, J, Count, RadiusX, RadiusY: Integer; Gravity, VZ, Speed, Z: Single;
+begin
+  try
+    Inc(FFrame);
+    case FEffectType of
+      fxHatred:
+        case FFrame of
+          0..89:
+            if FFrame mod 3 = 0 then
+            begin
+              RadiusX := 200;
+              RadiusY := 200;
+              for I := 0 to 29 do
+              begin
+                Effect := AoWHSMap.AddEffect(fxHatredParticle);
+                Effect.FX := 50;
+                Effect.FY := 50;
+                RadiusX := -RadiusX;
+                MakeLinePath(0, 0, Round(Cos((Random(12) + I * 12 + FFrame * 4) * Pi / 180) * (RadiusX + Random(10))),
+                  Round(Sin((I * 6 + FFrame * 4) * Pi / 180) * (RadiusY + Random(10))) div 2, 75, Effect.FPath);
+              end;
+            end;
+          90: FFrame := -1;
+        end;
+      fxTranquility:
+        case FFrame of
+          0..89:
+            if FFrame mod 3 = 0 then
+            begin
+              RadiusX := 200;
+              RadiusY := 200;
+              for I := 0 to 29 do
+              begin
+                Effect := AoWHSMap.AddEffect(fxTranqParticle);
+                Effect.FX := 50;
+                Effect.FY := 50;
+                RadiusX := -RadiusX;
+                MakeLinePath(0, 0, Round(Cos((Random(12) + I * 12 + FFrame * 4) * Pi / 180) * (RadiusX + Random(10))),
+                  Round(Sin((I * 6 + FFrame * 4) * Pi / 180) * (RadiusY + Random(10))) div 2, 75, Effect.FPath);
+              end;
+            end;
+          90: FFrame := -1;
+        end;
+      fxCrusade:
+        case FFrame of
+          0..74:
+            if FFrame mod 3 = 0 then
+            begin
+              RadiusX := 150;
+              RadiusY := 150;
+              for I := 0 to 59 do
+              begin
+                Effect := AoWHSMap.AddEffect(fxWMLParticle);
+                Effect.FLayer := FLayer;
+                RadiusX := -RadiusX;
+                MakeLinePath(FX, FY, FX + Round(Cos((I * 6 + FFrame * 4) * Pi / 180) * (RadiusX + Random(10))),
+                  FY + Round(Sin((I * 6 + FFrame * 4) * Pi / 180) * (RadiusY + Random(10))) div 2, 50, Effect.FPath);
+              end;
+            end;
+          75: FFrame := -1;
+        end;
+      fxWaterMastery:
+        case FFrame of
+          0..199:
+            begin
+              if FFrame mod 5 = 0 then
+              begin
+                AoWHSSet.FSpellControl.GetSpell(45).FCastSounds.Play(1);
+                Count := Random(10) + 100;
+                for J := 0 to Count do
+                begin
+                  Effect := AoWHSMap.AddEffect(fxWMParticle);
+                  Effect.FX := 50;
+                  Effect.FY := 50;
+                  Speed := (Random(50) + 50) * 0.1;
+                  Gravity := 0.1;
+                  VZ := (Random(5) + 5) * 0.1;
+                  Z := 0;
+                  MakeArcPath(0, 0, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
+                end;
+              end;
+              for J := 0 to 1 do
+              begin
+                Count := Random(3) + 7;
+                for I := 1 to Count - 1 do
+                begin
+                  Effect := AoWHSMap.AddEffect(fxWMParticle);
+                  Effect.FX := 50 + Round(Cos(FFrame * 360 * 0.01 * Pi / 180) * FFrame) div 4;
+                  Effect.FY := 50 + Round(Sin(FFrame * 360 * 0.01 * Pi / 180) * FFrame) div 8;
+                  if J = 1 then
+                  begin Effect.FX := 100 - Effect.FX; Effect.FY := 100 - Effect.FY; end;
+                  Speed := (Random(10) + 30) * 0.1;
+                  Gravity := 0.5;
+                  VZ := (Random(50) + FFrame div 2) * 0.1;
+                  Z := 0;
+                  MakeArcPath(0, 0, I * 360 div Count, Z, Speed, VZ, Gravity, Effect.FPath);
+                end;
+              end;
+            end;
+          200: FFrame := -1;
+        end;
+      fxSpellWard:
+        begin
+          case FFrame of
+            0..14:
+              begin
+                RadiusX := 200;
+                RadiusY := 200;
+                for I := 0 to 29 do
+                begin
+                  Effect := AoWHSMap.AddEffect(fxSWParticle);
+                  Effect.FX := 50;
+                  Effect.FY := 50;
+                  RadiusX := -RadiusX;
+                  MakeArcPathXY(Round(Cos((I * 12 + FFrame * 5) * Pi / 180) * (RadiusX + Random(10))),
+                    Round(Sin((I * 12 + FFrame * 5) * Pi / 180) * (RadiusY + Random(10))) div 2,
+                    0, -150, 100, 10, Effect.FPath);
+                  for J := 0 to Effect.FPath.Count - 1 do
+                    Effect.FPath[J].Z := -Effect.FPath[J].Z;
+                end;
+              end;
+          end;
+          case FFrame of
+            15..44:
+              if FFrame mod 5 = 0 then
+              begin
+                Count := Random(10) + 100;
+                for J := 0 to Count do
+                begin
+                  Effect := AoWHSMap.AddEffect(fxSWBeamParticle);
+                  Effect.FX := 50;
+                  Effect.FY := 50;
+                  Speed := (Random(50) + 50) * 0.1;
+                  Gravity := 0.1;
+                  VZ := (Random(5) + 5) * 0.1;
+                  Z := 0;
+                  MakeArcPath(0, -150, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
+                end;
+              end;
+            120: FFrame := -1;
+          end;
+        end;
+      fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEMParticle, fxTranqParticle:
+        if FFrame >= FPath.Count - 1 then
+        begin FFrame := FPath.Count - 1; FDone := True; end;
+      fxEarthMastery:
+        case FFrame of
+          0..49:
+            for I := 0 to 29 do
+            begin
+              Effect := AoWHSMap.AddEffect(fxEMParticle);
+              RadiusX := Random(12);
+              Effect.FX := Round(Cos((I * 12 + RadiusX) * Pi / 180) * 150) + 50;
+              Effect.FY := Round(Sin((I * 12 + RadiusX) * Pi / 180) * 150) div 2 + 50;
+              MakeLinePath(0, 0, 0, FFrame * 3 - 200, 30, Effect.FPath);
+            end;
+          200: FFrame := -1;
+        end;
+    end;
+    if FFrame = -1 then FDone := True;
+  except
+    MessageBox(0, PChar('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 'Error during NewFrame', 0);
+  end;
+end;
 
 procedure TWorldFXHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Sequence: TImageSequence; Frame: Integer;
+  procedure ShowGlobal(Shadow, Inverse: Boolean);
+  var Brightness: Integer;
+  begin
+    Brightness := 100 - FFrame * 100 div FPath.Count - ((FFrame mod 10 * 2 + Integer(Self)) mod 20);
+    if Brightness < 0 then Brightness := 0;
+    if Shadow then Inc(Brightness, 20);
+    if Brightness > 100 then Brightness := 100;
+    while Sequence <> nil do
+    begin
+      { Original uses the instance address as the animation phase. }
+      Frame := Sequence.GetUnloopedFrameIndex(Integer(Self) mod 3);
+      if Frame <> -1 then
+        if Shadow then
+        begin
+          if Sequence.ImageLibrary.ImageExist(Frame) then
+            Sequence.ImageLibrary[Frame].ShowBlended(FPath[FFrame].X + (SurfaceDesc.Width * FX div 100 + Sequence.dXshift),
+              FPath[FFrame].Y + (SurfaceDesc.Height * FY div 100 + Sequence.dYshift) - FPath[FFrame].Z,
+              SurfaceDesc, ShadowBlendTable.LookupTables[Brightness]);
+        end
+        else if Inverse then
+        begin
+          if Sequence.ImageLibrary.ImageExist(Frame) then
+            Sequence.ImageLibrary[Frame].ShowBlended(FPath[FFrame].X + (SurfaceDesc.Width * FX div 100 + Sequence.dXshift),
+              FPath[FFrame].Y + (SurfaceDesc.Height * FY div 100 + Sequence.dYshift) - FPath[FFrame].Z,
+              SurfaceDesc, IntensityBlendTable.LookupTables[100 - Brightness]);
+        end
+        else if Sequence.ImageLibrary.ImageExist(Frame) then
+          Sequence.ImageLibrary[Frame].ShowBlended(FPath[FFrame].X + (SurfaceDesc.Width * FX div 100 + Sequence.dXshift),
+            FPath[FFrame].Y + (SurfaceDesc.Height * FY div 100 + Sequence.dYshift) - FPath[FFrame].Z,
+            SurfaceDesc, IntensityBlendTable.LookupTables[Brightness]);
+      Sequence := Sequence.Next;
+    end;
+  end;
+  procedure ShowLocal(Shadow: Boolean);
+  var Brightness: Integer;
+  begin
+    Brightness := 100 - FFrame * 100 div FPath.Count - ((FFrame mod 10 * 2 + Integer(Self)) mod 20);
+    if Brightness < 0 then Brightness := 0;
+    if Shadow then Inc(Brightness, 20);
+    if Brightness > 100 then Brightness := 100;
+    while Sequence <> nil do
+    begin
+      Frame := Sequence.GetUnloopedFrameIndex(Integer(Self) mod 3);
+      if Frame <> -1 then
+        if Shadow then
+        begin
+          if Sequence.ImageLibrary.ImageExist(Frame) then
+            Sequence.ImageLibrary[Frame].ShowBlended(FPath[FFrame].X + Sequence.dXshift - XhpSurf,
+              FPath[FFrame].Y + Sequence.dYshift - FPath[FFrame].Z - YhpSurf,
+              SurfaceDesc, ShadowBlendTable.LookupTables[Brightness]);
+        end
+        else if Sequence.ImageLibrary.ImageExist(Frame) then
+          Sequence.ImageLibrary[Frame].ShowBlended(FPath[FFrame].X + Sequence.dXshift - XhpSurf,
+            FPath[FFrame].Y + Sequence.dYshift - FPath[FFrame].Z - YhpSurf,
+            SurfaceDesc, IntensityBlendTable.LookupTables[Brightness]);
+      Sequence := Sequence.Next;
+    end;
+  end;
+begin
+  try
+    if FFrame >= 0 then
+      case FEffectType of
+        fxWMParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(45).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
+        fxWMLParticle:
+          if AoWHSMap.ViewL = FLayer then
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(75).FCastImages.GetImageSequence(1); ShowLocal(False); end;
+        fxHatredParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(46).FCastImages.GetImageSequence(0); ShowGlobal(True, False); end;
+        fxSWParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(65).FCastImages.GetImageSequence(1); ShowGlobal(False, True); end;
+        fxSWBeamParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(65).FCastImages.GetImageSequence(1); ShowGlobal(False, False); end;
+        fxEMParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(64).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
+        fxTranqParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(47).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
+      end;
+  except
+    MessageBox(0, PChar('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 'Error during Show', 0);
+  end;
+end;
 
 procedure TTranslateTextStream.TranslateString(var S: string);
-begin end;
+begin
+  S := FDictionary.Translate(S);
+end;
 
 procedure TTranslateTextStream.TranslateStrings(var Strings: Classes.TStrings);
-begin end;
+var S: string; I, EndOfLine, LineFeed: Integer;
+begin
+  if Strings.Count <> 0 then
+  begin
+    S := '';
+    for I := 0 to Strings.Count - 1 do
+    begin
+      S := S + Strings[I];
+      if I <> Strings.Count - 1 then S := S + '<eol>';
+    end;
+    S := FDictionary.Translate(S);
+    Strings.Clear;
+    repeat
+      EndOfLine := Pos('<eol>', S);
+      LineFeed := Pos(#10, S);
+      if ((EndOfLine < LineFeed) or (LineFeed = 0)) and (EndOfLine <> 0) then
+      begin
+        Strings.Add(Copy(S, 1, EndOfLine - 1));
+        S := Copy(S, EndOfLine + 5, Length(S) - EndOfLine - 4);
+      end
+      else if ((LineFeed < EndOfLine) or (EndOfLine = 0)) and (LineFeed <> 0) then
+      begin
+        Strings.Add(Copy(S, 1, LineFeed - 1));
+        { Original reverses the length comparison before reading the following CR. }
+        if (Length(S) < LineFeed + 1) and (S[LineFeed + 1] = #13) then Inc(LineFeed);
+        S := Copy(S, LineFeed + 1, Length(S) - LineFeed);
+      end
+      else
+      begin Strings.Add(S); S := ''; end;
+    until S = '';
+  end;
+end;
 
-procedure TAoWEngine.TranslateEObject(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWEngine.TranslateEObject(Obj: TEObject; Dictionary: TIvDictionary);
+var Stream: TTranslateTextStream;
+begin
+  Stream := TTranslateTextStream.Create(Self);
+  Stream.FDictionary := Dictionary;
+  try
+    Stream.rwEObject(Obj, 0);
+  finally
+    Stream.Free;
+  end;
+end;
 
 procedure TAoWEngine.TranslateEObjectFromFile(Obj: TEObject; const FileName: string);
-begin end;
+var Dictionary: TAoWDictionary;
+begin
+  if FileExists(FileName) then
+  begin
+    Dictionary := TAoWDictionary.Create(nil);
+    try
+      Dictionary.FFileName := FileName;
+      Dictionary.Open;
+      case FRegistry.GetLanguage of
+        alAuto: Dictionary.SetLanguage(-1);
+        alEnglish: Dictionary.SetLanguage(1);
+        alGerman: Dictionary.SetLanguage(2);
+        alFrench: Dictionary.SetLanguage(3);
+        alSpanish: Dictionary.SetLanguage(5);
+        alItalian: Dictionary.SetLanguage(4);
+      end;
+      TranslateEObject(Obj, Dictionary);
+      Dictionary.Close;
+    finally
+      Dictionary.Free;
+    end;
+  end;
+end;
 
-procedure TAoWEngine.ExportTextToFile(A1: Integer; A2: Integer);
-begin end;
+procedure TAoWEngine.ExportTextToFile(const FileName: string; Obj: TEObject);
+var FileStream: TFileStream; Stream: TExportTextStream;
+begin
+  FileStream := TFileStream.Create(FileName, fmCreate);
+  try
+    Stream := TExportTextStream.Create(FileStream, Self);
+    try
+      Stream.rwEObject(Obj, 0);
+    finally
+      Stream.Free;
+    end;
+  finally
+    FileStream.Free;
+  end;
+end;
+
+resourcestring
+  P2UndeadPluralRStr = 'Undead(plural)';
+  P2UndeadRStr = 'Undead';
 
 function TAoWEngine.TranslateRStr(const S: string): string;
-begin Result := ''; end;
+begin
+  if FDictionary.FLanguage > 0 then Result := FDictionary.Translate(S)
+  else if CompareText(S, P2UndeadPluralRStr) = 0 then Result := P2UndeadRStr
+  else Result := S;
+end;
 
 function TAoWEngine.TranslateText(const Text: string): string;
-begin Result := ''; end;
+begin
+  Result := TranslateRStr(Text);
+end;
+
+const
+  P2MovementTemplates: array[0..7] of TMovePointTable = (
+  (
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, 3, 3, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, -1, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (4, -1, -1, -1, 4, -1, -1, 4, 4, -1, 4, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, -1, -1, 4, 4, -1, 4, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, -1, -1, 4, 4, -1, 4, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (4, -1, -1, -1, 4, -1, 4, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, 8, 4, 4, 4, 4, -1, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, 8, 4, 4, 4, 4, -1, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, 8, 4, 4, 4, 4, -1, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, 8, 4, 4, 4, 4, -1, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, 8, 4, 4, 4, 4, -1, 4, 4, 4, 4, -1, 4, 4, -1, -1),
+    (4, -1, -1, -1, -1, 4, 4, -1, 4, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, -1, 4, 4, 4, -1, 4, -1, 4, 4, -1, -1),
+    (4, -1, -1, -1, 4, 4, 4, 4, 4, -1, 4, -1, 4, 4, -1, -1),
+    (4, -1, -1, -1, 4, 4, -1, 4, 4, -1, 4, -1, 4, 4, -1, -1),
+    (4, -1, 4, -1, 4, 4, -1, 4, 4, -1, 4, -1, 4, 4, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, -1, 4, 4, 4, -1, 4, -1, 4, 4, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, 4, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 4, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 4, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 4, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 4, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, 3, 3, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 4, -1, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, 6, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, 3, 3, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, 3, -1, 6, 3, -1, 4, -1, 8, -1, -1, -1),
+    (3, -1, 6, -1, 3, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, 8, 6, 4, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, 8, 6, 4, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, 8, 6, 4, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, 8, 6, 4, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, 8, 6, 4, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, 3, 3, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, 6, -1, 4, 3, -1, 4, 3, -1, 4, -1, 8, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, 8, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ),
+  (
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
+    (-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+  ));
+var
+  CombatDID, TMPDID, MAGICDID: Integer;
 
 constructor TAoWEngine.Create(AOwner: Engine.TECustomNode);
-begin end;
+var Mask, Terrain, Overlay, MoveType, Points: Integer;
+const MoveBits: array[0..7] of Byte = (1, 4, 2, 8, 16, 32, 64, 128);
+begin
+  AoWEngine := Self;
+  SetVersion(1, 36, 53);
+  FRegistry := TAoWRegistry.Create;
+  FUser := [euProgrammer, euDesigner, euUser];
+  FillChar(P2MovePointTables, SizeOf(P2MovePointTables), $FF);
+  for Mask := 0 to 255 do
+    for Overlay := -1 to 11 do
+      for Terrain := 0 to 15 do
+      begin
+        Points := 127;
+        for MoveType := 0 to 7 do
+          if (Mask and MoveBits[MoveType] <> 0) and (P2MovementTemplates[MoveType,Terrain,Overlay] <> -1) and
+            (P2MovementTemplates[MoveType,Terrain,Overlay] < Points) then Points := P2MovementTemplates[MoveType,Terrain,Overlay];
+        if Points <> 127 then P2MovePointTables[Mask,Terrain,Overlay] := Points;
+      end;
+  FDebug := FRegistry.GetDebugMode;
+  FAnimationDetail := Byte(FRegistry.GetDetailLevel);
+  FEmailGames := TEmailGameControl.Create(nil);
+  FDictionary := TAoWDictionary.Create(nil);
+  FDictionary.SetDictionaryName('ResourceStringDictionary');
+  { Original selects English for every explicit language here. }
+  case FRegistry.GetLanguage of
+    alAuto: FDictionary.SetLanguage(-1);
+    alEnglish: FDictionary.SetLanguage(1);
+    alGerman: FDictionary.SetLanguage(1);
+    alFrench: FDictionary.SetLanguage(1);
+    alSpanish: FDictionary.SetLanguage(1);
+    alItalian: FDictionary.SetLanguage(1);
+  end;
+  FDemo := False;
+  FLanguage := Byte(FRegistry.GetLanguage);
+  inherited Create(AOwner);
+  Options := Options - [emVerifyEObjects];
+  RegisterEClasses([TAoWHSSet, TAoWHSMap, TAoWMapLevel, TAoWCampaign, TAoWCampaignScenario]);
+  RegisterEClasses([TPlayer, TRace, TUnit, TRaceResource, TUnitGFXResource, TUnitResource, TUnitHS]);
+  RegisterEClasses([THero, THeroResource, THeroUpgradeTE, THeroJoinEventLog, THeroEmergeEventLog, TLeader, TItemGFX, TItem, TItemTE, TItemHS, TFaceResource]);
+  RegisterEClasses([TArmy, TArmyHS, TArmyView, TArmyEventLog, TArmyID, TTurnInfoItem, TShowMessageEventLog]);
+  RegisterEClasses([TArmyDefaultMoveTE, TArmyCombatMoveTE, TArmyCombineMoveTE, TArmyNegotiateMoveTE, TNegotiateTE, TSaveGameTE, TChangePlayerMagicTE, TChangeGlobalMagicTE]);
+  RegisterEClasses([TCombatLogbook, TCombatParty, TCombatData, TDamageCA, TDamageEffectCA, TFleeCA, TCombatUnit]);
+  RegisterEClasses([TFastCombat, TCombatWall, TFastCombatUnit, TMoveWallCA, TProductionEventLog]);
+  RegisterEClasses([TUpdateHeaderCA, TNewCombatTurnCA, TNewCombatRoundCA, TCombatObjectTurnDoneCA]);
+  RegisterEClasses([TCombatEventLog, TCombatPlayer, TDiplomaticAction, TEmailGame, TRestartGameEventLog]);
+  RegisterEClasses([TStructure, TStructureResource, TStructureTE, TConstructStructureTE, TProductionTE, THeroUpdateTE]);
+  RegisterEClasses([TPlayerStructure, TPlayerStructureResource, TProductionItem, TUnitProduction]);
+  RegisterEClasses([TFire, TFireResource]);
+  RegisterEClasses([TNewDayEventLog, TArmyInfoEventLog, TTextControlItem, THeroUpgradeEventLog]);
+  RegisterEClasses([TDiplomaticActionTE, TDiplomaticActionEventLog, TPlayerMagicEventLog, TDiplomaticRelationHistoryItem, TDiplomaticRelationHistoryList]);
+  RegisterEClasses([THuntAG, TAIBudget, TAISavingsBudget, TAITransporterBudget]);
+  RegisterEClasses([TGuardGC, TPassiveGC, TGuardAreaGC, TSuicidalGC, TPatrolGC, TScoutGC, TRefugeGC]);
+  RegisterSoundEngineClasses(Self);
+  RegisterNetworkEngine(Self);
+  RegisterEClasses([TEndTurnTE, TGameOverTE, TMultiMoveTE, TCheatTE, TDisbandUnitTE, TChangePlayerSettingsTE, TCombatFlowControlTE, TTerminatePlayerTE]);
+  RegisterEventLog(Self);
+  RegisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData, TDispelMagicAbilityCA]);
+  RegisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA]);
+  RegisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE, TPossessedAbilityData]);
+  RegisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]);
+  RegisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TTurnUndeadCA, TInvokeDeathCA]);
+  FGameSet.FAbilityControl.RegisterAbility(TLeadershipAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TEntangleAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TWebAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TSelfDestructAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TRoundAttackAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TCharmAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TCharmedAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TDominateAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TDominatedAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TSeduceAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TSeducedAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(THealingAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TSpellCastingAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TTurnUndeadAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TInvokeDeathAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TConstructAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TDispelMagicAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TWallCrushingAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TTransportAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TPossessAbility.Create(nil));
+  FGameSet.FAbilityControl.RegisterAbility(TPossessedAbility.Create(nil));
+  RegisterEClasses([TSpellTE]);
+  RegisterEClasses([TSpellCastEventLog]);
+  RegisterEClasses([TUnitSpellTE, TUnitSpellCA]);
+  CombatDID := RegisterDebugID('Combat');
+  AIDID := RegisterDebugID('AI');
+  TMPDID := RegisterDebugID('TMP');
+  MAGICDID := RegisterDebugID('MAGIC');
+  Editors.RegisterClass(TAoWMapObjectEditor);
+  LoadExternalPlugIns(StartupDirectory + 'PLUGINS');
+  FEmailGames.Load;
+end;
 
 destructor TAoWEngine.Destroy;
-begin end;
+begin
+  CloseCampaign;
+  CloseHSM(nil);
+  UnregisterEClasses([TSpellTE]);
+  UnregisterEClasses([TSpellCastEventLog]);
+  UnregisterEClasses([TUnitSpellTE, TUnitSpellCA]);
+  FGameSet.FSpellControl.UnregisterAll;
+  UnregisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData]);
+  UnregisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA, TDispelMagicAbilityCA]);
+  UnregisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE]);
+  UnregisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]);
+  UnregisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TInvokeDeathCA]);
+  FGameSet.FAbilityControl.UnregisterAbilityID(86);
+  FGameSet.FAbilityControl.UnregisterAbilityID(87);
+  FGameSet.FAbilityControl.UnregisterAbilityID(88);
+  FGameSet.FAbilityControl.UnregisterAbilityID(89);
+  FGameSet.FAbilityControl.UnregisterAbilityID(90);
+  FGameSet.FAbilityControl.UnregisterAbilityID(114);
+  FGameSet.FAbilityControl.UnregisterAbilityID(40);
+  FGameSet.FAbilityControl.UnregisterAbilityID(27);
+  FGameSet.FAbilityControl.UnregisterAbilityID(65);
+  FGameSet.FAbilityControl.UnregisterAbilityID(148);
+  FGameSet.FAbilityControl.UnregisterAbilityID(149);
+  FGameSet.FAbilityControl.UnregisterAbilityID(28);
+  FGameSet.FAbilityControl.UnregisterAbilityID(150);
+  FGameSet.FAbilityControl.UnregisterAbilityID(29);
+  FGameSet.FAbilityControl.UnregisterAbilityID(48);
+  FGameSet.FAbilityControl.UnregisterAbilityID(22);
+  FGameSet.FAbilityControl.UnregisterAbilityID(47);
+  FGameSet.FAbilityControl.UnregisterAbilityID(46);
+  FGameSet.FAbilityControl.UnregisterAbilityID(52);
+  FGameSet.FAbilityControl.UnregisterAbilityID(38);
+  FGameSet.FAbilityControl.UnregisterAbilityID(35);
+  FGameSet.FAbilityControl.UnregisterAbilityID(146);
+  FGameSet.FAbilityControl.UnregisterAbilityID(147);
+  FGameSet.FAbilityControl.UnregisterAbilityID(125);
+  FGameSet.FAbilityControl.UnregisterAbilityID(60);
+  FGameSet.FAbilityControl.UnregisterAbilityID(117);
+  FGameSet.FAbilityControl.UnregisterAbilityID(50);
+  FGameSet.FAbilityControl.UnregisterAbilityID(106);
+  FGameSet.FAbilityControl.UnregisterAbilityID(107);
+  inherited Destroy;
+  FDictionary.Free;
+  FEmailGames.Free;
+  FRegistry.Free;
+end;
 
 procedure TAoWEngine.UpdateStartupDirectory;
-begin end;
+begin
+  if FRegistry.GetStartupDirectory <> '' then SetStartupDirectory(FRegistry.GetStartupDirectory)
+  else SetStartupDirectory(ExtractFilePath(Application.ExeName));
+  if StartupDirectory[Length(StartupDirectory)] <> '\' then SetStartupDirectory(StartupDirectory + '\');
+  BaseImageLibraryPath := StartupDirectory;
+  BaseSoundEnginePath := StartupDirectory;
+  FDictionary.FFileName := StartupDirectory + 'Dict\' + 'ResStr' + '.mld';
+  FDictionary.Open;
+end;
 
 class function TAoWEngine.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $20001; end;
 
-procedure TAoWEngine.GetMajorVersion;
-begin end;
+function TAoWEngine.GetMajorVersion: Integer;
+begin Result := (FVersion shr 24) and $FF; end;
 
-procedure TAoWEngine.GetMinorVersion;
-begin end;
+function TAoWEngine.GetMinorVersion: Integer;
+begin
+  Result := (FVersion shr 16) and $FF;
+  if Result > 99 then Result := 99;
+end;
 
-procedure TAoWEngine.GetBuildNumber;
-begin end;
+function TAoWEngine.GetBuildNumber: Integer;
+begin
+  Result := FVersion and $FFFF;
+  if Result > 9999 then Result := 9999;
+end;
 
-procedure TAoWEngine.SetVersion(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TAoWEngine.SetVersion(Major, Minor, Build: Integer);
+begin
+  if Major < 0 then Major := 0;
+  if Major > 99 then Major := 99;
+  if Minor < 0 then Minor := 0;
+  if Minor > 99 then Minor := 99;
+  if Build < 0 then Build := 0;
+  if Build > 9999 then Build := 9999;
+  FVersion := (Major shl 24) + (Minor shl 16) + Build;
+end;
 
-procedure TAoWEngine.GetVersionStr(A1: Integer);
-begin end;
+function TAoWEngine.GetVersionStr: string;
+var Version: Integer;
+begin
+  Result := IntToStr(GetMajorVersion) + '.';
+  Version := GetMinorVersion;
+  if Version < 10 then Result := Result + '0' + IntToStr(Version) + '.'
+  else Result := Result + IntToStr(Version) + '.';
+  Version := GetBuildNumber;
+  if Version < 1000 then Result := Result + '0';
+  if Version < 100 then Result := Result + '0';
+  if Version < 10 then Result := Result + '0';
+  Result := Result + IntToStr(Version);
+end;
 
 procedure TAoWEngine.CreateHSSet;
-begin end;
+begin
+  FHSSet := TAoWHSSet.Create(Self);
+  FGameSet := TAoWHSSet(FHSSet);
+  AoWHSSet := FGameSet;
+end;
 
 procedure TAoWEngine.CloseHSM(AProgress: Engine.TProgressEvent);
-begin end;
+begin
+  try
+    inherited CloseHSM(AProgress);
+    FGameMap := nil;
+    AoWHSMap := nil;
+  except
+    raise Exception.Create('exception occurred during CloseHSM');
+  end;
+end;
 
 procedure TAoWEngine.SetHSMap(Value: HSEngine.THSMap);
-begin end;
+begin
+  inherited SetHSMap(Value);
+  if Value is TAoWHSMap then
+  begin
+    FGameMap := TAoWHSMap(FHSMap);
+    AoWHSMap := TAoWHSMap(Value);
+  end;
+end;
 
-procedure TAoWEngine.RegisteredVersion;
-begin end;
+function TAoWEngine.RegisteredVersion: Boolean;
+var Registered: Boolean; Mem: TMemoryStream; FileStream: TFileStream; Name: string;
+begin
+  try
+    Mem := TMemoryStream.Create;
+    { Original leaks Mem if opening or loading the file raises. }
+    FileStream := TFileStream.Create(AoWEngine.StartupDirectory + 'RELEASE\GENERAL.PFS', fmOpenRead or fmShareDenyWrite);
+    try
+      Mem.LoadFromStream(FileStream);
+    finally
+      FileStream.Free;
+    end;
+    try
+      Mem.Position := 0;
+      Mem.Read(Registered, 1);
+      StringFromStream(Name, Mem);
+      Result := Registered;
+    finally
+      Mem.Free;
+    end;
+  except
+    Result := True;
+  end;
+end;
 
-procedure TAoWEngine.RegisteredTo(A1: Integer);
-begin end;
+function TAoWEngine.RegisteredTo: string;
+var Registered: Boolean; Mem: TMemoryStream; Name: string;
+begin
+  try
+    Mem := TMemoryStream.Create;
+    try
+      Mem.LoadFromFile(AoWEngine.StartupDirectory + 'RELEASE\GENERAL.PFS');
+      Mem.Read(Registered, 1);
+      StringFromStream(Name, Mem);
+      Result := Encode(Name, 0);
+    finally
+      Mem.Free;
+    end;
+  except
+    Result := '';
+  end;
+end;
 
-procedure TAoWEngine.RequestAccess(A1: Integer; A2: Integer);
-begin end;
+function TAoWEngine.RequestAccess(const Name, Code: string): Boolean;
+var Registered: string;
+  function RegistrationCode(Text: string): string;
+  var I, Value: Integer; Hex: string;
+  begin
+    Result := '';
+    if Length(Text) >= 4 then
+    begin
+      Value := 0;
+      for I := 1 to Length(Text) do Inc(Value, Ord(Text[I]));
+      for I := 1 to 4 do
+      begin
+        Hex := IntToHex(Ord(Text[I]) * Value + I, 6);
+        Result := Result + Hex[Length(Hex)];
+        Inc(Value, Ord(Hex[Length(Hex)]) + Ord(Hex[1]));
+      end;
+    end;
+  end;
+begin
+  Registered := RegisteredTo;
+  if (Registered = Name) and (Name <> '') and (Code = RegistrationCode(Name)) then Result := True
+  else Result := False;
+end;
 
 procedure TAoWEngine.CloseCampaign;
-begin end;
+begin
+  if FCampaign <> nil then
+  begin
+    FCampaign.Free;
+    FCampaign := nil;
+  end;
+end;
 
-procedure TAoWEngine.LoadCampaignMap(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TAoWEngine.LoadCampaignMap(AProgress: Engine.TProgressEvent);
+begin
+  if (FCampaign <> nil) and (FCampaign.FStream <> nil) then
+  begin
+    CloseHSM(nil);
+    AoWEngine.LoadHSMfromStream(FCampaign.FStream, False, AProgress);
+  end;
+end;
 
-procedure TAoWEngine.LoadCampaign(A1: Integer);
-begin end;
+procedure TAoWEngine.LoadCampaign(const FileName: string);
+begin
+  CloseCampaign;
+  FCampaign := TAoWCampaign(RetrieveFromFile(FileName, nil));
+  TranslateEObjectFromFile(FCampaign, AoWEngine.StartupDirectory + 'Dict\' + 'Campaign' + '.mld');
+  FCampaign.FFileName := FileName;
+end;
 
 procedure TAoWEngine.SaveCampaign(const FileName: string);
-begin end;
+begin
+  if FCampaign <> nil then
+  begin
+    FCampaign.FStream.Clear;
+    if FGameMap <> nil then SaveHSMtoStream(FCampaign.FStream, nil);
+    StoreInFile(FileName, FCampaign, nil);
+  end;
+end;
 
-procedure TAoWEngine.NewCampaign(A1: Integer);
-begin end;
+procedure TAoWEngine.NewCampaign(AClassID: Integer);
+begin
+  CloseCampaign;
+  FCampaign := TAoWCampaign(CreateEObject(AClassID, nil));
+end;
 
 procedure TExportTextStream.rwString(var S: string; ID: Integer);
-begin end;
+var Buffer: string;
+begin
+  if not PropertyTable.PropertyExist(ID) then
+  begin
+    if S <> '' then
+    begin
+      Buffer := '[' + IntToStr(ID) + ']=' + '|' + S + '|' + #13 + #10;
+      FBuffer.Write(Buffer[1], Length(Buffer));
+      PropertyTable.Add(ID, 0);
+    end;
+  end
+  else raise EDoublePrioriyID.Create('Double priorityID found');
+end;
 
 procedure TExportTextStream.rwStrings(Strings: Classes.TStrings; ID: Integer);
-begin end;
+var Buffer, S: string; I: Integer;
+begin
+  if not PropertyTable.PropertyExist(ID) then
+  begin
+    if Strings.Count <> 0 then
+    begin
+      for I := 0 to Strings.Count - 1 do
+      begin
+        S := S + Strings[I];
+        if I <> Strings.Count - 1 then S := S + '<eol>';
+      end;
+      try
+        Buffer := '[' + IntToStr(ID) + ']=';
+        if S <> '' then Buffer := Buffer + '|' + S + '|' + #13 + #10
+        else Buffer := Buffer + #13 + #10;
+        FBuffer.Write(Buffer[1], Length(Buffer));
+        PropertyTable.Add(ID, 0);
+      finally
+      end;
+    end;
+  end
+  else raise EDoublePrioriyID.Create('Double priorityID found');
+end;
 
 class function TAoWMapObjectEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $10156;
+end;
 
 procedure TAgeOfWondersEngine.SetHSEngine(Value: HSEngine.THSEngine);
-begin end;
+begin
+  inherited SetHSEngine(Value);
+  FGameEngine := Value;
+end;
 
 procedure TAgeOfWondersEngine.CreateEngine;
-begin end;
+begin
+  ValidateAoWEngine;
+  if AoWEngine <> nil then SetHSEngine(AoWEngine);
+end;
 
 destructor TAgeOfWondersEngine.Destroy;
-begin end;
+begin
+  FGameEngine := nil;
+  Engine := nil;
+  inherited Destroy;
+end;
 

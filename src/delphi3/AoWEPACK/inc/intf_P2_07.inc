@@ -538,20 +538,20 @@
     procedure NewTurn(Player: Shortint);
     procedure NewTurnDone(Player: Shortint);
     procedure NewDay;
-    procedure CanActivate;  { draft }
-    procedure GetMoveAction(A1: Byte; A2: Integer);  { draft }
+    function CanActivate: Boolean;
+    function GetMoveAction(Player: Shortint): TMoveAction;
     function GetCanJoinSelection(Player: Shortint): Byte;
     function GetJoinSelection(Player: Shortint): Byte;
     function JoinAmount(Player: Shortint; Selection: Byte): Integer;
-    procedure IncommingNegotiateRequest(A1: Integer);  { draft }
-    procedure IncommingNegotiateOffer(A1: Integer);  { draft }
-    procedure TriggerFireDamage;  { draft }
-    procedure RetrieveStormDamageInfo(A1: Byte);  { draft }
+    function IncommingNegotiateRequest(Log: TNegotiateRequestEventLog): Boolean;
+    function IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
+    procedure TriggerFireDamage;
+    procedure RetrieveStormDamageInfo(Storm: TStormType; Distance: Integer; var Info: TStormDamageInfo);
     procedure IncommingStorm(A1: TStormType; A2: Integer; A3: Shortint);
-    procedure UpdateAITarget(A1: Integer; A2: Integer);  { draft }
-    procedure AIMovePriority;  { draft }
-    procedure ResetMoveDone;  { draft }
-    procedure CanCombine(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData);
+    function AIMovePriority: Integer;
+    procedure ResetMoveDone;
+    function CanCombine(Army: TArmy; Selection: Byte): Boolean;
   end;
 
   { TArmyView (instance size 96, VMT 55713210): +2C FUnitConcealment;
@@ -573,13 +573,14 @@
     procedure SetUnitConcealedForPlayer(Index: Integer; Player: Shortint; Value: Boolean);
   end;
 
-  { TArmyHS (instance size 36, VMT 557133A0) }
+  { TArmyHS (instance size $24, VMT 557133A0): $1C FArmy; $20 FUnitIndex;
+    $21 FUnitYOffset; $22 FMoveSteps. }
   TArmyHS = class(TUnitHS)
   public
     FArmy: TArmy;  { $1C }
-    F_ArmyHS_20: Byte;
-    F_ArmyHS_21: Byte;
-    F_ArmyHS_22: Byte;
+    FUnitIndex: Byte; { $20 }
+    FUnitYOffset: Shortint; { $21 }
+    FMoveSteps: Shortint; { $22 }
     F_ArmyHS_23: array[0..0] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -609,13 +610,13 @@
     procedure UpdateFlagID; override;
     function MoveFirst(Direction: Byte; Instant: Boolean): Shortint; override;
     function GetMoveSteps: Integer; override;
-    procedure GetFogEnabled;  { draft }
+    function GetFogEnabled: Boolean;
     function VisibleForSeatedPlayer: Boolean;
-    procedure ArmyUpdated(A1: Integer);  { draft }
-    procedure UpdateUnitGFXResource;  { draft }
-    procedure PlacePrivate(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure PlayMoveSFX;  { draft }
-    procedure ShowEnchantments(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure ArmyUpdated(Sender: TObject);
+    procedure UpdateUnitGFXResource;
+    function PlacePrivate(Map: TMapContainer; X, Y, L: Shortint): Boolean;
+    procedure PlayMoveSFX;
+    procedure ShowEnchantments(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
     function PlaceEx(X, Y, L: Shortint; Mode: TArmyPlaceMode): Boolean;
   end;
 

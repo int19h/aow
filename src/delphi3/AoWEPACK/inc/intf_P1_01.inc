@@ -398,7 +398,7 @@ type
   TStormType = (stNone, stFire, stDeath, stHoly, stIce, stLightning, stPestilence);  { ot=1 }
   { Storm damage summary (20 bytes): $0C friendly damage, $10 enemy damage. }
   TStormDamageInfo = record
-    Reserved00: array[0..11] of Byte;
+    Player, IndependentRelation: Shortint; FriendlyRelations, EnemyRelations: set of 0..7; FriendlyValue, EnemyValue: Integer; { $00..08; 55790333..55790482 }
     FriendlyDamage: Integer;
     EnemyDamage: Integer;
   end;

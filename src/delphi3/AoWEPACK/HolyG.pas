@@ -248,7 +248,7 @@ procedure THolyGround.ShowSummonAnimation(Anim: TAnimation; XhpSurf, YhpSurf: In
 var Field: TMapField;
 begin
   Field := WorldMap^.MapContainer.GetField(Anim.GetXhx, Anim.GetYhx, Anim.GetLhx);
-  if (Self = Field.FindOwnedChild($20393)) and (WorldEngine^.FAnimationDetail <> 0) and
+  if (Self = Field.FindOwnedChild($20393)) and (Ord(WorldEngine^.FAnimationDetail) <> 0) and
     (Anim.FFrameCounter = 0) then
     if (WorldMap^.FSeatedPlayer = Anim.FTag) or
       AoWE.AoWHSMap.WatchingTerrain(GetXhx, GetYhx, GetLhx, 0) then

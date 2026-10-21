@@ -9,7 +9,7 @@
   { TTranslateTextStream (instance size 40, VMT 55724960) }
   TTranslateTextStream = class(TTranslateStorageStream)
   public
-    F_TranslateTextStream_24: Integer;
+    FDictionary: TIvDictionary; { $24; 557973C9 }
     procedure TranslateStrings(var Strings: Classes.TStrings); override;
     procedure TranslateString(var S: string); override;
   end;

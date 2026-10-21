@@ -815,7 +815,7 @@ procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD:
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and
-      (AoWEngine.FAnimationDetail <> 0) then
+      (Ord(AoWEngine.FAnimationDetail) <> 0) then
       Sound.PlaySample(ExplosionSFX[Random(2)]);
 end;
 
@@ -878,7 +878,7 @@ procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; cons
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and
-      (AoWEngine.FAnimationDetail <> 0) then
+      (Ord(AoWEngine.FAnimationDetail) <> 0) then
       Sound.PlaySample(ExplosionSFX[Random(2)]);
 end;
 

@@ -1069,7 +1069,7 @@ type
     property Next: TImageSequence read FNext write FNext;
     property ImageLibrary: TCustomImageLibrary read FImageLibrary;
     property ImageLibraryName: string read FImageLibraryName write SetImageLibraryName;
-    property SequenceSpeed: Byte read FSequenceSpeed write FSequenceSpeed;
+    property SequenceSpeed: Byte read FSequenceSpeed write FSequenceSpeed; property SpeedCount: Byte read FSpeedCount; { $30; 5579143B }
     property SequenceMode: TSequenceMode read FSequenceMode write SetSequenceMode;
     property FrameTable: TFrameTableList read FFrameTable;
     property ImageIndex: Integer read FImageIndex write FImageIndex;

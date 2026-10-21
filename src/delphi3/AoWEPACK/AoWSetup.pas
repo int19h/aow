@@ -555,7 +555,7 @@ end;
 function TSetupControl.ValidateCompatibleVersion(Version: Integer): Boolean;
 var Major: Integer;
 begin
-  Major := AoWEngine.F_AoWEngine_58 and $FFFF0000 shr 16;
+  Major := AoWEngine.FVersion and $FFFF0000 shr 16;
   Result := (Version and $FFFF0000 shr 16) = Major;
 end;
 
@@ -1251,7 +1251,7 @@ begin
   begin
     FRemoteID := RemoteID;
     FPreferredRace := 255;
-    FVersion := AoWEngine.F_AoWEngine_58;
+    FVersion := AoWEngine.FVersion;
   end;
   FStatus := FStatus + [ssBusy];
   if RemoteID <> 0 then
@@ -1267,7 +1267,7 @@ begin
   FRemotePlayer.FName := Name;
   FRemotePlayer.FRemoteID := RemoteID;
   FRemotePlayer.FPreferredRace := 255;
-  FRemotePlayer.FVersion := AoWEngine.F_AoWEngine_58;
+  FRemotePlayer.FVersion := AoWEngine.FVersion;
   FStatus := FStatus + [ssBusy, ssRemote];
   SendHostMessage(1, FRemotePlayer, 0, 0);
   FPhase := spSetupPlayers;

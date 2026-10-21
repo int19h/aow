@@ -271,7 +271,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
 
-procedure RegisterEventLog;  { draft }
+procedure RegisterEventLog(AEngine: TEngine);
 procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);
 procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Radius: Integer);
 
@@ -672,7 +672,7 @@ begin end;
 constructor TPasswordEventLog.Create(AOwner: Engine.TECustomNode);
 begin end;
 
-procedure RegisterEventLog;
+procedure RegisterEventLog(AEngine: TEngine);
 begin end;
 
 procedure DistributeEventLog(Log: TEventLog; Execute: Boolean);

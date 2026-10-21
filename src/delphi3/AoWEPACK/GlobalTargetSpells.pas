@@ -1811,9 +1811,9 @@ begin
         XShift := Round(Sin(FAnimation.FFrameCounter * 0.1 + I * 0.02) *
           (200-I) * 0.25) + 16;
         Angle := (Direction + FAngle) * Pi / 180;
-        if SpellEngine^.FAnimationDetail = 0 then
+        if Ord(SpellEngine^.FAnimationDetail) = 0 then
           Count := 1
-        else if SpellEngine^.FAnimationDetail = 1 then
+        else if Ord(SpellEngine^.FAnimationDetail) = 1 then
           Count := (200-I) shr 5
         else Count := (200-I) shr 4;
         for Count := Count downto 0 do
@@ -2158,9 +2158,9 @@ begin
         Height := -16;
         XShift := 16;
         Angle := -(Direction + FAngle) * Pi / 180;
-        if SpellEngine^.FAnimationDetail = 0 then
+        if Ord(SpellEngine^.FAnimationDetail) = 0 then
           Count := 1
-        else if SpellEngine^.FAnimationDetail = 1 then
+        else if Ord(SpellEngine^.FAnimationDetail) = 1 then
           Count := (200-I) shr 5
         else Count := (200-I) shr 4;
         for Count := Count downto 0 do

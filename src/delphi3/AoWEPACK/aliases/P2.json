@@ -1,5 +1,8 @@
 {
   "5578316c:257": "P2CompareUnits",
   "55783298:40": "P2CompareUnitMoves",
-  "55785234:110": "P2CompareUnitIndexes"
+  "55785234:110": "P2CompareUnitIndexes",
+  "AoWE.TWorldFXHS.DeActivate": "TWorldFXHS.Deactivate",
+  "FUN_55796b84": "ShowGlobal<TWorldFXHS.Show",
+  "FUN_55796ef0": "ShowLocal<TWorldFXHS.Show"
 }

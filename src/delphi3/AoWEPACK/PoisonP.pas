@@ -269,7 +269,7 @@ var
   MapF: TMapField;
 begin
   MapF := TMapField(AoWHSMap.MapContainer.GetField(Animation.GetXhx, Animation.GetYhx, Animation.GetLhx));
-  if (Self = MapF.FindOwnedChild($2039E)) and (AoWEngine.FAnimationDetail <> 0) and
+  if (Self = MapF.FindOwnedChild($2039E)) and (Ord(AoWEngine.FAnimationDetail) <> 0) and
     (Animation.FFrameCounter = 0) then
     if (AoWHSMap.FSeatedPlayer = Animation.FTag) or
       AoWHSMap.WatchingTerrain(GetXhx, GetYhx, GetLhx, 0) then

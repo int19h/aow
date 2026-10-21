@@ -7772,7 +7772,7 @@ end;
 procedure TStructure.ShowRazeAnimation(Animation: TAnimation; X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
 begin
   if (TImageSequenceAnimation(Animation).FImageSequence.GetUnloopedFrameIndex(Animation.FFrameCounter) = 0) and
-    (AoWEngine.FAnimationDetail <> 0) then Sound.PlaySample(ExplosionSFX[System.Random(2)]);
+    (AoWEngine.FAnimationDetail <> Byte(dtlLow)) then Sound.PlaySample(ExplosionSFX[System.Random(2)]);
 end;
 
 function TStructure.ExecuteRaze(Player: Shortint): Boolean;

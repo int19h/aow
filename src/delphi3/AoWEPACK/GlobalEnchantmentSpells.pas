@@ -703,7 +703,7 @@ begin
   if WorldMap^.ViewL = 0 then
   begin
     RandSeed := WorldMap^.Frame - Anim.FFrameCounter;
-    case WorldEngine^.FAnimationDetail of
+    case Ord(WorldEngine^.FAnimationDetail) of
       0: Count := 5;
       2: Count := 20;
     else Count := 10;

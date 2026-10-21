@@ -19,8 +19,7 @@ type
   end;
 
 
-var
-  TMPDID: Integer; { $558FA054 }
+{ TMPDID is declared with the shared engine globals. }
 
 resourcestring
   { needs: P1 NotEnoughGoldRStr (5570719C, string resource 65215). }
