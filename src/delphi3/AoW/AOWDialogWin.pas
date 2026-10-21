@@ -44,7 +44,7 @@ type
     public
     F_DWin_A4: Byte;
     F_DWin_A5: array[0..10] of Byte;
-    procedure DButtonClick;  { draft }
+    procedure DButtonClick;
     procedure DebugDOkBtnClick;  { draft }
     procedure yesBtnClick(A1: Integer; A2: Integer);  { draft }
     procedure DialogKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -53,8 +53,14 @@ type
 
 implementation
 
+uses AoWWinMan;
+
 procedure TDWin.DButtonClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dialog.Visible := False;
+end;
+
 
 procedure TDWin.DebugDOkBtnClick;
 begin end;

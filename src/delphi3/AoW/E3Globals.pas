@@ -33,11 +33,12 @@ var
   EmailSettingsDlg: TEmailSettingsDlg;
   EmailGameSettingsDlg: TEmailGameSettingsDlg;
   TitleWindow: TTitleWindow;
+procedure ShowDemoMessage;
 procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
 
 implementation
 
-uses AoWE;
+uses AoWE, AoWExeForms;
 
 procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
 begin
@@ -46,4 +47,14 @@ begin
   Dialog.AttachmentDirectoryEdit.Text := AoWEngine.FRegistry.GetAttachmentDirectory;
   Dialog.Dlg.Visible := True;
 end;
+
+procedure ShowDemoMessage;
+begin
+  ResetMessageDialog(AoWExeForms.MessageDlg);
+  AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
+  AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(DemoVersionMessageRStr));
+  AoWExeForms.MessageDlg.OKPnl.Visible := True;
+  AoWExeForms.MessageDlg.Dlg.Visible := True;
+end;
+
 end.

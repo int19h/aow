@@ -228,7 +228,7 @@ type
     FConnections: TStrings;
     FSessions: TStrings;
     FPlayers: TStrings;
-    FAsyncEnum: Boolean;
+  public FAsyncEnum: Boolean; private { $1EC; AoW 0042AEEA }
     FConnected: Boolean;
     FInSession: Boolean;
     FIsHost: Boolean;

@@ -39,5 +39,17 @@
   "0040f678:353": "TEmailGameSettingsDlg.Execute",
   "00412778:220": "TScenSetup.UpdateTurnTime",
   "004128b4:236": "TScenSetup.UpdateTurnLimit",
-  "00412624:255": "TScenSetup.SelectPlayer"
+  "00412624:255": "TScenSetup.SelectPlayer",
+  "00432bb8:45": "TDisjunctionDlg.ClearCaster",
+  "00432be8:409": "TDisjunctionDlg.UpdateEnchantments",
+  "00432d88:150": "TDisjunctionDlg.SortEnchantments",
+  "00432e20:333": "TDisjunctionDlg.UpdateChance",
+  "00432f98:230": "TDisjunctionDlg.SelectEnchantment",
+  "00433080:83": "TDisjunctionDlg.Execute",
+  "0042b14c:142": "TMultiWindow.ConnectProvider",
+  "0042b668:209": "TMultiWindow.ValidateEmail",
+  "0040eac4:165": "ShowDemoMessage",
+  "00418430:39": "TCampaignJoinDlg.ShowLeaderChoices",
+  "00438ffc:65": "TMsgReceiveDlg.FinishDialog",
+  "0044e2bc:65": "TTutorialWindow.FinishDialog"
 }

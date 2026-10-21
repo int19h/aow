@@ -7,13 +7,13 @@ unit AOWMultiWin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWE, aowDPlayComp;
 
 type
   TMultiWindow = class;
 
 
-  { TMultiWindow (instance size 244, VMT 0042A6C4) }
+  { TMultiWindow (instance size $F4, VMT 0042A6C4): $EC pending map, $F0 menu animation height. }
   TMultiWindow = class(TDataModule)
   public
     published
@@ -60,76 +60,168 @@ type
     HeatNetBtn: TAOWButton; { +00E4 }
     Translator: TIvTranslator; { +00E8 }
     public
-    F_MultiWindow_EC: Integer;
-    F_MultiWindow_F0: Integer;
+    FPendingMap: string; { $EC }
+    FMenuHeight: Integer; { $F0 }
+    function ConnectProvider(Kind: TConnectionType): Integer;
+    function ValidateEmail: Boolean;
     procedure CloseBtnClick;  { draft }
-    procedure MultiWinUpdate;  { draft }
+    procedure MultiWinUpdate;
     procedure JoinBtnClick;  { draft }
-    procedure GamesLBChange;  { draft }
-    procedure BackBtnClick;  { draft }
-    procedure TCPBtnClick;  { draft }
-    procedure IPXBtnClick;  { draft }
-    procedure CancelTCPClick;  { draft }
-    procedure FindClick;  { draft }
+    procedure GamesLBChange;
+    procedure BackBtnClick;
+    procedure TCPBtnClick;
+    procedure IPXBtnClick;
+    procedure CancelTCPClick;
+    procedure FindClick;
     procedure HostClick;  { draft }
-    procedure IPXNameChange;  { draft }
-    procedure TCPNameChange;  { draft }
-    procedure LANFindClick;  { draft }
+    procedure IPXNameChange;
+    procedure TCPNameChange;
+    procedure LANFindClick;
     procedure LANHostClick;  { draft }
     procedure SingleBtnClick;  { draft }
-    procedure ModemBtnClick;  { draft }
-    procedure DirectBtnClick;  { draft }
-    procedure EmailBtnClick;  { draft }
-    procedure CancelOKButClick;  { draft }
-    procedure CancelPBEMBtnClick;  { draft }
+    procedure ModemBtnClick;
+    procedure DirectBtnClick;
+    procedure EmailBtnClick;
+    procedure CancelOKButClick;
+    procedure CancelPBEMBtnClick;
     procedure CheckEmailBtnClick;  { draft }
     procedure NewPBEMGameBtnClick;  { draft }
-    procedure LoadPBEMGameBtnClick;  { draft }
-    procedure EmailSettingsBtnClick;  { draft }
-    procedure HeatNetBtnClick;  { draft }
+    procedure LoadPBEMGameBtnClick;
+    procedure EmailSettingsBtnClick;
+    procedure HeatNetBtnClick;
   end;
 
 
 implementation
 
+uses E3Globals, AoWWinMan, aowSetupEvents, AoWFileDialog, AoWExeForms, ShellAPI;
+
+var
+  SessionRefreshDelay: Integer; { $45B170 }
+
 procedure TMultiWindow.CloseBtnClick;
 begin end;
 
 procedure TMultiWindow.MultiWinUpdate;
-begin end;
+begin
+  if MultiPnl.Visible and (FMenuHeight < GamePanel.WinHeight) then
+  begin
+    Inc(FMenuHeight, 10);
+    if FMenuHeight > GamePanel.WinHeight then FMenuHeight := GamePanel.WinHeight;
+    GamePanel.WinTop := FMenuHeight - GamePanel.WinHeight;
+    BottomPnl.WinTop := 480 - FMenuHeight + GamePanel.WinHeight - BottomPnl.WinHeight;
+    GamePanel.FSurfaceValid := False;
+    BottomPnl.FSurfaceValid := False;
+  end;
+  if SetupEvents.DPlay.FAsyncEnum and SetupEvents.DPlay.Connected and not SetupEvents.DPlay.InSession then
+    begin
+      Dec(SessionRefreshDelay);
+      if SessionRefreshDelay < 1 then
+      begin
+        SessionRefreshDelay := 30;
+        GamesLB.Items.Clear;
+        if SetupEvents.DPlay.GetSessions(True) = 0 then
+          GamesLB.Items.AddStrings(SetupEvents.DPlay.Sessions);
+        if GamesLB.Selected > GamesLB.Items.Count - 1 then
+        begin
+          GamesLB.Selected := -1;
+          JoinBtn.Visible := False;
+        end;
+      end;
+    end;
+end;
+
 
 procedure TMultiWindow.JoinBtnClick;
 begin end;
 
 procedure TMultiWindow.GamesLBChange;
-begin end;
+begin
+  if GamesLB.Selected > -1 then JoinBtn.Visible := True else JoinBtn.Visible := False;
+end;
+
 
 procedure TMultiWindow.BackBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  case SetupEvents.DPlay.ConnectionType of
+    conTCP: TCPPnl.Visible := True;
+    conIPX: LanPnl.Visible := True;
+  end;
+  SetupEvents.DPlay.GetSessions(False);
+  JoinPnl.Visible := False;
+end;
+
 
 procedure TMultiWindow.TCPBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  GamePanel.Visible := False;
+  TCPPnl.Visible := True;
+end;
+
 
 procedure TMultiWindow.IPXBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  GamePanel.Visible := False;
+  LanPnl.Visible := True;
+end;
+
 
 procedure TMultiWindow.CancelTCPClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  GamePanel.Visible := True;
+  TCPPnl.Visible := False;
+  LanPnl.Visible := False;
+end;
+
 
 procedure TMultiWindow.FindClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if ConnectProvider(conTCP) = 0 then
+  begin
+    SetupEvents.DPlay.PlayerName := TCPName.Text;
+    SessionRefreshDelay := 0;
+    TCPPnl.Visible := False;
+    JoinPnl.Visible := True;
+    GamesLB.Items.Clear;
+    GamesLB.FSized := False;
+  end;
+end;
+
 
 procedure TMultiWindow.HostClick;
 begin end;
 
 procedure TMultiWindow.IPXNameChange;
-begin end;
+begin
+  TCPName.Text := IPXName.Text;
+end;
+
 
 procedure TMultiWindow.TCPNameChange;
-begin end;
+begin
+  IPXName.Text := TCPName.Text;
+end;
+
 
 procedure TMultiWindow.LANFindClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if ConnectProvider(conIPX) = 0 then
+  begin
+    SetupEvents.DPlay.PlayerName := TCPName.Text;
+    SessionRefreshDelay := 0;
+    LanPnl.Visible := False;
+    JoinPnl.Visible := True;
+    GamesLB.Items.Clear;
+    GamesLB.FSized := False;
+  end;
+end;
+
 
 procedure TMultiWindow.LANHostClick;
 begin end;
@@ -138,19 +230,37 @@ procedure TMultiWindow.SingleBtnClick;
 begin end;
 
 procedure TMultiWindow.ModemBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
+
 
 procedure TMultiWindow.DirectBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
+
 
 procedure TMultiWindow.EmailBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  GamePanel.Visible := False;
+  PBEMPnl.Visible := True;
+end;
+
 
 procedure TMultiWindow.CancelOKButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
+
 
 procedure TMultiWindow.CancelPBEMBtnClick;
-begin end;
+begin
+  GamePanel.Visible := True;
+  PBEMPnl.Visible := False;
+end;
+
 
 procedure TMultiWindow.CheckEmailBtnClick;
 begin end;
@@ -159,13 +269,68 @@ procedure TMultiWindow.NewPBEMGameBtnClick;
 begin end;
 
 procedure TMultiWindow.LoadPBEMGameBtnClick;
-begin end;
+begin
+  FileDlgWindow.FMode := 0;
+  FileDlgWindow.FileDialog.Visible := True;
+  SetCurrentDirectory(PChar(AoWEngine.StartupDirectory + 'EmailIn\'));
+  FileDlgWindow.FindFiles;
+end;
+
 
 procedure TMultiWindow.EmailSettingsBtnClick;
-begin end;
+begin
+  ShowEmailSettings(EmailSettingsDlg);
+end;
+
 
 procedure TMultiWindow.HeatNetBtnClick;
-begin end;
+begin
+  if not AoWEngine.FDemo then
+  begin
+    if Integer(ShellExecute(Application.Handle, 'open', PChar(AoWEngine.StartupDirectory + 'GOTOHEAT.EXE'),
+      PChar(IntToStr(5223)), nil, SW_SHOW)) > 32 then Application.Terminate;
+  end
+  else ShowDemoMessage;
+end;
 
+
+
+
+function TMultiWindow.ConnectProvider(Kind: TConnectionType): Integer;
+var
+  I, Found: Integer;
+begin
+  I := 0;
+  Found := -1;
+  Result := 0; { Original also reports success when no provider is found. }
+  while I < SetupEvents.DPlay.ConnectionItems.Count do
+  begin
+    if TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType = Kind then
+    begin
+      Found := I;
+      I := SetupEvents.DPlay.ConnectionItems.Count;
+    end;
+    Inc(I);
+  end;
+  if Found > -1 then
+  begin
+    SetupEvents.DPlay.TCPPort := IPEdit.Text;
+    Result := SetupEvents.DPlay.Connect(Found);
+  end;
+end;
+
+function TMultiWindow.ValidateEmail: Boolean;
+begin
+  if AoWEngine.FRegistry.GetLocalEmailAddress = '' then
+  begin
+    ResetMessageDialog(MessageDlg);
+    MessageDlg.MessageMemo.Items.Add('');
+    MessageDlg.MessageMemo.Items.Add(TranslateRStr(PleaseSetupEmailSettingsFirstRStr));
+    MessageDlg.OKPnl.Visible := True;
+    MessageDlg.Dlg.Visible := True;
+    Result := False;
+  end
+  else Result := True;
+end;
 
 end.

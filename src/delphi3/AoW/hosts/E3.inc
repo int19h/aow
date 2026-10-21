@@ -38,3 +38,14 @@
   Use(nil, @AoWScenSetup.TScenSetup.UpdateTurnTime);
   Use(nil, @AoWScenSetup.TScenSetup.UpdateTurnLimit);
   Use(nil, @AoWScenSetup.TScenSetup.SelectPlayer);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.ClearCaster);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.UpdateEnchantments);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.SortEnchantments);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.UpdateChance);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.SelectEnchantment);
+  Use(nil, @AoWDisjunctionDlg.TDisjunctionDlg.Execute);
+  Use(nil, @AOWMultiWin.TMultiWindow.ConnectProvider);
+  Use(nil, @AOWMultiWin.TMultiWindow.ValidateEmail);
+  Use(nil, @AoWCampaignJoin.TCampaignJoinDlg.ShowLeaderChoices);
+  Use(nil, @AoWMsgReceiveDlg.TMsgReceiveDlg.FinishDialog);
+  Use(nil, @AoWTutorialWin.TTutorialWindow.FinishDialog);

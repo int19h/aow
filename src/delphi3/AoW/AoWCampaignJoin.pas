@@ -7,13 +7,13 @@ unit AoWCampaignJoin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWMemo, AoWPanel, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWMemo, AoWPanel, aowUserDrawBox, AoWE;
 
 type
   TCampaignJoinDlg = class;
 
 
-  { TCampaignJoinDlg (instance size 128, VMT 00418020) }
+  { TCampaignJoinDlg (instance size $80, VMT 00418020): $68 stage, $6C faction, $70 leader, $74 scroll delay, $78 scroll position, $7C text. }
   TCampaignJoinDlg = class(TDataModule)
   public
     published
@@ -27,37 +27,59 @@ type
     ScrollTextDB: TaowUserDrawBox; { +0060 }
     Translator: TIvTranslator; { +0064 }
     public
-    F_CampaignJoinDlg_68: Byte;
-    F_CampaignJoinDlg_69: array[0..6] of Byte;
-    F_CampaignJoinDlg_70: Integer;
-    F_CampaignJoinDlg_74: Integer;
-    F_CampaignJoinDlg_78: Integer;
-    F_CampaignJoinDlg_7C: Integer;
-    procedure CampaignJoinDlgCreate;  { draft }
-    procedure CampaignJoinDlgDestroy;  { draft }
-    procedure CharGenPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure DefaultFacePnlDraw(A1: Integer; A2: Integer);  { draft }
+    FStage: Byte; { $68 }
+    F_CampaignJoinDlg_69: array[0..2] of Byte; FFaction: Integer; { $6C }
+    FLeader: TLeader; { $70 }
+    FScrollDelay: Integer; { $74 }
+    FScrollPosition: Integer; { $78 }
+    FScrollText: TStringList; { $7C }
+    procedure ShowLeaderChoices;
+    procedure CampaignJoinDlgCreate;
+    procedure CampaignJoinDlgDestroy;
+    procedure CharGenPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DefaultFacePnlDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure CustomBtnClick;  { draft }
     procedure DefaultBtnClick;  { draft }
-    procedure ScrollTextDBUpdate;  { draft }
-    procedure ScrollTextDBDraw(A1: Integer; A2: Integer);  { draft }
+    procedure ScrollTextDBUpdate;
+    procedure ScrollTextDBDraw(Sender: TObject; SD: TSurfaceDesc);
     procedure DefaultFacePnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
   end;
 
 
 implementation
 
+uses E3Globals;
+
 procedure TCampaignJoinDlg.CampaignJoinDlgCreate;
-begin end;
+begin
+  FLeader := TLeader.Create(nil);
+  FScrollText := TStringList.Create;
+end;
+
 
 procedure TCampaignJoinDlg.CampaignJoinDlgDestroy;
-begin end;
+begin
+  FLeader.Release;
+  FScrollText.Free;
+end;
 
-procedure TCampaignJoinDlg.CharGenPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
 
-procedure TCampaignJoinDlg.DefaultFacePnlDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TCampaignJoinDlg.CharGenPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if FStage = 0 then ShowLeaderChoices;
+end;
+
+
+procedure TCampaignJoinDlg.DefaultFacePnlDraw(Sender: TObject; SD: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  R := Rect(DefaultFacePnl.WinLeft + 1, DefaultFacePnl.WinTop + 1,
+    DefaultFacePnl.WinLeft + DefaultFacePnl.WinWidth - 2,
+    DefaultFacePnl.WinTop + DefaultFacePnl.WinHeight - 2);
+  FLeader.ShowFace(R, SD);
+end;
+
 
 procedure TCampaignJoinDlg.CustomBtnClick;
 begin end;
@@ -66,13 +88,51 @@ procedure TCampaignJoinDlg.DefaultBtnClick;
 begin end;
 
 procedure TCampaignJoinDlg.ScrollTextDBUpdate;
-begin end;
+begin
+  if FStage = 0 then
+    if FScrollPosition < FScrollText.Count * 20 + ScrollTextDB.WinHeight then
+    begin
+      Dec(FScrollDelay);
+      if FScrollDelay <= 0 then
+      begin
+        Inc(FScrollPosition);
+        ScrollTextDB.FDrawn := False;
+        FScrollDelay := 3;
+      end;
+    end
+    else ShowLeaderChoices;
+end;
 
-procedure TCampaignJoinDlg.ScrollTextDBDraw(A1: Integer; A2: Integer);
-begin end;
+
+procedure TCampaignJoinDlg.ScrollTextDBDraw(Sender: TObject; SD: TSurfaceDesc);
+var
+  I, X, Y: Integer;
+begin
+  SD.ClipRect.Left := CharGenPnl.WinLeft + ScrollTextDB.WinLeft;
+  SD.ClipRect.Right := SD.ClipRect.Left + ScrollTextDB.WinWidth;
+  SD.ClipRect.Top := CharGenPnl.WinTop + ScrollTextDB.WinTop;
+  SD.ClipRect.Bottom := SD.ClipRect.Top + ScrollTextDB.WinHeight;
+  X := CharGenPnl.WinLeft + ScrollTextDB.WinLeft + ScrollTextDB.WinWidth div 2;
+  Y := SD.ClipRect.Top + ScrollTextDB.WinHeight - FScrollPosition;
+  for I := 0 to FScrollText.Count - 1 do
+  begin
+    FontModule.AoW15WhiteGrey.SetTextCentered(X, Y, FScrollText[I], SD);
+    Inc(Y, 20);
+  end;
+end;
+
 
 procedure TCampaignJoinDlg.DefaultFacePnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
+
+
+procedure TCampaignJoinDlg.ShowLeaderChoices;
+begin
+  FStage := 1;
+  LeaderTypePnl.Visible := True;
+  ScrollTextDB.Visible := False;
+  CharGenPnl.Visible := True;
+end;
 
 end.

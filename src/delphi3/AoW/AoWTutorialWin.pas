@@ -7,13 +7,13 @@ unit AoWTutorialWin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWMemo, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWMemo, AoWVScroll, AoWWindow, EventLog;
 
 type
   TTutorialWindow = class;
 
 
-  { TTutorialWindow (instance size 104, VMT 0044E1C0) }
+  { TTutorialWindow (instance size $68, VMT 0044E1C0): $5C done callback, $64 retained event. }
   TTutorialWindow = class(TDataModule)
   public
     published
@@ -24,19 +24,41 @@ type
     AbVSB: TAOWVScrollBar; { +0054 }
     Translator: TIvTranslator; { +0058 }
     public
-    F_TutorialWindow_5C: array[0..11] of Byte;
-    procedure DlgHide;  { draft }
-    procedure CloseClick;  { draft }
+    FDone: TExecuteDoneEvent; { $5C } FEvent: TEventLog; { $64 }
+    procedure FinishDialog;
+    procedure DlgHide;
+    procedure CloseClick;
   end;
 
 
 implementation
 
+uses AoWWinMan;
+
 procedure TTutorialWindow.DlgHide;
-begin end;
+begin
+  FinishDialog;
+end;
+
 
 procedure TTutorialWindow.CloseClick;
-begin end;
+begin
+  Dlg.Visible := False;
+end;
 
+
+
+procedure TTutorialWindow.FinishDialog;
+var
+  Done: TExecuteDoneEvent;
+  Log: TEventLog;
+begin
+  Done := FDone;
+  Log := FEvent;
+  FDone := nil;
+  FEvent := nil;
+  if Assigned(Done) then Done(Log);
+  if Log <> nil then Log.Release;
+end;
 
 end.
