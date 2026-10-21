@@ -2,5 +2,14 @@
   "557a7ce4:96": "ProductionIDToCityAction",
   "557a7d44:96": "CityActionToProductionID",
   "FUN_557ac624": "CompareCityProductions",
-  "557b2bd8:138": "TFarm.GetCurrentActivityText"
+  "557b2bd8:138": "TFarm.GetCurrentActivityText",
+  "AoWEReg.AoWEReg": "AoWEReg",
+  "FUN_5580ad50": "EncodeSecurityID",
+  "FUN_5580adf8": "ReadSecurityData",
+  "FUN_5580af10": "WriteSecurityData",
+  "FUN_5580b0bc": "RemoveSecurityData",
+  "557daed8:115": "CompareFortifyUnits",
+  "City.City": "City",
+  "City.Finalization": "Finalization<City",
+  "557af154:42": "TRegistrator.MapLoaded<City"
 }

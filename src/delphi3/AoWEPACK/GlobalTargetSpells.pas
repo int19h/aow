@@ -289,7 +289,7 @@ type
     function ValidTargetMapF(A1: TMapField): Boolean; override;
   end;
 
-procedure RegisterGlobalTargetSpells(A1: Integer);  { draft }
+procedure RegisterGlobalTargetSpells(A1: TAoWEngine);
 procedure UnregisterGlobalTargetSpells(A1: Integer);  { draft }
 
 implementation
@@ -2614,7 +2614,7 @@ type
     HSSet: TAoWHSSet;
   end;
 
-procedure RegisterGlobalTargetSpells(A1: Integer);
+procedure RegisterGlobalTargetSpells(A1: TAoWEngine);
 var Control: TSpellControl;
 begin
   Control := TSpellControl(TSpellEngineSetFields(Pointer(A1)^).HSSet.FSpellControl);

@@ -2,7 +2,7 @@ unit GlobalEnchantmentSpells;
 
 { GlobalEnchantmentSpells, partially recovered from AoWEPACK.dpl.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Bodies through TFloodEnchantment are recovered; later classes remain drafts. }
+  Global enchantments and their spell effects recovered from the original code. }
 
 interface
 
@@ -266,7 +266,7 @@ type
     function Deactivate(Player: Byte): Boolean; override;
     function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
     function Activate(Player: Shortint): Boolean; override;
-    procedure NewTurn(A1: Byte);  { draft }
+    procedure NewTurn(Player: Shortint);
   end;
 
   { TDeathMastery (instance size 56, VMT 557EEFD0) }
@@ -275,7 +275,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     function CreateEnchantment: TGlobalEnchantment; override;
-    procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
   end;
 
   { TFireMasteryEnchantment (instance size 36, VMT 557EF100) }
@@ -288,7 +288,7 @@ type
     function Deactivate(Player: Byte): Boolean; override;
     function CanActivate(Player: Shortint; var Reason: string): Boolean; override;
     function Activate(Player: Shortint): Boolean; override;
-    procedure UpdateFire(A1: Integer; A2: Byte);  { draft }
+    procedure UpdateFire(Factor: Integer; Explosions: Boolean);
   end;
 
   { TFireMastery (instance size 56, VMT 557EF228) }
@@ -297,7 +297,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     function CreateEnchantment: TGlobalEnchantment; override;
-    procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
   end;
 
   { TEarthMasteryEnchantment (instance size 36, VMT 557EF358) }
@@ -317,7 +317,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     function ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; override;
     function CreateEnchantment: TGlobalEnchantment; override;
-    procedure ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
   end;
 
   { TSpellWardEnchantment (instance size 36, VMT 557EF5B4) }
@@ -336,8 +336,8 @@ type
     function CreateEnchantment: TGlobalEnchantment; override;
   end;
 
-procedure RegisterGlobalEnchantmentSpells(A1: Integer);  { draft }
-procedure UnregisterGlobalEnchantmentSpells(A1: Integer);  { draft }
+procedure RegisterGlobalEnchantmentSpells(AEngine: TAoWEngine);
+procedure UnregisterGlobalEnchantmentSpells(AEngine: TAoWEngine);
 
 implementation
 
@@ -357,6 +357,11 @@ const
   PowerLeakText: PResStringRec = @AoWE.PowerLeakRStr;
   HatredText: PResStringRec = @AoWE.HatredRStr;
   AirText: PResStringRec = @AoWE.AirMasteryRStr;
+  LifeText: PResStringRec = @AoWE.LifeMasteryRStr;
+  DeathText: PResStringRec = @AoWE.DeathMasteryRStr;
+  FireText: PResStringRec = @AoWE.FireMasteryRStr;
+  EarthText: PResStringRec = @AoWE.EarthMasteryRStr;
+  WardNameText: PResStringRec = @AoWE.SpellWardRStr;
   SpellWardText: PResStringRec = @AoWE.CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr;
   RoadsText: PResStringRec = @AoWE.EnchantedRoadsRStr;
   AlreadyActiveText: PResStringRec = @AoWE.XIsAlreadyActiveRStr;
@@ -1350,169 +1355,669 @@ begin
 end;
 
 function TFlood.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TFloodEnchantment.Create(nil); end;
 
 constructor TFlood.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(LoadResString(FloodText));
+  FSpellID := 50;
+  FSpellType := stGlobal;
+  FBaseManaCost := 1;
+  FSpellLevel := 4;
+  FMagicSphere := msWater;
+end;
 
 procedure TFlood.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
 
 function TFlood.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+  Twinkle: TTwinkleAnimation;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  A2.GetLocation(X, Y, L);
+  WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  Twinkle := TTwinkleAnimation.Create(nil);
+  Twinkle.Setup(WorldSet^.FSpellControl.GetSpell(50).FCastImages.ImageSequences[0],
+    [tmRotate], 50, 64, 50, 30);
+  WorldMap^.PlaceHX(Twinkle, X, Y, L);
+  FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 constructor TLifeMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(LifeText));
+  FEnchantmentType := getNone;
+  FDispelMana := 175;
+end;
 
 class function TLifeMasteryEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $2131F; end;
 
 function TLifeMasteryEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin Result := 1250; end;
 
 function TLifeMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanActivate(Player, Reason);
+  if Result then
+    if petLifeMastery in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments then
+    begin
+      Reason := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
+      Result := False;
+    end;
+end;
 
 function TLifeMasteryEnchantment.Activate(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  APlayer: TPlayer;
+  I, J: Integer;
+begin
+  inherited Activate(Player);
+  WorldMap^.FGlobalMagicControl.IncDoubleSphereManaCount(msDeath); { Original doubles Death. }
+  APlayer := WorldMap^.FPlayers.GetPlayers(FPlayerIndex);
+  with APlayer.FMagicControl do
+    SetActiveEnchantments(FActiveEnchantments + [petLifeMastery]);
+  for I := APlayer.FArmies.Count - 1 downto 0 do
+    for J := APlayer.FArmies.GetArmy(I).Count - 1 downto 0 do
+      APlayer.FArmies.GetArmy(I).GetUnit(J).SetLifeMasteryBlessing;
+  Result := True;
+end;
 
 function TLifeMasteryEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  Msg: TEMsg;
+begin
+  inherited Deactivate(Player);
+  WorldMap^.FGlobalMagicControl.DecDoubleSphereManaCount(msDeath); { Original doubles Death. }
+  WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.SetActiveEnchantments(
+    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments - [petLifeMastery]);
+  InitMsg(Msg, $20020100, Self);
+  WorldMap^.SendMsg(Msg, Self);
+  Result := True;
+end;
 
 constructor TLifeMastery.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellType := stGlobal;
+  FSpellName := TranslateRStr(LoadResString(LifeText));
+  FSpellID := 61;
+  FBaseManaCost := 1;
+  FSpellLevel := 4;
+  FMagicSphere := msCosmos; { Original assigns Cosmos to Life Mastery. }
+  FCastDuration := 40;
+  FAIBasePriority := 1000;
+end;
 
 function TLifeMastery.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TLifeMasteryEnchantment.Create(nil); end;
 
 function TLifeMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+  Twinkle: TTwinkleAnimation;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  NotifySpellSphere(A2.FPlayer, msLife);
+  A2.GetLocation(X, Y, L);
+  WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  Twinkle := TTwinkleAnimation.Create(nil);
+  Twinkle.Setup(WorldSet^.FSpellControl.GetSpell(61).FCastImages.ImageSequences[0],
+    [tmRotate], 100, 64, 50, 30);
+  WorldMap^.PlaceHX(Twinkle, X, Y, L);
+  FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 constructor TDeathMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(DeathText));
+  FEnchantmentType := getNone;
+  FDispelMana := 175;
+end;
 
 class function TDeathMasteryEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21320; end;
 
 function TDeathMasteryEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin Result := 1250; end;
 
 function TDeathMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanActivate(Player, Reason);
+  if Result then
+    if petDeathMastery in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments then
+    begin
+      Reason := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
+      Result := False;
+    end;
+end;
 
 function TDeathMasteryEnchantment.Activate(Player: Shortint): Boolean;
-begin Result := False; end;
+begin
+  inherited Activate(Player);
+  WorldMap^.FGlobalMagicControl.IncDoubleSphereManaCount(msLife); { Original doubles Life. }
+  WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.SetActiveEnchantments(
+    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments + [petDeathMastery]);
+  Result := True;
+end;
 
 function TDeathMasteryEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  Msg: TEMsg;
+begin
+  inherited Deactivate(Player);
+  WorldMap^.FGlobalMagicControl.DecDoubleSphereManaCount(msLife); { Original doubles Life. }
+  WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.SetActiveEnchantments(
+    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments - [petDeathMastery]);
+  InitMsg(Msg, $20020101, Self);
+  WorldMap^.SendMsg(Msg, Self);
+  Result := True;
+end;
 
-procedure TDeathMasteryEnchantment.NewTurn(A1: Byte);
-begin end;
+procedure TDeathMasteryEnchantment.NewTurn(Player: Shortint);
+var
+  X, Y, L, Index, Mask: Integer;
+  Flags: PByteArray;
+  MapLevel: TMapLevel;
+  Walk: THNWalkData;
+  Border: Boolean;
+begin
+  Flags := nil;
+  Mask := 1 shl (Player - 1);
+  for L := 0 to WorldMap^.MapContainer.LevelCount - 1 do
+  begin
+    MapLevel := WorldMap^.MapContainer.GetMapLevel(L);
+    Index := 0;
+    ReallocMem(Flags, MapLevel.Width * MapLevel.Height);
+    FillChar(Flags^, MapLevel.Width * MapLevel.Height, 0);
+    for Y := 1 to MapLevel.Height - 1 do
+      for X := 1 to MapLevel.Width - 2 do
+      begin
+        if TAoWMapField(MapLevel.GetField(X, Y)).FFieldFlags and Mask <> 0 then
+        begin
+          Border := False;
+          InitHNWalk(Walk, X, Y, 1);
+          while (Walk.Radius = 1) and not Border do
+          begin
+            if (Walk.X >= 0) and (Walk.X < MapLevel.Width) and
+              (Walk.Y >= 0) and (Walk.Y < MapLevel.Height) then
+              Border := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y)).FFieldFlags and Mask = 0;
+            WalkToNextHN(Walk);
+          end;
+          if Border then Flags[Index] := 1;
+        end;
+        Inc(Index);
+      end;
+    Index := 0;
+    for Y := 1 to MapLevel.Height - 1 do
+      for X := 1 to MapLevel.Width - 2 do
+      begin
+        if Flags[Index] <> 0 then TAoWMapField(MapLevel.GetField(X, Y)).SetExplored(Player, False);
+        Inc(Index);
+      end;
+  end;
+  WorldMap^.UpdateVisibility;
+  ReallocMem(Flags, 0);
+end;
 
 procedure TDeathMasteryEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020002 then
+    if Msg.Value <> 0 then
+      if petDeathMastery in WorldMap^.FPlayers.GetPlayers(Msg.Value).FMagicControl.FEnemyEnchantments then
+        NewTurn(Msg.Value);
+end;
 
 constructor TDeathMastery.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellType := stGlobal;
+  FSpellName := TranslateRStr(LoadResString(DeathText));
+  FSpellID := 62;
+  FBaseManaCost := 1;
+  FSpellLevel := 4;
+  FMagicSphere := msCosmos; { Original assigns Cosmos to Death Mastery. }
+  FCastDuration := 40;
+  FAIBasePriority := 1000;
+end;
 
 function TDeathMastery.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TDeathMasteryEnchantment.Create(nil); end;
 
-procedure TDeathMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TDeathMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  I, Count, X, Y, Speed, D, Image: Integer;
+begin
+  RandSeed := WorldMap^.Frame - Anim.FFrameCounter;
+  case WorldEngine^.FAnimationDetail of
+    0: Count := 5;
+    2: Count := 20;
+  else Count := 10;
+  end;
+  for I := 0 to Count - 1 do
+  begin
+    X := Random(Anim.FTag and $FFFF);
+    Y := Random(Cardinal(Anim.FTag) shr 16);
+    Speed := Random(15) + 5;
+    Image := Random(3);
+    D := (Anim.FFrameCounter - 45) * Speed;
+    Dec(X, D * 2);
+    Inc(Y, D);
+    FCastImages.Show(Image, SurfaceDesc.ClipRect.Left + X, SurfaceDesc.ClipRect.Top + Y, 0, SurfaceDesc);
+  end;
+  if Anim.FFrameCounter = 90 then Anim.Destroy;
+end;
 
 function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  NotifySpellSphere(A2.FPlayer, msDeath);
+  A2.GetLocation(X, Y, L);
+  WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  with TAnimation.Create(nil) do
+  begin
+    FAnimationLevel := 28;
+    FOnShow := ShowAnimation;
+    FAnimationMap := WorldMap^;
+    FTag := (WorldMap^.ViewWidth and $FFFF) or (WorldMap^.ViewHeight shl 16);
+    Activate;
+  end;
+  FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 constructor TFireMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(FireText));
+  FEnchantmentType := getFireMastery;
+  FDispelMana := 175;
+end;
 
 class function TFireMasteryEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21321; end;
 
 function TFireMasteryEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin Result := 1250; end;
 
 function TFireMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  if petFireMastery in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments then
+  begin
+    Reason := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 function TFireMasteryEnchantment.Activate(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  APlayer: TPlayer;
+  I, J: Integer;
+begin
+  inherited Activate(Player);
+  WorldMap^.FGlobalMagicControl.IncDoubleSphereManaCount(msWater); { Original doubles Water. }
+  APlayer := WorldMap^.FPlayers.GetPlayers(FPlayerIndex);
+  with APlayer.FMagicControl do
+    SetActiveEnchantments(FActiveEnchantments + [petFireMastery]);
+  for I := APlayer.FArmies.Count - 1 downto 0 do
+    for J := APlayer.FArmies.GetArmy(I).Count - 1 downto 0 do
+      APlayer.FArmies.GetArmy(I).GetUnit(J).SetFireMasteryProtection;
+  UpdateFire(15, True);
+  Result := True;
+end;
 
 function TFireMasteryEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  APlayer: TPlayer;
+  I, J: Integer;
+begin
+  inherited Deactivate(Player);
+  APlayer := WorldMap^.FPlayers.GetPlayers(FPlayerIndex);
+  with APlayer.FMagicControl do
+    SetActiveEnchantments(FActiveEnchantments - [petFireMastery]);
+  for I := APlayer.FArmies.Count - 1 downto 0 do
+    for J := APlayer.FArmies.GetArmy(I).Count - 1 downto 0 do
+      APlayer.FArmies.GetArmy(I).GetUnit(J).ResetFireMasteryProtection;
+  WorldMap^.FGlobalMagicControl.DecDoubleSphereManaCount(msWater); { Original doubles Water. }
+  Result := True;
+end;
 
-procedure TFireMasteryEnchantment.UpdateFire(A1: Integer; A2: Byte);
-begin end;
+procedure TFireMasteryEnchantment.UpdateFire(Factor: Integer; Explosions: Boolean);
+var
+  X, Y, L, Chance: Integer;
+  MapLevel: TMapLevel;
+  Fire: TFire;
+begin
+  RandSeed := WorldMap^.Random($FFFFFF);
+  for L := 0 to WorldMap^.MapContainer.LevelCount - 1 do
+  begin
+    MapLevel := WorldMap^.MapContainer.GetMapLevel(L);
+    for Y := 1 to MapLevel.Height - 1 do
+      for X := 1 to MapLevel.Width - 2 do
+      begin
+        Chance := IgnitionChance(TAoWMapField(MapLevel.GetField(X, Y)));
+        if Chance > 0 then
+          if WorldMap^.Random(10000) < Chance * Factor then
+          begin
+            Fire := WorldSet^.FFireControl.PlaceFire(X, Y, L, ftLarge);
+            if Fire <> nil then
+            begin
+              if Explosions then Fire.SetupExplosion(Random(30));
+              Fire.FTurnsLeft := 3;
+            end;
+          end;
+      end;
+  end;
+end;
 
 procedure TFireMasteryEnchantment.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20020003 then
+    if Msg.Value <> 0 then
+      if petFireMastery in WorldMap^.FPlayers.GetPlayers(Msg.Value).FMagicControl.FActiveEnchantments then
+        UpdateFire(2, not WorldMap^.FRequestCombatType);
+end;
 
 constructor TFireMastery.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellType := stGlobal;
+  FSpellName := TranslateRStr(LoadResString(FireText));
+  FSpellID := 63;
+  FBaseManaCost := 1;
+  FSpellLevel := 4;
+  FMagicSphere := msFire;
+  FCastDuration := 40;
+  FAIBasePriority := 1000;
+end;
 
 function TFireMastery.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TFireMasteryEnchantment.Create(nil); end;
 
-procedure TFireMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TFireMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep, Chance, Delay: Integer;
+  MapLevel: TMapLevel;
+  MapF: TAoWMapField;
+begin
+  case WorldEngine^.FAnimationDetail of
+    0: Chance := 2;
+    2: Chance := 5;
+  else Chance := 3;
+  end;
+  MapLevel := WorldMap^.MapContainer.GetMapLevel(WorldMap^.ViewL);
+  FieldStep := MapLevel.FHNOffsets[0, 4];
+  MaxX := WorldMap^.ViewXhx + WorldMap^.ViewWidthHX - 1;
+  MaxY := WorldMap^.ViewYhx + WorldMap^.ViewHeightHX - 1;
+  for X := WorldMap^.ViewXhx to MaxX do
+  begin
+    HXtoHP(X, WorldMap^.ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - XhpSurf + 16;
+    Yhp := Yhp - YhpSurf + 16;
+    MapF := TAoWMapField(MapLevel.GetField(X, WorldMap^.ViewYhx));
+    for Y := WorldMap^.ViewYhx to MaxY do
+    begin
+      if not (MapF.TerrainType in [7, 8, 14]) and (WorldMap^.FSeatedPlayer <> -1) and
+        (not WorldMap^.FExplorationEnabled or MapF.GetExplored(WorldMap^.FSeatedPlayer)) then
+      begin
+        RandSeed := MapF.Xhx + MapF.Yhx * 8 + (Byte(MapF.FFieldFlags shr 16) shl 16);
+        if Random(100) < Chance then
+        begin
+          Delay := Random(40);
+          FCastImages.Show(0, Xhp, Yhp, Anim.FFrameCounter - Delay, SurfaceDesc);
+          if (Anim.FFrameCounter = Delay) and (WorldEngine^.FAnimationDetail <> 0) then
+            Sound.PlaySample(ExplosionSFX[X mod 2]);
+        end;
+      end;
+      Inc(Integer(MapF), FieldStep);
+      Inc(Yhp, 32);
+    end;
+  end;
+  if Anim.FFrameCounter = 90 then Anim.Destroy;
+end;
 
 function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  if A3 = 0 then
+  begin
+    A2.GetLocation(X, Y, L);
+    NotifySpellSphere(A2.FPlayer, msFire);
+    WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+    with TAnimation.Create(nil) do
+    begin
+      FAnimationLevel := 27;
+      FOnShow := ShowAnimation;
+      FAnimationMap := WorldMap^;
+      FTag := (WorldMap^.ViewWidth and $FFFF) or (WorldMap^.ViewHeight shl 16);
+      Activate;
+    end;
+    FCastSounds.Play(0);
+    CastingDone(A2, A1.FEventMana);
+  end;
+  if A3 = 20 then
+  begin
+    inherited ExecuteTE(A1, A2, 0);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 constructor TEarthMasteryEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(EarthText));
+  FEnchantmentType := getNone;
+  FDispelMana := 175;
+end;
 
 class function TEarthMasteryEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21322; end;
 
 function TEarthMasteryEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin Result := 1250; end;
 
 function TEarthMasteryEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanActivate(Player, Reason);
+  if Result then
+    if petEarthMastery in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments then
+    begin
+      Reason := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [FName]);
+      Result := False;
+    end;
+end;
 
 function TEarthMasteryEnchantment.Activate(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  APlayer: TPlayer;
+  I, J: Integer;
+begin
+  inherited Activate(Player);
+  WorldMap^.FGlobalMagicControl.IncDoubleSphereManaCount(msAir); { Original doubles Air. }
+  APlayer := WorldMap^.FPlayers.GetPlayers(FPlayerIndex);
+  with APlayer.FMagicControl do
+    SetActiveEnchantments(FActiveEnchantments + [petEarthMastery]);
+  for I := APlayer.FArmies.Count - 1 downto 0 do
+    for J := APlayer.FArmies.GetArmy(I).Count - 1 downto 0 do
+      APlayer.FArmies.GetArmy(I).GetUnit(J).SetEarthMasteryStoneSkin;
+  Result := True;
+end;
 
 function TEarthMasteryEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+var
+  APlayer: TPlayer;
+  I, J: Integer;
+begin
+  inherited Deactivate(Player);
+  APlayer := WorldMap^.FPlayers.GetPlayers(FPlayerIndex);
+  with APlayer.FMagicControl do
+    SetActiveEnchantments(FActiveEnchantments - [petEarthMastery]);
+  for I := APlayer.FArmies.Count - 1 downto 0 do
+    for J := APlayer.FArmies.GetArmy(I).Count - 1 downto 0 do
+      APlayer.FArmies.GetArmy(I).GetUnit(J).ResetEarthMasteryStoneSkin;
+  WorldMap^.FGlobalMagicControl.DecDoubleSphereManaCount(msAir); { Original doubles Air. }
+  Result := True;
+end;
 
 constructor TEarthMastery.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(LoadResString(EarthText));
+  FSpellID := 64;
+  FSpellType := stGlobal;
+  FBaseManaCost := 1;
+  FSpellLevel := 3;
+  FMagicSphere := msEarth;
+  FCastDuration := 40;
+  FAIBasePriority := 1000;
+end;
 
-procedure TEarthMastery.ShowAnimation(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TEarthMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep: Integer;
+  MapLevel: TMapLevel;
+  MapF: TAoWMapField;
+begin
+  MapLevel := WorldMap^.MapContainer.GetMapLevel(WorldMap^.ViewL);
+  FieldStep := MapLevel.FHNOffsets[0, 4];
+  MaxX := WorldMap^.ViewXhx + WorldMap^.ViewWidthHX - 1;
+  MaxY := WorldMap^.ViewYhx + WorldMap^.ViewHeightHX - 1;
+  for X := WorldMap^.ViewXhx to MaxX do
+  begin
+    HXtoHP(X, WorldMap^.ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - XhpSurf + 16;
+    Yhp := Yhp - YhpSurf + 16;
+    MapF := TAoWMapField(MapLevel.GetField(X, WorldMap^.ViewYhx));
+    for Y := WorldMap^.ViewYhx to MaxY do
+    begin
+      if Smallint(MapF.OverlayType) = 4 then
+        FCastImages.Show(0, Xhp, Yhp,
+          Anim.FFrameCounter - ((Cardinal(MapF) shr 8) and 15), SurfaceDesc); { Original uses the field address. }
+      Inc(Integer(MapF), FieldStep);
+      Inc(Yhp, 32);
+    end;
+  end;
+  if Anim.FFrameCounter = 50 then Anim.Destroy;
+end;
 
 function TEarthMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  NotifySpellSphere(A2.FPlayer, msEarth);
+  A2.GetLocation(X, Y, L);
+  WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  WorldMap^.AddEffect(fxEarthMastery);
+  FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 function TEarthMastery.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TEarthMasteryEnchantment.Create(nil); end;
 
 constructor TSpellWardEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FName := TranslateRStr(LoadResString(WardNameText));
+  FEnchantmentType := getSpellWard;
+  FDispelMana := 50;
+end;
 
 class function TSpellWardEnchantment.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21323; end;
 
 function TSpellWardEnchantment.GetAIUpkeepPriority: Integer;
-begin Result := 0; end;
+begin Result := 500; end;
 
 constructor TSpellWard.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FSpellName := TranslateRStr(LoadResString(WardNameText));
+  FSpellID := 65;
+  FSpellType := stGlobal;
+  FBaseManaCost := 1;
+  FSpellLevel := 3;
+  FMagicSphere := msEarth;
+end;
 
 function TSpellWard.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-begin Result := False; end;
+var
+  X, Y, L: Shortint;
+begin
+  inherited ExecuteTE(A1, A2, A3);
+  A2.GetLocation(X, Y, L);
+  WorldMap^.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  WorldMap^.AddEffect(fxSpellWard);
+  FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 function TSpellWard.CreateEnchantment: TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := TSpellWardEnchantment.Create(nil); end;
 
-procedure RegisterGlobalEnchantmentSpells(A1: Integer);
-begin end;
+procedure RegisterGlobalEnchantmentSpells(AEngine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := AEngine.FGameSet.FSpellControl;
+  AEngine.RegisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantment]);
+  AEngine.RegisterEClasses([TWaterMasteryEnchantment, THatredEnchantment, THarmonyEnchantment, TPowerLeakEnchantment, TFloodEnchantment, TAirMasteryEnchantment]);
+  AEngine.RegisterEClasses([TLifeMasteryEnchantment, TDeathMasteryEnchantment, TFireMasteryEnchantment, TEarthMasteryEnchantment, TSpellWardEnchantment]);
+  Control.RegisterSpell(TEnchantedRoads.Create(nil));
+  Control.RegisterSpell(THatred.Create(nil));
+  Control.RegisterSpell(THarmony.Create(nil));
+  Control.RegisterSpell(TPowerLeak.Create(nil));
+  Control.RegisterSpell(TFlood.Create(nil));
+  Control.RegisterSpell(TAirMastery.Create(nil));
+  Control.RegisterSpell(TLifeMastery.Create(nil));
+  Control.RegisterSpell(TDeathMastery.Create(nil));
+  Control.RegisterSpell(TFireMastery.Create(nil));
+  Control.RegisterSpell(TEarthMastery.Create(nil));
+  Control.RegisterSpell(TWaterMastery.Create(nil));
+  Control.RegisterSpell(TSpellWard.Create(nil));
+end;
 
-procedure UnregisterGlobalEnchantmentSpells(A1: Integer);
-begin end;
+procedure UnregisterGlobalEnchantmentSpells(AEngine: TAoWEngine);
+var
+  Control: TSpellControl;
+begin
+  Control := AEngine.FGameSet.FSpellControl;
+  Control.UnregisterSpellID(44);
+  Control.UnregisterSpellID(46);
+  Control.UnregisterSpellID(47);
+  Control.UnregisterSpellID(48);
+  Control.UnregisterSpellID(50);
+  Control.UnregisterSpellID(60);
+  Control.UnregisterSpellID(61);
+  Control.UnregisterSpellID(62);
+  Control.UnregisterSpellID(63);
+  Control.UnregisterSpellID(64);
+  Control.UnregisterSpellID(45);
+  Control.UnregisterSpellID(65);
+  AEngine.UnregisterEClasses([TEnchantedRoadsEnchantment, TGlobalEnchantmentSpellTE, TGlobalEnchantment]);
+  AEngine.UnregisterEClasses([TWaterMasteryEnchantment, THatredEnchantment, THarmonyEnchantment, TPowerLeakEnchantment, TFloodEnchantment, TAirMasteryEnchantment]);
+  AEngine.UnregisterEClasses([TLifeMasteryEnchantment, TDeathMasteryEnchantment, TFireMasteryEnchantment, TEarthMasteryEnchantment, TSpellWardEnchantment]);
+end;
 
 
 initialization

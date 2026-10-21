@@ -335,9 +335,10 @@ type
     function GetCity: TCity;
   end;
 
-  { TRegistrator (instance size 4, VMT 557AF144) }
+  { TRegistrator (instance size 4, VMT 557AF144): no added fields. }
   TRegistrator = class(TObject)
   public
+    class procedure MapLoaded(Sender: TObject);
   end;
 
 function ProductionIDToCityAction(ID: Integer): TCityAction;
@@ -3285,7 +3286,22 @@ begin
 end;
 
 
+class procedure TRegistrator.MapLoaded(Sender: TObject);
+begin
+  if Sender = WorldMap^ then
+    WorldMap^.FAIPlayerActionManager.RegisterClasses([TCityAIPA]);
+end;
+
 initialization
+  if ValidateAoWEngine then
+  begin
+    WorldEngine^.RegisterEClasses([TCityEnchantment, TCity, TCityResource,
+      TCityRebellionEventLog, TAICityUpgradeBudget, TAICityResearchBudget,
+      TAICityFortifyBudget, TCityProductionEventLog]);
+    WorldEngine^.OnHSMLoaded.Add(TRegistrator.MapLoaded);
+  end;
 finalization
+  if WorldEngine^ <> nil then
+    WorldEngine^.OnHSMLoaded.Remove(TRegistrator.MapLoaded);
 
 end.

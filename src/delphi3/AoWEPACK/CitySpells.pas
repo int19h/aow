@@ -1,8 +1,7 @@
 unit CitySpells;
 
 { City-targeted spells recovered from AoWEPACK.dpl.
-  Layouts and VMT order follow the original. Three bodies remain blocked by
-  non-draft declarations; the other byte differences are reported by match.py. }
+  Layouts and VMT order follow the original. }
 
 interface
 
@@ -483,9 +482,58 @@ begin
 end;
 
 function TTownGate.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-{ Blocked: TAoWHSMap.ValidateObservation is a non-draft procedure,
-  but $557B1127 consumes its Boolean result. }
-begin Result := False; end;
+var
+  ShowSource, ShowTarget: Boolean;
+  Army: TArmyHS;
+  Selection: Byte;
+  NewArmy: TArmyHS;
+  X, Y, L: Shortint;
+  Field: TAoWMapField;
+  A: TImageSequenceAnimation;
+begin
+  A2.GetLocation(X, Y, L);
+  TTownGateTE(A1).FArmyID.RetrieveArmy(Army, Selection);
+  Field := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(TTownGateTE(A1).FTeleportLocation.XYL));
+  Army.FArmy.ResetDestinationPos;
+  if AoWHSMap.FSelectedArmy.GetArmyHS = Army then
+    AoWHSMap.FSelectedArmy.Select(Army);
+  if Army.FArmy.ValidateSelection(Selection) <> Army.FArmy.ValidateSelection($FF) then
+  begin
+    NewArmy := TArmyHS.Create(nil);
+    NewArmy.FArmy.SetPlayer(Army.FArmy.FPlayer);
+    NewArmy.FArmy.AddUnitSelection(Army.FArmy, Selection);
+    AoWHSMap.PlaceHX(NewArmy, TTownGateTE(A1).FTeleportLocation.X,
+      TTownGateTE(A1).FTeleportLocation.Y, TTownGateTE(A1).FTeleportLocation.L);
+  end
+  else if Field.GetArmyHS <> nil then
+    Field.GetArmyHS.FArmy.AddUnitSelection(Army.FArmy, Selection)
+  else Army.MoveTo(Field, 0);
+  ShowSource := (AoWHSMap.FSeatedPlayer = A2.FPlayer) or AoWHSMap.Visible(X, Y, L, 0);
+  ShowTarget := (AoWHSMap.FSeatedPlayer = A2.FPlayer) or AoWHSMap.Visible(Field.Xhx, Field.Yhx, Field.Lhx, 0);
+  if ShowSource then
+    if AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[0] <> nil then
+    begin
+      A := TImageSequenceAnimation.Create(nil);
+      A.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[0]);
+      AoWHSMap.PlaceHX(A, X, Y, L);
+    end;
+  if ShowTarget then
+    if AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[0] <> nil then
+    begin
+      A := TImageSequenceAnimation.Create(nil);
+      A.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[0]);
+      AoWHSMap.PlaceHX(A, Field.Xhx, Field.Yhx, Field.Lhx);
+    end;
+  if AoWHSMap.FSeatedPlayer = A2.FPlayer then
+    AoWHSMap.CenterViewTo(Field.Xhx, Field.Yhx, Field.Lhx)
+  else if not AoWHSMap.ValidateObservation(A2.FPlayer, Field.Xhx, Field.Yhx, Field.Lhx, 0) then
+    AoWHSMap.ValidateObservation(A2.FPlayer, X, Y, L, 0);
+  if (AoWHSMap.FSeatedPlayer = A2.FPlayer) or AoWHSMap.Watching(X, Y, L, 0) or
+    AoWHSMap.Watching(Field.Xhx, Field.Yhx, Field.Lhx, 0) then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  CastingDone(A2, A1.FEventMana);
+  Result := False;
+end;
 
 function TTownGate.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
 begin
@@ -691,9 +739,12 @@ begin
 end;
 
 procedure TAntiMagicShell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCity: TCity);
-{ Blocked: non-draft Sound.TSFXLibrary.PlayEx has a method callback where
-  $557B1A85 passes scalar arguments 30 and 0; no adapter is permitted. }
-begin end;
+begin
+  inherited PlayDefaultCityEffects(Source, TargetCity);
+  if (Source.FPlayer = AoWHSMap.FSeatedPlayer) or
+    AoWHSMap.WatchingTerrain(TargetCity.GetXhx, TargetCity.GetYhx, 1, TargetCity.GetLhx) then
+    AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.PlayEx(1, -1, False, 30, spCenter, nil);
+end;
 
 constructor TWarmonger.Create(AOwner: Engine.TECustomNode);
 begin
@@ -883,8 +934,54 @@ begin
 end;
 
 function TAnimateRuins.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
-{ Blocked by the non-draft TAbstractUnit.Place parameter order: $557B258A. }
-begin Result := False; end;
+var
+  TargetCity: TCity;
+  Log: TLocationTextEventLog;
+  A: TImageSequenceAnimation;
+  I: Integer;
+  AUnit: TUnit;
+const
+  UndeadUnits: array[0..1] of Integer = (198, 201);
+begin
+  if A3 = 0 then
+  begin
+    TargetCity := TCityTargetSpellTE(A1).GetSelectedCity;
+    Log := TLocationTextEventLog.Create(nil);
+    Log.FPlayer := A2.FPlayer;
+    Log.FText := SysUtils.Format(AoWE.TranslateRStr(XCastRStr), [AoWE.TranslateRStr(AnimateRuinsRStr)]);
+    Log.SetLocation(TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx);
+    DistributeLocationEventLog(Log, A2.FPlayer, TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx, 0);
+    Log.Release;
+    PlayDefaultCityEffects(A2, TargetCity);
+    TargetCity.ValidateObservation(A2.FPlayer);
+    if TargetCity.Resource.ImageSequenceList.ImageSequences[20] <> nil then
+    begin
+      A := TImageSequenceAnimation.Create(nil);
+      A.SetImageSequence(TargetCity.Resource.ImageSequenceList.ImageSequences[20]);
+      A.SetXhpOffset(A.FXhpOffset - 16);
+      A.SetYhpOffset(A.FYhpOffset - 16);
+      A.FOnShow := ShowAnimation;
+      AoWHSMap.PlaceHX(A, TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx);
+    end;
+    Result := True;
+  end
+  else if A3 = 50 then
+  begin
+    TargetCity := TCityTargetSpellTE(A1).GetSelectedCity;
+    TargetCity.SetRace(AoWHSMap.FPlayers.GetPlayers(A2.FPlayer).FPlayerRace);
+    TargetCity.SetRazed(False);
+    for I := 0 to AoWHSMap.Random(TargetCity.GetSize * 2) + 1 do
+    begin
+      AUnit := TUnit.Create(nil);
+      AUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(UndeadUnits[AoWHSMap.Random(2)]));
+      AUnit.Place(TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx, A2.FPlayer, [pmScanArea]);
+      AUnit.Release;
+    end;
+    CastingDone(A2, A1.FEventMana);
+    Result := False;
+  end
+  else Result := True;
+end;
 
 procedure RegisterCitySpells(A1: TAoWEngine);
 begin

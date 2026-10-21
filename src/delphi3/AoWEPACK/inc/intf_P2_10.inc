@@ -93,6 +93,7 @@ procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
 function ValidateAoWEngine: Boolean;
 
 var
+  MovePointTables: array[0..255] of TMovePointTable; { $558EA040 }
   TMagicSphereRStr: array[TMagicSphere] of string;  { $558E8118 }
 
 const

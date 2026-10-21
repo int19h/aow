@@ -672,7 +672,7 @@ type
 
   { Engine.TEChangeNotifyNode (16 bytes): +8 FChildren, +$C FUpdateCount; Changed on child changes. }
   TEChangeNotifyNode = class(TECustomNode)
-  protected
+  public
     FChildren: TEObjectList;
   private
     FUpdateCount: Integer;

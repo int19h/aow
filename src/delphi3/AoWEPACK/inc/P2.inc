@@ -242,11 +242,6 @@ asm JMP TAbilityOwner.GetAbImmunityTypesAll end;
 function P2AbProtection(AOwner: TAbilityOwner): TDamageTypes; assembler;
 asm JMP TAbilityOwner.GetAbProtectionTypesAll end;
 
-var
-  { needs: original shared MovePointTables at 558EA040, initialized by P1.
-    This storage is only a stand-in until the shared table is recovered. }
-  P2MovePointTables: array[0..255] of TP2MovePointTable;
-
 function P2MoveTypesToInt(MoveTypes: TMoveTypes): Integer; assembler;
 asm JMP MoveTypesToInt end;
 
@@ -1390,7 +1385,7 @@ var
 begin
   Moves := GetMoveTypes;
   if AoWHSMap.FCombat <> nil then Moves := Moves - [mtTunneling];
-  Table := P2MovePointTables[P2MoveTypesToInt(Moves)];
+  Table := MovePointTables[P2MoveTypesToInt(Moves)];
   if FPlayer > 0 then
   begin
     if (petEnchantedRoads in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
@@ -1464,7 +1459,7 @@ var
 begin
   { Original retrieves the movement set twice and retains the first dead store. }
   Moves := GetMoveTypes;
-  Cost := P2MovePointTables[P2MoveTypesToInt(GetMoveTypes)][TerrainType,OverlayType];
+  Cost := MovePointTables[P2MoveTypesToInt(GetMoveTypes)][TerrainType,OverlayType];
   if (Cost = -1) or (Cost > GetMoves) then Result := False
   else Result := True;
 end;
@@ -1639,7 +1634,7 @@ begin
       Terrain := Field.TerrainType;
       Overlay := Field.OverlayType;
       Moves := Moves - [mtFlying];
-      DoubleDamage := P2MovePointTables[P2MoveTypesToInt(Moves)][Terrain,Overlay] = 0;
+      DoubleDamage := MovePointTables[P2MoveTypesToInt(Moves)][Terrain,Overlay] = 0;
     end;
   end;
   case Storm of
@@ -12361,7 +12356,7 @@ begin
   SetVersion(1, 36, 53);
   FRegistry := TAoWRegistry.Create;
   FUser := [euProgrammer, euDesigner, euUser];
-  FillChar(P2MovePointTables, SizeOf(P2MovePointTables), $FF);
+  FillChar(MovePointTables, SizeOf(MovePointTables), $FF);
   for Mask := 0 to 255 do
     for Overlay := -1 to 11 do
       for Terrain := 0 to 15 do
@@ -12370,7 +12365,7 @@ begin
         for MoveType := 0 to 7 do
           if (Mask and MoveBits[MoveType] <> 0) and (P2MovementTemplates[MoveType,Terrain,Overlay] <> -1) and
             (P2MovementTemplates[MoveType,Terrain,Overlay] < Points) then Points := P2MovementTemplates[MoveType,Terrain,Overlay];
-        if Points <> 127 then P2MovePointTables[Mask,Terrain,Overlay] := Points;
+        if Points <> 127 then MovePointTables[Mask,Terrain,Overlay] := Points;
       end;
   FDebug := FRegistry.GetDebugMode;
   FAnimationDetail := Byte(FRegistry.GetDetailLevel);
