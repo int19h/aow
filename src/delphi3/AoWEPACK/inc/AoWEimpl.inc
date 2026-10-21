@@ -186,7 +186,7 @@ resourcestring
   BridgeRStr = 'Bridge';
   RubbleRStr = 'Rubble';
   StructureRStr = 'Structure';
-  ObstacleRStr = 'Obstacle';
+  { ObstacleRStr is exported in the interface. }
   LightVegetationRStr = 'Light Vegetation';
   SolidRStr = 'Solid';
   RocksRStr = 'Rocks';

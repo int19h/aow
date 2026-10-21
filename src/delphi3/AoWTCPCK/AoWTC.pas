@@ -436,7 +436,7 @@ type
     $E0 FPlayers; $E4 FCombat; $E8 FUnitPositions; $EC FSeatedCombatPlayer;
     $ED FCurrentCombatPlayer; $F0..$F8 turn/player events; $FC FMoveControl;
     $100 FUnitSelection; $104..$114 selection/unit events; $118 FAI; $11C FEffects;
-    $120 FWalls; $124 FFires; $128 FEndTurnPending; $129 FPlaySounds;
+    $120 FWalls; $124 FFleeLocations; $128 FEndTurnPending; $129 FPlaySounds;
     $12A FPositionStatus; $134 FRound. }
   TAoWCombatMap = class(TAbstractAoWCombatMap)
   public
@@ -460,7 +460,7 @@ type
     FAI: TCAI; { $118 }
     FEffects: TList; { $11C }
     FWalls: TList; { $120; $405741 }
-    FFires: TList; { $124 }
+    FFleeLocations: TList; { $124 }
     FEndTurnPending: Boolean; { $128 }
     FPlaySounds: Boolean; { $129; $405B38 }
     FPositionStatus: array[0..7] of Byte; { $12A }
@@ -1277,7 +1277,7 @@ begin
   TAoWCombatMapMouse(Mouse).FRectangleSelectEvents.Add(FUnitSelection.RectangleSelectEvent);
   FEffects := TList.Create;
   FWalls := TList.Create;
-  FFires := TList.Create;
+  FFleeLocations := TList.Create;
   FAI := TCAI.Create;
   Mouse.SetCapture(Self);
   Mouse.OnMove.Add(MouseMoveEvent);
@@ -1308,7 +1308,7 @@ begin
   FUnitSelection.Free;
   FEffects.Free;
   FWalls.Free;
-  FFires.Free;
+  FFleeLocations.Free;
   FAI.Free;
 end;
 

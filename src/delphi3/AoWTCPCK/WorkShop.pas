@@ -1,8 +1,9 @@
 unit WorkShop;
 
-{ Draft declarations of WorkShop, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ WorkShop, AoWTCPCK.dpl. Original layouts and VMT order.
+  TWorkshop: size $28, no added fields. TWorkshopResource: size $48, no added fields. }
+
+{$O-,Q+,R+}
 
 interface
 
@@ -28,24 +29,26 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterWorkshop(A1: Integer);  { draft }
+procedure RegisterWorkshop(AEngine: TEngine);
 
 implementation
 
 class function TWorkshop.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220508; end;
 
 class function TWorkshopResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220509; end;
 
 class function TWorkshopResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat Workshop'; end;
 
 function TWorkshopResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220508; end;
 
-procedure RegisterWorkshop(A1: Integer);
-begin end;
+procedure RegisterWorkshop(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TWorkshopResource, TWorkshop]);
+end;
 
 
 initialization

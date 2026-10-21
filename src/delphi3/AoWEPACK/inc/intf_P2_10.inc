@@ -98,7 +98,7 @@ var
 
 const
   CommandAbilityIDs: array[0..2] of Integer = (29, 28, 148); { 557F8492 }
-resourcestring
+resourcestring ObstacleRStr = 'Obstacle';
   CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr = 'Spell Ward locks all global enchantments';
   XIsAlreadyActiveRStr = '%s is already active';
   SystemRStr = 'System';

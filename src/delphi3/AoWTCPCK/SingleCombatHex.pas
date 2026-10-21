@@ -1,13 +1,14 @@
 unit SingleCombatHex;
 
-{ Draft declarations of SingleCombatHex, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ SingleCombatHex, AoWTCPCK.dpl. Original layouts and VMT order.
+  TSingleCombatHexagon: size $10, no added fields. Resource: size $34, no added fields. }
+
+{$O-,Q+,R+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   TSingleCombatHexagon = class;
@@ -33,39 +34,55 @@ type
     function GetHexagonControl: HSEngine.THexagonControl; override;
   end;
 
-procedure RegisterSingleCombatHexagon(A1: Integer);  { draft }
+procedure RegisterSingleCombatHexagon(AEngine: TEngine);
 
 implementation
 
 class function TSingleCombatHexagon.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051E; end;
 
 function TSingleCombatHexagon.GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWHSSet.FCombatResources; end;
 
 procedure TSingleCombatHexagon.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  X, Y: Integer;
+  Sequence: TImageSequence;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  X := X - XhpSurf - 8;
+  Y := Y - YhpSurf;
+  Sequence := FResource.ImageSequenceList.GetImageSequence(0);
+  Sequence.ImageLibrary.Get(Sequence.ImageIndex).Show(X, Y, SurfaceDesc);
+end;
 
 class function TSingleCombatHexagonResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051F; end;
 
 class function TSingleCombatHexagonResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat Single Hexagon'; end;
 
 procedure TSingleCombatHexagonResource.SetLevel(Value: Byte);
-begin end;
+begin
+  inherited SetLevel(0);
+end;
 
 function TSingleCombatHexagonResource.GetHexagonControl: HSEngine.THexagonControl;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := nil; end;
 
 procedure TSingleCombatHexagonResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $10055 then Msg.Result := 5;
+end;
 
 function TSingleCombatHexagonResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051E; end;
 
-procedure RegisterSingleCombatHexagon(A1: Integer);
-begin end;
+procedure RegisterSingleCombatHexagon(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TSingleCombatHexagonResource, TSingleCombatHexagon]);
+end;
 
 
 initialization
