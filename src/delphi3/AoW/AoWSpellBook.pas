@@ -162,8 +162,8 @@ type
     procedure PlayerChanged(Player: Shortint);
     procedure UnitChanged(U: TAbstractUnit);
     procedure ShowResearch;
-    procedure ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-    procedure ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowResearchEvent(Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
+    procedure ShowResearchedEvent(Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
     procedure ShowCasting(Activation: TActivateAbilityInfo);
     procedure ShowCombatCasting(Activation: TActivateAbilityInfo);
     procedure SpellBookCreate;
@@ -315,9 +315,10 @@ end;
 procedure TSpellBook.FaceDraw(Sender: TAOWImage; SD: TSurfaceDesc);
 var R: TRect;
 begin
-  R := Rect(LeftInfoPage.WinLeft + Sender.WinLeft, LeftInfoPage.WinTop + Sender.WinTop,
-    LeftInfoPage.WinLeft + Sender.WinLeft + Sender.WinWidth,
-    LeftInfoPage.WinTop + Sender.WinTop + Sender.WinHeight);
+  with Sender do
+    R := Rect(LeftInfoPage.WinLeft + WinLeft, LeftInfoPage.WinTop + WinTop,
+      LeftInfoPage.WinLeft + WinLeft + WinWidth,
+      LeftInfoPage.WinTop + WinTop + WinHeight);
   FHero.GetFace.ShowStretched(R, SD);
 end;
 
@@ -326,8 +327,8 @@ var Spell: TSpell;
 begin
   Spell := AoWHSSet.FSpellControl.GetSpell(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID);
   if (Spell = nil) and (FMode = 3) then Spell := AoWHSSet.FSpellControl.GetSpell(FResearchedSpell);
-  if Spell <> nil then Spell.FCastImages.Show(10, Sender.FAOWWindow.WinLeft + Sender.WinLeft,
-    Sender.FAOWWindow.WinTop + Sender.WinTop, 0, SD);
+  if Spell <> nil then with Sender do with FAOWWindow do
+    Spell.FCastImages.Show(10, WinLeft + Sender.WinLeft, WinTop + Sender.WinTop, 0, SD);
 end;
 
 procedure TSpellBook.CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
@@ -337,8 +338,8 @@ begin
     if FHero.Casting then
     begin
       Spell := AoWHSSet.FSpellControl.GetSpell(FHero.FCastingSpellID);
-      if Spell <> nil then Spell.FCastImages.Show(10, Sender.FAOWWindow.WinLeft + Sender.WinLeft,
-        Sender.FAOWWindow.WinTop + Sender.WinTop, 0, SD);
+      if Spell <> nil then with Sender do with FAOWWindow do
+        Spell.FCastImages.Show(10, WinLeft + Sender.WinLeft, WinTop + Sender.WinTop, 0, SD);
     end;
 end;
 
@@ -450,7 +451,8 @@ var Reason: string;
 begin
   if ValidateHero then
   begin
-    if FMode = 0 then
+    case FMode of
+    0:
     begin
       if (FHero.GetCastingPoints >= Spell.FBaseManaCost) or
         AoWHSMap.FPlayers.GetPlayers(FHero.FPlayer).FMagicControl.GetCheatEnabled then
@@ -461,16 +463,17 @@ begin
       else
         if FHero.CastSpell(Spell.FSpellID, Reason) then InfoBtnClick(Self)
         else AoWHSMap.ShowWarning(Reason);
-    end
-    else if FMode = 1 then
+    end;
+    1:
     begin
       if FHero.CastCombatSpell(Spell.FSpellID, Reason) then Dlg.Visible := False
       else AoWCombatMap.ShowWarning(Reason);
-    end
-    else if FMode in [2, 3] then
+    end;
+    2, 3:
       if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ResearchSpell(Spell.FSpellID) then
         if (FEvent <> nil) and (FEvent.FMode = pmemStartResearch) then Dlg.Visible := False
         else begin FMode := 2; InfoBtnClick(Self); end;
+    end;
   end
   else Dlg.Visible := False;
 end;
@@ -488,7 +491,7 @@ begin
   UpdateSpellPages; UpdateInfoPages; ShowBook;
 end;
 
-procedure TSpellBook.ShowResearchEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure TSpellBook.ShowResearchEvent(Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
 begin
   FEvent := Event; FEvent.AddRef; FDone := Done;
   if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
@@ -505,7 +508,7 @@ begin
   else ShowResearch;
 end;
 
-procedure TSpellBook.ShowResearchedEvent(Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure TSpellBook.ShowResearchedEvent(Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
 begin
   FEvent := Event; FEvent.AddRef; FDone := Done;
   if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID = 0 then
@@ -717,7 +720,22 @@ begin
       CurrentPointsLbl.Text := ''; CastingPointsMaxLbl.Text := '';
       SpellBookLbl.Visible := False; ResearchBookLbl.Visible := True; CastingPage.Visible := False;
       Control := AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl;
-      if Control.FResearchSpellID = 0 then
+      if Control.FResearchSpellID <> 0 then
+      begin
+        ResearchPnl.Visible := True; ResearchNone.Visible := False;
+        Spell := AoWHSSet.FSpellControl.GetSpell(Control.FResearchSpellID);
+        ResearchLbl.Text := TranslateRStr(CurrentlyResearchingRStr) + ':';
+        ResearchMemo.Items := Spell.FSpellText; ResearchName.Text := Spell.FSpellName;
+        ResearchClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
+          TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
+        ResearchCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(FHero.CastingMana(Spell)) + ' ' + TranslateRStr(ManaRStr);
+        if Control.GetResearchTurnsLeft < 999 then
+          ResearchStatus.Text := FmtTurnsLeftStr(Control.GetResearchTurnsLeft)
+        else ResearchStatus.Text := AoWE.Format(TranslateRStr(XTurnsRStr), ['?']);
+        CancelResearchBtn.Text := TranslateRStr(CancelRStr);
+        ResearchStatus.Visible := True;
+      end
+      else
       begin
         if FMode = 3 then
         begin
@@ -739,21 +757,6 @@ begin
           CancelResearchBtn.Text := TranslateRStr(ResearchRStr);
           CancelResearchBtn.ToolTipText.Text := TranslateRStr(CancelSpellResearchRStr);
         end;
-      end
-      else
-      begin
-        ResearchPnl.Visible := True; ResearchNone.Visible := False;
-        Spell := AoWHSSet.FSpellControl.GetSpell(Control.FResearchSpellID);
-        ResearchLbl.Text := TranslateRStr(CurrentlyResearchingRStr) + ':';
-        ResearchMemo.Items := Spell.FSpellText; ResearchName.Text := Spell.FSpellName;
-        ResearchClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' +
-          TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
-        ResearchCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(FHero.CastingMana(Spell)) + ' ' + TranslateRStr(ManaRStr);
-        if Control.GetResearchTurnsLeft >= 999 then
-          ResearchStatus.Text := AoWE.Format(TranslateRStr(XTurnsRStr), ['?'])
-        else ResearchStatus.Text := FmtTurnsLeftStr(Control.GetResearchTurnsLeft);
-        CancelResearchBtn.Text := TranslateRStr(CancelRStr);
-        ResearchStatus.Visible := True;
       end;
     end
     else if FMode in [0, 1] then

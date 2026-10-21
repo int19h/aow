@@ -133,9 +133,12 @@ procedure TArmyInfoDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 var
   R: TRect;
 begin
-  R.Left := UnitPnl.WinLeft + Sender.WinLeft + 1; R.Right := Sender.WinWidth + R.Left;
-  R.Top := Sender.WinTop + UnitPnl.WinTop; R.Bottom := Sender.WinHeight + R.Top;
-  DrawUnit(Sender.Tag, R, SD);
+  with Sender do
+  begin
+    R.Left := UnitPnl.WinLeft + WinLeft + 1; R.Right := WinWidth + R.Left;
+    R.Top := WinTop + UnitPnl.WinTop; R.Bottom := WinHeight + R.Top;
+    DrawUnit(Tag, R, SD);
+  end;
 end;
 
 procedure TArmyInfoDlg.FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);

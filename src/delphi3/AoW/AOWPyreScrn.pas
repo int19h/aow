@@ -28,7 +28,7 @@ type
     FAnimationFrame: Integer; { $68 }
     procedure ClearFire;
     procedure FinishScreen;
-    procedure ShowGameOver(Event: TGameOverEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowGameOver(Event: TGameOverEventLog; Done: TExecuteDoneEvent);
     procedure DeadPnlUpdate;  { draft }
     procedure DeadPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure LeaderFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc);
@@ -124,7 +124,7 @@ begin
   ShowResults(ResultsWin);
 end;
 
-procedure TPyreScreen.ShowGameOver(Event: TGameOverEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure TPyreScreen.ShowGameOver(Event: TGameOverEventLog; Done: TExecuteDoneEvent);
 begin
   FAnimationFrame := 0;
   FGameOverEvent := Event; FGameOverEvent.AddRef; FDone := Done;

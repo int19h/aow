@@ -1,8 +1,7 @@
 unit aowMapEvents;
 
-{ Draft declarations of aowMapEvents, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Strategic map events and event-log dispatch recovered from AoW.exe.
+  TMapEvents has instance size $48; its map control is at $44. }
 
 interface
 
@@ -28,7 +27,7 @@ type
     procedure TheMapDayChanged(Day: Integer);
     procedure TheMapDeactivateHSM;  { draft }
     procedure TheMapEndTurn(Player: Shortint; Cancelled: Boolean);
-    procedure TheMapExecuteEventLog(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure TheMapExecuteEventLog(Event: TEventLog; Mode: Boolean; Done: TExecuteDoneEvent);
     procedure TheMapGameOver;  { draft }
     procedure TheMapGemsChanged(Player: Shortint);
     procedure TheMapGlobalMagicChanged;  { draft }
@@ -38,58 +37,58 @@ type
     procedure TheMapPlayerMagicChanged(Player: Shortint); { $44FA8D }
     procedure TheMapSeatedPlayerChanged(Player: Shortint);  { draft }
     procedure TheMapShowMessage(var Info: TShowMessageInfo);
-    procedure TheMapStructureChanged(A1: Integer);  { draft }
+    procedure TheMapStructureChanged(Structure: TStructure);
     procedure TheMapStructureDeselected;  { draft }
     procedure TheMapStructureDestroyed(Structure: TStructure);
-    procedure TheMapStructureSelected(A1: Integer);  { draft }
+    procedure TheMapStructureSelected(Structure: TStructure);
     procedure TheMapItemsDeselected;  { draft }
-    procedure TheMapItemsSelected;  { draft }
+    procedure TheMapItemsSelected(Items: TItemHS);
     procedure TheMapTargetSelectionChange(Control: TTargetSelectionControl; Change: TTargetSelectionChange);
     procedure TheMapUnitChanged(U: TAbstractUnit);
     procedure TheMapCastSpell(Caster: TSpellCaster);
-    procedure TheMapHSChanged(A1: Integer);  { draft }
+    procedure TheMapHSChanged(HS: THexagonSprite);
     procedure TheMapRelationsChanged;  { draft }
     procedure TheMapDiplomaticChange;  { draft }
     procedure TheMapStructureDblClick(Structure: TStructure);
   end;
 
 
-procedure ShowItemsFound(Dialog: TItemsFoundDlg; Event: TItemExplorationSiteEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowCityNegotiation(Dialog: TCityJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowItemsFound(Dialog: TItemsFoundDlg; Event: TItemExplorationSiteEventLog; Done: TExecuteDoneEvent);
+procedure ShowCityNegotiation(Dialog: TCityJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
 procedure ShowTargetSelection(Dialog: TTargetSelectionDlg; Control: TTargetSelectionControl; Change: TTargetSelectionChange);
 procedure ShowUnitSpellCaster(Dialog: TCastUnitSpellDlg; Caster: TUnitSpellCaster);
 procedure RefreshRelations(Dialog: TRelWindow);
 
-procedure ShowRebellion(Dialog: TCityRebelDlg; Event: TCityRebellionEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowReceivedMessage(Dialog: TMsgReceiveDlg; Event: TEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowTutorialEvent(Dialog: TTutorialWindow; Event: TTutorialMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowFlagMessage(Dialog: TTutorialWindow; Event: TFlagMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowArmyInfo(Dialog: TArmyInfoDlg; Event: TArmyInfoEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowTower(Dialog: TWizardsTowerDlg; Event: TEnterWizardsTowerEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowRebellion(Dialog: TCityRebelDlg; Event: TCityRebellionEventLog; Done: TExecuteDoneEvent);
+procedure ShowReceivedMessage(Dialog: TMsgReceiveDlg; Event: TEventLog; Done: TExecuteDoneEvent);
+procedure ShowTutorialEvent(Dialog: TTutorialWindow; Event: TTutorialMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
+procedure ShowFlagMessage(Dialog: TTutorialWindow; Event: TFlagMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
+procedure ShowArmyInfo(Dialog: TArmyInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
+procedure ShowTower(Dialog: TWizardsTowerDlg; Event: TEnterWizardsTowerEventLog; Done: TExecuteDoneEvent);
 
 procedure ResetPartyJoin(Dialog: TPartyJoinDlg);
 procedure UpdatePartyJoin(Dialog: TPartyJoinDlg);
 procedure ResetHeroJoin(Dialog: THeroJoinDlg);
 procedure UpdateHeroJoin(Dialog: THeroJoinDlg);
-procedure ShowPartyJoin(Dialog: TPartyJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowPrisonersJoin(Dialog: TPartyJoinDlg; Event: TPrisonersJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowHeroJoin(Dialog: THeroJoinDlg; Event: THeroJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowHeroNegotiation(Dialog: THeroJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowPrisonerHero(Dialog: THeroJoinDlg; Event: TPrisonersJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Unused: Integer; Completed: TExecuteDoneEvent);
-procedure ShowMessageEvent(Dialog: TMessageDlg; Event: TMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowSaveGameEvent(Dialog: TFileDlgWindow; Event: TSaveGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
-procedure ShowPasswordEvent(Dialog: TPasswordDlg; Event: TPasswordEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowPartyJoin(Dialog: TPartyJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
+procedure ShowPrisonersJoin(Dialog: TPartyJoinDlg; Event: TPrisonersJoinEventLog; Done: TExecuteDoneEvent);
+procedure ShowHeroJoin(Dialog: THeroJoinDlg; Event: THeroJoinEventLog; Done: TExecuteDoneEvent);
+procedure ShowHeroNegotiation(Dialog: THeroJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
+procedure ShowPrisonerHero(Dialog: THeroJoinDlg; Event: TPrisonersJoinEventLog; Done: TExecuteDoneEvent);
+procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
+procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Completed: TExecuteDoneEvent);
+procedure ShowMessageEvent(Dialog: TMessageDlg; Event: TMessageEventLog; Done: TExecuteDoneEvent);
+procedure ShowSaveGameEvent(Dialog: TFileDlgWindow; Event: TSaveGameEventLog; Done: TExecuteDoneEvent);
+procedure ShowPasswordEvent(Dialog: TPasswordDlg; Event: TPasswordEventLog; Done: TExecuteDoneEvent);
 procedure ShowMagicWindow(Window: TMagicWin);
-procedure ShowMagicEvent(Window: TMagicWin; Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowMagicEvent(Window: TMagicWin; Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
 
 var
   MapEvents: TMapEvents;
 
 implementation
 
-uses E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells;
+uses E3Globals, AoWWinMan, AoWUnitBanner, aowSetupEvents, AoWExeForms, E1Globals, PrdPlace, AoWCityScreen, AoWProdScreen, E2CampaignSupport, GlobalSpells, UnitSpells, E3EventDialogs, E3StructureInfo, AoWNewTurnDialog, AoWSendEmailGameDlg, AoWSMTPDlg, TCFCDlg, AoWPInfoWin, aowHelpWin, AoWUnitWindow;
 
 procedure TMapEvents.TheMapActivateAbility(Request: TActivateAbilityInfo);
 begin
@@ -196,8 +195,94 @@ begin
   TBWindow.PInd.FDrawn := False;
 end;
 
-procedure TMapEvents.TheMapExecuteEventLog(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMapEvents.TheMapExecuteEventLog(Event: TEventLog; Mode: Boolean; Done: TExecuteDoneEvent);
+var
+  ArmyHS: TArmyHS;
+  UnitObject: TAbstractUnit;
+begin
+  if not Mode then General.HideTransientWindows;
+  if Event is TCombatEventLog then
+    ShowCombatEvent(FastCombatWindow, TCombatEventLog(Event), Done)
+  else if Event is TArmyEventLog then
+    ShowArmyEvent(ArmyEventDlg, TArmyEventLog(Event), Done)
+  else if Event is TCityRebellionEventLog then
+    ShowRebellion(CityRebelDlg, TCityRebellionEventLog(Event), Done)
+  else if Event is TDiplomaticActionEventLog then
+    ShowDiplomaticEvent(RelWindow, TDiplomaticActionEventLog(Event), Done)
+  else if Event is TNegotiateRequestEventLog then
+  begin
+    with TNegotiateRequestEventLog(Event) do
+      if FObject = noCity then ShowCityNegotiation(CityJoinDlg, TNegotiateRequestEventLog(Event), Done)
+      else if FObject = noArmy then
+      begin
+        ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(FX, FY, FL).FindOwnedChild($20217));
+        if ArmyHS <> nil then
+          if ArmyHS.FArmy.Hero(ArmyHS.FArmy.GetJoinSelection(FPlayer), AllHeroTypes) = nil then
+            ShowPartyJoin(PartyJoinDlg, TNegotiateRequestEventLog(Event), Done)
+          else ShowHeroNegotiation(HeroJoinDlg, TNegotiateRequestEventLog(Event), Done);
+      end;
+  end
+  else if Event is TGameOverEventLog then
+    if AoWHSMap.FSeatedPlayer = Event.FPlayer then
+      PyreScreen.ShowGameOver(TGameOverEventLog(Event), Done)
+    else ShowReceivedMessage(MsgReceiveDlg, Event, Done)
+  else if Event is TNewTurnEventLog then
+    NewTurnDlg.ShowNewTurn(TNewTurnEventLog(Event), Done)
+  else if Event is TCombatTypeRequestEventLog then
+    ShowCombatType(TCFCDialog, TCombatTypeRequestEventLog(Event), Done)
+  else if Event is TShowBookEventLog then
+    ShowInformationBook(WorldMap, TShowBookEventLog(Event), Done)
+  else if Event is TPlayerMagicEventLog then
+  begin
+    with TPlayerMagicEventLog(Event) do
+      case FMode of
+        pmemSpellResearched: SpellBook.ShowResearchedEvent(TPlayerMagicEventLog(Event), Done);
+        pmemOutOfMana: ShowMagicEvent(MagicWin, TPlayerMagicEventLog(Event), Done);
+        pmemStartResearch: SpellBook.ShowResearchEvent(TPlayerMagicEventLog(Event), Done);
+      end;
+  end
+  else if Event is THeroUpgradeEventLog then
+    ShowHeroUpgrade(HeroUpgradeDlg, THeroUpgradeEventLog(Event), Done)
+  else if Event is THeroJoinEventLog then
+    ShowHeroJoin(HeroJoinDlg, THeroJoinEventLog(Event), Done)
+  else if Event is TArmyInfoEventLog then
+    with TArmyInfoEventLog(Event) do
+      if FArmyView.Hero(FSelection, AllHeroTypes) = nil then
+        ShowArmyInfo(ArmyInfoDlg, TArmyInfoEventLog(Event), Done)
+      else ShowHeroInfo(HeroInfoDlg, TArmyInfoEventLog(Event), Done)
+  else if Event is TPrisonersJoinEventLog then
+  begin
+    UnitObject := AoWHSMap.FUnitControl.FindUnit(TPrisonersJoinEventLog(Event).FFirstUnitID);
+    if (UnitObject <> nil) and (UnitObject is THero) then
+      ShowPrisonerHero(HeroJoinDlg, TPrisonersJoinEventLog(Event), Done)
+    else ShowPrisonersJoin(PartyJoinDlg, TPrisonersJoinEventLog(Event), Done);
+  end
+  else if Event is TEnterWizardsTowerEventLog then
+    ShowTower(WizardsTowerDlg, TEnterWizardsTowerEventLog(Event), Done)
+  else if Event is TEnterArenaEventLog then
+    ShowArena(ArenaDlg, TEnterArenaEventLog(Event), Done)
+  else if Event is TMessageEventLog then
+    ShowMessageEvent(MessageDlg, TMessageEventLog(Event), Done)
+  else if Event is TTutorialMessageEventLog then
+    ShowTutorialEvent(TutorialWindow, TTutorialMessageEventLog(Event), Mode, Done)
+  else if Event is TFlagMessageEventLog then
+    ShowFlagMessage(TutorialWindow, TFlagMessageEventLog(Event), Mode, Done)
+  else if Event is THelpMessageEventLog then
+    HelpWindow.ShowHelpEvent(THelpMessageEventLog(Event), Mode, Done)
+  else if Event is TSaveGameEventLog then
+    ShowSaveGameEvent(FileDlgWindow, TSaveGameEventLog(Event), Done)
+  else if Event is TSendEmailGameEventLog then
+    SendEmailGameDlg.ShowSendDialog(TSendEmailGameEventLog(Event), Done)
+  else if Event is TSMTPEventLog then
+    ShowSMTPEvent(SMTPDlg, TSMTPEventLog(Event), Done)
+  else if Event is TPasswordEventLog then
+    ShowPasswordEvent(PasswordDlg, TPasswordEventLog(Event), Done)
+  else if Event is TItemExplorationSiteEventLog then
+    ShowItemsFound(ItemsFoundDlg, TItemExplorationSiteEventLog(Event), Done)
+  else if Event is TCityProductionEventLog then CityScreen.ProductionEvent(TCityProductionEventLog(Event))
+  else if Event is TProductionPlaceEventLog then ProductionScreen.ProductionEvent(TProductionPlaceEventLog(Event))
+  else if Event is TUserEventLog then Done(Event);
+end;
 
 procedure TMapEvents.TheMapGameOver;
 begin end;
@@ -358,15 +443,23 @@ begin
   TBWindow.TBMessEdit.Text := Info.Text;
 end;
 
-procedure TMapEvents.TheMapStructureChanged(A1: Integer);
-begin end;
+procedure TMapEvents.TheMapStructureChanged(Structure: TStructure);
+begin
+  UpdateStructureInfo(IWindow, Structure);
+  if Structure <> nil then
+  begin
+    CityScreen.CityChanged(Structure);
+    ProductionScreen.PlaceChanged(Structure);
+  end;
+  if RealmWin.Dlg.Visible and (RealmWin.HeaderTab.Selected < 3) then RealmWin.UpdateOverview;
+end;
 
 procedure TMapEvents.TheMapStructureDeselected;
 begin
   if General.FSign <> nil then
     General.FSign.ChangeText(AoWHSMap.FSeatedPlayer, IWindow.SignText.Items);
   General.FStructure := nil; General.FCity := nil; General.FProductionPlace := nil;
-  General.FExplorationSite := nil; General.FSign := nil;
+  General.FProductionControl := nil; General.FSign := nil;
   IWindow.StructNameLbl.Text := ''; IWindow.StructLine.Visible := False;
   IWindow.InfoWin.Visible := False; TBWindow.StructButton.Visible := False;
 end;
@@ -377,14 +470,19 @@ begin
   if RealmWin.Dlg.Visible and ((RealmWin.HeaderTab.Selected = 2) or (RealmWin.HeaderTab.Selected = 1)) then RealmWin.UpdateOverview;
 end;
 
-procedure TMapEvents.TheMapStructureSelected(A1: Integer);
-begin end;
+procedure TMapEvents.TheMapStructureSelected(Structure: TStructure);
+begin
+  General.FPreviousStructure := General.FStructure;
+  General.FStructure := Structure;
+  General.FProductionControl := nil;
+  ShowStructureInfo(IWindow, Structure);
+end;
 
 procedure TMapEvents.TheMapItemsDeselected;
 begin HideItemSelection(IWindow); end;
 
-procedure TMapEvents.TheMapItemsSelected;
-begin end;
+procedure TMapEvents.TheMapItemsSelected(Items: TItemHS);
+begin ShowItemSelection(IWindow, Items); end;
 
 procedure TMapEvents.TheMapTargetSelectionChange(Control: TTargetSelectionControl; Change: TTargetSelectionChange);
 begin ShowTargetSelection(TargetSelectionDlg, Control, Change); end;
@@ -406,8 +504,10 @@ begin
   else if Caster is TCosmeticSurgerySpellCaster then DeformFaceDlg.Execute(TCosmeticSurgerySpellCaster(Caster));
 end;
 
-procedure TMapEvents.TheMapHSChanged(A1: Integer);
-begin end;
+procedure TMapEvents.TheMapHSChanged(HS: THexagonSprite);
+begin
+  if HS is TItemHS then UpdateItemSelection(IWindow, TItemHS(HS));
+end;
 
 procedure TMapEvents.TheMapRelationsChanged;
 begin RefreshRelations(RelWindow); end;
@@ -428,7 +528,7 @@ begin
 end;
 
 
-procedure ShowRebellion(Dialog: TCityRebelDlg; Event: TCityRebellionEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowRebellion(Dialog: TCityRebelDlg; Event: TCityRebellionEventLog; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -440,7 +540,7 @@ begin
   end;
 end;
 
-procedure ShowReceivedMessage(Dialog: TMsgReceiveDlg; Event: TEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowReceivedMessage(Dialog: TMsgReceiveDlg; Event: TEventLog; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -455,7 +555,7 @@ begin
   end;
 end;
 
-procedure ShowTutorialEvent(Dialog: TTutorialWindow; Event: TTutorialMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowTutorialEvent(Dialog: TTutorialWindow; Event: TTutorialMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -474,7 +574,7 @@ begin
   end;
 end;
 
-procedure ShowFlagMessage(Dialog: TTutorialWindow; Event: TFlagMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowFlagMessage(Dialog: TTutorialWindow; Event: TFlagMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -491,7 +591,7 @@ begin
   end;
 end;
 
-procedure ShowArmyInfo(Dialog: TArmyInfoDlg; Event: TArmyInfoEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowArmyInfo(Dialog: TArmyInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
 var
   Log: TArmyInfoEventLog;
 begin
@@ -508,7 +608,7 @@ begin
   end;
 end;
 
-procedure ShowTower(Dialog: TWizardsTowerDlg; Event: TEnterWizardsTowerEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowTower(Dialog: TWizardsTowerDlg; Event: TEnterWizardsTowerEventLog; Done: TExecuteDoneEvent);
 var
   Tower: TWizardsTower;
   Spell: TSpell;
@@ -587,7 +687,7 @@ begin
     end;
 end;
 
-procedure ShowPartyJoin(Dialog: TPartyJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowPartyJoin(Dialog: TPartyJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
 begin
   ResetPartyJoin(Dialog);
   with Dialog do
@@ -603,7 +703,7 @@ begin
   end;
 end;
 
-procedure ShowPrisonersJoin(Dialog: TPartyJoinDlg; Event: TPrisonersJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowPrisonersJoin(Dialog: TPartyJoinDlg; Event: TPrisonersJoinEventLog; Done: TExecuteDoneEvent);
 begin
   ResetPartyJoin(Dialog);
   with Dialog do
@@ -619,7 +719,7 @@ begin
   end;
 end;
 
-procedure ShowHeroJoin(Dialog: THeroJoinDlg; Event: THeroJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowHeroJoin(Dialog: THeroJoinDlg; Event: THeroJoinEventLog; Done: TExecuteDoneEvent);
 begin
   ResetHeroJoin(Dialog);
   with Dialog do
@@ -633,7 +733,7 @@ begin
   end;
 end;
 
-procedure ShowHeroNegotiation(Dialog: THeroJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowHeroNegotiation(Dialog: THeroJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
 begin
   ResetHeroJoin(Dialog);
   with Dialog do
@@ -647,7 +747,7 @@ begin
   end;
 end;
 
-procedure ShowPrisonerHero(Dialog: THeroJoinDlg; Event: TPrisonersJoinEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowPrisonerHero(Dialog: THeroJoinDlg; Event: TPrisonersJoinEventLog; Done: TExecuteDoneEvent);
 begin
   ResetHeroJoin(Dialog);
   with Dialog do
@@ -661,7 +761,7 @@ begin
   end;
 end;
 
-procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowHeroInfo(Dialog: THeroInfoDlg; Event: TArmyInfoEventLog; Done: TExecuteDoneEvent);
 var
   Hero: THero;
 begin
@@ -686,7 +786,7 @@ begin
   end;
 end;
 
-procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Unused: Integer; Completed: TExecuteDoneEvent);
+procedure ShowHeroUpgrade(Dialog: THeroUpgradeDlg; Event: THeroUpgradeEventLog; Completed: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -708,7 +808,7 @@ begin
   end;
 end;
 
-procedure ShowMessageEvent(Dialog: TMessageDlg; Event: TMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowMessageEvent(Dialog: TMessageDlg; Event: TMessageEventLog; Done: TExecuteDoneEvent);
 var
   Log: TMessageEventLog;
 begin
@@ -741,7 +841,7 @@ begin
   end;
 end;
 
-procedure ShowSaveGameEvent(Dialog: TFileDlgWindow; Event: TSaveGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowSaveGameEvent(Dialog: TFileDlgWindow; Event: TSaveGameEventLog; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -755,7 +855,7 @@ begin
   end;
 end;
 
-procedure ShowPasswordEvent(Dialog: TPasswordDlg; Event: TPasswordEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowPasswordEvent(Dialog: TPasswordDlg; Event: TPasswordEventLog; Done: TExecuteDoneEvent);
 var
   Log: TPasswordEventLog;
 begin
@@ -782,7 +882,7 @@ begin
   Window.Dlg.Visible := True;
 end;
 
-procedure ShowMagicEvent(Window: TMagicWin; Event: TPlayerMagicEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowMagicEvent(Window: TMagicWin; Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
 begin
   ShowMagicWindow(Window);
   if Assigned(Done) then Done(Event);
@@ -872,7 +972,7 @@ begin
     end;
 end;
 
-procedure ShowCityNegotiation(Dialog: TCityJoinDlg; Event: TNegotiateRequestEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowCityNegotiation(Dialog: TCityJoinDlg; Event: TNegotiateRequestEventLog; Done: TExecuteDoneEvent);
 var
   Log: TNegotiateRequestEventLog;
   Town: TCity;
@@ -895,7 +995,7 @@ begin
   end;
 end;
 
-procedure ShowItemsFound(Dialog: TItemsFoundDlg; Event: TItemExplorationSiteEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowItemsFound(Dialog: TItemsFoundDlg; Event: TItemExplorationSiteEventLog; Done: TExecuteDoneEvent);
 var
   Log: TItemExplorationSiteEventLog;
 begin

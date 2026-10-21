@@ -7,13 +7,13 @@ unit AoWSMTPDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow, AoWE, EventLog;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow, AoWE, EventLog, E3IMSTypes;
 
 type
   { Declaration-only field type from ims.dpl (instance size 588). }
   TmsMessage = class(TComponent)
-  private
-    F_External: array[0..551] of Byte;
+  public
+    FHeader: TmsMessageHeader; { $24 } FSubject: ShortString; { $28 } FIncludeHeader, FEncode: Boolean; { $128/$129; 0044DBD5 } FReserved12A: array[0..9] of Byte; FAttachments: TmsAttList; { $134 } FReserved138: array[0..259] of Byte; FRecipients: TmsAddressList; { $23C } FReserved240: array[0..11] of Byte; procedure SetBody(Value: TStrings);
   end;
 
   { Declaration-only field type from ims.dpl (instance size 636). }
@@ -22,7 +22,7 @@ type
     FHost: string; { $24 }
     FReserved28: array[0..583] of Byte;
     FMessage: TmsMessage; { $270 }
-    FReserved274: array[0..7] of Byte;
+    FReserved274: array[0..7] of Byte; procedure SetWinsockLoaded(Value: Boolean); property WinsockLoaded: Boolean write SetWinsockLoaded; { 0044DBB9 }
     procedure Send;
   end;
 
@@ -92,7 +92,7 @@ implementation
 
 uses E3Globals;
 
-procedure TmsSMTP.Send; external 'ims.dpl' name 'mssmtp.TmsSMTP.Send@23EDC2EF';
+procedure TmsSMTP.Send; external 'ims.dpl' name 'mssmtp.TmsSMTP.Send@23EDC2EF'; procedure TmsSMTP.SetWinsockLoaded(Value: Boolean); external 'ims.dpl' name 'agsocket.TagSocket.SetWinsockLoaded@23EDC2EF'; procedure TmsMessage.SetBody(Value: TStrings); external 'ims.dpl' name 'msmsg.TmsCustomMessage.SetBody@23EDC2EF';
 
 
 procedure TIMSSendThread.Execute;

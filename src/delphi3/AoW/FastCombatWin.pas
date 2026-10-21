@@ -78,7 +78,7 @@ type
     F_FastCombatWindow_125: array[0..2] of Byte;
     FPhaseFrame: Integer; { $128 }
     FAnimationFrame: Integer; { $12C }
-    F_FastCombatWindow_130: array[0..3] of Byte;
+    FLogbook: TCombatLogbook; { $130; 0043534B }
     FLeftShield: Integer; { $134 }
     FLeftOpacity: Byte; { $138 }
     F_FastCombatWindow_139: array[0..2] of Byte;

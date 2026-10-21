@@ -143,7 +143,7 @@ end;
 
 procedure TUnitSelectionDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 begin
-  DrawUnit(Sender.Tag, UnitPnl.WinLeft + Sender.WinLeft, UnitPnl.WinTop + Sender.WinTop, SD);
+  with Sender do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
 end;
 
 procedure TUnitSelectionDlg.SourceFacePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);

@@ -34,7 +34,7 @@ type
     CancelBtn: TAOWButton; { +007C }
     TCeltLineL: TAOWImage; { +0080 }
     public
-    procedure DlgShow;
+    procedure DlgShow(Sender: TObject);
     procedure OKBtnClick;
     procedure CancelBtnClick;
   end;
@@ -42,7 +42,7 @@ type
 
 implementation
 
-procedure TCampaignSettingsDlg.DlgShow;
+procedure TCampaignSettingsDlg.DlgShow(Sender: TObject);
 var
   Level: TCampaignDifficultyLevel;
 begin

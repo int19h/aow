@@ -35,7 +35,7 @@ type
     FDone: TExecuteDoneEvent; { $78 }
     FNewTurn: TNewTurnEventLog; { $80 }
     procedure FinishDialog;
-    procedure ShowNewTurn(Event: TNewTurnEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowNewTurn(Event: TNewTurnEventLog; Done: TExecuteDoneEvent);
     procedure NewTDlgMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure NewTDlgKeyPress(Sender: TObject; var Key: Char);
     procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
@@ -66,7 +66,7 @@ begin
   if Event <> nil then Event.Release;
 end;
 
-procedure TNewTurnDlg.ShowNewTurn(Event: TNewTurnEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure TNewTurnDlg.ShowNewTurn(Event: TNewTurnEventLog; Done: TExecuteDoneEvent);
 var
   Race: Shortint;
   Day: Integer;

@@ -1207,7 +1207,7 @@ begin
       if FPosition and $F <= 7 then
       begin
         Party := TCombatPartyList(TCombatData(TCombat(FCombat).FCombatData).FParties).GetParty(FPosition shr 4);
-        if (Party <> nil) and (Party.F_CombatParty_1A = FCombatPlayer) then
+        if (Party <> nil) and (Party.FPlayerIndex = FCombatPlayer) then
         begin
           if AoWHSMap.FPlayers.GetPlayers(GetPlayer).FGameOverStatus = goLost then
           begin
@@ -1235,7 +1235,7 @@ begin
             TCombatData(TCombat(FCombat).FCombatData).FL, GetPlayer, [pmScanArea]);
         Destroy;
       end
-      else if (Party <> nil) and (Party.F_CombatParty_1A <> FCombatPlayer) then
+      else if (Party <> nil) and (Party.FPlayerIndex <> FCombatPlayer) then
         FUnit.Place(TCombatData(TCombat(FCombat).FCombatData).FX,
           TCombatData(TCombat(FCombat).FCombatData).FY,
           TCombatData(TCombat(FCombat).FCombatData).FL, GetPlayer, [pmScanArea]);
@@ -1322,7 +1322,7 @@ begin
   if csActivated in FStatus then
   begin
     Party := TCombatPartyList(TCombatData(TCombat(FCombat).FCombatData).FParties).GetParty(FPosition shr 4);
-    if (FCombatPlayer <> Party.F_CombatParty_1A) or (csDestroyed in FStatus) then Party := nil;
+    if (FCombatPlayer <> Party.FPlayerIndex) or (csDestroyed in FStatus) then Party := nil;
   end
   else Party := nil;
   SetParty(Party);
@@ -6125,7 +6125,7 @@ begin
   for I := 0 to TCombatPartyList(TCombatData(FCombatData).FParties).Count - 1 do
     if TCombatPartyList(TCombatData(FCombatData).FParties).GetParty(I) <> nil then
       if AoWHSMap.FPlayers.GetPlayers(Shortint(TCombatPlayerList(TCombatData(FCombatData).FPlayers).GetPlayers(
-        Shortint(TCombatPartyList(TCombatData(FCombatData).FParties).GetParty(I).F_CombatParty_1A)).FPlayer)).FPlayerType in Types then Result := True;
+        Shortint(TCombatPartyList(TCombatData(FCombatData).FParties).GetParty(I).FPlayerIndex)).FPlayer)).FPlayerType in Types then Result := True;
 end;
 
 function TCombat.CreateUniqueCOID: Byte;
@@ -6726,7 +6726,7 @@ begin
   Stream.rwInteger(F_CombatParty_0C, $0B);
   Stream.rwInteger(F_CombatParty_10, $0C);
   Stream.rwInteger(F_CombatParty_14, $0D);
-  Stream.rwByte(F_CombatParty_1A, $0E);
+  Stream.rwByte(FPlayerIndex, $0E);
   Stream.rwData(FWall, 1, $0F);
   Stream.rwByte(F_CombatParty_19, $10);
 end;
@@ -6734,7 +6734,7 @@ end;
 procedure TCombatParty.Activate(A1: Integer);
 begin
   FArmy.SetPlayer(
-    TCombatPlayerList(TCombat(A1).FCombatData.FPlayers).GetPlayers(F_CombatParty_1A).FPlayer);
+    TCombatPlayerList(TCombat(A1).FCombatData.FPlayers).GetPlayers(FPlayerIndex).FPlayer);
 end;
 
 procedure TCombatParty.Deactivate(A1: Integer);
@@ -6749,7 +6749,7 @@ begin
   if GetParty(A2) = nil then
   begin
     P := TCombatParty.Create(nil);
-    P.F_CombatParty_1A := A3;
+    P.FPlayerIndex := A3;
     P.F_CombatParty_19 := A2;
     P.F_CombatParty_0C := A4;
     P.F_CombatParty_10 := A5;

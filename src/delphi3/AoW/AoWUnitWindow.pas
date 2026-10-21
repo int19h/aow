@@ -566,8 +566,10 @@ begin
 end;
 
 procedure TUnitWindow.ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var Check: TAOWCheckBox;
 begin
-  ItemID := TAOWCheckBox(Sender).Tag;
+  Check := TAOWCheckBox(Sender);
+  ItemID := Check.Tag;
 end;
 
 procedure TUnitWindow.UnitWinResize(Sender: TObject);
@@ -982,7 +984,7 @@ end;
 
 procedure TUnitWindow.UpdateGround(Offset: Integer);
 var
-  U: THero;
+  U: TAbstractUnit;
 begin
   Gnd1.Tag := -1;
   Gnd2.Tag := -1;
@@ -994,28 +996,28 @@ begin
   Gnd3.Checked := False;
   Gnd4.Checked := False;
   Gnd5.Checked := False;
-  U := THero(General.FSelectedUnit);
+  U := General.FSelectedUnit;
   if U <> nil then
     if U is THero then
-      if U.GetItemsOnGround <> nil then
+      if THero(U).GetItemsOnGround <> nil then
       begin
-        FGroundCount := U.GetItemsOnGround.Count;
+        FGroundCount := THero(U).GetItemsOnGround.Count;
         FGroundOffset := Offset;
         { Original last-page clamp leaves only four items visible. }
         if FGroundCount < Offset + 5 then FGroundOffset := FGroundCount - 4;
         if FGroundOffset < 0 then FGroundOffset := 0;
         GroundL.Visible := FGroundOffset > 0;
         GroundR.Visible := FGroundOffset + 5 <= FGroundCount;
-        if FGroundOffset < U.GetItemsOnGround.Count then
-          Gnd1.Tag := U.GetItemsOnGround.GetItem(FGroundOffset).FItemID;
-        if FGroundOffset + 1 < U.GetItemsOnGround.Count then
-          Gnd2.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 1).FItemID;
-        if FGroundOffset + 2 < U.GetItemsOnGround.Count then
-          Gnd3.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 2).FItemID;
-        if FGroundOffset + 3 < U.GetItemsOnGround.Count then
-          Gnd4.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 3).FItemID;
-        if FGroundOffset + 4 < U.GetItemsOnGround.Count then
-          Gnd5.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 4).FItemID;
+        if FGroundOffset < THero(U).GetItemsOnGround.Count then
+          Gnd1.Tag := THero(U).GetItemsOnGround.GetItem(FGroundOffset).FItemID;
+        if FGroundOffset + 1 < THero(U).GetItemsOnGround.Count then
+          Gnd2.Tag := THero(U).GetItemsOnGround.GetItem(FGroundOffset + 1).FItemID;
+        if FGroundOffset + 2 < THero(U).GetItemsOnGround.Count then
+          Gnd3.Tag := THero(U).GetItemsOnGround.GetItem(FGroundOffset + 2).FItemID;
+        if FGroundOffset + 3 < THero(U).GetItemsOnGround.Count then
+          Gnd4.Tag := THero(U).GetItemsOnGround.GetItem(FGroundOffset + 3).FItemID;
+        if FGroundOffset + 4 < THero(U).GetItemsOnGround.Count then
+          Gnd5.Tag := THero(U).GetItemsOnGround.GetItem(FGroundOffset + 4).FItemID;
       end;
 end;
 

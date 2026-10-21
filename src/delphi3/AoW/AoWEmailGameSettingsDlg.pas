@@ -64,7 +64,7 @@ type
     procedure EmailGameSettingsDlgDestroy;
     procedure PlayerSBChange;
     procedure EmailAddressEdit1Change(Sender: TObject);
-    procedure OKBtnClick;
+    procedure OKBtnClick(Sender: TObject);
     procedure CancelButClick;
     procedure SettingsBtnClick;
     procedure LocalEmailAddressEditUpdate;
@@ -108,20 +108,14 @@ begin
   if I < FEmailAddresses.Count then FEmailAddresses[I] := TAOWEdit(Sender).Text;
 end;
 
-procedure TEmailGameSettingsDlg.OKBtnClick;
+procedure TEmailGameSettingsDlg.OKBtnClick(Sender: TObject);
 var
   I, Index: Integer;
 begin
-  if not SettingsComplete then
+  if SettingsComplete then
   begin
-    ResetMessageDialog(AoWExeForms.MessageDlg);
-    AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
-    AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(PleaseFillInAllSettingsRStr));
-    AoWExeForms.MessageDlg.OKPnl.Visible := True;
-    AoWExeForms.MessageDlg.Dlg.Visible := True;
-  end
-  else if FSetupControl <> nil then
-  begin
+    if FSetupControl <> nil then
+    begin
     for I := 0 to FEmailAddresses.Count - 1 do
     begin
       Index := FSetupControl.FSettings.IndexOfRace(Integer(FEmailAddresses.Objects[I]));
@@ -130,6 +124,15 @@ begin
     FSetupControl.FSettings.FEmailGameName := EmailGameNameEdit.Text;
     EmailSettingsAccepted := True;
     Dlg.Visible := False;
+    end;
+  end
+  else
+  begin
+    ResetMessageDialog(AoWExeForms.MessageDlg);
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(PleaseFillInAllSettingsRStr));
+    AoWExeForms.MessageDlg.OKPnl.Visible := True;
+    AoWExeForms.MessageDlg.Dlg.Visible := True;
   end;
 end;
 

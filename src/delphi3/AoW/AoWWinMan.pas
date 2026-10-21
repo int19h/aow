@@ -32,7 +32,7 @@ type
     FActiveAbilityCount: Integer; { $7C } F_General_80: Integer;
     FSelectedUnits: array[0..7] of Integer; { $84 }
     FUnitList: TArmy; { $A4 }
-    FStructure: TStructure; { $A8; 00442354 } FPreviousStructure: TStructure; { $AC } FCity: TCity; { $B0 } FProductionPlace: TProductionPlace; { $B4 } FExplorationSite: TExplorationSite; { $B8 } FSign: TSign; { $BC }
+    FStructure: TStructure; { $A8; 00442354 } FPreviousStructure: TStructure; { $AC } FCity: TCity; { $B0 } FProductionPlace: TProductionPlace; { $B4 } FProductionControl: TProductionControl; { $B8; 004437FC } FSign: TSign; { $BC }
     FSelectedUnit: TAbstractUnit; { $C0; 00449DCD }
     { conflict: FUnit: TAbstractUnit; }
     FCombatUnit: TTacticalCombatUnitHS; { $C4 }
@@ -104,13 +104,12 @@ begin
     begin
       A := TTCAbility.Create;
       A.Ability := I;
-      if General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer then
-        if AoWHSSet.FAbilityControl.GetAbility(I).GetControlType(General.FSelectedUnit) * [acAction] <> [] then
+      if (General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer) and
+        (AoWHSSet.FAbilityControl.GetAbility(I).GetControlType(General.FSelectedUnit) * [acAction] <> []) then
         begin
           FAbilities.Insert(FActiveAbilityCount, A);
           Inc(FActiveAbilityCount);
         end
-        else FAbilities.Add(A)
       else FAbilities.Add(A);
     end;
 end;
@@ -146,8 +145,8 @@ end;
 
 procedure TGeneral.RegisterDialog(Window: TAOWWindow);
 begin
-  with MWindow.MapWindow.Alignment do
-    if (AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) then
+  with MWindow.MapWindow do
+    if (Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) then
     begin
       with MWindow.MapWindow do
       begin
@@ -162,7 +161,8 @@ end;
 
 procedure TGeneral.UnregisterDialog(Window: TAOWWindow);
 begin
-  if (MWindow.MapWindow.Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) and
+  with MWindow.MapWindow do
+  if (Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) and
     ((Window = ChatWindow.ChatWin) or not ChatWindow.ChatWin.Visible or (ChatWindow.ChatWin.Alignment.AlignWidth <> awBoth)) and
     ((Window = MagicWin.Dlg) or not MagicWin.Dlg.Visible or (MagicWin.Dlg.Alignment.AlignWidth <> awBoth)) and
     ((Window = RealmWin.Dlg) or not RealmWin.Dlg.Visible or (RealmWin.Dlg.Alignment.AlignWidth <> awBoth)) then

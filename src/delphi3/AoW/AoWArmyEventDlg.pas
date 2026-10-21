@@ -48,7 +48,7 @@ type
   end;
 
 
-procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Done: TExecuteDoneEvent);
 
 implementation
 
@@ -81,7 +81,7 @@ uses AoWWinMan;
 
 
 
-procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowArmyEvent(Dialog: TArmyEventDlg; Event: TArmyEventLog; Done: TExecuteDoneEvent);
 var
   Log: TArmyEventLog;
   Army: TArmyView;

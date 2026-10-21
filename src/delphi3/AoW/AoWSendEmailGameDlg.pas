@@ -45,7 +45,7 @@ type
     FDone: TExecuteDoneEvent; { $A0 }
     FSendEvent: TSendEmailGameEventLog; { $A8 }
     procedure FinishDialog;
-    procedure ShowSendDialog(Event: TSendEmailGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowSendDialog(Event: TSendEmailGameEventLog; Done: TExecuteDoneEvent);
     procedure DlgHide;  { draft }
     procedure OKBtnClick;  { draft }
     procedure ExitBtnClick;  { draft }
@@ -74,7 +74,7 @@ begin
   if Event <> nil then Event.Release;
 end;
 
-procedure TSendEmailGameDlg.ShowSendDialog(Event: TSendEmailGameEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure TSendEmailGameDlg.ShowSendDialog(Event: TSendEmailGameEventLog; Done: TExecuteDoneEvent);
 var
   S: string;
 begin

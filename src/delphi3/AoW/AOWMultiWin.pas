@@ -74,11 +74,11 @@ type
     procedure IPXBtnClick;
     procedure CancelTCPClick;
     procedure FindClick;
-    procedure HostClick;  { draft }
+    procedure HostClick(Sender: TObject);  { draft }
     procedure IPXNameChange;
     procedure TCPNameChange;
     procedure LANFindClick;
-    procedure LANHostClick;  { draft }
+    procedure LANHostClick(Sender: TObject);  { draft }
     procedure SingleBtnClick;  { draft }
     procedure ModemBtnClick;
     procedure DirectBtnClick;
@@ -212,7 +212,7 @@ begin
 end;
 
 
-procedure TMultiWindow.HostClick;
+procedure TMultiWindow.HostClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   if ConnectProvider(conTCP) = 0 then
@@ -256,7 +256,7 @@ begin
 end;
 
 
-procedure TMultiWindow.LANHostClick;
+procedure TMultiWindow.LANHostClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   if ConnectProvider(conIPX) = 0 then

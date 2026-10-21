@@ -60,7 +60,7 @@ type
   end;
 
 
-procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Done: TExecuteDoneEvent);
 procedure ResetArena(Dialog: TArenaDlg);
 
 implementation
@@ -87,7 +87,7 @@ uses AoWWinMan, E3Globals;
 
 
 
-procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure ShowArena(Dialog: TArenaDlg; Event: TEnterArenaEventLog; Done: TExecuteDoneEvent);
 begin
   with Dialog do
   begin
@@ -193,7 +193,7 @@ end;
 
 procedure TArenaDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 begin
-  DrawUnit(Sender.Tag, UnitPnl.WinLeft + Sender.WinLeft, UnitPnl.WinTop + Sender.WinTop, SD);
+  with Sender do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
 end;
 
 procedure TArenaDlg.DlgHide;

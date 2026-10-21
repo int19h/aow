@@ -36,7 +36,7 @@ type
     FDone: TExecuteDoneEvent; { $7C }
     FHelpEvent: THelpMessageEventLog; { $84 }
     procedure FinishDialog;
-    procedure ShowHelpEvent(Event: THelpMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+    procedure ShowHelpEvent(Event: THelpMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
     procedure CloseBtnClick;  { draft }
     procedure HelpWinHide;  { draft }
     procedure HelpWinResize;  { draft }
@@ -63,7 +63,7 @@ begin
   if Event <> nil then Event.Release;
 end;
 
-procedure THelpWindow.ShowHelpEvent(Event: THelpMessageEventLog; Unused: Integer; Done: TExecuteDoneEvent);
+procedure THelpWindow.ShowHelpEvent(Event: THelpMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
 begin
   FinishDialog;
   FHelpEvent := Event;

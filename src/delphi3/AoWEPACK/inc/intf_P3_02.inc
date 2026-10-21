@@ -173,7 +173,7 @@
     F_CombatParty_14: Integer;
     FWall: Byte; { $18 }
     F_CombatParty_19: Byte;
-    F_CombatParty_1A: Byte;
+    FPlayerIndex: Byte; { $1A; 00435472 }
     F_CombatParty_1B: array[0..0] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;

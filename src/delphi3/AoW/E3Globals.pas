@@ -2,7 +2,7 @@ unit E3Globals;
 
 { Executable module references used by E3. }
 interface
-uses aowIntGfxMod, FontMod, AoWUnit, AoWItemBanner, AoWSWindow,
+uses AoWE, aowIntGfxMod, FontMod, AoWUnit, AoWItemBanner, AoWSWindow,
   AOWMWindow, AoWTBWindow, AoWPInfoWin, AOWControlWin, AoWUnitSelDlg,
   AoWUnitWindow, AoWTargetSelection, AoWArmyInfoDlg, AoWDisjunctionDlg,
   AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow, AOWDialogWin, AoWProgressDialog, Forms, Controls, Classes, AoWWorldMap, AoWTitleScene, AoWVideoDlg, AoWSpellBook, AOWMultiWin, AoWResultsWin, AoWPOP3Dlg, AoWCastUnitSpellDlg, AoWDeformFaceDlg;
@@ -79,9 +79,18 @@ resourcestring
 const
   TTacticalCombatAvailabilityRStr: array[0..2] of string = ('Never', 'Between Humans', 'Always');
 
+resourcestring
+  IndependentsRStr = 'Independents';
+  ItemBagRStr = 'Item Bag';
+  MapSettingsRStr = 'Scenario Info:';
+  DayLimitXRStr = 'Turn Limit: %s';
+const
+  TVictoryConditionRStr: array[TVictoryCondition] of string = ('None', 'Conquer locations', 'Accumulate gold', 'Accumulate mana');
+  TPlayerConnectionTypeRStr: array[TPlayerConnectionType] of string = ('Single Computer', 'Internet/Lan', 'Play by email');
+
 implementation
 
-uses AoWE, AoWExeForms, AoWWinMan, Sound, SysUtils, AoWCheckBox;
+uses AoWExeForms, AoWWinMan, Sound, SysUtils, AoWCheckBox;
 
 procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
 begin
@@ -150,18 +159,18 @@ begin
     Window.NetMana.Text := IntToStr(Control.GetManaIncome) + '-' + IntToStr(Control.GetManaUpkeep) + '=' +
       IntToStr(Control.GetManaIncome - Control.GetManaUpkeep);
     Window.ResearchPoints.Text := IntToStr(Control.GetNetPowerToResearch);
-    if Control.FResearchSpellID = 0 then Window.SpellPnl.Visible := False
-    else
+    if Control.FResearchSpellID <> 0 then
     begin
       Spell := AoWHSSet.FSpellControl.GetSpell(Control.FResearchSpellID);
       Window.SpellName.Text := Spell.FSpellName;
       Window.SpellClass.Text := TranslateRStr(TMagicSphereRStr[Spell.FMagicSphere]) + ', ' + TranslateRStr(LevelRStr) + ' ' + IntToStr(Spell.FSpellLevel);
       Window.SpellCost.Text := TranslateRStr(CastingCostRStr) + ': ' + IntToStr(Spell.FBaseManaCost) + ' ' + TranslateRStr(ManaRStr);
       Turns := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.GetResearchTurnsLeft;
-      if Turns >= 999 then Window.ResearchTurnsLeft.Text := AoWE.Format(TranslateRStr(XTurnsRStr), ['?'])
-      else Window.ResearchTurnsLeft.Text := FmtTurnsLeftStr(Turns);
+      if Turns < 999 then Window.ResearchTurnsLeft.Text := FmtTurnsLeftStr(Turns)
+      else Window.ResearchTurnsLeft.Text := AoWE.Format(TranslateRStr(XTurnsRStr), ['?']);
       Window.SpellPnl.Visible := True;
-    end;
+    end
+    else Window.SpellPnl.Visible := False;
     Window.SortEnchantments;
     Window.SelectEnchantment(Window.EnchantmentList.Selected);
   end;
