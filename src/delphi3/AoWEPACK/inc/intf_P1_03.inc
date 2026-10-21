@@ -340,10 +340,10 @@
     function IndexOfPlayerType(PlayerType: TPlayerType): Integer;
   end;
 
-  { TAoWNewHSMapSettings (instance size 32, VMT 5570C6E0) }
+  { TAoWNewHSMapSettings: size $20; inherited $14 map and $1C level class IDs. VMT 5570C6E0. }
   TAoWNewHSMapSettings = class(TNewHSMapSettings)
   public
-    procedure Create(A1: Byte);  { draft }
+    constructor Create;
   end;
 
   { TAoWMapField (instance size 28, VMT 5570C764) }

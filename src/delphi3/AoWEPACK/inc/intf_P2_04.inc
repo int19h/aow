@@ -105,7 +105,7 @@
     procedure SetItemGFXIndex(A1: Integer);  { draft }
     procedure SetItemType(Value: TItemType);
     function GetObtainValue: Integer;
-    function PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
+    function PlaceOnMap(Map: TAbstractAoWHSMap; X, Y, L: Shortint): Boolean;
     procedure EditDropMsg(var Msg: TItemDropMsg);
   end;
 

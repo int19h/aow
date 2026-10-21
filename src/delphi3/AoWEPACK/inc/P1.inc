@@ -1878,7 +1878,7 @@ begin
     if Owner is TAbstractUnit then
       Info.FUnitID := TAbstractUnit(Owner).FUnitID
     else Info.FUnitID := 0;
-    TEventList(PP1Pointer(Integer(AoWHSMap.FCombatMap) + $DC)^).TriggerNotifyEvents(Info);
+    AoWHSMap.FCombatMap.FAbilityActivatedEvents.TriggerNotifyEvents(Info);
     Info.Release;
     Result := True;
   end
@@ -4174,8 +4174,7 @@ begin
   FLeader := TLeader.Create(nil);
   FRefCount := 1;
   FMode := [lsmLook, lsmSettings, lsmSpheres];
-  TMethod(FOnDone).Code := nil;
-  TMethod(FOnDone).Data := nil;
+  FOnDone := nil;
 end;
 
 destructor TLeaderSetupControl.Destroy;
@@ -10492,145 +10491,705 @@ begin
 end;
 
 procedure TAbstractAoWHSMap.TriggerMapChangedEvent(const R: TRect; L: Integer);
-begin end;
+var
+  Info: TMapChangedInfo;
+begin
+  Info.Bounds := R;
+  Info.Level := L;
+  Info.MapLevel := MapContainer.GetMapLevel(L);
+  FMapChangedEvents.TriggerNotifyEvents(TObject(@Info));
+end;
 
 procedure TAbstractAoWHSMap.LockScannerIconsChangedEvent;
-begin end;
+begin
+  Inc(FScannerIconsChangedLockCount);
+end;
 
 procedure TAbstractAoWHSMap.UnlockScannerIconsChangedEvent;
-begin end;
+begin
+  Assert(FScannerIconsChangedLockCount <> 0, 'Invalid ScannerIcons Lock usage');
+  Dec(FScannerIconsChangedLockCount);
+end;
 
-procedure TAbstractAoWHSMap.ScannerIconsChanged(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractAoWHSMap.ScannerIconsChanged(const R: TRect; L: Integer);
+begin
+  if (FScannerIconsChangedLockCount = 0) and
+    ([msActivated, msDestroying] * Status = [msActivated]) then
+    TriggerScannerIconsChangedEvent(R, L);
+end;
 
 procedure TAbstractAoWHSMap.ScannerIconsChangedRad(Xhx, Yhx, Lhx, Radius: Integer);
-begin end;
+var
+  R: TRect;
+  Level: TMapLevel;
+begin
+  Level := MapContainer.GetMapLevel(Lhx);
+  R.Left := Xhx - Radius;
+  if R.Left < 0 then R.Left := 0;
+  R.Right := Xhx + Radius + 1;
+  if R.Right > Level.Width then R.Right := Level.Width;
+  R.Top := Yhx - Radius;
+  if R.Top < 0 then R.Top := 0;
+  R.Bottom := Yhx + Radius + 1;
+  if R.Bottom > Level.Height then R.Bottom := Level.Height;
+  ScannerIconsChanged(R, Lhx);
+end;
 
 procedure TAbstractAoWHSMap.InvalidateScannerIcons;
-begin end;
+var
+  R: TRect;
+  I: Integer;
+begin
+  R.Left := 0;
+  R.Right := MapContainer.Width;
+  R.Top := 0;
+  R.Bottom := MapContainer.Height;
+  for I := 0 to MapContainer.LevelCount - 1 do ScannerIconsChanged(R, I);
+end;
 
-procedure TAbstractAoWHSMap.TriggerScannerIconsChangedEvent(A1: Integer; A2: Integer);
-begin end;
+procedure TAbstractAoWHSMap.TriggerScannerIconsChangedEvent(const R: TRect; L: Integer);
+var
+  Info: TMapChangedInfo;
+begin
+  Info.Bounds := R;
+  Info.Level := L;
+  Info.MapLevel := MapContainer.GetMapLevel(L);
+  FScannerIconsChangedEvents.TriggerNotifyEvents(TObject(@Info));
+end;
 
 procedure TAbstractAoWHSMap.UpdateShowMessage;
-begin end;
+var
+  Info: TShowMessageInfo;
+begin
+  if FMessageFrame <> 0 then
+  begin
+    Dec(FMessageFrame);
+    if (((FMessageFrame and $10) = 0) and ((FMessageFrame and $0F) < 7)) or
+      (((FMessageFrame and $10) = $10) and ((FMessageFrame and $0F) < 11)) then
+    begin
+      Info.Text := FMessageText;
+      FMessageFrame := FMessageFrame and $F0;
+      if (FMessageFrame and $10) = 0 then Info.Color := $353535
+      else Info.Color := $FFFFFF;
+      FShowMessageEvents.TriggerNotifyEvents(TObject(@Info));
+    end;
+    if FMessageFrame = 0 then
+    begin
+      Info.Text := '';
+      Info.Color := $FFFFFF;
+      FShowMessageEvents.TriggerNotifyEvents(TObject(@Info));
+    end;
+  end;
+end;
 
 procedure TAbstractAoWHSMap.ShowWarning(const Text: string);
-begin end;
+var
+  Info: TShowMessageInfo;
+begin
+  if not AoWEngine.FRegistry.GetDebugMode and (Text <> '') then
+    PlaySample('SFX\EVENTS\INFO2.WAV');
+  Info.Text := Text;
+  Info.Color := $FFFFFF;
+  FShowMessageEvents.TriggerNotifyEvents(TObject(@Info));
+  FMessageText := Text;
+  FMessageFrame := $A0;
+end;
 
-procedure TAbstractAoWHSMap.ShowMessage(const A1: string);
-begin end;
+procedure TAbstractAoWHSMap.ShowMessage(const Text: string);
+var
+  Info: TShowMessageInfo;
+begin
+  if not AoWEngine.FRegistry.GetDebugMode and (Text <> '') then
+    PlaySample('SFX\EVENTS\INFO1.WAV');
+  Info.Text := Text;
+  Info.Color := $FFFFFF;
+  FShowMessageEvents.TriggerNotifyEvents(TObject(@Info));
+  FMessageText := Text;
+  FMessageFrame := $80;
+end;
 
 procedure TAbstractAoWHSMap.SetSeatedPlayer(A1: Shortint);
-begin end;
+begin
+  FSeatedPlayer := A1;
+end;
 
 procedure TAbstractAoWHSMap.SetCurrentPlayer(A1: Shortint);
-begin end;
+begin
+  FCurrentPlayer := A1;
+end;
 
 function TAbstractAoWHSMap.FogArea(X, Y, Level: Integer; Range: Integer): Boolean;
-begin Result := False; end;
+begin
+  Assert(Range <= 15, 'Invalid Unfog Range');
+  Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).FogArea(X, Y, Range);
+  if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+    MapChangedRad(X, Y, Level, Range);
+end;
 
 function TAbstractAoWHSMap.UnFogArea(X, Y, Level: Integer; Range: Integer): Boolean;
-begin Result := False; end;
+begin
+  Assert(Range <= 15, 'Invalid Unfog Range');
+  Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range);
+  if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+    MapChangedRad(X, Y, Level, Range);
+end;
 
 function TAbstractAoWHSMap.ExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): Boolean;
-begin Result := False; end;
+begin
+  if not (msEditting in Status) then
+  begin
+    Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).ExploreArea(X, Y, Player, Range);
+    if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+      MapChangedRad(X, Y, Level, Range);
+  end
+  else Result := False;
+end;
 
-procedure TAbstractAoWHSMap.UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged;
+begin
+  Assert(Range <= 15, 'Invalid Unfog Range');
+  { Original leaves Result undefined when a fog-only operation changes nothing. }
+  if not (msEditting in Status) then
+  begin
+    if Player >= 0 then
+      Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogExploreArea(X, Y, Player, Range)
+    else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range) then
+      Result := [feFog];
+  end
+  else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range) then
+    Result := [feFog];
+  if (FMapChangedLockCount = 0) and
+    (((feFog in Result) and (FFogEnabled <> 0)) or
+     ((feExploration in Result) and FExplorationEnabled and (Player = FSeatedPlayer))) then
+    MapChangedRad(X, Y, Level, Range);
+end;
 
-procedure TAbstractAoWHSMap.DrawGrid(A1: Integer);
-begin end;
+procedure TAbstractAoWHSMap.DrawGrid(const SurfaceDesc: TSurfaceDesc);
+var
+  X, Y, MaxX, MaxY, Xhp, Yhp, Step: Integer;
+  Level: TMapLevel;
+  Field: TAoWMapField;
+begin
+  Level := MapContainer.GetMapLevel(ViewL);
+  Step := Level.FHNOffsets[0, 4];
+  MaxX := ViewXhx + ViewWidthHX - 1;
+  MaxY := ViewYhx + ViewHeightHX - 1;
+  for X := ViewXhx to MaxX do
+  begin
+    HXtoHP(X, ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - ViewXhp - 8;
+    Yhp := Yhp - ViewYhp - 4;
+    Yhp := Yhp + 4;
+    Field := TAoWMapField(Level.GetField(X, ViewYhx));
+    for Y := ViewYhx to MaxY do
+    begin
+      if Smallint(Field.TerrainType) <> 15 then
+        AoWHSSet.FFlagControl.FFlags[7].Show(Xhp, Yhp, SurfaceDesc);
+      Field := TAoWMapField(Integer(Field) + Step);
+      Inc(Yhp, 32);
+    end;
+  end;
+end;
 
-procedure TAbstractAoWHSMap.DrawFog(A1: Integer);
-begin end;
+procedure TAbstractAoWHSMap.DrawFog(const SurfaceDesc: TSurfaceDesc);
+var
+  X, Y, MaxX, MaxY, Xhp, Yhp, Step: Integer;
+  Level: TMapLevel;
+  Field: TAoWMapField;
+begin
+  if (FFogEnabled <> 0) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
+  begin
+  Level := MapContainer.GetMapLevel(ViewL);
+  Step := Level.FHNOffsets[0, 4];
+  MaxX := ViewXhx + ViewWidthHX - 1;
+  MaxY := ViewYhx + ViewHeightHX - 1;
+  for X := ViewXhx to MaxX do
+  begin
+    HXtoHP(X, ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - ViewXhp - 8;
+    Yhp := Yhp - ViewYhp - 4;
+    Field := TAoWMapField(Level.GetField(X, ViewYhx));
+    for Y := ViewYhx to MaxY do
+    begin
+      if (FSeatedPlayer = -1) or not Field.GetExplored(FSeatedPlayer) then
+        AoWHSSet.FGeneralImages[3].Show(Xhp, Yhp, SurfaceDesc)
+      else if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then
+        AoWHSSet.FGeneralImages[1].Show(Xhp, Yhp, SurfaceDesc);
+      Field := TAoWMapField(Integer(Field) + Step);
+      Inc(Yhp, 32);
+    end;
+  end;
+  end
+  else if (FFogEnabled <> 0) and not FExplorationEnabled then
+  begin
+  Level := MapContainer.GetMapLevel(ViewL);
+  Step := Level.FHNOffsets[0, 4];
+  MaxX := ViewXhx + ViewWidthHX - 1;
+  MaxY := ViewYhx + ViewHeightHX - 1;
+  for X := ViewXhx to MaxX do
+  begin
+    HXtoHP(X, ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - ViewXhp - 8;
+    Yhp := Yhp - ViewYhp - 4;
+    Field := TAoWMapField(Level.GetField(X, ViewYhx));
+    for Y := ViewYhx to MaxY do
+    begin
+      if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then
+        AoWHSSet.FGeneralImages[1].Show(Xhp, Yhp, SurfaceDesc);
+      Field := TAoWMapField(Integer(Field) + Step);
+      Inc(Yhp, 32);
+    end;
+  end;
+  end
+  else if (FFogEnabled = 0) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
+  begin
+  Level := MapContainer.GetMapLevel(ViewL);
+  Step := Level.FHNOffsets[0, 4];
+  MaxX := ViewXhx + ViewWidthHX - 1;
+  MaxY := ViewYhx + ViewHeightHX - 1;
+  for X := ViewXhx to MaxX do
+  begin
+    HXtoHP(X, ViewYhx, Xhp, Yhp);
+    Xhp := Xhp - ViewXhp - 8;
+    Yhp := Yhp - ViewYhp - 4;
+    Field := TAoWMapField(Level.GetField(X, ViewYhx));
+    for Y := ViewYhx to MaxY do
+    begin
+      if not Field.GetExplored(FSeatedPlayer) then
+        AoWHSSet.FGeneralImages[3].Show(Xhp, Yhp, SurfaceDesc);
+      Field := TAoWMapField(Integer(Field) + Step);
+      Inc(Yhp, 32);
+    end;
+  end;
+  end;
+end;
 
 procedure TAbstractAoWHSMap.ShowHexagonSelector;
-begin end;
+begin
+  if not FHexagonSelectorVisible then
+  begin
+    FHexagonSelectorVisible := True;
+    DynamicFixedVisibleHS.AddChild(FBackHexagonSelector);
+    DynamicFixedVisibleHS.AddChild(FFrontHexagonSelector);
+    UpdateHexagonSelector;
+  end;
+end;
 
 procedure TAbstractAoWHSMap.HideHexagonSelector;
-begin end;
+begin
+  if FHexagonSelectorVisible then
+  begin
+    DynamicVisibleHS.RemoveChild(FBackHexagonSelector);
+    DynamicVisibleHS.RemoveChild(FFrontHexagonSelector);
+    DynamicFixedVisibleHS.RemoveChild(FBackHexagonSelector);
+    DynamicFixedVisibleHS.RemoveChild(FFrontHexagonSelector);
+    FHexagonSelectorVisible := False;
+  end;
+end;
 
 procedure TAbstractAoWHSMap.ShowBackHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
-begin end;
+var
+  Xhp, Yhp: Integer;
+begin
+  if (FSelectorX <> -1) and (FSelectorY <> -1) and
+    (AoWHSMap.Mouse.Capture = AoWHSMap.FSelectedArmy) then
+  begin
+    HXtoHP(FSelectorX, FSelectorY, Xhp, Yhp);
+    Xhp := Xhp - XhpSurf - 8;
+    Yhp := Yhp - YhpSurf - 32 + 2;
+    AoWHSSet.FGeneralImages[7].Show(Xhp, Yhp, SurfaceDesc);
+  end;
+end;
 
 procedure TAbstractAoWHSMap.ShowFrontHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
-begin end;
+var
+  Xhp, Yhp: Integer;
+begin
+  if (FSelectorX <> -1) and (FSelectorY <> -1) and
+    (AoWHSMap.Mouse.Capture = AoWHSMap.FSelectedArmy) then
+  begin
+    HXtoHP(FSelectorX, FSelectorY, Xhp, Yhp);
+    Xhp := Xhp - XhpSurf - 8;
+    Yhp := Yhp - YhpSurf - 32 + 2;
+    AoWHSSet.FGeneralImages[6].Show(Xhp, Yhp, SurfaceDesc);
+  end;
+end;
 
 procedure TAbstractAoWHSMap.UpdateHexagonSelector;
-begin end;
+var
+  Xhp, Yhp: Integer;
+  HS: THexagonSprite;
+begin
+  if FHexagonSelectorVisible then
+  begin
+    FSelectorX := Mouse.Xhx;
+    FSelectorY := Mouse.Yhx;
+    if (FSelectorX <> -1) and (FSelectorY <> -1) then
+    begin
+      HXtoHP(FSelectorX, FSelectorY, Xhp, Yhp);
+      HS := MapContainer.GetField(FSelectorX, FSelectorY, ViewL).GetMaxLevelNoneTransparentHS;
+      if HS <> nil then
+      begin
+        if HS.GetShowPriority > $68000000 then
+          FFrontHexagonSelector.ShowPriority := HS.GetShowPriority + 100
+        else FFrontHexagonSelector.ShowPriority := $68000000 + ((Yhp + 32 + 32) shl 13) + Xhp;
+      end
+      else FFrontHexagonSelector.ShowPriority := $68000000 + ((Yhp + 32 + 32) shl 13) + Xhp;
+      FBackHexagonSelector.ShowPriority := $68000000 + ((Yhp + 32 - 8) shl 13) + Xhp;
+    end;
+  end
+  else FSelectorX := -1;
+end;
 
 procedure TAbstractAoWHSMap.UpdateStaticScene;
-begin end;
+var
+  X, Y, MaxX, MaxY: Integer;
+  Level: TMapLevel;
+  Field: TAoWMapField;
+begin
+  if FExplorationEnabled and (FSeatedPlayer <> -1) and not (msEditting in Status) then
+  begin
+    ResetVisibleStaticHS;
+    MaxX := ViewXhx + ViewWidthHX - 1;
+    MaxY := ViewYhx + ViewHeightHX - 1;
+    Level := MapContainer.GetMapLevel(ViewL);
+    for X := ViewXhx to MaxX do
+      for Y := MaxY downto ViewYhx do
+      begin
+        Field := TAoWMapField(Level.GetField(X, Y));
+        if Field.GetExplored(FSeatedPlayer) then Field.CopyStaticVisibleHS(StaticVisibleHS);
+      end;
+    StaticVisibleHS.Sort;
+    StaticSceneInvalid := False;
+  end
+  else inherited UpdateStaticScene;
+end;
 
 procedure TAbstractAoWHSMap.UpdateDynamicScene;
-begin end;
+var
+  X, Y, MaxX, MaxY: Integer;
+  Level: TMapLevel;
+  Field: TAoWMapField;
+begin
+  if FExplorationEnabled and not (msEditting in Status) then
+  begin
+    ResetVisibleDynamicHS;
+    MaxX := ViewXhx + ViewWidthHX - 1;
+    MaxY := ViewYhx + ViewHeightHX - 1;
+    Level := MapContainer.GetMapLevel(ViewL);
+    if FSeatedPlayer <> -1 then
+    begin
+    for X := ViewXhx to MaxX do
+      for Y := MaxY downto ViewYhx do
+      begin
+        Field := TAoWMapField(Level.GetField(X, Y));
+        if Field.GetExplored(FSeatedPlayer) then Field.CopyDynamicVisibleHS(DynamicVisibleHS);
+      end;
+      for X := 0 to DynamicFixedVisibleHS.Count - 1 do
+        THexagonSprite(DynamicFixedVisibleHS.GetChild(X)).MakeVisible(DynamicVisibleHS);
+      DynamicVisibleHS.Sort;
+    end;
+    DynamicSceneInvalid := False;
+  end
+  else inherited UpdateDynamicScene;
+end;
 
 procedure TAbstractAoWHSMap.NewFrame;
-begin end;
+begin
+  inherited NewFrame;
+  UpdateShowMessage;
+  if FHexagonSelectorVisible then UpdateHexagonSelector;
+end;
 
 procedure TAbstractAoWHSMap.UpdateFPS(A1: Integer);
-begin end;
+begin
+  FFPS := A1;
+end;
 
 procedure TAbstractAoWHSMap.DropHeroItem(Hero: THero; Item: TItem);
-begin end;
+var
+  X, Y, L: Shortint;
+begin
+  Hero.GetLocation(X, Y, L);
+  Item.PlaceOnMap(Self, X, Y, L);
+end;
 
 function TAbstractAoWHSMap.GetHeroItemsOnGround(Hero: THero): TItemList;
-begin Result := nil; end;
+var
+  X, Y, L: Shortint;
+  Items: TItemHS;
+begin
+  Result := nil;
+  Hero.GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    Items := TItemHS(AoWHSMap.MapContainer.GetField(X, Y, L).FindOwnedChild($20271));
+    if Items <> nil then Result := Items.FItems;
+  end;
+end;
 
-procedure TAbstractAoWHSMap.DrawSelectionRect(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TAbstractAoWHSMap.DrawSelectionRect(XhpSurf, YhpSurf: Integer; const R: TRect; const SurfaceDesc: TSurfaceDesc);
+var
+  Color: TColor;
+begin
+  Color := $208FFF;
+  if (R.Left > 0) and (R.Top > 0) and (XhpSurf < R.Right) and (YhpSurf < R.Bottom) and
+    (R.Right < ViewWidth + XhpSurf) and (R.Bottom < ViewHeight + YhpSurf) then
+  begin
+    DrawLine(R.Left-XhpSurf, R.Top-YhpSurf, R.Right-XhpSurf, R.Top-YhpSurf, 0, Color, SurfaceDesc);
+    DrawLine(R.Right-XhpSurf, R.Top-YhpSurf, R.Right-XhpSurf, R.Bottom-YhpSurf, 0, Color, SurfaceDesc);
+    DrawLine(R.Right-XhpSurf, R.Bottom-YhpSurf, R.Left-XhpSurf, R.Bottom-YhpSurf, 0, Color, SurfaceDesc);
+    DrawLine(R.Left-XhpSurf, R.Bottom-YhpSurf, R.Left-XhpSurf, R.Top-YhpSurf, 0, Color, SurfaceDesc);
+  end;
+end;
 
 constructor TAbstractAoWCombatMap.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FCombatStartedEvents := TEventList.Create;
+  FAbilityActivatedEvents := TEventList.Create;
+end;
 
 destructor TAbstractAoWCombatMap.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FCombatStartedEvents.Free;
+  FAbilityActivatedEvents.Free;
+end;
 
-procedure TAoWNewHSMapSettings.Create(A1: Byte);
-begin end;
+constructor TAoWNewHSMapSettings.Create;
+begin
+  inherited Create;
+  HSMapClassID := $20011;
+  MapLevelClassID := $20013;
+end;
 
 procedure TAoWHSMapKeyboard.Lock;
-begin end;
+begin
+  Inc(FLockCount);
+end;
 
 procedure TAoWHSMapKeyboard.Unlock;
-begin end;
+begin
+  Dec(FLockCount);
+end;
 
 procedure TAoWHSMapKeyboard.RunDefaultTest;
-begin end;
+var
+  FileName: string;
+begin
+  FileName := 'autosave.asg';
+  AoWEngine.LoadHSM(AoWEngine.StartupDirectory + 'Save\' + FileName, False, nil);
+end;
 
-procedure TAoWHSMapKeyboard.KeyDown(A1: Integer; A2: Byte);
-begin end;
+resourcestring
+  ObserveEnabledRStr = 'Observe enabled';
+  ObserveDisabledRStr = 'Observe disabled';
+const
+  CheatNames: array[0..9] of string = ('gold', 'mana', 'explore', 'fog', 'spells',
+    'win', 'freemove', 'towns', 'lose', 'research');
+
+procedure TAoWHSMapKeyboard.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  TranslatedKey: Word;
+  I: Integer;
+  Prefix, Complete: Boolean;
+  Cheat: TCheatTE;
+begin
+  if FLockCount <> 0 then Exit;
+  { Original uses OR between the digit bounds, admitting every key. }
+  if ((Key >= $41) and (Key <= $5A)) or (Key >= $30) or (Key <= $39) or
+    (Key = $BC) or (Key = $BE) or (Key = $0D) then
+    case FMode of
+      kmDefault:
+        begin
+          TranslatedKey := Key;
+          case AoWEngine.FLanguage of
+            3: case Key of
+                 $53: TranslatedKey := $4E;
+                 $43: TranslatedKey := $4C;
+                 $54: TranslatedKey := $44;
+                 $56: TranslatedKey := $43;
+                 $44: TranslatedKey := $4D;
+               end;
+            5: case Key of
+                 $56: TranslatedKey := $4E;
+                 $45: TranslatedKey := $48;
+                 $43: TranslatedKey := $4C;
+                 $46: TranslatedKey := $44;
+                 $53: TranslatedKey := $47;
+                 $54: TranslatedKey := $43;
+               end;
+            4: case Key of $41: TranslatedKey := $44; end;
+          end;
+          if not (ssCtrl in Shift) then
+            case TranslatedKey of
+              $4F:
+                begin
+                  AoWHSMap.FShowIndependentMoves := not AoWHSMap.FShowIndependentMoves;
+                  if AoWHSMap.FShowIndependentMoves then
+                    AoWHSMap.ShowMessage(TranslateRStr(ObserveEnabledRStr))
+                  else AoWHSMap.ShowMessage(TranslateRStr(ObserveDisabledRStr));
+                end;
+              $4E, $BC: AoWHSMap.SelectNextArmy;
+              $50, $BE: AoWHSMap.SelectPrevArmy;
+              $48: AoWHSMap.SelectNextHero;
+              $4D: AoWHSMap.FSelectedArmy.ExecuteMove;
+              $44: AoWHSMap.FSelectedArmy.TurnDone;
+              $47: AoWHSMap.FSelectedArmy.ToggleGuard;
+              $4C: AoWHSMap.CenterOnLeader(AoWHSMap.FSeatedPlayer, True, False);
+              $43: if not (ssCtrl in Shift) then AoWHSMap.FSelectedArmy.Center;
+              $52: if AoWEngine.FDebug then AoWEngine.OutputDebugStr('Random Seed: ' + IntToStr(AoWHSMap.FDefendersSeed));
+              $53: if not (ssCtrl in Shift) and AoWEngine.FRegistry.GetDebugMode then RunDefaultTest;
+              $41: if AoWEngine.FRegistry.GetDeveloper and
+                (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerType <> ptHuman) then
+                  AoWHSMap.FAIExecuter.ActivatePlayer(AoWHSMap.FSeatedPlayer);
+              $49: if AoWEngine.FDebug then
+                AoWHSMap.ShowMessage('Allocated Memory: ' + IntToStr(GetHeapStatus.TotalAllocated));
+            end;
+          if ssCtrl in Shift then
+            case Key of
+              $45: AoWHSMap.EndTurn;
+              $0D: AoWHSMap.EndTurn;
+            end;
+        end;
+      kmCheat:
+        begin
+          FCheatText := FCheatText + Char(Key);
+          I := 10;
+          Complete := False;
+          Prefix := False;
+          while (I <> 0) and not Complete do
+          begin
+            Dec(I);
+            Prefix := Prefix or (CompareText(FCheatText, System.Copy(CheatNames[I], 1, Length(FCheatText))) = 0);
+            Complete := CompareText(FCheatText, CheatNames[I]) = 0;
+          end;
+          if Complete and (AoWHSMap.FSeatedPlayer <> -1) and
+            not AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetBusy then
+          begin
+            Cheat := TCheatTE.Create(nil);
+            Cheat.FPlayer := AoWHSMap.FSeatedPlayer;
+            Cheat.FCheatID := I;
+            AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Cheat);
+            Cheat.Release;
+            FCheatText := '';
+            FMode := kmDefault;
+          end
+          else if not Prefix then
+          begin
+            FMode := kmDefault;
+            FCheatText := '';
+          end;
+        end;
+    end;
+  if (Key = $43) and ([ssShift, ssCtrl] * Shift = [ssShift, ssCtrl]) and
+    (CompareText(ParamStr(1), 'beatrix') = 0) and
+    (Ord(AoWHSMap.FConnectionType) <> 1) and (Ord(AoWHSMap.FConnectionType) <> 2) and not AoWEngine.FDemo then
+  begin
+    PlaySample('SFX\ATTACK\MAGICB02.WAV');
+    FMode := kmCheat;
+    FCheatText := '';
+  end;
+end;
 
 constructor TAbstractAoWHSMapMouse.Create;
-begin end;
+begin
+  inherited Create;
+  ResetRectangleSelection;
+  FRectangleSelectEvents := TEventList.Create;
+end;
 
 destructor TAbstractAoWHSMapMouse.Destroy;
-begin end;
+begin
+  inherited Destroy;
+  FRectangleSelectEvents.Free;
+end;
 
 procedure TAbstractAoWHSMapMouse.ResetRectangleSelection;
-begin end;
+begin
+  FSelectionRectangle.Left := -1;
+  FSelectionRectangle.Top := -1;
+  FSelectionRectangle.Right := -1;
+  FSelectionRectangle.Bottom := -1;
+end;
 
-procedure TAbstractAoWHSMapMouse.GetSelectingRectangle;
-begin end;
+function TAbstractAoWHSMapMouse.GetSelectingRectangle: Boolean;
+begin
+  if (FSelectionRectangle.Left = -1) or
+    ((FSelectionRectangle.Left = FSelectionRectangle.Right) and
+     (FSelectionRectangle.Top = FSelectionRectangle.Bottom)) then Result := False
+  else Result := True;
+end;
 
 procedure TAbstractAoWHSMapMouse.StartRectangleSelection(A1: Integer; A2: Integer);
-begin end;
+begin
+  FSelectionRectangle.Left := A1;
+  FSelectionRectangle.Top := A2;
+  FSelectionRectangle.Right := A1;
+  FSelectionRectangle.Bottom := A2;
+end;
 
 procedure TAbstractAoWHSMapMouse.UpdateRectangleSelection(A1: Integer; A2: Integer);
-begin end;
+begin
+  if Button = mbLeft then
+  begin
+    if (A1 > 0) and (A2 > 0) then
+    begin
+      if A1 < FSelectionRectangle.Left - 800 then A1 := FSelectionRectangle.Left - 800;
+      if A1 > FSelectionRectangle.Left + 800 then A1 := FSelectionRectangle.Left + 800;
+      if A2 < FSelectionRectangle.Top - 600 then A2 := FSelectionRectangle.Top - 600;
+      if A2 > FSelectionRectangle.Top + 600 then A2 := FSelectionRectangle.Top + 600;
+      FSelectionRectangle.Right := A1;
+      FSelectionRectangle.Bottom := A2;
+    end;
+  end
+  else ResetRectangleSelection;
+end;
 
 procedure TAbstractAoWHSMapMouse.StopRectangleSelection(A1: Integer; A2: Integer);
-begin end;
+var
+  R: TRect;
+begin
+  FSelectionRectangle.Right := A1;
+  FSelectionRectangle.Bottom := A2;
+  if FSelectionRectangle.Left < FSelectionRectangle.Right then R.Left := FSelectionRectangle.Left
+  else R.Left := FSelectionRectangle.Right;
+  if FSelectionRectangle.Right > FSelectionRectangle.Left then R.Right := FSelectionRectangle.Right
+  else R.Right := FSelectionRectangle.Left;
+  if FSelectionRectangle.Top < FSelectionRectangle.Bottom then R.Top := FSelectionRectangle.Top
+  else R.Top := FSelectionRectangle.Bottom;
+  if FSelectionRectangle.Bottom > FSelectionRectangle.Top then R.Bottom := FSelectionRectangle.Bottom
+  else R.Bottom := FSelectionRectangle.Top;
+  FSelectionRectangle := R;
+  FRectangleSelectEvents.TriggerNotifyEvents(Self);
+  ResetRectangleSelection;
+end;
 
 procedure TAbstractAoWHSMapMouse.Down(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin
+  inherited Down(Button, Shift, X, Y);
+  if (Capture = nil) and not (msEditting in HSMap.Status) then
+    StartRectangleSelection(HSMap.ViewXhp + X - 2, HSMap.ViewYhp + Y - 3);
+end;
 
 procedure TAbstractAoWHSMapMouse.Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin
+  inherited Up(Button, Shift, X, Y);
+  if (Capture = nil) and (FSelectionRectangle.Left <> -1) then
+  begin
+    if (X <> -1) and (Y <> -1) then
+      StopRectangleSelection(HSMap.ViewXhp + X - 2, HSMap.ViewYhp + Y - 3)
+    else ResetRectangleSelection;
+  end;
+end;
 
 procedure TAbstractAoWHSMapMouse.Move(Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin
+  inherited Move(Shift, X, Y);
+  if Capture = nil then
+    UpdateRectangleSelection(HSMap.ViewXhp + X - 2, HSMap.ViewYhp + Y - 3);
+end;
 
 function TAoWHSMapMouse.GetCursor: Integer;
 var
@@ -11691,7 +12250,7 @@ begin Result := 0; end;
 function TAoWHSMap.ChangeTerrainEx(MO: Engine.TEObject; X, Y, L, Radius: Integer; ChangeTerrainProc: HSEngine.TChangeTerrainProc; TerrainChangedProc: HSEngine.TTerrainChangedProc): Integer;
 begin Result := 0; end;
 
-procedure TAoWHSMap.CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);
+procedure TAoWHSMap.CenterOnLeader(Player: Shortint; Select: Boolean; Animate: Boolean);
 begin end;
 
 procedure TAoWHSMap.PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);

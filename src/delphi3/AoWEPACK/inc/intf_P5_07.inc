@@ -970,9 +970,9 @@
   { TCheatTE (instance size 24, VMT 5571D07C) }
   TCheatTE = class(TTokenEvent)
   public
-    F_CheatTE_10: Byte;
+    FPlayer: Shortint; { $10; 5577406D }
     F_CheatTE_11: array[0..2] of Byte;
-    F_CheatTE_14: Integer;
+    FCheatID: Integer; { $14; 55774073 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;

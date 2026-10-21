@@ -43,20 +43,20 @@
     { conflict: procedure UnitChanged(Sender: TObject); }
   end;
 
-  { TAoWHSMapKeyboard (instance size 20, VMT 5570E11C) }
+  { TAoWHSMapKeyboard: size $14; $08 cheat text, $0C mode, $10 lock count. VMT 5570E11C. }
   TAoWHSMapKeyboard = class(TEObject)
   public
-    F_AoWHSMapKeyboard_08: Integer;
-    F_AoWHSMapKeyboard_0C: Byte;
+    FCheatText: string; { $08 }
+    FMode: TAoWHSMapKeyboardMode; { $0C }
     F_AoWHSMapKeyboard_0D: array[0..2] of Byte;
-    F_AoWHSMapKeyboard_10: Integer;
-    procedure KeyDown(A1: Integer; A2: Byte); virtual;  { +04C draft }
-    procedure Lock;  { draft }
-    procedure Unlock;  { draft }
-    procedure RunDefaultTest;  { draft }
+    FLockCount: Integer; { $10 }
+    procedure KeyDown(var Key: Word; Shift: TShiftState); virtual; { $4C }
+    procedure Lock;
+    procedure Unlock;
+    procedure RunDefaultTest;
   end;
 
-  { TAbstractAoWHSMapMouse (instance size 80, VMT 5570E22C) }
+  { TAbstractAoWHSMapMouse: size $50; $3C selection rectangle, $4C events. VMT 5570E22C. }
   TAbstractAoWHSMapMouse = class(THSMapMouse)
   public
     FSelectionRectangle: TRect; { $3C..$48; 55792672 }
@@ -66,11 +66,11 @@
     procedure Up(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure Move(Shift: Classes.TShiftState; X, Y: Integer); override;
     constructor Create;
-    procedure ResetRectangleSelection;  { draft }
-    procedure GetSelectingRectangle;  { draft }
-    procedure StartRectangleSelection(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateRectangleSelection(A1: Integer; A2: Integer);  { draft }
-    procedure StopRectangleSelection(A1: Integer; A2: Integer);  { draft }
+    procedure ResetRectangleSelection;
+    function GetSelectingRectangle: Boolean;
+    procedure StartRectangleSelection(A1: Integer; A2: Integer);
+    procedure UpdateRectangleSelection(A1: Integer; A2: Integer);
+    procedure StopRectangleSelection(A1: Integer; A2: Integer);
   end;
 
   { TAoWHSMapMouse: size $50; no additional fields. VMT 5570E2DC. }
@@ -88,6 +88,15 @@
     $AC message text, $B0 message frame, $B4 FPS, $B8 map-event lock, $BC map events,
     $C0 scanner events, $C4 scanner lock, $C8/$C9 fog/exploration, $CC/$D0 selectors,
     $D6 selector visibility. }
+  TMapChangedInfo = record
+    Bounds: TRect;
+    Level: Integer;
+    MapLevel: TMapLevel;
+  end;
+  TShowMessageInfo = record
+    Text: string;
+    Color: TColor;
+  end;
   TAbstractAoWHSMap = class(THSMap)
   public
     FCurrentPlayer: Shortint;  { $A4 }
@@ -108,8 +117,8 @@
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
     FBackHexagonSelector: TCustomFixedVisibleHS; { $CC }
     FFrontHexagonSelector: TCustomFixedVisibleHS; { $D0 }
-    F_AbstractAoWHSMap_D4: Byte;
-    F_AbstractAoWHSMap_D5: Byte;
+    FSelectorX: Shortint; { $D4 }
+    FSelectorY: Shortint; { $D5 }
     FHexagonSelectorVisible: Boolean; { $D6 }
     F_AbstractAoWHSMap_D7: array[0..0] of Byte;
     destructor Destroy; override;
@@ -121,14 +130,14 @@
     procedure NewFrame; override;
     procedure ShowBackHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $EC }
     procedure ShowFrontHexagonSelector(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $F0 }
-    procedure UpdateHexagonSelector; virtual;  { +0F4 draft }
+    procedure UpdateHexagonSelector; virtual; { $F4 }
     procedure SetSeatedPlayer(A1: Shortint); virtual; { $F8 }
     procedure SetCurrentPlayer(A1: Shortint); virtual; { $FC }
     procedure SetFogEnabled(Value: Byte); virtual; { $100 }
     procedure SetExplorationEnabled(Value: Boolean); virtual; { $104 }
     procedure DropHeroItem(Hero: THero; Item: TItem); virtual; { $108 }
     function GetHeroItemsOnGround(Hero: THero): TItemList; virtual; { $10C }
-    procedure ShowMessage(const A1: string); virtual;
+    procedure ShowMessage(const Text: string); virtual;
     procedure ShowWarning(const Text: string); virtual;
     procedure PlayCenterAnimation(X, Y, L: Shortint);
     procedure LockMapChangedEvent;
@@ -137,30 +146,30 @@
     procedure MapChangedRad(X, Y, L, Radius: Integer);
     procedure InvalidateMap;
     procedure TriggerMapChangedEvent(const R: TRect; L: Integer);
-    procedure LockScannerIconsChangedEvent;  { draft }
-    procedure UnlockScannerIconsChangedEvent;  { draft }
-    procedure ScannerIconsChanged(A1: Integer; A2: Integer);  { draft }
+    procedure LockScannerIconsChangedEvent;
+    procedure UnlockScannerIconsChangedEvent;
+    procedure ScannerIconsChanged(const R: TRect; L: Integer);
     procedure ScannerIconsChangedRad(Xhx, Yhx, Lhx, Radius: Integer);
-    procedure InvalidateScannerIcons;  { draft }
-    procedure TriggerScannerIconsChangedEvent(A1: Integer; A2: Integer);  { draft }
-    procedure UpdateShowMessage;  { draft }
+    procedure InvalidateScannerIcons;
+    procedure TriggerScannerIconsChangedEvent(const R: TRect; L: Integer);
+    procedure UpdateShowMessage;
     function FogArea(X, Y, Level: Integer; Range: Integer): Boolean;
     function UnFogArea(X, Y, Level: Integer; Range: Integer): Boolean;
     function ExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): Boolean;
-    procedure UnFogExploreArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure DrawGrid(A1: Integer);  { draft }
-    procedure DrawFog(A1: Integer);  { draft }
-    procedure ShowHexagonSelector;  { draft }
-    procedure HideHexagonSelector;  { draft }
-    procedure UpdateFPS(A1: Integer);  { draft }
-    procedure DrawSelectionRect(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged;
+    procedure DrawGrid(const SurfaceDesc: TSurfaceDesc);
+    procedure DrawFog(const SurfaceDesc: TSurfaceDesc);
+    procedure ShowHexagonSelector;
+    procedure HideHexagonSelector;
+    procedure UpdateFPS(A1: Integer);
+    procedure DrawSelectionRect(XhpSurf, YhpSurf: Integer; const R: TRect; const SurfaceDesc: TSurfaceDesc);
   end;
 
-  { TAbstractAoWCombatMap (instance size 224, VMT 5570E548) }
+  { TAbstractAoWCombatMap: size $E0; $D8/$DC combat event lists. VMT 5570E548. }
   TAbstractAoWCombatMap = class(TAbstractAoWHSMap)
   public
-    F_AbstractAoWCombatMap_D8: Integer;
-    F_AbstractAoWCombatMap_DC: Integer;
+    FCombatStartedEvents: TEventList; { $D8 }
+    FAbilityActivatedEvents: TEventList; { $DC; 5574F004 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
   end;
@@ -434,7 +443,7 @@
     procedure EnableTurnTimer;  { draft }
     procedure DisableTurnTimer;  { draft }
     procedure ZeroTurnTimer;  { draft }
-    procedure CenterOnLeader(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure CenterOnLeader(Player: Shortint; Select: Boolean; Animate: Boolean);
     procedure PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);
     procedure UpdateEffects;  { draft }
     function AddEffect(EffectType: TworldFXType): TWorldFXHS; { 557ED3A5 }

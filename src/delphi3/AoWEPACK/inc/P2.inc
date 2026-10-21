@@ -10102,7 +10102,7 @@ begin
   end;
 end;
 
-function TItem.PlaceOnMap(Map: TAoWHSMap; X, Y, L: Shortint): Boolean;
+function TItem.PlaceOnMap(Map: TAbstractAoWHSMap; X, Y, L: Shortint): Boolean;
 var HS: TItemHS;
 begin
   if (X >= 0) and (Y >= 0) and (L >= 0) and (X < Map.MapContainer.Width) and

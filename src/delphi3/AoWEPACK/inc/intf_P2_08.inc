@@ -10,14 +10,14 @@
     { conflict: FHSSet: TAoWHSSet; }
     FCombatFont: TImageLibraryFont; { $68 }
     { conflict: FUnitFont: TImageLibraryFont; }
-    F_AoWEngine_6C: Byte;
+    FDebug: Boolean; { $6C; 55773E51 }
     FAnimationDetail: Byte; { $6D }
     FDemo: Boolean; { $6E; 5578B227 }
     F_AoWEngine_6F: array[0..0] of Byte;
     FCampaign: TAoWCampaign; { $70 }
     FEmailGames: TEmailGameControl; { $74 }
     F_AoWEngine_78: Integer;
-    F_AoWEngine_7C: Byte;
+    FLanguage: Byte; { $7C; 55773B82 }
     F_AoWEngine_7D: array[0..2] of Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
