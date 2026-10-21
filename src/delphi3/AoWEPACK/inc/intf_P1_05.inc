@@ -382,8 +382,8 @@
     procedure BeginArmyUpdate;
     procedure EndArmyUpdate;
     procedure ArmyChanged(Army: TArmy);
-    procedure ArmyDestroyed(Army: TArmyHS);
-    { conflict: procedure ArmyDestroyed(Army: TArmy); }
+    procedure ArmyDestroyed(Army: TArmy);
+    { TArmy.Destroy passes TArmy at 5578C1C9. }
     procedure BeginStructureUpdate;
     procedure EndStructureUpdate;
     procedure StructureChanged(Structure: TStructure);

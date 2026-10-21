@@ -50,7 +50,7 @@ function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;
 function StatusToStatusValue(Status: TStatus): Integer;
 function StatusValueToStatus(Value: Integer): TStatus;
 function MoraleToMoraleValue(Value: Integer): Integer;
-function MoraleValueToMorale(Value: Integer): Integer;
+function MoraleValueToMorale(Value: Integer): TMorale; { AL result; 5575AD73. }
 function dAlignmentsToStatus(A, B: TAlignments): TStatus;
 function DamageTypesToDamageType(A1: TDamageTypes): TDamageType;
 function dAlignmentToStatus(A, B: TAlignment): TStatus;
