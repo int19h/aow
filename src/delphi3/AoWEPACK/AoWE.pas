@@ -60,6 +60,14 @@ uses ExptIntf;
 {$I inc\P5.inc}
 
 initialization
+  TPlayerTypeRStr[0] := HumanRStr;
+  TPlayerTypeRStr[1] := CPUWarriorRStr;
+  TPlayerTypeRStr[2] := CPUKnightRStr;
+  TPlayerTypeRStr[3] := CPULordRStr;
+  TPlayerTypeRStr[4] := IndependentRStr;
+  TPlayerTypeRStr[5] := FreeRStr;
+  TPlayerTypeRStr[6] := CPUKingRStr;
+  TPlayerTypeRStr[7] := CPUEmperorRStr;
 finalization
 
 end.

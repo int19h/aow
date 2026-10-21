@@ -373,7 +373,7 @@ begin
   InitMsg(Msg, $20020102, nil);
   Msg.Param[0] := Player;
   Msg.Param[1] := Ord(Sphere);
-  WorldMap^.MsgProc(Msg, nil);
+  WorldMap^.SendMsg(Msg, nil);
 end;
 
 destructor TGlobalEnchantmentSpellTE.Destroy;

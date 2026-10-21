@@ -13,7 +13,7 @@ type
   { Hexagon.THexagon (instance size 20): +$10 FTransitions (the transition image of the sides 0..2),
     +$13 FTransitionSides (bits 0..2: the sides with a transition, bits 3..5: the shifted variants) }
   THexagon = class(TAbstractHexagon)
-  private
+  protected
     FTransitions: array[0..2] of Byte;
     FTransitionSides: Byte;
   public
@@ -26,7 +26,7 @@ type
 
   { Hexagon.THexagonResource (instance size 56): +$34 FTransitionLibrary (HexTrans.ILB) }
   THexagonResource = class(TAbstractHexagonResource)
-  private
+  protected
     FTransitionLibrary: TCustomImageLibrary;
   public
     constructor Create(AOwner: TECustomNode); override;

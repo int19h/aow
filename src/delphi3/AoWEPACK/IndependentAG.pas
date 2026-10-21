@@ -51,7 +51,7 @@ type
   { TGuardAreaAGC (instance size 368, VMT 557D8204) }
   TGuardAreaAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
     procedure ProcessStatesLooped; override;
@@ -75,7 +75,7 @@ type
   { TPatrolAGC (instance size 368, VMT 557D845C) }
   TPatrolAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
     function ResetPatrolToLocation: Boolean;
@@ -107,7 +107,7 @@ type
   { TRaidAGC (instance size 368, VMT 557D88F4) }
   TRaidAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
   end;
@@ -124,7 +124,7 @@ type
   { TScoutAGC (instance size 368, VMT 557D8B3C) }
   TScoutAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
   end;
@@ -186,7 +186,7 @@ begin
     end;
 end;
 
-procedure TGuardAreaAGC.MoveExecuterDone;
+procedure TGuardAreaAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FState of
     1:
@@ -412,7 +412,7 @@ begin
   Settings.Release;
 end;
 
-procedure TPatrolAGC.MoveExecuterDone;
+procedure TPatrolAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FMoveExecuter.FStatus of
     mesDone: Done;
@@ -587,7 +587,7 @@ begin
     end;
 end;
 
-procedure TRaidAGC.MoveExecuterDone;
+procedure TRaidAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FState of
     1:
@@ -669,7 +669,7 @@ begin
     end;
 end;
 
-procedure TScoutAGC.MoveExecuterDone;
+procedure TScoutAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FState of
     1:

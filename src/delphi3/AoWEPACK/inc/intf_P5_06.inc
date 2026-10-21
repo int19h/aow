@@ -430,7 +430,7 @@
     procedure CalculateTransportPathCallBack(Sender: TObject);
   end;
 
-  TAIMoveExecuterDoneEvent = procedure of object;
+  TAIMoveExecuterDoneEvent = procedure(Sender: TObject) of object;
   TAIMoveExecuterControlClass = class of TAIMoveExecuterControl;
 
   { TAIMoveExecuter (instance size $3C, VMT 55718E18).

@@ -81,7 +81,7 @@ function Encode(Text: string; Mode: Integer): string;
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
 function StrengthInfoMax(const Strengths): Integer;
 function InvertDamageTypes(Types: TDamageTypes): TDamageTypes;
-function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
+function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Starts, Ends: TIntegerList): Integer;
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
 function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
 function IgnitionChance(MapField: TAoWMapField): Integer; { 55762E4D }

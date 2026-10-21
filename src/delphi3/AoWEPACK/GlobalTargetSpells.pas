@@ -813,7 +813,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;
@@ -987,7 +987,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;
@@ -1158,7 +1158,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;
@@ -1290,7 +1290,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;
@@ -1598,11 +1598,11 @@ procedure TWatcherHS.UpdateVisibleForSeatedPlayer;
 var
   Visible: Boolean;
 begin
-  Visible := SpellEnchantmentVisible(FEnchantment,Byte(SpellHSMap^.FSeatedPlayer));
-  if FVisibleForSeatedPlayer <> Visible then
+  Visible := FEnchantment.VisibleForPlayer(SpellHSMap^.FSeatedPlayer);
+  if FVisibleForSeatedPlayer xor Visible then
   begin
     FVisibleForSeatedPlayer := Visible;
-    TGlobalMagicControl(SpellHSMap^.FPlayerControl).TriggerChangedEvent;
+    SpellHSMap^.FGlobalMagicControl.TriggerChangedEvent;
   end;
 end;
 
@@ -2381,9 +2381,9 @@ end;
 procedure THealingShowersTE.ChangeTerrain(MapF: TMapField; var TerrainType,OverlayType: Shortint);
 begin
   case TerrainType of
+    5: TerrainType := 4;
     2: TerrainType := 4;
     4: TerrainType := 1;
-    5: TerrainType := 4;
   end;
 end;
 
@@ -2514,7 +2514,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;
@@ -2562,7 +2562,7 @@ begin
     TAbstractUnit(A1).FUnitID, FBaseManaCost);
   Event.SetLocation(A2, A3, A4);
   TTokenManager(SpellHSMap^.FTokenManager).
-    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
+    GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).AddEvent(Event);
   Event.Release;
   Result := True;
 end;

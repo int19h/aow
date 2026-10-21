@@ -1039,9 +1039,9 @@ constructor TUnitSelectionControl.Create;
 begin
   inherited Create;
   FRacesEnabled := TBitList.Create;
-  with FRacesEnabled do Default := True;
+  FRacesEnabled.Default := True;
   FTypesEnabled := TBitList.Create;
-  with FTypesEnabled do Default := True;
+  FTypesEnabled.Default := True;
   FRaceUnits := TUnitCategoryList.Create;
   FTypeUnits := TUnitCategoryList.Create;
   FAllUnits := TUnitIndexList.Create;
@@ -3738,7 +3738,7 @@ begin
       Actions.AddChild(Action);
       Action.Release;
     end;
-    if Relation = drAlliance then
+    if Relation in [drAlliance] then
     begin
       Action := CreateDiplomaticAction(daBreakAlliance, Player, -1);
       if Action <> nil then
@@ -4153,14 +4153,16 @@ var
   I: Integer;
 begin
   I := Count;
-  repeat
-    if I = 0 then
+  while I <> 0 do
+  begin
+    Dec(I);
+    if GetPlayers(I).FPlayerType = PlayerType then
     begin
-      Result := -1;
+      Result := I;
       Exit;
     end;
-    Dec(I);
-  until GetPlayers(I).FPlayerType = PlayerType;
+  end;
+  I := -1;
   Result := I;
 end;
 
@@ -5411,7 +5413,7 @@ end;
 procedure TPBEMPlayerControl.StartNewMap;
 var
   I: Integer;
-  Player: Byte;
+  Player: Integer;
 begin
   DefaultStartMap;
   NewDay;
@@ -5701,9 +5703,10 @@ begin
     2:
       begin
         FButtons := mebYesNo;
-        if FDisconnectedPlayer = -1 then FMessage.Text := TranslateRStr(ConnectionLostRStr)
-        else FMessage.Text := Format(TranslateRStr(ConnectionXLostRStr),
-          [AoWHSMap.FPlayers.GetPlayers(FDisconnectedPlayer).GetName]);
+        if FDisconnectedPlayer <> -1 then
+          FMessage.Text := Format(TranslateRStr(ConnectionXLostRStr),
+            [AoWHSMap.FPlayers.GetPlayers(FDisconnectedPlayer).GetName])
+        else FMessage.Text := TranslateRStr(ConnectionLostRStr);
         FMessage.Add('');
         FMessage.Add(TranslateRStr(TerminateGameSaveRStr));
       end;
@@ -7161,7 +7164,7 @@ function TStructure.CanSelect(Xhp, Yhp: Integer): Boolean;
 var
   X, Y, HN: Integer;
 begin
-  if (AoWHSMap.FFogEnabled = 0) or not FFogged then
+  if (not AoWHSMap.FFogEnabled) or not FFogged then
   begin
     HPtoHX(Xhp, Yhp, X, Y);
     HN := dHXtoHN(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
@@ -7196,7 +7199,7 @@ var
   Count: Integer;
   Level: TMapLevel;
 begin
-  FFogged := AoWHSMap.FFogEnabled <> 0;
+  FFogged := AoWHSMap.FFogEnabled;
   if FFogged then
   begin
     Count := GetTerrainCount;
@@ -7597,7 +7600,7 @@ begin
     end
     else if (Msg.MsgID = $110C) and (Msg.HN = 0) then
     begin
-      if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and ((AoWHSMap.FFogEnabled = 0) or not FFogged) then
+      if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and ((not AoWHSMap.FFogEnabled) or not FFogged) then
         Inc(Msg.Param[0], $E00);
     end;
 end;
@@ -7842,8 +7845,7 @@ var
 begin
   if CanRaze(Player, Reason) and not AoWHSMap.FPlayers.GetPlayers(Player).GetBusy then
   begin
-    if (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) then Result := RazeEx(Player)
-    else
+    if AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType = ptHuman then
     begin
       Log := TRazeStructureEventLog.Create(nil);
       Log.FStructure := Self;
@@ -7854,7 +7856,8 @@ begin
       Log.Execute(True, etUser, nil);
       Log.Release;
       Result := True;
-    end;
+    end
+    else Result := RazeEx(Player);
   end
   else Result := False;
 end;
@@ -8135,10 +8138,9 @@ end;
 procedure TPlayerStructure.UpdateFlagID;
 begin
   if not (moEditMode in FStatus) then
-    if FPlayer < 1 then
-      if not TPlayerStructureResource(FResource).FClaimed then FFlagID := $3F
-      else FFlagID := $20
-    else FFlagID := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
+    if FPlayer > 0 then FFlagID := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
+    else if TPlayerStructureResource(FResource).FClaimed then FFlagID := $20
+    else FFlagID := $3F
   else FFlagID := $3F;
 end;
 
@@ -8169,7 +8171,7 @@ begin
   HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
   XhpSurf := Xhp - XhpSurf;
   YhpSurf := Yhp - YhpSurf;
-  if (FFlagID <> $3F) and ((AoWHSMap.FFogEnabled = 0) or not FFogged) then
+  if (FFlagID <> $3F) and ((not AoWHSMap.FFogEnabled) or not FFogged) then
     with TPlayerStructureResource(FResource) do
       if FFlagType <= 1 then
         AoWHSSet.FFlagControl.ShowFlag(FFlagX + XhpSurf, FFlagY + YhpSurf,
@@ -8348,11 +8350,13 @@ procedure TPlayerStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin
   if (Msg.MsgID = $110C) and (Msg.HN = 0) and (FResource.TerrainList.Terrain[Msg.HN] >= 0) then
   begin
-    if (AoWHSMap.FFogEnabled = 0) or not FFogged then
+    if (not AoWHSMap.FFogEnabled) or not FFogged then
     begin
-      if FPlayer < 0 then Inc(Msg.Param[0], $E00)
-      else if FPlayer < 1 then Inc(Msg.Param[0], $D00)
-      else Inc(Msg.Param[0], (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace + 1) * $100);
+      if FPlayer >= 0 then
+        if FPlayer > 0 then
+          Inc(Msg.Param[0], (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace + 1) * $100)
+        else Inc(Msg.Param[0], $D00)
+      else Inc(Msg.Param[0], $E00);
       if (AoWHSMap.FVictoryCondition = vcCaptureLocations) and FVictoryLocations[AoWHSMap.FSeatedPlayer] then
         Msg.Param[0] := Msg.Param[0] or $1000000;
     end
@@ -10384,7 +10388,7 @@ begin
   FFrontHexagonSelector.OnShow := ShowFrontHexagonSelector;
   FHexagonSelectorVisible := False;
   FExplorationEnabled := True;
-  FFogEnabled := 1;
+  FFogEnabled := True;
   FSeatedPlayer := 1;
   FFPS := 30;
 end;
@@ -10407,7 +10411,7 @@ begin
   Result := TAbstractAoWHSMapMouse.Create;
 end;
 
-procedure TAbstractAoWHSMap.SetFogEnabled(Value: Byte);
+procedure TAbstractAoWHSMap.SetFogEnabled(Value: Boolean);
 begin
   if Value <> FFogEnabled then
   begin
@@ -10620,7 +10624,7 @@ function TAbstractAoWHSMap.FogArea(X, Y, Level: Integer; Range: Integer): Boolea
 begin
   Assert(Range <= 15, 'Invalid Unfog Range');
   Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).FogArea(X, Y, Range);
-  if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+  if Result and (FMapChangedLockCount = 0) and (FFogEnabled) then
     MapChangedRad(X, Y, Level, Range);
 end;
 
@@ -10628,7 +10632,7 @@ function TAbstractAoWHSMap.UnFogArea(X, Y, Level: Integer; Range: Integer): Bool
 begin
   Assert(Range <= 15, 'Invalid Unfog Range');
   Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range);
-  if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+  if Result and (FMapChangedLockCount = 0) and (FFogEnabled) then
     MapChangedRad(X, Y, Level, Range);
 end;
 
@@ -10637,7 +10641,7 @@ begin
   if not (msEditting in Status) then
   begin
     Result := TAoWMapLevel(MapContainer.GetMapLevel(Level)).ExploreArea(X, Y, Player, Range);
-    if Result and (FMapChangedLockCount = 0) and (FFogEnabled <> 0) then
+    if Result and (FMapChangedLockCount = 0) and (FFogEnabled) then
       MapChangedRad(X, Y, Level, Range);
   end
   else Result := False;
@@ -10657,7 +10661,7 @@ begin
   else if TAoWMapLevel(MapContainer.GetMapLevel(Level)).UnFogArea(X, Y, Range) then
     Result := [feFog];
   if (FMapChangedLockCount = 0) and
-    (((feFog in Result) and (FFogEnabled <> 0)) or
+    (((feFog in Result) and (FFogEnabled)) or
      ((feExploration in Result) and FExplorationEnabled and (Player = FSeatedPlayer))) then
     MapChangedRad(X, Y, Level, Range);
 end;
@@ -10695,7 +10699,7 @@ var
   Level: TMapLevel;
   Field: TAoWMapField;
 begin
-  if (FFogEnabled <> 0) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
+  if (FFogEnabled) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
   begin
   Level := MapContainer.GetMapLevel(ViewL);
   Step := Level.FHNOffsets[0, 4];
@@ -10718,7 +10722,7 @@ begin
     end;
   end;
   end
-  else if (FFogEnabled <> 0) and not FExplorationEnabled then
+  else if (FFogEnabled) and not FExplorationEnabled then
   begin
   Level := MapContainer.GetMapLevel(ViewL);
   Step := Level.FHNOffsets[0, 4];
@@ -10739,7 +10743,7 @@ begin
     end;
   end;
   end
-  else if (FFogEnabled = 0) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
+  else if (not FFogEnabled) and (FExplorationEnabled or (AoWHSMap.FSeatedPlayer = -1)) then
   begin
   Level := MapContainer.GetMapLevel(ViewL);
   Step := Level.FHNOffsets[0, 4];
@@ -11639,7 +11643,7 @@ begin
       (Walk.Y < MapLevel.Height) then
     begin
       Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
-      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled)) and
         (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled);
     end;
     if not Result then WalkToNextHN(Walk);
@@ -11683,7 +11687,7 @@ begin
       (Walk.Y < MapLevel.Height) then
     begin
       Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
-      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+      Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled)) and
         (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled) and
         Viewing(Walk.X, Walk.Y, L);
     end;
@@ -11738,7 +11742,7 @@ begin
         (Walk.Y < MapLevel.Height) then
       begin
         Field := TAoWMapField(MapLevel.GetField(WX, Walk.Y));
-        Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+        Result := ((WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled)) and
         (Field.GetExplored(AoWHSMap.FSeatedPlayer) or not AoWHSMap.FExplorationEnabled);
       end;
       if not Result then WalkToNextHN(Walk);
@@ -12243,7 +12247,7 @@ begin
   Stream.rwBool(FExplorationEnabled, $17);
   if not (smPreview in Stream.StorageMode) then Stream.rwEObject(FHeroControl, $18);
   Stream.rwString(FMapName, $19);
-  Stream.rwBool(Boolean(FFogEnabled), $1A);
+  Stream.rwBool(FFogEnabled, $1A);
   Stream.rwByte(Byte(FHeroCountMax), $1B);
   Stream.rwInteger(FDefendersSeed, $1C);
   if not (smTextOnly in Stream.StorageMode) and not (smPreview in Stream.StorageMode) and
@@ -12491,7 +12495,7 @@ begin
     Result := True;
     Exit;
   end;
-  if FFogEnabled = 0 then Result := False
+  if not FFogEnabled then Result := False
   else if Player = AoWHSMap.FSeatedPlayer then
     Result := WordRec(LongRec(TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).FFieldFlags).Hi).Lo = 0
   else
@@ -12526,7 +12530,7 @@ begin
   begin
     Field := TAoWMapField(MapContainer.GetField(Mouse.Xhx, Mouse.Yhx, FViewL));
     if AoWHSMap.FExplorationEnabled and not Field.GetExplored(AoWHSMap.FSeatedPlayer) then Exit;
-    if (AoWHSMap.FFogEnabled = 0) or (WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) then
+    if (not AoWHSMap.FFogEnabled) or (WordRec(LongRec(Field.FFieldFlags).Hi).Lo <> 0) then
       if Selection.CanSelectLocation(Mouse.Xhp, Mouse.Yhp, FViewL) and
         not TAbstractAoWHSMapMouse(Mouse).GetSelectingRectangle then Mouse.CursorMode := $101
       else Mouse.CursorMode := 0;
@@ -12742,26 +12746,28 @@ begin
   if not (msEditting in Status) and (FDay = 0) then
   begin
     FExplorationEnabled := True;
-    FFogEnabled := 1;
+    FFogEnabled := True;
   end;
 end;
 
 
 function TAoWHSMap.Random(Range: Integer): Integer;
 begin
-  if msDestroying in AoWHSMap.Status then Result := System.Random(Range)
-  else
+  if not (msDestroying in AoWHSMap.Status) then
   begin
-    if not GetSynchronised then
+    if GetSynchronised then
+    begin
+      RandSeed := FDefendersSeed;
+      Result := System.Random(Range);
+      FDefendersSeed := RandSeed;
+    end
+    else
     begin
       Dialogs.ShowMessage('Invalid AoWHSMap.Random use');
       Result := 0;
-      Exit;
     end;
-    RandSeed := FDefendersSeed;
-    Result := System.Random(Range);
-    FDefendersSeed := RandSeed;
-  end;
+  end
+  else Result := System.Random(Range);
 end;
 
 
@@ -12999,14 +13005,9 @@ begin
       AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(Player);
       if FPlayMode = pmSimultaneous then AoWHSMap.FTokenManager.TokenExecuter.HoldTC := False;
     end;
-    if not FRequestCombatType or (FCombat.ClassID = $202B0) or (FCombat.FCombatData.FRound = 0) or
-      (FCombat.FExplorationSite = 1) or (FPlayers.GetPlayers(FCurrentPlayer).FPlayerType <> ptHuman) then
-    begin
-      if FCombat.ClassID = $220110 then EnableTurnTimer;
-      UnlockGameOverEvent;
-    end
-    else
-    begin
+    if FRequestCombatType and (FCombat.ClassID <> $202B0) and (FCombat.FCombatData.FRound <> 0) and
+      (FCombat.FExplorationSite <> 1) and (FPlayers.GetPlayers(FCurrentPlayer).FPlayerType = ptHuman) then
+  begin
       LockExecuteEventLog;
       Log := TNewTurnEventLog.Create(nil);
       Log.FTurnPlayer := FCurrentPlayer;
@@ -13018,6 +13019,11 @@ begin
       UnlockGameOverEvent;
       SetSeatedPlayer(-1);
       UnlockExecuteEventLog;
+    end
+  else
+  begin
+      if FCombat.ClassID = $220110 then EnableTurnTimer;
+      UnlockGameOverEvent;
     end;
     FCombat.Free;
     FCombat := nil;
@@ -13223,7 +13229,7 @@ begin
       TMapObjectResource(Candidates[Random(Candidates.Count)]).PlaceResourceUser(AoWHSMap, X, Y, L);
     Candidates.Free;
   end
-  else AoWHSSet.HexagonControl.Place(AoWHSMap.MapContainer, X, Y, L, TerrainType);
+  else AoWHSSet.RoadControl.Place(AoWHSMap.MapContainer, X, Y, L, TerrainType);
 end;
 
 
@@ -13322,8 +13328,8 @@ begin
       Result := Damage + 1 + (18 - Threshold) +
         (((Damage - 1) * (18 - Threshold) + 1) shr 1);
       Threshold := -Threshold;
-      Inc(Threshold, ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
-        (Threshold + 19)) shr 1) + 1);
+      Threshold := Threshold + ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
+        (Threshold + 19)) shr 1) + 1;
       Result := Result - Threshold;
     end;
     Result := Result * 5;
@@ -13948,10 +13954,10 @@ end;
 function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
 begin
   case A1 of
-    crTouch: Result := cmTouch;
-    crShort: Result := cmShortRange;
-    crMedium: Result := cmMediumRange;
     crLong: Result := cmLongRange;
+    crMedium: Result := cmMediumRange;
+    crShort: Result := cmShortRange;
+    crTouch: Result := cmTouch;
   else Result := cmNone;
   end;
 end;
@@ -14140,22 +14146,18 @@ end;
 
 function dAlignmentToDiplomaticRelation(A, B: TAlignment): TDiplomaticRelation;
 begin
-  case A of
-    alPureGood, alGood:
-      case B of
-        alPureGood, alGood: Result := drPeace;
-        alPureNeutral, alNeutral, alNone: Result := drUnknown;
-      else Result := drWar; end;
-    alEvil, alPureEvil:
-      case B of
-        alEvil, alPureEvil: Result := drPeace;
-        alPureNeutral, alNeutral, alNone: Result := drUnknown;
-      else Result := drWar; end;
-  else
-    if (A = alPureNeutral) and (B = alPureNeutral) then Result := drPeace
-    else Result := drUnknown;
-  end;
+  if A in [alPureGood, alGood] then
+    if B in [alPureGood, alGood] then Result := drPeace
+    else if B in [alPureNeutral, alNeutral, alNone] then Result := drUnknown
+    else Result := drWar
+  else if A in [alEvil, alPureEvil] then
+    if B in [alEvil, alPureEvil] then Result := drPeace
+    else if B in [alPureNeutral, alNeutral, alNone] then Result := drUnknown
+    else Result := drWar
+  else if (A = alPureNeutral) and (B = alPureNeutral) then Result := drPeace
+  else Result := drUnknown;
 end;
+
 
 function StatusToDiplomaticRelation(Status: TStatus): TDiplomaticRelation;
 begin
@@ -14215,9 +14217,9 @@ begin
   if (Player = 0) or (OtherPlayer = 0) then
   begin
     if Player <> 0 then Race := AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace
-    else if IndependentRelation < 0 then Race := -1 else Race := IndependentRelation;
+    else if IndependentRelation >= 0 then Race := IndependentRelation else Race := -1;
     if OtherPlayer <> 0 then OtherRace := AoWHSMap.FPlayers.GetPlayers(OtherPlayer).FPlayerRace
-    else if OtherIndependentRelation < 0 then OtherRace := -1 else OtherRace := OtherIndependentRelation;
+    else if OtherIndependentRelation >= 0 then OtherRace := OtherIndependentRelation else OtherRace := -1;
     if (Race = -1) or (OtherRace = -1) then
     begin
       if Race = -1 then Alignment := IRtoAlignment(IndependentRelation)
@@ -14245,13 +14247,13 @@ function GetUnitIndexAIPriority(UnitIndex: Integer; Player: Shortint; Relation: 
 var Resource: TUnitResource; Value: Integer; Unit_: TUnit; DefaultUnit: TAdjustableUnit;
 begin
   Resource := AoWHSSet.FUnitResources.GetUnitResource(UnitIndex);
-  if (Resource = nil) or (Resource.GetTransportCapacity <> 0) then Result := -1
-  else
+  if (Resource <> nil) and (Resource.GetTransportCapacity = 0) then
   begin
-    if Player = 0 then Value := dAlignmentToStatusValue[Resource.FAlignment, IRtoAlignment(Relation)]
-    else if Resource.FRace = -1 then
-      Value := dAlignmentToStatusValue[Resource.FAlignment, AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace).GetAlignment]
-    else Value := AoWHSMap.FRaces.GetRace(Resource.FRace).GetPlayerRelationValue(Player);
+    if Player <> 0 then
+      if Resource.FRace <> -1 then
+        Value := AoWHSMap.FRaces.GetRace(Resource.FRace).GetPlayerRelationValue(Player)
+      else Value := dAlignmentToStatusValue[Resource.FAlignment, AoWHSSet.FRaceResources.GetRaceResource(AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace).GetAlignment]
+    else Value := dAlignmentToStatusValue[Resource.FAlignment, IRtoAlignment(Relation)];
     if Value >= 50 then
     begin
       Unit_ := TUnit.Create(nil); Unit_.SetUnitResource(Resource);
@@ -14275,34 +14277,35 @@ begin
       DefaultUnit.Free; Unit_.Free;
     end
     else Result := -1;
-  end;
+  end
+  else Result := -1;
 end;
 
 function UnitsToIndependentRelation(Units: TUnitList; DefaultRelation: Shortint): Shortint;
-var SameRace, Evil, Good, Neutral: Boolean; I: Integer; Race: Shortint; Unit_: TAbstractUnit; Alignment: TAlignment;
+var SameRace, Evil, Good, Neutral: Boolean; I: Integer; Race: Integer; Unit_: TAbstractUnit; Alignment: TAlignment;
 begin
-  SameRace := True; I := Units.GetCount; Result := -1;
+  Result := -1; SameRace := True; I := Units.FChildren.Count;
   while SameRace and (I <> 0) do
   begin
-    Dec(I); Race := Units.GetUnit(I).GetRace;
+    Dec(I); Race := TAbstractUnit(Units.FChildren.List^[I]).GetRace;
     if (Race <> -1) and (Race <> Result) then
       if Result = -1 then Result := Race else SameRace := False;
   end;
   if SameRace and (Result = -1) then Result := DefaultRelation;
   if Result = -1 then SameRace := False;
-  I := Units.GetCount;
+  I := Units.FChildren.Count;
   while SameRace and (I <> 0) do
   begin
     Dec(I);
-    SameRace := (Result = Units.GetUnit(I).GetRace) or
-      (Units.GetUnit(I).GetAlignment in AoWHSSet.FRaceResources.GetRaceResource(Result).FAlignments);
+    SameRace := (Result = TAbstractUnit(Units.FChildren.List^[I]).GetRace) or
+      (TAbstractUnit(Units.FChildren.List^[I]).GetAlignment in AoWHSSet.FRaceResources.GetRaceResource(Result).FAlignments);
   end;
   if not SameRace then
   begin
     Evil := True; Good := True; Neutral := True;
-    for I := 0 to Units.GetCount - 1 do
+    for I := 0 to Units.FChildren.Count - 1 do
     begin
-      Unit_ := Units.GetUnit(I); Alignment := Unit_.GetAlignment;
+      Unit_ := TAbstractUnit(Units.FChildren.List^[I]); Alignment := Unit_.GetAlignment;
       Evil := Evil and (Alignment in alsEvil) and ((Unit_.GetRace = -1) or (Alignment in [alEvil, alPureEvil]));
       Good := Good and (Alignment in alsGood) and ((Unit_.GetRace = -1) or (Alignment in [alPureGood, alGood]));
       Neutral := Neutral and (Alignment in alsNeutral);
@@ -14327,7 +14330,7 @@ var
 begin
   Result := '';
   for I := 1 to Length(Text) do
-    Result := Result + Char(Ord(Text[I]) xor ((Length(Text) + I + 5) and $FF));
+    Result := Result + Char(Ord(Text[I]) xor ((Length(Text) + (I + 5)) and $FF));
 end;
 
 procedure SetupBattleFieldInfo(var Info: TBattleFieldInfo; Player, Relation: Shortint; Requests: TBattleFieldInfoRequests; DamageTypes: TDamageTypes);
@@ -14358,7 +14361,7 @@ begin
     if not (DamageType in Types) then Result := Result + [DamageType];
 end;
 
-function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Ends, Starts: TIntegerList): Integer;
+function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Starts, Ends: TIntegerList): Integer;
 var I: Integer; Gap: Boolean; Field: TMapField;
 begin
   I := Path.Count - 1; Result := 0; Gap := False;
@@ -14472,6 +14475,7 @@ begin
       Inc(Result, 5);
       if (AoWHSMap <> nil) and (getFireMastery in AoWHSMap.FGlobalMagicControl.FActiveEnchantments) then Inc(Result, 5);
     end;
+    if Result < 0 then Result := 0;
   end
   else Result := 0;
 end;

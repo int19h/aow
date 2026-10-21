@@ -12,7 +12,7 @@ type
   { Road.TRoad (instance size 20): +$10 FTransitions (bit HN-1: a road on the neighbour HN; the
     pairs 2+6 and 3+5 become bits 7 and 6) }
   TRoad = class(TAbstractRoad)
-  private
+  protected
     FTransitions: Byte;
   public
     constructor Create(AOwner: TECustomNode); override;

@@ -2032,7 +2032,7 @@ begin
     TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FResearchPointsLeft := FResearchPointsLeft;
     TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FSpells.Assign(FSpells);
     Inc(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FInitialGold, FSelectedTransferGold);
-    Inc(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FMana, FSelectedTransferMana);
+    Inc(TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FMagicControl.FExternalMana, FSelectedTransferMana);
     Leader := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player).FLeader;
     Leader.GetLocation(X, Y, L);
     if FLeader <> nil then
@@ -2874,7 +2874,7 @@ begin
   Players := TDoubleItemList.Create;
   Players.AddAB(FPlayer.FPlayerIndex, 999);
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do
-    if (I <> FPlayer.FPlayerIndex) and (AoWHSMap.FPlayers.GetPlayers(I).FSingleProcessCycle = True) then
+    if (I <> FPlayer.FPlayerIndex) and (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) then
     begin
       Priority := 0;
       Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);
@@ -5605,7 +5605,7 @@ begin
   end;
 end;
 
-procedure TAIGroupControl.MoveExecuterDone;
+procedure TAIGroupControl.MoveExecuterDone(Sender: TObject);
 begin
   if (FGroup.FTransporter <> nil) and not FMoveExecuter.GetTransporting then
     FGroup.DeleteUnit(FGroup.FTransporter);
@@ -6025,7 +6025,7 @@ begin
       if Found then
       begin
         SetupCP(Target);
-        if FCombatPredictor.Execute in [crVictory, crDefeat, crBothDefeated] then
+        if FCombatPredictor.Execute in [crVictory, crDefeat, crNoDefenders] then
           if FCombatPredictor.GetEfficiency <> 0 then
           begin
             Target.FData.Priority := 1000 - Target.FMovePoints;
@@ -9019,7 +9019,7 @@ begin
     Selection := 0;
     for I := Count - 1 downto 0 do
     begin
-      Index := Army.FArmy.IndexOf(GetUnits(I).FUnit);
+      Index := Army.FArmy.FindChildIndex(GetUnits(I).FUnit);
       if Index <> -1 then Selection := Selection or (1 shl Index)
       else raise Exception.Create('Unit missing!');
     end;
@@ -9682,8 +9682,8 @@ begin
         (dHXtoRad(Army.FLocation.X, Army.FLocation.Y,
           FExecuter.FDestination.X, FExecuter.FDestination.Y) > 1) then
       begin
-        with FExecuter.FDestination do
-          CreateMove(Army, $FF, X, Y, L, [cmmSurroundEx], @MoveResult);
+        CreateMove(Army, $FF, FExecuter.FDestination.X, FExecuter.FDestination.Y,
+          FExecuter.FDestination.L, [cmmSurroundEx], @MoveResult);
         Result := (MoveResult <> 0) and (MoveResult <> 3);
       end;
     end;
@@ -10606,7 +10606,7 @@ procedure TAIMoveExecuter.InvalidateMove;
 begin
   FStatus := mesInvalidated;
   UpdateMoveResult;
-  if Assigned(FOnDone) then FOnDone;
+  if Assigned(FOnDone) then FOnDone(Self);
 end;
 
 procedure TAIMoveExecuter.Reset;
@@ -10802,7 +10802,7 @@ begin
   begin
     UpdateMoveResult;
     try
-      if Assigned(FOnDone) then FOnDone;
+      if Assigned(FOnDone) then FOnDone(Self);
     except
       ShowMessage('MoveExecute.OnDone failed');
     end;
@@ -10877,7 +10877,7 @@ begin
       if (Armies.Count <> 1) or (Integer(Armies.GetArmies(0).FLocation) <> Integer(FDestination)) then
       begin
         FStatus := mesBusy;
-        if (memAdjacent in FMode) and (Armies.Count >= 2) then FControlQueue.Add(2)
+        if (memAdjacent in FMode) and (Armies.Count > 1) then FControlQueue.Add(2)
         else FControlQueue.Add(0);
         if FTransporter <> nil then SetupTransporter;
         Process;
@@ -13267,11 +13267,7 @@ begin
   FAnimate := False;
   Last := FPath.Count - 1;
   FSelection := FArmyHS.FArmy.ValidateSelection(FSelection);
-  if FSelection = FArmyHS.FArmy.ValidateSelection($FF) then
-  begin
-    if FArmyHS.GetSelected then AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
-  end
-  else
+  if FSelection <> FArmyHS.FArmy.ValidateSelection($FF) then
   begin
     ArmyHS := TArmyHS.Create(nil);
     ArmyHS.FArmy.SetPlayer(FArmyHS.FArmy.FPlayer);
@@ -13286,6 +13282,10 @@ begin
     end;
     FArmyHS := ArmyHS;
     FSelection := $FF;
+  end
+  else
+  begin
+    if FArmyHS.GetSelected then AoWHSMap.FSelectedArmy.DeactivateMoveSelection;
   end;
   with FArmyHS.FArmy do
   begin
@@ -13346,12 +13346,12 @@ end;
 
 function TMoveArmyTE.MoveVisible(Index: Integer): Boolean;
 begin
-  if AoWHSMap.FSeatedPlayer = -1 then Result := False
-  else
+  if AoWHSMap.FSeatedPlayer <> -1 then
   begin
     Result := AoWHSMap.Visible(FPath[Index].X, FPath[Index].Y, FPath[Index].L, 0);
     if Result and (asFullyConcealed in FArmyHS.FArmy.FStatus) then Result := False;
-  end;
+  end
+  else Result := False;
 end;
 
 function TMoveArmyTE.ExecuteMove: TMoveStatus;
@@ -13363,19 +13363,19 @@ begin
   Dec(FMoveIndex);
   Field := GetMapF(FPath[FMoveIndex]);
   FArmyHS.MoveTo(Field, FPath[FMoveIndex].Flag);
-  if Field.FindChildIndex(FArmyHS) = -1 then
-  begin
-    FArmyHS := nil;
-    Result := msDone;
-  end
-  else
+  if Field.FindChildIndex(FArmyHS) <> -1 then
   begin
     Direction := GetDirection(FMoveIndex + 1);
     if Direction = 0 then Direction := GetHT(FMoveIndex + 1);
-    if (Direction >= 1) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
+    if (Direction > 0) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
     else FArmyHS.SetDirection(0);
     if mmBuildRoads in FMode then ConstructRoad(FArmyHS.FArmy.FPlayer, Field);
     Result := ProcessMove;
+  end
+  else
+  begin
+    FArmyHS := nil;
+    Result := msDone;
   end;
 end;
 
@@ -13405,11 +13405,14 @@ begin
     if not Result then
     begin
       ArmyHS := GetNoneMovingArmyHS(Field);
-      if ArmyHS = nil then Result := Field.GetPlayer = FArmyHS.FArmy.FPlayer
-      else if FArmyHS.FArmy.FPlayer = ArmyHS.FArmy.FPlayer then
-        Result := FArmyHS.FArmy.CanCombine(ArmyHS.FArmy, $FF)
-      else if AoWHSMap.FPlayers.GetDiplomaticRelation(FArmyHS.FArmy.FPlayer,
-        ArmyHS.FArmy.FPlayer) <> drAlliance then Stop := True;
+      if ArmyHS <> nil then
+      begin
+        if FArmyHS.FArmy.FPlayer = ArmyHS.FArmy.FPlayer then
+          Result := FArmyHS.FArmy.CanCombine(ArmyHS.FArmy, $FF)
+        else if AoWHSMap.FPlayers.GetDiplomaticRelation(ArmyHS.FArmy.FPlayer,
+          FArmyHS.FArmy.FPlayer) <> drAlliance then Stop := True;
+      end
+      else Result := Field.GetPlayer = FArmyHS.FArmy.FPlayer;
     end;
   end;
 end;
@@ -13444,13 +13447,13 @@ function TMoveArmyTE.DefaultMove: TMoveStatus;
 begin
   if not FArmyHS.Moving then
   begin
-    if not CanMoveNext then Result := msFailed
-    else
+    if CanMoveNext then
     begin
       SetupNextMove;
       if not Animating then Result := ExecuteMove
       else Result := msMoving;
-    end;
+    end
+    else Result := msFailed;
   end
   else if not Animating then Result := msFailed
   else
@@ -13559,7 +13562,7 @@ begin
       if CombineResult <> arOK then
       begin
         ShowCombineFailure(CombineResult);
-        Exclude(FMode, mmSelectEndLocation);
+        FMode := FMode - [mmSelectEndLocation];
       end;
     end;
   end;
@@ -13682,8 +13685,9 @@ var
   Log: TNewTurnEventLog;
 begin
   Field := GetMapF(FPath[0]);
-  if FCombatType <> ctNone then FCombatMode := cmSetupReady
-  else if AoWHSMap.FRequestCombatType and (AoWHSMap.FPlayMode = pmNone) then
+  if FCombatType = ctNone then
+  begin
+  if AoWHSMap.FRequestCombatType and (AoWHSMap.FConnectionType = pcLocal) then
   begin
     if AoWEngine.FRegistry.GetCombatResolveMode = crmAlwaysFC then
       begin
@@ -13701,7 +13705,7 @@ begin
       end
       else FCombatMode := cmRequestingCombatType;
   end
-  else if (AoWHSMap.FPlayMode = pmNone) and
+  else if (AoWHSMap.FConnectionType = pcLocal) and
     ((not AoWHSMap.FRequestCombatType and (AoWHSMap.FPlayers.FLocalPlayers.Count = 1)) or
      (AoWHSMap.FRequestCombatType and
       (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman))) then
@@ -13722,7 +13726,7 @@ begin
       end
       else FCombatMode := cmRequestingCombatType;
   end
-  else if (AoWHSMap.FPlayMode = pmSimultaneous) and
+  else if (AoWHSMap.FConnectionType = pcEmail) and
     (AoWHSMap.FPlayers.GetPlayers(FArmyHS.FArmy.FPlayer).FPlayerType = ptHuman) and
     (Field.GetPlayer >= 0) and
     (AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerType <> ptHuman) then
@@ -13764,6 +13768,8 @@ begin
     else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
   end
   else begin FCombatType := ctFast; FCombatMode := cmSetupReady; end;
+  end
+  else FCombatMode := cmSetupReady;
 
   if (FCombatMode = cmRequestingCombatType) or
     ((FCombatType = ctTactical) and (FCombatMode = cmSetupReady)) then
@@ -13881,10 +13887,10 @@ var
 begin
   if not (Combat is TFastCombat) then
   begin
-    if Combat.FCombatResult = crVictory then
+    if Combat.FCombatResult in [crVictory] then
     begin
       ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Combat.FCombatData.FAttackerX,
-        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindChild($20217));
+        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindOwnedChild($20217));
       if ArmyHS <> nil then
       begin
         Army := ArmyHS.FArmy;
@@ -13922,7 +13928,7 @@ begin
     else
     begin
       ArmyHS := TArmyHS(AoWHSMap.MapContainer.GetField(Combat.FCombatData.FAttackerX,
-        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindChild($20217));
+        Combat.FCombatData.FAttackerY, Combat.FCombatData.FAttackerL).FindOwnedChild($20217));
       if ArmyHS <> nil then
       begin
         for I := ArmyHS.FArmy.Count - 1 downto 0 do
@@ -14090,7 +14096,7 @@ end;
 
 function TArmyCombatMoveTE.ExecuteLastMove: TMoveStatus;
 begin
-  if GetMapF(FPath[FMoveIndex - 1]).FindChild($20217) = nil then
+  if GetMapF(FPath[FMoveIndex - 1]).FindOwnedChild($20217) = nil then
   begin
     FArmyHS.MoveTo(GetMapF(FPath[FMoveIndex - 1]), FPath[FMoveIndex - 1].Flag);
     FArmyHS := nil;
@@ -14104,13 +14110,13 @@ var Field: TAoWMapField;
 begin
   if (FMoveIndex = 1) and (FCombatMode <> cmCombatExecuted) then
   begin
-    if FArmyHS.GetMoveStatus = -1 then Result := False
-    else
+    if FArmyHS.GetMoveStatus <> -1 then
     begin
       Field := GetMapF(FPath[FMoveIndex - 1]);
-      if Field.GetPlayer = -1 then Result := FArmyHS.GetMoveStatus < 100
-      else Result := FArmyHS.GetMoveStatus < 50;
-    end;
+      if Field.GetPlayer <> -1 then Result := FArmyHS.GetMoveStatus < 50
+      else Result := FArmyHS.GetMoveStatus < 100;
+    end
+    else Result := False;
   end
   else Result := inherited Animating;
 end;
@@ -14140,17 +14146,16 @@ begin
   begin
     Field := GetMapF(FPath[0]);
     Player := Field.GetPlayer;
-    if (Player = -1) or (Player = FArmyHS.FArmy.FPlayer) or FIgnoreDefenders then
-      Result := inherited ExecuteMove
-    else
+    if (Player <> -1) and (Player <> FArmyHS.FArmy.FPlayer) and not FIgnoreDefenders then
     begin
       Direction := GetDirection(FMoveIndex + 1);
       if Direction = 0 then Direction := GetHT(FMoveIndex + 1);
-      if (Direction >= 1) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
+      if (Direction > 0) and (Direction <= 6) then FArmyHS.SetDirection(Direction)
       else FArmyHS.SetDirection(0);
       SetupCombat;
       Result := msMoving;
-    end;
+    end
+    else Result := inherited ExecuteMove;
   end
   else Result := inherited ExecuteMove;
 end;
@@ -14215,12 +14220,7 @@ begin
   if not AoWHSMap.FPlayers.GetPlayers(FPlayer).FSingleProcessCycle then
     AoWHSMap.FPlayerControl.EndTurn(FPlayer);
   AoWHSMap.FPlayers.Update;
-  if AoWHSMap.FSeatedPlayer = FPlayer then
-  begin
-    AoWHSMap.ExecuteExitGame;
-    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
-  end
-  else
+  if AoWHSMap.FSeatedPlayer <> FPlayer then
   begin
     Log := TMessageEventLog.Create(nil);
     Log.FButtons := mebOk;
@@ -14229,6 +14229,11 @@ begin
       [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
     AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
     Log.Release;
+  end
+  else
+  begin
+    AoWHSMap.ExecuteExitGame;
+    if Assigned(FExitCallBack) then FExitCallBack(FExitMode, True);
   end;
   Result := erDone;
 end;
@@ -14332,8 +14337,8 @@ begin
       end;
     3:
       begin
-        AoWHSMap.SetFogEnabled(AoWHSMap.FFogEnabled xor 1);
-        if AoWHSMap.FFogEnabled <> 0 then AoWHSMap.ShowMessage(TranslateRStr(P5FogEnabledRStr))
+        AoWHSMap.SetFogEnabled(not AoWHSMap.FFogEnabled);
+        if AoWHSMap.FFogEnabled then AoWHSMap.ShowMessage(TranslateRStr(P5FogEnabledRStr))
         else AoWHSMap.ShowMessage(TranslateRStr(P5FogDisabledRStr));
       end;
     4:
@@ -14399,8 +14404,7 @@ begin
       (AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FPlayerRace = 5) and
       (AUnit.GetAbilityEnabled($A2) or AUnit.GetAbilityEnabled($A4) or AUnit.GetAbilityEnabled($A5)) then
       AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FHeroEmerging := True;
-    if AUnit.GetAbilityEnabled($9B) then AUnit.Killed
-    else
+    if not AUnit.GetAbilityEnabled($9B) then
     begin
       AUnit.GetLocation(X, Y, L);
       Structure := TPlayerStructure(AoWHSMap.MapContainer.GetField(X, Y, L).
@@ -14427,7 +14431,8 @@ begin
         if I = -1 then ArmyHS.FArmy.SetBehavior(1 shl ArmyHS.FArmy.IndexOf(AUnit), Behavior)
         else ArmyHS.FArmy.SetGroup(1 shl ArmyHS.FArmy.IndexOf(AUnit), ArmyHS.FArmy.GetUnit(I).FGroup);
       end;
-    end;
+    end
+    else AUnit.Killed;
     AUnit.RemoveEnchantments;
     AUnit.Release;
     if AoWHSMap.FSeatedPlayer = FPlayer then AoWHSMap.FSelectedArmy.Unselect;
@@ -14562,7 +14567,7 @@ begin
     AddArmy(TArmyHS(Moves.GetMoveSettings(Index).FMoveObject), Moves.GetMoveSettings(Index).FSelection);
     Location := Moves.GetMoveSettings(Index).GetMoveLoc;
     Field := TAoWMapField(AoWHSMap.MapContainer.GetField(Location.X, Location.Y, Location.L));
-    ArmyHS := TArmyHS(Field.FindChild($20217));
+    ArmyHS := TArmyHS(Field.FindOwnedChild($20217));
     if ArmyHS <> nil then AddArmy(ArmyHS, $FF);
     for I := Moves.Count - 1 downto 0 do
       if I <> Index then
@@ -14607,9 +14612,13 @@ begin
         Move.Release;
       end;
     end;
-    Result := Multi.FEvents.Count <> 0;
-    if Result then AoWHSMap.FTokenManager.GetTokenControl(
-      TArmyHS(Moves.GetMoveSettings(0).FMoveObject).FArmy.FPlayer).AddEvent(Multi);
+    if Multi.FEvents.Count <> 0 then
+    begin
+      AoWHSMap.FTokenManager.GetTokenControl(
+        TArmyHS(Moves.GetMoveSettings(0).FMoveObject).FArmy.FPlayer).AddEvent(Multi);
+      Result := True;
+    end
+    else Result := False;
     Multi.Release;
     Path.Free;
   end

@@ -42,9 +42,9 @@ var
   MapField: TMapField;
   HasRoad: Boolean;
 begin
-  OldTransitions := TRoadFields(Pointer(Self)^).Transitions;
+  OldTransitions := FTransitions;
   Level := TMapLevel(Owner.Owner);
-  TRoadFields(Pointer(Self)^).Transitions := 0;
+  FTransitions := 0;
   Msg.MsgID := $1131;
   Msg.Param[0] := Integer(Owner);
   for HN := 1 to 6 do
@@ -62,14 +62,14 @@ begin
         HasRoad := Msg.Param[1] <> 0;
       end
       else HasRoad := True;
-      if HasRoad then Inc(TRoadFields(Pointer(Self)^).Transitions, 1 shl (HN - 1));
+      if HasRoad then Inc(FTransitions, 1 shl (HN - 1));
     end;
   end;
-  if TRoadFields(Pointer(Self)^).Transitions and $22 = $22 then
-    TRoadFields(Pointer(Self)^).Transitions := TRoadFields(Pointer(Self)^).Transitions and $DD + $80;
-  if TRoadFields(Pointer(Self)^).Transitions and $14 = $14 then
-    TRoadFields(Pointer(Self)^).Transitions := TRoadFields(Pointer(Self)^).Transitions and $EB + $40;
-  if OldTransitions <> TRoadFields(Pointer(Self)^).Transitions then
+  if FTransitions and $22 = $22 then
+    FTransitions := FTransitions and $DD + $80;
+  if FTransitions and $14 = $14 then
+    FTransitions := FTransitions and $EB + $40;
+  if OldTransitions <> FTransitions then
     WorldMap^.InvalidateStaticScene(TMapField(Owner).Xhx, TMapField(Owner).Yhx, TMapField(Owner).Lhx);
 end;
 

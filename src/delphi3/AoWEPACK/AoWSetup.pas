@@ -233,20 +233,10 @@ asm jmp TAoWEngine.GetMajorVersion end;
 function MinorVersion(AEngine: TAoWEngine): Integer; assembler;
 asm jmp TAoWEngine.GetMinorVersion end;
 
-{ needs: AoWE.TPlayerTypeRStr, an eight-entry resource-string table. }
-function SetupPlayerTypeName(PlayerType: Byte): string;
-begin
-  case PlayerType of
-    0: Result := AoWE.TranslateRStr(HumanRStr);
-    1: Result := AoWE.TranslateRStr(CPUWarriorRStr);
-    2: Result := AoWE.TranslateRStr(CPUKnightRStr);
-    3: Result := AoWE.TranslateRStr(CPULordRStr);
-    4: Result := AoWE.TranslateRStr(IndependentRStr);
-    5: Result := AoWE.TranslateRStr(FreeRStr);
-    6: Result := AoWE.TranslateRStr(CPUKingRStr);
-    7: Result := AoWE.TranslateRStr(CPUEmperorRStr);
-  end;
-end;
+
+
+
+
 
 constructor TSetupPackage.Create(AOwner: Engine.TECustomNode);
 begin inherited Create(AOwner); end;
@@ -667,6 +657,8 @@ begin
           LoadMap;
         end;
       end;
+    8: if GetHost then hLeaderCustomized(Package.FParam2, TLeader(Package.FData));
+    7: if GetHost then hMapLoaded(Package.FParam2);
     6: if not GetHost then
       begin
         FSettings.Assign(Package.FData, AoWEngine);
@@ -674,8 +666,6 @@ begin
       end;
     9: if not GetHost and Assigned(FOnIncompatibleVersion) then
          FOnIncompatibleVersion(Self, Package.FParam2, Package.FParam1);
-    8: if GetHost then hLeaderCustomized(Package.FParam2, TLeader(Package.FData));
-    7: if GetHost then hMapLoaded(Package.FParam2);
     10: if not GetHost then
       begin
         FPhase := spSendMap;
@@ -827,9 +817,9 @@ procedure TSetupControl.LeaderCustomized(Control: TCustomizeLeaderControl);
 begin
   if not GetHost then
   begin
-    SendHostMessage(8, TLeaderSetupView(Control).Leader, Control.FPlayerIndex, 0);
-    FSettings.GetSettings(Control.FPlayerIndex).FLeader.Assign(TLeaderSetupView(Control).Leader, AoWEngine);
-  end else hLeaderCustomized(Control.FPlayerIndex, TLeaderSetupView(Control).Leader);
+    SendHostMessage(8, Control.FOriginalLeader, Control.FPlayerIndex, 0);
+    FSettings.GetSettings(Control.FPlayerIndex).FLeader.Assign(Control.FOriginalLeader, AoWEngine);
+  end else hLeaderCustomized(Control.FPlayerIndex, Control.FOriginalLeader);
   if ssBusy in FStatus then
   begin
     FSettings.GetSettings(Control.FPlayerIndex).FStatus := FSettings.GetSettings(Control.FPlayerIndex).FStatus + [pssLeaderCustomized];
@@ -860,7 +850,7 @@ Player.FLeader.Assign(FSettings.GetSettings(I).FLeader, AoWEngine); Player.FLead
 TPlayerConnectionType(FSettings.FConnectionType); if GetRemote then begin RemotePCC := TRemotePCC.Create; RemotePCC.Setup(AoWHSMap.FPlayers.GetCount, FRemotePlayer.FRemoteID); RemotePCC.SetConnectionMode(0, cmGlobal); RemotePCC.SetSystemID(0, FRemotePlayer.FRemoteID); for I := 0 to FSettings.GetCount - 1 do if FSettings.GetSettings(I).FBehavior.PlayerType <> 0 then begin RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmGlobal);
 RemotePCC.SetSystemID(Shortint(FSettings.GetSettings(I).FPlayerID), FRemotePlayer.FRemoteID); end else begin if FSettings.GetSettings(I).FBehavior.Flags = FRemotePlayer.FRemoteID then RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmLocal) else RemotePCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmRemote); RemotePCC.SetSystemID(Shortint(FSettings.GetSettings(I).FPlayerID), FSettings.GetSettings(I).FBehavior.Flags); end;
 AoWHSMap.FPlayerCommunicator.ActivatePCC(RemotePCC); RemotePCC.OnSendData := FOnSendData; ListPCCInfo(RemotePCC); RemotePCC.Release; end else begin LocalPCC := TLocalPCC.Create; LocalPCC.Setup(AoWHSMap.FPlayers.GetCount); LocalPCC.SetConnectionMode(0, cmGlobal); for I := 0 to FSettings.GetCount - 1 do if FSettings.GetSettings(I).FBehavior.PlayerType = 0 then LocalPCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmLocal) else
-LocalPCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmGlobal); AoWHSMap.FPlayerCommunicator.ActivatePCC(LocalPCC); ListPCCInfo(LocalPCC); LocalPCC.Release; end; if FSettings.FMapDay = 0 then begin AoWHSMap.FInitialRandomSeed := FSettings.FRandomSeed; AoWHSMap.FFixedLeaders := FSettings.FLeadersOnMap; AoWHSMap.FAlliedVictory := FSettings.FAlliedVictory; AoWHSMap.SetExplorationEnabled(FSettings.FExplorationEnabled); AoWHSMap.SetFogEnabled(1); end; AoWHSMap.FDayLimit :=
+LocalPCC.SetConnectionMode(Shortint(FSettings.GetSettings(I).FPlayerID), cmGlobal); AoWHSMap.FPlayerCommunicator.ActivatePCC(LocalPCC); ListPCCInfo(LocalPCC); LocalPCC.Release; end; if FSettings.FMapDay = 0 then begin AoWHSMap.FInitialRandomSeed := FSettings.FRandomSeed; AoWHSMap.FFixedLeaders := FSettings.FLeadersOnMap; AoWHSMap.FAlliedVictory := FSettings.FAlliedVictory; AoWHSMap.SetExplorationEnabled(FSettings.FExplorationEnabled); AoWHSMap.SetFogEnabled(True); end; AoWHSMap.FDayLimit :=
 FSettings.FDayLimit; AoWHSMap.FTurnTime := FSettings.FTurnTime; AoWHSMap.FVictoryMode := FSettings.FTacticalCombatAvailability; AoWHSMap.FLeadersFixed := FSettings.FCustomizeLeaders; AoWHSMap.FStartingGame := FSettings.FAlwaysViewTC; RemoveIndependentPlayers; AoWHSMap.SetupPlayerControl(TPlayMode(FSettings.FPlayMode), TPlayerConnectionType(FSettings.FConnectionType)); if Assigned(FOnSetupMap) then try FOnSetupMap(Self); except end; Reset; if Assigned(FOnStart) then try FOnStart(Self); except
 end; end;
 
@@ -953,19 +943,29 @@ end;
 procedure TSetupControl.ListAvailablePlayers(List: TStrings);
 var I: Integer;
 begin
-  if not GetRemote then List.Add(SetupPlayerTypeName(0))
+  if GetRemote then
+  begin
+    List.Add(TranslateRStr(TPlayerTypeRStr[5]));
+    for I := 0 to FSettings.FRemotePlayers.Count - 1 do List.Add(FSettings.FRemotePlayers.GetPlayers(I).FName);
+    List.Add(TranslateRStr(TPlayerTypeRStr[1]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[2]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[3]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[6]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[7]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[4]));
+  end
   else
   begin
-    List.Add(SetupPlayerTypeName(5));
-    for I := 0 to FSettings.FRemotePlayers.Count - 1 do List.Add(FSettings.FRemotePlayers.GetPlayers(I).FName);
+    List.Add(TranslateRStr(TPlayerTypeRStr[0]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[1]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[2]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[3]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[6]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[7]));
+    List.Add(TranslateRStr(TPlayerTypeRStr[4]));
   end;
-  List.Add(SetupPlayerTypeName(1));
-  List.Add(SetupPlayerTypeName(2));
-  List.Add(SetupPlayerTypeName(3));
-  List.Add(SetupPlayerTypeName(6));
-  List.Add(SetupPlayerTypeName(7));
-  List.Add(SetupPlayerTypeName(4));
 end;
+
 function TSetupControl.ValidatePlayerName(const Name: string): string;
 var Done: Boolean; List: TStringList; I: Integer; Unique: Boolean;
 begin
@@ -982,12 +982,12 @@ begin
       Unique := CompareText(Result, List[I]) <> 0;
       Inc(I);
     end;
-    if Unique then Done := True
-    else
+    if not Unique then
       { Original reads the last character without guarding an empty name. }
       if Result[Length(Result)] in ['1'..'8'] then
-        Result := Copy(Result, 1, Length(Result) - 1) + IntToStr(Ord(Result[Length(Result)]) - Ord('0') + 1)
-      else Result := Result + '1';
+        Result := Copy(Result, 1, Length(Result) - 1) + IntToStr(Ord(Result[Length(Result)]) + 1 - Ord('0'))
+      else Result := Result + '1'
+    else Done := True;
   end;
   List.Free;
 end;
@@ -1009,8 +1009,8 @@ begin
   if not Result then
   begin
     PlayerType := 0;
-    while not Result and (PlayerType < 8) do
-      if CompareText(Name, SetupPlayerTypeName(PlayerType)) = 0 then
+    while not Result and (PlayerType <= 7) do
+      if CompareText(Name, TranslateRStr(TPlayerTypeRStr[PlayerType])) = 0 then
       begin
         Result := True;
         Behavior.PlayerType := PlayerType;

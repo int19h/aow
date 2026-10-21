@@ -1839,11 +1839,11 @@ begin
     for J := 0 to Units.Count - 1 do Predictor.AddOpponent(Units.GetUnit(J), 0);
     if Predictor.Execute = crVictory then
     begin
-      if Predictor.GetSuperiority div 4 < 75 then
+      if Predictor.GetSuperiority div 4 >= 75 then
         List.Add(SysUtils.Format(TranslateRStr(LoadResString(OccupationForcesXText)),
-          [TranslateRStr(LoadResString(AverageText))]))
+          [TranslateRStr(LoadResString(StrongText))]))
       else List.Add(SysUtils.Format(TranslateRStr(LoadResString(OccupationForcesXText)),
-          [TranslateRStr(LoadResString(StrongText))]));
+          [TranslateRStr(LoadResString(AverageText))]));
     end
     else List.Add(SysUtils.Format(TranslateRStr(LoadResString(OccupationForcesXText)),
         [TranslateRStr(LoadResString(WeakText))]));
@@ -1944,7 +1944,7 @@ var
 begin
   Terrain := TMapField(Owner).TerrainType;
   if Terrain = 3 then Offset := 20
-  else if (Terrain = 5) or (Terrain in [7..9, 12..13]) then Offset := 40
+  else if Terrain in [5, 7..9, 12..13] then Offset := 40
   else Offset := 0;
   Images := FResource.ImageSequenceList.ImageSequences[0].ImageLibrary;
   if GetRazed then
@@ -2063,11 +2063,11 @@ end;
 
 procedure TCity.UpdateFlagID;
 begin
-  if (moEditMode in FStatus) or ((cmRazed in FMode) and not GetBuilding) or (cmWarmode in FMode) then
-    FFlagID := 63
-  else if FPlayer > 0 then
-    FFlagID := WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerRace + (FUpgradeLevel - 1) * 64
-  else FFlagID := 32 + (FUpgradeLevel - 1) * 64;
+  if not (moEditMode in FStatus) and (not (cmRazed in FMode) or GetBuilding) and not (cmWarmode in FMode) then
+    if FPlayer > 0 then
+      FFlagID := WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerRace + (FUpgradeLevel - 1) * 64
+    else FFlagID := 32 + (FUpgradeLevel - 1) * 64
+  else FFlagID := 63;
 end;
 
 function TCity.GetName: string;
@@ -2129,7 +2129,7 @@ begin
   XhpSurf := X - XhpSurf;
   YhpSurf := Y - YhpSurf;
   if not (cmRazed in FMode) or GetBuilding then
-    if ((msEditting in WorldMap^.Status) or not FFogged or (WorldMap^.FFogEnabled = 0)) and
+    if ((msEditting in WorldMap^.Status) or not FFogged or (not WorldMap^.FFogEnabled)) and
       (FFlagID <> 63) and (TCityResource(FResource).FClaimed or (FFlagID and $20 = 0)) then
       with TCityResource(FResource) do
         if FFlagType <= 1 then
@@ -2350,7 +2350,7 @@ begin
   if (bfrEffectiveStrength in Info.Requests) and (FPlayer > 0) then
   begin
     Value := 5000;
-    if WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(FPlayer) in [sHostile, sWary] then Value := 10000;
+    if WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(FPlayer) in [sHostile, sWary] then Value := Value * 2;
     Relation := DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, 0);
     if Ord(Relation) in Info.FriendlyRelations then Dec(Info.FriendlyStrength, Value);
     if Ord(Relation) in Info.EnemyRelations then Dec(Info.Strength, Value);
@@ -2375,7 +2375,7 @@ begin
   begin
     if (Msg.MsgID = $110C) and (Msg.HN = 0) then
     begin
-      if ((WorldMap^.FFogEnabled = 0) or not FFogged) and (FPlayer >= 0) then
+      if ((not WorldMap^.FFogEnabled) or not FFogged) and (FPlayer >= 0) then
       begin
         if FPlayer = 0 then Inc(Msg.Param[0], $D0000)
         else Inc(Msg.Param[0], (WorldMap^.FPlayers.GetPlayers(FPlayer).FPlayerRace + 1) * $10000);
@@ -2500,13 +2500,15 @@ begin
   begin
     Index := -1;
     case Action of
-      caUpgrade: Index := 33;
       caFortify:
-        if FWallType = 0 then Index := 30
-        else if FWallType = 1 then Index := 48;
+        case FWallType of
+          0: Index := 30;
+          1: Index := 48;
+        end;
+      caUpgrade: Index := 33;
       caMigrate: Index := 39;
-      caLoot: Index := 45;
       caRaze: Index := 51;
+      caLoot: Index := 45;
     end;
     if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
     begin
@@ -2534,13 +2536,15 @@ begin
   begin
     Index := -1;
     case Action of
-      caUpgrade: Index := 34;
       caFortify:
-        if FWallType = 0 then Index := 31
-        else if FWallType = 1 then Index := 49;
+        case FWallType of
+          0: Index := 31;
+          1: Index := 49;
+        end;
+      caUpgrade: Index := 34;
       caMigrate: Index := 40;
-      caLoot: Index := 46;
       caRaze: Index := 52;
+      caLoot: Index := 46;
     end;
     if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
     begin
@@ -2568,13 +2572,15 @@ begin
   begin
     Index := -1;
     case Action of
-      caUpgrade: Index := 35;
       caFortify:
-        if FWallType = 0 then Index := 32
-        else if FWallType = 1 then Index := 50;
+        case FWallType of
+          0: Index := 32;
+          1: Index := 50;
+        end;
+      caUpgrade: Index := 35;
       caMigrate: Index := 41;
-      caLoot: Index := 47;
       caRaze: Index := 53;
+      caLoot: Index := 47;
     end;
     if (FResource.ImageSequenceList <> nil) and (Index <> -1) then
     begin
@@ -2781,7 +2787,7 @@ function TCityAIPA.ValidResearchCity(City: TCity): Boolean;
 begin
   Result := City.FProduction.GetProduceUnitLevelMax < City.FUpgradeLevel;
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
+    ((City.GetActiveAction in [caProduce]) and (City.FProduction.FSettings.FTurnsLeft = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidResearchBudgetCity(City: TCity): Boolean;
@@ -2896,7 +2902,7 @@ begin
     not ((Level = FMaxProductionLevel) and (FProductionLevelCounts[Level] = 1)) and
     (Level = City.FUpgradeLevel);
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
+    ((City.GetActiveAction in [caProduce]) and (City.FProduction.FSettings.FTurnsLeft = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean;
@@ -2984,7 +2990,7 @@ begin
   Result := (Result and (City.FWallType = 0)) or
     ((City.FWallType = 1) and (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
   Result := Result and ((City.GetActiveAction in [caNone, caTrade]) or
-    ((City.GetActiveAction in [caProduce]) and (Byte(City.FProduction.FSettings.FTurnsLeft) = City.FProduction.FSettings.FTurnsTotal)));
+    ((City.GetActiveAction in [caProduce]) and (City.FProduction.FSettings.FTurnsLeft = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
 function TCityAIPA.ValidFortifyBudgetCity(City: TCity): Boolean;
@@ -3125,7 +3131,7 @@ begin
       UpgradeBudget := TAICityUpgradeBudget.Create(nil);
       UpgradeBudget.Owner := Manager.FBudgets;
       UpgradeBudget.FRequiredGold := 250;
-      UpgradeBudget.FPriority := 7;
+      UpgradeBudget.FDays := 7;
     end;
     ResearchBudget := TAIBudget(Manager.FBudgets.FindChild($20116));
     if ResearchBudget <> nil then
@@ -3133,14 +3139,14 @@ begin
       if ResearchBudget.FGold + UpgradeBudget.FGold > 125 then
         if ResearchProduction(ResearchBudget, UpgradeBudget) then
         begin
-          ResearchBudget.FPriority := 7;
+          ResearchBudget.FDays := 7;
           ResearchBudget.FRequiredGold := 125;
         end;
     end
     else
     begin
       ResearchBudget := TAICityResearchBudget.Create(nil);
-      ResearchBudget.FPriority := 7;
+      ResearchBudget.FDays := 7;
       ResearchBudget.FRequiredGold := 125;
       ResearchBudget.Owner := Manager.FBudgets;
     end;
@@ -3149,7 +3155,7 @@ begin
       if UpgradeCity(UpgradeBudget) then
       begin
         UpgradeBudget.FRequiredGold := 250;
-        UpgradeBudget.FPriority := 7;
+        UpgradeBudget.FDays := 7;
       end;
     ValidateUpgradeBudget(UpgradeBudget);
     FortifyBudget := TAIBudget(Manager.FBudgets.FindChild($20117));
@@ -3158,7 +3164,7 @@ begin
       if WorldMap^.FDay > 5 then
       begin
         FortifyBudget := TAICityFortifyBudget.Create(nil);
-        FortifyBudget.FPriority := 7;
+        FortifyBudget.FDays := 7;
         FortifyBudget.FRequiredGold := 80;
         FortifyBudget.Owner := Manager.FBudgets;
       end;
@@ -3166,7 +3172,7 @@ begin
     else if FortifyBudget.GetReady then
       if FortifyCity(FortifyBudget) then
       begin
-        FortifyBudget.FPriority := 7;
+        FortifyBudget.FDays := 7;
         FortifyBudget.FRequiredGold := 80;
       end;
     if FortifyBudget <> nil then ValidateFortifyBudget(FortifyBudget);
@@ -3202,13 +3208,13 @@ end;
 function ProductionIDToCityAction(ID: Integer): TCityAction;
 begin
   case ID of
+    1: Result := caProduce;
+    2: Result := caResearch;
     10: Result := caTrade;
     11: Result := caUpgrade;
     12: Result := caFortify;
     13: Result := caMigrate;
     14: Result := caLoot;
-    1: Result := caProduce;
-    2: Result := caResearch;
   else Result := caNone;
   end;
 end;
@@ -3216,13 +3222,13 @@ end;
 function CityActionToProductionID(Action: TCityAction): Integer;
 begin
   case Action of
+    caProduce: Result := 1;
+    caResearch: Result := 2;
     caTrade: Result := 10;
     caUpgrade: Result := 11;
     caFortify: Result := 12;
     caMigrate: Result := 13;
     caLoot: Result := 14;
-    caProduce: Result := 1;
-    caResearch: Result := 2;
   else Result := 0;
   end;
 end;

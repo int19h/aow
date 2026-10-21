@@ -111,7 +111,7 @@
     FMapChangedEvents: TEventList; { $BC }
     FScannerIconsChangedEvents: TEventList; { $C0 }
     FScannerIconsChangedLockCount: Integer; { $C4 }
-    FFogEnabled: Byte; { $C8 }
+    FFogEnabled: Boolean; { $C8 }
     FExplorationEnabled: Boolean; { $C9 }
     FShowGrid: Boolean; { $CA; 55778A78 }
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
@@ -133,7 +133,7 @@
     procedure UpdateHexagonSelector; virtual; { $F4 }
     procedure SetSeatedPlayer(A1: Shortint); virtual; { $F8 }
     procedure SetCurrentPlayer(A1: Shortint); virtual; { $FC }
-    procedure SetFogEnabled(Value: Byte); virtual; { $100 }
+    procedure SetFogEnabled(Value: Boolean); virtual; { $100 }
     procedure SetExplorationEnabled(Value: Boolean); virtual; { $104 }
     procedure DropHeroItem(Hero: THero; Item: TItem); virtual; { $108 }
     function GetHeroItemsOnGround(Hero: THero): TItemList; virtual; { $10C }

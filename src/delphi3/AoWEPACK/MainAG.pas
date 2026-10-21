@@ -79,7 +79,7 @@ type
   { TSuicidalAGC (instance size 368, VMT 557DA4A8) }
   TSuicidalAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
   end;
@@ -97,7 +97,7 @@ type
   { TTransportAGC (instance size 368, VMT 557DA6F8) }
   TTransportAGC = class(TAIGroupControl)
   public
-    procedure MoveExecuterDone; override;
+    procedure MoveExecuterDone(Sender: TObject); override;
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); override;
     procedure ProcessStates; override;
     procedure SetupME; override;
@@ -399,7 +399,7 @@ begin
   begin
     Dec(I);
     AUnit := FGroup.GetUnit(I);
-    Result := AUnit.ExpandAbility(52) and
+    Result := AUnit.GetAbilityEnabled(52) and
       TSpellCastingAbility(AoWHSSet.FAbilityControl.GetAbility(52)).CanCastBreachWallSpell(AUnit);
   end;
 end;
@@ -738,18 +738,16 @@ begin Result := TSuicidalAGC; end;
 procedure TSuicidalAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin
   SetupCP(Target);
-  case FCombatPredictor.Execute of
-    crVictory, crDefeat, crNoDefenders:
+  if FCombatPredictor.Execute in [crVictory, crDefeat, crNoDefenders] then
       if FCombatPredictor.GetEfficiency > 0 then
       begin
         Target.FData.Priority := FCombatPredictor.GetEfficiency +
           (Target.FData.Priority * 100 - Target.FMovePoints * 5);
         inherited TargetFoundEvent(Sender, Target, SearchDone);
       end;
-  end;
 end;
 
-procedure TSuicidalAGC.MoveExecuterDone;
+procedure TSuicidalAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FState of
     1:
@@ -812,18 +810,16 @@ begin Result := TTransportAGC; end;
 procedure TTransportAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
 begin
   SetupCP(Target);
-  case FCombatPredictor.Execute of
-    crVictory, crDefeat, crNoDefenders:
+  if FCombatPredictor.Execute in [crVictory, crDefeat, crNoDefenders] then
       if FCombatPredictor.GetEfficiency > 75 then
       begin
         Target.FData.Priority := FCombatPredictor.GetEfficiency +
           (Target.FData.Priority * 100 - Target.FMovePoints * 5);
         inherited TargetFoundEvent(Sender, Target, SearchDone);
       end;
-  end;
 end;
 
-procedure TTransportAGC.MoveExecuterDone;
+procedure TTransportAGC.MoveExecuterDone(Sender: TObject);
 begin
   case FState of
     1:

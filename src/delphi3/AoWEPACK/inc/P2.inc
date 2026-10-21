@@ -1562,7 +1562,7 @@ end;
 procedure TAbstractUnit.MovedTo(OldField, NewField: TMapField; MaxCost: Integer);
 var
   Cost: Integer;
-  Army: TArmy;
+  Army: TEObject;
 begin
   Cost := MovePointCost(NewField.TerrainType,NewField.OverlayType);
   if Cost < 0 then Cost := MaxCost else if Cost > MaxCost then Cost := MaxCost;
@@ -1575,8 +1575,8 @@ begin
     AoWHSMap.ChangeTerrain(nil,NewField.Xhx,NewField.Yhx,NewField.Lhx,0,Ord(ttDirt));
   if OldField <> nil then
   begin
-    Army := TArmy(Owner);
-    if not ((Army is TArmy) and (Army.Transporter($FF) <> nil)) then
+    Army := Owner;
+    if not ((Army is TArmy) and (TArmy(Army).Transporter($FF) <> nil)) then
     begin
       if OldField.Lhx = 0 then
       begin
@@ -2444,7 +2444,7 @@ begin Result := FUnitResource.FGender; end;
 procedure TUnit.Killed;
 begin
   inherited Killed;
-  UnitKilled;
+  Deactivate;
   SetOwner(nil);
 end;
 
@@ -2587,7 +2587,7 @@ var
 begin
   if Resource <> FUnitResource then
   begin
-    Clear;
+    inherited Clear;
     FUnitResource := Resource;
     if FUnitResource <> nil then
     begin
@@ -3376,7 +3376,7 @@ begin
   if AoWHSMap.FShowUnitShadows then
   begin
     FShadow := TUnitShadowHS.Create(nil);
-    with FShadow do FUnitHS := Self;
+    FShadow.FUnitHS := Self;
   end;
 end;
 
@@ -8227,7 +8227,7 @@ begin
   begin
     I := 0;
     Result := True;
-    while (Byte(I <> GetCount) and Byte(Result) <> 0) do
+    while ((I <> GetCount) and Result) do
     begin
       if (1 shl I) and Selection <> 0 then
         Result := TAbstractUnit(FChildren.List^[I]).ValidTerrain(TerrainType, OverlayType);
@@ -8245,7 +8245,7 @@ begin
   begin
     I := 0;
     Result := True;
-    while (Byte(I <> GetCount) and Byte(Result) <> 0) do
+    while ((I <> GetCount) and Result) do
     begin
       Result := TAbstractUnit(FChildren.List^[I]).ValidTerrain(TerrainType, OverlayType);
       Inc(I);
@@ -9423,13 +9423,13 @@ end;
 
 function TArmyHS.GetFogEnabled: Boolean;
 begin
-  Result := (AoWHSMap.FFogEnabled <> 0) and
+  Result := (AoWHSMap.FFogEnabled) and
     (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo = 0);
 end;
 
 function TArmyHS.VisibleForSeatedPlayer: Boolean;
 begin
-  Result := ((AoWHSMap.FFogEnabled = 0) or
+  Result := ((not AoWHSMap.FFogEnabled) or
     (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0)) and not FArmy.GetFullyConcealed;
 end;
 
@@ -9648,7 +9648,7 @@ end;
 
 procedure TArmyHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin
-  if Info.HN = 0 then TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $0F007000;
+  if Info.HN = 0 then TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $2000 or $1000 or $1000000 or $4000 or $2000000 or $4000000 or $8000000;
 end;
 
 function TArmyHS.MoveTo(Field: TMapField; MoveCost: Integer): Boolean;
@@ -9720,7 +9720,7 @@ end;
 procedure TArmyHS.ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
 var Sequence: TImageSequence; Xhp, Yhp, DX, DY: Integer; Part: Single;
 begin
-  if ((WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0)) and
+  if ((WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled)) and
     not (asFullyConcealed in FArmy.FStatus) then
   begin
     HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
@@ -9779,9 +9779,9 @@ end;
 procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 var Sequence: TImageSequence; Frame, Xhp, Yhp, DX, DY: Integer; Part: Real;
 begin
-  if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (AoWHSMap.FFogEnabled = 0) then
+  if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled) then
   begin
-    Assert(FUnitGFXResource.FSequences.Count > FDirection, 'Invalid Unit Index');
+    Assert(FDirection < FUnitGFXResource.FSequences.Count, 'Invalid Unit Index');
     HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
     XhpSurf := Xhp - XhpSurf;
     YhpSurf := Yhp - YhpSurf;
@@ -9892,10 +9892,11 @@ begin
   if Msg.HN = 0 then
     if Msg.MsgID = $110C then
     begin
-      if not (asFullyConcealed in FArmy.FStatus) and ((AoWHSMap.FFogEnabled = 0) or
+      if not (asFullyConcealed in FArmy.FStatus) and ((not AoWHSMap.FFogEnabled) or
         (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0)) then
-        if FArmy.FPlayer = 0 then Msg.Param[0] := Msg.Param[0] or $D
-        else Msg.Param[0] := Msg.Param[0] or (AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FPlayerRace + 1);
+        if FArmy.FPlayer <> 0 then
+          Msg.Param[0] := Msg.Param[0] or (AoWHSMap.FPlayers.GetPlayers(FArmy.FPlayer).FPlayerRace + 1)
+        else Msg.Param[0] := Msg.Param[0] or $D;
     end
     else if Msg.MsgID = $1200 then
     begin
@@ -10412,14 +10413,14 @@ begin
           if MoveArmy(ArmyHS, GetSelection, FPath) then
           begin
             if FPath.MovePointsToPos(ArmyHS.FArmy.MovePoints($FF)) > 0 then
-              with ArmyHS.FArmy do Include(FUserMode, aumTurnDone);
+              with ArmyHS.FArmy do FUserMode := FUserMode + [aumTurnDone];
             FPath.Clear;
             if msEditting in AoWHSMap.Status then AoWHSMap.Selection.UnselectLocation;
             DeactivateMoveSelection;
           end;
         end;
       end
-      else if (PByteArray(Field)^[26] <> 0) or (AoWHSMap.FFogEnabled = 0) then
+      else if (PByteArray(Field)^[26] <> 0) or (not AoWHSMap.FFogEnabled) then
         AoWHSMap.ShowMessage(Format(TranslateRStr(ArmyNotAtWarRStr),
           [TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerRace])]));
     end;
@@ -10450,7 +10451,7 @@ begin
       AoWHSMap.Mouse.Yhx, AoWHSMap.ViewL));
     if (FCurrentMove <> -1) and
       (not AoWHSMap.FExplorationEnabled or Field.GetExplored(AoWHSMap.FSeatedPlayer)) and
-      ((AoWHSMap.FFogEnabled = 0) or (PByteArray(Field)^[26] <> 0)) then
+      ((not AoWHSMap.FFogEnabled) or (PByteArray(Field)^[26] <> 0)) then
       case Field.GetMoveAction(GetArmyHS.FArmy.FPlayer) of
         maAttack: AoWHSMap.Mouse.CursorMode := $102;
         maNegotiate: AoWHSMap.Mouse.CursorMode := $103;
@@ -10464,7 +10465,7 @@ begin
       if mtWalking in GetMoveTypes then AoWHSMap.Mouse.Cursor := $40
       else if mtSwimming in GetMoveTypes then AoWHSMap.Mouse.Cursor := $42
       else if mtFlying in GetMoveTypes then AoWHSMap.Mouse.Cursor := $44;
-      Cost := FMoveControlSettings.FMovePointTable[Field.TerrainType, Field.OverlayType + 1];
+      Cost := FMoveControlSettings.FMovePointTable[Field.TerrainType, Field.OverlayType];
       if (Cost = 0) or (AoWHSMap.FExplorationEnabled and
         not Field.GetExplored(AoWHSMap.FSeatedPlayer)) then
         with AoWHSMap.Mouse do Cursor := Cursor or 1;
@@ -10627,7 +10628,7 @@ procedure TSelectedArmy.TurnDone;
 begin
   if (GetArmyHS <> nil) and (GetArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) then
   begin
-    Include(GetArmyHS.FArmy.FUserMode, aumTurnDone);
+    GetArmyHS.FArmy.FUserMode := GetArmyHS.FArmy.FUserMode + [aumTurnDone];
     AoWHSMap.SelectNextArmy;
   end;
 end;
@@ -11745,7 +11746,7 @@ end;
 function TItemHS.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin
   if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo = 0) and
-    (AoWHSMap.FFogEnabled <> 0) then Result := False
+    (AoWHSMap.FFogEnabled) then Result := False
   else Result := True;
 end;
 
@@ -11983,9 +11984,6 @@ begin
             120: FFrame := -1;
           end;
         end;
-      fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEMParticle, fxTranqParticle:
-        if FFrame >= FPath.Count - 1 then
-        begin FFrame := FPath.Count - 1; FDone := True; end;
       fxEarthMastery:
         case FFrame of
           0..49:
@@ -11999,6 +11997,9 @@ begin
             end;
           200: FFrame := -1;
         end;
+      fxWMParticle, fxWMLParticle, fxHatredParticle, fxSWParticle, fxSWBeamParticle, fxEMParticle, fxTranqParticle:
+        if FFrame >= FPath.Count - 1 then
+        begin FFrame := FPath.Count - 1; FDone := True; end;
     end;
     if FFrame = -1 then FDone := True;
   except
@@ -12070,6 +12071,8 @@ begin
   try
     if FFrame >= 0 then
       case FEffectType of
+        fxEMParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(64).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
         fxWMParticle:
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(45).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
         fxWMLParticle:
@@ -12077,14 +12080,12 @@ begin
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(75).FCastImages.GetImageSequence(1); ShowLocal(False); end;
         fxHatredParticle:
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(46).FCastImages.GetImageSequence(0); ShowGlobal(True, False); end;
+        fxTranqParticle:
+          begin Sequence := AoWHSSet.FSpellControl.GetSpell(47).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
         fxSWParticle:
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(65).FCastImages.GetImageSequence(1); ShowGlobal(False, True); end;
         fxSWBeamParticle:
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(65).FCastImages.GetImageSequence(1); ShowGlobal(False, False); end;
-        fxEMParticle:
-          begin Sequence := AoWHSSet.FSpellControl.GetSpell(64).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
-        fxTranqParticle:
-          begin Sequence := AoWHSSet.FSpellControl.GetSpell(47).FCastImages.GetImageSequence(0); ShowGlobal(False, False); end;
       end;
   except
     MessageBox(0, PChar('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 'Error during Show', 0);
@@ -12156,8 +12157,8 @@ begin
         alEnglish: Dictionary.SetLanguage(1);
         alGerman: Dictionary.SetLanguage(2);
         alFrench: Dictionary.SetLanguage(3);
-        alSpanish: Dictionary.SetLanguage(5);
         alItalian: Dictionary.SetLanguage(4);
+        alSpanish: Dictionary.SetLanguage(5);
       end;
       TranslateEObject(Obj, Dictionary);
       Dictionary.Close;

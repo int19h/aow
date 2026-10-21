@@ -189,9 +189,7 @@
     FMovePoints: Integer; { $14 }
     FMoves: Integer; { $18 }
     FPriority: Integer; { $1C }
-    FSelection: Byte; { $20 }
-    { conflict: FSelection: Integer; }
-    FReserved21: array[0..2] of Byte;
+    FSelection: Integer; { $20; 5578C260 }
     FMovePos: Integer; { $24 }
     FValid: Boolean; { $28 }
     FReserved29: array[0..2] of Byte;

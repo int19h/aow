@@ -574,21 +574,27 @@ begin Result := FEvents.FindID(ID); end;
 
 function TEventLogbook.FindFirstLog(Player, Day: Integer): Integer;
 begin
+  with FEvents do
+  begin
   Result := 0;
-  while (Result <> FEvents.FChildren.Count) and
-    ((TEventLog(FEvents.FChildren.List^[Result]).FPlayer <> Player) or
-     (TEventLog(FEvents.FChildren.List^[Result]).FDay <> Day)) do Inc(Result);
-  if Result = FEvents.FChildren.Count then Result := -1;
+  while (Result <> FChildren.Count) and
+    ((TEventLog(FChildren.List^[Result]).FPlayer <> Player) or
+     (TEventLog(FChildren.List^[Result]).FDay <> Day)) do Inc(Result);
+  if Result = FChildren.Count then Result := -1;
+  end;
 end;
 
 function TEventLogbook.FindFirstLogEx(ClassID: Integer; Player: Integer; Day: Integer): Integer;
 begin
+  with FEvents do
+  begin
   Result := 0;
-  while (Result <> FEvents.FChildren.Count) and
-    ((TEventLog(FEvents.FChildren.List^[Result]).FPlayer <> Player) or
-     (TEventLog(FEvents.FChildren.List^[Result]).FDay <> Day) or
-     (TEventLog(FEvents.FChildren.List^[Result]).ClassID <> ClassID)) do Inc(Result);
-  if Result = FEvents.FChildren.Count then Result := -1;
+  while (Result <> FChildren.Count) and
+    ((TEventLog(FChildren.List^[Result]).FPlayer <> Player) or
+     (TEventLog(FChildren.List^[Result]).FDay <> Day) or
+     (TEventLog(FChildren.List^[Result]).ClassID <> ClassID)) do Inc(Result);
+  if Result = FChildren.Count then Result := -1;
+  end;
 end;
 
 procedure TEventLogbook.AddEvent(Event: TEventLog);
@@ -675,8 +681,8 @@ begin inherited ReadWrite(Stream); Stream.rwStrings(FMessage, 20); end;
 function TGameOverEventLog.GetText: string;
 begin
   case AoWHSMap.FPlayers.GetPlayers(FPlayer).FGameOverStatus of
-    goWon: Result := SysUtils.Format(TranslateRStr(GameOverVictoryEventLogRStr), [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
     goLost: Result := SysUtils.Format(TranslateRStr(GameOverDefeatEventLogRStr), [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
+    goWon: Result := SysUtils.Format(TranslateRStr(GameOverVictoryEventLogRStr), [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
   end;
 end;
 

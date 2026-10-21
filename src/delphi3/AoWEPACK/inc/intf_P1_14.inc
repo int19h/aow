@@ -39,6 +39,7 @@ const
 var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string;
+  TPlayerTypeRStr: array[0..7] of string; { $558E81A0 }
   TCombatModeRStr: array[TCombatMode] of string;
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
   TStatusRStr: TStatusNames;

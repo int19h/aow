@@ -206,7 +206,7 @@
     function Cast(Player: Shortint): Boolean; virtual; { +070 }
     function CanDispel(Player: Shortint; var Reason: string): Boolean; virtual; { +074; 557EBE5C }
     function Dispel(Player: Byte): Boolean; virtual; { +078; 5577DDA4 }
-    function CanRemove(Player: Byte; var Reason: string): Boolean; virtual; { +07C; 5577DF28 }
+    function CanRemove(Player: Shortint; var Reason: string): Boolean; virtual; { +07C; 5577DF28 }
     function Remove(Player: Byte): Boolean; virtual; { +080; 5577DF44 }
     function VisibleForPlayer(Player: Shortint): Boolean; virtual;  { +084 }
     procedure CenterToLocation; virtual; { +088; 5577D970 }

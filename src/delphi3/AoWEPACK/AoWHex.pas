@@ -156,8 +156,8 @@ var
   Image: Integer;
 begin
   Shifted := False;
-  THexagonFields(Pointer(Self)^).Transitions[Side] := 255;
-  THexagonFields(Pointer(Self)^).Sides := THexagonFields(Pointer(Self)^).Sides and SideClear[Side];
+  FTransitions[Side] := 255;
+  FTransitionSides := FTransitionSides and SideClear[Side];
   MapLevel := TMapLevel(Owner.Owner);
   HNtoHX(SideHN[Side], NXhx, NYhx);
   TranslateHX(0, 0, TMapField(Owner).Xhx, TMapField(Owner).Yhx, NXhx, NYhx, NXhx, NYhx);
@@ -172,27 +172,27 @@ begin
       if OwnTerrain = 9 then
       begin
         if (NeighbourTerrain = 10) or (NeighbourTerrain = 13) then
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Random(3) * 3 + (Side + $B6)
+          FTransitions[Side] := Random(3) * 3 + (Side + $B6)
         else if (NeighbourTerrain <> 8) and (NeighbourTerrain <> 7) then
         begin
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $93;
+          FTransitions[Side] := Side + $93;
           Shifted := True;
         end;
       end
       else if NeighbourTerrain = 9 then
       begin
         if (OwnTerrain = 10) or (OwnTerrain = 13) then
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Random(3) * 3 + (Side + $B6)
+          FTransitions[Side] := Random(3) * 3 + (Side + $B6)
         else if (OwnTerrain <> 8) and (OwnTerrain <> 7) then
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $90;
+          FTransitions[Side] := Side + $90;
       end
       else if OwnTerrain = 13 then
       begin
         if NeighbourTerrain = 10 then
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $D0
+          FTransitions[Side] := Side + $D0
         else
         begin
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $D9;
+          FTransitions[Side] := Side + $D9;
           Shifted := True;
         end;
       end
@@ -200,52 +200,52 @@ begin
       begin
         if OwnTerrain = 10 then
         begin
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $D3;
+          FTransitions[Side] := Side + $D3;
           Shifted := True;
         end
         else
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $D6;
+          FTransitions[Side] := Side + $D6;
       end
       else if OwnTerrain = 10 then
       begin
-        THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $A3;
+        FTransitions[Side] := Side + $A3;
         Shifted := True;
       end
       else if NeighbourTerrain = 10 then
-        THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $A0
+        FTransitions[Side] := Side + $A0
       else if (NeighbourTerrain <> 0) and (NeighbourTerrain <> 6) then
       begin
         if OwnTerrain = 6 then
         begin
           { Original unreachable branch retained: the outer condition excludes terrain 0. }
           if NeighbourTerrain = 0 then
-            THexagonFields(Pointer(Self)^).Transitions[Side] := Side + $60
+            FTransitions[Side] := Side + $60
           else
           begin
-            THexagonFields(Pointer(Self)^).Transitions[Side] := Byte(NeighbourTerrain shl 4) + 3 + Side;
+            FTransitions[Side] := Byte(NeighbourTerrain shl 4) + 3 + Side;
             Shifted := True;
           end;
         end
         else if OwnTerrain = 0 then
         begin
-          THexagonFields(Pointer(Self)^).Transitions[Side] := Side + 3;
+          FTransitions[Side] := Side + 3;
           Shifted := True;
         end
         else
-          THexagonFields(Pointer(Self)^).Transitions[Side] :=
+          FTransitions[Side] :=
             Random(3) * 3 + (Byte(OwnTerrain shl 4) + Side + 6);
       end;
     end;
   end;
-  if THexagonFields(Pointer(Self)^).Transitions[Side] <> 255 then
+  if FTransitions[Side] <> 255 then
   begin
-    IL := THexagonResourceFields(Pointer(FResource)^).TransitionLibrary;
-    Image := THexagonFields(Pointer(Self)^).Transitions[Side];
+    IL := TAoWHexagonResource(FResource).FTransitionLibrary;
+    Image := FTransitions[Side];
     if Image < IL.Count then
       if IL[Image] <> nil then
       begin
-        Inc(THexagonFields(Pointer(Self)^).Sides, 1 shl Side);
-        if Shifted then Inc(THexagonFields(Pointer(Self)^).Sides, 1 shl (Side + 3));
+        Inc(FTransitionSides, 1 shl Side);
+        if Shifted then Inc(FTransitionSides, 1 shl (Side + 3));
       end;
   end;
 end;
@@ -281,8 +281,8 @@ var
   MapField: TMapField;
   HS: THexagonSprite;
 begin
-  TIsoFields(Pointer(Self)^).OpenSides := 0;
-  TIsoFields(Pointer(Self)^).Sides := TIsoFields(Pointer(Self)^).Sides and $C0;
+  FOpenSides := 0;
+  FSides := FSides and $C0;
   Level := TMapLevel(Owner.Owner);
   InitHNWalk(Walk, TMapField(Owner).Xhx, TMapField(Owner).Yhx, 1);
   while Walk.HN <= 6 do
@@ -296,19 +296,19 @@ begin
         HS := MapField.FindOwnedHS(TBorderHexagon);
         if HS = nil then
         begin
-          TIsoFields(Pointer(Self)^).OpenSides := TIsoFields(Pointer(Self)^).OpenSides or (1 shl (Walk.HN - 1));
+          FOpenSides := FOpenSides or (1 shl (Walk.HN - 1));
           if MapField.TerrainType = 3 then FShoreTerrain[Walk.HN] := 40
           else if MapField.TerrainType = 5 then FShoreTerrain[Walk.HN] := 80
           else FShoreTerrain[Walk.HN] := 0;
         end;
       end
       else if GetTerrain(0) <> MapField.TerrainType then
-        TIsoFields(Pointer(Self)^).Sides := TIsoFields(Pointer(Self)^).Sides or (1 shl (Walk.HN - 1));
+        FSides := FSides or (1 shl (Walk.HN - 1));
     end;
     WalkToNextHN(Walk);
   end;
-  if TIsoFields(Pointer(Self)^).Dynamic = nil then
-    TIsoFields(Pointer(Self)^).Dynamic := DynamicIsometricHexagonClass.Create(TECustomNode(Self));
+  if FDynamic = nil then
+    FDynamic := DynamicIsometricHexagonClass.Create(TECustomNode(Self));
 end;
 
 procedure TAoWWaterHexagon.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
@@ -344,7 +344,7 @@ begin
   { needs: AoWE.AoWEngine global; its resource engine provides the same settings. }
   if (Ord(TAoWEngine(FResource.Engine).FAnimationDetail) <> 0) and
     ((TAoWMapField(Owner).FFieldFlags and $FF0000 <> 0) or
-    (TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).FFogEnabled = 0)) then
+    (not TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).FFogEnabled)) then
   begin
     Inc(FAnimationFrame);
     if Smallint(FAnimationFrame) >= 0 then

@@ -257,7 +257,7 @@
     FState: Integer; { $16C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure MoveExecuterDone; virtual;  { $4C }
+    procedure MoveExecuterDone(Sender: TObject); virtual;  { $4C }
     procedure TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); virtual; { $50; 5573A217 }
     procedure RecruitmentGroupFoundEvent(Sender: TAIGroupControlPlugin; Group: TAIRecruitmentGroup; var SearchDone: Boolean); virtual; { $54; 5573A4FA }
     procedure ProductionLocationFoundEvent(Sender: TAIGroupControlPlugin; Location: TAIGroupProductionLocation; var SearchDone: Boolean); virtual; { $58; 5573AD1E }

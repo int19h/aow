@@ -297,11 +297,11 @@ var
   Visible: Boolean;
 begin
   Visible := WorldMap^.Visible( GetXhx, GetYhx, GetLhx, 3) or
-    (FEnchantment.FPlayerIndex = TCloudMapFields(Pointer(WorldMap^)^).SeatedPlayer);
+    (FEnchantment.FPlayerIndex = WorldMap^.FSeatedPlayer);
   if FVisibleForSeatedPlayer xor Visible then
   begin
     FVisibleForSeatedPlayer := Visible;
-    TGlobalMagicControl(WorldMap^.FPlayerControl).TriggerChangedEvent;
+    WorldMap^.FGlobalMagicControl.TriggerChangedEvent;
   end;
 end;
 

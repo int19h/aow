@@ -112,7 +112,7 @@ procedure TFarm.UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetDat
 var Priority: Integer;
 begin
   if not GetRazed or GetBuilding then
-    if Info.Mode in [tmAttack] then
+    if Info.Mode in [tmAttack..tmAttack] then
       if (Info.Player <> FPlayer) and not GetRazed then
       begin
         Priority := Data.Priority;

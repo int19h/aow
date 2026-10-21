@@ -392,9 +392,8 @@ var
   Ice: TFrozenWaterHS;
 begin
   { Original sends terrain 13 to the default branch before the ice refresh test. }
-  case Smallint(TerrainType) of
-    0: TerrainType := 6;
-    6:
+  if Smallint(TerrainType) = 0 then TerrainType := 6
+  else if Smallint(TerrainType) = 6 then
       if TerrainType in [6, 13] then
       begin
         Ice := TFrozenWaterHS(MapF.FindOwnedHS(TFrozenWaterHS));
@@ -403,10 +402,8 @@ begin
           Ice.FDaysRemaining := 3 + (AoWHSMap.Random(11) - 5) div 5;
           Ice.FCasterPlayer := FPlayer;
         end;
-      end;
-  else
-    TerrainType := 3;
-  end;
+      end
+  else TerrainType := 3;
 end;
 
 function TIceStorm.StormFileName: string;
@@ -504,11 +501,7 @@ end;
 
 procedure TDeathStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
 begin
-  case Smallint(TerrainType) of
-    0, 6: ;
-  else
-    TerrainType := 5;
-  end;
+  if (Smallint(TerrainType) <> 0) and (Smallint(TerrainType) <> 6) then TerrainType := 5;
 end;
 
 function TDeathStorm.StormFileName: string;
@@ -570,9 +563,7 @@ end;
 
 procedure TFireStorm.ChangeStormTerrain(MapF: TMapField; var TerrainType, OverlayType: Shortint);
 begin
-  case Smallint(TerrainType) of
-    6: TerrainType := 0;
-  end;
+  if Smallint(TerrainType) = 6 then TerrainType := 0;
 end;
 
 function TFireStorm.UpdateStorm: Boolean;
@@ -597,7 +588,7 @@ begin
     if (AoWHSMap.FCurrentPlayer = AoWHSMap.FSeatedPlayer) or
       AoWHSMap.TerrainVisible(GetXhx, GetYhx, GetLhx, 2) then
       PlaySample(ExplosionSFX[System.Random(2)]);
-  Result := Frame <> -1;
+  if Frame = -1 then Result := False else Result := True;
 end;
 
 procedure TFireStorm.UpdateTargetSelection(Selection: TTargetSelectionControl);
@@ -755,7 +746,7 @@ begin
   if A2 = 0 then
   begin
     FStorm := TStormSpell(AoWHSSet.FSpellControl.GetSpell(FEventSpellID)).CreateStorm;
-    with FStorm do InitializeStorm(A1.FPlayer, FX, FY, FL);
+    FStorm.InitializeStorm(A1.FPlayer, FX, FY, FL);
     AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
   end;
   if not FStorm.UpdateStorm then

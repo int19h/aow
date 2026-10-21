@@ -434,8 +434,9 @@ var
   Field: TAoWMapField;
 begin
   Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L));
-  Result := (Field.GetPlayer = -1) or (Field.GetPlayer = Army.FArmy.FPlayer);
-  Result := Result and Army.FArmy.ValidTerrainEx(Selection, Field.TerrainType, Field.OverlayType);
+  if (Field.GetPlayer = -1) or (Field.GetPlayer = Army.FArmy.FPlayer) then
+    Result := Army.FArmy.ValidTerrainEx(Selection, Field.TerrainType, Field.OverlayType)
+  else Result := False;
   { CanAddUnitSelection returns arOK (zero) when the destination accepts the selection. }
   Result := Result and ((Field.GetArmyHS = nil) or
     (Field.GetArmyHS.FArmy.CanAddUnitSelection(Army.FArmy, Selection) = arOK));

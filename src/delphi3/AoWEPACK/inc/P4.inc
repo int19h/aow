@@ -6846,7 +6846,7 @@ end;
 function TSpellCastEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 var
   Show: Boolean;
-  Hero: THero;
+  Hero: TAbstractUnit;
   Reason: string;
 begin
   Show := Trigger = etUser;
@@ -6856,8 +6856,8 @@ begin
     (wpSpellReady in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents));
   if Show then
   begin
-    Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
-    if (Hero is THero) and (Hero.FCastingSpellID = FSpellID) and Hero.CastingReady then
+    Hero := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+    if (Hero is THero) and (THero(Hero).FCastingSpellID = FSpellID) and THero(Hero).CastingReady then
       AoWHSSet.FAbilityControl.GetAbility(52).Activate(Hero, Reason);
   end;
   Result := False;
@@ -8085,10 +8085,11 @@ begin
   case FMode of
     pmemOutOfMana: Show := Trigger = etUser;
     pmemSpellResearched:
-      if Trigger = etUser then Show := True
-      else if AoWHSMap.FPlayMode = pmTurn then
-        Show := wpSpellResearched in AoWEngine.FRegistry.GetClassicWindowPopupEvents
-      else Show := wpSpellResearched in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents;
+      if Trigger <> etUser then
+        if AoWHSMap.FPlayMode = pmTurn then
+          Show := wpSpellResearched in AoWEngine.FRegistry.GetClassicWindowPopupEvents
+        else Show := wpSpellResearched in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents
+      else Show := True;
     pmemStartResearch: Show := True;
   else Show := False;
   end;
@@ -8896,7 +8897,7 @@ begin
   else Result := False;
 end;
 
-function TGlobalEnchantment.CanRemove(Player: Byte; var Reason: string): Boolean;
+function TGlobalEnchantment.CanRemove(Player: Shortint; var Reason: string): Boolean;
 begin
   if Player = FPlayerIndex then Result := CanDeactivate(Byte(FPlayerIndex), Reason)
   else Result := False;

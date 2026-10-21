@@ -41,7 +41,7 @@ type
     neighbour HN is no hexagon of this kind), +$15 FSides (bits 0..5: the neighbour HN has another
     terrain, bits 6..7: the image variant) }
   TIsometricHexagon = class(TAbstractHexagon)
-  private
+  protected
     FDynamic: TDynamicIsometricHexagon;
     FOpenSides: Byte;
     FSides: Byte;
@@ -58,7 +58,7 @@ type
 
   { IsoHex.TIsometricHexagonResource (instance size 56): +$34 FDynamicLevel (26) }
   TIsometricHexagonResource = class(TAbstractHexagonResource)
-  private
+  protected
     FDynamicLevel: Byte;
   public
     constructor Create(AOwner: TECustomNode); override;

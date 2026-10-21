@@ -1739,7 +1739,7 @@ begin
   if (Attackers <> 0) and (Defenders = 0) then FCombatResult := crVictory
   else if (Attackers = 0) and (Defenders <> 0) then FCombatResult := crDefeat
   else if (Attackers = 0) and (Defenders = 0) then FCombatResult := crBothDefeated
-  else if (Attackers <> 0) and (Defenders <> 0) and (Ord(FCombatResult) <> 7) then
+  else if (Attackers <> 0) and (Defenders <> 0) and (FCombatResult <> crUndecided) then
     FCombatResult := crCannotInflictDamage;
   case Ord(FCombatResult) of
     4..5:
@@ -2208,10 +2208,10 @@ begin
         if TCombatPlayerList(FLogbook.FInitialData.FPlayers).IndexOfPlayer(AoWHSMap.FSeatedPlayer) <> -1 then
         begin
           Data := FLogbook.FInitialData;
-          ShowCombat := TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer = Byte(AoWHSMap.FSeatedPlayer);
+          ShowCombat := TCombatPlayerList(Data.FPlayers).GetPlayers(Data.FAttackerPlayer).FPlayer = AoWHSMap.FSeatedPlayer;
           ShowCombat := ShowCombat or (AoWHSMap.FRequestCombatType and
-            (Ord(AoWHSMap.FConnectionType) = Ord(tcaAlways)) and
-            (TCombatPlayerList(FLogbook.FInitialData.FPlayers).GetPlayers(FLogbook.FInitialData.FDefenderPlayer).FPlayer = Byte(AoWHSMap.FSeatedPlayer)));
+            (AoWHSMap.FConnectionType = pcEmail) and
+            (TCombatPlayerList(FLogbook.FInitialData.FPlayers).GetPlayers(FLogbook.FInitialData.FDefenderPlayer).FPlayer = AoWHSMap.FSeatedPlayer));
           ShowCombat := ShowCombat or ((Trigger = etEvent) and (AoWHSMap.FPlayMode = pmTurn) and
             (wpCombat in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
           ShowCombat := ShowCombat or ((Trigger = etEvent) and (AoWHSMap.FPlayMode = pmSimultaneous) and
