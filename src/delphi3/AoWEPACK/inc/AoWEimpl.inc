@@ -5472,7 +5472,6 @@ begin
 
 
 
-
   Assert(FTargets.IndexOfItemA(Integer(Target)) = -1, 'target already exists use update target');
   Inc(FCombatValue, CV);
   Inc(FWallCombatValue, WallCV);

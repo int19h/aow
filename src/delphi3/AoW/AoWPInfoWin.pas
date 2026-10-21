@@ -7,7 +7,7 @@ unit AoWPInfoWin;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, EventLog, AoWButton, AoWCheckBox, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TPInfoW = class;
@@ -41,54 +41,159 @@ type
     Help: TAOWButton; { +0098 }
     Translator: TIvTranslator; { +009C }
     public
-    procedure MinClick;  { draft }
-    procedure EventListDoubleClick;  { draft }
-    procedure EventListPreDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure EventListDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure PInfoWinResize;  { draft }
-    procedure EventListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure LeaderBtnClick(A1: Integer; A2: Integer);  { draft }
-    procedure RaceBtnClick;  { draft }
-    procedure FaceFrDraw(A1: Integer; A2: Integer);  { draft }
-    procedure FaceFrMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure HelpClick;  { draft }
+    procedure UpdatePlayer;
+    procedure UpdateEvents;
+    procedure MinClick;
+    procedure EventListDoubleClick;
+    procedure EventListPreDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+    procedure EventListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+    procedure PInfoWinResize;
+    procedure EventListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure LeaderBtnClick(Sender: TObject);
+    procedure RaceBtnClick;
+    procedure FaceFrDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure FaceFrMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure HelpClick;
   end;
 
 
+var
+  PInfoW: TPInfoW;
+
 implementation
 
+uses E3Globals, AoWWinMan, aowHelpWin;
+
 procedure TPInfoW.MinClick;
-begin end;
+begin
+  General.PlayButtonSound(0); PInfoWin.Visible := False;
+end;
 
 procedure TPInfoW.EventListDoubleClick;
-begin end;
+begin
+  AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(
+    Integer(EventList.Items.Objects[EventList.Selected])).Execute(True, etUser, nil);
+end;
 
-procedure TPInfoW.EventListPreDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TPInfoW.EventListPreDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+begin
+  if DrawItem <> EventList.Selected then
+    EventList.TextColor := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(
+      Integer(EventList.Items.Objects[DrawItem])).GetTextColor;
+end;
 
-procedure TPInfoW.EventListDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TPInfoW.EventListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+var
+  LeftIcon, MiddleIcon, RightIcon: Integer;
+begin
+  LeftIcon := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(Integer(EventList.Items.Objects[DrawItem])).GetLeftIcon;
+  MiddleIcon := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(Integer(EventList.Items.Objects[DrawItem])).GetMiddleIcon;
+  RightIcon := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(Integer(EventList.Items.Objects[DrawItem])).GetRightIcon;
+  if LeftIcon > -1 then
+    if MiddleIcon = -1 then
+      IntGfxMod.EventIcons[LeftIcon].ShowClipped(DrawRect.Left + (36 - IntGfxMod.EventIcons[LeftIcon].Width) div 2, DrawRect.Top + 1, SD)
+    else IntGfxMod.EventIcons[LeftIcon].ShowClipped(DrawRect.Left, DrawRect.Top + 1, SD);
+  if MiddleIcon > -1 then IntGfxMod.EventIcons[MiddleIcon].ShowClipped(DrawRect.Left + 12, DrawRect.Top + 1, SD);
+  if RightIcon > -1 then IntGfxMod.EventIcons[RightIcon].ShowClipped(DrawRect.Left + 24, DrawRect.Top + 1, SD);
+end;
 
 procedure TPInfoW.PInfoWinResize;
-begin end;
+begin
+  with PInfoWin do
+    with Alignment do
+    begin
+      RightOffset := WinManager.WinWidth - WinWidth - WinLeft;
+      BottomOffset := General.Manager.WinHeight - WinTop - WinHeight;
+    end;
+end;
 
-procedure TPInfoW.EventListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TPInfoW.EventListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if (EventList.Selected > -1) and (Button = mbRight) then
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.GetLogs(
+      Integer(EventList.Items.Objects[EventList.Selected])).ViewLocation;
+end;
 
-procedure TPInfoW.LeaderBtnClick(A1: Integer; A2: Integer);
-begin end;
+procedure TPInfoW.LeaderBtnClick(Sender: TObject);
+var
+  X, Y, L: Shortint;
+begin
+  General.PlayButtonSound(0);
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader <> nil then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetLeaderLocation(X, Y, L);
+    if X > -1 then
+    begin
+      AoWHSMap.CenterViewTo(X, Y, L);
+      AoWHSMap.PlayCenterAnimation(X, Y, L);
+    end;
+  end;
+end;
 
 procedure TPInfoW.RaceBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TPInfoW.FaceFrDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TPInfoW.FaceFrDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if AoWHSMap.FSeatedPlayer > -1 then
+  begin
+    with FaceFr do R := Rect(WinLeft + 3, WinTop + 3, WinLeft + WinWidth - 3, WinTop + WinHeight - 3);
+    if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFace <> nil then
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFace.ShowStretched(R, SD);
+  end;
+end;
 
-procedure TPInfoW.FaceFrMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TPInfoW.FaceFrMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Xhx, Yhx, Lhx: Shortint;
+begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader <> nil then
+  begin
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetLeaderLocation(Xhx, Yhx, Lhx);
+    if Xhx > -1 then
+    begin
+      General.FSelectedUnit := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FLeader;
+      case Button of
+        mbLeft: UnitWindow.ShowUnit;
+        mbRight: LeaderBtnClick(Self);
+      end;
+    end;
+  end;
+end;
 
 procedure TPInfoW.HelpClick;
-begin end;
+begin
+  ShowHelp(502);
+end;
 
+
+procedure TPInfoW.UpdatePlayer;
+var
+  RaceIndex: Integer;
+begin
+  if AoWHSMap.FSeatedPlayer > -1 then
+  begin
+    AoWPInfoWin.PInfoW.Player.Text := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetName;
+    if AoWHSMap.FSeatedPlayer <> 0 then
+      AoWPInfoWin.PInfoW.Race.Text := TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerRace]);
+    AoWPInfoWin.PInfoW.Turn.Text := TranslateRStr(DayRStr) + ' ' + IntToStr(AoWHSMap.FDay);
+    RaceIndex := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerRace;
+    if RaceIndex = -1 then RaceIndex := 12;
+    AoWPInfoWin.PInfoW.RShield.CurrentImage := RaceIndex + 13;
+    AoWPInfoWin.PInfoW.PInfoWin.Visible := True;
+  end;
+end;
+
+procedure TPInfoW.UpdateEvents;
+begin
+  EventList.Items.Clear;
+  if AoWHSMap.FSeatedPlayer > -1 then
+    AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FEventLogbook.ListEvents(EventList.Items);
+  EventList.ListOffset := EventList.Items.Count - 1;
+end;
 
 end.

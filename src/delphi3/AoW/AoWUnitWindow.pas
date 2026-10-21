@@ -159,9 +159,9 @@ type
     procedure UnitWinResize(Sender: TObject);
     procedure UnitWindowCreate(Sender: TObject);
     procedure UnitWinUpdate(Sender: TObject);
-    procedure T1SortNameClick(A1: Integer; A2: Integer);  { draft }
-    procedure T1SortTypeClick(A1: Integer; A2: Integer);  { draft }
-    procedure T1SortSourceClick(A1: Integer; A2: Integer);  { draft }
+    procedure T1SortNameClick(Sender: TObject; Button: Integer);
+    procedure T1SortTypeClick(Sender: TObject; Button: Integer);
+    procedure T1SortSourceClick(Sender: TObject; Button: Integer);
     procedure UseAbility;
     procedure UseItemClick(Sender: TObject);
     procedure UnitTabChange(Sender: TObject);
@@ -183,10 +183,10 @@ type
     procedure DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
     procedure RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
     procedure DisbandBtnClick;  { draft }
-    procedure T1AbilityLBMouseDown(A1: Integer; A2: Byte);  { draft }
+    procedure T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
     procedure UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure PPrevClick;  { draft }
-    procedure PNextClick;  { draft }
+    procedure PPrevClick;
+    procedure PNextClick;
   end;
 
 
@@ -195,13 +195,277 @@ var
 
 implementation
 
-uses AoWWinMan, E3Globals;
+uses AoWWinMan, E3Globals, AoWInfoBanner;
 
 var
   SelectedItem: TAOWCheckBox;
 
+resourcestring
+  AbilitiesRStr = 'Abilities';
+  InfoRStr = 'Info';
+  NoneRStr = 'None';
+  CreatureRStr = 'Creature';
+  MachineRStr = 'Machine';
+  UnitRStr = 'Unit';
+  LeaderRStr = 'Leader';
+  HeroRStr = 'Hero';
+  NoLeaderRStr = 'Hero has no Leader';
+  LeaderSpheresRStr = 'Leaders magic spheres';
+  ItemsRStr = 'Items';
+  LevelRStr = 'Level';
+  ExpRStr = 'Exp';
+
+function CompareUnitAbilities(const S1, S2: string; O1, O2: TObject): Integer;
+var
+  A1, A2: TAbility;
+  V1, V2: Integer;
+begin
+  A1 := AoWHSSet.FAbilityControl.GetAbility(Integer(O1));
+  A2 := AoWHSSet.FAbilityControl.GetAbility(Integer(O2));
+  if A1.GetEnabled(General.FSelectedUnit) and
+    (acAction in A1.GetControlType(General.FSelectedUnit)) then V1 := 10 else V1 := 0;
+  if A2.GetEnabled(General.FSelectedUnit) and
+    (acAction in A2.GetControlType(General.FSelectedUnit)) then V2 := 10 else V2 := 0;
+  Result := V2 - V1;
+  if Result = 0 then Result := CompareStr(S1, S2);
+end;
+
 procedure TUnitWindow.ShowUnit;
-begin end;
+var
+  U: TAbstractUnit;
+  H: THero;
+begin
+  if General.FSelectedUnit <> nil then
+  begin
+    General.BuildAbilities;
+    U := General.FSelectedUnit;
+    if (U <> nil) and (AoWHSMap.FSeatedPlayer = U.FPlayer) then
+      AoWHSMap.FTutorialControl.ShowMessage(64, True, True);
+    if U is THero then H := THero(U) else H := nil;
+    if (AoWCombatMap = nil) and (General.FUnitList <> nil) and
+      (General.IndexOfUnit(U) > -1) and (General.FSelectedUnits[1] > -1) then
+    begin
+      UnitWindow.PPrev.Visible := True; UnitWindow.PNext.Visible := True;
+    end
+    else
+    begin
+      UnitWindow.PPrev.Visible := False; UnitWindow.PNext.Visible := False;
+    end;
+    UnitWindow.Mana.Visible := False; UnitWindow.ManaIcon.Visible := False;
+    UnitWindow.UnitTab.Items.Clear;
+    UnitWindow.UnitTab.Items.Add(TranslateRStr(AbilitiesRStr));
+    UnitWindow.UnitTab.Items.Add(TranslateRStr(InfoRStr));
+    if U.GetRace < 0 then
+    begin
+      UnitWindow.TypeV.Text := '';
+      UnitWindow.RelationIcn.Visible := False;
+      UnitWindow.RelationV.Text := TranslateRStr(NoneRStr);
+    end
+    else
+    begin
+      UnitWindow.TypeV.Text := TranslateRStr(RaceNamesRStr[U.GetRace]);
+      UnitWindow.RelationIcn.Visible := True;
+      UnitWindow.RelationIcn.CurrentImage := Ord(AoWHSMap.FRaces.GetRace(U.GetRace).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) + 11;
+      UnitWindow.RelationV.Text := TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(U.GetRace).GetPlayerRelation(AoWHSMap.FSeatedPlayer)]);
+    end;
+    if (AoWHSMap.FSeatedPlayer = U.FPlayer) and not (U is TLeader) and (AoWHSMap.FCombatMap = nil) then
+    begin
+      UnitWindow.DisbandBtn.Visible := True; UnitWindow.BCloseBtn.Alignment.AlignWidth := awLeft;
+    end
+    else
+    begin
+      UnitWindow.DisbandBtn.Visible := False; UnitWindow.BCloseBtn.Alignment.AlignWidth := awCenter;
+    end;
+    UnitWindow.BCloseBtn.FAligned := False;
+    case U.GetUnitType of
+      utCreature:
+        begin
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(CreatureRStr);
+          UnitWindow.TypeIcn.CurrentImage := 21;
+        end;
+      utMachine:
+        begin
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(MachineRStr);
+          UnitWindow.TypeIcn.CurrentImage := 22;
+        end;
+    else
+      if H = nil then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(UnitRStr)
+      else if H is TLeader then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LeaderRStr)
+      else UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(HeroRStr);
+      UnitWindow.TypeIcn.CurrentImage := 23;
+    end;
+    if H = nil then
+    begin
+      UnitWindow.Level.Text := TranslateRStr(LevelRStr) + ' ' + IntToStr(U.GetUnitLevel);
+      UnitWindow.T2Leader.Visible := False; UnitWindow.T2Text.Visible := True;
+      UnitWindow.T2Memo.Items.Assign(U.GetDescription); UnitWindow.T2SBar.Position := 0;
+      UnitWindow.UnitName.Text := U.GetName;
+    end
+    else
+    begin
+      if H.FPlayer = 0 then
+      begin
+        UnitWindow.SelPnl.Visible := False;
+        UnitWindow.SphereLbl.Text := TranslateRStr(NoLeaderRStr);
+      end
+      else
+      begin
+        UnitWindow.SelPnl.Visible := True;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 1 then UnitWindow.Sel1.Visible := False
+        else
+        begin
+          UnitWindow.Sel1.Visible := True;
+          UnitWindow.Sel1.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(0));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 2 then UnitWindow.Sel2.Visible := False
+        else
+        begin
+          UnitWindow.Sel2.Visible := True;
+          UnitWindow.Sel2.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(1));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 3 then UnitWindow.Sel3.Visible := False
+        else
+        begin
+          UnitWindow.Sel3.Visible := True;
+          UnitWindow.Sel3.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(2));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 4 then UnitWindow.Sel4.Visible := False
+        else
+        begin
+          UnitWindow.Sel4.Visible := True;
+          UnitWindow.Sel4.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(3));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 5 then UnitWindow.Sel5.Visible := False
+        else
+        begin
+          UnitWindow.Sel5.Visible := True;
+          UnitWindow.Sel5.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(4));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 6 then UnitWindow.Sel6.Visible := False
+        else
+        begin
+          UnitWindow.Sel6.Visible := True;
+          UnitWindow.Sel6.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(5));
+        end;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 7 then UnitWindow.Sel7.Visible := False
+        else
+        begin
+          UnitWindow.Sel7.Visible := True;
+          UnitWindow.Sel7.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(6));
+        end;
+        UnitWindow.SphereLbl.Text := TranslateRStr(LeaderSpheresRStr);
+      end;
+      if ((AoWHSMap.FCombat = nil) and (H.FPlayer = AoWHSMap.FSeatedPlayer)) or
+        ((AoWHSMap.FCombat <> nil) and
+        (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = H.FPlayer)) then
+        UnitWindow.UnitTab.Items.Add(TranslateRStr(ItemsRStr));
+      if H.GetCastingPointsMax > 0 then
+      begin
+        UnitWindow.Mana.Visible := True;
+        UnitWindow.Mana.Text := IntToStr(H.GetCastingPoints) + '/' + IntToStr(H.GetCastingPointsMax);
+        UnitWindow.ManaIcon.Visible := True;
+      end;
+      UnitWindow.ItemUseBtn.Visible := False; UnitWindow.FGroundOffset := 0;
+      UnitWindow.Level.Text := TranslateRStr(LevelRStr) + ' ' + IntToStr(H.GetLevel);
+      UnitWindow.T2Leader.Visible := True; UnitWindow.T2Text.Visible := False;
+      UnitWindow.UnitName.Text := H.FHeroName + ' ' + H.GetNickname;
+    end;
+    UnitWindow.XP.Text := TranslateRStr(ExpRStr) + ' ' + IntToStr(U.GetExperience) + ' (' + IntToStr(U.GetNextLevelExperience) + ')';
+    UnitWindow.UnitWin.Cursor := 0;
+    if (UnitWindow.UnitTab.Items.Count <= UnitWindow.UnitTab.Selected) or (UnitWindow.UnitTab.Selected < 0) then
+      UnitWindow.UnitTab.Selected := 0;
+    UnitWindow.UnitWin.Visible := True;
+    if (H <> nil) and (((AoWHSMap.FCombat = nil) and (H.FPlayer = AoWHSMap.FSeatedPlayer)) or
+        ((AoWHSMap.FCombat <> nil) and
+        (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = H.FPlayer))) then
+    begin
+      if H.FInventory.GetItem(0) = nil then UnitWindow.BP1.Tag := -1
+      else UnitWindow.BP1.Tag := H.FInventory.GetItem(0).FItemID;
+      if H.FInventory.GetItem(1) = nil then UnitWindow.BP2.Tag := -1
+      else UnitWindow.BP2.Tag := H.FInventory.GetItem(1).FItemID;
+      if H.FInventory.GetItem(2) = nil then UnitWindow.BP3.Tag := -1
+      else UnitWindow.BP3.Tag := H.FInventory.GetItem(2).FItemID;
+      if H.FInventory.GetItem(3) = nil then UnitWindow.BP4.Tag := -1
+      else UnitWindow.BP4.Tag := H.FInventory.GetItem(3).FItemID;
+      if H.FInventory.GetItem(4) = nil then UnitWindow.BP5.Tag := -1
+      else UnitWindow.BP5.Tag := H.FInventory.GetItem(4).FItemID;
+      if H.FInventory.GetItem(5) = nil then UnitWindow.BP6.Tag := -1
+      else UnitWindow.BP6.Tag := H.FInventory.GetItem(5).FItemID;
+      if H.FInventory.GetItem(6) = nil then UnitWindow.BP7.Tag := -1
+      else UnitWindow.BP7.Tag := H.FInventory.GetItem(6).FItemID;
+      if H.FInventory.GetItem(7) = nil then UnitWindow.BP8.Tag := -1
+      else UnitWindow.BP8.Tag := H.FInventory.GetItem(7).FItemID;
+      if H.FHeroItems.GetPositionItem(ipAttackSlot) = nil then UnitWindow.Attack.Tag := -1
+      else UnitWindow.Attack.Tag := H.FHeroItems.GetPositionItem(ipAttackSlot).FItemID;
+      if H.FHeroItems.GetPositionItem(ipDefenseSlot) = nil then UnitWindow.Defend.Tag := -1
+      else UnitWindow.Defend.Tag := H.FHeroItems.GetPositionItem(ipDefenseSlot).FItemID;
+      if H.FHeroItems.GetPositionItem(ipHeadSlot) = nil then UnitWindow.Head.Tag := -1
+      else UnitWindow.Head.Tag := H.FHeroItems.GetPositionItem(ipHeadSlot).FItemID;
+      if H.FHeroItems.GetPositionItem(ipTorsoSlot) = nil then UnitWindow.Torso.Tag := -1
+      else UnitWindow.Torso.Tag := H.FHeroItems.GetPositionItem(ipTorsoSlot).FItemID;
+      if H.FHeroItems.GetPositionItem(ipLeftRingSlot) = nil then UnitWindow.RingL.Tag := -1
+      else UnitWindow.RingL.Tag := H.FHeroItems.GetPositionItem(ipLeftRingSlot).FItemID;
+      if H.FHeroItems.GetPositionItem(ipRightRingSlot) = nil then UnitWindow.RingR.Tag := -1
+      else UnitWindow.RingR.Tag := H.FHeroItems.GetPositionItem(ipRightRingSlot).FItemID;
+      UnitWindow.UpdateGround(0); SelectedItem := nil;
+      UnitWindow.BP1.Checked := False;
+      UnitWindow.BP2.Checked := False;
+      UnitWindow.BP3.Checked := False;
+      UnitWindow.BP4.Checked := False;
+      UnitWindow.BP5.Checked := False;
+      UnitWindow.BP6.Checked := False;
+      UnitWindow.BP7.Checked := False;
+      UnitWindow.BP8.Checked := False;
+      UnitWindow.Attack.Checked := False;
+      UnitWindow.Defend.Checked := False;
+      UnitWindow.Head.Checked := False;
+      UnitWindow.Torso.Checked := False;
+      UnitWindow.RingL.Checked := False;
+      UnitWindow.RingR.Checked := False;
+      UnitWindow.ItemUseBtn.Visible := False;
+    end;
+    if U <> nil then
+    begin
+      UnitWindow.UHits.Text := IntToStr(U.GetHitPoints) + '/' + IntToStr(U.GetHits);
+      if AoWHSMap.FCombatMap = nil then
+        UnitWindow.UMoves.Text := IntToStr(U.GetMovePoints) + '/' + IntToStr(U.GetMoves)
+      else if General.FCombatUnit <> nil then
+        UnitWindow.UMoves.Text := IntToStr(General.FCombatUnit.FUnit.FMovePoints) + '/' + IntToStr(General.FCombatUnit.FUnit.GetMoves);
+      UnitWindow.UAttack.Text := IntToStr(U.GetAttack); UnitWindow.UDamage.Text := IntToStr(U.GetDamage);
+      UnitWindow.UDefense.Text := IntToStr(U.GetDefense); UnitWindow.UResistance.Text := IntToStr(U.GetResistance);
+      UnitWindow.UMovesIcon.CurrentImage := General.MTtoInt(U.GetMoveTypes);
+      if U.GetManaUpkeep > 0 then
+      begin UnitWindow.UpKeep.Text := IntToStr(U.GetManaUpkeep); UpkeepIcon.CurrentImage := 52; end
+      else
+      begin UnitWindow.UpKeep.Text := IntToStr(U.GetUpkeep); UpkeepIcon.CurrentImage := 51; end;
+      AAlignment.Visible := U.GetAlignment <> alNone;
+      case U.GetAlignment of
+        alPureGood: AAlignment.CurrentImage := 31;
+        alGood: AAlignment.CurrentImage := 32;
+        alPureNeutral, alNeutral: AAlignment.CurrentImage := 33;
+        alEvil: AAlignment.CurrentImage := 34;
+        alPureEvil: AAlignment.CurrentImage := 35;
+      end;
+      AAlignmentLbl.Text := TranslateRStr(TAlignmentRStr[U.GetAlignment]);
+      UnitWindow.T1AbilityLB.Items.Clear; UnitWindow.T1TypeLB.Items.Clear; UnitWindow.T1SrcLB.Items.Clear;
+      MoraleLbl.Text := AoWE.Format(TranslateRStr(MoraleXRStr), [TranslateRStr(TMoraleRStr[U.GetMorale])]);
+      MoraleLbl.Visible := U.GetUnitType <> utMachine;
+      if AoWHSMap.FCombatMap = nil then
+      begin
+        U.ListAbilityInfo(T1AbilityLB.Items, T1TypeLB.Items, T1SrcLB.Items);
+        SortStringsEx(T1AbilityLB.Items, CompareUnitAbilities, [T1TypeLB.Items, T1SrcLB.Items]);
+      end
+      else if (General.FCombatUnit <> nil) and (General.FCombatUnit.FUnit <> nil) and (General.FCombatUnit.FUnit.FUnit <> nil) then
+      begin
+        General.FCombatUnit.FUnit.FUnit.ListAbilityInfo(T1AbilityLB.Items, T1TypeLB.Items, T1SrcLB.Items);
+        SortStringsEx(T1AbilityLB.Items, CompareUnitAbilities, [T1TypeLB.Items, T1SrcLB.Items]);
+      end;
+      UnitWindow.T1AbilityLB.Selected := -1;
+      UnitWindow.T1AbilityLBChange(T1AbilityLB);
+      UnitWin.FDrawn := False;
+    end;
+  end;
+end;
 
 procedure TUnitWindow.PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
 var
@@ -351,14 +615,38 @@ begin
   end;
 end;
 
-procedure TUnitWindow.T1SortNameClick(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.T1SortNameClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T1AbilityLB); Lists.Add(T1TypeLB); Lists.Add(T1SrcLB);
+  General.SortLists(Lists, 0);
+  T1UseBut.Visible := False;
+end;
 
-procedure TUnitWindow.T1SortTypeClick(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.T1SortTypeClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T1TypeLB); Lists.Add(T1AbilityLB); Lists.Add(T1SrcLB);
+  General.SortLists(Lists, 0);
+  T1UseBut.Visible := False;
+end;
 
-procedure TUnitWindow.T1SortSourceClick(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.T1SortSourceClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T1SrcLB); Lists.Add(T1AbilityLB); Lists.Add(T1TypeLB);
+  General.SortLists(Lists, 0);
+  T1UseBut.Visible := False;
+end;
 
 procedure TUnitWindow.UseAbility;
 var
@@ -631,8 +919,16 @@ end;
 procedure TUnitWindow.DisbandBtnClick;
 begin end;
 
-procedure TUnitWindow.T1AbilityLBMouseDown(A1: Integer; A2: Byte);
-begin end;
+procedure TUnitWindow.T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
+var
+  A: TAbility;
+begin
+  if (Button = mbRight) and (General.FSelectedUnit <> nil) and (T1AbilityLB.Selected <> -1) then
+  begin
+    A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]));
+    if A <> nil then InfoBanner.ShowInfo(A.GetName(nil), A.FDescription);
+  end;
+end;
 
 procedure TUnitWindow.UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
@@ -642,10 +938,44 @@ begin
 end;
 
 procedure TUnitWindow.PPrevClick;
-begin end;
+var
+  I: Integer;
+begin
+  General.PlayButtonSound(0);
+  if General.FUnitList <> nil then
+  begin
+    I := General.IndexOfUnit(General.FSelectedUnit);
+    if (I > -1) and (General.FSelectedUnits[0] > -1) then
+    begin
+      Dec(I);
+      if I < 0 then
+      begin
+        I := 7;
+        while General.FSelectedUnits[I] = -1 do Dec(I);
+      end;
+      General.FSelectedUnit := General.FUnitList.GetUnit(General.FSelectedUnits[I]);
+      ShowUnit;
+    end;
+  end;
+end;
 
 procedure TUnitWindow.PNextClick;
-begin end;
+var
+  I: Integer;
+begin
+  General.PlayButtonSound(0);
+  if General.FUnitList <> nil then
+  begin
+    I := General.IndexOfUnit(General.FSelectedUnit);
+    if I > -1 then
+    begin
+      Inc(I); if I > 7 then I := 0;
+      if General.FSelectedUnits[I] = -1 then I := 0;
+      General.FSelectedUnit := General.FUnitList.GetUnit(General.FSelectedUnits[I]);
+      ShowUnit;
+    end;
+  end;
+end;
 
 
 procedure TUnitWindow.UpdateGround(Offset: Integer);

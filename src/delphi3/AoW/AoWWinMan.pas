@@ -43,6 +43,7 @@ type
     function IndexOfUnit(U: TAbstractUnit): Integer;
     procedure BuildAbilities; { 00455D10 }
     function MTtoInt(MoveTypes: TMoveTypes): Integer;
+    function SphereToImage(Sphere: TMagicSphere): Integer;
     procedure ManagerChangeCursor;  { draft }
     procedure GeneralCreate;  { draft }
     procedure GeneralDestroy;  { draft }
@@ -164,6 +165,18 @@ begin
       Window.Alignment.RightOffset := Alignment.RightOffset;
     end;
     Window.FAligned := False;
+  end;
+end;
+
+function TGeneral.SphereToImage(Sphere: TMagicSphere): Integer;
+begin
+  case Sphere of
+    msLife: Result := 27;
+    msDeath: Result := 30;
+    msEarth: Result := 33;
+    msAir: Result := 36;
+    msWater: Result := 39;
+  else Result := 42;
   end;
 end;
 

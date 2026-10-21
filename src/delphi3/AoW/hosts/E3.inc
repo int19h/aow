@@ -25,3 +25,16 @@
   Use(nil, @AoWArmyEventDlg.TArmyEventDlg.ClearEvent);
   Use(nil, @AoWArmyEventDlg.TArmyEventDlg.DrawUnit);
   Use(nil, @AoWArmyEventDlg.TArmyEventDlg.DrawUnits);
+  Use(nil, @AoWUnitWindow.TUnitWindow.ShowUnit);
+  Use(nil, @AoWWinMan.TGeneral.SphereToImage);
+  Use(nil, @AoWPInfoWin.TPInfoW.UpdatePlayer);
+  Use(nil, @AoWPInfoWin.TPInfoW.UpdateEvents);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.UpdatePlayer);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.UpdatePlayers);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.SettingsComplete);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.SettingsBtnClick);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.ResetSettings);
+  Use(nil, @AoWEmailGameSettingsDlg.TEmailGameSettingsDlg.Execute);
+  Use(nil, @AoWScenSetup.TScenSetup.UpdateTurnTime);
+  Use(nil, @AoWScenSetup.TScenSetup.UpdateTurnLimit);
+  Use(nil, @AoWScenSetup.TScenSetup.SelectPlayer);

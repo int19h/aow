@@ -25,5 +25,19 @@
   "0040b298:248": "TVideoDialog.ChangeResolution",
   "004367f0:185": "TArmyEventDlg.ClearEvent",
   "00436a6c:722": "TArmyEventDlg.DrawUnit",
-  "00436d40:87": "TArmyEventDlg.DrawUnits"
+  "00436d40:87": "TArmyEventDlg.DrawUnits",
+  "00454160:80": "TGeneral.SphereToImage",
+  "00407adc:204": "CompareUnitAbilities",
+  "00407db8:5896": "TUnitWindow.ShowUnit",
+  "00423170:382": "TPInfoW.UpdatePlayer",
+  "00423304:111": "TPInfoW.UpdateEvents",
+  "0040f4bc:190": "TEmailGameSettingsDlg.UpdatePlayer",
+  "0040f584:241": "TEmailGameSettingsDlg.UpdatePlayers",
+  "0040f828:152": "TEmailGameSettingsDlg.SettingsComplete",
+  "0040ee18:148": "ShowEmailSettings",
+  "0040f440:116": "TEmailGameSettingsDlg.ResetSettings",
+  "0040f678:353": "TEmailGameSettingsDlg.Execute",
+  "00412778:220": "TScenSetup.UpdateTurnTime",
+  "004128b4:236": "TScenSetup.UpdateTurnLimit",
+  "00412624:255": "TScenSetup.SelectPlayer"
 }

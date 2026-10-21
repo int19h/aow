@@ -7,13 +7,14 @@ unit AoWEmailGameSettingsDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWSetup, AoWComp, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TEmailGameSettingsDlg = class;
 
 
-  { TEmailGameSettingsDlg (instance size 232, VMT 0040EFAC) }
+  { TEmailGameSettingsDlg (instance size $E8, VMT 0040EFAC).
+    $E0 editable email address list; $E4 setup control. }
   TEmailGameSettingsDlg = class(TDataModule)
   public
     published
@@ -57,52 +58,188 @@ type
     CloseBtn: TAOWButton; { +00D8 }
     Translator: TIvTranslator; { +00DC }
     public
-    F_EmailGameSettingsDlg_E0: Integer;
-    F_EmailGameSettingsDlg_E4: Integer;
-    procedure EmailGameSettingsDlgCreate;  { draft }
-    procedure EmailGameSettingsDlgDestroy;  { draft }
-    procedure PlayerSBChange;  { draft }
-    procedure EmailAddressEdit1Change(A1: Integer);  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure CancelButClick;  { draft }
-    procedure SettingsBtnClick;  { draft }
-    procedure LocalEmailAddressEditUpdate;  { draft }
-    procedure Player6PnlDrawBack(A1: Integer; A2: Integer);  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FEmailAddresses: TStringList; { $E0 }
+    FSetupControl: TSetupControl; { $E4 }
+    procedure EmailGameSettingsDlgCreate;
+    procedure EmailGameSettingsDlgDestroy;
+    procedure PlayerSBChange;
+    procedure EmailAddressEdit1Change(Sender: TObject);
+    procedure OKBtnClick;
+    procedure CancelButClick;
+    procedure SettingsBtnClick;
+    procedure LocalEmailAddressEditUpdate;
+    procedure Player6PnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure UpdatePlayer(Index: Integer; NameLabel: TAOWLabel; EmailEdit: TAOWEdit);
+    procedure UpdatePlayers;
+    function SettingsComplete: Boolean;
+    procedure ResetSettings;
+    procedure Execute(Control: TSetupControl);
   end;
 
 
+var
+  EmailSettingsAccepted: Boolean;
+
 implementation
 
+uses E3Globals, AoWExeForms;
+
 procedure TEmailGameSettingsDlg.EmailGameSettingsDlgCreate;
-begin end;
+begin
+  FEmailAddresses := TStringList.Create;
+end;
 
 procedure TEmailGameSettingsDlg.EmailGameSettingsDlgDestroy;
-begin end;
+begin
+  FEmailAddresses.Free;
+end;
 
 procedure TEmailGameSettingsDlg.PlayerSBChange;
-begin end;
+begin
+  UpdatePlayers;
+end;
 
-procedure TEmailGameSettingsDlg.EmailAddressEdit1Change(A1: Integer);
-begin end;
+procedure TEmailGameSettingsDlg.EmailAddressEdit1Change(Sender: TObject);
+var
+  I: Integer;
+begin
+  I := TComponent(Sender).Tag + PlayerSB.Position;
+  if I < FEmailAddresses.Count then FEmailAddresses[I] := TAOWEdit(Sender).Text;
+end;
 
 procedure TEmailGameSettingsDlg.OKBtnClick;
-begin end;
+var
+  I, Index: Integer;
+begin
+  if not SettingsComplete then
+  begin
+    ResetMessageDialog(AoWExeForms.MessageDlg);
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(PleaseFillInAllSettingsRStr));
+    AoWExeForms.MessageDlg.OKPnl.Visible := True;
+    AoWExeForms.MessageDlg.Dlg.Visible := True;
+  end
+  else if FSetupControl <> nil then
+  begin
+    for I := 0 to FEmailAddresses.Count - 1 do
+    begin
+      Index := FSetupControl.FSettings.IndexOfRace(Integer(FEmailAddresses.Objects[I]));
+      FSetupControl.FSettings.GetSettings(Index).FEmailAddress := FEmailAddresses[I];
+    end;
+    FSetupControl.FSettings.FEmailGameName := EmailGameNameEdit.Text;
+    EmailSettingsAccepted := True;
+    Dlg.Visible := False;
+  end;
+end;
 
 procedure TEmailGameSettingsDlg.CancelButClick;
-begin end;
+begin
+  Dlg.Visible := False;
+end;
 
 procedure TEmailGameSettingsDlg.SettingsBtnClick;
-begin end;
+begin
+  ShowEmailSettings(EmailSettingsDlg);
+end;
 
 procedure TEmailGameSettingsDlg.LocalEmailAddressEditUpdate;
-begin end;
+begin
+  if AoWEngine.FRegistry.GetLocalEmailAddress <> LocalEmailAddressEdit.Text then
+    LocalEmailAddressEdit.Text := AoWEngine.FRegistry.GetLocalEmailAddress;
+end;
 
-procedure TEmailGameSettingsDlg.Player6PnlDrawBack(A1: Integer; A2: Integer);
-begin end;
+procedure TEmailGameSettingsDlg.Player6PnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+var
+  R: TRaceResource;
+  I: Integer;
+begin
+  I := Sender.Tag + PlayerSB.Position;
+  if I < FEmailAddresses.Count then
+  begin
+    R := AoWHSSet.FRaceResources.GetRaceResource(Integer(FEmailAddresses.Objects[I]));
+    R.AddRef;
+    R.FImageLibrary[38].Show(Sender.WinLeft, Sender.WinTop, SD);
+    R.Release;
+  end;
+end;
 
-procedure TEmailGameSettingsDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TEmailGameSettingsDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then Dlg.Visible := False;
+end;
 
+
+procedure TEmailGameSettingsDlg.UpdatePlayer(Index: Integer; NameLabel: TAOWLabel; EmailEdit: TAOWEdit);
+begin
+  if Index < FEmailAddresses.Count then
+  begin
+    EmailEdit.CaptureInput := True;
+    EmailEdit.Text := FEmailAddresses[Index];
+    NameLabel.Text := TranslateRStr(RaceNamesPluralRStr[Integer(FEmailAddresses.Objects[Index])]);
+  end
+  else
+  begin
+    EmailEdit.CaptureInput := False; EmailEdit.Text := ''; NameLabel.Text := '';
+  end;
+end;
+
+procedure TEmailGameSettingsDlg.UpdatePlayers;
+begin
+  PlayerSB.Min := 0; PlayerSB.Max := FEmailAddresses.Count - 1; PlayerSB.NumberVisible := 6;
+  PlayerPnl.FDrawn := False;
+  UpdatePlayer(PlayerSB.Position, PlayerLbl1, EmailAddressEdit1);
+  UpdatePlayer(PlayerSB.Position + 1, PlayerLbl2, EmailAddressEdit2);
+  UpdatePlayer(PlayerSB.Position + 2, PlayerLbl3, EmailAddressEdit3);
+  UpdatePlayer(PlayerSB.Position + 3, PlayerLbl4, EmailAddressEdit4);
+  UpdatePlayer(PlayerSB.Position + 4, PlayerLbl5, EmailAddressEdit5);
+  UpdatePlayer(PlayerSB.Position + 5, PlayerLbl6, EmailAddressEdit6);
+end;
+
+function TEmailGameSettingsDlg.SettingsComplete: Boolean;
+var
+  I: Integer;
+begin
+  I := FEmailAddresses.Count;
+  Result := (LocalEmailAddressEdit.Text <> '') and (EmailGameNameEdit.Text <> '');
+  while Result and (I <> 0) do
+  begin
+    Dec(I); Result := FEmailAddresses[I] <> '';
+  end;
+end;
+
+procedure TEmailGameSettingsDlg.ResetSettings;
+begin
+  FSetupControl := nil;
+  FEmailAddresses.Clear;
+  PlayerSB.Visible := True;
+  PlayerSB.Position := 0;
+  LocalEmailAddressEdit.Text := AoWEngine.FRegistry.GetLocalEmailAddress;
+end;
+
+procedure TEmailGameSettingsDlg.Execute(Control: TSetupControl);
+var
+  I: Integer;
+  C: TSetupControl;
+begin
+  ResetSettings;
+  FSetupControl := Control; C := Control;
+  for I := 0 to C.FSettings.Count - 1 do
+    if C.FSettings.GetSettings(I).FBehavior.PlayerType = 0 then
+      FEmailAddresses.AddObject(AoWEngine.FRegistry.GetLocalEmailAddress, TObject(Shortint(C.FSettings.GetSettings(I).FRace)));
+  if FEmailAddresses.Count < 2 then
+  begin
+    ResetMessageDialog(AoWExeForms.MessageDlg);
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
+    AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(YouNeed2HumanPlayersToPlayAnEmailGameRStr));
+    AoWExeForms.MessageDlg.OKPnl.Visible := True;
+    AoWExeForms.MessageDlg.Dlg.Visible := True;
+  end
+  else
+  begin
+    UpdatePlayers;
+    Dlg.Visible := True;
+  end;
+end;
 
 end.

@@ -5,7 +5,7 @@ interface
 uses aowIntGfxMod, FontMod, AoWUnit, AoWItemBanner, AoWSWindow,
   AOWMWindow, AoWTBWindow, AoWPInfoWin, AOWControlWin, AoWUnitSelDlg,
   AoWUnitWindow, AoWTargetSelection, AoWArmyInfoDlg, AoWDisjunctionDlg,
-  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic;
+  AOWChatWin, AoWTCUnit, AoWTCScanner, AoWInfoWin, AoWRealm, AoWMagic, AoWEmailSettingsDlg, AoWEmailGameSettingsDlg, AOWTitleWindow;
 var
   IntGfxMod: TIntGfxMod;
   FontModule: TFontModule;
@@ -20,7 +20,7 @@ var
   SWindow: TSWindow;
   MWindow: TMWindow;
   TBWindow: TTBWindow;
-  PInfoW: TPInfoW;
+  PInfoW: TPInfoW absolute AoWPInfoWin.PInfoW;
   ControlWin: TControlWin;
   UnitSelectionDlg: TUnitSelectionDlg;
   UnitWindow: TUnitWindow;
@@ -30,5 +30,20 @@ var
   ChatWindow: TChatWindow;
   TCUnit: TTCUnit;
   TCScanner: TTCScanner;
+  EmailSettingsDlg: TEmailSettingsDlg;
+  EmailGameSettingsDlg: TEmailGameSettingsDlg;
+  TitleWindow: TTitleWindow;
+procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
+
 implementation
+
+uses AoWE;
+
+procedure ShowEmailSettings(Dialog: TEmailSettingsDlg);
+begin
+  Dialog.LocalEmailAddressEdit.Text := AoWEngine.FRegistry.GetLocalEmailAddress;
+  Dialog.SMTPServerEdit.Text := AoWEngine.FRegistry.GetSMTPServer;
+  Dialog.AttachmentDirectoryEdit.Text := AoWEngine.FRegistry.GetAttachmentDirectory;
+  Dialog.Dlg.Visible := True;
+end;
 end.

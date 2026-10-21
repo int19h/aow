@@ -7,7 +7,7 @@ unit AoWCampaignSettings;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWComboBox, AoWFrame, AoWImage, AoWLabel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWButton, AoWComboBox, AoWFrame, AoWImage, AoWLabel, AoWVScroll, AoWWindow;
 
 type
   TCampaignSettingsDlg = class;
@@ -34,22 +34,39 @@ type
     CancelBtn: TAOWButton; { +007C }
     TCeltLineL: TAOWImage; { +0080 }
     public
-    procedure DlgShow;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure CancelBtnClick;  { draft }
+    procedure DlgShow;
+    procedure OKBtnClick;
+    procedure CancelBtnClick;
   end;
 
 
 implementation
 
 procedure TCampaignSettingsDlg.DlgShow;
-begin end;
+var
+  Level: TCampaignDifficultyLevel;
+begin
+  DifficultyLevelCB.Items.Clear;
+  for Level := Low(TCampaignDifficultyLevel) to High(TCampaignDifficultyLevel) do
+    DifficultyLevelCB.Items.AddObject(TranslateRStr(TCampaignDifficultyLevelRStr[Level]), TObject(Level));
+  DifficultyLevelCB.Selected := DifficultyLevelCB.Items.IndexOfObject(TObject(AoWEngine.FCampaign.FDifficultyLevel));
+  TurnModeCB.Items.Clear;
+  TurnModeCB.Items.AddObject(TranslateRStr(TPlayModeRStr[pmTurn]), TObject(pmTurn));
+  TurnModeCB.Items.AddObject(TranslateRStr(TPlayModeRStr[pmSimultaneous]), TObject(pmSimultaneous));
+  TurnModeCB.Selected := TurnModeCB.Items.IndexOfObject(TObject(AoWEngine.FCampaign.FPlayMode));
+end;
 
 procedure TCampaignSettingsDlg.OKBtnClick;
-begin end;
+begin
+  AoWEngine.FCampaign.FDifficultyLevel := TCampaignDifficultyLevel(DifficultyLevelCB.Items.Objects[DifficultyLevelCB.Selected]);
+  AoWEngine.FCampaign.FPlayMode := TPlayMode(TurnModeCB.Items.Objects[TurnModeCB.Selected]);
+  Dlg.Visible := False;
+end;
 
 procedure TCampaignSettingsDlg.CancelBtnClick;
-begin end;
+begin
+  Dlg.Visible := False;
+end;
 
 
 end.

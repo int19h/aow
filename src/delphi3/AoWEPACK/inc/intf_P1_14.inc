@@ -39,10 +39,11 @@ const
 var
   UnitTypePluralRStr: array[TUnitType] of string;  { $558E8088, initially empty }
   TAbilityTypeRStr: array[TAbilityType] of string; TAbilitySelectionTypeRStr: array[TAbilitySelectionType] of string; { AoWEd 0042C336 }
-  TPlayerTypeRStr: array[0..7] of string; { $558E81A0 }
+  TPlayerTypeRStr: array[0..7] of string; { $558E81A0 } TCampaignDifficultyLevelRStr: array[TCampaignDifficultyLevel] of string = ('Easy', 'Normal', 'Hard'); TPlayModeRStr: array[TPlayMode] of string = ('None', 'Classic', 'Simultaneous'); { AoW 0041B3CA / 0041B43B }
   TCombatModeRStr: array[TCombatMode] of string; TCombatResolveModeRStr: array[TCombatResolveMode] of string; { $558E81DC; AoW 00422576 }
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
   TAlignmentRStr: array[TAlignment] of string = ('Pure Good', 'Good', 'Pure Neutral', 'Neutral', 'Evil', 'Pure Evil', 'None'); { export $558E80E4; AoW 0043C43C } TStatusRStr: TStatusNames; TPartyStatusRStr: array[TPartyStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful'); { 0040667C }
+  TMoraleRStr: array[TMorale] of string = ('Terrible', 'Poor', 'Okay', 'Good', 'High'); { AoW 00409284 / 004092EA }
   TDamageTypeRStr: array[TDamageType] of string; astAll: TAbilitySelectionTypes = [astUnit..astEditor]; msAll: TMagicSpheres = [msCosmos..msNone]; { AoWEd 0042A5A4 / 0042A5E1 }
   { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo
     ($55730868) reads its entries. AIDID $558FA050 goes to TEngine.OutputDebugMessage. (P5) }

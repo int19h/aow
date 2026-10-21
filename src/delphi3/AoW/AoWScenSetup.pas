@@ -7,13 +7,14 @@ unit AoWScenSetup;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWComboBox, AoWEdit, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWSetup, AoWComp, AoWButton, AoWCheckBox, AoWComboBox, AoWEdit, AoWFrame, AoWHScroll, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll;
 
 type
   TScenSetup = class;
 
 
-  { TScenSetup (instance size 840, VMT 0040FBF8) }
+  { TScenSetup (instance size $348, VMT 0040FBF8).
+    $338 map-validation delay; $33C setup control; $340 ping delay; $344 chat scroll pending. }
   TScenSetup = class(TDataModule)
   public
     published
@@ -207,123 +208,291 @@ type
     AlwaysViewTCCB: TAOWCheckBox; { +0330 }
     AlwaysViewTCLbl: TAOWLabel; { +0334 }
     public
-    F_ScenSetup_338: Integer;
-    F_ScenSetup_33C: Integer;
-    F_ScenSetup_340: Integer;
-    F_ScenSetup_344: Byte;
+    FValidateDelay: Integer; { $338 }
+    FSetupControl: TSetupControl; { $33C }
+    FPingDelay: Integer; { $340 }
+    FChatScrollPending: Boolean; { $344 }
     F_ScenSetup_345: array[0..2] of Byte;
     procedure ExitGameClick;  { draft }
-    procedure ChatEditReturn;  { draft }
-    procedure PlayerListDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure PingListDrawItem(A1: Integer; A2: Integer);  { draft }
-    procedure ScenSetupPnlUpdate;  { draft }
+    procedure ChatEditReturn;
+    procedure PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+    procedure PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+    procedure ScenSetupPnlUpdate;
     procedure PickScenarioBtnClick;  { draft }
-    procedure PreferredRaceCBChange;  { draft }
-    procedure StartBtnClick;  { draft }
-    procedure EjectBtnClick;  { draft }
-    procedure MakeHostBtnClick;  { draft }
-    procedure PlayerListSBChange;  { draft }
-    procedure PlayerListChange(A1: Integer);  { draft }
-    procedure TurnTimeSlChange;  { draft }
-    procedure TurnsCBChange(A1: Integer);  { draft }
-    procedure TurnsSlChange;  { draft }
-    procedure PlayModeCBChange;  { draft }
-    procedure RacePlayerCBChange(A1: Integer);  { draft }
-    procedure RaceBehaviorCBChange(A1: Integer);  { draft }
-    procedure LeadersOnMapCBChange(A1: Integer);  { draft }
-    procedure CustomizeLeadersChange(A1: Integer);  { draft }
-    procedure AlliedVictoryCBChange(A1: Integer);  { draft }
-    procedure ExplorationChange(A1: Integer);  { draft }
-    procedure AlwaysViewTCCBChange;  { draft }
-    procedure SettingsClick;  { draft }
-    procedure RacePnlDrawBack(A1: Integer; A2: Integer);  { draft }
-    procedure ChatSBUpdate;  { draft }
-    procedure TacticalCombatCBChange;  { draft }
+    procedure PreferredRaceCBChange;
+    procedure StartBtnClick;
+    procedure EjectBtnClick;
+    procedure MakeHostBtnClick;
+    procedure PlayerListSBChange;
+    procedure PlayerListChange(Sender: TObject);
+    procedure TurnTimeSlChange;
+    procedure TurnsCBChange(Sender: TObject);
+    procedure TurnsSlChange(Sender: TObject);
+    procedure PlayModeCBChange;
+    procedure RacePlayerCBChange(Sender: TObject);
+    procedure RaceBehaviorCBChange(Sender: TAOWComboBox);
+    procedure LeadersOnMapCBChange(Sender: TObject);
+    procedure CustomizeLeadersChange(Sender: TObject);
+    procedure AlliedVictoryCBChange(Sender: TObject);
+    procedure ExplorationChange(Sender: TObject);
+    procedure AlwaysViewTCCBChange;
+    procedure SettingsClick;
+    procedure RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+    procedure ChatSBUpdate;
+    procedure TacticalCombatCBChange;
+    procedure UpdateTurnTime;
+    procedure UpdateTurnLimit;
+    procedure SelectPlayer(Index: Integer);
   end;
 
 
 implementation
 
+uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms;
+
 procedure TScenSetup.ExitGameClick;
 begin end;
 
 procedure TScenSetup.ChatEditReturn;
-begin end;
+var
+  Text: string;
+begin
+  if ChatEdit.Text <> '' then
+  begin
+    Text := SetupEvents.DPlay.PlayerName + ': ' + ChatEdit.Text;
+    SetupEvents.DPlay.SendChatMessage(0, Text);
+    ChatMemo.Items.Add(Text); FChatScrollPending := True;
+    ChatEdit.Text := '';
+  end;
+  ChatEdit.FRedraw := True;
+end;
 
-procedure TScenSetup.PlayerListDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TScenSetup.PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+var
+  I: Integer;
+begin
+  if DrawItem < PlayerList.Items.Count then
+  begin
+    I := FSetupControl.FSettings.FRemotePlayers.IndexOfRemoteID(Integer(PlayerList.Items.Objects[DrawItem]));
+    if I <> -1 then
+      if FSetupControl.FSettings.FRemotePlayers.GetPlayers(I).FMapValidation = mviInvalid then
+      begin
+        FontModule.Age8s.Color := $FF;
+        FontModule.Age8s.SetText(DrawRect.Right - 8, DrawRect.Top + 4, 'X', SD);
+      end
+      else if FSetupControl.FSettings.FRemotePlayers.GetPlayers(I).FMapValidation = mviInvalidMap then
+      begin
+        FontModule.Age8s.Color := $8000;
+        FontModule.Age8s.SetText(DrawRect.Right - 8, DrawRect.Top + 4, 'X', SD);
+      end;
+  end;
+end;
 
-procedure TScenSetup.PingListDrawItem(A1: Integer; A2: Integer);
-begin end;
+procedure TScenSetup.PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
+var
+  I: Integer;
+  P: TGDPlayer;
+  Text: string;
+begin
+  if DrawItem < PingList.Items.Count then
+  begin
+    I := SetupEvents.DPlay.GetPlayerIndex(Integer(PingList.Items.Objects[DrawItem]));
+    if I <> -1 then
+    begin
+      P := TGDPlayer(SetupEvents.DPlay.PlayerItems[I]);
+      if P.FID <> SetupEvents.DPlay.PlayerID then
+      begin
+        case Cardinal(P.FPing) of
+          0..249: FontModule.Age8s.Color := $FF00;
+          250..499: FontModule.Age8s.Color := $FF80;
+          500..749: FontModule.Age8s.Color := $FFFF;
+          750..999: FontModule.Age8s.Color := $80FF;
+        else FontModule.Age8s.Color := $FF;
+        end;
+        if P.FPing <= 999 then Text := IntToStr(P.FPing) else Text := '999';
+        FontModule.Age8s.SetTextCentered((DrawRect.Left + DrawRect.Right) div 2, DrawRect.Top + 4, Text, SD);
+      end;
+    end;
+  end;
+end;
 
 procedure TScenSetup.ScenSetupPnlUpdate;
-begin end;
+begin
+  if SetupEvents.DPlay.Connected and ScenSetupPnl.Visible then
+  begin
+    Dec(FPingDelay);
+    if FPingDelay < 1 then
+    begin FPingDelay := 150; SetupEvents.DPlay.SendPingMessage(0); end;
+    Dec(FValidateDelay);
+    if FValidateDelay < 0 then
+      if FSetupControl.FRemotePlayer.FMapValidation = mviInvalid then
+      begin FSetupControl.ValidateMap; FValidateDelay := 100; end;
+  end;
+end;
 
 procedure TScenSetup.PickScenarioBtnClick;
 begin end;
 
 procedure TScenSetup.PreferredRaceCBChange;
-begin end;
+begin
+  if PreferredRaceCB.Selected >= 0 then
+    FSetupControl.SetPreferredRace(Byte(PreferredRaceCB.Items.Objects[PreferredRaceCB.Selected]));
+end;
 
 procedure TScenSetup.StartBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FSetupControl.FSettings.FConnectionType = 2 then
+    EmailGameSettingsDlg.Execute(FSetupControl)
+  else EmailSettingsAccepted := True;
+end;
 
 procedure TScenSetup.EjectBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if PlayerList.Selected > -1 then
+    FSetupControl.hEjectPlayer(Integer(PlayerList.Items.Objects[PlayerList.Selected]));
+end;
 
 procedure TScenSetup.MakeHostBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if PlayerList.Selected > -1 then
+    FSetupControl.hSetHostRemoteID(Integer(PlayerList.Items.Objects[PlayerList.Selected]));
+end;
 
 procedure TScenSetup.PlayerListSBChange;
-begin end;
+begin
+  PlayerList.ListOffset := PlayerListSB.Position;
+  PingList.ListOffset := PlayerListSB.Position;
+  PreferredRaceList.ListOffset := PlayerListSB.Position;
+end;
 
-procedure TScenSetup.PlayerListChange(A1: Integer);
-begin end;
+procedure TScenSetup.PlayerListChange(Sender: TObject);
+begin
+  SelectPlayer(TAOWListBox(Sender).Selected);
+end;
 
 procedure TScenSetup.TurnTimeSlChange;
-begin end;
+begin
+  FSetupControl.hSetTurnTimeLimitation(TurnTimeSl.Position); UpdateTurnTime;
+end;
 
-procedure TScenSetup.TurnsCBChange(A1: Integer);
-begin end;
+procedure TScenSetup.TurnsCBChange(Sender: TObject);
+begin
+  TurnsSlChange(Self);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TScenSetup.TurnsSlChange;
-begin end;
+procedure TScenSetup.TurnsSlChange(Sender: TObject);
+begin
+  if TurnsSl.Position = 0 then FSetupControl.hSetTurnLimitation(TurnsSl.Position)
+  else FSetupControl.hSetTurnLimitation(TurnsSl.Position * 10);
+  UpdateTurnLimit;
+end;
 
 procedure TScenSetup.PlayModeCBChange;
-begin end;
+begin
+  FSetupControl.hSetPlayMode(Byte(PlayModeCB.Items.Objects[PlayModeCB.Selected]));
+  E3Globals.TitleWindow.TitleWin.FDrawn := False;
+end;
 
-procedure TScenSetup.RacePlayerCBChange(A1: Integer);
-begin end;
+procedure TScenSetup.RacePlayerCBChange(Sender: TObject);
+var
+  Behavior: TSetupPlayerBehavior;
+begin
+  if FSetupControl.PlayerNameToPlayerID(TAOWComboBox(Sender).Items[TAOWComboBox(Sender).Selected], Behavior) then
+    FSetupControl.hSetPlayerID(FSetupControl.FSettings.IndexOfRace(Byte(TComponent(Sender).Tag)), Behavior, True);
+  E3Globals.TitleWindow.TitleWin.FDrawn := False;
+end;
 
-procedure TScenSetup.RaceBehaviorCBChange(A1: Integer);
-begin end;
+procedure TScenSetup.RaceBehaviorCBChange(Sender: TAOWComboBox);
+begin
+  FSetupControl.hSetPlayerBehavior(FSetupControl.FSettings.IndexOfRace(Byte(Sender.Tag)),
+    Sender.Selected);
+  E3Globals.TitleWindow.TitleWin.FDrawn := False;
+end;
 
-procedure TScenSetup.LeadersOnMapCBChange(A1: Integer);
-begin end;
+procedure TScenSetup.LeadersOnMapCBChange(Sender: TObject);
+begin
+  FSetupControl.hSetLeadersOnMap(LeadersOnMapCB.Checked);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TScenSetup.CustomizeLeadersChange(A1: Integer);
-begin end;
+procedure TScenSetup.CustomizeLeadersChange(Sender: TObject);
+begin
+  FSetupControl.hSetCustomizeLeaders(CustomizeLeaders.Checked);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TScenSetup.AlliedVictoryCBChange(A1: Integer);
-begin end;
+procedure TScenSetup.AlliedVictoryCBChange(Sender: TObject);
+begin
+  FSetupControl.hSetAlliedVictory(AlliedVictoryCB.Checked);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TScenSetup.ExplorationChange(A1: Integer);
-begin end;
+procedure TScenSetup.ExplorationChange(Sender: TObject);
+begin
+  FSetupControl.hSetExplorationEnabled(Exploration.Checked);
+  if TAOWCheckBox(Sender).Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
 procedure TScenSetup.AlwaysViewTCCBChange;
-begin end;
+begin
+  FSetupControl.hSetAlwaysViewTC(AlwaysViewTCCB.Checked);
+end;
 
 procedure TScenSetup.SettingsClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TScenSetup.RacePnlDrawBack(A1: Integer; A2: Integer);
-begin end;
+procedure TScenSetup.RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
+begin
+  IntGfxMod.Shields[Sender.Tag].Show(Sender.WinLeft + 5, Sender.WinTop + 5, SD);
+end;
 
 procedure TScenSetup.ChatSBUpdate;
-begin end;
+begin
+  if FChatScrollPending then
+  begin
+    ChatSB.Position := ChatSB.Max + 1 - ChatSB.NumberVisible;
+    FChatScrollPending := False;
+  end;
+end;
 
 procedure TScenSetup.TacticalCombatCBChange;
-begin end;
+begin
+  FSetupControl.hSetTacticalCombatAvailability(Byte(TacticalCombatCB.Items.Objects[TacticalCombatCB.Selected]));
+end;
 
+
+procedure TScenSetup.UpdateTurnTime;
+begin
+  if TurnTimeSl.Position = 0 then TurnTimeVal.Text := LowerCase(TranslateRStr(NoTimerRStr))
+  else TurnTimeVal.Text := AoWE.Format(TranslateRStr(XMinutesRStr), [IntToStr(TurnTimeSl.Position)]);
+end;
+
+procedure TScenSetup.UpdateTurnLimit;
+begin
+  if TurnsSl.Position = 0 then TurnsVal.Text := LowerCase(TranslateRStr(NoLimitRStr))
+  else TurnsVal.Text := AoWE.Format(LowerCase(TranslateRStr(XTurnsRStr)), [IntToStr(TurnsSl.Position * 10)]);
+end;
+
+procedure TScenSetup.SelectPlayer(Index: Integer);
+begin
+  if (Index >= 0) and (Index < PlayerList.Items.Count) then
+  begin
+    PlayerList.Selected := Index; PingList.Selected := Index; PreferredRaceList.Selected := Index;
+    EjectBtn.Visible := FSetupControl.GetHost and
+      (Integer(PlayerList.Items.Objects[PlayerList.Selected]) <> FSetupControl.FRemotePlayer.FRemoteID);
+    MakeHostBtn.Visible := FSetupControl.CanSetHostRemoteID(Integer(PlayerList.Items.Objects[PlayerList.Selected]));
+  end
+  else
+  begin
+    PlayerList.Selected := -1; PingList.Selected := -1; PreferredRaceList.Selected := -1;
+    EjectBtn.Visible := False; MakeHostBtn.Visible := False;
+  end;
+end;
 
 end.
