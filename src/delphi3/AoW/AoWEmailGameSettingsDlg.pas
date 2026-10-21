@@ -153,16 +153,16 @@ procedure TEmailGameSettingsDlg.Player6PnlDrawBack(Sender: TAoWComponent; SD: TS
 var
   R: TRaceResource;
   I: Integer;
-begin
-  I := Sender.Tag + PlayerSB.Position;
+begin with TAOWPanel(Sender) do begin
+  I := Tag + PlayerSB.Position;
   if I < FEmailAddresses.Count then
   begin
     R := AoWHSSet.FRaceResources.GetRaceResource(Integer(FEmailAddresses.Objects[I]));
     R.AddRef;
-    R.FImageLibrary[38].Show(Sender.WinLeft, Sender.WinTop, SD);
+    R.FImageLibrary[38].Show(WinLeft, WinTop, SD);
     R.Release;
   end;
-end;
+end; end;
 
 procedure TEmailGameSettingsDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin

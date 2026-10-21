@@ -39,7 +39,7 @@ type
     procedure TheMapSeatedPlayerChanged(Player: Shortint);  { draft }
     procedure TheMapShowMessage(var Info: TShowMessageInfo);
     procedure TheMapStructureChanged(Structure: TStructure);
-    procedure TheMapStructureDeselected;  { draft }
+    procedure TheMapStructureDeselected(Structure: TStructure);
     procedure TheMapStructureDestroyed(Structure: TStructure);
     procedure TheMapStructureSelected(Structure: TStructure);
     procedure TheMapItemsDeselected;  { draft }
@@ -454,7 +454,7 @@ begin
   if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected < 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
-procedure TMapEvents.TheMapStructureDeselected;
+procedure TMapEvents.TheMapStructureDeselected(Structure: TStructure);
 begin
   if General.FSign <> nil then
     General.FSign.ChangeText(AoWHSMap.FSeatedPlayer, IWindow.SignText.Items);
@@ -466,7 +466,7 @@ end;
 
 procedure TMapEvents.TheMapStructureDestroyed(Structure: TStructure);
 begin
-  if (Structure <> nil) and (Structure = General.FStructure) then TheMapStructureDeselected;
+  if (Structure <> nil) and (Structure = General.FStructure) then TheMapStructureDeselected(Structure);
   if AoWRealm.RealmWin.Dlg.Visible then if (AoWRealm.RealmWin.HeaderTab.Selected = 2) or (AoWRealm.RealmWin.HeaderTab.Selected = 1) then AoWRealm.RealmWin.UpdateOverview;
 end;
 

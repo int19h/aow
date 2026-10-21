@@ -434,12 +434,12 @@ end;
 procedure TMagicWin.DlgResize;
 begin
   with Dlg do
-    with Alignment do
+
     begin
-      AlignWidth := awLeft;
-      AlignHeight := ahTop;
-      LeftOffset := WinLeft;
-      TopOffset := WinTop;
+      Alignment.AlignWidth := awLeft;
+      Alignment.AlignHeight := ahTop;
+      Alignment.LeftOffset := WinLeft;
+      Alignment.TopOffset := WinTop;
     end;
 end;
 

@@ -122,12 +122,12 @@ end;
 procedure TMWindow.MapWindowResize;
 begin
   with MapWindow do
-    with Alignment do
+
     begin
-      LeftOffset := WinLeft;
-      TopOffset := WinTop;
-      AlignWidth := awLeft;
-      AlignHeight := ahTop;
+      Alignment.LeftOffset := WinLeft;
+      Alignment.TopOffset := WinTop;
+      Alignment.AlignWidth := awLeft;
+      Alignment.AlignHeight := ahTop;
     end;
   MapViewer.SceneWidth := MapWindow.WinWidth - 24;
   MapViewer.SceneHeight := MapWindow.WinHeight - 24;

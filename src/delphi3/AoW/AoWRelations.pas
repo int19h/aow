@@ -499,13 +499,13 @@ end;
 
 procedure TRelWindow.FinishEvent;
 var
-  Event: TDiplomaticActionEventLog;
   Done: TExecuteDoneEvent;
+  Pending, Event: TDiplomaticActionEventLog;
 begin
-  Event := FEvent;
-  if Event <> nil then
+  Pending := FEvent;
+  if Pending <> nil then
   begin
-    Done := FDone;
+    Done := FDone; Event := Pending;
     FDone := nil;
     FEvent := nil;
     if Assigned(Done) then Done(Event);

@@ -567,7 +567,7 @@ begin
   AoWHSMap.Activate;
   ControlWin.ControlWindow.Visible := False;
   MapEvents.TheMapArmyDeselected;
-  MapEvents.TheMapStructureDeselected;
+  MapEvents.TheMapStructureDeselected(nil);
   TBWindow.TBWorldUpdate(nil);
   PInfoW.UpdatePlayer;
   if msActivated in AoWHSMap.Status then

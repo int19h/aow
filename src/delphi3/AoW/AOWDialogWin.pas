@@ -83,7 +83,7 @@ begin
         if General.FCity.Raze(AoWHSMap.FSeatedPlayer) then
         begin
           Structure := General.FStructure;
-          MapEvents.TheMapStructureDeselected;
+          MapEvents.TheMapStructureDeselected(General.FStructure);
           MapEvents.TheMapStructureSelected(Structure);
         end;
       end

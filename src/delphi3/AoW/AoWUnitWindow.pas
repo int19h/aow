@@ -754,8 +754,8 @@ begin
   if General.FSelectedUnit <> nil then
     if General.FSelectedUnit.GetFace <> nil then
     begin
-      R := Classes.Rect(Sender.WinLeft + 29, Sender.WinTop + 28,
-        Sender.WinLeft + 132, Sender.WinTop + 156);
+      with TAOWImage(Sender) do R := Classes.Rect(WinLeft + 29, WinTop + 28,
+        WinLeft + 132, WinTop + 156);
       General.FSelectedUnit.ShowFace(R, SurfDesc);
     end;
 end;
@@ -766,7 +766,7 @@ begin
   begin
     FShowInfo.Direction := 3;
     if General.FSelectedUnit is THero then FShowInfo.Overlays := [] else FShowInfo.Overlays := [uoRank];
-    General.FSelectedUnit.ShowEx(Sender.WinLeft + 49, Sender.WinTop + 78, SurfDesc, FShowInfo);
+    with TAOWImage(Sender) do General.FSelectedUnit.ShowEx(WinLeft + 49, WinTop + 78, SurfDesc, FShowInfo);
   end;
 end;
 

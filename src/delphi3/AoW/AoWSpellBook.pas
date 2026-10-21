@@ -407,7 +407,7 @@ begin
   if FActivation <> nil then
   begin
     FHero := THero(AoWHSMap.FUnitControl.FindUnit(FActivation.FUnitID));
-    Result := (FHero <> nil) and (FHero.FUnitStatus * [usKilled] = []);
+    Result := (FHero <> nil) and not (usKilled in FHero.FUnitStatus);
   end
   else Result := True;
 end;
@@ -793,7 +793,7 @@ begin
       else
       begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
     end;
-  end;
+  end else begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
 end;
 
 end.

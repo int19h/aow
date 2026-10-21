@@ -390,9 +390,9 @@ var
   I: Integer;
 begin
   Control := TLeaderSetupControl(Sender);
-  if Control.FStatus = lssDone then
+  with TLeaderSetupControl(Sender) do if FStatus = lssDone then
   begin
-    Leader := TLeader(Control.FOriginalLeader.Copy(AoWEngine));
+    Leader := TLeader(FOriginalLeader.Copy(AoWEngine));
     for I := GetCampaign.FTransferSettings.FLeader.GetSphereCount to Leader.GetSphereCount - 1 do
       GetCampaign.FTransferSettings.FSelectedSpheres.Add(Ord(Leader.GetSpheres(I)));
     WorldPnl.Visible := True;

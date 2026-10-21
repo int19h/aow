@@ -786,7 +786,7 @@ begin
   with Dialog do
   begin
     ResetProgress;
-    FDone := Done; with Event do begin FEvent := Event; AddRef; end;
+    FDone := Done; FEvent := Event; with FEvent do AddRef;
     RecipientLbl.Text := AoWE.Format(TranslateRStr(RecipientXRStr), [Event.FToAddress]);
     try
       IMSSMTP.FMessage := IMSMessage;
@@ -797,7 +797,7 @@ begin
         FEncode := False; FIncludeHeader := False;
         FHeader.FFrom := Event.FFromAddress;
         FRecipients.Clear;
-        FRecipients.AddAddress(Event.FToAddress, '');
+        Dialog.IMSMessage.FRecipients.AddAddress(Event.FToAddress, '');
       end;
       IMSMessage.FSubject := Event.FSubject;
       IMSMessage.SetBody(Event.FMessage);

@@ -615,7 +615,7 @@ begin
   AoWHSMap.Activate;
   AoWExeForms.RealmWin.Dlg.Visible := False;
   E1Globals.MapEvents.TheMapArmyDeselected;
-  E1Globals.MapEvents.TheMapStructureDeselected;
+  E1Globals.MapEvents.TheMapStructureDeselected(nil);
   AoWExeForms.TBWindow.CurPUpdate;
   AoWExeForms.PInfoW.UpdatePlayer;
   if msActivated in AoWHSMap.Status then

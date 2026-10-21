@@ -356,7 +356,7 @@ begin
     SurfDesc.ClipRect.Bottom := DrawRect.Top + Unit1LB.ItemHeight - 6;
     if DrawRect.Bottom - DrawRect.Top < Unit1LB.ItemHeight - 6 then SurfDesc.ClipRect.Bottom := DrawRect.Bottom;
     U := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(DrawItem).GetUnit(Column);
-    if Integer(U.GetAlignment) < IntGfxMod.UnitBGs.Count then
+    if Integer(U.GetAlignment) < TIntGfxMod(IntGfxMod).UnitBGs.Count then
       IntGfxMod.UnitBGs[Ord(U.GetAlignment)].ShowClipped(
         DrawRect.Left - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Width - (DrawRect.Right - DrawRect.Left)) div 2,
         DrawRect.Top - (IntGfxMod.UnitBGs[Ord(U.GetAlignment)].Height - (DrawRect.Bottom - DrawRect.Top - 10)) div 2,
@@ -371,8 +371,8 @@ begin
       WinLeft := DrawRect.Left - T4LBPnl.WinLeft + 5;
       WinWidth := DrawRect.Right - DrawRect.Left - 10;
       WinTop := DrawRect.Top + Unit1LB.ItemHeight - T4LBPnl.WinTop - 9;
-      ReAlign;
-      DrawSurfDesc(SurfDesc);
+      SetSize; { Original sizes and draws the gauge directly. }
+      Draw(SurfDesc);
       Visible := False;
     end;
     SurfDesc.ClipRect := OldClip;

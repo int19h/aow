@@ -77,8 +77,8 @@ begin SelectConstruction(ConstructionTurnsList.Selected); end;
 procedure TConstructDlg.ConstructBtnClick(Sender: TObject);
 var
   Reason: string;
-  U: TAbstractUnit;
   Control: TConstructionControl;
+  U: TAbstractUnit;
 begin
   General.PlayButtonSound(0);
   if (ConstructionList.Selected >= 0) and (ConstructionList.Selected < ConstructionList.Items.Count) then
