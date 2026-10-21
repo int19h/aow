@@ -25,7 +25,7 @@ package it `requires`, which says nothing about real use. Function counts and si
 | ims.dpl | ag*/ms* units (605) | - | third party (an internet suite) |
 | AoWEPACK.dpl | AoWE (4042), City (191), spells, abilities, events, AoWReg, AoWSetup, ... (6872) | Engine, GFXE, HSEPack units, ImageLib, Localize, NetworkE, Sound, aowFX | done, about 6,155 of 6,872 identical (2026-10-20); the rest differ mostly in register or frame choices |
 | AoWTCPCK.dpl | AoWTC (174), CombatTE (38), combat map units (565) | AoWEPACK units, Engine, GFXE, HSEPack units, ImageLib, NetworkE, Sound, aowFX | tactical combat |
-| AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWE, Engine | |
+| AbilityP.dpl | MoveAb, ImmAb, StrikeAb, ShootAb, UnitAb, AbilPack (44) | AoWE, Engine | legacy, not used by v1.36: built against an older AoWE (its TAbility parent is 24 bytes with GetAbilityID at VMT +$04, the shipped one 36 bytes; it reads FAbilityControl at $74, the shipped AoWE has it at $80); neither executable imports it. Drafted, 13 of 23 identical; not pursued |
 | AOWTools.dpl | Scanner (42), AoWBookWindow, TurnButton, lines, StartMenu (109) | AoWE, PageTurnCtrl, GFXE, HSEngine, ImageLib, aowInt units | |
 | ILToolsP.dpl | ILTools, ILSeqEd, Str2Clip (68) | DisplayC, ImageLib, SpinEdit | editor tools |
 | AoW.exe | the game's forms and main program (1371) | everything above except AoWInterface, ILToolsP | |
