@@ -1,8 +1,9 @@
 unit MainStructure;
 
-{ Draft declarations of MainStructure, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ MainStructure, AoWTCPCK.dpl. Original layouts and VMT order.
+  TMainStructure: size $28, no added fields. Resource: size $48, no added fields. }
+
+{$O-,Q+,R+}
 
 interface
 
@@ -29,27 +30,29 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterMainStructure(A1: Integer);  { draft }
+procedure RegisterMainStructure(AEngine: TEngine);
 
 implementation
 
 class function TMainStructure.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051C; end;
 
 function TMainStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
-begin Result := 0; end;
+begin Result := TerrainType; end;
 
 class function TMainStructureResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051D; end;
 
 class function TMainStructureResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat Main Structure'; end;
 
 function TMainStructureResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $22051C; end;
 
-procedure RegisterMainStructure(A1: Integer);
-begin end;
+procedure RegisterMainStructure(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TMainStructureResource, TMainStructure]);
+end;
 
 
 initialization

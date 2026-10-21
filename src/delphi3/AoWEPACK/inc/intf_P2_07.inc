@@ -608,7 +608,7 @@
     function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; override;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); override;
     procedure UpdateFlagID; override;
-    function MoveFirst(Direction: Byte; Instant: Boolean): Shortint; override;
+    function MoveFirst(Direction: Integer; Instant: Boolean): Shortint; override;
     function GetMoveSteps: Integer; override;
     function GetFogEnabled: Boolean;
     function VisibleForSeatedPlayer: Boolean;

@@ -51017,7 +51017,7 @@ begin
     FDirection := Value;
   end;
 end;
-function TUnitHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
+function TUnitHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint;
 begin
   if FMoveStep <> -1 then CancelMove;
   FStatus := FStatus and $E7;
@@ -57869,7 +57869,7 @@ begin
   end;
 end;
 
-function TArmyHS.MoveFirst(Direction: Byte; Instant: Boolean): Shortint;
+function TArmyHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint;
 var Level: TMapLevel; X, Y, DX, DY: Integer; Animation: TImageSequenceAnimation;
 begin
   Result := inherited MoveFirst(Direction, Instant);

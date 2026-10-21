@@ -1,13 +1,14 @@
 unit CenterViewLoc;
 
-{ Draft declarations of CenterViewLoc, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ CenterViewLoc, AoWTCPCK.dpl. Original layouts and VMT order.
+  TCenterViewLocation: size $10, no added fields. Resource: size $34, no added fields. }
+
+{$O-,Q+,R+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWTC;
 
 type
   TCenterViewLocation = class;
@@ -37,51 +38,73 @@ type
     procedure SetLevel(Value: Byte); override;
   end;
 
-procedure RegisterCenterViewLocation(A1: Integer);  { draft }
+procedure RegisterCenterViewLocation(AEngine: TEngine);
 
 implementation
 
 class function TCenterViewLocation.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $221528; end;
 
 function TCenterViewLocation.GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWHSSet.FCombatResources; end;
 
 function TCenterViewLocation.CanPlace(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
-begin Result := False; end;
+begin Result := True; end;
 
 function TCenterViewLocation.CanSelect(Xhp, Yhp: Integer): Boolean;
-begin Result := False; end;
+begin Result := True; end;
 
 function TCenterViewLocation.PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceHX(MapContainer, Xhx, Yhx, Lhx);
+end;
 
 procedure TCenterViewLocation.Activate;
-begin end;
+begin
+  inherited Activate;
+  if not GetEditMode then
+  begin
+    if AoWCombatMap.FCenterViewLocation <> nil then AoWCombatMap.FCenterViewLocation.Free;
+    AoWCombatMap.FCenterViewLocation := Self;
+  end;
+end;
 
 procedure TCenterViewLocation.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+  if not GetEditMode then
+    if AoWCombatMap.FCenterViewLocation = Self then AoWCombatMap.FCenterViewLocation := nil;
+end;
 
 procedure TCenterViewLocation.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  if msEditting in AoWCombatMap.Status then inherited Show(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 constructor TCenterViewLocationResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  SetLevel(27);
+end;
 
 class function TCenterViewLocationResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $221529; end;
 
 procedure TCenterViewLocationResource.SetLevel(Value: Byte);
-begin end;
+begin
+  inherited SetLevel(27);
+end;
 
 class function TCenterViewLocationResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Center View Location'; end;
 
 function TCenterViewLocationResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $221528; end;
 
-procedure RegisterCenterViewLocation(A1: Integer);
-begin end;
+procedure RegisterCenterViewLocation(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TCenterViewLocationResource, TCenterViewLocation]);
+end;
 
 
 initialization

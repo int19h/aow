@@ -175,16 +175,21 @@ type
   public
     FDone: Boolean; { $0C }
     FCancelled: Boolean; { $0D }
+    { conflict: FHit: Boolean; }
     F_fxHS_0E: array[0..1] of Byte;
     FFrame: Integer; { $10 }
     FAbilityIndex: Integer; { $14 }
+    { conflict: FAbilityID: Integer; }
     FSpellIndex: Integer; { $18 }
+    { conflict: FSpellID: Integer; }
     FPath: TXYZList; { $1C }
     FVariant: Integer; { $20 }
+    { conflict: FDirection: Integer; }
     FTargetX: Integer; { $24 }
     FTargetY: Integer; { $28 }
     FTarget: TCombatObject; { $2C }
-    F_fxHS_30: array[0..3] of Byte;
+    { conflict: FTarget: TTacticalCombatUnit; }
+    FCombatAction: TCombatAction; { $30; $40c44b }
     FEffectType: TfxType; { $34 }
     F_fxHS_35: array[0..2] of Byte;
     destructor Destroy; override;
@@ -314,6 +319,7 @@ type
     FPositionGroup: Byte; { $65 }
     FCanFlee: Boolean; { $66 }
     FDeathMethod: TTCDeathMethod; { $67 }
+    { conflict: FUsedAbility: Boolean; }
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure NewTurn(A1: Byte); override;
     function ExecuteDamage(A1: Integer): Integer; override;
@@ -460,7 +466,7 @@ type
     { conflict: FDeactivateMapEvents: TEventList; }
     FDeselectEvents: TEventList; { $108 }
     { conflict: FActivateMapEvents: TEventList; }
-    F_AoWCombatMap_10C: array[0..3] of Byte;
+    FCenterViewLocation: TMapObject; { $10C; $435a3e }
     FUnitChangedEvents: TEventList; { $110 }
     { conflict: FMouseOverTargetEvents: TEventList; }
     FMouseOverTargetEvents: TEventList; { $114 }
@@ -547,7 +553,8 @@ procedure MakeAbilPath(Side: TCombatSideIndex; Ability, Spell: Smallint;
 procedure MakeRangedPath(Side: TCombatSideIndex; Speed, Arc, UnusedHeight: Smallint;
   X1, Y1, X2, Y2, OffsetX, OffsetY: Smallint; IncludeUnits: Boolean;
   var Path: TXYZList; var Obstacles: TList);
-procedure RegisterAoWTCClasses(A1: Integer);
+{ conflict: procedure MakeRangedPath(Side: TCombatSideIndex; Height, Step, Arc: Smallint; X1, Y1, X2, Y2: Smallint; OffsetX, OffsetY: Smallint; Mode: Boolean; var Path: TXYZList; var Obstacles: TList); }
+procedure RegisterAoWTCClasses(AEngine: TEngine);
 function GetMeleeDirIndex(A1: Integer; A2: Integer; A3: Integer): Word;
 function GetRangedDirIndex(A1: Integer; A2: Integer): Word;
 
@@ -559,6 +566,7 @@ var
   { conflict: const TCDamage: array[0..1] of Integer = (6, 1); }
 const
   raDir: array[0..17] of Integer = (0,0,0,1,0,2,3,4,5,6,0,0,0,0,0,0,0,0);
+  { conflict: raDir: array[0..16] of Integer = (0, 0, 0, 1, 0, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0); }
   AbilTypes: array[0..169] of TfxType = (
     fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone,
     fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxNone, fxArrow, fxNone,
@@ -602,6 +610,8 @@ const
     4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 1);
   StatusAbilities: array[0..13] of Integer = (149, 150, 48, 92, 93, 94, 95, 96, 97, 98, 107, 163, 127, 34);
   WallISIndex: array[0..1] of Integer = (30, 0);
+  rndHex: array[0..18] of Integer = (6, 0, 1, 3, 4, 5, 2, 18, 12, 7, 11, 10, 17, 15, 9, 16, 13, 8, 14);
+  BreathHit: array[0..11] of Integer = (0, 1, 4, 7, 8, 2, 5, 9, 10, 3, 6, 11);
   WallMaxHP: array[0..1] of Integer = (7, 13);
 
 resourcestring
@@ -6576,7 +6586,7 @@ begin
   end;
 end;
 
-procedure RegisterAoWTCClasses(A1: Integer);
+procedure RegisterAoWTCClasses(AEngine: TEngine);
 begin
   AoWEngine.RegisterEClasses([TAoWCombatMap, TAoWCombatMapLevel, TUnitPositionHS, TTacticalCombat]);
 end;

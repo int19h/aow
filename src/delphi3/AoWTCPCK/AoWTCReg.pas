@@ -1,8 +1,8 @@
 unit AoWTCReg;
 
-{ Draft declarations of AoWTCReg, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWTCReg, AoWTCPCK.dpl: register the tactical-combat classes in original order. }
+
+{$O-,Q+,R+}
 
 interface
 
@@ -11,12 +11,34 @@ uses
 
 
 
-procedure RegisterTacticalCombat(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure RegisterTacticalCombat(AEngine: TEngine);
 
 implementation
 
-procedure RegisterTacticalCombat(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+uses AoWTC, CombatILTer, CombatHex, CombatRoad, CombatTerrain, CityWall, WorkShop,
+  Townhall, House, FleeLoc, SingleCombatHex, CombatObstacle, CombatTE, IsoCombatHex,
+  MainStructure, CenterViewLoc, CombatFire;
+
+procedure RegisterTacticalCombat(AEngine: TEngine);
+begin
+  RegisterAoWTCClasses(AEngine);
+  RegisterCombatILTerrain(AEngine);
+  RegisterCombatHexagon(AEngine);
+  RegisterCombatRoad(AEngine);
+  RegisterCombatTerrain(AEngine);
+  RegisterCityWall(AEngine);
+  RegisterWorkshop(AEngine);
+  RegisterTownhall(AEngine);
+  RegisterHouse(AEngine);
+  RegisterFleeLocation(AEngine);
+  RegisterSingleCombatHexagon(AEngine);
+  RegisterCombatObstacle(AEngine);
+  RegisterCombatTE(AEngine);
+  RegisterIsometricCombatHexagon(AEngine);
+  RegisterMainStructure(AEngine);
+  RegisterCenterViewLocation(AEngine);
+  RegisterCombatFire(AEngine);
+end;
 
 
 initialization

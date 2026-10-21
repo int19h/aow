@@ -106,7 +106,7 @@
     function PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; virtual;
     procedure ShowShadow(X, Y: Integer; const SurfaceDesc: TSurfaceDesc); virtual;
     procedure UpdateFlagID; virtual;
-    function MoveFirst(Direction: Byte; Instant: Boolean): Shortint; virtual;
+    function MoveFirst(Direction: Integer; Instant: Boolean): Shortint; virtual;
     function GetMoveSteps: Integer; virtual;
     procedure CreateShadow;
     procedure DestroyShadow;

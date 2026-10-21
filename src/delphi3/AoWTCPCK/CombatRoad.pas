@@ -64,8 +64,8 @@ end;
 
 function TCombatRoad.PlaceHX(MapContainer: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
 var
-  MapField: TMapField;
   OldRoad: THexagonSprite;
+  MapField: TMapField;
 begin
   MapField := MapContainer.GetField(Xhx, Yhx, Lhx);
   OldRoad := MapField.FindHS(TAbstractRoad);
