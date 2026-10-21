@@ -2555,7 +2555,7 @@ begin
     if (TCombatObject(A2).FID = FTargetID) and (FDamageDone <> 0) and (HitFrame <= TCombatViewer(A1).FTime) then
     begin
       TCombatObject(A2).Show(A3, A4, A5, A6, A7);
-      if FEffects.Value <> [] then AoWE.ShowDamageEffects(PWord(@FEffects.Value)^, A5, A6, TCombatViewer(A1).FTime - HitFrame, A7);
+      if FEffects.Value <> [] then AoWE.ShowDamageEffects(FEffects.Value, A5, A6, TCombatViewer(A1).FTime - HitFrame, A7);
       { needs: P1 ShowDamageIcon has five arguments; DamageTypesToDamageType returns TDamageType. }
       AoWE.ShowDamageIcon(A5, A6, A7, FDamageDone, AoWE.DamageTypesToDamageType(FDamageTypes.Value));
     end

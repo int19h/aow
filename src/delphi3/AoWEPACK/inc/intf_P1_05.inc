@@ -113,7 +113,7 @@
     FScannerIconsChangedLockCount: Integer; { $C4 }
     FFogEnabled: Byte; { $C8 }
     FExplorationEnabled: Boolean; { $C9 }
-    F_AbstractAoWHSMap_CA: Byte;
+    FShowGrid: Boolean; { $CA; 55778A78 }
     F_AbstractAoWHSMap_CB: array[0..0] of Byte;
     FBackHexagonSelector: TCustomFixedVisibleHS; { $CC }
     FFrontHexagonSelector: TCustomFixedVisibleHS; { $D0 }
@@ -158,11 +158,14 @@
     function ExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): Boolean;
     function UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged;
     procedure DrawGrid(const SurfaceDesc: TSurfaceDesc);
+    { conflict: procedure DrawGrid(const SD: TSurfaceDesc); }
     procedure DrawFog(const SurfaceDesc: TSurfaceDesc);
+    { conflict: procedure DrawFog(const SD: TSurfaceDesc); }
     procedure ShowHexagonSelector;
     procedure HideHexagonSelector;
     procedure UpdateFPS(A1: Integer);
     procedure DrawSelectionRect(XhpSurf, YhpSurf: Integer; const R: TRect; const SurfaceDesc: TSurfaceDesc);
+    { conflict: procedure DrawSelectionRect(X, Y: Integer; const R: TRect; const SD: TSurfaceDesc); }
   end;
 
   { TAbstractAoWCombatMap: size $E0; $D8/$DC combat event lists. VMT 5570E548. }
@@ -200,7 +203,7 @@
   TAoWHSMap = class(TAbstractAoWHSMap)
   public
     FSelectedArmy: TSelectedArmy; { $D8 }
-    F_AoWHSMap_DC: Byte;
+    FIgnoreStreamErrors: Boolean; { $DC }
     F_AoWHSMap_DD: array[0..2] of Byte;
     FTargetSelection: TTargetSelectionControl; { $E0 }
     FMapName: string; { $E4 }
@@ -229,7 +232,7 @@
     FAIPlayerActionManager: TAIPlayerActionManager; { $12C }
     FAIGroupManager: TAIGroupManager; { $130 }
     FKeyboard: TAoWHSMapKeyboard; { $134; 5576374C }
-    F_AoWHSMap_138: Byte;
+    FUnlimitedMoves: Boolean; { $138 }
     FRequestCombatType: Boolean; { $139 }
     { conflict: FGameMode: Byte; }
     { conflict: FTacticalCombatEnabled: Boolean; }
@@ -242,18 +245,18 @@
     FRaces: TRaceList;  { $144 }
     FFixedLeaders: Boolean; { $148 }
     FLeadersFixed: Boolean;  { $149; 55786C99 }
-    F_AoWHSMap_14A: Byte;
+    FStartingGame: Boolean; { $14A }
     FAlliedVictory: Boolean; { $14B }
-    F_AoWHSMap_14C: Byte;
+    FVictoryMode: Byte; { $14C }
     FVictoryCondition: TVictoryCondition; { $14D }
     F_AoWHSMap_14E: array[0..1] of Byte;
     FVictoryMana: Integer; { $150 }
     FVictoryGold: Integer; { $154 }
     FDayLimit: Integer; { $158 }
-    F_AoWHSMap_15C: Integer;
-    F_AoWHSMap_160: Integer;
-    F_AoWHSMap_164: Integer;
-    FCampaignMapIndex: Integer; { $168 }
+    FTurnTime: Integer; { $15C }
+    FTurnTimeElapsed: Integer; { $160 }
+    FTurnTimeBeep: Integer; { $164 }
+    FTurnTimerStart: Integer; { $168 }
     FTurnOrderMode: TTurnOrderMode; { $16C }
     F_AoWHSMap_16D: array[0..2] of Byte;
     FTurnOrder: TByteList; { $170 }
@@ -267,9 +270,9 @@
     { conflict: FPlayerControl: TPlayerControl; }
     FCampaignSettings: TAoWMapCampaignSettings; { $18C }
     FEditorPlayer: Shortint;  { $190, read at $55784FB4 }
-    F_AoWHSMap_191: Byte;
+    FShowAllPlayers: Boolean; { $191 }
     F_AoWHSMap_192: array[0..1] of Byte;
-    F_AoWHSMap_194: Integer;
+    FRelationsChangedLockCount: Integer; { $194 }
     FPlayerChangedEvents: TEventList; { $198 }
     FNewDayEvents: TEventList; { $19C }
     FNewTurnEvents: TEventList; { $1A0 }
@@ -294,8 +297,8 @@
     FDiplomaticRelationsChangedEvents: TEventList; { $1E8 }
     FUpdateVisibilityEvents: TEventList; { $1EC }
     FEffects: TList; { $1F0 }
-    F_AoWHSMap_1F4: Integer;
-    F_AoWHSMap_1F8: Byte;
+    FUpdateVisibilityLockCount: Integer; { $1F4 }
+    FVisibilityChanged: Boolean; { $1F8 }
     F_AoWHSMap_1F9: array[0..2] of Byte;
     FArmyUpdateCount: Integer; { $1FC }
     FStructureUpdateCount: Integer; { $200 }
@@ -395,42 +398,42 @@
     procedure ExecuteEventLogDone(Log: TEventLog);
     procedure LockExecuteEventLog;
     procedure UnlockExecuteEventLog;
-    procedure GameOverEventHandled;  { draft }
+    procedure GameOverEventHandled(Player: Shortint);
     procedure ExecuteGameOverEvent(Event: TGameOverEventLog);
     procedure UnlockGameOverEvent;
     procedure LockGameOverEvent;
     procedure GameOver(Player: Shortint; Status: TGameOverStatus);
     { conflict: procedure GameOver(A1: Byte; A2: TGameOverStatus); }
     procedure VerifyAddOnPacks;  { draft }
-    procedure ValidateMap(A1: Integer);  { draft }
-    procedure OnStreamError(A1: Integer; A2: Integer);  { draft }
-    procedure InitializeMapLevel(A1: Byte);  { draft }
-    procedure NotifyPlayerChangedEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure UpdatePlayerSeen(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer);
-    procedure NotifyPlayerChanged(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    function ValidateMap(Messages: TStrings): Boolean;
+    procedure OnStreamError(Stream: TEStorageStream; const Message: string; var Handled: Boolean);
+    procedure InitializeMapLevel(Level: Shortint);
+    procedure NotifyPlayerChangedEx(X, Y, L, Radius: Integer);
+    procedure UpdatePlayerSeen(Player, X, Y, L, SightRadius, Radius: Integer);
+    procedure NotifyPlayerChanged(X, Y, L: Integer);
     function VisibleForPlayer(X, Y, Level: Integer; Player: Shortint): Boolean;
-    procedure FoggedForPlayer(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    function FoggedForPlayer(X, Y, L: Integer; Player: Shortint): Boolean;
     procedure MouseMoved(Sender: TObject);
     procedure UpdateCursor;  { draft }
     procedure ResetSeatedPlayerView;
-    procedure Select(A1: THexagonSprite; A2: Boolean);
+    procedure Select(Sprite: THexagonSprite; Center: Boolean);
     procedure PlayerChanged;  { draft }
     procedure TokenControlActivatedEvent(Sender: TObject);
     procedure SetupPlayerControl(Mode: TPlayMode; Connection: TPlayerConnectionType);
     procedure ActivateMsg;  { draft }
     function Random(Range: Integer): Integer;
     procedure GenerateNewTurnOrder;  { draft }
-    procedure EndTurn;  { draft }
-    procedure CancelEndTurn;  { draft }
+    function EndTurn: Boolean;
+    function CancelEndTurn: Boolean;
     procedure LockUpdateVisibility;  { draft }
     procedure UnLockUpdateVisibility;  { draft }
     procedure UpdateVisibility;  { draft }
     procedure ResetMapLevels;  { draft }
     procedure ExecuteNegotiateMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure InitializeCombatMap(A1: Integer; A2: Integer);  { draft }
+    procedure InitializeCombatMap(A1: Integer; const FileName: string);
     procedure ReleaseCombatMap;  { draft }
-    function CreateCombat(A1: Integer): TCombat;
-    procedure ShowSeatedPlayerCallBack;  { draft }
+    function CreateCombat(AClassID: Integer): TCombat;
+    procedure ShowSeatedPlayerCallBack(Log: TEventLog);
     procedure DestroyCombat;  { draft }
     procedure RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo);
     procedure TriggerRelationsChanged;  { draft }
@@ -444,7 +447,7 @@
     procedure DisableTurnTimer;  { draft }
     procedure ZeroTurnTimer;  { draft }
     procedure CenterOnLeader(Player: Shortint; Select: Boolean; Animate: Boolean);
-    procedure PlaceTerrain(A1: Shortint; A2: Shortint; A3: Shortint; A4: Shortint; A5: Shortint);
+    procedure PlaceTerrain(X, Y, L, TerrainType, OverlayType: Shortint);
     procedure UpdateEffects;  { draft }
     function AddEffect(EffectType: TworldFXType): TWorldFXHS; { 557ED3A5 }
   end;

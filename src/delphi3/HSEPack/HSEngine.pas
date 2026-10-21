@@ -545,7 +545,7 @@ type
     FDestroyEvents: TEventList;
     FHSChangedEvents: TEventList;
     FFileName: string;
-    FViewXhp: Integer;
+  protected FViewXhp: Integer;
     FViewYhp: Integer;
     FViewL: Integer;
     FViewWidth: Integer;

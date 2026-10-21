@@ -8,6 +8,11 @@ const
   RaceColors: array[0..12] of TColor = ($00E03430, $0066A4FF, $00AFCB2C,
     $00FEDA87, $0060EF41, $0015FDFD, $00A5C1E4, $00F7FFFD, $00B370BC,
     $005050E9, $004266BB, $00797898, $00A8A8A8); { $558E8294 }
+  dAlignmentToStatusValue: array[TAlignment, TAlignment] of Shortint = (
+    (100,90,30,40,10,0,50), (90,90,40,50,10,10,50),
+    (30,40,70,50,40,30,50), (40,50,50,50,50,40,50),
+    (10,10,40,50,90,90,50), (0,10,30,40,90,100,50),
+    (50,50,50,50,50,50,50)); { $558E8480 }
   dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 }
   ExplosionSFX: array[0..1] of string = ('SFX\ATTACK\STORM.WAV', 'SFX\ATTACK\EXPLOD1.WAV'); { $558E8030 }
   alsPureGood: TAlignments = [alPureGood, alGood, alNone]; { $558E8050 }
@@ -53,6 +58,20 @@ resourcestring
   TurnLimitReachedRStr = 'Sorry, turn limit reached!';
 
 resourcestring
+  MapSuccessfullyValidatedRStr = 'Map validated successfully';
+  MapValidationFailedRStr = 'Map validation failed!';
+  LoadingLevelRStr = 'Loading Level ';
+  InitializingLevelRStr = 'Initializing Level ';
+  UpdatingTerrainLevelRStr = 'Updating Terrain Level ';
+  ActivatingLevelRStr = 'Activating Level ';
+  SavingLevelRStr = 'Saving Level ';
+  DestroyingLevelRStr = 'Destroying Level ';
+  XTurnRStr = '%s turn';
+  XTurnsRStr = '%s turns';
+  XTurnLeftRStr = '%s turn left';
+  XTurnsLeftRStr = '%s turns left';
+  XDayRStr = '%s day';
+  XDaysRStr = '%s days';
   XDayLeftRStr = '%s day left';
   XDaysLeftRStr = '%s days left';
 

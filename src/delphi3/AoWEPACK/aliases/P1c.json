@@ -1,5 +1,8 @@
 {
   "FUN_55703ef4": "StringToRect",
   "FUN_55704014": "RectToString",
-  "FUN_55705a20": "TransformPassword"
+  "FUN_55705a20": "TransformPassword",
+  "FUN_5574757c": "TryEndPlayerTurn",
+  "FUN_557475c8": "CancelPlayerTurn",
+  "AoWE.Format": "Format<FmtTurnsStr"
 }

@@ -38,27 +38,27 @@ function MoveArmyXYL(Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Force: B
 function MoveArmyXYLEx(Player: Shortint; Army: TArmyHS; Selection: Byte; X, Y, L: Shortint; Action: TMoveAction; Force: Boolean): TMoveArmyTE;
 function Format(const S: string; const Args: array of const): string;
 { conflict: function Format(const Fmt: string; const Args: array of const): string; }
-procedure FmtTurnsStr(A1: Integer; A2: Integer);  { draft }
-procedure FmtTurnsLeftStr(A1: Integer; A2: Integer);  { draft }
-procedure FmtDaysStr(A1: Integer; A2: Integer);  { draft }
+function FmtTurnsStr(Turns: Integer): string;
+function FmtTurnsLeftStr(Turns: Integer): string;
+function FmtDaysStr(Days: Integer): string;
 function FmtDaysLeftStr(Days: Integer): string;
 function HitPointsToHitPcnt(A1, A2: Shortint): Integer;
-procedure ShowHitPcnt(A1: Integer; A2: Integer; const A3: TSurfaceDesc; A4: Integer);
+procedure ShowHitPcnt(X, Y: Integer; const Surface: TSurfaceDesc; Percent: Integer);
 procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
-procedure ShowDamageEffects(A1: Word; A2: Integer; A3: Integer; A4: Integer; const A5: TSurfaceDesc);
+function ShowDamageEffects(DamageTypes: TDamageTypes; X, Y, Frame: Integer; const Surface: TSurfaceDesc): Boolean;
 function DamageEffectsAnimationFrames(A1: TDamageTypes): Integer;
 function StatusToStatusValue(Status: TStatus): Integer;
 function StatusValueToStatus(Value: Integer): TStatus;
-procedure MoraleToMoraleValue(A1: Integer);  { draft }
-procedure MoraleValueToMorale(A1: Integer);  { draft }
-procedure dAlignmentsToStatus(A1: Byte; A2: Byte; A3: Integer);  { draft }
+function MoraleToMoraleValue(Value: Integer): Integer;
+function MoraleValueToMorale(Value: Integer): Integer;
+function dAlignmentsToStatus(A, B: TAlignments): TStatus;
 function DamageTypesToDamageType(A1: TDamageTypes): TDamageType;
-procedure dAlignmentToStatus(A1: Integer; A2: Integer);  { draft }
-procedure AlsToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
-procedure IntToAls(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function dAlignmentToStatus(A, B: TAlignment): TStatus;
+function AlsToInt(Alignments: TAlignments): Integer;
+function IntToAls(Value: Integer): TAlignments;
 function Land(Terrain: Shortint): Boolean;
-procedure MoveTypesToInt(A1: Byte; A2: Integer; A3: Integer);  { draft }
-procedure IntToMoveTypes(A1: Integer; A2: Integer; A3: Integer);  { draft }
+function MoveTypesToInt(Types: TMoveTypes): Integer;
+function IntToMoveTypes(Value: Integer): TMoveTypes;
 function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);
 function FillWithRandomUnits(Indexes: TIntegerList; Units: TUnitList; Level, Value: Integer; Types: TUnitTypes): Integer;

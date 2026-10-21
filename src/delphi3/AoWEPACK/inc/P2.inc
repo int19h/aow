@@ -1571,7 +1571,7 @@ var
 begin
   Cost := MovePointCost(NewField.TerrainType,NewField.OverlayType);
   if Cost < 0 then Cost := MaxCost else if Cost > MaxCost then Cost := MaxCost;
-  if (AoWHSMap.F_AoWHSMap_138 = 0) or (P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FPlayerType <> ptHuman) then
+  if not AoWHSMap.FUnlimitedMoves or (P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FPlayerType <> ptHuman) then
   begin
     if Cost > GetMovePoints then SetMovePoints(0)
     else SetMovePoints(GetMovePoints - Cost);
@@ -10991,7 +10991,7 @@ begin end;
 procedure TAoWEngine.TranslateEObject(A1: Integer; A2: Integer);
 begin end;
 
-procedure TAoWEngine.TranslateEObjectFromFile(A1: Integer; A2: Integer);
+procedure TAoWEngine.TranslateEObjectFromFile(Obj: TEObject; const FileName: string);
 begin end;
 
 procedure TAoWEngine.ExportTextToFile(A1: Integer; A2: Integer);

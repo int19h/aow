@@ -154,9 +154,9 @@ type
     procedure Changed;  { draft }
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
-    procedure GetEvents(A1: Integer);  { draft }
-    procedure AddEvent;  { draft }
-    procedure RemoveEvent;  { draft }
+    function GetEvents(Index: Integer): TEventLog;
+    procedure AddEvent(Event: TEventLog);
+    procedure RemoveEvent(Event: TEventLog);
     procedure FindID(A1: Integer);  { draft }
   end;
 
@@ -214,7 +214,8 @@ type
   TGameOverEventLog = class(TEventLog)
   public
     FMessage: TStringList; { $18 }
-    F_GameOverEventLog_1C: array[0..3] of Byte;
+    FTargetPlayer: Shortint; { $1C; 55776744 }
+    F_GameOverEventLog_1D: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -481,13 +482,13 @@ begin end;
 procedure TEventLogList.EndUpdate;
 begin end;
 
-procedure TEventLogList.GetEvents(A1: Integer);
+function TEventLogList.GetEvents(Index: Integer): TEventLog;
+begin Result := nil; end;
+
+procedure TEventLogList.AddEvent(Event: TEventLog);
 begin end;
 
-procedure TEventLogList.AddEvent;
-begin end;
-
-procedure TEventLogList.RemoveEvent;
+procedure TEventLogList.RemoveEvent(Event: TEventLog);
 begin end;
 
 procedure TEventLogList.FindID(A1: Integer);

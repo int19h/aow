@@ -11,6 +11,7 @@
     FCombatFont: TImageLibraryFont; { $68 }
     { conflict: FUnitFont: TImageLibraryFont; }
     FDebug: Boolean; { $6C; 55773E51 }
+    { conflict: FDeveloper: Boolean; }
     FAnimationDetail: Byte; { $6D }
     FDemo: Boolean; { $6E; 5578B227 }
     F_AoWEngine_6F: array[0..0] of Byte;
@@ -28,7 +29,7 @@
     procedure SetHSMap(Value: HSEngine.THSMap); override;
     procedure CloseHSM(AProgress: Engine.TProgressEvent); override;
     procedure TranslateEObject(A1: Integer; A2: Integer);  { draft }
-    procedure TranslateEObjectFromFile(A1: Integer; A2: Integer);  { draft }
+    procedure TranslateEObjectFromFile(Obj: TEObject; const FileName: string);
     procedure ExportTextToFile(A1: Integer; A2: Integer);  { draft }
     function TranslateRStr(const S: string): string;
     procedure GetMajorVersion;  { draft }
