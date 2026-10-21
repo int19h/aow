@@ -1113,7 +1113,7 @@ type
     FEditors: TEObjectEditorList;
     FControlNode: TEControlStyleNode;
   protected
-    FComponent: TEComponent;
+  public FComponent: TEComponent; protected { $20; AoWEd 00404501 }
   private
     FDebugIDs: TStringList;
     FDebugEvents: TEventList;

@@ -34,7 +34,7 @@ type
     AddRazeDefender: TButton; { +0370 }
     DeleteRazeDefender: TButton; { +0374 }
     public
-    function vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
     procedure vmt98(A1: Integer); override;
     function vmt9C(A1: Integer): Integer; override;
     procedure LoopBoxClick;  { draft }
@@ -64,8 +64,8 @@ begin Result := 0; end;
 class procedure TConstructionResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TConstructionResourceEditForm.vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TConstructionResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
+begin end;
 
 procedure TConstructionResourceEditForm.vmt98(A1: Integer);
 begin end;

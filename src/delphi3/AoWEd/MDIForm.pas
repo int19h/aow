@@ -470,7 +470,7 @@ type
     procedure HSMEditKeyDown(Sender: TObject);  { draft }
   end;
 
-
+var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
 uses FontMod, AoWReg, ScannerFlt, UnitFlt, AoWTC, UnitGrid;

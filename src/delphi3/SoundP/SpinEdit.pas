@@ -25,7 +25,7 @@ type
     function GetValue: Longint;
     procedure SetValue(NewValue: Longint);
   public
-    property Value: Longint read GetValue write SetValue;
+    property Value: Longint read GetValue write SetValue; property Color; { AoWEd 0041581A }
   end;
 
 implementation

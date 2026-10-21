@@ -23,7 +23,7 @@ type
     FReserved1EC: Byte; { $1EC }
     FShowAvailability: Boolean; { $1ED }
     FSort: Byte; { +$1EE }
-    FReserved1EF: Byte;
+    FReserved1EF: Byte; published property SelectionEnabled; public { AoWEd 004164F4 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;

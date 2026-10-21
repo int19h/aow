@@ -26,6 +26,7 @@ type
   end;
 
 
+var ItemFloater: TItemFloater; { AoWEd 00415D8C }
 implementation
 
 procedure TItemFloater.FormShow;

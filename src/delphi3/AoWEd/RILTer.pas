@@ -18,7 +18,7 @@ type
   TILTerrainResourceEditForm = class(TMultiHexResourceEditForm)
   public
     procedure vmt84; override;
-    function vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
     procedure vmt98(A1: Integer); override;
     function vmt9C(A1: Integer): Integer; override;
   end;
@@ -35,8 +35,8 @@ implementation
 class procedure TILTerrainResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TILTerrainResourceEditForm.vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TILTerrainResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
+begin end;
 
 procedure TILTerrainResourceEditForm.vmt84;
 begin end;

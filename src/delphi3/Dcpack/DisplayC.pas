@@ -229,7 +229,7 @@ type
     FFrameTime: Integer;
   protected FCurrentFrameRate: Integer; public property CurrentFrameRate: Integer read FCurrentFrameRate; private { $17C; AoWEd 0042914E }
     FUpdateFrameThread: TUpdateFrameThread;
-    FStatus: TDisplayStatus;
+  public FStatus: TDisplayStatus; private { $184; AoWEd 00404F44 }
     FOptions: TDisplayOptions;
     FUpdateFrameMode: TUpdateFrameMode;
     FBackSurfaceControlMode: TBackSurfaceControlMode;

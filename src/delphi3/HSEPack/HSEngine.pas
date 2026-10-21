@@ -1138,7 +1138,7 @@ type
     property Engine: THSEngine read FEngine;
     property ShowPriorityOffset: Integer read FShowPriorityOffset write FShowPriorityOffset;
     property ImageLibrary: TImageLibrary read FImageLibrary;
-    property ImageSequenceList: TImageSequenceList read FImageSequenceList;
+    property ImageSequenceList: TImageSequenceList read FImageSequenceList write FImageSequenceList;
     property TerrainList: TTerrainList read FTerrainList;
     property Level: Byte read FLevel write SetLevel;
     property Name: string read FName write FName;

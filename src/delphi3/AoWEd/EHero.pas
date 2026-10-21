@@ -1,19 +1,20 @@
 unit EHero;
 
-{ Draft declarations of EHero, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Hero property and upgrade editor from AoWEd.exe. }
+
+{$R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, ItemGrid, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, ItemGrid, SpinEdit, AoWE, ItemFlt;
 
 type
   THeroEditForm = class;
 
 
-  { THeroEditForm (instance size 912, VMT 00413E70) }
+  { THeroEditForm (instance size $390): $384 edited hero, $388 saved hero,
+    $38C read-only mode; VMT 00413E70. }
   THeroEditForm = class(TForm)
   public
     published
@@ -124,120 +125,279 @@ type
     AssignSpheresLbl: TLabel; { +037C }
     Translator: TIvTranslator; { +0380 }
     public
-    F_HeroEditForm_384: Integer;
-    F_HeroEditForm_388: Integer;
-    F_HeroEditForm_38C: Byte;
+    FHero: THero; { $384 }
+    FSavedHero: THero; { $388 }
+    FReadOnly: Boolean; { $38C }
     F_HeroEditForm_38D: array[0..2] of Byte;
-    procedure vmt80; virtual;  { +080 draft }
-    procedure vmt84; virtual;  { +084 draft }
-    procedure vmt88(A1: Integer; A2: Integer); virtual;  { +088 draft }
-    procedure vmt8C(A1: Integer; A2: Integer); virtual;  { +08C draft }
-    function vmt90(A1: Integer): Integer; virtual;  { +090 draft }
-    function vmt94(A1: Integer): Integer; virtual;  { +094 draft }
-    procedure FormCreate;  { draft }
-    procedure FormDestroy;  { draft }
-    procedure HeroResourceComboBoxChange;  { draft }
+    procedure vmt80; virtual;  { +080 }
+    procedure vmt84; virtual;  { +084 }
+    function vmt88(AbilityID: Integer): string; virtual;  { +088 }
+    function vmt8C(AbilityID: Integer): string; virtual;  { +08C }
+    function vmt90(AbilityID: Integer): Boolean; virtual;  { +090 }
+    function vmt94(AbilityID: Integer): Boolean; virtual;  { +094 }
+    procedure UpdateAddButton;
+    procedure UpdateDeleteButton;
+    procedure UpdateStatistics;
+    procedure UpdateLeader;
+    procedure UpdateControls;
+    procedure UpdateSkillPoints;
+    procedure FormCreate;  { }
+    procedure FormDestroy;  { }
+    procedure HeroResourceComboBoxChange;  { }
     procedure EditFaceBtnClick;  { draft }
-    procedure PreviewImagePanelDraw(A1: Integer; A2: Integer);  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure ResetBtnClick;  { draft }
-    procedure HeroLevelEditChange;  { draft }
-    procedure AttackEditChange;  { draft }
-    procedure DefenseEditChange;  { draft }
-    procedure ResistanceEditChange;  { draft }
-    procedure DamageEditChange;  { draft }
-    procedure HitsEditChange;  { draft }
-    procedure MovesEditChange;  { draft }
-    procedure AddBtnClick;  { draft }
-    procedure DeleteBtnClick;  { draft }
-    procedure AvailableAbBoxClick;  { draft }
-    procedure SelectedAbBoxClick;  { draft }
+    procedure PreviewImagePanelDraw(Sender: TObject; R: TRect);  { draft }
+    procedure OKBtnClick;  { }
+    procedure ResetBtnClick;  { }
+    procedure HeroLevelEditChange;  { }
+    procedure AttackEditChange;  { }
+    procedure DefenseEditChange;  { }
+    procedure ResistanceEditChange;  { }
+    procedure DamageEditChange;  { }
+    procedure HitsEditChange;  { }
+    procedure MovesEditChange;  { }
+    procedure AddBtnClick;  { }
+    procedure DeleteBtnClick;  { }
+    procedure AvailableAbBoxClick;  { }
+    procedure SelectedAbBoxClick;  { }
     procedure AddItemBtnClick;  { draft }
     procedure DeleteItemBtnClick;  { draft }
-    procedure MainPageControlChange;  { draft }
-    procedure NicknameEditChange;  { draft }
-    procedure NameEditChange;  { draft }
-    procedure ItemGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure BodyGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
+    procedure MainPageControlChange;  { }
+    procedure NicknameEditChange;  { }
+    procedure NameEditChange;  { }
+    procedure ItemGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
+    procedure BodyGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
     procedure BodyGridDblClick;  { draft }
     procedure ItemGridDblClick;  { draft }
-    procedure SphereEditChange(A1: Integer; A2: Integer);  { draft }
+    procedure SphereEditChange(Sender: TObject);  { }
   end;
 
 
 implementation
 
+uses MDIForm;
+
 procedure THeroEditForm.vmt80;
-begin end;
+var
+  List: TStringList;
+  Index, Top, I: Integer;
+  S: string;
+begin
+  List := TStringList.Create;
+  Index := AvailableAbBox.ItemIndex;
+  Top := AvailableAbBox.TopIndex;
+  for I := 0 to AoWHSSet.FAbilityControl.GetCount - 1 do
+    if AoWHSSet.FAbilityControl.GetAbility(I) <> nil then
+      if AoWHSSet.FAbilityControl.GetAbility(I).CanExpand(FHero) then
+        List.AddObject(vmt8C(I), TObject(I));
+  AvailableAbBox.Items.Assign(List);
+  AvailableAbBox.TopIndex := Top;
+  if not FReadOnly then
+  begin
+    AvailableAbBox.ItemIndex := Index;
+    if AvailableAbBox.ItemIndex < 0 then AvailableAbBox.ItemIndex := 0;
+  end
+  else AvailableAbBox.ItemIndex := -1;
+  List.Free;
+end;
 
 procedure THeroEditForm.vmt84;
-begin end;
+var
+  Index, I: Integer;
+begin
+  with SelectedAbBox do
+  begin
+    Index := ItemIndex;
+    Items.Clear;
+  end;
+  for I := 0 to FHero.GetAbCount - 1 do
+    if FHero.GetAbilityEnabled(I) then
+      if AoWHSSet.FAbilityControl.GetAbility(I).FSelectionTypes * [astUnit, astCustomizeLeader, astHeroUpgrade, astEditor] <> [] then
+        SelectedAbBox.Items.AddObject(vmt88(I), TObject(I));
+  if not FReadOnly then
+  begin
+    SelectedAbBox.ItemIndex := Index;
+    if SelectedAbBox.ItemIndex < 0 then
+      with SelectedAbBox do ItemIndex := Items.Count - 1;
+  end
+  else SelectedAbBox.ItemIndex := -1;
+end;
 
-procedure THeroEditForm.vmt88(A1: Integer; A2: Integer);
-begin end;
+function THeroEditForm.vmt88(AbilityID: Integer): string;
+var
+  Cost: Integer;
+begin
+  if FHero.FHeroResource.FAbilities.GetAbSet(AbilityID) and
+    (FHero.FHeroResource.FAbilities.GetAbLevel(AbilityID) = FHero.GetAbilityLevel(AbilityID)) then
+    Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetName(FHero) + ' (' + LowerCase(TranslateRStr(FixedRStr)) + ')'
+  else
+  begin
+    Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetName(FHero);
+    Cost := AoWHSSet.FAbilityControl.GetAbility(AbilityID).GetSkillPoints(FHero);
+    if Cost <> 0 then Result := Result + ' (' + IntToStr(Cost) + LowerCase(TranslateRStr(spRStr)) + ')';
+  end;
+end;
 
-procedure THeroEditForm.vmt8C(A1: Integer; A2: Integer);
-begin end;
+function THeroEditForm.vmt8C(AbilityID: Integer): string;
+var
+  Cost: Integer;
+begin
+  Result := AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandName(FHero);
+  Cost := AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandCost(FHero);
+  if Cost <> 0 then Result := Result + ' (' + IntToStr(Cost) + LowerCase(TranslateRStr(spRStr)) + ')';
+end;
 
-function THeroEditForm.vmt90(A1: Integer): Integer;
-begin Result := 0; end;
+function THeroEditForm.vmt90(AbilityID: Integer): Boolean;
+begin
+  Result := not FReadOnly and not (FHero.FHeroResource.FAbilities.GetAbSet(AbilityID) and
+    (FHero.FHeroResource.FAbilities.GetAbLevel(AbilityID) = FHero.GetAbilityLevel(AbilityID)));
+end;
 
-function THeroEditForm.vmt94(A1: Integer): Integer;
-begin Result := 0; end;
+function THeroEditForm.vmt94(AbilityID: Integer): Boolean;
+begin
+  Result := not FReadOnly and AoWHSSet.FAbilityControl.GetAbility(AbilityID).CanExpand(FHero) and
+    (AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandCost(FHero) <= FHero.GetSkillPoints);
+end;
 
 procedure THeroEditForm.FormCreate;
-begin end;
+begin
+  if MainForm.HSMEdit.Activated then MainForm.HSMEdit.PauseFrameUpdateLoop;
+  MainPageControl.ActivePage := GeneralSheet;
+  with AttackLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(5) + ')';
+  with DefenseLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(5) + ')';
+  with ResistanceLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(5) + ')';
+  with DamageLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(10) + ')';
+  with HitsLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(5) + ')';
+  with MovesLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(2) + ')';
+end;
 
 procedure THeroEditForm.FormDestroy;
-begin end;
+begin
+  if FSavedHero <> nil then
+  begin
+    FSavedHero.Free;
+    FSavedHero := nil;
+  end;
+  if MainForm.HSMEdit.Activated then MainForm.HSMEdit.ResumeFrameUpdateLoop;
+  ItemFloater.Hide;
+end;
 
 procedure THeroEditForm.HeroResourceComboBoxChange;
-begin end;
+begin
+  with HeroResourceComboBox do FHero.SetHeroResourceIndex(Integer(Items.Objects[ItemIndex]));
+  UpdateControls;
+end;
 
 procedure THeroEditForm.EditFaceBtnClick;
 begin end;
 
-procedure THeroEditForm.PreviewImagePanelDraw(A1: Integer; A2: Integer);
+procedure THeroEditForm.PreviewImagePanelDraw(Sender: TObject; R: TRect);
 begin end;
 
 procedure THeroEditForm.OKBtnClick;
-begin end;
+begin
+  with FHero do
+  begin
+    FHeroName := NameEdit.Text;
+    FGender := TUnitGender(GenderBox.ItemIndex);
+    SetNickname(NicknameEdit.Text);
+  end;
+  if AoWHSMap <> nil then AoWHSMap.SetModified else AoWHSSet.SetModified;
+  FHero.Changed;
+end;
 
 procedure THeroEditForm.ResetBtnClick;
-begin end;
+begin
+  FHero.ResetSkillPoints;
+  UpdateControls;
+end;
 
 procedure THeroEditForm.HeroLevelEditChange;
-begin end;
+begin
+  FHero.SetLevel(HeroLevelEdit.Value);
+  HeroLevelEdit.Value := FHero.GetLevel;
+  UpdateSkillPoints;
+  UpdateAddButton;
+end;
 
 procedure THeroEditForm.AttackEditChange;
-begin end;
+begin
+  FHero.SetUnitAttack(AttackEdit.Value);
+  AttackEdit.Value := FHero.FUnitAttack;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.DefenseEditChange;
-begin end;
+begin
+  FHero.SetUnitDefense(DefenseEdit.Value);
+  DefenseEdit.Value := FHero.FUnitDefense;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.ResistanceEditChange;
-begin end;
+begin
+  FHero.SetUnitResistance(ResistanceEdit.Value);
+  ResistanceEdit.Value := FHero.FUnitResistance;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.DamageEditChange;
-begin end;
+begin
+  FHero.SetUnitDamage(DamageEdit.Value);
+  DamageEdit.Value := FHero.FUnitDamage;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.HitsEditChange;
-begin end;
+begin
+  FHero.SetUnitHits(HitsEdit.Value);
+  HitsEdit.Value := FHero.FUnitHits;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.MovesEditChange;
-begin end;
+begin
+  FHero.SetUnitMoves(MovesEdit.Value);
+  MovesEdit.Value := FHero.FUnitMoves;
+  UpdateSkillPoints;
+  UpdateStatistics;
+end;
 
 procedure THeroEditForm.AddBtnClick;
-begin end;
+begin
+  with AvailableAbBox do FHero.ExpandAbility(Integer(Items.Objects[ItemIndex]));
+  vmt84;
+  vmt80;
+  UpdateStatistics;
+  UpdateSkillPoints;
+  UpdateAddButton;
+  UpdateDeleteButton;
+end;
 
 procedure THeroEditForm.DeleteBtnClick;
-begin end;
+begin
+  with SelectedAbBox do FHero.RemoveAbility(Integer(Items.Objects[ItemIndex]));
+  vmt84;
+  vmt80;
+  UpdateStatistics;
+  UpdateSkillPoints;
+  UpdateAddButton;
+  UpdateDeleteButton;
+end;
 
 procedure THeroEditForm.AvailableAbBoxClick;
-begin end;
+begin
+  UpdateAddButton;
+end;
 
 procedure THeroEditForm.SelectedAbBoxClick;
-begin end;
+begin
+  UpdateDeleteButton;
+end;
 
 procedure THeroEditForm.AddItemBtnClick;
 begin end;
@@ -246,19 +406,30 @@ procedure THeroEditForm.DeleteItemBtnClick;
 begin end;
 
 procedure THeroEditForm.MainPageControlChange;
-begin end;
+begin
+  if ItemSheet.Enabled and (ItemSheet = MainPageControl.ActivePage) then ItemFloater.Show
+  else ItemFloater.Hide;
+end;
 
 procedure THeroEditForm.NicknameEditChange;
-begin end;
+begin
+  FHero.SetNickname(NicknameEdit.Text);
+end;
 
 procedure THeroEditForm.NameEditChange;
-begin end;
+begin
+  FHero.FHeroName := NameEdit.Text;
+end;
 
-procedure THeroEditForm.ItemGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure THeroEditForm.ItemGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  BodyGrid.SelectionEnabled := False;
+end;
 
-procedure THeroEditForm.BodyGridSelectCell(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure THeroEditForm.BodyGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  ItemGrid.SelectionEnabled := False;
+end;
 
 procedure THeroEditForm.BodyGridDblClick;
 begin end;
@@ -266,8 +437,154 @@ begin end;
 procedure THeroEditForm.ItemGridDblClick;
 begin end;
 
-procedure THeroEditForm.SphereEditChange(A1: Integer; A2: Integer);
-begin end;
+procedure THeroEditForm.SphereEditChange(Sender: TObject);
+var
+  Sphere: TMagicSphere;
+  Picks: Integer;
+begin
+  Sphere := TMagicSphere(TSpin(Sender).Tag);
+  Picks := TLeader(FHero).GetSpherePicks(Sphere);
+  if TSpin(Sender).Value > Picks then TLeader(FHero).AddSphere(Sphere)
+  else if TSpin(Sender).Value < Picks then TLeader(FHero).DeleteSphere(Sphere);
+  TSpin(Sender).Value := TLeader(FHero).GetSpherePicks(Sphere);
+end;
 
+
+
+procedure THeroEditForm.UpdateAddButton;
+begin
+  with AvailableAbBox do
+    if ItemIndex <> -1 then AddBtn.Enabled := vmt94(Integer(Items.Objects[ItemIndex]))
+    else AddBtn.Enabled := False;
+end;
+
+procedure THeroEditForm.UpdateDeleteButton;
+begin
+  with SelectedAbBox do
+    if ItemIndex <> -1 then DeleteBtn.Enabled := vmt90(Integer(Items.Objects[ItemIndex]))
+    else DeleteBtn.Enabled := False;
+end;
+
+procedure THeroEditForm.UpdateStatistics;
+begin
+  Attack.Caption := IntToStr(FHero.FHeroResource.FAttack + FHero.FUnitAttack);
+  Defense.Caption := IntToStr(FHero.FHeroResource.FDefense + FHero.FUnitDefense);
+  Resistance.Caption := IntToStr(FHero.FHeroResource.FResistance + FHero.FUnitResistance);
+  Damage.Caption := IntToStr(FHero.FHeroResource.FDamage + FHero.FUnitDamage);
+  Hits.Caption := IntToStr(FHero.FHeroResource.FHits + FHero.FUnitHits);
+  Moves.Caption := IntToStr(FHero.FHeroResource.FMoves + FHero.FUnitMoves);
+end;
+
+procedure THeroEditForm.UpdateLeader;
+begin
+  if FHero is TLeader then
+  begin
+    Caption := TranslateRStr(LeaderRStr) + ' ' + TranslateRStr(PropertiesRStr);
+    LifeEdit.Value := TLeader(FHero).GetSpherePicks(msLife);
+    DeathEdit.Value := TLeader(FHero).GetSpherePicks(msDeath);
+    FireEdit.Value := TLeader(FHero).GetSpherePicks(msFire);
+    AirEdit.Value := TLeader(FHero).GetSpherePicks(msAir);
+    EarthEdit.Value := TLeader(FHero).GetSpherePicks(msEarth);
+    WaterEdit.Value := TLeader(FHero).GetSpherePicks(msWater);
+  end;
+end;
+
+procedure THeroEditForm.UpdateControls;
+var
+  I: Integer;
+begin
+  with FHero do
+  begin
+    NameEdit.Text := FHeroName;
+    NicknameEdit.Text := GetNickname;
+    HeroLevelEdit.Value := GetLevel;
+    if GetLibraryHero then
+    begin
+      SourceLibraryLbl.Visible := True;
+      SourceLibraryLbl.Caption := AoWE.Format(TranslateRStr(SourceLibraryXRStr), [GetLibraryName]);
+    end
+    else SourceLibraryLbl.Visible := False;
+    with HeroResourceComboBox do
+    begin
+      I := 0;
+      ItemIndex := -1;
+      while (I <> Items.Count) and (HeroResourceComboBox.ItemIndex = -1) do
+      begin
+        if AoWHSSet.FHeroResources.GetHeroResource(Integer(Items.Objects[I])).FRace = FHero.FRace then
+          HeroResourceComboBox.ItemIndex := I;
+        Inc(I);
+      end;
+    end;
+    GenderBox.ItemIndex := Integer(FGender);
+    AttackEdit.Value := FUnitAttack;
+    DefenseEdit.Value := FUnitDefense;
+    ResistanceEdit.Value := FUnitResistance;
+    DamageEdit.Value := FUnitDamage;
+    HitsEdit.Value := FUnitHits;
+    MovesEdit.Value := FUnitMoves;
+    AttackBase.Caption := IntToStr(FHeroResource.FAttack);
+    DefenseBase.Caption := IntToStr(FHeroResource.FDefense);
+    ResistanceBase.Caption := IntToStr(FHeroResource.FResistance);
+    DamageBase.Caption := IntToStr(FHeroResource.FDamage);
+    HitsBase.Caption := IntToStr(FHeroResource.FHits);
+    MovesBase.Caption := IntToStr(FHeroResource.FMoves);
+  end;
+  UpdateStatistics;
+  UpdateLeader;
+  UpdateSkillPoints;
+  vmt80;
+  vmt84;
+  UpdateAddButton;
+  UpdateDeleteButton;
+  if not FReadOnly then
+  begin
+    NameEdit.Color := clWindow;
+    NicknameEdit.Color := clWindow;
+    HeroResourceComboBox.Color := clWindow;
+    HeroLevelEdit.Color := clWindow;
+    GenderBox.Color := clWindow;
+    AttackEdit.Color := clWindow;
+    DefenseEdit.Color := clWindow;
+    ResistanceEdit.Color := clWindow;
+    DamageEdit.Color := clWindow;
+    HitsEdit.Color := clWindow;
+    MovesEdit.Color := clWindow;
+    SelectedAbBox.Color := clWindow;
+    AvailableAbBox.Color := clWindow;
+    BodyGrid.SelectionEnabled := False;
+    ItemGrid.SelectionEnabled := True;
+    EditFaceBtn.Enabled := True;
+  end
+  else
+  begin
+    NameEdit.Color := clBtnFace;
+    NicknameEdit.Color := clBtnFace;
+    HeroResourceComboBox.Color := clBtnFace;
+    HeroLevelEdit.Color := clBtnFace;
+    GenderBox.Color := clBtnFace;
+    AttackEdit.Color := clBtnFace;
+    DefenseEdit.Color := clBtnFace;
+    ResistanceEdit.Color := clBtnFace;
+    DamageEdit.Color := clBtnFace;
+    HitsEdit.Color := clBtnFace;
+    MovesEdit.Color := clBtnFace;
+    SelectedAbBox.Color := clBtnFace;
+    AvailableAbBox.Color := clBtnFace;
+    BodyGrid.SelectionEnabled := False;
+    ItemGrid.SelectionEnabled := False;
+    EditFaceBtn.Enabled := False;
+  end;
+  { Original dereferences AoWHSMap for leaders without a nil check. }
+  if (FHero is TLeader) and (Ord(AoWHSMap.FGameType) <> 1) then
+  begin
+    NicknameEdit.Color := clBtnFace;
+    NicknameEdit.Enabled := False;
+  end;
+end;
+
+procedure THeroEditForm.UpdateSkillPoints;
+begin
+  SkillPoints.Caption := TranslateRStr(SkillPointsRStr) + ' ' + IntToStr(FHero.GetSkillPoints) + '/' + IntToStr(FHero.GetSkillPointsMax);
+end;
 
 end.

@@ -26,7 +26,7 @@ type
     F_MultiHexResourceEditForm_334: Integer;
     F_MultiHexResourceEditForm_338: Byte;
     F_MultiHexResourceEditForm_339: array[0..2] of Byte;
-    procedure vmt88(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
+    procedure vmt88(Index, X, Y: Integer; SD: TSurfaceDesc); override;
     procedure vmt98(A1: Integer); virtual;  { +098 draft }
     function vmt9C(A1: Integer): Integer; virtual;  { +09C draft }
     procedure DisplayUpdateFrame(A1: Integer; A2: Integer; A3: Integer);  { draft }
@@ -62,7 +62,7 @@ begin Result := 0; end;
 procedure TMultiHexResourceEditForm.vmt98(A1: Integer);
 begin end;
 
-procedure TMultiHexResourceEditForm.vmt88(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TMultiHexResourceEditForm.vmt88(Index, X, Y: Integer; SD: TSurfaceDesc);
 begin end;
 
 procedure TMultiHexResourceEditForm.DisplayUpdateFrame(A1: Integer; A2: Integer; A3: Integer);

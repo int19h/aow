@@ -22,7 +22,7 @@ type
     CTTLabel: TLabel; { +0340 }
     CombatTerrainTagEdit: TSpin; { +0344 }
     public
-    function vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
     procedure CombatTerrainTagEditChange;  { draft }
   end;
 
@@ -42,8 +42,8 @@ begin Result := 0; end;
 class procedure TOverlayObjectResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TOverlayObjectResourceEditForm.vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TOverlayObjectResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
+begin end;
 
 procedure TOverlayObjectResourceEditForm.CombatTerrainTagEditChange;
 begin end;

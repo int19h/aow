@@ -17,8 +17,8 @@ type
   { TCityResourceEditForm (instance size 888, VMT 00409A9C) }
   TCityResourceEditForm = class(TPlayerStructureResourceEditForm)
   public
-    procedure vmt90(A1: Integer; A2: Integer; A3: Integer; A4: Integer); override;
-    function vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer; override;
+    procedure vmt90(Index, X, Y: Integer; SD: TSurfaceDesc); override;
+    constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
     procedure ComplexBoxClick;  { draft }
   end;
 
@@ -34,10 +34,10 @@ implementation
 class procedure TCityResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;
 
-function TCityResourceEditForm.vmt94(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer): Integer;
-begin Result := 0; end;
+constructor TCityResourceEditForm.CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent);
+begin end;
 
-procedure TCityResourceEditForm.vmt90(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
+procedure TCityResourceEditForm.vmt90(Index, X, Y: Integer; SD: TSurfaceDesc);
 begin end;
 
 procedure TCityResourceEditForm.ComplexBoxClick;
