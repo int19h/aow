@@ -32,6 +32,8 @@ type
     F_ItemSelectionDlg_201: array[0..2] of Byte;
     FItemIndexes: TIntegerList; { $204 }
     FSelectedIndex: Integer; { $208 }
+    constructor CreateSelection(AOwner: Classes.TComponent; ItemType: TItemType);
+    procedure SetSelectedIndex(Value: Integer);
     procedure ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -40,6 +42,26 @@ type
 
 
 implementation
+
+constructor TItemSelectionDlg.CreateSelection(AOwner: Classes.TComponent; ItemType: TItemType);
+begin
+  FItemType := ItemType;
+  Create(AOwner);
+end;
+
+procedure TItemSelectionDlg.SetSelectedIndex(Value: Integer);
+var Index: Integer;
+begin
+  Index := Value;
+  FSelectedIndex := Index;
+  Index := FItemIndexes.IndexOf(Index);
+  if Index <> -1 then
+    with ItemGrid do
+    begin
+      Col := Index mod ColCount;
+      Row := Index div ColCount;
+    end;
+end;
 
 procedure TItemSelectionDlg.ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
 var

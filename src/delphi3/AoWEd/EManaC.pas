@@ -1,20 +1,22 @@
 unit EManaC;
 
-{ Draft declarations of EManaC, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Mana-crystal map-object editor from AoWEd.exe.
+  The original checks arithmetic overflow but truncates the generation-mode byte. }
+
+{$R-,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, SpinEdit;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EAoWMO, ManaCrystals, SpinEdit;
 
 type
   TManaCrystalsEditForm = class;
   TManaCrystalsEditor = class;
 
 
-  { TManaCrystalsEditForm (instance size 560, VMT 0041BEF8) }
+  { TManaCrystalsEditForm (size $230, VMT 0041BEF8): inherited $20C FMapObject;
+    controls at $210..$22C; TManaCrystals.$1C amount and $20 generation mode. }
   TManaCrystalsEditForm = class(TAoWMapObjEditForm)
   public
     published
@@ -27,11 +29,12 @@ type
     ManaSpin: TSpin; { +0228 }
     UserDefined: TRadioButton; { +022C }
     public
-    procedure ManaSpinChange;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure AutoGenerateClick;  { draft }
-    procedure UserDefinedClick;  { draft }
-    procedure GenerateModeBoxChange;  { draft }
+    procedure FormCreate(Sender: TObject);
+    procedure ManaSpinChange(Sender: TObject);
+    procedure OKBtnClick(Sender: TObject);
+    procedure AutoGenerateClick(Sender: TObject);
+    procedure UserDefinedClick(Sender: TObject);
+    procedure GenerateModeBoxChange(Sender: TObject);
   end;
 
   { TManaCrystalsEditor (instance size 8, VMT 0041C148) }
@@ -54,20 +57,55 @@ begin
   Handled := Handled + [emEdit];
 end;
 
-procedure TManaCrystalsEditForm.ManaSpinChange;
-begin end;
+procedure TManaCrystalsEditForm.FormCreate(Sender: TObject);
+begin
+  ManaSpin.Value := TManaCrystals(FMapObject).FAmount;
+  if TManaCrystals(FMapObject).FSize = 0 then
+  begin
+    UserDefined.Checked := True;
+    UserDefinedClick(Self);
+    GenerateModeBox.ItemIndex := 1;
+  end
+  else
+  begin
+    AutoGenerate.Checked := True;
+    AutoGenerateClick(Self);
+    GenerateModeBox.ItemIndex := TManaCrystals(FMapObject).FSize - 1;
+  end;
+end;
 
-procedure TManaCrystalsEditForm.OKBtnClick;
-begin end;
+procedure TManaCrystalsEditForm.ManaSpinChange(Sender: TObject);
+begin
+  TManaCrystals(FMapObject).FAmount := ManaSpin.Value;
+end;
 
-procedure TManaCrystalsEditForm.AutoGenerateClick;
-begin end;
+procedure TManaCrystalsEditForm.OKBtnClick(Sender: TObject);
+begin
+  inherited OKBtnClick(Sender);
+  if AutoGenerate.Checked then TManaCrystals(FMapObject).FAmount := 0
+  else TManaCrystals(FMapObject).FSize := 0;
+end;
 
-procedure TManaCrystalsEditForm.UserDefinedClick;
-begin end;
+procedure TManaCrystalsEditForm.AutoGenerateClick(Sender: TObject);
+begin
+  AutoGeneratePanel.Enabled := True;
+  UserDefinedPanel.Enabled := False;
+  GenerateModeBox.Color := clWindow;
+  ManaSpin.Color := clBtnFace;
+end;
 
-procedure TManaCrystalsEditForm.GenerateModeBoxChange;
-begin end;
+procedure TManaCrystalsEditForm.UserDefinedClick(Sender: TObject);
+begin
+  AutoGeneratePanel.Enabled := False;
+  UserDefinedPanel.Enabled := True;
+  GenerateModeBox.Color := clBtnFace;
+  ManaSpin.Color := clWindow;
+end;
+
+procedure TManaCrystalsEditForm.GenerateModeBoxChange(Sender: TObject);
+begin
+  TManaCrystals(FMapObject).FSize := Byte(GenerateModeBox.ItemIndex + 1);
+end;
 
 
 end.

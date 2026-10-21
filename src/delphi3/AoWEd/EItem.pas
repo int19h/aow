@@ -67,7 +67,7 @@ type
     function EditItem(Item: TItem): Boolean;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy;
-    procedure EditBtnClick; { draft: ItemSel selection constructor is not recovered }
+    procedure EditBtnClick;
     procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
     procedure ItemTypeBoxChange;
     procedure ItemNameEditChange;
@@ -85,7 +85,7 @@ type
 
 implementation
 
-uses MDIForm, SelAbDlg;
+uses MDIForm, SelAbDlg, ItemSel;
 
 procedure TItemEditForm.UpdateControls;
 begin
@@ -220,7 +220,24 @@ end;
 
 
 procedure TItemEditForm.EditBtnClick;
-begin end;
+var Index: Integer;
+begin
+  with TItemSelectionDlg.CreateSelection(Self, FItem.FItemType) do
+  begin
+    SetSelectedIndex(FItem.FItemGFXIndex);
+    if ShowModal = mrOK then
+    begin
+      Index := FSelectedIndex;
+      if Index <> -1 then
+      begin
+        FItem.SetItemGFXIndex(Index);
+        PreviewImagePanel.Invalidate;
+      end;
+    end;
+    Free;
+  end;
+end;
+
 
 procedure TItemEditForm.PreviewImagePanelDraw(Sender: TObject; const R: TRect);
 var DrawRect: TRect;

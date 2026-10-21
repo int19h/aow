@@ -2,7 +2,7 @@ unit RHexagon;
 
 { Draft declarations of RHexagon, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Form initialization and terrain-selection actions are recovered. }
 
 {$R+,Q+}
 
@@ -19,7 +19,7 @@ type
   { THexagonResourceEditForm (instance size 804, VMT 00407908) }
   THexagonResourceEditForm = class(TMapObjectResourceEditForm)
   public
-    procedure FormCreate;  { draft }
+    procedure FormCreate(Sender: TObject);
   end;
 
   { THexagonResourceEditor (instance size 8, VMT 00407A40) }
@@ -100,8 +100,11 @@ begin
   THexagonResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
 end;
 
-procedure THexagonResourceEditForm.FormCreate;
-begin end;
+procedure THexagonResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  MainPageControl.Pages[1].TabVisible := False;
+end;
 
 
 end.
