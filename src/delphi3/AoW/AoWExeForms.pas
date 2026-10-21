@@ -28,7 +28,7 @@ var
   IWindow: TIWindow;
   SpellBook: TSpellBook;
   ChatWindow: TChatWindow;
-  MWindow: TMWindow;
+  { MWindow is declared in AOWMWindow. }
   FontModule: TFontModule;
   TCUnit: TTCUnit;
   TCScanner: TTCScanner;

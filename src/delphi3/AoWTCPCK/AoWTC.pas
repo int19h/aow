@@ -502,7 +502,7 @@ type
     function AddEffect(EffectType: TfxType): TfxHS;
     { conflict: function AddEffect(Effect: Byte): TfxHS; }
     procedure UpdateCursor;
-    procedure EndCombat(Combat: TCombat);
+    procedure EndCombat(Sender: TObject);
     procedure SelectNextUnit(Forward: Boolean);
     procedure GetUnitLocation(U: TAbstractUnit; var X, Y, L: Shortint);
     procedure Surrender(Mode: Boolean);
@@ -2486,7 +2486,7 @@ begin
     end;
   end;
 end;
-procedure TAoWCombatMap.EndCombat(Combat: TCombat);
+procedure TAoWCombatMap.EndCombat(Sender: TObject);
 var TE: TTerminateCombatTE;
 begin
   TE := TTerminateCombatTE.Create(nil);

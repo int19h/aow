@@ -5,3 +5,8 @@
   Use(nil, @AoWLeaderSetup.TLeaderSetupWin.Reset);
   Use(nil, @AoWLeaderSetup.TLeaderSetupWin.Execute);
   Use(nil, @AoWWorldMap.GetCampaignPage);
+  Use(nil, @AoWCityScreen.TCityScreen.Reset);
+  Use(nil, @AoWCityScreen.TCityScreen.ProductionEvent);
+  Use(nil, @AoWCityScreen.TCityScreen.CityChanged);
+  Use(nil, @AoWProdScreen.TProductionScreen.ProductionEvent);
+  Use(nil, @AoWProdScreen.TProductionScreen.PlaceChanged);

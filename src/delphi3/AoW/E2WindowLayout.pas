@@ -8,7 +8,7 @@ procedure RestoreWindowLayout(Controller: TObject);
 
 implementation
 
-uses Windows, Classes, AoWE, AoWComp, AoWExeForms;
+uses AOWMWindow, Windows, Classes, AoWE, AoWComp, AoWExeForms;
 
 procedure RestoreWindowLayout(Controller: TObject);
 var

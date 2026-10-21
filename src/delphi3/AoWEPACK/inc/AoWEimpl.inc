@@ -106,8 +106,8 @@ type
 resourcestring
   WaitingRStr = 'Waiting';
   ActionAlreadyQueuedRStr = 'Action already queued';
-  ProduceXRStr = 'Produce %s';
-  InstallXRStr = 'Install %s';
+{ ProduceXRStr is declared in the interface. }
+{ InstallXRStr is declared in the interface. }
   SummonXRStr = 'Summon %s';
   ProducingXRStr = 'Producing %s';
   InstallingXRStr = 'Installing %s';

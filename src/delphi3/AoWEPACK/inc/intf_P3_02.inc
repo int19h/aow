@@ -307,7 +307,7 @@
     FOnExecuted: TCombatExecutedEvent;
     FTerminated: Boolean;
     F_Combat_35: array[0..2] of Byte;
-    FOnTerminated: TCombatExecutedEvent;
+    FOnTerminated: TNotifyEvent; { 00451897: EndCombat also receives a form sender. }
     FExplorationSite: Byte; { $40 }
     { conflict: FVisibilityMode: Byte; }
     F_Combat_41: array[0..2] of Byte;

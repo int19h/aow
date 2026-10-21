@@ -623,7 +623,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   PrisonerLiberationRStr = 'Prisoner Liberation';
   ProduceMerchandiseRStr = 'Produce Merchandise';
   ProduceMerchandiseTextRStr = 'When producing merchandise the income is increased by 25%.';
-  ProduceRStr = 'Produce';
+  ProduceRStr = 'Produce'; ProduceXRStr = 'Produce %s'; InstallXRStr = 'Install %s'; { exports $55707C8C/$55707C94 }
   ProducingMerchandiseRStr = 'Producing Merchandise';
   ProducingRStr = 'Producing';
   ProducingXIncomeRStr = 'Producing %s income';

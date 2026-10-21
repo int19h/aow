@@ -346,7 +346,7 @@ function CityActionToProductionID(Action: TCityAction): Integer;
 function RaceInCity(Race, Player: Shortint): Boolean;
 function UnitLevelToCityLevel(Level, Size: Integer): Integer;
 function PlayerCities(Player: Shortint): Integer;
-function CityIncome(Player: Shortint): Integer;
+function CityIncome(Player: Shortint): Integer; const TCivilStatusRStr: array[TCivilStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful', 'Oppressed', 'Slavery'); { export $558E8E10; AoW 0043B208 }
 
 implementation
 
