@@ -53,11 +53,7 @@ implementation
 uses ExptIntf;
 
 
-{$I inc\P1.inc}
-{$I inc\P2.inc}
-{$I inc\P3.inc}
-{$I inc\P4.inc}
-{$I inc\P5.inc}
+{$I inc\AoWEimpl.inc}
 
 initialization
   TPlayerTypeRStr[0] := HumanRStr;
