@@ -290,4 +290,5 @@ begin
   Use(nil, @Townhall.RegisterTownhall);
   Use(nil, @WorkShop.RegisterWorkshop);
   { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
+  {$I hosts\T1.inc}
 end.

@@ -1,8 +1,11 @@
 unit AoWTC;
 
-{ Draft declarations of AoWTC, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWTC of AoWTCPCK.dpl: tactical combat, AI, sprites and unit positioning.
+  Recovered routines use the original Delphi 3 switches and match the shipped code.
+  Layouts and VMT order follow the original; remaining guesses are marked draft,
+  and unrecovered bodies remain placeholders. }
+
+{$O-,R+,Q+}
 
 interface
 
@@ -59,29 +62,42 @@ type
     F_ROb_04: array[0..7] of Byte;
   end;
 
-  { TAoWNewCombatMapSettings (instance size 32, VMT 00411B34) }
+  { TAoWNewCombatMapSettings (instance size 32, VMT 00411B34)
+    Inherited $04 Width; $08 Height; $0C Levels; $10 HSSFileName; $14 HSMapClassID; $1C MapLevelClassID. }
   TAoWNewCombatMapSettings = class(TNewHSMapSettings)
   public
-    function Create(A1: Byte): Integer;  { draft }
+    constructor Create;
   end;
 
-  { TaiMove (instance size 32, VMT 00411BC0) }
+  { TaiMove (instance size 32, VMT 00411BC0)
+    $04 MoveType; $06 X; $08 Y; $0C Ability; $14 UnitHS; $18 Path; $1C Value; $1E Cost. }
   TaiMove = class(TObject)
   public
-    F_aiMove_04: array[0..27] of Byte;
+    MoveType: TaiMoveType; { $04 }
+    F_aiMove_05: Byte;
+    X: Smallint; { $06 }
+    Y: Smallint; { $08 }
+    F_aiMove_0A: array[0..1] of Byte;
+    Ability: TAbility; { $0C }
+    F_aiMove_10: Integer;
+    UnitHS: TTacticalCombatUnitHS; { $14 }
+    Path: TXYLList; { $18 }
+    Value: Word; { $1C }
+    Cost: Word; { $1E }
   end;
 
-  { TCAI (instance size 56, VMT 00411C28) }
+  { TCAI (instance size 56, VMT 00411C28)
+    $08 Units; $0C Allies; $10 Enemies; $14 Moves; $18 Walls; $1C CurrentMove; $36 Status. }
   TCAI = class(TObject)
   public
     F_CAI_04: Byte;
     F_CAI_05: array[0..2] of Byte;
-    F_CAI_08: Integer;
-    F_CAI_0C: Integer;
-    F_CAI_10: Integer;
-    F_CAI_14: Integer;
-    F_CAI_18: Integer;
-    F_CAI_1C: Integer;
+    Units: TList; { $08 }
+    Allies: TList; { $0C }
+    Enemies: TList; { $10 }
+    Moves: TList; { $14 }
+    Walls: TList; { $18 }
+    CurrentMove: Integer; { $1C }
     F_CAI_20: Integer;
     F_CAI_24: Integer;
     F_CAI_28: Integer;
@@ -89,19 +105,19 @@ type
     F_CAI_30: Integer;
     F_CAI_34: Byte;
     F_CAI_35: Byte;
-    F_CAI_36: Byte;
+    Status: TaiStatus; { $36 }
     F_CAI_37: array[0..0] of Byte;
     destructor Destroy; override;
-    constructor Create;  { draft }
-    procedure Reset(A1: Integer; A2: Integer);  { draft }
-    procedure BeginTurn(A1: Integer; A2: Integer);  { draft }
-    procedure ContinueTurn(A1: Integer; A2: Integer);  { draft }
-    procedure CreateMove(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);  { draft }
-    function tcDVtoDEV(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Integer;  { draft }
+    constructor Create;
+    procedure Reset;
+    procedure BeginTurn;
+    procedure ContinueTurn;
+    procedure CreateMove(MoveType: TaiMoveType; Value, Cost: Integer; Ability: TAbility; X, Y: Integer; U: TTacticalCombatUnit; Path: TXYLList);
+    function tcDVtoDEV(DV1, DV2: Integer; Source, Target: TCombatObject): Integer;
     function ChargeFromPos(A1: Integer): Byte;  { draft }
     function UnitSafe(A1: Integer; A2: Integer; A3: Integer): Integer;  { draft }
     function MakeTerrainPath(A1: Integer; A2: Integer): Integer;  { draft }
-    function MultDEV(A1: Integer; A2: Integer): Integer;  { draft }
+    function MultDEV(Value, Multiplier, Divider: Integer): Integer;
     procedure EvalAll(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
     procedure EvalHex(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer);  { draft }
     procedure EvalArea(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer; A9: Integer; A10: Integer; A11: Integer);  { draft }
@@ -111,14 +127,16 @@ type
     procedure EvalBattle;  { draft }
   end;
 
-  { TAoWCombatMapField (instance size 28, VMT 00411C8C) }
+  { TAoWCombatMapField (instance size 28, VMT 00411C8C)
+    Inherited world-map field layout; no additional fields. }
   TAoWCombatMapField = class(TAoWMapField)
   public
     class function ClassID: Integer; override;
-    function GetDefenseValue: Integer;  { draft }
+    function GetDefenseValue: Shortint;
   end;
 
-  { TAoWCombatMapLevel (instance size 128, VMT 00411D98) }
+  { TAoWCombatMapLevel (instance size 128, VMT 00411D98)
+    Inherited world-map level layout; no additional fields. }
   TAoWCombatMapLevel = class(TAoWMapLevel)
   public
     class function ClassID: Integer; override;
@@ -142,16 +160,17 @@ type
     procedure Deactivate; override;
   end;
 
-  { TfxHS (instance size 56, VMT 00412028) }
+  { TfxHS (instance size 56, VMT 00412028)
+    $10 FFrame; $1C FPath. }
   TfxHS = class(TFixedVisibleHS)
   public
     F_fxHS_0C: Byte;
     F_fxHS_0D: Byte;
     F_fxHS_0E: array[0..1] of Byte;
-    F_fxHS_10: Integer;
+    FFrame: Integer; { $10 }
     F_fxHS_14: Integer;
     F_fxHS_18: Integer;
-    F_fxHS_1C: Integer;
+    FPath: TXYZList; { $1C }
     F_fxHS_20: Integer;
     F_fxHS_24: Integer;
     F_fxHS_28: Integer;
@@ -175,15 +194,16 @@ type
     procedure Deactivate; override;
   end;
 
-  { TUnitPositionHS (instance size 28, VMT 00412314) }
+  { TUnitPositionHS (instance size 28, VMT 00412314)
+    $0C FPosition; $0D FIndex; $10 FImageIndex; $14 FImages; $18 FDirection. }
   TUnitPositionHS = class(TSingleHS)
   public
-    F_UnitPositionHS_0C: Byte;
-    F_UnitPositionHS_0D: Byte;
+    FPosition: Shortint; { $0C }
+    FIndex: Shortint; { $0D }
     F_UnitPositionHS_0E: array[0..1] of Byte;
-    F_UnitPositionHS_10: Integer;
-    F_UnitPositionHS_14: Integer;
-    F_UnitPositionHS_18: Byte;
+    FImageIndex: Integer; { $10 }
+    FImages: TCustomImageLibrary; { $14 }
+    FDirection: Byte; { $18 }
     F_UnitPositionHS_19: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -193,16 +213,17 @@ type
     procedure Activate; override;
     procedure Deactivate; override;
     function CanPlace(Map: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; override;
-    procedure UpdateImageIndex(A1: Integer; A2: Integer);  { draft }
+    procedure UpdateImageIndex;
   end;
 
-  { TCBloodHS (instance size 28, VMT 0041249C) }
+  { TCBloodHS (instance size 28, VMT 0041249C)
+    $10 FFrame; $14 FOffsetX; $18 FOffsetY. }
   TCBloodHS = class(TSingleHS)
   public
     F_CBloodHS_0C: array[0..3] of Byte;
-    F_CBloodHS_10: Integer;
-    F_CBloodHS_14: Integer;
-    F_CBloodHS_18: Integer;
+    FFrame: Integer; { $10 }
+    FOffsetX: Integer; { $14 }
+    FOffsetY: Integer; { $18 }
     class function ClassID: Integer; override;
     function GetLevel: Byte; override;
     function GetShowPriority: Integer; override;
@@ -211,17 +232,18 @@ type
     procedure Deactivate; override;
   end;
 
-  { TCCorpseHS (instance size 44, VMT 0041261C) }
+  { TCCorpseHS (instance size 44, VMT 0041261C)
+    $0C FUnit; $10 FUnitGFX; $18 FFrame; $1C FOffsetX; $20 FOffsetY; $24 FSequenceIndex; $28 FSequenceFrame. }
   TCCorpseHS = class(TSingleHS)
   public
-    F_CCorpseHS_0C: Integer;
-    F_CCorpseHS_10: Integer;
+    FUnit: TTacticalCombatUnit; { $0C }
+    FUnitGFX: TUnitGFXResource; { $10 }
     F_CCorpseHS_14: array[0..3] of Byte;
-    F_CCorpseHS_18: Integer;
-    F_CCorpseHS_1C: Integer;
-    F_CCorpseHS_20: Integer;
-    F_CCorpseHS_24: Integer;
-    F_CCorpseHS_28: Integer;
+    FFrame: Integer; { $18 }
+    FOffsetX: Integer; { $1C }
+    FOffsetY: Integer; { $20 }
+    FSequenceIndex: Integer; { $24 }
+    FSequenceFrame: Integer; { $28 }
     class function ClassID: Integer; override;
     function GetLevel: Byte; override;
     function GetShowPriority: Integer; override;
@@ -229,10 +251,11 @@ type
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
     procedure Activate; override;
     procedure Deactivate; override;
-    procedure NewFrame(A1: Integer);  { draft }
+    procedure NewFrame(Sender: TObject);
   end;
 
-  { TCOozeHS (instance size 12, VMT 0041279C) }
+  { TCOozeHS (instance size 12, VMT 0041279C)
+    Inherited single-hexagon sprite layout; no additional fields. }
   TCOozeHS = class(TSingleHS)
   public
     class function ClassID: Integer; override;
@@ -243,16 +266,17 @@ type
     function PlaceOnMap: Boolean; override;
   end;
 
-  { TUnitPositionControl (instance size 12, VMT 00412918) }
+  { TUnitPositionControl (instance size 12, VMT 00412918)
+    $08 FPositions: packed XYL entries, eight per army position. }
   TUnitPositionControl = class(TEObject)
   public
-    F_UnitPositionControl_08: Integer;
+    FPositions: TXYLList; { $08 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    function GetUnitPosition(A1: Integer; A2: Integer): Integer;  { draft }
-    procedure SetUnitPosition(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    function ValidatePosition(A1: Integer; A2: Integer): Byte;  { draft }
+    function GetUnitPosition(Position, Index: Integer): TXYL;
+    procedure SetUnitPosition(Position, Index: Integer; Value: TXYL);
+    function ValidatePosition(var Position, Index: Shortint): Boolean;
   end;
 
   { TCombatMoveControlSettings (instance size 432, VMT 004129E8) }
@@ -270,11 +294,12 @@ type
     procedure ProcessMove(A1: AoWE.TMoveControlSettings); override;
   end;
 
-  { TTacticalCombatUnit (instance size 104, VMT 00412B4C) }
+  { TTacticalCombatUnit (instance size 104, VMT 00412B4C)
+    $60 FUnitHS; other added fields remain unrecovered. }
   TTacticalCombatUnit = class(TCombatUnit)
   public
     F_TacticalCombatUnit_5C: Integer;
-    F_TacticalCombatUnit_60: Integer;
+    FUnitHS: TTacticalCombatUnitHS; { $60 }
     F_TacticalCombatUnit_64: Byte;
     F_TacticalCombatUnit_65: Byte;
     F_TacticalCombatUnit_66: array[0..0] of Byte;
@@ -369,22 +394,24 @@ type
     procedure DeactivateRangedPath(A1: Integer; A2: Integer);  { draft }
   end;
 
-  { TTacticalCombatPlayer (instance size 28, VMT 00412F78) }
+  { TTacticalCombatPlayer (instance size 28, VMT 00412F78)
+    $0C FAuto; $0E FIndex. }
   TTacticalCombatPlayer = class(TCombatPlayer)
   public
-    F_TacticalCombatPlayer_0C: Byte;
+    FAuto: Boolean; { $0C }
     F_TacticalCombatPlayer_0D: array[0..0] of Byte;
-    F_TacticalCombatPlayer_0E: Byte;
+    FIndex: Byte; { $0E }
     F_TacticalCombatPlayer_0F: array[0..12] of Byte;
-    procedure SetAuto(A1: Byte);  { draft }
+    procedure SetAuto(Value: Boolean);
   end;
 
-  { TTacticalCombatPlayerList (instance size 8, VMT 0041304C) }
+  { TTacticalCombatPlayerList (instance size 8, VMT 0041304C)
+    $04 FPlayers. }
   TTacticalCombatPlayerList = class(TObject)
   public
-    F_TacticalCombatPlayerList_04: Integer;
-    function GetCount: Integer;  { draft }
-    function GetPlayers(A1: Byte): Integer;  { draft }
+    FPlayers: TCombatPlayerList; { $04 }
+    function GetCount: Integer;
+    function GetPlayers(Index: Shortint): TTacticalCombatPlayer;
   end;
 
   { TAoWCombatMapMouse (instance size 80, VMT 004130DC) }
@@ -392,14 +419,15 @@ type
   public
   end;
 
-  { TAoWCombatMap (instance size 312, VMT 00413184) }
+  { TAoWCombatMap (instance size 312, VMT 00413184)
+    $E8 FUnitPositions; $EC FSeatedCombatPlayer; $ED FCurrentCombatPlayer; $118 FAI. }
   TAoWCombatMap = class(TAbstractAoWCombatMap)
   public
     F_AoWCombatMap_E0: Integer;
     F_AoWCombatMap_E4: Integer;
-    F_AoWCombatMap_E8: Integer;
-    F_AoWCombatMap_EC: Byte;
-    F_AoWCombatMap_ED: Byte;
+    FUnitPositions: TUnitPositionControl; { $E8 }
+    FSeatedCombatPlayer: Byte; { $EC }
+    FCurrentCombatPlayer: Byte; { $ED }
     F_AoWCombatMap_EE: array[0..1] of Byte;
     F_AoWCombatMap_F0: Integer;
     F_AoWCombatMap_F4: Integer;
@@ -411,7 +439,7 @@ type
     F_AoWCombatMap_10C: array[0..3] of Byte;
     F_AoWCombatMap_110: Integer;
     F_AoWCombatMap_114: Integer;
-    F_AoWCombatMap_118: Integer;
+    FAI: TCAI; { $118 }
     F_AoWCombatMap_11C: Integer;
     F_AoWCombatMap_120: Integer;
     F_AoWCombatMap_124: Integer;
@@ -448,7 +476,8 @@ type
     procedure Surrender(A1: Byte);  { draft }
   end;
 
-  { TTacticalCombat (instance size 80, VMT 00413314) }
+  { TTacticalCombat (instance size 80, VMT 00413314)
+    Inherited combat layout; $4C remains unrecovered. }
   TTacticalCombat = class(TCombat)
   public
     F_TacticalCombat_4C: Byte;
@@ -711,28 +740,81 @@ procedure RegisterAoWTCClasses(A1: Integer);  { draft }
 function GetMeleeDirIndex(A1: Integer; A2: Integer; A3: Integer): Word;  { draft }
 function GetRangedDirIndex(A1: Integer; A2: Integer): Integer;  { draft }
 
+var
+  AoWCombatMap: TAoWCombatMap;
+
 implementation
 
 constructor TCAI.Create;
-begin end;
+begin
+  inherited Create;
+  Units := TList.Create;
+  Allies := TList.Create;
+  Enemies := TList.Create;
+  Moves := TList.Create;
+  Walls := TList.Create;
+end;
 
 destructor TCAI.Destroy;
-begin end;
+var I: Integer;
+begin
+  Units.Free;
+  Allies.Free;
+  Enemies.Free;
+  Walls.Free;
+  for I := 0 to Moves.Count - 1 do TObject(Moves[I]).Free;
+  Moves.Free;
+  inherited Destroy;
+end;
 
-procedure TCAI.Reset(A1: Integer; A2: Integer);
-begin end;
+procedure TCAI.Reset;
+begin
+  Status := aiIdle;
+  CurrentMove := 0;
+end;
 
-procedure TCAI.BeginTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TCAI.BeginTurn;
+begin
+  EvalBattle;
+end;
 
-procedure TCAI.ContinueTurn(A1: Integer; A2: Integer);
-begin end;
+procedure TCAI.ContinueTurn;
+begin
+  EvalBattle;
+end;
 
-procedure TCAI.CreateMove(A1: Byte; A2: Integer; A3: Integer; A4: Integer; A5: Integer; A6: Integer; A7: Integer; A8: Integer);
-begin end;
+procedure TCAI.CreateMove(MoveType: TaiMoveType; Value, Cost: Integer; Ability: TAbility; X, Y: Integer; U: TTacticalCombatUnit; Path: TXYLList);
+var M: TaiMove;
+begin
+  M := TaiMove.Create;
+  M.UnitHS := U.FUnitHS;
+  M.Path := Path;
+  M.MoveType := MoveType;
+  M.X := X;
+  M.Y := Y;
+  M.Value := Value;
+  M.Cost := Cost;
+  M.Ability := Ability;
+  Moves.Add(M);
+end;
 
-function TCAI.tcDVtoDEV(A1: Integer; A2: Integer; A3: Integer; A4: Integer): Integer;
-begin Result := 0; end;
+function TCAI.tcDVtoDEV(DV1, DV2: Integer; Source, Target: TCombatObject): Integer;
+var Strength: Integer;
+begin
+  Strength := Target.GetTargetStrength;
+  if Target is TTacticalCombatUnit then begin
+    if TTacticalCombatUnit(Target).FUnit is THero then Strength := Strength * 2;
+    if TTacticalCombatUnit(Target).FUnit is TLeader then Strength := Strength * 2;
+  end;
+  Result := Strength * DV1;
+  Strength := Source.GetTargetStrength;
+  if Source is TTacticalCombatUnit then begin
+    if TTacticalCombatUnit(Source).FUnit is THero then Strength := Strength * 2;
+    if TTacticalCombatUnit(Source).FUnit is TLeader then Strength := Strength * 2;
+  end;
+  Result := Result - Strength * DV2;
+  Result := Result div 100;
+end;
 
 function TCAI.ChargeFromPos(A1: Integer): Byte;
 begin Result := 0; end;
@@ -743,8 +825,33 @@ begin Result := 0; end;
 function TCAI.MakeTerrainPath(A1: Integer; A2: Integer): Integer;
 begin Result := 0; end;
 
-function TCAI.MultDEV(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TCAI.MultDEV(Value, Multiplier, Divider: Integer): Integer;
+begin
+  Result := Value;
+  if Value >= 0 then begin
+    try
+      if Multiplier <> 1 then Result := Result * Multiplier;
+      if (Divider <> 1) and (Divider <> 0) then Result := Result div Divider;
+    except
+      try
+        if (Divider <> 1) and (Divider <> 0) then Result := Result div Divider;
+        if Multiplier <> 1 then Result := Result * Multiplier;
+      except Result := 1000000; end;
+    end;
+  end else begin
+    try
+      if Divider <> 1 then Result := Result * Divider;
+      if (Multiplier <> 1) and (Multiplier <> 0) then Result := Result div Multiplier;
+    except
+      try
+        if (Multiplier <> 1) and (Multiplier <> 0) then Result := Result div Multiplier;
+        if Divider <> 1 then Result := Result * Divider;
+      except Result := -1000000; end;
+    end;
+  end;
+  if Result > 1000000 then Result := 1000000;
+  if Result < -1000000 then Result := -1000000;
+end;
 
 procedure TCAI.EvalAll(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
@@ -767,20 +874,41 @@ begin end;
 procedure TCAI.EvalBattle;
 begin end;
 
-function TAoWNewCombatMapSettings.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TAoWNewCombatMapSettings.Create;
+begin
+  inherited Create;
+  HSMapClassID := $220100;
+  MapLevelClassID := $220102;
+  Width := 65;
+  Height := 59;
+  Levels := 1;
+  HSSFileName := AoWEngine.HSSFileName;
+end;
 
 class function TAoWCombatMapField.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220101;
+end;
 
-function TAoWCombatMapField.GetDefenseValue: Integer;
-begin Result := 0; end;
+function TAoWCombatMapField.GetDefenseValue: Shortint;
+var Msg: TMapFieldMsg;
+begin
+  Msg.MsgID := $21001;
+  Msg.Result := -1;
+  Msg.Param[0] := 0;
+  SendMapFieldMsg(Msg);
+  Result := Msg.Param[0];
+end;
 
 class function TAoWCombatMapLevel.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220102;
+end;
 
 function TAoWCombatMapLevel.MapFieldClass: Engine.TEObjectClass;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := TAoWMapField; { Original uses the world-map field class. }
+end;
 
 class function TAoWCombatMap.ClassID: Integer;
 begin Result := 0; end;
@@ -1020,46 +1148,111 @@ function TTacticalCombatUnitHS.AbRangedTC(A1: Word; A2: Word): Byte;
 begin Result := 0; end;
 
 procedure TCCorpseHS.Deactivate;
-begin end;
+begin
+  AoWCombatMap.NewFrameEvents.Remove(NewFrame);
+  FUnitGFX.Release;
+  inherited Deactivate;
+end;
 
 class function TCCorpseHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220108;
+end;
 
-procedure TCCorpseHS.NewFrame(A1: Integer);
-begin end;
+procedure TCCorpseHS.NewFrame(Sender: TObject);
+var Sequence: TImageSequence;
+begin
+  Sequence := AoWHSSet.FImageSequences.ImageSequences[FSequenceIndex];
+  if FSequenceFrame + 1 < Sequence.GetTotalSequenceFrames then Inc(FSequenceFrame);
+end;
 
 procedure TCCorpseHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Frame, X, Y: Integer; Sequence: TImageSequence;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  XhpSurf := X - XhpSurf - 15;
+  YhpSurf := Y - YhpSurf - 25;
+  if FSequenceIndex > -1 then begin
+    Sequence := AoWHSSet.FImageSequences.ImageSequences[FSequenceIndex];
+    while Sequence <> nil do begin
+      Frame := Sequence.GetUnloopedFrameIndex(FSequenceFrame);
+      if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + FOffsetX - 5, YhpSurf + FOffsetY + 10, SurfaceDesc);
+      Sequence := Sequence.Next;
+    end;
+  end;
+  Sequence := FUnitGFX.FSequences.ImageSequences[30];
+  while Sequence <> nil do begin
+    Frame := Sequence.GetUnloopedFrameIndex(FFrame);
+    if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + FOffsetX, YhpSurf + FOffsetY, SurfaceDesc);
+    Sequence := Sequence.Next;
+  end;
+end;
 
 function TCCorpseHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := 26;
+end;
 
 function TCCorpseHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := $68000000 + (FOffsetY shl 13) + FOffsetX;
+end;
 
 procedure TCCorpseHS.Activate;
-begin end;
+begin
+  inherited Activate;
+  if FSequenceIndex > -1 then AoWCombatMap.NewFrameEvents.Add(NewFrame);
+  FUnitGFX.AddRef;
+  FSequenceFrame := -1;
+end;
 
 procedure TCCorpseHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin end;
 
 class function TCOozeHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220109;
+end;
 
 function TCOozeHS.GetOverlay(HN: Integer): Shortint;
-begin Result := 0; end;
+begin
+  Result := 11;
+end;
 
 procedure TCOozeHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Frame, X, Y: Integer; Sequence: TImageSequence;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  XhpSurf := X - XhpSurf - 16;
+  YhpSurf := Y - 48 - YhpSurf;
+  case TMapField(Owner).TerrainType of
+    3, 6, 13: Sequence := AoWHSSet.FImageSequences.ImageSequences[26];
+    12: Sequence := AoWHSSet.FImageSequences.ImageSequences[27];
+  else
+    Sequence := AoWHSSet.FImageSequences.ImageSequences[25];
+  end;
+  while Sequence <> nil do begin
+    Frame := Sequence.GetUnloopedFrameIndex(Integer(Self) mod Sequence.GetTotalSequenceFrames);
+    if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf, YhpSurf, SurfaceDesc);
+    Sequence := Sequence.Next;
+  end;
+end;
 
 function TCOozeHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := 26;
+end;
 
 function TCOozeHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := $68000000 + (GetYhx shl 13) + GetXhx;
+end;
 
 function TCOozeHS.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceOnMap;
+  TMapField(Owner).UpdateTerrain;
+end;
 
 constructor TRndTacHsm.Create;
 begin end;
@@ -1095,52 +1288,154 @@ procedure TRangedPathHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDe
 begin end;
 
 constructor TUnitPositionControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPositions := TXYLList.Create;
+  FPositions.Default := PackXYL(-1, -1, -1);
+end;
 
 destructor TUnitPositionControl.Destroy;
-begin end;
+begin
+  FPositions.Free;
+  FPositions := nil;
+  inherited Destroy;
+end;
 
-function TUnitPositionControl.GetUnitPosition(A1: Integer; A2: Integer): Integer;
-begin Result := 0; end;
+function TUnitPositionControl.GetUnitPosition(Position, Index: Integer): TXYL;
+var I: Integer;
+begin
+  I := Position * 8 + Index;
+  if I < FPositions.Count then
+    Result := FPositions[I]
+  else begin
+    Result.X := -1;
+    Result.Y := -1;
+    Result.L := -1;
+  end;
+end;
 
-procedure TUnitPositionControl.SetUnitPosition(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TUnitPositionControl.SetUnitPosition(Position, Index: Integer; Value: TXYL);
+begin
+  if (Position < 7) and (Index < 8) then
+    FPositions[Position * 8 + Index] := Value;
+end;
 
-function TUnitPositionControl.ValidatePosition(A1: Integer; A2: Integer): Byte;
-begin Result := 0; end;
+function TUnitPositionControl.ValidatePosition(var Position, Index: Shortint): Boolean;
+begin
+  Result := FPositions[Position * 8 + Index].X = -1;
+  if not Result then begin
+    Index := 0;
+    while (FPositions[Position * 8 + Index].X <> -1) and (Index <> 8) do Inc(Index);
+    Result := Index <> 8;
+  end;
+  if Result = False then begin
+    Position := 0;
+    while (Result = False) and (Position < 7) do begin
+      while (FPositions[Position * 8 + Index].X <> -1) and (Index <> 8) do Inc(Index);
+      Result := Index <> 8;
+      if not Result then begin
+        Index := 0;
+        Inc(Position);
+      end;
+    end;
+  end;
+end;
 
 procedure TUnitPositionControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+var HS: TUnitPositionHS; X, Y, L: Integer;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $10005 then begin
+    L := Msg.Data[1];
+    HPtoHX(Msg.Value, Msg.Data[0], X, Y);
+    if AoWCombatMap.MapContainer.GetField(X, Y, L).TerrainType <> 15 then begin
+      HS := TUnitPositionHS(AoWCombatMap.MapContainer.GetField(X, Y, L).FindOwnedChild($220103));
+      if HS = nil then begin
+        HS := TUnitPositionHS.Create(nil);
+        if not AoWCombatMap.PlaceHX(HS, X, Y, L) then begin HS.Free; HS := nil; end;
+      end;
+      if HS <> nil then;
+    end;
+  end;
+end;
 
 constructor TUnitPositionHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPosition := 0;
+  FIndex := 0;
+  FDirection := 1;
+end;
 
 class function TUnitPositionHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220103;
+end;
 
 function TUnitPositionHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := 27;
+end;
 
-procedure TUnitPositionHS.UpdateImageIndex(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitPositionHS.UpdateImageIndex;
+begin
+  FImageIndex := FPosition * 8 + FIndex;
+end;
 
 procedure TUnitPositionHS.Activate;
-begin end;
+var P: TXYL;
+begin
+  inherited Activate;
+  if (msEditting in AoWCombatMap.Status) and AoWCombatMap.FUnitPositions.ValidatePosition(FPosition, FIndex) then begin
+    AoWCombatMap.FUnitPositions.SetUnitPosition(FPosition, FIndex, PackXYL(GetXhx, GetYhx, 0));
+    FImages := AoWHSSet.ImageLibraryManager.LinkToIL([icDisk], 'TCUNITS.ILB');
+    UpdateImageIndex;
+  end else begin
+    P.X := GetXhx;
+    P.Y := GetYhx;
+    P.L := 0;
+    P.Flag := FDirection;
+    AoWCombatMap.FUnitPositions.SetUnitPosition(FPosition, FIndex, P);
+    Destroy;
+  end;
+end;
 
 procedure TUnitPositionHS.Deactivate;
-begin end;
+begin
+  if Activated and (msEditting in TMapLevel(TMapField(Owner).Owner).Map.Status) then begin
+    AoWHSSet.ImageLibraryManager.ReleaseIL([icDisk], 'TCUNITS.ILB');
+    if (AoWCombatMap.FUnitPositions.GetUnitPosition(FPosition, FIndex).X = GetXhx) and
+       (AoWCombatMap.FUnitPositions.GetUnitPosition(FPosition, FIndex).Y = GetYhx) then
+      AoWCombatMap.FUnitPositions.SetUnitPosition(FPosition, FIndex, PackXYL(-1, -1, -1));
+  end;
+  inherited Deactivate;
+end;
 
 procedure TUnitPositionHS.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FPosition), $19);
+  Stream.rwByte(Byte(FIndex), $1A);
+  Stream.rwByte(FDirection, $1B);
+end;
 
 function TUnitPositionHS.CanPlace(Map: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
-begin Result := False; end;
+begin
+  Result := (Map.GetField(Xhx, Yhx, Lhx).FindOwnedChild($220103) = nil) and
+    AoWCombatMap.FUnitPositions.ValidatePosition(FPosition, FIndex);
+end;
 
 procedure TUnitPositionHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var X, Y: Integer;
+begin
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  FImages[FImageIndex].ShowClipped(X - XhpSurf - 8, Y - YhpSurf - 8, SurfaceDesc);
+end;
 
 class function TTacticalCombat.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220110;
+end;
 
 function TTacticalCombat.CreateCombatUnit: AoWE.TCombatUnit;
 begin FillChar(Result, SizeOf(Result), 0); end;
@@ -1167,19 +1462,30 @@ procedure TfxHS.Deactivate;
 begin end;
 
 constructor TfxHS.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPath := TXYZList.Create;
+  FFrame := -1;
+end;
 
 destructor TfxHS.Destroy;
-begin end;
+begin
+  FPath.Free;
+  inherited Destroy;
+end;
 
 class function TfxHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220106;
+end;
 
 procedure TfxHS.Activate;
 begin end;
 
 function TfxHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := $6C000000;
+end;
 
 procedure TfxHS.NewFrame(A1: Integer);
 begin end;
@@ -1188,31 +1494,57 @@ procedure TfxHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE
 begin end;
 
 procedure TCBloodHS.Deactivate;
-begin end;
+begin
+  inherited Deactivate;
+end;
 
 class function TCBloodHS.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $220107;
+end;
 
 function TCBloodHS.GetLevel: Byte;
-begin Result := 0; end;
+begin
+  Result := 26;
+end;
 
 function TCBloodHS.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := $68000000 + (FOffsetY shl 13) + FOffsetX;
+end;
 
 procedure TCBloodHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+var Frame: Integer; Sequence: TImageSequence; X, Y: Integer;
+begin
+  Sequence := AoWHSSet.FImageSequences.ImageSequences[4];
+  HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
+  if Sequence <> nil then begin
+    Frame := Sequence.GetUnloopedFrameIndex(FFrame);
+    Sequence.ImageLibrary[Frame].ShowClipped(X - XhpSurf + FOffsetX, Y - YhpSurf + FOffsetY, SurfaceDesc);
+  end;
+end;
 
 procedure TCBloodHS.Activate;
-begin end;
+begin
+  inherited Activate;
+end;
 
-procedure TTacticalCombatPlayer.SetAuto(A1: Byte);
-begin end;
+procedure TTacticalCombatPlayer.SetAuto(Value: Boolean);
+begin
+  FAuto := Value;
+  if (AoWCombatMap.FSeatedCombatPlayer = FIndex) and
+     (AoWCombatMap.FSeatedCombatPlayer = AoWCombatMap.FCurrentCombatPlayer) then AoWCombatMap.FAI.Reset;
+end;
 
 function TTacticalCombatPlayerList.GetCount: Integer;
-begin Result := 0; end;
+begin
+  if FPlayers <> nil then Result := FPlayers.GetCount else Result := 0;
+end;
 
-function TTacticalCombatPlayerList.GetPlayers(A1: Byte): Integer;
-begin Result := 0; end;
+function TTacticalCombatPlayerList.GetPlayers(Index: Shortint): TTacticalCombatPlayer;
+begin
+  Result := TTacticalCombatPlayer(FPlayers.GetPlayers(Index));
+end;
 
 procedure MakeAbilPath(A1: Byte; A2: Word; A3: Word);
 begin end;

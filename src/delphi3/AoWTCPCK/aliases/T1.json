@@ -1,0 +1,9 @@
+{
+  "AoWTC.TCItemHS.DeActivate": "TCItemHS.Deactivate",
+  "AoWTC.TTacticalCombatUnitHS.DeActivate": "TTacticalCombatUnitHS.Deactivate",
+  "AoWTC.TCCorpseHS.DeActivate": "TCCorpseHS.Deactivate",
+  "AoWTC.TRangedPathHS.DeActivate": "TRangedPathHS.Deactivate",
+  "AoWTC.TfxHS.DeActivate": "TfxHS.Deactivate",
+  "AoWTC.TCBloodHS.DeActivate": "TCBloodHS.Deactivate",
+  "00414418:412": "TCAI.MultDEV"
+}
