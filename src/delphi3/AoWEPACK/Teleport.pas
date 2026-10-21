@@ -162,7 +162,7 @@ begin
   WorldMap^.PlaceHX(Anim, FDestinationX, FDestinationY, FDestinationL);
 end;
 
-procedure TTeleport.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
+procedure TTeleport.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: map pointer reuse differs after three variants. }
 begin
   inherited MapFieldMsgProc(Msg);
   if (Msg.HN = 0) and (Msg.MsgID = $1140) and

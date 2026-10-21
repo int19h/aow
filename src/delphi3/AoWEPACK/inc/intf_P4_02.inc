@@ -732,7 +732,7 @@
     procedure SetEnabled(A1: TAbilityOwner; A2: Boolean);
     function GetDispelMana(A1: TAbilityOwner): Integer;
     function GetLevelName(A1: Integer): string;
-    function CreateCA(A1, A2: TCombatObject): TDispelMagicAbilityCA;
+    function CreateCA(A1: TCombatUnit; A2: TCombatObject): TDispelMagicAbilityCA; { 5576D52C }
   end;
 
   { TLeadershipAbilityData (instance size 24, VMT 55721F1C; $10 external level, $14 source name) }

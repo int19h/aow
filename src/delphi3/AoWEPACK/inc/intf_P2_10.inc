@@ -103,7 +103,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   XIsAlreadyActiveRStr = '%s is already active';
   SystemRStr = 'System'; HillRStr = 'Hill'; { $55706964 } MountainRStr = 'Mountain'; { $55706954 }
   { conflict: DispelMagicRStr = 'Dispel Magic'; }
-  { conflict: DispelMagicFailedRStr = 'Dispel Magic failed'; }
+  DispelMagicFailedRStr = 'Dispel Magic failed'; { 557EB882 }
   { conflict: XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled'; }
   CastingXInProgressRStr = 'Casting %s...'; { $55707454 }
   P2NotEnoughCastingPointsRStr = 'Not enough channeling points'; { $557075E4 }

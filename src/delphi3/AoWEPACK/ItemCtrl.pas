@@ -330,7 +330,7 @@ begin
   if Assigned(FOnUnselect) then FOnUnselect(Self);
 end;
 
-procedure TItemControlGrid.EditItemDone(ResultCode: TEditResult; Obj: TEObject);
+procedure TItemControlGrid.EditItemDone(ResultCode: TEditResult; Obj: TEObject); { Near miss: Invalidate restored; cast and argument registers differ after three variants. }
 var Item: TItem;
 begin
   Item := TItem(Obj);
@@ -350,7 +350,7 @@ begin
   end;
   UpdateItems;
   Unselect;
-  SetFocus;
+  Invalidate; { Original refreshes the grid after editing. }
 end;
 
 procedure TItemControlGrid.DeleteItem;

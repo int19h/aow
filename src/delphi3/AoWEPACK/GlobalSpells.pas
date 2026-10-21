@@ -306,13 +306,13 @@ var
   Player: Integer;
   Walk: THNWalkData;
   Level: TMapLevel;
-  Log: TLocationTextEventLog;
+  Log: TLocationTextEventLog; Conceal: TConcealAreaHS;
 begin
   inherited ExecuteTE(A1, A2, A3);
   CastingDone(A2, A1.FEventMana);
   A2.GetLocation(X,Y,Layer);
   if A2.FPlayer = AoWHSMap.FSeatedPlayer then
-    TConcealAreaHS.Create(nil).StartAnimation(X,Y,Layer,14);
+  begin Conceal := TConcealAreaHS.Create(nil); Conceal.StartAnimation(X,Y,Layer,14); end;
   for Player := 1 to TPlayerList(AoWHSMap.FPlayers).Count-1 do
   begin
     Level := AoWHSMap.MapContainer.MapLevels[Layer];
@@ -754,7 +754,7 @@ begin
   Stream.rwInteger(FDispelChance, 21);
 end;
 
-function TDisjunctionTE.Validate(A1: THero): Boolean;
+function TDisjunctionTE.Validate(A1: THero): Boolean; { Near miss: Boolean result register differs after three variants. }
 var
   Index: Integer;
 begin
@@ -798,7 +798,7 @@ begin
   end
   else if AoWHSMap.FSeatedPlayer = A1.FPlayer then
     { Original formats this message with an unused enchantment-name argument. }
-    AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr('Dispel Magic failed'), [Enchantment.GetName]));
+    AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr(DispelMagicFailedRStr), [Enchantment.GetName]));
   AoWHSSet.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1, FEventMana);
   Result := False;
 end;
@@ -850,14 +850,14 @@ end;
 
 function TDisjunctionSpellCaster.GetEnoughMana: Boolean;
 var
-  Source: THero;
+  Source: THero; Mana: Integer;
 begin
   Result := False;
   Source := THero(AoWHSMap.FUnitControl.FindUnit(FCasterSourceID));
   if SelectedEnchantment <> nil then
     if not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.GetCheatEnabled then
     begin
-      if AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.FMana + Source.FCastingProgress >=
+      Mana := AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).FMagicControl.FMana + Source.FCastingProgress; if Mana >=
         AoWHSSet.FSpellControl.GetSpell(51).FBaseManaCost + GetMana then
         Result := True;
     end

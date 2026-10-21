@@ -300,7 +300,7 @@ end;
 procedure TPlayerCropStructure.SetIncome(A1: Byte);
 var Player: Shortint;
 begin
-  if (A1 <> FIncome) and (moActivated in FStatus) then
+  with TPlayerCropStructure(Self) do if (A1 <> FIncome) and (moActivated in FStatus) then
   begin
     FIncome := A1;
     Player := FPlayer;

@@ -102,7 +102,7 @@ begin
   if Index = 0 then Result := FTerrain else Result := -2;
 end;
 
-function THexagonBridge.GetShowPriority: Integer;
+function THexagonBridge.GetShowPriority: Integer; { Near miss: compiler omits saved owner register after three variants. }
 var
   Xhp, Yhp: Integer;
 begin

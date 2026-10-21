@@ -393,7 +393,7 @@ begin
   I := 0;
   while (Result = -1) and (I <> FChildren.Count) do
   begin
-    if TPlayerSetupSettings(FChildren.List^[I]).FRace = Race then Result := I;
+    if Race = Byte(TPlayerSetupSettings(FChildren.List^[I]).FRace) then Result := I;
     Inc(I);
   end;
 end;
@@ -432,7 +432,7 @@ asm
   mov al, 1
 end;
 
-constructor TSetupControl.Create(AOwner: Classes.TComponent);
+constructor TSetupControl.Create(AOwner: Classes.TComponent); { Near miss: single-use player local is optimized away after three variants. }
 var Player: TRemotePlayer;
 begin
   inherited Create(AOwner);
@@ -521,7 +521,7 @@ begin
       PackageReceived(TSetupPackage(Obj), SenderID);
     end;
     Obj.Free;
-  except Stream.Free; raise;
+  except Stream.Free; { Original swallows the exception and frees the stream again below. }
   end;
   Stream.Free;
 end;

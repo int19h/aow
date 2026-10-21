@@ -372,7 +372,7 @@ begin
   else Result := 0;
 end;
 
-function TProductionPlace.GetIncome: Integer;
+function TProductionPlace.GetIncome: Integer; { Near miss: compiler reuses Self register for control after three variants. }
 var
   Income: Integer;
   Control: TProductionPlaceControl;
@@ -399,7 +399,7 @@ begin
     FRazedState := 1;
   end
   else FRazedState := 0;
-  { 557BE592: image refresh requires private, non-draft TILTerrainMO.FImageIndex. }
+  FImageIndex := GetTerrainTypeImage(FTerrainType); { 557BE592: refresh after either state change. }
 end;
 
 procedure TProductionPlace.ListIncomeInfo(Names, Values: TStrings);

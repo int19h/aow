@@ -1479,7 +1479,7 @@ begin
   end;
 end;
 
-procedure TWatcherHS.UpdateExploration;
+procedure TWatcherHS.UpdateExploration; { Near miss: loop bound and owner registers differ after three variants. }
 var
   I, OwnerPlayer: Integer;
 begin
@@ -1495,7 +1495,7 @@ begin
   end;
 end;
 
-procedure TWatcherHS.UpdateUnfog;
+procedure TWatcherHS.UpdateUnfog; { Near miss: map pointer reuse and zero-radius branches differ after three variants. }
 var
   Radius: Integer;
   OwnerPlayer: Shortint;
@@ -1670,14 +1670,14 @@ begin
   inherited Process(A1,A2);
   PlayDefaultEffects(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   Watcher := TWatcherHS.Create(nil);
-  Watcher.FEnchantment.FPlayerIndex := TAbstractUnit(A1).FPlayer;
+  Watcher.FEnchantment.FPlayerIndex := A1.FPlayer;
   Watcher.FEnchantment.FEnchantmentManaUpkeep :=
     TSpellControl(SpellHSSet^.FSpellControl).GetSpell(57).FManaUpkeep;
   SpellHSMap^.PlaceHX(Watcher,TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   if Byte(SpellHSMap^.FSeatedPlayer) = FEventPlayerIndex then
     Watcher.StartAnimation(TSpellLocation(FLocation).X,TSpellLocation(FLocation).Y,TSpellLocation(FLocation).Layer);
   TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).
-    CastingDone(TAbstractUnit(A1),TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
+    CastingDone(A1,TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FEventSpellID).FBaseManaCost);
   Result := False;
 end;
 
@@ -1713,9 +1713,9 @@ end;
 procedure TWatcher.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
 begin
   inherited SetupTargetSelection(A1,A2);
-  TTargetSelectionMode(TTargetSelectionControl(A2).FTargetMode) :=
-    TTargetSelectionMode(TTargetSelectionControl(A2).FTargetMode) - [tmFixedLevel,tmValidateDistance];
-  TShortIntList(TTargetSelectionControl(A2).FHNs).Clear;
+  TTargetSelectionMode(A2.FTargetMode) :=
+    TTargetSelectionMode(A2.FTargetMode) - [tmFixedLevel,tmValidateDistance];
+  TShortIntList(A2.FHNs).Clear;
 end;
 
 { needs: the shared army and spell-event drafts do not declare results or
@@ -1791,7 +1791,7 @@ procedure TTornadoTE.ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Inte
 var
   Xhp, Yhp, XShift, Height, X, Y: Integer;
   Angle: Single;
-  I, Direction, Radius, Count: Integer;
+  I, Direction, Radius, Count, Last: Integer;
 begin
   if SpellHSMap^.ViewL = TSpellLocation(FLocation).Layer then
   begin
@@ -1812,11 +1812,11 @@ begin
           (200-I) * 0.25) + 16;
         Angle := (Direction + FAngle) * Pi / 180;
         if Ord(SpellEngine^.FAnimationDetail) = 0 then
-          Count := 1
-        else if Ord(SpellEngine^.FAnimationDetail) = 1 then
-          Count := (200-I) shr 5
-        else Count := (200-I) shr 4;
-        for Count := Count downto 0 do
+          Last := 1
+        else if SpellEngine^.FAnimationDetail = 1 then
+          Last := (200-I) shr 5
+        else Last := (200-I) shr 4;
+        for Count := Last downto 0 do
         begin
           X := Round(Cos(Angle)*Radius) + XShift;
           Y := Round(Sin(Angle)*Radius*0.5) + Height;

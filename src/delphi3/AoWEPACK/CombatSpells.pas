@@ -509,7 +509,7 @@ begin
   Stream.rwInteger(FSpellID, 24);
 end;
 
-procedure TExclusiveCombatSpellCA.Execute(A1: TCombat);
+procedure TExclusiveCombatSpellCA.Execute(A1: TCombat); { Near miss: combat parameter register differs after three variants. }
 var
   Source: TCombatObject;
 begin
@@ -576,7 +576,7 @@ begin
   Stream.rwInteger(FSpellID, 24);
 end;
 
-procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat);
+procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat); { Near miss: combat parameter register differs after three variants. }
 var
   Source: TCombatObject;
 begin

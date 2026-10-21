@@ -404,7 +404,7 @@ begin
   end;
 end;
 
-procedure TFortifyAGC.ProcessStates;
+procedure TFortifyAGC.ProcessStates; { Near miss: truncated case-table extent and branch offsets differ after three variants. }
 var
   Finder: TAIGroupTargetFinder;
   Recruitment: TAIRecruitmentGroupFinder;

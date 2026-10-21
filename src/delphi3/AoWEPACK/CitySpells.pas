@@ -434,9 +434,9 @@ var
   Field: TAoWMapField;
 begin
   Field := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L));
-  if (Field.GetPlayer = -1) or (Field.GetPlayer = Army.FArmy.FPlayer) then
-    Result := Army.FArmy.ValidTerrainEx(Selection, Field.TerrainType, Field.OverlayType)
-  else Result := False;
+  if (Field.GetPlayer <> -1) and (Field.GetPlayer <> Army.FArmy.FPlayer) then
+    Result := False
+  else Result := True; if Result then Result := Army.FArmy.ValidTerrainEx(Selection, Field.TerrainType, Field.OverlayType);
   { CanAddUnitSelection returns arOK (zero) when the destination accepts the selection. }
   Result := Result and ((Field.GetArmyHS = nil) or
     (Field.GetArmyHS.FArmy.CanAddUnitSelection(Army.FArmy, Selection) = arOK));
@@ -863,7 +863,7 @@ begin
   else Result := True;
 end;
 
-procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc);
+procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: animation cast adds saved registers after three variants. }
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and
@@ -926,7 +926,7 @@ begin
   Result := Result and TargetCity.GetRazed;
 end;
 
-procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc);
+procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: animation cast adds saved registers after three variants. }
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and

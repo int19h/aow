@@ -74,7 +74,7 @@ begin
   FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.FFrameCounter, SurfaceDesc);
 end;
 
-procedure TBloodShrine.ExecuteBloodlust(ArmyHS: TArmyHS);
+procedure TBloodShrine.ExecuteBloodlust(ArmyHS: TArmyHS); { Near miss: loop registers and map pointer reuse differ after three variants. }
 var
   Anim: TBloodShrineAnimation;
   R: TRect;

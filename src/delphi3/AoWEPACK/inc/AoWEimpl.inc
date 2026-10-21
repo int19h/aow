@@ -918,7 +918,7 @@ resourcestring
   InvokeDeathRStr = 'Invoke Death';
   HealingRStr = 'Healing';
   DispelMagicRStr = 'Dispel Magic';
-  DispelMagicFailedRStr = 'Dispel Magic failed';
+  { DispelMagicFailedRStr is declared in the interface. }
   XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled';
   SpellCastingRStr = 'Spell Casting';
   FlameThrowingRStr = 'Flame Throwing';
@@ -1084,7 +1084,7 @@ end;
 class function TCombatUnit.ClassID: Integer;
 begin Result := $202A1; end;
 
-procedure TCombatUnit.Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte);
+procedure TCombatUnit.Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte); { Near miss: Self uses ESI rather than EBX after three variants. }
 begin
   FID := A1;
   FPosition := A4;
@@ -1322,7 +1322,7 @@ begin
   if csActivated in FStatus then
   begin
     Party := TCombatPartyList(TCombatData(TCombat(FCombat).FCombatData).FParties).GetParty(FPosition shr 4);
-    if (FCombatPlayer <> Party.FPlayerIndex) or (csDestroyed in FStatus) then Party := nil;
+    if (Byte(FCombatPlayer) <> Party.FPlayerIndex) or (csDestroyed in FStatus) then Party := nil;
   end
   else Party := nil;
   SetParty(Party);
@@ -1393,11 +1393,11 @@ begin
   Stream.rwBool(FDisabled, $15);
 end;
 
-procedure TCombatUnit.ObjectDestroyed(A1: Integer);
+procedure TCombatUnit.ObjectDestroyed(A1: TCombatObject); { Near miss: cast-local register allocation differs after three variants. }
 var C: TCombatUnit; U: TAbstractUnit;
 begin
   inherited ObjectDestroyed(A1);
-  if FDisabled and (TObject(A1) is TCombatUnit) then
+  if FDisabled and (A1 is TCombatUnit) then
   begin
     C := TCombatUnit(A1);
     U := C.FUnit;
@@ -1536,7 +1536,7 @@ begin
   begin
     ResetTargets;
     if FUnit is TLeader then TByteList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_2C).Add(FCombatPlayer);
-    TCombat(FCombat).ObjectDestroyed(Integer(Self));
+    TCombat(FCombat).ObjectDestroyed(Self);
     if FUnit <> nil then KillUnit;
   end;
 end;
@@ -1547,7 +1547,7 @@ begin
   FStatus := FStatus + [csDestroyed];
   ResetTargets;
   if FUnit is TLeader then TByteList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_2C).Add(FCombatPlayer);
-  TCombat(FCombat).ObjectDestroyed(Integer(Self));
+  TCombat(FCombat).ObjectDestroyed(Self);
   if FUnit <> nil then KillUnit;
 end;
 
@@ -5652,7 +5652,7 @@ begin
 end;
 
 procedure TCombatObject.NewTurn(A1: Byte);
-begin if A1 = FCombatPlayer then FStatus := FStatus - [csTurnDone]; end;
+begin if A1 = Byte(FCombatPlayer) then FStatus := FStatus - [csTurnDone]; end;
 
 procedure TCombatObject.NewRound;
 begin end;
@@ -5707,22 +5707,22 @@ function TCombatObject.GetLocked: Boolean;
 begin Result := False; end;
 
 procedure TCombatObject.SetCombatPlayer(Player: Byte);
-var ChangedSide: Boolean; Combat: TCombat;
+var ChangedSide: Boolean; Combat, NewCombat: TCombat;
 begin
   if csActivated in FStatus then
   begin
     ChangedSide := (Player <> $FF) and
       (TCombatSideIndex(TCombatPlayerList(TCombatData(FCombat.FCombatData).FPlayers).GetPlayers(Player).FSideIndex) <> GetSide);
-    if FCombatPlayer <> $FF then
+    if FCombatPlayer <> -1 then
     begin
       Combat := FCombat;
       Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(FCombatPlayer).FSideIndex)].RemoveChild(Self);
     end;
     FCombatPlayer := Player;
-    if FCombatPlayer <> $FF then
+    if FCombatPlayer <> -1 then
     begin
-      Combat := FCombat;
-      Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(FCombatPlayer).FSideIndex)].AddChild(Self);
+      NewCombat := FCombat;
+      NewCombat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(NewCombat.FCombatData).FPlayers).GetPlayers(FCombatPlayer).FSideIndex)].AddChild(Self);
     end;
     if ChangedSide then
     begin
@@ -5810,9 +5810,9 @@ begin
   else Result := -1;
 end;
 
-procedure TCombatObject.ObjectDestroyed(A1: Integer);
+procedure TCombatObject.ObjectDestroyed(A1: TCombatObject);
 begin
-  if TCombatObject(A1).GetSide <> GetSide then RemoveTarget(TCombatObject(A1));
+  if A1.GetSide <> GetSide then RemoveTarget(A1);
 end;
 
 function TCombatObject.SupportCombatMode(Modes: TCombatModes): Boolean;
@@ -5888,7 +5888,7 @@ begin
   if csDestroyed in FStatus then
   begin
     ResetTargets;
-    FCombat.ObjectDestroyed(Integer(Self));
+    FCombat.ObjectDestroyed(Self);
   end;
 end;
 
@@ -5897,7 +5897,7 @@ begin
   SetHitPoints(0);
   FStatus := FStatus + [csDestroyed];
   ResetTargets;
-  FCombat.ObjectDestroyed(Integer(Self));
+  FCombat.ObjectDestroyed(Self);
 end;
 
 function TCombatObject.ExecuteDamage(A1: Integer): Integer;
@@ -6224,7 +6224,7 @@ begin
   CheckTerminate;
 end;
 
-procedure TCombat.ObjectDestroyed(A1: Integer);
+procedure TCombat.ObjectDestroyed(A1: TCombatObject);
 var I: Integer;
 begin
   for I := TCombatData(FCombatData).GetCount - 1 downto 0 do
@@ -6445,7 +6445,7 @@ end;
 
 procedure TCombat.Finalize;
 var I, PlayerIndex, ArmyIndex, UnitIndex: Integer; Player: TPlayer;
-    Alive: Boolean; Mode: TFinalizeMode; Data: TCombatData; Msg: TMapFieldMsg;
+    Alive: Boolean; Mode: TFinalizeMode; Data, FinalData: TCombatData; Msg: TMapFieldMsg;
 begin
 
 
@@ -6554,13 +6554,13 @@ begin
     end;
     TCombatLogbook(FLogbook).F_CombatLogbook_19 := not Alive;
   end;
-  Data := FCombatData;
-  if Data.FX <> -1 then
+  FinalData := FCombatData;
+  if FinalData.FX <> -1 then
   begin
     Msg.MsgID := $1110;
     Msg.Param[0] := Integer(Self);
     Msg.Result := 0;
-    AoWHSMap.MapContainer.GetField(Data.FX, Data.FY, Data.FL).SendMapFieldMsg(Msg);
+    AoWHSMap.MapContainer.GetField(FinalData.FX, FinalData.FY, FinalData.FL).SendMapFieldMsg(Msg);
   end;
   UnlockExecuted;
 end;
@@ -6805,13 +6805,13 @@ begin inherited Destroy; end;
 function TCombatPlayerList.GetPlayers(A1: Shortint): TCombatPlayer;
 begin Result := TCombatPlayer(FChildren.List^[A1]); end;
 
-function TCombatPlayerList.IndexOfPlayer(A1: Byte): Integer;
-begin
+function TCombatPlayerList.IndexOfPlayer(A1: Byte): Integer; { Near miss: byte comparison restored; item register differs after three variants. }
+var P: TCombatPlayer; begin
   Result := FChildren.Count;
   while Result <> 0 do
   begin
     Dec(Result);
-    if TCombatPlayer(FChildren.List^[Result]).FPlayer = A1 then Exit;
+    P := TCombatPlayer(FChildren.List^[Result]); if A1 = Byte(P.FPlayer) then Exit;
   end;
   Result := -1;
 end;
@@ -6824,7 +6824,7 @@ begin
   begin
     Dec(Result);
     P := TCombatPlayer(FChildren.List^[Result]);
-    if (P.FPlayer = A1) and (P.FIndependentRelation = A2) then Exit;
+    if (Shortint(A1) = P.FPlayer) and (P.FIndependentRelation = A2) then Exit;
   end;
   Result := -1;
 end;
@@ -7491,8 +7491,8 @@ end;
 procedure TDamageCA.Execute(A1: TCombat);
 var Target, Source: TCombatObject;
 begin
-  Source := TCombatData(TCombat(A1).FCombatData).FindID(FSourceID);
-  Target := TCombatData(TCombat(A1).FCombatData).FindID(FTargetID);
+  Source := A1.FCombatData.FindID(FSourceID);
+  Target := A1.FCombatData.FindID(FTargetID);
   if FDamage <> 0 then FDamageDone := Source.DoDamage(Target, FDamage);
   if FEffects.Value <> [] then Target.ExecuteDamageEffects(FEffects.Value);
 end;
@@ -8122,7 +8122,7 @@ end;
 function TCombatPredictor.CreateUniqueCPUID: Integer;
 begin Result := FNextCPUID; Inc(FNextCPUID); end;
 
-procedure TCombatPredictor.EnableAllUnits;
+procedure TCombatPredictor.EnableAllUnits; { Near miss: item register and common-load reuse differ after three variants. }
 var I: Integer;
 begin
   for I := TList(FAllUnits).Count - 1 downto 0 do
@@ -11697,7 +11697,7 @@ begin
   Reset;
 end;
 
-function TAIPlayerControl.GetRandomGroupBehavior: TGroupBehavior;
+function TAIPlayerControl.GetRandomGroupBehavior: TGroupBehavior; { Near miss: Self and player register allocation differ after three variants. }
 var
   Player: TPlayer;
 begin
@@ -11784,7 +11784,7 @@ begin
   end;
 end;
 
-procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList);
+procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList); { Near miss: status field corrected; relation stack slot differs after three variants. }
 var
   I: Integer;
   Relation: TDiplomaticRelation;
@@ -11794,7 +11794,7 @@ begin
   Peace.Add(FPlayer.FPlayerIndex);
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do
     if I <> FPlayer.FPlayerIndex then
-      if (AoWHSMap.FPlayers.GetPlayers(I).FSingleProcessCycle = True) then
+      if (AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying) then
       begin
         Relation := AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayer.FPlayerIndex, I);
         if Relation in [drPeace, drAlliance] then Peace.Add(I)
@@ -11802,7 +11802,7 @@ begin
         else if Relation = drUnknown then
           if FPlayer.GetFirstDaySeen(I) <> -1 then Unknown.Add(I);
       end;
-  { Original behavior: Unknown is not cleared before appending. }
+  { Original checks player status at $45; Unknown is not cleared before appending. }
 end;
 
 procedure TAIPlayerControl.ListIdealPeaceWarPlayers(Peace, War: TByteList);
@@ -11812,7 +11812,7 @@ var
   Relation: TDiplomaticRelation;
   Priority: Integer;
   RaceRelation: TStatus;
-  Days: Integer;
+  Days, MiddlePlayer: Integer;
   Action: TDiplomaticAction;
   Item: TDoubleItem;
 begin
@@ -11859,12 +11859,12 @@ begin
   end;
   if Odd(Players.Count) then
   begin
-    Item := Players[Players.Count div 2];
-    RaceRelation := AoWHSMap.FRaces.GetRace(
-      AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
-      GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(Item.A).FPlayerRace);
-    if RaceRelation in [sHostile, sWary] then War.Add(Item.A)
-    else Peace.Add(Item.A);
+    Item := Players[Players.Count div 2]; MiddlePlayer := Item.A;
+    { The middle player relation is evaluated directly below. }
+
+
+    if AoWHSMap.FRaces.GetRace(AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).GetDefaultRaceRelation(AoWHSMap.FPlayers.GetPlayers(MiddlePlayer).FPlayerRace) in [sHostile, sWary] then War.Add(MiddlePlayer)
+    else Peace.Add(MiddlePlayer);
   end;
   Players.Free;
 end;
@@ -12565,7 +12565,7 @@ begin
   FGroupControl.Activate;
 end;
 
-procedure TGroupControlAIPA.DeactivateGroupControl;
+procedure TGroupControlAIPA.DeactivateGroupControl; { Near miss: single-use control local is optimized away after three variants. }
 var
   Control: TAIGroupControl;
 begin
@@ -12638,7 +12638,7 @@ begin
   FGroupControl.Activate;
 end;
 
-procedure TGroupControlLoopAIPA.DeactivateGroupControl;
+procedure TGroupControlLoopAIPA.DeactivateGroupControl; { Near miss: single-use control local is optimized away after three variants. }
 var
   Control: TAIGroupControl;
 begin
@@ -12958,9 +12958,9 @@ end;
 
 function TAutoProduceAIPA.TransporterProductionControlExists: Boolean;
 var
-  I, J: Integer;
+  Resource: TUnitResource; I, J: Integer;
   Control: TProductionControl;
-  Resource: TUnitResource;
+  { locals follow the original stack order }
 begin
   with FControl.FPlayer do
   begin
@@ -13861,10 +13861,10 @@ var
   Location: TXYL;
   Leader: TAbstractUnit;
 begin
-  Leader := FLeader;
-  if Leader <> nil then
+  { Reach the leader through its field. }
+  if FLeader <> nil then
   begin
-    Leader.GetLocation(Location.X, Location.Y, Location.L);
+    FLeader.GetLocation(Location.X, Location.Y, Location.L);
     Location.Flag := 0;
   end
   else Location.XYL := $FFFFFF;
@@ -16117,10 +16117,10 @@ begin
 end;
 
 function TAIGroupUnitProduction.Release: Integer;
-begin
+var Count: Integer; begin
   Dec(FRefCount);
-  Result := FRefCount;
-  if Result = 0 then Destroy;
+  Count := FRefCount; Result := Count;
+  if Count = 0 then Destroy;
 end;
 
 procedure TAIGroupUnitProduction.SetU(U: TUnit);
@@ -16919,7 +16919,7 @@ begin
   Result := Priority;
 end;
 
-function TAIGroupTargetSelector.Setup(Control: TAIGroupControl): Boolean;
+function TAIGroupTargetSelector.Setup(Control: TAIGroupControl): Boolean; { Near miss: signature ends before default case target; three variants differ. }
 begin
   Reset;
   case Ord(AoWHSMap.FPlayers.GetPlayers(Control.FGroup.FPlayer).FPlayerType) of
@@ -17195,7 +17195,7 @@ begin
     (Target.FMovePoints >= FGroupControl.FGroup.GetMovePointsMin));
 end;
 
-function TAIGroupTargetSelector.Process: Boolean;
+function TAIGroupTargetSelector.Process: Boolean; { Near miss: result register and truncated case-table extent differ after three variants. }
 var
   I, Strength, Superiority, Time: Integer;
   Busy: Boolean;
@@ -17686,7 +17686,7 @@ begin
   end;
 end;
 
-procedure TAIMoveControl.SelectCombinedTransporterArmyMpT;
+procedure TAIMoveControl.SelectCombinedTransporterArmyMpT; { Near miss: table-load temporary differs after three variants. }
 var
   Terrain, Overlay: Integer;
   Points: Shortint;
@@ -17868,7 +17868,7 @@ begin
   FPathSettings.Reset;
   with FSettings do FPathSettings.SetSourcePos(FSourceX, FSourceY, FSourceL);
   FPathSettings.FPlayer := FSettings.FPlayer;
-  with FSettings do FPathSettings.SetDestinationPos(FDestinationX, FDestinationY, FDestinationL);
+  FPathSettings.SetDestinationPos(FSettings.FDestinationX, FSettings.FDestinationY, FSettings.FDestinationL);
   FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
   FPathSettings.FArmyHS := FSettings.FArmyHS;
   FPathSettings.FSelection := FSettings.FSelection;
@@ -17941,7 +17941,7 @@ begin
   Result := FRefCount;
 end;
 
-function TMoveTarget.Release: Integer;
+function TMoveTarget.Release: Integer; { Near miss: result register differs after three variants. }
 begin
   Dec(FRefCount);
   Result := FRefCount;
@@ -18357,10 +18357,10 @@ end;
 
 function TAIMoveExecuterArmyList.IndexOf(Army: TArmyHS; Selection: Byte): Integer;
 var
-  I: Integer;
+  FoundSelection: Byte; I: Integer;
   Entry: TAIMoveExecuterArmy;
   FoundArmy: TArmyHS;
-  FoundSelection: Byte;
+  { byte local precedes the pointer local }
 begin
   I := Count;
   while I <> 0 do
@@ -20623,9 +20623,9 @@ end;
 
 function TFastCombatUnit.GetTargetWallCV(Target: TCombatObject): Integer;
 var
-  AUnit: TAbstractUnit;
   Best: Integer;
   Wall: TWallSituation;
+  AUnit: TAbstractUnit;
   Abilities: TAbilityTypeList;
   I, Value: Integer;
   Ability: TAbility;
@@ -21539,7 +21539,7 @@ begin
   end;
 end;
 
-function TMoveControl.SetupMove: Boolean;
+function TMoveControl.SetupMove: Boolean; { Near miss: Assert operand reuse differs after three variants; line preserved. }
 var
   Field: TAoWMapField;
   SubMove: TSubMove;
@@ -23249,7 +23249,7 @@ begin
     AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.InvalidateMove;
 end;
 
-procedure TMoveArmyTE.InitializeMove;
+procedure TMoveArmyTE.InitializeMove; { Near miss: army temporary and set expression differ after three variants. }
 var
   Last: Integer;
   ArmyHS: TArmyHS;
@@ -40258,14 +40258,14 @@ begin
     end;
   end;
 end;
-function TDispelMagicAbility.CreateCA(A1, A2: TCombatObject): TDispelMagicAbilityCA;
+function TDispelMagicAbility.CreateCA(A1: TCombatUnit; A2: TCombatObject): TDispelMagicAbilityCA;
 var
-  Successful: Boolean;
+  Successful: Boolean; Source: TCombatUnit;
 begin
   Result := TDispelMagicAbilityCA.Create(nil);
-  Result.Generate(A1, A2, GetDispelMana(TCombatUnit(A1).FUnit));
+  Result.Generate(A1, A2, GetDispelMana(A1.FUnit));
   if A1.GetSide = A2.GetSide then Successful := True
-  else Successful := CombatTouchRole(TCombatUnit(A1), A2);
+  else Successful := CombatTouchRole(A1, A2);
   if not Successful then Result.FEnchantmentIDs.Clear;
 end;
 function TDispelMagicAbility.Activate(A1: TAbilityOwner; var A2: string): Boolean;
@@ -41067,7 +41067,7 @@ procedure TCommandAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin
   ResetCommandedUnits(TCombatUnit(A1));
 end;
-procedure TCommandAbility.Command(Source, Target: TCombatUnit);
+procedure TCommandAbility.Command(Source, Target: TCombatUnit); { Near miss: class-result and VMT registers differ after three variants. }
 var
   TargetData: TCommandedAbilityData;
   SourceData: TCommandAbilityData;
@@ -41135,7 +41135,7 @@ begin
 end;
 function TCommandAbility.CanTouch(A1, A2: TCombatObject): Boolean;
 begin
-  if inherited CanTouch(A1, A2) then
+  Result := inherited CanTouch(A1, A2); if Result then
     Result := (A1 is TCombatUnit) and (A2 is TCombatUnit) and
       (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) and
       not A2.GetAbilityEnabled(107)
@@ -41319,8 +41319,8 @@ begin
   Result := inherited CanTouch(A1, A2);
   if Result then
   begin
-    Target := TCombatUnit(A2);
-    Result := (Target.FUnit.GetUnitType = utHumanoid) and (Word(Target.FUnit.GetRace) <> 11) and not Target.FUnit.GetAbilityEnabled(129);
+    with TCombatUnit(A2) do
+    Result := (FUnit.GetUnitType = utHumanoid) and (Word(FUnit.GetRace) <> 11) and not FUnit.GetAbilityEnabled(129);
   end;
 end;
 constructor TSeducedAbility.Create(AOwner: Engine.TECustomNode);
@@ -41521,8 +41521,8 @@ procedure TConstructAbility.RegisterConstructionControl(Control: TConstructionCo
 var
   ControlID: Integer;
 begin
-  ControlID := Control.ID;
-  if FConstructionControls.FindID(ControlID) <> nil then
+  { Pass the control ID directly without retaining a local. }
+  if FConstructionControls.FindID(Control.ID) <> nil then
     raise Exception.Create('Construction Control ID already used');
   Control.SetOwner(FConstructionControls);
 end;
@@ -45857,7 +45857,7 @@ asm
   POP ebp
   RET
 end;
-function TUnitSpellCaster.Valid: Boolean;
+function TUnitSpellCaster.Valid: Boolean; { Near miss: Self save and argument evaluation differ after three variants. }
 { Original 5577A7F0 saves Self in EBX even though it is used only before FindUnit.
   Direct calls, separate Control/ID/This locals, ancestor/descendant casts, with
   and reversed Boolean branches all omit that save with this compiler. }
@@ -45959,9 +45959,9 @@ begin
 end;
 function TUnitSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
-  I: Integer;
-  Target: TAbstractUnit;
   X, Y, L: Shortint;
+  Target: TAbstractUnit;
+  I: Integer;
 begin
   inherited Process(A1, A2);
   if FTargetUnits.GetCount <> 0 then
@@ -45990,7 +45990,7 @@ begin
   FAllowMultipleTargets := True;
   FTargetRange := 0;
 end;
-procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
+procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: compiler omits saved parameters after three variants. }
 begin
   inherited GetCombatInfo(Source, Info);
   Info.TargetTypes := [cttFriend];
@@ -46680,7 +46680,7 @@ end;
   $20 external source, $24 mana, $28 spheres, $2C research percentage,
   $30 spells, $34 research spell, $38 points, $3C enchantments,
   $40 power sources, $44/$45 active/enemy enchantments, $48 change events. }
-constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode);
+constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode); { Near miss: single-use source local is optimized away after three variants. }
 var
   Source: TExternalPowerSource;
 begin
@@ -47159,14 +47159,14 @@ end;
 function TPlayerMagicControl.AIRequestOverrideUpkeep(Priority: Integer): Integer;
 var
   I: Integer;
-  Enchantment: TGlobalEnchantment;
+  Enchantment: TGlobalEnchantment; GlobalControl: TGlobalMagicControl;
 begin
   Result := 0;
   for I := 0 to FEnchantments.GetCount - 1 do
     if Priority >= FEnchantments.GetEnchantments(I).GetAIUpkeepPriority then
       Inc(Result, FEnchantments.GetEnchantments(I).FUpkeep);
   { Original bug: this estimate also counts global enchantments owned by other players. }
-  for I := AoWHSMap.FGlobalMagicControl.FEnchantments.GetCount - 1 downto 0 do
+  GlobalControl := AoWHSMap.FGlobalMagicControl; for I := GlobalControl.FEnchantments.GetCount - 1 downto 0 do
   begin
     Enchantment := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I);
     if Priority >= Enchantment.GetAIUpkeepPriority then Inc(Result, Enchantment.GetUpkeep);
@@ -47176,7 +47176,7 @@ function TPlayerMagicControl.AIOverrideUpkeep(Priority, Amount: Integer): Intege
 var
   List: TQuadItemList;
   I, UpkeepPriority, Total: Integer;
-  Enchantment: TGlobalEnchantment;
+  Enchantment: TGlobalEnchantment; GlobalControl: TGlobalMagicControl;
 begin
   Result := 0;
   List := TQuadItemList.Create;
@@ -47187,7 +47187,7 @@ begin
       List.AddABCD(UpkeepPriority, FEnchantments.GetEnchantments(I).FUpkeep,
         Integer(FEnchantments.GetEnchantments(I)), 0);
   end;
-  for I := AoWHSMap.FGlobalMagicControl.FEnchantments.GetCount - 1 downto 0 do
+  GlobalControl := AoWHSMap.FGlobalMagicControl; for I := GlobalControl.FEnchantments.GetCount - 1 downto 0 do
   begin
     Enchantment := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I);
     if Enchantment.FPlayerIndex = FPlayer.FPlayerIndex then
@@ -47255,10 +47255,10 @@ begin
   Result := FRefCount;
 end;
 function TGlobalEnchantment.Release: Integer;
-begin
+var Count: Integer; begin
   Dec(FRefCount);
-  Result := FRefCount;
-  if Result = 0 then Destroy;
+  Count := FRefCount; Result := Count;
+  if Count = 0 then Destroy;
 end;
 function TGlobalEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
@@ -47438,8 +47438,8 @@ begin
   Stream.rwByte(Byte(FEnchantmentPlayer), 30);
 end;
 function TGlobalEnchantmentEventLog.GetLeftIcon: Integer;
-begin
-  if (FEnchantmentPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FEnchantmentPlayer) then
+var Player: Shortint; begin
+  Player := FEnchantmentPlayer; if (Player > 0) and (AoWHSMap.FPlayers.GetCount > Player) then
     Result := AoWHSMap.FPlayers.GetPlayers(FEnchantmentPlayer).FPlayerRace
   else Result := 12;
 end;

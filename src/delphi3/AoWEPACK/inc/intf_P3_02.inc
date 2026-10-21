@@ -318,7 +318,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Clear; override;
     procedure UpdateStatus; virtual;  { +04C draft }
-    procedure ObjectDestroyed(A1: Integer); virtual;  { +050 draft }
+    procedure ObjectDestroyed(A1: TCombatObject); virtual;  { +050; 55727554 }
     procedure ObjectSideChanged(A1: Integer); virtual;  { +054 draft }
     function CreateCombatUnit: TCombatUnit; virtual; { +058; 557445F0 }
     function CreateCombatPlayer: TCombatPlayer; virtual; { +05C; AoWTCPCK 004295C4 }

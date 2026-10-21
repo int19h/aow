@@ -187,7 +187,7 @@
     function GetAbilityOwner: TAbilityOwner; virtual;  { +0B8 }
     procedure Activate(A1: Integer); virtual;  { +0BC draft }
     procedure Deactivate; virtual;  { +0C0 draft }
-    procedure ObjectDestroyed(A1: Integer); virtual;  { +0C4 draft }
+    procedure ObjectDestroyed(A1: TCombatObject); virtual;  { +0C4; 55726934 }
     procedure ObjectSideChanged(A1: Integer); virtual;  { +0C8 draft }
     procedure Initialize(A1: Integer); virtual;  { +0CC draft }
     procedure Finalize(A1: TFinalizeMode); virtual;  { +0D0 draft }
@@ -273,7 +273,7 @@
     function GetAbilityOwner: TAbilityOwner; override;
     procedure Activate(A1: Integer); override;
     procedure Deactivate; override;
-    procedure ObjectDestroyed(A1: Integer); override;
+    procedure ObjectDestroyed(A1: TCombatObject); override;
     procedure Initialize(A1: Integer); override;
     procedure Finalize(A1: TFinalizeMode); override;
     function SupportCombatMode(Modes: TCombatModes): Boolean; override;
