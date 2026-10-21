@@ -785,8 +785,8 @@ resourcestring
   BattleWonRStr = 'Battle Won';
   BattleLostRStr = 'Battle Lost';
   BattleDrawnRStr = 'Battle Drawn';
-  CannotBreachWallRStr = 'Cannot breach wall';
-  CannotInflictDamageRStr = 'Cannot inflict damage';
+
+
 type
   PP3String = ^string;
   TP3NodeAccess = class(TENode)
@@ -5473,10 +5473,6 @@ begin
 
 
 
-
-
-
-
   Assert(FTargets.IndexOfItemA(Integer(Target)) = -1, 'target already exists use update target');
   Inc(FCombatValue, CV);
   Inc(FWallCombatValue, WallCV);
@@ -6293,8 +6289,8 @@ begin
   else Result := 7;
 end;
 
-function TCombat.CreateCombatPlayer: Integer;
-begin Result := Integer(TCombatPlayer.Create(nil)); end;
+function TCombat.CreateCombatPlayer: TCombatPlayer;
+begin Result := TCombatPlayer.Create(nil); end;
 
 function TCombat.AddCombatPlayer(A1: Byte; A2: Byte; A3: TCombatSideIndex): Byte;
 var Player: TCombatPlayer;
@@ -22561,7 +22557,7 @@ begin
     FDestinationL := FSettings.FDestinationL;
     FMovePointTable := FSettings.FMovePointTable;
     FMode := FSettings.FMode;
-    FArmyHS := FSettings.FArmyHS;
+    FArmyHS := TArmyHS(FSettings.FArmyHS);
     FSelection := FSettings.FSelection;
     FTransporterArmy := FSettings.FTransporterArmy;
     FProcessedMapFields := FSettings.FProcessedMapFields;
@@ -26011,7 +26007,7 @@ procedure TAbility.SetAb(Owner: TAbilityOwner; Index: Integer; Value: Byte);
 begin
   Owner.SetAbSet(Index, Value);
 end;
-function TAbility.GetControlType: TAbilityControlType;
+function TAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 asm
   MOV AL,P1EmptyControlType
 end;
@@ -37188,7 +37184,7 @@ begin
   inherited Destroy;
 end;
 
-function TStrikeAbility.GetControlType: TAbilityControlType;
+function TStrikeAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin
   Result := [];
 end;
@@ -37812,7 +37808,7 @@ begin
   FAbilityType := atCombat;
 end;
 
-function TTouchAbility.GetControlType: TAbilityControlType;
+function TTouchAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin
   Result := [acCombatAction];
 end;
@@ -37834,7 +37830,7 @@ begin
   A2.Damage := -1;
   A2.DamageTypes := [];
   A2.RepeatCount := 1;
-  A2.Kind := [cmMelee];
+  A2.TargetTypes := [cttEnemy];
 end;
 
 function TTouchAbility.GetCombatMode(A1: TAbilityOwner): TCombatMode;
@@ -38035,7 +38031,7 @@ begin
   A2.Damage := 6;
   A2.DamageTypes := [dtWall];
   A2.RepeatCount := 1;
-  A2.Kind := [];
+  A2.TargetTypes := [];
 end;
 
 function TWallCrushingAbility.GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures;
@@ -38164,7 +38160,7 @@ begin
   A2.Damage := 6;
   A2.DamageTypes := [dtFire, dtWall];
   A2.RepeatCount := -1;
-  A2.Kind := [cmMelee];
+  A2.TargetTypes := [cttEnemy];
 end;
 
 procedure TSelfDestructAbility.GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes);
@@ -38267,7 +38263,7 @@ begin
     A2.Damage := Source.GetDamage;
     A2.DamageTypes := TStrikeAbility(AoWHSSet.FAbilityControl.GetAbility(21)).GetDamageTypes(Source);
     A2.RepeatCount := 2;
-    A2.Kind := [cmMelee];
+    A2.TargetTypes := [cttEnemy];
     Exit;
   end
   else
@@ -38276,7 +38272,7 @@ begin
     A2.Damage := -1;
     A2.DamageTypes := [dtPhysical];
     A2.RepeatCount := 2;
-    A2.Kind := [cmMelee];
+    A2.TargetTypes := [cttEnemy];
   end;
 end;
 
@@ -39255,7 +39251,7 @@ begin
   A2.Damage := GetTurnUndeadDamage(Level);
   A2.DamageTypes := [dtHoly];
   A2.RepeatCount := 1;
-  A2.Kind := [cmMelee];
+  A2.TargetTypes := [cttEnemy];
 end;
 function TTurnUndeadAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
 var
@@ -39414,7 +39410,7 @@ begin
   A2.Damage := -1;
   A2.DamageTypes := [dtDeath];
   A2.RepeatCount := 1;
-  A2.Kind := [cmMelee];
+  A2.TargetTypes := [cttEnemy];
 end;
 function TInvokeDeathAbility.GetTouchAttack(A1: Integer): Shortint;
 begin
@@ -39588,7 +39584,7 @@ begin
   FSelectionTypes := [astUnit, astUseItem, astEditor];
   FAbilityType := atEnhancement;
 end;
-function THealingAbility.GetControlType: TAbilityControlType;
+function THealingAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin
   Result := [acAction, acCombatAction];
 end;
@@ -39669,7 +39665,7 @@ end;
 procedure THealingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin
   inherited GetCombatInfo(A1, A2);
-  A2.Kind := [cmNone];
+  A2.TargetTypes := [cttFriend];
 end;
 function THealingAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;
 begin
@@ -40012,7 +40008,7 @@ begin
   FSelectionTypes := [astUnit, astUseItem, astEditor];
   FAbilityType := atEnhancement;
 end;
-function TDispelMagicAbility.GetControlType: TAbilityControlType;
+function TDispelMagicAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin
   Result := [acAction, acCombatAction];
 end;
@@ -40045,7 +40041,7 @@ end;
 procedure TDispelMagicAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin
   inherited;
-  A2.Kind := [cmNone, cmMelee];
+  A2.TargetTypes := [cttFriend, cttEnemy];
 end;
 function TDispelMagicAbility.GetDispelMana(A1: TAbilityOwner): Integer;
 begin
@@ -40427,7 +40423,7 @@ begin
     5: Result := TranslateRStr(SpellCastingRStr) + ' V';
   end;
 end;
-function TSpellCastingAbility.GetControlType: TAbilityControlType;
+function TSpellCastingAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin Result := [acAction, acCombatAction]; end;
 function TSpellCastingAbility.Expand(A1: TAbilityOwner): Boolean;
 begin
@@ -40623,7 +40619,7 @@ begin
   FSelectionTypes := [astUnit, astUseItem];
   FAbilityType := atCombat;
 end;
-function TRangedAttackAbility.GetControlType: TAbilityControlType;
+function TRangedAttackAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin Result := [acCombatAction]; end;
 function TRangedAttackAbility.GetRangeRA(A1: TAbilityOwner): TCombatRange;
 begin
@@ -40739,7 +40735,7 @@ begin
   A2.Damage := GetDamageRA(A1);
   A2.DamageTypes := GetDamageTypesRA(A1);
   A2.RepeatCount := GetAttackRepeatRA(A1);
-  A2.Kind := [cmMelee];
+  A2.TargetTypes := [cttEnemy];
 end;
 function TRangedAttackAbility.CreateRangedAttackCA(A1, A2: TCombatObject; A3: Integer): TRangedAttackCA;
 var
@@ -41517,7 +41513,7 @@ begin
   FConstructionControls.Free;
   inherited Destroy;
 end;
-function TConstructAbility.GetControlType: TAbilityControlType;
+function TConstructAbility.GetControlType(Owner: TAbilityOwner): TAbilityControlType;
 begin Result := [acAction]; end;
 function TConstructAbility.CanActivate(A1: TAbilityOwner; var A2: string): Boolean;
 begin
@@ -44417,7 +44413,7 @@ end;
 procedure TAoWHSMap.ExecuteNegotiateMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
 begin end;
 
-procedure TAoWHSMap.InitializeCombatMap(A1: Integer; const FileName: string);
+procedure TAoWHSMap.InitializeCombatMap(A1: TCombat; const FileName: string);
 var
   Player: TPlayer;
   X, Y, L: Integer;
@@ -45185,7 +45181,7 @@ asm
   POP EBX
 end;
 
-procedure TSpell.tcGetDamageValue;
+function TSpell.tcGetDamageValue(Source, Target: TCombatObject): Integer;
 asm
   PUSH EBX
   MOV EBX, [EAX]

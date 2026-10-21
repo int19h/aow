@@ -48,6 +48,10 @@ uses
 {$I inc\intf_P1_14.inc}
 {$I inc\intf_P5_09.inc}
 
+resourcestring
+  CannotBreachWallRStr = 'Cannot breach wall';
+  CannotInflictDamageRStr = 'Cannot inflict damage';
+
 implementation
 
 uses ExptIntf;

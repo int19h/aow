@@ -54,7 +54,7 @@
     function GetSourceName(A1: TAbilityOwner): string; virtual;
     function GetInherent(A1: TAbilityOwner): Boolean; virtual;
     procedure GetInherentLevel(A1: Integer); virtual;  { +094 draft }
-    function GetControlType: TAbilityControlType; virtual;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; virtual;
     function fcValidRoundDistance(A1, A2: TCombatObject): Boolean; virtual;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); virtual;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; virtual;

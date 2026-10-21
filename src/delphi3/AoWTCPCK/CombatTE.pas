@@ -499,11 +499,11 @@ begin
               MakeHitBlood(FUnit, FStrike.FDamage);
               HXtoHP(FUnit.FUnitHS.Xhx, FUnit.FUnitHS.Yhx, X, Y);
               if FStrike.FDamageTypes.Value - FStrike.FEffects.Value <> [] then
-                MakeDEHSList(X + FUnit.FUnitHS.F_TacticalCombatUnitHS_2C,
-                  Y + FUnit.FUnitHS.F_TacticalCombatUnitHS_30, FStrike.FDamageTypes.Value - FStrike.FEffects.Value, False);
+                MakeDEHSList(X + FUnit.FUnitHS.FOffsetX,
+                  Y + FUnit.FUnitHS.FOffsetY, FStrike.FDamageTypes.Value - FStrike.FEffects.Value, False);
               if FStrike.FEffects.Value <> [] then
-                MakeDEHSList(X + FUnit.FUnitHS.F_TacticalCombatUnitHS_2C,
-                  Y + FUnit.FUnitHS.F_TacticalCombatUnitHS_30, FStrike.FEffects.Value, True);
+                MakeDEHSList(X + FUnit.FUnitHS.FOffsetX,
+                  Y + FUnit.FUnitHS.FOffsetY, FStrike.FEffects.Value, True);
             end;
             FStep := tokExeStrike;
           end

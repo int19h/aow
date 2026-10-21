@@ -4,7 +4,7 @@
     DamageTypes: TDamageTypes;
   end;
   TAbilityCombatInfo = packed record
-    Kind: TCombatModes;
+    TargetTypes: TCombatTargetType; { $00; AoWTCPCK 00420A02 }
     Attack, Damage: Shortint;
     DamageTypes: TDamageTypes;
     RepeatCount: Shortint;

@@ -151,7 +151,7 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
@@ -188,7 +188,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; override;
     function GetWallCombatFeatures(A1: TAbilityOwner): TWallCombatFeatures; override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     function fcValidRoundDistance(A1, A2: TCombatObject): Boolean; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
@@ -233,7 +233,7 @@
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetCombatMode(A1: TAbilityOwner): TCombatMode; override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
     function GetTouchAttack(A1: Integer): Shortint; virtual; { +10C }
@@ -632,7 +632,7 @@
     constructor Create(AOwner: Engine.TECustomNode); override;
     function GetName(A1: TAbilityOwner): string; override;
     function GetEnabled(A1: TAbilityOwner): Boolean; override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); override;
@@ -712,7 +712,7 @@
     function GetLevel(A1: TAbilityOwner): Integer; override;
     function GetEnabled(A1: TAbilityOwner): Boolean; override;
     function GetSkillPoints(A1: TAbilityOwner): Integer; override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     procedure NewTurn(A1: TAbilityOwner; A2: Shortint); override;
@@ -833,7 +833,7 @@
     FConstructionControls: TConstructionControlList; { $28 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     function CanActivate(A1: TAbilityOwner; var A2: string): Boolean; override;
     procedure RegisterConstructionControl(Control: TConstructionControl);
   end;
@@ -859,7 +859,7 @@
   TSpellCastingAbility = class(TMultiLevelAbility)
   public
     constructor Create(AOwner: Engine.TECustomNode); override;
-    function GetControlType: TAbilityControlType; override;
+    function GetControlType(Owner: TAbilityOwner): TAbilityControlType; override;
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); override;
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; override;
     function CanActivate(A1: TAbilityOwner; var A2: string): Boolean; override;
@@ -927,7 +927,7 @@
     function GetCombatDamageValue(A1, A2: TCombatObject): Integer; virtual;  { +080 }
     procedure GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +084 }
     procedure tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues); virtual;  { +088 draft }
-    procedure tcGetDamageValue; virtual;  { +08C draft }
+    function tcGetDamageValue(Source, Target: TCombatObject): Integer; virtual; { +08C; 00418831 }
     procedure fcPrefetchCombatCommands(A1: TFastCombatCommandList); virtual;  { +090 }
     function fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean; virtual;  { +094 }
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); virtual;  { +098 }

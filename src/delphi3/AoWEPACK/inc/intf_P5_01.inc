@@ -54,7 +54,7 @@
     FDestinationL: Integer; { $90 }
     F_MoveControlSettings_94: array[0..3] of Byte;
     FMovePointsMax: Integer; { $98; 557D7B3D }
-    FArmyHS: TArmyHS;  { $9C }
+    FArmyHS: TUnitHS;  { $9C; 00418DC2 }
     FSelection: Integer;  { $A0 }
     FTransporterArmy: TArmyHS; { $A4 }
     FUnits: TUnitUserList; { $A8; AddUnitsEx at 557929AD }

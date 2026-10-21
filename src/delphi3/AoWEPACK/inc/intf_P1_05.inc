@@ -430,7 +430,7 @@
     procedure UpdateVisibility;  { draft }
     procedure ResetMapLevels;  { draft }
     procedure ExecuteNegotiateMove(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure InitializeCombatMap(A1: Integer; const FileName: string);
+    procedure InitializeCombatMap(A1: TCombat; const FileName: string);
     procedure ReleaseCombatMap;  { draft }
     function CreateCombat(AClassID: Integer): TCombat;
     procedure ShowSeatedPlayerCallBack(Log: TEventLog);
