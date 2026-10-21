@@ -118,13 +118,14 @@ begin
 end;
 
 procedure TTextControlEditForm.FindTextClick;
-var S: string; Item: TTextControlItem;
+var S: string; Item: TTextControlItem; ID: Integer;
 begin
   S := InputBox('ID search form', 'Type ID', '');
   try
     if S <> '' then
     begin
-      Item := FTextControl.FindID(StrToInt(S));
+      ID := StrToInt(S);
+      Item := FTextControl.FindID(ID);
       if Item <> nil then SetText(Item)
       else ShowMessage('ID not found');
     end;

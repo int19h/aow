@@ -30,7 +30,7 @@ type
 implementation
 
 class function TBridgeResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $20175; end;
 
 class procedure TBridgeResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

@@ -58,7 +58,7 @@ type
 implementation
 
 class function TExplorationSiteEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $203C1; end;
 
 class procedure TExplorationSiteEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

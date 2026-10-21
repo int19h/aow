@@ -39,7 +39,7 @@ implementation
 uses OverlayObject;
 
 class function TOverlayObjectResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2009D; end;
 
 class procedure TOverlayObjectResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

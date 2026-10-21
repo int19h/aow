@@ -2,7 +2,7 @@ unit NewMapDialog;
 
 { Draft declarations of NewMapDialog, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  TNewMapDlg: published controls $1DC..$224; no additional fields. }
 
 interface
 
@@ -37,14 +37,51 @@ type
     ThreeLevels: TRadioButton; { +0220 }
     Translator: TIvTranslator; { +0224 }
     public
-    procedure OKBtnClick;  { draft }
+    procedure CreateMap;
+    procedure OKBtnClick(Sender: TObject);
   end;
 
 
 implementation
 
-procedure TNewMapDlg.OKBtnClick;
-begin end;
+uses AoWE;
+
+procedure TNewMapDlg.CreateMap;
+var Settings: TAoWNewHSMapSettings;
+begin
+  AoWHSMap := TAoWHSMap(AoWEngine.NewHSM($20011));
+  Settings := TAoWNewHSMapSettings.Create;
+  if SmallRB.Checked then
+  begin
+    Settings.Width := 48;
+    Settings.Height := 48;
+  end
+  else if MediumRB.Checked then
+  begin
+    Settings.Width := 64;
+    Settings.Height := 64;
+  end
+  else if LargeRB.Checked then
+  begin
+    Settings.Width := 96;
+    Settings.Height := 96;
+  end
+  else
+  begin
+    Settings.Width := 127;
+    Settings.Height := 127;
+  end;
+  if OneLevel.Checked then Settings.Levels := 1
+  else if TwoLevels.Checked then Settings.Levels := 2
+  else Settings.Levels := 3;
+  Settings.HSSFileName := AoWEngine.HSSFileName;
+  AoWHSMap.CreateNewMap(Settings);
+end;
+
+procedure TNewMapDlg.OKBtnClick(Sender: TObject);
+begin
+  CreateMap;
+end;
 
 
 end.

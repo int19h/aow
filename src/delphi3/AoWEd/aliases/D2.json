@@ -103,7 +103,7 @@
   "00425648:483": "TPlayerInfoFloater.UpdateStructureGrid",
   "00425844:592": "TPlayerInfoFloater.LoadPlayer",
   "00425a9c:164": "TPlayerInfoFloater.UpdatePlayer",
-  "0041d944:3": "DefendersEnabled",
+  "0041d944:3": "TProductionPlaceEditForm.DefendersEnabled",
   "00412a6c:64": "TItemSelectionDlg.CreateSelection",
   "00412ab0:89": "TItemSelectionDlg.SetSelectedIndex",
   "FUN_0040740c": "RegisterPadResourceEditor",

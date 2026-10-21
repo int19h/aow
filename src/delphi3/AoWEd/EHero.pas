@@ -291,16 +291,19 @@ begin
 end;
 
 procedure THeroEditForm.EditFaceBtnClick;
-var Dlg: TFaceSelectionDlg;
+var Dlg: TFaceSelectionDlg; Index: Integer;
 begin
   Dlg := TFaceSelectionDlg.Create(Self);
   Dlg.SetFaceIndex(FHero.FFaceIndex);
-  with Dlg do
-    if (ShowModal = mrOK) and (FSelectedIndex <> -1) then
+  if Dlg.ShowModal = mrOK then
+  begin
+    Index := Dlg.FSelectedIndex;
+    if Index <> -1 then
     begin
-      FHero.SetFaceIndex(FSelectedIndex);
+      FHero.SetFaceIndex(Index);
       PreviewImagePanel.Invalidate;
     end;
+  end;
   Dlg.Free;
 end;
 
@@ -333,7 +336,8 @@ end;
 
 procedure THeroEditForm.HeroLevelEditChange;
 begin
-  FHero.SetLevel(HeroLevelEdit.Value);
+  { Original truncates to a byte before the signed range check. }
+  FHero.SetLevel(Byte(HeroLevelEdit.Value));
   HeroLevelEdit.Value := FHero.GetLevel;
   UpdateSkillPoints;
   UpdateAddButton;
@@ -381,7 +385,8 @@ end;
 
 procedure THeroEditForm.MovesEditChange;
 begin
-  FHero.SetUnitMoves(MovesEdit.Value);
+  { Original truncates to a byte before the signed range check. }
+  FHero.SetUnitMoves(Byte(MovesEdit.Value) and $FF);
   MovesEdit.Value := FHero.FUnitMoves;
   UpdateSkillPoints;
   UpdateStatistics;

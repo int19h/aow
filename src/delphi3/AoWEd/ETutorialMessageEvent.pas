@@ -37,7 +37,7 @@ type
 implementation
 
 class function TTutorialMessageEventEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2056B; end;
 
 class procedure TTutorialMessageEventEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

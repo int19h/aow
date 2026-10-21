@@ -45,7 +45,7 @@ implementation
 uses AoWE, ExploreS, Dungeon, UnitFlt;
 
 class function TDungeonResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2032B; end;
 
 class procedure TDungeonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

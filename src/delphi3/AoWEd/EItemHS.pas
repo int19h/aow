@@ -109,7 +109,7 @@ end;
 procedure TItemHSEditForm.FormCreate(Sender: TObject);
 begin
   FItemHS := TItemHS(FEditObject);
-  TItemHS(FEditObject).FItems.BeginUpdate;
+  FItemHS.FItems.BeginUpdate;
   ItemGrid.SetItems(FItemHS.FItems);
   if FItemHS.FGenerateMode = igUserDefined then
   begin

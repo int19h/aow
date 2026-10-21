@@ -74,7 +74,7 @@ begin
 end;
 
 class function TMultiHexResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $10155; end;
 
 class procedure TMultiHexResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

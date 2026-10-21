@@ -140,12 +140,16 @@ begin
 end;
 
 procedure TPlayerInfoFloater.UpdatePlayer;
+var Page: TTabSheet;
 begin
-  VictoryLocationsSheet.TabVisible := (Ord(AoWHSMap.FVictoryCondition) = 1) and (PlayerComboBox.FPlayerIndex <> 0);
+  VictoryLocationsSheet.TabVisible := (AoWHSMap.FVictoryCondition = vcCaptureLocations) and (PlayerComboBox.FPlayerIndex <> 0);
   IncomeSheet.TabVisible := PlayerComboBox.FPlayerIndex <> 0;
   PowerSheet.TabVisible := PlayerComboBox.FPlayerIndex <> 0;
   with PlayerPageControl do
-    if (ActivePage <> nil) and not ActivePage.TabVisible then ActivePage := StructureSheet;
+  begin
+    Page := ActivePage;
+    if (Page <> nil) and not Page.TabVisible then ActivePage := StructureSheet;
+  end;
   LoadPlayer(PlayerComboBox.FPlayerIndex);
 end;
 

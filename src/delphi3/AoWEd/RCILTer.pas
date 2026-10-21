@@ -75,7 +75,7 @@ end;
 procedure TCombatILTerrainResourceEditForm.CityWallDirectionEditUpdate(Sender: TObject);
 begin
   { Original truncates the direction to a byte before its redundant range check. }
-  TCityWallResource(FResource).FDirection := Byte(CityWallDirectionEdit.Value);
+  TCityWallResource(FResource).FDirection := Integer(Byte(CityWallDirectionEdit.Value));
 end;
 
 

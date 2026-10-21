@@ -31,7 +31,7 @@ type
 implementation
 
 class function TIsometricHexagonResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2016E; end;
 
 class procedure TIsometricHexagonResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

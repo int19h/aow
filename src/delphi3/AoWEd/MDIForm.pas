@@ -1019,7 +1019,7 @@ begin
   if HSMEdit.Activated then
     if HSMEdit.SceneLevel + 1 <> AoWHSMap.MapContainer.LevelCount then
     begin
-      HSMEdit.SetSceneLevel(Smallint(HSMEdit.SceneLevel) + 1);
+      with HSMEdit do SetSceneLevel(Integer(SceneLevel) + 1);
       if Smallint(HSMEdit.SceneLevel) = 1 then HSMEdit.SelectEditResource(nil);
       EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(HSMEdit.SceneLevel)]);
       if HSMEdit.SceneLevel > 0 then MORPageControl.ActivePage := UndergroundMORSHeet;
@@ -1032,7 +1032,7 @@ begin
   if HSMEdit.Activated then
     if HSMEdit.SceneLevel <> 0 then
     begin
-      HSMEdit.SetSceneLevel(Smallint(HSMEdit.SceneLevel) - 1);
+      with HSMEdit do SetSceneLevel(Integer(SceneLevel) - 1);
       if Smallint(HSMEdit.SceneLevel) = 0 then HSMEdit.SelectEditResource(nil);
       EditStatusBar.Panels[1].Text := AoWE.Format(TranslateRStr(LevelXRStr), [IntToStr(HSMEdit.SceneLevel)]);
       if Smallint(HSMEdit.SceneLevel) = 0 then MORPageControl.ActivePage := SurfaceSheet;

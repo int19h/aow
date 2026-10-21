@@ -23,6 +23,7 @@ type
     DefendersModeBox: TComboBox; { +0230 }
     Label2: TLabel; { +0234 }
     public
+    function DefendersEnabled: Boolean;
     procedure FormCreate(Sender: TObject);
     procedure PlayerComboBoxChange(Sender: TObject);
     procedure OKBtnClick(Sender: TObject);
@@ -41,7 +42,7 @@ implementation
 
 uses PrdPlace;
 
-function DefendersEnabled: Boolean;
+function TProductionPlaceEditForm.DefendersEnabled: Boolean;
 begin
   Result := True;
 end;
@@ -84,7 +85,7 @@ end;
 
 procedure TProductionPlaceEditForm.OKBtnClick(Sender: TObject);
 begin
-  TProductionPlace(FMapObject).FDefenderLevel := DefendersModeBox.ItemIndex;
+  TProductionPlace(FMapObject).FDefenderLevel := Byte(DefendersModeBox.ItemIndex);
   inherited OKBtnClick(Sender);
 end;
 

@@ -70,7 +70,7 @@ begin
 end;
 
 class function TWizardsTowerEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2089E; end;
 
 class procedure TWizardsTowerEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

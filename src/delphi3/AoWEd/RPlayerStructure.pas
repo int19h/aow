@@ -30,7 +30,7 @@ type
 implementation
 
 class function TPlayerStructureResourceEditor.EditorClassID: Integer;
-begin Result := 0; end;
+begin Result := $2034D; end;
 
 class procedure TPlayerStructureResourceEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
 begin end;

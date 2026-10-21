@@ -2,12 +2,12 @@ unit RFire;
 
 { Draft declarations of RFire, from AoWEd.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+  Fire type handlers use TFireResource.FFireType at inherited resource offset $308. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RILTer;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, RILTer, AoWE;
 
 type
   TFireResourceEditForm = class;
@@ -22,8 +22,8 @@ type
     Label10: TLabel; { +0340 }
     FireTypeBox: TComboBox; { +0344 }
     public
-    procedure FireTypeBoxChange;  { draft }
-    procedure FormCreate;  { draft }
+    procedure FireTypeBoxChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   end;
 
   { TFireResourceEditor (instance size 8, VMT 0040A378) }
@@ -40,11 +40,16 @@ begin
   TFireResourceEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done);
 end;
 
-procedure TFireResourceEditForm.FireTypeBoxChange;
-begin end;
+procedure TFireResourceEditForm.FireTypeBoxChange(Sender: TObject);
+begin
+  TFireResource(FResource).FFireType := TFireType(FireTypeBox.ItemIndex);
+end;
 
-procedure TFireResourceEditForm.FormCreate;
-begin end;
+procedure TFireResourceEditForm.FormCreate(Sender: TObject);
+begin
+  inherited FormCreate(Sender);
+  FireTypeBox.ItemIndex := Ord(TFireResource(FResource).FFireType);
+end;
 
 
 end.
