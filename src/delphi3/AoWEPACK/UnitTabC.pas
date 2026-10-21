@@ -61,7 +61,7 @@ begin
   end;
 end;
 
-procedure TUnitTabControl.UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean);
+procedure TUnitTabControl.UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean); { Near miss: three variants retain a different index/list register allocation. }
 var
   Index: Integer;
   List: TUnitIndexList;

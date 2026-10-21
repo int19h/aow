@@ -208,9 +208,9 @@ var
   S: TPlayerStructure;
   I: Integer;
 begin
-  if WorldMap^ <> nil then
+  if AoWHSMap <> nil then
   begin
-    P := TPlayerList(WorldMap^.FPlayers).GetPlayers(Player);
+    P := TPlayerList(AoWHSMap.FPlayers).GetPlayers(Player);
     Result := 0;
     for I := 0 to P.FStructures.Count - 1 do
     begin

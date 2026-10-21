@@ -220,7 +220,7 @@ begin
   else Result := nil;
 end;
 
-function TItemControlGrid.GetItem(Index: Integer): TItem;
+function TItemControlGrid.GetItem(Index: Integer): TItem; { Near miss: three variants retain a different Index/Self register allocation. }
 var
   I: Integer;
   Map: TAoWHSMap;

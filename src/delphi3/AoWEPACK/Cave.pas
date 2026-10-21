@@ -456,7 +456,7 @@ begin Result := $2037E; end;
 function TEnterCaveEventLog.Yes: Boolean;
 begin
   FCave.EnterEx;
-  asm MOV AL,1 end;
+  Result := True;
 end;
 
 function TEnterCaveEventLog.No: Boolean;

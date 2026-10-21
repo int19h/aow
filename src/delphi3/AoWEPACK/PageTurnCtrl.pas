@@ -317,7 +317,7 @@ begin
     R.Top := FSourceY2;
     R.Right := FSourceX2 + FWidth - FPosition - Round(OriginalLength * (2 * FShade + 2));
     R.Bottom := FSourceY2 + FHeight;
-    if R.Left < R.Right then
+    if R.Right > R.Left then
       BltSDRectClipped(FSource2, R, Dest, BaseX - (R.Right - R.Left), Y);
   end;
 end;

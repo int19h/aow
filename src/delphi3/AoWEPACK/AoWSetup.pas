@@ -530,7 +530,7 @@ function TSetupControl.ValidateCompatibleVersion(Version: Integer): Boolean;
 var Major: Integer;
 begin
   Major := AoWEngine.FVersion and $FFFF0000 shr 16;
-  Result := (Version and $FFFF0000 shr 16) = Major;
+  Version := Version and $FFFF0000 shr 16; Result := Major = Version;
 end;
 
 procedure TSetupControl.hConnectPlayer(Player: TRemotePlayer);

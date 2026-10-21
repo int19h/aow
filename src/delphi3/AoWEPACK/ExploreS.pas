@@ -93,7 +93,7 @@ begin Result := $203C1; end;
 function TExplorationSite.GetExplored: Boolean;
 begin Result := True; end;
 
-function TExplorationSite.GetTerrainTypeImage(TerrainType: Integer): Integer;
+function TExplorationSite.GetTerrainTypeImage(TerrainType: Integer): Integer; { Near miss: three variants retain a different receiver/index evaluation order. }
 var Image: Integer;
 begin
   if not GetExplored or (AoWHSMap.FDay = 0) then

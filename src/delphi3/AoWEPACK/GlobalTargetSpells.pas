@@ -1531,8 +1531,8 @@ begin
   inherited Activate;
   TWatcherState(FWatcherState) := TWatcherState(FWatcherState) + [wsActive];
   FEnchantment.Activate(FEnchantment.FPlayerIndex);
-  MapF := TMapField(Owner);
-  SpellHSMap^.NotifyPlayerChanged(MapF.Xhx,MapF.Yhx,MapF.Lhx);
+  with TMapField(Owner) do
+  SpellHSMap^.NotifyPlayerChanged(Xhx,Yhx,Lhx);
   MapF := TMapField(Owner);
   SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.FPlayerIndex),
     MapF.Xhx,MapF.Yhx,MapF.Lhx,VisibilityRange,VisibilityRange);
@@ -1578,7 +1578,7 @@ begin
   TMapField(Owner).UpdateMapField;
 end;
 
-procedure TWatcherHS.RemoveFromMap;
+procedure TWatcherHS.RemoveFromMap; { Near miss: three variants retain ESI instead of EBX for the owner. }
 var
   MapF: TMapField;
 begin

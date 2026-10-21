@@ -116,7 +116,7 @@ begin
   end;
 end;
 
-procedure TGems.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
+procedure TGems.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: three variants retain a different AI-info argument load. }
 begin
   inherited MapFieldMsgProc(Msg);
   if Msg.MsgID = $1102 then

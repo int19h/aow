@@ -1279,21 +1279,21 @@ begin
   if FUnit <> nil then Result := TAbstractUnit(FUnit).GetAbilityCount else Result := 0;
 end;
 
-function TCombatUnit.GetHits: Shortint;
+function TCombatUnit.GetHits: Shortint; { Near miss: three variants retain a redundant move or different register. }
 var U: TAbstractUnit;
 begin
   U := TAbstractUnit(FUnit);
   if U <> nil then Result := FUnit.GetHits else Result := 0;
 end;
 
-function TCombatUnit.GetHitPoints: Shortint;
+function TCombatUnit.GetHitPoints: Shortint; { Near miss: three variants retain a redundant move or different register. }
 var U: TAbstractUnit;
 begin
   U := TAbstractUnit(FUnit);
   if U <> nil then Result := FUnit.GetHitPoints else Result := 0;
 end;
 
-procedure TCombatUnit.SetHitPoints(A1: Byte);
+procedure TCombatUnit.SetHitPoints(A1: Byte); { Near miss: three variants retain an extra nil-test move or different saved registers. }
 var U: TAbstractUnit;
 begin
   U := TAbstractUnit(FUnit);
@@ -1306,7 +1306,7 @@ begin
   if Party <> FParty then
   begin
     if (FParty <> nil) and (FUnit <> nil) then FUnit.SetOwner(nil);
-    FParty := Party;
+    Pointer(FParty) := Pointer(Party);
     P := FParty;
     if (P <> nil) and (FUnit <> nil) then
     begin
@@ -1610,7 +1610,7 @@ begin
     Info.Direction := Byte(Direction);
     Info.Overlays := [uoHitPoints, uoRank, uoCombat];
     Info.Animation := uaStandStill;
-    if FStatus * [csDestroyed, csFled] <> [] then
+    if [csDestroyed, csFled] * FStatus <> [] then
     begin
       Info.Frame := 0;
       Info.Looped := False;
@@ -5981,7 +5981,7 @@ begin
 
   Assert((A1 >= 0) and (A1 < 50), 'Invalid Damage Value (TCombatUnit.ExecuteDamage)');
   Hits := GetHitPoints;
-  if A1 > Hits then Result := Hits else Result := A1;
+  if Hits < A1 then Result := Hits else Result := A1;
   SetHitPoints(Hits - Result);
   if A1 <> 0 then FStatus := FStatus + [csDamaged];
   if (Result <> 0) and (GetHitPoints = 0) then DestroyObject;
@@ -6300,7 +6300,7 @@ begin
   Result := TCombatPlayerList(FCombatData.FPlayers).Count - 1;
 end;
 
-function TCombat.AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty;
+function TCombat.AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty; { Near miss: three variants keep the combat data in EBX instead of ESI. }
 var Party: TCombatParty; Valid, Transport: Boolean; Player, Position: Byte;
     Index, I: Integer; UnitObj: TCombatUnit; Msg: TMapFieldMsg; Data: TCombatData;
     Transporter: TAbstractUnit;
@@ -6342,7 +6342,7 @@ begin
   Result := Party;
 end;
 
-function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty;
+function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty; { Near miss: three variants retain a different argument evaluation order. }
 var Party: TCombatParty; Player: Byte; Index, I: Integer; UnitObj: TCombatUnit;
 begin
   A1.BeginUpdate;
@@ -6664,7 +6664,7 @@ begin
   while not Result and (I <> TCombatData(FCombatData).GetCount) do
   begin
     Obj := TCombatData(FCombatData).GetObjects(I);
-    Result := (Obj.FCombatPlayer <> $FF) and
+    Result := (Obj.FCombatPlayer <> -1) and
       (TCombatPlayerList(TCombatData(FCombatData).FPlayers).GetPlayers(Shortint(Obj.FCombatPlayer)).FSideIndex = 1) and
       not (csDestroyed in Obj.FStatus);
     Inc(I);
@@ -10549,8 +10549,8 @@ begin
   AoWEngine.OutputDebugMessage(AIDID, 'IDEAL WAR PLAYERS');
   for I := 0 to IdealWar.Count - 1 do
   begin
-    S := TPlayerList(AoWHSMap.FPlayers).GetPlayers(IdealWar[I]).GetName;
-    AoWEngine.OutputDebugMessage(AIDID, S);
+
+    AoWEngine.OutputDebugMessage(AIDID, TPlayerList(AoWHSMap.FPlayers).GetPlayers(IdealWar[I]).GetName);
   end;
   IdealPeace.Free;
   IdealWar.Free;
@@ -13027,7 +13027,7 @@ begin
   end;
 end;
 
-function TAutoProduceAIPA.Process: Boolean;
+function TAutoProduceAIPA.Process: Boolean; { Near miss: three variants load EDX before EAX at GetPC. }
 var
   I, Priority: Integer;
   Budget: TAIBudget;
@@ -14051,7 +14051,7 @@ var
   Group: TAIGroup;
 begin
   OldTransporter := FTransporter;
-  if AUnit <> OldTransporter then
+  if OldTransporter <> AUnit then
   begin
     if OldTransporter <> nil then
     begin
@@ -14196,7 +14196,7 @@ begin
   Assert((FTransporter <> nil) or (FTransporterID = -1));
 end;
 
-procedure TAIGroup.Deactivate;
+procedure TAIGroup.Deactivate; { Near miss: only the Assert line number differs; include lines must stay fixed. }
 var
   Player: Shortint;
 begin
@@ -17970,7 +17970,7 @@ var
   Target: TMoveTarget;
 begin
   Target := TMoveTarget.Create(nil);
-  Target.FLocation := TXYL(Location);
+  Integer(Target.FLocation) := Location;
   Target.FMovePoints := MovePoints;
   Target.FTransporterID := TransporterID;
   Target.FData := Data;
@@ -18391,8 +18391,8 @@ begin
   begin
     Dec(I);
     Army := TAIMoveExecuterArmy(FChildren.List^[I]);
-    if (X = Army.FLocation.X) and (Y = Army.FLocation.Y) and
-      (L = Army.FLocation.L) then
+    if (X = Army.FLocation.X) and (Army.FLocation.Y = Y) and
+      (Army.FLocation.L = L) then
     begin
       Result := I;
       Exit;
@@ -20080,7 +20080,7 @@ begin
     Armies.Free;
     Result := Started;
   end
-  else Result := False;
+  else Started := False; Result := Started;
 end;
 
 constructor TAIMoveTargetSelector.Create(AOwner: Engine.TECustomNode);
@@ -20994,7 +20994,7 @@ begin
     for I := FCombatData.GetCount - 1 downto 0 do
     begin
       Obj := FCombatData.GetObjects(I);
-      if (Obj.FCombatPlayer = FCombatData.FCurrentPlayer) and Obj.GetEnabled and
+      if (Obj.FCombatPlayer = Shortint(FCombatData.FCurrentPlayer)) and Obj.GetEnabled and
         not Obj.GetLocked and not (csTurnDone in Obj.FStatus) then Objects.Add(Obj);
     end;
     MoveCost := 0;
@@ -21495,7 +21495,7 @@ begin
   if MapF.FFieldFlags and $8000 <> 0 then MapF.MoveExclusive(Self);
 end;
 
-function TMoveControl.ValidLocation(X, Y, L: Integer): Boolean;
+function TMoveControl.ValidLocation(X, Y, L: Integer): Boolean; { Near miss: three variants retain a field temporary or change the method-pointer frame. }
 var Field: TAoWMapField;
 begin
   Field := TAoWMapField(FMap.MapContainer.GetField(X, Y, L));
@@ -23181,7 +23181,7 @@ begin
   FPath.Clear;
   First := Path.MovePointsToPos(ArmyHS.FArmy.MovePoints(Selection));
   Last := Path.Count - 1;
-  if First < Last then
+  if Last > First then
   begin
     for I := First to Last do FPath.Add(Path[I]);
     FArmyHS := ArmyHS;
@@ -23446,15 +23446,15 @@ begin
     end
     else Result := msFailed;
   end
-  else if not Animating then Result := msFailed
   else
+  if Animating then
   begin
     UpdateAnimation;
     if (FArmyHS.FArmy.FPlayer = AoWHSMap.FSeatedPlayer) or
       AoWHSMap.Watching(FArmyHS.GetXhx, FArmyHS.GetYhx, FArmyHS.GetLhx, 0) then FArmyHS.PlayMoveSFX;
     if not Animating then Result := ExecuteMove
     else Result := msMoving;
-  end;
+  end else Result := msFailed;
 end;
 
 class function TArmyDefaultMoveTE.ClassID: Integer;
@@ -23537,7 +23537,7 @@ begin
   end;
 end;
 
-function TArmyCombineMoveTE.CanMoveNext: Boolean;
+function TArmyCombineMoveTE.CanMoveNext: Boolean; { Near miss: three variants retain a different argument evaluation order. }
 var
   ArmyHS: TArmyHS;
   CombineResult: TAddUnitsResult;
@@ -23660,7 +23660,7 @@ begin
   AoWHSMap.SynchroniseEnd;
 end;
 
-procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(Log: TEventLog);
+procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(Log: TEventLog); { Near miss: three variants save Self in EBX instead of ESI. }
 begin
   AoWHSMap.SetSeatedPlayer(TNewTurnEventLog(Log).FTurnPlayer);
   if FCombatMode = cmSetupHotseat then FCombatMode := cmSetupReady;
@@ -24339,8 +24339,8 @@ begin
     Log := TMessageEventLog.Create(nil);
     Log.FButtons := mebOk;
     Log.FLayout := melNormal;
-    Log.FMessage.Text := Format(TranslateRStr(P5XLeftTheGameRStr),
-      [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName]);
+    Log.FMessage.Add(Format(TranslateRStr(P5XLeftTheGameRStr),
+      [AoWHSMap.FPlayers.GetPlayers(FPlayer).GetName])); { Append the departure message, as in the original. }
     AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
     Log.Release;
   end
@@ -37241,9 +37241,9 @@ begin
       Attack := GetAttack;
       Damage := GetDamage;
       if GetAbilityEnabled(115) then Inc(Repeats);
+      A2 := P4OffensiveStrength(Attack, Damage, Repeats);
+      A3 := GetDamageTypes(TAbstractUnit(A1));
     end;
-    A2 := P4OffensiveStrength(Attack, Damage, Repeats);
-    A3 := GetDamageTypes(A1);
   end
   else
   begin
@@ -39172,7 +39172,7 @@ begin
 end;
 function TTurnUndeadAbility.GetSkillPoints(A1: TAbilityOwner): Integer;
 begin
-  Result := GetLevel(A1) * 5;
+  Result := GetLevel(A1); Result := Result * 5;
 end;
 function TTurnUndeadAbility.Expand(A1: TAbilityOwner): Boolean;
 var
@@ -39656,7 +39656,7 @@ begin
   if Result then
     Result := (A1 is TCombatUnit) and (A2 is TCombatUnit) and
       (TCombatUnit(A2).FUnit.GetUnitType in [utHumanoid, utCreature]) and
-      ((A2.GetHits <> Byte(A2.GetHitPoints)) or A2.GetAbilityEnabled(96) or
+      ((A2.GetHits <> A2.GetHitPoints) or A2.GetAbilityEnabled(96) or
         A2.GetAbilityEnabled(53) or A2.GetAbilityEnabled(108));
 end;
 procedure THealingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
@@ -39695,7 +39695,7 @@ begin
     A4.DamageTypes := [];
   end;
 end;
-procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
+procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Near miss: three variants keep the healing value in EAX instead of EDI. }
 var
   HitPoints: Integer;
 begin
@@ -40107,7 +40107,7 @@ begin
 end;
 function TDispelMagicAbility.GetSkillPoints(A1: TAbilityOwner): Integer;
 begin
-  Result := GetLevel(A1) * 5;
+  Result := GetLevel(A1); Result := Result * 5;
 end;
 function TDispelMagicAbility.Expand(A1: TAbilityOwner): Boolean;
 var
@@ -40710,7 +40710,7 @@ begin
     Repeats := GetAttackRepeatRA(A1.GetAbilityOwner);
     Value := Value * Repeats;
     A4.SourceDamage := Value;
-    Value := StatisticsToMaxDamage(Damage, DamageTypes, ImmunityTypes, ProtectionTypes);
+    Value := StatisticsToMaxDamage(Damage, DamageTypes, ProtectionTypes, ImmunityTypes); { Original swaps protection and immunity for maximum damage. }
     Repeats := GetAttackRepeatRA(A1.GetAbilityOwner);
     Value := Value * Repeats;
     A4.SourceCost := Value;
@@ -41353,8 +41353,8 @@ begin
   Result := inherited CanTouch(A1, A2);
   if Result then
   begin
-    Target := TCombatUnit(A2);
-    Result := (Target.FUnit.GetGender = ugMale) and (Target.FUnit.GetUnitType = utHumanoid);
+    with TCombatUnit(A2) do
+    Result := (FUnit.GetGender = ugMale) and (FUnit.GetUnitType = utHumanoid);
   end;
 end;
 class function TRebuildConstructionControl.ID: Integer;
@@ -41450,7 +41450,7 @@ begin Result := (Player = Field.GetPlayer) or (Field.GetPlayer = -1); Result := 
 function ConstructRoad(Player: Shortint; Field: TAoWMapField): Boolean;
 begin Result := False; end;
 function RoadConstructionCost(Player: Shortint; Path: TMovepath; MovePoints: Integer): Integer;
-var I, Points: Integer; Field: TAoWMapField; begin Result := 0; I := Path.Count; Points := 0; while (I <> 0) and (MovePoints >= Points) do begin Dec(I); Inc(Points, Path[I].Flag); if MovePoints >= Points then begin Field := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Path[I].XYL)); if CanConstructRoad(Player, Field) then Inc(Result, 10); end; end; end;
+var I, Points: Integer; Field: TAoWMapField; begin Result := 0; I := Path.Count; Points := 0; while (I <> 0) and (Points <= MovePoints) do begin Dec(I); Inc(Points, Path[I].Flag); if Points <= MovePoints then begin Field := TAoWMapField(AoWHSMap.MapContainer.GetFieldXYL(Path[I].XYL)); if CanConstructRoad(Player, Field) then Inc(Result, 10); end; end; end;
 procedure TConstructionControl.GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer);
 begin
   Text := '';
@@ -44771,7 +44771,7 @@ begin
   Result := Effect;
 end;
 
-function TSpellCC.GetName: string;
+function TSpellCC.GetName: string; { Near miss: three variants allocate the target or string temporaries differently. }
 var
   Target: TCombatObject;
 begin

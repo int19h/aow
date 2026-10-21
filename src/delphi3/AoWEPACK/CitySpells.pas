@@ -247,7 +247,7 @@ end;
 
 function TCityTargetSpell.ValidTargetCity(Source: TAbstractUnit; TargetCity: TCity): Boolean;
 var
-  X, Y, L: Shortint;
+  X, Y, L: Shortint; Found: TCity;
 begin
   Result := ((ctmOwn in FCityTargetMode) and (TargetCity.FPlayer = Source.FPlayer)) or
     ((ctmEnemy in FCityTargetMode) and (TargetCity.FPlayer <> Source.FPlayer));
@@ -255,7 +255,7 @@ begin
   if Result and (ctmSkipSource in FCityTargetMode) then
   begin
     Source.GetLocation(X, Y, L);
-    Result := TargetCity <> AoWHSMap.MapContainer.GetField(X, Y, L).FindNoneTransparentHS(TCity);
+    Found := TCity(AoWHSMap.MapContainer.GetField(X, Y, L).FindNoneTransparentHS(TCity)); Result := TargetCity <> Found;
   end;
 end;
 
@@ -603,7 +603,7 @@ begin
     A1.GetLocation(X, Y, L);
     TargetCity := TCity(AoWHSMap.MapContainer.GetField(X, Y, L).FindNoneTransparentHS(TCity));
     Valid := (TargetCity <> nil) and AIRequestCastSpellExpense(A1,
-      FBaseManaCost, TargetCity.AICityEnchantmentUpkeepPriority(FEnchantmentID), FManaUpkeep);
+      FBaseManaCost, FManaUpkeep, TargetCity.AICityEnchantmentUpkeepPriority(FEnchantmentID)); { Original uses mana upkeep for mana and city priority for upkeep. }
     Valid := Valid and ValidTargetCity(A1, TargetCity);
     Valid := Valid and THero(A1).CanCastSpell(FSpellID, Reason);
     if Valid then
@@ -743,7 +743,7 @@ procedure TAntiMagicShell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCi
 begin
   inherited PlayDefaultCityEffects(Source, TargetCity);
   if (Source.FPlayer = AoWHSMap.FSeatedPlayer) or
-    AoWHSMap.WatchingTerrain(TargetCity.GetXhx, TargetCity.GetYhx, 1, TargetCity.GetLhx) then
+    AoWHSMap.WatchingTerrain(TargetCity.GetXhx, TargetCity.GetYhx, TargetCity.GetLhx, 1) then
     AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.PlayEx(1, -1, False, 30, spCenter, nil);
 end;
 
@@ -939,7 +939,7 @@ var
   TargetCity: TCity;
   Log: TLocationTextEventLog;
   A: TImageSequenceAnimation;
-  I: Integer;
+  I, Count: Integer;
   AUnit: TUnit;
 const
   UndeadUnits: array[0..1] of Integer = (198, 201);
@@ -971,7 +971,7 @@ begin
     TargetCity := TCityTargetSpellTE(A1).GetSelectedCity;
     TargetCity.SetRace(AoWHSMap.FPlayers.GetPlayers(A2.FPlayer).FPlayerRace);
     TargetCity.SetRazed(False);
-    for I := 0 to AoWHSMap.Random(TargetCity.GetSize * 2) + 1 do
+    Count := AoWHSMap.Random(TargetCity.GetSize * 2) + 1; for I := 0 to Count do
     begin
       AUnit := TUnit.Create(nil);
       AUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(UndeadUnits[AoWHSMap.Random(2)]));
