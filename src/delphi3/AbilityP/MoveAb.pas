@@ -1,8 +1,9 @@
 unit MoveAb;
 
-{ Draft declarations of MoveAb, from AbilityP.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ MoveAb from AbilityP.dpl: the ability class is recovered and byte-matched.
+  Registration routines remain draft because the imported AoWE API is an older ABI. }
+
+{$O-}
 
 interface
 
@@ -16,9 +17,9 @@ type
   { TMoveAbility (instance size 24, VMT 00401C1C) }
   TMoveAbility = class(TAbility)
   public
-    F_MoveAbility_14: Integer;
+    FAbilityID: Integer; { $14; instance size $18 }
     function GetAbilityID: Integer; override;
-    function Create(A1: Byte): Integer;  { draft }
+    constructor Create(AbilityID: Integer; AName: string; MoveTypes: TAbilityKinds);
   end;
 
 procedure RegisterMoveAbilities(A1: Integer);  { draft }
@@ -26,11 +27,20 @@ procedure UnRegisterMoveAbilities(A1: Integer);  { draft }
 
 implementation
 
-function TMoveAbility.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TMoveAbility.Create(AbilityID: Integer; AName: string; MoveTypes: TAbilityKinds);
+begin
+  inherited Create;
+  FName := AName;
+  FAbilityID := AbilityID;
+  FMoveTypes := MoveTypes;
+  FFlags := [0, 5];
+  FCost := 0;
+end;
 
 function TMoveAbility.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure RegisterMoveAbilities(A1: Integer);
 begin end;

@@ -76,4 +76,5 @@ begin
   Use(nil, @Str2Clip.CopyStreamToClipboard);
   Use(nil, @Str2Clip.PasteStreamFromClipboard);
   { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
+  {$I hosts\T4.inc}
 end.

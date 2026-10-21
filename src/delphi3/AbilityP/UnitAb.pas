@@ -1,8 +1,9 @@
 unit UnitAb;
 
-{ Draft declarations of UnitAb, from AbilityP.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ UnitAb from AbilityP.dpl: the ability class is recovered and byte-matched.
+  Registration routines remain draft because the imported AoWE API is an older ABI. }
+
+{$O-}
 
 interface
 
@@ -16,9 +17,9 @@ type
   { TUnitAbility (instance size 24, VMT 00402F40) }
   TUnitAbility = class(TAbility)
   public
-    F_UnitAbility_14: Integer;
+    FAbilityID: Integer; { $14; instance size $18 }
     function GetAbilityID: Integer; override;
-    function Create(A1: Byte): Integer;  { draft }
+    constructor Create(AbilityID: Integer; AName: string; Flags: TAbilityFlags; Cost: Integer);
   end;
 
 procedure RegisterUnitAbilities(A1: Integer);  { draft }
@@ -26,11 +27,19 @@ procedure UnRegisterUnitAbilities(A1: Integer);  { draft }
 
 implementation
 
-function TUnitAbility.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TUnitAbility.Create(AbilityID: Integer; AName: string; Flags: TAbilityFlags; Cost: Integer);
+begin
+  inherited Create;
+  FName := AName;
+  FAbilityID := AbilityID;
+  FFlags := Flags;
+  FCost := Cost;
+end;
 
 function TUnitAbility.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure RegisterUnitAbilities(A1: Integer);
 begin end;

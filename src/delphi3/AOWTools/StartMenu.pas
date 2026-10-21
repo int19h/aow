@@ -23,7 +23,7 @@ type
     procedure CheckMouseDown(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
   end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 
 implementation
 
@@ -39,8 +39,10 @@ begin end;
 procedure TStartMenu.CheckMouseDown(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
 begin end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin
+  RegisterComponents('AOW Tools', [TStartMenu]);
+end;
 
 
 initialization

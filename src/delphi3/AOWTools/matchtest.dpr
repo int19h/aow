@@ -82,4 +82,5 @@ begin
   Use(nil, @StartMenu.Register);
   Use(nil, @TurnButton.Register);
   { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
+  {$I hosts\T4.inc}
 end.

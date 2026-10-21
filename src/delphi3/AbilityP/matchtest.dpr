@@ -56,4 +56,5 @@ begin
   Use(nil, @UnitAb.RegisterUnitAbilities);
   Use(nil, @UnitAb.UnRegisterUnitAbilities);
   { per-package host additions: one include line per package (hosts\Pkg.inc), nothing else here }
+  {$I hosts\T4.inc}
 end.

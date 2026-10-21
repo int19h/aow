@@ -1,8 +1,9 @@
 unit ShootAb;
 
-{ Draft declarations of ShootAb, from AbilityP.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ ShootAb from AbilityP.dpl: the ability class is recovered and byte-matched.
+  Registration routines remain draft because the imported AoWE API is an older ABI. }
+
+{$O-}
 
 interface
 
@@ -16,9 +17,9 @@ type
   { TShootAbility (instance size 24, VMT 004028F4) }
   TShootAbility = class(TAbility)
   public
-    F_ShootAbility_14: Integer;
+    FAbilityID: Integer; { $14; instance size $18 }
     function GetAbilityID: Integer; override;
-    function Create(A1: Byte): Integer;  { draft }
+    constructor Create(AbilityID: Integer; AName: string; Flags: TAbilityFlags; Cost: Integer);
   end;
 
 procedure RegisterShootAbilities(A1: Integer);  { draft }
@@ -26,11 +27,19 @@ procedure UnRegisterShootAbilities(A1: Integer);  { draft }
 
 implementation
 
-function TShootAbility.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TShootAbility.Create(AbilityID: Integer; AName: string; Flags: TAbilityFlags; Cost: Integer);
+begin
+  inherited Create;
+  FName := AName;
+  FAbilityID := AbilityID;
+  FFlags := Flags;
+  FCost := Cost;
+end;
 
 function TShootAbility.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure RegisterShootAbilities(A1: Integer);
 begin end;

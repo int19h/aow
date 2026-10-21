@@ -1,8 +1,7 @@
 unit AowUserWindow;
 
-{ Draft declarations of AowUserWindow, from AOWTools.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AowUserWindow from AOWTools.dpl: recovered from the original code and RTTI.
+  Class layouts and VMT order follow the shipped module. }
 
 interface
 
@@ -14,23 +13,32 @@ type
 
   TDrawSurfaceExEvent = procedure(Surface: TSurface; var Handled: Boolean) of object;
 
-  { TAoWUserWindow (instance size 500, VMT 59706628) }
+  { TAoWUserWindow: instance size $1F4; $1EC extended drawing event. }
   TAoWUserWindow = class(TAOWWindow)
   public
-    F_AoWUserWindow_1EC: array[0..3] of Byte;
-    F_AoWUserWindow_1F0: Integer;
+    FOnDrawSurfaceEx: TDrawSurfaceExEvent; { $1EC }
     procedure DrawSurface(Surface: GFXE.TSurface); override;
+  published
+    property OnDrawSurfaceEx: TDrawSurfaceExEvent read FOnDrawSurfaceEx write FOnDrawSurfaceEx;
   end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 
 implementation
 
 procedure TAoWUserWindow.DrawSurface(Surface: GFXE.TSurface);
-begin end;
+var
+  Handled: Boolean;
+begin
+  Handled := False;
+  if Assigned(FOnDrawSurfaceEx) then FOnDrawSurfaceEx(Surface, Handled);
+  if not Handled then inherited DrawSurface(Surface);
+end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin
+  RegisterComponents('AOW Tools', [TAoWUserWindow]);
+end;
 
 
 initialization

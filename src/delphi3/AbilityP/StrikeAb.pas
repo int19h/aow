@@ -1,8 +1,9 @@
 unit StrikeAb;
 
-{ Draft declarations of StrikeAb, from AbilityP.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ StrikeAb from AbilityP.dpl: the ability class is recovered and byte-matched.
+  Registration routines remain draft because the imported AoWE API is an older ABI. }
+
+{$O-}
 
 interface
 
@@ -16,9 +17,9 @@ type
   { TStrikeAbility (instance size 24, VMT 0040248C) }
   TStrikeAbility = class(TAbility)
   public
-    F_StrikeAbility_14: Integer;
+    FAbilityID: Integer; { $14; instance size $18 }
     function GetAbilityID: Integer; override;
-    function Create(A1: Byte): Integer;  { draft }
+    constructor Create(AbilityID: Integer; AName: string; StrikeTypes: TAbilityKinds; Cost: Integer);
   end;
 
 procedure RegisterStrikeAbilities(A1: Integer);  { draft }
@@ -26,11 +27,20 @@ procedure UnRegisterStrikeAbilities(A1: Integer);  { draft }
 
 implementation
 
-function TStrikeAbility.Create(A1: Byte): Integer;
-begin Result := 0; end;
+constructor TStrikeAbility.Create(AbilityID: Integer; AName: string; StrikeTypes: TAbilityKinds; Cost: Integer);
+begin
+  inherited Create;
+  FName := AName;
+  FAbilityID := AbilityID;
+  FFlags := [0];
+  FStrikeTypes := StrikeTypes;
+  FCost := Cost;
+end;
 
 function TStrikeAbility.GetAbilityID: Integer;
-begin Result := 0; end;
+begin
+  Result := FAbilityID;
+end;
 
 procedure RegisterStrikeAbilities(A1: Integer);
 begin end;

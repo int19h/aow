@@ -1,63 +1,125 @@
 unit AoWArnoLine;
 
-{ Draft declarations of AoWArnoLine, from AOWTools.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWArnoLine from AOWTools.dpl: recovered from the original code and RTTI.
+  Class layouts and VMT order follow the shipped module. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWControl;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWControl, AOWInterfaceImgLib;
 
 type
   TAoWArnoLine = class;
 
 
-  { TAoWArnoLine (instance size 292, VMT 59705830) }
+  { TAoWArnoLine: instance size $124; $114 top, $118 middle, $11C bottom,
+    $120 copied line image library. }
   TAoWArnoLine = class(TAOWControl)
   public
-    F_AoWArnoLine_114: array[0..11] of Byte;
-    F_AoWArnoLine_120: Integer;
+    FImageTop: TLibraryImage; { $114 }
+    FImageMiddle: TLibraryImage; { $118 }
+    FImageBottom: TLibraryImage; { $11C }
+    FLineLibrary: TInterfaceIL; { $120 }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure Validate; override;
     procedure SetSize; override;
     procedure Draw(SurfDesc: GFXE.TSurfaceDesc); override;
-    procedure SetITop(A1: Integer);  { draft }
-    procedure SetIMiddle(A1: Integer);  { draft }
-    procedure SetIBottom(A1: Integer);  { draft }
+    procedure SetITop(Value: TLibraryImage);
+    procedure SetIMiddle(Value: TLibraryImage);
+    procedure SetIBottom(Value: TLibraryImage);
+  published
+    property ImageTop: TLibraryImage read FImageTop write SetITop;
+    property ImageMiddle: TLibraryImage read FImageMiddle write SetIMiddle;
+    property ImageBottom: TLibraryImage read FImageBottom write SetIBottom;
   end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);  { draft }
+procedure Register;
 
 implementation
 
 constructor TAoWArnoLine.Create(AOwner: Classes.TComponent);
-begin end;
+begin
+  inherited Create(AOwner);
+  FLineLibrary := TInterfaceIL.Create(Self);
+end;
 
 destructor TAoWArnoLine.Destroy;
-begin end;
+begin
+  FLineLibrary.Free;
+  inherited Destroy;
+end;
 
 procedure TAoWArnoLine.Validate;
-begin end;
+begin
+  if (FImageTop <> nil) and (FImageMiddle <> nil) and (FImageBottom <> nil) then
+  begin
+    FLineLibrary.Clear;
+    FLineLibrary.Add(FImageTop.Copy);
+    FLineLibrary.Add(FImageMiddle.Copy);
+    FLineLibrary.Add(FImageBottom.Copy);
+    FValid := True;
+  end;
+  inherited Validate;
+end;
 
-procedure TAoWArnoLine.SetITop(A1: Integer);
-begin end;
+procedure TAoWArnoLine.SetITop(Value: TLibraryImage);
+begin
+  if Value <> FImageTop then
+  begin
+    FImageTop := Value;
+    FValid := False;
+  end;
+end;
 
-procedure TAoWArnoLine.SetIMiddle(A1: Integer);
-begin end;
+procedure TAoWArnoLine.SetIMiddle(Value: TLibraryImage);
+begin
+  if Value <> FImageMiddle then
+  begin
+    FImageMiddle := Value;
+    FValid := False;
+  end;
+end;
 
-procedure TAoWArnoLine.SetIBottom(A1: Integer);
-begin end;
+procedure TAoWArnoLine.SetIBottom(Value: TLibraryImage);
+begin
+  if Value <> FImageBottom then
+  begin
+    FImageBottom := Value;
+    FValid := False;
+  end;
+end;
 
 procedure TAoWArnoLine.SetSize;
-begin end;
+begin
+  FWinWidth := FImageTop.Width;
+  inherited SetSize;
+end;
 
 procedure TAoWArnoLine.Draw(SurfDesc: GFXE.TSurfaceDesc);
-begin end;
+var
+  OldClip: TRect;
+begin
+  try
+    if FValid and FVisible then
+    begin
+      if Assigned(FOnPreDraw) then FOnPreDraw(Self, SurfDesc);
+      OldClip := SurfDesc.ClipRect;
+      if FWinTop > SurfDesc.ClipRect.Top then SurfDesc.ClipRect.Top := FWinTop;
+      FLineLibrary.DrawILLv(0, Rect(FAOWWindow.FWinLeft + FWinLeft,
+        FAOWWindow.FWinTop + FWinTop, FWinWidth, FWinHeight), SurfDesc);
+      if Assigned(FOnDraw) then FOnDraw(Self, SurfDesc);
+      SurfDesc.ClipRect := OldClip;
+    end;
+  except
+    MessageBox(0, 'Exception during Draw', Pointer('Error - ' + Name), 0);
+  end;
+end;
 
-procedure Register(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure Register;
+begin
+  RegisterComponents('AOW Tools', [TAoWArnoLine]);
+end;
 
 
 initialization

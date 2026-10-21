@@ -4,6 +4,8 @@ unit AbilPack;
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
+{$O-}
+
 interface
 
 uses
@@ -13,9 +15,17 @@ type
   { Legacy AoWE.TAbility imported by AbilityP (instance size 20, five VMT slots).
     The recovered AoWEPACK TAbility is a different ABI (size 36); keep this stub local.
     Subclasses add their ability ID at $14 and have instance size 24. }
+  TAbilityFlags = set of 0..7;
+  TAbilityKinds = set of 0..7;
   TAbility = class(TObject)
   public
-    F_Ability_04: array[0..15] of Byte;
+    FName: string; { $04 }
+    FReserved: Integer; { $08 }
+    FMoveTypes: TAbilityKinds; { $0C }
+    FStrikeTypes: TAbilityKinds; { $0D }
+    FImmunityTypes: TAbilityKinds; { $0E }
+    FFlags: TAbilityFlags; { $0F }
+    FCost: Integer; { $10 }
     procedure Execute; virtual; abstract; { +000 draft }
     function GetAbilityID: Integer; virtual; abstract; { +004 }
     procedure NewDay; virtual; abstract; { +008 draft }
@@ -38,7 +48,9 @@ type
 implementation
 
 function TAbililtyPlugIn.Name: string;
-begin Result := ''; end;
+begin
+  Result := 'Abilities';
+end;
 
 function TAbililtyPlugIn.Initialize(AEngine: Engine.TEngine): Boolean;
 begin Result := False; end;
