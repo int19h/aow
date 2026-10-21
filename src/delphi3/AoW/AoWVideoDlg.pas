@@ -17,7 +17,7 @@ type
   TWMCampaign = class;
 
 
-  { TVideoDialog (instance size 164, VMT 0040ADD4) }
+  { TVideoDialog: size $A4; $90 full screen, $91 change flag, $9C/$A0 display size. VMT 0040ADD4. }
   TVideoDialog = class(TDataModule)
   public
     published
@@ -41,10 +41,10 @@ type
     Translator: TIvTranslator; { +0088 }
     public
     F_VideoDialog_8C: Integer;
-    F_VideoDialog_90: Byte;
-    F_VideoDialog_91: array[0..10] of Byte;
-    F_VideoDialog_9C: Integer;
-    F_VideoDialog_A0: Integer;
+    FFullScreen: Boolean; { $90; 0040B034 }
+    FModeChanged: Boolean; { $91; 0040B034 } F_VideoDialog_92: array[0..9] of Byte;
+    FDisplayWidth: Integer; { $9C; 0040B04C }
+    FDisplayHeight: Integer; { $A0; 0040B04C }
     procedure VideoDlgWindowCreate;  { draft }
     procedure VideoDlgWindowDestroy;  { draft }
     procedure CloseButClick;  { draft }
@@ -54,16 +54,16 @@ type
     procedure DlgShow;  { draft }
   end;
 
-  { TWMCampaignScenarioPage (instance size 24, VMT 0040B804) }
+  { TWMCampaignScenarioPage: size $18; $08 image library, $0C image index, $10 heading, $14 text. VMT 0040B804. }
   TWMCampaignScenarioPage = class(TEObject)
   public
-    F_WMCampaignScenarioPage_08: Byte;
-    F_WMCampaignScenarioPage_09: array[0..2] of Byte;
-    F_WMCampaignScenarioPage_0C: Byte;
-    F_WMCampaignScenarioPage_0D: array[0..2] of Byte;
-    F_WMCampaignScenarioPage_10: Byte;
-    F_WMCampaignScenarioPage_11: array[0..2] of Byte;
-    F_WMCampaignScenarioPage_14: Integer;
+    FImageLibrary: string; { $08 }
+    { Managed string at $08. }
+    FImageIndex: Integer; { $0C }
+    { Integer at $0C. }
+    FHeading: string; { $10 }
+    { Managed string at $10. }
+    FText: TStringList; { $14 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -75,25 +75,25 @@ type
   public
   end;
 
-  { TWMCampaignScenario (instance size 60, VMT 0040B9A8) }
+  { TWMCampaignScenario: size $3C; $14 image library, $18 path text, $1C description, $20 flag, $24/$28 position, $2C paths, $30/$34 pages, $38 map kind. VMT 0040B9A8. }
   TWMCampaignScenario = class(TAoWCampaignScenario)
   public
-    F_WMCampaignScenario_14: Byte;
-    F_WMCampaignScenario_15: array[0..2] of Byte;
-    F_WMCampaignScenario_18: Byte;
-    F_WMCampaignScenario_19: array[0..2] of Byte;
-    F_WMCampaignScenario_1C: Byte;
-    F_WMCampaignScenario_1D: array[0..2] of Byte;
-    F_WMCampaignScenario_20: Byte;
+    FImageLibrary: string; { $14 }
+    { Managed string at $14. }
+    FPathDescription: string; { $18 }
+    { Managed string at $18. }
+    FDescription: string; { $1C }
+    { Managed string at $1C. }
+    F_WMCampaignScenario_20: Boolean; { $20; 0040BCE7 rwBool }
     F_WMCampaignScenario_21: array[0..2] of Byte;
-    F_WMCampaignScenario_24: Byte;
-    F_WMCampaignScenario_25: array[0..2] of Byte;
-    F_WMCampaignScenario_28: Byte;
-    F_WMCampaignScenario_29: array[0..2] of Byte;
-    F_WMCampaignScenario_2C: Integer;
-    F_WMCampaignScenario_30: Integer;
-    F_WMCampaignScenario_34: Integer;
-    F_WMCampaignScenario_38: Byte;
+    FMapX: Integer; { $24 }
+    { Integer at $24. }
+    FMapY: Integer; { $28 }
+    { Integer at $28. }
+    FPaths: TIntegerList; { $2C }
+    FIntroPages: TWMCampaignScenarioPageList; { $30 }
+    FOutroPages: TWMCampaignScenarioPageList; { $34 }
+    FMapKind: Byte; { $38 }
     F_WMCampaignScenario_39: array[0..2] of Byte;
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
@@ -101,11 +101,11 @@ type
     class function ClassID: Integer; override;
   end;
 
-  { TWMCampaign (instance size 64, VMT 0040BA6C) }
+  { TWMCampaign: size $40; $34 faction, $38 state, $3C page. VMT 0040BA6C. }
   TWMCampaign = class(TAoWCampaign)
   public
-    F_WMCampaign_34: Integer;
-    F_WMCampaign_38: array[0..7] of Byte;
+    FFaction: Integer; { $34; 0041D90E }
+    FState: Integer; { $38; 0041D968 } FPage: Integer; { $3C; 0041E43C }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -140,28 +140,78 @@ procedure TVideoDialog.DlgShow;
 begin end;
 
 constructor TWMCampaignScenarioPage.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FText := TStringList.Create;
+end;
+
 
 destructor TWMCampaignScenarioPage.Destroy;
-begin end;
+begin
+  FText.Free;
+  inherited Destroy;
+end;
+
 
 class function TWMCampaignScenarioPage.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $225002; end;
+
 
 procedure TWMCampaignScenarioPage.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwStrings(FText, 10);
+  Stream.rwString(FHeading, 11);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FImageLibrary, 12);
+  Stream.rwInteger(FImageIndex, 13);
+end;
+
 
 constructor TWMCampaignScenario.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  I: Integer;
+begin
+  inherited Create(AOwner);
+  FIntroPages := TWMCampaignScenarioPageList.Create(nil);
+  FOutroPages := TWMCampaignScenarioPageList.Create(nil);
+  for I := 0 to 9 do
+  begin
+    TWMCampaignScenarioPage.Create(FIntroPages);
+    TWMCampaignScenarioPage.Create(FOutroPages);
+  end;
+  FPaths := TIntegerList.Create;
+  FPaths.Default := -1;
+end;
+
 
 destructor TWMCampaignScenario.Destroy;
-begin end;
+begin
+  FIntroPages.Free;
+  FOutroPages.Free;
+  FPaths.Free;
+  inherited Destroy;
+end;
+
 
 class function TWMCampaignScenario.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $225001; end;
+
 
 procedure TWMCampaignScenario.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FImageLibrary, 12);
+  Stream.rwString(FPathDescription, 13);
+  Stream.rwString(FDescription, 14);
+  Stream.rwBool(F_WMCampaignScenario_20, 15);
+  Stream.rwInteger(FMapX, 16);
+  Stream.rwInteger(FMapY, 17);
+  Stream.rwEObject(FIntroPages, 19);
+  Stream.rwEObject(FOutroPages, 20);
+  Stream.rwStreamProc(21, FPaths.LoadFromStream, FPaths.SaveToStream);
+  Stream.rwData(FMapKind, 1, 22);
+end;
+
 
 constructor TWMCampaign.Create(AOwner: Engine.TECustomNode);
 begin end;

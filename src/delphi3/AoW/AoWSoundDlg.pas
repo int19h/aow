@@ -71,6 +71,7 @@ type
     public
     FSoundQuality: Integer; { $110 }
     FSettings: TSoundSettings; { $114..$12B }
+    { conflict: FSoundSettings: TSoundSettings; }
     procedure CloseClick;
     procedure MusicVolumeChange;
     procedure SFXVolumeChange;

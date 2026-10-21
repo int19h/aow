@@ -5,13 +5,39 @@ unit AoWExeForms;
 
 interface
 
-uses Classes, AoWScenSetup, aowIntGfxMod, AoWMessageDlg, AoWInfoBanner;
+uses Classes, Windows, AoWScenSetup, aowIntGfxMod, AoWMessageDlg, AoWInfoBanner,
+  AoWSoundDlg, AoWVideoDlg, AOWMultiWin, AoWSWindow, AoWPInfoWin, AoWUnitWindow,
+  AoWRealm, AoWMagic, AOWControlWin, AoWTBWindow, AoWInfoWin, AoWSpellBook,
+  AOWChatWin, AOWMWindow, FontMod, AoWConstructDlg, AoWDisjunctionDlg, AoWTCUnit, AoWTCScanner;
 
 var
   ScenSetup: TScenSetup;
   IntGfxMod: TIntGfxMod;
   MessageDlg: TMessageDlg;
   InfoBanner: TInfoBanner;
+  SoundDlg: TSoundDlg;
+  VideoDialog: TVideoDialog;
+  MultiWindow: TMultiWindow;
+  SWindow: TSWindow;
+  PInfoW: TPInfoW;
+  UnitWindow: TUnitWindow;
+  RealmWin: TRealmWin;
+  MagicWin: TMagicWin;
+  ControlWin: TControlWin;
+  TBWindow: TTBWindow;
+  IWindow: TIWindow;
+  SpellBook: TSpellBook;
+  ChatWindow: TChatWindow;
+  MWindow: TMWindow;
+  FontModule: TFontModule;
+  TCUnit: TTCUnit;
+  TCScanner: TTCScanner;
+  ConstructDlg: TConstructDlg;
+  DisjunctionDlg: TDisjunctionDlg;
+
+procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Boolean);
+procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
+
 
 { Shared unnamed routines called by the leader setup window. }
 procedure ResetMessageDialog(Dialog: TMessageDlg);
@@ -19,7 +45,7 @@ procedure SetInfoBanner(Banner: TInfoBanner; Caption: string; Description: TStri
 
 implementation
 
-uses AoWE;
+uses AoWE, AoWComp, AoWWindow;
 
 procedure ResetMessageDialog(Dialog: TMessageDlg);
 begin
@@ -37,6 +63,22 @@ procedure SetInfoBanner(Banner: TInfoBanner; Caption: string; Description: TStri
 begin
   Banner.HeaderLbl.Text := Caption;
   Banner.InfoMemo.Items.Text := Description.Text;
+end;
+
+procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Boolean);
+begin
+  if FullScreen <> Dialog.FFullScreen then
+  begin
+    Dialog.FFullScreen := FullScreen;
+    Dialog.FModeChanged := True;
+  end;
+end;
+
+procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
+begin
+  Dialog.FDisplayWidth := Width;
+  Dialog.FDisplayHeight := Height;
+  if Dialog.FFullScreen = True then Dialog.FModeChanged := True;
 end;
 
 end.

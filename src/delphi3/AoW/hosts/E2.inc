@@ -4,3 +4,4 @@
   Use(nil, @AoWLeaderSetup.TLeaderSetupWin.SetFixedSpheres);
   Use(nil, @AoWLeaderSetup.TLeaderSetupWin.Reset);
   Use(nil, @AoWLeaderSetup.TLeaderSetupWin.Execute);
+  Use(nil, @AoWWorldMap.GetCampaignPage);
