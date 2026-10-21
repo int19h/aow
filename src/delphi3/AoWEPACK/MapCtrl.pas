@@ -585,7 +585,7 @@ begin
   end;
 end;
 
-procedure TAoWMapControl.ExecuteEventLog(Info: TObject);
+procedure TAoWMapControl.ExecuteEventLog(Info: TObject); { Near miss: three variants retain different event-argument and try-frame registers. }
 begin
   try
     if Assigned(FOnExecuteEventLog) then
@@ -613,7 +613,7 @@ begin
   end;
 end;
 
-procedure TAoWMapControl.TargetSelectionChange(Control: TObject);
+procedure TAoWMapControl.TargetSelectionChange(Control: TObject); { Near miss: three variants retain different event-argument registers. }
 begin
   try
     if Assigned(FOnTargetSelectionChange) and ((PTargetState(TRawObject(Pointer(AoWHSMap)^).Fields[$E0 div 4])^.Status and 8) <> 0) then FOnTargetSelectionChange(Control, PTargetState(Control)^.Mode);

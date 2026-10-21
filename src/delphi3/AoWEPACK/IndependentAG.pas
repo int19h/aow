@@ -465,7 +465,7 @@ begin
         if (TPatrolAG(FGroup).FPatrolTo.X = -1) or
           ((TPatrolAG(FGroup).FPatrolTo.L = FLocation.L) and
           (dHXtoRad(TPatrolAG(FGroup).FPatrolTo.X, TPatrolAG(FGroup).FPatrolTo.Y,
-            FLocation.X, FLocation.Y) < 3)) then
+            FLocation.X, FLocation.Y) <= 2)) then
           ResetPatrolToLocation;
         Inc(FState);
       end;
@@ -515,20 +515,19 @@ begin
         else Inc(FState);
       end;
     6:
-      if (AoWHSMap.Random(3) = 0) or (TPatrolAG(FGroup).FPatrolTo.X = -1) then Done
-      else
+      if (AoWHSMap.Random(3) <> 0) and (TPatrolAG(FGroup).FPatrolTo.X <> -1) then
       begin
         Inc(FState);
         SetupME;
-        with TPatrolAG(FGroup).FPatrolTo do ExecuteME(X, Y, L);
-      end;
+        ExecuteME(TPatrolAG(FGroup).FPatrolTo.X, TPatrolAG(FGroup).FPatrolTo.Y, TPatrolAG(FGroup).FPatrolTo.L);
+      end else Done;
     7:
       begin
         Settings := TMoveControlSettings.Create(nil);
         Settings.FPlayer := FGroup.FPlayer;
         Settings.FMode := Settings.FMode + [mmAI];
         Settings.SetSourcePos(FLocation.X, FLocation.Y, FLocation.L);
-        with TPatrolAG(FGroup).FPatrolFrom do Settings.SetDestinationPos(X, Y, L);
+        Settings.SetDestinationPos(TPatrolAG(FGroup).FPatrolFrom.X, TPatrolAG(FGroup).FPatrolFrom.Y, TPatrolAG(FGroup).FPatrolFrom.L);
         Settings.FMovePointsMax := 48;
         Settings.FMode := Settings.FMode + [mmIgnoreArmies];
         Settings.FArmyHS := FArmyHS;

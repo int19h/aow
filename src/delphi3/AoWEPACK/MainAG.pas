@@ -287,8 +287,8 @@ end;
 function TFortifyAGC.GetSurroundingEnemyStrength(Location: TXYL; Radius: Integer): Integer;
 var
   Settings: TMoveControlSettings;
-  Info: TBattleFieldInfo;
   Msg: TMapFieldMsg;
+  Info: TBattleFieldInfo;
   I: Integer;
 begin
   Settings := TMoveControlSettings.Create(nil);
@@ -302,12 +302,12 @@ begin
   AoWHSMap.FMoveControl.ProcessMove(Settings);
   SetupBattleFieldInfo(Info, FGroup.FPlayer, Shortint(FGroup.FIndependentRelation),
     [bfrIgnorePassiveIndependents], dtAll - [dtWall]);
-  Info.EnemyRelations := [];
+  Info.FriendlyRelations := [];
   Msg.MsgID := $1108;
   Msg.Param[0] := Integer(@Info);
   for I := Settings.FProcessedMapFields.Count - 1 downto 0 do
-    if TAoWMapField(Settings.FProcessedMapFields[I]).FFieldFlags and $04000000 <> 0 then
-      TMapField(Settings.FProcessedMapFields[I]).SendMapFieldMsg(Msg);
+    with TAoWMapField(Settings.FProcessedMapFields[I]) do
+      if FFieldFlags and $04000000 <> 0 then SendMapFieldMsg(Msg);
   Result := Info.Strength;
   Settings.Release;
 end;

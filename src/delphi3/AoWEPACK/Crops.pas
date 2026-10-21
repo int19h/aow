@@ -133,15 +133,16 @@ begin
 end;
 
 procedure TCrop.EndTurn(Player: Shortint);
-var Army: TArmyHS;
+var PlayerIndex: Shortint; Army: TArmyHS;
 begin
   Army := TAoWMapField(Owner).GetArmyHS;
-  if (Army <> nil) and (Player = Shortint(TArmy(Army.FArmy).FPlayer)) and
+  PlayerIndex := Player;
+  if (Army <> nil) and (Army.FArmy.FPlayer = PlayerIndex) and
     (FCropOwner.FPlayer > 0) and
-    (Player <> FCropOwner.FPlayer) then
-    if TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(FCropOwner.FPlayer, Player) = drWar then
+    (PlayerIndex <> FCropOwner.FPlayer) then
+    if TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(FCropOwner.FPlayer, PlayerIndex) = drWar then
     begin
-      FCropOwner.CropTrampled(Player);
+      FCropOwner.CropTrampled(PlayerIndex);
       Destroy;
     end;
 end;

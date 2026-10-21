@@ -376,7 +376,7 @@ begin
 end;
 
 procedure THeroControlGrid.RemoveFromMap;
-var Hero: THero; Y, X: Integer;
+var X, Y: Integer; Hero: TAbstractUnit;
 begin
   THeroControl(TRawView(Pointer(FMap)^).Fields[$F8 div 4]).BeginUpdate;
   for Y := Selection.Top to Selection.Bottom do

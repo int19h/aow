@@ -44,9 +44,9 @@ procedure Register;
 
 implementation
 
+type TItemAvailabilityNames = array[TItemAvailability] of string;
 const
-  ItemAvailabilityRStr: array[TItemAvailability] of string =
-    ('Exceptional', 'Rare', 'Common', 'Frequent');
+  ItemAvailabilityRStr: ^TItemAvailabilityNames = @AoWE.ItemAvailabilityRStr;
 
 
 type
@@ -203,7 +203,8 @@ begin
     begin
       Item := FItems.GetItem(FIndices[Index]);
       R := ARect;
-      R.Right := R.Left + H - 6;
+      R.Left := R.Left; R.Top := R.Top; { Original retains these rectangle assignments. }
+      R.Right := R.Left + H - 6; R.Bottom := R.Bottom;
       if AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex) <> nil then
         Image := AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex).GetCellImage
       else Image := nil;
@@ -218,14 +219,14 @@ begin
       R := ARect;
       R.Left := R.Left + H - 2;
       Inc(R.Top);
-      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       if FShowAvailability then
       begin
-        Text := AoWE.TranslateRStr(ItemAvailabilityRStr[Item.FAvailability]);
+        Text := AoWE.TranslateRStr(ItemAvailabilityRStr^[Item.FAvailability]);
         R := ARect;
         Inc(R.Top, 28);
         R.Left := R.Left + H - 2;
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
     end
     else

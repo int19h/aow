@@ -253,7 +253,7 @@ begin
   Result := True;
 end;
 
-function TAIGroupDefendTargetSelector.Process: Boolean;
+function TAIGroupDefendTargetSelector.Process: Boolean; { Near miss: three variants retain different control and move-executer register reuse. }
 begin
   case FState of
     0:

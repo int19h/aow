@@ -49,6 +49,7 @@ implementation
 type
   { needs: typed TAbstractUnit virtual results. The slots are preserved in this
     local ABI view; it is never instantiated. }
+  TAlignmentNames = array[TAlignment] of string;
   TUnitView = class(TAbilityOwner)
     procedure Slot9C; virtual; abstract;
     procedure SlotA0; virtual; abstract;
@@ -87,8 +88,7 @@ type
 
 const
   { needs: AoWE.TAlignmentRStr, an initialized string table absent from the draft. }
-  AlignmentNames: array[TAlignment] of string =
-    ('Pure Good', 'Good', 'Pure Neutral', 'Neutral', 'Evil', 'Pure Evil', 'None');
+  AlignmentNames: ^TAlignmentNames = @AoWE.TAlignmentRStr;
 
 { needs: typed callable results for the draft methods; preserve the existing ABI. }
 function Stat(AUnit: TAbstractUnit; VMTOffset: Integer): Shortint; assembler;
@@ -105,33 +105,33 @@ asm jmp TUnitResource.GetUnitName end;
 
 function TUnitInfoDlg.ShowUnit(AUnit: TAbstractUnit): Integer;
 begin
-  DefenseLbl.Caption := IntToStr(TUnitView(AUnit).GetDefense);
-  AttackLbl.Caption := IntToStr(TUnitView(AUnit).GetAttack);
-  DamageLbl.Caption := IntToStr(TUnitView(AUnit).GetDamage);
-  ResistanceLbl.Caption := IntToStr(TUnitView(AUnit).GetResistance);
-  HitPointLbl.Caption := IntToStr(TUnitView(AUnit).GetHits);
-  NamePnl.Caption := TUnitView(AUnit).GetName;
+  DefenseLbl.Caption := IntToStr(AUnit.GetDefense);
+  AttackLbl.Caption := IntToStr(AUnit.GetAttack);
+  DamageLbl.Caption := IntToStr(AUnit.GetDamage);
+  ResistanceLbl.Caption := IntToStr(AUnit.GetResistance);
+  HitPointLbl.Caption := IntToStr(AUnit.GetHits);
+  NamePnl.Caption := AUnit.GetName;
   AbilitiesMemo.Lines.Clear;
-  AlignmentPnl.Caption := AoWE.Format(TranslateABI(AlignmentXRStr),
-    [TranslateABI(AlignmentNames[TUnitView(AUnit).GetAlignment])]);
+  AlignmentPnl.Caption := AoWE.Format(AoWE.TranslateRStr(AlignmentXRStr),
+    [AoWE.TranslateRStr(AlignmentNames^[AUnit.GetAlignment])]);
   AUnit.ListAbilities(AbilitiesMemo.Lines);
-  MovesLbl.Caption := IntToStr(TUnitView(AUnit).GetMoves);
+  MovesLbl.Caption := IntToStr(AUnit.GetMoves);
   Result := ShowModal;
 end;
 
 function TUnitInfoDlg.ShowUnitResource(Resource: TUnitResource): Integer;
 begin
-  DefenseLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Defense);
-  AttackLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Attack);
-  DamageLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Damage);
-  ResistanceLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Resistance);
-  HitPointLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Hits);
-  MovesLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Moves);
-  NamePnl.Caption := ResourceName(Resource);
+  DefenseLbl.Caption := IntToStr(Resource.FDefense);
+  AttackLbl.Caption := IntToStr(Resource.FAttack);
+  DamageLbl.Caption := IntToStr(Resource.FDamage);
+  ResistanceLbl.Caption := IntToStr(Resource.FResistance);
+  HitPointLbl.Caption := IntToStr(Resource.FHits);
+  MovesLbl.Caption := IntToStr(Resource.FMoves);
+  NamePnl.Caption := Resource.GetUnitName;
   AbilitiesMemo.Lines.Clear;
-  AlignmentPnl.Caption := AoWE.Format(TranslateABI(AlignmentXRStr),
-    [TranslateABI(AlignmentNames[TAlignment(PUnitResourceView(Resource)^.Alignment)])]);
-  PUnitResourceView(Resource)^.AbilityOwner.ListAbilities(AbilitiesMemo.Lines);
+  AlignmentPnl.Caption := AoWE.Format(AoWE.TranslateRStr(AlignmentXRStr),
+    [AoWE.TranslateRStr(AlignmentNames^[Resource.FAlignment])]);
+  Resource.FAbilities[urNone].ListAbilities(AbilitiesMemo.Lines);
   Result := ShowModal;
 end;
 

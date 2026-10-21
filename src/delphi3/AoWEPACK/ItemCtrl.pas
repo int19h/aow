@@ -232,7 +232,7 @@ begin
   else Result := nil;
 end;
 
-procedure TItemControlGrid.UpdateItems;
+procedure TItemControlGrid.UpdateItems; { Near miss: three variants retain different loop-bound and index registers. }
 var
   I, Total: Integer;
   Map: TAoWHSMap;
@@ -275,7 +275,8 @@ begin
     begin
       Item := FMap.FItemControl.GetItem(FIndices[Index]);
       R := ARect;
-      R.Right := R.Left + H - 6;
+      R.Left := R.Left; R.Top := R.Top; { Original retains these rectangle assignments. }
+      R.Right := R.Left + H - 6; R.Bottom := R.Bottom;
       if AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex) <> nil then
         Image := AoWHSSet.FItemGFXResources.GetItemGFX(Item.FItemGFXIndex).GetCellImage
       else Image := nil;
@@ -288,7 +289,7 @@ begin
         R.Left := ARect.Left + 6;
         Inc(R.Top, 30);
         Text := UserStr;
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
         Canvas.Font.Color := Font.Color;
       end;
       R := ARect;
@@ -301,18 +302,18 @@ begin
       R := ARect;
       R.Left := R.Left + H - 2;
       Inc(R.Top);
-      if FShowStatus then
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_NOPREFIX)
-      else DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      if not FShowStatus then
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS)
+      else DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_EXPANDTABS);
       if FShowStatus then
       begin
         if Item.Owner = nil then
           Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
-        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(AoWE.UsedRStr);
         R := ARect;
         Inc(R.Top, 28);
         R.Left := R.Left + H - 2;
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_EXPANDTABS);
       end;
     end
     else
@@ -354,20 +355,20 @@ begin
 end;
 
 procedure TItemControlGrid.DeleteItem;
-var List: TList; X, Y, I: Integer; Item: TItem;
+var List: TList; Item: TItem; X, Y, I, Index: Integer;
 begin
   List := TList.Create;
   TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).BeginUpdate;
   for Y := Selection.Bottom downto Selection.Top do
     for X := Selection.Right downto Selection.Left do
     begin
-      I := ImageIndex(X, Y);
-      if (I >= 0) and (I < FIndices.Count) then
+      Index := ImageIndex(X, Y);
+      if (Index >= 0) and (Index < FIndices.Count) then
       begin
-        I := FIndices[ImageIndex(X, Y)];
-        if I < ItemCount(TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4])) then
+        Index := FIndices[ImageIndex(X, Y)];
+        if Index < ItemCount(TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4])) then
         begin
-          Item := ControlItemAt(TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]), I);
+          Item := ControlItemAt(TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]), Index);
           if Item <> nil then List.Add(Item);
         end;
       end;

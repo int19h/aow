@@ -44,7 +44,7 @@ var
   TPlayerBehaviorRStr: array[TPlayerBehavior] of string; TDiplomaticRelationRStr: array[TDiplomaticRelation] of string; { $558E813C; $558E81CC, AoWEd 0042307B/00423DFF }
   TCombatModeRStr: array[TCombatMode] of string; TCombatResolveModeRStr: array[TCombatResolveMode] of string; { $558E81DC; AoW 00422576 }
   TGroupBehaviorStr: array[TGroupBehavior] of string; { $558E8154; 5579389C }
-  TAlignmentRStr: array[TAlignment] of string = ('Pure Good', 'Good', 'Pure Neutral', 'Neutral', 'Evil', 'Pure Evil', 'None'); { export $558E80E4; AoW 0043C43C } TStatusRStr: TStatusNames; TPartyStatusRStr: array[TPartyStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful'); { 0040667C }
+  TAlignmentRStr: array[TAlignment] of string = ('Pure Good', 'Good', 'Pure Neutral', 'Neutral', 'Evil', 'Pure Evil', 'None'); { export $558E80E4; AoW 0043C43C } TStatusRStr: TStatusNames; TPartyStatusRStr: array[TPartyStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful'); { 0040667C } ItemAvailabilityRStr: array[TItemAvailability] of string = ('Exceptional', 'Rare', 'Common', 'Frequent'); { 55802A7F; export 558E806C }
   TMoraleRStr: array[TMorale] of string = ('Terrible', 'Poor', 'Okay', 'Good', 'High'); { AoW 00409284 / 004092EA }
   TDamageTypeRStr: array[TDamageType] of string; astAll: TAbilitySelectionTypes = [astUnit..astEditor]; msAll: TMagicSpheres = [msCosmos..msNone]; { AoWEd 0042A5A4 / 0042A5E1 }
   { RaceNamesPluralRStr export $558E82FC spans $34 bytes to the next export; ListDebugInfo

@@ -1551,24 +1551,14 @@ begin
 end;
 
 function TWatcherHS.VisibilityRange: Integer;
-var
-  Player: Shortint;
 begin
   Result := 8;
-  if Lhx <> 0 then
+  if (Lhx <> 0) or ((FEnchantment.FPlayerIndex > 0) and
+    (petWaterMastery in SpellHSMap^.FPlayers.GetPlayers(FEnchantment.FPlayerIndex).
+      FMagicControl.FEnemyEnchantments)) then
   begin
     Inc(Result);
     Result := Result shr 1;
-  end
-  else
-  begin
-    Player := Shortint(FEnchantment.FPlayerIndex);
-    if (Player > 0) and (PByte(Integer(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Player).
-      FMagicControl)+$45)^ and 8 <> 0) then
-  begin
-    Inc(Result);
-    Result := Result shr 1;
-  end;
   end;
 end;
 
@@ -2285,14 +2275,14 @@ end;
 
 procedure TVortex.ValidateTargetEvent(Target: TTargetSelectionControl;
   X,Y,Layer: Shortint; var Valid: Boolean);
-var MapF: TMapField;
+var MapLevel: TMapLevel;
 begin
-  if X = -1 then Valid := False
-  else
+  if X <> -1 then
   begin
-    MapF := SpellHSMap^.MapContainer.MapLevels[Layer].GetField(X,Y);
-    Valid := (MapF.TerrainType = 0) or (MapF.TerrainType = 10);
-  end;
+    MapLevel := SpellHSMap^.MapContainer.MapLevels[Layer];
+    Valid := MapLevel.GetField(X,Y).TerrainType in [0,10];
+  end
+  else Valid := False;
 end;
 
 function TVortex.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
@@ -2341,8 +2331,8 @@ begin Result := $21327; end;
 procedure THealingShowersTE.ShowAnimation(Animation: TAnimation;
   XhpSurf,YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
-  X,Y,Speed,Xhp,Yhp,Count: Integer;
-  I,J,Frame,XShift,YShift: Integer;
+  X,Y,XShift,YShift,Speed,Xhp,Yhp,Count: Integer;
+  I,J,Frame: Integer;
 begin
   if SpellHSMap^.ViewL = TSpellLocation(FLocation).Layer then
   begin

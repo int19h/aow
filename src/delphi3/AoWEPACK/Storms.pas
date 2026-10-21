@@ -864,6 +864,7 @@ var
   Reason: string;
   Storm: TStorm;
   Info: TStormDamageInfo;
+  Damage: Integer;
 begin
   if CanActivate(Source, Reason) then
   begin
@@ -872,9 +873,12 @@ begin
     if L = 0 then
     begin
       Storm := CreateStorm;
-      if Storm.GetBestTarget(Source.FPlayer, X, Y, L, 12, Target, Info) and
-        ((Info.EnemyDamage - Info.FriendlyDamage) > (FBaseManaCost * 0.75)) then
-        Result := (Info.EnemyDamage - Info.FriendlyDamage) * 5 + 750;
+      if Storm.GetBestTarget(Source.FPlayer, X, Y, L, 12, Target, Info) then
+      begin
+        Damage := Info.EnemyDamage - Info.FriendlyDamage;
+        if FBaseManaCost * 0.75 < Damage then
+          Result := Damage * 5 + 750;
+      end;
       Storm.Free;
     end;
   end

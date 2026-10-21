@@ -52,7 +52,6 @@ procedure TPlayerComboBox.GenerateItems;
 var
   ResourceList: TRaceResourceList;
   I: Integer;
-  Text, LabelText: string;
 begin
   Items.Clear;
   if AoWHSMap <> nil then
@@ -63,11 +62,8 @@ begin
     if FAllowIndependent then Items.AddObject('Independents', nil);
     for I := 1 to GetNumberOfPlayers(TPlayerList(TObjectFields(Pointer(AoWHSMap)^).Fields[$140 div 4])) do
     begin
-      { needs: TranslateRStr(const S: string): string; explicit hidden result. }
-      LabelText := AoWE.TranslateRStr(PlayerRStr);
-      Text := LabelText + ' ' + IntToStr(I) + ' (' +
-        PNameView(GetRaceResource(ResourceList, Shortint(GetPlayers(TPlayerList(TObjectFields(Pointer(AoWHSMap)^).Fields[$140 div 4]), I).FPlayerRace)))^.Name + ')';
-      Items.AddObject(Text, TObject(I));
+      Items.AddObject(AoWE.TranslateRStr(AoWE.PlayerRStr) + ' ' + IntToStr(I) + ' (' +
+        PNameView(GetRaceResource(ResourceList, Shortint(GetPlayers(TPlayerList(TObjectFields(Pointer(AoWHSMap)^).Fields[$140 div 4]), I).FPlayerRace)))^.Name + ')', TObject(I));
     end;
   end;
 end;

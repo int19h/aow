@@ -917,12 +917,12 @@ resourcestring
   WebRStr = 'Web';
   InvokeDeathRStr = 'Invoke Death';
   HealingRStr = 'Healing';
-  DispelMagicRStr = 'Dispel Magic';
+  { DispelMagicRStr is declared in the interface. }
   { DispelMagicFailedRStr is declared in the interface. }
-  XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled';
+  { XSpellsSuccessfullyDispelledRStr is declared in the interface. }
   SpellCastingRStr = 'Spell Casting';
   FlameThrowingRStr = 'Flame Throwing';
-  UsedRStr = 'Used';
+  { UsedRStr is declared in the interface. }
   SelectUnitForXRStr = 'Select unit for %s';
   { EntangleRStr is declared in the interface (557F8A68). }
   { TurnUndeadRStr is declared in the interface (557F7B94). }

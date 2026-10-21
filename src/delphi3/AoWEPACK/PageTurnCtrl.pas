@@ -105,7 +105,7 @@ begin
 end;
 
 type PScanPixel = ^Word;
-procedure BltColumn(Source: Pointer; SourcePitch: Integer; Dest: Pointer; DestPitch, Height: Integer); stdcall;
+procedure BltColumn(Source: Pointer; SourcePitch: Integer; Dest: Pointer; DestPitch, Height: Integer); pascal;
 begin
   while Height > 0 do
   begin
@@ -117,7 +117,7 @@ begin
 end;
 
 procedure TPageTurnControl.BltVerticalScanLine(SourceX, DestX, DestY: Integer; const Dest: TSurfaceDesc; Top, Bottom: Integer);
-var SourceY, Height, Y, ClipBottom: Integer; SourceP, DestP: Pointer; SourcePitch: Integer;
+var SourceY, Height, Y: Integer; SourceP, DestP: Pointer; SourcePitch: Integer;
 begin
   if (Dest.ClipRect.Left <= DestX) and (DestX < Dest.ClipRect.Right) then
   begin
@@ -130,8 +130,7 @@ begin
       Inc(SourceY, Dest.ClipRect.Top - Y);
       Y := Dest.ClipRect.Top;
     end;
-    ClipBottom := Dest.ClipRect.Bottom;
-    if ClipBottom < Height + Y then Dec(Height, Height + Y - Dest.ClipRect.Bottom);
+    if Height + Y > Dest.ClipRect.Bottom then Dec(Height, Height + Y - Dest.ClipRect.Bottom);
     if Height > 0 then
     begin
       if SourceX < FWidth * 2 then

@@ -146,7 +146,7 @@ begin
         GetXhx, GetYhx, GetLhx, 0);
 end;
 
-procedure TAoWHexagon.UpdateTransition(Side: Byte);
+procedure TAoWHexagon.UpdateTransition(Side: Byte); { Near miss: three variants retain different transition-value reuse. }
 var
   Shifted: Boolean;
   NXhx, NYhx: Integer;
@@ -321,12 +321,12 @@ begin
   Yhp := Yhp - YhpSurf;
   IL := FResource.ImageSequenceList.ImageSequences[0].ImageLibrary;
   IL[((Integer(Owner) shr 3) + TMapField(Owner).Xhx + TMapField(Owner).Yhx * 2 +
-    (TIsoFields(Pointer(Self)^).Sides shr 6)) and 15 + 140].Show(Xhp, Yhp, SurfaceDesc);
+    (FSides shr 6)) and 15 + 140].Show(Xhp, Yhp, SurfaceDesc);
   Dec(Xhp, 6);
   Dec(Yhp, 9);
-  if TIsoFields(Pointer(Self)^).Sides and 1 <> 0 then IL[36].Show(Xhp, Yhp, SurfaceDesc);
-  if TIsoFields(Pointer(Self)^).Sides and 2 <> 0 then IL[37].Show(Xhp, Yhp, SurfaceDesc);
-  if TIsoFields(Pointer(Self)^).Sides and $20 <> 0 then IL[35].Show(Xhp, Yhp, SurfaceDesc);
+  if FSides and 1 <> 0 then IL[36].Show(Xhp, Yhp, SurfaceDesc);
+  if FSides and 2 <> 0 then IL[37].Show(Xhp, Yhp, SurfaceDesc);
+  if FSides and $20 <> 0 then IL[35].Show(Xhp, Yhp, SurfaceDesc);
 end;
 
 procedure TAoWWaterHexagon.ShowDynamic(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);

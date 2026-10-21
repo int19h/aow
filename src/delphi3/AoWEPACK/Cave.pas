@@ -323,7 +323,7 @@ begin
   end;
 end;
 
-function TCave.CanEnter(Player: Shortint): Boolean;
+function TCave.CanEnter(Player: Shortint): Boolean; { Near miss: three variants retain an extra ArmyHS register and a shared return. }
 var ArmyHS: TArmyHS;
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));

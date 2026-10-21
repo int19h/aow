@@ -965,7 +965,7 @@ begin
     Result := False;
 end;
 
-procedure TCosmeticSurgery.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
+procedure TCosmeticSurgery.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: three variants omit the original Self and Source register saves. }
 { The original saves Self and Source as well as Info; this compiler saves only Info. }
 begin
   inherited;
@@ -1000,7 +1000,7 @@ end;
 constructor TDispelMagic.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  FSpellName := TranslateRStr('Dispel Magic');
+  FSpellName := TranslateRStr(DispelMagicRStr);
   FSpellID := 8;
   FBaseManaCost := 5;
   FSpellLevel := 1;
@@ -1055,9 +1055,9 @@ begin
     end;
     if Source.FPlayer = AoWHSMap.FSeatedPlayer then
       if Count > 0 then
-        AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr('%s spell(s) dispelled'), [IntToStr(Count)]))
+        AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr(XSpellsSuccessfullyDispelledRStr), [IntToStr(Count)]))
       else
-        AoWHSMap.ShowMessage(TranslateRStr('Dispel Magic failed'));
+        AoWHSMap.ShowMessage(TranslateRStr(DispelMagicFailedRStr));
     Result := Enchantments.GetCount > 0;
     Enchantments.Free;
   end
@@ -1071,7 +1071,7 @@ begin
   Result := Result and Target.CanDispelEnchantment(Source.FPlayer);
 end;
 
-procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
+procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: three variants omit the original Self and Source register saves. }
 { conflict: procedure TDispelMagic.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); }
 begin
   inherited;

@@ -346,7 +346,7 @@ function CityActionToProductionID(Action: TCityAction): Integer;
 function RaceInCity(Race, Player: Shortint): Boolean;
 function UnitLevelToCityLevel(Level, Size: Integer): Integer;
 function PlayerCities(Player: Shortint): Integer;
-function CityIncome(Player: Shortint): Integer; const TCivilStatusRStr: array[TCivilStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful', 'Oppressed', 'Slavery'); { export $558E8E10; AoW 0043B208 }
+function CityIncome(Player: Shortint): Integer; const TCityActionRStr: array[TCityAction] of string = ('', '', '', '', '', '', '', '', ''); { export $558E8DEC } TCivilStatusRStr: array[TCivilStatus] of string = ('Unruly', 'Unrest', 'Stable', 'Content', 'Cheerful', 'Oppressed', 'Slavery'); { export $558E8E10; AoW 0043B208 }
 
 implementation
 
@@ -363,7 +363,7 @@ const
   RaceTerrainTable: ^TRaceTerrainTable = @AoWE.RaceTerrain;
   StatusNames: ^TStatusNames = @AoWE.TStatusRStr;
   RaceNames: PRaceNames = @AoWE.RaceNamesPluralRStr;
-  CityEnchantmentNames: array[TCityEnchantmentID] of string = ('Fountain Of Life', 'Gold Rush', 'Anti Magic Shell', 'Warmonger');
+  TCityEnchantmentIDRStr: array[TCityEnchantmentID] of string = ('Fountain Of Life', 'Gold Rush', 'Anti Magic Shell', 'Warmonger');
   UpgradePrices: array[1..4] of Byte = (250, 250, 250, 250);
   WoodWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
   StoneWallPrices: array[1..4] of Byte = (20, 40, 60, 80);
@@ -1056,7 +1056,6 @@ end;
 procedure TCity.StructureCaptured(OldPlayer, NewPlayer: Shortint);
 var
   Log: TCityProductionEventLog;
-  Text: string;
 begin
   if not GetRazed and not GetBuilding and (OldPlayer = 0) and
     not (msEditting in WorldMap^.Status) and (moActivated in FStatus) and
@@ -1064,8 +1063,7 @@ begin
   begin
     Log := TCityProductionEventLog.Create(nil);
     Log.FPlayer := NewPlayer;
-    Text := SysUtils.Format(TranslateRStr(LoadResString(CapturedText)), [EditName]);
-    Log.FText := Text;
+    Log.FText := SysUtils.Format(TranslateRStr(StructureCapturedRStr), [EditName]);
     Log.FXhx := GetXhx;
     Log.FYhx := GetYhx;
     Log.FLhx := GetLhx;
@@ -2752,7 +2750,7 @@ end;
 
 function TCityEnchantment.GetName: string;
 begin
-  Result := TranslateRStr(CityEnchantmentNames[FEnchantmentID]);
+  Result := TranslateRStr(TCityEnchantmentIDRStr[FEnchantmentID]);
 end;
 
 function TCityEnchantment.GetAIUpkeepPriority: Integer;
@@ -2905,7 +2903,7 @@ begin
     ((City.GetActiveAction in [caProduce]) and (City.FProduction.FSettings.FTurnsLeft = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
-function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean;
+function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean; { Near miss: three variants retain different upgrade-level reuse and return layout. }
 var Level: Integer;
 begin
   Level := City.FProduction.GetProduceUnitLevelMax;
@@ -3259,17 +3257,16 @@ var
   I: Integer;
   Structure: TPlayerStructure;
 begin
-  if WorldMap^ = nil then Result := 0
-  else
+  if AoWHSMap <> nil then
   begin
-    P := WorldMap^.FPlayers.GetPlayers(Player);
+    P := AoWHSMap.FPlayers.GetPlayers(Player);
     Result := 0;
     for I := 0 to P.FStructures.Count - 1 do
     begin
       Structure := P.FStructures.GetStructure(I);
       if (Structure.ClassID = $20108) and (Structure.FPlayer = Player) then Inc(Result, 1);
     end;
-  end;
+  end else Result := 0;
 end;
 
 function CityIncome(Player: Shortint): Integer;
@@ -3307,7 +3304,7 @@ initialization
     WorldEngine^.OnHSMLoaded.Add(TRegistrator.MapLoaded);
   end;
 finalization
-  if WorldEngine^ <> nil then
-    WorldEngine^.OnHSMLoaded.Remove(TRegistrator.MapLoaded);
+  if AoWEngine <> nil then
+    AoWEngine.OnHSMLoaded.Remove(TRegistrator.MapLoaded);
 
 end.

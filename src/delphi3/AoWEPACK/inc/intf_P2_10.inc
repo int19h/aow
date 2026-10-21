@@ -103,7 +103,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   XIsAlreadyActiveRStr = '%s is already active';
   SystemRStr = 'System'; HillRStr = 'Hill'; { $55706964 } MountainRStr = 'Mountain'; { $55706954 }
   { conflict: DispelMagicRStr = 'Dispel Magic'; }
-  DispelMagicFailedRStr = 'Dispel Magic failed'; { 557EB882 }
+  DispelMagicFailedRStr = 'Dispel Magic failed'; { 557EB882 } DispelMagicRStr = 'Dispel Magic'; XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled';
   { conflict: XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled'; }
   CastingXInProgressRStr = 'Casting %s...'; { $55707454 }
   P2NotEnoughCastingPointsRStr = 'Not enough channeling points'; { $557075E4 }
@@ -810,7 +810,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   UpkeepXRStr = 'Upkeep: %d';
   UseItemRStr = 'Use item';
   UseXRStr = 'Use %s';
-  UserRStr = 'user';
+  UserRStr = 'user'; UsedRStr = 'Used'; { 558085EF }
   VaporizeRStr = 'Vaporize';
   VersionXRStr = 'Version: %s';
   VersionXYRequiredRStr = '(Version %0:s.%1:s required)';

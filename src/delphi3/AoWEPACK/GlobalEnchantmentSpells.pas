@@ -543,14 +543,11 @@ begin
 end;
 
 function TEnchantedRoadsEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-var
-  Text: string;
 begin
   Result := inherited CanActivate(Player, Reason);
-  if Result and (petEnchantedRoads in WorldMap^.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments) then
+  if Result and (petEnchantedRoads in AoWHSMap.FPlayers.GetPlayers(Player).FMagicControl.FActiveEnchantments) then
   begin
-    Text := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
-    Reason := Text;
+    Reason := SysUtils.Format(TranslateRStr(LoadResString(AlreadyActiveText)), [GetName]);
     Result := False;
   end;
 end;
@@ -613,7 +610,7 @@ begin
   if Anim.FFrameCounter = 50 then Anim.Destroy;
 end;
 
-function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: three variants retain different animation and Source registers. }
 var
   X, Y, L: Shortint;
   Anim: TAnimation;
@@ -703,11 +700,11 @@ end;
 
 procedure TAirMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
-  I, Count, X, Y, Speed, D, Image: Integer;
+  I, Count, X, Y, Speed, Image: Integer;
 begin
-  if WorldMap^.ViewL = 0 then
+  if AoWHSMap.ViewL = 0 then
   begin
-    RandSeed := WorldMap^.Frame - Anim.FFrameCounter;
+    RandSeed := AoWHSMap.Frame - Anim.FFrameCounter;
     case Ord(WorldEngine^.FAnimationDetail) of
       0: Count := 5;
       2: Count := 20;
@@ -719,9 +716,8 @@ begin
       Y := Random(Cardinal(Anim.FTag) shr 16);
       Speed := Random(15) + 5;
       Image := Random(3);
-      D := (Anim.FFrameCounter - 45) * Speed;
-      Inc(X, D * 2);
-      Dec(Y, D);
+      Inc(X, ((Anim.FFrameCounter - 45) * Speed) * 2);
+      Dec(Y, (Anim.FFrameCounter - 45) * Speed);
       FCastImages.Show(Image, SurfaceDesc.ClipRect.Left + X, SurfaceDesc.ClipRect.Top + Y, 0, SurfaceDesc);
     end;
   end;
@@ -1283,7 +1279,7 @@ begin
   else Result := 0;
 end;
 
-procedure TFloodEnchantment.NewTurn;
+procedure TFloodEnchantment.NewTurn; { Near miss: three variants retain different turn-counter load reuse. }
 begin
   if not FRemoved then
   begin

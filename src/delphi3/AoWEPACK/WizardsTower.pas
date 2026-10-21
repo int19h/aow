@@ -196,19 +196,18 @@ end;
 function TWizardsTower.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
 var
   Player: TPlayer;
-  Reason, Text: string;
+  Reason: string;
 begin
   Result := inherited ExecuteTE(A1, Executer);
   if (A1.FAction = 1) and CanBuy(A1.FParam, Reason) then
   begin
-    Player := WorldMap^.FPlayers.GetPlayers(A1.FParam);
+    Player := AoWHSMap.FPlayers.GetPlayers(A1.FParam);
     Player.SetGems(Player.FGems - BuyCost);
     Player.FMagicControl.FSpells.Add(FSpellID);
-    if WorldMap^.FSeatedPlayer = A1.FParam then
+    if AoWHSMap.FSeatedPlayer = A1.FParam then
     begin
-      Text := SysUtils.Format(TranslateRStr(LoadResString(@TheyTaughtYouTheSpellXRStr)),
-        [WorldSet^.FSpellControl.GetSpell(FSpellID).FSpellName]);
-      WorldMap^.ShowMessage(Text);
+      AoWHSMap.ShowMessage(SysUtils.Format(TranslateRStr(TheyTaughtYouTheSpellXRStr),
+        [WorldSet^.FSpellControl.GetSpell(FSpellID).FSpellName]));
     end;
   end;
 end;

@@ -852,7 +852,7 @@ begin
 end;
 
 
-procedure TDecayAbility.NewCombatTurn(A1: TCombatObject; A2: Shortint);
+procedure TDecayAbility.NewCombatTurn(A1: TCombatObject; A2: Shortint); { Near miss: three variants retain different Data and player register allocation. }
 var
   Data: TDurationAbilityData;
 begin

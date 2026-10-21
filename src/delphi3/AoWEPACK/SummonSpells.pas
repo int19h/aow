@@ -217,24 +217,24 @@ begin
   end;
   if Done then
   begin
-    if A1.FPlayer = WorldMap^.FSeatedPlayer then WorldMap^.MakeVisible(X, Y, L, 3);
-    WorldMap^.ValidateObservation(A1.FPlayer, X, Y, L, 0);
-    if WorldMap^.Visible(X, Y, L, 0) then
+    if A1.FPlayer = AoWHSMap.FSeatedPlayer then AoWHSMap.MakeVisible(X, Y, L, 3);
+    AoWHSMap.ValidateObservation(A1.FPlayer, X, Y, L, 0);
+    if AoWHSMap.Visible(X, Y, L, 0) then
     begin
       if WorldSet^.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0] <> nil then
       begin
         Anim := TImageSequenceAnimation.Create(nil);
         Anim.SetImageSequence(WorldSet^.FSpellControl.GetSpell(FEventSpellID).FCastImages.ImageSequences[0]);
-        WorldMap^.PlaceHX(Anim, X, Y, L);
+        AoWHSMap.PlaceHX(Anim, X, Y, L);
       end;
-      if (A1.FPlayer = WorldMap^.FSeatedPlayer) or WorldMap^.Watching(X, Y, L, 0) then
+      if (A1.FPlayer = AoWHSMap.FSeatedPlayer) or AoWHSMap.Watching(X, Y, L, 0) then
         WorldSet^.FSpellControl.GetSpell(FEventSpellID).FCastSounds.Play(0);
     end;
     WorldSet^.FSpellControl.GetSpell(FEventSpellID).CastingDone(A1,
       WorldSet^.FSpellControl.GetSpell(FEventSpellID).FBaseManaCost);
   end
-  else if A1.FPlayer = WorldMap^.FSeatedPlayer then
-    WorldMap^.ShowMessage(TranslateRStr(LoadResString(NoLocationText)));
+  else if A1.FPlayer = AoWHSMap.FSeatedPlayer then
+    AoWHSMap.ShowMessage(TranslateRStr(LoadResString(NoLocationText)));
   Result := False;
 end;
 

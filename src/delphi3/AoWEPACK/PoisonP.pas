@@ -171,7 +171,7 @@ begin
     TriggerArmyDamage(ArmyHS);
 end;
 
-procedure TPoisonPlant.RestoreTerrain;
+procedure TPoisonPlant.RestoreTerrain; { Near miss: three variants omit the original Self register save; terrain arguments corrected. }
 var
   MapF: TMapField;
   OriginalOverlay: Shortint;
@@ -180,7 +180,7 @@ begin
   OriginalOverlay := FOriginalOverlay;
   Destroy;
   if OriginalOverlay > 0 then
-    AoWHSMap.PlaceTerrain(MapF.Xhx, MapF.Yhx, MapF.TerrainType, OriginalOverlay, MapF.Lhx);
+    AoWHSMap.PlaceTerrain(MapF.Xhx, MapF.Yhx, MapF.Lhx, MapF.TerrainType, OriginalOverlay);
 end;
 
 procedure TPoisonPlant.NewTurn(Player: Shortint);

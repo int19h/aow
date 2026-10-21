@@ -110,7 +110,7 @@ end;
 procedure TExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
 begin end;
 
-procedure TExplorationSite.CombatExecuted(A1: TCombat);
+procedure TExplorationSite.CombatExecuted(A1: TCombat); { Near miss: three variants retain different loop and object registers and a spilled index. }
 var
   Data: TCombatData;
   Obj: TCombatObject;

@@ -170,7 +170,7 @@ begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideB[I], Xhx, Yhx);
         MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
         TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField), TAoWMapField(MapField),
-          TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
+          TMoveControl(Info.Sender).FMovePointTable[MapField.TerrainType, MapField.OverlayType]);
       end;
     end
     else if FSideB.IndexOf(Info.HN) <> -1 then
@@ -179,7 +179,7 @@ begin
         CenterHNtoHX(TMapField(Owner).Xhx, TMapField(Owner).Yhx, FSideA[I], Xhx, Yhx);
         MapField := WorldMap^.MapContainer.GetField(Xhx, Yhx, TMapField(Owner).Lhx);
         TMoveControl(Info.Sender).ExecuteExternalMove(TAoWMapField(Info.MapField), TAoWMapField(MapField),
-          TBridgeMoveData(Pointer(Info.Sender)^).Costs[MapField.TerrainType, MapField.OverlayType]);
+          TMoveControl(Info.Sender).FMovePointTable[MapField.TerrainType, MapField.OverlayType]);
       end;
 end;
 
@@ -206,7 +206,7 @@ begin
     (DirectionValid(MapField, 0) or DirectionValid(MapField, 1) or DirectionValid(MapField, 2));
 end;
 
-function THexagonBridge.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
+function THexagonBridge.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Near miss: three variants swap the MapField and Road registers. }
 var
   Road: THexagonSprite;
   MapField: TMapField;

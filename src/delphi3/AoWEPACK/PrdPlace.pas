@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-function TProductionPlaceControl.UnitProduced: Boolean;
+function TProductionPlaceControl.UnitProduced: Boolean; { Near miss: three variants swap the Self and production-place registers. }
 var
   Enchantment: TUnitEnchantment;
   Log: TProductionPlaceEventLog;
