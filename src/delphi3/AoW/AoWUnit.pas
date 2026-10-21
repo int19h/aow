@@ -30,6 +30,7 @@ type
     F_MainForm_208: Integer;
     F_MainForm_20C: Byte;
     F_MainForm_20D: array[0..2] of Byte;
+    procedure PlayInterfaceSound(Kind: Byte);
     procedure DisplayUpdateFrame(A1: Integer; A2: Integer);  { draft }
     procedure FormCreate;  { draft }
     procedure DisplayMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
@@ -48,7 +49,20 @@ type
   end;
 
 
+var
+  MainForm: TMainForm;
+
 implementation
+
+procedure TMainForm.PlayInterfaceSound(Kind: Byte);
+begin
+  case Kind of
+    0: PlaySample('Sfx\Int\Btn1.wav');
+    1: PlaySample('Sfx\Int\Btn5.wav');
+    2: PlaySample('Sfx\Int\Btn6.wav');
+    3: PlaySample('Sfx\Int\Btn3.wav');
+  end;
+end;
 
 procedure TMainForm.DisplayUpdateFrame(A1: Integer; A2: Integer);
 begin end;

@@ -93,7 +93,7 @@
     F_LeaderSetupControl_11: array[0..2] of Byte;
     FOriginalLeader: TLeader; { $14 }
     FItems: TIntegerList; { $18 }
-    F_LeaderSetupControl_1C: array[0..3] of Byte;
+    FStatus: TLeaderSetupStatus; F_LeaderSetupControl_1D: array[0..2] of Byte; { $1C }
     FOnDone: TNotifyEvent; { $20 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;

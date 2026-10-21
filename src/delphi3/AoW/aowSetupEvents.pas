@@ -21,6 +21,7 @@ type
     SetupControl: TSetupControl; { +0048 }
     public
     F_SetupEvents_4C: array[0..3] of Byte;
+    procedure UpdatePlayerName(Name: string);
     procedure SetupControlStart;  { draft }
     procedure SetupControlSendMap(A1: Integer; A2: Integer);  { draft }
     procedure DPlayFileStartMessage;  { draft }
@@ -47,7 +48,16 @@ type
   end;
 
 
+var
+  SetupEvents: TSetupEvents;
+
 implementation
+
+procedure TSetupEvents.UpdatePlayerName(Name: string);
+begin
+  if SetupControl.GetRemote and DPlay.Connected then
+    DPlay.PlayerName := Name;
+end;
 
 procedure TSetupEvents.SetupControlStart;
 begin end;

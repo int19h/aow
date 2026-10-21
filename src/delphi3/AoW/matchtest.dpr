@@ -1138,4 +1138,6 @@ begin
   Use(nil, @TCFCDlg.TTCFCDialog.DlgHide);
   Use(nil, @TCFCDlg.TTCFCDialog.TCchkDoubleClick);
   Use(nil, @TCFCDlg.TTCFCDialog.FCchkDoubleClick);
+{ Per-part host additions. }
+  {$I hosts\E2.inc}
 end.
