@@ -1,13 +1,13 @@
 unit CombatILTer;
 
-{ Draft declarations of CombatILTer, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ Combat image library terrain and its visible shadow, recovered from AoWTCPCK.dpl. }
+
+{$O-,R+,Q+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
 
 type
   TCombatILTerrainShadow = class;
@@ -20,8 +20,7 @@ type
   { TCombatILTerrainShadow (instance size 12, VMT 004041E4) }
   TCombatILTerrainShadow = class(THexagonSprite)
   public
-    F_CombatILTerrainShadow_08: Byte;
-    F_CombatILTerrainShadow_09: array[0..2] of Byte;
+    FTerrain: TCombatILTerrain; { $08 }
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
   end;
@@ -29,7 +28,7 @@ type
   { TCombatILTerrain (instance size 32, VMT 00404378) }
   TCombatILTerrain = class(TILTerrainMO)
   public
-    F_CombatILTerrain_1C: Integer;
+    FShadow: TCombatILTerrainShadow; { $1C }
     destructor Destroy; override;
     class function ClassID: Integer; override;
     procedure MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); override;
@@ -38,18 +37,18 @@ type
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
     function GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList; override;
     function CanPlaceOnHS(HS: HSEngine.THexagonSprite): Boolean; override;
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); virtual;  { +138 draft }
-    function GetDefense: Integer;  { draft }
-    function GetBurnValue: Integer;  { draft }
-    procedure DestroyShadow(A1: Integer; A2: Integer);  { draft }
-    procedure CreateShadow(A1: Integer; A2: Integer);  { draft }
+    procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { +138 }
+    function GetDefense: ShortInt;
+    function GetBurnValue: ShortInt;
+    procedure DestroyShadow;
+    procedure CreateShadow;
   end;
 
   { TCombatILTerrainResource (instance size 72, VMT 00404538) }
   TCombatILTerrainResource = class(TILTerrainMOR)
   public
-    F_CombatILTerrainResource_44: Byte;
-    F_CombatILTerrainResource_45: Byte;
+    FBurnValue: ShortInt; { $44 }
+    FDefense: ShortInt; { $45 }
     F_CombatILTerrainResource_46: array[0..1] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -75,94 +74,169 @@ type
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterCombatILTerrain(A1: Integer);  { draft }
+procedure RegisterCombatILTerrain(AEngine: TEngine);
 
 implementation
 
 function TCombatILTerrainShadow.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := (FTerrain.GetShowPriority and $03FFFFFF) - $64000000;
+end;
 
-procedure TCombatILTerrainShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+function TCombatILTerrain.GetDefense: ShortInt;
+begin Result := TCombatILTerrainResource(FResource).FDefense; end;
 
-function TCombatILTerrain.GetDefense: Integer;
-begin Result := 0; end;
-
-function TCombatILTerrain.GetBurnValue: Integer;
-begin Result := 0; end;
+function TCombatILTerrain.GetBurnValue: ShortInt;
+begin Result := TCombatILTerrainResource(FResource).FBurnValue; end;
 
 function TCombatILTerrain.CanPlaceOnHS(HS: HSEngine.THexagonSprite): Boolean;
-begin Result := False; end;
+begin Result := inherited CanPlaceOnHS(HS) or (HS is TAbstractRoad); end;
+
+procedure TCombatILTerrainShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
+begin FTerrain.ShowShadow(XhpSurf, YhpSurf, SurfaceDesc); end;
 
 destructor TCombatILTerrain.Destroy;
-begin end;
+begin
+  DestroyShadow;
+  inherited Destroy;
+end;
 
 class function TCombatILTerrain.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220136; end;
 
-procedure TCombatILTerrain.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TCombatILTerrain.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var Xhp, Yhp: Integer;
+begin
+  HXtoHP(FXhx, FYhx, Xhp, Yhp);
+  XhpSurf := Xhp - XhpSurf;
+  YhpSurf := Yhp - YhpSurf;
+  FResource.ShowComplexImage(XhpSurf, YhpSurf, SurfaceDesc, 40,
+    TMapField(Owner).Xhx + TMapField(Owner).Yhx shl 4);
+end;
 
-procedure TCombatILTerrain.DestroyShadow(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatILTerrain.DestroyShadow;
+begin
+  if FShadow <> nil then
+  begin
+    if GetVisible then FResource.Engine.HSMap.DynamicVisibleHS.RemoveChild(FShadow);
+    FShadow.Free;
+    FShadow := nil;
+  end;
+end;
 
-procedure TCombatILTerrain.CreateShadow(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatILTerrain.CreateShadow;
+begin
+  if FResource.ImageSequenceList.GetImageSequence(40) <> nil then
+  begin
+    if FShadow <> nil then DestroyShadow;
+    if (AoWHSMap = nil) or AoWHSMap.FShowUnitShadows then
+    begin
+      FShadow := TCombatILTerrainShadow.Create(nil);
+      FShadow.FTerrain := Self;
+    end;
+  end;
+end;
 
 procedure TCombatILTerrain.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+begin
+  if not (moVisible in FStatus) then
+  begin
+    inherited MakeVisible(VisibilityList);
+    if FShadow <> nil then
+      VisibilityList.AddSortChild(FShadow, FShadow.GetShowPriority);
+  end;
+end;
 
 procedure TCombatILTerrain.Activate;
-begin end;
+begin
+  inherited Activate;
+  CreateShadow;
+end;
 
 procedure TCombatILTerrain.Deactivate;
-begin end;
+begin
+  DestroyShadow;
+  inherited Deactivate;
+end;
 
 function TCombatILTerrain.GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin Result := AoWHSSet.FCombatResources; end;
 
 procedure TCombatILTerrain.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if Msg.MsgID = $21001 then
+    if FResource.TerrainList.GetTerrain(Msg.HN) >= 0 then
+      if Msg.Param[0] < TCombatILTerrainResource(FResource).FDefense then
+        Msg.Param[0] := TCombatILTerrainResource(FResource).FDefense;
+end;
 
 class function TCombatILTerrainResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220137; end;
 
 class function TCombatILTerrainResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat ILTerrain'; end;
 
 procedure TCombatILTerrainResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FDefense), 20);
+  Stream.rwByte(Byte(FBurnValue), 21);
+end;
 
 function TCombatILTerrainResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220136; end;
 
 class function TCombatFixedILTerrain.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220138; end;
 
 function TCombatFixedILTerrain.ForceTerrainType(MapLevel: HSEngine.TMapLevel; Xhx, Yhx: ShortInt): ShortInt;
-begin Result := 0; end;
+begin Result := -1; end;
 
 function TCombatFixedILTerrain.CanChangeTerrain(const Info: HSEngine.THSSenderInfo): Boolean;
-begin Result := False; end;
+begin
+  if FResource.TerrainList.GetTerrain(Info.HN) >= 0 then
+    Result := ValidTerrainType(Info.MapField.TerrainType) and
+      (GetMostFrequentMapFieldTerrainType(TMapLevel(Owner.Owner), FXhx, FYhx,
+      FResource.TerrainList.GetTerrain(Info.HN)) = Info.MapField.TerrainType)
+  else Result := True;
+end;
 
 procedure TCombatFixedILTerrain.ChangeTerrain(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  if FResource.TerrainList.GetTerrain(Info.HN) >= 0 then
+    if ValidTerrainType(Info.TerrainType) then
+    begin
+      FTerrainType := Info.TerrainType;
+      FImageIndex := GetTerrainTypeImage(Info.TerrainType);
+    end;
+end;
 
 procedure TCombatFixedILTerrain.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
-begin end;
+begin
+  if FResource.TerrainList.GetTerrain(Info.HN) >= 0 then
+    if ValidTerrainType(Info.TerrainType) then
+    begin
+      FTerrainType := Info.TerrainType;
+      FImageIndex := GetTerrainTypeImage(Info.TerrainType);
+    end
+    else raise Exception.Create('TILFixedTerrain Failure');
+end;
 
 class function TCombatFixedILTerrainResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220139; end;
 
 class function TCombatFixedILTerrainResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat FixedILTerrain'; end;
 
 function TCombatFixedILTerrainResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220138; end;
 
-procedure RegisterCombatILTerrain(A1: Integer);
-begin end;
-
+procedure RegisterCombatILTerrain(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TCombatILTerrain, TCombatILTerrainResource,
+    TCombatFixedILTerrain, TCombatFixedILTerrainResource]);
+end;
 
 initialization
 finalization

@@ -22,7 +22,7 @@ type
     class function ClassID: Integer; override;
     procedure Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
     procedure Activate; override;
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); override;
   end;
 
   { THouseResource (instance size 72, VMT 00434728) }
@@ -46,7 +46,7 @@ begin end;
 procedure THouse.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 begin end;
 
-procedure THouse.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
+procedure THouse.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 class function THouseResource.ClassID: Integer;

@@ -31,7 +31,7 @@ type
     function CanPlaceOnHS(HS: HSEngine.THexagonSprite): Boolean; override;
     function ValidTerrainType(TerrainType: Integer): Boolean; override;
     function GetTerrainTypeImage(TerrainType: Integer): Integer; override;
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer); override;
+    procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); override;
     procedure SetHitPoints(A1: Integer);  { draft }
   end;
 
@@ -73,7 +73,7 @@ begin Result := 0; end;
 function TCombatStructure.GetTerrainTypeImage(TerrainType: Integer): Integer;
 begin Result := 0; end;
 
-procedure TCombatStructure.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
+procedure TCombatStructure.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 begin end;
 
 function TCombatStructure.ValidTerrainType(TerrainType: Integer): Boolean;

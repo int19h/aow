@@ -289,7 +289,7 @@ type
   TCombatMoveControl = class(TMoveControl)
   public
     FUnitHS: TTacticalCombatUnitHS; { $1E0 }
-    F_CombatMoveControl_1E4: Byte;
+    FMoveFlags: Byte; { $1E4; $405884 }
     F_CombatMoveControl_1E5: array[0..2] of Byte;
     procedure ProcessMove(A1: AoWE.TMoveControlSettings); override;
   end;
@@ -315,6 +315,7 @@ type
   TTacticalCombatUnitHS = class(TUnitHS)
   public
     FUnit: TTacticalCombatUnit; { $1C }
+    { conflict: FCombatUnit: TTacticalCombatUnit; }
     F_TacticalCombatUnitHS_20: Word;
     F_TacticalCombatUnitHS_22: Word;
     FAction: TTCAction; { $24 }
@@ -443,10 +444,10 @@ type
     F_AoWCombatMap_114: Integer;
     FAI: TCAI; { $118 }
     F_AoWCombatMap_11C: Integer;
-    F_AoWCombatMap_120: Integer;
+    FWalls: TList; { $120; $405741 }
     F_AoWCombatMap_124: Integer;
     F_AoWCombatMap_128: Byte;
-    F_AoWCombatMap_129: array[0..0] of Byte;
+    FPlaySounds: Boolean; { $129; $405B38 }
     F_AoWCombatMap_12A: Byte;
     F_AoWCombatMap_12B: array[0..8] of Byte;
     F_AoWCombatMap_134: Byte;
@@ -471,6 +472,7 @@ type
     function GetEndTurnStatus: Byte;  { draft }
     function GetNextUnit(A1: Integer; A2: Byte; A3: Integer): Integer;  { draft }
     function AddEffect(EffectType: TfxType): TfxHS;
+    { conflict: function AddEffect(Effect: Byte): TfxHS; }
     procedure UpdateCursor(A1: Integer; A2: Integer);  { draft }
     procedure EndCombat(A1: Integer);  { draft }
     procedure SelectNextUnit(A1: Byte);  { draft }
@@ -744,10 +746,15 @@ function GetRangedDirIndex(A1: Integer; A2: Integer): Integer;  { draft }
 
 var
   AoWCombatMap: TAoWCombatMap;
+  CombatXLoc, CombatYLoc, CombatLLoc: Integer; { $46C058..$46C064 }
   TCAttack, TCDamage: array[0..1] of Integer;
+  { conflict: const TCAttack: array[0..1] of Integer = (6, 10); }
+  { conflict: const TCDamage: array[0..1] of Integer = (6, 1); }
+const
+  WallISIndex: array[0..1] of Integer = (30, 0);
+  WallMaxHP: array[0..1] of Integer = (7, 13);
 
 implementation
-
 constructor TCAI.Create;
 begin
   inherited Create;
