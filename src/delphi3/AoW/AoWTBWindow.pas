@@ -355,8 +355,8 @@ end;
 procedure TTBWindow.RelationsBtnClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
-  with RelWindow.RelWin do
-    if Visible then Visible := False
+  with RelWindow do
+    if RelWin.Visible then RelWin.Visible := False
     else RelWindow.ShowRelations(AoWHSMap.FSeatedPlayer);
 end;
 

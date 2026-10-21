@@ -158,7 +158,7 @@ begin
 
     Assert(FEvent = nil);
     General.Manager.OverlayPriority := 49;
-    with Event do begin FEvent := Event; AddRef; end;
+    FEvent := Event; FEvent.AddRef;
     FDone := Done;
     FLogbook := Event.FLogbook;
     InitializeCombatDialog(Dialog, FLogbook);
@@ -176,7 +176,7 @@ begin
     end
     else
     begin
-      with Event do begin FRequest := Event; AddRef; end;
+      FRequest := Event; FRequest.AddRef;
       FOnDone := TNotifyEvent(Done);
       General.Manager.OverlayPriority := 49;
       if TCchk.Checked then Event.Select(TCombatType(2)) else Event.Select(TCombatType(1));

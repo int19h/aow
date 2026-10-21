@@ -415,7 +415,7 @@ begin
       TAOWImage(FControls[I + 12]).ToolTipText.Clear;
       if FSelectedPlayer <> -1 then
         if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
-          TAOWImage(FControls[I + 12]).ToolTipText.Add(
+          TAOWImage(FControls[12 + I]).ToolTipText.Add(
             TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelation(FSelectedPlayer)]) +
             ' (' + IntToStr(AoWHSMap.FRaces.GetRace(FRaces[I]).GetPlayerRelationValue(FSelectedPlayer)) + ')');
     end;

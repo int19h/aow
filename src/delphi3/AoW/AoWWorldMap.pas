@@ -625,7 +625,7 @@ procedure TWorldMap.PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X,
 var
   Description: string;
 begin
-  if Y > 20 then
+  if X > 20 then { Original hit test uses X. }
     if GetCampaign.FState = 1 then
       if Sender = PPawn then Description := TranslateRStr(ViewSummaryRStr)
       else

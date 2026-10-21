@@ -467,7 +467,7 @@ end;
 procedure TMapEvents.TheMapStructureDestroyed(Structure: TStructure);
 begin
   if (Structure <> nil) and (Structure = General.FStructure) then TheMapStructureDeselected;
-  if RealmWin.Dlg.Visible and ((RealmWin.HeaderTab.Selected = 2) or (RealmWin.HeaderTab.Selected = 1)) then RealmWin.UpdateOverview;
+  if RealmWin.Dlg.Visible then if (RealmWin.HeaderTab.Selected = 2) or (RealmWin.HeaderTab.Selected = 1) then RealmWin.UpdateOverview;
 end;
 
 procedure TMapEvents.TheMapStructureSelected(Structure: TStructure);

@@ -156,7 +156,7 @@ begin
   begin
     Player := AoWHSMap.FPlayerCommunicator.PCC.IndexOfSystemID(Message.FToID);
     if Player <> -1 then
-      if AoWHSMap.FPlayers.GetPlayers(Player) <> nil then
+      if AoWHSMap.FPlayers.GetPlayers(Shortint(Player)) <> nil then
         if AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psPlaying then
         begin
           Event := TPlayerConnectionEventLog.Create(nil);
@@ -306,7 +306,7 @@ begin
   begin
     Player := AoWHSMap.FPlayerCommunicator.PCC.IndexOfSystemID(ID);
     if Player <> -1 then
-      if AoWHSMap.FPlayers.GetPlayers(Player) <> nil then
+      if AoWHSMap.FPlayers.GetPlayers(Shortint(Player)) <> nil then
       begin
         if AoWHSMap.FPlayers.GetPlayers(Player).FStatus = psPlaying then AoWHSMap.PlayerDisconnected(Player);
         UpdateChatPlayers;

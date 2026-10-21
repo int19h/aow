@@ -42,7 +42,7 @@ implementation
 
 uses ShellAPI, AoWE, AoWUnit, AoWWinMan, AoWVideoDlg, AoWSoundDlg,
   AoWExeForms, E2Globals, E2GameFlow, E1Globals, E1GameFlow, E3Globals, aowHelpWin,
-  AoWGamePlayDlg, AoWFileDialog;
+  AoWGamePlayDlg, AoWFileDialog, E3EventDialogs;
 
 procedure ShowVideoSettings(Dialog: TVideoDialog);
 begin
@@ -91,7 +91,7 @@ end;
 procedure TPopupWindows.OverViewsMenuSelect(Sender: TAOWMenu);
 begin
   case Sender.FSelectedItem of
-    0: E1GameFlow.ShowCampaignMap(E1Globals.WorldMap);
+    0: E3EventDialogs.ShowInformationBook(E1Globals.WorldMap, nil, nil); { Original opens the information book. }
     1: if AoWEngine.FCampaign <> nil then E1Globals.WorldMap.ShowSpheres;
   end;
 end;

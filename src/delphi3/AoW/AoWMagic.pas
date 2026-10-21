@@ -297,7 +297,7 @@ procedure TMagicWin.SpellIcnDraw(Sender: TObject; Surface: TSurfaceDesc);
 var
   Magic: TPlayerMagicControl;
   Spell: TSpell;
-  X: Integer;
+  X, Y: Integer;
 begin
   Magic := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl;
   if Magic.FResearchSpellID <> 0 then
@@ -307,8 +307,8 @@ begin
       if Spell.FCastImages.GetImageSequence(10) <> nil then
         with TAOWImage(Sender) do
         begin
-          X := FAOWWindow.WinLeft;
-          Spell.FCastImages.Show(10, WinLeft + X, FAOWWindow.WinTop + WinTop, 0, Surface);
+          X := FAOWWindow.WinLeft; Y := FAOWWindow.WinTop + WinTop;
+          Spell.FCastImages.Show(10, WinLeft + X, Y, 0, Surface);
         end;
   end;
 end;
