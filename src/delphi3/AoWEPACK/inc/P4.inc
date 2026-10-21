@@ -21,7 +21,8 @@ end;
   unit-spell combat actions and unit-spell token events are recovered.
   Unit spells, research/casting AI, enchantments and player-magic logs are recovered.
   Player-magic control is recovered through GetNetPowerToResearch.
-  Draft recovery next resumes at TPlayerMagicControl.ResearchTurns (5577CFB0).
+  Player-magic control, its token event, global enchantments and their logs/list
+  are recovered. Draft recovery next resumes at TGlobalMagicControl.Create (5577E148).
   The base spell, spell events/control/list/casters and power sources are recovered.
   Compatibility declarations preserve calls to other packages' draft APIs; these
   adapters never create instances of their declaration-only views. }
@@ -106,6 +107,7 @@ resourcestring
   P4XResearchedRStr = '%s researched';
   P4XRemovedOutOfManaRStr = '%s removed (out of mana)';
   P4XRemovedRStr = '%s removed';
+  P4XDispelledRStr = '%s dispelled';
   P4UndefinedRStr = 'Undefined';
   P4SelectTargetPartyForXRStr = 'Select target party for %s on map';
   P4CastXRStr = 'Cast %s';
@@ -171,12 +173,6 @@ function P4GetPlayer(Players: TPlayerList; PlayerIndex: Integer): TPlayer; assem
 { needs: P1 TPlayerList.GetPlayers returns TPlayer; EAX is consumed at 55779710. }
 asm
   JMP TPlayerList.GetPlayers
-end;
-
-function P4RequestUpkeep(Magic: TPlayerMagicControl; Priority: Integer): Integer; assembler;
-{ needs: AIRequestOverrideUpkeep has one explicit argument and returns Integer. }
-asm
-  JMP TPlayerMagicControl.AIRequestOverrideUpkeep
 end;
 
 function P4RequestBudget(Manager: TAIBudgetManager; A1, A2, A3, A4, A5, A6: Integer): Boolean; assembler;
@@ -6379,8 +6375,7 @@ var
 begin
   if Upkeep > 0 then
   begin
-    Dec(Mana, P4RequestUpkeep(TPlayerMagicControl(P4GetPlayer(
-      TPlayerList(AoWHSMap.FPlayers), ShortInt(Source.FPlayer)).FMagicControl),
+    Dec(Mana, AoWHSMap.FPlayers.GetPlayers(ShortInt(Source.FPlayer)).FMagicControl.AIRequestOverrideUpkeep(
       Round(Upkeep * 0.8)));
     if Mana < 0 then
       Mana := 0;
@@ -8394,157 +8389,565 @@ function TPlayerMagicControl.GetNetPowerToResearch: Integer;
 begin Result := Round(GetNetPower * FResearchPercentage * 0.01); end;
 
 function TPlayerMagicControl.ResearchTurns(Power, Points: Integer): Integer;
-begin Result := 0; end;
+begin
+  if Power > 0 then
+  begin
+    Result := Points div Power;
+    if Points mod Power <> 0 then Inc(Result);
+  end
+  else Result := 999;
+end;
 
-procedure TPlayerMagicControl.GetResearchTurnsLeft;
-begin end;
+function TPlayerMagicControl.GetResearchTurnsLeft: Integer;
+begin
+  Result := ResearchTurns(GetNetPowerToResearch, FResearchPointsLeft);
+end;
 
-procedure TPlayerMagicControl.ValidResearchSpell(A1: Integer);
-begin end;
+function TPlayerMagicControl.ValidResearchSpell(Spell: TSpell): Boolean;
+var
+  Counts: array[1..4] of Integer;
+  I, Level: Integer;
+  Known: TSpell;
+begin
+  if (FPlayer.FLeader.GetSpherePicks(Spell.FMagicSphere) >= Spell.FSpellLevel) and
+    (FSpells.IndexOf(Spell.FSpellID) = -1) then
+  begin
+    FillChar(Counts, SizeOf(Counts), 0);
+    for I := FSpells.Count - 1 downto 0 do
+    begin
+      Known := AoWHSSet.FSpellControl.GetSpell(FSpells[I]);
+      if (Known.FSpellLevel > 0) and Known.GetEnabled and
+        (Spell.FMagicSphere = Known.FMagicSphere) then Inc(Counts[Known.FSpellLevel]);
+    end;
+    Level := 1;
+    while (Counts[Level] >= 2) and (Level < 4) do Inc(Level);
+    if AoWEngine.FDemo then Level := 2;
+    Result := Level >= Spell.FSpellLevel;
+  end
+  else Result := False;
+end;
 
 procedure TPlayerMagicControl.ListResearchSpells(var List: TSpellList; SpellTypes: TSpellTypes);
-begin end;
+var
+  I: Integer;
+  Spell: TSpell;
+begin
+  for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+  begin
+    Spell := AoWHSSet.FSpellControl.GetSpell(I);
+    if (Spell <> nil) and (Spell.FSpellType in SpellTypes) and ValidResearchSpell(Spell) then
+      List.Add(Spell);
+  end;
+end;
 
 procedure TPlayerMagicControl.ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
-begin end;
+var
+  I: Integer;
+  Spell: TSpell;
+begin
+  if FCheatEnabled and (FPlayer.FPlayerType = ptHuman) then
+  begin
+    for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(I);
+      if (Spell <> nil) and Spell.GetEnabled and (Spell.FSpellType in SpellTypes) then List.Add(Spell);
+    end;
+  end
+  else
+    for I := 0 to FSpells.Count - 1 do
+    begin
+      Spell := AoWHSSet.FSpellControl.GetSpell(FSpells[I]);
+      if (Spell <> nil) and Spell.GetEnabled and (Spell.FSpellType in SpellTypes) then List.Add(Spell);
+    end;
+end;
 
 procedure TPlayerMagicControl.BeginUpdate;
-begin end;
+begin Inc(FUpdateCount); end;
 
 procedure TPlayerMagicControl.EndUpdate;
-begin end;
+begin Dec(FUpdateCount); if FUpdateCount = 0 then Update; end;
 
 procedure TPlayerMagicControl.Update;
-begin end;
+begin
+  if FUpdateCount = 0 then
+  begin
+    UpdateEnemyEnchantments;
+    FChangedEvents.TriggerNotifyEvents(Self);
+  end;
+end;
 
 procedure TPlayerMagicControl.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if (Msg.MsgID = $20020002) and (Msg.Value = FPlayer.FPlayerIndex) then NewTurn;
+  FEnchantments.MsgProc(Msg, Sender);
+end;
 
-procedure TPlayerMagicControl.ValidateEnchantmentID(A1: Integer);
-begin end;
+procedure TPlayerMagicControl.ValidateEnchantmentID(Enchantment: TEnchantment);
+var
+  ID: Integer;
+begin
+  ID := Enchantment.FEnchantmentID;
+  if (ID = 0) or (ID shr 24 <> FPlayer.FPlayerIndex) then Enchantment.FEnchantmentID := 0
+  else
+  begin
+    Enchantment.FEnchantmentID := 0;
+    if FEnchantments.IndexOfID(ID) = -1 then Enchantment.FEnchantmentID := ID;
+  end;
+  if Enchantment.FEnchantmentID = 0 then
+  begin
+    if FNextEnchantmentID = 0 then FNextEnchantmentID := 1;
+    ID := FPlayer.FPlayerIndex shl 24 + FNextEnchantmentID;
+    Inc(FNextEnchantmentID);
+    if FNextEnchantmentID > $FFFFF then FNextEnchantmentID := 1;
+    while FEnchantments.IndexOfID(ID) <> -1 do
+    begin
+      ID := FPlayer.FPlayerIndex shl 24 + FNextEnchantmentID;
+      Inc(FNextEnchantmentID);
+      if FNextEnchantmentID > $FFFFF then FNextEnchantmentID := 1;
+    end;
+    Enchantment.FEnchantmentID := ID;
+  end;
+end;
 
-procedure TPlayerMagicControl.RegisterEnchantment(Enchantment: TEnchantment);
-begin end;
+function TPlayerMagicControl.RegisterEnchantment(Enchantment: TEnchantment): Boolean;
+begin
+  if FEnchantments.FChildren.IndexOf(Enchantment) = -1 then
+  begin
+    FEnchantments.AddChild(Enchantment);
+    ValidateEnchantmentID(Enchantment);
+    Update;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.UnregisterEnchantment(Enchantment: TEnchantment);
-begin end;
+function TPlayerMagicControl.UnregisterEnchantment(Enchantment: TEnchantment): Boolean;
+begin
+  Result := FEnchantments.FChildren.Remove(Enchantment) <> -1;
+  if Result then Update;
+end;
 
-procedure TPlayerMagicControl.RegisterPowerSource(Source: TPowerSource);
-begin end;
+function TPlayerMagicControl.RegisterPowerSource(Source: TPowerSource): Boolean;
+begin
+  if FPowerSources.FindChildIndex(Source) = -1 then
+  begin
+    FPowerSources.AddChild(Source);
+    Update;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.UnregisterPowerSource(Source: TPowerSource);
-begin end;
+function TPlayerMagicControl.UnregisterPowerSource(Source: TPowerSource): Boolean;
+begin
+  Result := FPowerSources.RemoveChild(Source) <> -1;
+  if Result then Update;
+end;
 
-procedure TPlayerMagicControl.CreateChangeMagicTE;
-begin end;
+function TPlayerMagicControl.CreateChangeMagicTE: TChangePlayerMagicTE;
+begin
+  Result := TChangePlayerMagicTE.Create(nil);
+  Result.FPlayerIndex := FPlayer.FPlayerIndex;
+end;
 
-procedure TPlayerMagicControl.ExecuteDispelEnchantment(A1: Integer);
-begin end;
+function TPlayerMagicControl.ExecuteDispelEnchantment(Index: Integer): Boolean;
+begin
+  if Index < FEnchantments.GetCount then Result := FEnchantments.GetEnchantments(Index).Dispel
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.DispelEnchantment;
-begin end;
+function TPlayerMagicControl.DispelEnchantment(Enchantment: TEnchantment): Boolean;
+var
+  Index: Integer;
+  Event: TChangePlayerMagicTE;
+begin
+  Index := FEnchantments.FChildren.IndexOf(Enchantment);
+  if not FPlayer.GetBusy and (Index <> -1) then
+  begin
+    Event := CreateChangeMagicTE;
+    Event.FMode := cmmDispelEnchantment;
+    Event.FValue := Index;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer.FPlayerIndex).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.ExecuteChangePowerSettings(A1: Integer);
-begin end;
+function TPlayerMagicControl.ExecuteChangePowerSettings(Percentage: Integer): Boolean;
+begin
+  FResearchPercentage := Percentage;
+  Update;
+  Result := True;
+end;
 
-procedure TPlayerMagicControl.ChangePowerSettings(A1: Integer);
-begin end;
+function TPlayerMagicControl.ChangePowerSettings(Percentage: Integer): Boolean;
+var
+  Event: TChangePlayerMagicTE;
+begin
+  if not FPlayer.GetBusy then
+  begin
+    if Percentage <> FResearchPercentage then
+    begin
+      Event := CreateChangeMagicTE;
+      Event.FMode := cmmChangePowerSettings;
+      Event.FValue := Percentage;
+      AoWHSMap.FTokenManager.GetTokenControl(FPlayer.FPlayerIndex).AddEvent(Event);
+      Event.Release;
+    end;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.ExecuteResearchSpell(A1: Integer);
-begin end;
+function TPlayerMagicControl.ExecuteResearchSpell(SpellID: Integer): Boolean;
+begin
+  if (FSpells.IndexOf(SpellID) = -1) and (SpellID <> FResearchSpellID) then
+  begin
+    FResearchSpellID := SpellID;
+    if SpellID <> 0 then FResearchPointsLeft := AoWHSSet.FSpellControl.GetSpell(SpellID).FResearchCost
+    else FResearchPointsLeft := 0;
+    Update;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.ResearchSpell(A1: Integer);
-begin end;
+function TPlayerMagicControl.ResearchSpell(SpellID: Integer): Boolean;
+var
+  Event: TChangePlayerMagicTE;
+begin
+  if not FPlayer.GetBusy then
+  begin
+    Event := CreateChangeMagicTE;
+    Event.FMode := cmmResearchSpell;
+    Event.FValue := SpellID;
+    AoWHSMap.FTokenManager.GetTokenControl(FPlayer.FPlayerIndex).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TPlayerMagicControl.AIRequestOverrideUpkeep(A1: Integer; A2: Integer);
-begin end;
+function TPlayerMagicControl.AIRequestOverrideUpkeep(Priority: Integer): Integer;
+var
+  I: Integer;
+  Enchantment: TGlobalEnchantment;
+begin
+  Result := 0;
+  for I := 0 to FEnchantments.GetCount - 1 do
+    if Priority >= FEnchantments.GetEnchantments(I).GetAIUpkeepPriority then
+      Inc(Result, FEnchantments.GetEnchantments(I).FUpkeep);
+  { Original bug: this estimate also counts global enchantments owned by other players. }
+  for I := AoWHSMap.FGlobalMagicControl.FEnchantments.GetCount - 1 downto 0 do
+  begin
+    Enchantment := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I);
+    if Priority >= Enchantment.GetAIUpkeepPriority then Inc(Result, Enchantment.GetUpkeep);
+  end;
+end;
 
-procedure TPlayerMagicControl.AIOverrideUpkeep(Priority, Amount: Integer);
-begin end;
+function TPlayerMagicControl.AIOverrideUpkeep(Priority, Amount: Integer): Integer;
+var
+  List: TQuadItemList;
+  I, UpkeepPriority, Total: Integer;
+  Enchantment: TGlobalEnchantment;
+begin
+  Result := 0;
+  List := TQuadItemList.Create;
+  for I := 0 to FEnchantments.GetCount - 1 do
+  begin
+    UpkeepPriority := FEnchantments.GetEnchantments(I).GetAIUpkeepPriority;
+    if UpkeepPriority <= Priority then
+      List.AddABCD(UpkeepPriority, FEnchantments.GetEnchantments(I).FUpkeep,
+        Integer(FEnchantments.GetEnchantments(I)), 0);
+  end;
+  for I := AoWHSMap.FGlobalMagicControl.FEnchantments.GetCount - 1 downto 0 do
+  begin
+    Enchantment := AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(I);
+    if Enchantment.FPlayerIndex = FPlayer.FPlayerIndex then
+    begin
+      UpkeepPriority := Enchantment.GetAIUpkeepPriority;
+      if UpkeepPriority <= Priority then
+        List.AddABCD(UpkeepPriority, Enchantment.GetUpkeep, 0, Integer(Enchantment));
+    end;
+  end;
+  if List.Count <> 0 then
+  begin
+    Total := 0;
+    List.SortAscendingItemA;
+    while (Total < Amount) and (List.Count <> 0) and (FPlayer.FGameOverStatus <> goLost) do
+    begin
+      Inc(Total, List[0].B);
+      if List[0].C <> 0 then
+        ExecuteDispelEnchantment(FEnchantments.FChildren.IndexOf(Pointer(List[0].C)))
+      else
+      begin
+        Enchantment := TGlobalEnchantment(List[0].D);
+        Enchantment.AddRef;
+        Enchantment.Remove(FPlayer.FPlayerIndex);
+        Enchantment.Release;
+      end;
+      List.Delete(0);
+    end;
+  end;
+  List.Free;
+end;
 
 class function TChangePlayerMagicTE.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $21115; end;
 
 procedure TChangePlayerMagicTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FMode, 1, 20);
+  Stream.rwByte(FPlayerIndex, 21);
+  Stream.rwInteger(FValue, 22);
+  Stream.rwInteger(FExtraValue, 23);
+end;
 
 function TChangePlayerMagicTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  Success: Boolean;
+  Magic: TPlayerMagicControl;
+begin
+  inherited Execute(TE);
+  Success := False;
+  Magic := AoWHSMap.FPlayers.GetPlayers(Shortint(FPlayerIndex)).FMagicControl;
+  case FMode of
+    cmmDispelEnchantment: Success := Magic.ExecuteDispelEnchantment(FValue);
+    cmmChangePowerSettings: Success := Magic.ExecuteChangePowerSettings(FValue);
+    cmmResearchSpell: Success := Magic.ExecuteResearchSpell(FValue);
+  end;
+  if Success then Result := erDone else Result := erDoneHalt;
+end;
 
 constructor TGlobalEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+  FEnchantmentMode := [gemTrueGlobal, gemOwned];
+end;
 
 function TGlobalEnchantment.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TGlobalEnchantment.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if Result = 0 then Destroy;
+end;
 
 function TGlobalEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
 function TGlobalEnchantment.GetLocation: TXYL;
-begin Result.XYL := 0; end;
+begin Result.XYL := $FFFFFF; end;
 
-procedure TGlobalEnchantment.CenterToLocation(A1: Integer; A2: Integer);
-begin end;
+procedure TGlobalEnchantment.CenterToLocation;
+var
+  Location: TXYL;
+begin
+  Location := GetLocation;
+  if Location.X <> -1 then
+  begin
+    AoWHSMap.CenterViewTo(Location.X, Location.Y, Location.L);
+    AoWHSMap.PlayCenterAnimation(Location.X, Location.Y, Location.L);
+  end;
+end;
 
 function TGlobalEnchantment.GetName: string;
-begin Result := ''; end;
+begin Result := FName; end;
 
 function TGlobalEnchantment.GetUpkeep: Integer;
-begin Result := 0; end;
+begin Result := FEnchantmentManaUpkeep; end;
 
 function TGlobalEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  Location: TXYL;
+begin
+  if not (gemTrueGlobal in FEnchantmentMode) and (Player <> FPlayerIndex) then
+  begin
+    Location := GetLocation;
+    if Location.X <> -1 then
+      Result := AoWHSMap.VisibleForPlayer(Location.X, Location.Y, Location.L, Player)
+    else Result := False;
+  end
+  else Result := True;
+end;
 
 procedure TGlobalEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FEnchantmentID, 10);
+  Stream.rwData(FEnchantmentType, 1, 11);
+  Stream.rwByte(Byte(FPlayerIndex), 12);
+  Stream.rwString(FName, 13);
+  Stream.rwInteger(FEnchantmentManaUpkeep, 14);
+  Stream.rwInteger(FDispelMana, 15);
+end;
 
-procedure TGlobalEnchantment.Setup(A1: Integer; A2: Integer);
-begin end;
+procedure TGlobalEnchantment.Setup(Kind: TGlobalEnchantmentType; Name: string; Upkeep: Integer);
+begin
+  FEnchantmentType := Kind;
+  FName := Name;
+  FEnchantmentManaUpkeep := Upkeep;
+end;
 
 function TGlobalEnchantment.CanActivate(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin
+  if (FEnchantmentType <> getNone) and
+    (FEnchantmentType in AoWHSMap.FGlobalMagicControl.FActiveEnchantments) then
+  begin
+    Reason := Format(TranslateRStr(XIsAlreadyActiveRStr), [FName]);
+    Result := False;
+  end
+  else
+  begin
+    Reason := '';
+    Result := True;
+  end;
+end;
 
 function TGlobalEnchantment.Activate(Player: Shortint): Boolean;
-begin Result := False; end;
+begin
+  FPlayerIndex := Player;
+  FEnchantmentStatus := FEnchantmentStatus + [getActivated];
+  AoWHSMap.FGlobalMagicControl.ValidateEnchantmentID(Self);
+  if gemOwned in FEnchantmentMode then
+    Owner := AoWHSMap.FGlobalMagicControl.FEnchantments
+  else AoWHSMap.FGlobalMagicControl.FEnchantments.AddChild(Self);
+  AddRef;
+  AoWHSMap.FGlobalMagicControl.Update;
+  if FEnchantmentManaUpkeep <> 0 then AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.Update;
+  Result := True;
+end;
 
 function TGlobalEnchantment.CanDeactivate(Player: Byte; var Reason: string): Boolean;
-begin Result := False; end;
+begin Result := True; end;
 
 function TGlobalEnchantment.Deactivate(Player: Byte): Boolean;
-begin Result := False; end;
+begin
+  FEnchantmentStatus := FEnchantmentStatus - [getActivated];
+  if gemOwned in FEnchantmentMode then Owner := nil
+  else AoWHSMap.FGlobalMagicControl.FEnchantments.RemoveChild(Self);
+  AoWHSMap.FGlobalMagicControl.Update;
+  if FEnchantmentManaUpkeep <> 0 then AoWHSMap.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.Update;
+  Release;
+  Result := True;
+end;
 
 function TGlobalEnchantment.CanCast(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin Result := CanActivate(Player, Reason); end;
 
 function TGlobalEnchantment.Cast(Player: Shortint): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Log: TGlobalEnchantmentEventLog;
+begin
+  if CanCast(Player, Reason) then
+  begin
+    Result := Activate(Player);
+    if Result then
+    begin
+      Log := TGlobalEnchantmentEventLog.Create(nil);
+      Log.FEnchantmentPlayer := Player;
+      Log.FPlayer := Player;
+      Log.FText := Format(TranslateRStr(XCastRStr), [FName]);
+      DistributeEventLog(Log, False);
+      Log.Release;
+    end;
+  end
+  else Result := False;
+end;
 
 function TGlobalEnchantment.CanDispel(Player: Shortint; var Reason: string): Boolean;
-begin Result := False; end;
+begin Result := CanDeactivate(Byte(Player), Reason); end;
 
-procedure TGlobalEnchantment.Dispel(A1: Byte);
-begin end;
+function TGlobalEnchantment.Dispel(Player: Byte): Boolean;
+var
+  Reason: string;
+  Location: TXYL;
+  I: Integer;
+  Log: TGlobalEnchantmentEventLog;
+begin
+  if CanDispel(Shortint(Player), Reason) then
+  begin
+    AddRef;
+    Location := GetLocation;
+    for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+      if VisibleForPlayer(I) then
+      begin
+        Log := TGlobalEnchantmentEventLog.Create(nil);
+        Log.FPlayer := Shortint(Player);
+        Log.FEnchantmentPlayer := FPlayerIndex;
+        Log.SetLocation(Location.X, Location.Y, Location.L);
+        Log.FText := Format(TranslateRStr(P4XDispelledRStr), [GetName]);
+        AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Log);
+        Log.Release;
+      end;
+    Result := Deactivate(Player);
+    Release;
+  end
+  else Result := False;
+end;
 
-procedure TGlobalEnchantment.CanRemove(A1: Byte; A2: Integer);
-begin end;
+function TGlobalEnchantment.CanRemove(Player: Byte; var Reason: string): Boolean;
+begin
+  if Player = FPlayerIndex then Result := CanDeactivate(Byte(FPlayerIndex), Reason)
+  else Result := False;
+end;
 
-procedure TGlobalEnchantment.Remove(A1: Byte);
-begin end;
+function TGlobalEnchantment.Remove(Player: Byte): Boolean;
+var
+  Reason: string;
+  Location: TXYL;
+  I: Integer;
+  Log: TGlobalEnchantmentEventLog;
+begin
+  if CanRemove(Player, Reason) then
+  begin
+    AddRef;
+    Location := GetLocation;
+    for I := 1 to AoWHSMap.FPlayers.GetCount - 1 do
+      if VisibleForPlayer(I) then
+      begin
+        Log := TGlobalEnchantmentEventLog.Create(nil);
+        Log.FPlayer := FPlayerIndex;
+        Log.FEnchantmentPlayer := FPlayerIndex;
+        Log.SetLocation(Location.X, Location.Y, Location.L);
+        Log.FText := Format(TranslateRStr(P4XRemovedRStr), [GetName]);
+        AoWHSMap.FPlayers.GetPlayers(I).FEventLogbook.AddEvent(Log);
+        Log.Release;
+      end;
+    Result := Deactivate(Byte(FPlayerIndex));
+    Release;
+  end
+  else Result := False;
+end;
 
 class function TGlobalEnchantmentEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202EB; end;
 
 procedure TGlobalEnchantmentEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FEnchantmentPlayer), 30);
+end;
 
 function TGlobalEnchantmentEventLog.GetLeftIcon: Integer;
-begin Result := 0; end;
+begin
+  if (FEnchantmentPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FEnchantmentPlayer) then
+    Result := AoWHSMap.FPlayers.GetPlayers(FEnchantmentPlayer).FPlayerRace
+  else Result := 12;
+end;
 
 function TGlobalEnchantmentList.GetEnchantments(A1: Integer): TGlobalEnchantment;
-begin Result := nil; end;
+begin Result := FChildren.List^[A1]; end;
 
 constructor TGlobalMagicControl.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -8594,7 +8997,7 @@ begin end;
 function TGlobalMagicControl.IndexOfID(A1: Integer): Integer;
 begin Result := 0; end;
 
-procedure TGlobalMagicControl.ValidateEnchantmentID(A1: Integer);
+procedure TGlobalMagicControl.ValidateEnchantmentID(Enchantment: TGlobalEnchantment);
 begin end;
 
 procedure TGlobalMagicControl.CreateChangeMagicTE;

@@ -46,14 +46,14 @@
     function FindID(A1: Integer): TEnchantment;
   end;
 
-  { TChangePlayerMagicTE (instance size 28, VMT 5570ABDC) }
+  { TChangePlayerMagicTE (instance size 28, VMT 5570ABDC; $10 mode, $11 player, $14/$18 values) }
   TChangePlayerMagicTE = class(TTokenEvent)
   public
-    F_ChangePlayerMagicTE_10: Byte;
-    F_ChangePlayerMagicTE_11: Byte;
+    FMode: TChangePlayerMagicMode; { $10 }
+    FPlayerIndex: Byte; { $11 }
     F_ChangePlayerMagicTE_12: array[0..1] of Byte;
-    F_ChangePlayerMagicTE_14: Integer;
-    F_ChangePlayerMagicTE_18: Integer;
+    FValue: Integer; { $14 }
+    FExtraValue: Integer; { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
@@ -151,34 +151,35 @@
     function GetNetPowerToMana: Integer; { 5577CEE4 }
     function GetNetPowerToResearch: Integer; { 5577B829 }
     function ResearchTurns(Power, Points: Integer): Integer; { 5577B839 }
-    procedure GetResearchTurnsLeft;  { draft }
-    procedure ValidResearchSpell(A1: Integer);  { draft }
+    function GetResearchTurnsLeft: Integer; { 5577CFD8 }
+    function ValidResearchSpell(Spell: TSpell): Boolean; { 5577CFF0 }
     procedure ListResearchSpells(var List: TSpellList; SpellTypes: TSpellTypes);
     procedure ListSpells(var List: TSpellList; SpellTypes: TSpellTypes);
     procedure BeginUpdate;  { draft }
     procedure EndUpdate;  { draft }
     procedure Update;
-    procedure ValidateEnchantmentID(A1: Integer);  { draft }
-    procedure RegisterEnchantment(Enchantment: TEnchantment);
-    procedure UnregisterEnchantment(Enchantment: TEnchantment);
-    procedure RegisterPowerSource(Source: TPowerSource);
-    procedure UnregisterPowerSource(Source: TPowerSource);
-    procedure CreateChangeMagicTE;  { draft }
-    procedure ExecuteDispelEnchantment(A1: Integer);  { draft }
-    procedure DispelEnchantment;  { draft }
-    procedure ExecuteChangePowerSettings(A1: Integer);  { draft }
-    procedure ChangePowerSettings(A1: Integer);  { draft }
-    procedure ExecuteResearchSpell(A1: Integer);  { draft }
-    procedure ResearchSpell(A1: Integer);  { draft }
-    procedure AIRequestOverrideUpkeep(A1: Integer; A2: Integer);  { draft }
-    procedure AIOverrideUpkeep(Priority, Amount: Integer);
+    procedure ValidateEnchantmentID(Enchantment: TEnchantment); { 5577D2A8 }
+    function RegisterEnchantment(Enchantment: TEnchantment): Boolean;
+    function UnregisterEnchantment(Enchantment: TEnchantment): Boolean;
+    function RegisterPowerSource(Source: TPowerSource): Boolean;
+    function UnregisterPowerSource(Source: TPowerSource): Boolean;
+    function CreateChangeMagicTE: TChangePlayerMagicTE;
+    function ExecuteDispelEnchantment(Index: Integer): Boolean;
+    function DispelEnchantment(Enchantment: TEnchantment): Boolean;
+    function ExecuteChangePowerSettings(Percentage: Integer): Boolean;
+    function ChangePowerSettings(Percentage: Integer): Boolean;
+    function ExecuteResearchSpell(SpellID: Integer): Boolean;
+    function ResearchSpell(SpellID: Integer): Boolean;
+    function AIRequestOverrideUpkeep(Priority: Integer): Integer;
+    function AIOverrideUpkeep(Priority, Amount: Integer): Integer;
   end;
 
-  { TGlobalEnchantment (instance size 36, VMT 5570B398) }
+  { TGlobalEnchantment (instance size 36, VMT 5570B398; $08 ID, $0C references,
+    $10 status, $11 mode, $14 dispel mana, $18 type, $19 player, $1C name, $20 upkeep) }
   TGlobalEnchantment = class(TEObject)
   public
-    F_GlobalEnchantment_08: Integer;
-    F_GlobalEnchantment_0C: Integer;
+    FEnchantmentID: Integer; { $08 }
+    FRefCount: Integer; { $0C }
     FEnchantmentStatus: TGlobalEnchantmentStatus; { $10 }
     FEnchantmentMode: TGlobalEnchantmentMode; { $11 }
     F_GlobalEnchantment_12: array[0..1] of Byte;
@@ -204,18 +205,18 @@
     function CanCast(Player: Shortint; var Reason: string): Boolean; virtual; { +06C }
     function Cast(Player: Shortint): Boolean; virtual; { +070 }
     function CanDispel(Player: Shortint; var Reason: string): Boolean; virtual; { +074; 557EBE5C }
-    procedure Dispel(A1: Byte); virtual;  { +078 draft }
-    procedure CanRemove(A1: Byte; A2: Integer); virtual;  { +07C draft }
-    procedure Remove(A1: Byte); virtual;  { +080 draft }
+    function Dispel(Player: Byte): Boolean; virtual; { +078; 5577DDA4 }
+    function CanRemove(Player: Byte; var Reason: string): Boolean; virtual; { +07C; 5577DF28 }
+    function Remove(Player: Byte): Boolean; virtual; { +080; 5577DF44 }
     function VisibleForPlayer(Player: Shortint): Boolean; virtual;  { +084 }
-    procedure CenterToLocation(A1: Integer; A2: Integer); virtual;  { +088 draft }
-    procedure Setup(A1: Integer; A2: Integer);  { draft }
+    procedure CenterToLocation; virtual; { +088; 5577D970 }
+    procedure Setup(Kind: TGlobalEnchantmentType; Name: string; Upkeep: Integer); { 5577DA8C }
   end;
 
-  { TGlobalEnchantmentEventLog (instance size 36, VMT 5570B4B8) }
+  { TGlobalEnchantmentEventLog (instance size 36, VMT 5570B4B8; $20 enchantment player) }
   TGlobalEnchantmentEventLog = class(TLocationTextEventLog)
   public
-    F_GlobalEnchantmentEventLog_20: Byte;
+    FEnchantmentPlayer: Shortint; { $20 }
     F_GlobalEnchantmentEventLog_21: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
@@ -268,7 +269,7 @@
     function GetEnchantmentUpkeep(Player: Shortint): Integer; { 5577C9A0 }
     procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
     function IndexOfID(A1: Integer): Integer;
-    procedure ValidateEnchantmentID(A1: Integer);  { draft }
+    procedure ValidateEnchantmentID(Enchantment: TGlobalEnchantment); { 5577E4EC }
     procedure CreateChangeMagicTE;  { draft }
     function ExecuteDispelEnchantment(Player: Shortint; EnchantmentID: Integer): Boolean;
     procedure DispelEnchantment(A1: Integer; A2: Integer);  { draft }
