@@ -3,7 +3,7 @@
   TStructureAIPA = class(TAIPlayerAction)
   public
     FPhase: Integer; { $14; 557626E3 }
-    F_StructureAIPA_18: Integer;
+    FStructureIDs: TIntegerList; { $18 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function Activate: Boolean; override;

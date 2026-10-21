@@ -3153,7 +3153,7 @@ begin
   else if Strength < 200 then Result := 5
   else Result := (Strength - 200) div 100 + 5;
   Maximum := AoWHSMap.FHeroCountMax;
-  if Result > Maximum then Result := Maximum;
+  if Maximum < Result then Result := Maximum;
 end;
 
 function TPlayer.GetIdealHeroJoinDay: Integer;
@@ -3163,7 +3163,7 @@ begin
   Result := FLastHeroJoinDay;
   Average := AoWHSMap.FPlayers.GetAverageHeroCount;
   Maximum := AoWHSMap.FPlayers.GetMaxHeroCount;
-  if (Average < Maximum) and (FHeroes.Count = Maximum) then
+  if (Maximum > Average) and (FHeroes.Count = Maximum) then
     Inc(Result, 15)
   else if (Average <= FHeroes.Count) and (FHeroes.Count <> 0) and (AoWHSMap.FDay > 15) then
     Inc(Result, 10)
@@ -7376,7 +7376,7 @@ begin
   end;
 end;
 
-function TStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean;
+function TStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Integer): Boolean;
 begin
   FBuildingDays := Days;
   FBuildingPlayer := AUnit.FPlayer;
@@ -8017,7 +8017,7 @@ begin
   if Result then SetPlayer(AUnit.FPlayer);
 end;
 
-function TPlayerStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean;
+function TPlayerStructure.ExecuteBuild(AUnit: TAbstractUnit; Days: Integer): Boolean;
 begin
   Result := inherited ExecuteBuild(AUnit, Days);
   if Result then SetPlayer(AUnit.FPlayer);
@@ -8396,150 +8396,445 @@ begin
     string(Pointer(Msg.Result)^) := GetCombatEventText(TCombat(Msg.Param[0]));
 end;
 
+{ TPlayerStructureResource (instance size 116; $64 claimed, $68/$6C flag position, $70 flag control). }
 constructor TPlayerStructureResource.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FClaimed := True;
+  FFlagX := 20;
+  FFlagY := -35;
+end;
 
 destructor TPlayerStructureResource.Destroy;
-begin end;
+begin
+  inherited Destroy;
+end;
 
 class function TPlayerStructureResource.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2034D;
+end;
 
 function TPlayerStructureResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2034C;
+end;
 
 procedure TPlayerStructureResource.GenerateFlagPositions;
-begin end;
+begin
+  if FTerrainBound then
+    case FFlagType of
+      1: begin FFlagX := 20; FFlagY := -30; end;
+      2: begin FFlagX := 35; FFlagY := -50; end;
+      3: begin FFlagX := 5; FFlagY := -45; end;
+      4: begin FFlagX := 30; FFlagY := -60; end;
+    end;
+end;
 
 procedure TPlayerStructureResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  if smRead in Stream.StorageMode then GenerateFlagPositions;
+end;
 
 procedure TPlayerStructureResource.ActivateMsg;
-begin end;
+begin
+  FFlagControl := TAoWHSSet(Engine.HSSet).FFlagControl;
+end;
 
 procedure TPlayerStructureResource.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
-begin end;
+begin
+  inherited MsgProc(Msg, Sender);
+  if Msg.MsgID = $20000008 then ActivateMsg;
+end;
 
 function TPlayerStructureResource.PlaceResourceUser(HSMap: HSEngine.THSMap; Xhx, Yhx, Lhx: Shortint): HSEngine.TMapObject;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := inherited PlaceResourceUser(HSMap, Xhx, Yhx, Lhx);
+  if (Result <> nil) and (msEditting in AoWHSMap.Status) then
+    TPlayerStructure(Result).SetPlayer(AoWHSMap.FEditorPlayer);
+end;
 
+{ TPlayerStructureIncomeSource (instance size 12; $08 FStructure). }
 procedure TPlayerStructureIncomeSource.Setup(Structure: TPlayerStructure);
-begin end;
+begin
+  FStructure := Structure;
+end;
 
 function TPlayerStructureIncomeSource.Name: string;
-begin Result := ''; end;
+begin
+  Result := FStructure.GetName;
+end;
 
 function TPlayerStructureIncomeSource.Income: Integer;
-begin Result := 0; end;
+begin
+  Result := FStructure.GetIncome;
+end;
 
 procedure TPlayerStructureIncomeSource.GetLocation(var X, Y, L: Shortint);
-begin end;
+begin
+  X := FStructure.Xhx;
+  Y := FStructure.Yhx;
+  L := FStructure.Lhx;
+end;
 
+{ TPlayerStructurePowerSource (instance size 12; $08 FStructure). }
 procedure TPlayerStructurePowerSource.Setup(Structure: TPlayerStructure);
-begin end;
+begin
+  FStructure := Structure;
+end;
 
 function TPlayerStructurePowerSource.Name: string;
-begin Result := ''; end;
+begin
+  Result := FStructure.GetName;
+end;
 
 function TPlayerStructurePowerSource.Power: Integer;
-begin Result := 0; end;
+begin
+  Result := FStructure.GetPower;
+end;
 
-procedure TPlayerStructurePowerSource.GetLocation(var A1, A2, A3: Shortint);
-begin end;
+procedure TPlayerStructurePowerSource.GetLocation(var X, Y, L: Shortint);
+begin
+  X := FStructure.Xhx;
+  Y := FStructure.Yhx;
+  L := FStructure.Lhx;
+end;
 
 procedure TPlayerStructurePowerSource.Select;
-begin end;
+begin
+  AoWHSMap.Select(FStructure, True);
+end;
 
+{ TStructureTE (instance size 40; $10/$11/$12 coordinates, $13 player, $14 class ID, $18 action, $1C razed, $20/$24 parameters). }
 class function TStructureTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $21110;
+end;
 
 procedure TStructureTE.Initialize(AClassID: Integer; X, Y, L: Shortint);
-begin end;
+var
+  MapField: TAoWMapField;
+  Structure: TStructure;
+begin
+  FX := X;
+  FY := Y;
+  FL := L;
+  MapField := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL));
+  Structure := TStructure(MapField.FindOwnedChild(AClassID));
+  Assert(AClassID = Structure.ClassID, 'Invalid position (StructureTE)');
+  FStructureClassID := AClassID;
+  FRazed := Structure.GetRazed;
+  FPlayer := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL)).GetPlayer;
+end;
 
 procedure TStructureTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FAction, 15);
+  Stream.rwByte(Byte(FX), 16);
+  Stream.rwByte(Byte(FY), 17);
+  Stream.rwByte(Byte(FL), 18);
+  Stream.rwByte(Byte(FPlayer), 19);
+  Stream.rwInteger(FStructureClassID, 20);
+  Stream.rwBool(FRazed, 21);
+  Stream.rwInteger(FParam, 22);
+  Stream.rwInteger(FParam2, 23);
+end;
 
-procedure TStructureTE.Validate;
-begin end;
+function TStructureTE.Validate: Boolean;
+var
+  Structure: TStructure;
+  MapField: TAoWMapField;
+begin
+  MapField := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL));
+  Structure := TStructure(MapField.FindOwnedChild(FStructureClassID));
+  if (Structure <> nil) and (Structure.ClassID = FStructureClassID) then
+    Result := MapField.GetPlayer = FPlayer
+  else Result := False;
+end;
 
 function TStructureTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  if (TE.ExecuteCount <> 0) or Validate then
+    Result := TStructure(AoWHSMap.MapContainer.GetField(FX, FY, FL).
+      FindOwnedChild(FStructureClassID)).ExecuteTE(Self, TE)
+  else Result := erDoneHalt;
+end;
 
+{ TRazeStructureEventLog (instance size 44; $28 FStructure). }
 function TRazeStructureEventLog.Yes: Boolean;
-begin Result := False; end;
+begin
+  FStructure.RazeEx(AoWHSMap.FSeatedPlayer);
+  Result := True;
+end;
 
+{ TConstructStructureTE (instance size 28; $10 unit ID, $14 player, $18 construction control ID). }
 class function TConstructStructureTE.ClassID: Integer;
-begin Result := 0; end;
+begin
+  Result := $2131A;
+end;
 
 procedure TConstructStructureTE.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FControlID, 20);
+  Stream.rwInteger(FUnitID, 21);
+  Stream.rwByte(Byte(FPlayer), 22);
+end;
 
 function TConstructStructureTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
-begin FillChar(Result, SizeOf(Result), 0); end;
+var
+  AUnit: TAbstractUnit;
+  Control: TStructureConstructionControl;
+  Resource: TStructureResource;
+  Structure: TStructure;
+  Reason, Text: string;
+  Gold, Days: Integer;
+  Owner: TEChangeNotifyNode;
+  X, Y, L: Shortint;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+begin
+  Result := erDoneHalt;
+  inherited Execute(TE);
+  AUnit := AoWHSMap.FUnitControl.FindUnit(FUnitID);
+  Control := TStructureConstructionControl(TConstructAbility(
+    AoWHSSet.FAbilityControl.GetAbility(125)).FConstructionControls.FindID(FControlID));
+  if (Control <> nil) and (AUnit <> nil) and (AUnit.FPlayer = FPlayer) and
+    Control.CanConstruct(AUnit, Reason) then
+  begin
+    Resource := Control.StructureResource(AUnit);
+    if Resource <> nil then
+    begin
+      AUnit.GetLocation(X, Y, L);
+      Level := AoWHSMap.MapContainer.GetMapLevel(L);
+      InitHNWalk(Walk, X, Y, 0);
+      while Walk.HN < Resource.TerrainList.Count do
+      begin
+        if (Walk.X >= 0) and (Walk.Y >= 0) and (Level.Width > Walk.X) and
+          (Level.Height > Walk.Y) and Resource.TerrainList.GetUsed(Walk.HN) then
+          AoWHSMap.ClearTerrain(Walk.X, Walk.Y, L, 0, -1);
+        WalkToNextHN(Walk);
+      end;
+      Owner := TEChangeNotifyNode(AUnit.Owner);
+      Owner.BeginUpdate;
+      Structure := TStructure(Resource.PlaceResourceUser(AoWHSMap, X, Y, L));
+      if Structure <> nil then
+      begin
+        Control.GetInfo(AUnit, Text, Gold, Days);
+        Structure.ExecuteBuild(AUnit, Days);
+        AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).SetGems(
+          AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).FGems - Gold);
+        AUnit.Killed;
+        Result := erDone;
+      end;
+      Owner.EndUpdate;
+    end;
+  end;
+end;
 
+resourcestring
+  CannotBuildOnCurrentLocationRStr = 'Cannot build on current location';
+
+{ TStructureConstructionControl (instance size 8; no additional fields). }
 function TStructureConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
 { conflict: function TStructureConstructionControl.StructureResource: TStructureResource; }
 begin Result := nil; end;
 
 function TStructureConstructionControl.ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean;
-begin Result := False; end;
+var
+  Resource: TStructureResource;
+  X, Y, L: Shortint;
+  Level: TMapLevel;
+  MapField: TAoWMapField;
+  Walk: THNWalkData;
+begin
+  Result := True;
+  Resource := StructureResource(AUnit);
+  AUnit.GetLocation(X, Y, L);
+  Level := AoWHSMap.MapContainer.GetMapLevel(L);
+  InitHNWalk(Walk, X, Y, 0);
+  while (Resource.TerrainList.Count > Walk.HN) and Result do
+  begin
+    if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and
+      (Walk.Y < Level.Height) then
+    begin
+      if Resource.TerrainList.GetUsed(Walk.HN) then
+      begin
+        MapField := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
+        Result := (MapField.GetPlayer = -1) or (MapField.GetPlayer = AUnit.FPlayer);
+        Result := Result and (MapField.FindNoneTransparentHS(TStructure) = nil);
+        Result := Result and not (MapField.OverlayType in [0, 2]);
+        Result := Result and (MapField.TerrainType in [1..5, 12]);
+      end;
+    end
+    else Result := False;
+    WalkToNextHN(Walk);
+  end;
+  if not Result then Reason := TranslateRStr(CannotBuildOnCurrentLocationRStr);
+end;
 
 function TStructureConstructionControl.CanConstruct(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+begin
+  Result := ValidateLocation(A1, A2);
+  if Result then Result := inherited CanConstruct(A1, A2) and (StructureResource(A1) <> nil);
+end;
 
 function TStructureConstructionControl.Construct(AUnit: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Event: TConstructStructureTE;
+  Reason: string;
+begin
+  if CanConstruct(AUnit, Reason) and not AoWHSMap.FPlayers.GetPlayers(AUnit.FPlayer).GetBusy then
+  begin
+    Event := TConstructStructureTE.Create(nil);
+    Event.FUnitID := AUnit.FUnitID;
+    Event.FPlayer := AUnit.FPlayer;
+    Event.FControlID := ID;
+    AoWHSMap.FTokenManager.GetTokenControl(AUnit.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
+{ TStructureControl (instance size 20; $08 structures, $0C next ID, $10 city count). }
 constructor TStructureControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FStructures := TENode.Create(nil);
+  FNextID := 0;
+end;
 
 destructor TStructureControl.Destroy;
-begin end;
+begin
+  FStructures.Free;
+  inherited Destroy;
+end;
 
-procedure TStructureControl.GetStructure(A1: Integer);
-begin end;
+function TStructureControl.GetStructure(Index: Integer): TStructure;
+begin
+  if (Index >= 0) and (Index < GetCount) then
+    Result := FStructures.FChildren.List^[Index]
+  else Result := nil;
+end;
 
-procedure TStructureControl.GetCount;
-begin end;
+function TStructureControl.GetCount: Integer;
+begin
+  Result := FStructures.GetCount;
+end;
 
 procedure TStructureControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FNextID, 20);
+  Stream.rwInteger(FCityCount, 21);
+end;
 
-procedure TStructureControl.CreateUniqueID;
-begin end;
+function TStructureControl.CreateUniqueID: Integer;
+begin
+  repeat
+    Inc(FNextID);
+    if FNextID > $0FFFFFFF then FNextID := 0;
+  until IndexOfID(FNextID) = -1;
+  Result := FNextID;
+end;
 
-procedure TStructureControl.IndexOfID(A1: Integer);
-begin end;
+function TStructureControl.IndexOfID(ID: Integer): Integer;
+begin
+  Result := GetCount;
+  if Result <> 0 then
+    repeat
+      Dec(Result);
+      if ID = TStructure(FStructures.FChildren.List^[Result]).FStructureID then Exit;
+    until Result = 0;
+  Result := -1;
+end;
 
-procedure TStructureControl.FindID;
-begin end;
+function TStructureControl.FindID(ID: Integer): TStructure;
+var
+  Index: Integer;
+begin
+  Index := IndexOfID(ID);
+  if Index <> -1 then Result := FStructures.FChildren.List^[Index]
+  else Result := nil;
+end;
 
 procedure TStructureControl.Register(Structure: TStructure);
-begin end;
+begin
+  Assert(FStructures.FChildren.IndexOf(Structure) = -1);
+  if (Structure.FStructureID = 0) or (IndexOfID(Structure.FStructureID) <> -1) then
+    Structure.FStructureID := CreateUniqueID;
+  FStructures.AddChild(Structure);
+  if Structure.ClassID = $20108 then Inc(FCityCount);
+end;
 
 procedure TStructureControl.Unregister(Structure: TStructure);
-begin end;
+begin
+  FStructures.FChildren.Remove(Structure);
+  if Structure.ClassID = $20108 then Dec(FCityCount);
+end;
 
 procedure TStructureControl.Activate;
-begin end;
+begin
+  FCityCount := 0;
+end;
 
+{ TStructureAIPA (instance size 28; $14 phase, $18 structure IDs). }
 constructor TStructureAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FStructureIDs := TIntegerList.Create;
+end;
 
 destructor TStructureAIPA.Destroy;
-begin end;
+begin
+  FStructureIDs.Free;
+  inherited Destroy;
+end;
 
 function TStructureAIPA.Activate: Boolean;
-begin Result := False; end;
+var
+  I: Integer;
+begin
+  inherited Activate;
+  if FControl.FPlayer.FPlayerIndex > 0 then
+  begin
+    for I := 0 to AoWHSMap.FStructureControl.GetCount - 1 do
+      FStructureIDs.Add(AoWHSMap.FStructureControl.GetStructure(I).FStructureID);
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TStructureAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Waiting: Boolean;
+  Structure: TStructure;
+begin
+  Waiting := False;
+  while not Waiting and (FStructureIDs.Count <> 0) and
+    (AoWHSMap.FAIExecuter.GetProcessTimeLeft > 0) and not FControl.FPlayer.GetBusy do
+  begin
+    Structure := AoWHSMap.FStructureControl.FindID(FStructureIDs[FStructureIDs.Count - 1]);
+    if Structure <> nil then Waiting := Structure.ExecuteAI(FControl.FPlayer.FPlayerIndex, FPhase);
+    if not Waiting then FStructureIDs.Delete(FStructureIDs.Count - 1);
+  end;
+  Result := FStructureIDs.Count <> 0;
+end;
 
+{ TStructurePhase1AIPA (instance size 28; inherited $14 phase). }
 constructor TStructurePhase1AIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPhase := 1;
+end;
 
 class function TStructurePhase1AIPA.Priority: Integer;
-begin Result := 0; end;
+begin
+  Result := 21;
+end;
 
 { TStructurePhase2AIPA (instance size 28): inherited $14 FPhase. }
 constructor TStructurePhase2AIPA.Create(AOwner: Engine.TECustomNode);
@@ -9258,62 +9553,292 @@ begin
   end;
 end;
 
+{ TMoveSelector (instance size 24): $04 control settings, $08 moves, $0C current move,
+  $10 map, $14 status. }
 constructor TMoveSelector.Create;
-begin end;
+begin
+  inherited Create;
+  FMoveControlSettings := CreateMCS;
+  FMoveSettingsList := TMoveSettingsList.Create(nil);
+  FCurrentMove := -1;
+  FMap := nil;
+end;
 
 destructor TMoveSelector.Destroy;
-begin end;
+begin
+  Clear;
+  FMoveControlSettings.Release;
+  FMoveSettingsList.Free;
+  inherited Destroy;
+end;
 
-function TMoveSelector.CreateMCS: Integer;
-begin Result := 0; end;
+function TMoveSelector.CreateMCS: TMoveControlSettings;
+begin
+  Result := TMoveControlSettings.Create(nil);
+end;
 
 procedure TMoveSelector.Clear;
-begin end;
+begin
+  FMoveControlSettings.Clear;
+  FMoveSettingsList.Clear;
+  FCurrentMove := -1;
+end;
 
 procedure TMoveSelector.SetCurrentMove(A1: Integer);
-begin end;
+begin
+  FCurrentMove := A1;
+end;
 
 procedure TMoveSelector.Unselect;
-begin end;
+begin
+  Deactivate;
+  Clear;
+end;
 
 function TMoveSelector.ValidateSelection(Field: TAoWMapField): Boolean;
-begin Result := False; end;
+begin
+  Result := True;
+end;
 
 procedure TMoveSelector.ExecuteMove;
 begin end;
 
 function TMoveSelector.AddMoveObject(Obj: THexagonSprite): Integer;
-begin Result := 0; end;
+var
+  Settings: TMoveSettings;
+begin
+  Settings := TMoveSettings.Create(nil);
+  Settings.FMoveObject := Obj;
+  Settings.SetOwner(FMoveSettingsList);
+  Result := FMoveSettingsList.Count - 1;
+end;
 
 procedure TMoveSelector.DeleteMoveObject(A1: Integer);
-begin end;
+var
+  Obj: TObject;
+begin
+  if FCurrentMove <> -1 then
+    Obj := FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject
+  else Obj := nil;
+  TObject(FMoveSettingsList.FChildren.List^[A1]).Free;
+  if Obj <> nil then
+  begin
+    A1 := FMoveSettingsList.IndexOfMoveObject(Obj);
+    if A1 = -1 then SetCurrentMove(FMoveSettingsList.Count - 1)
+    else SetCurrentMove(A1);
+  end;
+end;
 
 procedure TMoveSelector.DeleteMoves;
-begin end;
+begin
+  while FMoveSettingsList.Count <> 0 do
+    DeleteMoveObject(FMoveSettingsList.Count - 1);
+end;
 
 procedure TMoveSelector.UpdateMoveCursor;
 begin end;
 
-procedure TMoveSelector.MouseMoveEvent;
-begin end;
+procedure TMoveSelector.MouseMoveEvent(Sender: TObject);
+begin
+  UpdateMoveCursor;
+end;
 
 procedure TMoveSelector.CalculateMovePath(Index: Integer; X, Y, L: Shortint);
 begin end;
 
 procedure TMoveSelector.SelectPath(X, Y, L: Shortint);
-begin end;
+begin
+  if (FCurrentMove <> -1) and (X <> -1) then
+  begin
+    with FMoveSettingsList.GetMoveSettings(FCurrentMove) do
+    if (FPath.Count <> 0) and (FPath[0].X = X) and
+      (FPath[0].Y = Y) and (FPath[0].L = L) then
+      ExecuteMove
+    else if ValidateSelection(TAoWMapField(FMap.MapContainer.GetField(X, Y, L))) then
+      CalculateMovePath(FCurrentMove, X, Y, L)
+    else FPath.Clear;
+  end;
+end;
 
 procedure TMoveSelector.MouseDownEvent(Sender: TObject);
-begin end;
+begin
+  if ((FMap.Mouse.Capture <> Self) and
+    (FMap.Mouse.Capture <> AoWHSMap.FTargetSelection)) or
+    (FMap.Mouse.Button = mbRight) then Unselect
+    else
+      with FMap.Mouse do
+        if (Capture = Self) and (Button = mbLeft) then
+          SelectPath(Xhx, FMap.Mouse.Yhx, FMap.ViewL);
+end;
 
 procedure TMoveSelector.Activate(Map: TAoWHSMap);
-begin end;
+begin
+  if mssActivated in FStatus then Deactivate;
+  FMap := Map;
+  FMap.Mouse.SetCapture(Self);
+  FMap.Mouse.OnDown.Add(MouseDownEvent);
+  FMap.Mouse.OnMove.Add(MouseMoveEvent);
+  FMap.Mouse.OnCaptureChanged.Add(MouseDownEvent);
+  FMap.Mouse.CursorMode := $100;
+  UpdateMoveCursor;
+  FStatus := FStatus + [mssActivated];
+  FMap.ShowHexagonSelector;
+end;
 
 procedure TMoveSelector.Deactivate;
-begin end;
+begin
+  if mssActivated in FStatus then
+  begin
+    FStatus := FStatus - [mssActivated];
+    FMap.Mouse.OnDown.Remove(MouseDownEvent);
+    FMap.Mouse.OnMove.Remove(MouseMoveEvent);
+    FMap.Mouse.OnCaptureChanged.Remove(MouseDownEvent);
+    if FMap.Mouse.Capture = Self then FMap.Mouse.SetCapture(nil);
+    FMap.HideHexagonSelector;
+    UpdateMoveCursor;
+  end;
+end;
 
 procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc);
-begin end;
+var
+  X1, Y1, X2, Y2, I, J, ImageIndex, MaxX, MaxY, Xhp, Yhp, PointsLeft, Direction: Integer;
+  Settings: TMoveSettings;
+  MapField: TMapField;
+begin
+  if (mssActivated in FStatus) and (FMoveSettingsList.Count <> 0) then
+  begin
+    with FMap do
+    begin
+      MaxX := ViewXhx + ViewWidthHX - 1;
+      MaxY := ViewYhx + ViewHeightHX - 1;
+    end;
+    for I := 0 to FMoveSettingsList.Count - 1 do
+    begin
+      Settings := FMoveSettingsList.GetMoveSettings(I);
+      PointsLeft := Settings.FPathMovePoints;
+      if Settings.FPath.Count > 1 then
+      begin
+        for J := 0 to Settings.FPath.Count - 2 do
+        begin
+          if (Settings.FPath[J].X >= FMap.ViewXhx) and
+            (Settings.FPath[J].X <= MaxX) and
+            (Settings.FPath[J].Y >= FMap.ViewYhx) and
+            (Settings.FPath[J].Y <= MaxY) and
+            (Settings.FPath[J].L = FMap.ViewL) then
+          begin
+            X1 := Settings.FPath[J].X;
+            Y1 := Settings.FPath[J].Y;
+            X2 := Settings.FPath[J + 1].X;
+            Y2 := Settings.FPath[J + 1].Y;
+            if dHXtoRad(X1, Y1, X2, Y2) = 1 then
+            begin
+              Direction := dHXtoHNfast(X1, Y1, X2, Y2);
+              if Direction <> 0 then
+              begin
+                if PointsLeft <= Settings.FMovePoints then ImageIndex := Direction + 34
+                else ImageIndex := Direction + 41;
+                HXtoHP(X1, Y1, Xhp, Yhp);
+                if (FCurrentMove = I) or (FCurrentMove = -1) then
+                  AoWHSSet.FCursorImages[ImageIndex].Show(Xhp - FMap.ViewXhp - 8,
+                    Yhp - FMap.ViewYhp - 8, Surface)
+                else
+                  AoWHSSet.FCursorImages[ImageIndex].ShowTransparent(Xhp - FMap.ViewXhp - 8,
+                    Yhp - FMap.ViewYhp - 8, Surface);
+              end;
+            end
+            else if FCurrentMove = I then
+            begin
+              if PointsLeft <= Settings.FMovePoints then ImageIndex := 41 else ImageIndex := 48;
+              HXtoHP(X1, Y1, Xhp, Yhp);
+              AoWHSSet.FCursorImages[ImageIndex].Show(Xhp - FMap.ViewXhp - 8,
+                Yhp - FMap.ViewYhp - 8, Surface);
+              if (PointsLeft - Settings.FPath[J].Flag <> 0) and
+                (Settings.FPath[J + 1].L = FMap.ViewL) then
+              begin
+                if PointsLeft - Settings.FPath[J].Flag <= Settings.FMovePoints then
+                  ImageIndex := 41 else ImageIndex := 48;
+                HXtoHP(X2, Y2, Xhp, Yhp);
+                AoWHSSet.FCursorImages[ImageIndex].Show(Xhp - FMap.ViewXhp - 8,
+                  Yhp - FMap.ViewYhp - 8, Surface);
+              end;
+            end
+            else
+            begin
+              if PointsLeft <= Settings.FMovePoints then ImageIndex := 41 else ImageIndex := 48;
+              HXtoHP(X1, Y1, Xhp, Yhp);
+              AoWHSSet.FCursorImages[ImageIndex].ShowTransparent(Xhp - FMap.ViewXhp - 8,
+                Yhp - FMap.ViewYhp - 8, Surface);
+              if PointsLeft - Settings.FPath[J].Flag <= Settings.FMovePoints then
+                ImageIndex := 41 else ImageIndex := 48;
+              HXtoHP(X2, Y2, Xhp, Yhp);
+              AoWHSSet.FCursorImages[ImageIndex].ShowTransparent(Xhp - FMap.ViewXhp - 8,
+                Yhp - FMap.ViewYhp - 8, Surface);
+            end;
+          end;
+          Dec(PointsLeft, Settings.FPath[J].Flag);
+        end;
+        if (Settings.FPath[0].X >= FMap.ViewXhx) and
+          (Settings.FPath[0].X <= MaxX) and
+          (Settings.FPath[0].Y >= FMap.ViewYhx) and
+          (Settings.FPath[0].Y <= MaxY) and
+          (Settings.FPath[0].L = FMap.ViewL) then
+        begin
+          MapField := FMap.MapContainer.GetField(Settings.FPath[0].X,
+            Settings.FPath[0].Y, Settings.FPath[0].L);
+          HXtoHP(MapField.Xhx, MapField.Yhx, Xhp, Yhp);
+          Xhp := Xhp - FMap.ViewXhp - 8;
+          Yhp := Yhp - FMap.ViewYhp - 8;
+          if Settings.FMovePoints < Settings.FPathMovePoints then
+          begin
+            ImageIndex := 48;
+            AoWHSSet.FCursorImages[ImageIndex].Show(Xhp, Yhp, Surface);
+            { Original sets the font color before checking the font for nil. }
+            AoWEngine.FCombatFont.Color := 0;
+            if AoWEngine.FCombatFont <> nil then
+              AoWEngine.FCombatFont.SetTextCentered(Xhp + 25, Yhp + 9,
+                IntToStr((Settings.FPathMovePoints - Settings.FMovePoints - 1) div Settings.FMoves + 1),
+                Surface);
+          end
+          else
+          begin
+            ImageIndex := 41;
+            if (FCurrentMove = I) or (FCurrentMove = -1) then
+              AoWHSSet.FCursorImages[ImageIndex].Show(Xhp, Yhp, Surface)
+            else AoWHSSet.FCursorImages[ImageIndex].ShowTransparent(Xhp, Yhp, Surface);
+          end;
+        end;
+        if Settings.FMovePoints < Settings.FPathMovePoints then
+        begin
+          J := Settings.FPath.MovePointsToPos(Settings.FMovePoints);
+          if (J > 0) and (J < Settings.FPath.Count - 1) and
+            (Settings.FPath[J].X >= FMap.ViewXhx) and
+            (Settings.FPath[J].X <= MaxX) and
+            (Settings.FPath[J].Y >= FMap.ViewYhx) and
+            (Settings.FPath[J].Y <= MaxY) and
+            (Settings.FPath[J].L = FMap.ViewL) then
+          begin
+            HXtoHP(Settings.FPath[J].X, Settings.FPath[J].Y, Xhp, Yhp);
+            Xhp := Xhp - FMap.ViewXhp - 8;
+            Yhp := Yhp - FMap.ViewYhp - 8;
+            ImageIndex := 41;
+            if (FCurrentMove = I) or (FCurrentMove = -1) then
+              AoWHSSet.FCursorImages[ImageIndex].Show(Xhp, Yhp, Surface)
+            else AoWHSSet.FCursorImages[ImageIndex].ShowTransparent(Xhp, Yhp, Surface);
+          end;
+        end;
+      end
+      else if (Settings.FPath.Count = 1) and (AoWHSMap.FCombat <> nil) then
+      begin
+        MapField := FMap.MapContainer.GetField(Settings.FPath[0].X,
+          Settings.FPath[0].Y, Settings.FPath[0].L);
+        HXtoHP(MapField.Xhx, MapField.Yhx, Xhp, Yhp);
+        Xhp := Xhp - FMap.ViewXhp - 8;
+        Yhp := Yhp - FMap.ViewYhp - 8;
+        AoWHSSet.FCursorImages[41].Show(Xhp, Yhp, Surface);
+      end;
+    end;
+  end;
+end;
 
 constructor TTextControlItem.Create(AOwner: Engine.TECustomNode);
 begin end;
@@ -10593,7 +11118,7 @@ begin end;
 procedure TAoWHSMap.ResetSeatedPlayerView;
 begin end;
 
-procedure TAoWHSMap.Select(A1: TArmyHS; A2: Boolean);
+procedure TAoWHSMap.Select(A1: THexagonSprite; A2: Boolean);
 begin end;
 
 procedure TAoWHSMap.PlayerChanged;

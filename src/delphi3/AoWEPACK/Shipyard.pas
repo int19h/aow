@@ -36,7 +36,7 @@ type
   TShipyardConstructionControl = class(TStructureConstructionControl)
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
-    function ID: Integer; override;
+    class function ID: Integer; override;
     function ValidateLocation(AUnit: TAbstractUnit; var Reason: string): Boolean; override;
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; override;
     { conflict: function StructureResource: TStructureResource; override; }
@@ -75,7 +75,7 @@ begin Result := $204BF; end;
 function TShipyardResource.ResourceUserClassID: Integer;
 begin Result := $204BE; end;
 
-function TShipyardConstructionControl.ID: Integer;
+class function TShipyardConstructionControl.ID: Integer;
 begin Result := 4; end;
 
 function TShipyardConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;

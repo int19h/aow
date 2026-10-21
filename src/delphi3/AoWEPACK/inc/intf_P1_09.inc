@@ -124,7 +124,7 @@
     procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); virtual; { $198 }
     procedure BuildingDone; virtual;  { $19C }
     function ExecuteRebuild(AUnit: TAbstractUnit): Boolean; virtual; { $1A0 }
-    function ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean; virtual;  { $1A4 }
+    function ExecuteBuild(AUnit: TAbstractUnit; Days: Integer): Boolean; virtual;  { $1A4 }
     function GenerateRazeDefenders(Player: Shortint; Units: TUnitList): Boolean; virtual;
     function PlaceRazeDefenders(Player: Shortint): Boolean; virtual;  { $1AC }
     function ExecuteRaze(Player: Shortint): Boolean; virtual;
@@ -158,20 +158,20 @@
   { TStructureControl (instance size 20, VMT 55713E78) }
   TStructureControl = class(TEObject)
   public
-    F_StructureControl_08: Integer;
-    F_StructureControl_0C: Integer;
-    F_StructureControl_10: Integer;
+    FStructures: TENode; { $08 }
+    FNextID: Integer; { $0C }
+    FCityCount: Integer; { $10 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetStructure(A1: Integer);  { draft }
-    procedure GetCount;  { draft }
-    procedure CreateUniqueID;  { draft }
-    procedure IndexOfID(A1: Integer);  { draft }
-    procedure FindID;  { draft }
+    function GetStructure(Index: Integer): TStructure;
+    function GetCount: Integer;
+    function CreateUniqueID: Integer;
+    function IndexOfID(ID: Integer): Integer;
+    function FindID(ID: Integer): TStructure;
     procedure Register(Structure: TStructure);
     procedure Unregister(Structure: TStructure);
-    procedure Activate;  { draft }
+    procedure Activate;
   end;
 
   { TStructureResource: size $64; $48 selection SFX, $50 description,
@@ -215,7 +215,7 @@
   { TPlayerStructureIncomeSource (instance size 12, VMT 55714160) }
   TPlayerStructureIncomeSource = class(TIncomeSource)
   public
-    F_PlayerStructureIncomeSource_08: Integer;
+    FStructure: TPlayerStructure; { $08 }
     function Name: string; override;
     function Income: Integer; override;
     procedure GetLocation(var X, Y, L: Shortint); override;
@@ -225,10 +225,10 @@
   { TPlayerStructurePowerSource (instance size 12, VMT 55714250) }
   TPlayerStructurePowerSource = class(TPowerSource)
   public
-    F_PlayerStructurePowerSource_08: Integer;
+    FStructure: TPlayerStructure; { $08 }
     function Name: string; override;
     function Power: Integer; override;
-    procedure GetLocation(var A1, A2, A3: Shortint); override;
+    procedure GetLocation(var X, Y, L: Shortint); override;
     procedure Select; override;
     procedure Setup(Structure: TPlayerStructure);
   end;
@@ -263,7 +263,7 @@
     procedure ArmyChanged(Army: TArmyHS); override;
     procedure BuildingDone; override;
     function ExecuteRebuild(AUnit: TAbstractUnit): Boolean; override;
-    function ExecuteBuild(AUnit: TAbstractUnit; Days: Byte): Boolean; override;
+    function ExecuteBuild(AUnit: TAbstractUnit; Days: Integer): Boolean; override;
     procedure UpdateAITarget(const Info: TAITargetInfo; var Data: TAITargetData); override;
     function CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean; override;
     procedure SetPlayer(Player: Shortint); virtual;
@@ -302,27 +302,27 @@
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     function ResourceUserClassID: Integer; override;
     function PlaceResourceUser(HSMap: HSEngine.THSMap; Xhx, Yhx, Lhx: Shortint): HSEngine.TMapObject; override;
-    procedure GenerateFlagPositions; virtual;  { +07C draft }
-    procedure ActivateMsg;  { draft }
+    procedure GenerateFlagPositions; virtual; { $7C }
+    procedure ActivateMsg;
   end;
 
   { TStructureTE (instance size 40, VMT 557146EC) }
   TStructureTE = class(TTokenEvent)
   public
-    F_StructureTE_10: Byte;
-    F_StructureTE_11: Byte;
-    F_StructureTE_12: Byte;
+    FX: Shortint; { $10 }
+    FY: Shortint; { $11 }
+    FL: Shortint; { $12 }
     FPlayer: Shortint; { $13 }
-    F_StructureTE_14: Integer;
+    FStructureClassID: Integer; { $14 }
     FAction: Integer; { $18 }
-    F_StructureTE_1C: Byte;
+    FRazed: Boolean; { $1C }
     F_StructureTE_1D: array[0..2] of Byte;
     FParam: Integer; { $20 }
-    F_StructureTE_24: Integer;
+    FParam2: Integer; { $24 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
-    procedure Validate; virtual;  { +050 draft }
+    function Validate: Boolean; virtual; { $50; 55761D9B }
     procedure Initialize(AClassID: Integer; X, Y, L: Shortint);
   end;
 

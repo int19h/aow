@@ -6,7 +6,7 @@
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     function Construct(AUnit: TAbstractUnit): Boolean; override;
-    function ID: Integer; override;
+    class function ID: Integer; override;
   end;
 
   { TBuildRoadsControl (instance size 8, VMT 55770AE0) }
@@ -17,6 +17,6 @@
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
     function Construct(AUnit: TAbstractUnit): Boolean; override;
-    function ID: Integer; override;
+    class function ID: Integer; override;
   end;
 

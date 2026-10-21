@@ -817,7 +817,7 @@
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); virtual;  { +04C }
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; virtual;
     function Construct(AUnit: TAbstractUnit): Boolean; virtual;  { +054 }
-    function ID: Integer; virtual;  { +058 }
+    class function ID: Integer; virtual;  { +058 }
   end;
 
   { TConstructionControlList (instance size 12, VMT 557225EC) }

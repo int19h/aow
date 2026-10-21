@@ -5748,7 +5748,7 @@ begin
     if not Result.GetRazed or Result.GetBuilding then Result := nil;
 end;
 
-function TRebuildConstructionControl.ID: Integer;
+class function TRebuildConstructionControl.ID: Integer;
 begin
   Result := 1;
 end;
@@ -5799,7 +5799,7 @@ begin
   inherited Destroy;
 end;
 
-function TBuildRoadsControl.ID: Integer;
+class function TBuildRoadsControl.ID: Integer;
 begin
   Result := 2;
 end;
@@ -5862,7 +5862,7 @@ begin
   Result := False;
 end;
 
-function TConstructionControl.ID: Integer;
+class function TConstructionControl.ID: Integer;
 begin Result := 0; end;
 
 function TConstructionControlList.GetConstructionControl(Index: Integer): TConstructionControl;

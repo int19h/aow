@@ -221,23 +221,23 @@
     FStatus: TMoveSelectorStatus; { $14 }
     F_MoveSelector_15: array[0..2] of Byte;
     destructor Destroy; override;
-    procedure MouseMoveEvent; virtual;  { +000 draft }
+    procedure MouseMoveEvent(Sender: TObject); virtual; { $000 }
     procedure MouseDownEvent(Sender: TObject); virtual; { $04 }
     procedure CalculateMovePath(Index: Integer; X, Y, L: Shortint); virtual; { $08 }
-    procedure UpdateMoveCursor; virtual;  { +00C draft }
-    function CreateMCS: Integer; virtual;  { +010 draft }
-    procedure SetCurrentMove(A1: Integer); virtual;  { +014 draft }
+    procedure UpdateMoveCursor; virtual; { $00C }
+    function CreateMCS: TMoveControlSettings; virtual; { $010 }
+    procedure SetCurrentMove(A1: Integer); virtual; { $014 }
     procedure SelectPath(X, Y, L: Shortint); virtual; { $18 }
     procedure Unselect; virtual; { +01C }
     function ValidateSelection(Field: TAoWMapField): Boolean; virtual; { $20 }
-    procedure ExecuteMove; virtual;  { +024 draft }
+    procedure ExecuteMove; virtual; { $024 }
     procedure Activate(Map: TAoWHSMap); virtual; { $28 }
-    procedure Deactivate; virtual;  { +02C draft }
+    procedure Deactivate; virtual; { $02C }
     procedure ShowMovePaths(const Surface: TSurfaceDesc); virtual; { $30 }
-    constructor Create;  { draft }
-    procedure Clear;  { draft }
+    constructor Create;
+    procedure Clear;
     function AddMoveObject(Obj: THexagonSprite): Integer;
-    procedure DeleteMoveObject(A1: Integer);  { draft }
-    procedure DeleteMoves;  { draft }
+    procedure DeleteMoveObject(A1: Integer);
+    procedure DeleteMoves;
   end;
 

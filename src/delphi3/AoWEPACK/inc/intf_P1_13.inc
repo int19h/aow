@@ -12,10 +12,10 @@
   { TConstructStructureTE (instance size 28, VMT 557247C0) }
   TConstructStructureTE = class(TTokenEvent)
   public
-    F_ConstructStructureTE_10: Integer;
-    F_ConstructStructureTE_14: Byte;
+    FUnitID: Integer; { $10 }
+    FPlayer: Shortint; { $14 }
     F_ConstructStructureTE_15: array[0..2] of Byte;
-    F_ConstructStructureTE_18: Integer;
+    FControlID: Integer; { $18 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;

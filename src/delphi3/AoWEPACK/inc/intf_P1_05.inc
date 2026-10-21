@@ -399,7 +399,7 @@
     procedure MouseMoved(Sender: TObject);
     procedure UpdateCursor;  { draft }
     procedure ResetSeatedPlayerView;
-    procedure Select(A1: TArmyHS; A2: Boolean);
+    procedure Select(A1: THexagonSprite; A2: Boolean);
     procedure PlayerChanged;  { draft }
     procedure TokenControlActivatedEvent(Sender: TObject);
     procedure SetupPlayerControl(Mode: TPlayMode; Connection: TPlayerConnectionType);

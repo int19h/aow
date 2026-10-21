@@ -43,7 +43,7 @@ type
   public
     procedure GetInfo(AUnit: TAbstractUnit; var Text: string; var Gold, Days: Integer); override;
     function CanConstruct(A1: TAbstractUnit; var A2: string): Boolean; override;
-    function ID: Integer; override;
+    class function ID: Integer; override;
     function StructureResource(AUnit: TAbstractUnit): TStructureResource; override;
     { conflict: function StructureResource: TStructureResource; override; }
   end;
@@ -127,7 +127,7 @@ begin Result := $2043F; end;
 function TTowerResource.ResourceUserClassID: Integer;
 begin Result := $2043E; end;
 
-function TTowerConstructionControl.ID: Integer;
+class function TTowerConstructionControl.ID: Integer;
 begin Result := 3; end;
 
 function TTowerConstructionControl.StructureResource(AUnit: TAbstractUnit): TStructureResource;
