@@ -8492,8 +8492,8 @@ begin end;
 function TGlobalEnchantment.GetName: string;
 begin Result := ''; end;
 
-procedure TGlobalEnchantment.GetUpkeep;
-begin end;
+function TGlobalEnchantment.GetUpkeep: Integer;
+begin Result := 0; end;
 
 function TGlobalEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
 begin Result := False; end;
@@ -8510,8 +8510,8 @@ begin Result := False; end;
 function TGlobalEnchantment.Activate(Player: Shortint): Boolean;
 begin Result := False; end;
 
-procedure TGlobalEnchantment.CanDeactivate(A1: Integer; A2: Integer);
-begin end;
+function TGlobalEnchantment.CanDeactivate(Player: Byte; var Reason: string): Boolean;
+begin Result := False; end;
 
 function TGlobalEnchantment.Deactivate(Player: Byte): Boolean;
 begin Result := False; end;
@@ -8555,10 +8555,10 @@ begin end;
 procedure TGlobalMagicControl.ReadWrite(Stream: Engine.TEStorageStream);
 begin end;
 
-procedure TGlobalMagicControl.IncDoubleSphereManaCount(A1: Integer);
+procedure TGlobalMagicControl.IncDoubleSphereManaCount(A1: TMagicSphere);
 begin end;
 
-procedure TGlobalMagicControl.DecDoubleSphereManaCount(A1: Integer);
+procedure TGlobalMagicControl.DecDoubleSphereManaCount(A1: TMagicSphere);
 begin end;
 
 function TGlobalMagicControl.GetSphereManaDoubled(A1: TMagicSphere): Boolean;

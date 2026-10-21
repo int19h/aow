@@ -194,10 +194,10 @@
     function AddRef: Integer; override;
     function Release: Integer; override;
     function GetName: string; virtual;  { +04C }
-    procedure GetUpkeep; virtual;  { +050 draft }
+    function GetUpkeep: Integer; virtual; { +050 }
     function GetLocation: TXYL; virtual;  { +054 }
     function GetAIUpkeepPriority: Integer; virtual;  { +058 }
-    procedure CanDeactivate(A1: Integer; A2: Integer); virtual;  { +05C draft }
+    function CanDeactivate(Player: Byte; var Reason: string): Boolean; virtual; { +05C }
     function Deactivate(Player: Byte): Boolean; virtual;  { +060 }
     function CanActivate(Player: Shortint; var Reason: string): Boolean; virtual; { +064 }
     function Activate(Player: Shortint): Boolean; virtual;
@@ -256,8 +256,8 @@
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
-    procedure IncDoubleSphereManaCount(A1: Integer);  { draft }
-    procedure DecDoubleSphereManaCount(A1: Integer);  { draft }
+    procedure IncDoubleSphereManaCount(A1: TMagicSphere);
+    procedure DecDoubleSphereManaCount(A1: TMagicSphere);
     function GetSphereManaDoubled(A1: TMagicSphere): Boolean;
     procedure OutOfMana(A1: Byte; A2: Integer);  { draft }
     procedure RemovePlayerEnchantments(Player: Shortint);
