@@ -309,3 +309,37 @@ New compiler observations from this package: moving whole routines within a unit
 exception cleanup of an unrelated routine (`Format` lost its match when the implementation was put
 in address order); a stub override of a method that became a function must return
 `inherited` (a statement call keeps an extra register save).
+
+## What a match proves, and the checks beyond it (2026-10-21)
+
+`tools/match.py` masks every address before it compares: a called routine is `TARGET` and a
+global is `ADDR`. A MATCH therefore proves the instruction shapes, not the references. A function
+that calls the wrong routine, reads the wrong global or loads the wrong resource string still
+matches. This happened: a near-miss rewrite of `ShowProductionInfo` matched while showing the wrong
+text (reverted in 08e8d42). The first run of the address check found 337 suspect references over
+the game modules; in a sample of 20, 15 were real (`TLeader` for `THero`, swapped VMTs,
+"Holy Woods" for "Holy Ground", `CompareStr` for `CompareText`).
+
+Two tools close the gap. Both take the arguments of `tools/match.py`:
+
+- `tools/addrcheck.py` pairs every address operand of every compared function across the whole
+  module, names both sides (the original's imports, exports and signatures; the map file's
+  symbols) and reports name conflicts and inconsistent pairings. It runs in about a minute for all
+  modules. After the fix round, 72 findings remain; the workers classified most of them as false
+  (identical constant tables placed twice, same-named `Register` routines in different units).
+- `tools/equiv.py` proves a differing function equivalent to the original with z3: cut points at
+  block entries, Houdini invariants, calls as uninterpreted functions of their target, arguments
+  and memory. Anything it does not model fails closed. A mutation test (3,401 single-instruction
+  changes of matching functions) found no unsound proof. It proves about 15 percent of the
+  differing functions; its main limit is that the invariant requires the whole memory, frame
+  included, to correspond, so functions whose locals sit in other slots fail.
+
+"Register choice" leftovers are not proven equivalent by default. Rewriting a near miss until it
+matches is cheaper than proving it, and finds bugs (`notes/briefs/near-miss.md`): the first round
+fixed 96 of 171 functions and about 20 real behavior differences. A rewrite counts only when the
+address check stays clean for it.
+
+The original's Assert filenames show AoWE's original layout: one include file per topic under
+`D:\AoWDev\AoWE\inc\` (`AoWHSMap.PAS`, `Ability.PAS`, `Combat.pas`, `CombatPredictor.pas`,
+`UnitHS.PAS`, `AoWAb.PAS`, `AIGroup.pas`, `MoveT.PAS`, ...). Our build has all of it in
+`inc/AoWEimpl.inc`, so those Assert messages differ.
