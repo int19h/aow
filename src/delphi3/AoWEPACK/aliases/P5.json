@@ -11,5 +11,8 @@
   "557334d4:177": "TAIPlayerControl.Activate",
   "55734b8c:269": "TGroupControlAIPA.Process",
   "55734dbc:269": "TGroupControlLoopAIPA.Process",
-  "55734f40:9": "CompareAutoProductions"
+  "55734f40:9": "CompareAutoProductions",
+  "5573eb4c:7": "CompareMoveTargets",
+  "5573f4ec:32": "CompareExecuterArmies",
+  "55740668:2067": "TAdjacentMEC.CalculateMoves"
 }

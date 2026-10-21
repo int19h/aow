@@ -58,6 +58,7 @@ function AlsToInt(Alignments: TAlignments): Integer;
 function IntToAls(Value: Integer): TAlignments;
 function Land(Terrain: Shortint): Boolean;
 function MoveTypesToInt(Types: TMoveTypes): Integer;
+{ conflict: function MoveTypesToInt(MoveTypes: TMoveTypes): Integer; }
 function IntToMoveTypes(Value: Integer): TMoveTypes;
 function CombatRangeToCombatMode(A1: TCombatRange): TCombatMode;
 procedure PlaceRandomUnits(X, Y, L: Integer; Player: Shortint; Units: TUnitIndexList; Count, Value: Integer; Mode: TUnitPlaceMode);

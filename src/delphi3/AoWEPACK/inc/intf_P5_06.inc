@@ -160,58 +160,59 @@
     procedure Setup(Army: TArmyHS; Selection: Byte; X, Y, L: Integer);
   end;
 
-  { TAIMoveControl (instance size 544, VMT 55717B94) }
+  { TAIMoveControl: instance size $220; $08 status, $0C settings, $10 cycles,
+    $14 army table, $114 transporter table, $214 multiple gaps, $215 mode,
+    $218 search state, $21C path settings. }
   TAIMoveControl = class(TEObject)
   public
     FStatus: TAIMoveControlStatus; { $08 }
     F_AIMoveControl_09: array[0..2] of Byte;
     FSettings: TAIMoveControlSettings; { $0C }
-    F_AIMoveControl_10: Integer;
-    F_AIMoveControl_14: Byte;
-    F_AIMoveControl_15: Byte;
-    F_AIMoveControl_16: array[0..253] of Byte;
-    F_AIMoveControl_114: Byte;
-    F_AIMoveControl_115: Byte;
-    F_AIMoveControl_116: array[0..253] of Byte;
-    F_AIMoveControl_214: Byte;
-    F_AIMoveControl_215: Byte;
+    FProcessCycles: Integer; { $10 }
+    FMovePointTable: TMovePointTable; { $14 }
+    FTransportMovePointTable: TMovePointTable; { $114 }
+    FMultipleTransportGaps: Boolean; { $214 }
+    FMode: TAIMoveControlMode; { $215 }
     F_AIMoveControl_216: array[0..1] of Byte;
-    F_AIMoveControl_218: Integer;
-    F_AIMoveControl_21C: Integer;
+    FState: Integer; { $218 }
+    FPathSettings: TMoveControlSettings; { $21C }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure Clear; override;
-    procedure ProcessingDone(A1: Byte);  { draft }
-    procedure ProcessCanMove;  { draft }
-    procedure SelectCombinedTransporterArmyMpT(A1: Integer);  { draft }
-    procedure CalculateTransportGaps(A1: Integer; A2: Integer);  { draft }
-    procedure ProcessTransporterCanMove(A1: Integer; A2: Integer);  { draft }
-    procedure Initialize(A1: Integer);  { draft }
-    procedure CanMove(Settings: TAIMoveControlSettings);
-    procedure Cancel;  { draft }
-    procedure Reset;  { draft }
-    procedure Process;  { draft }
+    procedure ProcessingDone(Status: TAIMoveControlStatus);
+    procedure ProcessCanMove;
+    procedure SelectCombinedTransporterArmyMpT;
+    function CalculateTransportGaps(Path: TMovepath; const Table: TMovePointTable): Boolean;
+    procedure ProcessTransporterCanMove;
+    procedure Initialize(Settings: TAIMoveControlSettings);
+    function CanMove(Settings: TAIMoveControlSettings): Boolean;
+    procedure Cancel;
+    procedure Reset;
+    function Process: Boolean;
   end;
 
-  { TMoveTarget (instance size 52, VMT 55717C58) }
+  { TMoveTarget: instance size $34; $08 references, $0C target data,
+    $24 location, $28 move points, $2C transporter ID, $30 path. }
   TMoveTarget = class(TEObject)
   public
-    F_MoveTarget_08: Integer;
-    FData: TAITargetData; FLocation: TXYL; FMovePoints, FTransporterID: Integer; { $0C/$24/$28/$2C; 557D77BB }
-    FMovepath: TMovepath; { $30; 557D77EA }
+    FRefCount: Integer; { $08 }
+    FData: TAITargetData; { $0C }
+    FLocation: TXYL; { $24 }
+    FMovePoints, FTransporterID: Integer; { $28/$2C }
+    FMovepath: TMovepath; { $30 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function AddRef: Integer; override;
     function Release: Integer; override;
   end;
 
-  { TMoveTargetList (instance size 12, VMT 55717D14) }
+  { TMoveTargetList: instance size $0C; $08 reference children. }
   TMoveTargetList = class(TEReferenceNode)
   public
     function GetTarget(Index: Integer): TMoveTarget;
     function IndexOfXYL(Location: Integer): Integer;
-    procedure AddTargetEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure SortOnMovePoints;  { draft }
+    procedure AddTargetEx(Location: Integer; MovePoints, TransporterID: Integer; const Data: TAITargetData);
+    procedure SortOnMovePoints;
   end;
 
   { TAIMoveTargetSelector (instance size $250). $08 state, $0C targets,
@@ -252,20 +253,16 @@
     function Search(Control: TAIGroupControl): Boolean;
   end;
 
-  { TAIMoveExecuterUnit (instance size 56, VMT 5571819C) }
+  { TAIMoveExecuterUnit: instance size $38; $08 unit, $0C ID, $10 location,
+    $14 origin, $18 destination, $1C transporter ID, $20 transport status,
+    $24..$30 transport points, $34 status, $35 move result. }
   TAIMoveExecuterUnit = class(TEObject)
   public
     FUnit: TAbstractUnit; { $08 }
-    F_AIMoveExecuterUnit_0C: Integer;
+    FUnitID: Integer; { $0C }
     FLocation: TXYL; { $10 }
-    F_AIMoveExecuterUnit_14: Byte;
-    F_AIMoveExecuterUnit_15: Byte;
-    F_AIMoveExecuterUnit_16: Byte;
-    F_AIMoveExecuterUnit_17: Byte;
-    F_AIMoveExecuterUnit_18: Byte;
-    F_AIMoveExecuterUnit_19: Byte;
-    F_AIMoveExecuterUnit_1A: Byte;
-    F_AIMoveExecuterUnit_1B: Byte;
+    FOrigin: TXYL; { $14 }
+    FDestination: TXYL; { $18 }
     FTransporterID: Integer; { $1C }
     FTransportStatus: TAIMoveExecuterTransportStatus; { $20 }
     FTransportPadding: array[0..2] of Byte;
@@ -278,60 +275,62 @@
     F_AIMoveExecuterUnit_36: array[0..1] of Byte;
     procedure Initialize(AUnit: TAbstractUnit; X, Y, L: Shortint);
     function Validate: Boolean;
-    procedure ResetTransporterSettings;  { draft }
+    procedure ResetTransporterSettings;
   end;
 
-  { TAIMoveExecuterUnitList (instance size 12, VMT 55718268) }
+  { TAIMoveExecuterUnitList: instance size $0C; $08 children. }
   TAIMoveExecuterUnitList = class(TENode)
   public
     function GetUnits(Index: Integer): TAIMoveExecuterUnit;
     function IndexOfUnitID(ID: Integer): Integer;
-    procedure IndexOfUnit(A1: Integer);  { draft }
-    procedure FindStatusUnit(A1: Integer);  { draft }
-    procedure ValidateSelection(A1: Byte);  { draft }
-    procedure SelectionCount;  { draft }
-    procedure Transporter(A1: Integer; A2: Integer);  { draft }
-    procedure SetMoveResult(A1: Integer; A2: Integer);  { draft }
+    function IndexOfUnit(AUnit: TAbstractUnit): Integer;
+    function FindStatusUnit(Status: TAIMoveExecuterUnitStatus): Integer;
+    function ValidateSelection(Selection: Byte): Byte;
+    function SelectionCount(Selection: Byte): Integer;
+    function Transporter(Selection: Byte): TAIMoveExecuterUnit;
+    procedure SetMoveResult(Selection, MoveResult: Byte);
     procedure SetTransportStatus(Selection: Byte; Status: TAIMoveExecuterTransportStatus);
     procedure SetStatus(Selection: Byte; Status: TAIMoveExecuterUnitStatus);
   end;
 
-  { TAIMoveExecuterArmy (instance size 48, VMT 55718378) }
+  { TAIMoveExecuterArmy: instance size $30; $0C location, $10 destination,
+    $14 transport status, $18..$24 transport points, $28 player, $29 grouped. }
   TAIMoveExecuterArmy = class(TAIMoveExecuterUnitList)
   public
     FLocation: TXYL; { $0C }
-    F_AIMoveExecuterArmy_10: Integer;
+    FDestination: TXYL; { $10 }
     FTransportStatus: TAIMoveExecuterTransportStatus; { $14 }
     F_AIMoveExecuterArmy_15: array[0..2] of Byte;
     FBoardingPoint: TXYL; { $18 }
     FArrivalPoint: TXYL; { $1C }
     FTransportSource: TXYL; { $20 }
     FTransportDestination: TXYL; { $24 }
-    F_AIMoveExecuterArmy_28: Byte;
-    F_AIMoveExecuterArmy_29: Byte;
+    FPlayer: Shortint; { $28 }
+    FGrouped: Boolean; { $29 }
     F_AIMoveExecuterArmy_2A: array[0..5] of Byte;
     procedure Setup(Transporter: TAIMoveExecuterUnit);
     function CanAdd(UnitEntry: TAIMoveExecuterUnit): Boolean;
     procedure RetrieveArmy(Selection: Byte; var Army: TArmyHS; var ArmySelection: Byte);
-    procedure ResetTransporterSettings;  { draft }
+    procedure ResetTransporterSettings;
     function WaitingForTransport: Boolean;
-    procedure Moves(A1: Integer; A2: Integer);  { draft }
-    procedure MovePoints(A1: Integer; A2: Integer);  { draft }
-    procedure ValidTerrain(A1: Integer; A2: Byte; A3: Integer);  { draft }
+    function Moves(Selection: Byte): Integer;
+    function MovePoints(Selection: Byte): Integer;
+    function ValidTerrain(Selection: Byte; TerrainType, OverlayType: Shortint): Byte;
   end;
 
-  { TAIMoveExecuterArmyList (instance size 12, VMT 55718480) }
+  { TAIMoveExecuterArmyList: instance size $0C; $08 armies. }
   TAIMoveExecuterArmyList = class(TENode)
   public
     function GetArmies(Index: Integer): TAIMoveExecuterArmy;
     function IndexOf(Army: TArmyHS; Selection: Byte): Integer;
-    procedure IndexOfXYL(A1: Integer; A2: Integer; A3: Integer);  { draft }
-    procedure IndexOfLoc(A1: Integer; A2: Integer);  { draft }
+    function IndexOfXYL(X, Y, L: Shortint): Integer;
+    function IndexOfLoc(Location: TXYL): Integer;
     function IndexOfTransportStatus(Status: TAIMoveExecuterTransportStatus): Integer;
-    procedure SortOnMovePoints;  { draft }
+    procedure SortOnMovePoints;
   end;
 
-  { TAIMoveExecuterMove (instance size 32, VMT 55718590) }
+  { TAIMoveExecuterMove: instance size $20; $08 units, $0C path, $10 points,
+    $14 moves, $18..$1A source, $1B..$1D destination. }
   TAIMoveExecuterMove = class(TAIMoveExecuterUnitList)
   public
     FPath: TMovepath; { $0C }
@@ -347,20 +346,20 @@
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure AddUnits(Units: TAIMoveExecuterUnitList; Selection: Byte);
-    procedure AddUnit;  { draft }
+    procedure AddUnit(UnitEntry: TAIMoveExecuterUnit);
     procedure SetUnitStatus(Status: TAIMoveExecuterUnitStatus);
     function RetrieveArmy(var Army: TArmyHS; var Selection: Byte): Boolean;
   end;
 
-  { TAIMoveExecuterMoveQueue (instance size 12, VMT 55718698) }
+  { TAIMoveExecuterMoveQueue: instance size $0C; $08 queued moves. }
   TAIMoveExecuterMoveQueue = class(TENode)
   public
     procedure Clear; override;
     function GetMoves(Index: Integer): TAIMoveExecuterMove;
-    procedure Reset;  { draft }
+    procedure Reset;
   end;
 
-  { TAIMoveExecuterControl (instance size 20, VMT 55718868) }
+  { TAIMoveExecuterControl: instance size $14; $08 move control, $0C executer, $10 state. }
   TAIMoveExecuterControl = class(TEObject)
   public
     FMoveControl: TAIMoveControl; { $08 }
@@ -368,53 +367,54 @@
     FState: Integer; { $10 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    function CreateMove(Army: TAIMoveExecuterArmy; Selection: Byte; X, Y, L: Shortint; Mode: TArmyMoveMode; MoveResult: PByte): TAIMoveExecuterMove; virtual; { $4C }
+    function CreateMove(Army: TAIMoveExecuterArmy; Selection: Byte; X, Y, L: Shortint; Mode: TCreateMoveMode; MoveResult: PByte): TAIMoveExecuterMove; virtual; { $4C }
     function CanMoveTo(Army: TAIMoveExecuterArmy; Selection: Byte; X, Y, L: Shortint): Byte; virtual; { $50 }
     procedure CalculateMoves; virtual; { $54 }
     procedure Activate(Executer: TAIMoveExecuter); virtual; { $58 }
     procedure Deactivate; virtual; { $5C }
-    procedure Done; virtual;  { +060 draft }
+    procedure Done; virtual; { $60 }
     function Process: Boolean; virtual; { $64 }
   end;
 
-  { TDefaultMEC (instance size 20, VMT 55718958) }
+  { TDefaultMEC: instance size $14; inherited move control, executer and state. }
   TDefaultMEC = class(TAIMoveExecuterControl)
   public
     procedure CalculateMoves; override;
   end;
 
-  { TAdjacentArmy (instance size 24, VMT 55718A30) }
+  { TAdjacentArmy: instance size $18; $08 location, $0C moves,
+    $10 current move points, $14 path. }
   TAdjacentArmy = class(TEObject)
   public
-    F_AdjacentArmy_08: array[0..3] of Byte;
-    F_AdjacentArmy_0C: Integer;
-    F_AdjacentArmy_10: array[0..3] of Byte;
-    F_AdjacentArmy_14: Integer;
+    FLocation: TXYL; { $08 }
+    FMoves: Integer; { $0C }
+    FMovePoints: Integer; { $10 }
+    FPath: TMovepath; { $14 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
-    procedure GetMovementDays;  { draft }
+    function GetMovementDays: Single;
   end;
 
-  { TAdjacentArmyList (instance size 12, VMT 55718AF0) }
+  { TAdjacentArmyList: instance size $0C; $08 adjacent armies. }
   TAdjacentArmyList = class(TENode)
   public
-    procedure GetAdjacentArmies(A1: Integer);  { draft }
-    procedure IndexOfLoc(A1: Integer; A2: Integer);  { draft }
-    procedure GetSlowestArmy;  { draft }
-    procedure GetAdjacent;  { draft }
+    function GetAdjacentArmies(Index: Integer): TAdjacentArmy;
+    function IndexOfLoc(Location: TXYL): Integer;
+    function GetSlowestArmy: Integer;
+    function GetAdjacent: Boolean;
   end;
 
-  { TAdjacentMEC (instance size 28, VMT 55718BF4) }
+  { TAdjacentMEC: instance size $1C; $14 meeting point, $18 adjacent armies. }
   TAdjacentMEC = class(TAIMoveExecuterControl)
   public
-    F_AdjacentMEC_14: Integer;
-    F_AdjacentMEC_18: Integer;
+    FMeetingPoint: TXYL; { $14 }
+    FAdjacentArmies: TAdjacentArmyList; { $18 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure CalculateMoves; override;
-    procedure ExecuteSurroundMove;  { draft }
-    procedure CalculateMeetingPoint;  { draft }
-    procedure ExecuteMeetingPointMove;  { draft }
+    function ExecuteSurroundMove: Boolean;
+    function CalculateMeetingPoint: Integer;
+    function ExecuteMeetingPointMove: Boolean;
   end;
 
   { TTransportMEC (instance size $18, VMT 55718CD0). $14 meeting point. }

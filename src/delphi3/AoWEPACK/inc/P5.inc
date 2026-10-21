@@ -8422,244 +8422,1558 @@ begin
 end;
 
 constructor TAIMoveControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPathSettings := TMoveControlSettings.Create(nil);
+  Clear;
+end;
 
 destructor TAIMoveControl.Destroy;
-begin end;
+begin
+  Clear;
+  FPathSettings.Release;
+  inherited Destroy;
+end;
 
 procedure TAIMoveControl.Clear;
-begin end;
+var
+  Settings: TAIMoveControlSettings;
+begin
+  Settings := FSettings;
+  if Settings <> nil then
+  begin
+    Settings.Release;
+    FSettings := nil;
+  end;
+  FStatus := amsIdle;
+  FProcessCycles := 0;
+  FPathSettings.Reset;
+  FPathSettings.FMode := FPathSettings.FMode + [mmAI];
+end;
 
-procedure TAIMoveControl.ProcessingDone(A1: Byte);
-begin end;
+procedure TAIMoveControl.ProcessingDone(Status: TAIMoveControlStatus);
+begin
+  if FSettings <> nil then
+  begin
+    FStatus := Status;
+    FSettings.FStatus := Status;
+    if Assigned(FSettings.FOnDone) then FSettings.FOnDone(Self);
+  end;
+end;
 
 procedure TAIMoveControl.ProcessCanMove;
-begin end;
+var
+  Points: Integer;
+begin
+  case FState of
+    0:
+      begin
+        FPathSettings.FMovePointsMax := FSettings.FQuickMovePointsMax;
+        Points := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmFast]);
+        FSettings.FMovePoints := Points;
+        if Points <> -1 then ProcessingDone(amsDone)
+        else
+        begin
+          Inc(FState);
+          if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 6 then ProcessCanMove;
+        end;
+      end;
+    1:
+      begin
+        FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
+        FSettings.FMovePoints := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmExact]);
+        FSettings.FTransportPath.Assign(FPathSettings.FPath);
+        ProcessingDone(amsDone);
+      end;
+  end;
+end;
 
-procedure TAIMoveControl.SelectCombinedTransporterArmyMpT(A1: Integer);
-begin end;
+procedure TAIMoveControl.SelectCombinedTransporterArmyMpT;
+var
+  Terrain, Overlay: Integer;
+  Points: Shortint;
+begin
+  for Terrain := 0 to 15 do
+    for Overlay := -1 to 11 do
+    begin
+      Points := FMovePointTable[Terrain, Overlay];
+      if Points = -1 then
+        if FTransportMovePointTable[Terrain, Overlay] <> -1 then Points := 8;
+      FPathSettings.FMovePointTable[Terrain, Overlay] := Points;
+    end;
+end;
 
-procedure TAIMoveControl.CalculateTransportGaps(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveControl.CalculateTransportGaps(Path: TMovepath;
+  const Table: TMovePointTable): Boolean;
+var
+  I, FirstGap, LastGap, Gaps: Integer;
+  InGap: Boolean;
+  MapF: TAoWMapField;
+begin
+  Gaps := 0;
+  FirstGap := -1;
+  LastGap := -1;
+  I := Path.Count - 1;
+  InGap := False;
+  while I > 1 do
+  begin
+    Dec(I);
+    MapF := TAoWMapField(AoWHSMap.MapContainer.GetField(Path[I].X, Path[I].Y, Path[I].L));
+    if Table[MapF.TerrainType, MapF.OverlayType] = -1 then
+    begin
+      if not InGap then
+      begin
+        if FirstGap = -1 then FirstGap := I;
+        Inc(Gaps);
+        InGap := True;
+      end;
+    end
+    else if InGap then
+    begin
+      LastGap := I + 1;
+      InGap := False;
+    end;
+  end;
+  if InGap then LastGap := 1;
+  if Gaps <> 0 then
+  begin
+    FSettings.FBoardingPoint := Path[FirstGap + 1];
+    FSettings.FTransportSource := Path[FirstGap];
+    FSettings.FArrivalPoint := Path[LastGap - 1];
+    FSettings.FTransportDestination := Path[LastGap];
+    Result := True;
+    FMultipleTransportGaps := Gaps > 1;
+  end
+  else Result := False;
+end;
 
-procedure TAIMoveControl.ProcessTransporterCanMove(A1: Integer; A2: Integer);
-begin end;
+procedure TAIMoveControl.ProcessTransporterCanMove;
+var
+  Points: Integer;
+  Location: TXYL;
+begin
+  case FState of
+    0:
+      begin
+        FPathSettings.FMovePointTable := FMovePointTable;
+        FPathSettings.FMovePointsMax := FSettings.FQuickMovePointsMax;
+        Points := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmFast]);
+        FSettings.FMovePoints := Points;
+        if Points = -1 then
+        begin
+          Inc(FState);
+          if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 6 then ProcessTransporterCanMove;
+        end
+        else ProcessingDone(amsDone);
+      end;
+    1:
+      begin
+        SelectCombinedTransporterArmyMpT;
+        FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
+        FPathSettings.FMode := FSettings.FMoveMode + [mmAvoidArmies];
+        AoWHSMap.FMoveControl.Activate(FPathSettings);
+        if FPathSettings.FPath.Count <> 0 then
+        begin
+          FSettings.FMovePoints := FPathSettings.GetMovePoints(
+            FPathSettings.FPath[0].X, FPathSettings.FPath[0].Y, FPathSettings.FPath[0].L);
+          FSettings.FTransportPath.Assign(FPathSettings.FPath);
+          if CalculateTransportGaps(FPathSettings.FPath, FMovePointTable) then
+          begin
+            FState := 2;
+            FPathSettings.FMovePointTable := FTransportMovePointTable;
+            FSettings.FTransporter.GetLocation(Location.X, Location.Y, Location.L);
+            FPathSettings.SetSourcePos(Location.X, Location.Y, Location.L);
+            with FSettings.FTransportSource do FPathSettings.SetDestinationPos(X, Y, L);
+            if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 1 then ProcessTransporterCanMove;
+          end
+          else ProcessingDone(amsDone);
+        end
+        else ProcessingDone(amsDone);
+      end;
+    2:
+      begin
+        FPathSettings.FMovePointsMax := FSettings.FQuickMovePointsMax;
+        Points := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmFast]);
+        if Points = -1 then
+        begin
+          FState := 3;
+          if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 6 then ProcessTransporterCanMove;
+        end
+        else
+        begin
+          Inc(FSettings.FMovePoints, Points);
+          if FMultipleTransportGaps then
+          begin
+            { Original repeats the first gap source before continuing. }
+            with FSettings.FTransportSource do FPathSettings.SetDestinationPos(X, Y, L);
+            FMultipleTransportGaps := False;
+            if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 1 then ProcessTransporterCanMove;
+          end
+          else ProcessingDone(amsDone);
+        end;
+      end;
+    3:
+      begin
+        FPathSettings.FMovePointTable := FTransportMovePointTable;
+        FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
+        Points := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmExact]);
+        if Points = -1 then
+        begin
+          FSettings.FMovePoints := -1;
+          ProcessingDone(amsDone);
+        end
+        else
+        begin
+          Inc(FSettings.FMovePoints, Points);
+          if FMultipleTransportGaps then
+          begin
+            with FSettings.FTransportDestination do FPathSettings.SetDestinationPos(X, Y, L);
+            FMultipleTransportGaps := False;
+            FState := 2;
+            if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 1 then ProcessTransporterCanMove;
+          end
+          else ProcessingDone(amsDone);
+        end;
+      end;
+  end;
+end;
 
-procedure TAIMoveControl.Initialize(A1: Integer);
-begin end;
+procedure TAIMoveControl.Initialize(Settings: TAIMoveControlSettings);
+var
+  OldSettings: TAIMoveControlSettings;
+  Transporter: TAbstractUnit;
+begin
+  OldSettings := FSettings;
+  if OldSettings <> nil then OldSettings.Release;
+  FSettings := Settings;
+  if FSettings <> nil then
+  begin
+    FSettings.AddRef;
+    FSettings.FMovePoints := -1;
+    FSettings.FTransportSource.X := -1;
+    FSettings.FTransportDestination.X := -1;
+    FSettings.FBoardingPoint.X := -1;
+    FSettings.FArrivalPoint.X := -1;
+    FSettings.FStatus := amsProcessing;
+    FMovePointTable := FSettings.FMovePointTable;
+    Transporter := FSettings.FTransporter;
+    if Transporter <> nil then
+      FTransportMovePointTable := MovePointTables[MoveTypesToInt(Transporter.GetMoveTypes)];
+  end;
+end;
 
-procedure TAIMoveControl.CanMove(Settings: TAIMoveControlSettings);
-begin end;
+function TAIMoveControl.CanMove(Settings: TAIMoveControlSettings): Boolean;
+begin
+  Reset;
+  Initialize(Settings);
+  FStatus := amsProcessing;
+  FPathSettings.Reset;
+  with FSettings do FPathSettings.SetSourcePos(FSourceX, FSourceY, FSourceL);
+  FPathSettings.FPlayer := FSettings.FPlayer;
+  with FSettings do FPathSettings.SetDestinationPos(FDestinationX, FDestinationY, FDestinationL);
+  FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
+  FPathSettings.FArmyHS := FSettings.FArmyHS;
+  FPathSettings.FSelection := FSettings.FSelection;
+  FPathSettings.FMode := FSettings.FMoveMode;
+  if FSettings.FTransporter = nil then
+  begin
+    FMode := mcsCanMove;
+    FPathSettings.FMovePointTable := FMovePointTable;
+    if FSettings.FSourceL = FSettings.FDestinationL then
+    begin
+      FState := 0;
+      if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 1 then ProcessCanMove;
+    end
+    else FState := 1;
+    Result := True;
+  end
+  else
+  begin
+    FMode := mcsTransporterCanMove;
+    FPathSettings.FTransporterArmy := TArmy(FSettings.FTransporter.FOwner).GetArmyHS;
+    if FSettings.FSourceL = FSettings.FDestinationL then
+    begin
+      FState := 0;
+      if AoWHSMap.FAIExecuter.GetProcessTimeLeft > 1 then ProcessTransporterCanMove;
+    end
+    else FState := 1;
+    Result := True;
+  end;
+end;
 
 procedure TAIMoveControl.Cancel;
-begin end;
+begin
+  if FStatus = amsProcessing then ProcessingDone(amsCanceled);
+end;
 
 procedure TAIMoveControl.Reset;
-begin end;
+begin
+  Cancel;
+  Clear;
+end;
 
-procedure TAIMoveControl.Process;
-begin end;
+function TAIMoveControl.Process: Boolean;
+begin
+  if FStatus = amsProcessing then
+  begin
+    Inc(FProcessCycles);
+    case FMode of
+      mcsCanMove: ProcessCanMove;
+      mcsTransporterCanMove: ProcessTransporterCanMove;
+    end;
+  end;
+  Result := FStatus = amsProcessing;
+end;
 
 constructor TMoveTarget.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FRefCount := 1;
+end;
 
 destructor TMoveTarget.Destroy;
-begin end;
+begin
+  if FMovepath <> nil then FMovepath.Free;
+  inherited Destroy;
+end;
 
 function TMoveTarget.AddRef: Integer;
-begin Result := 0; end;
+begin
+  Inc(FRefCount);
+  Result := FRefCount;
+end;
 
 function TMoveTarget.Release: Integer;
-begin Result := 0; end;
+begin
+  Dec(FRefCount);
+  Result := FRefCount;
+  if Result = 0 then Destroy;
+end;
 
 function TMoveTargetList.GetTarget(Index: Integer): TMoveTarget;
-begin Result := nil; end;
+begin
+  Result := TMoveTarget(FChildren.List^[Index]);
+end;
 
 function TMoveTargetList.IndexOfXYL(Location: Integer): Integer;
-begin Result := 0; end;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Integer(TMoveTarget(FChildren.List^[Result]).FLocation) = Location then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TMoveTargetList.AddTargetEx(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TMoveTargetList.AddTargetEx(Location: Integer; MovePoints,
+  TransporterID: Integer; const Data: TAITargetData);
+var
+  Target: TMoveTarget;
+begin
+  Target := TMoveTarget.Create(nil);
+  Target.FLocation := TXYL(Location);
+  Target.FMovePoints := MovePoints;
+  Target.FTransporterID := TransporterID;
+  Target.FData := Data;
+  AddChild(Target);
+  Target.Release;
+end;
+
+function CompareMoveTargets(Item1, Item2: Pointer): Integer;
+begin
+  Result := TMoveTarget(Item1).FMovePoints - TMoveTarget(Item2).FMovePoints;
+end;
 
 procedure TMoveTargetList.SortOnMovePoints;
-begin end;
+begin
+  FChildren.Sort(CompareMoveTargets);
+end;
 
 procedure TAIMoveExecuterUnit.Initialize(AUnit: TAbstractUnit; X, Y, L: Shortint);
-begin end;
+begin
+  FUnit := AUnit;
+  FUnitID := AUnit.FUnitID;
+  FLocation.X := X;
+  FLocation.Y := Y;
+  FLocation.L := L;
+  FLocation.Flag := 0;
+  FOrigin.X := X;
+  FOrigin.Y := Y;
+  FOrigin.L := L;
+  FOrigin.Flag := 0;
+  FDestination.X := -1;
+  FDestination.Y := -1;
+  FDestination.L := -1;
+  FDestination.Flag := 0;
+  ResetTransporterSettings;
+  FStatus := esIdle;
+  FMoveResult := 0;
+end;
 
 function TAIMoveExecuterUnit.Validate: Boolean;
-begin Result := False; end;
+begin
+  Result := TUnitControl(AoWHSMap.FUnitControl).FindUnit(FUnitID) = FUnit;
+  if Result and not (usKilled in FUnit.FUnitStatus) then
+  begin
+    if FStatus = esMoving then
+    begin
+      FUnit.GetLocation(FLocation.X, FLocation.Y, FLocation.L);
+      FStatus := esReady;
+    end;
+  end
+  else
+  begin
+    { Original returns the identity check even for a killed unit. }
+    FUnit := nil;
+    FStatus := esLost;
+  end;
+end;
 
 procedure TAIMoveExecuterUnit.ResetTransporterSettings;
-begin end;
+begin
+  FBoardingPoint.X := -1;
+  FArrivalPoint.X := -1;
+  FTransportSource.X := -1;
+  FTransportDestination.X := -1;
+end;
 
 function TAIMoveExecuterUnitList.GetUnits(Index: Integer): TAIMoveExecuterUnit;
-begin Result := nil; end;
+begin
+  Result := TAIMoveExecuterUnit(FChildren.List^[Index]);
+end;
 
 function TAIMoveExecuterUnitList.IndexOfUnitID(ID: Integer): Integer;
-begin Result := 0; end;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAIMoveExecuterUnit(FChildren.List^[Result]).FUnitID = ID then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TAIMoveExecuterUnitList.IndexOfUnit(A1: Integer);
-begin end;
+function TAIMoveExecuterUnitList.IndexOfUnit(AUnit: TAbstractUnit): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAIMoveExecuterUnit(FChildren.List^[Result]).FUnit = AUnit then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TAIMoveExecuterUnitList.FindStatusUnit(A1: Integer);
-begin end;
+function TAIMoveExecuterUnitList.FindStatusUnit(Status: TAIMoveExecuterUnitStatus): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAIMoveExecuterUnit(FChildren.List^[Result]).FStatus = Status then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TAIMoveExecuterUnitList.ValidateSelection(A1: Byte);
-begin end;
+function TAIMoveExecuterUnitList.ValidateSelection(Selection: Byte): Byte;
+var
+  N: Integer;
+begin
+  N := FChildren.Count;
+  if N > 8 then N := 8;
+  Result := Selection and ArmySelectionMasks[N];
+end;
 
-procedure TAIMoveExecuterUnitList.SelectionCount;
-begin end;
+function TAIMoveExecuterUnitList.SelectionCount(Selection: Byte): Integer;
+begin
+  Selection := ValidateSelection(Selection);
+  Result := 0;
+  while Selection <> 0 do
+  begin
+    if Selection and 1 <> 0 then Inc(Result);
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TAIMoveExecuterUnitList.Transporter(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveExecuterUnitList.Transporter(Selection: Byte): TAIMoveExecuterUnit;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      if TAIMoveExecuterUnit(FChildren.List^[I]).FUnit.GetTransporter then
+      begin
+        Result := TAIMoveExecuterUnit(FChildren.List^[I]);
+        Break;
+      end;
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TAIMoveExecuterUnitList.SetMoveResult(A1: Integer; A2: Integer);
-begin end;
+procedure TAIMoveExecuterUnitList.SetMoveResult(Selection, MoveResult: Byte);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      TAIMoveExecuterUnit(FChildren.List^[I]).FMoveResult := MoveResult;
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TAIMoveExecuterUnitList.SetTransportStatus(Selection: Byte; Status: TAIMoveExecuterTransportStatus);
-begin end;
+procedure TAIMoveExecuterUnitList.SetTransportStatus(Selection: Byte;
+  Status: TAIMoveExecuterTransportStatus);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      TAIMoveExecuterUnit(FChildren.List^[I]).FTransportStatus := Status;
+    Selection := Selection shr 1;
+  end;
+end;
 
 procedure TAIMoveExecuterUnitList.SetStatus(Selection: Byte; Status: TAIMoveExecuterUnitStatus);
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      TAIMoveExecuterUnit(FChildren.List^[I]).FStatus := Status;
+    Selection := Selection shr 1;
+  end;
+end;
 
 constructor TAIMoveExecuterMove.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPath := TMovepath.Create;
+end;
 
 destructor TAIMoveExecuterMove.Destroy;
-begin end;
+begin
+  { Original retains this empty exception frame when the path is already nil. }
+  if FPath = nil then
+    try
+    except
+      ShowMessage('Path already destroyed!?!');
+      raise;
+    end;
+  FPath.Free;
+  FPath := nil;
+  inherited Destroy;
+end;
 
 procedure TAIMoveExecuterMove.AddUnits(Units: TAIMoveExecuterUnitList; Selection: Byte);
-begin end;
+var
+  I: Integer;
+begin
+  for I := 0 to Units.Count - 1 do
+  begin
+    if Selection and 1 <> 0 then AddChild(Units.GetUnits(I));
+    Selection := Selection shr 1;
+  end;
+end;
 
-procedure TAIMoveExecuterMove.AddUnit;
-begin end;
+procedure TAIMoveExecuterMove.AddUnit(UnitEntry: TAIMoveExecuterUnit);
+begin
+  AddChild(UnitEntry);
+end;
 
 procedure TAIMoveExecuterMove.SetUnitStatus(Status: TAIMoveExecuterUnitStatus);
-begin end;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    TAIMoveExecuterUnit(FChildren.List^[I]).FStatus := Status;
+end;
 
 function TAIMoveExecuterMove.RetrieveArmy(var Army: TArmyHS; var Selection: Byte): Boolean;
-begin Result := False; end;
+var
+  I, Index: Integer;
+begin
+  Army := TAoWMapField(AoWHSMap.MapContainer.GetField(FSourceX, FSourceY, FSourceL)).GetArmyHS;
+  if Army <> nil then
+  begin
+    Selection := 0;
+    for I := Count - 1 downto 0 do
+    begin
+      Index := Army.FArmy.IndexOf(GetUnits(I).FUnit);
+      if Index <> -1 then Selection := Selection or (1 shl Index)
+      else raise Exception.Create('Unit missing!');
+    end;
+    Result := True;
+  end
+  else
+  begin
+    Selection := 0;
+    Army := nil;
+    Result := False;
+  end;
+end;
 
 function TAIMoveExecuterMoveQueue.GetMoves(Index: Integer): TAIMoveExecuterMove;
-begin Result := nil; end;
+begin
+  Result := TAIMoveExecuterMove(FChildren.List^[Index]);
+end;
 
 procedure TAIMoveExecuterMoveQueue.Reset;
-begin end;
+var
+  I: Integer;
+begin
+  for I := FChildren.Count - 1 downto 0 do
+    TAIMoveExecuterMove(FChildren.List^[I]).SetStatus($FF, esReady);
+  Clear;
+end;
 
 procedure TAIMoveExecuterMoveQueue.Clear;
-begin end;
+begin
+  inherited Clear;
+end;
 
 procedure TAIMoveExecuterArmy.Setup(Transporter: TAIMoveExecuterUnit);
-begin end;
+begin
+  FLocation.X := Transporter.FLocation.X;
+  FLocation.Y := Transporter.FLocation.Y;
+  FLocation.L := Transporter.FLocation.L;
+  FLocation.Flag := 0;
+  FDestination.X := Transporter.FDestination.X;
+  FDestination.Y := Transporter.FDestination.Y;
+  FDestination.L := Transporter.FDestination.L;
+  FDestination.Flag := 0;
+  FGrouped := False;
+  FPlayer := Transporter.FUnit.FPlayer;
+  FTransportStatus := Transporter.FTransportStatus;
+  FBoardingPoint := Transporter.FBoardingPoint;
+  FArrivalPoint := Transporter.FArrivalPoint;
+  FTransportSource := Transporter.FTransportSource;
+  FTransportDestination := Transporter.FTransportDestination;
+  AddChild(Transporter);
+end;
 
 function TAIMoveExecuterArmy.CanAdd(UnitEntry: TAIMoveExecuterUnit): Boolean;
-begin Result := False; end;
+begin
+  Result := (Integer(FLocation) = Integer(UnitEntry.FLocation)) and
+    (Integer(FDestination) = Integer(UnitEntry.FDestination)) and
+    (FTransportStatus = UnitEntry.FTransportStatus) and
+    ((FTransportStatus = mtsDone) or
+      ((Integer(FBoardingPoint) = Integer(UnitEntry.FBoardingPoint)) and
+       (Integer(FArrivalPoint) = Integer(UnitEntry.FArrivalPoint)) and
+       (Integer(FTransportSource) = Integer(UnitEntry.FTransportSource)) and
+       (Integer(FTransportDestination) = Integer(UnitEntry.FTransportDestination))));
+end;
 
-procedure TAIMoveExecuterArmy.RetrieveArmy(Selection: Byte; var Army: TArmyHS; var ArmySelection: Byte);
-begin end;
+procedure TAIMoveExecuterArmy.RetrieveArmy(Selection: Byte; var Army: TArmyHS;
+  var ArmySelection: Byte);
+var
+  I, Index: Integer;
+begin
+  Army := TAoWMapField(AoWHSMap.MapContainer.GetField(
+    FLocation.X, FLocation.Y, FLocation.L)).GetArmyHS;
+  if Army <> nil then
+  begin
+    ArmySelection := 0;
+    for I := 0 to Count - 1 do
+    begin
+      if Selection and 1 <> 0 then
+      begin
+        Index := Army.FArmy.FindChildIndex(GetUnits(I).FUnit);
+        if Index <> -1 then ArmySelection := ArmySelection or (1 shl Index)
+        else raise Exception.Create('Unit missing!');
+      end;
+      Selection := Selection shr 1;
+    end;
+  end
+  else
+  begin
+    ArmySelection := 0;
+    Army := nil;
+  end;
+end;
 
 procedure TAIMoveExecuterArmy.ResetTransporterSettings;
-begin end;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do GetUnits(I).ResetTransporterSettings;
+end;
 
 function TAIMoveExecuterArmy.WaitingForTransport: Boolean;
-begin Result := False; end;
+begin
+  Result := Integer(FLocation) = Integer(FBoardingPoint);
+end;
 
-procedure TAIMoveExecuterArmy.Moves(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveExecuterArmy.Moves(Selection: Byte): Integer;
+var
+  I: Integer;
+begin
+  Result := $FFFF;
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      if Result > GetUnits(I).FUnit.GetMoves then Result := GetUnits(I).FUnit.GetMoves;
+    Selection := Selection shr 1;
+  end;
+  if Result = $FFFF then Result := -1;
+end;
 
-procedure TAIMoveExecuterArmy.MovePoints(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveExecuterArmy.MovePoints(Selection: Byte): Integer;
+var
+  I: Integer;
+begin
+  Result := $FFFF;
+  for I := 0 to Count - 1 do
+  begin
+    if Selection and 1 <> 0 then
+      if Result > GetUnits(I).FUnit.GetMovePoints then Result := GetUnits(I).FUnit.GetMovePoints;
+    Selection := Selection shr 1;
+  end;
+  if Result = $FFFF then Result := -1;
+end;
 
-procedure TAIMoveExecuterArmy.ValidTerrain(A1: Integer; A2: Byte; A3: Integer);
-begin end;
+function TAIMoveExecuterArmy.ValidTerrain(Selection: Byte; TerrainType,
+  OverlayType: Shortint): Byte;
+var
+  I: Integer;
+  All: Boolean;
+begin
+  Result := 0;
+  All := True;
+  for I := 0 to Count - 1 do
+    if (1 shl I) and Selection <> 0 then
+      if not GetUnits(I).FUnit.ValidTerrain(TerrainType, OverlayType) then All := False
+      else Result := Result or (1 shl I);
+  if All then Result := Selection;
+end;
 
 function TAIMoveExecuterArmyList.GetArmies(Index: Integer): TAIMoveExecuterArmy;
-begin Result := nil; end;
+begin
+  Result := TAIMoveExecuterArmy(FChildren.List^[Index]);
+end;
 
 function TAIMoveExecuterArmyList.IndexOf(Army: TArmyHS; Selection: Byte): Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+  Entry: TAIMoveExecuterArmy;
+  FoundArmy: TArmyHS;
+  FoundSelection: Byte;
+begin
+  I := Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    Entry := TAIMoveExecuterArmy(FChildren.List^[I]);
+    if (Army.GetXhx = Entry.FLocation.X) and
+      (Army.GetYhx = Entry.FLocation.Y) and (Army.GetLhx = Entry.FLocation.L) then
+    begin
+      Entry.RetrieveArmy($FF, FoundArmy, FoundSelection);
+      if (Army = FoundArmy) and (FoundSelection = Selection) then
+      begin
+        Result := I;
+        Exit;
+      end;
+    end;
+  end;
+  Result := -1;
+end;
 
-procedure TAIMoveExecuterArmyList.IndexOfXYL(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TAIMoveExecuterArmyList.IndexOfXYL(X, Y, L: Shortint): Integer;
+var
+  I: Integer;
+  Army: TAIMoveExecuterArmy;
+begin
+  I := Count;
+  while I <> 0 do
+  begin
+    Dec(I);
+    Army := TAIMoveExecuterArmy(FChildren.List^[I]);
+    if (X = Army.FLocation.X) and (Y = Army.FLocation.Y) and
+      (L = Army.FLocation.L) then
+    begin
+      Result := I;
+      Exit;
+    end;
+  end;
+  Result := -1;
+end;
 
-procedure TAIMoveExecuterArmyList.IndexOfLoc(A1: Integer; A2: Integer);
-begin end;
+function TAIMoveExecuterArmyList.IndexOfLoc(Location: TXYL): Integer;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Integer(TAIMoveExecuterArmy(FChildren.List^[Result]).FLocation) = Integer(Location) then Exit;
+  end;
+  Result := -1;
+end;
 
 function TAIMoveExecuterArmyList.IndexOfTransportStatus(Status: TAIMoveExecuterTransportStatus): Integer;
-begin Result := 0; end;
+begin
+  Result := Count;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TAIMoveExecuterArmy(FChildren.List^[Result]).FTransportStatus = Status then Exit;
+  end;
+  Result := -1;
+end;
+
+function CompareExecuterArmies(Item1, Item2: Pointer): Integer;
+begin
+  Result := TAIMoveExecuterArmy(Item1).MovePoints($FF) -
+    TAIMoveExecuterArmy(Item2).MovePoints($FF);
+end;
 
 procedure TAIMoveExecuterArmyList.SortOnMovePoints;
-begin end;
+begin
+  FChildren.Sort(CompareExecuterArmies);
+end;
 
 constructor TAIMoveExecuterControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FMoveControl := TAIMoveControl.Create(nil);
+end;
 
 destructor TAIMoveExecuterControl.Destroy;
-begin end;
+begin
+  FMoveControl.Free;
+  inherited Destroy;
+end;
 
-function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy; Selection: Byte; X, Y, L: Shortint; Mode: TArmyMoveMode; MoveResult: PByte): TAIMoveExecuterMove;
-begin Result := nil; end;
+function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy;
+  Selection: Byte; X, Y, L: Shortint; Mode: TCreateMoveMode;
+  MoveResult: PByte): TAIMoveExecuterMove;
+var
+  Settings: TMoveControlSettings;
+  Move: TAIMoveExecuterMove;
+  Candidates: TDoubleItemList;
+  ArmySelection: Byte;
+  I, Position, Points: Integer;
+  MapF: TAoWMapField;
+  ArmyHS: TArmyHS;
+  Level: TMapLevel;
+  Walk: THNWalkData;
+begin
+  Move := nil;
+  Army.RetrieveArmy(Selection, ArmyHS, ArmySelection);
+  Settings := TMoveControlSettings.Create(nil);
+  if cmmSurroundEx in Mode then
+  begin
+    Settings.FMovePointsMax := Army.MovePoints($FF);
+    Settings.SetupArmy(ArmyHS, ArmySelection);
+    AoWHSMap.FMoveControl.Activate(Settings);
+    Level := AoWHSMap.MapContainer.GetMapLevel(L);
+    Candidates := TDoubleItemList.Create;
+    InitHNWalk(Walk, X, Y, 1);
+    while Walk.Radius <= 1 do
+    begin
+      if (Walk.X >= 0) and (Walk.Y >= 0) and
+        (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
+      begin
+        Points := Settings.GetMovePoints(Walk.X, Walk.Y, L);
+        MapF := TAoWMapField(AoWHSMap.MapContainer.GetField(Walk.X, Walk.Y, L));
+        if (Points <> $FFFFFF) and
+          ((MapF.GetPlayer = -1) or (MapF.GetPlayer = Army.FPlayer)) then
+          if CanMoveTo(Army, Selection, Walk.X, Walk.Y, L) = Selection then
+            Candidates.AddAB(Integer(PackXYL(Walk.X, Walk.Y, L)), Points);
+      end;
+      WalkToNextHN(Walk);
+    end;
+    if Candidates.Count <> 0 then
+    begin
+      Candidates.SortAscendingItemB;
+      X := TXYL(Candidates[0].A).X;
+      Y := TXYL(Candidates[0].A).Y;
+      L := TXYL(Candidates[0].A).L;
+      AoWHSMap.FMoveControl.CalculatePath(Settings, Settings.FPath, X, Y, L);
+    end;
+    Candidates.Free;
+  end
+  else
+  begin
+    Settings.FMovePointsMax := FExecuter.FMovePointsMax;
+    Settings.SetupArmy(ArmyHS, ArmySelection);
+    Settings.SetDestinationPos(X, Y, L);
+    AoWHSMap.FMoveControl.Activate(Settings);
+  end;
+  if Settings.FPath.Count <> 0 then
+  begin
+    Points := ArmyHS.FArmy.MovePoints(ArmySelection);
+    Position := Settings.FPath.MovePointsToPos(Points);
+    if not (cmmSurround in Mode) and
+      (Settings.FPath[Position].X = FExecuter.FDestination.X) and
+      (Settings.FPath[Position].Y = FExecuter.FDestination.Y) and
+      (Settings.FPath[Position].L = FExecuter.FDestination.L) then
+      Army.SetMoveResult(Selection, 2);
+    if MoveResult <> nil then
+      if Position = 0 then MoveResult^ := 2 else MoveResult^ := 0;
+    if (cmmSurround in Mode) and (Position = 0) then Inc(Position);
+    if Position < Settings.FPath.Count - 1 then
+    begin
+      while (Position <> Settings.FPath.Count - 1) and
+        (CanMoveTo(Army, Selection, Settings.FPath[Position].X,
+          Settings.FPath[Position].Y, Settings.FPath[Position].L) <> Selection) do
+      begin
+        Inc(Position);
+        if MoveResult <> nil then
+          if MoveResult^ = 2 then MoveResult^ := 1;
+      end;
+      if Position < Settings.FPath.Count - 1 then
+      begin
+        Move := TAIMoveExecuterMove.Create(nil);
+        Move.AddUnits(Army, Selection);
+        for I := Position to Settings.FPath.Count - 1 do Move.FPath.Add(Settings.FPath[I]);
+        Move.FMovePoints := Points;
+        Move.FMoves := ArmyHS.FArmy.Moves(ArmySelection);
+        Move.FSourceX := ArmyHS.GetXhx;
+        Move.FSourceY := ArmyHS.GetYhx;
+        Move.FSourceL := ArmyHS.GetLhx;
+        Move.FDestinationX := X;
+        Move.FDestinationY := Y;
+        Move.FDestinationL := L;
+        if not (cmmDontQueue in Mode) then
+        begin
+          Move.SetOwner(FExecuter.FMoves);
+          Move.SetUnitStatus(esQueued);
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    if MoveResult <> nil then
+      if (Army.FLocation.X = X) and (Army.FLocation.Y = Y) and
+        (Army.FLocation.L = L) then MoveResult^ := 2 else MoveResult^ := 3;
+    if (FExecuter.FDestination.X = Settings.FSourceX) and
+      (FExecuter.FDestination.Y = Settings.FSourceY) and
+      (FExecuter.FDestination.L = Settings.FSourceL) then
+    begin
+      Army.SetMoveResult(Selection, 2);
+      Army.SetStatus(Selection, esDone);
+    end;
+  end;
+  Settings.Release;
+  Result := Move;
+end;
 
-function TAIMoveExecuterControl.CanMoveTo(Army: TAIMoveExecuterArmy; Selection: Byte; X, Y, L: Shortint): Byte;
-begin Result := 0; end;
+function TAIMoveExecuterControl.CanMoveTo(Army: TAIMoveExecuterArmy;
+  Selection: Byte; X, Y, L: Shortint): Byte;
+var
+  UnitCount, TransporterCount, Capacity, I, Index, Excess: Integer;
+  AUnit: TAbstractUnit;
+  Allowed: Boolean;
+  ArmyHS: TArmyHS;
+  MapF: TAoWMapField;
+  Move: TAIMoveExecuterMove;
+  Transporter: TAIMoveExecuterUnit;
+begin
+  UnitCount := 0;
+  TransporterCount := 0;
+  Capacity := 8;
+  Allowed := True;
+  MapF := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L));
+  ArmyHS := MapF.GetArmyHS;
+  Result := 0;
+  if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = Army.FPlayer) then
+  begin
+    for I := 0 to ArmyHS.FArmy.Count - 1 do
+    begin
+      AUnit := ArmyHS.FArmy.GetUnit(I);
+      Index := FExecuter.FUnits.IndexOfUnitID(AUnit.FUnitID);
+      if (Index = -1) or (FExecuter.FUnits.GetUnits(Index).FStatus <> esQueued) then
+      begin
+        Inc(UnitCount);
+        if AUnit.GetTransporter then
+        begin
+          Inc(TransporterCount);
+          if AUnit.GetTransportCapacity + 1 < Capacity then
+            Capacity := AUnit.GetTransportCapacity + 1;
+        end;
+      end;
+    end;
+  end
+  else if ((FExecuter.FDestination.X <> X) or
+    (FExecuter.FDestination.Y <> Y) or (FExecuter.FDestination.L <> L)) and
+    (MapF.GetPlayer <> -1) and (MapF.GetPlayer <> Army.FPlayer) then Allowed := False;
+  if Allowed then
+  begin
+    for I := 0 to FExecuter.FMoves.Count - 1 do
+    begin
+      Move := FExecuter.FMoves.GetMoves(I);
+      if (Move.FPath[0].X = X) and (Move.FPath[0].Y = Y) and (Move.FPath[0].L = L) then
+      begin
+        Inc(UnitCount, Move.Count);
+        Transporter := Move.Transporter($FF);
+        if Transporter <> nil then
+        begin
+          Inc(TransporterCount);
+          if Transporter.FUnit.GetTransportCapacity + 1 < Capacity then
+            Capacity := Transporter.FUnit.GetTransportCapacity + 1;
+        end;
+      end;
+    end;
+    Transporter := Army.Transporter(Selection);
+    if (Transporter = nil) or (TransporterCount = 0) then
+    begin
+      if Transporter <> nil then
+        if Transporter.FUnit.GetTransportCapacity + 1 < Capacity then
+          Capacity := Transporter.FUnit.GetTransportCapacity + 1;
+      Excess := Army.SelectionCount(Selection) + UnitCount - Capacity;
+      if Excess > 0 then
+        if Transporter = nil then
+        begin
+          I := 8;
+          Selection := Army.ValidateSelection(Selection);
+          Result := Selection;
+          while (Excess <> 0) and (Result <> 0) do
+          begin
+            Dec(I);
+            if Selection and $80 <> 0 then
+            begin
+              Result := Result and not (1 shl I);
+              Dec(Excess);
+            end;
+            Selection := (Selection and $7F) shl 1;
+          end;
+        end
+        else Result := 0
+      else Result := Selection;
+    end
+    else Result := 0;
+  end;
+  if not Allowed then Result := 0;
+end;
 
 procedure TAIMoveExecuterControl.Activate(Executer: TAIMoveExecuter);
-begin end;
+begin
+  FExecuter := Executer;
+  FState := 0;
+end;
 
 procedure TAIMoveExecuterControl.Deactivate;
-begin end;
+begin
+end;
 
 procedure TAIMoveExecuterControl.CalculateMoves;
-begin end;
+begin
+  Done;
+end;
 
 procedure TAIMoveExecuterControl.Done;
-begin end;
+begin
+  FState := -1;
+end;
 
 function TAIMoveExecuterControl.Process: Boolean;
-begin Result := False; end;
+var
+  TimeLeft: Integer;
+begin
+  TimeLeft := 5;
+  if FMoveControl.FStatus = amsProcessing then FMoveControl.Process;
+  while (FMoveControl.FStatus <> amsProcessing) and (TimeLeft > 0) and
+    (FExecuter.FStatus = mesBusy) and (FExecuter.FState = 0) and
+    (FState <> -1) do
+  begin
+    CalculateMoves;
+    TimeLeft := AoWHSMap.FAIExecuter.GetProcessTimeLeft;
+  end;
+  Result := FState <> -1;
+end;
 
 procedure TDefaultMEC.CalculateMoves;
-begin end;
+var
+  I: Integer;
+  Armies: TAIMoveExecuterArmyList;
+  Move: TAIMoveExecuterMove;
+  MoveResult: Byte;
+  Mode: TCreateMoveMode;
+  CannotMove: Boolean;
+begin
+  case FState of
+    0:
+      begin
+        Armies := FExecuter.CreateArmies([esReady]);
+        if Armies.Count <> 0 then
+        begin
+          if memAttack in FExecuter.FMode then Mode := [cmmSurround] else Mode := [];
+          with FExecuter.FDestination do
+            Move := CreateMove(Armies.GetArmies(0), $FF, X, Y, L, Mode, @MoveResult);
+          if Move <> nil then
+          begin
+            if not (memSimultaneous in FExecuter.FMode) or
+              ((memAttack in FExecuter.FMode) and (MoveResult = 2)) then FExecuter.ExecuteMoves;
+          end
+          else Armies.GetArmies(0).SetStatus($FF, esDone);
+        end
+        else if FExecuter.FMoves.Count <> 0 then
+        begin
+          FExecuter.ExecuteMoves;
+          if memAttack in FExecuter.FMode then FState := 1 else FState := 2;
+        end;
+        if (FExecuter.FMoves.Count = 0) and (Armies.Count = 0) then
+          if memAttack in FExecuter.FMode then FState := 1 else Done;
+        Armies.Free;
+      end;
+    1:
+      begin
+        I := 0;
+        CannotMove := True;
+        Armies := FExecuter.CreateArmies([esReady, esDone]);
+        while CannotMove and (I <> Armies.Count) do
+        begin
+          with FExecuter.FDestination do
+            Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L,
+              [cmmDontQueue, cmmSurround], @MoveResult);
+          CannotMove := MoveResult <> 0;
+          if Move <> nil then Move.Free;
+          Inc(I);
+        end;
+        if CannotMove then
+        begin
+          I := 0;
+          Move := nil;
+          while (Move = nil) and (I <> Armies.Count) do
+          begin
+            with FExecuter.FDestination do
+              Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L, [], @MoveResult);
+            if Move <> nil then FExecuter.ExecuteMoves;
+            Inc(I);
+          end;
+        end;
+        Armies.Free;
+        Done;
+      end;
+    2: Done;
+  end;
+end;
 
 constructor TAdjacentArmy.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FPath := TMovepath.Create;
+end;
 
 destructor TAdjacentArmy.Destroy;
-begin end;
+begin
+  FPath.Free;
+  inherited Destroy;
+end;
 
-procedure TAdjacentArmy.GetMovementDays;
-begin end;
+function TAdjacentArmy.GetMovementDays: Single;
+var
+  Points: Integer;
+begin
+  if FMoves <> 0 then
+  begin
+    Points := FPath.GetMovePoints;
+    if Points > FMovePoints then Result := (Points - FMovePoints) / FMoves + 1
+    else if Points <> 0 then Result := Points / FMovePoints
+    else Result := 0;
+  end
+  else Result := 99;
+end;
 
-procedure TAdjacentArmyList.GetAdjacentArmies(A1: Integer);
-begin end;
+function TAdjacentArmyList.GetAdjacentArmies(Index: Integer): TAdjacentArmy;
+begin
+  Result := TAdjacentArmy(FChildren.List^[Index]);
+end;
 
-procedure TAdjacentArmyList.IndexOfLoc(A1: Integer; A2: Integer);
-begin end;
+function TAdjacentArmyList.IndexOfLoc(Location: TXYL): Integer;
+begin
+  Result := Count;
+  Location.Flag := 0;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if Integer(TAdjacentArmy(FChildren.List^[Result]).FLocation) = Integer(Location) then Exit;
+  end;
+  Result := -1;
+end;
 
-procedure TAdjacentArmyList.GetSlowestArmy;
-begin end;
+function TAdjacentArmyList.GetSlowestArmy: Integer;
+var
+  I: Integer;
+  MaxDays, Days: Single;
+begin
+  MaxDays := -1;
+  Result := -1;
+  for I := 0 to Count - 1 do
+  begin
+    Days := GetAdjacentArmies(I).GetMovementDays;
+    if Days > MaxDays then
+    begin
+      Result := I;
+      MaxDays := Days;
+    end;
+  end;
+end;
 
-procedure TAdjacentArmyList.GetAdjacent;
-begin end;
+function TAdjacentArmyList.GetAdjacent: Boolean;
+var
+  I: Integer;
+  Locations: TXYLList;
+begin
+  Locations := TXYLList.Create;
+  for I := 0 to Count - 1 do Locations.Add(GetAdjacentArmies(I).FLocation);
+  Result := LocationsConnected(Locations);
+  Locations.Free;
+end;
 
 constructor TAdjacentMEC.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAdjacentArmies := TAdjacentArmyList.Create(nil);
+end;
 
 destructor TAdjacentMEC.Destroy;
-begin end;
+begin
+  FAdjacentArmies.Free;
+  inherited Destroy;
+end;
 
-procedure TAdjacentMEC.ExecuteSurroundMove;
-begin end;
+function TAdjacentMEC.ExecuteSurroundMove: Boolean;
+var
+  I, Index: Integer;
+  Armies: TAIMoveExecuterArmyList;
+  Sorted: TDoubleItemList;
+  Army: TAIMoveExecuterArmy;
+  MoveResult: Byte;
+  Location: TXYL;
+begin
+  Result := True;
+  Armies := FExecuter.CreateArmies([esReady, esDone]);
+  Sorted := TDoubleItemList.Create;
+  for I := 0 to FAdjacentArmies.Count - 1 do
+    Sorted.AddAB(Integer(FAdjacentArmies.GetAdjacentArmies(I)),
+      Round(FAdjacentArmies.GetAdjacentArmies(I).GetMovementDays * 100));
+  Sorted.SortDescendingItemB;
+  Location := TAdjacentArmy(Sorted[0].A).FPath[1];
+  I := 0;
+  while Result and (I < Sorted.Count) do
+  begin
+    Index := Armies.IndexOfLoc(TAdjacentArmy(Sorted[I].A).FLocation);
+    if Index <> -1 then
+    begin
+      Army := Armies.GetArmies(Index);
+      if (Army.FLocation.L = FExecuter.FDestination.L) and
+        (dHXtoRad(Army.FLocation.X, Army.FLocation.Y,
+          FExecuter.FDestination.X, FExecuter.FDestination.Y) > 1) then
+      begin
+        with FExecuter.FDestination do
+          CreateMove(Army, $FF, X, Y, L, [cmmSurroundEx], @MoveResult);
+        Result := (MoveResult <> 0) and (MoveResult <> 3);
+      end;
+    end;
+    Inc(I);
+  end;
+  if FExecuter.FMoves.Count <> 0 then
+    if Result then FExecuter.ExecuteMoves else FExecuter.FMoves.Reset;
+  Sorted.Free;
+  Armies.Free;
+end;
 
-procedure TAdjacentMEC.CalculateMeetingPoint;
-begin end;
+function TAdjacentMEC.CalculateMeetingPoint: Integer;
+var
+  I, Points, Reserve, Index, Position: Integer;
+  Armies: TAIMoveExecuterArmyList;
+  Adjacent: TAdjacentArmy;
+  Army: TAIMoveExecuterArmy;
+begin
+  Armies := FExecuter.CreateArmies([esReady, esDone]);
+  Result := $FFFFFF;
+  I := FAdjacentArmies.GetSlowestArmy;
+  if I <> -1 then
+    if (FAdjacentArmies.GetAdjacentArmies(I).GetMovementDays > 1) or
+      not (memAttack in FExecuter.FMode) then
+    begin
+      Points := FAdjacentArmies.GetAdjacentArmies(I).FMovePoints;
+      if memAttack in FExecuter.FMode then
+      begin
+        Reserve := Round(Points * 0.75);
+        if Reserve > FAdjacentArmies.GetAdjacentArmies(I).FPath.GetMovePoints - Points then
+          Points := FAdjacentArmies.GetAdjacentArmies(I).FPath.GetMovePoints - Reserve;
+      end;
+      Adjacent := FAdjacentArmies.GetAdjacentArmies(I);
+      Index := Armies.IndexOfLoc(FAdjacentArmies.GetAdjacentArmies(I).FLocation);
+      if Index <> -1 then
+      begin
+        Army := Armies.GetArmies(Index);
+        Position := Adjacent.FPath.MovePointsToPos(Points);
+        while (Position > 1) and
+          (CanMoveTo(Army, $FF, Adjacent.FPath[Position].X,
+            Adjacent.FPath[Position].Y, Adjacent.FPath[Position].L) <> $FF) do Dec(Position);
+        Result := Integer(FAdjacentArmies.GetAdjacentArmies(I).FPath[Position]);
+      end;
+    end;
+  Armies.Free;
+end;
 
-procedure TAdjacentMEC.ExecuteMeetingPointMove;
-begin end;
+function TAdjacentMEC.ExecuteMeetingPointMove: Boolean;
+var
+  I, Index: Integer;
+  Armies: TAIMoveExecuterArmyList;
+  Sorted: TDoubleItemList;
+  MoveResult: Byte;
+  Location: TXYL;
+begin
+  Result := True;
+  Integer(Location) := CalculateMeetingPoint;
+  if Integer(Location) = $FFFFFF then
+    with FExecuter.FDestination do Location := PackXYL(X, Y, L);
+  Armies := FExecuter.CreateArmies([esReady]);
+  Sorted := TDoubleItemList.Create;
+  for I := 0 to FAdjacentArmies.Count - 1 do
+    Sorted.AddAB(Integer(FAdjacentArmies.GetAdjacentArmies(I)),
+      Round(FAdjacentArmies.GetAdjacentArmies(I).GetMovementDays * 100));
+  Sorted.SortDescendingItemB;
+  for I := 0 to Sorted.Count - 1 do
+  begin
+    Index := Armies.IndexOfLoc(TAdjacentArmy(Sorted[I].A).FLocation);
+    if Index <> -1 then
+    begin
+      CreateMove(Armies.GetArmies(Index), $FF,
+        Location.X, Location.Y, Location.L, [], @MoveResult);
+      if MoveResult = 0 then Result := False;
+    end;
+  end;
+  if FExecuter.FMoves.Count <> 0 then FExecuter.ExecuteMoves;
+  Sorted.Free;
+  Armies.Free;
+end;
 
 procedure TAdjacentMEC.CalculateMoves;
-begin end;
+var
+  I, J, Failed, Ready, Index: Integer;
+  Armies: TAIMoveExecuterArmyList;
+  MoveResult: Byte;
+  Settings: TMoveControlSettings;
+  ArmySelection: Byte;
+  ArmyHS: TArmyHS;
+  Adjacent: TAdjacentArmy;
+  Move: TAIMoveExecuterMove;
+  Mode: TCreateMoveMode;
+begin
+  case FState of
+    0:
+      begin
+        Armies := FExecuter.CreateArmies([esReady]);
+        I := 0;
+        while (Armies.Count <> I) and
+          (FAdjacentArmies.IndexOfLoc(Armies.GetArmies(I).FLocation) <> -1) do Inc(I);
+        if I < Armies.Count then
+        begin
+          Settings := TMoveControlSettings.Create(nil);
+          try
+            Armies.GetArmies(I).RetrieveArmy($FF, ArmyHS, ArmySelection);
+          except
+            raise;
+          end;
+          { Original uses transporter IDs as visited markers during adjacent moves. }
+          for J := Armies.GetArmies(I).Count - 1 downto 0 do
+            Armies.GetArmies(I).GetUnits(J).FTransporterID := 0;
+          Settings.Reset;
+          Settings.FMovePointsMax := FExecuter.FMovePointsMax;
+          Settings.SetupArmy(ArmyHS, ArmySelection);
+          with FExecuter.FDestination do Settings.SetDestinationPos(X, Y, L);
+          AoWHSMap.FMoveControl.Activate(Settings);
+          Adjacent := TAdjacentArmy.Create(FAdjacentArmies);
+          Adjacent.FPath.Assign(Settings.FPath);
+          Adjacent.FMoves := ArmyHS.FArmy.Moves(ArmySelection);
+          Adjacent.FMovePoints := ArmyHS.FArmy.MovePoints(ArmySelection);
+          Adjacent.FLocation := Armies.GetArmies(I).FLocation;
+          Settings.Release;
+        end
+        else
+        begin
+          I := FAdjacentArmies.Count - 1;
+          while (I >= 0) and (FAdjacentArmies.GetAdjacentArmies(I).FPath.Count > 0) do Dec(I);
+          if I = -1 then Inc(FState) else FState := 4;
+        end;
+        Armies.Free;
+      end;
+    1:
+      begin
+        if FAdjacentArmies.GetAdjacent then
+        begin
+          if (FAdjacentArmies.GetAdjacentArmies(FAdjacentArmies.GetSlowestArmy).GetMovementDays <= 1.25) and
+            (memAttack in FExecuter.FMode) then
+          begin
+            if ExecuteSurroundMove then FState := 5
+            else
+            begin
+              FMeetingPoint := FExecuter.FDestination;
+              FState := 2;
+            end;
+          end
+          else
+          begin
+            FMeetingPoint := FExecuter.FDestination;
+            FState := 2;
+          end;
+        end
+        else
+          if (FAdjacentArmies.GetAdjacentArmies(FAdjacentArmies.GetSlowestArmy).GetMovementDays <= 1) and
+            (memAttack in FExecuter.FMode) then
+          begin
+            if ExecuteSurroundMove then FState := 5 else FState := 3;
+          end
+          else
+          begin
+            ExecuteMeetingPointMove;
+            FState := 3;
+          end;
+      end;
+    2:
+      begin
+        Armies := FExecuter.CreateArmies([esReady]);
+        Armies.SortOnMovePoints;
+        if Armies.Count <> 0 then
+        begin
+          if FExecuter.FMoves.Count = 0 then
+          begin
+            Index := 0;
+            while (Index < Armies.Count) and
+              (Armies.GetArmies(Index).GetUnits(0).FTransporterID = 1) do Inc(Index);
+            if Index < Armies.Count then
+            begin
+              for J := Armies.GetArmies(Index).Count - 1 downto 0 do
+                Armies.GetArmies(Index).GetUnits(J).FTransporterID := 1;
+              if memAttack in FExecuter.FMode then Mode := [cmmDontQueue, cmmSurround]
+              else Mode := [cmmDontQueue];
+              with FExecuter.FDestination do
+                Move := CreateMove(Armies.GetArmies(Index), $FF, X, Y, L, Mode, @MoveResult);
+              if Move = nil then
+              begin
+                if MoveResult = 1 then FState := 3
+                else if MoveResult = 3 then
+                begin
+                  FExecuter.FStatus := mesFailed;
+                  FState := 3;
+                end
+                else if MoveResult <> 2 then FState := 3;
+              end
+              else
+              begin
+                Move.SetOwner(FExecuter.FMoves);
+                Move.SetUnitStatus(esQueued);
+                if MoveResult = 0 then FMeetingPoint := Move.FPath[0]
+                else FMeetingPoint := FExecuter.FDestination;
+              end;
+            end
+            else
+            begin
+              FExecuter.FControlQueue.Add(0);
+              FState := 3;
+            end;
+          end
+          else
+          begin
+            if (Integer(FMeetingPoint) = Integer(FExecuter.FDestination)) and
+              (memAttack in FExecuter.FMode) then Mode := [cmmDontQueue, cmmSurround]
+            else Mode := [cmmDontQueue];
+            Move := CreateMove(Armies.GetArmies(0), $FF,
+              FMeetingPoint.X, FMeetingPoint.Y, FMeetingPoint.L, Mode, @MoveResult);
+            if Move <> nil then
+            begin
+              if MoveResult = 0 then
+              begin
+                if FExecuter.FMoves.Count <> 0 then FExecuter.FMoves.Reset;
+                Move.Free;
+              end
+              else
+              begin
+                Move.SetOwner(FExecuter.FMoves);
+                Move.SetUnitStatus(esQueued);
+              end;
+            end
+            else if (MoveResult = 1) or (MoveResult = 2) then
+              Armies.GetArmies(0).SetStatus($FF, esDone)
+            else if MoveResult = 3 then
+            begin
+              FExecuter.FStatus := mesFailed;
+              FExecuter.FMoves.Reset;
+              FState := 3;
+            end
+            else
+            begin
+              FExecuter.FMoves.Reset;
+              FState := 3;
+            end;
+          end;
+        end
+        else
+        begin
+          FExecuter.ExecuteMoves;
+          FState := 3;
+        end;
+        Armies.Free;
+      end;
+    3: Done;
+    4:
+      begin
+        if memAttack in FExecuter.FMode then
+        begin
+          I := FAdjacentArmies.Count - 1;
+          while (I >= 0) and (FAdjacentArmies.GetAdjacentArmies(I).FPath.Count <> 2) do Dec(I);
+          if I <> -1 then FState := 5
+          else
+          begin
+            FExecuter.FStatus := mesFailed;
+            FState := 3;
+          end;
+        end
+        else
+        begin
+          FExecuter.FStatus := mesFailed;
+          FState := 3;
+        end;
+      end;
+    5:
+      begin
+        I := 0;
+        Ready := 0;
+        Failed := 0;
+        Armies := FExecuter.CreateArmies([esReady, esDone]);
+        while Armies.Count <> I do
+        begin
+          with FExecuter.FDestination do
+            Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L,
+              [cmmDontQueue, cmmSurround], @MoveResult);
+          if (MoveResult <> 0) or
+            ((dHXtoRad(FExecuter.FDestination.X, FExecuter.FDestination.Y,
+              Armies.GetArmies(I).FLocation.X, Armies.GetArmies(I).FLocation.Y) = 1) and
+             (Armies.GetArmies(I).FLocation.L = FExecuter.FDestination.L)) then Inc(Ready)
+          else Inc(Failed);
+          if Move <> nil then Move.Free;
+          Inc(I);
+        end;
+        Armies.Free;
+        if (Ready > 4) or (Failed = 0) then
+        begin
+          I := 0;
+          Move := nil;
+          Armies := FExecuter.CreateArmies([esReady, esDone]);
+          while (Move = nil) and (Armies.Count <> I) do
+          begin
+            with FExecuter.FDestination do
+              Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L, [], @MoveResult);
+            if Move <> nil then FExecuter.ExecuteMoves;
+            Inc(I);
+          end;
+          Armies.Free;
+        end;
+        Done;
+      end;
+  end;
+end;
 
 function TTransportMEC.CreateTransporterMove(X, Y, L: Shortint; Queue: Boolean): TAIMoveExecuterMove;
 var
@@ -11264,7 +12578,7 @@ begin
     FMode := FSettings.FMode;
     FArmyHS := FSettings.FArmyHS;
     FSelection := FSettings.FSelection;
-    FMoveData := FSettings.FMoveData;
+    FTransporterArmy := FSettings.FTransporterArmy;
     FProcessedMapFields := FSettings.FProcessedMapFields;
     SetMapL(FMap.MapContainer.GetMapLevel(FSourceL));
     if (mmExploredTerrainOnly in FMode) and (FPlayer <> -1) then

@@ -56,7 +56,7 @@
     FMovePointsMax: Integer; { $98; 557D7B3D }
     FArmyHS: TArmyHS;  { $9C }
     FSelection: Integer;  { $A0 }
-    FMoveData: Integer; { $A4 }
+    FTransporterArmy: TArmyHS; { $A4 }
     FUnits: TUnitUserList; { $A8; AddUnitsEx at 557929AD }
     FMovePointTable: TMovePointTable;  { $AC }
     destructor Destroy; override;
@@ -104,7 +104,7 @@
     FProcessedMapFields: TList; { $130 }
     FArmyHS: TArmyHS; { $134 }
     FSelection: Integer; { $138 }
-    FMoveData: Integer; { $13C }
+    FTransporterArmy: TArmyHS; { $13C }
     FOnMovePoint: TMoveOnMovePointProc; { $140 }
     FFieldOffsets: array[0..1, 0..7] of Integer; { $148 }
     FPointOffsets: array[0..1, 0..7] of Integer; { $188 }

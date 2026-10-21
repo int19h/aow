@@ -9605,7 +9605,7 @@ begin
     begin Result := 1; Exit; end;
     if FArmy.FPlayer = TMoveControl(Info.Sender).FPlayer then
     begin
-      if not (mmAvoidArmies in TMoveControl(Info.Sender).FMode) or (Integer(Self) = TMoveControl(Info.Sender).FMoveData) then
+      if not (mmAvoidArmies in TMoveControl(Info.Sender).FMode) or (Self = TMoveControl(Info.Sender).FTransporterArmy) then
       begin
         if FArmy.FPlayer = 0 then Result := 2
         else

@@ -78,15 +78,15 @@
     procedure SetMovePoints(Value: Shortint); virtual;  { +0DC draft }
     function GetHitPoints: Shortint; virtual;  { +0E0 }
     procedure SetHitPoints(Value: Shortint); virtual;  { +0E4 }
-    function GetMoveTypes: TMoveTypes; virtual;  { +0E8 draft }
+    function GetMoveTypes: TMoveTypes; virtual;  { +0E8; 5573E849 }
     function GetImmunityTypes: TDamageTypes; virtual;  { +0EC }
     function GetProtectionTypes: TDamageTypes; virtual;  { +0F0 draft }
     function GetFace: TLibraryImage; virtual;  { +0F4 draft }
     function GetName: string; virtual;
     function GetAlignment: TAlignment; virtual;  { +0FC }
     function GetPreviewImage: TLibraryImage; virtual;  { +100 draft }
-    function GetTransportCapacity: Byte; virtual;  { +104 draft }
-    function GetTransporter: Boolean; virtual;  { +108 draft }
+    function GetTransportCapacity: Byte; virtual;  { +104; 5573FB15 }
+    function GetTransporter: Boolean; virtual;  { +108; 5573ED2E }
     function GetGender: TUnitGender; virtual;  { +10C draft }
     function GetBloodType: TBloodType; virtual;  { +110 draft }
     function GetUnitType: TUnitType; virtual;  { +114 }
