@@ -1,0 +1,10 @@
+{
+  "0040c8d4:592": "TCampaignTransferDlg.UpdateControls",
+  "0040cb38:67": "TCampaignTransferDlg.ResetSelection",
+  "0040cb7c:178": "TCampaignTransferDlg.ClearLeftSelection",
+  "0040cc30:214": "TCampaignTransferDlg.ClearRightSelection",
+  "0040cd08:191": "TCampaignTransferDlg.Execute",
+  "00409510:631": "TUnitWindow.UpdateGround",
+  "00455dfc:61": "TGeneral.ButtonSound",
+  "00454100:93": "TGeneral.IndexOfUnit"
+}

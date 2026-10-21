@@ -1140,4 +1140,5 @@ begin
   Use(nil, @TCFCDlg.TTCFCDialog.FCchkDoubleClick);
 { Per-part host additions. }
   {$I hosts\E2.inc}
+  {$I hosts\E3.inc}
 end.

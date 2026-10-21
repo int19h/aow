@@ -23,7 +23,7 @@ type
     public
     F_MainForm_1E8: array[0..3] of Byte;
     F_MainForm_1EC: Integer;
-    F_MainForm_1F0: array[0..11] of Byte;
+    F_MainForm_1F0: array[0..7] of Byte; FCursorImage: TLibraryImage; { $1F8; 0040A0E4 }
     F_MainForm_1FC: Integer;
     F_MainForm_200: Integer;
     F_MainForm_204: Integer;

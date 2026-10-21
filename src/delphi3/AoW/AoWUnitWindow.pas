@@ -7,13 +7,15 @@ unit AoWUnitWindow;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWTC, AoWComp, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
 
 type
   TUnitWindow = class;
 
 
-  { TUnitWindow (instance size 584, VMT 0040710C) }
+  { TUnitWindow (instance size $248, VMT 0040710C).
+    $21C highlight; $220 dragged item type; $224 highlight step; $228 blink state;
+    $22C blink delay; $230 cursor image; $234/$238 ground offset/count; $23C show info. }
   TUnitWindow = class(TDataModule)
   public
     published
@@ -136,54 +138,53 @@ type
     PPrev: TAOWButton; { +0214 }
     Translator: TIvTranslator; { +0218 }
     public
-    F_UnitWindow_21C: Integer;
-    F_UnitWindow_220: Byte;
+    FHighlight: Integer; { $21C }
+    FItemType: TItemType; { $220 }
     F_UnitWindow_221: array[0..2] of Byte;
-    F_UnitWindow_224: Integer;
-    F_UnitWindow_228: Byte;
+    FHighlightStep: Integer; { $224 }
+    FItemVisible: Boolean; { $228 }
     F_UnitWindow_229: array[0..2] of Byte;
-    F_UnitWindow_22C: Integer;
-    F_UnitWindow_230: Integer;
-    F_UnitWindow_234: Integer;
-    F_UnitWindow_238: array[0..3] of Byte;
-    F_UnitWindow_23C: Byte;
-    F_UnitWindow_23D: Byte;
-    F_UnitWindow_23E: array[0..9] of Byte;
+    FBlinkDelay: Integer; { $22C }
+    FCursorImage: TLibraryImage; { $230 }
+    FGroundOffset: Integer; { $234 }
+    FGroundCount: Integer; { $238 }
+    FShowInfo: TP2UnitShowInfo; { $23C }
     procedure ShowUnit; { draft; 00407DB8 }
-    procedure PreDrawAbilityItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure HelpClick;  { draft }
-    procedure T1AbilityLBChange(A1: Integer);  { draft }
-    procedure T1SbarChange;  { draft }
-    procedure ItemRHMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure UnitWinResize;  { draft }
-    procedure UnitWindowCreate;  { draft }
-    procedure UnitWinUpdate(A1: Integer; A2: Byte);  { draft }
+    procedure UpdateGround(Offset: Integer);
+    procedure PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure HelpClick(Sender: TObject);
+    procedure T1AbilityLBChange(Sender: TObject);
+    procedure T1SbarChange(Sender: TObject);
+    procedure ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure UnitWinResize(Sender: TObject);
+    procedure UnitWindowCreate(Sender: TObject);
+    procedure UnitWinUpdate(Sender: TObject);
     procedure T1SortNameClick(A1: Integer; A2: Integer);  { draft }
     procedure T1SortTypeClick(A1: Integer; A2: Integer);  { draft }
     procedure T1SortSourceClick(A1: Integer; A2: Integer);  { draft }
-    procedure UseAbility;  { draft }
-    procedure UseItemClick;  { draft }
-    procedure UnitTabChange;  { draft }
-    procedure UnitWinMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure UnitWinEnter;  { draft }
-    procedure UnitWinExit;  { draft }
-    procedure UnitWinShow;  { draft }
-    procedure GroundRClick;  { draft }
-    procedure GroundLClick;  { draft }
-    procedure CloseClick;  { draft }
-    procedure Gnd1Draw(A1: Integer; A2: Integer);  { draft }
-    procedure FrLShPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure FrRShPreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure Gnd1Change(A1: Integer);  { draft }
-    procedure Gnd3MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure HeadDraw(A1: Integer; A2: Integer);  { draft }
-    procedure TorsoDraw(A1: Integer; A2: Integer);  { draft }
-    procedure AttackDraw(A1: Integer; A2: Integer);  { draft }
-    procedure DefendDraw(A1: Integer; A2: Integer);  { draft }
-    procedure RingLDraw(A1: Integer; A2: Integer);  { draft }
+    procedure UseAbility;
+    procedure UseItemClick(Sender: TObject);
+    procedure UnitTabChange(Sender: TObject);
+    procedure UnitWinMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure UnitWinEnter(Sender: TObject);
+    procedure UnitWinExit(Sender: TObject);
+    procedure UnitWinShow(Sender: TObject);
+    procedure GroundRClick(Sender: TObject);
+    procedure GroundLClick(Sender: TObject);
+    procedure CloseClick(Sender: TObject);
+    procedure Gnd1Draw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure FrLShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure FrRShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure Gnd1Change(Sender: TObject);
+    procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure HeadDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure TorsoDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure AttackDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
     procedure DisbandBtnClick;  { draft }
     procedure T1AbilityLBMouseDown(A1: Integer; A2: Byte);  { draft }
-    procedure UnitWinKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure PPrevClick;  { draft }
     procedure PNextClick;  { draft }
   end;
@@ -194,33 +195,161 @@ var
 
 implementation
 
+uses AoWWinMan, E3Globals;
+
+var
+  SelectedItem: TAOWCheckBox;
+
 procedure TUnitWindow.ShowUnit;
 begin end;
 
+procedure TUnitWindow.PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+var
+  A: TAbility;
+  Enabled: Boolean;
+begin
+  A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem]));
+  if AoWHSMap.FCombatMap = nil then
+    Enabled := (A <> nil) and (General.FSelectedUnit <> nil) and
+      (General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer) and
+      (acAction in A.GetControlType(General.FSelectedUnit))
+  else
+  begin
+    if (A <> nil) and (General.FCombatUnit <> nil) and
+      (acCombatAction in AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem])).GetControlType(General.FCombatUnit.FUnit.FUnit)) and
+      (General.FCombatUnit.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer) and
+      (General.FCombatUnit.FUnit.FMovePoints > 0) then
+    begin
+      if (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[DrawItem])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
+        [cmShortRange, cmMediumRange, cmLongRange]) or
+        (Integer(T1AbilityLB.Items.Objects[DrawItem]) = 52) then
+        Enabled := General.FCombatUnit.FUnit.FUnit.GetMoves = General.FCombatUnit.FUnit.FMovePoints
+      else
+        Enabled := True;
+    end
+    else
+      Enabled := False;
+  end;
+  if Enabled then Sender.TextColor := $DFFEFF else Sender.TextColor := $8FA9A0;
+end;
 
-procedure TUnitWindow.PreDrawAbilityItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TUnitWindow.HelpClick(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TUnitWindow.HelpClick;
-begin end;
+procedure TUnitWindow.T1AbilityLBChange(Sender: TObject);
+var
+  A: TAbility;
+begin
+  T1AbilityLB.Selected := TAOWListBox(Sender).Selected;
+  T1TypeLB.Selected := TAOWListBox(Sender).Selected;
+  T1SrcLB.Selected := TAOWListBox(Sender).Selected;
+  if AoWHSMap.FCombatMap = nil then
+  begin
+    if (General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer) and (T1AbilityLB.Selected > -1) then
+    begin
+      A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]));
+      if (A <> nil) and A.GetEnabled(General.FSelectedUnit) then
+      begin
+        if AoWHSMap.FCombatMap = nil then
+          T1UseBut.Visible := acAction in A.GetControlType(General.FSelectedUnit)
+        else
+          T1UseBut.Visible :=
+            (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetCombatMode(General.FSelectedUnit) <> cmNone) and
+            (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetCombatMode(General.FSelectedUnit) <> cmMelee);
+        if T1UseBut.Visible then
+          T1UseBut.Text := AoWE.Format(TranslateRStr(UseXRStr), [A.GetName(General.FSelectedUnit)]);
+      end
+      else
+        T1UseBut.Visible := False;
+    end
+    else
+      T1UseBut.Visible := False;
+  end
+  else
+  begin
+    if (T1AbilityLB.Selected > -1) and (General.FCombatUnit <> nil) and
+      (acCombatAction in AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetControlType(General.FCombatUnit.FUnit.FUnit)) and
+      (General.FCombatUnit.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer) and
+      (General.FCombatUnit.FUnit.FMovePoints > 0) then
+    begin
+      if (AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetCombatMode(General.FCombatUnit.FUnit.FUnit) in
+        [cmShortRange, cmMediumRange, cmLongRange]) or
+        (Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]) = 52) then
+      begin
+        if General.FCombatUnit.FUnit.FUnit.GetMoves <> General.FCombatUnit.FUnit.FMovePoints then
+        begin
+          T1UseBut.Visible := False;
+          Exit;
+        end;
+      end;
+      T1UseBut.Visible := True;
+      T1UseBut.Text := AoWE.Format(TranslateRStr(UseXRStr),
+        [AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])).GetName(General.FCombatUnit.FUnit.FUnit)]);
+    end
+    else
+      T1UseBut.Visible := False;
+  end;
+end;
 
-procedure TUnitWindow.T1AbilityLBChange(A1: Integer);
-begin end;
+procedure TUnitWindow.T1SbarChange(Sender: TObject);
+begin
+  T1AbilityLB.ListOffset := T1SBar.Position;
+  T1TypeLB.ListOffset := T1SBar.Position;
+end;
 
-procedure TUnitWindow.T1SbarChange;
-begin end;
+procedure TUnitWindow.ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  with TAOWCheckBox(Sender) do
+    ItemID := Tag;
+end;
 
-procedure TUnitWindow.ItemRHMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TUnitWindow.UnitWinResize(Sender: TObject);
+begin
+  with UnitWin do
+    with Alignment do
+    begin
+      LeftOffset := WinLeft;
+      TopOffset := WinTop;
+      AlignHeight := ahTop;
+      AlignWidth := awLeft;
+    end;
+end;
 
-procedure TUnitWindow.UnitWinResize;
-begin end;
+procedure TUnitWindow.UnitWindowCreate(Sender: TObject);
+begin
+  FItemType := TItemType(6);
+end;
 
-procedure TUnitWindow.UnitWindowCreate;
-begin end;
-
-procedure TUnitWindow.UnitWinUpdate(A1: Integer; A2: Byte);
-begin end;
+procedure TUnitWindow.UnitWinUpdate(Sender: TObject);
+begin
+  if UnitWin.Visible then
+  begin
+    Inc(FHighlight, FHighlightStep);
+    if (FHighlight > 100) or (FHighlight < 50) then
+    begin
+      FHighlightStep := -FHighlightStep;
+      Inc(FHighlight, FHighlightStep);
+    end;
+    case FItemType of
+      itAttack: Attack.FDrawn := False;
+      itDefense: Defend.FDrawn := False;
+      itHead: Head.FDrawn := False;
+      itTorso: Torso.FDrawn := False;
+      itRing: begin RingL.FDrawn := False; RingR.FDrawn := False; end;
+    end;
+    if SelectedItem <> nil then
+    begin
+      Dec(FBlinkDelay);
+      if FBlinkDelay < 0 then
+      begin
+        FBlinkDelay := 2;
+        FItemVisible := not FItemVisible;
+      end;
+    end;
+  end;
+end;
 
 procedure TUnitWindow.T1SortNameClick(A1: Integer; A2: Integer);
 begin end;
@@ -232,64 +361,272 @@ procedure TUnitWindow.T1SortSourceClick(A1: Integer; A2: Integer);
 begin end;
 
 procedure TUnitWindow.UseAbility;
-begin end;
+var
+  A: TAbility;
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  A := AoWHSSet.FAbilityControl.GetAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected]));
+  if (A <> nil) and A.GetEnabled(General.FSelectedUnit) then
+    if AoWHSMap.FCombatMap = nil then
+    begin
+      if General.FSelectedUnit.FPlayer = AoWHSMap.FSeatedPlayer then
+        if A.Activate(General.FSelectedUnit, Reason) then
+          UnitWin.Visible := False
+        else
+          if Reason <> '' then AoWHSMap.ShowWarning(Reason);
+    end
+    else
+      if (General.FCombatUnit <> nil) and
+        (General.FCombatUnit.FUnit.FCombatPlayer = AoWCombatMap.FSeatedCombatPlayer) then
+        if General.FCombatUnit.SelectAbility(Integer(T1AbilityLB.Items.Objects[T1AbilityLB.Selected])) > -1 then
+          UnitWin.Visible := False;
+end;
 
-procedure TUnitWindow.UseItemClick;
-begin end;
+procedure TUnitWindow.UseItemClick(Sender: TObject);
+var
+  Reason: string;
+begin
+  General.PlayButtonSound(0);
+  if (SelectedItem <> nil) and (General.FSelectedUnit is THero) then
+    if THero(General.FSelectedUnit).CanUseItem(SelectedItem.Tag, Reason) then
+      THero(General.FSelectedUnit).UseItem(SelectedItem.Tag)
+    else
+      AoWHSMap.ShowWarning(Reason);
+end;
 
-procedure TUnitWindow.UnitTabChange;
-begin end;
+procedure TUnitWindow.UnitTabChange(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TUnitWindow.UnitWinMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TUnitWindow.UnitWinMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if (Button = mbRight) and (SelectedItem <> nil) then Gnd1Change(SelectedItem);
+end;
 
-procedure TUnitWindow.UnitWinEnter;
-begin end;
+procedure TUnitWindow.UnitWinEnter(Sender: TObject);
+begin
+  MainForm.FCursorImage := FCursorImage;
+end;
 
-procedure TUnitWindow.UnitWinExit;
-begin end;
+procedure TUnitWindow.UnitWinExit(Sender: TObject);
+begin
+  MainForm.FCursorImage := nil;
+end;
 
-procedure TUnitWindow.UnitWinShow;
-begin end;
+procedure TUnitWindow.UnitWinShow(Sender: TObject);
+begin
+  FCursorImage := nil;
+  MainForm.FCursorImage := FCursorImage;
+end;
 
-procedure TUnitWindow.GroundRClick;
-begin end;
+procedure TUnitWindow.GroundRClick(Sender: TObject);
+begin
+  UpdateGround(FGroundOffset + 1);
+end;
 
-procedure TUnitWindow.GroundLClick;
-begin end;
+procedure TUnitWindow.GroundLClick(Sender: TObject);
+begin
+  UpdateGround(FGroundOffset - 1);
+end;
 
-procedure TUnitWindow.CloseClick;
-begin end;
+procedure TUnitWindow.CloseClick(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+  UnitWin.Visible := False;
+end;
 
-procedure TUnitWindow.Gnd1Draw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.Gnd1Draw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+var
+  U: THero;
+  Item: TItem;
+begin
+  if Sender.Tag <> -1 then
+  begin
+    U := THero(General.FSelectedUnit);
+    Item := U.FInventory.FindItem(Sender.Tag);
+    if Item = nil then Item := U.FHeroItems.FindItem(Sender.Tag);
+    if Item = nil then
+      if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(Sender.Tag);
+    if Item <> nil then
+      with T3Panel do
+        with TAOWCheckBox(Sender) do
+          if Item.GetImage <> nil then
+            Item.GetImage.ShowClipped(T3Panel.WinLeft + WinLeft, T3Panel.WinTop + WinTop, SurfDesc);
+  end;
+end;
 
-procedure TUnitWindow.FrLShPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.FrLShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if General.FSelectedUnit <> nil then
+    if General.FSelectedUnit.GetFace <> nil then
+    begin
+      R := Classes.Rect(Sender.WinLeft + 29, Sender.WinTop + 28,
+        Sender.WinLeft + 132, Sender.WinTop + 156);
+      General.FSelectedUnit.ShowFace(R, SurfDesc);
+    end;
+end;
 
-procedure TUnitWindow.FrRShPreDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.FrRShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  if General.FSelectedUnit <> nil then
+  begin
+    FShowInfo.Direction := 3;
+    if General.FSelectedUnit is THero then FShowInfo.Overlays := [] else FShowInfo.Overlays := [uoRank];
+    General.FSelectedUnit.ShowEx(Sender.WinLeft + 49, Sender.WinTop + 78, SurfDesc, FShowInfo);
+  end;
+end;
 
-procedure TUnitWindow.Gnd1Change(A1: Integer);
-begin end;
+procedure TUnitWindow.Gnd1Change(Sender: TObject);
+var
+  U: THero;
+  Item: TItem;
+begin
+  U := THero(General.FSelectedUnit);
+  if U <> nil then
+    if not AoWHSMap.FPlayers.GetPlayers(U.FPlayer).GetBusy and TAOWCheckBox(Sender).Checked then
+    begin
+      FCursorImage := nil;
+      if Sender = SelectedItem then
+      begin
+        SelectedItem.Checked := False;
+        SelectedItem := nil;
+        UnitWin.Cursor := 0;
+        FItemType := itUse;
+        ItemUseBtn.Visible := False;
+        FItemVisible := False;
+      end
+      else if SelectedItem = nil then
+      begin
+        if TAOWCheckBox(Sender).Tag = -1 then
+          TAOWCheckBox(Sender).Checked := False
+        else
+        begin
+          SelectedItem := TAOWCheckBox(Sender);
+          FHighlight := 50;
+          FHighlightStep := 10;
+          Item := U.FInventory.FindItem(SelectedItem.Tag);
+          if Item = nil then Item := U.FHeroItems.FindItem(SelectedItem.Tag);
+          if Item = nil then
+            if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(SelectedItem.Tag);
+          if Item = nil then
+          begin
+            FItemType := itUse;
+            ItemUseBtn.Visible := False;
+          end
+          else
+          begin
+            FCursorImage := Item.GetImage;
+            FItemType := Item.FItemType;
+            if Item.FItemType = itScroll then ItemUseBtn.Visible := True
+            else ItemUseBtn.Visible := False;
+          end;
+          FBlinkDelay := 2;
+          FItemVisible := True;
+        end;
+      end
+      else
+      begin
+        PlaySample('SFX\Events\NewEvent.Wav');
+        if TAOWCheckBox(Sender).Tag = -1 then
+        begin
+          if Sender = Head then U.PlaceItem(SelectedItem.Tag, ipHeadSlot)
+          else if Sender = Torso then U.PlaceItem(SelectedItem.Tag, ipTorsoSlot)
+          else if Sender = Attack then U.PlaceItem(SelectedItem.Tag, ipAttackSlot)
+          else if Sender = Defend then U.PlaceItem(SelectedItem.Tag, ipDefenseSlot)
+          else if Sender = RingR then U.PlaceItem(SelectedItem.Tag, ipRightRingSlot)
+          else if Sender = RingL then U.PlaceItem(SelectedItem.Tag, ipLeftRingSlot)
+          else if Sender = BP1 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot1)
+          else if Sender = BP2 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot2)
+          else if Sender = BP3 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot3)
+          else if Sender = BP4 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot4)
+          else if Sender = BP5 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot5)
+          else if Sender = BP6 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot6)
+          else if Sender = BP7 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot7)
+          else if Sender = BP8 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot8)
+          else U.PlaceItem(SelectedItem.Tag, ipGround);
+        end
+        else U.SwapItem(SelectedItem.Tag, TAOWCheckBox(Sender).Tag);
+        TAOWCheckBox(Sender).Checked := False;
+        SelectedItem.Checked := False;
+        SelectedItem := nil;
+        UnitWin.Cursor := 0;
+        FItemType := itUse;
+        ItemUseBtn.Visible := False;
+        FItemVisible := False;
+      end;
+      MainForm.FCursorImage := FCursorImage;
+    end;
+end;
 
-procedure TUnitWindow.Gnd3MouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TUnitWindow.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if General.FSelectedUnit <> nil then
+    if not AoWHSMap.FPlayers.GetPlayers(General.FSelectedUnit.FPlayer).GetBusy then
+    begin
+      if Button = mbRight then
+      begin
+        if TAOWCheckBox(Sender).Tag = -1 then TAOWCheckBox(Sender).PopupMenu := nil
+        else TAOWCheckBox(Sender).PopupMenu := ItemBanner.IBannerPopup;
+        ItemID := TAOWCheckBox(Sender).Tag;
+      end
+      else
+        if Sender = SelectedItem then SelectedItem.Checked := False;
+    end;
+end;
 
-procedure TUnitWindow.HeadDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.HeadDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  Gnd1Draw(Sender, SurfDesc);
+  if (SelectedItem <> nil) and (Sender <> SelectedItem) and (FItemType = TItemType(0)) then
+    with T3Panel do
+      with TAOWCheckBox(Sender) do
+        IntGfxMod.UnitWin[24].ShowBlended(T3Panel.WinLeft + WinLeft,
+          T3Panel.WinTop + WinTop, SurfDesc, IntensityBlendTable.LookupTables[FHighlight]);
+end;
 
-procedure TUnitWindow.TorsoDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.TorsoDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  Gnd1Draw(Sender, SurfDesc);
+  if (SelectedItem <> nil) and (Sender <> SelectedItem) and (FItemType = TItemType(1)) then
+    with T3Panel do
+      with TAOWCheckBox(Sender) do
+        IntGfxMod.UnitWin[24].ShowBlended(T3Panel.WinLeft + WinLeft,
+          T3Panel.WinTop + WinTop, SurfDesc, IntensityBlendTable.LookupTables[FHighlight]);
+end;
 
-procedure TUnitWindow.AttackDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.AttackDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  Gnd1Draw(Sender, SurfDesc);
+  if (SelectedItem <> nil) and (Sender <> SelectedItem) and (FItemType = TItemType(2)) then
+    with T3Panel do
+      with TAOWCheckBox(Sender) do
+        IntGfxMod.UnitWin[24].ShowBlended(T3Panel.WinLeft + WinLeft,
+          T3Panel.WinTop + WinTop, SurfDesc, IntensityBlendTable.LookupTables[FHighlight]);
+end;
 
-procedure TUnitWindow.DefendDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  Gnd1Draw(Sender, SurfDesc);
+  if (SelectedItem <> nil) and (Sender <> SelectedItem) and (FItemType = TItemType(3)) then
+    with T3Panel do
+      with TAOWCheckBox(Sender) do
+        IntGfxMod.UnitWin[24].ShowBlended(T3Panel.WinLeft + WinLeft,
+          T3Panel.WinTop + WinTop, SurfDesc, IntensityBlendTable.LookupTables[FHighlight]);
+end;
 
-procedure TUnitWindow.RingLDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitWindow.RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+begin
+  Gnd1Draw(Sender, SurfDesc);
+  if (SelectedItem <> nil) and (Sender <> SelectedItem) and (FItemType = TItemType(4)) then
+    with T3Panel do
+      with TAOWCheckBox(Sender) do
+        IntGfxMod.UnitWin[24].ShowBlended(T3Panel.WinLeft + WinLeft,
+          T3Panel.WinTop + WinTop, SurfDesc, IntensityBlendTable.LookupTables[FHighlight]);
+end;
 
 procedure TUnitWindow.DisbandBtnClick;
 begin end;
@@ -297,8 +634,12 @@ begin end;
 procedure TUnitWindow.T1AbilityLBMouseDown(A1: Integer; A2: Byte);
 begin end;
 
-procedure TUnitWindow.UnitWinKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TUnitWindow.UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE: UnitWin.Visible := False;
+  end;
+end;
 
 procedure TUnitWindow.PPrevClick;
 begin end;
@@ -306,5 +647,44 @@ begin end;
 procedure TUnitWindow.PNextClick;
 begin end;
 
+
+procedure TUnitWindow.UpdateGround(Offset: Integer);
+var
+  U: THero;
+begin
+  Gnd1.Tag := -1;
+  Gnd2.Tag := -1;
+  Gnd3.Tag := -1;
+  Gnd4.Tag := -1;
+  Gnd5.Tag := -1;
+  Gnd1.Checked := False;
+  Gnd2.Checked := False;
+  Gnd3.Checked := False;
+  Gnd4.Checked := False;
+  Gnd5.Checked := False;
+  U := THero(General.FSelectedUnit);
+  if U <> nil then
+    if U is THero then
+      if U.GetItemsOnGround <> nil then
+      begin
+        FGroundCount := U.GetItemsOnGround.Count;
+        FGroundOffset := Offset;
+        { Original last-page clamp leaves only four items visible. }
+        if FGroundCount < Offset + 5 then FGroundOffset := FGroundCount - 4;
+        if FGroundOffset < 0 then FGroundOffset := 0;
+        GroundL.Visible := FGroundOffset > 0;
+        GroundR.Visible := FGroundOffset + 5 <= FGroundCount;
+        if FGroundOffset < U.GetItemsOnGround.Count then
+          Gnd1.Tag := U.GetItemsOnGround.GetItem(FGroundOffset).FItemID;
+        if FGroundOffset + 1 < U.GetItemsOnGround.Count then
+          Gnd2.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 1).FItemID;
+        if FGroundOffset + 2 < U.GetItemsOnGround.Count then
+          Gnd3.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 2).FItemID;
+        if FGroundOffset + 3 < U.GetItemsOnGround.Count then
+          Gnd4.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 3).FItemID;
+        if FGroundOffset + 4 < U.GetItemsOnGround.Count then
+          Gnd5.Tag := U.GetItemsOnGround.GetItem(FGroundOffset + 4).FItemID;
+      end;
+end;
 
 end.
