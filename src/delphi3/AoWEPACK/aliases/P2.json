@@ -4,5 +4,6 @@
   "55785234:110": "P2CompareUnitIndexes",
   "AoWE.TWorldFXHS.DeActivate": "TWorldFXHS.Deactivate",
   "FUN_55796b84": "ShowGlobal<TWorldFXHS.Show",
-  "FUN_55796ef0": "ShowLocal<TWorldFXHS.Show"
+  "FUN_55796ef0": "ShowLocal<TWorldFXHS.Show",
+  "55790618:373": "TArmy.UpdateAITarget"
 }

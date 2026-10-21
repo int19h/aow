@@ -352,7 +352,7 @@ function TEventLog.Release: Integer;
 begin
   Dec(FRefCount);
   Result := FRefCount;
-  if Result = 0 then Destroy;
+  if FRefCount = 0 then Destroy;
 end;
 
 procedure TEventLog.ReadWrite(Stream: Engine.TEStorageStream);
@@ -377,7 +377,7 @@ function TEventLog.GetTextColor: TColor;
 var
   Index: Integer;
 begin
-  if (FPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FPlayer) then
+  if (FPlayer > 0) and (FPlayer < AoWHSMap.FPlayers.GetCount) then
     Index := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
   else Index := 12;
   Result := RaceColors[Index];
@@ -385,7 +385,7 @@ end;
 
 function TEventLog.GetLeftIcon: Integer;
 begin
-  if (FPlayer > 0) and (AoWHSMap.FPlayers.GetCount > FPlayer) then
+  if (FPlayer > 0) and (FPlayer < AoWHSMap.FPlayers.GetCount) then
     Result := AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace
   else Result := 12;
 end;

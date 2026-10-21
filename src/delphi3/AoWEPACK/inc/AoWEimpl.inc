@@ -25862,11 +25862,11 @@ begin
   Assert(not ((Value < 0) and (Value >= $07FFFFFF)), 'Invalid AbCount Value (TArrayList)');
   OldSize := (FAbilityCount + 7) shr 3;
   NewSize := (Value + 7) shr 3;
-  if OldSize <> NewSize then
+  if NewSize <> OldSize then
   begin
     ReallocMem(FAbilityBits, NewSize);
-    if OldSize < NewSize then
-      FillChar(Pointer(Integer(FAbilityBits) + OldSize)^, NewSize - OldSize, 0);
+    if NewSize > OldSize then
+      FillChar(PChar(FAbilityBits)[OldSize], NewSize - OldSize, 0);
   end;
   FAbilityCount := Value;
 end;
@@ -26073,11 +26073,11 @@ begin
 end;
 procedure TAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
 begin
-  with PP1CombatInfo(@A2)^ do
+  with A2 do
   begin
     Attack := -1;
     Damage := -1;
-    Types := [];
+    DamageTypes := [];
     RepeatCount := -1;
   end;
 end;
@@ -26350,19 +26350,19 @@ function TAbility.Activate(A1: TAbilityOwner; var A2: string): Boolean;
 var
   Info: TActivateAbilityInfo;
 begin
-  { needs: Boolean result; P4 has unmarked procedure overrides. }
+  { The original reports successful activation after releasing the notification. }
   if CanActivate(A1, A2) then
   begin
     Info := TActivateAbilityInfo.Create(nil);
     Info.FAbilityID := FAbilityID;
-    if TObject(A1) is TAbstractUnit then
+    if A1 is TAbstractUnit then
       Info.FUnitID := TAbstractUnit(A1).FUnitID
     else Info.FUnitID := 0;
     TEventList(AoWHSMap.FOnActivateAbility).TriggerNotifyEvents(Info);
     Info.Release;
-    asm MOV AL,1 end;
+    Result := True;
   end
-  else asm XOR EAX,EAX end;
+  else Result := False;
 end;
 procedure TAbility.CanActivateCombat(A1: Integer; A2: Integer);
 begin
@@ -26866,7 +26866,7 @@ end;
 
 procedure TAbilityControl.UnregisterAbilityID(ID: Integer);
 begin
-  if FAbilities.List^[ID] <> nil then UnregisterAbility(FAbilities.List^[ID]);
+  if Integer(FAbilities.List^[ID]) <> 0 then UnregisterAbility(FAbilities.List^[ID]);
 end;
 
 procedure TAbilityControl.ListAbilities(Text: TStrings; Types: TAbilitySelectionTypes);
@@ -31222,7 +31222,7 @@ begin
       DefaultUnit := TAdjustableUnit.Create(nil); DefaultUnit.MakeDefaultLevelUnit(1);
       if Unit_.GetCombatValue(DefaultUnit, 0) > 0 then
       begin
-        Result := Unit_.GetStrengthMax(dtAll - [dtWall]) div 100 + Resource.FLevel * 100 + Resource.FMoves * 10 + Value div 2;
+        Result := Unit_.GetStrengthMax(dtAll - [dtWall]) div 100 + (Resource.FLevel * 100 + Resource.FMoves * 10 + Value div 2);
         if Resource.FAbilities[urNone].GetAbSet(57) or Resource.FAbilities[urNone].GetAbSet(58) then Inc(Result, 100);
         if Resource.FAbilities[urNone].GetAbSet(13) then Inc(Result, 150);
         if (AoWHSMap <> nil) and (AoWHSMap.FDay > 20) and
@@ -33096,7 +33096,7 @@ begin
       if Height > BottomImage.Height then
       begin
         Y := R.Bottom - BottomImage.Height - MiddleImage.Height;
-        for I := 0 to (Height - BottomImage.Height) div MiddleImage.Height do
+        I := (Height - BottomImage.Height) div MiddleImage.Height; for I := 0 to I do
         begin
           MiddleImage.Show(R.Left, Y, SurfaceDesc);
           Dec(Y, MiddleImage.Height);
@@ -33546,8 +33546,8 @@ end;
 
 procedure TPlayerStructure.FinalizeCombat(Combat: TCombat);
 begin
-  if Combat.FCombatResult in [crVictory, crNoDefenders] then
-    with Combat.FCombatData do SetPlayer(FPlayers.GetPlayers(FAttackerPlayer).FPlayer);
+  if (Combat.FCombatResult = crVictory) or (Combat.FCombatResult = crNoDefenders) then
+    SetPlayer(Combat.FCombatData.FPlayers.GetPlayers(Combat.FCombatData.FAttackerPlayer).FPlayer);
 end;
 
 procedure TPlayerStructure.SetPlayer(Player: Shortint);
@@ -33786,8 +33786,8 @@ end;
 function TPlayerStructure.GetMoveAction(Player: Shortint; Action: TMoveAction): TMoveAction;
 begin
   if (Player <> FPlayer) and not GetRazed and
-    ((FPlayer <> 0) or TPlayerStructureResource(FResource).FClaimed) then Action := maAttack;
-  Result := Action;
+    ((FPlayer <> 0) or TPlayerStructureResource(FResource).FClaimed) then Result := maAttack
+  else Result := Action;
 end;
 
 procedure TPlayerStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
@@ -35635,11 +35635,11 @@ begin
   end;
 end;
 
-procedure TMoveSelector.MouseDownEvent(Sender: TObject);
+procedure TMoveSelector.MouseDownEvent(Sender: TObject); var Capture: TObject; Mouse: THSMapMouse;
 begin
-  if ((FMap.Mouse.Capture <> Self) and
-    (FMap.Mouse.Capture <> AoWHSMap.FTargetSelection)) or
-    (FMap.Mouse.Button = mbRight) then Unselect
+  Mouse := FMap.Mouse; Capture := Mouse.Capture;
+  if ((Capture <> Self) and (Capture <> AoWHSMap.FTargetSelection)) or
+    (Mouse.Button = mbRight) then Unselect
     else
       with FMap.Mouse do
         if (Capture = Self) and (Button = mbLeft) then
@@ -37089,7 +37089,7 @@ begin
 end;
 
 function CreateStrikeCA(A1, A2: TCombatObject; A3: Boolean): TStrikeCA;
-var Attack, Damage: Shortint; Types: TDamageTypes;
+var Attack: Shortint; Types: TDamageTypes; Damage: Shortint;
 begin
   if A1.GetAbilityEnabled(21) then
   begin
@@ -41850,7 +41850,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
+      Field := TAoWMapField(FXOffsets^[Walk.X] + FYOffsets^[Walk.Y]);
       if not Field.GetExplored(Player) then
       begin
         Field.SetExplored(Player, True);
@@ -42483,7 +42483,7 @@ var
   FileName: string;
 begin
   FileName := 'autosave.asg';
-  AoWEngine.LoadHSM(AoWEngine.StartupDirectory + 'Save\' + FileName, False, nil);
+  AoWEngine.SaveHSM(AoWEngine.StartupDirectory + 'Save\' + FileName, nil); { Original saves the autosave file. }
 end;
 
 procedure TAoWHSMapKeyboard.KeyDown(var Key: Word; Shift: TShiftState);
@@ -44108,7 +44108,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.NewFrame;
+procedure TAoWHSMap.NewFrame; var CombatMap: TAbstractAoWCombatMap;
 begin
   inherited NewFrame;
   if msActivated in Status then
@@ -44121,7 +44121,7 @@ begin
     UpdateExecuteEventLogDelay;
     UpdateTurnTimeBeep;
     UpdateEffects;
-    if FCombatMap <> nil then FCombatMap.NewFrame;
+    CombatMap := FCombatMap; if CombatMap <> nil then CombatMap.NewFrame;
   end;
 end;
 
@@ -48213,7 +48213,7 @@ var
   I: Integer;
   AOwner: TAbilityOwner;
   Ability: TP2AbilityCalls;
-  TypeName: string;
+
   Name, Source: string;
 begin
   Names.Clear;
@@ -48227,8 +48227,8 @@ begin
       if Name <> '' then Names.AddObject(Name, TObject(I));
       if Types <> nil then
       begin
-        P2TranslateRStr(TAbilityTypeRStr[TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), I)).AbilityType], TypeName);
-        Types.AddObject(TypeName, TObject(I));
+        Types.AddObject(TranslateRStr(TAbilityTypeRStr[TP2AbilityCalls(P2ControlAbility(TAbilityControl(AoWHSSet.FAbilityControl), I)).AbilityType]),
+          TObject(I));
       end;
       Source := Ability.SourceName(AOwner);
       if Sources <> nil then Sources.AddObject(Source, TObject(I));
@@ -48597,7 +48597,7 @@ begin
 end;
 procedure TAbstractUnit.MovedTo(OldField, NewField: TMapField; MaxCost: Integer);
 var
-  Cost: Integer;
+  Cost: Integer; Transported: Boolean;
   Army: TEObject;
 begin
   Cost := MovePointCost(NewField.TerrainType,NewField.OverlayType);
@@ -48612,7 +48612,7 @@ begin
   if OldField <> nil then
   begin
     Army := Owner;
-    if not ((Army is TArmy) and (TArmy(Army).Transporter($FF) <> nil)) then
+    Transported := (Army is TArmy) and (TArmy(Army).Transporter($FF) <> nil); if not Transported then
     begin
       if OldField.Lhx = 0 then
       begin
@@ -48907,8 +48907,8 @@ end;
 procedure P2UnitChanged(Map: TAoWHSMap; AUnit: TAbstractUnit); assembler;
 asm JMP TAoWHSMap.UnitChanged end;
 procedure TAbstractUnit.Changed;
-var
-  List: TECustomNode;
+
+
 begin
   if usActivated in FUnitStatus then
   begin
@@ -48918,8 +48918,8 @@ begin
     UpdateEnchanted;
     if AoWHSMap <> nil then P2UnitChanged(AoWHSMap,Self);
   end;
-  List := Owner;
-  if (List <> nil) and (List is TUnitList) then TUnitList(List).Changed;
+
+  if (Owner <> nil) and (Owner is TUnitList) then TUnitList(Owner).Changed;
 end;
 function P2FieldPlayer(Field: TAoWMapField): Shortint; assembler;
 asm JMP TAoWMapField.GetPlayer end;
@@ -49498,11 +49498,11 @@ end;
 function TUnit.GetDescription: TStrings;
 begin Result := FUnitResource.FDescription; end;
 function TUnit.GetNextLevelExperience: Integer;
-begin
-  if FExperience >= FUnitResource.FLevel * 2 then
-    if FExperience >= FUnitResource.FLevel * 6 then Result := 0
-    else begin Result := FUnitResource.FLevel * 6; Exit; end
-  else Result := FUnitResource.FLevel * 2;
+var Level: Integer; begin
+  Level := FUnitResource.FLevel; if FExperience >= Level * 2 then
+    if FExperience >= Level * 6 then Result := 0
+    else begin Result := Level * 6; Exit; end
+  else Result := Level * 2;
 end;
 function TUnit.GetRank: TUnitRank;
 begin
@@ -56818,7 +56818,7 @@ begin
 end;
 
 procedure TArmy.TriggerFireDamage;
-var Log: TArmyEventLog; AUnit: TAbstractUnit; Damage, I: Integer; Damaged: Boolean;
+var Log: TArmyEventLog; AUnit: TAbstractUnit; Damage: Integer; Damaged: Boolean; I: Integer;
 begin
   RandSeed := AoWHSMap.Random($FFFFFF);
   Log := TArmyEventLog.Create(nil);
@@ -58026,7 +58026,7 @@ procedure TSelectedArmy.OnDestroyArmy(Sender: TObject);
 var Index: Integer;
 begin
   if mssActivated in FStatus then
-    if TArmy(Sender) <> nil then
+    if Sender <> nil then
     begin
       Index := FMoveSettingsList.IndexOfMoveObject(TArmy(Sender).GetArmyHS);
       if Index <> -1 then DeleteMoveObject(Index);
@@ -58371,10 +58371,10 @@ procedure TSelectedArmy.Update;
 var
   Selection: Byte;
   Field: TMapField;
-  Pos: TXYL;
+
   I: Integer;
   ArmyHS: TArmyHS;
-  Points: Integer;
+
 begin
   UpdateSelectedUnitGFX;
   if GetArmyHS <> nil then
@@ -58383,10 +58383,10 @@ begin
   begin
     Selection := FMoveSettingsList.GetMoveSettings(I).FSelection;
     ArmyHS := TArmyHS(FMoveSettingsList.GetMoveSettings(I).FMoveObject);
-    Points := ArmyHS.FArmy.MovePoints(Selection);
-    FMoveSettingsList.GetMoveSettings(I).FMovePoints := Points;
-    Points := ArmyHS.FArmy.Moves(Selection);
-    FMoveSettingsList.GetMoveSettings(I).FMoves := Points;
+    FMoveSettingsList.GetMoveSettings(I).FMovePoints :=
+      ArmyHS.FArmy.MovePoints(Selection);
+    FMoveSettingsList.GetMoveSettings(I).FMoves :=
+      ArmyHS.FArmy.Moves(Selection);
   end;
   if mssActivated in FStatus then
     for I := 0 to FMoveSettingsList.Count - 1 do
@@ -58405,8 +58405,8 @@ begin
         end
         else if FMoveSettingsList.GetMoveSettings(I).FPath.Count <> 0 then
         begin
-          Pos := FMoveSettingsList.GetMoveSettings(I).FPath[0];
-          CalculateMovePath(I, Pos.X, Pos.Y, Pos.L);
+          with FMoveSettingsList.GetMoveSettings(I).FPath[0] do
+            CalculateMovePath(I, X, Y, L);
         end;
     end;
   UpdateMoveCursor;
@@ -60075,7 +60075,7 @@ begin
 end;
 
 procedure TAoWEngine.ExportTextToFile(const FileName: string; Obj: TEObject);
-var FileStream: TFileStream; Stream: TExportTextStream;
+var Stream: TExportTextStream; FileStream: TFileStream;
 begin
   FileStream := TFileStream.Create(FileName, fmCreate);
   try
@@ -60376,7 +60376,7 @@ begin
 end;
 
 function TAoWEngine.RequestAccess(const Name, Code: string): Boolean;
-var Registered: string;
+
   function RegistrationCode(Text: string): string;
   var I, Value: Integer; Hex: string;
   begin
@@ -60394,9 +60394,9 @@ var Registered: string;
     end;
   end;
 begin
-  Registered := RegisteredTo;
-  if (Registered = Name) and (Name <> '') and (Code = RegistrationCode(Name)) then Result := True
-  else Result := False;
+  Result := (RegisteredTo = Name) and
+    (Name <> '') and
+    (Code = RegistrationCode(Name));
 end;
 
 procedure TAoWEngine.CloseCampaign;

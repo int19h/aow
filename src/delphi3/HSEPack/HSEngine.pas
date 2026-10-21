@@ -302,7 +302,7 @@ type
     FFieldSize: Integer;
     FFields: Pointer;
     FFieldsSize: Integer;
-  public FHNOffsets: array[0..1, 0..7] of Integer; private
+  public FHNOffsets: array[0..1, 0..7] of Integer; protected { $74/$78 inherited access: AoWE 55772161/55772167. }
     FXOffsets: PIntegerArray;
     FYOffsets: PIntegerArray;
   public
