@@ -213,7 +213,7 @@ type
     FPingDelay: Integer; { $340 }
     FChatScrollPending: Boolean; { $344 }
     F_ScenSetup_345: array[0..2] of Byte;
-    procedure ExitGameClick;  { draft }
+    procedure ExitGameClick(Sender: TObject);
     procedure ChatEditReturn;
     procedure PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
     procedure PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
@@ -250,7 +250,7 @@ implementation
 
 uses E3Globals, AoWWinMan, aowSetupEvents, aowDPlayComp, AoWEmailGameSettingsDlg, AoWExeForms;
 
-procedure TScenSetup.ExitGameClick;
+procedure TScenSetup.ExitGameClick(Sender: TObject);
 begin end;
 
 procedure TScenSetup.ChatEditReturn;

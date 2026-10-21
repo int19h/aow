@@ -36,6 +36,7 @@ var
   DisjunctionDlg: TDisjunctionDlg;
 
 procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: TScreenMode);
+{ conflict: procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Byte); }
 procedure SetVideoSize(Dialog: TVideoDialog; Width, Height: Integer);
 
 
@@ -66,6 +67,7 @@ begin
 end;
 
 procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: TScreenMode);
+{ conflict: procedure SetVideoMode(Dialog: TVideoDialog; FullScreen: Byte); }
 begin
   if FullScreen <> Dialog.FFullScreen then
   begin

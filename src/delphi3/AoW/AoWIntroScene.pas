@@ -24,6 +24,7 @@ type
     F_IntroScene_50: Integer;
     F_IntroScene_54: array[0..3] of Byte;
     F_IntroScene_58: Integer;
+    procedure Execute;
     procedure VideoPlayerStreamSound(A1: Byte; A2: Integer; A3: Integer);  { draft }
     procedure WindowDrawSurfaceEx(A1: Integer; A2: Integer);  { draft }
     procedure WindowHide;  { draft }
@@ -34,6 +35,11 @@ type
 
 
 implementation
+
+procedure TIntroScene.Execute;
+begin
+  { Unrecovered original 00452420. }
+end;
 
 procedure TIntroScene.VideoPlayerStreamSound(A1: Byte; A2: Integer; A3: Integer);
 begin end;

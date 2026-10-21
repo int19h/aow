@@ -1,8 +1,7 @@
 unit AoWTargetSelection;
 
-{ Draft declarations of AoWTargetSelection, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWTargetSelection handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -34,18 +33,22 @@ type
     TargetLbl: TAOWLabel; { +007C }
     Translator: TIvTranslator; { +0080 }
     public
-    procedure CloseClick;  { draft }
-    procedure MainBtnClick;  { draft }
+    procedure CloseClick;
+    procedure MainBtnClick;
   end;
 
 
 implementation
 
+uses AoWWinMan, AoWE;
+
 procedure TTargetSelectionDlg.CloseClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  AoWHSMap.FTargetSelection.Deactivate;
+end;
 
 procedure TTargetSelectionDlg.MainBtnClick;
-begin end;
-
+begin CloseClick; end;
 
 end.

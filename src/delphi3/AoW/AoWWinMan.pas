@@ -23,6 +23,7 @@ type
     ToolTip: TAOWToolTip; { +0048 }
     public
     FWindowsHidden: Boolean; FReserved4D: array[0..10] of Byte; FInfoVisible, FRealmVisible, FMagicVisible, FReserved5B, FReserved5C, FUnitVisible, FScannerVisible, FControlVisible, FChatVisible, FMapVisible, FReserved62, FReserved63, FReserved64, FTargetVisible: Boolean; FReserved66: array[0..1] of Byte; { $4C..$67; 00455A34 }
+    { conflict: FSavedWindowVisibility: array[0..15] of Boolean; }
     FUnitShowInfo: TP2UnitShowInfo; { $68; 0044A1E5 }
     { $69..$73 are part of FUnitShowInfo. }
     FReserved74: Integer; { $74 }

@@ -304,7 +304,7 @@ begin
   Dialog.DBack.Visible := False;
   Dialog.DStart.Visible := False;
   Dialog.DSphere.Visible := False;
-  Dialog.F_SelFactionWin_80 := -1;
+  Dialog.FFade := -1;
   Dialog.FactionPnl.ILIndexTexture := 0;
   Dialog.F_SelFactionWin_8C[0] := 0;
 end;

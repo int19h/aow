@@ -1,8 +1,7 @@
 unit AoWMagic;
 
-{ Draft declarations of AoWMagic, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWMagic handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -102,11 +101,11 @@ type
     procedure GlobalUpkeepListChange;
     procedure PowerSourceListChange;
     procedure PowerValueListChange;
-    procedure ResearchBtnClick;  { draft }
-    procedure ChangePowerButClick;  { draft }
-    procedure SpellIcnDraw(A1: Integer; A2: Integer);  { draft }
+    procedure ResearchBtnClick;
+    procedure ChangePowerButClick;
+    procedure SpellIcnDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
     procedure PowerSourceListDoubleClick;
-    procedure PowerValueListMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    procedure PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure PowerSBChange;
     procedure GlobalEnchantmentSBChange;
     procedure EnchantmentSBChange;
@@ -122,14 +121,14 @@ type
     procedure DlgResize;
     procedure DlgShow;
     procedure DlgHide;
-    procedure HelpClick;  { draft }
+    procedure HelpClick;
     procedure GlobalEnchantmentMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   end;
 
 
 implementation
 
-uses AoWWinMan;
+uses AoWWinMan, AoWExeForms, AoWPowerDlg, aowHelpWin, E2GameFlow, E2Globals;
 
 procedure TMagicWin.SelectEnchantment(Index: Integer);
 begin
@@ -280,13 +279,32 @@ end;
 
 
 procedure TMagicWin.ResearchBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  ShowResearch(SpellBook);
+end;
 
 procedure TMagicWin.ChangePowerButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  PowerDlg.Execute;
+end;
 
-procedure TMagicWin.SpellIcnDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TMagicWin.SpellIcnDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+var
+  Player: TPlayer;
+  Spell: TSpell;
+begin
+  Player := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer);
+  if Player.FMagicControl.FResearchSpellID <> 0 then
+  begin
+    Spell := AoWHSSet.FSpellControl.GetSpell(Player.FMagicControl.FResearchSpellID);
+    if Spell <> nil then
+      if Spell.FCastImages.GetImageSequence(10) <> nil then
+        Spell.FCastImages.Show(10, Sender.WinLeft + Sender.FAOWOwner.WinLeft,
+          Sender.WinTop + Sender.FAOWOwner.WinTop, 0, Surface);
+  end;
+end;
 
 procedure TMagicWin.PowerSourceListDoubleClick;
 begin
@@ -295,8 +313,12 @@ begin
 end;
 
 
-procedure TMagicWin.PowerValueListMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TMagicWin.PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if (Button = mbRight) and (PowerSourceList.Selected > -1) then
+    if PowerSourceList.Selected < PowerSourceList.Items.Count then
+      TPowerSource(PowerSourceList.Items.Objects[PowerSourceList.Selected]).Select;
+end;
 
 procedure TMagicWin.PowerSBChange;
 begin
@@ -427,7 +449,7 @@ end;
 
 
 procedure TMagicWin.HelpClick;
-begin end;
+begin ShowHelp(506); end;
 
 procedure TMagicWin.GlobalEnchantmentMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin

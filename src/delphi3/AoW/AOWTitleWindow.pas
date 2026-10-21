@@ -24,6 +24,7 @@ type
     public
     F_TitleWindow_54: Integer;
     FSplashStage: Integer; { $58; 00429C2C }
+    procedure ShowSplash;
     procedure TitleWinDrawSurface(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure TitlePnlDrawBack(A1: Integer; A2: Integer);  { draft }
     procedure SplashPnlUpdate;  { draft }
@@ -33,6 +34,11 @@ type
 
 
 implementation
+
+procedure TTitleWindow.ShowSplash;
+begin
+  { Unrecovered original 00429BAC. }
+end;
 
 procedure TTitleWindow.TitleWinDrawSurface(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;

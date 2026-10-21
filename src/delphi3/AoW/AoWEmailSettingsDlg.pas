@@ -1,8 +1,7 @@
 unit AoWEmailSettingsDlg;
 
-{ Draft declarations of AoWEmailSettingsDlg, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWEmailSettingsDlg handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -37,22 +36,30 @@ type
     TitleIcon: TAOWImage; { +0088 }
     Translator: TIvTranslator; { +008C }
     public
-    procedure OKBtnClick;  { draft }
-    procedure CancelBtnClick;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure OKBtnClick(Sender: TObject);
+    procedure CancelBtnClick(Sender: TObject);
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-procedure TEmailSettingsDlg.OKBtnClick;
-begin end;
+uses AoWE;
 
-procedure TEmailSettingsDlg.CancelBtnClick;
-begin end;
+procedure TEmailSettingsDlg.OKBtnClick(Sender: TObject);
+begin
+  AoWEngine.FRegistry.SetLocalEmailAddress(LocalEmailAddressEdit.Text);
+  AoWEngine.FRegistry.SetSMTPServer(SMTPServerEdit.Text);
+  AoWEngine.FRegistry.SetAttachmentDirectory(AttachmentDirectoryEdit.Text);
+  Dlg.Visible := False;
+end;
 
-procedure TEmailSettingsDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TEmailSettingsDlg.CancelBtnClick(Sender: TObject);
+begin Dlg.Visible := False; end;
 
+procedure TEmailSettingsDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then Dlg.Visible := False;
+end;
 
 end.

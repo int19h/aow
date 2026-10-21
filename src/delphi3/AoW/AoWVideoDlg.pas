@@ -42,7 +42,8 @@ type
     public
     FDisplayModes: TDisplayModeList; { $8C }
     FFullScreen: TScreenMode; { $90; 0040B034 }
-    FModeChanged: Boolean; { $91; 0040B034 } F_VideoDialog_92: array[0..9] of Byte;
+    { conflict: FFullScreen: Byte; }
+    FModeChanged: Boolean; { $91; 0040B034 } FReserved92: Word; FSceneWidth, FSceneHeight: Integer; { $94/$98; 0040B06C }
     FDisplayWidth: Integer; { $9C; 0040B04C }
     { conflict: FWidth: Integer; }
     FDisplayHeight: Integer; { $A0; 0040B04C }

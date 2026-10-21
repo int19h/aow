@@ -1,8 +1,7 @@
 unit AoWWorldMap;
 
-{ Draft declarations of AoWWorldMap, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWWorldMap handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -93,7 +92,10 @@ type
     FBookAction: Byte; { $168 }
     F_WorldMap_169: array[0..2] of Byte;
     function GetCampaign: TWMCampaign;
-    procedure UpdateCampaignState; { unrecovered; 0041CA5C }
+    procedure UpdateCampaignState; { 0041CA5C }
+    procedure ShowIntroPages(Index: Integer);
+    procedure ShowSpheres;
+    procedure SpheresDone(Sender: TObject);
     procedure BookClosed;
     procedure BackClick;
     procedure NextStartClick;
@@ -103,7 +105,7 @@ type
     procedure Path3MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CancelClick;
     procedure PPawnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure PPawnMouseMove(A1: Integer);  { draft }
+    procedure PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
     procedure Path1MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
     procedure Path2MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
     procedure Path3MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
@@ -112,15 +114,15 @@ type
     procedure BookWinAnimDone;
     procedure BookWinShow;
     procedure BookWinUpdate;
-    procedure ShowBtnClick;  { draft }
-    procedure QuitBtnClick;  { draft }
+    procedure ShowBtnClick;
+    procedure QuitBtnClick;
     procedure StarImgUpdate;
-    procedure StarImgDraw(A1: Integer; A2: Integer);  { draft }
+    procedure StarImgDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure Ally1PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure Ally2PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure Ally3PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
     procedure HeroPnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure SetBtnClick;  { draft }
+    procedure SetBtnClick;
     procedure BookWinHide;
   end;
 
@@ -135,7 +137,7 @@ function GetCampaignPage(Pages: TWMCampaignScenarioPageList; Index: Integer): TW
 
 implementation
 
-uses AoWExeForms, AoWWinMan, E2CampaignSupport, PageTurnCtrl;
+uses AoWExeForms, AoWWinMan, E2CampaignSupport, PageTurnCtrl, E2Globals, E2GameFlow, AoWCampaignTransferDlg, AoWLeaderSetup;
 
 var
   BookStartVisible: Boolean;
@@ -151,8 +153,269 @@ begin
 end;
 
 procedure TWorldMap.UpdateCampaignState;
+var
+  Index: Integer;
+  Preview: TAoWHSMap;
 begin
-  { Original 0041CA5C; the campaign state view is still unrecovered. }
+  if GetCampaign <> nil then
+    case GetCampaign.FState of
+      0:
+        begin
+          if (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, 0).FImageLibrary = '') and (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, 0).FText.Count <= 0) then
+          begin
+            Inc(GetCampaign.FState);
+            UpdateCampaignState;
+            Exit;
+          end;
+          SetCurrentDir(AoWEngine.StartupDirectory + '\Int\Scenes');
+          LabelL.Text := GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage).FHeading;
+          LabelR.Text := GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 1).FHeading;
+          MemoL.Items.Assign(GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage).FText);
+          MemoR.Items.Assign(GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 1).FText);
+          FStarIntensity := 50;
+          FStarStep := 1;
+          case GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FMapKind of
+            0: begin WorldPnl.ILIndexTexture := 0; FStarImage := 13; end;
+            1: begin WorldPnl.ILIndexTexture := 10; FStarImage := 14; end;
+            2: begin WorldPnl.ILIndexTexture := 11; FStarImage := 15; end;
+          end;
+          if GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage).FImageLibrary = '' then PicL.ImageLib := nil
+          else
+          begin
+            IntGfxMod.BookPL.LoadFromFile(GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage).FImageLibrary);
+            PicL.ImageLib := IntGfxMod.BookPL;
+            PicL.CurrentImage := GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage).FImageIndex;
+            PicL.WinWidth := 0;
+            PicL.WinHeight := 0;
+            PicL.Visible := True;
+          end;
+          if GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 1).FImageLibrary = '' then PicR.ImageLib := nil
+          else
+          begin
+            IntGfxMod.BookPR.LoadFromFile(GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 1).FImageLibrary);
+            PicR.ImageLib := IntGfxMod.BookPR;
+            PicR.CurrentImage := GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 1).FImageIndex;
+            PicR.WinWidth := 0;
+            PicR.WinHeight := 0;
+            PicR.Visible := True;
+          end;
+          Back.Visible := GetCampaign.FPage > 0;
+          if GetCampaign.FPage = 8 then Next.Visible := False
+          else Next.Visible := (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 2).FImageLibrary <> '') or (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FOutroPages, GetCampaign.FPage + 2).FText.Count > 0);
+          BookStart.Visible := not Next.Visible;
+          Cancel.Visible := False;
+          with BookWin do begin FHidden := True; Visible := True; end;
+          SetBtn.Visible := False;
+          ShowBtn.Visible := False;
+          QuitBtn.Visible := False;
+          if BookWin.FBackSurface <> nil then BookWin.FBackSurface.Cls(BookWin.FMaskColor);
+          if TitleWindow.TitleWin.Visible then General.Manager.OverlayPriority := 249;
+        end;
+      1:
+        begin
+          SetBtn.Visible := True;
+          ShowBtn.Visible := True;
+          QuitBtn.Visible := True;
+          BookWin.Visible := False;
+          PPawn.Visible := True;
+          EPawn.Visible := True;
+          PPawn.WinLeft := GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FMapX - 25;
+          PPawn.WinTop := GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FMapY - 65;
+          Index := GetCampaign.FScenarios.IndexOfID(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[3]);
+          if Index <> -1 then
+          begin
+            EPawn.WinLeft := GetCampaignScenario(GetCampaign, Index).FMapX - 25;
+            EPawn.WinTop := GetCampaignScenario(GetCampaign, Index).FMapY - 65;
+          end;
+          with PPawn do
+            if WinTop > EPawn.WinTop then
+            begin Priority := 10; EPawn.Priority := 5; end
+            else begin Priority := 5; EPawn.Priority := 10; end;
+          if GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[0] < 0 then Path1.Visible := False
+          else
+          begin
+            Path1.Visible := True;
+            Path1.CurrentImage := GetCampaign.FFaction * 3 + FPathFrame + 2;
+            Index := GetCampaign.FScenarios.IndexOfID(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[0]);
+            Path1.WinLeft := GetCampaignScenario(GetCampaign, Index).FMapX;
+            Path1.WinTop := GetCampaignScenario(GetCampaign, Index).FMapY;
+          end;
+          if GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[1] < 0 then Path2.Visible := False
+          else
+          begin
+            Path2.Visible := True;
+            Path2.CurrentImage := GetCampaign.FFaction * 3 + FPathFrame + 2;
+            Index := GetCampaign.FScenarios.IndexOfID(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[1]);
+            Path2.WinLeft := GetCampaignScenario(GetCampaign, Index).FMapX;
+            Path2.WinTop := GetCampaignScenario(GetCampaign, Index).FMapY;
+          end;
+          if GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[2] < 0 then Path3.Visible := False
+          else
+          begin
+            Path3.Visible := True;
+            Path3.CurrentImage := GetCampaign.FFaction * 3 + FPathFrame + 2;
+            Index := GetCampaign.FScenarios.IndexOfID(GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FPaths[2]);
+            Path3.WinLeft := GetCampaignScenario(GetCampaign, Index).FMapX;
+            Path3.WinTop := GetCampaignScenario(GetCampaign, Index).FMapY;
+          end;
+          if not Path1.Visible and not Path2.Visible and not Path3.Visible then
+          begin
+            TitleWindow.TitlePnl.Visible := False;
+            TitleWindow.TitlePnl.FRedraw := False;
+            TitleWindow.TitleWin.Visible := False;
+            TBWindow.TaskWindow.Visible := False;
+            WorldPnl.Visible := False;
+            BookWin.Visible := False;
+            AoWEngine.CloseCampaign;
+            TitleScene.ResetScene;
+            ShowTitleScene(TitleScene, True);
+          end;
+        end;
+      2:
+        begin
+          if (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FNextScenarioID).FIntroPages, 0).FImageLibrary = '') and
+            (GetCampaignPage(GetCampaignScenario(GetCampaign, GetCampaign.FNextScenarioID).FIntroPages, 0).FText.Count <= 0) then
+          begin
+            FPawnTicks := 20;
+            BookWin.Visible := False;
+            SetBtn.Visible := False;
+            ShowBtn.Visible := False;
+            QuitBtn.Visible := False;
+            Inc(GetCampaign.FState);
+            UpdateCampaignState;
+            Exit;
+          end;
+          SetBtn.Visible := False;
+          ShowBtn.Visible := False;
+          QuitBtn.Visible := False;
+          ShowIntroPages(GetCampaign.FNextScenarioID);
+        end;
+      3:
+        begin
+          CampaignTransferDlg.Execute;
+          SetBtn.Visible := False;
+          ShowBtn.Visible := False;
+          QuitBtn.Visible := False;
+        end;
+      4:
+        begin
+          Preview := TAoWHSMap(AoWEngine.CreatePreviewHSM(AoWEngine.StartupDirectory +
+            'Scenario\Campaign\' + GetCampaignScenario(GetCampaign, GetCampaign.FNextScenarioID).FFileName));
+          if Preview <> nil then
+          begin
+            Index := Preview.FPlayers.IndexOfPlayerType(ptHuman);
+            if (Index = -1) or (GetCampaign.FRaceHistory.Count <= 0) then Inc(GetCampaign.FState)
+            else
+              if (GetCampaign.FRaceHistory.IndexOf(Preview.FPlayers.GetPlayers(Index).FPlayerRace) <> -1) or
+                (GetCampaign.FTransferSettings.FLeader.GetSphereCount >= GetCampaign.FRaceHistory.Count * 2 + 3) then
+                Inc(GetCampaign.FState)
+              else ShowSpheres;
+            Preview.Free;
+          end;
+        end;
+      7:
+        if GetCampaignScenario(GetCampaign, GetCampaign.FNextScenarioID).FFileName = '' then
+        begin
+          TargetSelectionDlg.HeaderLbl.Text := '';
+          GetCampaign.FState := 0;
+          UpdateCampaignState;
+        end
+        else
+        begin
+          Inc(GetCampaign.FState);
+          GetCampaign.StartScenario(GetCampaign.FNextScenarioID, '', nil);
+          SetCurrentDir(AoWEngine.StartupDirectory + 'Scenario\Campaign\');
+          LoadGame(General, GetCampaignScenario(GetCampaign, GetCampaign.FCurrentScenarioID).FFileName);
+          TitleWindow.TitlePnl.Visible := True;
+          WorldPnl.Visible := False;
+          GetCampaign.SetupScenario;
+          StartGame(General);
+          TargetSelectionDlg.HeaderLbl.Text := '';
+        end;
+      10: ShowIntroPages(GetCampaign.FCurrentScenarioID);
+    end;
+end;
+
+
+procedure TWorldMap.ShowIntroPages(Index: Integer);
+begin
+  SetCurrentDir(AoWEngine.StartupDirectory + 'Int\Scenes');
+  LabelL.Text := GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage).FHeading;
+  LabelR.Text := GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 1).FHeading;
+  MemoL.Items.Assign(GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage).FText);
+  MemoR.Items.Assign(GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 1).FText);
+  leftSB.Position := 0;
+  rightSB.Position := 0;
+          if GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage).FImageLibrary = '' then PicL.ImageLib := nil
+          else
+          begin
+            IntGfxMod.BookPL.LoadFromFile(GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage).FImageLibrary);
+            PicL.ImageLib := IntGfxMod.BookPL;
+            PicL.CurrentImage := GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage).FImageIndex;
+            PicL.WinWidth := 0;
+            PicL.WinHeight := 0;
+            PicL.Visible := True;
+          end;
+          if GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 1).FImageLibrary = '' then PicR.ImageLib := nil
+          else
+          begin
+            IntGfxMod.BookPR.LoadFromFile(GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 1).FImageLibrary);
+            PicR.ImageLib := IntGfxMod.BookPR;
+            PicR.CurrentImage := GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 1).FImageIndex;
+            PicR.WinWidth := 0;
+            PicR.WinHeight := 0;
+            PicR.Visible := True;
+          end;
+  Back.Visible := GetCampaign.FPage > 0;
+  if GetCampaign.FPage = 8 then Next.Visible := False
+  else Next.Visible := (GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 2).FImageLibrary <> '') or (GetCampaignPage(GetCampaignScenario(GetCampaign, Index).FIntroPages, GetCampaign.FPage + 2).FText.Count > 0);
+  BookStart.Visible := not Next.Visible or (GetCampaign.FState = 10);
+  Cancel.Visible := WorldPnl.Visible;
+  with BookWin do begin FHidden := True; Visible := True; end;
+  if BookWin.FBackSurface <> nil then BookWin.FBackSurface.Cls(BookWin.FMaskColor);
+  if TitleWindow.TitleWin.Visible then General.Manager.OverlayPriority := 249;
+end;
+
+procedure TWorldMap.SpheresDone(Sender: TObject);
+var
+  Control: TLeaderSetupControl;
+  Leader: TLeader;
+  I: Integer;
+begin
+  Control := TLeaderSetupControl(Sender);
+  if Control.FStatus = lssDone then
+  begin
+    Leader := TLeader(Control.FOriginalLeader.Copy(AoWEngine));
+    for I := GetCampaign.FTransferSettings.FLeader.GetSphereCount to Leader.GetSphereCount - 1 do
+      GetCampaign.FTransferSettings.FSelectedSpheres.Add(Ord(Leader.GetSpheres(I)));
+    WorldPnl.Visible := True;
+    Inc(GetCampaign.FState);
+    UpdateCampaignState;
+  end;
+end;
+
+procedure TWorldMap.ShowSpheres;
+var
+  Picks: Integer;
+  Control: TLeaderSetupControl;
+begin
+  WorldPnl.Visible := False;
+  Picks := GetCampaign.FTransferSettings.FLeader.FSpherePicksMax;
+  Control := TLeaderSetupControl.Create(nil);
+  Control.FLeader.Assign(GetCampaign.FTransferSettings.FLeader, AoWEngine);
+  Control.FLeader.SetSpherePicksMax(Picks + 2);
+  Control.FOriginalLeader.Assign(Control.FLeader, AoWEngine);
+  Control.FMode := [lsmSpheres];
+  LeaderSetupWin.Execute(Control);
+  LeaderSetupWin.ClearBtn.Visible := False;
+  LeaderSetupWin.DefaultBtn.Visible := False;
+  LeaderSetupWin.PrevBtn.Visible := False;
+  LeaderSetupWin.SetFixedSpheres(Picks);
+  LeaderSetupWin.Phase3Header.Text := AoWE.Format(TranslateRStr(AssignXNewSpheresRStr), [IntToStr(2)]);
+  Control.FOnDone := SpheresDone;
+  Control.Release;
+  LeaderSetupWin.LeaderPnl.ILTexture := IntGfxMod.WorldMap;
+  LeaderSetupWin.LeaderPnl.ILIndexTexture := 0;
 end;
 
 procedure TWorldMap.BookClosed;
@@ -345,8 +608,24 @@ begin
 end;
 
 
-procedure TWorldMap.PPawnMouseMove(A1: Integer);
-begin end;
+procedure TWorldMap.PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
+var
+  Description: string;
+begin
+  if Y > 20 then
+    if GetCampaign.FState = 1 then
+      if Sender = PPawn then Description := TranslateRStr(ViewSummaryRStr)
+      else
+        if GetCampaign.FFaction = 0 then Description := TranslateRStr(CultOfStormsRStr)
+        else Description := TranslateRStr(KeepersRStr);
+  if (DescLbl.Text <> Description) and (Description <> '') then
+  begin
+    DescLbl.Text := Description;
+    with DescLbl do WinTop := 460 - WinHeight;
+  end;
+  FDescriptionHandled := True;
+  Sender.FHandled := False;
+end;
 
 procedure TWorldMap.Path1MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
 var
@@ -470,10 +749,31 @@ end;
 
 
 procedure TWorldMap.ShowBtnClick;
-begin end;
+begin
+  if not InfoPnl.Visible then
+  begin
+    SelectLbl.Visible := False;
+    PPawn.Visible := False;
+    EPawn.Visible := False;
+    Path1.Visible := False;
+    Path2.Visible := False;
+    Path3.Visible := False;
+    InfoPnl.Visible := True;
+    ShowBtn.Text := TranslateRStr(HideInfoRStr);
+  end
+  else
+  begin
+    UpdateCampaignState;
+    SelectLbl.Visible := True;
+    InfoPnl.Visible := False;
+    ShowBtn.Text := TranslateRStr(ShowInfoRStr);
+  end;
+end;
 
 procedure TWorldMap.QuitBtnClick;
-begin end;
+begin
+  ConfirmDialog(DialogWin, TranslateRStr(ConfirmRStr), TranslateRStr(QuitCampaignRStr), 5);
+end;
 
 procedure TWorldMap.StarImgUpdate;
 begin
@@ -484,8 +784,11 @@ begin
 end;
 
 
-procedure TWorldMap.StarImgDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TWorldMap.StarImgDraw(Sender: TObject; Surface: TSurfaceDesc);
+begin
+  IntGfxMod.WorldMap[FStarImage].ShowBlended(StarImg.WinLeft + WorldPnl.WinLeft,
+    StarImg.WinTop + WorldPnl.WinTop, Surface, IntensityBlendTable.LookupTables[FStarIntensity]);
+end;
 
 procedure TWorldMap.Ally1PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
 var
@@ -540,7 +843,9 @@ end;
 
 
 procedure TWorldMap.SetBtnClick;
-begin end;
+begin
+  CampaignSettingsDlg.Dlg.Visible := True;
+end;
 
 procedure TWorldMap.BookWinHide;
 begin BookClosed; end;

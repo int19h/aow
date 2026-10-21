@@ -1,8 +1,7 @@
 unit AoWSelFactionWin;
 
-{ Draft declarations of AoWSelFactionWin, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWSelFactionWin handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -33,58 +32,182 @@ type
     DSphere: TAOWImage; { +0078 }
     Translator: TIvTranslator; { +007C }
     public
-    F_SelFactionWin_80: Integer;
-    F_SelFactionWin_84: Integer;
-    F_SelFactionWin_88: Integer;
+    FFade: Integer; { $80 }
+    FFadeImage: Integer; { $84 }
+    FFadeDirection: Integer; { $88 }
     F_SelFactionWin_8C: array[0..3] of Byte;
-    procedure LStartClick(A1: Integer);  { draft }
-    procedure LightPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure DarkPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure LBackClick;  { draft }
-    procedure DBackClick;  { draft }
-    procedure FactionPnlMouseMove;  { draft }
-    procedure LightPnlMouseMove;  { draft }
-    procedure DarkPnlMouseMove;  { draft }
-    procedure AbortBtnClick;  { draft }
-    procedure FactionPnlUpdate;  { draft }
-    procedure FactionPnlKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure CloseSelection;
+    procedure LStartClick(Sender: TObject);
+    procedure LightPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DarkPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure LBackClick;
+    procedure DBackClick;
+    procedure FactionPnlMouseMove;
+    procedure LightPnlMouseMove;
+    procedure DarkPnlMouseMove;
+    procedure AbortBtnClick;
+    procedure FactionPnlUpdate;
+    procedure FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
+var
+  SelFactionWin: TSelFactionWin;
+
 implementation
 
-procedure TSelFactionWin.LStartClick(A1: Integer);
-begin end;
+uses AoWE, AoWExeForms, AoWWinMan, E2Globals, E2GameFlow;
 
-procedure TSelFactionWin.LightPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TSelFactionWin.CloseSelection;
+begin
+  IntGfxMod.FactionWin.ReleaseDiscardableImageData;
+  TitleWindow.TitleWin.Visible := False;
+  ShowTitleScene(TitleScene, True);
+  FactionPnl.Visible := False;
+  FFade := 0;
+end;
 
-procedure TSelFactionWin.DarkPnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TSelFactionWin.LStartClick(Sender: TObject);
+begin
+  General.PlayButtonSound(0);
+  IntGfxMod.FactionWin.ReleaseDiscardableImageData;
+  FactionPnl.Visible := False;
+  FFade := 0;
+  if Sender = LStart then StartCampaignJoin(CampaignJoinDlg, 0)
+  else StartCampaignJoin(CampaignJoinDlg, 1);
+end;
+
+procedure TSelFactionWin.LightPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if not DName.Visible and not LName.Visible then
+  begin
+    DName.Visible := True;
+    DText.Visible := True;
+    DBack.Visible := True;
+    DStart.Visible := True;
+    DBack.CaptureInput := True;
+    DStart.CaptureInput := True;
+    TopLbl.Visible := False;
+    FFade := 100;
+    FactionPnl.ILIndexTexture := 2;
+    FFadeImage := 0;
+    FFadeDirection := 1;
+  end;
+end;
+
+procedure TSelFactionWin.DarkPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if not LName.Visible and not DName.Visible then
+  begin
+    LName.Visible := True;
+    LText.Visible := True;
+    LBack.Visible := True;
+    LStart.Visible := True;
+    LBack.CaptureInput := True;
+    LStart.CaptureInput := True;
+    TopLbl.Visible := False;
+    FFade := 100;
+    FactionPnl.ILIndexTexture := 1;
+    FFadeImage := 0;
+    FFadeDirection := 1;
+  end;
+end;
 
 procedure TSelFactionWin.LBackClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  LBack.CaptureInput := False;
+  LStart.CaptureInput := False;
+  FFade := 100;
+  FFadeImage := 0;
+  FFadeDirection := 0;
+end;
 
 procedure TSelFactionWin.DBackClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  DBack.CaptureInput := False;
+  DStart.CaptureInput := False;
+  FFade := 100;
+  FFadeImage := 0;
+  FFadeDirection := 0;
+end;
 
 procedure TSelFactionWin.FactionPnlMouseMove;
-begin end;
+begin
+  if not LightPnl.FHandled and not DName.Visible and not DarkPnl.FHandled and not LName.Visible then
+  begin
+    DSphere.Visible := False;
+    LSphere.Visible := False;
+    TopLbl.Text := TranslateRStr(ChooseFactionRStr);
+  end;
+end;
 
 procedure TSelFactionWin.LightPnlMouseMove;
-begin end;
+begin
+  if not LName.Visible and not DSphere.Visible then
+  begin
+    DSphere.Visible := True;
+    LSphere.Visible := False;
+    TopLbl.Text := TranslateRStr(CultOfStormsRStr);
+  end;
+end;
 
 procedure TSelFactionWin.DarkPnlMouseMove;
-begin end;
+begin
+  if not DName.Visible and not LSphere.Visible then
+  begin
+    DSphere.Visible := False;
+    LSphere.Visible := True;
+    TopLbl.Text := TranslateRStr(KeepersRStr);
+  end;
+end;
 
 procedure TSelFactionWin.AbortBtnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  CloseSelection;
+end;
 
 procedure TSelFactionWin.FactionPnlUpdate;
-begin end;
+var
+  R: TRect;
+begin
+  if SelFactionWin.FFade >= 0 then
+  begin
+    Dec(SelFactionWin.FFade, 6);
+    if FFade < 6 then
+      if LStart.Visible and not LStart.CaptureInput then
+      begin
+        LName.Visible := False;
+        LText.Visible := False;
+        LBack.Visible := False;
+        LStart.Visible := False;
+        LSphere.Visible := False;
+        TopLbl.Visible := True;
+        TopLbl.Text := TranslateRStr(ChooseFactionRStr);
+        FactionPnl.ILIndexTexture := 0;
+      end
+      else
+        if DStart.Visible and not DStart.CaptureInput then
+        begin
+          DName.Visible := False;
+          DText.Visible := False;
+          DBack.Visible := False;
+          DStart.Visible := False;
+          DSphere.Visible := False;
+          TopLbl.Visible := True;
+          TopLbl.Text := TranslateRStr(ChooseFactionRStr);
+          FactionPnl.ILIndexTexture := 0;
+        end;
+    with FactionPnl do R := Rect(WinLeft, WinTop, WinLeft + WinWidth, FactionPnl.WinTop + WinHeight);
+    TitleWindow.TitleWin.AddBltRect(R, nil);
+  end;
+end;
 
-procedure TSelFactionWin.FactionPnlKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
+procedure TSelFactionWin.FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of VK_ESCAPE: CloseSelection; end;
+end;
 
 end.

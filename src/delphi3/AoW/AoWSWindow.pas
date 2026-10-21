@@ -1,8 +1,7 @@
 unit AoWSWindow;
 
-{ Draft declarations of AoWSWindow, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWSWindow handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
@@ -30,46 +29,82 @@ type
     Help: TAOWButton; { +006C }
     Translator: TIvTranslator; { +0070 }
     public
-    procedure ScannerTabChange;  { draft }
-    procedure ArmyCheckChange(A1: Integer);  { draft }
-    procedure BuildingCheckChange(A1: Integer);  { draft }
-    procedure NaturalCheckChange(A1: Integer);  { draft }
-    procedure ScannerWindowResize;  { draft }
-    procedure SMinIconClick;  { draft }
-    procedure ScannerChangeTileBox;  { draft }
-    procedure ScannerTabMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure HelpClick;  { draft }
+    procedure ScannerTabChange;
+    procedure ArmyCheckChange(Sender: TAOWCheckBox);
+    procedure BuildingCheckChange(Sender: TAOWCheckBox);
+    procedure NaturalCheckChange(Sender: TAOWCheckBox);
+    procedure ScannerWindowResize;
+    procedure SMinIconClick;
+    procedure ScannerChangeTileBox;
+    procedure ScannerTabMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure HelpClick;
   end;
 
 
 implementation
 
+uses AoWE, AoWWinMan, AoWExeForms, AOWMWindow, aowHelpWin;
+
 procedure TSWindow.ScannerTabChange;
-begin end;
+begin
+  if AoWHSMap <> nil then
+    case ScannerTab.Selected of
+      0: begin Scanner.FUpdateStep := -1; AoWHSMap.ViewLevel(0); end;
+      1: begin Scanner.FUpdateStep := -1; AoWHSMap.ViewLevel(1); end;
+      2: begin Scanner.FUpdateStep := -1; AoWHSMap.ViewLevel(2); end;
+    end;
+end;
 
-procedure TSWindow.ArmyCheckChange(A1: Integer);
-begin end;
+procedure TSWindow.ArmyCheckChange(Sender: TAOWCheckBox);
+begin
+  Scanner.SetArmies(ArmyCheck.Checked);
+  if Sender.Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TSWindow.BuildingCheckChange(A1: Integer);
-begin end;
+procedure TSWindow.BuildingCheckChange(Sender: TAOWCheckBox);
+begin
+  Scanner.SetBuildings(BuildingCheck.Checked);
+  if Sender.Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
-procedure TSWindow.NaturalCheckChange(A1: Integer);
-begin end;
+procedure TSWindow.NaturalCheckChange(Sender: TAOWCheckBox);
+begin
+  Scanner.SetNaturals(NaturalCheck.Checked);
+  if Sender.Checked then General.PlayButtonSound(1) else General.PlayButtonSound(2);
+end;
 
 procedure TSWindow.ScannerWindowResize;
-begin end;
+begin
+  with ScannerWindow do
+  begin
+    Alignment.RightOffset := FWinManager.WinWidth - WinWidth - WinLeft;
+    Alignment.TopOffset := WinTop;
+  end;
+end;
 
 procedure TSWindow.SMinIconClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  ScannerWindow.Visible := False;
+end;
 
 procedure TSWindow.ScannerChangeTileBox;
-begin end;
+begin
+  MWindow.MapViewer.SceneX := (SWindow.Scanner.FTLeft + 6) * 33;
+  MWindow.MapViewer.SceneY := (SWindow.Scanner.FTTop + 6) * 33;
+  if AoWHSMap.FSeatedPlayer <> -1 then
+  begin
+    SWindow.Scanner.SetTWidth(MWindow.MapViewer.SceneWidth div 32);
+    SWindow.Scanner.SetTHeight(MWindow.MapViewer.SceneHeight div 32);
+    SWindow.Scanner.SetTLeft(MWindow.MapViewer.SceneX div 32 - 6);
+    SWindow.Scanner.SetTTop(MWindow.MapViewer.SceneY div 32 - 6);
+  end;
+end;
 
-procedure TSWindow.ScannerTabMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TSWindow.ScannerTabMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin General.PlayButtonSound(0); end;
 
 procedure TSWindow.HelpClick;
-begin end;
-
+begin ShowHelp(501); end;
 
 end.

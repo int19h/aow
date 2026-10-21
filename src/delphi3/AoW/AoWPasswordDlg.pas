@@ -1,13 +1,12 @@
 unit AoWPasswordDlg;
 
-{ Draft declarations of AoWPasswordDlg, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ AoWPasswordDlg handlers recovered from AoW.exe.
+  Class layouts and field offsets follow the original executable. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWPanel, AoWWindow;
 
 type
   TPasswordDlg = class;
@@ -29,28 +28,49 @@ type
     PasswordEdit: TAOWEdit; { +0068 }
     Translator: TIvTranslator; { +006C }
     public
-    F_PasswordDlg_70: array[0..7] of Byte;
-    F_PasswordDlg_78: Integer;
-    procedure DlgHide;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure CancelBtnClick;  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FDone: TExecuteDoneEvent; { $70 }
+    FPasswordEvent: TPasswordEventLog; { $78 }
+    procedure Finish;
+    procedure DlgHide;
+    procedure OKBtnClick(Sender: TObject);
+    procedure CancelBtnClick(Sender: TObject);
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
+procedure TPasswordDlg.Finish;
+var
+  Done: TExecuteDoneEvent;
+  Event: TPasswordEventLog;
+begin
+  Done := FDone; Event := FPasswordEvent;
+  FDone := nil; FPasswordEvent := nil;
+  if Assigned(Done) then Done(Event);
+  if Event <> nil then Event.Release;
+end;
+
 procedure TPasswordDlg.DlgHide;
-begin end;
+begin Finish; end;
 
-procedure TPasswordDlg.OKBtnClick;
-begin end;
+procedure TPasswordDlg.OKBtnClick(Sender: TObject);
+begin
+  FPasswordEvent.FPassword := PasswordEdit.Text;
+  FPasswordEvent.FPressedButton := pebOk;
+  Dlg.Visible := False;
+end;
 
-procedure TPasswordDlg.CancelBtnClick;
-begin end;
+procedure TPasswordDlg.CancelBtnClick(Sender: TObject);
+begin
+  FPasswordEvent.FPassword := '';
+  FPasswordEvent.FPressedButton := pebCancel;
+  Dlg.Visible := False;
+end;
 
-procedure TPasswordDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
-
+procedure TPasswordDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then CancelBtnClick(nil);
+end;
 
 end.
