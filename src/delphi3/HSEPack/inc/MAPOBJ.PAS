@@ -504,7 +504,7 @@ begin
   end;
 end;
 
-procedure TMapObjectResource.ShowComplexImage(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Index, Offset: Integer);
+procedure TMapObjectResource.ShowComplexImage(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Index: Integer; Offset: Cardinal);
 var
   Sequence: TImageSequence;
   Frame: Integer;

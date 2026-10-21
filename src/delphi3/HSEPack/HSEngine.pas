@@ -1132,7 +1132,7 @@ type
     procedure SetLevel(Value: Byte); virtual;
     function PlaceResourceUser(HSMap: THSMap; Xhx, Yhx, Lhx: Shortint): TMapObject; virtual;
     procedure CalcShowPriorityOffset(dX, dY, Level: Integer); virtual;
-    procedure ShowComplexImage(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Index, Offset: Integer);
+    procedure ShowComplexImage(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; Index: Integer; Offset: Cardinal);
     procedure ClearTerrain(X, Y, Lhx: Integer);
     procedure EditDropMsg(var Msg: TEMsg);
     property Engine: THSEngine read FEngine;

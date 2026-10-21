@@ -147,7 +147,7 @@
     F_CombatObject_3D: array[0..2] of Byte;
     FTargetStrength: Integer;
     FTargetStrengthInvalid: Boolean;  { $44 }
-    FCombatPlayer: Byte;  { $45 }
+    FCombatPlayer: Shortint;  { $45; AoWTCPCK 00407DD9, 00407F8F }
     FPosition: Byte;
     FStatus: TCombatObjectStatus;
     FControlMode: TCombatObjectControlMode;

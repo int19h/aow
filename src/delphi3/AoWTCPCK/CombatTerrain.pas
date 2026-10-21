@@ -1,13 +1,15 @@
 unit CombatTerrain;
 
-{ Draft declarations of CombatTerrain, from AoWTCPCK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
-  Stub bodies are placeholders for source recovery. }
+{ CombatTerrain, AoWTCPCK.dpl. Layouts and VMT order follow the original.
+  Terrain: $14 shadow, $18 hit points, $1C damaged, $20 defense.
+  Shadow: $08 terrain. Resource: $49 defense; $48/$4A/$4B persisted values. }
+
+{$O-,Q+,R+}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWTC;
 
 type
   TCombatTerrainShadow = class;
@@ -18,8 +20,7 @@ type
   { TCombatTerrainShadow (instance size 12, VMT 0040FB0C) }
   TCombatTerrainShadow = class(THexagonSprite)
   public
-    F_CombatTerrainShadow_08: Byte;
-    F_CombatTerrainShadow_09: array[0..2] of Byte;
+    FTerrain: TCombatTerrain; { $08 }
     function GetShowPriority: Integer; override;
     procedure Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); override;
   end;
@@ -27,11 +28,11 @@ type
   { TCombatTerrain (instance size 36, VMT 0040FCA0) }
   TCombatTerrain = class(TTerrainMO)
   public
-    F_CombatTerrain_14: Integer;
-    F_CombatTerrain_18: Integer;
-    F_CombatTerrain_1C: Byte;
+    FShadow: TCombatTerrainShadow; { $14 }
+    FHitPoints: Integer; { $18 }
+    FDamaged: Boolean; { $1C }
     F_CombatTerrain_1D: array[0..2] of Byte;
-    F_CombatTerrain_20: Integer;
+    FDefense: Integer; { $20 }
     destructor Destroy; override;
     class function ClassID: Integer; override;
     function PlaceOnMap: Boolean; override;
@@ -44,97 +45,280 @@ type
     procedure MakeVisible(VisibilityList: HSEngine.TVisibilityList); override;
     function GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList; override;
     function CanPlaceOnHS(HS: HSEngine.THexagonSprite): Boolean; override;
-    procedure DestroyShadow(A1: Integer; A2: Integer);  { draft }
-    procedure CreateShadow(A1: Integer; A2: Integer);  { draft }
-    procedure SetHitPoints(A1: Integer);  { draft }
-    procedure ShowShadow(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure DestroyShadow;
+    procedure CreateShadow;
+    procedure SetHitPoints(Value: Integer);
+    procedure ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
   end;
 
   { TCombatTerrainResource (instance size 76, VMT 0040FE54) }
   TCombatTerrainResource = class(TTerrainMOR)
   public
     F_CombatTerrainResource_48: Byte;
-    F_CombatTerrainResource_49: Byte;
+    FDefense: Shortint; { $49 }
     F_CombatTerrainResource_4A: Byte;
-    F_CombatTerrainResource_4B: Byte;
+    F_CombatTerrainResource_4B: Boolean;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     class function ClassID: Integer; override;
     class function ResourceEditName: string; override;
     function ResourceUserClassID: Integer; override;
   end;
 
-procedure RegisterCombatTerrain(A1: Integer);  { draft }
+procedure RegisterCombatTerrain(AEngine: TEngine);
 
 implementation
 
 function TCombatTerrainShadow.GetShowPriority: Integer;
-begin Result := 0; end;
+begin
+  Result := (FTerrain.GetShowPriority and $3FFFFFF) - $8000000;
+end;
 
 procedure TCombatTerrainShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
-begin end;
+begin
+  FTerrain.ShowShadow(XhpSurf, YhpSurf, SurfaceDesc);
+end;
 
 class function TCombatTerrain.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220166; end;
 
 destructor TCombatTerrain.Destroy;
-begin end;
+begin
+  DestroyShadow;
+  inherited Destroy;
+end;
 
 function TCombatTerrain.GetResourceList(AEngine: Engine.TEngine): HSEngine.TMapObjectResourceList;
-begin FillChar(Result, SizeOf(Result), 0); end;
+begin
+  Result := AoWHSSet.FCombatResources;
+end;
 
-procedure TCombatTerrain.DestroyShadow(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatTerrain.DestroyShadow;
+begin
+  if FShadow <> nil then
+  begin
+    if GetVisible then FResource.Engine.HSMap.DynamicVisibleHS.RemoveChild(FShadow);
+    FShadow.Free;
+    FShadow := nil;
+  end;
+end;
 
 function TCombatTerrain.CanPlaceOnHS(HS: HSEngine.THexagonSprite): Boolean;
-begin Result := False; end;
+begin
+  Result := inherited CanPlaceOnHS(HS) or (HS is TAbstractRoad);
+end;
 
-procedure TCombatTerrain.CreateShadow(A1: Integer; A2: Integer);
-begin end;
+procedure TCombatTerrain.CreateShadow;
+begin
+  if FResource.ImageSequenceList.GetImageSequence(40) <> nil then
+  begin
+    if FShadow <> nil then DestroyShadow;
+    if (AoWHSMap = nil) or AoWHSMap.FShowUnitShadows then
+    begin
+      FShadow := TCombatTerrainShadow.Create(nil);
+      FShadow.FTerrain := Self;
+    end;
+  end;
+end;
 
 procedure TCombatTerrain.MakeVisible(VisibilityList: HSEngine.TVisibilityList);
-begin end;
+begin
+  if not (moVisible in FStatus) then
+  begin
+    inherited MakeVisible(VisibilityList);
+    if FShadow <> nil then VisibilityList.AddSortChild(FShadow, FShadow.GetShowPriority);
+  end;
+end;
 
-procedure TCombatTerrain.SetHitPoints(A1: Integer);
-begin end;
+procedure TCombatTerrain.SetHitPoints(Value: Integer);
+begin
+  FDamaged := True; { Original ignores Value and only marks the terrain damaged. }
+end;
 
-procedure TCombatTerrain.ShowShadow(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TCombatTerrain.ShowShadow(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+var
+  X, Y: Integer;
+begin
+  HXtoHP(FXhx, FYhx, X, Y);
+  XhpSurf := X - XhpSurf;
+  YhpSurf := Y - YhpSurf;
+  FResource.ShowComplexImage(XhpSurf, YhpSurf, SurfaceDesc, 40,
+    TMapField(Owner).Xhx + (TMapField(Owner).Yhx shl 4));
+end;
 
 procedure TCombatTerrain.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
-begin end;
+var
+  AbilityInfo: TAbilityCombatInfo;
+  SpellInfo: TSpellCombatInfo;
+begin
+  inherited MapFieldMsgProc(Msg);
+  if Msg.HN = 0 then
+  begin
+    if TTerrainMOR(FResource).DecorationType in [1..3] then
+      case Msg.MsgID of
+        $31000:
+          begin
+            AoWHSSet.FAbilityControl.GetAbility(65).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, AbilityInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(AbilityInfo.Damage, AbilityInfo.Attack - FDefense));
+          end;
+        $31001:
+          begin
+            AoWHSSet.FAbilityControl.GetAbility(24).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, AbilityInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(AbilityInfo.Damage, AbilityInfo.Attack - FDefense));
+          end;
+        $31002:
+          begin
+            AoWHSSet.FAbilityControl.GetAbility(44).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, AbilityInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(AbilityInfo.Damage, AbilityInfo.Attack - FDefense));
+          end;
+        $31003:
+          begin
+            AoWHSSet.FSpellControl.GetSpell(117).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+          end;
+        $3100A:
+          begin
+            AoWHSSet.FAbilityControl.GetAbility(31).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, AbilityInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(AbilityInfo.Damage, AbilityInfo.Attack - FDefense));
+          end;
+        $3100B:
+          begin
+            AoWHSSet.FSpellControl.GetSpell(113).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+          end;
+        $31012:
+          begin
+            if (Msg.Param[1] = 30) or (Msg.Param[1] = 86) then
+            begin
+            AoWHSSet.FAbilityControl.GetAbility(Msg.Param[1]).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, AbilityInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(AbilityInfo.Damage, AbilityInfo.Attack - FDefense));
+            end;
+          end;
+        $31013:
+          begin
+            if Msg.Param[1] = 114 then
+            begin
+            AoWHSSet.FSpellControl.GetSpell(Msg.Param[1]).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+            end;
+          end;
+        $31006:
+          begin
+            AoWHSSet.FSpellControl.GetSpell(116).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+          end;
+        $3100D:
+          begin
+            AoWHSSet.FSpellControl.GetSpell(127).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+          end;
+        $3100E:
+          begin
+            AoWHSSet.FSpellControl.GetSpell(128).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+          end;
+        $31004:
+          begin
+            FDamaged := Msg.Param[1] = 0;
+            AoWHSSet.FSpellControl.GetSpell(112).GetCombatInfo(TCombatUnit(Msg.Param[0]).FUnit, SpellInfo);
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(SpellInfo.Damage, SpellInfo.Attack - FDefense));
+            Msg.Param[1] := 1;
+          end;
+        $31007:
+          begin
+            RandSeed := AoWHSMap.Random($FFFFFF);
+            SetHitPoints(FHitPoints - ExecuteDamageRole(TCDamage[1], TCAttack[1] - FDefense));
+          end;
+      end;
+    case Msg.MsgID of
+      $21001:
+        if (FResource.TerrainList.GetTerrain(Msg.HN) >= 0) and
+          (Msg.Param[0] < TCombatTerrainResource(FResource).FDefense) then
+          Msg.Param[0] := TCombatTerrainResource(FResource).FDefense;
+    end;
+  end;
+end;
 
 procedure TCombatTerrain.Activate;
-begin end;
+begin
+  inherited Activate;
+  if TTerrainMOR(FResource).DecorationType in [1..3] then FHitPoints := 3
+  else FHitPoints := 0;
+  FDefense := -2;
+  CreateShadow;
+end;
 
 procedure TCombatTerrain.Deactivate;
-begin end;
+begin
+  DestroyShadow;
+  inherited Deactivate;
+end;
 
 function TCombatTerrain.PlaceOnMap: Boolean;
-begin Result := False; end;
+begin
+  Result := inherited PlaceOnMap;
+  if Result then UpdateMapFields(TMapLevel(Owner.Owner), Xhx, Yhx);
+end;
 
 procedure TCombatTerrain.RemoveFromMap;
-begin end;
+var
+  MapLevel: TMapLevel;
+begin
+  MapLevel := TMapLevel(Owner.Owner);
+  inherited RemoveFromMap;
+  UpdateMapFields(MapLevel, FXhx, FYhx);
+end;
 
 procedure TCombatTerrain.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
-begin end;
+begin
+  inherited UpdateMapField(Info);
+  if Info.HN < FResource.TerrainList.Count then
+    TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $4000;
+end;
 
 procedure TCombatTerrain.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
-begin end;
+begin
+  if TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(59) then
+    if FResource.TerrainList.GetOverlay(Info.HN) = 8 then
+    begin
+      MoveResult.Code := -1;
+      MoveResult.Done := True;
+    end;
+end;
 
 class function TCombatTerrainResource.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $220167; end;
 
 function TCombatTerrainResource.ResourceUserClassID: Integer;
-begin Result := 0; end;
+begin Result := $220166; end;
 
 class function TCombatTerrainResource.ResourceEditName: string;
-begin Result := ''; end;
+begin Result := 'Combat Terrain'; end;
 
 procedure TCombatTerrainResource.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FDefense), 20);
+  Stream.rwByte(F_CombatTerrainResource_48, 21);
+  Stream.rwByte(F_CombatTerrainResource_4A, 22);
+  Stream.rwBool(F_CombatTerrainResource_4B, 23);
+end;
 
-procedure RegisterCombatTerrain(A1: Integer);
-begin end;
+procedure RegisterCombatTerrain(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TCombatTerrain, TCombatTerrainResource]);
+end;
 
 
 initialization

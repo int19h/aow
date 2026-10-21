@@ -1924,7 +1924,7 @@ begin
   inherited Create(AOwner);
   FTargets := TQuadItemList.Create;
   FTargetedBy := TQuadItemList.Create;
-  FCombatPlayer := $FF;
+  FCombatPlayer := -1;
 end;
 
 destructor TCombatObject.Destroy;

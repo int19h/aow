@@ -288,7 +288,7 @@ type
   { TCombatMoveControl (instance size 488, VMT 00412AC4) }
   TCombatMoveControl = class(TMoveControl)
   public
-    F_CombatMoveControl_1E0: Integer;
+    FUnitHS: TTacticalCombatUnitHS; { $1E0 }
     F_CombatMoveControl_1E4: Byte;
     F_CombatMoveControl_1E5: array[0..2] of Byte;
     procedure ProcessMove(A1: AoWE.TMoveControlSettings); override;
@@ -298,7 +298,7 @@ type
     $60 FUnitHS; other added fields remain unrecovered. }
   TTacticalCombatUnit = class(TCombatUnit)
   public
-    F_TacticalCombatUnit_5C: Integer;
+    FMovePoints: Integer; { $5C }
     FUnitHS: TTacticalCombatUnitHS; { $60 }
     F_TacticalCombatUnit_64: Byte;
     F_TacticalCombatUnit_65: Byte;
@@ -308,17 +308,17 @@ type
     procedure NewTurn(A1: Byte); override;
     function ExecuteDamage(A1: Integer): Integer; override;
     function GetPosValue: Integer;  { draft }
-    procedure MovedTo(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    procedure MovedTo(OldField, NewField: TAoWMapField; MoveCost: Integer);
   end;
 
   { TTacticalCombatUnitHS (instance size 72, VMT 00412D08) }
   TTacticalCombatUnitHS = class(TUnitHS)
   public
-    F_TacticalCombatUnitHS_1C: Integer;
+    FUnit: TTacticalCombatUnit; { $1C }
     F_TacticalCombatUnitHS_20: Word;
     F_TacticalCombatUnitHS_22: Word;
-    F_TacticalCombatUnitHS_24: Byte;
-    F_TacticalCombatUnitHS_25: Byte;
+    FAction: TTCAction; { $24 }
+    FActionDone: Boolean; { $25 }
     F_TacticalCombatUnitHS_26: Word;
     F_TacticalCombatUnitHS_28: array[0..3] of Byte;
     F_TacticalCombatUnitHS_2C: Integer;
@@ -348,7 +348,7 @@ type
     function SelectSpell(A1: Integer): Integer;  { draft }
     procedure CreateTCAbList;  { draft }
     procedure ListAbilities(A1: Integer; A2: Integer);  { draft }
-    procedure SetAction(A1: Byte);  { draft }
+    procedure SetAction(Action: TTCAction);
     function AbTouchMoveTC(A1: Integer): Byte;  { draft }
     function AbRangedTC(A1: Word; A2: Word): Byte;  { draft }
   end;
@@ -401,7 +401,7 @@ type
     FAuto: Boolean; { $0C }
     F_TacticalCombatPlayer_0D: array[0..0] of Byte;
     FIndex: Byte; { $0E }
-    F_TacticalCombatPlayer_0F: array[0..12] of Byte;
+    FReserved0F: Byte; FLastX, FLastY, FReserved18: Integer; { $10, $14, $18 }
     procedure SetAuto(Value: Boolean);
   end;
 
@@ -412,6 +412,7 @@ type
     FPlayers: TCombatPlayerList; { $04 }
     function GetCount: Integer;
     function GetPlayers(Index: Shortint): TTacticalCombatPlayer;
+    { conflict: function GetPlayers(Player: Shortint): TTacticalCombatPlayer; }
   end;
 
   { TAoWCombatMapMouse (instance size 80, VMT 004130DC) }
@@ -423,17 +424,18 @@ type
     $E8 FUnitPositions; $EC FSeatedCombatPlayer; $ED FCurrentCombatPlayer; $118 FAI. }
   TAoWCombatMap = class(TAbstractAoWCombatMap)
   public
-    F_AoWCombatMap_E0: Integer;
-    F_AoWCombatMap_E4: Integer;
+    FPlayers: TTacticalCombatPlayerList; { $E0 }
+    FCombat: TTacticalCombat; { $E4 }
     FUnitPositions: TUnitPositionControl; { $E8 }
     FSeatedCombatPlayer: Byte; { $EC }
     FCurrentCombatPlayer: Byte; { $ED }
+    { conflict: FCurrentCombatPlayer: Shortint; }
     F_AoWCombatMap_EE: array[0..1] of Byte;
     F_AoWCombatMap_F0: Integer;
     F_AoWCombatMap_F4: Integer;
     F_AoWCombatMap_F8: Integer;
     F_AoWCombatMap_FC: Integer;
-    F_AoWCombatMap_100: Integer;
+    FUnitSelection: TCombatUnitSelectionControl; { $100 }
     F_AoWCombatMap_104: Integer;
     F_AoWCombatMap_108: Integer;
     F_AoWCombatMap_10C: array[0..3] of Byte;
@@ -462,13 +464,13 @@ type
     procedure SetCombat(A1: Integer);  { draft }
     procedure MouseMoveEvent(A1: Integer);  { draft }
     procedure SetSeatedCombatPlayer(A1: Byte);  { draft }
-    procedure NewTurn(A1: Byte);  { draft }
+    procedure NewTurn(Player: Shortint);
     procedure DrawMoveRoute(A1: Integer);  { draft }
     function EndTurn(A1: Byte): Byte;  { draft }
     procedure CancelEndTurn(A1: Integer; A2: Integer);  { draft }
     function GetEndTurnStatus: Byte;  { draft }
     function GetNextUnit(A1: Integer; A2: Byte; A3: Integer): Integer;  { draft }
-    function AddEffect(A1: Byte): Integer;  { draft }
+    function AddEffect(EffectType: TfxType): TfxHS;
     procedure UpdateCursor(A1: Integer; A2: Integer);  { draft }
     procedure EndCombat(A1: Integer);  { draft }
     procedure SelectNextUnit(A1: Byte);  { draft }
@@ -742,6 +744,7 @@ function GetRangedDirIndex(A1: Integer; A2: Integer): Integer;  { draft }
 
 var
   AoWCombatMap: TAoWCombatMap;
+  TCAttack, TCDamage: array[0..1] of Integer;
 
 implementation
 
@@ -937,7 +940,7 @@ begin end;
 procedure TAoWCombatMap.SetSeatedCombatPlayer(A1: Byte);
 begin end;
 
-procedure TAoWCombatMap.NewTurn(A1: Byte);
+procedure TAoWCombatMap.NewTurn(Player: Shortint);
 begin end;
 
 procedure TAoWCombatMap.DrawDynamicScene(var SD: GFXE.TSurfaceDesc);
@@ -961,8 +964,8 @@ begin Result := 0; end;
 procedure TAoWCombatMap.NewFrame;
 begin end;
 
-function TAoWCombatMap.AddEffect(A1: Byte): Integer;
-begin Result := 0; end;
+function TAoWCombatMap.AddEffect(EffectType: TfxType): TfxHS;
+begin Result := nil; end;
 
 procedure TAoWCombatMap.UpdateCursor(A1: Integer; A2: Integer);
 begin end;
@@ -994,7 +997,7 @@ begin Result := 0; end;
 procedure TTacticalCombatUnit.NewTurn(A1: Byte);
 begin end;
 
-procedure TTacticalCombatUnit.MovedTo(A1: Integer; A2: Integer; A3: Integer);
+procedure TTacticalCombatUnit.MovedTo(OldField, NewField: TAoWMapField; MoveCost: Integer);
 begin end;
 
 procedure TTacticalCombatUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
@@ -1138,7 +1141,7 @@ begin end;
 procedure TTacticalCombatUnitHS.ListAbilities(A1: Integer; A2: Integer);
 begin end;
 
-procedure TTacticalCombatUnitHS.SetAction(A1: Byte);
+procedure TTacticalCombatUnitHS.SetAction(Action: TTCAction);
 begin end;
 
 function TTacticalCombatUnitHS.AbTouchMoveTC(A1: Integer): Byte;

@@ -1,0 +1,9 @@
+{
+  "00408864:1816": "TCombatMoveTE.DefaultMove",
+  "0040905c:2106": "TCMeleeMoveTE.LastMove",
+  "FUN_00407af8": "MakeEffect<MakeDEHSList",
+  "FUN_004085f0": "CheckFreeStrike<TCombatMoveTE.DefaultMove",
+  "0040f6e0:165": "ValidateTCMovePosition",
+  "004101e8:1824": "TCombatTerrain.MapFieldMsgProc",
+  "00410f9c:446": "TCombatRoad.UpdateTransition"
+}
