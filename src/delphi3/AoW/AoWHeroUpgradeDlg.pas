@@ -1,19 +1,20 @@
 unit AoWHeroUpgradeDlg;
 
-{ Draft declarations of AoWHeroUpgradeDlg, from AoW.exe.
+{ AoWHeroUpgradeDlg handlers recovered from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, AoWWinMan, AoWInfoBanner, AoWButton, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   THeroUpgradeDlg = class;
 
 
-  { THeroUpgradeDlg (instance size 480, VMT 004458C8) }
+  { THeroUpgradeDlg: size $1E0; $1C4 close callback, $1CC referenced hero,
+    $1D0/$1D4 list sort orders, $1D8 live hero, $1DC editable copy. VMT 004458C8. }
   THeroUpgradeDlg = class(TDataModule)
   public
     published
@@ -114,139 +115,455 @@ type
     SkillPoints: TAOWLabel; { +01BC }
     Translator: TIvTranslator; { +01C0 }
     public
-    F_HeroUpgradeDlg_1C4: array[0..11] of Byte;
-    F_HeroUpgradeDlg_1D0: Integer;
-    F_HeroUpgradeDlg_1D4: Integer;
-    F_HeroUpgradeDlg_1D8: Integer;
-    F_HeroUpgradeDlg_1DC: Integer;
-    procedure CloseClick;  { draft }
-    procedure FaceFramePreDraw(A1: Integer; A2: Integer);  { draft }
-    procedure AttUpClick;  { draft }
-    procedure AttDnClick;  { draft }
-    procedure DefUpClick;  { draft }
-    procedure DefDnClick;  { draft }
-    procedure DamUpClick;  { draft }
-    procedure DamDnClick;  { draft }
-    procedure ResUpClick;  { draft }
-    procedure ResDnClick;  { draft }
-    procedure HitUpClick;  { draft }
-    procedure HitDnClick;  { draft }
-    procedure MovUpClick;  { draft }
-    procedure MovDnClick;  { draft }
-    procedure SelectedAbilitiesChange;  { draft }
-    procedure SelectedAbilitiesCostChange;  { draft }
-    procedure SelectedAbilitiesSBChange;  { draft }
-    procedure AvailableAbilitiesChange;  { draft }
-    procedure AvailableAbilitiesCostChange;  { draft }
-    procedure AvailableAbilitiesSBChange;  { draft }
-    procedure AddAbilityBtnClick;  { draft }
-    procedure RemoveBtnClick;  { draft }
-    procedure SelectedAbilitiesSortClick;  { draft }
-    procedure SelectedAbilitiesCostSortClick;  { draft }
-    procedure AvailableAbilitiesSortClick;  { draft }
-    procedure AvailableAbilityCostSortClick;  { draft }
-    procedure DoneClick;  { draft }
-    procedure DlgHide;  { draft }
-    procedure AvailableAbilitiesMouseDown(A1: Integer; A2: Byte);  { draft }
-    procedure SelectedAbilitiesMouseDown(A1: Integer; A2: Byte);  { draft }
-    procedure DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);  { draft }
+    FOnClose: TNotifyEvent; { $1C4 }
+    FReferencedHero: THero; { $1CC }
+    FSelectedSort: Integer; { $1D0 }
+    FAvailableSort: Integer; { $1D4 }
+    FHero: THero; { $1D8 }
+    FEditedHero: THero; { $1DC }
+    procedure ClearHero;
+    function ValidateHero: Boolean;
+    procedure UpdateStatistics;
+    procedure RefreshStatistics;
+    procedure SortSelected;
+    procedure SortAvailable;
+    procedure RefreshAbilities;
+    procedure SetAvailableIndex(Index: Integer);
+    procedure SetSelectedIndex(Index: Integer);
+    function CanAddAbility(AbilityID: Integer): Boolean;
+    procedure CloseClick;
+    procedure FaceFramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure AttUpClick;
+    procedure AttDnClick;
+    procedure DefUpClick;
+    procedure DefDnClick;
+    procedure DamUpClick;
+    procedure DamDnClick;
+    procedure ResUpClick;
+    procedure ResDnClick;
+    procedure HitUpClick;
+    procedure HitDnClick;
+    procedure MovUpClick;
+    procedure MovDnClick;
+    procedure SelectedAbilitiesChange;
+    procedure SelectedAbilitiesCostChange;
+    procedure SelectedAbilitiesSBChange;
+    procedure AvailableAbilitiesChange;
+    procedure AvailableAbilitiesCostChange;
+    procedure AvailableAbilitiesSBChange;
+    procedure AddAbilityBtnClick;
+    procedure RemoveBtnClick;
+    procedure SelectedAbilitiesSortClick;
+    procedure SelectedAbilitiesCostSortClick;
+    procedure AvailableAbilitiesSortClick;
+    procedure AvailableAbilityCostSortClick;
+    procedure DoneClick;
+    procedure DlgHide;
+    procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+    procedure SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
 
 
 implementation
 
-procedure THeroUpgradeDlg.CloseClick;
-begin end;
+procedure THeroUpgradeDlg.RefreshAbilities;
+var
+  Name, Cost: string;
+  Ability: TAbility;
+  I: Integer;
+begin
+  AvailableAbilities.Items.Clear;
+  AvailableAbilitiesCost.Items.Clear;
+  for I := 1 to AoWHSSet.FAbilityControl.GetCount - 1 do
+  begin
+    Ability := AoWHSSet.FAbilityControl.GetAbility(I);
+    if (Ability <> nil) and Ability.CanExpand(FEditedHero) and
+      (astHeroUpgrade in Ability.FSelectionTypes) then
+    begin
+      AvailableAbilities.Items.AddObject(Ability.ExpandName(FEditedHero), TObject(I));
+      AvailableAbilitiesCost.Items.Add(IntToStr(Ability.ExpandCost(FEditedHero)));
+    end;
+  end;
+  SelectedAbilities.Items.Clear;
+  SelectedAbilitiesCost.Items.Clear;
+  for I := 1 to FEditedHero.GetAbCount - 1 do
+    if FEditedHero.GetInherentAbility(I) then
+    begin
+      Ability := AoWHSSet.FAbilityControl.GetAbility(I);
+      Name := Ability.GetName(FEditedHero);
+      if FHero.GetAbEnabled(I) and
+        (FHero.GetInherentAbilityLevel(I) = FEditedHero.GetInherentAbilityLevel(I)) then
+      begin
+        Name := Name + ' (' + TranslateRStr(FixedRStr) + ')';
+        Cost := '-';
+      end
+      else
+        Cost := IntToStr(Ability.GetSkillPoints(FEditedHero) - Ability.GetSkillPoints(FHero));
+      SelectedAbilitiesCost.Items.Add(Cost);
+      SelectedAbilities.Items.AddObject(Name, TObject(I));
+    end;
+  AvailableAbilitiesSB.Max := AvailableAbilities.Items.Count - 1;
+  SelectedAbilitiesSB.Max := SelectedAbilities.Items.Count - 1;
+  SortAvailable;
+  SortSelected;
+end;
 
-procedure THeroUpgradeDlg.FaceFramePreDraw(A1: Integer; A2: Integer);
-begin end;
+function THeroUpgradeDlg.CanAddAbility(AbilityID: Integer): Boolean;
+begin
+  Result := False;
+  if AoWHSSet.FAbilityControl.GetAbility(AbilityID).CanExpand(FEditedHero) then
+    if AoWHSSet.FAbilityControl.GetAbility(AbilityID).ExpandCost(FEditedHero) <= FEditedHero.GetSkillPoints then
+      Result := True;
+end;
+
+procedure THeroUpgradeDlg.SetSelectedIndex(Index: Integer);
+begin
+  SelectedAbilities.Selected := Index;
+  SelectedAbilitiesCost.Selected := Index;
+end;
+
+procedure THeroUpgradeDlg.SetAvailableIndex(Index: Integer);
+begin
+  AvailableAbilities.Selected := Index;
+  AvailableAbilitiesCost.Selected := Index;
+end;
+
+procedure THeroUpgradeDlg.SortAvailable;
+begin
+  case FAvailableSort of
+    0: SortStringsAscending(AvailableAbilities.Items, [AvailableAbilitiesCost.Items]);
+    1: SortStringsDescending(AvailableAbilities.Items, [AvailableAbilitiesCost.Items]);
+    2: SortStringsNumericalAscending(AvailableAbilitiesCost.Items, [AvailableAbilities.Items]);
+    3: SortStringsNumericalDescending(AvailableAbilitiesCost.Items, [AvailableAbilities.Items]);
+  end;
+end;
+
+procedure THeroUpgradeDlg.SortSelected;
+begin
+  case FSelectedSort of
+    0: SortStringsAscending(SelectedAbilities.Items, [SelectedAbilitiesCost.Items]);
+    1: SortStringsDescending(SelectedAbilities.Items, [SelectedAbilitiesCost.Items]);
+    2: SortStringsNumericalAscending(SelectedAbilitiesCost.Items, [SelectedAbilities.Items]);
+    3: SortStringsNumericalDescending(SelectedAbilitiesCost.Items, [SelectedAbilities.Items]);
+  end;
+end;
+
+procedure THeroUpgradeDlg.RefreshStatistics;
+begin
+  UpdateStatistics;
+end;
+
+procedure THeroUpgradeDlg.UpdateStatistics;
+begin
+  AttB.Text := IntToStr(FHero.GetInherentAttack);
+  DefB.Text := IntToStr(FHero.GetInherentDefense);
+  DamB.Text := IntToStr(FHero.GetInherentDamage);
+  ResB.Text := IntToStr(FHero.GetInherentResistance);
+  HitB.Text := IntToStr(FHero.GetHits);
+  MovB.Text := IntToStr(FHero.GetMoves);
+  AttA.Text := IntToStr(FEditedHero.FUnitAttack - FHero.FUnitAttack);
+  DefA.Text := IntToStr(FEditedHero.FUnitDefense - FHero.FUnitDefense);
+  DamA.Text := IntToStr(FEditedHero.FUnitDamage - FHero.FUnitDamage);
+  ResA.Text := IntToStr(FEditedHero.FUnitResistance - FHero.FUnitResistance);
+  HitA.Text := IntToStr(FEditedHero.FUnitHits - FHero.FUnitHits);
+  MovA.Text := IntToStr(FEditedHero.FUnitMoves - FHero.FUnitMoves);
+  AttValue.Text := IntToStr(FEditedHero.GetInherentAttack);
+  DefValue.Text := IntToStr(FEditedHero.GetInherentDefense);
+  DamValue.Text := IntToStr(FEditedHero.GetInherentDamage);
+  ResValue.Text := IntToStr(FEditedHero.GetInherentResistance);
+  HitValue.Text := IntToStr(FEditedHero.GetHits);
+  MovValue.Text := IntToStr(FEditedHero.GetMoves);
+  SkillPoints.Text := IntToStr(FEditedHero.GetSkillPoints) + '/' + IntToStr(FHero.GetSkillPoints);
+end;
+
+function THeroUpgradeDlg.ValidateHero: Boolean;
+begin
+  FHero := THero(AoWHSMap.FUnitControl.FindUnit(FReferencedHero.FUnitID));
+  if FHero = nil then Dlg.Visible := False;
+  Result := FHero <> nil;
+end;
+
+procedure THeroUpgradeDlg.ClearHero;
+var
+  OnClose: TNotifyEvent;
+  Hero: THero;
+begin
+  OnClose := FOnClose;
+  Hero := FReferencedHero;
+  FOnClose := nil;
+  FReferencedHero := nil;
+  if Assigned(OnClose) then OnClose(Hero);
+  if Hero <> nil then Hero.Release;
+  FEditedHero.Free;
+  FEditedHero := nil;
+end;
+
+procedure THeroUpgradeDlg.CloseClick;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
+
+procedure THeroUpgradeDlg.FaceFramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+var
+  R: TRect;
+begin
+  if ValidateHero then
+  begin
+    R := Rect(TopPnl.WinLeft + Sender.WinLeft + 2,
+      TopPnl.WinTop + Sender.WinTop,
+      TopPnl.WinLeft + Sender.WinLeft + Sender.WinWidth - 2,
+      TopPnl.WinTop + Sender.WinTop + Sender.WinHeight - 2);
+    FHero.GetFace.ShowStretched(R, SurfDesc);
+  end;
+end;
 
 procedure THeroUpgradeDlg.AttUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitAttack(FEditedHero.FUnitAttack + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.AttDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitAttack <> FHero.FUnitAttack then
+    FEditedHero.SetUnitAttack(FEditedHero.FUnitAttack - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.DefUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitDefense(FEditedHero.FUnitDefense + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.DefDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitDefense <> FHero.FUnitDefense then
+    FEditedHero.SetUnitDefense(FEditedHero.FUnitDefense - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.DamUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitDamage(FEditedHero.FUnitDamage + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.DamDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitDamage <> FHero.FUnitDamage then
+    FEditedHero.SetUnitDamage(FEditedHero.FUnitDamage - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.ResUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitResistance(FEditedHero.FUnitResistance + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.ResDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitResistance <> FHero.FUnitResistance then
+    FEditedHero.SetUnitResistance(FEditedHero.FUnitResistance - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.HitUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitHits(FEditedHero.FUnitHits + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.HitDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitHits <> FHero.FUnitHits then
+    FEditedHero.SetUnitHits(FEditedHero.FUnitHits - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.MovUpClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  FEditedHero.SetUnitMoves(FEditedHero.FUnitMoves + 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.MovDnClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FEditedHero.FUnitMoves <> FHero.FUnitMoves then
+    FEditedHero.SetUnitMoves(FEditedHero.FUnitMoves - 1);
+  RefreshStatistics;
+end;
 
 procedure THeroUpgradeDlg.SelectedAbilitiesChange;
-begin end;
+begin
+  SetSelectedIndex(SelectedAbilities.Selected);
+end;
 
 procedure THeroUpgradeDlg.SelectedAbilitiesCostChange;
-begin end;
+begin
+  SetSelectedIndex(SelectedAbilitiesCost.Selected);
+end;
 
 procedure THeroUpgradeDlg.SelectedAbilitiesSBChange;
-begin end;
+begin
+  SelectedAbilities.ListOffset := SelectedAbilitiesSB.Position;
+  SelectedAbilitiesCost.ListOffset := SelectedAbilitiesSB.Position;
+end;
 
 procedure THeroUpgradeDlg.AvailableAbilitiesChange;
-begin end;
+begin
+  SetAvailableIndex(AvailableAbilities.Selected);
+end;
 
 procedure THeroUpgradeDlg.AvailableAbilitiesCostChange;
-begin end;
+begin
+  SetAvailableIndex(AvailableAbilitiesCost.Selected);
+end;
 
 procedure THeroUpgradeDlg.AvailableAbilitiesSBChange;
-begin end;
+begin
+  AvailableAbilities.ListOffset := AvailableAbilitiesSB.Position;
+  AvailableAbilitiesCost.ListOffset := AvailableAbilitiesSB.Position;
+end;
 
 procedure THeroUpgradeDlg.AddAbilityBtnClick;
-begin end;
+var
+  Index, AbilityID: Integer;
+begin
+  General.PlayButtonSound(0);
+  Index := AvailableAbilities.Selected;
+  if Index <> -1 then
+  begin
+    AbilityID := Integer(AvailableAbilities.Items.Objects[Index]);
+    if CanAddAbility(AbilityID) then
+    begin
+      FEditedHero.ExpandAbility(AbilityID);
+      RefreshAbilities;
+      RefreshStatistics;
+    end;
+  end;
+end;
 
 procedure THeroUpgradeDlg.RemoveBtnClick;
-begin end;
+var
+  Index, AbilityID: Integer;
+begin
+  General.PlayButtonSound(0);
+  Index := SelectedAbilities.Selected;
+  if Index <> -1 then
+  begin
+    AbilityID := Integer(SelectedAbilities.Items.Objects[Index]);
+    if FHero.GetInherentAbility(AbilityID) then
+      if FHero.GetInherentAbilityLevel(AbilityID) =
+        FEditedHero.GetInherentAbilityLevel(AbilityID) then Exit;
+    FEditedHero.RemoveAbility(AbilityID);
+    RefreshAbilities;
+    RefreshStatistics;
+  end;
+end;
 
 procedure THeroUpgradeDlg.SelectedAbilitiesSortClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FSelectedSort = 0 then FSelectedSort := 1
+  else FSelectedSort := 0;
+  SortSelected;
+end;
 
 procedure THeroUpgradeDlg.SelectedAbilitiesCostSortClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FSelectedSort = 2 then FSelectedSort := 3
+  else FSelectedSort := 2;
+  SortSelected;
+end;
 
 procedure THeroUpgradeDlg.AvailableAbilitiesSortClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FAvailableSort = 0 then FAvailableSort := 1
+  else FAvailableSort := 0;
+  SortAvailable;
+end;
 
 procedure THeroUpgradeDlg.AvailableAbilityCostSortClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  if FAvailableSort = 2 then FAvailableSort := 3
+  else FAvailableSort := 2;
+  SortAvailable;
+end;
 
 procedure THeroUpgradeDlg.DoneClick;
-begin end;
+var
+  Event: THeroUpgradeTE;
+begin
+  if ValidateHero then
+    if not AoWHSMap.FPlayers.GetPlayers(FHero.FPlayer).GetBusy then
+    begin
+      Event := THeroUpgradeTE.Create(nil);
+      Event.Setup(FHero);
+      Event.FAttack := FEditedHero.FUnitAttack - FHero.FUnitAttack;
+      Event.FDefense := FEditedHero.FUnitDefense - FHero.FUnitDefense;
+      Event.FDamage := FEditedHero.FUnitDamage - FHero.FUnitDamage;
+      Event.FResistance := FEditedHero.FUnitResistance - FHero.FUnitResistance;
+      Event.FHits := FEditedHero.FUnitHits - FHero.FUnitHits;
+      Event.FMoves := FEditedHero.FUnitMoves - FHero.FUnitMoves;
+      Event.FAbilities.AssignAb(FEditedHero);
+      AoWHSMap.FTokenManager.GetTokenControl(FHero.FPlayer).AddEvent(Event);
+      Event.Release;
+      Dlg.Visible := False;
+    end;
+end;
 
 procedure THeroUpgradeDlg.DlgHide;
-begin end;
+begin
+  ClearHero;
+end;
 
-procedure THeroUpgradeDlg.AvailableAbilitiesMouseDown(A1: Integer; A2: Byte);
-begin end;
+procedure THeroUpgradeDlg.AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+var
+  Ability: TAbility;
+begin
+  if (Button = mbRight) and (AvailableAbilities.Selected <> -1) then
+  begin
+    Ability := AoWHSSet.FAbilityControl.GetAbility(Integer(AvailableAbilities.Items.Objects[AvailableAbilities.Selected]));
+    if Ability <> nil then
+      InfoBanner.ShowInfo(Ability.GetName(nil), Ability.FDescription);
+  end;
+end;
 
-procedure THeroUpgradeDlg.SelectedAbilitiesMouseDown(A1: Integer; A2: Byte);
-begin end;
+procedure THeroUpgradeDlg.SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+var
+  Ability: TAbility;
+begin
+  if (Button = mbRight) and (SelectedAbilities.Selected <> -1) then
+  begin
+    Ability := AoWHSSet.FAbilityControl.GetAbility(Integer(SelectedAbilities.Items.Objects[SelectedAbilities.Selected]));
+    if Ability <> nil then
+      InfoBanner.ShowInfo(Ability.GetName(nil), Ability.FDescription);
+  end;
+end;
 
-procedure THeroUpgradeDlg.DlgKeyDown(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure THeroUpgradeDlg.DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then Dlg.Visible := False;
+end;
 
 
 end.

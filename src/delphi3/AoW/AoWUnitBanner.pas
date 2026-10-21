@@ -42,6 +42,9 @@ type
   end;
 
 
+var
+  UnitBanner: TUnitBanner;
+
 implementation
 
 procedure TUnitBanner.BannerPopupShow;

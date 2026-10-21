@@ -67,6 +67,9 @@ type
   end;
 
 
+var
+  IntGfxMod: TIntGfxMod;
+
 implementation
 
 

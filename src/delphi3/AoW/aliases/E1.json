@@ -1,0 +1,22 @@
+{
+  "TWMCampaign.vmt20": "TWMCampaign.Create",
+  "TWMCampaign.vmt24": "TWMCampaign.ClassID",
+  "TWMCampaign.vmt18": "TWMCampaign.ReadWrite",
+  "TWMCampaign.vmt4C": "TWMCampaign.CreateScenario",
+  "TWMCampaign.vmt30": "TWMCampaign.Clear",
+  "TWMCampaign.vmt50": "TWMCampaign.GetAutoSaveFileName",
+  "TIMSSendThread.vmt04": "TIMSSendThread.Execute",
+  "FUN_004461b8": "THeroUpgradeDlg.ClearHero",
+  "FUN_00446224": "THeroUpgradeDlg.ValidateHero",
+  "FUN_0044646c": "THeroUpgradeDlg.UpdateStatistics",
+  "FUN_004467e4": "THeroUpgradeDlg.RefreshStatistics",
+  "FUN_004467ec": "THeroUpgradeDlg.SortSelected",
+  "FUN_004468a0": "THeroUpgradeDlg.SortAvailable",
+  "FUN_00446954": "THeroUpgradeDlg.RefreshAbilities",
+  "FUN_00446c58": "THeroUpgradeDlg.SetAvailableIndex",
+  "FUN_00446c7c": "THeroUpgradeDlg.SetSelectedIndex",
+  "FUN_00447064": "THeroUpgradeDlg.CanAddAbility",
+  "FUN_0040701c": "TInfoBanner.ShowInfo",
+  "FUN_00449b30": "TRealmWin.UpdateOverview",
+  "FUN_0044a030": "TRealmWin.DrawArmyUnit"
+}

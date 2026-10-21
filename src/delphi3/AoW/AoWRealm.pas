@@ -1,13 +1,13 @@
 unit AoWRealm;
 
-{ Draft declarations of AoWRealm, from AoW.exe.
+{ AoWRealm handlers recovered from AoW.exe.
   Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWComp, aowIntGfxMod, AoWWinMan, AoWUnitWindow, AoWCityScreen, AoWProdScreen, PrdPlace, City, aowHelpWin, AoWUnitBanner, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWTabPanel, AoWVScroll, AoWWindow;
 
 type
   TRealmWin = class;
@@ -104,226 +104,679 @@ type
     Help: TAOWButton; { +0194 }
     Translator: TIvTranslator; { +0198 }
     public
-    procedure OWMinIconClick;  { draft }
-    procedure T2WallLBDrawItem(A1: Integer; A2: Integer);  { draft }
-    procedure Unit1LBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
-    procedure HeaderTabChange;  { draft }
-    procedure PartyVSBChange;  { draft }
-    procedure Unit1LBChange(A1: Integer);  { draft }
-    procedure T2MorLBDrawItem(A1: Integer; A2: Integer);  { draft }
-    procedure CityListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure CityListChange(A1: Integer);  { draft }
-    procedure CityDoubleClick(A1: Integer);  { draft }
-    procedure PlaceListDoubleClick(A1: Integer);  { draft }
-    procedure PlacesListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure HeroListDoubleClick(A1: Integer);  { draft }
-    procedure HeroListMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure HeroInfoClick;  { draft }
-    procedure T2LevelLBDoubleClick;  { draft }
-    procedure T2WallLBDoubleClick;  { draft }
-    procedure T2RaceLBDoubleClick;  { draft }
-    procedure T2ActLBDrawItem(A1: Integer; A2: Integer);  { draft }
-    procedure T2ActLBDoubleClick;  { draft }
-    procedure T2RelLBDrawItem(A1: Integer; A2: Integer);  { draft }
-    procedure OverWindowResize;  { draft }
-    procedure T2SBChange;  { draft }
-    procedure T3NameChange(A1: Integer);  { draft }
-    procedure T3SBChange;  { draft }
-    procedure T2SNameClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SRaceClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SInClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SLvlClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SWallClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SSizeClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SRelClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SMorClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SActClick(A1: Integer; A2: Integer);  { draft }
-    procedure T2SEncClick(A1: Integer; A2: Integer);  { draft }
-    procedure T3SNameClick(A1: Integer; A2: Integer);  { draft }
-    procedure HeroListChange(A1: Integer);  { draft }
-    procedure HeroVSBChange;  { draft }
-    procedure T5HeroInfDraw(A1: Integer; A2: Integer);  { draft }
-    procedure Unit1LBDoubleClick(A1: Integer);  { draft }
-    procedure T5SNameClick(A1: Integer; A2: Integer);  { draft }
-    procedure T5SHealthClick(A1: Integer; A2: Integer);  { draft }
-    procedure T5SLevelClick(A1: Integer; A2: Integer);  { draft }
-    procedure GotoButClick;  { draft }
-    procedure T4PnlShow(A1: Integer; A2: Integer);  { draft }
-    procedure T4PnlHide(A1: Integer; A2: Integer);  { draft }
-    procedure OverWindowShow;  { draft }
-    procedure OverWindowHide;  { draft }
-    procedure IncomeSBChange;  { draft }
-    procedure T3ActivityClick(A1: Integer; A2: Integer);  { draft }
-    procedure UpkeepSBChange;  { draft }
-    procedure DlgShow;  { draft }
-    procedure DlgHide;  { draft }
-    procedure HelpClick;  { draft }
+    procedure UpdateOverview; { draft; 00449B30 }
+    procedure DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); { draft; 0044A030 }
+    procedure OWMinIconClick;
+    procedure T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure Unit1LBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure HeaderTabChange;
+    procedure PartyVSBChange;
+    procedure Unit1LBChange(Sender: TObject);
+    procedure T2MorLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure CityListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure CityListChange(Sender: TObject);
+    procedure CityDoubleClick(Sender: TObject);
+    procedure PlaceListDoubleClick(Sender: TObject);
+    procedure PlacesListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure HeroListDoubleClick(Sender: TObject);
+    procedure HeroListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure HeroInfoClick;
+    procedure T2LevelLBDoubleClick;
+    procedure T2WallLBDoubleClick;
+    procedure T2RaceLBDoubleClick;
+    procedure T2ActLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure T2ActLBDoubleClick;
+    procedure T2RelLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+    procedure OverWindowResize;
+    procedure T2SBChange;
+    procedure T3NameChange(Sender: TObject);
+    procedure T3SBChange;
+    procedure T2SNameClick(Sender: TObject; Button: Integer);
+    procedure T2SRaceClick(Sender: TObject; Button: Integer);
+    procedure T2SInClick(Sender: TObject; Button: Integer);
+    procedure T2SLvlClick(Sender: TObject; Button: Integer);
+    procedure T2SWallClick(Sender: TObject; Button: Integer);
+    procedure T2SSizeClick(Sender: TObject; Button: Integer);
+    procedure T2SRelClick(Sender: TObject; Button: Integer);
+    procedure T2SMorClick(Sender: TObject; Button: Integer);
+    procedure T2SActClick(Sender: TObject; Button: Integer);
+    procedure T2SEncClick(Sender: TObject; Button: Integer);
+    procedure T3SNameClick(Sender: TObject; Button: Integer);
+    procedure HeroListChange(Sender: TObject);
+    procedure HeroVSBChange;
+    procedure T5HeroInfDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+    procedure Unit1LBDoubleClick(Sender: TObject);
+    procedure T5SNameClick(Sender: TObject; Button: Integer);
+    procedure T5SHealthClick(Sender: TObject; Button: Integer);
+    procedure T5SLevelClick(Sender: TObject; Button: Integer);
+    procedure GotoButClick;
+    procedure T4PnlShow(Sender: TObject);
+    procedure T4PnlHide(Sender: TObject);
+    procedure OverWindowShow;
+    procedure OverWindowHide;
+    procedure IncomeSBChange;
+    procedure T3ActivityClick(Sender: TObject; Button: Integer);
+    procedure UpkeepSBChange;
+    procedure DlgShow;
+    procedure DlgHide;
+    procedure HelpClick;
   end;
 
 
+var
+  RealmWin: TRealmWin;
+
 implementation
 
+procedure TRealmWin.UpdateOverview;
+begin end;
+
+procedure TRealmWin.DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+begin end;
+
 procedure TRealmWin.OWMinIconClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  Dlg.Visible := False;
+end;
 
-procedure TRealmWin.T2WallLBDrawItem(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+begin
+  case PChar(T2WallLB.Items[DrawItem])^ of
+    '1': IntGfxMod.LBIcons[7].ShowClipped(DrawRect.Left + (DrawRect.Right - DrawRect.Left) div 2 -
+      IntGfxMod.LBIcons[7].Width div 2, DrawRect.Top, SurfDesc);
+    '2': IntGfxMod.LBIcons[8].ShowClipped(DrawRect.Left + (DrawRect.Right - DrawRect.Left) div 2 -
+      IntGfxMod.LBIcons[8].Width div 2, DrawRect.Top, SurfDesc);
+  end;
+end;
 
-procedure TRealmWin.Unit1LBDrawItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+procedure TRealmWin.Unit1LBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+begin
+  DrawArmyUnit(Sender.Tag, DrawRect, DrawItem, SurfDesc);
+end;
 
 procedure TRealmWin.HeaderTabChange;
-begin end;
+begin
+  General.PlayButtonSound(0);
+  UpdateOverview;
+end;
 
 procedure TRealmWin.PartyVSBChange;
-begin end;
+begin
+  Unit1LB.ListOffset := PartySb.Position;
+  Unit2LB.ListOffset := PartySb.Position;
+  Unit3LB.ListOffset := PartySb.Position;
+  Unit4LB.ListOffset := PartySb.Position;
+  Unit5LB.ListOffset := PartySb.Position;
+  Unit6LB.ListOffset := PartySb.Position;
+  Unit7LB.ListOffset := PartySb.Position;
+  Unit8LB.ListOffset := PartySb.Position;
+end;
 
-procedure TRealmWin.Unit1LBChange(A1: Integer);
-begin end;
+procedure TRealmWin.Unit1LBChange(Sender: TObject);
+begin
+  with TAOWListBox(Sender) do
+  begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(Selected).GetCount > 0 then
+  begin
+    PopupMenu := UnitBanner.BannerPopup;
+    General.FSelectedUnit := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(Selected).GetUnit(Tag);
+    AoWHSMap.Select(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(Selected).GetArmyHS, True);
+    Dlg.Priority := Dlg.Priority;
+  end
+  else
+  begin
+    PopupMenu := nil;
+    Selected := -1;
+  end;
+  if Sender <> Unit1LB then Unit1LB.Selected := -1;
+  if Sender <> Unit2LB then Unit2LB.Selected := -1;
+  if Sender <> Unit3LB then Unit3LB.Selected := -1;
+  if Sender <> Unit4LB then Unit4LB.Selected := -1;
+  if Sender <> Unit5LB then Unit5LB.Selected := -1;
+  if Sender <> Unit6LB then Unit6LB.Selected := -1;
+  if Sender <> Unit7LB then Unit7LB.Selected := -1;
+  if Sender <> Unit8LB then Unit8LB.Selected := -1;
+  end;
+end;
 
-procedure TRealmWin.T2MorLBDrawItem(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2MorLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+var
+  Icon: Integer;
+begin
+  Icon := Ord(PChar(T2MorLB.Items[DrawItem])^) - Ord('0');
+  IntGfxMod.LBIcons[Icon + 9].ShowClipped(DrawRect.Left + (DrawRect.Right - DrawRect.Left) div 2 -
+      IntGfxMod.LBIcons[Icon + 9].Width div 2, DrawRect.Top, SurfDesc);
+end;
 
-procedure TRealmWin.CityListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TRealmWin.CityListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Sprite: THexagonSprite;
+begin
+  if (Button = mbRight) and (Sender.Selected <> -1) then
+  begin
+    Sprite := THexagonSprite(T2NameLB.Items.Objects[Sender.Selected]);
+    AoWHSMap.CenterViewTo(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+    AoWHSMap.PlayCenterAnimation(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+  end;
+end;
 
-procedure TRealmWin.CityListChange(A1: Integer);
-begin end;
+procedure TRealmWin.CityListChange(Sender: TObject);
+begin
+  with TAOWListBox(Sender) do
+  begin
+  T2NameLB.Selected := Selected;
+  T2RaceLB.Selected := Selected;
+  T2IncomeLB.Selected := Selected;
+  T2LevelLB.Selected := Selected;
+  T2WallLB.Selected := Selected;
+  T2SizeLB.Selected := Selected;
+  T2RelLB.Selected := Selected;
+  T2MorLB.Selected := Selected;
+  T2ActLB.Selected := Selected;
+  T2EncLB.Selected := Selected;
+  end;
+end;
 
-procedure TRealmWin.CityDoubleClick(A1: Integer);
-begin end;
+procedure TRealmWin.CityDoubleClick(Sender: TObject);
+begin
+  if TAOWListBox(Sender).Selected <> -1 then
+    CityScreen.ShowCity(TCity(T2NameLB.Items.Objects[TAOWListBox(Sender).Selected]));
+end;
 
-procedure TRealmWin.PlaceListDoubleClick(A1: Integer);
-begin end;
+procedure TRealmWin.PlaceListDoubleClick(Sender: TObject);
+begin
+  if TAOWListBox(Sender).Selected <> -1 then
+    if T3Name.Items.Objects[TAOWListBox(Sender).Selected] is TProductionPlace then
+      ProductionScreen.ShowPlace(TProductionPlace(T3Name.Items.Objects[TAOWListBox(Sender).Selected]))
+    else
+      AoWHSMap.Select(THexagonSprite(T3Name.Items.Objects[TAOWListBox(Sender).Selected]), True);
+end;
 
-procedure TRealmWin.PlacesListMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TRealmWin.PlacesListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Sprite: THexagonSprite;
+begin
+  if (Button = mbRight) and (Sender.Selected <> -1) then
+  begin
+    Sprite := THexagonSprite(T3Name.Items.Objects[Sender.Selected]);
+    AoWHSMap.CenterViewTo(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+    AoWHSMap.PlayCenterAnimation(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+  end;
+end;
 
-procedure TRealmWin.HeroListDoubleClick(A1: Integer);
-begin end;
+procedure TRealmWin.HeroListDoubleClick(Sender: TObject);
+begin
+  with TAOWListBox(Sender) do
+  begin
+  if Selected <> -1 then
+    AoWHSMap.Select(TArmy(T5Name.Items.Objects[Selected]).GetArmyHS, True);
+  end;
+end;
 
-procedure TRealmWin.HeroListMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TRealmWin.HeroListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Sprite: THexagonSprite;
+begin
+  with TAOWListBox(Sender) do
+  begin
+  if Selected <> -1 then
+  begin
+    Sprite := TArmy(T5Name.Items.Objects[Selected]).GetArmyHS;
+    AoWHSMap.CenterViewTo(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+    AoWHSMap.PlayCenterAnimation(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);
+  end;
+  end;
+end;
 
 procedure TRealmWin.HeroInfoClick;
-begin end;
+var
+  Index: Integer;
+begin
+  General.PlayButtonSound(0);
+  Index := T5Name.Selected;
+  if Index <> -1 then
+  begin
+    General.FSelectedUnit := THero(T5Health.Items.Objects[Index]);
+    UnitWindow.ShowUnit;
+  end;
+end;
 
 procedure TRealmWin.T2LevelLBDoubleClick;
-begin end;
+begin
+  RealmWin.UpdateOverview;
+  RealmWin.Dlg.Visible := True;
+end;
 
 procedure TRealmWin.T2WallLBDoubleClick;
-begin end;
+begin
+  RealmWin.UpdateOverview;
+  RealmWin.Dlg.Visible := True;
+end;
 
 procedure TRealmWin.T2RaceLBDoubleClick;
-begin end;
+begin
+  RealmWin.UpdateOverview;
+  RealmWin.Dlg.Visible := True;
+end;
 
-procedure TRealmWin.T2ActLBDrawItem(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2ActLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+var
+  Icon: Char;
+begin
+  Icon := PChar(T2ActLB.Items[DrawItem])^;
+  if Icon <> '-' then
+    IntGfxMod.LBIcons[Ord(Icon) - 23].ShowClipped(DrawRect.Left + (DrawRect.Right - DrawRect.Left) div 2 -
+      IntGfxMod.LBIcons[Ord(Icon) - 23].Width div 2, DrawRect.Top, SurfDesc);
+end;
 
 procedure TRealmWin.T2ActLBDoubleClick;
-begin end;
+begin
+  RealmWin.UpdateOverview;
+  RealmWin.Dlg.Visible := True;
+end;
 
-procedure TRealmWin.T2RelLBDrawItem(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2RelLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+var
+  Icon: Integer;
+begin
+  Icon := Ord(PChar(T2RelLB.Items[DrawItem])^) - Ord('0');
+  IntGfxMod.LBIcons[Icon + 14].ShowClipped(DrawRect.Left + (DrawRect.Right - DrawRect.Left) div 2 -
+      IntGfxMod.LBIcons[Icon + 14].Width div 2, DrawRect.Top, SurfDesc);
+end;
 
 procedure TRealmWin.OverWindowResize;
-begin end;
+var
+  Window: TAOWWindow;
+begin
+  Window := Dlg;
+  with Window.Alignment do
+  begin
+    AlignWidth := awLeft;
+    AlignHeight := ahTop;
+    LeftOffset := Window.WinLeft;
+    TopOffset := Window.WinTop;
+  end;
+end;
 
 procedure TRealmWin.T2SBChange;
-begin end;
+begin
+  T2NameLB.ListOffset := CitySB.Position;
+  T2RaceLB.ListOffset := CitySB.Position;
+  T2IncomeLB.ListOffset := CitySB.Position;
+  T2LevelLB.ListOffset := CitySB.Position;
+  T2WallLB.ListOffset := CitySB.Position;
+  T2SizeLB.ListOffset := CitySB.Position;
+  T2RelLB.ListOffset := CitySB.Position;
+  T2MorLB.ListOffset := CitySB.Position;
+  T2ActLB.ListOffset := CitySB.Position;
+end;
 
-procedure TRealmWin.T3NameChange(A1: Integer);
-begin end;
+procedure TRealmWin.T3NameChange(Sender: TObject);
+begin
+  with TAOWListBox(Sender) do
+  begin
+  T3Name.Selected := Selected;
+  T3ActLB.Selected := Selected;
+  end;
+end;
 
 procedure TRealmWin.T3SBChange;
-begin end;
+begin
+  T3Name.ListOffset := PlaceSB.Position;
+end;
 
-procedure TRealmWin.T2SNameClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SNameClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 0);
+end;
 
-procedure TRealmWin.T2SRaceClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SRaceClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 0);
+end;
 
-procedure TRealmWin.T2SInClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SInClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 2);
+end;
 
-procedure TRealmWin.T2SLvlClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SLvlClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SWallClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SWallClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2WallLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SSizeClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SSizeClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SRelClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SRelClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2RelLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SMorClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SMorClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2MorLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2ActLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SActClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SActClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2ActLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2EncLB);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T2SEncClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T2SEncClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T2EncLB);
+  Lists.Add(T2NameLB);
+  Lists.Add(T2RaceLB);
+  Lists.Add(T2IncomeLB);
+  Lists.Add(T2LevelLB);
+  Lists.Add(T2WallLB);
+  Lists.Add(T2SizeLB);
+  Lists.Add(T2RelLB);
+  Lists.Add(T2MorLB);
+  Lists.Add(T2ActLB);
+  General.SortLists(Lists, 0);
+end;
 
-procedure TRealmWin.T3SNameClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T3SNameClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T3Name);
+  Lists.Add(T3ActLB);
+  General.SortLists(Lists, 0);
+end;
 
-procedure TRealmWin.HeroListChange(A1: Integer);
-begin end;
+procedure TRealmWin.HeroListChange(Sender: TObject);
+begin
+  with TAOWListBox(Sender) do
+  begin
+  T5Name.Selected := Selected;
+  T5Health.Selected := Selected;
+  T5Level.Selected := Selected;
+  end;
+end;
 
 procedure TRealmWin.HeroVSBChange;
-begin end;
+begin
+  { Original bug: the hero scrollbar moves T3Name instead of T5Name. }
+  T3Name.ListOffset := HeroSB.Position;
+  T5Health.ListOffset := HeroSB.Position;
+  T5Level.ListOffset := HeroSB.Position;
+end;
 
-procedure TRealmWin.T5HeroInfDraw(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T5HeroInfDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+var
+  Index: Integer;
+  Hero: THero;
+  R: TRect;
+begin
+  Index := T5Name.Selected;
+  if Index > -1 then
+  begin
+    Hero := THero(T5Health.Items.Objects[Index]);
+    R := Rect(T5HeroInf.WinLeft + 1, T5HeroInf.WinTop + 1,
+      T5HeroInf.WinLeft + T5HeroInf.WinWidth - 1,
+      T5HeroInf.WinTop + T5HeroInf.WinHeight - 1);
+    if Hero.GetFace <> nil then Hero.ShowFace(R, SurfDesc);
+  end;
+end;
 
-procedure TRealmWin.Unit1LBDoubleClick(A1: Integer);
-begin end;
+procedure TRealmWin.Unit1LBDoubleClick(Sender: TObject);
+begin
+  if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(TAOWListBox(Sender).Selected).GetCount > 0 then
+  begin
+    General.FSelectedUnit := AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(TAOWListBox(Sender).Selected).GetUnit(TAOWListBox(Sender).Tag);
+    UnitWindow.ShowUnit;
+  end;
+end;
 
-procedure TRealmWin.T5SNameClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T5SNameClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T5Name);
+  Lists.Add(T5Health);
+  Lists.Add(T5Level);
+  General.SortLists(Lists, 0);
+end;
 
-procedure TRealmWin.T5SHealthClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T5SHealthClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T5Health);
+  Lists.Add(T5Name);
+  Lists.Add(T5Level);
+  General.SortLists(Lists, 1);
+end;
 
-procedure TRealmWin.T5SLevelClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T5SLevelClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T5Level);
+  Lists.Add(T5Name);
+  Lists.Add(T5Health);
+  General.SortLists(Lists, 2);
+end;
 
 procedure TRealmWin.GotoButClick;
-begin end;
+begin
+  General.PlayButtonSound(0);
+end;
 
-procedure TRealmWin.T4PnlShow(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T4PnlShow(Sender: TObject);
+var
+  I, J: Integer;
+begin
+  for I := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetCount - 1 do
+    for J := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetCount - 1 do
+      AoWHSSet.FUnitGFXResources.GetUnitGFXResource(
+        AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetUnit(J).GetUnitGFXResourceIndex).AddRef;
+end;
 
-procedure TRealmWin.T4PnlHide(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T4PnlHide(Sender: TObject);
+var
+  I, J: Integer;
+begin
+  for I := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetCount - 1 do
+    for J := 0 to AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetCount - 1 do
+      AoWHSSet.FUnitGFXResources.GetUnitGFXResource(
+        AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FArmies.GetArmy(I).GetUnit(J).GetUnitGFXResourceIndex).Release;
+end;
 
 procedure TRealmWin.OverWindowShow;
-begin end;
+begin
+  if T4Pnl.Visible then T4PnlShow(Self);
+end;
 
 procedure TRealmWin.OverWindowHide;
-begin end;
+begin
+  if T4Pnl.Visible then T4PnlHide(Self);
+end;
 
 procedure TRealmWin.IncomeSBChange;
-begin end;
+begin
+  IncomeValue.ListOffset := IncomeSB.Position;
+end;
 
-procedure TRealmWin.T3ActivityClick(A1: Integer; A2: Integer);
-begin end;
+procedure TRealmWin.T3ActivityClick(Sender: TObject; Button: Integer);
+var
+  Lists: TList;
+begin
+  General.PlayButtonSound(0);
+  Lists := TList.Create;
+  Lists.Add(T3ActLB);
+  Lists.Add(T3Name);
+  General.SortLists(Lists, 1);
+end;
 
 procedure TRealmWin.UpkeepSBChange;
-begin end;
+begin
+  UpkeepValue.ListOffset := UpkeepSB.Position;
+end;
 
 procedure TRealmWin.DlgShow;
-begin end;
+begin
+  General.RegisterDialog(Dlg);
+end;
 
 procedure TRealmWin.DlgHide;
-begin end;
+begin
+  General.UnregisterDialog(Dlg);
+end;
 
 procedure TRealmWin.HelpClick;
-begin end;
+begin
+  ShowHelp(505);
+end;
 
 
 end.

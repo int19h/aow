@@ -39,7 +39,12 @@ type
   end;
 
 
+procedure ShowHelp(HelpID: Integer); { draft; 0040471C }
+
 implementation
+
+procedure ShowHelp(HelpID: Integer);
+begin end;
 
 procedure THelpWindow.CloseBtnClick;
 begin end;

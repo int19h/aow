@@ -7,7 +7,7 @@ unit AoWWinMan;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWToolTip, AOWWinManager;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWWindow, AOWToolTip, AOWWinManager;
 
 type
   TGeneral = class;
@@ -25,7 +25,11 @@ type
     F_General_69: Byte;
     F_General_6A: array[0..13] of Byte;
     F_General_78: Integer;
-    F_General_7C: array[0..79] of Byte;
+    F_General_7C: array[0..67] of Byte; FSelectedUnit: TAbstractUnit; { $C0; 00449DCD } F_General_C4: array[0..7] of Byte;
+    procedure PlayButtonSound(Kind: Byte); { draft; 00455DFC }
+    procedure SortLists(var Lists: TList; Order: Byte); { draft; 00455744 }
+    procedure RegisterDialog(Window: TAOWWindow); { draft; 00456AAC }
+    procedure UnregisterDialog(Window: TAOWWindow); { draft; 00456B34 }
     procedure MTtoInt(A1: Byte; A2: Integer);  { draft }
     procedure ManagerChangeCursor;  { draft }
     procedure GeneralCreate;  { draft }
@@ -38,7 +42,22 @@ type
   end;
 
 
+var
+  General: TGeneral;
+
 implementation
+
+procedure TGeneral.PlayButtonSound(Kind: Byte);
+begin end;
+
+procedure TGeneral.SortLists(var Lists: TList; Order: Byte);
+begin end;
+
+procedure TGeneral.RegisterDialog(Window: TAOWWindow);
+begin end;
+
+procedure TGeneral.UnregisterDialog(Window: TAOWWindow);
+begin end;
 
 procedure TGeneral.MTtoInt(A1: Byte; A2: Integer);
 begin end;

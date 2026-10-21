@@ -7,7 +7,7 @@ unit AoWProdScreen;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, PrdPlace, AOWGauge, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow, aowUserDrawBox;
 
 type
   TProductionScreen = class;
@@ -130,6 +130,7 @@ type
     F_ProductionScreen_1F5: array[0..2] of Byte;
     F_ProductionScreen_1F8: Integer;
     F_ProductionScreen_1FC: Integer;
+    procedure ShowPlace(Place: TProductionPlace); { draft; 0043F1F4 }
     procedure ProductionScreenCreate;  { draft }
     procedure ProductionScreenDestroy;  { draft }
     procedure ActivityChange(A1: Integer);  { draft }
@@ -153,7 +154,14 @@ type
   end;
 
 
+var
+  ProductionScreen: TProductionScreen;
+
 implementation
+
+procedure TProductionScreen.ShowPlace(Place: TProductionPlace);
+begin end;
+
 
 procedure TProductionScreen.ProductionScreenCreate;
 begin end;

@@ -7,7 +7,7 @@ unit AoWCityScreen;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow, aowUserDrawBox;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, City, AOWGauge, AoWButton, AoWCheckBox, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWMemo, AoWPanel, AoWVScroll, AoWWindow, aowUserDrawBox;
 
 type
   TCityScreen = class;
@@ -185,6 +185,7 @@ type
     F_CityScreen_2CD: array[0..6] of Byte;
     F_CityScreen_2D4: Integer;
     F_CityScreen_2D8: Integer;
+    procedure ShowCity(City: TCity); { draft; 0043AF24 }
     procedure CityScreenCreate;  { draft }
     procedure CityScreenDestroy;  { draft }
     procedure ActivityChange(A1: Integer);  { draft }
@@ -217,7 +218,14 @@ type
   end;
 
 
+var
+  CityScreen: TCityScreen;
+
 implementation
+
+procedure TCityScreen.ShowCity(City: TCity);
+begin end;
+
 
 procedure TCityScreen.CityScreenCreate;
 begin end;

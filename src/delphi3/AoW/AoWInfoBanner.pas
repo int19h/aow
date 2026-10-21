@@ -22,11 +22,21 @@ type
     BannerPopup: TAOWMenu; { +004C }
     InfoMemoSB: TAOWVScrollBar; { +0050 }
     public
+    procedure ShowInfo(const Header: string; Description: TStrings); { 0040701C }
     procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
   end;
 
 
+var
+  InfoBanner: TInfoBanner;
+
 implementation
+
+procedure TInfoBanner.ShowInfo(const Header: string; Description: TStrings);
+begin
+  HeaderLbl.Text := Header;
+  InfoMemo.Items.Text := Description.Text;
+end;
 
 procedure TInfoBanner.BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
 begin end;

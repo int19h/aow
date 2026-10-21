@@ -149,6 +149,7 @@ type
     F_UnitWindow_23C: Byte;
     F_UnitWindow_23D: Byte;
     F_UnitWindow_23E: array[0..9] of Byte;
+    procedure ShowUnit; { draft; 00407DB8 }
     procedure PreDrawAbilityItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);  { draft }
     procedure HelpClick;  { draft }
     procedure T1AbilityLBChange(A1: Integer);  { draft }
@@ -188,7 +189,14 @@ type
   end;
 
 
+var
+  UnitWindow: TUnitWindow;
+
 implementation
+
+procedure TUnitWindow.ShowUnit;
+begin end;
+
 
 procedure TUnitWindow.PreDrawAbilityItem(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
 begin end;
