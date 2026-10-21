@@ -78,7 +78,7 @@ begin
 end;
 
 procedure TUnitGFXGeneraterDlg.SetResource(Resource: TEResource);
-var List: TImageSequenceList; S: string; Sequence: TImageSequence; I: Integer;
+var List: TImageSequenceList; S: string; Sequence: TImageSequence; I, Index: Integer;
 begin
   FResource := TUnitGFXResource(Resource);
   ILManagerComboBox.ILManager := FResource.FSequences.ILManager;
@@ -95,12 +95,12 @@ begin
   end;
   for I := 0 to 3 do
   begin
-    Sequence := List.GetImageSequence(I * 6 + 1);
+    Index := I * 6 + 1; Sequence := List.GetImageSequence(Index);
     if (Sequence <> nil) and (Sequence.SequenceMode = smFrameTable) then
     begin
       if Sequence.FrameTable.Count = 1 then S := IntToStr(Sequence.FrameTable[0] mod 100)
-      else if Sequence.FrameTable.Count < 2 then S := ''
-      else S := IntToStr(Sequence.FrameTable[0] mod 100) + '-' + IntToStr(Sequence.FrameTable.Last mod 100);
+      else if Sequence.FrameTable.Count > 1 then S := IntToStr(Sequence.FrameTable[0] mod 100) + '-' + IntToStr(Sequence.FrameTable.Last mod 100)
+      else S := '';
       if S <> '' then
         case I of
           0: StandStillEdit.Text := S;

@@ -2476,13 +2476,13 @@ procedure TAoWCombatMap.UpdateCursor;
 begin
   if not (((FSeatedPlayer = -1) or AoWHSMap.FTokenManager.PlayerReady(FSeatedPlayer)) and
     (FSeatedPlayer = FCurrentPlayer) and not FPlayers.GetPlayers(FCurrentCombatPlayer).FAuto and
-    (AoWCombatMap.FSeatedCombatPlayer = AoWCombatMap.FCurrentCombatPlayer)) then Mouse.Cursor := (Frame div 4) mod 4 + 6
+    (AoWCombatMap.FSeatedCombatPlayer = AoWCombatMap.FCurrentCombatPlayer)) then Mouse.Cursor := (Frame shr 2) mod 4 + 6
   else begin
     if FUnitSelection.GetTCUnitHS <> nil then FUnitSelection.UpdateMoveCursor;
     case Mouse.CursorMode of
       0: Mouse.Cursor := 0;
-      $101: Mouse.Cursor := (Frame div 4) mod 4 + $34;
-      $102: Mouse.Cursor := (Frame div 4) mod 2 + $31;
+      $101: Mouse.Cursor := (Frame shr 2) mod 4 + $34;
+      $102: Mouse.Cursor := (Frame shr 2) and 1 + $31;
     end;
   end;
 end;
@@ -2676,9 +2676,9 @@ begin
           Effect.FPath[0].X := X + 16;
           Effect.FPath[0].Y := Y + 8;
           for J := 0 to 10 do begin
-            VZ := (Random(50) + 50) * 0.05;
+            Speed := (Random(50) + 50) * 0.05;
             Gravity := 1.5;
-            Speed := (Random(25) + 25) * 0.05;
+            VZ := (Random(25) + 25) * 0.05;
             Z := 0;
             MakeArcPath(Effect.FPath[Effect.FPath.Count - 1].X,
               Effect.FPath[Effect.FPath.Count - 1].Y - Effect.FPath[Effect.FPath.Count - 1].Z,
@@ -2692,13 +2692,13 @@ begin
           Corpse.FUnitGFX := FUnitHS.FUnitGFXResource;
           Sequence := Corpse.FUnitGFX.FSequences.ImageSequences[30];
           if Sequence <> nil then Corpse.FFrame := Random(Sequence.GetTotalSequenceFrames);
-          if FDeathMethod = dmNormal then begin
-            if FUnit.GetBloodType = btNone then Corpse.FSequenceIndex := -1
+          case FDeathMethod of dmNormal: begin
+            case FUnit.GetBloodType of btNone: Corpse.FSequenceIndex := -1
             else begin
-              Corpse.FSequenceIndex := (Ord(FUnit.GetUnitSize) and $7F) + 30;
+              Corpse.FSequenceIndex := (Integer(FUnit.GetUnitSize) and $7F) + 30;
               if Corpse.FSequenceIndex > 32 then Corpse.FSequenceIndex := 32;
-            end;
-          end else if FDeathMethod = dmExplode then Corpse.FSequenceIndex := -1;
+            end; end;
+          end; dmExplode: Corpse.FSequenceIndex := -1; end;
           Corpse.FOffsetX := Random(10) - 5;
           Corpse.FOffsetY := Random(10) - 5;
           if FUnit.GetUnitType <> utMachine then Corpse.FUnit := Self;
@@ -5168,14 +5168,14 @@ begin
     SetLogCombatActions(1);
     SetLogbookHeader(TranslateRStr(CannotBreachWallRStr));
     FCombatResult := crCannotBreachWall;
-    Result := Ord(FCombatResult);
+    Result := Byte(FCombatResult);
   end else begin
-    if FSides[csAttacker].GetCount = FSides[csAttacker].FConquerCount then begin
+    if FSides[csDefender].GetCount = FSides[csDefender].FConquerCount then begin
       SetLogCombatActions(1);
       SetLogbookHeader(TranslateRStr(CannotInflictDamageRStr));
       FCombatResult := crCannotInflictDamage;
-      Result := Ord(FCombatResult);
-    end else if FSides[csAttacker].GetCount = 0 then Result := Ord(crNoDefenders)
+      Result := Byte(FCombatResult);
+    end else if FSides[csDefender].GetCount = 0 then Result := Ord(crNoDefenders)
     else begin
       AoWHSMap.FTokenManager.TokenExecuter.HoldTC := True;
       Generator := TRndTacHsm.Create;
@@ -5193,7 +5193,7 @@ begin
         if Seated = -1 then
           if AoWHSMap.FPlayers.GetPlayers(FCombatData.FPlayers.GetPlayers(I).FPlayer).FPlayerType = ptHuman then
             if AoWHSMap.FPlayerCommunicator.PCC.GetPlayers(FCombatData.FPlayers.GetPlayers(I).FPlayer).ConnectionMode <> cmRemote then
-              if Ord(AoWHSMap.FPlayers.GetPlayers(FCombatData.FPlayers.GetPlayers(I).FPlayer).FStatus) <> 2 then Seated := I;
+              if AoWHSMap.FPlayers.GetPlayers(FCombatData.FPlayers.GetPlayers(I).FPlayer).FStatus <> psTerminated then Seated := I;
       AoWCombatMap.SetSeatedCombatPlayer(Seated);
       AoWCombatMap.CenterViewTo(32, 29, 0);
       AoWCombatMap.FCombat.NewRound;

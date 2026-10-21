@@ -84,10 +84,10 @@ end;
 
 procedure TPlayerInfoFloater.UpdateStructureGrid(Grid: TStringGrid; Structures: TPlayerStructureList);
 var
-  List: TList;
+  Name, Info: string;
   I: Integer;
   Structure: TPlayerStructure;
-  Name, Info: string;
+  List: TList;
 begin
   Grid.Cols[0].Clear;
   Grid.Cols[1].Clear;
@@ -113,8 +113,8 @@ end;
 
 procedure TPlayerInfoFloater.LoadPlayer(PlayerIndex: Shortint);
 var
+  HeroPower, NodePower, I: Integer;
   Player: TPlayer;
-  NodePower, HeroPower, I: Integer;
 begin
   Player := AoWHSMap.FPlayers.GetPlayers(PlayerIndex);
   ExternalIncomeEdit.Caption := IntToStr(Player.FBaseIncome);

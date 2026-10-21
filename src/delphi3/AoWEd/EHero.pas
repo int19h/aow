@@ -181,8 +181,8 @@ uses MDIForm, FaceSel, EItem;
 
 procedure THeroEditForm.vmt80;
 var
-  List: TStringList;
   Index, Top, I: Integer;
+  List: TStringList;
   S: string;
 begin
   List := TStringList.Create;
@@ -533,17 +533,17 @@ begin
   Moves.Caption := IntToStr(FHero.FHeroResource.FMoves + FHero.FUnitMoves);
 end;
 
-procedure THeroEditForm.UpdateLeader;
+procedure THeroEditForm.UpdateLeader; var Hero: TLeader;
 begin
-  if FHero is TLeader then
+  Hero := TLeader(FHero); if TObject(Hero) is TLeader then
   begin
     Caption := TranslateRStr(LeaderRStr) + ' ' + TranslateRStr(PropertiesRStr);
-    LifeEdit.Value := TLeader(FHero).GetSpherePicks(msLife);
-    DeathEdit.Value := TLeader(FHero).GetSpherePicks(msDeath);
-    FireEdit.Value := TLeader(FHero).GetSpherePicks(msFire);
-    AirEdit.Value := TLeader(FHero).GetSpherePicks(msAir);
-    EarthEdit.Value := TLeader(FHero).GetSpherePicks(msEarth);
-    WaterEdit.Value := TLeader(FHero).GetSpherePicks(msWater);
+    LifeEdit.Value := Hero.GetSpherePicks(msLife);
+    DeathEdit.Value := Hero.GetSpherePicks(msDeath);
+    FireEdit.Value := Hero.GetSpherePicks(msFire);
+    AirEdit.Value := Hero.GetSpherePicks(msAir);
+    EarthEdit.Value := Hero.GetSpherePicks(msEarth);
+    WaterEdit.Value := Hero.GetSpherePicks(msWater);
   end;
 end;
 

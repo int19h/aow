@@ -172,9 +172,9 @@ var
   LayerName: string;
   S: TImageSequence;
 begin
-  S := FCurrentImageSequence;
-  if S <> nil then
-    with S do
+
+  if FCurrentImageSequence <> nil then
+    with FCurrentImageSequence do
     begin
       if Layer = 0 then LayerName := 'Ground Layer'
       else LayerName := 'Layer ' + IntToStr(Layer);

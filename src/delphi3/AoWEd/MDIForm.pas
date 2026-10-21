@@ -339,7 +339,7 @@ type
     procedure DefaultPlayerClick(Sender: TObject);
     procedure ApplicationMessage(var Msg: TMsg; var Handled: Boolean);
     procedure ApplicationException(Sender: TObject; E: Exception);
-    procedure ApplicationHint(Sender: TObject);
+    procedure ApplicationHint(Sender: TObject; var Done: Boolean);
     procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
@@ -632,7 +632,7 @@ begin
   else Application.ShowException(E);
 end;
 
-procedure TMainForm.ApplicationHint(Sender: TObject);
+procedure TMainForm.ApplicationHint(Sender: TObject; var Done: Boolean);
 begin
 end;
 
@@ -768,7 +768,7 @@ begin
     Application.ShowHint := True;
     Application.HintPause := 500;
     Application.OnShowHint := ApplicationShowHint;
-    Application.OnHint := ApplicationHint;
+    Application.OnIdle := ApplicationHint; { Original installs the status handler on idle. }
     DDrawFullScr16DC.DisplayWidth := 800;
     DDrawFullScr16DC.DisplayHeight := 600;
     SetCurrentDir(ExtractFilePath(Application.ExeName) + 'scenario\custom');
