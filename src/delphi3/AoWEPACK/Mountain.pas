@@ -96,7 +96,7 @@ const
 resourcestring
   MountainNameRStr = 'Mountain';
 const
-  MountainName: PResStringRec = @MountainNameRStr;
+  MountainName: PResStringRec = @AoWE.MountainRStr;
 
 class function TMountainMO.ClassID: Integer;
 begin Result := $20168; end;

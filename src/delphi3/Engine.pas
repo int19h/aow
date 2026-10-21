@@ -25,7 +25,7 @@ type
     FCount: Integer;
     FCapacity: Integer;
     FDefault: Integer;
-    function Get(Index: Integer): Integer;
+  public function Get(Index: Integer): Integer; private { AoWE $557652FC, $55765367 }
     procedure Put(Index: Integer; Item: Integer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);

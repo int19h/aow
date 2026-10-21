@@ -101,7 +101,7 @@ const
 resourcestring ObstacleRStr = 'Obstacle';
   CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr = 'Spell Ward locks all global enchantments';
   XIsAlreadyActiveRStr = '%s is already active';
-  SystemRStr = 'System';
+  SystemRStr = 'System'; HillRStr = 'Hill'; { $55706964 } MountainRStr = 'Mountain'; { $55706954 }
   { conflict: DispelMagicRStr = 'Dispel Magic'; }
   { conflict: DispelMagicFailedRStr = 'Dispel Magic failed'; }
   { conflict: XSpellsSuccessfullyDispelledRStr = '%s spell(s) dispelled'; }

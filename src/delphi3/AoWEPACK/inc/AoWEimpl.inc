@@ -178,9 +178,9 @@ resourcestring
   DirtRStr = 'Dirt';
   CoastRStr = 'Coast';
   BorderRStr = 'Border';
-  MountainRStr = 'Mountain';
+  { MountainRStr is declared in the interface for Mountain.ResourceEditName. }
   DenseVegetationRStr = 'Dense Vegetation';
-  HillRStr = 'Hill';
+  { HillRStr is declared in the interface for Hill.ResourceEditName. }
   VegetationRStr = 'Vegetation';
   RoadRStr = 'Road';
   BridgeRStr = 'Bridge';
@@ -291,13 +291,13 @@ resourcestring
 { P2 recovery in original code order. }
 type
   TP2HeroLevel = record
-    Experience, Reserved: Integer;
+    DailyExperience, Experience: Integer;
   end;
 const
-  P2HeroLevels: array[0..5] of TP2HeroLevel = (
-    (Experience: 15; Reserved: 1), (Experience: 15; Reserved: 1),
-    (Experience: 20; Reserved: 1), (Experience: 20; Reserved: 1),
-    (Experience: 25; Reserved: 1), (Experience: 25; Reserved: 29));
+  HeroExperienceTable: array[0..5] of TP2HeroLevel = (
+    (DailyExperience: 1; Experience: 15), (DailyExperience: 1; Experience: 15),
+    (DailyExperience: 1; Experience: 20), (DailyExperience: 1; Experience: 20),
+    (DailyExperience: 1; Experience: 25), (DailyExperience: 1; Experience: 25));
 { Use the P1 shared AoWHSSet at $558FA044. }
 
 
@@ -15409,7 +15409,7 @@ end;
 
 procedure TGroupDefenseSelector.UpdateDefenseLocation(MapF: TAoWMapField);
 begin
-  if (Integer(FDefenseLocation) = $FFFFFF) or (MapF.FindHS(TStructure) <> nil) then
+  if (Integer(FDefenseLocation) = $FFFFFF) or (MapF.FindOwnedHS(TStructure) <> nil) then
     FDefenseLocation.XYL := MapF.GetXYL;
 end;
 
@@ -25112,10 +25112,10 @@ begin
   SetControlStyle([csSaveLoad, csFixedChild, csArrayMode]);
 end;
 
-procedure TRaceList.ReadWrite(Stream: Engine.TEStorageStream);
-begin
-  inherited ReadWrite(Stream);
-  Stream.rwInteger(FRelationOffset, 20);
+procedure TRaceList.ReadWrite(Stream: Engine.TEStorageStream); { Original bypasses TEControlStyleNode.ReadWrite. }
+asm
+  PUSH EBX; PUSH ESI; MOV ESI, EDX; MOV EBX, EAX; MOV EDX, ESI; MOV EAX, EBX; CALL TEObject.ReadWrite
+  LEA EDX, [EBX].TRaceList.FRelationOffset; MOV ECX, 20; MOV EAX, ESI; MOV EBX, [EAX]; CALL DWORD PTR [EBX+$2C]; POP ESI; POP EBX
 end;
 
 function TRaceList.GetRace(Index: Integer): TRace;
@@ -32500,7 +32500,7 @@ begin
     CenterHNtoHX(MapField.Xhx, MapField.Yhx, Table[I], X, Y);
     if (X >= 0) and (Y >= 0) and (X < Level.Width) and (Y < Level.Height) then
     begin
-      Road := TAbstractRoad(Level.GetField(X, Y).FindOwnedHS(TAbstractRoad));
+      Road := TAbstractRoad(Level.GetField(X, Y).FindHS(TAbstractRoad));
       if Road <> nil then Road.UpdateTransitions;
     end;
   end;
@@ -32668,7 +32668,7 @@ begin
     if Sequences.GetImageSequence(30) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(30).GetPreviewImage
     else Result := nil
-  else Result := FResource.ImageLibrary.GetImage(30);
+  else Result := FResource.ImageLibrary.GetSafe(30);
 end;
 
 function TStructure.GetMiddleBorderImage: TLibraryImage; { Near miss: receiver and index load order after three variants. }
@@ -32680,7 +32680,7 @@ begin
     if Sequences.GetImageSequence(31) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(31).GetPreviewImage
     else Result := nil
-  else Result := FResource.ImageLibrary.GetImage(31);
+  else Result := FResource.ImageLibrary.GetSafe(31);
 end;
 
 function TStructure.GetBottomBorderImage: TLibraryImage; { Near miss: receiver and index load order after three variants. }
@@ -32692,7 +32692,7 @@ begin
     if Sequences.GetImageSequence(32) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(32).GetPreviewImage
     else Result := nil
-  else Result := FResource.ImageLibrary.GetImage(32);
+  else Result := FResource.ImageLibrary.GetSafe(32);
 end;
 
 function TStructure.GetOverlay(Index: Integer): Shortint;
@@ -33356,7 +33356,7 @@ begin
   if not (smTextOnly in Stream.StorageMode) then Stream.rwString(FSelectSFX, 21);
   Stream.rwStrings(FDescription, 22);
   Stream.rwInteger(FScannerIcon, 23);
-  Stream.rwStreamProc(28, FDefenders.SaveToStream, FDefenders.LoadFromStream);
+  Stream.rwStreamProc(28, FDefenders.LoadFromStream, FDefenders.SaveToStream);
   if smRead in Stream.StorageMode then CalculatePadIndex;
 end;
 
@@ -33604,7 +33604,7 @@ procedure TPlayerStructure.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwByte(Byte(FPlayer), 5);
-  Stream.rwStreamProc(6, FVictoryLocations.SaveToStream, FVictoryLocations.LoadFromStream);
+  Stream.rwStreamProc(6, FVictoryLocations.LoadFromStream, FVictoryLocations.SaveToStream);
   Stream.rwByte(FProductionPriority, 7);
 end;
 
@@ -36345,7 +36345,7 @@ asm
   JGE @@Max
   LEA EDX, [EAX + 1]
   MOV EAX, [EBX].TMultiLevelAbility.FLevelCosts
-  CALL P4LevelCost
+  CALL TIntegerList.Get
   POP EBX
   RET
 @@Max:
@@ -36403,7 +36403,7 @@ asm
 @@Next:
   MOV EDX, EDI
   MOV EAX, [ESI].TMultiLevelAbility.FLevelCosts
-  CALL P4LevelCost
+  CALL TIntegerList.Get
   ADD EBP, EAX
   DEC EBX
   JNE @@Next
@@ -40597,7 +40597,7 @@ procedure TRangedAttackCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: I
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if (A2.FID = FTargetID) and (A1.FTime <> 0) then
-    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FImageSequences.Show(40,
+    AoWHSSet.FAbilityControl.GetAbility(FAbilityID).FImageSequences.ShowLooped(40,
       A5 + 32, A6 + 32, A1.FTime, A7);
 end;
 function TRangedAttackCA.GetName: string;
@@ -44815,67 +44815,17 @@ begin
   Stream.rwData(FMagicSphere, 1, 16);
   Stream.rwByte(FSpellLevel, 17);
 end;
-
 function TSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-{ Signature remains compatible with external draft overrides: AL is Boolean,
-  EDX is the caster, ECX points to the reason string. }
-asm
-  PUSH EBP
-  MOV EBP, ESP
-  PUSH 0
-  PUSH 0
-  PUSH EBX
-  MOV EBX, ECX
-  XOR EDX, EDX
-  PUSH EBP
-  PUSH OFFSET @@Exception
-  PUSH DWORD PTR FS:[EDX]
-  MOV DWORD PTR FS:[EDX], ESP
-  CMP BYTE PTR [EAX + $22], 2
-  JNE @@OtherSpell
-  MOV EAX, [AoWHSMap]
-  MOV EAX, [EAX + $188]
-  TEST BYTE PTR [EAX + $10], $40
-  JE @@Allowed
-  LEA EDX, [EBP - 8]
-  MOV EAX, OFFSET P4SpellWardBlocksCastRStr
-  CALL System.LoadResString
-  MOV EAX, [EBP - 8]
-  LEA EDX, [EBP - 4]
-  CALL TranslateRStr
-  MOV EDX, [EBP - 4]
-  MOV EAX, EBX
-  CALL System.@LStrAsg
-  XOR EBX, EBX
-  JMP @@Finally
-@@Allowed:
-  MOV BL, 1
-  JMP @@Finally
-@@OtherSpell:
-  MOV BL, 1
-@@Finally:
-  XOR EAX, EAX
-  POP EDX
-  POP ECX
-  POP ECX
-  MOV DWORD PTR FS:[EAX], EDX
-  PUSH OFFSET @@Return
-@@Clear:
-  LEA EAX, [EBP - 8]
-  MOV EDX, 2
-  CALL System.@LStrArrayClr
-  RET
-@@Exception:
-  JMP System.@HandleFinally
-  JMP @@Clear
-@@Return:
-  MOV EAX, EBX
-  POP EBX
-  POP ECX
-  POP ECX
-  POP EBP
+begin
+  if FSpellType = stGlobal then
+    if getSpellWard in AoWHSMap.FGlobalMagicControl.FActiveEnchantments then
+    begin
+      A2 := TranslateRStr(CannotCastGlobalEnchantmentWhenSpellWardIsActiveRStr);
+      Result := False;
+    end
+    else Result := True
+  else Result := True;
 end;
-
 function TSpell.Activate(A1: TAbstractUnit): Boolean;
 { Original returns false after optionally centering on the seated player's unit. }
 asm
@@ -44906,14 +44856,12 @@ asm
   POP EDX
   POP EBX
 end;
-
 function TSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
 asm
   MOV EAX, [AoWHSMap]
   CMP DWORD PTR [EAX + $120], 0
   SETNE AL
 end;
-
 function TSpell.ActivateCombat(A1: TAbstractUnit): Boolean;
 { AL is the Boolean result; EDX is a combat object. }
 asm
@@ -44982,12 +44930,10 @@ asm
   POP ECX
   POP EBP
 end;
-
 function TSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
 asm
   XOR EAX, EAX
 end;
-
 procedure TSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 { ECX points to the eight-byte TSpellCombatInfo record. }
 asm
@@ -45004,12 +44950,10 @@ asm
   MOV [EBX].TP4CombatInfo.Modes, AL
   POP EBX
 end;
-
 function TSpell.GetCombatDamageValue(A1, A2: TCombatObject): Integer;
 asm
   XOR EAX, EAX
 end;
-
 procedure TSpell.GetCombatDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 begin
   with PP4DamageValue(@A3)^ do
@@ -45021,13 +44965,11 @@ begin
     DamageTypes := [];
   end;
 end;
-
 procedure TSpell.CastingDone(Source: TAbstractUnit; Mana: Integer);
 begin
   if Source is THero then
     THero(Source).CastingDone(FSpellID, Mana);
 end;
-
 procedure TSpell.CombatCastingDone(Source: TCombatObject; Mana: Integer);
 begin
   if (Source is TCombatUnit) and
@@ -45040,13 +44982,11 @@ begin
         TFastCombatUnit(Source).UpdateWallSiegeObjectRegistration;
     end;
 end;
-
 function THeroCastingViewP4.SpellMana(Spell: TSpell): Integer; assembler;
 { needs: P2 THero.CastingMana(Spell: TSpell): Integer; 55779557 returns EAX. }
 asm
   JMP THero.CastingMana
 end;
-
 procedure TSpell.CombatSpellCast(Source: TCombatUnit);
 var
   Hero: THeroCastingViewP4;
@@ -45056,7 +44996,6 @@ begin
   Mana := Hero.SpellMana(Self);
   CombatCastingDone(Source, Mana);
 end;
-
 procedure TSpell.PlayDefaultCastEffects(Player, X, Y, Layer: Shortint);
 { Player/X/Y/Layer use the original byte ABI. }
 asm
@@ -45145,25 +45084,20 @@ asm
   POP EBX
   POP ECX
 end;
-
 function TSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 asm
   XOR EAX, EAX
 end;
-
 procedure TSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
 begin
   FillChar(A4, 20, 0);
 end;
-
 procedure TSpell.fcPrefetchCombatCommands(A1: TFastCombatCommandList);
 begin end;
-
 function TSpell.fcExecuteCombatCommand(A1: TCombatObject; A2: TFastCombatCommand): Boolean;
 asm
   XOR EAX, EAX
 end;
-
 procedure TSpell.tcGetDamageValueEx(A1, A2: TCombatObject; var A3: TAbilityDamageValues);
 asm
   PUSH EBX
@@ -45177,7 +45111,6 @@ asm
   POP ESI
   POP EBX
 end;
-
 function TSpell.tcGetDamageValue(Source, Target: TCombatObject): Integer;
 asm
   PUSH EBX
@@ -45185,7 +45118,6 @@ asm
   CALL DWORD PTR [EBX + $80]
   POP EBX
 end;
-
 function TSpell.CreateCastSpellAction: TAICastSpellAction;
 asm
   XOR ECX, ECX
@@ -45193,7 +45125,6 @@ asm
   MOV EAX, [P4CastSpellActionClass]
   CALL TEObject.Create
 end;
-
 procedure TSpell.SetupCastSpellAction(A1: TAbstractUnit; A2: TAICastSpellAction);
 asm
   MOV EAX, [EAX].TSpell.FSpellID
@@ -45201,20 +45132,17 @@ asm
   MOV EAX, [EDX + $18]
   MOV [ECX + $08], EAX
 end;
-
 function P4GetPlayer(Players: TPlayerList; PlayerIndex: Integer): TPlayer; assembler;
 { needs: P1 TPlayerList.GetPlayers returns TPlayer; EAX is consumed at 55779710. }
 asm
   JMP TPlayerList.GetPlayers
 end;
-
 function P4RequestBudget(Manager: TAIBudgetManager; A1, A2, A3, A4, A5, A6: Integer): Boolean; assembler;
 { needs: P5 RequestBudgetExpenseEx returns Boolean; 55779781 tests AL. }
 asm
   POP EBP
   JMP TAIBudgetManager.RequestBudgetExpenseEx
 end;
-
 function TSpell.AIRequestCastSpellExpense(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
 var
   Manager: TAIBudgetManager;
@@ -45234,14 +45162,12 @@ begin
   else
     Result := True;
 end;
-
 function P4BudgetMade(Manager: TAIBudgetManager; A1, A2, A3, A4, A5, A6: Integer): Boolean; assembler;
 { needs: P5 BudgetExpenseMadeEx returns Boolean; 5577980F leaves AL for return. }
 asm
   POP EBP
   JMP TAIBudgetManager.BudgetExpenseMadeEx
 end;
-
 function TSpell.AICastSpellExpenseMade(Source: TAbstractUnit; Budget, Mana, Upkeep: Integer): Boolean;
 var
   Manager: TAIBudgetManager;
@@ -45259,20 +45185,16 @@ begin
   else
     Result := False;
 end;
-
 procedure TSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 begin end;
-
 function TSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
 asm
   XOR EAX, EAX
 end;
-
 class function TSpellTE.ClassID: Integer;
 begin
   Result := $21300;
 end;
-
 procedure TSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -45281,7 +45203,6 @@ begin
   Stream.rwByte(FEventPlayerIndex, 17);
   Stream.rwInteger(FEventMana, 18);
 end;
-
 procedure TSpellTE.Initialize(SpellID: Integer; PlayerIndex: Byte; SourceID, Mana: Integer);
 begin
   FEventSpellID := SpellID;
@@ -45289,7 +45210,6 @@ begin
   FEventPlayerIndex := PlayerIndex;
   FEventMana := Mana;
 end;
-
 function TSpellTE.GetSource: TAbstractUnit;
 asm
   MOV EDX, [AoWHSMap]
@@ -45298,7 +45218,6 @@ asm
   XCHG EDX, EAX
   CALL TUnitControl.FindUnit
 end;
-
 function TSpellTE.Validate(A1: THero): Boolean;
 { AL is Boolean. The original assumes the source supports THero's instant-cast API. }
 asm
@@ -45352,7 +45271,6 @@ asm
   POP ECX
   POP EBP
 end;
-
 function TSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 asm
   PUSH EBX
@@ -45374,14 +45292,12 @@ asm
   POP ESI
   POP EBX
 end;
-
 { These adapters retain byte coordinates while the P1 interface has Integer drafts. }
 function TUnitControlCallViewP4.FindUnitResult(ID: Integer): TAbstractUnit; assembler;
 { needs: P2 TUnitControl.FindUnit returns TAbstractUnit; 55779966. }
 asm
   JMP TUnitControl.FindUnit
 end;
-
 function TSpellTE.Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult;
 var
   Control: TUnitControlCallViewP4;
@@ -45401,7 +45317,6 @@ begin
   else
     Result := erDoneHalt;
 end;
-
 procedure TSpellTE.PlayDefaultCastEffects(A1: Integer; A2: Integer);
 { The draft A1/A2 are unused; the event's source provides player and location. }
 asm
@@ -45434,20 +45349,17 @@ asm
   POP EDX
   POP EBX
 end;
-
 constructor TSpellControl.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FRegisteredSpells := TList.Create;
 end;
-
 destructor TSpellControl.Destroy;
 begin
   UnregisterAll;
   FRegisteredSpells.Free;
   inherited Destroy;
 end;
-
 procedure TSpellControl.ReadWrite(Stream: Engine.TEStorageStream);
 var
   I: Integer;
@@ -45457,12 +45369,10 @@ begin
     if FRegisteredSpells[I] <> nil then
       Stream.rwEObject(TSpell(FRegisteredSpells[I]), I + 10);
 end;
-
 function TSpellControl.GetCount: Integer;
 begin
   Result := FRegisteredSpells.Count;
 end;
-
 function TSpellControl.GetSpell(Index: Integer): TSpell;
 { conflict: function TSpellControl.GetSpell(SpellID: Integer): TSpell; }
 begin
@@ -45472,7 +45382,6 @@ begin
   else
     Result := nil;
 end;
-
 procedure TSpellControl.RegisterSpell(Spell: TSpell);
 var
   ID: Integer;
@@ -45490,7 +45399,6 @@ begin
   else
     raise Exception.Create('Invalid SpellID (' + Spell.ClassName + ')');
 end;
-
 procedure TSpellControl.UnregisterSpell(Spell: TSpell);
 var
   ID: Integer;
@@ -45510,13 +45418,11 @@ begin
   else
     raise Exception.Create('Invalid SpellID (' + Spell.ClassName + ')');
 end;
-
 procedure TSpellControl.UnregisterSpellID(A1: Integer);
 begin
   if FRegisteredSpells.List^[A1] <> nil then
     UnregisterSpell(TSpell(FRegisteredSpells.List^[A1]));
 end;
-
 procedure TSpellControl.UnregisterAll;
 var
   I: Integer;
@@ -45525,7 +45431,6 @@ begin
     if FRegisteredSpells[I] <> nil then
       UnregisterSpell(TSpell(FRegisteredSpells[I]));
 end;
-
 procedure TSpellControl.ListSpells(SpellStrings: TStrings; Spheres: TMagicSpheres);
 var
   I: Integer;
@@ -45536,13 +45441,11 @@ begin
       if (List^[I] <> nil) and (TSpell(List^[I]).FMagicSphere in Spheres) then
         SpellStrings.AddObject(TSpell(List^[I]).FSpellName, TObject(I));
 end;
-
 function P4MapRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
 { needs: P1 TAoWHSMap.Random returns Integer; used at 55779F7A. }
 asm
   JMP TAoWHSMap.Random
 end;
-
 function TSpellControl.GetRandomSpell(MinLevel, MaxLevel: Integer; Spheres: TMagicSpheres): Integer;
 var
   Candidates: TIntegerList;
@@ -45564,19 +45467,16 @@ begin
     Result := 0;
   Candidates.Free;
 end;
-
 constructor TSpellList.Create;
 begin
   inherited Create;
   FSpells := TList.Create;
 end;
-
 destructor TSpellList.Destroy;
 begin
   FSpells.Free;
   inherited Destroy;
 end;
-
 function TSpellList.GetSpell(Index: Integer): TSpell;
 begin
   if (Index >= 0) and (Index < GetCount) then
@@ -45584,63 +45484,52 @@ begin
   else
     Result := nil;
 end;
-
 function TSpellList.GetCount: Integer;
 begin
   Result := FSpells.Count;
 end;
-
 procedure TSpellList.Add(Spell: TSpell);
 begin
   FSpells.Add(Spell);
 end;
-
 procedure TSpellList.Delete(Index: Integer);
 begin
   FSpells.Delete(Index);
 end;
-
 procedure TSpellList.Clear;
 begin
   FSpells.Clear;
 end;
-
 function P4CompareSpellNames(Item1, Item2: Pointer): Integer;
 begin
   Result := CompareText(TSpell(Item1).FSpellName, TSpell(Item2).FSpellName);
   if Result = 0 then
     Result := TSpell(Item1).FSpellLevel - TSpell(Item2).FSpellLevel;
 end;
-
 procedure TSpellList.SortOnName;
 begin
   FSpells.Sort(P4CompareSpellNames);
 end;
-
 function P4CompareSpellLevels(Item1, Item2: Pointer): Integer;
 begin
   Result := TSpell(Item1).FSpellLevel - TSpell(Item2).FSpellLevel;
   if Result = 0 then
     Result := CompareText(TSpell(Item1).FSpellName, TSpell(Item2).FSpellName);
 end;
-
 procedure TSpellList.SortOnLevel;
 begin
   FSpells.Sort(P4CompareSpellLevels);
 end;
-
 constructor TSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FCasterRefCount := 1;
 end;
-
 function TSpellCaster.AddRef: Integer;
 begin
   Inc(FCasterRefCount);
   Result := FCasterRefCount;
 end;
-
 function TSpellCaster.Release: Integer;
 var
   Count, ReleasedCount: Integer;
@@ -45652,7 +45541,6 @@ begin
     Destroy;
   Result := ReleasedCount;
 end;
-
 function TSpellCaster.GetSource: TAbstractUnit;
 { needs: P2 TUnitControl.FindUnit returns TAbstractUnit; 5577A140. }
 asm
@@ -45662,7 +45550,6 @@ asm
   XCHG EDX, EAX
   CALL TUnitControl.FindUnit
 end;
-
 function TSpellCaster.CanCast(var Reason: string): Boolean;
 { Reason is unused; AL reports whether the source still exists. }
 asm
@@ -45674,24 +45561,20 @@ asm
   TEST EAX, EAX
   SETNE AL
 end;
-
 function TSpellCaster.Cast: Boolean;
 asm
   MOV AL, 1
 end;
-
 constructor TCombatSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FCombatCasterRefCount := 1;
 end;
-
 function TCombatSpellCaster.AddRef: Integer;
 begin
   Inc(FCombatCasterRefCount);
   Result := FCombatCasterRefCount;
 end;
-
 function TCombatSpellCaster.Release: Integer;
 var
   Count, ReleasedCount: Integer;
@@ -45703,12 +45586,10 @@ begin
     Destroy;
   Result := ReleasedCount;
 end;
-
 class function TSpellCastEventLog.ClassID: Integer;
 begin
   Result := $202EF;
 end;
-
 function TSpellCastEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 var
   Show: Boolean;
@@ -45728,14 +45609,12 @@ begin
   end;
   Result := False;
 end;
-
 procedure TSpellCastEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
   Stream.rwInteger(FUnitID, 20);
   Stream.rwInteger(FSpellID, 21);
 end;
-
 procedure TSpellCastEventLog.ViewLocation;
 var
   AUnit: TAbstractUnit;
@@ -45748,24 +45627,20 @@ begin
     CenterViewTo(X, Y, L);
   end;
 end;
-
 function TSpellCastEventLog.GetText: string;
 begin
   Result := Format(TranslateRStr(P4XCastingReadyRStr), [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
 end;
-
 constructor TUnitSpellCaster.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FTargetUnits := TUnitUserList.Create(nil);
 end;
-
 destructor TUnitSpellCaster.Destroy;
 begin
   FTargetUnits.Free;
   inherited Destroy;
 end;
-
 procedure TUnitSpellCaster.SetSelection(Selection: Byte);
 asm
   PUSH EBX
@@ -45793,7 +45668,6 @@ asm
   POP ESI
   POP EBX
 end;
-
 function TUnitSpellCaster.GetSelectionCount: Integer;
 var
   Bits: Integer;
@@ -45807,7 +45681,6 @@ begin
     Bits := Bits shr 1;
   end;
 end;
-
 function TUnitSpellCaster.GetRequiredMana: Integer;
 var
   Hero: THeroCastingViewP4;
@@ -45824,7 +45697,6 @@ begin
   else
     Result := -1;
 end;
-
 function TUnitSpellCaster.GetRequiredDays: Integer;
 var
   Hero: TCastingPointsReturnViewP4;
@@ -45847,9 +45719,9 @@ begin
   else
     Result := 0;
 end;
-
 function TUnitSpellCaster.CanCast(var Reason: string): Boolean;
 var Hero: THero; Mana: Integer;
+{ conflict: Caster: THero; }
 begin
   Hero := THero(AoWHSMap.FUnitControl.FindUnit(FCasterSourceID));
   if (Hero <> nil) and not (usKilled in Hero.FUnitStatus) then
@@ -45870,7 +45742,7 @@ begin
         else
         begin
           Result := False;
-          Reason := TranslateRStr(NotEnoughCastingPointsRStr);
+          Reason := TranslateRStr(P2NotEnoughCastingPointsRStr);
         end;
       end
       else Result := True
@@ -45881,107 +45753,6 @@ begin
     end
   else Result := False;
 end;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function TUnitSpellCaster.Cast: Boolean;
 { Compatibility body: Boolean result in AL; source/selection validation and casting. }
 asm
@@ -46086,7 +45857,6 @@ asm
   POP ebp
   RET
 end;
-
 function TUnitSpellCaster.Valid: Boolean;
 { Original 5577A7F0 saves Self in EBX even though it is used only before FindUnit.
   Direct calls, separate Control/ID/This locals, ancestor/descendant casts, with
@@ -46100,12 +45870,10 @@ begin
   else
     Result := True;
 end;
-
 class function TUnitSpellCA.ClassID: Integer;
 begin
   Result := $202C3;
 end;
-
 procedure TUnitSpellCA.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -46115,37 +45883,31 @@ begin
   Stream.rwData(FSpellData, 8, 23);
   Stream.rwInteger(FMana, 24);
 end;
-
 procedure TUnitSpellCA.Execute(A1: TCombat);
 begin
   TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FSpellID)).ExecuteCA(A1, Self);
 end;
-
 function TUnitSpellCA.Play(A1: TCombatViewer): Boolean;
 begin
   Execute(A1.FCombat);
   Result := False;
 end;
-
 constructor TUnitSpellTE.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FTargetUnitIDs := TIntegerList.Create;
   FTargetUnits := TUnitUserList.Create(nil);
 end;
-
 destructor TUnitSpellTE.Destroy;
 begin
   FTargetUnitIDs.Free;
   FTargetUnits.Free;
   inherited Destroy;
 end;
-
 class function TUnitSpellTE.ClassID: Integer;
 begin
   Result := $21308;
 end;
-
 procedure TUnitSpellTE.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -46153,7 +45915,6 @@ begin
   Stream.rwData(FSpellData, 8, 31);
   Stream.rwByte(FTargetPlayer, 32);
 end;
-
 procedure TUnitSpellTE.Initialize(SpellID: Integer; Source: TAbstractUnit; Targets: TUnitList; Mana: Integer);
 var
   I: Integer;
@@ -46170,7 +45931,6 @@ begin
   end
   else FTargetPlayer := $FF;
 end;
-
 function TUnitSpellTE.Validate(A1: THero): Boolean;
 var
   I: Integer;
@@ -46197,7 +45957,6 @@ begin
     else Result := False;
   end;
 end;
-
 function TUnitSpellTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
   I: Integer;
@@ -46223,7 +45982,6 @@ begin
   end;
   Result := False;
 end;
-
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
@@ -46232,20 +45990,16 @@ begin
   FAllowMultipleTargets := True;
   FTargetRange := 0;
 end;
-
 procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
 begin
   inherited GetCombatInfo(Source, Info);
   Info.TargetTypes := [cttFriend];
   Info.Range := -1;
 end;
-
 function TUnitSpell.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;
 begin Result := False; end;
-
 function TUnitSpell.ValidTargetUnit(Source, Target: TAbstractUnit): Boolean;
 begin Result := True; end;
-
 procedure TUnitSpell.ValidateUnitSelection(Source: TAbstractUnit; Targets: TUnitList; var Selection: Byte);
 var
   I: Integer;
@@ -46256,7 +46010,6 @@ begin
       if not ValidTargetUnit(Source, Targets.GetUnit(I)) then
         Selection := Selection and not (Byte(1) shl I);
 end;
-
 procedure TUnitSpell.SetupUSC(Caster: TUnitSpellCaster; Source: TAbstractUnit; Targets: TUnitList);
 var
   I: Integer;
@@ -46273,7 +46026,6 @@ begin
     if ValidTargetUnit(Source, Caster.FTargetUnits.GetUnit(I)) then
       Caster.FValidSelection := Caster.FValidSelection or (Byte(1) shl I);
 end;
-
 function TUnitSpell.CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean;
 var
   Event: TUnitSpellTE;
@@ -46289,7 +46041,6 @@ begin
   end
   else Result := False;
 end;
-
 procedure TUnitSpell.OnValidateTarget(Control: TTargetSelectionControl; X, Y, L: Shortint; var Valid: Boolean);
 var
   Source: TAbstractUnit;
@@ -46310,7 +46061,6 @@ begin
   end
   else ResetTargetSelection;
 end;
-
 procedure TUnitSpell.OnTargetSelectionChange(Sender: TObject);
 var
   Control: TTargetSelectionControl;
@@ -46332,7 +46082,6 @@ begin
     end
   else ResetTargetSelection;
 end;
-
 procedure TUnitSpell.ResetTargetSelection;
 begin
   with AoWHSMap.FTargetSelection do
@@ -46341,7 +46090,6 @@ begin
     Deactivate;
   end;
 end;
-
 procedure TUnitSpell.SetupTargetSelection(Source: TAbstractUnit; Control: TTargetSelectionControl);
 var
   X, Y, L: Shortint;
@@ -46368,10 +46116,8 @@ begin
   Control.FValidTargetImage := AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(21).GetPreviewImage;
   Control.FInvalidTargetImage := AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(22).GetPreviewImage;
 end;
-
 function TUnitSpell.ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
 begin Result := not (asFullyConcealed in Party.FArmy.FStatus); end;
-
 procedure TUnitSpell.TargetPartySelected(Source: TAbstractUnit; Party: TArmyHS);
 var
   Caster: TUnitSpellCaster;
@@ -46381,7 +46127,6 @@ begin
   AoWHSMap.FCosmeticSurgeryEvents.TriggerNotifyEvents(Caster);
   Caster.Release;
 end;
-
 function TUnitSpell.Activate(A1: TAbstractUnit): Boolean;
 var
   Caster: TUnitSpellCaster;
@@ -46406,14 +46151,12 @@ begin
   end
   else Result := False;
 end;
-
 function TUnitSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
 begin
   if not (sctCombat in FSpellControlTypes) or not inherited CanActivateCombat(A1, A2) then
     Result := False
   else Result := True;
 end;
-
 function TUnitSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
 var
   Action: TUnitSpellCA;
@@ -46429,7 +46172,6 @@ begin
   end
   else Result := nil;
 end;
-
 function TUnitSpell.CreateCAEx(Source, Target: TCombatObject; Mana: Integer): TUnitSpellCA;
 begin
   if sctCombat in FSpellControlTypes then
@@ -46441,7 +46183,6 @@ begin
   end
   else Result := nil;
 end;
-
 procedure TUnitSpell.ExecuteCA(Combat: TCombat; Action: TUnitSpellCA);
 var
   Source, Target: TCombatObject;
@@ -46453,7 +46194,6 @@ begin
       if (Action.FMana <> 0) and (Byte(Combat.FStatus) and 1 <> 0) then
         AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, Action.FMana);
 end;
-
 function TUnitSpell.AIRetrieveOptimalTargetUnit(Source: TAbstractUnit; Targets: TUnitList; var Target: TAbstractUnit; var Priority: Integer): Boolean;
 var
   List: TDoubleItemList;
@@ -46476,7 +46216,6 @@ begin
   else Result := False;
   List.Free;
 end;
-
 procedure TUnitSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
 var
   Action: TAICastSpellAction;
@@ -46499,7 +46238,6 @@ begin
     end;
   end;
 end;
-
 function TUnitSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
 var
   Reason: string;
@@ -46535,11 +46273,9 @@ begin
   end
   else Result := False;
 end;
-
 { TResearchSpellAIPA: instance size 20; inherited $0C player control. }
 class function TResearchSpellAIPA.Priority: Integer;
 begin Result := 22; end;
-
 function TResearchSpellAIPA.Process: Boolean;
 var
   Choices: TDoubleItemList;
@@ -46570,17 +46306,13 @@ begin
   end;
   Result := False;
 end;
-
 { TAICastSpellActionList: instance size 12; inherited $08 children. }
 function TAICastSpellActionList.GetCastSpellActions(A1: Integer): TAICastSpellAction;
 begin Result := TAICastSpellAction(FChildren.List^[A1]); end;
-
 function P4CompareCastSpellPriority(Item1, Item2: Pointer): Integer;
 begin Result := TAICastSpellAction(Item2).FPriority - TAICastSpellAction(Item1).FPriority; end;
-
 procedure TAICastSpellActionList.SortOnPriority;
 begin FChildren.Sort(P4CompareCastSpellPriority); end;
-
 { TCastSpellAIPA: instance size 40; $14 state, $18 casting heroes,
   $1C idle heroes, $20 pending hero IDs, $24 candidate actions. }
 constructor TCastSpellAIPA.Create(AOwner: Engine.TECustomNode);
@@ -46591,7 +46323,6 @@ begin
   FPendingHeroes := TIntegerList.Create;
   FCastSpellActions := TAICastSpellActionList.Create(nil);
 end;
-
 destructor TCastSpellAIPA.Destroy;
 begin
   FIdleHeroes.Free;
@@ -46600,10 +46331,8 @@ begin
   FCastSpellActions.Free;
   inherited Destroy;
 end;
-
 class function TCastSpellAIPA.Priority: Integer;
 begin Result := 23; end;
-
 function TCastSpellAIPA.Activate: Boolean;
 var
   Player: TPlayer;
@@ -46624,7 +46353,6 @@ begin
     end;
   end;
 end;
-
 procedure TCastSpellAIPA.PrefetchCastSpellActions(Hero: THero);
 var
   Spells: TSpellList;
@@ -46637,7 +46365,6 @@ begin
       Spells.GetSpell(I).AIPrefetchCastSpellActions(Hero, FCastSpellActions);
   Spells.Free;
 end;
-
 function TCastSpellAIPA.CastingHeroesMax: Integer;
 var
   Player: TPlayer;
@@ -46645,7 +46372,6 @@ begin
   Player := FControl.FPlayer;
   Result := Player.FMagicControl.FMana div 250 + 1;
 end;
-
 procedure TCastSpellAIPA.ProcessStates;
 var
   Hero: THero;
@@ -46724,7 +46450,6 @@ begin
       else FState := -1;
   end;
 end;
-
 function TCastSpellAIPA.Process: Boolean;
 var
   Player: TPlayer;
@@ -46738,7 +46463,6 @@ begin
   end
   else Result := False;
 end;
-
 { TEnchantment: instance size 24; $08 ID, $0C source, $10 upkeep, $14 dispel resistance. }
 constructor TEnchantment.Create(AOwner: Engine.TECustomNode);
 begin
@@ -46748,16 +46472,12 @@ begin
   FSource := -1;
   FEnchantmentID := 0;
 end;
-
 function TEnchantment.GetName: string;
 begin Result := TranslateRStr(P4UndefinedRStr); end;
-
 function TEnchantment.GetBinding: string;
 begin Result := TranslateRStr(NoneRStr); end;
-
 procedure TEnchantment.GetLocation(var A1, A2, A3: Shortint);
 begin A1 := -1; A2 := -1; A3 := -1; end;
-
 function TEnchantment.CenterToLocation: Boolean;
 var
   X, Y, L: Shortint;
@@ -46776,10 +46496,8 @@ begin
   end
   else Result := False;
 end;
-
 procedure TEnchantment.Select;
 begin CenterToLocation; end;
-
 procedure TEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -46788,7 +46506,6 @@ begin
   Stream.rwInteger(FUpkeep, 12);
   Stream.rwInteger(FEnchantmentID, 13);
 end;
-
 procedure TEnchantment.SetUpkeep(A1: Integer);
 begin
   if A1 <> FUpkeep then
@@ -46797,7 +46514,6 @@ begin
     if FSource > -1 then AoWHSMap.FPlayers.GetPlayers(FSource).FMagicControl.Update;
   end;
 end;
-
 procedure TEnchantment.SetSource(Player: Shortint);
 begin
   if Player <> FSource then
@@ -46807,24 +46523,19 @@ begin
     if FSource > -1 then AoWHSMap.FPlayers.GetPlayers(FSource).FMagicControl.RegisterEnchantment(Self);
   end;
 end;
-
 function TEnchantment.Dispel: Boolean;
 begin Result := False; end;
-
 function TEnchantment.DispelChance(A1: Integer): Integer;
 begin
   Result := A1 - FDispelResistance * 10 + 50;
   if Result < 10 then Result := 10;
   if Result > 90 then Result := 90;
 end;
-
 function TEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
-
 { TEnchantmentList: instance size 12; inherited $08 children. }
 function TEnchantmentList.GetEnchantments(A1: Integer): TEnchantment;
 begin Result := TEnchantment(FChildren.List^[A1]); end;
-
 function TEnchantmentList.IndexOfID(A1: Integer): Integer;
 begin
   Result := GetCount;
@@ -46835,7 +46546,6 @@ begin
   end;
   Result := -1;
 end;
-
 function TEnchantmentList.FindID(A1: Integer): TEnchantment;
 var
   Index: Integer;
@@ -46844,24 +46554,20 @@ begin
   if Index <> -1 then Result := TEnchantment(FChildren.List^[Index])
   else Result := nil;
 end;
-
 function TPowerSource.Name: string;
 begin
   Result := '';
 end;
-
 function TPowerSource.Power: Integer;
 asm
   XOR EAX, EAX
 end;
-
 procedure TPowerSource.GetLocation(var A1, A2, A3: Shortint);
 begin
   A1 := -1;
   A2 := -1;
   A3 := -1;
 end;
-
 procedure TPowerSource.CenterToLocation;
 { No explicit arguments, as confirmed by AoW.exe 0042D9D8. }
 asm
@@ -46892,31 +46598,25 @@ asm
   POP EDX
   POP EBX
 end;
-
 procedure TPowerSource.Select;
 begin end;
-
 function TPowerSourceList.GetItems(A1: Integer): TPowerSource;
 begin Result := TPowerSource(FChildren.List^[A1]); end;
-
 procedure P4TranslateInto(const S: string; var Dest: string); assembler;
 { needs: P1 TranslateRStr has a string result at EDX; 5577C2D4. }
 asm
   JMP TranslateRStr
 end;
-
 function TExternalPowerSource.Name: string;
 begin
   P4TranslateInto(P4ExternalPowerRStr, Result);
 end;
-
 function TExternalPowerSource.Power: Integer;
 { The external control's unmarked P1 fields retain their existing declaration. }
 asm
   MOV EAX, [EAX].TExternalPowerSource.FExternalPowerControl
   MOV EAX, [EAX + $1C]
 end;
-
 { TPlayerMagicEventLog: instance size 44; $18 mode, $1C location,
   $20 spell ID, $24 value, $28 enchantment name. }
 constructor TPlayerMagicEventLog.Create(AOwner: Engine.TECustomNode);
@@ -46924,10 +46624,8 @@ begin
   inherited Create(AOwner);
   FLocation.XYL := $FFFFFF;
 end;
-
 class function TPlayerMagicEventLog.ClassID: Integer;
 begin Result := $202F0; end;
-
 procedure TPlayerMagicEventLog.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -46937,7 +46635,6 @@ begin
   Stream.rwString(FEnchantmentName, 23);
   Stream.rwInteger(FLocation.XYL, 24);
 end;
-
 procedure TPlayerMagicEventLog.ViewLocation;
 var
   X: Shortint;
@@ -46949,7 +46646,6 @@ begin
     AoWHSMap.PlayCenterAnimation(FLocation.X, FLocation.Y, FLocation.L);
   end;
 end;
-
 function TPlayerMagicEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 var
   Show: Boolean;
@@ -46968,7 +46664,6 @@ begin
   if Show then Result := inherited Execute(Mode, Trigger, Done)
   else Result := False;
 end;
-
 function TPlayerMagicEventLog.GetText: string;
 begin
   case FMode of
@@ -46980,7 +46675,6 @@ begin
       else Result := Format(TranslateRStr(P4XRemovedRStr), [FEnchantmentName]);
   end;
 end;
-
 { TPlayerMagicControl: instance size 76; $08 next enchantment ID, $0C cheat,
   $10 player, $14 update count, $18 external mana, $1C external power,
   $20 external source, $24 mana, $28 spheres, $2C research percentage,
@@ -47005,7 +46699,6 @@ begin
   FSpheres := [msCosmos..msSecret];
   FNextEnchantmentID := 1;
 end;
-
 destructor TPlayerMagicControl.Destroy;
 begin
   try
@@ -47026,8 +46719,6 @@ begin
     { Original bug: cleanup errors are silently swallowed. }
   end;
 end;
-
-
 procedure TPlayerMagicControl.ReadWrite(Stream: Engine.TEStorageStream);
 begin
   inherited ReadWrite(Stream);
@@ -47043,13 +46734,11 @@ begin
   Stream.rwBool(FCheatEnabled, 29);
   Stream.rwInteger(FNextEnchantmentID, 30);
 end;
-
 function TPlayerMagicControl.GetCheatEnabled: Boolean;
 begin
   if FPlayer.FPlayerType = ptHuman then Result := FCheatEnabled
   else Result := False;
 end;
-
 procedure TPlayerMagicControl.SetActiveEnchantments(Value: TPlayerEnchantmentTypes);
 var
   I: Integer;
@@ -47059,7 +46748,6 @@ begin
     if I <> FPlayer.FPlayerIndex then
       AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.UpdateEnemyEnchantments;
 end;
-
 procedure TPlayerMagicControl.UpdateEnemyEnchantments;
 var
   I: Integer;
@@ -47077,10 +46765,8 @@ begin
         if petAirMastery in Magic.FActiveEnchantments then FEnemyEnchantments := FEnemyEnchantments + [petAirMastery];
       end;
 end;
-
 function TPlayerMagicControl.GetManaIncome: Integer;
 begin Result := GetNetPowerToMana; end;
-
 function TPlayerMagicControl.GetManaUpkeep: Integer;
 var
   I: Integer;
@@ -47090,7 +46776,6 @@ begin
     Inc(Result, FEnchantments.GetEnchantments(I).FUpkeep);
   Inc(Result, AoWHSMap.FGlobalMagicControl.GetEnchantmentUpkeep(FPlayer.FPlayerIndex));
 end;
-
 procedure TPlayerMagicControl.SetMana(A1: Integer);
 begin
   if A1 < 0 then A1 := 0;
@@ -47102,7 +46787,6 @@ begin
     Update;
   end;
 end;
-
 function TPlayerMagicControl.GetPower: Integer;
 var
   I: Integer;
@@ -47111,7 +46795,6 @@ begin
   for I := FPowerSources.GetCount - 1 downto 0 do
     Inc(Result, FPowerSources.GetItems(I).Power);
 end;
-
 procedure TPlayerMagicControl.OutOfMana(A1: Integer);
 var
   I, Index: Integer;
@@ -47141,12 +46824,10 @@ begin
   end;
   if A1 > 0 then AoWHSMap.FGlobalMagicControl.OutOfMana(Byte(FPlayer.FPlayerIndex), A1);
 end;
-
 procedure TPlayerMagicControl.RemoveEnchantments;
 begin
   while FEnchantments.GetCount <> 0 do ExecuteDispelEnchantment(FEnchantments.GetCount - 1);
 end;
-
 function TPlayerMagicControl.ValidateEnchantmentsUpkeep: Boolean;
 var
   Balance: Integer;
@@ -47155,7 +46836,6 @@ begin
   if (Balance < 0) and (GetManaUpkeep <> 0) then Result := False
   else Result := True;
 end;
-
 function TPlayerMagicControl.ExecuteSpellResearched(A1: Integer): Boolean;
 begin
   if FSpells.IndexOf(A1) = -1 then FSpells.Add(A1);
@@ -47166,7 +46846,6 @@ begin
   end;
   Result := True;
 end;
-
 procedure TPlayerMagicControl.NewTurn;
 var
   Kind: TSpellType;
@@ -47233,20 +46912,17 @@ begin
   SetMana(FMana);
   Update;
 end;
-
 procedure TPlayerMagicControl.SetSpheres(Value: TMagicSpheres);
 begin
   if (Value * [msEarth, msAir] <> [msEarth, msAir]) and
     (Value * [msFire, msWater] <> [msFire, msWater]) and
     (Value * [msLife, msDeath] <> [msLife, msDeath]) then FSpheres := Value;
 end;
-
 function TPlayerMagicControl.GetNetPower: Integer;
 begin
   Result := GetPower;
   if getPowerLeak in AoWHSMap.FGlobalMagicControl.FActiveEnchantments then Result := (Result + 1) div 2;
 end;
-
 function TPlayerMagicControl.GetNetPowerToMana: Integer;
 begin
   Result := GetNetPower - GetNetPowerToResearch;
@@ -50280,7 +49956,7 @@ begin
   N := GetCollectionCount(Collection);
   if N < FCollectionSize then
   begin
-    FUnits.Insert(N + Collection * FCollectionSize, UnitIndex);
+    FUnits[N + Collection * FCollectionSize] := UnitIndex;
     Result := True;
   end
   else Result := False;
@@ -50511,7 +50187,7 @@ function TUnitGFXResource.GetFaceImage: TLibraryImage;
 begin
   AddRef;
   if FFaceImageLibrary <> nil then
-    Result := FFaceImageLibrary.GetImage(FFaceIndex)
+    Result := FFaceImageLibrary.GetSafe(FFaceIndex)
   else Result := nil;
   Release;
 end;
@@ -50661,6 +50337,330 @@ function TUnitHS.GetYhx: Shortint;
 begin Result := TMapField(Owner).Yhx; end;
 function TUnitHS.GetLhx: Shortint;
 begin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   Assert(Owner <> nil, 'Onwer isn''t defined');
   Result := TMapField(Owner).Lhx;
 end;
@@ -52023,7 +52023,7 @@ end;
 function THero.GetLibraryName: string;
 begin
   Result := FLibraryName;
-  if Result = '' then Result := TranslateRStr(DefaultRStr);
+  if Result = '' then Result := TranslateRStr(SystemRStr);
 end;
 
 procedure THero.UpdateFromLibraryBegin;
@@ -52415,7 +52415,7 @@ var I, Total: Integer;
 begin
   Total := 0;
   for I := 1 to Level - 1 do
-    if I div 5 <= 5 then Inc(Total, P2HeroLevels[I div 5].Experience);
+    if I div 5 <= 5 then Inc(Total, HeroExperienceTable[I div 5].Experience);
   Result := Total;
 end;
 
@@ -52426,7 +52426,7 @@ begin
   Total := 0;
   Maximum := GetLevelMax;
   repeat
-    Inc(Total, P2HeroLevels[Level div 5].Experience);
+    Inc(Total, HeroExperienceTable[Level div 5].Experience);
     if Experience < Total then Break;
     Inc(Level);
   until Level >= Maximum;
@@ -52653,14 +52653,14 @@ begin
     if Level < GetLevelMax then
     begin
       if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU2) then
-        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 1))
+        SetExperience(GetExperience + (HeroExperienceTable[Level div 5].DailyExperience + 1))
       else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU3) then
-        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 2))
+        SetExperience(GetExperience + (HeroExperienceTable[Level div 5].DailyExperience + 2))
       else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU4) then
-        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 3))
+        SetExperience(GetExperience + (HeroExperienceTable[Level div 5].DailyExperience + 3))
       else if (FPlayer > 0) and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType = ptCPU5) then
-        SetExperience(GetExperience + (P2HeroLevels[Level div 5].Experience + 4))
-      else SetExperience(GetExperience + P2HeroLevels[Level div 5].Experience);
+        SetExperience(GetExperience + (HeroExperienceTable[Level div 5].DailyExperience + 4))
+      else SetExperience(GetExperience + HeroExperienceTable[Level div 5].DailyExperience);
       Level := GetLevel;
     end;
     if FLevel < Level then
@@ -57932,10 +57932,10 @@ end;
 procedure TSelectedArmy.SetCurrentMove(A1: Integer);
 begin
   if (FCurrentMove <> -1) and (GetArmyHS <> nil) then
-    AoWHSMap.Selection.Unselect(GetArmyHS);
+    AoWHSMap.Selection.TriggerDeselectEvent(GetArmyHS);
   FCurrentMove := A1;
   if (FCurrentMove <> -1) and (GetArmyHS <> nil) then
-    AoWHSMap.Selection.Select(GetArmyHS);
+    AoWHSMap.Selection.TriggerSelectEvent(GetArmyHS);
   UpdateSelectedUnitGFX;
 end;
 
@@ -58983,10 +58983,10 @@ begin
 end;
 
 procedure TItemList.LockChanged;
-begin BeginUpdate; end;
+begin inherited LockChanged; end;
 
 procedure TItemList.UnlockChanged;
-begin EndUpdate; end;
+begin inherited UnlockChanged; end;
 
 constructor TItemControl.Create(AOwner: Engine.TECustomNode);
 begin

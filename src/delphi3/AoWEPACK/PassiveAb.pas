@@ -1267,7 +1267,7 @@ end;
 constructor THighPrayerBlessingAbility.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  FAbilityName := TranslateRStr(HighPrayerRStr);
+  FAbilityName := TranslateRStr(HighPrayerBlessingRStr);
   FAbilityID := 100;
   FAbilityType := atEnhancement;
   FDurationMode := dmEntireCombat;

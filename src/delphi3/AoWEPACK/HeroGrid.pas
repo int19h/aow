@@ -117,7 +117,7 @@ begin
   DefaultColWidth := 155;
   DefaultRowHeight := 46;
   GrowDirection := ilVertical;
-  BltMode := TBltMode(2);
+  ScrollBars := ssVertical;
   FIndices := TIntegerList.Create;
   FStream := TMemoryStream.Create;
   FSort := 1;

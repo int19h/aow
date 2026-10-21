@@ -136,7 +136,7 @@ begin
   if Byte(TArmy(ArmyHS.FArmy).FPlayer) = 0 then Exit;
   if (Byte(TCrystalMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
     Byte(TArmy(ArmyHS.FArmy).FPlayer)) or
-    CrystalWatching(WorldMap^, GetXhx, GetYhx, GetLhx, 0) then
+    WorldMap^.Watching(GetXhx, GetYhx, GetLhx, 0) then
     PlaySample('SFX\EVENTS\MANA.WAV');
   with CrystalPlayer(TPlayerList(WorldMap^.FPlayers),
     Shortint(TArmy(ArmyHS.FArmy).FPlayer)) do
@@ -145,7 +145,7 @@ begin
   Log.FPlayer := Byte(TArmy(ArmyHS.FArmy).FPlayer);
   PString(@Log.FText)^ := SysUtils.Format(TranslateCrystalName(ManaCrystalsFoundRStr),
     [IntToStr(FAmount)]);
-  TCrystalLog(Log).Location(GetXhx, GetYhx, GetLhx);
+  Log.SetLocation(GetXhx, GetYhx, GetLhx);
   TEventLogbook(CrystalPlayer(TPlayerList(WorldMap^.FPlayers),
     Shortint(TArmy(ArmyHS.FArmy).FPlayer)).FEventLogbook).AddEvent(Log);
   Log.Release;

@@ -55,7 +55,7 @@ type
   PBlendTables = ^TLookupBlendTableCollection100;
 const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
-  BlendTables: PBlendTables = @GFXE.AlphaBlendTable;
+  BlendTables: PBlendTables = @GFXE.IntensityBlendTable;
 
 constructor TMagicSanctuaryOverlayHS.Create(AOwner: Engine.TECustomNode);
 begin

@@ -34,7 +34,7 @@ resourcestring
   HillNameRStr = 'Hill'; { original AoWE.HillRStr, RT_STRING $FFB8 }
 
 const
-  HillNameResource: PResStringRec = @HillNameRStr;
+  HillNameResource: PResStringRec = @AoWE.HillRStr;
 
 class function THillMO.ClassID: Integer;
 begin Result := $20168; end;

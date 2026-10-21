@@ -437,7 +437,7 @@ type
 procedure RegisterNetworkEngine(AEngine: TEngine);
 
 var
-  NetworkDebugID: Integer;
+  NetworkEngineDID: Integer;
 
 implementation
 
@@ -1750,7 +1750,7 @@ end;
 
 procedure RegisterNetworkEngine(AEngine: TEngine);
 begin
-  NetworkDebugID := AEngine.RegisterDebugID('Network Engine');
+  NetworkEngineDID := AEngine.RegisterDebugID('Network Engine');
   AEngine.RegisterEClasses([TTokenPackage, TPassTokenTE, TSyncTE]);
 end;
 

@@ -112,7 +112,7 @@ begin
   HitPointLbl.Caption := IntToStr(TUnitView(AUnit).GetHits);
   NamePnl.Caption := TUnitView(AUnit).GetName;
   AbilitiesMemo.Lines.Clear;
-  AlignmentPnl.Caption := FormatABI(TranslateABI(AlignmentXRStr),
+  AlignmentPnl.Caption := AoWE.Format(TranslateABI(AlignmentXRStr),
     [TranslateABI(AlignmentNames[TUnitView(AUnit).GetAlignment])]);
   AUnit.ListAbilities(AbilitiesMemo.Lines);
   MovesLbl.Caption := IntToStr(TUnitView(AUnit).GetMoves);
@@ -129,7 +129,7 @@ begin
   MovesLbl.Caption := IntToStr(PUnitResourceView(Resource)^.Moves);
   NamePnl.Caption := ResourceName(Resource);
   AbilitiesMemo.Lines.Clear;
-  AlignmentPnl.Caption := FormatABI(TranslateABI(AlignmentXRStr),
+  AlignmentPnl.Caption := AoWE.Format(TranslateABI(AlignmentXRStr),
     [TranslateABI(AlignmentNames[TAlignment(PUnitResourceView(Resource)^.Alignment)])]);
   PUnitResourceView(Resource)^.AbilityOwner.ListAbilities(AbilitiesMemo.Lines);
   Result := ShowModal;

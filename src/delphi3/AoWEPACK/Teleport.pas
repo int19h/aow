@@ -171,10 +171,10 @@ begin
     (TMapField(Msg.Param[1]).Lhx = FDestinationL) then
   begin
     if (not WorldMap^.FFogEnabled) or
-      TeleportVisible(WorldMap^, GetXhx, GetYhx,
-        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer, GetLhx) or
-      TeleportVisible(WorldMap^, FDestinationX, FDestinationY,
-        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer, FDestinationL) then
+      WorldMap^.VisibleForPlayer(GetXhx, GetYhx, GetLhx,
+        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) or
+      WorldMap^.VisibleForPlayer(FDestinationX, FDestinationY, FDestinationL,
+        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) then
       Sound.PlaySample('SFX\PLACES\TELEPORT.WAV');
     ShowTeleportAnimations;
   end;
@@ -272,7 +272,7 @@ begin
       else
       begin
         MessageText := SysUtils.Format(TranslateRStr(LoadResString(@TeleportNoWarRStr)),
-          [TranslateRStr(RaceNameTable^[TPlayerList(WorldMap^.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
+          [TranslateRStr(RaceNamesPluralRStr[TPlayerList(WorldMap^.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
         TAbstractAoWHSMap(WorldMap^).ShowMessage(MessageText);
         Result := False;
       end;

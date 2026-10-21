@@ -995,7 +995,7 @@ end;
 constructor TPestilenceStormSpell.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  FSpellName := TranslateRStr(PestilenceStormRStr);
+  FSpellName := TranslateRStr(PestilenceRStr);
   FSpellID := 9;
   FBaseManaCost := 5;
   FSpellLevel := 3;

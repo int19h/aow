@@ -465,7 +465,7 @@ begin
   try
     AoWEngine.StoreEObject(Stream, Package, nil);
     SendData(Stream.Memory, Stream.Size, Recipient);
-    AoWEngine.OutputDebugMessage(NetworkDebugID, 'SetupPackage Send (ID:' + IntToStr(Package.FMessageID) +
+    AoWEngine.OutputDebugMessage(NetworkEngineDID, 'SetupPackage Send (ID:' + IntToStr(Package.FMessageID) +
       '/Size:' + IntToStr(Stream.Size) + ') to ' + IntToStr(Recipient));
   finally
     Stream.Free;
@@ -516,14 +516,14 @@ begin
     Obj := AoWEngine.RetrieveEObject(Stream, nil);
     if Obj is TSetupPackage then
     begin
-      AoWEngine.OutputDebugMessage(NetworkDebugID, 'SetupPackage Received (ID:' + IntToStr(TSetupPackage(Obj).FMessageID) +
+      AoWEngine.OutputDebugMessage(NetworkEngineDID, 'SetupPackage Received (ID:' + IntToStr(TSetupPackage(Obj).FMessageID) +
         '/Size:' + IntToStr(Stream.Size) + ') from ' + IntToStr(SenderID));
       PackageReceived(TSetupPackage(Obj), SenderID);
     end;
     Obj.Free;
-  finally
-    Stream.Free;
+  except Stream.Free; raise;
   end;
+  Stream.Free;
 end;
 
 function TSetupControl.ValidateCompatibleVersion(Version: Integer): Boolean;
@@ -837,7 +837,7 @@ begin
       cmLocal: S := S + 'Local';
       cmRemote: S := S + 'Remote';
     end;
-    AoWEngine.OutputDebugMessage(NetworkDebugID, S);
+    AoWEngine.OutputDebugMessage(NetworkEngineDID, S);
   end;
 end;
 procedure TSetupControl.RemoveIndependentPlayers;

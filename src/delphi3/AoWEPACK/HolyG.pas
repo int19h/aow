@@ -264,7 +264,7 @@ begin
 end;
 
 class function THolyGroundResource.ResourceEditName: string;
-begin Result := TranslateRStr(HolyGroundsRStr); end;
+begin Result := TranslateRStr(HolyGroundRStr); end;
 
 class function THolyGroundResource.ClassID: Integer;
 begin Result := $20394; end;

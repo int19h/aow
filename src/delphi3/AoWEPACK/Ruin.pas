@@ -35,7 +35,7 @@ class function TRuin.ClassID: Integer;
 begin Result := $2039A; end;
 
 class function TRuinResource.ResourceEditName: string;
-begin Result := AoWE.TranslateRStr(RuinRStr); end;
+begin Result := AoWE.TranslateRStr(CastleRuinRStr); end;
 
 class function TRuinResource.ClassID: Integer;
 begin Result := $2039B; end;
