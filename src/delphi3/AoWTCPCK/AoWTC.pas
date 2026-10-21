@@ -1218,7 +1218,7 @@ begin
         end;
         Round.Free;
       end;
-    except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Melee Check', 0); end;
+    except MessageBox(0, 'Error during Melee Check', 'Error - TCAI ', 0); end;
     for AbilityIndex := 0 to Abilities.Count - 1 do begin
       Path.Clear;
       for I := 0 to BasePath.Count - 1 do Path.Add(BasePath[I]);
@@ -1452,7 +1452,7 @@ begin
               end;
             end;
           end;
-        except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Spell Check', 0); end;
+        except MessageBox(0, 'Error during Spell Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
       end else
         case AbilTypes[Ability] of
           fxTouch:
@@ -1504,7 +1504,7 @@ begin
                       CreateMove(aiTouch, X, Y, MultDEV(Value, I, 1), Ability, Spell, U, Target);
                     end;
                 end;
-              except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Touch Check', 0); end;
+              except MessageBox(0, 'Error during Touch Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
             end;
           fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxEffect, fxScreenNESW, fxScreenNS,
           fxRay, fxChain, fxSwarm, fxScreenSwarm, fxSacredWrath, fxSWComet, fxDispel,
@@ -1615,7 +1615,7 @@ begin
                     end;
                 end;
               end;
-            except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Ranged Check', 0); end;
+            except MessageBox(0, 'Error during Ranged Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
           end;
         end;
     end;
@@ -1768,7 +1768,7 @@ begin
                   end;
                 end;
               end;
-            except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Eval Enemies', 0); end;
+            except MessageBox(0, 'Error during Eval Enemies', PChar('Error - TCAI ' + U.FUnit.GetName), 0); end;
             Settings := TCombatMoveControlSettings.Create(nil);
             if U.FMovePoints > 0 then begin
               Settings.SetSourcePos(U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, 0);
@@ -1811,7 +1811,7 @@ begin
                   end;
                 end;
               end;
-            except on E: Exception do MessageBox(0, PChar('Error - TCAI ' + E.Message), 'Error during Eval Friends', 0); end;
+            except MessageBox(0, 'Error during Eval Friends', PChar('Error - TCAI ' + U.FUnit.GetName), 0); end;
             if Abilities.Count > 0 then
               for J := 0 to Units.Count - 1 do begin
                 Target := Units[J];
@@ -2306,9 +2306,9 @@ begin
   FUnitSelection.Unselect;
   AoWHSMap.FTokenManager.TokenExecuter.ActivateTC(FCurrentPlayer);
   if FPlayers.GetPlayers(FCurrentCombatPlayer).FPlayer = 0 then
-    ShowMessage(TranslateRStr(BeginRoundRStr) + ' ' + TranslateRStr(IndRStr))
-  else ShowMessage(TranslateRStr(BeginRoundRStr) + ' ' +
-    TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(FPlayers.GetPlayers(FCurrentCombatPlayer).FPlayer).FPlayerRace]));
+    ShowMessage(TranslateRStr(IndRStr) + ' ' + TranslateRStr(BeginRoundRStr))
+  else ShowMessage(TranslateRStr(RaceNamesPluralRStr[AoWHSMap.FPlayers.GetPlayers(FPlayers.GetPlayers(FCurrentCombatPlayer).FPlayer).FPlayerRace]) + ' ' +
+    TranslateRStr(BeginRoundRStr));
   if AoWHSMap.FPlayers.GetPlayers(FPlayers.GetPlayers(FCurrentCombatPlayer).FPlayer).FPlayerType = ptHuman then
     if AoWHSMap.FPlayerCommunicator.PCC.GetPlayers(FPlayers.GetPlayers(FCurrentCombatPlayer).FPlayer).ConnectionMode <> cmRemote then begin
       SetSeatedCombatPlayer(FCurrentCombatPlayer);

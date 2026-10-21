@@ -203,7 +203,7 @@ end;
 
 procedure RegisterCombatFire(AEngine: TEngine);
 begin
-  AEngine.RegisterEClasses([TCombatFire, TCombatFireResource]);
+  AEngine.RegisterEClasses([TCombatFireResource, TCombatFire]);
 end;
 
 initialization

@@ -7,7 +7,7 @@ unit CombatHex;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWHex, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWHex, AoWE, AoWTC;
 
 type
   TCombatHexagon = class;
@@ -175,10 +175,10 @@ begin
   if Msg.TerrainType in [0, 6, 14] then
       if Msg.TerrainType <> 14 then
         TAoWHSSet(FResource.Engine.HSSet).FCombatHexagons.Place(
-          AoWHSMap.MapContainer, GetXhx, GetYhx, GetLhx, Msg.TerrainType)
+          AoWCombatMap.MapContainer, GetXhx, GetYhx, GetLhx, Msg.TerrainType)
       else
         TAoWHSSet(FResource.Engine.HSSet).FCombatHexagons.Place(
-          AoWHSMap.MapContainer, GetXhx, GetYhx, GetLhx, 0);
+          AoWCombatMap.MapContainer, GetXhx, GetYhx, GetLhx, 0);
 end;
 
 class function TCombatHexagonResource.ClassID: Integer;

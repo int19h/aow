@@ -119,7 +119,7 @@ begin Result := TAoWHSSet(Engine.HSSet).FCombatHexagons; end;
 
 procedure RegisterIsometricCombatHexagon(AEngine: TEngine);
 begin
-  AEngine.RegisterEClasses([TIsometricCombatHexagonResource, TIsometricCombatHexagon]);
+  AEngine.RegisterEClasses([TIsometricCombatHexagon, TIsometricCombatHexagonResource]);
 end;
 
 initialization

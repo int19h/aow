@@ -392,7 +392,7 @@ begin
             end;
           ImageSequencer.CurrentSequenceIndex := Row - 1;
           Invalidate;
-          GetImageSequenceList.ReduceCount;
+          GetImageSequenceList.LinkToIL;
         end;
       end;
     finally
@@ -403,7 +403,7 @@ begin
   if (Key = Ord('X')) and (ssCtrl in Shift) then
     with ImageIndexSelector do
       for I := Selection.Top to Selection.Bottom do
-        GetImageSequenceList.Delete(I - 1, nil);
+        GetImageSequenceList.SetImageSequence(I - 1, nil);
 end;
 
 procedure TImageSequenceEditor.ChangeColorClick(Sender: TObject);

@@ -13,7 +13,7 @@ type
   { Declaration-only field type from Vcladdon.dpl (instance size 516). }
   TEditStringGrid = class(TStringGrid)
   private
-    F_External: array[0..15] of Byte;
+    F_External: array[0..15] of Byte; public procedure SetRowCount(Value: Integer);
   end;
 
   TUnitGFXResourceEditForm = class;
@@ -130,7 +130,7 @@ type
 implementation
 
 uses EUGFXGen, HSEdMod, SFXEdDlg;
-
+procedure TEditStringGrid.SetRowCount(Value: Integer); external 'VCLADDON.dpl' name 'EStrGrid.TEditStringGrid.SetRowCount@23EDC2EF';
 const
   DirectionNames: array[1..6] of string = ('U', 'U/R', 'D/R', 'D', 'D/L', 'U/L');
   ActionNames: array[0..4] of string = ('Stand Still', 'Move', 'Attack', 'Hit', 'Shadow');
@@ -160,7 +160,7 @@ begin
   FResource.AddRef;
   with ImageIndexSelector do
   begin
-    RowCount := 32;
+    SetRowCount(32);
     for I := 0 to 4 do
       for Direction := 1 to 6 do
         Cells[0, I * 6 + Direction - 1] := ActionNames[I] + ' (' + DirectionNames[Direction] + ')';

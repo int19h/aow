@@ -103,7 +103,7 @@ begin
               ImageIndex := Sequence.GetFrameIndex(AoWCombatMap.Frame, (Integer(Self) shr 2) and $FFFF);
               if ImageIndex <> -1 then
                 if not (msEditting in AoWCombatMap.Status) then
-                  AoWHSSet.FFlagControl.ShowFlagEx(
+                  AoWHSSet.FFlagControl.ShowStructureFlagEx(
                     XhpSurf + 21 + Sequence.dXshift, YhpSurf + Sequence.dYshift + 16,
                     GetXhx + AoWHSMap.Frame + GetYhx * 100, FFlagID, SurfaceDesc, False);
             end;
@@ -153,7 +153,7 @@ begin Result := $220512; end;
 
 procedure RegisterHouse(AEngine: TEngine);
 begin
-  AEngine.RegisterEClasses([THouse, THouseResource]);
+  AEngine.RegisterEClasses([THouseResource, THouse]);
 end;
 
 initialization

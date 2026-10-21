@@ -46,7 +46,7 @@ begin Result := $220510; end;
 
 procedure RegisterTownhall(AEngine: TEngine);
 begin
-  AEngine.RegisterEClasses([TTownhall, TTownhallResource]);
+  AEngine.RegisterEClasses([TTownhallResource, TTownhall]);
 end;
 
 

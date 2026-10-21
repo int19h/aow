@@ -1098,7 +1098,7 @@ begin
     HSMEdit.RoadControl := AoWHSSet.RoadControl;
     ScannerFloater.SetMap(AoWHSMap);
     if ScannerItem.Checked then ScannerFloater.ShowScanner;
-    if PlayerInfo.Checked then UnitFloater.Show;
+    if PlayerInfo.Checked then PlayerInfoFloater.Show;
   end
   else
   begin
@@ -1513,7 +1513,7 @@ procedure TMainForm.HSMEditSelectPlaceHS(Sender: TObject);
 var Control: TEObject;
 begin
   Control := HSMEdit.HSPlaceControl;
-  if (Control is THSMPlaceControl) or (Control = nil) then ResetToolButtons;
+  if (Control is TMapObjectResource) or (Control = nil) then ResetToolButtons;
   ClearSelectionButtons;
   if HSMEdit.HSPlaceControl = nil then SelectBtn.Down := True;
 end;
@@ -1525,7 +1525,7 @@ end;
 
 procedure TMainForm.ChangeTerrainBtnClick(Sender: TObject);
 begin
-  HSMEdit.SelectChangeTerrain(0);
+  HSMEdit.SetOverwrite(False);
 end;
 
 procedure TMainForm.uWaterBtnClick(Sender: TObject);
@@ -2088,7 +2088,7 @@ end;
 
 procedure TMainForm.BorderBtnClick(Sender: TObject);
 begin
-  HSMEdit.SelectChangeTerrain(15);
+  HSMEdit.SelectForceTerrain(15);
 end;
 
 procedure TMainForm.EditAnimationsClick(Sender: TObject);
