@@ -19,7 +19,9 @@ end;
   attacks and command ability data/commanded abilities are recovered.
   Command, dominate, charm, seduce, construction controls, spell-cast event logs,
   unit-spell combat actions and unit-spell token events are recovered.
-  Draft recovery next resumes at TUnitSpell (5577AC34).
+  Unit spells, research/casting AI, enchantments and player-magic logs are recovered.
+  Player-magic control is recovered through GetNetPowerToResearch.
+  Draft recovery next resumes at TPlayerMagicControl.ResearchTurns (5577CFB0).
   The base spell, spell events/control/list/casters and power sources are recovered.
   Compatibility declarations preserve calls to other packages' draft APIs; these
   adapters never create instances of their declaration-only views. }
@@ -91,6 +93,7 @@ const
   P4HealingDataClass: TEObjectClass = THealingAbilityData;
   P4DurationDataClass: TEObjectClass = TDurationAbilityData;
   P4MultiLevelDataClass: TEObjectClass = TMultiLevelAbilityData;
+  P4SelectionMasks: array[0..8] of Byte = (0, 1, 3, 7, 15, 31, 63, 127, 255);
   P4EmptySelection: Word = 0;
   P4EmptyDamageTypes: TDamageTypes = [];
   P4EmptyCombatModes: TCombatModes = [];
@@ -100,6 +103,11 @@ const
   P4UnitSelectionClass: TEObjectClass = TUnitUserList;
 
 resourcestring
+  P4XResearchedRStr = '%s researched';
+  P4XRemovedOutOfManaRStr = '%s removed (out of mana)';
+  P4XRemovedRStr = '%s removed';
+  P4UndefinedRStr = 'Undefined';
+  P4SelectTargetPartyForXRStr = 'Select target party for %s on map';
   P4CastXRStr = 'Cast %s';
   P4XCastingReadyRStr = '%s ready';
   P4RebuildXRStr = 'Rebuild %s';
@@ -7356,148 +7364,625 @@ begin
 end;
 
 constructor TUnitSpell.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FAIValue := -1;
+  FSpellType := stUnit;
+  FAllowMultipleTargets := True;
+  FTargetRange := 0;
+end;
 
 procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo);
-begin end;
+begin
+  inherited GetCombatInfo(Source, Info);
+  Info.TargetTypes := [cttFriend];
+  Info.Range := -1;
+end;
 
 function TUnitSpell.ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean;
 begin Result := False; end;
 
 function TUnitSpell.ValidTargetUnit(Source, Target: TAbstractUnit): Boolean;
-begin Result := False; end;
+begin Result := True; end;
 
-procedure TUnitSpell.ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TUnitSpell.ValidateUnitSelection(Source: TAbstractUnit; Targets: TUnitList; var Selection: Byte);
+var
+  I: Integer;
+begin
+  Selection := Selection and P4SelectionMasks[Targets.GetCount];
+  for I := 0 to Targets.GetCount - 1 do
+    if (Selection and (1 shl I)) <> 0 then
+      if not ValidTargetUnit(Source, Targets.GetUnit(I)) then
+        Selection := Selection and not (Byte(1) shl I);
+end;
 
-procedure TUnitSpell.SetupUSC(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+procedure TUnitSpell.SetupUSC(Caster: TUnitSpellCaster; Source: TAbstractUnit; Targets: TUnitList);
+var
+  I: Integer;
+begin
+  Caster.FCasterSourceID := Source.FUnitID;
+  Caster.FCasterSpellID := FSpellID;
+  for I := 0 to Targets.GetCount - 1 do
+    if not TArmy(Targets).GetUnitConcealedForPlayer(I, Source.FPlayer) then
+      Caster.FTargetUnits.AddUnit(Targets.GetUnit(I));
+  Caster.FTargetUnits.SortUnits;
+  Caster.FAllowMultipleTargets := FAllowMultipleTargets;
+  Caster.FValidSelection := 0;
+  for I := Caster.FTargetUnits.GetCount - 1 downto 0 do
+    if ValidTargetUnit(Source, Caster.FTargetUnits.GetUnit(I)) then
+      Caster.FValidSelection := Caster.FValidSelection or (Byte(1) shl I);
+end;
 
 function TUnitSpell.CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean;
-begin Result := False; end;
+var
+  Event: TUnitSpellTE;
+begin
+  ResetTargetSelection;
+  if not AoWHSMap.FPlayers.GetPlayers(Source.FPlayer).GetBusy then
+  begin
+    Event := TUnitSpellTE.Create(nil);
+    Event.Initialize(FSpellID, Source, Targets, THero(Source).CastingMana(Self));
+    AoWHSMap.FTokenManager.GetTokenControl(Source.FPlayer).AddEvent(Event);
+    Event.Release;
+    Result := True;
+  end
+  else Result := False;
+end;
 
-procedure TUnitSpell.OnValidateTarget(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-begin end;
+procedure TUnitSpell.OnValidateTarget(Control: TTargetSelectionControl; X, Y, L: Shortint; var Valid: Boolean);
+var
+  Source: TAbstractUnit;
+  Party: TArmyHS;
+begin
+  Source := AoWHSMap.FUnitControl.FindUnit(Control.FSourceUnitID);
+  if Source <> nil then
+  begin
+    if AoWHSMap.Visible(X, Y, L, 0) then
+    begin
+      Party := TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetArmyHS;
+      if (Party <> nil) and ((Party.FArmy.FPlayer = Source.FPlayer) or
+        not TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).GetMagicShieldActive) then
+        Valid := ValidTargetParty(Source, Party)
+      else Valid := False;
+    end
+    else Valid := False;
+  end
+  else ResetTargetSelection;
+end;
 
-procedure TUnitSpell.OnTargetSelectionChange(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitSpell.OnTargetSelectionChange(Sender: TObject);
+var
+  Control: TTargetSelectionControl;
+  Source: TAbstractUnit;
+  Party: TArmyHS;
+begin
+  Control := TTargetSelectionControl(Sender);
+  Source := AoWHSMap.FUnitControl.FindUnit(Control.FSourceUnitID);
+  if Source <> nil then
+    case Control.FChange of
+      tscDeactivated: ResetTargetSelection;
+      tscSelected:
+        if Control.FTargetX <> -1 then
+        begin
+          Party := TAoWMapField(AoWHSMap.MapContainer.GetField(Control.FTargetX, Control.FTargetY, Control.FTargetL)).GetArmyHS;
+          if (Party <> nil) and ValidTargetParty(Source, Party) then
+            TargetPartySelected(Source, Party);
+        end;
+    end
+  else ResetTargetSelection;
+end;
 
 procedure TUnitSpell.ResetTargetSelection;
-begin end;
+begin
+  with AoWHSMap.FTargetSelection do
+  begin
+    FOnChange.Remove(OnTargetSelectionChange);
+    Deactivate;
+  end;
+end;
 
-procedure TUnitSpell.SetupTargetSelection(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitSpell.SetupTargetSelection(Source: TAbstractUnit; Control: TTargetSelectionControl);
+var
+  X, Y, L: Shortint;
+begin
+  Control.Initialize(Source);
+  Control.FTargetMode := Control.FTargetMode + [tmExternalFloater];
+  if FTargetRange <> -1 then
+  begin
+    Control.FTargetMode := Control.FTargetMode + [tmValidateDistance];
+    Control.FRange := FTargetRange;
+  end
+  else Control.FRange := 0;
+  Source.GetLocation(X, Y, L);
+  Control.FSourceX := X;
+  Control.FSourceY := Y;
+  Control.FSourceL := L;
+  Control.FOnChange.Add(OnTargetSelectionChange);
+  Control.FOnValidateTarget := OnValidateTarget;
+  Control.FText.Text := Format(TranslateRStr(P4SelectTargetPartyForXRStr), [FSpellName]);
+  Control.FTitle := FSpellName;
+  Control.FCancelText := TranslateRStr(CancelRStr);
+  Control.FSourceUnitID := Source.FUnitID;
+  Control.FSourceImage := AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(20).GetPreviewImage;
+  Control.FValidTargetImage := AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(21).GetPreviewImage;
+  Control.FInvalidTargetImage := AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(22).GetPreviewImage;
+end;
 
 function TUnitSpell.ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean;
-begin Result := False; end;
+begin Result := not (asFullyConcealed in Party.FArmy.FStatus); end;
 
-procedure TUnitSpell.TargetPartySelected(A1: Integer; A2: Integer);
-begin end;
+procedure TUnitSpell.TargetPartySelected(Source: TAbstractUnit; Party: TArmyHS);
+var
+  Caster: TUnitSpellCaster;
+begin
+  Caster := TUnitSpellCaster.Create(nil);
+  SetupUSC(Caster, Source, Party.FArmy);
+  AoWHSMap.FCosmeticSurgeryEvents.TriggerNotifyEvents(Caster);
+  Caster.Release;
+end;
 
 function TUnitSpell.Activate(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Caster: TUnitSpellCaster;
+  Reason: string;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, Reason) then
+  begin
+    if FTargetRange = 0 then
+    begin
+      Caster := TUnitSpellCaster.Create(nil);
+      SetupUSC(Caster, A1, TUnitList(A1.Owner));
+      AoWHSMap.FCosmeticSurgeryEvents.TriggerNotifyEvents(Caster);
+      Caster.Release;
+    end
+    else
+    begin
+      SetupTargetSelection(A1, AoWHSMap.FTargetSelection);
+      AoWHSMap.FTargetSelection.Activate;
+    end;
+    Result := True;
+  end
+  else Result := False;
+end;
 
 function TUnitSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
-begin Result := False; end;
+begin
+  if not (sctCombat in FSpellControlTypes) or not inherited CanActivateCombat(A1, A2) then
+    Result := False
+  else Result := True;
+end;
 
 function TUnitSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
-begin Result := nil; end;
+var
+  Action: TUnitSpellCA;
+begin
+  if sctCombat in FSpellControlTypes then
+  begin
+    Action := TUnitSpellCA.Create(nil);
+    Action.FSpellID := FSpellID;
+    Action.FSourceID := A1.FID;
+    Action.FTargetID := A2.FID;
+    if A3 then Action.FMana := FBaseManaCost;
+    Result := Action;
+  end
+  else Result := nil;
+end;
 
-procedure TUnitSpell.CreateCAEx(A1: Integer; A2: Integer; A3: Integer);
-begin end;
+function TUnitSpell.CreateCAEx(Source, Target: TCombatObject; Mana: Integer): TUnitSpellCA;
+begin
+  if sctCombat in FSpellControlTypes then
+  begin
+    Result := TUnitSpellCA.Create(nil);
+    Result.FSpellID := FSpellID;
+    Result.FSourceID := Source.FID;
+    Result.FTargetID := Target.FID;
+  end
+  else Result := nil;
+end;
 
 procedure TUnitSpell.ExecuteCA(Combat: TCombat; Action: TUnitSpellCA);
-begin end;
+var
+  Source, Target: TCombatObject;
+begin
+  Source := Combat.FCombatData.FindID(Action.FSourceID);
+  Target := Combat.FCombatData.FindID(Action.FTargetID);
+  if (Source is TCombatUnit) and (Target is TCombatUnit) then
+    if ExecuteSpell(TCombatUnit(Source).FUnit, TCombatUnit(Target).FUnit, Action.FMana, Action.FSpellData) then
+      if (Action.FMana <> 0) and (Byte(Combat.FStatus) and 1 <> 0) then
+        AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, Action.FMana);
+end;
 
-procedure TUnitSpell.AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer);
-begin end;
+function TUnitSpell.AIRetrieveOptimalTargetUnit(Source: TAbstractUnit; Targets: TUnitList; var Target: TAbstractUnit; var Priority: Integer): Boolean;
+var
+  List: TDoubleItemList;
+  I, Value: Integer;
+begin
+  List := TDoubleItemList.Create;
+  for I := 0 to Targets.GetCount - 1 do
+    if ValidTargetUnit(Source, Targets.GetUnit(I)) and (Targets.GetUnit(I).GetUnitType <> utMachine) then
+    begin
+      Value := Targets.GetUnit(I).GetUnitLevel + FAIValue;
+      List.AddAB(Integer(Targets.GetUnit(I)), Value);
+    end;
+  if List.Count <> 0 then
+  begin
+    List.SortDescendingItemB;
+    Target := TAbstractUnit(List[0].A);
+    Priority := List[0].B;
+    Result := True;
+  end
+  else Result := False;
+  List.Free;
+end;
 
 procedure TUnitSpell.AIPrefetchCastSpellActions(A1: TAbstractUnit; A2: TAICastSpellActionList);
-begin end;
+var
+  Action: TAICastSpellAction;
+  Reason: string;
+  Priority: Integer;
+  Target: TAbstractUnit;
+  Valid: Boolean;
+begin
+  if (FAIValue <> -1) and (A1.Owner is TArmy) then
+  begin
+    Valid := AIRequestCastSpellExpense(A1, FBaseManaCost, FManaUpkeep, 0);
+    Valid := Valid and (A1.Owner is TArmy);
+    Valid := Valid and THero(A1).CanCastSpell(FSpellID, Reason);
+    if Valid and AIRetrieveOptimalTargetUnit(A1, TUnitList(A1.Owner), Target, Priority) then
+    begin
+      Action := CreateCastSpellAction;
+      SetupCastSpellAction(A1, Action);
+      Action.FPriority := Priority;
+      Action.SetOwner(A2);
+    end;
+  end;
+end;
 
 function TUnitSpell.AIExecuteCastSpellAction(A1: TAbstractUnit): Boolean;
-begin Result := False; end;
+var
+  Reason: string;
+  Priority: Integer;
+  Target: TAbstractUnit;
+  Targets: TUnitList;
+  Event: TUnitSpellTE;
+begin
+  if THero(A1).CanCastSpell(FSpellID, Reason) then
+  begin
+    AICastSpellExpenseMade(A1, FBaseManaCost, FManaUpkeep, 0);
+    if THero(A1).CanCastSpellInstantly(FSpellID, FBaseManaCost, Reason) then
+    begin
+      Targets := TUnitList(A1.Owner);
+      if AIRetrieveOptimalTargetUnit(A1, Targets, Target, Priority) then
+      begin
+        Event := TUnitSpellTE.Create(nil);
+        Event.Initialize(FSpellID, A1, nil, FBaseManaCost);
+        Event.FTargetPlayer := Byte(A1.FPlayer);
+        Event.FTargetUnitIDs.Add(Target.FUnitID);
+        AoWHSMap.FTokenManager.GetTokenControl(A1.FPlayer).AddEvent(Event);
+        Event.Release;
+        Result := True;
+      end
+      else Result := False;
+    end
+    else if THero(A1).FCastingSpellID <> FSpellID then
+    begin
+      THero(A1).ExecuteStartCasting(FSpellID);
+      Result := True;
+    end
+    else Result := True;
+  end
+  else Result := False;
+end;
 
+{ TResearchSpellAIPA: instance size 20; inherited $0C player control. }
 class function TResearchSpellAIPA.Priority: Integer;
-begin Result := 0; end;
+begin Result := 22; end;
 
 function TResearchSpellAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Choices: TDoubleItemList;
+  Spells: TSpellList;
+  Value, I, Index: Integer;
+begin
+  if (FControl.FPlayer.FPlayerIndex <> 0) and (FControl.FPlayer.FMagicControl.FResearchSpellID = 0) then
+  begin
+    Spells := TSpellList.Create;
+    Choices := TDoubleItemList.Create;
+    FControl.FPlayer.FMagicControl.ListResearchSpells(Spells, [stCombat, stUnit, stGlobal]);
+    for I := 0 to Spells.GetCount - 1 do
+    begin
+      Value := Spells.GetSpell(I).FCastDuration * 100 + 100 -
+        FControl.FPlayer.FMagicControl.ResearchTurns(FControl.FPlayer.FMagicControl.GetNetPowerToResearch,
+          Spells.GetSpell(I).FResearchCost);
+      if Value <= 0 then Value := 1;
+      Choices.AddAB(Spells.GetSpell(I).FSpellID, Value);
+    end;
+    if Choices.Count <> 0 then
+    begin
+      RandSeed := AoWHSMap.Random($FFFFFF);
+      Index := Choices.RandomChanceItemB(0);
+      FControl.FPlayer.FMagicControl.ExecuteResearchSpell(Choices[Index].A);
+    end;
+    Choices.Free;
+    Spells.Free;
+  end;
+  Result := False;
+end;
 
-procedure TAICastSpellActionList.GetCastSpellActions(A1: Integer);
-begin end;
+{ TAICastSpellActionList: instance size 12; inherited $08 children. }
+function TAICastSpellActionList.GetCastSpellActions(A1: Integer): TAICastSpellAction;
+begin Result := TAICastSpellAction(FChildren.List^[A1]); end;
+
+function P4CompareCastSpellPriority(Item1, Item2: Pointer): Integer;
+begin Result := TAICastSpellAction(Item2).FPriority - TAICastSpellAction(Item1).FPriority; end;
 
 procedure TAICastSpellActionList.SortOnPriority;
-begin end;
+begin FChildren.Sort(P4CompareCastSpellPriority); end;
 
+{ TCastSpellAIPA: instance size 40; $14 state, $18 casting heroes,
+  $1C idle heroes, $20 pending hero IDs, $24 candidate actions. }
 constructor TCastSpellAIPA.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FCastingHeroes := TIntegerList.Create;
+  FIdleHeroes := TIntegerList.Create;
+  FPendingHeroes := TIntegerList.Create;
+  FCastSpellActions := TAICastSpellActionList.Create(nil);
+end;
 
 destructor TCastSpellAIPA.Destroy;
-begin end;
+begin
+  FIdleHeroes.Free;
+  FCastingHeroes.Free;
+  FPendingHeroes.Free;
+  FCastSpellActions.Free;
+  inherited Destroy;
+end;
 
 class function TCastSpellAIPA.Priority: Integer;
-begin Result := 0; end;
+begin Result := 23; end;
 
 function TCastSpellAIPA.Activate: Boolean;
-begin Result := False; end;
+var
+  Player: TPlayer;
+  Hero: THero;
+  I: Integer;
+begin
+  Result := inherited Activate;
+  Player := FControl.FPlayer;
+  if Player.FPlayerIndex <> 0 then
+  begin
+    FState := 0;
+    for I := 0 to Player.FHeroes.GetCount - 1 do
+    begin
+      Hero := Player.FHeroes.GetHero(I);
+      if Hero.GetAbilityEnabled(52) and (Hero.Owner <> nil) then
+        if Hero.FCastingSpellID = 0 then FIdleHeroes.Add(Hero.FUnitID)
+        else FCastingHeroes.Add(Hero.FUnitID);
+    end;
+  end;
+end;
 
-procedure TCastSpellAIPA.PrefetchCastSpellActions(A1: Integer);
-begin end;
+procedure TCastSpellAIPA.PrefetchCastSpellActions(Hero: THero);
+var
+  Spells: TSpellList;
+  I: Integer;
+begin
+  Spells := TSpellList.Create;
+  FControl.FPlayer.FMagicControl.ListSpells(Spells, [stUnit, stGlobal]);
+  for I := 0 to Spells.GetCount - 1 do
+    if Hero.CastingTurns(Spells.GetSpell(I)) < 8 then
+      Spells.GetSpell(I).AIPrefetchCastSpellActions(Hero, FCastSpellActions);
+  Spells.Free;
+end;
 
-procedure TCastSpellAIPA.CastingHeroesMax;
-begin end;
+function TCastSpellAIPA.CastingHeroesMax: Integer;
+var
+  Player: TPlayer;
+begin
+  Player := FControl.FPlayer;
+  Result := Player.FMagicControl.FMana div 250 + 1;
+end;
 
 procedure TCastSpellAIPA.ProcessStates;
-begin end;
+var
+  Hero: THero;
+  Done: Boolean;
+  I, Index: Integer;
+begin
+  case FState of
+    0:
+      if FCastingHeroes.Count <> 0 then
+      begin
+        FPendingHeroes.Assign(FCastingHeroes);
+        Inc(FState);
+      end
+      else FState := 2;
+    1:
+      if FPendingHeroes.Count <> 0 then
+      begin
+        Done := False;
+        Hero := THero(AoWHSMap.FUnitControl.FindUnit(FPendingHeroes[0]));
+        if (Hero <> nil) and (Hero.Owner <> nil) and (Byte(Hero.FUnitStatus) and $10 = 0) then
+        begin
+          if Hero.FCastingSpellID <> 0 then
+            Done := AoWHSSet.FSpellControl.GetSpell(Hero.FCastingSpellID).AIExecuteCastSpellAction(Hero);
+          if not Done then
+          begin
+            FIdleHeroes.Add(Hero.FUnitID);
+            FCastingHeroes.Remove(Hero.FUnitID);
+            Hero.ExecuteCancelCasting;
+          end;
+        end;
+        FPendingHeroes.Delete(0);
+      end
+      else Inc(FState);
+    2:
+      if (FCastingHeroes.Count < CastingHeroesMax) and (FIdleHeroes.Count <> 0) then
+      begin
+        FPendingHeroes.Assign(FIdleHeroes);
+        FCastSpellActions.Clear;
+        Inc(FState);
+      end
+      else FState := -1;
+    3:
+      if FPendingHeroes.Count <> 0 then
+      begin
+        Hero := THero(AoWHSMap.FUnitControl.FindUnit(FPendingHeroes[0]));
+        if (Hero <> nil) and (Byte(Hero.FUnitStatus) and $10 = 0) then
+          PrefetchCastSpellActions(Hero);
+        FPendingHeroes.Delete(0);
+      end
+      else Inc(FState);
+    4:
+      if FCastSpellActions.GetCount <> 0 then
+      begin
+        FCastSpellActions.SortOnPriority;
+        Done := False;
+        while not Done and (FCastSpellActions.GetCount <> 0) do
+        begin
+          I := 0;
+          while (I < FCastSpellActions.GetCount) and
+            (FCastSpellActions.GetCastSpellActions(I).FPriority >=
+              FCastSpellActions.GetCastSpellActions(0).FPriority * 0.75) do Inc(I);
+          Index := AoWHSMap.Random(I);
+          Hero := THero(AoWHSMap.FUnitControl.FindUnit(FCastSpellActions.GetCastSpellActions(Index).FSourceUnitID));
+          if (Hero <> nil) and (Byte(Hero.FUnitStatus) and $10 = 0) then
+            if AoWHSSet.FSpellControl.GetSpell(FCastSpellActions.GetCastSpellActions(Index).FSpellID).AIExecuteCastSpellAction(Hero) then
+            begin
+              FCastingHeroes.Add(Hero.FUnitID);
+              FIdleHeroes.Remove(Hero.FUnitID);
+              Done := True;
+            end;
+          FCastSpellActions.GetCastSpellActions(Index).Free;
+        end;
+        if Done then FState := 2
+        else FState := -1;
+      end
+      else FState := -1;
+  end;
+end;
 
 function TCastSpellAIPA.Process: Boolean;
-begin Result := False; end;
+var
+  Player: TPlayer;
+begin
+  Player := FControl.FPlayer;
+  if Player.FPlayerIndex <> 0 then
+  begin
+    while (FState <> -1) and (AoWHSMap.FAIExecuter.GetProcessTimeLeft > 0) and not Player.GetBusy do
+      ProcessStates;
+    Result := FState <> -1;
+  end
+  else Result := False;
+end;
 
+{ TEnchantment: instance size 24; $08 ID, $0C source, $10 upkeep, $14 dispel resistance. }
 constructor TEnchantment.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FDispelResistance := 10;
+  FUpkeep := 1;
+  FSource := -1;
+  FEnchantmentID := 0;
+end;
 
 function TEnchantment.GetName: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(P4UndefinedRStr); end;
 
 function TEnchantment.GetBinding: string;
-begin Result := ''; end;
+begin Result := TranslateRStr(NoneRStr); end;
 
 procedure TEnchantment.GetLocation(var A1, A2, A3: Shortint);
-begin end;
+begin A1 := -1; A2 := -1; A3 := -1; end;
 
-procedure TEnchantment.CenterToLocation;
-begin end;
+function TEnchantment.CenterToLocation: Boolean;
+var
+  X, Y, L: Shortint;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    if AoWHSMap.Visible(X, Y, L, 0) then
+    begin
+      AoWHSMap.CenterViewTo(X, Y, L);
+      AoWHSMap.PlayCenterAnimation(X, Y, L);
+    end
+    else
+      AoWHSMap.ShowMessage(Format(TranslateRStr(XIsOutOfSightRStr), [GetBinding]));
+    Result := True;
+  end
+  else Result := False;
+end;
 
 procedure TEnchantment.Select;
-begin end;
+begin CenterToLocation; end;
 
 procedure TEnchantment.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwByte(Byte(FDispelResistance), 10);
+  Stream.rwByte(Byte(FSource), 11);
+  Stream.rwInteger(FUpkeep, 12);
+  Stream.rwInteger(FEnchantmentID, 13);
+end;
 
 procedure TEnchantment.SetUpkeep(A1: Integer);
-begin end;
+begin
+  if A1 <> FUpkeep then
+  begin
+    FUpkeep := A1;
+    if FSource > -1 then AoWHSMap.FPlayers.GetPlayers(FSource).FMagicControl.Update;
+  end;
+end;
 
 procedure TEnchantment.SetSource(Player: Shortint);
-begin end;
+begin
+  if Player <> FSource then
+  begin
+    if FSource > -1 then AoWHSMap.FPlayers.GetPlayers(FSource).FMagicControl.UnregisterEnchantment(Self);
+    FSource := Player;
+    if FSource > -1 then AoWHSMap.FPlayers.GetPlayers(FSource).FMagicControl.RegisterEnchantment(Self);
+  end;
+end;
 
 function TEnchantment.Dispel: Boolean;
 begin Result := False; end;
 
 function TEnchantment.DispelChance(A1: Integer): Integer;
-begin Result := 0; end;
+begin
+  Result := A1 - FDispelResistance * 10 + 50;
+  if Result < 10 then Result := 10;
+  if Result > 90 then Result := 90;
+end;
 
 function TEnchantment.GetAIUpkeepPriority: Integer;
 begin Result := 0; end;
 
+{ TEnchantmentList: instance size 12; inherited $08 children. }
 function TEnchantmentList.GetEnchantments(A1: Integer): TEnchantment;
-begin Result := nil; end;
+begin Result := TEnchantment(FChildren.List^[A1]); end;
 
-procedure TEnchantmentList.IndexOfID(A1: Integer);
-begin end;
+function TEnchantmentList.IndexOfID(A1: Integer): Integer;
+begin
+  Result := GetCount;
+  while Result <> 0 do
+  begin
+    Dec(Result);
+    if TEnchantment(FChildren.List^[Result]).FEnchantmentID = A1 then Exit;
+  end;
+  Result := -1;
+end;
 
 function TEnchantmentList.FindID(A1: Integer): TEnchantment;
-begin Result := nil; end;
+var
+  Index: Integer;
+begin
+  Index := IndexOfID(A1);
+  if Index <> -1 then Result := TEnchantment(FChildren.List^[Index])
+  else Result := nil;
+end;
 
 function TPowerSource.Name: string;
 begin
@@ -7550,12 +8035,8 @@ end;
 procedure TPowerSource.Select;
 begin end;
 
-procedure TPowerSourceList.GetItems(A1: Integer);
-asm
-  MOV EAX, [EAX + 8]
-  MOV EAX, [EAX + 4]
-  MOV EAX, [EAX + EDX * 4]
-end;
+function TPowerSourceList.GetItems(A1: Integer): TPowerSource;
+begin Result := TPowerSource(FChildren.List^[A1]); end;
 
 function TExternalPowerSource.Name: string;
 begin
@@ -7569,88 +8050,351 @@ asm
   MOV EAX, [EAX + $1C]
 end;
 
+{ TPlayerMagicEventLog: instance size 44; $18 mode, $1C location,
+  $20 spell ID, $24 value, $28 enchantment name. }
 constructor TPlayerMagicEventLog.Create(AOwner: Engine.TECustomNode);
-begin end;
+begin
+  inherited Create(AOwner);
+  FLocation.XYL := $FFFFFF;
+end;
 
 class function TPlayerMagicEventLog.ClassID: Integer;
-begin Result := 0; end;
+begin Result := $202F0; end;
 
 procedure TPlayerMagicEventLog.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwData(FMode, 1, 20);
+  Stream.rwInteger(FSpellID, 21);
+  Stream.rwInteger(FValue, 22);
+  Stream.rwString(FEnchantmentName, 23);
+  Stream.rwInteger(FLocation.XYL, 24);
+end;
 
 procedure TPlayerMagicEventLog.ViewLocation;
-begin end;
+var
+  X: Shortint;
+begin
+  X := FLocation.X;
+  if X <> -1 then
+  begin
+    AoWHSMap.CenterViewTo(X, FLocation.Y, FLocation.L);
+    AoWHSMap.PlayCenterAnimation(FLocation.X, FLocation.Y, FLocation.L);
+  end;
+end;
 
 function TPlayerMagicEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-begin end;
+var
+  Show: Boolean;
+begin
+  case FMode of
+    pmemOutOfMana: Show := Trigger = etUser;
+    pmemSpellResearched:
+      if Trigger = etUser then Show := True
+      else if AoWHSMap.FPlayMode = pmTurn then
+        Show := wpSpellResearched in AoWEngine.FRegistry.GetClassicWindowPopupEvents
+      else Show := wpSpellResearched in AoWEngine.FRegistry.GetSimultaneousWindowPopupEvents;
+    pmemStartResearch: Show := True;
+  else Show := False;
+  end;
+  if Show then Result := inherited Execute(Mode, Trigger, Done)
+  else Result := False;
+end;
 
 function TPlayerMagicEventLog.GetText: string;
-begin Result := ''; end;
+begin
+  case FMode of
+    pmemSpellResearched:
+      Result := Format(TranslateRStr(P4XResearchedRStr), [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
+    pmemOutOfMana:
+      if AoWHSMap.FSeatedPlayer = FPlayer then
+        Result := Format(TranslateRStr(P4XRemovedOutOfManaRStr), [FEnchantmentName])
+      else Result := Format(TranslateRStr(P4XRemovedRStr), [FEnchantmentName]);
+  end;
+end;
 
+{ TPlayerMagicControl: instance size 76; $08 next enchantment ID, $0C cheat,
+  $10 player, $14 update count, $18 external mana, $1C external power,
+  $20 external source, $24 mana, $28 spheres, $2C research percentage,
+  $30 spells, $34 research spell, $38 points, $3C enchantments,
+  $40 power sources, $44/$45 active/enemy enchantments, $48 change events. }
 constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode);
-begin end;
+var
+  Source: TExternalPowerSource;
+begin
+  inherited Create(AOwner);
+  FSpells := TIntegerList.Create;
+  FChangedEvents := TEventList.Create;
+  FEnchantments := TEnchantmentList.Create(nil);
+  FPowerSources := TPowerSourceList.Create(nil);
+  Source := TExternalPowerSource.Create(nil);
+  FExternalPowerSource := Source;
+  Source.FExternalPowerControl := Self;
+  FPowerSources.AddChild(Source);
+  FResearchPointsLeft := 0;
+  FResearchSpellID := 0;
+  FResearchPercentage := 50;
+  FSpheres := [msCosmos..msSecret];
+  FNextEnchantmentID := 1;
+end;
 
 destructor TPlayerMagicControl.Destroy;
-begin end;
+begin
+  try
+    FSpells.Free;
+    FEnchantments.Free;
+    FChangedEvents.Free;
+    FPowerSources.RemoveChild(FExternalPowerSource);
+    if (FPowerSources.GetCount <> 0) and (msDestroying in AoWHSMap.Status) then
+      try
+        raise Exception.Create('oohps');
+      except
+        { Original bug: the diagnostic exception is swallowed. }
+      end;
+    FPowerSources.Free;
+    FExternalPowerSource.Free;
+    inherited Destroy;
+  except
+    { Original bug: cleanup errors are silently swallowed. }
+  end;
+end;
+
 
 procedure TPlayerMagicControl.ReadWrite(Stream: Engine.TEStorageStream);
-begin end;
+begin
+  inherited ReadWrite(Stream);
+  Stream.rwInteger(FMana, 20);
+  Stream.rwIntegerEx(FResearchPercentage, 50, 21);
+  Stream.rwStreamProc(22, FSpells.LoadFromStream, FSpells.SaveToStream);
+  Stream.rwInteger(FResearchSpellID, 23);
+  Stream.rwInteger(FResearchPointsLeft, 24);
+  Stream.rwEObject(FEnchantments, 25);
+  Stream.rwData(FActiveEnchantments, 1, 26);
+  Stream.rwInteger(FExternalMana, 27);
+  Stream.rwInteger(FExternalPower, 28);
+  Stream.rwBool(FCheatEnabled, 29);
+  Stream.rwInteger(FNextEnchantmentID, 30);
+end;
 
 function TPlayerMagicControl.GetCheatEnabled: Boolean;
 begin
-  if TPlayer(FPlayer).FPlayerType = ptHuman then
-    Result := Boolean(F_PlayerMagicControl_0C)
-  else
-    Result := False;
+  if FPlayer.FPlayerType = ptHuman then Result := FCheatEnabled
+  else Result := False;
 end;
 
 procedure TPlayerMagicControl.SetActiveEnchantments(Value: TPlayerEnchantmentTypes);
-begin end;
+var
+  I: Integer;
+begin
+  FActiveEnchantments := Value;
+  for I := AoWHSMap.FPlayers.GetCount - 1 downto 1 do
+    if I <> FPlayer.FPlayerIndex then
+      AoWHSMap.FPlayers.GetPlayers(I).FMagicControl.UpdateEnemyEnchantments;
+end;
 
 procedure TPlayerMagicControl.UpdateEnemyEnchantments;
-begin end;
+var
+  I: Integer;
+  Magic: TPlayerMagicControl;
+begin
+  FEnemyEnchantments := [];
+  for I := AoWHSMap.FPlayers.GetCount - 1 downto 1 do
+    if I <> FPlayer.FPlayerIndex then
+      if AoWHSMap.FPlayers.GetPlayers(I).FDiplomaticRelations.GetDiplomaticRelation(FPlayer.FPlayerIndex) = drWar then
+      begin
+        Magic := AoWHSMap.FPlayers.GetPlayers(I).FMagicControl;
+        if petWaterMastery in Magic.FActiveEnchantments then FEnemyEnchantments := FEnemyEnchantments + [petWaterMastery];
+        if petLifeMastery in Magic.FActiveEnchantments then FEnemyEnchantments := FEnemyEnchantments + [petLifeMastery];
+        if petDeathMastery in Magic.FActiveEnchantments then FEnemyEnchantments := FEnemyEnchantments + [petDeathMastery];
+        if petAirMastery in Magic.FActiveEnchantments then FEnemyEnchantments := FEnemyEnchantments + [petAirMastery];
+      end;
+end;
 
 function TPlayerMagicControl.GetManaIncome: Integer;
-begin Result := 0; end;
+begin Result := GetNetPowerToMana; end;
 
 function TPlayerMagicControl.GetManaUpkeep: Integer;
-begin Result := 0; end;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FEnchantments.GetCount - 1 downto 0 do
+    Inc(Result, FEnchantments.GetEnchantments(I).FUpkeep);
+  Inc(Result, AoWHSMap.FGlobalMagicControl.GetEnchantmentUpkeep(FPlayer.FPlayerIndex));
+end;
 
 procedure TPlayerMagicControl.SetMana(A1: Integer);
-begin end;
+begin
+  if A1 < 0 then A1 := 0;
+  if A1 <> FMana then
+  begin
+    FMana := A1;
+    if (AoWHSMap.FVictoryCondition = vcAccumulateMana) and (AoWHSMap.FVictoryMana <= FMana) then
+      AoWHSMap.GameOver(FPlayer.FPlayerIndex, goWon);
+    Update;
+  end;
+end;
 
-procedure TPlayerMagicControl.GetPower;
-begin end;
+function TPlayerMagicControl.GetPower: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := FPowerSources.GetCount - 1 downto 0 do
+    Inc(Result, FPowerSources.GetItems(I).Power);
+end;
 
 procedure TPlayerMagicControl.OutOfMana(A1: Integer);
-begin end;
+var
+  I, Index: Integer;
+  Log: TPlayerMagicEventLog;
+begin
+  while (A1 > 0) and (FEnchantments.GetCount <> 0) do
+  begin
+    I := FEnchantments.GetCount;
+    Index := I - 1;
+    while I <> 0 do
+    begin
+      Dec(I);
+      if FEnchantments.GetEnchantments(I).FUpkeep < FEnchantments.GetEnchantments(Index).FUpkeep then Index := I;
+    end;
+    if Index <> -1 then
+    begin
+      Dec(A1, FEnchantments.GetEnchantments(Index).FUpkeep);
+      Log := TPlayerMagicEventLog.Create(nil);
+      Log.FPlayer := FPlayer.FPlayerIndex;
+      Log.FMode := pmemOutOfMana;
+      FEnchantments.GetEnchantments(Index).GetLocation(Log.FLocation.X, Log.FLocation.Y, Log.FLocation.L);
+      Log.FEnchantmentName := FEnchantments.GetEnchantments(Index).GetName;
+      AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FEventLogbook.AddEvent(Log);
+      Log.Release;
+      ExecuteDispelEnchantment(Index);
+    end;
+  end;
+  if A1 > 0 then AoWHSMap.FGlobalMagicControl.OutOfMana(Byte(FPlayer.FPlayerIndex), A1);
+end;
 
 procedure TPlayerMagicControl.RemoveEnchantments;
-begin end;
+begin
+  while FEnchantments.GetCount <> 0 do ExecuteDispelEnchantment(FEnchantments.GetCount - 1);
+end;
 
-procedure TPlayerMagicControl.ValidateEnchantmentsUpkeep;
-begin end;
+function TPlayerMagicControl.ValidateEnchantmentsUpkeep: Boolean;
+var
+  Balance: Integer;
+begin
+  Balance := FMana + GetManaIncome - GetManaUpkeep;
+  if (Balance < 0) and (GetManaUpkeep <> 0) then Result := False
+  else Result := True;
+end;
 
-procedure TPlayerMagicControl.ExecuteSpellResearched(A1: Integer);
-begin end;
+function TPlayerMagicControl.ExecuteSpellResearched(A1: Integer): Boolean;
+begin
+  if FSpells.IndexOf(A1) = -1 then FSpells.Add(A1);
+  if A1 = FResearchSpellID then
+  begin
+    FResearchPointsLeft := 0;
+    FResearchSpellID := 0;
+  end;
+  Result := True;
+end;
 
 procedure TPlayerMagicControl.NewTurn;
-begin end;
+var
+  Kind: TSpellType;
+  Candidates: TIntegerList;
+  I, Index: Integer;
+  Spell: TSpell;
+  Log: TPlayerMagicEventLog;
+begin
+  if (AoWHSMap.FDay = 1) and (FPlayer.FPlayerIndex <> 0) and
+    ((AoWHSMap.FGameType <> gtCampaign) or (FSpells.Count = 0)) then
+  begin
+    Candidates := TIntegerList.Create;
+    for Kind := Low(TSpellType) to High(TSpellType) do
+    begin
+      Candidates.Clear;
+      for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
+      begin
+        Spell := AoWHSSet.FSpellControl.GetSpell(I);
+        if (Spell <> nil) and (FSpells.IndexOf(I) = -1) and (Spell.FSpellType = Kind) and
+          ((Spell.FMagicSphere = msCosmos) or (FPlayer.FLeader.GetSpherePicks(Spell.FMagicSphere) > 0)) and
+          (Spell.FSpellLevel = 1) then Candidates.Add(I);
+      end;
+      if Candidates.Count > 0 then
+      begin
+        Index := AoWHSMap.Random(Candidates.Count);
+        FSpells.Add(Candidates[Index]);
+      end;
+    end;
+    Candidates.Free;
+  end;
+  if FResearchSpellID <> 0 then
+  begin
+    if FSpells.IndexOf(FResearchSpellID) = -1 then
+    begin
+      Dec(FResearchPointsLeft, GetNetPowerToResearch);
+      if FResearchPointsLeft <= 0 then
+      begin
+        if FResearchPointsLeft < 0 then Inc(FMana, Abs(FResearchPointsLeft));
+        Log := TPlayerMagicEventLog.Create(nil);
+        Log.FPlayer := FPlayer.FPlayerIndex;
+        Log.FMode := pmemSpellResearched;
+        Log.FSpellID := FResearchSpellID;
+        FPlayer.FEventLogbook.AddEvent(Log);
+        ExecuteSpellResearched(FResearchSpellID);
+        if (FPlayer.FPlayerIndex = AoWHSMap.FSeatedPlayer) and (FPlayer.FPlayerType = ptHuman) then
+          Log.Execute(False, etEvent, nil);
+        Log.Release;
+      end;
+    end
+    else
+    begin
+      FResearchSpellID := 0;
+      Inc(FMana, GetNetPowerToResearch);
+    end;
+  end
+  else Inc(FMana, GetNetPowerToResearch);
+  FMana := FMana + GetManaIncome - GetManaUpkeep;
+  if FMana < 0 then
+  begin
+    OutOfMana(-FMana);
+    FMana := 0;
+  end;
+  { Original bug: SetMana sees the value already stored and skips its victory check. }
+  SetMana(FMana);
+  Update;
+end;
 
-procedure TPlayerMagicControl.SetSpheres(A1: Word; A2: Integer);
-begin end;
+procedure TPlayerMagicControl.SetSpheres(Value: TMagicSpheres);
+begin
+  if (Value * [msEarth, msAir] <> [msEarth, msAir]) and
+    (Value * [msFire, msWater] <> [msFire, msWater]) and
+    (Value * [msLife, msDeath] <> [msLife, msDeath]) then FSpheres := Value;
+end;
 
-procedure TPlayerMagicControl.GetNetPower;
-begin end;
+function TPlayerMagicControl.GetNetPower: Integer;
+begin
+  Result := GetPower;
+  if getPowerLeak in AoWHSMap.FGlobalMagicControl.FActiveEnchantments then Result := (Result + 1) div 2;
+end;
 
-procedure TPlayerMagicControl.GetNetPowerToMana(A1: Integer; A2: Integer);
-begin end;
+function TPlayerMagicControl.GetNetPowerToMana: Integer;
+begin
+  Result := GetNetPower - GetNetPowerToResearch;
+  case FPlayer.FPlayerType of
+    ptCPU2: Result := Round(Result * 1.25);
+    ptCPU3: Result := Round(Result * 1.5);
+    ptCPU4: Result := Round(Result * 1.75);
+    ptCPU5: Result := Round(Result * 2.0);
+  end;
+end;
 
-procedure TPlayerMagicControl.GetNetPowerToResearch(A1: Integer; A2: Integer);
-begin end;
+function TPlayerMagicControl.GetNetPowerToResearch: Integer;
+begin Result := Round(GetNetPower * FResearchPercentage * 0.01); end;
 
-procedure TPlayerMagicControl.ResearchTurns(A1: Integer; A2: Integer);
-begin end;
+function TPlayerMagicControl.ResearchTurns(Power, Points: Integer): Integer;
+begin Result := 0; end;
 
 procedure TPlayerMagicControl.GetResearchTurnsLeft;
 begin end;
@@ -7841,8 +8585,8 @@ begin end;
 procedure TGlobalMagicControl.Update;
 begin end;
 
-procedure TGlobalMagicControl.GetEnchantmentUpkeep(A1: Integer);
-begin end;
+function TGlobalMagicControl.GetEnchantmentUpkeep(Player: Shortint): Integer;
+begin Result := 0; end;
 
 procedure TGlobalMagicControl.UpdateActiveEnchantments(A1: Integer; A2: Integer);
 begin end;

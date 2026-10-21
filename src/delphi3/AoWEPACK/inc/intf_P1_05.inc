@@ -22,7 +22,7 @@
     FText: TStrings; { $3C }
     FTitle: string; { $40 }
     FCancelText: string; { $44 }
-    F_TargetSelectionControl_48: Integer;
+    FSourceUnitID: Integer; { $48; 5577AE93 }
     F_TargetSelectionControl_4C: array[0..3] of Byte;
     FSourceImage: TLibraryImage; { $50 }
     FValidTargetImage: TLibraryImage; { $54 }

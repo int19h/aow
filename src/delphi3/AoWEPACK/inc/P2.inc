@@ -1241,7 +1241,7 @@ begin
   if GetAbilityEnabled(155) then
   begin
     Enchantment := TEnchantment(TUnitEnchantmentAbilityData(P2AbilityData(Self,155)).FEnchantment);
-    if Enchantment <> nil then Result := Enchantment.F_Enchantment_10
+    if Enchantment <> nil then Result := Enchantment.FUpkeep
     else begin Result := 0; Exit; end;
   end
   else Result := 0;
@@ -1399,7 +1399,7 @@ begin
     if GetAbilityEnabled(23) or GetAbilityEnabled(1) or GetAbilityEnabled(165) then
     begin
       Faster := (petAirMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments);
-      Slower := TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 4 <> 0;
+      Slower := Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments) and 4 <> 0;
       if Faster and not Slower then
       begin
         for Overlay := -1 to 11 do
@@ -1802,7 +1802,7 @@ begin
   begin
     if not (petLifeMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FActiveEnchantments) then
       ResetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 = 0 then
+    if Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments) and 16 = 0 then
       ResetLifeMasteryFear;
   end;
 end;
@@ -1826,7 +1826,7 @@ var
 begin
   Player := FPlayer;
   if Player > 0 then
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FEnemyEnchantments and 32 = 0 then
+    if Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),Player).FMagicControl).FEnemyEnchantments) and 32 = 0 then
       if GetAbilityEnabled(93) then
         if TDurationAbilityData(P2AbilityData(Self,93)).FSource = 1 then
           RemoveAbility(93);
@@ -1863,9 +1863,9 @@ begin
       SetEarthMasteryStoneSkin;
     if (petLifeMastery in TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FActiveEnchantments) then
       SetLifeMasteryBlessing;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 16 <> 0 then
+    if Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments) and 16 <> 0 then
       ExecuteLifeMasteryFearRole;
-    if TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 32 <> 0 then
+    if Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments) and 32 <> 0 then
       ExecuteDeathMasteryCurseRole;
   end;
 end;
@@ -1880,7 +1880,7 @@ begin
   GetLocation(Xhx,Yhx,Lhx);
   if ((Lhx <> 0) and not GetAbilityEnabled(39)) or
      ((Lhx = 0) and (FPlayer > 0) and
-       (TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments and 8 <> 0)) then
+       (Byte(TPlayerMagicControl(P2GetPlayers(TPlayerList(AoWHSMap.FPlayers),FPlayer).FMagicControl).FEnemyEnchantments) and 8 <> 0)) then
     Result := (Result + 1) shr 1;
 end;
 

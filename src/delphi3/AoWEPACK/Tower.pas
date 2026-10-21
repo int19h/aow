@@ -61,7 +61,7 @@ begin
   begin
     Result := 12;
     if (GetLhx <> 0) or ((FPlayer > 0) and
-      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments and 8 <> 0)) then
+      (Byte(AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments) and 8 <> 0)) then
       Result := (Result + 1) shr 1;
   end
   else Result := 4;

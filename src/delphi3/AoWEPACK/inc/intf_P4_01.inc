@@ -14,14 +14,15 @@
     Side: TCombatSideIndex; { $0C }
     F_0D: array[0..6] of Byte;
   end;
-  { TEnchantment (instance size 24, VMT 5570A98C; $08 ID, $0C source, $14 dispel resistance) }
+  { TEnchantment (instance size 24, VMT 5570A98C; $08 ID, $0C source,
+    $10 upkeep, $14 signed dispel resistance) }
   TEnchantment = class(TEObject)
   public
     FEnchantmentID: Integer; { $08 }
     FSource: Shortint;  { $0C }
     F_Enchantment_0D: array[0..2] of Byte;
-    F_Enchantment_10: Integer;
-    FDispelResistance: Byte;  { $14 }
+    FUpkeep: Integer; { $10 }
+    FDispelResistance: Shortint; { $14; 5577C1A0 }
     F_Enchantment_15: array[0..2] of Byte;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -31,9 +32,9 @@
     procedure SetSource(Player: Shortint); virtual;
     function GetAIUpkeepPriority: Integer; virtual;
     procedure GetLocation(var A1, A2, A3: Shortint); virtual;
-    procedure CenterToLocation; virtual;  { +064 draft }
+    function CenterToLocation: Boolean; virtual; { +064; 5577BFA4 }
     function Dispel: Boolean; virtual;
-    procedure Select; virtual;  { +06C draft }
+    procedure Select; virtual; { +06C; 5577C0B4 }
     function DispelChance(A1: Integer): Integer;
   end;
 
@@ -41,7 +42,7 @@
   TEnchantmentList = class(TENode)
   public
     function GetEnchantments(A1: Integer): TEnchantment;
-    procedure IndexOfID(A1: Integer);  { draft }
+    function IndexOfID(A1: Integer): Integer; { 5577C1D8 }
     function FindID(A1: Integer): TEnchantment;
   end;
 
@@ -58,15 +59,16 @@
     function Execute(TE: NetworkE.TTokenExecuter): NetworkE.TExecuteResult; override;
   end;
 
-  { TPlayerMagicEventLog (instance size 44, VMT 5570AD0C) }
+  { TPlayerMagicEventLog (instance size 44, VMT 5570AD0C; $18 mode,
+    $1C location, $20 spell ID, $24 value, $28 enchantment name) }
   TPlayerMagicEventLog = class(TEventLog)
   public
-    FMode: Byte; { $18 }
+    FMode: TPlayerMagicEventMode; { $18 }
     F_PlayerMagicEventLog_19: array[0..2] of Byte;
-    F_PlayerMagicEventLog_1C: Integer;
-    F_PlayerMagicEventLog_20: Integer;
-    F_PlayerMagicEventLog_24: Integer;
-    F_PlayerMagicEventLog_28: Integer;
+    FLocation: TXYL; { $1C }
+    FSpellID: Integer; { $20 }
+    FValue: Integer; { $24 }
+    FEnchantmentName: string; { $28 }
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function ClassID: Integer; override;
@@ -88,7 +90,7 @@
   { TExternalPowerSource (instance size 12, VMT 5570AEEC; $08 external power control) }
   TExternalPowerSource = class(TPowerSource)
   public
-    FExternalPowerControl: Integer;
+    FExternalPowerControl: TPlayerMagicControl; { $08 }
     function Name: string; override;
     function Power: Integer; override;
   end;
@@ -96,34 +98,38 @@
   { TPowerSourceList (instance size 12, VMT 5570AFD0) }
   TPowerSourceList = class(TENode)
   public
-    procedure GetItems(A1: Integer);  { draft }
+    function GetItems(A1: Integer): TPowerSource; { 5577CA19 }
   end;
 
-  { TPlayerMagicControl (instance size 76, VMT 5570B198) }
+  { TPlayerMagicControl (instance size 76, VMT 5570B198; $08 next ID,
+    $0C cheat, $10 player, $14 updates, $18/$1C external mana/power,
+    $20 external source, $24 mana, $28 spheres, $2C research percentage,
+    $30 spells, $34 research spell, $38 points, $3C enchantments,
+    $40 power sources, $44/$45 enchantment sets, $48 changed events) }
   TPlayerMagicControl = class(TEObject)
   public
-    F_PlayerMagicControl_08: Integer;
-    F_PlayerMagicControl_0C: Byte;
+    FNextEnchantmentID: Integer; { $08 }
+    FCheatEnabled: Boolean; { $0C }
     F_PlayerMagicControl_0D: array[0..2] of Byte;
     FPlayer: TPlayer; { $10 }
-    F_PlayerMagicControl_14: Integer;
-    F_PlayerMagicControl_18: Integer;
-    F_PlayerMagicControl_1C: Integer;
-    F_PlayerMagicControl_20: Integer;
+    FUpdateCount: Integer; { $14 }
+    FExternalMana: Integer; { $18 }
+    FExternalPower: Integer; { $1C }
+    FExternalPowerSource: TExternalPowerSource; { $20 }
     FMana: Integer; { $24 }
-    F_PlayerMagicControl_28: Word;
+    FSpheres: TMagicSpheres; { $28 }
     F_PlayerMagicControl_2A: array[0..1] of Byte;
     FResearchPercentage: Integer; { $2C }
     FSpells: TIntegerList; { $30 }
     FResearchSpellID: Integer; { $34 }
     FResearchPointsLeft: Integer; { $38 }
-    F_PlayerMagicControl_3C: Integer;
-    F_PlayerMagicControl_40: Integer;
+    FEnchantments: TEnchantmentList; { $3C }
+    FPowerSources: TPowerSourceList; { $40 }
     FActiveEnchantments: TPlayerEnchantmentTypes; { $44; 557EFE57 }
-    FEnemyEnchantments: Byte; { $45 }
+    FEnemyEnchantments: TPlayerEnchantmentTypes; { $45 }
     { conflict: FGlobalEnchantmentFlags: Byte; }
     F_PlayerMagicControl_46: array[0..1] of Byte;
-    F_PlayerMagicControl_48: Integer;
+    FChangedEvents: TEventList; { $48 }
     destructor Destroy; override;
     procedure ReadWrite(Stream: Engine.TEStorageStream); override;
     constructor Create(AOwner: Engine.TECustomNode); override;
@@ -134,17 +140,17 @@
     function GetManaIncome: Integer;
     function GetManaUpkeep: Integer;
     procedure SetMana(A1: Integer);
-    procedure GetPower;  { draft }
-    procedure OutOfMana(A1: Integer);  { draft }
-    procedure RemoveEnchantments;  { draft }
-    procedure ValidateEnchantmentsUpkeep;  { draft }
-    procedure ExecuteSpellResearched(A1: Integer);  { draft }
-    procedure NewTurn;  { draft }
-    procedure SetSpheres(A1: Word; A2: Integer);  { draft }
-    procedure GetNetPower;  { draft }
-    procedure GetNetPowerToMana(A1: Integer; A2: Integer);  { draft }
-    procedure GetNetPowerToResearch(A1: Integer; A2: Integer);  { draft }
-    procedure ResearchTurns(A1: Integer; A2: Integer);  { draft }
+    function GetPower: Integer; { 5577CA00 }
+    procedure OutOfMana(A1: Integer); { 5577CA34 }
+    procedure RemoveEnchantments; { 5577CB9C }
+    function ValidateEnchantmentsUpkeep: Boolean; { 5577CBC4 }
+    function ExecuteSpellResearched(A1: Integer): Boolean; { 5577CBF8 }
+    procedure NewTurn; { 5577CC2C }
+    procedure SetSpheres(Value: TMagicSpheres); { 5577CE60 }
+    function GetNetPower: Integer; { 5577CEC4 }
+    function GetNetPowerToMana: Integer; { 5577CEE4 }
+    function GetNetPowerToResearch: Integer; { 5577B829 }
+    function ResearchTurns(Power, Points: Integer): Integer; { 5577B839 }
     procedure GetResearchTurnsLeft;  { draft }
     procedure ValidResearchSpell(A1: Integer);  { draft }
     procedure ListResearchSpells(var List: TSpellList; SpellTypes: TSpellTypes);
@@ -259,7 +265,7 @@
     procedure EndUpdate;  { draft }
     procedure TriggerChangedEvent;
     procedure Update;  { draft }
-    procedure GetEnchantmentUpkeep(A1: Integer);  { draft }
+    function GetEnchantmentUpkeep(Player: Shortint): Integer; { 5577C9A0 }
     procedure UpdateActiveEnchantments(A1: Integer; A2: Integer);  { draft }
     function IndexOfID(A1: Integer): Integer;
     procedure ValidateEnchantmentID(A1: Integer);  { draft }

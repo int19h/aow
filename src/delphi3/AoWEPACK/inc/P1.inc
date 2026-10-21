@@ -4889,7 +4889,7 @@ begin
         if Spells.GetCount > 0 then
         begin
           MagicLog := TPlayerMagicEventLog.Create(nil);
-          MagicLog.FMode := 2;
+          MagicLog.FMode := pmemStartResearch;
           AoWHSMap.TriggerExecuteEventLog(MagicLog, False, nil);
           MagicLog.Release;
         end;
@@ -5498,7 +5498,7 @@ begin
           if Spells.GetCount > 0 then
           begin
             Log := TPlayerMagicEventLog.Create(nil);
-            TPlayerMagicEventLog(Log).FMode := 2;
+            TPlayerMagicEventLog(Log).FMode := pmemStartResearch;
             AoWHSMap.TriggerExecuteEventLog(Log, False, nil);
             Log.Release;
           end;
@@ -8191,7 +8191,7 @@ begin
   begin
     Result := 6;
     if (GetLhx <> 0) or ((FPlayer > 0) and
-      (AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments and 8 <> 0)) then
+      (Byte(AoWHSMap.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments) and 8 <> 0)) then
       Result := (Result + 1) shr 1;
   end
   else Result := 4;

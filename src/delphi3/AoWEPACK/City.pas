@@ -1787,7 +1787,7 @@ function TCity.VisibilityRange: Integer;
 begin
   Result := 6;
   if (GetLhx <> 0) or ((FPlayer > 0) and
-    (WorldMap^.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments and 8 <> 0)) then
+    (Byte(WorldMap^.FPlayers.GetPlayers(FPlayer).FMagicControl.FEnemyEnchantments) and 8 <> 0)) then
     Result := (Result + 1) shr 1;
 end;
 

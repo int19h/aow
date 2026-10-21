@@ -1031,7 +1031,9 @@
   public
     FTargetUnits: TUnitUserList; { $14 }
     FSelectionMask: Byte;
-    F_UnitSpellCaster_19: array[0..2] of Byte;
+    FAllowMultipleTargets: Boolean; { $19 }
+    FValidSelection: Byte; { $1A }
+    F_UnitSpellCaster_1B: Byte;
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     function CanCast(var Reason: string): Boolean; override;
@@ -1077,7 +1079,8 @@
     function Play(A1: TCombatViewer): Boolean; override;
   end;
 
-  { TUnitSpell (instance size 68, VMT 55723590) }
+  { TUnitSpell (instance size 68, VMT 55723590;
+    $34 multiple targets, $38 range, $3C dispel resistance, $40 AI value) }
   TUnitSpell = class(TSpell)
   public
     FAllowMultipleTargets: Boolean; { $34 }
@@ -1094,19 +1097,19 @@
     function CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction; override;
     procedure GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); override;
     function ValidTargetUnit(Source, Target: TAbstractUnit): Boolean; virtual;  { +09C }
-    procedure ValidateUnitSelection(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A0 draft }
-    procedure SetupUSC(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0A4 draft }
+    procedure ValidateUnitSelection(Source: TAbstractUnit; Targets: TUnitList; var Selection: Byte); virtual; { +0A0; 5577ACB0 }
+    procedure SetupUSC(Caster: TUnitSpellCaster; Source: TAbstractUnit; Targets: TUnitList); virtual; { +0A4; 5577AD34 }
     function CastSpell(Source: TAbstractUnit; Targets: TUnitList): Boolean; virtual; { +0A8 }
     function ValidTargetParty(Source: TAbstractUnit; Party: TArmyHS): Boolean; virtual; { +0AC }
-    procedure TargetPartySelected(A1: Integer; A2: Integer); virtual;  { +0B0 draft }
+    procedure TargetPartySelected(Source: TAbstractUnit; Party: TArmyHS); virtual; { +0B0; 5577B1DC }
     function ExecuteSpell(Source, Target: TAbstractUnit; Mana: Integer; var Data: TUnitSpellData): Boolean; virtual;  { +0B4 }
-    procedure CreateCAEx(A1: Integer; A2: Integer; A3: Integer); virtual;  { +0B8 draft }
+    function CreateCAEx(Source, Target: TCombatObject; Mana: Integer): TUnitSpellCA; virtual; { +0B8; 5577B370 }
     procedure ExecuteCA(Combat: TCombat; Action: TUnitSpellCA); virtual; { +0BC }
-    procedure AIRetrieveOptimalTargetUnit(A1: Integer; A2: Integer; A3: Integer; A4: Integer); virtual;  { +0C0 draft }
-    procedure OnValidateTarget(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure OnTargetSelectionChange(A1: Integer; A2: Integer);  { draft }
-    procedure ResetTargetSelection;  { draft }
-    procedure SetupTargetSelection(A1: Integer; A2: Integer);  { draft }
+    function AIRetrieveOptimalTargetUnit(Source: TAbstractUnit; Targets: TUnitList; var Target: TAbstractUnit; var Priority: Integer): Boolean; virtual; { +0C0; 5577B460 }
+    procedure OnValidateTarget(Control: TTargetSelectionControl; X, Y, L: Shortint; var Valid: Boolean); { 5577AE80 }
+    procedure OnTargetSelectionChange(Sender: TObject); { 5577AF58 }
+    procedure ResetTargetSelection; { 5577AFF0 }
+    procedure SetupTargetSelection(Source: TAbstractUnit; Control: TTargetSelectionControl); { 5577B014 }
   end;
 
   { TResearchSpellAIPA (instance size 20, VMT 557236C4) }
@@ -1119,32 +1122,34 @@
   { TAICastSpellAction (instance size 28, VMT 557237A8) }
   TAICastSpellAction = class(TEObject)
   public
-    F_AICastSpellAction_08: array[0..15] of Byte;
+    FSourceUnitID: Integer; { $08 }
+    FSpellID: Integer; { $0C }
+    F_AICastSpellAction_10: array[0..7] of Byte;
     FPriority: Integer; { $18 }
   end;
 
   { TAICastSpellActionList (instance size 12, VMT 55723874) }
   TAICastSpellActionList = class(TENode)
   public
-    procedure GetCastSpellActions(A1: Integer);  { draft }
-    procedure SortOnPriority;  { draft }
+    function GetCastSpellActions(A1: Integer): TAICastSpellAction; { 5577B8D4 }
+    procedure SortOnPriority; { 5577B8EC }
   end;
 
   { TCastSpellAIPA (instance size 40, VMT 55723984) }
   TCastSpellAIPA = class(TAIPlayerAction)
   public
-    F_CastSpellAIPA_14: Integer;
-    F_CastSpellAIPA_18: Integer;
-    F_CastSpellAIPA_1C: Integer;
-    F_CastSpellAIPA_20: Integer;
-    F_CastSpellAIPA_24: Integer;
+    FState: Integer; { $14 }
+    FCastingHeroes: TIntegerList; { $18 }
+    FIdleHeroes: TIntegerList; { $1C }
+    FPendingHeroes: TIntegerList; { $20 }
+    FCastSpellActions: TAICastSpellActionList; { $24 }
     destructor Destroy; override;
     constructor Create(AOwner: Engine.TECustomNode); override;
     class function Priority: Integer; override;
     function Activate: Boolean; override;
     function Process: Boolean; override;
-    procedure PrefetchCastSpellActions(A1: Integer);  { draft }
-    procedure CastingHeroesMax;  { draft }
-    procedure ProcessStates;  { draft }
+    procedure PrefetchCastSpellActions(Hero: THero); { 5577BA54 }
+    function CastingHeroesMax: Integer; { 5577BAE8 }
+    procedure ProcessStates; { 5577BB00 }
   end;
 

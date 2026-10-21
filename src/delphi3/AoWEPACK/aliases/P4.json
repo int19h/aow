@@ -12,5 +12,6 @@
   "5577a060:44": "P4CompareSpellNames",
   "5577a09c:42": "P4CompareSpellLevels",
   "FUN_55766468": "P4UnitStrikeDV",
-  "FUN_55770b58": "TRebuildConstructionControl.GetStructure"
+  "FUN_55770b58": "TRebuildConstructionControl.GetStructure",
+  "5577b8e0:9": "P4CompareCastSpellPriority"
 }
