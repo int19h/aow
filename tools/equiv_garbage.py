@@ -40,10 +40,10 @@ def check_initialized(checker,code,side,low):
     key=(side,low,tuple((i.address,i.mnemonic,i.op_str,i.flow) for i in code))
     cache=getattr(checker,'garbage_cache',{});checker.garbage_cache=cache
     if key in cache:return cache[key]
-    reads=[]
-    entry=({'esp':0},frozenset(),False,False);incoming={0:entry};todo=[0];steps=0
+    reads=[];public_writes=set()
+    entry=({'esp':0},frozenset(),False,{});incoming={0:entry};todo=[0];steps=0
     def transfer(i,state,check=False):
-        regs,defined,escaped,maybe=state;regs=dict(regs);defined=set(defined)
+        regs,defined,escaped,stack=state;regs=dict(regs);defined=set(defined);stack=dict(stack)
         ins=code[i];oo=ins.operands;m=ins.mnemonic;sp=regs.get('esp')
         def address(op):
             if op.mem.segment or op.mem.index: return None
@@ -75,7 +75,10 @@ def check_initialized(checker,code,side,low):
                 if old is not None: pointer=old+oo[1].imm*(-1 if m=='sub' else 1)
         for k,op in enumerate(oo):
             if op.type==X.X86_OP_MEM and (fp_store or ins.raw.operands[k].access & e.CS.CS_AC_WRITE):
-                access(address(op),op.size,True)
+                at=address(op);access(at,op.size,True)
+                if at is None or at>=0:public_writes.add(ins.address)
+                stack={k:v for k,v in stack.items() if at is not None and not max(k,at)<min(k+4,at+op.size)}
+                if at is not None and m=='mov' and op.size==4 and oo[1].type==X.X86_OP_REG and ins.reg_name(oo[1].reg) in state[0]:stack[at]=state[0][ins.reg_name(oo[1].reg)]
         for reg in ins.raw.regs_access()[1]:
             name=ins.reg_name(reg);root=e.ALIASES.get(name,(name,))[0];regs.pop(root,None)
         if oo and oo[0].type==X.X86_OP_REG and pointer is not None:
@@ -86,6 +89,8 @@ def check_initialized(checker,code,side,low):
             if oo[0].type==X.X86_OP_REG and state[0].get(ins.reg_name(oo[0].reg),0)<0: escaped=True
             if sp is None: raise e.Unsupported('private initialization has unknown ESP')
             regs['esp']=sp-4;access(sp-4,4,True)
+            stack.pop(sp-4,None)
+            if oo[0].type==X.X86_OP_REG and ins.reg_name(oo[0].reg) in state[0]:stack[sp-4]=state[0][ins.reg_name(oo[0].reg)]
         elif m=='pop':
             if oo[0].type==X.X86_OP_REG and ins.reg_name(oo[0].reg)=='esp': raise e.Unsupported('private initialization has unknown ESP')
             if sp is None: raise e.Unsupported('private initialization has unknown ESP')
@@ -100,23 +105,23 @@ def check_initialized(checker,code,side,low):
             if sp is None or site is None: raise e.Unsupported('private initialization has unknown cleanup')
             if check and escaped and set(range(low,0))-defined:reads.append((i,min(set(range(low,0))-defined)))
             defined.update(range(low,0))  # Machine.call's common memory havoc.
-            maybe |= escaped or any(at<0 and any(('r',r,k) in site[0] for k in range(4)) for r,at in state[0].items() if r!='esp')
+            stack={}
             regs['esp']=sp+site[1]
             for r in ('eax','edx','ecx'): regs.pop(r,None)
         if m in ('add','sub','mov','lea') and oo[0].type==X.X86_OP_REG and ins.reg_name(oo[0].reg)=='esp' and regs.get('esp',0)<low:
             raise e.Unsupported('private allocation outside fixed prologue extent')
         if 'esp' not in regs and m!='ret': raise e.Unsupported('private initialization has unknown ESP')
-        return regs,frozenset(defined),escaped,maybe
+        return regs,frozenset(defined),escaped,stack
     while todo:
         i=todo.pop();steps+=1
         if steps>8192: raise e.Unsupported('private initialization fixed point budget')
         after=transfer(i,incoming[i])
         for j in e.successors(code,i):
             old=incoming.get(j)
-            merged=after if old is None else ({r:v for r,v in old[0].items() if after[0].get(r)==v},old[1]&after[1],old[2] or after[2],old[3] or after[3])
+            merged=after if old is None else ({r:v for r,v in old[0].items() if after[0].get(r)==v},old[1]&after[1],old[2] or after[2],{a:p for a,p in old[3].items() if after[3].get(a)==p})
             if old!=merged: incoming[j]=merged;todo.append(j)
     after={i:transfer(i,state,True) for i,state in incoming.items()}
-    info=dict(code=code,side=side,low=low,before=incoming,after=after,reads=reads)
+    info=dict(code=code,side=side,low=low,before=incoming,after=after,reads=reads,public_writes=sorted(public_writes))
     cache[key]=info
     return info
 
@@ -136,11 +141,12 @@ class CutGarbage:
             for reg,off in regs.items():st.regs[reg]=e.simp(st.h4_base+e.bv(off))
             for off in set(range(info['low'],0))-defined:
                 st.memory=e.z3.Store(st.memory,st.h4_base+e.bv(off),e.z3.FreshConst(e.BYTE,'private_garbage'))
-    def mask(self,memory,base,info,state):
+    def mask(self,memory,base,info,state,allowed=()):
         e=self.e
-        if state[2]:return memory
+        if state[2] and not allowed:return memory
         public=e.z3.Array('memory',e.BV32,e.BYTE)
         for off in set(range(info['low'],0))-state[1]:
+            if state[2] and off not in allowed:continue
             address=base+e.bv(off);memory=e.z3.Store(memory,address,e.z3.Select(public,address))
         return e.simp(memory)
     def step(self,machine,st,side,k):
@@ -149,7 +155,8 @@ class CutGarbage:
         for j in range(before,len(st.events)):
             event=st.events[j]
             if event[0]=='call':
-                event=list(event);event[6]=self.mask(event[6],st.h4_base,info,info['before'][k]);st.events[j]=tuple(event)
+                from equiv_summaries import frame_writes
+                event=list(event);event[6]=self.mask(event[6],st.h4_base,info,info['before'][k],frame_writes(self.checker,info,k));st.events[j]=tuple(event)
     def memories(self,states,tails):
         return [self.mask(st.memory,st.h4_base,info,info['after'][tail]) for st,info,tail in zip(states,self.infos,tails)]
     def failed(self,tails):
@@ -161,6 +168,8 @@ class CutGarbage:
                     i=todo.pop()
                     if i==tail:
                         self.checker.garbage_witness=dict(side=info['side'],pc=hex(info['code'][index].address),offset=offset,kind='callee' if info['code'][index].mnemonic=='call' else 'direct-read')
+                        site=self.checker.contracts.sites.get((info['side'],info['code'][index].address))
+                        if site and site[2].get('callee_read_first'):self.checker.garbage_witness['callee_read']=site[2]['callee_read_first']
                         return
                     if i not in seen:
                         seen.add(i);todo.extend(self.e.successors(info['code'],i))

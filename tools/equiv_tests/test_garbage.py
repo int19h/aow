@@ -53,12 +53,12 @@ class Garbage(unittest.TestCase):
     def test_nonconvergent_stack_and_late_allocation_fail_closed(self):
         for body in ('83ec0483ec04ebfb','9083ec048b042483c404c3'):
             c,f=build(body,body);self.assertFalse(c.check(f)[0].startswith('PROVEN'))
-    def test_opaque_callee_cannot_receive_uninitialized_private_bytes(self):
+    def test_checked_writer_may_receive_uninitialized_private_bytes(self):
         from .support import call
         prefix=bytes.fromhex('83ec0489e0')
         body=prefix+call(len(prefix))+bytes.fromhex('8b042483c404c3')
         c,f=build(body,body,extras_a=[(0x1100,bytes.fromhex('c70001000000c3'))],extras_b=[(0x1100,bytes.fromhex('c70001000000c3'))],bindings=[(0x401100,0x401100)])
-        self.assertEqual(('NOT PROVEN','uninitialized local passed to callee at 0x401005 (callee write not checked)'),c.check(f));self.assertIsNotNone(c.last_contracts['frame_garbage']['witness'])
+        self.assertTrue(c.check(f)[0].startswith('PROVEN'),c.check(f))
     def test_script_and_import_entry_points_share_model(self):
         import sys
         import equiv_garbage as g
@@ -86,7 +86,7 @@ class Garbage(unittest.TestCase):
         from .support import call
         prefix=bytes.fromhex('83ec0489e0');body=prefix+call(len(prefix))+bytes.fromhex('83c404c3')
         c,f=build(body,body,extras_a=[(0x1100,bytes.fromhex('8b00c3'))],extras_b=[(0x1100,bytes.fromhex('8b00c3'))],bindings=[(0x401100,0x401100)])
-        self.assertEqual(('NOT PROVEN','uninitialized local passed to callee at 0x401005 (callee write not checked)'),c.check(f));self.assertIsNotNone(c.last_contracts['frame_garbage']['witness'])
+        result=c.check(f);self.assertEqual('NOT PROVEN',result[0]);self.assertIn('callee read at 0x401100',result[1]);self.assertIsNotNone(c.last_contracts['frame_garbage']['witness'])
     def test_unlinked_exception_head_fails_closed(self):
         from .synthetic import fs_program
         c,f=build(fs_program(True),fs_program(False),names=[(0x401300,'System.@HandleAnyException')])

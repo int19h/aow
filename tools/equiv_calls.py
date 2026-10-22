@@ -11,6 +11,7 @@ class CallContracts:
         self.full = frozenset([('r',r,k) for r in self.e.REGS if r != 'esp' for k in range(4)]
                               + [('f',f) for f in self.e.FLAGS])
         self.cache, self.sites, self.dependencies = {}, {}, set()
+        self.summary_budgets={}
         self.h5, self.h1 = set(), set()
         self.ready = False
         self.observed_flags = {}
@@ -56,6 +57,7 @@ class CallContracts:
                 i = todo.pop(); visits += 1
                 if nested is not None: self.checker.inp.call_summaries.charge()
                 if visits > 512 or not 0 <= i < len(code):
+                    if visits>512 and nested is not None:self.checker.inp.call_summaries.budget('callee read transfer cap (512)')
                     return None
                 ins = code[i]
                 # REP is outside this bounded input scan; its default ES/DS
@@ -190,6 +192,7 @@ class CallContracts:
             i = todo.pop(); visits += 1
             if callee and summaries is not None: self.checker.inp.call_summaries.charge()
             if visits > 1024 or not 0 <= i < len(code):
+                if visits>1024 and callee and summaries is not None:self.checker.inp.call_summaries.budget('callee ABI transfer cap (1024)')
                 raise e.Unsupported('ABI fixed-point budget/incomplete CFG')
             before,slots,df = states[i]; regs,slots = dict(before),dict(slots)
             ins = code[i]; oo = ins.operands; m = ins.mnemonic

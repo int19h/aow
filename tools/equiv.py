@@ -317,8 +317,8 @@ class Addresses:
         self.import_locations = []
         self.vmts = []
         for side, img in enumerate((self.old, self.new)):
+            match.parse_imports_once(img)
             img.pe.parse_data_directories(directories=[
-                match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT'],
                 match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT'],
                 match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_BASERELOC']])
             imps = {}
@@ -1546,7 +1546,7 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
         states, todo, returns = {}, [(address, 0, None)], set()
         visits = 0
         def imported(cell):
-            img.pe.parse_data_directories(directories=[match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+            match.parse_imports_once(img)
             for module in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', ()):
                 for imp in module.imports:
                     if imp.address != cell or not imp.name:
@@ -2337,9 +2337,11 @@ class Checker:
             w=self.garbage_witness
             reason=('uninitialized local passed to callee at %s (callee write not checked)'%w['pc'] if w['kind']=='callee' else
                     'reads uninitialized private slot (side %d, %s, offset %d)'%(w['side'],w['pc'],w['offset']))
+            if w.get('callee_read'):reason+='; callee read at '+w['callee_read']['pc']+' ('+w['callee_read']['instruction']+')'
             result=('NOT PROVEN',reason)
         if result[0].startswith('PROVEN'):self.garbage_witness=None
         self.last_contracts['routes'] = self.routes
+        self.last_contracts['summary_budgets'] = sorted(self.contracts.summary_budgets.values(),key=lambda r:(r['side'],r['image'],r['hop'],r['target'])) if self.contracts else []
         self.last_contracts['frame_garbage'] = dict(independent=True, extents=getattr(self,'frame_lows',None), witness=self.garbage_witness, exception_whole_only=getattr(self,'exception_whole_only',False))
         if self.contracts and self.contracts.h1:
             self.last_contracts['hypotheses']['H1'] = dict(predicate='Incoming data pointers and public-loaded address words do not reach the private frame; these ordinary writes cannot alias its save slots. Array reasoning still checks real aliasing.',instances=sorted(self.contracts.h1))

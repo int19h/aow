@@ -29,9 +29,37 @@ class Summaries(unittest.TestCase):
     def test_budget_exhaustion_during_SCC_discards_partial_narrowing(self):
         a=b'\xf8'+relative(0x401101,0x401180)+b'\xc3'
         b=b'\xf8'+relative(0x401181,0x401100)+b'\xc3'
-        owner,g=self.graph(a,[(0x1180,b)]);g.INSTRUCTION_LIMIT=21
+        owner,g=self.graph(a,[(0x1180,b)]);g.INSTRUCTION_LIMIT=8
         self.assertIsNone(g.query(owner,0,0x401100))
         self.assertTrue(all(n['value'][0]==g.full and not n['valid'] for n in g.nodes.values()))
+    def test_node_caps_are_not_spent_by_other_queries(self):
+        results=[]
+        for order in ((0x401100,0x401180),(0x401180,0x401100)):
+            owner,g=self.graph(b'\x90'*21+b'\xc3',[(0x1180,bytes.fromhex('b801000000c3'))]);g.INSTRUCTION_LIMIT=20
+            answers={}
+            for target in order:
+                local=CallContracts(owner.checker);answers[target]=g.query(local,0,target)
+            results.append((answers,{n['target']:(n['work'],n['budget_outcomes']) for n in g.nodes.values()}))
+            self.assertIsNone(answers[0x401100]);self.assertIsNotNone(answers[0x401180]);self.assertGreater(g.work,20)
+        self.assertEqual(*results)
+    def test_SCC_cap_and_cached_evidence_do_not_depend_on_entry(self):
+        results=[]
+        for order in ((0x401100,0x401180),(0x401180,0x401100)):
+            a=b'\xf8'+relative(0x401101,0x401180)+b'\xc3';b=b'\xf8'+relative(0x401181,0x401100)+b'\xc3'
+            owner,g=self.graph(a,[(0x1180,b)]);g.SCC_ITERATION_LIMIT=1
+            for target in order:
+                local=CallContracts(owner.checker);self.assertIsNone(g.query(local,0,target))
+                self.assertTrue(all('read SCC iteration cap' in n['outcomes'] for n in local.summary_budgets.values()))
+            results.append({n['target']:(n['work'],n['budget_outcomes'],n['value'],n['h1']) for n in g.nodes.values()})
+        self.assertEqual(*results)
+    def test_explain_records_per_node_caps(self):
+        c,f=build(call(0)+b'\xc3',call(0)+b'\xc3',extras_a=[(0x1100,bytes.fromhex('b801000000c3'))],extras_b=[(0x1100,bytes.fromhex('b801000000c3'))],bindings=[(0x401100,0x401100)])
+        self.assertTrue(c.check(f)[0].startswith('PROVEN'))
+        self.assertEqual(2,len(c.last_contracts['summary_budgets']))
+        for n in c.last_contracts['summary_budgets']:
+            self.assertLessEqual(n['instructions'],n['instruction_limit']);self.assertEqual(['within caps'],n['outcomes'])
+        owner,g=self.graph(bytes.fromhex('ff10c3'));g.query(owner,0,0x401100)
+        self.assertTrue(all(not n['must_write_summary'] for n in owner.summary_budgets.values()))
     def test_unknown_child_uses_explicit_H3c_taint(self):
         owner,g=self.graph(relative(0x401100,0x500000)+b'\xc3')
         self.assertTrue(g.query(owner,0,0x401100)[3])
@@ -70,6 +98,16 @@ class Summaries(unittest.TestCase):
                 self.assertEqual(4,g.query(owner,0,0x401100)[1]);g.query(owner,0,0x401100)
                 self.assertEqual(1,load.call_count)
             self.assertIsNone(g.imported(other,0x402100,1))
+    def test_import_parser_budget_is_not_consumed_again_by_queries(self):
+        owner,g=self.graph(b'\xff\x25'+p32(0x402100));image=owner.checker.inp.old
+        image.pe.DIRECTORY_ENTRY_IMPORT=[NS(dll=b'other.dpl',imports=[NS(address=0x402100,name=b'leaf')])]
+        with patch.object(image.pe,'parse_data_directories',side_effect=AssertionError('reparsed imports')):
+            for _ in range(3):
+                self.assertEqual(0x401100,e.match.find_import_thunk(image,'leaf'))
+                g.imported(image,0x402100,0)
+        def metadata_only(*,directories):
+            self.assertNotIn(e.match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT'],directories)
+        with patch.object(image.pe,'parse_data_directories',side_effect=metadata_only):e.Addresses(owner.checker.inp)
     def test_nested_EBX_and_carry_mutants_reject(self):
         for helper,left,right in [('89d8c3','bb01000000','bb02000000'),('b80000000083d000c3','f8','f9')]:
             a=bytes.fromhex(left);b=bytes.fromhex(right)

@@ -6,6 +6,8 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    from .test_must_write import cases as must_write_cases
+    yield from must_write_cases()
     for changed in (False, True):
         a, ar = finally_program()
         b, br = finally_program(True, changed)

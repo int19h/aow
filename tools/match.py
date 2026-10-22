@@ -51,9 +51,17 @@ class Image:
         return self.lo <= v < self.hi
 
 
+def parse_imports_once(img):
+    # pefile's cumulative import-symbol counter is not reset by reparsing.
+    if not getattr(img.pe, '_cx_imports_parsed', False):
+        if not hasattr(img.pe, 'DIRECTORY_ENTRY_IMPORT'):
+            img.pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+        img.pe._cx_imports_parsed = True
+
+
 def find_import_thunk(img, name):
     """Address of the 'jmp [iat]' thunk for an imported symbol (the name without its @hash suffix)."""
-    img.pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+    parse_imports_once(img)
     iat = None
     for e in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', []):
         for imp in e.imports:
