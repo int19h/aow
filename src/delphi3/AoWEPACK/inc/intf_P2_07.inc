@@ -86,7 +86,7 @@
     procedure SetAbSet(A1: Integer; A2: Byte); override;
     function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
-    function GetUpkeep: Shortint; override;
+    function GetUpkeep: Byte; override;
     function GetUnitLevel: Shortint; override;
     function GetRace: Shortint; override;
     function GetInherentAttack: Shortint; override;
@@ -223,7 +223,7 @@
     class function ClassID: Integer; override;
     procedure MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); override;
     procedure Changed; override;
-    function GetUpkeep: Shortint; override;
+    function GetUpkeep: Byte; override;
     function GetPowerGeneration: Integer; override;
     procedure SetPlayer(Player: Shortint); override;
     function GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer; override;

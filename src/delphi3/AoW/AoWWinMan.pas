@@ -74,7 +74,7 @@ procedure StartGame(Controller: TGeneral);
 
 implementation
 
-uses E2Globals, AoWUnit, AoWRealm, aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow, E2GameFlow;
+uses E2Globals, AOWMWindow, AoWUnit, AoWRealm, aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow, E2GameFlow;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -461,44 +461,44 @@ begin
   end;
 end;
 
-procedure TGeneral.SaveLayout;
+procedure TGeneral.SaveLayout; { Near miss: Global reads remain cached after three variants. }
 begin
-  with PInfoW.PInfoWin do
-      AoWEngine.FRegistry.SetRectangle(0, Rect(Alignment.RightOffset, Alignment.BottomOffset, WinWidth, WinHeight));
-  with ControlWin.ControlWindow do
-      AoWEngine.FRegistry.SetRectangle(1, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with UnitWindow.UnitWin do
-    if Alignment.AlignWidth = awCenter then AoWEngine.FRegistry.SetRectangle(2, Rect(0, 0, 0, 0))
-    else
-      AoWEngine.FRegistry.SetRectangle(2, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with AoWRealm.RealmWin.Dlg do
-    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(5, Rect(0, 0, 0, 0))
-    else
-      AoWEngine.FRegistry.SetRectangle(5, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with MagicWin.Dlg do
-    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(13, Rect(0, 0, 0, 0))
-    else
-      AoWEngine.FRegistry.SetRectangle(13, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with SWindow.ScannerWindow do
-      AoWEngine.FRegistry.SetRectangle(6, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with IWindow.InfoWin do
-      AoWEngine.FRegistry.SetRectangle(7, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with ChatWindow.ChatWin do
-    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(8, Rect(0, 0, 0, 0))
-    else
-      AoWEngine.FRegistry.SetRectangle(8, Rect(Alignment.LeftOffset, Alignment.BottomOffset, WinWidth, WinHeight));
-  with MWindow.MapWindow do
-    if Alignment.AlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(9, Rect(0, 0, 0, 0))
-    else
-      AoWEngine.FRegistry.SetRectangle(9, Rect(Alignment.LeftOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with TCScanner.TCScannerWin do
-      AoWEngine.FRegistry.SetRectangle(12, Rect(Alignment.RightOffset, Alignment.TopOffset, WinWidth, WinHeight));
-  with TCUnit.TCUnitWin do
-      AoWEngine.FRegistry.SetRectangle(10, Rect(Alignment.RightOffset, Alignment.BottomOffset, WinWidth, WinHeight));
-  if MWindow.FMapAlignWidth = awBoth then AoWEngine.FRegistry.SetRectangle(11, Rect(0, 0, 0, 0))
-  else AoWEngine.FRegistry.SetRectangle(11, Rect(MWindow.FMapRect.Left, MWindow.FMapRect.Top,
-    MWindow.FMapRect.Right, MWindow.FMapRect.Bottom));
+      AoWEngine.FRegistry.SetRectangle(0, Rect(PInfoW.PInfoWin.Alignment.RightOffset, PInfoW.PInfoWin.Alignment.BottomOffset, PInfoW.PInfoWin.WinWidth, PInfoW.PInfoWin.WinHeight));
+      AoWEngine.FRegistry.SetRectangle(1, Rect(ControlWin.ControlWindow.Alignment.RightOffset, ControlWin.ControlWindow.Alignment.TopOffset, ControlWin.ControlWindow.WinWidth, ControlWin.ControlWindow.WinHeight));
+    if UnitWindow.UnitWin.Alignment.AlignWidth <> awCenter then AoWEngine.FRegistry.SetRectangle(2, Rect(UnitWindow.UnitWin.Alignment.LeftOffset, UnitWindow.UnitWin.Alignment.TopOffset, UnitWindow.UnitWin.WinWidth, UnitWindow.UnitWin.WinHeight))
+    else AoWEngine.FRegistry.SetRectangle(2, Rect(0, 0, 0, 0));
+    if AoWRealm.RealmWin.Dlg.Alignment.AlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(5, Rect(AoWRealm.RealmWin.Dlg.Alignment.LeftOffset, AoWRealm.RealmWin.Dlg.Alignment.TopOffset, AoWRealm.RealmWin.Dlg.WinWidth, AoWRealm.RealmWin.Dlg.WinHeight))
+    else AoWEngine.FRegistry.SetRectangle(5, Rect(0, 0, 0, 0));
+    if MagicWin.Dlg.Alignment.AlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(13, Rect(MagicWin.Dlg.Alignment.LeftOffset, MagicWin.Dlg.Alignment.TopOffset, MagicWin.Dlg.WinWidth, MagicWin.Dlg.WinHeight))
+    else AoWEngine.FRegistry.SetRectangle(13, Rect(0, 0, 0, 0));
+      AoWEngine.FRegistry.SetRectangle(6, Rect(SWindow.ScannerWindow.Alignment.RightOffset, SWindow.ScannerWindow.Alignment.TopOffset, SWindow.ScannerWindow.WinWidth, SWindow.ScannerWindow.WinHeight));
+      AoWEngine.FRegistry.SetRectangle(7, Rect(IWindow.InfoWin.Alignment.RightOffset, IWindow.InfoWin.Alignment.TopOffset, IWindow.InfoWin.WinWidth, IWindow.InfoWin.WinHeight));
+    if ChatWindow.ChatWin.Alignment.AlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(8, Rect(ChatWindow.ChatWin.Alignment.LeftOffset, ChatWindow.ChatWin.Alignment.BottomOffset, ChatWindow.ChatWin.WinWidth, ChatWindow.ChatWin.WinHeight))
+    else AoWEngine.FRegistry.SetRectangle(8, Rect(0, 0, 0, 0));
+    if MWindow.MapWindow.Alignment.AlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(9, Rect(MWindow.MapWindow.Alignment.LeftOffset, MWindow.MapWindow.Alignment.TopOffset, MWindow.MapWindow.WinWidth, MWindow.MapWindow.WinHeight))
+    else AoWEngine.FRegistry.SetRectangle(9, Rect(0, 0, 0, 0));
+      AoWEngine.FRegistry.SetRectangle(12, Rect(TCScanner.TCScannerWin.Alignment.RightOffset, TCScanner.TCScannerWin.Alignment.TopOffset, TCScanner.TCScannerWin.WinWidth, TCScanner.TCScannerWin.WinHeight));
+      AoWEngine.FRegistry.SetRectangle(10, Rect(TCUnit.TCUnitWin.Alignment.RightOffset, TCUnit.TCUnitWin.Alignment.BottomOffset, TCUnit.TCUnitWin.WinWidth, TCUnit.TCUnitWin.WinHeight));
+  if AOWMWindow.MWindow.FMapAlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(11, Rect(MWindow.FMapRect.Left, MWindow.FMapRect.Top, MWindow.FMapRect.Right, MWindow.FMapRect.Bottom))
+  else AoWEngine.FRegistry.SetRectangle(11, Rect(0, 0, 0, 0));
+
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 procedure TGeneral.ReturnToTitle;
 begin

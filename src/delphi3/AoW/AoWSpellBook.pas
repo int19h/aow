@@ -580,28 +580,12 @@ begin
 end;
 
 procedure TSpellBook.UpdateSpellPages;
-var I: Integer;
+var I: Integer; Spell: TSpell;
 begin
-  if not ValidateHero then Dlg.Visible := False
-  else
+  if ValidateHero then
   begin
-    if FMode = 0 then
-    begin
-      FSpells.Clear;
-      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
-      FSpells.SortOnLevel;
-      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
-      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
-    end
-    else if FMode = 1 then
-    begin
-      FSpells.Clear;
-      AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
-      FSpells.SortOnLevel;
-      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
-      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
-    end
-    else if FMode in [2, 3] then
+    case FMode of
+    2, 3:
     begin
       FSpells.Clear;
       AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListResearchSpells(FSpells, [stCombat, stUnit, stGlobal]);
@@ -611,16 +595,32 @@ begin
       LeftHeader.Text := TranslateRStr(ResearchSpellRStr); { Original overwrites the type-specific headers. }
       RightHeader.Text := TranslateRStr(ResearchSpellRStr);
     end;
-    for I := FSpells.GetCount - 1 downto 0 do
-      if (FSpells.GetSpell(I).FSpellID > 99) and (SpellTypes[FSpells.GetSpell(I).FSpellID] = fxNone) then FSpells.Delete(I);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8), S1Pnl, S1Btn, S1Spell, S1Class, S1Cost, S1Memo, S1Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 1), S2Pnl, S2Btn, S2Spell, S2Class, S2Cost, S2Memo, S2Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 2), S3Pnl, S3Btn, S3Spell, S3Class, S3Cost, S3Memo, S3Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 3), S4Pnl, S4Btn, S4Spell, S4Class, S4Cost, S4Memo, S4Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 4), S5Pnl, S5Btn, S5Spell, S5Class, S5Cost, S5Memo, S5Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 5), S6Pnl, S6Btn, S6Spell, S6Class, S6Cost, S6Memo, S6Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 6), S7Pnl, S7Btn, S7Spell, S7Class, S7Cost, S7Memo, S7Icn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 7), S8Pnl, S8Btn, S8Spell, S8Class, S8Cost, S8Memo, S8Icn);
+0:
+    begin
+      FSpells.Clear;
+      AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      FSpells.SortOnLevel;
+      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+    end;
+    1:
+    begin
+      FSpells.Clear;
+      AoWHSMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedPlayer).FMagicControl.ListSpells(FSpells, [FSpellType]);
+      FSpells.SortOnLevel;
+      LeftHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+      RightHeader.Text := AoWE.Format(TranslateRStr(CastXSpellRStr), [TranslateRStr(TSpellTypeRStr[FSpellType])]);
+    end;
+    end; for I := FSpells.GetCount - 1 downto 0 do
+      if (FSpells.GetSpell(I).FSpellID >= 100) and (SpellTypes[FSpells.GetSpell(I).FSpellID] = fxNone) then FSpells.Delete(I);
+    Spell := FSpells.GetSpell(FPage * 8); ShowSpellEntry(Spell, S1Pnl, S1Btn, S1Spell, S1Class, S1Cost, S1Memo, S1Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 1); ShowSpellEntry(Spell, S2Pnl, S2Btn, S2Spell, S2Class, S2Cost, S2Memo, S2Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 2); ShowSpellEntry(Spell, S3Pnl, S3Btn, S3Spell, S3Class, S3Cost, S3Memo, S3Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 3); ShowSpellEntry(Spell, S4Pnl, S4Btn, S4Spell, S4Class, S4Cost, S4Memo, S4Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 4); ShowSpellEntry(Spell, S5Pnl, S5Btn, S5Spell, S5Class, S5Cost, S5Memo, S5Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 5); ShowSpellEntry(Spell, S6Pnl, S6Btn, S6Spell, S6Class, S6Cost, S6Memo, S6Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 6); ShowSpellEntry(Spell, S7Pnl, S7Btn, S7Spell, S7Class, S7Cost, S7Memo, S7Icn);
+    Spell := FSpells.GetSpell(FPage * 8 + 7); ShowSpellEntry(Spell, S8Pnl, S8Btn, S8Spell, S8Class, S8Cost, S8Memo, S8Icn);
     if FMode = 0 then
     begin
       FPlayerPages.Count := AoWHSMap.FSeatedPlayer + 1;
@@ -632,7 +632,7 @@ begin
       NextBtn.Visible := FSpells.GetCount - (FPage + 1) * 8 > 0;
       PrevBtn.Visible := FPage <> 0;
     end;
-  end;
+  end else Dlg.Visible := False;
 end;
 
 procedure TSpellBook.ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Button: TAOWButton;

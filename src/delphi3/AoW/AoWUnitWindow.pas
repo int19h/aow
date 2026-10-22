@@ -216,7 +216,7 @@ resourcestring
   ItemsRStr = 'Items';
   LevelRStr = 'Level';
   ExpRStr = 'Exp';
-
+const ShowAbilitiesRStr: PResStringRec = @AbilitiesRStr; ShowExpRStr: PResStringRec = @ExpRStr;
 function CompareUnitAbilities(const S1, S2: string; O1, O2: TObject): Integer;
 var
   A1, A2: TAbility;
@@ -232,10 +232,10 @@ begin
   if Result = 0 then Result := CompareStr(S1, S2);
 end;
 
-procedure TUnitWindow.ShowUnit;
+procedure TUnitWindow.ShowUnit; { Near miss: Register allocation and jump-table offsets differ after three variants. }
 var
-  U: TAbstractUnit;
   H: THero;
+  U: TAbstractUnit;
 begin
   if General.FSelectedUnit <> nil then
   begin
@@ -255,20 +255,20 @@ begin
     end;
     UnitWindow.Mana.Visible := False; UnitWindow.ManaIcon.Visible := False;
     UnitWindow.UnitTab.Items.Clear;
-    UnitWindow.UnitTab.Items.Add(TranslateRStr(AbilitiesRStr));
-    UnitWindow.UnitTab.Items.Add(TranslateRStr(InfoRStr));
-    if U.GetRace < 0 then
-    begin
-      UnitWindow.TypeV.Text := '';
-      UnitWindow.RelationIcn.Visible := False;
-      UnitWindow.RelationV.Text := TranslateRStr(NoneRStr);
-    end
-    else
+    UnitWindow.UnitTab.Items.Add(TranslateRStr(LoadResString(ShowAbilitiesRStr)));
+    UnitWindow.UnitTab.Items.Add(TranslateRStr(AoWE.InfoRStr));
+    if U.GetRace > -1 then
     begin
       UnitWindow.TypeV.Text := TranslateRStr(RaceNamesRStr[U.GetRace]);
       UnitWindow.RelationIcn.Visible := True;
       UnitWindow.RelationIcn.CurrentImage := Ord(AoWHSMap.FRaces.GetRace(U.GetRace).GetPlayerRelation(AoWHSMap.FSeatedPlayer)) + 11;
       UnitWindow.RelationV.Text := TranslateRStr(TStatusRStr[AoWHSMap.FRaces.GetRace(U.GetRace).GetPlayerRelation(AoWHSMap.FSeatedPlayer)]);
+    end
+    else
+    begin
+      UnitWindow.TypeV.Text := '';
+      UnitWindow.RelationIcn.Visible := False;
+      UnitWindow.RelationV.Text := TranslateRStr(AoWE.NoneRStr);
     end;
     if (AoWHSMap.FSeatedPlayer = U.FPlayer) and not (U is TLeader) and (AoWHSMap.FCombatMap = nil) then
     begin
@@ -282,23 +282,23 @@ begin
     case U.GetUnitType of
       utCreature:
         begin
-          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(CreatureRStr);
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.CreatureRStr);
           UnitWindow.TypeIcn.CurrentImage := 21;
         end;
       utMachine:
         begin
-          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(MachineRStr);
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.MachineRStr);
           UnitWindow.TypeIcn.CurrentImage := 22;
         end;
     else
-      if H = nil then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(UnitRStr)
-      else if H is TLeader then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LeaderRStr)
-      else UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(HeroRStr);
+      if H = nil then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.UnitRStr)
+      else if H is TLeader then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.LeaderRStr)
+      else UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.HeroRStr);
       UnitWindow.TypeIcn.CurrentImage := 23;
     end;
     if H = nil then
     begin
-      UnitWindow.Level.Text := TranslateRStr(LevelRStr) + ' ' + IntToStr(U.GetUnitLevel);
+      UnitWindow.Level.Text := TranslateRStr(AoWE.LevelRStr) + ' ' + IntToStr(U.GetUnitLevel);
       UnitWindow.T2Leader.Visible := False; UnitWindow.T2Text.Visible := True;
       UnitWindow.T2Memo.Items.Assign(U.GetDescription); UnitWindow.T2SBar.Position := 0;
       UnitWindow.UnitName.Text := U.GetName;
@@ -360,7 +360,7 @@ begin
       if ((AoWHSMap.FCombat = nil) and (H.FPlayer = AoWHSMap.FSeatedPlayer)) or
         ((AoWHSMap.FCombat <> nil) and
         (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = H.FPlayer)) then
-        UnitWindow.UnitTab.Items.Add(TranslateRStr(ItemsRStr));
+        UnitWindow.UnitTab.Items.Add(TranslateRStr(AoWE.ItemsRStr));
       if H.GetCastingPointsMax > 0 then
       begin
         UnitWindow.Mana.Visible := True;
@@ -368,11 +368,11 @@ begin
         UnitWindow.ManaIcon.Visible := True;
       end;
       UnitWindow.ItemUseBtn.Visible := False; UnitWindow.FGroundOffset := 0;
-      UnitWindow.Level.Text := TranslateRStr(LevelRStr) + ' ' + IntToStr(H.GetLevel);
+      UnitWindow.Level.Text := TranslateRStr(AoWE.LevelRStr) + ' ' + IntToStr(H.GetLevel);
       UnitWindow.T2Leader.Visible := True; UnitWindow.T2Text.Visible := False;
       UnitWindow.UnitName.Text := H.FHeroName + ' ' + H.GetNickname;
     end;
-    UnitWindow.XP.Text := TranslateRStr(ExpRStr) + ' ' + IntToStr(U.GetExperience) + ' (' + IntToStr(U.GetNextLevelExperience) + ')';
+    UnitWindow.XP.Text := TranslateRStr(LoadResString(ShowExpRStr)) + ' ' + IntToStr(U.GetExperience) + ' (' + IntToStr(U.GetNextLevelExperience) + ')';
     UnitWindow.UnitWin.Cursor := 0;
     if (UnitWindow.UnitTab.Items.Count <= UnitWindow.UnitTab.Selected) or (UnitWindow.UnitTab.Selected < 0) then
       UnitWindow.UnitTab.Selected := 0;
@@ -381,34 +381,34 @@ begin
         ((AoWHSMap.FCombat <> nil) and
         (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = H.FPlayer))) then
     begin
-      if H.FInventory.GetItem(0) = nil then UnitWindow.BP1.Tag := -1
-      else UnitWindow.BP1.Tag := H.FInventory.GetItem(0).FItemID;
-      if H.FInventory.GetItem(1) = nil then UnitWindow.BP2.Tag := -1
-      else UnitWindow.BP2.Tag := H.FInventory.GetItem(1).FItemID;
-      if H.FInventory.GetItem(2) = nil then UnitWindow.BP3.Tag := -1
-      else UnitWindow.BP3.Tag := H.FInventory.GetItem(2).FItemID;
-      if H.FInventory.GetItem(3) = nil then UnitWindow.BP4.Tag := -1
-      else UnitWindow.BP4.Tag := H.FInventory.GetItem(3).FItemID;
-      if H.FInventory.GetItem(4) = nil then UnitWindow.BP5.Tag := -1
-      else UnitWindow.BP5.Tag := H.FInventory.GetItem(4).FItemID;
-      if H.FInventory.GetItem(5) = nil then UnitWindow.BP6.Tag := -1
-      else UnitWindow.BP6.Tag := H.FInventory.GetItem(5).FItemID;
-      if H.FInventory.GetItem(6) = nil then UnitWindow.BP7.Tag := -1
-      else UnitWindow.BP7.Tag := H.FInventory.GetItem(6).FItemID;
-      if H.FInventory.GetItem(7) = nil then UnitWindow.BP8.Tag := -1
-      else UnitWindow.BP8.Tag := H.FInventory.GetItem(7).FItemID;
-      if H.FHeroItems.GetPositionItem(ipAttackSlot) = nil then UnitWindow.Attack.Tag := -1
-      else UnitWindow.Attack.Tag := H.FHeroItems.GetPositionItem(ipAttackSlot).FItemID;
-      if H.FHeroItems.GetPositionItem(ipDefenseSlot) = nil then UnitWindow.Defend.Tag := -1
-      else UnitWindow.Defend.Tag := H.FHeroItems.GetPositionItem(ipDefenseSlot).FItemID;
-      if H.FHeroItems.GetPositionItem(ipHeadSlot) = nil then UnitWindow.Head.Tag := -1
-      else UnitWindow.Head.Tag := H.FHeroItems.GetPositionItem(ipHeadSlot).FItemID;
-      if H.FHeroItems.GetPositionItem(ipTorsoSlot) = nil then UnitWindow.Torso.Tag := -1
-      else UnitWindow.Torso.Tag := H.FHeroItems.GetPositionItem(ipTorsoSlot).FItemID;
-      if H.FHeroItems.GetPositionItem(ipLeftRingSlot) = nil then UnitWindow.RingL.Tag := -1
-      else UnitWindow.RingL.Tag := H.FHeroItems.GetPositionItem(ipLeftRingSlot).FItemID;
-      if H.FHeroItems.GetPositionItem(ipRightRingSlot) = nil then UnitWindow.RingR.Tag := -1
-      else UnitWindow.RingR.Tag := H.FHeroItems.GetPositionItem(ipRightRingSlot).FItemID;
+      if H.FInventory.GetItem(0) <> nil then UnitWindow.BP1.Tag := H.FInventory.GetItem(0).FItemID
+      else UnitWindow.BP1.Tag := -1;
+      if H.FInventory.GetItem(1) <> nil then UnitWindow.BP2.Tag := H.FInventory.GetItem(1).FItemID
+      else UnitWindow.BP2.Tag := -1;
+      if H.FInventory.GetItem(2) <> nil then UnitWindow.BP3.Tag := H.FInventory.GetItem(2).FItemID
+      else UnitWindow.BP3.Tag := -1;
+      if H.FInventory.GetItem(3) <> nil then UnitWindow.BP4.Tag := H.FInventory.GetItem(3).FItemID
+      else UnitWindow.BP4.Tag := -1;
+      if H.FInventory.GetItem(4) <> nil then UnitWindow.BP5.Tag := H.FInventory.GetItem(4).FItemID
+      else UnitWindow.BP5.Tag := -1;
+      if H.FInventory.GetItem(5) <> nil then UnitWindow.BP6.Tag := H.FInventory.GetItem(5).FItemID
+      else UnitWindow.BP6.Tag := -1;
+      if H.FInventory.GetItem(6) <> nil then UnitWindow.BP7.Tag := H.FInventory.GetItem(6).FItemID
+      else UnitWindow.BP7.Tag := -1;
+      if H.FInventory.GetItem(7) <> nil then UnitWindow.BP8.Tag := H.FInventory.GetItem(7).FItemID
+      else UnitWindow.BP8.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipAttackSlot) <> nil then UnitWindow.Attack.Tag := H.FHeroItems.GetPositionItem(ipAttackSlot).FItemID
+      else UnitWindow.Attack.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipDefenseSlot) <> nil then UnitWindow.Defend.Tag := H.FHeroItems.GetPositionItem(ipDefenseSlot).FItemID
+      else UnitWindow.Defend.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipHeadSlot) <> nil then UnitWindow.Head.Tag := H.FHeroItems.GetPositionItem(ipHeadSlot).FItemID
+      else UnitWindow.Head.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipTorsoSlot) <> nil then UnitWindow.Torso.Tag := H.FHeroItems.GetPositionItem(ipTorsoSlot).FItemID
+      else UnitWindow.Torso.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipLeftRingSlot) <> nil then UnitWindow.RingL.Tag := H.FHeroItems.GetPositionItem(ipLeftRingSlot).FItemID
+      else UnitWindow.RingL.Tag := -1;
+      if H.FHeroItems.GetPositionItem(ipRightRingSlot) <> nil then UnitWindow.RingR.Tag := H.FHeroItems.GetPositionItem(ipRightRingSlot).FItemID
+      else UnitWindow.RingR.Tag := -1;
       UnitWindow.UpdateGround(0); SelectedItem := nil;
       UnitWindow.BP1.Checked := False;
       UnitWindow.BP2.Checked := False;
@@ -771,76 +771,73 @@ begin
 end;
 
 procedure TUnitWindow.Gnd1Change(Sender: TObject);
-var
-  U: THero;
-  Item: TItem;
+var Item: TItem; U: THero; Check: TAOWCheckBox;
 begin
-  U := THero(General.FSelectedUnit);
+  Check := TAOWCheckBox(Sender); U := THero(General.FSelectedUnit);
   if U <> nil then
-    if not AoWHSMap.FPlayers.GetPlayers(U.FPlayer).GetBusy and TAOWCheckBox(Sender).Checked then
+    if not AoWHSMap.FPlayers.GetPlayers(U.FPlayer).GetBusy and Check.Checked then
     begin
       FCursorImage := nil;
-      if Sender = SelectedItem then
+      if Check <> SelectedItem then
       begin
-        SelectedItem.Checked := False;
-        SelectedItem := nil;
-        UnitWin.Cursor := 0;
-        FItemType := itUse;
-        ItemUseBtn.Visible := False;
-        FItemVisible := False;
-      end
-      else if SelectedItem = nil then
-      begin
-        if TAOWCheckBox(Sender).Tag = -1 then
-          TAOWCheckBox(Sender).Checked := False
-        else
+        if SelectedItem <> nil then
         begin
-          SelectedItem := TAOWCheckBox(Sender);
-          FHighlight := 50;
-          FHighlightStep := 10;
-          Item := U.FInventory.FindItem(SelectedItem.Tag);
-          if Item = nil then Item := U.FHeroItems.FindItem(SelectedItem.Tag);
-          if Item = nil then
-            if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(SelectedItem.Tag);
-          if Item = nil then
-          begin
-            FItemType := itUse;
-            ItemUseBtn.Visible := False;
-          end
+          PlaySample('SFX\Events\NewEvent.Wav');
+          if Check.Tag <> -1 then U.SwapItem(SelectedItem.Tag, Check.Tag)
           else
           begin
-            FCursorImage := Item.GetImage;
-            FItemType := Item.FItemType;
-            if Item.FItemType = itScroll then ItemUseBtn.Visible := True
-            else ItemUseBtn.Visible := False;
+            if Check = Head then U.PlaceItem(SelectedItem.Tag, ipHeadSlot)
+else if Check = Torso then U.PlaceItem(SelectedItem.Tag, ipTorsoSlot)
+else if Check = Attack then U.PlaceItem(SelectedItem.Tag, ipAttackSlot)
+else if Check = Defend then U.PlaceItem(SelectedItem.Tag, ipDefenseSlot)
+else if Check = RingR then U.PlaceItem(SelectedItem.Tag, ipRightRingSlot)
+else if Check = RingL then U.PlaceItem(SelectedItem.Tag, ipLeftRingSlot)
+else if Check = BP1 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot1)
+else if Check = BP2 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot2)
+else if Check = BP3 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot3)
+else if Check = BP4 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot4)
+else if Check = BP5 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot5)
+else if Check = BP6 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot6)
+else if Check = BP7 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot7)
+else if Check = BP8 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot8)
+else U.PlaceItem(SelectedItem.Tag, ipGround);
           end;
-          FBlinkDelay := 2;
-          FItemVisible := True;
+          Check.Checked := False;
+          SelectedItem.Checked := False;
+          SelectedItem := nil;
+          UnitWin.Cursor := 0;
+          FItemType := itUse;
+          ItemUseBtn.Visible := False;
+          FItemVisible := False;
+        end
+        else
+        begin
+          if Check.Tag <> -1 then
+          begin
+            SelectedItem := Check;
+            FHighlight := 50;
+            FHighlightStep := 10;
+            Item := U.FInventory.FindItem(SelectedItem.Tag);
+            if Item = nil then Item := U.FHeroItems.FindItem(SelectedItem.Tag);
+            if Item = nil then
+              if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(SelectedItem.Tag);
+            if Item <> nil then
+            begin
+              FCursorImage := Item.GetImage;
+              FItemType := Item.FItemType;
+              if Item.FItemType = itScroll then ItemUseBtn.Visible := True
+              else ItemUseBtn.Visible := False;
+            end
+            else
+            begin FItemType := itUse; ItemUseBtn.Visible := False; end;
+            FBlinkDelay := 2;
+            FItemVisible := True;
+          end
+          else Check.Checked := False;
         end;
       end
       else
       begin
-        PlaySample('SFX\Events\NewEvent.Wav');
-        if TAOWCheckBox(Sender).Tag = -1 then
-        begin
-          if Sender = Head then U.PlaceItem(SelectedItem.Tag, ipHeadSlot)
-          else if Sender = Torso then U.PlaceItem(SelectedItem.Tag, ipTorsoSlot)
-          else if Sender = Attack then U.PlaceItem(SelectedItem.Tag, ipAttackSlot)
-          else if Sender = Defend then U.PlaceItem(SelectedItem.Tag, ipDefenseSlot)
-          else if Sender = RingR then U.PlaceItem(SelectedItem.Tag, ipRightRingSlot)
-          else if Sender = RingL then U.PlaceItem(SelectedItem.Tag, ipLeftRingSlot)
-          else if Sender = BP1 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot1)
-          else if Sender = BP2 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot2)
-          else if Sender = BP3 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot3)
-          else if Sender = BP4 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot4)
-          else if Sender = BP5 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot5)
-          else if Sender = BP6 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot6)
-          else if Sender = BP7 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot7)
-          else if Sender = BP8 then U.PlaceItem(SelectedItem.Tag, ipInventorySlot8)
-          else U.PlaceItem(SelectedItem.Tag, ipGround);
-        end
-        else U.SwapItem(SelectedItem.Tag, TAOWCheckBox(Sender).Tag);
-        TAOWCheckBox(Sender).Checked := False;
         SelectedItem.Checked := False;
         SelectedItem := nil;
         UnitWin.Cursor := 0;
@@ -851,6 +848,9 @@ begin
       MainForm.FCursorImage := FCursorImage;
     end;
 end;
+
+
+
 
 procedure TUnitWindow.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin

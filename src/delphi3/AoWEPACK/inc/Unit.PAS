@@ -788,7 +788,7 @@ function TAbstractUnit.GetAlignment: TAlignment;
 begin
   Result := alNeutral;
 end;
-function TAbstractUnit.GetUpkeep: Shortint;
+function TAbstractUnit.GetUpkeep: Byte;
 begin
   if not GetAbilityEnabled(155) then
   begin Result := (GetUnitLevel + 1) * 2; Exit; end;

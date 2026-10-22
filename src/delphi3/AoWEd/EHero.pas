@@ -565,7 +565,7 @@ begin
     with HeroResourceComboBox do
     begin
       I := 0;
-      ItemIndex := -1;
+      HeroResourceComboBox.ItemIndex := -1;
       while (I <> Items.Count) and (HeroResourceComboBox.ItemIndex = -1) do
       begin
         if AoWHSSet.FHeroResources.GetHeroResource(Integer(Items.Objects[I])).FRace = FHero.FRace then
@@ -594,26 +594,7 @@ begin
   vmt84;
   UpdateAddButton;
   UpdateDeleteButton;
-  if not FReadOnly then
-  begin
-    NameEdit.Color := clWindow;
-    NicknameEdit.Color := clWindow;
-    HeroResourceComboBox.Color := clWindow;
-    HeroLevelEdit.Color := clWindow;
-    GenderBox.Color := clWindow;
-    AttackEdit.Color := clWindow;
-    DefenseEdit.Color := clWindow;
-    ResistanceEdit.Color := clWindow;
-    DamageEdit.Color := clWindow;
-    HitsEdit.Color := clWindow;
-    MovesEdit.Color := clWindow;
-    SelectedAbBox.Color := clWindow;
-    AvailableAbBox.Color := clWindow;
-    BodyGrid.SelectionEnabled := False;
-    ItemGrid.SelectionEnabled := True;
-    EditFaceBtn.Enabled := True;
-  end
-  else
+  if FReadOnly then
   begin
     NameEdit.Color := clBtnFace;
     NicknameEdit.Color := clBtnFace;
@@ -628,12 +609,31 @@ begin
     MovesEdit.Color := clBtnFace;
     SelectedAbBox.Color := clBtnFace;
     AvailableAbBox.Color := clBtnFace;
-    BodyGrid.SelectionEnabled := False;
     ItemGrid.SelectionEnabled := False;
-    EditFaceBtn.Enabled := False;
+    BodyGrid.SelectionEnabled := False;
+    GeneralSheet.Enabled := False;
+  end
+  else
+  begin
+    NameEdit.Color := clWindow;
+    NicknameEdit.Color := clWindow;
+    HeroResourceComboBox.Color := clWindow;
+    HeroLevelEdit.Color := clWindow;
+    GenderBox.Color := clWindow;
+    AttackEdit.Color := clWindow;
+    DefenseEdit.Color := clWindow;
+    ResistanceEdit.Color := clWindow;
+    DamageEdit.Color := clWindow;
+    HitsEdit.Color := clWindow;
+    MovesEdit.Color := clWindow;
+    SelectedAbBox.Color := clWindow;
+    AvailableAbBox.Color := clWindow;
+    ItemGrid.SelectionEnabled := False;
+    BodyGrid.SelectionEnabled := True;
+    GeneralSheet.Enabled := True;
   end;
   { Original dereferences AoWHSMap for leaders without a nil check. }
-  if (FHero is TLeader) and (Ord(AoWHSMap.FGameType) <> 1) then
+  if (FHero is TLeader) and (AoWHSMap.FGameType <> gtCampaign) then
   begin
     NicknameEdit.Color := clBtnFace;
     NicknameEdit.Enabled := False;

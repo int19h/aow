@@ -59,7 +59,7 @@
     function GetAbilitySelectionTypes: TAbilitySelectionTypes; override;
     procedure Changed; override;
     function RemoveAbility(A1: Integer): Boolean; override;
-    function GetUpkeep: Shortint; virtual;  { +09C draft }
+    function GetUpkeep: Byte; virtual;  { $09C; AoW 00409188 }
     function GetUnitLevel: Shortint; virtual;
     function GetRace: Shortint; virtual; { +0A4; 557F7CBA }
     function GetInherentAttack: Shortint; virtual;  { +0A8 draft }

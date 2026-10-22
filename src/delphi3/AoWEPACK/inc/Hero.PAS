@@ -927,7 +927,7 @@ begin
   end;
 end;
 
-function THero.GetUpkeep: Shortint;
+function THero.GetUpkeep: Byte;
 begin Result := GetLevel * 2 + 5; end;
 
 procedure THero.SetPlayer(Player: Shortint);
@@ -2972,6 +2972,6 @@ end;
 function TLeader.CanDisband(var Reason: string): Boolean;
 begin Result := False; end;
 
-function TLeader.GetUpkeep: Shortint;
+function TLeader.GetUpkeep: Byte;
 begin Result := 0; end;
 
