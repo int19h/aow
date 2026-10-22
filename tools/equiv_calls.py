@@ -16,25 +16,30 @@ class CallContracts:
         self.observed_flags = {}
     def lanes(self, ins, reg):
         name = ins.reg_name(reg)
-        if name == 'eflags':
+        if name in ('eflags','cs','ds','es','ss','fs','gs'):
             return set()
         root,bits,offset = self.e.ALIASES.get(name,(None,0,0))
         if root is None:
             raise self.e.Unsupported('callee register outside bounded read-set model: '+name)
         return {('r',root,k) for k in range(offset//8,(offset+bits)//8)}
     def scan(self, side, target, depth=0):
+        from equiv_summaries import ModuleSummaries
+        if not hasattr(self.checker.inp,'call_summaries'):
+            self.checker.inp.call_summaries = ModuleSummaries(self)
+        return self.checker.inp.call_summaries.query(self,side,target)
+    def _scan(self, side, target, depth=0, code=None, nested=None):
         key = side,target,depth
-        if key in self.cache:
+        if nested is None and key in self.cache:
             return self.cache[key]
         self.cache[key] = None
         image = (self.checker.inp.old,self.checker.inp.new)[side]
-        if not image.contains(target):
+        if code is None and not image.contains(target):
             return None
         ends = ([a for a,_ in self.checker.inp.sigs.values()] if side == 0 else
                 [self.checker.inp.text+a for a in getattr(self.checker.inp,'code_offsets',())])
         size = min([4096]+[a-target for a in ends if a>target])
         try:
-            code = self.e.decode(image,target,size)
+            if code is None: code = self.e.decode(image,target,size)
             if code and code[0].mnemonic == 'jmp' and code[0].operands[0].type == self.e.X.X86_OP_IMM:
                 if depth:
                     return None
@@ -44,11 +49,12 @@ class CallContracts:
                 return self.cache[key]
             if not code:
                 return None
-            save_only = self.abi(code,side,callee=True)
+            save_only = self.abi(code,side,callee=True,summaries=nested)
             todo, definitions, required, visits, returns = [0],{0:frozenset()},set(),0,set()
             passed = set()
             while todo:
                 i = todo.pop(); visits += 1
+                if nested is not None: self.checker.inp.call_summaries.charge()
                 if visits > 512 or not 0 <= i < len(code):
                     return None
                 ins = code[i]
@@ -56,22 +62,27 @@ class CallContracts:
                 # operands are ordinary string storage, not a new context read.
                 if ins.mnemonic in self.e.STRING_OPS: return None
                 read,written = ins.raw.regs_access()
-                if any(ins.reg_name(r) not in self.e.ALIASES and ins.reg_name(r) not in ('eflags','fpsw','eip') and not ins.reg_name(r).startswith('st') for r in set(read)|set(written)):
+                if any(ins.reg_name(r) not in self.e.ALIASES and ins.reg_name(r) not in ('eflags','fpsw','eip','cs','ds','es','ss','fs','gs') and not ins.reg_name(r).startswith('st') for r in set(read)|set(written)):
                     raise self.e.Unsupported('callee unmodeled register/context input')
                 if ins.mnemonic in ('fstenv','fnstenv','fsave','fnsave') or (ins.mnemonic == 'call' and ins.operands[0].type == self.e.X.X86_OP_IMM and ins.operands[0].imm == ins.address+ins.size):
                     raise self.e.Unsupported('callee unmodeled instruction-location observation')
                 if (ins.mnemonic not in self.e.INTEGER_OPS and not ins.mnemonic.startswith(('j','set'))
-                        or ins.mnemonic == 'call' or ins.raw.addr_size != 4 or any(ins.raw.prefix)):
+                        or (ins.mnemonic == 'call' and nested is None) or ins.raw.addr_size != 4 or any(ins.raw.prefix)):
                     return None
-                reads = set().union(*(self.lanes(ins,r) for r in read))
+                reads = set() if ins.mnemonic=='call' else set().union(*(self.lanes(ins,r) for r in read))
                 if i in save_only:
                     reads.difference_update(('r',ins.reg_name(ins.operands[0].reg),k) for k in range(4))
-                writes = set().union(*(self.lanes(ins,r) for r in written))
+                writes = set() if ins.mnemonic=='call' else set().union(*(self.lanes(ins,r) for r in written))
                 for flag in self.e.FLAGS:
                     if ins.raw.eflags & sum(getattr(self.e.X,'X86_EFLAGS_'+k+'_'+flag.upper(),0) for k in ('TEST','PRIOR')):
                         reads.add(('f',flag))
                     if ins.raw.eflags & sum(getattr(self.e.X,'X86_EFLAGS_'+k+'_'+flag.upper(),0) for k in ('MODIFY','RESET','SET','UNDEFINED')):
                         writes.add(('f',flag))
+                if ins.mnemonic=='call':
+                    child = nested[ins.address]
+                    reads.update(child[0])
+                    writes.update(('r',r,k) for r in ('eax','edx','ecx') for k in range(4))
+                    writes.update({('f',f) for f in self.e.FLAGS}-child[2])
                 # Return values and preserved volatile/flag outputs can expose
                 # incoming bytes even if no instruction explicitly reads them.
                 if ins.mnemonic == 'ret':
@@ -131,6 +142,7 @@ class CallContracts:
         old = target if side == 0 else self.addresses.reverse.get(target)
         new = self.addresses.forward.get(target) if side == 0 else target
         summaries = [self.scan(s,t) if t is not None else None for s,t in enumerate((old,new))]
+        tainted = all(summaries) and any(s[3] for s in summaries)
         live = self.observed_flags.get(self.flag_key(side,ins),frozenset())
         inputs = summaries[0][0] | summaries[1][0] | ((summaries[0][2] | summaries[1][2]) & live) if all(summaries) else frozenset([('r',r,k) for r in ('eax','edx','ecx') for k in range(4)]+[('f','df')])
         cleanups = [(s[1],True) if s else self.cleanup(n,t) for n,(s,t) in enumerate(zip(summaries,(old,new)))]
@@ -149,6 +161,8 @@ class CallContracts:
                       raw_floor_minus_ESP=floor-sp[0] if rule=='R2' else None,
                       cleanup_contract='R1: own RET counts agree on both sides' if rule=='R1' else 'R2 H3c: callee removes max(0, floor - ESP) bytes pushed below the corrected post-prologue frame level' if rule=='R2' else 'R3 shared symbolic cleanup; incompatible multiset joins become unknown',
                       preserved=['ebx','esi','edi','ebp'],DF_entry=0,DF_exit=0,caller_private_range_relative_to_entry_ESP=[floor,0],
+                      summary_kind=('summarized/H3c' if tainted else 'summarized') if all(summaries) else 'H3c',
+                      premises=['H3','H3c'] if tainted else ['H3' if all(summaries) else 'H3c'],
                       mode='two-callee-def-before-use' if all(summaries) else 'H3c-register-convention',
                       premise='H3' if all(summaries) else 'H3c',
                       read_contract='Checked union of both callee read sets; passed-through flags restricted by caller live_locations after calls (union for repeated same-target calls)' if all(summaries) else 'Assumed: callee reads only EAX, EDX, ECX, stack arguments and DF=0; no other incoming GPR or flag is observed.',
@@ -156,12 +170,12 @@ class CallContracts:
                       H3='Same identified callee transformer on these inputs, memory, FS and FP; preserves EBX/ESI/EDI/EBP and caller private save slots; returns DF=0; stated cleanup; matching FP/exception effects; flags the callee leaves undefined are not observed; no observation of caller return-address or instruction-location context or its own private save slots (callee H1).')
         self.sites[key] = inputs,cleanup,record
         return self.sites[key]
-    def abi(self, code, side, callee=False):
+    def abi(self, code, side, callee=False, summaries=None):
         """Finite-height must analysis; unsupported ownership never proves saves."""
         e = self.e; saved = ('ebx','esi','edi','ebp')
         initial = {r:('entry',r) for r in e.REGS}; initial['esp'] = ('stack',(0,()))
         states = {0:(initial,{},0)}; todo = [0]; visits = 0; floor = 0
-        saves, observed = {}, set()
+        saves, observed = {}, set(); uncertain=set()
         for ins in code:
             if ins.mnemonic == 'push' and ins.operands[0].type in (e.X.X86_OP_REG,e.X.X86_OP_IMM):
                 floor -= 4
@@ -174,6 +188,7 @@ class CallContracts:
                 break
         while todo:
             i = todo.pop(); visits += 1
+            if callee and summaries is not None: self.checker.inp.call_summaries.charge()
             if visits > 1024 or not 0 <= i < len(code):
                 raise e.Unsupported('ABI fixed-point budget/incomplete CFG')
             before,slots,df = states[i]; regs,slots = dict(before),dict(slots)
@@ -198,10 +213,11 @@ class CallContracts:
                 name = ins.reg_name(r)
                 if name in e.ALIASES: regs[e.ALIASES[name][0]] = None
             for k,op in enumerate(oo):
-                if op.type == e.X.X86_OP_MEM and ins.raw.operands[k].access & e.CS.CS_AC_READ:
+                if m!='lea' and op.type == e.X.X86_OP_MEM and ins.raw.operands[k].access & e.CS.CS_AC_READ:
                     a = address(op)
                     observed.update(n for n in saves if a is not None and (a[1] or max(n,a[0])<min(n+4,a[0]+op.size)))
-                if callee and op.type == e.X.X86_OP_MEM and address(op) == (0,()) and ins.raw.operands[k].access & e.CS.CS_AC_READ:
+                if callee and m!='lea' and op.type == e.X.X86_OP_MEM and address(op) == (0,()) and ins.raw.operands[k].access & e.CS.CS_AC_READ:
+                    if i in uncertain: raise e.Unsupported('callee save scan incomplete after assumed cleanup')
                     raise e.NotProven('callee observes return address; call-context contract invalid')
                 if m not in e.STRING_OPS and op.type == e.X.X86_OP_MEM and not op.mem.segment and ins.raw.operands[k].access & e.CS.CS_AC_WRITE:
                     a = address(op)
@@ -221,16 +237,23 @@ class CallContracts:
             if m == 'push' and sp is not None:
                 slots[shift(sp,-4)] = value(oo[0]); regs['esp'] = ('stack',shift(sp,-4))
             if m == 'pop' and sp is not None:
+                if callee and sp==(0,()):
+                    if i in uncertain: raise e.Unsupported('callee save scan incomplete after assumed cleanup')
+                    raise e.NotProven('callee observes return address; call-context contract invalid')
                 if sp[0] in saves and (sp[1] or oo[0].type != e.X.X86_OP_REG or ins.reg_name(oo[0].reg) != saves[sp[0]][1]): observed.add(sp[0])
-                regs[ins.reg_name(oo[0].reg)] = load(sp); regs['esp'] = ('stack',shift(sp,4))
+                if oo[0].type==e.X.X86_OP_REG and ins.reg_name(oo[0].reg) in regs: regs[ins.reg_name(oo[0].reg)] = load(sp)
+                regs['esp'] = ('stack',shift(sp,4))
             if m in ('add','sub') and oo[0].type == e.X.X86_OP_REG and ins.reg_name(oo[0].reg) == 'esp' and oo[1].type == e.X.X86_OP_IMM and sp is not None:
                 regs['esp'] = ('stack',shift(sp,oo[1].imm*(1 if m=='add' else -1)))
             if m == 'leave':
                 bp = offset(before.get('ebp')); regs['esp'] = None if bp is None else ('stack',shift(bp,4)); regs['ebp'] = load(bp)
             if m == 'call':
-                if callee: raise e.Unsupported('nested callee ABI not summarized')
+                if callee and summaries is None: raise e.Unsupported('nested callee cleanup not summarized')
                 if sp is None or df != 0: raise e.Unsupported('call ESP/DF contract unestablished')
-                _,cleanup,contract = self.site(side,ins,sp,floor)
+                if callee:
+                    cleanup = summaries[ins.address][1]
+                    if cleanup is None: cleanup = max(0,floor-sp[0]) if not sp[1] else None
+                else: _,cleanup,contract = self.site(side,ins,sp,floor)
                 regs['esp'] = ('stack',shift(sp,cleanup) if cleanup is not None else (sp[0],tuple(sorted(sp[1]+(ins.address,)))))
                 for r in ('eax','edx','ecx'): regs[r] = None
                 for r in saved: regs[r] = before[r]
@@ -269,12 +292,15 @@ class CallContracts:
                             records = self.sites[side,n][2].setdefault('H3_restoration',[])
                             if obligation not in records: records.append(obligation)
             for j in e.successors(code,i):
+                tainted_offset = callee and (i in uncertain or (m=='call' and summaries[ins.address][1] is None))
+                newly_uncertain = tainted_offset and j not in uncertain
+                if tainted_offset: uncertain.add(j)
                 state = regs,slots,df
                 if j in states:
                     rr,ss,dd = states[j]
                     state = ({r:v if rr[r]==v else None for r,v in regs.items()},
                              {a:v for a,v in slots.items() if a in ss and ss[a]==v},df if dd==df else None)
-                if j not in states or state != states[j]: states[j] = state; todo.append(j)
+                if j not in states or state != states[j] or newly_uncertain: states[j] = state; todo.append(j)
         return {i for n,(i,_) in saves.items() if n not in observed}
     def flag_key(self, side, ins):
         op = ins.operands[0]

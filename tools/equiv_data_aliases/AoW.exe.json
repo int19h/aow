@@ -1,8 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "module": {
-    "original_sha256": "41487bc3aaa83e6e208e83bf30d0c7c8afdacfcb4528d67bbe2660e4cf97d48d",
-    "compiled_sha256": "4b2c772f75ab24a972cd689b07687d5c875d49858bcada41c46f69c7956678d3"
+    "original_sha256": "41487bc3aaa83e6e208e83bf30d0c7c8afdacfcb4528d67bbe2660e4cf97d48d"
   },
   "entries": [
     {
@@ -29,7 +28,8 @@
         "cells": [
           {
             "address": "0x45d6a8",
-            "section": ".idata"
+            "section": ".idata",
+            "content_sha256": "d4ca02466167a7fd03470d347431afe2ec331c1dc213268e83a9aded7f8b6ee7"
           }
         ],
         "pointee": {
@@ -51,8 +51,10 @@
         "symbol": "proposal-03.compiled",
         "cells": [
           {
-            "address": "0x61ef00",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AlphaBlendTable",
+            "function_symbol": "TLibraryImage.Show",
+            "occurrence": 0
           }
         ],
         "pointee": {
@@ -95,7 +97,8 @@
         "cells": [
           {
             "address": "0x45df7c",
-            "section": ".idata"
+            "section": ".idata",
+            "content_sha256": "c997de4c7a6234730986019e98a70f957f2af93d1fd992aa07f600360b02b4ef"
           }
         ],
         "pointee": {
@@ -117,8 +120,10 @@
         "symbol": "proposal-04.compiled",
         "cells": [
           {
-            "address": "0x61f5d0",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWWaterHexagon.ShowDynamic",
+            "occurrence": 1
           }
         ],
         "pointee": {
@@ -190,7 +195,8 @@
         "cells": [
           {
             "address": "0x45df78",
-            "section": ".idata"
+            "section": ".idata",
+            "content_sha256": "4029249a7054be28471a3d394a223e916eb24cc29d5154412d1fce7662144afd"
           }
         ],
         "pointee": {
@@ -212,8 +218,10 @@
         "symbol": "proposal-07.compiled",
         "cells": [
           {
-            "address": "0x61f23c",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TCityTargetSpell.PlayDefaultCityEffects",
+            "occurrence": 4
           }
         ],
         "pointee": {

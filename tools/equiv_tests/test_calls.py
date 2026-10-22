@@ -44,10 +44,10 @@ class Calls(unittest.TestCase):
     def test_cfg_join_and_partial_read_cannot_omit_input(self):
         helper = '85c97405b80000000083d000c3'  # One path leaves EAX undefined; ADC reads CF.
         checker,fn = self.caller('b801000000f8','b802000000f9',helper); self.assertFalse(checker.check(fn)[0].startswith('PROVEN'))
-    def test_nested_unknown_callee_falls_back_to_H3c(self):
+    def test_nested_known_callee_no_longer_needs_H3c(self):
         helper = (b'\xe8'+p32(0x401180-0x401105)+b'\xc3').hex()
         checker,fn = self.caller('','',helper,other=[(0x1180,b'\xc3')])
-        status,_ = checker.check(fn); self.assertEqual('PROVEN under H3c',status); self.assertTrue(all(c['mode']=='H3c-register-convention' for c in checker.last_contracts['hypotheses']['H3c']))
+        status,_ = checker.check(fn); self.assertEqual('PROVEN under H3',status); self.assertTrue(all(c['mode']=='two-callee-def-before-use' for c in checker.last_contracts['hypotheses']['H3']))
     def test_callee_ABI_failure_is_fallback_not_caller_restore_failure(self):
         checker,fn = self.caller('','','bb01000000c3'); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
     def test_unknown_store_records_H1_without_erasing_save_slot(self):

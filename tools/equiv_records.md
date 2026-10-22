@@ -65,3 +65,28 @@ R3 cleanup multisets require explicit H3 restoration constraints on the call rec
 Potential immutable-storage aliases require reported H5 disjoint-write predicates
 (including callee effects); concrete overlaps reject. Unknown save-slot aliases
 require H1; the array model still checks aliasing. Other H checks remain pending.
+
+Step 4b caches direct-call SCC summaries per module Inputs instance. SCCs descend
+from top. Opaque nested calls use the H3c EAX/EDX/ECX/DF mask and R2 cleanup
+premise, and taint every consuming summary. Root sites are counted once as H3,
+summarized/H3c (both H3 and H3c obligations), or unsummarized H3c. Actual callee
+register reads remain inputs. All six segment registers belong to the shared
+flat/FS model; xmm/mm/cr/dr/tr and instruction-location hazards still reject.
+The 4096-byte callee and 50000 total instruction-visit limits remain unchanged;
+unfinished SCCs publish top. Cached H1 facts and dependencies replay per proof.
+
+Alias schema 2 pins the original module plus a content hash over each original
+extent. Compiled immutable objects resolve by unique MAP symbol. Pointer cells
+resolve by pointee MAP symbol, referencing code MAP symbol and absolute-load
+occurrence; exactly one relocated cell in that function must initially contain
+the named pointee. All previous extent, section, payload, immutability and
+overlap checks still run. Resolution is atomic per entry; failures become pending
+with a reason, exposed in --explain, without disabling other entries. Compiled
+module hashes are recorded in resolutions rather than hard-coded in recipes.
+Legacy schema-1 aliases remain readable with their original strict hash gate.
+
+Stack addresses reached only through an assumed nested cleanup are not concrete
+return-address witnesses; an incomplete save scan falls back to H3c. Definite
+entry-slot reads still reject. Segment POPs never enter the GPR join lattice.
+LEA forms an address; it neither reads a save-slot value nor observes the
+return-address word. Real loads of save slots remain observable inputs.

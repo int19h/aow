@@ -2335,8 +2335,9 @@ class Checker:
             result = self.check_raw(fn,mutated)
         except (NotProven,Unsupported) as error:
             result = ('UNSUPPORTED' if isinstance(error,Unsupported) else 'NOT PROVEN'),str(error)
-        self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if r.get('premise','H3')==h] for h in ('H3','H3c') if any(r.get('premise','H3')==h for _,_,r in self.contracts.sites.values())} if self.contracts else {},
-                                   dependencies=sorted(self.contracts.dependencies) if self.contracts else [])
+        self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if h in r.get('premises',[r.get('premise','H3')])] for h in ('H3','H3c') if any(h in r.get('premises',[r.get('premise','H3')]) for _,_,r in self.contracts.sites.values())} if self.contracts else {},
+                                   dependencies=sorted(self.contracts.dependencies) if self.contracts else [],
+                                   alias_resolutions=getattr(self.inp.addresses,'alias_resolutions',[]))
         if self.contracts and self.contracts.h1:
             self.last_contracts['hypotheses']['H1'] = dict(predicate='Incoming data pointers and public-loaded address words do not reach the private frame; these ordinary writes cannot alias its save slots. Array reasoning still checks real aliasing.',instances=sorted(self.contracts.h1))
         if self.contracts and self.contracts.h5:

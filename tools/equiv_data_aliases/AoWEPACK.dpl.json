@@ -1,8 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "module": {
-    "original_sha256": "58dd81b56fa3e0873bf20a63c40e11f785358767bb261dc8f63a827db12be1cc",
-    "compiled_sha256": "effae60f41f107eaf57cd4022f13ddfb64468617e5e8a525a0ee5361d9c97f91"
+    "original_sha256": "58dd81b56fa3e0873bf20a63c40e11f785358767bb261dc8f63a827db12be1cc"
   },
   "entries": [
     {
@@ -29,7 +28,8 @@
         "cells": [
           {
             "address": "0x558fb720",
-            "section": ".idata"
+            "section": ".idata",
+            "content_sha256": "12e4c0ee58ff6c9ca65a7552163e2e899000f62f1b00b3472ed3e3e9a2a6f215"
           }
         ],
         "pointee": {
@@ -51,8 +51,10 @@
         "symbol": "proposal-01.compiled",
         "cells": [
           {
-            "address": "0x583b34",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TCombat.Execute",
+            "occurrence": 1
           }
         ],
         "pointee": {
@@ -211,7 +213,8 @@
         "cells": [
           {
             "address": "0x558e9494",
-            "section": "DATA"
+            "section": "DATA",
+            "content_sha256": "7640ac1d616b38c5336afbcb77494efa42a46ac7fd4a2f7ecb51b5f361fc1238"
           }
         ],
         "pointee": {
@@ -263,36 +266,52 @@
         "symbol": "proposal-12.compiled",
         "cells": [
           {
-            "address": "0x58301c",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TGlobalTargetSpellTE.PlayDefaultEffects",
+            "occurrence": 3
           },
           {
-            "address": "0x583b48",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWWaterHexagon.ShowDynamic",
+            "occurrence": 1
           },
           {
-            "address": "0x58300c",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TSmokeCloudEnchantment.VisibleForPlayer",
+            "occurrence": 0
           },
           {
-            "address": "0x5830c8",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TCityProductionControl.CanExecuteProduction",
+            "occurrence": 0
           },
           {
-            "address": "0x5832c4",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "NotifySpellSphere",
+            "occurrence": 0
           },
           {
-            "address": "0x5831e4",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "THolyGround.TriggerArmyDamage",
+            "occurrence": 0
           },
           {
-            "address": "0x583030",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TRaisedMountain.RestoreTerrain",
+            "occurrence": 0
           },
           {
-            "address": "0x5831f8",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TUnHolyGround.TriggerArmyDamage",
+            "occurrence": 0
           }
         ],
         "pointee": {
@@ -364,7 +383,8 @@
         "cells": [
           {
             "address": "0x558e945c",
-            "section": "DATA"
+            "section": "DATA",
+            "content_sha256": "b4d4b2606a9de9b702c27fd0170822bf68b1c3ba806db63ecb8cba9c86cc9cc9"
           }
         ],
         "pointee": {
@@ -395,8 +415,10 @@
         "symbol": "proposal-13.compiled",
         "cells": [
           {
-            "address": "0x583ae0",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "TAoWWaterHexagon.ShowDynamic",
+            "occurrence": 0
           }
         ],
         "pointee": {
@@ -447,7 +469,8 @@
         "cells": [
           {
             "address": "0x558e92e8",
-            "section": "DATA"
+            "section": "DATA",
+            "content_sha256": "be0b9bcf53536f8ed24d616395a188bf0a84f1d110e80cce81ac923992ff4e2e"
           }
         ],
         "pointee": {
@@ -487,8 +510,10 @@
         "symbol": "proposal-14.compiled",
         "cells": [
           {
-            "address": "0x5830cc",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TCityProductionControl.UnitResearched",
+            "occurrence": 1
           }
         ],
         "pointee": {
@@ -533,13 +558,14 @@
         "address": "0x558e84b4",
         "section": "DATA",
         "scope": "AoWE",
-        "symbol": "HeroExperienceTable"
+        "symbol": "HeroExperienceTable",
+        "content_sha256": "1d98f9bfca95a216289740d0dab0447201b5927f4314fe34f916052cafe8ea9f"
       },
       "compiled": {
-        "address": "0x582560",
         "section": "DATA",
         "scope": "AoWE",
-        "symbol": "HeroExperienceTable"
+        "symbol": "HeroExperienceTable",
+        "map_symbol": "HeroExperienceTable"
       },
       "identity": {
         "class": "reviewed-source",

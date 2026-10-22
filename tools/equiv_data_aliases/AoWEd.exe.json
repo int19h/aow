@@ -1,8 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "module": {
-    "original_sha256": "53626c6124d781d739f14ca8b6d0b39c629ab0e81b6982f983d917e8220bb7a9",
-    "compiled_sha256": "3a93300cab6a9858b943ca4d80513b838bcdd4be8bc634abdab94877a532d676"
+    "original_sha256": "53626c6124d781d739f14ca8b6d0b39c629ab0e81b6982f983d917e8220bb7a9"
   },
   "entries": [
     {
@@ -29,7 +28,8 @@
         "cells": [
           {
             "address": "0x432898",
-            "section": ".idata"
+            "section": ".idata",
+            "content_sha256": "46fe5a2492ad4cd63e174a3fdb86571ac5c0812fb0dadf8184e8868bb72d03a7"
           }
         ],
         "pointee": {
@@ -51,8 +51,10 @@
         "symbol": "proposal-10.compiled",
         "cells": [
           {
-            "address": "0x5fe214",
-            "section": "DATA"
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWWaterHexagon.ShowDynamic",
+            "occurrence": 1
           }
         ],
         "pointee": {

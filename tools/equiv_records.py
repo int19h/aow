@@ -1,4 +1,4 @@
-"""Version 1 identity records. This is not the step 9 proof validator.
+"""Version 2 identity recipes (legacy schema 1 remains readable). This is not the step 9 proof validator.
 
 Review authorizes identity only; storage/content/H5 checks remain outstanding.
 Certificate records are explicitly incomplete until later steps populate/replay them.
@@ -6,7 +6,8 @@ Certificate records are explicitly incomplete until later steps populate/replay 
 import hashlib
 import json
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 1  # Incomplete proof certificates and legacy aliases.
+ALIAS_SCHEMA_VERSION = 2
 HYPOTHESES = tuple('H%d' % n for n in range(1, 10)) + ('H3c',)
 
 
@@ -79,8 +80,11 @@ def install_pointer_cells(entry, inp, addresses, names, record):
             addresses.pointer_cells[side][cell] = points[side], record
 
 
-def load_aliases(path, inp, addresses):
-    document = json.loads(path.read_text(encoding='utf-8'))
+def load_aliases(path, inp, addresses, document=None):
+    document = json.loads(path.read_text(encoding='utf-8')) if document is None else document
+    if document.get('schema_version') == ALIAS_SCHEMA_VERSION:
+        from equiv_aliases import load_v2
+        return load_v2(path,inp,addresses,document)
     if set(document) != {'schema_version', 'module', 'entries'} or document['schema_version'] != SCHEMA_VERSION:
         raise ValueError('unknown data-alias schema')
     hashes = [digest(p) for p in inp.image_paths]
