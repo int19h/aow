@@ -331,72 +331,67 @@ begin
     (CanEnterSelection(ArmyHS.FArmy) <> 0);
 end;
 
-function TCave.EnterEx: Boolean;
+function TCave.EnterEx: Boolean; { Near miss: path/result spills and managed temporaries differ after three variants. }
 var
-  MessageText: string;
+  Selection: Byte;
   Path: TMovepath;
   L: Shortint;
+  MessageText: string;
   ArmyHS: TArmyHS;
-  Selection: Byte;
   Field: TAoWMapField;
   Event: TTokenEvent;
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
-  if (ArmyHS = nil) or not CanEnter(Shortint(TArmy(ArmyHS.FArmy).FPlayer)) then
-    Result := False
-  else
+  if (ArmyHS <> nil) and CanEnter(ArmyHS.FArmy.FPlayer) then
   begin
     Selection := CanEnterSelection(TUnitList(ArmyHS.FArmy));
     L := 0;
     Path := TMovepath.Create;
     case FEntrance of
-      ceUp: L := GetLhx - 1;
       ceDown: L := GetLhx + 1;
+      ceUp: L := GetLhx - 1;
     end;
     Path.AddXYL(GetXhx, GetYhx, L);
     Path.List^[0].Flag := EnterMovePoints(TArmy(ArmyHS.FArmy), Selection);
     Path.AddXYL(GetXhx, GetYhx, GetLhx);
-    Field := TAoWMapField(WorldMap^.MapContainer.GetField(GetXhx, GetYhx, L));
-    if (CaveMoveAction(Field, Byte(TArmy(ArmyHS.FArmy).FPlayer)) <> 1) or
-      (CaveFieldPlayer(Field) <= 0) or
-      (CaveRelation(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(ArmyHS.FArmy).FPlayer), CaveFieldPlayer(Field)) in [1, 3]) then
+    Field := TAoWMapField(AoWE.AoWHSMap.MapContainer.GetField(GetXhx, GetYhx, L));
+    if (Field.GetMoveAction(ArmyHS.FArmy.FPlayer) <> maAttack) or
+      (Field.GetPlayer <= 0) or
+      (Ord(AoWE.AoWHSMap.FPlayers.GetDiplomaticRelation(
+        Shortint(TArmy(ArmyHS.FArmy).FPlayer), Field.GetPlayer)) in [1, 3]) then
     begin
-      if (CaveFieldPlayer(Field) < 0) or
-        (Byte(CaveFieldPlayer(Field)) = Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
-        Result := CaveMoveArmy(ArmyHS, Shortint(Selection), Path, [], 0)
-      else if not CavePlayerBusy(CavePlayer(TPlayerList(WorldMap^.FPlayers),
-        Shortint(TArmy(ArmyHS.FArmy).FPlayer))) then
-      begin
-        Event := CaveCreateMove(ArmyHS, Shortint(Selection), Path, [], 1);
-        if Event <> nil then
+      if (Field.GetPlayer > -1) and (Field.GetPlayer <> ArmyHS.FArmy.FPlayer) then
+        if not AoWE.AoWHSMap.FPlayers.GetPlayers(ArmyHS.FArmy.FPlayer).GetBusy then
         begin
-          TTokenManager(WorldMap^.FTokenManager).GetTokenControl(
-            Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
-          Event.Release;
-          Result := True;
-        end
-        else Result := False;
-      end
-      else Result := False;
-      if Result and (Byte(TCaveMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
+          Event := CreateArmyMoveTE(ArmyHS, Selection, Path, maAttack, []); { Original passes action before mode. }
+          if Event <> nil then
+          begin
+            AoWE.AoWHSMap.FTokenManager.GetTokenControl(ArmyHS.FArmy.FPlayer).AddEvent(Event);
+            Event.Release;
+            Result := True;
+          end else Result := False;
+        end else Result := False
+      else Result := MoveArmyEx(ArmyHS, Selection, Path, [], False);
+      if Result and (Byte(TCaveMapFields(Pointer(AoWE.AoWHSMap)^).SeatedPlayer) =
         Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
       begin
-        WorldMap^.ViewLevel(L);
-        TSelectedArmy(WorldMap^.FSelectedArmy).Select(ArmyHS);
+        AoWE.AoWHSMap.ViewLevel(L);
+        TSelectedArmy(AoWE.AoWHSMap.FSelectedArmy).Select(ArmyHS);
       end;
     end
     else
     begin
-      MessageText := SysUtils.Format(TranslateCaveName(LoadResString(@CaveNoWarRStr)),
-        [TranslateCaveName(RaceNameTable^[TCavePlayerFields(Pointer(CavePlayer(
-          TPlayerList(WorldMap^.FPlayers), CaveFieldPlayer(Field)))^).Race])]);
-      TAbstractAoWHSMap(WorldMap^).ShowMessage(MessageText);
+      if ArmyHS.FArmy.FPlayer = AoWE.AoWHSMap.FSeatedPlayer then { Original only warns the seated player. }
+      begin
+        MessageText := SysUtils.Format(TranslateRStr(LoadResString(@NoWarDeclaredtoXRStr)),
+          [TranslateRStr(RaceNamesPluralRStr[AoWE.AoWHSMap.FPlayers.GetPlayers(Field.GetPlayer).FPlayerRace])]);
+        TAbstractAoWHSMap(AoWE.AoWHSMap).ShowMessage(MessageText);
+      end;
       Result := False;
     end;
     { Original frees the path only on normal completion. }
     Path.Free;
-  end;
+  end else Result := False;
 end;
 
 function TCave.Enter(Player: Shortint): Boolean;

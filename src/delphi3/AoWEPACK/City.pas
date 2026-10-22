@@ -724,7 +724,7 @@ begin
   FShellEndFrame := WorldMap^.Frame + 20;
 end;
 
-procedure TCityOverlayHS.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TCityOverlayHS.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: image-index spill and register allocation differ after three variants. }
 var
   Xhp, Yhp, Intensity, Index, Frame: Integer;
   Sequence: TImageSequence;
@@ -1638,16 +1638,17 @@ end;
 
 procedure TCity.CheckRebellion;
 var
+  Status: TCivilStatus;
   Chance, I: Integer;
   Log: TCityRebellionEventLog;
   Units: TUnitList;
 begin
   if FPlayer <> 0 then
   begin
-    Chance := Ord(GetCivilStatus);
-    if (TCivilStatus(Chance) in [csUnruly, csUnrest]) and not GetRazed then
+    Status := GetCivilStatus;
+    if (Status in [csUnruly, csUnrest]) and not GetRazed then
     begin
-      if TCivilStatus(Chance) = csUnruly then Chance := 50 else Chance := 10;
+      if Status = csUnruly then Chance := 50 else Chance := 10;
       if Chance >= WorldMap^.Random(100) then
       begin
         MoveArmiesOutOfCity([]);
@@ -1851,7 +1852,7 @@ begin
   end;
 end;
 
-function TCity.GetCivilStatus: TCivilStatus;
+function TCity.GetCivilStatus: TCivilStatus; { Near miss: register and local-slot allocation differs after three variants. }
 var
   Relation: TStatus;
   Value, ArmyValue, Bonus, I, J: Integer;
@@ -2631,20 +2632,22 @@ begin
   Result := $20108;
 end;
 
-procedure TCityResource.ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity);
+procedure TCityResource.ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity); { Near miss: image and coordinate registers differ after three variants. }
 var
+  dX, dY: Integer;
   Image: TLibraryImage;
 begin
-  X := FdXImage + X;
-  Y := Y + FdYImage;
+  dX := FdXImage + X;
+  dY := Y;
+  Inc(dY, FdYImage);
   Image := City.FWallBackImage;
-  if Image <> nil then Image.Show(X, Y, SurfaceDesc);
+  if Image <> nil then Image.Show(dX, dY, SurfaceDesc);
   if City.FCityImage <> nil then
-    if City.GetSelected and ([msActivated, msEditting] <= WorldMap^.Status) then
-      City.FCityImage.ShowTransparent(X, Y, SurfaceDesc)
-    else City.FCityImage.Show(X, Y, SurfaceDesc);
+    if City.GetSelected and (WorldMap^.Frame and 6 = 6) { Original blinks the selected city from frame bits. } then
+      City.FCityImage.ShowTransparent(dX, dY, SurfaceDesc)
+    else City.FCityImage.Show(dX, dY, SurfaceDesc);
   Image := City.FWallFrontImage;
-  if Image <> nil then Image.Show(X, Y, SurfaceDesc);
+  if Image <> nil then Image.Show(dX, dY, SurfaceDesc);
 end;
 
 procedure TCityResource.ActivateMsg;

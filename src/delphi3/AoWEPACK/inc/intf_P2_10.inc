@@ -115,7 +115,7 @@ resourcestring ObstacleRStr = 'Obstacle';
   StructureCapturedRStr = '%s captured';
   UnknownRStr = 'Unknown'; PlayerRStr = 'Player'; { AoWEd 004289AF }
   NoneRStr = 'None';
-  AWarRelationIsRequiredForXRStr = 'A state of WAR is required for %s';
+  AWarRelationIsRequiredForXRStr = 'A state of WAR is required for %s'; NoWarDeclaredtoXRStr = 'Not at war with the %s'; { 55708054 }
   AcceptAllianceRStr = 'Accept alliance';
   AcceptRStr = 'Accept';
   AccumulateGoldRStr = 'Accumulate gold';

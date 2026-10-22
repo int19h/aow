@@ -163,13 +163,13 @@ begin
   end;
 end;
 
-procedure TLeaderGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState);
+procedure TLeaderGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); { Near miss: remaining local-slot allocation differs after three variants. }
 var
-  Player, H, Race: Integer;
+  Player, Race, H: Integer;
   Image: TLibraryImage;
   Region: HRGN;
   Text: string;
-  R, ClipR, SourceR, DrawR: TRect;
+  ClipR, R, SourceR, DrawR: TRect;
   Leader: TLeader;
 begin
   if not (csDesigning in ComponentState) and (FMap <> nil) then
@@ -181,7 +181,8 @@ begin
       Leader := FMap.FPlayers.GetPlayers(Player).FLeader;
       Race := FMap.FPlayers.GetPlayers(Player).FPlayerRace;
       R := ARect;
-      R.Right := R.Left + H - 6;
+      R.Left := R.Left; R.Top := R.Top;
+      R.Right := R.Left + H - 6; R.Bottom := R.Bottom;
       if Leader.GetFace <> nil then
         BltLibraryImage(Canvas, Leader.GetFace, R, bmStretch, 100, 100, 0, Color, False, DrawR);
       R := ARect;
@@ -215,9 +216,9 @@ begin
         R.Left := R.Right - 15;
         Inc(R.Top, 2);
         Text := IntToStr(Leader.GetLevel);
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
-      Text := '- ' + AoWE.TranslateRStr(GridPlayerRStr) + ' ' + IntToStr(Player) + ' / ' +
+      Text := '- ' + AoWE.TranslateRStr(AoWE.PlayerRStr) + ' ' + IntToStr(Player) + ' / ' +
         AoWHSSet.FRaceResources.GetRaceResource(Race).FRaceName + ' -';
       Canvas.Brush.Style := bsClear;
       Canvas.Font.Color := AoWHSSet.FRaceResources.GetRaceResource(Race).FHeroUnitIndex;
@@ -225,7 +226,7 @@ begin
       Canvas.Font.Size := 11;
       R := ARect;
       Inc(R.Top);
-      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_CENTER or DT_SINGLELINE or DT_NOPREFIX);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_CENTER or DT_WORDBREAK or DT_EXPANDTABS);
       Text := AoWE.TranslateRStr(NameRStr) + ': ' + Leader.FHeroName;
       Canvas.Brush.Style := bsClear;
       Canvas.Font.Color := Font.Color;
@@ -234,20 +235,20 @@ begin
       R := ARect;
       Inc(R.Left, H);
       Inc(R.Top, 20);
-      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       if Leader.GetNickname <> '' then
       begin
         Inc(R.Top, 14);
         Text := AoWE.TranslateRStr(TitleRStr) + ': ' + Leader.GetNickname;
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
       if FShowStatus then
       begin
         Inc(R.Top, 14);
         if Leader.Owner = nil then
           Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
-        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(AoWE.UsedRStr);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
     end
     else

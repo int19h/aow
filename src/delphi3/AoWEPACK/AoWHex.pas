@@ -329,7 +329,7 @@ begin
   if FSides and $20 <> 0 then IL[35].Show(Xhp, Yhp, SurfaceDesc);
 end;
 
-procedure TAoWWaterHexagon.ShowDynamic(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
+procedure TAoWWaterHexagon.ShowDynamic(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: Self, image-list and loop registers differ after three variants. }
 var
   Xhp, Yhp, X, Y: Integer;
   IL: TCustomImageLibrary;
@@ -341,9 +341,9 @@ begin
   HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
   Xhp := Xhp - XhpSurf - 8;
   Yhp := Yhp - YhpSurf;
-  { needs: AoWE.AoWEngine global; its resource engine provides the same settings. }
-  if (Ord(TAoWEngine(FResource.Engine).FAnimationDetail) <> 0) and
-    ((TAoWMapField(Owner).FFieldFlags and $FF0000 <> 0) or
+  { Original uses the shared engine settings and the Flood enchantment. }
+  if (AoWE.AoWEngine.FAnimationDetail <> 0) and
+    ((PByteArray(Owner)^[$1A] <> 0) or
     (not TAbstractAoWHSMap(TMapLevel(Owner.Owner).Map).FFogEnabled)) then
   begin
     Inc(FAnimationFrame);
@@ -351,20 +351,20 @@ begin
     begin
       Showing := False;
       if Smallint(FAnimationFrame) = 0 then
-        if TWaterViewFlags(Pointer(WorldMap^.FPlayerControl)^).Flags and $10 <> 0 then
+        if getFlood in AoWE.AoWHSMap.FGlobalMagicControl.FActiveEnchantments { Original tests the Flood enchantment. } then
         begin
-          if (TIsoFields(Pointer(Self)^).OpenSides = 0) and (Random(300) = 0) and
-            not (msEditting in WorldMap^.Status) then FAnimationIndex := Random(10) + 30
+          if (FOpenSides = 0) and (Random(300) = 0) and
+            not (msEditting in AoWE.AoWHSMap.Status) then FAnimationIndex := Random(10) + 30
           else if Random(10) < 3 then FAnimationIndex := Random(9) + 50
           else FAnimationIndex := Random(10) + 20;
         end
         else
-          if (TIsoFields(Pointer(Self)^).OpenSides = 0) and (Random(700) = 0) and
-            not (msEditting in WorldMap^.Status) then FAnimationIndex := Random(10) + 30
+          if (FOpenSides = 0) and (Random(700) = 0) and
+            not (msEditting in AoWE.AoWHSMap.Status) then FAnimationIndex := Random(10) + 30
           else FAnimationIndex := Random(10) + 20;
       if FAnimationIndex < FResource.ImageSequenceList.Count then
       begin
-        Sequence := TImageSequence(FResource.ImageSequenceList.Items[FAnimationIndex]);
+        Sequence := TImageSequence(FResource.ImageSequenceList.List^[FAnimationIndex]);
         while Sequence <> nil do
         begin
           Image := Sequence.GetUnloopedFrameIndex(FAnimationFrame);
@@ -378,7 +378,7 @@ begin
         end;
       end;
       if not Showing then
-        if Ord(TAoWEngine(FResource.Engine).FAnimationDetail) = 1 then
+        if AoWE.AoWEngine.FAnimationDetail = 1 then
           FAnimationFrame := -20 - Random(25)
         else FAnimationFrame := -10 - Random(25);
     end;
@@ -387,57 +387,57 @@ begin
   IL := FResource.ImageSequenceList.ImageSequences[0].ImageLibrary;
   Variant := (Integer(Self) shr 8) and 3;
   if Variant = 3 then Variant := 0;
-  if TIsoFields(Pointer(Self)^).OpenSides <> 0 then
+  if FOpenSides <> 0 then
   begin
     X := Xhp - 19;
     Y := Yhp - 32;
-    if TIsoFields(Pointer(Self)^).OpenSides and 1 <> 0 then
+    if FOpenSides and 1 <> 0 then
     begin
-      if TIsoFields(Pointer(Self)^).OpenSides and $23 = $23 then
+      if FOpenSides and $23 = $23 then
         IL[FShoreTerrain[1] + 6].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and $23 = 1 then
+      else if FOpenSides and $23 = 1 then
         IL[FShoreTerrain[1] + 13].Show(X, Y, SurfaceDesc);
-      if TIsoFields(Pointer(Self)^).OpenSides and 7 = 7 then
+      if FOpenSides and 7 = 7 then
         IL[FShoreTerrain[2] + 25].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and 3 = 3 then
+      else if FOpenSides and 3 = 3 then
         IL[Variant + 3 + FShoreTerrain[2]].Show(X, Y, SurfaceDesc);
-      if TIsoFields(Pointer(Self)^).OpenSides and $31 = $31 then
+      if FOpenSides and $31 = $31 then
         IL[FShoreTerrain[6] + 24].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and $21 = $21 then
+      else if FOpenSides and $21 = $21 then
         IL[Variant + FShoreTerrain[6]].Show(X, Y, SurfaceDesc);
     end
     else
     begin
-      if TIsoFields(Pointer(Self)^).OpenSides and 6 = 6 then
+      if FOpenSides and 6 = 6 then
         IL[Variant + 10 + FShoreTerrain[3]].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and 2 = 2 then
+      else if FOpenSides and 2 = 2 then
         IL[FShoreTerrain[2] + 17].Show(X, Y, SurfaceDesc);
-      if TIsoFields(Pointer(Self)^).OpenSides and $30 = $30 then
+      if FOpenSides and $30 = $30 then
         IL[Variant + 7 + FShoreTerrain[5]].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and $20 = $20 then
+      else if FOpenSides and $20 = $20 then
         IL[FShoreTerrain[6] + 16].Show(X, Y, SurfaceDesc);
     end;
-    if TIsoFields(Pointer(Self)^).OpenSides and 8 <> 0 then
+    if FOpenSides and 8 <> 0 then
     begin
-      if TIsoFields(Pointer(Self)^).OpenSides and $E = $E then
+      if FOpenSides and $E = $E then
         IL[FShoreTerrain[3] + 22].Show(X, Y + 1, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and $C = $C then
+      else if FOpenSides and $C = $C then
         if Variant = 2 then
           IL[FShoreTerrain[3] + 19].Show(X, Y + 1, SurfaceDesc)
         else
           IL[Variant + 30 + FShoreTerrain[3]].Show(X, Y + 1, SurfaceDesc);
-      if TIsoFields(Pointer(Self)^).OpenSides and $38 = $38 then
+      if FOpenSides and $38 = $38 then
         IL[FShoreTerrain[5] + 21].Show(X, Y, SurfaceDesc)
-      else if TIsoFields(Pointer(Self)^).OpenSides and $18 = $18 then
+      else if FOpenSides and $18 = $18 then
         if Variant = 2 then
           IL[FShoreTerrain[5] + 18].Show(X, Y + 1, SurfaceDesc)
         else
           IL[Variant + 28 + FShoreTerrain[5]].Show(X, Y, SurfaceDesc);
-      if TIsoFields(Pointer(Self)^).OpenSides and $1C = 8 then IL[FShoreTerrain[4] + 23].Show(X, Y, SurfaceDesc);
+      if FOpenSides and $1C = 8 then IL[FShoreTerrain[4] + 23].Show(X, Y, SurfaceDesc);
     end
-    else if TIsoFields(Pointer(Self)^).OpenSides and $E = 4 then
+    else if FOpenSides and $E = 4 then
       IL[FShoreTerrain[3] + 15].Show(X, Y, SurfaceDesc)
-    else if TIsoFields(Pointer(Self)^).OpenSides and $38 = $10 then
+    else if FOpenSides and $38 = $10 then
       IL[FShoreTerrain[5] + 14].Show(X, Y, SurfaceDesc);
   end;
 end;

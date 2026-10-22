@@ -462,12 +462,13 @@ end;
 procedure TPlayerCropStructure.SetCropCount(A1: Integer);
 var
   MapLevel: TMapLevel;
-  I, X, Y: Integer;
+  I: Integer;
+  Resource: TCropResource;
+  Field: TMapField;
+  X, Y: Integer;
+  Crops: TList;
   Crop: TCrop;
   Locations: TWordList;
-  Crops: TList;
-  Field: TMapField;
-  Resource: TCropResource;
 begin
   if (moPlacedOnMap in FStatus) and not FChangingCrops then
   begin
@@ -479,9 +480,7 @@ begin
     for I := Locations.Count - 1 downto 0 do
     begin
       CenterHNtoHX(FXhx, FYhx, Locations.List^[I], X, Y);
-      if (X < 0) or (X >= MapLevel.Width) or (Y < 0) or (Y >= MapLevel.Height) then
-        Locations.Delete(I)
-      else
+      if (X >= 0) and (X < MapLevel.Width) and (Y >= 0) and (Y < MapLevel.Height) then
       begin
         Field := MapLevel.GetField(X, Y);
         Crop := TCrop(Field.FindOwnedChild($2036A));
@@ -490,7 +489,8 @@ begin
           if (Crop <> nil) and (Crop.FCropOwner = Self) then Crops.Add(Crop);
           Locations.Delete(I);
         end;
-      end;
+      end
+      else Locations.Delete(I);
     end;
     if Crops.Count < A1 then
     begin

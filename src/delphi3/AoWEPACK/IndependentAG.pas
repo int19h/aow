@@ -321,7 +321,7 @@ begin
   if Result > 3 then Result := 6 - Result;
 end;
 
-function TPatrolAGC.ResetPatrolToLocation: Boolean;
+function TPatrolAGC.ResetPatrolToLocation: Boolean; { Near miss: heading and choice-list allocation differs after three variants. }
 var
   PreviousHeading, X, Y: Integer;
   NewList: TDoubleItemList;

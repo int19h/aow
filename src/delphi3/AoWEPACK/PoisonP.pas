@@ -305,7 +305,7 @@ begin
   Result := $21305;
 end;
 
-procedure TPoisonPlantSpellTE.CreatePoisonPlant(Source: TAbstractUnit);
+procedure TPoisonPlantSpellTE.CreatePoisonPlant(Source: TAbstractUnit); { Near miss: walk-record alias and object spills differ after three variants. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;

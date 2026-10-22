@@ -223,7 +223,7 @@ begin
     not (tsRazed in FState) and (FDestinationX > 0);
 end;
 
-function TTeleport.Teleport(Player: Shortint): Boolean;
+function TTeleport.Teleport(Player: Shortint): Boolean; { Near miss: player/path spills and managed temporaries differ after three variants. }
 var
   ArmyHS: TArmyHS;
   Path: TMovepath;
@@ -240,20 +240,20 @@ begin
       Path := TMovepath.Create;
       Path.AddXYL(FDestinationX, FDestinationY, FDestinationL);
       Path.AddXYL(GetXhx, GetYhx, GetLhx);
-      Field := TAoWMapField(WorldMap^.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
-      if (TeleportMoveAction(Field, Byte(TArmy(ArmyHS.FArmy).FPlayer)) <> 1) or
+      Field := TAoWMapField(AoWE.AoWHSMap.MapContainer.GetField(FDestinationX, FDestinationY, FDestinationL));
+      if (Field.GetMoveAction(ArmyHS.FArmy.FPlayer) <> maAttack) or
         (Field.GetPlayer <= 0) or
-        (TPlayerList(WorldMap^.FPlayers).GetDiplomaticRelation(
+        (TPlayerList(AoWE.AoWHSMap.FPlayers).GetDiplomaticRelation(
           ArmyHS.FArmy.FPlayer, Field.GetPlayer) in [drWar, drUnknown]) then
       begin
         if (Field.GetPlayer > -1) and
           (Field.GetPlayer <> ArmyHS.FArmy.FPlayer) then
-          if not TPlayerList(WorldMap^.FPlayers).GetPlayers(ArmyHS.FArmy.FPlayer).GetBusy then
+          if not TPlayerList(AoWE.AoWHSMap.FPlayers).GetPlayers(ArmyHS.FArmy.FPlayer).GetBusy then
           begin
-            Event := TeleportCreateMove(ArmyHS, -1, Path, [], 1);
+            Event := CreateArmyMoveTE(ArmyHS, $FF, Path, maAttack, []); { Original passes action before mode. }
             if Event <> nil then
             begin
-              TTokenManager(WorldMap^.FTokenManager).GetTokenControl(
+              TTokenManager(AoWE.AoWHSMap.FTokenManager).GetTokenControl(
                 Shortint(TArmy(ArmyHS.FArmy).FPlayer)).AddEvent(Event);
               Event.Release;
               Result := True;
@@ -261,19 +261,19 @@ begin
             else Result := False;
           end
           else Result := False
-        else Result := TeleportMoveArmy(ArmyHS, -1, Path, [], 0);
-        if Result and (Byte(TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) =
+        else Result := MoveArmyEx(ArmyHS, $FF, Path, [], False);
+        if Result and (Byte(TTeleportMapFields(Pointer(AoWE.AoWHSMap)^).SeatedPlayer) =
           Byte(TArmy(ArmyHS.FArmy).FPlayer)) then
         begin
-          WorldMap^.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
-          TSelectedArmy(WorldMap^.FSelectedArmy).Select(ArmyHS);
+          AoWE.AoWHSMap.CenterViewTo(FDestinationX, FDestinationY, FDestinationL);
+          TSelectedArmy(AoWE.AoWHSMap.FSelectedArmy).Select(ArmyHS);
         end;
       end
       else
       begin
-        MessageText := SysUtils.Format(TranslateRStr(LoadResString(@TeleportNoWarRStr)),
-          [TranslateRStr(RaceNamesPluralRStr[TPlayerList(WorldMap^.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
-        TAbstractAoWHSMap(WorldMap^).ShowMessage(MessageText);
+        MessageText := SysUtils.Format(TranslateRStr(LoadResString(@NoWarDeclaredtoXRStr)),
+          [TranslateRStr(RaceNamesPluralRStr[TPlayerList(AoWE.AoWHSMap.FPlayers).GetPlayers(Field.GetPlayer).FPlayerRace])]);
+        TAbstractAoWHSMap(AoWE.AoWHSMap).ShowMessage(MessageText);
         Result := False;
       end;
       { Original frees the path only on normal completion. }

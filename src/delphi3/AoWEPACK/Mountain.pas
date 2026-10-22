@@ -260,7 +260,7 @@ begin Result := $2130A; end;
 
 procedure TRaiseTerrainTE.RaiseTerrain(Caster: TAbstractUnit);
 var
-  Resources: TMapObjectResourceList;
+  Resources: TList;
   Level: TMapLevel;
   Walk: THNWalkData;
   Field: TAoWMapField;
@@ -270,7 +270,7 @@ var
   Found: Boolean;
   Anim: TImageSequenceAnimation;
 begin
-  Resources := WorldSet^.MapObjectResourceList;
+  Resources := WorldSet^.MapObjectResourceList.FChildren;
   Level := WorldMap^.MapContainer.MapLevels[TLocation(FLocation).Layer];
   InitHNWalk(Walk, TLocation(FLocation).X, TLocation(FLocation).Y, 0);
   while Walk.Radius <= 1 do
@@ -278,7 +278,7 @@ begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
     begin
       Field := TAoWMapField(Level.Field[Walk.X, Walk.Y]);
-      Mountain := nil;
+      Resource := nil;
       if TRaiseTerrain(WorldSet^.FSpellControl.GetSpell(19)).ValidTargetMapF(Field) then
       begin
         Found := False;
@@ -286,7 +286,7 @@ begin
         while not Found and (I <> 0) do
         begin
           Dec(I);
-          Resource := TMapObjectResource(Resources.Resources[I]);
+          Resource := TMapObjectResource(Resources.List^[I]);
           Found := (Resource.ClassID = $2016B) and (Resource.TerrainList.UsedTerrain = 1);
         end;
         if Found then

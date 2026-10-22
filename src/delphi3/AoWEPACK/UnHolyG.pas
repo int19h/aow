@@ -283,7 +283,7 @@ begin
   Result := $21307;
 end;
 
-procedure TUnholyGroundSpellTE.CreateUnholyGround(Source: TAbstractUnit);
+procedure TUnholyGroundSpellTE.CreateUnholyGround(Source: TAbstractUnit); { Near miss: walk-record alias and object spills differ after three variants. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;

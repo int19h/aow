@@ -690,7 +690,7 @@ begin
   A3.TargetCost := 0;
 end;
 
-procedure TCombatSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues);
+procedure TCombatSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Near miss: target and damage-set register allocation differs after three variants. }
 var
   DamageTypes, Protection, Immunity: TDamageTypes;
   Count, I, Distance: Integer;

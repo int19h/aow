@@ -561,8 +561,19 @@ begin
 end;
 
 function TGlobalTargetSpell.CanActivate(A1: TAbstractUnit; var A2: string): Boolean;
-asm
-  JMP GlobalTargetCanActivate
+var
+  X, Y, Layer: Shortint;
+begin
+  Result := inherited CanActivate(A1, A2);
+  if Result and FAboveGroundOnly then
+  begin
+    A1.GetLocation(X, Y, Layer);
+    if Layer <> 0 then
+    begin
+      Result := False;
+      A2 := AoWE.TranslateRStr(CannotCastSpellInUndergoundRStr);
+    end;
+  end;
 end;
 
 function VirtualCanActivate(Spell: TSpell; Caster, MessagePtr: Integer): Boolean; assembler;
@@ -599,8 +610,19 @@ begin
 end;
 
 function TGlobalTargetSpell.Activate(A1: TAbstractUnit): Boolean;
-asm
-  JMP GlobalTargetActivate
+var
+  MessageText: string;
+begin
+  inherited Activate(A1);
+  if CanActivate(A1, MessageText) then
+  begin
+    FCasterID := A1.FUnitID;
+    FCasterPlayer := Shortint(A1.FPlayer);
+    SetupTargetSelection(A1, TTargetSelectionControl(SpellHSMap^.FTargetSelection));
+    TTargetSelectionControl(SpellHSMap^.FTargetSelection).Activate;
+    Result := True;
+  end
+  else Result := False;
 end;
 
 { needs: the following AoWE drafts return values at the original call sites.
@@ -1418,7 +1440,7 @@ procedure TWatcherHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc:
 var
   X,Y, DX,DY, Radius,Angle, PX,PY,Intensity,I,Delay: Integer;
 begin
-  if (Lhx = SpellHSMap^.ViewL) and SpellHSMap^.Visible( Xhx,Yhx,Lhx,0) then
+  if (SpellHSMap^.ViewL = Lhx) and SpellHSMap^.Visible( Xhx,Yhx,Lhx,0) then
   begin
     HXtoHP(Xhx,Yhx,X,Y);
     X := X-XhpSurf+16;
@@ -1429,9 +1451,9 @@ begin
     if FAnimationFrame <> -1 then
     begin
       Inc(FAnimationFrame);
-      { needs: AoWE.AoWEngine global at $558E945C. The map's engine supplies
-        the same engine instance; byte $6D is the original display mode. }
-      if (PByte(Integer(SpellHSMap^.Engine)+$6D)^ = 2) and (Lhx = SpellHSMap^.ViewL) then
+      { Original reads the shared AoWEngine animation detail at byte $6D.
+        The map engine is not the global read by this routine. }
+      if (SpellEngine^.FAnimationDetail = 2) and (SpellHSMap^.ViewL = Lhx) then
       begin
         Intensity := 100-FAnimationFrame;
         HXtoHP(Xhx,Yhx,X,Y);
@@ -1597,7 +1619,7 @@ begin
   end;
 end;
 
-procedure TWatcherHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
+procedure TWatcherHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: Self/message registers and argument evaluation differ after three variants. }
 var
   OwnerPlayer, Range: Integer;
 begin

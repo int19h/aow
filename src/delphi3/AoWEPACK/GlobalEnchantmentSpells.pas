@@ -1747,8 +1747,9 @@ begin Result := TFireMasteryEnchantment.Create(nil); end;
 
 procedure TFireMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
-  X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep, Chance, Delay: Integer;
+  FieldStep, Chance, Delay, X, Y, MaxY, Xhp, Yhp: Integer;
   MapLevel: TMapLevel;
+  MaxX: Integer;
   MapF: TAoWMapField;
 begin
   case WorldEngine^.FAnimationDetail of
@@ -1756,22 +1757,22 @@ begin
     2: Chance := 5;
   else Chance := 3;
   end;
-  MapLevel := WorldMap^.MapContainer.GetMapLevel(WorldMap^.ViewL);
+  MapLevel := AoWE.AoWHSMap.MapContainer.GetMapLevel(AoWE.AoWHSMap.ViewL);
   FieldStep := MapLevel.FHNOffsets[0, 4];
-  MaxX := WorldMap^.ViewXhx + WorldMap^.ViewWidthHX - 1;
-  MaxY := WorldMap^.ViewYhx + WorldMap^.ViewHeightHX - 1;
-  for X := WorldMap^.ViewXhx to MaxX do
+  MaxX := AoWE.AoWHSMap.ViewXhx + AoWE.AoWHSMap.ViewWidthHX - 1;
+  MaxY := AoWE.AoWHSMap.ViewYhx + AoWE.AoWHSMap.ViewHeightHX - 1;
+  for X := AoWE.AoWHSMap.ViewXhx to MaxX do
   begin
-    HXtoHP(X, WorldMap^.ViewYhx, Xhp, Yhp);
+    HXtoHP(X, AoWE.AoWHSMap.ViewYhx, Xhp, Yhp);
     Xhp := Xhp - XhpSurf + 16;
     Yhp := Yhp - YhpSurf + 16;
-    MapF := TAoWMapField(MapLevel.GetField(X, WorldMap^.ViewYhx));
-    for Y := WorldMap^.ViewYhx to MaxY do
+    MapF := TAoWMapField(MapLevel.GetField(X, AoWE.AoWHSMap.ViewYhx));
+    for Y := AoWE.AoWHSMap.ViewYhx to MaxY do
     begin
-      if not (MapF.TerrainType in [7, 8, 14]) and (WorldMap^.FSeatedPlayer <> -1) and
-        (not WorldMap^.FExplorationEnabled or MapF.GetExplored(WorldMap^.FSeatedPlayer)) then
+      if not (MapF.TerrainType in [7, 8, 15] { Original excludes border terrain. }) and (AoWE.AoWHSMap.FSeatedPlayer <> -1) and
+        (not AoWE.AoWHSMap.FExplorationEnabled or MapF.GetExplored(AoWE.AoWHSMap.FSeatedPlayer)) then
       begin
-        RandSeed := MapF.Xhx + MapF.Yhx * 8 + (Byte(MapF.FFieldFlags shr 16) shl 16);
+        RandSeed := MapF.Xhx + MapF.Yhx * 8 + (PByteArray(MapF)^[$1A] shl 16);
         if Random(100) < Chance then
         begin
           Delay := Random(40);
@@ -1780,7 +1781,7 @@ begin
             Sound.PlaySample(ExplosionSFX[X mod 2]);
         end;
       end;
-      Inc(Integer(MapF), FieldStep);
+      MapF := TAoWMapField(Integer(MapF) + FieldStep);
       Inc(Yhp, 32);
     end;
   end;

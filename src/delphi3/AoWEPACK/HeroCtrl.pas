@@ -264,7 +264,7 @@ procedure THeroControlGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; A
 var
   Index, H: Integer;
   Text: string;
-  R, ClipR, SourceR, DrawR: TRect;
+  ClipR, R, SourceR, DrawR: TRect;
   Hero: THero;
   Image: TLibraryImage;
   Region: HRGN;
@@ -277,7 +277,8 @@ begin
     begin
       Hero := FMap.FHeroControl.GetHero(FIndices[Index]);
       R := ARect;
-      R.Right := R.Left + H - 6;
+      R.Left := R.Left; R.Top := R.Top;
+      R.Right := R.Left + H - 6; R.Bottom := R.Bottom;
       if Hero.GetFace <> nil then
         BltLibraryImage(Canvas, Hero.GetFace, R, bmStretch, 100, 100, 0, Color, False, DrawR);
       R := ARect;
@@ -311,7 +312,7 @@ begin
         R.Left := ARect.Left + 6;
         Inc(R.Top, 30);
         Text := UserStr;
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
         Canvas.Font.Color := Font.Color;
       end;
       if FShowLevel then
@@ -322,7 +323,7 @@ begin
         R.Left := R.Right - 15;
         Inc(R.Top, 2);
         Text := IntToStr(Hero.GetLevel);
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
       Text := Hero.FHeroName;
       Canvas.Brush.Style := bsClear;
@@ -330,17 +331,17 @@ begin
       R := ARect;
       R.Left := R.Left + H - 2;
       Inc(R.Top);
-      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       Text := Hero.GetNickname;
       Inc(R.Top, 13);
-      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+      DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       if FShowStatus then
       begin
         Inc(R.Top, 13);
         if Hero.Owner = nil then
           Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(FreeRStr)
-        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(GridUsedRStr);
-        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_SINGLELINE or DT_NOPREFIX);
+        else Text := AoWE.TranslateRStr(StatusRStr) + ': ' + AoWE.TranslateRStr(AoWE.UsedRStr);
+        DrawText(Canvas.Handle, PChar(Text), Length(Text), R, DT_WORDBREAK or DT_EXPANDTABS);
       end;
     end
     else
