@@ -922,9 +922,9 @@ asm JMP MoveTypesToInt end;
 procedure TAbstractUnit.CreateMovePointTable(var Table: TP2MovePointTable);
 var
   Moves: TMoveTypes;
-  Terrain: Integer;
-  Overlay: Shortint;
-  Points: Integer;
+  Terrain, Overlay: Integer;
+  { Integer loop indexes retain the original table walk. }
+  Points: Integer; Value: Shortint;
   Faster, Slower: Boolean;
 begin
   Moves := GetMoveTypes;
@@ -943,8 +943,8 @@ begin
       begin
         for Overlay := -1 to 11 do
           for Terrain := 0 to 15 do
-            if Table[Terrain,Overlay] > 2 then
-              Table[Terrain,Overlay] := (Integer(Table[Terrain,Overlay]) + 1) shr 1;
+            begin Value := Table[Terrain,Overlay]; if Smallint(Value) > 2 then
+              Table[Terrain,Overlay] := (Integer(Value) + 1) shr 1; end;
       end
       else if not Faster and Slower then
         for Overlay := -1 to 11 do
@@ -967,7 +967,7 @@ begin
     if GetAbilityEnabled(132) then
       for Overlay := -1 to 11 do
         for Terrain := 0 to 15 do
-          if Table[Terrain,Overlay] > 0 then Inc(Table[Terrain,Overlay],2);
+          begin Points := Table[Terrain,Overlay]; if Points > 0 then Table[Terrain,Overlay] := Points + 2; end;
   end;
 end;
 function TAbstractUnit.GetMoveTypes: TMoveTypes;
@@ -1153,13 +1153,13 @@ begin
 end;
 function TAbstractUnit.ExecuteStormDamage(Storm: TStormType; Distance: Integer): Integer;
 var
+  Terrain: Shortint;
   Overlay: Shortint;
   Moves: TMoveTypes;
   Xhx,Yhx,Lhx: Shortint;
   Field: TMapField;
-  Terrain: Shortint;
   DoubleDamage: Boolean;
-  Attack, Damage: Integer;
+  Attack: Integer;
 begin
   Moves := GetMoveTypes;
   DoubleDamage := GetAbilityEnabled(23);
@@ -1176,24 +1176,24 @@ begin
     end;
   end;
   case Storm of
-    stFire: begin Attack := 7; Damage := 5; end;
-    stLightning: begin Attack := 8; Damage := 7; end;
-    stDeath: begin Attack := 7; Damage := 4; end;
-    stHoly: begin Attack := 7; Damage := 5; end;
-    stIce: begin Attack := 7; Damage := 5; end;
-    stPestilence: begin Attack := 4; Damage := 3; end;
-  else Attack := 0; Damage := 0;
+    stIce: begin Attack := 7; Result := 5; end;
+    stLightning: begin Attack := 8; Result := 7; end;
+    stDeath: begin Attack := 7; Result := 4; end;
+    stHoly: begin Attack := 7; Result := 5; end;
+    stFire: begin Attack := 7; Result := 5; end;
+    stPestilence: begin Attack := 4; Result := 3; end;
+  else Attack := 0; Result := 0;
   end;
-  if DoubleDamage then Damage := Damage * 2;
-  Damage := ExecuteDamageRole(Attack,Damage,[StormDamageType[Storm]]);
-  if Damage > GetHitPoints then Damage := GetHitPoints;
-  if Damage > 0 then
+  if DoubleDamage then Result := Result * 2;
+  Result := ExecuteDamageRole(Attack,Result,[StormDamageType[Storm]]);
+  if Result > GetHitPoints then Result := GetHitPoints;
+  if Result > 0 then
     case Storm of
       stDeath: ExecuteDamageEffects([dtDeath]);
       stPestilence: ExecuteDamageEffects([dtPoison]);
     end;
-  SetHitPoints(GetHitPoints - Damage);
-  Result := Damage;
+  SetHitPoints(GetHitPoints - Result);
+  { Result is the final damage. }
 end;
 function TAbstractUnit.MovePointCost(TerrainType, OverlayType: Shortint): Integer;
 var
@@ -1516,7 +1516,7 @@ function P2HitPercent(HitPoints, Hits: Shortint): Byte; assembler;
 asm JMP HitPointsToHitPcnt end;
 procedure P2ShowHitPercent(X,Y: Integer; const SD: TSurfaceDesc; Percent: Byte); assembler;
 asm POP EBP; JMP ShowHitPcnt end;
-function TAbstractUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer;
+function TAbstractUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; { Near miss: Self and sequence registers differ after three variants. }
 var
   Sequence: TImageSequence;
   Frame, TotalFrames, ResourceIndex: Integer;

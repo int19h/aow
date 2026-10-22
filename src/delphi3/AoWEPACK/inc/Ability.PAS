@@ -852,7 +852,7 @@ begin
   for I := 0 to FTypesEnabled.Count - 1 do FTypesEnabled[I] := False;
 end;
 
-procedure TUnitSelectionControl.UpdateSelection;
+procedure TUnitSelectionControl.UpdateSelection; { Near miss: nested loop registers and local slots differ after three variants. }
 var
   Index: Integer;
   Resources: TUnitResourceList;
@@ -1491,16 +1491,16 @@ begin
 end;
 procedure TAbility.ListInfo(A1: TStrings; A2: TAbilityInfoMode);
 var
-  Info: TP1CombatInfo;
-  Strength: Integer;
+  Info: TAbilityCombatInfo;
   Types: TDamageTypes;
+  Strength: Integer;
   DamageNames: string;
   DamageType_: TDamageType;
 begin
   TStrings(A1).Add('Name: ' + Self.GetName(nil));
   TStrings(A1).Add('-------------------------------------------------');
   if aimID in A2 then TStrings(A1).Add('ID: ' + IntToStr(FAbilityID));
-  TStrings(A1).Add('Type: ' + TranslateRStr(TAbilityTypeRStr[TP1AbilityView(Self).GetAbilityType]));
+  TStrings(A1).Add('Type: ' + TranslateRStr(TAbilityTypeRStr[Self.GetAbilityType]));
   if Self.GetAttack(nil) <> 0 then
     TStrings(A1).Add('Attack modifier: ' + IntToStr(Self.GetAttack(nil)));
   if Self.GetDefense(nil) <> 0 then
@@ -1514,19 +1514,19 @@ begin
     TStrings(A1).Add('Description: ');
     TStrings(A1).AddStrings(FDescription);
   end;
-  if TP1AbilityView(Self).GetCombatMode(nil) <> cmNone then
-    TStrings(A1).Add('Combat mode: ' + TranslateRStr(TCombatModeRStr[TP1AbilityView(Self).GetCombatMode(nil)]));
+  if Self.GetCombatMode(nil) <> cmNone then
+    TStrings(A1).Add('Combat mode: ' + TranslateRStr(TCombatModeRStr[Self.GetCombatMode(nil)]));
   if aimStatistics in A2 then
   begin
-    TP1AbilityView(Self).GetCombatInfo(nil, Info);
+    Self.GetCombatInfo(nil, Info);
     if Info.Attack <> -1 then TStrings(A1).Add('Attack: ' + IntToStr(Info.Attack));
     if Info.Damage <> -1 then TStrings(A1).Add('Damage: ' + IntToStr(Info.Damage));
     if Info.RepeatCount <> -1 then TStrings(A1).Add('Repeat: ' + IntToStr(Info.RepeatCount));
-    if Info.Types <> [] then
+    if Info.DamageTypes <> [] then
     begin
       DamageNames := '';
       for DamageType_ := Low(TDamageType) to High(TDamageType) do
-        if DamageType_ in Info.Types then
+        if DamageType_ in Info.DamageTypes then
         begin
           if DamageNames <> '' then DamageNames := DamageNames + ',';
           DamageNames := DamageNames + TranslateRStr(TDamageTypeRStr[DamageType_]);
@@ -1536,7 +1536,7 @@ begin
   end;
   if aimStrength in A2 then
   begin
-    TP1AbilityView(Self).GetOffensiveStrength(nil, Strength, Types);
+    Self.GetOffensiveStrength(nil, Strength, Types);
     if Strength <> 0 then TStrings(A1).Add('Strength: ' + IntToStr(Strength));
   end;
 end;

@@ -2287,7 +2287,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.InitializeNewMap;
+procedure TAoWHSMap.InitializeNewMap; { Near miss: loop locals and argument order still differ after three variants. }
 var
   L: Shortint;
   I: Integer;
@@ -2434,42 +2434,42 @@ end;
 function TAoWHSMap.FoggedForPlayer(X, Y, L: Integer; Player: Shortint): Boolean;
 var
   MapLevel: TMapLevel;
-  Walk: THNWalkData;
   Msg: TMapFieldMsg;
+  Walk: THNWalkData;
   Field: TAoWMapField;
 begin
   MapLevel := MapContainer.GetMapLevel(L);
-  if FExplorationEnabled and not TAoWMapField(MapLevel.GetField(X, Y)).GetExplored(Player) then
+  if not FExplorationEnabled or TAoWMapField(MapLevel.GetField(X, Y)).GetExplored(Player) then
   begin
-    Result := True;
-    Exit;
-  end;
-  if not FFogEnabled then Result := False
-  else if Player = AoWHSMap.FSeatedPlayer then
-    Result := WordRec(LongRec(TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).FFieldFlags).Hi).Lo = 0
-  else
-  begin
-    Msg.MsgID := $110A;
-    Msg.Result := 0;
-    Msg.Param[1] := Player;
-    InitHNWalk(Walk, X, Y, 0);
-    while (Msg.Result = 0) and (Walk.Radius <= 12) do
+    if FFogEnabled then
     begin
-      if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and (Walk.Y < MapLevel.Height) then
+      if Player <> AoWHSMap.FSeatedPlayer then
       begin
-        Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
-        if WordRec(LongRec(Field.FFieldFlags).Lo).Hi and $10 <> 0 then
+        Msg.MsgID := $110A;
+        Msg.Result := 0;
+        Msg.Param[1] := Player;
+        InitHNWalk(Walk, X, Y, 0);
+        while (Msg.Result = 0) and (Walk.Radius <= 12) do
         begin
-          Msg.Param[0] := Walk.Radius;
-          Field.SendMapFieldMsg(Msg);
+          if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < MapLevel.Width) and (Walk.Y < MapLevel.Height) then
+          begin
+            Field := TAoWMapField(MapLevel.GetField(Walk.X, Walk.Y));
+            if WordRec(LongRec(Field.FFieldFlags).Lo).Hi and $10 <> 0 then
+            begin
+              Msg.Param[0] := Walk.Radius;
+              Field.SendMapFieldMsg(Msg);
+            end;
+          end;
+          WalkToNextHN(Walk);
         end;
-      end;
-      WalkToNextHN(Walk);
-    end;
-    Result := Msg.Result = 0;
-  end;
+        Result := Msg.Result = 0;
+      end
+      else Result := WordRec(LongRec(TAoWMapField(AoWHSMap.MapContainer.GetField(X, Y, L)).FFieldFlags).Hi).Lo = 0;
+    end
+    else Result := False;
+  end
+  else Result := True;
 end;
-
 
 procedure TAoWHSMap.MouseMoved(Sender: TObject);
 var
@@ -2499,7 +2499,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.ResetSeatedPlayerView;
+procedure TAoWHSMap.ResetSeatedPlayerView; { Near miss: Self and Player registers differ after three variants. }
 var
   Player: TPlayer;
   XYL: Integer;

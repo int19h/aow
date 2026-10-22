@@ -1596,7 +1596,7 @@ begin
   inherited Deactivate;
 end;
 
-procedure TStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
+procedure TStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: Self, message and VMT registers differ after three variants. }
 begin
   inherited MapFieldMsgProc(Msg);
   if FResource.TerrainList.Terrain[Msg.HN] >= 0 then

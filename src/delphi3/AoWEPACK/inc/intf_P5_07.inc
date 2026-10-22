@@ -307,7 +307,7 @@
     procedure TargetFoundEvent(Target: TMoveTarget; var SearchDone: Boolean);
   end;
 
-  TDamageStrengths = array[TDamageType] of Integer;
+  { TDamageStrengths is shared with TDefenseRequirements in intf_P1_01.inc. }
 
   { TGroupDefenseSelector: instance size $10, VMT 5571ABB0.
     $08 defenders, $0C selected defense location. }

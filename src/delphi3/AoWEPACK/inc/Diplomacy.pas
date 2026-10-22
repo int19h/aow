@@ -1411,12 +1411,12 @@ begin
   else Result := False;
 end;
 
-function TDiplomaticActionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-asm
-  POP EBP
-  JMP P5DiplomaticExecute
+function TDiplomaticActionEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; var Show: Boolean;
+begin Show := Trigger = etUser;
+  if (AoWHSMap.FSeatedPlayer = Shortint(FAction.FTarget)) or (AoWHSMap.FSeatedPlayer = Shortint(FAction.FSource)) then begin Show := Show or ((AoWHSMap.FPlayMode = pmTurn) and (wpDiplomacy in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents) and (Trigger = etNewTurn)); Show := Show or ((AoWHSMap.FPlayMode = pmSimultaneous) and (wpDiplomacy in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents)); end;
+  Show := Show and ((Trigger = etUser) or (FAction.FReaction <> darIgnore));
+  if Show then begin AoWHSMap.TriggerExecuteEventLog(Self, Mode, Done); Result := True; end else Result := False;
 end;
-
 procedure RetrieveDefaultDiplomaticActionMessage(Source, Target, Other: Shortint; Action: TDiplomaticActionType; Reaction: TDiplomaticActionReaction; Text: TStrings);
 var
   SourceRace, TargetRace, OtherRace: string;
@@ -2340,7 +2340,7 @@ begin
   FCurrentScenarioID := ID;
 end;
 
-procedure TAoWCampaign.SetupScenario;
+procedure TAoWCampaign.SetupScenario; { Near miss: loop registers and stack slots differ after three variants. }
 var
   Player: Shortint;
   I, J, Level, R: Integer;

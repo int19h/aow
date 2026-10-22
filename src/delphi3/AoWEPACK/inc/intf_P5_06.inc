@@ -464,7 +464,7 @@
     procedure AddUnits(Units: TUnitList);
     procedure AddArmy(Army: TArmyHS; Selection: Byte);
     procedure AddTransporter(AUnit: TAbstractUnit);
-    procedure InvalidateMove;
+    procedure InvalidateMove(Army: TArmyHS; Selection: Byte);
     procedure Reset;
     function Validate: Boolean;
     function CreateArmies(Status: TAIMoveExecuterUnitStatusSet): TAIMoveExecuterArmyList;

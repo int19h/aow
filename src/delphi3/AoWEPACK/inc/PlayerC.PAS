@@ -174,7 +174,7 @@ begin
   AoWHSMap.TriggerRelationsChanged;
 end;
 
-procedure TPlayerControl.NewTurn(Player: Shortint);
+procedure TPlayerControl.NewTurn(Player: Shortint); { Near miss: parameter spill and arithmetic registers differ after three variants. }
 var
   Msg: TEMsg;
 begin
@@ -1133,7 +1133,7 @@ begin
   else AoWHSMap.ExecuteExitGame;
 end;
 
-procedure TPBEMPlayerControl.ValidateLoadedMap;
+procedure TPBEMPlayerControl.ValidateLoadedMap; { Near miss: global address caching and Boolean spill differ after three variants. }
 var
   Restarted: Boolean;
   Log: TMessageEventLog;

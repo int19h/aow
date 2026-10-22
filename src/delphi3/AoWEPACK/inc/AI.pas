@@ -372,9 +372,9 @@ begin
   Players.Free;
 end;
 
-function TAIPlayerControl.CanOfferPeace(Player: Byte): Boolean;
+function TAIPlayerControl.CanOfferPeace(Player: Byte): Boolean; { Original peace exception requires more than two active players. }
 var
-  IdealPeace, IdealWar, Peace, War, Unknown: TByteList;
+  Peace, War, Unknown, IdealPeace, IdealWar: TByteList;
   PeaceCount, WarCount, PeaceIndex, WarIndex, Index, I: Integer;
 begin
   if not ((FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) = drWar) and
@@ -405,10 +405,10 @@ begin
         if (WarIndex = -1) or (Index < WarIndex) then Inc(WarCount)
         else Inc(PeaceCount);
     end;
-    if (WarCount < PeaceCount) and
+    Result := not ((PeaceCount > WarCount) and
       not ((WarCount = 0) and (PeaceCount = 1) and
-        (AoWHSMap.FPlayers.FActivePlayers.Count < 3)) then Result := False
-    else Result := True;
+        (AoWHSMap.FPlayers.FActivePlayers.Count > 2)));
+
     if FPlayer.FPlayerType in [ptCPU3, ptCPU4, ptCPU5] then
       if AoWHSMap.FRaces.GetRace(
         AoWHSMap.FPlayers.GetPlayers(FPlayer.FPlayerIndex).FPlayerRace).
@@ -425,7 +425,7 @@ end;
 
 function TAIPlayerControl.CanDeclareWar(Player: Byte): Boolean;
 var
-  IdealPeace, IdealWar, Peace, War, Unknown: TByteList;
+  Peace, War, Unknown, IdealPeace, IdealWar: TByteList;
   PeaceCount, WarCount, PeaceIndex, WarIndex, Index, I: Integer;
 begin
   if not ((FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) = drPeace) and
@@ -456,10 +456,10 @@ begin
         if (WarIndex = -1) or (Index < WarIndex) then Inc(WarCount)
         else Inc(PeaceCount);
     end;
-    if (PeaceCount < WarCount) and
-      (FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) <> drWar) then
-      Result := False
-    else Result := True;
+    Result := not ((WarCount > PeaceCount) and
+      (FPlayer.FDiplomaticRelations.GetHistory(Shortint(Player)).GetRelationOnDay(0) <> drWar));
+
+
     Peace.Free;
     War.Free;
     Unknown.Free;

@@ -869,22 +869,22 @@ begin
       if (Sequence <> nil) and GetSelected then
       begin
         Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
-        { ImageLib's private speed counter at $30 gates the original footstep sound. }
-        asm
-          MOV EAX, Sequence
-          MOV DL, [EAX + $30]
-          CMP DL, [EAX + $18]
-          JNE @@NoStepSound
-          MOV EAX, Index
-          MOV ECX, 100
-          CDQ
-          IDIV ECX
-          MOV EAX, Self
-          MOV EAX, [EAX + $10]
-          MOV EAX, [EAX + $38]
-          CALL TSFXLibrary.Play
-        @@NoStepSound:
-        end;
+        if Sequence.SpeedCount = Sequence.SequenceSpeed then { $30 sound timing gate }
+          FUnitGFXResource.FSFXLibraries[1].Play(Index mod 100);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       end;
     end
     else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1];

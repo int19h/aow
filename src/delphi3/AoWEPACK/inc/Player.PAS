@@ -512,7 +512,7 @@ begin
   else Result := False;
 end;
 
-function TPlayer.Validate(Errors: TStrings): Boolean;
+function TPlayer.Validate(Errors: TStrings): Boolean; { Near miss: Errors and managed local slots differ after three variants. }
 var
   S, LeaderName: string;
 begin
@@ -1654,7 +1654,7 @@ begin
   end;
 end;
 
-procedure TPlayerList.ValidateRaces(Races: TRaceList);
+procedure TPlayerList.ValidateRaces(Races: TRaceList); { Near miss: Self and Races spills differ after three variants. }
 var
   Available, Invalid: TIntegerList;
   I, Index, DefaultRace: Integer;

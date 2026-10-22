@@ -1734,7 +1734,7 @@ var
   AUnit: TAbstractUnit;
   MapF: TAoWMapField;
   DamageType: TDamageType;
-  Strengths: TDamageStrengths;
+  Strengths: TDefenseRequirements;
   Walk: THNWalkData;
 begin
   FDefenders.Clear;
@@ -1748,8 +1748,8 @@ begin
     if MapF.GetPlayer = Group.FPlayer then
     begin
       Candidates.Clear;
-      MapF.GetDefenseRequirements(Group.FPlayer, TDefenseRequirements(Strengths));
-      if not EnoughStrength(Strengths) then
+      MapF.GetDefenseRequirements(Group.FPlayer, Strengths);
+      if not EnoughStrength(Strengths.DamageStrengths) then
       begin
         UpdateDefenseLocation(MapF);
         GetDefenders(Group.FPlayer, Walk.X, Walk.Y, L, Candidates);
@@ -1762,7 +1762,7 @@ begin
         begin
           AUnit := Candidates.GetUnit(I);
           for DamageType := Low(TDamageType) to High(TDamageType) do
-            Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+            Dec(Strengths.DamageStrengths[DamageType], AUnit.GetStrength(DamageType));
           Inc(I);
         end;
         Start := I;
@@ -1770,18 +1770,18 @@ begin
         begin
           AUnit := FDefenders.GetUnit(I);
           for DamageType := Low(TDamageType) to High(TDamageType) do
-            Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+            Dec(Strengths.DamageStrengths[DamageType], AUnit.GetStrength(DamageType));
         end;
         I := Start;
-        while not EnoughStrength(Strengths) and (Candidates.Count > I) and
+        while not EnoughStrength(Strengths.DamageStrengths) and (Candidates.Count > I) and
           (Candidates.GetUnit(I).FGroupID = Group.FGroupID) do
         begin
           AUnit := Candidates.GetUnit(I);
-          if (FDefenders.FChildren.IndexOf(AUnit) = -1) and UsefullUnit(AUnit, Strengths) then
+          if (FDefenders.FChildren.IndexOf(AUnit) = -1) and UsefullUnit(AUnit, Strengths.DamageStrengths) then
           begin
             FDefenders.AddUnit(AUnit);
             for DamageType := Low(TDamageType) to High(TDamageType) do
-              Dec(Strengths[DamageType], AUnit.GetStrength(DamageType));
+              Dec(Strengths.DamageStrengths[DamageType], AUnit.GetStrength(DamageType));
           end;
           Inc(I);
         end;
@@ -3227,9 +3227,9 @@ end;
 
 function TAIGroupTargetSelector.Activate(Control: TAIGroupControl): Boolean;
 var
-  I: Integer;
   Target: TAIGroupControlTarget;
   Valid: Boolean;
+  I: Integer;
 begin
   FGroupControl := Control;
   FGroupControl.FTargets.Validate;
@@ -3240,7 +3240,7 @@ begin
   for I := FGroupControl.FTargets.Count - 1 downto 0 do
   begin
     Target := FGroupControl.FTargets.GetTargets(I);
-    Valid := ValidateTargetOverlap(FGroupControl.FGroup, Target) and
+    Valid := ValidateTargetOverlap(FGroupControl.FGroup, Target); Valid := Valid and
       ((Target.FData.TargetType <> attNegotiate) or
         FGroupControl.FGroup.RequestTargetExpense(Target.GetTargetGold, Target.GetTargetMana));
     Valid := Valid and ((Target.GetTargetGold <= 0) or
@@ -4034,7 +4034,7 @@ begin
   else Result := False;
 end;
 
-procedure TAIMoveControl.ProcessTransporterCanMove;
+procedure TAIMoveControl.ProcessTransporterCanMove; { Near miss: settings temporary and registers differ after three variants. }
 var
   Points: Integer;
   Location: TXYL;
@@ -4735,7 +4735,7 @@ begin
   inherited Destroy;
 end;
 
-function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy;
+function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy; { Near miss: locals and registers differ after three variants. }
   Selection: Byte; X, Y, L: Shortint; Mode: TCreateMoveMode;
   MoveResult: PByte): TAIMoveExecuterMove;
 var
@@ -4756,7 +4756,7 @@ begin
   begin
     Settings.FMovePointsMax := Army.MovePoints($FF);
     Settings.SetupArmy(ArmyHS, ArmySelection);
-    AoWHSMap.FMoveControl.Activate(Settings);
+    AoWHSMap.FMoveControl.ProcessMove(Settings);
     Level := AoWHSMap.MapContainer.GetMapLevel(L);
     Candidates := TDoubleItemList.Create;
     InitHNWalk(Walk, X, Y, 1);
@@ -4789,7 +4789,7 @@ begin
     Settings.FMovePointsMax := FExecuter.FMovePointsMax;
     Settings.SetupArmy(ArmyHS, ArmySelection);
     Settings.SetDestinationPos(X, Y, L);
-    AoWHSMap.FMoveControl.Activate(Settings);
+    AoWHSMap.FMoveControl.ProcessMove(Settings);
   end;
   if Settings.FPath.Count <> 0 then
   begin
@@ -5167,7 +5167,7 @@ begin
   Armies.Free;
 end;
 
-function TAdjacentMEC.CalculateMeetingPoint: Integer;
+function TAdjacentMEC.CalculateMeetingPoint: Integer; { Near miss: result and loop registers differ after three variants. }
 var
   I, Points, Reserve, Index, Position: Integer;
   Armies: TAIMoveExecuterArmyList;
@@ -6074,7 +6074,7 @@ begin
   FTransporter.Initialize(AUnit, Location.X, Location.Y, Location.L);
 end;
 
-procedure TAIMoveExecuter.InvalidateMove;
+procedure TAIMoveExecuter.InvalidateMove(Army: TArmyHS; Selection: Byte);
 begin
   FStatus := mesInvalidated;
   UpdateMoveResult;
@@ -6511,7 +6511,7 @@ begin
   Result := (FBufferedTargets.Count <> 0) and (FState <> -1);
 end;
 
-function TAIMoveTargetSelector.ProcessStates: Boolean;
+function TAIMoveTargetSelector.ProcessStates: Boolean; { Near miss: locals, registers and case table layout differ after three variants. }
 var
   Yield, Processing, Found: Boolean;
   I, Terrain, Overlay: Integer;

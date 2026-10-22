@@ -334,7 +334,7 @@
     function ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; override;
     procedure DestroyObject; override;
     function IDStr: string; override;
-    procedure Setup(A1: Byte; A2: Byte; A3: Integer);  { draft }
+    procedure Setup(A1: Byte; A2: Byte; A3: Byte); { 55727CFE }
     class function LinkP3Helpers(Index: Integer): Pointer;
   end;
 

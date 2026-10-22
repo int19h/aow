@@ -1197,7 +1197,7 @@ begin
     TByteList(TCombatData(TCombat(A1).FCombatData).F_CombatData_28).Add(FCombatPlayer);
 end;
 
-procedure TCombatUnit.Finalize(A1: TFinalizeMode);
+procedure TCombatUnit.Finalize(A1: TFinalizeMode); { Near miss: saved registers differ after three variants. }
 var Party: TCombatParty; Placed: TArmyHS;
 begin
   if not (csDestroyed in FStatus) and not FUnit.GetAbilityEnabled($82) and not FUnit.GetAbilityEnabled($83) then
@@ -1207,7 +1207,7 @@ begin
       if FPosition and $F <= 7 then
       begin
         Party := TCombatPartyList(TCombatData(TCombat(FCombat).FCombatData).FParties).GetParty(FPosition shr 4);
-        if (Party <> nil) and (Party.FPlayerIndex = FCombatPlayer) then
+        if (Party <> nil) and (Shortint(Party.FPlayerIndex) = FCombatPlayer) then
         begin
           if AoWHSMap.FPlayers.GetPlayers(GetPlayer).FGameOverStatus = goLost then
           begin
@@ -1235,7 +1235,7 @@ begin
             TCombatData(TCombat(FCombat).FCombatData).FL, GetPlayer, [pmScanArea]);
         Destroy;
       end
-      else if (Party <> nil) and (Party.FPlayerIndex <> FCombatPlayer) then
+      else if (Party <> nil) and (Shortint(Party.FPlayerIndex) <> FCombatPlayer) then
         FUnit.Place(TCombatData(TCombat(FCombat).FCombatData).FX,
           TCombatData(TCombat(FCombat).FCombatData).FY,
           TCombatData(TCombat(FCombat).FCombatData).FL, GetPlayer, [pmScanArea]);
@@ -1701,7 +1701,7 @@ end;
 function TCombatWall.fcRoundDistance: Integer;
 begin Result := 0; end;
 
-procedure TCombatWall.Setup(A1: Byte; A2: Byte; A3: Integer);
+procedure TCombatWall.Setup(A1: Byte; A2: Byte; A3: Byte);
 begin
   FID := A1;
   FWallType := A2;
@@ -6402,7 +6402,7 @@ begin
   else AddAdjacentArmies;
 end;
 
-procedure TCombat.Initialize;
+procedure TCombat.Initialize; { Near miss: loop and Self registers differ after three variants. }
 var I, J: Integer; Wall: TCombatWall; WallType, Player: Byte;
 begin
   LockExecuted;

@@ -2134,7 +2134,7 @@ begin
   else Result := False;
 end;
 
-function TMoveArmyTE.Validate: Boolean;
+function TMoveArmyTE.Validate: Boolean; { Near miss: field temporaries and registers differ after three variants. }
 var
   I, UnitIndex: Integer;
   Settings: TMoveControlSettings;
@@ -2145,7 +2145,7 @@ begin
   if I < 1 then Result := False
   else
   begin
-    FArmyHS := TArmyHS(GetMapF(FPath[I]).FindChild($20217));
+    FArmyHS := TArmyHS(GetMapF(FPath[I]).FindOwnedChild($20217));
     if FArmyHS = nil then Result := False
     else
     begin
@@ -2177,7 +2177,7 @@ begin
   end;
   if not Result and (AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerType <> ptHuman) and
     (AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.FStatus = mesBusy) then
-    AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.InvalidateMove;
+    AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.InvalidateMove(FArmyHS, FSelection);
 end;
 
 procedure TMoveArmyTE.InitializeMove; { Near miss: army temporary and set expression differ after three variants. }
@@ -2522,16 +2522,38 @@ begin Result := inherited Validate; end;
 procedure TArmyCombatMoveTE.InitializeMove;
 begin inherited InitializeMove; end;
 
-procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog);
+procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog); { Near miss: Log, Request and Flow registers differ after three variants. }
 var
-  Request: TCombatTypeRequestEventLog;
   Flow: TCombatFlowControlTE;
+  Request: TCombatTypeRequestEventLog;
   Move: TArmyCombatMoveTE;
 begin
   Request := TCombatTypeRequestEventLog(Log);
   FCombatType := Request.FCombatType;
-  if not Request.FCreateNewMove then FCombatMode := cmSetupReady
-  else if FCombatType = ctNone then
+  if Request.FCreateNewMove then begin
+  if FCombatType <> ctNone then
+  begin
+    Flow := TCombatFlowControlTE.Create(nil);
+    Flow.FMode := [cfmUnlockAIExecuter, cfmActivateTC, cfmEnableTurnTimer];
+    if AoWHSMap.FPlayMode = pmSimultaneous then Flow.FMode := Flow.FMode + [cfmSetAutoSwitch];
+    Flow.FPlayer := Request.FPlayer;
+    AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Flow);
+    Flow.Release;
+    if Request.FArmyID.RetrieveArmy(FArmyHS, FSelection) then
+    begin
+      while FPath.Count > 2 do FPath.Delete(2);
+      if FPath.Count = 2 then FPath.List^[1].Flag := 0;
+      Move := TArmyCombatMoveTE(CreateArmyMoveTE(FArmyHS, FSelection, FPath, maAttack, [mmSelectEndLocation]));
+      if Move <> nil then
+      { created combat move }
+      begin
+        Move.FCombatType := TCombatTypeRequestEventLog(Log).FCombatType;
+        AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Move);
+        Move.Release;
+      end else AoWEngine.OutputDebugStr('Cannot create CombatMoveTE');
+    end;
+  end
+  else
   begin
     if AoWHSMap.FPlayMode = pmSimultaneous then
     begin
@@ -2540,31 +2562,9 @@ begin
       AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Flow);
       Flow.Release;
     end;
-  end
-  else
-  begin
-    Flow := TCombatFlowControlTE.Create(nil);
-    Flow.FMode := [cfmUnlockAIExecuter, cfmActivateTC, cfmEnableTurnTimer];
-    if AoWHSMap.FPlayMode = pmSimultaneous then Include(Flow.FMode, cfmSetAutoSwitch);
-    Flow.FPlayer := Request.FPlayer;
-    AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Flow);
-    Flow.Release;
-    if Request.FArmyID.RetrieveArmy(FArmyHS, FSelection) then
-    begin
-      while FPath.Count > 2 do FPath.Delete(2);
-      if FPath.Count = 2 then FPath.List^[1].Flag := 0;
-      Move := TArmyCombatMoveTE(CreateArmyMoveTE(FArmyHS, FSelection, FPath, maNormal, [mmSelectEndLocation]));
-      if Move = nil then AoWEngine.OutputDebugStr('Cannot create CombatMoveTE')
-      else
-      begin
-        Move.FCombatType := Request.FCombatType;
-        AoWHSMap.FTokenManager.GetTokenControl(AoWHSMap.FSeatedPlayer).AddEvent(Move);
-        Move.Release;
-      end;
-    end;
   end;
+ end else FCombatMode := cmSetupReady;
 end;
-
 procedure TArmyCombatMoveTE.RestoreHotseatMode;
 var
   Log: TNewTurnEventLog;
@@ -2798,7 +2798,7 @@ begin
   end;
 end;
 
-procedure TArmyCombatMoveTE.CombatExecuted(Combat: TCombat);
+procedure TArmyCombatMoveTE.CombatExecuted(Combat: TCombat); { Near miss: combat-data argument register differs after three variants. }
 var
   ArmyHS: TArmyHS;
   Army: TArmy;
