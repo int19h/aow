@@ -38,7 +38,7 @@ type
     Translator: TIvTranslator; { +0224 }
     public
     procedure CreateMap;
-    procedure OKBtnClick(Sender: TObject);
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

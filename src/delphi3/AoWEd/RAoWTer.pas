@@ -24,8 +24,8 @@ type
     Label11: TLabel; { +034C }
     CombatTerrainTagBox: TComboBox; { +0350 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure CombatTerrainTagBoxChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure CombatTerrainTagBoxChange(Sender: TObject); public
   end;
 
   { TAoWTerrainResourceEditor (instance size 8, VMT 004083EC) }

@@ -44,19 +44,19 @@ type
     procedure EditSelectedItem;
     procedure UpdateLibraries;
     procedure SetLibraryIndex(Index: Integer);
-    procedure AddBtnClick;
-    procedure CopyBtnClick;
-    procedure FormShow;
-    procedure LibraryCBChange;
-    procedure SortOnNamesBtnClick;
-    procedure SortOnTypeBtnClick;
-    procedure DeleteItemClick;
-    procedure NewLibraryClick;
-    procedure DeleteLibraryClick;
-    procedure CloseBtnClick;
-    procedure LibraryItemGridDblClick;
-    procedure EditItemBtnClick;
-    procedure NewItemClick;
+    published procedure AddBtnClick; public
+    published procedure CopyBtnClick; public
+    published procedure FormShow; public
+    published procedure LibraryCBChange; public
+    published procedure SortOnNamesBtnClick; public
+    published procedure SortOnTypeBtnClick; public
+    published procedure DeleteItemClick; public
+    published procedure NewLibraryClick; public
+    published procedure DeleteLibraryClick; public
+    published procedure CloseBtnClick; public
+    published procedure LibraryItemGridDblClick; public
+    published procedure EditItemBtnClick; public
+    published procedure NewItemClick; public
   end;
 
 

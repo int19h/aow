@@ -37,13 +37,13 @@ type
     procedure UpdateScrollBar;
     procedure SetText(Item: TTextControlItem);
     procedure EditTextControl(TextControl: TTextControl);
-    procedure TextIDEditChange;
-    procedure NewTextClick;
-    procedure DeleteTextClick;
-    procedure FindTextClick;
-    procedure TextMemoChange;
-    procedure TextScrollBarChange;
-    procedure DescriptionEditChange;
+    published procedure TextIDEditChange; public
+    published procedure NewTextClick; public
+    published procedure DeleteTextClick; public
+    published procedure FindTextClick; public
+    published procedure TextMemoChange; public
+    published procedure TextScrollBarChange; public
+    published procedure DescriptionEditChange; public
   end;
 
 

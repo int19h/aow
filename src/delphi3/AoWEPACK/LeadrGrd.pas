@@ -7,7 +7,7 @@ unit LeadrGrd;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TLeaderGrid = class;
@@ -17,7 +17,7 @@ type
   TLeaderGrid = class(TCustomImageDrawGrid)
   public
     FShowLevel: Boolean; { $1DC }
-    FReserved1DD: Byte;
+    FReserved1DD: Boolean;
     FShowStatus: Boolean; { $1DE }
     FReserved1DF: Byte;
     FStream: TMemoryStream; { +$1E0 }
@@ -30,8 +30,8 @@ type
     function GetLeader(Player: Shortint): TLeader;
     function GetSelectedLeader: TLeader;
     procedure SetSelectedLeader(Value: TLeader);
-    procedure RemoveFromMap; property SelectionEnabled; { AoWEd 0042D0F8 }
-  end;
+    procedure RemoveFromMap; published property SelectionEnabled; public { AoWEd 0042D0F8 }
+  published property EditLeaderEnabled: Boolean read FReserved1DD write FReserved1DD; property ShowStatus: Boolean read FShowStatus write FShowStatus; property OnSelectCell; property OnDblClick; property DefaultRowHeight; property DefaultColWidth; property FocusColor; property Align; property BltMode; property OnCellUpdated; property Color; property ScrollBars; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property ShowLevel: Boolean read FShowLevel write FShowLevel; property Font; end;
 
 procedure Register;
 

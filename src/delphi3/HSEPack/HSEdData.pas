@@ -8,7 +8,7 @@ interface
 var
   UpdateMap: Boolean;
 
-implementation
+implementation {$IFDEF RUNTIME_PACKAGES} uses Hexagon; {$ENDIF}
 
 initialization
   UpdateMap := True;

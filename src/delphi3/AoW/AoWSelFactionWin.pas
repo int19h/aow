@@ -37,17 +37,17 @@ type
     FFadeDirection: Integer; { $88 }
     F_SelFactionWin_8C: array[0..3] of Byte;
     procedure CloseSelection;
-    procedure LStartClick(Sender: TObject);
-    procedure LightPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DarkPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure LBackClick;
-    procedure DBackClick;
-    procedure FactionPnlMouseMove;
-    procedure LightPnlMouseMove;
-    procedure DarkPnlMouseMove;
-    procedure AbortBtnClick;
-    procedure FactionPnlUpdate;
-    procedure FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure LStartClick(Sender: TObject); public
+    published procedure LightPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DarkPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure LBackClick; public
+    published procedure DBackClick; public
+    published procedure FactionPnlMouseMove; public
+    published procedure LightPnlMouseMove; public
+    published procedure DarkPnlMouseMove; public
+    published procedure AbortBtnClick; public
+    published procedure FactionPnlUpdate; public
+    published procedure FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

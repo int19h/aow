@@ -39,11 +39,11 @@ type
     FOnClose: TExecuteDoneEvent; { $88 }
     FEvent: TEnterWizardsTowerEventLog; { $90 }
     procedure ClearEvent;
-    procedure CancelBtnClick;  { draft }
-    procedure BuyBtnClick;  { draft }
-    procedure DlgHide;  { draft }
-    procedure SpellIcnDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CancelBtnClick; public  { draft }
+    published procedure BuyBtnClick; public  { draft }
+    published procedure DlgHide; public  { draft }
+    published procedure SpellIcnDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

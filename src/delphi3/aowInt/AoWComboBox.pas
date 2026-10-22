@@ -8,8 +8,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip, AoWControl,
-  AoWVScroll;
+  AoWVScroll, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl,
+  AoWBaseWin;
 
 type
   { AoWComboBox.TAOWComboBox (instance size 416). Fields: +$114 F114 (the mouse button went down

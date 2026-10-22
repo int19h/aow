@@ -57,17 +57,17 @@ type
     procedure UpdateStructureGrid(Grid: TStringGrid; Structures: TPlayerStructureList);
     procedure LoadPlayer(PlayerIndex: Shortint);
     procedure UpdatePlayer;
-    procedure PlayerInfoMapControlActivateHSM(Sender: TObject);
-    procedure PlayerInfoMapControlDeactivateHSM(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure PlayerInfoMapControlGemsChanged(Player: Shortint);
-    procedure PlayerInfoMapControlUpkeepChanged(Player: Shortint);
-    procedure PlayerInfoMapControlIncomeChanged(Player: Shortint);
-    procedure PlayerInfoMapControlStructureChanged(Sender: TObject);
-    procedure PlayerComboBoxChange(Sender: TObject);
-    procedure StructureGridDblClick(Sender: TObject);
-    procedure PlayerInfoMapControlMapSettingsChanged(Sender: TObject);
-    procedure FormClose(Sender: TObject);
+    published procedure PlayerInfoMapControlActivateHSM(Sender: TObject); public
+    published procedure PlayerInfoMapControlDeactivateHSM(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure PlayerInfoMapControlGemsChanged(Player: Shortint); public
+    published procedure PlayerInfoMapControlUpkeepChanged(Player: Shortint); public
+    published procedure PlayerInfoMapControlIncomeChanged(Player: Shortint); public
+    published procedure PlayerInfoMapControlStructureChanged(Sender: TObject); public
+    published procedure PlayerComboBoxChange(Sender: TObject); public
+    published procedure StructureGridDblClick(Sender: TObject); public
+    published procedure PlayerInfoMapControlMapSettingsChanged(Sender: TObject); public
+    published procedure FormClose(Sender: TObject); public
   end;
 
 

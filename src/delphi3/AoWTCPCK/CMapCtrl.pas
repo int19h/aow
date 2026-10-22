@@ -100,8 +100,9 @@ type
 procedure Register;
 
 implementation
-
 uses AoWTC;
+
+
 
 constructor TAoWCombatMapControl.Create(AOwner: Classes.TComponent);
 begin

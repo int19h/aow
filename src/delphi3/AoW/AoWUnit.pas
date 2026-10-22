@@ -37,21 +37,21 @@ type
     procedure DrawCursor(X, Y: Integer; const Surface: TSurfaceDesc);
     procedure ScrollMap(X, Y: Integer);
     procedure ExitGameDone(Mode: TExitGameMode; Exited: Boolean);
-    procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure FormCreate(Sender: TObject);
-    procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DisplayResizeBackSurface(Sender: TObject; Width, Height: Integer);
-    procedure DisplayDblClick;
-    procedure DisplaySurfaceDataLost;
-    procedure FormDestroy;
-    procedure DisplayActivateDC(Sender: TObject; DC: TAbstractDC);
-    procedure FormShow;
-    procedure DisplayKeyPress(Sender: TObject; var Key: Char);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure DisplaySwapDC(DC: TAbstractDC);
+    published procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure DisplayResizeBackSurface(Sender: TObject; Width, Height: Integer); public
+    published procedure DisplayDblClick; public
+    published procedure DisplaySurfaceDataLost; public
+    published procedure FormDestroy; public
+    published procedure DisplayActivateDC(Sender: TObject; DC: TAbstractDC); public
+    published procedure FormShow; public
+    published procedure DisplayKeyPress(Sender: TObject; var Key: Char); public
+    published procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean); public
+    published procedure DisplaySwapDC(DC: TAbstractDC); public
   end;
 
 

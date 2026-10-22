@@ -126,43 +126,43 @@ type
     procedure ClearLeftSelection;
     procedure ClearRightSelection;
     procedure Execute;
-    procedure BookStartClick(Sender: TObject);  { draft }
-    procedure CancelClick;  { draft }
-    procedure GoldSliderChange(Sender: TObject);
-    procedure ManaSliderChange(Sender: TObject);
-    procedure LHeroLBClick(Sender: TObject);
-    procedure LHeroRBClick(Sender: TObject);
-    procedure LItemLBClick(Sender: TObject);
-    procedure LItemRBClick(Sender: TObject);
-    procedure LUnitLBClick(Sender: TObject);
-    procedure LUnitRBClick(Sender: TObject);
-    procedure RHeroLBClick(Sender: TObject);
-    procedure RHeroRBClick(Sender: TObject);
-    procedure RItemLBClick(Sender: TObject);
-    procedure RItemRBClick(Sender: TObject);
-    procedure RUnitLBClick(Sender: TObject);
-    procedure RUnitRBClick(Sender: TObject);
-    procedure LHeroesDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure RHeroesDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure LUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure RUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure LItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure RItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure LHeroesSelect(Sender: TObject);
-    procedure LItemsSelect(Sender: TObject);
-    procedure LUnitSelect(Sender: TObject);
-    procedure RHeroesSelect(Sender: TObject);
-    procedure RItemsSelect(Sender: TObject);
-    procedure RUnitsSelect(Sender: TObject);
-    procedure AddBtnClick(Sender: TObject);
-    procedure RemoveBtnClick(Sender: TObject);
-    procedure LHeroesUpdate(Sender: TObject);
-    procedure LItemsUpdate(Sender: TObject);
-    procedure LUnitsUpdate(Sender: TObject);
-    procedure RHeroesUpdate(Sender: TObject);
-    procedure RItemsUpdate(Sender: TObject);
-    procedure RUnitsUpdate(Sender: TObject);
-    procedure AutoBtnClick(Sender: TObject);
+    published procedure BookStartClick(Sender: TObject); public  { draft }
+    published procedure CancelClick; public  { draft }
+    published procedure GoldSliderChange(Sender: TObject); public
+    published procedure ManaSliderChange(Sender: TObject); public
+    published procedure LHeroLBClick(Sender: TObject); public
+    published procedure LHeroRBClick(Sender: TObject); public
+    published procedure LItemLBClick(Sender: TObject); public
+    published procedure LItemRBClick(Sender: TObject); public
+    published procedure LUnitLBClick(Sender: TObject); public
+    published procedure LUnitRBClick(Sender: TObject); public
+    published procedure RHeroLBClick(Sender: TObject); public
+    published procedure RHeroRBClick(Sender: TObject); public
+    published procedure RItemLBClick(Sender: TObject); public
+    published procedure RItemRBClick(Sender: TObject); public
+    published procedure RUnitLBClick(Sender: TObject); public
+    published procedure RUnitRBClick(Sender: TObject); public
+    published procedure LHeroesDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure RHeroesDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure LUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure RUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure LItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure RItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure LHeroesSelect(Sender: TObject); public
+    published procedure LItemsSelect(Sender: TObject); public
+    published procedure LUnitSelect(Sender: TObject); public
+    published procedure RHeroesSelect(Sender: TObject); public
+    published procedure RItemsSelect(Sender: TObject); public
+    published procedure RUnitsSelect(Sender: TObject); public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure RemoveBtnClick(Sender: TObject); public
+    published procedure LHeroesUpdate(Sender: TObject); public
+    published procedure LItemsUpdate(Sender: TObject); public
+    published procedure LUnitsUpdate(Sender: TObject); public
+    published procedure RHeroesUpdate(Sender: TObject); public
+    published procedure RItemsUpdate(Sender: TObject); public
+    published procedure RUnitsUpdate(Sender: TObject); public
+    published procedure AutoBtnClick(Sender: TObject); public
   end;
 
 

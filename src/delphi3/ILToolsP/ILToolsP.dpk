@@ -1,0 +1,23 @@
+package ILToolsP;
+
+{$DESCRIPTION 'ImageLibrary Tools Pack'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$DESIGNONLY}
+
+{$R '..\..\res\ILToolsP.res'}
+
+requires
+  vcl30,
+  Gfxepack,
+  ILPACK,
+  Dcpack,
+  Vcladdon;
+
+contains
+  ILTools,
+  ILSeqEd,
+  Str2Clip;
+
+end.

@@ -33,16 +33,16 @@ type
     public
     FItemGFX: TItemGFX; { $22C }
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
-    procedure FormCreate;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure ILManagerComboBoxChange;  { draft }
-    procedure ImageIndexSpinUpdate;  { draft }
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);  { draft }
+    published procedure FormCreate; public  { draft }
+    published procedure OKBtnClick; public  { draft }
+    published procedure ILManagerComboBoxChange; public  { draft }
+    published procedure ImageIndexSpinUpdate; public  { draft }
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public  { draft }
   end;
 
   { TItemGFXEditor (instance size 8, VMT 00416934) }
   TItemGFXEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -108,5 +108,8 @@ begin
   inherited FormClose(Sender, Action);
 end;
 
+
+class function TItemGFXEditor.EditorClassID: Integer;
+begin Result := $20269; end;
 
 end.

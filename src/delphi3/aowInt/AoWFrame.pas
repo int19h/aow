@@ -8,8 +8,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl, AOWMenuBar, AOWMenu;
+  AOWMenuBar, AOWMenu, AOWToolTip, AoWControl, AOWWinManager, AoWComp,
+  AOWInterfaceImgLib, AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   TFrameType = (frFilledBox, frHollowBox, frHorizLine, frVertLine);

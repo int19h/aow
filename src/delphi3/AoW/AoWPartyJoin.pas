@@ -52,17 +52,17 @@ type
     function ValidateJoin: Boolean;
     procedure FinishDialog;
     procedure DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
-    procedure PartyJoinDlgCreate;  { draft }
-    procedure PartyJoinDlgDestroy;  { draft }
-    procedure LeftBtnClick;  { draft }
-    procedure MiddleBtnClick;  { draft }
-    procedure RightBtnClick;  { draft }
-    procedure CloseClick;  { draft }
-    procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);  { draft }
-    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);  { draft }
-    procedure U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);  { draft }
-    procedure DlgHide;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);  { draft }
+    published procedure PartyJoinDlgCreate; public  { draft }
+    published procedure PartyJoinDlgDestroy; public  { draft }
+    published procedure LeftBtnClick; public  { draft }
+    published procedure MiddleBtnClick; public  { draft }
+    published procedure RightBtnClick; public  { draft }
+    published procedure CloseClick; public  { draft }
+    published procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public  { draft }
+    published procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc); public  { draft }
+    published procedure U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public  { draft }
+    published procedure DlgHide; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public  { draft }
   end;
 
 

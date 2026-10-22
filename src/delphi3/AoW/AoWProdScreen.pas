@@ -145,26 +145,26 @@ type
     procedure SelectProduction(Index: Integer);
     procedure UpdateInfo;
     procedure ShowPlace(Place: TProductionPlace);
-    procedure ProductionScreenCreate;
-    procedure ProductionScreenDestroy;
-    procedure ActivityChange(Sender: TObject);
-    procedure ActivityDoubleClick(Sender: TObject);
-    procedure ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure MainBtn1Click(Sender: TObject);
-    procedure MainBtn2Click;
-    procedure MainBtn3Click;
-    procedure UFaceDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure QueueLBChange(Sender: TObject);
-    procedure B4CBUpdate(Sender: TObject);
-    procedure LoopQueueBoxChange;
-    procedure CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure MapViewUpdate;
-    procedure DlgHide;
-    procedure UAbilitiesLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure PPrevClick;
-    procedure PNextClick;
+    published procedure ProductionScreenCreate; public
+    published procedure ProductionScreenDestroy; public
+    published procedure ActivityChange(Sender: TObject); public
+    published procedure ActivityDoubleClick(Sender: TObject); public
+    published procedure ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure MainBtn1Click(Sender: TObject); public
+    published procedure MainBtn2Click; public
+    published procedure MainBtn3Click; public
+    published procedure UFaceDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure QueueLBChange(Sender: TObject); public
+    published procedure B4CBUpdate(Sender: TObject); public
+    published procedure LoopQueueBoxChange; public
+    published procedure CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure MapViewUpdate; public
+    published procedure DlgHide; public
+    published procedure UAbilitiesLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure PPrevClick; public
+    published procedure PNextClick; public
   end;
 
 

@@ -65,21 +65,21 @@ type
     procedure EditLibraryItem(Item: TItem);
     { conflict: function EditLibraryItem(Item: TItem): Boolean; }
     function EditItem(Item: TItem): Boolean;
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy;
-    procedure EditBtnClick;
-    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
-    procedure ItemTypeBoxChange;
-    procedure ItemNameEditChange;
-    procedure DefenseChange(Sender: TObject);
-    procedure ResistanceChange(Sender: TObject);
-    procedure AttackChange(Sender: TObject);
-    procedure DamageChange(Sender: TObject);
-    procedure AvailabilityBoxChange;
-    procedure AbilityBtnClick;
-    procedure DescriptionEditChange;
-    procedure CostEditChange;
-    procedure SpellComboBoxChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy; public
+    published procedure EditBtnClick; public
+    published procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect); public
+    published procedure ItemTypeBoxChange; public
+    published procedure ItemNameEditChange; public
+    published procedure DefenseChange(Sender: TObject); public
+    published procedure ResistanceChange(Sender: TObject); public
+    published procedure AttackChange(Sender: TObject); public
+    published procedure DamageChange(Sender: TObject); public
+    published procedure AvailabilityBoxChange; public
+    published procedure AbilityBtnClick; public
+    published procedure DescriptionEditChange; public
+    published procedure CostEditChange; public
+    published procedure SpellComboBoxChange(Sender: TObject); public
   end;
 
 

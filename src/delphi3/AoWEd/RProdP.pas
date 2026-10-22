@@ -24,12 +24,12 @@ type
     AddBtn: TButton; { +0384 }
     DeleteBtn: TButton; { +0388 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure AddBtnClick(Sender: TObject);
-    procedure DeleteBtnClick(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure CloseBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure DeleteBtnClick(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure CloseBtnClick(Sender: TObject); public
   end;
 
   { TProductionPlaceResourceEditor (instance size 8, VMT 00409FC8) }

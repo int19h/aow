@@ -54,13 +54,13 @@ type
     function CurrentMode: Integer;
     procedure ChangeResolution(W, H: Integer);
     procedure UpdateModes;
-    procedure VideoDlgWindowCreate;  { draft }
-    procedure VideoDlgWindowDestroy;  { draft }
-    procedure CloseButClick;  { draft }
-    procedure ApplyBtnClick;  { draft }
-    procedure ResCBChange(Sender: TObject);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DlgShow;  { draft }
+    published procedure VideoDlgWindowCreate; public  { draft }
+    published procedure VideoDlgWindowDestroy; public  { draft }
+    published procedure CloseButClick; public  { draft }
+    published procedure ApplyBtnClick; public  { draft }
+    published procedure ResCBChange(Sender: TObject); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure DlgShow; public  { draft }
   end;
 
   { TWMCampaignScenarioPage: size $18; $08 image library, $0C image index, $10 heading, $14 text. VMT 0040B804. }
@@ -128,6 +128,7 @@ type
 var
   VideoDialog: TVideoDialog;
 
+procedure RegisterWorldMapCampaign(AEngine: TEngine);
 implementation
 
 uses AoWUnit, AoWWinMan, E3Globals;
@@ -420,6 +421,11 @@ procedure TVideoDialog.ShowModes;
 begin
   Dlg.Visible := True;
   UpdateModes;
+end;
+
+procedure RegisterWorldMapCampaign(AEngine: TEngine);
+begin
+  AEngine.RegisterEClasses([TWMCampaignScenarioPage, TWMCampaignScenario, TWMCampaign]);
 end;
 
 end.

@@ -23,13 +23,13 @@ type
     Label1: TLabel; { +0210 }
     SignText: TMemo; { +0214 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TSignEditor (instance size 8, VMT 00418280) }
   TSignEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -59,5 +59,8 @@ begin
   TSign(FMapObject).FText.Text := SignText.Lines.Text;
   inherited OKBtnClick(Sender);
 end;
+
+class function TSignEditor.EditorClassID: Integer;
+begin Result := $20102; end;
 
 end.

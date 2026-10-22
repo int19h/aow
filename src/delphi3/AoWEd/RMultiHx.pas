@@ -33,15 +33,15 @@ type
     procedure vmt88(Index, X, Y: Integer; SD: TSurfaceDesc); override;
     procedure vmt98(const SD: TSurfaceDesc); virtual; { +098 }
     function vmt9C(Hexagon: Integer): Boolean; virtual; { +09C }
-    procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure SelectBtnClick(Sender: TObject);
-    procedure DragBtnClick(Sender: TObject);
-    procedure MainPBtnClick(Sender: TObject);
-    procedure TerrainComboBoxChange(Sender: TObject);
-    procedure ComplexBoxClick(Sender: TObject);
+    published procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure SelectBtnClick(Sender: TObject); public
+    published procedure DragBtnClick(Sender: TObject); public
+    published procedure MainPBtnClick(Sender: TObject); public
+    published procedure TerrainComboBoxChange(Sender: TObject); public
+    published procedure ComplexBoxClick(Sender: TObject); public
   end;
 
   { TMultiHexResourceEditor (instance size 8, VMT 00406020) }

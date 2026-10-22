@@ -1,0 +1,61 @@
+package Localize;
+
+{ Link-only interfaces. Never install this DPL; use the original at runtime. }
+
+{$DESIGNONLY}
+
+requires
+  vcl30,
+  vclx30,
+  vcldb30;
+
+contains
+  IvMulReg,
+  IvDlgReg,
+  IvOldReg,
+  IvDlgMod,
+  IvAboutD,
+  IvTests,
+  IvTestDi,
+  IvUsrDic,
+  IvFiltEd,
+  IvMlUtil,
+  IvLoSelD,
+  IvMlCtrl,
+  IvSuSeld,
+  IvLaSelD,
+  IvDatDic,
+  IvDBMult,
+  IvMLTP,
+  IvSynchr,
+  IvSocket,
+  IvDsMult,
+  IvPSDlg,
+  IvPassWD,
+  IvLanguD,
+  IvTargD,
+  IvTargsd,
+  IvMlCons,
+  IvDialog,
+  IvMlDlgs,
+  IvMulti,
+  IvConMod,
+  IvEMulti,
+  IvEFiMul,
+  IvMLDFil,
+  IvBinDic,
+  IvEBinDi,
+  IvWParser,
+  IvAMulti,
+  IvMlRead,
+  IvReader,
+  IvParser,
+  IvCommon,
+  IvDemoD,
+  IvStamp,
+  IvDictio,
+  IvWReader,
+  IvFiMult,
+  IvUMulti;
+
+end.

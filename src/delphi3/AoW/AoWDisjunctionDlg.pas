@@ -54,18 +54,18 @@ type
     procedure UpdateChance;
     procedure SelectEnchantment(Index: Integer);
     procedure Execute(Caster: TDisjunctionSpellCaster);
-    procedure CancelBtnClick;
-    procedure CastBtnClick;
-    procedure EnchantmentListChange;
-    procedure OwnerListChange;
-    procedure ChanceSliderChange;
-    procedure EnchantmentsScrollBarChange;
-    procedure SortEnchantmentClick;
-    procedure SortClick;
-    procedure DlgHide;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure MapViewUpdate;
+    published procedure CancelBtnClick; public
+    published procedure CastBtnClick; public
+    published procedure EnchantmentListChange; public
+    published procedure OwnerListChange; public
+    published procedure ChanceSliderChange; public
+    published procedure EnchantmentsScrollBarChange; public
+    published procedure SortEnchantmentClick; public
+    published procedure SortClick; public
+    published procedure DlgHide; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure MapViewUpdate; public
   end;
 
 

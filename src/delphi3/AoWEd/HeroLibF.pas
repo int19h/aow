@@ -44,18 +44,18 @@ type
     procedure EditSelectedHero;
     procedure UpdateLibraries;
     procedure SetLibraryIndex(Index: Integer);
-    procedure FormShow(Sender: TObject);
-    procedure AddBtnClick(Sender: TObject);
-    procedure CopyBtnClick(Sender: TObject);
-    procedure LibraryCBChange(Sender: TObject);
-    procedure SortOnNameBtnClick(Sender: TObject);
-    procedure SortOnLevelClick(Sender: TObject);
-    procedure NewHeroClick(Sender: TObject);
-    procedure NewLibraryClick(Sender: TObject);
-    procedure DeleteLibraryClick(Sender: TObject);
-    procedure CloseBtnClick(Sender: TObject);
-    procedure EditHeroBtnClick(Sender: TObject);
-    procedure DeleteHeroClick(Sender: TObject);
+    published procedure FormShow(Sender: TObject); public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure CopyBtnClick(Sender: TObject); public
+    published procedure LibraryCBChange(Sender: TObject); public
+    published procedure SortOnNameBtnClick(Sender: TObject); public
+    published procedure SortOnLevelClick(Sender: TObject); public
+    published procedure NewHeroClick(Sender: TObject); public
+    published procedure NewLibraryClick(Sender: TObject); public
+    published procedure DeleteLibraryClick(Sender: TObject); public
+    published procedure CloseBtnClick(Sender: TObject); public
+    published procedure EditHeroBtnClick(Sender: TObject); public
+    published procedure DeleteHeroClick(Sender: TObject); public
   end;
 
 

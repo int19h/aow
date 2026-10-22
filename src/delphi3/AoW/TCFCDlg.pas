@@ -38,15 +38,15 @@ type
     FRequest: TCombatTypeRequestEventLog; { $8C }
     FOnDone: TNotifyEvent; { $90 }
     procedure Finish;
-    procedure CancelBtnClick;
-    procedure FightBtnClick;
-    procedure FCchkChange(Sender: TObject);
-    procedure TCchkChange(Sender: TObject);
-    procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure MapViewUpdate;
-    procedure DlgHide;
-    procedure TCchkDoubleClick(Sender: TObject);
-    procedure FCchkDoubleClick(Sender: TObject);
+    published procedure CancelBtnClick; public
+    published procedure FightBtnClick; public
+    published procedure FCchkChange(Sender: TObject); public
+    published procedure TCchkChange(Sender: TObject); public
+    published procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure MapViewUpdate; public
+    published procedure DlgHide; public
+    published procedure TCchkDoubleClick(Sender: TObject); public
+    published procedure FCchkDoubleClick(Sender: TObject); public
   end;
 
 

@@ -43,12 +43,12 @@ type
     F_HeroInfoDlg_99: array[0..2] of Byte;
     procedure FinishDialog;
     procedure DrawUnit(Index: Integer; const R: TRect; var Surface: TSurfaceDesc);
-    procedure CloseBtnClick;  { draft }
-    procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DlgHide;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseBtnClick; public  { draft }
+    published procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DlgHide; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

@@ -45,12 +45,12 @@ type
     public
     procedure Execute;
     procedure UpdatePower;
-    procedure CancelBtnClick;
-    procedure PowerSliderChange;
-    procedure SetBtnClick;
-    procedure PAManaDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure PAResDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CancelBtnClick; public
+    published procedure PowerSliderChange; public
+    published procedure SetBtnClick; public
+    published procedure PAManaDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure PAResDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

@@ -24,29 +24,29 @@ type
     procedure ClearChat;
     procedure UpdateChatPlayers;
     procedure UpdatePlayerName(const Name: string);
-    procedure SetupControlStart;
-    procedure SetupControlSendMap(Control: TSetupControl; Data: Pointer; Size, Recipient: Integer);
-    procedure DPlayFileStartMessage(ID: Integer; var Name: string; Size: Integer; var Response: Byte);
-    procedure DPlayFileDoneMessage(ID: Integer; const FileData: TGDFile);
-    procedure DPlayFileProgressMessage(ID, Position, Size: Integer);
-    procedure DPlayChatMessage(var Message: string; var ToID, FromID: Integer);
-    procedure DPlayMessageTimeout(var Message: TGDMessage);
-    procedure DPlayEjected;
-    procedure DPlayPingMessage(PingMS, Player: Integer);
-    procedure SetupControlCustomizeLeader(Control: TSetupControl; Leader: TCustomizeLeaderControl);
-    procedure SetupControlLoadMap(Control: TSetupControl; const FileName: string);
-    function SetupControlSendData(Data: Pointer; Size, Recipient: Integer): Boolean;
-    procedure SetupControlSettingChanged;
-    procedure SetupControlEjectPlayer(Control: TSetupControl; RemoteID: Integer);
-    procedure DPlayMessage(var Data: Pointer; var Size, ToID, FromID: Integer);
-    procedure SetupControlSynchronize(Control: TSetupControl);
-    procedure SetupControlPlayerSetupDone;
-    procedure SetupControlIncompatibleVersion(Control: TSetupControl; Major, Minor: Integer);
-    procedure DPlaySessionLost;
-    procedure SetupControlSendingMaps;
-    procedure DPlayMessageError;
-    procedure SetupEventsCreate;
-    procedure DPlayDestroyPlayer(ID, NumPlayers: Integer);
+    published procedure SetupControlStart; public
+    published procedure SetupControlSendMap(Control: TSetupControl; Data: Pointer; Size, Recipient: Integer); public
+    published procedure DPlayFileStartMessage(ID: Integer; var Name: string; Size: Integer; var Response: Byte); public
+    published procedure DPlayFileDoneMessage(ID: Integer; const FileData: TGDFile); public
+    published procedure DPlayFileProgressMessage(ID, Position, Size: Integer); public
+    published procedure DPlayChatMessage(var Message: string; var ToID, FromID: Integer); public
+    published procedure DPlayMessageTimeout(var Message: TGDMessage); public
+    published procedure DPlayEjected; public
+    published procedure DPlayPingMessage(PingMS, Player: Integer); public
+    published procedure SetupControlCustomizeLeader(Control: TSetupControl; Leader: TCustomizeLeaderControl); public
+    published procedure SetupControlLoadMap(Control: TSetupControl; const FileName: string); public
+    published function SetupControlSendData(Data: Pointer; Size, Recipient: Integer): Boolean; public
+    published procedure SetupControlSettingChanged; public
+    published procedure SetupControlEjectPlayer(Control: TSetupControl; RemoteID: Integer); public
+    published procedure DPlayMessage(var Data: Pointer; var Size, ToID, FromID: Integer); public
+    published procedure SetupControlSynchronize(Control: TSetupControl); public
+    published procedure SetupControlPlayerSetupDone; public
+    published procedure SetupControlIncompatibleVersion(Control: TSetupControl; Major, Minor: Integer); public
+    published procedure DPlaySessionLost; public
+    published procedure SetupControlSendingMaps; public
+    published procedure DPlayMessageError; public
+    published procedure SetupEventsCreate; public
+    published procedure DPlayDestroyPlayer(ID, NumPlayers: Integer); public
   end;
 
 

@@ -23,7 +23,7 @@ type
     InfoMemoSB: TAOWVScrollBar; { +0050 }
     public
     procedure ShowInfo(const Header: string; Description: TStrings); { 0040701C }
-    procedure BannerPopupMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    published procedure BannerPopupMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
   end;
 
 

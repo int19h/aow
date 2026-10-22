@@ -26,12 +26,12 @@ type
     procedure ReleaseSound;
     procedure Finish;
     procedure Execute;
-    procedure VideoPlayerStreamSound(Mode: TStreamSoundMode; Data: Pointer; DataSize: Integer);
-    procedure WindowDrawSurfaceEx(Surface: TSurface; var Handled: Boolean);
-    procedure WindowHide;
-    procedure WindowUpdate;
-    procedure WindowMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure WindowKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure VideoPlayerStreamSound(Mode: TStreamSoundMode; Data: Pointer; DataSize: Integer); public
+    published procedure WindowDrawSurfaceEx(Surface: TSurface; var Handled: Boolean); public
+    published procedure WindowHide; public
+    published procedure WindowUpdate; public
+    published procedure WindowMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure WindowKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

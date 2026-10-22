@@ -29,17 +29,17 @@ type
     ManaSpin: TSpin; { +0228 }
     UserDefined: TRadioButton; { +022C }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure ManaSpinChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure AutoGenerateClick(Sender: TObject);
-    procedure UserDefinedClick(Sender: TObject);
-    procedure GenerateModeBoxChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure ManaSpinChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure AutoGenerateClick(Sender: TObject); public
+    published procedure UserDefinedClick(Sender: TObject); public
+    published procedure GenerateModeBoxChange(Sender: TObject); public
   end;
 
   { TManaCrystalsEditor (instance size 8, VMT 0041C148) }
   TManaCrystalsEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -107,5 +107,8 @@ begin
   TManaCrystals(FMapObject).FSize := Byte(GenerateModeBox.ItemIndex + 1);
 end;
 
+
+class function TManaCrystalsEditor.EditorClassID: Integer;
+begin Result := $203BE; end;
 
 end.

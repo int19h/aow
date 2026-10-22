@@ -622,7 +622,7 @@ resourcestring
 
 implementation
 
-uses CityWall, CombatTE, CombatFire, AoWReg, CombatTerrain, HxBridge, City, FleeLoc;
+uses FleeLoc, CombatHex, CombatTE, AoWReg, CombatTerrain, HxBridge, City, CombatRoad, CombatObstacle, CityWall, CombatFire;
 type
   PCombatMapBytes = ^TCombatMapBytes;
   TCombatMapBytes = array[0..3769] of Byte;

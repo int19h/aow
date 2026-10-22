@@ -38,13 +38,13 @@ type
     FDone: TExecuteDoneEvent; { $84 }
     FEvent: TNegotiateRequestEventLog; { $8C }
     procedure FinishDialog; { 004373A8 }
-    procedure AcceptBtnClick;  { draft }
-    procedure AttackBtnClick;  { draft }
-    procedure CancelBtnClick;  { draft }
-    procedure DlgDrawBack(Sender: TObject; Surface: TSurfaceDesc);
-    procedure DlgHide;  { draft }
-    procedure CloseBtnClick;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure AcceptBtnClick; public  { draft }
+    published procedure AttackBtnClick; public  { draft }
+    published procedure CancelBtnClick; public  { draft }
+    published procedure DlgDrawBack(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure DlgHide; public  { draft }
+    published procedure CloseBtnClick; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

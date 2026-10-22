@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip, AoWControl;
+  AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWBaseWin;
 
 type
   { AOWMenuBar.TAOWMenuBar (instance size 308). Fields: +$114 FItems, +$118 FSelected (-1 for
@@ -58,6 +58,7 @@ type
 procedure Register;
 
 implementation
+uses AoWVScroll;
 
 { TAOWMenuBar }
 

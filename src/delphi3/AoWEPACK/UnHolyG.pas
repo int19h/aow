@@ -5,7 +5,7 @@ unit UnHolyG;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, GlobalTargetSpells, AoWE, Animation, EventLog;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, EventLog, GlobalTargetSpells, Animation, AoWE;
 
 type
   TUnHolyGround = class;
@@ -71,6 +71,11 @@ procedure UnRegisterUnholyGround(AEngine: TAoWEngine);
 
 implementation
 
+{$IFDEF RUNTIME_PACKAGES}
+var
+  RandomSeed: ^Integer;
+{$ENDIF}
+
 type
   PAoWMap = ^TAoWHSMap;
   PAoWSet = ^TAoWHSSet;
@@ -78,7 +83,9 @@ const
   WorldMap: PAoWMap = @AoWE.AoWHSMap;
   WorldSet: PAoWSet = @AoWE.AoWHSSet;
   WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;
+{$IFNDEF RUNTIME_PACKAGES}
   RandomSeed: ^Integer = @System.RandSeed;
+{$ENDIF}
   GoodAlignments: ^TAlignments = @AoWE.alsPureGood;
   GroundText: PResStringRec = @AoWE.UnholyGroundRStr;
   SpellText: PResStringRec = @AoWE.UnholyGroundsRStr;
@@ -407,6 +414,9 @@ begin
 end;
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  RandomSeed := @System.RandSeed;
+{$ENDIF}
 finalization
 
 end.

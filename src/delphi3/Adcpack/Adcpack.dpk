@@ -1,0 +1,19 @@
+package ADCPACK;
+
+{$DESCRIPTION 'Advance Display Component'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$DESIGNONLY}
+
+{$R '..\..\res\Adcpack.res'}
+
+requires
+  vcl30,
+  Gfxepack;
+
+contains
+  ZoomControl,
+  AdvancedDisplay;
+
+end.

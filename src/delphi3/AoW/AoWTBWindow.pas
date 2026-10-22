@@ -84,34 +84,34 @@ type
     FCombatClockDelay: Smallint; { $13E }
     FChatFlash: Smallint; { $140 }
     F_TBWindow_142: array[0..1] of Byte;
-    procedure TurnButtonAnimDone;  { draft }
-    procedure WMButtonClick;  { draft }
-    procedure OVButtonClick(A1: Integer);  { draft }
-    procedure ConButtonClick;  { draft }
-    procedure StructButtonClick;  { draft }
-    procedure TBNextButtonClick;  { draft }
-    procedure UnitBtnClick;  { draft }
-    procedure InfoBtnClick(Sender: TObject);
-    procedure ProdBtnClick;  { draft }
-    procedure COBtnClick;  { draft }
-    procedure ChatBtnClick;  { draft }
-    procedure TurnButtonChange;  { draft }
-    procedure PIndDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure CurPUpdate;  { draft }
-    procedure TCTurnButtonChange;  { draft }
-    procedure TCTurnButtonAnimDone;  { draft }
-    procedure TCPIndDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure TCCurPUpdate;  { draft }
-    procedure TCScannerBtnClick;  { draft }
-    procedure TCNextBtnClick;  { draft }
-    procedure TBWorldUpdate(Sender: TObject);
-    procedure TBCombatUpdate(Sender: TObject);
-    procedure OV2BtnClick;  { draft }
-    procedure TCUnitBtnClick;  { draft }
-    procedure StartMenuBarChange;  { draft }
-    procedure RelationsBtnClick(Sender: TObject);
-    procedure ChatBtnUpdate(Sender: TObject);
-    procedure AutoBtn2Click;  { draft }
+    published procedure TurnButtonAnimDone; public  { draft }
+    published procedure WMButtonClick; public  { draft }
+    published procedure OVButtonClick(A1: Integer); public  { draft }
+    published procedure ConButtonClick; public  { draft }
+    published procedure StructButtonClick; public  { draft }
+    published procedure TBNextButtonClick; public  { draft }
+    published procedure UnitBtnClick; public  { draft }
+    published procedure InfoBtnClick(Sender: TObject); public
+    published procedure ProdBtnClick; public  { draft }
+    published procedure COBtnClick; public  { draft }
+    published procedure ChatBtnClick; public  { draft }
+    published procedure TurnButtonChange; public  { draft }
+    published procedure PIndDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure CurPUpdate; public procedure UpdatePlayerIndicator; public  { draft }
+    published procedure TCTurnButtonChange; public  { draft }
+    published procedure TCTurnButtonAnimDone; public  { draft }
+    published procedure TCPIndDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure TCCurPUpdate; public  { draft }
+    published procedure TCScannerBtnClick; public  { draft }
+    published procedure TCNextBtnClick; public  { draft }
+    published procedure TBWorldUpdate(Sender: TObject); public
+    published procedure TBCombatUpdate(Sender: TObject); public
+    published procedure OV2BtnClick; public  { draft }
+    published procedure TCUnitBtnClick; public  { draft }
+    published procedure StartMenuBarChange; public  { draft }
+    published procedure RelationsBtnClick(Sender: TObject); public
+    published procedure ChatBtnUpdate(Sender: TObject); public
+    published procedure AutoBtn2Click; public  { draft }
   end;
 
 
@@ -380,5 +380,18 @@ begin
     AoWCombatMap.FPlayers.GetPlayers(AoWCombatMap.FSeatedCombatPlayer).SetAuto(AutoBtn.Checked);
 end;
 
+
+procedure TTBWindow.UpdatePlayerIndicator;
+var
+  I, Count: Integer;
+begin
+  Count := 0;
+  for I := 0 to AoWHSMap.FPlayers.GetCount - 1 do
+    if AoWHSMap.FPlayers.GetPlayers(I).FStatus = psPlaying then Inc(Count);
+  PInd.WinWidth := Count * 5 + 4;
+  PInd.FValid := False;
+  TBMessEdit.Alignment.LeftOffset := PInd.WinWidth + 278;
+  TBMessEdit.FValid := False;
+end;
 
 end.

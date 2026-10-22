@@ -6,7 +6,7 @@ unit BehaviorAG;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TAbstractBehaviorAG = class;
@@ -132,7 +132,7 @@ type
 
 implementation
 
-uses AGCPlugins;
+uses IndependentAG, MainAG, AGCPlugins;
 
 function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean;
 { conflict: function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup): Boolean; }

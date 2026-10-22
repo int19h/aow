@@ -7,7 +7,7 @@ unit AlgnmBox;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TAlignmentBox = class;
@@ -26,7 +26,7 @@ type
     procedure SetAlignments(Value: TAlignments);
     procedure SetAlignment(Value: TAlignment);
     procedure Change; override;
-  end;
+  published property UseSets: Boolean read FSetMode write FSetMode; end;
 
 procedure Register;
 

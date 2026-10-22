@@ -1,0 +1,27 @@
+package EngineP;
+
+{$DESCRIPTION 'Engine Package'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$DESIGNONLY}
+
+{$R '..\res\Enginep.res'}
+
+requires
+  vcl30,
+  GFXEPACK,
+  ILPACK,
+  vclx30;
+
+contains
+  EResGrid,
+  ImgLComp,
+  EList,
+  PlugInM,
+  FMemStr,
+  zlib,
+  Engine,
+  DebMDlg;
+
+end.

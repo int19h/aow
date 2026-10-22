@@ -47,12 +47,12 @@ type
     procedure UpdateSelection;
     function CheckAttachments: Integer;
     procedure ShowDialog;
-    procedure CancelBtnClick;  { draft }
-    procedure DlgUpdate;  { draft }
-    procedure ExitBtnClick;  { draft }
-    procedure FoundEmailGamesChange;  { draft }
-    procedure StartBtnClick;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CancelBtnClick; public  { draft }
+    published procedure DlgUpdate; public  { draft }
+    published procedure ExitBtnClick; public  { draft }
+    published procedure FoundEmailGamesChange; public  { draft }
+    published procedure StartBtnClick; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

@@ -29,9 +29,9 @@ type
     BorderPanel: TDrawPanel; { +0230 }
     RazedCB: TCheckBox; { +0234 }
     public
-    procedure FormCreate;
-    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate; public
+    published procedure BorderPanelDraw(Sender: TObject; const R: TRect); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TTeleportEditor (instance size 8, VMT 00419648) }

@@ -29,12 +29,12 @@ type
     procedure ClearFire;
     procedure FinishScreen;
     procedure ShowGameOver(Event: TGameOverEventLog; Done: TExecuteDoneEvent);
-    procedure DeadPnlUpdate;  { draft }
-    procedure DeadPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure LeaderFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure PyreAnimationUpdate;  { draft }
-    procedure PyreAnimationDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DeadPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure DeadPnlUpdate; public  { draft }
+    published procedure DeadPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure LeaderFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure PyreAnimationUpdate; public  { draft }
+    published procedure PyreAnimationDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DeadPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

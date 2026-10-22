@@ -7,7 +7,7 @@ unit ItemCtrl;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TItemControlGrid = class;
@@ -18,7 +18,7 @@ type
   public
     FIndices: TIntegerList; { +$1DC }
     FStream: TMemoryStream; { +$1E0 }
-    FDisplayMode: Byte; { +$1E4 }
+    FDisplayMode: Boolean; { +$1E4 }
     FUnplacedOnly: Boolean; { +$1E5 }
     FShowStatus: Boolean; { $1E6 }
     FReserved1E7: Byte;
@@ -42,8 +42,8 @@ type
     procedure Unselect;
     procedure EditItemDone(ResultCode: TEditResult; Obj: TEObject);
     procedure DeleteItem;  { draft }
-    procedure RemoveItemFromMap; property SelectionEnabled; { AoWEd 0042B7C6 }
-  end;
+    procedure RemoveItemFromMap; published property SelectionEnabled; public { AoWEd 0042B7C6 }
+  published property EditItemEnabled: Boolean read FDisplayMode write FDisplayMode; property ShowFreeItemsOnly: Boolean read FUnplacedOnly write FUnplacedOnly; property ShowStatus: Boolean read FShowStatus write FShowStatus; property OnUnselect: TNotifyEvent read FOnUnselect write FOnUnselect; property OnSelectCell; property DefaultRowHeight; property DefaultColWidth; property FocusColor; property Align; property BltMode; property OnCellUpdated; property OnDblClick; property Color; property ScrollBars; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property Font; end;
 
 procedure Register;
 

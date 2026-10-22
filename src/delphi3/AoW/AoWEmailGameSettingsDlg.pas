@@ -60,16 +60,16 @@ type
     public
     FEmailAddresses: TStringList; { $E0 }
     FSetupControl: TSetupControl; { $E4 }
-    procedure EmailGameSettingsDlgCreate;
-    procedure EmailGameSettingsDlgDestroy;
-    procedure PlayerSBChange;
-    procedure EmailAddressEdit1Change(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure CancelButClick;
-    procedure SettingsBtnClick;
-    procedure LocalEmailAddressEditUpdate;
-    procedure Player6PnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure EmailGameSettingsDlgCreate; public
+    published procedure EmailGameSettingsDlgDestroy; public
+    published procedure PlayerSBChange; public
+    published procedure EmailAddressEdit1Change(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure CancelButClick; public
+    published procedure SettingsBtnClick; public
+    published procedure LocalEmailAddressEditUpdate; public
+    published procedure Player6PnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
     procedure UpdatePlayer(Index: Integer; NameLabel: TAOWLabel; EmailEdit: TAOWEdit);
     procedure UpdatePlayers;
     function SettingsComplete: Boolean;

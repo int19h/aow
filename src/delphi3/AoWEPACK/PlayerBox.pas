@@ -7,7 +7,7 @@ unit PlayerBox;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TPlayerComboBox = class;
@@ -24,11 +24,12 @@ type
     procedure GenerateItems;
     procedure SetPlayerIndex(Value: Shortint);
     procedure Change; override;
-  end;
+  published property AllowIndependents: Boolean read FAllowIndependent write FAllowIndependent; property AllowNoPlayer: Boolean read FAllowNone write FAllowNone; property AllowRandom: Boolean read FAllowRandom write FAllowRandom; end;
 
 procedure Register;
 
 implementation
+uses UnitIGrd;
 
 const
   PlayerRStr: string = 'Player'; { needs: missing AoWE.PlayerRStr }

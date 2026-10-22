@@ -28,13 +28,13 @@ type
     Dir3: TRadioButton; { +0224 }
     Dir4: TRadioButton; { +0228 }
     public
-    procedure FormCreate;
-    procedure DirectionChanged;
+    published procedure FormCreate; public
+    published procedure DirectionChanged; public
   end;
 
   { TUnitPositionEditor (instance size 8, VMT 0041DC1C) }
   TUnitPositionEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -76,5 +76,8 @@ begin
   else Direction := 2;
   TUnitPositionHS(FMapObject).FDirection := Direction;
 end;
+
+class function TUnitPositionEditor.EditorClassID: Integer;
+begin Result := $220103; end;
 
 end.

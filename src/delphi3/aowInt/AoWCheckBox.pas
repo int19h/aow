@@ -9,8 +9,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl, AOWMenuBar, AOWMenu, AoWButton;
+  AoWButton, AOWMenuBar, AOWMenu, AOWToolTip, AoWControl, AOWWinManager,
+  AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   { AoWCheckBox.TAOWCheckBox (instance size 320). Fields: +$138 FOnDoubleClick.

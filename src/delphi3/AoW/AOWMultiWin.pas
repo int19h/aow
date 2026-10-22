@@ -65,31 +65,31 @@ type
     procedure Execute(const MapName: string);
     function ConnectProvider(Kind: TConnectionType): Integer;
     function ValidateEmail: Boolean;
-    procedure CloseBtnClick;  { draft }
-    procedure MultiWinUpdate;
-    procedure JoinBtnClick;  { draft }
-    procedure GamesLBChange;
-    procedure BackBtnClick;
-    procedure TCPBtnClick;
-    procedure IPXBtnClick;
-    procedure CancelTCPClick;
-    procedure FindClick;
-    procedure HostClick(Sender: TObject);  { draft }
-    procedure IPXNameChange;
-    procedure TCPNameChange;
-    procedure LANFindClick;
-    procedure LANHostClick(Sender: TObject);  { draft }
-    procedure SingleBtnClick;  { draft }
-    procedure ModemBtnClick;
-    procedure DirectBtnClick;
-    procedure EmailBtnClick;
-    procedure CancelOKButClick;
-    procedure CancelPBEMBtnClick;
-    procedure CheckEmailBtnClick;  { draft }
-    procedure NewPBEMGameBtnClick;  { draft }
-    procedure LoadPBEMGameBtnClick;
-    procedure EmailSettingsBtnClick;
-    procedure HeatNetBtnClick;
+    published procedure CloseBtnClick; public  { draft }
+    published procedure MultiWinUpdate; public
+    published procedure JoinBtnClick; public  { draft }
+    published procedure GamesLBChange; public
+    published procedure BackBtnClick; public
+    published procedure TCPBtnClick; public
+    published procedure IPXBtnClick; public
+    published procedure CancelTCPClick; public
+    published procedure FindClick; public
+    published procedure HostClick(Sender: TObject); public  { draft }
+    published procedure IPXNameChange; public
+    published procedure TCPNameChange; public
+    published procedure LANFindClick; public
+    published procedure LANHostClick(Sender: TObject); public  { draft }
+    published procedure SingleBtnClick; public  { draft }
+    published procedure ModemBtnClick; public
+    published procedure DirectBtnClick; public
+    published procedure EmailBtnClick; public
+    published procedure CancelOKButClick; public
+    published procedure CancelPBEMBtnClick; public
+    published procedure CheckEmailBtnClick; public  { draft }
+    published procedure NewPBEMGameBtnClick; public  { draft }
+    published procedure LoadPBEMGameBtnClick; public
+    published procedure EmailSettingsBtnClick; public
+    published procedure HeatNetBtnClick; public
   end;
 
 

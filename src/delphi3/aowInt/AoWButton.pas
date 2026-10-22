@@ -10,8 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl, AOWMenuBar, AOWMenu;
+  AOWMenuBar, AOWMenu, AOWToolTip, AoWControl, AOWWinManager, AoWComp,
+  AOWInterfaceImgLib, AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   { AoWButton.TAOWBaseButton (instance size 312). Fields: +$114 FBorderHeightSelected (the text
@@ -71,6 +71,7 @@ type
 procedure Register;
 
 implementation
+
 
 { TAOWBaseButton }
 

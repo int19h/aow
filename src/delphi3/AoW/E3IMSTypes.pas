@@ -2,7 +2,13 @@ unit E3IMSTypes;
 { Imported IMS objects used by E3. TmsMessageHeader.From is at $104;
   list instances are opaque and their methods are imported from ims.dpl. }
 interface
+{$IFDEF RUNTIME_PACKAGES} uses msmsgcls; {$ENDIF}
 type
+{$IFDEF RUNTIME_PACKAGES}
+  TmsMessageHeader = msmsgcls.TmsMessageHeader;
+  TmsAddressList = msmsgcls.TmsAddressList;
+  TmsAttList = msmsgcls.TmsAttList;
+{$ELSE}
   TmsMessageHeader = class(TObject)
   public
     FReserved04: array[0..255] of Byte;
@@ -18,9 +24,12 @@ type
     procedure Clear;
     procedure AddFile(const FileName: string);
   end;
+{$ENDIF}
 implementation
+{$IFNDEF RUNTIME_PACKAGES}
 procedure TmsAddressList.Clear; external 'ims.dpl' name 'msmsgcls.TmsAddressList.Clear@23EDC2EF';
 procedure TmsAddressList.AddAddress(const Address, Name: string); external 'ims.dpl' name 'msmsgcls.TmsAddressList.AddAddress@23EDC2EF';
 procedure TmsAttList.Clear; external 'ims.dpl' name 'msmsgcls.TmsAttList.Clear@23EDC2EF';
 procedure TmsAttList.AddFile(const FileName: string); external 'ims.dpl' name 'msmsgcls.TmsAttList.AddFile@23EDC2EF';
+{$ENDIF}
 end.

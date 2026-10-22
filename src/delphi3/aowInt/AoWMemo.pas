@@ -11,8 +11,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip,
-  AoWControl, AoWVScroll;
+  AoWVScroll, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib,
+  AoWWinControl, AoWBaseWin;
 
 type
   TMemoType = (mtNormal, mtBlank);
@@ -119,6 +119,7 @@ type
 procedure Register;
 
 implementation
+uses AoWTabPanel;
 
 { TAOWMemo }
 

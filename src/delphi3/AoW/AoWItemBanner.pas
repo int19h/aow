@@ -31,9 +31,9 @@ type
     AbLB: TAOWListBox; { +0070 }
     AbVSB: TAOWVScrollBar; { +0074 }
     public
-    procedure IBannerPopupShow(Sender: TObject);
-    procedure IBannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);
-    procedure DrawBoxPreDraw(Sender: TObject; SurfDesc: TSurfaceDesc);
+    published procedure IBannerPopupShow(Sender: TObject); public
+    published procedure IBannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer); public
+    published procedure DrawBoxPreDraw(Sender: TObject; SurfDesc: TSurfaceDesc); public
   end;
 
 

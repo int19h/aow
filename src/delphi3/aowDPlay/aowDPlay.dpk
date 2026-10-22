@@ -1,0 +1,17 @@
+package aowDPlay;
+
+{$DESCRIPTION 'AOW DirectPlay System'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\aowDPlay.res'}
+
+requires
+  vcl30;
+
+contains
+  DPlay,
+  DPLobby,
+  aowDPlayComp;
+
+end.

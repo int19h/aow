@@ -7,7 +7,7 @@ unit City;
 interface
 
 uses
-  Animation, Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Crops, EventLog, AoWReg;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, EventLog, Animation, AoWReg, AoWE, Crops, Pad;
 
 type
   TCityProductionControl = class;
@@ -350,6 +350,12 @@ function CityIncome(Player: Shortint): Integer; const TCityActionRStr: array[TCi
 
 implementation
 
+
+{$IFDEF RUNTIME_PACKAGES}
+var
+  RandomSeed: ^Integer;
+{$ENDIF}
+
 type
   PAoWMap = ^TAoWHSMap;
   PAoWSet = ^TAoWHSSet;
@@ -359,7 +365,9 @@ const
   WorldMap: PAoWMap = @AoWE.AoWHSMap;
   WorldSet: PAoWSet = @AoWE.AoWHSSet;
   WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;
+{$IFNDEF RUNTIME_PACKAGES}
   RandomSeed: ^Integer = @System.RandSeed;
+{$ENDIF}
   RaceTerrainTable: ^TRaceTerrainTable = @AoWE.RaceTerrain;
   StatusNames: ^TStatusNames = @AoWE.TStatusRStr;
   RaceNames: PRaceNames = @AoWE.RaceNamesPluralRStr;
@@ -3298,6 +3306,9 @@ begin
 end;
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  RandomSeed := @System.RandSeed;
+{$ENDIF}
   if ValidateAoWEngine then
   begin
     WorldEngine^.RegisterEClasses([TCityEnchantment, TCity, TCityResource,

@@ -19,6 +19,8 @@ type
     procedure SetVisible(Value: Boolean); override;
     procedure Draw(SurfDesc: GFXE.TSurfaceDesc); override;
     procedure CheckMouseDown(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer); override;
+  published
+    property ILWholeMenu: TImageLibrary read FILWholeMenu write FILWholeMenu;
   end;
 
 procedure Register;

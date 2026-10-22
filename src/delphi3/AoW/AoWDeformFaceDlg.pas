@@ -38,13 +38,13 @@ type
     FCaster: TCosmeticSurgerySpellCaster; { $8C }
     procedure Execute(Caster: TCosmeticSurgerySpellCaster);
     procedure Finish;
-    procedure CancelBtnClick;
-    procedure CastBtnClick;
-    procedure DrawFace(Sender: TObject; SD: TSurfaceDesc);
-    procedure PrevFaceBtnClick;
-    procedure NextFaceBtnClick;
-    procedure DlgHide;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CancelBtnClick; public
+    published procedure CastBtnClick; public
+    published procedure DrawFace(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure PrevFaceBtnClick; public
+    published procedure NextFaceBtnClick; public
+    published procedure DlgHide; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

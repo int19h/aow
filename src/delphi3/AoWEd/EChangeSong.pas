@@ -27,15 +27,15 @@ type
     PlaySong: TSpeedButton; { +0234 }
     public
     FSongList: TSongList; { $238 }
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure SongCBChange(Sender: TObject);
-    procedure PlaySongClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure SongCBChange(Sender: TObject); public
+    published procedure PlaySongClick(Sender: TObject); public
   end;
 
   { TChangeSongEditor (instance size 8, VMT 0041E868) }
   TChangeSongEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
 
@@ -72,5 +72,8 @@ procedure TChangeSongEditForm.PlaySongClick(Sender: TObject);
 begin
   Sound.PlaySong(TChangeSongMoveOnEvent(FMapObject).FSongFileName);
 end;
+
+class function TChangeSongEditor.EditorClassID: Integer;
+begin Result := $2054B; end;
 
 end.

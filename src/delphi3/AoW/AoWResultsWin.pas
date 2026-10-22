@@ -69,16 +69,16 @@ type
     procedure DrawArmies(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
     procedure DrawStructures(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
     procedure DrawStrength(Player: Shortint; const R: TRect; const Surface: TSurfaceDesc);
-    procedure ResultsWinCreate;  { draft }
-    procedure ResultsWinDestroy;  { draft }
-    procedure ContinueBtnClick;  { draft }
-    procedure ExitBtnClick;  { draft }
-    procedure ResultsPnlUpdate;  { draft }
-    procedure AxisDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure AgendaChange;  { draft }
-    procedure ResultsPnlShow;  { draft }
-    procedure P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure P1CBChange(Sender: TObject);
+    published procedure ResultsWinCreate; public  { draft }
+    published procedure ResultsWinDestroy; public  { draft }
+    published procedure ContinueBtnClick; public  { draft }
+    published procedure ExitBtnClick; public  { draft }
+    published procedure ResultsPnlUpdate; public  { draft }
+    published procedure AxisDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure AgendaChange; public  { draft }
+    published procedure ResultsPnlShow; public  { draft }
+    published procedure P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure P1CBChange(Sender: TObject); public
   end;
 
 

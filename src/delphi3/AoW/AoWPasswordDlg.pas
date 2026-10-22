@@ -31,10 +31,10 @@ type
     FDone: TExecuteDoneEvent; { $70 }
     FPasswordEvent: TPasswordEventLog; { $78 }
     procedure Finish; procedure Reset;
-    procedure DlgHide;
-    procedure OKBtnClick(Sender: TObject);
-    procedure CancelBtnClick(Sender: TObject);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure DlgHide; public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure CancelBtnClick(Sender: TObject); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

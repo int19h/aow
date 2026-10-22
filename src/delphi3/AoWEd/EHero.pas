@@ -144,34 +144,34 @@ type
     procedure SetHero(Hero: THero);
     function EditLibraryHero(Hero: THero): Boolean;
     function EditHero(Hero: THero): Boolean;
-    procedure FormCreate;  { }
-    procedure FormDestroy;  { }
-    procedure HeroResourceComboBoxChange(Sender: TObject);  { }
-    procedure EditFaceBtnClick;
-    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
-    procedure OKBtnClick;  { }
-    procedure ResetBtnClick;  { }
-    procedure HeroLevelEditChange;  { }
-    procedure AttackEditChange;  { }
-    procedure DefenseEditChange;  { }
-    procedure ResistanceEditChange;  { }
-    procedure DamageEditChange;  { }
-    procedure HitsEditChange;  { }
-    procedure MovesEditChange;  { }
-    procedure AddBtnClick;  { }
-    procedure DeleteBtnClick;  { }
-    procedure AvailableAbBoxClick;  { }
-    procedure SelectedAbBoxClick;  { }
-    procedure AddItemBtnClick;
-    procedure DeleteItemBtnClick;
-    procedure MainPageControlChange;  { }
-    procedure NicknameEditChange;  { }
-    procedure NameEditChange;  { }
-    procedure ItemGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
-    procedure BodyGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);  { }
-    procedure BodyGridDblClick;
-    procedure ItemGridDblClick;
-    procedure SphereEditChange(Sender: TObject);  { }
+    published procedure FormCreate; public  { }
+    published procedure FormDestroy; public  { }
+    published procedure HeroResourceComboBoxChange(Sender: TObject); public  { }
+    published procedure EditFaceBtnClick; public
+    published procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect); public
+    published procedure OKBtnClick; public  { }
+    published procedure ResetBtnClick; public  { }
+    published procedure HeroLevelEditChange; public  { }
+    published procedure AttackEditChange; public  { }
+    published procedure DefenseEditChange; public  { }
+    published procedure ResistanceEditChange; public  { }
+    published procedure DamageEditChange; public  { }
+    published procedure HitsEditChange; public  { }
+    published procedure MovesEditChange; public  { }
+    published procedure AddBtnClick; public  { }
+    published procedure DeleteBtnClick; public  { }
+    published procedure AvailableAbBoxClick; public  { }
+    published procedure SelectedAbBoxClick; public  { }
+    published procedure AddItemBtnClick; public
+    published procedure DeleteItemBtnClick; public
+    published procedure MainPageControlChange; public  { }
+    published procedure NicknameEditChange; public  { }
+    published procedure NameEditChange; public  { }
+    published procedure ItemGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public  { }
+    published procedure BodyGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public  { }
+    published procedure BodyGridDblClick; public
+    published procedure ItemGridDblClick; public
+    published procedure SphereEditChange(Sender: TObject); public  { }
   end;
 
 

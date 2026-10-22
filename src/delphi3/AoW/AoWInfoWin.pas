@@ -109,17 +109,17 @@ type
     Translator: TIvTranslator; { +01AC }
     public
     FItemBag: TItemHS; { $1B0; 0044252F }
-    procedure InfoWinResize;
-    procedure MinClick;
-    procedure CloseClick(Sender: TObject);
-    procedure ProdOrb2Draw;
-    procedure ProdOrb1Draw;
-    procedure CenterClick;
-    procedure RazeBtnClick;
-    procedure MainBtnClick;
-    procedure ItembagLBDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const Surface: TSurfaceDesc);
-    procedure HelpClick;
-    procedure ESSBChange;
+    published procedure InfoWinResize; public
+    published procedure MinClick; public
+    published procedure CloseClick(Sender: TObject); public
+    published procedure ProdOrb2Draw; public
+    published procedure ProdOrb1Draw; public
+    published procedure CenterClick; public
+    published procedure RazeBtnClick; public
+    published procedure MainBtnClick; public
+    published procedure ItembagLBDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const Surface: TSurfaceDesc); public
+    published procedure HelpClick; public
+    published procedure ESSBChange; public
   end;
 
 

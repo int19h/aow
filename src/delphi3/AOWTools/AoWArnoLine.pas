@@ -28,7 +28,7 @@ type
     procedure SetITop(Value: TLibraryImage);
     procedure SetIMiddle(Value: TLibraryImage);
     procedure SetIBottom(Value: TLibraryImage);
-  published
+  published property WinHeight;
     property ImageTop: TLibraryImage read FImageTop write SetITop;
     property ImageMiddle: TLibraryImage read FImageMiddle write SetIMiddle;
     property ImageBottom: TLibraryImage read FImageBottom write SetIBottom;

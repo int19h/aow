@@ -21,8 +21,8 @@ type
     MessageSheet: TTabSheet; { +0220 }
     MessageMemo: TMemo; { +0224 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TTutorialMessageEventEditor (instance size 8, VMT 0041F7B8) }

@@ -15,9 +15,9 @@ procedure RegisterTacticalCombat(AEngine: TEngine);
 
 implementation
 
-uses AoWTC, CombatILTer, CombatHex, CombatRoad, CombatTerrain, CityWall, WorkShop,
-  Townhall, House, FleeLoc, SingleCombatHex, CombatObstacle, CombatTE, IsoCombatHex,
-  MainStructure, CenterViewLoc, CombatFire;
+uses WorkShop, Townhall, House, SingleCombatHex, IsoCombatHex, MainStructure, CenterViewLoc,
+  FleeLoc, CombatHex, CombatTE, CombatTerrain, CombatRoad, CombatObstacle, CombatILTer,
+  CityWall, CombatFire, AoWTC;
 
 procedure RegisterTacticalCombat(AEngine: TEngine);
 begin

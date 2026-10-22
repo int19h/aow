@@ -7,7 +7,7 @@ unit ItemGrid;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TItemGrid = class;
@@ -38,7 +38,7 @@ type
     procedure CreateNewItem;  { draft }
     procedure AddItem(Item: TItem);
     procedure DeleteItem;  { draft }
-  end;
+  published property ShowAvailability: Boolean read FShowAvailability write FShowAvailability; property EditItemEnabled: Boolean read FEditable write FEditable; property OnSelectCell; property DefaultRowHeight; property DefaultColWidth; property FocusColor; property Align; property OnDblClick; property BltMode; property OnCellUpdated; property Color; property ScrollBars; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property Font; end;
 
 procedure Register;
 

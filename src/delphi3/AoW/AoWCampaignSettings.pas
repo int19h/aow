@@ -34,9 +34,9 @@ type
     CancelBtn: TAOWButton; { +007C }
     TCeltLineL: TAOWImage; { +0080 }
     public
-    procedure DlgShow(Sender: TObject);
-    procedure OKBtnClick;
-    procedure CancelBtnClick;
+    published procedure DlgShow(Sender: TObject); public
+    published procedure OKBtnClick; public
+    published procedure CancelBtnClick; public
   end;
 
 

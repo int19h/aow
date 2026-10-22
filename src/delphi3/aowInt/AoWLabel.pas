@@ -7,8 +7,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl;
+  AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl,
+  AoWBaseWin, AoWWinGeneric;
 
 type
   { AoWLabel.TAOWLabel (instance size 276): no fields of its own }

@@ -6,7 +6,7 @@ unit ItemExpS;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, ExploreS;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, ExploreS, EventLog, AoWE;
 
 type
   TExplorationSiteItemList = class;
@@ -64,11 +64,18 @@ procedure RegisterItemExplorationSite(Engine: TEngine);
 
 implementation
 
+{$IFDEF RUNTIME_PACKAGES}
+var
+  RandomSeed: ^Integer;
+{$ENDIF}
+
 type
   PAoWMap = ^TAoWHSMap;
 const
   WorldMap: PAoWMap = @AoWE.AoWHSMap;
+{$IFNDEF RUNTIME_PACKAGES}
   RandomSeed: ^Integer = @System.RandSeed;
+{$ENDIF}
   ItemsFoundText: PResStringRec = @AoWE.ItemsFoundRStr;
   ItemsExploredText: PResStringRec = @AoWE.ItemsExploredRStr;
   AllItemTypes: ^TItemTypes = @AoWE.itAll;
@@ -211,6 +218,9 @@ begin
 end;
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  RandomSeed := @System.RandSeed;
+{$ENDIF}
 finalization
 
 end.

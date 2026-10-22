@@ -48,12 +48,12 @@ type
     FDone: TExecuteDoneEvent; { $B0 }
     FEvent: TMessageEventLog; { $B8 }
     procedure FinishDialog; { 0040E780 }
-    procedure DlgHide;  { draft }
-    procedure YesBtnClick;  { draft }
-    procedure NoBtnClick;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure OKBtn2Click;  { draft }
-    procedure CancelBtnClick;  { draft }
+    published procedure DlgHide; public  { draft }
+    published procedure YesBtnClick; public  { draft }
+    published procedure NoBtnClick; public  { draft }
+    published procedure OKBtnClick; public  { draft }
+    published procedure OKBtn2Click; public  { draft }
+    published procedure CancelBtnClick; public  { draft }
   end;
 
 

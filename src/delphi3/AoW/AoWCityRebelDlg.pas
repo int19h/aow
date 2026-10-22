@@ -35,10 +35,10 @@ type
     FOnClose: TExecuteDoneEvent; { $78 }
     FEvent: TCityRebellionEventLog; { $80 }
     procedure ClearEvent;
-    procedure CloseClick;  { draft }
-    procedure CenterButClick;  { draft }
-    procedure RebelWinHide;  { draft }
-    procedure RebelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseClick; public  { draft }
+    published procedure CenterButClick; public  { draft }
+    published procedure RebelWinHide; public  { draft }
+    published procedure RebelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

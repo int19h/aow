@@ -46,13 +46,13 @@ type
     FEvent: TArmyInfoEventLog; { $A8 }
     procedure DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc);
     procedure ClearEvent;
-    procedure CloseBtnClick;  { draft }
-    procedure CloseClick;  { draft }
-    procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure DlgHide;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseBtnClick; public  { draft }
+    published procedure CloseClick; public  { draft }
+    published procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure DlgHide; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

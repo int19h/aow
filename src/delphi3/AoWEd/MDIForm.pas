@@ -343,137 +343,137 @@ type
     procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure FormCreate(Sender: TObject);
-    procedure CutItemClick(Sender: TObject);
-    procedure PasteItemClick(Sender: TObject);
-    procedure CopyItemClick(Sender: TObject);
-    procedure DeleteItemClick(Sender: TObject);
-    procedure HSMEditUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure Brush1BtnClick(Sender: TObject);
-    procedure Brush2BtnClick(Sender: TObject);
-    procedure Brush3BtnClick(Sender: TObject);
-    procedure OpenBtnClick(Sender: TObject);
-    procedure SaveBtnClick(Sender: TObject);
-    procedure CloseItemClick(Sender: TObject);
-    procedure NewItemClick(Sender: TObject);
-    procedure SaveAsItemClick(Sender: TObject);
-    procedure ExitItemClick(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure LevelDownBtnClick(Sender: TObject);
-    procedure LevelUpBtnClick(Sender: TObject);
-    procedure HSMEditDeactivate(Sender: TObject);
-    procedure HSMEditActivate(Sender: TObject);
-    procedure NewMapsetClick(Sender: TObject);
-    procedure HSSEditActivate(Sender: TObject);
-    procedure HSSEditDeactivate(Sender: TObject);
-    procedure HSMEditUpdateCaption(Sender: TObject);
-    procedure HSMEditShowMessage(S: string);
-    procedure HSMEditStaticSceneUpdated(Sender: TObject);
-    procedure DebugModeClick(Sender: TObject);
-    procedure About1Click(Sender: TObject);
-    procedure RaceGridLinkToResourceList(Sender: TObject);
-    procedure MapSettingsClick(Sender: TObject);
-    procedure UnitGFXGridLinkToResourceList(Sender: TObject);
-    procedure UnitsGridLinkToResourceList(Sender: TObject);
-    procedure PreviewBtnClick(Sender: TObject);
-    procedure N640x480Click(Sender: TObject);
-    procedure N800x600Click(Sender: TObject);
-    procedure N1024x768Click(Sender: TObject);
-    procedure N1280x1024Click(Sender: TObject);
-    procedure HSMEditMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure HeroGridLinkToResourceList(Sender: TObject);
-    procedure ItemResourceGridLinkToResourceList(Sender: TObject);
-    procedure FaceGridLinkToResourceList(Sender: TObject);
-    procedure UnitTabControlSelectUnit(Sender: TObject; Index: Integer);
-    procedure SortNameBtnClick(Sender: TObject);
-    procedure SortLevelBtnClick(Sender: TObject);
-    procedure OpenHeroLibraryClick(Sender: TObject);
-    procedure SortItemsNameClick(Sender: TObject);
-    procedure SortTypeBtnClick(Sender: TObject);
-    procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure DeleteHeroBtnClick(Sender: TObject);  { draft }
-    procedure RemoveFromMapClick(Sender: TObject);  { draft }
-    procedure DeleteItemBtnClick(Sender: TObject);
-    procedure RemoveItemClick(Sender: TObject);  { draft }
-    procedure RemoveLeaderFromMapClick(Sender: TObject);  { draft }
-    procedure OpenItemLibraryClick(Sender: TObject);
-    procedure NewItemBtnClick(Sender: TObject);
-    procedure EditItemClick(Sender: TObject);
-    procedure NewHeroBtnClick(Sender: TObject);
-    procedure WaterBtnClick(Sender: TObject);
-    procedure GrassBtnClick(Sender: TObject);
-    procedure SteppeBtnClick(Sender: TObject);
-    procedure DesertBtnClick(Sender: TObject);
-    procedure WastelandBtnClick(Sender: TObject);
-    procedure SnowBtnClick(Sender: TObject);
-    procedure IceBtnClick(Sender: TObject);
-    procedure RoadBtnClick(Sender: TObject);
-    procedure EraseBtnClick(Sender: TObject);
-    procedure SelectHSBtnClick(Sender: TObject);
-    procedure HSMEditSelectPlaceHS(Sender: TObject);
-    procedure OverrideBtnClick(Sender: TObject);
-    procedure ChangeTerrainBtnClick(Sender: TObject);
-    procedure uWaterBtnClick(Sender: TObject);
-    procedure DirtBtnClick(Sender: TObject);
-    procedure LavaBtnClick(Sender: TObject);
-    procedure uIceBtnClick(Sender: TObject);
-    procedure EarthBtnClick(Sender: TObject);
-    procedure RockBtnClick(Sender: TObject);
-    procedure ArmyBtnClick(Sender: TObject);
-    procedure ItemBtnClick(Sender: TObject);
-    procedure EditHeroClick(Sender: TObject);
-    procedure ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure HSMEditDeselectPlaceHS(Sender: TObject);
-    procedure OpenMapSetClick(Sender: TObject);
-    procedure ExportTextClick(Sender: TObject);
-    procedure ImportTextClick(Sender: TObject);
-    procedure MapSetSettingsClick(Sender: TObject);
-    procedure LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure FogofWarClick(Sender: TObject);
-    procedure PlayerInfoClick(Sender: TObject);
-    procedure RemoveMapLevelClick(Sender: TObject);
-    procedure AddMapLevelClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure SpellListBoxClick(Sender: TObject);
-    procedure AbilityListBoxClick(Sender: TObject);
-    procedure AbilitySelectionCLBClickCheck(Sender: TObject);
-    procedure AbilityLevelPointsChange(Sender: TObject);
-    procedure AbilityDescriptionChange(Sender: TObject);
-    procedure EditAbilityTextClick(Sender: TObject);
-    procedure SpellDescriptionChange(Sender: TObject);
-    procedure EditSpellTextClick(Sender: TObject);
-    procedure SphereEditChange(Sender: TObject);
-    procedure SphereLevelEditChange(Sender: TObject);
-    procedure SpellManaChange(Sender: TObject);
-    procedure SpellResearchPointsChange(Sender: TObject);
-    procedure SpellUpkeepChange(Sender: TObject);
-    procedure EditAbilitySFXBtnClick(Sender: TObject);  { draft }
-    procedure EditSpellSFXClick(Sender: TObject);  { draft }
-    procedure GotoItemClick(Sender: TObject);
-    procedure ItemControlGridUnselect(Sender: TObject);
-    procedure HeroControlGridUnselect(Sender: TObject);
-    procedure GoToHeroClick(Sender: TObject);
-    procedure GoToLeaderClick(Sender: TObject);
-    procedure ValidateMapBtnClick(Sender: TObject);
-    procedure NewCombatMapClick(Sender: TObject);
-    procedure LinkToCombatResources(Sender: TObject);
-    procedure UnitPositionBtnClick(Sender: TObject);
-    procedure BorderBtnClick(Sender: TObject);
-    procedure EditAnimationsClick(Sender: TObject);
-    procedure AbGFXEditClick(Sender: TObject);
-    procedure EditSpellGFXClick(Sender: TObject);
-    procedure ScannerItemClick(Sender: TObject);
-    procedure EditTextBtnClick(Sender: TObject);
-    procedure EditLeaderClick(Sender: TObject);
-    procedure HeroPopupMenuPopup(Sender: TObject);  { draft }
-    procedure ItemPopupMenuPopup(Sender: TObject);  { draft }
-    procedure GameSettingsClick(Sender: TObject);
-    procedure ExportAbilityInfoClick(Sender: TObject);
-    procedure HSMEditActivateDC(Sender: TObject);
-    procedure RemoveLeadersMIClick(Sender: TObject);  { draft }
-    procedure MapTextEditorMIClick(Sender: TObject);
-    procedure ExportForMultilizerClick(Sender: TObject);
-    procedure HSMEditKeyDown(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure CutItemClick(Sender: TObject); public
+    published procedure PasteItemClick(Sender: TObject); public
+    published procedure CopyItemClick(Sender: TObject); public
+    published procedure DeleteItemClick(Sender: TObject); public
+    published procedure HSMEditUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure Brush1BtnClick(Sender: TObject); public
+    published procedure Brush2BtnClick(Sender: TObject); public
+    published procedure Brush3BtnClick(Sender: TObject); public
+    published procedure OpenBtnClick(Sender: TObject); public
+    published procedure SaveBtnClick(Sender: TObject); public
+    published procedure CloseItemClick(Sender: TObject); public
+    published procedure NewItemClick(Sender: TObject); public
+    published procedure SaveAsItemClick(Sender: TObject); public
+    published procedure ExitItemClick(Sender: TObject); public
+    published procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean); public
+    published procedure LevelDownBtnClick(Sender: TObject); public
+    published procedure LevelUpBtnClick(Sender: TObject); public
+    published procedure HSMEditDeactivate(Sender: TObject); public
+    published procedure HSMEditActivate(Sender: TObject); public
+    published procedure NewMapsetClick(Sender: TObject); public
+    published procedure HSSEditActivate(Sender: TObject); public
+    published procedure HSSEditDeactivate(Sender: TObject); public
+    published procedure HSMEditUpdateCaption(Sender: TObject); public
+    published procedure HSMEditShowMessage(S: string); procedure LinkToMORList(Sender: TObject); public
+    published procedure HSMEditStaticSceneUpdated(Sender: TObject); public
+    published procedure DebugModeClick(Sender: TObject); public
+    published procedure About1Click(Sender: TObject); public
+    published procedure RaceGridLinkToResourceList(Sender: TObject); public
+    published procedure MapSettingsClick(Sender: TObject); public
+    published procedure UnitGFXGridLinkToResourceList(Sender: TObject); public
+    published procedure UnitsGridLinkToResourceList(Sender: TObject); public
+    published procedure PreviewBtnClick(Sender: TObject); public
+    published procedure N640x480Click(Sender: TObject); public
+    published procedure N800x600Click(Sender: TObject); public
+    published procedure N1024x768Click(Sender: TObject); public
+    published procedure N1280x1024Click(Sender: TObject); public
+    published procedure HSMEditMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure HeroGridLinkToResourceList(Sender: TObject); public
+    published procedure ItemResourceGridLinkToResourceList(Sender: TObject); public
+    published procedure FaceGridLinkToResourceList(Sender: TObject); public
+    published procedure UnitTabControlSelectUnit(Sender: TObject; Index: Integer); public
+    published procedure SortNameBtnClick(Sender: TObject); public
+    published procedure SortLevelBtnClick(Sender: TObject); public
+    published procedure OpenHeroLibraryClick(Sender: TObject); public
+    published procedure SortItemsNameClick(Sender: TObject); public
+    published procedure SortTypeBtnClick(Sender: TObject); public
+    published procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure DeleteHeroBtnClick(Sender: TObject); public  { draft }
+    published procedure RemoveFromMapClick(Sender: TObject); public  { draft }
+    published procedure DeleteItemBtnClick(Sender: TObject); public
+    published procedure RemoveItemClick(Sender: TObject); public  { draft }
+    published procedure RemoveLeaderFromMapClick(Sender: TObject); public  { draft }
+    published procedure OpenItemLibraryClick(Sender: TObject); public
+    published procedure NewItemBtnClick(Sender: TObject); public
+    published procedure EditItemClick(Sender: TObject); public
+    published procedure NewHeroBtnClick(Sender: TObject); public
+    published procedure WaterBtnClick(Sender: TObject); public
+    published procedure GrassBtnClick(Sender: TObject); public
+    published procedure SteppeBtnClick(Sender: TObject); public
+    published procedure DesertBtnClick(Sender: TObject); public
+    published procedure WastelandBtnClick(Sender: TObject); public
+    published procedure SnowBtnClick(Sender: TObject); public
+    published procedure IceBtnClick(Sender: TObject); public
+    published procedure RoadBtnClick(Sender: TObject); public
+    published procedure EraseBtnClick(Sender: TObject); public
+    published procedure SelectHSBtnClick(Sender: TObject); public
+    published procedure HSMEditSelectPlaceHS(Sender: TObject); public
+    published procedure OverrideBtnClick(Sender: TObject); public
+    published procedure ChangeTerrainBtnClick(Sender: TObject); public
+    published procedure uWaterBtnClick(Sender: TObject); public
+    published procedure DirtBtnClick(Sender: TObject); public
+    published procedure LavaBtnClick(Sender: TObject); public
+    published procedure uIceBtnClick(Sender: TObject); public
+    published procedure EarthBtnClick(Sender: TObject); public
+    published procedure RockBtnClick(Sender: TObject); public
+    published procedure ArmyBtnClick(Sender: TObject); public
+    published procedure ItemBtnClick(Sender: TObject); public
+    published procedure EditHeroClick(Sender: TObject); public
+    published procedure ItemControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure HSMEditDeselectPlaceHS(Sender: TObject); public
+    published procedure OpenMapSetClick(Sender: TObject); public
+    published procedure ExportTextClick(Sender: TObject); public
+    published procedure ImportTextClick(Sender: TObject); public
+    published procedure MapSetSettingsClick(Sender: TObject); public
+    published procedure LeaderSelectionGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure FogofWarClick(Sender: TObject); public
+    published procedure PlayerInfoClick(Sender: TObject); public
+    published procedure RemoveMapLevelClick(Sender: TObject); public
+    published procedure AddMapLevelClick(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure SpellListBoxClick(Sender: TObject); public
+    published procedure AbilityListBoxClick(Sender: TObject); public
+    published procedure AbilitySelectionCLBClickCheck(Sender: TObject); public
+    published procedure AbilityLevelPointsChange(Sender: TObject); public
+    published procedure AbilityDescriptionChange(Sender: TObject); public
+    published procedure EditAbilityTextClick(Sender: TObject); public
+    published procedure SpellDescriptionChange(Sender: TObject); public
+    published procedure EditSpellTextClick(Sender: TObject); public
+    published procedure SphereEditChange(Sender: TObject); public
+    published procedure SphereLevelEditChange(Sender: TObject); public
+    published procedure SpellManaChange(Sender: TObject); public
+    published procedure SpellResearchPointsChange(Sender: TObject); public
+    published procedure SpellUpkeepChange(Sender: TObject); public
+    published procedure EditAbilitySFXBtnClick(Sender: TObject); public  { draft }
+    published procedure EditSpellSFXClick(Sender: TObject); public  { draft }
+    published procedure GotoItemClick(Sender: TObject); public
+    published procedure ItemControlGridUnselect(Sender: TObject); public
+    published procedure HeroControlGridUnselect(Sender: TObject); public
+    published procedure GoToHeroClick(Sender: TObject); public
+    published procedure GoToLeaderClick(Sender: TObject); public
+    published procedure ValidateMapBtnClick(Sender: TObject); public
+    published procedure NewCombatMapClick(Sender: TObject); public
+    published procedure LinkToCombatResources(Sender: TObject); public
+    published procedure UnitPositionBtnClick(Sender: TObject); public
+    published procedure BorderBtnClick(Sender: TObject); public
+    published procedure EditAnimationsClick(Sender: TObject); public
+    published procedure AbGFXEditClick(Sender: TObject); public
+    published procedure EditSpellGFXClick(Sender: TObject); public
+    published procedure ScannerItemClick(Sender: TObject); public
+    published procedure EditTextBtnClick(Sender: TObject); public
+    published procedure EditLeaderClick(Sender: TObject); public
+    published procedure HeroPopupMenuPopup(Sender: TObject); public  { draft }
+    published procedure ItemPopupMenuPopup(Sender: TObject); public  { draft }
+    published procedure GameSettingsClick(Sender: TObject); public
+    published procedure ExportAbilityInfoClick(Sender: TObject); public
+    published procedure HSMEditActivateDC(Sender: TObject); public
+    published procedure RemoveLeadersMIClick(Sender: TObject); public  { draft }
+    published procedure MapTextEditorMIClick(Sender: TObject); public
+    published procedure ExportForMultilizerClick(Sender: TObject); public
+    published procedure HSMEditKeyDown(Sender: TObject); public
   end;
 
 function GetEditorVersion: string;
@@ -2313,5 +2313,10 @@ begin
     end;
 end;
 
+
+procedure TMainForm.LinkToMORList(Sender: TObject);
+begin
+  TEResourceGrid(Sender).ResourceList := AoWEngine.FGameSet.MapObjectResourceList;
+end;
 
 end.

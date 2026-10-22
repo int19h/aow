@@ -26,8 +26,8 @@ type
     public
     FDone: TExecuteDoneEvent; { $5C } FEvent: TEventLog; { $64 }
     procedure FinishDialog;
-    procedure DlgHide;
-    procedure CloseClick;
+    published procedure DlgHide; public
+    published procedure CloseClick; public
   end;
 
 

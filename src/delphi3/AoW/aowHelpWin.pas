@@ -37,9 +37,9 @@ type
     FHelpEvent: THelpMessageEventLog; { $84 }
     procedure FinishDialog;
     procedure ShowHelpEvent(Event: THelpMessageEventLog; Unused: Boolean; Done: TExecuteDoneEvent);
-    procedure CloseBtnClick;  { draft }
-    procedure HelpWinHide;  { draft }
-    procedure HelpWinResize;  { draft }
+    published procedure CloseBtnClick; public  { draft }
+    published procedure HelpWinHide; public  { draft }
+    published procedure HelpWinResize; public  { draft }
   end;
 
 

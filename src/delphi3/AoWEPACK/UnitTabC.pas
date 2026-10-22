@@ -5,7 +5,7 @@ unit UnitTabC;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, UnitIGrd;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, UnitIGrd, AoWE;
 
 type
   TUnitTabControl = class;
@@ -26,7 +26,7 @@ type
     procedure UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean);
     procedure UpdateUnitIndexGrid;
     procedure UpdateSelection;
-  end;
+  published property UnitIndexGrid: TUnitIndexGrid read FUnitIndexGrid write SetUnitIndexGrid; property OnSelectUnit: TOnSelectUnitEvent read FOnSelectUnit write FOnSelectUnit; end;
 
 procedure Register;
 

@@ -48,14 +48,14 @@ type
     procedure ResetScene;
     procedure AdvanceFrame;
     function HitTest: Integer;
-    procedure WindowDrawSurfaceEx(Surface: TSurface; var Drawn: Boolean);
-    procedure TitleSceneCreate;
-    procedure TitleSceneDestroy;
-    procedure WindowUpdate;  { draft }
-    procedure WindowMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure WindowMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure WindowMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure WindowHide;
+    published procedure WindowDrawSurfaceEx(Surface: TSurface; var Drawn: Boolean); public
+    published procedure TitleSceneCreate; public
+    published procedure TitleSceneDestroy; public
+    published procedure WindowUpdate; public  { draft }
+    published procedure WindowMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure WindowMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure WindowMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure WindowHide; public
   end;
 
 

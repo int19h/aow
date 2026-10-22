@@ -36,10 +36,10 @@ type
     FNewTurn: TNewTurnEventLog; { $80 }
     procedure FinishDialog;
     procedure ShowNewTurn(Event: TNewTurnEventLog; Done: TExecuteDoneEvent);
-    procedure NewTDlgMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure NewTDlgKeyPress(Sender: TObject; var Key: Char);
-    procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure NewTDlgHide;  { draft }
+    published procedure NewTDlgMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure NewTDlgKeyPress(Sender: TObject; var Key: Char); public
+    published procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure NewTDlgHide; public  { draft }
   end;
 
 

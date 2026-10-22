@@ -7,7 +7,7 @@ unit AoWE;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, EventLog, Animation, AoWReg;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, EventLog, Animation, AoWEReg, AoWReg, IvBinDic, IvDictio, aowFX;
 
 {$I inc\intf_P1_01.inc}
 {$I inc\intf_P2_01.inc}
@@ -77,6 +77,9 @@ uses ExptIntf;
 {$I inc\Hero.PAS}
 {$I inc\Army.PAS}
 
+var
+  AoWAbilityPlugIn: TAbilityPlugIn;
+
 initialization
   TAbilityTypeRStr[atEnhancement] := EnhancementRStr;
   TAbilityTypeRStr[atHandicap] := HandicapRStr;
@@ -91,6 +94,12 @@ initialization
   TPlayerTypeRStr[5] := FreeRStr;
   TPlayerTypeRStr[6] := CPUKingRStr;
   TPlayerTypeRStr[7] := CPUEmperorRStr;
+  { Original AoWE initialization, 5579939B..557993B1. }
+  P3InitializeHitProbabilities;
+  ValidateAoWEngine;
+  AoWAbilityPlugIn := TAbilityPlugIn.Create;
 finalization
-
+  AoWAbilityPlugIn.Release;
+  AoWEngine.Free;
+  AoWEngine := nil;
 end.

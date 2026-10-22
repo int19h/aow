@@ -89,46 +89,46 @@ type
     procedure SortEnchantments;
     procedure SortGlobalEnchantments;
     procedure SortPowerSources;
-    procedure EnchantmentListDoubleClick;
-    procedure EnchantmentListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DispelBtnClick;
-    procedure EnchantmentListChange;
-    procedure BindingListChange;
-    procedure UpkeepListChange;
-    procedure GlobalDispelBtnClick;
-    procedure GlobalEnchantmentListChange;
-    procedure GlobalNameListChange;
-    procedure GlobalUpkeepListChange;
-    procedure PowerSourceListChange;
-    procedure PowerValueListChange;
-    procedure ResearchBtnClick;
-    procedure ChangePowerButClick;
-    procedure SpellIcnDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure PowerSourceListDoubleClick;
-    procedure PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure PowerSBChange;
-    procedure GlobalEnchantmentSBChange;
-    procedure EnchantmentSBChange;
-    procedure EnchantmentSortBtnClick;
-    procedure BindingSortBtnClick;
-    procedure UpkeepSortBtnClick;
-    procedure GlobalEnchantmentSortBtnClick;
-    procedure GlobalNameSortBtnClick;
-    procedure GlobalUpkeepSortBtnClick;
-    procedure PowerSourceSortBtnClick;
-    procedure PowerValueSortBtnClick;
-    procedure HeaderTabChange;
-    procedure DlgResize;
-    procedure DlgShow;
-    procedure DlgHide;
-    procedure HelpClick;
-    procedure GlobalEnchantmentMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    published procedure EnchantmentListDoubleClick; public
+    published procedure EnchantmentListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DispelBtnClick; public
+    published procedure EnchantmentListChange; public
+    published procedure BindingListChange; public
+    published procedure UpkeepListChange; public
+    published procedure GlobalDispelBtnClick; public
+    published procedure GlobalEnchantmentListChange; public
+    published procedure GlobalNameListChange; public
+    published procedure GlobalUpkeepListChange; public
+    published procedure PowerSourceListChange; public
+    published procedure PowerValueListChange; public
+    published procedure ResearchBtnClick; public
+    published procedure ChangePowerButClick; public
+    published procedure SpellIcnDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure PowerSourceListDoubleClick; public
+    published procedure PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure PowerSBChange; public
+    published procedure GlobalEnchantmentSBChange; public
+    published procedure EnchantmentSBChange; public
+    published procedure EnchantmentSortBtnClick; public
+    published procedure BindingSortBtnClick; public
+    published procedure UpkeepSortBtnClick; public
+    published procedure GlobalEnchantmentSortBtnClick; public
+    published procedure GlobalNameSortBtnClick; public
+    published procedure GlobalUpkeepSortBtnClick; public
+    published procedure PowerSourceSortBtnClick; public
+    published procedure PowerValueSortBtnClick; public
+    published procedure HeaderTabChange; public
+    published procedure DlgResize; public
+    published procedure DlgShow; public
+    published procedure DlgHide; public
+    published procedure HelpClick; procedure MinimizeClick; public
+    published procedure GlobalEnchantmentMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
   end;
 
 
 implementation
 
-uses AoWWinMan, AoWExeForms, AoWPowerDlg, aowHelpWin, E2GameFlow, E2Globals;
+uses E1GameFlow, AoWWinMan, AoWExeForms, AoWPowerDlg, aowHelpWin, E2GameFlow, E2Globals;
 
 procedure TMagicWin.SelectEnchantment(Index: Integer);
 begin
@@ -466,5 +466,11 @@ begin
       TGlobalEnchantment(GlobalEnchantmentList.Items.Objects[GlobalEnchantmentList.Selected]).CenterToLocation;
 end;
 
+
+procedure TMagicWin.MinimizeClick;
+begin
+  General.PlayButtonSound(0);
+  HideMagic(Self);
+end;
 
 end.

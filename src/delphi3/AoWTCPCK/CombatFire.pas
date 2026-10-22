@@ -50,7 +50,7 @@ procedure RegisterCombatFire(AEngine: TEngine);
 
 implementation
 
-uses AoWE, AoWTC, CombatILTer, CityWall;
+uses AoWE, CombatILTer, CityWall, AoWTC;
 
 procedure TCombatFire.DeActivate;
 begin

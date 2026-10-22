@@ -34,10 +34,10 @@ type
     FSelectedIndex: Integer; { $208 }
     constructor CreateSelection(AOwner: Classes.TComponent; ItemType: TItemType);
     procedure SetSelectedIndex(Value: Integer);
-    procedure ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDeactivate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure ItemGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDeactivate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

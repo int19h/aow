@@ -61,13 +61,13 @@ type
     F_HeroResourceEditForm_2AD: array[0..2] of Byte;
     procedure LoadSettings;
     procedure SaveSettings;
-    procedure FormCreate;
-    procedure FormDestroy;
-    procedure AbilityBtnClick;
-    procedure OKBtnClick;
-    procedure LevelPointsChanged(Sender: TObject);
-    procedure SelectFaceBtnClick;
-    procedure FaceDrawPanelDraw(Sender: TObject; const R: TRect);
+    published procedure FormCreate; public
+    published procedure FormDestroy; public
+    published procedure AbilityBtnClick; public
+    published procedure OKBtnClick; public
+    published procedure LevelPointsChanged(Sender: TObject); public
+    published procedure SelectFaceBtnClick; public
+    published procedure FaceDrawPanelDraw(Sender: TObject; const R: TRect); public
   end;
 
   { THeroResourceEditor (instance size 8, VMT 004122F8) }

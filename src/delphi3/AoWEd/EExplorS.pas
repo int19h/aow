@@ -33,17 +33,17 @@ type
     Panel3: TPanel; { +0238 }
     BorderPanel: TDrawPanel; { +023C }
     public
-    procedure AddBtnClick(Sender: TObject);
-    procedure DeleteBtnClick(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure UserDefinedBtnClick(Sender: TObject);
-    procedure AutoGenerateBtnClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure DefendersModeBoxChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure DeleteBtnClick(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure UserDefinedBtnClick(Sender: TObject); public
+    published procedure AutoGenerateBtnClick(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure DefendersModeBoxChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure BorderPanelDraw(Sender: TObject; const R: TRect); public
   end;
 
   { TExplorationSiteEditor (instance size 8, VMT 0041AE5C) }

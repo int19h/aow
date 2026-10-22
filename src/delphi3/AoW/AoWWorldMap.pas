@@ -97,33 +97,33 @@ type
     procedure ShowSpheres;
     procedure SpheresDone(Sender: TObject);
     procedure BookClosed; procedure ResetCampaign; procedure ShowCampaignHistory;
-    procedure BackClick;
-    procedure NextStartClick;
-    procedure WorldPnlUpdate;
-    procedure Path1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure Path2MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure Path3MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure CancelClick;
-    procedure PPawnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure Path1MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure Path2MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure Path3MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure WorldPnlMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure BookStartClick;
-    procedure BookWinAnimDone;
-    procedure BookWinShow;
-    procedure BookWinUpdate;
-    procedure ShowBtnClick;
-    procedure QuitBtnClick;
-    procedure StarImgUpdate;
-    procedure StarImgDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure Ally1PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure Ally2PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure Ally3PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure HeroPnlPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure SetBtnClick;
-    procedure BookWinHide;
+    published procedure BackClick; procedure WorldMapCreate; public
+    published procedure NextStartClick; public
+    published procedure WorldPnlUpdate; public
+    published procedure Path1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure Path2MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure Path3MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure CancelClick; public
+    published procedure PPawnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure Path1MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure Path2MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure Path3MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure WorldPnlMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure BookStartClick; public
+    published procedure BookWinAnimDone; public
+    published procedure BookWinShow; public
+    published procedure BookWinUpdate; public
+    published procedure ShowBtnClick; public
+    published procedure QuitBtnClick; public
+    published procedure StarImgUpdate; public
+    published procedure StarImgDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure Ally1PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure Ally2PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure Ally3PnlPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure HeroPnlPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure SetBtnClick; public
+    published procedure BookWinHide; public
   end;
 
   { TFileTime (instance size 12, VMT 0041EB14) }
@@ -859,5 +859,10 @@ end;
 procedure TWorldMap.BookWinHide;
 begin BookClosed; end;
 
+
+procedure TWorldMap.WorldMapCreate;
+begin
+  RegisterWorldMapCampaign(AoWEngine);
+end;
 
 end.

@@ -95,21 +95,21 @@ type
     procedure UpdateShields;
     procedure FinishDialog; { 00435268 }
     procedure SetPhase(Phase: Byte);
-    procedure FastCombatWindowCreate;
-    procedure FastCombatWindowDestroy;
-    procedure CloseButClick;  { draft }
-    procedure FCWinDrawSurface(Sender: TObject; Surface: TSurface);
-    procedure FCWinUpdate(Sender: TObject);
-    procedure InitialViewClick;  { draft }
-    procedure FinalViewClick;  { draft }
-    procedure PauseBtnClick;  { draft }
-    procedure PlayBtnClick;  { draft }
-    procedure SequencePositionSldChange;  { draft }
-    procedure SequenceSpeedSldChange;  { draft }
-    procedure LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure FCWinHide;  { draft }
-    procedure FCWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure FastCombatWindowCreate; public
+    published procedure FastCombatWindowDestroy; public
+    published procedure CloseButClick; public  { draft }
+    published procedure FCWinDrawSurface(Sender: TObject; Surface: TSurface); public
+    published procedure FCWinUpdate(Sender: TObject); public
+    published procedure InitialViewClick; public  { draft }
+    published procedure FinalViewClick; public  { draft }
+    published procedure PauseBtnClick; public  { draft }
+    published procedure PlayBtnClick; public  { draft }
+    published procedure SequencePositionSldChange; public  { draft }
+    published procedure SequenceSpeedSldChange; public  { draft }
+    published procedure LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure FCWinHide; public  { draft }
+    published procedure FCWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 procedure ShowCombatEvent(Dialog: TFastCombatWindow; Event: TCombatEventLog; Done: TExecuteDoneEvent);

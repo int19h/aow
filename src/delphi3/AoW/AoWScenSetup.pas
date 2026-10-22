@@ -216,34 +216,34 @@ type
     procedure Execute(Control: TSetupControl);
     procedure CloseSetup;
     procedure PickMap;
-    procedure ExitGameClick(Sender: TObject);
+    published procedure ExitGameClick(Sender: TObject); public
     { conflict: procedure ExitGameClick; }
-    procedure ChatEditReturn;
-    procedure PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
-    procedure PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
-    procedure ScenSetupPnlUpdate;
-    procedure PickScenarioBtnClick;  { draft }
-    procedure PreferredRaceCBChange;
-    procedure StartBtnClick;
-    procedure EjectBtnClick;
-    procedure MakeHostBtnClick;
-    procedure PlayerListSBChange;
-    procedure PlayerListChange(Sender: TObject);
-    procedure TurnTimeSlChange;
-    procedure TurnsCBChange(Sender: TObject);
-    procedure TurnsSlChange(Sender: TObject);
-    procedure PlayModeCBChange;
-    procedure RacePlayerCBChange(Sender: TObject);
-    procedure RaceBehaviorCBChange(Sender: TAOWComboBox);
-    procedure LeadersOnMapCBChange(Sender: TObject);
-    procedure CustomizeLeadersChange(Sender: TObject);
-    procedure AlliedVictoryCBChange(Sender: TObject);
-    procedure ExplorationChange(Sender: TObject);
-    procedure AlwaysViewTCCBChange;
-    procedure SettingsClick;
-    procedure RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
-    procedure ChatSBUpdate;
-    procedure TacticalCombatCBChange;
+    published procedure ChatEditReturn; public
+    published procedure PlayerListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc); public
+    published procedure PingListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc); public
+    published procedure ScenSetupPnlUpdate; public
+    published procedure PickScenarioBtnClick; public  { draft }
+    published procedure PreferredRaceCBChange; public
+    published procedure StartBtnClick; public
+    published procedure EjectBtnClick; public
+    published procedure MakeHostBtnClick; public
+    published procedure PlayerListSBChange; public
+    published procedure PlayerListChange(Sender: TObject); public
+    published procedure TurnTimeSlChange; public
+    published procedure TurnsCBChange(Sender: TObject); public
+    published procedure TurnsSlChange(Sender: TObject); public
+    published procedure PlayModeCBChange; public
+    published procedure RacePlayerCBChange(Sender: TObject); public
+    published procedure RaceBehaviorCBChange(Sender: TAOWComboBox); public
+    published procedure LeadersOnMapCBChange(Sender: TObject); public
+    published procedure CustomizeLeadersChange(Sender: TObject); public
+    published procedure AlliedVictoryCBChange(Sender: TObject); public
+    published procedure ExplorationChange(Sender: TObject); public
+    published procedure AlwaysViewTCCBChange; public
+    published procedure SettingsClick; public
+    published procedure RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure ChatSBUpdate; public
+    published procedure TacticalCombatCBChange; public
     procedure UpdateTurnTime;
     procedure UpdateTurnLimit;
     procedure SelectPlayer(Index: Integer);

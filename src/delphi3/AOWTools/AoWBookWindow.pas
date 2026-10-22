@@ -33,6 +33,8 @@ type
     procedure CheckMouseMove(Shift: Classes.TShiftState; X, Y: Integer); override;
     procedure Blt(Surface: GFXE.TSurface); override;
     procedure StartAnim(Mode: TPageTurnMode);
+  published
+    property OnAnimDone: TNotifyEvent read FOnAnimationComplete write FOnAnimationComplete;
   end;
 
 procedure Register;

@@ -1,0 +1,17 @@
+package VideoP;
+
+{$DESCRIPTION 'Video Pack'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\VideoP.res'}
+
+requires
+  vcl30,
+  Gfxepack;
+
+contains
+  Video,
+  VFW;
+
+end.

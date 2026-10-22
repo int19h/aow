@@ -32,11 +32,11 @@ type
     procedure ResetSelection;
     procedure SetShowHeroes(Value: Boolean);
     procedure SetShowUnits(Value: Boolean);
-    procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure HeroSelectionSheetEnter;
-    procedure FormShow;
-    procedure MapControlActivateHSM;
-    procedure MapControlDeactivateHSM;
+    published procedure HeroControlGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure HeroSelectionSheetEnter; public
+    published procedure FormShow; public
+    published procedure MapControlActivateHSM; public
+    published procedure MapControlDeactivateHSM; public
   end;
 
 

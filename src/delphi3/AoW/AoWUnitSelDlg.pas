@@ -50,12 +50,12 @@ type
     procedure ResetSelection;
     procedure Execute(Request: TUnitSelectorAAI);
     procedure ClearEvent;
-    procedure CloseClick;  { draft }
-    procedure SelectBtnClick;  { draft }
-    procedure U1Change(Sender: TObject);
-    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure SourceFacePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure DlgHide;  { draft }
+    published procedure CloseClick; public  { draft }
+    published procedure SelectBtnClick; public  { draft }
+    published procedure U1Change(Sender: TObject); public
+    published procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure SourceFacePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure DlgHide; public  { draft }
   end;
 
 

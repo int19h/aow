@@ -151,42 +151,42 @@ type
     FShowInfo: TP2UnitShowInfo; { $23C }
     procedure ShowUnit; { draft; 00407DB8 }
     procedure UpdateGround(Offset: Integer);
-    procedure PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure HelpClick(Sender: TObject);
-    procedure T1AbilityLBChange(Sender: TObject);
-    procedure T1SbarChange(Sender: TObject);
-    procedure ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure UnitWinResize(Sender: TObject);
-    procedure UnitWindowCreate(Sender: TObject);
-    procedure UnitWinUpdate(Sender: TObject);
-    procedure T1SortNameClick(Sender: TObject; Button: Integer);
-    procedure T1SortTypeClick(Sender: TObject; Button: Integer);
-    procedure T1SortSourceClick(Sender: TObject; Button: Integer);
-    procedure UseAbility;
-    procedure UseItemClick(Sender: TObject);
-    procedure UnitTabChange(Sender: TObject);
-    procedure UnitWinMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure UnitWinEnter(Sender: TObject);
-    procedure UnitWinExit(Sender: TObject);
-    procedure UnitWinShow(Sender: TObject);
-    procedure GroundRClick(Sender: TObject);
-    procedure GroundLClick(Sender: TObject);
-    procedure CloseClick(Sender: TObject);
-    procedure Gnd1Draw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure FrLShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure FrRShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure Gnd1Change(Sender: TObject);
-    procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure HeadDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure TorsoDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure AttackDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure DisbandBtnClick;  { draft }
-    procedure T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
-    procedure UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure PPrevClick;
-    procedure PNextClick;
+    published procedure PreDrawAbilityItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure HelpClick(Sender: TObject); public
+    published procedure T1AbilityLBChange(Sender: TObject); public
+    published procedure T1SbarChange(Sender: TObject); public
+    published procedure ItemRHMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure UnitWinResize(Sender: TObject); public
+    published procedure UnitWindowCreate(Sender: TObject); public
+    published procedure UnitWinUpdate(Sender: TObject); public
+    published procedure T1SortNameClick(Sender: TObject; Button: Integer); public
+    published procedure T1SortTypeClick(Sender: TObject; Button: Integer); public
+    published procedure T1SortSourceClick(Sender: TObject; Button: Integer); public
+    published procedure UseAbility; public
+    published procedure UseItemClick(Sender: TObject); public
+    published procedure UnitTabChange(Sender: TObject); public
+    published procedure UnitWinMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure UnitWinEnter(Sender: TObject); public
+    published procedure UnitWinExit(Sender: TObject); public
+    published procedure UnitWinShow(Sender: TObject); public
+    published procedure GroundRClick(Sender: TObject); public
+    published procedure GroundLClick(Sender: TObject); public
+    published procedure CloseClick(Sender: TObject); public
+    published procedure Gnd1Draw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure FrLShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure FrRShPreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure Gnd1Change(Sender: TObject); public
+    published procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure HeadDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure TorsoDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure AttackDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure DisbandBtnClick; public  { draft }
+    published procedure T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton); public
+    published procedure UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure PPrevClick; public
+    published procedure PNextClick; public
   end;
 
 

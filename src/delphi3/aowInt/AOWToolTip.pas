@@ -7,7 +7,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric;
+  AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   { AOWToolTip.TAOWToolTip (instance size 564). Fields: +$1EC FItems, +$1F0 FOnDrawItem, +$1F8
@@ -55,6 +55,7 @@ type
 procedure Register;
 
 implementation
+uses AoWWindow;
 
 { TAOWToolTip }
 

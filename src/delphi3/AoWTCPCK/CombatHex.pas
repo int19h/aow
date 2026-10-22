@@ -7,7 +7,7 @@ unit CombatHex;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWHex, AoWE, AoWTC;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWHex, AoWE;
 
 type
   TCombatHexagon = class;
@@ -62,6 +62,7 @@ type
 procedure RegisterCombatHexagon(AEngine: TEngine);
 
 implementation
+uses FleeLoc, AoWTC;
 
 const
   TransitionNeighbours: array[1..3] of Byte = (6, 1, 2);

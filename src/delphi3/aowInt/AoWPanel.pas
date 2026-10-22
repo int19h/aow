@@ -10,8 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip, AoWControl,
-  AoWTabPanel;
+  AoWTabPanel, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl,
+  AoWBaseWin;
 
 type
   { AoWPanel.TAOWPanel (instance size 508). Fields: +$1EC FOrgLeft, +$1F0 FOrgTop (the panel's

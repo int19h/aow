@@ -38,10 +38,10 @@ type
     BorderPanel: TDrawPanel; { +024C }
     public
     procedure UpdateControls;
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure CustomRBClick(Sender: TObject);
-    procedure BorderPanelDraw(Sender: TObject; const Rect: TRect);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure CustomRBClick(Sender: TObject); public
+    published procedure BorderPanelDraw(Sender: TObject; const Rect: TRect); public
   end;
 
   { TWizardsTowerEditor (instance size 8, VMT 0041C67C) }

@@ -24,9 +24,9 @@ type
     Label2: TLabel; { +0234 }
     public
     function DefendersEnabled: Boolean;
-    procedure FormCreate(Sender: TObject);
-    procedure PlayerComboBoxChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure PlayerComboBoxChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TProductionPlaceEditor (instance size 8, VMT 0041D880) }

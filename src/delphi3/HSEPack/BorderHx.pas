@@ -32,7 +32,7 @@ type
 
 procedure RegisterBorderHexagon(Engine: TEngine);
 
-implementation
+implementation {$IFDEF RUNTIME_PACKAGES} uses Road; {$ENDIF}
 
 { TBorderHexagon }
 

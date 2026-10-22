@@ -27,11 +27,11 @@ type
     procedure ShowExitSplash;
     procedure NextSplash;
     procedure ShowSplash;
-    procedure TitleWinDrawSurface(Sender: TObject; Surface: TSurface; X, Y: Integer);
-    procedure TitlePnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
-    procedure SplashPnlUpdate;
-    procedure SplashPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure SplashPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    published procedure TitleWinDrawSurface(Sender: TObject; Surface: TSurface; X, Y: Integer); public
+    published procedure TitlePnlDrawBack(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure SplashPnlUpdate; public
+    published procedure SplashPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure SplashPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
   end;
 
 

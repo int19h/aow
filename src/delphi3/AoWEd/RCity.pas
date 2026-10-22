@@ -21,12 +21,12 @@ type
   public
     procedure vmt90(Index, X, Y: Integer; SD: TSurfaceDesc); override;
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
-    procedure ComplexBoxClick(Sender: TObject);
+    published procedure ComplexBoxClick(Sender: TObject); public
   end;
 
   { TCityResourceEditor (instance size 8, VMT 00409BDC) }
   TCityResourceEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -52,5 +52,8 @@ end;
 procedure TCityResourceEditForm.ComplexBoxClick(Sender: TObject);
 begin end;
 
+
+class function TCityResourceEditor.EditorClassID: Integer;
+begin Result := $20109; end;
 
 end.

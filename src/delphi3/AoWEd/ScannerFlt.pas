@@ -37,16 +37,16 @@ type
     procedure ShowScanner;
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure DisplayResize(Sender: TObject);
-    procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure TheMapMapChanged(const Info: TMapChangedInfo);
-    procedure DisplayBltSurface(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure TheMapViewPortChange(Sender: TObject);
-    procedure ScannerChangeTileBox(Sender: TObject);
-    procedure TheMapScannerIconsChanged(Sender: TObject);
+    published procedure DisplayResize(Sender: TObject); public
+    published procedure DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure TheMapMapChanged(const Info: TMapChangedInfo); public
+    published procedure DisplayBltSurface(Sender: TObject); public
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public
+    published procedure TheMapViewPortChange(Sender: TObject); public
+    published procedure ScannerChangeTileBox(Sender: TObject); public
+    published procedure TheMapScannerIconsChanged(Sender: TObject); public
   end;
 
 

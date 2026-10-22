@@ -7,7 +7,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip;
+  AOWToolTip, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWBaseWin;
 
 type
   { AoWControl.TAOWControl (instance size 276). Fields: +$104 FToolTipText, +$108 FToolTipShown
@@ -39,6 +39,7 @@ type
   end;
 
 implementation
+
 
 { TAOWControl }
 

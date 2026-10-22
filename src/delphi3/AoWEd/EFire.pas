@@ -23,13 +23,13 @@ type
     DaysActiveEdit: TComboBox; { +0210 }
     Label1: TLabel; { +0214 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TFireEditor (instance size 8, VMT 0041D1C0) }
   TFireEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -62,5 +62,8 @@ begin
   end;
 end;
 
+
+class function TFireEditor.EditorClassID: Integer;
+begin Result := $2077E; end;
 
 end.

@@ -26,11 +26,11 @@ type
     DeleteDefender: TButton; { +0384 }
     Label11: TLabel; { +0388 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure AddDefenderClick(Sender: TObject);
-    procedure DeleteDefenderClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure AddDefenderClick(Sender: TObject); public
+    published procedure DeleteDefenderClick(Sender: TObject); public
   end;
 
   { TExplorationSiteResourceEditor (instance size 8, VMT 0040A6FC) }

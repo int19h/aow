@@ -49,17 +49,17 @@ type
     procedure UnregisterDialog(Window: TAOWWindow); { draft; 00456B34 }
     function IndexOfUnit(U: TAbstractUnit): Integer;
     procedure BuildAbilities; { 00455D10 }
-    function MTtoInt(MoveTypes: TMoveTypes): Integer;
+    published function MTtoInt(MoveTypes: TMoveTypes): Integer; public
     function SphereToImage(Sphere: TMagicSphere): Integer;
-    procedure ManagerChangeCursor;  { draft }
-    procedure GeneralCreate;  { draft }
-    procedure GeneralDestroy;  { draft }
-    procedure ResetLayout;  { draft }
-    procedure ManagerDebugMessage(Text: string);
-    procedure MapProgress(Sender: TEObject; const Message: string; Progression: Integer); { 00454CA7 }
+    published procedure ManagerChangeCursor; public  { draft }
+    published procedure GeneralCreate; public  { draft }
+    published procedure GeneralDestroy; public  { draft }
+    published procedure ResetLayout; public  { draft }
+    published procedure ManagerDebugMessage(Text: string); public
+    published procedure MapProgress(Sender: TEObject; const Message: string; Progression: Integer); public { 00454CA7 }
     { conflict: procedure MapProgress(Sender: TObject; const Text: string; Position: Integer); }
-    procedure ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ManagerUpdate;  { draft }
+    published procedure ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure ManagerUpdate; public  { draft }
   end;
 
 

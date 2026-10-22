@@ -22,8 +22,8 @@ type
     Label1: TLabel; { +0218 }
     TriggerModeCB: TComboBox; { +021C }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

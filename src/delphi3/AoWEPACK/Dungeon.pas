@@ -6,7 +6,7 @@ unit Dungeon;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, ExploreS, EventLog;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, ExploreS, EventLog, AoWE;
 
 type
   TPrisonersArmy = class;
@@ -71,13 +71,20 @@ procedure RegisterDungeon(Engine: TEngine);
 
 implementation
 
+{$IFDEF RUNTIME_PACKAGES}
+var
+  RandomSeed: ^Integer;
+{$ENDIF}
+
 type
   PAoWMap = ^TAoWHSMap;
   PAoWSet = ^TAoWHSSet;
 const
   WorldMap: PAoWMap = @AoWE.AoWHSMap;
   WorldSet: PAoWSet = @AoWE.AoWHSSet;
+{$IFNDEF RUNTIME_PACKAGES}
   RandomSeed: ^Integer = @System.RandSeed;
+{$ENDIF}
 
 function TPrisonersArmy.CanAddUnit(AUnit: TAbstractUnit): Boolean;
 begin
@@ -325,6 +332,9 @@ begin
 end;
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  RandomSeed := @System.RandSeed;
+{$ENDIF}
 finalization
 
 end.

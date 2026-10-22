@@ -23,7 +23,7 @@ type
     CombatTerrainTagEdit: TSpin; { +0344 }
     public
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
-    procedure CombatTerrainTagEditChange;  { draft }
+    published procedure CombatTerrainTagEditChange; public  { draft }
   end;
 
   { TOverlayObjectResourceEditor (instance size 8, VMT 00409694) }

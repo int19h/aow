@@ -185,32 +185,32 @@ type
     procedure FinishEvent;
     procedure FinishDialog;
     procedure ClearActions;
-    procedure RelWindowCreate;  { draft }
-    procedure RelWindowDestroy;  { draft }
-    procedure ExitClick;  { draft }
-    procedure P1CBChange(Sender: TObject);
-    procedure R1CBChange(Sender: TObject);
-    procedure P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure R1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure R1IDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure MAcceptBtnClick;  { draft }
-    procedure MRejectBtnClick;  { draft }
-    procedure PlyrGlowUpdate;  { draft }
-    procedure PlyrGlowDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure FaceFrPreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure SBGoldSlidChange(Sender: TObject);  { draft }
-    procedure SBManaSlidChange(Sender: TObject);  { draft }
-    procedure RelWinHide;  { draft }
-    procedure ASelectClick;  { draft }
-    procedure ActionsLBChange(Sender: TObject);  { draft }
-    procedure CancelSelectedAction;  { draft }
-    procedure ChangeActionMessage(Sender: TAOWMemo);
-    procedure MsgSendActionBtn;  { draft }
-    procedure ReplyBtnClick;  { draft }
-    procedure RMCancelBtnClick;  { draft }
-    procedure IIOkBtnClick;  { draft }
-    procedure RelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure RelWindowCreate; public  { draft }
+    published procedure RelWindowDestroy; public  { draft }
+    published procedure ExitClick; public  { draft }
+    published procedure P1CBChange(Sender: TObject); public
+    published procedure R1CBChange(Sender: TObject); public
+    published procedure P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure R1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure P1IDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure R1IDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure MAcceptBtnClick; public  { draft }
+    published procedure MRejectBtnClick; public  { draft }
+    published procedure PlyrGlowUpdate; public  { draft }
+    published procedure PlyrGlowDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure FaceFrPreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure SBGoldSlidChange(Sender: TObject); public  { draft }
+    published procedure SBManaSlidChange(Sender: TObject); public  { draft }
+    published procedure RelWinHide; public  { draft }
+    published procedure ASelectClick; public  { draft }
+    published procedure ActionsLBChange(Sender: TObject); public  { draft }
+    published procedure CancelSelectedAction; public  { draft }
+    published procedure ChangeActionMessage(Sender: TAOWMemo); public
+    published procedure MsgSendActionBtn; public  { draft }
+    published procedure ReplyBtnClick; public  { draft }
+    published procedure RMCancelBtnClick; public  { draft }
+    published procedure IIOkBtnClick; public  { draft }
+    published procedure RelWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

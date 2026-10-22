@@ -7,7 +7,7 @@ unit RaceBox;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TRaceBox = class;
@@ -28,7 +28,7 @@ type
     procedure SetRace(Value: Shortint);
     procedure Change; override;
     procedure SetRaces(Value: TRaceList);
-  end;
+  published property OnlyEnabledRaces: Boolean read FSelectableOnly write FSelectableOnly; property AllowRandomRace: Boolean read FAllowRandom write FAllowRandom; property AllowNoRace: Boolean read FAllowNone write FAllowNone; property OnGenerateItems: TNotifyEvent read FOnGenerateItems write FOnGenerateItems; end;
 
 procedure Register;
 

@@ -46,10 +46,10 @@ type
     F_DWin_A5: array[0..7] of Byte; FSkipCombatChoice: Boolean; { $AD; 00439AEC } F_DWin_AE: array[0..1] of Byte;
     procedure Confirm(Title, Text: string; Action: Byte);
     procedure AddDebugMessage(const Text: string);
-    procedure DButtonClick(Sender: TObject);
-    procedure DebugDOkBtnClick;  { draft }
-    procedure yesBtnClick(Sender: TObject);
-    procedure DialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure DButtonClick(Sender: TObject); public
+    published procedure DebugDOkBtnClick; public  { draft }
+    published procedure yesBtnClick(Sender: TObject); public
+    published procedure DialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

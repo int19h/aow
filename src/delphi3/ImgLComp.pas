@@ -223,7 +223,7 @@ type
     property LibraryImage: TLibraryImage read FLibraryImage write SetLibraryImage;
   end;
 
-implementation
+implementation uses Engine;
 
 { Draws the two-pixel frame in Color around R and, when Focused, the focus rectangles inside
   and outside it (DrawCellFocus, TDrawImagePanel.DrawFocus). }

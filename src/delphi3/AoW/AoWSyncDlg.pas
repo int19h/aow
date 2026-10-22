@@ -33,8 +33,8 @@ type
     Translator: TIvTranslator; { +007C }
     public
     function GetPlayerSetup: TPlayerSetupSettings;
-    procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure DlgShow;
+    published procedure FaceFramePreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure DlgShow; public
   end;
 
 

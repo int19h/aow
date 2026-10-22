@@ -28,8 +28,8 @@ type
     public
     FDone: TExecuteDoneEvent; { $64 } FEvent: TEventLog; { $6C }
     procedure FinishDialog;
-    procedure CloseClick;
-    procedure MsgReceiveWinHide;
+    published procedure CloseClick; public
+    published procedure MsgReceiveWinHide; public
   end;
 
 

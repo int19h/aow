@@ -27,15 +27,15 @@ type
     Memo1: TMemo; { +0228 }
     VictoryListBox: TCheckListBox; { +022C }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure BorderPanelDraw(Sender: TObject; const R: TRect);
-    procedure RazedBoxClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure BorderPanelDraw(Sender: TObject; const R: TRect); public
+    published procedure RazedBoxClick(Sender: TObject); public
   end;
 
   { TPlayerConstructionEditor (instance size 8, VMT 004186BC) }
   TPlayerConstructionEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -105,5 +105,8 @@ begin
   PlayerComboBox.Enabled := True;
 end;
 
+
+class function TPlayerConstructionEditor.EditorClassID: Integer;
+begin Result := $2034C; end;
 
 end.

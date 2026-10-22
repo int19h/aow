@@ -21,13 +21,13 @@ type
     TextSheet: TTabSheet; { +0224 }
     MessageMemo: TMemo; { +0228 }
     public
-    procedure OKBtnClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { TShowMessageEditor (instance size 8, VMT 0041EC50) }
   TShowMessageEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -53,5 +53,8 @@ begin
   MessageMemo.Lines.Text := TShowMessageMoveOnEvent(FMapObject).FMessage.Text;
 end;
 
+
+class function TShowMessageEditor.EditorClassID: Integer;
+begin Result := $2054D; end;
 
 end.

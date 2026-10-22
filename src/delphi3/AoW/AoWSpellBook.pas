@@ -166,27 +166,27 @@ type
     procedure ShowResearchedEvent(Event: TPlayerMagicEventLog; Done: TExecuteDoneEvent);
     procedure ShowCasting(Activation: TActivateAbilityInfo);
     procedure ShowCombatCasting(Activation: TActivateAbilityInfo);
-    procedure SpellBookCreate;
-    procedure SpellBookDestroy;
-    procedure CancelClick;
-    procedure NextBtnClick;
-    procedure PrevBtnClick;
-    procedure SpellIconDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure SelectSpellBtnClick(Sender: TObject);
-    procedure GlobalBtnClick(Sender: TObject);
-    procedure UnitBtnClick;
-    procedure CombatBtnClick;
-    procedure InfoBtnClick(Sender: TObject);
-    procedure CastingBtnClick;
-    procedure CancelCastingBtnClick;
-    procedure FaceDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
-    procedure CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
-    procedure CancelResearchBtnClick;
-    procedure Sel1Click;
-    procedure DlgHide;
-    procedure DlgUpdate;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure SpellBookCreate; public
+    published procedure SpellBookDestroy; public
+    published procedure CancelClick; public
+    published procedure NextBtnClick; public
+    published procedure PrevBtnClick; public
+    published procedure SpellIconDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure SelectSpellBtnClick(Sender: TObject); public
+    published procedure GlobalBtnClick(Sender: TObject); public
+    published procedure UnitBtnClick; public
+    published procedure CombatBtnClick; public
+    published procedure InfoBtnClick(Sender: TObject); public
+    published procedure CastingBtnClick; public
+    published procedure CancelCastingBtnClick; public
+    published procedure FaceDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc); public
+    published procedure CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc); public
+    published procedure CancelResearchBtnClick; public
+    published procedure Sel1Click; public
+    published procedure DlgHide; public
+    published procedure DlgUpdate; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

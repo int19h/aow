@@ -22,13 +22,13 @@ type
     Label10: TLabel; { +0340 }
     FireTypeBox: TComboBox; { +0344 }
     public
-    procedure FireTypeBoxChange(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    published procedure FireTypeBoxChange(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { TFireResourceEditor (instance size 8, VMT 0040A378) }
   TFireResourceEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -51,5 +51,8 @@ begin
   FireTypeBox.ItemIndex := Ord(TFireResource(FResource).FFireType);
 end;
 
+
+class function TFireResourceEditor.EditorClassID: Integer;
+begin Result := $2077F; end;
 
 end.

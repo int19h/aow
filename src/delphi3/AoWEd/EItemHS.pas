@@ -36,16 +36,16 @@ type
     FItemHS: TItemHS; { $230 }
     procedure SetItemsMode(Mode: Integer);
     procedure vmt84; override;
-    procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure AddItemBtnClick(Sender: TObject);
-    procedure DeleteItemBtnClick(Sender: TObject);
-    procedure GenerateItemBoxChange(Sender: TObject);
-    procedure AutoGenerateItemsBtnClick(Sender: TObject);
-    procedure UserDefinedItemsBtnClick(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure ItemGridDblClick;  { draft }
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure AddItemBtnClick(Sender: TObject); public
+    published procedure DeleteItemBtnClick(Sender: TObject); public
+    published procedure GenerateItemBoxChange(Sender: TObject); public
+    published procedure AutoGenerateItemsBtnClick(Sender: TObject); public
+    published procedure UserDefinedItemsBtnClick(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure ItemGridDblClick; public  { draft }
   end;
 
   { TItemHSEditor (instance size 8, VMT 00417920) }

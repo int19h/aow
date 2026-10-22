@@ -8,8 +8,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl, AoWVScroll, AOWMenuBar, AOWMenu;
+  AOWMenuBar, AOWMenu, AoWVScroll, AOWToolTip, AoWControl, AOWWinManager,
+  AoWComp, AOWInterfaceImgLib, AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   TLBType = (lbNormal, lbBlank);

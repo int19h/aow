@@ -4,7 +4,7 @@ unit AoWSetup;
   Setup, synchronization and map selection bodies are recovered. }
 interface
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 type
   TSetupPackage = class;
   TSetupPlayerBehavior = record
@@ -205,10 +205,11 @@ type
     procedure hEjectPlayer(RemoteID: Integer);
     function SetupHost(const Name: string; Mode: Byte; RemoteID: Integer): Boolean;
     function SetupUser(const Name: string; RemoteID: Integer): Boolean;
-  end;
+  published property OnSendMap: TSendMapEvent read FOnSendMap write FOnSendMap; property OnSendData: TSendDataEvent read FOnSendData write FOnSendData; property OnPlayerSetupDone: TSetupControlEvent read FOnPlayerSetupDone write FOnPlayerSetupDone; property OnSettingChanged: TSetupControlEvent read FOnSettingChanged write FOnSettingChanged; property OnCustomizeLeader: TCustomizeLeaderEvent read FOnCustomizeLeader write FOnCustomizeLeader; property OnLoadMap: TLoadMapEvent read FOnLoadMap write FOnLoadMap; property OnSetupMap: TSetupControlEvent read FOnSetupMap write FOnSetupMap; property OnStart: TSetupControlEvent read FOnStart write FOnStart; property OnAbort: TSetupControlEvent read FOnAbort write FOnAbort; property OnSynchronize: TSetupControlEvent read FOnSynchronize write FOnSynchronize;
+    property OnEjectPlayer: TEjectPlayerEvent read FOnEjectPlayer write FOnEjectPlayer; property OnIncompatibleVersion: TIncompatibleVersionEvent read FOnIncompatibleVersion write FOnIncompatibleVersion; property OnSendingMaps: TSetupControlEvent read FOnSendingMaps write FOnSendingMaps; end;
 procedure RegisterSetupClasses(AEngine: TEngine);
 procedure Register;
-implementation
+implementation uses BehaviorAG;
 type
   TLeaderSetupView = class(TObject)
     Reserved04: array[4..$B] of Byte;
@@ -1212,7 +1213,6 @@ FSettings.FAlwaysViewTC := Preview.FStartingGame; FSettings.FTacticalCombatAvail
 FSettings.FRemotePlayers.GetPlayers(I).FMapValidation := mviUnknown; end; for I := 1 to Preview.FPlayers.GetCount - 1 do begin with Preview.FPlayers.GetPlayers(I) do begin if FStatus <> psTerminated then begin Settings := TPlayerSetupSettings.Create(Self.FSettings); Settings.FPlayerID := I; Settings.FRace := FPlayerRace; Settings.FLeader.Assign(FLeaderSetup, AoWEngine); Settings.FBehaviorMode := Ord(FBehavior); if FParticipating then Settings.FStatus :=
 Settings.FStatus + [pssFixed]; if GetRemote and not FParticipating then begin Settings.FBehavior.PlayerType := 5; Settings.FOriginalBehavior.PlayerType := 5; end else begin Settings.FBehavior.PlayerType := Ord(FPlayerType); Settings.FOriginalBehavior.PlayerType := Ord(FPlayerType); if FPlayerType = ptHuman then begin if not FirstHuman then Settings.FBehavior.PlayerType := 1; FirstHuman := False; end; end; end; end; end; UpdateSettings; Preview.Free; Result := True; end
 else Result := False; { Original leaks a rejected preview map. } end;
-
 procedure TSetupControl.hEjectPlayer(RemoteID: Integer);
 var I, J: Integer;
 begin

@@ -52,29 +52,29 @@ type
     FSavedSequences: TMemoryStream; { $264 }
     function GetImageSequenceList: TImageSequenceList;
     procedure SetImageSequenceList(Value: TImageSequenceList);
-    procedure FrameTableEditChange(Sender: TObject);
-    procedure ILManagerComboBoxChange(Sender: TObject);
-    procedure LayerSpinUpdate(Sender: TObject);
-    procedure PlayBtnClick(Sender: TObject);
-    procedure PlayLoopedClick(Sender: TObject);
-    procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer);
-    procedure SequenceDisplayEditorUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure SequenceModeBoxChange(Sender: TObject);
-    procedure SequenceSpeedBoxChange(Sender: TObject);
-    procedure ImageSequencerChange(Sender: TObject);
-    procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence);
-    procedure ImageIndexSelectorDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure CloseLayerBtnClick(Sender: TObject);
-    procedure ImageIndexSelectorDrawCell2(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure ImageIndexSelectorSelectCell2(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure OpenLayerBtnClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure SpeedButton2Click(Sender: TObject);
+    published procedure FrameTableEditChange(Sender: TObject); public
+    published procedure ILManagerComboBoxChange(Sender: TObject); public
+    published procedure LayerSpinUpdate(Sender: TObject); public
+    published procedure PlayBtnClick(Sender: TObject); public
+    published procedure PlayLoopedClick(Sender: TObject); public
+    published procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer); public
+    published procedure SequenceDisplayEditorUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure SequenceModeBoxChange(Sender: TObject); public
+    published procedure SequenceSpeedBoxChange(Sender: TObject); public
+    published procedure ImageSequencerChange(Sender: TObject); public
+    published procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence); public
+    published procedure ImageIndexSelectorDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure CloseLayerBtnClick(Sender: TObject); public
+    published procedure ImageIndexSelectorDrawCell2(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure ImageIndexSelectorSelectCell2(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure OpenLayerBtnClick(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure SpeedButton2Click(Sender: TObject); public
     function ShowModal: Integer;
-    procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ChangeColorClick(Sender: TObject);
+    published procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure ChangeColorClick(Sender: TObject); public
     property ImageSequenceList: TImageSequenceList read GetImageSequenceList write SetImageSequenceList;
   end;
 

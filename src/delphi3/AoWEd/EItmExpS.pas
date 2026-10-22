@@ -31,15 +31,15 @@ type
     Label1: TLabel; { +0260 }
     GenerateItemBox: TComboBox; { +0264 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure GenerateItemBoxChange(Sender: TObject);
-    procedure AutoGenerateItemsBtnClick(Sender: TObject);
-    procedure UserDefinedItemsBtnClick(Sender: TObject);
-    procedure AddItemBtnClick(Sender: TObject);
-    procedure DeleteItemBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure GenerateItemBoxChange(Sender: TObject); public
+    published procedure AutoGenerateItemsBtnClick(Sender: TObject); public
+    published procedure UserDefinedItemsBtnClick(Sender: TObject); public
+    published procedure AddItemBtnClick(Sender: TObject); public
+    published procedure DeleteItemBtnClick(Sender: TObject); public
   end;
 
   { TItemExplorationSiteEditor (instance size 8, VMT 0041BB94) }

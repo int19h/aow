@@ -24,14 +24,14 @@ type
     PlaySong: TSpeedButton; { +0230 }
     SFXManagerBox: TSFXManagerComboBox; { +0234 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure PlaySongClick(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure PlaySongClick(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TPlaySampleEditor (instance size 8, VMT 0041F020) }
   TPlaySampleEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
 
@@ -61,5 +61,8 @@ begin
   inherited OKBtnClick(Sender);
 end;
 
+
+class function TPlaySampleEditor.EditorClassID: Integer;
+begin Result := $2055D; end;
 
 end.

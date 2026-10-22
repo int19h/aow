@@ -7,8 +7,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AOWToolTip, AoWControl,
-  AoWVScroll;
+  AoWVScroll, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl,
+  AoWBaseWin;
 
 type
   { AoWHScroll.TAOWHScrollBar (instance size 380): no fields of its own }

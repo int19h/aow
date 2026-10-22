@@ -60,15 +60,15 @@ type
     FCaster: TUnitSpellCaster; { $E0 }
     procedure ClearCaster; { 00432174 }
     procedure DrawUnit(Index, X, Y: Integer; var Surface: TSurfaceDesc); { 0043222C }
-    procedure CloseClick;  { draft }
-    procedure CastButClick;  { draft }
-    procedure U1Change(Sender: TAOWCheckBox);
-    procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
-    procedure U1Draw;  { draft }
-    procedure SpellFrPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-    procedure DlgHide;  { draft }
-    procedure DlgUpdate;  { draft }
+    published procedure CloseClick; public  { draft }
+    published procedure CastButClick; public  { draft }
+    published procedure U1Change(Sender: TAOWCheckBox); public
+    published procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc); public
+    published procedure U1Draw; public  { draft }
+    published procedure SpellFrPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public
+    published procedure DlgHide; public  { draft }
+    published procedure DlgUpdate; public  { draft }
   end;
 
 

@@ -24,8 +24,8 @@ type
     TitleLbl: TLabel; { +022C }
     TitleEdit: TEdit; { +0230 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TFlagMessageEventEditor (instance size 8, VMT 0041FB7C) }

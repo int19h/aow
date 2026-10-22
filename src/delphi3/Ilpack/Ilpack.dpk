@@ -1,0 +1,26 @@
+package ILPACK;
+
+{$DESCRIPTION 'Image Library Package'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$DESIGNONLY}
+
+{$R '..\..\res\Ilpack.res'}
+
+requires
+  vcl30,
+  GFXEPACK;
+
+contains
+  ImageLib,
+  ImgSetEd,
+  SImgSEd,
+  SubImgEd,
+  ILEdForm,
+  PerfDlg,
+  ILEdGrid,
+  ILSpin,
+  HashTabU;
+
+end.

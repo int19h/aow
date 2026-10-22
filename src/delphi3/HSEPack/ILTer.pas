@@ -66,7 +66,7 @@ type
 
 procedure RegisterILTerrain(Engine: TEngine);
 
-implementation
+implementation {$IFDEF RUNTIME_PACKAGES} uses Bridge; {$ENDIF}
 
 { TILTerrainMO }
 

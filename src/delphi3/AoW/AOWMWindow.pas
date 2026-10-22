@@ -30,16 +30,16 @@ type
     FMapAlignHeight: AoWComp.TAOWAlignHeight; { $6F }
     { conflict: FCombatAlignHeight: TAOWAlignHeight; }
     function InsideMap(X, Y: Integer): Boolean; { 00450DE8 }
-    procedure MWindowCreate;
-    procedure MapWindowMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure MapWindowMouseUp(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure MapWindowMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
-    procedure MapViewerSceneChanged;
-    procedure MapWindowResize;
-    procedure MapWindowExit(Sender: TObject);
-    procedure MapWindowUpdate;
-    procedure MapWindowPreDrawSurface(Sender: TObject; Surface: TSurface; X, Y: Integer);
-    procedure MapWindowKeyDown(Sender: TAoWComponent; var Key: Word; Shift: TShiftState);
+    published procedure MWindowCreate; public
+    published procedure MapWindowMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure MapWindowMouseUp(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure MapWindowMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); public
+    published procedure MapViewerSceneChanged; public
+    published procedure MapWindowResize; public
+    published procedure MapWindowExit(Sender: TObject); public
+    published procedure MapWindowUpdate; public
+    published procedure MapWindowPreDrawSurface(Sender: TObject; Surface: TSurface; X, Y: Integer); public
+    published procedure MapWindowKeyDown(Sender: TAoWComponent; var Key: Word; Shift: TShiftState); public
   end;
 
 

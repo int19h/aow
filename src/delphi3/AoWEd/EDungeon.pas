@@ -31,20 +31,20 @@ type
     AddPrisBtn: TButton; { +0260 }
     UserDefinedPrisBtn: TRadioButton; { +0264 }
     public
-    procedure MainPageControlChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure PrisonersModeBoxChange(Sender: TObject);
-    procedure AutoGeneratePrisBtnClick(Sender: TObject);
-    procedure UserDefinedPrisBtnClick(Sender: TObject);
-    procedure AddPrisBtnClick(Sender: TObject);
-    procedure DeletePrisBtnClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure PrisonersModeBoxChange(Sender: TObject); public
+    published procedure AutoGeneratePrisBtnClick(Sender: TObject); public
+    published procedure UserDefinedPrisBtnClick(Sender: TObject); public
+    published procedure AddPrisBtnClick(Sender: TObject); public
+    published procedure DeletePrisBtnClick(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
   end;
 
   { TDungeonEditor (instance size 8, VMT 0041B568) }
   TDungeonEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -128,5 +128,8 @@ begin
     AutoGeneratePrisBtn.Checked := True;
   end;
 end;
+
+class function TDungeonEditor.EditorClassID: Integer;
+begin Result := $2032A; end;
 
 end.

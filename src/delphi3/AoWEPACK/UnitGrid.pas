@@ -5,7 +5,7 @@ unit UnitGrid;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TUnitGrid = class;
@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
     procedure DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); override;
-    procedure SetShowUnitLevel(Value: Boolean); property SelectionEnabled; { AoWEd 0041B03F }
+    procedure SetShowUnitLevel(Value: Boolean); published property SelectionEnabled; public { AoWEd 0041B03F }
     procedure SetUnits(Value: TUnitList);
     function GetUnit(ACol, ARow: Integer): TAbstractUnit;
     function GetSelectedUnit: TAbstractUnit;
@@ -32,7 +32,7 @@ type
     procedure DeleteUnit;
     procedure EditUnitDone(EditResult: TEditResult; Obj: TEObject);
     procedure DblClick; override;
-  end;
+  published property ShowUnitLevel: Boolean read FShowUnitLevel write SetShowUnitLevel; property EditEnabled: Boolean read FEditEnabled write FEditEnabled; property OnDblClick; property OnSelectCell; property FocusColor; property Align; property BltMode; property OnCellUpdated; property ScaleX; property ScaleY; property Color; property ScrollBars; property DefaultRowHeight; property DefaultColWidth; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property Font; end;
 
 procedure Register;
 

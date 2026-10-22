@@ -30,10 +30,10 @@ type
     FFaceIndexes: TIntegerList; { $204 }
     FSelectedIndex: Integer; { $208 }
     procedure SetFaceIndex(Index: Integer);
-    procedure FacesGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure FormCreate;
-    procedure FormDeactivate;
-    procedure OKBtnClick;
+    published procedure FacesGridCellUpdated(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure FormCreate; public
+    published procedure FormDeactivate; public
+    published procedure OKBtnClick; public
   end;
 
 

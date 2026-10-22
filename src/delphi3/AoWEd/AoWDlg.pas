@@ -19,7 +19,7 @@ type
     FPositionInfo: PPoint; { $1DC }
     destructor Destroy; override;
     constructor Create(AOwner: Classes.TComponent); override;
-    procedure FormShow(Sender: TObject);
+    published procedure FormShow(Sender: TObject); public
   end;
 
 

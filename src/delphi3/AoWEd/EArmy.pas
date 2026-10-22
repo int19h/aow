@@ -38,18 +38,18 @@ type
     public
     FArmy: TArmy; { $250 }
     procedure EditHero(Hero: THero);
-    procedure FormCreate(Sender: TObject);
-    procedure CloseBtnClick(Sender: TObject);
-    procedure PlayerComboBoxChange(Sender: TObject);
-    procedure BehaviourComboBoxChange(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure AddBtnClick(Sender: TObject);
-    procedure DeleteBtnClick(Sender: TObject);
-    procedure UnitGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure EditBtnClick(Sender: TObject);
-    procedure UnitGridDblClick(Sender: TObject);
-    procedure DirectionChanged(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure CloseBtnClick(Sender: TObject); public
+    published procedure PlayerComboBoxChange(Sender: TObject); public
+    published procedure BehaviourComboBoxChange(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure DeleteBtnClick(Sender: TObject); public
+    published procedure UnitGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure EditBtnClick(Sender: TObject); public
+    published procedure UnitGridDblClick(Sender: TObject); public
+    published procedure DirectionChanged(Sender: TObject); public
   end;
 
   { TArmyHSEditor (instance size 8, VMT 00419C18) }

@@ -20,18 +20,18 @@ type
     TCMap: TAoWCombatMapControl; { +0044 }
     public
     FChatHeight: Integer; { $48; 004584BE }
-    procedure TCMapActivateMap;  { draft }
-    procedure TCMapDeActivateMap;  { draft }
-    procedure TCMapDeselected(HS: THexagonSprite);
-    procedure TCMapMapChanged(const R: TMapChangedInfo);
-    procedure TCMapMouseOverTarget(HS: THexagonSprite);
-    procedure TCMapSeatedPlayerChanged(Player: Shortint);
-    procedure TCMapSelected(HS: THexagonSprite);
-    procedure TCMapShowMessage(const Info: TShowMessageInfo);
-    procedure TCMapUnitChanged(HS: TTacticalCombatUnitHS);
-    procedure TCMapCastSpell(Caster: TCombatSpellCaster);
-    procedure TCMapActivateAbility(Info: TActivateAbilityInfo);
-    procedure TCMapTurnChanged;  { draft }
+    published procedure TCMapActivateMap; public  { draft }
+    published procedure TCMapDeActivateMap; public  { draft }
+    published procedure TCMapDeselected(HS: THexagonSprite); public
+    published procedure TCMapMapChanged(const R: TMapChangedInfo); public
+    published procedure TCMapMouseOverTarget(HS: THexagonSprite); public
+    published procedure TCMapSeatedPlayerChanged(Player: Shortint); public
+    published procedure TCMapSelected(HS: THexagonSprite); public
+    published procedure TCMapShowMessage(const Info: TShowMessageInfo); public
+    published procedure TCMapUnitChanged(HS: TTacticalCombatUnitHS); public
+    published procedure TCMapCastSpell(Caster: TCombatSpellCaster); public
+    published procedure TCMapActivateAbility(Info: TActivateAbilityInfo); public
+    published procedure TCMapTurnChanged; public  { draft }
   end;
 
 

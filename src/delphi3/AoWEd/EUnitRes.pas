@@ -70,17 +70,17 @@ type
     FRank: TUnitRank; { $2D8 }
     F_UnitResourceEditForm_2D9: array[0..2] of Byte;
     procedure SetRank(Rank: TUnitRank);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure RaceBoxChange(Sender: TObject);
-    procedure AbilityBtnClick(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure AbilityRankTabsChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure RaceBoxChange(Sender: TObject); public
+    published procedure AbilityBtnClick(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure AbilityRankTabsChange(Sender: TObject); public
   end;
 
   { TUnitResourceEditor (instance size 8, VMT 00410CAC) }
   TUnitResourceEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -187,5 +187,8 @@ begin
   FRank := Rank;
   TUnitResource(FUnitResource).FAbilities[Rank].ListAbilities(AbilityListBox.Items);
 end;
+
+class function TUnitResourceEditor.EditorClassID: Integer;
+begin Result := $20212; end;
 
 end.

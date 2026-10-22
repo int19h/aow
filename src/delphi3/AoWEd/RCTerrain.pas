@@ -30,12 +30,12 @@ type
     HitPointsEdit: TSpin; { +0364 }
     MeleeTargetEdit: TCheckBox; { +0368 }
     public
-    procedure FormCreate(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { TCombatTerrainResourceEditor (instance size 8, VMT 0040AFC0) }
   TCombatTerrainResourceEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -85,5 +85,8 @@ begin
   DecorationComboBox.ItemIndex := TCombatTerrainResource(FResource).DecorationType;
 end;
 
+
+class function TCombatTerrainResourceEditor.EditorClassID: Integer;
+begin Result := $220167; end;
 
 end.

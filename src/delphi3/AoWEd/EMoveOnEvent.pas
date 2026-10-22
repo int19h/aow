@@ -25,8 +25,8 @@ type
     RadiusEdit: TSpin; { +021C }
     Label1: TLabel; { +0220 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

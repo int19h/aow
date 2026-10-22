@@ -100,21 +100,21 @@ type
     F_ControlWin_179: array[0..2] of Byte;
     procedure UpdateArmy;
     procedure DrawUnit(Index: Integer; const R: TRect; var SD: TSurfaceDesc); { 00405D98 }
-    procedure CWMinIconClick;  { draft }
-    procedure CloseClick(Sender: TObject);
-    procedure ControlWindowResize;  { draft }
-    procedure Unit1FrameMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure Unit1ChkChange(Sender: TObject);
-    procedure CheckStart;  { draft }
-    procedure CheckEnd;  { draft }
-    procedure Unit1ChkMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure CenterClick;  { draft }
-    procedure Unit1FramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure HelpClick;  { draft }
-    procedure PPrevClick;  { draft }
-    procedure PNextClick;  { draft }
-    procedure PMoveClick;  { draft }
-    procedure PGuardChange;  { draft }
+    published procedure CWMinIconClick; public  { draft }
+    published procedure CloseClick(Sender: TObject); public
+    published procedure ControlWindowResize; public  { draft }
+    published procedure Unit1FrameMouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure Unit1ChkChange(Sender: TObject); public
+    published procedure CheckStart; public  { draft }
+    published procedure CheckEnd; public  { draft }
+    published procedure Unit1ChkMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure CenterClick; public  { draft }
+    published procedure Unit1FramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure HelpClick; public  { draft }
+    published procedure PPrevClick; public  { draft }
+    published procedure PNextClick; public  { draft }
+    published procedure PMoveClick; public  { draft }
+    published procedure PGuardChange; public  { draft }
   end;
 
 

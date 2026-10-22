@@ -29,17 +29,17 @@ type
     Label1: TLabel; { +0228 }
     GemsSpin: TSpin; { +022C }
     public
-    procedure GemsSpinChange(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure AutoGenerateClick(Sender: TObject);
-    procedure UserDefinedClick(Sender: TObject);
-    procedure GenerateModeBoxChange(Sender: TObject);
+    published procedure GemsSpinChange(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure AutoGenerateClick(Sender: TObject); public
+    published procedure UserDefinedClick(Sender: TObject); public
+    published procedure GenerateModeBoxChange(Sender: TObject); public
   end;
 
   { TGemsEditor (instance size 8, VMT 0041A898) }
   TGemsEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -107,5 +107,8 @@ begin
   TGems(FMapObject).FGenerateMode := TGemsGenerateMode(GenerateModeBox.ItemIndex + 1);
 end;
 
+
+class function TGemsEditor.EditorClassID: Integer;
+begin Result := $203AE; end;
 
 end.

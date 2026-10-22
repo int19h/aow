@@ -37,15 +37,15 @@ type
     constructor CreateForm(AEngine: THSEngine; Resource: TMapObjectResource; Done: TEditDoneEvent); override;
     procedure vmt98(const SD: TSurfaceDesc); override;
     function vmt9C(Hexagon: Integer): Boolean; override;
-    procedure LoopBoxClick(Sender: TObject);
-    procedure PlaySampleClick(Sender: TObject);
-    procedure SFXManagerBoxChange(Sender: TObject);
-    procedure CloseBtnClick(Sender: TObject);
-    procedure CombatTerrainTagEditChange(Sender: TObject);
-    procedure AddRazeDefenderClick(Sender: TObject);
-    procedure DeleteRazeDefenderClick(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure FormHide(Sender: TObject);
+    published procedure LoopBoxClick(Sender: TObject); public
+    published procedure PlaySampleClick(Sender: TObject); public
+    published procedure SFXManagerBoxChange(Sender: TObject); public
+    published procedure CloseBtnClick(Sender: TObject); public
+    published procedure CombatTerrainTagEditChange(Sender: TObject); public
+    published procedure AddRazeDefenderClick(Sender: TObject); public
+    published procedure DeleteRazeDefenderClick(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure FormHide(Sender: TObject); public
   end;
 
   { TConstructionResourceEditor (instance size 8, VMT 00408DFC) }

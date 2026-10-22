@@ -9,8 +9,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl, AOWMenuBar;
+  AOWMenuBar, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib,
+  AoWWinControl, AoWBaseWin, AoWWinGeneric;
 
 type
   { AOWMenu.TAOWMenu (instance size 596). Fields: +$1EC FPopupOwner, +$1F0 FILIndexTSelected,

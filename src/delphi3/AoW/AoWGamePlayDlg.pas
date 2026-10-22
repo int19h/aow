@@ -80,11 +80,11 @@ type
     FNewPassword: string; { $130 }
     procedure PasswordEntered(Log: TEventLog);
     procedure PasswordConfirmed(Log: TEventLog);
-    procedure GamePlayDlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure GamePlayDlgShow(Sender: TObject);
-    procedure ChangePasswordBtnClick;
-    procedure OKBtnClick(Sender: TObject);
-    procedure CancelClick(Sender: TObject);
+    published procedure GamePlayDlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure GamePlayDlgShow(Sender: TObject); public
+    published procedure ChangePasswordBtnClick; public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure CancelClick(Sender: TObject); public
   end;
 
 

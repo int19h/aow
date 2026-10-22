@@ -7,14 +7,19 @@ unit EUnitGFX;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWREFrm, Buttons, ILTools, SpinEdit;
+  {$IFDEF RUNTIME_PACKAGES} EStrGrid, {$ENDIF} Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, AoWREFrm, Buttons, ILTools, SpinEdit;
 
 type
+{$IFDEF RUNTIME_PACKAGES}
+  TEditStringGrid = EStrGrid.TEditStringGrid;
+{$ELSE}
   { Declaration-only field type from Vcladdon.dpl (instance size 516). }
   TEditStringGrid = class(TStringGrid)
   private
     F_External: array[0..15] of Byte; public procedure SetRowCount(Value: Integer);
   end;
+
+{$ENDIF}
 
   TUnitGFXResourceEditForm = class;
   TUnitGFXResourceEditor = class;
@@ -91,32 +96,32 @@ type
     FResource: TUnitGFXResource; { $2F8 }
     procedure EditSFX(SFX: TSFXLibrary);
     destructor Destroy; override;
-    procedure FormCreate(Sender: TObject);
-    procedure ILManagerComboBoxChange(Sender: TObject);
-    procedure LayerSpinUpdate(Sender: TObject);
-    procedure SequenceModeBoxChange(Sender: TObject);
-    procedure SequenceSpeedBoxChange(Sender: TObject);
-    procedure FrameTableEditChange(Sender: TObject);
-    procedure ImageSequencerChange(Sender: TObject);
-    procedure OpenLayerBtnClick(Sender: TObject);
-    procedure CloseLayerBtnClick(Sender: TObject);
-    procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure SequenceDisplayEditorStartUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer);
-    procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence);
-    procedure UnitGFXNameEditChange(Sender: TObject);
-    procedure FaceIndexSpinUpdate(Sender: TObject);
-    procedure FaceILManagerComboBoxChange(Sender: TObject);
-    procedure GenerateBtnClick(Sender: TObject);
-    procedure MoveSpeedBoxChange(Sender: TObject);
-    procedure SequenceDisplayEditorShowImageSequence(Sequence: TImageSequence; ImageIndex, X, Y: Integer; SD: TSurfaceDesc);
-    procedure EditStandstillSFXClick(Sender: TObject);
-    procedure EditMoveSFXClick(Sender: TObject);
-    procedure EditMeleeSFXClick(Sender: TObject);
-    procedure EditDieSFXClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ChangeColorClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure ILManagerComboBoxChange(Sender: TObject); public
+    published procedure LayerSpinUpdate(Sender: TObject); public
+    published procedure SequenceModeBoxChange(Sender: TObject); public
+    published procedure SequenceSpeedBoxChange(Sender: TObject); public
+    published procedure FrameTableEditChange(Sender: TObject); public
+    published procedure ImageSequencerChange(Sender: TObject); public
+    published procedure OpenLayerBtnClick(Sender: TObject); public
+    published procedure CloseLayerBtnClick(Sender: TObject); public
+    published procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure SequenceDisplayEditorStartUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer); public
+    published procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence); public
+    published procedure UnitGFXNameEditChange(Sender: TObject); public
+    published procedure FaceIndexSpinUpdate(Sender: TObject); public
+    published procedure FaceILManagerComboBoxChange(Sender: TObject); public
+    published procedure GenerateBtnClick(Sender: TObject); public
+    published procedure MoveSpeedBoxChange(Sender: TObject); public
+    published procedure SequenceDisplayEditorShowImageSequence(Sequence: TImageSequence; ImageIndex, X, Y: Integer; SD: TSurfaceDesc); public
+    published procedure EditStandstillSFXClick(Sender: TObject); public
+    published procedure EditMoveSFXClick(Sender: TObject); public
+    published procedure EditMeleeSFXClick(Sender: TObject); public
+    published procedure EditDieSFXClick(Sender: TObject); public
+    published procedure Button1Click(Sender: TObject); public
+    published procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure ChangeColorClick(Sender: TObject); public
   end;
 
   { TUnitGFXResourceEditor (instance size 8, VMT 0040EBC0) }
@@ -130,7 +135,9 @@ type
 implementation
 
 uses EUGFXGen, HSEdMod, SFXEdDlg;
+{$IFNDEF RUNTIME_PACKAGES}
 procedure TEditStringGrid.SetRowCount(Value: Integer); external 'VCLADDON.dpl' name 'EStrGrid.TEditStringGrid.SetRowCount@23EDC2EF';
+{$ENDIF}
 const
   DirectionNames: array[1..6] of string = ('U', 'U/R', 'D/R', 'D', 'D/L', 'U/L');
   ActionNames: array[0..4] of string = ('Stand Still', 'Move', 'Attack', 'Hit', 'Shadow');

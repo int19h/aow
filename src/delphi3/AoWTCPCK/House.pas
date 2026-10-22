@@ -37,7 +37,7 @@ procedure RegisterHouse(AEngine: TEngine);
 
 implementation
 
-uses AoWE, AoWTC, City;
+uses AoWE, City, AoWTC;
 
 class function THouse.ClassID: Integer;
 begin Result := $220512; end;

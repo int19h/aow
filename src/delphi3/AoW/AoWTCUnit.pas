@@ -86,16 +86,16 @@ type
     UnitBox: TaowUserDrawBox; { +014C }
     Translator: TIvTranslator; { +0150 }
     public
-    procedure TCUnitWinResize;
-    procedure MinClick;
-    procedure UAbilLBPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
-    procedure TCUnitPnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
-    procedure UAbilLBUpdate;
-    procedure UAbilLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure UAbilLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure HeroSMapMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure CenterClick;
-    procedure CloseClick;
+    published procedure TCUnitWinResize; public
+    published procedure MinClick; public
+    published procedure UAbilLBPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc); public
+    published procedure TCUnitPnlDrawBack(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure UAbilLBUpdate; public
+    published procedure UAbilLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure UAbilLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure HeroSMapMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure CenterClick; public
+    published procedure CloseClick; public
   end;
 
 var TCUnit: TTCUnit; procedure RefreshCombatUnit(Window: TTCUnit);

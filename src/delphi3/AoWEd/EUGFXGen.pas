@@ -42,7 +42,7 @@ type
     public
     FResource: TUnitGFXResource; { $238 }
     procedure SetResource(Resource: TEResource);
-    procedure GenerateBtnClick(Sender: TObject);
+    published procedure GenerateBtnClick(Sender: TObject); public
   end;
 
 

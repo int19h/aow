@@ -102,7 +102,7 @@ type
 
 procedure RegisterIsometricHexagon(Engine: TEngine);
 
-implementation
+implementation {$IFDEF RUNTIME_PACKAGES} uses ILTer; {$ENDIF}
 
 { TDynamicIsometricHexagon }
 

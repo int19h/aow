@@ -8,7 +8,7 @@ unit GlobalTargetSpells;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, Animation;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, Animation, AoWE;
 
 type
   TGlobalTargetSpellTE = class;
@@ -294,7 +294,7 @@ procedure UnregisterGlobalTargetSpells(A1: Integer);  { draft }
 
 implementation
 
-uses EventLog, AoWReg, SmokeCloud;
+uses EventLog, SmokeCloud, AoWReg;
 
 type
   { needs: corrected result/callback signatures on TGlobalTargetSpell and
@@ -375,7 +375,13 @@ const
   SpellHSSet: PSpellHSSet = @AoWHSSet;
   SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;
   SpellEngine: PSpellEngine = @AoWEngine;
+{$IFDEF RUNTIME_PACKAGES}
+var
+  { Imported data addresses cannot be used in Delphi 3 static initializers. }
+  SpellIntensityTable: PSpellIntensityTable;
+{$ELSE}
   SpellIntensityTable: PSpellIntensityTable = @GFXE.IntensityBlendTable;
+{$ENDIF}
 
 resourcestring
   { needs: AoWE.CancelRStr, referenced at $5579E664; absent from draft. }
@@ -2636,6 +2642,9 @@ end;
 
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  SpellIntensityTable := @GFXE.IntensityBlendTable;
+{$ENDIF}
 finalization
 
 end.

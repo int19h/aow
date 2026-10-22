@@ -1,0 +1,42 @@
+package ims;
+
+{ Link-only interfaces. Never install this DPL; use the original at runtime. }
+
+requires
+  vcl30;
+
+contains
+  Msreg32,
+  agfinger,
+  aghttp,
+  agwhois,
+  msaddrpe,
+  msattadd,
+  msattpe,
+  msnntp,
+  mspop3,
+  mspop3cl,
+  msnwscls,
+  msuucode,
+  mspars,
+  msmsg,
+  msconst,
+  msmb,
+  mssmtp,
+  Agtime,
+  agrasAPI,
+  agRasCmp,
+  agsocket,
+  agftp,
+  agFtpCls,
+  msCls,
+  agtypes,
+  msmime,
+  msaddred,
+  msmsgcls,
+  msutils,
+  agFtpUt,
+  agConst,
+  agwsock;
+
+end.

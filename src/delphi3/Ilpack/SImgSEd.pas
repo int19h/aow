@@ -88,6 +88,7 @@ type
   end;
 
 implementation
+uses ImgSetEd;
 
 { TSubImageSettingsEditor }
 

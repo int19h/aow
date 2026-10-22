@@ -1,0 +1,17 @@
+package VCLADDON;
+
+{ Link-only interfaces. Never install this DPL; use the original at runtime. }
+
+{$DESIGNONLY}
+
+requires
+  vcl30,
+  VCLX30;
+
+contains
+  SpinEdit,
+  EStrGrid,
+  TB97,
+  FilCtl95;
+
+end.

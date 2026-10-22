@@ -30,9 +30,9 @@ type
     Label10: TLabel; { +0358 }
     CityWallDirectionEdit: TSpin; { +035C }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure CloseBtnClick(Sender: TObject);
-    procedure CityWallDirectionEditUpdate(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure CloseBtnClick(Sender: TObject); public
+    published procedure CityWallDirectionEditUpdate(Sender: TObject); public
   end;
 
   { TCombatILTerrainResourceEditor (instance size 8, VMT 0040B780) }

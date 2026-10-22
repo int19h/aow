@@ -1,0 +1,16 @@
+package Network;
+
+{$DESCRIPTION 'Network Engine Pack'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\Network.res'}
+
+requires
+  vcl30,
+  Enginep;
+
+contains
+  NetworkE;
+
+end.

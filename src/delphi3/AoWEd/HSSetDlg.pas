@@ -28,8 +28,8 @@ type
     OKBtn: TButton; { +01F8 }
     CancelBtn: TButton; { +01FC }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

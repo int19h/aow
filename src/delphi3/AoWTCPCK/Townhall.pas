@@ -31,6 +31,7 @@ type
 procedure RegisterTownhall(AEngine: TEngine);
 
 implementation
+uses IsoCombatHex;
 
 class function TTownhall.ClassID: Integer;
 begin Result := $220510; end;

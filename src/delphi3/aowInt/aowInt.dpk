@@ -1,0 +1,46 @@
+package aowInt;
+
+{$DESCRIPTION 'AOW Interface pack'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\aowInt.res'}
+
+requires
+  vcl30,
+  Gfxepack,
+  Dcpack,
+  Ilpack;
+
+contains
+  AoWButton,
+  AoWCheckBox,
+  AoWComboBox,
+  AoWEdit,
+  AoWImage,
+  AoWLabel,
+  AoWListBox,
+  AoWMemo,
+  AOWInterfaceEditor,
+  AOWGauge,
+  AoWFrame,
+  AOWMenuBar,
+  AOWMenu,
+  AoWTabPanel,
+  AoWPanel,
+  AoWHScroll,
+  AoWVScroll,
+  AoWHTMLMemo,
+  AOWToolTip,
+  AoWControl,
+  AoWDialogForm,
+  AOWWinManager,
+  AoWComp,
+  AOWInterfaceImgLib,
+  AoWWinControl,
+  AoWBaseWin,
+  AoWWinGeneric,
+  AoWWindow,
+  aowUserDrawBox;
+
+end.

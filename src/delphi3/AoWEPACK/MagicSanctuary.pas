@@ -5,7 +5,7 @@ unit MagicSanctuary;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TMagicSanctuaryOverlayHS = class;
@@ -53,9 +53,16 @@ implementation
 type
   PAoWHSMap = ^TAoWHSMap;
   PBlendTables = ^TLookupBlendTableCollection100;
+{$IFDEF RUNTIME_PACKAGES}
+var
+  BlendTables: PBlendTables;
+{$ENDIF}
+
 const
   WorldMap: PAoWHSMap = @AoWE.AoWHSMap;
+{$IFNDEF RUNTIME_PACKAGES}
   BlendTables: PBlendTables = @GFXE.IntensityBlendTable;
+{$ENDIF}
 
 constructor TMagicSanctuaryOverlayHS.Create(AOwner: Engine.TECustomNode);
 begin
@@ -163,6 +170,9 @@ end;
 
 
 initialization
+{$IFDEF RUNTIME_PACKAGES}
+  BlendTables := @GFXE.IntensityBlendTable;
+{$ENDIF}
 finalization
 
 end.

@@ -42,16 +42,16 @@ type
     procedure Finish;
     procedure UpdateConstructions;
     procedure SelectConstruction(Index: Integer);
-    procedure CancelBtnClick;
-    procedure ConstructionListChange;
-    procedure ConstructionCostListChange;
-    procedure ConstructionTurnsListChange;
-    procedure ConstructBtnClick(Sender: TObject);
-    procedure SortConstructionsBtnClick;
-    procedure SortConstructionCostBtnClick;
-    procedure SortConstructionTurnsBtnClick;
-    procedure DlgHide;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CancelBtnClick; public
+    published procedure ConstructionListChange; public
+    published procedure ConstructionCostListChange; public
+    published procedure ConstructionTurnsListChange; public
+    published procedure ConstructBtnClick(Sender: TObject); public
+    published procedure SortConstructionsBtnClick; public
+    published procedure SortConstructionCostBtnClick; public
+    published procedure SortConstructionTurnsBtnClick; public
+    published procedure DlgHide; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

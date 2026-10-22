@@ -72,29 +72,29 @@ type
     FSoundQuality: Integer; { $110 }
     FSettings: TSoundSettings; { $114..$12B }
     { conflict: FSoundSettings: TSoundSettings; }
-    procedure CloseClick;
-    procedure MusicVolumeChange;
-    procedure SFXVolumeChange;
-    procedure RemoveBtnClick(Sender: TObject);
-    procedure SoundSetup;
-    procedure PlayBtnClick;
-    procedure SongChange(Sender: TObject);
-    procedure FindFiles;
-    procedure SongLBChange;
-    procedure AddBtnClick(Sender: TObject);
-    procedure SoundDlgWindowCreate;
-    procedure SoundDlgWindowDestroy;
-    procedure PlayLBChange;
-    procedure SQCB1Change(Sender: TObject);
-    procedure SQCB2Change(Sender: TObject);
-    procedure SQCB3Change(Sender: TObject);
-    procedure SQCB4Change(Sender: TObject);
-    procedure PlayLBDrawItem(Sender: TObject; const R: TRect; Index: Integer; var SurfDesc: TSurfaceDesc);
-    procedure MusicEnabledChkChange(Sender: TObject);
-    procedure SFXEnabledChkChange(Sender: TObject);
-    procedure DirectSoundEnabledChkChange(Sender: TObject);
-    procedure SoundTabChange;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseClick; public
+    published procedure MusicVolumeChange; public
+    published procedure SFXVolumeChange; public
+    published procedure RemoveBtnClick(Sender: TObject); public
+    published procedure SoundSetup; public
+    published procedure PlayBtnClick; public
+    published procedure SongChange(Sender: TObject); public
+    published procedure FindFiles; public
+    published procedure SongLBChange; public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure SoundDlgWindowCreate; public
+    published procedure SoundDlgWindowDestroy; public
+    published procedure PlayLBChange; public
+    published procedure SQCB1Change(Sender: TObject); public
+    published procedure SQCB2Change(Sender: TObject); public
+    published procedure SQCB3Change(Sender: TObject); public
+    published procedure SQCB4Change(Sender: TObject); public
+    published procedure PlayLBDrawItem(Sender: TObject; const R: TRect; Index: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure MusicEnabledChkChange(Sender: TObject); public
+    published procedure SFXEnabledChkChange(Sender: TObject); public
+    published procedure DirectSoundEnabledChkChange(Sender: TObject); public
+    published procedure SoundTabChange; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

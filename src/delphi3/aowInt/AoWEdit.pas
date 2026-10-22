@@ -10,8 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  Clipbrd, AoWComp, AOWInterfaceImgLib, AoWWinControl, AOWWinManager, AoWBaseWin, AoWWinGeneric,
-  AOWToolTip, AoWControl;
+  Clipbrd, AOWToolTip, AoWControl, AOWWinManager, AoWComp, AOWInterfaceImgLib, AoWWinControl,
+  AoWBaseWin, AoWWinGeneric;
 
 type
   { AoWEdit.TAOWEdit (instance size 336). Fields: +$114 FMaxChars (0: no limit), +$118

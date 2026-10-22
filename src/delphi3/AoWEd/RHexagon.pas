@@ -19,7 +19,7 @@ type
   { THexagonResourceEditForm (instance size 804, VMT 00407908) }
   THexagonResourceEditForm = class(TMapObjectResourceEditForm)
   public
-    procedure FormCreate(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { THexagonResourceEditor (instance size 8, VMT 00407A40) }

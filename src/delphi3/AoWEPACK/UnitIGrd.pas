@@ -5,7 +5,7 @@ unit UnitIGrd;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   TUnitIndexGrid = class;
@@ -32,12 +32,12 @@ type
     function GetUnit(ACol, ARow: Integer): Integer;
     function GetSelectedUnit: Integer;
     procedure DblClick; override;
-    property SelectionEnabled; { $55801091 }
-    property OnSelectCell; { $5580104D }
-    property ColCount; { $55801165 }
+    published property SelectionEnabled; public { $55801091 }
+    published property OnSelectCell; public { $5580104D }
+    published property ColCount; public { $55801165 }
     property Col; { $55801175 }
     property Row; { $55801194 }
-  end;
+  published property ShowUnitLevel: Boolean read FShowUnitLevel write SetShowUnitLevel; property DoubleUnitsEnabled: Boolean read FDoubleUnitsEnabled write FDoubleUnitsEnabled; property Sorted: Boolean read FSorted write FSorted; property FocusColor; property Align; property BltMode; property OnCellUpdated; property ShowHint; property ScaleX; property ScaleY; property Color; property ScrollBars; property DefaultRowHeight; property DefaultColWidth; property GridLineWidth; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property Font; end;
 
 procedure Register;
 

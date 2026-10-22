@@ -28,7 +28,7 @@ type
     FTHeight: Integer; { $12C }
     FTLeft: Integer; { $130 }
     FTWidth: Integer; { $134 }
-    FReserved138: Byte;
+    FReserved138: Boolean;
     FBuildings: Boolean; { $139 }
     FArmies: Boolean; { $13A }
     FNaturals: Boolean; { $13B }
@@ -88,6 +88,25 @@ type
     procedure SetMap(Value: TAbstractAoWHSMap);
     procedure DrawMap(X, Y, Width, Height: Integer); { draft body }
     procedure DrawObjects;  { draft }
+  published
+    property WinWidth;
+    property WinHeight;
+    property TilesImageLib: TImageLibrary read FTilesImageLib write SetImgLib;
+    property HiLightsImageLib: TImageLibrary read FHighlightImageLib write SetHimgLib;
+    property FogImageLib: TImageLibrary read FFogImageLib write SetFogimgLib;
+    property ILObjects: TImageLibrary read FObjectsImageLib write SetObjIL;
+    property TileBoxTop: Integer read FTTop write SetTTop;
+    property TileBoxLeft: Integer read FTLeft write SetTLeft;
+    property TileBoxWidth: Integer read FTWidth write SetTWidth;
+    property TileBoxHeight: Integer read FTHeight write SetTHeight;
+    property HighLights: Boolean read FReserved138 write FReserved138;
+    property Buildings: Boolean read FBuildings write SetBuildings;
+    property Armies: Boolean read FArmies write SetArmies;
+    property Naturals: Boolean read FNaturals write SetNaturals;
+    property OnChangeTileBox: TNotifyEvent read FOnMapPositionChange write FOnMapPositionChange;
+    property MapDrawSteps: Integer read FSteps write SetSteps;
+    property ILFrame: TInterfaceIL read FILFrame write SetILFrame;
+    property ILIndexFrame: Integer read FILIndexFrame write SetILFIndex;
   end;
 
 procedure Register;
@@ -420,7 +439,7 @@ end;
 
 procedure TScanner.DrawMap(X, Y, Width, Height: Integer); var MapX, MapY, ImageIndex, Overlay, Explored, TileX, TileY, YOffset, Terrain, OverlayIndex: Integer; SD: TSurfaceDesc; begin try if FValid and (FMapSurface <> nil) and FVisible then begin if X < 0 then begin Inc(Width, X); X := 0; end; if Y < 0 then begin Inc(Height, Y); Y := 0; end; if X = X div 2 * 2 then YOffset := 0 else YOffset := FHalfRowInset; if FMapSurface.Lock(SD) >= 0 then begin if FMapWidth < Width + X then Width := FMapWidth - X; if FMapHeight < Y + Height then Height := FMapHeight - Y; for MapX := X to Width + X - 1 do begin for MapY := Y to Y + Height - 1 do begin SD.ClipRect := Rect(FWinWidth * MapX div FMapWidth, FDrawableHeight * MapY div FMapHeight + YOffset, (MapX + 1) * FWinWidth div FMapWidth, (MapY + 1) * FDrawableHeight div FMapHeight + YOffset); Explored := GetExplored(MapX, MapY); if Explored = 0 then begin for TileX := (FWinWidth * MapX div FMapWidth) div FFogImageLib[0].Width to ((MapX + 1) *
 FWinWidth div FMapWidth) div FFogImageLib[0].Width do for TileY := (FDrawableHeight * MapY div FMapHeight + YOffset) div FFogImageLib[0].Height to ((MapY + 1) * FDrawableHeight div FMapHeight + YOffset) div FFogImageLib[0].Height do FFogImageLib[0].ShowClipped(TileX * FFogImageLib[0].Width, TileY * FFogImageLib[0].Height, SD); end else begin Terrain := GetTerrain(MapX, MapY); Overlay := GetOverlay(MapX, MapY); if (Overlay > 11) or (Overlay = 7) then OverlayIndex := 0 else OverlayIndex := Overlay + 1; ImageIndex := OverlayIndex * 16 + Terrain; if Terrain = 15 then begin for TileX := (FWinWidth * MapX div FMapWidth) div FFogImageLib[0].Width to ((MapX + 1) * FWinWidth div FMapWidth) div FFogImageLib[0].Width do for TileY := (FDrawableHeight * MapY div FMapHeight + YOffset) div FFogImageLib[0].Height to ((MapY + 1) * FDrawableHeight div FMapHeight + YOffset) div FFogImageLib[0].Height do FFogImageLib[0].ShowClipped(TileX * FFogImageLib[0].Width, TileY * FFogImageLib[0].Height, SD); end
-else begin if (ImageIndex < FTilesImageLib.Count) and (FTilesImageLib[ImageIndex] <> nil) then begin for TileX := (FWinWidth * MapX div FMapWidth) div FTilesImageLib[ImageIndex].Width to ((MapX + 1) * FWinWidth div FMapWidth) div FTilesImageLib[ImageIndex].Width do for TileY := (FDrawableHeight * MapY div FMapHeight + YOffset) div FTilesImageLib[ImageIndex].Height to ((MapY + 1) * FDrawableHeight div FMapHeight + YOffset) div FTilesImageLib[ImageIndex].Height do FTilesImageLib[ImageIndex].ShowClipped(TileX * FTilesImageLib[ImageIndex].Width, TileY * FTilesImageLib[ImageIndex].Height, SD); end; if ((Overlay = 0) or (Overlay = 10)) and (FReserved138 = 1) and (MapY < FMapHeight - 1) and (MapX > 0) and (GetOverlay(MapX - 1, MapY + 1) <> Overlay) then FHighlightImageLib[1].ShowClipped(SD.ClipRect.Left, SD.ClipRect.Top, SD); if ((Overlay = 0) or (Overlay = 10)) and (FReserved138 = 1) and (MapY > 0) and (MapX < FMapWidth - 1) and (GetOverlay(MapX + 1, MapY - 1) <> Overlay) then
+else begin if (ImageIndex < FTilesImageLib.Count) and (FTilesImageLib[ImageIndex] <> nil) then begin for TileX := (FWinWidth * MapX div FMapWidth) div FTilesImageLib[ImageIndex].Width to ((MapX + 1) * FWinWidth div FMapWidth) div FTilesImageLib[ImageIndex].Width do for TileY := (FDrawableHeight * MapY div FMapHeight + YOffset) div FTilesImageLib[ImageIndex].Height to ((MapY + 1) * FDrawableHeight div FMapHeight + YOffset) div FTilesImageLib[ImageIndex].Height do FTilesImageLib[ImageIndex].ShowClipped(TileX * FTilesImageLib[ImageIndex].Width, TileY * FTilesImageLib[ImageIndex].Height, SD); end; if ((Overlay = 0) or (Overlay = 10)) and (FReserved138 = True) and (MapY < FMapHeight - 1) and (MapX > 0) and (GetOverlay(MapX - 1, MapY + 1) <> Overlay) then FHighlightImageLib[1].ShowClipped(SD.ClipRect.Left, SD.ClipRect.Top, SD); if ((Overlay = 0) or (Overlay = 10)) and (FReserved138 = True) and (MapY > 0) and (MapX < FMapWidth - 1) and (GetOverlay(MapX + 1, MapY - 1) <> Overlay) then
 FHighlightImageLib[0].ShowClipped(SD.ClipRect.Left, SD.ClipRect.Top, SD); if Explored = 2 then begin for TileX := (FWinWidth * MapX div FMapWidth) div FFogImageLib[1].Width to ((MapX + 1) * FWinWidth div FMapWidth) div FFogImageLib[1].Width do for TileY := (FDrawableHeight * MapY div FMapHeight + YOffset) div FFogImageLib[1].Height to ((MapY + 1) * FDrawableHeight div FMapHeight + YOffset) div FFogImageLib[1].Height do FFogImageLib[1].ShowClipped(TileX * FFogImageLib[1].Width, TileY * FFogImageLib[1].Height, SD); end; end; end; end; if YOffset = 0 then YOffset := FHalfRowInset else YOffset := 0; end; FMapSurface.Unlock; SetObDrawn(False); FDrawn := False; end; end; except MessageBox(0, 'Exception during DrawMap' , Pointer( 'Error - ' + Name), 0); end; end; procedure TScanner.DrawObjects; var ImageIndex, YOffset, Army, Natural, Building, X, Y, Obj: Integer; SD: TSurfaceDesc; begin if FObjectSurface <> nil then begin FObjectSurface.Cls($FF00); YOffset := 0; if FObjectSurface.Lock(SD) >=
 0 then begin for X := 0 to FMapWidth - 1 do begin for Y := 0 to FMapHeight - 1 do if Integer(GetExplored(X, Y)) = 1 then begin Obj := GetObject(X, Y); if Obj <> 0 then begin Army := Obj and $FF; Natural := Obj and $FF00; Building := Obj and $FF0000; if (Building > 0) and FBuildings then begin ImageIndex := 7 - (Building shr 22 and 3) + (Building shr 16 and $3F) * 6; if (ImageIndex < FObjectsImageLib.Count) and (ImageIndex > -1) and (FObjectsImageLib[ImageIndex] <> nil) then FObjectsImageLib[ImageIndex].ShowClipped( FWinWidth div (FMapWidth * 2) + X * FWinWidth div FMapWidth - FObjectsImageLib[ImageIndex].Width div 2, FWinHeight div (FMapHeight * 2) + Y * FWinHeight div FMapHeight - FObjectsImageLib[ImageIndex].Height div 2 + YOffset, SD); end else if (Natural > 0) and FNaturals then begin ImageIndex := (Natural shr 8) * 6 + 9; if (ImageIndex < FObjectsImageLib.Count) and (ImageIndex > -1) and (FObjectsImageLib[ImageIndex] <> nil) then FObjectsImageLib[ImageIndex].ShowClipped( FWinWidth
 div (FMapWidth * 2) + X * FWinWidth div FMapWidth - FObjectsImageLib[ImageIndex].Width div 2, FWinHeight div (FMapHeight * 2) + Y * FWinHeight div FMapHeight - FObjectsImageLib[ImageIndex].Height div 2 + YOffset, SD); end; if (Army > 0) and FArmies then begin ImageIndex := Army * 6 + 8; if (ImageIndex < FObjectsImageLib.Count) and (ImageIndex > -1) and (FObjectsImageLib[ImageIndex] <> nil) then FObjectsImageLib[ImageIndex].ShowClipped( FWinWidth div (FMapWidth * 2) + X * FWinWidth div FMapWidth - FObjectsImageLib[ImageIndex].Width div 2, FWinHeight div (FMapHeight * 2) + Y * FWinHeight div FMapHeight - FObjectsImageLib[ImageIndex].Height div 2 + YOffset, SD); end; end; end; if YOffset = 0 then YOffset := FHalfRowInset else YOffset := 0; end; FObjectSurface.Unlock; FDrawn := False; SetObDrawn(True); end; end; end; procedure TScanner.Draw(SurfDesc: GFXE.TSurfaceDesc); var X, Y: Integer; R: TRect; SD: TSurfaceDesc; begin try if FValid and FVisible then begin if Assigned(FOnPreDraw) then

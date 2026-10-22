@@ -21,7 +21,7 @@ type
     SmallFont: TImageLibraryFont; { +0048 }
     Age08: TImageLibraryFont; { +004C }
     public
-    procedure FontModuleCreate;  { draft }
+    published procedure FontModuleCreate; public  { draft }
   end;
 
 

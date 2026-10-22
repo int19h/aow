@@ -20,37 +20,37 @@ type
     published
     TheMap: TAoWMapControl; { +0044 }
     public
-    procedure TheMapActivateAbility(Request: TActivateAbilityInfo);
-    procedure TheMapArmyChanged(Army: TArmy);
-    procedure TheMapArmyDeselected(Army: TArmy);
-    procedure TheMapArmyDestroyed(Army: TArmy);
-    procedure TheMapArmySelected(Army: TArmy);
-    procedure TheMapDayChanged(Day: Integer);
-    procedure TheMapDeactivateHSM;  { draft }
-    procedure TheMapEndTurn(Player: Shortint; Cancelled: Boolean);
-    procedure TheMapExecuteEventLog(Event: TEventLog; Mode: Boolean; Done: TExecuteDoneEvent);
-    procedure TheMapGameOver;  { draft }
-    procedure TheMapGemsChanged(Player: Shortint);
-    procedure TheMapGlobalMagicChanged;  { draft }
-    procedure TheMapIncomeChanged(Player: Shortint);
-    procedure TheMapMapChanged(var Info: TMapChangedInfo);
-    procedure TheMapScannerIconsChanged(var Info: TMapChangedInfo);
-    procedure TheMapPlayerMagicChanged(Player: Shortint); { $44FA8D }
-    procedure TheMapSeatedPlayerChanged(Player: Shortint);  { draft }
-    procedure TheMapShowMessage(var Info: TShowMessageInfo);
-    procedure TheMapStructureChanged(Structure: TStructure);
-    procedure TheMapStructureDeselected(Structure: TStructure);
-    procedure TheMapStructureDestroyed(Structure: TStructure);
-    procedure TheMapStructureSelected(Structure: TStructure);
-    procedure TheMapItemsDeselected;  { draft }
-    procedure TheMapItemsSelected(Items: TItemHS);
-    procedure TheMapTargetSelectionChange(Control: TTargetSelectionControl; Change: TTargetSelectionChange);
-    procedure TheMapUnitChanged(U: TAbstractUnit);
-    procedure TheMapCastSpell(Caster: TSpellCaster);
-    procedure TheMapHSChanged(HS: THexagonSprite);
-    procedure TheMapRelationsChanged;  { draft }
-    procedure TheMapDiplomaticChange;  { draft }
-    procedure TheMapStructureDblClick(Structure: TStructure);
+    published procedure TheMapActivateAbility(Request: TActivateAbilityInfo); public
+    published procedure TheMapArmyChanged(Army: TArmy); public
+    published procedure TheMapArmyDeselected(Army: TArmy); public
+    published procedure TheMapArmyDestroyed(Army: TArmy); public
+    published procedure TheMapArmySelected(Army: TArmy); public
+    published procedure TheMapDayChanged(Day: Integer); public
+    published procedure TheMapDeactivateHSM; public  { draft }
+    published procedure TheMapEndTurn(Player: Shortint; Cancelled: Boolean); public
+    published procedure TheMapExecuteEventLog(Event: TEventLog; Mode: Boolean; Done: TExecuteDoneEvent); public
+    published procedure TheMapGameOver; public  { draft }
+    published procedure TheMapGemsChanged(Player: Shortint); public
+    published procedure TheMapGlobalMagicChanged; public  { draft }
+    published procedure TheMapIncomeChanged(Player: Shortint); public
+    published procedure TheMapMapChanged(var Info: TMapChangedInfo); public
+    published procedure TheMapScannerIconsChanged(var Info: TMapChangedInfo); public
+    published procedure TheMapPlayerMagicChanged(Player: Shortint); procedure TheMapLogbookChanged(Player: Shortint); procedure TheMapPlayerTerminated(Player: Shortint); public { $44FA8D }
+    published procedure TheMapSeatedPlayerChanged(Player: Shortint); public  { draft }
+    published procedure TheMapShowMessage(var Info: TShowMessageInfo); public
+    published procedure TheMapStructureChanged(Structure: TStructure); public
+    published procedure TheMapStructureDeselected(Structure: TStructure); public
+    published procedure TheMapStructureDestroyed(Structure: TStructure); public
+    published procedure TheMapStructureSelected(Structure: TStructure); public
+    published procedure TheMapItemsDeselected; public  { draft }
+    published procedure TheMapItemsSelected(Items: TItemHS); public
+    published procedure TheMapTargetSelectionChange(Control: TTargetSelectionControl; Change: TTargetSelectionChange); public
+    published procedure TheMapUnitChanged(U: TAbstractUnit); public
+    published procedure TheMapCastSpell(Caster: TSpellCaster); public
+    published procedure TheMapHSChanged(HS: THexagonSprite); public
+    published procedure TheMapRelationsChanged; public  { draft }
+    published procedure TheMapDiplomaticChange; public  { draft }
+    published procedure TheMapStructureDblClick(Structure: TStructure); public
   end;
 
 
@@ -1016,6 +1016,19 @@ begin
     Dlg.FDrawn := False;
     Dlg.Visible := True;
   end;
+end;
+
+procedure TMapEvents.TheMapLogbookChanged(Player: Shortint);
+begin
+  if Player = AoWHSMap.FSeatedPlayer then PInfoW.UpdateEvents;
+end;
+
+procedure TMapEvents.TheMapPlayerTerminated(Player: Shortint);
+begin
+  TBWindow.UpdatePlayerIndicator;
+  if AoWHSMap <> nil then
+    if AoWHSMap.FConnectionType = pcNetwork then
+      if Player = AoWHSMap.FSeatedPlayer then SetupEvents.DPlay.DisConnect;
 end;
 
 end.

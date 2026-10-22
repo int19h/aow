@@ -7,7 +7,7 @@ unit HeroGrid;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   THeroGrid = class;
@@ -41,7 +41,7 @@ type
     procedure SetHeroes(Value: THeroList);
     procedure DeleteHero(Index: Integer);
     procedure DeleteSelectedHero; property Selection; { AoWEd 00424BEA }
-  end;
+  published property EditHeroEnabled: Boolean read FEditable write FEditable; property ShowStatus: Boolean read FShowStatus write FShowStatus; property OnlyFreeHeroes: Boolean read FUnplacedOnly write FUnplacedOnly; property OnSelectCell; property OnDblClick; property DefaultRowHeight; property DefaultColWidth; property SelectionEnabled; property FocusColor; property Align; property BltMode; property OnCellUpdated; property Color; property ScrollBars; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property ShowHeroLevel: Boolean read FShowLevel write FShowLevel; property Font; end;
 
 procedure Register;
 

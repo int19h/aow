@@ -23,9 +23,9 @@ type
     Label10: TLabel; { +0340 }
     DecorationComboBox: TComboBox; { +0344 }
     public
-    procedure TerrainComboBoxChange(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure DecorationComboBoxChange(Sender: TObject);
+    published procedure TerrainComboBoxChange(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
+    published procedure DecorationComboBoxChange(Sender: TObject); public
   end;
 
 

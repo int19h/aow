@@ -25,9 +25,9 @@ type
     SMinIcon: TAOWButton; { +0058 }
     Translator: TIvTranslator; { +005C }
     public
-    procedure ScannerChangeTileBox;  { draft }
-    procedure TCScannerWinDrag;  { draft }
-    procedure SMinIconClick;  { draft }
+    published procedure ScannerChangeTileBox; public  { draft }
+    published procedure TCScannerWinDrag; public  { draft }
+    published procedure SMinIconClick; public  { draft }
   end;
 
 

@@ -1,0 +1,26 @@
+package AOWTools;
+
+{$DESCRIPTION 'AOW Tools'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\AOWTools.res'}
+
+requires
+  AoWEPACK,
+  Dcpack,
+  Gfxepack,
+  Ilpack,
+  aowInt,
+  vcl30;
+
+contains
+  Scanner,
+  StartMenu,
+  TurnButton,
+  AoWLenLine,
+  AoWArnoLine,
+  AoWBookWindow,
+  AowUserWindow;
+
+end.

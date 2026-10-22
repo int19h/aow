@@ -7,7 +7,7 @@ unit HeroCtrl;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, AoWE;
 
 type
   THeroControlGrid = class;
@@ -18,7 +18,7 @@ type
   public
     FIndices: TIntegerList; { +$1DC }
     FShowLevel: Boolean; { $1E0 }
-    FReservedDisplay: Byte;
+    FReservedDisplay: Boolean;
     FShowStatus: Boolean; { $1E2 }
     FUnplacedOnly: Boolean; { +$1E3 }
     FStream: TMemoryStream; { +$1E4 }
@@ -41,8 +41,8 @@ type
     procedure SortOnName;
     procedure SortOnLevel;
     procedure DeleteHero;
-    procedure RemoveFromMap; property SelectionEnabled;
-  end;
+    procedure RemoveFromMap; published property SelectionEnabled; public
+  published property EditHeroEnabled: Boolean read FReservedDisplay write FReservedDisplay; property ShowStatus: Boolean read FShowStatus write FShowStatus; property OnlyFreeHeroes: Boolean read FUnplacedOnly write FUnplacedOnly; property OnUnselect: TNotifyEvent read FOnUnselect write FOnUnselect; property OnDblClick; property OnSelectCell; property DefaultRowHeight; property DefaultColWidth; property FocusColor; property Align; property BltMode; property OnCellUpdated; property Color; property ScrollBars; property GridLineWidth; property ColCount; property RowCount; property PopupMenu; property EditMode; property Options; property GrowDirection; property MinRowCount; property MinColCount; property MaxRowCount; property MaxColCount; property ShowGridIndex; property ShowHeroLevel: Boolean read FShowLevel write FShowLevel; property Font; end;
 
 procedure Register;
 

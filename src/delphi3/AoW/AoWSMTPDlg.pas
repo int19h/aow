@@ -7,9 +7,13 @@ unit AoWSMTPDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow, AoWE, EventLog, E3IMSTypes;
+  {$IFDEF RUNTIME_PACKAGES} msmsg, mssmtp, {$ENDIF} Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AOWGauge, AoWButton, AoWFrame, AoWImage, AoWLabel, AoWMemo, AoWPanel, AoWWindow, AoWE, EventLog, E3IMSTypes;
 
 type
+{$IFDEF RUNTIME_PACKAGES}
+  TmsMessage = msmsg.TmsMessage;
+  TmsSMTP = mssmtp.TmsSMTP;
+{$ELSE}
   { Declaration-only field type from ims.dpl (instance size 588). }
   TmsMessage = class(TComponent)
   public
@@ -25,6 +29,8 @@ type
     FReserved274: array[0..7] of Byte; procedure SetWinsockLoaded(Value: Boolean); property WinsockLoaded: Boolean write SetWinsockLoaded; { 0044DBB9 }
     procedure Send;
   end;
+
+{$ENDIF}
 
   { TIMSSendThread (instance size 44, VMT 0044D5D8) }
   TIMSSendThread = class(TThread)
@@ -73,15 +79,15 @@ type
     procedure FinishDialog;
     procedure ResetProgress;
     procedure StartSending;
-    procedure IMSThreadTerminatedEvent(Sender: TObject);
-    procedure DlgHide;  { draft }
-    procedure ExitBtnClick;  { draft }
-    procedure IMSSMTPProgress(Sender: TObject; Progress, Total: Integer);
-    procedure ProgressBarUpdate;  { draft }
-    procedure IMSSMTPError(Sender: TObject; var Error: string);
-    procedure DlgUpdate;  { draft }
-    procedure RetryBtnClick;  { draft }
-    procedure SettingsBtnClick;  { draft }
+    published procedure IMSThreadTerminatedEvent(Sender: TObject); public
+    published procedure DlgHide; public  { draft }
+    published procedure ExitBtnClick; public  { draft }
+    published procedure IMSSMTPProgress(Sender: TObject; Progress, Total: Integer); public
+    published procedure ProgressBarUpdate; public  { draft }
+    published procedure IMSSMTPError(Sender: TObject; var Error: string); public
+    published procedure DlgUpdate; public  { draft }
+    published procedure RetryBtnClick; public  { draft }
+    published procedure SettingsBtnClick; public  { draft }
   end;
 
 
@@ -92,8 +98,9 @@ implementation
 
 uses E3Globals;
 
+{$IFNDEF RUNTIME_PACKAGES}
 procedure TmsSMTP.Send; external 'ims.dpl' name 'mssmtp.TmsSMTP.Send@23EDC2EF'; procedure TmsSMTP.SetWinsockLoaded(Value: Boolean); external 'ims.dpl' name 'agsocket.TagSocket.SetWinsockLoaded@23EDC2EF'; procedure TmsMessage.SetBody(Value: TStrings); external 'ims.dpl' name 'msmsg.TmsCustomMessage.SetBody@23EDC2EF';
-
+{$ENDIF}
 
 procedure TIMSSendThread.Execute;
 begin

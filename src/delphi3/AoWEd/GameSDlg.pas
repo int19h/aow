@@ -44,9 +44,9 @@ type
     DemoMapCB: TCheckBox; { +0234 }
     public
     procedure UpdateGameType;
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure GameTypeCBChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure GameTypeCBChange(Sender: TObject); public
   end;
 
 

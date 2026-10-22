@@ -29,15 +29,15 @@ type
     Help: TAOWButton; { +006C }
     Translator: TIvTranslator; { +0070 }
     public
-    procedure ScannerTabChange;
-    procedure ArmyCheckChange(Sender: TAOWCheckBox);
-    procedure BuildingCheckChange(Sender: TAOWCheckBox);
-    procedure NaturalCheckChange(Sender: TAOWCheckBox);
-    procedure ScannerWindowResize;
-    procedure SMinIconClick;
-    procedure ScannerChangeTileBox;
-    procedure ScannerTabMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure HelpClick;
+    published procedure ScannerTabChange; public
+    published procedure ArmyCheckChange(Sender: TAOWCheckBox); public
+    published procedure BuildingCheckChange(Sender: TAOWCheckBox); public
+    published procedure NaturalCheckChange(Sender: TAOWCheckBox); public
+    published procedure ScannerWindowResize; public
+    published procedure SMinIconClick; public
+    published procedure ScannerChangeTileBox; public
+    published procedure ScannerTabMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure HelpClick; public
   end;
 
 

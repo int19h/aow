@@ -34,18 +34,18 @@ type
     RaceCB: TComboBox; { +025C }
     public
     procedure UpdateControls;
-    procedure FormCreate(Sender: TObject);
-    procedure RaceCBChange(Sender: TObject);
-    procedure RazedBoxClick(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure PlayerComboBoxChange;
-    procedure DefendersCBChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure RaceCBChange(Sender: TObject); public
+    published procedure RazedBoxClick(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public
+    published procedure PlayerComboBoxChange; public
+    published procedure DefendersCBChange(Sender: TObject); public
   end;
 
   { TCityEditor (instance size 8, VMT 00418DE0) }
   TCityEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -166,5 +166,8 @@ begin
 end;
 
 
+
+class function TCityEditor.EditorClassID: Integer;
+begin Result := $20108; end;
 
 end.

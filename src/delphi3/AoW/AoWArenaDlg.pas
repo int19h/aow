@@ -48,15 +48,15 @@ type
     FOnClose: TExecuteDoneEvent; { $AC }
     procedure DrawUnit(Index, X, Y: Integer; var SD: TSurfaceDesc);
     procedure ClearEvent;
-    procedure CloseClick;  { draft }
-    procedure SelectBtnClick;  { draft }
-    procedure U1Change(Sender: TObject);
-    procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DlgHide;  { draft }
-    procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure MapViewUpdate;  { draft }
-    procedure DlgDrawBack;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseClick; public  { draft }
+    published procedure SelectBtnClick; public  { draft }
+    published procedure U1Change(Sender: TObject); public
+    published procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DlgHide; public  { draft }
+    published procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure MapViewUpdate; public  { draft }
+    published procedure DlgDrawBack; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

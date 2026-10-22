@@ -27,7 +27,7 @@ type
 
   { TILTerrainResourceEditor (instance size 8, VMT 00406EB4) }
   TILTerrainResourceEditor = class(TEObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
   end;
 
@@ -94,5 +94,8 @@ begin
 end;
 
 
+
+class function TILTerrainResourceEditor.EditorClassID: Integer;
+begin Result := $20187; end;
 
 end.

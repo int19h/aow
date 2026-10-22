@@ -26,7 +26,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, StdCtrls, Forms, Dialogs, MMSystem, ExptIntf, ToolIntf,
-  Engine;
+  Engine, EList;
 
 type
   TSampleCallBackMode = (scRestartLoop, scDone);
@@ -363,7 +363,7 @@ procedure RegisterSoundEngineClasses(AEngine: TEngine);
 procedure UnregisterSoundEngineClasses(AEngine: TEngine);
 procedure Register;
 
-implementation
+implementation uses GalSndS;
 
 const
   SFXExtension = 'WAV';

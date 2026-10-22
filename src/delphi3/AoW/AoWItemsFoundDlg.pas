@@ -45,14 +45,14 @@ type
     FEvent: TItemExplorationSiteEventLog; { $AC }
     function GetHero: THero;
     procedure Finish; procedure Reset;
-    procedure DlgHide;
-    procedure CloseBtn2Click;
-    procedure Gnd3Draw(Sender: TObject; SD: TSurfaceDesc);
-    procedure PickupBtnClick;
-    procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure LeftBtnClick;
-    procedure RightBtnClick;
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure DlgHide; public
+    published procedure CloseBtn2Click; public
+    published procedure Gnd3Draw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure PickupBtnClick; public
+    published procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure LeftBtnClick; public
+    published procedure RightBtnClick; public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

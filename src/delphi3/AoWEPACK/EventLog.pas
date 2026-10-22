@@ -7,7 +7,7 @@ unit EventLog;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx;
 
 type
   TEventLog = class;
@@ -272,7 +272,7 @@ procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: 
 
 implementation
 
-uses AoWE;
+uses AoWE, Animation;
 
 constructor TExecuteEventLogCallBackList.Create;
 begin

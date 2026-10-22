@@ -13,7 +13,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls,
-  ExtCtrls, GFXE, Engine, ImageLib, DisplayC, Sound;
+  ExtCtrls, GFXE, Engine, ImageLib, {$IFNDEF RUNTIME_PACKAGES} DisplayC, {$ENDIF} Sound;
 
 type
   PInteger = ^Integer;

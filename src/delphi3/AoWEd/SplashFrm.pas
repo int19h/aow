@@ -25,9 +25,9 @@ type
     Label1: TLabel; { +01E8 }
     Translator: TIvTranslator; { +01EC }
     public
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure Image1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    published procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure Image1Click(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
   end;
 
 

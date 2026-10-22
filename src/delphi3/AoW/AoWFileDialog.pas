@@ -7,7 +7,7 @@ unit AoWFileDialog;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWButton, AoWComboBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti, AoWE, EventLog, AoWComp, AoWButton, AoWComboBox, AoWEdit, AoWFrame, AoWImage, AoWLabel, AoWListBox, AoWPanel, AoWVScroll, AoWWindow;
 
 type
   TFileDlgWindow = class;
@@ -87,24 +87,24 @@ type
     procedure FinishDialog;
     procedure ExitForLoad(Mode: TExitGameMode; Success: Boolean);
     procedure LoadSelectedGame(const Name: string);
-    procedure CloseClick;  { draft }
-    procedure FindDrives;
-    procedure FindFiles;
-    procedure FileDlgWindowCreate;
-    procedure FileDlgWindowDestroy;
-    procedure OpenbutClick(Sender: TObject);  { draft }
-    procedure UpDirBtnClick;
-    procedure DriveCmbChange;
-    procedure FileLBChange(Sender: TAOWListBox);
-    procedure FileDialogShow;
-    procedure mSBarChange(Sender: TAOWVScrollBar);
-    procedure SFileNameReturn;
-    procedure SFileNameChange(A1: Integer);
-    procedure SaveBtnClick(Sender: TObject);
-    procedure DateBtnClick(Sender: TObject);
-    procedure SSBarChange;
-    procedure FileDialogHide;
-    procedure FileDialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseClick; public  { draft }
+    published procedure FindDrives; public
+    published procedure FindFiles; public
+    published procedure FileDlgWindowCreate; public
+    published procedure FileDlgWindowDestroy; public
+    published procedure OpenbutClick(Sender: TObject); public  { draft }
+    published procedure UpDirBtnClick; public
+    published procedure DriveCmbChange; public
+    published procedure FileLBChange(Sender: TAOWListBox); procedure FileLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure FileDialogShow; public
+    published procedure mSBarChange(Sender: TAOWVScrollBar); public
+    published procedure SFileNameReturn; public
+    published procedure SFileNameChange(A1: Integer); public
+    published procedure SaveBtnClick(Sender: TObject); public
+    published procedure DateBtnClick(Sender: TObject); public
+    published procedure SSBarChange; public
+    published procedure FileDialogHide; public
+    published procedure FileDialogKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 
@@ -580,5 +580,11 @@ begin
   if Key = 27 then FileDialog.Visible := False;
 end;
 
+
+procedure TFileDlgWindow.FileLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
+begin
+  if Directories.Count > DrawItem then
+    IntGfxMod.LBIcons[0].ShowClipped(DrawRect.Left + 2, DrawRect.Top + 1, SurfDesc);
+end;
 
 end.

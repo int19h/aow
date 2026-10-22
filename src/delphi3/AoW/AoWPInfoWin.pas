@@ -43,17 +43,17 @@ type
     public
     procedure UpdatePlayer;
     procedure UpdateEvents;
-    procedure MinClick;
-    procedure EventListDoubleClick;
-    procedure EventListPreDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
-    procedure EventListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc);
-    procedure PInfoWinResize;
-    procedure EventListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure LeaderBtnClick(Sender: TObject);
-    procedure RaceBtnClick;
-    procedure FaceFrDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure FaceFrMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure HelpClick;
+    published procedure MinClick; public
+    published procedure EventListDoubleClick; public
+    published procedure EventListPreDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc); public
+    published procedure EventListDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SD: TSurfaceDesc); public
+    published procedure PInfoWinResize; public
+    published procedure EventListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure LeaderBtnClick(Sender: TObject); public
+    published procedure RaceBtnClick; public
+    published procedure FaceFrDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure FaceFrMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure HelpClick; public
   end;
 
 

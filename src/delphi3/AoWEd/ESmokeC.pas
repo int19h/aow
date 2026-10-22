@@ -22,13 +22,13 @@ type
     DaysActiveEdit: TComboBox; { +0214 }
     Label1: TLabel; { +0218 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
   { TSmokeCloudEditor (instance size 8, VMT 0041CDE8) }
   TSmokeCloudEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -62,5 +62,8 @@ begin
 end;
 
 
+
+class function TSmokeCloudEditor.EditorClassID: Integer;
+begin Result := $21242; end;
 
 end.

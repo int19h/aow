@@ -77,6 +77,7 @@ type
 procedure RegisterCombatILTerrain(AEngine: TEngine);
 
 implementation
+uses CombatHex;
 
 function TCombatILTerrainShadow.GetShowPriority: Integer;
 begin

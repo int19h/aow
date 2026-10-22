@@ -46,7 +46,7 @@ type
 
 implementation
 
-uses AoWE, AoWTC, CombatRoad;
+uses AoWE, CombatRoad, AoWTC;
 
 constructor TCombatStructure.Create(AOwner: Engine.TECustomNode);
 begin

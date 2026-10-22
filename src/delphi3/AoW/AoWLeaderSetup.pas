@@ -207,54 +207,54 @@ type
     procedure SetFixedSpheres(Value: Integer);
     procedure Reset;
     procedure UpdateSpheres;
-    procedure LeaderSetupWinCreate;
-    procedure LeaderSetupWinDestroy;
-    procedure AddAbilityClick;
-    procedure RemoveAbilityClick;
-    procedure DrawSelectionFace(Sender: TObject; SD: TSurfaceDesc);
-    procedure FacePrevBtnClick;
-    procedure FaceNextBtnClick;
-    procedure PrevBtnClick;
-    procedure NextBtnClick;
-    procedure MainFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure NameEditChange;
-    procedure SelectedAbilitiesCostChange;
-    procedure SelectedAbilitiesChange;
-    procedure AvailableAbilitiesCostChange;
-    procedure AvailableAbilitiesChange;
-    procedure SelectedAbilitiesLBChange;
-    procedure AvailableAbilitiesLBChange;
-    procedure AttUpClick;
-    procedure AttDnClick;
-    procedure DefUpClick;
-    procedure DefDnClick;
-    procedure DamUpClick;
-    procedure DamDnClick;
-    procedure ResUpClick;
-    procedure ResDnClick;
-    procedure HitUpClick;
-    procedure HitDnClick;
-    procedure MovUpClick;
-    procedure MovDnClick;
-    procedure ClearBtnClick;
-    procedure DefaultBtnClick;
-    procedure SelLifeClick;
-    procedure SelFireClick;
-    procedure SelDeathClick;
-    procedure SelWaterClick;
-    procedure SelAirClick;
-    procedure SelEarthClick;
-    procedure DeleteSphereClick(Sender: TObject);
-    procedure RaceCBChange;
-    procedure SelectedAbilitiesSortClick;
-    procedure SelectedAbilitiesCostSortClick;
-    procedure AvailableAbilitiesSortClick;
-    procedure AvailableAbilitiesCostSortClick;
-    procedure SBaseClick;
-    procedure SExtraClick;
-    procedure SFinalClick;
-    procedure SelectedAbilitiesCostMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    published procedure LeaderSetupWinCreate; public
+    published procedure LeaderSetupWinDestroy; public
+    published procedure AddAbilityClick; public
+    published procedure RemoveAbilityClick; public
+    published procedure DrawSelectionFace(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure FacePrevBtnClick; public
+    published procedure FaceNextBtnClick; public
+    published procedure PrevBtnClick; public
+    published procedure NextBtnClick; public
+    published procedure MainFaceFrPreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure NameEditChange; public
+    published procedure SelectedAbilitiesCostChange; public
+    published procedure SelectedAbilitiesChange; public
+    published procedure AvailableAbilitiesCostChange; public
+    published procedure AvailableAbilitiesChange; public
+    published procedure SelectedAbilitiesLBChange; public
+    published procedure AvailableAbilitiesLBChange; public
+    published procedure AttUpClick; public
+    published procedure AttDnClick; public
+    published procedure DefUpClick; public
+    published procedure DefDnClick; public
+    published procedure DamUpClick; public
+    published procedure DamDnClick; public
+    published procedure ResUpClick; public
+    published procedure ResDnClick; public
+    published procedure HitUpClick; public
+    published procedure HitDnClick; public
+    published procedure MovUpClick; public
+    published procedure MovDnClick; public
+    published procedure ClearBtnClick; public
+    published procedure DefaultBtnClick; public
+    published procedure SelLifeClick; public
+    published procedure SelFireClick; public
+    published procedure SelDeathClick; public
+    published procedure SelWaterClick; public
+    published procedure SelAirClick; public
+    published procedure SelEarthClick; public
+    published procedure DeleteSphereClick(Sender: TObject); public
+    published procedure RaceCBChange; public
+    published procedure SelectedAbilitiesSortClick; public
+    published procedure SelectedAbilitiesCostSortClick; public
+    published procedure AvailableAbilitiesSortClick; public
+    published procedure AvailableAbilitiesCostSortClick; public
+    published procedure SBaseClick; public
+    published procedure SExtraClick; public
+    published procedure SFinalClick; public
+    published procedure SelectedAbilitiesCostMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
   end;
 
 

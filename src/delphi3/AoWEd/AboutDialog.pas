@@ -26,7 +26,7 @@ type
     Bevel1: TBevel; { +01F4 }
     Translator: TIvTranslator; { +01F8 }
     public
-    procedure FormCreate(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
   end;
 
 

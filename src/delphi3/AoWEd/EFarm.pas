@@ -21,12 +21,12 @@ type
     Label2: TLabel; { +0230 }
     IncomeLabel: TPanel; { +0234 }
     public
-    procedure FormCreate(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { TFarmEditor (instance size 8, VMT 0041D55C) }
   TFarmEditor = class(TAoWMapObjectEditor)
-  public
+  public class function EditorClassID: Integer; override;
     class procedure Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent); override;
     class procedure UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu); override;
   end;
@@ -46,5 +46,8 @@ begin
   IncomeLabel.Caption := IntToStr(TFarm(FMapObject).FIncome);
 end;
 
+
+class function TFarmEditor.EditorClassID: Integer;
+begin Result := $2036E; end;
 
 end.

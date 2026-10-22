@@ -117,41 +117,41 @@ type
     procedure DisableWindows;
     procedure EnableWindows;
     procedure DisableComplex;
-    procedure FormCreate(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure CloseBtnClick(Sender: TObject);
-    procedure CancelBtnClick(Sender: TObject);
-    procedure MORComboBoxChange(Sender: TObject);
-    procedure ComplexBoxClick(Sender: TObject);
-    procedure TerrainComboBoxChange(Sender: TObject);
-    procedure OverlayComboBoxChange(Sender: TObject);
-    procedure LevelBoxChange(Sender: TObject);
-    procedure NameEditChange(Sender: TObject);
-    procedure LoadImageSetBtnClick(Sender: TObject);
-    procedure ImageIndexSelectorDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure PreviewFramesEditChange(Sender: TObject);
-    procedure MainPageControlChange(Sender: TObject);
-    procedure DisplayKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure FrameTableEditChange(Sender: TObject);
-    procedure ILManagerComboBoxChange(Sender: TObject);
-    procedure ImageSequencerChange(Sender: TObject);
-    procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence);
-    procedure LayerSpinUpdate(Sender: TObject);
-    procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer);
-    procedure SequenceDisplayEditorUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer);
-    procedure SequenceModeBoxChange(Sender: TObject);
-    procedure SequenceSpeedBoxChange(Sender: TObject);
-    procedure SequenceDisplayEditorActivateDC(Sender: TObject);
-    procedure OpenLayerBtnClick(Sender: TObject);
-    procedure CloseLayerBtnClick(Sender: TObject);
-    procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure PlayBtnClick(Sender: TObject);
-    procedure PlayLoopedClick(Sender: TObject);
-    procedure ChangeBKColorClick(Sender: TObject);
-    procedure ExEditClick(Sender: TObject);
-    procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ResourceIDEditChange(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public
+    published procedure CloseBtnClick(Sender: TObject); public
+    published procedure CancelBtnClick(Sender: TObject); public
+    published procedure MORComboBoxChange(Sender: TObject); public
+    published procedure ComplexBoxClick(Sender: TObject); public
+    published procedure TerrainComboBoxChange(Sender: TObject); public
+    published procedure OverlayComboBoxChange(Sender: TObject); public
+    published procedure LevelBoxChange(Sender: TObject); public
+    published procedure NameEditChange(Sender: TObject); public
+    published procedure LoadImageSetBtnClick(Sender: TObject); public
+    published procedure ImageIndexSelectorDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure PreviewFramesEditChange(Sender: TObject); public
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure DisplayKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure DisplayUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure FrameTableEditChange(Sender: TObject); public
+    published procedure ILManagerComboBoxChange(Sender: TObject); public
+    published procedure ImageSequencerChange(Sender: TObject); public
+    published procedure ImageSequencerCreateImageSequence(Sequencer: TImageSequencer; Sequence: TImageSequence); public
+    published procedure LayerSpinUpdate(Sender: TObject); public
+    published procedure SequenceDisplayEditorResizeBackSurface(DC: TAbstractDC; Width, Height: Integer); public
+    published procedure SequenceDisplayEditorUpdateFrame(Sender: TObject; DC: TAbstractDC; SurfaceType: Integer); public
+    published procedure SequenceModeBoxChange(Sender: TObject); public
+    published procedure SequenceSpeedBoxChange(Sender: TObject); public
+    published procedure SequenceDisplayEditorActivateDC(Sender: TObject); public
+    published procedure OpenLayerBtnClick(Sender: TObject); public
+    published procedure CloseLayerBtnClick(Sender: TObject); public
+    published procedure ImageIndexSelectorSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure PlayBtnClick(Sender: TObject); public
+    published procedure PlayLoopedClick(Sender: TObject); public
+    published procedure ChangeBKColorClick(Sender: TObject); public
+    published procedure ExEditClick(Sender: TObject); public
+    published procedure ImageIndexSelectorKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure ResourceIDEditChange(Sender: TObject); public
   end;
 
   { TMapObjectResourceEditor (instance size 8, VMT 00404200) }

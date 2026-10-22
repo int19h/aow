@@ -17,7 +17,7 @@ type
   public
     procedure RegisterResourceEditors(AEngine: TEngine);
     procedure RegisterMapEditors(AEngine: TEngine);
-    procedure AoWEngineModuleCreate(Sender: TObject);
+    published procedure AoWEngineModuleCreate(Sender: TObject); public
   end;
 
 

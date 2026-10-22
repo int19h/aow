@@ -1,0 +1,18 @@
+package aowFXpck;
+
+{$DESCRIPTION 'Special FX package for Age of Wonders'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\aowFXpck.res'}
+
+requires
+  vcl30,
+  Gfxepack,
+  Dcpack,
+  Ilpack;
+
+contains
+  aowFX;
+
+end.

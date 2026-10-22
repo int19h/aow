@@ -46,11 +46,11 @@ type
     FSendEvent: TSendEmailGameEventLog; { $A8 }
     procedure FinishDialog;
     procedure ShowSendDialog(Event: TSendEmailGameEventLog; Done: TExecuteDoneEvent);
-    procedure DlgHide;  { draft }
-    procedure OKBtnClick;  { draft }
-    procedure ExitBtnClick;  { draft }
-    procedure EmailAddressEditChange;  { draft }
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure DlgHide; public  { draft }
+    published procedure OKBtnClick; public  { draft }
+    published procedure ExitBtnClick; public  { draft }
+    published procedure EmailAddressEditChange; public  { draft }
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
   TIMSSendThread = AoWSMTPDlg.TIMSSendThread;

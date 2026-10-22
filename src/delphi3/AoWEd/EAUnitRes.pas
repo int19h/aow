@@ -25,9 +25,9 @@ type
     PreviewImagePanel: TDrawPanel; { +0210 }
     public
     FUnitResource: TAbstractUnitResource; { $214 }
-    procedure FormCreate;
-    procedure UnitGFXBoxChange(Sender: TObject);
-    procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
+    published procedure FormCreate; public
+    published procedure UnitGFXBoxChange(Sender: TObject); public
+    published procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect); public
   end;
 
 

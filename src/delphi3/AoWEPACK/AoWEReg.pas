@@ -4,14 +4,15 @@ unit AoWEReg;
 
 interface
 
-uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, PlugInM, GFXE, ImageLib, DisplayC, Sound, NetworkE, aowFX, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx, IvDictio, IvAMulti, IvBinDic, IvMulti,
-  AoWE, AoWHex, AoWTer, RndHex, AoWRoad, HxBridge, Mountain, Bridge, Spring, BloodShrine, Sign, Teleport, Pad, Crops, Farm, Cave, Mine, Tower, PoisonP, Gems, PrdPlace, FireNode, WaterNode, DeathNode, LifeNode, EarthNode, AirNode, ExploreS, MonsterL, Dungeon, Crypt, Ruin, Pyramid, Shipyard, HolyG, UnHolyG, Merchant, AltFire, AltIce, AltLight, AltLife, AltDeath, AltPest, BldGuild, ItemExpS, AoWSetup, Storms, PoisonC, CitySpells, PowerNode, ManaCrystals, GlobalEnchantmentSpells, GlobalSpells, GlobalTargetSpells, CombatSpells, SummonSpells, PassiveAb, UnitSpells, MoveOnEvents, MagicSanctuary, Arena, ReflectingPool, WizardsTower, FlagEvents, OverlayObject, SmokeCloud;
+
 
 
 
 
 implementation
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls, Grids, Registry, Engine, GFXE, ImageLib, Sound, NetworkE, HSEngine, IsoHex, ILTer, Terrain, Hexagon, Road, BorderHx,
+  HxBridge, AoWHex, AoWRoad, RndHex, AoWTer, Mountain, Spring, Bridge, Sign, Teleport, CitySpells, Farm, Cave, Mine, ManaCrystals, FireNode, EarthNode, DeathNode, LifeNode, WaterNode, AirNode, MonsterL, Tower, PoisonP, Gems, Dungeon, Crypt, Ruin, Pyramid, Shipyard, HolyG, UnHolyG, Merchant, PrdPlace, BldGuild, AltFire, AltIce, PowerNode, FlagEvents, AltLight, AltLife, AltDeath, AltPest, MoveOnEvents, OverlayObject, MagicSanctuary, ReflectingPool, WizardsTower, Arena, Crops, Pad, AoWSetup, ExploreS, ItemExpS, BloodShrine, Storms, PoisonC, SummonSpells, UnitSpells, GlobalSpells, SmokeCloud, GlobalTargetSpells, GlobalEnchantmentSpells, CombatSpells, PassiveAb, AoWE;
 
 
 

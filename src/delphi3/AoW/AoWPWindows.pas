@@ -29,12 +29,12 @@ type
     TCSettingsMenu: TAOWMenu; { +0070 }
     TCEndMenu: TAOWMenu; { +0074 }
     public
-    procedure SettingsMenuSelect(Sender: TAOWMenu);
-    procedure EndMenuSelect(Sender: TAOWMenu);
-    procedure DiskMenuSelect(Sender: TAOWMenu);
-    procedure OverViewsMenuSelect(Sender: TAOWMenu);
-    procedure TCEndMenuSelect(Sender: TAOWMenu);
-    procedure HelpMenuSelect(Sender: TAOWMenu);
+    published procedure SettingsMenuSelect(Sender: TAOWMenu); public
+    published procedure EndMenuSelect(Sender: TAOWMenu); public
+    published procedure DiskMenuSelect(Sender: TAOWMenu); public
+    published procedure OverViewsMenuSelect(Sender: TAOWMenu); public
+    published procedure TCEndMenuSelect(Sender: TAOWMenu); public
+    published procedure HelpMenuSelect(Sender: TAOWMenu); public
   end;
 
 

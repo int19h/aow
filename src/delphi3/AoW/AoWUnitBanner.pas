@@ -35,11 +35,11 @@ type
     AbLB: TAOWListBox; { +007C }
     AbVSB: TAOWVScrollBar; { +0080 }
     public
-    procedure BannerPopupShow(Sender: TObject);  { draft }
-    procedure AbLBUpdate;  { draft }
-    procedure AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer);  { draft }
-    procedure AbLBMouseDown;  { draft }
+    published procedure BannerPopupShow(Sender: TObject); public  { draft }
+    published procedure AbLBUpdate; public  { draft }
+    published procedure AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer); public  { draft }
+    published procedure AbLBMouseDown; public  { draft }
   end;
 
 

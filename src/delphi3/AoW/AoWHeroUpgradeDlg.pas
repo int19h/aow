@@ -131,37 +131,37 @@ type
     procedure SetAvailableIndex(Index: Integer);
     procedure SetSelectedIndex(Index: Integer);
     function CanAddAbility(AbilityID: Integer): Boolean;
-    procedure CloseClick;
-    procedure FaceFramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure AttUpClick;
-    procedure AttDnClick;
-    procedure DefUpClick;
-    procedure DefDnClick;
-    procedure DamUpClick;
-    procedure DamDnClick;
-    procedure ResUpClick;
-    procedure ResDnClick;
-    procedure HitUpClick;
-    procedure HitDnClick;
-    procedure MovUpClick;
-    procedure MovDnClick;
-    procedure SelectedAbilitiesChange;
-    procedure SelectedAbilitiesCostChange;
-    procedure SelectedAbilitiesSBChange;
-    procedure AvailableAbilitiesChange;
-    procedure AvailableAbilitiesCostChange;
-    procedure AvailableAbilitiesSBChange;
-    procedure AddAbilityBtnClick;
-    procedure RemoveBtnClick;
-    procedure SelectedAbilitiesSortClick;
-    procedure SelectedAbilitiesCostSortClick;
-    procedure AvailableAbilitiesSortClick;
-    procedure AvailableAbilityCostSortClick;
-    procedure DoneClick;
-    procedure DlgHide;
-    procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
-    procedure SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure CloseClick; public
+    published procedure FaceFramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure AttUpClick; public
+    published procedure AttDnClick; public
+    published procedure DefUpClick; public
+    published procedure DefDnClick; public
+    published procedure DamUpClick; public
+    published procedure DamDnClick; public
+    published procedure ResUpClick; public
+    published procedure ResDnClick; public
+    published procedure HitUpClick; public
+    published procedure HitDnClick; public
+    published procedure MovUpClick; public
+    published procedure MovDnClick; public
+    published procedure SelectedAbilitiesChange; public
+    published procedure SelectedAbilitiesCostChange; public
+    published procedure SelectedAbilitiesSBChange; public
+    published procedure AvailableAbilitiesChange; public
+    published procedure AvailableAbilitiesCostChange; public
+    published procedure AvailableAbilitiesSBChange; public
+    published procedure AddAbilityBtnClick; public
+    published procedure RemoveBtnClick; public
+    published procedure SelectedAbilitiesSortClick; public
+    published procedure SelectedAbilitiesCostSortClick; public
+    published procedure AvailableAbilitiesSortClick; public
+    published procedure AvailableAbilityCostSortClick; public
+    published procedure DoneClick; public
+    published procedure DlgHide; public
+    published procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton); public
+    published procedure SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

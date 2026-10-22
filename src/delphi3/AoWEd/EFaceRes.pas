@@ -32,11 +32,11 @@ type
     public
     FFaceResource: TFaceResource; { $228 }
     constructor vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent); override;
-    procedure FormCreate;
-    procedure OKBtnClick;
-    procedure ILManagerComboBoxChange;
-    procedure ImageIndexSpinUpdate;
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    published procedure FormCreate; public
+    published procedure OKBtnClick; public
+    published procedure ILManagerComboBoxChange; public
+    published procedure ImageIndexSpinUpdate; public
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public
   end;
 
   { TFaceResourceEditor (instance size 8, VMT 00416E98) }

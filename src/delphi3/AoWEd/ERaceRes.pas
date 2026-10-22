@@ -50,15 +50,15 @@ type
     Panel8: TPanel; { +0270 }
     DescriptionMemo: TMemo; { +0274 }
     public
-    procedure FormCreate(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure AddBtnClick(Sender: TObject);
-    procedure DeleteBtnClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure AddProdBtnClick(Sender: TObject);
-    procedure DeleteProdBtnClick(Sender: TObject);
-    procedure RaceColorBtnClick(Sender: TObject);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure DeleteBtnClick(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure AddProdBtnClick(Sender: TObject); public
+    published procedure DeleteProdBtnClick(Sender: TObject); public
+    published procedure RaceColorBtnClick(Sender: TObject); public
   end;
 
   { TRaceResourceEditor (instance size 8, VMT 0041167C) }

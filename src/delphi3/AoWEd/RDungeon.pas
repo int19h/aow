@@ -26,10 +26,10 @@ type
     AddPrisoner: TButton; { +0398 }
     DeletePrisoners: TButton; { +039C }
     public
-    procedure MainPageControlChange(Sender: TObject);
-    procedure AddPrisonerClick(Sender: TObject);
-    procedure DeletePrisonersClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    published procedure MainPageControlChange(Sender: TObject); public
+    published procedure AddPrisonerClick(Sender: TObject); public
+    published procedure DeletePrisonersClick(Sender: TObject); public
+    published procedure FormCreate(Sender: TObject); public
   end;
 
   { TDungeonResourceEditor (instance size 8, VMT 0040AB60) }

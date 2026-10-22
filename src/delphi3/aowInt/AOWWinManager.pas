@@ -9,7 +9,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, GFXE, ImageLib,
-  AoWComp, AOWInterfaceImgLib, AoWWinControl;
+  AoWDialogForm, AoWComp, AOWInterfaceImgLib, AoWWinControl;
 
 type
   { AOWWinManager.TAOWWinManager (instance size 316). Fields: +$104 FForegroundTexture, +$108

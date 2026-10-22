@@ -20,9 +20,9 @@ type
     ItemControlGrid: TItemControlGrid; { +01DC }
     Translator: TIvTranslator; { +01E0 }
     public
-    procedure FormShow;
-    procedure FormHide;
-    procedure ItemControlGridDblClick;
+    published procedure FormShow; public
+    published procedure FormHide; public
+    published procedure ItemControlGridDblClick; public
   end;
 
 

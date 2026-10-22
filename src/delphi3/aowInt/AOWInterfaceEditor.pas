@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, DsgnIntf,
-  AoWComp, AoWWinControl, AoWDialogForm, AoWBaseWin;
+  AoWDialogForm, AoWComp, AoWWinControl, AoWBaseWin;
 
 type
   { AOWInterfaceEditor.TAOWComponentEditor (instance size 20). +$C FDialog, +$10 FWindow }

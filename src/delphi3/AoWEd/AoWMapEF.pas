@@ -37,9 +37,9 @@ type
     procedure vmt88; virtual;  { +088 }
     procedure vmt8C; virtual;  { +08C }
     constructor vmt90(Obj: TEObject; Done: TEditDoneEvent); virtual; { +090 }
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormShow;
-    procedure OKBtnClick(Sender: TObject);
+    published procedure FormClose(Sender: TObject; var Action: TCloseAction); public
+    published procedure FormShow; public
+    published procedure OKBtnClick(Sender: TObject); public
   end;
 
 

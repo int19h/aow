@@ -1,0 +1,37 @@
+package AoWTCPCK;
+
+{$DESCRIPTION 'AoW Tactical Combat Pack'}
+
+{ Delphi emits PACKAGEINFO lists in reverse declaration order. Unit-specific switches live in the units. }
+
+{$R '..\..\res\AoWTCPCK.res'}
+
+requires
+  vcl30,
+  AoWEPACK,
+  aowFXpck;
+
+contains
+  AoWTC,
+  AoWTCReg,
+  WorkShop,
+  Townhall,
+  House,
+  SingleCombatHex,
+  CMapCtrl,
+  IsoCombatHex,
+  CombatStructure,
+  MainStructure,
+  CenterViewLoc,
+  FleeLoc,
+  CombatHex,
+  CombatTE,
+  CombatTerrain,
+  CombatRoad,
+  CombatObstacle,
+  CombatILTer,
+  CityWall,
+  CombatFire,
+  OverviewUnit;
+
+end.

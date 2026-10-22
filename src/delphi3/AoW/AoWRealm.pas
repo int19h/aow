@@ -111,60 +111,60 @@ type
     procedure UpdateOther; { 00449B2C }
     procedure UpdateOverview; { 00449B30 }
     procedure DrawArmyUnit(Column: Integer; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); { 0044A030 }
-    procedure OWMinIconClick;
-    procedure T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure Unit1LBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure HeaderTabChange;
-    procedure PartyVSBChange;
-    procedure Unit1LBChange(Sender: TObject);
-    procedure T2MorLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure CityListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure CityListChange(Sender: TObject);
-    procedure CityDoubleClick(Sender: TObject);
-    procedure PlaceListDoubleClick(Sender: TObject);
-    procedure PlacesListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure HeroListDoubleClick(Sender: TObject);
-    procedure HeroListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure HeroInfoClick;
-    procedure T2LevelLBDoubleClick;
-    procedure T2WallLBDoubleClick;
-    procedure T2RaceLBDoubleClick;
-    procedure T2ActLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure T2ActLBDoubleClick;
-    procedure T2RelLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc);
-    procedure OverWindowResize;
-    procedure T2SBChange;
-    procedure T3NameChange(Sender: TObject);
-    procedure T3SBChange;
-    procedure T2SNameClick(Sender: TObject; Button: Integer);
-    procedure T2SRaceClick(Sender: TObject; Button: Integer);
-    procedure T2SInClick(Sender: TObject; Button: Integer);
-    procedure T2SLvlClick(Sender: TObject; Button: Integer);
-    procedure T2SWallClick(Sender: TObject; Button: Integer);
-    procedure T2SSizeClick(Sender: TObject; Button: Integer);
-    procedure T2SRelClick(Sender: TObject; Button: Integer);
-    procedure T2SMorClick(Sender: TObject; Button: Integer);
-    procedure T2SActClick(Sender: TObject; Button: Integer);
-    procedure T2SEncClick(Sender: TObject; Button: Integer);
-    procedure T3SNameClick(Sender: TObject; Button: Integer);
-    procedure HeroListChange(Sender: TObject);
-    procedure HeroVSBChange;
-    procedure T5HeroInfDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
-    procedure Unit1LBDoubleClick(Sender: TObject);
-    procedure T5SNameClick(Sender: TObject; Button: Integer);
-    procedure T5SHealthClick(Sender: TObject; Button: Integer);
-    procedure T5SLevelClick(Sender: TObject; Button: Integer);
-    procedure GotoButClick;
-    procedure T4PnlShow(Sender: TObject);
-    procedure T4PnlHide(Sender: TObject);
-    procedure OverWindowShow;
-    procedure OverWindowHide;
-    procedure IncomeSBChange;
-    procedure T3ActivityClick(Sender: TObject; Button: Integer);
-    procedure UpkeepSBChange;
-    procedure DlgShow;
-    procedure DlgHide;
-    procedure HelpClick;
+    published procedure OWMinIconClick; public
+    published procedure T2WallLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure Unit1LBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure HeaderTabChange; public
+    published procedure PartyVSBChange; public
+    published procedure Unit1LBChange(Sender: TObject); public
+    published procedure T2MorLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure CityListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure CityListChange(Sender: TObject); public
+    published procedure CityDoubleClick(Sender: TObject); public
+    published procedure PlaceListDoubleClick(Sender: TObject); public
+    published procedure PlacesListMouseDown(Sender: TAOWListBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure HeroListDoubleClick(Sender: TObject); public
+    published procedure HeroListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure HeroInfoClick; public
+    published procedure T2LevelLBDoubleClick; public
+    published procedure T2WallLBDoubleClick; public
+    published procedure T2RaceLBDoubleClick; public
+    published procedure T2ActLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure T2ActLBDoubleClick; public
+    published procedure T2RelLBDrawItem(Sender: TAoWComponent; const DrawRect: TRect; DrawItem: Integer; var SurfDesc: TSurfaceDesc); public
+    published procedure OverWindowResize; public
+    published procedure T2SBChange; public
+    published procedure T3NameChange(Sender: TObject); public
+    published procedure T3SBChange; public
+    published procedure T2SNameClick(Sender: TObject; Button: Integer); public
+    published procedure T2SRaceClick(Sender: TObject; Button: Integer); public
+    published procedure T2SInClick(Sender: TObject; Button: Integer); public
+    published procedure T2SLvlClick(Sender: TObject; Button: Integer); public
+    published procedure T2SWallClick(Sender: TObject; Button: Integer); public
+    published procedure T2SSizeClick(Sender: TObject; Button: Integer); public
+    published procedure T2SRelClick(Sender: TObject; Button: Integer); public
+    published procedure T2SMorClick(Sender: TObject; Button: Integer); public
+    published procedure T2SActClick(Sender: TObject; Button: Integer); public
+    published procedure T2SEncClick(Sender: TObject; Button: Integer); public
+    published procedure T3SNameClick(Sender: TObject; Button: Integer); public
+    published procedure HeroListChange(Sender: TObject); public
+    published procedure HeroVSBChange; public
+    published procedure T5HeroInfDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
+    published procedure Unit1LBDoubleClick(Sender: TObject); public
+    published procedure T5SNameClick(Sender: TObject; Button: Integer); public
+    published procedure T5SHealthClick(Sender: TObject; Button: Integer); public
+    published procedure T5SLevelClick(Sender: TObject; Button: Integer); public
+    published procedure GotoButClick; public
+    published procedure T4PnlShow(Sender: TObject); public
+    published procedure T4PnlHide(Sender: TObject); public
+    published procedure OverWindowShow; public
+    published procedure OverWindowHide; public
+    published procedure IncomeSBChange; public
+    published procedure T3ActivityClick(Sender: TObject; Button: Integer); public
+    published procedure UpkeepSBChange; public
+    published procedure DlgShow; public
+    published procedure DlgHide; public
+    published procedure HelpClick; public
   end;
 
 

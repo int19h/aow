@@ -92,30 +92,30 @@ type
     FPlayers: TPlayerList; { $2F4 }
     FRaces: TRaceList; { $2F8 }
     FSongs: TSonglist; { $2FC }
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure RaceListCheckBoxClickCheck(Sender: TObject);
-    procedure PlayerCBChange(Sender: TObject);
-    procedure ObjectiveMemoChange(Sender: TObject);
-    procedure ExternalGoldIncomeEditChange(Sender: TObject);
-    procedure StartGoldEditChange(Sender: TObject);
-    procedure PlayerFixedClick(Sender: TObject);
-    procedure PlayerRaceBoxChange(Sender: TObject);
-    procedure PlayerTypeBoxChange(Sender: TObject);
-    procedure BehaviorCBChange(Sender: TObject);
-    procedure StartManaEditChange(Sender: TObject);
-    procedure ExternalPowerIncomeEditChange(Sender: TObject);
-    procedure OKBtnClick(Sender: TObject);
-    procedure AddSongClick(Sender: TObject);
-    procedure DeleteSongClick(Sender: TObject);
-    procedure ObjectiveBoxooClick(Sender: TObject);
-    procedure NumberOfPlayersEditChange(Sender: TObject);
-    procedure RelationGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure RelationGridDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState);
-    procedure RelationGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure ChangePasswordBtnClick(Sender: TObject);
-    procedure VictoryConditionClick(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    published procedure FormCreate(Sender: TObject); public
+    published procedure FormDestroy(Sender: TObject); public
+    published procedure RaceListCheckBoxClickCheck(Sender: TObject); public
+    published procedure PlayerCBChange(Sender: TObject); public
+    published procedure ObjectiveMemoChange(Sender: TObject); public
+    published procedure ExternalGoldIncomeEditChange(Sender: TObject); public
+    published procedure StartGoldEditChange(Sender: TObject); public
+    published procedure PlayerFixedClick(Sender: TObject); public
+    published procedure PlayerRaceBoxChange(Sender: TObject); public
+    published procedure PlayerTypeBoxChange(Sender: TObject); public
+    published procedure BehaviorCBChange(Sender: TObject); public
+    published procedure StartManaEditChange(Sender: TObject); public
+    published procedure ExternalPowerIncomeEditChange(Sender: TObject); public
+    published procedure OKBtnClick(Sender: TObject); public
+    published procedure AddSongClick(Sender: TObject); public
+    published procedure DeleteSongClick(Sender: TObject); public
+    published procedure ObjectiveBoxooClick(Sender: TObject); public
+    published procedure NumberOfPlayersEditChange(Sender: TObject); public
+    published procedure RelationGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); public
+    published procedure RelationGridDrawCell(Sender: TObject; ACol, ARow: Integer; R: TRect; State: TGridDrawState); public
+    published procedure RelationGridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure ChangePasswordBtnClick(Sender: TObject); public
+    published procedure VictoryConditionClick(Sender: TObject); public
+    published procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean); public
     procedure LoadSettings;
     procedure SaveSettings;
     procedure UpdateRaceList;

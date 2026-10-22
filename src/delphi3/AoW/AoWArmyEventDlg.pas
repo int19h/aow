@@ -38,13 +38,13 @@ type
     procedure DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
     procedure DrawUnit(Index, X, Y: Integer; SD: TSurfaceDesc);
     procedure ClearEvent;
-    procedure ArmyEventDlgCreate;  { draft }
-    procedure ArmyEventDlgDestroy;  { draft }
-    procedure CloseClick;  { draft }
-    procedure UnitPnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure UnitPnlUpdate;  { draft }
-    procedure ArmyEventWinHide;  { draft }
-    procedure ArmyEventWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    published procedure ArmyEventDlgCreate; public  { draft }
+    published procedure ArmyEventDlgDestroy; public  { draft }
+    published procedure CloseClick; public  { draft }
+    published procedure UnitPnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure UnitPnlUpdate; public  { draft }
+    published procedure ArmyEventWinHide; public  { draft }
+    published procedure ArmyEventWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 

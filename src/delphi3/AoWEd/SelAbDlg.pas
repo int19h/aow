@@ -46,11 +46,11 @@ type
     function vmt8C(AbilityID: Integer): string; virtual; { +08C }
     function vmt90(AbilityID: Integer): Boolean; virtual; { +090 }
     function vmt94(AbilityID: Integer): Boolean; virtual; { +094 }
-    procedure AddBtnClick(Sender: TObject);
-    procedure DeleteBtnClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure AvailableAbBoxClick(Sender: TObject);
-    procedure SelectedAbBoxClick(Sender: TObject);
+    published procedure AddBtnClick(Sender: TObject); public
+    published procedure DeleteBtnClick(Sender: TObject); public
+    published procedure FormShow(Sender: TObject); public
+    published procedure AvailableAbBoxClick(Sender: TObject); public
+    published procedure SelectedAbBoxClick(Sender: TObject); public
   end;
 
 

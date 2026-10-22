@@ -38,15 +38,15 @@ type
     procedure ResetCampaignJoin;
     procedure FinishSelection;
     procedure ShowLeaderChoices;
-    procedure CampaignJoinDlgCreate;
-    procedure CampaignJoinDlgDestroy;
-    procedure CharGenPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure DefaultFacePnlDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure CustomBtnClick;  { draft }
-    procedure DefaultBtnClick;  { draft }
-    procedure ScrollTextDBUpdate;
-    procedure ScrollTextDBDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DefaultFacePnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer);  { draft }
+    published procedure CampaignJoinDlgCreate; public
+    published procedure CampaignJoinDlgDestroy; public
+    published procedure CharGenPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure DefaultFacePnlDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure CustomBtnClick; public  { draft }
+    published procedure DefaultBtnClick; public  { draft }
+    published procedure ScrollTextDBUpdate; public
+    published procedure ScrollTextDBDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DefaultFacePnlMouseDown(A1: Integer; A2: Integer; A3: Integer; A4: Integer; A5: Integer); public  { draft }
   end;
 
 

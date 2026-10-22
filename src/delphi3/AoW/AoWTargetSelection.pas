@@ -33,8 +33,8 @@ type
     TargetLbl: TAOWLabel; { +007C }
     Translator: TIvTranslator; { +0080 }
     public
-    procedure CloseClick;
-    procedure MainBtnClick;
+    published procedure CloseClick; public
+    published procedure MainBtnClick; public
   end;
 
 

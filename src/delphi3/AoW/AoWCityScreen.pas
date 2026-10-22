@@ -203,35 +203,35 @@ type
     procedure ProductionEvent(Event: TCityProductionEventLog);
     procedure CityChanged(Sender: TObject);
     procedure ShowCity(City: TCity);
-    procedure CityScreenCreate;
-    procedure CityScreenDestroy;
-    procedure ActivityChange(Sender: TObject);
-    procedure ActivityDoubleClick(Sender: TObject);
-    procedure ProductionChange(Sender: TObject);
-    procedure ProductionDoubleClick(Sender: TObject);
-    procedure ProductionsUpdate(Sender: TObject);
-    procedure ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
-    procedure CityBtn1Click(Sender: TObject);
-    procedure CityBtn2Click;
-    procedure CityBtn3Click;
-    procedure PreDrawProductions(Sender: TObject; SD: TSurfaceDesc);
-    procedure SortMigrationRacesClick;
-    procedure SortMigrationTurnsClick;
-    procedure SortMigrationRelationClick;
-    procedure MigrationChange(Sender: TAOWListBox);
-    procedure MigrationSBChange(Sender: TObject);
-    procedure UFaceDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure QueueLBChange(Sender: TAOWListBox);
-    procedure CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure LoopQueueBoxChange;
-    procedure RacePortraitDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc);
-    procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure MapViewUpdate;
-    procedure DlgHide;
-    procedure UAbilitiesLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure PPrevClick;
-    procedure PNextClick;
+    published procedure CityScreenCreate; public
+    published procedure CityScreenDestroy; public
+    published procedure ActivityChange(Sender: TObject); public
+    published procedure ActivityDoubleClick(Sender: TObject); public
+    published procedure ProductionChange(Sender: TObject); public
+    published procedure ProductionDoubleClick(Sender: TObject); public
+    published procedure ProductionsUpdate(Sender: TObject); public
+    published procedure ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
+    published procedure CityBtn1Click(Sender: TObject); public
+    published procedure CityBtn2Click; public
+    published procedure CityBtn3Click; public
+    published procedure PreDrawProductions(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure SortMigrationRacesClick; public
+    published procedure SortMigrationTurnsClick; public
+    published procedure SortMigrationRelationClick; public
+    published procedure MigrationChange(Sender: TAOWListBox); public
+    published procedure MigrationSBChange(Sender: TObject); public
+    published procedure UFaceDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure QueueLBChange(Sender: TAOWListBox); public
+    published procedure CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure LoopQueueBoxChange; public
+    published procedure RacePortraitDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure MapViewDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
+    published procedure MapViewUpdate; public
+    published procedure DlgHide; public
+    published procedure UAbilitiesLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure PPrevClick; public
+    published procedure PNextClick; public
   end;
 
 

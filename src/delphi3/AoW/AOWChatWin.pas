@@ -30,13 +30,13 @@ type
     public
     FScrollPending: Boolean; { $70 }
     F_ChatWindow_71: array[0..2] of Byte;
-    procedure MinClick;
-    procedure ChatEditReturn;
-    procedure ChatWinResize;
-    procedure ChatWinShow;
-    procedure ChatWinHide;
-    procedure ChatMemoUpdate;
-    procedure PlayerListPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const SD: TSurfaceDesc);
+    published procedure MinClick; public
+    published procedure ChatEditReturn; public
+    published procedure ChatWinResize; public
+    published procedure ChatWinShow; public
+    published procedure ChatWinHide; public
+    published procedure ChatMemoUpdate; public
+    published procedure PlayerListPreDrawItem(Sender: TObject; const DrawRect: TRect; DrawItem: Integer; const SD: TSurfaceDesc); public
   end;
 
 

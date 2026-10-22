@@ -46,6 +46,7 @@ type
 procedure RegisterCombatRoad(AEngine: TEngine);
 
 implementation
+uses CombatTerrain;
 
 class function TCombatRoad.ClassID: Integer;
 begin Result := $220502; end;
