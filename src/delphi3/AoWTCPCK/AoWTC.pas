@@ -945,7 +945,7 @@ begin
         Result := Result + Path.List[I].Flag;
       end;
   except
-    MessageBox(0, 'Error during Eval Movepath', PChar('Error - TCAI ' + U.FUnit.GetName), 0);
+    MessageBox(0, 'Error during Eval Movepath', PChar(Pointer('Error - TCAI ' + U.FUnit.GetName)), 0);
   end;
 end;
 
@@ -1413,7 +1413,7 @@ begin
                         for I := 0 to BestIndex - 1 do Path.Delete(0);
                       PathCost := TMovepath(Path).PosToMovePoints(0);
                     end;
-                  end;
+                  { Keep move selection inside the positive movement guard. }
                   Cost := (PathCost - U.FMovePoints - Range * 4) * 10;
                   if Cost < 1 then Cost := 1;
                   if not (U.FUnit is THero) then SafeValue := 0 else begin
@@ -1447,7 +1447,7 @@ begin
                         CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
                       else
                         CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
-                  end;
+                  end; end;
                 end;
               end;
             end;
@@ -1577,7 +1577,7 @@ begin
                       for I := 0 to BestIndex - 1 do Path.Delete(0);
                     PathCost := TMovepath(Path).PosToMovePoints(0);
                   end;
-                end;
+                { Keep move selection inside the positive movement guard. }
                 Cost := (PathCost - U.FMovePoints - Range * 4) * 10;
                 if Cost < 1 then Cost := 1;
                 if not (U.FUnit is THero) then SafeValue := 0 else begin
@@ -1613,7 +1613,7 @@ begin
                       CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
                     else
                       CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
-                end;
+                end; end;
               end;
             except MessageBox(0, 'Error during Ranged Check', PChar(Pointer('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell))), 0); end;
           end;
@@ -4372,8 +4372,8 @@ begin
             end; 14, 16: Inc(Weights[11], FNeighborWeights[11]); end;
           end;
           HasUnit := AoWCombatMap.MapContainer.MapLevels[0].Field[Col * 2, Row].FindChild($220104) <> nil;
-          if (HasUnit or Blocked(Col * 2, Row, 0, 2)) and
-            (HasUnit or Blocked(Col * 2, Row, 4, 8)) and (HasUnit or Blocked(Col * 2, Row, 9, 17)) then begin
+          if HasUnit or Blocked(Col * 2, Row, 0, 2) then begin
+            if (HasUnit or Blocked(Col * 2, Row, 4, 8)) and (HasUnit or Blocked(Col * 2, Row, 9, 17)) then begin
             Weights[1] := 0;
             Weights[2] := 0;
             Weights[3] := 0;
@@ -4386,7 +4386,7 @@ begin
             Weights[16] := 0;
             Weights[17] := 0;
             Weights[18] := 0;
-          end else if (HasUnit or Blocked(Col * 2, Row, 4, 8)) and (HasUnit or Blocked(Col * 2, Row, 9, 17)) then begin
+          end; end else if (HasUnit or Blocked(Col * 2, Row, 4, 8)) and (HasUnit or Blocked(Col * 2, Row, 9, 17)) then begin
             Weights[14] := 0;
             Weights[15] := 0;
             Weights[16] := 0;
@@ -4443,8 +4443,8 @@ begin
             end; 14, 16: Inc(Weights[11], FNeighborWeights[11]); end;
           end;
           HasUnit := AoWCombatMap.MapContainer.MapLevels[0].Field[Col * 2 + 1, Row].FindChild($220104) <> nil;
-          if (HasUnit or Blocked(Col * 2 + 1, Row, 0, 2)) and
-            (HasUnit or Blocked(Col * 2 + 1, Row, 4, 8)) and (HasUnit or Blocked(Col * 2 + 1, Row, 9, 17)) then begin
+          if HasUnit or Blocked(Col * 2 + 1, Row, 0, 2) then begin
+            if (HasUnit or Blocked(Col * 2 + 1, Row, 4, 8)) and (HasUnit or Blocked(Col * 2 + 1, Row, 9, 17)) then begin
             Weights[1] := 0;
             Weights[2] := 0;
             Weights[3] := 0;
@@ -4457,7 +4457,7 @@ begin
             Weights[16] := 0;
             Weights[17] := 0;
             Weights[18] := 0;
-          end else if (HasUnit or Blocked(Col * 2 + 1, Row, 4, 8)) and (HasUnit or Blocked(Col * 2 + 1, Row, 9, 17)) then begin
+          end; end else if (HasUnit or Blocked(Col * 2 + 1, Row, 4, 8)) and (HasUnit or Blocked(Col * 2 + 1, Row, 9, 17)) then begin
             Weights[14] := 0;
             Weights[15] := 0;
             Weights[16] := 0;

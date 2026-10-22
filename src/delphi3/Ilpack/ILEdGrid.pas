@@ -322,13 +322,13 @@ var
   S: string;
 begin
   Centered := False;
-  if not FMultiSelected then
+  if not FMultiSelected and (Selection.Top <> Selection.Bottom) then
   begin
-    if Selection.Top <> Selection.Bottom then
-    begin
-      if Assigned(FOnMultiSelect) then FOnMultiSelect(Self);
-      FMultiSelected := True;
-    end;
+    { Notify only when the selection first becomes multiple rows. }
+
+    if Assigned(FOnMultiSelect) then FOnMultiSelect(Self);
+    FMultiSelected := True;
+
   end
   else
     FMultiSelected := Selection.Top <> Selection.Bottom;

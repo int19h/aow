@@ -735,8 +735,8 @@ begin
       end
       else
         TVisibilityList(THSMap(TMapContainer(TMapLevel(MapF.Owner).FMapContainer).FMap).FDynamicVisibleHS).RemoveChild(Self);
-      SetVisible(False);
     end;
+    SetVisible(False);
   end;
 end;
 

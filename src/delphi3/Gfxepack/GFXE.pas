@@ -7591,9 +7591,9 @@ asm
         mov     esi, Src
         mov     edi, Dst
         test    ebx, ebx
-        je      @@exit
+        je      @@done
         test    eax, eax
-        je      @@exit
+        je      @@done
         test    esi, 3
         jne     @@unaligned
         test    edi, 3
@@ -8622,8 +8622,8 @@ begin
     pfARGB1555: Result := (R and $F8) shl 7 + (G and $F8) shl 2 + (B and $F8) shr 3;
     pfRGB24: Result := R shl 16 + G shl 8 + B;
     pfBGR24: Result := Color;
-    pfXRGB32: Result := R shl 16 + G shl 8 + B;
     pfRGB32: Result := R shl 16 + G shl 8 + B;
+    pfXRGB32: Result := R shl 16 + G shl 8 + B;
     pfPAL8:
       if Palette <> nil then
         Result := Palette.GetNearestColor(R + G shl 8 + B shl 16)
@@ -10289,9 +10289,9 @@ asm
         je      @@lokey
         mov     L12, esi
         mov     esi, eax
-        mov     L13, edi
+@@both: mov     L13, edi
         mov     edi, [edi]
-@@both:
+        { Every full pair reloads its destination pixels. }
         mov     esp, esi
         mov     L10, edi
         and     esi, $1F
@@ -10645,9 +10645,9 @@ asm
         je      @@lokey
         mov     L12, esi
         mov     esi, eax
-        mov     L13, edi
+@@both: mov     L13, edi
         mov     edi, [edi]
-@@both:
+        { Every full pair reloads its destination pixels. }
         mov     esp, esi
         mov     L10, edi
         and     esi, $1F

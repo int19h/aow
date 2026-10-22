@@ -2773,12 +2773,12 @@ begin
   if Result = nil then
   begin
     I := 0;
-    while I < Count do
+    while (Result = nil) and (I < Count) do
     begin
       if Children[I] is TECustomNode then
         Result := TECustomNode(Children[I]).FindChildInTree(AClassID);
       Inc(I);
-      if Result <> nil then Break;
+      { The original tests Result before the child-count call. }
     end;
   end;
 end;
