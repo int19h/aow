@@ -42,9 +42,9 @@ type
     published procedure DarkPnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
     published procedure LBackClick; public
     published procedure DBackClick; public
-    published procedure FactionPnlMouseMove; public
-    published procedure LightPnlMouseMove; public
-    published procedure DarkPnlMouseMove; public
+    published procedure FactionPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure LightPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
+    published procedure DarkPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
     published procedure AbortBtnClick; public
     published procedure FactionPnlUpdate; public
     published procedure FactionPnlKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
@@ -135,7 +135,7 @@ begin
   FFadeDirection := 0;
 end;
 
-procedure TSelFactionWin.FactionPnlMouseMove;
+procedure TSelFactionWin.FactionPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
   if not LightPnl.FHandled and not DName.Visible and not DarkPnl.FHandled and not LName.Visible then
   begin
@@ -145,7 +145,7 @@ begin
   end;
 end;
 
-procedure TSelFactionWin.LightPnlMouseMove;
+procedure TSelFactionWin.LightPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
   if not LName.Visible and not DSphere.Visible then
   begin
@@ -155,7 +155,7 @@ begin
   end;
 end;
 
-procedure TSelFactionWin.DarkPnlMouseMove;
+procedure TSelFactionWin.DarkPnlMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
   if not DName.Visible and not LSphere.Visible then
   begin

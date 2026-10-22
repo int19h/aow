@@ -792,8 +792,8 @@ begin
       end
       else
       begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
-    end;
-  end else begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
+    end else begin CastingPnl.Visible := False; NoneCastingLbl.Visible := True; end;
+  end;
 end;
 
 end.

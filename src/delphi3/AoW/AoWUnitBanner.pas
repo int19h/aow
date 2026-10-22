@@ -39,7 +39,7 @@ type
     published procedure AbLBUpdate; public  { draft }
     published procedure AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); public
     published procedure BannerPopupMouseDown(A1: Integer; A2: Byte; A3: Integer; A4: Integer; A5: Integer); public  { draft }
-    published procedure AbLBMouseDown; public  { draft }
+    published procedure AbLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
   end;
 
 
@@ -92,7 +92,7 @@ begin
   if A2 = 1 then UnitBanner.BannerPopup.Visible := False;
 end;
 
-procedure TUnitBanner.AbLBMouseDown;
+procedure TUnitBanner.AbLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Reason: string;
 begin

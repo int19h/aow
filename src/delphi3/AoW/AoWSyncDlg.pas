@@ -59,7 +59,7 @@ begin
   Settings := GetPlayerSetup;
   if Settings <> nil then
   begin
-    R := Rect(Dlg.WinLeft + 188, Dlg.WinTop + 40, Dlg.WinLeft + 291, Dlg.WinTop + 40 + 128);
+    R := Rect(Dlg.WinLeft + 188, Dlg.WinTop + 40, Dlg.WinLeft + 188 + 103, Dlg.WinTop + 40 + 128);
     Settings.FLeader.ShowFace(R, Surface);
   end;
 end;

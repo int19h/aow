@@ -159,8 +159,8 @@ type
     published procedure AvailableAbilityCostSortClick; public
     published procedure DoneClick; public
     published procedure DlgHide; public
-    published procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton); public
-    published procedure SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton); public
+    published procedure AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
     published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
@@ -541,7 +541,7 @@ begin
   ClearHero;
 end;
 
-procedure THeroUpgradeDlg.AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+procedure THeroUpgradeDlg.AvailableAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Ability: TAbility;
 begin
@@ -553,7 +553,7 @@ begin
   end;
 end;
 
-procedure THeroUpgradeDlg.SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton);
+procedure THeroUpgradeDlg.SelectedAbilitiesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Ability: TAbility;
 begin

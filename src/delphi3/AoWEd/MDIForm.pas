@@ -473,7 +473,7 @@ type
     published procedure RemoveLeadersMIClick(Sender: TObject); public  { draft }
     published procedure MapTextEditorMIClick(Sender: TObject); public
     published procedure ExportForMultilizerClick(Sender: TObject); public
-    published procedure HSMEditKeyDown(Sender: TObject); public
+    published procedure HSMEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
   end;
 
 function GetEditorVersion: string;
@@ -2295,7 +2295,7 @@ begin
   end;
 end;
 
-procedure TMainForm.HSMEditKeyDown(Sender: TObject);
+procedure TMainForm.HSMEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   I, J, Count: Integer;
 begin

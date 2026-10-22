@@ -183,7 +183,7 @@ type
     published procedure DefendDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
     published procedure RingLDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); public
     published procedure DisbandBtnClick; public  { draft }
-    published procedure T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton); public
+    published procedure T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
     published procedure UnitWinKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
     published procedure PPrevClick; public
     published procedure PNextClick; public
@@ -923,7 +923,7 @@ begin
   DialogWin.Confirm(TranslateRStr(E2Globals.ConfirmRStr), TranslateRStr(DisbandUnitRStr), 7);
 end;
 
-procedure TUnitWindow.T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton);
+procedure TUnitWindow.T1AbilityLBMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   A: TAbility;
 begin

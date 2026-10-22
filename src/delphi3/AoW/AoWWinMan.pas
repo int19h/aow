@@ -80,9 +80,9 @@ procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
   case Kind of
     0: PlaySample('Sfx\Int\Btn1.wav');
+    3: PlaySample('Sfx\Int\Btn3.wav');
     1: PlaySample('Sfx\Int\Btn5.wav');
     2: PlaySample('Sfx\Int\Btn6.wav');
-    3: PlaySample('Sfx\Int\Btn3.wav');
   end;
 end;
 

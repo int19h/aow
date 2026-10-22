@@ -98,7 +98,7 @@ type
     published procedure FastCombatWindowCreate; public
     published procedure FastCombatWindowDestroy; public
     published procedure CloseButClick; public  { draft }
-    published procedure FCWinDrawSurface(Sender: TObject; Surface: TSurface); public
+    published procedure FCWinDrawSurface(Sender: TObject; Surface: TSurface; Left, Top: Integer); public
     published procedure FCWinUpdate(Sender: TObject); public
     published procedure InitialViewClick; public  { draft }
     published procedure FinalViewClick; public  { draft }
@@ -402,7 +402,7 @@ begin
   FCWin.Visible := False;
 end;
 
-procedure TFastCombatWindow.FCWinDrawSurface(Sender: TObject; Surface: TSurface);
+procedure TFastCombatWindow.FCWinDrawSurface(Sender: TObject; Surface: TSurface; Left, Top: Integer);
 var
   SD: TSurfaceDesc;
 begin
@@ -417,7 +417,7 @@ begin
       Surface.Unlock;
     end;
   except
-    raise;
+    raise Exception.Create('Exception during FastCombatWin.DrawSurface');
   end;
 end;
 

@@ -180,7 +180,7 @@ begin
     MWindow.MapViewer.HSMap := nil;
     SetupEvents.DPlay.DisConnect;
     if SetupEvents.FLobbyGame then AoWUnit.MainForm.Close;
-  except
+  except ShowMessage('Error during close');
   end;
 end;
 

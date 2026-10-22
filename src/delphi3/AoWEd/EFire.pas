@@ -38,7 +38,7 @@ type
 implementation
 
 class procedure TFireEditor.Edit(Obj: Engine.TEObject; AEngine: Engine.TEngine; Done: Engine.TEditDoneEvent);
-begin end;
+begin TFireEditForm.vmt90(Obj, Done); end;
 
 class procedure TFireEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine: Engine.TEngine; var Handled: Engine.TEditMode; Menu: Menus.TPopupMenu);
 begin Handled := Handled + [emEdit]; end;
