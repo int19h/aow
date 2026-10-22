@@ -75,8 +75,8 @@ begin
   if FVisible then
   begin
     if not FValid or not FAligned or not FSized then Setup;
-    Update;
-    ReAlign;
+    ClearBltList;
+    ClearDrawList;
     FDrawn := False;
     SetPriority(FPriority);
   end;

@@ -102,7 +102,7 @@ end;
 
 procedure TTitleScene.DrawCredits(var Surface: TSurfaceDesc);
 var
-  X, Y, I, Duration: Integer;
+  X, Y, I, Duration, Alpha: Integer;
   Info: TShowInfo;
   Lines: TStrings;
 begin
@@ -112,36 +112,36 @@ begin
   Lines := TStrings(FCredits[FCreditPage]);
   X := Surface.Width div 2;
   Y := Surface.Height div 2 - ((Lines.Count * 25 + FCreditsFont.Height) div 2 + 35);
-  Duration := Lines.Count * 30 + 70;
+  Duration := Lines.Count * 30 + 20 + 50;
   if Lines.Count > 0 then
   begin
-    Info.BlendPercentage := FCreditFrame;
-    if Info.BlendPercentage > Duration then
-      Info.BlendPercentage := 100 - (Info.BlendPercentage - Duration) * 5
-    else Info.BlendPercentage := Info.BlendPercentage * 10;
-    if Info.BlendPercentage > 0 then
-      if Info.BlendPercentage < 100 then
+    Alpha := FCreditFrame;
+    if Alpha > Duration then
+      Alpha := 100 - (Alpha - Duration) * 5
+    else Alpha := Alpha * 10;
+    Info.BlendPercentage := Alpha; if Alpha > 0 then
+      if Alpha < 100 then
         FCreditsFont.SetTextEx(X, Y, Lines[0], Surface, [stmCenter], Info)
       else FCreditsFont.SetTextCentered(X, Y, Lines[0], Surface);
     for I := 1 to Lines.Count - 1 do
     begin
-      if FCreditFrame > Duration then Info.BlendPercentage := 100 - (FCreditFrame - Duration) * 5
-      else Info.BlendPercentage := (FCreditFrame - (I * 30 + 20)) * 10;
-      if Info.BlendPercentage > 0 then
-        if Info.BlendPercentage < 100 then
+      if FCreditFrame > Duration then Alpha := 100 - (FCreditFrame - Duration) * 5
+      else Alpha := (FCreditFrame - (I * 30 + 20)) * 10;
+      if Alpha > 0 then begin Info.BlendPercentage := Alpha;
+        if Alpha < 100 then
           FCreditsFont.SetTextEx(X, Y + I * 25 + 5, Lines[I], Surface, [stmCenter], Info)
-        else FCreditsFont.SetTextCentered(X, Y + I * 25 + 5, Lines[I], Surface);
+        else FCreditsFont.SetTextCentered(X, Y + I * 25 + 5, Lines[I], Surface); end;
     end;
   end;
   if FCreditFrame > Duration + 20 then
   begin
     Inc(FCreditPage);
-    if FCreditPage >= FCredits.Count then
-    begin
+    if FCreditPage < FCredits.Count then
+      FCreditFrame := 0
+    else begin
       FTotalFrame := 0;
       FShowCredits := False;
-    end
-    else FCreditFrame := 0;
+    end;
   end;
 end;
 

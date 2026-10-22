@@ -428,13 +428,13 @@ procedure TScanner.Draw(SurfDesc: GFXE.TSurfaceDesc);
 begin end;
 
 procedure TScanner.CheckMouseDown(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+var OldLeft, OldTop: Integer; begin if (X > FAOWWindow.FWinLeft + FWinLeft - 1) and (X < FAOWWindow.FWinLeft + FWinLeft + FWinWidth) and (Y > FAOWWindow.FWinTop + FWinTop - 1) and (Y < FAOWWindow.FWinTop + FWinTop + FWinHeight) then begin FMouseDown := True; X := (X - FAOWWindow.FWinLeft - FWinLeft) * FMapWidth div FWinWidth; Y := (Y - FAOWWindow.FWinTop - FWinTop) * FMapHeight div FDrawableHeight; OldLeft := FTLeft; OldTop := FTTop; FTLeft := X - FTWidth div 2; FTTop := Y - FTHeight div 2; if (FTTop <> OldTop) or (OldLeft <> FTLeft) then begin FDrawn := False; if Assigned(FOnMapPositionChange) then FOnMapPositionChange(Self); end; end; end;
 
 procedure TScanner.CheckMouseUp(Button: Controls.TMouseButton; Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+begin FHandled := False; if (X > FAOWWindow.FWinLeft + FWinLeft - 1) and (X < FAOWWindow.FWinLeft + FWinLeft + FWinWidth) and (Y > FAOWWindow.FWinTop + FWinTop - 1) and (Y < FAOWWindow.FWinTop + FWinTop + FWinHeight) then begin FHandled := True; if Assigned(FOnMouseUp) then FOnMouseUp(Self, Button, Shift, X, Y); end; FMouseDown := False; end;
 
 procedure TScanner.CheckMouseMove(Shift: Classes.TShiftState; X, Y: Integer);
-begin end;
+var MapX, MapY, OldLeft, OldTop: Integer; begin inherited CheckMouseMove(Shift, X, Y); FHandled := False; if (X >= FAOWWindow.FWinLeft + FWinLeft) and (X <= FAOWWindow.FWinLeft + FWinLeft + FWinWidth - 1) and (Y >= FAOWWindow.FWinTop + FWinTop) and (Y <= FAOWWindow.FWinTop + FWinTop + FWinHeight - 1) then begin FHandled := True; if FMouseDown = True then begin OldLeft := FTLeft; OldTop := FTTop; MapX := (X - FAOWWindow.FWinLeft - FWinLeft) * FMapWidth div FWinWidth; MapY := (Y - FAOWWindow.FWinTop - FWinTop) * FMapHeight div FDrawableHeight; FTLeft := MapX - FTWidth div 2; FTTop := MapY - FTHeight div 2; if (FTTop <> OldTop) or (FTLeft <> OldLeft) then begin FDrawn := False; if Assigned(FOnMapPositionChange) then FOnMapPositionChange(Self); end; end; if Assigned(FOnMouseMove) then FOnMouseMove(Self, Shift, X, Y); end; end;
 
 procedure Register;
 begin

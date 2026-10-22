@@ -156,8 +156,8 @@ type
     procedure SetPageKind(Kind: Byte);
     procedure UpdateSpellPages;
     procedure UpdateInfoPages;
-    procedure ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Icon: TAOWImage;
-      Memo: TAOWMemo; Cost, SpellClass, Name: TAOWLabel; Button: TAOWButton);
+    procedure ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Button: TAOWButton;
+      Name, SpellClass, Cost: TAOWLabel; Memo: TAOWMemo; Icon: TAOWImage);
     procedure SelectSpell(Spell: TSpell);
     procedure PlayerChanged(Player: Shortint);
     procedure UnitChanged(U: TAbstractUnit);
@@ -613,14 +613,14 @@ begin
     end;
     for I := FSpells.GetCount - 1 downto 0 do
       if (FSpells.GetSpell(I).FSpellID > 99) and (SpellTypes[FSpells.GetSpell(I).FSpellID] = fxNone) then FSpells.Delete(I);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8), S1Pnl, S1Icn, S1Memo, S1Cost, S1Class, S1Spell, S1Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 1), S2Pnl, S2Icn, S2Memo, S2Cost, S2Class, S2Spell, S2Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 2), S3Pnl, S3Icn, S3Memo, S3Cost, S3Class, S3Spell, S3Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 3), S4Pnl, S4Icn, S4Memo, S4Cost, S4Class, S4Spell, S4Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 4), S5Pnl, S5Icn, S5Memo, S5Cost, S5Class, S5Spell, S5Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 5), S6Pnl, S6Icn, S6Memo, S6Cost, S6Class, S6Spell, S6Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 6), S7Pnl, S7Icn, S7Memo, S7Cost, S7Class, S7Spell, S7Btn);
-    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 7), S8Pnl, S8Icn, S8Memo, S8Cost, S8Class, S8Spell, S8Btn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8), S1Pnl, S1Btn, S1Spell, S1Class, S1Cost, S1Memo, S1Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 1), S2Pnl, S2Btn, S2Spell, S2Class, S2Cost, S2Memo, S2Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 2), S3Pnl, S3Btn, S3Spell, S3Class, S3Cost, S3Memo, S3Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 3), S4Pnl, S4Btn, S4Spell, S4Class, S4Cost, S4Memo, S4Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 4), S5Pnl, S5Btn, S5Spell, S5Class, S5Cost, S5Memo, S5Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 5), S6Pnl, S6Btn, S6Spell, S6Class, S6Cost, S6Memo, S6Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 6), S7Pnl, S7Btn, S7Spell, S7Class, S7Cost, S7Memo, S7Icn);
+    ShowSpellEntry(FSpells.GetSpell(FPage * 8 + 7), S8Pnl, S8Btn, S8Spell, S8Class, S8Cost, S8Memo, S8Icn);
     if FMode = 0 then
     begin
       FPlayerPages.Count := AoWHSMap.FSeatedPlayer + 1;
@@ -635,12 +635,12 @@ begin
   end;
 end;
 
-procedure TSpellBook.ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Icon: TAOWImage;
-  Memo: TAOWMemo; Cost, SpellClass, Name: TAOWLabel; Button: TAOWButton);
+procedure TSpellBook.ShowSpellEntry(Spell: TSpell; Panel: TAOWPanel; Button: TAOWButton;
+  Name, SpellClass, Cost: TAOWLabel; Memo: TAOWMemo; Icon: TAOWImage);
 var Reason: string; Turns: Integer; Control: TPlayerMagicControl;
 begin
-  if Spell = nil then Panel.Visible := False
-  else
+  if Spell <> nil then
+
   begin
     Panel.Visible := True;
     Name.Text := Spell.FSpellName;
@@ -656,8 +656,8 @@ begin
     Memo.Items := Spell.FSpellText;
     if FHero = nil then Cost.Text := AoWE.Format(TranslateRStr(CostXRStr), [Spell.FBaseManaCost])
     else Cost.Text := AoWE.Format(TranslateRStr(CostXRStr), [FHero.CastingMana(Spell)]);
-    if ((FMode = 0) and ((Spell.FSpellControlTypes * [sctGlobal] = []) or FHero.Casting)) or
-      ((FMode = 1) and ((Spell.FSpellControlTypes * [sctCombat] = []) or FHero.Casting or
+    if ((FMode = 0) and (not (sctGlobal in Spell.FSpellControlTypes) or FHero.Casting)) or
+      ((FMode = 1) and (not (sctCombat in Spell.FSpellControlTypes) or FHero.Casting or
       not FHero.CanCastSpellInstantly(Spell.FSpellID, Spell.FBaseManaCost, Reason))) or
       ((FMode = 2) and (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID <> 0)) then
     begin
@@ -685,7 +685,7 @@ begin
       if Turns < 999 then Cost.Text := Cost.Text + ' ' + AoWE.Format(TranslateRStr(TurnsXRStr), [IntToStr(Turns)])
       else Cost.Text := Cost.Text + ' ' + AoWE.Format(TranslateRStr(XTurnsRStr), ['?']);
     end;
-  end;
+  end else Panel.Visible := False;
 end;
 
 procedure TSpellBook.UpdateInfoPages;

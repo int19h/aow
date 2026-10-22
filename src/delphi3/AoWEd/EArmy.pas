@@ -169,7 +169,7 @@ begin
     BehaviourComboBox.Color := clBtnFace;
     BehaviourComboBox.Enabled := False;
   end;
-  UnitGrid.Repaint;
+  UnitGrid.Invalidate;
 end;
 
 procedure TArmyEditForm.BehaviourComboBoxChange(Sender: TObject);

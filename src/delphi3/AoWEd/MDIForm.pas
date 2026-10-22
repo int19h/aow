@@ -645,7 +645,7 @@ var
   Resource: TEResource;
 begin
   Grid := TDrawGrid(HintInfo.HintControl);
-  if Grid is TCustomGrid then
+  if TObject(Grid) is TCustomGrid then
   begin
     Cell := Grid.MouseCoord(HintInfo.CursorPos.X, HintInfo.CursorPos.Y);
     HintInfo.CursorRect := Grid.CellRect(Cell.X, Cell.Y);
