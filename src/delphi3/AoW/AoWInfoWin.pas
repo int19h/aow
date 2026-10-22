@@ -565,15 +565,15 @@ end;
 
 procedure ShowRazedInfo(Dialog: TIWindow; Structure: TStructure);
 var
-  Name: string;
+  Text: string;
 begin
   ResetStructureInfo(Dialog); SetStructureHeader(Dialog, Structure);
   with Dialog do
   begin
     SingleButPnl.Visible := True;
-    if Structure is TCity then Name := AoWE.Format(TranslateRStr(CityOfXRStr), [Structure.GetName])
-    else Name := Structure.GetName;
-    SBmemo.Items.Text := AoWE.Format(TranslateRStr(TheXliesInRuinsRStr), [Name]);
+    if Structure is TCity then Text := AoWE.Format(TranslateRStr(CityOfXRStr), [Structure.GetName])
+    else Text := Structure.GetName;
+    SBmemo.Items.Text := AoWE.Format(TranslateRStr(TheXliesInRuinsRStr), [Text]);
     SBmemo.Items.Insert(0, ''); SBmemo.Items.Insert(0, '');
   end;
 end;

@@ -492,7 +492,7 @@ resourcestring
   DeleteSelectedItemsRStr = 'Do you want to delete the selected items?';
   CannotRemoveSurfaceRStr = 'Cannot Remove Surface Level';
   RemoveCurrentLevelRStr = 'Are you sure you want to remove the current map level?';
-
+const RemoveCurrentLevelRes: PResStringRec = @RemoveCurrentLevelRStr; CannotRemoveSurfaceRes: PResStringRec = @CannotRemoveSurfaceRStr;
 function GetEditorVersion: string;
 begin
   Result := AoWE.Format(TranslateRStr(VersionXRStr),
@@ -1692,11 +1692,11 @@ end;
 
 procedure TMainForm.RemoveMapLevelClick(Sender: TObject);
 var
-  Level: Shortint;
+  Level: Integer;
 begin
   if AoWHSMap <> nil then
-    if HSMEdit.SceneLevel = 0 then ShowMessage(CannotRemoveSurfaceRStr)
-    else if MessageDlg(RemoveCurrentLevelRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
+    if HSMEdit.SceneLevel <> 0 then begin
+    if MessageDlg(LoadResString(RemoveCurrentLevelRes), mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
     begin
       Level := HSMEdit.SceneLevel;
       HSMEdit.SceneLevel := 0;
@@ -1705,7 +1705,7 @@ begin
       LevelUpBtn.Enabled := LevelDownBtn.Enabled;
       MORPageControl.ActivePage := SurfaceSheet;
       AoWHSMap.SetModified;
-    end;
+    end; end else ShowMessage(LoadResString(CannotRemoveSurfaceRes));
 end;
 
 procedure TMainForm.AddMapLevelClick(Sender: TObject);
@@ -1724,9 +1724,9 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  if ParamStr(1) <> '' then
-    if FileExists(ParamStr(1)) then
-      if CompareText(ExtractFileExt(ParamStr(1)), '.hsm') = 0 then
+  if (ParamStr(1) <> '') and
+    FileExists(ParamStr(1)) and
+      (CompareText(ExtractFileExt(ParamStr(1)), '.hsm') = 0) then
       begin
         Application.ProcessMessages;
         LoadMap(ParamStr(1));

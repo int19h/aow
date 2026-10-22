@@ -529,7 +529,7 @@ type
     $520 terrain-tag weights; $9F0 terrain samples; $9F7 tag samples; $A00 resource lists; $E78 FHomePosition. }
   TRndTacHsm = class(TObject)
   public
-    FItems: TECustomNode; { $04 }
+    FItems: TItemList; { $04; 00426CD4 calls GetItem at VMT $8C. }
     FRandomTerrain: Boolean; { $08 }
     F_RndTacHsm_09: array[0..2] of Byte;
     FNeighborWeights: array[0..19] of Integer; { $0C }
@@ -913,21 +913,21 @@ begin
                 Field[Path[I].X, Path[I].Y].FindOwnedChild($220506));
           end else Wall := nil;
           Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
-            Field[Path[I].X, Path[I].Y].TerrainType * 2,
+            Field[Path[I].X, Path[I].Y].TerrainType,
             AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].OverlayType];
           if Wall <> nil then begin
-            { Original bug: the next terrain lookup uses Path[0].Y. }
+            { The wall lookup uses the current path point and the no-overlay column. }
             if (FSide = csAttacker) and (U.GetAbilityEnabled($41) or
               U.GetAbilityEnabled($75)) and (I = 0) then
               Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
-                Field[Path[I].X, Path[0].Y].TerrainType * 2, 0]
+                Field[Path[I].X, Path[I].Y].TerrainType, -1]
             else if ((FSide = csAttacker) or AoWCombatMap.FCombat.FCombatData.FWallBreached or FIgnoreWalls) and
               ((Wall.FHitPoints = 0) or ((FSide = csDefender) and (Wall is TCityWallDoor)) or
               AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled(1) or
               AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled($42) or
               AoWCombatMap.FMoveControl.FUnitHS.FUnit.GetAbilityEnabled($24)) then
               Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
-                Field[Path[I].X, Path[I].Y].TerrainType * 2, 0]
+                Field[Path[I].X, Path[I].Y].TerrainType, -1]
             else Path.List[I].Flag := 100;
             if FindWalls and (Wall.FHitPoints > 0) then begin
               NewWall := True;
@@ -940,7 +940,7 @@ begin
           if AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].
             FindOwnedChild($220104) <> nil then
             Path.List[I].Flag := MCS.FMovePointTable[AoWCombatMap.MapContainer.MapLevels[0].
-              Field[Path[I].X, Path[I].Y].TerrainType * 2, 0];
+              Field[Path[I].X, Path[I].Y].TerrainType, -1];
         end;
         Result := Result + Path.List[I].Flag;
       end;
@@ -3463,84 +3463,84 @@ var SelfDestruct: TSelfDestructCA; SpellDamage: TDamageCA; RangedDamage: TRanged
 begin
   inherited MapFieldMsgProc(Msg);
   if Msg.MsgID = $110C then begin
-    if (Msg.HN = 0) and (not AoWCombatMap.FFogEnabled or (Byte(TAoWMapField(Owner).FFieldFlags shr 16) <> 0)) then
-      if FUnit.GetPlayer = 0 then Msg.Param[0] := Msg.Param[0] or $D
-      else Msg.Param[0] := Msg.Param[0] or (AoWHSMap.FPlayers.GetPlayers(FUnit.GetPlayer).FPlayerRace + 1);
+    if (Msg.HN = 0) and (not AoWCombatMap.FFogEnabled or (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0)) then
+      if FUnit.GetPlayer <> 0 then Msg.Param[0] := Msg.Param[0] or (AoWHSMap.FPlayers.GetPlayers(FUnit.GetPlayer).FPlayerRace + 1)
+      else Msg.Param[0] := Msg.Param[0] or $D;
   end else if (Msg.MsgID = $1100) and (Msg.HN = 0) then Msg.Result := FUnit.GetPlayer
   else if (Msg.MsgID = $31000) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SelfDestruct := TSelfDestructCA(TSelfDestructAbility(AoWHSSet.FAbilityControl.GetAbility($41)).CreateSelfDestructCA(TCombatObject(Msg.Param[0]), FUnit));
-    if SelfDestruct.FDamage <> 0 then SetAction(caHit);
+    if SelfDestruct.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SelfDestruct);
     SelfDestruct.Release;
   end
   else if (Msg.MsgID = $31003) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($75).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $3100B) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($71).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $3100A) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     RangedDamage := TRangedAttackCA(TRangedAttackAbility(AoWHSSet.FAbilityControl.GetAbility($1F)).CreateRangedAttackCA(TCombatObject(Msg.Param[0]), FUnit, 0));
-    if RangedDamage.FDamage <> 0 then SetAction(caHit);
+    if RangedDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(RangedDamage);
     RangedDamage.Release;
   end
   else if (Msg.MsgID = $31013) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell(Msg.Param[1]).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $31012) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     RangedDamage := TRangedAttackCA(TRangedAttackAbility(AoWHSSet.FAbilityControl.GetAbility(Msg.Param[1])).CreateRangedAttackCA(TCombatObject(Msg.Param[0]), FUnit, 0));
-    if RangedDamage.FDamage <> 0 then SetAction(caHit);
+    if RangedDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(RangedDamage);
     RangedDamage.Release;
   end
   else if (Msg.MsgID = $31005) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($68).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $3100C) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($78).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $31006) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($74).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $3100D) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($7F).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
   else if (Msg.MsgID = $3100E) and (Msg.HN = 0) then begin
     RandSeed := AoWHSMap.Random($FFFFFF);
     SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($80).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-    if SpellDamage.FDamage <> 0 then SetAction(caHit);
+    if SpellDamage.FDamage > 0 then SetAction(caHit);
     AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
     SpellDamage.Release;
   end
@@ -3548,8 +3548,8 @@ begin
     SetDirection(FDirection + 1);
     if FDirection > 6 then SetDirection(1);
   end else if (Msg.MsgID = $31010) and (Msg.HN = 0) then begin
-    FOffsetX := Random(Msg.Param[0] * 2) - Msg.Param[0];
-    FOffsetY := Random(Msg.Param[0] * 2) - Msg.Param[0];
+    FOffsetX := Random(Msg.Param[0] * 2 + 1) - Msg.Param[0];
+    FOffsetY := Random(Msg.Param[0] * 2 + 1) - Msg.Param[0];
   end else if (Msg.MsgID = $31011) and (Msg.HN = 0) then begin
     FOffsetX := 0;
     FOffsetY := 0;
@@ -3557,7 +3557,7 @@ begin
     if not (mtFlying in FUnit.FUnit.GetMoveTypes) and (TMapField(Owner).TerrainType <> 0) and (TMapField(Owner).TerrainType <> 9) then begin
       RandSeed := AoWHSMap.Random($FFFFFF);
       SpellDamage := TDamageCA(AoWHSSet.FSpellControl.GetSpell($70).CreateCA(TCombatObject(Msg.Param[0]), FUnit, False));
-      if SpellDamage.FDamage <> 0 then SetAction(caHit);
+      if SpellDamage.FDamage > 0 then SetAction(caHit);
       AoWCombatMap.FCombat.ExecuteCombatAction(SpellDamage);
       SpellDamage.Release;
     end;
@@ -4236,22 +4236,22 @@ begin
         RandomTerrain := True;
       end;
       $2032E: if SiteCombat then begin
-        FItems := TECustomNode(Combat.FItems);
+        FItems := TItemList(Combat.FItems);
         FileName := FileName + 'eMrLr00' + IntToStr(Random(4));
         for I := 1 to 6 do FTags[I] := 127;
       end else FileName := FileName + 'Blank000';
       $2038E: if SiteCombat then begin
-        FItems := TECustomNode(Combat.FItems);
+        FItems := TItemList(Combat.FItems);
         FileName := FileName + 'eZigg00' + IntToStr(Random(2));
         for I := 1 to 6 do FTags[I] := 127;
       end else FileName := FileName + 'Blank000';
       $2030A: if SiteCombat then begin
-        FItems := TECustomNode(Combat.FItems);
+        FItems := TItemList(Combat.FItems);
         FileName := FileName + 'eCrpt00' + IntToStr(Random(2));
         for I := 1 to 6 do FTags[I] := 127;
       end else FileName := FileName + 'Blank000';
       $2039A: if SiteCombat then begin
-        FItems := TECustomNode(Combat.FItems);
+        FItems := TItemList(Combat.FItems);
         FileName := FileName + 'eRuin00' + IntToStr(Random(2));
         for I := 1 to 6 do FTags[I] := 127;
       end else FileName := FileName + 'Blank000';
@@ -4545,7 +4545,7 @@ begin
                 if AoWHSMap.MapContainer.MapLevels[AoWCombatMap.FCombat.FCombatData.FL].Field[
                   AoWCombatMap.FCombat.FCombatData.FX, AoWCombatMap.FCombat.FCombatData.FY].FindNoneTransparentHS(TCity) <> nil then;
             if (FHomePosition > 0) and (U.FPositionGroup = FHomePosition) then U.FPositionGroup := 0;
-            AoWCombatMap.FPositionStatus[U.FPositionGroup] := Ord(U.GetSide);
+            AoWCombatMap.FPositionStatus[U.FPositionGroup] := Byte(U.GetSide);
           end;
     for I := 0 to Units.Count - 1 do begin
       U := TTacticalCombatUnit(Units[I]);
@@ -4559,18 +4559,18 @@ begin
       end;
     end;
   end;
-  if AoWCombatMap.FPositionStatus[0] <> Ord(csDefender) then
+  if AoWCombatMap.FPositionStatus[0] <> 1 then
     if (AoWHSMap.MapContainer.MapLevels[AoWCombatMap.FCombat.FCombatData.FL].Field[
       AoWCombatMap.FCombat.FCombatData.FX, AoWCombatMap.FCombat.FCombatData.FY].FindNoneTransparentHS(TCity) <> nil) and
       (AoWCombatMap.FCombat.FCombatData.FWallType <> 0) then begin
       Position := 1;
       while Position < 7 do begin
-        if AoWCombatMap.FPositionStatus[Position] = Ord(csDefender) then begin
-          CenterHNtoHX(AoWCombatMap.FCombat.FCombatData.FX, AoWCombatMap.FCombat.FCombatData.FY, Position, Temp, J);
-          if AoWHSMap.MapContainer.MapLevels[AoWCombatMap.FCombat.FCombatData.FL].Field[Temp, J].FindNoneTransparentHS(TCity) <> nil then begin
+        if AoWCombatMap.FPositionStatus[Position] = 1 then begin
+          CenterHNtoHX(AoWCombatMap.FCombat.FCombatData.FX, AoWCombatMap.FCombat.FCombatData.FY, Position, J, Temp);
+          if AoWHSMap.MapContainer.MapLevels[AoWCombatMap.FCombat.FCombatData.FL].Field[J, Temp].FindNoneTransparentHS(TCity) <> nil then begin
             FHomePosition := Position;
             AoWCombatMap.FPositionStatus[Position] := Ord(csNeutral);
-            AoWCombatMap.FPositionStatus[0] := Ord(csDefender);
+            AoWCombatMap.FPositionStatus[0] := 1;
             Position := 7;
           end;
         end;
@@ -4601,8 +4601,8 @@ begin
       J := AoWCombatMap.FUnitPositions.GetUnitPosition(2, I).X;
       Temp := AoWCombatMap.FUnitPositions.GetUnitPosition(2, I).Y;
       ItemHS := TCItemHS.Create(nil);
-      if not AoWCombatMap.PlaceHX(ItemHS, J, Temp, 0) then Inc(Position)
-      else FItems.GetChild(Position).SetOwner(ItemHS.FItems);
+      if AoWCombatMap.PlaceHX(ItemHS, J, Temp, 0) then FItems.GetItem(Position).SetOwner(ItemHS.FItems)
+      else Inc(Position);
     end;
   end;
 end;
@@ -4873,16 +4873,16 @@ begin
       for I := First to Last - 1 do begin
         CenterHNtoHX(FSelection.GetTCUnitHS.GetXhx, FSelection.GetTCUnitHS.GetYhx, I, NX, NY);
         HXtoHP(NX, NY, PX, PY);
-        FTargetImages[2].Show(PX - XhpSurf, PY - YhpSurf, SurfaceDesc);
+        FTargetImages[2].Show(PX - XhpSurf - 8, PY - YhpSurf + 2, SurfaceDesc);
       end;
     end;
     if FSelection.FRangedPath.Count > 0 then begin
       Inc(FFrameCount);
-      if FFrameCount > 4 then begin FFrameCount := 0; Inc(FFrame); end;
+      if FFrameCount >= 5 then begin FFrameCount := 0; Inc(FFrame); end;
       if FFrame > 1 then FFrame := 0;
       if FSelection.GetTCUnitHS.FSelectedAbility = $34 then EffectType := SpellTypes[FSelection.GetTCUnitHS.FSelectedSpell]
       else EffectType := AbilTypes[FSelection.GetTCUnitHS.FSelectedAbility];
-      if EffectType = fxBreath then begin
+      case EffectType of fxBreath: begin
         HPtoHX(FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].X,
           FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].Y, X, Y);
         for I := 0 to 11 do begin
@@ -4891,17 +4891,17 @@ begin
           HXtoHP(NX, NY, PX, PY);
           FTargetImages[0].ShowClipped(PX - 8 - XhpSurf, PY + 2 - YhpSurf, SurfaceDesc);
         end;
-      end else
-        if FSelection.GetTCUnitHS.FSelectedAbility = $34 then
+      end; else
+        case FSelection.GetTCUnitHS.FSelectedAbility of $34:
           case FSelection.GetTCUnitHS.FSelectedSpell of
-            $68, $6A, $74, $75, $78, $81, $82: for I := 0 to 6 do begin
+            $68, $6A, $74, $75, $78, $81, $82: for I := 0 to 18 do begin
               HPtoHX(FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].X,
                 FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].Y, X, Y);
               CenterHNtoHX(X, Y, I, NX, NY);
               HXtoHP(NX, NY, PX, PY);
               FTargetImages[0].ShowClipped(PX - 8 - XhpSurf, PY + 2 - YhpSurf, SurfaceDesc);
             end;
-            $7C, $80: for I := 0 to 18 do begin
+            $7C, $80: for I := 0 to 6 do begin
               HPtoHX(FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].X,
                 FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].Y, X, Y);
               CenterHNtoHX(X, Y, I, NX, NY);
@@ -4914,7 +4914,7 @@ begin
           end
         else
           FMiscImages[FFrame + 3].ShowClipped(FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].X - 21 - XhpSurf,
-            FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].Y - 20 - YhpSurf, SurfaceDesc);
+            FSelection.FRangedPath[FSelection.FRangedPath.Count - 1].Y - 20 - YhpSurf, SurfaceDesc); end; end;
       for I := 0 to FSelection.FRangedPath.Count - 1 do
         FMiscImages[2].Show(FSelection.FRangedPath[I].X - XhpSurf, FSelection.FRangedPath[I].Y - YhpSurf, SurfaceDesc);
       for I := 0 to FSelection.FRangedPath.Count - 1 do

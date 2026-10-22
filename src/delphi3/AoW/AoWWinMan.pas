@@ -614,7 +614,7 @@ begin
   E3Globals.MWindow.MapViewer.SceneHeight := E3Globals.MWindow.MapWindow.WinHeight - 24;
   AoWHSMap.Activate;
   AoWExeForms.RealmWin.Dlg.Visible := False;
-  E1Globals.MapEvents.TheMapArmyDeselected;
+  E1Globals.MapEvents.TheMapArmyDeselected(nil);
   E1Globals.MapEvents.TheMapStructureDeselected(nil);
   AoWExeForms.TBWindow.CurPUpdate;
   AoWExeForms.PInfoW.UpdatePlayer;

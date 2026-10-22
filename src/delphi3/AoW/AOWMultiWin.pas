@@ -411,8 +411,8 @@ begin
   IPXBtn.Visible := False; PBEMPnl.Visible := False;
   if SetupEvents.DPlay.GetConnections = 0 then
     for I := 0 to SetupEvents.DPlay.ConnectionItems.Count - 1 do
-      if TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType = conTCP then TCPBtn.Visible := True
-      else if TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType = conIPX then IPXBtn.Visible := True;
+      case TGDConnection(SetupEvents.DPlay.ConnectionItems[I]).FType of conTCP: TCPBtn.Visible := True;
+      conIPX: IPXBtn.Visible := True; end;
 end;
 
 end.

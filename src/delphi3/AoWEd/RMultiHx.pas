@@ -212,7 +212,7 @@ end;
 
 procedure TMultiHexResourceEditForm.DisplayMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  dX, dY: Integer;
+  dX, dY, CX, CY: Integer;
 begin
   if FUpdating then
   begin
@@ -225,10 +225,10 @@ begin
   end;
   if MainPBtn.Down and (Display.GetMouseButton = 1) then
   begin
-    dX := (Display.Width - 48) shr 1;
-    dY := (Display.Height - 32) shr 1;
-    TMultiHexMOR(FResource).dXmainP := X - dX - 8;
-    TMultiHexMOR(FResource).dYmainP := Y - dY;
+    CX := (Display.Width - 48) shr 1;
+    CY := (Display.Height - 32) shr 1;
+    TMultiHexMOR(FResource).dXmainP := X - CX - 8;
+    TMultiHexMOR(FResource).dYmainP := Y - CY;
   end;
 end;
 

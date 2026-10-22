@@ -223,22 +223,22 @@ var
   C: TSetupControl;
 begin
   ResetSettings;
-  FSetupControl := Control; C := Control;
+  FSetupControl := TSetupControl(Control); C := FSetupControl;
   for I := 0 to C.FSettings.Count - 1 do
     if C.FSettings.GetSettings(I).FBehavior.PlayerType = 0 then
       FEmailAddresses.AddObject(AoWEngine.FRegistry.GetLocalEmailAddress, TObject(Shortint(C.FSettings.GetSettings(I).FRace)));
-  if FEmailAddresses.Count < 2 then
+  if FEmailAddresses.Count > 1 then
+  begin
+    UpdatePlayers;
+    Dlg.Visible := True;
+  end
+  else
   begin
     ResetMessageDialog(AoWExeForms.MessageDlg);
     AoWExeForms.MessageDlg.MessageMemo.Items.Add('');
     AoWExeForms.MessageDlg.MessageMemo.Items.Add(TranslateRStr(YouNeed2HumanPlayersToPlayAnEmailGameRStr));
     AoWExeForms.MessageDlg.OKPnl.Visible := True;
     AoWExeForms.MessageDlg.Dlg.Visible := True;
-  end
-  else
-  begin
-    UpdatePlayers;
-    Dlg.Visible := True;
   end;
 end;
 

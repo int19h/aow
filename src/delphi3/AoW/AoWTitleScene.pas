@@ -147,7 +147,7 @@ end;
 
 procedure TTitleScene.DrawIntro(var Surface: TSurfaceDesc);
 var
-  X, Y, Page, Frame, Opacity: Integer;
+  Page, X, Y, Frame, Opacity: Integer;
   Info: TShowInfo;
   Text: string;
 begin
@@ -186,9 +186,9 @@ begin
       end;
       1: begin
         FCreditsFont.SetTextCentered(X - 75, Y - TitleSceneIL[6].Height div 2 - 20, TranslateRStr(NorthAmericaRStr), Surface);
-        FCreditsFont.SetTextCentered(X + 90, Y - TitleSceneIL[6].Height div 2 - 20, TranslateRStr(EuropeRStr), Surface);
+        FCreditsFont.SetTextCentered(X + 75 + 15, Y - TitleSceneIL[6].Height div 2 - 20, TranslateRStr(EuropeRStr), Surface);
         if TitleSceneIL[6] <> nil then TitleSceneIL[6].Show(X - 75 - TitleSceneIL[6].Width div 2, Y - TitleSceneIL[6].Height div 2 + 20, Surface);
-        if TitleSceneIL[2] <> nil then TitleSceneIL[2].Show(X + 90 - TitleSceneIL[2].Width div 2, Y - TitleSceneIL[2].Height div 2 + 20, Surface);
+        if TitleSceneIL[2] <> nil then TitleSceneIL[2].Show(X + 75 + 15 - TitleSceneIL[2].Width div 2, Y - TitleSceneIL[2].Height div 2 + 20, Surface);
       end;
       2: begin
         case Frame of
@@ -196,7 +196,7 @@ begin
           121..130: Opacity := 100 - (Frame - 120) * 10;
         else Opacity := 101;
         end;
-        if Opacity < 101 then
+        if Opacity <= 100 then
         begin
           Info.ShowMode := smBlended;
           Info.BlendMode := bmAlpha;
@@ -236,7 +236,7 @@ begin
     else if FTotalFrame <= 730 then Frame := 100
     else Frame := (750 - FTotalFrame) * 5;
     X := (FSceneRect.Right - FSceneRect.Left - TitleSceneIL[1].Width) div 2;
-    if Frame < 100 then TitleSceneIL[1].ShowBlended(X, Y + 10, Surface, AlphaBlendTable.Lookup[Frame])
+    if Frame < 100 then TitleSceneIL[1].ShowBlended(X, Y + 10, Surface, AlphaBlendTable.GetLookupTables(Frame))
     else TitleSceneIL[3].Show(X, Y + 10, Surface);
   end;
   Spacing := 120;

@@ -146,7 +146,7 @@ type
     function EditHero(Hero: THero): Boolean;
     procedure FormCreate;  { }
     procedure FormDestroy;  { }
-    procedure HeroResourceComboBoxChange;  { }
+    procedure HeroResourceComboBoxChange(Sender: TObject);  { }
     procedure EditFaceBtnClick;
     procedure PreviewImagePanelDraw(Sender: TObject; const R: TRect);
     procedure OKBtnClick;  { }
@@ -284,7 +284,7 @@ begin
   ItemFloater.Hide;
 end;
 
-procedure THeroEditForm.HeroResourceComboBoxChange;
+procedure THeroEditForm.HeroResourceComboBoxChange(Sender: TObject);
 begin
   with HeroResourceComboBox do FHero.SetHeroResourceIndex(Integer(Items.Objects[ItemIndex]));
   UpdateControls;
@@ -656,16 +656,16 @@ begin
   FSavedHero := THero(Hero.Copy(AoWEngine));
   ItemGrid.SetItems(FHero.FInventory);
   BodyGrid.SetItems(FHero.FHeroItems);
-  { Original includes the type in an uninitialized local set. }
-  Include(Types, FHero.GetHeroType);
-  List := AoWHSSet.FHeroResources.CreateHeroResourceStrings(Types);
+  { The original builds a singleton set for the selected hero type. }
+
+  List := AoWHSSet.FHeroResources.CreateHeroResourceStrings([FHero.GetHeroType]);
   HeroResourceComboBox.Items := List;
   List.Free;
   Index := FHero.FHeroResourceIndex;
   if Index = -1 then
   begin
     HeroResourceComboBox.ItemIndex := 0;
-    HeroResourceComboBoxChange;
+    HeroResourceComboBoxChange(Self);
   end
   else HeroResourceComboBox.ItemIndex := Index;
 end;

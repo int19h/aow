@@ -22,7 +22,7 @@ type
     public
     procedure TheMapActivateAbility(Request: TActivateAbilityInfo);
     procedure TheMapArmyChanged(Army: TArmy);
-    procedure TheMapArmyDeselected;
+    procedure TheMapArmyDeselected(Army: TArmy);
     procedure TheMapArmyDestroyed(Army: TArmy);
     procedure TheMapArmySelected(Army: TArmy);
     procedure TheMapDayChanged(Day: Integer);
@@ -114,7 +114,7 @@ begin
     if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 
-procedure TMapEvents.TheMapArmyDeselected;
+procedure TMapEvents.TheMapArmyDeselected(Army: TArmy);
 begin
   General.FAbilities.Clear;
   General.FUnitList := nil;
@@ -143,7 +143,7 @@ end;
 
 procedure TMapEvents.TheMapArmyDestroyed(Army: TArmy);
 begin
-  if (Army <> nil) and (Army = General.FUnitList) then TheMapArmyDeselected;
+  if (Army <> nil) and (Army = General.FUnitList) then TheMapArmyDeselected(Army);
   if AoWRealm.RealmWin.Dlg.Visible and (AoWRealm.RealmWin.HeaderTab.Selected = 3) then AoWRealm.RealmWin.UpdateOverview;
 end;
 

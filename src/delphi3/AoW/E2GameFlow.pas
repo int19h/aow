@@ -566,7 +566,7 @@ begin
   MWindow.MapViewer.SceneHeight := MWindow.MapWindow.WinHeight - 24;
   AoWHSMap.Activate;
   ControlWin.ControlWindow.Visible := False;
-  MapEvents.TheMapArmyDeselected;
+  MapEvents.TheMapArmyDeselected(nil);
   MapEvents.TheMapStructureDeselected(nil);
   TBWindow.TBWorldUpdate(nil);
   PInfoW.UpdatePlayer;

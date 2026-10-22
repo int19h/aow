@@ -172,7 +172,7 @@ begin
     FBackSurface.Unlock;
     Surface.Unlock;
     FBackRect.Top := R.Top;
-    if (FWinTop > FBackRect.Top) or (FBackRect.Top > FWinTop + FFrameTop) then
+    if (FBackRect.Top < FWinTop) or (FBackRect.Top <= FWinTop + FFrameTop) { Original also resets positions inside the top frame. } then
       FBackRect.Top := FWinTop - 1;
     FBackRect.Bottom := FWinTop - R.Top + FWinHeight;
     FSurfaceValid := True;

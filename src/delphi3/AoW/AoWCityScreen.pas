@@ -640,15 +640,15 @@ end;
 
 procedure TCityScreen.MapViewDraw(Sender: TObject; SD: TSurfaceDesc);
 var
-  R: TRect;
   ViewSD: TSurfaceDesc;
-  W, H: Integer;
+  R: TRect;
+  W, H, Width: Integer;
 begin
   if FPreview <> nil then
   begin
     R := Rect(Dlg.WinLeft + TAoWComponent(Sender).WinLeft, Dlg.WinTop + TAoWComponent(Sender).WinTop,
       Dlg.WinLeft + TAoWComponent(Sender).WinLeft + TAoWComponent(Sender).WinWidth, Dlg.WinTop + TAoWComponent(Sender).WinTop + TAoWComponent(Sender).WinHeight);
-    W := R.Right - R.Left;
+    Width := R.Right - R.Left; W := Width;
     H := R.Bottom - R.Top;
     if FViewX + W + 16 > FPreview.GetMaxXhp then FViewX := FPreview.GetMaxXhp - W - 16;
     if FViewY + H + 16 > FPreview.GetMaxYhp then FViewY := FPreview.GetMaxYhp - H - 16;
@@ -657,7 +657,7 @@ begin
     CreateSDfromSD(SD, R, ViewSD);
     FPreview.SetExplorationEnabled(False);
     FPreview.SetFogEnabled(False);
-    FPreview.SetViewPort(FViewX, FViewY, 0, W, R.Bottom - R.Top);
+    FPreview.SetViewPort(FViewX, FViewY, 0, Width, R.Bottom - R.Top);
     FPreview.UpdateStaticScene;
     FPreview.UpdateDynamicScene;
     FPreview.DrawStaticScene(ViewSD);
