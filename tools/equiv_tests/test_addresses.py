@@ -28,7 +28,7 @@ class Addresses(unittest.TestCase):
             addr = checker.inp.addresses
             saved = dict(addr.forward), dict(addr.reverse), dict(addr.provenance)
             status, _ = checker.check(fn)
-            self.assertEqual('NOT PROVEN' if changed else 'PROVEN under H3', status)
+            self.assertEqual('UNSUPPORTED', status)  # Step 7: no linked exceptional frame relation.
             self.assertIn('local-cfg', {p for _,_,p in addr.consulted})
             self.assertEqual(saved, (addr.forward,addr.reverse,addr.provenance))
             if not changed:
@@ -44,7 +44,7 @@ class Addresses(unittest.TestCase):
                                  {(r['original'],r['compiled'],r['source']) for r in proof['consulted']})
                 with patch.object(checker,'verify_fast',side_effect=e.NotProven('route guard')), \
                      patch.object(e,'verify_frames',return_value=('PROVEN','')):
-                    self.assertEqual('NOT PROVEN',checker.check(fn)[0])
+                    self.assertEqual('UNSUPPORTED',checker.check(fn)[0])
 
     def test_relocated_displacements(self):
         for opcode in (bytes.fromhex('8b83'), bytes.fromhex('8b048d'), bytes.fromhex('8b848b')):

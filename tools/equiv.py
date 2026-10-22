@@ -296,6 +296,7 @@ class Addresses:
     """A partial, injective relocation, anchored in independent symbol names."""
     def __init__(self, inp):
         self.inp = inp
+        self.routes = []
         self.old, self.new = inp.old, inp.new
         self.forward = {}
         self.provenance = {}
@@ -1695,6 +1696,9 @@ def stack_insensitive_leaf(checker, side, target):
 
 
 
+from equiv_garbage import private_extent, independent_private, check_initialized, CutGarbage
+
+
 class Frames:
     """An inductive relation over private bytes, with a common public array.
 
@@ -1711,28 +1715,7 @@ class Frames:
         self.saved['esp'] = self.stack
         self.lows = []
         for code in codes:
-            restores = {code[k].reg_name(code[k].operands[0].reg)
-                        for seq, _ in blocks(code).values() for k in seq
-                        if code[k].mnemonic == 'pop' and code[k].operands[0].type == X.X86_OP_REG}
-            if any(ins.mnemonic == 'leave' for ins in code):
-                restores.add('ebp')
-            off = 0
-            for ins in code:
-                oo = ins.operands
-                if (ins.mnemonic == 'push' and oo[0].type == X.X86_OP_REG and oo[0].size == 4
-                        and ins.reg_name(oo[0].reg) in {'ebx', 'esi', 'edi', 'ebp', 'ecx'} & restores):
-                    off -= 4
-                elif (ins.mnemonic == 'mov' and len(oo) == 2
-                      and all(o.type == X.X86_OP_REG for o in oo)
-                      and ins.reg_name(oo[0].reg) == 'ebp' and ins.reg_name(oo[1].reg) == 'esp'):
-                    pass
-                elif (ins.mnemonic in ('add', 'sub') and oo[0].type == X.X86_OP_REG
-                      and ins.reg_name(oo[0].reg) == 'esp' and oo[1].type == X.X86_OP_IMM):
-                    off += oo[1].imm * (-1 if ins.mnemonic == 'sub' else 1)
-                else:
-                    break
-                if not -512 <= off <= 0:
-                    raise NotProven('private frame extent exceeds budget')
+            off = private_extent(code)
             self.lows.append(off)
         self.low = min(self.lows)
         self.locations = [{('r', r, k) for r in REGS for k in range(4)} |
@@ -1790,6 +1773,7 @@ class Frames:
             states = arbitrary(DIAG, FLAGS)
             for st in states:
                 st.regs = dict(self.saved)
+            independent_private(states, self.lows, self.stack)
             return states, z3.BoolVal(True)
         # Build byte equalities into the arbitrary state. This is the same
         # union-find construction as the fast register proof, extended to
@@ -2028,6 +2012,8 @@ def frame_goals(frames, states):
 def verify_frames(checker, a, b, finite=False):
     from equiv_calls import ensure
     ensure(checker,a,b)
+    if getattr(checker, "exception_whole_only", False):
+        raise Unsupported("exception region requires compatible whole-memory route")
     graphs = [blocks(a), blocks(b)]
     pairing, reverse, todo = {0: 0}, {0: 0}, [0]
     while todo:
@@ -2042,6 +2028,9 @@ def verify_frames(checker, a, b, finite=False):
                 pairing[x], reverse[y] = y, x
                 todo.append(x)
     frames = Frames((a, b))
+    checker.routes.append("frames-finite" if finite else "frames")
+    for side,code in enumerate((a,b)):
+        check_initialized(checker,code,side,frames.lows[side])
     local = [{}, {}]
     for i, j in pairing.items():
         for pred in (lambda x: x.mnemonic == 'call', lambda x: x.mnemonic in FP_OPS):
@@ -2163,6 +2152,7 @@ def verify_frames(checker, a, b, finite=False):
 class Checker:
     def __init__(self, inp):
         self.inp = inp
+        self.routes = []
 
     def instructions(self, fn):
         # Retain full instructions for proof; never use match.py's truncated
@@ -2331,6 +2321,11 @@ class Checker:
 
     def check(self, fn, mutated=None):
         self.contracts = None
+        self.garbage_witness = None
+        self.garbage_cache = {}
+        self.frame_lows = None
+        self.exception_whole_only = False
+        self.routes = []
         try:
             result = self.check_raw(fn,mutated)
         except (NotProven,Unsupported) as error:
@@ -2338,6 +2333,14 @@ class Checker:
         self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if h in r.get('premises',[r.get('premise','H3')])] for h in ('H3','H3c') if any(h in r.get('premises',[r.get('premise','H3')]) for _,_,r in self.contracts.sites.values())} if self.contracts else {},
                                    dependencies=sorted(self.contracts.dependencies) if self.contracts else [],
                                    alias_resolutions=getattr(self.inp.addresses,'alias_resolutions',[]))
+        if result[0]=='NOT PROVEN' and self.garbage_witness:
+            w=self.garbage_witness
+            reason=('uninitialized local passed to callee at %s (callee write not checked)'%w['pc'] if w['kind']=='callee' else
+                    'reads uninitialized private slot (side %d, %s, offset %d)'%(w['side'],w['pc'],w['offset']))
+            result=('NOT PROVEN',reason)
+        if result[0].startswith('PROVEN'):self.garbage_witness=None
+        self.last_contracts['routes'] = self.routes
+        self.last_contracts['frame_garbage'] = dict(independent=True, extents=getattr(self,'frame_lows',None), witness=self.garbage_witness, exception_whole_only=getattr(self,'exception_whole_only',False))
         if self.contracts and self.contracts.h1:
             self.last_contracts['hypotheses']['H1'] = dict(predicate='Incoming data pointers and public-loaded address words do not reach the private frame; these ordinary writes cannot alias its save slots. Array reasoning still checks real aliasing.',instances=sorted(self.contracts.h1))
         if self.contracts and self.contracts.h5:
@@ -2391,12 +2394,25 @@ class Checker:
                                       for side,code in enumerate((a,b)) for ins in code
                                       if not ins.mnemonic.startswith('j')
                                       for v in (*ins.eh, *(addresses.absolute(side, ins, op) for op in ins.operands)) if v is not None)
+            # Resolve metadata before any route gate; class positions cannot bind identities.
+            for side,regions in enumerate((ar,br)):
+                for _,_,_,meta in regions:
+                    for value in meta:
+                        addresses.canonical(side,value,[{},{}])
+            self.exception_whole_only = bool(ar or br)
+            self.frame_lows = [private_extent(code) for code in (a,b)]
+            for side,code in enumerate((a,b)):
+                check_initialized(self,code,side,self.frame_lows[side])
+            if self.exception_whole_only and any(self.frame_lows):
+                raise Unsupported('exception region requires linked private-entry relation')
             self.verify_regions(a, b, ar, br)
             if self.local_cfg_only:
                 return self.verify_fast(a, b)  # No alternate pairing may reuse these identities.
             try:
                 return self.verify(a, b)
             except (NotProven, Unsupported) as first:
+                if self.exception_whole_only:
+                    raise first
                 if any(p == 'local-cfg' for _,_,p in addresses.consulted):
                     raise first
                 addresses.allow_local_cfg = False
@@ -2507,14 +2523,17 @@ class Checker:
                 for x, y in zip(aa, bb):
                     local[0][x.address] = local[1][y.address] = x.address
         machines = [Machine(self.inp.addresses, s, local) for s in (0, 1)]
-        def execute(i, states):
+        garbage = CutGarbage(self,(a,b))
+        def execute(i, states, prepare=True):
+            if prepare:garbage.prepare(states,(i,pairing[i]))
             for side, code in enumerate((a, b)):
                 for k in graphs[side][(i, pairing[i])[side]][0]:
-                    machines[side].step(states[side], code[k])
+                    garbage.step(machines[side],states[side],side,k)
             return states
         def clone(states):
             return [State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
         initial = arbitrary(entry_candidates, entry_flags)
+        garbage.prepare(initial,entry)
         samples, todo = {}, [(entry[0], clone(initial))]
         while todo:
             budget()
@@ -2566,8 +2585,10 @@ class Checker:
             budget()
             i = queue.popleft()
             queued.discard(i)
-            states, premise = relation_states(candidates[i])
-            states = execute(i, states)
+            states, _ = relation_states(candidates[i])
+            garbage.prepare(states,(i,pairing[i]))
+            premise=simp(z3.And([fact_expression(states,f) for f in candidates[i]]))
+            states = execute(i, states,False)
             edges = graphs[0][i][1]
             terminal = a[graphs[0][i][0][-1]]
             for edge, target in enumerate(edges):
@@ -2587,11 +2608,15 @@ class Checker:
             raise NotProven('relation is not initialized')
         for i, j in pairing.items():
             budget()
-            states, premise = relation_states(candidates[i])
-            old, new = execute(i, states)
+            states, _ = relation_states(candidates[i])
+            garbage.prepare(states,(i,pairing[i]))
+            premise=simp(z3.And([fact_expression(states,f) for f in candidates[i]]))
+            old, new = execute(i, states,False)
             if len(old.events) != len(new.events):
                 raise NotProven('different observable events')
-            goals = [old.memory == new.memory, old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
+            tails=(graphs[0][i][0][-1],graphs[1][pairing[i]][0][-1])
+            memories=garbage.memories(states,tails)
+            goals = [memories[0] == memories[1], old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
             for x, y in zip(old.events, new.events):
                 if x[0] != y[0] or len(x) != len(y):
                     raise NotProven('different observable events')
@@ -2601,14 +2626,20 @@ class Checker:
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
                 goals += [z3.Implies(guard, fact_expression(states, f)) for f in candidates[target]]
             if not prove([z3.Implies(premise, z3.And(goals))]):
+                garbage.failed(tails)
                 raise NotProven('live-location relation does not prove the transition')
         return 'PROVEN', ''
 
     def verify_fast(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
         from equiv_calls import ensure
         ensure(self,a,b)
+        self.routes = getattr(self,"routes",[])
+        self.routes.append("whole-memory")
         if not a or not b:
             raise Unsupported('empty disassembly')
+        lows = [private_extent(c) for c in (a,b)]
+        for side,code in enumerate((a,b)):
+            check_initialized(self,code,side,lows[side])
         graphs = [blocks(a, entry[0]), blocks(b, entry[1])]
         for side, graph in enumerate(graphs):
             for seq, _ in graph.values():
@@ -2661,6 +2692,7 @@ class Checker:
                                 if sx != sy:
                                     raise NotProven('read-only string argument differs')
         machines = [Machine(self.inp.addresses, s, local) for s in (0, 1)]
+        garbage = CutGarbage(self,(a,b))
         candidates = {i: set(entry_candidates if i == entry[0] else ALL) for i in edges}
         flag_candidates = {i: set(entry_flags if i == entry[0] else FLAGS) for i in edges}
         queue = collections.deque([entry[0]])
@@ -2670,9 +2702,10 @@ class Checker:
             i = queue.popleft()
             queued.discard(i)
             states = arbitrary(candidates[i], flag_candidates[i])
+            garbage.prepare(states,(i,pairing[i]))
             for s in (0, 1):
                 for k in graphs[s][(i, pairing[i])[s]][0]:
-                    machines[s].step(states[s], (a, b)[s][k])
+                    garbage.step(machines[s],states[s],s,k)
             old, new = states
             old_bytes = {(r, k): register_byte(old, r, k) for r in REGS for k in range(4)}
             new_bytes = {(r, k): register_byte(new, r, k) for r in REGS for k in range(4)}
@@ -2707,13 +2740,16 @@ class Checker:
         # observable event again without entry-path-specific assumptions.
         for i in sorted(edges):
             states = arbitrary(candidates[i], flag_candidates[i])
+            garbage.prepare(states,(i,pairing[i]))
             for s in (0, 1):
                 for k in graphs[s][(i, pairing[i])[s]][0]:
-                    machines[s].step(states[s], (a, b)[s][k])
+                    garbage.step(machines[s],states[s],s,k)
             old, new = states
             if len(old.events) != len(new.events):
                 raise NotProven('different observable events at instruction %d' % i)
-            goals = [old.memory == new.memory, old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
+            tails=(graphs[0][i][0][-1],graphs[1][pairing[i]][0][-1])
+            memories=garbage.memories(states,tails)
+            goals = [memories[0] == memories[1], old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
             for x, y in zip(old.events, new.events):
                 if x[0] != y[0] or len(x) != len(y):
                     raise NotProven('different observable events at instruction %d' % i)
@@ -2723,6 +2759,7 @@ class Checker:
                 goals += [z3.Implies(guard, register_byte(old, x, k) == register_byte(new, y, k)) for x, y, k in candidates[j]]
                 goals += [z3.Implies(guard, old.flags[f] == new.flags[f]) for f in flag_candidates[j]]
             if not prove(goals):
+                garbage.failed(tails)
                 raise NotProven('state / event correspondence fails at instruction %d' % i)
         return 'PROVEN', ''
 
@@ -2736,6 +2773,8 @@ class Checker:
         """
         from equiv_calls import ensure
         ensure(self,a,b)
+        if getattr(self, "exception_whole_only", False):
+            raise Unsupported("exception region requires compatible whole-memory route")
         graphs = [blocks(a), blocks(b)]
         for side, graph in enumerate(graphs):
             for seq, _ in graph.values():
@@ -2747,11 +2786,15 @@ class Checker:
                 # Local code addresses have no observable use in call-free
                 # ordinary functions. Reject unresolved escaped code pointers.
                 local[side][ins.address] = ins.address
+        self.routes.append("acyclic")
+        for side,code in enumerate((a,b)):
+            check_initialized(self,code,side,private_extent(code))
         starts = arbitrary(DIAG, FLAGS)
         stack = z3.BitVec('finite_entry_esp', 32)
         entry_memory = starts[0].memory
         for st in starts:
             st.regs['esp'] = stack
+        independent_private(starts, [private_extent(c) for c in (a,b)], stack)
         for st in starts:
             st.escape_base, st.escaped = stack, False
 

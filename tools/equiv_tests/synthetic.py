@@ -11,7 +11,7 @@ def cases():
         b, br = finally_program(True, changed)
         yield fixture('local_cfg_continuation/' + str(changed), a, b,
                       'A relocated continuation is checked; retargeting changes the return.',
-                      'reject' if changed else 'prove:H3', relocs=(ar,br),
+                      'reject', relocs=(ar,br),  # Step 7: linked exceptional frame relation unavailable.
                       names=[(0x401300, 'System.@HandleFinally')])
     yield fixture('DF_return', 'fc c3', 'fd c3', 'Different direction flags at return.')
     yield fixture('missing_read_fault', '8b01 b800000000 c3', '90 b800000000 c3',
@@ -41,6 +41,12 @@ def cases():
         yield fixture(name, '83ec04 ' + guard + ' c7042401000000 89c8 83c404 c3',
                       '83ec04 ' + guard + ' c7042402000000 89c8 83c404 c3',
                       'ECX=entry ESP-4 returns a private slot with different contents; needs explicit H1.', expected='conditional:H1')
+    yield fixture('private_garbage_pop_ecx_discard','83ec0459c3','83ec0459c3',
+                  'A dead private garbage read has no observable use.','prove')
+    prefix=bytes.fromhex('83ec0489e0');body=prefix+call(len(prefix))+bytes.fromhex('83c404c3')
+    yield fixture('private_garbage_pointer_to_callee',body,body,
+                  'The callee can observe independently initialized private bytes.',
+                  extras_a=[(0x1100,bytes.fromhex('8b00c3'))],extras_b=[(0x1100,bytes.fromhex('8b00c3'))],bindings=[(0x401100,0x401100)])
     yield fixture('independent_stack_garbage', '83ec04 8b0424 83c404 c3',
                   '83ec04 8b0424 83c404 c3', 'Both versions depend on uninitialized private bytes.')
     a, b = bytes.fromhex('8d05') + p32(0x402000), b'\xb8' + p32(0x402010)
