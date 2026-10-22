@@ -196,7 +196,7 @@ def exception_tables(stream, start, size, image, handlers):
     return tables, problems
 
 
-def compare_cfg(a, b, ova, nva, osize, nsize, old=None, new=None, handlers=(None, None)):
+def compare_cfg(a, b, ova, nva, osize, nsize, old=None, new=None, handlers=(None, None), reached_out=None):
     """Strict relative-offset comparison with classifications for benign layout.
 
     The instruction-index mapping is only the old MATCH's positional mapping;
@@ -216,6 +216,8 @@ def compare_cfg(a, b, ova, nva, osize, nsize, old=None, new=None, handlers=(None
         problems.append(issue('changed_exception_table', original=at, compiled=bt,
                               class_identity='address-layer obligation'))
     reached = [{g[3][pc] for pc in g[0]} for g in (ga, gb)]
+    if reached_out is not None:
+        reached_out.extend(reached)
     for k in sorted(reached[0] | reached[1]):
         if k not in reached[0] or k not in reached[1]:
             problems.append(issue('changed_reachability', index=k,
@@ -274,7 +276,7 @@ def helper_addresses(inp):
 
 
 def primary_classification(classes):
-    if 'coverage_gap' in classes or 'incomplete_exception_table' in classes:
+    if any(c in classes for c in ('coverage_gap', 'incomplete_exception_table', 'extent_truncated_by_next_signature')):
         return 'incomplete_decode_or_extent'
     if 'unresolved_indirect_jump' in classes:
         return 'unresolved_indirect_flow'

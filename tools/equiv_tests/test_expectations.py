@@ -10,3 +10,7 @@ class Expectations(unittest.TestCase):
         self.assertEqual('KNOWN_FALSE_ACCEPT', classify('reject', 'PROVEN under H1'))
         self.assertEqual('KNOWN_FALSE_ACCEPT', classify('prove', 'PROVEN under H1'))
         self.assertEqual('FIXED_OR_REJECTED', classify('conditional:H9', 'NOT PROVEN'))
+
+    def test_pending_coverage_is_distinct(self):
+        self.assertEqual('PENDING_COVERAGE', classify('pending_coverage', 'UNSUPPORTED'))
+        self.assertEqual('CONTROL_PASS', classify('pending_coverage', 'PROVEN'))

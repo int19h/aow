@@ -19,6 +19,8 @@ from . import game, synthetic
 
 
 def classify(expected, status):
+    if expected == 'pending_coverage' and status in ('PROVEN', 'NOT PROVEN', 'UNSUPPORTED'):
+        return 'CONTROL_PASS' if status == 'PROVEN' else 'PENDING_COVERAGE'
     if expected == 'prove' and not status.startswith('PROVEN under '):
         return 'CONTROL_PASS' if status == 'PROVEN' else 'ERROR'
     if status in ('NOT PROVEN', 'UNSUPPORTED'):
@@ -46,10 +48,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     started = time.monotonic()
     report = dict(cases=[], evidence={})
-    errors = bad = fixed = controls = 0
+    errors = bad = fixed = controls = pending = 0
 
     def consume(cases):
-        nonlocal errors, bad, fixed, controls
+        nonlocal errors, bad, fixed, controls, pending
         for case in cases:
             before = time.monotonic()
             try:
@@ -58,6 +60,7 @@ def main(argv=None):
                 controls += outcome == 'CONTROL_PASS'
                 bad += outcome == 'KNOWN_FALSE_ACCEPT'
                 fixed += outcome == 'FIXED_OR_REJECTED'
+                pending += outcome == 'PENDING_COVERAGE'
             except Exception:
                 status, reason, outcome = 'EXCEPTION', traceback.format_exc(), 'ERROR'
             errors += outcome == 'ERROR'
@@ -89,7 +92,7 @@ def main(argv=None):
         report['error'] = traceback.format_exc()
         print(report['error'], flush=True)
     report['summary'] = dict(known_false_acceptances=bad, rejected=fixed, controls=controls,
-                             errors=errors, seconds=round(time.monotonic() - started, 3))
+                             errors=errors, pending_coverage=pending, seconds=round(time.monotonic() - started, 3))
     print(json.dumps(report['summary']), flush=True)
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

@@ -184,6 +184,7 @@ class Inputs:
         units = []
         self.mutate = 0
         self.show = None
+        self.explain = False
         while argv and argv[0].startswith('--'):
             opt = argv.pop(0)
             if opt == '--quiet':
@@ -192,6 +193,8 @@ class Inputs:
                 self.mutate = int(argv.pop(0))
                 if self.mutate < 0:
                     raise ValueError('--mutate must be nonnegative')
+            elif opt == '--explain':
+                self.explain = True
             elif opt == '--show':
                 self.show = argv.pop(0)
             elif opt == '--alias':
@@ -279,18 +282,7 @@ class Inputs:
                 self.sigs.setdefault(on, (int(addr, 16), int(size)))
             if on in self.sigs:
                 module_pairs.add((name, on))
-        self.module_matches = []
-        for name, on in sorted(module_pairs, key=lambda p: (p[0], p[1] or '')):
-            loc = match.resolve(self.syms, name)
-            if on is None or loc is None or loc[0] != '0001':
-                continue
-            ova, osize = self.sigs[on]
-            nva = self.text + loc[1]
-            nxt = min((o for o in self.code_offsets if o > loc[1]), default=loc[1] + osize + 64)
-            aa = match.disasm_skipping_tables(md, self.old, ova, osize, oe)
-            bb = match.disasm_skipping_tables(md, self.new, nva, min(nxt - loc[1], osize + 32), ne)[:len(aa)]
-            if match.compare(aa, bb) == -1:
-                self.module_matches.append((ova, osize, nva, min(nxt - loc[1], osize + 32), len(aa)))
+        self.module_matches = []  # MATCH positions are not identity evidence.
         self.addresses = Addresses(self)
 
 
@@ -300,6 +292,9 @@ class Addresses:
         self.inp = inp
         self.old, self.new = inp.old, inp.new
         self.forward = {}
+        self.provenance = {}
+        self.unresolved = set()
+        self.binding_source = 'independent-name'
         self.reverse = {}
         self.conflicts = set()
         self.names = [{}, {}]
@@ -385,8 +380,10 @@ class Addresses:
                     break
             if len(set(candidates)) == 1:
                 self.bind(addr, candidates[0])
+        self.binding_source = 'declared-function-pair'
         for f in inp.functions:
             self.bind(f.ova, f.nva)
+        self.binding_source = 'independent-name'
         by_name = collections.defaultdict(list)
         for a, n in self.names[1].items():
             by_name[n].append(a)
@@ -395,6 +392,7 @@ class Addresses:
                 self.bind(a, by_name[n][0])
         # Relocated pointer cells can be independently identified by the named
         # object they refer to.  Do not collapse multiple cells with one value.
+        self.binding_source = 'unique-relocated-cell'
         for _ in range(3):
             old_cells, new_cells = collections.defaultdict(list), collections.defaultdict(list)
             for side, img, cells in ((0, self.old, old_cells), (1, self.new, new_cells)):
@@ -410,14 +408,6 @@ class Addresses:
                 bb = new_cells.get(key, [])
                 if len(aa) == len(bb) == 1:
                     self.bind(aa[0], bb[0])
-        evidence = []
-        for ova, osize, nva, nsize, count in inp.module_matches:
-            aa, bb = decode(self.old, ova, osize), decode(self.new, nva, nsize)[:count]
-            # Embedded tables are not instruction evidence. The normalized
-            # raw streams must themselves agree before using their positions.
-            if len(aa) == len(bb) and all(match.normalize(x.raw, self.old) == match.normalize(y.raw, self.new) for x, y in zip(aa, bb)):
-                evidence.extend(self.aligned_addresses(aa, bb))
-        self.install_consistent(evidence)
         self.install_content()
 
     def content_records(self, side):
@@ -510,7 +500,7 @@ class Addresses:
                     for a, b in established:
                         evidence.extend((a + off, b + off) for off in range(-8, len(key[1])))
             before = len(self.forward)
-            self.install_consistent(evidence)
+            self.install_consistent(evidence, 'typed-content-record')
             if len(self.forward) == before:
                 break
         # A newly identified class/type/string can also identify a unique
@@ -523,36 +513,26 @@ class Addresses:
                     identity = value if side == 0 and value in self.forward else self.reverse.get(value) if side == 1 else None
                     if identity is not None:
                         cells[side][identity].add(address)
-            self.install_consistent((next(iter(aa)), next(iter(cells[1][key])))
+            self.install_consistent(((next(iter(aa)), next(iter(cells[1][key])))
                                     for key, aa in cells[0].items()
-                                    if len(aa) == len(cells[1].get(key, ())) == 1)
+                                    if len(aa) == len(cells[1].get(key, ())) == 1), source='unique-relocated-cell')
 
     def absolute(self, side, ins, op):
         if op.type == X.X86_OP_IMM:
+            relocated = ins.address + ins.raw.imm_offset in self.relocs[side]
+            if not relocated and not (ins.mnemonic in ('call', 'jmp') or ins.mnemonic.startswith('j')):
+                return None
             v = op.imm & 0xffffffff
-        elif op.type == X.X86_OP_MEM and not op.mem.segment and not op.mem.base and (not op.mem.index or abs(op.mem.disp) > 0x10000):
+        elif op.type == X.X86_OP_MEM and not op.mem.segment:
+            relocated = ins.address + ins.raw.disp_offset in self.relocs[side]
+            if not relocated and (op.mem.base or op.mem.index):
+                return None
             v = op.mem.disp & 0xffffffff
         else:
             return None
         return v if (self.old, self.new)[side].contains(v) else None
 
-    def aligned_addresses(self, aa, bb):
-        pairs = []
-        for x, y in zip(aa, bb):
-            for u, v in zip(x.operands, y.operands):
-                if u.type != v.type:
-                    continue
-                a, b = self.absolute(0, x, u), self.absolute(1, y, v)
-                if a is None or b is None:
-                    continue
-                sx, sy = self.string_object(0, a), self.string_object(1, b)
-                if sx is not None and sy is not None and sx != sy:
-                    # Contents are observable even when pointer positions match.
-                    continue
-                pairs.append((a, b))
-        return pairs
-
-    def install_consistent(self, pairs):
+    def install_consistent(self, pairs, source=None):
         forward, reverse = collections.defaultdict(set), collections.defaultdict(set)
         for a, b in pairs:
             forward[a].add(b)
@@ -565,14 +545,14 @@ class Addresses:
                 continue
             if a in self.forward and self.forward[a] != b or b in self.reverse and self.reverse[b] != a:
                 continue
-            self.bind(a, b)
+            self.bind(a, b, source)
 
     @staticmethod
     def u32(img, a):
         b = img.bytes_at(a, 4)
         return struct.unpack('<I', b)[0] if len(b) == 4 else 0
 
-    def bind(self, a, b):
+    def bind(self, a, b, source=None):
         imports = getattr(self, 'import_locations', ({}, {}))
         if a in imports[0] and b in imports[1] and imports[0][a] != imports[1][b]:
             return False
@@ -582,6 +562,7 @@ class Addresses:
             return False
         self.forward[a] = b
         self.reverse[b] = a
+        self.provenance.setdefault((a, b), source or self.binding_source)
         return True
 
     def canonical(self, side, value, local):
@@ -595,7 +576,8 @@ class Addresses:
             return value
         if side == 1 and value in self.reverse:
             return self.reverse[value]
-        raise Unsupported('unresolved image address 0x%x' % value)
+        self.unresolved.add((side, value))
+        raise Unsupported('unresolved image address 0x%x (no independent identity)' % value)
 
     def readonly(self, side, addr, size):
         img = (self.old, self.new)[side]
@@ -609,6 +591,7 @@ class Addresses:
     def read_constant(self, side, addr, size, local):
         if not self.readonly(side, addr, size):
             return None
+        self.canonical(side, addr, local)  # Folding bytes must not bypass identity.
         relocations = self.sorted_relocs[side]
         overlap = relocations[bisect.bisect_left(relocations, addr - 3):bisect.bisect_left(relocations, addr + size)]
         img = (self.old, self.new)[side]
@@ -824,9 +807,9 @@ class Machine:
             addr += st.reg(ins.reg_name(m.base))
         if m.index:
             addr += st.reg(ins.reg_name(m.index)) * bv(m.scale)
-        # Only an absolute displacement is an image address.  Object field
-        # offsets stay literal, including a mutant offset that resembles one.
-        if not m.segment and not m.base and (not m.index or abs(m.disp) > 0x10000):
+        # PE relocation metadata, not numerical magnitude, distinguishes
+        # relocated globals in [base+disp]/[index*scale+disp] from field offsets.
+        if self.addresses.absolute(self.side, ins, op) is not None:
             addr += self.constant(m.disp)
         else:
             addr += bv(m.disp)
@@ -2215,9 +2198,8 @@ class Checker:
     def check(self, fn, mutated=None):
         addresses = self.inp.addresses
         saved = addresses.forward, addresses.reverse, addresses.conflicts
-        # Alignment proposes function-local anonymous-object correspondences.
-        # An unsuccessful proof (or a mutant) must not change another proof's
-        # premises or poison its relocation table.
+        # Proof attempts use snapshots of independently established bindings.
+        # No proof route may teach the next proof an identity.
         addresses.forward = dict(addresses.forward)
         addresses.reverse = dict(addresses.reverse)
         addresses.conflicts = set(addresses.conflicts)
@@ -2225,17 +2207,6 @@ class Checker:
             a, b = self.instructions(fn)
             a, ar = self.exception_regions(a, 0)
             b, br = self.exception_regions(b, 1)
-            # Infer only from the unmodified program. In particular, never
-            # learn a new address from a +1/+4 mutation being checked.
-            self.prepare_addresses(a, b)
-            # Descriptor, class-table and continuation correspondences are
-            # inferred from the baseline installations only, never mutants.
-            if len(ar) == len(br):
-                evidence = []
-                for x, y in zip(ar, br):
-                    if len(x[3]) == len(y[3]):
-                        evidence.extend((u, v) for u, v in zip(x[3], y[3]) if self.inp.old.contains(u) and self.inp.new.contains(v))
-                addresses.install_consistent(evidence)
             if mutated is not None:
                 b, br = self.exception_regions(mutated, 1)
             self.verify_regions(a, b, ar, br)
@@ -2271,45 +2242,6 @@ class Checker:
             return 'NOT PROVEN', str(e)[:80]
         finally:
             addresses.forward, addresses.reverse, addresses.conflicts = saved
-
-    def prepare_addresses(self, a, b):
-        # Instruction scheduling can exchange literal loads. Match immutable
-        # strings by contents when each side references one unique object for
-        # those contents, rather than pairing different strings by position.
-        strings = [collections.defaultdict(set), collections.defaultdict(set)]
-        for side, code in enumerate((a, b)):
-            for ins in code:
-                for op in ins.operands:
-                    if op.type == X.X86_OP_IMM:
-                        data = self.inp.addresses.string_object(side, op.imm)
-                        if data is not None:
-                            strings[side][data].add(op.imm)
-        evidence = [(next(iter(aa)), next(iter(strings[1][data]))) for data, aa in strings[0].items()
-                    if len(aa) == len(strings[1].get(data, ())) == 1]
-        self.inp.addresses.install_consistent(evidence)
-        try:
-            ga, gb = blocks(a), blocks(b)
-            todo, paired, reverse = [(0, 0)], {}, {}
-            evidence = []
-            while todo:
-                i, j = todo.pop()
-                if i in paired:
-                    if paired[i] != j:
-                        return
-                    continue
-                if j in reverse and reverse[j] != i:
-                    return
-                paired[i], reverse[j] = j, i
-                aa, ae = ga[i]
-                bb, be = gb[j]
-                if len(ae) != len(be):
-                    return
-                todo.extend(zip(ae, be))
-                if len(aa) == len(bb):
-                    evidence.extend(self.inp.addresses.aligned_addresses([a[k] for k in aa], [b[k] for k in bb]))
-            self.inp.addresses.install_consistent(evidence)
-        except Unsupported:
-            return
 
     def verify(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
         # Keep the inexpensive structural proof as a sufficient fast path.
@@ -2897,9 +2829,14 @@ def main(argv=None):
         sys.exit(str(e))
     checker = Checker(inp)
     counts = collections.Counter()
+    if inp.explain:
+        print('EXPLAIN ' + json.dumps(dict(bindings=[dict(original=hex(a), compiled=hex(b), source=p) for (a,b),p in sorted(inp.addresses.provenance.items())])), flush=True)
     for fn in inp.functions:
         if fn.differs:
+            inp.addresses.unresolved.clear()
             status, reason = checker.check(fn)
+            if inp.explain:
+                print('EXPLAIN ' + json.dumps(dict(function=fn.name, unresolved=[dict(side=s, address=hex(a)) for s,a in sorted(inp.addresses.unresolved)])), flush=True)
             counts[status] += 1
             print(fn.name + ' ' + status + (' ' + reason if reason else ''), flush=True)
     if inp.mutate:

@@ -672,13 +672,15 @@ def collect(inp, names):
     helpers = helper_addresses(inp)
     inp.flow_rejections = {}
     for f in inp.functions:
-        a, b, flow_classes, _ = match.control_flow(md, inp.old, inp.new, f.ova, f.nva,
-                                                  f.osize, f.nsize, inp.sigs, helpers)
+        a, b, flow_classes, _, reached_a, reached_b = match.control_flow(md, inp.old, inp.new, f.ova, f.nva,
+                                                  f.osize, f.nsize, inp.sigs, helpers, include_reached=True)
         # Only complete control-flow matches may contribute MATCH-position evidence.
         if flow_classes:
             inp.flow_rejections[f.name] = flow_classes
             continue
-        for (_, oi), (_, ni) in zip(a, b):
+        for k, ((_, oi), (_, ni)) in enumerate(zip(a, b)):
+            if k not in reached_a or k not in reached_b:
+                continue
             if (oi is None or ni is None or oi.mnemonic != "jmp" or ni.mnemonic != "jmp"
                     or not oi.operands or not ni.operands
                     or oi.operands[0].type != X.X86_OP_IMM or ni.operands[0].type != X.X86_OP_IMM
@@ -689,14 +691,18 @@ def collect(inp, names):
             for j in range(u32(inp.old, ot)):
                 o, n = u32(inp.old, ot + 4 + 8*j), u32(inp.new, nt + 4 + 8*j)
                 evidence[o, n].add(Use(f.name, ot + 4 + 8*j, nt + 4 + 8*j, (j, "imm")))
-        for _, ins in b:
-            if ins is None:
+        for k, (_, ins) in enumerate(b):
+            if k not in reached_b or ins is None:
                 continue
             for operand in ins.operands:
                 if (operand.type == X.X86_OP_MEM and not operand.mem.base and not operand.mem.index
                         and operand.access & CS.CS_AC_READ and not operand.access & CS.CS_AC_WRITE):
                     names.read_sites.add(ins.address + ins.disp_offset)
+        live_a = {a[k][1].address for k in reached_a}
+        live_b = {b[k][1].address for k in reached_b}
         for (_, old), (_, new) in aligned(a, b):
+            if old is not None and old.address not in live_a or new is not None and new.address not in live_b:
+                continue
             if old is None or new is None:
                 continue
             oa, na = operands(old, inp.old), operands(new, inp.new)

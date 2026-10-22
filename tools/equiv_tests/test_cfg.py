@@ -94,6 +94,15 @@ class CFGTests(unittest.TestCase):
         self.assertIn('differs', lines['Register'].popleft())
         self.assertIn('MATCH', lines['Register'].popleft())
 
+    def test_overlapping_signature_is_logged(self):
+        md = match.capstone.Cs(match.capstone.CS_ARCH_X86, match.capstone.CS_MODE_32)
+        md.detail = True
+        image = Image(bytes.fromhex('90c3'))
+        _, _, classes, details, ra, rb = match.control_flow(md, image, image, 0x401000, 0x401000,
+            2, 2, {'f': (0x401000, 2), 'next': (0x401001, 1)}, ({}, {}), include_reached=True)
+        self.assertIn('extent_truncated_by_next_signature', classes)
+        self.assertTrue(ra and rb)
+
     def test_extent_bound(self):
         self.assertEqual(20, original_extent({'f': (100, 5), 'g': (120, 1)}, 100, 5))
         self.assertEqual(133, original_extent({'f': (100, 5)}, 100, 5))
@@ -121,7 +130,14 @@ class CFGTests(unittest.TestCase):
             inp.syms['@HandleOnException'] = [('0001', 0x300)]
         naming = NS(read_sites=set(), check_constants=lambda *args: None,
                     reference_pair=lambda inp, o, n, kind: (o, n), get=lambda *args: [], same=lambda *args: False)
+        self.last_read_sites = naming.read_sites
         return addrcheck.collect(inp, naming), inp.flow_rejections
+
+    def test_unreachable_tail_has_no_address_evidence(self):
+        evidence, rejected = self.address_evidence('c3 a100204000', 'c3 a110204000')
+        self.assertFalse(rejected)
+        self.assertFalse(evidence)
+        self.assertFalse(self.last_read_sites)
 
     def test_addrcheck_rejects_changed_flow(self):
         evidence, rejected = self.address_evidence('85c97405b801000000c3', '85c97400b801000000c3')

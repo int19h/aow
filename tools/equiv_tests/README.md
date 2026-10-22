@@ -47,3 +47,14 @@ relative-offset/layout differences and incomplete coverage are classified separa
 from changed edges. Full compiled ranges and bounded original extensions to the next signature expose
 reachable suffixes; unresolved decode/table/handler coverage remains a diagnostic.
 External target identities and non-CFG instruction semantics are outside this overlay.
+
+Step 2a removes positional identities: unchanged real-game baselines can therefore
+lose proof coverage until independent aliases are reviewed. Those cases explicitly
+use `pending_coverage`, reported separately from rejections, errors and false accepts.
+`equiv.py --explain` prints module binding provenance and each candidate's unresolved
+identities. Relocated displacements use PE relocation sites even with base/index;
+unrelocated offsets remain literal. Synthetic positive controls still require proof.
+Refreshed builds locate Fable's same three operands by their pinned original
+addresses and instruction alignment, used only to choose the mutation site. No
+address binding is installed; ambiguous selection fails, and the JSON records old
+and current compiled addresses. No game bytes are copied into this harness.

@@ -169,13 +169,19 @@ def decode_stream(md, img, va, size, on_exception):
     return decode(md, img, va, size, on_exception, normalize)
 
 
-def control_flow(md, old, new, ova, nva, osize, nsize, sigs, helpers):
+def control_flow(md, old, new, ova, nva, osize, nsize, sigs, helpers, include_reached=False):
     from match_flow import original_extent, compare_cfg
     extent = original_extent(sigs, ova, osize)
     a = decode_stream(md, old, ova, extent, next((p for p, n in helpers[0].items() if n == '@HandleOnException'), None))
     b = decode_stream(md, new, nva, nsize, next((p for p, n in helpers[1].items() if n == '@HandleOnException'), None))
-    classes, details = compare_cfg(a, b, ova, nva, extent, nsize, old, new, helpers)
-    return a, b, classes, details
+    reached = []
+    classes, details = compare_cfg(a, b, ova, nva, extent, nsize, old, new, helpers, reached)
+    if extent < osize:
+        reason = 'extent_truncated_by_next_signature'
+        classes = sorted(set(classes + [reason]))
+        details.append(dict(classification=reason, original_size=osize, extent=extent))
+    result = a, b, classes, details
+    return result + tuple(reached) if include_reached else result
 
 
 def compare(a, b):
