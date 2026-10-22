@@ -280,7 +280,7 @@ begin
   begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < FWidth) and (Walk.Y < FHeight) then
     begin
-      Field := TAoWMapField(GetField(Walk.X, Walk.Y));
+      Field := TAoWMapField(FXOffsets[Walk.X] + FYOffsets[Walk.Y]);
       if WordRec(LongRec(Field.FFieldFlags).Hi).Lo = 0 then Result := Result + [feFog];
       Field.SetFogCount(WordRec(LongRec(Field.FFieldFlags).Hi).Lo + 1);
       if not Field.GetExplored(Player) then
@@ -1181,7 +1181,7 @@ begin
   else inherited Move(Shift, X, Y);
 end;
 
-procedure TAoWHSMapMouse.DblClick;
+procedure TAoWHSMapMouse.DblClick; { Near miss: Three variants retain different global-address caching. }
 var
   CombatMap: TAbstractAoWCombatMap;
   SelectStructure: Boolean;
@@ -1644,7 +1644,7 @@ begin
   end;
 end;
 
-function TAoWHSMap.ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
+function TAoWHSMap.ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Near miss: Three variants retain different parameter/result registers. }
 var
   MapLevel: TMapLevel;
   Field: TAoWMapField;
@@ -1672,7 +1672,7 @@ begin
   else Result := False;
 end;
 
-function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean;
+function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Near miss: Three variants retain different parameter/result registers. }
 var
   MapLevel: TMapLevel;
   Field: TAoWMapField;
@@ -2992,7 +2992,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo);
+procedure TAoWHSMap.RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo); { Near miss: Three variants retain different local slots and value reuse. }
 var
   MapLevel: TMapLevel;
   Walk: THNWalkData;

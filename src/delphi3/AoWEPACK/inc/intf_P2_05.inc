@@ -163,7 +163,7 @@
     procedure PathOfFrostTerrainChanged(MapField: TMapField; OriginalTerrainType, OriginalOverlayType: Shortint);
     procedure UpdatePathOfFrost;
     function ConcealedOnMapF(Field: TAoWMapField): Boolean;
-    function ExecuteStormDamage(Storm: TStormType): Integer;
+    function ExecuteStormDamage(Storm: TStormType; Distance: Integer): Integer; { 55790581..55790587 }
     function MovePointCost(TerrainType, OverlayType: Shortint): Integer;
     procedure ResetEarthMasteryStoneSkin;  { draft }
     procedure SetEarthMasteryStoneSkin;  { draft }

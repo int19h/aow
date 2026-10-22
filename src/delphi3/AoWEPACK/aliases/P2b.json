@@ -1,5 +1,6 @@
 {
   "557944ac:93": "TItem.GetAbilitySelectionTypes",
   "55794a70:41": "CompareItemNames",
-  "55794a9c:25": "CompareItemTypes"
+  "55794a9c:25": "CompareItemTypes",
+  "55780524:322": "TAbstractUnit.ConcealedOnMapF"
 }

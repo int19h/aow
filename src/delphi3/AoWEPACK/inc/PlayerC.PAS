@@ -2012,18 +2012,18 @@ end;
 procedure ShowHitPcnt(X, Y: Integer; const Surface: TSurfaceDesc; Percent: Integer);
 var
   SD: TSurfaceDesc;
-  Left: Integer;
+
 begin
   SD := Surface;
   AoWHSSet.FCombatImages[0].Show(X + 20, Y + 54, SD);
-  Left := X + 20;
-  SD.ClipRect.Right := Left + (Percent + 3) div 4;
+
+  SD.ClipRect.Right := X + 20 + (Percent + 3) div 4;
   if SD.ClipRect.Right > Surface.ClipRect.Right then SD.ClipRect.Right := Surface.ClipRect.Right;
-  AoWHSSet.FCombatImages[1].Show(Left, Y + 54, SD);
+  AoWHSSet.FCombatImages[1].Show(X + 20, Y + 54, SD);
 end;
 
 
-procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType);
+procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType); { Near miss: Three variants retain different saved parameters. }
 begin
   if DamageType <> dtNone then
   begin

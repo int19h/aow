@@ -2088,7 +2088,7 @@ begin
   else FIndependentRelation := -1;
 end;
 
-procedure TArmy.Desert(Selection: Byte);
+procedure TArmy.Desert(Selection: Byte); { Near miss: Three variants retain different selection-mask/register allocation. }
 var Units: TList; Player: Shortint; Armies: TArmyHSList; Count, I, Bit: Integer;
   Log: TArmyInfoEventLog; AUnit: TAbstractUnit;
 begin
@@ -2506,10 +2506,10 @@ begin
 end;
 
 procedure TArmy.RetrieveStormDamageInfo(Storm: TStormType; Distance: Integer; var Info: TStormDamageInfo);
-var I, Attack, Damage, Value, Amount: Integer; AUnit: TAbstractUnit; Relation: TDiplomaticRelation;
+var I, Attack, Damage: Integer; Relation: Byte; Value, Amount: Integer; AUnit: TAbstractUnit;
 begin
-  Relation := DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation);
-  if (Ord(Relation) in Info.FriendlyRelations) or (Ord(Relation) in Info.EnemyRelations) then
+  Relation := Ord(DiplomaticRelation(Info.Player, Info.IndependentRelation, FPlayer, FIndependentRelation));
+  if (Relation in Info.FriendlyRelations) or (Relation in Info.EnemyRelations) then
   begin
     case Storm of
       stIce: begin Attack := 7; Damage := 5; end;
@@ -2523,36 +2523,36 @@ begin
     for I := Count - 1 downto 0 do
     begin
       AUnit := GetUnit(I);
-      if (AUnit.FPlayer <> 0) or ((AUnit.FGroup <> nil) and (AUnit.FGroup.Behavior <> gbRefuge)) then
+      if (AUnit.FPlayer <> 0) or ((AUnit.FGroup <> nil) and (AUnit.FGroup.Behavior <> gbPassive)) then
       begin
-        AUnit.RetrieveDamageInfo(Attack, Damage, [P2StormDamageType[Storm]], Value, Amount);
-        if Ord(Relation) in Info.FriendlyRelations then
-        begin Inc(Info.FriendlyDamage, Value); Inc(Info.FriendlyValue, Amount); end;
-        if Ord(Relation) in Info.EnemyRelations then
-        begin Inc(Info.EnemyDamage, Value); Inc(Info.EnemyValue, Amount); end;
+        AUnit.RetrieveDamageInfo(Attack, Damage, [StormDamageType[Storm]], Value, Amount);
+        if Relation in Info.FriendlyRelations then
+        begin Inc(Info.FriendlyDamage, Amount); Inc(Info.FriendlyValue, Value); { Original assigns the second return to damage. } end;
+        if Relation in Info.EnemyRelations then
+        begin Inc(Info.EnemyDamage, Amount); Inc(Info.EnemyValue, Value); end;
       end;
     end;
   end;
 end;
 
 procedure TArmy.IncommingStorm(A1: TStormType; A2: Integer; A3: Shortint);
-var Log: TArmyEventLog; I, Damage: Integer; Damaged: Boolean;
+var Log: TArmyEventLog; Damaged: Boolean; I, Damage: Integer;
 begin
   RandSeed := AoWHSMap.Random($FFFFFF);
   Log := TArmyEventLog.Create(nil);
   Log.FArmyText := TranslateRStr(TStormTypeRStr[A1]);
   Log.FPlayer := A3;
-  Log.FArmyMessages.Text := TranslateRStr(TStormTypeRStr[A1]);
+  Log.FArmyMessages.Add(TranslateRStr(TStormTypeRStr[A1])); { Original appends the storm message. }
   Log.FArmyIcon := 2;
   Log.FArmyView.Setup(Self, $FF);
   BeginUpdate;
   Damaged := False;
   for I := 0 to Count - 1 do
   begin
-    Damage := TAbstractUnit(FChildren.List^[I]).ExecuteStormDamage(A1);
+    Damage := TAbstractUnit(FChildren.List^[I]).ExecuteStormDamage(A1, A2);
     if Damage <> 0 then Damaged := True;
     Log.FDamageValues.Add(Damage);
-    Log.FDamageTypes.Add(Ord(P2StormDamageType[A1]));
+    Log.FDamageTypes.Add(Ord(StormDamageType[A1]));
   end;
   if Damaged then
   begin
@@ -3084,34 +3084,34 @@ begin
     if not (mmAI in TMoveControl(Info.Sender).FMode) and
       (GetFogEnabled or (asFullyConcealed in FArmy.FStatus) or (mmIgnoreArmies in TMoveControl(Info.Sender).FMode)) then
     begin Result := 1; Exit; end;
-    if FArmy.FPlayer = TMoveControl(Info.Sender).FPlayer then
+    if TMoveControl(Info.Sender).FPlayer = FArmy.FPlayer then
     begin
       if not (mmAvoidArmies in TMoveControl(Info.Sender).FMode) or (Self = TMoveControl(Info.Sender).FTransporterArmy) then
       begin
-        if FArmy.FPlayer = 0 then Result := 2
-        else
+        if FArmy.FPlayer <> 0 then
         begin
+
           if (mmAI in TMoveControl(Info.Sender).FMode) and (FArmy.IndexOfTransporter($FF) <> -1) then
           begin Result := 2; Exit; end;
           if (TMoveControl(Info.Sender).FArmyHS <> nil) and
             FArmy.CanCombine(TMoveControl(Info.Sender).FArmyHS.FArmy, TMoveControl(Info.Sender).FSelection) then Result := 1
           else Result := 2;
-        end;
+        end else Result := 2;
       end
       else Result := 0;
     end
     else if AoWHSMap.FPlayers.GetDiplomaticRelation(TMoveControl(Info.Sender).FPlayer, FArmy.FPlayer) = drAlliance then
     begin
-      if (Info.MapField.OverlayType = 7) and (Info.MapField.FindNoneTransparentHS(TPlayerStructure) <> nil) then
-      begin Result := 0; Exit; end;
-      Result := 2;
+      if (Info.MapField.OverlayType <> 7) or (Info.MapField.FindNoneTransparentHS(TPlayerStructure) = nil) then
+      Result := 2
+      else Result := 0;
     end
     else Result := 0;
   end
   else Result := 1;
 end;
 
-procedure TArmyHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
+procedure TArmyHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Near miss: Three variants retain different sender caching and branches. }
 begin
   if Info.HN = 0 then
   begin
@@ -3488,7 +3488,7 @@ begin
 end;
 
 function TArmyHS.PlaceEx(X, Y, L: Shortint; Mode: TArmyPlaceMode): Boolean;
-var Level: TMapLevel; Field: TAoWMapField; Walk: THNWalkData; Msg: TMapFieldMsg;
+var Level: TMapLevel; Field: TAoWMapField; Msg: TMapFieldMsg; Walk: THNWalkData; Player: Integer;
 begin
   Result := False;
   Level := AoWHSMap.MapContainer.GetMapLevel(L);
@@ -3498,8 +3498,8 @@ begin
     if (Walk.X >= 0) and (Walk.Y >= 0) and (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
     begin
       Field := TAoWMapField(Level.GetField(Walk.X, Walk.Y));
-      if Field.FindOwnedChild($20217) = nil then
-        if (Field.GetPlayer = -1) or ((Field.GetPlayer = FArmy.FPlayer) and (apEnableOwnPlayerLocation in Mode)) then
+      if Field.FindOwnedChild($20217) = nil then begin Player := Field.GetPlayer;
+        if (Player = -1) or ((Player = Integer(FArmy.FPlayer)) and (apEnableOwnPlayerLocation in Mode)) then
         begin
           Msg.MsgID := $1120;
           Msg.Param[0] := Integer(Self);
@@ -3508,7 +3508,7 @@ begin
           if Msg.Result = 0 then
             if FArmy.CanPlace(Walk.X, Walk.Y, L) then
             begin MoveTo(Field, 0); Result := True; end;
-        end;
+        end; end;
     end;
     WalkToNextHN(Walk);
   end;
@@ -5698,7 +5698,7 @@ begin
 end;
 
 procedure TExportTextStream.rwStrings(Strings: Classes.TStrings; ID: Integer);
-var Buffer, S: string; I: Integer;
+var S, Buffer: string; I: Integer;
 begin
   if not PropertyTable.PropertyExist(ID) then
   begin

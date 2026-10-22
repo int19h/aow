@@ -1687,16 +1687,16 @@ end;
 
 function TStructure.ShowBorderImageDC(DC: HDC; R: TRect): Boolean;
 var
-  Surface: TDIB16Surface;
-  SurfaceDesc: TSurfaceDesc;
+  Surface: TDIB16Surface; Width, Height: Integer;
+  SurfaceDesc: TSurfaceDesc; BorderRect: TRect;
 begin
   Result := False;
   if GetBottomBorderImage <> nil then
   begin
-    Surface := TDIB16Surface.Create(R.Right - R.Left, R.Bottom - R.Top, pfRGB565);
+    Width := R.Right - R.Left; Height := R.Bottom - R.Top; Surface := TDIB16Surface.Create(Width, Height, pfRGB565);
     try
-      Surface.Lock(SurfaceDesc);
-      Result := ShowBorderImage(SurfaceDesc, Rect(0, 0, R.Right - R.Left, R.Bottom - R.Top));
+
+      BorderRect := Rect(0, 0, Width, Height); Surface.Lock(SurfaceDesc); Result := ShowBorderImage(SurfaceDesc, BorderRect);
       Surface.Unlock;
       Surface.BltDC(DC, nil, @R);
     finally
@@ -2115,7 +2115,7 @@ end;
 function TPlayerStructure.GetCombatEventText(Combat: TCombat): string;
 begin
   if not GetRazed then
-    if Combat.FCombatResult in [crVictory, crNoDefenders] then
+    if (Combat.FCombatResult = crVictory) or (Combat.FCombatResult = crNoDefenders) then
       Result := Format(TranslateRStr(StructureCapturedRStr), [EditName])
     else Result := '';
   { Original leaves the result unchanged for a razed structure. }
@@ -3888,7 +3888,7 @@ begin
   end;
 end;
 
-procedure TTargetSelectionControl.ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TTargetSelectionControl.ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: Three variants retain different coordinate/register allocation. }
 var
   I, DX, DY, X, Y, XS, YS: Integer;
 begin

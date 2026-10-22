@@ -1300,15 +1300,15 @@ var
   Distance: Integer;
   Value: Boolean;
 begin
-  Distance := TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).FCombat));
-  if TP1DistanceCombatView(A1).Speed >= 32 then Inc(Distance, 2);
-  Value := Distance >= TP1DistanceCombatView(A2).LastRound;
-  if Value and (TCombatObject(A1) is TCombatUnit) and
-    (TObject(TCombatUnit(A1).FUnit) is THero) then
-    Value := Value and (((Byte(TCombatObject(A1).FStatus) and $10) <> 0) or
-      (TP1DistanceCombatView(A1).LastRound <=
-       TP1FastRound(@TFastCombat.GetRoundDistance)(TFastCombat(TCombatObject(A1).FCombat)) + 2));
-  asm MOV AL,Value end;
+  Distance := TFastCombat(A1.FCombat).GetRoundDistance;
+  if A1.GetMoves >= 32 then Inc(Distance, 2);
+  Value := Distance >= A2.fcRoundDistance;
+  if Value and (A1 is TCombatUnit) and
+    (TCombatUnit(A1).FUnit is THero) then
+    Value := Value and (((Byte(A1.FStatus) and $10) <> 0) or
+      (A1.fcRoundDistance <=
+       TFastCombat(A1.FCombat).GetRoundDistance + 2));
+  Result := Value;
 end;
 function TAbility.fcGetDamageValue(Source, Target: TCombatObject; Defensive: Boolean): Integer;
 var

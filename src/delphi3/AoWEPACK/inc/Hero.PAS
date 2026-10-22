@@ -883,7 +883,7 @@ begin
 end;
 
 procedure THero.Killed;
-var I: Integer; Position: THeroItemPosition;
+var Position: THeroItemPosition; I: Integer;
 begin
   for I := FInventory.Count - 1 downto 0 do
     if FInventory.GetItem(I) <> nil then
@@ -894,7 +894,7 @@ begin
   FDeathDay := AoWHSMap.FPlayers.GetPlayers(FPlayer).FDay;
   FDeathPlayer := FPlayer;
   inherited Killed;
-  Include(FHeroStatus, hsDied);
+  FHeroStatus := FHeroStatus + [hsDied];
   SetPlayer(-1);
   SetOwner(nil);
 end;
@@ -2825,16 +2825,16 @@ function TLeader.CanAddSphere(Sphere: TMagicSphere): Boolean;
 begin
   if FSpheres.Count < FSpherePicksMax then
   begin
-    if Sphere = msCosmos then begin Result := False; Exit; end;
-    if AoWEngine.FDemo and (GetSpherePicks(Sphere) >= 2) then begin Result := False; Exit; end;
-    if GetSpherePicks(Sphere) = 4 then begin Result := False; Exit; end;
-    if (Sphere = msFire) and (GetSpherePicks(msWater) <> 0) then begin Result := False; Exit; end;
-    if (Sphere = msWater) and (GetSpherePicks(msFire) <> 0) then begin Result := False; Exit; end;
-    if (Sphere = msLife) and (GetSpherePicks(msDeath) <> 0) then begin Result := False; Exit; end;
-    if (Sphere = msDeath) and (GetSpherePicks(msLife) <> 0) then begin Result := False; Exit; end;
-    if (Sphere = msEarth) and (GetSpherePicks(msAir) <> 0) then begin Result := False; Exit; end;
-    if (Sphere = msAir) and (GetSpherePicks(msEarth) <> 0) then begin Result := False; Exit; end;
-    Result := True;
+    if Sphere = msCosmos then Result := False
+    else if AoWEngine.FDemo and (GetSpherePicks(Sphere) >= 2) then Result := False
+    else if GetSpherePicks(Sphere) = 4 then Result := False
+    else if (Sphere = msFire) and (GetSpherePicks(msWater) <> 0) then Result := False
+    else if (Sphere = msWater) and (GetSpherePicks(msFire) <> 0) then Result := False
+    else if (Sphere = msLife) and (GetSpherePicks(msDeath) <> 0) then Result := False
+    else if (Sphere = msDeath) and (GetSpherePicks(msLife) <> 0) then Result := False
+    else if (Sphere = msEarth) and (GetSpherePicks(msAir) <> 0) then Result := False
+    else if (Sphere = msAir) and (GetSpherePicks(msEarth) <> 0) then Result := False
+    else Result := True;
   end
   else Result := False;
 end;

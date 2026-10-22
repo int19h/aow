@@ -45,7 +45,7 @@ function TAbstractUnitResource.DropUnit(Xhx, Yhx, Lhx: Integer): Boolean;
 begin Result := False; end;
 
 
-procedure TAbstractUnitResource.EditDropMsg(var Msg: TEMsg);
+procedure TAbstractUnitResource.EditDropMsg(var Msg: TEMsg); { Near miss: Three variants retain a spilled level and Boolean branch differences. }
 var
   Map: TMapContainer;
   Lhx, Xhx, Yhx: Integer;

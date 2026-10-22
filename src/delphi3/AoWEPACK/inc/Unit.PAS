@@ -624,7 +624,7 @@ begin
 end;
 function P2VMTAbility(List: TAbilityTypeList; Index: Integer): TP2AbilityCalls; assembler;
 asm JMP TAbilityTypeList.GetAbility end;
-procedure TAbstractUnit.UpdateOffensiveStrength;
+procedure TAbstractUnit.UpdateOffensiveStrength; { Near miss: Three variants retain different loop/Self allocation. }
 var
   DamageType: TDamageType;
   Ability: TP2AbilityCalls;
@@ -689,21 +689,21 @@ function TAbstractUnit.GetCombatValue(Target: TAbstractUnit; Mode: Byte): Intege
 var
   I, Value: Integer;
   Abilities: TAbilityTypeList;
-  Ability: TP2AbilityCalls;
-  Info: TP2DamageValue;
+  Ability: TAbility;
+  Info: TAbilityDamageValues;
 begin
   Result := 0;
-  Abilities := TP2AbilityControlFields(AoWHSSet.FAbilityControl).CombatAbilities;
+  Abilities := AoWHSSet.FAbilityControl.FAbilitiesByType[atCombat];
   for I := Abilities.Count - 1 downto 0 do
   begin
-    Ability := P2VMTAbility(Abilities, I);
-    if GetAbilityEnabled(Ability.AbilityID) then
+    Ability := Abilities.GetAbility(I);
+    if GetAbilityEnabled(Ability.FAbilityID) then
     begin
-      Ability.DamageValueEx(Self, Target, Mode, Info);
-      if Info.Damage > 0 then
+      Ability.GetDamageValueEx(Self, Target, TWallSituation(Mode), Info);
+      if Info.SourceDamage > 0 then
       begin
-        Value := Info.Damage;
-        Value := Value * Value div (Info.Cost + Value);
+        Value := Info.SourceDamage * Info.SourceDamage div (Info.TargetDamage + Info.SourceDamage);
+
         if Value <= 0 then Value := 1;
         if Value > Result then Result := Value;
       end;
@@ -1133,12 +1133,12 @@ function P2ConcealmentActive(Field: TAoWMapField): Boolean; assembler;
 asm JMP TAoWMapField.GetConcealmentActive end;
 function TAbstractUnit.ConcealedOnMapF(Field: TAoWMapField): Boolean;
 begin
-  if not GetAbilityEnabled(54) and not P2ConcealmentActive(Field) then
+  if not GetAbilityEnabled(54) and not Field.GetConcealmentActive then
   begin
     Result := GetAbilityEnabled(139) and (Field.Lhx <> 0);
-    if (Smallint(Field.OverlayType) = 1) and (GetAbilityEnabled(145) or GetAbilityEnabled(162)) then
-      Result := True
-    else
+    if (Smallint(Field.OverlayType) <> 1) or not (GetAbilityEnabled(145) or GetAbilityEnabled(162)) then
+      begin
+
       { Original terrain branches overwrite the underground concealment result. }
       case Smallint(Field.TerrainType) of
         1: Result := GetAbilityEnabled(140);
@@ -1147,11 +1147,11 @@ begin
         5: Result := GetAbilityEnabled(143);
         0,10: Result := GetAbilityEnabled(144);
         4: Result := GetAbilityEnabled(138);
-      end;
+      end; end else Result := True;
   end
   else Result := True;
 end;
-function TAbstractUnit.ExecuteStormDamage(Storm: TStormType): Integer;
+function TAbstractUnit.ExecuteStormDamage(Storm: TStormType; Distance: Integer): Integer;
 var
   Overlay: Shortint;
   Moves: TMoveTypes;
@@ -1185,7 +1185,7 @@ begin
   else Attack := 0; Damage := 0;
   end;
   if DoubleDamage then Damage := Damage * 2;
-  Damage := ExecuteDamageRole(Attack,Damage,[P2StormDamageType[Storm]]);
+  Damage := ExecuteDamageRole(Attack,Damage,[StormDamageType[Storm]]);
   if Damage > GetHitPoints then Damage := GetHitPoints;
   if Damage > 0 then
     case Storm of
@@ -1712,7 +1712,7 @@ begin
       Result := Result + [dtHoly];
   end;
 end;
-function TAbstractUnit.ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes;
+function TAbstractUnit.ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes; { Near miss: Three variants retain different Self/set registers. }
 var
   Active: TDamageTypes;
   Data: TUnitEnchantmentAbilityData;

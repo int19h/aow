@@ -1514,7 +1514,7 @@ begin
     FControl.FPlayer.FMagicControl.ListResearchSpells(Spells, [stCombat, stUnit, stGlobal]);
     for I := 0 to Spells.GetCount - 1 do
     begin
-      Value := Spells.GetSpell(I).FCastDuration * 100 + 100 -
+      Value := Spells.GetSpell(I).FCastDuration * 100 + 100; Value := Value -
         FControl.FPlayer.FMagicControl.ResearchTurns(FControl.FPlayer.FMagicControl.GetNetPowerToResearch,
           Spells.GetSpell(I).FResearchCost);
       if Value <= 0 then Value := 1;

@@ -511,7 +511,7 @@ begin AddChild(Event); end;
 procedure TEventLogList.RemoveEvent(Event: TEventLog);
 begin RemoveChild(Event); end;
 
-function TEventLogList.FindID(ID: Integer): TEventLog;
+function TEventLogList.FindID(ID: Integer): TEventLog; { Near miss: Three variants retain different search/result registers. }
 var I: Integer; Log: TEventLog;
 begin
   I := GetCount;
@@ -791,7 +791,7 @@ end;
 procedure TGameOverEventLog.Handled;
 begin AoWHSMap.GameOverEventHandled(FPlayer); end;
 
-function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
+function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Near miss: Three variants retain the saved Self register. }
 begin
   case Trigger of
     etUser:

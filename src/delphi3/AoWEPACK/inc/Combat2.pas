@@ -823,7 +823,7 @@ begin
   if FEffects.Value <> [] then Target.ExecuteDamageEffects(FEffects.Value);
 end;
 
-function TDamageCA.Play(A1: TCombatViewer): Boolean;
+function TDamageCA.Play(A1: TCombatViewer): Boolean; { Near miss: Three variants retain an extra cached delay register. }
 var HitFrame, Duration, EffectFrames: Integer; Target: TCombatObject;
 begin
   if A1.FDelay < 5 then HitFrame := A1.FDelay else HitFrame := 5;

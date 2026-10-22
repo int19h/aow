@@ -665,7 +665,7 @@ begin
   Result := TUnitEnchantment.Create(nil);
 end;
 
-function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean;
+function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean; { Near miss: Three variants retain register and Assert-line differences. }
 var
   Data: TUnitEnchantmentAbilityData;
   Enchantment: TUnitEnchantment;
@@ -1857,7 +1857,7 @@ begin
   Result := -10;
 end;
 
-procedure TTouchAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
+procedure TTouchAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); { Near miss: Three variants retain different level/attack lifetimes. }
 var
   Attack: Shortint;
   Level: Integer;
@@ -2568,7 +2568,7 @@ begin
   FSelectionTypes := [];
 end;
 
-procedure TPossessedAbility.CombatObjectDestroyed(A1: TCombatObject);
+procedure TPossessedAbility.CombatObjectDestroyed(A1: TCombatObject); { Near miss: Three variants retain different with-object registers. }
 var
   NewUnit: TUnit;
   Data: TPossessedAbilityData;

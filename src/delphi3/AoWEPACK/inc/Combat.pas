@@ -497,7 +497,7 @@ type
     Duration: Byte;
   end;
 const
-  P2StormDamageType: array[TStormType] of TDamageType =
+  StormDamageType: array[TStormType] of TDamageType = { 558E8330; original seven-byte table. }
     (dtNone,dtFire,dtDeath,dtHoly,dtCold,dtLightning,dtPoison);
 
 type
@@ -1406,7 +1406,7 @@ begin
 end;
 
 procedure TCombatUnit.GetTargetCVDV(Target: TCombatObject; var CV, DV: Integer);
-var U: TAbstractUnit; Abilities: TAbilityTypeList; Values: TP1DamageValues;
+var U: TAbstractUnit; Abilities: TAbilityTypeList; Values: TAbilityDamageValues;
   I, V: Integer; Ability: TAbility;
 begin
   if not (csDestroyed in FStatus) then
@@ -1420,26 +1420,26 @@ begin
       Ability := Abilities.GetAbility(I);
       if U.GetAbilityEnabled(Ability.FAbilityID) then
       begin
-        Ability.tcGetDamageValueEx(Self, Target, TAbilityDamageValues(Values));
-        if Values.Damage > 0 then
+        Ability.tcGetDamageValueEx(Self, Target, Values);
+        if Values.SourceDamage > 0 then
         begin
-          V := (Values.Damage * Values.Damage) div (Values.Experience + Values.Damage);
+          V := (Values.SourceDamage * Values.SourceDamage) div (Values.TargetDamage + Values.SourceDamage);
           if V <= 0 then V := 1;
           if V > CV then CV := V;
-          if Values.Damage > DV then DV := Values.Damage;
+          if Values.SourceDamage > DV then DV := Values.SourceDamage;
         end;
       end;
     end;
     if U.GetAbilityEnabled($34) then
     begin
       Ability := AoWHSSet.FAbilityControl.GetAbility($34);
-      Ability.tcGetDamageValueEx(Self, Target, TAbilityDamageValues(Values));
-      if Values.Damage > 0 then
+      Ability.tcGetDamageValueEx(Self, Target, Values);
+      if Values.SourceDamage > 0 then
       begin
-        V := (Values.Damage * Values.Damage) div (Values.Experience + Values.Damage);
+        V := (Values.SourceDamage * Values.SourceDamage) div (Values.TargetDamage + Values.SourceDamage);
         if V <= 0 then V := 1;
         if V > CV then CV := V;
-        if Values.Damage > DV then DV := Values.Damage;
+        if Values.SourceDamage > DV then DV := Values.SourceDamage;
       end;
     end;
   end
