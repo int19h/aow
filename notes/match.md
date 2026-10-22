@@ -329,10 +329,13 @@ Two tools close the gap. Both take the arguments of `tools/match.py`:
   (identical constant tables placed twice, same-named `Register` routines in different units).
 - `tools/equiv.py` proves a differing function equivalent to the original with z3: cut points at
   block entries, Houdini invariants, calls as uninterpreted functions of their target, arguments
-  and memory. Anything it does not model fails closed. A mutation test (3,401 single-instruction
-  changes of matching functions) found no unsound proof. It proves about 15 percent of the
-  differing functions; its main limit is that the invariant requires the whole memory, frame
-  included, to correspond, so functions whose locals sit in other slots fail.
+  and memory. Anything it does not model fails closed. Since 3bf63da it relates the two private
+  frames by a slot mapping, accepts different saved-register sets and models constant `rep movs`
+  and `rep stos`; it proves 125 of 491 differing functions. Its mutation test (4,093
+  single-instruction changes of matching functions, including frame-offset, dropped-restore and
+  rep-count changes) accepts no non-equivalent change. The test found two unsound proofs in the
+  first version (implicit BX arguments, dynamic dispatch); both are fixed. Most remaining failures
+  are state correspondences it cannot infer (230) and global addresses it cannot pair (71).
 
 "Register choice" leftovers are not proven equivalent by default. Rewriting a near miss until it
 matches is cheaper than proving it, and finds bugs (`notes/briefs/near-miss.md`): the first round
