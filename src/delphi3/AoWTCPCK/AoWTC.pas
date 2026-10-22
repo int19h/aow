@@ -517,7 +517,7 @@ type
     class function ClassID: Integer; override;
     function CreateCombatUnit: AoWE.TCombatUnit; override;
     function CreateCombatPlayer: TCombatPlayer; override;
-    function Execute: Byte; override;
+    function Execute: TCombatResult; override;
     procedure Initialize; override;
     procedure Finalize; override;
     procedure Deactivate; override;
@@ -5159,7 +5159,7 @@ begin
   Result := TTacticalCombatPlayer.Create(nil);
 end;
 
-function TTacticalCombat.Execute: Byte;
+function TTacticalCombat.Execute: TCombatResult;
 var
   Generator: TRndTacHsm;
   I, Seated: Integer;
@@ -5168,14 +5168,14 @@ begin
     SetLogCombatActions(1);
     SetLogbookHeader(TranslateRStr(CannotBreachWallRStr));
     FCombatResult := crCannotBreachWall;
-    Result := Byte(FCombatResult);
+    Result := FCombatResult;
   end else begin
     if FSides[csDefender].GetCount = FSides[csDefender].FConquerCount then begin
       SetLogCombatActions(1);
       SetLogbookHeader(TranslateRStr(CannotInflictDamageRStr));
       FCombatResult := crCannotInflictDamage;
-      Result := Byte(FCombatResult);
-    end else if FSides[csDefender].GetCount = 0 then Result := Ord(crNoDefenders)
+      Result := FCombatResult;
+    end else if FSides[csDefender].GetCount = 0 then Result := crNoDefenders
     else begin
       AoWHSMap.FTokenManager.TokenExecuter.HoldTC := True;
       Generator := TRndTacHsm.Create;
@@ -5198,7 +5198,7 @@ begin
       AoWCombatMap.CenterViewTo(32, 29, 0);
       AoWCombatMap.FCombat.NewRound;
       AoWCombatMap.NewTurn(FCombatData.FTurnOrder[0]);
-      Result := Ord(crBusy);
+      Result := crBusy;
       FOnTerminated := AoWCombatMap.EndCombat;
       SetLogCombatActions(1);
     end;

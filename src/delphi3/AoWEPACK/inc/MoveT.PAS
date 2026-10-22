@@ -382,7 +382,7 @@ begin
   Result := Count;
 end;
 
-procedure TMoveControl.ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer);
+procedure TMoveControl.ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer); { Near miss: Direction spill and neighbor evaluation differ after three variants. }
 var
   LeftCount, RightCount, OverCode, HT: Integer;
   Next: TAoWMapField;
@@ -1354,7 +1354,7 @@ begin
   Result := (FSettings.FStatus <> mcssProcessed) and (FSettings.FStatus <> mcssFailed);
 end;
 
-procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint);
+procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint); { Near miss: Self/field spills and neighbor locals differ after three variants. }
 var
   Field, Previous, Neighbor: TAoWMapField;
   Points, Cost, OverCode, Parity, Direction: Integer;
@@ -1685,13 +1685,10 @@ begin
 end;
 
 function TMoveControl.CalculateTurnAroundMovePoints(var GapIndex: Integer): Integer;
-var
-  LeftFound, RightFound, LeftActive, RightActive, Done: Boolean;
-  StartX, StartY: Shortint;
-  LeftField, RightField, Next: TAoWMapField;
-  LeftDirection, RightDirection, LeftOver, RightOver: Integer;
-  LeftPoints, RightPoints, Attempts, Points, OverCode, Index: Integer;
-  Parity: Integer;
+type TOffsets = array[0..7] of Integer; POffsets = ^TOffsets; var
+  Offsets: POffsets; Done, LeftFound, RightFound, LeftActive, RightActive: Boolean;
+  LeftPoints, RightPoints, RightOver, LeftOver: Integer; RightField, LeftField, Next: TAoWMapField;
+  RightDirection, LeftDirection: Integer; StartX, StartY: Shortint; Attempts, Points, OverCode, Index: Integer;
 begin
   LeftFound := False;
   RightFound := False;
@@ -1700,50 +1697,42 @@ begin
   StartX := FGapStarts[GapIndex].X;
   StartY := FGapStarts[GapIndex].Y;
   RightField := TAoWMapField(FMapLevel.GetField(FGapStarts[GapIndex].X, FGapStarts[GapIndex].Y));
-  RightDirection := FGapStarts[GapIndex].L;
+  LeftField := RightField; RightDirection := FGapStarts[GapIndex].L; LeftDirection := RightDirection;
   LeftPoints := 0;
   RightPoints := 0;
   Done := False;
   RightOver := RightField.CanMoveOver(Self);
   LeftOver := RightOver;
-  LeftField := RightField;
-  LeftDirection := RightDirection;
   while not Done do
   begin
     if RightActive then
     begin
       Attempts := 0;
-      Parity := RightField.Xhx and 1;
+      Offsets := @FFieldOffsets[RightField.Xhx and 1];
       repeat
-        Next := TAoWMapField(FFieldOffsets[Parity, RightDirection] + Integer(RightField));
+        Next := TAoWMapField(Offsets^[RightDirection] + Integer(RightField));
         Points := FOnMovePoint(Next, RightOver);
         if Points >= 0 then
-          if (Next.FFieldFlags and $2000 = 0) or
-            ((Next.Xhx = FDestinationX) and (Next.Yhx = FDestinationY)) then OverCode := 1
-          else
+          if (Next.FFieldFlags and $2000 <> 0) and
+            ((Next.Xhx <> FDestinationX) or (Next.Yhx <> FDestinationY)) then
           begin
             OverCode := Next.CanMoveOver(Self);
             if OverCode = 0 then Points := -1;
-          end
+          end else OverCode := 1
         else OverCode := 1;
         Inc(RightDirection);
         if RightDirection > 6 then RightDirection := 1;
         Inc(Attempts);
-      until (Points >= 0) or (Attempts >= 7);
+      until (Points >= 0) or (Attempts > 6);
       if RightOver = 2 then Dec(RightDirection, 3)
       else Dec(RightDirection, 2);
-      if RightDirection < 1 then Inc(RightDirection, 6);
+      if RightDirection <= 0 then Inc(RightDirection, 6);
       if OverCode = 2 then RightOver := 2 else RightOver := 1;
       Inc(RightPoints, Points);
       RightField := Next;
-      if (RightPoints > FMovePointsLimit) or (Points < 0) then
+      if (RightPoints <= FMovePointsLimit) and (Points >= 0) then
       begin
-        RightActive := False;
-        if not LeftActive then Done := True;
-      end
-      else
-      begin
-        Index := FGapEnds.IndexOfXY(Next.Xhx, Next.Yhx);
+        Index := FGapEnds.IndexOfXY(RightField.Xhx, RightField.Yhx);
         if (Index <> -1) and (Index >= GapIndex) then
         begin
           GapIndex := Index;
@@ -1751,33 +1740,37 @@ begin
           Done := True;
           RightActive := False;
         end;
-        if (Next.Xhx = StartX) and (Next.Yhx = StartY) then
+        if (RightField.Xhx = StartX) and (RightField.Yhx = StartY) then
         begin
           RightActive := False;
           if not LeftActive then Done := True;
         end;
+      end
+      else
+      begin
+        RightActive := False;
+        if not LeftActive then Done := True;
       end;
     end;
     if LeftActive then
     begin
       Attempts := 0;
-      Parity := LeftField.Xhx and 1;
+      Offsets := @FFieldOffsets[LeftField.Xhx and 1];
       repeat
-        Next := TAoWMapField(FFieldOffsets[Parity, LeftDirection] + Integer(LeftField));
+        Next := TAoWMapField(Offsets^[LeftDirection] + Integer(LeftField));
         Points := FOnMovePoint(Next, LeftOver);
         if Points >= 0 then
-          if (Next.FFieldFlags and $2000 = 0) or
-            ((Next.Xhx = FDestinationX) and (Next.Yhx = FDestinationY)) then OverCode := 1
-          else
+          if (Next.FFieldFlags and $2000 <> 0) and
+            ((Next.Xhx <> FDestinationX) or (Next.Yhx <> FDestinationY)) then
           begin
             OverCode := Next.CanMoveOver(Self);
             if OverCode = 0 then Points := -1;
-          end
+          end else OverCode := 1
         else OverCode := 1;
         Dec(LeftDirection);
         if LeftDirection = 0 then LeftDirection := 6;
         Inc(Attempts);
-      until (Points >= 0) or (Attempts >= 7);
+      until (Points >= 0) or (Attempts > 6);
       if LeftOver = 2 then Inc(LeftDirection, 3)
       else Inc(LeftDirection, 2);
       if LeftDirection > 6 then Dec(LeftDirection, 6);
@@ -1786,7 +1779,7 @@ begin
       LeftField := Next;
       if (LeftPoints < FMovePointsLimit) and (Points >= 0) then
       begin
-        Index := FGapEnds.IndexOfXY(Next.Xhx, Next.Yhx);
+        Index := FGapEnds.IndexOfXY(LeftField.Xhx, LeftField.Yhx);
         if (Index <> -1) and (Index >= GapIndex) then
         begin
           GapIndex := Index;
@@ -1794,7 +1787,7 @@ begin
           Done := True;
           LeftActive := False;
         end;
-        if (Next.Xhx = StartX) and (Next.Yhx = StartY) then
+        if (LeftField.Xhx = StartX) and (LeftField.Yhx = StartY) then
         begin
           LeftActive := False;
           if not RightActive then Done := True;
@@ -1811,6 +1804,13 @@ begin
   else if RightFound then Result := RightPoints
   else Result := -1;
 end;
+
+
+
+
+
+
+
 
 function TMoveControl.GetMovePointsCostFast(SourceX, SourceY, DestinationX, DestinationY: Integer): Integer;
 var
@@ -2868,13 +2868,13 @@ begin
 end;
 
 procedure TArmyCombatMoveTE.ExecuteCombat;
-var
+var CombatResult: TCombatResult;
   Field, Source: TAoWMapField;
   Defender: Shortint;
-  OtherArmyHS, ArmyHS: TArmyHS;
+  OtherArmyHS, ArmyHS, MovedArmyHS: TArmyHS;
   I: Integer;
   Combat: TCombat;
-  CombatResult: Byte;
+
   Msg: TMapFieldMsg;
   Log: TUserEventLog;
   Anim: TImageSequenceAnimation;
@@ -2896,14 +2896,14 @@ begin
   if OtherArmyHS <> nil then
   begin
     FArmyHS.FArmy.BeginUpdate;
-    Include(FArmyHS.FArmy.FMode, amDisableTerrainValidation);
+    FArmyHS.FArmy.FMode := FArmyHS.FArmy.FMode + [amDisableTerrainValidation];
     for I := OtherArmyHS.FArmy.Count - 1 downto 0 do
     begin
       AUnit := OtherArmyHS.FArmy.GetUnit(I);
-      Exclude(AUnit.FUnitStatus, usMoving);
-      FArmyHS.FArmy.AddChild(AUnit);
+      AUnit.FUnitStatus := AUnit.FUnitStatus - [usMoving];
+      FArmyHS.FArmy.AddUnit(AUnit);
     end;
-    Exclude(FArmyHS.FArmy.FMode, amDisableTerrainValidation);
+    FArmyHS.FArmy.FMode := FArmyHS.FArmy.FMode - [amDisableTerrainValidation];
     FArmyHS.FArmy.EndUpdate;
   end;
   FArmyHS.CancelMove;
@@ -2925,13 +2925,7 @@ begin
   Combat.Activate;
   CombatResult := Combat.Execute;
   FCombatMode := cmCombatExecuted;
-  if CombatResult = Ord(crBusy) then
-  begin
-    AoWHSMap.UnlockGameOverEvent;
-    FArmyHS := nil;
-    FinishMove;
-  end
-  else
+  if CombatResult <> crBusy then
   begin
     Combat.Deactivate;
     Combat.Finalize;
@@ -2949,7 +2943,7 @@ begin
         FCombatMode := cmRestoringHotseat;
       end;
     end;
-    if (CombatResult <> Ord(crNoDefenders)) and
+    if (CombatResult <> crNoDefenders) and
       AoWHSMap.VisibleForPlayer(FPath[0].X, FPath[0].Y, FPath[0].L, AoWHSMap.FSeatedPlayer) then
     begin
       Anim := TImageSequenceAnimation.Create(nil);
@@ -2958,9 +2952,9 @@ begin
     end;
     AoWHSMap.DestroyCombat;
     AoWHSMap.UnlockGameOverEvent;
-    FArmyHS := TArmyHS(GetMapF(FPath[FMoveIndex]).FindChild($20217));
-    if (FArmyHS <> nil) and (CombatResult in [Ord(crCannotInflictDamage), Ord(crUndecided),
-      Ord(crCannotBreachWall), Ord(crFled)]) then
+    FArmyHS := TArmyHS(GetMapF(FPath[FMoveIndex]).FindOwnedChild($20217));
+    if (FArmyHS <> nil) and (CombatResult in [crCannotInflictDamage, crUndecided,
+      crCannotBreachWall, crFled]) then
     begin
       FinishMove;
       FArmyHS := nil;
@@ -2978,17 +2972,10 @@ begin
         if usMoving in FArmyHS.FArmy.GetUnit(I).FUnitStatus then
         begin
           FArmyHS.FArmy.GetUnit(I).FUnitStatus := FArmyHS.FArmy.GetUnit(I).FUnitStatus - [usMoving];
-          ArmyHS.FArmy.AddChild(FArmyHS.FArmy.GetUnit(I));
+          ArmyHS.FArmy.AddUnit(FArmyHS.FArmy.GetUnit(I));
         end;
       ArmyHS.FArmy.EndUpdate;
-      if ArmyHS.FArmy.Count = 0 then
-      begin
-        { The original drops the empty new army without freeing it. }
-        Exclude(FArmyHS.FArmy.FMode, amMoving);
-        FArmyHS.FArmy.EndUpdate;
-        FArmyHS := nil;
-      end
-      else
+      if ArmyHS.FArmy.Count <> 0 then
       begin
         ArmyHS.PlacePrivate(AoWHSMap.MapContainer, FPath[FMoveIndex].X,
           FPath[FMoveIndex].Y, FPath[FMoveIndex].L);
@@ -2997,24 +2984,37 @@ begin
           AoWHSMap.Selection.UnselectLocation;
           AoWHSMap.Selection.SelectLocationHS(ArmyHS);
         end;
-        Exclude(FArmyHS.FArmy.FMode, amMoving);
+        FArmyHS.FArmy.FMode := FArmyHS.FArmy.FMode - [amMoving];
         FArmyHS.FArmy.EndUpdate;
-        FArmyHS := ArmyHS;
-        Include(ArmyHS.FArmy.FMode, amMoving);
+        MovedArmyHS := ArmyHS; FArmyHS := MovedArmyHS;
+        MovedArmyHS.FArmy.FMode := MovedArmyHS.FArmy.FMode + [amMoving];
         FSelection := $FF;
-        if (CombatResult <> Ord(crVictory)) and (CombatResult <> Ord(crNoDefenders)) and
-          not inherited CanMoveNext then
+        if (CombatResult in [crVictory, crNoDefenders]) or inherited CanMoveNext then
         begin
-          FinishMove;
-          FArmyHS := nil;
-          Exit;
+          FArmyHS.MoveFirst(GetDirection(FMoveIndex), False);
+          FArmyHS.SetMoveStatus(50);
+        end else begin
+          FinishMove; FArmyHS := nil; Exit;
         end;
-        FArmyHS.MoveFirst(GetDirection(FMoveIndex), False);
-        FArmyHS.SetMoveStatus(50);
+      end
+      else
+      begin
+        { The original drops the empty new army without freeing it. }
+        FArmyHS.FArmy.FMode := FArmyHS.FArmy.FMode - [amMoving];
+        FArmyHS.FArmy.EndUpdate;
+        FArmyHS := nil;
       end;
     end;
+  end
+  else
+  begin
+    AoWHSMap.UnlockGameOverEvent;
+    FArmyHS := nil;
+    FinishMove;
   end;
 end;
+
+
 
 function TArmyCombatMoveTE.ExecuteLastMove: TMoveStatus;
 begin

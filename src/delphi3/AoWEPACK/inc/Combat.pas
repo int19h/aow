@@ -6616,10 +6616,10 @@ begin
   TCombatPartyList(TCombatData(FCombatData).FParties).Deactivate(Integer(Self));
 end;
 
-function TCombat.Execute: Byte;
+function TCombat.Execute: TCombatResult;
 begin
   RandSeed := AoWHSMap.Random($FFFFFF);
-  Result := 0;
+  Result := crIdle;
 end;
 
 procedure TCombat.UpdateStatus;

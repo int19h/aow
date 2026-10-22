@@ -424,12 +424,11 @@ begin
 end;
 procedure TPlayer.SetGameOverStatus(Value: TGameOverStatus);
 var
-  Text: string;
   Event: TGameOverEventLog;
-  I: Integer;
+  I: Integer; Structures: TPlayerStructureList; Armies: TArmyList;
   Campaign: TAoWCampaign;
 begin
-  if (FGameOverStatus <> Value) and (FGameOverStatus = goNone) then
+  if (Value <> FGameOverStatus) and (FGameOverStatus = goNone) then
   begin
     FGameOverStatus := Value;
     AoWHSMap.FAIExecuter.DeactivatePlayer(FPlayerIndex);
@@ -452,9 +451,9 @@ begin
     begin
       BeginUpdate;
       FMagicControl.RemoveEnchantments;
-      for I := FStructures.Count - 1 downto 0 do
+      Structures := FStructures; for I := Structures.Count - 1 downto 0 do
         FStructures.GetStructure(I).SetPlayer(0);
-      for I := FArmies.Count - 1 downto 0 do
+      Armies := FArmies; for I := Armies.Count - 1 downto 0 do
         FArmies.GetArmy(I).SetPlayer(0);
       FMagicControl.SetMana(0);
       FGems := 0;
@@ -465,15 +464,15 @@ begin
     Event.FPlayer := FPlayerIndex;
     if Value = goLost then
     begin
-      Text := Format(TranslateRStr(GameOverDefeatMessageRStr),
+      Event.FMessage.Text := Format(TranslateRStr(GameOverDefeatMessageRStr),
         [IntToStr(AoWHSMap.FDay), TranslateRStr(RaceNamesPluralRStr[FPlayerRace]), GetName]);
-      Event.FMessage.Text := Text;
+
     end
     else
     begin
-      Text := Format(TranslateRStr(GameOverVictoryMessageRStr),
+      Event.FMessage.Text := Format(TranslateRStr(GameOverVictoryMessageRStr),
         [IntToStr(AoWHSMap.FDay), TranslateRStr(RaceNamesPluralRStr[FPlayerRace]), GetName]);
-      Event.FMessage.Text := Text;
+
     end;
     AoWHSMap.ExecuteGameOverEvent(Event);
     Event.Release;
@@ -481,6 +480,7 @@ begin
       AoWHSMap.FGlobalMagicControl.RemovePlayerEnchantments(FPlayerIndex);
   end;
 end;
+
 function TPlayer.Surrender: Boolean;
 var
   TE: TGameOverTE;

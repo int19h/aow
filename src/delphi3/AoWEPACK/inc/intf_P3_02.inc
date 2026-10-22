@@ -323,7 +323,7 @@
     function CreateCombatUnit: TCombatUnit; virtual; { +058; 557445F0 }
     function CreateCombatPlayer: TCombatPlayer; virtual; { +05C; AoWTCPCK 004295C4 }
     function Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean; virtual;  { +060 }
-    function Execute: Byte; virtual;  { +064 draft }
+    function Execute: TCombatResult; virtual;  { +064 }
     procedure Initialize; virtual;  { +068 draft }
     procedure Finalize; virtual;  { +06C draft }
     procedure Activate; virtual;  { +070 draft }

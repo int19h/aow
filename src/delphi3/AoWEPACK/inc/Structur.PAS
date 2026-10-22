@@ -4250,7 +4250,7 @@ begin
   end;
 end;
 
-procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc);
+procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc); { Near miss: Transparent draw coordinate evaluation differs after three variants. }
 var
   X1, Y1, X2, Y2, I, J, ImageIndex, MaxX, MaxY, Xhp, Yhp, PointsLeft, Direction: Integer;
   Settings: TMoveSettings;

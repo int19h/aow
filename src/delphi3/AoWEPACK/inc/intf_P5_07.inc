@@ -1074,7 +1074,7 @@
     class function ClassID: Integer; override;
     function CreateCombatUnit: TCombatUnit; override;
     function Setup(A1: Byte; A2: Byte; A3: Integer; A4: Integer; A5: Integer; A6: Byte; A7: Byte; A8: Integer; A9: Integer; A10: Integer; A11: Boolean): Boolean; override;
-    function Execute: Byte; override;
+    function Execute: TCombatResult; override;
     procedure Initialize; override;
     procedure Activate; override;
     procedure Deactivate; override;

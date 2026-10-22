@@ -5238,7 +5238,7 @@ end;
 
 procedure TAdjacentMEC.CalculateMoves;
 var
-  I, J, Failed, Ready, Index: Integer;
+  Index, Ready, Failed, J, I: Integer;
   Armies: TAIMoveExecuterArmyList;
   MoveResult: Byte;
   Settings: TMoveControlSettings;
@@ -5246,7 +5246,7 @@ var
   ArmyHS: TArmyHS;
   Adjacent: TAdjacentArmy;
   Move: TAIMoveExecuterMove;
-  Mode: TCreateMoveMode;
+  Mode: TCreateMoveMode; CanMove: Boolean;
 begin
   case FState of
     0:
@@ -5261,7 +5261,7 @@ begin
           try
             Armies.GetArmies(I).RetrieveArmy($FF, ArmyHS, ArmySelection);
           except
-            raise;
+            { Original suppresses a RetrieveArmy exception. }
           end;
           { Original uses transporter IDs as visited markers during adjacent moves. }
           for J := Armies.GetArmies(I).Count - 1 downto 0 do
@@ -5269,8 +5269,8 @@ begin
           Settings.Reset;
           Settings.FMovePointsMax := FExecuter.FMovePointsMax;
           Settings.SetupArmy(ArmyHS, ArmySelection);
-          with FExecuter.FDestination do Settings.SetDestinationPos(X, Y, L);
-          AoWHSMap.FMoveControl.Activate(Settings);
+          Settings.SetDestinationPos(FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L);
+          AoWHSMap.FMoveControl.ProcessMove(Settings);
           Adjacent := TAdjacentArmy.Create(FAdjacentArmies);
           Adjacent.FPath.Assign(Settings.FPath);
           Adjacent.FMoves := ArmyHS.FArmy.Moves(ArmySelection);
@@ -5335,8 +5335,7 @@ begin
                 Armies.GetArmies(Index).GetUnits(J).FTransporterID := 1;
               if memAttack in FExecuter.FMode then Mode := [cmmDontQueue, cmmSurround]
               else Mode := [cmmDontQueue];
-              with FExecuter.FDestination do
-                Move := CreateMove(Armies.GetArmies(Index), $FF, X, Y, L, Mode, @MoveResult);
+              Move := CreateMove(Armies.GetArmies(Index), $FF, FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L, Mode, @MoveResult);
               if Move = nil then
               begin
                 if MoveResult = 1 then FState := 3
@@ -5431,13 +5430,12 @@ begin
         Armies := FExecuter.CreateArmies([esReady, esDone]);
         while Armies.Count <> I do
         begin
-          with FExecuter.FDestination do
-            Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L,
+          Move := CreateMove(Armies.GetArmies(I), $FF, FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L,
               [cmmDontQueue, cmmSurround], @MoveResult);
-          if (MoveResult <> 0) or
+          CanMove := (MoveResult <> 0) or
             ((dHXtoRad(FExecuter.FDestination.X, FExecuter.FDestination.Y,
               Armies.GetArmies(I).FLocation.X, Armies.GetArmies(I).FLocation.Y) = 1) and
-             (Armies.GetArmies(I).FLocation.L = FExecuter.FDestination.L)) then Inc(Ready)
+             (Armies.GetArmies(I).FLocation.L = FExecuter.FDestination.L)); if CanMove then Inc(Ready)
           else Inc(Failed);
           if Move <> nil then Move.Free;
           Inc(I);
@@ -5450,8 +5448,7 @@ begin
           Armies := FExecuter.CreateArmies([esReady, esDone]);
           while (Move = nil) and (Armies.Count <> I) do
           begin
-            with FExecuter.FDestination do
-              Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L, [], @MoveResult);
+            Move := CreateMove(Armies.GetArmies(I), $FF, FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L, [], @MoveResult);
             if Move <> nil then FExecuter.ExecuteMoves;
             Inc(I);
           end;
@@ -5461,6 +5458,9 @@ begin
       end;
   end;
 end;
+
+
+
 
 function TTransportMEC.CreateTransporterMove(X, Y, L: Shortint; Queue: Boolean): TAIMoveExecuterMove;
 var
@@ -5635,7 +5635,7 @@ begin
   end;
 end;
 
-procedure TTransportMEC.UpdateTransportMeetingPoint;
+procedure TTransportMEC.UpdateTransportMeetingPoint; { Near miss: Found/index register allocation differs after three variants. }
 var
   Armies: TAIMoveExecuterArmyList;
   I, J: Integer;
@@ -5693,32 +5693,26 @@ var
   Armies: TAIMoveExecuterArmyList;
   Index, I: Integer;
   Army: TAIMoveExecuterArmy;
-  Settings: TAIMoveControlSettings;
   UnitEntry: TAIMoveExecuterUnit;
 begin
   Armies := FExecuter.CreateArmies([esReady]);
-  Settings := FMoveControl.FSettings;
-  Index := Armies.IndexOf(Settings.FArmyHS, Settings.FSelection);
-  if Index = -1 then Army := nil else Army := Armies.GetArmies(Index);
-  if (Army = nil) or (Settings.FMovePoints = -1) then
-    FExecuter.FStatus := mesFailed
-  else
-    if Settings.FBoardingPoint.X = -1 then
-      for I := 0 to Army.Count - 1 do Army.GetUnits(I).FTransportStatus := mtsArriving
-    else
-    begin
-      Index := Settings.FTransportPath.IndexOfXYL(Settings.FBoardingPoint.X,
-        Settings.FBoardingPoint.Y, Settings.FBoardingPoint.L);
-      while (Index <> Settings.FTransportPath.Count - 1) and
-        (CanMoveTo(Army, $FF, Settings.FTransportPath[Index].X,
-          Settings.FTransportPath[Index].Y, Settings.FTransportPath[Index].L) <> $FF) do Inc(Index);
-      Settings.FBoardingPoint := Settings.FTransportPath[Index];
-      Index := Settings.FTransportPath.IndexOfXYL(Settings.FArrivalPoint.X,
-        Settings.FArrivalPoint.Y, Settings.FArrivalPoint.L);
+  Index := Armies.IndexOf(FMoveControl.FSettings.FArmyHS, FMoveControl.FSettings.FSelection);
+  if Index <> -1 then Army := Armies.GetArmies(Index) else Army := nil;
+  if (Army <> nil) and (FMoveControl.FSettings.FMovePoints <> -1) then
+    if FMoveControl.FSettings.FBoardingPoint.X <> -1 then
+    with FMoveControl.FSettings do begin
+      Index := FTransportPath.IndexOfXYL(FBoardingPoint.X,
+        FBoardingPoint.Y, FBoardingPoint.L);
+      while (Index <> FTransportPath.Count - 1) and
+        (CanMoveTo(Army, $FF, FTransportPath[Index].X,
+          FTransportPath[Index].Y, FTransportPath[Index].L) <> $FF) do Inc(Index);
+      FBoardingPoint := FTransportPath[Index];
+      Index := FTransportPath.IndexOfXYL(FArrivalPoint.X,
+        FArrivalPoint.Y, FArrivalPoint.L);
       while (Index <> 0) and
-        (CanMoveTo(Army, $FF, Settings.FTransportPath[Index].X,
-          Settings.FTransportPath[Index].Y, Settings.FTransportPath[Index].L) <> $FF) do Dec(Index);
-      Settings.FArrivalPoint := Settings.FTransportPath[Index];
+        (CanMoveTo(Army, $FF, FTransportPath[Index].X,
+          FTransportPath[Index].Y, FTransportPath[Index].L) <> $FF) do Dec(Index);
+      FArrivalPoint := FTransportPath[Index];
       for I := 0 to Army.Count - 1 do
       begin
         UnitEntry := Army.GetUnits(I);
@@ -5734,11 +5728,17 @@ begin
         UnitEntry.FTransportDestination := FMoveControl.FSettings.FTransportDestination;
         UnitEntry.FTransportDestination.Flag := 0;
       end;
-    end;
+    end else for I := 0 to Army.Count - 1 do Army.GetUnits(I).FTransportStatus := mtsArriving
+  else FExecuter.FStatus := mesFailed;
   Armies.Free;
 end;
 
-procedure TTransportMEC.CalculateMoves;
+
+
+
+
+
+procedure TTransportMEC.CalculateMoves; { Near miss: Timer/settings allocation and state layout differ after three variants. }
 var
   Transporters: TAIMoveExecuterArmyList;
   Armies: TAIMoveExecuterArmyList;
@@ -7307,7 +7307,7 @@ begin
   Objects.Free;
 end;
 
-function TFastCombat.Execute: Byte;
+function TFastCombat.Execute: TCombatResult;
 var
   Header: string;
   Side: TCombatSide;
@@ -7346,7 +7346,7 @@ begin
     SetLogbookHeader(Header);
     FCombatResult := crCannotBreachWall;
   end;
-  Result := Byte(FCombatResult);
+  Result := FCombatResult;
 end;
 
 function TCombatObjectList.GetObject(Index: Integer): TCombatObject;

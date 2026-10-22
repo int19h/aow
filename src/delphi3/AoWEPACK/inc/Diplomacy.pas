@@ -1560,7 +1560,7 @@ begin
   else Result := nil;
 end;
 
-function TDiplomacyAIPA.ExecuteDiplomacy(Player: Shortint): Boolean;
+function TDiplomacyAIPA.ExecuteDiplomacy(Player: Shortint): Boolean; { Near miss: Player/action register allocation differs after three variants. }
 var
   Action: TDiplomaticAction;
   Peace, War, Unknown: TByteList;
@@ -2573,7 +2573,7 @@ begin
   Save;
 end;
 
-procedure TEmailGameControl.ValidateIncommingGame(const FileName: string; var Destination: string);
+procedure TEmailGameControl.ValidateIncommingGame(const FileName: string; var Destination: string); { Near miss: Map/overwrite spills and string temporaries differ after three variants. }
 var
   Map, PreviousMap: TAoWHSMap;
   LocalGame: TEmailGame;

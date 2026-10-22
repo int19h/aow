@@ -1916,7 +1916,7 @@ begin
     FMode := FMode - [amMoving];
 end;
 
-procedure TArmy.MakeIndependent(Selection: Byte; var Armies: TArmyHSList);
+procedure TArmy.MakeIndependent(Selection: Byte; var Armies: TArmyHSList); { Near miss: Selection spill and loop-counter allocation differ after three variants. }
 var X, Y, L: Shortint; GoodArmy, EvilArmy: TArmy; Races, Units: TList;
   I, J, Race: Integer; AUnit: TAbstractUnit; Alignment: TAlignment; ArmyHS: TArmyHS;
   function PlaceIndependentArmy(AX, AY, AL: Shortint; Army: TArmy): TArmyHS;
@@ -2362,7 +2362,7 @@ begin
   end;
 end;
 
-function TArmy.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean;
+function TArmy.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean; { Near miss: Frame and string-temporary layout differ after three variants. }
 var
   Log: TArmyInfoEventLog;
   Selection: Byte;
@@ -3262,7 +3262,7 @@ begin
   end;
 end;
 
-procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
+procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: Sequence/frame registers and flag evaluation differ after three variants. }
 var Sequence: TImageSequence; Frame, Xhp, Yhp, DX, DY: Integer; Part: Real;
 begin
   if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled) then
@@ -3317,15 +3317,12 @@ begin
     HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
     XhpSurf := Xhp - XhpSurf;
     YhpSurf := Yhp - YhpSurf;
-    if FMoveStep = -1 then
-      if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[3]
-      else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1]
-    else
+    if FMoveStep <> -1 then
     begin
       HNtoHP(FDirection, DX, DY);
       if FStatus and $10 = 0 then
       begin
-        Part := FMoveStep / GetMoveSteps;
+        Part := FMoveStep / FMoveSteps;
         Inc(XhpSurf, Round(Part * DX));
         Inc(YhpSurf, Round(Part * DY));
       end;
@@ -3335,11 +3332,31 @@ begin
       else
         if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[3]
         else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1];
-    end;
+    end
+    else
+    begin if FDirection = 0 then Sequence := FUnitGFXResource.FSequences.List^[3] else Sequence := FUnitGFXResource.FSequences.List^[FDirection - 1]; end;
     if not (asConcealed in FArmy.FStatus) then
     begin
-      if not (msEditting in AoWHSMap.Status) and (AoWHSMap.FSeatedPlayer = FArmy.FPlayer) and
-        (FArmy.Count = FArmy.ConcealedUnitsCount) then
+      if (msEditting in AoWHSMap.Status) or (AoWHSMap.FSeatedPlayer <> FArmy.FPlayer) or
+        (FArmy.Count <> FArmy.ConcealedUnitsCount) then
+      begin
+        while Sequence <> nil do
+        begin
+          Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
+          if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + Sequence.dXshift,
+            YhpSurf + Sequence.dYshift + FUnitYOffset, SurfaceDesc);
+          Sequence := Sequence.Next;
+        end;
+        ShowEnchantments(XhpSurf, YhpSurf + FUnitYOffset, SurfaceDesc);
+        if not (asSelected in FArmy.FStatus) or (AoWHSMap.Frame and 6 <> 6) then
+          if FFlagID = $20 then AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc)
+          else
+          begin
+            AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count + 29].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc);
+            if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
+          end;
+      end
+      else
       begin
         while Sequence <> nil do
         begin
@@ -3371,24 +3388,6 @@ begin
         end
         else AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].ShowBlended(XhpSurf - 5, YhpSurf - 12,
           SurfaceDesc, AlphaBlendTable.LookupTables[Abs((AoWHSMap.Frame shl 2) mod 60 - 30) + 40]);
-      end
-      else
-      begin
-        while Sequence <> nil do
-        begin
-          Frame := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
-          if Frame <> -1 then Sequence.ImageLibrary[Frame].Show(XhpSurf + Sequence.dXshift,
-            YhpSurf + Sequence.dYshift + FUnitYOffset, SurfaceDesc);
-          Sequence := Sequence.Next;
-        end;
-        ShowEnchantments(XhpSurf, YhpSurf + FUnitYOffset, SurfaceDesc);
-        if not (asSelected in FArmy.FStatus) or (AoWHSMap.Frame and 6 <> 6) then
-          if FFlagID = $20 then AoWHSSet.FFlagControl.FFlags[FArmy.Count + 39].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc)
-          else
-          begin
-            AoWHSSet.FRaceResources.GetRaceResource(FFlagID).FImageLibrary[FArmy.Count + 29].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc);
-            if asShowCrown in FArmy.FStatus then AoWHSSet.FFlagControl.FFlags[FFlagID + 80].Show(XhpSurf - 5, YhpSurf - 14, SurfaceDesc);
-          end;
       end;
     end
     else if not (asFullyConcealed in FArmy.FStatus) then
@@ -3410,6 +3409,7 @@ begin
     end;
   end;
 end;
+
 
 procedure TArmyHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin
@@ -5355,7 +5355,7 @@ begin
   Result := $6C000000;
 end;
 
-procedure TWorldFXHS.NewFrame(Sender: TObject);
+procedure TWorldFXHS.NewFrame(Sender: TObject); { Near miss: Particle loop registers and temporary slots differ after three variants. }
 var Effect: TWorldFXHS; I, J, Count, RadiusX, RadiusY: Integer; Gravity, VZ, Speed, Z: Single;
 begin
   try
@@ -5374,7 +5374,7 @@ begin
                 Effect.FX := 50;
                 Effect.FY := 50;
                 RadiusX := -RadiusX;
-                MakeLinePath(0, 0, Round(Cos((Random(12) + I * 12 + FFrame * 4) * Pi / 180) * (RadiusX + Random(10))),
+                MakeLinePath(0, 0, Round(Cos((Random(12) + (I * 12 + FFrame * 4)) * Pi / 180) * (RadiusX + Random(10))),
                   Round(Sin((I * 6 + FFrame * 4) * Pi / 180) * (RadiusY + Random(10))) div 2, 75, Effect.FPath);
               end;
             end;
@@ -5393,7 +5393,7 @@ begin
                 Effect.FX := 50;
                 Effect.FY := 50;
                 RadiusX := -RadiusX;
-                MakeLinePath(0, 0, Round(Cos((Random(12) + I * 12 + FFrame * 4) * Pi / 180) * (RadiusX + Random(10))),
+                MakeLinePath(0, 0, Round(Cos((Random(12) + (I * 12 + FFrame * 4)) * Pi / 180) * (RadiusX + Random(10))),
                   Round(Sin((I * 6 + FFrame * 4) * Pi / 180) * (RadiusY + Random(10))) div 2, 75, Effect.FPath);
               end;
             end;
@@ -5755,25 +5755,20 @@ begin
   Result := $10156;
 end;
 
-constructor TAoWEngine.Create(AOwner: Engine.TECustomNode);
-var Mask, Terrain, Overlay, MoveType, Points: Integer;
-const MoveBits: array[0..7] of Byte = (1, 4, 2, 8, 16, 32, 64, 128);
+procedure P2RegisterEnhancements(Control: TAbilityControl); begin Control.RegisterAbility(TFlameThrowingAbility.Create(nil)); end;
+procedure P2RegisterTouches(Control: TAbilityControl); begin Control.RegisterAbility(TStrikeAbility.Create(nil)); end;
+procedure P2InitializeMovePoints; var Mask, Terrain, Overlay, MoveType, Points: Integer; const MoveBits: array[0..7] of Byte = (1,4,2,8,16,32,64,128); begin FillChar(MovePointTables, SizeOf(MovePointTables), $FF); for Mask := 0 to 255 do for Overlay := -1 to 11 do for Terrain := 0 to 15 do begin Points := 127; for MoveType := 0 to 7 do if (Mask and MoveBits[MoveType] <> 0) and (P2MovementTemplates[MoveType,Terrain,Overlay] <> -1) and (P2MovementTemplates[MoveType,Terrain,Overlay] < Points) then Points := P2MovementTemplates[MoveType,Terrain,Overlay]; if Points <> 127 then MovePointTables[Mask,Terrain,Overlay] := Points; end; end;
+procedure P2RegisterGroupControls; begin AoWEngine.RegisterEClasses([TGuardGC, TPassiveGC, TGuardAreaGC, TSuicidalGC, TPatrolGC, TScoutGC, TRefugeGC]); end;
+procedure P2RegisterMoveEvents(AEngine: TAoWEngine); begin AEngine.RegisterEClasses([TEndTurnTE, TGameOverTE, TMultiMoveTE, TCheatTE, TDisbandUnitTE, TChangePlayerSettingsTE, TCombatFlowControlTE, TTerminatePlayerTE]); end;
+procedure P2RegisterAbilities(Control: TAbilityControl); begin AoWEngine.RegisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData, TDispelMagicAbilityCA]); AoWEngine.RegisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA]); AoWEngine.RegisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE, TPossessedAbilityData]); AoWEngine.RegisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]); AoWEngine.RegisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TTurnUndeadCA, TInvokeDeathCA]); Control.RegisterAbility(TLeadershipAbility.Create(nil)); Control.RegisterAbility(TEntangleAbility.Create(nil)); Control.RegisterAbility(TWebAbility.Create(nil)); Control.RegisterAbility(TSelfDestructAbility.Create(nil)); Control.RegisterAbility(TRoundAttackAbility.Create(nil)); Control.RegisterAbility(TCharmAbility.Create(nil)); Control.RegisterAbility(TCharmedAbility.Create(nil)); Control.RegisterAbility(TDominateAbility.Create(nil)); Control.RegisterAbility(TDominatedAbility.Create(nil)); Control.RegisterAbility(TSeduceAbility.Create(nil)); Control.RegisterAbility(TSeducedAbility.Create(nil)); Control.RegisterAbility(THealingAbility.Create(nil)); Control.RegisterAbility(TSpellCastingAbility.Create(nil)); Control.RegisterAbility(TTurnUndeadAbility.Create(nil)); Control.RegisterAbility(TInvokeDeathAbility.Create(nil)); Control.RegisterAbility(TConstructAbility.Create(nil)); Control.RegisterAbility(TTurnUndeadAbility.Create(nil)); Control.RegisterAbility(TInvokeDeathAbility.Create(nil)); Control.RegisterAbility(TDispelMagicAbility.Create(nil)); Control.RegisterAbility(TWallCrushingAbility.Create(nil)); Control.RegisterAbility(TTransportAbility.Create(nil)); Control.RegisterAbility(TPossessAbility.Create(nil)); Control.RegisterAbility(TPossessedAbility.Create(nil)); P2RegisterEnhancements(Control); P2RegisterTouches(Control); end;
+procedure P2RegisterSpells(AEngine: TAoWEngine); begin AEngine.RegisterEClasses([TSpellTE]); AEngine.RegisterEClasses([TSpellCastEventLog]); AEngine.RegisterEClasses([TUnitSpellTE, TUnitSpellCA]); end;
+constructor TAoWEngine.Create(AOwner: Engine.TECustomNode); { Near miss: Original SetLanguage uses or edx,1; three source variants emit or edx,-1. }
 begin
   AoWEngine := Self;
   SetVersion(1, 36, 53);
   FRegistry := TAoWRegistry.Create;
   FUser := [euProgrammer, euDesigner, euUser];
-  FillChar(MovePointTables, SizeOf(MovePointTables), $FF);
-  for Mask := 0 to 255 do
-    for Overlay := -1 to 11 do
-      for Terrain := 0 to 15 do
-      begin
-        Points := 127;
-        for MoveType := 0 to 7 do
-          if (Mask and MoveBits[MoveType] <> 0) and (P2MovementTemplates[MoveType,Terrain,Overlay] <> -1) and
-            (P2MovementTemplates[MoveType,Terrain,Overlay] < Points) then Points := P2MovementTemplates[MoveType,Terrain,Overlay];
-        if Points <> 127 then MovePointTables[Mask,Terrain,Overlay] := Points;
-      end;
+  P2InitializeMovePoints;
   FDebug := FRegistry.GetDebugMode;
   FAnimationDetail := Byte(FRegistry.GetDetailLevel);
   FEmailGames := TEmailGameControl.Create(nil);
@@ -5785,8 +5780,8 @@ begin
     alEnglish: FDictionary.SetLanguage(1);
     alGerman: FDictionary.SetLanguage(1);
     alFrench: FDictionary.SetLanguage(1);
-    alSpanish: FDictionary.SetLanguage(1);
     alItalian: FDictionary.SetLanguage(1);
+    alSpanish: FDictionary.SetLanguage(1);
   end;
   FDemo := False;
   FLanguage := Byte(FRegistry.GetLanguage);
@@ -5807,40 +5802,12 @@ begin
   RegisterEClasses([TNewDayEventLog, TArmyInfoEventLog, TTextControlItem, THeroUpgradeEventLog]);
   RegisterEClasses([TDiplomaticActionTE, TDiplomaticActionEventLog, TPlayerMagicEventLog, TDiplomaticRelationHistoryItem, TDiplomaticRelationHistoryList]);
   RegisterEClasses([THuntAG, TAIBudget, TAISavingsBudget, TAITransporterBudget]);
-  RegisterEClasses([TGuardGC, TPassiveGC, TGuardAreaGC, TSuicidalGC, TPatrolGC, TScoutGC, TRefugeGC]);
+  P2RegisterGroupControls;
   RegisterSoundEngineClasses(Self);
   RegisterNetworkEngine(Self);
-  RegisterEClasses([TEndTurnTE, TGameOverTE, TMultiMoveTE, TCheatTE, TDisbandUnitTE, TChangePlayerSettingsTE, TCombatFlowControlTE, TTerminatePlayerTE]);
+  P2RegisterMoveEvents(Self);
   RegisterEventLog(Self);
-  RegisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData, TDispelMagicAbilityCA]);
-  RegisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA]);
-  RegisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE, TPossessedAbilityData]);
-  RegisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]);
-  RegisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TTurnUndeadCA, TInvokeDeathCA]);
-  FGameSet.FAbilityControl.RegisterAbility(TLeadershipAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TEntangleAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TWebAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TSelfDestructAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TRoundAttackAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TCharmAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TCharmedAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TDominateAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TDominatedAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TSeduceAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TSeducedAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(THealingAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TSpellCastingAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TTurnUndeadAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TInvokeDeathAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TConstructAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TDispelMagicAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TWallCrushingAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TTransportAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TPossessAbility.Create(nil));
-  FGameSet.FAbilityControl.RegisterAbility(TPossessedAbility.Create(nil));
-  RegisterEClasses([TSpellTE]);
-  RegisterEClasses([TSpellCastEventLog]);
-  RegisterEClasses([TUnitSpellTE, TUnitSpellCA]);
+  P2RegisterAbilities(FGameSet.FAbilityControl); P2RegisterSpells(Self);
   CombatDID := RegisterDebugID('Combat');
   AIDID := RegisterDebugID('AI');
   TMPDID := RegisterDebugID('TMP');
@@ -5849,6 +5816,39 @@ begin
   LoadExternalPlugIns(StartupDirectory + 'PLUGINS');
   FEmailGames.Load;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 destructor TAoWEngine.Destroy;
 begin

@@ -186,7 +186,7 @@ begin
       SetupCombat(Combat, ArmyHS);
       Combat.Initialize;
       Combat.Activate;
-      if Combat.Execute <> 1 then
+      if Combat.Execute <> crBusy then
       begin
         Combat.Deactivate;
         Combat.Finalize;
