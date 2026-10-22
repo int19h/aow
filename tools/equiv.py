@@ -6,13 +6,15 @@ and every loop head), and a Houdini fixed point discovers register equalities.
 Each edge is then checked with arbitrary states satisfying its
 invariant, rather than with a bounded execution of a loop.
 
-Memory is a byte array. The inductive, deliberately strong invariant requires
-the *whole* memory to correspond, including private stack bytes.  Consequently
-aliasing, outgoing stack arguments and addresses passed to callees need no
-disjoint-stack assumption.  Calls check the target, EAX/EDX/ECX, ESP and memory,
-then havoc memory, volatile registers, flags and x87 state in common.  Havocing
-even private bytes is a sound overapproximation of the requested call model.
-It can lose proofs, but cannot hide a difference in a visible local.
+Memory is a byte array. The fast proof relates the whole array. A second
+inductive proof projects private frame bytes and infers byte-slot/register
+correspondences, constants and frame-address facts with Houdini. A permanent
+entry ESP and incoming nonvolatile-register values check save/restore pairs.
+Caller-visible memory remains equal at cut points, calls and returns. Escaped
+frame addresses require the whole-memory proof; possible aliases through
+symbolic arguments expose private bytes and prevent their preservation.
+Calls check targets, arguments, outgoing stack bytes, memory and x87 state,
+then havoc public memory, volatile registers, flags and x87 state in common.
 For call-free acyclic functions an exact finite-path alternative projects out
 private stack bytes while retaining arbitrary aliases in the unified array.
 
@@ -54,6 +56,7 @@ FP_OPS = frozenset(('fld fild fst fstp fist fistp fadd faddp fsub fsubp fsubr fs
 INTEGER_OPS = frozenset(('nop mov movsx movzx lea xchg add adc sub sbb cmp inc dec and or xor test '
                          'not neg shl sal shr sar imul mul idiv div bound bt bts btr btc '
                          'push pop leave cdq cwde clc stc cld std sahf lahf call ret jmp').split())
+STRING_OPS = frozenset(('rep movsd', 'rep movsb', 'rep stosd', 'rep stosb'))
 BV32 = z3.BitVecSort(32)
 BYTE = z3.BitVecSort(8)
 MEM = z3.ArraySort(BV32, BYTE)
@@ -88,6 +91,22 @@ def equal(a, b):
 
 def equality(a, b):
     return a == b if a.sort() == b.sort() else z3.BoolVal(False)
+
+
+def contains_pointer(value, pointer):
+    """Track pointer-valued data, excluding load addresses and array indices."""
+    todo, seen = [value], set()
+    while todo:
+        node = todo.pop()
+        if node.get_id() in seen:
+            continue
+        seen.add(node.get_id())
+        if z3.eq(node, pointer):
+            return True
+        if z3.is_select(node):
+            continue
+        todo.extend(node.children()[1:] if z3.is_app_of(node, z3.Z3_OP_ITE) else node.children())
+    return False
 
 
 def unhash(name):
@@ -187,6 +206,7 @@ class Inputs:
         if len(argv) < 4:
             raise ValueError('usage: equiv.py [match options] [--mutate N] exe map original signatures [classes ...]')
         exe, mapf, orig, sigf, *classes = argv
+        self.original_path = pathlib.Path(orig)
         self.old, self.new = match.Image(orig), match.Image(exe)
         self.syms, _ = match.map_symbols(mapf)
         with open(sigf, encoding='utf-8') as f:
@@ -736,6 +756,8 @@ class State:
         return value
 
     def store(self, addr, value, fs=False):
+        if hasattr(self, 'escape_base') and contains_pointer(value, self.escape_base):
+            self.escaped = True
         mem = self.fs if fs else self.memory
         for i in range(value.size() // 8):
             mem = z3.Store(mem, simp(addr + bv(i)), z3.Extract(i * 8 + 7, i * 8, value))
@@ -779,13 +801,23 @@ def arbitrary(candidates, flag_candidates):
 class Machine:
     def __init__(self, addresses, side, local):
         self.addresses, self.side, self.local = addresses, side, local
+        if not hasattr(addresses, '_dynamic_targets'):
+            def dynamic(name):
+                return name.rsplit('.', 1)[-1].lower().startswith(('@calldyna', '@finddyna'))
+            names = getattr(addresses, 'names', ({}, {}))
+            addresses._dynamic_targets = [{a for a, n in names[s].items() if dynamic(n)} for s in (0, 1)]
+            addresses._dynamic_targets[1].update(a for n, a in getattr(addresses, 'map_addresses', {}).items() if dynamic(n))
+            imports = getattr(addresses, 'imports', ({}, {}))
+            addresses._dynamic_cells = [{a for a, n in imports[s].items() if dynamic(n)} for s in (0, 1)]
+        self.dynamic_targets = addresses._dynamic_targets[side]
+        self.dynamic_cells = addresses._dynamic_cells[side]
 
     def constant(self, v, bits=32):
         return bv(self.addresses.canonical(self.side, v, self.local), bits)
 
     def address(self, st, ins, op):
         m = op.mem
-        if m.segment and ins.reg_name(m.segment) != 'fs':
+        if m.segment and ins.reg_name(m.segment) != 'fs' and not (ins.mnemonic in STRING_OPS and ins.reg_name(m.segment) == 'es'):
             raise Unsupported('segment override ' + ins.reg_name(m.segment))
         addr = bv(0)
         if m.base:
@@ -818,7 +850,7 @@ class Machine:
                     constant = self.addresses.read_constant(self.side, op.mem.disp, op.size, self.local)
                     if constant is not None:
                         return constant
-            return st.load(self.address(st, ins, op), op.size, bool(op.mem.segment))
+            return st.load(self.address(st, ins, op), op.size, bool(op.mem.segment and ins.reg_name(op.mem.segment) == 'fs'))
         raise Unsupported('operand form')
 
     def write(self, st, ins, op, value):
@@ -827,7 +859,7 @@ class Machine:
         elif op.type == X.X86_OP_MEM:
             if not (op.mem.segment or op.mem.base or op.mem.index) and self.addresses.readonly(self.side, op.mem.disp, op.size):
                 raise Unsupported('write to executable / read-only image')
-            st.store(self.address(st, ins, op), value, bool(op.mem.segment))
+            st.store(self.address(st, ins, op), value, bool(op.mem.segment and ins.reg_name(op.mem.segment) == 'fs'))
             if ins.eh:
                 st.events.append(('frame-install', *(self.constant(v) for v in ins.eh)))
         else:
@@ -890,6 +922,37 @@ class Machine:
         rd = lambda i: self.read(st, ins, oo[i])
         wr = lambda i, v: self.write(st, ins, oo[i], v)
         if ins.mutation == 'drop store':
+            return
+        if m in STRING_OPS:
+            width = 4 if m.endswith('d') else 1
+            for op in oo:
+                if op.type == X.X86_OP_MEM and op.mem.segment and ins.reg_name(op.mem.segment) not in ('es', 'ds'):
+                    raise Unsupported('segment override on REP')
+            if (len(oo) != 2 or oo[0].type != X.X86_OP_MEM
+                    or ins.reg_name(oo[0].mem.base) != 'edi' or oo[0].mem.index or oo[0].mem.disp
+                    or oo[0].size != width):
+                raise Unsupported('REP destination addressing form')
+            if 'movs' in m:
+                if (oo[1].type != X.X86_OP_MEM or ins.reg_name(oo[1].mem.base) != 'esi'
+                        or oo[1].mem.index or oo[1].mem.disp or oo[1].size != width):
+                    raise Unsupported('REP source addressing form')
+            elif oo[1].type != X.X86_OP_REG or ins.reg_name(oo[1].reg) != ('eax' if width == 4 else 'al'):
+                raise Unsupported('REP accumulator form')
+            count = simp(st.regs['ecx'])
+            if not z3.is_bv_value(count):
+                raise Unsupported('nonconstant REP count')
+            count = count.as_long() + (1 if ins.mutation == 'rep count +1' else 0)
+            if count > 1024:
+                raise Unsupported('REP count exceeds expansion budget')
+            width = 4 if m.endswith('d') else 1
+            delta = z3.If(st.flags['df'], bv(-width), bv(width))
+            for _ in range(count):
+                value = st.load(st.regs['esi'], width) if 'movs' in m else st.reg('eax' if width == 4 else 'al')
+                st.store(st.regs['edi'], value)
+                st.regs['edi'] = simp(st.regs['edi'] + delta)
+                if 'movs' in m:
+                    st.regs['esi'] = simp(st.regs['esi'] + delta)
+            st.regs['ecx'] = bv(0)
             return
         if m == 'nop':
             return
@@ -1032,7 +1095,20 @@ class Machine:
         elif m.startswith('j'):
             st.condition = self.condition(st, m[1:])
         elif m == 'call':
+            op = oo[0]
+            if ((op.type == X.X86_OP_IMM and op.imm in self.dynamic_targets)
+                    or (op.type == X.X86_OP_MEM and not (op.mem.base or op.mem.index or op.mem.segment)
+                        and op.mem.disp in self.dynamic_cells)):
+                # These runtime helpers select a method using implicit BX/SI
+                # arguments. The ordinary EAX/EDX/ECX call contract cannot
+                # prove them, even when the helper's own address agrees.
+                raise Unsupported('Delphi dynamic dispatch: implicit register arguments')
             target = rd(0)
+            canonical_dynamic = self.addresses._dynamic_targets[0] | {
+                self.addresses.reverse[a] for a in self.addresses._dynamic_targets[1]
+                if a in getattr(self.addresses, 'reverse', {})}
+            if z3.is_bv_value(simp(target)) and simp(target).as_long() in canonical_dynamic:
+                raise Unsupported('Delphi dynamic dispatch: implicit register arguments')
             st.events.append(('call', target, st.regs['eax'], st.regs['edx'], st.regs['ecx'], st.regs['esp'], st.memory, st.fs, st.fp))
             tag = str(self.local[self.side].get(ins.address, ins.address))
             for r in ('eax', 'edx', 'ecx'):
@@ -1374,6 +1450,637 @@ def relation_states(facts):
     return states, premise
 
 
+def callee_cleanup(checker, side, target):
+    """Read a callee's stack convention, proving its ESP at each normal RET.
+
+    This is an abstract interpretation of stack offsets, not a guess from an
+    argument count. Unknown instructions, inconsistent joins and tail calls
+    fail closed. Calls preserve EBP but may have unknown stack cleanup.
+    """
+    if not hasattr(checker, '_cleanup_cache'):
+        checker._cleanup_cache = {}
+        checker._cleanup_images = {}
+    root = (checker.inp.old, checker.inp.new)[side]
+    def analyze(img, address, depth):
+        key = (id(img), address)
+        if key in checker._cleanup_cache:
+            return checker._cleanup_cache[key]
+        if depth > 5 or not img.contains(address):
+            return None
+        checker._cleanup_cache[key] = None
+        md = CS.Cs(CS.CS_ARCH_X86, CS.CS_MODE_32)
+        md.detail = True
+        states, todo, returns = {}, [(address, 0, None)], set()
+        visits = 0
+        def imported(cell):
+            img.pe.parse_data_directories(directories=[match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT']])
+            for module in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', ()):
+                for imp in module.imports:
+                    if imp.address != cell or not imp.name:
+                        continue
+                    path = checker.inp.original_path.parent / module.dll.decode('latin1')
+                    if not path.is_file():
+                        return None
+                    if path not in checker._cleanup_images:
+                        other = match.Image(path)
+                        other.pe.parse_data_directories(directories=[match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT']])
+                        checker._cleanup_images[path] = other
+                    other = checker._cleanup_images[path]
+                    for exp in getattr(getattr(other.pe, 'DIRECTORY_ENTRY_EXPORT', None), 'symbols', ()):
+                        if exp.name == imp.name and not exp.forwarder:
+                            return analyze(other, other.base + exp.address, depth + 1)
+            return None
+        while todo:
+            pc, sp, bp = todo.pop()
+            visits += 1
+            if visits > 1500 or abs(pc - address) > 8192:
+                return None
+            if pc in states:
+                old = states[pc]
+                merged = tuple(x if x == y else None for x, y in zip(old, (sp, bp)))
+                if old == merged:
+                    continue
+                sp, bp = merged
+            states[pc] = (sp, bp)
+            ins = next(md.disasm(img.bytes_at(pc, 15), pc, count=1), None)
+            if ins is None or ins.addr_size != 4:
+                return None
+            m, oo = ins.mnemonic, ins.operands
+            if m == 'ret':
+                if sp != 0 or 0x66 in ins.prefix:
+                    return None
+                returns.add(oo[0].imm if oo else 0)
+                continue
+            if m == 'push':
+                if oo[0].size != 4:
+                    return None
+                sp = sp - 4 if sp is not None else None
+            elif m == 'pop':
+                if oo[0].type != X.X86_OP_REG or oo[0].size != 4 or ins.reg_name(oo[0].reg) == 'esp':
+                    return None
+                sp = sp + 4 if sp is not None else None
+                if ins.reg_name(oo[0].reg) == 'ebp':
+                    bp = None
+            elif m == 'leave':
+                sp, bp = (bp + 4 if bp is not None else None), None
+            elif m == 'mov' and all(o.type == X.X86_OP_REG for o in oo) and len(oo) == 2:
+                dst, src = (ins.reg_name(o.reg) for o in oo)
+                value = sp if src == 'esp' else bp if src == 'ebp' else None
+                if dst == 'esp':
+                    sp = value
+                if dst == 'ebp':
+                    bp = value
+            elif m in ('add', 'sub') and oo[0].type == X.X86_OP_REG and ins.reg_name(oo[0].reg) in ('esp', 'ebp'):
+                name = ins.reg_name(oo[0].reg)
+                value = sp if name == 'esp' else bp
+                delta = oo[1].imm * (-1 if m == 'sub' else 1) if oo[1].type == X.X86_OP_IMM else None
+                value = value + delta if value is not None and delta is not None else None
+                if name == 'esp':
+                    sp = value
+                else:
+                    bp = value
+            elif m == 'call':
+                cleanup = analyze(img, oo[0].imm, depth + 1) if oo[0].type == X.X86_OP_IMM else None
+                sp = sp + cleanup if sp is not None and cleanup is not None else None
+            elif m == 'jmp' and oo[0].type == X.X86_OP_MEM and not (oo[0].mem.base or oo[0].mem.index or oo[0].mem.segment):
+                cleanup = imported(oo[0].mem.disp)
+                if sp != 0 or cleanup is None:
+                    return None
+                returns.add(cleanup)
+                continue
+            else:
+                _, written = ins.regs_access()
+                for r in written:
+                    name = ins.reg_name(r)
+                    if name in ('esp', 'sp'):
+                        sp = None
+                    if name in ('ebp', 'bp'):
+                        bp = None
+            if m == 'jmp' or m.startswith('j'):
+                if not oo or oo[0].type != X.X86_OP_IMM:
+                    return None
+                todo.append((oo[0].imm, sp, bp))
+                if m == 'jmp':
+                    continue
+            todo.append((pc + ins.size, sp, bp))
+        answer = next(iter(returns)) if len(returns) == 1 else None
+        checker._cleanup_cache[key] = answer
+        return answer
+    return analyze(root, target, 0)
+
+
+def stack_insensitive_leaf(checker, side, target):
+    """A sufficient contract for preserving unescaped caller-private bytes.
+
+    Unknown callees keep the whole-memory/absolute-ESP obligation. Only a
+    checked leaf with no explicit memory operands, calls, segment accesses or
+    uses of its stack address gets the smaller private-frame call relation.
+    Its net stack effect is independently checked by callee_cleanup.
+    """
+    if not hasattr(checker, '_private_call_cache'):
+        checker._private_call_cache = {}
+    key = side, target
+    if key in checker._private_call_cache:
+        return checker._private_call_cache[key]
+    checker._private_call_cache[key] = False
+    img = (checker.inp.old, checker.inp.new)[side]
+    if not img.contains(target):
+        return False
+    md = CS.Cs(CS.CS_ARCH_X86, CS.CS_MODE_32)
+    md.detail = True
+    pc = target
+    flag_reads = sum(getattr(X, 'X86_EFLAGS_' + kind + '_' + flag.upper(), 0)
+                     for kind in ('TEST', 'PRIOR') for flag in FLAGS)
+    for _ in range(128):
+        ins = next(md.disasm(img.bytes_at(pc, 15), pc, count=1), None)
+        if ins is None or ins.addr_size != 4:
+            return False
+        if ins.mnemonic == 'ret':
+            if 0x66 in ins.prefix:
+                return False
+            checker._private_call_cache[key] = True
+            return True
+        # Prologue/epilogue instructions need more than a register-access
+        # test: PUSH ESP / POP EAX can export the callee's stack address.
+        # Qualify only straight-line register-only leaves. Other callees
+        # retain the whole-memory and absolute-ESP call obligation.
+        if (ins.mnemonic not in INTEGER_OPS or ins.mnemonic in
+                ('push', 'pop', 'leave', 'call', 'jmp', 'adc', 'sbb', 'sahf', 'lahf')):
+            return False
+        if any(o.type == X.X86_OP_MEM for o in ins.operands) or ins.eflags & flag_reads:
+            return False
+        read, written = ins.regs_access()
+        if any(ins.reg_name(r) != 'eflags' and ALIASES.get(ins.reg_name(r), (None,))[0]
+               not in ('eax', 'edx', 'ecx') for r in set(read) | set(written)):
+            return False
+        pc += ins.size
+    return False
+
+
+
+class Frames:
+    """An inductive relation over private bytes, with a common public array.
+
+    The entry stack pointer and incoming nonvolatile values are ghost constants.
+    They are never reset at a cut point. All inferred equalities, including
+    save/restore and stack-address facts, are initialized and checked on every
+    incoming edge. Execution still uses unified byte arrays, retaining aliases.
+    Escaping private addresses require the ordinary whole-memory proof instead.
+    """
+    def __init__(self, codes):
+        self.stack = z3.BitVec('frame_entry_esp', 32)
+        self.public = z3.Array('memory', BV32, BYTE)
+        self.saved = {r: z3.BitVec('frame_entry_' + r, 32) for r in REGS}
+        self.saved['esp'] = self.stack
+        self.lows = []
+        for code in codes:
+            restores = {code[k].reg_name(code[k].operands[0].reg)
+                        for seq, _ in blocks(code).values() for k in seq
+                        if code[k].mnemonic == 'pop' and code[k].operands[0].type == X.X86_OP_REG}
+            if any(ins.mnemonic == 'leave' for ins in code):
+                restores.add('ebp')
+            off = 0
+            for ins in code:
+                oo = ins.operands
+                if (ins.mnemonic == 'push' and oo[0].type == X.X86_OP_REG and oo[0].size == 4
+                        and ins.reg_name(oo[0].reg) in {'ebx', 'esi', 'edi', 'ebp', 'ecx'} & restores):
+                    off -= 4
+                elif (ins.mnemonic == 'mov' and len(oo) == 2
+                      and all(o.type == X.X86_OP_REG for o in oo)
+                      and ins.reg_name(oo[0].reg) == 'ebp' and ins.reg_name(oo[1].reg) == 'esp'):
+                    pass
+                elif (ins.mnemonic in ('add', 'sub') and oo[0].type == X.X86_OP_REG
+                      and ins.reg_name(oo[0].reg) == 'esp' and oo[1].type == X.X86_OP_IMM):
+                    off += oo[1].imm * (-1 if ins.mnemonic == 'sub' else 1)
+                else:
+                    break
+                if not -512 <= off <= 0:
+                    raise NotProven('private frame extent exceeds budget')
+            self.lows.append(off)
+        self.low = min(self.lows)
+        self.locations = [{('r', r, k) for r in REGS for k in range(4)} |
+                          {('s', off) for off in range(low, 0)} for low in self.lows]
+
+    def offset(self, value):
+        delta = simp(value - self.stack)
+        if z3.is_bv_value(delta):
+            n = delta.as_long()
+            return n - 0x100000000 if n >= 0x80000000 else n
+        return None
+
+    def contains_pointer(self, value):
+        return contains_pointer(value, self.stack)
+
+    def project(self, memory, side):
+        # Mask only this side's allocation, using the common public bytes.
+        # Masking the union with zero could hide a write outside the smaller
+        # frame that happens to fall inside the other side's larger frame.
+        for off in range(self.lows[side], 0):
+            addr = self.stack + bv(off)
+            memory = z3.Store(memory, addr, z3.Select(self.public, addr))
+        return simp(memory)
+
+    def value(self, st, loc):
+        if loc[0] == 'word':
+            return st.regs[loc[1]] if isinstance(loc[1], str) else st.load(self.stack + bv(loc[1]), 4)
+        if loc[0] == 's':
+            return st.load(self.stack + bv(loc[1]), 1)
+        return location_value(st, loc)
+
+    def fact(self, states, f):
+        if f[0] == 'eq':
+            return self.value(states[0], f[1]) == self.value(states[1], f[2])
+        if f[0] == 'flag':
+            return states[0].flags[f[1]] == states[1].flags[f[1]]
+        if f[0] == 'flagvalue':
+            return states[f[1]].flags[f[2]] == z3.BoolVal(f[3])
+        if f[0] == 'affine':
+            return self.value(states[0], f[1]) - self.value(states[1], f[2]) == bv(f[3])
+        if f[0] == 'ptr':
+            return states[f[1]].regs[f[2]] == self.stack + bv(f[3])
+        if f[0] == 'imm':
+            return states[f[1]].regs[f[2]] == bv(f[3])
+        if f[0] == 'difference':
+            return states[0].regs['esp'] - states[1].regs['esp'] == bv(f[1])
+        if f[0] == 'saved':
+            return self.value(states[f[1]], f[2]) == z3.Extract(f[4]*8+7, f[4]*8, self.saved[f[3]])
+        if f[0] == 'byte':
+            return self.value(states[f[1]], f[2]) == bv(f[3], 8)
+        raise AssertionError(f)
+
+    def states(self, facts=(), initial=False):
+        if initial:
+            states = arbitrary(DIAG, FLAGS)
+            for st in states:
+                st.regs = dict(self.saved)
+            return states, z3.BoolVal(True)
+        # Build byte equalities into the arbitrary state. This is the same
+        # union-find construction as the fast register proof, extended to
+        # private slots and immutable incoming-register ghost values.
+        locations = {('r', r, k) for r in REGS for k in range(4)} | {('s', k) for k in range(self.low, 0)}
+        parent = {(side, loc): (side, loc) for side in (0, 1) for loc in locations}
+        def find(node):
+            parent.setdefault(node, node)
+            while parent[node] != node:
+                node = parent[node]
+            return node
+        def join(x, y):
+            parent[find(y)] = find(x)
+        for f in facts:
+            if f[0] == 'eq':
+                join((0, f[1]), (1, f[2]))
+            elif f[0] == 'saved':
+                join((f[1], f[2]), ('ghost', f[3], f[4]))
+            elif f[0] == 'byte':
+                join((f[1], f[2]), ('constant', f[3]))
+        values = {}
+        for node in list(parent):
+            if node[0] == 'ghost':
+                values[find(node)] = z3.Extract(node[2]*8+7, node[2]*8, self.saved[node[1]])
+            elif node[0] == 'constant':
+                values[find(node)] = bv(node[1], 8)
+        def value(side, loc):
+            root = find((side, loc))
+            if root not in values:
+                values[root] = z3.BitVec('frame_byte_' + str(len(values)), 8)
+            return values[root]
+        states = arbitrary((), [f[1] for f in facts if f[0] == 'flag'])
+        for side, st in enumerate(states):
+            st.regs = {r: z3.Concat([value(side, ('r', r, k)) for k in reversed(range(4))]) for r in REGS}
+            for off in range(self.lows[side], 0):
+                st.store(self.stack + bv(off), value(side, ('s', off)))
+        # Substitute proven full-register constants before executing REP and
+        # stack operations. The complete relation remains an explicit premise.
+        for f in facts:
+            if f[0] == 'ptr':
+                states[f[1]].regs[f[2]] = simp(self.stack + bv(f[3]))
+            elif f[0] == 'imm':
+                states[f[1]].regs[f[2]] = bv(f[3])
+            elif f[0] == 'flagvalue':
+                states[f[1]].flags[f[2]] = z3.BoolVal(f[3])
+        for f in facts:
+            if f[0] == 'difference':
+                states[1].regs['esp'] = simp(states[0].regs['esp'] - bv(f[1]))
+        return states, simp(z3.And([self.fact(states, f) for f in facts]))
+
+    @staticmethod
+    def clone(states):
+        clones = [State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
+        for st, clone in zip(states, clones):
+            clone.outgoing = list(getattr(st, 'outgoing', []))
+        return clones
+
+    def candidates(self, states):
+        values = [{loc: simp(self.value(st, loc)) for loc in locs}
+                  for st, locs in zip(states, self.locations)]
+        facts = set()
+        delta = simp(states[0].regs['esp'] - states[1].regs['esp'])
+        if z3.is_bv_value(delta):
+            facts.add(('difference', delta.as_long()))
+        right = collections.defaultdict(list)
+        for loc, value in values[1].items():
+            if not z3.is_bv_value(value):
+                right[value.hash()].append((loc, value))
+        for loc, value in values[0].items():
+            for other, v in right[value.hash()]:
+                if equal(value, v):
+                    facts.add(('eq', loc, other))
+        for flag in FLAGS:
+            if equal(states[0].flags[flag], states[1].flags[flag]):
+                facts.add(('flag', flag))
+        words = [{('word', r): st.regs[r] for r in REGS} |
+                 {('word', off): st.load(self.stack + bv(off), 4) for off in range(low, -3) if off % 4 == 0}
+                 for st, low in zip(states, self.lows)]
+        roots_cache = {}
+        def roots(expr):
+            # Array stores can form expressions deeper than Python's call
+            # stack. Walk the DAG iteratively, retaining the same leaf sets.
+            pending = [(expr, False)]
+            visits = 0
+            while pending:
+                node, ready = pending.pop()
+                key = node.get_id()
+                if key in roots_cache:
+                    continue
+                visits += 1
+                if visits % 128 == 0 and time.monotonic() > getattr(self, 'deadline', float('inf')):
+                    raise NotProven('frame-slot candidate budget')
+                if z3.is_const(node) and node.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+                    roots_cache[key] = frozenset((key,))
+                elif ready:
+                    roots_cache[key] = frozenset().union(*(roots_cache[c.get_id()] for c in node.children()))
+                else:
+                    pending.append((node, True))
+                    pending.extend((c, False) for c in node.children())
+            return roots_cache[expr.get_id()]
+        proposal_model = z3.Model()
+        for x, value in words[0].items():
+            if time.monotonic() > getattr(self, 'deadline', float('inf')):
+                raise NotProven('frame-slot candidate budget')
+            if z3.is_bv_value(simp(value)):
+                continue
+            for y, other in words[1].items():
+                delta = simp(value - other)
+                if not z3.is_bv_value(delta) and roots(value) and roots(value) == roots(other):
+                    # A model only proposes the offset. Initialization and
+                    # every edge still have to prove it universally.
+                    delta = proposal_model.eval(delta, model_completion=True)
+                if z3.is_bv_value(delta) and 0 < min(delta.as_long(), (-delta.as_long()) % 0x100000000) <= 4096:
+                    facts.add(('affine', x, y, delta.as_long()))
+        for side, st in enumerate(states):
+            for flag in FLAGS:
+                value = simp(st.flags[flag])
+                if z3.is_true(value) or z3.is_false(value):
+                    facts.add(('flagvalue', side, flag, z3.is_true(value)))
+            for r in REGS:
+                off = self.offset(st.regs[r])
+                if off is not None:
+                    facts.add(('ptr', side, r, off))
+                value = simp(st.regs[r])
+                if z3.is_bv_value(value):
+                    facts.add(('imm', side, r, value.as_long()))
+            for loc, value in values[side].items():
+                if z3.is_bv_value(value):
+                    facts.add(('byte', side, loc, value.as_long()))
+                for r in REGS[:-1]:
+                    for lane in range(4):
+                        if equal(value, z3.Extract(lane*8+7, lane*8, self.saved[r])):
+                            facts.add(('saved', side, loc, r, lane))
+        if len(facts) > 12000:
+            raise NotProven('frame-slot candidate budget')
+        return facts
+
+
+class FrameMachine(Machine):
+    def __init__(self, addresses, side, local, frames):
+        super().__init__(addresses, side, local)
+        self.frames = frames
+        self.cleanups = {}
+        self.private_calls = set()
+
+    def write(self, st, ins, op, value):
+        if op.type == X.X86_OP_MEM and self.frames.contains_pointer(value):
+            raise NotProven('private frame address is stored to memory')
+        super().write(st, ins, op, value)
+
+    def step(self, st, ins):
+        if ins.mnemonic == 'push' and self.frames.contains_pointer(self.read(st, ins, ins.operands[0])):
+            raise NotProven('private frame address is pushed')
+        if ins.mnemonic == 'ret' and any(self.frames.contains_pointer(st.regs[r]) for r in ('eax', 'edx')):
+            raise NotProven('private frame address escapes in a result')
+        if ins.mnemonic in STRING_OPS and 'stos' in ins.mnemonic and self.frames.contains_pointer(st.regs['eax']):
+            raise NotProven('private frame address is stored by REP')
+        if ins.mnemonic != 'call':
+            super().step(st, ins)
+            if ins.mnemonic == 'push':
+                off = self.frames.offset(st.regs['esp'])
+                if off is None or off < self.frames.lows[self.side]:
+                    if not hasattr(st, 'outgoing'):
+                        st.outgoing = []
+                    st.outgoing.append(st.regs['esp'])
+            return
+        frames = self.frames
+        args = [st.regs[r] for r in ('eax', 'edx', 'ecx')]
+        if any(frames.contains_pointer(v) for v in args):
+            raise NotProven('private frame address escapes to a call')
+        off = frames.offset(st.regs['esp'])
+        if off is None:
+            outgoing = getattr(st, 'outgoing', [])
+            if not all(equal(addr, st.regs['esp'] + bv(4*k)) for k, addr in enumerate(reversed(outgoing))):
+                raise NotProven('noncontiguous outgoing stack arguments')
+            size = len(outgoing) * 4
+        else:
+            size = frames.lows[self.side] - off
+        st.outgoing = []
+        if ins.address in self.cleanups and self.cleanups[ins.address] > size:
+            raise NotProven('callee arguments overlap the private frame')
+        if not 0 <= size <= 128:
+            raise NotProven('outgoing stack extent exceeds budget')
+        stack_args = [st.load(st.regs['esp'] + bv(k), 1) for k in range(size)]
+        # A stack argument may also be a pointer; inspect each complete word.
+        for k in range(0, size, 4):
+            if k + 4 <= size and frames.contains_pointer(st.load(st.regs['esp'] + bv(k), 4)):
+                raise NotProven('private frame address escapes on the argument stack')
+        memory = st.memory
+        sp = st.regs['esp']
+        passed = args + [st.load(sp + bv(k), 4) for k in range(0, size - 3, 4)]
+        escaped = z3.BoolVal(True) if ins.address not in self.private_calls else (z3.Or([z3.ULT(v - (frames.stack + bv(frames.low)), bv(-frames.low)) for v in passed]) if frames.low else z3.BoolVal(False))
+        super().step(st, ins)
+        if ins.address in self.cleanups:
+            st.regs['esp'] = simp(sp + bv(self.cleanups[ins.address]))
+        event = st.events.pop()
+        # Absolute ESP can differ by the private-frame size. Outgoing bytes
+        # are compared relative to ESP, and all other public memory is equal.
+        st.events.append(('frame-call', event[1], *args, sp - bv(frames.lows[self.side]) if ins.address in self.private_calls else sp, bv(size), memory, event[-2], event[-1], escaped, sp, *stack_args))
+        # Calls may change public memory. Unescaped private bytes survive.
+        for k in range(frames.lows[self.side], 0):
+            st.store(frames.stack + bv(k), z3.If(escaped, z3.Select(st.memory, frames.stack + bv(k)), z3.Select(memory, frames.stack + bv(k))))
+
+
+def frame_goals(frames, states):
+    old, new = states
+    goals = [frames.project(old.memory, 0) == frames.project(new.memory, 1), old.fs == new.fs,
+             old.fp == new.fp, old.condition == new.condition]
+    if len(old.events) != len(new.events):
+        raise NotProven('different observable events with private frames')
+    for x, y in zip(old.events, new.events):
+        if x[0] != y[0] or len(x) != len(y):
+            raise NotProven('different observable events with private frames')
+        if x[0] == 'frame-call':
+            goals += [equality(x[k], y[k]) for k in range(1, len(x)) if k not in (7, 11)]
+            memories = [x[7], y[7]]
+            exposed = z3.Or(x[10], y[10])
+            for side in (0, 1):
+                for off in range(frames.lows[side], 0):
+                    addr = frames.stack + bv(off)
+                    memories[side] = z3.Store(memories[side], addr, z3.If(exposed, z3.Select(memories[side], addr), z3.Select(frames.public, addr)))
+            size = x[6].as_long()
+            for side, event in enumerate((x, y)):
+                actual_sp = event[11]
+                for k in range(size):
+                    memories = [z3.Store(m, actual_sp + bv(k), bv(0, 8)) for m in memories]
+            goals.append(memories[0] == memories[1])
+        else:
+            goals += [equality(u, v) for u, v in zip(x[1:], y[1:])]
+    for st in states:
+        if any(e[0] == 'return' for e in st.events):
+            goals += [st.regs[r] == frames.saved[r] for r in ('ebx', 'esi', 'edi', 'ebp')]
+    return goals
+
+
+def verify_frames(checker, a, b, finite=False):
+    graphs = [blocks(a), blocks(b)]
+    pairing, reverse, todo = {0: 0}, {0: 0}, [0]
+    while todo:
+        i = todo.pop()
+        aa, bb = graphs[0][i][1], graphs[1][pairing[i]][1]
+        if len(aa) != len(bb):
+            raise NotProven('control-flow graphs do not pair')
+        for x, y in zip(aa, bb):
+            if (x in pairing and pairing[x] != y) or (y in reverse and reverse[y] != x):
+                raise NotProven('control-flow graphs do not pair')
+            if x not in pairing:
+                pairing[x], reverse[y] = y, x
+                todo.append(x)
+    frames = Frames((a, b))
+    local = [{}, {}]
+    for i, j in pairing.items():
+        for pred in (lambda x: x.mnemonic == 'call', lambda x: x.mnemonic in FP_OPS):
+            aa = [a[k] for k in graphs[0][i][0] if pred(a[k])]
+            bb = [b[k] for k in graphs[1][j][0] if pred(b[k])]
+            for x, y in zip(aa, bb):
+                local[0][x.address] = local[1][y.address] = x.address
+    machines = [FrameMachine(checker.inp.addresses, side, local, frames) for side in (0, 1)]
+    for i, j in pairing.items():
+        aa = [a[k] for k in graphs[0][i][0] if a[k].mnemonic == 'call']
+        bb = [b[k] for k in graphs[1][j][0] if b[k].mnemonic == 'call']
+        for x, y in zip(aa, bb):
+            if x.operands[0].type == y.operands[0].type == X.X86_OP_IMM:
+                old = callee_cleanup(checker, 0, x.operands[0].imm)
+                new = callee_cleanup(checker, 1, y.operands[0].imm)
+                if old is not None and old == new:
+                    machines[0].cleanups[x.address] = old
+                    machines[1].cleanups[y.address] = new
+                    if stack_insensitive_leaf(checker, 0, x.operands[0].imm) and stack_insensitive_leaf(checker, 1, y.operands[0].imm):
+                        machines[0].private_calls.add(x.address)
+                        machines[1].private_calls.add(y.address)
+    deadline = time.monotonic() + 8
+    frames.deadline = deadline
+    def budget():
+        if time.monotonic() > deadline:
+            raise NotProven('frame relation inference budget')
+    def execute(i, states):
+        for side, code in enumerate((a, b)):
+            for k in graphs[side][(i, pairing[i])[side]][0]:
+                machines[side].step(states[side], code[k])
+        return states
+    initial, _ = frames.states(initial=True)
+    if finite:
+        pending = [(0, initial, z3.BoolVal(True), frozenset())]
+        visits = 0
+        while pending:
+            budget()
+            i, states, guard, seen = pending.pop()
+            if i in seen:
+                raise NotProven('loop requires an inductive frame relation')
+            visits += 1
+            if visits > 6000 or len(pending) > 128:
+                raise NotProven('finite frame path budget')
+            execute(i, states)
+            if not prove([z3.Implies(guard, z3.And(frame_goals(frames, states)))]):
+                raise NotProven('finite frame paths differ')
+            edges = graphs[0][i][1]
+            for edge, target in enumerate(edges):
+                branch = edge_guard(states[0], a[graphs[0][i][0][-1]], len(edges), edge)
+                next_guard = simp(z3.And(guard, branch))
+                if not z3.is_false(next_guard):
+                    pending.append((target, frames.clone(states), next_guard, seen | {i}))
+        return 'PROVEN', ''
+    samples, todo = {}, [(0, frames.clone(initial))]
+    while todo:
+        budget()
+        i, states = todo.pop()
+        if i in samples:
+            continue
+        samples[i] = frames.clone(states)
+        execute(i, states)
+        todo.extend((j, frames.clone(states)) for j in graphs[0][i][1] if j not in samples)
+    candidates = {i: frames.candidates(samples[i]) for i in pairing}
+    def held(guard, facts, states):
+        budget()
+        established, pending = set(), {}
+        for f in facts:
+            expr = simp(frames.fact(states, f))
+            if z3.is_true(expr):
+                established.add(f)
+            elif not z3.is_false(expr):
+                pending[f] = expr
+        retained = established | conditional_facts(guard, pending)
+        # A few false byte proposals can exhaust the batch model budget. Keep
+        # a proved affine word relation even when that conservative filter
+        # discards the remainder of the batch.
+        affine = [f for f in pending if f[0] == 'affine' and f not in retained]
+        affine.sort(key=lambda f: isinstance(f[1][1], str) and isinstance(f[2][1], str))
+        for f in affine[:32]:
+            budget()
+            if prove([z3.Implies(guard, pending[f])]):
+                retained.add(f)
+        return retained
+    candidates[0] &= held(z3.BoolVal(True), candidates[0], initial)
+    queue, queued, visited = collections.deque([0]), {0}, set()
+    while queue:
+        budget()
+        i = queue.popleft()
+        queued.discard(i)
+        states, premise = frames.states(candidates[i])
+        execute(i, states)
+        edges = graphs[0][i][1]
+        for edge, target in enumerate(edges):
+            guard = z3.And(premise, edge_guard(states[0], a[graphs[0][i][0][-1]], len(edges), edge))
+            kept = held(guard, candidates[target], states)
+            changed = kept != candidates[target]
+            candidates[target] &= kept
+            if (target not in visited or changed) and target not in queued:
+                queue.append(target)
+                queued.add(target)
+        visited.add(i)
+    if not prove([frames.fact(initial, f) for f in candidates[0]]):
+        raise NotProven('frame relation is not initialized')
+    for i, j in pairing.items():
+        budget()
+        states, premise = frames.states(candidates[i])
+        execute(i, states)
+        old, new = states
+        goals = frame_goals(frames, states)
+        edges = graphs[0][i][1]
+        for edge, target in enumerate(edges):
+            guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
+            goals += [z3.Implies(guard, frames.fact(states, f)) for f in candidates[target]]
+        if not prove([z3.Implies(premise, z3.And(goals))]):
+            raise NotProven('private frame relation does not prove the transition')
+    return 'PROVEN', ''
+
+
 class Checker:
     def __init__(self, inp):
         self.inp = inp
@@ -1409,6 +2116,7 @@ class Checker:
         code = [dataclasses.replace(i) for i in code]
         by_addr = {i.address: j for j, i in enumerate(code)}
         regions = []
+        allowed_fs = set()
         for k, ins in enumerate(code):
             if not (ins.mnemonic == 'mov' and len(ins.operands) == 2
                     and ins.operands[0].type == X.X86_OP_MEM
@@ -1462,8 +2170,23 @@ class Checker:
                 # a havoced stack target must never hide the real epilogue.
                 code[ret].flow = (continuation,)
                 metadata.extend((code[d+1].operands[0].imm, continuation))
+            allowed_fs.update((k - 1, k))
             ins.eh = tuple(metadata)
             regions.append((d, roots, ret, tuple(metadata)))
+        for k, ins in enumerate(code):
+            fs = [o for o in ins.operands if o.type == X.X86_OP_MEM and ins.reg_name(o.mem.segment) == 'fs']
+            if not fs or k in allowed_fs:
+                continue
+            # The ordinary uninstall pops the old FS chain and the other
+            # two record words, then writes the old chain back to FS:[0].
+            if (regions and ins.mnemonic == 'mov' and len(ins.operands) == 2
+                    and ins.operands[0] in fs and ins.operands[1].type == X.X86_OP_REG
+                    and k >= 3 and all(code[j].mnemonic == 'pop' and code[j].operands[0].type == X.X86_OP_REG for j in range(k-3, k))
+                    and code[k-3].operands[0].reg == ins.operands[1].reg
+                    and not fs[0].mem.disp and not fs[0].mem.index):
+                allowed_fs.add(k)
+            else:
+                raise Unsupported('FS access outside a modeled exception frame')
         # FS is modeled as a separate byte array. An FS access without a
         # recognized installation must fail closed rather than skip a handler.
         if any('fs:' in i.op_str for i in code) and not regions:
@@ -1518,9 +2241,26 @@ class Checker:
             self.verify_regions(a, b, ar, br)
             try:
                 return self.verify(a, b)
-            except NotProven as first:
+            except (NotProven, Unsupported) as first:
+                try:
+                    return verify_frames(self, a, b)
+                except (NotProven, Unsupported):
+                    pass
+                try:
+                    return verify_frames(self, a, b, finite=True)
+                except (NotProven, Unsupported):
+                    pass
+                try:
+                    graphs = [blocks(a), blocks(b)]
+                    for aligned in cfg_variants(a, b, graphs, (0, 0), self.inp.addresses):
+                        try:
+                            return verify_frames(self, a, aligned)
+                        except (NotProven, Unsupported):
+                            pass
+                except (NotProven, Unsupported):
+                    pass
                 if str(first) == 'control-flow graphs do not pair':
-                    raise
+                    raise first
                 try:
                     return self.acyclic(a, b)
                 except (Unsupported, NotProven):
@@ -1736,9 +2476,9 @@ class Checker:
             for seq, _ in graph.values():
                 for k in seq:
                     ins = (a, b)[side][k]
-                    if any(o.type == X.X86_OP_MEM and o.mem.segment and ins.reg_name(o.mem.segment) != 'fs' for o in ins.operands):
+                    if any(o.type == X.X86_OP_MEM and o.mem.segment and ins.reg_name(o.mem.segment) != 'fs' and not (ins.mnemonic in STRING_OPS and ins.reg_name(o.mem.segment) == 'es') for o in ins.operands):
                         raise Unsupported('segment override')
-                    if ins.mnemonic not in INTEGER_OPS | FP_OPS | {'eh-enter'} and not ins.mnemonic.startswith(('j', 'set')):
+                    if ins.mnemonic not in INTEGER_OPS | FP_OPS | STRING_OPS | {'eh-enter'} and not ins.mnemonic.startswith(('j', 'set')):
                         raise Unsupported(ins.mnemonic)
         pairing = {entry[0]: entry[1]}
         reverse = {entry[1]: entry[0]}
@@ -1868,7 +2608,12 @@ class Checker:
                 # ordinary functions. Reject unresolved escaped code pointers.
                 local[side][ins.address] = ins.address
         starts = arbitrary(DIAG, FLAGS)
-        stack = starts[0].regs['esp']
+        stack = z3.BitVec('finite_entry_esp', 32)
+        entry_memory = starts[0].memory
+        for st in starts:
+            st.regs['esp'] = stack
+        for st in starts:
+            st.escape_base, st.escaped = stack, False
 
         def offset(expr):
             value = simp(expr - stack)
@@ -1910,6 +2655,7 @@ class Checker:
                     clone = State(dict(st.regs), dict(st.flags), st.memory, st.fs, st.fp)
                     clone.events = list(st.events)
                     clone.condition = st.condition
+                    clone.escape_base, clone.escaped = st.escape_base, st.escaped
                     todo.append((target, clone, next_guard, seen, low))
             return result
 
@@ -1919,9 +2665,12 @@ class Checker:
         lows = [min(p[2] for p in old), min(p[2] for p in new)]
 
         def visible(st, low):
+            if st.escaped or any(contains_pointer(st.regs[r], stack) for r in ('eax', 'edx')):
+                return st.events, st.memory
             memory = st.memory
-            for off in range(min(lows), 0):
-                memory = z3.Store(memory, stack + bv(off), bv(0, 8))
+            for off in range(low, 0):
+                addr = stack + bv(off)
+                memory = z3.Store(memory, addr, z3.Select(entry_memory, addr))
             return st.events, memory
 
         projected = [[(guard, st, *visible(st, low)) for guard, st, low in pp] for pp in (old, new)]
@@ -1946,7 +2695,69 @@ class Checker:
         return 'PROVEN', ''
 
 
-def mutate(insns, rng):
+def rep_destination_is_frame(insns, index):
+    reg = 'edi'
+    for ins in reversed(insns[:index]):
+        if not ins.operands or ins.operands[0].type != X.X86_OP_REG:
+            continue
+        if ALIASES.get(ins.reg_name(ins.operands[0].reg), (None,))[0] != reg:
+            continue
+        if ins.mnemonic == 'lea':
+            m = ins.operands[1].mem
+            if ins.reg_name(m.base) in ('esp', 'ebp'):
+                return True
+            if m.base and not m.index:
+                reg = ins.reg_name(m.base)
+                continue
+            return False
+        if ins.mnemonic == 'mov' and ins.operands[1].type == X.X86_OP_REG:
+            reg = ins.reg_name(ins.operands[1].reg)
+            if reg in ('esp', 'ebp'):
+                return True
+            continue
+        if ins.mnemonic in ('add', 'sub', 'inc', 'dec'):
+            continue
+        return False
+    return reg in ('esp', 'ebp')
+
+
+def observed_frame_store(insns, index):
+    ins = insns[index]
+    dst, src = ins.operands
+    if (dst.size != 4 or dst.mem.index or dst.mem.segment or dst.mem.disp >= 0
+            or ins.reg_name(dst.mem.base) != 'ebp' or src.type != X.X86_OP_REG
+            or ins.reg_name(src.reg) not in ('eax', 'edx', 'ecx')):
+        return False
+    name = ins.reg_name(src.reg)
+    for previous in insns[:index]:
+        _, writes = previous.raw.regs_access()
+        if any(ALIASES.get(previous.reg_name(r), (None,))[0] == name for r in writes):
+            return False
+        if any(o.type == X.X86_OP_MEM and o.mem.base == dst.mem.base and o.mem.disp == dst.mem.disp for o in previous.operands):
+            return False
+    found = None
+    for following in insns[index+1:]:
+        if following.mnemonic in ('ret', 'call'):
+            return found in (('eax', 'edx') if following.mnemonic == 'ret' else ('eax', 'edx', 'ecx'))
+        if following.mnemonic.startswith('j'):
+            return False
+        if (following.mnemonic == 'mov' and len(following.operands) == 2
+                and following.operands[0].type == X.X86_OP_REG
+                and following.reg_name(following.operands[0].reg) in ('eax', 'edx', 'ecx')
+                and following.operands[1].type == X.X86_OP_MEM
+                and following.operands[1].size == 4 and following.operands[1].mem == dst.mem):
+            found = following.reg_name(following.operands[0].reg)
+            continue
+        if any(o.type == X.X86_OP_MEM and o.mem.base == dst.mem.base and o.mem.disp == dst.mem.disp for o in following.operands):
+            return False
+        if found:
+            _, writes = following.raw.regs_access()
+            if any(ALIASES.get(following.reg_name(r), (None,))[0] == found for r in writes):
+                return False
+    return False
+
+
+def mutate(insns, rng, only_kind=None):
     """One in-memory instruction edit, fixed-seed selection, no binary writes."""
     choices = []
     reachable = set()
@@ -1975,6 +2786,31 @@ def mutate(insns, rng):
             choices.append((index, 'drop store', 0))
         if ins.mnemonic == 'jle':
             choices.append((index, 'jl for jle', 0))
+        if (ins.mnemonic == 'mov' and ins.operands[0].type == X.X86_OP_MEM
+                and not ins.operands[0].mem.segment and not ins.operands[0].mem.index
+                and ins.reg_name(ins.operands[0].mem.base) in ('ebp', 'esp')):
+            if observed_frame_store(insns, index):
+                choices.append((index, 'frame store offset +4', 0))
+        if (ins.mnemonic == 'pop' and ins.operands[0].type == X.X86_OP_REG
+                and ins.reg_name(ins.operands[0].reg) in ('ebx', 'esi', 'edi', 'ebp')):
+            restored = ins.reg_name(ins.operands[0].reg)
+            changed_register = any(previous.mnemonic not in ('push', 'pop') and
+                                   any(ALIASES.get(previous.reg_name(r), (None,))[0] == restored
+                                       for r in previous.raw.regs_access()[1]) for previous in insns[:index])
+            if changed_register:
+                choices.append((index, 'drop restore pop', 0))
+        if ins.mnemonic == 'rep movsd' and not rep_destination_is_frame(insns, index):
+            overwritten = False
+            for following in insns[index+1:]:
+                if following.mnemonic in ('call', 'ret') or following.mnemonic.startswith('j'):
+                    break
+                if following.operands and following.operands[0].type == X.X86_OP_MEM:
+                    overwritten = True
+                    break
+            if not overwritten:
+                choices.append((index, 'rep count +1', 0))
+    if only_kind is not None:
+        choices = [c for c in choices if c[1] == only_kind]
     if not choices:
         return None
     index, kind, operand = rng.choice(choices)
@@ -1985,12 +2821,14 @@ def mutate(insns, rng):
     ins.operands = [copy.deepcopy(o) for o in ins.operands]
     if kind == 'constant +1':
         ins.operands[operand].imm += 1
-    elif kind == 'field offset +4':
+    elif kind in ('field offset +4', 'frame store offset +4'):
         ins.operands[operand].mem.disp += 4
     elif kind == 'swapped compare operands':
         ins.operands.reverse()
     elif kind == 'jl for jle':
         ins.mnemonic = 'jl'
+    elif kind == 'drop restore pop':
+        ins.mnemonic = 'nop'
     else:
         ins.mutation = kind
     return changed, index, kind
@@ -2031,6 +2869,12 @@ def mutation_explanation(insns, index, kind):
         if observed <= {'zf'}:
             return 'only ZF is observed; swapping comparison operands preserves ZF'
         return 'comparison predicates are unchanged under the proved invariants'
+    if kind == 'frame store offset +4':
+        return 'changed frame store has no observable effect on the proved paths'
+    if kind == 'drop restore pop':
+        return 'register and stack values are restored independently of this pop'
+    if kind == 'rep count +1':
+        return 'extra copied bytes are overwritten or private and unobserved'
     if kind == 'drop store':
         return 'store is redundant, overwritten, or unobserved at every call and return'
     if kind == 'field offset +4':
@@ -2058,17 +2902,34 @@ def main(argv=None):
         rng = random.Random(0xA0E2026)
         matches = [f for f in inp.functions if not f.differs]
         rng.shuffle(matches)
+        # Reserve coverage for each new kind when the module contains an
+        # eligible function, retaining the --mutate cap and one edit per test.
+        selected = []
+        remaining = list(matches)
+        for wanted in ('frame store offset +4', 'drop restore pop', 'rep count +1'):
+            if len(selected) >= inp.mutate:
+                break
+            for fn in remaining:
+                try:
+                    _, code = checker.instructions(fn)
+                except Unsupported:
+                    continue
+                edit = mutate(code, rng, wanted)
+                if edit is not None:
+                    selected.append((fn, code, edit))
+                    remaining.remove(fn)
+                    break
         tested = 0
-        for fn in matches:
+        for fn, code, edit in selected + [(f, None, None) for f in remaining]:
             if tested >= inp.mutate:
                 break
             try:
-                a, b = checker.instructions(fn)
+                if code is None:
+                    _, code = checker.instructions(fn)
             except Unsupported:
-                # There is no complete instruction stream in which to make
-                # a single edit; continue to another eligible MATCH function.
                 continue
-            mutation = mutate(b, rng)
+            b = code
+            mutation = edit if edit is not None else mutate(b, rng)
             if mutation is None:
                 continue
             insns, index, kind = mutation
