@@ -1888,8 +1888,8 @@ begin
   if GetAbEnabled(3) or GetAbEnabled(157) then Result := Result + [mtForestry];
   if GetAbEnabled(4) or GetAbEnabled(157) then Result := Result + [mtCaveCrawling];
   if GetAbEnabled(5) or GetAbEnabled(157) then Result := Result + [mtMountaineering];
-  if GetAbEnabled(7) or GetAbEnabled(163) then Result := Result + [mtTunneling];
-  if GetAbEnabled(42) then Result := Result + [mtLavaCrossing];
+  if GetAbEnabled(7) or GetAbEnabled(163) then Result := Result + [mtLavaCrossing]; { Original set constant at $5574F918 is $40. }
+  if GetAbEnabled(42) then Result := Result + [mtTunneling]; { Original set constant at $5574F91C is $80. }
 end;
 function TAbilityOwner.GetAbWallCombatFeatures: TWallCombatFeatures;
 var
