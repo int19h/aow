@@ -2887,8 +2887,12 @@ def mutation_explanation(insns, index, kind):
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == '--selftest':
+        from equiv_tests.__main__ import main as selftest
+        raise SystemExit(selftest(argv[1:]))
     try:
-        inp = Inputs(sys.argv[1:] if argv is None else argv)
+        inp = Inputs(argv)
     except (ValueError, IndexError) as e:
         sys.exit(str(e))
     checker = Checker(inp)

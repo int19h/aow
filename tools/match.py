@@ -9,7 +9,7 @@ Example:
 
 For every method of each class found in the .map file, the original function with the same short name is
 looked up in the Ghidra signature export, both byte ranges are disassembled with capstone, and the
-instruction streams are compared with address-like operands masked (calls, jumps, absolute memory
+instruction streams are compared with address-like operands masked (external calls/jumps, absolute memory
 references, immediates inside either image). The result per method: identical, or the first differing
 instruction.
 
@@ -22,7 +22,9 @@ function that Ghidra did not create (for example the tiny sort comparison functi
 --show Method prints the two instruction streams side by side for that method.
 --quiet prints only the methods that differ and the totals.
 A case jump table after 'jmp dword ptr [reg*4 + table]' is compared as one pseudo-instruction that
-lists the entries as offsets into the function.
+lists the entries as offsets into the function. Local transfers and typed exception tables
+are checked as relative offsets on decoded instruction boundaries; incomplete flow differs.
+External address identity remains a separate address-checking obligation.
 --units Unit1,Unit2 also compares every unit-level function of those units (original name "Unit.Name")
 whose bare name is a symbol of the map file, so only nested and unnamed functions need aliases.
 """
@@ -162,6 +164,20 @@ def disasm_skipping_tables(md, img, va, size, on_exception):
     return out
 
 
+def decode_stream(md, img, va, size, on_exception):
+    from match_flow import decode
+    return decode(md, img, va, size, on_exception, normalize)
+
+
+def control_flow(md, old, new, ova, nva, osize, nsize, sigs, helpers):
+    from match_flow import original_extent, compare_cfg
+    extent = original_extent(sigs, ova, osize)
+    a = decode_stream(md, old, ova, extent, next((p for p, n in helpers[0].items() if n == '@HandleOnException'), None))
+    b = decode_stream(md, new, nva, nsize, next((p for p, n in helpers[1].items() if n == '@HandleOnException'), None))
+    classes, details = compare_cfg(a, b, ova, nva, extent, nsize, old, new, helpers)
+    return a, b, classes, details
+
+
 def compare(a, b):
     n = min(len(a), len(b))
     for i in range(n):
@@ -198,6 +214,7 @@ def main():
         n = fn['name'].split('@')[0]
         sigs[n] = (int(fn['addr'], 16), fn['size'])
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    md.detail = True
     # code segment 0001 starts at the first section's VA
     text_va = new.base + new.pe.sections[0].VirtualAddress
     # the on-exception handler entry: an import thunk in the original module, a symbol in the map here
@@ -240,6 +257,9 @@ def main():
             sigs[orig_name] = (int(addr, 16), int(size))
         pairs.append((name, orig_name if orig_name in sigs else None))
 
+    from types import SimpleNamespace
+    from match_flow import helper_addresses
+    helpers = helper_addresses(SimpleNamespace(old=old, syms=syms, text=text_va))
     total = ident = 0
     total_bytes = ident_bytes = 0
     for name, orig_name in pairs:
@@ -261,6 +281,9 @@ def main():
         while b and b[-1][0] in ('int3', 'nop') and len(b) > len(a):
             b.pop()
         d = compare(a, b)
+        flow_classes = []
+        if d == -1:
+            _, _, flow_classes, flow_details = control_flow(md, old, new, ova, nva, osize, nsize, sigs, helpers)
         total += 1
         total_bytes += osize
         if show and name.endswith(show):
@@ -269,11 +292,15 @@ def main():
                 l = '%-8s %-34s' % a[i] if i < len(a) else ' ' * 43
                 r = '%-8s %s' % b[i] if i < len(b) else ''
                 print('  %3d  %s | %s' % (i, l, r))
-        if d == -1:
+            if flow_classes:
+                print('  control-flow details (function-relative offsets): ' + json.dumps(flow_details))
+        if d == -1 and not flow_classes:
             ident += 1
             ident_bytes += osize
             if not quiet:
                 print('%-40s MATCH  %d instructions, %d bytes' % (name, len(a), osize))
+        elif flow_classes:
+            print('%-40s differs (control flow: %s)' % (name, ', '.join(flow_classes)))
         else:
             print('%-40s differs at instruction %d of %d/%d' % (name, d, len(a), len(b)))
             for i in range(max(0, d - 2), min(len(a), len(b), d + 3)):

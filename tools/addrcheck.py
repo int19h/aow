@@ -518,53 +518,7 @@ class Names:
 
 
 def decode(md, img, va, size, on_exception):
-    """match.disasm_skipping_tables, retaining raw instructions for operands."""
-    out = []
-    code = img.bytes_at(va, size)
-    pos = 0
-    while pos < size:
-        insns = list(md.disasm(code[pos:], va + pos))
-        if not insns:
-            break
-        for ins in insns:
-            out.append((match.normalize(ins, img), ins))
-            pos = ins.address - va + ins.size
-            m = re.fullmatch(r'dword ptr \[(?:e[a-z]{2})\*4 \+ (0x[0-9a-f]+)\]', ins.op_str) if ins.mnemonic == 'jmp' else None
-            if m and va <= int(m.group(1), 16) < va + size:
-                tpos = int(m.group(1), 16) - va
-                skip = 0
-                while (skip < 8 and tpos + 4 <= size and
-                       not va <= struct.unpack_from('<I', code, tpos)[0] < va + size):
-                    tpos += 4
-                    skip += 1
-                entries = []
-                while tpos + 4 <= size:
-                    target = struct.unpack_from('<I', code, tpos)[0]
-                    if not va <= target < va + size:
-                        break
-                    entries.append(target - va)
-                    tpos += 4
-                if entries and tpos > pos:
-                    out.append((('.table', ' '.join('%x' % e for e in entries)), None))
-                    pos = tpos
-                    break
-            if ins.mnemonic == 'jmp' and on_exception is not None:
-                try:
-                    target = int(ins.op_str, 16)
-                except ValueError:
-                    target = None
-                if target == on_exception:
-                    if pos + 4 > size:
-                        return out
-                    n = struct.unpack_from('<I', code, pos)[0]
-                    if n < 16:
-                        pos += 4 + 8 * n
-                        if pos >= size:
-                            return out
-                        break
-        else:
-            break
-    return out
+    return match.decode_stream(md, img, va, size, on_exception)
 
 
 def operands(ins, img):
@@ -714,9 +668,27 @@ def collect(inp, names):
     md = CS.Cs(CS.CS_ARCH_X86, CS.CS_MODE_32)
     md.detail = True
     evidence = collections.defaultdict(set)
+    from match_flow import helper_addresses
+    helpers = helper_addresses(inp)
+    inp.flow_rejections = {}
     for f in inp.functions:
-        a = decode(md, inp.old, f.ova, f.osize, inp.old_exception)
-        b = decode(md, inp.new, f.nva, f.decode_size, inp.new_exception)[:len(a)]
+        a, b, flow_classes, _ = match.control_flow(md, inp.old, inp.new, f.ova, f.nva,
+                                                  f.osize, f.nsize, inp.sigs, helpers)
+        # Only complete control-flow matches may contribute MATCH-position evidence.
+        if flow_classes:
+            inp.flow_rejections[f.name] = flow_classes
+            continue
+        for (_, oi), (_, ni) in zip(a, b):
+            if (oi is None or ni is None or oi.mnemonic != "jmp" or ni.mnemonic != "jmp"
+                    or not oi.operands or not ni.operands
+                    or oi.operands[0].type != X.X86_OP_IMM or ni.operands[0].type != X.X86_OP_IMM
+                    or helpers[0].get(oi.operands[0].imm) != "@HandleOnException"
+                    or helpers[1].get(ni.operands[0].imm) != "@HandleOnException"):
+                continue
+            ot, nt = oi.address + oi.size, ni.address + ni.size
+            for j in range(u32(inp.old, ot)):
+                o, n = u32(inp.old, ot + 4 + 8*j), u32(inp.new, nt + 4 + 8*j)
+                evidence[o, n].add(Use(f.name, ot + 4 + 8*j, nt + 4 + 8*j, (j, "imm")))
         for _, ins in b:
             if ins is None:
                 continue
@@ -817,7 +789,10 @@ def run(argv):
     inp = Inputs(argv)
     names = Names(inp)
     evidence = collect(inp, names)
-    return inp, names, evidence, findings(evidence, names)
+    result = findings(evidence, names)
+    for name, classes in inp.flow_rejections.items():
+        result.append(Finding(name, "control-flow", 0, 0, ",".join(classes)))
+    return inp, names, evidence, result
 
 
 def main(argv=None):
@@ -829,7 +804,8 @@ def main(argv=None):
         print(f.line(names))
     conflicts = sum(f.kind == 'name-conflict' for f in result)
     print('%d findings in %d functions (%d name conflicts, %d inconsistencies)' % (
-        len(result), len({(f.ova, f.nva) for f in inp.functions}), conflicts, len(result) - conflicts))
+        len(result), len({(f.ova, f.nva) for f in inp.functions}), conflicts, sum(f.kind == 'inconsistency' for f in result)))
+    print('%d functions excluded from address evidence by control-flow/table checks' % len(inp.flow_rejections))
 
 
 if __name__ == '__main__':
