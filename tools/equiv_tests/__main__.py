@@ -19,6 +19,12 @@ from . import game, synthetic
 
 
 def classify(expected, status):
+    if expected == 'pending_coverage' and status.startswith('PROVEN under '):
+        return 'PENDING_COVERAGE'
+    if expected.startswith('prove:') and not status.startswith('PROVEN'):
+        return 'ERROR'
+    if expected.startswith('prove:') and status == 'PROVEN':
+        return 'CONTROL_PASS'
     if expected == 'pending_coverage' and status in ('PROVEN', 'NOT PROVEN', 'UNSUPPORTED'):
         return 'CONTROL_PASS' if status == 'PROVEN' else 'PENDING_COVERAGE'
     if expected == 'prove' and not status.startswith('PROVEN under '):
@@ -27,11 +33,11 @@ def classify(expected, status):
         return 'FIXED_OR_REJECTED'
     if status.startswith('PROVEN under '):
         import re
-        premises = set(re.findall(r'H[1-9][0-9]*', status[len('PROVEN under '):]))
-        allowed = set(expected.split(':', 1)[1].split(',')) if expected.startswith('conditional:') else set()
+        premises = set(re.findall(r'H3c|H[1-9][0-9]*', status[len('PROVEN under '):]))
+        allowed = set(expected.split(':', 1)[1].split(',')) if expected.startswith(('conditional:','prove:')) else set()
         # Do not silently accept unparsed premise names or an empty declaration.
-        residue = re.sub(r'H[1-9][0-9]*|[{},; +\[\]()]', '', status[len('PROVEN under '):])
-        return ('FIXED_OR_REJECTED' if premises and not residue and premises <= allowed
+        residue = re.sub(r'H3c|H[1-9][0-9]*|[{},; +\[\]()]', '', status[len('PROVEN under '):])
+        return ('CONTROL_PASS' if expected.startswith('prove:') and premises and not residue and premises <= allowed else 'FIXED_OR_REJECTED' if premises and not residue and premises <= allowed
                 else 'KNOWN_FALSE_ACCEPT')
     return 'KNOWN_FALSE_ACCEPT' if status == 'PROVEN' else 'ERROR'
 

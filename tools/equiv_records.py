@@ -7,7 +7,7 @@ import hashlib
 import json
 
 SCHEMA_VERSION = 1
-HYPOTHESES = tuple('H%d' % n for n in range(1, 10))
+HYPOTHESES = tuple('H%d' % n for n in range(1, 10)) + ('H3c',)
 
 
 def digest(path):
@@ -140,6 +140,13 @@ def load_aliases(path, inp, addresses):
             if ((max(a,x) < min(a+size,x+length) or max(b,y) < min(b+size,y+length))
                     and b-a != y-x):
                 raise ValueError('overlapping aliases have inconsistent byte offsets')
+        if entry['kind'] == 'immutable-data':
+            if (inp.old.bytes_at(a,size) != inp.new.bytes_at(b,size)
+                    or any(a-3 <= r < a+size for r in addresses.relocs[0])
+                    or any(b-3 <= r < b+size for r in addresses.relocs[1])):
+                raise ValueError('immutable bytes differ or need relocated-pointer validation')
+            for side,start in enumerate((a,b)):
+                addresses.immutable_data[side][start] = size
         accepted.append((a, b, size, entry['id'] + ':' + digest(path)))
     addresses.reviewed_names = [set(s) for s in names]  # Persist across every loaded alias file.
     return accepted

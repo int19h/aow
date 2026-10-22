@@ -11,7 +11,7 @@ def cases():
         b, br = finally_program(True, changed)
         yield fixture('local_cfg_continuation/' + str(changed), a, b,
                       'A relocated continuation is checked; retargeting changes the return.',
-                      'reject' if changed else 'prove', relocs=(ar,br),
+                      'reject' if changed else 'prove:H3', relocs=(ar,br),
                       names=[(0x401300, 'System.@HandleFinally')])
     yield fixture('DF_return', 'fc c3', 'fd c3', 'Different direction flags at return.')
     yield fixture('missing_read_fault', '8b01 b800000000 c3', '90 b800000000 c3',

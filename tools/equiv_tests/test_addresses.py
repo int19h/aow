@@ -28,7 +28,7 @@ class Addresses(unittest.TestCase):
             addr = checker.inp.addresses
             saved = dict(addr.forward), dict(addr.reverse), dict(addr.provenance)
             status, _ = checker.check(fn)
-            self.assertEqual('NOT PROVEN' if changed else 'PROVEN', status)
+            self.assertEqual('NOT PROVEN' if changed else 'PROVEN under H3', status)
             self.assertIn('local-cfg', {p for _,_,p in addr.consulted})
             self.assertEqual(saved, (addr.forward,addr.reverse,addr.provenance))
             if not changed:
@@ -39,7 +39,7 @@ class Addresses(unittest.TestCase):
                 with patch.object(e, 'Inputs', return_value=checker.inp), contextlib.redirect_stdout(output):
                     e.main([])
                 records = [json.loads(line[8:]) for line in output.getvalue().splitlines() if line.startswith('EXPLAIN ')]
-                proof = next(r for r in records if r.get('function') == fn.name)
+                proof = next(r for r in records if r.get('function') == fn.name and 'consulted' in r)
                 self.assertEqual({(hex(a),hex(b),p) for a,b,p in addr.consulted},
                                  {(r['original'],r['compiled'],r['source']) for r in proof['consulted']})
                 with patch.object(checker,'verify_fast',side_effect=e.NotProven('route guard')), \

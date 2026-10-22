@@ -73,8 +73,9 @@ class PointerCells(unittest.TestCase):
                 checker.inp.new.data[0x1000:0x1000+fn.nsize] = b'\xa1'+p32(0x402010)+b'\xc3\xa3'+p32(0x402010)+b'\xc3'
             self.install(checker,[entry])
             status,reason = checker.check(fn)
-            self.assertEqual('UNSUPPORTED',status)
-            self.assertIn('pointer cell',reason)
+            self.assertEqual('UNSUPPORTED' if tail[0] == 0xc3 else 'PROVEN under H5',status)
+            if tail[0] == 0xc3: self.assertIn('pointer cell',reason)
+            else: self.assertIn('H5',checker.last_contracts['hypotheses'])
 
     def test_reviewed_names_accumulate_across_files(self):
         checker,fn,entry = self.fixture()

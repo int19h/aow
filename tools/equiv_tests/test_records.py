@@ -56,9 +56,16 @@ class Records(unittest.TestCase):
                 if change == 'overlap':
                     bad['entries'][1]['compiled']['address'] = '0x402014'
                     self.assertEqual(2,len(load(bad)))
+            entry['kind'] = 'immutable-data'
+            inp.old.data[0x2000],inp.new.data[0x2010] = 1,2
+            with self.assertRaisesRegex(ValueError,'immutable bytes'): load(doc)
+            inp.new.data[0x2010] = 1
+            self.assertEqual(1,len(load(doc)))
+            self.assertTrue(inp.addresses.readonly(1,0x402010,8))
+            self.assertFalse(inp.addresses.readonly(1,0x402010,9))
 
     def test_certificate_is_incomplete_and_names_all_obligations(self):
         record = certificate({}, {'name':'fixture'})
         self.assertEqual('incomplete', record['stage'])
-        self.assertEqual({'H%d'%i for i in range(1,10)},set(record['hypotheses']))
+        self.assertEqual({'H%d'%i for i in range(1,10)}|{'H3c'},set(record['hypotheses']))
         self.assertTrue(all(h['status']=='unsupported' for h in record['hypotheses'].values()))

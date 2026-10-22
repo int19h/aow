@@ -301,6 +301,7 @@ class Addresses:
         self.provenance = {}
         self.consulted = set()
         self.pointer_cells = [{}, {}]
+        self.immutable_data = [{}, {}]
         self.pointee_symbols = [{}, {}]
         self.allow_local_cfg = True
         self.unresolved = set()
@@ -581,6 +582,9 @@ class Addresses:
         self.provenance.setdefault((a, b), source or self.binding_source)
         return True
 
+    def protected(self, side):
+        return {**{a:4 for a in self.pointer_cells[side]}, **self.immutable_data[side]}
+
     def import_pointee(self, anchor, target, original_cell):
         # The disk IAT word is an RVA, never the runtime address of the global.
         # A scoped loader symbol is a shared symbolic address, not cell storage.
@@ -621,6 +625,8 @@ class Addresses:
         raise Unsupported('unresolved image address 0x%x (no independent identity)' % value)
 
     def readonly(self, side, addr, size):
+        if any(a <= addr and addr+size <= a+n for a,n in self.immutable_data[side].items()):
+            return True
         img = (self.old, self.new)[side]
         for sec in img.pe.sections:
             lo = img.base + sec.VirtualAddress
@@ -817,6 +823,7 @@ def arbitrary(candidates, flag_candidates):
     ff = []
     for s in (0, 1):
         ff.append({f: z3.Bool('f_%d_%s' % (0 if f in flag_candidates else s, f)) for f in FLAGS})
+        ff[-1]['df'] = z3.BoolVal(False)  # Ordinary entry; ABI gate rejects all DF-setting code.
     memory = z3.Array('memory', BV32, BYTE)
     fs = z3.Array('fs_memory', BV32, BYTE)
     # An opaque x87 machine includes the 80-bit stack and control/status state.
@@ -828,18 +835,22 @@ class Machine:
     def guard_pointer_cells(self, address, size, fs=False):
         concrete = simp(address)
         if not fs and z3.is_bv_value(concrete):
-            for cell in self.addresses.pointer_cells[self.side]:
+            for cell,width in self.addresses.protected(self.side).items():
                 canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell,cell)
                 if any((concrete.as_long()+i) & 0xffffffff == (canonical_cell+k) & 0xffffffff
-                       for i in range(size) for k in range(4)):
+                       for i in range(size) for k in range(width)):
                     raise Unsupported('write to accepted pointer cell 0x%x' % cell)
         if fs and getattr(self.addresses, 'active_cells', ((),()))[self.side]:
             raise Unsupported('FS write may alias accepted pointer cell (segment relation unproved)')
         for cell in getattr(self.addresses, 'active_cells', ((),()))[self.side]:
             canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell, cell)
             if not prove([z3.And(*(address+bv(i) != bv(canonical_cell+k)
-                                  for i in range(size) for k in range(4)))]):
-                raise Unsupported('write may overlap accepted pointer cell 0x%x' % cell)
+                                  for i in range(size) for k in range(self.addresses.protected(self.side)[cell])))]):
+                contracts = getattr(self.addresses,'call_contracts',None)
+                if contracts is None:
+                    raise Unsupported('immutable storage separation contract not prepared')
+                contracts.h5.add((self.side,hex(getattr(self,'current_pc',0)),hex(cell),
+                                  self.addresses.protected(self.side)[cell],size,address.sexpr()))
 
     def __init__(self, addresses, side, local):
         self.addresses, self.side, self.local = addresses, side, local
@@ -960,6 +971,7 @@ class Machine:
         return conditions[suffix]
 
     def step(self, st, ins):
+        self.current_pc = ins.address
         st.cell_guard = self.guard_pointer_cells
         m, oo = ins.mnemonic, ins.operands
         if ins.raw.addr_size != 4:
@@ -1143,6 +1155,12 @@ class Machine:
         elif m.startswith('j'):
             st.condition = self.condition(st, m[1:])
         elif m == 'call':
+            contracts = getattr(self.addresses,'call_contracts',None)
+            if contracts is None or (self.side,ins.address) not in contracts.sites:
+                raise Unsupported('call contract was not prepared')
+            inputs,cleanup,contract = contracts.sites[self.side,ins.address]
+            for cell in getattr(self.addresses,'active_cells',((),()))[self.side]:
+                contracts.h5.add((self.side,hex(ins.address),hex(cell),self.addresses.protected(self.side)[cell],0,'All callee memory effects preserve this immutable storage range'))
             op = oo[0]
             if ((op.type == X.X86_OP_IMM and op.imm in self.dynamic_targets)
                     or (op.type == X.X86_OP_MEM and not (op.mem.base or op.mem.index or op.mem.segment)
@@ -1157,18 +1175,22 @@ class Machine:
                 if a in getattr(self.addresses, 'reverse', {})}
             if z3.is_bv_value(simp(target)) and simp(target).as_long() in canonical_dynamic:
                 raise Unsupported('Delphi dynamic dispatch: implicit register arguments')
-            st.events.append(('call', target, st.regs['eax'], st.regs['edx'], st.regs['ecx'], st.regs['esp'], st.memory, st.fs, st.fp))
+            packed = [register_byte(st,r,k) if ('r',r,k) in inputs else bv(0,8) for r in REGS if r != 'esp' for k in range(4)]
+            packed += [z3.If(st.flags[f],bv(1,1),bv(0,1)) if ('f',f) in inputs else bv(0,1) for f in FLAGS]
             tag = str(self.local[self.side].get(ins.address, ins.address))
+            delta = bv(cleanup) if cleanup is not None else z3.BitVec('call_stack_cleanup_' + tag,32)
+            st.events.append(('call', target, z3.Concat(packed+[delta]), bv(0), bv(0), st.regs['esp'], st.memory, st.fs, st.fp))
             for r in ('eax', 'edx', 'ecx'):
                 st.regs[r] = z3.BitVec('call_' + tag + '_' + r, 32)
             for f in FLAGS:
                 st.flags[f] = z3.Bool('call_' + tag + '_' + f)
+            st.flags['df'] = z3.BoolVal(False)  # Explicit H3 postcondition.
             st.memory = z3.Array('call_memory_' + tag, BV32, BYTE)
             st.fs = z3.Array('call_fs_' + tag, BV32, BYTE)
             st.fp = z3.BitVec('call_x87_' + tag, 80 * 8 + 64)
-            # The same callee has the same stack cleanup.  Leaving it symbolic
-            # avoids guessing an unknown virtual routine's parameter count.
-            st.regs['esp'] = simp(st.regs['esp'] + z3.BitVec('call_stack_cleanup_' + tag, 32))
+            # R1/R2 use the ABI pass's concrete count; only R3 stays symbolic.
+            contract['cleanup_symbol'] = str(delta)
+            st.regs['esp'] = simp(st.regs['esp'] + delta)
         elif m == 'eh-enter':
             st.events.append(('exception-helper', *(self.constant(v) for v in ins.eh)))
         elif m == 'ret':
@@ -1180,7 +1202,7 @@ class Machine:
                 # restores its own saved nonvolatile registers after CALL ECX.
                 st.events.append(('finally-return', target, st.regs['esp']))
             else:
-                st.events.append(('return', target, *(st.regs[r] for r in ('eax', 'edx', 'esp', 'ebx', 'esi', 'edi', 'ebp'))))
+                st.events.append(('return', target, *(st.regs[r] for r in ('eax', 'edx', 'esp', 'ebx', 'esi', 'edi', 'ebp')), st.flags['df']))
         elif m in FP_OPS:
             # The brief permits ordered uninterpreted x87 operations. The
             # state contains all eight 80-bit registers and control/status bits.
@@ -1498,7 +1520,7 @@ def relation_states(facts):
     return states, premise
 
 
-def callee_cleanup(checker, side, target):
+def callee_cleanup(checker, side, target, own_ret_only=False):
     """Read a callee's stack convention, proving its ESP at each normal RET.
 
     This is an abstract interpretation of stack offsets, not a guess from an
@@ -1508,12 +1530,14 @@ def callee_cleanup(checker, side, target):
     if not hasattr(checker, '_cleanup_cache'):
         checker._cleanup_cache = {}
         checker._cleanup_images = {}
+    if not hasattr(checker, '_cleanup_unreadable'): checker._cleanup_unreadable = set()
     root = (checker.inp.old, checker.inp.new)[side]
     def analyze(img, address, depth):
-        key = (id(img), address)
+        key = (id(img), address, own_ret_only)
         if key in checker._cleanup_cache:
             return checker._cleanup_cache[key]
         if depth > 5 or not img.contains(address):
+            if not img.contains(address): checker._cleanup_unreadable.add(key)
             return None
         checker._cleanup_cache[key] = None
         md = CS.Cs(CS.CS_ARCH_X86, CS.CS_MODE_32)
@@ -1528,6 +1552,7 @@ def callee_cleanup(checker, side, target):
                         continue
                     path = checker.inp.original_path.parent / module.dll.decode('latin1')
                     if not path.is_file():
+                        checker._cleanup_unreadable.add(key)
                         return None
                     if path not in checker._cleanup_images:
                         other = match.Image(path)
@@ -1536,7 +1561,10 @@ def callee_cleanup(checker, side, target):
                     other = checker._cleanup_images[path]
                     for exp in getattr(getattr(other.pe, 'DIRECTORY_ENTRY_EXPORT', None), 'symbols', ()):
                         if exp.name == imp.name and not exp.forwarder:
-                            return analyze(other, other.base + exp.address, depth + 1)
+                            result = analyze(other, other.base + exp.address, depth + 1)
+                            if (id(other),other.base+exp.address,own_ret_only) in checker._cleanup_unreadable: checker._cleanup_unreadable.add(key)
+                            return result
+            checker._cleanup_unreadable.add(key)
             return None
         while todo:
             pc, sp, bp = todo.pop()
@@ -1552,10 +1580,11 @@ def callee_cleanup(checker, side, target):
             states[pc] = (sp, bp)
             ins = next(md.disasm(img.bytes_at(pc, 15), pc, count=1), None)
             if ins is None or ins.addr_size != 4:
+                if ins is None: checker._cleanup_unreadable.add(key)
                 return None
             m, oo = ins.mnemonic, ins.operands
             if m == 'ret':
-                if sp != 0 or 0x66 in ins.prefix:
+                if (sp != 0 and not own_ret_only) or 0x66 in ins.prefix:
                     return None
                 returns.add(oo[0].imm if oo else 0)
                 continue
@@ -1588,11 +1617,11 @@ def callee_cleanup(checker, side, target):
                 else:
                     bp = value
             elif m == 'call':
-                cleanup = analyze(img, oo[0].imm, depth + 1) if oo[0].type == X.X86_OP_IMM else None
+                cleanup = 0 if own_ret_only else analyze(img, oo[0].imm, depth + 1) if oo[0].type == X.X86_OP_IMM else None
                 sp = sp + cleanup if sp is not None and cleanup is not None else None
             elif m == 'jmp' and oo[0].type == X.X86_OP_MEM and not (oo[0].mem.base or oo[0].mem.index or oo[0].mem.segment):
                 cleanup = imported(oo[0].mem.disp)
-                if sp != 0 or cleanup is None:
+                if (sp != 0 and not own_ret_only) or cleanup is None:
                     return None
                 returns.add(cleanup)
                 continue
@@ -1959,7 +1988,7 @@ class FrameMachine(Machine):
         event = st.events.pop()
         # Absolute ESP can differ by the private-frame size. Outgoing bytes
         # are compared relative to ESP, and all other public memory is equal.
-        st.events.append(('frame-call', event[1], *args, sp - bv(frames.lows[self.side]) if ins.address in self.private_calls else sp, bv(size), memory, event[-2], event[-1], escaped, sp, *stack_args))
+        st.events.append(('frame-call', event[1], *event[2:5], sp - bv(frames.lows[self.side]) if ins.address in self.private_calls else sp, bv(size), memory, event[-2], event[-1], escaped, sp, *stack_args))
         # Calls may change public memory. Unescaped private bytes survive.
         for k in range(frames.lows[self.side], 0):
             st.store(frames.stack + bv(k), z3.If(escaped, z3.Select(st.memory, frames.stack + bv(k)), z3.Select(memory, frames.stack + bv(k))))
@@ -1997,6 +2026,8 @@ def frame_goals(frames, states):
 
 
 def verify_frames(checker, a, b, finite=False):
+    from equiv_calls import ensure
+    ensure(checker,a,b)
     graphs = [blocks(a), blocks(b)]
     pairing, reverse, todo = {0: 0}, {0: 0}, [0]
     while todo:
@@ -2299,6 +2330,23 @@ class Checker:
         return pairs
 
     def check(self, fn, mutated=None):
+        self.contracts = None
+        try:
+            result = self.check_raw(fn,mutated)
+        except (NotProven,Unsupported) as error:
+            result = ('UNSUPPORTED' if isinstance(error,Unsupported) else 'NOT PROVEN'),str(error)
+        self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if r.get('premise','H3')==h] for h in ('H3','H3c') if any(r.get('premise','H3')==h for _,_,r in self.contracts.sites.values())} if self.contracts else {},
+                                   dependencies=sorted(self.contracts.dependencies) if self.contracts else [])
+        if self.contracts and self.contracts.h1:
+            self.last_contracts['hypotheses']['H1'] = dict(predicate='Incoming data pointers and public-loaded address words do not reach the private frame; these ordinary writes cannot alias its save slots. Array reasoning still checks real aliasing.',instances=sorted(self.contracts.h1))
+        if self.contracts and self.contracts.h5:
+            self.last_contracts['hypotheses']['H5'] = dict(predicate='All ordinary data/stack writes in this function and its callees are disjoint from these reviewed immutable storage ranges; no concrete overlapping write is admitted.',
+                                                         instances=sorted(self.contracts.h5))
+        if result[0] == 'PROVEN' and self.last_contracts['hypotheses']:
+            result = 'PROVEN under '+','.join(sorted(self.last_contracts['hypotheses'])),'see --explain for instantiated contracts'
+        return result
+
+    def check_raw(self, fn, mutated=None):
         addresses = self.inp.addresses
         saved = addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance
         addresses.consulted.clear()
@@ -2316,14 +2364,16 @@ class Checker:
             b, br = self.exception_regions(b, 1)
             if mutated is not None:
                 b, br = self.exception_regions(mutated, 1)
+            from equiv_calls import ensure
+            ensure(self,a,b)
             addresses.active_cells = [set(), set()]
             for side, code in enumerate((a,b)):
                 for ins in code:  # Include unreachable suffixes, not only the chosen proof path.
                     for index, op in enumerate(ins.operands):
-                        if op.type != X.X86_OP_MEM or op.mem.base or op.mem.index or op.mem.segment:
+                        if op.type != X.X86_OP_MEM or op.mem.segment:
                             continue
-                        overlaps = {cell for cell in addresses.pointer_cells[side]
-                                    if max(cell,op.mem.disp) < min(cell+4,op.mem.disp+op.size)}
+                        overlaps = {cell for cell,width in addresses.protected(side).items()
+                                    if max(cell,op.mem.disp) < min(cell+width,op.mem.disp+op.size)}
                         if overlaps and ins.raw.operands[index].access & CS.CS_AC_WRITE:
                             raise Unsupported('write to accepted pointer cell')
                         addresses.active_cells[side].update(overlaps)
@@ -2427,6 +2477,8 @@ class Checker:
         proposals, must survive all predecessors in the Houdini fixed point.
         Solver timeouts discard facts, and a budget expiry never proves code.
         """
+        from equiv_calls import ensure
+        ensure(self,a,b)
         deadline = time.monotonic() + 2.5
         def budget():
             if time.monotonic() > deadline:
@@ -2552,6 +2604,8 @@ class Checker:
         return 'PROVEN', ''
 
     def verify_fast(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
+        from equiv_calls import ensure
+        ensure(self,a,b)
         if not a or not b:
             raise Unsupported('empty disassembly')
         graphs = [blocks(a, entry[0]), blocks(b, entry[1])]
@@ -2679,6 +2733,8 @@ class Checker:
         is still observed correctly; no heap/stack disjointness is assumed.
         Loops are handled exclusively by the inductive block proof above.
         """
+        from equiv_calls import ensure
+        ensure(self,a,b)
         graphs = [blocks(a), blocks(b)]
         for side, graph in enumerate(graphs):
             for seq, _ in graph.values():
@@ -2987,6 +3043,7 @@ def main(argv=None):
             inp.addresses.unresolved.clear()
             status, reason = checker.check(fn)
             if inp.explain:
+                print('EXPLAIN ' + json.dumps(dict(function=fn.name,**checker.last_contracts)),flush=True)
                 print('EXPLAIN ' + json.dumps(dict(function=fn.name, consulted=[dict(original=hex(a), compiled=hex(b), source=p) for a,b,p in sorted(inp.addresses.consulted)], unresolved=[dict(side=s, address=hex(a)) for s,a in sorted(inp.addresses.unresolved)])), flush=True)
             counts[status] += 1
             print(fn.name + ' ' + status + (' ' + reason if reason else ''), flush=True)
@@ -3034,6 +3091,7 @@ def main(argv=None):
             print('%s MUTANT %s %s [%s at %d]' % (fn.name, status, reason, kind, index), flush=True)
     n = sum(counts.values())
     print('%d differ: %d proven, %d not proven, %d unsupported' % (n, counts['PROVEN'], counts['NOT PROVEN'], counts['UNSUPPORTED']))
+    print('Conditional proofs: ' + json.dumps({k:v for k,v in counts.items() if k.startswith('PROVEN under ')}))
 
 
 if __name__ == '__main__':

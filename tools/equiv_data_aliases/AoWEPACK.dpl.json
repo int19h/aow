@@ -523,6 +523,40 @@
           ]
         }
       }
+    },
+    {
+      "id": "proposal-11",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable review_step2b2_fable.txt",
+      "original": {
+        "address": "0x558e84b4",
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "HeroExperienceTable"
+      },
+      "compiled": {
+        "address": "0x582560",
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "HeroExperienceTable"
+      },
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "Fable accepted source layout plus equality of all 48 initial bytes at corrected object bases."
+      },
+      "extent": {
+        "size": 48,
+        "basis": "type-layout",
+        "evidence": "Combat.pas:293-300: six records of two 4-byte Integers; MAP 0002:1560..1590."
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT immutable-data in review_step2b2_fable.txt; original next dword 29 is outside the object."
+      },
+      "immutability": {
+        "evidence": "Typed constant declaration; MATCH audit and proof-time write guard."
+      }
     }
   ]
 }

@@ -47,3 +47,21 @@ bytes or MATCH alignment may propose an entry but cannot justify its acceptance.
 schemas. H1–H9 start unsupported; unset evidence cannot claim discharge. Its
 only supported stage is `incomplete`: no producer verdict is a validated
 certificate. Step 9 supplies the bounded independent replay entry point.
+
+Step 4 assumes ordinary DF=0 entry and rejects DF-setting bodies; every proof
+route first checks individual callee-saved register and stack restoration.
+Both bounded callee scans justify H3 read sets; otherwise H3c explicitly assumes
+only EAX/EDX/ECX, stack arguments and DF=0 as inputs. H3/H3c records effects,
+preservation, cleanup and context restrictions, including callee save-slot H1. Flags the callee leaves undefined are not observed;
+UNDEFINED is a definition. Passed-through flags are inputs only when live after
+the call according to live_locations (conservatively unioned for same-target
+sites across both callers). REP stores invalidate only their known stack range;
+unknown destinations/counts retain save facts under an explicit H1 instance.
+Prologue PUSH immediates allocate space; negative floor-ESP records cleanup 0.
+R1 requires agreeing own RET counts (including import thunks); R2 records the H3c
+assumption cleanup=max(0,floor-ESP) and uses that same concrete count in both models.
+ABI ESP/save-slot keys retain an offset and unknown-cleanup multiset. Nonempty
+R3 cleanup multisets require explicit H3 restoration constraints on the call records.
+Potential immutable-storage aliases require reported H5 disjoint-write predicates
+(including callee effects); concrete overlaps reject. Unknown save-slot aliases
+require H1; the array model still checks aliasing. Other H checks remain pending.
