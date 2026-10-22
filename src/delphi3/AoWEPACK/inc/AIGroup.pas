@@ -1708,7 +1708,7 @@ var
 begin
   Result := TAbstractUnit(Item1).FGroup.FRecruitmentPriority -
     TAbstractUnit(Item2).FGroup.FRecruitmentPriority;
-  if Result = 0 then
+  if Result = 0 then begin
     Result := TAbstractUnit(Item1).FGroupID - TAbstractUnit(Item2).FGroupID;
   if (Result = 0) and (TAbstractUnit(Item1).FGroupID = DefenseSortGroupID) then
   begin
@@ -1722,7 +1722,7 @@ begin
     if Result = 0 then
       Result := TAbstractUnit(Item1).GetStrengthMax(dtAll) -
         TAbstractUnit(Item2).GetStrengthMax(dtAll);
-  end;
+  end; end;
 end;
 
 function TGroupDefenseSelector.Execute(Group: TAIGroup; X, Y, L: Shortint;
@@ -6245,8 +6245,8 @@ begin
     begin
       case FControlQueue[FControlQueue.Count - 1] of
         0: ActivateMEC(TDefaultMEC);
-        1: ActivateMEC(TAdjacentMEC);
-        2: ActivateMEC(TTransportMEC);
+        2: ActivateMEC(TAdjacentMEC);
+        1: ActivateMEC(TTransportMEC);
       end;
       FControlQueue.Delete(FControlQueue.Count - 1);
     end;

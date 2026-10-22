@@ -154,60 +154,19 @@ asm
 end;
 
 function TSmokeCloudEnchantment.VisibleForPlayer(Player: Shortint): Boolean;
-{ needs: the base VisibleForPlayer(Player: Shortint): Boolean.
-  The assembly retains the result ABI while the inherited declaration is a draft. }
-asm
-  PUSH EBX
-  PUSH ESI
-  PUSH EDI
-  ADD ESP,-$24
-  MOV [ESP],DL
-  MOV ESI,EAX
-  LEA EDI,[ESP+4]
-  MOV AL,[ESI+$19]
-  CMP AL,[ESP]
-  SETE BL
-  PUSH 0
-  MOV EAX,[ESI+$24]
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$78]
-  MOVSX EAX,AL
-  PUSH EAX
-  MOV EAX,[ESI+$24]
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$74]
-  MOVSX EDX,AL
-  MOV EAX,EDI
-  POP ECX
-  CALL InitHNWalk
-  JMP @@test
-@@loop:
-  MOV EAX,[ESI+$24]
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$7C]
-  MOVSX EAX,AL
-  PUSH EAX
-  MOV AL,[ESP+4]
-  PUSH EAX
-  MOV EAX,[WorldMap]
-  MOV EAX,[EAX]
-  MOV ECX,[EDI+$14]
-  MOV EDX,[EDI+$10]
-  CALL TAoWHSMap.VisibleForPlayer
-  MOV EBX,EAX
-  MOV EAX,EDI
-  CALL WalkToNextHN
-@@test:
-  TEST BL,BL
-  JNZ @@done
-  CMP DWORD PTR [EDI+$C],3
-  JLE @@loop
-@@done:
-  MOV EAX,EBX
-  ADD ESP,$24
-  POP EDI
-  POP ESI
-  POP EBX
+var
+  Walk: THNWalkData;
+begin
+  Result := FPlayerIndex = Player;
+  with Walk do
+  begin
+    InitHNWalk(Walk, FCloud.Xhx, FCloud.Yhx, 0);
+    while not Result and (Radius <= 3) do
+    begin
+      Result := WorldMap^.VisibleForPlayer(X, Y, FCloud.Lhx, Player);
+      WalkToNextHN(Walk);
+    end;
+  end;
 end;
 
 constructor TSmokeCloud.Create(AOwner: Engine.TECustomNode);
@@ -321,53 +280,14 @@ begin
 end;
 
 procedure TSmokeCloud.Activate;
-{ needs: TGlobalEnchantment.Activate has one player parameter; the shared draft
-  has a second Integer parameter. Keep the original virtual-call ABI here. }
-asm
-  PUSH EBX
-  PUSH ESI
-  MOV EBX,EAX
-  MOV EAX,EBX
-  CALL TMapObject.Activate
-  CMP BYTE PTR [EBX+$1D],0
-  JNE @@activate
-  MOV EAX,[WorldMap]
-  MOV EAX,[EAX]
-  MOV EDX,6
-  CALL TAoWHSMap.Random
-  INC EAX
-  MOV [EBX+$1D],AL
-@@activate:
-  MOV ESI,[EBX+$20]
-  MOV AL,[ESI+$19]
-  TEST AL,AL
-  JLE @@conceal
-  TEST BYTE PTR [ESI+$10],1
-  JNE @@conceal
-  MOV EDX,EAX
-  MOV EAX,ESI
-  MOV ECX,[EAX]
-  CALL DWORD PTR [ECX+$68]
-@@conceal:
-  MOV EAX,EBX
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$7C]
-  PUSH EAX
-  MOV EAX,EBX
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$78]
-  PUSH EAX
-  MOV EAX,EBX
-  MOV EDX,[EAX]
-  CALL DWORD PTR [EDX+$74]
-  MOV EDX,EAX
-  MOV EAX,EBX
-  POP ECX
-  CALL TSmokeCloud.UpdateConcealment
-  MOV EAX,EBX
-  CALL TSmokeCloud.UpdateVisibleForSeatedPlayer
-  POP ESI
-  POP EBX
+begin
+  inherited Activate;
+  if FDirection = 0 then FDirection := WorldMap^.Random(6) + 1;
+  with FEnchantment do
+    if (FPlayerIndex > 0) and not (getActivated in FEnchantmentStatus) then
+      Activate(FPlayerIndex);
+  UpdateConcealment(Xhx, Yhx, Lhx);
+  UpdateVisibleForSeatedPlayer;
 end;
 
 procedure TSmokeCloud.Deactivate;

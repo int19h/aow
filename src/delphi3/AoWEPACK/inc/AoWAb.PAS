@@ -129,63 +129,63 @@ begin
 end;
 
 function TDurationAbility.Expand(A1: TAbilityOwner): Boolean;
-{ needs: P1 TAbility.Expand(AbilityOwner: TAbilityOwner): Boolean.
-  A2 is a spurious draft parameter; original 55765054 does not consume ECX. }
-asm
-  PUSH EBX
-  PUSH ESI
-  PUSH EDI
-  PUSH EBP
-  MOV EDI, EDX
-  MOV EBP, EAX
-  XOR EBX, EBX
-  MOV EDX, [EBP].TAbility.FAbilityID
-  MOV EAX, EDI
-  CALL TAbilityOwner.GetAbilityData
-  MOV ESI, EAX
-  TEST ESI, ESI
-  JNE @@Existing
-  XOR ECX, ECX
-  MOV DL, 1
-  MOV EAX, DWORD PTR [P4DurationDataClass]
-  CALL TEObject.Create
-  MOV ESI, EAX
-  MOV AX, WORD PTR [EBP].TAbility.FAbilityID
-  MOV [ESI].TDurationAbilityData.FAbilityID, AX
-  MOV EAX, EBP
-  MOV EDX, [EAX]
-  CALL DWORD PTR [EDX + $110]
-  MOV [ESI].TDurationAbilityData.FDuration, AL
-  PUSH 1
-  MOV ECX, [EBP].TAbility.FAbilityID
-  MOV EDX, EDI
-  MOV EAX, EBP
-  CALL TAbility.SetAb
-  MOV EDX, ESI
-  MOV EAX, EDI
-  CALL TAbilityOwner.AddAbilityData
-  MOV BL, 1
-  JMP @@Done
-@@Existing:
-  MOV EAX, EBP
-  MOV EDX, [EAX]
-  CALL DWORD PTR [EDX + $110]
-  XOR EDX, EDX
-  MOV DL, [ESI].TDurationAbilityData.FDuration
-  CMP EAX, EDX
-  JLE @@Done
-  MOV BL, 1
-  MOV EAX, EBP
-  MOV EDX, [EAX]
-  CALL DWORD PTR [EDX + $110]
-  MOV [ESI].TDurationAbilityData.FDuration, AL
-@@Done:
-  MOV EAX, EBX
-  POP EBP
-  POP EDI
-  POP ESI
-  POP EBX
+var
+  Data: TDurationAbilityData;
+begin
+  Result := False;
+  Data := TDurationAbilityData(A1.GetAbilityData(FAbilityID));
+  if Data = nil then
+  begin
+    Data := TDurationAbilityData.Create(nil);
+    Data.FAbilityID := FAbilityID;
+    Data.FDuration := GetTotalDuration;
+    SetAb(A1, FAbilityID, 1);
+    A1.AddAbilityData(Data);
+    Result := True;
+  end
+  else if GetTotalDuration > Data.FDuration then
+  begin
+    Result := True;
+    Data.FDuration := GetTotalDuration;
+  end;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function TDurationAbility.Remove(A1: TAbilityOwner): Boolean;
 { needs: P1 TAbility.Remove(AbilityOwner: TAbilityOwner): Boolean.
@@ -5178,8 +5178,8 @@ begin
   Result := inherited CanTouch(A1, A2); if Result then
     Result := (A1 is TCombatUnit) and (A2 is TCombatUnit) and
       (TCombatUnit(A2).FUnit.GetUnitType <> utMachine) and
-      not A2.GetAbilityEnabled(107)
-  else Result := False;
+      not A2.GetAbilityEnabled(107);
+
 end;
 function TCommandAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
 begin

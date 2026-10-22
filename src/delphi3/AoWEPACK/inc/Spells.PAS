@@ -52,35 +52,35 @@ begin
   else Result := True;
 end;
 function TSpell.Activate(A1: TAbstractUnit): Boolean;
-{ Original returns false after optionally centering on the seated player's unit. }
-asm
-  PUSH EBX
-  PUSH ECX
-  MOV EAX, [AoWHSMap]
-  MOV AL, [EAX + $A5]
-  CMP AL, [EDX + $24]
-  JNE @@Done
-  LEA EAX, [ESP + 2]
-  PUSH EAX
-  LEA ECX, [ESP + 5]
-  LEA EAX, [ESP + 4]
-  XCHG EDX, EAX
-  CALL TAbstractUnit.GetLocation
-  CMP BYTE PTR [ESP], $FF
-  JE @@Done
-  MOVSX EAX, BYTE PTR [ESP + 2]
-  PUSH EAX
-  PUSH 3
-  MOVSX ECX, BYTE PTR [ESP + 9]
-  MOVSX EDX, BYTE PTR [ESP + 8]
-  MOV EAX, [AoWHSMap]
-  MOV EBX, [EAX]
-  CALL DWORD PTR [EBX + $C8]
-@@Done:
-  XOR EAX, EAX
-  POP EDX
-  POP EBX
+var
+  X, Y, L: Shortint;
+begin
+  if AoWHSMap.FSeatedPlayer = A1.FPlayer then
+  begin
+    A1.GetLocation(X, Y, L);
+    if X <> -1 then AoWHSMap.MakeVisible(X, Y, L, 3);
+  end;
+  Result := False; { Original returns False after optionally centering the view. }
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function TSpell.CanActivateCombat(A1: TAbstractUnit; var A2: string): Boolean;
 asm
   MOV EAX, [AoWHSMap]
@@ -88,73 +88,73 @@ asm
   SETNE AL
 end;
 function TSpell.ActivateCombat(A1: TAbstractUnit): Boolean;
-{ AL is the Boolean result; EDX is a combat object. }
-asm
-  PUSH EBP
-  MOV EBP, ESP
-  ADD ESP, -8
-  PUSH EBX
-  PUSH ESI
-  XOR ECX, ECX
-  MOV [EBP - 8], ECX
-  MOV [EBP - 4], EDX
-  MOV ESI, EAX
-  XOR EAX, EAX
-  PUSH EBP
-  PUSH OFFSET @@Exception
-  PUSH DWORD PTR FS:[EAX]
-  MOV DWORD PTR FS:[EAX], ESP
-  LEA ECX, [EBP - 8]
-  MOV EDX, [EBP - 4]
-  MOV EAX, ESI
-  MOV EBX, [EAX]
-  CALL DWORD PTR [EBX + $70]
-  TEST AL, AL
-  JE @@Rejected
-  XOR ECX, ECX
-  MOV DL, 1
-  MOV EAX, [P4CombatCasterClass]
-  CALL TCombatSpellCaster.Create
-  MOV EBX, EAX
-  MOV EAX, [ESI].TSpell.FSpellID
-  MOV [EBX + 8], EAX
-  MOV EAX, [EBP - 4]
-  MOV EAX, [EAX + $18]
-  MOV [EBX + $0C], EAX
-  MOV EAX, [AoWHSMap]
-  MOV EAX, [EAX + $11C]
-  MOV EAX, [EAX + $D8]
-  MOV EDX, EBX
-  CALL TEventList.TriggerNotifyEvents
-  MOV EAX, EBX
-  MOV EDX, [EAX]
-  CALL DWORD PTR [EDX + $2C]
-  MOV BL, 1
-  JMP @@Finally
-@@Rejected:
-  XOR EBX, EBX
-@@Finally:
-  XOR EAX, EAX
-  POP EDX
-  POP ECX
-  POP ECX
-  MOV DWORD PTR FS:[EAX], EDX
-  PUSH OFFSET @@Return
-@@Clear:
-  LEA EAX, [EBP - 8]
-  CALL System.@LStrClr
-  RET
-@@Exception:
-  JMP System.@HandleFinally
-  JMP @@Clear
-@@Return:
-  MOV EAX, EBX
-  POP ESI
-  POP EBX
-  POP ECX
-  POP ECX
-  POP EBP
+var
+  Caster: TCombatSpellCaster;
+  Reason: string;
+begin
+  if CanActivateCombat(A1, Reason) then
+  begin
+    Caster := TCombatSpellCaster.Create(nil);
+    Caster.FCombatCasterSpellID := FSpellID;
+    Caster.FCombatCasterSourceID := A1.FUnitID;
+    AoWHSMap.FCombatMap.FCombatStartedEvents.TriggerNotifyEvents(Caster);
+    Caster.Release;
+    Result := True;
+  end
+  else Result := False;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function TSpell.CreateCA(A1, A2: TCombatObject; A3: Boolean): TCombatAction;
 asm
   XOR EAX, EAX
@@ -222,93 +222,93 @@ begin
   CombatCastingDone(Source, Mana);
 end;
 procedure TSpell.PlayDefaultCastEffects(Player, X, Y, Layer: Shortint);
-{ Player/X/Y/Layer use the original byte ABI. }
-asm
-  PUSH ECX
-  PUSH EBX
-  PUSH ESI
-  PUSH EDI
-  MOV EBX, ECX
-  MOV BYTE PTR [EBP - 1], DL
-  MOV ESI, EAX
-  MOV AL, BYTE PTR [EBP + 8]
-  PUSH EAX
-  PUSH 0
-  MOV CL, BYTE PTR [EBP + $0C]
-  MOV EDX, EBX
-  MOV EAX, [AoWHSMap]
-  CALL TAoWHSMap.Visible
-  TEST AL, AL
-  JE @@Done
-  MOV AL, BYTE PTR [EBP + $0C]
-  PUSH EAX
-  MOV AL, BYTE PTR [EBP + 8]
-  PUSH EAX
-  PUSH 0
-  MOV ECX, EBX
-  MOV DL, BYTE PTR [EBP - 1]
-  MOV EAX, [AoWHSMap]
-  CALL TAoWHSMap.ValidateObservation
-  MOV EDX, [ESI].TSpell.FSpellID
-  MOV EAX, [AoWHSSet]
-  MOV EAX, [EAX + $84]
-  CALL TSpellControl.GetSpell
-  MOV EAX, [EAX].TSpell.FCastImages
-  XOR EDX, EDX
-  CALL TImageSequenceList.GetImageSequence
-  TEST EAX, EAX
-  JE @@Sound
-  XOR ECX, ECX
-  MOV DL, 1
-  MOV EAX, [P4ImageAnimationClass]
-  CALL TImageSequenceAnimation.Create
-  MOV EDI, EAX
-  MOV EDX, [ESI].TSpell.FSpellID
-  MOV EAX, [AoWHSSet]
-  MOV EAX, [EAX + $84]
-  CALL TSpellControl.GetSpell
-  MOV EAX, [EAX].TSpell.FCastImages
-  XOR EDX, EDX
-  CALL TImageSequenceList.GetImageSequence
-  MOV EDX, EAX
-  MOV EAX, EDI
-  CALL TImageSequenceAnimation.SetImageSequence
-  MOVSX EAX, BYTE PTR [EBP + $0C]
-  PUSH EAX
-  MOVSX EAX, BYTE PTR [EBP + 8]
-  PUSH EAX
-  MOVSX ECX, BL
-  MOV EDX, EDI
-  MOV EAX, [AoWHSMap]
-  CALL THSMap.PlaceHX
-@@Sound:
-  MOV EAX, [AoWHSMap]
-  MOV AL, [EAX + $A5]
-  CMP AL, BYTE PTR [EBP - 1]
-  JE @@Play
-  MOV AL, BYTE PTR [EBP + 8]
-  PUSH EAX
-  PUSH 0
-  MOV CL, BYTE PTR [EBP + $0C]
-  MOV EDX, EBX
-  MOV EAX, [AoWHSMap]
-  CALL TAoWHSMap.Watching
-  TEST AL, AL
-  JE @@Done
-@@Play:
-  MOV EDX, [ESI].TSpell.FSpellID
-  MOV EAX, [AoWHSSet]
-  MOV EAX, [EAX + $84]
-  CALL TSpellControl.GetSpell
-  MOV EAX, [EAX].TSpell.FCastSounds
-  XOR EDX, EDX
-  CALL TSFXLibrary.Play
-@@Done:
-  POP EDI
-  POP ESI
-  POP EBX
-  POP ECX
+var
+  Animation: TImageSequenceAnimation;
+begin
+  if AoWHSMap.Visible(X, Y, Layer, 0) then
+  begin
+    AoWHSMap.ValidateObservation(Player, X, Y, Layer, 0);
+    if AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0) <> nil then
+    begin
+      Animation := TImageSequenceAnimation.Create(nil);
+      Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.GetImageSequence(0));
+      AoWHSMap.PlaceHX(Animation, X, Y, Layer);
+    end;
+    if (AoWHSMap.FSeatedPlayer = Player) or AoWHSMap.Watching(X, Y, Layer, 0) then
+      AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastSounds.Play(0);
+  end;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function TSpell.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 asm
   XOR EAX, EAX
@@ -979,109 +979,109 @@ begin
   else Result := False;
 end;
 function TUnitSpellCaster.Cast: Boolean;
-{ Compatibility body: Boolean result in AL; source/selection validation and casting. }
-asm
-  PUSH ebp
-  MOV ebp, esp
-  ADD esp, -$C
-  PUSH ebx
-  PUSH esi
-  PUSH edi
-  XOR edx, edx
-  MOV dword ptr [ebp - 8], edx
-  MOV ebx, eax
-  XOR eax, eax
-  PUSH ebp
-  PUSH OFFSET @@LE5
-  PUSH dword ptr fs:[eax]
-  MOV dword ptr fs:[eax], esp
-  LEA edx, [ebp - 8]
-  MOV eax, ebx
-  MOV ecx, dword ptr [eax]
-  CALL dword ptr [ecx + $4C]
-  TEST al, al
-  JE @@LCD
-  MOV eax, dword ptr [AoWHSMap]
-  MOV eax, dword ptr [eax + $FC]
-  MOV edx, dword ptr [ebx].TSpellCaster.FCasterSourceID
-  CALL TUnitControl.FindUnit
-  MOV dword ptr [ebp - $C], eax
-  CMP dword ptr [ebp - $C], 0
-  JE @@LC9
-  XOR ecx, ecx
-  MOV dl, 1
-  MOV eax, dword ptr [P4UnitSelectionClass]
-  CALL TEChangeNotifyNode.Create
-  MOV dword ptr [ebp - 4], eax
-  MOV eax, dword ptr [ebx].TUnitSpellCaster.FTargetUnits
-  MOV edx, dword ptr [eax]
-  CALL dword ptr [edx + $54]
-  MOV edi, eax
-  DEC edi
-  TEST edi, edi
-  JL @@L9C
-  INC edi
-  XOR esi, esi
-@@L6F:
-  MOV ecx, esi
-  MOV eax, 1
-  SHL eax, cl
-  XOR edx, edx
-  MOV dl, byte ptr [ebx].TUnitSpellCaster.FSelectionMask
-  AND eax, edx
-  JE @@L98
-  MOV edx, esi
-  MOV eax, dword ptr [ebx].TUnitSpellCaster.FTargetUnits
-  CALL TUnitList.GetUnit
-  MOV edx, eax
-  MOV eax, dword ptr [ebp - 4]
-  MOV ecx, dword ptr [eax]
-  CALL dword ptr [ecx + $AC]
-@@L98:
-  INC esi
-  DEC edi
-  JNE @@L6F
-@@L9C:
-  MOV eax, dword ptr [AoWHSSet]
-  MOV eax, dword ptr [eax + $84]
-  MOV edx, dword ptr [ebx].TSpellCaster.FCasterSpellID
-  CALL TSpellControl.GetSpell
-  MOV ecx, dword ptr [ebp - 4]
-  MOV edx, dword ptr [ebp - $C]
-  MOV ebx, dword ptr [eax]
-  CALL dword ptr [ebx + $A8]
-  MOV ebx, eax
-  MOV eax, dword ptr [ebp - 4]
-  CALL TObject.Free
-  JMP @@LCF
-@@LC9:
-  MOV bl, 1
-  JMP @@LCF
-@@LCD:
-  XOR ebx, ebx
-@@LCF:
-  XOR eax, eax
-  POP edx
-  POP ecx
-  POP ecx
-  MOV dword ptr fs:[eax], edx
-  PUSH OFFSET @@LEC
-@@LDC:
-  LEA eax, [ebp - 8]
-  CALL System.@LStrClr
-  RET
-@@LE5:
-  JMP System.@HandleFinally
-  JMP @@LDC
-@@LEC:
-  MOV eax, ebx
-  POP edi
-  POP esi
-  POP ebx
-  MOV esp, ebp
-  POP ebp
-  RET
+var
+  Targets: TUnitUserList;
+  Reason: string;
+  Source: TAbstractUnit;
+  I: Integer;
+begin
+  if CanCast(Reason) then
+  begin
+    Source := AoWHSMap.FUnitControl.FindUnit(FCasterSourceID);
+    if Source <> nil then
+    begin
+      Targets := TUnitUserList.Create(nil);
+      for I := 0 to FTargetUnits.Count - 1 do
+        if ((1 shl I) and FSelectionMask) <> 0 then
+          Targets.AddUnit(FTargetUnits.GetUnit(I));
+      Result := TUnitSpell(AoWHSSet.FSpellControl.GetSpell(FCasterSpellID)).CastSpell(Source, Targets);
+      Targets.Free;
+    end
+    else Result := True;
+  end
+  else Result := False;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function TUnitSpellCaster.Valid: Boolean; { Near miss: Self save and argument evaluation differ after three variants. }
 { Original 5577A7F0 saves Self in EBX even though it is used only before FindUnit.
   Direct calls, separate Control/ID/This locals, ancestor/descendant casts, with
@@ -1794,35 +1794,35 @@ begin
   A3 := -1;
 end;
 procedure TPowerSource.CenterToLocation;
-{ No explicit arguments, as confirmed by AoW.exe 0042D9D8. }
-asm
-  PUSH EBX
-  PUSH ECX
-  LEA EDX, [ESP + 2]
-  PUSH EDX
-  LEA ECX, [ESP + 5]
-  LEA EDX, [ESP + 4]
-  MOV EBX, [EAX]
-  CALL DWORD PTR [EBX + $54]
-  CMP BYTE PTR [ESP], $FF
-  JE @@Done
-  MOVSX EAX, BYTE PTR [ESP + 2]
-  PUSH EAX
-  MOVSX ECX, BYTE PTR [ESP + 5]
-  MOVSX EDX, BYTE PTR [ESP + 4]
-  MOV EAX, [AoWHSMap]
-  MOV EBX, [EAX]
-  CALL DWORD PTR [EBX + $BC]
-  MOV AL, BYTE PTR [ESP + 2]
-  PUSH EAX
-  MOV CL, BYTE PTR [ESP + 5]
-  MOV DL, BYTE PTR [ESP + 4]
-  MOV EAX, [AoWHSMap]
-  CALL TAbstractAoWHSMap.PlayCenterAnimation
-@@Done:
-  POP EDX
-  POP EBX
+var
+  X, Y, L: Shortint;
+begin
+  GetLocation(X, Y, L);
+  if X <> -1 then
+  begin
+    AoWHSMap.CenterViewTo(X, Y, L);
+    AoWHSMap.PlayCenterAnimation(X, Y, L);
+  end;
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 procedure TPowerSource.Select;
 begin end;
 function TPowerSourceList.GetItems(A1: Integer): TPowerSource;

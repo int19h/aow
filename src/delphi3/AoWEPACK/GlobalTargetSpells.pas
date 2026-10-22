@@ -890,96 +890,25 @@ begin
 end;
 
 function TFireBarrier.ValidTargetMapF(A1: TMapField): Boolean;
-asm
-  { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
-  PUSH EBX
-  PUSH ESI
-  MOV EBX, EDX
-  MOV ESI, EAX
-  MOV EDX, EBX
-  MOV EAX, ESI
-  CALL TGlobalTargetSpell.ValidTargetMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [EBX+$14]
-  TEST AL, AL
-  JZ @@False
-  SUB AL, 6
-  JZ @@False
-  SUB AL, 4
-  JZ @@False
-  SUB AL, 3
-  JZ @@False
-  MOV EDX, [SpellStructureClass]
-  MOV EAX, EBX
-  CALL TMapField.FindNoneTransparentHS
-  TEST EAX, EAX
-  JZ @@True
-@@False:
-  XOR EAX, EAX
-  JMP @@CheckArmy
-@@True:
-  MOV AL, 1
-@@CheckArmy:
-  TEST AL, AL
-  JZ @@Done
-  MOV EAX, EBX
-  CALL TAoWMapField.GetArmyHS
-  TEST EAX, EAX
-  SETZ AL
-@@Done:
-  POP ESI
-  POP EBX
+begin
+  Result := inherited ValidTargetMapF(A1) and
+    not (A1.TerrainType in [0, 6, 10, 13]) and
+    (A1.FindNoneTransparentHS(TStructure) = nil);
+  if Result then Result := TAoWMapField(A1).GetArmyHS = nil;
 end;
 
 function TFireBarrier.ValidTargetSelectionMapF(A1: TMapField): Boolean;
-asm
-  { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
-  PUSH EBX
-  PUSH ESI
-  MOV ESI, EDX
-  MOV EBX, EAX
-  MOV EDX, ESI
-  MOV EAX, EBX
-  CALL TGlobalTargetSpell.ValidTargetSelectionMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [ESI+$14]
-  TEST AL, AL
-  JZ @@False
-  SUB AL, 6
-  JZ @@False
-  SUB AL, 4
-  JZ @@False
-  SUB AL, 3
-  JZ @@False
-  MOV EDX, [SpellStructureClass]
-  MOV EAX, ESI
-  CALL TMapField.FindNoneTransparentHS
-  TEST EAX, EAX
-  JZ @@True
-@@False:
-  XOR EAX, EAX
-  JMP @@CheckArmy
-@@True:
-  MOV AL, 1
-@@CheckArmy:
-  MOV EBX, EAX
-  TEST BL, BL
-  JZ @@Done
-  MOV EAX, ESI
-  CALL TAoWMapField.GetArmyHS
-  MOV ESI, EAX
-  TEST ESI, ESI
-  JZ @@Done
-  MOV EAX, ESI
-  CALL TArmyHS.VisibleForSeatedPlayer
-  MOV EBX, EAX
-  XOR BL, 1
-@@Done:
-  MOV EAX, EBX
-  POP ESI
-  POP EBX
+var
+  Army: TArmyHS;
+begin
+  Result := inherited ValidTargetSelectionMapF(A1) and
+    not (A1.TerrainType in [0, 6, 10, 13]) and
+    (A1.FindNoneTransparentHS(TStructure) = nil);
+  if Result then
+  begin
+    Army := TAoWMapField(A1).GetArmyHS;
+    if Army <> nil then Result := not Army.VisibleForSeatedPlayer;
+  end;
 end;
 
 procedure TFireBarrier.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
@@ -1057,100 +986,25 @@ begin
 end;
 
 function TLevelTerrain.ValidTargetMapF(A1: TMapField): Boolean;
-asm
-  { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
-  PUSH EBX
-  PUSH ESI
-  MOV EBX, EDX
-  MOV ESI, EAX
-  MOV EDX, EBX
-  MOV EAX, ESI
-  CALL TGlobalTargetSpell.ValidTargetMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [EBX+$14]
-  TEST AL, AL
-  JZ @@False
-  SUB AL, 6
-  JZ @@False
-  SUB AL, 2
-  JZ @@False
-  SUB AL, 2
-  JZ @@False
-  SUB AL, 3
-  JZ @@False
-  MOV EDX, [SpellStructureClass]
-  MOV EAX, EBX
-  CALL TMapField.FindNoneTransparentHS
-  TEST EAX, EAX
-  JZ @@True
-@@False:
-  XOR EAX, EAX
-  JMP @@CheckArmy
-@@True:
-  MOV AL, 1
-@@CheckArmy:
-  TEST AL, AL
-  JZ @@Done
-  MOV EAX, EBX
-  CALL TAoWMapField.GetArmyHS
-  TEST EAX, EAX
-  SETZ AL
-@@Done:
-  POP ESI
-  POP EBX
+begin
+  Result := inherited ValidTargetMapF(A1) and
+    not (A1.TerrainType in [0, 6, 8, 10, 13]) and
+    (A1.FindNoneTransparentHS(TStructure) = nil);
+  if Result then Result := TAoWMapField(A1).GetArmyHS = nil;
 end;
 
 function TLevelTerrain.ValidTargetSelectionMapF(A1: TMapField): Boolean;
-asm
-  { Original Boolean-return ABI; foreign P7 overrides remain procedures. }
-  PUSH EBX
-  PUSH ESI
-  MOV ESI, EDX
-  MOV EBX, EAX
-  MOV EDX, ESI
-  MOV EAX, EBX
-  CALL TGlobalTargetSpell.ValidTargetSelectionMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [ESI+$14]
-  TEST AL, AL
-  JZ @@False
-  SUB AL, 6
-  JZ @@False
-  SUB AL, 2
-  JZ @@False
-  SUB AL, 2
-  JZ @@False
-  SUB AL, 3
-  JZ @@False
-  MOV EDX, [SpellStructureClass]
-  MOV EAX, ESI
-  CALL TMapField.FindNoneTransparentHS
-  TEST EAX, EAX
-  JZ @@True
-@@False:
-  XOR EAX, EAX
-  JMP @@CheckArmy
-@@True:
-  MOV AL, 1
-@@CheckArmy:
-  MOV EBX, EAX
-  TEST BL, BL
-  JZ @@Done
-  MOV EAX, ESI
-  CALL TAoWMapField.GetArmyHS
-  MOV ESI, EAX
-  TEST ESI, ESI
-  JZ @@Done
-  MOV EAX, ESI
-  CALL TArmyHS.VisibleForSeatedPlayer
-  MOV EBX, EAX
-  XOR BL, 1
-@@Done:
-  MOV EAX, EBX
-  POP ESI
-  POP EBX
+var
+  Army: TArmyHS;
+begin
+  Result := inherited ValidTargetSelectionMapF(A1) and
+    not (A1.TerrainType in [0, 6, 8, 10, 13]) and
+    (A1.FindNoneTransparentHS(TStructure) = nil);
+  if Result then
+  begin
+    Army := TAoWMapField(A1).GetArmyHS;
+    if Army <> nil then Result := not Army.VisibleForSeatedPlayer;
+  end;
 end;
 
 procedure TLevelTerrain.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
@@ -1229,57 +1083,13 @@ begin
 end;
 
 function TRejuvenate.ValidTargetMapF(A1: TMapField): Boolean;
-asm
-  { Original result in AL, with two early returns. }
-  PUSH EBX
-  PUSH ESI
-  MOV ESI, EDX
-  MOV EBX, EAX
-  MOV EDX, ESI
-  MOV EAX, EBX
-  CALL TGlobalTargetSpell.ValidTargetMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [ESI+$14]
-  ADD AL, $FE
-  SUB AL, 4
-  JB @@True
-@@False:
-  XOR EAX, EAX
-  POP ESI
-  POP EBX
-  RET
-@@True:
-  MOV AL, 1
-  POP ESI
-  POP EBX
+begin
+  Result := inherited ValidTargetMapF(A1) and (A1.TerrainType in [2..5]);
 end;
 
 function TRejuvenate.ValidTargetSelectionMapF(A1: TMapField): Boolean;
-asm
-  { Original result in AL, with two early returns. }
-  PUSH EBX
-  PUSH ESI
-  MOV ESI, EDX
-  MOV EBX, EAX
-  MOV EDX, ESI
-  MOV EAX, EBX
-  CALL TGlobalTargetSpell.ValidTargetSelectionMapF
-  TEST AL, AL
-  JZ @@False
-  MOV AL, BYTE PTR [ESI+$14]
-  ADD AL, $FE
-  SUB AL, 4
-  JB @@True
-@@False:
-  XOR EAX, EAX
-  POP ESI
-  POP EBX
-  RET
-@@True:
-  MOV AL, 1
-  POP ESI
-  POP EBX
+begin
+  Result := inherited ValidTargetSelectionMapF(A1) and (A1.TerrainType in [2..5]);
 end;
 
 procedure TRejuvenate.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);

@@ -2733,8 +2733,8 @@ end;
 
 function TArmyHS.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin
-  if not GetFogEnabled and (AoWHSMap.FSeatedPlayer <> -1) and
-    not (asFullyConcealed in FArmy.FStatus) then begin if not inherited CanSelect(Xhp, Yhp) then Result := False else Result := True; end else Result := False;
+  if not GetFogEnabled and (AoWHSMap.FSeatedPlayer <> -1) then
+    begin if (asFullyConcealed in FArmy.FStatus) or not inherited CanSelect(Xhp, Yhp) then Result := False else Result := True; end else Result := False;
 end;
 
 function TArmyHS.GetSelected: Boolean;
@@ -5602,7 +5602,7 @@ begin
           begin Sequence := AoWHSSet.FSpellControl.GetSpell(65).FCastImages.GetImageSequence(1); ShowGlobal(False, False); end;
       end;
   except
-    MessageBox(0, PChar('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 'Error during Show', 0);
+    MessageBox(0, 'Error during Show', Pointer('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 0);
   end;
 end;
 

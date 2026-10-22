@@ -1039,7 +1039,7 @@ begin
     end;
   if (Key = $43) and ([ssShift, ssCtrl] * Shift = [ssShift, ssCtrl]) and
     (CompareText(ParamStr(1), 'beatrix') = 0) and
-    (Ord(AoWHSMap.FConnectionType) <> 1) and (Ord(AoWHSMap.FConnectionType) <> 2) and not AoWEngine.FDemo then
+    (AoWHSMap.FConnectionType <> pcNetwork) and (AoWHSMap.FConnectionType <> pcEmail) and not AoWEngine.FDemo then
   begin
     PlaySample('SFX\ATTACK\MAGICB02.WAV');
     FMode := kmCheat;
