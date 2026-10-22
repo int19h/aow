@@ -2708,13 +2708,13 @@ begin
   Info.EnemyRelations := [];
   Info.Units := Units;
   Include(Info.Requests, bfrIgnorePassiveIndependents);
-  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, EnemyRadius, Info);
+  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, FriendlyRadius, Info);
   Result := Info.FriendlyStrength;
   SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
   Info.FriendlyRelations := [];
   Info.Units := Units;
   Include(Info.Requests, bfrIgnorePassiveIndependents);
-  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, FriendlyRadius, Info);
+  AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, EnemyRadius, Info);
   Result := Result - Info.Strength;
 end;
 

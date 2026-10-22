@@ -133,7 +133,7 @@ type
 implementation
 
 uses IndependentAG, MainAG, AGCPlugins;
-
+type TRegistrator = class(TObject) class procedure MapLoaded(Sender: TObject); end; class procedure TRegistrator.MapLoaded(Sender: TObject); begin if Sender = AoWHSMap then AoWHSMap.FAIGroupManager.RegisterAIGroupClasses([TDefenderAG, TAggressorAG, TExpanderAG, TScorcherAG, TNormalAG, TSkirmishAG]); end;
 function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup; Target: TAIGroupControlTarget): Boolean;
 { conflict: function TAbstractBehaviorAG.CooperateWithGroup(Group: TAIGroup): Boolean; }
 begin
@@ -785,7 +785,7 @@ begin
 end;
 
 
-initialization
-finalization
+initialization if ValidateAoWEngine then begin AoWEngine.RegisterEClasses([TDefenderAG, TAggressorAG, TExpanderAG, TScorcherAG, TNormalAG, TSkirmishAG]); AoWEngine.OnHSMLoaded.Add(TRegistrator.MapLoaded); end;
+finalization if AoWEngine <> nil then AoWEngine.OnHSMLoaded.Remove(TRegistrator.MapLoaded);
 
 end.

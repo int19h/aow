@@ -133,7 +133,7 @@ end;
 constructor TUnitGFXResourceList.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
-  SetControlStyle([csKeepIndex]);
+  SetControlStyle([csSaveLoad, csFixedChild, csKeepIndex]);
 end;
 function TUnitGFXResourceList.GetUnitGFXResource(Index: Integer): TUnitGFXResource;
 begin

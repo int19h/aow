@@ -102,7 +102,7 @@ end;
 procedure TTower.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin
   inherited MapFieldMsgProc(Msg);
-  if (FResource.TerrainList.Overlay[Msg.HN] >= 0) and (Msg.MsgID = $1123) and
+  if (FResource.TerrainList.Terrain[Msg.HN] >= 0) and (Msg.MsgID = $1123) and
     (TMapField(Msg.Param[0]).FindNoneTransparentHS(TTower) = Self) and
     not GetBuilding and not GetRazed then Msg.Result := 2;
 end;

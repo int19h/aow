@@ -392,7 +392,7 @@ begin
           I := 0;
           while (Fields.Count <> 0) and (Field = nil) do
           begin
-            I := WorldMap^.Random(Round(Fields.Count * 0.2) + 1);
+            I := WorldMap^.Random(Round(Fields.Count * 0.1) + 1);
             Field := TAoWMapField(Fields[I].A);
             if Field.GetPlayer <> -1 then
             begin

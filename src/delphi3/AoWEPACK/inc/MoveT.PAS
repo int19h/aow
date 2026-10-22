@@ -324,8 +324,8 @@ begin
       Points := Settings.GetMovePoints(SubMove.FOrigin.X, SubMove.FOrigin.Y, SubMove.FOrigin.L);
       if Points <= Best then
       begin
-        { Original bug: the map is read through the nil result instead of Self. }
-        Result := TAoWMapField(TMoveControl(Result).FMap.MapContainer.GetField(
+        { After pushing L, the original stack slot holds Self, not Result. }
+        Result := TAoWMapField(FMap.MapContainer.GetField(
           SubMove.FOrigin.X, SubMove.FOrigin.Y, SubMove.FOrigin.L));
         Best := Points;
       end;

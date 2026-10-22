@@ -133,7 +133,7 @@ type
 implementation
 
 uses AGCPlugins;
-
+type TRegistrator = class(TObject) class procedure MapLoaded(Sender: TObject); end; class procedure TRegistrator.MapLoaded(Sender: TObject); begin if Sender = AoWHSMap then AoWHSMap.FAIGroupManager.RegisterAIGroupClasses([TGuardAG, TGuardAreaAG, TPatrolAG, TRefugeAG, TRaidAG, TScoutAG]); end;
 constructor TGuardAG.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
@@ -722,7 +722,7 @@ begin
 end;
 
 
-initialization
-finalization
+initialization if ValidateAoWEngine then begin AoWEngine.RegisterEClasses([TGuardAG, TGuardAreaAG, TPatrolAG, TRefugeAG, TRaidAG, TScoutAG]); AoWEngine.OnHSMLoaded.Add(TRegistrator.MapLoaded); end;
+finalization if AoWEngine <> nil then AoWEngine.OnHSMLoaded.Remove(TRegistrator.MapLoaded);
 
 end.

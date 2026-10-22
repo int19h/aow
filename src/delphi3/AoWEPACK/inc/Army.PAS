@@ -5298,7 +5298,7 @@ function TItemHS.CanPlace(Map: HSEngine.TMapContainer; Xhx, Yhx, Lhx: Shortint):
 begin
   Result := inherited CanPlace(Map, Xhx, Yhx, Lhx);
 end;
-
+resourcestring P2RegisterLifeStealingRStr = 'Life Stealing'; P2RegisterChargeRStr = 'Charge'; P2RegisterDragonSlayingRStr = 'Dragon Slaying'; P2RegisterParryRStr = 'Parry'; P2RegisterExtraStrikeRStr = 'Extra Strike'; P2RegisterFirstStrikeRStr = 'First Strike'; P2RegisterEntangleStrikeRStr = 'Entangle Strike'; P2RegisterFireStrikeRStr = 'Fire Strike'; P2RegisterColdStrikeRStr = 'Cold Strike'; P2RegisterLightningStrikeRStr = 'Lightning Strike'; P2RegisterPoisonStrikeRStr = 'Poison Strike'; P2RegisterDeathStrikeRStr = 'Death Strike'; P2RegisterHolyStrikeRStr = 'Holy Strike'; P2RegisterMagicStrikeRStr = 'Magic Strike'; P2RegisterBlackBoltsRStr = 'Black Bolts'; P2RegisterMagicBoltsRStr = 'Magic Bolts'; P2RegisterFrostBoltsRStr = 'Frost Bolts'; P2RegisterLightningBoltsRStr = 'Lightning Bolts'; P2RegisterHolyBoltsRStr = 'Holy Bolts'; P2RegisterFireBreathRStr = 'Fire Breath'; P2RegisterColdBreathRStr = 'Cold Breath';
 procedure TItemHS.GenerateItems;
 var I: Byte; Item: TItem;
 begin
@@ -5317,44 +5317,44 @@ begin
     ItemsChanged(FItems);
   end;
 end;
-
+resourcestring P2RegisterBlackBreathRStr = 'Black Breath'; P2RegisterDivineBreathRStr = 'Divine Breath'; P2RegisterGasBreathRStr = 'Gas Breath'; P2RegisterShootJavelinRStr = 'Shoot Javelin'; P2RegisterShootBlackJavelinRStr = 'Shoot Black Javelin'; P2RegisterHurlStonesRStr = 'Hurl Stones'; P2RegisterFireMusketRStr = 'Fire Musket'; P2RegisterFireCannonRStr = 'Fire Cannon'; P2RegisterHurlBoulderRStr = 'Hurl Boulder'; P2RegisterVenomousSpitRStr = 'Venomous Spit'; P2RegisterCallFlamesRStr = 'Call Flames'; P2RegisterArcheryRStr = 'Archery'; P2RegisterPoisonDartsRStr = 'Poison Darts'; P2RegisterDoomGazeRStr = 'Doom Gaze';
 procedure TItemHS.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
 begin
   inherited MsgProc(Msg, Sender);
   if (Msg.MsgID = $20020001) and (AoWHSMap.FDay = 1) then GenerateItems;
 end;
-
+function P2CreateRangedAttack(ID: Integer; const Name: string; Attack, Damage, Repeats: Shortint; Range: TCombatRange; DamageTypes: TDamageTypes; Enchantment: Integer): TRangedAttackAbility; var Ability: TRangedAttackAbility; begin Ability := TRangedAttackAbility.Create(nil); Ability.FAbilityID := ID; Ability.FAbilityName := Name; Ability.FRangeRA := Range; Ability.FDamageTypesRA.Value := DamageTypes; Ability.FAttackRA := Attack; Ability.FDamageRA := Damage; Ability.FAttackRepeatRA := Repeats; Result := Ability; end; { Original ignores Enchantment. }
 constructor TWorldFXHS.Create(AOwner: Engine.TECustomNode);
 begin
   inherited Create(AOwner);
   FPath := TXYZList.Create;
   FFrame := -1;
 end;
-
+function P2CreateBolts(ID: Integer; const Name: string; Attack: Integer; Damage: Shortint; DamageType: TDamageType; Enchantment: Integer): TBoltsAbility; var Ability: TBoltsAbility; begin Ability := TBoltsAbility.Create(nil); Ability.FAbilityID := ID; Ability.FAbilityName := Name; Ability.FDamageTypesRA.Value := [DamageType]; Ability.FDamageRA := Damage; Ability.FAttackRA := Attack; Result := Ability; end; { Original ignores Enchantment. }
 destructor TWorldFXHS.Destroy;
 begin
   FPath.Free;
   inherited Destroy;
 end;
-
+function P2CreateBreath(ID: Integer; const Name: string; DamageType: TDamageType; Enchantment: Integer): TBreathAbility; var Ability: TBreathAbility; begin Ability := TBreathAbility.Create(nil); Ability.FAbilityID := ID; Ability.FAbilityName := Name; Ability.FDamageTypesRA.Value := [DamageType]; Result := Ability; end; { Original ignores Enchantment. }
 procedure TWorldFXHS.Activate;
 begin
   inherited Activate;
   AoWHSMap.NewFrameEvents.Add(NewFrame);
   FFrame := -1;
 end;
-
+function P2CreateStrikeEnhancement(ID: Integer; const Name: string; Selection: TAbilitySelectionTypes): TStrikeEnhancementAbility; var Ability: TStrikeEnhancementAbility; begin Ability := TStrikeEnhancementAbility.Create(nil); Ability.FSelectionTypes := Selection; Ability.FAbilityID := ID; Ability.FAbilityName := Name; Result := Ability; end;
 procedure TWorldFXHS.Deactivate;
 begin
   AoWHSMap.NewFrameEvents.Remove(NewFrame);
   inherited Deactivate;
 end;
-
+procedure P2RegisterRangedGroup1(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateBolts(120, TranslateRStr(P2RegisterBlackBoltsRStr), 6, 3, dtDeath, 126)); Control.RegisterAbility(P2CreateBolts(121, TranslateRStr(P2RegisterMagicBoltsRStr), 7, 3, dtMagic, 124)); Control.RegisterAbility(P2CreateBolts(122, TranslateRStr(P2RegisterFrostBoltsRStr), 6, 3, dtCold, 125)); Control.RegisterAbility(P2CreateBolts(123, TranslateRStr(P2RegisterLightningBoltsRStr), 6, 3, dtLightning, -1)); Control.RegisterAbility(P2CreateBolts(124, TranslateRStr(P2RegisterHolyBoltsRStr), 6, 3, dtHoly, 125)); Control.RegisterAbility(P2CreateBreath(86, TranslateRStr(P2RegisterFireBreathRStr), dtFire, -1)); Control.RegisterAbility(P2CreateBreath(87, TranslateRStr(P2RegisterColdBreathRStr), dtCold, -1)); end;
 function TWorldFXHS.GetShowPriority: Integer;
 begin
   Result := $6C000000;
 end;
-
+procedure P2RegisterRangedGroup2(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateBreath(88, TranslateRStr(P2RegisterBlackBreathRStr), dtDeath, -1)); Control.RegisterAbility(P2CreateBreath(89, TranslateRStr(P2RegisterDivineBreathRStr), dtHoly, -1)); Control.RegisterAbility(P2CreateBreath(90, TranslateRStr(P2RegisterGasBreathRStr), dtPoison, -1)); Control.RegisterAbility(TFlameThrowingAbility.Create(nil)); Control.RegisterAbility(P2CreateRangedAttack(57, TranslateRStr(P2RegisterShootJavelinRStr), 5, 5, 2, crLong, [dtPhysical], 122)); Control.RegisterAbility(P2CreateRangedAttack(58, TranslateRStr(P2RegisterShootBlackJavelinRStr), 5, 5, 2, crLong, [dtDeath,dtPhysical], 123)); Control.RegisterAbility(P2CreateRangedAttack(25, TranslateRStr(P2RegisterHurlStonesRStr), 3, 1, 4, crMedium, [dtPhysical], 111)); end;
 procedure TWorldFXHS.NewFrame(Sender: TObject); { Near miss: Particle loop registers and temporary slots differ after three variants. }
 var Effect: TWorldFXHS; I, J, Count, RadiusX, RadiusY: Integer; Gravity, VZ, Speed, Z: Single;
 begin
@@ -5520,7 +5520,7 @@ begin
     MessageBox(0, PChar('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 'Error during NewFrame', 0);
   end;
 end;
-
+procedure P2RegisterRangedGroup3(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateRangedAttack(45, TranslateRStr(P2RegisterFireMusketRStr), 5, 7, 1, crLong, [dtPhysical], 113)); Control.RegisterAbility(P2CreateRangedAttack(44, TranslateRStr(P2RegisterFireCannonRStr), 5, 8, 1, crLong, [dtPhysical,dtWall], 112)); Control.RegisterAbility(P2CreateRangedAttack(24, TranslateRStr(P2RegisterHurlBoulderRStr), 3, 7, 1, crLong, [dtPhysical,dtWall], 110)); Control.RegisterAbility(P2CreateRangedAttack(62, TranslateRStr(P2RegisterVenomousSpitRStr), 5, 4, 1, crShort, [dtPoison], -1)); Control.RegisterAbility(P2CreateRangedAttack(31, TranslateRStr(P2RegisterCallFlamesRStr), 5, 4, 1, crMedium, [dtFire], -1)); Control.RegisterAbility(P2CreateRangedAttack(22, TranslateRStr(P2RegisterArcheryRStr), 4, 2, 2, crMedium, [dtPhysical], -1)); end;
 procedure TWorldFXHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
 var Sequence: TImageSequence; Frame: Integer;
   procedure ShowGlobal(Shadow, Inverse: Boolean);
@@ -5605,12 +5605,12 @@ begin
     MessageBox(0, 'Error during Show', Pointer('Error - WorldfxHS ' + IntToStr(Ord(FEffectType))), 0);
   end;
 end;
-
+procedure P2RegisterRangedGroup4(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateRangedAttack(61, TranslateRStr(P2RegisterPoisonDartsRStr), 4, 1, 3, crMedium, [dtPoison,dtPhysical], 114)); Control.RegisterAbility(P2CreateRangedAttack(55, TranslateRStr(P2RegisterDoomGazeRStr), 6, 5, 1, crLong, [dtDeath], -1)); end;
 procedure TTranslateTextStream.TranslateString(var S: string);
 begin
   S := FDictionary.Translate(S);
 end;
-
+procedure P2RegisterStrikeGroup1(Control: TAbilityControl); begin Control.RegisterAbility(TStrikeAbility.Create(nil)); Control.RegisterAbility(P2CreateStrikeEnhancement(118, TranslateRStr(P2RegisterLifeStealingRStr), [astUnit,astAttackItem,astEditor])); Control.RegisterAbility(P2CreateStrikeEnhancement(111, TranslateRStr(P2RegisterChargeRStr), [astUnit,astEditor])); Control.RegisterAbility(P2CreateStrikeEnhancement(112, TranslateRStr(P2RegisterDragonSlayingRStr), [astUnit,astAttackItem,astEditor])); Control.RegisterAbility(P2CreateStrikeEnhancement(113, TranslateRStr(P2RegisterParryRStr), [astUnit,astEditor])); Control.RegisterAbility(P2CreateStrikeEnhancement(115, TranslateRStr(P2RegisterExtraStrikeRStr), [astUnit,astAttackItem,astEditor])); Control.RegisterAbility(P2CreateStrikeEnhancement(116, TranslateRStr(P2RegisterFirstStrikeRStr), [astUnit,astAttackItem,astEditor])); end;
 procedure TTranslateTextStream.TranslateStrings(var Strings: Classes.TStrings);
 var S: string; I, EndOfLine, LineFeed: Integer;
 begin
@@ -5644,7 +5644,7 @@ begin
     until S = '';
   end;
 end;
-
+procedure P2RegisterStrikeGroup2(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateStrikeEnhancement(119, TranslateRStr(P2RegisterEntangleStrikeRStr), [astUnit])); Control.RegisterAbility(P2CreateStrikeEnhancement(14, TranslateRStr(P2RegisterFireStrikeRStr), [astUnit,astAttackItem])); Control.RegisterAbility(P2CreateStrikeEnhancement(15, TranslateRStr(P2RegisterColdStrikeRStr), [astUnit,astAttackItem])); Control.RegisterAbility(P2CreateStrikeEnhancement(16, TranslateRStr(P2RegisterLightningStrikeRStr), [astUnit,astAttackItem])); Control.RegisterAbility(P2CreateStrikeEnhancement(17, TranslateRStr(P2RegisterPoisonStrikeRStr), [astUnit,astAttackItem])); Control.RegisterAbility(P2CreateStrikeEnhancement(18, TranslateRStr(P2RegisterDeathStrikeRStr), [astUnit,astAttackItem])); end;
 procedure TAoWEngine.TranslateEObject(Obj: TEObject; Dictionary: TIvDictionary);
 var Stream: TTranslateTextStream;
 begin
@@ -5656,7 +5656,7 @@ begin
     Stream.Free;
   end;
 end;
-
+procedure P2RegisterStrikeGroup3(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateStrikeEnhancement(19, TranslateRStr(P2RegisterHolyStrikeRStr), [astUnit,astAttackItem])); Control.RegisterAbility(P2CreateStrikeEnhancement(20, TranslateRStr(P2RegisterMagicStrikeRStr), [astUnit,astAttackItem])); end;
 procedure TAoWEngine.TranslateEObjectFromFile(Obj: TEObject; const FileName: string);
 var Dictionary: TAoWDictionary;
 begin
@@ -5755,8 +5755,8 @@ begin
   Result := $10156;
 end;
 
-procedure P2RegisterEnhancements(Control: TAbilityControl); begin Control.RegisterAbility(TFlameThrowingAbility.Create(nil)); end;
-procedure P2RegisterTouches(Control: TAbilityControl); begin Control.RegisterAbility(TStrikeAbility.Create(nil)); end;
+procedure P2RegisterEnhancements(Control: TAbilityControl); begin P2RegisterRangedGroup1(Control); P2RegisterRangedGroup2(Control); P2RegisterRangedGroup3(Control); P2RegisterRangedGroup4(Control); end; { Original ranged-attack registration at 5576F2EC. }
+procedure P2RegisterTouches(Control: TAbilityControl); begin P2RegisterStrikeGroup1(Control); P2RegisterStrikeGroup2(Control); P2RegisterStrikeGroup3(Control); end; { Original strike registration at 557672B4. }
 procedure P2InitializeMovePoints; var Mask, Terrain, Overlay, MoveType, Points: Integer; const MoveBits: array[0..7] of Byte = (1,4,2,8,16,32,64,128); begin FillChar(MovePointTables, SizeOf(MovePointTables), $FF); for Mask := 0 to 255 do for Overlay := -1 to 11 do for Terrain := 0 to 15 do begin Points := 127; for MoveType := 0 to 7 do if (Mask and MoveBits[MoveType] <> 0) and (P2MovementTemplates[MoveType,Terrain,Overlay] <> -1) and (P2MovementTemplates[MoveType,Terrain,Overlay] < Points) then Points := P2MovementTemplates[MoveType,Terrain,Overlay]; if Points <> 127 then MovePointTables[Mask,Terrain,Overlay] := Points; end; end;
 procedure P2RegisterGroupControls; begin AoWEngine.RegisterEClasses([TGuardGC, TPassiveGC, TGuardAreaGC, TSuicidalGC, TPatrolGC, TScoutGC, TRefugeGC]); end;
 procedure P2RegisterMoveEvents(AEngine: TAoWEngine); begin AEngine.RegisterEClasses([TEndTurnTE, TGameOverTE, TMultiMoveTE, TCheatTE, TDisbandUnitTE, TChangePlayerSettingsTE, TCombatFlowControlTE, TTerminatePlayerTE]); end;
@@ -6123,7 +6123,7 @@ end;
 
 
 function TUnitResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
-begin Result := []; end;
+begin Result := [astUnit]; end;
 
 function THeroResourceAbilityOwner.GetAbilitySelectionTypes: TAbilitySelectionTypes;
 begin Result := [astUnit, astEditor]; end;

@@ -50,7 +50,7 @@ uses
 
 resourcestring
   CannotBreachWallRStr = 'Cannot breach wall';
-  CannotInflictDamageRStr = 'Cannot inflict damage';
+  CannotInflictDamageRStr = 'Cannot inflict damage'; UndeadRStr = 'Undead'; UndeadPluralRStr = 'Undead(plural)';
 
 implementation
 
@@ -94,6 +94,33 @@ initialization
   TPlayerTypeRStr[5] := FreeRStr;
   TPlayerTypeRStr[6] := CPUKingRStr;
   TPlayerTypeRStr[7] := CPUEmperorRStr;
+  { Original InitResStrings table at 55798BC0: race-name entries 558E82C8..558E832C. }
+  RaceNamesRStr[0] := HumanRStr;
+  RaceNamesRStr[1] := AzracRStr;
+  RaceNamesRStr[2] := LizardRStr;
+  RaceNamesRStr[3] := FrostlingRStr;
+  RaceNamesRStr[4] := ElfRStr;
+  RaceNamesRStr[5] := HalflingRStr;
+  RaceNamesRStr[6] := DwarfRStr;
+  RaceNamesRStr[7] := HighmanRStr;
+  RaceNamesRStr[8] := DarkElfRStr;
+  RaceNamesRStr[9] := OrcRStr;
+  RaceNamesRStr[10] := GoblinRStr;
+  RaceNamesRStr[11] := UndeadRStr;
+  RaceNamesRStr[12] := IndependentRStr;
+  RaceNamesPluralRStr[0] := HumanPluralRStr;
+  RaceNamesPluralRStr[1] := AzracPluralRStr;
+  RaceNamesPluralRStr[2] := LizardPluralRStr;
+  RaceNamesPluralRStr[3] := FrostlingPluralRStr;
+  RaceNamesPluralRStr[4] := ElfPluralRStr;
+  RaceNamesPluralRStr[5] := HalflingPluralRStr;
+  RaceNamesPluralRStr[6] := DwarfPluralRStr;
+  RaceNamesPluralRStr[7] := HighmanPluralRStr;
+  RaceNamesPluralRStr[8] := DarkElfPluralRStr;
+  RaceNamesPluralRStr[9] := OrcPluralRStr;
+  RaceNamesPluralRStr[10] := GoblinPluralRStr;
+  RaceNamesPluralRStr[11] := UndeadPluralRStr;
+  RaceNamesPluralRStr[12] := IndependentsRStr;
   { Original AoWE initialization, 5579939B..557993B1. }
   P3InitializeHitProbabilities;
   ValidateAoWEngine;

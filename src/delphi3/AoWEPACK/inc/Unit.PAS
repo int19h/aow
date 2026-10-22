@@ -2138,7 +2138,7 @@ begin
   Stream.rwByte(FExperience,7);
   Stream.rwByte(Byte(FMovePoints),8);
   Stream.rwByte(Byte(FHitPoints),9);
-  if Stream.StorageMode * [smWrite,smTextOnly] = [smWrite] then
+  if Stream.StorageMode * [smTextOnly] = [] then
     if smCompare in Stream.StorageMode then
     begin
       ResourceIndex := FUnitResource.UnitResourceIndex;
