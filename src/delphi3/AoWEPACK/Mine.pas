@@ -102,7 +102,8 @@ begin
   if not GetRazed or GetBuilding then
   begin
     CandidatePriority := Data.Priority;
-    if Ord(Info.Mode) = 0 then
+    case Info.Mode of
+    tmAttack:
     begin
       if (Byte(Info.Player) <> Byte(FPlayer)) and
         not GetRazed then
@@ -114,9 +115,9 @@ begin
           if CandidatePriority < 25 then CandidatePriority := 25;
           if CandidatePriority > 75 then CandidatePriority := 75;
         end;
-    end
-    else if (Ord(Info.Mode) = 6) and
-      (Byte(Info.Player) = Byte(FPlayer)) then Data.Priority := 20;
+    end;
+    tmDefend: if Byte(Info.Player) = Byte(FPlayer) then Data.Priority := 20;
+    end;
     { Original can overwrite the special kind-6 priority with the previous higher value. }
     if Data.Priority < CandidatePriority then Data.Priority := CandidatePriority;
   end;

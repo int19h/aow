@@ -212,7 +212,7 @@ begin
   FSpellType := stGlobal;
 end;
 
-procedure TCityTargetSpell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCity: TCity);
+procedure TCityTargetSpell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCity: TCity); { Near miss: register or temporary allocation differs after three variants. }
 var
   Level: TMapLevel;
   A: TImageSequenceAnimation;
@@ -228,7 +228,7 @@ begin
       (Walk.X < Level.Width) and (Walk.Y < Level.Height) and
       TStructureResource(TargetCity.Resource).TerrainList.Used[Walk.HN] then
       if (Source.FPlayer = AoWHSMap.FSeatedPlayer) or
-        AoWHSMap.TerrainVisible(Walk.X, Walk.Y, 0, TargetCity.GetLhx) then
+        AoWHSMap.TerrainVisible(Walk.X, Walk.Y, TargetCity.GetLhx, 0) { Original passes the city layer before the radius. } then
       begin
         A := TImageSequenceAnimation.Create(nil);
         A.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[0]);
@@ -236,7 +236,7 @@ begin
         A.FAnimationLevel := 27;
         AoWHSMap.PlaceHX(A, Walk.X, Walk.Y, TargetCity.GetLhx);
         if (Source.FPlayer = AoWHSMap.FSeatedPlayer) or
-          AoWHSMap.WatchingTerrain(Walk.X, Walk.Y, 0, TargetCity.GetLhx) then
+          AoWHSMap.WatchingTerrain(Walk.X, Walk.Y, TargetCity.GetLhx, 0) then
           PlaySound := True;
       end;
     WalkToNextHN(Walk);
@@ -447,7 +447,7 @@ begin
   Result := TTownGateTE.Create(nil);
 end;
 
-function TTownGate.SetupTE(Event: TCityTargetSpellTE; Source: TAbstractUnit; X, Y, L: Integer): Boolean;
+function TTownGate.SetupTE(Event: TCityTargetSpellTE; Source: TAbstractUnit; X, Y, L: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Army: TArmyHS;
   Selection: Byte;
@@ -485,11 +485,11 @@ end;
 function TTownGate.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
 var
   ShowSource, ShowTarget: Boolean;
-  Army: TArmyHS;
   Selection: Byte;
+  Army: TArmyHS;
+  Field: TAoWMapField;
   NewArmy: TArmyHS;
   X, Y, L: Shortint;
-  Field: TAoWMapField;
   A: TImageSequenceAnimation;
 begin
   A2.GetLocation(X, Y, L);
@@ -662,7 +662,7 @@ begin
   FEnchantmentSpellID := 50;
 end;
 
-procedure TFountainOfLife.ShowFountain(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc);
+procedure TFountainOfLife.ShowFountain(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
 var
   I, DX, VY, Offset, CY, CX, VX, T, DY: Integer;
 begin

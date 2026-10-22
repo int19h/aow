@@ -254,7 +254,7 @@ begin
   Stream.rwEObject(FEnchantment, 19);
 end;
 
-procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint);
+procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint); { Near miss: register or temporary allocation differs after three variants. }
 var
   Walk: THNWalkData;
   Level: TMapLevel;

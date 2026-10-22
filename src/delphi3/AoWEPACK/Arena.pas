@@ -132,7 +132,7 @@ begin
     end;
 end;
 
-function TArena.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult;
+function TArena.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; { Near miss: register or temporary allocation differs after three variants. }
 var I: Integer; AUnit: TAbstractUnit; ErrorText: string;
 begin
   Result := inherited ExecuteTE(A1, Executer);

@@ -312,7 +312,7 @@ begin
   Settings.Release;
 end;
 
-procedure TFortifyAGC.UpdateRequiredStrength;
+procedure TFortifyAGC.UpdateRequiredStrength; { Near miss: register or temporary allocation differs after three variants. }
 var
   Strength: Integer;
   Statistics: TPlayerStatistics;

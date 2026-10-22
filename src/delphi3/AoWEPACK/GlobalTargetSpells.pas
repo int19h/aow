@@ -66,7 +66,7 @@ type
     procedure OnTargetSelectionChange(Sender: TObject); virtual;  { +0A0 }
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); virtual;  { +0A4 }
     function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; virtual;  { +0A8  }
-    procedure ValidTargetSelection(A1: Integer); virtual;  { +0AC draft }
+    function ValidTargetSelection(A1: TTargetSelectionControl): Boolean; virtual;  { +0AC; 557A1808 }
     function ValidTargetSelectionMapF(A1: TMapField): Boolean; virtual;  { +0B0  }
     function ValidTargetMapF(A1: TMapField): Boolean; virtual;  { +0B4  }
   end;
@@ -253,7 +253,7 @@ type
     constructor Create(AOwner: Engine.TECustomNode); override;
     procedure SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); override;
     function TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean; override;
-    procedure ValidTargetSelection(A1: Integer); override;
+    function ValidTargetSelection(A1: TTargetSelectionControl): Boolean; override;
     procedure ValidateTargetEvent(Target: TTargetSelectionControl; X,Y,Layer: Shortint; var Valid: Boolean);
   end;
 
@@ -478,10 +478,9 @@ begin
   Result := True;
 end;
 
-procedure TGlobalTargetSpell.ValidTargetSelection(A1: Integer);
-asm
-  { needs: Boolean result. }
-  MOV AL, 1
+function TGlobalTargetSpell.ValidTargetSelection(A1: TTargetSelectionControl): Boolean;
+begin
+  Result := True;
 end;
 
 procedure TGlobalTargetSpell.OnTargetSelectionChange(Sender: TObject);
@@ -514,33 +513,25 @@ begin
 end;
 
 procedure TGlobalTargetSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
-var
-  Target: TTargetSelectionView;
-  UnitLayer, UnitY, UnitX: Shortint;
+var UnitX, UnitY, UnitLayer: Shortint;
 begin
-  Target := TTargetSelectionView(A2);
-  with Target do
+  with A2 do
   begin
-    TTargetSelectionControl(Target).Initialize(TAbstractUnit(A1));
-    Mode := [tmOwnerDraw, tmValidateDistance, tmExternalFloater] + Mode;
-    TAbstractUnit(A1).GetLocation(UnitX, UnitY, UnitLayer);
-    CenterX := UnitX;
-    CenterY := UnitY;
-    CenterLayer := UnitLayer;
-    Distance := 12;
-    Changes.Add(OnTargetSelectionChange);
-    OnShow := ShowTargetSelection;
-    { needs: TSpell.$08 is a string; draft declares Integer. }
-    Text.Text := SysUtils.Format(AoWE.TranslateRStr(SelectTargetLocationForXOnMapRStr),
-      [TSpellNameView(Pointer(Self)^).Name]);
-    Caption := TSpellNameView(Pointer(Self)^).Name;
-    CancelCaption := AoWE.TranslateRStr(SpellCancelRStr);
-    Preview := TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FSpellID).FCastImages).
-      ImageSequences[20].GetPreviewImage;
-    ValidPreview := TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FSpellID).FCastImages).
-      ImageSequences[21].GetPreviewImage;
-    InvalidPreview := TImageSequenceList(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(FSpellID).FCastImages).
-      ImageSequences[22].GetPreviewImage;
+    Initialize(A1);
+    FTargetMode := FTargetMode + [tmOwnerDraw, tmValidateDistance, tmExternalFloater];
+    A1.GetLocation(UnitX, UnitY, UnitLayer);
+    FSourceX := UnitX;
+    FSourceY := UnitY;
+    FSourceL := UnitLayer;
+    FRange := 12;
+    FOnChange.Add(OnTargetSelectionChange);
+    FOnShow := ShowTargetSelection;
+    FText.Text := SysUtils.Format(AoWE.TranslateRStr(SelectTargetLocationForXOnMapRStr), [FSpellName]);
+    FTitle := FSpellName;
+    FCancelText := AoWE.TranslateRStr(CancelRStr);
+    FSourceImage := SpellHSSet^.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[20].GetPreviewImage;
+    FValidTargetImage := SpellHSSet^.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[21].GetPreviewImage;
+    FInvalidTargetImage := SpellHSSet^.FSpellControl.GetSpell(FSpellID).FCastImages.ImageSequences[22].GetPreviewImage;
   end;
 end;
 
@@ -659,13 +650,10 @@ end;
 
 function TFreezeWaterTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
-  Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
 begin
-  Caster := TAbstractUnit(A1);
   inherited Process(A1, A2);
-  with TAoWHSMap(SpellHSMap^) do
-    ValidateTerrainObservation(Caster.FPlayer,
+  SpellHSMap^.ValidateTerrainObservation(A1.FPlayer,
       Byte(TSpellLocation(FLocation).X), Byte(TSpellLocation(FLocation).Y),
       Byte(TSpellLocation(FLocation).Layer), 2);
   if SpellHSMap^.TerrainVisible( Byte(TSpellLocation(FLocation).X),
@@ -677,7 +665,7 @@ begin
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
   { needs: TAbstractAoWHSMap.$A4 contains the seated player at byte $A5. }
-  if (Byte(SpellHSMap^.FSeatedPlayer) = Caster.FPlayer) or
+  if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = A1.FPlayer) or
     SpellHSMap^.WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
     TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(10).FCastSounds).Play(0);
@@ -1173,13 +1161,10 @@ end;
 
 function TRejuvenateTE.Process(A1: TAbstractUnit; A2: Integer): Boolean;
 var
-  Caster: TAbstractUnit;
   Twinkle: TTwinkleAnimation;
 begin
-  Caster := TAbstractUnit(A1);
   inherited Process(A1, A2);
-  with TAoWHSMap(SpellHSMap^) do
-    ValidateTerrainObservation(Caster.FPlayer,
+  SpellHSMap^.ValidateTerrainObservation(A1.FPlayer,
       Byte(TSpellLocation(FLocation).X), Byte(TSpellLocation(FLocation).Y),
       Byte(TSpellLocation(FLocation).Layer), 2);
   if SpellHSMap^.TerrainVisible( Byte(TSpellLocation(FLocation).X),
@@ -1191,7 +1176,7 @@ begin
       TSpellLocation(FLocation).Y, TSpellLocation(FLocation).Layer);
   end;
   { needs: TAbstractAoWHSMap.$A4 contains the seated player at byte $A5. }
-  if (Byte(SpellHSMap^.FSeatedPlayer) = Caster.FPlayer) or
+  if (TMapSeatedPlayerView(Pointer(SpellHSMap^)^).SeatedPlayer = A1.FPlayer) or
     SpellHSMap^.WatchingTerrain( Byte(TSpellLocation(FLocation).X),
       Byte(TSpellLocation(FLocation).Y), Byte(TSpellLocation(FLocation).Layer), 2) then
     TSFXLibrary(TSpellControl(SpellHSSet^.FSpellControl).GetSpell(41).FCastSounds).Play(0);
@@ -1682,22 +1667,19 @@ end;
 
 function TWatcher.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;
 var
-  Busy: Boolean;
   Event: TWatcherTE;
 begin
-  Busy := TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Shortint(TAbstractUnit(A1).FPlayer)).GetBusy();
-  if not Busy then
+  if not SpellHSMap^.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
   begin
     Event := TWatcherTE.Create(nil);
-    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,FBaseManaCost);
+    Event.Initialize(FSpellID,A1.FPlayer,
+      A1.FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     TTokenManager(SpellHSMap^.FTokenManager).
-      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
-    Event.Release;
-  end;
-  { needs: Boolean function result, preserved while P7 procedure overrides remain. }
-  asm MOV AL, Busy; XOR AL, 1 end;
+      GetTokenControl(Shortint(A1.FPlayer)).AddEvent(Event); { Original queues through AddEvent, VMT +$10. }
+    Event.Release; Result := True;
+  end
+  else Result := False;
 end;
 
 procedure TWatcher.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
@@ -2000,7 +1982,7 @@ begin
   end;
 end;
 
-function TTornado.CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer;
+function TTornado.CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer; { Near miss: register or temporary allocation differs after three variants. }
 var
   Table: TSpellMoveTable;
   Walk: THNWalkData;
@@ -2046,22 +2028,20 @@ function TTornado.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4
 var
   Event: TTornadoTE;
   Army: TArmyHS;
-  Busy: Boolean;
 begin
-  Busy := TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Shortint(TAbstractUnit(A1).FPlayer)).GetBusy();
-  if not Busy then
+  if not SpellHSMap^.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
   begin
     Event := TTornadoTE.Create(nil);
-    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,FBaseManaCost);
+    Event.Initialize(FSpellID,A1.FPlayer,
+      A1.FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
     if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
     TTokenManager(SpellHSMap^.FTokenManager).
-      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
-    Event.Release;
-  end;
-  asm MOV AL, Busy; XOR AL, 1 end;
+      GetTokenControl(Shortint(A1.FPlayer)).AddEvent(Event); { Original queues through AddEvent, VMT +$10. }
+    Event.Release; Result := True;
+  end
+  else Result := False;
 end;
 
 procedure TTornado.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
@@ -2129,7 +2109,7 @@ procedure TVortexTE.ShowAnimation(Animation: TAnimation; XhpSurf, YhpSurf: Integ
 var
   Xhp, Yhp, XShift, Height, X, Y: Integer;
   Angle: Single;
-  I, Direction, Radius, Count: Integer;
+  I, Direction, Radius, Count, J: Integer;
 begin
   if SpellHSMap^.ViewL = TSpellLocation(FLocation).Layer then
   begin
@@ -2148,12 +2128,10 @@ begin
         Height := -16;
         XShift := 16;
         Angle := -(Direction + FAngle) * Pi / 180;
-        if Ord(SpellEngine^.FAnimationDetail) = 0 then
-          Count := 1
-        else if Ord(SpellEngine^.FAnimationDetail) = 1 then
-          Count := (200-I) shr 5
+        if TMapSeatedPlayerView(Pointer(SpellEngine^)^).Reserved[$6D] = 0 then Count := 1
+        else if TMapSeatedPlayerView(Pointer(SpellEngine^)^).Reserved[$6D] = 1 then Count := (200-I) shr 5
         else Count := (200-I) shr 4;
-        for Count := Count downto 0 do
+        for J := Count downto 0 do
         begin
           X := Round(Cos(Angle)*Radius) + XShift;
           Y := Round(Sin(Angle)*Radius / 1.75) + Height;
@@ -2258,19 +2236,15 @@ begin
   FAboveGroundOnly := False;
 end;
 
-procedure TVortex.ValidTargetSelection(A1: Integer);
-var
-  MapF: TMapField;
-  Valid: Boolean;
+function TVortex.ValidTargetSelection(A1: TTargetSelectionControl): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+var MapF: TMapField;
 begin
-  Valid := False;
-  if TTargetSelectionView(A1).X <> -1 then
+  if A1.FTargetX <> -1 then
   begin
-    MapF := SpellHSMap^.MapContainer.MapLevels[TTargetSelectionView(A1).Layer].
-      GetField(TTargetSelectionView(A1).X,TTargetSelectionView(A1).Y);
-    Valid := (MapF.TerrainType = 0) or (MapF.TerrainType = 10);
-  end;
-  asm MOV AL,Valid end;
+    MapF := SpellHSMap^.MapContainer.MapLevels[A1.FTargetL].GetField(A1.FTargetX, A1.FTargetY);
+    Result := MapF.TerrainType in [0, 10];
+  end
+  else Result := False;
 end;
 
 procedure TVortex.ValidateTargetEvent(Target: TTargetSelectionControl;
@@ -2289,22 +2263,20 @@ function TVortex.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4:
 var
   Event: TVortexTE;
   Army: TArmyHS;
-  Busy: Boolean;
 begin
-  Busy := TPlayerList(SpellHSMap^.FPlayers).GetPlayers(Shortint(TAbstractUnit(A1).FPlayer)).GetBusy();
-  if not Busy then
+  if not SpellHSMap^.FPlayers.GetPlayers(A1.FPlayer).GetBusy then
   begin
     Event := TVortexTE.Create(nil);
-    Event.Initialize(FSpellID,TAbstractUnit(A1).FPlayer,
-      TAbstractUnit(A1).FUnitID,FBaseManaCost);
+    Event.Initialize(FSpellID,A1.FPlayer,
+      A1.FUnitID,FBaseManaCost);
     Event.SetLocation(A2,A3,A4);
     Army := TAoWMapField(SpellHSMap^.MapContainer.GetField(A2,A3,A4)).GetArmyHS();
     if Army <> nil then Event.FArmyID := TArmy(Army.FArmy).CreateID($FF);
     TTokenManager(SpellHSMap^.FTokenManager).
-      GetTokenControl(Shortint(TAbstractUnit(A1).FPlayer)).Add(Event);
-    Event.Release;
-  end;
-  asm MOV AL, Busy; XOR AL, 1 end;
+      GetTokenControl(Shortint(A1.FPlayer)).AddEvent(Event); { Original queues through AddEvent, VMT +$10. }
+    Event.Release; Result := True;
+  end
+  else Result := False;
 end;
 
 procedure TVortex.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);

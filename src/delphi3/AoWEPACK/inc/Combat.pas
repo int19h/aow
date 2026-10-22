@@ -144,7 +144,7 @@ resourcestring
   PlayersRStr = 'Players';
   SaveEmailGameRStr = 'Save email game...';
   TurnXRStr = 'Turn: %s';
-  WarningRStr = 'Warning';
+  { WarningRStr is exported in intf_P1_14.inc. }
   XatYRStr = '%0:s at %1:s';
   ItsYourTurnRStr = 'It''s your turn!';
   YourTurnContinuesRStr = 'Your turn continues';

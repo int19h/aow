@@ -2701,7 +2701,7 @@ begin
   else Result := 0;
 end;
 
-function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer; { Near miss: set/arithmetic register allocation differs after three variants. }
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; Units: TUnitList; FriendlyRadius, EnemyRadius: Integer; DamageTypes: TDamageTypes): Integer; { Near miss: set/arithmetic register allocation differs after three variants. }
 var Info: TBattleFieldInfo;
 begin
   SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);

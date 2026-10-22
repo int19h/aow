@@ -96,7 +96,7 @@ end;
 function ComparePools(Item1, Item2: Pointer): Integer;
 begin Result := Integer(Item1) - Integer(Item2); end;
 
-procedure TReflectingPool.NewFrame(Sender: TObject);
+procedure TReflectingPool.NewFrame(Sender: TObject); { Near miss: register or temporary allocation differs after three variants. }
 var List: TPlayerStructureList; Pool: TPlayerStructure;
 begin
   if AoWHSMap.FSeatedPlayer = FPlayer then

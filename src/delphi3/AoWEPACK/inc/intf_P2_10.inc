@@ -83,7 +83,7 @@ function StrengthInfoMax(const Strengths): Integer;
 function InvertDamageTypes(Types: TDamageTypes): TDamageTypes;
 function ListMovementGaps(Map: TAoWHSMap; Path: TMovepath; const Table: TMovePointTable; Starts, Ends: TIntegerList): Integer;
 function GetMovepathBattleFieldStrength(Player, IndependentRelation: Shortint; Movepath: TMovepath; TargetRange, Range, Step: Integer): Integer; { 5573A1E9..5573A209; 5575C224 }
-function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; DamageTypes: TDamageTypes; EnemyRadius, FriendlyRadius: Integer; Units: TUnitList): Integer;
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; Units: TUnitList; FriendlyRadius, EnemyRadius: Integer; DamageTypes: TDamageTypes): Integer;
 function IgnitionChance(MapField: TAoWMapField): Integer; { 55762E4D }
 function CreateEnhancementAbility(ID: Integer; const Name: string; SelectionTypes: TAbilitySelectionTypes): TEnhancementAbility;
 function MeleeDamageTypes(A1: TCombatObject): TDamageTypes;

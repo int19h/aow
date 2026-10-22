@@ -822,7 +822,7 @@ begin
   end;
 end;
 
-function TStormSpell.Activate(A1: TAbstractUnit): Boolean;
+function TStormSpell.Activate(A1: TAbstractUnit): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   X, Y, L: Shortint;
   Reason: string;

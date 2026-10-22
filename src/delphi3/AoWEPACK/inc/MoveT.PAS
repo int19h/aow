@@ -2256,7 +2256,7 @@ begin
   end;
 end;
 
-function TMoveArmyTE.ObserveMove(Index: Integer): Boolean;
+function TMoveArmyTE.ObserveMove(Index: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 begin
   Result := MoveVisible(Index) and AoWHSMap.FShowIndependentMoves and
     ((AoWHSMap.FSeatedPlayer <> FArmyHS.FArmy.FPlayer) or
@@ -3082,7 +3082,7 @@ begin
   else Result := inherited ExecuteMove;
 end;
 
-function TArmyCombatMoveTE.ProcessMove: TMoveStatus;
+function TArmyCombatMoveTE.ProcessMove: TMoveStatus; { Near miss: register or temporary allocation differs after three variants. }
 begin
   Result := msMoving;
   if FCombatMode = cmRestoringHotseat then Exit;
@@ -3308,10 +3308,10 @@ end;
 
 function TMultiMoveTE.Execute(TE: TTokenExecuter): TExecuteResult;
 var
-  I: Integer;
+  Events: TTokenEventList;
   Valid: Boolean;
   MoveResult: TExecuteResult;
-  Events: TTokenEventList;
+  I: Integer;
 begin
   Events := FEvents;
   if TE.ExecuteCount = 0 then
@@ -3333,7 +3333,7 @@ begin
       for I := Events.Count - 1 downto 0 do
       begin
         MoveResult := Events[I].Execute(TE);
-        if MoveResult in [erDone, erDoneHalt] then Events.Delete(I);
+        if (MoveResult = erDone) or (MoveResult = erDoneHalt) then Events.Delete(I);
       end;
     end
     else
@@ -3342,12 +3342,12 @@ begin
       while (MoveResult in [erDone, erDoneHalt]) and (FEvents.Count > 0) do
       begin
         MoveResult := Events[0].Execute(TE);
-        if MoveResult in [erDone, erDoneHalt] then Events.Delete(0);
+        if (MoveResult = erDone) or (MoveResult = erDoneHalt) then Events.Delete(0);
       end;
     end;
   end;
-  if not Valid or (FEvents.Count = 0) then Result := erDone
-  else Result := erRetry;
+  if not Valid or (FEvents.Count = 0) then MoveResult := erDone
+  else MoveResult := erRetry; Result := MoveResult;
 end;
 
 function ValidateMultiArmyMove(Moves: TMoveSettingsList; Index: Integer): Boolean;

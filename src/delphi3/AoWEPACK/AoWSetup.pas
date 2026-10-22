@@ -664,8 +664,6 @@ begin
         FSettings.Assign(Package.FData, AoWEngine);
         SetupMap;
       end;
-    9: if not GetHost and Assigned(FOnIncompatibleVersion) then
-         FOnIncompatibleVersion(Self, Package.FParam2, Package.FParam1);
     10: if not GetHost then
       begin
         FPhase := spSendMap;
@@ -676,6 +674,8 @@ begin
         SendMessage(5, FSettings, 0, 0, 0);
         LoadMap;
       end;
+    9: if not GetHost then
+         if Assigned(FOnIncompatibleVersion) then FOnIncompatibleVersion(Self, Package.FParam2, Package.FParam1);
   end;
 end;
 
@@ -1154,12 +1154,12 @@ begin
   end;
 end;
 procedure TSetupControl.hSetPlayerID(Index: Integer; const Behavior: TSetupPlayerBehavior; Forced: Boolean);
-var I: Integer;
+var I, PlayerIndex: Integer;
 begin
   if GetHost then
   begin
-    if (FSettings.GetSettings(Index).FBehavior.PlayerType = Behavior.PlayerType) and
-      (FSettings.GetSettings(Index).FBehavior.Flags = Behavior.Flags) then Exit;
+    PlayerIndex := Index; if (FSettings.GetSettings(PlayerIndex).FBehavior.PlayerType = Behavior.PlayerType) and
+      (FSettings.GetSettings(PlayerIndex).FBehavior.Flags = Behavior.Flags) then Exit;
     if (Behavior.Flags <> 0) and (FSettings.FRemotePlayers.IndexOfRemoteID(Behavior.Flags) = -1) then Exit;
     if not GetRemote and (FSettings.FPlayMode = 2) and (Behavior.PlayerType = 0) then
       for I := 0 to FSettings.Count - 1 do
@@ -1169,11 +1169,11 @@ begin
       I := FSettings.IndexOfRemoteID(Behavior.Flags);
       if I <> -1 then ResetPlayerSettings(I);
     end;
-    ResetPlayerSettings(Index);
-    FSettings.GetSettings(Index).FBehavior := Behavior;
+    ResetPlayerSettings(PlayerIndex);
+    FSettings.GetSettings(PlayerIndex).FBehavior := Behavior;
     if Forced and (Behavior.PlayerType <> 5) then
-      FSettings.GetSettings(Index).FStatus := FSettings.GetSettings(Index).FStatus + [pssForced]
-    else FSettings.GetSettings(Index).FStatus := FSettings.GetSettings(Index).FStatus - [pssForced];
+      FSettings.GetSettings(PlayerIndex).FStatus := FSettings.GetSettings(PlayerIndex).FStatus + [pssForced]
+    else FSettings.GetSettings(PlayerIndex).FStatus := FSettings.GetSettings(PlayerIndex).FStatus - [pssForced];
     UpdatePreferredRaces;
     UpdateSettings;
   end;

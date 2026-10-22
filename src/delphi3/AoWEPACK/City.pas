@@ -1276,7 +1276,7 @@ begin
   end;
 end;
 
-function TCity.UpdatePlayer: Boolean;
+function TCity.UpdatePlayer: Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   MultiplePlayers: Boolean;
   MapLevel: TMapLevel;
@@ -1934,7 +1934,7 @@ begin
   end else Result := csStable;
 end;
 
-procedure TCity.UpdateImages;
+procedure TCity.UpdateImages; { Near miss: register or temporary allocation differs after three variants. }
 var
   Terrain, Offset, Size, Index: Integer;
   Images: TCustomImageLibrary;
@@ -2366,7 +2366,7 @@ begin
   end;
 end;
 
-procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
+procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: register or temporary allocation differs after three variants. }
 begin
   if not ((Msg.MsgID = $110C) and (FResource.TerrainList.Terrain[Msg.HN] >= 0)) then inherited MapFieldMsgProc(Msg);
   if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
@@ -2828,7 +2828,7 @@ begin
   end;
 end;
 
-function TCityAIPA.ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean;
+function TCityAIPA.ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Player: TPlayer;
   Cities: TDoubleItemList;
@@ -2910,39 +2910,39 @@ begin
   Result := (City.GetSize > City.FUpgradeLevel) and (Level = City.FUpgradeLevel);
 end;
 
-function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean;
+function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Player: TPlayer;
   Cities: TDoubleItemList;
   I, Priority: Integer;
-  City: TCity;
-  Production: TProductionItem;
+  Structure: TPlayerStructure;
+  City: TCity; Production: TProductionItem;
 begin
   Player := FControl.FPlayer;
   Cities := TDoubleItemList.Create;
   for I := Player.FStructures.Count - 1 downto 0 do
   begin
-    City := TCity(Player.FStructures.GetStructure(I));
-    if (City is TCity) and ValidUpgradeCity(City) then
+    Structure := Player.FStructures.GetStructure(I); { Preserve the original runtime class check. }
+    if (Structure is TCity) and ValidUpgradeCity(TCity(Structure)) then
     begin
-      Priority := City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3);
+      City := TCity(Structure); Priority := City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3);
       Cities.AddAB(Integer(City), Priority);
     end;
   end;
   Cities.SortDescendingItemB;
-  Result := Cities.Count <> 0;
-  if Result then
+  if Cities.Count <> 0 then
   begin
-    with Cities[0] do
+    City := TCity(Cities[0].A);
     begin
-    TCity(A).FProduction.ExecuteDeleteProductions;
+    City.FProduction.ExecuteDeleteProductions;
     Production := TProductionItem.Create(nil);
     Production.FProductionID := CityActionToProductionID(caUpgrade);
-    TCity(A).FProduction.ExecuteAddProduction(Production);
+    City.FProduction.ExecuteAddProduction(Production);
     Production.Free;
     Player.FAIBudget.BudgetExpenseMade(250, 0, Budget, bemBudget);
     end;
-  end;
+  Result := True;
+  end else Result := False;
   Cities.Free;
 end;
 
@@ -2997,40 +2997,40 @@ begin
     (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
 end;
 
-function TCityAIPA.FortifyCity(Budget: TAIBudget): Boolean;
+function TCityAIPA.FortifyCity(Budget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Player: TPlayer;
   Cities: TDoubleItemList;
   I, Priority: Integer;
-  City: TCity;
-  Production: TProductionItem;
+  Structure: TPlayerStructure;
+  City: TCity; Production: TProductionItem;
 begin
   Player := FControl.FPlayer;
   Cities := TDoubleItemList.Create;
   for I := Player.FStructures.Count - 1 downto 0 do
   begin
-    City := TCity(Player.FStructures.GetStructure(I));
-    if (City is TCity) and ValidFortifyCity(City) then
+    Structure := Player.FStructures.GetStructure(I); { Preserve the original runtime class check. }
+    if (Structure is TCity) and ValidFortifyCity(TCity(Structure)) then
     begin
-      Priority := City.GetSize * 2 + City.FProductionPriority;
+      City := TCity(Structure); Priority := City.GetSize * 2 + City.FProductionPriority;
       if City.FWallType = 0 then Inc(Priority, 3);
       Cities.AddAB(Integer(City), Priority);
     end;
   end;
   Cities.SortDescendingItemB;
-  Result := Cities.Count <> 0;
-  if Result then
+  if Cities.Count <> 0 then
   begin
-    with Cities[0] do
+    City := TCity(Cities[0].A);
     begin
-    TCity(A).FProduction.ExecuteDeleteProductions;
-    Player.FAIBudget.BudgetExpenseMade(TCity(A).FortifyCost, 0, Budget, bemBudget);
+    City.FProduction.ExecuteDeleteProductions;
+    Player.FAIBudget.BudgetExpenseMade(City.FortifyCost, 0, Budget, bemBudget);
     Production := TProductionItem.Create(nil);
     Production.FProductionID := CityActionToProductionID(caFortify);
-    TCity(A).FProduction.ExecuteAddProduction(Production);
+    City.FProduction.ExecuteAddProduction(Production);
     Production.Free;
     end;
-  end;
+  Result := True;
+  end else Result := False;
   Cities.Free;
 end;
 
@@ -3070,18 +3070,18 @@ begin
 end;
 
 function TCityAIPA.UpgradeableCities: Integer;
-var I: Integer; Structure: TPlayerStructure; City: TCity;
+var I, Count: Integer; Structure: TPlayerStructure; City: TCity;
 begin
-  Result := 0;
+  Count := 0;
   for I := FControl.FPlayer.FStructures.Count - 1 downto 0 do
   begin
     Structure := FControl.FPlayer.FStructures.GetStructure(I);
     if Structure is TCity then
     begin
       City := TCity(Structure);
-      if City.GetSize > City.FUpgradeLevel then Inc(Result);
+      with TCity(Structure) do if GetSize > FUpgradeLevel then Inc(Count);
     end;
-  end;
+  end; Result := Count;
 end;
 
 procedure TCityAIPA.UpdateStatistics;
@@ -3157,7 +3157,12 @@ begin
       end;
     ValidateUpgradeBudget(UpgradeBudget);
     FortifyBudget := TAIBudget(Manager.FBudgets.FindChild($20117));
-    if FortifyBudget = nil then
+    if FortifyBudget <> nil then
+    begin
+      if FortifyBudget.GetReady then if FortifyCity(FortifyBudget) then
+      begin FortifyBudget.FDays := 7; FortifyBudget.FRequiredGold := 80; end;
+    end
+    else
     begin
       if WorldMap^.FDay > 5 then
       begin
@@ -3166,13 +3171,7 @@ begin
         FortifyBudget.FRequiredGold := 80;
         FortifyBudget.Owner := Manager.FBudgets;
       end;
-    end
-    else if FortifyBudget.GetReady then
-      if FortifyCity(FortifyBudget) then
-      begin
-        FortifyBudget.FDays := 7;
-        FortifyBudget.FRequiredGold := 80;
-      end;
+    end;
     if FortifyBudget <> nil then ValidateFortifyBudget(FortifyBudget);
   end;
   Result := False;

@@ -8,5 +8,6 @@
   "LeadrGrd.Register": "Register<LeadrGrd",
   "MapCtrl.Register": "Register<MapCtrl",
   "PlayerBox.Register": "Register<PlayerBox",
-  "RaceBox.Register": "Register<RaceBox"
+  "RaceBox.Register": "Register<RaceBox",
+  "557E0088:742": "TSetupControl.PackageReceived"
 }

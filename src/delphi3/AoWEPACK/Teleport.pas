@@ -285,18 +285,14 @@ begin
 end;
 
 function TTeleport.ValidateMap(A1: TStrings): Boolean;
-var
-  Valid: Boolean;
 begin
-  { needs: TStructure.ValidateMap(Log: TStrings): Boolean. }
   if (FDestinationX = 0) or (FDestinationY = 0) then
   begin
-    TStrings(A1).Add(TranslateRStr(LoadResString(@TeleportWarningRStr)) + ': ' +
-      TranslateRStr(LoadResString(@InvalidLocationSpecifiedRStr)));
-    Valid := False;
+    A1.Add(TranslateRStr(WarningRStr) + ': ' + TranslateRStr(InvalidLocationSpecifiedRStr));
+    Result := False;
   end
-  else Valid := True;
-  asm MOV AL,Valid end;
+  else Result := True;
+
 end;
 
 constructor TTeleportResource.Create(AOwner: Engine.TECustomNode);

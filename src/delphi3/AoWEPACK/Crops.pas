@@ -199,7 +199,7 @@ end;
 function TCrop.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin Result := False; end;
 
-procedure TCrop.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
+procedure TCrop.TerrainChanged(const Info: HSEngine.THSTerrainInfo); { Near miss: register or temporary allocation differs after three variants. }
 var
   Overlay: Smallint;
   HS: THexagonSprite;

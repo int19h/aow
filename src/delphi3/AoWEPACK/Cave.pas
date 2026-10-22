@@ -263,7 +263,7 @@ begin
       TCaveFieldFlags(Pointer(Info.MapField)^).Flags or $8000;
 end;
 
-procedure TCave.MoveExclusive(const Info: HSEngine.THSSenderInfo);
+procedure TCave.MoveExclusive(const Info: HSEngine.THSSenderInfo); { Near miss: register or temporary allocation differs after three variants. }
 var Field: TMapField;
 begin
   if Info.HN = 0 then

@@ -287,7 +287,7 @@ begin
     if Transporter <> nil then DeleteUnit(Transporter);
   end;
 end;
-function TAIGroup.SetupTarget(Target: TAIGroupControlTarget;
+function TAIGroup.SetupTarget(Target: TAIGroupControlTarget; { Near miss: register or temporary allocation differs after three variants. }
   TargetType: TAIGroupTargetStatus; Mode: Byte): Boolean;
 var
   Transporter: TAbstractUnit;
@@ -2955,7 +2955,7 @@ begin
   UpdateCompletion;
 end;
 
-function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean;
+function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves: Integer;
 begin
@@ -2971,12 +2971,12 @@ begin
       Strength1 := Group.FGroup.GetStrengthMax(dtAll - [dtWall]);
       with Group.FGroup do
         Advantage1 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
-          FIndependentRelation, dtAll - [dtWall], 10, 1, Group.FGroup);
+          FIndependentRelation, Group.FGroup, 1, 10, dtAll - [dtWall]);
       Location := FControl.FGroup.GetLoc;
       Strength2 := FControl.FGroup.GetStrengthMax(dtAll - [dtWall]);
       with FControl.FGroup do
         Advantage2 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
-          FIndependentRelation, dtAll - [dtWall], 10, 1, FControl.FGroup);
+          FIndependentRelation, FControl.FGroup, 1, 10, dtAll - [dtWall]);
       if Strength1 < Strength2 then Strength := Strength1 else Strength := Strength2;
       { Original bug: compares the first advantage with itself. }
       if Advantage1 < Advantage1 then Advantage1 := Advantage1 else Advantage1 := Advantage2;
@@ -4280,7 +4280,7 @@ end;
 procedure TAIMoveExecuterUnit.Initialize(AUnit: TAbstractUnit; X, Y, L: Shortint);
 begin
   FUnit := AUnit;
-  FUnitID := AUnit.FUnitID;
+  FUnitID := FUnit.FUnitID;
   FLocation.X := X;
   FLocation.Y := Y;
   FLocation.L := L;
@@ -5203,7 +5203,7 @@ begin
   Armies.Free;
 end;
 
-function TAdjacentMEC.ExecuteMeetingPointMove: Boolean;
+function TAdjacentMEC.ExecuteMeetingPointMove: Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   I, Index: Integer;
   Armies: TAIMoveExecuterArmyList;
@@ -5556,7 +5556,7 @@ var
   Settings: TMoveControlSettings;
   Selection: Byte;
   ArmyHS: TArmyHS;
-  Fields: TList;
+  Fields, OtherFields: TList;
   I: Integer;
   Field: TAoWMapField;
   Found: Boolean;
@@ -5581,7 +5581,7 @@ begin
     Field := nil;
     while not Found and (I <> Fields.Count) do
     begin
-      Field := Fields[I];
+      Field := Fields.List^[I];
       if (Army.FLocation.X <> Field.Xhx) or (Army.FLocation.Y <> Field.Yhx) or
         (Army.FLocation.L <> Field.Lhx) then
         Found := CanMoveTo(Army, Transporting, Field.Xhx, Field.Yhx, Field.Lhx) = Transporting;
@@ -5609,12 +5609,12 @@ begin
     Settings.FMode := Settings.FMode + [mmLogProcessedMapFields];
     AoWHSMap.FMoveControl.ProcessMove(Settings);
     Field := nil;
-    Fields := Settings.FProcessedMapFields;
+    OtherFields := Settings.FProcessedMapFields;
     Found := False;
     I := 0;
-    while not Found and (I <> Fields.Count) do
+    while not Found and (I <> OtherFields.Count) do
     begin
-      Field := Fields[I];
+      Field := OtherFields.List^[I];
       if (Army.FLocation.X <> Field.Xhx) or (Army.FLocation.Y <> Field.Yhx) or
         (Army.FLocation.L <> Field.Lhx) then
         Found := CanMoveTo(Army, Others, Field.Xhx, Field.Yhx, Field.Lhx) = Others;

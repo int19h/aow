@@ -255,7 +255,7 @@ begin
   else Result := False;
 end;
 
-function TExplorationSite.Search: Boolean;
+function TExplorationSite.Search: Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   ArmyHS: TArmyHS;
   Request: TCombatTypeRequestEventLog;

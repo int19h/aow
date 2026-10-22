@@ -217,7 +217,7 @@ begin
   if Assigned(FOnUnselect) then FOnUnselect(Self);
 end;
 
-procedure THeroControlGrid.UpdateHeroes;
+procedure THeroControlGrid.UpdateHeroes; { Near miss: register or temporary allocation differs after three variants. }
 var
   I: Integer;
   Hero: THero;

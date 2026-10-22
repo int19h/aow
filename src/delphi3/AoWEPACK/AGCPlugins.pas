@@ -229,13 +229,10 @@ end;
 function TAIGroupDefendTargetSelector.Setup(Control: TAIGroupControl): Boolean;
 begin
   Reset;
-  with FSelector do
-  begin
-    FSourceLocation := Control.FLocation;
-    FMovePointTable := Control.FMovePointTable;
-    FTargetInfo.Player := Control.FGroup.FPlayer;
-    FTargetInfo.IndependentRelation := Shortint(Control.FGroup.FIndependentRelation);
-  end;
+  FSelector.FSourceLocation := Control.FLocation;
+  FSelector.FMovePointTable := Control.FMovePointTable;
+  FSelector.FTargetInfo.Player := Control.FGroup.FPlayer;
+  FSelector.FTargetInfo.IndependentRelation := Control.FGroup.FIndependentRelation;
   case WorldMap^.FPlayers.GetPlayers(Control.FGroup.FPlayer).FPlayerType of
     ptCPU2: FMode := FMode + [dtmCalculateMovepathBFS];
     ptCPU3: FMode := FMode + [dtmCalculateMovepathBFS];
@@ -329,7 +326,7 @@ end;
 function CompareWanderFields(const Item1, Item2: TDoubleItem): Integer;
 begin Result := Item2.B - Item1.B; end;
 
-function TAIGroupWanderControl.Process: Boolean;
+function TAIGroupWanderControl.Process: Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   Control: TAIGroupControl;
   Settings: TMoveControlSettings;
@@ -359,11 +356,11 @@ begin
           WorldMap^.FMoveControl.ProcessMove(FMoveSettings);
         end;
         with Control.FGroup do
-          if (FTargetMode = 1) and (FTargetXYL.X > 0) and
+          if (FTargetMode = 1) and (Self.FControl.FGroup.FTargetXYL.X > 0 { Original reloads the current control. }) and
             (FMoveSettings.GetMovePoints(FTargetXYL.X,
               FTargetXYL.Y,
               FTargetXYL.L) <> $FFFFFF) and
-            (Integer(FControl.FGroup.FTargetXYL) <> Integer(Control.FLocation)) then FState := 2
+            (Integer(Self.FControl.FGroup.FTargetXYL) <> Integer(Control.FLocation)) then FState := 2
           else FState := 1;
         Result := False;
       end;

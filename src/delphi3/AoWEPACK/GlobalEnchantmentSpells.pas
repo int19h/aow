@@ -581,7 +581,7 @@ begin
   FAIBasePriority := 750;
 end;
 
-procedure TEnchantedRoads.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TEnchantedRoads.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
 var
   X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep: Integer;
   MapLevel: TMapLevel;
@@ -724,7 +724,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   X, Y, L: Shortint;
   Anim: TAnimation;
@@ -1614,7 +1614,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   X, Y, L: Shortint;
 begin
@@ -1787,7 +1787,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean;
+function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
 var
   X, Y, L: Shortint;
 begin
@@ -1885,7 +1885,7 @@ begin
   FAIBasePriority := 1000;
 end;
 
-procedure TEarthMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TEarthMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
 var
   X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep: Integer;
   MapLevel: TMapLevel;

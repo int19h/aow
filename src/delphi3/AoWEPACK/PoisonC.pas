@@ -155,7 +155,7 @@ begin
   Stream.rwByte(FDirection, 18);
 end;
 
-procedure TPoisonCloud.TriggerDamage;
+procedure TPoisonCloud.TriggerDamage; { Near miss: register or temporary allocation differs after three variants. }
 var
   Msg: TMapFieldMsg;
   Walk: THNWalkData;
