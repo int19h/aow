@@ -27,5 +27,7 @@
   "FUN_00429cc4": "MakeImpact<TfxHS.NewFrame",
   "FUN_004244f0": "Blocked<TRndTacHsm.RandomMap",
   "FUN_0041e32c": "AllPathsValid<TCombatUnitSelectionControl.ExecuteMoveSelection",
-  "FUN_00420048": "MakeBlood<TTacticalCombatUnit.ExecuteDamage"
+  "FUN_00420048": "MakeBlood<TTacticalCombatUnit.ExecuteDamage",
+  "004152A8:11776": "TCAI.CheckUnit",
+  "00418170:11883": "TCAI.EvalBattle"
 }

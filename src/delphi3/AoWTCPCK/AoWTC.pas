@@ -131,7 +131,7 @@ type
     function EvalPath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer;
       HitWalls: Boolean; U: TTacticalCombatUnit; IgnoreWall: TObject): Integer;
     function EvalBreath(var Value: Integer; Ignore: TCombatObject; Ability, Spell, X1, Y1, X2, Y2: Integer; U: TTacticalCombatUnit): Integer;
-    procedure CheckUnit(X, Y, HitPoints, Hits: Integer; Settings: TCombatMoveControlSettings; U: TTacticalCombatUnit; Target: TCombatObject; Abilities: TList; Wall: TObject);
+    procedure CheckUnit(X, Y, Hits, HitPoints: Integer; Settings: TCombatMoveControlSettings; U: TTacticalCombatUnit; Target: TCombatObject; Abilities: TList; Wall: TObject);
     procedure EvalBattle;
   end;
 
@@ -296,7 +296,7 @@ type
   { TCombatMoveControlSettings (instance size 432, VMT 004129E8): $1AC FMoveFlags. }
   TCombatMoveControlSettings = class(TMoveControlSettings)
   public
-    FMoveFlags: Byte; { $1AC }
+    FMoveFlags: TCombatMoveMode; { $1AC }
     F_CombatMoveControlSettings_1AD: array[0..2] of Byte;
   end;
 
@@ -304,7 +304,7 @@ type
   TCombatMoveControl = class(TMoveControl)
   public
     FUnitHS: TTacticalCombatUnitHS; { $1E0 }
-    FMoveFlags: Byte; { $1E4; $405884 }
+    FMoveFlags: TCombatMoveMode; { $1E4; $405884 }
     F_CombatMoveControl_1E5: array[0..2] of Byte;
     procedure ProcessMove(A1: AoWE.TMoveControlSettings); override;
   end;
@@ -610,7 +610,7 @@ const
     3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 1,
     1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4,
     4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 1);
-  StatusAbilities: array[0..13] of Integer = (149, 150, 48, 92, 93, 94, 95, 96, 97, 98, 107, 163, 127, 34);
+  StatusAbils: array[0..13] of Integer = (149, 150, 48, 92, 93, 94, 95, 96, 97, 98, 107, 163, 127, 34);
   WallISIndex: array[0..1] of Integer = (30, 0);
   rndHex: array[0..18] of Integer = (6, 0, 1, 3, 4, 5, 2, 18, 12, 7, 11, 10, 17, 15, 9, 16, 13, 8, 14);
   BreathHit: array[0..11] of Integer = (0, 1, 4, 7, 8, 2, 5, 9, 10, 3, 6, 11);
@@ -747,7 +747,7 @@ const
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-  ClusterCheck: array[0..17] of Integer = (1, 2, 6, 16, 7, 8, 9, 17, 18, 19, 20, 21, 22, 23, 33, 34, 35, 36);
+  clusterChk: array[0..17] of Integer = (1, 2, 6, 16, 7, 8, 9, 17, 18, 19, 20, 21, 22, 23, 33, 34, 35, 36);
 
 constructor TCAI.Create;
 begin
@@ -1146,7 +1146,7 @@ begin
   end;
 end;
 
-procedure TCAI.CheckUnit(X, Y, HitPoints, Hits: Integer; Settings: TCombatMoveControlSettings; U: TTacticalCombatUnit; Target: TCombatObject; Abilities: TList; Wall: TObject);
+procedure TCAI.CheckUnit(X, Y, Hits, HitPoints: Integer; Settings: TCombatMoveControlSettings; U: TTacticalCombatUnit; Target: TCombatObject; Abilities: TList; Wall: TObject);
 var
   SafeValue, I, V, Distance, AbilityIndex, Range, Cost, BestIndex, BestValue, D: Integer;
   NX, NY, OriginalX, OriginalY, AX, AY: Integer;
@@ -1184,11 +1184,11 @@ begin
           Adjacent := TMovepath(Path).MovePointsToPos(U.FMovePoints) = 0;
           U.FCanFlee := False;
           if Target is TCombatWall then FFlee := False;
-          Value := MultDEV(tcDVtoDEV(Round.GetAttackerDV, Round.GetDefenderDV, Target, U), HitPoints, Hits) + TerrainValue;
-          if (Target.GetTargetStrength < 1) and (Enemies.Count > 1) then Dec(Value, 10000);
+          Value := MultDEV(tcDVtoDEV(Round.GetAttackerDV, Round.GetDefenderDV, U, Target), HitPoints, Hits) + TerrainValue;
+          if (Target.GetTargetStrength <= 0) and (Enemies.Count > 1) then Dec(Value, 10000);
           Cost := (PathCost - U.FMovePoints) * 10;
           if Cost < 1 then Cost := 1;
-          if U.FUnit is THero then begin
+          if not (U.FUnit is THero) then SafeValue := 0 else begin
             I := -1;
             BestIndex := TMovepath(Path).MovePointsToPos(U.FMovePoints);
             SafeValue := UnitSafe(U, Path[BestIndex].X, Path[BestIndex].Y);
@@ -1197,23 +1197,23 @@ begin
               if SafeValue >= 0 then I := BestIndex;
               Inc(BestIndex);
             end;
-            if I >= 0 then
+            if I > -1 then
               for V := 0 to I - 1 do Path.Delete(0);
-          end else SafeValue := 0;
+          end;
           if Path.Count > 1 then
-            if ((SafeValue < 0) and (FNormalUnits <> 0)) or not Adjacent then begin
-              if FIgnoreWalls or ChargeFromPos(U.FPosition shr 4) then
-                if ((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints < 1) or
-                  ((Path[Path.Count - 2].Flag > U.FMovePoints) and (Path[Path.Count - 2].Flag < 16)) then
-                  CreateMove(aiFake, X, Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target)
-                else begin
-                  Inc(FHeroMoves);
-                  CreateMove(aiMove, Path[0].X, Path[0].Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target);
-                end;
-            end else if (Value > 0) or (FNormalUnits = 0) or not (U.FUnit is THero) or (Units.Count < 2) then begin
+            if ((SafeValue >= 0) or (FNormalUnits = 0)) and Adjacent then begin if (Value > 0) or (FNormalUnits = 0) or not (U.FUnit is THero) or (Units.Count <= 1) then begin
               Inc(FHeroMoves);
               if U.FUnit is THero then I := 50 else I := 100;
               CreateMove(aiMelee, X, Y, MultDEV(Value, I, 1), Ability, Spell, U, Target);
+              end; end else begin
+              if FIgnoreWalls or ChargeFromPos(U.FPosition shr 4) then
+                if not (((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints <= 0) or
+                  ((Path.List^[Path.Count - 2].Flag > U.FMovePoints) and (Path.List^[Path.Count - 2].Flag <= 15))) then begin
+                  Inc(FHeroMoves);
+                  CreateMove(aiMove, Path[0].X, Path[0].Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target);
+                end else
+                  CreateMove(aiFake, X, Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target);
+
             end;
         end;
         Round.Free;
@@ -1227,7 +1227,7 @@ begin
       X := OriginalX;
       Y := OriginalY;
       AoWHSSet.FAbilityControl.GetAbility(Ability).GetCombatInfo(U.FUnit, AbilityInfo);
-      if Ability = $34 then begin
+      case Ability of $34: begin
         try
           if not (Target is TCombatWall) or not AoWCombatMap.FCombat.FCombatData.FWallBreached then begin
             Spell := TTCAbility(Abilities[AbilityIndex]).Spell;
@@ -1242,14 +1242,14 @@ begin
                   if Target is TCombatWall then FFlee := False;
                   PathValue := 0;
                   Range := SpellInfo.Range;
-                  if (Spell = 108) or (Spell = 114) then Range := 4;
+                  case Spell of 108, 114: Range := 4; end;
                   if Range = -1 then Range := 100;
                   case Spell of
                     8, 15..17, 32, 33, 36, 37, 40, 42, 43, 49, 56, 77, 102, 106, 110, 111:
-                      Value := tcDVtoDEV(Values.SourceDamage, 0, Target, U);
-                  else Value := MultDEV(tcDVtoDEV(Values.SourceDamage, 0, Target, U), HitPoints, Hits);
+                      Value := tcDVtoDEV(Values.SourceDamage, 0, U, Target);
+                  else Value := MultDEV(tcDVtoDEV(Values.SourceDamage, 0, U, Target), HitPoints, Hits);
                   end;
-                  if (Target.GetTargetStrength < 1) and (Enemies.Count > 1) then Dec(Value, 10000);
+                  if (Target.GetTargetStrength <= 0) and (Enemies.Count > 1) then Dec(Value, 10000);
                   if U.FMovePoints > 0 then begin
                     I := TMovepath(Path).MovePointsToPos(U.FMovePoints);
                     D := dHXtoRad(Path[I].X, Path[I].Y, X, Y);
@@ -1375,11 +1375,11 @@ begin
                         BestValue := Value;
                         D := Cost;
                         I := Path.Count - 2;
-                        while I > 0 do begin
+                        while I >= 1 do begin
                           CityWall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].FindOwnedChild($220504));
                           if (CityWall = nil) and (FSide = csAttacker) then
                             CityWall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].FindOwnedChild($220506));
-                          if (CityWall = nil) or (CityWall.FHitPoints < 1) or U.GetAbilityEnabled(1) or U.GetAbilityEnabled($24) or U.GetAbilityEnabled($42) then begin
+                          if not ((CityWall = nil) or (CityWall.FHitPoints <= 0) or U.GetAbilityEnabled(1) or U.GetAbilityEnabled($24) or U.GetAbilityEnabled($42)) then I := 1 else begin
                             if dHXtoRad(Path[0].X, Path[0].Y, Path[I].X, Path[I].Y) <= Range then begin
                               V := EvalPath(Cost, Target, Ability, Spell, Path[I].X, Path[I].Y, X, Y, Spell = $75, U, Wall);
                               Cost := D;
@@ -1389,7 +1389,7 @@ begin
                                 BestIndex := I;
                               end;
                             end;
-                          end else I := 1;
+                          end;
                           Dec(I);
                         end;
                         if BestIndex > 0 then begin
@@ -1416,7 +1416,7 @@ begin
                   end;
                   Cost := (PathCost - U.FMovePoints - Range * 4) * 10;
                   if Cost < 1 then Cost := 1;
-                  if U.FUnit is THero then begin
+                  if not (U.FUnit is THero) then SafeValue := 0 else begin
                     I := -1;
                     BestIndex := TMovepath(Path).MovePointsToPos(U.FMovePoints);
                     SafeValue := UnitSafe(U, Path[BestIndex].X, Path[BestIndex].Y);
@@ -1425,35 +1425,35 @@ begin
                       if SafeValue >= 0 then I := BestIndex;
                       Inc(BestIndex);
                     end;
-                    if I >= 0 then
+                    if I > -1 then
                       for V := 0 to I - 1 do Path.Delete(0);
-                  end else SafeValue := 0;
+                  end;
                   if ((PathValue = 0) or (Value <> 0)) and (Distance <= Range) and (U.GetMoves = U.FMovePoints) then begin
                     Inc(FHeroMoves);
                     I := Abs(Value + PathValue);
                     if I < 1 then I := 1;
                     CreateMove(aiRanged, X, Y, MultDEV(Value, Value * 100 div I, 1), Ability, Spell, U, Target);
                     if (PathValue > 0) and (U.FMovePoints > 0) and (DetourPath.Count > 1) then
-                      if not ((DetourPath[DetourPath.Count - 2].Flag > U.FMovePoints) and
-                        (DetourPath[DetourPath.Count - 2].Flag < 16)) then begin
+                      if not ((DetourPath.List^[DetourPath.Count - 2].Flag > U.FMovePoints) and
+                        (DetourPath.List^[DetourPath.Count - 2].Flag <= 15)) then begin
                         Inc(FHeroMoves);
                         CreateMove(aiMoveRanged, DetourPath[0].X, DetourPath[0].Y,
                           MultDEV(PathValue + TerrainValue, 100 * PathValue div I, 1), Ability, Spell, U, Target);
                       end;
                   end else begin
                     if (Path.Count > 1) and (FIgnoreWalls or ChargeFromPos(U.FPosition shr 4)) then
-                      if ((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints < 1) or (Path.Count < 2) or
-                        ((Path[Path.Count - 2].Flag > U.FMovePoints) and (Path[Path.Count - 2].Flag < 16)) then
-                        CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
+                      if not (((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints <= 0) or (Path.Count <= 1) or
+                        ((Path.List^[Path.Count - 2].Flag > U.FMovePoints) and (Path.List^[Path.Count - 2].Flag <= 15))) then
+                        CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
                       else
-                        CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
+                        CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
                   end;
                 end;
               end;
             end;
           end;
-        except MessageBox(0, 'Error during Spell Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
-      end else
+        except MessageBox(0, 'Error during Spell Check', PChar(Pointer('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell))), 0); end;
+      end; else
         case AbilTypes[Ability] of
           fxTouch:
             if (Target is TCombatWall) or ((Target is TCombatUnit) and TTouchAbility(AoWHSSet.FAbilityControl.GetAbility(Ability)).CanTouch(U, Target)) then begin
@@ -1464,19 +1464,19 @@ begin
                   U.FCanFlee := False;
                   if Target is TCombatWall then FFlee := False;
                   if Ability = $41 then Values.TargetDamage := 0;
-                  Value := MultDEV(tcDVtoDEV(Values.SourceDamage, Values.TargetDamage, Target, U), HitPoints, Hits) + TerrainValue;
+                  Value := MultDEV(tcDVtoDEV(Values.SourceDamage, Values.TargetDamage, U, Target), HitPoints, Hits) + TerrainValue;
                   case Ability of
-                    $1B..$1D, $28, $3C, $6A, $6B, $94: Value := tcDVtoDEV(Values.SourceDamage, 0, Target, U);
-                  else Value := MultDEV(tcDVtoDEV(Values.SourceDamage, 0, Target, U), HitPoints, Hits);
+                    $1B..$1D, $28, $3C, $6A, $6B, $94: Value := tcDVtoDEV(Values.SourceDamage, 0, U, Target);
+                  else Value := MultDEV(tcDVtoDEV(Values.SourceDamage, 0, U, Target), HitPoints, Hits);
                   end;
                   if (Ability = $75) and (MeleeDamageTypes(U) = []) then Value := MultDEV(Value, 100, 1);
-                  if (Target.GetTargetStrength < 1) and (Enemies.Count > 1) then Dec(Value, 10000);
+                  if (Target.GetTargetStrength <= 0) and (Enemies.Count > 1) then Dec(Value, 10000);
                   if (U.FMovePoints > 0) and (TMovepath(Path).MovePointsToPos(U.FMovePoints) = 0) then
-                    if Ability = $41 then EvalArea(Value, Target, Ability, Spell, Path[1].X, Path[1].Y, True, False, True, U, Wall)
-                    else if Ability = $72 then EvalArea(Value, Target, Ability, Spell, Path[1].X, Path[1].Y, False, False, True, U, Wall);
+                    case Ability of $41: EvalArea(Value, Target, Ability, Spell, Path.List^[1].X, Path.List^[1].Y, True, False, True, U, Wall);
+                    $72: EvalArea(Value, Target, Ability, Spell, Path.List^[1].X, Path.List^[1].Y, False, False, True, U, Wall); end;
                   Cost := (PathCost - U.FMovePoints) * 10;
                   if Cost < 1 then Cost := 1;
-                  if U.FUnit is THero then begin
+                  if not (U.FUnit is THero) then SafeValue := 0 else begin
                     I := -1;
                     BestIndex := TMovepath(Path).MovePointsToPos(U.FMovePoints);
                     SafeValue := UnitSafe(U, Path[BestIndex].X, Path[BestIndex].Y);
@@ -1485,26 +1485,26 @@ begin
                       if SafeValue >= 0 then I := BestIndex;
                       Inc(BestIndex);
                     end;
-                    if I >= 0 then
+                    if I > -1 then
                       for V := 0 to I - 1 do Path.Delete(0);
-                  end else SafeValue := 0;
+                  end;
                   if Path.Count > 1 then
-                    if ((SafeValue < 0) and (FNormalUnits <> 0)) or not Adjacent then begin
+                    if ((SafeValue >= 0) or (FNormalUnits = 0)) and Adjacent then begin
+                      Inc(FHeroMoves);
+                      if U.FUnit is THero then I := 1 else if (Target is TCombatWall) and AoWCombatMap.FCombat.FCombatData.FWallBreached and (AoWCombatMap.FRound > 1) then I := 10 else I := 100;
+                      CreateMove(aiTouch, X, Y, MultDEV(Value, I, 1), Ability, Spell, U, Target);
+                      end else begin
                       if FIgnoreWalls or ChargeFromPos(U.FPosition shr 4) then
-                        if ((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints < 1) or
-                          ((Path[Path.Count - 2].Flag > U.FMovePoints) and (Path[Path.Count - 2].Flag < 16)) then
-                          CreateMove(aiFake, X, Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target)
-                        else begin
+                        if not (((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints <= 0) or
+                          ((Path.List^[Path.Count - 2].Flag > U.FMovePoints) and (Path.List^[Path.Count - 2].Flag <= 15))) then begin
                           Inc(FHeroMoves);
                           CreateMove(aiMove, Path[0].X, Path[0].Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target);
-                        end;
-                    end else if (Value > 0) or (FNormalUnits = 0) or not (U.FUnit is THero) or (Units.Count < 2) then begin
-                      Inc(FHeroMoves);
-                      if U.FUnit is THero then I := 50 else I := 100;
-                      CreateMove(aiTouch, X, Y, MultDEV(Value, I, 1), Ability, Spell, U, Target);
+                        end else
+                          CreateMove(aiFake, X, Y, MultDEV(Value, U.GetMoves, Cost), Ability, Spell, U, Target);
+
                     end;
                 end;
-              except MessageBox(0, 'Error during Touch Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
+              except MessageBox(0, 'Error during Touch Check', PChar(Pointer('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell))), 0); end;
             end;
           fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxEffect, fxScreenNESW, fxScreenNS,
           fxRay, fxChain, fxSwarm, fxScreenSwarm, fxSacredWrath, fxSWComet, fxDispel,
@@ -1518,8 +1518,8 @@ begin
                 if AoWHSSet.FAbilityControl.GetAbility(Ability).GetCombatMode(U.FUnit) = cmLongRange then Range := 12
                 else if AoWHSSet.FAbilityControl.GetAbility(Ability).GetCombatMode(U.FUnit) = cmMediumRange then Range := 8
                 else Range := 4;
-                Value := MultDEV(tcDVtoDEV(Cost, 0, Target, U), HitPoints, Hits);
-                if (Target.GetTargetStrength < 1) and (Enemies.Count > 1) then Dec(Value, 10000);
+                Value := MultDEV(tcDVtoDEV(Cost, 0, U, Target), HitPoints, Hits);
+                if (Target.GetTargetStrength <= 0) and (Enemies.Count > 1) then Dec(Value, 10000);
                 if U.FMovePoints > 0 then begin
                   I := TMovepath(Path).MovePointsToPos(U.FMovePoints);
                   D := dHXtoRad(Path[I].X, Path[I].Y, X, Y);
@@ -1539,11 +1539,11 @@ begin
                       BestValue := Value;
                       D := Cost;
                       I := Path.Count - 2;
-                      while I > 0 do begin
+                      while I >= 1 do begin
                         CityWall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].FindOwnedChild($220504));
                         if (CityWall = nil) and (FSide = csAttacker) then
                           CityWall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[Path[I].X, Path[I].Y].FindOwnedChild($220506));
-                        if (CityWall = nil) or (CityWall.FHitPoints < 1) or U.GetAbilityEnabled(1) or U.GetAbilityEnabled($24) or U.GetAbilityEnabled($42) then begin
+                        if not ((CityWall = nil) or (CityWall.FHitPoints <= 0) or U.GetAbilityEnabled(1) or U.GetAbilityEnabled($24) or U.GetAbilityEnabled($42)) then I := 1 else begin
                           if dHXtoRad(Path[0].X, Path[0].Y, Path[I].X, Path[I].Y) <= Range then begin
                             V := EvalPath(Cost, Target, Ability, Spell, Path[I].X, Path[I].Y, X, Y, (Ability = $18) or (Ability = $2C), U, Wall);
                             Cost := D;
@@ -1553,7 +1553,7 @@ begin
                               BestIndex := I;
                             end;
                           end;
-                        end else I := 1;
+                        end;
                         Dec(I);
                       end;
                       if BestIndex > 0 then begin
@@ -1580,7 +1580,7 @@ begin
                 end;
                 Cost := (PathCost - U.FMovePoints - Range * 4) * 10;
                 if Cost < 1 then Cost := 1;
-                if U.FUnit is THero then begin
+                if not (U.FUnit is THero) then SafeValue := 0 else begin
                   I := -1;
                   BestIndex := TMovepath(Path).MovePointsToPos(U.FMovePoints);
                   SafeValue := UnitSafe(U, Path[BestIndex].X, Path[BestIndex].Y);
@@ -1589,35 +1589,35 @@ begin
                     if SafeValue >= 0 then I := BestIndex;
                     Inc(BestIndex);
                   end;
-                  if I >= 0 then
+                  if I > -1 then
                     for V := 0 to I - 1 do Path.Delete(0);
-                end else SafeValue := 0;
-                if (UnitSafe(U, U.FUnitHS.GetXhx, U.FUnitHS.GetYhx) < 0) and (FNormalUnits <> 0) or
-                  ((PathValue <> 0) and (Value = 0)) or (Distance > Range) or (U.GetMoves <> U.FMovePoints) then begin
-                  if (Path.Count > 1) and (FIgnoreWalls or ChargeFromPos(U.FPosition shr 4)) then
-                    if ((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints < 1) or (Path.Count < 2) or
-                      ((Path[Path.Count - 2].Flag > U.FMovePoints) and (Path[Path.Count - 2].Flag < 16)) then
-                      CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
-                    else
-                      CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
-                end else begin
+                end;
+                if not ((UnitSafe(U, U.FUnitHS.GetXhx, U.FUnitHS.GetYhx) < 0) and (FNormalUnits <> 0) or
+                  ((PathValue <> 0) and (Value = 0)) or (Distance > Range) or (U.GetMoves <> U.FMovePoints)) then begin
                   Inc(FHeroMoves);
                   if (Target is TCombatWall) and AoWCombatMap.FCombat.FCombatData.FWallBreached and (AoWCombatMap.FRound > 1) then I := 10 else I := 100;
                   V := Abs(Value + PathValue);
                   if V < 1 then V := 1;
                   CreateMove(aiRanged, X, Y, MultDEV(Value, I * Value div V, 1), Ability, Spell, U, Target);
                   if (PathValue > 0) and (U.FMovePoints > 0) and (DetourPath.Count > 1) then
-                    if not ((DetourPath[DetourPath.Count - 2].Flag > U.FMovePoints) and
-                      (DetourPath[DetourPath.Count - 2].Flag < 16)) then begin
+                    if not ((DetourPath.List^[DetourPath.Count - 2].Flag > U.FMovePoints) and
+                      (DetourPath.List^[DetourPath.Count - 2].Flag <= 15)) then begin
                       Inc(FHeroMoves);
                       CreateMove(aiMoveRanged, DetourPath[0].X, DetourPath[0].Y,
                         MultDEV(PathValue + TerrainValue, I * PathValue div V, 1), Ability, Spell, U, Target);
                     end;
+                end else begin
+                  if (Path.Count > 1) and (FIgnoreWalls or ChargeFromPos(U.FPosition shr 4)) then
+                    if not (((SafeValue < 0) and (FNormalUnits <> 0)) or (U.FMovePoints <= 0) or (Path.Count <= 1) or
+                      ((Path.List^[Path.Count - 2].Flag > U.FMovePoints) and (Path.List^[Path.Count - 2].Flag <= 15))) then
+                      CreateMove(aiMoveRanged, Path[0].X, Path[0].Y, MultDEV(PathValue + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target)
+                    else
+                      CreateMove(aiFake, X, Y, MultDEV(MultDEV(PathValue, 100, 1) + TerrainValue + Value, U.GetMoves, Cost), Ability, Spell, U, Target);
                 end;
               end;
-            except MessageBox(0, 'Error during Ranged Check', PChar('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell)), 0); end;
+            except MessageBox(0, 'Error during Ranged Check', PChar(Pointer('Error - TCAI ' + IntToStr(Ability) + ' ' + IntToStr(Spell))), 0); end;
           end;
-        end;
+        end; end;
     end;
   end;
   Path.Free;
@@ -1633,10 +1633,10 @@ var
   Settings: TCombatMoveControlSettings;
   Moved, Found, Visible: Boolean;
   Abilities: TList;
-  PathCost, TerrainCost: Integer;
-  Path: TXYLList;
-  Reason: string;
+  TerrainCost, PathCost: Integer;
   Bonuses: TList;
+  Reason: string;
+  Path: TXYLList;
   AIInfo: TAbilityCombatInfo;
   SpellInfo: TSpellCombatInfo;
   Wall: TCityWall;
@@ -1653,36 +1653,36 @@ begin
         for I := 0 to Moves.Count - 1 do TObject(Moves[I]).Free;
         Moves.Clear;
         Walls.Clear;
-        FSide := TCombatSideIndex(AoWCombatMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWCombatMap.FCombat.FCombatData.FCurrentPlayer).FSideIndex);
+        with AoWCombatMap.FCombat do begin FSide := TCombatSideIndex(FCombatData.FPlayers.GetPlayers(Shortint(FCombatData.FCurrentPlayer)).FSideIndex);
         FNormalUnits := 0;
-        for I := 0 to AoWCombatMap.FCombat.FCombatData.GetCount - 1 do
-          if (AoWCombatMap.FCombat.FCombatData.GetObjects(I) <> nil) and
-            (AoWCombatMap.FCombat.FCombatData.GetObjects(I) is TCombatUnit) and
-            AoWCombatMap.FCombat.FCombatData.GetObjects(I).GetEnabled then begin
+        for I := 0 to FCombatData.GetCount - 1 do
+          if (FCombatData.GetObjects(I) <> nil) and
+            (FCombatData.GetObjects(I) is TCombatUnit) and
+            FCombatData.GetObjects(I).GetEnabled then begin
             Visible := False;
             J := 0;
             while not Visible and (J < 19) do begin
-              CenterHNtoHX(TTacticalCombatUnit(AoWCombatMap.FCombat.FCombatData.GetObjects(I)).FUnitHS.GetXhx,
-                TTacticalCombatUnit(AoWCombatMap.FCombat.FCombatData.GetObjects(I)).FUnitHS.GetYhx, J, K, L);
+              CenterHNtoHX(TTacticalCombatUnit(FCombatData.GetObjects(I)).FUnitHS.GetXhx,
+                TTacticalCombatUnit(FCombatData.GetObjects(I)).FUnitHS.GetYhx, J, K, L);
               if not AoWCombatMap.FExplorationEnabled or
                 TAoWMapField(AoWCombatMap.MapContainer.GetField(K, L, 0)).GetExplored(AoWCombatMap.FSeatedPlayer) then
                 Visible := True
               else Inc(J);
             end;
             if Visible then
-              if AoWCombatMap.FCombat.FCombatData.GetObjects(I).GetSide = FSide then
-                if AoWCombatMap.FCombat.FCombatData.GetObjects(I).FCombatPlayer = AoWCombatMap.FCombat.FCombatData.FCurrentPlayer then begin
-                  if not AoWCombatMap.FCombat.FCombatData.GetObjects(I).GetLocked then
-                    if TTacticalCombatUnit(AoWCombatMap.FCombat.FCombatData.GetObjects(I)).FUnit is THero then
-                      Units.Add(AoWCombatMap.FCombat.FCombatData.GetObjects(I))
+              if FCombatData.GetObjects(I).GetSide = FSide then
+                if Byte(FCombatData.GetObjects(I).FCombatPlayer) = FCombatData.FCurrentPlayer then begin
+                  if not FCombatData.GetObjects(I).GetLocked then
+                    if TTacticalCombatUnit(FCombatData.GetObjects(I)).FUnit is THero then
+                      Units.Add(FCombatData.GetObjects(I))
                     else begin
                       Inc(FNormalUnits);
-                      Units.Insert(0, AoWCombatMap.FCombat.FCombatData.GetObjects(I));
+                      Units.Insert(0, FCombatData.GetObjects(I));
                     end;
-                end else Allies.Add(AoWCombatMap.FCombat.FCombatData.GetObjects(I))
-              else Enemies.Add(AoWCombatMap.FCombat.FCombatData.GetObjects(I));
+                end else Allies.Add(FCombatData.GetObjects(I))
+              else Enemies.Add(FCombatData.GetObjects(I));
           end;
-        AoWEngine.OutputDebugStr('AI found ' + IntToStr(Units.Count) + ' Own units.');
+        end; AoWEngine.OutputDebugStr('AI found ' + IntToStr(Units.Count) + ' Own units.');
         AoWEngine.OutputDebugStr('AI found ' + IntToStr(Allies.Count) + ' Ally units.');
         AoWEngine.OutputDebugStr('AI found ' + IntToStr(Enemies.Count) + ' Enemy units.');
         FIgnoreWalls := FSide = csAttacker;
@@ -1710,7 +1710,7 @@ begin
                           if Value > 0 then
                             if SpellTypes[N] in [fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxRay] then begin
                               EvalPath(Value, U, L, N, Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx,
-                                U.FUnitHS.GetYhx, U.FUnitHS.GetXhx, False, Target, nil);
+                                U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, False, Target, nil);
                               if Value > 0 then FIgnoreWalls := True;
                             end else FIgnoreWalls := True;
                         end;
@@ -1726,7 +1726,7 @@ begin
                         if Value > 0 then
                           if AbilTypes[L] in [fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxRay] then begin
                             EvalPath(Value, U, L, 0, Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx,
-                              U.FUnitHS.GetYhx, U.FUnitHS.GetXhx, False, Target, nil);
+                              U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, False, Target, nil);
                             if Value > 0 then FIgnoreWalls := True;
                           end else FIgnoreWalls := True;
                       end;
@@ -1747,7 +1747,7 @@ begin
             try
             for J := 0 to 169 do
               if U.GetAbilityEnabled(J) then begin
-                if J in [1, $24, $42, $75] then FFlee := False;
+                case J of 1, $24, $42, $75: FFlee := False; end;
                 if (J = $34) and (U.FUnit is THero) then begin
                   for K := 0 to 130 do
                     if (U.FUnit.FPlayer > 0) and (SpellTypes[K] <> fxNone) and
@@ -1768,12 +1768,12 @@ begin
                   end;
                 end;
               end;
-            except MessageBox(0, 'Error during Eval Enemies', PChar('Error - TCAI ' + U.FUnit.GetName), 0); end;
+            except MessageBox(0, 'Error during Eval Enemies', PChar(Pointer('Error - TCAI ' + U.FUnit.GetName)), 0); end;
             Settings := TCombatMoveControlSettings.Create(nil);
             if U.FMovePoints > 0 then begin
               Settings.SetSourcePos(U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, 0);
               Settings.FArmyHS := U.FUnitHS;
-              Settings.FMoveFlags := $1A;
+              Settings.FMoveFlags := [mmMelee, mmaiMove, mmaiWall];
               U.FUnit.CreateMovePointTable(Settings.FMovePointTable);
               Settings.FPlayer := U.GetPlayer;
               Settings.FMovePointsMax := 200;
@@ -1783,7 +1783,7 @@ begin
               for J := 0 to Enemies.Count - 1 do begin
                 Target := Enemies[J];
                 if not (U.FUnit is THero) or (FHeroMoves = 0) then
-                  CheckUnit(Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx, Target.GetHits, Target.GetHitPoints,
+                  CheckUnit(Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx, Target.GetHitPoints, Target.GetHits,
                     Settings, U, Target, Abilities, nil);
               end;
             for I := 0 to Abilities.Count - 1 do TObject(Abilities[I]).Free;
@@ -1811,12 +1811,12 @@ begin
                   end;
                 end;
               end;
-            except MessageBox(0, 'Error during Eval Friends', PChar('Error - TCAI ' + U.FUnit.GetName), 0); end;
+            except MessageBox(0, 'Error during Eval Friends', PChar(Pointer('Error - TCAI ' + U.FUnit.GetName)), 0); end;
             if Abilities.Count > 0 then
               for J := 0 to Units.Count - 1 do begin
                 Target := Units[J];
                 if not (U.FUnit is THero) or (FHeroMoves = 0) then
-                  CheckUnit(Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx, Target.GetHits, Target.GetHitPoints,
+                  CheckUnit(Target.FUnitHS.GetXhx, Target.FUnitHS.GetYhx, Target.GetHitPoints, Target.GetHits,
                     Settings, U, Target, Abilities, nil);
               end;
             Settings.Free;
@@ -1856,7 +1856,7 @@ begin
             Abilities := TList.Create;
             for J := 0 to 169 do
               if U.GetAbilityEnabled(J) then begin
-                if J in [1, $24, $42, $75] then FFlee := False;
+                case J of 1, $24, $42, $75: FFlee := False; end;
                 if (J = $34) and (U.FUnit is THero) then begin
                   if U.FUnit.FPlayer > 0 then
                   for K := 0 to 130 do
@@ -1885,8 +1885,8 @@ begin
             if U.FMovePoints > 0 then begin
               Settings.SetSourcePos(U.FUnitHS.GetXhx, U.FUnitHS.GetYhx, 0);
               Settings.FArmyHS := U.FUnitHS;
-              Settings.FMoveFlags := $1A;
-              if U.GetAbilityEnabled($41) or U.GetAbilityEnabled($75) then Settings.FMoveFlags := Settings.FMoveFlags or 1;
+              Settings.FMoveFlags := [mmMelee, mmaiMove, mmaiWall];
+              if U.GetAbilityEnabled($41) or U.GetAbilityEnabled($75) then Settings.FMoveFlags := Settings.FMoveFlags + [mmWallCrushing];
               U.FUnit.CreateMovePointTable(Settings.FMovePointTable);
               Settings.FPlayer := U.GetPlayer;
               Settings.FMovePointsMax := 200;
@@ -1962,9 +1962,9 @@ begin
         for I := 0 to Units.Count - 1 do begin
           U := Units[I];
           if (U.FUnit is THero) and (FHeroMoves = 0) and (U.FMovePoints > 0) then begin
-            Value := UnitSafe(U, U.FUnitHS.GetXhx, U.FUnitHS.GetYhx);
+            K := UnitSafe(U, U.FUnitHS.GetXhx, U.FUnitHS.GetYhx);
+            Value := K;
             N := -1;
-            K := Value;
             for J := 0 to Units.Count - 1 do begin
               Target := Units[J];
               if U <> Target then begin
@@ -1978,7 +1978,7 @@ begin
               Settings.SetDestinationPos(TTacticalCombatUnit(Units[N]).FUnitHS.GetXhx,
                 TTacticalCombatUnit(Units[N]).FUnitHS.GetYhx, 0);
               Settings.FArmyHS := U.FUnitHS;
-              Settings.FMoveFlags := $1A;
+              Settings.FMoveFlags := [mmMelee, mmaiMove, mmaiWall];
               U.FUnit.CreateMovePointTable(Settings.FMovePointTable);
               Settings.FPlayer := U.GetPlayer;
               AoWCombatMap.FMoveControl.ProcessMove(Settings);
@@ -2005,13 +2005,13 @@ begin
         I := 0;
         while I < Moves.Count do begin
           Move := Moves[I];
-          if Move.MoveType = aiFake then begin
+          case Move.MoveType of aiFake: begin
             Move.Free;
             Moves.Delete(I);
-          end else begin
+          end; else begin
             if (Move.Value > -100000000) and (Move.Value < 100000000) then Inc(Move.Value, Move.GroupValue div 4);
             Inc(I);
-          end;
+          end; end;
         end;
         for I := 1 to Moves.Count - 1 do begin
           Move := Moves[I];
@@ -2019,9 +2019,9 @@ begin
           K := -1;
           while J < I do begin
             OtherMove := Moves[J];
-            if OtherMove.Value < Move.Value then begin K := J; J := I; end else Inc(J);
+            if Move.Value > OtherMove.Value then begin K := J; J := I; end else Inc(J);
           end;
-          if K >= 0 then Moves.Move(I, K);
+          if K > -1 then Moves.Move(I, K);
         end;
         Inc(CurrentMove);
       except MessageBox(0, 'Error - TCAI', 'Error during Add Group Bonuses', 0); end;
@@ -2030,26 +2030,26 @@ begin
         while (Moves.Count > 0) and not Moved do begin
           Move := Moves[0];
           case Move.MoveType of
-            aiMove, aiMoveRanged: begin
+            aiMove, aiMoveRanged: begin with Move.UnitHS do begin
               if ((Move.UnitHS.FUnit.FUnit is THero) or ((FSide = csAttacker) and (AoWCombatMap.FRound = 1))) and
                 (Move.UnitHS.FUnit.FMovePoints > FMinMoves) then Move.UnitHS.FUnit.FMovePoints := FMinMoves;
               Settings := TCombatMoveControlSettings.Create(nil);
-              Settings.SetSourcePos(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, Move.UnitHS.GetLhx);
+              Settings.SetSourcePos(GetXhx, GetYhx, GetLhx);
               Settings.SetDestinationPos(Move.X, Move.Y, 0);
               Settings.FArmyHS := Move.UnitHS;
               if (Move.MoveType = aiMoveRanged) or (MeleeDamageTypes(Move.UnitHS.FUnit) = []) then
-                Settings.FMoveFlags := 4 else Settings.FMoveFlags := 2;
+                Settings.FMoveFlags := [mmMoveRanged] else Settings.FMoveFlags := [mmMelee];
               if AoWCombatMap.FCombat.FCombatData.FWallType <> 0 then
                 if not (AoWCombatMap.FCombat.FCombatData.FWallBreached and
                   (AoWCombatMap.MapContainer.MapLevels[0].Field[Move.X, Move.Y].FindOwnedChild($220504) = nil) and
                   (AoWCombatMap.MapContainer.MapLevels[0].Field[Move.X, Move.Y].FindOwnedChild($220506) = nil)) then
                   if not FIgnoreWalls or not ChargeFromPos(Move.UnitHS.FUnit.FPosition shr 4) or (FSide = csAttacker) then
-                    Settings.FMoveFlags := Settings.FMoveFlags or $10;
+                    Settings.FMoveFlags := Settings.FMoveFlags + [mmaiWall];
               Move.UnitHS.FUnit.FUnit.CreateMovePointTable(Settings.FMovePointTable);
               Settings.FPlayer := Move.UnitHS.FUnit.GetPlayer;
               AoWCombatMap.FMoveControl.ProcessMove(Settings);
-              if (Settings.FPath.Count < 2) and (Settings.FMoveFlags and $10 = 0) then begin
-                Settings.FMoveFlags := Settings.FMoveFlags or $10;
+              if (Settings.FPath.Count < 2) and (not (mmaiWall in Settings.FMoveFlags)) then begin
+                Settings.FMoveFlags := Settings.FMoveFlags + [mmaiWall];
                 AoWCombatMap.FMoveControl.ProcessMove(Settings);
               end;
               Wall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[Move.X, Move.Y].FindOwnedChild($220504));
@@ -2059,8 +2059,8 @@ begin
               else if Settings.FPath.Count > 1 then begin
                 Path := Settings.FPath;
                 PathCost := MakeTerrainPath(Settings, Path, TerrainCost, Move.UnitHS.FUnit, nil, False, False, 0);
-                if (Path.Count > 1) and (PathCost >= 0) then
-                  if (Path[Path.Count - 1].Flag <> 0) and (Path[Path.Count - 1].Flag <= Move.UnitHS.FUnit.FMovePoints) then begin
+                if (Path.Count > 1) and (PathCost > -1) then
+                  if (Path[Path.Count - 2].Flag > 0) and (Path[Path.Count - 2].Flag <= Move.UnitHS.FUnit.FMovePoints) then begin
                     if Move.MoveType = aiMoveRanged then begin
                       Value := TMovepath(Path).PosToMovePoints(0);
                       if Value < Move.UnitHS.FUnit.FMovePoints then Move.UnitHS.FUnit.FMovePoints := Value;
@@ -2071,8 +2071,30 @@ begin
                     AoWEngine.OutputDebugStr('AI moves to X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X)); { Original repeats X. }
                     Moved := MoveCombatUnit(Move.UnitHS.FUnit, TMovepath(Path));
                     if Move.UnitHS.FUnit.FCombatPlayer = AoWCombatMap.FSeatedPlayer then
-                      AoWCombatMap.MakeVisible(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0, 2);
+                      AoWCombatMap.CenterViewTo(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
                   end else Move.UnitHS.FUnit.FMovePoints := 0;
+              end;
+              Settings.Free;
+            end; end;
+            aiMelee: begin
+              Settings := TCombatMoveControlSettings.Create(nil);
+              Settings.SetSourcePos(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
+              Settings.SetDestinationPos(Move.X, Move.Y, 0);
+              Settings.FArmyHS := Move.UnitHS;
+              Settings.FMoveFlags := [mmMelee];
+              Move.UnitHS.FUnit.FUnit.CreateMovePointTable(Settings.FMovePointTable);
+              Settings.FPlayer := Move.UnitHS.FUnit.GetPlayer;
+              AoWCombatMap.FMoveControl.ProcessMove(Settings);
+              if Settings.FPath.Count > 1 then begin
+                Path := Settings.FPath;
+                PathCost := MakeTerrainPath(Settings, Path, TerrainCost, Move.UnitHS.FUnit, nil, False, False, 1);
+                if (Path.Count > 1) and (PathCost > -1) then
+                  if Path[Path.Count - 2].Flag <= Move.UnitHS.FUnit.FMovePoints then begin
+                    AoWEngine.OutputDebugStr('AI touches at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X)); { Original repeats X in the debug text. }
+                    Moved := Move.UnitHS.MeleeMoveTC(TMovepath(Path));
+                    if Move.UnitHS.FUnit.FCombatPlayer = AoWCombatMap.FSeatedPlayer then
+                      AoWCombatMap.CenterViewTo(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
+                  end;
               end;
               Settings.Free;
             end;
@@ -2082,8 +2104,8 @@ begin
               Settings.SetSourcePos(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
               Settings.SetDestinationPos(Move.X, Move.Y, 0);
               Settings.FArmyHS := Move.UnitHS;
-              Settings.FMoveFlags := 2;
-              if dtWall in AIInfo.DamageTypes then Settings.FMoveFlags := Settings.FMoveFlags or 1;
+              Settings.FMoveFlags := [mmMelee];
+              if dtWall in AIInfo.DamageTypes then Settings.FMoveFlags := Settings.FMoveFlags + [mmWallCrushing];
               Move.UnitHS.FUnit.FUnit.CreateMovePointTable(Settings.FMovePointTable);
               Settings.FPlayer := Move.UnitHS.FUnit.GetPlayer;
               Move.UnitHS.FSelectedAbility := Move.Ability;
@@ -2091,35 +2113,13 @@ begin
               if Settings.FPath.Count > 1 then begin
                 Path := Settings.FPath;
                 PathCost := MakeTerrainPath(Settings, Path, TerrainCost, Move.UnitHS.FUnit, nil, False, False, 1);
-                if (Path.Count > 1) and (PathCost >= 0) then
-                  if Path[Path.Count - 1].Flag <= Move.UnitHS.FUnit.FMovePoints then begin
+                if (Path.Count > 1) and (PathCost > -1) then
+                  if Path[Path.Count - 2].Flag <= Move.UnitHS.FUnit.FMovePoints then begin
                     Move.UnitHS.FSelectedAbility := Move.Ability;
-                    AoWEngine.OutputDebugStr('AI melees at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X));
+                    AoWEngine.OutputDebugStr('AI melees at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X)); { Original repeats X in the debug text. }
                     Moved := Move.UnitHS.AbTouchMoveTC(TMovepath(Path));
                     if Move.UnitHS.FUnit.FCombatPlayer = AoWCombatMap.FSeatedPlayer then
-                      AoWCombatMap.MakeVisible(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0, 2);
-                  end;
-              end;
-              Settings.Free;
-            end;
-            aiMelee: begin
-              Settings := TCombatMoveControlSettings.Create(nil);
-              Settings.SetSourcePos(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
-              Settings.SetDestinationPos(Move.X, Move.Y, 0);
-              Settings.FArmyHS := Move.UnitHS;
-              Settings.FMoveFlags := 2;
-              Move.UnitHS.FUnit.FUnit.CreateMovePointTable(Settings.FMovePointTable);
-              Settings.FPlayer := Move.UnitHS.FUnit.GetPlayer;
-              AoWCombatMap.FMoveControl.ProcessMove(Settings);
-              if Settings.FPath.Count > 1 then begin
-                Path := Settings.FPath;
-                PathCost := MakeTerrainPath(Settings, Path, TerrainCost, Move.UnitHS.FUnit, nil, False, False, 1);
-                if (Path.Count > 1) and (PathCost >= 0) then
-                  if Path[Path.Count - 1].Flag <= Move.UnitHS.FUnit.FMovePoints then begin
-                    AoWEngine.OutputDebugStr('AI touches at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X));
-                    Moved := Move.UnitHS.MeleeMoveTC(TMovepath(Path));
-                    if Move.UnitHS.FUnit.FCombatPlayer = AoWCombatMap.FSeatedPlayer then
-                      AoWCombatMap.MakeVisible(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0, 2);
+                      AoWCombatMap.CenterViewTo(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
                   end;
               end;
               Settings.Free;
@@ -2127,10 +2127,10 @@ begin
             aiRanged: begin
               Move.UnitHS.FSelectedAbility := Move.Ability;
               Move.UnitHS.FSelectedSpell := Move.Spell;
-              AoWEngine.OutputDebugStr('AI ranged at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X));
+              AoWEngine.OutputDebugStr('AI ranged at X: ' + IntToStr(Move.X) + ' Y: ' + IntToStr(Move.X)); { Original repeats X in the debug text. }
               Moved := Move.UnitHS.AbRangedTC(Move.X, Move.Y);
               if Move.UnitHS.FUnit.FCombatPlayer = AoWCombatMap.FSeatedPlayer then
-                AoWCombatMap.MakeVisible(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0, 2);
+                AoWCombatMap.CenterViewTo(Move.UnitHS.GetXhx, Move.UnitHS.GetYhx, 0);
             end;
           end;
           TObject(Moves[0]).Free;
@@ -2848,8 +2848,8 @@ begin
   FPathMovePoints := 0;
   UnitHS := TTacticalCombatUnitHS(FMoveObject);
   if (GetTCUnitHS <> nil) and ((GetTCUnitHS.FSelectedAbility = $75) or (GetTCUnitHS.FSelectedAbility = $41)) then
-    TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := ClimbFlag or Byte(FPathInvalid)
-  else TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := Byte(FPathInvalid);
+    TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := TCombatMoveMode(Byte(FPathInvalid)) + [mmClimbing]
+  else TCombatMoveControlSettings(FMoveControlSettings).FMoveFlags := TCombatMoveMode(Byte(FPathInvalid));
   FMoveControlSettings.Reset;
   FMoveControlSettings.SetSourcePos(UnitHS.GetXhx, UnitHS.GetYhx, UnitHS.GetLhx);
   FMoveControlSettings.FPlayer := UnitHS.FUnit.GetPlayer;
@@ -2958,7 +2958,7 @@ var
   UnitHS: TTacticalCombatUnitHS;
   EffectType: TfxType;
   I, X, Y: Integer;
-  Settings: TMoveSettings;
+  Direction: Integer;
   A, B: Integer;
 
   function AllPathsValid: Boolean;
@@ -2976,7 +2976,50 @@ var
 
 begin
   DeactivateRangedPath;
-  if FMoveSettingsList.GetCount <= 1 then begin
+  if FMoveSettingsList.GetCount > 1 then begin if FCurrentMove = -1 then begin
+    if not AllPathsValid then begin
+
+      if not AoWCombatMap.FExplorationEnabled or TAoWMapField(AoWCombatMap.MapContainer.GetField(AoWCombatMap.Mouse.Xhx,
+          AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL)).GetExplored(AoWCombatMap.FSeatedPlayer) then begin
+          for I := 0 to FMoveSettingsList.GetCount - 1 do FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
+      for A := 0 to FMoveSettingsList.GetCount - 1 do
+        for B := A + 1 to FMoveSettingsList.GetCount - 1 do
+          if dHXtoRad(AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx,
+            THexagonSprite(FMoveSettingsList.GetMoveSettings(B).FMoveObject).GetXhx,
+            THexagonSprite(FMoveSettingsList.GetMoveSettings(B).FMoveObject).GetYhx) <
+            dHXtoRad(AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx,
+            THexagonSprite(FMoveSettingsList.GetMoveSettings(A).FMoveObject).GetXhx,
+            THexagonSprite(FMoveSettingsList.GetMoveSettings(A).FMoveObject).GetYhx) then
+            FMoveSettingsList.FChildren.Exchange(A, B);
+      if TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(0).FMoveObject).FUnit.GetLocked then FMoveSettingsList.GetMoveSettings(0).FPath.Clear
+      else
+        CalculateMovePath(0, AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL);
+      if FMoveSettingsList.GetMoveSettings(0).FPath.Count > 1 then
+        for I := 1 to FMoveSettingsList.GetCount - 1 do
+          if TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(I).FMoveObject).FUnit.GetLocked then FMoveSettingsList.GetMoveSettings(I).FPath.Clear else begin
+            Direction := dHXtoHN(THexagonSprite(FMoveSettingsList.GetMoveSettings(0).FMoveObject).GetXhx,
+                THexagonSprite(FMoveSettingsList.GetMoveSettings(0).FMoveObject).GetYhx,
+                THexagonSprite(FMoveSettingsList.GetMoveSettings(I).FMoveObject).GetXhx,
+                THexagonSprite(FMoveSettingsList.GetMoveSettings(I).FMoveObject).GetYhx);
+            CenterHNtoHX(FMoveSettingsList.GetMoveSettings(0).FPath[0].X, FMoveSettingsList.GetMoveSettings(0).FPath[0].Y, Direction, X, Y);
+            CalculateMovePath(I, X, Y, 0);
+          end;
+      end else begin
+      for I := 0 to FMoveSettingsList.GetCount - 1 do FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
+          Exit;
+      end;
+    end else MoveUnits;
+  end else begin
+    with FMoveSettingsList.GetMoveSettings(FCurrentMove) do
+      if (FPath.Count <> 0) and (FPath[0].X = AoWCombatMap.Mouse.Xhx) and
+        (FPath[0].Y = AoWCombatMap.Mouse.Yhx) and (FPath[0].L = AoWCombatMap.ViewL) then begin
+        MoveUnits;
+        Exit;
+      end;
+    if TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject).FUnit.GetLocked then FMoveSettingsList.GetMoveSettings(FCurrentMove).FPath.Clear
+    else
+      CalculateMovePath(FCurrentMove, AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL);
+  end; end else begin
     if (GetTCUnitHS.FSelectedAbility = -1) and (GetTCUnitHS.GetXhx = AoWCombatMap.Mouse.Xhx) and
       (GetTCUnitHS.GetYhx = AoWCombatMap.Mouse.Yhx) then begin
       AoWCombatMap.Selection.SelectLocationHX(GetTCUnitHS.GetXhx, GetTCUnitHS.GetYhx, GetTCUnitHS.GetLhx);
@@ -3007,66 +3050,23 @@ begin
           end else begin
             if UnitHS.FSelectedAbility = $34 then EffectType := SpellTypes[UnitHS.FSelectedSpell]
             else EffectType := AbilTypes[UnitHS.FSelectedAbility];
-            if EffectType = fxNone then UnitHS.SelectAbility(-1)
-            else if EffectType = fxTouch then begin
+            case EffectType of fxNone: UnitHS.SelectAbility(-1);
+            fxTouch: begin
               if AoWCombatMap.FExplorationEnabled then
                 if not TAoWMapField(AoWCombatMap.MapContainer.GetField(AoWCombatMap.Mouse.Xhx,
                   AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL)).GetExplored(AoWCombatMap.FSeatedPlayer) then Exit;
               if not UnitHS.FUnit.GetLocked then CalculateMovePath(0, AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx, 0);
-            end else begin
+            end; else begin
               CalculateRangedPath(AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx);
               if FRangedPath.Count > 0 then begin
                 FMouseOverTarget := THexagonSprite(AoWCombatMap.MapContainer.MapLevels[0].Field[AoWCombatMap.Mouse.Xhx,
                   AoWCombatMap.Mouse.Yhx].FindOwnedChild($220104));
                 AoWCombatMap.FMouseOverTargetEvents.TriggerNotifyEvents(FMouseOverTarget);
               end;
-            end;
+            end; end;
           end;
       end;
     end;
-  end else if FCurrentMove = -1 then begin
-    if AllPathsValid then MoveUnits
-    else begin
-      if AoWCombatMap.FExplorationEnabled then
-        if not TAoWMapField(AoWCombatMap.MapContainer.GetField(AoWCombatMap.Mouse.Xhx,
-          AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL)).GetExplored(AoWCombatMap.FSeatedPlayer) then begin
-          for I := 0 to FMoveSettingsList.GetCount - 1 do FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
-          Exit;
-        end;
-      for I := 0 to FMoveSettingsList.GetCount - 1 do FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
-      for A := 0 to FMoveSettingsList.GetCount - 1 do
-        for B := A + 1 to FMoveSettingsList.GetCount - 1 do
-          if dHXtoRad(AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx,
-            THexagonSprite(FMoveSettingsList.GetMoveSettings(B).FMoveObject).GetXhx,
-            THexagonSprite(FMoveSettingsList.GetMoveSettings(B).FMoveObject).GetYhx) <
-            dHXtoRad(AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx,
-            THexagonSprite(FMoveSettingsList.GetMoveSettings(A).FMoveObject).GetXhx,
-            THexagonSprite(FMoveSettingsList.GetMoveSettings(A).FMoveObject).GetYhx) then
-            FMoveSettingsList.FChildren.Exchange(A, B);
-      if not TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(0).FMoveObject).FUnit.GetLocked then
-        CalculateMovePath(0, AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL)
-      else FMoveSettingsList.GetMoveSettings(0).FPath.Clear;
-      if FMoveSettingsList.GetMoveSettings(0).FPath.Count > 1 then
-        for I := 1 to FMoveSettingsList.GetCount - 1 do
-          if not TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(I).FMoveObject).FUnit.GetLocked then begin
-            CenterHNtoHX(FMoveSettingsList.GetMoveSettings(0).FPath[0].X, FMoveSettingsList.GetMoveSettings(0).FPath[0].Y,
-              dHXtoHN(THexagonSprite(FMoveSettingsList.GetMoveSettings(0).FMoveObject).GetXhx,
-                THexagonSprite(FMoveSettingsList.GetMoveSettings(0).FMoveObject).GetYhx,
-                THexagonSprite(FMoveSettingsList.GetMoveSettings(I).FMoveObject).GetXhx,
-                THexagonSprite(FMoveSettingsList.GetMoveSettings(I).FMoveObject).GetYhx), X, Y);
-            CalculateMovePath(I, X, Y, 0);
-          end else FMoveSettingsList.GetMoveSettings(I).FPath.Clear;
-    end;
-  end else begin
-    with FMoveSettingsList.GetMoveSettings(FCurrentMove) do
-      if (FPath.Count <> 0) and (FPath[0].X = AoWCombatMap.Mouse.Xhx) and
-        (FPath[0].Y = AoWCombatMap.Mouse.Yhx) and (FPath[0].L = AoWCombatMap.ViewL) then begin
-        MoveUnits;
-        Exit;
-      end;
-    if not TTacticalCombatUnitHS(FMoveSettingsList.GetMoveSettings(FCurrentMove).FMoveObject).FUnit.GetLocked then
-      CalculateMovePath(FCurrentMove, AoWCombatMap.Mouse.Xhx, AoWCombatMap.Mouse.Yhx, AoWCombatMap.ViewL)
-    else FMoveSettingsList.GetMoveSettings(FCurrentMove).FPath.Clear;
   end;
 end;
 
@@ -3175,7 +3175,7 @@ begin
   end;
 end;
 
-procedure TCombatUnitSelectionControl.UpdateMoveCursor;
+procedure TCombatUnitSelectionControl.UpdateMoveCursor; { Near miss: combat-info local at $2A, not $2C, after three layout variants. }
 label FinishCursor;
 var
   Field: TAoWMapField;
@@ -3198,18 +3198,9 @@ begin
   if (UnitHS.FUnit.FCombatPlayer <> AoWCombatMap.FSeatedCombatPlayer) and (TargetHS <> nil) then begin
     AoWCombatMap.Mouse.CursorMode := $101; goto FinishCursor;
   end;
-  if UnitHS.FSelectedAbility < 0 then begin
-    if (TargetHS <> nil) and (TargetHS <> UnitHS) then
-      if TargetHS.FUnit.GetPlayer = UnitHS.FUnit.GetPlayer then AoWCombatMap.Mouse.CursorMode := $101
-      else if not UnitHS.FUnit.GetAbilityEnabled(1) and TargetHS.FUnit.GetAbilityEnabled(1) then begin
-        FCursorImage := $59;
-        AoWCombatMap.Mouse.CursorMode := $100;
-        AoWCombatMap.Mouse.Cursor := FCursorImage;
-      end else AoWCombatMap.Mouse.CursorMode := $102;
-    goto FinishCursor;
-  end;
+  if UnitHS.FSelectedAbility > -1 then begin
   Inc(FCursorFrame);
-  if FCursorFrame > 4 then begin FCursorFrame := 0; Inc(FCursorImage); end;
+  if FCursorFrame >= 5 then begin FCursorFrame := 0; Inc(FCursorImage); end;
   if UnitHS.FSelectedAbility = $34 then begin
     AoWHSSet.FSpellControl.GetSpell(UnitHS.FSelectedSpell).GetCombatInfo(UnitHS.FUnit.FUnit, SpellInfo);
     Targets := SpellInfo.TargetTypes;
@@ -3233,12 +3224,21 @@ begin
       end else FCursorImage := $59;
   AoWCombatMap.Mouse.CursorMode := $100;
   AoWCombatMap.Mouse.Cursor := FCursorImage;
+  end else begin
+    if (TargetHS <> nil) and (TargetHS <> UnitHS) then
+      if TargetHS.FUnit.GetPlayer = UnitHS.FUnit.GetPlayer then AoWCombatMap.Mouse.CursorMode := $101
+      else if UnitHS.FUnit.GetAbilityEnabled(1) or not TargetHS.FUnit.GetAbilityEnabled(1) then AoWCombatMap.Mouse.CursorMode := $102 else begin
+        FCursorImage := $59;
+        AoWCombatMap.Mouse.CursorMode := $100;
+        AoWCombatMap.Mouse.Cursor := FCursorImage;
+      end;
+  end;
 FinishCursor:
   if AoWCombatMap.Mouse.CursorMode <> 0 then Exit;
   if UnitHS.FUnit.GetPlayer = AoWCombatMap.FSeatedPlayer then begin
-    if mtFlying in GetMoveTypes then AoWCombatMap.Mouse.Cursor := $40
+    if mtWalking in GetMoveTypes then AoWCombatMap.Mouse.Cursor := $40
     else if mtSwimming in GetMoveTypes then AoWCombatMap.Mouse.Cursor := $42
-    else if mtWalking in GetMoveTypes then AoWCombatMap.Mouse.Cursor := $44;
+    else if mtFlying in GetMoveTypes then AoWCombatMap.Mouse.Cursor := $44;
     Cost := FMoveControlSettings.FMovePointTable[Field.TerrainType, Field.OverlayType];
     if UnitHS.FUnit.FMovePoints = 0 then Cost := 0
     else begin
@@ -3250,7 +3250,7 @@ FinishCursor:
         if UnitHS.FUnit.FUnit.GetAbilityEnabled($42) or UnitHS.FUnit.FUnit.GetAbilityEnabled(1) then Cost := 1;
       end;
     end;
-    if (Cost < 1) or (AoWCombatMap.FExplorationEnabled and not Field.GetExplored(AoWCombatMap.FSeatedPlayer)) then
+    if (Cost <= 0) or (AoWCombatMap.FExplorationEnabled and not Field.GetExplored(AoWCombatMap.FSeatedPlayer)) then
       AoWCombatMap.Mouse.Cursor := AoWCombatMap.Mouse.Cursor + 1;
     AoWCombatMap.Mouse.CursorMode := $100;
   end;
@@ -3367,34 +3367,13 @@ begin
   end;
 end;
 
-procedure TTacticalCombatUnitHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult);
-var
+procedure TTacticalCombatUnitHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Near miss: packed locals at $1E/$24, not $20/$28, after three layout variants. }
+label Touch; var
   X, Y: Integer;
   Movement: TMovementHS;
   AbilityInfo, EnemyInfo: TAbilityCombatInfo;
 begin
-  if Info.HN <> 0 then begin
-    CenterHNtoHX(GetXhx, GetYhx, Info.HN, X, Y);
-    if MoveResult.Code < 30 then
-      MoveResult.Code := TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, Info.MapField.OverlayType];
-    if MoveResult.Code < 0 then Exit;
-    if Info.HN > 6 then Exit;
-    if (GetXhx = TCombatMoveControl(Info.Sender).FDestinationX) and
-      (GetYhx = TCombatMoveControl(Info.Sender).FDestinationY) then Exit;
-    if FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide then Exit;
-    if MeleeDamageTypes(FUnit) = [] then Exit;
-    if FUnit.GetLocked then Exit;
-    if FUnit.GetAbilityEnabled(1) <> TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(1) then Exit;
-    if (TCombatMoveControl(Info.Sender).FDestinationX >= 0) and
-      (TCombatMoveControl(Info.Sender).FDestinationY >= 0) and
-      (dHXtoRad(X, Y, TCombatMoveControl(Info.Sender).FDestinationX,
-        TCombatMoveControl(Info.Sender).FDestinationY) < 2) then
-      if AoWCombatMap.MapContainer.MapLevels[0].Field[TCombatMoveControl(Info.Sender).FDestinationX,
-        TCombatMoveControl(Info.Sender).FDestinationY].FindOwnedChild($220104) <> nil then Exit;
-    if MoveResult.Code > 96 then begin MoveResult.Code := 127; Exit; end;
-    Inc(MoveResult.Code, 30);
-    Exit;
-  end;
+  if Info.HN = 0 then begin
   MoveResult.Code := -1;
   MoveResult.Done := True;
   Movement := TMovementHS(AoWCombatMap.MapContainer.MapLevels[0].Field[GetXhx, GetYhx].FindOwnedChild($22010A));
@@ -3406,34 +3385,55 @@ begin
     (TCombatMoveControl(Info.Sender).FDestinationX <> -1) then Exit;
   if (GetYhx <> TCombatMoveControl(Info.Sender).FDestinationY) and
     (TCombatMoveControl(Info.Sender).FDestinationY <> -1) then Exit;
-  if (TCombatMoveControl(Info.Sender).FMoveFlags and 8 = 0) and
-    (TCombatMoveControl(Info.Sender).FMoveFlags and 4 = 0) and
-    (AoWCombatMap.FUnitSelection.FMoveSettingsList.GetCount > 1) then Exit;
-  if (TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility < 0) and
+  if (not (mmaiMove in TCombatMoveControl(Info.Sender).FMoveFlags)) and
+    (not (mmMoveRanged in TCombatMoveControl(Info.Sender).FMoveFlags)) and
+    (AoWCombatMap.FUnitSelection.FMoveSettingsList.GetCount >= 2) then Exit;
+  if (TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility <= -1) and
     ((MeleeDamageTypes(TCombatMoveControl(Info.Sender).FUnitHS.FUnit) = []) or
       (FUnit.GetAbilityEnabled(1) and not TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(1))) and
-    (TCombatMoveControl(Info.Sender).FMoveFlags and 4 = 0) and
-    (TCombatMoveControl(Info.Sender).FMoveFlags and 8 = 0) then Exit;
+    (not (mmMoveRanged in TCombatMoveControl(Info.Sender).FMoveFlags)) and
+    (not (mmaiMove in TCombatMoveControl(Info.Sender).FMoveFlags)) then Exit;
   if TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility = -1 then begin
-    if (TCombatMoveControl(Info.Sender).FMoveFlags and 8 = 0) and
-      (TCombatMoveControl(Info.Sender).FMoveFlags and 4 = 0) then
+    if (not (mmaiMove in TCombatMoveControl(Info.Sender).FMoveFlags)) and
+      (not (mmMoveRanged in TCombatMoveControl(Info.Sender).FMoveFlags)) then
       if FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide then Exit;
     MoveResult.Code := 0;
     Exit;
   end;
   AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility).GetCombatInfo(
     TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, AbilityInfo);
-  if (cttFriend in AbilityInfo.TargetTypes) and (FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide) then begin
-    if TTouchAbility(AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility)).CanTouch(
-      TCombatMoveControl(Info.Sender).FUnitHS.FUnit, FUnit) then MoveResult.Code := 0;
-    Exit;
-  end;
+  if (cttFriend in AbilityInfo.TargetTypes) and (FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide) then goto Touch;
+
+
+
+
   AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility).GetCombatInfo(
     TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, EnemyInfo);
   if not (cttEnemy in EnemyInfo.TargetTypes) then Exit;
   if FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide then Exit;
-  if TTouchAbility(AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility)).CanTouch(
+Touch: if TTouchAbility(AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility)).CanTouch(
     TCombatMoveControl(Info.Sender).FUnitHS.FUnit, FUnit) then MoveResult.Code := 0;
+  end else begin
+    CenterHNtoHX(GetXhx, GetYhx, Info.HN, X, Y);
+    if MoveResult.Code < 30 then
+      MoveResult.Code := TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, Info.MapField.OverlayType];
+    if MoveResult.Code <= -1 then Exit;
+    if Info.HN >= 7 then Exit;
+    if (GetXhx = TCombatMoveControl(Info.Sender).FDestinationX) and
+      (GetYhx = TCombatMoveControl(Info.Sender).FDestinationY) then Exit;
+    if FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide then Exit;
+    if MeleeDamageTypes(FUnit) = [] then Exit;
+    if FUnit.GetLocked then Exit;
+    if FUnit.GetAbilityEnabled(1) <> TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(1) then Exit;
+    if (TCombatMoveControl(Info.Sender).FDestinationX >= 0) and
+      (TCombatMoveControl(Info.Sender).FDestinationY >= 0) and
+      (dHXtoRad(X, Y, TCombatMoveControl(Info.Sender).FDestinationX,
+        TCombatMoveControl(Info.Sender).FDestinationY) <= 1) then
+      if AoWCombatMap.MapContainer.MapLevels[0].Field[TCombatMoveControl(Info.Sender).FDestinationX,
+        TCombatMoveControl(Info.Sender).FDestinationY].FindOwnedChild($220104) <> nil then Exit;
+    if MoveResult.Code > 96 then begin MoveResult.Code := 127; Exit; end;
+    Inc(MoveResult.Code, 30);
+  end;
 end;
 
 procedure TTacticalCombatUnitHS.UpdateMapField(const Info: THSMapFieldInfo);
@@ -3582,23 +3582,23 @@ begin
   end;
   case FAction of
     caStepUp:
-      if FActionFrame > GetMoveSteps then begin
-        HNtoHP(FDirection, FOffsetX, FOffsetY);
-        FOffsetX := FOffsetX div 2; FOffsetY := FOffsetY div 2; FActionDone := True;
-      end else begin
+      if FActionFrame <= GetMoveSteps then begin
         HNtoHP(FDirection, FOffsetX, FOffsetY);
         FOffsetX := FActionFrame * FOffsetX div (GetMoveSteps * 2);
         FOffsetY := FActionFrame * FOffsetY div (GetMoveSteps * 2);
         Inc(FActionFrame, 2);
+      end else begin
+        HNtoHP(FDirection, FOffsetX, FOffsetY);
+        FOffsetX := FOffsetX div 2; FOffsetY := FOffsetY div 2; FActionDone := True;
       end;
     caStepBack:
-      if FActionFrame > GetMoveSteps then begin FOffsetX := 0; FOffsetY := 0; FActionDone := True; end
-      else begin
+      if FActionFrame <= GetMoveSteps then begin
         HNtoHP(FDirection, FOffsetX, FOffsetY);
         FOffsetX := (GetMoveSteps - FActionFrame) * FOffsetX div (GetMoveSteps * 2);
         FOffsetY := (GetMoveSteps - FActionFrame) * FOffsetY div (GetMoveSteps * 2);
         Inc(FActionFrame, 2);
-      end;
+      end else begin FOffsetX := 0; FOffsetY := 0; FActionDone := True; end;
+
     caMeleeHit, caMeleeMiss, caAbility: begin
       Sequence := FUnitGFXResource.FSequences.ImageSequences[FDirection + 11];
       if Sequence <> nil then begin
@@ -3644,13 +3644,13 @@ begin
       end;
     caMeleeHit, caMeleeMiss, caAbility, caBreathAttack:
       if (FActionFrame = 0) and AoWCombatMap.FPlaySounds then
-        if FSelectedAbility < 0 then
-          if FAction = caMeleeMiss then FUnitGFXResource.FSFXLibraries[2].Play(1)
-          else FUnitGFXResource.FSFXLibraries[2].Play(0)
-        else if FSelectedAbility = $34 then begin
-          if (FSelectedSpell <> $70) and (FSelectedSpell <> $7A) and (FSelectedSpell <> $77) then
-            AoWHSSet.FSpellControl.GetSpell(FSelectedSpell).FCastSounds.Play(0);
-        end else AoWHSSet.FAbilityControl.GetAbility(FSelectedAbility).FSFXLibrary.Play(0);
+        if FSelectedAbility > -1 then
+          if FSelectedAbility = $34 then begin
+            if (FSelectedSpell <> $70) and (FSelectedSpell <> $7A) and (FSelectedSpell <> $77) then
+              AoWHSSet.FSpellControl.GetSpell(FSelectedSpell).FCastSounds.Play(0);
+          end else AoWHSSet.FAbilityControl.GetAbility(FSelectedAbility).FSFXLibrary.Play(0)
+        else if FAction = caMeleeMiss then FUnitGFXResource.FSFXLibraries[2].Play(1)
+        else FUnitGFXResource.FSFXLibraries[2].Play(0);
     caHit, caKilled:
       if (FActionFrame = 0) and AoWCombatMap.FPlaySounds then
         if FAction = caHit then FUnitGFXResource.FSFXLibraries[3].Play(0)
@@ -3662,12 +3662,12 @@ begin
   end;
 end;
 
-procedure TTacticalCombatUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
+procedure TTacticalCombatUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: only the Assert line differs; preserve source line count. }
 var
   Sequence: TImageSequence;
   Index, X, Y, DX, DY: Integer;
   Progress: Real;
-  I, NX, NY, FlyingOffset, Race: Integer;
+  NX, NY, FlyingOffset, Race: Integer;
   Wall, NextWall: TCityWall;
   SD: TSurfaceDesc;
 begin
@@ -3689,11 +3689,11 @@ begin
         if NextWall = nil then NextWall := TCityWall(AoWCombatMap.MapContainer.MapLevels[0].Field[NX, NY].FindOwnedChild($220506));
         if FMoveStep < GetMoveSteps div 2 then begin
           if (Wall <> nil) and (Wall.FHitPoints > 0) then
-            if (NextWall = nil) or (NextWall.FHitPoints < 1) then Dec(YhpSurf, (GetMoveSteps - FMoveStep) * 32 div GetMoveSteps)
-            else Dec(YhpSurf, 32);
+            if (NextWall <> nil) and (NextWall.FHitPoints > 0) then Dec(YhpSurf, 32)
+            else Dec(YhpSurf, (GetMoveSteps - FMoveStep) * 32 div GetMoveSteps);
         end else if (NextWall <> nil) and (NextWall.FHitPoints > 0) then
-          if (Wall = nil) or (Wall.FHitPoints < 1) then Dec(YhpSurf, FMoveStep * 32 div GetMoveSteps)
-          else Dec(YhpSurf, 32);
+          if (Wall <> nil) and (Wall.FHitPoints > 0) then Dec(YhpSurf, 32)
+          else Dec(YhpSurf, FMoveStep * 32 div GetMoveSteps);
       end;
     end;
     case FAction of
@@ -3707,7 +3707,7 @@ begin
         end else Sequence := FUnitGFXResource.FSequences.ImageSequences[FDirection - 1];
         while Sequence <> nil do begin
           Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
-          if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+          if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + FlyingOffset, SurfaceDesc);
           Sequence := Sequence.Next;
         end;
       end;
@@ -3716,7 +3716,7 @@ begin
         if Sequence <> nil then
           while Sequence <> nil do begin
           Index := Sequence.GetUnloopedFrameIndex(FActionFrame);
-            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + FlyingOffset, SurfaceDesc);
             Sequence := Sequence.Next;
           end;
       end;
@@ -3725,7 +3725,7 @@ begin
         if Sequence <> nil then
           while Sequence <> nil do begin
           Index := Sequence.GetUnloopedFrameIndex(FActionFrame);
-            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + FlyingOffset, SurfaceDesc);
             Sequence := Sequence.Next;
           end;
       end;
@@ -3734,7 +3734,7 @@ begin
         if Sequence <> nil then
           while Sequence <> nil do begin
           Index := Sequence.GetFrameIndex(AoWHSMap.Frame + FActionFrame, (Integer(Self) shr 2) and $FFFF);
-            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift, SurfaceDesc);
+            if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + FlyingOffset, SurfaceDesc);
             Sequence := Sequence.Next;
           end;
       end;
@@ -3746,21 +3746,21 @@ begin
             if Index <> -1 then
               if Sequence.Layer = 0 then begin
                 while not FUnitGFXResource.FSequences.ImageSequences[FDirection + 11].ImageLibrary.ImageExist(Index) do Dec(Index);
-                FUnitGFXResource.FSequences.ImageSequences[FDirection + 11].ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift,
-                  YhpSurf + FlyingOffset + Sequence.dYshift, SurfaceDesc);
-              end else Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + FlyingOffset, SurfaceDesc);
+                FUnitGFXResource.FSequences.ImageSequences[FDirection + 11].ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift + 16,
+                  YhpSurf + FlyingOffset + Sequence.dYshift + 16, SurfaceDesc);
+              end else Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift + 16, YhpSurf + Sequence.dYshift + FlyingOffset + 16, SurfaceDesc);
             Sequence := Sequence.Next;
           end;
       end;
     end;
     if usEnchanted in FUnit.FUnit.FUnitStatus then
       AoWHSSet.FImageSequences.ShowLooped(70, XhpSurf + 16, YhpSurf + 18 + FlyingOffset, AoWHSMap.Frame, SurfaceDesc);
-    for I := 0 to 13 do
-      if FUnit.GetAbilityEnabled(StatusAbilities[I]) then begin
-        Sequence := AoWHSSet.FAbilityControl.GetAbility(StatusAbilities[I]).FImageSequences.ImageSequences[0];
+    for NX := 0 to 13 do
+      if FUnit.GetAbilityEnabled(StatusAbils[NX]) then begin
+        Sequence := AoWHSSet.FAbilityControl.GetAbility(StatusAbils[NX]).FImageSequences.ImageSequences[0];
         while Sequence <> nil do begin
           Index := Sequence.GetFrameIndex(AoWHSMap.Frame, (Integer(Self) shr 2) and $FFFF);
-          if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift, YhpSurf + Sequence.dYshift + 15, SurfaceDesc);
+          if Index <> -1 then Sequence.ImageLibrary[Index].Show(XhpSurf + Sequence.dXshift + 15, YhpSurf + Sequence.dYshift + 10 + FlyingOffset, SurfaceDesc);
           Sequence := Sequence.Next;
         end;
       end;
@@ -3773,9 +3773,9 @@ begin
         AoWHSSet.FRaceResources.GetRaceResource(Race).FImageLibrary[70].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc)
       else AoWHSSet.FRaceResources.GetRaceResource(Race).FImageLibrary[FMoveIndicator + 69].Show(XhpSurf - 5, YhpSurf - 12, SurfaceDesc);
       SD := SurfaceDesc;
-      I := FUnit.GetHitPoints * 10 div FUnit.GetHits;
-      if I = 0 then I := 1;
-      if XhpSurf - 4 + I < SD.ClipRect.Right then SD.ClipRect.Right := XhpSurf - 4 + I;
+      NX := FUnit.GetHitPoints * 10 div FUnit.GetHits;
+      if NX = 0 then NX := 1;
+      if XhpSurf - 4 + NX < SD.ClipRect.Right then SD.ClipRect.Right := XhpSurf - 4 + NX;
       AoWHSSet.FCombatImages[1].ShowClipped(XhpSurf - 4, YhpSurf - 4, SD);
     end;
   except MessageBox(0, PChar('Error - ' + FUnit.FUnit.GetName), 'Error during ShowUnit', 0); end;
@@ -4155,9 +4155,9 @@ end;
 
 function TRndTacHsm.RandomMap(Combat: TTacticalCombat; X, Y, L: Integer): TAoWCombatMap;
 var
-  TerrainBuffer: PCombatMapBytes;
+  TerrainBuffer: PChar;
   I, J, K, NX, Col, Row, TerrainType, Tag: Integer;
-  ShapeBuffer: PCombatMapBytes;
+  ShapeBuffer: PChar;
   Shape: Byte;
   HasUnit, SiteCombat, RandomTerrain: Boolean;
   FileName: string;
@@ -4169,7 +4169,7 @@ var
   begin
     Result := False;
     for I := First to Last do begin
-      CenterHNtoHX(X, Y, ClusterCheck[I], NX, NY);
+      CenterHNtoHX(X, Y, clusterChk[I], NX, NY);
       Kind := Byte(PChar(TerrainBuffer)[NY * 65 + NX]);
       Result := Result or (Kind = 1) or (Kind = 2) or (Kind = 3) or (Kind = 5) or (Kind = 6) or (Kind = 7) or (Kind = 11) or (Kind = 14) or (Kind = 15) or (Kind = 16) or (Kind = 17) or (Kind = 18) or (Kind = 252) or (Kind = 253) or (Kind = 254);
     end;
@@ -4177,13 +4177,13 @@ var
 
 begin
   FItems := nil;
-  if Combat = nil then begin
-    SiteCombat := False;
-    RandomTerrain := True;
-  end else begin
-    SiteCombat := Combat.FExplorationSite = 1;
-    RandomTerrain := not (SiteCombat or (Combat.FExplorationSite = 2));
-  end;
+  if Combat = nil then SiteCombat := False
+  else SiteCombat := Combat.FExplorationSite = 1;
+  if Combat = nil then RandomTerrain := True
+  else RandomTerrain := not (SiteCombat or (Combat.FExplorationSite = 2));
+
+
+
   FRandomTerrain := RandomTerrain;
   CombatXLoc := X;
   CombatYLoc := Y;
@@ -4194,11 +4194,11 @@ begin
     FTerrain[I] := AoWHSMap.MapContainer.MapLevels[L].Field[J, K].TerrainType;
     FTags[I] := TAoWMapField(AoWHSMap.MapContainer.MapLevels[L].Field[J, K]).GetCombatTerrainTag;
   end;
-  if FTerrain[0] in [0, 9, 10] then
+  if (FTerrain[0] = 0) or (FTerrain[0] = 9) or (FTerrain[0] = 10) then
     for I := 1 to 6 do FTerrain[I] := FTerrain[0]
   else
     for I := 1 to 6 do
-      if FTerrain[I] in [0, 15, 10, 9] then FTerrain[I] := FTerrain[0];
+      if (FTerrain[I] = 0) or (FTerrain[I] = 15) or (FTerrain[I] = 10) or (FTerrain[I] = 9) then FTerrain[I] := FTerrain[0];
   FileName := 'TCMaps\';
   Structure := AoWHSMap.MapContainer.MapLevels[L].Field[X, Y].FindNoneTransparentHS(TStructure);
   if Structure = nil then Structure := AoWHSMap.MapContainer.MapLevels[L].Field[X, Y].FindNoneTransparentHS(THexagonBridge);
@@ -4270,9 +4270,9 @@ begin
           13: FileName := FileName + 'UI';
         else FileName := FileName + 'Wa';
         end;
-        if THexagonBridge(Structure).FDirection = 1 then FileName := FileName + 'A000'
-        else if THexagonBridge(Structure).FDirection = 2 then FileName := FileName + 'B000'
-        else FileName := FileName + 'C000';
+        case THexagonBridge(Structure).FDirection of 1: FileName := FileName + 'A000';
+        2: FileName := FileName + 'B000';
+        else FileName := FileName + 'C000'; end;
       end;
     else FileName := FileName + 'Blank000';
     end;
@@ -4294,18 +4294,18 @@ begin
       for Col := 6 to 58 do begin
         Shape := MapShape[Row * 65 + Col];
         case Shape of
-          8: if Random(100) < 50 then Shape := 7 else Shape := 6;
-          9: if Random(100) < 50 then Shape := 3 else Shape := 4;
-          10: if Random(100) < 50 then Shape := 2 else Shape := 7;
-          11: if Random(100) < 50 then Shape := 2 else Shape := 3;
-          12: if Random(100) < 50 then Shape := 5 else Shape := 6;
-          13: if Random(100) < 50 then Shape := 5 else Shape := 4;
           14: if Random(100) < 50 then Shape := 1 else Shape := 2;
           15: if Random(100) < 50 then Shape := 1 else Shape := 3;
           16: if Random(100) < 50 then Shape := 1 else Shape := 4;
           17: if Random(100) < 50 then Shape := 1 else Shape := 5;
           18: if Random(100) < 50 then Shape := 1 else Shape := 6;
           19: if Random(100) < 50 then Shape := 1 else Shape := 7;
+          11: if Random(100) < 50 then Shape := 2 else Shape := 3;
+          9: if Random(100) < 50 then Shape := 3 else Shape := 4;
+          13: if Random(100) < 50 then Shape := 5 else Shape := 4;
+          12: if Random(100) < 50 then Shape := 5 else Shape := 6;
+          8: if Random(100) < 50 then Shape := 7 else Shape := 6;
+          10: if Random(100) < 50 then Shape := 2 else Shape := 7;
         end;
         if AoWCombatMap.MapContainer.MapLevels[0].Field[Col, Row].GetDecorationType = 9 then begin
           case Shape of
@@ -4318,13 +4318,13 @@ begin
             7: J := 6;
           else J := -1;
           end;
-          if J >= 0 then begin
+          if J > -1 then begin
             CenterHNtoHX(X, Y, J, K, NX);
             if AoWHSMap.MapContainer.MapLevels[L].Field[K, NX].FindOwnedChild($2036A) = nil then
-              AoWCombatMap.ClearTerrain(Col, Row, -1, 0, 0);
+              AoWCombatMap.ClearTerrain(Col, Row, 0, 0, -1);
           end;
         end;
-        ShapeBuffer^[Row * 65 + Col] := Shape;
+        ShapeBuffer[Row * 65 + Col] := Char(Shape);
       end;
     if AoWHSMap.MapContainer.MapLevels[L].Field[X, Y].OverlayType = 4 then begin
       for I := 0 to 6 do begin
@@ -4334,7 +4334,7 @@ begin
       for Row := 6 to 52 do
         for Col := 6 to 58 do begin
           Shape := MapRoads[Row * 65 + Col];
-          case MapRoads[Row * 65 + Col] of
+          case Shape of
             21: if Random(100) < 50 then Shape := 0 else Shape := 2;
             22: if Random(100) < 50 then Shape := 0 else Shape := 3;
             23: if Random(100) < 50 then Shape := 0 else Shape := 4;
@@ -4345,15 +4345,15 @@ begin
           if Shape in [1..7] then
             if (FTags[Shape - 1] <> 127) and (Weights[Shape - 1] = 4) then begin
               AoWHSSet.FCombatRoads.Place(AoWCombatMap.MapContainer, Col, Row, 0, 1);
-              TerrainBuffer^[Row * 65 + Col] := 251;
+              TerrainBuffer[Row * 65 + Col] := Char(251);
             end;
         end;
     end;
     for Row := 6 to 52 do begin
       for Col := 3 to 29 do begin
-        I := ShapeBuffer^[Row * 65 + Col * 2];
-        if I <> 0 then
-          if (FTags[I - 1] = 127) or (TerrainBuffer^[Row * 65 + Col * 2] = 251) then I := 0;
+        I := Byte(ShapeBuffer[Row * 65 + Col * 2]);
+        if I > 0 then
+          if (FTags[I - 1] = 127) or (Integer(Byte(TerrainBuffer[Row * 65 + Col * 2])) = 251) then I := 0;
         if I > 0 then begin
           TerrainType := FTerrain[I - 1];
           Tag := FTags[I - 1];
@@ -4362,14 +4362,14 @@ begin
             if Tag < 14 then Inc(Weights[I], FTagWeights[Tag * 19 + I]);
           end;
           for I := 0 to 2 do begin
-            CenterHNtoHX(Col * 2, Row, ClusterCheck[I], J, K);
-            Tag := TerrainBuffer^[K * 65 + J];
-            if Tag < 20 then Inc(Weights[Tag], FNeighborWeights[Tag]);
-            if Tag in [1, 2, 3] then begin
+            CenterHNtoHX(Col * 2, Row, clusterChk[I], J, K);
+            Tag := Byte(TerrainBuffer[K * 65 + J]);
+            if Tag <= 19 then Inc(Weights[Tag], FNeighborWeights[Tag]);
+            case Tag of 1..3: begin
               Inc(Weights[5], 10);
               Inc(Weights[10], 10);
               Inc(Weights[4], 10);
-            end else if (Tag = 14) or (Tag = 16) then Inc(Weights[11], FNeighborWeights[11]);
+            end; 14, 16: Inc(Weights[11], FNeighborWeights[11]); end;
           end;
           HasUnit := AoWCombatMap.MapContainer.MapLevels[0].Field[Col * 2, Row].FindChild($220104) <> nil;
           if (HasUnit or Blocked(Col * 2, Row, 0, 2)) and
@@ -4403,28 +4403,28 @@ begin
           case J of
             14: begin
               CenterHNtoHX(Col * 2, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 252;
+              TerrainBuffer[NX * 65 + K] := Char(252);
             end;
             15: begin
               CenterHNtoHX(Col * 2, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 253;
+              TerrainBuffer[NX * 65 + K] := Char(253);
             end;
             16: begin
               CenterHNtoHX(Col * 2, Row, 1, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
               CenterHNtoHX(Col * 2, Row, 2, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
               CenterHNtoHX(Col * 2, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
             end;
           end;
-          TerrainBuffer^[Row * 65 + Col * 2] := J;
+          TerrainBuffer[Row * 65 + Col * 2] := Char(J);
         end;
       end;
       for Col := 3 to 29 do begin
-        I := ShapeBuffer^[Row * 65 + Col * 2 + 1];
-        if I <> 0 then
-          if (FTags[I - 1] = 127) or (TerrainBuffer^[Row * 65 + Col * 2 + 1] = 251) then I := 0;
+        I := Byte(ShapeBuffer[Row * 65 + Col * 2 + 1]);
+        if I > 0 then
+          if (FTags[I - 1] = 127) or (Integer(Byte(TerrainBuffer[Row * 65 + Col * 2 + 1])) = 251) then I := 0;
         if I > 0 then begin
           TerrainType := FTerrain[I - 1];
           Tag := FTags[I - 1];
@@ -4433,14 +4433,14 @@ begin
             if Tag < 14 then Inc(Weights[I], FTagWeights[Tag * 19 + I]);
           end;
           for I := 0 to 2 do begin
-            CenterHNtoHX(Col * 2 + 1, Row, ClusterCheck[I], J, K);
-            Tag := TerrainBuffer^[K * 65 + J];
-            if Tag < 20 then Inc(Weights[Tag], FNeighborWeights[Tag]);
-            if Tag in [1, 2, 3] then begin
+            CenterHNtoHX(Col * 2 + 1, Row, clusterChk[I], J, K);
+            Tag := Byte(TerrainBuffer[K * 65 + J]);
+            if Tag <= 19 then Inc(Weights[Tag], FNeighborWeights[Tag]);
+            case Tag of 1..3: begin
               Inc(Weights[5], 10);
               Inc(Weights[10], 10);
               Inc(Weights[4], 10);
-            end else if (Tag = 14) or (Tag = 16) then Inc(Weights[11], FNeighborWeights[11]);
+            end; 14, 16: Inc(Weights[11], FNeighborWeights[11]); end;
           end;
           HasUnit := AoWCombatMap.MapContainer.MapLevels[0].Field[Col * 2 + 1, Row].FindChild($220104) <> nil;
           if (HasUnit or Blocked(Col * 2 + 1, Row, 0, 2)) and
@@ -4474,30 +4474,30 @@ begin
           case J of
             14: begin
               CenterHNtoHX(Col * 2 + 1, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 252;
+              TerrainBuffer[NX * 65 + K] := Char(252);
             end;
             15: begin
               CenterHNtoHX(Col * 2 + 1, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 253;
+              TerrainBuffer[NX * 65 + K] := Char(253);
             end;
             16: begin
               CenterHNtoHX(Col * 2 + 1, Row, 1, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
               CenterHNtoHX(Col * 2 + 1, Row, 2, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
               CenterHNtoHX(Col * 2 + 1, Row, 6, K, NX);
-              TerrainBuffer^[NX * 65 + K] := 254;
+              TerrainBuffer[NX * 65 + K] := Char(254);
             end;
           end;
-          TerrainBuffer^[Row * 65 + Col * 2 + 1] := J;
+          TerrainBuffer[Row * 65 + Col * 2 + 1] := Char(J);
         end;
       end;
     end;
     for Row := 6 to 52 do
       for Col := 6 to 58 do begin
-        I := ShapeBuffer^[Row * 65 + Col];
-        if I <> 0 then begin
-          J := TerrainBuffer^[Row * 65 + Col];
+        I := Byte(ShapeBuffer[Row * 65 + Col]);
+        if I > 0 then begin
+          J := Byte(TerrainBuffer[Row * 65 + Col]);
           if J = 17 then AoWCombatMap.MapContainer.MapLevels[0].Field[Col, Row].TerrainType := 7
           else begin
             AoWCombatMap.MapContainer.MapLevels[0].Field[Col, Row].TerrainType := FTerrain[I - 1];
@@ -5292,8 +5292,8 @@ begin
       case FEffectType of
         fxArrow, fxRock, fxComet, fxBreath, fxCometBall, fxSwarm: begin
           case FAbilityIndex of
-            $34: if FSpellIndex = $75 then Inc(FFrame);
             $2C, $2D, $39, $3A, $7B: Inc(FFrame);
+            $34: case FSpellIndex of $75: Inc(FFrame); end;
           end;
           if (FFrame = 0) and AoWCombatMap.FPlaySounds and (FAbilityIndex = $34) and (FSpellIndex = $7A) then
             AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0);
@@ -5322,20 +5322,21 @@ begin
             FDone := True;
           end;
         end;
-        fxTremors: begin
-          case FFrame of
-            0: begin
-              FPath.Add(TXYZ.Create);
-              FPath[0].X := AoWCombatMap.ViewXhp;
-              FPath[0].Y := AoWCombatMap.ViewYhp;
-            end;
-            1..29: AoWCombatMap.ChangeViewTo(FPath[0].X + Random(FFrame div 3) - FFrame div 6,
-              FPath[0].Y + Random(FFrame div 3) - FFrame div 6, AoWCombatMap.ViewL);
-            30..89: AoWCombatMap.ChangeViewTo(FPath[0].X + Random(10) - 5,
-              FPath[0].Y + Random(10) - 5, AoWCombatMap.ViewL);
-            90..119: AoWCombatMap.ChangeViewTo(FPath[0].X + Random((119 - FFrame) div 3) - (119 - FFrame) div 6,
-              FPath[0].Y + Random((119 - FFrame) div 3) - (119 - FFrame) div 6, AoWCombatMap.ViewL);
-            120: FFrame := -1;
+        fxAltArrow: begin
+          if (FFrame = 0) and AoWCombatMap.FPlaySounds and (FAbilityIndex = $34) then
+            AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0);
+          Inc(FFrame, 3);
+          if FFrame >= FPath.Count - 1 then begin
+            if AoWCombatMap.FPlaySounds then
+              if FAbilityIndex = $34 then
+                AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
+              else
+                AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
+            FFrame := FPath.Count - 1;
+            FDone := True;
+            if FTarget = nil then MakeImpact;
+            HPtoHX(FPath[FFrame].X, FPath[FFrame].Y - FPath[FFrame].Z, I, J);
+            AoWCombatMap.MakeVisible(I, J, 0, 2);
           end;
         end;
         fxScreenNS: begin
@@ -5356,23 +5357,25 @@ begin
             Effect.FPath[0].Y := FPath[FFrame].Y;
           end;
         end;
-        fxCloud: begin
-          case FFrame of
-            1..149: MakeCloud(FFrame, FFrame);
-            150..199: MakeCloud(150, 150);
-            200..249: MakeCloud((250 - FFrame) * 3, 150);
-            250: FFrame := -1;
-          end;
+        fxHailImpact: begin
+          if FAbilityIndex = $34 then
+            Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[2]
+          else Sequence := AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FImageSequences.ImageSequences[2];
+          if Sequence <> nil then begin
+          if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+            FFrame := Sequence.GetTotalSequenceFrames - 1;
+            FDone := True;
+          end; end else FFrame := -1;
         end;
         fxPrayerGlow: begin
           if FAbilityIndex = $34 then
             Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[1]
           else Sequence := AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FImageSequences.ImageSequences[1];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+          if Sequence <> nil then begin
+          if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
             FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
-          end;
+          end; end else FFrame := -1;
         end;
         fxSFOverlay: begin
           if FFrame >= FPath.Count - 1 then begin
@@ -5384,7 +5387,7 @@ begin
           if FFrame = 0 then FFrame := 1;
           if FFrame >= FPath.Count - 1 then begin
             if AoWCombatMap.FPlaySounds then
-              if (FAbilityIndex = $34) and (FTarget <> nil) then
+              if (FTarget <> nil) and (FAbilityIndex = $34) then
                 AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
               else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
             FFrame := FPath.Count - 1;
@@ -5426,7 +5429,7 @@ begin
               Gravity := 0.5;
               VZ := Random(10) / 10;
               Z := 100;
-              MakeArcPath(K - 200, X - 200, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
+              MakeArcPath(K - 200, X - 100, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
               end;
             end;
             1000..1029: begin
@@ -5448,7 +5451,7 @@ begin
               Gravity := 0.5;
               VZ := Random(10) / 10;
               Z := 100;
-              MakeArcPath(K - 200, X - 200, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
+              MakeArcPath(K - 200, X - 100, Random(360), Z, Speed, VZ, Gravity, Effect.FPath);
               end;
               J := Random(5) + 5;
               for I := 0 to J do begin
@@ -5513,7 +5516,7 @@ begin
           case FFrame of
             0..29: begin
               if (FFrame = 0) and AoWCombatMap.FPlaySounds then begin
-                if AoWCombatMap.FPlaySounds then
+
                   if FAbilityIndex = $34 then
                     AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0)
                   else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(0);
@@ -5629,15 +5632,28 @@ begin
         fxWinds: begin
           case FFrame of
             0..1999:
-              if FFrame < FPath.Count + 20 then begin
-                if AoWCombatMap.FPlaySounds and ((FFrame = FTargetX) or (FFrame = FTargetY)) then begin
+              if FFrame >= FPath.Count + 20 then begin
+                if (FTarget <> nil) and FTarget.GetEnabled then begin
                   if AoWCombatMap.FPlaySounds then
+                    if FAbilityIndex = $34 then
+                      AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
+                    else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
+                  HPtoHX(FPath[FPath.Count - 1].X, FPath[FPath.Count - 1].Y, J, K);
+                  TTacticalCombatUnit(FTarget).FUnitHS.MoveTo(AoWCombatMap.MapContainer.MapLevels[0].Field[J, K], 0);
+                  TTacticalCombatUnit(FTarget).FUnitHS.FOffsetX := 0;
+                  TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := 0;
+                  TTacticalCombatUnit(FTarget).FUnitHS.FBusy := False;
+                end;
+                FFrame := -1;
+              end else begin
+                if AoWCombatMap.FPlaySounds and ((FFrame = FTargetX) or (FFrame = FTargetY)) then begin
+
                     if FAbilityIndex = $34 then
                       AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0)
                     else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(0);
                 end;
                 if (FTarget <> nil) and FTarget.GetEnabled then
-                  if (FFrame - 20 < FPath.Count) and (FFrame > 19) then begin
+                  if (FFrame - 20 < FPath.Count) and (FFrame >= 20) then begin
                     TTacticalCombatUnit(FTarget).FUnitHS.FOffsetX := FPath[FFrame - 20].X - FPath[0].X;
                     TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := FPath[FFrame - 20].Y - FPath[FFrame - 20].Z - FPath[0].Y;
                     TTacticalCombatUnit(FTarget).FUnitHS.SetDirection(TTacticalCombatUnit(FTarget).FUnitHS.FDirection + 1);
@@ -5655,19 +5671,6 @@ begin
                       FPath[I].Y - FPath[I].Z + Random(10) - 5,
                       TSwarmDirection(Random(2)), Effect.FPath);
                   end;
-              end else begin
-                if (FTarget <> nil) and FTarget.GetEnabled then begin
-                  if AoWCombatMap.FPlaySounds then
-                    if FAbilityIndex = $34 then
-                      AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
-                    else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
-                  HPtoHX(FPath[FPath.Count - 1].X, FPath[FPath.Count - 1].Y, J, K);
-                  TTacticalCombatUnit(FTarget).FUnitHS.MoveTo(AoWCombatMap.MapContainer.MapLevels[0].Field[J, K], 0);
-                  TTacticalCombatUnit(FTarget).FUnitHS.FOffsetX := 0;
-                  TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := 0;
-                  TTacticalCombatUnit(FTarget).FUnitHS.FBusy := False;
-                end;
-                FFrame := -1;
               end;
           end;
         end;
@@ -5675,7 +5678,7 @@ begin
           case FFrame of
             0..99: begin
               if (FFrame = 0) and AoWCombatMap.FPlaySounds then begin
-                if AoWCombatMap.FPlaySounds then
+
                   if FAbilityIndex = $34 then
                     AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0)
                   else AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(0);
@@ -5774,7 +5777,7 @@ begin
                       FPath[0].X + 100 - I, FPath[0].Y - 200 - 50 + I,
                       TSwarmDirection(Random(2)), Effect.FPath);
                   end;
-              if (FFrame mod 5 = 0) and (FFrame <= 84) then begin
+              if (FFrame mod 5 = 0) and (FFrame < 85) then begin
                 Effect := AoWCombatMap.AddEffect(fxDecayComet);
                 Effect.FAbilityIndex := FAbilityIndex;
                 Effect.FSpellIndex := FSpellIndex;
@@ -5845,7 +5848,7 @@ begin
           FPath := NewPath;
           if FFrame >= FPath.Count - 1 then begin
             FFrame := FPath.Count - 1;
-            if FPath[FFrame].Z < 2 then FDone := True;
+            if FPath[FFrame].Z <= 1 then FDone := True;
           end;
           if FPath[FFrame].Z = 15 then begin
             if AoWCombatMap.FPlaySounds then
@@ -5863,8 +5866,8 @@ begin
           if FAbilityIndex = $34 then
             Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[0]
           else Sequence := AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FImageSequences.ImageSequences[0];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+          if Sequence <> nil then begin
+          if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
             if AoWCombatMap.FPlaySounds then
               if FAbilityIndex = $34 then
                 AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
@@ -5872,7 +5875,7 @@ begin
                 AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
             FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
-          end;
+          end; end else FFrame := -1;
         end;
         fxSacredWrath: begin
           if FAbilityIndex = $34 then
@@ -5882,11 +5885,11 @@ begin
         end;
         fxFBExplosion: begin
           Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[1];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+          if Sequence <> nil then begin
+          if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
             FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
-          end;
+          end; end else FFrame := -1;
         end;
         fxScreenNESW: begin
           if FFrame = 0 then
@@ -5900,7 +5903,7 @@ begin
           else begin
             Dec(FPath[0].X, 3);
             Inc(FPath[0].Y, 3);
-            if (FPath[0].X < 0) or (FPath[0].Y > 100) then FFrame := -1;
+            if FPath[0].X < 0 then FFrame := -1 else if FPath[0].Y > 100 then FFrame := -1;
           end;
         end;
         fxDamLightning, fxDamFire, fxDamPoison, fxDamMagic, fxDamHoly, fxDamDeath, fxDamCold,
@@ -5910,20 +5913,10 @@ begin
             FDone := True;
           end;
         end;
-        fxHailImpact: begin
-          if FAbilityIndex = $34 then
-            Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[2]
-          else Sequence := AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FImageSequences.ImageSequences[2];
+        fxWallSmoke: begin
+          Sequence := AoWHSSet.FImageSequences.ImageSequences[5];
           if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
-            FFrame := Sequence.GetTotalSequenceFrames - 1;
-            FDone := True;
-          end;
-        end;
-        fxBlood: begin
-          Sequence := AoWHSSet.FImageSequences.ImageSequences[FPath[0].Z];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+          else if FFrame >= Sequence.GetTotalSequenceFrames then begin
             FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
           end;
@@ -5944,77 +5937,47 @@ begin
             FDone := True;
           end;
         end;
-        fxAltArrow: begin
-          if (FFrame = 0) and AoWCombatMap.FPlaySounds and (FAbilityIndex = $34) then
-            AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0);
-          Inc(FFrame, 3);
-          if FFrame >= FPath.Count - 1 then begin
-            if AoWCombatMap.FPlaySounds then
-              if FAbilityIndex = $34 then
-                AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
-              else
-                AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
-            FFrame := FPath.Count - 1;
+        fxBlood: begin
+          Sequence := AoWHSSet.FImageSequences.ImageSequences[FPath[0].Z];
+          if Sequence = nil then FFrame := -1
+          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+            FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
-            if FTarget = nil then MakeImpact;
-            HPtoHX(FPath[FFrame].X, FPath[FFrame].Y - FPath[FFrame].Z, I, J);
-            AoWCombatMap.MakeVisible(I, J, 0, 2);
           end;
         end;
-        fxGeyser: begin
+        fxTremors: begin
           case FFrame of
-            0..99: begin
-              if AoWCombatMap.FPlaySounds and (FFrame mod 30 = 29) then begin
-                if AoWCombatMap.FPlaySounds then
-                  if FAbilityIndex = $34 then
-                    AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0)
-                  else
-                    AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(0);
-              end;
-              if (FTarget <> nil) and FTarget.GetEnabled then begin
-                TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := Random(2) + -(FFrame * 3 div 2) - 1;
-                TTacticalCombatUnit(FTarget).FUnitHS.FBusy := True;
-              end;
-              J := Random(6) + 20;
-              for I := 1 to J - 1 do begin
-                Effect := AoWCombatMap.AddEffect(fxGeyserWater);
-                Effect.FAbilityIndex := FAbilityIndex;
-                Effect.FSpellIndex := FSpellIndex;
-                Speed := (Random(10) + 10) / 10;
-                Gravity := 0.5;
-                VZ := (Random(50) + FFrame * 3 * 0.5) / 10;
-                Z := 0;
-                MakeArcPath(FPath[0].X, FPath[0].Y, I * 360 div J, Z, Speed, VZ, Gravity, Effect.FPath);
-              end;
+            0: begin
+              FPath.Add(TXYZ.Create);
+              FPath[0].X := AoWCombatMap.ViewXhp;
+              FPath[0].Y := AoWCombatMap.ViewYhp;
             end;
-            125..149: if (FTarget <> nil) and FTarget.GetEnabled then begin
-              TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := (FFrame - 150) * 6;
-              TTacticalCombatUnit(FTarget).FUnitHS.SetDirection(FFrame mod 6);
-            end;
-            150: begin
-              FFrame := -1;
-              if (FTarget <> nil) and FTarget.GetEnabled then begin
-                if AoWCombatMap.FPlaySounds then
-                  if FAbilityIndex = $34 then
-                    AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
-                  else
-                    AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
-                TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := 0;
-                TTacticalCombatUnit(FTarget).FUnitHS.FBusy := False;
-              end;
-              if (FTarget <> nil) and (mtFlying in TTacticalCombatUnit(FTarget).FUnit.GetMoveTypes) then FTarget := nil;
-            end;
+            1..29: AoWCombatMap.ChangeViewTo(FPath[0].X + Random(FFrame div 3) - FFrame div 6,
+              FPath[0].Y + Random(FFrame div 3) - FFrame div 6, AoWCombatMap.ViewL);
+            30..89: AoWCombatMap.ChangeViewTo(FPath[0].X + Random(10) - 5,
+              FPath[0].Y + Random(10) - 5, AoWCombatMap.ViewL);
+            90..119: AoWCombatMap.ChangeViewTo(FPath[0].X + Random((119 - FFrame) div 3) - (119 - FFrame) div 6,
+              FPath[0].Y + Random((119 - FFrame) div 3) - (119 - FFrame) div 6, AoWCombatMap.ViewL);
+            120: FFrame := -1;
+          end;
+        end;
+        fxCloud: begin
+          case FFrame of
+            250: FFrame := -1;
+            1..149: MakeCloud(FFrame, FFrame);
+            150..199: MakeCloud(150, 150);
+            200..249: MakeCloud((250 - FFrame) * 3, 150);
           end;
         end;
         fxCloudPuff: begin
           if FAbilityIndex = $34 then
             Sequence := AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastImages.ImageSequences[0]
           else Sequence := AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FImageSequences.ImageSequences[0];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
+          if Sequence <> nil then begin
+          if FFrame >= Sequence.GetTotalSequenceFrames - 1 then begin
             FFrame := Sequence.GetTotalSequenceFrames - 1;
             FDone := True;
-          end;
+          end; end else FFrame := -1;
         end;
         fxHighPrayer: begin
           case FFrame of
@@ -6052,14 +6015,51 @@ begin
             end;
           end;
         end;
-        fxResurrect: if FFrame = 100 then FFrame := -1;
+        fxResurrect: case FFrame of 100: FFrame := -1; end;
         fxDecayLeg: if FFrame >= FPath.Count then FFrame := -1;
-        fxWallSmoke: begin
-          Sequence := AoWHSSet.FImageSequences.ImageSequences[5];
-          if Sequence = nil then FFrame := -1
-          else if FFrame >= Sequence.GetTotalSequenceFrames then begin
-            FFrame := Sequence.GetTotalSequenceFrames - 1;
-            FDone := True;
+        fxGeyser: begin
+          case FFrame of
+            150: begin
+              FFrame := -1;
+              if (FTarget <> nil) and FTarget.GetEnabled then begin
+                if AoWCombatMap.FPlaySounds then
+                  if FAbilityIndex = $34 then
+                    AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(1)
+                  else
+                    AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(1);
+                TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := 0;
+                TTacticalCombatUnit(FTarget).FUnitHS.FBusy := False;
+              end;
+              if (FTarget <> nil) and (mtFlying in TTacticalCombatUnit(FTarget).FUnit.GetMoveTypes) then FTarget := nil;
+            end;
+            0..99: begin
+              if AoWCombatMap.FPlaySounds and (FFrame mod 30 = 29) then begin
+
+                  if FAbilityIndex = $34 then
+                    AoWHSSet.FSpellControl.GetSpell(FSpellIndex).FCastSounds.Play(0)
+                  else
+                    AoWHSSet.FAbilityControl.GetAbility(FAbilityIndex).FSFXLibrary.Play(0);
+              end;
+              if (FTarget <> nil) and FTarget.GetEnabled then begin
+                TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := Random(2) + -(FFrame * 3 div 2) - 1;
+                TTacticalCombatUnit(FTarget).FUnitHS.FBusy := True;
+              end;
+              J := Random(6) + 20;
+              for I := 1 to J - 1 do begin
+                Effect := AoWCombatMap.AddEffect(fxGeyserWater);
+                Effect.FAbilityIndex := FAbilityIndex;
+                Effect.FSpellIndex := FSpellIndex;
+                Speed := (Random(10) + 10) / 10;
+                Gravity := 0.5;
+                VZ := (Random(50) + FFrame * 3 * 0.5) / 10;
+                Z := 0;
+                MakeArcPath(FPath[0].X, FPath[0].Y, I * 360 div J, Z, Speed, VZ, Gravity, Effect.FPath);
+              end;
+            end;
+            125..149: if (FTarget <> nil) and FTarget.GetEnabled then begin
+              TTacticalCombatUnit(FTarget).FUnitHS.FOffsetY := (FFrame - 150) * 6;
+              TTacticalCombatUnit(FTarget).FUnitHS.SetDirection(FFrame mod 6 + 1);
+            end;
           end;
         end;
         fxSWComet: ;
@@ -6067,9 +6067,9 @@ begin
       end;
     end;
     if FFrame = -1 then FDone := True;
-  except
-    MessageBox(0, PChar('Error - fxHS ' + IntToStr(FAbilityIndex) + ' ' + IntToStr(FSpellIndex)),
-      'Error during NewFrame', 0);
+  except { Original puts the diagnostic in the message-box caption. }
+    MessageBox(0, 'Error during NewFrame', PChar(Pointer('Error - fxHS ' + IntToStr(FAbilityIndex) + ' ' + IntToStr(FSpellIndex))),
+      0);
   end;
 end;
 
@@ -6306,6 +6306,7 @@ begin
       Index := 0;
       case FEffectType of
         fxArrow: begin SelectSequence(FVariant); ShowMovingLoop; FinishPath; end;
+        fxAltArrow: begin SelectSequence(0); ShowSecondaryFrame; SelectSequence(1); ShowTrail; FinishPath; end;
         fxRock: begin SelectSequence(0); ShowMovingLoop; FinishPath; end;
         fxBreath: begin SelectSequence(0); ShowTrail; FinishPath; end;
         fxCometBall, fxScreenNS: begin SelectSequence(0); ShowMovingLoop; SelectSequence(1); ShowTrail; FinishPath; end;
@@ -6315,18 +6316,6 @@ begin
           SelectSequence(1);
           if Sequence <> nil then begin SelectFrame; ShowAtStart; FinishSequence; end;
         end;
-        fxScreenNESW: begin
-          SelectSequence(Integer(Self) mod 3);
-          Index := Sequence.GetUnloopedFrameIndex(0);
-          ShowScreen;
-        end;
-        fxRay: begin SelectSequence(0); ShowRay; FinishPath; end;
-        fxChain: begin
-          SelectSequence(0); ShowRay;
-          if (FFrame >= FPath.Count - 1) and (FPath[FFrame].Z = 1) then FFrame := -1;
-        end;
-        fxSwarm: begin SelectSequence(0); ShowMovingLoop; FinishPath; end;
-        fxScreenSwarm: begin SelectSequence(0); ShowScreenSwarm; FinishPath; end;
         fxSFOverlay: begin
           SelectSequence(2);
           if Sequence <> nil then begin
@@ -6334,6 +6323,19 @@ begin
             ShowAtStart; FinishPath;
           end;
         end;
+        fxScreenNESW: begin
+          SelectSequence(Integer(Self) mod 3);
+          Index := Sequence.GetUnloopedFrameIndex(0);
+          ShowScreen;
+        end;
+        fxRay: begin SelectSequence(0); ShowRay; FinishPath; end;
+        fxFrostBeam: ShowFrostBeam;
+        fxChain: begin
+          SelectSequence(0); ShowRay;
+          if (FFrame >= FPath.Count - 1) and (FPath[FFrame].Z = 1) then FFrame := -1;
+        end;
+        fxSwarm: begin SelectSequence(0); ShowMovingLoop; FinishPath; end;
+        fxScreenSwarm: begin SelectSequence(0); ShowScreenSwarm; FinishPath; end;
         fxDamLightning..fxDamCold: begin SelectDamageSequence; ShowParticle(FEffectType = fxDamDeath); FinishPath; end;
         fxSacredWrath: begin
           if FFrame in [5..6] then begin
@@ -6358,25 +6360,23 @@ begin
           SelectSequence(0); ShowTrail;
         end;
         fxWallSmoke: begin Sequence := AoWHSSet.FImageSequences.ImageSequences[5]; SelectFrame; ShowAtStart; FinishSequence; end;
-        fxBlood: begin Sequence := AoWHSSet.FImageSequences.ImageSequences[FPath[0].Z]; SelectFrame; ShowAtStart; FinishSequence; end;
-        fxAltArrow: begin SelectSequence(0); ShowSecondaryFrame; SelectSequence(1); ShowTrail; FinishPath; end;
-        fxTremors:
-          if FFrame < 5 then begin SelectSequence(1); ShowAtStart; end
-          else begin SelectSequence(2); ShowAtStartLooped; end;
-        fxGeyser: begin SelectSequence(0); ShowParticle((FSpellIndex = $82) or (FSpellIndex = $6A)); FinishPath; end;
-        fxGeyserWater: begin SelectSequence(2); SelectFrame; ShowAtStart; FinishSequence; end;
-        fxCloudPuff: begin SelectSequence(0); SelectFrame; ShowAtStart; FinishSequence; end;
         fxHitGround: begin Sequence := AoWHSSet.FImageSequences.ImageSequences[9]; SelectFrame; ShowAtStart; FinishSequence; end;
         fxHitWater: begin Sequence := AoWHSSet.FImageSequences.ImageSequences[10]; SelectFrame; ShowAtStart; FinishSequence; end;
+        fxBlood: begin Sequence := AoWHSSet.FImageSequences.ImageSequences[FPath[0].Z]; SelectFrame; ShowAtStart; FinishSequence; end;
+        fxGeyser:
+          if FFrame < 5 then begin SelectSequence(1); ShowAtStart; end
+          else begin SelectSequence(2); ShowAtStartLooped; end;
+        fxHailImpact: begin SelectSequence(2); SelectFrame; ShowAtStart; FinishSequence; end;
         fxPrayerGlow: begin SelectSequence(1); SelectFrame; ShowAtStart; FinishSequence; end;
-        fxFrostBeam: ShowFrostBeam;
+        fxCloudPuff: begin SelectSequence(0); SelectFrame; ShowAtStart; FinishSequence; end;
+        fxGeyserWater: begin SelectSequence(0); ShowParticle((FSpellIndex = $82) or (FSpellIndex = $6A)); FinishPath; end;
         fxFrost: begin SelectSequence(1); ShowParticle(FSpellIndex = $82); FinishPath; end;
         fxDecayLeg: begin SelectSequence(0); ShowRay; FCancelled := True; end;
         fxSacFire: begin SelectSequence(0); ShowMovingLoop; FinishPath; end;
       end;
     end;
-  except
-    MessageBox(0, PChar('Error - fxHS ' + IntToStr(FAbilityIndex) + ' ' + IntToStr(FSpellIndex)), 'Error during Show', 0);
+  except { Original puts the diagnostic in the message-box caption. }
+    MessageBox(0, 'Error during Show', PChar(Pointer('Error - fxHS ' + IntToStr(FAbilityIndex) + ' ' + IntToStr(FSpellIndex))), 0);
   end;
 end;
 

@@ -157,12 +157,12 @@ begin
   begin
     if FHitPoints = 0 then
       MoveResult.Code := TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, 6]
-    else if TCombatMoveControl(Info.Sender).FMoveFlags and $10 <> 0 then
+    else if (mmaiWall in TCombatMoveControl(Info.Sender).FMoveFlags) then
     begin
       MoveResult.Code := 25;
       MoveResult.Done := True;
     end
-    else if (TCombatMoveControl(Info.Sender).FMoveFlags and 1 <> 0) and
+    else if ((mmWallCrushing in TCombatMoveControl(Info.Sender).FMoveFlags)) and
       (GetXhx = TCombatMoveControl(Info.Sender).FDestinationX) and
       (GetYhx = TCombatMoveControl(Info.Sender).FDestinationY) then MoveResult.Code := 0
     else if TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(1) or
@@ -183,8 +183,8 @@ begin
     if (FHitPoints = 0) or
       TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($42) or
       TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($24) or
-      (TCombatMoveControl(Info.Sender).FMoveFlags and $20 <> 0) or
-      (TCombatMoveControl(Info.Sender).FMoveFlags and $10 <> 0) then Result := 1
+      ((mmClimbing in TCombatMoveControl(Info.Sender).FMoveFlags)) or
+      ((mmaiWall in TCombatMoveControl(Info.Sender).FMoveFlags)) then Result := 1
     else if TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($3B) then Result := 0
     else if TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, 8] <> 0 then
       Result := 1
@@ -386,12 +386,12 @@ begin
   begin
     if FHitPoints = 0 then
       MoveResult.Code := TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, 6]
-    else if TCombatMoveControl(Info.Sender).FMoveFlags and $10 <> 0 then
+    else if (mmaiWall in TCombatMoveControl(Info.Sender).FMoveFlags) then
     begin
       MoveResult.Code := 25;
       MoveResult.Done := True;
     end
-    else if (TCombatMoveControl(Info.Sender).FMoveFlags and 1 <> 0) and
+    else if ((mmWallCrushing in TCombatMoveControl(Info.Sender).FMoveFlags)) and
       (GetXhx = TCombatMoveControl(Info.Sender).FDestinationX) and
       (GetYhx = TCombatMoveControl(Info.Sender).FDestinationY) then MoveResult.Code := 0
     else if TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled(1) or
@@ -413,8 +413,8 @@ begin
       (TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide = csDefender) or
       TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($42) or
       TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($24) or
-      (TCombatMoveControl(Info.Sender).FMoveFlags and $20 <> 0) or
-      (TCombatMoveControl(Info.Sender).FMoveFlags and $10 <> 0) then Result := 1
+      ((mmClimbing in TCombatMoveControl(Info.Sender).FMoveFlags)) or
+      ((mmaiWall in TCombatMoveControl(Info.Sender).FMoveFlags)) then Result := 1
     else if TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetAbilityEnabled($3B) then Result := 0
     else if TCombatMoveControl(Info.Sender).FMovePointTable[Info.MapField.TerrainType, 8] <> 0 then
       Result := 1
