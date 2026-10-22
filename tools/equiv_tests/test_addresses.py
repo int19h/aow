@@ -5,6 +5,47 @@ import equiv as e
 from .support import build, p32
 
 class Addresses(unittest.TestCase):
+    def test_dynamic_local_cfg_consultation_blocks_other_routes(self):
+        from unittest.mock import patch
+        for route in ('verify','verify_fast'):
+            checker,fn = build('b801000000c3','b801000000c3')
+            def failure(*args,**kwargs):
+                checker.inp.addresses.consulted.add((0x401001,0x401001,'local-cfg'))
+                raise e.NotProven('dynamically consulted identity')
+            with patch.object(checker,route,side_effect=failure), \
+                 patch.object(e,'verify_frames',return_value=('PROVEN','')) as frames, \
+                 patch.object(checker,'houdini',return_value=('PROVEN','')) as inference:
+                self.assertEqual('NOT PROVEN',checker.check(fn)[0])
+                frames.assert_not_called()
+                inference.assert_not_called()
+
+    def test_local_cfg_is_checked_scoped_and_explained(self):
+        from .synthetic import finally_program
+        a, ar = finally_program()
+        for changed in (False, True):
+            b, br = finally_program(True, changed)
+            checker, fn = build(a,b,relocs=(ar,br),names=[(0x401300,'System.@HandleFinally')])
+            addr = checker.inp.addresses
+            saved = dict(addr.forward), dict(addr.reverse), dict(addr.provenance)
+            status, _ = checker.check(fn)
+            self.assertEqual('NOT PROVEN' if changed else 'PROVEN', status)
+            self.assertIn('local-cfg', {p for _,_,p in addr.consulted})
+            self.assertEqual(saved, (addr.forward,addr.reverse,addr.provenance))
+            if not changed:
+                import contextlib, io, json
+                from unittest.mock import patch
+                checker.inp.explain, checker.inp.mutate = True, 0
+                output = io.StringIO()
+                with patch.object(e, 'Inputs', return_value=checker.inp), contextlib.redirect_stdout(output):
+                    e.main([])
+                records = [json.loads(line[8:]) for line in output.getvalue().splitlines() if line.startswith('EXPLAIN ')]
+                proof = next(r for r in records if r.get('function') == fn.name)
+                self.assertEqual({(hex(a),hex(b),p) for a,b,p in addr.consulted},
+                                 {(r['original'],r['compiled'],r['source']) for r in proof['consulted']})
+                with patch.object(checker,'verify_fast',side_effect=e.NotProven('route guard')), \
+                     patch.object(e,'verify_frames',return_value=('PROVEN','')):
+                    self.assertEqual('NOT PROVEN',checker.check(fn)[0])
+
     def test_relocated_displacements(self):
         for opcode in (bytes.fromhex('8b83'), bytes.fromhex('8b048d'), bytes.fromhex('8b848b')):
             a, b = opcode + p32(0x402000) + b'\xc3', opcode + p32(0x402010) + b'\xc3'

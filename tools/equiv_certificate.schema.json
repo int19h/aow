@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aow:equiv-certificate:1",
+  "title": "Incremental equivalence certificate; no replay authority before step 9",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "stage", "versions", "inputs", "function", "decoded_ranges", "roots", "cfg_pairing", "bindings", "storage_ranges", "hypotheses", "callees", "dependencies", "invariants", "frame_relations", "event_rules", "proof_results", "diagnostics"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "stage": {"const": "incomplete"},
+    "versions": {"type": "object", "description": "Source commit and tool, schema, semantics versions/hashes"},
+    "inputs": {"type": "object", "description": "SHA256 of binaries, maps, signatures, aliases and contracts"},
+    "function": {"type": "object"},
+    "decoded_ranges": {"type": "array"},
+    "roots": {"type": "array"},
+    "cfg_pairing": {"type": "array"},
+    "bindings": {"type": "array", "description": "Original/compiled identity, provenance and supporting record"},
+    "storage_ranges": {"type": "array"},
+    "hypotheses": {"type": "object", "additionalProperties": false, "required": ["H1","H2","H3","H4","H5","H6","H7","H8","H9"], "patternProperties": {"^H[1-9]$": {"type": "object", "required": ["status","predicate","evidence"], "properties": {"status": {"enum": ["discharged","assumed","unsupported"]}, "predicate": {}, "evidence": {"type": "array"}}, "additionalProperties": false}}},
+    "callees": {"type": "array"},
+    "dependencies": {"type": "array"},
+    "invariants": {"type": "array"},
+    "frame_relations": {"type": "array"},
+    "event_rules": {"type": "array"},
+    "proof_results": {"type": "array"},
+    "diagnostics": {"type": "array"}
+  }
+}

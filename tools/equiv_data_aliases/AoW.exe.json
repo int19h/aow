@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "module": {
+    "original_sha256": "41487bc3aaa83e6e208e83bf30d0c7c8afdacfcb4528d67bbe2660e4cf97d48d",
+    "compiled_sha256": "4b2c772f75ab24a972cd689b07687d5c875d49858bcada41c46f69c7956678d3"
+  },
+  "entries": [
+    {
+      "id": "proposal-03",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original IAT DLL/name GFXE.AlphaBlendTable and compiled initial pointee against unambiguous MAP AlphaBlendTable."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-03; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-03.original",
+        "cells": [
+          {
+            "address": "0x45d6a8",
+            "section": ".idata"
+          }
+        ],
+        "pointee": {
+          "scope": "GFXE",
+          "symbol": "AlphaBlendTable",
+          "via": "iat",
+          "dll": "gfxepack.dpl"
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "Fable independently reviewed immutability; loader writes the IAT before entry only",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-03.compiled",
+        "cells": [
+          {
+            "address": "0x61ef00",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "GFXE",
+          "symbol": "AlphaBlendTable",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/Gfxepack/GFXE.pas:795: AlphaBlendTable: TLookupBlendTableCollection100;",
+            "src/delphi3/Gfxepack/GFXE.pas:12881: AlphaBlendTable := TLookupBlendTableCollection100.Create;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "proposal-04",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original IAT DLL/name AoWE.AoWHSMap and compiled initial pointee against unambiguous MAP AoWHSMap."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-04; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-04.original",
+        "cells": [
+          {
+            "address": "0x45df7c",
+            "section": ".idata"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "iat",
+          "dll": "aowepack.dpl"
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "Fable independently reviewed immutability; loader writes the IAT before entry only",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-04.compiled",
+        "cells": [
+          {
+            "address": "0x61f5d0",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEd/NewMapDialog.pas:52: AoWHSMap := TAoWHSMap(AoWEngine.NewHSM($20011));",
+            "src/delphi3/AoWEPACK/AGCPlugins.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWHex.pas:104: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWRoad.pas:33: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWTer.pas:43: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:50: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Cave.pas:85: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/City.pas:365: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Crops.pas:107: WorldMap: PCropMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Farm.pas:50: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:349: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:194: GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:376: SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/HolyG.pas:84: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/HxBridge.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ItemExpS.pas:75: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/MagicSanctuary.pas:62: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ManaCrystals.pas:66: const WorldMap: PCrystalMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mine.pas:62: const WorldMap: PMineMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mountain.pas:94: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Sign.pas:73: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Spring.pas:54: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:142: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Teleport.pas:78: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5967: AoWHSMap := nil;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5979: AoWHSMap := TAoWHSMap(Value);",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:4: AoWHSMap: TAoWHSMap;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "proposal-07",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original IAT DLL/name AoWE.AoWHSSet and compiled initial pointee against unambiguous MAP AoWHSSet."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-07; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-07.original",
+        "cells": [
+          {
+            "address": "0x45df78",
+            "section": ".idata"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "iat",
+          "dll": "aowepack.dpl"
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "Fable independently reviewed immutability; loader writes the IAT before entry only",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "proposal-07.compiled",
+        "cells": [
+          {
+            "address": "0x61f23c",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/AoWHex.pas:105: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:51: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/City.pas:366: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:350: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:195: GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:375: SpellHSSet: PSpellHSSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/HolyG.pas:85: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Mountain.pas:95: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:87: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:143: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Teleport.pas:79: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitGrid.pas:47: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitIGrd.pas:49: const WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:68: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/inc/AoWAb.PAS:1235: AbilitySet := @AoWHSSet; if A1.GetAbEnabled(21) then",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5959: AoWHSSet := FGameSet;",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:5: AoWHSSet: TAoWHSSet;  { $558FA044 }",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    }
+  ]
+}

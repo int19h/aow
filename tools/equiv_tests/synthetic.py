@@ -6,6 +6,13 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    for changed in (False, True):
+        a, ar = finally_program()
+        b, br = finally_program(True, changed)
+        yield fixture('local_cfg_continuation/' + str(changed), a, b,
+                      'A relocated continuation is checked; retargeting changes the return.',
+                      'reject' if changed else 'prove', relocs=(ar,br),
+                      names=[(0x401300, 'System.@HandleFinally')])
     yield fixture('DF_return', 'fc c3', 'fd c3', 'Different direction flags at return.')
     yield fixture('missing_read_fault', '8b01 b800000000 c3', '90 b800000000 c3',
                   'ECX may be inaccessible; only the first execution faults.')
@@ -133,6 +140,28 @@ class Assembler:
                 item = op + p32(value)
             out += item
         return out
+
+
+def finally_program(pad=False, retarget=False):
+    p = Assembler()
+    p.put(bytes.fromhex('55 89e5 31c0') + (b'\x90' if pad else b''))
+    p.put(b'\x55')
+    p.reference(b'\x68', 'descriptor')
+    p.put(bytes.fromhex('64ff30 648920 5a 59 59 64891500000000'))
+    p.reference(b'\x68', 'bad' if retarget else 'good')
+    p.label('cleanup')
+    p.put(bytes.fromhex('31c0 c3'))
+    p.label('descriptor')
+    p.put(b'\xe9' + p32(0x401300 - (0x401000 + p.size + 5)))
+    p.reference(b'\xe9', 'cleanup', True)
+    p.label('good')
+    p.put(bytes.fromhex('b801000000 31d2 c9 c3'))
+    p.label('bad')
+    p.put(bytes.fromhex('b802000000 31d2 c9 c3'))
+    data = p.finish()
+    relocs = [0x401000+i+1 for i in range(len(data)-4) if data[i] == 0x68
+              and int.from_bytes(data[i+1:i+5], 'little') in [0x401000+x for x in p.labels.values()]]
+    return data, relocs
 
 
 def fs_program(before):

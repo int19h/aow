@@ -20,8 +20,8 @@ private stack bytes while retaining arbitrary aliases in the unified array.
 
 Reads and writes update the arrays; they are not ordered observable events.
 Array equality is checked at calls, returns and inductive block boundaries.
-PE relocation is by named symbols, consistent MATCH instruction positions,
-function-local bijections and checked constant objects. The
+PE relocation is by independent names, reviewed aliases,
+checked local CFG correspondences and typed constant objects. The
 comparison is in this common address space, as for a relocated executable.
 Unresolved addresses, instruction forms and control flow fail closed.
 """
@@ -78,6 +78,8 @@ class NotProven(Exception):
 
 
 def bv(v, bits=32):
+    if z3.is_bv(v):
+        return v if v.size() == bits else z3.Extract(bits-1, 0, v) if v.size() > bits else z3.ZeroExt(bits-v.size(), v)
     return z3.BitVecVal(v % (1 << bits), bits)
 
 
@@ -185,6 +187,7 @@ class Inputs:
         self.mutate = 0
         self.show = None
         self.explain = False
+        self.data_aliases = []
         while argv and argv[0].startswith('--'):
             opt = argv.pop(0)
             if opt == '--quiet':
@@ -195,6 +198,8 @@ class Inputs:
                     raise ValueError('--mutate must be nonnegative')
             elif opt == '--explain':
                 self.explain = True
+            elif opt == '--data-alias':
+                self.data_aliases.append(pathlib.Path(argv.pop(0)))
             elif opt == '--show':
                 self.show = argv.pop(0)
             elif opt == '--alias':
@@ -211,6 +216,7 @@ class Inputs:
         exe, mapf, orig, sigf, *classes = argv
         self.original_path = pathlib.Path(orig)
         self.old, self.new = match.Image(orig), match.Image(exe)
+        self.image_paths = (pathlib.Path(orig), pathlib.Path(exe))
         self.syms, _ = match.map_symbols(mapf)
         with open(sigf, encoding='utf-8') as f:
             self.sigs = {fn['name'].split('@')[0]: (int(fn['addr'], 16), fn['size']) for fn in json.load(f)}
@@ -293,6 +299,10 @@ class Addresses:
         self.old, self.new = inp.old, inp.new
         self.forward = {}
         self.provenance = {}
+        self.consulted = set()
+        self.pointer_cells = [{}, {}]
+        self.pointee_symbols = [{}, {}]
+        self.allow_local_cfg = True
         self.unresolved = set()
         self.binding_source = 'independent-name'
         self.reverse = {}
@@ -409,6 +419,12 @@ class Addresses:
                 if len(aa) == len(bb) == 1:
                     self.bind(aa[0], bb[0])
         self.install_content()
+        from equiv_records import load_aliases
+        for path in getattr(inp, 'data_aliases', ()):
+            for a, b, size, record in load_aliases(path, inp, self):
+                for offset in range(size):
+                    if not self.bind(a + offset, b + offset, 'reviewed-data:' + record):
+                        raise ValueError('reviewed alias conflicts with existing binding')
 
     def content_records(self, side):
         """Typed immutable objects and loader identities, indexed by contents.
@@ -565,7 +581,25 @@ class Addresses:
         self.provenance.setdefault((a, b), source or self.binding_source)
         return True
 
+    def import_pointee(self, anchor, target, original_cell):
+        # The disk IAT word is an RVA, never the runtime address of the global.
+        # A scoped loader symbol is a shared symbolic address, not cell storage.
+        import hashlib
+        symbol = z3.BitVec('import_pointee_' + hashlib.sha256(repr(anchor).encode()).hexdigest(),32)
+        if target in self.reverse:
+            raise ValueError('import pointee conflicts with an existing storage identity')
+        evidence = (original_cell,target,'independent-name:pointee:' + anchor[1] + ':' + anchor[2])
+        for side,key in ((0,anchor),(1,target)):
+            previous = self.pointee_symbols[side].get(key)
+            if previous is not None and not z3.eq(previous[0],symbol):
+                raise ValueError('conflicting named import pointee')
+            self.pointee_symbols[side][key] = symbol,evidence
+
     def canonical(self, side, value, local):
+        if value in self.pointee_symbols[side]:
+            symbol, evidence = self.pointee_symbols[side][value]
+            self.consulted.add(evidence)
+            return symbol
         value &= 0xffffffff
         img = (self.old, self.new)[side]
         if not img.contains(value):
@@ -573,8 +607,15 @@ class Addresses:
         if value in self.conflicts:
             raise Unsupported('ambiguous relocation')
         if side == 0 and value in self.forward:
+            self.consulted.add((value, self.forward[value], self.provenance[value, self.forward[value]]))
+            if not self.allow_local_cfg and self.provenance[value,self.forward[value]] == 'local-cfg':
+                raise Unsupported('local-cfg identity requires its structural proof route')
             return value
         if side == 1 and value in self.reverse:
+            a = self.reverse[value]
+            self.consulted.add((a, value, self.provenance[a, value]))
+            if not self.allow_local_cfg and self.provenance[a,value] == 'local-cfg':
+                raise Unsupported('local-cfg identity requires its structural proof route')
             return self.reverse[value]
         self.unresolved.add((side, value))
         raise Unsupported('unresolved image address 0x%x (no independent identity)' % value)
@@ -739,6 +780,8 @@ class State:
         return value
 
     def store(self, addr, value, fs=False):
+        if hasattr(self, 'cell_guard'):
+            self.cell_guard(addr, value.size() // 8, fs)
         if hasattr(self, 'escape_base') and contains_pointer(value, self.escape_base):
             self.escaped = True
         mem = self.fs if fs else self.memory
@@ -782,6 +825,22 @@ def arbitrary(candidates, flag_candidates):
 
 
 class Machine:
+    def guard_pointer_cells(self, address, size, fs=False):
+        concrete = simp(address)
+        if not fs and z3.is_bv_value(concrete):
+            for cell in self.addresses.pointer_cells[self.side]:
+                canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell,cell)
+                if any((concrete.as_long()+i) & 0xffffffff == (canonical_cell+k) & 0xffffffff
+                       for i in range(size) for k in range(4)):
+                    raise Unsupported('write to accepted pointer cell 0x%x' % cell)
+        if fs and getattr(self.addresses, 'active_cells', ((),()))[self.side]:
+            raise Unsupported('FS write may alias accepted pointer cell (segment relation unproved)')
+        for cell in getattr(self.addresses, 'active_cells', ((),()))[self.side]:
+            canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell, cell)
+            if not prove([z3.And(*(address+bv(i) != bv(canonical_cell+k)
+                                  for i in range(size) for k in range(4)))]):
+                raise Unsupported('write may overlap accepted pointer cell 0x%x' % cell)
+
     def __init__(self, addresses, side, local):
         self.addresses, self.side, self.local = addresses, side, local
         if not hasattr(addresses, '_dynamic_targets'):
@@ -825,6 +884,11 @@ class Machine:
             return bv(op.imm, op.size * 8)
         if op.type == X.X86_OP_MEM:
             if not op.mem.base and not op.mem.index and not op.mem.segment:
+                cells = self.addresses.pointer_cells[self.side]
+                if op.mem.disp in cells and op.size == 4:
+                    pointee, record = cells[op.mem.disp]
+                    self.addresses.consulted.add((op.mem.disp, op.mem.disp, 'pointer-cell:' + record))
+                    return self.constant(pointee)
                 imports = getattr(self.addresses, 'import_bytes', ((), ()))[self.side]
                 # On-disk IAT words are loader RVAs, not the runtime function
                 # pointers. Read the paired symbolic cell, so intervening or
@@ -896,6 +960,7 @@ class Machine:
         return conditions[suffix]
 
     def step(self, st, ins):
+        st.cell_guard = self.guard_pointer_cells
         m, oo = ins.mnemonic, ins.operands
         if ins.raw.addr_size != 4:
             raise Unsupported('16-bit address size')
@@ -1173,7 +1238,7 @@ def successors(insns, index):
     return (fall,)
 
 
-def blocks(insns, entry=0):
+def blocks(insns, entry=0, preserve=False):
     reachable = {}
     todo = [entry]
     while todo:
@@ -1199,7 +1264,7 @@ def blocks(insns, entry=0):
         result[i] = (seq, reachable[seq[-1]])
     # Layout-only trampolines are epsilon transitions. Keep self loops, and
     # never remove instructions whose prefixes / operand sizes need modeling.
-    changed = True
+    changed = not preserve
     while changed:
         changed = False
         for h, (seq, edges) in list(result.items()):
@@ -2195,24 +2260,95 @@ class Checker:
             # checked, and the ordered class/handler table is an input event.
             self.verify(aa, bb, (d, e), frozenset((r, r, lane) for r in ('eax', 'edx', 'ecx', 'ebp', 'esp') for lane in range(4)), ())
 
+    def local_cfg(self, a, b, ar, br):
+        """Propose only local block identities; all regions still need proof.
+
+        A single bijection covers ordinary and exceptional roots. In particular
+        continuation targets must agree with the ordinary CFG, not push positions.
+        No external address or arbitrary instruction interior enters this map.
+        """
+        if len(ar) != len(br):
+            raise NotProven('exception frames do not pair')
+        variants = [(a, b, 0, 0)]
+        for (d, roots, ret, meta), (e, other, oret, ometa) in zip(ar, br):
+            if len(roots) != len(other) or len(meta) != len(ometa):
+                raise NotProven('exception handlers do not pair')
+            aa, bb = [[dataclasses.replace(i) for i in code] for code in (a, b)]
+            for code, entry, targets, cleanup in ((aa,d,roots,ret),(bb,e,other,oret)):
+                code[entry].flow = tuple(targets)
+                if cleanup is not None:
+                    code[cleanup].flow = ()
+            variants.append((aa, bb, d, e))
+        pairs, reverse = {}, {}
+        for aa, bb, d, e in variants:
+            graphs = blocks(aa, d, preserve=True), blocks(bb, e, preserve=True)
+            todo, seen = [(d, e)], set()
+            while todo:
+                i, j = todo.pop()
+                if (i,j) in seen:
+                    continue
+                seen.add((i,j))
+                x, y = aa[i].address, bb[j].address
+                if pairs.get(x,y) != y or reverse.get(y,x) != x:
+                    raise NotProven('local CFG identities conflict')
+                pairs[x], reverse[y] = y, x
+                left, right = graphs[0][i][1], graphs[1][j][1]
+                if len(left) != len(right):
+                    raise NotProven('local CFG edges do not pair')
+                todo.extend(zip(left, right))
+        return pairs
+
     def check(self, fn, mutated=None):
         addresses = self.inp.addresses
-        saved = addresses.forward, addresses.reverse, addresses.conflicts
+        saved = addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance
+        addresses.consulted.clear()
+        addresses.unresolved.clear()
         # Proof attempts use snapshots of independently established bindings.
         # No proof route may teach the next proof an identity.
         addresses.forward = dict(addresses.forward)
         addresses.reverse = dict(addresses.reverse)
         addresses.conflicts = set(addresses.conflicts)
+        addresses.provenance = dict(addresses.provenance)
+        self.local_cfg_only = False
         try:
             a, b = self.instructions(fn)
             a, ar = self.exception_regions(a, 0)
             b, br = self.exception_regions(b, 1)
             if mutated is not None:
                 b, br = self.exception_regions(mutated, 1)
+            addresses.active_cells = [set(), set()]
+            for side, code in enumerate((a,b)):
+                for ins in code:  # Include unreachable suffixes, not only the chosen proof path.
+                    for index, op in enumerate(ins.operands):
+                        if op.type != X.X86_OP_MEM or op.mem.base or op.mem.index or op.mem.segment:
+                            continue
+                        overlaps = {cell for cell in addresses.pointer_cells[side]
+                                    if max(cell,op.mem.disp) < min(cell+4,op.mem.disp+op.size)}
+                        if overlaps and ins.raw.operands[index].access & CS.CS_AC_WRITE:
+                            raise Unsupported('write to accepted pointer cell')
+                        addresses.active_cells[side].update(overlaps)
+            try:
+                local = self.local_cfg(a, b, ar, br)
+            except (NotProven, Unsupported):
+                local = {}  # Other routes may prove code needing no local identity.
+            for x, y in local.items():
+                if a[0].address <= x < max(i.address+i.size for i in a) and b[0].address <= y < fn.nva+fn.nsize:
+                    if not addresses.bind(x, y, 'local-cfg'):
+                        raise NotProven('local CFG binding conflicts')
+            self.local_cfg_only = any(addresses.provenance.get((v,addresses.forward.get(v)) if side == 0
+                                      else (addresses.reverse.get(v),v)) == 'local-cfg'
+                                      for side,code in enumerate((a,b)) for ins in code
+                                      if not ins.mnemonic.startswith('j')
+                                      for v in (*ins.eh, *(addresses.absolute(side, ins, op) for op in ins.operands)) if v is not None)
             self.verify_regions(a, b, ar, br)
+            if self.local_cfg_only:
+                return self.verify_fast(a, b)  # No alternate pairing may reuse these identities.
             try:
                 return self.verify(a, b)
             except (NotProven, Unsupported) as first:
+                if any(p == 'local-cfg' for _,_,p in addresses.consulted):
+                    raise first
+                addresses.allow_local_cfg = False
                 try:
                     return verify_frames(self, a, b)
                 except (NotProven, Unsupported):
@@ -2241,9 +2377,21 @@ class Checker:
         except NotProven as e:
             return 'NOT PROVEN', str(e)[:80]
         finally:
-            addresses.forward, addresses.reverse, addresses.conflicts = saved
+            addresses.allow_local_cfg = True
+            addresses.active_cells = [set(),set()]
+            self.local_cfg_only = False
+            addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance = saved
 
     def verify(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
+        saved = self.inp.addresses.allow_local_cfg
+        try:
+            return self.verify_paired(a,b,entry,entry_candidates,entry_flags)
+        finally:
+            self.inp.addresses.allow_local_cfg = saved
+
+    def verify_paired(self, a, b, entry, entry_candidates, entry_flags):
+        if getattr(self, 'local_cfg_only', False):
+            return self.verify_fast(a, b, entry, entry_candidates, entry_flags)
         # Keep the inexpensive structural proof as a sufficient fast path.
         # Liveness is computed before relational candidate discovery.
         graphs = [blocks(a, entry[0]), blocks(b, entry[1])]
@@ -2251,6 +2399,9 @@ class Checker:
         try:
             return self.verify_fast(a, b, entry, entry_candidates, entry_flags)
         except NotProven as first:
+            if any(p == 'local-cfg' for _,_,p in self.inp.addresses.consulted):
+                raise first
+            self.inp.addresses.allow_local_cfg = False
             if str(first) != 'control-flow graphs do not pair':
                 try:
                     return self.houdini(a, b, graphs, live, entry, entry_candidates, entry_flags)
@@ -2836,7 +2987,7 @@ def main(argv=None):
             inp.addresses.unresolved.clear()
             status, reason = checker.check(fn)
             if inp.explain:
-                print('EXPLAIN ' + json.dumps(dict(function=fn.name, unresolved=[dict(side=s, address=hex(a)) for s,a in sorted(inp.addresses.unresolved)])), flush=True)
+                print('EXPLAIN ' + json.dumps(dict(function=fn.name, consulted=[dict(original=hex(a), compiled=hex(b), source=p) for a,b,p in sorted(inp.addresses.consulted)], unresolved=[dict(side=s, address=hex(a)) for s,a in sorted(inp.addresses.unresolved)])), flush=True)
             counts[status] += 1
             print(fn.name + ' ' + status + (' ' + reason if reason else ''), flush=True)
     if inp.mutate:

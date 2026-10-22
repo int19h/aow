@@ -1,0 +1,528 @@
+{
+  "schema_version": 1,
+  "module": {
+    "original_sha256": "58dd81b56fa3e0873bf20a63c40e11f785358767bb261dc8f63a827db12be1cc",
+    "compiled_sha256": "effae60f41f107eaf57cd4022f13ddfb64468617e5e8a525a0ee5361d9c97f91"
+  },
+  "entries": [
+    {
+      "id": "proposal-01",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original IAT DLL/name System.RandSeed and compiled initial pointee against unambiguous MAP RandSeed."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-01; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-01.original",
+        "cells": [
+          {
+            "address": "0x558fb720",
+            "section": ".idata"
+          }
+        ],
+        "pointee": {
+          "scope": "System",
+          "symbol": "RandSeed",
+          "via": "iat",
+          "dll": "vcl30.dpl"
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "Fable independently reviewed immutability; loader writes the IAT before entry only",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-01.compiled",
+        "cells": [
+          {
+            "address": "0x583b34",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "System",
+          "symbol": "RandSeed",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/Animation.pas:547: RandSeed := GetXhx + AoWHSMap.FInitialRandomSeed + GetYhx * 3;",
+            "src/delphi3/AoWEPACK/Animation.pas:571: RandSeed := OldSeed;",
+            "src/delphi3/AoWEPACK/City.pas:369: RandomSeed: ^Integer = @System.RandSeed;",
+            "src/delphi3/AoWEPACK/City.pas:3310: RandomSeed := @System.RandSeed;",
+            "src/delphi3/AoWEPACK/CitySpells.pas:672: RandSeed := 0; { Original resets the process-wide random seed for every draw. }",
+            "src/delphi3/AoWEPACK/Dungeon.pas:86: RandomSeed: ^Integer = @System.RandSeed;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:336: RandomSeed := @System.RandSeed;",
+            "src/delphi3/AoWEPACK/ExploreS.pas:306: RandSeed := AoWHSMap.FDefendersSeed;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:707: RandSeed := AoWHSMap.Frame - Anim.FFrameCounter;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:1597: RandSeed := WorldMap^.Frame - Anim.FFrameCounter;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:1701: RandSeed := WorldMap^.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:1775: RandSeed := MapF.Xhx + MapF.Yhx * 8 + (PByteArray(MapF)^[$1A] shl 16);",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:270: RandSeed := GlobalSpellMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:472: RandSeed := GlobalSpellMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:1241: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:849: RandSeed := SpellHSMap^.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:1287: RandSeed := SpellHSMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:1612: RandSeed := SpellHSMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:1958: RandSeed := SpellHSMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:2157: RandSeed := SpellHSMap^.FInitialRandomSeed;",
+            "src/delphi3/AoWEPACK/HolyG.pas:88: RandomSeed: ^Integer = @System.RandSeed;",
+            "src/delphi3/AoWEPACK/HolyG.pas:409: RandomSeed := @System.RandSeed;",
+            "src/delphi3/AoWEPACK/ItemExpS.pas:77: RandomSeed: ^Integer = @System.RandSeed;",
+            "src/delphi3/AoWEPACK/ItemExpS.pas:222: RandomSeed := @System.RandSeed;",
+            "src/delphi3/AoWEPACK/PoisonP.pas:129: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/PrdPlace.pas:641: RandSeed := AoWHSMap.Random($FFFFF);",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:87: RandomSeed: ^Integer = @System.RandSeed;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:418: RandomSeed := @System.RandSeed;",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3471: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3478: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3485: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3492: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3499: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3506: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3513: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3520: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3527: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3534: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3541: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:3558: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:4071: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:4076: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/AoWTC.pas:4191: RandSeed := Y * 128 + X + L * 16384 + AoWHSMap.FInitialRandomSeed;",
+            "src/delphi3/AoWTCPCK/CityWall.pas:242: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:249: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:256: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:263: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:271: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:279: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:286: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:293: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:301: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:309: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CityWall.pas:316: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:116: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:123: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:130: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:137: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:144: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:151: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:159: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:167: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:174: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:181: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:188: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:196: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatStructure.pas:202: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:184: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:356: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:607: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:707: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:742: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:768: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:776: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:784: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:792: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:800: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:808: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:816: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:824: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:846: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:1043: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:1179: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTE.pas:1226: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:162: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:168: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:174: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:180: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:186: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:192: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:200: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:209: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:216: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:222: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:228: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:235: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWTCPCK/CombatTerrain.pas:241: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/AoWHSMap.PAS:2237: RandSeed := FDefendersSeed;",
+            "src/delphi3/AoWEPACK/inc/AoWHSMap.PAS:2709: RandSeed := FDefendersSeed;",
+            "src/delphi3/AoWEPACK/inc/AoWHSMap.PAS:3132: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/AoWHSMap.PAS:3139: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/AoWHSMap.PAS:3174: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:2471: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:2541: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5307: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Combat.pas:6621: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Diplomacy.pas:768: RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Shortint(FSource) + Shortint(FTarget)) shr 2;",
+            "src/delphi3/AoWEPACK/inc/Diplomacy.pas:1597: RandSeed := AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source;",
+            "src/delphi3/AoWEPACK/inc/Diplomacy.pas:1603: RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source) shr 2;",
+            "src/delphi3/AoWEPACK/inc/Diplomacy.pas:1609: RandSeed := AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + Source + 1;",
+            "src/delphi3/AoWEPACK/inc/Diplomacy.pas:1938: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Hero.PAS:807: RandSeed := (AoWHSMap.FInitialRandomSeed + AoWHSMap.FDay + FUnitID * 16) and $FF8;",
+            "src/delphi3/AoWEPACK/inc/Hero.PAS:809: RandSeed := Seed;",
+            "src/delphi3/AoWEPACK/inc/Hero.PAS:1250: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Player.PAS:785: RandSeed := AoWHSMap.Random($FFFFF);",
+            "src/delphi3/AoWEPACK/inc/Spells.PAS:1525: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "src/delphi3/AoWEPACK/inc/Structur.PAS:1740: RandSeed := GetXhx + AoWHSMap.FInitialRandomSeed + GetYhx;",
+            "src/delphi3/AoWEPACK/inc/Structur.PAS:3647: RandSeed := AoWHSMap.Random($FFFFFF);",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "proposal-12",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original PE export AoWE.AoWHSMap and compiled initial pointee against unambiguous MAP AoWHSMap."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-12; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-12.original",
+        "cells": [
+          {
+            "address": "0x558e9494",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "export"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEd/NewMapDialog.pas:52: AoWHSMap := TAoWHSMap(AoWEngine.NewHSM($20011));",
+            "src/delphi3/AoWEPACK/AGCPlugins.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWHex.pas:104: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWRoad.pas:33: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWTer.pas:43: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:50: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Cave.pas:85: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/City.pas:365: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Crops.pas:107: WorldMap: PCropMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Farm.pas:50: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:349: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:194: GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:376: SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/HolyG.pas:84: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/HxBridge.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ItemExpS.pas:75: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/MagicSanctuary.pas:62: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ManaCrystals.pas:66: const WorldMap: PCrystalMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mine.pas:62: const WorldMap: PMineMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mountain.pas:94: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Sign.pas:73: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Spring.pas:54: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:142: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Teleport.pas:78: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5967: AoWHSMap := nil;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5979: AoWHSMap := TAoWHSMap(Value);",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:4: AoWHSMap: TAoWHSMap;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-12.compiled",
+        "cells": [
+          {
+            "address": "0x58301c",
+            "section": "DATA"
+          },
+          {
+            "address": "0x583b48",
+            "section": "DATA"
+          },
+          {
+            "address": "0x58300c",
+            "section": "DATA"
+          },
+          {
+            "address": "0x5830c8",
+            "section": "DATA"
+          },
+          {
+            "address": "0x5832c4",
+            "section": "DATA"
+          },
+          {
+            "address": "0x5831e4",
+            "section": "DATA"
+          },
+          {
+            "address": "0x583030",
+            "section": "DATA"
+          },
+          {
+            "address": "0x5831f8",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEd/NewMapDialog.pas:52: AoWHSMap := TAoWHSMap(AoWEngine.NewHSM($20011));",
+            "src/delphi3/AoWEPACK/AGCPlugins.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWHex.pas:104: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWRoad.pas:33: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/AoWTer.pas:43: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:50: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Cave.pas:85: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/City.pas:365: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Crops.pas:107: WorldMap: PCropMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Farm.pas:50: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:349: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:194: GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:376: SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;",
+            "src/delphi3/AoWEPACK/HolyG.pas:84: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/HxBridge.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ItemExpS.pas:75: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/MagicSanctuary.pas:62: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/ManaCrystals.pas:66: const WorldMap: PCrystalMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mine.pas:62: const WorldMap: PMineMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Mountain.pas:94: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Sign.pas:73: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:86: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Spring.pas:54: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:142: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/Teleport.pas:78: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:83: WorldMap: PAoWMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:67: WorldMap: PAoWHSMap = @AoWE.AoWHSMap;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5967: AoWHSMap := nil;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5979: AoWHSMap := TAoWHSMap(Value);",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:4: AoWHSMap: TAoWHSMap;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "proposal-13",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original PE export AoWE.AoWEngine and compiled initial pointee against unambiguous MAP AoWEngine."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-13; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-13.original",
+        "cells": [
+          {
+            "address": "0x558e945c",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWEngine",
+          "via": "export"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/AoWE.pas:104: AoWEngine := nil;",
+            "src/delphi3/AoWEPACK/City.pas:367: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:351: WorldEngine: PAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:196: GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:377: SpellEngine: PSpellEngine = @AoWEngine;",
+            "src/delphi3/AoWEPACK/HolyG.pas:86: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:85: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/UnitGrid.pas:48: WorldEngine: PAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5767: AoWEngine := Self;",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:3: AoWEngine: TAoWEngine;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-13.compiled",
+        "cells": [
+          {
+            "address": "0x583ae0",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWEngine",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/AoWE.pas:104: AoWEngine := nil;",
+            "src/delphi3/AoWEPACK/City.pas:367: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:351: WorldEngine: PAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:196: GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:377: SpellEngine: PSpellEngine = @AoWEngine;",
+            "src/delphi3/AoWEPACK/HolyG.pas:86: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:85: WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/UnitGrid.pas:48: WorldEngine: PAoWEngine = @AoWE.AoWEngine;",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5767: AoWEngine := Self;",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:3: AoWEngine: TAoWEngine;",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "proposal-14",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-1.md; pinned step2b inputs",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "Fable verified original PE export AoWE.AoWHSSet and compiled initial pointee against unambiguous MAP AoWHSSet."
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell, independently reviewed by Fable"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "ACCEPT pointer-cell only, alias-decisions-1.md proposal-14; no cell-to-cell storage identity."
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-14.original",
+        "cells": [
+          {
+            "address": "0x558e92e8",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "export"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/AoWHex.pas:105: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:51: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/City.pas:366: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:350: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:195: GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:375: SpellHSSet: PSpellHSSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/HolyG.pas:85: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Mountain.pas:95: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:87: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:143: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Teleport.pas:79: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitGrid.pas:47: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitIGrd.pas:49: const WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:68: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/inc/AoWAb.PAS:1235: AbilitySet := @AoWHSSet; if A1.GetAbEnabled(21) then",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5959: AoWHSSet := FGameSet;",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:5: AoWHSSet: TAoWHSSet;  { $558FA044 }",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "proposal-14.compiled",
+        "cells": [
+          {
+            "address": "0x5830cc",
+            "section": "DATA"
+          }
+        ],
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Fable independently reviewed immutability; typed pointer address constant / compiler-generated unit-global address slot; not the mutable pointee",
+            "src/delphi3/AoWEPACK/AoWHex.pas:105: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/BloodShrine.pas:51: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/City.pas:366: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Dungeon.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas:350: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalSpells.pas:195: GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/GlobalTargetSpells.pas:375: SpellHSSet: PSpellHSSet = @AoWHSSet;",
+            "src/delphi3/AoWEPACK/HolyG.pas:85: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Mountain.pas:95: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SmokeCloud.pas:87: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/SummonSpells.pas:143: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/Teleport.pas:79: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnHolyG.pas:84: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitGrid.pas:47: WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/UnitIGrd.pas:49: const WorldSet: PAoWSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/WizardsTower.pas:68: WorldSet: PAoWHSSet = @AoWE.AoWHSSet;",
+            "src/delphi3/AoWEPACK/inc/AoWAb.PAS:1235: AbilitySet := @AoWHSSet; if A1.GetAbEnabled(21) then",
+            "src/delphi3/AoWEPACK/inc/Army.PAS:5959: AoWHSSet := FGameSet;",
+            "src/delphi3/AoWEPACK/inc/intf_P1_14.inc:5: AoWHSSet: TAoWHSSet;  { $558FA044 }",
+            "Source grep of Symbol := and @Symbol is recorded in source-reference-audit.json; assignments to pointees are permitted, not evidence of cell mutation."
+          ]
+        }
+      }
+    }
+  ]
+}

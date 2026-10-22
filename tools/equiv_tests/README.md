@@ -51,8 +51,9 @@ External target identities and non-CFG instruction semantics are outside this ov
 Step 2a removes positional identities: unchanged real-game baselines can therefore
 lose proof coverage until independent aliases are reviewed. Those cases explicitly
 use `pending_coverage`, reported separately from rejections, errors and false accepts.
-`equiv.py --explain` prints module binding provenance and each candidate's unresolved
-identities. Relocated displacements use PE relocation sites even with base/index;
+`equiv.py --explain` prints module binding provenance, bindings each check consulted
+with provenance (including scoped `local-cfg`), and unresolved identities.
+Relocated displacements use PE relocation sites even with base/index;
 unrelocated offsets remain literal. Synthetic positive controls still require proof.
 Refreshed builds locate Fable's same three operands by their pinned original
 addresses and instruction alignment, used only to choose the mutation site. No
