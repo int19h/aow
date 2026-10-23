@@ -353,11 +353,11 @@ begin
 end;
 
 procedure TResultsWin.P1CBChange(Sender: TObject);
-begin
-  with TAOWCheckBox(Sender) do
-  if Checked then
+var Control: TAOWCheckBox;
+begin Control := TAOWCheckBox(Sender);
+  if Control.Checked then
   begin
-    if Tag < FPlayers.Count then SideLbl.Text := AoWHSMap.FPlayers.GetPlayers(FPlayers[Tag]).GetNameEx;
+    if FPlayers.Count > Control.Tag then SideLbl.Text := AoWHSMap.FPlayers.GetPlayers(FPlayers[Control.Tag]).GetNameEx;
     ResValues.Items.Clear;
     ResValues.Items.Add('0%');
     ResValues.Items.Add('0%');

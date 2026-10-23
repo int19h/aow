@@ -435,9 +435,9 @@ begin
 end;
 
 procedure TScenSetup.RaceBehaviorCBChange(Sender: TAOWComboBox);
-begin
-  FSetupControl.hSetPlayerBehavior(FSetupControl.FSettings.IndexOfRace(Byte(Sender.Tag)),
-    Sender.Selected);
+var Control: TAOWComboBox; begin Control := Sender;
+  FSetupControl.hSetPlayerBehavior(FSetupControl.FSettings.IndexOfRace(Byte(Control.Tag)),
+    Control.Selected);
   E3Globals.TitleWindow.TitleWin.FDrawn := False;
 end;
 

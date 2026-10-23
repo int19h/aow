@@ -69,9 +69,9 @@ begin
   FHelpEvent := Event;
   FHelpEvent.AddRef;
   HeaderMemo.Items.Clear;
-  if Event.FMessage.Count > 0 then HeaderMemo.Items.Add(Event.FMessage[0]);
+  if Event.FMessage.Count > 0 then HeaderMemo.Items.Add(THelpMessageEventLog(Pointer(Event)).FMessage[0]);
   HelpMemo.Items.Clear;
-  HelpMemo.Items.AddStrings(Event.FMessage);
+  HelpMemo.Items.AddStrings(THelpMessageEventLog(Pointer(Event)).FMessage);
   if HelpMemo.Items.Count > 0 then HelpMemo.Items.Delete(0);
   if (HelpMemo.Items.Count > 0) and (HelpMemo.Items[0] = '') then HelpMemo.Items.Delete(0);
   if Event.FMode <> 0 then FDone := Done

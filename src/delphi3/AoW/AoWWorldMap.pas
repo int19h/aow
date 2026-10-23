@@ -609,15 +609,15 @@ end;
 
 
 procedure TWorldMap.PPawnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  if (X > 20) and (Sender = PPawn) then
+var Control: TObject; begin Control := Sender;
+  if (X > 20) and (Control = PPawn) then
     if GetCampaign.FState = 1 then
     begin
       GetCampaign.FState := 0;
       GetCampaign.FPage := 0;
       UpdateCampaignState;
     end;
-  TAoWComponent(Sender).FHandled := False; { Original hit test uses X. }
+  TAoWComponent(Control).FHandled := False; { Original hit test uses X. }
 end;
 
 
