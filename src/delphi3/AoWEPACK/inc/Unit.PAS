@@ -1702,7 +1702,7 @@ var
 begin
   Result := [];
   Active := DamageTypes - GetImmunityTypes;
-  if Active <> [] then
+  Active := Active; { Preserve EBX allocation and byte membership tests. } if Active <> [] then
   begin
     if (dtPoison in Active) and TP2OwnerCalls(Self).Expand(96) then
       Result := Result + [dtPoison];

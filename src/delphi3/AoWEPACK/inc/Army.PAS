@@ -1254,7 +1254,7 @@ begin
   if (Player <> FPlayer) and (Player <> -1) and (FX <> -1) then
   begin
     Field := TAoWMapField(AoWHSMap.MapContainer.GetField(FX, FY, FL));
-    Result := TAbstractUnit(FChildren.List^[Index]).ConcealedOnMapF(Field) and GetConcealedForPlayer(Player);
+    Index := Integer(FChildren.List^[Index]); { Reuse the consumed index for the selected unit. } Result := TAbstractUnit(Index).ConcealedOnMapF(Field) and GetConcealedForPlayer(Player);
   end
   else Result := False;
 end;
@@ -2368,7 +2368,7 @@ var
   Selection: Byte;
   AHero: THero;
   Locations: TXYLList;
-  I, J, Direction, X, Y, JoinCount: Integer;
+  I, J, Direction, X, Y, JoinCount, Side: Integer;
   Placed: Boolean;
 begin
   if Offer.FObject = noArmy then
@@ -2420,13 +2420,13 @@ begin
             if (Direction > 0) and (Direction <= 6) then
             begin
               Locations.AddXYL(FX, FY, FL);
-              J := Direction + 1;
-              if J > 6 then J := 1;
-              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), J, X, Y); { Original sign extends the wrapped byte coordinates here. }
+              Side := Direction + 1;
+              if Side > 6 then Side := 1;
+              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), Side, X, Y); { Original sign extends the wrapped byte coordinates here. }
               Locations.AddXYL(X, Y, FL);
-              Dec(Direction);
-              if Direction = 0 then Direction := 6;
-              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), Direction, X, Y);
+              Side := Direction - 1;
+              if Side = 0 then Side := 6;
+              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), Side, X, Y);
               Locations.AddXYL(X, Y, FL);
             end;
           end;
@@ -3256,7 +3256,7 @@ begin
   begin
     Info.Overlays := [];
     Info.Animation := uaNone;
-    Info.Frame := AoWHSMap.Frame + ((X + Y * 2) shr 4);
+    Info.Frame := AoWHSMap.Frame + ((X + Y + Y) shr 4);
     Info.Looped := True;
     FArmy.GetUnit(FUnitIndex).ShowEx(X - 16, Y - 20, SurfaceDesc, Info);
   end;

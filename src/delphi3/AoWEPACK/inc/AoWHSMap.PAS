@@ -2536,7 +2536,7 @@ end;
 
 
 procedure TAoWHSMap.Select(Sprite: THexagonSprite; Center: Boolean);
-begin
+begin Sprite := Sprite; { This eliminated copy preserves the original saved registers. }
   Selection.UnselectLocation;
   Selection.SelectLocationHS(Sprite);
   if Center then CenterViewTo(Sprite.GetXhx, Sprite.GetYhx, Sprite.GetLhx);

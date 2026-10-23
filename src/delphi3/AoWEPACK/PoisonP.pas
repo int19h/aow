@@ -280,8 +280,8 @@ procedure TPoisonPlant.NewFrameSummonAnimation(Animation: TAnimation; FrameCount
 var
   MapF: TMapField;
 begin
-  MapF := TMapField(AoWHSMap.MapContainer.GetField(Animation.GetXhx, Animation.GetYhx, Animation.GetLhx));
-  if (Self = MapF.FindOwnedChild($2039E)) and (FrameCounter = 9) then
+  Animation := TAnimation(AoWHSMap.MapContainer.GetField(Animation.GetXhx, Animation.GetYhx, Animation.GetLhx));
+  if (Self = TMapField(Animation).FindOwnedChild($2039E)) and (FrameCounter = 9) then
     FPlantStatus := FPlantStatus - [ppsSummoning];
 end;
 

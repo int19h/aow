@@ -5677,7 +5677,7 @@ begin
   Player := FCombatPlayer;
   if Player <> $FF then
   begin
-    Combat := FCombat;
+    Combat := FCombat; Combat := Combat; { This eliminated copy preserves the original saved registers. }
     Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(Player).FSideIndex)].AddChild(Self);
   end;
 end;
@@ -5689,7 +5689,7 @@ begin
   Player := FCombatPlayer;
   if Player <> $FF then
   begin
-    Combat := FCombat;
+    Combat := FCombat; Combat := Combat; { This eliminated copy preserves the original saved registers. }
     Combat.FSides[TCombatSideIndex(TCombatPlayerList(TCombatData(Combat.FCombatData).FPlayers).GetPlayers(Player).FSideIndex)].RemoveChild(Self);
   end;
 end;

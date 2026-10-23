@@ -265,8 +265,8 @@ end;
 procedure THolyGround.NewFrameSummonAnimation(Anim: TAnimation; FrameCounter: Integer);
 var Field: TMapField;
 begin
-  Field := WorldMap^.MapContainer.GetField(Anim.GetXhx, Anim.GetYhx, Anim.GetLhx);
-  if (Self = Field.FindOwnedChild($20393)) and (FrameCounter = 9) then
+  Anim := TAnimation(WorldMap^.MapContainer.GetField(Anim.GetXhx, Anim.GetYhx, Anim.GetLhx));
+  if (Self = TMapField(Anim).FindOwnedChild($20393)) and (FrameCounter = 9) then
     FMode := FMode - [hgSummoning];
 end;
 

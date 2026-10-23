@@ -1230,7 +1230,7 @@ var
 begin
   Result := True;
   Count := GetTerrainCount;
-  MapLevel := TMapLevel(Owner.Owner);
+  MapLevel := TMapLevel(Owner.Owner); MapLevel := MapLevel; { This eliminated copy preserves the original saved registers. }
   InitHNWalk(Walk, FXhx, FYhx, 0);
   while (Walk.HN < Count) and Result do
   begin

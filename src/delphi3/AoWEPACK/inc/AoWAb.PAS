@@ -2354,7 +2354,7 @@ begin
     Count := 0;
     for I := Combat.FSides[A2.GetSide].GetCount - 1 downto 0 do
     begin
-      Target := Combat.FSides[A2.GetSide].GetObjects(I);
+      A2 := A2; { Preserve the original saved registers. } Target := Combat.FSides[A2.GetSide].GetObjects(I);
       { Original tests A2's flying ability here, rather than Target's. }
       if (Target <> A2) and Target.GetEnabled and
         (Target.FPosition shr 4 = A2.FPosition shr 4) and
@@ -3357,7 +3357,7 @@ function TTurnUndeadAbility.CreateTurnUndeadCA(A1, A2: TCombatObject): TTurnUnde
 var
   Action: TTurnUndeadCA;
   Level: Integer;
-begin
+begin Self := Self; A1 := A1; { These eliminated copies preserve the original saved registers. }
   Action := TTurnUndeadCA.Create(nil);
   if HitRole(A1.GetAttack - A2.GetDefense) then
   begin

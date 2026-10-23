@@ -241,8 +241,8 @@ procedure TRaisedMountain.NewFrameRaiseTerrainAnimation(Anim: TAnimation; FrameC
 var
   Field: TMapField;
 begin
-  Field := WorldMap^.MapContainer.GetField(Anim.GetXhx, Anim.GetYhx, Anim.GetLhx);
-  if (Field.FindOwnedChild($2016A) = Self) and (FrameCounter = 9) then
+  Anim := TAnimation(WorldMap^.MapContainer.GetField(Anim.GetXhx, Anim.GetYhx, Anim.GetLhx));
+  if (TMapField(Anim).FindOwnedChild($2016A) = Self) and (FrameCounter = 9) then
     FMode := FMode - [rmRaising];
 end;
 

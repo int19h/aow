@@ -5635,15 +5635,15 @@ begin
   end;
 end;
 
-procedure TTransportMEC.UpdateTransportMeetingPoint; { Near miss: Found/index register allocation differs after three variants. }
+procedure TTransportMEC.UpdateTransportMeetingPoint; { Keep the Boolean addressable for the original local layout. }
 var
   Armies: TAIMoveExecuterArmyList;
-  I, J: Integer;
-  Found: Boolean;
   Settings: TMoveControlSettings;
   Selection: Byte;
+  I, J: Integer;
+  Found: Boolean; Spill: Pointer;
   ArmyHS: TArmyHS;
-begin
+begin Spill := @Found; { Addressability survives elimination of this assignment. }
   Found := False;
   if FExecuter.FMode * [memAdjacent, memAttack] <> [] then
   begin

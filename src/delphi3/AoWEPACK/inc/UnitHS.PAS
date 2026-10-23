@@ -593,13 +593,13 @@ end;
 
 procedure TUnitHS.SetUnitGFXResourceIndex(Value: Integer);
 var
-  Resource: TUnitGFXResource;
-begin
+  Resource, Old: TUnitGFXResource;
+begin Self := Self; { This eliminated copy preserves the original saved registers. }
   Resource := FUnitGFXResource;
   if (Resource = nil) or (Value <> Resource.GetIndex) then
   begin
-    Resource := FUnitGFXResource;
-    if Resource <> nil then Resource.Release;
+    Old := FUnitGFXResource;
+    if Old <> nil then Old.Release;
     Resource := AoWHSSet.FUnitGFXResources.GetUnitGFXResource(Value);
     FUnitGFXResource := Resource;
     if Resource <> nil then Resource.AddRef;

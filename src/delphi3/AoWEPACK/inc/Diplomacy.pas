@@ -1846,7 +1846,7 @@ var
   I, J: Integer;
   AUnit, NewUnit: TAbstractUnit;
   Hero: THero;
-  Item: TItem;
+  Item, CopyItem: TItem;
 begin
   Clear;
   if AoWHSMap <> nil then
@@ -1862,10 +1862,10 @@ begin
       Item := FLeader.FInventory.GetItem(J);
       if Item <> nil then
       begin
-        Item := TItem(Item.Copy(AoWEngine));
-        Item.SetOwner(FItems);
-        Item.FItemID := FLeader.FUnitID;
-        Item.Release;
+        CopyItem := TItem(Item.Copy(AoWEngine));
+        CopyItem.SetOwner(FItems);
+        CopyItem.FItemID := FLeader.FUnitID;
+        CopyItem.Release;
       end;
     end;
     FLeader.FInventory.Clear;
@@ -1874,10 +1874,10 @@ begin
       Item := FLeader.FHeroItems.GetItem(J);
       if Item <> nil then
       begin
-        Item := TItem(Item.Copy(AoWEngine));
-        Item.SetOwner(FItems);
-        Item.FItemID := FLeader.FUnitID;
-        Item.Release;
+        CopyItem := TItem(Item.Copy(AoWEngine));
+        CopyItem.SetOwner(FItems);
+        CopyItem.FItemID := FLeader.FUnitID;
+        CopyItem.Release;
       end;
     end;
     FLeader.FHeroItems.Clear;
@@ -1900,10 +1900,10 @@ begin
             Item := Hero.FInventory.GetItem(J);
             if Item <> nil then
             begin
-              Item := TItem(Item.Copy(AoWEngine));
-              Item.SetOwner(FItems);
-              Item.FItemID := Hero.FUnitID;
-              Item.Release;
+              CopyItem := TItem(Item.Copy(AoWEngine));
+              CopyItem.SetOwner(FItems);
+              CopyItem.FItemID := Hero.FUnitID;
+              CopyItem.Release;
             end;
           end;
           Hero.FInventory.Clear;
@@ -1912,10 +1912,10 @@ begin
             Item := Hero.FHeroItems.GetItem(J);
             if Item <> nil then
             begin
-              Item := TItem(Item.Copy(AoWEngine));
-              Item.SetOwner(FItems);
-              Item.FItemID := Hero.FUnitID;
-              Item.Release;
+              CopyItem := TItem(Item.Copy(AoWEngine));
+              CopyItem.SetOwner(FItems);
+              CopyItem.FItemID := Hero.FUnitID;
+              CopyItem.Release;
             end;
           end;
           Hero.FHeroItems.Clear;
@@ -2573,14 +2573,14 @@ begin
   Save;
 end;
 
-procedure TEmailGameControl.ValidateIncommingGame(const FileName: string; var Destination: string); { Near miss: Map/overwrite spills and string temporaries differ after three variants. }
+procedure TEmailGameControl.ValidateIncommingGame(const FileName: string; var Destination: string); { Keep the Boolean addressable for the original local layout. }
 var
   Map, PreviousMap: TAoWHSMap;
   LocalGame: TEmailGame;
-  Name: string;
-  I: Integer;
   Overwrite: Boolean;
-begin
+  I: Integer;
+  Name: string; Spill: Pointer;
+begin Spill := @Overwrite; { Addressability survives elimination of this assignment. }
   try
     Destination := '';
     Overwrite := False;
@@ -2594,7 +2594,7 @@ begin
         LocalGame := FindEmailGame(Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame);
         if LocalGame <> nil then
         begin
-          if LocalGame.FLastDay < Map.FDay then
+          if Map.FDay > LocalGame.FLastDay then
           begin
             Name := Map.FPlayers.GetPlayers(Map.FCurrentPlayer).FPBEMSettings.FEmailGame.FName;
             if FileExists(AoWEngine.StartupDirectory + 'EmailIn\' + Name + '.asg') then
