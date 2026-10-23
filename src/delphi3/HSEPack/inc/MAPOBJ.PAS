@@ -1220,9 +1220,9 @@ begin
   InitHNWalk(Walk, FXhx, FYhx, 0);
   while Walk.HN < GetTerrainCount do
   begin
-    if ((GetTerrain(Walk.HN) >= 0) or (GetOverlay(Walk.HN) >= 0)) and (Walk.X >= 0) and
-      (Walk.Y >= 0) and (Walk.X < MapLevel.FWidth) and (Walk.Y < MapLevel.FHeight) then
-      MapLevel.GetField(Walk.X, Walk.Y).Sort;
+    if (GetTerrain(Walk.HN) >= 0) or ((GetOverlay(Walk.HN) >= 0) and (Walk.X >= 0) and
+      (Walk.Y >= 0) and (Walk.X < MapLevel.FWidth) and (Walk.Y < MapLevel.FHeight)) then
+      MapLevel.GetField(Walk.X, Walk.Y).Sort; { Original skips bounds for terrain. }
     WalkToNextHN(Walk);
   end;
 end;

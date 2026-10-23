@@ -1455,7 +1455,7 @@ var
   PlugIns: TList;
   CopyEngine: TEngine;
   Packages: TStringList;
-  ClipboardFormat: Word;
+  ClipboardFormat: Cardinal; { $555329E0: full-width RegisterClipboardFormat result. }
   EngineLoaded: Boolean absolute VerifyEObjectEnabled;
 
 
@@ -2033,7 +2033,7 @@ begin
     Strings.BeginUpdate;
     Ctx.Strings := Strings;
     Ctx.Compare := Compare;
-    if High(LinkedStrings) >= 0 then
+    if Cardinal(High(LinkedStrings)) >= Cardinal(0) then { Original unsigned test also takes an empty array. }
     begin
       Lists := TList.Create;
       for I := 0 to High(LinkedStrings) do
@@ -10945,11 +10945,11 @@ begin
       FPropertyTable.BackupSettings;
       FPropertyTable.LoadFromStream(FStream);
       FDataBase := FStream.Position;
-      try
-        Obj.MainReadWrite(Self);
-      finally
-        FPropertyTable.RestoreSettings;
-        FDataBase := SavedBase;
+      try { The original handles read errors by destroying and clearing Obj. }
+        Obj.MainReadWrite(Self); FPropertyTable.RestoreSettings; FDataBase := SavedBase;
+      except
+        on E: Exception do begin Obj.Free; Obj := nil; FPropertyTable.RestoreSettings;
+        FDataBase := SavedBase; if not HandleException(E) then raise; end;
       end;
     end;
   end;

@@ -1387,7 +1387,7 @@ implementation
 
 uses
   Consts;
-
+procedure OriginalAssert(const Message, Filename: string; LineNumber: Integer); external 'VCL30.dpl' name 'System.@Assert@E17CE8DC'; { Preserve original assertion locations without moving source lines. }
 { Group A, first part: the implementation-only tables (DATA after the interface tables: OppositeHTTable
   at $5562E248, used by TMapField.UpdateNeighbourTerrain; HNWalkTable at $5562E250, used by the asm of
   WalkToNextHN), TTerrainList and TXYLList (code $55605004..$55605CAE). }

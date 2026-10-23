@@ -1012,7 +1012,7 @@ begin
     ActiveDC.GetMousePos(X, Y);
     { Shift is never set (original) }
     if FViewMode = hvmDefault then
-      FHSEngine.HSMap.Mouse.Move(Shift, X, Y);
+      FHSEngine.HSMap.Mouse.Move(TShiftState(Pointer(@Shift)^), X, Y); { Keep the original uninitialized stack byte. }
   end;
 end;
 

@@ -57,7 +57,7 @@ end;
 
 procedure TLibraryImageHS.SetMapIsOwner(Value: Boolean);
 begin
-  Assert(not (lsPlacedOnMap in FStatus), 'Cannot change MapIsOwner when places on map (TLibraryImageHS)');
+  if lsPlacedOnMap in FStatus then OriginalAssert('Cannot change MapIsOwner when places on map (TLibraryImageHS)', 'D:\GEngine\HSENGINE\inc\LibImgHS.PAS', $19E2);
   if Value then
     FStatus := FStatus + [lsMapIsOwner]
   else

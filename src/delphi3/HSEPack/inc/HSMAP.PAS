@@ -182,7 +182,7 @@ end;
 
 procedure THSMap.UnlockTerrainChangedEvent;
 begin
-  Assert(FTerrainChangedLockCounter <> 0, 'Invalid TerrainChangedLockCounter');
+  if FTerrainChangedLockCounter = 0 then OriginalAssert('Invalid TerrainChangedLockCounter', 'D:\GEngine\HSENGINE\inc\HSMAP.PAS', $1765);
   Dec(FTerrainChangedLockCounter);
 end;
 
