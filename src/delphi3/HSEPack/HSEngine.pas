@@ -4719,11 +4719,11 @@ procedure THSMapViewer.SetHSMap(Value: THSMap);
 begin
   FHSMap := Value;
   if FHSMap <> nil then
-    with FHSMap do
+    { Install viewer callbacks on the assigned map. }
     begin
-      FOnCenterView := CenterScene;
-      FOnChangeView := ChangeScene;
-      FOnViewLevel := SetSceneL;
+      FHSMap.FOnCenterView := CenterScene;
+      FHSMap.FOnChangeView := ChangeScene;
+      FHSMap.FOnViewLevel := SetSceneL;
     end;
 end;
 

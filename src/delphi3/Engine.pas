@@ -8858,8 +8858,8 @@ begin
 end;
 
 function TEngine.GetEClass(AClassID: Integer): TEObjectClass;
-begin
-  Result := TEObjectClass(FClassTable.Find(AClassID));
+var P: Pointer; begin
+  P := FClassTable.Find(AClassID); Result := TEObjectClass(P);
   if Result = nil then
     raise Exception.Create('Unregistered E-ClassID found (' + IntToStr(AClassID) + ')');
 end;

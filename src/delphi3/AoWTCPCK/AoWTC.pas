@@ -3367,11 +3367,11 @@ begin
   end;
 end;
 
-procedure TTacticalCombatUnitHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Near miss: packed locals at $1E/$24, not $20/$28, after three layout variants. }
+procedure TTacticalCombatUnitHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Combat-info locals have the original eight-byte storage. }
 label Touch; var
   X, Y: Integer;
   Movement: TMovementHS;
-  AbilityInfo, EnemyInfo: TAbilityCombatInfo;
+  AbilityInfo, EnemyInfo: record case Integer of 0: (Data: TAbilityCombatInfo); 1: (Align: array[0..1] of Integer); end;
 begin
   if Info.HN = 0 then begin
   MoveResult.Code := -1;
@@ -3401,15 +3401,15 @@ begin
     Exit;
   end;
   AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility).GetCombatInfo(
-    TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, AbilityInfo);
-  if (cttFriend in AbilityInfo.TargetTypes) and (FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide) then goto Touch;
+    TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, AbilityInfo.Data);
+  if (cttFriend in AbilityInfo.Data.TargetTypes) and (FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide) then goto Touch;
 
 
 
 
   AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility).GetCombatInfo(
-    TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, EnemyInfo);
-  if not (cttEnemy in EnemyInfo.TargetTypes) then Exit;
+    TCombatMoveControl(Info.Sender).FUnitHS.FUnit.FUnit, EnemyInfo.Data);
+  if not (cttEnemy in EnemyInfo.Data.TargetTypes) then Exit;
   if FUnit.GetSide = TCombatMoveControl(Info.Sender).FUnitHS.FUnit.GetSide then Exit;
 Touch: if TTouchAbility(AoWHSSet.FAbilityControl.GetAbility(TCombatMoveControl(Info.Sender).FUnitHS.FSelectedAbility)).CanTouch(
     TCombatMoveControl(Info.Sender).FUnitHS.FUnit, FUnit) then MoveResult.Code := 0;
