@@ -16,6 +16,7 @@ class Relation:
         self.d = checker.inp.addresses
         self.rows = sorted(set(getattr(self.d, 'storage_objects', ())))
         self.checked, self.values, self.memo, self.roots, self.pointer_targets, self.contents = {}, {}, {}, {}, {}, {}
+        self.fields = {}
         self.activated = set()
         self.pointers = 0
         self.pc = 0; self.side = 0
@@ -37,7 +38,7 @@ class Relation:
                     if v is not None and ins.mnemonic not in ('call','jmp') and not ins.mnemonic.startswith('j') and v not in self.d.pointer_cells[side] and not self.code(side,v):origins.add(self.root(side,v,observe=False))
                 if ins.mnemonic!='lea' and any(op.type==self.e.X.X86_OP_MEM and ins.raw.operands[j].access & self.e.CS.CS_AC_READ for j,op in enumerate(ins.operands)):
                     for row in origins:
-                        if row and row[3]!='mutable-data':self.root(0,row[0]);loaded.update(self.pointer_targets.get(row,()))
+                        if row and row[3]!='mutable-data':self.root(0,row[0]);loaded.update(self.targets(row,side,v))
                 for j,op in enumerate(ins.operands):
                     if op.type==self.e.X.X86_OP_REG and ins.raw.operands[j].access & self.e.CS.CS_AC_WRITE:after[ins.reg_name(op.reg)]=set(loaded if ins.mnemonic in ('mov','movzx','movsx') and ins.operands[-1].type==self.e.X.X86_OP_MEM else origins)
                 self.seeds[side][ins.address]=before
@@ -45,6 +46,9 @@ class Relation:
                     merged={r:incoming.get(nxt,{}).get(r,set())|after.get(r,set()) for r in set(incoming.get(nxt,{}))|set(after)}
                     if nxt not in incoming or merged!=incoming[nxt]:incoming[nxt]=merged;todo.append(nxt)
         self.pc=0
+    def targets(self,row,side,address=None):
+        if address is not None and (row,address-row[side]) in self.fields:return self.fields[row,address-row[side]]
+        return self.pointer_targets.get(row,())
     def fail(self, reason):
         self.failure = dict(pc=hex(self.pc),side=self.side,reason=reason)
         for r in self.checked.values():
@@ -95,6 +99,7 @@ class Relation:
         if row in self.checked:
             if self.checked[row]['status']=='failed':self.fail(self.checked[row]['reason'])
             return
+        if sum(v['status']=='validating' for v in self.checked.values()) >= 8:self.fail('metadata recursion depth 8 exceeded')
         a,b,n,kind,evidence = row
         if len(self.checked) >= 256 or sum(r[2] for r in self.checked)+n > 65536:
             self.fail('object-validation budget; extent is not inferred from the cap')
@@ -118,6 +123,10 @@ class Relation:
         # Mark before recursion: cycles have finite, independently justified ranges.
         self.checked[row] = dict(status='validating',original=hex(a),compiled=hex(b),size=n,kind=kind,evidence=evidence,
                                  sha256=[hashlib.sha256(v).hexdigest() for v in data])
+        if evidence.startswith('class '):
+            name=evidence.split(', slot ')[0][6:]
+            for vmt,owner in sorted(self.d.vmts[0].items()):
+                if owner==name:self.root(0,vmt-64,False)
         values = {}
         self.pointer_targets[row] = set()
         for k in sorted(offsets[0]):
@@ -126,13 +135,18 @@ class Relation:
             except self.e.Unsupported as error:self.fail('initialized object %s (%s), pointer field 0x%x / 0x%x bytes %s / %s: content equality unresolved: %s' % (self.d.names[0].get(a,hex(a)),evidence,a+k,b+k,data[0][k:k+4].hex(),data[1][k:k+4].hex(),error))
             if not (left == right if isinstance(left,int) and isinstance(right,int) else self.e.bv(left).eq(self.e.bv(right))):
                 self.fail('relocated pointer target differs at 0x%x' % (a+k))
+            targets = set()
             for side,target in enumerate((p,q)):
                 if self.code(side,target):
                     original = p if isinstance(left,int) else target
-                    self.pointer_targets[row].add((original,original,0,'code-address','code identity does not authorize byte reach'))
+                    targets.add((original,original,0,'code-address','code identity does not authorize byte reach'))
+                elif p in self.d.import_bytes[0] or q in self.d.import_bytes[1]:
+                    pass  # Named loader cell versus local class-reference cell; no disk IAT content.
                 else:
                     child = self.root(side,target,False)
-                    if child is not None:self.pointer_targets[row].add(child)
+                    if child is not None:targets.add(child)
+            self.fields[row,k] = targets
+            self.pointer_targets[row].update(targets)
             self.pointers += 1
             value = self.canonical(0,p)
             for j in range(4): values[k+j] = (value>>(j*8)) & 255 if isinstance(value,int) else (value,j)
@@ -201,7 +215,7 @@ class Relation:
                 row = self.root(machine.side,v,observe=op.type == e.X.X86_OP_MEM and ins.mnemonic != 'lea')
                 if row:
                     origins.add(row)
-                    if op.type == e.X.X86_OP_MEM:loaded_origins.update(self.pointer_targets.get(row,()))
+                    if op.type == e.X.X86_OP_MEM:loaded_origins.update(self.targets(row,machine.side,v))
         restricted = {r for r in origins if r[3] != 'mutable-data'}
         if restricted and any(op.type == e.X.X86_OP_MEM and ins.raw.operands[k].access & e.CS.CS_AC_WRITE for k,op in enumerate(ins.operands)) and any(tags.get(ins.reg_name(op.reg)) for op in ins.operands if op.type == e.X.X86_OP_REG) and self.read_after[machine.side].get(ins.address,True):
             self.fail('stored image-pointer reach not checked')

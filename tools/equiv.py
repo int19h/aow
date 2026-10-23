@@ -548,6 +548,8 @@ class Addresses:
                         if hasattr(self, 'import_locations'):
                             self.import_locations[side][lo + pos] = name
                         pos += 1
+        from equiv_metadata import records as metadata_records
+        metadata_records(self, side, records)
         return records
 
     def install_content(self):
@@ -572,6 +574,13 @@ class Addresses:
                     for a,b in established:
                         n = self.old.bytes_at(a+1,1)[0]+12
                         self.storage_objects.append((a,b,n,'immutable-data','Delphi class typeinfo fixed header'))
+                if key[0] == 'primitive-typeinfo':
+                    for a,b in established:self.storage_objects.append((a,b,key[2],'immutable-data','primitive typeinfo:'+key[1]))
+                if key[0] == 'named-typeinfo-cell':
+                    for a,b in established:self.storage_objects.append((a,b,4,'immutable-data','named typeinfo cell:'+key[1]))
+                if key[0] == 'class-slot':
+                    for a,b in established:
+                        if key[3] > 0:self.storage_objects.append((a,b,key[3],'immutable-data','class %s, slot %s' % (key[1],key[2])))
                 if key[0] == 'string':
                     # Preserve offsets, including interior / header pointers.
                     for a, b in established:
