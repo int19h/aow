@@ -288,8 +288,8 @@ class CallContracts:
                         conditions.append(e.z3.Or([expression(v[1])==expression(a) for a in candidates]))
                     if symbols:
                         conditions += [e.z3.Int('ABI_cleanup_'+str(n))>=0 for n in symbols]
-                        solver = e.z3.Solver(); solver.set(timeout=100); solver.add(*conditions)
-                        if solver.check()!=e.z3.sat: raise e.NotProven('inconsistent/unknown cleanup restoration contract')
+                        solver = e.z3.Solver(); solver.add(*conditions)
+                        if e.limits.check(solver,'ownership')!=e.z3.sat: raise e.NotProven('inconsistent/unknown cleanup restoration contract')
                         obligation = dict(return_pc=hex(ins.address),ESP_offset=sp[0],sites=[hex(n) for n in sorted(symbols)],predicate='ESP and save-slot restoration assume the stated cleanup of sites',constraints=[str(c) for c in conditions])
                         for n in symbols:
                             records = self.sites[side,n][2].setdefault('H3_restoration',[])

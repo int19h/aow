@@ -39,6 +39,7 @@ import time
 
 sys.dont_write_bytecode = True
 import match
+import equiv_limits as limits
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -105,14 +106,13 @@ def prove(expressions):
     if not expressions:
         return True
     s = z3.Solver()
-    s.set(timeout=1500)
     s.add(z3.Not(z3.And(expressions)))
-    return s.check() == z3.unsat
+    return limits.check(s, 'prove') == z3.unsat
 
 
 def correspondence_failure(states, memories, tails, relations):
     """One bounded diagnostic query; no proof goals or premises are changed."""
-    deadline=time.monotonic()+1
+    budget=limits.WorkBudget(1000,'diagnostic')
     items=[('H2 %s obligation fails at %s'%(kind,hex(pc)),goal,None) for st in states for pc,kind,goal in st.ownership.obligations]
     guard=ownership_premise(states)
     for n,(x,y) in enumerate(zip(states[0].events,states[1].events)):
@@ -125,16 +125,16 @@ def correspondence_failure(states, memories, tails, relations):
     for name,u,v in [('memory',*memories),('FS',states[0].fs,states[1].fs),('FP',states[0].fp,states[1].fp),('branch condition',states[0].condition,states[1].condition)]:
         items.append(('exit at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,equality(u,v)),(u,v)))
     items += [('successor at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,goal),None) for name,goal in relations]
-    solver=z3.Solver();solver.set(timeout=max(1,int(1000*(deadline-time.monotonic()))));solver.add(z3.Not(z3.And([goal for _,goal,_ in items])))
-    if solver.check()==z3.sat:
+    solver=z3.Solver();solver.add(z3.Not(z3.And([goal for _,goal,_ in items])))
+    if limits.check(solver,'diagnostic')==z3.sat:
         witness=solver.model()
         for label,goal,pair in items:
-            if time.monotonic()>deadline:break
+            budget.step()
             if not z3.is_false(witness.eval(goal,model_completion=True)):continue
             if pair and all(z3.is_array(v) for v in pair):
-                address=z3.FreshConst(BV32,'differing_address');solver.push();solver.set(timeout=max(1,min(200,int(1000*(deadline-time.monotonic())))))
+                address=z3.FreshConst(BV32,'differing_address');solver.push()
                 solver.add(guard,z3.Select(pair[0],address)!=z3.Select(pair[1],address))
-                if solver.check()==z3.sat:label+=' at '+hex(solver.model().eval(address,model_completion=True).as_long())
+                if limits.check(solver,'diagnostic_address')==z3.sat:label+=' at '+hex(solver.model().eval(address,model_completion=True).as_long())
             return label
     return 'diagnostic budget at %s: failed transition; no differing component established'%hex(tails[0])
 
@@ -149,14 +149,13 @@ def conditional_facts(guard, equations):
         return set(equations)
     if not equations:
         return set()
-    remaining = dict(equations)
+    remaining = {key: equations[key] for key in sorted(equations,key=repr)}
     solver = z3.Solver()
-    solver.set(timeout=50)
     solver.add(guard)
     for _ in range(4):
         solver.push()
         solver.add(z3.Not(z3.And(list(remaining.values()))))
-        answer = solver.check()
+        answer = limits.check(solver, 'filter')
         if answer == z3.unsat:
             solver.pop()
             return set(remaining)
@@ -823,7 +822,7 @@ def arbitrary(candidates, flag_candidates):
             x = parent[x]
         return x
 
-    for a, b, lane in candidates:
+    for a, b, lane in sorted(candidates):
         parent[find((1, b, lane))] = find((0, a, lane))
     values = {}
     regs = []
@@ -1526,7 +1525,7 @@ def fact_expression(states, fact):
 
 def relation_states(facts):
     registers, flags = [], []
-    for f in facts:
+    for f in sorted(facts,key=repr):
         if f[0] != 'eq':
             continue
         a, b = f[1:]
@@ -1535,7 +1534,7 @@ def relation_states(facts):
         if a[0] == b[0] == 'f' and a[1] == b[1]:
             flags.append(a[1])
     states = arbitrary(registers, flags)
-    premise = simp(z3.And([fact_expression(states, f) for f in facts]))
+    premise = simp(z3.And([fact_expression(states, f) for f in sorted(facts,key=repr)]))
     return states, premise
 
 
@@ -1795,7 +1794,7 @@ class Frames:
         # union-find construction as the fast register proof, extended to
         # private slots and immutable incoming-register ghost values.
         locations = {('r', r, k) for r in REGS for k in range(4)} | {('s', k) for k in range(self.low, 0)}
-        parent = {(side, loc): (side, loc) for side in (0, 1) for loc in locations}
+        parent = {(side, loc): (side, loc) for side in (0, 1) for loc in sorted(locations,key=repr)}
         def find(node):
             parent.setdefault(node, node)
             while parent[node] != node:
@@ -1803,7 +1802,7 @@ class Frames:
             return node
         def join(x, y):
             parent[find(y)] = find(x)
-        for f in facts:
+        for f in sorted(facts,key=repr):
             if f[0] == 'eq':
                 join((0, f[1]), (1, f[2]))
             elif f[0] == 'saved':
@@ -1821,24 +1820,24 @@ class Frames:
             if root not in values:
                 values[root] = z3.BitVec('frame_byte_' + str(len(values)), 8)
             return values[root]
-        states = arbitrary((), [f[1] for f in facts if f[0] == 'flag'])
+        states = arbitrary((), [f[1] for f in sorted(facts,key=repr) if f[0] == 'flag'])
         for side, st in enumerate(states):
             st.regs = {r: z3.Concat([value(side, ('r', r, k)) for k in reversed(range(4))]) for r in REGS}
             for off in range(self.lows[side], 0):
                 st.store(self.stack + bv(off), value(side, ('s', off)))
         # Substitute proven full-register constants before executing REP and
         # stack operations. The complete relation remains an explicit premise.
-        for f in facts:
+        for f in sorted(facts,key=repr):
             if f[0] == 'ptr':
                 states[f[1]].regs[f[2]] = simp(self.stack + bv(f[3]))
             elif f[0] == 'imm':
                 states[f[1]].regs[f[2]] = bv(f[3])
             elif f[0] == 'flagvalue':
                 states[f[1]].flags[f[2]] = z3.BoolVal(f[3])
-        for f in facts:
+        for f in sorted(facts,key=repr):
             if f[0] == 'difference':
                 states[1].regs['esp'] = simp(states[0].regs['esp'] - bv(f[1]))
-        return states, simp(z3.And([self.fact(states, f) for f in facts]))
+        return states, simp(z3.And([self.fact(states, f) for f in sorted(facts,key=repr)]))
 
     @staticmethod
     def clone(states):
@@ -1849,7 +1848,7 @@ class Frames:
         return clones
 
     def candidates(self, states):
-        values = [{loc: simp(self.value(st, loc)) for loc in locs}
+        values = [{loc: simp(self.value(st, loc)) for loc in sorted(locs,key=repr)}
                   for st, locs in zip(states, self.locations)]
         facts = set()
         delta = simp(states[0].regs['esp'] - states[1].regs['esp'])
@@ -1881,8 +1880,7 @@ class Frames:
                 if key in roots_cache:
                     continue
                 visits += 1
-                if visits % 128 == 0 and time.monotonic() > getattr(self, 'deadline', float('inf')):
-                    raise NotProven('frame-slot candidate budget')
+                if visits % 128 == 0:self.budget.step()
                 if z3.is_const(node) and node.decl().kind() == z3.Z3_OP_UNINTERPRETED:
                     roots_cache[key] = frozenset((key,))
                 elif ready:
@@ -1893,8 +1891,7 @@ class Frames:
             return roots_cache[expr.get_id()]
         proposal_model = z3.Model()
         for x, value in words[0].items():
-            if time.monotonic() > getattr(self, 'deadline', float('inf')):
-                raise NotProven('frame-slot candidate budget')
+            self.budget.step()
             if z3.is_bv_value(simp(value)):
                 continue
             for y, other in words[1].items():
@@ -2067,11 +2064,8 @@ def verify_frames(checker, a, b, finite=False):
                     if stack_insensitive_leaf(checker, 0, x.operands[0].imm) and stack_insensitive_leaf(checker, 1, y.operands[0].imm):
                         machines[0].private_calls.add(x.address)
                         machines[1].private_calls.add(y.address)
-    deadline = time.monotonic() + 8
-    frames.deadline = deadline
-    def budget():
-        if time.monotonic() > deadline:
-            raise NotProven('frame relation inference budget')
+    frames.budget = limits.WorkBudget(8000,'frame relation inference budget')
+    budget = frames.budget.step
     infos=[check_initialized(checker,c,s,frames.lows[s]) for s,c in enumerate((a,b))]
     def execute(i, states):
         for side,st in enumerate(states):
@@ -2118,7 +2112,7 @@ def verify_frames(checker, a, b, finite=False):
     def held(guard, facts, states):
         budget()
         established, pending = set(), {}
-        for f in facts:
+        for f in sorted(facts,key=repr):
             expr = simp(frames.fact(states, f))
             if z3.is_true(expr):
                 established.add(f)
@@ -2154,7 +2148,7 @@ def verify_frames(checker, a, b, finite=False):
                 queue.append(target)
                 queued.add(target)
         visited.add(i)
-    if not prove([frames.fact(initial, f) for f in candidates[0]]):
+    if not prove([frames.fact(initial, f) for f in sorted(candidates[0],key=repr)]):
         raise NotProven('frame relation is not initialized')
     for i, j in pairing.items():
         budget()
@@ -2166,7 +2160,7 @@ def verify_frames(checker, a, b, finite=False):
         edges = graphs[0][i][1]
         for edge, target in enumerate(edges):
             guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
-            goals += [z3.Implies(guard, frames.fact(states, f)) for f in candidates[target]]
+            goals += [z3.Implies(guard, frames.fact(states, f)) for f in sorted(candidates[target],key=repr)]
         if not prove([z3.Implies(premise, z3.And(goals))]):
             raise NotProven('private frame relation does not prove the transition')
     return 'PROVEN', ''
@@ -2352,14 +2346,22 @@ class Checker:
         self.routes = []
         try:
             result = self.check_raw(fn,mutated)
+        except limits.SafetyCap as error:
+            self.garbage_witness = None
+            self.pending_diagnostic = None
+            result = 'NOT PROVEN',str(error)
         except (NotProven,Unsupported) as error:
             result = ('UNSUPPORTED' if isinstance(error,Unsupported) else 'NOT PROVEN'),str(error)
         self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if h in r.get('premises',[r.get('premise','H3')])] for h in ('H3','H3c') if any(h in r.get('premises',[r.get('premise','H3')]) for _,_,r in self.contracts.sites.values())} if self.contracts else {},
                                    dependencies=sorted(self.contracts.dependencies) if self.contracts else [],
                                    alias_resolutions=getattr(self.inp.addresses,'alias_resolutions',[]))
         if result[0]=='NOT PROVEN' and self.pending_diagnostic and not self.garbage_witness:
-            result=('NOT PROVEN',correspondence_failure(*self.pending_diagnostic))
+            try:result=('NOT PROVEN',correspondence_failure(*self.pending_diagnostic))
+            except limits.SafetyCap as error:result=('NOT PROVEN',str(error))
+            except NotProven as error:result=('NOT PROVEN',str(error))
         self.pending_diagnostic=None
+        self.last_contracts['solver_limits'] = dict(rlimit=limits.RLIMIT, expected_ms=limits.EXPECTED_MS, safety_factor=10,
+                                                  work_units_per_ms=limits.UNITS_PER_MS, inference_expected_ms=limits.INFERENCE_EXPECTED_MS, max_steps=limits.MAX_STEPS)
         if result[0]=='NOT PROVEN' and self.garbage_witness:
             w=self.garbage_witness
             reason=('uninitialized local passed to callee at %s (callee write not checked)'%w['pc'] if w['kind']=='callee' else
@@ -2528,10 +2530,8 @@ class Checker:
         """
         from equiv_calls import ensure
         ensure(self,a,b)
-        deadline = time.monotonic() + 2.5
-        def budget():
-            if time.monotonic() > deadline:
-                raise NotProven('relational inference budget')
+        work = limits.WorkBudget(2500,'relational inference budget')
+        budget = work.step
         pairing, reverse, todo = {entry[0]: entry[1]}, {entry[1]: entry[0]}, [entry[0]]
         while todo:
             i = todo.pop()
@@ -2586,15 +2586,15 @@ class Checker:
                 raise NotProven('live-location candidate budget')
             for side, locs in enumerate((ll, rr)):
                 st = samples[i][side]
-                for loc in locs:
+                for loc in sorted(locs,key=repr):
                     value = simp(location_value(st, loc))
                     if z3.is_bv_value(value):
                         facts.add(('const', side, loc, value.as_long()))
                     elif z3.is_true(value) or z3.is_false(value):
                         facts.add(('const', side, loc, z3.is_true(value)))
                 regs = {loc[1] for loc in locs if loc[0] == 'r'}
-                for reg in regs:
-                    for base in regs & {'ebp', 'esp'}:
+                for reg in sorted(regs):
+                    for base in sorted(regs & {'ebp', 'esp'}):
                         if reg != base:
                             delta = simp(st.regs[reg] - st.regs[base])
                             if z3.is_bv_value(delta):
@@ -2612,7 +2612,7 @@ class Checker:
             established |= conditional_facts(premise, remaining)
             return established
         root = entry[0]
-        candidates[root] &= held(z3.BoolVal(True), {f: fact_expression(initial, f) for f in candidates[root]})
+        candidates[root] &= held(z3.BoolVal(True), {f: fact_expression(initial, f) for f in sorted(candidates[root],key=repr)})
         queue, queued = collections.deque([root]), {root}
         visited = set()
         while queue:
@@ -2621,13 +2621,13 @@ class Checker:
             queued.discard(i)
             states, _ = relation_states(candidates[i])
             garbage.prepare(states,(i,pairing[i]))
-            premise=simp(z3.And([fact_expression(states,f) for f in candidates[i]]))
+            premise=simp(z3.And([fact_expression(states,f) for f in sorted(candidates[i],key=repr)]))
             states = execute(i, states,False)
             edges = graphs[0][i][1]
             terminal = a[graphs[0][i][0][-1]]
             for edge, target in enumerate(edges):
                 guard = z3.And(premise, edge_guard(states[0], terminal, len(edges), edge))
-                retained = held(guard, {f: fact_expression(states, f) for f in candidates[target]})
+                retained = held(guard, {f: fact_expression(states, f) for f in sorted(candidates[target],key=repr)})
                 changed = retained != candidates[target]
                 candidates[target] &= retained
                 if target not in visited or changed:
@@ -2638,13 +2638,13 @@ class Checker:
         # Initialization and preservation are proof obligations, not assumptions
         # justified by the sampled paths. Memory, events and conditions are
         # checked universally under each retained relation.
-        if not prove([fact_expression(initial, f) for f in candidates[root]]):
+        if not prove([fact_expression(initial, f) for f in sorted(candidates[root],key=repr)]):
             raise NotProven('relation is not initialized')
         for i, j in pairing.items():
             budget()
             states, _ = relation_states(candidates[i])
             garbage.prepare(states,(i,pairing[i]))
-            premise=simp(z3.And([fact_expression(states,f) for f in candidates[i]]))
+            premise=simp(z3.And([fact_expression(states,f) for f in sorted(candidates[i],key=repr)]))
             old, new = execute(i, states,False)
             if len(old.events) != len(new.events):
                 raise NotProven('different observable events')
@@ -2658,7 +2658,7 @@ class Checker:
             edges = graphs[0][i][1]
             for edge, target in enumerate(edges):
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
-                goals += [z3.Implies(guard, fact_expression(states, f)) for f in candidates[target]]
+                goals += [z3.Implies(guard, fact_expression(states, f)) for f in sorted(candidates[target],key=repr)]
             if not prove(guarded(states,[z3.Implies(premise, z3.And(goals))])):
                 garbage.failed(tails)
                 raise NotProven('live-location relation does not prove the transition')
@@ -2751,8 +2751,8 @@ class Checker:
                 if len(edges[i]) == 2:
                     guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges[i]), edge)
                     equations = {('r', x, y, k): old_bytes[x, k] == new_bytes[y, k]
-                                 for x, y, k in candidates[j] - after}
-                    equations.update({('f', f): old.flags[f] == new.flags[f] for f in flag_candidates[j] - flags})
+                                 for x, y, k in sorted(candidates[j] - after)}
+                    equations.update({('f', f): old.flags[f] == new.flags[f] for f in sorted(flag_candidates[j] - flags)})
                     for fact in conditional_facts(guard, equations):
                         if fact[0] == 'r':
                             kept.add(fact[1:])
@@ -2791,7 +2791,7 @@ class Checker:
             relations=[]
             for edge, j in enumerate(edges[i]):
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges[i]), edge)
-                related=[('%s[%d]/%s[%d]'%(x,k,y,k),z3.Implies(guard,register_byte(old,x,k)==register_byte(new,y,k))) for x,y,k in candidates[j]]+[(f,z3.Implies(guard,old.flags[f]==new.flags[f])) for f in flag_candidates[j]]
+                related=[('%s[%d]/%s[%d]'%(x,k,y,k),z3.Implies(guard,register_byte(old,x,k)==register_byte(new,y,k))) for x,y,k in sorted(candidates[j])]+[(f,z3.Implies(guard,old.flags[f]==new.flags[f])) for f in sorted(flag_candidates[j])]
                 relations+=related;goals += [goal for _,goal in related]
             if not prove(guarded(states,goals)):
                 garbage.failed(tails)
