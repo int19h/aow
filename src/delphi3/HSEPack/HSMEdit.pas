@@ -1018,12 +1018,12 @@ end;
 
 procedure THSMEdit.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  HSMap: THSMap;
+  HSMap: THSMap; MapPtr: Pointer;
 begin
   inherited MouseDown(Button, Shift, X, Y);
   if not FIgnoreMouseDown and (FViewMode = hvmDefault) and FActivated then
   begin
-    HSMap := FHSEngine.HSMap;
+    MapPtr := @HSMap; HSMap := FHSEngine.HSMap; { Keep the original stack slot. }
     HSMap.Mouse.Down(Button, Shift, X, Y);
     if (HSMap.Mouse.GetXhx <> -1) and (Button = mbLeft) and (FHSPlaceControl <> nil) and
       (HSMap.Engine.HSMap.Mouse.Capture = Self) then

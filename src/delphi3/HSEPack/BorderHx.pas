@@ -40,7 +40,7 @@ procedure TBorderHexagon.SetOwner(AOwner: TECustomNode);
 var
   OldField: TECustomNode;
 begin
-  if AOwner <> Owner then
+  if AOwner <> TBorderHexagon(Self).Owner then
   begin
     OldField := Owner;
     if (OldField <> nil) and (OldField is TMapField) and (TMapField(OldField).Yhx <> 0) then
@@ -81,14 +81,14 @@ end;
 
 function TBorderHexagon.GetShowPriority: Integer;
 var
-  MapField: TMapField;
-  Xhx: ShortInt;
+
+
   Xhp, Yhp: Integer;
 begin
-  MapField := TMapField(Owner);
-  Xhx := MapField.Xhx;
-  Xhp := Xhx * 32 + 8;
-  Yhp := (Xhx and 1) * 16 + MapField.Yhx * 32;
+
+
+  Xhp := TMapField(Owner).Xhx * 32 + 8;
+  Yhp := (TMapField(Owner).Xhx and 1) * 16 + TMapField(Owner).Yhx * 32;
   Result := (Yhp + 32) shl 13 + 11 shl 26 + (Xhp + 8);
 end;
 

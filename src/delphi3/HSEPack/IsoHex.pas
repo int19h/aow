@@ -169,17 +169,17 @@ end;
 
 function TDynamicIsometricHexagon.GetShowPriority: Integer;
 var
-  Hexagon: TIsometricHexagon;
-  MapField: TMapField;
-  Xhx: ShortInt;
+
+
+
   Xhp, Yhp: Integer;
 begin
-  Hexagon := TIsometricHexagon(Owner);
-  MapField := TMapField(Hexagon.Owner);
-  Xhx := MapField.Xhx;
-  Xhp := Xhx * 32 + 8;
-  Yhp := (Xhx and 1) * 16 + MapField.Yhx * 32;
-  Result := TIsometricHexagonResource(Hexagon.FResource).FDynamicLevel shl 26 +
+
+
+
+  Xhp := TMapField(Owner.Owner).Xhx * 32 + 8;
+  Yhp := (TMapField(Owner.Owner).Xhx and 1) * 16 + TMapField(Owner.Owner).Yhx * 32;
+  Result := TIsometricHexagonResource(TIsometricHexagon(Owner).FResource).FDynamicLevel shl 26 +
     (Yhp + 32) shl 13 + (Xhp + 8);
 end;
 

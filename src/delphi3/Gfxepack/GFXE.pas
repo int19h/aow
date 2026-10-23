@@ -1509,7 +1509,7 @@ function TestQWordAligned(T: TBltTest; Count: Integer): TBltTestResult;
 var
   I: Integer;
   Res: TBltTestResult;
-  Start, Stop, BestTime, Best, J, Time: Integer;
+  Start, Stop, BestTime, Best, J: Integer;
 begin
   Best := -1;
   BestTime := $FFFFFF;
@@ -1525,10 +1525,10 @@ begin
       for J := 0 to Count - 1 do
         BltProcs[I](T.Src, T.Dst, T.SrcPitch, T.DstPitch, T.Width, T.Height);
       Stop := GetElapsedMilliSeconds;
-      Time := Stop - Start;
-      if Time < BestTime then
+
+      if Stop - Start < BestTime then
       begin
-        BestTime := Time;
+        BestTime := Stop - Start;
         Best := I;
       end;
     end;
@@ -1546,7 +1546,7 @@ function TestDWordAligned(T: TBltTest; Count: Integer): TBltTestResult;
 var
   I: Integer;
   Res: TBltTestResult;
-  Start, Stop, BestTime, Best, J, Time: Integer;
+  Start, Stop, BestTime, Best, J: Integer;
 begin
   Best := -1;
   BestTime := $FFFFFF;
@@ -1562,10 +1562,10 @@ begin
       for J := 0 to Count - 1 do
         BltProcs[I](T.Src, T.Dst, T.SrcPitch, T.DstPitch, T.Width, T.Height);
       Stop := GetElapsedMilliSeconds;
-      Time := Stop - Start;
-      if Time < BestTime then
+
+      if Stop - Start < BestTime then
       begin
-        BestTime := Time;
+        BestTime := Stop - Start;
         Best := I;
       end;
     end;
@@ -1583,7 +1583,7 @@ function TestWordAligned(T: TBltTest; Count: Integer): TBltTestResult;
 var
   I: Integer;
   Res: TBltTestResult;
-  Start, Stop, BestTime, Best, J, Time: Integer;
+  Start, Stop, BestTime, Best, J: Integer;
 begin
   Best := -1;
   BestTime := $FFFFFF;
@@ -1599,10 +1599,10 @@ begin
       for J := 0 to Count - 1 do
         BltProcs[I](T.Src, T.Dst, T.SrcPitch, T.DstPitch, T.Width, T.Height);
       Stop := GetElapsedMilliSeconds;
-      Time := Stop - Start;
-      if Time < BestTime then
+
+      if Stop - Start < BestTime then
       begin
-        BestTime := Time;
+        BestTime := Stop - Start;
         Best := I;
       end;
     end;
@@ -1620,7 +1620,7 @@ function TestMissAligned(T: TBltTest; Count: Integer): TBltTestResult;
 var
   I: Integer;
   Res: TBltTestResult;
-  Start, Stop, BestTime, Best, J, Time: Integer;
+  Start, Stop, BestTime, Best, J: Integer;
 begin
   Best := -1;
   BestTime := $FFFFFF;
@@ -1636,10 +1636,10 @@ begin
       for J := 0 to Count - 1 do
         BltProcs[I](T.Src, T.Dst, T.SrcPitch, T.DstPitch, T.Width, T.Height);
       Stop := GetElapsedMilliSeconds;
-      Time := Stop - Start;
-      if Time < BestTime then
+
+      if Stop - Start < BestTime then
       begin
-        BestTime := Time;
+        BestTime := Stop - Start;
         Best := I;
       end;
     end;
@@ -1749,7 +1749,7 @@ function BltSDRectClipped(const Src: TSurfaceDesc; SrcRect: TRect; const Dest: T
 var
   W, H: Integer;
   S, D: Pointer;
-  Bytes: Integer;
+
 begin
   if SrcRect.Right > Src.ClipRect.Right then SrcRect.Right := Src.ClipRect.Right;
   if SrcRect.Left < Src.ClipRect.Left then
@@ -1763,14 +1763,14 @@ begin
     X := Dest.ClipRect.Left;
   end;
   W := SrcRect.Right - SrcRect.Left;
-  if W + X > Dest.ClipRect.Right then W := W - (W + X - Dest.ClipRect.Right);
+  if X + W > Dest.ClipRect.Right then W := W - (X + W - Dest.ClipRect.Right);
   if SrcRect.Bottom > Src.ClipRect.Bottom then SrcRect.Bottom := Src.ClipRect.Bottom;
   if SrcRect.Top < Src.ClipRect.Top then
   begin
     Y := Y + (Src.ClipRect.Top - SrcRect.Top);
     SrcRect.Top := Src.ClipRect.Top;
   end;
-  if Y < Dest.ClipRect.Top then
+  if Dest.ClipRect.Top > Y then
   begin
     SrcRect.Top := SrcRect.Top + (Dest.ClipRect.Top - Y);
     Y := Dest.ClipRect.Top;
@@ -1781,10 +1781,10 @@ begin
   begin
     if (W > 0) and (H > 0) then
     begin
-      Bytes := (Src.BitCount * W) shr 3;
+      W := (Src.BitCount * W) shr 3;
       S := Pointer(Integer(Src.Data) + Src.Pitch * SrcRect.Top + (Src.BitCount * SrcRect.Left) shr 3);
       D := Pointer(Integer(Dest.Data) + Dest.Pitch * Y + (Dest.BitCount * X) shr 3);
-      BltRect(S, D, Src.Pitch, Dest.Pitch, Bytes, H);
+      BltRect(S, D, Src.Pitch, Dest.Pitch, W, H);
     end;
     Result := GFXE_OK;
   end

@@ -2092,10 +2092,10 @@ begin
     GetClientRect(WindowFromDC(DC), DR);
     DestRect := @DR;
   end;
-  if StretchDIBits(DC, DestRect^.Left, DestRect^.Top, DestRect^.Right - DestRect^.Left,
+  Result := StretchDIBits(DC, DestRect^.Left, DestRect^.Top, DestRect^.Right - DestRect^.Left,
     DestRect^.Bottom - DestRect^.Top, SrcRect^.Left, FHeight - SrcRect^.Bottom,
     SrcRect^.Right - SrcRect^.Left, SrcRect^.Bottom - SrcRect^.Top, FBits,
-    PBitmapInfo(@FOwner.FBitmapInfo)^, DIB_RGB_COLORS, SRCCOPY) = DestRect^.Bottom - DestRect^.Top then
+    PBitmapInfo(@FOwner.FBitmapInfo)^, DIB_RGB_COLORS, SRCCOPY); if Result = DestRect^.Bottom - DestRect^.Top then
     Result := 0
   else
     Result := GFXE_ERROR;

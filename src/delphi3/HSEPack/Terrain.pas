@@ -245,8 +245,8 @@ begin
       Dec(I);
       R := TTerrainMOR(Resources.List^[I]);
       Found := (R.ClassID = FResource.ClassID) and
-        (TTerrainMOR(FResource).FDecorationType = R.FDecorationType) and
-        (TTerrainMOR(FResource).FTerrainType = R.FTerrainType) and
+        (TTerrainMOR(Pointer(R)).FDecorationType = TTerrainMOR(FResource).FDecorationType) and
+        (TTerrainMOR(Pointer(R)).FTerrainType = TTerrainMOR(FResource).FTerrainType) and
         (R.TerrainList.UsedTerrain = 1) and (R.TerrainList.GetTerrain(0) >= 0) and
         (GetOverlay(0) = R.TerrainList.GetOverlay(0));
     end;

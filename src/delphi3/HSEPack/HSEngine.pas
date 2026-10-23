@@ -2338,11 +2338,11 @@ var
   Yhp: Integer;
   Done: Boolean;
   I: Integer;
-  Level: Integer;
+  Level: Integer; DonePtr: Pointer;
 begin
   HXtoHP(FXhx, FYhx, Xhp, Yhp);
   I := FCount - 1;
-  Done := False;
+  DonePtr := @Done; Done := False; { Preserve the original stack slot. }
   while not Done and (I >= 0) do
   begin
     Level := FHSList^[I].GetLevel;

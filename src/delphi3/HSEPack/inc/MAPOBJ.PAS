@@ -646,9 +646,9 @@ end;
 function TMapObjectResourceList.FindMOR(AClassID: Integer; TerrainList: TTerrainList; Mode: TTerrainCompareMode; var List: TList): Boolean;
 var
   R: TMapObjectResource;
-  I: Integer;
+  I: Integer; IndexPtr: Pointer;
 begin
-  Result := False;
+  IndexPtr := @Self; IndexPtr := @I; Result := False; { Preserve the original stack locals. }
   for I := 0 to FChildren.Count - 1 do
   begin
     R := TMapObjectResource(FChildren.List^[I]);
@@ -670,12 +670,12 @@ end;
 
 function TAbstractHexagon.GetShowPriority: Integer;
 var
-  MapField: TMapField;
+
   Xhp, Yhp: Integer;
 begin
-  MapField := TMapField(Owner);
-  Xhp := MapField.FXhx * 32 + 8;
-  Yhp := (MapField.FXhx and 1) * 16 + MapField.FYhx * 32;
+
+  Xhp := TMapField(Owner).FXhx * 32 + 8;
+  Yhp := (TMapField(Owner).FXhx and 1) * 16 + TMapField(Owner).FYhx * 32;
   Result := Xhp + Yhp shl 13;
 end;
 
@@ -807,13 +807,13 @@ end;
 
 function TAbstractRoad.GetShowPriority: Integer;
 var
-  MapField: TMapField;
+
   Xhp, Yhp: Integer;
 begin
-  MapField := TMapField(Owner);
-  Xhp := MapField.FXhx * 32 + 8;
-  Yhp := (MapField.FXhx and 1) * 16 + MapField.FYhx * 32;
-  Result := Xhp + Yhp shl 13 + $28000000;
+
+  Xhp := TMapField(Owner).FXhx * 32 + 8;
+  Yhp := (TMapField(Owner).FXhx and 1) * 16 + TMapField(Owner).FYhx * 32;
+  Result := Xhp + (Yhp shl 13 + $28000000);
 end;
 
 procedure TAbstractRoad.UpdateTransitions;
