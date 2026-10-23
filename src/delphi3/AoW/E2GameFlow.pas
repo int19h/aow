@@ -135,7 +135,7 @@ begin
       begin
         I := Setup.FSetupControl.FSettings.FRemotePlayers.IndexOfRemoteID(Settings.FBehavior.Flags);
         if I <> -1 then
-          if Setup.FSetupControl.FSettings.FRemotePlayers.GetPlayers(I).FPreferredRace = Settings.FRace then
+          if Setup.FSetupControl.FSettings.FRemotePlayers.GetPlayers(I).FPreferredRace = Byte(Settings.FRace) then { Original compares race bytes, including the FF sentinel. }
             Info.Text := TranslateRStr(TakenRStr)
           else Info.Text := TranslateRStr(ForcedRStr);
       end

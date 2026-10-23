@@ -65,15 +65,17 @@ var
   SaveRect: TRect;
   Info: TP2UnitShowInfo;
   Img: TLibraryImage;
+  Alignment: Byte;
   X, Y: Integer;
 begin
   if Index < FEvent.FArmyView.GetCount then
   begin
     SaveRect := SD.ClipRect; SD.ClipRect := R;
     X := (R.Right + R.Left) div 2; Y := (R.Top + R.Bottom) div 2;
-    if Ord(FEvent.FArmyView.GetUnit(Index).GetAlignment) < IntGfxMod.UnitBGs.Count then
+    Alignment := Byte(FEvent.FArmyView.GetUnit(Index).GetAlignment);
+    if Alignment < IntGfxMod.UnitBGs.Count then
     begin
-      Img := IntGfxMod.UnitBGs[Ord(FEvent.FArmyView.GetUnit(Index).GetAlignment)];
+      Img := IntGfxMod.UnitBGs[Alignment and 127]; { Original tests all eight bits, then masks the image index. }
       Img.ShowClipped(X - Img.Width div 2, Y - Img.Height div 2, SD);
     end;
     FillChar(Info, SizeOf(Info), 0); Info.Direction := 3; Info.Overlays := [uoHitPoints, uoRank];

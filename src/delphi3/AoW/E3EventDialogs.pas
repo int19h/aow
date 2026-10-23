@@ -30,6 +30,7 @@ var
 
 implementation
 uses AoWWinMan, E3Globals, AoWComp, AoWButton, AoWImage;
+procedure OriginalAssert(const Message, Filename: AnsiString; LineNumber: Integer); external 'VCL30.dpl' name 'System.@Assert@E17CE8DC';
 
 
 
@@ -660,7 +661,8 @@ begin
 
 
 
-    Assert(FEvent = nil);
+    { Original reports its source filename, independent of this checkout. }
+    {$IFOPT C+} if FEvent <> nil then OriginalAssert('Assertion failure', 'D:\AoWDev\AoWRelations.pas', 663); {$ENDIF}
     FDone := Done;
     with Event do begin FEvent := Event; AddRef; end;
     if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FStatus = psPlaying then

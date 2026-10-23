@@ -394,23 +394,19 @@ begin
         scmTitle:
           if AoWEngine.FRegistry.GetAllowResolutionSwitches then
           begin
-            with AoWUnit.MainForm.DXDC do
-            begin
-              DisplayWidth := FSceneWidth;
-              DisplayHeight := FSceneHeight;
-              AoWUnit.MainForm.Display.BackSurfaceWidth := DisplayWidth;
-              AoWUnit.MainForm.Display.BackSurfaceHeight := DisplayHeight;
-            end;
+            AoWUnit.MainForm.DXDC.DisplayWidth := FSceneWidth;
+            AoWUnit.MainForm.DXDC.DisplayHeight := FSceneHeight;
+            AoWUnit.MainForm.Display.BackSurfaceWidth := AoWUnit.MainForm.DXDC.DisplayWidth;
+            { The resize callback can replace DXDC; the original reloads it. }
+            AoWUnit.MainForm.Display.BackSurfaceHeight := AoWUnit.MainForm.DXDC.DisplayHeight;
           end;
         scmGame:
           begin
-            with AoWUnit.MainForm.DXDC do
-            begin
-              DisplayWidth := Self.FDisplayWidth;
-              DisplayHeight := Self.FDisplayHeight;
-              AoWUnit.MainForm.Display.BackSurfaceWidth := DisplayWidth;
-              AoWUnit.MainForm.Display.BackSurfaceHeight := DisplayHeight;
-            end;
+            AoWUnit.MainForm.DXDC.DisplayWidth := Self.FDisplayWidth;
+            AoWUnit.MainForm.DXDC.DisplayHeight := Self.FDisplayHeight;
+            AoWUnit.MainForm.Display.BackSurfaceWidth := AoWUnit.MainForm.DXDC.DisplayWidth;
+            { The resize callback can replace DXDC; the original reloads it. }
+            AoWUnit.MainForm.Display.BackSurfaceHeight := AoWUnit.MainForm.DXDC.DisplayHeight;
           end;
       end;
     FModeChanged := False;

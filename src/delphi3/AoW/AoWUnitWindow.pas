@@ -232,7 +232,7 @@ begin
   if Result = 0 then Result := CompareStr(S1, S2);
 end;
 
-procedure TUnitWindow.ShowUnit; { Near miss: Register allocation and jump-table offsets differ after three variants. }
+procedure TUnitWindow.ShowUnit; { Preserve the original signed sphere-count tests and their overflow behavior. }
 var
   H: THero;
   U: TAbstractUnit;
@@ -313,48 +313,48 @@ begin
       else
       begin
         UnitWindow.SelPnl.Visible := True;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 1 then UnitWindow.Sel1.Visible := False
-        else
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 0 then
         begin
           UnitWindow.Sel1.Visible := True;
           UnitWindow.Sel1.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(0));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 2 then UnitWindow.Sel2.Visible := False
-        else
+        end
+        else UnitWindow.Sel1.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 1 then
         begin
           UnitWindow.Sel2.Visible := True;
           UnitWindow.Sel2.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(1));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 3 then UnitWindow.Sel3.Visible := False
-        else
+        end
+        else UnitWindow.Sel2.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 2 then
         begin
           UnitWindow.Sel3.Visible := True;
           UnitWindow.Sel3.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(2));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 4 then UnitWindow.Sel4.Visible := False
-        else
+        end
+        else UnitWindow.Sel3.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 3 then
         begin
           UnitWindow.Sel4.Visible := True;
           UnitWindow.Sel4.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(3));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 5 then UnitWindow.Sel5.Visible := False
-        else
+        end
+        else UnitWindow.Sel4.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 4 then
         begin
           UnitWindow.Sel5.Visible := True;
           UnitWindow.Sel5.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(4));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 6 then UnitWindow.Sel6.Visible := False
-        else
+        end
+        else UnitWindow.Sel5.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 5 then
         begin
           UnitWindow.Sel6.Visible := True;
           UnitWindow.Sel6.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(5));
-        end;
-        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount < 7 then UnitWindow.Sel7.Visible := False
-        else
+        end
+        else UnitWindow.Sel6.Visible := False;
+        if AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSphereCount > 6 then
         begin
           UnitWindow.Sel7.Visible := True;
           UnitWindow.Sel7.ILIndexUp := General.SphereToImage(AoWHSMap.FPlayers.GetPlayers(H.FPlayer).FLeader.GetSpheres(6));
-        end;
+        end
+        else UnitWindow.Sel7.Visible := False;
         UnitWindow.SphereLbl.Text := TranslateRStr(LeaderSpheresRStr);
       end;
       if ((AoWHSMap.FCombat = nil) and (H.FPlayer = AoWHSMap.FSeatedPlayer)) or
