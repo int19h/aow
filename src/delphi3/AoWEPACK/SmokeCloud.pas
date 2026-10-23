@@ -213,7 +213,7 @@ begin
   Stream.rwEObject(FEnchantment, 19);
 end;
 
-procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint); { Near miss: register or temporary allocation differs after three variants. }
+procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint); { Original reloads TerrainList after Army.Update callbacks can replace the resource. }
 var
   Walk: THNWalkData;
   Level: TMapLevel;
@@ -222,10 +222,9 @@ var
 begin
   Level := WorldMap^.MapContainer.MapLevels[Lhx];
   InitHNWalk(Walk, Xhx, Yhx, 0);
-  with FResource.TerrainList do
-  while Count > Walk.HN do
+  while FResource.TerrainList.Count > Walk.HN do
   begin
-    if (Terrain[Walk.HN] >= -1) and (Walk.X >= 0) and
+    if (FResource.TerrainList.Terrain[Walk.HN] >= -1) and (Walk.X >= 0) and
       (Walk.Y >= 0) and (Walk.X < Level.Width) and (Level.Height > Walk.Y) then
     begin
       MapField := TAoWMapField(Level.GetField(Walk.X, Walk.Y));

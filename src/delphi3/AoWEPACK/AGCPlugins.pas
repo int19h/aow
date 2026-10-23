@@ -326,13 +326,13 @@ end;
 function CompareWanderFields(const Item1, Item2: TDoubleItem): Integer;
 begin Result := Item2.B - Item1.B; end;
 
-function TAIGroupWanderControl.Process: Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TAIGroupWanderControl.Process: Boolean;
 var
   Control: TAIGroupControl;
   Settings: TMoveControlSettings;
   Fields: TDoubleItemList;
   Field: TAoWMapField;
-  I: Integer;
+  I, TargetWeight: Integer;
   Location: TXYL;
 begin
   case FState of
@@ -402,8 +402,9 @@ begin
           end;
           if Field <> nil then
           begin
+            TargetWeight := Fields[I].B; { Original reads the list item before GetXYL. }
             Location.XYL := Field.GetXYL;
-            FControl.FGroup.SetupTargetEx(Location, Fields[I].B, gtsExecute, 1, -1, 0, 0);
+            FControl.FGroup.SetupTargetEx(Location, TargetWeight, gtsExecute, 1, -1, 0, 0);
             Inc(FState);
           end
           else Done;
