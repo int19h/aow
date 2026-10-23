@@ -333,13 +333,25 @@ class ModuleSummaries:
         return n['value'] if n['valid'] else None
 
 
+
+def write_body(graph,node):
+    """Use the already checked 4b forwarding chain, including one DLL hop."""
+    seen=set()
+    while node and node.get('alias') is not None:
+        key=node['alias']
+        if key in seen or key[3]>1:return None
+        seen.add(key);node=graph.nodes.get(key)
+    return node
+
+
 def frame_writes(checker,info,k):
     """Only checked, untainted summaries discharge individual caller bytes."""
     side=info['side'];ins=info['code'][k];site=checker.contracts.sites[side,ins.address][2]
     graph=getattr(checker.inp,'call_summaries',None)
     if graph is None or 'H3c' in site['premises'] or ins.operands[0].type!=graph.e.X.X86_OP_IMM:return set()
     image=(checker.inp.old,checker.inp.new)[side];node=graph.nodes.get((side,id(image),ins.operands[0].imm,0))
-    if not node or node['writes'] is None:return set()
+    node=write_body(graph,node)
+    if not node or not node['valid'] or node['value'][3] or node['writes'] is None or node.get('write_reason'):return set()
     regs,_,_,stack=info['before'][k];sp=regs['esp'];passed={r:regs[r] for r in ('eax','edx','ecx') if r in regs}
     passed.update({at-sp+4:p for at,p in stack.items() if at>=sp})
     allowed=set();evidence=[]

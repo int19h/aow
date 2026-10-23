@@ -146,23 +146,64 @@ class CutGarbage:
             Ownership(self.checker,info,st.h4_base,head).prepare(st)
     def mask(self,memory,base,info,state,allowed=(),st=None):
         e=self.e
-        if state[2] and not allowed:return memory
-        if st is not None and not e.prove(st.ownership.goals(st)+getattr(st,'call_access_goals',[])):return memory
+        if st is not None and not e.prove(st.ownership.goals(st)):return memory
         public=e.z3.Array('memory',e.BV32,e.BYTE)
         for off in set(range(info['low'],0))-state[1]:
-            if state[2] and off not in allowed:continue
-            address=base+e.bv(off);memory=e.z3.Store(memory,address,e.z3.Select(public,address))
+            address=base+e.bv(off)
+            exposed=getattr(st,'call_exposed',{}).get(off,e.z3.BoolVal(False))
+            memory=e.z3.Store(memory,address,e.z3.If(exposed,e.z3.Select(memory,address),e.z3.Select(public,address)))
         return e.simp(memory)
     def step(self,machine,st,side,k):
         info=self.infos[side];ins=info['code'][k];before=len(st.events)
         if ins.mnemonic=='call':
-            from equiv_summaries import frame_writes
+            from equiv_summaries import frame_writes,write_body
             regs,_,_,stack=info['before'][k];sp=regs['esp']
             observed=self.checker.contracts.sites[side,ins.address][0]
-            values=[st.regs[r] for r in self.e.REGS if r!='esp' and any(('r',r,lane) in observed for lane in range(4))]+[st.load(st.regs['esp']+self.e.bv(at-sp),4) for at in stack if at>=sp]
-            st.call_access_goals=[self.e.z3.Implies(st.ownership.guard(st),self.e.outside(st.regs[r],st.h4_base,info['low'])) for r in ('ebx','esi','edi','ebp') if any(('r',r,lane) in observed for lane in range(4))]
-            st.ownership.passed(st,values,frame_writes(self.checker,info,k),sum(r!='esp' and any(('r',r,lane) in observed for lane in range(4)) for r in self.e.REGS))
+            arguments={r:st.regs[r] for r in self.e.REGS if r!='esp' and any(('r',r,lane) in observed for lane in range(4))}
+            extent=max(0,info['low']-sp,self.checker.contracts.sites[side,ins.address][1])
+            if extent>128 or extent%4:raise self.e.Unsupported('per-call stack argument extent exceeds budget')
+            # Inspect modeled arguments without manufacturing an executed H1 load.
+            arguments.update({at+4:self.e.z3.Concat([self.e.z3.Select(st.memory,st.regs['esp']+self.e.bv(at+j)) for j in reversed(range(4))]) for at in range(0,extent,4)})
+            values=list(arguments.values())
+            allowed=frame_writes(self.checker,info,k)
+            graph=getattr(self.checker.inp,'call_summaries',None);site=self.checker.contracts.sites[side,ins.address][2]
+            node=graph.nodes.get((side,id((self.checker.inp.old,self.checker.inp.new)[side]),ins.operands[0].imm,0)) if graph and ins.operands[0].type==self.e.X.X86_OP_IMM else None
+            node=write_body(graph,node) if graph else None
+            reads=None
+            closed=False
+            if node and node['valid'] and node['writes'] is not None and not node.get('write_reason') and 'H3c' not in site['premises']:
+                try:
+                    if 'closed_pointer_reads' not in node:
+                        node['closed_pointer_reads']=all(i.mnemonic=='ret' for n,i in enumerate(node['code']) if not self.e.successors(node['code'],n))
+                    closed=node['closed_pointer_reads']
+                except self.e.Unsupported:pass  # Refinement unavailable; retain the full reach.
+            if closed:
+                if all(arg is not None and not isinstance(arg,tuple) for arg,_,_,_,_ in node['write_reads']):
+                    reads={arg:0 for arg in arguments}
+                    for arg,bits,_,_,_ in node['write_reads']:reads[arg]=reads.get(arg,0)|bits
+            points={r:p for r,p in regs.items() if r in arguments}
+            points.update({at-sp+4:p for at,p in stack.items() if at>=sp})
+            fixed=set()
+            for arg,p in points.items():
+                if info['low']<=p<0 or reads is None:fixed.update(range(max(info['low'],p),0))
+                else:fixed.update(p+j for j in range(64) if reads.get(arg,0)>>j&1 and info['low']<=p+j<0)
+            symbolic={arg:v for arg,v in arguments.items() if arg not in points}
+            # For p inside the frame, extent covers every byte from p to top.
+            # Keep the draft's conservative outside-frame fringe as a minimum,
+            # never a cap on the private extent; constant bounds avoid SMT ranges.
+            reach_extent=max(64,-info['low'])
+            def reaches(off,arg,v):
+                delta=st.h4_base+self.e.bv(off)-v
+                full=self.e.z3.ULT(delta,self.e.bv(reach_extent))
+                if reads is None:return full
+                precise=self.e.z3.Or([delta==self.e.bv(j) for j in range(64) if reads.get(arg,0)>>j&1])
+                return self.e.z3.If(self.e.outside(v,st.h4_base,info['low']),precise,full)
+            st.call_exposed={off:(self.e.z3.BoolVal(True) if off in fixed else self.e.simp(self.e.z3.Or([reaches(off,arg,v) for arg,v in symbolic.items()]))) for off in range(info['low'],0) if off not in allowed}
+            # Passing is safe because uncovered reachable bytes remain visible;
+            # H3 forbids retaining the pointer after this particular call.
+            st.ownership.passed(st,values,range(info['low'],0),sum(isinstance(arg,str) for arg in arguments))
         machine.step(st,ins)
+        st.event_pcs=getattr(st,'event_pcs',[])+[ins.address]*(len(st.events)-before)
         if ins.mnemonic=='ret':st.ownership.result(st)
         for j in range(before,len(st.events)):
             event=st.events[j]
@@ -170,7 +211,11 @@ class CutGarbage:
                 from equiv_summaries import frame_writes
                 event=list(event);event[6]=self.mask(event[6],st.h4_base,info,info['before'][k],frame_writes(self.checker,info,k),st);st.events[j]=tuple(event)
     def memories(self,states,tails):
-        return [self.mask(st.memory,st.h4_base,info,info['after'][tail],st=st) for st,info,tail in zip(states,self.infos,tails)]
+        memories=[]
+        for st,info,tail in zip(states,self.infos,tails):
+            st.call_exposed={}  # H3 excludes retention/publication beyond the call.
+            memories.append(self.mask(st.memory,st.h4_base,info,info['after'][tail],st=st))
+        return memories
     def failed(self,tails):
         # A diagnostic is attached only after a failed symbolic transition.
         for info,tail in zip(self.infos,tails):
@@ -182,6 +227,20 @@ class CutGarbage:
                         self.checker.garbage_witness=dict(side=info['side'],pc=hex(info['code'][index].address),offset=offset,kind='callee' if info['code'][index].mnemonic=='call' else 'direct-read')
                         site=self.checker.contracts.sites.get((info['side'],info['code'][index].address))
                         if site and site[2].get('callee_read_first'):self.checker.garbage_witness['callee_read']=site[2]['callee_read_first']
+                        elif site and info['code'][index].mnemonic=='call':
+                            target=site[2].get('target');graph=getattr(self.checker.inp,'call_summaries',None)
+                            todo=[(info['side'],id((self.checker.inp.old,self.checker.inp.new)[info['side']]),int(target,16),0)] if graph and target and target.startswith('0x') else [];visited=set()
+                            detail=dict(pc=target or 'unknown target',instruction='no checked must-write summary')
+                            while todo and len(visited)<256:
+                                key=todo.pop()
+                                if key in visited or key not in graph.nodes:continue
+                                visited.add(key);node=graph.nodes[key]
+                                if node.get('alias') is not None:todo.append(node['alias'])
+                                todo.extend(child for child,_ in node['edges'].values())
+                                opaque=next((ins for ins in node['code'] if (ins.mnemonic=='call' and ins.address not in node['edges']) or (ins.mnemonic=='jmp' and ins.operands[0].type!=self.e.X.X86_OP_IMM)),None)
+                                if opaque or node.get('write_reason'):
+                                    ins=opaque or node['code'][0];detail=dict(pc=hex(ins.address),instruction=ins.mnemonic+' '+ins.op_str,reason=node.get('write_reason') or 'opaque call: no must-write summary');break
+                            self.checker.garbage_witness['callee_scan']=detail
                         return
                     if i not in seen:
                         seen.add(i);todo.extend(self.e.successors(info['code'],i))

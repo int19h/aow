@@ -169,7 +169,7 @@ class CallContracts:
                       premise='H3' if all(summaries) else 'H3c',
                       read_contract='Checked union of both callee read sets; passed-through flags restricted by caller live_locations after calls (union for repeated same-target calls)' if all(summaries) else 'Assumed: callee reads only EAX, EDX, ECX, stack arguments and DF=0; no other incoming GPR or flag is observed.',
                       inputs=[list(v) for v in sorted(inputs)],
-                      H3='Same identified callee transformer on these inputs, memory, FS and FP; preserves EBX/ESI/EDI/EBP and caller private save slots; returns DF=0; stated cleanup; matching FP/exception effects; flags the callee leaves undefined are not observed; no observation of caller return-address or instruction-location context or its own private save slots (callee H1).')
+                      H3='Same identified callee transformer on these inputs, memory, FS and FP; preserves EBX/ESI/EDI/EBP and caller private save slots; returns DF=0; stated cleanup; matching FP/exception effects; flags the callee leaves undefined are not observed; no observation of caller return-address or instruction-location context or its own private save slots (callee H1); the callee does not retain or publish passed frame pointers beyond the call.')
         self.sites[key] = inputs,cleanup,record
         return self.sites[key]
     def abi(self, code, side, callee=False, summaries=None):

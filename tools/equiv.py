@@ -110,6 +110,35 @@ def prove(expressions):
     return s.check() == z3.unsat
 
 
+def correspondence_failure(states, memories, tails, relations):
+    """One bounded diagnostic query; no proof goals or premises are changed."""
+    deadline=time.monotonic()+1
+    items=[('H2 %s obligation fails at %s'%(kind,hex(pc)),goal,None) for st in states for pc,kind,goal in st.ownership.obligations]
+    guard=ownership_premise(states)
+    for n,(x,y) in enumerate(zip(states[0].events,states[1].events)):
+        names = (['target','callee inputs/cleanup','context','context','ESP','memory','FS','FP'] if x[0]=='call' else
+                 ['target','EAX','EDX','ESP','EBX','ESI','EDI','EBP','DF'] if x[0]=='return' else [])
+        pc=getattr(states[0],'event_pcs',tails)[n]
+        for k,(u,v) in enumerate(zip(x[1:],y[1:])):
+            name=names[k] if k<len(names) else 'component %d'%(k+1)
+            items.append(('%s event at %s differs: %s'%(x[0],hex(pc),name),z3.Implies(guard,equality(u,v)),(u,v)))
+    for name,u,v in [('memory',*memories),('FS',states[0].fs,states[1].fs),('FP',states[0].fp,states[1].fp),('branch condition',states[0].condition,states[1].condition)]:
+        items.append(('exit at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,equality(u,v)),(u,v)))
+    items += [('successor at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,goal),None) for name,goal in relations]
+    solver=z3.Solver();solver.set(timeout=max(1,int(1000*(deadline-time.monotonic()))));solver.add(z3.Not(z3.And([goal for _,goal,_ in items])))
+    if solver.check()==z3.sat:
+        witness=solver.model()
+        for label,goal,pair in items:
+            if time.monotonic()>deadline:break
+            if not z3.is_false(witness.eval(goal,model_completion=True)):continue
+            if pair and all(z3.is_array(v) for v in pair):
+                address=z3.FreshConst(BV32,'differing_address');solver.push();solver.set(timeout=max(1,min(200,int(1000*(deadline-time.monotonic())))))
+                solver.add(guard,z3.Select(pair[0],address)!=z3.Select(pair[1],address))
+                if solver.check()==z3.sat:label+=' at '+hex(solver.model().eval(address,model_completion=True).as_long())
+            return label
+    return 'diagnostic budget at %s: failed transition; no differing component established'%hex(tails[0])
+
+
 def conditional_facts(guard, equations):
     """Houdini's candidate filter, with one solver model removing many facts.
 
@@ -2316,6 +2345,7 @@ class Checker:
     def check(self, fn, mutated=None):
         self.contracts = None
         self.garbage_witness = None
+        self.pending_diagnostic = None
         self.garbage_cache = {}
         self.frame_lows = None
         self.exception_whole_only = False
@@ -2327,11 +2357,15 @@ class Checker:
         self.last_contracts = dict(hypotheses={h:[r for _,_,r in self.contracts.sites.values() if h in r.get('premises',[r.get('premise','H3')])] for h in ('H3','H3c') if any(h in r.get('premises',[r.get('premise','H3')]) for _,_,r in self.contracts.sites.values())} if self.contracts else {},
                                    dependencies=sorted(self.contracts.dependencies) if self.contracts else [],
                                    alias_resolutions=getattr(self.inp.addresses,'alias_resolutions',[]))
+        if result[0]=='NOT PROVEN' and self.pending_diagnostic and not self.garbage_witness:
+            result=('NOT PROVEN',correspondence_failure(*self.pending_diagnostic))
+        self.pending_diagnostic=None
         if result[0]=='NOT PROVEN' and self.garbage_witness:
             w=self.garbage_witness
             reason=('uninitialized local passed to callee at %s (callee write not checked)'%w['pc'] if w['kind']=='callee' else
                     'reads uninitialized private slot (side %d, %s, offset %d)'%(w['side'],w['pc'],w['offset']))
             if w.get('callee_read'):reason+='; callee read at '+w['callee_read']['pc']+' ('+w['callee_read']['instruction']+')'
+            if w.get('callee_scan'):reason+='; callee scan at '+w['callee_scan']['pc']+' ('+w['callee_scan']['instruction']+'; '+w['callee_scan'].get('reason','no checked must-write summary')+')'
             result=('NOT PROVEN',reason)
         if result[0].startswith('PROVEN'):self.garbage_witness=None
         self.last_contracts['entry_separation'] = sorted(getattr(self.contracts,'entry_separation',{}).values(),key=str) if self.contracts else []
@@ -2439,6 +2473,7 @@ class Checker:
         except Unsupported as e:
             return 'UNSUPPORTED', str(e)
         except NotProven as e:
+            self.pending_diagnostic=getattr(e,'diagnostic',None)
             return 'NOT PROVEN', str(e)[:80]
         finally:
             addresses.allow_local_cfg = True
@@ -2753,13 +2788,16 @@ class Checker:
                 if x[0] != y[0] or len(x) != len(y):
                     raise NotProven('different observable events at instruction %d' % i)
                 goals += [equality(u, v) for u, v in zip(x[1:], y[1:])]
+            relations=[]
             for edge, j in enumerate(edges[i]):
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges[i]), edge)
-                goals += [z3.Implies(guard, register_byte(old, x, k) == register_byte(new, y, k)) for x, y, k in candidates[j]]
-                goals += [z3.Implies(guard, old.flags[f] == new.flags[f]) for f in flag_candidates[j]]
+                related=[('%s[%d]/%s[%d]'%(x,k,y,k),z3.Implies(guard,register_byte(old,x,k)==register_byte(new,y,k))) for x,y,k in candidates[j]]+[(f,z3.Implies(guard,old.flags[f]==new.flags[f])) for f in flag_candidates[j]]
+                relations+=related;goals += [goal for _,goal in related]
             if not prove(guarded(states,goals)):
                 garbage.failed(tails)
-                raise NotProven('state / event correspondence fails at instruction %d' % i)
+                failure=NotProven('symbolic transition differs')
+                failure.diagnostic=(states,memories,(a[tails[0]].address,b[tails[1]].address),relations)
+                raise failure
         return 'PROVEN', ''
 
     def acyclic(self, a, b):
