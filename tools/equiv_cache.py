@@ -1,5 +1,6 @@
 """Dependency-validated verdict replay. Cache contents are not proof certificates."""
-import hashlib,json,os,tempfile,sys
+import hashlib,json,os,tempfile,sys,gc
+from contextlib import contextmanager
 from pathlib import Path
 from threading import local
 ACTIVE = local()
@@ -32,8 +33,38 @@ def handles(old,new):
     r=recorder()
     if r is not None:r.handles=[old,new]
 
+def prepare(checker):
+    """Each proof starts from the same analysis state, regardless of replay history."""
+    for obj,names in ((checker.inp,('call_summaries',)),(checker,('_cleanup_cache','_cleanup_images','_cleanup_unreadable','_private_call_cache'))):
+        for name in names:
+            if hasattr(obj,name):delattr(obj,name)
+    d=checker.inp.addresses
+    # Reviewed names are module inputs; only proof-consultation sets are transient.
+    d.consulted.clear();d.unresolved.clear();checker.last_contracts={}
+
+
+@contextmanager
+def proof_context(checker):
+    # Z3 allocation IDs also affect simplification/search. Isolate them, and keep
+    # cyclic collection from changing AST lifetimes during a proof. Restore the
+    # caller's default context because the existing model uses default builders.
+    e=sys.modules[type(checker).__module__];z=e.z3;d=checker.inp.addresses
+    defaults=z.main_ctx.__globals__;old_context=z.main_ctx()
+    old_sorts=(e.BV32,e.BYTE,e.MEM);old_points=d.pointee_symbols;collecting=gc.isenabled()
+    gc.disable()
+    try:
+        context=z.Context();defaults['_main_ctx']=context
+        e.BV32,e.BYTE=z.BitVecSort(32),z.BitVecSort(8);e.MEM=z.ArraySort(e.BV32,e.BYTE)
+        d.pointee_symbols=[{k:(points[k][0].translate(context),points[k][1]) for k in sorted(points,key=repr)} for points in old_points]
+        yield
+    finally:
+        d.pointee_symbols=old_points;e.BV32,e.BYTE,e.MEM=old_sorts
+        defaults['_main_ctx']=old_context
+        if collecting:gc.enable()
+
+
 class Cache:
-    SCHEMA = 1
+    SCHEMA = 2
     def __init__(self,checker,directory):
         self.c=checker;self.e=sys.modules[type(checker).__module__];self.root=Path(directory)
         self.root.mkdir(parents=True,exist_ok=True);self.images={}
@@ -88,11 +119,7 @@ class Cache:
             c.last_contracts=p['explain'];d.consulted={tuple(v) for v in p['consulted']};d.unresolved={tuple(v) for v in p['unresolved']}
             c.cache_hit=entry['key'];return tuple(p['result'])
         except (OSError,ValueError,KeyError,TypeError,AssertionError,self.e.match.pefile.PEFormatError):pass
-        if entry is not None and hasattr(c.inp,'call_summaries'):del c.inp.call_summaries
         self.reads={};self.imports={};self.handlers={};self.handles=None;saved=[];ACTIVE.record=self
-        # Reproduce memoized cleanup dependencies, including failed scans.
-        for name in ('_cleanup_cache','_cleanup_images','_cleanup_unreadable','_private_call_cache'):
-            if hasattr(c,name):delattr(c,name)
         try:
             for img in (c.inp.old,c.inp.new):
                 old=img.bytes_at;saved.append((img,old));img._verdict_read=old;img.bytes_at=lambda a,n,img=img:note(img,a,n)

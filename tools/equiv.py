@@ -2370,10 +2370,12 @@ class Checker:
         return pairs
 
     def check(self, fn, mutated=None, matched=False):
+        verdict_cache.prepare(self)
         self.cache_hit=None
-        if self.cache is not None and mutated is None:
-            return self.cache.run(fn,lambda:('MATCH','') if matched else self._check(fn),matched)
-        return ('MATCH','') if matched else self._check(fn,mutated)
+        def run():
+            if matched:return 'MATCH',''
+            with verdict_cache.proof_context(self):return self._check(fn,mutated)
+        return self.cache.run(fn,run,matched) if self.cache is not None and mutated is None else run()
 
     def _check(self, fn, mutated=None):
         self.contracts = None

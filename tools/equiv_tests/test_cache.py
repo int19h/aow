@@ -63,3 +63,50 @@ class VerdictCache(unittest.TestCase):
                 else:c.inp.addresses.immutable_data[side][0x402000]=4
             c.cache=Cache(c,self.shared.parent/str(pointer));self.assertTrue(c.check(f)[0].startswith('PROVEN'))
             c.check(f);self.assertTrue(c.cache_hit);c.inp.old.data[0x2000]^=1;c.check(f);self.assertIsNone(c.cache_hit)
+
+    def test_hit_then_miss_matches_uncached_analysis_and_queries(self):
+        import dataclasses
+        def run(c,f):
+            with patch.object(e.limits,'check',wraps=e.limits.check) as queries:
+                result=c.check(f)
+            return result,c.last_contracts,sorted(c.inp.addresses.consulted),queries.call_count
+        baseline,f=self.fixture('A');baseline.cache=None
+        baseline.inp.addresses.reviewed_names=[{'original'}, {'compiled'}]
+        run(baseline,f);expected=run(baseline,dataclasses.replace(f,name='B'))
+        cached,f=self.fixture('A');cached.inp.addresses.reviewed_names=[{'original'}, {'compiled'}]
+        run(cached,f)
+        with patch.object(e.limits,'check',side_effect=AssertionError('hit queried solver')):
+            cached.check(f)
+        self.assertTrue(cached.cache_hit)
+        # A replay cannot leave any of these predecessor-dependent analysis memos.
+        cached.inp.call_summaries=object();cached._cleanup_cache={'poison':None}
+        cached._private_call_cache={'poison':False};cached.inp.addresses.consulted.add((1,2,'stale'))
+        self.assertEqual(expected,run(cached,dataclasses.replace(f,name='B')))
+        self.assertIsNone(cached.cache_hit)
+        self.assertEqual([{'original'},{'compiled'}],cached.inp.addresses.reviewed_names)
+
+    def test_match_has_no_stale_consulted_or_explain_state(self):
+        c,f=self.fixture('A');c.check(f)
+        self.assertTrue(c.inp.addresses.consulted)
+        c.cache=None;c.check(f,matched=True)
+        self.assertEqual({},c.last_contracts)
+        self.assertEqual(set(),c.inp.addresses.consulted)
+        self.assertFalse(hasattr(c.inp,'call_summaries'))
+
+    def test_proof_context_translates_loader_symbols_and_restores_on_failure(self):
+        import gc
+        from equiv_cache import proof_context
+        c,f=self.fixture('A');old=e.z3.main_ctx();sorts=(e.BV32,e.BYTE,e.MEM)
+        symbol=e.z3.BitVec('reviewed_loader_pointee',32);evidence=(1,2,'reviewed')
+        points=[{('dll','scope','name'):(symbol,evidence)},{2:(symbol,evidence)}]
+        c.inp.addresses.pointee_symbols=points;collecting=gc.isenabled()
+        with self.assertRaisesRegex(e.Unsupported,'fixture'):
+            with proof_context(c):
+                a=c.inp.addresses.pointee_symbols[0]['dll','scope','name'][0]
+                b=c.inp.addresses.pointee_symbols[1][2][0]
+                self.assertIsNot(old,a.ctx);self.assertTrue(e.equal(a,b))
+                self.assertTrue(e.prove([a+e.bv(0)==b]));self.assertFalse(gc.isenabled())
+                raise e.Unsupported('fixture')
+        self.assertIs(old,e.z3.main_ctx());self.assertIs(points,c.inp.addresses.pointee_symbols)
+        self.assertTrue(all(a is b for a,b in zip(sorts,(e.BV32,e.BYTE,e.MEM))))
+        self.assertEqual(collecting,gc.isenabled())
