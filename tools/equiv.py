@@ -254,6 +254,7 @@ class Inputs:
         if len(argv) < 4:
             raise ValueError('usage: equiv.py [match options] [--mutate N] exe map original signatures [classes ...]')
         exe, mapf, orig, sigf, *classes = argv
+        self.map_path = pathlib.Path(mapf)
         self.cache_files.update(map(pathlib.Path,(mapf,sigf)))
         self.original_path = pathlib.Path(orig)
         self.old, self.new = match.Image(orig), match.Image(exe)
@@ -1641,7 +1642,28 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
         md = CS.Cs(CS.CS_ARCH_X86, CS.CS_MODE_32)
         md.detail = True
         states, todo, returns = {}, [(address, 0, None)], set()
-        visits = 0
+        visits = 0; decoded=set(); flows={}; allowed_fs=set()
+        if own_ret_only:
+            ends=([a for a,_ in checker.inp.sigs.values()] if side==0 else [checker.inp.text+a for a in getattr(checker.inp,'code_offsets',())]) if img is root else []
+            names=None
+            if img is not root:
+                exports=getattr(getattr(img.pe,'DIRECTORY_ENTRY_EXPORT',None),'symbols',())
+                ends=[img.base+x.address for x in exports if not x.forwarder]
+                names={img.base+x.address:re.sub(r'@[0-9A-Fa-f]{8}$','',x.name.decode('latin1')) for x in exports if x.name and not x.forwarder}
+                directory=img.pe.OPTIONAL_HEADER.DATA_DIRECTORY[match.pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT']]
+                if verdict_cache.recorder() is not None:
+                    verdict_cache.note(img,img.base,img.pe.OPTIONAL_HEADER.SizeOfHeaders)
+                    info=getattr(getattr(img.pe,'DIRECTORY_ENTRY_EXPORT',None),'struct',None)
+                    if info:
+                        for a,n in ((info.AddressOfFunctions,4*info.NumberOfFunctions),(info.AddressOfNames,4*info.NumberOfNames),(info.AddressOfNameOrdinals,2*info.NumberOfNames)): verdict_cache.note(img,img.base+a,n)
+                    for x in (x for x in exports if x.name is not None and getattr(x,'name_offset',None) is not None): verdict_cache.note(img,img.base+img.pe.get_rva_from_offset(x.name_offset),len(x.name)+1)
+                verdict_cache.note(img,img.base+directory.VirtualAddress,max(40,directory.Size))
+            try:
+                code=decode(img,address,min([4096]+[a-address for a in ends if a>address]))
+                code,_=checker.exception_regions(code,side,img,names)
+                flows={i.address:i.flow for i in code if i.flow is not None}
+                allowed_fs={i.address for i in code if 'fs:' in i.op_str}
+            except (Unsupported,NotProven): pass
         def imported(cell):
             match.parse_imports_once(img)
             for module in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', ()):
@@ -1668,9 +1690,10 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
         while todo:
             pc, sp, bp = todo.pop()
             visits += 1
-            if visits > 1500 or abs(pc - address) > 8192:
+            if visits > 1500 or (not own_ret_only and abs(pc - address) > 8192):
                 return None
             if pc in states:
+                if own_ret_only: continue
                 old = states[pc]
                 merged = tuple(x if x == y else None for x, y in zip(old, (sp, bp)))
                 if old == merged:
@@ -1680,9 +1703,19 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
             ins = next(md.disasm(verdict_cache.raw(img,pc,15), pc, count=1), None)
             verdict_cache.note(img,pc,ins.size if ins else 15)
             if ins is None or ins.addr_size != 4:
-                if ins is None: checker._cleanup_unreadable.add(key)
+                if ins is None and not own_ret_only: checker._cleanup_unreadable.add(key)
                 return None
             m, oo = ins.mnemonic, ins.operands
+            if own_ret_only:
+                if (m!='ret' and any(ins.group(g) for g in (CS.CS_GRP_RET,CS.CS_GRP_IRET))) or (m!='call' and not m.startswith('j') and any(ins.group(g) for g in (CS.CS_GRP_JUMP,CS.CS_GRP_BRANCH_RELATIVE))): return None
+                span=set(range(pc,pc+ins.size))
+                if span & decoded or len(decoded|span)>4096: return None
+                decoded.update(span)
+                if any(o.type==X.X86_OP_MEM and ins.reg_name(o.mem.segment)=='fs' for o in oo) and pc not in allowed_fs:
+                    following=next(md.disasm(verdict_cache.raw(img,pc+ins.size,15),pc+ins.size,count=1),None)
+                    if not (m=='pop' and oo[0].size==4 and not (oo[0].mem.base or oo[0].mem.index or oo[0].mem.disp) and following and following.mnemonic=='add' and following.op_str=='esp, 0xc'): return None
+                if pc in flows:
+                    todo.extend((p,sp,bp) for p in flows[pc]);continue
             if m == 'ret':
                 if (sp != 0 and not own_ret_only) or 0x66 in ins.prefix:
                     return None
@@ -1693,10 +1726,10 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
                     return None
                 sp = sp - 4 if sp is not None else None
             elif m == 'pop':
-                if oo[0].type != X.X86_OP_REG or oo[0].size != 4 or ins.reg_name(oo[0].reg) == 'esp':
+                if oo[0].size != 4 or (not own_ret_only and oo[0].type != X.X86_OP_REG) or (oo[0].type==X.X86_OP_REG and ins.reg_name(oo[0].reg) == 'esp'):
                     return None
                 sp = sp + 4 if sp is not None else None
-                if ins.reg_name(oo[0].reg) == 'ebp':
+                if oo[0].type==X.X86_OP_REG and ins.reg_name(oo[0].reg) == 'ebp':
                     bp = None
             elif m == 'leave':
                 sp, bp = (bp + 4 if bp is not None else None), None
@@ -2279,7 +2312,7 @@ class Checker:
         # reachability, rather than interpreted as executable data.
         return a, b
 
-    def exception_regions(self, code, side):
+    def exception_regions(self, code, side, image=None, names=None):
         """Recognize Delphi's three-word FS chain record and handler descriptor.
 
         A handler is a separate, universally quantified region, not dead code.
@@ -2309,14 +2342,23 @@ class Checker:
             if d is None or code[d].mnemonic != 'jmp' or code[d].operands[0].type != X.X86_OP_IMM or code[d].size != 5:
                 raise Unsupported('unrecognized Delphi handler descriptor')
             target = code[d].operands[0].imm
-            name = verdict_cache.handler_name(self.inp.addresses,side,target)
+            name = verdict_cache.handler_name(self.inp.addresses,side,target) if names is None else names.get(target,'')
+            if not name and names is not None and image is not None:
+                thunk=verdict_cache.note(image,target,6)
+                if len(thunk)==6 and thunk[:2]==b'\xff\x25':
+                    match.parse_imports_once(image)
+                    for module in getattr(image.pe,'DIRECTORY_ENTRY_IMPORT',()):
+                        for imp in module.imports:
+                            if imp.address==int.from_bytes(thunk[2:],'little') and imp.name:
+                                name=re.sub(r'@[0-9A-Fa-f]{8}$','',imp.name.decode('latin1'))
+                                verdict_cache.imported(image,imp.address,self.inp.original_path.parent/module.dll.decode('latin1'),imp.name)
             kind = name.rsplit('.', 1)[-1]
             if kind not in ('@HandleFinally', '@HandleAnyException', '@HandleOnException', '@HandleAutoException'):
                 raise Unsupported('unknown Delphi exception helper')
             metadata = [target, descriptor.imm]
             roots = [code[d].address + 5]
             if kind == '@HandleOnException':
-                img = (self.inp.old, self.inp.new)[side]
+                img = image if image is not None else (self.inp.old, self.inp.new)[side]
                 table = code[d].address + 5
                 n = Addresses.u32(img, table)
                 if not 0 < n < 16:
@@ -2356,6 +2398,13 @@ class Checker:
                     and k >= 3 and all(code[j].mnemonic == 'pop' and code[j].operands[0].type == X.X86_OP_REG for j in range(k-3, k))
                     and code[k-3].operands[0].reg == ins.operands[1].reg
                     and not fs[0].mem.disp and not fs[0].mem.index):
+                allowed_fs.add(k)
+            elif (image is not None and regions and ins.mnemonic == 'pop'
+                    and len(ins.operands) == 1 and fs[0].size == 4
+                    and not (fs[0].mem.base or fs[0].mem.index or fs[0].mem.disp)
+                    and k+1 < len(code) and code[k+1].mnemonic == 'add'
+                    and code[k+1].op_str == 'esp, 0xc'):
+                # Constructor uninstall, accepted only by RET discovery.
                 allowed_fs.add(k)
             else:
                 raise Unsupported('FS access outside a modeled exception frame')

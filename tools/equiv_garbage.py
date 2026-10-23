@@ -52,7 +52,7 @@ def check_initialized(checker,code,side,low):
             return regs[base]+op.mem.disp if base in regs else None
         def access(at,size,write=False):
             if at is None: return
-            if at < -512: raise e.Unsupported('private initialization extent exceeds budget')
+            if at < -512: raise e.Unsupported('private initialization extent exceeds budget at '+hex(ins.address)+' ('+ins.mnemonic+' '+ins.op_str+')')
             slots=set(range(at,min(0,at+size)))
             if check and not write and slots-defined:
                 if min(slots-defined)<low: raise e.Unsupported('private allocation outside fixed prologue extent')

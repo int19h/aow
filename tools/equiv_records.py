@@ -58,6 +58,8 @@ def install_pointer_cells(entry, inp, addresses, names, record):
                 anchor = next(iter(found)) if len(found) == 1 else None
             elif point['via'] == 'map' and side == 1:
                 anchor = addresses.map_addresses.get(point['symbol'])
+            elif point['via'] == 'reviewed-source' and side == 0 and entry['identity']['class'] == 'reviewed-source':
+                anchor = int(point['address'],16)  # Explicit Fable annotation, cell hash checked by schema 2.
             else:
                 anchor = None
             if anchor is None or immutable['class'] != 'typed-pointer-constant':

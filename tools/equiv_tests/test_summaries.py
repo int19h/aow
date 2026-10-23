@@ -135,7 +135,8 @@ class Summaries(unittest.TestCase):
 
     def test_assumed_cleanup_offset_is_not_a_return_address_witness(self):
         owner,g=self.graph(bytes.fromhex('9052ff105ac3'))
-        self.assertIsNone(g.query(owner,0,0x401100))
+        summary=g.query(owner,0,0x401100)  # 4c recognizes the matching POP: concrete zero cleanup, still H3c.
+        self.assertIsNotNone(summary);self.assertEqual(0,summary[1]);self.assertTrue(summary[3])
     def test_segment_POP_does_not_enter_GPR_join_state(self):
         owner,g=self.graph(bytes.fromhex('74040fa00fa1c3'))
         g.query(owner,0,0x401100)

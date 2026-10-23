@@ -10,6 +10,7 @@ class VerdictCache(unittest.TestCase):
         self.disk={};self.shared=Path('D:/Build/tmp/cx_rva/cache8a/shared.dpl')
         self.dll=Image(''.encode(),[(0x1100,bytes.fromhex('b801000000c3'))]);self.dll.path=str(self.shared)
         self.dll.pe.DIRECTORY_ENTRY_EXPORT=NS(symbols=[NS(name=b'leaf',address=0x1100,forwarder=None)])
+        self.dll.pe.OPTIONAL_HEADER=NS(SizeOfHeaders=64,DATA_DIRECTORY=[NS(VirtualAddress=0,Size=0)])
         def load(p):
             if str(p) not in self.disk:raise FileNotFoundError(str(p))
             return json.loads(self.disk[str(p)])
@@ -41,6 +42,19 @@ class VerdictCache(unittest.TestCase):
         self.dll.pe.DIRECTORY_ENTRY_EXPORT.symbols[0].address=0x1180;self.assertEqual({'A','B'},{k for k,v in self.run_set().items() if not v[0]});self.dll.pe.DIRECTORY_ENTRY_EXPORT.symbols[0].address=0x1100
         self.dll.data[0x1101]=2;changed=self.run_set()
         self.assertEqual({'A','B','C'},{k for k,v in changed.items() if not v[0]})
+    def test_RET_discovery_records_export_directory_header(self):
+        from .synthetic import finally_program
+        body,rel=finally_program();body=bytearray(body)
+        for at in rel:off=at-0x401000;body[off:off+4]=p32(int.from_bytes(body[off:off+4],'little')+0x100)
+        self.dll.data[0x1100:0x1100+len(body)]=body;self.dll.pe.get_rva_from_offset=lambda n:n
+        exp=NS(name=b'System.@HandleFinally@12345678',address=0x1400,forwarder=None,name_offset=0x3000);self.dll.pe.DIRECTORY_ENTRY_EXPORT.symbols.append(exp);self.dll.data[0x3000:0x3000+len(exp.name)]=exp.name
+        for label in ('A','B','independent'):
+            c,f=self.fixture(label);self.assertTrue(c.check(f)[0].startswith('PROVEN'))
+            c,f=self.fixture(label);c.check(f);self.assertTrue(c.cache_hit)
+        for at in (0x3c,0x3000):  # Header selector, then helper name outside the directory's declared extent.
+            self.dll.data[at]^=1
+            for label in ('A','B','independent'):
+                c,f=self.fixture(label);c.check(f);self.assertEqual(label=='independent',bool(c.cache_hit))
     def test_corruption_schema_limits_identities_and_version(self):
         self.run_set()
         for kind in ('corrupt','schema','limits','version','alias','map','signature','identity','unconsulted'):

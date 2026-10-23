@@ -101,6 +101,367 @@
           ]
         }
       }
+    },
+    {
+      "id": "batch2-proposal-53",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-53",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MainForm (MDIForm.pas:481), 14 functions\nCompiled relocation payload identifies unique MAP MDIForm.MainForm; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "MDIForm",
+        "symbol": "MainForm"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MainForm (MDIForm.pas:481), 14 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEd/MDIForm.pas",
+          "line": 481,
+          "end_line": 483,
+          "text": "var MainForm: TMainForm; { AoWEd 00415A7A }\nimplementation\n",
+          "sha256": "e0d4f339601e9c28428aa046fcb05c6484c9fe9504595a501db244d670affc8d"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 5,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-53",
+          "module": "AoWEd.exe",
+          "raw_pairs_count": 23,
+          "match_raw_pairs_count": 11,
+          "partners": [
+            "0x603234"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-53.original",
+        "pointee": {
+          "address": "0x4301cc",
+          "scope": "MDIForm",
+          "symbol": "MainForm",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MainForm (MDIForm.pas:481), 14 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x42f0a4",
+            "section": "DATA",
+            "content_sha256": "be8675864815d278f1dd555175d7c21a95b04ff66b3611a9ef95c9016b739402"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-53.compiled",
+        "pointee": {
+          "scope": "MDIForm",
+          "symbol": "MainForm",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MainForm (MDIForm.pas:481), 14 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "MainForm",
+            "function_symbol": "TAoWMapEditForm.Destroy",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-54",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-54",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT Forms.Application -> MAP Application\nOriginal PE IAT DLL/import Forms.Application; every listed compiled cell initially points to the independently scoped MAP symbol Forms.Application. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "Forms",
+        "symbol": "Application"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT Forms.Application -> MAP Application"
+      },
+      "source_evidence": [],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 13,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-54.original",
+        "pointee": {
+          "scope": "Forms",
+          "symbol": "Application",
+          "via": "iat",
+          "dll": "vcl30.dpl",
+          "import_name": "Forms.Application@E55EEEF8",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT Forms.Application -> MAP Application",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x432220",
+            "section": ".idata",
+            "content_sha256": "cd418e37f4e214c5e7da0b47cdc302fc1bb5de63e5102d6e79bc4846f607e9b0"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-54.compiled",
+        "pointee": {
+          "scope": "Forms",
+          "symbol": "Application",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT Forms.Application -> MAP Application",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "Application",
+            "function_symbol": "THeroEditForm.BodyGridDblClick",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-55",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-55",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet (AoWEd)\nOriginal PE IAT DLL/import AoWE.AoWHSSet; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSSet. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSSet"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet (AoWEd)"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 5,
+          "end_line": 7,
+          "text": "  AoWHSSet: TAoWHSSet;  { $558FA044 }\n\nconst",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 67,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-55.original",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "iat",
+          "dll": "aowepack.dpl",
+          "import_name": "AoWE.AoWHSSet@678301D7",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet (AoWEd)",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x432894",
+            "section": ".idata",
+            "content_sha256": "f574b442aab15816735922417f0e347d8121c45411d88efba217bfa2eb0059bc"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-55.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet (AoWEd)",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TAbilitySelectionDlg.vmt80",
+            "occurrence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-56",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-56",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap (AoWEd)\nOriginal PE IAT DLL/import AoWE.AoWHSMap; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSMap. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSMap"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap (AoWEd)"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 4,
+          "end_line": 6,
+          "text": "  AoWHSMap: TAoWHSMap;\n  AoWHSSet: TAoWHSSet;  { $558FA044 }\n",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 43,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-56.original",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "iat",
+          "dll": "aowepack.dpl",
+          "import_name": "AoWE.AoWHSMap@6B957A58",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap (AoWEd)",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x432898",
+            "section": ".idata",
+            "content_sha256": "46fe5a2492ad4cd63e174a3fdb86571ac5c0812fb0dadf8184e8868bb72d03a7"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEd.exe.pointer-cells",
+        "symbol": "batch2-proposal-56.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap (AoWEd)",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWMapEditForm.OKBtnClick",
+            "occurrence": 0
+          }
+        ]
+      }
     }
   ]
 }

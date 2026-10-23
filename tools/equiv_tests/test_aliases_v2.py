@@ -34,3 +34,36 @@ class AliasesV2(unittest.TestCase):
     def test_original_content_mismatch_is_pending(self):
         checker,entry=self.fixture();entry['original']['cells'][0]['content_sha256']='0'*64
         self.assertEqual([],self.load(checker,entry));self.assertIn('content hash',checker.inp.addresses.alias_resolutions[0]['reason'])
+    def test_named_cell_disambiguates_only_the_reviewed_operand(self):
+        checker,entry=self.fixture(True);checker.inp.addresses.map_addresses['NamedCell']=0x402020
+        entry['compiled']['cells'][0]['cell_symbol']='NamedCell';self.load(checker,entry)
+        self.assertIn(0x402020,checker.inp.addresses.pointer_cells[1])
+        checker,entry=self.fixture(True);checker.inp.addresses.map_addresses['NamedCell']=0x402030
+        entry['compiled']['cells'][0]['cell_symbol']='NamedCell';self.assertEqual([],self.load(checker,entry))
+    def test_scoped_named_cell_does_not_guess_between_duplicate_map_names(self):
+        checker,entry=self.fixture(True);inp=checker.inp
+        inp.syms['SameCell']=[('0002',0x20),('0002',0x30)]
+        entry['compiled']['cells'][0].update(cell_symbol='SameCell',cell_scope='FirstUnit')
+        with tempfile.TemporaryDirectory() as temp:
+            inp.map_path=Path(temp)/'fixture.map'
+            inp.map_path.write_text(' 0002:00000020 00000010 C=DATA S=DATA G=DGROUP M=FirstUnit\n 0002:00000030 00000010 C=DATA S=DATA G=DGROUP M=OtherUnit\n')
+            self.load(checker,entry)
+        self.assertIn(0x402020,inp.addresses.pointer_cells[1]);self.assertNotIn(0x402030,inp.addresses.pointer_cells[1])
+    def test_reviewed_source_pointee_requires_reviewed_identity(self):
+        checker,entry=self.fixture();entry['identity']['class']='reviewed-source'
+        entry['original']['pointee'].update(via='reviewed-source',address='0x402100')
+        self.load(checker,entry);self.assertIn(0x402020,checker.inp.addresses.pointer_cells[1])
+        checker,other=self.fixture();other['original']['pointee'].update(via='reviewed-source',address='0x402100')
+        self.assertEqual([],self.load(checker,other))
+    def test_anonymous_literal_recipe_checks_bytes_and_moves(self):
+        checker,_=self.fixture();inp=checker.inp
+        entry=dict(id='literal',kind='immutable-data',disposition='accepted',origin='reviewed typed operand',
+            identity={'class':'reviewed-source','evidence':'typed literal'},review=dict(reviewer='Fable',reason='R-D'),
+            extent=dict(size=4,basis='type-layout',evidence='fixture dword'),
+            original=dict(address='0x402004',section='DATA',scope='literal',symbol='old',content_sha256=hashlib.sha256(bytes(4)).hexdigest()),
+            compiled=dict(section='DATA',scope='literal',symbol='new',function_symbol='CellReader',operand_occurrence=0,content_sha256=hashlib.sha256(bytes(4)).hexdigest()))
+        inp.new.data[0x1021:0x1025]=p32(0x402024)
+        self.assertEqual(1,len(self.load(checker,entry)))
+        checker,_=self.fixture();checker.inp.new.data[0x1021:0x1025]=p32(0x402024)
+        checker.inp.new.data[0x2024]=1
+        self.assertEqual([],self.load(checker,entry))

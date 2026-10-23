@@ -113,23 +113,6 @@ class CallContracts:
         if target is None: return None,False
         e = self.e; image = (self.checker.inp.old,self.checker.inp.new)[side]
         readable = image.contains(target)
-        if readable:
-            ends = ([a for a,_ in self.checker.inp.sigs.values()] if side == 0 else [self.checker.inp.text+a for a in getattr(self.checker.inp,'code_offsets',())])
-            try:
-                code = e.decode(image,target,min([4096]+[a-target for a in ends if a>target]))
-                todo,seen,returns = [0],set(),set()
-                while todo:
-                    i = todo.pop()
-                    if i in seen: continue
-                    if len(seen)>=512 or not 0<=i<len(code): raise e.Unsupported('callee RET scan incomplete')
-                    seen.add(i); ins = code[i]
-                    e.verdict_cache.note(image,ins.address,ins.size)
-                    if ins.mnemonic == 'ret': returns.add(ins.operands[0].imm if ins.operands else 0)
-                    todo.extend(e.successors(code,i))
-                if len(returns)>1: raise e.NotProven('callee has inconsistent RET cleanup counts')
-                if returns: return next(iter(returns)),True
-            except e.Unsupported: pass
-            except e.NotProven as error: raise e.Unsupported(str(error))
         count = e.callee_cleanup(self.checker,side,target,own_ret_only=True)
         return count,readable and (id(image),target,True) not in self.checker._cleanup_unreadable
     def site(self, side, ins, sp, floor):
@@ -153,7 +136,7 @@ class CallContracts:
             raise e.Unsupported('callee cleanup contracts disagree')
         cleanup = cleanups[side][0]
         rule = 'R1' if all(c[0] is not None for c in cleanups) else 'R3'
-        if rule!='R1' and target is not None and all(c[1] for c in cleanups): raise e.Unsupported('R1 readable direct callee has no agreed RET cleanup')
+        if rule!='R1' and target is not None and all(c[1] for c in cleanups): raise e.Unsupported('R1 readable direct callee has no agreed RET cleanup at %s: %s'%(hex(ins.address),self.addresses.names[side].get(target,hex(target))))
         if rule!='R1' and not all(summaries) and not sp[1]:
             rule,cleanup = 'R2',max(0,floor-sp[0])
             if any(c[0] is not None and c[0]!=cleanup for c in cleanups): raise e.Unsupported('R2 cleanup disagrees with readable callee RET')
@@ -162,7 +145,7 @@ class CallContracts:
                       kind='direct' if target is not None else 'indirect',cleanup=cleanup,
                       cleanup_rule=rule,assumed_cleanup_bytes=cleanup if rule=='R2' else None,
                       raw_floor_minus_ESP=floor-sp[0] if rule=='R2' else None,
-                      cleanup_contract='R1: own RET counts agree on both sides' if rule=='R1' else 'R2 H3c: callee removes max(0, floor - ESP) bytes pushed below the corrected post-prologue frame level' if rule=='R2' else 'R3 shared symbolic cleanup; incompatible multiset joins become unknown',
+                      cleanup_contract='R1: own RET counts agree on both sides' if rule=='R1' else 'R2 H3c: callee removes max(0, floor - ESP) bytes, excluding only modeled exception records/finally continuations and push-reg temporaries matched by stack offset to a pop before the next call; all other words remain arguments' if rule=='R2' else 'R3 shared symbolic cleanup; incompatible multiset joins become unknown',
                       preserved=['ebx','esi','edi','ebp'],DF_entry=0,DF_exit=0,caller_private_range_relative_to_entry_ESP=[floor,0],
                       summary_kind=('summarized/H3c' if tainted else 'summarized') if all(summaries) else 'H3c',
                       premises=['H3','H3c'] if tainted else ['H3' if all(summaries) else 'H3c'],
@@ -177,8 +160,14 @@ class CallContracts:
         """Finite-height must analysis; unsupported ownership never proves saves."""
         e = self.e; saved = ('ebx','esi','edi','ebp')
         initial = {r:('entry',r) for r in e.REGS}; initial['esp'] = ('stack',(0,()))
-        states = {0:(initial,{},0)}; todo = [0]; visits = 0; floor = 0
+        states = {0:(initial,{},0,{})}; todo = [0]; visits = 0; floor = 0
         saves, observed = {}, set(); uncertain=set()
+        records=set(); continuations=set()
+        for k,ins in enumerate(code):
+            if ins.eh and ins.mnemonic=='mov': records.update(range(k-3,k))
+            if ins.mnemonic=='ret' and ins.flow:
+                if k+2<len(code) and code[k+2].mnemonic=='jmp':
+                    continuations.update(j-1 for j,x in enumerate(code) if j and x.address==code[k+2].operands[0].imm and code[j-1].mnemonic=='push' and code[j-1].operands[0].type==e.X.X86_OP_IMM and code[j-1].operands[0].imm in ins.flow)
         for ins in code:
             if ins.mnemonic == 'push' and ins.operands[0].type in (e.X.X86_OP_REG,e.X.X86_OP_IMM):
                 floor -= 4
@@ -195,7 +184,7 @@ class CallContracts:
             if visits > 1024 or not 0 <= i < len(code):
                 if visits>1024 and callee and summaries is not None:self.checker.inp.call_summaries.budget('callee ABI transfer cap (1024)')
                 raise e.Unsupported('ABI fixed-point budget/incomplete CFG')
-            before,slots,df = states[i]; regs,slots = dict(before),dict(slots)
+            before,slots,df,protected = states[i]; regs,slots,protected = dict(before),dict(slots),dict(protected)
             ins = code[i]; oo = ins.operands; m = ins.mnemonic
             def offset(value):
                 return value[1] if value is not None and value[0] == 'stack' else None
@@ -240,6 +229,7 @@ class CallContracts:
                 a = address(oo[1]); regs[ins.reg_name(oo[0].reg)] = None if a is None else ('stack',a)
             if m == 'push' and sp is not None:
                 slots[shift(sp,-4)] = value(oo[0]); regs['esp'] = ('stack',shift(sp,-4))
+                if i in records or i in continuations or (oo[0].type==e.X.X86_OP_REG and oo[0].size==4): protected[shift(sp,-4)]='eh' if i in records or i in continuations else 'save'
             if m == 'pop' and sp is not None:
                 if callee and sp==(0,()):
                     if i in uncertain: raise e.Unsupported('callee save scan incomplete after assumed cleanup')
@@ -253,11 +243,13 @@ class CallContracts:
                 bp = offset(before.get('ebp')); regs['esp'] = None if bp is None else ('stack',shift(bp,4)); regs['ebp'] = load(bp)
             if m == 'call':
                 if callee and summaries is None: raise e.Unsupported('nested callee cleanup not summarized')
-                if sp is None or df != 0: raise e.Unsupported('call ESP/DF contract unestablished')
+                if sp is None or df != 0: raise e.Unsupported('call ESP/DF contract unestablished at '+hex(ins.address))
+                excluded={a for a,kind in protected.items() if not sp[1] and a[1]==sp[1] and sp[0]<=a[0]<floor and (kind=='eh' or self.restored_temporary(code,i,a,sp))}
+                call_floor=floor-4*len(excluded)
                 if callee:
                     cleanup = summaries[ins.address][1]
-                    if cleanup is None: cleanup = max(0,floor-sp[0]) if not sp[1] else None
-                else: _,cleanup,contract = self.site(side,ins,sp,floor)
+                    if cleanup is None: cleanup = max(0,call_floor-sp[0]) if not sp[1] else None
+                else: _,cleanup,contract = self.site(side,ins,sp,call_floor)
                 regs['esp'] = ('stack',shift(sp,cleanup) if cleanup is not None else (sp[0],tuple(sorted(sp[1]+(ins.address,)))))
                 for r in ('eax','edx','ecx'): regs[r] = None
                 for r in saved: regs[r] = before[r]
@@ -299,13 +291,25 @@ class CallContracts:
                 tainted_offset = callee and (i in uncertain or (m=='call' and summaries[ins.address][1] is None))
                 newly_uncertain = tainted_offset and j not in uncertain
                 if tainted_offset: uncertain.add(j)
-                state = regs,slots,df
+                current=offset(regs.get('esp')); protected={a:v for a,v in protected.items() if current is not None and a[1]==current[1] and a[0]>=current[0]}
+                state = regs,slots,df,protected
                 if j in states:
-                    rr,ss,dd = states[j]
+                    rr,ss,dd,pp = states[j]
                     state = ({r:v if rr[r]==v else None for r,v in regs.items()},
-                             {a:v for a,v in slots.items() if a in ss and ss[a]==v},df if dd==df else None)
+                             {a:v for a,v in slots.items() if a in ss and ss[a]==v},df if dd==df else None,{a:v for a,v in protected.items() if pp.get(a)==v})
                 if j not in states or state != states[j] or newly_uncertain: states[j] = state; todo.append(j)
         return {i for n,(i,_) in saves.items() if n not in observed}
+    def restored_temporary(self,code,i,slot,sp):
+        e=self.e; delta=0
+        for ins in code[i+1:]:
+            if ins.mnemonic=='call' or ins.mnemonic.startswith('j') or ins.mnemonic=='ret': return False
+            if ins.mnemonic=='pop':
+                if ins.operands[0].type!=e.X.X86_OP_REG or ins.operands[0].size!=4: return False
+                if (sp[0]+delta,sp[1])==slot: return True
+                delta+=4
+            elif ins.mnemonic=='push': delta-=4
+            elif any(ins.reg_name(r) in ('esp','sp') for r in ins.raw.regs_access()[1]): return False
+        return False
     def flag_key(self, side, ins):
         op = ins.operands[0]
         if op.type != self.e.X.X86_OP_IMM: return ('indirect',)

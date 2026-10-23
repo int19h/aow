@@ -256,6 +256,1158 @@
           ]
         }
       }
+    },
+    {
+      "id": "batch2-proposal-01",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-01",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: TUnitOverlayModes [] byte 00 at 0x441390 / 0x5fec2c, CurrentActionImageDraw\nSource expression [] in independently named function TProductionScreen.CurrentActionImageDraw has type TUnitOverlayModes. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TProductionScreen.CurrentActionImageDraw",
+        "symbol": "literal.441390"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TUnitOverlayModes source expression []; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: TUnitOverlayModes [] byte 00 at 0x441390 / 0x5fec2c, CurrentActionImageDraw"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWProdScreen.pas",
+          "line": 471,
+          "end_line": 473,
+          "text": "          Info.Overlays := [];\n          Info.Animation := TUnitAnimation(0);\n          Info.Frame := 0;",
+          "sha256": "90caea538152b00117dd94ce9c7d5bae018d2053ad3c6a321d61322c55177a7c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 527,
+          "end_line": 527,
+          "text": "  TUnitOverlayModes = set of (uoHitPoints, uoRank, uoCombat); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x441390",
+        "section": "CODE",
+        "scope": "TProductionScreen.CurrentActionImageDraw",
+        "symbol": "literal.441390",
+        "content_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TProductionScreen.CurrentActionImageDraw",
+        "symbol": "literal.441390",
+        "function_symbol": "TProductionScreen.CurrentActionImageDraw",
+        "operand_occurrence": 14,
+        "content_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+      }
+    },
+    {
+      "id": "batch2-proposal-02",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-02",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee SWindow (AoWSWindow.pas:45), 6 functions\nCompiled relocation payload identifies unique MAP AoWSWindow.SWindow; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWSWindow",
+        "symbol": "SWindow"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee SWindow (AoWSWindow.pas:45), 6 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWSWindow.pas",
+          "line": 45,
+          "end_line": 47,
+          "text": "  SWindow: TSWindow; { $45B2A0 }\n\nimplementation",
+          "sha256": "df153c2ca66f64c1e9ef3d2a3068830fbcbc7931283183356d2ce38aa19d39cd"
+        },
+        {
+          "path": "src/delphi3/AoW/AoWSWindow.pas",
+          "line": 45,
+          "end_line": 45,
+          "text": "  SWindow: TSWindow; { $45B2A0 }",
+          "sha256": "df153c2ca66f64c1e9ef3d2a3068830fbcbc7931283183356d2ce38aa19d39cd"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 20,
+          "end_line": 20,
+          "text": "  SWindow: TSWindow absolute AoWSWindow.SWindow; { $45B2A0 }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 3,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-02",
+          "module": "AoW.exe",
+          "raw_pairs_count": 17,
+          "match_raw_pairs_count": 6,
+          "partners": [
+            "0x6253ec"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-02.original",
+        "pointee": {
+          "address": "0x45b2a0",
+          "scope": "AoWSWindow",
+          "symbol": "SWindow",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee SWindow (AoWSWindow.pas:45), 6 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a1c0",
+            "section": "DATA",
+            "content_sha256": "581ad50285b5990c48cc67daa1b143dcb8a8b741369316aa7650d89fca136a6e"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-02.compiled",
+        "pointee": {
+          "scope": "AoWSWindow",
+          "symbol": "SWindow",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee SWindow (AoWSWindow.pas:45), 6 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "SWindow",
+            "function_symbol": "TGeneral.ResetLayout",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-03",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-03",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee UnitBanner (AoWUnitBanner.pas:47), 4 functions\nCompiled relocation payload identifies unique MAP AoWUnitBanner.UnitBanner; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWUnitBanner",
+        "symbol": "UnitBanner"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee UnitBanner (AoWUnitBanner.pas:47), 4 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWUnitBanner.pas",
+          "line": 47,
+          "end_line": 49,
+          "text": "  UnitBanner: TUnitBanner;\n\nimplementation",
+          "sha256": "920a6905ca2b21a563eef607463af9f82c1a3a96ae659090791325ba95d9bef0"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 2,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-03",
+          "module": "AoW.exe",
+          "raw_pairs_count": 7,
+          "match_raw_pairs_count": 4,
+          "partners": [
+            "0x625414"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-03.original",
+        "pointee": {
+          "address": "0x45b044",
+          "scope": "AoWUnitBanner",
+          "symbol": "UnitBanner",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee UnitBanner (AoWUnitBanner.pas:47), 4 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a1d0",
+            "section": "DATA",
+            "content_sha256": "b248ec6527da470eadf42f93856e7ff9fcc884ca2fdcf2d1de5f0f2d4fc729fa"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-03.compiled",
+        "pointee": {
+          "scope": "AoWUnitBanner",
+          "symbol": "UnitBanner",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee UnitBanner (AoWUnitBanner.pas:47), 4 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "UnitBanner",
+            "function_symbol": "TGeneral.ManagerUpdate",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-04",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-04",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee General (AoWWinMan.pas:67), 341 functions\nCompiled relocation payload identifies unique MAP AoWWinMan.General; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWWinMan",
+        "symbol": "General"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee General (AoWWinMan.pas:67), 341 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWWinMan.pas",
+          "line": 67,
+          "end_line": 69,
+          "text": "  General: TGeneral;\n\nprocedure LoadGame(Controller: TGeneral; Name: string);",
+          "sha256": "9a03767b99091b0033c8aee556308e55071e8368ea51ffccd1364d9f8d755de3"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 327,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-04",
+          "module": "AoW.exe",
+          "raw_pairs_count": 565,
+          "match_raw_pairs_count": 535,
+          "partners": [
+            "0x6259c8"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-04.original",
+        "pointee": {
+          "address": "0x45b2c0",
+          "scope": "AoWWinMan",
+          "symbol": "General",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee General (AoWWinMan.pas:67), 341 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a420",
+            "section": "DATA",
+            "content_sha256": "a1a5871cb6cf36a50b71e717d364b2e5bb513315920682f66ffb700d31f31f65"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-04.compiled",
+        "pointee": {
+          "scope": "AoWWinMan",
+          "symbol": "General",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee General (AoWWinMan.pas:67), 341 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "General",
+            "function_symbol": "TArenaDlg.CloseClick",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-05",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-05",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee VideoDialog (AoWVideoDlg.pas:129), 8 functions\nCompiled relocation payload identifies unique MAP AoWVideoDlg.VideoDialog; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWVideoDlg",
+        "symbol": "VideoDialog"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee VideoDialog (AoWVideoDlg.pas:129), 8 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWVideoDlg.pas",
+          "line": 129,
+          "end_line": 131,
+          "text": "  VideoDialog: TVideoDialog;\n\nprocedure RegisterWorldMapCampaign(AEngine: TEngine);",
+          "sha256": "4e5b41d91c6ac1d6a77e39b17cca066322b7c3f2ce291a407b9bfbe65da574e5"
+        },
+        {
+          "path": "src/delphi3/AoW/AoWExeForms.pas",
+          "line": 19,
+          "end_line": 19,
+          "text": "  VideoDialog: TVideoDialog absolute AoWVideoDlg.VideoDialog; { $45B07C }",
+          "sha256": "9f7be45904b27e25bcac097d146be41766f584572494cf01e95e0f4343e04b21"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 8,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-05",
+          "module": "AoW.exe",
+          "raw_pairs_count": 17,
+          "match_raw_pairs_count": 17,
+          "partners": [
+            "0x625ab4"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-05.original",
+        "pointee": {
+          "address": "0x45b07c",
+          "scope": "AoWVideoDlg",
+          "symbol": "VideoDialog",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee VideoDialog (AoWVideoDlg.pas:129), 8 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a478",
+            "section": "DATA",
+            "content_sha256": "d9ef0b8911b342d2fb92dc7cb5df18ec72813ca9e03308b2bbcef855ee3adb3e"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-05.compiled",
+        "pointee": {
+          "scope": "AoWVideoDlg",
+          "symbol": "VideoDialog",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee VideoDialog (AoWVideoDlg.pas:129), 8 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "VideoDialog",
+            "function_symbol": "TMainForm.DisplayActivateDC",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-06",
+      "kind": "pointer-cell",
+      "disposition": "pending",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-06",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee ItemBanner (AoWItemBanner.pas:41), 2 functions\nCompiled relocation payload identifies unique MAP AoWItemBanner.ItemBanner; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWItemBanner",
+        "symbol": "ItemBanner"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "accept when a MATCH function references the pair, or under R-C sole-user if both users are the only readers on both sides and no other cell in either module points at ItemBanner/0x45b05c"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWItemBanner.pas",
+          "line": 41,
+          "end_line": 43,
+          "text": "  ItemBanner: TItemBanner;\n  ItemID: Integer;\n",
+          "sha256": "1cae7196856c60239a1cdcb9dd8ba2761d3d5dbb0d25e39a5d7ae1ac947a39f1"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 13,
+          "end_line": 13,
+          "text": "  ItemBanner: TItemBanner absolute AoWItemBanner.ItemBanner; { $45B05C }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-06",
+          "module": "AoW.exe",
+          "raw_pairs_count": 1,
+          "match_raw_pairs_count": 0,
+          "partners": [
+            "0x625b00"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-06.original",
+        "pointee": {
+          "address": "0x45b05c",
+          "scope": "AoWItemBanner",
+          "symbol": "ItemBanner",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee ItemBanner (AoWItemBanner.pas:41), 2 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a498",
+            "section": "DATA",
+            "content_sha256": "f56868663699312f026892537b9d714ada4ce66c106572d6b540cad06d79ff5a"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-06.compiled",
+        "pointee": {
+          "scope": "AoWItemBanner",
+          "symbol": "ItemBanner",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee ItemBanner (AoWItemBanner.pas:41), 2 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "ItemBanner",
+            "function_symbol": "TItemsFoundDlg.Gnd3MouseDown",
+            "occurrence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-07",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-07",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee IntGfxMod (aowIntGfxMod.pas:71), 38 functions\nCompiled relocation payload identifies unique MAP aowIntGfxMod.IntGfxMod; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "aowIntGfxMod",
+        "symbol": "IntGfxMod"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee IntGfxMod (aowIntGfxMod.pas:71), 38 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/aowIntGfxMod.pas",
+          "line": 71,
+          "end_line": 73,
+          "text": "  IntGfxMod: TIntGfxMod;\n\nimplementation",
+          "sha256": "a946b3a443bfb3affb5d811c9d5cd66795c7b734b7046c1ebaaf7f1c37b9abdc"
+        },
+        {
+          "path": "src/delphi3/AoW/AoWExeForms.pas",
+          "line": 15,
+          "end_line": 15,
+          "text": "  IntGfxMod: TIntGfxMod absolute aowIntGfxMod.IntGfxMod; { $45B03C }",
+          "sha256": "9f7be45904b27e25bcac097d146be41766f584572494cf01e95e0f4343e04b21"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 10,
+          "end_line": 10,
+          "text": "  IntGfxMod: TIntGfxMod absolute aowIntGfxMod.IntGfxMod; { $45B03C }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 29,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-07",
+          "module": "AoW.exe",
+          "raw_pairs_count": 73,
+          "match_raw_pairs_count": 52,
+          "partners": [
+            "0x625b04"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-07.original",
+        "pointee": {
+          "address": "0x45b03c",
+          "scope": "aowIntGfxMod",
+          "symbol": "IntGfxMod",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee IntGfxMod (aowIntGfxMod.pas:71), 38 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a4a0",
+            "section": "DATA",
+            "content_sha256": "291b0cc0deb16b5564c0517c2ca2ed9cb12cb5c3792969058c0a773786fe8b40"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-07.compiled",
+        "pointee": {
+          "scope": "aowIntGfxMod",
+          "symbol": "IntGfxMod",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee IntGfxMod (aowIntGfxMod.pas:71), 38 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "IntGfxMod",
+            "function_symbol": "TCampaignTransferDlg.LHeroesDraw",
+            "occurrence": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-08",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-08",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MWindow (AOWMWindow.pas:47), 8 functions\nCompiled relocation payload identifies unique MAP AOWMWindow.MWindow; compiled source declaration and original-address annotations (where present) are recorded below. MATCH counts and conflicts are supporting audits only. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AOWMWindow",
+        "symbol": "MWindow"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MWindow (AOWMWindow.pas:47), 8 functions"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AOWMWindow.pas",
+          "line": 47,
+          "end_line": 49,
+          "text": "  MWindow: TMWindow;\n\nimplementation",
+          "sha256": "71dabd661b9bb642fa37bca0a32eef0683ab693d1f9b8a5eed3400bbfef34802"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 21,
+          "end_line": 21,
+          "text": "  MWindow: TMWindow absolute AOWMWindow.MWindow; { $45B298 }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 5,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0,
+        "raw_pairs": {
+          "id": "batch2-proposal-08",
+          "module": "AoW.exe",
+          "raw_pairs_count": 18,
+          "match_raw_pairs_count": 15,
+          "partners": [
+            "0x625da0"
+          ],
+          "conflict": false
+        }
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-08.original",
+        "pointee": {
+          "address": "0x45b298",
+          "scope": "AOWMWindow",
+          "symbol": "MWindow",
+          "via": "reviewed-source",
+          "export_names": []
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MWindow (AOWMWindow.pas:47), 8 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45a5bc",
+            "section": "DATA",
+            "content_sha256": "c10dbd9078dc403b2643a130cf36adbfdcda28d92d36c975d1d5d38f05c69f6d"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-08.compiled",
+        "pointee": {
+          "scope": "AOWMWindow",
+          "symbol": "MWindow",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-B pointer-cell, reviewed-source: compiled pointee is a MAP-named unit variable whose declaration is quoted from source; the original pointee is unnamed BSS. Accepted on: the source declaration, the compiled MAP symbol, and the module-wide addrcheck bijection carrying the pair across the MATCH functions that use it with no conflict finding (AoW.exe: 2 findings, none on these cells). Astra records the addrcheck pair count from raw_pairs per entry at installation; an entry with a conflict in raw_pairs reverts to pending.\nR-B: pointee MWindow (AOWMWindow.pas:47), 8 functions",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "MWindow",
+            "function_symbol": "TGeneral.ManagerUpdate",
+            "occurrence": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-09",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-09",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: ItemID: Integer (AoWItemBanner.pas:42); addrcheck uses in IBannerPopupShow, ItemRHMouseDown; 4 bytes\nUnique compiled MAP AoWItemBanner.ItemID plus its source variable declaration establish the proposed compiled identity and type. Original-address annotations and the module-wide MATCH audit are supplied for Fable reviewed-source assessment.",
+        "scope": "AoWItemBanner",
+        "symbol": "ItemID"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "Source type/record layout or explicit literal representation; see source_evidence and extent_proposal"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: ItemID: Integer (AoWItemBanner.pas:42); addrcheck uses in IBannerPopupShow, ItemRHMouseDown; 4 bytes"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWItemBanner.pas",
+          "line": 42,
+          "end_line": 44,
+          "text": "  ItemID: Integer;\n\nimplementation",
+          "sha256": "1cae7196856c60239a1cdcb9dd8ba2761d3d5dbb0d25e39a5d7ae1ac947a39f1"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 15,
+          "end_line": 15,
+          "text": "  ItemID: Integer absolute AoWItemBanner.ItemID; { $45B060 }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 1,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x45b060",
+        "section": "BSS",
+        "scope": "AoWItemBanner",
+        "symbol": "ItemID",
+        "content_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+      },
+      "compiled": {
+        "section": "BSS",
+        "scope": "AoWItemBanner",
+        "symbol": "ItemID",
+        "map_symbol": "ItemID"
+      }
+    },
+    {
+      "id": "batch2-proposal-10",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-10",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C sole-user: BookStartVisible: Boolean (AoWWorldMap.pas:145); only TWorldMap.BookWinUpdate on both sides; 1 byte\nUnique compiled MAP AoWWorldMap.BookStartVisible plus its source variable declaration establish the proposed compiled identity and type. Original-address annotations and the module-wide MATCH audit are supplied for Fable reviewed-source assessment.",
+        "scope": "AoWWorldMap",
+        "symbol": "BookStartVisible"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "Source type/record layout or explicit literal representation; see source_evidence and extent_proposal"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C sole-user: BookStartVisible: Boolean (AoWWorldMap.pas:145); only TWorldMap.BookWinUpdate on both sides; 1 byte"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AoWWorldMap.pas",
+          "line": 145,
+          "end_line": 147,
+          "text": "  BookStartVisible: Boolean;\nprocedure TWorldMap.ResetCampaign; begin GetCampaign.FState := 0; GetCampaign.FPage := 0; InfoPnl.Visible := False; ShowBtn.Text := TranslateRStr(ShowInfoRStr); end;\nfunction GetCampaignPage(Pages: TWMCampaignScenarioPageList; Index: Integer): TWMCampaignScenarioPage;",
+          "sha256": "7743ad013e4362588a79fb3e1fe4ea080a3f6bcdcedae547a59704e5525e8671"
+        },
+        {
+          "path": "src/delphi3/AoW/AoWWorldMap.pas",
+          "line": 759,
+          "end_line": 761,
+          "text": "    BookStartVisible := BookStart.Visible;\n  end;\nend;",
+          "sha256": "7743ad013e4362588a79fb3e1fe4ea080a3f6bcdcedae547a59704e5525e8671"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 2
+      },
+      "original": {
+        "address": "0x45b0fc",
+        "section": "BSS",
+        "scope": "AoWWorldMap",
+        "symbol": "BookStartVisible",
+        "content_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+      },
+      "compiled": {
+        "section": "BSS",
+        "scope": "AoWWorldMap",
+        "symbol": "BookStartVisible",
+        "map_symbol": "BookStartVisible"
+      }
+    },
+    {
+      "id": "batch2-proposal-11",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-11",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: MWindow variable (AOWMWindow.pas:47); addrcheck uses in MapWindowKeyDown; 4 bytes\nUnique compiled MAP AOWMWindow.MWindow plus its source variable declaration establish the proposed compiled identity and type. Original-address annotations and the module-wide MATCH audit are supplied for Fable reviewed-source assessment.",
+        "scope": "AOWMWindow",
+        "symbol": "MWindow"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "Source type/record layout or explicit literal representation; see source_evidence and extent_proposal"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: MWindow variable (AOWMWindow.pas:47); addrcheck uses in MapWindowKeyDown; 4 bytes"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoW/AOWMWindow.pas",
+          "line": 47,
+          "end_line": 49,
+          "text": "  MWindow: TMWindow;\n\nimplementation",
+          "sha256": "71dabd661b9bb642fa37bca0a32eef0683ab693d1f9b8a5eed3400bbfef34802"
+        },
+        {
+          "path": "src/delphi3/AoW/E3Globals.pas",
+          "line": 21,
+          "end_line": 21,
+          "text": "  MWindow: TMWindow absolute AOWMWindow.MWindow; { $45B298 }",
+          "sha256": "1fa2019ac2177d8e5a99a6c967eda32e8ae3b5344f576f30104fe731b63dbd69"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 1,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x45b298",
+        "section": "BSS",
+        "scope": "AOWMWindow",
+        "symbol": "MWindow",
+        "content_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+      },
+      "compiled": {
+        "section": "BSS",
+        "scope": "AOWMWindow",
+        "symbol": "MWindow",
+        "map_symbol": "MWindow"
+      }
+    },
+    {
+      "id": "batch2-proposal-12",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-12",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet\nOriginal PE IAT DLL/import AoWE.AoWHSSet; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSSet. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSSet"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 5,
+          "end_line": 7,
+          "text": "  AoWHSSet: TAoWHSSet;  { $558FA044 }\n\nconst",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 35,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-12.original",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "iat",
+          "dll": "aowepack.dpl",
+          "import_name": "AoWE.AoWHSSet@678301D7",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45df78",
+            "section": ".idata",
+            "content_sha256": "4029249a7054be28471a3d394a223e916eb24cc29d5154412d1fce7662144afd"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-12.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSSet -> MAP AoWHSSet",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TCastUnitSpellDlg.SpellFrPreDraw",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-13",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-13",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap\nOriginal PE IAT DLL/import AoWE.AoWHSMap; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSMap. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSMap"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 4,
+          "end_line": 6,
+          "text": "  AoWHSMap: TAoWHSMap;\n  AoWHSSet: TAoWHSSet;  { $558FA044 }\n",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 132,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-13.original",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "iat",
+          "dll": "aowepack.dpl",
+          "import_name": "AoWE.AoWHSMap@6B957A58",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x45df7c",
+            "section": ".idata",
+            "content_sha256": "c997de4c7a6234730986019e98a70f957f2af93d1fd992aa07f600360b02b4ef"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoW.exe.pointer-cells",
+        "symbol": "batch2-proposal-13.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT AoWE.AoWHSMap -> MAP AoWHSMap",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TArenaDlg.MapViewDraw",
+            "occurrence": 0
+          }
+        ]
+      }
     }
   ]
 }

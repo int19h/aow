@@ -583,6 +583,3567 @@
       "immutability": {
         "evidence": "Typed constant declaration; MATCH audit and proof-time write guard."
       }
+    },
+    {
+      "id": "batch2-proposal-14",
+      "kind": "immutable-data",
+      "disposition": "pending",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-14",
+      "identity": {
+        "class": "reviewed-layout",
+        "evidence": "BattleWonRStr resourcestring record: export-named on the original, but the record payload is a per-build resource ID (65370 vs 64761); content equality must be the resource string text looked up by ID in each module's resource table. Needs a resourcestring content source (module pointer + ID -> text) before acceptance; H5 would otherwise reject it, correctly\nOriginal named PE export AoWE.BattleWonRStr@8276FCC3 and the compiled source-unit resource descriptor independently resolve to RT_STRING text Battle Won. The record layout is two 32-bit fields (module-handle address, resource ID).",
+        "scope": "AoWE",
+        "symbol": "BattleWonRStr"
+      },
+      "extent": {
+        "size": 8,
+        "basis": "type-layout",
+        "evidence": "Delphi TResStringRec: 4-byte module-handle-cell address + 4-byte resource ID"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "BattleWonRStr resourcestring record: export-named on the original, but the record payload is a per-build resource ID (65370 vs 64761); content equality must be the resource string text looked up by ID in each module's resource table. Needs a resourcestring content source (module pointer + ID -> text) before acceptance; H5 would otherwise reject it, correctly"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 785,
+          "end_line": 787,
+          "text": "  BattleWonRStr = 'Battle Won';\n  BattleLostRStr = 'Battle Lost';\n  BattleDrawnRStr = 'Battle Drawn';",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6652,
+          "end_line": 6656,
+          "text": "    if FCombatResult = crVictory then Result := TranslateRStr(BattleWonRStr)\n    else if FCombatResult = crDefeat then Result := TranslateRStr(BattleLostRStr)\n    else if FCombatResult = crCannotBreachWall then Result := TranslateRStr(CannotBreachWallRStr)\n    else if FCombatResult = crCannotInflictDamage then Result := TranslateRStr(CannotInflictDamageRStr)\n    else Result := TranslateRStr(BattleDrawnRStr);",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55706c74",
+        "section": "CODE",
+        "extent_proposal": {
+          "bytes": 8,
+          "basis": "see entry extent and source"
+        },
+        "initial_bytes": "0ca08e555aff0000",
+        "sample_bytes": 8,
+        "initial_u32": "0x558ea00c",
+        "symbols": [
+          "AoWE.BattleWonRStr"
+        ],
+        "readonly_section": true,
+        "relocations": [
+          "0x55706c74"
+        ],
+        "content_sha256": "6db70f83ef4b73e5a52fbcfc8ef16bc4a7181df9a68329373067b9db90de286b",
+        "access_address": "0x55706c74",
+        "access_offset": 0
+      },
+      "compiled": {
+        "address": "0x494d2c",
+        "section": "CODE",
+        "extent_proposal": {
+          "bytes": 8,
+          "basis": "see entry extent and source"
+        },
+        "initial_bytes": "b4645800f9fc0000",
+        "sample_bytes": 8,
+        "initial_u32": "0x5864b4",
+        "symbols": [
+          "AoWE.BattleWonRStr"
+        ],
+        "readonly_section": true,
+        "relocations": [
+          "0x494d2c"
+        ],
+        "map_symbols": [],
+        "content_sha256": "17135b663e7da1b97c4a6d0f5f48fb70bf7936eb9c3a962de7f31c54aec3022b",
+        "access_address": "0x494d2c",
+        "access_offset": 0,
+        "map_evidence": [],
+        "proposal_rationale": "MATCH/CFG operand proposal only; not identity evidence",
+        "functions": [
+          "TCombat.GetCombatResultText"
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-15",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-15",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: set [pmScanArea] byte 01, TCombatUnit.Finalize\nSource expression [pmScanArea] in independently named function TCombatUnit.Finalize has type TUnitPlaceMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCombatUnit.Finalize",
+        "symbol": "literal.55724f28"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TUnitPlaceMode source expression [pmScanArea]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: set [pmScanArea] byte 01, TCombatUnit.Finalize"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 1231,
+          "end_line": 1233,
+          "text": "            TCombatData(TCombat(FCombat).FCombatData).FL, 0, [pmScanArea])\n        else\n          FUnit.Place(TCombatData(TCombat(FCombat).FCombatData).FX,",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 526,
+          "end_line": 526,
+          "text": "  TUnitPlaceMode = set of (pmScanArea, pmNeglectEmptyPlayerLocation, pmCreateNewArmy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55724f28",
+        "section": "CODE",
+        "scope": "TCombatUnit.Finalize",
+        "symbol": "literal.55724f28",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCombatUnit.Finalize",
+        "symbol": "literal.55724f28",
+        "function_symbol": "TCombatUnit.Finalize",
+        "operand_occurrence": 45,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-16",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-16",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TCombatUnit.DestroyObject\nSource expression [csDestroyed] in independently named function TCombatUnit.DestroyObject has type TCombatObjectStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCombatUnit.DestroyObject",
+        "symbol": "literal.557257b4"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatObjectStatus source expression [csDestroyed]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TCombatUnit.DestroyObject"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 1529,
+          "end_line": 1531,
+          "text": "  FStatus := FStatus + [csDestroyed];\n  U := FUnit;\n  if U <> nil then",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 548,
+          "end_line": 548,
+          "text": "  TCombatObjectStatus = set of (csDestroyed, csTurnDone, csActivated, csFled, csDamaged); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557257b4",
+        "section": "CODE",
+        "scope": "TCombatUnit.DestroyObject",
+        "symbol": "literal.557257b4",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCombatUnit.DestroyObject",
+        "symbol": "literal.557257b4",
+        "function_symbol": "TCombatUnit.DestroyObject",
+        "operand_occurrence": 1,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-17",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-17",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TCombatUnit.Surrender\nSource expression [csDestroyed] in independently named function TCombatUnit.Surrender has type TCombatObjectStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCombatUnit.Surrender",
+        "symbol": "literal.55725828"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatObjectStatus source expression [csDestroyed]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TCombatUnit.Surrender"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 1547,
+          "end_line": 1549,
+          "text": "  FStatus := FStatus + [csDestroyed];\n  ResetTargets;\n  if FUnit is TLeader then TByteList(TCombatData(TCombat(FCombat).FCombatData).F_CombatData_2C).Add(FCombatPlayer);",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 548,
+          "end_line": 548,
+          "text": "  TCombatObjectStatus = set of (csDestroyed, csTurnDone, csActivated, csFled, csDamaged); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55725828",
+        "section": "CODE",
+        "scope": "TCombatUnit.Surrender",
+        "symbol": "literal.55725828",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCombatUnit.Surrender",
+        "symbol": "literal.55725828",
+        "function_symbol": "TCombatUnit.Surrender",
+        "operand_occurrence": 1,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-18",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-18",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cmConquerObject] byte 01, TCombat.AddArmy\nSource expression [cmConquerObject] in independently named function TCombat.AddArmy has type TCombatObjectControlMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCombat.AddArmy",
+        "symbol": "literal.557279cc"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatObjectControlMode source expression [cmConquerObject]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cmConquerObject] byte 01, TCombat.AddArmy"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6326,
+          "end_line": 6328,
+          "text": "        UnitObj.FControlMode := UnitObj.FControlMode - [cmConquerObject];\n      end;\n      FCombatData.AddObject(UnitObj);",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 549,
+          "end_line": 549,
+          "text": "  TCombatObjectControlMode = set of (cmConquerObject); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557279cc",
+        "section": "CODE",
+        "scope": "TCombat.AddArmy",
+        "symbol": "literal.557279cc",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCombat.AddArmy",
+        "symbol": "literal.557279cc",
+        "function_symbol": "TCombat.AddArmy",
+        "operand_occurrence": 27,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-19",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-19",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cExecuting] byte 01, TCombat.Initialize\nSource expression [cExecuting] in independently named function TCombat.Initialize has type TCombatStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCombat.Initialize",
+        "symbol": "literal.55727e34"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatStatus source expression [cExecuting]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cExecuting] byte 01, TCombat.Initialize"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6409,
+          "end_line": 6411,
+          "text": "  FStatus := FStatus + [cExecuting];\n  WallType := 0;\n  J := 0;",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 560,
+          "end_line": 560,
+          "text": "  TCombatStatus = set of (cExecuting, cActivated, cLogCombatActions); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55727e34",
+        "section": "CODE",
+        "scope": "TCombat.Initialize",
+        "symbol": "literal.55727e34",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCombat.Initialize",
+        "symbol": "literal.55727e34",
+        "function_symbol": "TCombat.Initialize",
+        "operand_occurrence": 1,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-20",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-20",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, TDamageCA.Play\nSource expression [] in independently named function TDamageCA.Play has type TDamageTypes. The original and compiled operands read the corresponding 2-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TDamageCA.Play",
+        "symbol": "literal.55729e18"
+      },
+      "extent": {
+        "size": 2,
+        "basis": "type-layout",
+        "evidence": "TDamageTypes source expression []; encoded read width 2 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, TDamageCA.Play"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat2.pas",
+          "line": 838,
+          "end_line": 840,
+          "text": "  if FEffects.Value <> [] then\n  begin\n    EffectFrames := AoWE.DamageEffectsAnimationFrames(FEffects.Value) + A1.FDelay;",
+          "sha256": "c3cec45f4b027ebec878da1c3b6ebe59c72e7fc1299dd046f430de1cb223754b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AGCPlugins.pas",
+          "line": 87,
+          "end_line": 87,
+          "text": "  AllDamageTypes: TDamageTypes = [dtFire..dtNone];",
+          "sha256": "a0821245d0f6c608dc80c6812078702d603e62b17c1626c4a152696ef702eb0a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6,
+          "end_line": 6,
+          "text": "  P1EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 884,
+          "end_line": 884,
+          "text": "  P4EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 421,
+          "end_line": 421,
+          "text": "  TDamageTypes = set of TDamageType; { ot=3 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 16,
+          "end_line": 16,
+          "text": "  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 } itAll: TItemTypes = [itHead..itUse]; { $558E803C; ItemExpS 557C2996 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 666,
+          "end_line": 666,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2505,
+          "end_line": 2505,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2506,
+          "end_line": 2506,
+          "text": "  WallDamageTypes: TDamageTypes = [dtWall];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55729e18",
+        "section": "CODE",
+        "scope": "TDamageCA.Play",
+        "symbol": "literal.55729e18",
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TDamageCA.Play",
+        "symbol": "literal.55729e18",
+        "function_symbol": "TDamageCA.Play",
+        "operand_occurrence": 14,
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      }
+    },
+    {
+      "id": "batch2-proposal-21",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-21",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [mmFast] byte 01, TAIMoveControl.ProcessCanMove\nSource expression [mmFast] in independently named function TAIMoveControl.ProcessCanMove has type TCanMoveMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TAIMoveControl.ProcessCanMove",
+        "symbol": "literal.5573e26c"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCanMoveMode source expression [mmFast]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [mmFast] byte 01, TAIMoveControl.ProcessCanMove"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AIGroup.pas",
+          "line": 3959,
+          "end_line": 3961,
+          "text": "        Points := AoWHSMap.FMoveControl.CanMove(FPathSettings, [mmFast]);\n        FSettings.FMovePoints := Points;\n        if Points <> -1 then ProcessingDone(amsDone)",
+          "sha256": "b574f1c94de529b34881fde9b49befe45a9557a69ba72dfc7054f4608339a44b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 503,
+          "end_line": 503,
+          "text": "  TCanMoveMode = set of (mmFast, mmExact); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5573e26c",
+        "section": "CODE",
+        "scope": "TAIMoveControl.ProcessCanMove",
+        "symbol": "literal.5573e26c",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TAIMoveControl.ProcessCanMove",
+        "symbol": "literal.5573e26c",
+        "function_symbol": "TAIMoveControl.ProcessCanMove",
+        "operand_occurrence": 5,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-22",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-22",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [mmAvoidArmies] byte 10, TAIMoveControl.ProcessTransporterCanMove\nSource expression [mmAvoidArmies] in independently named function TAIMoveControl.ProcessTransporterCanMove has type TMoveMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TAIMoveControl.ProcessTransporterCanMove",
+        "symbol": "literal.5573e7d4"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TMoveMode source expression [mmAvoidArmies]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [mmAvoidArmies] byte 10, TAIMoveControl.ProcessTransporterCanMove"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AIGroup.pas",
+          "line": 4060,
+          "end_line": 4062,
+          "text": "        FPathSettings.FMode := FSettings.FMoveMode + [mmAvoidArmies];\n        AoWHSMap.FMoveControl.ProcessMove(FPathSettings);\n        if FPathSettings.FPath.Count <> 0 then",
+          "sha256": "b574f1c94de529b34881fde9b49befe45a9557a69ba72dfc7054f4608339a44b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 501,
+          "end_line": 501,
+          "text": "  TMoveMode = set of (mmLogProcessedMapFields, mmExploredTerrainOnly, mmAI, mmIgnoreArmies, mmAvoidArmies, mmSurround); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5573e7d4",
+        "section": "CODE",
+        "scope": "TAIMoveControl.ProcessTransporterCanMove",
+        "symbol": "literal.5573e7d4",
+        "content_sha256": "c555eab45d08845ae9f10d452a99bfcb06f74a50b988fe7e48dd323789b88ee3"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TAIMoveControl.ProcessTransporterCanMove",
+        "symbol": "literal.5573e7d4",
+        "function_symbol": "TAIMoveControl.ProcessTransporterCanMove",
+        "operand_occurrence": 21,
+        "content_sha256": "c555eab45d08845ae9f10d452a99bfcb06f74a50b988fe7e48dd323789b88ee3"
+      }
+    },
+    {
+      "id": "batch2-proposal-23",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-23",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [esReady, esDone] byte 12, TAdjacentMEC.CalculateMeetingPoint\nSource expression [esReady, esDone] in independently named function TAdjacentMEC.CalculateMeetingPoint has type TAIMoveExecuterUnitStatusSet. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TAdjacentMEC.CalculateMeetingPoint",
+        "symbol": "literal.55740504"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TAIMoveExecuterUnitStatusSet source expression [esReady, esDone]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [esReady, esDone] byte 12, TAdjacentMEC.CalculateMeetingPoint"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AIGroup.pas",
+          "line": 5177,
+          "end_line": 5179,
+          "text": "  Armies := FExecuter.CreateArmies([esReady, esDone]);\n  Result := $FFFFFF;\n  I := FAdjacentArmies.GetSlowestArmy;",
+          "sha256": "b574f1c94de529b34881fde9b49befe45a9557a69ba72dfc7054f4608339a44b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 575,
+          "end_line": 575,
+          "text": "  TAIMoveExecuterUnitStatusSet = set of TAIMoveExecuterUnitStatus; { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55740504",
+        "section": "CODE",
+        "scope": "TAdjacentMEC.CalculateMeetingPoint",
+        "symbol": "literal.55740504",
+        "content_sha256": "f299791cddd3d6664f6670842812ef6053eb6501bd6282a476bbbf3ee91e750c"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TAdjacentMEC.CalculateMeetingPoint",
+        "symbol": "literal.55740504",
+        "function_symbol": "TAdjacentMEC.CalculateMeetingPoint",
+        "operand_occurrence": 1,
+        "content_sha256": "f299791cddd3d6664f6670842812ef6053eb6501bd6282a476bbbf3ee91e750c"
+      }
+    },
+    {
+      "id": "batch2-proposal-24",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-24",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [usMoving] byte 04, TArmyCombatMoveTE.CombatExecuted\nSource expression [usMoving] in independently named function TArmyCombatMoveTE.CombatExecuted has type TUnitStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TArmyCombatMoveTE.CombatExecuted",
+        "symbol": "literal.5574991c"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TUnitStatus source expression [usMoving]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [usMoving] byte 04, TArmyCombatMoveTE.CombatExecuted"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/MoveT.PAS",
+          "line": 2826,
+          "end_line": 2828,
+          "text": "            Army.GetUnit(I).FUnitStatus := Army.GetUnit(I).FUnitStatus - [usMoving];\n          end;\n        end;",
+          "sha256": "44695273ae20eebcd84a91f67133a7500ed313f951a7e91b60da44056fc96014"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 529,
+          "end_line": 529,
+          "text": "  TUnitStatus = set of (usRegistered, usActivated, usMoving, usMoveDone, usKilled, usEnchanted); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5574991c",
+        "section": "CODE",
+        "scope": "TArmyCombatMoveTE.CombatExecuted",
+        "symbol": "literal.5574991c",
+        "content_sha256": "e52d9c508c502347344d8c07ad91cbd6068afc75ff6292f062a09ca381c89e71"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TArmyCombatMoveTE.CombatExecuted",
+        "symbol": "literal.5574991c",
+        "function_symbol": "TArmyCombatMoveTE.CombatExecuted",
+        "operand_occurrence": 19,
+        "content_sha256": "e52d9c508c502347344d8c07ad91cbd6068afc75ff6292f062a09ca381c89e71"
+      }
+    },
+    {
+      "id": "batch2-proposal-25",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-25",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, TTouchAbility.GetCombatInfo\nSource expression [] in independently named function TTouchAbility.GetCombatInfo has type TDamageTypes. The original and compiled operands read the corresponding 2-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TTouchAbility.GetCombatInfo",
+        "symbol": "literal.55768124"
+      },
+      "extent": {
+        "size": 2,
+        "basis": "type-layout",
+        "evidence": "TDamageTypes source expression []; encoded read width 2 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, TTouchAbility.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AoWAb.PAS",
+          "line": 1870,
+          "end_line": 1872,
+          "text": "  A2.DamageTypes := [];\n  A2.RepeatCount := 1;\n  A2.TargetTypes := [cttEnemy];",
+          "sha256": "6c51dda1efd5a18697061ab6c50080b8654b2b80b0f4b28a227d9b4abc65c4d4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AGCPlugins.pas",
+          "line": 87,
+          "end_line": 87,
+          "text": "  AllDamageTypes: TDamageTypes = [dtFire..dtNone];",
+          "sha256": "a0821245d0f6c608dc80c6812078702d603e62b17c1626c4a152696ef702eb0a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6,
+          "end_line": 6,
+          "text": "  P1EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 884,
+          "end_line": 884,
+          "text": "  P4EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 421,
+          "end_line": 421,
+          "text": "  TDamageTypes = set of TDamageType; { ot=3 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 16,
+          "end_line": 16,
+          "text": "  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 } itAll: TItemTypes = [itHead..itUse]; { $558E803C; ItemExpS 557C2996 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 666,
+          "end_line": 666,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2505,
+          "end_line": 2505,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2506,
+          "end_line": 2506,
+          "text": "  WallDamageTypes: TDamageTypes = [dtWall];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55768124",
+        "section": "CODE",
+        "scope": "TTouchAbility.GetCombatInfo",
+        "symbol": "literal.55768124",
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TTouchAbility.GetCombatInfo",
+        "symbol": "literal.55768124",
+        "function_symbol": "TTouchAbility.GetCombatInfo",
+        "operand_occurrence": 3,
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      }
+    },
+    {
+      "id": "batch2-proposal-26",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-26",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TPossessedAbility.CombatObjectDestroyed\nSource expression [csDestroyed] in independently named function TPossessedAbility.CombatObjectDestroyed has type TCombatObjectStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TPossessedAbility.CombatObjectDestroyed",
+        "symbol": "literal.55769aa4"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatObjectStatus source expression [csDestroyed]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [csDestroyed] byte 01, TPossessedAbility.CombatObjectDestroyed"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AoWAb.PAS",
+          "line": 2578,
+          "end_line": 2580,
+          "text": "    SetStatus(FStatus - [csDestroyed]);\n    NewUnit := TUnit.Create(nil);\n    NewUnit.SetUnitResource(AoWHSSet.FUnitResources.GetUnitResource(152));",
+          "sha256": "6c51dda1efd5a18697061ab6c50080b8654b2b80b0f4b28a227d9b4abc65c4d4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 548,
+          "end_line": 548,
+          "text": "  TCombatObjectStatus = set of (csDestroyed, csTurnDone, csActivated, csFled, csDamaged); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55769aa4",
+        "section": "CODE",
+        "scope": "TPossessedAbility.CombatObjectDestroyed",
+        "symbol": "literal.55769aa4",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TPossessedAbility.CombatObjectDestroyed",
+        "symbol": "literal.55769aa4",
+        "function_symbol": "TPossessedAbility.CombatObjectDestroyed",
+        "operand_occurrence": 0,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-27",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-27",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend] byte 01, THealingAbility.GetCombatInfo\nSource expression [cttFriend] in independently named function THealingAbility.GetCombatInfo has type TCombatTargetType. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "THealingAbility.GetCombatInfo",
+        "symbol": "literal.5576c210"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatTargetType source expression [cttFriend]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend] byte 01, THealingAbility.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AoWAb.PAS",
+          "line": 3705,
+          "end_line": 3707,
+          "text": "  A2.TargetTypes := [cttFriend];\nend;\nfunction THealingAbility.GetDamageValue(A1, A2: TAbstractUnit): Integer;",
+          "sha256": "6c51dda1efd5a18697061ab6c50080b8654b2b80b0f4b28a227d9b4abc65c4d4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 456,
+          "end_line": 456,
+          "text": "  TCombatTargetType = set of (cttFriend, cttEnemy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5576c210",
+        "section": "CODE",
+        "scope": "THealingAbility.GetCombatInfo",
+        "symbol": "literal.5576c210",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "THealingAbility.GetCombatInfo",
+        "symbol": "literal.5576c210",
+        "function_symbol": "THealingAbility.GetCombatInfo",
+        "operand_occurrence": 1,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-28",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-28",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, THealingAbility.fcGetDamageValueEx\nSource expression [] in independently named function THealingAbility.fcGetDamageValueEx has type TDamageTypes. The original and compiled operands read the corresponding 2-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "THealingAbility.fcGetDamageValueEx",
+        "symbol": "literal.5576c370"
+      },
+      "extent": {
+        "size": 2,
+        "basis": "type-layout",
+        "evidence": "TDamageTypes source expression []; encoded read width 2 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [] word 0000, THealingAbility.fcGetDamageValueEx"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AoWAb.PAS",
+          "line": 3757,
+          "end_line": 3759,
+          "text": "    A4.DamageTypes := [];\n  end;\nend;",
+          "sha256": "6c51dda1efd5a18697061ab6c50080b8654b2b80b0f4b28a227d9b4abc65c4d4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AGCPlugins.pas",
+          "line": 87,
+          "end_line": 87,
+          "text": "  AllDamageTypes: TDamageTypes = [dtFire..dtNone];",
+          "sha256": "a0821245d0f6c608dc80c6812078702d603e62b17c1626c4a152696ef702eb0a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 6,
+          "end_line": 6,
+          "text": "  P1EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 884,
+          "end_line": 884,
+          "text": "  P4EmptyDamageTypes: TDamageTypes = [];",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 421,
+          "end_line": 421,
+          "text": "  TDamageTypes = set of TDamageType; { ot=3 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 16,
+          "end_line": 16,
+          "text": "  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 } itAll: TItemTypes = [itHead..itUse]; { $558E803C; ItemExpS 557C2996 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 666,
+          "end_line": 666,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2505,
+          "end_line": 2505,
+          "text": "  AllDamageTypes: TDamageTypes = [Low(TDamageType)..High(TDamageType)];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 2506,
+          "end_line": 2506,
+          "text": "  WallDamageTypes: TDamageTypes = [dtWall];",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5576c370",
+        "section": "CODE",
+        "scope": "THealingAbility.fcGetDamageValueEx",
+        "symbol": "literal.5576c370",
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "THealingAbility.fcGetDamageValueEx",
+        "symbol": "literal.5576c370",
+        "function_symbol": "THealingAbility.fcGetDamageValueEx",
+        "operand_occurrence": 8,
+        "content_sha256": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+      }
+    },
+    {
+      "id": "batch2-proposal-29",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-29",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend, cttEnemy] byte 03, TDispelMagicAbility.GetCombatInfo\nSource expression [cttFriend, cttEnemy] in independently named function TDispelMagicAbility.GetCombatInfo has type TCombatTargetType. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TDispelMagicAbility.GetCombatInfo",
+        "symbol": "literal.5576cea4"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatTargetType source expression [cttFriend, cttEnemy]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend, cttEnemy] byte 03, TDispelMagicAbility.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/AoWAb.PAS",
+          "line": 4081,
+          "end_line": 4083,
+          "text": "  A2.TargetTypes := [cttFriend, cttEnemy];\nend;\nfunction TDispelMagicAbility.GetDispelMana(A1: TAbilityOwner): Integer;",
+          "sha256": "6c51dda1efd5a18697061ab6c50080b8654b2b80b0f4b28a227d9b4abc65c4d4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 456,
+          "end_line": 456,
+          "text": "  TCombatTargetType = set of (cttFriend, cttEnemy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5576cea4",
+        "section": "CODE",
+        "scope": "TDispelMagicAbility.GetCombatInfo",
+        "symbol": "literal.5576cea4",
+        "content_sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TDispelMagicAbility.GetCombatInfo",
+        "symbol": "literal.5576cea4",
+        "function_symbol": "TDispelMagicAbility.GetCombatInfo",
+        "operand_occurrence": 1,
+        "content_sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+      }
+    },
+    {
+      "id": "batch2-proposal-30",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-30",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend] byte 01, TUnitSpell.GetCombatInfo\nSource expression [cttFriend] in independently named function TUnitSpell.GetCombatInfo has type TCombatTargetType. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TUnitSpell.GetCombatInfo",
+        "symbol": "literal.5577ac9c"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatTargetType source expression [cttFriend]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend] byte 01, TUnitSpell.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Spells.PAS",
+          "line": 1221,
+          "end_line": 1223,
+          "text": "  Info.TargetTypes := [cttFriend];\n  Info.Range := -1;\nend;",
+          "sha256": "cdc95570746a8b2ce1e26661591f196d371b6e041521e6a4b57693fc1f1e08e2"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 456,
+          "end_line": 456,
+          "text": "  TCombatTargetType = set of (cttFriend, cttEnemy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x5577ac9c",
+        "section": "CODE",
+        "scope": "TUnitSpell.GetCombatInfo",
+        "symbol": "literal.5577ac9c",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TUnitSpell.GetCombatInfo",
+        "symbol": "literal.5577ac9c",
+        "function_symbol": "TUnitSpell.GetCombatInfo",
+        "operand_occurrence": 1,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-31",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-31",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [aumGuard] byte 01, TSelectedArmy.ToggleGuard\nSource expression [aumGuard] in independently named function TSelectedArmy.ToggleGuard has type TArmyUserMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TSelectedArmy.ToggleGuard",
+        "symbol": "literal.55793d90"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TArmyUserMode source expression [aumGuard]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [aumGuard] byte 01, TSelectedArmy.ToggleGuard"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Army.PAS",
+          "line": 4171,
+          "end_line": 4173,
+          "text": "      Army.FUserMode := ArmyHS.FArmy.FUserMode - [aumGuard];\n      Army.Update;\n    end",
+          "sha256": "73b3388b5ced2225e2fa260595ca1e8dc189dc9f4ea587110cf845e2057fe97d"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 542,
+          "end_line": 542,
+          "text": "  TArmyUserMode = set of (aumGuard, aumTurnDone); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55793d90",
+        "section": "CODE",
+        "scope": "TSelectedArmy.ToggleGuard",
+        "symbol": "literal.55793d90",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TSelectedArmy.ToggleGuard",
+        "symbol": "literal.55793d90",
+        "function_symbol": "TSelectedArmy.ToggleGuard",
+        "operand_occurrence": 6,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-32",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-32",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [moPlacedOnMap] byte 08, THexagonBridge.PlaceHX\nSource expression [moPlacedOnMap] in independently named function THexagonBridge.PlaceHX has type TMapObjectStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "THexagonBridge.PlaceHX",
+        "symbol": "literal.55799c00"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TMapObjectStatus source expression [moPlacedOnMap]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [moPlacedOnMap] byte 08, THexagonBridge.PlaceHX"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/HxBridge.pas",
+          "line": 219,
+          "end_line": 221,
+          "text": "  FStatus := FStatus + [moPlacedOnMap];\n  FTerrain := MapField.TerrainType;\n  { Original bug: refresh the old owner's owner as a map field. }",
+          "sha256": "e3feb7af6f4b0c7ebaae5692e21eead5cd3cae96406bcc247b797f99517aad4e"
+        },
+        {
+          "path": "src/delphi3/HSEPack/HSEngine.pas",
+          "line": 1045,
+          "end_line": 1045,
+          "text": "  TMapObjectStatus = set of (moVisible, moResourceLinked, moEditMode, moPlacedOnMap, moSelected, moActivated);",
+          "sha256": "6ccf0d390efb2f4ff28c7400a06bde45a7f98889eccb57dd3fd78f1b36c43ccb"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x55799c00",
+        "section": "CODE",
+        "scope": "THexagonBridge.PlaceHX",
+        "symbol": "literal.55799c00",
+        "content_sha256": "beead77994cf573341ec17b58bbf7eb34d2711c993c1d976b128b3188dc1829a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "THexagonBridge.PlaceHX",
+        "symbol": "literal.55799c00",
+        "function_symbol": "THexagonBridge.PlaceHX",
+        "operand_occurrence": 6,
+        "content_sha256": "beead77994cf573341ec17b58bbf7eb34d2711c993c1d976b128b3188dc1829a"
+      }
+    },
+    {
+      "id": "batch2-proposal-33",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-33",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cmWarmode] byte 01, TCity.UpdatePlayer\nSource expression [cmWarmode] in independently named function TCity.UpdatePlayer has type TCityMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCity.UpdatePlayer",
+        "symbol": "literal.557aab74"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCityMode source expression [cmWarmode]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cmWarmode] byte 01, TCity.UpdatePlayer"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 1319,
+          "end_line": 1321,
+          "text": "      FMode := FMode + [cmWarmode];\n      SetPlayer(-1);\n      UpdateFlagID;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 32,
+          "end_line": 32,
+          "text": "  TCityMode = set of (cmWarmode, cmRazed, cmTownQuake, cmAnarchy); { ot=1 }",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557aab74",
+        "section": "CODE",
+        "scope": "TCity.UpdatePlayer",
+        "symbol": "literal.557aab74",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCity.UpdatePlayer",
+        "symbol": "literal.557aab74",
+        "function_symbol": "TCity.UpdatePlayer",
+        "operand_occurrence": 29,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-34",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-34",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Extended 0.1 (cdcc...fb3f, 10 bytes), TFountainOfLife.ShowFountain\nSource expression 0.1 in independently named function TFountainOfLife.ShowFountain has type Extended. The original and compiled operands read the corresponding 10-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TFountainOfLife.ShowFountain",
+        "symbol": "literal.557b17b4"
+      },
+      "extent": {
+        "size": 10,
+        "basis": "type-layout",
+        "evidence": "Extended source expression 0.1; encoded read width 10 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Extended 0.1 (cdcc...fb3f, 10 bytes), TFountainOfLife.ShowFountain"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/CitySpells.pas",
+          "line": 677,
+          "end_line": 679,
+          "text": "    Offset := Round(VX * 0.1);\n    T := Random(30);\n    if (T < Animation.FFrameCounter) and (Animation.FFrameCounter - T < 90) then",
+          "sha256": "5f3992ab539f0c4c3dd4571cdc89ee82f498f73360eccfacbdcdf84adb94e5ee"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557b17b4",
+        "section": "CODE",
+        "scope": "TFountainOfLife.ShowFountain",
+        "symbol": "literal.557b17b4",
+        "content_sha256": "9e3186f308caf4ab481f125fe2749d0563c07ebe773040b2a5433cf916bc06a2"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TFountainOfLife.ShowFountain",
+        "symbol": "literal.557b17b4",
+        "function_symbol": "TFountainOfLife.ShowFountain",
+        "operand_occurrence": 14,
+        "content_sha256": "9e3186f308caf4ab481f125fe2749d0563c07ebe773040b2a5433cf916bc06a2"
+      }
+    },
+    {
+      "id": "batch2-proposal-35",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-35",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Single 0.25 (0000803e), TProductionPlace.GetIncome\nSource expression 0.25 in independently named function TProductionPlace.GetIncome has type Single. The original and compiled operands read the corresponding 4-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TProductionPlace.GetIncome",
+        "symbol": "literal.557be554"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "Single source expression 0.25; encoded read width 4 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Single 0.25 (0000803e), TProductionPlace.GetIncome"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/PrdPlace.pas",
+          "line": 385,
+          "end_line": 387,
+          "text": "      Inc(Income, Round(Income * 0.25));\n  end;\n  Result := Income;",
+          "sha256": "98ba2867f5164e45d986ce04d2e43587fb5936bdf8e592fc3f28dab392816b42"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557be554",
+        "section": "CODE",
+        "scope": "TProductionPlace.GetIncome",
+        "symbol": "literal.557be554",
+        "content_sha256": "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TProductionPlace.GetIncome",
+        "symbol": "literal.557be554",
+        "function_symbol": "TProductionPlace.GetIncome",
+        "operand_occurrence": 7,
+        "content_sha256": "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f"
+      }
+    },
+    {
+      "id": "batch2-proposal-36",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-36",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [ppsSummoning] byte 01, TPoisonPlantSpellTE.CreatePoisonPlant\nSource expression [ppsSummoning] in independently named function TPoisonPlantSpellTE.CreatePoisonPlant has type TPoisonPlantStatus. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TPoisonPlantSpellTE.CreatePoisonPlant",
+        "symbol": "literal.557c4934"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TPoisonPlantStatus source expression [ppsSummoning]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [ppsSummoning] byte 01, TPoisonPlantSpellTE.CreatePoisonPlant"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/PoisonP.pas",
+          "line": 340,
+          "end_line": 342,
+          "text": "            Plant.FPlantStatus := [ppsSummoning];\n            Animation := TImageSequenceAnimation.Create(nil);\n            Animation.SetImageSequence(AoWHSSet.FSpellControl.GetSpell(12).FCastImages.ImageSequences[0]);",
+          "sha256": "bc2c51aad8550944577f5bdc7b54c0500171f864647b772b76f7aae4f758458b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/PoisonP.pas",
+          "line": 12,
+          "end_line": 12,
+          "text": "  TPoisonPlantStatus = set of (ppsSummoning);",
+          "sha256": "bc2c51aad8550944577f5bdc7b54c0500171f864647b772b76f7aae4f758458b"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557c4934",
+        "section": "CODE",
+        "scope": "TPoisonPlantSpellTE.CreatePoisonPlant",
+        "symbol": "literal.557c4934",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TPoisonPlantSpellTE.CreatePoisonPlant",
+        "symbol": "literal.557c4934",
+        "function_symbol": "TPoisonPlantSpellTE.CreatePoisonPlant",
+        "operand_occurrence": 34,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-37",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-37",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [hgSummoning] byte 01, TUnholyGroundSpellTE.CreateUnholyGround\nSource expression [hgSummoning] in independently named function TUnholyGroundSpellTE.CreateUnholyGround has type TUnHolyGround.FMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TUnholyGroundSpellTE.CreateUnholyGround",
+        "symbol": "literal.557c9898"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TUnHolyGround.FMode source expression [hgSummoning]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [hgSummoning] byte 01, TUnholyGroundSpellTE.CreateUnholyGround"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 323,
+          "end_line": 325,
+          "text": "            Ground.FMode := [hgSummoning];\n            Anim := TImageSequenceAnimation.Create(nil);\n            Anim.SetImageSequence(WorldSet^.FSpellControl.GetSpell(14).FCastImages.ImageSequences[0]);",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 21,
+          "end_line": 21,
+          "text": "    FMode: set of (hgSummoning); { $1C }",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557c9898",
+        "section": "CODE",
+        "scope": "TUnholyGroundSpellTE.CreateUnholyGround",
+        "symbol": "literal.557c9898",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TUnholyGroundSpellTE.CreateUnholyGround",
+        "symbol": "literal.557c9898",
+        "function_symbol": "TUnholyGroundSpellTE.CreateUnholyGround",
+        "operand_occurrence": 34,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-38",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-38",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [memAdjacent] byte 01, TAIGroupDefendTargetSelector.Process\nSource expression [memAdjacent] in independently named function TAIGroupDefendTargetSelector.Process has type TAIMoveExecuterMode. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TAIGroupDefendTargetSelector.Process",
+        "symbol": "literal.557d7a24"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TAIMoveExecuterMode source expression [memAdjacent]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [memAdjacent] byte 01, TAIGroupDefendTargetSelector.Process"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/AGCPlugins.pas",
+          "line": 273,
+          "end_line": 275,
+          "text": "            FControl.FMoveExecuter.FMode := FControl.FMoveExecuter.FMode - [memAdjacent];\n          FControl.ExecuteME(FTargets.GetTargets(0).FLocation.X,\n            FTargets.GetTargets(0).FLocation.Y, FTargets.GetTargets(0).FLocation.L);",
+          "sha256": "a0821245d0f6c608dc80c6812078702d603e62b17c1626c4a152696ef702eb0a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 573,
+          "end_line": 573,
+          "text": "  TAIMoveExecuterMode = set of (memAdjacent, memSimultaneous, memAttack); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557d7a24",
+        "section": "CODE",
+        "scope": "TAIGroupDefendTargetSelector.Process",
+        "symbol": "literal.557d7a24",
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TAIGroupDefendTargetSelector.Process",
+        "symbol": "literal.557d7a24",
+        "function_symbol": "TAIGroupDefendTargetSelector.Process",
+        "operand_occurrence": 18,
+        "content_sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+      }
+    },
+    {
+      "id": "batch2-proposal-39",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-39",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Extended 0.1 (10 bytes), TFortifyAGC.UpdateRequiredStrength\nSource expression 0.1 in independently named function TFortifyAGC.UpdateRequiredStrength has type Extended. The original and compiled operands read the corresponding 10-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TFortifyAGC.UpdateRequiredStrength",
+        "symbol": "literal.557daecc"
+      },
+      "extent": {
+        "size": 10,
+        "basis": "type-layout",
+        "evidence": "Extended source expression 0.1; encoded read width 10 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: Extended 0.1 (10 bytes), TFortifyAGC.UpdateRequiredStrength"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/MainAG.pas",
+          "line": 328,
+          "end_line": 330,
+          "text": "    FRequiredStrength := Round(FRequiredStrength * AoWHSMap.FDay * 0.1);\n  Statistics := AoWHSMap.FPlayers.GetPlayers(FGroup.FPlayer).FStatistics;\n  if Statistics.FTurnInfo.Count > 0 then",
+          "sha256": "e4a5814a7eebb13cd8e21fffadafef39cef0995a52b97025a03ad47d12690ece"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557daecc",
+        "section": "CODE",
+        "scope": "TFortifyAGC.UpdateRequiredStrength",
+        "symbol": "literal.557daecc",
+        "content_sha256": "9e3186f308caf4ab481f125fe2749d0563c07ebe773040b2a5433cf916bc06a2"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TFortifyAGC.UpdateRequiredStrength",
+        "symbol": "literal.557daecc",
+        "function_symbol": "TFortifyAGC.UpdateRequiredStrength",
+        "operand_occurrence": 15,
+        "content_sha256": "9e3186f308caf4ab481f125fe2749d0563c07ebe773040b2a5433cf916bc06a2"
+      }
+    },
+    {
+      "id": "batch2-proposal-40",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-40",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttEnemy] byte 02, TCosmeticSurgery.GetCombatInfo\nSource expression [cttEnemy] in independently named function TCosmeticSurgery.GetCombatInfo has type TCombatTargetType. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TCosmeticSurgery.GetCombatInfo",
+        "symbol": "literal.557e8898"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatTargetType source expression [cttEnemy]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttEnemy] byte 02, TCosmeticSurgery.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/UnitSpells.pas",
+          "line": 972,
+          "end_line": 974,
+          "text": "  Info.TargetTypes := [cttEnemy];\nend;\n",
+          "sha256": "b62651278cc6c2f33e0991277d4e9f145c67487201251b39aa55cef99d2e03ba"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 456,
+          "end_line": 456,
+          "text": "  TCombatTargetType = set of (cttFriend, cttEnemy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557e8898",
+        "section": "CODE",
+        "scope": "TCosmeticSurgery.GetCombatInfo",
+        "symbol": "literal.557e8898",
+        "content_sha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TCosmeticSurgery.GetCombatInfo",
+        "symbol": "literal.557e8898",
+        "function_symbol": "TCosmeticSurgery.GetCombatInfo",
+        "operand_occurrence": 1,
+        "content_sha256": "dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986"
+      }
+    },
+    {
+      "id": "batch2-proposal-41",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-41",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend, cttEnemy] byte 03, TDispelMagic.GetCombatInfo\nSource expression [cttFriend, cttEnemy] in independently named function TDispelMagic.GetCombatInfo has type TCombatTargetType. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TDispelMagic.GetCombatInfo",
+        "symbol": "literal.557e8c80"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TCombatTargetType source expression [cttFriend, cttEnemy]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [cttFriend, cttEnemy] byte 03, TDispelMagic.GetCombatInfo"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/UnitSpells.pas",
+          "line": 1078,
+          "end_line": 1080,
+          "text": "  Info.TargetTypes := [cttFriend, cttEnemy];\nend;\n",
+          "sha256": "b62651278cc6c2f33e0991277d4e9f145c67487201251b39aa55cef99d2e03ba"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 456,
+          "end_line": 456,
+          "text": "  TCombatTargetType = set of (cttFriend, cttEnemy); { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557e8c80",
+        "section": "CODE",
+        "scope": "TDispelMagic.GetCombatInfo",
+        "symbol": "literal.557e8c80",
+        "content_sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TDispelMagic.GetCombatInfo",
+        "symbol": "literal.557e8c80",
+        "function_symbol": "TDispelMagic.GetCombatInfo",
+        "operand_occurrence": 1,
+        "content_sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5"
+      }
+    },
+    {
+      "id": "batch2-proposal-42",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-42",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [petLifeMastery] byte 10, TLifeMasteryEnchantment.Deactivate\nSource expression [petLifeMastery] in independently named function TLifeMasteryEnchantment.Deactivate has type TPlayerEnchantmentTypes. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TLifeMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2154"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TPlayerEnchantmentTypes source expression [petLifeMastery]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [petLifeMastery] byte 10, TLifeMasteryEnchantment.Deactivate"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas",
+          "line": 1435,
+          "end_line": 1437,
+          "text": "    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments - [petLifeMastery]);\n  InitMsg(Msg, $20020100, Self);\n  WorldMap^.SendMsg(Msg, Self);",
+          "sha256": "84d08b3c0975724b1138ebf1177417c16b92e9632e06378d703bf749400afce4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 490,
+          "end_line": 490,
+          "text": "  TPlayerEnchantmentTypes = set of TPlayerEnchantmentType; { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557f2154",
+        "section": "CODE",
+        "scope": "TLifeMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2154",
+        "content_sha256": "c555eab45d08845ae9f10d452a99bfcb06f74a50b988fe7e48dd323789b88ee3"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TLifeMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2154",
+        "function_symbol": "TLifeMasteryEnchantment.Deactivate",
+        "operand_occurrence": 7,
+        "content_sha256": "c555eab45d08845ae9f10d452a99bfcb06f74a50b988fe7e48dd323789b88ee3"
+      }
+    },
+    {
+      "id": "batch2-proposal-43",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-43",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [petDeathMastery] byte 20, TDeathMasteryEnchantment.Deactivate\nSource expression [petDeathMastery] in independently named function TDeathMasteryEnchantment.Deactivate has type TPlayerEnchantmentTypes. The original and compiled operands read the corresponding 1-byte encoded constant from nonwritable CODE storage. The named function and typed source expression are offered for Fable reviewed-source annotation. Equal literal bytes, duplicate-pool ordering and MATCH/CFG alignment alone are not independent identity evidence.",
+        "scope": "TDeathMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2574"
+      },
+      "extent": {
+        "size": 1,
+        "basis": "type-layout",
+        "evidence": "TPlayerEnchantmentTypes source expression [petDeathMastery]; encoded read width 1 byte(s); padding excluded"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: [petDeathMastery] byte 20, TDeathMasteryEnchantment.Deactivate"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas",
+          "line": 1516,
+          "end_line": 1518,
+          "text": "    WorldMap^.FPlayers.GetPlayers(FPlayerIndex).FMagicControl.FActiveEnchantments - [petDeathMastery]);\n  InitMsg(Msg, $20020101, Self);\n  WorldMap^.SendMsg(Msg, Self);",
+          "sha256": "84d08b3c0975724b1138ebf1177417c16b92e9632e06378d703bf749400afce4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 490,
+          "end_line": 490,
+          "text": "  TPlayerEnchantmentTypes = set of TPlayerEnchantmentType; { ot=1 }",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557f2574",
+        "section": "CODE",
+        "scope": "TDeathMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2574",
+        "content_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "TDeathMasteryEnchantment.Deactivate",
+        "symbol": "literal.557f2574",
+        "function_symbol": "TDeathMasteryEnchantment.Deactivate",
+        "operand_occurrence": 7,
+        "content_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068"
+      }
+    },
+    {
+      "id": "batch2-proposal-44",
+      "kind": "immutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-44",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: NUL string 'SFX\\EVENTS\\NEWEVENT.WAV' (24 bytes equal), TEventLog.Execute; extent = string length + NUL\nThe source calls PlaySample with the exact PChar literal SFX\\EVENTS\\NEWEVENT.WAV in TEventLog.Execute; both objects contain the full NUL-terminated string. Its extent is 23 text bytes plus one terminator. This is a PChar constant, not a Delphi AnsiString header record; content equality alone does not supply an accepted identity.",
+        "scope": "EventLog.TEventLog.Execute",
+        "symbol": "NewEventSamplePath"
+      },
+      "extent": {
+        "size": 24,
+        "basis": "type-layout",
+        "evidence": "23-character PChar literal plus one NUL terminator = 24 bytes; source PlaySample call"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-D immutable literal (CODE, relocation-free): bytes equal over the typed extent on both sides, referenced by the same named function at the corresponding operand. Such a literal is observationally interchangeable with any equal-content read-only object; the checker re-validates the bytes at load. Accepted as immutable-data, extent from the source type.\nR-D: NUL string 'SFX\\EVENTS\\NEWEVENT.WAV' (24 bytes equal), TEventLog.Execute; extent = string length + NUL"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/EventLog.pas",
+          "line": 414,
+          "end_line": 414,
+          "text": "    if Trigger = etEvent then PlaySample('SFX\\EVENTS\\NEWEVENT.WAV');",
+          "sha256": "4bfbeb1e9891bd1c5f2863e2acbf5379c6387f9e3186861fd5d7fc31b4a0c158"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x557fd5dc",
+        "section": "CODE",
+        "scope": "EventLog.TEventLog.Execute",
+        "symbol": "NewEventSamplePath",
+        "content_sha256": "424621b8162a18546d4d9ec2be9a582c41b23d45d726f12d1a569b636ed48642"
+      },
+      "compiled": {
+        "section": "CODE",
+        "scope": "EventLog.TEventLog.Execute",
+        "symbol": "NewEventSamplePath",
+        "function_symbol": "TEventLog.Execute",
+        "operand_occurrence": 14,
+        "content_sha256": "424621b8162a18546d4d9ec2be9a582c41b23d45d726f12d1a569b636ed48642"
+      }
+    },
+    {
+      "id": "batch2-proposal-45",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-45",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "mutable-data, scoped-symbol: export AoWE.RaceTerrain -> MAP RaceTerrain; extent 48 from TRaceTerrainTable; no content obligation\nOriginal PE export AoWE.RaceTerrain@7F5920D0 is 0x558e8394; unique compiled MAP AoWE.RaceTerrain is 0x5833f4. The reported 0x558e8396 and compiled operand 0x5833f6 are corresponding +2 Penalty fields. Twelve records of two set-of-0..15 fields: 12 * (2 + 2) = 48 bytes. All 48 initial bytes agree.",
+        "scope": "AoWE",
+        "symbol": "RaceTerrain"
+      },
+      "extent": {
+        "size": 48,
+        "basis": "type-layout",
+        "evidence": "12 TRaceTerrainInfo records * 2 TCityTerrainSet fields * 2 bytes = 48; base = reported address - 2"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "mutable-data, scoped-symbol: export AoWE.RaceTerrain -> MAP RaceTerrain; extent 48 from TRaceTerrainTable; no content obligation"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_01.inc",
+          "line": 434,
+          "end_line": 436,
+          "text": "  TCityTerrainSet = set of 0..15;\n  TRaceTerrainInfo = record Bonus, Penalty: TCityTerrainSet; end;\n  TRaceTerrainTable = array[0..11] of TRaceTerrainInfo;",
+          "sha256": "a16c8a1969df7c5b125f6548e516f40370dcfeed1518789ed2fa02c49ba39359"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 25,
+          "end_line": 37,
+          "text": "  RaceTerrain: TRaceTerrainTable = (\n    (Bonus: []; Penalty: []),\n    (Bonus: [2]; Penalty: [3, 6, 13]),\n    (Bonus: [0]; Penalty: [2, 5]),\n    (Bonus: [3, 6, 13]; Penalty: [2]),\n    (Bonus: [1]; Penalty: [5]),\n    (Bonus: [1]; Penalty: [5]),\n    (Bonus: [12]; Penalty: []),\n    (Bonus: []; Penalty: []),\n    (Bonus: [12]; Penalty: []),\n    (Bonus: []; Penalty: []),\n    (Bonus: [12]; Penalty: []),\n    (Bonus: [5]; Penalty: [1])); { $558E8394 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Unit.PAS",
+          "line": 280,
+          "end_line": 281,
+          "text": "        if Ord(TerrainType) in RaceTerrain[Race].Penalty then Dec(Morale, 10); { Read the original shared table, not the private copy. }\n        if Ord(TerrainType) in RaceTerrain[Race].Bonus then Inc(Morale, 10);",
+          "sha256": "8b1f7b78330467a09b2c2b42bf21ef3b03cbae171bb87986c273d6dca087000c"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x558e8394",
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "RaceTerrain",
+        "content_sha256": "142af2ce427a0a64ae2cfa8d434790c5ba2b08bbbc124955878a0b0b55ba4956"
+      },
+      "compiled": {
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "RaceTerrain",
+        "map_symbol": "RaceTerrain"
+      }
+    },
+    {
+      "id": "batch2-proposal-46",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-46",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C sole-user with equal contents: P5SideDirections typed constant (Combat.pas:1048), 56 bytes equal, only TMoveControl.ProcessHexagon, no writes in the module audit\nUnique MAP AoWE.P5SideDirections supplies the compiled object; the source declaration is array[0..6,0..1] of Integer, containing exactly the 14 independently stated direction values. Original 0x558e8cf4 is indexed by Direction*8 in ProcessHexagon and all 56 bytes encode that declared table; matching bytes and operand shape are corroboration only.",
+        "scope": "AoWE",
+        "symbol": "P5SideDirections"
+      },
+      "extent": {
+        "size": 56,
+        "basis": "type-layout",
+        "evidence": "array[0..6,0..1] of 4-byte Integer: 7 * 2 * 4 = 56"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C sole-user with equal contents: P5SideDirections typed constant (Combat.pas:1048), 56 bytes equal, only TMoveControl.ProcessHexagon, no writes in the module audit"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 1048,
+          "end_line": 1049,
+          "text": "  P5SideDirections: array[0..6, 0..1] of Integer =\n    ((-1,-1),(6,2),(1,3),(2,4),(3,5),(4,6),(5,1));",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/MoveT.PAS",
+          "line": 393,
+          "end_line": 394,
+          "text": "  LeftCount := CalculateMovePointLine(MapF, P5SideDirections[Direction, 0], OverCode);\n  RightCount := CalculateMovePointLine(MapF, P5SideDirections[Direction, 1], OverCode);",
+          "sha256": "44695273ae20eebcd84a91f67133a7500ed313f951a7e91b60da44056fc96014"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "address": "0x558e8cf4",
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "P5SideDirections",
+        "content_sha256": "c13860bbae6f99250d89c4d80ee46db98023d5125a1cc20e0a7ae79c2cb17498"
+      },
+      "compiled": {
+        "section": "DATA",
+        "scope": "AoWE",
+        "symbol": "P5SideDirections",
+        "map_symbol": "P5SideDirections"
+      }
+    },
+    {
+      "id": "batch2-proposal-47",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-47",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.itAll -> MAP AllItemTypes cell pointing at itAll\nOriginal relocated cell points to named PE export AoWE.itAll; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.itAll. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "itAll"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.itAll -> MAP AllItemTypes cell pointing at itAll"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 16,
+          "end_line": 16,
+          "text": "  dtAll: TDamageTypes = [dtFire..dtNone]; { $558E8044 } itAll: TItemTypes = [itHead..itUse]; { $558E803C; ItemExpS 557C2996 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ItemExpS.pas",
+          "line": 81,
+          "end_line": 83,
+          "text": "  AllItemTypes: ^TItemTypes = @AoWE.itAll;\n\ndestructor TExplorationSiteItemList.Destroy;",
+          "sha256": "349d6fdeaf15068ae60f31d9c698d50fdb7becd2f2583cb389e1741528650683"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 0,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-47.original",
+        "pointee": {
+          "address": "0x558e803c",
+          "scope": "AoWE",
+          "symbol": "itAll",
+          "via": "export",
+          "export_names": [
+            "AoWE.itAll@11BC2029"
+          ]
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.itAll -> MAP AllItemTypes cell pointing at itAll",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x558e8f40",
+            "section": "DATA",
+            "content_sha256": "3831560eda63ed825dbb2a48786f78d27af2cd1f42251b9fac091f0682b1ab71"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-47.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "itAll",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.itAll -> MAP AllItemTypes cell pointing at itAll",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "itAll",
+            "function_symbol": "TItemExplorationSite.Generate",
+            "occurrence": 3,
+            "cell_symbol": "AllItemTypes",
+            "cell_scope": "ItemExpS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-48",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-48",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSSet, 17 compiled cells (WorldSet/SpellHSSet...) all pointing at MAP AoWHSSet\nOriginal relocated cell points to named PE export AoWE.AoWHSSet; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSSet. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSSet"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSSet, 17 compiled cells (WorldSet/SpellHSSet...) all pointing at MAP AoWHSSet"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 5,
+          "end_line": 7,
+          "text": "  AoWHSSet: TAoWHSSet;  { $558FA044 }\n\nconst",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/Combat.pas",
+          "line": 301,
+          "end_line": 301,
+          "text": "{ Use the P1 shared AoWHSSet at $558FA044. }",
+          "sha256": "4af113efd3bae38ea21e43ddae84d55cb684e102829e62264986346175701a99"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 5,
+          "end_line": 5,
+          "text": "  AoWHSSet: TAoWHSSet;  { $558FA044 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AoWHex.pas",
+          "line": 105,
+          "end_line": 107,
+          "text": "  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n  SideHN: array[0..2] of Byte = (6, 1, 2);\n  SideClear: array[0..2] of Byte = ($F6, $ED, $DB);",
+          "sha256": "e58e0992322467be7100938aeb0ae3219a66ab4f919f9fa179e359c994c8da45"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/SmokeCloud.pas",
+          "line": 87,
+          "end_line": 89,
+          "text": "  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n\n",
+          "sha256": "9ae7c454cdf317b1f86e6e23fa11f6e6fad5772225f712d1c0c6e82a6e009946"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalTargetSpells.pas",
+          "line": 375,
+          "end_line": 377,
+          "text": "  SpellHSSet: PSpellHSSet = @AoWHSSet;\n  SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;\n  SpellEngine: PSpellEngine = @AoWEngine;",
+          "sha256": "2410fb1bc825bd62bd436f36dcb48e2cad1e75e79d6dd6cf9a55b25d65e5c430"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Mountain.pas",
+          "line": 95,
+          "end_line": 97,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\nresourcestring\n  MountainNameRStr = 'Mountain';",
+          "sha256": "be91047ed2027eca02307d91f7e000302ab153fcfe870728647ff25ebdb2329b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Teleport.pas",
+          "line": 79,
+          "end_line": 81,
+          "text": "  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n  { Original AoWE resource initialization table $55798BC0..$557990E4. }\n  RaceNames: TTeleportRaceNames = ('Humans', 'Azracs', 'Lizards', 'Frostlings',",
+          "sha256": "ec8431b8e8704836577f4a2cdca1755f21c516f4ac75ea9cfca312005716bda6"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 366,
+          "end_line": 368,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Dungeon.pas",
+          "line": 84,
+          "end_line": 86,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n{$IFNDEF RUNTIME_PACKAGES}\n  RandomSeed: ^Integer = @System.RandSeed;",
+          "sha256": "fcd79adb174aae013a85c133841fbfeeedeb9c52ca5f89a6ef80e919db4a60d0"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 85,
+          "end_line": 87,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 84,
+          "end_line": 86,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/WizardsTower.pas",
+          "line": 68,
+          "end_line": 70,
+          "text": "  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n\nconstructor TEnterWizardsTowerEventLog.Create(AOwner: Engine.TECustomNode);",
+          "sha256": "35eda426d543e4c0a5b13a55b9f0d7fd5263a982a74e6c05a8487e3ad7b801db"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/BloodShrine.pas",
+          "line": 51,
+          "end_line": 53,
+          "text": "  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n\nclass function TBloodShrineAnimation.AnimationControlMode: TAnimationControlMode;",
+          "sha256": "a423d9b4564abc2ba523845d3044c567b6879fe0763271400de2bd711460267b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/SummonSpells.pas",
+          "line": 143,
+          "end_line": 145,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  NoLocationText: PResStringRec = @AoWE.NoSummonLocationFoundRStr;\n  TSummonSyronText: PResStringRec = @AoWE.SummonSyronRStr;",
+          "sha256": "1732acc7768acff721209d17beb63aa2c5a38b8f5cf5c6ac2053339de9aa7d1a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalSpells.pas",
+          "line": 195,
+          "end_line": 197,
+          "text": "  GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;\n  GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;\n",
+          "sha256": "37be5f5694d3443c558ad5116d21061610943d730995d76aeee305a7c7c3586c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas",
+          "line": 350,
+          "end_line": 352,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: PAoWEngine = @AoWE.AoWEngine;\n  WaterText: PResStringRec = @AoWE.WaterMasteryRStr;",
+          "sha256": "84d08b3c0975724b1138ebf1177417c16b92e9632e06378d703bf749400afce4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnitIGrd.pas",
+          "line": 49,
+          "end_line": 51,
+          "text": "const WorldSet: PAoWSet = @AoWE.AoWHSSet;\n\nconstructor TUnitIndexGrid.Create(AOwner: Classes.TComponent);",
+          "sha256": "1c1c4e3a5253d7f61551b5458fbcb93cd7783c3ee18ff4e6d9baf9267282b847"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnitGrid.pas",
+          "line": 47,
+          "end_line": 49,
+          "text": "  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: PAoWEngine = @AoWE.AoWEngine;\n",
+          "sha256": "2720ddfaa14172f24c06a8e2a0b30185a4f0bb5c85d5a392196386abf9487b5f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 130,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-48.original",
+        "pointee": {
+          "address": "0x558fa044",
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "export",
+          "export_names": [
+            "AoWE.AoWHSSet@678301D7"
+          ]
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSSet, 17 compiled cells (WorldSet/SpellHSSet...) all pointing at MAP AoWHSSet",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x558e92e8",
+            "section": "DATA",
+            "content_sha256": "be0b9bcf53536f8ed24d616395a188bf0a84f1d110e80cce81ac923992ff4e2e"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-48.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSSet",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSSet, 17 compiled cells (WorldSet/SpellHSSet...) all pointing at MAP AoWHSSet",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TAoWHexagon.ChangeTerrain",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "AoWHex"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TSmokeCloudEnchantment.GetName",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "SmokeCloud"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TFireBarrierTE.CreateFireBarrier",
+            "occurrence": 3,
+            "cell_symbol": "SpellHSSet",
+            "cell_scope": "GlobalTargetSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TRaiseTerrainTE.Process",
+            "occurrence": 1,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "Mountain"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TTeleport.ShowTeleportAnimations",
+            "occurrence": 1,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "Teleport"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "CompareCityProductions",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "City"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TPrisonersJoinEventLog.Cancel",
+            "occurrence": 1,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "Dungeon"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "THolyGround.ShowSummonAnimation",
+            "occurrence": 4,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "HolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TUnHolyGround.ShowSummonAnimation",
+            "occurrence": 4,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "UnHolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TWizardsTower.BuyCost",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "WizardsTower"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TBloodShrine.ExecuteBloodlust",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "BloodShrine"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TSummonSpell.GetAIUpkeepPriority",
+            "occurrence": 0,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "SummonSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TBirdsViewHS.Show",
+            "occurrence": 2,
+            "cell_symbol": "GlobalSpellSet",
+            "cell_scope": "GlobalSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TAirMastery.ExecuteTE",
+            "occurrence": 4,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "GlobalEnchantmentSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TUnitIndexGrid.DblClick",
+            "occurrence": 2,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "UnitIGrd"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "TUnitGrid.AddUnit",
+            "occurrence": 1,
+            "cell_symbol": "WorldSet",
+            "cell_scope": "UnitGrid"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSSet",
+            "function_symbol": "RegisterShipyard",
+            "occurrence": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-49",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-49",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWEngine, 8 compiled cells pointing at MAP AoWEngine\nOriginal relocated cell points to named PE export AoWE.AoWEngine; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWEngine. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWEngine"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWEngine, 8 compiled cells pointing at MAP AoWEngine"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/AoWE.pas",
+          "line": 131,
+          "end_line": 132,
+          "text": "  AoWEngine := nil;\nend.",
+          "sha256": "599cfa2511dedc3d03435aa007c623604c986671004d1f18e2667a956d15099e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 3,
+          "end_line": 5,
+          "text": "  AoWEngine: TAoWEngine;\n  AoWHSMap: TAoWHSMap;\n  AoWHSSet: TAoWHSSet;  { $558FA044 }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 1,
+          "end_line": 1,
+          "text": "{ P1 shared world globals; original addresses $558FA048 and $558FA040. }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalTargetSpells.pas",
+          "line": 377,
+          "end_line": 379,
+          "text": "  SpellEngine: PSpellEngine = @AoWEngine;\n{$IFDEF RUNTIME_PACKAGES}\nvar",
+          "sha256": "2410fb1bc825bd62bd436f36dcb48e2cad1e75e79d6dd6cf9a55b25d65e5c430"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 367,
+          "end_line": 369,
+          "text": "  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}\n  RandomSeed: ^Integer = @System.RandSeed;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 86,
+          "end_line": 88,
+          "text": "  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}\n  RandomSeed: ^Integer = @System.RandSeed;",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 85,
+          "end_line": 87,
+          "text": "  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;\n{$IFNDEF RUNTIME_PACKAGES}\n  RandomSeed: ^Integer = @System.RandSeed;",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalSpells.pas",
+          "line": 196,
+          "end_line": 198,
+          "text": "  GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;\n\n{ needs: pointer and Boolean results on the shared procedure drafts. }",
+          "sha256": "37be5f5694d3443c558ad5116d21061610943d730995d76aeee305a7c7c3586c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas",
+          "line": 351,
+          "end_line": 353,
+          "text": "  WorldEngine: PAoWEngine = @AoWE.AoWEngine;\n  WaterText: PResStringRec = @AoWE.WaterMasteryRStr;\n  HarmonyText: PResStringRec = @AoWE.HarmonyRStr;",
+          "sha256": "84d08b3c0975724b1138ebf1177417c16b92e9632e06378d703bf749400afce4"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnitGrid.pas",
+          "line": 48,
+          "end_line": 50,
+          "text": "  WorldEngine: PAoWEngine = @AoWE.AoWEngine;\n\nconstructor TUnitGrid.Create(AOwner: Classes.TComponent);",
+          "sha256": "2720ddfaa14172f24c06a8e2a0b30185a4f0bb5c85d5a392196386abf9487b5f"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 54,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-49.original",
+        "pointee": {
+          "address": "0x558fa048",
+          "scope": "AoWE",
+          "symbol": "AoWEngine",
+          "via": "export",
+          "export_names": [
+            "AoWE.AoWEngine@7E705837"
+          ]
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWEngine, 8 compiled cells pointing at MAP AoWEngine",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x558e945c",
+            "section": "DATA",
+            "content_sha256": "b4d4b2606a9de9b702c27fd0170822bf68b1c3ba806db63ecb8cba9c86cc9cc9"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-49.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWEngine",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWEngine, 8 compiled cells pointing at MAP AoWEngine",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "THealingShowersTE.ShowAnimation",
+            "occurrence": 1,
+            "cell_symbol": "SpellEngine",
+            "cell_scope": "GlobalTargetSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "City",
+            "occurrence": 9,
+            "cell_symbol": "WorldEngine",
+            "cell_scope": "City"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "THolyGround.ShowSummonAnimation",
+            "occurrence": 1,
+            "cell_symbol": "WorldEngine",
+            "cell_scope": "HolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "TUnHolyGround.ShowSummonAnimation",
+            "occurrence": 1,
+            "cell_symbol": "WorldEngine",
+            "cell_scope": "UnHolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "TConcealAreaHS.Show",
+            "occurrence": 1,
+            "cell_symbol": "GlobalSpellEngine",
+            "cell_scope": "GlobalSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "TAirMastery.ShowAnimation",
+            "occurrence": 3,
+            "cell_symbol": "WorldEngine",
+            "cell_scope": "GlobalEnchantmentSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "TUnitGrid.EditUnitDone",
+            "occurrence": 0,
+            "cell_symbol": "WorldEngine",
+            "cell_scope": "UnitGrid"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWEngine",
+            "function_symbol": "AoWEReg",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-50",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-50",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSMap, 30 compiled cells pointing at MAP AoWHSMap\nOriginal relocated cell points to named PE export AoWE.AoWHSMap; every listed compiled cell initially points to the independently scoped MAP symbol AoWE.AoWHSMap. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "AoWE",
+        "symbol": "AoWHSMap"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSMap, 30 compiled cells pointing at MAP AoWHSMap"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 4,
+          "end_line": 6,
+          "text": "  AoWHSMap: TAoWHSMap;\n  AoWHSSet: TAoWHSSet;  { $558FA044 }\n",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/inc/intf_P1_14.inc",
+          "line": 1,
+          "end_line": 1,
+          "text": "{ P1 shared world globals; original addresses $558FA048 and $558FA040. }",
+          "sha256": "084b0bcb960634227647ea455eddcbc48e6a7456efcc903df08efaa71c0d980f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HxBridge.pas",
+          "line": 67,
+          "end_line": 69,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n\nconstructor THexagonBridge.Create(AOwner: TECustomNode);",
+          "sha256": "e3feb7af6f4b0c7ebaae5692e21eead5cd3cae96406bcc247b797f99517aad4e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AoWHex.pas",
+          "line": 104,
+          "end_line": 106,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n  SideHN: array[0..2] of Byte = (6, 1, 2);",
+          "sha256": "e58e0992322467be7100938aeb0ae3219a66ab4f919f9fa179e359c994c8da45"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AoWRoad.pas",
+          "line": 33,
+          "end_line": 35,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n\nprocedure TAoWRoad.UpdateTransitions;",
+          "sha256": "a3f1db95a53644a6381397a4295ade21ae9806f9a03a2d679e1a1e1de0421d9b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AoWTer.pas",
+          "line": 43,
+          "end_line": 45,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n\nprocedure TAoWTerrain.ValidateDenseVegetationBurned(Info: Pointer);",
+          "sha256": "87578566943a088cd5b881da00f0fdc08c5ba23c4fd6518583c8e827eb3737a6"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/SmokeCloud.pas",
+          "line": 86,
+          "end_line": 88,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n",
+          "sha256": "9ae7c454cdf317b1f86e6e23fa11f6e6fad5772225f712d1c0c6e82a6e009946"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalTargetSpells.pas",
+          "line": 376,
+          "end_line": 378,
+          "text": "  SpellHSMap: PSpellHSMap = @AoWHSMap; SpellObservedMap: PSpellHSMap = @AoWHSMap; SpellPlayerMap: PSpellHSMap = @AoWHSMap;\n  SpellEngine: PSpellEngine = @AoWEngine;\n{$IFDEF RUNTIME_PACKAGES}",
+          "sha256": "2410fb1bc825bd62bd436f36dcb48e2cad1e75e79d6dd6cf9a55b25d65e5c430"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Mountain.pas",
+          "line": 94,
+          "end_line": 96,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\nresourcestring",
+          "sha256": "be91047ed2027eca02307d91f7e000302ab153fcfe870728647ff25ebdb2329b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Spring.pas",
+          "line": 54,
+          "end_line": 56,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  SpringMode: TAnimationControlMode = [amLinkToNewFrame, amOwnedByMap];\n",
+          "sha256": "4918112adf9736a11338a7ece92e8e67cb38283e36e5d12ea6378df0cd6a974f"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Sign.pas",
+          "line": 73,
+          "end_line": 75,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n\n{ needs: draft AoWE result signatures; adapters preserve the proven register ABI. }",
+          "sha256": "77aba33ce77cd06723691258e40284a37820d5fbebc71e38893b912b6f72686d"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Teleport.pas",
+          "line": 78,
+          "end_line": 80,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n  { Original AoWE resource initialization table $55798BC0..$557990E4. }",
+          "sha256": "ec8431b8e8704836577f4a2cdca1755f21c516f4ac75ea9cfca312005716bda6"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Crops.pas",
+          "line": 107,
+          "end_line": 109,
+          "text": "  WorldMap: PCropMap = @AoWE.AoWHSMap;\n\nconstructor TCrop.Create(AOwner: Engine.TECustomNode);",
+          "sha256": "c81af09bf3aa183b00e032ec66091ab5f487f69506c3059831348b59dfe018d9"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 365,
+          "end_line": 367,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Farm.pas",
+          "line": 50,
+          "end_line": 52,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  FarmText: PResStringRec = @AoWE.FarmRStr;\n  IncomeText: PResStringRec = @AoWE.ProducingXIncomeRStr;",
+          "sha256": "81c31cf8300e09784822a4bad5f2d634d6e6aca93add569541569b30eeda9997"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Cave.pas",
+          "line": 85,
+          "end_line": 87,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  { Original AoWE resource initialization table $55798BC0..$557990E4. }\n  RaceNames: TCaveRaceNames = ('Humans', 'Azracs', 'Lizards', 'Frostlings',",
+          "sha256": "667cd153af5d003b5b995013852896057bfd421f1c725f9d6ed8082eae9606f5"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Mine.pas",
+          "line": 62,
+          "end_line": 64,
+          "text": "const WorldMap: PMineMap = @AoWE.AoWHSMap;\n\n{ needs: draft AoWE methods have object, integer and Boolean results. }",
+          "sha256": "dd5b409456bbd4813699d56da1e7400a2f7ae680b6d7c923e4582ce9346f7e30"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ManaCrystals.pas",
+          "line": 66,
+          "end_line": 68,
+          "text": "const WorldMap: PCrystalMap = @AoWE.AoWHSMap;\n{ needs: the draft methods return integers and objects, and Watching returns Boolean. }\nprocedure TCrystalLog.Location(X, Y, L: Shortint); assembler;",
+          "sha256": "af2db73590dec3794b516281cb0ee65e2a8ca6a6c7d68724389c3b331cc1b5ef"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ItemExpS.pas",
+          "line": 75,
+          "end_line": 77,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n{$IFNDEF RUNTIME_PACKAGES}\n  RandomSeed: ^Integer = @System.RandSeed;",
+          "sha256": "349d6fdeaf15068ae60f31d9c698d50fdb7becd2f2583cb389e1741528650683"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Dungeon.pas",
+          "line": 83,
+          "end_line": 85,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n{$IFNDEF RUNTIME_PACKAGES}",
+          "sha256": "fcd79adb174aae013a85c133841fbfeeedeb9c52ca5f89a6ef80e919db4a60d0"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 84,
+          "end_line": 86,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 83,
+          "end_line": 85,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: ^TAoWEngine = @AoWE.AoWEngine;",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/MagicSanctuary.pas",
+          "line": 62,
+          "end_line": 64,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n{$IFNDEF RUNTIME_PACKAGES}\n  BlendTables: PBlendTables = @GFXE.IntensityBlendTable;",
+          "sha256": "2ecba4946c66e33806ecb6ca82c355764d95e21ff7d68f0543d4cc4eb4dec8fc"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/WizardsTower.pas",
+          "line": 67,
+          "end_line": 69,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n",
+          "sha256": "35eda426d543e4c0a5b13a55b9f0d7fd5263a982a74e6c05a8487e3ad7b801db"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/AGCPlugins.pas",
+          "line": 86,
+          "end_line": 88,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  AllDamageTypes: TDamageTypes = [dtFire..dtNone];\n  DamageTypes: PDamageTypes = @AllDamageTypes;",
+          "sha256": "a0821245d0f6c608dc80c6812078702d603e62b17c1626c4a152696ef702eb0a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/BloodShrine.pas",
+          "line": 50,
+          "end_line": 52,
+          "text": "  WorldMap: PAoWHSMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWHSSet = @AoWE.AoWHSSet;\n",
+          "sha256": "a423d9b4564abc2ba523845d3044c567b6879fe0763271400de2bd711460267b"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/SummonSpells.pas",
+          "line": 142,
+          "end_line": 144,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  NoLocationText: PResStringRec = @AoWE.NoSummonLocationFoundRStr;",
+          "sha256": "1732acc7768acff721209d17beb63aa2c5a38b8f5cf5c6ac2053339de9aa7d1a"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalSpells.pas",
+          "line": 194,
+          "end_line": 196,
+          "text": "  GlobalSpellMap: PGlobalSpellMap = @AoWHSMap;\n  GlobalSpellSet: PGlobalSpellSet = @AoWHSSet;\n  GlobalSpellEngine: PGlobalSpellEngine = @AoWEngine;",
+          "sha256": "37be5f5694d3443c558ad5116d21061610943d730995d76aeee305a7c7c3586c"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/GlobalEnchantmentSpells.pas",
+          "line": 349,
+          "end_line": 351,
+          "text": "  WorldMap: PAoWMap = @AoWE.AoWHSMap;\n  WorldSet: PAoWSet = @AoWE.AoWHSSet;\n  WorldEngine: PAoWEngine = @AoWE.AoWEngine;",
+          "sha256": "84d08b3c0975724b1138ebf1177417c16b92e9632e06378d703bf749400afce4"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 438,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-50.original",
+        "pointee": {
+          "address": "0x558fa040",
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "export",
+          "export_names": [
+            "AoWE.AoWHSMap@6B957A58"
+          ]
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Relocated address slot; no decoded direct writes to cell in selected module functions; original immutability must be reviewed",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSMap, 30 compiled cells pointing at MAP AoWHSMap",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x558e9494",
+            "section": "DATA",
+            "content_sha256": "7640ac1d616b38c5336afbcb77494efa42a46ac7fd4a2f7ecb51b5f361fc1238"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-50.compiled",
+        "pointee": {
+          "scope": "AoWE",
+          "symbol": "AoWHSMap",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: export AoWE.AoWHSMap, 30 compiled cells pointing at MAP AoWHSMap",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "THexagonBridge.MoveExclusive",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "HxBridge"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWBorderHexagon.UpdateMapField",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "AoWHex"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWRoad.UpdateTransitions",
+            "occurrence": 1,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "AoWRoad"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAoWTerrain.ValidateDeadTreeRegrow",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "AoWTer"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TSmokeCloud.Activate",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "SmokeCloud"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TFireBarrier.TargetSelected",
+            "occurrence": 1,
+            "cell_symbol": "SpellHSMap",
+            "cell_scope": "GlobalTargetSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "THealingShowersTE.Process",
+            "occurrence": 1,
+            "cell_symbol": "SpellObservedMap",
+            "cell_scope": "GlobalTargetSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TTornadoTE.Process",
+            "occurrence": 22,
+            "cell_symbol": "SpellPlayerMap",
+            "cell_scope": "GlobalTargetSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TRaiseTerrain.TargetSelected",
+            "occurrence": 1,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Mountain"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TSpringOfLife.ExecuteNaturesBlessing",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Spring"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TSign.CanChangeText",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Sign"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TTeleport.CanTeleportArmy",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Teleport"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TCrop.Deactivate",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Crops"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "RaceInCity",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "City"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "FarmIncome",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Farm"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TCave.ArmyPlaced",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Cave"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TMine.Activate",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Mine"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TManaCrystals.ArmyEntered",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "ManaCrystals"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TItemExplorationSite.ExecuteSearchDone",
+            "occurrence": 2,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "ItemExpS"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TDungeon.GeneratePrisoners",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "Dungeon"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "THolyGround.ArmyPlaced",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "HolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TUnHolyGround.ArmyPlaced",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "UnHolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TMagicSanctuary.Destroy",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "MagicSanctuary"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TWizardsTower.ArmyPlaced",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "WizardsTower"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAIGroupDefendTargetSelector.GetMovepathBattleFieldStrength",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "AGCPlugins"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TBloodShrine.ExecuteBloodlust",
+            "occurrence": 2,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "BloodShrine"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TSummonSpell.Activate",
+            "occurrence": 1,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "SummonSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TBirdsViewHS.Show",
+            "occurrence": 0,
+            "cell_symbol": "GlobalSpellMap",
+            "cell_scope": "GlobalSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "TAirMastery.ExecuteTE",
+            "occurrence": 0,
+            "cell_symbol": "WorldMap",
+            "cell_scope": "GlobalEnchantmentSpells"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "AoWHSMap",
+            "function_symbol": "BuildersGuildIncome",
+            "occurrence": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "batch2-proposal-51",
+      "kind": "mutable-data",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-51",
+      "identity": {
+        "class": "reviewed-source",
+        "evidence": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: SortingCity: TCity (City.pas:2003); addrcheck use in TCity.SetUpgradeLevel; 4 bytes\nUnique compiled MAP City.SortingCity plus its source variable declaration establish the proposed compiled identity and type. Original-address annotations and the module-wide MATCH audit are supplied for Fable reviewed-source assessment.",
+        "scope": "City",
+        "symbol": "SortingCity"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "Source type/record layout or explicit literal representation; see source_evidence and extent_proposal"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-C mutable-data, reviewed-source: identity by source declaration plus either an addrcheck record of consistent use in MATCH functions, or sole use by the function under test on both sides (then any cell no other code touches is observationally interchangeable); extent = declared type width; no content obligation.\nR-C: SortingCity: TCity (City.pas:2003); addrcheck use in TCity.SetUpgradeLevel; 4 bytes"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 2003,
+          "end_line": 2005,
+          "text": "  SortingCity: TCity;\n\nfunction CompareCityProductions(Item1, Item2: Pointer): Integer;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 2060,
+          "end_line": 2062,
+          "text": "    SortingCity := Self;\n    FProduction.FUnitProductions.FChildren.Sort(CompareCityProductions);\n  end;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 1,
+        "raw_partner_conflict": false,
+        "direct_write_count": 2
+      },
+      "original": {
+        "address": "0x558fa0ec",
+        "section": "BSS",
+        "scope": "City",
+        "symbol": "SortingCity",
+        "content_sha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+      },
+      "compiled": {
+        "section": "BSS",
+        "scope": "City",
+        "symbol": "SortingCity",
+        "map_symbol": "SortingCity"
+      }
+    },
+    {
+      "id": "batch2-proposal-52",
+      "kind": "pointer-cell",
+      "disposition": "accepted",
+      "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-52",
+      "identity": {
+        "class": "scoped-symbol",
+        "evidence": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT System.RandSeed, 6 compiled RandomSeed cells pointing at MAP System.RandSeed; the source note about assignments concerns the pointee RandSeed, not the cells; the proof-time write guard covers any cell write\nOriginal PE IAT DLL/import System.RandSeed; every listed compiled cell initially points to the independently scoped MAP symbol System.RandSeed. Extent is exactly one four-byte PE32 pointer cell on each side. Several compiled cells can share this one named pointee; no cell-to-cell storage identity is proposed.",
+        "scope": "System",
+        "symbol": "RandSeed"
+      },
+      "extent": {
+        "size": 4,
+        "basis": "type-layout",
+        "evidence": "32-bit pointer cell; PE32 image and relocated four-byte payload"
+      },
+      "review": {
+        "reviewer": "Fable",
+        "reason": "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT System.RandSeed, 6 compiled RandomSeed cells pointing at MAP System.RandSeed; the source note about assignments concerns the pointee RandSeed, not the cells; the proof-time write guard covers any cell write"
+      },
+      "source_evidence": [
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 356,
+          "end_line": 358,
+          "text": "  RandomSeed: ^Integer;\n{$ENDIF}\n",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 369,
+          "end_line": 371,
+          "text": "  RandomSeed: ^Integer = @System.RandSeed;\n{$ENDIF}\n  RaceTerrainTable: ^TRaceTerrainTable = @AoWE.RaceTerrain;",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/City.pas",
+          "line": 3310,
+          "end_line": 3312,
+          "text": "  RandomSeed := @System.RandSeed;\n{$ENDIF}\n  if ValidateAoWEngine then",
+          "sha256": "fc230203b81a946efbb2dc729843e19f7864a04052df6934e70f4bf91356d383"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ItemExpS.pas",
+          "line": 69,
+          "end_line": 71,
+          "text": "  RandomSeed: ^Integer;\n{$ENDIF}\n",
+          "sha256": "349d6fdeaf15068ae60f31d9c698d50fdb7becd2f2583cb389e1741528650683"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ItemExpS.pas",
+          "line": 77,
+          "end_line": 79,
+          "text": "  RandomSeed: ^Integer = @System.RandSeed;\n{$ENDIF}\n  ItemsFoundText: PResStringRec = @AoWE.ItemsFoundRStr;",
+          "sha256": "349d6fdeaf15068ae60f31d9c698d50fdb7becd2f2583cb389e1741528650683"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/ItemExpS.pas",
+          "line": 222,
+          "end_line": 224,
+          "text": "  RandomSeed := @System.RandSeed;\n{$ENDIF}\nfinalization",
+          "sha256": "349d6fdeaf15068ae60f31d9c698d50fdb7becd2f2583cb389e1741528650683"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Dungeon.pas",
+          "line": 76,
+          "end_line": 78,
+          "text": "  RandomSeed: ^Integer;\n{$ENDIF}\n",
+          "sha256": "fcd79adb174aae013a85c133841fbfeeedeb9c52ca5f89a6ef80e919db4a60d0"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Dungeon.pas",
+          "line": 86,
+          "end_line": 88,
+          "text": "  RandomSeed: ^Integer = @System.RandSeed;\n{$ENDIF}\n",
+          "sha256": "fcd79adb174aae013a85c133841fbfeeedeb9c52ca5f89a6ef80e919db4a60d0"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/Dungeon.pas",
+          "line": 336,
+          "end_line": 338,
+          "text": "  RandomSeed := @System.RandSeed;\n{$ENDIF}\nfinalization",
+          "sha256": "fcd79adb174aae013a85c133841fbfeeedeb9c52ca5f89a6ef80e919db4a60d0"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 77,
+          "end_line": 79,
+          "text": "  RandomSeed: ^Integer;\n{$ENDIF}\n",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 88,
+          "end_line": 90,
+          "text": "  RandomSeed: ^Integer = @System.RandSeed;\n{$ENDIF}\n  EvilAlignments: ^TAlignments = @AoWE.alsPureEvil;",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/HolyG.pas",
+          "line": 409,
+          "end_line": 411,
+          "text": "  RandomSeed := @System.RandSeed;\n{$ENDIF}\nfinalization",
+          "sha256": "6cd99b337564a6c617472b65365ca1fb08d9d5da00c31452d7b53e6008d8a36e"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 76,
+          "end_line": 78,
+          "text": "  RandomSeed: ^Integer;\n{$ENDIF}\n",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 87,
+          "end_line": 89,
+          "text": "  RandomSeed: ^Integer = @System.RandSeed;\n{$ENDIF}\n  GoodAlignments: ^TAlignments = @AoWE.alsPureGood;",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        },
+        {
+          "path": "src/delphi3/AoWEPACK/UnHolyG.pas",
+          "line": 418,
+          "end_line": 420,
+          "text": "  RandomSeed := @System.RandSeed;\n{$ENDIF}\nfinalization",
+          "sha256": "8a027ea73569bddab83ca59860c3bf39d1d7179fea71d66f003dcb6316cce4d7"
+        }
+      ],
+      "audit": {
+        "file": "batch2-address-audit.json",
+        "sha256": "ef715c9493628436d9180c77f21d72d82a2575ed2ecbea02c7fa26ff10b295b1",
+        "match_function_count": 39,
+        "raw_partner_conflict": false,
+        "direct_write_count": 0
+      },
+      "original": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-52.original",
+        "pointee": {
+          "scope": "System",
+          "symbol": "RandSeed",
+          "via": "iat",
+          "dll": "vcl30.dpl",
+          "import_name": "System.RandSeed@A0665B6E",
+          "disk_word_is_loader_rva": true
+        },
+        "immutability": {
+          "class": "loader-iat",
+          "evidence": [
+            "PE32 loader-owned IAT, patched before program entry",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT System.RandSeed, 6 compiled RandomSeed cells pointing at MAP System.RandSeed; the source note about assignments concerns the pointee RandSeed, not the cells; the proof-time write guard covers any cell write",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "address": "0x558fb720",
+            "section": ".idata",
+            "content_sha256": "12e4c0ee58ff6c9ca65a7552163e2e899000f62f1b00b3472ed3e3e9a2a6f215"
+          }
+        ]
+      },
+      "compiled": {
+        "scope": "AoWEPACK.dpl.pointer-cells",
+        "symbol": "batch2-proposal-52.compiled",
+        "pointee": {
+          "scope": "System",
+          "symbol": "RandSeed",
+          "via": "map"
+        },
+        "immutability": {
+          "class": "typed-pointer-constant",
+          "evidence": [
+            "Source typed pointer constants or compiler-generated unit-global address slots; initial named pointee payloads verified",
+            "All decoded direct writes and named-source assignments are retained in batch2-address-audit.json; bounded no-write evidence alone is not a proof",
+            "R-A pointer-cell, scoped-symbol: original pointee named by PE export/IAT, every compiled cell's initial word is the MAP symbol of the same scoped name; several compiled cells may share one pointee; immutability by the step 2b module write audit (zero explicit cell writes) plus the proof-time write guard. Accepted.\nR-A: IAT System.RandSeed, 6 compiled RandomSeed cells pointing at MAP System.RandSeed; the source note about assignments concerns the pointee RandSeed, not the cells; the proof-time write guard covers any cell write",
+            "Module audit: zero explicit cell writes; proof-time accepted-cell write guard remains mandatory."
+          ]
+        },
+        "cells": [
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TCity.GenerateDefenders",
+            "occurrence": 2,
+            "cell_symbol": "RandomSeed",
+            "cell_scope": "City"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TItemExplorationSite.Generate",
+            "occurrence": 1,
+            "cell_symbol": "RandomSeed",
+            "cell_scope": "ItemExpS"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TDungeon.GeneratePrisoners",
+            "occurrence": 1,
+            "cell_symbol": "RandomSeed",
+            "cell_scope": "Dungeon"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "THolyGround.TriggerArmyDamage",
+            "occurrence": 1,
+            "cell_symbol": "RandomSeed",
+            "cell_scope": "HolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TUnHolyGround.TriggerArmyDamage",
+            "occurrence": 1,
+            "cell_symbol": "RandomSeed",
+            "cell_scope": "UnHolyG"
+          },
+          {
+            "section": "DATA",
+            "pointee_symbol": "RandSeed",
+            "function_symbol": "TAirMastery.ShowAnimation",
+            "occurrence": 2
+          }
+        ]
+      }
     }
   ]
 }
