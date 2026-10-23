@@ -73,7 +73,9 @@ def public_load_fixture():
 
 def published_frame_fixture():
     tail='89e0a300204000a1002040008b0083c404c3'
-    return build('83ec04c7042401000000'+tail,'83ec04c7042402000000'+tail,bindings=[(0x402000,0x402000)])
+    checker,fn=build('83ec04c7042401000000'+tail,'83ec04c7042402000000'+tail,bindings=[(0x402000,0x402000)])
+    checker.inp.addresses.storage_objects=[(0x402000,0x402000,4,'mutable-data','fixture pointer declaration')]
+    return checker,fn
 
 
 def cases():

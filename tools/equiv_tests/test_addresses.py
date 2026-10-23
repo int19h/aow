@@ -51,7 +51,11 @@ class Addresses(unittest.TestCase):
             a, b = opcode + p32(0x402000) + b'\xc3', opcode + p32(0x402010) + b'\xc3'
             site = 0x401000 + len(opcode)
             checker, fn = build(a, b, bindings=[(0x402000, 0x402010)], relocs=([site], [site]))
-            self.assertEqual('PROVEN', checker.check(fn)[0])
+            checker.inp.addresses.names[0][0x402000]='Fixture.MutableGlobal'
+            status,reason=checker.check(fn)
+            self.assertEqual('PROVEN',status)  # Mutable globals require identity and accessed width.
+            checker.inp.addresses.storage_objects=[(0x402000,0x402010,8,'mutable-data','fixture array type')]
+            self.assertEqual('PROVEN',checker.check(fn)[0])
             checker, fn = build(a, b, bindings=[(0x402000, 0x402010)])
             self.assertNotEqual('PROVEN', checker.check(fn)[0], 'unrelocated offset must stay literal')
             checker, fn = build(a, b, relocs=([site], [site]))

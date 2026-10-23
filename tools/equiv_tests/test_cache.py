@@ -61,6 +61,7 @@ class VerdictCache(unittest.TestCase):
                 im.data[0x2000:0x2004]=p32(0x402100)
                 if pointer:c.inp.addresses.pointer_cells[side][0x402000]=(0x402100,'reviewed')
                 else:c.inp.addresses.immutable_data[side][0x402000]=4
+            if not pointer:c.inp.addresses.storage_objects=[(0x402000,0x402000,4,'immutable-data','reviewed test layout')]
             c.cache=Cache(c,self.shared.parent/str(pointer));self.assertTrue(c.check(f)[0].startswith('PROVEN'))
             c.check(f);self.assertTrue(c.cache_hit);c.inp.old.data[0x2000]^=1;c.check(f);self.assertIsNone(c.cache_hit)
 
@@ -110,3 +111,22 @@ class VerdictCache(unittest.TestCase):
         self.assertIs(old,e.z3.main_ctx());self.assertIs(points,c.inp.addresses.pointee_symbols)
         self.assertTrue(all(a is b for a,b in zip(sorts,(e.BV32,e.BYTE,e.MEM))))
         self.assertEqual(collecting,gc.isenabled())
+
+    def test_extent_lookup_including_absence_is_a_cache_dependency(self):
+        c,f=build('a100204000c3','a100204000c3',bindings=[(0x402000,0x402000)])
+        for img in (c.inp.old,c.inp.new):img.pe.sections[1].Characteristics &= ~0x80000000
+        c.cache=Cache(c,self.shared.parent/'extent')
+        self.assertEqual('UNSUPPORTED',c.check(f)[0]);c.check(f);self.assertTrue(c.cache_hit)
+        c.inp.addresses.storage_objects=[(0x402000,0x402000,4,'immutable-data','fixture type')]
+        self.assertTrue(c.check(f)[0].startswith('PROVEN'));self.assertIsNone(c.cache_hit)
+        c.inp.addresses.storage_objects.append((0x402200,0x402200,4,'mutable-data','unrelated fixture type'))
+        c.check(f);self.assertTrue(c.cache_hit)
+
+    def test_bss_loader_layout_is_a_cache_dependency(self):
+        c,f=build('a100204000c3','a100204000c3',bindings=[(0x402000,0x402000)])
+        c.inp.addresses.storage_objects=[(0x402000,0x402000,4,'bss','fixture type')]
+        for img in (c.inp.old,c.inp.new):img.pe.sections[1].Characteristics|=0x80
+        c.cache=Cache(c,self.shared.parent/'bss')
+        self.assertTrue(c.check(f)[0].startswith('PROVEN'));c.check(f);self.assertTrue(c.cache_hit)
+        c.inp.new.pe.sections[1].SizeOfRawData=4
+        self.assertTrue(c.check(f)[0].startswith('PROVEN'));self.assertIsNone(c.cache_hit)

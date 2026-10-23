@@ -37,7 +37,7 @@ def resolve(entry,inp,addresses):
             if type(index) is not int or not 0<=index<len(loads) or loads[index][1] not in candidates:
                 raise ValueError('absolute-load occurrence does not identify the unique pointee cell')
             cell['address']=hex(next(iter(candidates)))
-    elif entry['kind']=='immutable-data':
+    elif entry['kind'] in ('immutable-data','mutable-data','bss'):
         original_hash(inp.old,old['address'],size,old['content_sha256'])
         address=addresses.map_addresses.get(new['map_symbol'])
         if address is None: raise ValueError('unresolved/ambiguous immutable MAP symbol')
@@ -50,7 +50,7 @@ def load_v2(path,inp,addresses,document):
         raise ValueError('malformed schema 2 alias document')
     accepted=[];ids=set();hashes=[digest(p) for p in inp.image_paths]
     results=getattr(addresses,'alias_resolutions',[]);addresses.alias_resolutions=results
-    fields=('forward','reverse','conflicts','provenance','pointer_cells','pointee_symbols','immutable_data','reviewed_names')
+    fields=('forward','reverse','conflicts','provenance','pointer_cells','pointee_symbols','immutable_data','reviewed_names','storage_objects')
     for source in document['entries']:
         if not isinstance(source.get('id'),str) or not source['id'] or source['id'] in ids:
             raise ValueError('duplicate/invalid alias id')

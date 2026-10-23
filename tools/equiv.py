@@ -41,6 +41,7 @@ sys.dont_write_bytecode = True
 import match
 import equiv_limits as limits
 import equiv_cache as verdict_cache
+import equiv_image as image_relation
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -258,6 +259,8 @@ class Inputs:
         self.old, self.new = match.Image(orig), match.Image(exe)
         self.image_paths = (pathlib.Path(orig), pathlib.Path(exe))
         self.syms, _ = match.map_symbols(mapf)
+        # Only an explicit per-symbol length is a size; never the next public.
+        self.map_sizes = image_relation.map_sizes(pathlib.Path(mapf).read_text(encoding='latin1'),self.syms)
         with open(sigf, encoding='utf-8') as f:
             self.sigs = {fn['name'].split('@')[0]: (int(fn['addr'], 16), fn['size']) for fn in json.load(f)}
         self.text = self.new.base + self.new.pe.sections[0].VirtualAddress
@@ -344,6 +347,7 @@ class Addresses:
         self.consulted = set()
         self.pointer_cells = [{}, {}]
         self.immutable_data = [{}, {}]
+        self.storage_objects = []
         self.pointee_symbols = [{}, {}]
         self.allow_local_cfg = True
         self.unresolved = set()
@@ -462,6 +466,10 @@ class Addresses:
                 if len(aa) == len(bb) == 1:
                     self.bind(aa[0], bb[0])
         self.install_content()
+        for name,size in sorted(getattr(inp,'map_sizes',{}).items()):
+            b = self.map_addresses.get(name); a = self.reverse.get(b)
+            if a is not None and 0 < size <= 65536 and self.readonly(1,b,size):
+                self.storage_objects.append((a,b,size,'immutable-data','explicit MAP symbol size:'+name))
         from equiv_records import load_aliases
         for path in getattr(inp, 'data_aliases', ()):
             for a, b, size, record in load_aliases(path, inp, self):
@@ -554,9 +562,20 @@ class Addresses:
                 if len(left) == len(right) == 1:
                     established.add((next(iter(left)), next(iter(right))))
                 evidence.extend(established)
+                if key[0] == 'vmt-field' and key[2] == -64:
+                    for a,b in established:self.storage_objects.append((a,b,64,'immutable-data','Delphi VMT fixed header'))
+                if key[0] == 'class-name' and key[2] == 0:
+                    for a,b in established:
+                        n = self.old.bytes_at(a,1)[0]+1
+                        self.storage_objects.append((a,b,n,'immutable-data','Delphi class short string'))
+                if key[0] == 'class-typeinfo' and key[2] == 0:
+                    for a,b in established:
+                        n = self.old.bytes_at(a+1,1)[0]+12
+                        self.storage_objects.append((a,b,n,'immutable-data','Delphi class typeinfo fixed header'))
                 if key[0] == 'string':
                     # Preserve offsets, including interior / header pointers.
                     for a, b in established:
+                        self.storage_objects.append((a-8,b-8,len(key[1])+8,'immutable-data','AnsiString header'))
                         evidence.extend((a + off, b + off) for off in range(-8, len(key[1])))
             before = len(self.forward)
             self.install_consistent(evidence, 'typed-content-record')
@@ -792,6 +811,15 @@ for root in ('eax', 'ebx', 'ecx', 'edx'):
 
 
 class State:
+    @property
+    def memory(self):
+        relation = image_relation.ACTIVE
+        return relation.overlay(self._memory) if relation is not None else self._memory
+
+    @memory.setter
+    def memory(self, value):
+        self._memory = value
+
     def __init__(self, regs, flags, memory, fs, fp):
         self.regs, self.flags, self.memory, self.fs, self.fp = regs, flags, memory, fs, fp
         self.events = []
@@ -927,6 +955,16 @@ class Machine:
         else:
             addr += bv(m.disp)
         addr=simp(addr)
+        relation = image_relation.ACTIVE
+        if relation is not None and not m.segment and ins.mnemonic != 'lea':
+            roots = set()
+            for reg in (m.base,m.index):
+                if reg: roots.update(getattr(st,'image_origins',{}).get(ins.reg_name(reg),()))
+            v = self.addresses.absolute(self.side,ins,op)
+            if v is not None and not relation.code(self.side,v):
+                row = relation.root(self.side,v)
+                if row: roots.add(row)
+            relation.access(st,self.side,addr,op.size,roots)
         if hasattr(st,"ownership"):st.ownership.address(addr)
         return addr
 
@@ -949,7 +987,7 @@ class Machine:
                 # On-disk IAT words are loader RVAs, not the runtime function
                 # pointers. Read the paired symbolic cell, so intervening or
                 # aliased writes also remain visible to indirect calls.
-                if not any(op.mem.disp + k in imports for k in range(op.size)):
+                if image_relation.ACTIVE is None and not any(op.mem.disp + k in imports for k in range(op.size)):
                     constant = self.addresses.read_constant(self.side, op.mem.disp, op.size, self.local)
                     if constant is not None:
                         return constant
@@ -1016,6 +1054,10 @@ class Machine:
         return conditions[suffix]
 
     def step(self, st, ins):
+        relation = image_relation.ACTIVE
+        return relation.step(self,st,ins,self._step) if relation is not None else self._step(st,ins)
+
+    def _step(self, st, ins):
         self.current_pc = ins.address
         if hasattr(st,"ownership"):st.ownership.pc=ins.address;st.ownership.kind=ins.mnemonic
         st.cell_guard = self.guard_pointer_cells
@@ -1873,6 +1915,7 @@ class Frames:
     @staticmethod
     def clone(states):
         clones = [State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
+        for source,target in zip(states,clones):target.image_origins={k:set(v) for k,v in getattr(source,'image_origins',{}).items()}
         for st, clone in zip(states, clones):
             clone.outgoing = list(getattr(st, 'outgoing', []))
             clone_ownership(st,clone)
@@ -2378,6 +2421,7 @@ class Checker:
         return self.cache.run(fn,run,matched) if self.cache is not None and mutated is None else run()
 
     def _check(self, fn, mutated=None):
+        self.image_relation = None
         self.contracts = None
         self.garbage_witness = None
         self.pending_diagnostic = None
@@ -2420,13 +2464,18 @@ class Checker:
         if self.contracts and self.contracts.h5:
             self.last_contracts['hypotheses']['H5'] = dict(predicate='All ordinary data/stack writes in this function and its callees are disjoint from these reviewed immutable storage ranges; no concrete overlapping write is admitted.',
                                                          instances=sorted(self.contracts.h5))
+        if self.image_relation is not None:
+            self.last_contracts['image_relation'] = self.image_relation.summary()
+            if self.image_relation.checked:
+                self.last_contracts['hypotheses'].setdefault('H5',dict(instances=[]))['image_relation'] = self.image_relation.summary()
+                self.last_contracts['hypotheses']['H5']['predicate'] = 'Checked storage has equal normalized startup contents and justified coverage; mutable runtime values remain arbitrary. Remaining module-wide initial/alias relation and preservation of immutable storage by external effects are assumed.'
         if result[0] == 'PROVEN' and self.last_contracts['hypotheses']:
             result = 'PROVEN under '+','.join(sorted(self.last_contracts['hypotheses'])),'see --explain for instantiated contracts'
         return result
 
     def check_raw(self, fn, mutated=None):
         addresses = self.inp.addresses
-        saved = addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance
+        saved = addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance, [dict(v) for v in addresses.immutable_data]
         addresses.consulted.clear()
         addresses.unresolved.clear()
         # Proof attempts use snapshots of independently established bindings.
@@ -2445,6 +2494,10 @@ class Checker:
             from equiv_calls import ensure
             ensure(self,a,b)
             addresses.active_cells = [set(), set()]
+            relation = image_relation.Relation.__new__(image_relation.Relation)
+            self.image_relation = relation
+            relation.__init__(self,(a,b))
+            image_relation.ACTIVE = relation
             for side, code in enumerate((a,b)):
                 for ins in code:  # Include unreachable suffixes, not only the chosen proof path.
                     for index, op in enumerate(ins.operands):
@@ -2519,10 +2572,11 @@ class Checker:
             self.pending_diagnostic=getattr(e,'diagnostic',None)
             return 'NOT PROVEN', str(e)[:80]
         finally:
+            image_relation.ACTIVE = None
             addresses.allow_local_cfg = True
             addresses.active_cells = [set(),set()]
             self.local_cfg_only = False
-            addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance = saved
+            addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance, addresses.immutable_data = saved
 
     def verify(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
         saved = self.inp.addresses.allow_local_cfg
@@ -2605,6 +2659,7 @@ class Checker:
             return states
         def clone(states):
             clones=[State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
+            for source,target in zip(states,clones):target.image_origins={k:set(v) for k,v in getattr(source,'image_origins',{}).items()}
             for st,clone in zip(states,clones):clone_ownership(st,clone)
             return clones
         initial = arbitrary(entry_candidates, entry_flags)
@@ -2918,6 +2973,7 @@ class Checker:
                     if z3.is_false(next_guard):
                         continue
                     clone = State(dict(st.regs), dict(st.flags), st.memory, st.fs, st.fp)
+                    clone.image_origins={k:set(v) for k,v in getattr(st,'image_origins',{}).items()}
                     clone.events = list(st.events)
                     clone.condition = st.condition
                     clone_ownership(st,clone)

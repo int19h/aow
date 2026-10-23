@@ -90,7 +90,11 @@ class Cache:
         return frozen([descriptors,other.base,other.hi,[(x.address,x.forwarder) for x in getattr(getattr(other.pe,'DIRECTORY_ENTRY_EXPORT',None),'symbols',()) if x.name and x.name.hex()==name]])
     def identity(self,a,b,p):
         d=self.c.inp.addresses
-        return frozen([d.forward.get(a),d.reverse.get(a),d.reverse.get(b),d.provenance.get((a,b)),a in d.conflicts,b in d.conflicts,
+        storage=[(r, [[(s.VirtualAddress,s.Misc_VirtualSize,getattr(s,'SizeOfRawData',None),s.Characteristics)
+                       for s in img.pe.sections if img.base+s.VirtualAddress<=r[side]<img.base+s.VirtualAddress+s.Misc_VirtualSize]
+                      for side,img in enumerate((d.old,d.new))] if r[3]=='bss' else [])
+                 for r in sorted(set(d.storage_objects)) if r[0]<=a<r[0]+r[2] or b is not None and r[1]<=b<r[1]+r[2]]
+        return frozen([storage,d.forward.get(a),d.reverse.get(a),d.reverse.get(b),d.provenance.get((a,b)),a in d.conflicts,b in d.conflicts,
                        [n.get(x) for n,x in zip(d.names,(a,b))],
                        [v.get(x) for v,x in zip(d.import_locations,(a,b))],
                        [v.get(x) for v,x in zip(d.pointer_cells,(a,b))],

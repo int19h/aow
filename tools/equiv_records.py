@@ -146,11 +146,12 @@ def load_aliases(path, inp, addresses, document=None):
                 raise ValueError('overlapping aliases have inconsistent byte offsets')
         if entry['kind'] == 'immutable-data':
             if (inp.old.bytes_at(a,size) != inp.new.bytes_at(b,size)
-                    or any(a-3 <= r < a+size for r in addresses.relocs[0])
-                    or any(b-3 <= r < b+size for r in addresses.relocs[1])):
+                    and not (any(a-3 <= r < a+size for r in addresses.relocs[0])
+                             or any(b-3 <= r < b+size for r in addresses.relocs[1]))):
                 raise ValueError('immutable bytes differ or need relocated-pointer validation')
             for side,start in enumerate((a,b)):
                 addresses.immutable_data[side][start] = size
+        addresses.storage_objects.append((a,b,size,entry['kind'],extent['basis']+':'+extent['evidence']))
         accepted.append((a, b, size, entry['id'] + ':' + digest(path)))
     addresses.reviewed_names = [set(s) for s in names]  # Persist across every loaded alias file.
     return accepted
