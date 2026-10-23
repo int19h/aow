@@ -39,6 +39,7 @@ import time
 
 sys.dont_write_bytecode = True
 import match
+from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
     import z3
@@ -93,22 +94,6 @@ def equal(a, b):
 
 def equality(a, b):
     return a == b if a.sort() == b.sort() else z3.BoolVal(False)
-
-
-def contains_pointer(value, pointer):
-    """Track pointer-valued data, excluding load addresses and array indices."""
-    todo, seen = [value], set()
-    while todo:
-        node = todo.pop()
-        if node.get_id() in seen:
-            continue
-        seen.add(node.get_id())
-        if z3.eq(node, pointer):
-            return True
-        if z3.is_select(node):
-            continue
-        todo.extend(node.children()[1:] if z3.is_app_of(node, z3.Z3_OP_ITE) else node.children())
-    return False
 
 
 def unhash(name):
@@ -784,13 +769,14 @@ class State:
     def load(self, addr, size, fs=False):
         mem = self.fs if fs else self.memory
         value = simp(z3.Concat([z3.Select(mem, addr + bv(i)) for i in reversed(range(size))])) if size > 1 else z3.Select(mem, addr)
+        if hasattr(self, "ownership") and not fs:self.ownership.load(self,addr,size,value)
         return value
 
     def store(self, addr, value, fs=False):
         if hasattr(self, 'cell_guard'):
             self.cell_guard(addr, value.size() // 8, fs)
-        if hasattr(self, 'escape_base') and contains_pointer(value, self.escape_base):
-            self.escaped = True
+        if hasattr(self, 'ownership') and not getattr(self,'ownership_internal',False):
+            self.ownership.store(self,addr,value)
         mem = self.fs if fs else self.memory
         for i in range(value.size() // 8):
             mem = z3.Store(mem, simp(addr + bv(i)), z3.Extract(i * 8 + 7, i * 8, value))
@@ -884,7 +870,9 @@ class Machine:
             addr += self.constant(m.disp)
         else:
             addr += bv(m.disp)
-        return simp(addr)
+        addr=simp(addr)
+        if hasattr(st,"ownership"):st.ownership.address(addr)
+        return addr
 
     def read(self, st, ins, op):
         if op.type == X.X86_OP_REG:
@@ -973,6 +961,7 @@ class Machine:
 
     def step(self, st, ins):
         self.current_pc = ins.address
+        if hasattr(st,"ownership"):st.ownership.pc=ins.address;st.ownership.kind=ins.mnemonic
         st.cell_guard = self.guard_pointer_cells
         m, oo = ins.mnemonic, ins.operands
         if ins.raw.addr_size != 4:
@@ -1728,14 +1717,12 @@ class Frames:
             return n - 0x100000000 if n >= 0x80000000 else n
         return None
 
-    def contains_pointer(self, value):
-        return contains_pointer(value, self.stack)
-
-    def project(self, memory, side):
+    def project(self, memory, side, preserve=()):
         # Mask only this side's allocation, using the common public bytes.
         # Masking the union with zero could hide a write outside the smaller
         # frame that happens to fall inside the other side's larger frame.
         for off in range(self.lows[side], 0):
+            if off in preserve:continue
             addr = self.stack + bv(off)
             memory = z3.Store(memory, addr, z3.Select(self.public, addr))
         return simp(memory)
@@ -1829,6 +1816,7 @@ class Frames:
         clones = [State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
         for st, clone in zip(states, clones):
             clone.outgoing = list(getattr(st, 'outgoing', []))
+            clone_ownership(st,clone)
         return clones
 
     def candidates(self, states):
@@ -1919,18 +1907,8 @@ class FrameMachine(Machine):
         self.cleanups = {}
         self.private_calls = set()
 
-    def write(self, st, ins, op, value):
-        if op.type == X.X86_OP_MEM and self.frames.contains_pointer(value):
-            raise NotProven('private frame address is stored to memory')
-        super().write(st, ins, op, value)
-
     def step(self, st, ins):
-        if ins.mnemonic == 'push' and self.frames.contains_pointer(self.read(st, ins, ins.operands[0])):
-            raise NotProven('private frame address is pushed')
-        if ins.mnemonic == 'ret' and any(self.frames.contains_pointer(st.regs[r]) for r in ('eax', 'edx')):
-            raise NotProven('private frame address escapes in a result')
-        if ins.mnemonic in STRING_OPS and 'stos' in ins.mnemonic and self.frames.contains_pointer(st.regs['eax']):
-            raise NotProven('private frame address is stored by REP')
+        if ins.mnemonic=='ret':st.ownership.result(st)
         if ins.mnemonic != 'call':
             super().step(st, ins)
             if ins.mnemonic == 'push':
@@ -1942,8 +1920,6 @@ class FrameMachine(Machine):
             return
         frames = self.frames
         args = [st.regs[r] for r in ('eax', 'edx', 'ecx')]
-        if any(frames.contains_pointer(v) for v in args):
-            raise NotProven('private frame address escapes to a call')
         off = frames.offset(st.regs['esp'])
         if off is None:
             outgoing = getattr(st, 'outgoing', [])
@@ -1958,14 +1934,15 @@ class FrameMachine(Machine):
         if not 0 <= size <= 128:
             raise NotProven('outgoing stack extent exceeds budget')
         stack_args = [st.load(st.regs['esp'] + bv(k), 1) for k in range(size)]
-        # A stack argument may also be a pointer; inspect each complete word.
-        for k in range(0, size, 4):
-            if k + 4 <= size and frames.contains_pointer(st.load(st.regs['esp'] + bv(k), 4)):
-                raise NotProven('private frame address escapes on the argument stack')
         memory = st.memory
         sp = st.regs['esp']
-        passed = args + [st.load(sp + bv(k), 4) for k in range(0, size - 3, 4)]
+        observed=self.addresses.call_contracts.sites[self.side,ins.address][0]
+        passed = [st.regs[r] for r in REGS if r!='esp' and any(('r',r,lane) in observed for lane in range(4))] + [st.load(sp + bv(k), 4) for k in range(0, size - 3, 4)]
         escaped = z3.BoolVal(True) if ins.address not in self.private_calls else (z3.Or([z3.ULT(v - (frames.stack + bv(frames.low)), bv(-frames.low)) for v in passed]) if frames.low else z3.BoolVal(False))
+        from equiv_summaries import frame_writes
+        info=st.ownership.info;k=next(k for k,i in enumerate(info['code']) if i.address==ins.address)
+        allowed=frame_writes(st.ownership.checker,info,k)
+        st.ownership.passed(st,passed,allowed,len(passed)-len(range(0,size-3,4)))
         super().step(st, ins)
         if ins.address in self.cleanups:
             st.regs['esp'] = simp(sp + bv(self.cleanups[ins.address]))
@@ -1974,13 +1951,20 @@ class FrameMachine(Machine):
         # are compared relative to ESP, and all other public memory is equal.
         st.events.append(('frame-call', event[1], *event[2:5], sp - bv(frames.lows[self.side]) if ins.address in self.private_calls else sp, bv(size), memory, event[-2], event[-1], escaped, sp, *stack_args))
         # Calls may change public memory. Unescaped private bytes survive.
+        st.ownership_internal=True
         for k in range(frames.lows[self.side], 0):
             st.store(frames.stack + bv(k), z3.If(escaped, z3.Select(st.memory, frames.stack + bv(k)), z3.Select(memory, frames.stack + bv(k))))
+        st.ownership_internal=False
 
 
 def frame_goals(frames, states):
     old, new = states
-    goals = [frames.project(old.memory, 0) == frames.project(new.memory, 1), old.fs == new.fs,
+    preserve=set()
+    if any(e[0]=='return' for e in old.events):
+        asymmetric=getattr(old,'frame_defined',set()) ^ getattr(new,'frame_defined',set())
+        numeric=[z3.Implies(st.ownership.guard(st),outside(st.regs[r],frames.stack,frames.lows[side])) for side,st in enumerate(states) for r in ('eax','edx')]
+        if asymmetric and not prove(numeric):preserve=asymmetric
+    goals = [frames.project(old.memory, 0,preserve) == frames.project(new.memory, 1,preserve), old.fs == new.fs,
              old.fp == new.fp, old.condition == new.condition]
     if len(old.events) != len(new.events):
         raise NotProven('different observable events with private frames')
@@ -2006,7 +1990,9 @@ def frame_goals(frames, states):
     for st in states:
         if any(e[0] == 'return' for e in st.events):
             goals += [st.regs[r] == frames.saved[r] for r in ('ebx', 'esi', 'edi', 'ebp')]
-    return goals
+    for st in states:
+        if hasattr(st,"ownership"):goals+=st.ownership.goals(st)
+    return guarded(states,goals)
 
 
 def verify_frames(checker, a, b, finite=False):
@@ -2057,10 +2043,15 @@ def verify_frames(checker, a, b, finite=False):
     def budget():
         if time.monotonic() > deadline:
             raise NotProven('frame relation inference budget')
+    infos=[check_initialized(checker,c,s,frames.lows[s]) for s,c in enumerate((a,b))]
     def execute(i, states):
+        for side,st in enumerate(states):
+            if not hasattr(st,'ownership'):Ownership(checker,infos[side],frames.stack,(i,pairing[i])[side]).prepare(st)
         for side, code in enumerate((a, b)):
             for k in graphs[side][(i, pairing[i])[side]][0]:
                 machines[side].step(states[side], code[k])
+            tail=graphs[side][(i,pairing[i])[side]][0][-1]
+            states[side].frame_defined=infos[side]['after'][tail][1]
         return states
     initial, _ = frames.states(initial=True)
     if finite:
@@ -2074,6 +2065,7 @@ def verify_frames(checker, a, b, finite=False):
             visits += 1
             if visits > 6000 or len(pending) > 128:
                 raise NotProven('finite frame path budget')
+            for st in states:st.path=guard
             execute(i, states)
             if not prove([z3.Implies(guard, z3.And(frame_goals(frames, states)))]):
                 raise NotProven('finite frame paths differ')
@@ -2121,6 +2113,7 @@ def verify_frames(checker, a, b, finite=False):
         i = queue.popleft()
         queued.discard(i)
         states, premise = frames.states(candidates[i])
+        for st in states:st.path=premise
         execute(i, states)
         edges = graphs[0][i][1]
         for edge, target in enumerate(edges):
@@ -2137,6 +2130,7 @@ def verify_frames(checker, a, b, finite=False):
     for i, j in pairing.items():
         budget()
         states, premise = frames.states(candidates[i])
+        for st in states:st.path=premise
         execute(i, states)
         old, new = states
         goals = frame_goals(frames, states)
@@ -2340,11 +2334,12 @@ class Checker:
             if w.get('callee_read'):reason+='; callee read at '+w['callee_read']['pc']+' ('+w['callee_read']['instruction']+')'
             result=('NOT PROVEN',reason)
         if result[0].startswith('PROVEN'):self.garbage_witness=None
+        self.last_contracts['entry_separation'] = sorted(getattr(self.contracts,'entry_separation',{}).values(),key=str) if self.contracts else []
         self.last_contracts['routes'] = self.routes
         self.last_contracts['summary_budgets'] = sorted(self.contracts.summary_budgets.values(),key=lambda r:(r['side'],r['image'],r['hop'],r['target'])) if self.contracts else []
         self.last_contracts['frame_garbage'] = dict(independent=True, extents=getattr(self,'frame_lows',None), witness=self.garbage_witness, exception_whole_only=getattr(self,'exception_whole_only',False))
         if self.contracts and self.contracts.h1:
-            self.last_contracts['hypotheses']['H1'] = dict(predicate='Incoming data pointers and public-loaded address words do not reach the private frame; these ordinary writes cannot alias its save slots. Array reasoning still checks real aliasing.',instances=sorted(self.contracts.h1))
+            self.last_contracts['hypotheses']['H1'] = dict(predicate='EntrySeparation: ESP_entry is in [0x10000+extent,0x80000000); incoming EAX/EDX/ECX, stack-argument words and guarded public four-byte loads lie outside each side [ESP_entry+low,ESP_entry). Explicit solver predicates and proven origin locations are in entry_separation. Array reasoning retains aliases.',instances=sorted(self.contracts.h1))
         if self.contracts and self.contracts.h5:
             self.last_contracts['hypotheses']['H5'] = dict(predicate='All ordinary data/stack writes in this function and its callees are disjoint from these reviewed immutable storage ranges; no concrete overlapping write is admitted.',
                                                          instances=sorted(self.contracts.h5))
@@ -2533,7 +2528,9 @@ class Checker:
                     garbage.step(machines[side],states[side],side,k)
             return states
         def clone(states):
-            return [State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
+            clones=[State(dict(s.regs), dict(s.flags), s.memory, s.fs, s.fp) for s in states]
+            for st,clone in zip(states,clones):clone_ownership(st,clone)
+            return clones
         initial = arbitrary(entry_candidates, entry_flags)
         garbage.prepare(initial,entry)
         samples, todo = {}, [(entry[0], clone(initial))]
@@ -2627,7 +2624,7 @@ class Checker:
             for edge, target in enumerate(edges):
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
                 goals += [z3.Implies(guard, fact_expression(states, f)) for f in candidates[target]]
-            if not prove([z3.Implies(premise, z3.And(goals))]):
+            if not prove(guarded(states,[z3.Implies(premise, z3.And(goals))])):
                 garbage.failed(tails)
                 raise NotProven('live-location relation does not prove the transition')
         return 'PROVEN', ''
@@ -2760,7 +2757,7 @@ class Checker:
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges[i]), edge)
                 goals += [z3.Implies(guard, register_byte(old, x, k) == register_byte(new, y, k)) for x, y, k in candidates[j]]
                 goals += [z3.Implies(guard, old.flags[f] == new.flags[f]) for f in flag_candidates[j]]
-            if not prove(goals):
+            if not prove(guarded(states,goals)):
                 garbage.failed(tails)
                 raise NotProven('state / event correspondence fails at instruction %d' % i)
         return 'PROVEN', ''
@@ -2797,8 +2794,9 @@ class Checker:
         for st in starts:
             st.regs['esp'] = stack
         independent_private(starts, [private_extent(c) for c in (a,b)], stack)
-        for st in starts:
-            st.escape_base, st.escaped = stack, False
+        for side,st in enumerate(starts):
+            info=check_initialized(self,(a,b)[side],side,private_extent((a,b)[side]))
+            Ownership(self,info,stack).prepare(st)
 
         def offset(expr):
             value = simp(expr - stack)
@@ -2821,6 +2819,7 @@ class Checker:
                     raise NotProven('finite path budget')
                 seen = seen | {index}
                 ins = code[index]
+                st.path=guard
                 machine.step(st, ins)
                 sp = offset(st.regs['esp'])
                 if sp is None:
@@ -2830,6 +2829,7 @@ class Checker:
                     raise NotProven('private stack extent exceeds budget')
                 edges = successors(code, index)
                 if not edges:
+                    st.frame_defined=check_initialized(self,code,side,private_extent(code))['after'][index][1]
                     result.append((guard, st, low))
                     continue
                 for edge, target in enumerate(edges):
@@ -2840,7 +2840,7 @@ class Checker:
                     clone = State(dict(st.regs), dict(st.flags), st.memory, st.fs, st.fp)
                     clone.events = list(st.events)
                     clone.condition = st.condition
-                    clone.escape_base, clone.escaped = st.escape_base, st.escaped
+                    clone_ownership(st,clone)
                     todo.append((target, clone, next_guard, seen, low))
             return result
 
@@ -2849,11 +2849,15 @@ class Checker:
             raise NotProven('no finite return paths')
         lows = [min(p[2] for p in old), min(p[2] for p in new)]
 
+        asymmetric=set().union(*(x[1].frame_defined ^ y[1].frame_defined for x in old for y in new))
         def visible(st, low):
-            if st.escaped or any(contains_pointer(st.regs[r], stack) for r in ('eax', 'edx')):
+            st.ownership.result(st)
+            if not prove(st.ownership.goals(st)):
                 return st.events, st.memory
+            numeric=prove([z3.Implies(st.ownership.guard(st),outside(st.regs[r],stack,low)) for r in ('eax','edx')])
             memory = st.memory
             for off in range(low, 0):
+                if off in asymmetric and not numeric:continue
                 addr = stack + bv(off)
                 memory = z3.Store(memory, addr, z3.Select(entry_memory, addr))
             return st.events, memory
@@ -2875,7 +2879,7 @@ class Checker:
         for source, target in (projected, projected[::-1]):
             for p in source:
                 choices = [z3.And(q[0], same(p, q)) for q in target]
-                if not prove([z3.Implies(p[0], z3.Or(choices))]):
+                if not prove(guarded([p[1]]+[q[1] for q in target],[z3.Implies(p[0], z3.Or(choices))])):
                     raise NotProven('finite-path traces differ')
         return 'PROVEN', ''
 

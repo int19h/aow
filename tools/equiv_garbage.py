@@ -37,7 +37,7 @@ def check_initialized(checker,code,side,low):
     Unknown address aliases remain in the independent unified-array proof.
     """
     e=model();X=e.X
-    key=(side,low,tuple((i.address,i.mnemonic,i.op_str,i.flow) for i in code))
+    key=(side,low,tuple((i.address,i.mnemonic,i.op_str,i.flow,i.mutation) for i in code))
     cache=getattr(checker,'garbage_cache',{});checker.garbage_cache=cache
     if key in cache:return cache[key]
     reads=[];public_writes=set()
@@ -45,6 +45,7 @@ def check_initialized(checker,code,side,low):
     def transfer(i,state,check=False):
         regs,defined,escaped,stack=state;regs=dict(regs);defined=set(defined);stack=dict(stack)
         ins=code[i];oo=ins.operands;m=ins.mnemonic;sp=regs.get('esp')
+        if ins.mutation=='drop store':return state
         def address(op):
             if op.mem.segment or op.mem.index: return None
             base=ins.reg_name(op.mem.base)
@@ -141,9 +142,12 @@ class CutGarbage:
             for reg,off in regs.items():st.regs[reg]=e.simp(st.h4_base+e.bv(off))
             for off in set(range(info['low'],0))-defined:
                 st.memory=e.z3.Store(st.memory,st.h4_base+e.bv(off),e.z3.FreshConst(e.BYTE,'private_garbage'))
-    def mask(self,memory,base,info,state,allowed=()):
+            from equiv_ownership import Ownership
+            Ownership(self.checker,info,st.h4_base,head).prepare(st)
+    def mask(self,memory,base,info,state,allowed=(),st=None):
         e=self.e
         if state[2] and not allowed:return memory
+        if st is not None and not e.prove(st.ownership.goals(st)+getattr(st,'call_access_goals',[])):return memory
         public=e.z3.Array('memory',e.BV32,e.BYTE)
         for off in set(range(info['low'],0))-state[1]:
             if state[2] and off not in allowed:continue
@@ -151,14 +155,22 @@ class CutGarbage:
         return e.simp(memory)
     def step(self,machine,st,side,k):
         info=self.infos[side];ins=info['code'][k];before=len(st.events)
+        if ins.mnemonic=='call':
+            from equiv_summaries import frame_writes
+            regs,_,_,stack=info['before'][k];sp=regs['esp']
+            observed=self.checker.contracts.sites[side,ins.address][0]
+            values=[st.regs[r] for r in self.e.REGS if r!='esp' and any(('r',r,lane) in observed for lane in range(4))]+[st.load(st.regs['esp']+self.e.bv(at-sp),4) for at in stack if at>=sp]
+            st.call_access_goals=[self.e.z3.Implies(st.ownership.guard(st),self.e.outside(st.regs[r],st.h4_base,info['low'])) for r in ('ebx','esi','edi','ebp') if any(('r',r,lane) in observed for lane in range(4))]
+            st.ownership.passed(st,values,frame_writes(self.checker,info,k),sum(r!='esp' and any(('r',r,lane) in observed for lane in range(4)) for r in self.e.REGS))
         machine.step(st,ins)
+        if ins.mnemonic=='ret':st.ownership.result(st)
         for j in range(before,len(st.events)):
             event=st.events[j]
             if event[0]=='call':
                 from equiv_summaries import frame_writes
-                event=list(event);event[6]=self.mask(event[6],st.h4_base,info,info['before'][k],frame_writes(self.checker,info,k));st.events[j]=tuple(event)
+                event=list(event);event[6]=self.mask(event[6],st.h4_base,info,info['before'][k],frame_writes(self.checker,info,k),st);st.events[j]=tuple(event)
     def memories(self,states,tails):
-        return [self.mask(st.memory,st.h4_base,info,info['after'][tail]) for st,info,tail in zip(states,self.infos,tails)]
+        return [self.mask(st.memory,st.h4_base,info,info['after'][tail],st=st) for st,info,tail in zip(states,self.infos,tails)]
     def failed(self,tails):
         # A diagnostic is attached only after a failed symbolic transition.
         for info,tail in zip(self.infos,tails):

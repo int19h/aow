@@ -336,8 +336,6 @@ class ModuleSummaries:
 def frame_writes(checker,info,k):
     """Only checked, untainted summaries discharge individual caller bytes."""
     side=info['side'];ins=info['code'][k];site=checker.contracts.sites[side,ins.address][2]
-    if info['public_writes']:
-        site['must_write_blocked']=dict(reason='public store: frame ownership not established',pcs=[hex(pc) for pc in info['public_writes']]);return set()
     graph=getattr(checker.inp,'call_summaries',None)
     if graph is None or 'H3c' in site['premises'] or ins.operands[0].type!=graph.e.X.X86_OP_IMM:return set()
     image=(checker.inp.old,checker.inp.new)[side];node=graph.nodes.get((side,id(image),ins.operands[0].imm,0))

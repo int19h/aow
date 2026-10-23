@@ -17,11 +17,11 @@ class Calls(unittest.TestCase):
             checker,fn = self.caller(a,b,helper); self.assertFalse(checker.check(fn)[0].startswith('PROVEN'))
     def test_def_before_use_can_omit_dead_ebx_and_carry_inputs(self):
         helper = 'b800000000ba00000000b90000000039c0c3'
-        checker,fn = self.caller('bb01000000f8','bb02000000f9',helper); self.assertEqual('PROVEN under H3',checker.check(fn)[0])
+        checker,fn = self.caller('bb01000000f8','bb02000000f9',helper); self.assertEqual('PROVEN under H1,H3',checker.check(fn)[0])
         contracts = checker.last_contracts['hypotheses']['H3']; self.assertTrue(all(c['mode']=='two-callee-def-before-use' for c in contracts)); self.assertNotIn(['r','ebx',0],contracts[0]['inputs']); self.assertNotIn(['f','cf'],contracts[0]['inputs'])
     def test_forwarding_thunk_records_dependency(self):
         thunk = (b'\xe9'+p32(0x401180-0x401105)).hex()
-        checker,fn = self.caller('','',thunk,other=[(0x1180,bytes.fromhex('b801000000c3'))]); self.assertEqual('PROVEN under H3',checker.check(fn)[0]); self.assertTrue(checker.last_contracts['dependencies'])
+        checker,fn = self.caller('','',thunk,other=[(0x1180,bytes.fromhex('b801000000c3'))]); self.assertEqual('PROVEN under H1,H3',checker.check(fn)[0]); self.assertTrue(checker.last_contracts['dependencies'])
     def test_save_restore_pairs_are_not_inputs_but_save_slot_loads_are(self):
         for helper,expected in [('53b800000000ba00000000b90000000039c05bc3',True),
                                 ('538b04245bc3',False),('5389d85bc3',False)]:
@@ -40,22 +40,22 @@ class Calls(unittest.TestCase):
                           lambda:checker.houdini(aa,bb,[e.blocks(aa),e.blocks(bb)],[e.live_locations(aa,e.blocks(aa)),e.live_locations(bb,e.blocks(bb))],(0,0),e.DIAG,e.FLAGS)):
                 checker.contracts = None
                 with self.assertRaises((e.NotProven,e.Unsupported)): route()
-        checker,fn = build('53bb010000005bc3','53bb010000005bc3'); self.assertEqual('PROVEN',checker.check(fn)[0])
+        checker,fn = build('53bb010000005bc3','53bb010000005bc3'); self.assertEqual('PROVEN under H1',checker.check(fn)[0])
     def test_cfg_join_and_partial_read_cannot_omit_input(self):
         helper = '85c97405b80000000083d000c3'  # One path leaves EAX undefined; ADC reads CF.
         checker,fn = self.caller('b801000000f8','b802000000f9',helper); self.assertFalse(checker.check(fn)[0].startswith('PROVEN'))
     def test_nested_known_callee_no_longer_needs_H3c(self):
         helper = (b'\xe8'+p32(0x401180-0x401105)+b'\xc3').hex()
         checker,fn = self.caller('','',helper,other=[(0x1180,b'\xc3')])
-        status,_ = checker.check(fn); self.assertEqual('PROVEN under H3',status); self.assertTrue(all(c['mode']=='two-callee-def-before-use' for c in checker.last_contracts['hypotheses']['H3']))
+        status,_ = checker.check(fn); self.assertEqual('PROVEN under H1,H3',status); self.assertTrue(all(c['mode']=='two-callee-def-before-use' for c in checker.last_contracts['hypotheses']['H3']))
     def test_callee_ABI_failure_is_fallback_not_caller_restore_failure(self):
-        checker,fn = self.caller('','','bb01000000c3'); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
+        checker,fn = self.caller('','','bb01000000c3'); self.assertEqual('PROVEN under H1,H3c',checker.check(fn)[0])
     def test_unknown_store_records_H1_without_erasing_save_slot(self):
         for body,status in [('5389105bc3','PROVEN under H1'),('538910ff105bc3','PROVEN under H1,H3c')]:
             checker,fn = build(body,body); self.assertEqual(status,checker.check(fn)[0]); self.assertTrue(checker.last_contracts['hypotheses']['H1']['instances'])
     def test_R2_cleanup_with_outgoing_argument_and_push_ecx_frame(self):
         for body,expected in [('53906a01ff105bc3',4),('5351ff10595bc3',0)]:
-            checker,fn = build(body,body); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
+            checker,fn = build(body,body); self.assertEqual('PROVEN under H1,H3c',checker.check(fn)[0])
             c = checker.last_contracts['hypotheses']['H3c'][0]; self.assertEqual(expected,c['cleanup']); self.assertEqual(expected,c['assumed_cleanup_bytes']); self.assertNotIn('H3_restoration',c)
     def test_BookWinUpdate_allocation_and_known_then_unknown_cleanup(self):
         from equiv_calls import CallContracts
@@ -98,7 +98,7 @@ class Calls(unittest.TestCase):
         body = call(0,0x500000)+bytes.fromhex('c3')
         checker,fn = build(body,body,bindings=[(0x500000,0x500000)]); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
         self.assertEqual('R2',checker.last_contracts['hypotheses']['H3c'][0]['cleanup_rule'])
-        checker,fn = build('535159ff105bc3','535159ff105bc3'); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
+        checker,fn = build('535159ff105bc3','535159ff105bc3'); self.assertEqual('PROVEN under H1,H3c',checker.check(fn)[0])
         c = checker.last_contracts['hypotheses']['H3c'][0]
         self.assertEqual(-4,c['raw_floor_minus_ESP']); self.assertEqual(0,c['assumed_cleanup_bytes'])
     def test_known_nonexecutable_target_cannot_receive_an_assumed_contract(self):
@@ -112,7 +112,7 @@ class Calls(unittest.TestCase):
         self.assertIn(['f','cf'],next(iter(checker.contracts.sites.values()))[2]['inputs'])
     def test_callee_undefined_AF_is_definition_under_H3(self):
         checker,fn = self.caller('31c0','29c0','31c0ba00000000b900000000c3')
-        self.assertEqual('PROVEN under H3',checker.check(fn)[0])
+        self.assertEqual('PROVEN under H1,H3',checker.check(fn)[0])
         c = checker.last_contracts['hypotheses']['H3'][0]
         self.assertNotIn(['f','af'],c['inputs'])
         self.assertIn('flags the callee leaves undefined are not observed',c['H3'])

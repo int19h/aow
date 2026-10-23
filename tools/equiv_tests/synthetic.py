@@ -6,6 +6,8 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    from .test_ownership import cases as ownership_cases
+    yield from ownership_cases()
     from .test_must_write import cases as must_write_cases
     yield from must_write_cases()
     for changed in (False, True):
@@ -44,7 +46,7 @@ def cases():
                       '83ec04 ' + guard + ' c7042402000000 89c8 83c404 c3',
                       'ECX=entry ESP-4 returns a private slot with different contents; needs explicit H1.', expected='conditional:H1')
     yield fixture('private_garbage_pop_ecx_discard','83ec0459c3','83ec0459c3',
-                  'A dead private garbage read has no observable use.','prove')
+                  'A dead private garbage read has no observable use.','prove:H1')
     prefix=bytes.fromhex('83ec0489e0');body=prefix+call(len(prefix))+bytes.fromhex('83c404c3')
     yield fixture('private_garbage_pointer_to_callee',body,body,
                   'The callee can observe independently initialized private bytes.',
@@ -106,8 +108,9 @@ def alias_route(route):
     a, b = checker.instructions(fn)
     try:
         if route == 'acyclic':
-            return checker.acyclic(a, b)
-        return e.verify_frames(checker, a, b, finite=route == 'finite_frames')
+            result=checker.acyclic(a, b)
+        else:result=e.verify_frames(checker, a, b, finite=route == 'finite_frames')
+        return ('PROVEN under H1',result[1]) if result[0]=='PROVEN' and checker.contracts.h1 else result
     except (e.NotProven, e.Unsupported) as exc:
         return ('NOT PROVEN' if isinstance(exc, e.NotProven) else 'UNSUPPORTED'), str(exc)
 
