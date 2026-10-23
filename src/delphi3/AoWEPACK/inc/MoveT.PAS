@@ -2256,14 +2256,14 @@ begin
   end;
 end;
 
-function TMoveArmyTE.ObserveMove(Index: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
-begin
-  Result := MoveVisible(Index) and AoWHSMap.FShowIndependentMoves and
+function TMoveArmyTE.ObserveMove(Index: Integer): Boolean; { Match: Boolean stages and event local preserve the original lifetimes. }
+var Visible: Boolean; Event: TMultiMoveTE; begin
+  Visible := MoveVisible(Index); Result := Visible and AoWHSMap.FShowIndependentMoves and
     ((AoWHSMap.FSeatedPlayer <> FArmyHS.FArmy.FPlayer) or
-     (AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FPlayerType <> ptHuman));
+     (AoWHSMap.FPlayers.GetPlayers(Shortint(PChar(AoWHSMap)[$A5])).FPlayerType <> ptHuman));
   if Result and (AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent is TMultiMoveTE) and
     TMultiMoveTE(AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent).FSimultaneous then
-    Result := Self = TMultiMoveTE(AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent).FEvents[0];
+    begin Event := TMultiMoveTE(AoWHSMap.FTokenManager.TokenExecuter.GetExecutingTokenEvent); Visible := Self = Event.FEvents[0]; Result := Visible; end;
 end;
 
 function TMoveArmyTE.MoveVisible(Index: Integer): Boolean;

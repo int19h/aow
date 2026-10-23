@@ -13,10 +13,10 @@ begin
   inherited ReadWrite(Stream);
   Stream.rwStreamProc($14, FShownMessages.LoadFromStream, FShownMessages.SaveToStream);
 end;
-procedure TTutorialControl.ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean); { Near miss: Self and event-log allocation differs after three variants. }
+procedure TTutorialControl.ShowMessage(ID: Integer; Immediate, OnceOnly: Boolean); { Match: the addressable event log retains the original Self register. }
 var
-  Log: TTutorialMessageEventLog;
-begin
+  Log: TTutorialMessageEventLog; LogAddress: Pointer;
+begin LogAddress := @Log;
   if (AoWHSMap.FGameType = gtTutorial) and (AoWHSMap.FTextControl.FindID(ID) <> nil) then
   begin
     if OnceOnly and (FShownMessages.IndexOf(ID) <> -1) then Exit;

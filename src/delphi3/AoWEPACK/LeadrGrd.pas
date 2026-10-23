@@ -163,10 +163,10 @@ begin
   end;
 end;
 
-procedure TLeaderGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); { Near miss: remaining local-slot allocation differs after three variants. }
+procedure TLeaderGrid.DrawCell(ACol, ARow: Longint; ARect: Windows.TRect; AState: Grids.TGridDrawState); { Match: Image, height and race occupy the original local slots. }
 var
-  Player, Race, H: Integer;
-  Image: TLibraryImage;
+  Player: Integer;
+  Image: TLibraryImage; H, Race: Integer;
   Region: HRGN;
   Text: string;
   ClipR, R, SourceR, DrawR: TRect;

@@ -141,8 +141,8 @@ begin
     if (AoWHSMap.FDay = 0) and not (msEditting in AoWHSMap.Status) then
       for I := 1 to AoWHSMap.FPlayers.Count - 1 do
       begin
-        Player := I;
-        GetHistory(Player).Add(GetDiplomaticRelation(Player), 0);
+        { The loop index supplies the player. }
+        GetHistory(I).Add(GetDiplomaticRelation(I), 0);
       end
     else if FPlayer.FLegacyRelations.Count <> 0 then
     begin
@@ -512,10 +512,10 @@ begin
   else Result := False;
 end;
 
-function TPlayer.Validate(Errors: TStrings): Boolean; { Near miss: Errors and managed local slots differ after three variants. }
+function TPlayer.Validate(Errors: TStrings): Boolean; { Match: the addressable Errors parameter uses the original stack slot. }
 var
-  S, LeaderName: string;
-begin
+  S, LeaderName: string; ErrorAddress: Pointer;
+begin ErrorAddress := @Errors;
   if FPlayerIndex > 0 then
   begin
     Result := True;

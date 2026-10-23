@@ -331,23 +331,23 @@ begin
   if Assigned(FOnUnselect) then FOnUnselect(Self);
 end;
 
-procedure TItemControlGrid.EditItemDone(ResultCode: TEditResult; Obj: TEObject); { Near miss: Invalidate restored; cast and argument registers differ after three variants. }
+procedure TItemControlGrid.EditItemDone(ResultCode: TEditResult; Obj: TEObject); { Match: use the consumed Obj parameter and its typed item status. }
 var Item: TItem;
 begin
-  Item := TItem(Obj);
+  Obj := TEObject(Pointer(Obj));
   if ResultCode = erCancel then
   begin
     if FStream.Size <> 0 then
     begin
       FStream.Position := 0;
-      AoWEngine.ReadEObject(FStream, Item, nil);
+      AoWEngine.ReadEObject(FStream, TItem(Obj), nil);
       FStream.Clear;
-    end else Item.Free;
+    end else Obj.Free;
   end else
   begin
     FStream.Clear;
-    if ((PItemView(Item)^.Status and 2) = 0) and (FMap <> nil) then
-      TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).RegisterItem(Item);
+    if ((Byte(TItem(Obj).FStatus) and 2) = 0) and (FMap <> nil) then
+      TItemControl(TRawView(Pointer(FMap)^).Fields[$F4 div 4]).RegisterItem(TItem(Obj));
   end;
   UpdateItems;
   Unselect;

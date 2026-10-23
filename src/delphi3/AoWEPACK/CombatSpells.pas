@@ -576,14 +576,14 @@ begin
   Stream.rwInteger(FSpellID, 24);
 end;
 
-procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat); { Near miss: combat parameter register differs after three variants. }
+procedure TMultiTargetCombatSpellCA.Execute(A1: TCombat); { Match: the result cast retains the combat parameter before lookup. }
 var
   Source: TCombatObject;
 begin
   with A1 do
   if (FManaCost <> 0) and (cExecuting in FStatus) then
   begin
-    Source := FCombatData.FindID(FSourceID);
+    Source := TCombatObject(FCombatData.FindID(FSourceID));
     AoWHSSet.FSpellControl.GetSpell(FSpellID).CombatCastingDone(Source, FManaCost);
   end;
 end;

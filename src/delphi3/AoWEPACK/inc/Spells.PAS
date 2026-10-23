@@ -601,7 +601,7 @@ end;
 function TSpellControl.GetSpell(Index: Integer): TSpell;
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:29; Text:'D:\AoWDev\AoWE\inc\Spells.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:15; Text:'Invalid SpellID'#0); var P: Pointer;
 begin
-  if Index < 0 then asm MOV ECX,$D6CD; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
+  if Index < 0 then asm MOV ECX,$D6CD; MOV EDX,OFFSET OriginalAssertFile.Text; MOV EAX,OFFSET OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   if Index < FRegisteredSpells.Count then
     begin P := FRegisteredSpells[Index]; Result := TSpell(P); end
   else
@@ -1082,14 +1082,14 @@ end;
 
 
 
-function TUnitSpellCaster.Valid: Boolean; { Near miss: Self save and argument evaluation differ after three variants. }
-{ Original 5577A7F0 saves Self in EBX even though it is used only before FindUnit.
-  Direct calls, separate Control/ID/This locals, ancestor/descendant casts, with
-  and reversed Boolean branches all omit that save with this compiler. }
+function TUnitSpellCaster.Valid: Boolean; { Match: the result cast retains Self before FindUnit. }
+{ Original 5577A7F0 saves Self in EBX before FindUnit.
+  Casting the lookup result through TObject and TAbstractUnit retains that save
+  and the original argument order without changing the returned object. }
 var
   Source: TAbstractUnit;
 begin
-  Source := PP4MapUnitControl(AoWHSMap)^.UnitControl.FindUnitResult(FCasterSourceID);
+  Source := TAbstractUnit(TObject(PP4MapUnitControl(AoWHSMap)^.UnitControl.FindUnitResult(FCasterSourceID)));
   if (Source = nil) or ((Byte(Source.FUnitStatus) and $10) <> 0) then
     Result := False
   else

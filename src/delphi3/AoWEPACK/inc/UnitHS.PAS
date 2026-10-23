@@ -200,9 +200,9 @@ begin
   begin
     FStatus := FStatus or 1;
     VisibilityList.AddSortChild(Self, FShowPriority);
-    Shadow := FShadow;
-    if Shadow <> nil then
-      VisibilityList.AddSortChild(Shadow, Shadow.GetShowPriority);
+    { Read Shadow directly. }
+    if FShadow <> nil then
+      VisibilityList.AddSortChild(FShadow, FShadow.GetShowPriority);
   end;
 end;
 procedure TUnitHS.ReadWrite(Stream: Engine.TEStorageStream);

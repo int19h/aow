@@ -1649,8 +1649,8 @@ begin
   AoWHSMap.TriggerGameTerminatedEvent;
 end;
 
-procedure TSimultaniousPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); { Near miss: status parameter spill after three variants. }
-begin
+procedure TSimultaniousPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); { Match: preserve the original Status parameter slot. }
+var StatusAddress: Pointer; begin StatusAddress := @Status;
   inherited SetPlayerGameOverStatus(Player, Status);
   AoWHSMap.FPlayers.GetPlayers(Player).FStatus := psTerminated;
   AoWHSMap.FTokenManager.TokenExecuter.GetTC(Player).Active := False;
@@ -2494,10 +2494,10 @@ begin
 end;
 
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
-begin
+var Relation: TDiplomaticRelation; begin
   if Player = 0 then
     if TargetPlayer <> 0 then
-      Result := DiplomaticRelation(Player, IndependentRelation, TargetPlayer, TargetRace) in [drWar, drUnknown]
+      begin Relation := DiplomaticRelation(Player, IndependentRelation, TargetPlayer, TargetRace); Result := Relation in [drWar, drUnknown]; end
     else Result := False
   else Result := AoWHSMap.FPlayers.GetPlayers(Player).ValidAttackRelation(TargetPlayer, TargetRace);
 end;
