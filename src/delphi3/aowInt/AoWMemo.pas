@@ -509,10 +509,10 @@ end;
 
 { CheckMouseUp takes the focus when the text area is clicked and puts the cursor at the click }
 procedure TAOWMemo.CheckMouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  Len, Left: Integer;
-  Old: Boolean;
-  Top, Bottom: Integer;
+var Len, Left: Integer; Old: Boolean; Top, Bottom: Integer;
+  BM: TMouseButton absolute Button;
+  SM: TShiftState absolute Shift; XM: Integer absolute X;
+  YM: Integer absolute Y; { Keep the mouse arguments in their original stack slots. }
 begin
   FHandled := False;
   FMouseDown := False;
@@ -540,10 +540,10 @@ begin
       Top := FAOWWindow.FWinTop + FWinTop + FBorderHeight - 1;
       Bottom := FAOWWindow.FWinTop + FWinTop + FWinHeight;
     end;
-    if FEditable and (X > Left) and (X < FAOWWindow.FWinLeft + FWinLeft + FWinWidth - FScrollWidth) and
-      (Y > Top) and (Y < Bottom) and (Button = mbLeft) then
+    if FEditable and (XM > Left) and (XM < FAOWWindow.FWinLeft + FWinLeft + FWinWidth - FScrollWidth) and
+      (YM > Top) and (YM < Bottom) and (BM = mbLeft) then
     begin
-      if FEditable = True then
+      if Boolean(PChar(Self)[$158]) = True then { Reread FEditable after the bounds tests. }
       begin
         FRedraw := True;
         FBlink := True;
@@ -554,7 +554,7 @@ begin
           if FAOWWindow <> nil then
             FAOWWindow.FDrawn := False;
       end;
-      if (FLines.Count - FTopItem) * FItemHeight + Top < Y then
+      if (FLines.Count - FTopItem) * FItemHeight + Top < YM then
       begin
         FCurLine := FLines.Count - 1;
         FCurCol := Length(FLines[FLines.Count - 1]);
@@ -579,7 +579,7 @@ begin
           end;
           Inc(FCurLine);
         end;
-        while (FLines.Count > FCurLine) and ((FCurLine - FTopItem + 1) * FItemHeight + Top < Y) do
+        while (FLines.Count > FCurLine) and ((FCurLine - FTopItem + 1) * FItemHeight + Top < YM) do
         begin
           FRealCol := FRealCol + Length(FLines[FCurLine]);
           if FRealCol >= Len then
@@ -593,7 +593,7 @@ begin
         if FLines.Count = FCurLine then
           Dec(FCurLine);
         while (Length(FLines[FCurLine]) > FCurCol) and
-          (FAOWFont.GetTextWidth(Copy(FLines[FCurLine], 1, FCurCol + 1)) + Left < X) do
+          (FAOWFont.GetTextWidth(Copy(FLines[FCurLine], 1, FCurCol + 1)) + Left < XM) do
         begin
           Inc(FCurCol);
           Inc(FRealCol);
@@ -601,7 +601,7 @@ begin
       end;
     end;
     if Assigned(FOnMouseUp) then
-      FOnMouseUp(Self, Button, Shift, X, Y);
+      FOnMouseUp(Self, BM, SM, XM, YM);
   end;
   if FRedraw <> Old then
     FDrawn := False;

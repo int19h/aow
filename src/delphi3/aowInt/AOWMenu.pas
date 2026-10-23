@@ -660,10 +660,10 @@ end;
 { CheckMouseMove highlights the item under the mouse; when the highlight moves, the submenus of
   the old item are hidden (by the item index into the submenu list: original bug) }
 procedure TAOWMenu.CheckMouseMove(Shift: TShiftState; X, Y: Integer);
-var
-  C: TAoWComponent;
-  OldHighlighted: Integer;
-  I: Integer;
+var C: TAoWComponent; OldHighlighted, I: Integer;
+  SM: TShiftState absolute Shift; XM: Integer absolute X;
+  OM: Integer absolute OldHighlighted;
+  CM: TAoWComponent absolute C; { Keep the child on the stack and I in a register. }
 begin
   FHandled := False;
   FInResizeArea := True;
@@ -675,9 +675,9 @@ begin
     for I := FChildren.Count - 1 downto 0 do
     begin
       C := FChildren[I];
-      if ((FHandled = False) or (C.FRedraw = True) or (C.FToolTipCount > 0)) and C.FCaptureInput then
-        C.CheckMouseMove(Shift, X, Y);
-      if C.FHandled = True then
+      if ((FHandled = False) or (CM.FRedraw = True) or (CM.FToolTipCount > 0)) and CM.FCaptureInput then
+        CM.CheckMouseMove(Shift, X, Y);
+      if CM.FHandled = True then
         FHandled := True;
     end;
     FHandled := True;

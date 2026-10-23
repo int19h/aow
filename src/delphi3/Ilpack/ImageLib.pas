@@ -4560,12 +4560,12 @@ end;
 { GrabImage locks the conversion surface and never unlocks it (an original bug) }
 function TSprite16.GrabImage(const SD: TSurfaceDesc; const R: TRect;
   GrabInfo: TGrabInfo): Boolean;
-var
-  Surface: TDataSurface;
-  LSD: TSurfaceDesc;
-  GR, MR: TRect;
-  Y: Integer;
-begin
+var Surface: TDataSurface; LSD: TSurfaceDesc; GR, MR: TRect; Y: Integer;
+  SA: TSprite16 absolute Self; RA: Boolean absolute Result;
+  SU: TDataSurface absolute Surface;
+  LA: TSurfaceDesc absolute LSD;
+  G: TRect absolute GR; Left, Top, Bottom: Integer;
+begin { Absolute views preserve frame slots and the separate GR coordinate reads. }
   Result := True;
   try
     Surface := nil;
@@ -4591,8 +4591,8 @@ begin
       end;
       Clear;
       FDataLoaded := True;
-      FDataWidth := GR.Right - GR.Left;
-      FDataHeight := GR.Bottom - GR.Top;
+      FDataWidth := GR.Right - G.Left;
+      FDataHeight := GR.Bottom - G.Top;
       FWidth := FDataWidth;
       FHeight := FDataHeight;
       FFileName := ExtractFileName(GrabInfo.FileName);
@@ -4601,13 +4601,13 @@ begin
       FPixelFormatID := FStoredPixelFormatID;
       FColorKey := FTransparentColor;
       MinimizeTransparentRect(LSD, GR, FTransparentColor, MR);
-      FSpriteX := MR.Left - GR.Left;
-      FSpriteY := MR.Top - GR.Top;
-      FSpriteWidth := MR.Right - MR.Left;
-      FSpriteHeight := MR.Bottom - MR.Top;
+      Left := MR.Left; FSpriteX := Left - G.Left;
+      Top := MR.Top; FSpriteY := Top - G.Top;
+      FSpriteWidth := MR.Right - Left;
+      Bottom := MR.Bottom; FSpriteHeight := Bottom - Top;
       FDataSize := FSpriteWidth * FSpriteHeight * 2;
       AllocateDiscardableImageData(FSpriteWidth, FSpriteHeight);
-      for Y := MR.Top to MR.Bottom - 1 do
+      for Y := Top to Bottom - 1 do
         Move(Pointer(LSD.Pitch * Y + Integer(LSD.Data) + MR.Left * 2)^,
           Pointer((Y - MR.Top) * FPitch + Integer(FData))^, FSpriteWidth * 2);
     finally
@@ -10438,14 +10438,14 @@ end;
 
 function TCustomImageLibrary.RemoveSub(Index: Integer; Image: TLibraryImage): Integer;
 var
-  Old: TLibraryImage;
+  Old: TLibraryImage; Node: TImageNode;
 begin
   Old := FImages^[Index].Image;
   if Old <> nil then
   begin
     if Old.ClassID = $100 then
     begin
-      Result := TImageNode(Old).IndexOf(Image);
+      Node := TImageNode(Old); Result := Node.IndexOf(Image);
       if Result <> -1 then DeleteSub(Index, Result);
     end
     else if Old = Image then
