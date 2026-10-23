@@ -216,8 +216,8 @@ function TArena.CanEnter(Player: Shortint): Boolean;
 var Army: TArmyHS;
 begin
   Army := TArmyHS(FOwner.FindOwnedChild($20217));
-  if (Army <> nil) and (Army.FArmy.FPlayer = Player) then Result := True
-  else Result := False;
+  if (Army = nil) or (Army.FArmy.FPlayer <> Player) then Result := False
+  else Result := True;
 end;
 
 function TArena.Enter: Boolean;

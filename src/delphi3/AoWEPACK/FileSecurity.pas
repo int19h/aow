@@ -34,7 +34,7 @@ var
 begin
   Result := '';
   for I := 1 to Length(Value) do
-    Result := Result + Char(Byte((Length(Value) + (I + 5) + Key) and $FF) xor Byte(Value[I]));
+    Result := Result + Char(Byte((Length(Value) + (I + 5) + Byte(Key + 0)) and $FF) xor Byte(Value[I]));
 end;
 
 function ReadSecurityData(const FileName: string; var Data: TSecurityData): Boolean;

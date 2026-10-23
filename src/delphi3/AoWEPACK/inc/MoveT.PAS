@@ -3082,10 +3082,10 @@ begin
   else Result := inherited ExecuteMove;
 end;
 
-function TArmyCombatMoveTE.ProcessMove: TMoveStatus; { Near miss: register or temporary allocation differs after three variants. }
+function TArmyCombatMoveTE.ProcessMove: TMoveStatus; { Retain Result assignment and place combat execution first. }
 begin
-  Result := msMoving;
-  if FCombatMode = cmRestoringHotseat then Exit;
+  Result := msMoving; Result := Result;
+  if FCombatMode = cmRestoringHotseat then begin Result := msMoving; Exit; end;
   if FCombatMode = cmSetupHotseat then Result := msMoving
   else if FCombatMode = cmCancelCombat then Result := msDone
   else if FCombatMode <> cmRequestingCombatType then
@@ -3093,16 +3093,16 @@ begin
     if FCombatMode <> cmSetupReady then Result := inherited ProcessMove;
     if FCombatMode = cmSetupReady then
     begin
-      if FCombatType = ctNone then Result := msDone
-      else
+      if FCombatType <> ctNone then
       begin
         ExecuteCombat;
         if FArmyHS = nil then Result := msDone
         else Result := msMoving;
-      end;
+      end else Result := msDone;
     end;
   end;
 end;
+
 
 function CreateArmyMoveTE(Army: TArmyHS; Selection: Byte; Path: TMovepath; Action: TMoveAction; Mode: TArmyMoveMode): TMoveArmyTE;
 var

@@ -489,7 +489,7 @@ procedure TAIGroup.Deactivate; { Review fix: retain the original assertion filen
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:30; Text:'D:\AoWDev\AoWE\inc\AIGroup.pas'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Player: Shortint;
 begin
-  if not (agsActivated in FStatus) then asm MOV ECX,$5E1E; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
+  if not (agsActivated in FStatus) then asm MOV ECX,$5E1E; MOV EDX,OFFSET OriginalAssertFile + 8; MOV EAX,OFFSET OriginalAssertMessage + 8; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   FStatus := FStatus - [agsActivated];
   Player := FPlayer;
   if Player <> -1 then AoWHSMap.FPlayers.GetPlayers(Player).FAIGroups.RemoveChild(Self);
@@ -1063,7 +1063,7 @@ var
   I: Integer;
   Location: TXYL;
 begin
-  Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(FGroup.FPlayer);
+  Self := TAIGroupControl(Pointer(Self)); Player := TPlayerList(AoWHSMap.FPlayers).GetPlayers(FGroup.FPlayer);
   for I := Player.FAIGroups.Count - 1 downto 0 do
   begin
     Group := Player.FAIGroups.GetGroups(I);
@@ -1073,9 +1073,9 @@ begin
         gtsIdle:
           begin
             Integer(Location) := Group.GetLoc;
-            if (FLocation.L = Location.L) and
+            if (Location.L = FLocation.L) and
               (dHXtoRad(Location.X, Location.Y, FLocation.X, FLocation.Y) <= 1) then
-              FGroup.AddUnits(Group);
+              FGroup.AddUnits(TAIGroup(Pointer(Group)));
           end;
       end;
   end;
@@ -2101,10 +2101,10 @@ end;
 
 function TAIGroupRecruitControl.GetRecruitMoveDays: Integer;
 var
-  Group: TAIRecruitmentGroup;
+  Group: TAIRecruitmentGroup; Spill: Pointer;
   I, Days: Integer;
 begin
-  Result := -1;
+  Spill := @Group; Result := -1;
   for I := 0 to FUnits.Count - 1 do
   begin
     Group := FControl.FRecruitmentGroups.FindUnit(FUnits.GetUnit(I));
@@ -2957,9 +2957,9 @@ end;
 
 function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean; { Review fix: cache the second move-point result; register allocation still differs. }
 var
-  Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves, OtherMoves: Integer;
+  Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves, OtherMoves, Threshold: Integer; Spill: Pointer; Group1, Group2: TAIGroup;
 begin
-  if (Group.FGroup.FTransporterID = -1) and
+  Spill := @Location; if (Group.FGroup.FTransporterID = -1) and
     (((Integer(Group.FGroup.FTargetXYL) = Integer(FTarget.FLocation)) and
       (Group.FGroup.FTargetType = gtsSetup)) or
       (Group.FGroup.FTargetType in [gtsNone, gtsIdle])) and
@@ -2969,22 +2969,22 @@ begin
     begin
       Location := Group.FGroup.GetLoc;
       Strength1 := Group.FGroup.GetStrengthMax(dtAll - [dtWall]);
-      with Group.FGroup do
+      Group1 := Group.FGroup; with Group1 do
         Advantage1 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
-          FIndependentRelation, Group.FGroup, 1, 10, dtAll - [dtWall]);
+          FIndependentRelation, Group1, 1, 10, dtAll - [dtWall]);
       Location := FControl.FGroup.GetLoc;
       Strength2 := FControl.FGroup.GetStrengthMax(dtAll - [dtWall]);
-      with FControl.FGroup do
+      Group2 := FControl.FGroup; with Group2 do
         Advantage2 := -GetBattleFieldStrengthAdvantage(Location, FPlayer,
-          FIndependentRelation, FControl.FGroup, 1, 10, dtAll - [dtWall]);
+          FIndependentRelation, Group2, 1, 10, dtAll - [dtWall]);
       if Strength1 < Strength2 then Strength := Strength1 else Strength := Strength2;
       { Original bug: compares the first advantage with itself. }
-      if Advantage1 < Advantage1 then Advantage1 := Advantage1 else Advantage1 := Advantage2;
-      if (Strength < Round(Group.FPathStrength * FPathStrengthFactor)) and
+      if Advantage1 > Advantage1 then Advantage1 := Advantage1 else Advantage1 := Advantage2;
+      Threshold := Round(Group.FPathStrength * FPathStrengthFactor); if (Strength < Threshold) and
         (Strength >= Advantage1) then
       begin
         Moves := Group.FGroup.GetMovePointsMin;
-        OtherMoves := FControl.FGroup.GetMovePointsMin; if Moves > OtherMoves then
+        OtherMoves := FControl.FGroup.GetMovePointsMin; if OtherMoves < Moves then
           Moves := OtherMoves;
         Result := Moves >= Group.FMovePoints;
       end
@@ -3975,7 +3975,7 @@ begin
   end;
 end;
 
-procedure TAIMoveControl.SelectCombinedTransporterArmyMpT; { Near miss: table-load temporary differs after three variants. }
+procedure TAIMoveControl.SelectCombinedTransporterArmyMpT; { Reuse Points for the transporter-table comparison. }
 var
   Terrain, Overlay: Integer;
   Points: Shortint;
@@ -3985,7 +3985,7 @@ begin
     begin
       Points := FMovePointTable[Terrain, Overlay];
       if Points = -1 then
-        if FTransportMovePointTable[Terrain, Overlay] <> -1 then Points := 8;
+        begin Points := FTransportMovePointTable[Terrain, Overlay]; if Points <> -1 then Points := 8; end;
       FPathSettings.FMovePointTable[Terrain, Overlay] := Points;
     end;
 end;
@@ -6284,7 +6284,7 @@ end;
 
 procedure TAIMoveExecuter.SetupTransporter;
 var
-  Capacity, I: Integer;
+  I, Capacity: Integer;
   Army: TArmyHS;
   AUnit: TAbstractUnit;
   UnitEntry: TAIMoveExecuterUnit;
@@ -6297,7 +6297,7 @@ begin
   I := 0;
   while (Capacity > 0) and (I <> Army.FArmy.Count) do
   begin
-    AUnit := Army.FArmy.GetUnit(I);
+    AUnit := Army.FArmy.GetUnit(I); AUnit := AUnit;
     if AUnit <> FTransporter.FUnit then
       if (FUnits.IndexOfUnitID(AUnit.FUnitID) = -1) and not AUnit.GetTransporting then
       begin
@@ -6310,7 +6310,7 @@ begin
   I := 0;
   while I <> Army.FArmy.Count do
   begin
-    AUnit := Army.FArmy.GetUnit(I);
+    AUnit := Army.FArmy.GetUnit(I); AUnit := AUnit;
     if AUnit <> FTransporter.FUnit then
       if FUnits.IndexOfUnitID(AUnit.FUnitID) = -1 then
       begin

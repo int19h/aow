@@ -287,12 +287,12 @@ begin
   end;
 end;
 
-procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList); { Near miss: status field corrected; relation stack slot differs after three variants. }
+procedure TAIPlayerControl.ListPeaceWarUnknownPlayers(Peace, War, Unknown: TByteList); { Keep the relation snapshot addressable. }
 var
   I: Integer;
-  Relation: TDiplomaticRelation;
+  Relation: TDiplomaticRelation; Spill: Pointer;
 begin
-  Peace.Clear;
+  Spill := @Relation; Peace.Clear;
   War.Clear;
   Peace.Add(FPlayer.FPlayerIndex);
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do

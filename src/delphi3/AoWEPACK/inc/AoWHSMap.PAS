@@ -619,9 +619,9 @@ begin
   end
   else Result := False;
 end;
-function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged; const AssertFile: string = 'D:\AoWDev\AoWE\inc\AoWHSMap.PAS'; AssertMessage: string = 'Invalid Unfog Range'; var Radius: Integer; { Preserve the original assertion diagnostic, independent of the build path. }
+function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged; type TAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const AssertFile: TAssertText = (RefCount:-1; Len:31; Text:'D:\AoWDev\AoWE\inc\AoWHSMap.PAS'#0); AssertMessage: TAssertText = (RefCount:-1; Len:19; Text:'Invalid Unfog Range'#0); var Radius: Integer; { Preserve the original assertion diagnostic, independent of the build path. }
 begin Radius := Range;
-  if Radius > 15 then asm MOV ECX,$CB5B; MOV EDX,AssertFile; MOV EAX,AssertMessage; CALL System.@Assert end;
+  if Radius > 15 then asm MOV ECX,$CB5B; MOV EDX,OFFSET AssertFile + 8; MOV EAX,OFFSET AssertMessage + 8; CALL System.@Assert end;
   { Original leaves Result undefined when a fog-only operation changes nothing. }
   if not (msEditting in Status) then
   begin
@@ -809,8 +809,8 @@ begin
 end;
 procedure TAbstractAoWHSMap.UpdateStaticScene;
 var
-  X, Y, MaxX, MaxY: Integer;
   Level: TMapLevel;
+  X, Y, MaxX, MaxY: Integer;
   Field: TAoWMapField;
 begin
   if FExplorationEnabled and (FSeatedPlayer <> -1) and not (msEditting in Status) then
@@ -832,8 +832,8 @@ begin
 end;
 procedure TAbstractAoWHSMap.UpdateDynamicScene;
 var
-  X, Y, MaxX, MaxY: Integer;
   Level: TMapLevel;
+  X, Y, MaxX, MaxY: Integer;
   Field: TAoWMapField;
 begin
   if FExplorationEnabled and not (msEditting in Status) then
@@ -2992,15 +2992,15 @@ begin
 end;
 
 
-procedure TAoWHSMap.RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo); { Near miss: Three variants retain different local slots and value reuse. }
+procedure TAoWHSMap.RetrieveBattleFieldInfo(X, Y, L, Radius: Integer; var Info: TBattleFieldInfo); { Retain addressable snapshots and separate comparison temporaries. }
 var
   MapLevel: TMapLevel;
-  Walk: THNWalkData;
   Msg: TMapFieldMsg;
+  Walk: THNWalkData;
   Field: TAoWMapField;
-  Friendly, Enemy: Integer;
+  Enemy, Friendly, KeepEnemy, NewFriendly, OldFriendly: Integer; Spill: Pointer;
 begin
-  Msg.MsgID := $1108;
+  Spill := @Friendly; Spill := @Enemy; Msg.MsgID := $1108;
   Msg.Param[0] := Integer(@Info);
   MapLevel := MapContainer.GetMapLevel(L);
   InitHNWalk(Walk, X, Y, 0);
@@ -3012,10 +3012,10 @@ begin
       if WordRec(LongRec(Field.FFieldFlags).Hi).Hi and 4 <> 0 then
       begin
         Friendly := Info.FriendlyStrength;
-        Enemy := Info.Strength;
+        KeepEnemy := Info.Strength; Enemy := KeepEnemy;
         Field.SendMapFieldMsg(Msg);
-        if Info.FriendlyStrength < Friendly then Info.FriendlyStrength := Friendly;
-        if Enemy > Info.Strength then Info.Strength := Enemy;
+        NewFriendly := Info.FriendlyStrength; OldFriendly := Friendly; if OldFriendly > NewFriendly then Info.FriendlyStrength := OldFriendly;
+        if KeepEnemy > Info.Strength then Info.Strength := KeepEnemy;
       end;
     end;
     WalkToNextHN(Walk);
@@ -3087,12 +3087,12 @@ function TAoWHSMap.GetTurnTimeLeft: Integer;
 var
   Time, Left: Integer;
 begin
-  Left := FTurnTimeElapsed;
+  Left := FTurnTimeElapsed; Self := TAoWHSMap(Pointer(Self));
   if FTurnTimerStart <> -1 then
   begin
     Time := GetElapsedMilliSeconds;
-    if Time < FTurnTimerStart then Left := 0
-    else Left := Left - (Time - FTurnTimerStart);
+    if Time >= FTurnTimerStart then Left := Left - (Time - FTurnTimerStart)
+    else Left := 0;
   end;
   if Left < 0 then Left := 0;
   Result := Left;

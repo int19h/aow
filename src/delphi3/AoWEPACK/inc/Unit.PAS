@@ -1008,14 +1008,14 @@ function P2Explored(MapField: TAoWMapField; Player: Integer): Boolean; assembler
 asm JMP TAoWMapField.GetExplored end;
 function P2VisibleForPlayer(Map: TAoWHSMap; X,Y,L,Player: Integer): Boolean; assembler;
 asm POP EBP; JMP TAoWHSMap.VisibleForPlayer end;
-procedure TAbstractUnit.ExecuteTrailOfDarkness(MapField: TMapField); { Near miss: Self/field allocation differs after three variants. }
+procedure TAbstractUnit.ExecuteTrailOfDarkness(MapField: TMapField); { Keep Field and MapField addressable. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;
   Field: TAoWMapField;
-  Player: Integer;
+  Player: Integer; Spill: Pointer;
 begin
-  Level := TMapLevel(MapField.Owner);
+  Spill := @Field; Spill := @MapField; Level := TMapLevel(MapField.Owner);
   InitHNWalk(Walk,MapField.Xhx,MapField.Yhx,0);
   while Walk.Radius <= 1 do
   begin
@@ -1483,11 +1483,11 @@ begin
 end;
 procedure TAbstractUnit.NewDay;
 begin end;
-procedure TAbstractUnit.ValidateCrusader; { Near miss: Self stays in ESI rather than EBX after three variants. }
+procedure TAbstractUnit.ValidateCrusader; { Retain the identity Self cast for allocation. }
 var
   Data: TDurationAbilityData;
 begin
-  Data := TDurationAbilityData(GetAbilityData(101));
+  Self := TAbstractUnit(Pointer(Self)); Data := TDurationAbilityData(GetAbilityData(101));
   if Data <> nil then
     if Data.FDuration <= 0 then Killed;
 end;
@@ -1712,14 +1712,14 @@ begin
       Result := Result + [dtHoly];
   end;
 end;
-function TAbstractUnit.ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes; { Near miss: Three variants retain different Self/set registers. }
+function TAbstractUnit.ExecuteCombatDamageEffects(Combat: TCombat; DamageTypes: TDamageTypes): TDamageTypes; { Retain the eliminated Active assignment for allocation. }
 var
   Active: TDamageTypes;
   Data: TUnitEnchantmentAbilityData;
 begin
   Result := [];
   Active := DamageTypes - GetImmunityTypes;
-  if Active <> [] then
+  Active := Active; if Active <> [] then
   begin
     if (dtFire in Active) and TP2OwnerCalls(Self).Expand(127) then
     begin RemoveAbility(95); Result := Result + [dtFire]; end;

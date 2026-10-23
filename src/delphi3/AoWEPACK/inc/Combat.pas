@@ -1899,16 +1899,16 @@ end;
 
 function StatisticsToLimitedDV(Attack, Damage: Integer; DamageTypes: TDamageTypes; Maximum, Defense, Resistance: Integer; ImmunityTypes, ProtectionTypes: TDamageTypes): Integer;
 var
-  Limit: Integer;
+  Limit, Limit100: Integer;
 begin
-  Limit := Maximum;
+  Limit := Maximum; Damage := Damage;
   DamageTypes := DamageTypes - ImmunityTypes;
   if DamageTypes <> [] then
   begin
     Attack := Attack - Defense;
     if DamageTypes - ProtectionTypes = [] then Damage := (Damage + 1) shr 1;
     Result := DMmaxDCtoDV(Damage, Attack, Limit);
-    if Limit * 100 < Result then Result := Limit * 100;
+    Limit100 := Limit * 100; if Result > Limit100 then Result := Limit100;
   end
   else Result := 0;
 end;

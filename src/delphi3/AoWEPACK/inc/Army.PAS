@@ -3111,27 +3111,27 @@ begin
   else Result := 1;
 end;
 
-procedure TArmyHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Near miss: Three variants retain different sender caching and branches. }
+procedure TArmyHS.CanMoveOn(const Info: HSEngine.THSMoveOnInfo; var MoveResult: HSEngine.THSMoveOnResult); { Cache the move control across calls and place rejection last. }
+var Control: TMoveControl;
 begin
   if Info.HN = 0 then
   begin
-    if FArmy.FPlayer = TMoveControl(Info.Sender).FPlayer then
+    Control := TMoveControl(Info.Sender); if FArmy.FPlayer = Control.FPlayer then
     begin
-      if (mmSurround in TMoveControl(Info.Sender).FMode) and (Info.MoveOverCode <> 1) and
-        (TMapField(Owner).Xhx = TMoveControl(Info.Sender).FDestinationX) and
-        (TMapField(Owner).Yhx = TMoveControl(Info.Sender).FDestinationY) and
-        (TMapField(Owner).Lhx = TMoveControl(Info.Sender).FDestinationL) and
-        not FArmy.CanCombine(TMoveControl(Info.Sender).FArmyHS.FArmy, TMoveControl(Info.Sender).FSelection) then
-      begin MoveResult.Code := -1; MoveResult.Done := True; Exit; end;
-      if (TMoveControl(Info.Sender).FArmyHS <> nil) and (FArmy.IndexOfTransporter($FF) <> -1) and
-        (TMoveControl(Info.Sender).FArmyHS.FArmy.Transporter(TMoveControl(Info.Sender).FSelection) = nil) then
+      if not ((mmSurround in Control.FMode) and (Info.MoveOverCode <> 1) and
+        (TMapField(Owner).Xhx = Control.FDestinationX) and
+        (TMapField(Owner).Yhx = Control.FDestinationY) and
+        (TMapField(Owner).Lhx = Control.FDestinationL) and
+        not FArmy.CanCombine(Control.FArmyHS.FArmy, Control.FSelection)) then begin
+      if (Control.FArmyHS <> nil) and (FArmy.IndexOfTransporter($FF) <> -1) and
+        (Control.FArmyHS.FArmy.Transporter(Control.FSelection) = nil) then
       begin MoveResult.Code := 4; MoveResult.Done := True; end;
+      end else begin MoveResult.Code := -1; MoveResult.Done := True; end;
     end
     else if Info.MoveOverCode <> 1 then
     begin MoveResult.Code := -1; MoveResult.Done := True; end;
   end;
 end;
-
 procedure TArmyHS.UpdateMapField(const Info: HSEngine.THSMapFieldInfo);
 begin
   if Info.HN = 0 then TAoWMapField(Info.MapField).FFieldFlags := TAoWMapField(Info.MapField).FFieldFlags or $2000 or $1000 or $1000000 or $4000 or $2000000 or $4000000 or $8000000;
@@ -3514,16 +3514,16 @@ begin
   end;
 end;
 
-function TArmyHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint; { Near miss: Instant parameter spill differs after three variants. }
-var Level: TMapLevel; X, Y, DX, DY: Integer; Animation: TImageSequenceAnimation;
+function TArmyHS.MoveFirst(Direction: Integer; Instant: Boolean): Shortint; { Keep Instant/Result addressable and test steps > 8 first. }
+var Level: TMapLevel; X, Y, DX, DY: Integer; Animation: TImageSequenceAnimation; Spill: Pointer;
 begin
-  Result := inherited MoveFirst(Direction, Instant);
+  Spill := @Instant; Spill := @Result; Result := inherited MoveFirst(Direction, Instant);
   case AoWEngine.FRegistry.GetMovementSpeed of
     mmsNormal: FMoveSteps := inherited GetMoveSteps;
     mmsFast:
       begin
         FMoveSteps := inherited GetMoveSteps;
-        if FMoveSteps < 9 then FMoveSteps := 4 else Dec(FMoveSteps, 4);
+        if FMoveSteps > 8 then Dec(FMoveSteps, 4) else FMoveSteps := 4;
       end;
     mmsTurbo: FMoveSteps := 2;
   end;

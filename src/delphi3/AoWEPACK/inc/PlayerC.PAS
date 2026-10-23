@@ -2059,27 +2059,27 @@ begin
   if dtFire in A1 then
   begin
     Frames := AoWHSSet.FAbilityControl.GetAbility(127).FImageSequences.GetFramesCount(0);
-    if Result < Frames then Result := Frames;
+    if Frames > Result then Result := Frames;
   end;
   if dtPoison in A1 then
   begin
     Frames := AoWHSSet.FAbilityControl.GetAbility(96).FImageSequences.GetFramesCount(0);
-    if Result < Frames then Result := Frames;
+    if Frames > Result then Result := Frames;
   end;
   if dtCold in A1 then
   begin
     Frames := AoWHSSet.FAbilityControl.GetAbility(95).FImageSequences.GetFramesCount(1);
-    if Result < Frames then Result := Frames;
+    if Frames > Result then Result := Frames;
   end;
   if dtDeath in A1 then
   begin
     Frames := AoWHSSet.FAbilityControl.GetAbility(93).FImageSequences.GetFramesCount(0);
-    if Result < Frames then Result := Frames;
+    if Frames > Result then Result := Frames;
   end;
   if dtHoly in A1 then
   begin
     Frames := AoWHSSet.FAbilityControl.GetAbility(98).FImageSequences.GetFramesCount(0);
-    if Result < Frames then Result := Frames;
+    if Frames > Result then Result := Frames;
   end;
 end;
 
@@ -2481,16 +2481,16 @@ begin
     else if OtherIndependentRelation >= 0 then OtherRace := OtherIndependentRelation else OtherRace := -1;
     if (Race = -1) or (OtherRace = -1) then
     begin
-      if Race = -1 then Alignment := IRtoAlignment(IndependentRelation)
-      else Alignment := AoWHSSet.FRaceResources.GetRaceResource(Race).GetAlignment;
-      if OtherRace = -1 then OtherAlignment := IRtoAlignment(OtherIndependentRelation)
-      else OtherAlignment := AoWHSSet.FRaceResources.GetRaceResource(OtherRace).GetAlignment;
+      if Race <> -1 then Alignment := AoWHSSet.FRaceResources.GetRaceResource(Race).GetAlignment
+      else Alignment := IRtoAlignment(IndependentRelation);
+      if OtherRace <> -1 then OtherAlignment := AoWHSSet.FRaceResources.GetRaceResource(OtherRace).GetAlignment
+      else OtherAlignment := IRtoAlignment(OtherIndependentRelation);
       Result := dAlignmentToDiplomaticRelation(Alignment, OtherAlignment);
     end
     else Result := StatusToDiplomaticRelation(AoWHSMap.FRaces.GetRace(Race).GetRelation(OtherRace));
   end
-  else if Player = OtherPlayer then Result := drAlliance
-  else Result := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, OtherPlayer);
+  else if Player <> OtherPlayer then Result := AoWHSMap.FPlayers.GetDiplomaticRelation(Player, OtherPlayer)
+  else Result := drAlliance;
 end;
 
 function ValidAttackRelation(Player, IndependentRelation, TargetPlayer, TargetRace: Shortint): Boolean;
@@ -2701,20 +2701,20 @@ begin
   else Result := 0;
 end;
 
-function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; Units: TUnitList; FriendlyRadius, EnemyRadius: Integer; DamageTypes: TDamageTypes): Integer; { Near miss: set/arithmetic register allocation differs after three variants. }
-var Info: TBattleFieldInfo;
+function GetBattleFieldStrengthAdvantage(Location: Integer; Player, Relation: Shortint; Units: TUnitList; FriendlyRadius, EnemyRadius: Integer; DamageTypes: TDamageTypes): Integer; { Use set union and separate strength snapshots. }
+var Info: TBattleFieldInfo; FriendlyStrength, EnemyStrength: Integer;
 begin
   SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
   Info.EnemyRelations := [];
   Info.Units := Units;
-  Include(Info.Requests, bfrIgnorePassiveIndependents);
+  Info.Requests := Info.Requests + [bfrIgnorePassiveIndependents];
   AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, FriendlyRadius, Info);
-  Result := Info.FriendlyStrength;
+  FriendlyStrength := Info.FriendlyStrength;
   SetupBattleFieldInfo(Info, Player, Relation, [], DamageTypes);
   Info.FriendlyRelations := [];
   Info.Units := Units;
-  Include(Info.Requests, bfrIgnorePassiveIndependents);
+  Info.Requests := Info.Requests + [bfrIgnorePassiveIndependents];
   AoWHSMap.RetrieveBattleFieldInfo(TXYL(Location).X, TXYL(Location).Y, TXYL(Location).L, EnemyRadius, Info);
-  Result := Result - Info.Strength;
+  EnemyStrength := Info.Strength; Result := FriendlyStrength - EnemyStrength;
 end;
 
