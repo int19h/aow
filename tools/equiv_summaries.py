@@ -43,6 +43,8 @@ class ModuleSummaries:
             for imp in module.imports:
                 if imp.address!=cell or not imp.name: continue
                 path = self.inp.original_path.parent/module.dll.decode('latin1')
+                if self.active is not None:self.active.setdefault('imports',[]).append((image,cell,path,imp.name))
+                e.verdict_cache.imported(image,cell,path,imp.name)
                 if not path.is_file(): return None
                 if path not in self.images:
                     other = e.match.Image(path)
@@ -63,10 +65,10 @@ class ModuleSummaries:
             if key in self.nodes: continue
             node = dict(side=side,image=img,target=start,hop=depth,edges={},alias=None,
                         work=0,decoded_bytes=0,read_iterations=0,write_iterations=0,budget_outcomes=set(),
-                        writes=None,write_reads=[],value=(self.full,None,self.flags,False),valid=False,h1=set(),hazard=None,reason='unknown target')
+                        writes=None,write_reads=[],value=(self.full,None,self.flags,False),valid=False,h1=set(),hazard=None,reason='unknown target',ranges=[])
             self.nodes[key] = node; added.append(key)
             self.active=node
-            if not img.contains(start): continue
+            if not img.contains(start):node['ranges'].append((start,1));continue
             try:
                 ends = ([a for a,_ in self.inp.sigs.values()] if side==0 else
                         [self.inp.text+a for a in getattr(self.inp,'code_offsets',())]) if not depth else []
@@ -80,7 +82,8 @@ class ModuleSummaries:
                         if end==start+self.BYTE_LIMIT:self.budget('byte cap')
                         raise e.Unsupported('incomplete summary CFG / byte budget')
                     self.charge();self.instructions+=1
-                    raw=next(decoder.disasm(img.bytes_at(pc,min(15,end-pc)),pc,count=1),None)
+                    raw=next(decoder.disasm(e.verdict_cache.raw(img,pc,min(15,end-pc)),pc,count=1),None)
+                    node['ranges'].append((pc,raw.size if raw else min(15,end-pc)))
                     if raw is None:
                         if end==start+self.BYTE_LIMIT and end-pc<15:self.budget('byte cap')
                         raise e.Unsupported('incomplete summary decoding')

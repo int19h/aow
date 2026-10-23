@@ -40,6 +40,7 @@ import time
 sys.dont_write_bytecode = True
 import match
 import equiv_limits as limits
+import equiv_cache as verdict_cache
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -194,6 +195,7 @@ class Inputs:
     """Keep match.py's function selection, truncation and normalization intact."""
     def __init__(self, argv):
         argv = list(argv)
+        self.cache_dir = None; self.cache_files = set()
         aliases = {}
         alias_dirs = set()
         units = []
@@ -205,7 +207,9 @@ class Inputs:
             opt = argv.pop(0)
             if opt == '--quiet':
                 continue
-            if opt == '--mutate':
+            elif opt == '--cache':
+                self.cache_dir = pathlib.Path(argv.pop(0))
+            elif opt == '--mutate':
                 self.mutate = int(argv.pop(0))
                 if self.mutate < 0:
                     raise ValueError('--mutate must be nonnegative')
@@ -213,10 +217,12 @@ class Inputs:
                 self.explain = True
             elif opt == '--data-alias':
                 self.data_aliases.append(pathlib.Path(argv.pop(0)))
+                self.cache_files.add(self.data_aliases[-1])
             elif opt == '--show':
                 self.show = argv.pop(0)
             elif opt == '--alias':
                 alias_path = pathlib.Path(argv.pop(0))
+                self.cache_files.add(alias_path)
                 alias_dirs.add(alias_path.parent)
                 with open(alias_path, encoding='utf-8') as f:
                     aliases.update(json.load(f))
@@ -227,6 +233,7 @@ class Inputs:
         if len(argv) < 4:
             raise ValueError('usage: equiv.py [match options] [--mutate N] exe map original signatures [classes ...]')
         exe, mapf, orig, sigf, *classes = argv
+        self.cache_files.update(map(pathlib.Path,(mapf,sigf)))
         self.original_path = pathlib.Path(orig)
         self.old, self.new = match.Image(orig), match.Image(exe)
         self.image_paths = (pathlib.Path(orig), pathlib.Path(exe))
@@ -287,6 +294,7 @@ class Inputs:
         module_aliases = {}
         for directory in sorted(alias_dirs):
             for path in sorted(directory.glob('*.json')):
+                self.cache_files.add(path)
                 with open(path, encoding='utf-8') as f:
                     module_aliases.update(json.load(f))
         module_aliases.update(aliases)
@@ -737,7 +745,7 @@ def decode(img, start, size, on_exception=None):
     result, pos = [], start
     end = start + size
     while pos < end:
-        for i in md.disasm(img.bytes_at(pos, end - pos), pos):
+        for i in md.disasm(verdict_cache.raw(img,pos,end-pos), pos):
             result.append(Insn(i.address, i.size, i.mnemonic, i.op_str, [Operand.from_capstone(o) for o in i.operands], i))
             pos = i.address + i.size
             if i.mnemonic == 'jmp' and i.operands[0].type == X.X86_OP_IMM and i.operands[0].imm == on_exception:
@@ -1569,6 +1577,7 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
                     if imp.address != cell or not imp.name:
                         continue
                     path = checker.inp.original_path.parent / module.dll.decode('latin1')
+                    verdict_cache.imported(img,cell,path,imp.name)
                     if not path.is_file():
                         checker._cleanup_unreadable.add(key)
                         return None
@@ -1596,7 +1605,8 @@ def callee_cleanup(checker, side, target, own_ret_only=False):
                     continue
                 sp, bp = merged
             states[pc] = (sp, bp)
-            ins = next(md.disasm(img.bytes_at(pc, 15), pc, count=1), None)
+            ins = next(md.disasm(verdict_cache.raw(img,pc,15), pc, count=1), None)
+            verdict_cache.note(img,pc,ins.size if ins else 15)
             if ins is None or ins.addr_size != 4:
                 if ins is None: checker._cleanup_unreadable.add(key)
                 return None
@@ -1687,7 +1697,8 @@ def stack_insensitive_leaf(checker, side, target):
     flag_reads = sum(getattr(X, 'X86_EFLAGS_' + kind + '_' + flag.upper(), 0)
                      for kind in ('TEST', 'PRIOR') for flag in FLAGS)
     for _ in range(128):
-        ins = next(md.disasm(img.bytes_at(pc, 15), pc, count=1), None)
+        ins = next(md.disasm(verdict_cache.raw(img,pc,15), pc, count=1), None)
+        verdict_cache.note(img,pc,ins.size if ins else 15)
         if ins is None or ins.addr_size != 4:
             return False
         if ins.mnemonic == 'ret':
@@ -2170,12 +2181,15 @@ class Checker:
     def __init__(self, inp):
         self.inp = inp
         self.routes = []
+        self.cache = verdict_cache.Cache(self,inp.cache_dir) if getattr(inp,'cache_dir',None) else None
 
     def instructions(self, fn):
         # Retain full instructions for proof; never use match.py's truncated
         # compiled stream as evidence that the function ended.
         oe = match.find_import_thunk(self.inp.old, 'System.@HandleOnException')
         ne = self.inp.addresses.map_addresses.get('@HandleOnException')
+        verdict_cache.handles(oe,ne)
+        verdict_cache.note(self.inp.old,fn.ova,fn.osize)
         a = decode(self.inp.old, fn.ova, fn.osize)
         size = fn.osize
         if any('fs:' in i.op_str for i in a):
@@ -2185,6 +2199,7 @@ class Checker:
             # which bytes are code, never the matcher truncation.
             end = min((p for p, _ in self.inp.sigs.values() if p > fn.ova), default=fn.ova + fn.osize + 128)
             size = min(end - fn.ova, fn.osize + 128)
+        verdict_cache.note(self.inp.old,fn.ova,size);verdict_cache.note(self.inp.new,fn.nva,fn.nsize)
         a = decode(self.inp.old, fn.ova, size, oe)
         b = decode(self.inp.new, fn.nva, fn.nsize, ne)
         # Ordinary trailing alignment is unreachable, and is excluded by CFG
@@ -2221,9 +2236,7 @@ class Checker:
             if d is None or code[d].mnemonic != 'jmp' or code[d].operands[0].type != X.X86_OP_IMM or code[d].size != 5:
                 raise Unsupported('unrecognized Delphi handler descriptor')
             target = code[d].operands[0].imm
-            name = self.inp.addresses.names[side].get(target, '')
-            if side == 1:
-                name = next((n for n, a in self.inp.addresses.map_addresses.items() if a == target and n.startswith('@Handle')), name)
+            name = verdict_cache.handler_name(self.inp.addresses,side,target)
             kind = name.rsplit('.', 1)[-1]
             if kind not in ('@HandleFinally', '@HandleAnyException', '@HandleOnException', '@HandleAutoException'):
                 raise Unsupported('unknown Delphi exception helper')
@@ -2336,7 +2349,13 @@ class Checker:
                 todo.extend(zip(left, right))
         return pairs
 
-    def check(self, fn, mutated=None):
+    def check(self, fn, mutated=None, matched=False):
+        self.cache_hit=None
+        if self.cache is not None and mutated is None:
+            return self.cache.run(fn,lambda:('MATCH','') if matched else self._check(fn),matched)
+        return ('MATCH','') if matched else self._check(fn,mutated)
+
+    def _check(self, fn, mutated=None):
         self.contracts = None
         self.garbage_witness = None
         self.pending_diagnostic = None
@@ -3130,6 +3149,7 @@ def main(argv=None):
         if fn.differs:
             inp.addresses.unresolved.clear()
             status, reason = checker.check(fn)
+            if checker.cache_hit:print('cached '+fn.name+' '+checker.cache_hit,flush=True)
             if inp.explain:
                 print('EXPLAIN ' + json.dumps(dict(function=fn.name,**checker.last_contracts)),flush=True)
                 print('EXPLAIN ' + json.dumps(dict(function=fn.name, consulted=[dict(original=hex(a), compiled=hex(b), source=p) for a,b,p in sorted(inp.addresses.consulted)], unresolved=[dict(side=s, address=hex(a)) for s,a in sorted(inp.addresses.unresolved)])), flush=True)

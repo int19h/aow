@@ -38,6 +38,7 @@ import capstone
 
 class Image:
     def __init__(self, path):
+        self.path = str(path)
         self.pe = pefile.PE(path, fast_load=True)
         self.base = self.pe.OPTIONAL_HEADER.ImageBase
         self.data = self.pe.get_memory_mapped_image()

@@ -1,5 +1,6 @@
 """Focused regressions for the measurement overlay, not the proof semantics."""
 import unittest
+from unittest.mock import patch
 
 import addrcheck
 import match
@@ -57,6 +58,7 @@ class CFGTests(unittest.TestCase):
         self.assertTrue(any(n[0] == '.table' for n, _ in table_stream))
         self.assertEqual([], compare_cfg(table_stream, table_stream, 0x401000, 0x401000,
                                          len(code), len(code))[0])
+        with patch.object(image, 'bytes_at', return_value=code), patch.object(image, 'data', None): self.assertEqual([], match.control_flow(md, image, image, 0x401000, 0x401000, len(code), len(code), {'next': (0x401000 + len(code), 1)}, ({}, {}))[2])
 
     def test_control_size_prefix(self):
         self.assertIn('control_operand_size', self.compare('c3', '66c3'))

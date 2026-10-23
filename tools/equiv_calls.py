@@ -123,6 +123,7 @@ class CallContracts:
                     if i in seen: continue
                     if len(seen)>=512 or not 0<=i<len(code): raise e.Unsupported('callee RET scan incomplete')
                     seen.add(i); ins = code[i]
+                    e.verdict_cache.note(image,ins.address,ins.size)
                     if ins.mnemonic == 'ret': returns.add(ins.operands[0].imm if ins.operands else 0)
                     todo.extend(e.successors(code,i))
                 if len(returns)>1: raise e.NotProven('callee has inconsistent RET cleanup counts')
