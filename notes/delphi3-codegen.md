@@ -30,6 +30,20 @@
 | Correct enum sizes in the probe | Use CLI `-$Z-` or source `{$Z1}`; the numeric CLI `-$Z1` is not equivalent (K31). |
 | Direct raw-list loads rather than TList.Get | Use the backing List pointer only when the original did; it also removes checked getter behavior (K32). |
 | Different floating constant loads | Declare Scale as Single, Double or Extended to select dword, qword or xword loads; changing only the number can leave the instructions identical (K25). |
+| Sender copied after a nil guard or after FS registration | Assign it to a local at that source position; the parameter can be preserved in the prologue (K39). |
+| Another signed-byte load after a comparison | Read it as `ShortInt(PChar(Object)[offset])`; a repeated typed field can reuse its extension (K40). |
+| Different reuse inside a short-circuit condition | Try nested `if` statements; b03's same-code result does not cover every shared-field expression (K41). |
+| A const-record field reloaded instead of retained | Rebase through its first field, e.g. `PSurfaceDesc(@SD.Width)^` (K42). |
+| An index loaded earlier, without a shift instruction | Write `Index shl 0` (K43). |
+| Changed argument/receiver load order without conversion | Try a class cast through `Pointer` at the argument's member expression (K44). |
+| Different reuse of a global pointer cell | Try `TWindow(Pointer(@Window)^)`; qualification alone did not do this (K45, NR02). |
+| A receiver retained across a getter in an equality | Put its field expression on the left; check receiver stability across the call (K46). |
+| A byte load instead of SHR plus AND | Use `WordRec(LongRec(Flags).Hi).Lo` for bits 16..23 of a memory field (K47). |
+| Packed locals occupying eight-byte slots | Overlay each with `array[0..1] of Integer` in an untagged variant record (K49). |
+| No Self copy before FS setup, with EDX zeroed | Assign a pointer-returning call to a Pointer local before casting (K50). |
+| A parameter spilled although its address is never consumed | Take its address into a local; addressability survives removal of that assignment (K51). |
+| LEA for a list index plus a constant | Name the search index and remove an unnecessary lookup-result cast (K52). |
+| A callback destination retained in EBX | Try explicit callback field assignments instead of a destination `with` (K55). |
 
 ## Setup and how to reproduce
 
@@ -117,6 +131,10 @@ end;
 Thus Self arrives in eax, A in edx and B in ecx; F, G and P are at offsets 4, 8
 and `$C`. Plain Run receives A in eax and B in edx. Touch changes only Global,
 but the caller must assume a call can invalidate a field read.
+
+The worker-report audit and its new evidence are in section 10; its inputs and all
+build output are under `D:\Build\tmp\cx_cg2`. Earlier round counts above and below
+remain historical counts for `cx_cg1`.
 
 ## 1. Branches
 
@@ -2149,3 +2167,669 @@ B: `begin case A of 0:Sink(1); 2:Sink(2); 3:Sink(3); 4:Sink(4); else Sink(9) end
 
 O+: A `Run: 0003: xor eax, eax; 0005: mov al, bl; ...; 000c: jmp dword ptr [eax*4 + +0x13]; .table 27 61 33 3f 4b`; B `Run: 0003: mov eax, ebx; 0005: sub al, 1; ...; 0013: je +0x3b; 0015: jmp +0x47`.
 O-: A `Run: 0009: xor eax, eax; ...; .table 2e 68 3a 46 52`; B `Run: 000c: sub al, 1; ...; 001c: jmp +0x4e`.
+
+## 10. Worker-report audit (third round)
+
+Read every file in `D:\Build\tmp\cx_cg2\reports` on 2026-10-23: **150 files**,
+rather than the expected 148. This includes integration, conflict-resolution,
+layout and behavior reports as well as near-miss, flow-fix, review and rewrite
+reports. `report_audit.tsv` in `cx_cg2` lists every filename, SHA256 and disposition.
+Repeated reports of one mechanism count once; a mismatch reason without a source
+variation is not a newly established compiler rule. Wrong fields, constants,
+call targets, signatures and comparison extents are not new source spellings.
+
+**21 new report findings: 17 confirmed (K39..K55), 4 reported, not reproduced
+(NR01..NR04); 27 mechanisms already present.** Two unconfirmed findings are
+compiler diagnostics whose failing source was not supplied. Some confirmed
+entries refine a covered topic: the new information is the specific load,
+lifetime or ABI effect, not that locals or casts can affect code.
+
+There are **44 plain source pairs, 91 pair/switch configurations, 182 successful
+builds**, plus one exception-handler regression build. Every pair has O+ and O-
+results. The packed-storage, packed-storage-with-extra-array and SmallInt memory
+controls also have O- Q+ R+ results. These switches are relevant to
+`AoWTCPCK/AoWTC.pas` (`{$O-,R+,Q+}`). No package or routine was executed.
+The compiler hash still agrees with the setup section.
+
+Inputs are `cx_cg2\inputs\r3_<name>_a.pas` and `_b.pas`; full disassembly is
+`cx_cg2\r3_<name>_<mode>_<side>.txt`, with generated files in the corresponding
+directory. Modes are `opt`, `noopt`, `checked`. `worker_probe_results.json`
+records each command, named routine, output and exit status. Sources and logs
+are retained; no scratch scripts or additional probe tool were created.
+
+```powershell
+python -B tools/dcc_probe.py D:\Build\tmp\cx_cg2\inputs\r3_index_local_shl0_b.pas `
+  --out D:\Build\tmp\cx_cg2\reprobe -- TObj.Run
+```
+
+Report references such as `mr2.md` below are relative to that reports directory.
+The motivating functions are named even when a small probe has a different
+class layout. A successful probe confirms the mechanism, not an independent
+recheck of the entire game function. The worker's original call/data identity
+checks remain necessary when applying a form.
+
+The common class for `sender_guard`, `sender_string`, `signed_reload`,
+`index_shl0`, `index_local_shl0`, `global_cell_cast`, `nested_reuse` and several
+existing-topic controls is:
+
+```pascal
+type TObj=class
+  F,G,H:Integer; B:ShortInt; P,Q:TObj;
+  function Get(X:Integer):Integer; virtual;
+  procedure Put(X,Y:Integer); virtual;
+  procedure Event(Sender:TObject);
+  procedure Run(Sender:TObj);
+end;
+var Obj:TObj; Global:Integer;
+{ Get returns F+X; Put assigns F:=X+Y; Event is empty. }
+{ Tick(X): Global:=Global+X; Result:=Global. }
+{ Sink(X): Global:=Global xor X. }
+```
+
+F/G/H/B/P/Q are at `$04/$08/$0C/$10/$14/$18`. Uses are SysUtils and Classes.
+Other probes declare their smaller class or record in the retained input.
+
+### K39. A Sender local moves preservation past a guard or frame setup
+
+Reports: `mr2.md`, `mr5.md`. Functions: `TControlWin.Unit1FramePreDraw`,
+`TRelWindow.P1CBPreDraw`, `TUnitWindow.Gnd1Draw`,
+`TWorldMap.PPawnMouseMove`, and `TFileDlgWindow.FileLBChange`.
+
+**r3_sender_guard: O+: different; O-: different.**
+
+```pascal
+{ A } if Obj<>nil then begin Sink(Sender.F); Sender.Put(F,G) end;
+{ B, C:TObj } if Obj<>nil then begin C:=Sender; Sink(C.F); C.Put(F,G) end;
+```
+
+```text
+A +02: mov esi,edx                 B +02: mov ebx,eax
+  +04: mov ebx,eax                   +04: cmp [Obj],0
+  +06: cmp [Obj],0                   +0b: je +24
+  +0d: je +24                       +0d: mov esi,edx
+```
+
+The local copy occurs only on the taken path. The direct parameter is preserved
+before the guard. Under O-, B has an extra local store/load instead.
+
+**r3_sender_string: O+: different; O-: different.** Both have S:string:
+
+```pascal
+{ A } S:=IntToStr(Sender.F); Sender.Put(Length(S),F);
+{ B, C:TObj } C:=Sender; S:=IntToStr(C.F); C.Put(Length(S),F);
+```
+
+A copies Sender with `+07 mov esi,edx` before `+0b xor eax,eax` and FS setup.
+B installs the frame with `+09 xor eax,eax; ... +14 mov fs:[eax],esp`, then
+copies Sender with `+17 mov ebx,edx`. Self becomes ESI in B. A source assignment
+at the beginning of the body still follows the implicit managed-local frame.
+This is more specific than l02's removed argument reload.
+
+### K40. An indexed Char view defeats signed-field reuse
+
+Report: `mr1.md`. Functions: `TProductionControl.GetProduceUnitLevelMax`,
+`TProductionControl.GetResearchUnitLevelMax`, `TLeader.MsgProc`.
+
+**r3_signed_reload: O+: different; O-: same code.**
+
+```pascal
+{ A } if F<Sender.B then F:=Sender.B;
+{ B } if F<Sender.B then F:=ShortInt(PChar(Sender)[$10]);
+```
+
+```text
+A +00: movsx ecx,byte ptr [edx+10]  B +00: movsx ecx,byte ptr [edx+10]
+  +04: cmp ecx,[eax+4]                +04: cmp ecx,[eax+4]
+  +07: jle +0c                       +07: jle +10
+  +09: mov [eax+4],ecx                +09: movsx edx,byte ptr [edx+10]
+                                     +0d: mov [eax+4],edx
+```
+
+O- already reloads the typed field and both streams agree. The worker uses
+`$2F` for resource level and `$24` for player. PChar indexing alone reads an
+unsigned Char; the ShortInt cast restores the field's signed interpretation.
+
+### K41. Nested predicates can change reuse even under B-
+
+Report: `mr3.md`. Function: `TAOWWindow.CheckMouseMove`.
+
+**r3_nested_reuse: O+: different; O-: same code.**
+
+```pascal
+{ A } if (F>Sender.F) and (Sender.G>F) then Sink(F);
+{ B } if F>Sender.F then if Sender.G>F then Sink(F);
+```
+
+A: `+00 push ebx; +01 mov ebx,[edx+4]; +04 mov ecx,[eax+4];
++07 cmp ebx,ecx; +09 jge +17; +0b cmp ecx,[edx+8]`.
+B: `+00 mov ecx,[eax+4]; +03 cmp ecx,[edx+4]; +06 jle +14;
++08 cmp ecx,[edx+8]`.
+The EBX save disappears. Repeated F still stays in ECX in this small example;
+Sender.F becomes a memory operand instead of a materialized EBX value.
+b03's same-code result is not a general equivalence of code generation.
+
+**r3_nested_resize: O+: different; O-: same code.** The closer resize-shaped control has
+F/G/H:Integer and P:TObj at offsets 4/8/$0C/$10, with X:Integer:
+
+```pascal
+{ A }
+if (F+G>X) and (P<>nil) and (H<>0) and (P.F>X-G) then X:=P.F+G;
+{ B }
+if F+G>X then if (P<>nil) and (H<>0) then
+  if P.F>X-G then X:=P.F+G;
+{ both finish with Result:=X }
+```
+
+A loads G into ECX at +05, reuses it at +22 and +2E, and reloads P.F at
++28/+2B after comparing it. B stops carrying G from the first predicate:
+`+05 add ecx,[eax+8]`, then `+1e mov edi,[eax+8]` in the inner scope.
+B instead retains P.F in ESI from +19 through `+27 mov edx,esi`.
+Thus splitting predicates can trade which repeated value survives a condition;
+it is not a general command to disable all reuse.
+
+### K42. Rebasing a const-record address forces a second field access
+
+Report: `mr3.md`. Function: `DrawLine16`, using
+`PSurfaceDesc(@SD.Width)^.ClipRect.Left` at the repeated clip-left read.
+
+**r3_record_rebase: O+: different; O-: same code.**
+TR is `record Width,Height,Left,Top,Right,Bottom:Integer end`; PR=^TR.
+Run is `function Run(const R:TR; X1,X2:Integer):Boolean`.
+
+```pascal
+{ A } Result:=(X1>=R.Left) and (X2>=R.Left);
+{ B } Result:=(X1>=R.Left) and (X2>=PR(@R.Width)^.Left);
+```
+
+A: `+00 push esi; +01 mov esi,[eax+8]; +04 cmp edx,esi;
+... +08 cmp esi,ecx; ... pop esi`.
+B: `+00 cmp edx,[eax+8]; +03 jl +0a; +05 cmp ecx,[eax+8]; +08 jge +0d`.
+B needs neither an address-add instruction nor the retained ESI value.
+Both O- forms already reload R. This trick relies on Width being at offset zero;
+rebasing through a later field changes the object addressed.
+
+### K43. Zero shifts change expression scheduling
+
+Report: `mr5.md`. Function: `TRealmWin.HeroInfoClick`.
+
+**r3_index_local_shl0: O+: different; O-: different.**
+
+```pascal
+var Index:Integer;
+Index:=Get(F);
+{ A } Sender.P.Put(Index,Sender.G);
+{ B } Sender.P.Put(Index shl 0,Sender.G);
+```
+
+```text
+A +0a: mov ecx,[ebx+8]             B +0a: mov edx,eax
+  +0d: mov edx,eax                   +0c: mov ecx,[ebx+8]
+  +0f: mov eax,[ebx+14]              +0f: mov eax,[ebx+14]
+```
+
+There is no SHL. O- likewise moves the Index-slot load before the Sender/G
+loads. `r3_index_shl0` repeats the effect with F as the index expression:
+`mov eax,[eax+4]` moves from +07 to +01. The operation is folded away after
+it has affected scheduling.
+
+### K44. Casting through Pointer changes an argument's member load timing
+
+Report: `mr2.md`. Function: `ShowTutorialEvent` at both FMessage argument reads.
+
+**r3_pointer_string_arg: O+: different; O-: different.** Here TObj has
+`P,Q:TStringList`, and Run receives Sender:TObj.
+
+```pascal
+{ A } P.Add(Sender.Q[0]);
+{ B } P.Add(TObj(Pointer(Sender)).Q[0]);
+```
+
+A: `+19 lea ecx,[ebp-4]; +1c xor edx,edx; +1e mov eax,[esi+8]`.
+B: `+19 lea ecx,[ebp-4]; +1c mov eax,[esi+8]; +1f xor edx,edx`.
+The same string getter and Add are called, with the same cleanup. Only the
+independent receiver and zero-index loads exchange positions. O- exchanges
+the analogous loads.
+
+The simpler `r3_pointer_arg` control, `Sender.Put(F,G)` versus
+`TObj(Pointer(Sender)).Put(F,G)`, is **same code in both modes**. A Pointer
+cast is not a universal scheduling barrier; its position in the expression
+matters.
+
+### K45. An inline view of a global pointer cell changes reuse
+
+Report: `mr2.md`. Function: `StartGame<AoWWinMan`, for the MWindow and
+VideoDialog expressions. This differs from K02's named pointer-cell local.
+
+**r3_global_cell_cast: O+: different; O-: different.**
+
+```pascal
+{ A }
+Obj.F:=Obj.G-24; Obj.H:=Obj.G-32;
+{ B }
+TObj(Pointer(@Obj)^).F:=TObj(Pointer(@Obj)^).G-24;
+TObj(Pointer(@Obj)^).H:=TObj(Pointer(@Obj)^).G-32;
+```
+
+A starts `+00 mov eax,[Obj]; +05 mov eax,[eax+8]; +08 sub eax,18;
++0b mov edx,[Obj]; +11 mov [edx+4],eax`.
+B starts `+00 mov eax,Obj; +05 mov eax,[eax]; +07 mov edx,[eax+8];
++0a sub edx,18; +0d mov [eax+4],edx`, then repeats the cell-address/dereference
+at +10/+15 for the next statement. The recipe changes which subexpressions
+share a receiver; it does not promise that every source gets more loads.
+O- also emits the explicit cell dereference. `Pointer(Obj)` and `@Obj` are
+different addresses and must not be interchanged.
+
+### K46. Field-first equality retains the common receiver
+
+Report: `mr2.md`. Function: `TTCUnit.UAbilLBPreDrawItem`, the comparison of
+movement points against the unit's GetMoves result.
+
+**r3_field_first_chain: O+: different; O-: same code.** TObj has
+`P,Q:TObj; F:Integer; function Get:Integer; virtual`, so P/Q/F are at 4/8/$0C.
+
+```pascal
+{ A } if Sender.P.Q.Get=Sender.P.F then F:=1;
+{ B } if Sender.P.F=Sender.P.Q.Get then F:=1;
+```
+
+A: `+06 mov eax,[ebx+4]; +09 mov eax,[eax+8]; ... +0e call [edx];
++10 mov edx,[ebx+4]; +13 cmp eax,[edx+0c]`.
+B adds `push edi`, then `+07 mov esi,[ebx+4]; +0a mov eax,[esi+8];
+... +0f call [edx]; +11 cmp eax,[esi+0c]`.
+The field value is still read after Get; P is now retained across that call.
+A getter that changes Sender.P can distinguish these forms.
+`r3_field_first`, with only `Sender.Get(0)=Sender.F` versus the reverse, is
+**same code in both modes**. The shared receiver chain is material.
+
+### K47. WordRec/LongRec overlays select a memory byte
+
+Report: `mr1.md`. Function: `TEnchantedRoads.ShowAnimation`, the FFieldFlags
+byte used in the frame-offset expression.
+
+**r3_byte_field: O+: different; O-: different.** O:TObj, F:Integer at +4:
+
+```pascal
+{ A } Result:=(O.F shr 16) and $FF;
+{ B } Result:=WordRec(LongRec(O.F).Hi).Lo;
+```
+
+A: `+00 mov eax,[eax+4]; +03 shr eax,10; +06 and eax,ff; +0b ret`.
+B: `+00 movzx eax,byte ptr [eax+6]; +04 ret`.
+O- retains the dword/shift/mask versus byte-load distinction. The worker also
+needed explicit pointer stepping, already covered by K29.
+
+**r3_byte_overlay: O+: different; O-: different.** With X:Integer a register
+parameter instead of a memory field, A is `shr eax,10; and eax,ff; ret`.
+The overlay B forces an addressable parameter and an EBP frame:
+`+04 mov [ebp-4],eax; +07 xor eax,eax; +09 mov al,[ebp-2]`.
+Thus the memory-field recipe does not imply a frame-free byte load for a
+register parameter.
+
+### K48. Multiplication operand order changes load order and destination
+
+Report: `mr1.md`. Function: `TFastCombatUnit.GetTargetPriority`, multiplication
+of the priority field by Count+2.
+
+**r3_multiply_local: O+: different; O-: different.**
+`procedure Run(Count:Integer; var F:Integer)`:
+
+```pascal
+{ A } F:=(Count+2)*F;
+{ B } F:=F*(Count+2);
+```
+
+A: `+00 add eax,2; +03 imul eax,[edx]; +06 mov [edx],eax`.
+B: `+00 mov ecx,[edx]; +02 add eax,2; +05 imul ecx,eax;
++08 mov [edx],ecx`.
+O- also swaps the field load and Count addition.
+`r3_multiply_order`, using fields in `F:=(G+2)*F` versus `F:=F*(G+2)`, is
+**same code in both modes**. The worker's register-local Count is significant;
+K24's equivalent doubling examples are unchanged as well.
+
+### K49. Eight-byte storage for a six-byte packed local
+
+Report: `mr6.md`. Function: `TTacticalCombatUnitHS.CanMoveOn`, whose two
+TAbilityCombatInfo values needed slots at `-$20/-$28` in the full method.
+
+**r3_packed_storage: O+: different; O-: different; O- Q+ R+: different.**
+
+```pascal
+type TInfo=packed record Bytes:array[0..5] of Byte end;
+{ A locals } X,Y:Integer; A,B:TInfo;
+{ B locals } X,Y:Integer;
+  A,B:record case Integer of
+    0:(Data:TInfo); 1:(Align:array[0..1] of Integer);
+  end;
+{ A } Fill(A); Fill(B);
+{ B } Fill(A.Data); Fill(B.Data);
+```
+
+Fill takes `var I:TInfo` and writes I.Bytes[0]. A reserves $0C under O+ and
+passes `esp`, then `esp+6`; B reserves $10 and passes `esp`, then `esp+8`.
+Under O- A passes `+09 lea eax,[ebp-6]`, `+11 lea eax,[ebp-0c]`;
+B passes `[ebp-8]`, `[ebp-10]`. Checked results keep those locations.
+This confirms the slot-size/spacing mechanism, without claiming those small
+probes reproduce the full method's absolute offsets.
+
+The overlay has **size eight and four-byte alignment**, not an eight-byte
+alignment guarantee. It preserves the six-byte Data representation and var
+parameter type. A 24-byte array declared before these locals
+(`r3_packed_positions`) does not get placed first in the O- frame: the packed
+locals still occupy the preceding slots. Arbitrary padding declarations are
+not a reliable way to choose an exact address.
+
+### K50. A Pointer temporary removes the Self copy before FS setup
+
+Report: `mr6.md`. Function: `TEngine.GetEClass`.
+
+**r3_pointer_result: O+: different; O-: different.** TObj has P:TObj at +4;
+Find(X) is virtual and returns Pointer. Run returns TClass:
+
+```pascal
+{ A }
+Result:=TClass(P.Find(X));
+if Result=nil then raise Exception.Create(IntToStr(X));
+{ B, Q:Pointer }
+Q:=P.Find(X); Result:=TClass(Q);
+if Result=nil then raise Exception.Create(IntToStr(X));
+```
+
+A: `+07 mov esi,edx; +09 mov ebx,eax; +0b xor eax,eax;
+... +16 mov fs:[eax],esp; ... +1b mov eax,[ebx+4]`.
+B: `+07 mov esi,edx; +09 xor edx,edx; ... +14 mov fs:[edx],esp;
+... +19 mov eax,[eax+4]`.
+B omits the Self copy into EBX; EBX is still saved because it later carries
+the result. This combines K05's cast-result effect with a concrete managed-frame
+carrier case beyond K21. Under O- the Pointer temporary has a real slot and no
+optimized saved-Self conclusion follows.
+
+### K51. Taking an otherwise unused parameter address still spills it
+
+Report: `mr2.md`. Function: `TTextControlEditForm.SetText`.
+
+**r3_parameter_address: O+: different; O-: different.** TObj has F:Integer,
+P:TObj, virtual Work(X), and Run(Item:TObj). Both declare Saved:TObj:
+
+```pascal
+{ A }
+Saved:=Item; P:=Saved;
+if Saved<>nil then begin Saved.Work(F); Work(Item.F) end;
+{ B also declares ItemPtr:Pointer; prefixes the same body with: }
+ItemPtr:=@Item;
+```
+
+A: `+01 push esi; +02 mov esi,edx; ... +16 mov edx,[esi+4]`.
+B: `+01 push ecx; +02 mov [esp],edx; ... +18 mov eax,[esp];
++1b mov edx,[eax+4]`.
+No ItemPtr value is read, and no external call receives @Item, yet Item has
+become addressable. O- also retains the address-taking instructions and
+additional local allocation. K07's earlier address test passed the address to
+a real call; that call is not required for this spill.
+
+### K52. A separate search index plus removal of a result cast yields LEA
+
+Report: `mr5.md`. Function: `TRelWindow.HighlightRace`.
+
+**r3_index_local_lea: O+: different; O-: different.** TObj has L:TList at +4,
+virtual Find(X):Integer, Run(X):TObject:
+
+```pascal
+{ A } Result:=TObject(L[Find(X)+36]);
+{ B, I:Integer } I:=Find(X); Result:=L[I+36];
+```
+
+A saves EBX/ESI and after Find has `+0e mov edx,eax; +10 add edx,24`.
+B saves EBX only and after Find has `+09 lea edx,[eax+24]`.
+Both then load L and call the same `Classes.TList.Get`.
+O- materializes I and also changes staging. This is a measured positive case
+for K24's qualified LEA observation; the whole worker recipe has two changes.
+K05 separately isolates a redundant cast on a call result. Do not infer that
+any extra index local forces LEA.
+
+### K53. A nil-result search loop has a different result lifetime
+
+Report: `mr4.md`. Function: `TEventLogList.FindID`.
+
+**r3_nil_search: O+: different; O-: different.** L:TList; objects have ID:Integer:
+
+```pascal
+{ A }
+for I:=L.Count-1 downto 0 do
+  if TObj(L.List^[I]).ID=ID then begin Result:=TObj(L.List^[I]); Exit end;
+Result:=nil;
+{ B }
+I:=L.Count; Result:=nil;
+while (I<>0) and (Result=nil) do begin
+  Dec(I);
+  if TObj(L.List^[I]).ID=ID then begin Result:=TObj(L.List^[I]); Break end;
+end;
+```
+
+A starts with `+05 dec ecx; +06 cmp ecx,0; +09 jl +24`, returning the found
+pointer directly in EAX. B adds an EDI save and `+06 xor esi,esi; +08 jmp +1d`;
+its test is `+1d test ecx,ecx; +1f je +25; +21 test esi,esi; +23 je +0a`.
+Success uses `+19 mov esi,edi; +1b jmp +25; ... +25 mov eax,esi`.
+The result is explicitly live during B's loop. O- preserves its different
+loop/Result-slot structure. This is the whole worker search recipe, not a claim
+about changing Break alone; o05 covers that smaller experiment.
+
+### K54. Stack arguments, including hidden results, frame assembler tails
+
+Reports: `p2.md`, `p4.md`. Named example: `P2StatisticsToDV`, forwarding the
+stack-argument call used by `TAbstractUnit.RetrieveDamageInfo`; p4 reports a
+string-result forwarding adapter without naming that adapter.
+
+**r3_asm_stack: O+: different; O-: different.** Target and Run have
+`function (A,B,C,D:Integer):Integer`; Run is assembler:
+
+```pascal
+{ A } asm jmp Target end;
+{ B } asm pop ebp; jmp Target end;
+```
+
+A: `+00 push ebp; +01 mov ebp,esp; +03 jmp Target`.
+B: `+00 push ebp; +01 mov ebp,esp; +03 pop ebp; +04 jmp Target`.
+The fourth argument requires an EBP frame even with W-. A forwards the wrong
+stack shape; B removes the implicit frame before the jump. These code-only
+probes were not executed.
+
+**r3_asm_format: O+: different; O-: different.** Both signatures are
+`function (const S:string; const Args:array of const):string`.
+The same framing/jump evidence results: the hidden string destination is a
+stack argument after S/data/high consume EAX/EDX/ECX.
+
+Controls `r3_asm_string` (const S) and `r3_asm_string_value` (value S), each
+with one string input and a string result, have no implicit frame in either
+mode: A is just `+00 jmp Target`; B starts with an unjustified `pop ebp`.
+A string result alone does not require that pop. K23's three-register-or-fewer
+integer tail remains frame-free as well. Inspect the complete signature.
+
+### K55. Callback destination scope changes the retained target register
+
+Report: `mr6.md`. Function: `THSMapViewer.SetHSMap`.
+
+**r3_callback_assign: O+: different; O-: different.** TMap has only
+OnA/OnB/OnC:TNotifyEvent. TObj has P:TMap and its own Event(Sender:TObject):
+
+```pascal
+P:=Value;
+{ A } if P<>nil then with P do begin OnA:=Event; OnB:=Event; OnC:=Event end;
+{ B } if P<>nil then begin P.OnA:=Event; P.OnB:=Event; P.OnC:=Event end;
+```
+
+A: `+00 mov ecx,edx; +02 mov [eax+4],ecx; ... +09 mov edx,ecx;
++0b mov [edx+8],eax; +0e mov [edx+4],TObj.Event`.
+B: `+00 push ebx; +01 mov ebx,edx; +03 mov [eax+4],ebx;
+... +0a mov [ebx+8],eax; +0d mov [ebx+4],TObj.Event`.
+The other two Code/Data pairs follow that pattern. B keeps the map in EBX and
+restores it at +28; A uses EDX. O- has the respective hidden-with versus
+repeated member loads. The distinct TMap type is deliberate: Event denotes
+the viewer's handler in both forms, not a same-named destination method.
+
+### Reported, not reproduced
+
+These entries are not matching recipes. They retain the originating report and
+the exact limit of the small test instead of promoting an unconfirmed detail
+to a compiler guarantee.
+
+**NR01. SmallInt casts alone did not reproduce repeated overlay loads.**
+Report: `mr4.md`, `TCrop.TerrainChanged`. The successful worker recipe combined
+destruction predicates, direct inherited fields, and repeated SmallInt overlay
+reads. Isolating its casts in `r3_smallint_memory` gives **same code** under
+O+, O-, and O- Q+ R+:
+
+```pascal
+type TInfo=packed record Pad:Integer; Overlay:ShortInt end;
+{ A } Result:=(Info.Overlay>=0) and (Info.Overlay<>4);
+{ B } Result:=(SmallInt(Info.Overlay)>=0) and (SmallInt(Info.Overlay)<>4);
+```
+
+Both O+: `+00 movsx edx,byte ptr [eax+4]; +04 test dx,dx;
++07 jl +0f; +09 cmp dx,4; +0d jne +12`.
+Both O-: `+0c cmp byte ptr [eax+4],0; ... +15 movsx eax,byte ptr [eax+4];
++19 cmp ax,4`. The size-one const-record control `r3_smallint_overlay` is also
+identical in both modes. This does not undo the worker's complete matched
+rewrite; predicate combination is already covered by b03/b05 and K37.
+
+**NR02. Unit qualification by itself did not force global reloads.**
+Report: `mr1.md`, `TEarthMastery.ShowAnimation`,
+`TEnchantedRoads.ShowAnimation`, `TTeleport.MapFieldMsgProc`,
+`TWatcherHS.UpdateUnfog`. The report credits direct `AoWE.AoWHSMap` reads.
+The narrow reading that adding only a unit qualifier forces reloads was not
+reproduced:
+
+```pascal
+{ r3_global_qualifier A } Obj.P.Put(Obj.F,Obj.G);
+{ B } ProbeUnit.Obj.P.Put(ProbeUnit.Obj.F,ProbeUnit.Obj.G);
+```
+
+**Same code, both modes.** Both O+ load Obj at +01/+09/+11 before the call.
+`r3_import_qualifier`, `Screen.Width+Screen.Height` versus
+`Forms.Screen.Width+Forms.Screen.Height`, also agrees in both modes, including
+the two-step import-cell loads at +01/+06 and +0F/+14 under O+.
+`r3_global_with` (`with Obj do P.Put(F,G)` versus direct qualified members)
+is another same-code control in both modes.
+
+The related, already documented mechanism **does** reproduce in
+`r3_global_direct`: a named `O:=Obj` retains O in EBX through Get, while direct
+qualified reads reload Obj before and after Get. O+ cached:
+`+01 mov ebx,[Obj]; ... +0f call [ecx]; +11 add eax,[ebx+4]`;
+direct: `+00 mov eax,[Obj]; +08 mov eax,[Obj]; ... +12 call [ecx];
++14 mov edx,[Obj]; +1a add eax,[edx+4]`. This is K02, not a special property
+of the unit-name spelling. Qualification can also resolve a different symbol;
+that is an address-identity correction, as in the rf reports.
+
+**NR03. A reported method-address typed-constant rejection was not localized.**
+Report: `p6c.md`, adapters for `TFlagEvent.UpdateInstantTrigger` and
+`TFlagEvent.UpdateNewTurnTrigger`. The report omits the rejected constant's
+complete type and initializer. In `r3_method_constant`, a nonvirtual
+Work(Sender:TObject) supports:
+
+```pascal
+{ A } const MethodCode:Pointer=@TObj.Work;
+      { Run returns MethodCode. }
+{ B } E:=O.Work; Result:=TMethod(E).Code; { E:TNotifyEvent local }
+```
+
+Both compile in O+ and O-. A returns `+00 mov eax,[constant cell]; +05 ret`;
+B forms the Code/Data local (`+06 mov [ebp-4],eax;
++09 mov [ebp-8],TObj.Work`). These controls do not reproduce the rejection or
+justify a rule that Delphi 3 rejects all method-address constants. They do not
+test every method-pointer constant type, virtual method or imported initializer.
+
+**NR04. C1820 on an unspecified call variant was not reproduced.**
+Report: `p5.md`, the recovered negotiation group containing
+`CreateNegotiateTE`; the exact failing call was not recorded.
+`r3_c1820_control` checks these small class-reference constructor forms:
+
+```pascal
+{ A } Result:=Find(A).Create(B);
+{ B, C:TObjClass } C:=Find(A); Result:=C.Create(B);
+```
+
+Both compile in both modes, with no C1820. O+ A saves EBX/ESI and passes B from
+ESI to ECX before TObj.Create; B saves only EBX and passes it to ECX. This is
+K05's distinction. The generic control cannot stand in for the missing failing
+variant, so no C1820 trigger is claimed.
+
+### Existing mechanisms found again in the reports
+
+These **27** rows are the already-present count. Several reports contribute to
+one row; several rows can describe one successful rewrite. Routine mismatch
+counts, ordinary behavioral fixes and comparison-tool artifacts are not counted
+as new forms. Later mr reports sometimes give more precise recipes than an
+earlier near-miss report's register-only explanation.
+
+| Existing mechanism | Report examples and function where it mattered | Catalog evidence |
+|---|---|---|
+| Invert a condition and exchange physical branches | `mr2`: ShowProductionInfo, TRelWindow.P1CBPreDraw; `mr3`: ShowTrail<TfxHS.Show, TCAbTouchMoveTE.LastMove; `mr5`: TFileDlgWindow.FileLBChange | b01 |
+| Preserve source order of case bodies | `cf2`: TMainForm.PlayInterfaceSound, TGeneral.PlayButtonSound; `cf3`: Color2PixelInfo | c01/c02 |
+| Named copies, declaration order and split expressions change staging | `mr1`: TAbstractUnit.ExecuteDamageRole; `mr5`: TArmyEventDlg.DrawUnits centered origin | l02/l04, e03 |
+| Cache a field or product across calls | `mr1`: TUnitIndexListCollection.DeleteUnit, caching stride and delete index | l01, K01 |
+| Direct members versus receiver locals/with | `mr1`: TDefaultMEC.CalculateMoves; `mr4`: TSetupControl.Create, TSpellCC.GetName, TStructure.GetRebuildInfo; `mr5`: TItemEditForm.UpdateControls, TArmyEventDlg.DrawUnits | e01, K03/K04 |
+| A redundant Self cast changes allocation | `mr5`: TFileDlgWindow.FileLBChange | e10 |
+| Global value snapshot versus repeated cell reads | `mr1`: the four map-global rewrites in NR02; `mr2`: TProductionScreen.ShowPlace's retained center and reloaded Y receiver | K02 |
+| Explicit receiver/argument assignments set staging order | `mr4`: TArmyCombineMoveTE.CanMoveNext | e05, K04 |
+| Separate Boolean decisions materialize a value | `mr4`: THeroJoinEventLog.Execute, THeroUpgradeEventLog.Execute (with receiver, uncast FindUnit result, subsequent cast, separate popup decision) | b06, K05/K37 |
+| Explicit pointer arithmetic versus typed stepping | `mr1`: TEnchantedRoads.ShowAnimation | K29 |
+| String temporaries change destinations/lifetimes | `er4`: TSendEmailGameDlg.ShowSendDialog | K10 |
+| Resourcestrings versus literals/cells | `nm11`: TDispelMagic.Create/ExecuteSpell, TPlayerComboBox.GenerateItems; `er1`/`er2`: assertion text | K13 |
+| Class versus instance receivers | `er2`: TCommandAbility.Command; `nm1`: TAbstractUnit.ReadWrite | K15 |
+| Exact True versus a nonzero Boolean test | `er4`: TMultiWindow.JoinBtnClick | K27 |
+| Signedness and narrow parameter/result width | `nm2`: TCombat.DefendersAvailable, TFastCombat.ExecuteCombatRound; `nm6`: combat/player comparisons; `nm21`: GetUpkeep; `er4`: UpdateScenarioRow | section 5, K27 |
+| Mask timing and overflow-sensitive guards | `er4`: TUnitSelectionDlg.DrawUnit, TArmyInfoDlg.DrawUnit, TUnitWindow.ShowUnit | K28 |
+| Unsigned open-array high test | `er6`: SortStringsEx | K18 |
+| Checked class cast versus hard cast | `nm15`: TCityAIPA.UpgradeCity/FortifyCity; `nm19`: TMainForm.ApplicationShowHint | K33 |
+| Consuming versus reraising exceptions and handler shape | `er2`: TAIMoveExecuterMove.Destroy; `er6`: TCompareStorageStream.rwCreateEObject; `nm20`: TAdjacentMEC.CalculateMoves | K20 |
+| Assertion filename/line and include position | `al2`, `relayout`, `er1`, `er2`, `er6`: named assertion repairs, including THSMap.UnlockTerrainChangedEvent | K22 |
+| Checked getter calls versus direct backing storage | `nm1`: TAbilityTypeList.GetAbility; `er2`: TAIMoveTargetSelector.ProcessStates; `er3`: TSmokeCloud.UpdateConcealment's cached terrain list | K32, K02 |
+| Calling convention controls stack order | `nm11`: BltColumn changed to pascal | K17 |
+| Const versus value record copy/ABI | `g1`: TConstructionResourceEditForm.vmt98; `t1c`: TAnimation.SetDimensions | k03, K08 |
+| String Pointer/PChar/index conversions | `er5`: CopyStreamToClipboard | K12 |
+| Uninitialized results/stack bytes remain observable | `er5`: TestQWordAligned/TestDWordAligned/TestWordAligned/TestMissAligned; `er6`: THSMEdit.UpdateMouseCoordinates; `nm9`: TAbility.CanActivate | K30 |
+| Constructor/destructor declaration and hidden flags | `i2`: resource form vmt80 constructors; `nm13`: TAoWMapEditForm.vmt90, TAoWResourceEditForm.Destroy | K16 |
+| Set Include versus constructing a defined set | `nm16`: THeroEditForm.SetHero | K26, K30 |
+
+Additional small controls preserve context for the already-covered rows. They
+are in the same inputs/results inventory:
+
+* `r3_subtract_local`: naming `F-Sender.Get(G)` before Put adds
+  `push eax; mov eax,[ebx+4]; pop edx; sub eax,edx` instead of the inline
+  `mov edx,[ebx+4]; sub edx,eax`; different in both modes.
+* `r3_product_cache`: two inline F*G products have two IMULs around Put; named
+  Offset/Index retains the product in ESI and has one IMUL; different in both.
+  Retaining a product across a call needs the same field-stability proof as
+  l01; a byte match alone does not supply it.
+* `r3_center_local`: retaining P for only one of two Get expressions adds
+  `mov esi,[ebx+14]` before the calls while the other receiver is reloaded;
+  different in both modes.
+* `r3_separate_receivers`: separate S:=P and T:=Sender.P assignments move
+  `mov edx,[edx+14]` before `mov ecx,ff` rather than after it; different in both.
+* `r3_direct_members`/`r3_destination_with`: direct P.F/P.G arguments save ESI
+  and load P into ESI; with uses EAX and omits that save; different in both
+  modes. Removing with does not always reduce the save set.
+* `r3_output_members`: `with R do begin Cost:=Gold; Time:=Days end` versus
+  explicit R.Gold/R.Days changes the retained receiver and adds an ESI save
+  under O+; O- also differs. This preserves the TStructure.GetRebuildInfo kind.
+
+Integration/build-only reports and the remaining recovery summaries add no
+further concrete source-pair mechanism. The rf/rv/cf reviews also document
+wrong symbol identities, missing parameters, incorrect constants, omitted
+branches and signature extents. Their corrections must not be replaced by
+code-shape tricks; section 9's comparison-artifact qualification still applies.
+
+### Probe correction during this audit
+
+`dcc_probe.py` previously passed **every** named routine to the flow graph as
+if it were an RTL exception handler. The shared graph deliberately follows the
+instruction after an exception-handler jump. An ordinary assembler `jmp Target`
+therefore made its unreachable compiler epilogue appear in the probe output.
+The probe now supplies only `@Handle...` symbols in that map; no shared
+comparison tool was changed.
+
+The framing evidence in K54 now ends at the tail jump. The separate
+`inputs\probe_handler_regression.pas` build verifies that ordinary local branches,
+`@HandleOnException` and its `.handlers ADDR:55` target, managed string cleanup,
+and `@HandleFinally` continuations are still printed. Its full output is
+`probe_handler_regression.txt`. The corrected probe is 118 lines. All 182 paired
+builds in this round use the correction; all compiler outputs remain on D:.

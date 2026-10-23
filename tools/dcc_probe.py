@@ -84,7 +84,9 @@ def routines(binary, mapfile, names):
             return symbols.get(v, 'image+0x%x' % (v - img.base) if img.contains(v) else m.group())
 
         stream = match.decode_stream(md, img, va, size, on_exc)
-        handlers = {v: n.split('.')[-1] for v, n in symbols.items()}
+        # Only RTL handlers resume after a jump; ordinary named tails do not.
+        handlers = {v: n.split('.')[-1] for v, n in symbols.items()
+                    if n.split('.')[-1].startswith('@Handle')}
         reached = graph(stream, va, size, img, handlers)[0]
         rows = []
         for norm, ins in stream:
