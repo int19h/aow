@@ -7,7 +7,16 @@ The installed game is only read. After tools/buildgame.py build BUILD, run:
     tools/playtest.py BUILD suite small large underground --timeout 3600
 prepare selects Mountain Clash (48x48, surface), After the Fall (127x127,
 two levels), Mine All Mine (48x48, three levels), and Igor's Folly (96x96,
-two levels), with seed 123456789.
+two levels), plus Love thy Neighbor (heroes), Rocky Hollow (magic), and Blood
+Isles (water). The default seed is 123456789. Use seed-map --cpu 3 for harder AI.
+editor VARIANT SCENARIO LABEL invokes File > Save on an unchanged map copy;
+editor-compare LEFT RIGHT compares its exact bytes and asg_dump output.
+run --coverage records native feature calls; --tactical selects the tactical
+resolver and a local host identity in both variants for an all-CPU test.
+--exercise-items uses the loaded item pool to equip each starting hero, move
+equipment through inventory, swap rings, and use scrolls when available.
+--global-spell researches a global enchantment and submits native casting inputs
+on the caster's turn, including the AI start-casting method for CPU players.
 Day 1 is the initialized state; day 21 follows twenty completed world turns.
 Use --help for the individual operations. Runs are serial because the registry
 paths belong to the user session; never launch two driver processes together.
@@ -40,7 +49,9 @@ DP_KEY = (r'Software\Classes\VirtualStore\MACHINE\SOFTWARE\WOW6432Node'
           r'\Microsoft\DirectPlay\Applications\Age Of Wonders')
 VIEW = winreg.KEY_WOW64_32KEY
 SCENARIOS = {'small': 'Mountain Clash.hsm', 'large': 'After the Fall.HSM',
-             'underground': 'Mine All Mine.hsm', 'large_igor': "Igor's Folly.hsm"}
+             'underground': 'Mine All Mine.hsm', 'large_igor': "Igor's Folly.hsm",
+             'heroes': 'Love thy Neighbor.hsm', 'magic': 'Rocky Hollow.hsm',
+             'water': 'Blood Isles.hsm'}
 
 
 def reader_module():
@@ -99,7 +110,7 @@ def pack_table(items):
     return header + body
 
 
-def seed_map(path, target, seed, simultaneous=False):
+def seed_map(path, target, seed, simultaneous=False, cpu=1):
     data = inflate(path)
     header = struct.unpack_from('<i', data)[0]
     top = unpack_table(data[header:])
@@ -109,7 +120,7 @@ def seed_map(path, target, seed, simultaneous=False):
     for pid, blob in kids.items():
         player = unpack_table(blob[4:])
         if pid != 0:
-            player[3] = b'\x01'  # ptCPU1; independent player stays independent.
+            player[3] = bytes([cpu])  # independent player stays independent.
         kids[pid] = blob[:4] + pack_table(player)
     players[1] = pack_table(kids)
     props[0x15] = pack_table(players)
@@ -306,11 +317,15 @@ class Debugger:
         return None if code.value == 259 else code.value
 
     def wait_stop(self, offset=0, timeout=120):
-        deadline = time.monotonic() + timeout
+        deadline = min(time.monotonic() + timeout, getattr(self, 'deadline', float('inf')))
         while time.monotonic() < deadline:
             text = self.text()[offset:]
             if re.search(r'(?:^|\s)\d+:\d+>\s*$', text):
-                return text
+                # Auto-continuing breakpoint commands can briefly print a prompt.
+                # Accept it only after the transcript has settled.
+                time.sleep(.15)
+                if self.text()[offset:] == text:
+                    return text
             if self.poll() is not None:
                 raise RuntimeError('debugger exited: ' + text[-3000:])
             time.sleep(.05)
@@ -372,7 +387,7 @@ def seed_commands(seed):
 
 def expression(build, variant, module, name):
     if variant == 'original':
-        with buildgame.pefile.PE(str(buildgame.GAME / module), fast_load=True) as pe:
+        with buildgame.pefile.PE(str(build / variant / module), fast_load=True) as pe:
             rva = original_address(module, name) - pe.OPTIONAL_HEADER.ImageBase
     else:
         symbol = '.'.join(name.split('.')[1:])
@@ -403,7 +418,7 @@ def module_bases(text):
     return bases
 
 
-def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600, initial_only=False):
+def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600, initial_only=False, tactical=False, coverage=False, tactical_battles=0, exercise_items=False, global_spell=0):
     if not re.fullmatch(r'[A-Za-z0-9_-]+', label):
         raise ValueError('run label must contain only letters, digits, underscores and hyphens')
     if not save.resolve().is_relative_to(build):
@@ -418,22 +433,53 @@ def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600
     commands = seed_commands(seed) + (
         'bp vcl30+3fe4 "da poi(@eax+4); kb; .echo PT_EXCEPTION"; '
         '.dvalloc 1000; bp ' + newday + ' ".echo PT_DAY"; bp ' + gameend + ' ".echo PT_END"; g')
+    if tactical:
+        # Select the native tactical resolver at the same combat boundary in
+        # both copies; all players remain CPU controlled. No game code changes.
+        select = 'eb @eax+39 2; .echo PT_FEATURE tactical_selected'
+        if tactical_battles:
+            select = '.if (@$t19 < %x) { r @$t19=@$t19+1; ' % tactical_battles + select + ' }'
+        commands = commands[:-1] + 'r @$t19=0; bp ' + expression(build, variant, 'AoWEPACK.dpl',
+            'AoWE.TArmyCombatMoveTE.ExecuteCombat') + ' "' + select + '; gc"; g'
+        # The stock tactical initializer selects a human as host, leaving -1
+        # in all-CPU games. Supply the local independent player's PCC identity
+        # as the host input, preserving CPU control of every combatant.
+        commands = commands[:-1] + 'bp ' + expression(build, variant, 'AoWTCPCK.dpl',
+            'AoWTC.TTacticalCombat.Execute') + ' "eb @eax+4c 0; .echo PT_FEATURE tactical_host; gc"; g'
+    if coverage:
+        features = [('hero_spell', 'AoWEPACK.dpl', 'AoWE.THero.CastSpell'),
+                    ('spell_event', 'AoWEPACK.dpl', 'AoWE.TSpellTE.Execute'),
+                    ('hero_item_place', 'AoWEPACK.dpl', 'AoWE.THero.ExecutePlaceItem'),
+                    ('item_equipped', 'AoWEPACK.dpl', 'AoWE.THeroItems.PlaceItem'),
+                    ('item_action', 'AoWEPACK.dpl', 'AoWE.TItemTE.Execute'),
+                    ('item_use', 'AoWEPACK.dpl', 'AoWE.TItem.ExecuteUse'),
+                    ('global_cast', 'AoWEPACK.dpl', 'AoWE.TGlobalEnchantment.Cast'),
+                    ('combat', 'AoWEPACK.dpl', 'AoWE.TArmyCombatMoveTE.ExecuteCombat'),
+                    ('tactical_ai', 'AoWTCPCK.dpl', 'AoWTC.TCAI.BeginTurn')]
+        for feature, module, name in features:
+            # The tactical selector already owns the ExecuteCombat breakpoint.
+            if tactical and feature == 'combat':
+                continue
+            commands = commands[:-1] + 'bp ' + expression(build, variant, module, name) + (
+                ' ".echo PT_FEATURE ' + feature + '; gc"; g')
     started, collected = time.monotonic(), []
     status = {'variant': variant, 'input': str(save), 'seed': seed,
               'input_sha256': buildgame.digest(save),
               'modules': {p.name: buildgame.digest(p) for p in sorted(copy.iterdir())
                           if p.suffix.lower() in ('.exe', '.dpl', '.dll')},
-              'requested_turns': turns, 'saves': collected, 'complete': False}
+              'requested_turns': turns, 'tactical': tactical, 'tactical_battles': tactical_battles, 'coverage_enabled': coverage,
+              'exercise_items': exercise_items, 'global_spell': global_spell, 'saves': collected, 'complete': False}
     try:
         with environment(copy, output):
             debugger = Debugger(copy, output, [save], 'lm')
+            debugger.deadline = started + timeout
             try:
                 modules = debugger.wait_stop(timeout=timeout)
                 bases = module_bases(modules)
                 if not {'vcl30', 'aowepack'} <= bases.keys():
                     bases = module_bases(debugger.command('lm', timeout))
                 def resolve(text):
-                    return re.sub(r'\b(vcl30|AoWEPACK)\+',
+                    return re.sub(r'\b(vcl30|AoWEPACK|AoWTCPCK)\+',
                                   lambda m: '%x+' % bases[m[1].lower()], text, flags=re.I)
                 commands, autosave = resolve(commands), resolve(autosave)
                 (output / 'run-commands.cdb').write_text(commands + '\n')
@@ -443,9 +489,13 @@ def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600
                 debugger.command('eb %x cc' % scratch)
                 control = None
                 while time.monotonic() - started < timeout:
+                    if re.search(r'\bPT_GLOBAL_TURN\s*$', stopped, re.M):
+                        status['global_exercise'] = cast_test_global(build, variant, save, debugger, scratch, resolve, timeout, global_spell, status['global_exercise'])
+                        stopped = debugger.command('g', timeout)
+                        continue
                     ended = bool(re.search(r'\bPT_END\s*$', stopped, re.M))
                     if not ended and not re.search(r'\bPT_DAY\s*$', stopped, re.M):
-                        raise RuntimeError('unexpected game stop: ' + stopped[-3500:] + debugger.command('kb; dds @esp L20'))
+                        raise RuntimeError('unexpected game stop: ' + stopped[-3500:] + debugger.command('.lastevent; kb; dds @esp L20'))
                     entry = registers(debugger.command('r'))
                     if not ended:
                         control = entry['eax']
@@ -454,6 +504,16 @@ def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600
                             raise RuntimeError('exception during NewDay: ' + stopped[-3500:])
                     if control is None:
                         raise RuntimeError('game ended before the first day')
+                    if exercise_items and not collected:
+                        status['item_exercise'] = equip_test_items(build, variant, save, debugger, scratch, resolve, timeout)
+                    if global_spell and not collected:
+                        status['global_exercise'] = cast_test_global(build, variant, save, debugger, scratch, resolve, timeout, global_spell, status.get('global_exercise'))
+                        # Submit further requests only on the caster's own turn;
+                        # native spell validation rejects off-turn activation.
+                        map_pointer = resolve(export_expression(copy, 'AoWEPACK.dpl', 'AoWE.AoWHSMap'))
+                        ai_process = resolve(expression(build, variant, 'AoWEPACK.dpl', 'AoWE.TAIPlayerControl.Process'))
+                        debugger.command('r @$t18=0; bp %s ".if ((@$t18 != 0) & (by(poi(%s)+a4)==%x)) { r @$t18=0; .echo PT_GLOBAL_TURN } .else { gc }"' %
+                                         (ai_process, map_pointer, status['global_exercise']['player']))
                     context = registers(debugger.command('r'))
                     # Call the game's unmodified AutoSave with Delphi's register ABI.
                     # The scratch INT3 is its return address. Restore the entire CPU
@@ -481,10 +541,14 @@ def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600
                         status['game_ended'] = ended
                         break
                     restore = '; '.join('r %s=%x' % item for item in context.items())
+                    if global_spell:
+                        restore += '; r @$t18=1'
                     stopped = debugger.command(restore + '; g', timeout)
                 else:
                     raise TimeoutError('run exceeded time limit')
             finally:
+                status['coverage'] = {feature: len(re.findall(r'(?:^|> )PT_FEATURE ' + feature + r'\s*$', debugger.text(), re.M))
+                                      for feature in re.findall(r'(?:^|> )PT_FEATURE (\w+)\s*$', debugger.text(), re.M)}
                 debugger.close()
     except Exception as exc:
         status['error'] = str(exc)
@@ -494,6 +558,150 @@ def run_game(build, variant, save, label, turns=20, seed=123456789, timeout=3600
         if output.exists():
             (output / 'run.json').write_text(json.dumps(status, indent=2))
     return status
+
+
+
+def export_expression(copy, module, name):
+    with buildgame.pefile.PE(str(copy / module)) as pe:
+        addresses = [e.address for e in pe.DIRECTORY_ENTRY_EXPORT.symbols
+                     if e.name and e.name.decode().rsplit('@', 1)[0] == name]
+    if len(addresses) != 1:
+        raise ValueError('expected one export for ' + name)
+    return Path(module).stem + '+%x' % addresses[0]
+
+
+def native_input_helpers(build, variant, debugger, scratch, resolve, timeout):
+    def value(expr):
+        reply = debugger.command('.printf "PT_VALUE %x\\n", ' + expr)
+        found = re.search(r'PT_VALUE ([0-9a-f]+)', reply, re.I)
+        if not found:
+            raise RuntimeError('cannot read native value: ' + reply)
+        return int(found[1], 16)
+    def call(name, self, edx=0, ecx=0, stack=(), entry=None):
+        saved = registers(debugger.command('r'))
+        sp = saved['esp'] - 4 * (1 + len(stack))
+        words = ' '.join('%x' % x for x in (scratch, *stack))
+        if entry is None:
+            entry = resolve(expression(build, variant, 'AoWEPACK.dpl', name))
+        reply = debugger.command('ed %x %s; r esp=%x; r eax=%x; r edx=%x; r ecx=%x; r eip=%s; g' %
+                                 (sp, words, sp, self, edx, ecx, entry), timeout)
+        result = registers(debugger.command('r'))
+        if result['eip'] not in (scratch, scratch + 1) or result['esp'] != saved['esp']:
+            raise RuntimeError('native input did not return from ' + name + ': ' + reply[-3000:])
+        debugger.command('; '.join('r %s=%x' % item for item in saved.items()))
+        return result['eax']
+    return value, call
+
+
+def equip_test_items(build, variant, save, debugger, scratch, resolve, timeout):
+    """Directed native inputs: generate, equip, store, and re-equip map items.
+
+    Uses the same Delphi register ABI and scratch-return technique as AutoSave.
+    Item data comes from the loaded scenario's own item pool. No code is patched.
+    """
+    value, call = native_input_helpers(build, variant, debugger, scratch, resolve, timeout)
+    map_expr = resolve(export_expression(build / variant, 'AoWEPACK.dpl', 'AoWE.AoWHSMap'))
+    game = value('poi(' + map_expr + ')')
+    players, items = value('poi(%x+140)' % game), value('poi(%x+f4)' % game)
+    data = inflate(save)
+    props = table(data, root(data))
+    indices = sorted(table(data, table(data, props[0x15])[1]))
+    actions = []
+    for index in indices:
+        if index == 0:
+            continue
+        player = call('AoWE.TPlayerList.GetPlayers', players, index)
+        hero = value('poi(%x+d4)' % player)
+        if not hero:
+            continue
+        first_ring = None
+        # The standard seven item types cover five equipment types and two
+        # consumable types; a second ring also exercises inventory placement.
+        for kind in (0, 1, 2, 3, 4, 4, 5, 6):
+            item = call('AoWE.TItemControl.GenerateItem', items, 1 << kind, 1, (100000,))
+            if not item:
+                actions.append({'player': index, 'type': kind, 'available': False})
+                continue
+            item_id = value('poi(%x+14)' % item)
+            placed = bool(call('AoWE.THero.AutoPlaceItem', hero, item) & 255)
+            action = {'player': index, 'type': kind, 'item_id': item_id, 'placed': placed}
+            if placed and kind <= 3:
+                action['stored'] = bool(call('AoWE.THero.ExecutePlaceItem', hero, item_id, 6) & 255)
+                action['reequipped'] = bool(call('AoWE.THero.AutoPlaceItem', hero, item) & 255)
+            if placed and kind == 4:
+                if first_ring is None:
+                    first_ring = item_id
+                else:
+                    action['swapped'] = bool(call('AoWE.THero.ExecuteSwapItem', hero, first_ring, item_id) & 255)
+            if placed and kind == 5:
+                action['use_queued'] = bool(call('AoWE.TItem.Use', item, hero) & 255)
+                if not action['use_queued']:
+                    action['use_executed'] = bool(call('AoWE.TItem.ExecuteUse', item, hero) & 255)
+                    action['consumed'] = call('AoWE.TItemControl.FindItem', items, item_id) == 0
+            actions.append(action)
+    print('Native item exercise: %d generated, %d placed' %
+          (sum('item_id' in a for a in actions), sum(a.get('placed', False) for a in actions)), flush=True)
+    return actions
+
+
+
+def cast_test_global(build, variant, save, debugger, scratch, resolve, timeout, spell_id, previous):
+    """A directed research/cast input, repeated on the caster's turn until ready.
+
+    Choose the highest-level starting leader. Research and casting use the native
+    game methods, including mana, casting progress, and token-event validation.
+    """
+    value, call = native_input_helpers(build, variant, debugger, scratch, resolve, timeout)
+    game = value('poi(' + resolve(export_expression(build / variant, 'AoWEPACK.dpl', 'AoWE.AoWHSMap')) + ')')
+    players = value('poi(%x+140)' % game)
+    state = previous or {'spell_id': spell_id, 'requests': []}
+    if previous is None:
+        data = inflate(save)
+        indices = sorted(table(data, table(data, table(data, root(data))[0x15])[1]))
+        candidates = []
+        for index in indices:
+            if index == 0:
+                continue
+            player = call('AoWE.TPlayerList.GetPlayers', players, index)
+            hero = value('poi(%x+d4)' % player)
+            if hero:
+                candidates.append((value('by(%x+4c)' % hero), index))
+        state['level'], state['player'] = max(candidates)
+    player = call('AoWE.TPlayerList.GetPlayers', players, state['player'])
+    hero = value('poi(%x+d4)' % player)
+    if not hero or value('by(%x+55)' % hero) & 1:
+        state['requests'].append({'dead': True})
+        return state
+    if previous is None:
+        magic = value('poi(%x+54)' % player)
+        call('AoWE.TPlayerMagicControl.ExecuteSpellResearched', magic, spell_id)
+    reason = scratch + 0x100
+    debugger.command('ed %x 0' % reason)
+    before = value('poi(%x+84)' % hero)
+    required = value('poi(%x+8c)' % hero)
+    accepted = bool(call('AoWE.THero.CastSpell', hero, spell_id, reason) & 255)
+    has_reason = bool(value('poi(%x)' % reason))
+    started = False
+    if not accepted and not has_reason and before == 0:
+        # CPU players are busy; use the same start-casting method the AI uses.
+        started = bool(call('AoWE.THero.ExecuteStartCasting', hero, spell_id) & 255)
+    if has_reason:
+        debugger.command('da poi(%x)' % reason)
+    clear = resolve(export_expression(build / variant, 'vcl30.dpl', 'System.@LStrClr'))
+    call('System.@LStrClr', reason, entry=clear)
+    request = {'accepted': accepted, 'started': started, 'reason': has_reason,
+               'player_busy': bool(call('AoWE.TPlayer.GetBusy', player) & 255),
+               'current_player': value('by(%x+a4)' % game),
+               'casting_points': value('by(%x+80)' % hero),
+               'casting_max': call('AoWE.THero.GetCastingPointsMax', hero),
+               'casting_before': before, 'required_before': required,
+               'casting_after': value('poi(%x+84)' % hero),
+               'required_after': value('poi(%x+8c)' % hero),
+               'casting_mana': value('poi(%x+88)' % hero)}
+    state['requests'].append(request)
+    print('Native global input player %d spell %d: %s' %
+          (state['player'], spell_id, request), flush=True)
+    return state
 
 
 def normalized_save(path):
@@ -518,7 +726,7 @@ def dump_save(path, output, decomp):
         raise RuntimeError('asg_dump failed: ' + result.stderr)
 
 
-def state_fields(path, decomp):
+def state_fields(path, decomp, ignore_timers=True):
     """Lossless leaf paths to locate a binary difference, alongside asg_dump."""
     classes = json.loads((REPO / 'notes/classes.json').read_text())['classes']
     ids = {}
@@ -540,7 +748,7 @@ def state_fields(path, decomp):
         for pid, value in props.items():
             name, rw, size, typ, owner = schema.get(pid, ('id%d' % pid, '', 0, '', cls))
             key = prefix + '/' + name + '[%d]' % pid
-            if cls == 'TAoWHSMap' and pid in (0x37, 0x3a):
+            if ignore_timers and cls == 'TAoWHSMap' and pid in (0x37, 0x3a):
                 continue
             try:
                 if rw == 'rwChildren':
@@ -689,6 +897,147 @@ def probe(build, variant, seconds, save=None, commands=''):
     print('Transcript:', output)
 
 
+
+def decomp_paths():
+    base = Path(r'C:\git\int19h\aow\notes\decomp')
+    return ';'.join(str(base / name) for name in
+                    ('Enginep-typed-all', 'HSEPack-typed-all', 'AoWEPACK-typed-all', 'AoWTCPCK-typed-all'))
+
+
+def editor_roundtrip(build, variant, scenario, label, timeout=120):
+    """Open a disposable HSM and post its observed File > Save menu command."""
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', label):
+        raise ValueError('invalid editor label')
+    copy = build / variant
+    output = build / 'editor' / label
+    if output.exists():
+        raise ValueError('editor label already exists: ' + label)
+    output.mkdir(parents=True)
+    source = build / 'original/Scenario/Custom' / SCENARIOS[scenario]
+    target = output / source.name
+    shutil.copy2(source, target)
+    before = target.stat().st_mtime_ns
+    status = {'variant': variant, 'scenario': scenario, 'input': str(source),
+              'input_sha256': buildgame.digest(source), 'output': str(target),
+              'complete': False, 'method': 'WM_COMMAND to observed File > Save menu ID'}
+    user = ctypes.WinDLL('user32', use_last_error=True)
+    user.GetMenu.argtypes = [w.HWND]
+    user.GetMenu.restype = w.HANDLE
+    user.GetSubMenu.argtypes = [w.HANDLE, ctypes.c_int]
+    user.GetSubMenu.restype = w.HANDLE
+    user.GetMenuItemCount.argtypes = [w.HANDLE]
+    user.GetMenuItemID.argtypes = [w.HANDLE, ctypes.c_int]
+    user.GetMenuItemID.restype = w.UINT
+    user.GetMenuState.argtypes = [w.HANDLE, w.UINT, w.UINT]
+    user.GetMenuState.restype = w.UINT
+    user.GetMenuStringW.argtypes = [w.HANDLE, w.UINT, w.LPWSTR, ctypes.c_int, w.UINT]
+    user.PostMessageW.argtypes = [w.HWND, w.UINT, w.WPARAM, w.LPARAM]
+    def menu_items(menu):
+        items = []
+        for index in range(user.GetMenuItemCount(menu)):
+            name = ctypes.create_unicode_buffer(512)
+            user.GetMenuStringW(menu, index, name, len(name), 0x400)
+            sub = user.GetSubMenu(menu, index)
+            item = {'text': name.value, 'id': user.GetMenuItemID(menu, index),
+                    'state': user.GetMenuState(menu, index, 0x400)}
+            items.append(item)
+            if sub:
+                item['children'] = menu_items(sub)
+        return items
+    try:
+        with environment(copy, output):
+            process = buildgame.HiddenProcess(copy / 'AoWEd.exe', copy, arguments=[target])
+            try:
+                deadline = time.monotonic() + timeout
+                while time.monotonic() < deadline:
+                    if process.poll() is not None:
+                        raise RuntimeError('editor exited: ' + str(process.returncode))
+                    windows = buildgame.window_list(process.pid)
+                    main = [item for item in windows if item['class'] == 'TMainForm' and item['visible']]
+                    dialogs = [item for item in windows if item['visible'] and item['class'] in ('#32770', 'TPasswordDlg')]
+                    (output / 'windows.json').write_text(json.dumps(windows, indent=2))
+                    if dialogs:
+                        raise RuntimeError('editor dialog: ' + json.dumps(dialogs))
+                    if len(main) == 1 and target.stem.lower() in main[0]['title'].lower():
+                        break
+                    time.sleep(.2)
+                else:
+                    raise TimeoutError('map did not open in editor; see windows.json')
+                time.sleep(.5)
+                menu = menu_items(user.GetMenu(main[0]['handle']))
+                (output / 'menu.json').write_text(json.dumps(menu, indent=2))
+                def saves(items):
+                    for item in items:
+                        if item['text'].replace('&', '').split('\t')[0].strip().lower() == 'save':
+                            yield item
+                        yield from saves(item.get('children', []))
+                choices = list(saves(menu))
+                if len(choices) != 1 or choices[0]['state'] & 3:
+                    raise RuntimeError('expected one enabled Save menu item: ' + str(choices))
+                status['command_id'] = choices[0]['id']
+                if not user.PostMessageW(main[0]['handle'], 0x111, choices[0]['id'], 0):
+                    raise ctypes.WinError(ctypes.get_last_error())
+                deadline = time.monotonic() + timeout
+                while time.monotonic() < deadline:
+                    if target.stat().st_mtime_ns != before:
+                        time.sleep(.5)
+                        try:
+                            map_info(target)
+                            break
+                        except (OSError, ValueError, zlib.error, struct.error):
+                            pass
+                    if process.poll() is not None:
+                        raise RuntimeError('editor exited during Save')
+                    time.sleep(.2)
+                else:
+                    raise TimeoutError('Save command did not write the map')
+                status['complete'] = True
+                status['output_sha256'] = buildgame.digest(target)
+                status['bytes'] = target.stat().st_size
+                status['changed_from_input'] = target.read_bytes() != source.read_bytes()
+                dump_save(target, output / 'saved-dump.txt', decomp_paths())
+                print(label + ': saved ' + target.name, flush=True)
+            finally:
+                process.terminate()
+                process.wait(timeout=5)
+                status['process_exit_code'] = process.returncode
+                process.close()
+    except Exception as exc:
+        status['error'] = str(exc)
+        raise
+    finally:
+        (output / 'run.json').write_text(json.dumps(status, indent=2))
+    return status
+
+
+def compare_editor(build, left, right):
+    dirs = [build / 'editor' / name for name in (left, right)]
+    runs = [json.loads((d / 'run.json').read_text()) for d in dirs]
+    files = [Path(run['output']) for run in runs]
+    blobs = [f.read_bytes() for f in files]
+    def first(a, b):
+        return next((i for i, pair in enumerate(zip(a, b)) if pair[0] != pair[1]),
+                    min(len(a), len(b)) if len(a) != len(b) else None)
+    result = {'left': left, 'right': right, 'complete': all(run['complete'] for run in runs),
+              'byte_equal': blobs[0] == blobs[1], 'first_offset': first(*blobs)}
+    inflated = [inflate(f) for f in files]
+    result['inflated_equal'] = inflated[0] == inflated[1]
+    result['first_inflated_offset'] = first(*inflated)
+    fields = [state_fields(f, decomp_paths(), ignore_timers=False) for f in files]
+    changes = [{'path': k, 'left': fields[0].get(k), 'right': fields[1].get(k)}
+               for k in sorted(fields[0].keys() | fields[1].keys()) if fields[0].get(k) != fields[1].get(k)]
+    result['first_field'] = changes[0] if changes else None
+    result['field_differences'] = len(changes)
+    result['dump_equal'] = (dirs[0] / 'saved-dump.txt').read_bytes() == (dirs[1] / 'saved-dump.txt').read_bytes()
+    result['equal'] = result['complete'] and result['byte_equal'] and result['dump_equal']
+    out = build / 'editor' / ('compare-' + left + '-' + right)
+    out.mkdir(exist_ok=True)
+    (out / 'comparison.json').write_text(json.dumps(result, indent=2))
+    (out / 'fields.json').write_text(json.dumps(changes, indent=2))
+    print(json.dumps(result, indent=2), flush=True)
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('build', type=Path)
@@ -698,6 +1047,7 @@ def main():
     seed_parser = sub.add_parser('seed-map')
     seed_parser.add_argument('map', type=Path)
     seed_parser.add_argument('target', type=Path)
+    seed_parser.add_argument('--cpu', type=int, choices=(1, 2, 3, 6, 7), default=1)
     seed_parser.add_argument('--seed', type=lambda s: int(s, 0), default=123456789)
     run_parser = sub.add_parser('run')
     run_parser.add_argument('variant', choices=('original', 'rebuilt'))
@@ -707,6 +1057,13 @@ def main():
     run_parser.add_argument('--seed', type=lambda s: int(s, 0), default=123456789)
     run_parser.add_argument('--timeout', type=float, default=3600)
     run_parser.add_argument('--initial-only', action='store_true')
+    run_parser.add_argument('--tactical', action='store_true')
+    run_parser.add_argument('--coverage', action='store_true')
+    run_parser.add_argument('--exercise-items', action='store_true')
+    run_parser.add_argument('--global-spell', type=int, default=0,
+                            choices=(0, 44, 45, 46, 47, 48, 50, 60, 61, 62, 63, 64, 65))
+    run_parser.add_argument('--tactical-battles', type=int, default=0,
+                            help='select tactical combat for only the first N battles (0: all)')
     compare_parser = sub.add_parser('compare')
     compare_parser.add_argument('left')
     compare_parser.add_argument('right')
@@ -718,6 +1075,13 @@ def main():
     suite_parser.add_argument('--turns', type=int, default=20)
     suite_parser.add_argument('--timeout', type=float, default=3600)
     suite_parser.add_argument('--rebuilt-label', default='rebuilt-after')
+    editor_parser = sub.add_parser('editor')
+    editor_parser.add_argument('variant', choices=('original', 'rebuilt'))
+    editor_parser.add_argument('scenario', choices=tuple(SCENARIOS))
+    editor_parser.add_argument('label')
+    editor_compare_parser = sub.add_parser('editor-compare')
+    editor_compare_parser.add_argument('left')
+    editor_compare_parser.add_argument('right')
     probe_parser = sub.add_parser('probe')
     probe_parser.add_argument('--variant', choices=('original', 'rebuilt'), default='original')
     probe_parser.add_argument('--seconds', type=float, default=30)
@@ -735,13 +1099,17 @@ def main():
     elif args.command == 'seed-map':
         if not args.target.resolve().is_relative_to(build):
             parser.error('prepared saves must be below the build directory')
-        seed_map(args.map, args.target, args.seed)
+        seed_map(args.map, args.target, args.seed, cpu=args.cpu)
     elif args.command == 'run':
-        run_game(build, args.variant, args.save.resolve(), args.label, args.turns, args.seed, args.timeout, args.initial_only)
+        run_game(build, args.variant, args.save.resolve(), args.label, args.turns, args.seed, args.timeout, args.initial_only, args.tactical, args.coverage, args.tactical_battles, args.exercise_items, args.global_spell)
     elif args.command == 'compare':
         print(json.dumps(compare_runs(build, args.left, args.right), indent=2))
     elif args.command == 'check':
         check_modules(build, args.label, args.modules)
+    elif args.command == 'editor':
+        editor_roundtrip(build, args.variant, args.scenario, args.label)
+    elif args.command == 'editor-compare':
+        compare_editor(build, args.left, args.right)
     elif args.command == 'suite':
         suite(build, args.scenarios, args.turns, args.timeout, args.rebuilt_label)
     else:
