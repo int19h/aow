@@ -1752,7 +1752,7 @@ end;
 function TCompressStream.SaveToStreamEx(Stream: TStream; Level: TCompressLevel): Integer;
 var
   C: TCompressionStream;
-  StartSize: Integer;
+  StartSize: Integer; CompressionLevel: TCompressionLevel;
 begin
   Position := 0;
   Result := 100;
@@ -1761,7 +1761,7 @@ begin
   Stream.Write(Level, SizeOf(Level));
   if Level <> cpNone then
   begin
-    C := TCompressionStream.Create(TCompressionLevel(Level), Stream);
+    CompressionLevel := TCompressionLevel(Level); C := TCompressionStream.Create(CompressionLevel, Stream);
     try
       C.CopyFrom(Self, 0);
       Result := Round((1 - (Stream.Size - StartSize) / Size) * 100);
@@ -8383,8 +8383,8 @@ type
   end;
 
 function TECopyComponent.GetEObject(Index: Integer): TEObject;
-begin
-  Result := TEObject(FEObjects[Index]);
+var P: Pointer;
+begin P := FEObjects[Index]; Result := TEObject(P);
 end;
 
 procedure TECopyComponent.SetEObject(Index: Integer; Value: TEObject);
@@ -9299,19 +9299,19 @@ end;
 procedure TPlugInControl.InitializePlugIns;
 var
   I: Integer;
-  S: string;
+  IndexAddress: Pointer; { Taking I's address preserves its original stack slot. }
   P: TPlugIn;
-begin
+begin IndexAddress := @I;
   for I := 0 to FUsedPlugIns.Count - 1 do
   begin
-    S := FUsedPlugIns[I];
-    P := FindPlugIn(S);
+    P := FindPlugIn(FUsedPlugIns[I]);
+
     if P <> nil then
       P.Initialize(FEngine)
     else
     begin
-      S := 'PlugIn Missing (' + FUsedPlugIns[I] + ')';
-      raise EPlugInMissing.Create(S);
+      raise EPlugInMissing.Create('PlugIn Missing (' + FUsedPlugIns[I] + ')');
+
     end;
   end;
 end;
@@ -9456,9 +9456,9 @@ begin
 end;
 
 function GetEngine(Index: Integer): TEngine;
-begin
-  if (Engines <> nil) and (Index >= 0) and (Index < Engines.Count) then
-    Result := TEngine(Engines[Index])
+var P: Pointer;
+begin if (Engines <> nil) and (Index >= 0) and (Index < Engines.Count) then
+    begin P := Engines[Index]; Result := TEngine(P); end
   else
     Result := nil;
 end;
@@ -10184,8 +10184,8 @@ begin
 end;
 
 procedure TEReadStorageStream.rwBool(var B: Boolean; ID: Integer);
-begin
-  B := FPropertyTable.FindOffset(ID) <> -1;
+var Offset: Integer;
+begin Offset := FPropertyTable.FindOffset(ID); B := Offset <> -1;
 end;
 
 function TEReadStorageStream.HandleException(E: Exception): Boolean;

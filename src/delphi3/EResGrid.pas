@@ -188,13 +188,13 @@ begin
 end;
 
 procedure TECustomResourceGrid.SetEComponent(Value: TEComponent);
-begin
-  { differs from the original in one register: it copies Value to ecx and loads the engine into
-    edx; no source variant tried reproduces it }
-  FEComponent := Value;
+var C: TEComponent;
+begin C := Value;
+  { Retain the component while connecting its engine. }
+  FEComponent := C;
   if Value <> nil then
   begin
-    FEngine := Value.Engine;
+    FEngine := C.Engine;
     if FEngine <> nil then FGridControl.Connect(FEngine.ControlNode)
     else FGridControl.Disconnect;
   end

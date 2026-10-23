@@ -3175,7 +3175,7 @@ begin
   end;
 end;
 
-procedure TCombatUnitSelectionControl.UpdateMoveCursor; { Near miss: combat-info local at $2A, not $2C, after three layout variants. }
+procedure TCombatUnitSelectionControl.UpdateMoveCursor; { Keep the packed ability-result local in an eight-byte slot. }
 label FinishCursor;
 var
   Field: TAoWMapField;
@@ -3184,7 +3184,7 @@ var
   Targets: TCombatTargetType;
   Wall: TCityWall;
   SpellInfo: TSpellCombatInfo;
-  AbilityInfo: TAbilityCombatInfo;
+  AbilityInfo: record case Integer of 0: (Data: TAbilityCombatInfo); 1: (Align: array[0..1] of Integer); end;
 begin
   if AoWCombatMap = nil then Exit;
   UnitHS := GetTCUnitHS;
@@ -3205,8 +3205,8 @@ begin
     AoWHSSet.FSpellControl.GetSpell(UnitHS.FSelectedSpell).GetCombatInfo(UnitHS.FUnit.FUnit, SpellInfo);
     Targets := SpellInfo.TargetTypes;
   end else begin
-    AoWHSSet.FAbilityControl.GetAbility(UnitHS.FSelectedAbility).GetCombatInfo(UnitHS.FUnit.FUnit, AbilityInfo);
-    Targets := AbilityInfo.TargetTypes;
+    AoWHSSet.FAbilityControl.GetAbility(UnitHS.FSelectedAbility).GetCombatInfo(UnitHS.FUnit.FUnit, AbilityInfo.Data);
+    Targets := AbilityInfo.Data.TargetTypes;
   end;
   if (TargetHS = nil) or ((TargetHS = UnitHS) and not (cttFriend in Targets)) then begin
     if (FCursorImage < $55) or (FCursorImage > $58) then FCursorImage := $55;

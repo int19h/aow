@@ -187,7 +187,7 @@ begin
 end;
 
 procedure THeroInfoDlg.U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+begin Sender := TObject(Pointer(Sender));
   if TAoWComponent(Sender).Tag < FArmyInfo.FArmyView.GetCount then
   begin
     General.FSelectedUnit := FArmyInfo.FArmyView.GetUnit(TAoWComponent(Sender).Tag);

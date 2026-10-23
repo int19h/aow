@@ -426,9 +426,9 @@ end;
 
 procedure TDrawImageGrid.SetCellCount(Value: Integer);
 begin
-  { differs from the original in one register: it keeps Self in esi across the virtual call }
+  with TDrawImageGrid(Self) do begin
   FCellCount := Value;
-  RecalcRowsColumns;
+  RecalcRowsColumns; end;
 end;
 
 procedure TDrawImageGrid.RecalcRowsColumns;

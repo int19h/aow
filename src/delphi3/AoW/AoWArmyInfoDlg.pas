@@ -119,7 +119,7 @@ begin
 end;
 
 procedure TArmyInfoDlg.U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+begin Sender := TObject(Pointer(Sender));
   if TComponent(Sender).Tag < FEvent.FArmyView.GetCount then
   begin
     General.FSelectedUnit := FEvent.FArmyView.GetUnit(TComponent(Sender).Tag);

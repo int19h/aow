@@ -461,7 +461,7 @@ begin
   end;
 end;
 
-procedure TGeneral.SaveLayout; { Near miss: Global reads remain cached after three variants. }
+procedure TGeneral.SaveLayout; { Read the saved rectangle through the window pointer cell. }
 begin
       AoWEngine.FRegistry.SetRectangle(0, Rect(PInfoW.PInfoWin.Alignment.RightOffset, PInfoW.PInfoWin.Alignment.BottomOffset, PInfoW.PInfoWin.WinWidth, PInfoW.PInfoWin.WinHeight));
       AoWEngine.FRegistry.SetRectangle(1, Rect(ControlWin.ControlWindow.Alignment.RightOffset, ControlWin.ControlWindow.Alignment.TopOffset, ControlWin.ControlWindow.WinWidth, ControlWin.ControlWindow.WinHeight));
@@ -479,7 +479,7 @@ begin
     else AoWEngine.FRegistry.SetRectangle(9, Rect(0, 0, 0, 0));
       AoWEngine.FRegistry.SetRectangle(12, Rect(TCScanner.TCScannerWin.Alignment.RightOffset, TCScanner.TCScannerWin.Alignment.TopOffset, TCScanner.TCScannerWin.WinWidth, TCScanner.TCScannerWin.WinHeight));
       AoWEngine.FRegistry.SetRectangle(10, Rect(TCUnit.TCUnitWin.Alignment.RightOffset, TCUnit.TCUnitWin.Alignment.BottomOffset, TCUnit.TCUnitWin.WinWidth, TCUnit.TCUnitWin.WinHeight));
-  if AOWMWindow.MWindow.FMapAlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(11, Rect(MWindow.FMapRect.Left, MWindow.FMapRect.Top, MWindow.FMapRect.Right, MWindow.FMapRect.Bottom))
+  if AOWMWindow.MWindow.FMapAlignWidth <> awBoth then AoWEngine.FRegistry.SetRectangle(11, Rect(TMWindow(Pointer(@MWindow)^).FMapRect.Left, TMWindow(Pointer(@MWindow)^).FMapRect.Top, TMWindow(Pointer(@MWindow)^).FMapRect.Right, TMWindow(Pointer(@MWindow)^).FMapRect.Bottom))
   else AoWEngine.FRegistry.SetRectangle(11, Rect(0, 0, 0, 0));
 
 end;
