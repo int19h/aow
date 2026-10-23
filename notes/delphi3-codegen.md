@@ -12,6 +12,24 @@
 | Unsigned comparison with a literal | Type both operands: `Cardinal(A) < Cardinal(90)` gives `jae` on the false path; `Cardinal(A) < 90` gives `jge`. |
 | Calls to argument expressions in a particular order | Write explicit assignments in that order. Inline `Join(Step(1),...,Step(4))` calls Step with 4,3,2,1. |
 | An otherwise unexplained exception frame | Check for a string local, even an unused one, or a by-value string parameter. |
+| EDX, rather than EAX, zeroed for FS registration | Keep a call result in a local used inside try; storing it to Result first can free EAX and select `xor eax,eax` (K21). |
+| A hidden record-result destination | Check exact size: 1,2,4-byte records return in registers here; packed size 3 uses a buffer (K06). |
+| One array string clear versus several scalar clears | Keep allocated strings of the same type together; a distinct `type string` splits cleanup, an unused Integer gap does not (K09). |
+| An immediate OR rather than loading a set literal | Try `Include(S,bit)` instead of `S:=S+[bit]` (K26). |
+| Word set operations instead of generic 32-byte helpers | Type Mask and Empty constants as the same set type as the operand (K26). |
+| A full pointer load without string conversion or uniqueness | Use `Pointer(S)`; PChar and @S[1] can call LStrToPChar or UniqueString depending on storage/constness (K12). |
+| LoadResString, a literal pointer, or a pointer-cell load | Distinguish resourcestring, untyped string const, and typed string const (K13). |
+| `cmp al,1` instead of a nonzero test | Write `B=True`; it differs from `if B` for noncanonical Boolean bytes (K27). |
+| A method-pointer high-word test | `Assigned(E)` tests Code high word; `TMethod(E).Code<>nil` tests the whole pointer (K14). |
+| A different dynamic-call BX selector | Restore dynamic method declaration order; swapping A/B changes $FFFF to $FFFE (K15). |
+| No extra save in a forwarding override | Return the inherited function value explicitly: `Result:=inherited Work(...)` (K16). |
+| REP MOVSD instead of a runtime Move call | Use typed record assignment for these 16/32-byte copies (K08). |
+| An extra class check before a field/getter | `as` emits AsClass; a hard class cast does not (K33). |
+| No duplicate AL reload after pure asm | Use a private Byte local if the asm already loads AL, rather than naming Result (K23). |
+| Different integer complement instructions | `xor $FFFFFFFF` emits XOR; `not` emits NOT (K24). |
+| Correct enum sizes in the probe | Use CLI `-$Z-` or source `{$Z1}`; the numeric CLI `-$Z1` is not equivalent (K31). |
+| Direct raw-list loads rather than TList.Get | Use the backing List pointer only when the original did; it also removes checked getter behavior (K32). |
+| Different floating constant loads | Declare Scale as Single, Double or Extended to select dword, qword or xword loads; changing only the number can leave the instructions identical (K25). |
 
 ## Setup and how to reproduce
 
@@ -20,7 +38,11 @@ Experiments run on 2026-10-23 with `C:\Tools\Delphi3\BIN\DCC32.EXE`, SHA256
 The compiler identifies itself as Delphi for Win32 Version 10.0. Nothing was executed.
 
 The baseline from the switch sweep in [match.md](match.md) is
-`O+ W- B- G+ A+ R- Q- Z1`. Every pair was also compiled with `O-`.
+`O+ W- B- G+ A+ R- Q- Z1` (Z1 denotes the intended source enum size).
+The probe now uses command-line `-$Z-` for that size: numeric CLI `-$Z1`
+miscompiles enums in this compiler; see K31. The first-round measurements
+predate that correction; all second-round probes use it except the explicit
+failing-flag control. Every pair was also compiled with `O-`.
 The increment, Byte-assignment and Word-for tests additionally used `O- Q+`
 (Adcpack) and `O- Q+ R+` (aowDPlayComp). `L+` keeps map symbols available;
 `-B -GD` rebuilds with a detailed map. A package requiring `vcl30` retains all
@@ -777,3 +799,1353 @@ They do not test the claim about class declaration counts affecting otherwise
 identical methods. These probes compare compiled forms with each other; a
 rewrite of a game method still needs the original's call/data identities and
 control flow checked as required by [near-miss.md](briefs/near-miss.md).
+
+## 9. Leftover-driven source forms (second round)
+
+The source comments beside unmatched functions, all 556 rows of `notes/equiv-review/*.tsv`, and the matching notes were surveyed. Repeated register permutations, ordinary spill counts, basic widths and branch inversions already have first-round entries. The remaining mechanisms are grouped into the **38 kinds** below, with the motivating function or note named for each. A kind is an experimental source mechanism, not a claim that its original leftover has now been matched.
+
+**143 additional pairs, 287 pair/switch configurations**: every pair has O+ and O- results, and the overflow guard also has O- Q+ R+. Four extra enum flag controls isolate the probe bug. All paired builds were repeated with the corrected probe. Sixteen representative first-round configurations were also rebuilt and remained unchanged (regression_checks.json). The deliberately broken numeric-CLI enum control is the stated exception. No game was run.
+
+Complete inputs and results are under `D:\Build\tmp\cx_cg1\round2`: `inputs\<id>_a.pas` / `_b.pas`, output `<id>_<mode>_a` / `_b`, and `round2_results.json`. `review_inventory.json` retains the review rows and `pair_sources.json` the tested source pairs. Temporary Python drivers were deleted; the probe remains the only repository tool.
+
+For example:
+
+```powershell
+python -B tools/dcc_probe.py D:\Build\tmp\cx_cg1\round2\inputs\r2_try_carrier_a.pas `
+  --out D:\Build\tmp\cx_cg1\round2\reprobe -- Run
+```
+
+The source fragments below show the changed declarations/statements and, where needed, the shared body. Complete units are retained in the named input files. O+/O- outcomes refer to the **named routines**: assembler-callee controls intentionally compare the caller, and unit-lifetime controls name init/fini as well as Run. Excerpts retain instruction offsets; omitted instructions are not permission to drop calls or cleanup. Same-code results were compared across the full printed streams. These probes test generation, not runtime equivalence; some controls intentionally change contracts, call counts, undefined paths or side-effect order.
+
+This round uses `uses SysUtils,Classes`, G:Integer, `Tick(X)` implemented as `G:=G+X; Result:=G`, and `Sink(X)` as `G:=G xor X`. Default Run is `function Run(A,B:Integer):Integer`. Method probes share:
+
+```pascal
+type TObj=class
+  F,H:Integer; P:TObj;
+  function Get(X:Integer):Integer; virtual;
+  procedure Put(X,Y:Integer); virtual;
+  function Run(A,B:Integer):Integer;
+end;
+var Obj:TObj;
+{ Get returns F+X; Put assigns F:=X+Y; Fetch returns Obj. }
+```
+
+Thus F/H/P are at offsets 4/8/$0C. Sources called TTarget or TT declare separate tiny classes in their input files. TR/TS/TE shapes are stated in each kind or source fragment. PInteger is explicitly declared as ^Integer because this Delphi installation does not provide that name. Call-scheduling probes that leave Result unset are evidence for those call sites, not examples of defined return values.
+
+Review-only artifacts were kept separate: color immediates mistaken for image addresses, relocated assembly continuations, a wrong bare Register symbol, and truncated case-table displays do not identify a new compiler source form. Their instruction/data identity must be checked rather than perturbed until a masked comparison happens to match.
+
+### K01. Field tracking, bounds and repeated subscripts
+
+Reason: [match.md](match.md), field-store and FLists observations; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TProductionControl.GetProduceUnitLevelMax.
+
+A store can leave its value available for the following comparison; an intervening call forces a reload. Moving a field load across a guard reverses the observed comparison operands here. Conversely, naming the repeated `A and $FF` subscript did **not** change optimized code in this two-call example. A local is an experiment, not a guaranteed way to defeat reuse.
+
+**r2_store_track: O+: different; O-: different.**
+
+A: `begin F:=A; if F<H then Result:=F else Result:=H; end;`
+B: `begin F:=A; Sink(B); if F<H then Result:=F else Result:=H; end;`
+
+O+: A `TObj.Run: 0000: mov ecx, edx; 0002: mov dword ptr [eax + 4], ecx; ...; 000f: mov eax, edx; 0011: ret`; B `TObj.Run: 0000: push ebx; 0001: mov ebx, eax; ...; 0017: mov eax, edx; 0019: pop ebx`.
+O-: A `TObj.Run: 0006: mov dword ptr [ebp - 0x10], ecx; ...; 003a: mov eax, dword ptr [ebp - 0xc]`; B `TObj.Run: 0006: mov dword ptr [ebp - 0xc], ecx; ...; 0042: mov eax, dword ptr [ebp - 0x10]`.
+Context: A call invalidates the tracked field value.
+
+**r2_bound_reuse: O+: different; O-: different.**
+
+A: `begin if A>F then begin T:=F; for I:=T to A do Sink(I) end; Result:=F; end;`
+B: `begin T:=F; if A>T then begin for I:=T to A do Sink(I) end; Result:=F; end;`
+
+O+: A `TObj.Run: 0008: cmp edx, eax; 000a: jle +0x20`; B `TObj.Run: 0008: cmp eax, edx; 000a: jge +0x20`.
+O-: A `TObj.Run: 0015: cmp eax, dword ptr [ebp - 8]; ...; 001d: mov eax, dword ptr [eax + 4]`; B `TObj.Run: 0018: mov eax, dword ptr [ebp - 8]; ...; 001e: jle +0x41`.
+
+**r2_index_reuse: O+: same code; O-: different.**
+
+A: `begin Items[A and $FF].Put(A,B); Result:=Items[A and $FF].Get(A); end;`
+B: `var I:Integer; begin I:=A and $FF; Items[I].Put(A,B); Result:=Items[I].Get(A); end;`
+
+O+: Both `Run: 0006: and esi, 0xff 000c: mov eax, dword ptr [esi*4 + image+0x3024] 0013: mov ecx, edx 0015: mov edx, ebx`.
+O-: A `Run: 0003: add esp, -0xc; ...; 0029: and eax, 0xff`; B `Run: 0003: add esp, -0x10; ...; 002c: mov eax, dword ptr [ebp - 0x10]`.
+
+### K02. Global cell addresses, pointer contents and aliasing
+
+Reason: [AoWWinMan.pas](../src/delphi3/AoW/AoWWinMan.pas), TGeneral.SaveLayout; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TPBEMPlayerControl.ValidateLoadedMap; [AoW review](equiv-review/AoW.exe.tsv), TVideoDialog.ApplyMode.
+
+`T:=Obj` saves the current object across Sink. `Q:=@Obj` saves the address of the global cell but still reloads Q^ after Sink. Both can produce an extra saved register, but only the former freezes the receiver. The alias control stores through P and Q: replacing a final P^ load with A is wrong when P=Q. Do not classify a global or alias reload as redundant merely because the addresses look similar.
+
+**r2_global_value: O+: different; O-: different.**
+
+A: `begin Result:=Obj.F; Sink(A); Result:=Result+Obj.H; end;`
+B: `var T:TObj; begin T:=Obj; Result:=T.F; Sink(A); Result:=Result+T.H; end;`
+
+O+: A `TObj.Run: 0001: mov eax, dword ptr [image+0x3024]; 0006: mov ebx, dword ptr [eax + 4]; ...; 0015: add ebx, dword ptr [eax + 8]; 0018: mov eax, ebx`; B `TObj.Run: 0001: push esi; 0002: mov ebx, dword ptr [image+0x3024]; ...; 0015: mov eax, esi; 0017: pop esi`.
+O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0022: mov eax, dword ptr [image+0x3024]`; B `TObj.Run: 0003: add esp, -0x14; ...; 0028: mov eax, dword ptr [ebp - 0x10]`.
+Context: Caching the pointer can change behavior across a call.
+
+**r2_global_cell: O+: different; O-: different.**
+
+A: `begin Result:=Obj.F; Sink(A); Result:=Result+Obj.H; end;`
+B: `var Q:^TObj; begin Q:=@Obj; Result:=Q^.F; Sink(A); Result:=Result+Q^.H; end;`
+
+O+: A `TObj.Run: 0001: mov eax, dword ptr [image+0x3024]; 0006: mov ebx, dword ptr [eax + 4]; ...; 0015: add ebx, dword ptr [eax + 8]; 0018: mov eax, ebx`; B `TObj.Run: 0001: push esi; 0002: mov ebx, image+0x3024; ...; 0018: mov eax, esi; 001a: pop esi`.
+O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0022: mov eax, dword ptr [image+0x3024]`; B `TObj.Run: 0003: add esp, -0x14; ...; 002c: mov eax, dword ptr [eax]`.
+
+**r2_alias_reload: O+: different; O-: different.**
+
+A: `begin P^:=A; Q^:=B; Result:=P^; end;`
+B: `begin P^:=A; Q^:=B; Result:=A; end;`
+
+O+: A `Run: 0005: mov ecx, dword ptr [ebp + 8]; 0008: mov dword ptr [edx], ecx; 000a: mov eax, dword ptr [eax]`; B `Run: 0005: mov eax, dword ptr [ebp + 8]; 0008: mov dword ptr [edx], eax; 000a: mov eax, ecx`.
+O-: A `Run: 0017: mov eax, dword ptr [ebp + 8]; ...; 0022: mov eax, dword ptr [eax]`; B `Run: 0017: mov eax, dword ptr [ebp - 8]; ...; 001f: mov eax, dword ptr [ebp - 0xc]`.
+Context: The second form is wrong when P=Q; a retained value is not always equivalent.
+
+### K03. Single-use receivers, use order and result lifetimes
+
+Reason: [AoWSetup.pas](../src/delphi3/AoWEPACK/AoWSetup.pas), TSetupControl.Create; [Spells.PAS](../src/delphi3/AoWEPACK/inc/Spells.PAS), single-use-source and saved-Self comments; [match.md](match.md), search-index/result leftovers.
+
+A single-use `T:=Fetch` was removed completely under O+, including any additional save; it became real storage under O-. Returning the search index keeps it live through Put, and changing I to Result changes the saved-register allocation. A procedure that does not return the index can use eax and omit the function version's ebx save. Parameter use order also changes which incoming value is saved. None of this reproduces every unexplained original Self save.
+
+**r2_single_receiver: O+: same code; O-: different.**
+
+A: `begin Result:=Fetch.Get(A); end;`
+B: `var T:TObj; begin T:=Fetch; Result:=T.Get(A); end;`
+
+O+: Both `TObj.Run: 0003: call Fetch 0008: mov edx, ebx 000a: mov ecx, dword ptr [eax] 000c: call dword ptr [ecx]`.
+O-: A `TObj.Run: 0003: add esp, -0x10; 0006: mov dword ptr [ebp - 0x10], ecx`; B `TObj.Run: 0003: add esp, -0x14; ...; 001a: mov eax, dword ptr [ebp - 0x10]`.
+
+**r2_result_index: O+: different; O-: different.**
+
+A: `var I:Integer; begin I:=Get(A); if I>=0 then Put(I,B); Result:=I; end;`
+B: `begin Result:=Get(A); if Result>=0 then Put(Result,B); end;`
+
+O+: A `TObj.Run: 0005: mov esi, eax; 0007: mov eax, esi; ...; 001b: call dword ptr [esi + 4]; 001e: mov eax, ebx`; B `TObj.Run: 0005: mov ebx, eax; 0007: mov eax, ebx; ...; 0019: mov ebx, dword ptr [eax]; 001b: call dword ptr [ebx + 4]`.
+O-: A `TObj.Run: 0003: add esp, -0x14; ...; 0034: mov dword ptr [ebp - 0x10], eax`; B `TObj.Run: 0003: add esp, -0x10; ...; 0026: mov edx, dword ptr [ebp - 0x10]`.
+
+**r2_parameter_uses: O+: different; O-: different.**
+
+A: `begin Sink(A); Result:=B+H; end;`
+B: `begin Sink(B); Result:=A+H; end;`
+
+O+: A `TObj.Run: 0002: mov esi, ecx; 0006: mov eax, edx`; B `TObj.Run: 0002: mov esi, edx; 0006: mov eax, ecx`.
+O-: A `TObj.Run: 0012: call Sink; 0017: mov eax, dword ptr [ebp - 0xc]`; B `TObj.Run: 000f: mov eax, dword ptr [ebp - 0xc]; 0012: call Sink`.
+Context: Use order, not merely declaration order, changes entry saves.
+
+**r2_proc_function: O+: different; O-: different.**
+
+A: `procedure Run(A:Integer); procedure Run(A:Integer); var I:Integer; begin I:=Tick(A); if I>=0 then Sink(I) end;`
+B: `function Run(A:Integer):Integer; function Run(A:Integer):Integer; var I:Integer; begin I:=Tick(A); if I>=0 then Sink(I); Result:=I; end;`
+
+O+: A `Run: 0005: test eax, eax`; B `Run: 0000: push ebx; 0006: mov ebx, eax; ...; 0013: mov eax, ebx; 0015: pop ebx`.
+O-: A `Run: 0003: add esp, -8; ...; 0023: pop ecx`; B `Run: 0003: add esp, -0xc; ...; 002b: mov esp, ebp`.
+
+### K04. Receiver, field and untyped-argument scheduling
+
+Reason: [ExploreS.pas](../src/delphi3/AoWEPACK/ExploreS.pas), GetTerrainTypeImage; [Structur.PAS](../src/delphi3/AoWEPACK/inc/Structur.PAS), receiver/index comments; [Ilpack review](equiv-review/Ilpack.dpl.tsv), TBitMask.GrabImage.
+
+`with P` captures P before Fetch; the repeated-field form calls Fetch before loading Self.P in this context. An untyped const field argument passes its actual address; copying it first makes a private addressable slot instead. The var-argument control shows that an addressable incoming argument can force stack storage and xchg staging. These examples do not establish one global left-to-right rule; each expression kind is scheduled separately.
+
+**r2_receiver_eval: O+: different; O-: different.**
+
+A: `begin Fetch.Put(P.F,P.H); end;`
+B: `begin with P do Fetch.Put(F,H); end;`
+
+O+: A `TObj.Run: 0002: push edi; 0003: mov ebx, eax; ...; 0018: mov eax, edi; 001a: pop edi`; B `TObj.Run: 0002: mov ebx, dword ptr [eax + 0xc]; 000a: mov ecx, dword ptr [ebx + 8]; 000d: mov edx, dword ptr [ebx + 4]; 0015: mov eax, esi`.
+O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0021: mov edx, dword ptr [edx + 0xc]`; B `TObj.Run: 0003: add esp, -0x14; ...; 0024: mov edx, dword ptr [ebp - 0xc]`.
+
+**r2_untyped_arg: O+: different; O-: different.**
+
+A: `begin Send(A,F,B); end;`
+B: `var T:Integer; begin T:=F; Send(A,T,B); end;`
+
+O+: A `TObj.Run: 0001: add eax, 4`; B `TObj.Run: 0001: push ecx; 0002: mov eax, dword ptr [eax + 4]; ...; 0008: mov eax, esp; 0012: pop edx`.
+O-: A `TObj.Run: 0003: add esp, -0x10; 0012: lea edx, [eax + 4]`; B `TObj.Run: 0003: add esp, -0x14; ...; 0018: lea edx, [ebp - 0x14]`.
+
+**r2_var_arg_order: O+: different; O-: different.**
+
+A: `begin Send(A,A,B); end;`
+B: `begin Send(A,B,A); end;`
+
+O+: A `Run: 0002: mov dword ptr [esp], eax; 0005: mov eax, esp; ...; 0009: mov edx, dword ptr [esp]; 000c: xchg edx, eax`; B `Run: 0002: mov dword ptr [esp], edx; 0005: mov edx, esp; 0007: mov ecx, eax`.
+O-: A `Run: 000c: lea edx, [ebp - 4]; 000f: mov ecx, dword ptr [ebp - 8]`; B `Run: 000c: lea edx, [ebp - 8]; 000f: mov ecx, dword ptr [ebp - 4]`.
+
+### K05. Casts of call results and nested constructors
+
+Reason: [match.md](match.md), `Result:=TClass(Items[I])` and GetEClass(...).Create(...).
+
+The cast directly around GetObj saves/reloads the incoming argument; assigning GetObj's result to P first reduces the optimized wrapper to `call GetObj; ret`. Nested Find(A).Create(B) saves A and B in ebx/esi; the explicit class local needs only ebx for B. GetObj returns TObject; the cast/result type is an otherwise empty TObj. Find returns a class reference; its constructor writes G and calls inherited Create.
+
+**r2_call_result_cast: O+: different; O-: different.**
+
+A: `begin Result:=TObj(GetObj(A)); end;`
+B: `var P:TObject; begin P:=GetObj(A); Result:=TObj(P); end;`
+
+O+: A `Run: 0000: push ebx; 0001: mov ebx, eax; 0003: mov eax, ebx; 000a: pop ebx`; B `Run: (no corresponding instruction)`.
+O-: A `Run: 0003: add esp, -8; ...; 0018: pop ecx`; B `Run: 0003: add esp, -0xc; ...; 001d: mov esp, ebp`.
+
+**r2_nested_create: O+: different; O-: different.**
+
+A: `begin Result:=Find(A).Create(B); end;`
+B: `var C:TObjClass; begin C:=Find(A); Result:=C.Create(B); end;`
+
+O+: A `Run: 0001: push esi; 0002: mov esi, edx; ...; 000d: mov ecx, esi; 0016: pop esi`; B `Run: 0001: mov ebx, edx; 0008: mov ecx, ebx`.
+O-: A `Run: 0003: add esp, -0xc`; B `Run: 0003: add esp, -0x10; ...; 001c: mov eax, dword ptr [ebp - 0x10]`.
+
+### K06. Record size, packing and hidden result buffers
+
+Reason: [AoWTCPCK review](equiv-review/AoWTCPCK.dpl.tsv), UpdateMoveCursor/CanMoveOn; [AoWTC.pas](../src/delphi3/AoWTCPCK/AoWTC.pas), packed-temporary comments; [match.md](match.md), GetHeapStatus.
+
+The return ABI follows the exact record size. The byte-array records of sizes 1,2,4 return in al,ax,eax; sizes 3,5,8,9 use a caller-provided destination (edx after the explicit Byte argument here). Packing `record B:Byte; W:Word end` changes size 4 to 3: it therefore **adds** a hidden buffer, with W read at buffer+1 instead of extracting the high word of eax. Naming that buffer did not change O+ code. Two GetHeapStatus field expressions call it twice and reserve two $28-byte records; the explicit snapshot calls once. Those are different heap snapshots, not interchangeable in every program.
+
+**r2_packed_result: O+: different; O-: different.**
+
+A: `type TR=record B:Byte; W:Word; end; begin Result:=Make(Byte(A)).W; end;`
+B: `type TR=packed record B:Byte; W:Word; end; begin Result:=Make(Byte(A)).W; end;`
+
+O+: A `Run: 000a: shr eax, 0x10; 000d: movzx eax, ax`; B `Run: 0001: push ecx; 0006: mov edx, esp; 000d: movzx eax, word ptr [esp + 1]; 0012: pop edx`.
+O-: A `Run: 0003: add esp, -0xc; ...; 0017: movzx eax, ax`; B `Run: 0003: add esp, -0x10; ...; 0017: movzx eax, word ptr [ebp - 0xf]`.
+
+**r2_explicit_result_buffer: O+: same code; O-: different.**
+
+A: `begin Result:=Make(Byte(A)).W; end;`
+B: `var R:TR; begin R:=Make(Byte(A)); Result:=R.W; end;`
+
+O+: Both `Run: 0008: call Make 000d: movzx eax, word ptr [esp + 1] 0012: pop edx 0013: pop ebx`.
+O-: A `Run: 0006: mov dword ptr [ebp - 0xc], edx; ...; 0017: movzx eax, word ptr [ebp - 0xf]`; B `Run: 0006: mov dword ptr [ebp - 0x10], edx; ...; 0017: movzx eax, word ptr [ebp - 0xb]`.
+
+**r2_record_size1: O+: different; O-: different.**
+
+A: `type TR=packed record B:array[1..1] of Byte end; function Run(X:Byte):TR;`
+B: `type TR=packed record B:array[1..2] of Byte end; function Run(X:Byte):TR;`
+
+O+: A `Run: 0007: mov edx, 1; 0011: mov al, byte ptr [esp]`; B `Run: 0007: mov edx, 2; 0011: mov ax, word ptr [esp]`.
+O-: A `Run: 000c: lea eax, [ebp - 2]; ...; 0019: mov al, byte ptr [ebp - 2]`; B `Run: 000c: lea eax, [ebp - 3]; ...; 0019: mov ax, word ptr [ebp - 3]`.
+
+**r2_record_size2: O+: different; O-: different.**
+
+A: `type TR=packed record B:array[1..2] of Byte end; function Run(X:Byte):TR;`
+B: `type TR=packed record B:array[1..3] of Byte end; function Run(X:Byte):TR;`
+
+O+: A `Run: 0000: push ecx; 0005: mov eax, esp; ...; 0011: mov ax, word ptr [esp]; 0015: pop edx`; B `Run: 0004: mov eax, edx; 0006: mov edx, 3`.
+O-: A `Run: 0003: push ecx; ...; 0019: mov ax, word ptr [ebp - 3]`; B `Run: 0003: add esp, -8; ...; 001e: pop ecx`.
+
+**r2_record_size4: O+: different; O-: different.**
+
+A: `type TR=packed record B:array[1..4] of Byte end; function Run(X:Byte):TR;`
+B: `type TR=packed record B:array[1..5] of Byte end; function Run(X:Byte):TR;`
+
+O+: A `Run: 0000: push ecx; 0005: mov eax, esp; ...; 0011: mov eax, dword ptr [esp]; 0014: pop edx`; B `Run: 0004: mov eax, edx; 0006: mov edx, 5`.
+O-: A `Run: 000e: lea eax, [ebp - 5]; ...; 001b: mov eax, dword ptr [ebp - 5]`; B `Run: 0006: mov dword ptr [ebp - 8], edx; ...; 0014: mov edx, 5`.
+
+**r2_record_size8: O+: different; O-: different.**
+
+A: `type TR=packed record B:array[1..8] of Byte end; function Run(X:Byte):TR;`
+B: `type TR=packed record B:array[1..9] of Byte end; function Run(X:Byte):TR;`
+
+O+: A `Run: 0006: mov edx, 8`; B `Run: 0006: mov edx, 9`.
+O-: A `Run: 0014: mov edx, 8`; B `Run: 0014: mov edx, 9`.
+
+**r2_heap_record: O+: different; O-: different.**
+
+A: `begin Result:=GetHeapStatus.TotalAllocated+GetHeapStatus.TotalFree; end;`
+B: `var R:THeapStatus; begin R:=GetHeapStatus; Result:=R.TotalAllocated+R.TotalFree; end;`
+
+O+: A `Run: 0000: push ebx; 0001: add esp, -0x50; ...; 001e: add esp, 0x50; 0021: pop ebx`; B `Run: 0000: add esp, -0x28; 000a: mov eax, dword ptr [esp + 0xc]; 000e: add eax, dword ptr [esp + 0x10]; 0012: add esp, 0x28`.
+O-: A `Run: 0003: add esp, -0x5c; ...; 0029: pop ebx`; B `Run: 0003: add esp, -0x34; ...; 001a: mov dword ptr [ebp - 4], eax`.
+
+### K07. Address-taking, record reinterpretation and pointer aliases
+
+Reason: [PoisonP.pas](../src/delphi3/AoWEPACK/PoisonP.pas), CreatePoisonPlant; [UnHolyG.pas](../src/delphi3/AoWEPACK/UnHolyG.pas), CreateUnholyGround; [match.md](match.md), TLargeInteger casts.
+
+Reinterpreting a Comp local as `TR(C)` forces an EBP frame; `PR(@C)^` stays ESP-relative under O+. Passing an Integer local to an untyped const parameter forces its addressable slot. `TR(Pointer(P)^)` versus `with PR(P)^` changes which object address survives Fetch. This small case reused the pointer for both fields; it did not reproduce the repeated reloads described for a larger original method. TR in that last pair is `record X,Y:Integer end`, so X/Y occupy offsets 0/4 of the cast memory.
+
+**r2_record_cast_frame: O+: different; O-: different.**
+
+A: `type TR=record Lo,Hi:Integer end; begin C:=A; Result:=TR(C).Lo; end;`
+B: `type TR=record Lo,Hi:Integer end; PR=^TR; begin C:=A; Result:=PR(@C)^.Lo; end;`
+
+O+: A `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 0013: mov esp, ebp; 0015: pop ebp`; B `Run: 0003: mov dword ptr [esp + 8], eax; 0007: fild dword ptr [esp + 8]; ...; 0011: mov eax, dword ptr [eax]; 0013: add esp, 0xc`.
+O-: A `Run: 0009: mov dword ptr [ebp - 0xc], eax; ...; 0019: mov eax, dword ptr [ebp - 0x10]`; B `Run: 0009: mov dword ptr [ebp - 4], eax; ...; 0018: mov dword ptr [ebp - 8], eax`.
+
+**r2_address_local: O+: different; O-: different.**
+
+A: `begin X:=Tick(A); Sink(X); Result:=X+B; end;`
+B: `procedure Read(const X); procedure Read(const X); begin G:=Integer(X) end; begin X:=Tick(A); Read(X); Sink(X); Result:=X+B; end;`
+
+O+: A `Run: 0004: call Tick; 0012: lea eax, [esi + ebx]`; B `Run: 0002: push ecx; 0009: call Tick; ...; 0023: add eax, esi; 0025: pop edx`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 0017: lea eax, [ebp - 0x10]; 001a: call Read`.
+
+**r2_record_with_cast: O+: different; O-: different.**
+
+A: `begin Fetch.Put(TR(Pointer(P)^).X,TR(Pointer(P)^).Y); end;`
+B: `begin with PR(P)^ do Fetch.Put(X,Y); end;`
+
+O+: A `TObj.Run: 0002: push edi; 0003: mov ebx, eax; ...; 0017: mov eax, edi; 0019: pop edi`; B `TObj.Run: 0002: mov ebx, dword ptr [eax + 0xc]; 000a: mov ecx, dword ptr [ebx + 4]; 000d: mov edx, dword ptr [ebx]; 0014: mov eax, esi`.
+O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0021: mov edx, dword ptr [edx + 0xc]`; B `TObj.Run: 0003: add esp, -0x14; ...; 0024: mov edx, dword ptr [ebp - 0xc]`.
+
+### K08. Aggregate assignment, Move and callee copies
+
+Reason: [aowInt review](equiv-review/aowInt.dpl.tsv), DrawBack<TAOWPanel.Draw; [match.md](match.md), const-record copies.
+
+`D:=S` is specialized: the four-byte const record arrives as a value in eax, eight bytes copy two dwords, and 16/32 bytes use saved esi/edi plus `rep movsd` with count 4/8. `Move(S,D,SizeOf(S))` calls System.Move instead. A value 16-byte R copied again to L reserves/copies two records ($20 bytes); const R copied to L needs one ($10). Do not replace record assignment by Move when matching the copy instructions or parameter ABI.
+
+**r2_copy4: O+: different; O-: different.**
+
+A: `procedure Run(const S:TR; var D:TR); begin D:=S; end;`
+B: `procedure Run(const S:TR; var D:TR); begin Move(S,D,SizeOf(S)); end;`
+
+O+: A `Run: 0004: mov eax, dword ptr [esp]; 0007: mov dword ptr [edx], eax`; B `Run: 0004: mov eax, esp; 0006: mov ecx, 4; 000b: call System.Move@8E671582`.
+O-: A `Run: 000c: mov eax, dword ptr [ebp - 8]; ...; 0012: mov dword ptr [eax], edx`; B `Run: 000c: mov edx, dword ptr [ebp - 8]; ...; 0017: call System.Move@8E671582`.
+
+**r2_copy8: O+: different; O-: different.**
+
+A: `procedure Run(const S:TR; var D:TR); begin D:=S; end;`
+B: `procedure Run(const S:TR; var D:TR); begin Move(S,D,SizeOf(S)); end;`
+
+O+: A `Run: 0000: mov ecx, dword ptr [eax]; 0002: mov dword ptr [edx], ecx; 0004: mov ecx, dword ptr [eax + 4]; 0007: mov dword ptr [edx + 4], ecx`; B `Run: 0000: mov ecx, 8; 0005: call System.Move@8E671582`.
+O-: A `Run: 000c: mov eax, dword ptr [ebp - 8]; ...; 0019: mov dword ptr [eax + 4], ecx`; B `Run: 000c: mov edx, dword ptr [ebp - 8]; ...; 0017: call System.Move@8E671582`.
+
+**r2_copy16: O+: different; O-: different.**
+
+A: `procedure Run(const S:TR; var D:TR); begin D:=S; end;`
+B: `procedure Run(const S:TR; var D:TR); begin Move(S,D,SizeOf(S)); end;`
+
+O+: A `Run: 0000: push esi; 0001: push edi; ...; 000d: pop edi; 000e: pop esi`; B `Run: 0000: mov ecx, 0x10; 0005: call System.Move@8E671582`.
+O-: A `Run: 0006: push esi; ...; 0020: pop esi`; B `Run: 000c: mov edx, dword ptr [ebp - 8]; ...; 0017: call System.Move@8E671582`.
+
+**r2_copy32: O+: different; O-: different.**
+
+A: `procedure Run(const S:TR; var D:TR); begin D:=S; end;`
+B: `procedure Run(const S:TR; var D:TR); begin Move(S,D,SizeOf(S)); end;`
+
+O+: A `Run: 0000: push esi; 0001: push edi; ...; 000d: pop edi; 000e: pop esi`; B `Run: 0000: mov ecx, 0x20; 0005: call System.Move@8E671582`.
+O-: A `Run: 0006: push esi; ...; 0020: pop esi`; B `Run: 000c: mov edx, dword ptr [ebp - 8]; ...; 0017: call System.Move@8E671582`.
+
+**r2_const_copy: O+: different; O-: different.**
+
+A: `type TR=record X,Y,Z,W:Integer end; function Run(const R:TR):Integer; function Run(const R:TR):Integer; var L:TR; begin L:=R; Result:=L.X+L.W end;`
+B: `type TR=record X,Y,Z,W:Integer end; function Run(R:TR):Integer; function Run(R:TR):Integer; var L:TR; begin L:=R; Result:=L.X+L.W end;`
+
+O+: A `Run: 0002: add esp, -0x10; 0007: mov edi, esp; ...; 0013: add eax, dword ptr [esp + 0xc]; 0017: add esp, 0x10`; B `Run: 0002: add esp, -0x20; 0007: lea edi, [esp]; ...; 0022: add eax, dword ptr [esp + 0x1c]; 0026: add esp, 0x20`.
+O-: A `Run: 0003: add esp, -0x18; ...; 0023: mov eax, dword ptr [ebp - 8]`; B `Run: 0003: add esp, -0x24; ...; 0024: add eax, dword ptr [ebp - 0x18]`.
+
+### K09. Managed cleanup grouping and managed record fields
+
+Reason: [Arena.pas](../src/delphi3/AoWEPACK/Arena.pas), ExecuteTE; [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), EnterEx; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TTeleport.Teleport.
+
+The shared body assigns a,b,c to S1/S2/S3, calls Sink, then sums their lengths. Three string locals finalize with `LStrArrayClr` and edx=3. Making S2 a distinct `TAlt=type string` splits them into three LStrClr calls, despite identical pointer representation. Inserting an **unused** Integer between declarations does not split them, even under O-. The record-field test changes S:string to S:ShortString: the managed case initializes/finalizes the record through type metadata; the ShortString case does not. Grouping is about allocated managed values and type identity, not just the printed var-list order.
+
+**r2_string_group_alias: O+: different; O-: different.**
+
+A: `var S1,S2,S3:string; begin S1:='a'; S2:='b'; S3:='c'; Sink(A); Result:=Length(S1)+Length(S2)+Length(S3); end;`
+B: `var S1:string; S2:TAlt; S3:string; begin S1:='a'; S2:='b'; S3:='c'; Sink(A); Result:=Length(S1)+Length(S2)+Length(S3); end;`
+
+O+: A `Run: 0076: mov edx, 3; 007b: call System.@LStrArrayClr`; B `Run: 0076: call System.@LStrClr; 007b: lea eax, [ebp - 8]; ...; 0083: lea eax, [ebp - 4]; 0086: call System.@LStrClr`.
+O-: A `Run: 0086: mov edx, 3; 008b: call System.@LStrArrayClr`; B `Run: 0086: call System.@LStrClr; ...; 0096: call System.@LStrClr`.
+
+**r2_string_group_gap: O+: same code; O-: same code.**
+
+A: `var S1,S2,S3:string; I:Integer; begin S1:='a'; S2:='b'; S3:='c'; Sink(A); Result:=Length(S1)+Length(S2)+Length(S3); end;`
+B: `var S1:string; I:Integer; S2,S3:string; begin S1:='a'; S2:='b'; S3:='c'; Sink(A); Result:=Length(S1)+Length(S2)+Length(S3); end;`
+
+O+: Both `Run: 0073: lea eax, [ebp - 0xc] 0076: mov edx, 3 007b: call System.@LStrArrayClr 0080: ret`.
+O-: Both `Run: 0083: lea eax, [ebp - 0x14] 0086: mov edx, 3 008b: call System.@LStrArrayClr 0090: ret`.
+
+**r2_managed_record: O+: different; O-: different.**
+
+A: `type TR=record S:string; I:Integer end; procedure Run;`
+B: `type TR=record S:ShortString; I:Integer end; procedure Run;`
+
+O+: A `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 005f: pop ebp; 0060: ret`; B `Run: 0000: add esp, 0xfffffefc; 0006: mov word ptr [esp], 0x7801; ...; 0011: mov dword ptr [esp + 0x100], eax; 0018: add esp, 0x104`.
+O-: A `Run: 0003: add esp, -8; ...; 005e: pop ecx`; B `Run: 0003: add esp, 0xfffffefc; ...; 001d: mov esp, ebp`.
+
+### K10. String temporary destinations and lifetimes
+
+Reason: [AoW review](equiv-review/AoW.exe.tsv), TSendEmailGameDlg.ShowSendDialog; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), path/managed-local leftovers.
+
+Inlining `IntToStr` inside Copy reserves the Copy result pointer before calling IntToStr and uses the two private string slots in the opposite roles from explicit S. Both finally blocks still clear two strings together. By contrast, two separate `Length(IntToStr(...))` statements reuse one hidden string destination: naming and reassigning S gives the same code in both modes. A named temporary does not automatically lengthen lifetime or add cleanup; inspect the destination and clear sites.
+
+**r2_string_inline: O+: different; O-: different.**
+
+A: `begin Result:=Length(Copy(IntToStr(A),1,B)); end;`
+B: `var S:string; begin S:=IntToStr(A); Result:=Length(Copy(S,1,B)); end;`
+
+O+: A `Run: 001b: lea eax, [ebp - 4]; 001e: push eax; ...; 0029: mov eax, dword ptr [ebp - 8]; 0038: mov eax, dword ptr [ebp - 4]`; B `Run: 001b: lea edx, [ebp - 4]; 0025: lea eax, [ebp - 8]; ...; 0030: mov eax, dword ptr [ebp - 4]; 0038: mov eax, dword ptr [ebp - 8]`.
+O-: A `Run: 000b: mov dword ptr [ebp - 0x14], ecx; ...; 0041: mov eax, dword ptr [ebp - 0x10]`; B `Run: 0008: mov dword ptr [ebp - 0x14], ecx; ...; 0041: mov eax, dword ptr [ebp - 0x14]`.
+
+**r2_string_reuse: O+: same code; O-: same code.**
+
+A: `begin Sink(Length(IntToStr(A))); Result:=Length(IntToStr(B)); end;`
+B: `var S:string; begin S:=IntToStr(A); Sink(Length(S)); S:=IntToStr(B); Result:=Length(S); end;`
+
+O+: Both `Run: 001e: call SysUtils.IntToStr@0F6FDFF6 0023: mov eax, dword ptr [ebp - 4] 0026: call System.@LStrLen 002b: call Sink`.
+O-: Both `Run: 0025: call SysUtils.IntToStr@0F6FDFF6 002a: mov eax, dword ptr [ebp - 0x10] 002d: call System.@LStrLen 0032: call Sink`.
+
+### K11. ShortString, Char concatenation and H state
+
+Reason: [match.md](match.md), ClassName concatenation and Char+Char observations.
+
+With S:ShortString, `S+'x'` builds a $100-byte short-string temporary with PStrCpy/PStrCat and then converts it. Casting S to string first instead creates a managed temporary, uses LStrFromString/LStrCat3 and adds finally cleanup. Char+Char takes the short-string path; casting the first Char to string selects managed conversions. H- changes the unqualified parameter/result string types and their ABI, not just the concatenation instruction.
+
+**r2_short_concat: O+: different; O-: different.**
+
+A: `begin Result:=S+'x'; end;`
+B: `begin Result:=string(S)+'x'; end;`
+
+O+: A `Run: 0002: add esp, 0xffffff00; 000e: mov eax, esp; ...; 0025: call System.@LStrFromString; 002a: add esp, 0x100`; B `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 0051: pop ecx; 0052: pop ebp`.
+O-: A `Run: 0003: add esp, 0xfffffef8; ...; 0036: call System.@LStrFromString`; B `Run: 0003: add esp, -0xc; ...; 0055: jmp +0x47`.
+
+**r2_char_concat: O+: different; O-: different.**
+
+A: `begin Result:=A+B; end;`
+B: `begin Result:=string(A)+B; end;`
+
+O+: A `Run: 0002: add esp, -0x10; 0007: mov byte ptr [esp], dl; ...; 0047: call System.@LStrFromString; 004c: add esp, 0x10`; B `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 0068: mov esp, ebp; 006a: pop ebp`.
+O-: A `Run: 0003: add esp, -0x14; ...; 0045: call System.@LStrFromString`; B `Run: 0003: add esp, -0x10; ...; 006e: pop ebx`.
+
+**r2_string_H: O+: different; O-: different.**
+
+A: `begin Result:=S+'x'; end;`
+B: `{$H-} begin Result:=S+'x'; end;`
+
+O+: A `Run: 0008: mov ecx, +0x20; 000d: mov edx, ebx; 000f: call System.@LStrCat3`; B `Run: 0002: add esp, 0xffffff00; 000c: mov edx, ebx; ...; 0025: call System.@PStrCpy; 002a: add esp, 0x100`.
+O-: A `Run: 0003: add esp, -8; ...; 001d: pop ecx`; B `Run: 0003: add esp, 0xfffffef8; ...; 003b: mov esp, ebp`.
+
+### K12. String data addresses, nil conversion and uniqueness
+
+Reason: [ILToolsP review](equiv-review/ILToolsP.dpl.tsv), CopyStreamToClipboard/PasteStreamFromClipboard; [match.md](match.md), @S[1].
+
+For const S:string, both @S[1] and PChar(S) call LStrToPChar; Pointer(S) merely returns the incoming pointer. A writable **global** @S[1] instead passes the cell address to UniqueString, while Pointer(S) loads the pointer value. Storage and constness matter: do not transfer the global UniqueString observation to a const parameter. The Pointer(S)/Pointer(S) pair is the identical-source control.
+
+**r2_strptr37: O+: different; O-: different.**
+
+A: `begin Result:=Pointer(S); end;`
+B: `begin Result:=@S[1]; end;`
+
+O+: A `Run: (no corresponding instruction)`; B `Run: 0000: push ebx; 0001: mov ebx, eax; ...; 0005: call System.@LStrToPChar; 000a: pop ebx`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 000c: call System.@LStrToPChar`.
+
+**r2_strptr38: O+: different; O-: different.**
+
+A: `begin Result:=Pointer(S); end;`
+B: `begin Result:=PChar(S); end;`
+
+O+: A `Run: (no corresponding instruction)`; B `Run: 0000: push ebx; 0001: mov ebx, eax; ...; 0005: call System.@LStrToPChar; 000a: pop ebx`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 000c: call System.@LStrToPChar`.
+
+**r2_strptr39: O+: same code; O-: same code.**
+
+A: `begin Result:=Pointer(S); end;`
+B: `begin Result:=Pointer(S); end;`
+
+O+: Both `Run: 0000: ret`.
+O-: Both `Run: 0001: mov ebp, esp 0003: add esp, -8 0006: mov dword ptr [ebp - 4], eax 0009: mov eax, dword ptr [ebp - 4]`.
+
+**r2_global_unique: O+: different; O-: different.**
+
+A: `begin Result:=@S[1]; end;`
+B: `begin Result:=Pointer(S); end;`
+
+O+: A `Run: 0000: mov eax, image+0x3024; 0005: call System.UniqueString@40929B27`; B `Run: 0000: mov eax, dword ptr [image+0x3024]`.
+O-: A `Run: 0004: mov eax, image+0x3024; 0009: call System.UniqueString@40929B27`; B `Run: 0004: mov eax, dword ptr [image+0x3024]`.
+
+### K13. Resource strings and typed constant cells
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), assertion constant-cell loads; [match.md](match.md), LoadResString.
+
+For a string result, `const Text='hello'` loads a literal pointer and calls LStrLAsg. A resourcestring calls LoadResString with its descriptor; `const Text:string='hello'` loads a pointer from a constant cell. These are distinct references and call traces even when the visible text agrees. This is the source distinction behind LEA/immediate versus a cell load in diagnostic rewrites.
+
+**r2_resource_literal: O+: different; O-: different.**
+
+A: `const Text='hello'; begin Result:=Text; end;`
+B: `resourcestring Text='hello'; begin Result:=Text; end;`
+
+O+: A `Run: 0003: mov eax, ebx; 0005: mov edx, +0x1c; 000a: call System.@LStrLAsg`; B `Run: 0003: mov edx, ebx; 0005: mov eax, image+0x130c; 000a: call System.LoadResString@02614E1B`.
+O-: A `Run: 0007: mov eax, dword ptr [ebp - 4]; ...; 000f: call System.@LStrLAsg`; B `Run: 0007: mov edx, dword ptr [ebp - 4]; ...; 000f: call System.LoadResString@02614E1B`.
+
+**r2_typed_string_const: O+: different; O-: different.**
+
+A: `const Text='hello'; begin Result:=Text; end;`
+B: `const Text:string='hello'; begin Result:=Text; end;`
+
+O+: A `Run: 0005: mov edx, +0x1c`; B `Run: 0005: mov edx, dword ptr [image+0x2020]`.
+O-: A `Run: 000a: mov edx, +0x20`; B `Run: 000a: mov edx, dword ptr [image+0x2020]`.
+
+### K14. Method-pointer code/data halves and parameter copying
+
+Reason: [MoveT.PAS](../src/delphi3/AoWEPACK/inc/MoveT.PAS), method-pointer-frame comment; [match.md](match.md), Assigned and @E comparisons.
+
+TE is `procedure(X:Integer) of object`. Assigned(E) tests word [ebp+$0a], the high word of Code; TMethod(E).Code<>nil tests the entire dword at +8. @E=@F compares only Code, whereas explicit TMethod comparison checks both halves. Copying E to a local copies two dwords and changes call/test addresses, also in the loop. Value versus const TE did **not** change caller or callee here: both push Data then Code, and both indirect calls load Data into eax. Const method pointers must not be assumed to follow the eight-byte const-record ABI.
+
+**r2_event_assigned: O+: different; O-: different.**
+
+A: `begin Result:=Assigned(E); end;`
+B: `begin Result:=TMethod(E).Code<>nil; end;`
+
+O+: A `Run: 0003: cmp word ptr [ebp + 0xa], 0`; B `Run: 0003: cmp dword ptr [ebp + 8], 0`.
+O-: A `Run: 0004: cmp word ptr [ebp + 0xa], 0`; B `Run: 0004: cmp dword ptr [ebp + 8], 0`.
+
+**r2_event_equal: O+: different; O-: different.**
+
+A: `begin Result:=@E=@F; end;`
+B: `begin Result:=(TMethod(E).Code=TMethod(F).Code) and (TMethod(E).Data=TMethod(F).Data); end;`
+
+O+: A `Run: 0009: sete al`; B `Run: 0009: jne +0x13; 000b: mov eax, dword ptr [ebp + 0x14]; ...; 0015: jmp +0x19; 0017: mov al, 1`.
+O-: A `Run: 000a: sete byte ptr [ebp - 1]`; B `Run: 000a: jne +0x14; ...; 001a: mov byte ptr [ebp - 1], al`.
+
+**r2_event_call: O+: different; O-: different.**
+
+A: `begin E(A); end;`
+B: `var T:TE; begin T:=E; T(A); end;`
+
+O+: A `Run: 0006: mov eax, dword ptr [ebp + 0xc]; 0009: call dword ptr [ebp + 8]`; B `Run: 0003: add esp, -8; 0007: mov edx, dword ptr [ebp + 8]; ...; 001e: pop ecx; 001f: pop ecx`.
+O-: A `Run: 0003: add esp, -8; ...; 0016: pop ecx`; B `Run: 0003: add esp, -0x10; ...; 0021: mov esp, ebp`.
+
+**r2_event_loop: O+: different; O-: different.**
+
+A: `begin while Assigned(E) do begin E(A); Dec(A); if A=0 then Break end; Result:=A; end;`
+B: `var T:TE; begin T:=E; while Assigned(T) do begin T(A); Dec(A); if A=0 then Break end; Result:=A; end;`
+
+O+: A `Run: 000a: mov eax, dword ptr [ebp + 0xc]; 000d: call dword ptr [ebp + 8]; 0015: cmp word ptr [ebp + 0xa], 0`; B `Run: 0003: add esp, -8; 0009: mov eax, dword ptr [ebp + 8]; ...; 002e: pop ecx; 002f: pop ecx`.
+O-: A `Run: 0003: add esp, -8; ...; 002e: pop ecx`; B `Run: 0003: add esp, -0x10; ...; 0039: mov esp, ebp`.
+
+**r2_event_parameter: O+: same code; O-: same code.**
+
+A: `type TE=procedure(X:Integer) of object; procedure Send(E:TE; X:Integer); procedure Run(E:TE; X:Integer); procedure Send(E:TE; X:Integer); begin E(X) end; procedure Run(E:TE; X:Integer); begin Send(E,X) end;`
+B: `type TE=procedure(X:Integer) of object; procedure Send(const E:TE; X:Integer); procedure Run(E:TE; X:Integer); procedure Send(const E:TE; X:Integer); begin E(X) end; procedure Run(E:TE; X:Integer); begin Send(E,X) end;`
+
+O+: Both `Run: 0003: push dword ptr [ebp + 0xc] 0006: push dword ptr [ebp + 8] 0009: call Send 000e: pop ebp / Send: 0000: push ebp 0001: mov ebp, esp 0003: mov edx, eax 0005: mov eax, dword ptr [ebp + 0xc]`.
+O-: Both `Run: 000a: push dword ptr [ebp + 8] 000d: mov eax, dword ptr [ebp - 4] 0010: call Send 0015: pop ecx / Send: 0000: push ebp 0001: mov ebp, esp 0003: push ecx 0004: mov dword ptr [ebp - 4], eax`.
+
+### K15. Class-method receivers and dynamic declaration order
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCommandAbility.Command; [match.md](match.md), dynamic method numbering.
+
+An instance virtual Work calls through its VMT while leaving the instance in eax. A class virtual Work first replaces eax with [eax], then calls its slot: the callee receives the class, not the instance. For dynamic A/B methods, swapping declaration order changes A's bx selector from $FFFF to $FFFE before CallDynaInst. Same-sized classes can therefore call different methods with identical ordinary argument setup.
+
+**r2_class_method: O+: different; O-: different.**
+
+A: `type TTarget=class function Work:Integer; virtual; end; function Run(O:TTarget):Integer; function TTarget.Work:Integer; begin Result:=1 end; function Run(O:TTarget):Integer; begin Result:=O.Work end;`
+B: `type TTarget=class class function Work:Integer; virtual; end; function Run(O:TTarget):Integer; class function TTarget.Work:Integer; begin Result:=1 end; function Run(O:TTarget):Integer; begin Result:=O.Work end;`
+
+O+: A `Run: 0000: mov edx, dword ptr [eax]; 0002: call dword ptr [edx]`; B `Run: 0000: mov eax, dword ptr [eax]; 0002: call dword ptr [eax]`.
+O-: A `Run: 000c: mov edx, dword ptr [eax]; 000e: call dword ptr [edx]`; B `Run: 000c: mov eax, dword ptr [eax]; 000e: call dword ptr [eax]`.
+
+**r2_dynamic_order: O+: different; O-: different.**
+
+A: `type TTarget=class procedure A; dynamic; procedure B; dynamic; end; procedure Run(O:TTarget);`
+B: `type TTarget=class procedure B; dynamic; procedure A; dynamic; end; procedure Run(O:TTarget);`
+
+O+: A `Run: 0001: mov bx, 0xffff`; B `Run: 0001: mov bx, 0xfffe`.
+O-: A `Run: 000b: mov bx, 0xffff`; B `Run: 000b: mov bx, 0xfffe`.
+
+### K16. Constructor/destructor flags and inherited results
+
+Reason: [AoWEd review](equiv-review/AoWEd.exe.tsv), TAoWMapEditForm.vmt90 and TAoWResourceEditForm.Destroy; [match.md](match.md), stub inherited result.
+
+Free is a direct TObject.Free call; Destroy supplies dl=1 and dispatches through VMT[-4]. Creating through an instance supplies allocation flag zero, while a class constructor call supplies one. The constructor-keyword control moves explicit X from edx to ecx and adds ClassCreate/FS handling. A destructor preserves the flag, masks dl with $FE for inherited Destroy, conditionally calls ClassDestroy, and returns Self. A procedure calling inherited Destroy instead passes -1. Finally, discarding an inherited function result keeps an extra ebx save/reload; `Result:=inherited Work(X)` avoids it. An unset function result is not a harmless stub contract.
+
+**r2_free_destroy: O+: different; O-: different.**
+
+A: `begin O.Free; Result:=0; end;`
+B: `begin O.Destroy; Result:=0; end;`
+
+O+: A `Run: 0000: call System.TObject.Free@23EDC2EF`; B `Run: 0000: mov dl, 1; 0002: mov ecx, dword ptr [eax]; 0004: call dword ptr [ecx - 4]`.
+O-: A `Run: 000c: call System.TObject.Free@23EDC2EF`; B `Run: 0009: mov dl, 1; ...; 0010: call dword ptr [ecx - 4]`.
+
+**r2_inherited_result: O+: different; O-: different.**
+
+A: `function TB.Work(X:Integer):Integer; begin Result:=X+1 end; function TC.Work(X:Integer):Integer; begin inherited Work(X) end;`
+B: `function TB.Work(X:Integer):Integer; begin Result:=X+1 end; function TC.Work(X:Integer):Integer; begin Result:=inherited Work(X) end;`
+
+O+: A `TC.Work: 0000: push ebx; 0006: mov eax, ebx; 0008: pop ebx`; B `TC.Work: (no corresponding instruction)`.
+O-: A `TC.Work: (no corresponding instruction)`; B `TC.Work: 0017: mov dword ptr [ebp - 0xc], eax`.
+
+**r2_create_instance_class: O+: different; O-: different.**
+
+A: `function Run(A,B:Integer):TObject; function Run(A,B:Integer):TObject; begin Result:=TObject.Create; end;`
+B: `function Run(O:TObject):TObject; function Run(O:TObject):TObject; begin Result:=O.Create; end;`
+
+O+: A `Run: 0000: mov dl, 1; 0002: mov eax, dword ptr [image+0x40c8]`; B `Run: 0000: xor edx, edx`.
+O-: A `Run: 0003: add esp, -0xc; ...; 001e: mov esp, ebp`; B `Run: 0003: add esp, -8; ...; 001a: pop ecx`.
+
+**r2_constructor_keyword: O+: different; O-: different.**
+
+A: `type TT=class F:Integer; procedure Run(X:Integer); end; procedure TT.Run(X:Integer); begin F:=X end;`
+B: `type TT=class F:Integer; constructor Run(X:Integer); end; constructor TT.Run(X:Integer); begin F:=X end;`
+
+O+: A `TT.Run: 0000: mov dword ptr [eax + 4], edx`; B `TT.Run: 0000: test dl, dl; 0002: je +0xc; ...; 0013: pop dword ptr fs:[0]; 001a: add esp, 0xc`.
+O-: A `TT.Run: 0003: add esp, -8; ...; 0016: pop ecx`; B `TT.Run: 0003: add esp, -0xc; ...; 0037: mov esp, ebp`.
+
+**r2_destructor_keyword: O+: different; O-: different.**
+
+A: `type TT=class F:Integer; procedure Run; end; procedure TT.Run; begin Sink(F); inherited Destroy end;`
+B: `type TT=class F:Integer; destructor Run; end; destructor TT.Run; begin Sink(F); inherited Destroy end;`
+
+O+: A `TT.Run: 0001: mov ebx, eax; 0003: mov eax, dword ptr [ebx + 4]; 000b: or edx, 0xffffffff; 000e: mov eax, ebx`; B `TT.Run: 0001: push esi; 0002: mov ebx, edx; ...; 0025: mov eax, esi; 0027: pop esi`.
+O-: A `TT.Run: 0003: push ecx; 0012: or edx, 0xffffffff`; B `TT.Run: 0003: add esp, -8; ...; 0036: pop ecx`.
+
+### K17. Calling conventions and assembler record formals
+
+Reason: [match.md](match.md), stack arguments, stdcall and FillLargeInteger.
+
+The five-Tick argument control distinguishes conventions. Register calls evaluate stack arguments 4,5 first, then register arguments 3,2,1; stdcall/cdecl evaluate 5,4,3,2,1; pascal evaluates 1,2,3,4,5. Register Send returns `ret 8`, stdcall/pascal `ret $14`; cdecl uses plain ret and caller `add esp,$14`. Merely changing the value-record callee from Pascal to assembler did **not** change either of the two tested callers (including the Fill(var B;N;V) shape). That negative result does not explain the larger FillLargeInteger matching observation.
+
+**r2_asm_record_arg: O+: same code; O-: same code.**
+
+A: `procedure Send(R:TR; X:Integer); begin end; procedure Run(A:Integer); var R:TR; begin R.X:=A; R.Y:=2; Send(R,Tick(A)) end;`
+B: `procedure Send(R:TR; X:Integer); assembler; asm end; procedure Run(A:Integer); var R:TR; begin R.X:=A; R.Y:=2; Send(R,Tick(A)) end;`
+
+O+: Both `Run: 0018: mov edx, eax 001a: mov eax, esp 001c: call Send 0021: pop ecx`.
+O-: Both `Run: 001e: mov edx, eax 0020: lea eax, [ebp - 0xc] 0023: call Send 0028: mov esp, ebp`.
+
+**r2_conv_stdcall: O+: different; O-: different.**
+
+A: `function Send(A,B,C,D,E:Integer):Integer; register; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; register; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+B: `function Send(A,B,C,D,E:Integer):Integer; stdcall; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; stdcall; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+
+O+: A `Run: 0000: mov eax, 4; 000b: mov eax, 5; 0036: pop edx; 0037: pop ecx / Send: 0003: add edx, eax; 0005: add ecx, edx; ...; 000d: mov eax, ecx; 0010: ret 8`; B `Run: 0000: mov eax, 5; 000b: mov eax, 4; 0036: push eax / Send: 0003: mov eax, dword ptr [ebp + 8]; 0006: add eax, dword ptr [ebp + 0xc]; ...; 000f: add eax, dword ptr [ebp + 0x18]; 0013: ret 0x14`.
+O-: A `Run: 0004: mov eax, 4; ...; 003b: pop ecx / Send: 0003: add esp, -0x10; ...; 0027: ret 8`; B `Run: 0004: mov eax, 5; ...; 003a: push eax / Send: 0003: push ecx; ...; 001b: ret 0x14`.
+
+**r2_conv_cdecl: O+: different; O-: different.**
+
+A: `function Send(A,B,C,D,E:Integer):Integer; register; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; register; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+B: `function Send(A,B,C,D,E:Integer):Integer; cdecl; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; cdecl; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+
+O+: A `Run: 0000: mov eax, 4; 000b: mov eax, 5; 0036: pop edx; 0037: pop ecx / Send: 0003: add edx, eax; 0005: add ecx, edx; ...; 000d: mov eax, ecx; 0010: ret 8`; B `Run: 0000: mov eax, 5; 000b: mov eax, 4; 0036: push eax; 003c: add esp, 0x14 / Send: 0003: mov eax, dword ptr [ebp + 8]; 0006: add eax, dword ptr [ebp + 0xc]; ...; 000f: add eax, dword ptr [ebp + 0x18]; 0013: ret`.
+O-: A `Run: 0004: mov eax, 4; ...; 003b: pop ecx / Send: 0003: add esp, -0x10; ...; 0027: ret 8`; B `Run: 0004: mov eax, 5; ...; 0040: add esp, 0x14 / Send: 0003: push ecx; ...; 001b: ret`.
+
+**r2_conv_pascal: O+: different; O-: different.**
+
+A: `function Send(A,B,C,D,E:Integer):Integer; register; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; register; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+B: `function Send(A,B,C,D,E:Integer):Integer; pascal; function Run:Integer; function Send(A,B,C,D,E:Integer):Integer; pascal; begin Result:=A+B+C+D+E end; function Run:Integer; begin Result:=Send(Tick(1),Tick(2),Tick(3),Tick(4),Tick(5)) end;`
+
+O+: A `Run: 0016: mov eax, 3; 001b: call Tick; ...; 0036: pop edx; 0037: pop ecx / Send: 0003: add edx, eax; 0005: add ecx, edx; ...; 000d: mov eax, ecx; 0010: ret 8`; B `Run: 0000: mov eax, 1; 0005: call Tick; ...; 001b: call Tick; 0020: push eax / Send: 0003: mov eax, dword ptr [ebp + 0x18]; 0006: add eax, dword ptr [ebp + 0x14]; ...; 000f: add eax, dword ptr [ebp + 8]; 0013: ret 0x14`.
+O-: A `Run: 001a: mov eax, 3; ...; 003b: pop ecx / Send: 0003: add esp, -0x10; ...; 0027: ret 8`; B `Run: 0004: mov eax, 1; ...; 0024: push eax / Send: 0003: push ecx; ...; 001b: ret 0x14`.
+
+**r2_asm_fill_record: O+: same code; O-: same code.**
+
+A: `procedure Fill(var B; N:Integer; V:TR); begin Integer(B):=V.X end; procedure Run(P:Pointer; N:Integer; V:TR); begin Fill(P^,N,V) end;`
+B: `procedure Fill(var B; N:Integer; V:TR); asm mov eax,[ecx] end; procedure Run(P:Pointer; N:Integer; V:TR); begin Fill(P^,N,V) end;`
+
+O+: Both `Run: 000b: movsd dword ptr es:[edi], dword ptr [esi] 000c: mov ecx, esp 000e: call Fill 0013: pop ecx`.
+O-: Both `Run: 0018: lea ecx, [ebp - 0x10] 001b: mov edx, dword ptr [ebp - 8] 001e: call Fill 0023: pop edi`.
+
+### K18. Open-array highs and array-of-const descriptors
+
+Reason: [Enginep review](equiv-review/Enginep.dpl.tsv), SortStringsEx; [AoW review](equiv-review/AoW.exe.tsv), resource formatting.
+
+An open Integer array arrives as data pointer eax and high index edx. `High(X)>=0` uses test edx/ jl; the fully unsigned comparison uses test edx/ jb, whose carry condition cannot be true after TEST. It preserves the original empty-array bug rather than fixing it. Format('%d',[A]) builds an Integer TVarRec; preconverting to S and formatting %s adds IntToStr, a managed slot and a different descriptor type. The array-of-const call contains a hidden high index (zero for one element) as well as the descriptor address.
+
+**r2_open_high: O+: different; O-: different.**
+
+A: `begin if High(X)>=0 then Result:=X[0] else Result:=0; end;`
+B: `begin if Cardinal(High(X))>=Cardinal(0) then Result:=X[0] else Result:=0; end;`
+
+O+: A `Run: 0002: jl +0x7`; B `Run: 0002: jb +0x7`.
+O-: A `Run: 0010: jl +0x1c`; B `Run: 0010: jb +0x1c`.
+
+**r2_format_temp: O+: different; O-: different.**
+
+A: `begin Result:=Format('%d',[A]); end;`
+B: `var S:string; begin S:=IntToStr(A); Result:=Format('%s',[S]); end;`
+
+O+: A `Run: 0002: add esp, -8; 000a: mov dword ptr [esp + 4], ebx; ...; 0013: lea edx, [esp + 4]; 0024: pop edx`; B `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 0062: mov esp, ebp; 0064: pop ebp`.
+O-: A `Run: 0003: add esp, -0x14; ...; 001d: lea edx, [ebp - 0x14]`; B `Run: 0003: add esp, -0x18; ...; 0068: pop ebx`.
+
+### K19. Out versus var interface ownership
+
+Reason: [match.md](match.md), interface out argument observation.
+
+For a local IUnknown, an out call clears the caller's destination with IntfClear immediately before Get; var does not. Both already need the local's outer managed cleanup. The out callee also has an initial nonnil-address check/zero store absent from the var callee in this `X:=nil` example. Do not infer out from the presence of the function-wide finalizer alone.
+
+**r2_out_interface: O+: different; O-: different.**
+
+A: `procedure Get(var X:IUnknown); procedure Run; procedure Get(var X:IUnknown); begin X:=nil end; procedure Run; var X:IUnknown; begin Get(X) end;`
+B: `procedure Get(out X:IUnknown); procedure Run; procedure Get(out X:IUnknown); begin X:=nil end; procedure Run; var X:IUnknown; begin Get(X) end;`
+
+O+: A `Run: (no corresponding instruction) / Get: (no corresponding instruction)`; B `Run: 0016: call System.@IntfClear / Get: 0000: push ebp; 0001: mov ebp, esp; ...; 000c: mov dword ptr [ebx], eax; 0016: pop ebp`.
+O-: A `Run: (no corresponding instruction) / Get: (no corresponding instruction)`; B `Run: 0016: call System.@IntfClear / Get: 000a: test eax, eax; ...; 0012: mov eax, dword ptr [ebp - 4]`.
+
+### K20. Typed handlers, consuming handlers and empty protected regions
+
+Reason: [Enginep review](equiv-review/Enginep.dpl.tsv), TCompareStorageStream.rwCreateEObject; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIMoveExecuterMove.Destroy.
+
+Catch-all except uses HandleAnyException and DoneExcept; adding raise calls RaiseAgain. An on E:Exception handler selects HandleOnException and adds a class/target table. An empty try/finally still installs and removes a frame and emits its handler; replacing it by the cleanup statement removes that machinery. These constructs differ in exception behavior, not merely layout. The displayed .handlers class address is masked by match.py; read the table identity when comparing different exception classes.
+
+**r2_except_raise: O+: different; O-: different.**
+
+A: `begin try Result:=Tick(A) except Sink(B); Result:=0 end; end;`
+B: `begin try Result:=Tick(A) except Sink(B); raise end; end;`
+
+O+: A `Run: 0004: push ebx; 0005: push esi; ...; 0040: pop esi; 0041: pop ebx`; B `Run: 0022: pop ecx; 0023: pop ebp; 0024: ret; 0032: call System.@RaiseAgain`.
+O-: A `Run: 0006: push ebx; ...; 004e: pop ebx`; B `Run: 003c: call System.@RaiseAgain`.
+
+**r2_except_typed: O+: different; O-: different.**
+
+A: `begin try Result:=Tick(A) except Sink(B); Result:=0 end; end;`
+B: `begin try Result:=Tick(A) except on E:Exception do begin Sink(B); Result:=0 end end; end;`
+
+O+: A `Run: 0029: jmp System.@HandleAnyException`; B `Run: 0029: jmp System.@HandleOnException; .handlers ADDR:3a`.
+O-: A `Run: 0003: add esp, -0xc; 0032: jmp System.@HandleAnyException`; B `Run: 0003: add esp, -0x10; ...; 0043: mov dword ptr [ebp - 0x10], eax`.
+
+**r2_empty_try: O+: different; O-: different.**
+
+A: `begin try finally Sink(A) end; Result:=B; end;`
+B: `begin Sink(A); Result:=B; end;`
+
+O+: A `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 003c: pop ebp; 003d: ret`; B `Run: 0000: push ebx; 0001: mov ebx, edx; 0008: mov eax, ebx; 000a: pop ebx`.
+O-: A `Run: 000c: xor eax, eax; ...; 0035: jmp +0x27`; B `Run: (no corresponding instruction)`.
+
+### K21. Try-frame zero registers and nonlocal declaration context
+
+Reason: [MapCtrl.pas](../src/delphi3/AoWEPACK/MapCtrl.pas), ExecuteEventLog; [match.md](match.md), Engine try-frame and class-count leftovers.
+
+Changing a tested Tick result from an expression to local T did not change O+ code. A different carrier does: T:=Tick(A) leaves the result live in eax through `xor edx,edx` and FS registration, while Result:=Tick(A) stores it to [ebp-8] and registers via `xor eax,eax`. Under O- both carriers have storage but their slots/stores differ. The class-count sweep compares 0 through 9 extra declared/implemented methods, one count step at a time; reversing implementation order was also tested at three. All tested target bodies remained identical in each mode. This does **not** reproduce or disprove the context-sensitive larger original routine; it is not evidence for a different compiler build.
+
+**r2_try_result_state: O+: same code; O-: different.**
+
+A: `begin if Tick(A)>0 then try Result:=B finally Sink(A) end else Result:=0; end;`
+B: `var T:Integer; begin T:=Tick(A); if T>0 then try Result:=B finally Sink(A) end else Result:=0; end;`
+
+O+: Both `Run: 001a: push ebp 001b: push +0x3f 0020: push dword ptr fs:[eax] 0023: mov dword ptr fs:[eax], esp`.
+O-: A `Run: 0003: add esp, -0xc; 0014: test eax, eax`; B `Run: 0003: add esp, -0x10; ...; 0017: cmp dword ptr [ebp - 0x10], 0`.
+
+**r2_context_decls: O+: same code; O-: same code.**
+
+A: `type TTarget=class F:Integer; function Run(A:Integer):Integer; procedure D0; procedure D1; end; function TTarget.Run(A:Integer):Integer; begin if Tick(A)>0 then try Result:=F finally Sink(A) end else Result:=0 end;procedure TTarget.D0; begin G:=G+0 end; procedure TTarget.D1; begin G:=G+1 end;`
+B: `type TTarget=class F:Integer; function Run(A:Integer):Integer; procedure D0; procedure D1; procedure D2; end; function TTarget.Run(A:Integer):Integer; begin if Tick(A)>0 then try Result:=F finally Sink(A) end else Result:=0 end;procedure TTarget.D0; begin G:=G+0 end; procedure TTarget.D1; begin G:=G+1 end; procedure TTarget.D2; begin G:=G+2 end;`
+
+O+: Both `TTarget.Run: 001a: push ebp 001b: push +0x42 0020: push dword ptr fs:[eax] 0023: mov dword ptr fs:[eax], esp`.
+O-: Both `TTarget.Run: 001a: push ebp 001b: push +0x45 0020: push dword ptr fs:[eax] 0023: mov dword ptr fs:[eax], esp`.
+
+**r2_context_order: O+: same code; O-: same code.**
+
+A: `function TTarget.Run(A:Integer):Integer; begin if Tick(A)>0 then try Result:=F finally Sink(A) end else Result:=0 end;procedure TTarget.D0; begin G:=G+0 end; procedure TTarget.D1; begin G:=G+1 end; procedure TTarget.D2; begin G:=G+2 end;`
+B: `procedure TTarget.D0; begin G:=G+0 end; procedure TTarget.D1; begin G:=G+1 end; procedure TTarget.D2; begin G:=G+2 end;function TTarget.Run(A:Integer):Integer; begin if Tick(A)>0 then try Result:=F finally Sink(A) end else Result:=0 end;`
+
+O+: Both `TTarget.Run: 001a: push ebp 001b: push +0x42 0020: push dword ptr fs:[eax] 0023: mov dword ptr fs:[eax], esp`.
+O-: Both `TTarget.Run: 001a: push ebp 001b: push +0x45 0020: push dword ptr fs:[eax] 0023: mov dword ptr fs:[eax], esp`.
+
+**r2_try_carrier: O+: different; O-: different.**
+
+A: `begin T:=Tick(A); try Result:=T+B finally Sink(A) end; end;`
+B: `begin Result:=Tick(A); try Result:=Result+B finally Sink(A) end; end;`
+
+O+: A `Run: 0014: xor edx, edx; 001c: push dword ptr fs:[edx]; ...; 0022: add ebx, eax; 0024: mov dword ptr [ebp - 8], ebx`; B `Run: 0014: mov dword ptr [ebp - 8], eax; 0017: xor eax, eax; ...; 0022: mov dword ptr fs:[eax], esp; 0025: add dword ptr [ebp - 8], ebx`.
+O-: A `Run: 0014: mov dword ptr [ebp - 0x10], eax; ...; 002b: mov dword ptr [ebp - 0xc], eax`; B `Run: 0014: mov dword ptr [ebp - 0xc], eax; ...; 0028: add dword ptr [ebp - 0xc], eax`.
+
+**r2_context_count0/1/3/4/5/6/7/8: same code in both modes.** These supplement r2_context_decls (2 versus 3). A class declares/implements n unrelated D methods (body G:=G+i); B declares/implements n+1, with the target Run body unchanged: `if Tick(A)>0 then try Result:=F finally Sink(A) end else Result:=0`. n=0,1,3,4,5,6,7,8. The full target streams, including FS setup and cleanup, agree at each step. Representative O+ start: `push ebp; mov ebp,esp; add esp,-8`; the target remains frame-backed under O- as well. The implementation-order pair above also agrees.
+
+### K22. Assertion source position, includes and explicit diagnostics
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCombatPredictor.AddWall and TAIGroup.Deactivate; [HSEPack review](equiv-review/HSEPack.dpl.tsv), THSMap.UnlockTerrainChangedEvent.
+
+Splitting Assert across a line moves its ecx line argument from $0F to $10. Putting the same statement in r2_assert_fragment.inc changes the embedded filename; the Assert call/register forms are otherwise unchanged (literal positions move because the filenames have different lengths). An explicit three-argument import of System.@Assert@E17CE8DC preserves the original filename/line without rearranging source. Both calls use eax=message, edx=filename, ecx=line. These diagnostics are observable; matching only masked pointers is insufficient.
+
+**r2_assert_endline: O+: different; O-: different.**
+
+A: `begin Assert(A>0,'bad'); Result:=A; end;`
+B: `begin Assert(A>0, 'bad'); Result:=A; end;`
+
+O+: A `Run: 0007: mov ecx, 0xf`; B `Run: 0007: mov ecx, 0x10`.
+O-: A `Run: 000f: mov ecx, 0xf`; B `Run: 000f: mov ecx, 0x10`.
+
+**r2_assert_manual: O+: different; O-: different.**
+
+A: `begin Assert(A>0,'bad'); Result:=A; end;`
+B: `procedure Fail(const M,F:string; L:Integer); external 'vcl30.dpl' name 'System.@Assert@E17CE8DC'; begin if A<=0 then Fail('bad','original.pas',123); Result:=A; end;`
+
+O+: A `Run: 0007: mov ecx, 0xf`; B `Run: 0007: mov ecx, 0x7b`.
+O-: A `Run: 000f: mov ecx, 0xf`; B `Run: 000f: mov ecx, 0x7b`.
+
+**r2_assert_include: O+: different; O-: different.**
+
+A: `begin Assert(A>0,'bad'); Result:=A; end;`
+B: `begin {$I r2_assert_fragment.inc} end;`
+
+O+: A `Run: 0011: mov eax, +0x74`; B `Run: 0011: mov eax, +0x6c`.
+O-: A `Run: 0019: mov eax, +0x84`; B `Run: 0019: mov eax, +0x7c`.
+
+### K23. Assembler Result, local priority and tail shims
+
+Reason: [match.md](match.md), pure-asm Result and asm-local observations; [Unit.PAS](../src/delphi3/AoWEPACK/inc/Unit.PAS), register-ABI shims.
+
+Assigning Result in pure asm causes the compiler to reload al from its Result slot at the end. If the asm already loads al, this becomes a duplicate load; a private B local with an explicit al load avoids it. Omitting that explicit load in the Result version happens to match the local version. Naming X versus Y in an inline asm block determines which gets the first frame slot, changing the other's register. A Pascal forwarding function emits call Target/ret; a pure-asm jmp Target retains a tail jump (and no reached trailing ret).
+
+**r2_asm_result: O+: same code; O-: same code.**
+
+A: `function Run:Byte; assembler; asm mov Result,1 end;`
+B: `function Run:Byte; assembler; var B:Byte; asm mov B,1; mov al,B end;`
+
+O+: Both `Run: 0004: mov byte ptr [ebp - 1], 1 0008: mov al, byte ptr [ebp - 1] 000b: pop ecx 000c: pop ebp`.
+O-: Both `Run: 0004: mov byte ptr [ebp - 1], 1 0008: mov al, byte ptr [ebp - 1] 000b: pop ecx 000c: pop ebp`.
+
+**r2_asm_local_order: O+: different; O-: different.**
+
+A: `begin X:=A; Y:=B; asm mov eax,Y end; Result:=X+Y; end;`
+B: `begin X:=A; Y:=B; asm mov eax,X end; Result:=X+Y; end;`
+
+O+: A `Run: 0004: mov ecx, eax; 0006: mov dword ptr [ebp - 4], edx; 000f: add eax, ecx`; B `Run: 0004: mov dword ptr [ebp - 4], eax; 000d: add eax, edx`.
+O-: A `Run: 0012: mov eax, dword ptr [ebp - 0xc]; ...; 001e: add eax, dword ptr [ebp - 4]`; B `Run: 000f: mov dword ptr [ebp - 4], eax; ...; 001e: add eax, dword ptr [ebp - 0x14]`.
+
+**r2_asm_tail: O+: different; O-: different.**
+
+A: `function Target(X:Integer):Integer; begin Result:=X+1 end; function Run(X:Integer):Integer; begin Result:=Target(X) end;`
+B: `function Target(X:Integer):Integer; begin Result:=X+1 end; function Run(X:Integer):Integer; assembler; asm jmp Target end;`
+
+O+: A `Run: 0000: call Target`; B `Run: 0000: jmp Target`.
+O-: A `Run: 0000: push ebp; ...; 0019: pop ebp`; B `Run: 0000: jmp Target`.
+
+**r2_asm_extra_result: O+: different; O-: different.**
+
+A: `function Run:Byte; assembler; asm mov Result,1; mov al,Result end;`
+B: `function Run:Byte; assembler; var B:Byte; asm mov B,1; mov al,B end;`
+
+O+: A `Run: 000b: mov al, byte ptr [ebp - 1]`; B `Run: (no corresponding instruction)`.
+O-: A `Run: 000b: mov al, byte ptr [ebp - 1]`; B `Run: (no corresponding instruction)`.
+
+### K24. Integer reassociation, operand order and complementary operations
+
+Reason: [HSEPack review](equiv-review/HSEPack.dpl.tsv), TAbstractRoad.GetShowPriority; [AoW review](equiv-review/AoW.exe.tsv), TRelWindow.HighlightRace.
+
+The constant-add reassociation and splitting `A+36` into Result assignment plus Inc collapse to the same O+ code here, but O- preserves their operation/store order. A+B versus B+A still changes add direction and the result move. XOR $FFFFFFFF and NOT have distinct opcodes. Both alternative doublings match `2*(A-B)` in both modes. Do not assume a split expression forces MOV/ADD rather than LEA; that depends on the rest of the allocation context.
+
+**r2_add_assoc: O+: same code; O-: different.**
+
+A: `begin Result:=(A+B)+$1000; end;`
+B: `begin Result:=(A+$1000)+B; end;`
+
+O+: Both `Run: 0000: lea edx, [edx + eax + 0x1000] 0007: mov eax, edx 0009: ret`.
+O-: A `Run: 0012: add eax, 0x1000`; B `Run: 000f: add eax, 0x1000`.
+
+**r2_add_split: O+: same code; O-: different.**
+
+A: `begin Result:=A+36; end;`
+B: `begin Result:=A; Inc(Result,36); end;`
+
+O+: Both `Run: 0000: add eax, 0x24 0003: ret`.
+O-: A `Run: 000f: add eax, 0x24`; B `Run: 0012: add dword ptr [ebp - 8], 0x24`.
+
+**r2_xor_not: O+: different; O-: different.**
+
+A: `begin Result:=A xor $FFFFFFFF; end;`
+B: `begin Result:=not A; end;`
+
+O+: A `Run: 0000: xor eax, 0xffffffff`; B `Run: 0000: not eax`.
+O-: A `Run: 000c: xor eax, 0xffffffff`; B `Run: 000c: not eax`.
+
+**r2_double73: O+: same code; O-: same code.**
+
+A: `begin Result:=2*(A-B); end;`
+B: `begin Result:=(A-B)*2; end;`
+
+O+: Both `Run: 0000: sub eax, edx 0002: add eax, eax 0004: ret`.
+O-: Both `Run: 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov dword ptr [ebp - 8], edx 0009: mov dword ptr [ebp - 4], eax`.
+
+**r2_double74: O+: same code; O-: same code.**
+
+A: `begin Result:=2*(A-B); end;`
+B: `begin Result:=(A-B) shl 1; end;`
+
+O+: Both `Run: 0000: sub eax, edx 0002: add eax, eax 0004: ret`.
+O-: Both `Run: 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov dword ptr [ebp - 8], edx 0009: mov dword ptr [ebp - 4], eax`.
+
+**r2_operand_add: O+: different; O-: different.**
+
+A: `begin Result:=A+B; end;`
+B: `begin Result:=B+A; end;`
+
+O+: A `Run: 0000: add edx, eax; 0002: mov eax, edx`; B `Run: 0000: add eax, edx`.
+O-: A `Run: 000c: mov eax, dword ptr [ebp - 4]; 000f: add eax, dword ptr [ebp - 8]`; B `Run: 000c: mov eax, dword ptr [ebp - 8]; 000f: add eax, dword ptr [ebp - 4]`.
+
+### K25. Signed division, x87 helpers and precision barriers
+
+Reason: [PrdPlace.pas](../src/delphi3/AoWEPACK/PrdPlace.pas), GetIncome; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAbstractUnit.ExecuteDamageRole; [match.md](match.md), reciprocal division and Comp records.
+
+Signed A div 2 uses `sar; jns; adc` to round toward zero, unlike logical shr. Unsigned div 8 equals shr 3 in both modes; X/4 equals X*0.25 and uses the same reciprocal multiplication. Round and Trunc call different RTL helpers. A Single intermediate adds fstp dword/wait/fld and therefore a rounding boundary to a Double expression. Comp casts of the two eight-byte records compare with fild/fcompp/fnstsw/sahf; fieldwise Integer comparison does not. Typed Scale:Single versus Scale:Double changes FMUL from dword to qword; Scale:Extended instead uses FLD xword then multiplies the Double argument. Changing only the untyped literal 0.005 to 0.01 leaves both instruction streams identical, but the xword literal bytes change from `0a d7 a3 70 3d 0a d7 a3 f7 3f` to `0a d7 a3 70 3d 0a d7 a3 f8 3f` (float_literal_data.json). This is the TWorldFXHS.NewFrame kind of wrong-number bug in the AoWEPACK review: an instruction match alone cannot establish a floating value.
+
+**r2_signed_half: O+: different; O-: different.**
+
+A: `begin Result:=A div 2; end;`
+B: `begin Result:=A shr 1; end;`
+
+O+: A `Run: 0000: sar eax, 1; 0002: jns +0x7; 0004: adc eax, 0`; B `Run: 0000: shr eax, 1`.
+O-: A `Run: 000c: sar eax, 1; ...; 0010: adc eax, 0`; B `Run: 000c: shr eax, 1`.
+
+**r2_unsigned_div: O+: same code; O-: same code.**
+
+A: `begin Result:=A div 8; end;`
+B: `begin Result:=A shr 3; end;`
+
+O+: Both `Run: 0000: shr eax, 3 0003: ret`.
+O-: Both `Run: 000c: shr eax, 3 000f: mov dword ptr [ebp - 8], eax 0012: mov eax, dword ptr [ebp - 8] 0015: pop ecx`.
+
+**r2_real_recip: O+: same code; O-: same code.**
+
+A: `begin Result:=X/4; end;`
+B: `begin Result:=X*0.25; end;`
+
+O+: Both `Run: 0006: fld qword ptr [ebp + 8] 0009: fmul dword ptr [+0x1c] 000f: fstp qword ptr [ebp - 8] 0012: wait`.
+O-: Both `Run: 0006: fld qword ptr [ebp + 8] 0009: fmul dword ptr [+0x1c] 000f: fstp qword ptr [ebp - 8] 0012: wait`.
+
+**r2_round_trunc: O+: different; O-: different.**
+
+A: `begin Result:=Round(X); end;`
+B: `begin Result:=Trunc(X); end;`
+
+O+: A `Run: 0006: call System.@ROUND`; B `Run: 0006: call System.@TRUNC`.
+O-: A `Run: 0007: call System.@ROUND`; B `Run: 0007: call System.@TRUNC`.
+
+**r2_fp_temp: O+: different; O-: different.**
+
+A: `begin Result:=(X+Y)-X; end;`
+B: `begin T:=X+Y; Result:=T-X; end;`
+
+O+: A `Run: 0003: add esp, -8; 0016: pop ecx; 0017: pop ecx`; B `Run: 0003: add esp, -0xc; 000c: fstp dword ptr [ebp - 0xc]; ...; 0010: fld dword ptr [ebp - 0xc]; 001d: mov esp, ebp`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 000c: fstp dword ptr [ebp - 0xc]; ...; 0010: fld dword ptr [ebp - 0xc]`.
+
+**r2_comp_compare: O+: different; O-: different.**
+
+A: `begin Result:=Comp(A)=Comp(B); end;`
+B: `begin Result:=(A.X=B.X) and (A.Y=B.Y); end;`
+
+O+: A `Run: 0014: fild qword ptr [esp]; 0017: fild qword ptr [esp + 8]; ...; 001f: sahf; 0020: sete al`; B `Run: 0014: mov eax, dword ptr [esp]; 0017: cmp eax, dword ptr [esp + 8]; ...; 0029: jmp +0x2d; 002b: mov al, 1`.
+O-: A `Run: 0016: fild qword ptr [ebp - 8]; ...; 0021: sete byte ptr [ebp - 0x11]`; B `Run: 0016: mov eax, dword ptr [ebp - 8]; ...; 002c: mov byte ptr [ebp - 0x11], al`.
+
+**r2_float_const_single: O+: different; O-: different.**
+
+A: `const Scale:Single=0.005; begin Result:=X*Scale; end;`
+B: `const Scale:Double=0.005; begin Result:=X*Scale; end;`
+
+O+: A `Run: 0009: fmul dword ptr [image+0x2020]`; B `Run: 0009: fmul qword ptr [image+0x2020]`.
+O-: A `Run: 0009: fmul dword ptr [image+0x2020]`; B `Run: 0009: fmul qword ptr [image+0x2020]`.
+
+**r2_float_const_extended: O+: different; O-: different.**
+
+A: `const Scale:Double=0.005; begin Result:=X*Scale; end;`
+B: `const Scale:Extended=0.005; begin Result:=X*Scale; end;`
+
+O+: A `Run: 0006: fld qword ptr [ebp + 8]; 0009: fmul qword ptr [image+0x2020]`; B `Run: 0006: fld xword ptr [image+0x2020]; 000c: fmul qword ptr [ebp + 8]`.
+O-: A `Run: 0006: fld qword ptr [ebp + 8]; 0009: fmul qword ptr [image+0x2020]`; B `Run: 0006: fld xword ptr [image+0x2020]; 000c: fmul qword ptr [ebp + 8]`.
+
+**r2_float_literal_value: same instructions, different literal data (both modes).**
+
+A: `begin Result:=X*0.005; end;`
+B: `begin Result:=X*0.01; end;`
+
+O+: Both `Run: 0006: fld xword ptr [+0x1c] 000c: fmul qword ptr [ebp + 8] 000f: fstp qword ptr [ebp - 8] 0012: wait`.
+O-: Both `Run: 0006: fld xword ptr [+0x1c] 000c: fmul qword ptr [ebp + 8] 000f: fstp qword ptr [ebp - 8] 0012: wait`.
+
+### K26. Set constants, Include, membership and literal type inference
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TMine.SetRazed, TArmy.Desert and TAbstractUnit.ExecuteDamageEffects; [MoveT.PAS](../src/delphi3/AoWEPACK/inc/MoveT.PAS), set-expression leftover.
+
+Include(S,2) ORs immediate 4 into the byte slot; S:=S+[2] loads a constant then ORs. A typed set constant loads a data cell rather than the local literal pool. Integer bit tests differ from set intersection/equality and variable membership uses a bound guard plus BT instead of SHL/AND. A two-byte S combined with untyped [0,2] and [] expands to 32-byte sets and SetExpand/SetIntersect/SetEq in this expression. Declaring Mask and Empty as the same TS instead yields word AND/CMP. The attempted direct literal typecasts were rejected; typed constant declarations are the tested small-set form.
+
+**r2_set_include: O+: different; O-: different.**
+
+A: `begin Include(S,2); Result:=S; end;`
+B: `begin S:=S+[2]; Result:=S; end;`
+
+O+: A `Run: 0004: or byte ptr [esp], 4`; B `Run: 0004: mov al, byte ptr [+0x14]; 0009: or al, byte ptr [esp]; 000c: mov byte ptr [esp], al`.
+O-: A `Run: 0007: or byte ptr [ebp - 1], 4`; B `Run: 0007: mov al, byte ptr [+0x20]; ...; 000f: mov byte ptr [ebp - 1], al`.
+
+**r2_set_typed_const: O+: different; O-: different.**
+
+A: `type TS=set of 0..7; begin Result:=S+[2]; end;`
+B: `type TS=set of 0..7; const C:TS=[2]; begin Result:=S+C; end;`
+
+O+: A `Run: 0005: mov bl, byte ptr [+0x14]`; B `Run: 0005: mov bl, byte ptr [image+0x2020]`.
+O-: A `Run: 0007: mov al, byte ptr [+0x18]`; B `Run: 0007: mov al, byte ptr [image+0x2020]`.
+
+**r2_set_integer_mask: O+: different; O-: different.**
+
+A: `begin Result:=S*[0,2]=[0]; end;`
+B: `begin Result:=(Byte(S) and 5)=1; end;`
+
+O+: A `Run: 0004: mov al, byte ptr [+0x1c]; 0009: and al, byte ptr [esp]; 000c: mov dl, byte ptr [+0x20]; 0012: cmp dl, al`; B `Run: 0004: mov al, byte ptr [esp]; 0007: and al, 5; 0009: cmp al, 1`.
+O-: A `Run: 0007: mov al, byte ptr [+0x24]; ...; 0015: cmp dl, al`; B `Run: 0007: mov al, byte ptr [ebp - 1]; ...; 000c: cmp al, 1`.
+
+**r2_set_member: O+: different; O-: different.**
+
+A: `begin Result:=I in S; end;`
+B: `begin Result:=(Byte(S) and (1 shl I))<>0; end;`
+
+O+: A `Run: 0004: cmp al, 7; 0006: ja +0xf; ...; 000b: bt dword ptr [esp], eax; 000f: setb al`; B `Run: 0004: mov ecx, eax; 0006: mov eax, 1; ...; 0012: and eax, edx; 0014: setne al`.
+O-: A `Run: 000a: mov al, byte ptr [ebp - 1]; ...; 001b: mov byte ptr [ebp - 3], al`; B `Run: 000a: mov cl, byte ptr [ebp - 1]; ...; 001b: setne byte ptr [ebp - 3]`.
+
+**r2_set_width: O+: different; O-: different.**
+
+A: `type TS=set of 0..7; begin Result:=S*[0,2]<>[]; end;`
+B: `type TS=set of 0..15; begin Result:=S*[0,2]<>[]; end;`
+
+O+: A `Run: 0000: push ecx; 0001: mov byte ptr [esp], al; ...; 0012: cmp dl, al; 0017: pop edx`; B `Run: 0000: push esi; 0001: push edi; ...; 004e: pop edi; 004f: pop esi`.
+O-: A `Run: 0003: push ecx; ...; 001e: pop ecx`; B `Run: 0003: add esp, -0x44; ...; 0050: mov esp, ebp`.
+
+**r2_set_annotate: O+: different; O-: different.**
+
+A: `type TS=set of 0..15; begin Result:=S*[0,2]<>[]; end;`
+B: `type TS=set of 0..15; const Mask:TS=[0,2]; Empty:TS=[]; begin Result:=(S*Mask)<>Empty; end;`
+
+O+: A `Run: 0000: push esi; 0001: push edi; ...; 004e: pop edi; 004f: pop esi`; B `Run: 0000: push ecx; 0005: mov ax, word ptr [image+0x2020]; ...; 0016: cmp dx, ax; 001c: pop edx`.
+O-: A `Run: 0003: add esp, -0x44; ...; 0050: mov esp, ebp`; B `Run: 0003: push ecx; ...; 0023: pop ecx`.
+
+### K27. Exact True, enum storage and normalization width
+
+Reason: [AoW review](equiv-review/AoW.exe.tsv), TMultiWindow.JoinBtnClick and TUnitSelectionDlg.DrawUnit; [Enginep review](equiv-review/Enginep.dpl.tsv), TCompressStream.SaveToStreamEx.
+
+`if B` tests nonzero, while `B=True` compares al with 1; values 2..255 distinguish them. Explicit source Z1 versus Z4 changes SizeOf of TE=(e0,e1,e2) from 1 to 4. With valid one-byte enum storage, passing a Byte cast to TE gives the same caller as a Byte formal in this control: it did not reproduce the original extra eax copy. The two Byte/mask placements also normalize to the same code. The specific original conversion/register choice therefore remains unexplained, even though the storage and exact-True kinds are measured.
+
+**r2_exact_true: O+: different; O-: different.**
+
+A: `begin if B then Result:=1 else Result:=2; end;`
+B: `begin if B=True then Result:=1 else Result:=2; end;`
+
+O+: A `Run: 0000: test al, al; 0002: je +0xa`; B `Run: 0000: cmp al, 1; 0002: jne +0xa`.
+O-: A `Run: 0009: cmp byte ptr [ebp - 1], 0; 000d: je +0x18`; B `Run: 0009: cmp byte ptr [ebp - 1], 1; 000d: jne +0x18`.
+
+**r2_byte_enum: O+: same code; O-: same code.**
+
+A: `type TE=(e0,e1,e2); procedure Send(E:TE); begin end; procedure Run(B:Byte); begin Send(TE(B)) end;`
+B: `type TE=(e0,e1,e2); procedure Send(E:Byte); begin end; procedure Run(B:Byte); begin Send(B) end;`
+
+O+: Both `Run: 0000: call Send 0005: ret / Send: 0000: ret`.
+O-: Both `Run: 000a: call Send 000f: pop ecx 0010: pop ebp 0011: ret / Send: 0000: push ebp 0001: mov ebp, esp 0003: push ecx 0004: mov byte ptr [ebp - 1], al`.
+
+**r2_enum_size: O+: different; O-: different.**
+
+A: `{$Z1}`
+B: `{$Z4}`
+
+O+: A `Run: 0000: mov eax, 1`; B `Run: 0000: mov eax, 4`.
+O-: A `Run: 0004: mov dword ptr [ebp - 4], 1`; B `Run: 0004: mov dword ptr [ebp - 4], 4`.
+
+**r2_mask_width: O+: same code; O-: same code.**
+
+A: `begin Result:=Byte(A) and $7F; end;`
+B: `begin Result:=Byte(A and $7F); end;`
+
+O+: Both `Run: 0000: and al, 0x7f 0002: and eax, 0xff 0007: ret`.
+O-: Both `Run: 000c: and al, 0x7f 000e: and eax, 0xff 0013: mov dword ptr [ebp - 8], eax 0016: mov eax, dword ptr [ebp - 8]`.
+
+**r2_enum_third: O+: same code; O-: same code.**
+
+A: `type TE=(e0,e1,e2); procedure Send(X,Y:Integer; E:TE); procedure Run(A,B:Integer; C:Byte); procedure Send(X,Y:Integer; E:TE); begin G:=X+Y+Ord(E) end; procedure Run(A,B:Integer; C:Byte); begin Sink(A); Send(A,B,TE(C)) end;`
+B: `type TE=(e0,e1,e2); procedure Send(X,Y:Integer; E:TE); procedure Run(A,B:Integer; C:TE); procedure Send(X,Y:Integer; E:TE); begin G:=X+Y+Ord(E) end; procedure Run(A,B:Integer; C:TE); begin Sink(A); Send(A,B,TE(C)) end;`
+
+O+: Both `Run: 0016: call Send 001b: pop edi 001c: pop esi 001d: pop ebx / Send: 0000: add edx, eax 0002: xor eax, eax 0004: mov al, cl 0006: add edx, eax`.
+O-: Both `Run: 0020: call Send 0025: mov esp, ebp 0027: pop ebp 0028: ret / Send: 0000: push ebp 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov byte ptr [ebp - 9], cl`.
+
+### K28. Equivalent thresholds, overflow-sensitive guards and mask timing
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), CompareCityProductions; [AoW review](equiv-review/AoW.exe.tsv), TUnitWindow.ShowUnit and TArmyInfoDlg.DrawUnit.
+
+A<4 uses cmp 4/jge; A<=3 uses cmp 3/jg. A>0 uses test/jle, whereas A-1>=0 uses dec/js, with different behavior at INT_MIN when checks are off. Q+ adds IntOver to the subtraction form. Moving the $7F mask before the unsigned Byte guard moves the AND before CMP and changes which inputs reach the body. These are distinct kinds: threshold spelling is equivalent; overflow and early masking need a domain proof.
+
+**r2_threshold: O+: different; O-: different.**
+
+A: `begin if A<4 then Result:=1 else Result:=2; end;`
+B: `begin if A<=3 then Result:=1 else Result:=2; end;`
+
+O+: A `Run: 0000: cmp eax, 4; 0003: jge +0xb`; B `Run: 0000: cmp eax, 3; 0003: jg +0xb`.
+O-: A `Run: 0009: cmp dword ptr [ebp - 4], 4; 000d: jge +0x18`; B `Run: 0009: cmp dword ptr [ebp - 4], 3; 000d: jg +0x18`.
+
+**r2_overflow_guard: O+: different; O-: different; O- Q+ R+: different.**
+
+A: `begin if A>0 then Result:=1 else Result:=2; end;`
+B: `begin if A-1>=0 then Result:=1 else Result:=2; end;`
+
+O+: A `Run: 0000: test eax, eax; 0002: jle +0xa`; B `Run: 0000: dec eax; 0001: js +0x9`.
+O-: A `Run: 0009: cmp dword ptr [ebp - 4], 0; 000d: jle +0x18`; B `Run: 0009: mov eax, dword ptr [ebp - 4]; ...; 000d: js +0x18`.
+O- Q+ R+: A `Run: 0009: cmp dword ptr [ebp - 4], 0; 000d: jle +0x18`; B `Run: 0009: mov eax, dword ptr [ebp - 4]; 000c: sub eax, 1; ...; 0011: call System.@IntOver; 0016: js +0x21`.
+
+**r2_mask_guard: O+: different; O-: different.**
+
+A: `begin if A<128 then Result:=A and $7F else Result:=0; end;`
+B: `begin A:=A and $7F; if A<128 then Result:=A else Result:=0; end;`
+
+O+: A `Run: 0004: and al, 0x7f`; B `Run: 0000: and al, 0x7f`.
+O-: A `Run: 0012: and al, 0x7f; 0014: and eax, 0xff`; B `Run: 0009: and byte ptr [ebp - 1], 0x7f; 0013: xor eax, eax`.
+
+### K29. Pointer stepping, loop bounds and exception-bearing loops
+
+Reason: [Ability.PAS](../src/delphi3/AoWEPACK/inc/Ability.PAS), nested-loop slots; [BloodShrine.pas](../src/delphi3/AoWEPACK/BloodShrine.pas), map-pointer reuse; [match.md](match.md), palette pointer walk and arithmetic while.
+
+Inc(PInteger) and explicit Pointer(Integer(P)+4) match under O+ but differ under O-. The fixed local array V[0..255] of three-byte pixels is already walked by a pointer in the indexed source; explicit P merely swaps pointer/count registers here. A per-iteration except moves Self, Result, index and count into frame slots. Writing D:=A-B separately adds a top test that the arithmetic while form lacks. The Tick-bound direction control calls Tick(1) then Tick(2) in both directions in this context; the exit tests and counter updates differ.
+
+**r2_pointer_inc: O+: same code; O-: different.**
+
+A: `begin Inc(P); Result:=P^; end;`
+B: `begin P:=Pointer(Integer(P)+4); Result:=P^; end;`
+
+O+: Both `Run: 0000: add eax, 4 0003: mov eax, dword ptr [eax] 0005: ret`.
+O-: A `Run: 0009: add dword ptr [ebp - 4], 4`; B `Run: 0009: mov eax, dword ptr [ebp - 4]; ...; 000f: mov dword ptr [ebp - 4], eax`.
+
+**r2_array_walk: O+: different; O-: different.**
+
+A: `var V:TV; I:Integer; begin FillChar(V,SizeOf(V),1); Result:=0; for I:=0 to 255 do Inc(Result,V[I].R); end;`
+B: `var V:TV; I:Integer; P:^TP; begin FillChar(V,SizeOf(V),1); Result:=0; P:=@V[0]; for I:=0 to 255 do begin Inc(Result,P^.R); Inc(P) end; end;`
+
+O+: A `Run: 001a: mov edx, 0x100; 001f: mov eax, esp; ...; 0027: add eax, 3; 002a: dec edx`; B `Run: 001a: mov edx, esp; 001c: mov eax, 0x100; ...; 0027: add edx, 3; 002a: dec eax`.
+O-: A `Run: 0003: add esp, 0xfffffcf8; ...; 002e: movzx eax, byte ptr [ebp + eax - 0x308]`; B `Run: 0003: add esp, 0xfffffcf4; ...; 003a: add dword ptr [ebp - 0xc], 3`.
+
+**r2_loop_exception: O+: different; O-: different.**
+
+A: `begin Result:=0; for I:=0 to A do begin Sink(F); Inc(Result,I) end; end;`
+B: `begin Result:=0; for I:=0 to A do begin try Sink(F) except end; Inc(Result,I) end; end;`
+
+O+: A `TObj.Run: 0004: mov edi, eax; 0006: xor ebp, ebp; ...; 001f: mov eax, ebp; 0021: pop ebp`; B `TObj.Run: 0000: push ebp; 0001: mov ebp, esp; ...; 0061: mov esp, ebp; 0063: pop ebp`.
+O-: A `TObj.Run: (no corresponding instruction)`; B `TObj.Run: 0006: push ebx; ...; 0069: pop ebx`.
+
+**r2_bound_calls: O+: different; O-: different.**
+
+A: `begin Result:=0; for I:=Tick(1) to Tick(2) do Sink(I); end;`
+B: `begin Result:=0; for I:=Tick(1) downto Tick(2) do Sink(I); end;`
+
+O+: A `Run: 001f: jl +0x2d; 0021: inc ebx; 0029: inc esi; 002a: dec ebx`; B `Run: 001f: jg +0x2d; 0021: dec ebx; 0029: dec esi; 002a: inc ebx`.
+O-: A `Run: 0029: jl +0x42; ...; 003d: dec dword ptr [ebp - 0xc]`; B `Run: 0029: jg +0x42; ...; 003d: inc dword ptr [ebp - 0xc]`.
+
+**r2_while_expression: O+: different; O-: different.**
+
+A: `begin while A-B>0 do begin Sink(B); Inc(B) end; Result:=B; end;`
+B: `var D:Integer; begin D:=A-B; while D>0 do begin Sink(B); Inc(B); D:=A-B end; Result:=B; end;`
+
+O+: A `Run: 0006: jmp +0x10`; B `Run: 0006: mov eax, esi; 0008: sub eax, ebx; 000a: test eax, eax; 000c: jle +0x1e`.
+O-: A `Run: 0003: add esp, -0xc; ...; 001f: test eax, eax`; B `Run: 0003: add esp, -0x10; ...; 002f: cmp dword ptr [ebp - 0x10], 0`.
+
+### K30. Dead stores, retained conditions and undefined results
+
+Reason: [AoW review](equiv-review/AoW.exe.tsv), TTCUnit.UAbilLBMouseMove; [HSEPack review](equiv-review/HSEPack.dpl.tsv), THSMEdit.UpdateMouseCoordinates; [Gfxepack review](equiv-review/Gfxepack.dpl.tsv), alignment benchmarks.
+
+A dead B:=3 assignment is removed, yet its `test eax,eax` remains under O+. A dead local result of Tick does not remove the call. A missing Result initialization leaves the incoming eax on the untaken branch here; adding Result:=0 introduces an accumulator/zero. Such paths cannot be judged equivalent merely because all defined-result paths agree. O- exposes actual stale slots instead of these register choices.
+
+**r2_dead_parameter: O+: different; O-: different.**
+
+A: `begin if A>0 then B:=3; Result:=A; end;`
+B: `begin Result:=A; end;`
+
+O+: A `Run: 0000: test eax, eax`; B `Run: (no corresponding instruction)`.
+O-: A `Run: 0006: mov dword ptr [ebp - 8], edx; ...; 001f: mov eax, dword ptr [ebp - 0xc]`; B `Run: 0006: mov dword ptr [ebp - 0xc], edx; ...; 0012: mov eax, dword ptr [ebp - 8]`.
+
+**r2_dead_call: O+: different; O-: different.**
+
+A: `var T:Integer; begin T:=Tick(A); Result:=B; end;`
+B: `begin Result:=B; end;`
+
+O+: A `Run: 0000: push ebx; 0001: push esi; ...; 000f: pop esi; 0010: pop ebx`; B `Run: 0000: mov eax, edx`.
+O-: A `Run: 0003: add esp, -0x10; ...; 001d: mov eax, dword ptr [ebp - 0xc]`; B `Run: 0003: add esp, -0xc; ...; 000f: mov dword ptr [ebp - 8], eax`.
+
+**r2_undefined_result: O+: different; O-: different.**
+
+A: `begin if A>0 then Result:=B; end;`
+B: `begin Result:=0; if A>0 then Result:=B; end;`
+
+O+: A `Run: (no corresponding instruction)`; B `Run: 0000: xor ecx, ecx`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 000c: xor eax, eax; 000e: mov dword ptr [ebp - 0xc], eax`.
+
+### K31. Source switch state and the numeric command-line Z trap
+
+Reason: [match.md](match.md), compiler-switch sweep and unexplained compiler-build conjecture.
+
+W+ adds an EBP frame to the nonleaf Tick(A)+B function under O+, but not to the trivial leaf A+B; O- already has the frame. A- changes TR.I from offset 4 to 1. J- did not fold a typed Integer constant load. The numeric command-line -$Z1 is a separate bug: SizeOf(TE) becomes 28 in the retained control and Byte-to-enum calls failed with C4436/C7400 before adding a valid source directive. Removing that flag, appending -$Z-, or writing {$Z1} gives size 1; source {$Z4} gives 4. The probe default is now Z-. **r2_enum_cli_source A alone deliberately overrides it with --switch Z1**; B uses source {$Z1}. Four independent flag controls are retained in enum_controls.json. The no-source-override enum-call input enum_bad_cli.pas also reproduces C4436 under O+ and C7400 under O- with --switch Z1; the compile logs are in control_enum_bad_opt/noopt. These two intentionally failing diagnostics are not counted as successful source-pair configurations. Do not blame a source variant or a compiler build before separating source directives from CLI spellings.
+
+**r2_frame_switch: O+: same code; O-: same code.**
+
+A: `begin Result:=A+B; end;`
+B: `{$W+} begin Result:=A+B; end;`
+
+O+: Both `Run: 0000: add edx, eax 0002: mov eax, edx 0004: ret`.
+O-: Both `Run: 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov dword ptr [ebp - 8], edx 0009: mov dword ptr [ebp - 4], eax`.
+
+**r2_alignment_switch: O+: different; O-: different.**
+
+A: `begin Result:=R.I; end;`
+B: `{$A-} begin Result:=R.I; end;`
+
+O+: A `Run: 0000: mov eax, dword ptr [eax + 4]`; B `Run: 0000: mov eax, dword ptr [eax + 1]`.
+O-: A `Run: 000c: mov eax, dword ptr [eax + 4]`; B `Run: 000c: mov eax, dword ptr [eax + 1]`.
+
+**r2_typed_const_J: O+: same code; O-: same code.**
+
+A: `begin Result:=C; end;`
+B: `{$J-} begin Result:=C; end;`
+
+O+: Both `Run: 0000: mov eax, dword ptr [image+0x2020] 0005: ret`.
+O-: Both `Run: 0001: mov ebp, esp 0003: push ecx 0004: mov eax, dword ptr [image+0x2020] 0009: mov dword ptr [ebp - 4], eax`.
+
+**r2_frame_nonleaf: O+: different; O-: same code.**
+
+A: `begin Result:=Tick(A)+B; end;`
+B: `{$W+} begin Result:=Tick(A)+B; end;`
+
+O+: A `Run: (no corresponding instruction)`; B `Run: 0000: push ebp; 0001: mov ebp, esp; 0014: pop ebp`.
+O-: Both `Run: 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov dword ptr [ebp - 8], edx 0009: mov dword ptr [ebp - 4], eax`.
+
+**r2_enum_cli_source: O+: different; O-: different.**
+
+A: `function Run:Integer;`
+B: `{$Z1}`
+
+O+: A `Run: 0000: mov eax, 0x3f`; B `Run: 0000: mov eax, 1`.
+O-: A `Run: 0004: mov dword ptr [ebp - 4], 0x3f`; B `Run: 0004: mov dword ptr [ebp - 4], 1`.
+
+### K32. Getter calls versus fields and unchecked backing arrays
+
+Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIMoveTargetSelector.ProcessStates; [Unit.PAS](../src/delphi3/AoWEPACK/inc/Unit.PAS), raw backing-array note; [AoW review](equiv-review/AoW.exe.tsv), pure Count getter caching.
+
+TList L[I] calls Classes.TList.Get, including its bounds behavior; L.List^[I] loads the backing pointer at +4 and indexes directly. A field-backed Value property compiles to a field load, while an otherwise identical getter-backed property calls Get, even though Get is only Result:=F. The getter is not inlined. A getter's apparent purity may justify an equivalence argument, but it does not give the same call trace or code.
+
+**r2_list_get_raw: O+: different; O-: different.**
+
+A: `begin Result:=Integer(L[I]); end;`
+B: `begin Result:=Integer(L.List^[I]); end;`
+
+O+: A `Run: 0000: push ebx; 0001: push esi; ...; 000f: pop esi; 0010: pop ebx`; B `Run: 0000: mov eax, dword ptr [eax + 4]; 0003: mov eax, dword ptr [eax + edx*4]`.
+O-: A `Run: 000f: mov eax, dword ptr [ebp - 4]; 0012: call Classes.TList.Get@23EDC2EF`; B `Run: 000c: mov eax, dword ptr [ebp - 4]; ...; 0015: mov eax, dword ptr [eax + edx*4]`.
+
+**r2_property_getter: O+: different; O-: different.**
+
+A: `type TTarget=class F:Integer; function Get:Integer; property Value:Integer read F; end; function Run(O:TTarget):Integer;`
+B: `type TTarget=class F:Integer; function Get:Integer; property Value:Integer read Get; end; function Run(O:TTarget):Integer;`
+
+O+: A `Run: 0000: mov eax, dword ptr [eax + 4]`; B `Run: 0000: call TTarget.Get`.
+O-: A `Run: 000c: mov eax, dword ptr [eax + 4]`; B `Run: 000c: call TTarget.Get`.
+
+### K33. Checked class casts and exact versus descendant type tests
+
+Reason: [CitySpells.pas](../src/delphi3/AoWEPACK/CitySpells.pas), animation-cast comments; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCombatUnit.ObjectDestroyed.
+
+`O as TStringList` adds the target-class load and AsClass helper before Count; the hard cast omits them. `O is TStringList` calls IsClass, while ClassType=TStringList calls ClassType then compares the exact VMT. Nil and subclass cases differ. These checked forms are not substitutes for redundant hard casts used only to perturb allocation.
+
+**r2_checked_cast: O+: different; O-: different.**
+
+A: `begin Result:=TStringList(O).Count; end;`
+B: `begin Result:=(O as TStringList).Count; end;`
+
+O+: A `Run: (no corresponding instruction)`; B `Run: 0000: push ebx; 0001: mov ebx, eax; ...; 000b: call System.@AsClass; 0015: pop ebx`.
+O-: A `Run: (no corresponding instruction)`; B `Run: 000c: mov edx, dword ptr [image+0x4104]; 0012: call System.@AsClass`.
+
+**r2_is_class: O+: different; O-: different.**
+
+A: `begin Result:=O is TStringList; end;`
+B: `begin Result:=O.ClassType=TStringList; end;`
+
+O+: A `Run: 0005: mov edx, dword ptr [image+0x4104]; 000b: call System.@IsClass`; B `Run: 0005: call System.TObject.ClassType@23EDC2EF; 000a: cmp eax, dword ptr [image+0x4104]; 0010: sete al`.
+O-: A `Run: 000c: mov edx, dword ptr [image+0x4104]; ...; 0017: mov byte ptr [ebp - 5], al`; B `Run: 000c: call System.TObject.ClassType@23EDC2EF; ...; 0017: sete byte ptr [ebp - 5]`.
+
+### K34. Typed deallocation and clear-before-free order
+
+Reason: [match.md](match.md), Dispose/FreeMem; [Ilpack review](equiv-review/Ilpack.dpl.tsv), old-image freeing/reloads.
+
+Dispose of the plain eight-byte record loads edx=8 before FreeMem; explicit FreeMem(P,SizeOf(P^)) omits that size argument in the emitted helper call. Dispose of a record containing string calls @Dispose with type metadata; raw FreeMem does not finalize that string. `P.Free; P:=nil` clears after the call; saving P, clearing it, then freeing T clears before the callback/destructor. Delphi 3 has no FreeAndNil helper in this installation; the latter is the explicitly written pattern, not a presumed library call.
+
+**r2_dispose_freemem: O+: different; O-: different.**
+
+A: `procedure Run(P:PR); begin Dispose(P) end;`
+B: `procedure Run(P:PR); begin FreeMem(P,SizeOf(P^)) end;`
+
+O+: A `Run: 0000: mov edx, 8`; B `Run: (no corresponding instruction)`.
+O-: A `Run: 0007: mov edx, 8`; B `Run: (no corresponding instruction)`.
+
+**r2_freeandnil: O+: different; O-: different.**
+
+A: `begin P.Free; P:=nil; Result:=F; end;`
+B: `var T:TObj; begin T:=P; P:=nil; T.Free; Result:=F; end;`
+
+O+: A `TObj.Run: 000b: xor eax, eax; 000d: mov dword ptr [ebx + 0xc], eax`; B `TObj.Run: 0006: xor edx, edx; 0008: mov dword ptr [ebx + 0xc], edx`.
+O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0015: call System.TObject.Free@23EDC2EF`; B `TObj.Run: 0003: add esp, -0x14; ...; 0023: call System.TObject.Free@23EDC2EF`.
+Context: Clear-before-Free is a source implementation of FreeAndNil; Delphi 3 has no such helper.
+
+**r2_dispose_managed: O+: different; O-: different.**
+
+A: `procedure Run(P:PR); begin Dispose(P) end;`
+B: `procedure Run(P:PR); begin FreeMem(P,SizeOf(P^)) end;`
+
+O+: A `Run: 0000: mov edx, dword ptr [image+0x130c]; 0006: call System.@Dispose`; B `Run: 0000: call System.@FreeMem`.
+O-: A `Run: 0007: mov edx, dword ptr [image+0x130c]; 0010: call System.@Dispose`; B `Run: 000a: call System.@FreeMem`.
+
+### K35. Constructor-compatible callback signatures
+
+Reason: [match.md](match.md), TEObjectEditor.Edit constructor-shaped method pointer.
+
+TCB is `procedure(Alloc:Boolean;X:Integer) of object`. A callback C(False,X) sends Data in eax, zero allocation flag in edx and X in ecx before its indirect Code call. Direct `O.Create(X)` uses the same hidden-flag layout with a known target. The callback wrapper retains O separately to return it. This explains why an ordinary procedure-of-object declaration with the wrong explicit Boolean can shift every following register argument.
+
+**r2_constructor_callback: O+: different; O-: different.**
+
+A: `constructor TTarget.Create(X:Integer); begin inherited Create end; function Run(C:TCB; O:TTarget; X:Integer):TTarget; begin Result:=O.Create(X) end;`
+B: `constructor TTarget.Create(X:Integer); begin inherited Create end; function Run(C:TCB; O:TTarget; X:Integer):TTarget; begin C(False,X); Result:=O end;`
+
+O+: A `Run: 0007: call TTarget.Create`; B `Run: 0003: push ebx; 0004: mov ebx, eax; ...; 0010: mov eax, ebx; 0012: pop ebx`.
+O-: A `Run: 0014: call TTarget.Create`; B `Run: 0011: mov eax, dword ptr [ebp + 0xc]; 0014: call dword ptr [ebp + 8]`.
+
+### K36. Unit initialization/finalization and global managed storage
+
+Reason: [match.md](match.md), automatic per-unit init/fini pair.
+
+The named routines here are Run, ProbeUnit and Finalization<ProbeUnit. Adding an empty initialization section leaves all three identical, including the existing reference counter and protected finalization skeleton. Changing unused Shared:Integer to Shared:string leaves Run alone but adds a global LStrClr in Finalization. A method can therefore match while its unit lifetime code differs; empty source initialization is not evidence that those emitted functions are absent.
+
+**r2_unit_empty_init: O+: same code; O-: same code.**
+
+A: `begin Result:=A+B; end;`
+B: `initialization begin Result:=A+B; end;`
+
+O+: Both `Run: 0000: add edx, eax 0002: mov eax, edx 0004: ret / ProbeUnit: 0000: sub dword ptr [image+0x3024], 1 0007: ret / Finalization<ProbeUnit: 000b: push dword ptr fs:[eax] 000e: mov dword ptr fs:[eax], esp 0011: inc dword ptr [image+0x3024] 0017: xor eax, eax`.
+O-: Both `Run: 0000: push ebp 0001: mov ebp, esp 0003: add esp, -0xc 0006: mov dword ptr [ebp - 8], edx / ProbeUnit: 0000: sub dword ptr [image+0x3024], 1 0007: ret / Finalization<ProbeUnit: 000b: push dword ptr fs:[eax] 000e: mov dword ptr fs:[eax], esp 0011: inc dword ptr [image+0x3024] 0017: xor eax, eax`.
+
+**r2_unit_managed_global: O+: different; O-: different.**
+
+A: `var Shared:Integer; begin Result:=A+B; end;`
+B: `var Shared:string; begin Result:=A+B; end;`
+
+O+: A `Finalization<ProbeUnit: (no corresponding instruction)`; B `Finalization<ProbeUnit: 0017: jne +0x23; 0019: mov eax, image+0x3024; 001e: call System.@LStrClr`.
+O-: A `Finalization<ProbeUnit: (no corresponding instruction)`; B `Finalization<ProbeUnit: 0017: jne +0x23; ...; 001e: call System.@LStrClr`.
+
+### K37. Shared failure returns and Boolean branch materialization
+
+Reason: [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), CanEnter shared-return comment; [City.pas](../src/delphi3/AoWEPACK/City.pas), ValidUpgradeBudgetCity; [AoW review](equiv-review/AoW.exe.tsv), TFileDlgWindow.FileLBChange.
+
+Two explicit early failure returns versus a short-circuit Boolean assignment share different return blocks and branch targets. A separate `if A=B then Result:=True else Result:=False` uses branches and explicit constants; `Result:=A=B` uses SETE. This extends the first-round Exit/else negative result: identical epilogues in one shape do not imply that every equivalent Boolean return structure canonicalizes.
+
+**r2_shared_fail: O+: different; O-: different.**
+
+A: `begin if A<0 then begin Result:=False; Exit end; if B<0 then begin Result:=False; Exit end; Result:=True; end;`
+B: `begin Result:=(A>=0) and (B>=0); end;`
+
+O+: A `Run: 0002: jge +0x7; 0004: xor eax, eax; 0006: ret`; B `Run: 0002: jl +0x8`.
+O-: A `Run: 0010: jge +0x18; ...; 0024: mov byte ptr [ebp - 9], 1`; B `Run: 0010: jl +0x18; ...; 001e: mov byte ptr [ebp - 9], al`.
+
+**r2_branch_boolean: O+: different; O-: different.**
+
+A: `begin if A=B then Result:=True else Result:=False; end;`
+B: `begin Result:=A=B; end;`
+
+O+: A `Run: 0002: jne +0x7; 0004: mov al, 1; 0007: xor eax, eax; 0009: ret`; B `Run: 0002: sete al`.
+O-: A `Run: 0012: jne +0x1a; ...; 001a: mov byte ptr [ebp - 9], 0`; B `Run: 0012: sete byte ptr [ebp - 9]`.
+
+### K38. Single-label cases and explicit empty arms
+
+Reason: [match.md](match.md), single-enum-label and empty-arm observations; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIGroupTargetSelector.Setup; [MainAG.pas](../src/delphi3/AoWEPACK/MainAG.pas), ProcessStates.
+
+For source-sized TE=(e0,e1,e2), case E of e1 uses DEC al/JNE, while an equivalent if E=e1 uses CMP al,1/JNE. An explicit empty label is removed when the implicit default does nothing: the four-action cases with and without label 1 match. Once there is an else action, label 1 must bypass it. The five-label version then uses a table with offsets `27 61 33 3f 4b`, where label 1 targets the statement end at +61; removing that empty arm selects a four-label comparison chain instead. Removing it also changes input 1 behavior, so it is not a safe rewrite merely to obtain a chain.
+
+**r2_empty_case_arm: O+: same code; O-: same code.**
+
+A: `begin case A of 0:Sink(1); 1:; 2:Sink(2); 3:Sink(3); 4:Sink(4); end; Result:=A; end;`
+B: `begin case A of 0:Sink(1); 2:Sink(2); 3:Sink(3); 4:Sink(4); end; Result:=A; end;`
+
+O+: Both `Run: 0005: sub al, 1 0007: jb +0x17 0009: dec al 000b: je +0x23`.
+O-: Both `Run: 000c: sub al, 1 000e: jb +0x1e 0010: dec al 0012: je +0x2a`.
+
+**r2_enum_case_if: O+: different; O-: different.**
+
+A: `begin Result:=0; case E of e1:Result:=Tick(1); end; end;`
+B: `begin Result:=0; if E=e1 then Result:=Tick(1); end;`
+
+O+: A `Run: 0002: dec al`; B `Run: 0002: cmp al, 1`.
+O-: A `Run: 000e: mov al, byte ptr [ebp - 1]; 0011: dec al`; B `Run: 000e: cmp byte ptr [ebp - 1], 1`.
+
+**r2_empty_case_else: O+: different; O-: different.**
+
+A: `begin case A of 0:Sink(1); 1:; 2:Sink(2); 3:Sink(3); 4:Sink(4); else Sink(9) end; Result:=A; end;`
+B: `begin case A of 0:Sink(1); 2:Sink(2); 3:Sink(3); 4:Sink(4); else Sink(9) end; Result:=A; end;`
+
+O+: A `Run: 0003: xor eax, eax; 0005: mov al, bl; ...; 000c: jmp dword ptr [eax*4 + +0x13]; .table 27 61 33 3f 4b`; B `Run: 0003: mov eax, ebx; 0005: sub al, 1; ...; 0013: je +0x3b; 0015: jmp +0x47`.
+O-: A `Run: 0009: xor eax, eax; ...; .table 2e 68 3a 46 52`; B `Run: 000c: sub al, 1; ...; 001c: jmp +0x4e`.

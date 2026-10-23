@@ -80,6 +80,7 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
   evaluates the start value before the end value; `for I := 0 to N - 1` with a `Word` variable gives
   the `dec/test bx,bx/jb` shape; `while` loops are rotated (test at the bottom) and a method pointer
   operand of the condition is copied to a temp before the loop.
+- Qualification: unused-index counting depends on the bounds: `7 downto 0` increments from -8, but `A-1 downto 0` can decrement and compare against -1 (codegen catalog o01/o09).
 - `@A <> @B` compares only the code pointers of method pointers; the original compares both halves
   through `TMethod` casts and copies the right operand into a `TMethod` local.
 - `Assigned(E)` on a method pointer tests the high word of the code address (`cmp word ptr [..+2],0`).
@@ -145,12 +146,14 @@ programs (`hosts/misc.dpr`, `hosts/ui.dpr`) and alias files (`aliases/*.json`); 
   the index in bx.
 - A `case` on a Word compiles to an ascending `sub ax,n / je` chain, but the branch bodies are laid
   out in source order.
+- Qualification: dense Word cases can instead zero-extend the selector and use a jump table; eight separate labels 0..7 do so (codegen catalog c08).
 - Stack slots of locals: in ImgLComp the first declared spilled local got the lower address, in
   aowFX (MakeArcPath) the first declared got the higher address, as under `$O-`; locals that get a
   register take no slot, and which local gets the register moves the others. Try both orders.
 - `(FMin <> 0) and (Value < FMin)` gives `cmp ecx,edx / jle`; `FMin > Value` gives `cmp edx,ecx / jge`.
 - A nil test `mov eax,[field] / test eax,eax` comes from a local or a `with`; `if F <> nil`,
   `Assigned(F)` and casts all give `cmp dword ptr [..],0`.
+- Qualification: a direct field nil test can also emit `mov/test` when the taken branch reuses the field, without a local or `with` (codegen catalog e09/e11).
 - A method pointer passed by value is pushed data first, then code. An empty method with a stack
   parameter still gets a frame (`push ebp / mov ebp,esp / pop ebp / ret n`).
 - `if not Cancel then <big block> else R.Free` lays the big block out first.

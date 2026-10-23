@@ -17,7 +17,8 @@ sys.dont_write_bytecode = True
 import match
 from match_flow import graph
 
-DEFAULTS = 'O+ W- B- G+ A+ R- Q- Z1 L+'.split()
+# DCC3's numeric CLI Z1 corrupts enum size; Z- matches valid source {$Z1}.
+DEFAULTS = 'O+ W- B- G+ A+ R- Q- Z- L+'.split()
 
 
 def build(source, out, switches=(), compiler=r'C:\Tools\Delphi3\BIN\DCC32.EXE'):
