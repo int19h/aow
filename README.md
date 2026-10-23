@@ -1,7 +1,22 @@
 # aow
 
-Reverse-engineering notes and tools for Age of Wonders (1999, v1.36), with the goal of a source port.
-This repository holds no game files. The tools read an installed copy of the game.
+Recovered source, notes and tools for Age of Wonders (1999, v1.36), with the goal of a source port.
+This repository holds no game files. The tools read an installed copy of the game, and the build
+script copies it before it replaces anything.
+
+## State
+
+All modules that v1.36 loads are recovered as Delphi 3.02 source under `src/delphi3/` and compile
+with the original compiler. Over those modules, 12,693 of 13,303 functions (95.4 percent, 87 percent
+of the code bytes) compile to the same instructions as the original, with the same control flow and
+the same referenced routines and globals. Of the 610 that differ, 58 are proven equivalent by a
+checker under named premises, and the others have a manual verdict with a written argument
+(`notes/equiv-review/`). From this source, `tools/buildgame.py` builds all game packages, `AoW.exe` and `AoWEd.exe`;
+the rebuilt game plays identically to the original in seeded computer-only games (equal save files
+after every turn, 20 turns, three scenarios so far). `notes/handoff.md` has the current state and
+history, `notes/modules.md` the per-module numbers.
+
+## Notes and early tools
 
 - `notes/binary-inventory.md`: what the binaries are and what metadata they carry.
 - `notes/symbols/`: exported units, classes, and methods per package (from `tools/pescan.py` and `tools/symtab.py`).
@@ -41,16 +56,16 @@ packages under `WINDOWS\SYSTEM`. After the 3.02 patch, `vcl30.dpl`, `vcldb30.dpl
 byte-identical to the game's copies. Recovered units can therefore be compiled with the original compiler and
 compared with the original code byte for byte.
 
-## Byte-matching the Engine unit
+## Byte-matching
 
-`src/delphi3/` is the `Engine` unit written for Delphi 3.02 and compared with `Enginep.dpl` method by
-method: `tools/match.py` disassembles both and reports every instruction that differs. Every unit of
-Enginep.dpl is written; 865 of 892 functions compile to identical code, the rest differ in one register
-choice or an `Assert` line number (`notes/match.md` lists them). `notes/modules.md` gives the order for
-the other packages, and thirteen of them are recovered the same way in `src/delphi3/<Package>/`;
-`sh tools/checkall.sh` rebuilds and compares all of them from a clean copy. `notes/match.md` has
-the workflow, the state table and what the comparisons taught about the compiler;
-`notes/handoff.md` has the state at 2026-10-20, the open items and the plan. Build and compare:
+`src/delphi3/` holds one directory per package (the `Engine` unit sits in `src/delphi3/` itself);
+each has a test host `matchtest.dpr` that links its units statically. `tools/match.py` disassembles
+the host and the original module and compares them function by function, with addresses masked
+and branch targets and exception tables compared as offsets inside the function (shared code in
+`tools/match_flow.py`). Because addresses are masked, `tools/addrcheck.py` checks separately that a
+matched function references the same routines and globals. `sh tools/checkall.sh` rebuilds and
+compares the earlier packages from a clean copy. `notes/match.md` has the workflow, what the
+compiler does, and what a match does and does not prove. Example for the Engine unit:
 
 ```bash
 cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matchtest.dpr
@@ -59,6 +74,46 @@ cd src\delphi3 && C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matc
 ```bash
 python tools/match.py --quiet --alias src/delphi3/match-aliases.json src/delphi3/matchtest.exe src/delphi3/matchtest.map "D:\Games\GOG\Age of Wonders\Enginep.dpl" notes/signatures/Enginep.dpl.json TEngine TEObject TENode
 ```
+
+## Proving the differing functions
+
+`tools/equiv.py` takes the arguments of `tools/match.py` and tries to prove each differing function
+equivalent to the original with z3 (relational translation validation). A verdict is PROVEN,
+"PROVEN under H...", which names the premises it relies on, NOT PROVEN or UNSUPPORTED; anything the
+checker does not model fails closed. `notes/checker-plan.md` defines the premises H1 to H9, the
+observation contract and the steps of its repair plan, written and reviewed by two independent
+reviewers. `tools/equiv_tests/` holds its regression fixtures:
+
+```bash
+python -B tools/equiv.py --selftest --synthetic-only
+python -B -m unittest discover -s tools -t tools -p "test_*.py"
+```
+
+`notes/equiv-review/<Module>.tsv` records a manual verdict for every differing function the checker
+does not prove, with the argument for it (`notes/briefs/equiv-review.md`).
+
+## Building and playing the rebuilt game
+
+```bash
+python tools/buildgame.py build <build dir>
+python tools/buildgame.py install <build dir> <game copy dir>
+```
+
+The first builds every recovered package and both executables (the package and program projects
+are the `.dpk` and `.dpr` files in `src/delphi3/`; `src/delphi3/imports/` holds interface units for
+the third-party packages that stay original at run time). The second copies the installed game and
+replaces the recovered modules in the copy. The forms are built from `notes/forms/` at build time.
+The game reads its settings, including its root directory, from
+`HKEY_CURRENT_USER\Software\Triumph Studios\Age of Wonders`; point `General\Root Directory` at the
+copy before you run it there. `tools/playtest.py` runs seeded computer-only games in the original
+and the rebuilt copy on a hidden desktop and compares their saves turn by turn
+(`notes/briefs/compare-behavior.md`).
+
+## Working method
+
+The work is done by coding agents from briefs in `notes/briefs/`, one brief per kind of task, each
+with the measure that says when it is done. Merges keep every existing match and do not raise the
+address-check findings.
 
 ## Recovered source
 
