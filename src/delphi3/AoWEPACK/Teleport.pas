@@ -162,7 +162,7 @@ begin
   WorldMap^.PlaceHX(Anim, FDestinationX, FDestinationY, FDestinationL);
 end;
 
-procedure TTeleport.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: map pointer reuse differs after three variants. }
+procedure TTeleport.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg);
 begin
   inherited MapFieldMsgProc(Msg);
   if (Msg.HN = 0) and (Msg.MsgID = $1140) and
@@ -170,11 +170,11 @@ begin
     (TMapField(Msg.Param[1]).Yhx = FDestinationY) and
     (TMapField(Msg.Param[1]).Lhx = FDestinationL) then
   begin
-    if (not WorldMap^.FFogEnabled) or
-      WorldMap^.VisibleForPlayer(GetXhx, GetYhx, GetLhx,
-        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) or
-      WorldMap^.VisibleForPlayer(FDestinationX, FDestinationY, FDestinationL,
-        TTeleportMapFields(Pointer(WorldMap^)^).SeatedPlayer) then
+    if (not AoWE.AoWHSMap.FFogEnabled) or
+      AoWE.AoWHSMap.VisibleForPlayer(GetXhx, GetYhx, GetLhx,
+        TTeleportMapFields(Pointer(AoWE.AoWHSMap)^).SeatedPlayer) or
+      AoWE.AoWHSMap.VisibleForPlayer(FDestinationX, FDestinationY, FDestinationL,
+        TTeleportMapFields(Pointer(AoWE.AoWHSMap)^).SeatedPlayer) then
       Sound.PlaySample('SFX\PLACES\TELEPORT.WAV');
     ShowTeleportAnimations;
   end;

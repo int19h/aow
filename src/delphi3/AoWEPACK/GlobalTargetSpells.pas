@@ -1318,26 +1318,26 @@ begin
   end;
 end;
 
-procedure TWatcherHS.UpdateUnfog; { Near miss: map pointer reuse and zero-radius branches differ after three variants. }
+procedure TWatcherHS.UpdateUnfog;
 var
   Radius: Integer;
   OwnerPlayer: Shortint;
 begin
-  if Byte(SpellHSMap^.FSeatedPlayer) <> $FF then
-  begin
-    OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
-    if     ((OwnerPlayer = SpellHSMap^.FSeatedPlayer) or
-    (SpellRelation(TPlayerDiplomaticRelations(TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
-      Byte(SpellHSMap^.FSeatedPlayer)) = 2)) and Activated then
-      Radius := VisibilityRange
-    else Radius := 0;
-  end
+  if (Byte(AoWE.AoWHSMap.FSeatedPlayer) <> $FF) and
+    ((Shortint(FEnchantment.FPlayerIndex) = AoWE.AoWHSMap.FSeatedPlayer) or
+    (SpellRelation(
+      TPlayerDiplomaticRelations(
+        TPlayerList(AoWE.AoWHSMap.FPlayers).GetPlayers(
+          Shortint(FEnchantment.FPlayerIndex)).FDiplomaticRelations),
+      Byte(AoWE.AoWHSMap.FSeatedPlayer)) = 2)) and Activated then
+    Radius := VisibilityRange
   else Radius := 0;
   if Radius <> FUnfogRadius then
   begin
-    if FUnfogRadius <> 0 then SpellHSMap^.FogArea(Xhx,Yhx,Lhx,FUnfogRadius);
+    if FUnfogRadius <> 0 then AoWE.AoWHSMap.FogArea(Xhx,Yhx,Lhx,FUnfogRadius);
     FUnfogRadius := Radius;
-    if FUnfogRadius <> 0 then SpellHSMap^.UnFogArea(Xhx,Yhx,Lhx,FUnfogRadius);
+    if FUnfogRadius <> 0 then
+      AoWE.AoWHSMap.UnFogArea(Xhx,Yhx,Lhx,FUnfogRadius);
   end;
 end;
 

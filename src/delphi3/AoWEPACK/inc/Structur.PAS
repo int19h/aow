@@ -228,7 +228,7 @@ begin RegisterGroupProduction; end;
 procedure TProductionControl.Deactivate;
 begin UnregisterGroupProduction; end;
 
-function TProductionControl.GetProduceUnitLevelMax: Integer; { Near miss: signed field reload versus reused register after three variants. }
+function TProductionControl.GetProduceUnitLevelMax: Integer;
 var
   I: Integer;
   Resource: TUnitResource;
@@ -239,11 +239,11 @@ begin
     begin
       Resource := AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(I).FUnitIndex);
       if Resource <> nil then
-        if Result < Resource.FLevel then Result := Resource.FLevel;
+        if Result < Resource.FLevel then Result := Shortint(PChar(Resource)[$2F]); { reload FLevel }
     end;
 end;
 
-function TProductionControl.GetResearchUnitLevelMax: Integer; { Near miss: signed field reload versus reused register after three variants. }
+function TProductionControl.GetResearchUnitLevelMax: Integer;
 var
   I: Integer;
   Resource: TUnitResource;
@@ -254,7 +254,7 @@ begin
     begin
       Resource := AoWHSSet.FUnitResources.GetUnitResource(FUnitProductions.GetItem(I).FUnitIndex);
       if Resource <> nil then
-        if Result < Resource.FLevel then Result := Resource.FLevel;
+        if Result < Resource.FLevel then Result := Shortint(PChar(Resource)[$2F]); { reload FLevel }
     end;
 end;
 

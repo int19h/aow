@@ -1622,13 +1622,13 @@ function P2DamageRole(Damage, DC: Integer): Integer; assembler;
 asm JMP ExecuteDamageRole end;
 function TAbstractUnit.ExecuteDamageRole(Attack, Damage: Integer; DamageTypes: TDamageTypes): Integer;
 var
-  Active: TDamageTypes;
+  Active: TDamageTypes; DC: Integer;
 begin
   Result := 0;
   Active := DamageTypes - GetImmunityTypes;
   if Active <> [] then
   begin
-    Result := P2DamageRole(Damage, Attack - GetDefense);
+    DC := Attack - GetDefense; Result := P2DamageRole(Damage, DC);
     if Active - GetProtectionTypes = [] then Result := (Result + 1) div 2;
   end;
 end;
@@ -2465,13 +2465,13 @@ begin
 end;
 procedure TUnitIndexListCollection.DeleteUnit(Collection, Index: Integer);
 var
-  N: Integer;
+  N, Offset, UnitIndex: Integer;
 begin
   N := GetCollectionCount(Collection);
   if Index < N then
   begin
-    FUnits.Delete(Collection * FCollectionSize + Index);
-    FUnits.Insert(Collection * FCollectionSize + N - 1, -1);
+    Offset := Collection * FCollectionSize; UnitIndex := Offset + Index; FUnits.Delete(UnitIndex);
+    FUnits.Insert(Offset + N - 1, -1);
   end;
 end;
 function TUnitIndexListCollection.GetRndCollection: Integer;

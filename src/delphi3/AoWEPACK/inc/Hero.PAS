@@ -2842,7 +2842,7 @@ end;
 function TLeader.AddSphere(Sphere: TMagicSphere): Boolean;
 begin Result := CanAddSphere(Sphere); if Result then FSpheres.Add(Byte(Sphere)); end;
 
-procedure TLeader.MsgProc(var Msg: TEMsg; Sender: TEObject); { Near miss: player field caching after three variants. }
+procedure TLeader.MsgProc(var Msg: TEMsg; Sender: TEObject);
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020005 then
@@ -2850,7 +2850,7 @@ begin
     SetSpherePicksMax(Byte(AoWHSMap.FSphereCount));
     if AoWHSMap.FPlayers.GetCount > FPlayer then
     begin
-      if AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace <> FRace then
+      if AoWHSMap.FPlayers.GetPlayers(Shortint(PChar(Self)[$24]) { reload FPlayer }).FPlayerRace <> FRace then
       begin
         SetHeroResourceIndex(AoWHSSet.FHeroResources.Find(AoWHSMap.FPlayers.GetPlayers(FPlayer).FPlayerRace, htHeroLeader));
         Changed;

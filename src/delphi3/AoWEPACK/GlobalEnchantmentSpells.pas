@@ -581,29 +581,29 @@ begin
   FAIBasePriority := 750;
 end;
 
-procedure TEnchantedRoads.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
+procedure TEnchantedRoads.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
   X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep: Integer;
   MapLevel: TMapLevel;
   MapF: TAoWMapField;
 begin
-  MapLevel := WorldMap^.MapContainer.GetMapLevel(WorldMap^.ViewL);
+  MapLevel := AoWE.AoWHSMap.MapContainer.GetMapLevel(AoWE.AoWHSMap.ViewL);
   FieldStep := MapLevel.FHNOffsets[0, 4];
-  MaxX := WorldMap^.ViewXhx + WorldMap^.ViewWidthHX - 1;
-  MaxY := WorldMap^.ViewYhx + WorldMap^.ViewHeightHX - 1;
-  for X := WorldMap^.ViewXhx to MaxX do
+  MaxX := AoWE.AoWHSMap.ViewXhx + AoWE.AoWHSMap.ViewWidthHX - 1;
+  MaxY := AoWE.AoWHSMap.ViewYhx + AoWE.AoWHSMap.ViewHeightHX - 1;
+  for X := AoWE.AoWHSMap.ViewXhx to MaxX do
   begin
-    HXtoHP(X, WorldMap^.ViewYhx, Xhp, Yhp);
+    HXtoHP(X, AoWE.AoWHSMap.ViewYhx, Xhp, Yhp);
     Xhp := Xhp - XhpSurf + 16;
     Yhp := Yhp - YhpSurf + 16;
-    MapF := TAoWMapField(MapLevel.GetField(X, WorldMap^.ViewYhx));
-    for Y := WorldMap^.ViewYhx to MaxY do
+    MapF := TAoWMapField(MapLevel.GetField(X, AoWE.AoWHSMap.ViewYhx));
+    for Y := AoWE.AoWHSMap.ViewYhx to MaxY do
     begin
-      if (MapF.OverlayType = 4) and (WorldMap^.FSeatedPlayer <> -1) and
-        MapF.GetExplored(WorldMap^.FSeatedPlayer) then
+      if (MapF.OverlayType = 4) and (AoWE.AoWHSMap.FSeatedPlayer <> -1) and
+        MapF.GetExplored(AoWE.AoWHSMap.FSeatedPlayer) then
         FCastImages.Show(0, Xhp, Yhp,
-          Anim.FFrameCounter - ((MapF.Xhx + MapF.Yhx * 8 + Byte(MapF.FFieldFlags shr 16)) and 15), SurfaceDesc);
-      Inc(Integer(MapF), FieldStep);
+          Anim.FFrameCounter - ((MapF.Xhx + MapF.Yhx * 8 + WordRec(LongRec(MapF.FFieldFlags).Hi).Lo) and 15), SurfaceDesc);
+      MapF := TAoWMapField(Integer(MapF) + FieldStep);
       Inc(Yhp, 32);
     end;
   end;
@@ -1886,23 +1886,23 @@ begin
   FAIBasePriority := 1000;
 end;
 
-procedure TEarthMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
+procedure TEarthMastery.ShowAnimation(Anim: TAnimation; XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
   X, MaxX, Y, MaxY, Xhp, Yhp, FieldStep: Integer;
   MapLevel: TMapLevel;
   MapF: TAoWMapField;
 begin
-  MapLevel := WorldMap^.MapContainer.GetMapLevel(WorldMap^.ViewL);
+  MapLevel := AoWE.AoWHSMap.MapContainer.GetMapLevel(AoWE.AoWHSMap.ViewL);
   FieldStep := MapLevel.FHNOffsets[0, 4];
-  MaxX := WorldMap^.ViewXhx + WorldMap^.ViewWidthHX - 1;
-  MaxY := WorldMap^.ViewYhx + WorldMap^.ViewHeightHX - 1;
-  for X := WorldMap^.ViewXhx to MaxX do
+  MaxX := AoWE.AoWHSMap.ViewXhx + AoWE.AoWHSMap.ViewWidthHX - 1;
+  MaxY := AoWE.AoWHSMap.ViewYhx + AoWE.AoWHSMap.ViewHeightHX - 1;
+  for X := AoWE.AoWHSMap.ViewXhx to MaxX do
   begin
-    HXtoHP(X, WorldMap^.ViewYhx, Xhp, Yhp);
+    HXtoHP(X, AoWE.AoWHSMap.ViewYhx, Xhp, Yhp);
     Xhp := Xhp - XhpSurf + 16;
     Yhp := Yhp - YhpSurf + 16;
-    MapF := TAoWMapField(MapLevel.GetField(X, WorldMap^.ViewYhx));
-    for Y := WorldMap^.ViewYhx to MaxY do
+    MapF := TAoWMapField(MapLevel.GetField(X, AoWE.AoWHSMap.ViewYhx));
+    for Y := AoWE.AoWHSMap.ViewYhx to MaxY do
     begin
       if Smallint(MapF.OverlayType) = 4 then
         FCastImages.Show(0, Xhp, Yhp,

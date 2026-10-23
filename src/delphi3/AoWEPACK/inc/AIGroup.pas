@@ -4991,8 +4991,8 @@ begin
         if Armies.Count <> 0 then
         begin
           if memAttack in FExecuter.FMode then Mode := [cmmSurround] else Mode := [];
-          with FExecuter.FDestination do
-            Move := CreateMove(Armies.GetArmies(0), $FF, X, Y, L, Mode, @MoveResult);
+          Move := CreateMove(Armies.GetArmies(0), $FF,
+            FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L, Mode, @MoveResult);
           if Move <> nil then
           begin
             if not (memSimultaneous in FExecuter.FMode) or
@@ -5016,8 +5016,8 @@ begin
         Armies := FExecuter.CreateArmies([esReady, esDone]);
         while CannotMove and (I <> Armies.Count) do
         begin
-          with FExecuter.FDestination do
-            Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L,
+          Move := CreateMove(Armies.GetArmies(I), $FF,
+            FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L,
               [cmmDontQueue, cmmSurround], @MoveResult);
           CannotMove := MoveResult <> 0;
           if Move <> nil then Move.Free;
@@ -5029,8 +5029,8 @@ begin
           Move := nil;
           while (Move = nil) and (I <> Armies.Count) do
           begin
-            with FExecuter.FDestination do
-              Move := CreateMove(Armies.GetArmies(I), $FF, X, Y, L, [], @MoveResult);
+            Move := CreateMove(Armies.GetArmies(I), $FF,
+              FExecuter.FDestination.X, FExecuter.FDestination.Y, FExecuter.FDestination.L, [], @MoveResult);
             if Move <> nil then FExecuter.ExecuteMoves;
             Inc(I);
           end;
@@ -6967,7 +6967,7 @@ begin
           Inc(FTargetPriority, CV);
         end;
       end;
-      FTargetPriority := (Count + 2) * FTargetPriority;
+      FTargetPriority := FTargetPriority * (Count + 2);
       I := FTargetedBy.Count;
       { The original stores normalized priority in the target-strength field. }
       if I <> 0 then FTargetStrength := FTargetPriority div I else FTargetStrength := 0;
@@ -6988,7 +6988,7 @@ begin
           Inc(FTargetPriority, CV);
         end;
       end;
-      FTargetPriority := (Count + 2) * FTargetPriority;
+      FTargetPriority := FTargetPriority * (Count + 2);
       I := FTargetedBy.Count;
       if I <> 0 then FTargetStrength := FTargetPriority div I else FTargetStrength := 0;
     end;
