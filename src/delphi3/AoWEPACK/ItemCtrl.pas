@@ -220,7 +220,7 @@ begin
   else Result := nil;
 end;
 
-function TItemControlGrid.GetItem(Index: Integer): TItem; { Near miss: three variants retain a different Index/Self register allocation. }
+function TItemControlGrid.GetItem(Index: Integer): TItem;
 var
   I: Integer;
   Map: TAoWHSMap;
@@ -228,7 +228,7 @@ begin
   I := Index;
   Map := FMap;
   { Original checks only the upper bound. }
-  if (Map <> nil) and (I < FIndices.Count) then Result := ControlItemAt(TItemControl(TRawView(Pointer(Map)^).Fields[$F4 div 4]), FIndices[I])
+  if (Map <> nil) and (Index < FIndices.Count) then Result := ControlItemAt(TItemControl(TRawView(Pointer(Map)^).Fields[$F4 div 4]), FIndices[Index])
   else Result := nil;
 end;
 

@@ -80,7 +80,7 @@ begin
   begin
     R := TTerrainMOR(Resources.List^[I]);
     if (R.ClassID = FResource.ClassID) and
-      (TTerrainMOR(FResource).FTerrainType = R.FTerrainType) and
+      (TTerrainMOR(Pointer(R)).FTerrainType = TTerrainMOR(FResource).FTerrainType) and
       (R.FDecorationType = DecorationType) and (R <> FResource) and
       R.TerrainList.CompareTerrain(FResource.TerrainList, [cmSameOverlayType]) then
       Candidates.Add(R);
@@ -105,7 +105,7 @@ begin
   begin
     R := TTerrainMOR(Resources.List^[I]);
     if (R.ClassID = FResource.ClassID) and
-      (TTerrainMOR(FResource).FDecorationType = R.FDecorationType) and
+      (TTerrainMOR(Pointer(R)).FDecorationType = TTerrainMOR(FResource).FDecorationType) and
       (R.FTerrainType = TerrainType) and (R <> FResource) and
       R.TerrainList.CompareTerrain(FResource.TerrainList, [cmSameOverlayType]) then
       Candidates.Add(R);

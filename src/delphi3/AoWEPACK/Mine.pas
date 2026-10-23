@@ -159,13 +159,13 @@ function TMine.GetRazed: Boolean;
 asm TEST BYTE PTR [EAX+$3C],1; SETNE AL end;
 
 procedure TMine.SetRazed(Value: Boolean);
-begin
-  if Value then
+type TMineState = set of 0..7;
+begin if Value then
   begin
     SetPlayer(-1);
-    FState := FState or 1;
+    FState := Byte(TMineState(FState) + [0]);
   end
-  else FState := FState and $FE;
+  else FState := Byte(TMineState(FState) - [0]);
   TMineImageData(Pointer(Self)^).ImageIndex := GetTerrainTypeImage(TerrainType);
 end;
 

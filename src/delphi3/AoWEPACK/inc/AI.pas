@@ -1529,10 +1529,10 @@ begin
   end;
 end;
 
-function TAutoProduceAIPA.Process: Boolean; { Near miss: three variants load EDX before EAX at GetPC. }
+function TAutoProduceAIPA.Process: Boolean;
 var
   I, Priority: Integer;
-  Budget: TAIBudget;
+  Budget: TAIBudget; Controls: TProductionControlList;
 begin
   case FState of
     0:
@@ -1578,9 +1578,9 @@ begin
       while FState = 1 do
       begin
         Inc(FProductionIndex);
-        with FControl.FPlayer.FProductionControls do
+        Controls := FControl.FPlayer.FProductionControls; with Controls do
           if FProductionIndex < Count then
-            UpdateProductions(GetPC(FProductionIndex))
+            UpdateProductions(TProductionControlList(Integer(Controls) shl 0).GetPC(FProductionIndex))
           else
           begin
             FProductions.Sort(CompareAutoProductions);

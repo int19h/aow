@@ -2193,7 +2193,7 @@ begin
     begin
       Key := Color2PixelInfo(ColorKey, Src.PixelFormatID, nil);
       S := Pointer(Integer(Src.Data) + Src.Pitch * SrcRect.Top + SrcRect.Left * 2);
-      D := Pointer(Integer(Dest.Data) + Dest.Pitch * Y + X * 2);
+      D := Pointer(Integer(Dest.Data) + Dest.Pitch * Y); Inc(X, X); Inc(Integer(D), X);
       BltColorKey16(S, D, Src.Pitch, Dest.Pitch, W, H, Key);
     end;
     Result := GFXE_OK;
