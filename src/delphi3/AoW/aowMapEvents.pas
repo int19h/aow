@@ -565,9 +565,9 @@ begin
     FEvent.AddRef;
     FDone := Done;
     HeaderMemo.Items.Clear;
-    if Event.FMessage.Count > 0 then HeaderMemo.Items.Add(Event.FMessage[0]);
+    if Event.FMessage.Count > 0 then HeaderMemo.Items.Add(TTutorialMessageEventLog(Pointer(Event)).FMessage[0]);
     MessageMemo.Items.Clear;
-    MessageMemo.Items.AddStrings(Event.FMessage);
+    MessageMemo.Items.AddStrings(TTutorialMessageEventLog(Pointer(Event)).FMessage);
     if MessageMemo.Items.Count > 0 then MessageMemo.Items.Delete(0);
     if (MessageMemo.Items.Count > 0) and (MessageMemo.Items[0] = '') then MessageMemo.Items.Delete(0);
     Dlg.Visible := True;

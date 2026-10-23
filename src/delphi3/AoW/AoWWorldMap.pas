@@ -623,11 +623,11 @@ end;
 
 procedure TWorldMap.PPawnMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
 var
-  Description: string;
+  Description: string; Pawn: TAoWComponent;
 begin
-  if X > 20 then { Original hit test uses X. }
+  Pawn := Sender; if X > 20 then { Original hit test uses X. }
     if GetCampaign.FState = 1 then
-      if Sender = PPawn then Description := TranslateRStr(ViewSummaryRStr)
+      if Pawn = PPawn then Description := TranslateRStr(ViewSummaryRStr)
       else
         if GetCampaign.FFaction = 0 then Description := TranslateRStr(CultOfStormsRStr)
         else Description := TranslateRStr(KeepersRStr);
@@ -637,7 +637,7 @@ begin
     with DescLbl do WinTop := 460 - WinHeight;
   end;
   FDescriptionHandled := True;
-  Sender.FHandled := False;
+  Pawn.FHandled := False;
 end;
 
 procedure TWorldMap.Path1MouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);

@@ -421,15 +421,15 @@ end;
 
 procedure TControlWin.Unit1FramePreDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
 var
-  SaveRect: TRect;
+  SaveRect: TRect; Component: TAoWComponent;
 begin
   if General.FUnitList <> nil then
   begin
-    SaveRect := SurfDesc.ClipRect;
-    DrawUnit(Sender.Tag, Rect(Sender.AOWOwner.WinLeft + Sender.WinLeft + 4,
-      Sender.AOWOwner.WinTop + Sender.WinTop + 3,
-      Sender.AOWOwner.WinLeft + Sender.WinLeft + Sender.WinWidth - 3,
-      Sender.AOWOwner.WinTop + Sender.WinTop + Sender.WinHeight - 7), SurfDesc);
+    Component := Sender; SaveRect := SurfDesc.ClipRect;
+    DrawUnit(Component.Tag, Rect(Component.AOWOwner.WinLeft + Component.WinLeft + 4,
+      Component.AOWOwner.WinTop + Component.WinTop + 3,
+      Component.AOWOwner.WinLeft + Component.WinLeft + Component.WinWidth - 3,
+      Component.AOWOwner.WinTop + Component.WinTop + Component.WinHeight - 7), SurfDesc);
     SurfDesc.ClipRect := SaveRect;
   end;
 end;

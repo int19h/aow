@@ -730,18 +730,18 @@ end;
 procedure TUnitWindow.Gnd1Draw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
 var
   U: THero;
-  Item: TItem;
+  Item: TItem; Component: TAoWComponent;
 begin
-  if Sender.Tag <> -1 then
+  Component := Sender; if Component.Tag <> -1 then
   begin
     U := THero(General.FSelectedUnit);
-    Item := U.FInventory.FindItem(Sender.Tag);
-    if Item = nil then Item := U.FHeroItems.FindItem(Sender.Tag);
+    Item := U.FInventory.FindItem(Component.Tag);
+    if Item = nil then Item := U.FHeroItems.FindItem(Component.Tag);
     if Item = nil then
-      if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(Sender.Tag);
+      if U.GetItemsOnGround <> nil then Item := U.GetItemsOnGround.FindItem(Component.Tag);
     if Item <> nil then
       with T3Panel do
-        with TAOWCheckBox(Sender) do
+        with TAOWCheckBox(Component) do
           if Item.GetImage <> nil then
             Item.GetImage.ShowClipped(T3Panel.WinLeft + WinLeft, T3Panel.WinTop + WinTop, SurfDesc);
   end;

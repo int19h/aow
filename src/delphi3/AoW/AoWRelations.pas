@@ -639,19 +639,19 @@ end;
 procedure TRelWindow.P1CBPreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
 var
   Player: Shortint;
-  R: TRect;
+  R: TRect; Component: TAoWComponent;
 begin
-  with Sender do
+  Component := Sender; with Component do
     if Tag < FPlayers.Count then
     begin
       Player := FPlayers[Tag];
-      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) <> -1 then
+      if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(Player) = -1 then IntGfxMod.RelWin[28].ShowClipped(WinLeft, WinTop, Surface)
+      else
       begin
         R := Rect(WinLeft + 1, WinTop + 1, WinLeft + WinWidth - 1, WinTop + WinHeight - 1);
         if AoWHSMap.FPlayers.GetPlayers(Player).GetFace <> nil then
           AoWHSMap.FPlayers.GetPlayers(Player).GetFace.ShowStretched(R, Surface);
-      end
-      else IntGfxMod.RelWin[28].ShowClipped(WinLeft, WinTop, Surface);
+      end;
       IntGfxMod.RelWin[AoWHSMap.FPlayers.GetPlayers(Player).FPlayerRace + 16].ShowClipped(WinLeft, WinTop, Surface);
     end;
 end;

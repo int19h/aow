@@ -181,7 +181,7 @@ procedure TProductionScreen.ShowPlace(Place: TProductionPlace);
 var
   I: Integer;
   Army: TArmyHS;
-  Generator: TRndTacHsm;
+  Generator: TRndTacHsm; Center: THexagonSprite;
 begin
   Reset;
   FPlace := Place;
@@ -199,11 +199,11 @@ begin
     for I := 0 to Army.FArmy.GetCount - 1 do
       PlaceOverviewUnit(FPreview, Army.FArmy.GetUnit(I), 0, I);
   B5CB.CaptureInput := FPlace.GetBaseIncome <> 0;
-  with FPreview.FCenterViewLocation do
+  Center := FPreview.FCenterViewLocation;
   begin
-    if FPreview.FCenterViewLocation <> nil then
+    if Center <> nil then
     begin
-      HXtoHP(GetXhx, GetYhx, FViewX, FViewY);
+      HXtoHP(Center.GetXhx, FPreview.FCenterViewLocation.GetYhx, FViewX, FViewY);
       FViewX := FViewX + 16 - MapView.WinWidth div 2;
       FViewY := FViewY + 16 - MapView.WinHeight div 2;
     end

@@ -74,7 +74,7 @@ procedure StartGame(Controller: TGeneral);
 
 implementation
 
-uses E2Globals, AOWMWindow, AoWUnit, AoWRealm, aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow, E2GameFlow;
+uses AoWVideoDlg, E2Globals, AOWMWindow, AoWUnit, AoWRealm, aowSetupEvents, aowDPlayComp, E1Globals, E1Resources, E2CampaignSupport, E3Globals, AoWListBox, AoWUnitBanner, AoWInfoBanner, AOWDialogWin, AoWProgressDialog, AoWExeForms, E1GameFlow, E2GameFlow;
 
 procedure TGeneral.PlayButtonSound(Kind: Byte);
 begin
@@ -601,7 +601,7 @@ begin
   if AoWHSMap.MapContainer.LevelCount > 1 then AoWExeForms.SWindow.ScannerTab.Items.Add(TranslateRStr(E1CavernsRStr));
   if AoWHSMap.MapContainer.LevelCount > 2 then AoWExeForms.SWindow.ScannerTab.Items.Add(TranslateRStr(E1DepthsRStr));
   AoWExeForms.SWindow.ScannerTab.Selected := 0;
-  AoWExeForms.SWindow.ScannerTab.FSized := False;
+  with AoWExeForms.SWindow.ScannerTab do FSized := False;
   AoWExeForms.SWindow.Scanner.SetTWidth(0);
   AoWExeForms.SWindow.Scanner.SetTHeight(0);
   AoWExeForms.SWindow.Scanner.SetTLeft(-1);
@@ -610,8 +610,8 @@ begin
   AoWExeForms.SWindow.Scanner.SetMap(AoWHSMap);
   AoWExeForms.SWindow.Scanner.SetLevel(AoWHSMap.MapContainer.GetMapLevel(0));
   E3Globals.MWindow.MapViewer.HSMap := AoWHSMap;
-  E3Globals.MWindow.MapViewer.SceneWidth := E3Globals.MWindow.MapWindow.WinWidth - 24;
-  E3Globals.MWindow.MapViewer.SceneHeight := E3Globals.MWindow.MapWindow.WinHeight - 24;
+  TMWindow(Pointer(@E3Globals.MWindow)^).MapViewer.SceneWidth := TMWindow(Pointer(@E3Globals.MWindow)^).MapWindow.WinWidth - 24;
+  TMWindow(Pointer(@E3Globals.MWindow)^).MapViewer.SceneHeight := TMWindow(Pointer(@E3Globals.MWindow)^).MapWindow.WinHeight - 24;
   AoWHSMap.Activate;
   AoWExeForms.RealmWin.Dlg.Visible := False;
   E1Globals.MapEvents.TheMapArmyDeselected(nil);
@@ -638,7 +638,7 @@ begin
   AoWExeForms.TBWindow.FWorldClockDelay := 0;
   AoWExeForms.TBWindow.ChatBtn.ILIndexUp := 14;
   AoWExeForms.TBWindow.FChatFlash := 0;
-  AoWExeForms.VideoDialog.SetSceneSize(AoWExeForms.VideoDialog.FDisplayWidth, AoWExeForms.VideoDialog.FDisplayHeight);
+  TVideoDialog(Pointer(@AoWExeForms.VideoDialog)^).SetSceneSize(TVideoDialog(Pointer(@AoWExeForms.VideoDialog)^).FDisplayWidth, TVideoDialog(Pointer(@AoWExeForms.VideoDialog)^).FDisplayHeight);
 end;
 
 end.

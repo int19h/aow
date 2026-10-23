@@ -63,10 +63,10 @@ begin
 end;
 
 procedure TTextControlEditForm.SetText(Item: TTextControlItem);
-begin
-  FText := Item;
-  with FText do
-    if Item <> nil then
+var ItemPtr: Pointer; Saved: TTextControlItem; begin ItemPtr := @Item; { Keep Item in its original stack slot. }
+  Saved := Item; FText := Saved;
+  with Saved do
+    if Saved <> nil then
     begin
       TextMemo.Lines.Text := FText.Text;
       DescriptionEdit.Text := Self.FText.FName;

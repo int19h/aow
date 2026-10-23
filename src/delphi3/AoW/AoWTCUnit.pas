@@ -129,7 +129,7 @@ begin
        ((not (AoWHSSet.FAbilityControl.GetAbility(TTCAbility(General.FCombatUnit.FAbilities[DrawItem]).Ability).
           GetCombatMode(General.FCombatUnit.FUnit.FUnit) in [cmShortRange..cmLongRange]) and
           (TTCAbility(General.FCombatUnit.FAbilities[DrawItem]).Ability <> $34)) or
-        (General.FCombatUnit.FUnit.FUnit.GetMoves = General.FCombatUnit.FUnit.FMovePoints)) then
+        (General.FCombatUnit.FUnit.FMovePoints = General.FCombatUnit.FUnit.FUnit.GetMoves)) then
       UAbilLB.TextColor := $FFFFFF
     else UAbilLB.TextColor := $C0C0C0;
 end;
