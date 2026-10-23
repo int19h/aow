@@ -16,7 +16,7 @@ class Relation:
         self.d = checker.inp.addresses
         self.rows = sorted(set(getattr(self.d, 'storage_objects', ())))
         self.checked, self.values, self.memo, self.roots, self.pointer_targets, self.contents = {}, {}, {}, {}, {}, {}
-        self.fields = {}
+        self.fields = {}; self.opaque = set()
         self.activated = set()
         self.pointers = 0
         self.pc = 0; self.side = 0
@@ -41,6 +41,8 @@ class Relation:
                         if row and row[3]!='mutable-data':self.root(0,row[0]);loaded.update(self.targets(row,side,v))
                 for j,op in enumerate(ins.operands):
                     if op.type==self.e.X.X86_OP_REG and ins.raw.operands[j].access & self.e.CS.CS_AC_WRITE:after[ins.reg_name(op.reg)]=set(loaded if ins.mnemonic in ('mov','movzx','movsx') and ins.operands[-1].type==self.e.X.X86_OP_MEM else origins)
+                if ins.mnemonic=='call':
+                    for r in ('eax','edx','ecx'):after.pop(r,None)
                 self.seeds[side][ins.address]=before
                 for nxt in self.e.successors(code,k):
                     merged={r:incoming.get(nxt,{}).get(r,set())|after.get(r,set()) for r in set(incoming.get(nxt,{}))|set(after)}
@@ -54,7 +56,12 @@ class Relation:
         for r in self.checked.values():
             if r['status']=='validating':r.update(status='failed',reason=reason)
         raise self.e.Unsupported('H5 ImageRelation at 0x%x: %s' % (self.pc,reason))
+    def metadata(self,row):
+        return row[4].startswith(('Delphi VMT','Delphi class','class ','named typeinfo','primitive typeinfo'))
+    def class_data(self,side,address):
+        return self.d.names[side].get(address,'').startswith(('vmt:','vmtref:')) or any(self.metadata(r) and r[side]<=address<r[side]+r[2] for r in self.rows)
     def code(self, side, address):
+        if self.class_data(side,address):return False
         if address in self.local_code[side]: return True
         img = (self.d.old,self.d.new)[side]
         executable = any(s.Characteristics & 0x20000000 and img.base+s.VirtualAddress <= address < img.base+s.VirtualAddress+s.Misc_VirtualSize for s in img.pe.sections)
@@ -66,13 +73,47 @@ class Relation:
         if side == 0:
             return address in {a for a,n in inp.sigs.values()} or address in self.d.names[0]
         return address in {inp.text+off for locs in inp.syms.values() for seg,off in locs if seg == '0001'} or address in self.d.names[1]
+    def pointee(self,side,address,depth=0):
+        if depth>2:return None
+        d=self.d;img=(d.old,d.new)[side];imp=d.import_locations[side].get(address)
+        if address in d.import_bytes[side] and imp and imp[1][0]=='name':
+            symbol=imp[1][1].decode('latin1').split('@')[0];parts=symbol.replace('..','.').rsplit('.',1)
+            return (parts[0],parts[1],imp[0].decode('latin1'),address) if len(parts)==2 else None
+        name=d.vmts[side].get(address)
+        if name:
+            if list(d.vmts[side].values()).count(name)!=1:return None
+            if img.bytes_at(d.u32(img,address-32),len(name)+1)!=bytes((len(name),))+name.encode():return None
+            ti=d.u32(img,address-48)
+            unit=''
+            if ti and img.bytes_at(ti,2)==bytes((7,len(name))):
+                at=ti+len(name)+12;raw=img.bytes_at(at,1)
+                if raw:unit=img.bytes_at(at+1,raw[0]).decode('ascii',errors='replace')
+            return unit,name,'',address
+        header=img.bytes_at(address,2)
+        if len(header)==2 and header[0] in (7,10,11,12) and 0<header[1]<=64:
+            name=img.bytes_at(address+2,header[1]).decode('ascii',errors='replace')
+            if header[0]==7:
+                vmt=d.u32(img,address+2+header[1])
+                if d.vmts[side].get(vmt)==name:return self.pointee(side,vmt,depth+1)
+            elif name.isidentifier():return 'System',name,'',address
+        if address in d.relocs[side] and d.readonly(side,address,4):return self.pointee(side,d.u32(img,address),depth+1)
+        return None
+    def pointees(self,p,q):
+        left,right=self.pointee(0,p),self.pointee(1,q)
+        if left is None or right is None:return None
+        if left[1]!=right[1] or left[0] and right[0] and left[0]!=right[0] or left[2] and right[2] and left[2]!=right[2]:self.fail('relocated metadata pointee differs: %r / %r'%(left,right))
+        import hashlib
+        key=(left[0] or right[0],left[1],left[2] or right[2])
+        self.d.consulted.add((p,q,'typed-content-record:pointee:'+repr(key)))
+        self.d.consulted.add((left[3],right[3],'typed-content-record:pointee-anchor:'+repr(key)))
+        return self.e.z3.BitVec('metadata_pointee_'+hashlib.sha256(repr(key).encode()).hexdigest(),32)
     def canonical(self, side, address):
         try: return self.d.canonical(side,address,[{},{}])
         except self.e.Unsupported as error: self.fail('identity: '+str(error))
     def root(self, side, address, activate=True, observe=True):
         self.canonical(side,address)
         if address in self.d.import_bytes[side]: return None  # Loader-scoped runtime cells.
-        candidates = [r for r in self.rows if r[side] <= address < r[side]+r[2]]
+        candidates = [r for r in self.rows if r[side] <= address < r[side]+r[2] or self.d.names[side].get(address,'').startswith('vmt:') and r[side]+r[2]==address and r[4]=='Delphi VMT fixed header']
         if not candidates or all(r[3] in ('mutable-data','bss') for r in candidates):
             named = bool(candidates) or address in self.d.names[side] or (self.d.forward.get(address) if side==0 else self.d.reverse.get(address)) in self.d.names[1-side] or (address if side else self.d.forward.get(address)) in self.d.map_addresses.values()
             if not self.d.readonly(side,address,1) and named:
@@ -85,6 +126,19 @@ class Relation:
         self.validate(row)
         if activate:self.activate(row)
         return row
+    def read(self,address,size):
+        e=self.e;address=e.simp(address)
+        if not e.z3.is_bv_value(address):return None
+        a=address.as_long()
+        for row in sorted(self.activated):
+            if not self.metadata(row) or not row[0]<=a<=row[0]+row[2]-size:continue
+            if any(max(a,p)<min(a+size,p+n) for p,n in self.opaque):self.fail('metadata cell address observed; pointee identity does not pair storage')
+            data=self.contents[row];parts=[]
+            for k in reversed(range(a-row[0],a-row[0]+size)):
+                v=data[k]
+                parts.append(e.bv(v,8) if isinstance(v,int) else e.z3.Extract(v[1]*8+7,v[1]*8,v[0].translate(e.z3.main_ctx()) if v[0].ctx!=e.z3.main_ctx() else v[0]))
+            return e.simp(e.z3.Concat(parts)) if len(parts)>1 else parts[0]
+        return None
     def activate(self, row):
         if row in self.activated:return
         self.activated.add(row)
@@ -92,7 +146,7 @@ class Relation:
             for side,start in enumerate(row[:2]):
                 self.d.immutable_data[side][start] = row[2]
                 self.d.active_cells[side].add(start)
-            self.values.update((row[0]+k,v) for k,v in self.contents[row].items())
+            if not self.metadata(row):self.values.update((row[0]+k,v) for k,v in self.contents[row].items())
             self.memo.clear()
             for child in sorted(self.pointer_targets.get(row,())):self.activate(child)
     def validate(self, row):
@@ -131,12 +185,15 @@ class Relation:
         self.pointer_targets[row] = set()
         for k in sorted(offsets[0]):
             p,q = (int.from_bytes(v[k:k+4],'little') for v in data)
-            try:left,right = self.d.canonical(0,p,[{},{}]),self.d.canonical(1,q,[{},{}])
+            nominal = self.pointees(p,q) if p in self.d.import_bytes[0] or q in self.d.import_bytes[1] else None
+            try:left,right = (nominal,nominal) if nominal is not None else (self.d.canonical(0,p,[{},{}]),self.d.canonical(1,q,[{},{}]))
             except self.e.Unsupported as error:self.fail('initialized object %s (%s), pointer field 0x%x / 0x%x bytes %s / %s: content equality unresolved: %s' % (self.d.names[0].get(a,hex(a)),evidence,a+k,b+k,data[0][k:k+4].hex(),data[1][k:k+4].hex(),error))
             if not (left == right if isinstance(left,int) and isinstance(right,int) else self.e.bv(left).eq(self.e.bv(right))):
                 self.fail('relocated pointer target differs at 0x%x' % (a+k))
+            if nominal is not None:self.opaque.add((a+k,4))
             targets = set()
             for side,target in enumerate((p,q)):
+                if nominal is not None:continue
                 if self.code(side,target):
                     original = p if isinstance(left,int) else target
                     targets.add((original,original,0,'code-address','code identity does not authorize byte reach'))
@@ -148,7 +205,7 @@ class Relation:
             self.fields[row,k] = targets
             self.pointer_targets[row].update(targets)
             self.pointers += 1
-            value = self.canonical(0,p)
+            value = nominal if nominal is not None else self.canonical(0,p)
             for j in range(4): values[k+j] = (value>>(j*8)) & 255 if isinstance(value,int) else (value,j)
         for k in range(n):
             if k not in values:
@@ -182,6 +239,8 @@ class Relation:
             a,b,n,kind,_ = row
             if kind == 'mutable-data': continue
             row = self.root(0,a)
+            for field,width in sorted(self.opaque):
+                if a<=field<a+n and not e.prove([e.z3.Implies(getattr(state,'path',e.z3.BoolVal(True)),e.z3.Or(e.z3.ULT(address+e.bv(size-1),e.bv(field)),e.z3.UGT(address,e.bv(field+width-1))))]):self.fail('metadata cell address observed; pointee identity does not pair storage')
             valid = e.z3.And(e.z3.UGE(address,e.bv(a)),e.z3.ULE(address,e.bv(a+n-size))) if n>=size else e.z3.BoolVal(False)
             if not e.prove([e.z3.Implies(getattr(state,'path',e.z3.BoolVal(True)),valid)]):
                 self.fail('access width %d exceeds justified extent %s+%d (side %d), object %s (%s)' % (size,hex(a),n,side,self.d.names[0].get(a,hex(a)),row[4]))
@@ -224,6 +283,7 @@ class Relation:
             passed = {r for r in passed if r[3] != 'mutable-data'}
             for row in sorted(passed):
                 if row[3] != 'code-address':self.root(0,row[0])
+            passed = {r for r in passed if not self.metadata(r)}
             if passed:
                 from equiv_summaries import write_body
                 graph = getattr(self.checker.inp,'call_summaries',None)
@@ -244,5 +304,7 @@ class Relation:
                 if name not in e.ALIASES or e.ALIASES[name][1] != 32:
                     if restricted: self.fail('partial-register image-pointer transformation')
                 tags[name] = (set(origins) if ins.mnemonic not in ('mov','movzx','movsx') or ins.operands[-1].type != e.X.X86_OP_MEM else set(cell_origins)|set(loaded_origins))
+        if ins.mnemonic=='call':
+            for r in ('eax','edx','ecx'):tags[r]=set()
         state.image_origins = tags
         return result

@@ -57,7 +57,3 @@ def records(d, side, records):
         if not data.isalpha() or not d.readonly(side,ti,2+len(data)):continue
         name=data.decode('ascii');records['primitive-typeinfo',name,len(data)+2].add(ti)
         records['named-typeinfo-cell',name].update(locations)
-    for address,imp in sorted(d.import_locations[side].items()):
-        if imp[1][0]!='name':continue
-        symbol=imp[1][1].decode('latin1').split('@')[0]
-        if '.' in symbol:records['named-vmt-cell' if '..' in symbol else 'named-typeinfo-cell',symbol.rsplit('.',1)[1]].add(address)

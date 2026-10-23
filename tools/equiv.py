@@ -861,7 +861,8 @@ class State:
 
     def load(self, addr, size, fs=False):
         mem = self.fs if fs else self.memory
-        value = simp(z3.Concat([z3.Select(mem, addr + bv(i)) for i in reversed(range(size))])) if size > 1 else z3.Select(mem, addr)
+        value = image_relation.ACTIVE.read(addr,size) if image_relation.ACTIVE is not None and not fs else None
+        if value is None:value = simp(z3.Concat([z3.Select(mem, addr + bv(i)) for i in reversed(range(size))])) if size > 1 else z3.Select(mem, addr)
         if hasattr(self, "ownership") and not fs:self.ownership.load(self,addr,size,value)
         return value
 
