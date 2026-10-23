@@ -455,13 +455,13 @@ end;
 
 procedure TRelWindow.HighlightRace(Race: Shortint);
 var
-  I: Integer;
+  I, Index: Integer;
   Check: TAOWCheckBox;
 begin
   ResetChecks;
   FSelectedPlayer := -1;
   FSelectedRace := Race;
-  Check := TAOWCheckBox(FControls[FRaces.IndexOf(Race) + 36]);
+  Index := FRaces.IndexOf(Race); Check := FControls[Index + 36];
   Check.Alignment.TopOffset := 175;
   Check.Checked := True;
   FSelectedIndex := Check.Tag;

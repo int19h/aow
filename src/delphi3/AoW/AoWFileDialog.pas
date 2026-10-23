@@ -404,33 +404,19 @@ begin
 end;
 
 procedure TFileDlgWindow.FileLBChange(Sender: TAOWListBox);
-var
-  Map: TAoWHSMap;
+var Map: TAoWHSMap; List: TAOWListBox;
 begin
-  FileLB.Selected := Sender.Selected;
-  SaveLB.Selected := Sender.Selected;
-  DateLB.Selected := Sender.Selected;
-  if Directories.Count - 1 < FileLB.Selected then
+  List := Sender;
+  FileLB.Selected := List.Selected;
+  SaveLB.Selected := List.Selected;
+  DateLB.Selected := List.Selected;
+  if Directories.Count - 1 < TFileDlgWindow(Self).FileLB.Selected then
   begin
     SFileName.Text := FileLB.Items[FileLB.Selected];
-    if LowerCase(ExtractFileExt(SFileName.Text)) = '.acg' then
-    begin
-      LPlayers.Text := '';
-      LSize.Text := '';
-      LTowns.Text := '';
-      LTurns.Text := '';
-    end
-    else
+    if LowerCase(ExtractFileExt(SFileName.Text)) <> '.acg' then
     begin
       Map := TAoWHSMap(AoWEngine.CreatePreviewHSM(SFileName.Text));
-      if Map = nil then
-      begin
-        LPlayers.Text := '';
-        LSize.Text := '';
-        LTowns.Text := '';
-        LTurns.Text := '';
-      end
-      else
+      if Map <> nil then
       begin
         LPlayers.Text := IntToStr(Map.FPlayers.GetCount - 1);
         case Map.MapContainer.Width of
@@ -443,7 +429,21 @@ begin
         LTowns.Text := IntToStr(Map.FStructureControl.FCityCount);
         LTurns.Text := IntToStr(Map.FDay);
         Map.Free;
+      end
+      else
+      begin
+        LPlayers.Text := '';
+        LSize.Text := '';
+        LTowns.Text := '';
+        LTurns.Text := '';
       end;
+    end
+    else
+    begin
+      LPlayers.Text := '';
+      LSize.Text := '';
+      LTowns.Text := '';
+      LTurns.Text := '';
     end;
   end
   else

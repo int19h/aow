@@ -541,7 +541,7 @@ begin
   Index := T5Name.Selected;
   if Index <> -1 then
   begin
-    General.FSelectedUnit := THero(T5Health.Items.Objects[Index]);
+    General.FSelectedUnit := THero(T5Health.Items.Objects[Index shl 0]); { evaluate the index before the receiver chain }
     UnitWindow.ShowUnit;
   end;
 end;

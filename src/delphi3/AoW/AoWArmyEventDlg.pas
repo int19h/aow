@@ -114,8 +114,8 @@ procedure TArmyEventDlg.DrawUnits(X, Y: Integer; const SD: TSurfaceDesc);
 var
   Offset, I: Integer;
 begin
-  Offset := FUnits.Count * -16;
-  for I := 0 to FUnits.Count - 1 do DrawUnit(I, I * 32 + X + Offset, Y, SD);
+  with FUnits do begin Offset := X - Count * 16;
+  for I := 0 to Count - 1 do DrawUnit(I, I * 32 + Offset, Y, SD); end;
 end;
 
 procedure TArmyEventDlg.DrawUnit(Index, X, Y: Integer; SD: TSurfaceDesc);

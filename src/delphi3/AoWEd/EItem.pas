@@ -150,17 +150,17 @@ begin
     CostEdit.Color := clWindow;
     SpellComboBox.Color := clWindow;
     SpellComboBox.Enabled := True;
-    with FItem do
-      if FItemType = itScroll then
+    if FItem.FItemType = itScroll then
+    begin
+      SpellComboBox.ItemIndex :=
+        SpellComboBox.Items.IndexOfObject(
+          AoWHSSet.FSpellControl.GetSpell(FItem.FSpellID));
+      if SpellComboBox.ItemIndex = -1 then
       begin
-        with SpellComboBox do
-          ItemIndex := Items.IndexOfObject(AoWHSSet.FSpellControl.GetSpell(FSpellID));
-        if SpellComboBox.ItemIndex = -1 then
-        begin
-          SpellComboBox.ItemIndex := 0;
-          SpellComboBoxChange(Self);
-        end;
+        SpellComboBox.ItemIndex := 0;
+        SpellComboBoxChange(Self);
       end;
+    end;
     GeneralSheet.Enabled := True;
   end;
 end;
