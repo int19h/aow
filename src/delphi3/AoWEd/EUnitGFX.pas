@@ -502,8 +502,8 @@ end;
 procedure TUnitGFXResourceEditForm.ChangeColorClick(Sender: TObject);
 begin
   ColorDialog.Color := SequenceDisplayEditor.Color;
-  with ColorDialog do
-    if Execute then SequenceDisplayEditor.Color := ColorDialog.Color;
+  if ColorDialog.Execute then
+    SequenceDisplayEditor.Color := ColorDialog.Color;
 end;
 
 

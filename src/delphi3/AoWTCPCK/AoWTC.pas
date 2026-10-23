@@ -3933,7 +3933,7 @@ begin
 end;
 
 function TTacticalCombatUnitHS.AbTouchMoveTC(Path: TMovepath): Boolean;
-var TE: TTokenEvent; Info: TAbilityCombatInfo;
+var TE: TTokenEvent; Buffer: record case Integer of 0: (Info: TAbilityCombatInfo); 1: (Storage: array[0..1] of Integer) end;
 begin
   Result := False;
   if AoWHSMap.FTokenManager.PlayerReady(FUnit.GetPlayer) and (Path.Count > 0) then
@@ -3945,8 +3945,8 @@ begin
         Result := True;
       end;
     end else begin
-      AoWHSSet.FAbilityControl.GetAbility(FSelectedAbility).GetCombatInfo(FUnit.FUnit, Info);
-      if cttFriend in Info.TargetTypes then AbRangedTC(Path[0].X, Path[0].Y);
+      AoWHSSet.FAbilityControl.GetAbility(FSelectedAbility).GetCombatInfo(FUnit.FUnit, Buffer.Info);
+      if cttFriend in Buffer.Info.TargetTypes then AbRangedTC(Path[0].X, Path[0].Y);
     end;
 end;
 function TTacticalCombatUnitHS.AbRangedTC(X, Y: Word): Boolean;

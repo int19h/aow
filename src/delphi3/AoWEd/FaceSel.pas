@@ -40,14 +40,14 @@ type
 implementation
 
 procedure TFaceSelectionDlg.SetFaceIndex(Index: Integer);
-begin
-  FSelectedIndex := Index;
-  Index := FFaceIndexes.IndexOf(Index);
-  if Index <> -1 then
+var InputIndex, Found: Integer; begin InputIndex := Index;
+  FSelectedIndex := InputIndex;
+  Found := FFaceIndexes.IndexOf(InputIndex);
+  if Found <> -1 then
     with FacesGrid do
     begin
-      Col := Index mod ColCount;
-      Row := Index div ColCount;
+      Col := Found mod ColCount;
+      Row := Found div ColCount;
     end;
 end;
 

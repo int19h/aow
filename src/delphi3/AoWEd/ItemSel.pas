@@ -51,15 +51,15 @@ end;
 
 procedure TItemSelectionDlg.SetSelectedIndex(Value: Integer);
 var Index: Integer;
-begin
+Found: Integer; begin
   Index := Value;
   FSelectedIndex := Index;
-  Index := FItemIndexes.IndexOf(Index);
-  if Index <> -1 then
+  Found := FItemIndexes.IndexOf(Index);
+  if Found <> -1 then
     with ItemGrid do
     begin
-      Col := Index mod ColCount;
-      Row := Index div ColCount;
+      Col := Found mod ColCount;
+      Row := Found div ColCount;
     end;
 end;
 

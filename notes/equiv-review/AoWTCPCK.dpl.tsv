@@ -2,6 +2,6 @@ ShowTrail<TfxHS.Show	MATCHED	matches after rewrite	invert compound condition; dr
 TCAbTouchMoveTE.LastMove	MATCHED	matches after rewrite	put both failure branches before the action block
 TCombatUnitSelectionControl.MouseDownEvent	EQUIVALENT	Hidden result records and unused parameter relocated	Old 4 stores EDX at -1C, new at -28; it is unused thereafter. Old 536/540 versus new 536/540 address the same record and byte at +7; old 555/559 versus new relocate the second result consistently. Calls initialize the consumed fields; branches, arguments, writes and exits agree.
 TCombatUnitSelectionControl.UpdateMoveCursor	MATCHED	matches after rewrite	overlay the packed result local with eight-byte storage
-TTacticalCombatUnitHS.AbTouchMoveTC	EQUIVALENT	Hidden ability result buffer moved by two bytes	Old 55/61 address/test -18, new address/test -16, with the same VMT +104 call writing that field. Token creation/enqueue calls, ability lookup, bounds, fallback AbRangedTC call and return follow identical paths with identical arguments.
+TTacticalCombatUnitHS.AbTouchMoveTC	MATCHED	matches after rewrite	overlay packed combat info with eight-byte storage (K49)
 TTacticalCombatUnitHS.CanMoveOn	MATCHED	matches after rewrite	give each packed combat-info local aligned eight-byte storage
 TTacticalCombatUnitHS.Show	MATCHED	matches after rewrite	verified existing assertion and message-box argument repairs

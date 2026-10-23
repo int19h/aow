@@ -3302,11 +3302,11 @@ end;
 procedure TMapContainer.RemoveHS(X: Integer; Y: Integer; L: Integer; HS: THexagonSprite);
 var
   MapField: TMapField;
-begin
-  with TMapLevel(FChildren.List^[L]) do
+Sprite: THexagonSprite; begin
+  Sprite := HS; with TMapLevel(FChildren.List^[L]) do
     MapField := TMapField((Y * Self.FWidth + X) * FFieldSize + Integer(FFields));
-  if MapField.RemoveHS(HS) <> -1 then
-    if HS.GetLevel <= 15 then FMap.InvalidateStaticScene(X, Y, L);
+  if MapField.RemoveHS(Sprite) <> -1 then
+    if Sprite.GetLevel <= 15 then FMap.InvalidateStaticScene(X, Y, L);
 end;
 
 procedure TMapContainer.InsertHS(X: Integer; Y: Integer; L: Integer; HS: THexagonSprite;
@@ -3803,7 +3803,7 @@ var
 begin
   HPtoHX(Xhp, Yhp, Xhx, Yhx);
   MapF := THSMap(Owner).FMapContainer.GetField(Xhx, Yhx, Lhp);
-  I := FindLocationHSIndex(MapF) - 1;
+  I := FindLocationHSIndex(MapF) - 1; I := I;
   HS := nil;
   if I < 0 then
     I := MapF.Count - 1;

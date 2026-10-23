@@ -128,7 +128,7 @@ begin
         SelectedAbBox.Items.AddObject(vmt88(I), TObject(I));
   SelectedAbBox.ItemIndex := SavedIndex;
   if SelectedAbBox.ItemIndex < 0 then
-    with SelectedAbBox do ItemIndex := Items.Count - 1;
+    SelectedAbBox.ItemIndex := SelectedAbBox.Items.Count - 1;
 end;
 
 function TAbilitySelectionDlg.vmt88(AbilityID: Integer): string;
