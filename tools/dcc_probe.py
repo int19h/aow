@@ -1,12 +1,14 @@
-"""Compile a Delphi 3 unit/body on a scratch drive and print named routines.
+"""Compile a Delphi 3 unit body and print named routines; never runs the package.
 
-Example (body contains interface ... implementation ... end.):
-  python tools/dcc_probe.py D:\\Build\\tmp\\forms.pas --out D:\\Build\\tmp\\probe A B
-  python tools/dcc_probe.py forms.pas --out D:\\Build\\tmp\\probe --switch O- A B
-The package is compiled, never loaded or executed. Full units are accepted too.
+Example: python -B tools/dcc_probe.py body.pas --out D:\\Build\\tmp\\probe \
+    --switch O- -- TThing.Run Helper
+The body contains interface ... implementation ... end. (a full unit also works).
+Each output directory is disposable: ProbeHost.* and the copied unit are replaced.
 """
 import argparse
+from bisect import bisect_right
 from pathlib import Path
+import os
 import re
 import subprocess
 import sys
@@ -15,105 +17,98 @@ sys.dont_write_bytecode = True
 import match
 from match_flow import graph
 
+DEFAULTS = 'O+ W- B- G+ A+ R- Q- Z1 L+'.split()
 
-def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('source', type=Path)
-    p.add_argument('routines', nargs='*', help='map names; nested: Name<Owner')
-    p.add_argument('--out', required=True, type=Path)
-    p.add_argument('--switch', action='append', default=[], metavar='O-')
-    p.add_argument('--dcc', default=r'C:\Tools\Delphi3\BIN\DCC32.EXE')
-    p.add_argument('--unit-path', action='append', default=[])
-    a, extra = p.parse_known_args()
-    if any(x.startswith('-') for x in extra):
-        p.error('unknown options: ' + ' '.join(extra))
-    a.routines += extra
-    out = a.out.resolve()
-    if out.drive.upper() == 'C:':
-        p.error('build output must be outside C:')
+
+def build(source, out, switches=(), compiler=r'C:\Tools\Delphi3\BIN\DCC32.EXE'):
+    source, out = Path(source).resolve(), Path(out).resolve()
+    if source.parent == out:
+        raise ValueError('keep the input outside the generated output directory')
     out.mkdir(parents=True, exist_ok=True)
-    source = a.source.read_text(encoding='utf-8-sig')
-    unit = re.search(r'^\s*unit\s+(\w+)\s*;', source, re.I | re.M)
-    name = unit.group(1) if unit else 'Probe'
+    body = source.read_text(encoding='utf-8-sig')
+    unit = re.search(r'(?im)^\s*unit\s+(\w+)\s*;', body)
+    name = unit.group(1) if unit else 'ProbeUnit'
+    if name.lower() == 'probehost':
+        raise ValueError('ProbeHost is reserved for the generated package')
     if not unit:
-        source = 'unit Probe;\n' + source
-    switches = ['O+', 'W-', 'B-', 'G+', 'A+', 'R-', 'Q-', 'D+', 'L+'] + a.switch
-    if any(not re.fullmatch(r'[A-Za-z](?:[+-]|[124])', s) for s in switches):
-        p.error('switches must look like O-, Q+, or Z1')
-    # DCC32's numeric -$Z arguments can corrupt enum sizes; source directives work.
-    numeric = [s for s in switches if s[1:].isdigit()]
-    if any(s[0].upper() != 'Z' for s in numeric):
-        p.error('only Z accepts a numeric switch')
-    unit_end = re.search(r'^\s*unit\s+\w+\s*;', source, re.I | re.M).end()
-    if numeric:
-        source = source[:unit_end] + '\n' + ''.join('{$' + s + '}\n' for s in numeric) + source[unit_end:]
-    (out / (name + '.pas')).write_bytes(source.replace('\r\n', '\n').replace('\n', '\r\n').encode('latin1'))
-    package = 'ProbeHost'
-    if name.lower() == package.lower():
-        p.error('ProbeHost is reserved for the generated package')
-    (out / (package + '.dpk')).write_text(
-        'package ProbeHost;\nrequires vcl30;\ncontains ' + name + ';\nend.\n', encoding='ascii')
-    lib = str(Path(a.dcc).resolve().parent.parent / 'LIB')
-    cmd = [a.dcc, '-B', '-GD', '-E' + str(out), '-N' + str(out),
-           '-LE' + str(out), '-LN' + str(out), '-U' + ';'.join([lib] + [str(Path(v).resolve()) for v in a.unit_path]),
-           '-R' + lib, '-O' + lib] + ['-$' + s for s in switches if s not in numeric] + [package + '.dpk']
-    run = subprocess.run(cmd, cwd=out, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    log = run.stdout.decode('latin1')
+        body = 'unit ProbeUnit;\n' + body
+    (out / (name + '.pas')).write_text(body, encoding='ascii', newline='\r\n')
+    host = 'package ProbeHost;\nrequires vcl30;\ncontains %s;\nend.\n' % name
+    (out / 'ProbeHost.dpk').write_text(host, encoding='ascii', newline='\r\n')
+    lib = Path(compiler).parent.parent / 'LIB'
+    cmd = [compiler, '-B', '-GD', '-E' + str(out), '-N' + str(out),
+           '-LE' + str(out), '-LN' + str(out), '-U' + str(lib),
+           '-I' + str(source.parent), '-R' + str(lib), '-O' + str(lib)]
+    cmd += ['-$' + s for s in DEFAULTS + list(switches)]
+    env = dict(os.environ, TMP=str(out), TEMP=str(out))
+    result = subprocess.run(cmd + ['ProbeHost.dpk'], cwd=out, env=env, capture_output=True)
+    log = result.stdout.decode('latin1') + result.stderr.decode('latin1')
     (out / 'compile.log').write_text(log, encoding='utf-8')
-    if run.returncode or 'Error:' in log or 'Fatal:' in log:
-        sys.exit(log)
-    print('Switches: ' + ' '.join(switches) + ' (default Z1); source directives may override these')
-    img = match.Image(str(out / (package + '.dpl')))
-    syms, _ = match.map_symbols(out / (package + '.map'))
-    text = img.base + img.pe.sections[0].VirtualAddress
-    addresses = {text + off: n for n, locs in syms.items() for seg, off in locs if seg == '0001'}
-    # Package RTL calls go through import thunks, absent from map publics.
+    if result.returncode or 'Error:' in log or 'Fatal:' in log:
+        raise RuntimeError(log)
+    return out / 'ProbeHost.dpl', out / 'ProbeHost.map'
+
+
+def routines(binary, mapfile, names):
+    img = match.Image(str(binary))
+    syms, _ = match.map_symbols(str(mapfile))
+    base = img.base + img.pe.sections[0].VirtualAddress
+    starts = sorted({off for locs in syms.values() for seg, off in locs if seg == '0001'})
+    symbols = {base + off: n for n, locs in syms.items() for seg, off in locs if seg == '0001'}
     match.parse_imports_once(img)
     for entry in getattr(img.pe, 'DIRECTORY_ENTRY_IMPORT', []):
         for imp in entry.imports:
             if imp.name:
-                symbol = imp.name.decode().split('@')
-                symbol = '@'.join(symbol[:-1])
-                thunk = match.find_import_thunk(img, symbol)
-                if thunk:
-                    addresses[thunk] = symbol
-    handler = next((addr for addr, n in addresses.items() if n.endswith('@HandleOnException')), None)
+                n = imp.name.decode('latin1').split('@', 2)
+                n = '@'.join(n[:2]) if len(n) > 1 else n[0]
+                thunk = match.find_import_thunk(img, n)
+                if thunk is not None:
+                    symbols[thunk] = n
     md = match.capstone.Cs(match.capstone.CS_ARCH_X86, match.capstone.CS_MODE_32)
     md.detail = True
-    names = a.routines or sorted(n for n, locs in syms.items()
-                                if any(s == '0001' for s, _ in locs) and not n.startswith(('@', 'System.')))
-    missing = False
-    for routine in names:
-        loc = match.resolve(syms, routine)
-        if not loc or loc[0] != '0001':
-            print(routine + ': not in code map (declare it in interface; keep L+)')
-            missing = True
-            continue
-        start = text + loc[1]
-        end = min((v for v in addresses if v > start), default=start + 1024)
-        print('\n' + routine + ':')
-        stream = match.decode_stream(md, img, start, end - start, handler)
-        helpers = {v: n.split('.')[-1] for v, n in addresses.items() if n.split('.')[-1].startswith('@')}
-        reached, _, problems, _, _ = graph(stream, start, end - start, img, helpers)
-        if problems:
-            print('  [flow incomplete: ' + repr(problems) + ']')
-            reached = {ins.address for _, ins in stream if ins is not None}
+    on_exc = match.find_import_thunk(img, 'System.@HandleOnException')
+    for name in names:
+        loc = match.resolve(syms, name)
+        if loc is None or loc[0] != '0001':
+            raise ValueError('routine not in code map: ' + name)
+        off = loc[1]
+        k = bisect_right(starts, off)
+        end = starts[k] if k < len(starts) else img.pe.sections[0].Misc_VirtualSize
+        va, size = base + off, end - off
+
+        def address(m):
+            v = int(m.group(), 16)
+            if va <= v < va + size:
+                return '+0x%x' % (v - va)
+            return symbols.get(v, 'image+0x%x' % (v - img.base) if img.contains(v) else m.group())
+
+        stream = match.decode_stream(md, img, va, size, on_exc)
+        handlers = {v: n.split('.')[-1] for v, n in symbols.items()}
+        reached = graph(stream, va, size, img, handlers)[0]
+        rows = []
         for norm, ins in stream:
             if ins is None:
-                print('       ' + ' '.join(norm))
-                continue
-            if ins.address not in reached:
-                continue
-            op = ins.op_str
-            def label(m):
-                addr = int(m.group(), 16)
-                if start <= addr < end:
-                    return 'L%04x' % (addr - start)
-                return addresses.get(addr, m.group())
-            op = re.sub(r'0x[0-9a-f]+', label, op)
-            print('  %04x %-8s %s' % (ins.address - start, ins.mnemonic, op))
-    if missing:
-        sys.exit(1)
+                rows.append('       %s %s' % norm)
+            elif ins.address in reached:
+                operands = re.sub(r'0x[0-9a-f]+', address, ins.op_str)
+                rows.append('%04x:  %-8s %s' % (ins.address - va, ins.mnemonic, operands))
+        yield name, rows
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('source', type=Path)
+    ap.add_argument('--out', type=Path, required=True)
+    ap.add_argument('--switch', action='append', default=[], help='e.g. O-, Q+, R+ (repeatable)')
+    ap.add_argument('--compiler', default=r'C:\Tools\Delphi3\BIN\DCC32.EXE')
+    ap.add_argument('names', nargs='+', help='map symbols, including Nested<Owner')
+    args = ap.parse_args()
+    try:
+        binary, mapfile = build(args.source, args.out, args.switch, args.compiler)
+        for name, rows in routines(binary, mapfile, args.names):
+            print('\n' + name + ':\n' + '\n'.join(rows))
+    except (OSError, ValueError, RuntimeError) as exc:
+        ap.exit(1, str(exc) + '\n')
 
 
 if __name__ == '__main__':
