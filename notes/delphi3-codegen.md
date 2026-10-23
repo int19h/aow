@@ -2372,6 +2372,10 @@ loads. `r3_index_shl0` repeats the effect with F as the index expression:
 `mov eax,[eax+4]` moves from +07 to +01. The operation is folded away after
 it has affected scheduling.
 
+A receiver shifted by zero works the same way: `TProductionControlList(Integer(P) shl 0).GetPC(I)`
+loads the receiver into EAX before the index into EDX, where `P.GetPC(I)` loads the index first
+(report `mf1.md`; it made `TAutoProduceAIPA.Process` match).
+
 ### K44. Casting through Pointer changes an argument's member load timing
 
 Report: `mr2.md`. Function: `ShowTutorialEvent` at both FMessage argument reads.
@@ -2665,6 +2669,18 @@ The other two Code/Data pairs follow that pattern. B keeps the map in EBX and
 restores it at +28; A uses EDX. O- has the respective hidden-with versus
 repeated member loads. The distinct TMap type is deliberate: Event denotes
 the viewer's handler in both forms, not a same-named destination method.
+
+### K56. Doubling an index in place removes a temporary
+
+Report: `mf1.md`. Function: `BltSpriteClipped16` (Gfxepack), which matches after the change.
+
+```pascal
+{ A } D := Pointer(Base + X * 2);
+{ B } D := Pointer(Base); Inc(X, X); Inc(Integer(D), X);
+```
+
+B doubles the saved X in its own register and adds it to D, with no ECX temporary for `X * 2`.
+Evidence so far is the matched game function; no snippet probe has been recorded for it.
 
 ### Reported, not reproduced
 
