@@ -855,7 +855,7 @@ begin
   Index := T5Name.Selected;
   if Index > -1 then
   begin
-    Hero := THero(T5Health.Items.Objects[Index]);
+    Hero := THero(T5Health.Items.Objects[Index shl 0]);
     R := Rect(T5HeroInf.WinLeft + 1, T5HeroInf.WinTop + 1,
       T5HeroInf.WinLeft + T5HeroInf.WinWidth - 1,
       T5HeroInf.WinTop + T5HeroInf.WinHeight - 1);

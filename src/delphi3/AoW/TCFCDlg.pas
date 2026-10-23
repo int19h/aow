@@ -103,7 +103,7 @@ begin
   if X < 16 then X := 16;
   if Y < 16 then Y := 16;
   CreateSDfromSD(SD, R, ViewSD);
-  AoWHSMap.SetViewPort(X, Y, FRequest.FL, W, R.Bottom - R.Top);
+  AoWHSMap.SetViewPort(X, Y, FRequest.FL, R.Right - R.Left, R.Bottom - R.Top);
   AoWHSMap.UpdateStaticScene;
   AoWHSMap.UpdateDynamicScene;
   AoWHSMap.DrawStaticScene(ViewSD);

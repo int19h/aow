@@ -713,11 +713,11 @@ begin
 end;
 
 procedure TRelWindow.R1IDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
-begin
-  with Sender do
+var RaceIndex: Integer; S: TAoWComponent; begin
+  S := Sender; with S do
     if (FSelectedPlayer <> -1) and (Tag - 20 < FRaces.Count) then
       if AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).GetFirstDaySeen(FSelectedPlayer) <> -1 then
-        IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(FRaces[Tag - 20]).GetPlayerRelation(FSelectedPlayer)) + 11].ShowClipped(WinLeft, WinTop + 15, Surface);
+        begin RaceIndex := FRaces[Tag - 20]; IntGfxMod.RelWin[Ord(AoWHSMap.FRaces.GetRace(RaceIndex).GetPlayerRelation(FSelectedPlayer)) + 11].ShowClipped(WinLeft, WinTop + 15, Surface); end;
 end;
 
 procedure TRelWindow.MAcceptBtnClick;

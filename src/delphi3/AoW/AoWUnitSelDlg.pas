@@ -68,16 +68,16 @@ var
   SaveRect: TRect;
   Info: TP2UnitShowInfo;
   Img: TLibraryImage;
-  Alignment: Byte;
+  Alignment: TAlignment;
 begin
   if Index < FEvent.FUnits.GetCount then
   begin
     SaveRect := SD.ClipRect;
     SD.ClipRect := Rect(X + 5, Y + 4, X + 46, Y + 56);
-    Alignment := Byte(FEvent.FUnits.GetUnit(Index).GetAlignment);
-    if Alignment < IntGfxMod.UnitBGs.Count then
+    Alignment := FEvent.FUnits.GetUnit(Index).GetAlignment;
+    if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
     begin
-      Img := IntGfxMod.UnitBGs[Alignment and 127]; { Original tests all eight bits, then masks the image index. }
+      Img := IntGfxMod.UnitBGs[Ord(Alignment)]; { D3 masks the enum index after the original full-byte guard. }
       Img.ShowClipped(X + 25 - Img.Width div 2, Y + 30 - Img.Height div 2, SD);
     end;
     FillChar(Info, SizeOf(Info), 0);

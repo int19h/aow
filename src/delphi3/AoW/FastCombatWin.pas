@@ -479,7 +479,7 @@ end;
 procedure TFastCombatWindow.FinalViewClick;
 var
   Viewer: TCombatViewer;
-begin
+begin Self := TFastCombatWindow(Pointer(Self));
   General.PlayButtonSound(0);
   Viewer := FViewer;
   if (Viewer <> nil) and (vsInitialized in Viewer.FStatus) then

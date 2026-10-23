@@ -147,15 +147,15 @@ end;
 
 procedure TDisjunctionDlg.MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 var
-  R: TRect;
-  MapSD: TSurfaceDesc;
   X, Y: Integer;
+  MapSD: TSurfaceDesc;
+  R: TRect; W, H: Integer;
 begin
-  R := Rect(Dlg.WinLeft + Sender.WinLeft + 1, Dlg.WinTop + Sender.WinTop + 1,
-    Dlg.WinLeft + Sender.WinLeft + Sender.WinWidth - 2, Dlg.WinTop + Sender.WinTop + Sender.WinHeight - 2);
-  HXtoHP(FMapX, FMapY, X, Y);
-  X := X + 16 - ((R.Right - R.Left) shr 1);
-  Y := Y + 16 - ((R.Bottom - R.Top) shr 1);
+  R := Rect(Dlg.WinLeft + TAOWImage(Sender).WinLeft + 1, Dlg.WinTop + TAOWImage(Sender).WinTop + 1,
+    Dlg.WinLeft + TAOWImage(Sender).WinLeft + TAOWImage(Sender).WinWidth - 2, Dlg.WinTop + TAOWImage(Sender).WinTop + TAOWImage(Sender).WinHeight - 2);
+  W := R.Right - R.Left; H := R.Bottom - R.Top; HXtoHP(FMapX, FMapY, X, Y);
+  X := X + 16 - (W shr 1);
+  Y := Y + 16 - (H shr 1);
   if X < 16 then X := 16;
   if Y < 16 then Y := 16;
   CreateSDfromSD(SD, R, MapSD);

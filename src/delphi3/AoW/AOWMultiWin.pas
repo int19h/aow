@@ -144,9 +144,9 @@ var
   Index: Integer;
 begin
   General.PlayButtonSound(0);
-  Index := GamesLB.Selected;
+  Index := GamesLB.Selected; Self := TMultiWindow(Pointer(Self));
   if Index > -1 then
-    if (SetupEvents.DPlay.JoinSession(Index) = 0) and (SetupEvents.DPlay.InSession = True) then { Original accepts exactly byte value 1. }
+    if (SetupEvents.DPlay.JoinSession(Index shl 0) = 0) and (SetupEvents.DPlay.InSession = True) then { Original accepts exactly byte value 1. }
     begin
       MultiPnl.Visible := False;
       SetupEvents.SetupControl.SetupUser(SetupEvents.DPlay.PlayerName, SetupEvents.DPlay.PlayerID);

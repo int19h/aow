@@ -65,17 +65,17 @@ var
   SaveRect: TRect;
   Info: TP2UnitShowInfo;
   Img: TLibraryImage;
-  Alignment: Byte;
+  Alignment: TAlignment;
   X, Y: Integer;
 begin
   if Index < FEvent.FArmyView.GetCount then
   begin
     SaveRect := SD.ClipRect; SD.ClipRect := R;
     X := (R.Right + R.Left) div 2; Y := (R.Top + R.Bottom) div 2;
-    Alignment := Byte(FEvent.FArmyView.GetUnit(Index).GetAlignment);
-    if Alignment < IntGfxMod.UnitBGs.Count then
+    Alignment := FEvent.FArmyView.GetUnit(Index).GetAlignment;
+    if Ord(Alignment) < IntGfxMod.UnitBGs.Count then
     begin
-      Img := IntGfxMod.UnitBGs[Alignment and 127]; { Original tests all eight bits, then masks the image index. }
+      Img := IntGfxMod.UnitBGs[Ord(Alignment)]; { D3 masks the enum index after the original full-byte guard. }
       Img.ShowClipped(X - Img.Width div 2, Y - Img.Height div 2, SD);
     end;
     FillChar(Info, SizeOf(Info), 0); Info.Direction := 3; Info.Overlays := [uoHitPoints, uoRank];
@@ -147,7 +147,7 @@ procedure TArmyInfoDlg.FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc)
 var
   R: TRect;
   I: Integer;
-begin
+begin Self := TArmyInfoDlg(Pointer(Self));
   with FaceFrame do
   begin
     R.Left := WinLeft + Dlg.WinLeft; R.Right := WinWidth + R.Left;

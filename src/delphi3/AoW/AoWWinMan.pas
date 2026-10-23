@@ -123,7 +123,7 @@ end;
 procedure TGeneral.SortLists(var Lists: TList; Order: Byte);
 var
   L: TAOWListBox;
-  I, J, InsertAt: Integer;
+  I, J, InsertAt, ValueI, ValueJ: Integer;
 begin
   L := TAOWListBox(Lists[0]);
   for I := 1 to L.Items.Count - 1 do
@@ -134,8 +134,8 @@ begin
       case Order of
         0: if CompareStr(UpperCase(L.Items[I]), UpperCase(L.Items[J])) < 0 then InsertAt := J;
         1: if CompareStr(UpperCase(L.Items[I]), UpperCase(L.Items[J])) > 0 then InsertAt := J;
-        2: try if StrToInt(L.Items[I]) > StrToInt(L.Items[J]) then InsertAt := J; except end;
-        3: try if StrToInt(L.Items[I]) < StrToInt(L.Items[J]) then InsertAt := J; except end;
+        2: try ValueI := StrToInt(L.Items[I]); ValueJ := StrToInt(L.Items[J]); if ValueI > ValueJ then InsertAt := J; except end;
+        3: try ValueI := StrToInt(L.Items[I]); ValueJ := StrToInt(L.Items[J]); if ValueI < ValueJ then InsertAt := J; except end;
       end;
       Dec(J);
     end;
