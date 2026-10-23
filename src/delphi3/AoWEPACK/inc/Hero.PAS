@@ -74,19 +74,19 @@ begin
 end;
 
 function THeroUpgradeEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-var Hero: THero;
+var Hero: THero; UnitItem: TAbstractUnit; ExecuteNow: Boolean;
 begin
-  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FUnitID));
+  with AoWHSMap.FUnitControl do UnitItem := FindUnit(FUnitID); Hero := THero(UnitItem);
   if (Hero <> nil) and (AoWHSMap.FSeatedPlayer = Hero.FPlayer) then
   begin
     if Hero.FUpgradePending then
     begin
-      Result := Trigger = etUser;
-      Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
+      ExecuteNow := Trigger = etUser;
+      ExecuteNow := ExecuteNow or ((AoWHSMap.FPlayMode = pmTurn) and
         (wpHeroUpgrade in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
-      Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+      ExecuteNow := ExecuteNow or ((AoWHSMap.FPlayMode = pmSimultaneous) and
         (wpHeroUpgrade in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
-      if Result then Result := inherited Execute(Mode, Trigger, Done);
+      if ExecuteNow then Result := inherited Execute(Mode, Trigger, Done) else Result := False;
     end
     else
     begin
@@ -114,17 +114,17 @@ class function THeroJoinEventLog.ClassID: Integer;
 begin Result := $202F4; end;
 
 function THeroJoinEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
-var Hero: THero;
+var Hero: THero; UnitItem: TAbstractUnit; ExecuteNow: Boolean;
 begin
-  Hero := THero(AoWHSMap.FUnitControl.FindUnit(FFirstUnitID));
+  with AoWHSMap.FUnitControl do UnitItem := FindUnit(FFirstUnitID); Hero := THero(UnitItem);
   if (Hero <> nil) and (Hero.FPlayer = 0) and Hero.OfferToJoin(FPlayer) then
   begin
-    Result := Trigger = etUser;
-    Result := Result or ((AoWHSMap.FPlayMode = pmTurn) and
+    ExecuteNow := Trigger = etUser;
+    ExecuteNow := ExecuteNow or ((AoWHSMap.FPlayMode = pmTurn) and
       (wpHeroJoin in TAoWRegistry(AoWEngine.FRegistry).GetClassicWindowPopupEvents));
-    Result := Result or ((AoWHSMap.FPlayMode = pmSimultaneous) and
+    ExecuteNow := ExecuteNow or ((AoWHSMap.FPlayMode = pmSimultaneous) and
       (wpHeroJoin in TAoWRegistry(AoWEngine.FRegistry).GetSimultaneousWindowPopupEvents));
-    if Result then Result := inherited Execute(Mode, Trigger, Done);
+    if ExecuteNow then Result := inherited Execute(Mode, Trigger, Done) else Result := False;
   end
   else Result := False;
 end;

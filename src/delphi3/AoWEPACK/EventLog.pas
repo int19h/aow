@@ -511,17 +511,17 @@ begin AddChild(Event); end;
 procedure TEventLogList.RemoveEvent(Event: TEventLog);
 begin RemoveChild(Event); end;
 
-function TEventLogList.FindID(ID: Integer): TEventLog; { Near miss: Three variants retain different search/result registers. }
-var I: Integer; Log: TEventLog;
+function TEventLogList.FindID(ID: Integer): TEventLog;
+var I: Integer;
 begin
-  I := GetCount;
-  while I <> 0 do
+  I := GetCount; Result := nil;
+  while (I <> 0) and (Result = nil) do
   begin
-    Dec(I); Log := FChildren.List^[I];
-    if Log.FID = ID then begin Result := Log; Exit; end;
+    Dec(I);
+    if TEventLog(FChildren.List^[I]).FID = ID then begin Result := TEventLog(FChildren.List^[I]); Break end;
   end;
-  Result := nil;
 end;
+
 
 constructor TEventLogbook.Create(AOwner: Engine.TECustomNode);
 begin inherited Create(AOwner); FEvents := TEventLogList.Create(nil); end;

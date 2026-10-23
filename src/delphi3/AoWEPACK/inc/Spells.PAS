@@ -1,11 +1,11 @@
-function TSpellCC.GetName: string; { Near miss: three variants allocate the target or string temporaries differently. }
-var
-  Target: TCombatObject;
+function TSpellCC.GetName: string;
 begin
   Result := Format(TranslateRStr(P4CastXRStr), [AoWHSSet.FSpellControl.GetSpell(FSpellID).FSpellName]);
-  Target := FTarget;
-  if Target <> nil then Result := Result + ' on ' + Target.IDStr;
+
+  if FTarget <> nil then Result := Result + ' on ' + FTarget.IDStr;
 end;
+
+
 
 constructor TSpell.Create(AOwner: Engine.TECustomNode);
 begin

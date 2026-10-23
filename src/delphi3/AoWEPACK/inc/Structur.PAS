@@ -1429,12 +1429,12 @@ end;
 
 procedure TStructure.GetRebuildInfo(var Cost, Time: Integer);
 begin
-  with TStructureResource(FResource) do
-  begin
-    Cost := FRebuildGold;
-    Time := FRebuildDays;
-  end;
+  Cost := TStructureResource(FResource).FRebuildGold;
+  Time := TStructureResource(FResource).FRebuildDays;
 end;
+
+
+
 
 function TStructure.CanRebuild(AUnit: TAbstractUnit; var Reason: string): Boolean;
 var

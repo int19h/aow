@@ -2468,9 +2468,9 @@ begin
   end;
 end;
 
-function TArmyCombineMoveTE.CanMoveNext: Boolean; { Near miss: three variants retain a different argument evaluation order. }
+function TArmyCombineMoveTE.CanMoveNext: Boolean;
 var
-  ArmyHS: TArmyHS;
+  ArmyHS: TArmyHS; SourceArmy, TargetArmy: TArmy;
   CombineResult: TAddUnitsResult;
 begin
   if (FMoveIndex = 1) and (FPath[0].X = FTargetX) and
@@ -2480,7 +2480,8 @@ begin
     ArmyHS := GetMapF(FPath[0]).GetArmyHS;
     if (ArmyHS <> nil) and (ArmyHS.FArmy.FPlayer = FArmyHS.FArmy.FPlayer) then
     begin
-      CombineResult := ArmyHS.FArmy.CanAddUnitSelection(FArmyHS.FArmy, $FF);
+      SourceArmy := FArmyHS.FArmy; TargetArmy := ArmyHS.FArmy;
+      CombineResult := TargetArmy.CanAddUnitSelection(SourceArmy, $FF);
       if CombineResult <> arOK then
       begin
         ShowCombineFailure(CombineResult);
@@ -2490,7 +2491,6 @@ begin
   end;
   Result := inherited CanMoveNext;
 end;
-
 function TCombatRestoreHotseatEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean;
 begin
   FCombatMove.FCombatMode := cmMoving;

@@ -433,17 +433,17 @@ asm
   mov al, 1
 end;
 
-constructor TSetupControl.Create(AOwner: Classes.TComponent); { Near miss: single-use player local is optimized away after three variants. }
-var Player: TRemotePlayer;
+constructor TSetupControl.Create(AOwner: Classes.TComponent);
 begin
   inherited Create(AOwner);
   FSettings := TSetupSettings.Create(nil);
-  Player := TRemotePlayer.Create(nil);
-  FRemotePlayer := Player;
-  Player.FRemoteID := 0;
-  Player.FPreferredRace := 255;
+  FRemotePlayer := TRemotePlayer.Create(nil);
+  FRemotePlayer.FRemoteID := 0;
+  FRemotePlayer.FPreferredRace := 255;
   FStream := TMemoryStream.Create;
 end;
+
+
 
 destructor TSetupControl.Destroy;
 begin

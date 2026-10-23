@@ -200,30 +200,30 @@ end;
 function TCrop.CanSelect(Xhp, Yhp: Integer): Boolean;
 begin Result := False; end;
 
-procedure TCrop.TerrainChanged(const Info: HSEngine.THSTerrainInfo); { Near miss: register or temporary allocation differs after three variants. }
+procedure TCrop.TerrainChanged(const Info: HSEngine.THSTerrainInfo);
 var
-  Overlay: Smallint;
   HS: THexagonSprite;
 begin
   if Info.HN <> 0 then Exit;
   if moActivated in FStatus then
   begin
-    if not ValidTerrainType(Info.TerrainType) then Destroy
-    else
+    if ValidTerrainType(Info.TerrainType) then
     begin
-    TCropILFields(Pointer(Self)^).TerrainType := Info.TerrainType;
-    TCropILFields(Pointer(Self)^).ImageIndex := GetTerrainTypeImage(Info.TerrainType);
+    FTerrainType := Info.TerrainType;
+    FImageIndex := GetTerrainTypeImage(Info.TerrainType);
     HS := Info.MapField.GetMaxLevelNoneTransparentHS;
-    if (HS <> nil) and (HS.GetLevel > GetLevel) and not (HS is TAbstractRoad) then Destroy
-    else
-    begin
-      Overlay := Info.OverlayType;
-      if (Overlay >= 0) and (Overlay <> 4) then Destroy;
-    end;
-    end;
+    if ((HS <> nil) and (HS.GetLevel > GetLevel) and not (HS is TAbstractRoad)) or
+      ((Smallint(Info.OverlayType) >= 0) and (Smallint(Info.OverlayType) <> 4)) then Destroy;
+    end else Destroy;
   end
-  else TCropILFields(Pointer(Self)^).TerrainType := Info.TerrainType;
+  else FTerrainType := Info.TerrainType;
 end;
+
+
+
+
+
+
 
 function TCrop.GetTerrainTypeImage(TerrainType: Integer): Integer;
 begin
