@@ -472,7 +472,7 @@ begin
 end;
 
 function TMoveControl.SetupMove: Boolean; { Near miss: Assert operand reuse differs after three variants; line preserved. }
-var
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:31; Text:'Invalid settings (TMoveControl)'#0); var
   Field: TAoWMapField;
   SubMove: TSubMove;
 begin
@@ -487,7 +487,7 @@ begin
     FSettings.FProcessedMapFields.Capacity := $1000;
   end;
   { Original bug: the Y bound also uses the map width. }
-  Assert((FMapLevel <> nil) and (FSourceX >= 0) and (FSourceX < FMapLevel.Width) and
+  if not ((FMapLevel <> nil) and (FSourceX >= 0) and (FSourceX < FMapLevel.Width) and
 
 
 
@@ -1222,7 +1222,7 @@ begin
 
 
 
-    (FSourceY >= 0) and (FSourceY < FMapLevel.Width), 'Invalid settings (TMoveControl)');
+    (FSourceY >= 0) and (FSourceY < FMapLevel.Width)) then asm MOV ECX,$7DBB; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   if ((FSettings.FSourceX <> FSettings.FDestinationX) or
     (FSettings.FSourceY <> FSettings.FDestinationY) or
     (FSettings.FSourceL <> FSettings.FDestinationL)) and
@@ -1355,7 +1355,7 @@ begin
 end;
 
 procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint); { Near miss: Self/field spills and neighbor locals differ after three variants. }
-var
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Field, Previous, Neighbor: TAoWMapField;
   Points, Cost, OverCode, Parity, Direction: Integer;
   Failed, Found: Boolean;
@@ -1370,7 +1370,7 @@ begin
 
 
 
-  Assert(mcsActivated in FStatus);
+  if not (mcsActivated in FStatus) then asm MOV ECX,$7E4F; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   Path.Clear;
   Neighbor := nil;
   Failed := False;
@@ -1453,14 +1453,14 @@ begin
 end;
 
 function TMoveControl.Activate(Settings: TMoveControlSettings): Boolean;
-begin
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); begin
 
 
 
 
 
-  Assert(not (mcsActivated in FStatus));
-  Assert((Settings.FSourceX <> -1) and (Settings.FSourceY <> -1) and (Settings.FSourceL <> -1));
+  if mcsActivated in FStatus then asm MOV ECX,$7EA8; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
+  if (Settings.FSourceX = -1) or (Settings.FSourceY = -1) or (Settings.FSourceL = -1) then asm MOV ECX,$7EA9; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   if Settings.FStatus <> mcssFailed then
   begin
     FStatus := FStatus + [mcsActivated];
@@ -2522,7 +2522,7 @@ begin Result := inherited Validate; end;
 procedure TArmyCombatMoveTE.InitializeMove;
 begin inherited InitializeMove; end;
 
-procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog); { Near miss: Log, Request and Flow registers differ after three variants. }
+procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog); { Review fix: the new attack move has an empty move-mode set; registers still differ. }
 var
   Flow: TCombatFlowControlTE;
   Request: TCombatTypeRequestEventLog;
@@ -2543,7 +2543,7 @@ begin
     begin
       while FPath.Count > 2 do FPath.Delete(2);
       if FPath.Count = 2 then FPath.List^[1].Flag := 0;
-      Move := TArmyCombatMoveTE(CreateArmyMoveTE(FArmyHS, FSelection, FPath, maAttack, [mmSelectEndLocation]));
+      Move := TArmyCombatMoveTE(CreateArmyMoveTE(FArmyHS, FSelection, FPath, maAttack, []));
       if Move <> nil then
       { created combat move }
       begin

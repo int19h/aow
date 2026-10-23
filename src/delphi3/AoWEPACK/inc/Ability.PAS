@@ -1442,7 +1442,7 @@ asm
   POP ESI
   POP EBX
 end;
-function TAbility.AbilityDataClass: TEObjectClass;
+class function TAbility.AbilityDataClass: TEObjectClass;
 asm
   XOR EAX,EAX
 end;

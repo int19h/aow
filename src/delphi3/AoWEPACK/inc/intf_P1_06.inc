@@ -82,7 +82,7 @@
     procedure CombatDone(A1: TCombatObject); virtual;
     procedure ListInfo(A1: TStrings; A2: TAbilityInfoMode); virtual;  { +100 }
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); virtual;
-    function AbilityDataClass: TEObjectClass; virtual;
+    class function AbilityDataClass: TEObjectClass; virtual; { class receiver at 5576FE79 }
     procedure ShowInfo(Owner: TAbilityOwner; Font: TImageLibraryFont; X, Y: Integer; const Surface: TSurfaceDesc);
     procedure SetAb(Owner: TAbilityOwner; Index: Integer; Value: Byte);
   end;

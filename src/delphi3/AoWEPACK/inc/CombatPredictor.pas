@@ -522,7 +522,7 @@ begin
 end;
 
 procedure TCombatPredictor.AddWall(A1: TWallType);
-var Wall: TWallUnit; UnitObj: TCombatPredictorUnit;
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:38; Text:'D:\AoWDev\AoWE\inc\CombatPredictor.pas'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:23; Text:'Use DeleteWall instead!'#0); var Wall: TWallUnit; UnitObj: TCombatPredictorUnit;
 begin
 
 
@@ -697,7 +697,7 @@ begin
 
 
 
-  Assert(A1 <> wtNone, 'Use DeleteWall instead!');
+  if A1 = wtNone then asm MOV ECX,$47D7; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   UnitObj := TCombatPredictorUnit(FWall);
   if UnitObj = nil then
   begin

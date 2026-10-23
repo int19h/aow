@@ -27,7 +27,7 @@ begin
   inherited Create(AOwner);
 end;
 
-function TDurationAbility.AbilityDataClass: TEObjectClass;
+class function TDurationAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := TDurationAbilityData;
 end;
@@ -314,7 +314,7 @@ asm
   POP EBX
 end;
 
-function TMultiLevelAbility.AbilityDataClass: TEObjectClass;
+class function TMultiLevelAbility.AbilityDataClass: TEObjectClass;
 asm
   MOV EAX, DWORD PTR [P4MultiLevelDataClass]
 end;
@@ -655,7 +655,7 @@ begin
     Result := TranslateRStr(UnknownRStr);
 end;
 
-function TUnitEnchantmentAbility.AbilityDataClass: TEObjectClass;
+class function TUnitEnchantmentAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := TUnitEnchantmentAbilityData;
 end;
@@ -665,17 +665,17 @@ begin
   Result := TUnitEnchantment.Create(nil);
 end;
 
-function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean; { Near miss: Three variants retain register and Assert-line differences. }
-var
+function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean; { Review fix: retain both original assertion diagnostics; registers still differ. }
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\AoWAb.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Data: TUnitEnchantmentAbilityData;
   Enchantment: TUnitEnchantment;
 begin
-  Assert(A1 is TAbstractUnit);
+  if not (A1 is TAbstractUnit) then asm MOV ECX,$B45F; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   Result := False;
   Data := TUnitEnchantmentAbilityData(A1.GetAbilityData(FAbilityID));
   if Data = nil then
   begin
-    Assert(TAbstractUnit(A1).FUnitID > 0);
+    if TAbstractUnit(A1).FUnitID <= 0 then asm MOV ECX,$B465; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
     Data := TUnitEnchantmentAbilityData.Create(nil);
     Data.FEnchantmentAbilityID := FAbilityID;
     Data.FEnchantmentDuration := GetTotalDuration;
@@ -970,7 +970,7 @@ begin
   FLevelCosts[1] := 10;
 end;
 
-function TLeadershipAbility.AbilityDataClass: TEObjectClass;
+class function TLeadershipAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := TLeadershipAbilityData;
 end;
@@ -2589,7 +2589,7 @@ begin
   end;
 end;
 
-function TPossessedAbility.AbilityDataClass: TEObjectClass;
+class function TPossessedAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4PossessedDataClass;
 end;
@@ -3161,7 +3161,7 @@ begin
   else
     Result := 0;
 end;
-function TTurnUndeadAbility.AbilityDataClass: TEObjectClass;
+class function TTurnUndeadAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4MultiLevelDataClass;
 end;
@@ -3656,7 +3656,7 @@ begin
   if (A1 is TAbstractUnit) and (TAbstractUnit(A1).FPlayer = A2) then
     SetEnabled(A1, True);
 end;
-function THealingAbility.AbilityDataClass: TEObjectClass;
+class function THealingAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4HealingDataClass;
 end;
@@ -4089,7 +4089,7 @@ begin
   if (A1 is TAbstractUnit) and (TAbstractUnit(A1).FPlayer = A2) then
     SetEnabled(A1, True);
 end;
-function TDispelMagicAbility.AbilityDataClass: TEObjectClass;
+class function TDispelMagicAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4DispelMagicDataClass;
 end;
@@ -5016,7 +5016,7 @@ begin
   FAbilityType := atHandicap;
   FSelectionTypes := [];
 end;
-function TCommandedAbility.AbilityDataClass: TEObjectClass;
+class function TCommandedAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4CommandedDataClass;
 end;
@@ -5090,7 +5090,7 @@ begin
   inherited Create(AOwner);
   FSelectionTypes := [astUnit, astUseItem];
 end;
-function TCommandAbility.AbilityDataClass: TEObjectClass;
+class function TCommandAbility.AbilityDataClass: TEObjectClass;
 begin
   Result := P4CommandDataClass;
 end;
@@ -5107,7 +5107,7 @@ procedure TCommandAbility.CombatObjectDestroyed(A1: TCombatObject);
 begin
   ResetCommandedUnits(TCombatUnit(A1));
 end;
-procedure TCommandAbility.Command(Source, Target: TCombatUnit); { Near miss: class-result and VMT registers differ after three variants. }
+procedure TCommandAbility.Command(Source, Target: TCombatUnit); { Review fix: AbilityDataClass is a class method; the call passes its VMT. }
 var
   TargetData: TCommandedAbilityData;
   SourceData: TCommandAbilityData;

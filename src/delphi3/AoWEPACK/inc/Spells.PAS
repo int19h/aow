@@ -599,9 +599,9 @@ begin
   Result := FRegisteredSpells.Count;
 end;
 function TSpellControl.GetSpell(Index: Integer): TSpell;
-var P: Pointer;
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:29; Text:'D:\AoWDev\AoWE\inc\Spells.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:15; Text:'Invalid SpellID'#0); var P: Pointer;
 begin
-  Assert(Index >= 0);
+  if Index < 0 then asm MOV ECX,$D6CD; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   if Index < FRegisteredSpells.Count then
     begin P := FRegisteredSpells[Index]; Result := TSpell(P); end
   else

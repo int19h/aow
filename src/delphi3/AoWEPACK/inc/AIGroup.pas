@@ -485,11 +485,11 @@ begin
   Assert((FTransporter <> nil) or (FTransporterID = -1));
 end;
 
-procedure TAIGroup.Deactivate; { Near miss: only the Assert line number differs; include lines must stay fixed. }
-var
+procedure TAIGroup.Deactivate; { Review fix: retain the original assertion filename and line. }
+type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:30; Text:'D:\AoWDev\AoWE\inc\AIGroup.pas'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Player: Shortint;
 begin
-  Assert(agsActivated in FStatus);
+  if not (agsActivated in FStatus) then asm MOV ECX,$5E1E; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   FStatus := FStatus - [agsActivated];
   Player := FPlayer;
   if Player <> -1 then AoWHSMap.FPlayers.GetPlayers(Player).FAIGroups.RemoveChild(Self);
@@ -2955,9 +2955,9 @@ begin
   UpdateCompletion;
 end;
 
-function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TAIGroupCooperationControl.ValidCooperationGroup(Group: TAIRecruitmentGroup): Boolean; { Review fix: cache the second move-point result; register allocation still differs. }
 var
-  Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves: Integer;
+  Strength1, Strength2, Strength, Location, Advantage1, Advantage2, Moves, OtherMoves: Integer;
 begin
   if (Group.FGroup.FTransporterID = -1) and
     (((Integer(Group.FGroup.FTargetXYL) = Integer(FTarget.FLocation)) and
@@ -2984,8 +2984,8 @@ begin
         (Strength >= Advantage1) then
       begin
         Moves := Group.FGroup.GetMovePointsMin;
-        if Moves > FControl.FGroup.GetMovePointsMin then
-          Moves := FControl.FGroup.GetMovePointsMin;
+        OtherMoves := FControl.FGroup.GetMovePointsMin; if Moves > OtherMoves then
+          Moves := OtherMoves;
         Result := Moves >= Group.FMovePoints;
       end
       else Result := True;
@@ -4034,7 +4034,7 @@ begin
   else Result := False;
 end;
 
-procedure TAIMoveControl.ProcessTransporterCanMove; { Near miss: settings temporary and registers differ after three variants. }
+procedure TAIMoveControl.ProcessTransporterCanMove; { Review fix: run virtual ProcessMove, not Activate; settings registers still differ. }
 var
   Points: Integer;
   Location: TXYL;
@@ -4058,7 +4058,7 @@ begin
         SelectCombinedTransporterArmyMpT;
         FPathSettings.FMovePointsMax := FSettings.FMovePointsMax;
         FPathSettings.FMode := FSettings.FMoveMode + [mmAvoidArmies];
-        AoWHSMap.FMoveControl.Activate(FPathSettings);
+        AoWHSMap.FMoveControl.ProcessMove(FPathSettings);
         if FPathSettings.FPath.Count <> 0 then
         begin
           FSettings.FMovePoints := FPathSettings.GetMovePoints(
@@ -4450,7 +4450,7 @@ begin
     try
     except
       ShowMessage('Path already destroyed!?!');
-      raise;
+      { Original handler consumes the exception after showing the message. }
     end;
   FPath.Free;
   FPath := nil;
@@ -6511,7 +6511,7 @@ begin
   Result := (FBufferedTargets.Count <> 0) and (FState <> -1);
 end;
 
-function TAIMoveTargetSelector.ProcessStates: Boolean; { Near miss: locals, registers and case table layout differ after three variants. }
+function TAIMoveTargetSelector.ProcessStates: Boolean; { Review fix: use unchecked processed-field loads, as in the original. }
 var
   Yield, Processing, Found: Boolean;
   I, Terrain, Overlay: Integer;
@@ -6560,7 +6560,7 @@ begin
         while (I > 0) and not Found do
         begin
           Dec(I);
-          Field := Settings.FProcessedMapFields[I];
+          Field := TAoWMapField(Settings.FProcessedMapFields.List^[I]);
           if Field.FFieldFlags and $08000000 <> 0 then
             if (FTargets.IndexOfXYL(Field.GetXYL) = -1) and
               Field.GetAITarget(FControl, FTargetInfo, Data) then
@@ -6639,7 +6639,7 @@ begin
         while (I > 0) and not Found do
         begin
           Dec(I);
-          Field := Settings.FProcessedMapFields[I];
+          Field := TAoWMapField(Settings.FProcessedMapFields.List^[I]);
           if Field.FFieldFlags and $08000000 <> 0 then
             if (FTargets.IndexOfXYL(Field.GetXYL) = -1) and
               Field.GetAITarget(FControl, FTargetInfo, Data) and

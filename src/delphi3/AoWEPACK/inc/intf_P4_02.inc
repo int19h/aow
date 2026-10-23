@@ -47,7 +47,7 @@
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure NewCombatTurn(A1: TCombatObject; A2: Shortint); override;
     procedure CombatDone(A1: TCombatObject); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function GetDuration(AbilityOwner: TAbilityOwner): Byte; virtual; { +10C }
     function GetTotalDuration: Integer; virtual;
   end;
@@ -79,7 +79,7 @@
     function ExpandName(A1: TAbilityOwner): string; override;
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function GetLevelName(A1: Integer): string; virtual;
   end;
 
@@ -289,7 +289,7 @@
     function Expand(A1: TAbilityOwner): Boolean; override;
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure CombatObjectDestroyed(A1: TCombatObject); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
   end;
 
   { TWebCA (instance size 20, VMT 5571F5C4; $10 successful) }
@@ -403,7 +403,7 @@
     procedure GetOffensiveStrength(A1: TAbilityOwner; var A2: Integer; var A3: TDamageTypes); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function GetTouchAttack(A1: Integer): Shortint; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
@@ -447,7 +447,7 @@
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure CombatObjectDestroyed(A1: TCombatObject); override;
     procedure CombatDone(A1: TCombatObject); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
   end;
 
   { TCommandCA (instance size 24, VMT 557203A0; $10 ability ID, $14 success) }
@@ -494,7 +494,7 @@
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure CombatObjectDestroyed(A1: TCombatObject); override;
     procedure CombatDone(A1: TCombatObject); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure Command(Source, Target: TCombatUnit); virtual; { +124 }
@@ -642,7 +642,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure SetEnabled(A1: TAbilityOwner; A2: Boolean);
@@ -726,7 +726,7 @@
     procedure GetDamageValueEx(A1, A2: TAbstractUnit; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); override;
     procedure GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function CanTouch(A1, A2: TCombatObject): Boolean; override;
     function CanTouchUnit(A1, A2: TAbstractUnit): Boolean; override;
     procedure SetEnabled(A1: TAbilityOwner; A2: Boolean);
@@ -755,7 +755,7 @@
     function GetSourceName(A1: TAbilityOwner): string; override;
     function GetInherent(A1: TAbilityOwner): Boolean; override;
     function CanExpand(A1: TAbilityOwner): Boolean; override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function GetLevelName(A1: Integer): string; override;
     procedure SetExternalSource(A1: TAbilityOwner; A2: Byte; SourceName: string);
     procedure ResetExternalSource(A1: TAbilityOwner);
@@ -803,7 +803,7 @@
     function Remove(A1: TAbilityOwner): Boolean; override;
     procedure NewCombatTurn(A1: TCombatObject; A2: Shortint); override;
     procedure CombatDone(A1: TCombatObject); override;
-    function AbilityDataClass: TEObjectClass; override;
+    class function AbilityDataClass: TEObjectClass; override;
     function GetDurationMode: TDurationMode; virtual;
     function GetDuration(A1: TAbilityOwner): Byte; virtual; { +110 }
     function GetAIUpkeepPriority(A1: TAbilityOwner): Integer; virtual;
