@@ -12,7 +12,7 @@
 | Unsigned comparison with a literal | Type both operands: `Cardinal(A) < Cardinal(90)` gives `jae` on the false path; `Cardinal(A) < 90` gives `jge`. |
 | Calls to argument expressions in a particular order | Write explicit assignments in that order. Inline `Join(Step(1),...,Step(4))` calls Step with 4,3,2,1. |
 | An otherwise unexplained exception frame | Check for a string local, even an unused one, or a by-value string parameter. |
-| EDX, rather than EAX, zeroed for FS registration | Keep a call result in a local used inside try; storing it to Result first can free EAX and select `xor eax,eax` (K21). |
+| EDX, rather than EAX, zeroed for FS registration | Keep a call result in a local used inside try; storing it to Result first can free EAX (K21). Two Integer assignments inside try before their comparison also select EDX in K77's O+ probe. |
 | A hidden record-result destination | Check exact size: 1,2,4-byte records return in registers here; packed size 3 uses a buffer (K06). |
 | One array string clear versus several scalar clears | Keep allocated strings of the same type together; a distinct `type string` splits cleanup, an unused Integer gap does not (K09). |
 | An immediate OR rather than loading a set literal | Try `Include(S,bit)` instead of `S:=S+[bit]` (K26). |
@@ -53,6 +53,11 @@
 | No store/reload of an addressable source before Move | Put the computed address in a separate short-lived Pointer local (K66). |
 | ECX rather than EAX scratch loads while pushing stdcall arguments | Assign the call to Result before comparing it (K70). |
 | One string-array clear instead of two scalar clears | Inline the plugin-name and exception-message expressions; check their resulting slot adjacency (K71). |
+| A separate byte load before ADD instead of a memory ADD | Try `Byte(Key+0)` in the byte sum; `Byte(Key)` alone is unchanged in the control (K72). |
+| A quotient kept in EAX rather than copied to a saved register | Name `Q:=I div 5` and reuse Q in the guard and index (K73). |
+| `sete al; mov ebx,eax` instead of `sete bl` | Name the first byte-returning call before comparing it with the second (K74). |
+| No incoming DL spill/reload around an enum-returning call | Assign the enum result to an enum local before testing set membership (K75, O+). |
+| Recomputed coordinate sums instead of shared sums | Try a hard class cast at each Sender field read in the multi-argument expression (K76, O+). |
 
 ## Setup and how to reproduce
 
@@ -142,9 +147,10 @@ and `$C`. Plain Run receives A in eax and B in edx. Touch changes only Global,
 but the caller must assume a call can invalidate a field read.
 
 The earlier worker-report audit is in section 10, with inputs and output under
-`D:\Build\tmp\cx_cg2`. Section 11 audits all nine latest rewrite reports and
-keeps its inputs and output under `D:\Build\tmp\cx_cg3`. Earlier round counts
-above and below remain historical counts for their respective directories.
+`D:\Build\tmp\cx_cg2`. Section 11 audits nine fourth-round rewrite reports
+under `D:\Build\tmp\cx_cg3`; section 12 audits the latest five, rx1..rx5,
+under `D:\Build\tmp\cx_cg4`. Earlier round counts above and below remain
+historical counts for their respective directories.
 
 ## 1. Branches
 
@@ -2921,7 +2927,7 @@ and `@HandleFinally` continuations are still printed. Its full output is
 `probe_handler_regression.txt`. The corrected probe is 118 lines. All 182 paired
 builds in this round use the correction; all compiler outputs remain on D:.
 
-## 11. Latest rewrite-report audit (fourth round)
+## 11. Rewrite-report audit (fourth round)
 
 Read **all nine complete reports** in `D:\Build\tmp\cx_cg3\reports` on
 2026-10-23, including their bodies and restored trials. Report names in this
@@ -3441,3 +3447,298 @@ local, case, record, loop and argument topics are already covered; they do not
 establish additional forms. Reported comparison artifacts (including unresolved
 indirect jumps, truncated signatures and address masking) remain tool/extent
 issues, not compiler source-form rules.
+
+## 12. Latest rewrite-report audit (fifth round)
+
+Read **all five complete reports, rx1.md through rx5.md**, including their
+bodies and New source forms sections, in `D:\Build\tmp\cx_cg4\reports`
+on 2026-10-23. Report names in this section refer to that directory.
+`cx_cg4\report_audit.tsv` records hashes and dispositions.
+
+**7 new forms: 6 confirmed (K72..K77), 1 reported, not reproduced (NR07);
+18 already-present form groups.** Counts deduplicate reports/functions and
+include new refinements of existing entries. They count source mechanisms,
+not matches or unsuccessful attempts. Generic lists of restored receiver,
+slot, branch, managed-local and other trials give no additional concrete
+source pair or successful code effect; they are accounted for by the existing
+entries in the final table. Unresolved indirect jumps, signature extents and
+address-check findings are comparison issues, not new source forms.
+
+| Report read in full | Findings accounted for here |
+|---|---|
+| rx1.md | K72; existing identity assignments/casts, addressability, declaration order, branches and comparisons |
+| rx2.md | K73/K74; existing receiver/cache, spill, comparison, constructor and zero-shift forms |
+| rx3.md | K75; existing addressability, lookup-result casts, copies, local order, typed access, assertions and Boolean staging |
+| rx4.md | K76/K77 and NR07; existing Self casts, zero shifts, dimension lifetimes and Sender/index staging |
+| rx5.md | No new claim; existing split lifetimes, removal of with, self assignment and eight-byte overlay |
+
+There are **10 plain paired test units, each built once O+ and once O-:
+20 successful builds and 40 printed routine bodies**, including three
+controls. Every build used `tools/dcc_probe.py` and the setup's switches;
+the compiler SHA256 still agrees with the setup. Nothing was executed.
+No game copy, scratch script or additional probe tool was created, and
+`dcc_probe.py` needed no change.
+
+Inputs are `cx_cg4\inputs\r5_<name>.pas`; each has A/B routines with the
+same declarations except the stated change. Outputs are
+`cx_cg4\r5_<name>_<mode>\`, with full printed disassembly in the sibling
+`.txt`; mode is opt/noopt. `worker_probe_results.json` retains commands,
+compile status and complete output; `pair_summary.json` records outcomes.
+For example:
+
+```powershell
+python -B tools/dcc_probe.py D:\Build\tmp\cx_cg4\inputs\r5_selection.pas `
+  --out D:\Build\tmp\cx_cg4\reprobe -- TObj.A TObj.B
+```
+
+Complete declarations are in those small inputs. Excerpts below are O+
+unless stated; offsets are hexadecimal. The evidence establishes these
+small source pairs, not the full worker functions or universal register choices.
+
+### K72. A zero addition changes a byte memory operand into a separate load
+
+Report: `rx1.md`. Function: `EncodeSecurityID`. This refines K24's
+constant-expression controls: adding zero can disappear while still changing
+the way its byte operand is evaluated. It is not an ordinary named copy.
+
+**r5_byte_zero: O+: different; O-: different.** A/B receive Value:string
+by value and Key:Byte, return string, and declare I:Integer:
+
+```pascal
+Result:='';
+for I:=1 to Length(Value) do
+  Result:=Result+Char(Byte((Length(Value)+(I+5)+
+    { A } Key
+    { B } Byte(Key+0)
+  ) and $FF) xor Byte(Value[I]));
+```
+
+After the identical `+52 add al,5; +54 add dl,al`, A has
+`+56 add dl,[ebp-5]; +59 and dl,ff`.
+B has `+56 mov al,[ebp-5]; +59 add dl,al; +5b and dl,ff`.
+There is no instruction adding zero, and no change to the string helper
+identities. O- likewise splits `+5a add dl,[ebp-5]` into
+`+5a mov al,[ebp-5]; +5d add dl,al`.
+
+**r5_byte_cast: same code, both modes.** Replacing Key only with
+`Byte(Key)` retains the memory ADD. The arithmetic expression inside the
+cast, rather than the redundant Byte cast alone, is material under these
+Q-/R- settings.
+
+### K73. Naming a reused quotient removes its saved-register copy
+
+Report: `rx2.md`. Function: `THero.LevelToExperience`. This refines l01/e03
+and K25: the optimized repeated division is already computed once, but naming
+its result changes allocation even without removing another IDIV.
+
+**r5_quotient: O+: different; O-: different.** Tab:array[0..5] of Integer;
+A/B(Level:Integer):Integer; both declare I,Total:Integer:
+
+```pascal
+Total:=0;
+{ A }
+for I:=1 to Level-1 do
+  if I div 5<=5 then Inc(Total,Tab[I div 5]);
+{ B, also Q:Integer }
+for I:=1 to Level-1 do begin
+  Q:=I div 5; if Q<=5 then Inc(Total,Tab[Q]);
+end;
+Result:=Total;
+```
+
+A: `+19 idiv esi; +1b mov esi,eax; +1d cmp esi,5;
++22 add edi,[Tab+esi*4]`.
+B: `+19 idiv edi; +1b cmp eax,5; +20 add esi,[Tab+eax*4]`.
+Both have one division per optimized iteration. The count/I/Total allocation
+also changes from EBX/ECX/EDI to ECX/EBX/ESI; B still saves three registers.
+O- A has two IDIVs on the taken path, at +29/+39; B has one at +29 and
+stores Q at `[ebp-14]`. This is a reuse recipe, not a change in division
+rounding or permission to cache a side-effecting expression.
+
+### K74. Staging the first byte result changes Boolean materialization
+
+Report: `rx2.md`. Function: `TCity.JoinAmount`. This refines e03 and K37:
+both forms still use SETE, but the explicit byte local changes its destination
+and the subsequent full-register copy.
+
+**r5_selection: O+: different; O-: different.** TObj.One/Two are virtual
+Byte functions, Sink is virtual, A/B return Boolean; Flag:Boolean:
+
+```pascal
+{ A } Flag:=One=Two;
+{ B, Selection:Byte } Selection:=One; Flag:=Selection=Two;
+if Flag then Sink;
+Result:=Flag;
+```
+
+Both call One then Two and compare `+13 cmp bl,al`.
+A: `+15 sete bl; +18 test bl,bl`.
+B: `+15 sete al; +18 mov ebx,eax; +1a test bl,bl`.
+The new copy is not zero extension: only the Boolean low byte is meaningful.
+O- B instead stores Selection at `[ebp-7]` and compares
+`+1b cmp al,[ebp-7]`; A retains One across Two in EBX and compares BL/AL.
+
+### K75. An enum local removes an incoming byte spill before membership
+
+Report: `rx3.md`. Function: the standalone `ValidAttackRelation`.
+This extends K05's call-result staging and K27's enum-local control to set
+membership and preservation of an incoming parameter.
+
+**r5_enum_member: O+: different; O-: different.** A/B receive P,I,T,R:
+ShortInt, with R on the stack; Relation returns
+TRelation=(drPeace,drWar,drAlliance,drUnknown):
+
+```pascal
+if P=0 then
+  if T<>0 then begin
+    { A } Result:=Relation(P,I,T,R) in [drWar,drUnknown];
+    { B, Rel:TRelation }
+    Rel:=Relation(P,I,T,R); Result:=Rel in [drWar,drUnknown];
+  end else Result:=False
+else Result:=Map.Players.Get(P).Valid(T,R);
+```
+
+A spills I with `+08 mov [ebp-1],dl` and reloads it with
+`+1e mov dl,[ebp-1]` before `+23 call Relation`.
+B omits both instructions and calls Relation at +1D with incoming DL.
+T remains spilled in both; the enum local itself has no optimized store.
+Both membership tests use `sub al,1; je ...; sub al,2; je ...`.
+O- keeps incoming I in `[ebp-2]` in both forms and adds Rel's actual
+store/reload at `[ebp-5]` in B. The spill removal is an O+ observation,
+not a different calling convention or set test.
+
+### K76. Hard Sender casts prevent reuse of coordinate sums
+
+Report: `rx4.md`. Functions: `TArenaDlg.MapViewDraw`,
+`TDisjunctionDlg.MapViewDraw`. This refines e10/K44/K69: besides selecting
+another address register, a class cast can separate repeated arithmetic
+expressions within a call. No AsClass check is involved.
+
+**r5_sender_coords: O+: different; O-: same code.** TObj has F/G/H/I:
+Integer at +4/+8/+C/+10; TChild descends from it unchanged. Self.P:TObj;
+Draw takes four const Integer arguments (the fourth on the stack):
+
+```pascal
+{ A }
+Draw(P.F+Sender.F,P.G+Sender.G,
+     P.F+Sender.F+Sender.H,P.G+Sender.G+Sender.I);
+{ B }
+Draw(P.F+TChild(Sender).F,P.G+TChild(Sender).G,
+     P.F+TChild(Sender).F+TChild(Sender).H,
+     P.G+TChild(Sender).G+TChild(Sender).I);
+```
+
+A computes P.G+Sender.G into EDI at +06/+09, reuses EDI at +0C/+1D,
+and likewise keeps the F sum in ESI. B instead computes the G sum twice:
+`+05 mov ebx,[ebx+8]; +08 add ebx,[edx+8]`, then
+`+1a mov esi,[esi+8]; +1d add esi,[ecx+8]`.
+It also computes the F sum twice, with another P load at +20. A saves
+EBX/ESI/EDI; B saves EBX/ESI and copies Sender from EDX to ECX at +0B.
+The cast emits no conversion. Both O- streams already recompute the sums
+and agree completely. This is a same-object hard cast with the same inherited
+field layout; an `as` cast or a getter with side effects is a different case.
+
+### K77. Integer locals inside try change its entry zero register
+
+Report: `rx4.md`. Function: `TGeneral.SortLists`. This refines K21:
+both conversions are **inside** try, yet choosing their later destinations
+changes FS registration before either call has run.
+
+**r5_try_integers: O+: different; O-: different.** A/B are methods with
+L:TStrings and I,J:Integer; Value is a global Integer:
+
+```pascal
+try
+  { A } if StrToInt(L[I])>StrToInt(L[J]) then Value:=I;
+  { B, X,Y:Integer }
+  X:=StrToInt(L[I]); Y:=StrToInt(L[J]); if X>Y then Value:=I;
+except
+end;
+```
+
+Both have an outer string-temporary finalizer registered through EAX.
+The explicit inner except registration changes:
+A `+1a xor eax,eax; ... +22 push fs:[eax]; +25 mov fs:[eax],esp`;
+B `+21 xor edx,edx; ... +29 push fs:[edx]; +2c mov fs:[edx],esp`.
+A retains the first conversion with `+3c push eax` and compares
+`+52 pop edx; +53 cmp edx,eax; +55 jle ...`.
+B uses `+44 mov esi,eax`, then `+5b cmp eax,esi; +5d jge ...`.
+Both still retrieve/convert I before J. B also spills I at `[ebp-4]`
+and moves the hidden string from -4 to -8.
+
+O- B stores X/Y at `[ebp-10/-14]`, while A retains the first result in
+EBX. Both O- inner registrations use EAX, so the zero-register change
+is specific to O+ here. Unlike NR06, this small pair reproduces the
+reported FS effect without reading a restored object field.
+
+### Reported, not reproduced
+
+**NR07. Enum/Ord alone did not select the reported single AND EAX,7F.**
+Source: `rx4.md`, `TArmyInfoDlg.DrawUnit` and `TUnitSelectionDlg.DrawUnit`.
+The report claims that a Byte local plus `[Alignment and 127]` becomes an
+enum local plus `[Ord(Alignment)]`, with one AND EAX,7F after the full-byte
+guard. This is a new claim beyond K27's constructor-local and K28's mask
+placement controls, but that exact mask effect did not reproduce.
+
+**r5_enum_ord: O+: different; O-: different; reported mask not reproduced.**
+TAlign=(a0,a1,a2,a3,a4,a5,a6), P.GetA returns TAlign, Lib.Count:Integer,
+Lib.Get(Index:Integer):TObj:
+
+```pascal
+{ A, Alignment:Byte }
+Alignment:=Byte(P.GetA);
+if Alignment<Lib.Count then begin
+  Q:=Lib.Get(Alignment and 127); Value:=Q.F;
+end;
+{ B, Alignment:TAlign }
+Alignment:=P.GetA;
+if Ord(Alignment)<Lib.Count then begin
+  Q:=Lib.Get(Ord(Alignment)); Value:=Q.F;
+end;
+```
+
+Both guards zero-extend all eight bits with XOR/MOV DL,AL before CMP.
+A then emits `+19 mov edx,eax; +1b and dl,7f; +1e and edx,ff`.
+B has **no AND** after its guard: `+16 mov eax,[Lib]; +1b call TLib.Get`;
+the full-byte value remains in EDX. It also removes A's EBX save.
+O- similarly zero-extends B's enum byte without a $7F mask.
+
+`r5_enum_property` changes the lookup to a default indexed property using
+the same getter; its complete disassembly agrees with r5_enum_ord in each
+mode. `r5_enum_ord_mask` explicitly adds `and 127` to B's Ord expression:
+O+ gives `+18 and dx,7f; +1c movsx edx,dx`, not the reported single
+32-bit AND. These are partial allocation/width results, not confirmation
+that Ord inserts the claimed mask. The report's exact lookup context
+remains necessary; do not silently replace a full-byte index by a masked one.
+
+### Already-present forms in these reports
+
+These **18 rows** are the already-present count. Most body summaries name
+successful kinds without the individual functions; the table preserves those
+descriptions and does not attribute a success to a function in a restored list.
+New refinements above are counted only as new.
+
+| Existing form | Reports and body descriptions | Catalog entry |
+|---|---|---|
+| Identity assignment or Pointer-cast identity | rx1: identity assignments/casts; rx5: retain self-assignment | K57/K58 |
+| Make a parameter/local addressable | rx1/rx3: address-taking; rx2: parameter spills | K07/K51/K61 |
+| Reorder declarations | rx1/rx3: declaration order | l04/l07 |
+| Change branch layout | rx1/rx2: branches | b01/b02/K37 |
+| Reverse comparison operands | rx1/rx2: comparisons | b07 |
+| Direct field/list receiver or remove with | rx2: direct field/list receivers; rx5: remove with | e01/K03/K04/K32 |
+| Map/global access and caching | rx2: map access/cache forms | l01/K04/K45 |
+| Add/remove an ordinary named copy | rx2: selection/relation temporaries; rx3: removing local copies; the new Boolean destination effect is K74 | l02/l03/e03 |
+| Cast a lookup result or separate its cast | rx3: lookup-result casts | K05 |
+| Inline a constructor receiver | rx2: inline constructor receiver | K05 |
+| Typed object access and Self casts | rx3: typed object access; rx4: Self casts | e10/K04 |
+| Zero-shift an argument | rx2/rx4: zero-shift arguments | K43 |
+| Change dimension lifetimes | rx4: dimension lifetimes | l02/K60/K65 |
+| Stage Sender or an index | rx4: Sender/index staging | K39/K52 |
+| Explicit assertion immediates | rx3: assertion immediates | K22 |
+| Stage a Boolean/event decision | rx3: Boolean/event staging | b06/e03/K37 |
+| Separate successive value lifetimes | rx5: separate locals/lifetimes | K60 |
+| Eight-byte storage for a packed local | rx5: eight-byte overlay | K49 |
+
+Rx3's enum temporary and rx4's numeric locals are accounted for by K75 and
+K77, respectively; repeated mentions in the body and New source forms section
+are not extra forms. Rx4's two enum/Ord matches are one claim, NR07.
