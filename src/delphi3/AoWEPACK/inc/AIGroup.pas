@@ -7035,14 +7035,14 @@ end;
 function TFastCombatUnit.fcBehindWall: Boolean;
 var Position: Byte;
 begin
-  Result := False;
+  { Inner failure shares the validated-position return. }
   if (GetSide = csDefender) and not (fsOutsideWall in FState) then
   begin
     Position := FPosition;
-    if (Position and $F < 8) and (Position shr 4 < 8) and
-      (FCombat.FCombatData.FParties.GetParty(Position shr 4).FWall <> 0) and
-      not (csDestroyed in FCombat.FCombatData.FWall.FStatus) then Result := True;
-  end;
+    if (Position and $F > 7) or (Position shr 4 > 7) or
+      (FCombat.FCombatData.FParties.GetParty(Position shr 4).FWall = 0) or
+      (csDestroyed in FCombat.FCombatData.FWall.FStatus) then Result := False else Result := True; Exit;
+  end; Result := False;
 end;
 
 function TFastCombatUnit.fcExecute(A1: Integer): Boolean;

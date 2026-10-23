@@ -2240,7 +2240,7 @@ end;
 
 function TCity.JoinAmount(Player: Shortint): Integer;
 const JoinPercent: array[TStatus] of Integer = (200, 175, 150, 125, 100);
-var Armies: TArmyHSList; I: Integer; Army: TArmy; CanJoin: Boolean; Value: Integer;
+var Armies: TArmyHSList; I: Integer; Army: TArmy; CanJoin: Boolean; Value: Integer; Relation: Byte; Selection: Byte;
 begin
   Result := 0;
   Armies := TArmyHSList.Create(nil);
@@ -2253,13 +2253,13 @@ begin
     begin
       Dec(I);
       Army := Armies.GetArmyHS(I).FArmy;
-      CanJoin := Army.GetCanJoinSelection(Player) = Army.ValidateSelection($FF);
+      Selection := Army.GetCanJoinSelection(Player); CanJoin := Selection = Army.ValidateSelection($FF);
       if CanJoin then Inc(Result, Army.JoinAmount(Player, $FF));
     end;
     if CanJoin then
     begin
       Value := GetObtainValue div 4;
-      Inc(Result, JoinPercent[WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(Player)] * Value div 100);
+      Relation := Byte(WorldMap^.FRaces.GetRace(FRace).GetPlayerRelation(Player)); Inc(Result, JoinPercent[TStatus(Relation)] * Value div 100);
     end
     else Result := -1;
   end
@@ -2914,11 +2914,11 @@ begin
     ((City.GetActiveAction in [caProduce]) and (City.FProduction.FSettings.FTurnsLeft = City.FProduction.FSettings.FTurnsTotal)));
 end;
 
-function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean; { Near miss: three variants retain different upgrade-level reuse and return layout. }
+function TCityAIPA.ValidUpgradeBudgetCity(City: TCity): Boolean;
 var Level: Integer;
 begin
   Level := City.FProduction.GetProduceUnitLevelMax;
-  Result := (City.GetSize > City.FUpgradeLevel) and (Level = City.FUpgradeLevel);
+  if (City.GetSize <= City.FUpgradeLevel) or (Level <> Byte(PChar(City)[$4D])) then Result := False else Result := True;
 end;
 
 function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }

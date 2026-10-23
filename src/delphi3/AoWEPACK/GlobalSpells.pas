@@ -754,9 +754,9 @@ begin
   Stream.rwInteger(FDispelChance, 21);
 end;
 
-function TDisjunctionTE.Validate(A1: THero): Boolean; { Near miss: Boolean result register differs after three variants. }
+function TDisjunctionTE.Validate(A1: THero): Boolean;
 var
-  Index: Integer;
+  Index: Integer; Mana, RequiredMana: Integer;
 begin
   Result := inherited Validate(A1);
   Index := AoWHSMap.FGlobalMagicControl.IndexOfID(FEnchantmentID);
@@ -764,8 +764,8 @@ begin
   if Result then
   begin
     with AoWHSMap.FGlobalMagicControl.FEnchantments.GetEnchantments(Index) do
-      Result := AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FMagicControl.FMana + A1.FCastingProgress >=
-        Round(FDispelMana * 0.02 * FDispelChance) + FEventMana;
+    begin Mana := AoWHSMap.FPlayers.GetPlayers(A1.FPlayer).FMagicControl.FMana + A1.FCastingProgress; RequiredMana :=
+        Round(FDispelMana * 0.02 * FDispelChance) + FEventMana; Result := RequiredMana <= Mana; end;
   end;
 end;
 

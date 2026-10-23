@@ -132,13 +132,13 @@ begin inherited Destroy; end;
 function TCombatPlayerList.GetPlayers(A1: Shortint): TCombatPlayer;
 begin Result := TCombatPlayer(FChildren.List^[A1]); end;
 
-function TCombatPlayerList.IndexOfPlayer(A1: Byte): Integer; { Near miss: byte comparison restored; item register differs after three variants. }
-var P: TCombatPlayer; begin
+function TCombatPlayerList.IndexOfPlayer(A1: Byte): Integer;
+begin
   Result := FChildren.Count;
   while Result <> 0 do
   begin
     Dec(Result);
-    P := TCombatPlayer(FChildren.List^[Result]); if A1 = Byte(P.FPlayer) then Exit;
+    if A1 = Byte(TCombatPlayer(FChildren.List^[Result]).FPlayer) then Exit;
   end;
   Result := -1;
 end;

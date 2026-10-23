@@ -5111,11 +5111,11 @@ procedure TCommandAbility.Command(Source, Target: TCombatUnit); { Review fix: Ab
 var
   TargetData: TCommandedAbilityData;
   SourceData: TCommandAbilityData;
-  DataClass: TEObjectClass;
+  { The returned class is consumed by its constructor. }
 begin
   Uncommand(Target);
-  DataClass := AoWHSSet.FAbilityControl.GetAbility(FCommandedAbilityID).AbilityDataClass;
-  TargetData := TCommandedAbilityData(DataClass.Create(nil));
+  { Inline the returned class receiver. }
+  TargetData := TCommandedAbilityData(AoWHSSet.FAbilityControl.GetAbility(FCommandedAbilityID).AbilityDataClass.Create(nil));
   TargetData.FAbilityID := FCommandedAbilityID;
   TargetData.FCommandAbilityID := FAbilityID;
   TargetData.FSourceID := Source.FID;

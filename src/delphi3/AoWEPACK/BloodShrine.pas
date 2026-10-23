@@ -74,19 +74,19 @@ begin
   FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.FFrameCounter, SurfaceDesc);
 end;
 
-procedure TBloodShrine.ExecuteBloodlust(ArmyHS: TArmyHS); { Near miss: loop registers and map pointer reuse differ after three variants. }
+procedure TBloodShrine.ExecuteBloodlust(ArmyHS: TArmyHS);
 var
-  Anim: TBloodShrineAnimation;
+  AUnit: TAbstractUnit;
   R: TRect;
   I: Integer;
-  AUnit: TAbstractUnit;
+  Anim: TBloodShrineAnimation;
 begin
   for I := 0 to ArmyHS.FArmy.Count - 1 do
   begin
     AUnit := ArmyHS.FArmy.GetUnit(I);
     WorldSet^.FAbilityControl.GetAbility($A8).Expand(AUnit);
   end;
-  if (ArmyHS.FArmy.FPlayer = WorldMap^.FSeatedPlayer) or
+  if (ArmyHS.FArmy.FPlayer = TAoWHSMap(Pointer(@AoWHSMap)^).FSeatedPlayer) or
     WorldMap^.Watching(GetXhx, GetYhx, GetLhx, 0) then
     Sound.PlaySample('SFX\ATTACK\ENCHP02.WAV');
   if WorldMap^.Visible(GetXhx, GetYhx, GetLhx, 0) then

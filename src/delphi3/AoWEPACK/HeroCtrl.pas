@@ -217,23 +217,23 @@ begin
   if Assigned(FOnUnselect) then FOnUnselect(Self);
 end;
 
-procedure THeroControlGrid.UpdateHeroes; { Near miss: register or temporary allocation differs after three variants. }
+procedure THeroControlGrid.UpdateHeroes;
 var
   I: Integer;
   Hero: THero;
-  Map: TAoWHSMap;
+  Map: TAoWHSMap; MapAddress: Pointer;
 begin
   FIndices.Clear;
-  Map := FMap;
-  if Map <> nil then
-    for I := 0 to HeroCount(THeroControl(TRawView(Pointer(Map)^).Fields[$F8 div 4])) - 1 do
+  { Cache the guarded map; the unused address and copy preserve allocation. }
+  if FMap <> nil then
+    begin Map := FMap; MapAddress := @Map; I := I; for I := 0 to HeroCount(THeroControl(TRawView(Pointer(Map)^).Fields[$F8 div 4])) - 1 do
     begin
-      Hero := ControlHeroAt(THeroControl(TRawView(Pointer(FMap)^).Fields[$F8 div 4]), I);
+      Hero := ControlHeroAt(THeroControl(TRawView(Pointer(Map)^).Fields[$F8 div 4]), I);
       if ((PEngineView(AoWEngine)^.Status and 2) <> 0) or not PHeroView(Hero)^.Hidden then
         if not (Hero is TLeader) then
           if not FUnplacedOnly or (Hero.Owner = nil) then FIndices.Add(I);
     end;
-  case FSort of
+    end; case FSort of
     0: FIndices.Sort(HeroControlCompareName);
     1: FIndices.Sort(HeroControlCompareLevel);
   end;

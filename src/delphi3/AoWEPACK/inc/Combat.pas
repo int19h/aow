@@ -1279,25 +1279,25 @@ begin
   if FUnit <> nil then Result := TAbstractUnit(FUnit).GetAbilityCount else Result := 0;
 end;
 
-function TCombatUnit.GetHits: Shortint; { Near miss: three variants retain a redundant move or different register. }
-var U: TAbstractUnit;
+function TCombatUnit.GetHits: Shortint;
+{ Direct field test retains the receiver. }
 begin
-  U := TAbstractUnit(FUnit);
-  if U <> nil then Result := FUnit.GetHits else Result := 0;
+  { No cast temporary. }
+  if FUnit <> nil then Result := FUnit.GetHits else Result := 0;
 end;
 
-function TCombatUnit.GetHitPoints: Shortint; { Near miss: three variants retain a redundant move or different register. }
-var U: TAbstractUnit;
+function TCombatUnit.GetHitPoints: Shortint;
+{ Direct field test retains the receiver. }
 begin
-  U := TAbstractUnit(FUnit);
-  if U <> nil then Result := FUnit.GetHitPoints else Result := 0;
+  { No cast temporary. }
+  if FUnit <> nil then Result := FUnit.GetHitPoints else Result := 0;
 end;
 
-procedure TCombatUnit.SetHitPoints(A1: Byte); { Near miss: three variants retain an extra nil-test move or different saved registers. }
-var U: TAbstractUnit;
+procedure TCombatUnit.SetHitPoints(A1: Byte);
+{ Direct nil guard. }
 begin
-  U := TAbstractUnit(FUnit);
-  if U <> nil then FUnit.SetHitPoints(A1);
+  { No cast temporary. }
+  if FUnit <> nil then FUnit.SetHitPoints(A1);
 end;
 
 procedure TCombatUnit.SetParty(Party: TCombatParty);
@@ -1626,33 +1626,33 @@ begin
 end;
 
 function TCombatUnit.ShowAttackAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
-var U: TAbstractUnit; Info: TP2UnitShowInfo;
-begin
-  U := FUnit;
-  if U <> nil then
+var Info: TP2UnitShowInfo; DirectionAddress: Pointer;
+begin DirectionAddress := @Direction;
+  { Direct field receiver. }
+  if FUnit <> nil then
   begin
     Info.Direction := Byte(Direction);
     Info.Overlays := [uoHitPoints, uoRank, uoCombat];
     Info.Animation := uaAttack;
     Info.Frame := Frame;
     Info.Looped := False;
-    Result := U.ShowEx(X,Y,Surface,Info);
+    Result := FUnit.ShowEx(X,Y,Surface,Info);
   end
   else Result := -1;
 end;
 
 function TCombatUnit.ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
-var U: TAbstractUnit; Info: TP2UnitShowInfo;
-begin
-  U := FUnit;
-  if U <> nil then
+var Info: TP2UnitShowInfo; DirectionAddress: Pointer;
+begin DirectionAddress := @Direction;
+  { Direct field receiver. }
+  if FUnit <> nil then
   begin
     Info.Direction := Byte(Direction);
     Info.Overlays := [uoHitPoints, uoRank, uoCombat];
     Info.Animation := uaHit;
     Info.Frame := Frame;
     Info.Looped := False;
-    Result := U.ShowEx(X,Y,Surface,Info);
+    Result := FUnit.ShowEx(X,Y,Surface,Info);
   end
   else Result := -1;
 end;
@@ -6342,13 +6342,13 @@ begin
   Result := Party;
 end;
 
-function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty; { Near miss: three variants retain a different argument evaluation order. }
+function TCombat.AddArmyEx(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer; A6: Byte): TCombatParty;
 var Party: TCombatParty; Player: Byte; Index, I: Integer; UnitObj: TCombatUnit;
 begin
   A1.BeginUpdate;
   Player := TCombatPlayerList(FCombatData.FPlayers).IndexOf(A1.FPlayer, A1.FIndependentRelation);
   if Player = $FF then Player := AddCombatPlayer(A1.FPlayer, A1.FIndependentRelation, A2);
-  Party := TCombatPartyList(FCombatData.FParties).CreateParty(Integer(Self), A6, Player, A3, A4, A5, Integer(A1));
+  Party := TCombatPartyList(FCombatData.FParties).CreateParty(Integer(Self), Byte(A6 shl 0), Player, A3, A4, A5, Integer(A1));
   Index := 0;
   for I := A1.Count - 1 downto 0 do
   begin

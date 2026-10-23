@@ -1038,11 +1038,11 @@ begin
 end;
 
 function THero.LevelToExperience(Level: Integer): Integer;
-var I, Total: Integer;
+var I, Total, Quotient: Integer;
 begin
   Total := 0;
   for I := 1 to Level - 1 do
-    if I div 5 <= 5 then Inc(Total, HeroExperienceTable[I div 5].Experience);
+    begin Quotient := I div 5; if Quotient <= 5 then Inc(Total, HeroExperienceTable[Quotient].Experience); end;
   Result := Total;
 end;
 
