@@ -619,9 +619,9 @@ begin
   end
   else Result := False;
 end;
-function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged; var Radius: Integer; { Near miss: only the Assert line number differs; include lines must stay fixed. }
+function TAbstractAoWHSMap.UnFogExploreArea(X, Y, Level: Integer; Player: Shortint; Range: Integer): TFogExplorationChanged; const AssertFile: string = 'D:\AoWDev\AoWE\inc\AoWHSMap.PAS'; AssertMessage: string = 'Invalid Unfog Range'; var Radius: Integer; { Preserve the original assertion diagnostic, independent of the build path. }
 begin Radius := Range;
-  Assert(Radius <= 15, 'Invalid Unfog Range');
+  if Radius > 15 then asm MOV ECX,$CB5B; MOV EDX,AssertFile; MOV EAX,AssertMessage; CALL System.@Assert end;
   { Original leaves Result undefined when a fog-only operation changes nothing. }
   if not (msEditting in Status) then
   begin
@@ -2287,9 +2287,9 @@ begin
 end;
 
 
-procedure TAoWHSMap.InitializeNewMap; { Near miss: loop locals and argument order still differ after three variants. }
+procedure TAoWHSMap.InitializeNewMap; { Original uses a 32-bit map-level loop counter. }
 var
-  L: Shortint;
+  L: Integer;
   I: Integer;
   Obj: TEObject;
 begin
@@ -2499,9 +2499,9 @@ begin
 end;
 
 
-procedure TAoWHSMap.ResetSeatedPlayerView; { Near miss: Self and Player registers differ after three variants. }
+procedure TAoWHSMap.ResetSeatedPlayerView; { Read the fallback army once, as in the original. }
 var
-  Player: TPlayer;
+  Player: TPlayer; Army: TArmy;
   XYL: Integer;
 begin
   if FSeatedPlayer <> -1 then
@@ -2525,9 +2525,9 @@ begin
         end
         else
         begin
-          WordRec(LongRec(XYL).Lo).Lo := Player.FArmies.GetArmy(0).FX;
-          WordRec(LongRec(XYL).Lo).Hi := Player.FArmies.GetArmy(0).FY;
-          WordRec(LongRec(XYL).Hi).Lo := Player.FArmies.GetArmy(0).FL;
+          Army := Player.FArmies.GetArmy(0); WordRec(LongRec(XYL).Lo).Lo := Army.FX;
+          WordRec(LongRec(XYL).Lo).Hi := Army.FY;
+          WordRec(LongRec(XYL).Hi).Lo := Army.FL;
         end;
     end;
     CenterViewTo(Shortint(WordRec(LongRec(XYL).Lo).Lo), Shortint(WordRec(LongRec(XYL).Lo).Hi), Shortint(WordRec(LongRec(XYL).Hi).Lo));

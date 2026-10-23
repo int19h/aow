@@ -258,8 +258,8 @@ begin
   Result := P2StatusValueToStatus(GetRelationValue(Player, IndependentRelation));
 end;
 function TAbstractUnit.GetUnitMoraleValue(Player, IndependentRelation: Shortint): Integer;
-{ Register allocation remains different: direct indexing, explicit race index,
-  a with-block, a map-field local, and a separate morale local were compared. }
+{ Original reads the shared RaceTerrain table; a private copy misses changes
+  to the shared settings even when its initial bytes are identical. }
 var
   Race: Shortint;
   Xhx, Yhx, Lhx: Shortint;
@@ -277,8 +277,8 @@ begin
       if Xhx <> -1 then
       begin
         TerrainType := TAoWTerrainType(AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType);
-        if TerrainType in P2RaceTerrain[Race].Disliked then Dec(Morale, 10);
-        if TerrainType in P2RaceTerrain[Race].Preferred then Inc(Morale, 10);
+        if Ord(TerrainType) in RaceTerrain[Race].Penalty then Dec(Morale, 10); { Read the original shared table, not the private copy. }
+        if Ord(TerrainType) in RaceTerrain[Race].Bonus then Inc(Morale, 10);
       end;
     end;
     if GetAbilityEnabled(53) then Dec(Morale, 40);
@@ -624,13 +624,13 @@ begin
 end;
 function P2VMTAbility(List: TAbilityTypeList; Index: Integer): TP2AbilityCalls; assembler;
 asm JMP TAbilityTypeList.GetAbility end;
-procedure TAbstractUnit.UpdateOffensiveStrength; { Near miss: Three variants retain different loop/Self allocation. }
+procedure TAbstractUnit.UpdateOffensiveStrength; const AssertFile: string = 'D:\AoWDev\AoWE\inc\Unit.PAS'; { Preserve the original diagnostic; asm references both strings so cleanup stays paired. }
 var
   DamageType: TDamageType;
   Ability: TP2AbilityCalls;
   DamageTypes: TDamageTypes;
   I, Strength: Integer;
-  Abilities: TAbilityTypeList;
+  Abilities: TAbilityTypeList; AssertMessage, AssertName: string;
 begin
   Abilities := TP2AbilityControlFields(AoWHSSet.FAbilityControl).CombatAbilities;
   FMaxOffensiveStrength := 0;
@@ -642,7 +642,7 @@ begin
     begin
       Ability.OffensiveStrength(Self, Strength, DamageTypes);
       if Strength > 255 then Strength := 255;
-      Assert(DamageTypes <> [], 'Ability: ' + Ability.AbilityName(nil));
+      if DamageTypes = [] then begin AssertName := Ability.AbilityName(nil); AssertMessage := 'Ability: ' + AssertName; asm LEA EAX,AssertName; MOV ECX,$E2B4; MOV EDX,AssertFile; MOV EAX,AssertMessage; CALL System.@Assert end end;
       if DamageTypes <> [] then
       begin
         if FMaxOffensiveStrength < Strength then FMaxOffensiveStrength := Strength;

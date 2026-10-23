@@ -2362,7 +2362,7 @@ begin
   end;
 end;
 
-function TArmy.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean; { Near miss: Frame and string-temporary layout differ after three variants. }
+function TArmy.IncommingNegotiateOffer(Offer: TNegotiateTE): Boolean; { Original uses the user trigger and replaces the message text. }
 var
   Log: TArmyInfoEventLog;
   Selection: Byte;
@@ -2386,28 +2386,28 @@ begin
         Log.FSelection := $FF;
         Log.FDescription := '';
         Log.FTitle := TranslateRStr(P2PartyJoinRStr);
-        Log.FTriggers := [etEvent];
+        Log.FTriggers := [etUser];
         AHero := Hero(Selection, [htHero]);
         if AHero = nil then
         begin
           if JoinCount = 1 then
           begin
             Log.FText := TranslateRStr(P2OneUnitJoinedRStr);
-            Log.FMessages.Add(Format(TranslateRStr(P2AUnitJoinedTheForcesofYRStr),
-              [AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+            Log.FMessages.Text := Format(TranslateRStr(P2AUnitJoinedTheForcesofYRStr),
+              [AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]);
           end
           else
           begin
             Log.FText := Format(TranslateRStr(P2XUnitsJoinedRStr), [IntToStr(JoinCount)]);
-            Log.FMessages.Add(Format(TranslateRStr(P2XUnitsJoinedTheForcesofYRStr),
-              [SelectionCount(Selection), AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+            Log.FMessages.Text := Format(TranslateRStr(P2XUnitsJoinedTheForcesofYRStr),
+              [SelectionCount(Selection), AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]);
           end;
         end
         else
         begin
           Log.FText := Format(TranslateRStr(P2XJoinedRStr), [AHero.FHeroName]);
-          Log.FMessages.Add(Format(TranslateRStr(P2XJoinedTheForcesOfYRStr),
-            [AHero.FHeroName, AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]));
+          Log.FMessages.Text := Format(TranslateRStr(P2XJoinedTheForcesOfYRStr),
+            [AHero.FHeroName, AoWHSMap.FPlayers.GetPlayers(Offer.FPlayer).GetName]);
         end;
         DistributeLocationEventLog(Log, -1, FX, FY, FL, False);
         Log.Release;
@@ -2422,11 +2422,11 @@ begin
               Locations.AddXYL(FX, FY, FL);
               J := Direction + 1;
               if J > 6 then J := 1;
-              CenterHNtoHX(Offer.FX, Offer.FY, J, X, Y);
+              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), J, X, Y); { Original sign extends the wrapped byte coordinates here. }
               Locations.AddXYL(X, Y, FL);
               Dec(Direction);
               if Direction = 0 then Direction := 6;
-              CenterHNtoHX(Offer.FX, Offer.FY, Direction, X, Y);
+              CenterHNtoHX(Shortint(Offer.FX), Shortint(Offer.FY), Direction, X, Y);
               Locations.AddXYL(X, Y, FL);
             end;
           end;
@@ -3262,7 +3262,7 @@ begin
   end;
 end;
 
-procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: Sequence/frame registers and flag evaluation differ after three variants. }
+procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); const AssertFile: string = 'D:\AoWDev\AoWE\inc\Army.PAS'; AssertMessage: string = 'Invalid Unit Index'; { Preserve the original assertion diagnostic. }
 var Sequence: TImageSequence; Frame, Xhp, Yhp, DX, DY: Integer; Part: Real;
 begin
   if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled) then
@@ -3313,7 +3313,7 @@ begin
 
 
 
-    Assert(FDirection < FUnitGFXResource.FSequences.Count, 'Invalid Unit Index');
+    if FDirection >= FUnitGFXResource.FSequences.Count then asm MOV ECX,$107E9; MOV EDX,AssertFile; MOV EAX,AssertMessage; CALL System.@Assert end;
     HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
     XhpSurf := Xhp - XhpSurf;
     YhpSurf := Yhp - YhpSurf;
@@ -5355,7 +5355,7 @@ begin
   Result := $6C000000;
 end;
 procedure P2RegisterRangedGroup2(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateBreath(88, TranslateRStr(P2RegisterBlackBreathRStr), dtDeath, -1)); Control.RegisterAbility(P2CreateBreath(89, TranslateRStr(P2RegisterDivineBreathRStr), dtHoly, -1)); Control.RegisterAbility(P2CreateBreath(90, TranslateRStr(P2RegisterGasBreathRStr), dtPoison, -1)); Control.RegisterAbility(TFlameThrowingAbility.Create(nil)); Control.RegisterAbility(P2CreateRangedAttack(57, TranslateRStr(P2RegisterShootJavelinRStr), 5, 5, 2, crLong, [dtPhysical], 122)); Control.RegisterAbility(P2CreateRangedAttack(58, TranslateRStr(P2RegisterShootBlackJavelinRStr), 5, 5, 2, crLong, [dtDeath,dtPhysical], 123)); Control.RegisterAbility(P2CreateRangedAttack(25, TranslateRStr(P2RegisterHurlStonesRStr), 3, 1, 4, crMedium, [dtPhysical], 111)); end;
-procedure TWorldFXHS.NewFrame(Sender: TObject); { Near miss: Particle loop registers and temporary slots differ after three variants. }
+procedure TWorldFXHS.NewFrame(Sender: TObject); { Original water angle uses 0.005 and earth radius follows FFrame. }
 var Effect: TWorldFXHS; I, J, Count, RadiusX, RadiusY: Integer; Gravity, VZ, Speed, Z: Single;
 begin
   try
@@ -5443,8 +5443,8 @@ begin
                 for I := 1 to Count - 1 do
                 begin
                   Effect := AoWHSMap.AddEffect(fxWMParticle);
-                  Effect.FX := 50 + Round(Cos(FFrame * 360 * 0.01 * Pi / 180) * FFrame) div 4;
-                  Effect.FY := 50 + Round(Sin(FFrame * 360 * 0.01 * Pi / 180) * FFrame) div 8;
+                  Effect.FX := 50 + Round(Cos(FFrame * 360 * 0.005 * Pi / 180) * FFrame) div 4;
+                  Effect.FY := 50 + Round(Sin(FFrame * 360 * 0.005 * Pi / 180) * FFrame) div 8;
                   if J = 1 then
                   begin Effect.FX := 100 - Effect.FX; Effect.FY := 100 - Effect.FY; end;
                   Speed := (Random(10) + 30) * 0.1;
@@ -5505,8 +5505,8 @@ begin
             begin
               Effect := AoWHSMap.AddEffect(fxEMParticle);
               RadiusX := Random(12);
-              Effect.FX := Round(Cos((I * 12 + RadiusX) * Pi / 180) * 150) + 50;
-              Effect.FY := Round(Sin((I * 12 + RadiusX) * Pi / 180) * 150) div 2 + 50;
+              Effect.FX := Round(Cos((I * 12 + RadiusX) * Pi / 180) * FFrame) + 50;
+              Effect.FY := Round(Sin((I * 12 + RadiusX) * Pi / 180) * FFrame) div 2 + 50;
               MakeLinePath(0, 0, 0, FFrame * 3 - 200, 30, Effect.FPath);
             end;
           200: FFrame := -1;
