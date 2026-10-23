@@ -29,7 +29,7 @@ def check(solver, kind):
     global used
     ms = EXPECTED_MS[kind]
     solver.set(rlimit=0 if calibration is not None else RLIMIT[kind],
-               timeout=10 * ms, random_seed=0)
+               timeout=10 * ms, random_seed=0, threads=1)
     before = resources(solver)
     start = time.process_time()
     answer = solver.check()

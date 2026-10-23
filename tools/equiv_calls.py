@@ -279,17 +279,17 @@ class CallContracts:
                         raise e.NotProven('callee-saved registers/ESP/DF not restored')
                     conditions, symbols = [], set(sp[1])
                     def expression(a):
-                        symbols.update(a[1]); return a[0]+sum(e.z3.Int('ABI_cleanup_'+str(n)) for n in a[1])
+                        symbols.update(a[1]); return a[0]+sum(e.z3.Int('ABI_cleanup_'+str(n)) for n in sorted(a[1]))
                     conditions.append(expression(sp)==0)
                     for r in saved:
                         if regs[r] == initial[r]: continue
                         v = regs[r]
                         candidates = [a for a,value in slots.items() if value == initial[r]]
                         if v is None or v[0]!='slot' or not candidates: raise e.NotProven('callee-saved registers/ESP/DF not restored')
-                        conditions.append(e.z3.Or([expression(v[1])==expression(a) for a in candidates]))
+                        conditions.append(e.z3.Or([expression(v[1])==expression(a) for a in sorted(candidates)]))
                     if symbols:
-                        conditions += [e.z3.Int('ABI_cleanup_'+str(n))>=0 for n in symbols]
-                        solver = e.z3.Solver(); solver.add(*conditions)
+                        conditions += [e.z3.Int('ABI_cleanup_'+str(n))>=0 for n in sorted(symbols)]
+                        solver = e.z3.Solver(); solver.add(*e.ordered(conditions))
                         if e.limits.check(solver,'ownership')!=e.z3.sat: raise e.NotProven('inconsistent/unknown cleanup restoration contract')
                         obligation = dict(return_pc=hex(ins.address),ESP_offset=sp[0],sites=[hex(n) for n in sorted(symbols)],predicate='ESP and save-slot restoration assume the stated cleanup of sites',constraints=[str(c) for c in conditions])
                         for n in symbols:

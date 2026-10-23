@@ -139,8 +139,8 @@ class CutGarbage:
             regs,defined,_,_=info['before'][head]
             st.h4_base=e.simp(st.regs['esp']-e.bv(regs['esp']))
             # These pointer offsets are established by the same must fixed point.
-            for reg,off in regs.items():st.regs[reg]=e.simp(st.h4_base+e.bv(off))
-            for off in set(range(info['low'],0))-defined:
+            for reg,off in sorted(regs.items()):st.regs[reg]=e.simp(st.h4_base+e.bv(off))
+            for off in sorted(set(range(info['low'],0))-defined):
                 st.memory=e.z3.Store(st.memory,st.h4_base+e.bv(off),e.z3.FreshConst(e.BYTE,'private_garbage'))
             from equiv_ownership import Ownership
             Ownership(self.checker,info,st.h4_base,head).prepare(st)
@@ -148,7 +148,7 @@ class CutGarbage:
         e=self.e
         if st is not None and not e.prove(st.ownership.goals(st)):return memory
         public=e.z3.Array('memory',e.BV32,e.BYTE)
-        for off in set(range(info['low'],0))-state[1]:
+        for off in sorted(set(range(info['low'],0))-state[1]):
             address=base+e.bv(off)
             exposed=getattr(st,'call_exposed',{}).get(off,e.z3.BoolVal(False))
             memory=e.z3.Store(memory,address,e.z3.If(exposed,e.z3.Select(memory,address),e.z3.Select(public,address)))
@@ -198,7 +198,7 @@ class CutGarbage:
                 if reads is None:return full
                 precise=self.e.z3.Or([delta==self.e.bv(j) for j in range(64) if reads.get(arg,0)>>j&1])
                 return self.e.z3.If(self.e.outside(v,st.h4_base,info['low']),precise,full)
-            st.call_exposed={off:(self.e.z3.BoolVal(True) if off in fixed else self.e.simp(self.e.z3.Or([reaches(off,arg,v) for arg,v in symbolic.items()]))) for off in range(info['low'],0) if off not in allowed}
+            st.call_exposed={off:(self.e.z3.BoolVal(True) if off in fixed else self.e.simp(self.e.z3.Or([reaches(off,arg,v) for arg,v in sorted(symbolic.items(),key=lambda kv:repr(kv[0]))]))) for off in range(info['low'],0) if off not in allowed}
             # Passing is safe because uncovered reachable bytes remain visible;
             # H3 forbids retaining the pointer after this particular call.
             st.ownership.passed(st,values,range(info['low'],0),sum(isinstance(arg,str) for arg in arguments))

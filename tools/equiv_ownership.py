@@ -74,9 +74,9 @@ class Ownership:
         info=self.info
         self.assume(self.e.z3.And(self.e.z3.UGE(self.base,self.e.bv(0x10000-self.low)),self.e.z3.ULT(self.base,self.e.bv(0x80000000))),'user-mode stack range')
         if 'origins' not in info:info['origins']=origins(self.checker,info)
-        for r,origin in info['origins'].get(self.head,({},{}))[0].items():
+        for r,origin in sorted(info['origins'].get(self.head,({},{}))[0].items()):
             self.assume(outside(st.regs[r],self.base,self.low),'incoming '+origin+' via '+r)
-        for off,origin in info['origins'].get(self.head,({},{}))[1].items():
+        for off,origin in sorted(info['origins'].get(self.head,({},{}))[1].items()):
             if off>=4:self.assume(outside(st.load(self.base+self.e.bv(off),4),self.base,self.low),origin)
         st.ownership=self
     def copy(self):
@@ -100,7 +100,7 @@ class Ownership:
             if not e.z3.is_select(node):todo.extend(node.children()[1:] if e.z3.is_app_of(node,e.z3.Z3_OP_ITE) else node.children())
         return False
     def guard(self,st):
-        return self.e.z3.And(getattr(st,'path',self.e.z3.BoolVal(True)),*self.premises)
+        return self.e.conjunction([getattr(st,'path',self.e.z3.BoolVal(True)),*self.premises])
     def safe(self,st,value):
         e=self.e;goal=outside(value,self.base,self.low)
         if e.prove([e.z3.Implies(getattr(st,'path',e.z3.BoolVal(True)),goal)]):return True
@@ -123,11 +123,11 @@ class Ownership:
         e=self.e
         if self.low and register_count:self.consult()
         for index,value in self.pushes:
-            covered=e.z3.Or([value==self.base+e.bv(k) for k in allowed])
+            covered=e.z3.Or([value==self.base+e.bv(k) for k in sorted(allowed)])
             self.obligations[index]=(self.obligations[index][0],'pushed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.low),covered)))
         self.pushes=[]
         for index,value in enumerate(values):
-            covered=e.z3.Or([value==self.base+e.bv(k) for k in allowed])
+            covered=e.z3.Or([value==self.base+e.bv(k) for k in sorted(allowed)])
             self.obligations.append((self.pc,'passed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.low),covered,e.z3.BoolVal(index<register_count and not self.derived(value))))))
     def goals(self,st):
         e=self.e
@@ -137,7 +137,7 @@ class Ownership:
 
 def premise(states):
     e=model()
-    return e.z3.And([p for st in states for p in getattr(getattr(st,'ownership',None),'premises',[])])
+    return e.conjunction([p for st in states for p in getattr(getattr(st,'ownership',None),'premises',[])])
 
 
 def guarded(states,goals):
@@ -146,7 +146,7 @@ def guarded(states,goals):
     for st in states:
         if hasattr(st,'ownership'):st.ownership.consult()
     obligations=[g for st in states if hasattr(st,'ownership') for g in st.ownership.goals(st)]
-    return obligations+[e.z3.Implies(premise(states),e.z3.And(goals))]
+    return obligations+[e.z3.Implies(premise(states),e.conjunction(goals))]
 
 
 def clone_ownership(source,dest):

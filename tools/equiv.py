@@ -49,6 +49,12 @@ except ImportError:
     sys.path.append(r'C:\Tools\pylib')
     import z3
 
+z3.set_param('smt.random_seed', 0)
+z3.set_param('sat.random_seed', 0)
+z3.set_param('smt.arith.random_initial_value', False)
+z3.set_param('parallel.enable', False)
+z3.set_param('smt.threads', 1)
+
 CS = match.capstone
 X = CS.x86_const
 REGS = ('eax', 'edx', 'ecx', 'ebx', 'esi', 'edi', 'ebp', 'esp')
@@ -102,8 +108,22 @@ def unhash(name):
     return re.sub(r'@[0-9A-Fa-f]{8}$', '', name)
 
 
+def content_key(value):
+    if not z3.is_expr(value):
+        return repr(value)
+    if not hasattr(value, '_order_key'):
+        value._order_key = value.sexpr()
+    return value._order_key
+
+def ordered(values):
+    values = list(values)
+    return values if len(values) < 2 else sorted(values, key=content_key)
+
+def conjunction(values):
+    return z3.And(ordered(values))
+
 def prove(expressions):
-    expressions = [e for e in expressions if not z3.is_true(simp(e))]
+    expressions = [e for e in ordered(expressions) if not z3.is_true(simp(e))]
     if not expressions:
         return True
     s = z3.Solver()
@@ -126,7 +146,7 @@ def correspondence_failure(states, memories, tails, relations):
     for name,u,v in [('memory',*memories),('FS',states[0].fs,states[1].fs),('FP',states[0].fp,states[1].fp),('branch condition',states[0].condition,states[1].condition)]:
         items.append(('exit at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,equality(u,v)),(u,v)))
     items += [('successor at %s differs: %s'%(hex(tails[0]),name),z3.Implies(guard,goal),None) for name,goal in relations]
-    solver=z3.Solver();solver.add(z3.Not(z3.And([goal for _,goal,_ in items])))
+    solver=z3.Solver();solver.add(z3.Not(conjunction([goal for _,goal,_ in items])))
     if limits.check(solver,'diagnostic')==z3.sat:
         witness=solver.model()
         for label,goal,pair in items:
@@ -155,7 +175,7 @@ def conditional_facts(guard, equations):
     solver.add(guard)
     for _ in range(4):
         solver.push()
-        solver.add(z3.Not(z3.And(list(remaining.values()))))
+        solver.add(z3.Not(z3.And([remaining[k] for k in ordered(remaining)])))
         answer = limits.check(solver, 'filter')
         if answer == z3.unsat:
             solver.pop()
@@ -865,7 +885,7 @@ class Machine:
                     raise Unsupported('write to accepted pointer cell 0x%x' % cell)
         if fs and getattr(self.addresses, 'active_cells', ((),()))[self.side]:
             raise Unsupported('FS write may alias accepted pointer cell (segment relation unproved)')
-        for cell in getattr(self.addresses, 'active_cells', ((),()))[self.side]:
+        for cell in sorted(getattr(self.addresses, 'active_cells', ((),()))[self.side]):
             canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell, cell)
             if not prove([z3.And(*(address+bv(i) != bv(canonical_cell+k)
                                   for i in range(size) for k in range(self.addresses.protected(self.side)[cell])))]):
@@ -1185,7 +1205,7 @@ class Machine:
             if contracts is None or (self.side,ins.address) not in contracts.sites:
                 raise Unsupported('call contract was not prepared')
             inputs,cleanup,contract = contracts.sites[self.side,ins.address]
-            for cell in getattr(self.addresses,'active_cells',((),()))[self.side]:
+            for cell in sorted(getattr(self.addresses,'active_cells',((),()))[self.side]):
                 contracts.h5.add((self.side,hex(ins.address),hex(cell),self.addresses.protected(self.side)[cell],0,'All callee memory effects preserve this immutable storage range'))
             op = oo[0]
             if ((op.type == X.X86_OP_IMM and op.imm in self.dynamic_targets)
@@ -1302,7 +1322,7 @@ def blocks(insns, entry=0, preserve=False):
         if insns[i].mnemonic.startswith('j') or insns[i].flow is not None:
             starts.update(edges)
     result = {}
-    for i in starts:
+    for i in sorted(starts):
         seq = [i]
         while len(reachable[seq[-1]]) == 1:
             nxt = reachable[seq[-1]][0]
@@ -2101,7 +2121,7 @@ def verify_frames(checker, a, b, finite=False):
                 raise NotProven('finite frame path budget')
             for st in states:st.path=guard
             execute(i, states)
-            if not prove([z3.Implies(guard, z3.And(frame_goals(frames, states)))]):
+            if not prove([z3.Implies(guard, conjunction(frame_goals(frames, states)))]):
                 raise NotProven('finite frame paths differ')
             edges = graphs[0][i][1]
             for edge, target in enumerate(edges):
@@ -2172,7 +2192,7 @@ def verify_frames(checker, a, b, finite=False):
         for edge, target in enumerate(edges):
             guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
             goals += [z3.Implies(guard, frames.fact(states, f)) for f in sorted(candidates[target],key=repr)]
-        if not prove([z3.Implies(premise, z3.And(goals))]):
+        if not prove([z3.Implies(premise, conjunction(goals))]):
             raise NotProven('private frame relation does not prove the transition')
     return 'PROVEN', ''
 
@@ -2622,7 +2642,8 @@ class Checker:
         def held(premise, equations):
             budget()
             established, remaining = set(), {}
-            for key, expr in equations.items():
+            for key in ordered(equations):
+                expr = equations[key]
                 expr = simp(expr)
                 if z3.is_true(expr):
                     established.add(key)
@@ -2678,7 +2699,7 @@ class Checker:
             for edge, target in enumerate(edges):
                 guard = edge_guard(old, a[graphs[0][i][0][-1]], len(edges), edge)
                 goals += [z3.Implies(guard, fact_expression(states, f)) for f in sorted(candidates[target],key=repr)]
-            if not prove(guarded(states,[z3.Implies(premise, z3.And(goals))])):
+            if not prove(guarded(states,[z3.Implies(premise, conjunction(goals))])):
                 garbage.failed(tails)
                 raise NotProven('live-location relation does not prove the transition')
         return 'PROVEN', ''
@@ -2931,7 +2952,7 @@ class Checker:
                 if x[0] != y[0] or len(x) != len(y):
                     return z3.BoolVal(False)
                 goals += [equality(u, v) for u, v in zip(x[1:], y[1:])]
-            return z3.And(goals)
+            return conjunction(goals)
 
         for source, target in (projected, projected[::-1]):
             for p in source:
