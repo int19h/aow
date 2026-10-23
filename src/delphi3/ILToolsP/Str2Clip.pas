@@ -29,7 +29,7 @@ begin
       P := GlobalLock(H);
       try
         PInteger(P)^ := Length(Format);
-        Move(Format[1], P[4], Length(Format));
+        Move(Pointer(Format)^, P[4], Length(Format));
         PInteger(P + 4 + Length(Format))^ := Stream.Size;
         Inc(P, 4);
         Stream.ReadBuffer(P[Length(Format) + 4], Stream.Size);

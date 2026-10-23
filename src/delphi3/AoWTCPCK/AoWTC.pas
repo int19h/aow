@@ -3661,8 +3661,8 @@ begin
         else FUnitGFXResource.FSFXLibraries[2].Play(0);
   end;
 end;
-
-procedure TTacticalCombatUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: only the Assert line differs; preserve source line count. }
+procedure OriginalUnitAssert(const Message, Filename: AnsiString; LineNumber: Integer); external 'VCL30.dpl' name 'System.@Assert@E17CE8DC';
+procedure TTacticalCombatUnitHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Preserve the original assertion filename and line without changing source line counts. }
 var
   Sequence: TImageSequence;
   Index, X, Y, DX, DY: Integer;
@@ -3672,7 +3672,7 @@ var
   SD: TSurfaceDesc;
 begin
   try
-    Assert(FDirection < FUnitGFXResource.FSequences.Count, 'Invalid Unit Index');
+    if not (FDirection < FUnitGFXResource.FSequences.Count) then OriginalUnitAssert('Invalid Unit Index', 'D:\AoWDev\AoWTC\inc\TCUnitHS.pas', 4262);
     HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, X, Y);
     XhpSurf := X - XhpSurf + FOffsetX;
     YhpSurf := Y - YhpSurf - 8 + FOffsetY;
@@ -3778,7 +3778,7 @@ begin
       if XhpSurf - 4 + NX < SD.ClipRect.Right then SD.ClipRect.Right := XhpSurf - 4 + NX;
       AoWHSSet.FCombatImages[1].ShowClipped(XhpSurf - 4, YhpSurf - 4, SD);
     end;
-  except MessageBox(0, PChar('Error - ' + FUnit.FUnit.GetName), 'Error during ShowUnit', 0); end;
+  except MessageBox(0, 'Error during ShowUnit', PChar(Pointer('Error - ' + FUnit.FUnit.GetName)), 0); end;
 end;
 
 procedure TTacticalCombatUnitHS.Select;

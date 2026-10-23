@@ -729,7 +729,7 @@ begin
     AoWEdDictionary.FFileName := AoWEngine.StartupDirectory + 'Dict\' + 'AoWEd' + '.mld';
     AoWEdDictionary.Open;
     case AoWEngine.FRegistry.GetLanguage of
-      alAuto: AoWEdDictionary.SetLanguage(Language + 1); { Original uses an uninitialized language index. }
+      alAuto: AoWEdDictionary.SetLanguage(Language + 1); { Auto is unreachable: shipped GetLanguage always returns alEnglish. }
       alEnglish: AoWEdDictionary.SetLanguage(1);
       alGerman: AoWEdDictionary.SetLanguage(1);
       alFrench: AoWEdDictionary.SetLanguage(1);
@@ -1385,9 +1385,9 @@ begin
 end;
 
 
-procedure TMainForm.RemoveLeaderFromMapClick(Sender: TObject);
+procedure TMainForm.RemoveLeaderFromMapClick(Sender: TObject); var Leader: TLeader;
 begin
-  if (LeaderSelectionGrid.GetSelectedLeader <> nil) and (LeaderSelectionGrid.GetSelectedLeader.Owner <> nil) then
+  Leader := LeaderSelectionGrid.GetSelectedLeader; if (Leader <> nil) and (Leader.Owner <> nil) then
       if MessageDlg(RemoveLeaderRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
         LeaderSelectionGrid.RemoveFromMap;
 end;

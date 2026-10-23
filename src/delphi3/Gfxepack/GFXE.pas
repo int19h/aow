@@ -2464,7 +2464,7 @@ end;
   colors, found from their top left corners. }
 function GetSurfaceRectangles(SD: TSurfaceDesc; TransparentColor: Integer; OnProgress: TProgressEvent): TRectangleList;
 var
-  List: TRectangleList;
+  List: TRectangleList; R: TRectangle;
   X, Y: Word;
 
   function GetPixel(X, Y: Integer): Integer;
@@ -2529,7 +2529,7 @@ begin
   begin
     for X := 0 to SD.Width - 1 do
       if GetPixel(X, Y) = TransparentColor then
-        if FindRectangle(X, Y) <> nil then List.Add(FindRectangle(X, Y));
+        begin R := FindRectangle(X, Y); if R <> nil then List.Add(R); end;
     if Assigned(OnProgress) and ((Y mod 20 = 0) or (Y = SD.Height - 1)) then
       OnProgress(nil, Round(Y * 100 / (SD.Height - 1)), 0);
   end;
