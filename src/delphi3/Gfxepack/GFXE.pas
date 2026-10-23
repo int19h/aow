@@ -2703,7 +2703,7 @@ begin
     Y := Y1;
   end;
   if (X1 >= SD.ClipRect.Left) and (X1 < SD.ClipRect.Right) and (Y1 >= SD.ClipRect.Top) and
-    (Y1 < SD.ClipRect.Bottom) and (X2 >= SD.ClipRect.Left) and (X2 < SD.ClipRect.Right) and
+    (Y1 < SD.ClipRect.Bottom) and (X2 >= PSurfaceDesc(@SD.Width)^.ClipRect.Left) and (X2 < SD.ClipRect.Right) and
     (Y2 >= SD.ClipRect.Top) and (Y2 < SD.ClipRect.Bottom) then
   begin
     // the whole line is inside the clip rectangle

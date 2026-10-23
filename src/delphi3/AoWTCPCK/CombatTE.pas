@@ -735,9 +735,9 @@ begin
                     I := (raDir[FUnit.FUnitHS.FActionFrame] + FUnit.FUnitHS.FDirection) mod 6 + 1;
                     CenterHNtoHX(FPath[1].X, FPath[1].Y, I, X, Y);
                     HS := TTacticalCombatUnitHS(AoWCombatMap.MapContainer.MapLevels[0].GetField(X, Y).FindOwnedChild($220104));
-                    if (HS <> nil) and (HS <> FUnit.FUnitHS) then
+                    if (HS = nil) or (HS = FUnit.FUnitHS) then FPreviousUnit := nil else
                     begin
-                      if not HS.FUnit.GetAbilityEnabled(1) then
+                      if HS.FUnit.GetAbilityEnabled(1) then FPreviousUnit := nil else
                       begin
                       RandSeed := AoWHSMap.Random($FFFFFF);
                       FStrike := CreateStrikeCA(FUnit, HS.FUnit, True);
@@ -751,10 +751,10 @@ begin
                       else FUnit.FUnitHS.SetAction(caRoundAttack);
                       FStrike.Release;
                       FStrike := nil;
-                      end
-                      else FPreviousUnit := nil;
-                    end
-                    else FPreviousUnit := nil;
+                      end;
+
+                    end;
+
                   end;
               end;
           end

@@ -6138,17 +6138,17 @@ var
         if (FFrame - 9 + Half + 5 > -1) and (FFrame - 9 + Half + 5 < FPath.Count) then begin
           Index := Sequence.GetUnloopedFrameIndex(LastFrame - N);
           if (Index <> -1) and Sequence.ImageLibrary.ImageExist(Index) then
-            if (FFrame - 9 + Half + 5 <> FPath.Count - 1) and (Half * 2 <> N) then
+            if (FFrame - 9 + Half + 5 = FPath.Count - 1) or (Half * 2 = N) then
+              Sequence.ImageLibrary[Index].ShowClipped(
+                FPath[FFrame - 9 + Half + 5].X - XhpSurf + Sequence.dXshift,
+                FPath[FFrame - 9 + Half + 5].Y - FPath[FFrame - 9 + Half + 5].Z -
+                  YhpSurf + Sequence.dYshift, SurfaceDesc)
+            else
               Sequence.ImageLibrary[Index].ShowClipped(
                 (FPath[FFrame - 9 + Half + 5].X + FPath[FFrame - 9 + Half + 6].X) div 2 -
                   XhpSurf + Sequence.dXshift,
                 (FPath[FFrame - 9 + Half + 5].Y - FPath[FFrame - 9 + Half + 5].Z +
                   FPath[FFrame - 9 + Half + 6].Y - FPath[FFrame - 9 + Half + 6].Z) div 2 -
-                  YhpSurf + Sequence.dYshift, SurfaceDesc)
-            else
-              Sequence.ImageLibrary[Index].ShowClipped(
-                FPath[FFrame - 9 + Half + 5].X - XhpSurf + Sequence.dXshift,
-                FPath[FFrame - 9 + Half + 5].Y - FPath[FFrame - 9 + Half + 5].Z -
                   YhpSurf + Sequence.dYshift, SurfaceDesc);
         end;
       end;

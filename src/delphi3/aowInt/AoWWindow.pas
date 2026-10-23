@@ -448,7 +448,7 @@ begin
           case FResizingX of
             1:
               begin
-                if (FWinLeft + FDragX > X) and (FWinManager <> nil) and FUseManagerBorders and
+                if FWinLeft + FDragX > X then if (FWinManager <> nil) and FUseManagerBorders then if
                   (FWinManager.FBorderLeft > X - FDragX) then
                   X := FWinManager.FBorderLeft + FDragX;
                 I := FWinLeft + FWinWidth;
@@ -476,7 +476,7 @@ begin
           case FResizingY of
             1:
               begin
-                if (FWinTop + FDragY > Y) and (FWinManager <> nil) and FUseManagerBorders and
+                if FWinTop + FDragY > Y then if (FWinManager <> nil) and FUseManagerBorders then if
                   (FWinManager.FBorderTop > Y - FDragY) then
                   Y := FWinManager.FBorderTop + FDragY;
                 I := FWinTop + FWinHeight;
